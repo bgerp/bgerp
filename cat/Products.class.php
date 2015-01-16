@@ -320,6 +320,7 @@ class cat_Products extends core_Embedder {
     	
     	if(isset($rec->csv_name)){
     		$rec->name = $rec->csv_name;
+    		$rec->innerForm = (object)array('measureId' => $rec->measureId);
     	}
     }
     
