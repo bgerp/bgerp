@@ -155,7 +155,6 @@ class rtac_Plugin extends core_Plugin
             // Роли на потребителите
             $roles = Request::get('roles');
             $roles = str_replace("|", ",", $roles);
-            $rolesArr = arr::make($rolesArr);
             
             $conf = core_Packs::getConfig('rtac');
             
