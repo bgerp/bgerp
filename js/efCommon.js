@@ -2034,7 +2034,13 @@ function efae() {
 
     // Дали процеса е изпратена AJAX заявка за извличане на данните за показване след рефреш
     efae.prototype.isSendedAfterRefresh = false;
-
+    
+    // Флаг, указващ дали има грешка в AJAX
+    efae.prototype.AJAXHaveError = false;
+    
+    // Флаг, указващ дали е оправена грешката в AJAX
+    efae.prototype.AJAXErrorRepaired = false;
+	
     // УРЛ, от което се вика AJAX-a - отворения таб
     Experta.prototype.parentUrl;
 }
@@ -2065,13 +2071,13 @@ efae.prototype.run = function() {
     try {
         // Увеличаваме брояча
         this.increaseTimeout();
-
+        
         // Вземаме всички URL-та, които трябва да се извикат в този цикъл
         var subscribedObj = this.getSubscribed();
-
+        
         // Стартираме процеса
         this.process(subscribedObj);
-
+        
     } catch (err) {
 
         // Ако възникне грешка
@@ -2191,7 +2197,7 @@ efae.prototype.process = function(subscribedObj, otherData, async) {
 
         // Добавяме флаг, който указва, че заявката е по AJAX
         dataObj['ajax_mode'] = 1;
-
+        
         // Извикваме по AJAX URL-то и подаваме необходимите данни и очакваме резултата в JSON формат
         $.ajax({
             async: async,
@@ -2234,11 +2240,27 @@ efae.prototype.process = function(subscribedObj, otherData, async) {
                     getEO().log(err + 'Несъществуваща фунцкция: ' + func + ' с аргументи: ' + arg);
                 }
             }
-
+            
+            if (getEfae().AJAXHaveError) {
+            	getEfae().AJAXErrorRepaired = true;
+            }
         }).fail(function(res) {
-
-            // Ако възникне грешка
-            getEO().log('Грешка при извличане на данни по AJAX');
+        	
+        	// Ако не е добавено съобщение за грешка
+        	if (!$(".connection-error-status").length) {
+        		// Ако възникне грешка
+                getEO().log('Грешка при извличане на данни по AJAX');
+                var errorData = {id: "statuses", html: "<div class='statuses-message statuses-error connection-error-status'> Connection error </div>", replace: false};
+                render_html(errorData);
+                
+                getEfae().AJAXHaveError = true;
+                getEfae().AJAXErrorRepaired = false;
+        	}
+        }).always(function(res) {
+        	// Ако е имало грешка и е оправенена, премахваме статуса
+        	if (getEfae().AJAXHaveError && getEfae().AJAXErrorRepaired && $(".connection-error-status").length) {
+    			$('.connection-error-status').remove();
+        	}
         });
     } else {
 
