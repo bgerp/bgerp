@@ -233,6 +233,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 			$form->setField('image', 'input=none');
 			$form->setDefault('measureId', $this->getDriverUom());
 			$form->setField('measureId', 'display=hidden');
+			$form->setField('title', 'display=readOnly');
 		}
 		
 		// Викаме метода на бащата
