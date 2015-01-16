@@ -54,7 +54,7 @@ class fileman_tests_Files extends unit_Class
     {
         // Създаваме кофата
         $Bucket = cls::get('fileman_Buckets');
-        $Bucket->createBucket(static::$bucket, 'Тестови файлове', NULL, NULL, 'user', 'user');
+        $Bucket->createBucket(self::$bucket, 'Тестови файлове', NULL, NULL, 'user', 'user');
     }
     
     
@@ -70,11 +70,11 @@ class fileman_tests_Files extends unit_Class
     public static function test_absorb($mvc)
     {
         // Името на кофата
-        $bucket = static::$bucket;
+        $bucket = self::$bucket;
         
         // Пътя до файла
-        $path1 = getFullPath(static::$path1);
-        $path2 = getFullPath(static::$path2);
+        $path1 = getFullPath(self::$path1);
+        $path2 = getFullPath(self::$path2);
         
         // Очакваме да има такива файлове
         ut::expectEqual(($path1 && $path2), TRUE);
@@ -105,11 +105,11 @@ class fileman_tests_Files extends unit_Class
         ut::expectEqual($otherNameUnd, $otherName);
         
         // Ако няма добавени файлове 
-        if (!count(static::$fhArr)) {
+        if (!count(self::$fhArr)) {
             
             // Добавяме в масива
-            static::$fhArr[] = $fh1;
-            static::$fhArr[] = $fh2;
+            self::$fhArr[] = $fh1;
+            self::$fhArr[] = $fh2;
         }
     }
     
@@ -126,11 +126,11 @@ class fileman_tests_Files extends unit_Class
     public static function test_absorbStr($mvc)
     {
         // Името на кофата
-        $bucket = static::$bucket;
+        $bucket = self::$bucket;
         
         // Пътя до файла
-        $path1 = getFullPath(static::$path1);
-        $path2 = getFullPath(static::$path2);
+        $path1 = getFullPath(self::$path1);
+        $path2 = getFullPath(self::$path2);
         
         // Съдържанието на файла
         $content1 = file_get_contents($path1);
@@ -175,11 +175,11 @@ class fileman_tests_Files extends unit_Class
         ut::expectEqual($otherNameUnd, $otherNameUnd2);
         
         // Ако няма добавени файлове 
-        if (!count(static::$fhArr)) {
+        if (!count(self::$fhArr)) {
             
             // Добавяме в масива
-            static::$fhArr[] = $fh1;
-            static::$fhArr[] = $fh2;
+            self::$fhArr[] = $fh1;
+            self::$fhArr[] = $fh2;
         }
     }
 
@@ -195,21 +195,21 @@ class fileman_tests_Files extends unit_Class
     public static function test_addVersion($mvc)
     {
         // Пътя до файла
-        $path1 = getFullPath(static::$path1);
-        $path2 = getFullPath(static::$path2);
+        $path1 = getFullPath(self::$path1);
+        $path2 = getFullPath(self::$path2);
         
         // Очакваме да има такива файлове
         ut::expectEqual(($path1 && $path2), TRUE);
         
         // Ако няма добавен файл
-        if (!count(static::$fhArr)) {
+        if (!count(self::$fhArr)) {
             
             // Извикваме теста за абсорбиране на файл, който добавя в масива
-            static::test_absorb($mvc);
+            self::test_absorb($mvc);
         }
         
         // Манипулатора на файла
-        $fh = static::$fhArr[0];
+        $fh = self::$fhArr[0];
         
         // Добавяме версии
         $id1 = fileman::addVersion($fh, $path1);
@@ -234,8 +234,8 @@ class fileman_tests_Files extends unit_Class
     public static function test_addVersionStr($mvc)
     {
         // Пътя до файла
-        $path1 = getFullPath(static::$path1);
-        $path2 = getFullPath(static::$path2);
+        $path1 = getFullPath(self::$path1);
+        $path2 = getFullPath(self::$path2);
         
         // Съдържанието на файла
         $content1 = file_get_contents($path1);
@@ -248,14 +248,14 @@ class fileman_tests_Files extends unit_Class
         ut::expectEqual(($content1 && $content2), TRUE);
         
         // Ако няма добавен файл
-        if (!count(static::$fhArr)) {
+        if (!count(self::$fhArr)) {
             
             // Извикваме теста за абсорбиране на файл, който добавя в масива
-            static::test_absorbStr($mvc);
+            self::test_absorbStr($mvc);
         }
         
         // Манипулатора на файла
-        $fh = static::$fhArr[0];
+        $fh = self::$fhArr[0];
         
         // Добавяме версии
         $id1 = fileman::addVersionStr($fh, $content1);
@@ -279,14 +279,14 @@ class fileman_tests_Files extends unit_Class
     public static function test_extract($mvc)
     {
         // Ако няма добавен файл
-        if (!count(static::$fhArr)) {
+        if (!count(self::$fhArr)) {
             
             // Извикваме теста за абсорбиране на файл, който добавя в масива
-            static::test_absorb($mvc);
+            self::test_absorb($mvc);
         }
         
         // Манипулатора на файла
-        $fh = static::$fhArr[0];
+        $fh = self::$fhArr[0];
         
         // Екстрактваме файла и вземаме пътя до екстрактнатия файл
         $filePath = fileman::extract($fh);
@@ -312,14 +312,14 @@ class fileman_tests_Files extends unit_Class
     public static function test_extractStr($mvc)
     {
         // Ако няма добавен файл
-        if (!count(static::$fhArr)) {
+        if (!count(self::$fhArr)) {
             
             // Извикваме теста за абсорбиране на файл, който добавя в масива
-            static::test_absorbStr($mvc);
+            self::test_absorbStr($mvc);
         }
         
         // Манипулатора на файла
-        $fh = static::$fhArr[1];
+        $fh = self::$fhArr[1];
         
         // Екстрактваме файла и вземаме съдържанието
         $fileContent = fileman::extractStr($fh);
@@ -343,14 +343,14 @@ class fileman_tests_Files extends unit_Class
     public static function test_rename($mvc)
     {
         // Ако няма добавен файл
-        if (!count(static::$fhArr)) {
+        if (!count(self::$fhArr)) {
             
             // Извикваме теста за абсорбиране на файл, който добавя в масива
-            static::test_absorb($mvc);
+            self::test_absorb($mvc);
         }
         
         // Манипулатора на файла
-        $fh = static::$fhArr[0];
+        $fh = self::$fhArr[0];
         
         // Преимениваме файла
         $newName = fileman::rename($fh, 'renamed.txt');
@@ -375,17 +375,17 @@ class fileman_tests_Files extends unit_Class
     public static function test_copy($mvc)
     {
         // Ако няма добавен файл
-        if (!count(static::$fhArr)) {
+        if (!count(self::$fhArr)) {
             
             // Извикваме теста за абсорбиране на файл, който добавя в масива
-            static::test_absorb($mvc);
+            self::test_absorb($mvc);
         }
         
         // Манипулатора на файла
-        $fh = static::$fhArr[0];
+        $fh = self::$fhArr[0];
         
         // Копираме файла
-        $fhCopied = fileman::copy($fh, static::$bucket, 'copied.txt');
+        $fhCopied = fileman::copy($fh, self::$bucket, 'copied.txt');
         
         // Очакваме манипулаторите на двата файла да не съвпадат
         ut::expectEqual($fh != $fhCopied, TRUE);
@@ -402,14 +402,14 @@ class fileman_tests_Files extends unit_Class
     public static function test_fhToId($mvc)
     {
         // Ако няма добавен файл
-        if (!count(static::$fhArr)) {
+        if (!count(self::$fhArr)) {
             
             // Извикваме теста за абсорбиране на файл, който добавя в масива
-            static::test_absorb($mvc);
+            self::test_absorb($mvc);
         }
         
         // Манипулатора на файла
-        $fh = static::$fhArr[0];
+        $fh = self::$fhArr[0];
         
         // Вземаме id' то от манипулатора
         $id = fileman::fhToId($fh);
@@ -435,20 +435,20 @@ class fileman_tests_Files extends unit_Class
     public static function test_fhKeylistToIds($mvc)
     {
         // Ако няма добавен файл
-        if (!count(static::$fhArr)) {
+        if (!count(self::$fhArr)) {
             
             // Извикваме теста за абсорбиране на файл, който добавя в масива
-            static::test_absorb($mvc);
+            self::test_absorb($mvc);
         }
         
         // Вземаме масива с id' та от масива с манипулаторите на файловете
-        $idsArr = fileman::fhKeylistToIds(static::$fhArr);
+        $idsArr = fileman::fhKeylistToIds(self::$fhArr);
         
         // Очакваме да има 2 id' та
         ut::expectEqual(count($idsArr), 2);
         
         // Обхождаме масива с манипуалтори и го привръщаме в keyList
-        foreach (static::$fhArr as $value) {
+        foreach (self::$fhArr as $value) {
             $keyList .= "|" . $value; 
         }
         $keyList .= "|";
@@ -465,10 +465,10 @@ class fileman_tests_Files extends unit_Class
         }
         
         // Ако не е сетнат
-        if (!count(static::$idsArr)) {
+        if (!count(self::$idsArr)) {
             
             // Записваме го в масива с id
-            static::$idsArr = $newArr;
+            self::$idsArr = $newArr;
         }
     }
 
@@ -483,14 +483,14 @@ class fileman_tests_Files extends unit_Class
     public static function test_idToFh($mvc)
     {
         // Ако няма добавени id' та
-        if (!count(static::$idsArr)) {
+        if (!count(self::$idsArr)) {
             
             // Извикваме функцията за сетване на id' та
-            static::test_fhKeylistToIds($mvc);
+            self::test_fhKeylistToIds($mvc);
         }
         
         // id на файла
-        $id = static::$idsArr[0];
+        $id = self::$idsArr[0];
         
         // Вземаме манипулатора от id' то
         $fh = fileman::idToFh($id);
@@ -516,20 +516,20 @@ class fileman_tests_Files extends unit_Class
     public static function test_idKeylistToFhs($mvc)
     {
         // Ако няма добавени id' та
-        if (!count(static::$idsArr)) {
+        if (!count(self::$idsArr)) {
             
             // Извикваме функцията за сетване на id' та
-            static::test_fhKeylistToIds($mvc);
+            self::test_fhKeylistToIds($mvc);
         }
 
         // Вземаме от масива с id' та масива с манипулатори
-        $fhsArr = fileman::idKeylistToFhs(static::$idsArr);
+        $fhsArr = fileman::idKeylistToFhs(self::$idsArr);
         
         // Очакваме броя им да е 2
         ut::expectEqual(count($fhsArr), 2);
         
         // Обхождаме масива с id' та и го превръщаме в keylist
-        foreach (static::$idsArr as $value) {
+        foreach (self::$idsArr as $value) {
             $keyList .= "|" . $value; 
         }
         $keyList .= "|";
@@ -559,14 +559,14 @@ class fileman_tests_Files extends unit_Class
     public static function test_getMeta($mvc)
     {
         // Ако няма добавен файл
-        if (!count(static::$fhArr)) {
+        if (!count(self::$fhArr)) {
             
             // Извикваме теста за абсорбиране на файл, който добавя в масива
-            static::test_absorb($mvc);
+            self::test_absorb($mvc);
         }
         
         // Манипуалтора на съответния файл
-        $fh = static::$fhArr[0];
+        $fh = self::$fhArr[0];
         
         // Вземаме мета данните
         $metaData = fileman::getMeta($fh);
@@ -616,7 +616,7 @@ class fileman_tests_Files extends unit_Class
      */
     static function test_createFile($mvc)
     {
-        // Тества се в static::absorb и static::absorbStr
+        // Тества се в self::absorb и self::absorbStr
     }
     
     
@@ -654,7 +654,7 @@ class fileman_tests_Files extends unit_Class
      */
     public static function test_getTempDir($mvc)
     {
-        // Тества се в static::absorb и static::getTempPath
+        // Тества се в self::absorb и self::getTempPath
     }
     
     
@@ -667,7 +667,7 @@ class fileman_tests_Files extends unit_Class
      */
     public static function test_deleteTempPath($mvc)
     {
-        // Тества се в static::extract
+        // Тества се в self::extract
     }
 
     
@@ -683,14 +683,14 @@ class fileman_tests_Files extends unit_Class
     static function test_checkFileNameExist($mvc)
     {
         // Ако няма добавен файл
-        if (!count(static::$fhArr)) {
+        if (!count(self::$fhArr)) {
             
             // Извикваме теста за абсорбиране на файл, който добавя в масива
-            static::test_absorb($mvc);
+            self::test_absorb($mvc);
         }
         
         // Обхождаме масива
-        foreach (static::$fhArr as $fh) {
+        foreach (self::$fhArr as $fh) {
             
             // Вземаме записите за файла
             $fRec = fileman_Files::fetchByFh($fh);
@@ -703,20 +703,20 @@ class fileman_tests_Files extends unit_Class
         }
         
         // Пътя до файла
-        $path1 = getFullPath(static::$path1);
-        $path2 = getFullPath(static::$path2);
+        $path1 = getFullPath(self::$path1);
+        $path2 = getFullPath(self::$path2);
         
         // Абсорбираме файл с path1
-        $xx = fileman::absorb($path1, static::$bucket, 'xx.txt');
+        $xx = fileman::absorb($path1, self::$bucket, 'xx.txt');
         
         // Абсорбираме файл с path2
-        $xx_1 = fileman::absorb($path2, static::$bucket, 'xx_1.txt');
+        $xx_1 = fileman::absorb($path2, self::$bucket, 'xx_1.txt');
         
         // Абсорбираме файл с path2
-        $xx_2 = fileman::absorb($path2, static::$bucket, 'xx_2.txt');
+        $xx_2 = fileman::absorb($path2, self::$bucket, 'xx_2.txt');
         
         // Абсорбираме файл с path2, но с името на path1
-        $xxNew = fileman::absorb($path2, static::$bucket, 'xx.txt');
+        $xxNew = fileman::absorb($path2, self::$bucket, 'xx.txt');
         
         // Очакваме първия файл с path2 да се върне
         ut::expectEqual($xx_1, $xxNew);
