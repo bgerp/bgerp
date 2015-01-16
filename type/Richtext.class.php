@@ -1392,7 +1392,6 @@ class type_Richtext extends type_Blob
      * 
      * @param core_Mvc $mvc
      * @param array $resArr
-     * @param string $isAbsolute
      * @param boolean $isAbsolute
      */
     function on_AfterGetBlockElements($mvc, &$resArr, $qt='"', $isAbsolute=FALSE)
