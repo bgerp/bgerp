@@ -195,7 +195,7 @@ class core_BaseClass
             }
 
             return $status;
-        }
+        }   
 
         $this->_listenerCache[$method] = array();
 
