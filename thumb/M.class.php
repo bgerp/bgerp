@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'thumb_M' - Контролер за умалени изображения
  *
@@ -16,6 +15,17 @@
  */
 class thumb_M extends core_Mvc
 {
+    
+    
+    /**
+     * 
+     */
+    protected $thumb;
+    
+    
+    /**
+     * 
+     */
     function act_R()
     {
         $id = Request::get('t');
@@ -55,7 +65,10 @@ class thumb_M extends core_Mvc
         }
     }
 
-
+    
+    /**
+     * 
+     */
     function on_Shutdown()
     {
         $this->thumb->getUrl('forced');
