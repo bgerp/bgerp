@@ -31,14 +31,6 @@ class sales_SaleRequests extends core_Master
     
     
     /**
-     * Към коя група документи спада класа
-     *
-     * (@see deals_DocumentTypes)
-     */
-    public $documentType = deals_DocumentTypes::CONTRACT;
-    
-    
-    /**
      * Абревиатура
      */
     public $abbr = 'Srq';

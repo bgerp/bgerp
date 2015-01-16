@@ -36,14 +36,6 @@ abstract class deals_DealBase extends core_Master
 	
 	
 	/**
-	 * Към коя група документи спада класа
-	 * 
-	 * (@see deals_DocumentTypes)
-	 */
-	public $documentType = deals_DocumentTypes::CONTRACT;
-	
-	
-	/**
 	 * Извиква се след описанието на модела
 	 *
 	 * @param core_Mvc $mvc
