@@ -279,8 +279,8 @@ class doc_Folders extends core_Master
         
         $row->threads .= "<span style='float:right;'>&nbsp;&nbsp;&nbsp;" . $mvc->getVerbal($rec, 'allThreadsCnt') . "</span>";
         
+        $attr = array();
         $attr['class'] = 'linkWithIcon';
-        
         
         if(mb_strlen($row->title) > self::maxLenTitle) {
             $attr['title'] = $row->title;
