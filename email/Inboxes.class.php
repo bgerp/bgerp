@@ -281,25 +281,27 @@ class email_Inboxes extends core_Master
             
             // Вземаме масив от PowerUsers, като индекса е ника на потребителя
             $powerUsers = static::getPowerUsers();
-
+            
+            list(, $accDomain) = explode('@', $accRec->email);
+            
             // Ако имейла е съставен от ник на потребител и домейн на корпоративна сметка
             // тогава създаваме кутия за този имейл, вързана към съответния потребител
             foreach ($emailsArr as $eml) {
                 
                 list($nick, $domain) = explode('@', $eml);
                 
-                if(!$nick || !$domain) break;
+                if(!$nick || !$domain) continue;
 
                 // Намираме потребител, съответстващ на емейл адреса
                 $userRec = $powerUsers[$nick];
                 
-                // Ако няма такъв потребител - прекратяваме обработката
-                if(!$userRec) break;
+                // Ако няма такъв потребител
+                if(!$userRec) continue;
                 
                 // Ако домейна на имейла  корпоративния домейн, то 
                 // Създаваме кутия (основна) на потребителя, към този домейн
-                // и връщаме имейла на тази кутия
-                if($accRec->domain == $domain)  {
+                // и връщаме имейла на тази кутия 
+                if($accDomain == $domain)  {
 
                     $rec = new stdClass();
                     $rec->email = $eml;
