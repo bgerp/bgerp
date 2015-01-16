@@ -19,8 +19,7 @@
                         <tr>
                             [#creation#]
                             <td  class='dt'>|Създаване:|*</td>
-                            <td> <span class="part"><span class="gray-title"></span><b>[#createdBy#]</b></span>
-                                <span class="part"><span class="gray-title">,</span> [#createdOn#]</span>
+                            <td> <span class="part"><span class="gray-title"></span><b>[#createdBy#]</b></span><span class="part"><span class="gray-title">,</span> [#createdOn#]</span>
                             </td>
                         </tr>
                         <!--ET_END creation-->
