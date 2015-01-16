@@ -780,7 +780,7 @@ class doc_Folders extends core_Master
      * @param $params['Act'] - Действието
      * @param $params['folderId'] - id' то на папката
      * 
-     * @return $res - Линк
+     * @return core_ET - Линк
      */
     static function getVerbalLink($params)
     {
