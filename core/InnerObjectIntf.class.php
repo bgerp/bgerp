@@ -36,11 +36,10 @@ class core_InnerObjectIntf
 	 * Подготвя формата за въвеждане на данни за вътрешния обект
 	 * 
 	 * @param core_Form $form
-	 * @param string $documentType - (@see deals_DocumentTypes)
 	 */
-	public function prepareEmbeddedForm(core_Form &$form, $documentType)
+	public function prepareEmbeddedForm(core_Form &$form)
 	{
-		return $this->class->prepareEmbeddedForm($form, $documentType);
+		return $this->class->prepareEmbeddedForm($form);
 	}
 	
 	

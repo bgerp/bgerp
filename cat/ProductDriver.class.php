@@ -106,9 +106,8 @@ abstract class cat_ProductDriver extends core_BaseClass
 	 * Подготвя формата за въвеждане на данни за вътрешния обект
 	 *
 	 * @param core_Form $form
-	 * @param string $documentType - (@see deals_DocumentTypes)
 	 */
-	public function prepareEmbeddedForm(core_Form &$form, $documentType)
+	public function prepareEmbeddedForm(core_Form &$form)
 	{
 		// Намираме полетата на формата
 		$fields = $form->selectFields();

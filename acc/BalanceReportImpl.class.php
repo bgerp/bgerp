@@ -66,9 +66,8 @@ class acc_BalanceReportImpl extends frame_BaseDriver
      * Подготвя формата за въвеждане на данни за вътрешния обект
      *
      * @param core_Form $form
-     * @param string $documentType - (@see deals_DocumentTypes)
      */
-    public function prepareEmbeddedForm(core_Form &$form, $documentType)
+    public function prepareEmbeddedForm(core_Form &$form)
     {
     	// Ако е избрана сметка
     	if($form->rec->accountId){
