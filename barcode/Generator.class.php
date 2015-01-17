@@ -80,7 +80,7 @@ class barcode_Generator extends core_Manager
     static function getAllowedBarcodeTypesArr()
     {
         
-        return static::$barcodeTypesArr;
+        return self::$barcodeTypesArr;
     }
     
     
@@ -110,14 +110,14 @@ class barcode_Generator extends core_Manager
      *
      * @param array $output - Масив, в който се записват данните след генерирането на баркода
      *
-     * @return gd img $im
+     * @return gd gdRes
      */
     static function getImg($type, $conten, $size = NULL, $params = array(), &$output = array())
     {
         $type = strtolower($type);
         
         // Разрешените типове за баркодове
-        $permittedType = static::getAllowedBarcodeTypesArr();
+        $permittedType = self::getAllowedBarcodeTypesArr();
         
         // Очакваме да е подаден един от разрешените типове баркод
         expect($permittedType[$type], "Не се поддържа '{$type}' баркод.");
@@ -152,8 +152,8 @@ class barcode_Generator extends core_Manager
         }
         
         // Вземаем размерите в зависимост от съотношението
-        $size['width'] = static::getNewSize($size['width'], $params['ratio']);
-        $size['height'] = static::getNewSize($size['height'], $params['ratio']);
+        $size['width'] = self::getNewSize($size['width'], $params['ratio']);
+        $size['height'] = self::getNewSize($size['height'], $params['ratio']);
         
         // Проверява размерите дали са въведени коректно
         self::checkSizes($type, $size, $minWidthAndHeightArr);
@@ -191,17 +191,17 @@ class barcode_Generator extends core_Manager
             if (!($fontSize = $params['addText']['fontSize'])) {
                 
                 // Задава стойността
-                $fontSize = static::$fontSize;
+                $fontSize = self::$fontSize;
             }
             
             // Вземаме размера на шрифта в зависимост от съоношението
-            $fontSize = static::getNewSize($fontSize, $params['ratio']);
+            $fontSize = self::getNewSize($fontSize, $params['ratio']);
             
             // Ако не е зададен фонт
             if (!($font = $params['addText']['font'])) {
                 
                 // Задаваме стойността
-                $font = static::$font;
+                $font = self::$font;
             }
             
             // Фонт на шрифта
@@ -293,7 +293,7 @@ class barcode_Generator extends core_Manager
      * $params['angle'] - Ъгъл на завъртане. По подразбиране е 0. Представалява ъгъла на завъртане спрямо центъра.
      * Ако е 90 или 270, баркода ще е вертикален. Ако е 180 баркода ще е обърнат надолу.
      *
-     * @return - Показва изображението и спира изпълнението на скрипта
+     * Показва изображението и спира изпълнението на скрипта
      */
     static function printImg($type, $conten, $size, $params = array())
     {
@@ -324,8 +324,10 @@ class barcode_Generator extends core_Manager
      */
     static function getLink($type, $content, $size = NULL, $params = array())
     {
+        $attr = array();
+        
         // Вземаме линка
-        $attr['src']    = static::getUrl($type, $content, $size, $params);
+        $attr['src'] = self::getUrl($type, $content, $size, $params);
         
         // Задаваме аттрибутите на тага
         $attr['alt'] = $content;
@@ -384,13 +386,14 @@ class barcode_Generator extends core_Manager
         }
         
         // Масив с данните за криптиране
+        $cryptArr = array();
         $cryptArr['type'] = $type;
         $cryptArr['content'] = $content;
         $cryptArr['size'] = $size;
         $cryptArr['params'] = $params;
         
         // Криптираме данните
-        $id = core_Crypt::encodeVar($cryptArr, static::getCryptKey());
+        $id = core_Crypt::encodeVar($cryptArr, self::getCryptKey());
         
         // Връщаме линка
         return toUrl(array('barcode_Generator', 'S', 't' => $id), $linkType);
@@ -419,10 +422,10 @@ class barcode_Generator extends core_Manager
         $t = Request::get('t');
         
         // Масив с параметрите
-        $arr = core_Crypt::decodeVar($t, static::getCryptKey());
+        $arr = core_Crypt::decodeVar($t, self::getCryptKey());
         
         // Показваме изображението
-        static::printImg($arr['type'], $arr['content'], $arr['size'], $arr['params']);
+        self::printImg($arr['type'], $arr['content'], $arr['size'], $arr['params']);
     }
     
     
@@ -512,6 +515,7 @@ class barcode_Generator extends core_Manager
         }
         
         //Записмава данните в масива
+        $minWidthAndHeight = array();
         $minWidthAndHeight['width'] = $width;
         $minWidthAndHeight['height'] = $height;
         
@@ -526,6 +530,7 @@ class barcode_Generator extends core_Manager
     {
         //intval->round
         // Определяме съотношениет на баркода, за да няма разтягане на баркода
+        $newSize = array();
         $newSize['width'] = intval($size['width'] / $minWidthAndHeight['width']);
         $newSize['height'] = intval($size['height'] / $minWidthAndHeight['height']);
         

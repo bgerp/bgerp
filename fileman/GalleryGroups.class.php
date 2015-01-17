@@ -149,6 +149,7 @@ class fileman_GalleryGroups extends core_Manager
         
         // Обхождаме всички роли и от името им определяме id-то
         $rolesStrArr = arr::make($rec->roles);
+        $roleArr = array();
         foreach ($rolesStrArr as $role) {
             
             $roleId = core_Roles::fetchByName($role);

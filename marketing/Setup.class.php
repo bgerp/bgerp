@@ -37,7 +37,7 @@ class marketing_Setup extends core_ProtoSetup
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = 'marketing_Inquiries';
+    var $startCtr = 'marketing_Inquiries2';
     
     
     /**
@@ -81,7 +81,7 @@ class marketing_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     var $menuItems = array(
-            array(3.1, 'Търговия', 'Маркетинг', 'marketing_Inquiries', 'default', "ceo, marketing"),
+            array(3.1, 'Търговия', 'Маркетинг', 'marketing_Inquiries2', 'default', "ceo, marketing"),
         );
 
     

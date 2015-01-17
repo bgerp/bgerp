@@ -226,17 +226,16 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	 * Подготвя формата за въвеждане на данни за вътрешния обект
 	 *
 	 * @param core_Form $form
-	 * @param string $documentType - (@see deals_DocumentTypes)
 	 */
-	public function prepareEmbeddedForm(core_Form &$form, $documentType)
+	public function prepareEmbeddedForm(core_Form &$form)
 	{
-		if($documentType == deals_DocumentTypes::INQUIRY){
+		if($this->EmbedderRec->haveInterface('marketing_InquiryEmbedderIntf')){
 			$form->setField('image', 'input=none');
 			$form->setDefault('measureId', $this->getDriverUom());
 			$form->setField('measureId', 'display=hidden');
 		}
 		
 		// Викаме метода на бащата
-		parent::prepareEmbeddedForm($form, $documentType);
+		parent::prepareEmbeddedForm($form);
 	}
 }

@@ -1064,7 +1064,6 @@ class core_Mvc extends core_FieldSet
     /**
      * Името на ДБ таблицата, в която се пазят данните на този модел
      *
-     * @deprecated метода е прекалено тривиален
      * @return string
      */
     static function getDbTableName()

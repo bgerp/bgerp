@@ -37,6 +37,8 @@ class rtac_Plugin extends core_Plugin
         // Масив с никовете на всички потребители
         $userArr = core_Users::getUsersArr();
         
+        $nickArr = array();
+        
         // Обхождаме всички открити никове и, ако има такива потребители добавяме в масива
         foreach ((array) $matches['nick'] as $nick) {
             
@@ -153,7 +155,6 @@ class rtac_Plugin extends core_Plugin
             // Роли на потребителите
             $roles = Request::get('roles');
             $roles = str_replace("|", ",", $roles);
-            $rolesArr = arr::make($rolesArr);
             
             $conf = core_Packs::getConfig('rtac');
             

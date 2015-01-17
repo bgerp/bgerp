@@ -494,7 +494,7 @@ class distro_Group extends core_Master
     /**
      * 
      * 
-     * @param core_Mvc $mvc
+     * @param core_Master $mvc
      * @param stdClass $data
      */
     function on_AfterPrepareSingle($mvc, $res, &$data)

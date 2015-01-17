@@ -90,7 +90,7 @@ class email_Salutations extends core_Manager
     /**
      * Добавя обръщение
      * 
-     * @param email_Outgoings $eRec - Изходящия имейл
+     * @param object $eRec - Изходящия имейл
      */
     public static function add($eRec)
     {

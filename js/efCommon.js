@@ -1291,8 +1291,6 @@ function setFormElementsWidth() {
     } else {
     	 $('.formTable label').each(function() {
              $(this).parent().css('white-space', "nowrap");
-             $(this).parent().css('width', "1%");
-             
              // ако етикета е много широк, режем го и слагаме хинт
              if ($(this).width() > 450){
             	 $(this).css('max-width', "450px");
@@ -1581,6 +1579,51 @@ function addLinkOnCopy(text) {
 
 
 /**
+ * При копиране на текст, маха интервалите от вербалната форма на дробните числа
+ */
+function editCopiedTextBeforePaste() {
+
+	var body_element = document.getElementsByTagName('body')[0];
+	var selection = window.getSelection();
+	
+	var htmlDiv = document.createElement('div');
+	  
+	htmlDiv.style.position = 'absolute';
+	htmlDiv.style.left = '-99999px';
+	
+	body_element.appendChild(htmlDiv);
+	
+	htmlDiv.appendChild(selection.getRangeAt(0).cloneContents());
+	
+	// временна променлива, в която ще заменстваме
+	var current = htmlDiv.innerHTML.toString();
+	
+	//намира всеки стринг, който отгоравя на израза
+	var matchedStr =  current.match(/(\-)?([0-9]{1,3})((&nbsp;){1}[0-9]{3})*(\.{1}[0-9]{2,5})\z*/g);
+	
+	if(matchedStr){
+		var replacedStr = new Array();
+		 
+		for(var i=0; i< matchedStr.length;i++){
+			// променя всеки от стринговете
+			replacedStr[i] = matchedStr[i].replace(/(&nbsp;)/g, '');
+			var regExp = new RegExp(matchedStr[i], "g");    
+			// прави замяната в тези стрингове
+			current = current.replace(regExp ,replacedStr[i]);
+		}
+
+		current = '<table>' + current + "</table>";
+		htmlDiv.innerHTML = current;
+		selection.selectAllChildren(htmlDiv);
+	}
+	
+	window.setTimeout(function() {
+		body_element.removeChild(htmlDiv);
+	}, 0);
+}
+
+
+/**
  * Масив със сингълтон обектите
  */
 var _singletonInstance = new Array();
@@ -1739,35 +1782,19 @@ function checkForHiddenGroups() {
 
 
 /**
- * В зависимост от натиснатия елемент, се определя какво действие трябва да се извърши с кейлист полетата
- */
-function keylistActions(el) {
-	 $('.keylistCategory').on('click', function(e) {
-		 // ако натиснем бутона за инвертиране на чекбоксовете
-		  if ($(e.target).is(".invert-checkbox")) {
-			  // ако групата е затворена я отваряме
-			  var category = $(e.target).closest('.keylistCategory');
-			  if ($(category).hasClass('closed')) {
-				  toggleKeylistGroups(category);
-			  }
-			  //инвертираме
-			  inverseCheckBox(e.target);
-		  } else {
-			  // в противен случай затваряме/отваряме групата
-			  toggleKeylistGroups(e.target);
-			    
-		  }
-	 });
-}
-
-/**
- *  скриваме/показваме прилежащата на елемента група
+ * Показване и скриване на keylist групи
  */
 function toggleKeylistGroups(el) {
-	//в нея намириме всички класове, чието име е като id-то на елемента, който ще ги скрива
-    var trItems = findElementKeylistGroup(el);
+    //намираме id-то на елемента, на който е кликнато
     var element = $(el).closest("tr.keylistCategory");
-    
+
+    var trId = element.attr("id");
+
+    //намираме keylist таблицата, в която се намира
+    var tableHolder = $(element).closest("table.keylist");
+
+    //в нея намириме всички класове, чието име е като id-то на елемента, който ще ги скрива
+    var trItems = tableHolder.find("tr." + trId);
     if (trItems.length) {
         //и ги скриваме
         trItems.toggle("slow");
@@ -1776,44 +1803,6 @@ function toggleKeylistGroups(el) {
         element.toggleClass('closed');
         element.toggleClass('opened');
     }
-	
-}
-
-/**
- *  намираме прилежащата на елемента група
- */
-function findElementKeylistGroup(el){
-	  var element = $(el).closest("tr.keylistCategory");
-
-	    var trId = element.attr("id");
-
-	    //намираме keylist таблицата, в която се намира
-	    var tableHolder = $(element).closest("table.keylist");
-
-	    //в нея намириме всички класове, чието име е като id-то на елемента, който ще ги скрива
-	    var keylistGroups = tableHolder.find("tr." + trId);
-	    
-	    return keylistGroups;
-}
-
-
-/**
- *  инвертираме чекбоксовете в групата на елемента
- */
-function inverseCheckBox(el){
-	// сменяме иконката
-	$(el).parent().find(".invert-checkbox").toggleClass('hidden');
-	
-	var trItems = findElementKeylistGroup(el);
-	
-	//инвертираме
-	$(trItems).find('.checkbox').each(function() {
-		if( $(this).attr('checked') == 'checked') {
-			$(this).removeAttr('checked');
-		} else {
-			$(this).attr('checked', 'checked');
-		}
-	});
 }
 
 
@@ -1989,7 +1978,13 @@ function efae() {
 
     // Дали процеса е изпратена AJAX заявка за извличане на данните за показване след рефреш
     efae.prototype.isSendedAfterRefresh = false;
-
+    
+    // Флаг, указващ дали има грешка в AJAX
+    efae.prototype.AJAXHaveError = false;
+    
+    // Флаг, указващ дали е оправена грешката в AJAX
+    efae.prototype.AJAXErrorRepaired = false;
+	
     // УРЛ, от което се вика AJAX-a - отворения таб
     Experta.prototype.parentUrl;
 }
@@ -2020,13 +2015,13 @@ efae.prototype.run = function() {
     try {
         // Увеличаваме брояча
         this.increaseTimeout();
-
+        
         // Вземаме всички URL-та, които трябва да се извикат в този цикъл
         var subscribedObj = this.getSubscribed();
-
+        
         // Стартираме процеса
         this.process(subscribedObj);
-
+        
     } catch (err) {
 
         // Ако възникне грешка
@@ -2146,7 +2141,7 @@ efae.prototype.process = function(subscribedObj, otherData, async) {
 
         // Добавяме флаг, който указва, че заявката е по AJAX
         dataObj['ajax_mode'] = 1;
-
+        
         // Извикваме по AJAX URL-то и подаваме необходимите данни и очакваме резултата в JSON формат
         $.ajax({
             async: async,
@@ -2189,11 +2184,27 @@ efae.prototype.process = function(subscribedObj, otherData, async) {
                     getEO().log(err + 'Несъществуваща фунцкция: ' + func + ' с аргументи: ' + arg);
                 }
             }
-
+            
+            if (getEfae().AJAXHaveError) {
+            	getEfae().AJAXErrorRepaired = true;
+            }
         }).fail(function(res) {
-
-            // Ако възникне грешка
-            getEO().log('Грешка при извличане на данни по AJAX');
+        	
+        	// Ако не е добавено съобщение за грешка
+        	if (!$(".connection-error-status").length) {
+        		// Ако възникне грешка
+                getEO().log('Грешка при извличане на данни по AJAX');
+                var errorData = {id: "statuses", html: "<div class='statuses-message statuses-error connection-error-status'> Connection error </div>", replace: false};
+                render_html(errorData);
+                
+                getEfae().AJAXHaveError = true;
+                getEfae().AJAXErrorRepaired = false;
+        	}
+        }).always(function(res) {
+        	// Ако е имало грешка и е оправенена, премахваме статуса
+        	if (getEfae().AJAXHaveError && getEfae().AJAXErrorRepaired && $(".connection-error-status").length) {
+    			$('.connection-error-status').remove();
+        	}
         });
     } else {
 
@@ -3210,6 +3221,93 @@ $.fn.scrollView = function () {
                         }, 500);
                     });
 }
+
+function mailServerSettings() {
+    var email = document.getElementById('email');
+    var server = document.getElementById('server');
+    var protocol = document.getElementById('protocol');
+    var security = document.getElementById('security');
+    var cert = document.getElementById('cert');
+    var folder = document.getElementById('folder');
+    var user = document.getElementById('user');
+    var smtpServer = document.getElementById('smtpServer');
+    var smtpSecure = document.getElementById('smtpSecure');
+    var smtpAuth = document.getElementById('smtpAuth');
+    var smtpUser = document.getElementById('smtpUser');
+   
+    n = email.value.search("@"); 
+    
+    provider = email.value.substr(n+1)
+    userAccountt = email.value.substr(0,n)
+    
+    if (server.value == "") {
+		switch (provider) {
+		    case "abv.bg":
+		    	server.value = "pop3.abv.bg:995";
+			    protocol.value = "pop3";
+			    security.value = "ssl";
+			    cert.value = "validate";
+			    smtpServer.value = "smtp.abv.bg:465";
+			    smtpSecure.value = "tls";
+			    smtpAuth.value = "LOGIN";
+			    user.value = userAccountt;
+			    smtpUser.value = userAccountt;
+		    	break;
+		    case "gmail.com":
+		    	server.value = "imap.gmail.com:993";
+		    	protocol.value = "imap";
+		    	security.value = "ssl";
+		    	cert.value = "validate";
+		    	smtpServer.value = "smtp.gmail.com:587";
+		    	smtpSecure.value = "tls";
+		    	smtpAuth.value = "LOGIN";
+		    	user.value = userAccountt;
+		    	smtpUser.value = userAccountt;
+		        break;
+		    case "yahoo.com":
+		    	server.value = "imap.mail.yahoo.com:993";
+		    	protocol.value = "imap";
+		    	security.value = "ssl";
+		    	cert.value = "validate";
+		    	smtpServer.value = "smtp.mail.yahoo.com:465";
+		    	smtpSecure.value = "ssl";
+		    	smtpAuth.value = "LOGIN";
+		    	user.value = userAccountt;
+		    	smtpUser.value = userAccountt;
+		        break;
+		    case "outlook.com":
+		    	server.value = "imap-mail.outlook.com:993";
+		    	protocol.value = "imap";
+		    	security.value = "ssl";
+		    	cert.value = "validate";
+		    	smtpServer.value = "smtp-mail.outlook.com:587";
+		    	smtpSecure.value = "tls";
+		    	smtpAuth.value = "LOGIN";
+		    	user.value = userAccountt;
+		    	smtpUser.value = userAccountt;;
+		        break;
+		    case "mail.bg":
+		    	server.value = " imap.mail.bg:143";
+		    	protocol.value = "imap";
+		    	security.value = "ssl";
+		    	cert.value = "validate";
+		    	smtpServer.value = "smtp.mail.bg:25";
+		    	smtpSecure.value = "tls";
+		    	smtpAuth.value = "LOGIN";
+		    	user.value = userAccountt;
+		    	smtpUser.value = userAccountt;
+		        break;
+	
+		    default:
+		    	protocol.value = "imap";
+		    	security.value = "default";
+		    	cert.value = "noValidate";
+		    	smtpSecure.value = "no";
+		    	smtpAuth.value = "no";
+		}
+
+    }
+};
 
 runOnLoad(showTooltip);
 runOnLoad(removeNarrowScroll);

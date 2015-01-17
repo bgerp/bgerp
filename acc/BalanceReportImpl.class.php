@@ -66,9 +66,8 @@ class acc_BalanceReportImpl extends frame_BaseDriver
      * Подготвя формата за въвеждане на данни за вътрешния обект
      *
      * @param core_Form $form
-     * @param string $documentType - (@see deals_DocumentTypes)
      */
-    public function prepareEmbeddedForm(core_Form &$form, $documentType)
+    public function prepareEmbeddedForm(core_Form &$form)
     {
     	// Ако е избрана сметка
     	if($form->rec->accountId){
@@ -156,8 +155,9 @@ class acc_BalanceReportImpl extends frame_BaseDriver
         $this->prepareListFields($data);
         
         $accSysId = acc_Accounts::fetchField($data->rec->accountId, 'systemId');
-        $Balance = new acc_ActiveShortBalance(array('from' => $data->rec->from, 'to' => $data->rec->to));
+        $Balance = new acc_ActiveShortBalance(array('from' => $data->rec->from, 'to' => $data->rec->to, 'accs' => $accSysId, 'cacheBalance' => FALSE));
         $data->recs = $Balance->getBalance($accSysId);
+        
         if(count($data->recs)){
         	foreach ($data->recs as $rec){
         		foreach (range(1, 3) as $i){
@@ -177,7 +177,6 @@ class acc_BalanceReportImpl extends frame_BaseDriver
 	            }
         	}
         }
-        
         
         $this->filterRecsByItems($data);
         

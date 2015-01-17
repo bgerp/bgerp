@@ -486,6 +486,7 @@ class doc_Threads extends core_Manager
         
         $docRow = $docProxy->getDocumentRow();
         
+        $attr = array();
         $attr['class'] .= 'linkWithIcon';
         $attr['style'] = 'background-image:url(' . sbf($docProxy->getIcon($docProxy->that)) . ');';
 
@@ -1601,7 +1602,7 @@ class doc_Threads extends core_Manager
      * @param $params['Act'] - Действието
      * @param $params['threadId'] - id' то на нишката
      * 
-     * @return $res - Линк
+     * @return core_ET - Линк
      */
     static function getVerbalLink($params)
     {
@@ -1640,6 +1641,7 @@ class doc_Threads extends core_Manager
         } else {
             
             // Атрибути на линка
+            $attr = array();
             $attr['class'] = 'linkWithIcon';
             $attr['style'] = "background-image:url({$sbfIcon});";    
             $attr['target'] = '_blank'; 
@@ -1688,7 +1690,7 @@ class doc_Threads extends core_Manager
         // За да може да промени трябва да има достъп до сингъла на нишката
         // Да променя собствените си настройки или да е admin|ceo
         
-        list($className, $id) = explode('::', $key);
+        list(, $id) = explode('::', $key);
         
         $currUser = core_Users::getCurrent();
         
@@ -1725,7 +1727,7 @@ class doc_Threads extends core_Manager
         $this->currentTab = 'Теми';
         
         // Вземаме id на папката от ключа
-        list($className, $threadId) = explode('::', $form->rec->_key);
+        list(, $threadId) = explode('::', $form->rec->_key);
         
         // Определяме заглавито
         $rec = $this->fetch($threadId);

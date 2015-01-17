@@ -279,8 +279,8 @@ class doc_Folders extends core_Master
         
         $row->threads .= "<span style='float:right;'>&nbsp;&nbsp;&nbsp;" . $mvc->getVerbal($rec, 'allThreadsCnt') . "</span>";
         
+        $attr = array();
         $attr['class'] = 'linkWithIcon';
-        
         
         if(mb_strlen($row->title) > self::maxLenTitle) {
             $attr['title'] = $row->title;
@@ -780,7 +780,7 @@ class doc_Folders extends core_Master
      * @param $params['Act'] - Действието
      * @param $params['folderId'] - id' то на папката
      * 
-     * @return $res - Линк
+     * @return core_ET - Линк
      */
     static function getVerbalLink($params)
     {
@@ -817,6 +817,7 @@ class doc_Folders extends core_Master
             $link = toUrl($params, $isAbsolute);
 
             // Атрибути на линка
+            $attr = array();
             $attr['class'] = 'linkWithIcon';
             $attr['style'] = "background-image:url({$sbfIcon})";    
             $attr['target'] = '_blank'; 
@@ -1143,7 +1144,7 @@ class doc_Folders extends core_Master
         // За да може да промени трябва да има достъп до сингъла на папката
         // Да променя собствените си настройки или да е admin|ceo
         
-        list($className, $id) = explode('::', $key);
+        list(, $id) = explode('::', $key);
         
         $currUser = core_Users::getCurrent();
         
@@ -1180,7 +1181,7 @@ class doc_Folders extends core_Master
         $this->currentTab = 'Теми';
         
         // Вземаме id на папката от ключа
-        list($className, $folderId) = explode('::', $form->rec->_key);
+        list(, $folderId) = explode('::', $form->rec->_key);
         
         // Определяме заглавито
         $rec = $this->fetch($folderId);
@@ -1193,8 +1194,6 @@ class doc_Folders extends core_Master
         $form->FNC('ordering', 'enum(default=Автоматично, opened=Първо отворените, recent=По последно, create=По създаване, numdocs=По брой документи)', 'caption=Подредба на нишките->Правило, input=input');
         $form->FNC('defaultEmail', 'key(mvc=email_Inboxes,select=email,allowEmpty)', 'caption=Изходящ имейл->По подразбиране, input=input');
         
-        $fromEmailOptions[] = '';
-        
         // Изходящ имейл по-подразбиране за съответната папка
         try {
             $userId = NULL;
@@ -1204,7 +1203,9 @@ class doc_Folders extends core_Master
             
             // Личните имейли на текущия потребител
             $fromEmailOptions = email_Inboxes::getFromEmailOptions($folderId, $userId, FALSE);
-        } catch (core_exception_Expect $e) { }
+        } catch (core_exception_Expect $e) {
+            $fromEmailOptions = array('');
+        }
         $form->setOptions(defaultEmail, $fromEmailOptions);
         
         $form->setDefault('folOpenings', 'default');

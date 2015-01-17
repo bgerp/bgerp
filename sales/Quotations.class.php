@@ -1,4 +1,6 @@
 <?php
+
+
 /**
  * Документ "Оферта"
  *
@@ -14,18 +16,12 @@
  */
 class sales_Quotations extends core_Master
 {
+	
+	
     /**
      * Заглавие
      */
     public $title = 'Изходящи оферти';
-
-
-    /**
-     * Към коя група документи спада класа
-     *
-     * (@see deals_DocumentTypes)
-     */
-    public $documentType = deals_DocumentTypes::CONTRACT;
     
     
     /**

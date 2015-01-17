@@ -15,14 +15,6 @@
 */
 abstract class deals_ManifactureMaster extends core_Master
 {
-
-
-	/**
-	 * Към коя група документи спада класа
-	 *
-	 * (@see deals_DocumentTypes)
-	 */
-	public $documentType = deals_DocumentTypes::STANDARD;
 	
 	
 	/**

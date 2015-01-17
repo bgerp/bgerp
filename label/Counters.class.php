@@ -145,7 +145,7 @@ class label_Counters extends core_Master
     static function getCurrent($counterId)
     {
         // Вземае записа
-        $cRec = static::fetch($counterId);
+        $cRec = self::fetch($counterId);
         
         // Ако брояча е оттеглен
         expect($cRec->state != 'rejected', "Брояча е оттеглен");
@@ -202,7 +202,7 @@ class label_Counters extends core_Master
             $cRec->state = 'closed';
             
             // Записваме
-            static::save($cRec);
+            self::save($cRec);
             
             // Сетваме грешка
             expect(FALSE,  "Броячът е изчерпан");
@@ -223,7 +223,7 @@ class label_Counters extends core_Master
     static function haveCounterPlace($str)
     {
         // Ако в текста някъде се намира плейсхолдер за брояча
-        if (strpos($str, static::$counterPlace) !== FALSE) {
+        if (strpos($str, self::$counterPlace) !== FALSE) {
             
             return TRUE;
         }
@@ -245,10 +245,10 @@ class label_Counters extends core_Master
     static function placeCounter($str, $counterId, $labelId, $updateCounter=TRUE)
     {
         // Ако име плейсхолдер за брояч
-        if (static::haveCounterPlace($str)) {
+        if (self::haveCounterPlace($str)) {
             
             // Вземаем текущия брояч
-            $counter = static::getCurrent($counterId);
+            $counter = self::getCurrent($counterId);
             
             // Ако е зададено да не се обновява
             if ($updateCounter === FALSE) {
@@ -265,7 +265,7 @@ class label_Counters extends core_Master
             expect($updated);
             
             // Заместваме в стринга
-            $str = str_replace(static::$counterPlace, $counter, $str);
+            $str = str_replace(self::$counterPlace, $counter, $str);
         }
         
         return $str;
@@ -334,7 +334,7 @@ class label_Counters extends core_Master
         if (!$id) return ;
         
         // Вземаме записа
-        $rec = static::fetch($id);
+        $rec = self::fetch($id);
         
         // Очакваме да не е оттеглен
         expect($rec->state != 'rejected');
@@ -346,7 +346,7 @@ class label_Counters extends core_Master
             $rec->state = 'active';
             
             // Записваме
-            $id = static::save($rec);
+            $id = self::save($rec);
             
             return $id;
         }
