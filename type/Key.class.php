@@ -90,10 +90,8 @@ class type_Key extends type_Int
         
         $options = $this->options;
         
-        $pOptions = $this->prepareOptions();
-        
         if (($field = $this->getSelectFld()) && (!count($options))) {
-            $options = $pOptions;
+            $options = $this->prepareOptions();
         }
         
         $selOptCache = (array) unserialize(core_Cache::get('SelectOpt', $this->handler));
