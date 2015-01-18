@@ -23,7 +23,7 @@ class drdata_Domains extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_State, drdata_Wrapper';
+    var $loadList = 'plg_Created, plg_State, drdata_Wrapper, plg_Sorting';
     
     
     /**
