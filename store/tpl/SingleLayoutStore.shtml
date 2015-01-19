@@ -37,9 +37,8 @@
                             <!--ET_BEGIN creation-->
                             <tr>
                                 [#creation#]
-                                <td class='dt'>|Създаден:|*</td>
-                                <td> <span class="part"><span class="gray-title">|от|*</span> <b>[#createdBy#]</b> </span>
-                                    <span class="part"><span class="gray-title">|на|*</span> [#createdOn#]</span>
+                                <td class='dt'>|Създаване:|*</td>
+                                <td> <span class="part"><span class="gray-title"></span><b>[#createdBy#]</b></span><span class="part"><span class="gray-title">,</span> [#createdOn#]</span>
                                 </td>
                             </tr>
                             <!--ET_END creation-->
