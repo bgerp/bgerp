@@ -318,7 +318,7 @@ class fileman_webdrv_Image extends fileman_webdrv_Generic
         $bgImg = sbf('fileman/img/Preview_background.jpg');
         
         // Създаваме шаблон за preview на изображението
-        $preview = new ET("<div style='background-image:url(" . $bgImg . "); padding: 5px 0; min-height: 590px;'><div style='margin: 0 auto;'>[#THUMB_IMAGE#]</div></div>");
+        $preview = new core_ET("<div style='background-image:url(" . $bgImg . "); padding: 5px 0; min-height: 590px;'><div style='margin: 0 auto;'>[#THUMB_IMAGE#]</div></div>");
         
         $imgInst = new thumb_Img(array($fRec->fileHnd, $thumbWidth, $thumbHeight, 'fileman', 'verbalName' => 'Preview'));
         
