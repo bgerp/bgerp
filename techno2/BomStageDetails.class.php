@@ -98,11 +98,10 @@ class techno2_BomStageDetails extends core_Detail
     	$this->FLD("resourceId", 'key(mvc=mp_Resources,select=title,allowEmpty)', 'caption=Ресурс,mandatory,silent', array('attr' => array('onchange' => 'addCmdRefresh(this.form);this.form.submit();')));
     	$this->FLD("productId", 'key(mvc=cat_Products, select=name, allowEmpty)', 'caption=Артикул,input=none');
     	$this->FLD("specId", 'key(mvc=techno2_SpecificationDoc, select=title, allowEmpty)', 'caption=Спецификация,input=none');
+    	$this->FLD('toStore', 'key(mvc=store_Stores,select=name,allowEmpty)', 'column=none,input=none,caption=Към склад');
     	$this->FLD("baseQuantity", 'double', 'caption=Количество->Начално,hint=Начално количество');
     	$this->FLD("propQuantity", 'double', 'caption=Количество->Пропорционално,hint=Пропорционално количество');
-    	$this->FLD('toStore', 'key(mvc=store_Stores,select=name,allowEmpty)', 'column=none,input=none,caption=Към->Склад');
-    	$this->FLD('toStage', 'key(mvc=mp_Stages,select=name,allowEmpty)', 'column=none,input=none,caption=Към->Етап');
-    	$this->FLD('type', 'enum(input=Добавяне,popProduct=Изкарване,popResource=Изкарване2)', 'column=none,input=hidden,silent');
+    	$this->FLD('type', 'enum(input=Добавяне,pop=Изкарване)', 'column=none,input=hidden,silent');
     	
     	$this->setDbUnique('bomstageId,resourceId');
     }
@@ -128,37 +127,13 @@ class techno2_BomStageDetails extends core_Detail
     	}
     	
     	// Ако добавяме нов изходен ресурс
-    	if($form->rec->type == 'popResource'){
-    		$form->setField('resourceId', 'input=none');
-    		$form->FNC('resource', 'varchar', 'input,mandatory,caption=Ресурс,before=baseQuantity');
-    		$form->setField('toStage', 'input,mandatory');
-    		$form->setField('baseQuantity', 'input=none');
-    		$form->setField('propQuantity', 'mandatory,caption=Пропорц. к-во');
-    		
-    		$resourceArr = techno2_Boms::makeResourceOptions($masterRec->bomId, TRUE);
-    		$form->setSuggestions('resource', $resourceArr);
-    		
-    		if($form->rec->id){
-    			$form->setDefault('resource', mp_Resources::getTitleById($form->rec->resourceId, FALSE));
-    		}
-    		
-    		// Задаваме възможните етапи
-    		$stages = techno2_Boms::makeStagesOptions($masterRec->bomId, $masterRec->stage);
-    		
-    		if(count($stages)){
-    			$form->setOptions('toStage', $stages);
-    		} else {
-    			$form->setReadOnly('toStage');
-    		}
-    		
-    		$form->title = $act . tr(" |на|* ") . tr('изходен ресурс') . tr(' |към|* ') . "|*<b style='color:#ffffcc;'>{$mTitle}</span>";
-    	} elseif ($form->rec->type == 'input'){
+    	if ($form->rec->type == 'input'){
     		
     		// Ако добавяме нов ресурс
-    		$resourceArr = techno2_Boms::makeResourceOptions($masterRec->bomId);
+    		$resourceArr = techno2_Boms::makeResourceOptions($masterRec->bomId, $masterRec->stage);
     		$form->setOptions('resourceId', $resourceArr);
     		
-    	} elseif($form->rec->type == 'popProduct'){
+    	} elseif($form->rec->type == 'pop'){
     		
     		// Ако добавяме изходен артикул
     		$form->setField('baseQuantity', 'mandatory');
@@ -207,15 +182,8 @@ class techno2_BomStageDetails extends core_Detail
     			$form->setError('baseQuantity,propQuantity', 'Трябва да е въведено поне едно количество');
     		}
     		
-    		// Ако добавяме изходен артикул/ресурс трябва да е посочена дестинация
-    		if($form->rec->type != 'input'){
-    			if(empty($rec->toStore) && empty($rec->toStage)){
-    				$form->setError('toStore,toStage', 'Трябва да има попълнена дестинация');
-    			}
-    		}
-    		
     		// При добавяне на изходен артикул
-    		if($rec->type == 'popProduct'){
+    		if($rec->type == 'pop'){
     			
     			// Трябва да има поне един избран артикул или спецификация на артикул
     			if(empty($rec->productId) && empty($rec->specId)){
@@ -227,44 +195,6 @@ class techno2_BomStageDetails extends core_Detail
     				$form->setError('productId,specId', 'Трябва да е избран точно един артикул');
     			}
     		}
-    		
-    		// Ако изкарваме нов ресурс
-    		if($rec->type == 'popResource'){
-    			$thisStageOrder = mp_Stages::fetchField($masterRec->stage, 'order');
-    			$toStageOrder = mp_Stages::fetchField($rec->toStage, 'order');
-    			
-    			// Трябва изходния етап да е по нов от сегашния
-    			if($toStageOrder <= $thisStageOrder){
-    				$form->setError('toStage', 'Не може да прехвърлите ресурса към по преден етап');
-    			}
-    			
-    			// Ако изходния ресурс, фигурира като съществуващ ресурс
-    			if($mId = mp_Resources::fetchField(array("#title = '[#1#]'", $rec->resource))){
-    				$dQuery = techno2_Boms::getDetailQuery($masterRec->bomId);
-    				$dQuery->where("#resourceId = {$mId} AND #type='popResource'");
-    				if($dQuery->fetch()){
-    					$form->setError('resource', 'Ресурса вече е добавен като изходен в някой етап етап');
-    				}
-    			}
-    		}
-    		
-    		// Ако формата няма грешки
-			if(!$form->gotErrors()){
-				
-				// Ако добавяме изходен ресурс
-				if($rec->type == 'popResource'){
-					
-					// Ако е вече ресурс, взимаме му ид-то
-					if($mId = mp_Resources::fetchField(array("#title = '[#1#]'", $rec->resource))){
-						$rec->resourceId = $mId;
-					} else {
-						
-						// Ако не е създаваме го като нов ресурс - заготовка
-						$rec->resourceId = mp_Resources::save((object)array('title' => $rec->resource, 'type' => 'material', 'bomId' => $masterRec->bomId));
-					}	
-				}
-			}
-    		
     	}
     }
     
@@ -294,16 +224,12 @@ class techno2_BomStageDetails extends core_Detail
     	}
     	
     	$row->ROW_ATTR['class'] = ($rec->type != 'input') ? 'row-removed' : 'row-added';
-    	$row->ROW_ATTR['title'] = ($rec->type != 'input') ? tr('Изходен ресурс') : NULL;
+    	$row->ROW_ATTR['title'] = ($rec->type != 'input') ? tr('Изходен артикул') : NULL;
     	
     	// На изходните ресурси/артикули показваме и дестинацията им
     	$img = ht::createElement('img', array('src' => sbf('img/16/move.png', ''), 'style' => 'position:relative;top:2px'));
     	if(isset($rec->toStore)){
     		$row->resourceId .= "&nbsp; " . $img . " &nbsp;" . store_Stores::getHyperlink($rec->toStore, TRUE);
-    	}
-    	
-    	if(isset($rec->toStage)){
-    		$row->resourceId .= "&nbsp; " . $img . " &nbsp;" . mp_Stages::getTitleById($rec->toStage);
     	}
     }
     
@@ -367,43 +293,6 @@ class techno2_BomStageDetails extends core_Detail
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
     	$data->query->orderBy("type");
-    }
-    
-    
-    /**
-     * След преобразуване на записа в четим за хора вид.
-     */
-    protected static function on_AfterPrepareListRows(core_Mvc $mvc, &$data)
-    {
-    	$rows = &$data->rows;
-    	
-    	$img = ht::createElement('img', array('src' => sbf('img/16/move.png', ''), 'style' => 'position:relative;top:2px'));
-    	$query = techno2_Boms::getDetailQuery($data->masterData->bomId);
-    	
-    	// Намираме имали ресурси, които са изходни за този етап, и ако има ги добавяме като първи ресурси в списъка
-    	$addedRows = array();
-    	$query->where("#toStage = {$data->masterData->stage}");
-    	while($dRec = $query->fetch()){
-    		$fRow = new stdClass();
-    		$fRow->resourceId = $mvc->getFieldType('resourceId')->toVerbal($dRec->resourceId);
-    		$fRow->propQuantity = $mvc->getFieldType('propQuantity')->toVerbal($dRec->propQuantity);
-    		$fRow->ROW_ATTR['class'] = 'row-added';
-    		$stage = techno2_BomStages::fetchField($dRec->bomstageId, 'stage');
-    		
-    		$fRow->resourceId = mp_Stages::getTitleById($stage) . "&nbsp; {$img} &nbsp;" . $fRow->resourceId;
-    		
-    		$addedRows[] = $fRow;
-    	}
-    	
-    	// Ако има вече записи добавяме ги преди тях, иначе ги присвояваме
-    	if(count($addedRows)){
-    		if(count($rows)){
-    			$rows = $addedRows + $rows;
-    		} else {
-    			$rows = $addedRows;
-    		}
-    	}
-    	
-    	// Така всички ресурси, които са изходни за този етап ще се появят в неговите резултати в началото
+    	$data->query->orderBy("id", 'ASC');
     }
 }

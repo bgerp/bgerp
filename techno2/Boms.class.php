@@ -353,10 +353,10 @@ class techno2_Boms extends core_Master
      * Връща ресурсите които могат да се добавят към дадена рецепта, това са тези, които вече не са добавени
      *
      * @param int $bomId - ид
-     * @param boolean $notIntKeys - дали ключовете да са естествени числа
+     * @param boolean $stageId - за кой етап
      * @return array - свободните за добавяне ресурси
      */
-    public static function makeResourceOptions($bomId, $notIntKeys = FALSE)
+    public static function makeResourceOptions($bomId, $stageId = NULL)
     {
     	$usedRes = array();
     	 
@@ -377,11 +377,6 @@ class techno2_Boms extends core_Master
     	// Намираме ресурсите, които са заготовки за тази рецепта
     	$bomResources = cls::get('mp_Resources')->makeArray4Select('title', array("#bomId IS NOT NULL && state NOT IN ('rejected') && #bomId = {$bomId}"));
     	
-    	if($notIntKeys === TRUE){
-    		$allResources = arr::make($allResources, TRUE);
-    		$bomResources = arr::make($bomResources, TRUE);
-    	}
-    	
     	// Добавяме ги към списъка, ако има
     	if(count($bomResources)){
     		$allResources[0] = (object)array(
@@ -394,46 +389,14 @@ class techno2_Boms extends core_Master
     	// Намираме тези ресурси, които не са използвани в рецептата
     	$diffArr = array_diff_key($allResources, $usedRes);
     	
+    	if(isset($stageId)){
+    		$resTitle = mp_Stages::getVerbal($stageId, 'name') . "[{$bomId}]";
+    		$resId = mp_Resources::fetchField(array("#title = '[#1#]'", $resTitle), 'id');
+    		unset($diffArr[$resId]);
+    	}
+    	
     	// Връщаме масива
     	return $diffArr;
-    }
-    
-    
-    /**
-     * Връща позволените опции за избор на етапи вече участващи към рецептата
-     * 
-     * @param int $id - ид на запис
-     * @param string $except - етапите след кой етап да покажем
-     * @return array $stages - Масив с достъпните опции
-     */
-    public static function makeStagesOptions($id, $stage = NULL)
-    {
-    	// Добавяме за налични етапи само тези избрани в рецептата (без текущия)
-    	$stages = array();
-    	$mQuery = techno2_BomStages::getQuery();
-    	$mQuery->where("#bomId = {$id}");
-    	$mQuery->EXT('order', 'mp_Stages', 'externalName=order,externalKey=stage');
-    	
-    	// Ако е зададен етап
-    	if(isset($stage)){
-    		
-    		// Оставяме тези етапи, които са след подадения и са различни от него
-    		$mQuery->where("#stage != {$stage}");
-    		$stageOrder = mp_Stages::fetchField($stage, 'order');
-    		$mQuery->where("#order > {$stageOrder}");
-    	}
-    	
-    	while($mRec = $mQuery->fetch()){
-    		$stages[$mRec->stage] = mp_Stages::fetchField($mRec->stage, 'name');
-    	}
-    	
-    	if(isset($except)){
-    		
-    		// Премахваме от опциите, текущия етап
-    		unset($stages[$except]);
-    	}
-    	
-    	return $stages;
     }
     
     

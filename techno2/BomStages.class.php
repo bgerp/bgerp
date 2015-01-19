@@ -102,56 +102,52 @@ class techno2_BomStages extends core_Master
     {
     	$this->FLD('bomId', 'key(mvc=techno2_Boms)', 'column=none,input=hidden,silent,oldFieldName=mapId');
     	$this->FLD("stage", 'key(mvc=mp_Stages,select=name,allowEmpty)', 'caption=Етап,mandatory');
+    	$this->FLD('exitQuantity', 'double(smartRound)', 'input,column=none,caption=Изходно к-во,mandatory');
     	$this->FLD("description", 'richtext(rows=2)', 'caption=Описание');
-    	$this->FNC("exitResource", 'varchar', 'input,caption=Изходящ ресурс->Име,placeholder=ресурс,hint=създай нов изходящ ресурс');
-    	$this->FNC('resourceQuantity', 'double', 'input,column=none,caption=Изходящ ресурс->К-во');
-    	$this->FNC('toStage', 'key(mvc=mp_Stages,select=name,allowEmpty)', 'input,column=none,caption=Изходящ ресурс->Етап');
+    	$this->FLD("resourceId", 'key(mvc=mp_Resources,select=title)', 'input=hidden');
     	
     	$this->setDbUnique('bomId,stage');
     }
     
     
     /**
-     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
-     *
-     * @param core_Mvc $mvc
-     * @param core_Form $form
+     * Изпълнява се след създаване на нов запис
      */
-    public static function on_AfterInputEditForm($mvc, &$form)
+    protected static function on_AfterCreate($mvc, $rec)
     {
-    	if($form->isSubmitted()){
+    	if($mvc->count() > 1){
+    		$rQuery = $mvc->getQuery();
+    		$rQuery->where("#bomId = {$rec->bomId}");
+    		$rQuery->orderBy("id", 'DESC');
+    		$rQuery->where("#id != {$rec->id}");
     		
-    		// Ако ще създаваме нов изходящ ресурс, той трябва да е уникален
-    		if($form->rec->exitResource){
-    			if(mp_Resources::fetch(array("#title = '[#1#]'", $form->rec->exitResource))){
-    				$form->setError('exitResource', 'Има вече ресурс с това име');
-    			}
-    			
-    			if(empty($form->rec->toStage)){
-    				$form->setError('toStage', 'Трябва да е избрана дестинация за изходящия ресурс');
-    			}
-    			
-    			if(empty($form->rec->resourceQuantity)){
-    				$form->setError('resourceQuantity', 'Трябва да е зададено количество');
-    			}
+    		if($rRec = $rQuery->fetch()){
+    			$dRec = (object)array('bomstageId' => $rec->id, 'type' => 'input', 'resourceId' => $rRec->resourceId, 'propQuantity' => $rRec->exitQuantity);
+    			techno2_BomStageDetails::save($dRec);
     		}
     	}
     }
     
     
     /**
-     * Извиква се след успешен запис в модела
+     * Преди запис на документ, изчислява стойността на полето `isContable`
      *
-     * @param core_Mvc $mvc
-     * @param int $id първичния ключ на направения запис
-     * @param stdClass $rec всички полета, които току-що са били записани
+     * @param core_Manager $mvc
+     * @param stdClass $rec
      */
-    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
-    	if($rec->exitResource){
-    		if($newResourceId = mp_Resources::save((object)array("title" => $rec->exitResource, 'type' => 'material', 'bomId' => $rec->bomId))){
-    			techno2_BomStageDetails::save((object)array('bomstageId' => $rec->id, 'resourceId' => $newResourceId, 'type' => 'popResource', 'propQuantity' => 0, 'toStage' => $rec->toStage, 'propQuantity' => $rec->resourceQuantity));
-    		}
+    	//$l = $mvc->getQuery();
+    	//$l->where("#bomId = {$rec->bomId}");
+    	//bp($l->fetchAll());
+    	
+    	
+    	$resTitle = mp_Stages::getVerbal($rec->stage, 'name') . "[{$rec->bomId}]";
+    	if(!$rRec = mp_Resources::fetch(array("#title = '[#1#]'", $resTitle))){
+    		$rec->resourceId = mp_Resources::save((object)array("title" => $resTitle, 'type' => 'material', 'bomId' => $rec->bomId));
+    		core_Statuses::newStatus(tr("|Добавен е нов ресурс|* '{$resTitle}'"));
+    	} else {
+    		$rec->resourceId = $rRec->id;
     	}
     }
     
@@ -169,15 +165,6 @@ class techno2_BomStages extends core_Master
     	if(isset($form->rec->id)){
     		$form->setReadOnly('stage');
     	}
-    	
-    	// Задаваме възможните етапи
-    	$stages = techno2_Boms::makeStagesOptions($form->rec->bomId, $form->rec->stage);
-    	 
-    	if(count($stages)){
-    		$form->setOptions('toStage', $stages);
-    	} else {
-    		$form->setReadOnly('toStage');
-    	}
     }
     
     
@@ -194,8 +181,7 @@ class techno2_BomStages extends core_Master
     	// Намираме тези записи обвързани с рецептата
     	$dQuery = $this->getQuery();
     	$dQuery->where("#bomId = '{$data->masterId}'");
-    	$dQuery->EXT('stageOrder', 'mp_Stages', 'externalName=order,externalKey=stage');
-    	$dQuery->orderBy('stageOrder');
+    	$dQuery->orderBy('id', 'ASC');
     	
     	$count = 1;
     	while($dRec = $dQuery->fetch()){
@@ -214,9 +200,10 @@ class techno2_BomStages extends core_Master
     		// Добавяме бутон за добавяне на детайл към този клас
     		if(techno2_BomStageDetails::haveRightFor('add', (object)array('bomstageId' => $dRec->id))){
     			$row->addBtn = ht::createLink('', array('techno2_BomStageDetails', 'add', 'bomstageId' => $dRec->id, 'ret_url' => TRUE, 'type' => 'input'), FALSE, "ef_icon=img/16/add.png,title=Добавяне на ресурс");
-    			$row->addBtnRem = ht::createLink('', array('techno2_BomStageDetails', 'add', 'bomstageId' => $dRec->id, 'ret_url' => TRUE, 'type' => 'popResource'), FALSE, "ef_icon=img/16/remove-icon.png,title=Добавяне на изходен ресурс");
-    			$row->addBtnRemProd = ht::createLink('', array('techno2_BomStageDetails', 'add', 'bomstageId' => $dRec->id, 'ret_url' => TRUE, 'type' => 'popProduct'), FALSE, "ef_icon=img/16/A-icon.png,title=Добавяне на изходен артикул");
+    			$row->addBtnRemProd = ht::createLink('', array('techno2_BomStageDetails', 'add', 'bomstageId' => $dRec->id, 'ret_url' => TRUE, 'type' => 'pop'), FALSE, "ef_icon=img/16/remove-icon.png,title=Добавяне на изходен артикул");
     		}
+    		$dRow = $this->recToVerbal($dRec);
+    		$detailData->rows[] = (object)array('resourceId' => $dRow->resourceId, 'type' => 'pop', 'propQuantity' => $dRow->exitQuantity, 'ROW_ATTR' => array('class' => 'row-removed'));
     		
     		$data->bomStageDetailRows[$dRec->id] = $detailData->rows;
     		$data->rows[$dRec->id] = $row;
@@ -313,14 +300,6 @@ class techno2_BomStages extends core_Master
     		if(techno2_BomStageDetails::fetchField("#bomstageId = {$rec->id}")){
     			$requiredRoles = 'no_one';
     		}
-    		
-    		// Ако текущия етап е избран като изходящ в някой от детайлите на рецептата, не може да се изтрива
-    		$query = techno2_Boms::getDetailQuery($rec->bomId);
-    		$query->where("#toStage = {$rec->stage}");
-    		
-    		if($query->fetch()){
-    			$requiredRoles = 'no_one';
-    		}
     	}
     }
     
@@ -344,17 +323,6 @@ class techno2_BomStages extends core_Master
     	$url = array('techno2_Boms', 'single', $rec->bomId);
     
     	return $url;
-    }
-    
-    
-    /**
-     * След обръщане на записа във вербален вид
-     */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
-    {
-    	if(empty($rec->stage)){
-    		$row->stage = tr("< |без етап|* >");
-    	}
     }
     
     
