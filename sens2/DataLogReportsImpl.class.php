@@ -51,6 +51,9 @@ class sens2_DataLogReportsImpl extends frame_BaseDriver
     	$form->FLD('from', 'datetime', 'caption=От,mandatory');
     	$form->FLD('to', 'datetime', 'caption=До,mandatory');
     	$form->FLD('indicators', 'keylist(mvc=sens2_Indicators,select=title)', 'caption=Сензори,mandatory');
+    	
+    	$form->FLD('orderField', "enum(,time=Време,indicatorId=Индикатор,value=Стойност)", 'caption=Подредба->По,formOrder=110000');
+    	$form->FLD('orderBy', 'enum(,asc=Въздходящ,desc=Низходящ)', 'caption=Подредба->Тип,formOrder=110001');
     }
 
 
@@ -119,6 +122,11 @@ class sens2_DataLogReportsImpl extends frame_BaseDriver
     	$this->prependStaticForm($layout, 'FORM');
     
     	if(count($data->recs)) {
+    		
+    		if($this->innerForm->orderField){
+    			arr::order($data->recs, $this->innerForm->orderField, strtoupper($this->innerForm->orderBy));
+    		}
+    		
     		foreach($data->recs as $id => $rec) {
     			$data->rows[$id] = sens2_DataLogs::recToVerbal($rec);
     			$data->rows[$id]->time = str_replace(' ', '&nbsp;', $data->rows[$id]->time);
