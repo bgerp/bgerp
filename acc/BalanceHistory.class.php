@@ -683,6 +683,9 @@ class acc_BalanceHistory extends core_Manager
         // Ако равнят не показваме количествата
         if($equalBl){
             unset($data->listFields['debitQuantity'], $data->listFields['creditQuantity'], $data->listFields['blQuantity']);
+            $data->listFields['debitAmount']  = 'Сума->Дебит';
+            $data->listFields['creditAmount'] = 'Сума->Кредит';
+            $data->listFields['blAmount']     = 'Сума->Остатък';
         }
         
         // Ако сумите на крайното салдо са отрицателни - оцветяваме ги
