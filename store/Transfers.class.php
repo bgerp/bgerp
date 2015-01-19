@@ -229,6 +229,7 @@ class store_Transfers extends core_Master
     	if($fields['-list']){
     		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
     		
+    		$attr = array();
     		foreach (array('fromStore', 'toStore') as $storeFld){
 	    		if(store_Stores::haveRightFor('single', $rec->{$storeFld})){
 	    			$attr['class'] = "linkWithIcon";
