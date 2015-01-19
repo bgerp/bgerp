@@ -53,7 +53,7 @@ class ssh_Actions
         
         if ($this->connection) {
             
-            return $this->connection
+            return $this->connection;
         }
 
         // Проверяваме дали е достъпен
