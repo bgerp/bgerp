@@ -1,4 +1,5 @@
 <div class="singleView">
+<h3>[#TITLE#]</h3>
     [#HystoryToolbar#]
     <h3 style='margin-top:15px'>
         <b style='font-size: 1.2em'>[#accountId#]</b>

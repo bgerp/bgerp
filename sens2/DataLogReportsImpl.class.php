@@ -113,8 +113,9 @@ class sens2_DataLogReportsImpl extends frame_BaseDriver
      */
     public function renderEmbeddedData($data)
     {
-    	$layout = new ET(getFileContent('sens2/tpl/ReportLayout.shtml'));
-    
+    	$layout = getTplFromFile('sens2/tpl/ReportLayout.shtml');
+    	$layout->replace($this->title, 'TITLE');
+    	
     	$this->prependStaticForm($layout, 'FORM');
     
     	if(count($data->recs)) {

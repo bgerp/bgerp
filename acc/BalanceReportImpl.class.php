@@ -250,6 +250,7 @@ class acc_BalanceReportImpl extends frame_BaseDriver
     	if(empty($data)) return;
     	
     	$tpl = getTplFromFile('acc/tpl/ReportDetailedBalance.shtml');
+    	$tpl->replace($this->title, 'TITLE');
     	
     	$this->prependStaticForm($tpl, 'FORM');
     	

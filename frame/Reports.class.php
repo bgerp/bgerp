@@ -251,8 +251,9 @@ class frame_Reports extends core_Embedder
     {
     	$rec = $this->fetch($id);
     	
+    	$Driver = $this->getDriver($rec);
         $row = new stdClass();
-        $row->title = $this->singleTitle . " №{$id}";
+        $row->title = $this->singleTitle . " \"{$Driver->getReportTitle()}\" №{$id}";
         $row->authorId = $rec->createdBy;
         $row->author = $this->getVerbal($rec, 'createdBy');
         $row->state = $rec->state;
