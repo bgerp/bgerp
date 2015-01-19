@@ -133,6 +133,7 @@ class cams_Cameras extends core_Master
         $driver = cls::getInterface('cams_DriverIntf', $rec->driver, $rec->params);
         
         if(isset($fields['thumb'])) {
+            $attr = array();
             if($driver->isActive()) {
                 $attr['src'] = toUrl(array($this, 'ShowImage', $rec->id, 'thumb' => 'yes'));
                 $attr['class'] = 'camera-tumb';
