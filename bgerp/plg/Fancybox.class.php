@@ -34,7 +34,6 @@ class bgerp_plg_Fancybox extends core_Plugin
         if (!Mode::is('text', 'plain')) return ;
         
         // Създава линк към свалянето на картинката
-        $name = $img->verbalName;
         $resUrl = toUrl(array('F', 'T', doc_DocumentPlg::getMidPlace(), 'n' => $baseName), $imgAttr['isAbsolute'], TRUE, array('n'));
         $resTpl = new ET(tr('Картинка: ' . $resUrl));
         
