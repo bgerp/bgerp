@@ -181,11 +181,7 @@ class acc_BalanceReportImpl extends frame_BaseDriver
         	}
         }
         
-        if($this->innerForm->orderField){
-        	arr::order($data->recs, $this->innerForm->orderField, strtoupper($this->innerForm->orderBy));
-        } else {
-        	$this->filterRecsByItems($data);
-        }
+        $this->filterRecsByItems($data);
         
         return $data;
     }
@@ -387,13 +383,20 @@ class acc_BalanceReportImpl extends frame_BaseDriver
      {
      	$Balance = cls::get('acc_BalanceDetails');
      	
-     	 if(!empty($data->rec->action)){
+     	//
+     	if(!empty($data->rec->action)){
          	$cmd = ($data->rec->action == 'filter') ? 'default' : 'group';
          	$Balance->doGrouping($data, (array)$data->rec, $cmd, $data->recs);
+        }
+         
+         // Ако е посочено поле за сортиране, сортираме по него
+         if($this->innerForm->orderField){
+         	arr::order($data->recs, $this->innerForm->orderField, strtoupper($this->innerForm->orderBy));
+         } else {
+         	
+         	// Ако не се сортира по номерата на перата
+         	$Balance->canonizeSortRecs($data, $this->cache);
          }
-         
-         
-         $Balance->canonizeSortRecs($data, $this->cache);
       }
        
        
