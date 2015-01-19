@@ -121,8 +121,8 @@ class fileman_GalleryRichTextPlg extends core_Plugin
         
         $attr = array();
 
-        if($img->style || $groupRec->style) {
-            $attr['style'] = $img->style . ';' . $groupRec->style;
+        if($groupRec->style) {
+            $attr['style'] = $groupRec->style;
         }
         
         //Ако принтираме или пращаме документа
