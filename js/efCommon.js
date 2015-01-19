@@ -1790,11 +1790,6 @@ function keylistActions(el) {
 	 $('.keylistCategory').on('click', function(e) {
 		 // ако натиснем бутона за инвертиране на чекбоксовете
 		  if ($(e.target).is(".invert-checkbox")) {
-			  // ако групата е затворена я отваряме
-			  var category = $(e.target).closest('.keylistCategory');
-			  if ($(category).hasClass('closed')) {
-				  toggleKeylistGroups(category);
-			  }
 			  //инвертираме
 			  inverseCheckBox(e.target);
 		  } else {

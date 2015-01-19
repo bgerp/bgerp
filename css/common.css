@@ -1419,6 +1419,9 @@ td.keylist-group {
     td.keylist-group > div .hidden {
       display: none; }
 
+  .keylistCategory.closed .invert-checkbox {
+    display: none; }
+
   .opened td.keylist-group > div .plus {
     display: none; }
   .opened td.keylist-group > div .minus {
