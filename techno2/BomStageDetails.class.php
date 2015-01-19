@@ -136,12 +136,11 @@ class techno2_BomStageDetails extends core_Detail
     		}
     		
     		$form->setOptions('resourceId', $resourceArr);
-    		$form->setDefault($form->rec->resourceId);
     		
     	} elseif($form->rec->type == 'pop'){
     		
     		// Ако добавяме изходен артикул
-    		$form->setField('baseQuantity', 'mandatory');
+    		$form->setField('baseQuantity', 'mandatory,caption=К-во');
     		$form->setField('propQuantity', 'input=none');
     		$form->setField('resourceId', 'input=none');
     		$form->setField('productId', 'input');
