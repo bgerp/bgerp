@@ -1053,6 +1053,7 @@ class blast_Letters extends core_Master
             $bodyAndSubject = $recArr['body'] . ' ' . $recArr['subject'];
             
             // Масив с данни от плейсхолдера
+            $nRecArr = array();
             $nRecArr['recipient'] = $recArr['recipient'];
             $nRecArr['attn'] = $recArr['attn'];
             $nRecArr['country'] = $recArr['country'];
