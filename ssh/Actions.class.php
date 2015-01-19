@@ -45,7 +45,6 @@ class ssh_Actions
     /**
      * Връща кънекшън ресурс
      * 
-     * @param string $host
      * @return resource
      */
     private function connect ()
@@ -109,8 +108,7 @@ class ssh_Actions
     /**
      * Качва файл на отдалечен хост
      *
-     * @param string $host
-     * @param string $fileName - име на локалния файл
+     * @param string $localFileName - име на локалния файл
      */
     public function put($localFileName)
     {
@@ -125,8 +123,7 @@ class ssh_Actions
     /**
      * Смъква файл от отдалечен хост
      *
-     * @param string $host
-     * @param string $fileName име на отдалечения файл
+     * @param string $remoteFileName - име на отдалечения файл
      */
     public function get($remoteFileName)
     {
