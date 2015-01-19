@@ -560,6 +560,7 @@ class change_Plugin extends core_Plugin
         if ($title) {
             
             // Създаваме линк с загллавието
+            $attr = array();
             $attr['class'] = 'linkWithIcon';
             $attr['style'] = 'background-image:url(' . $editSbf . ');';
             
