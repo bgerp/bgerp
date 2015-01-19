@@ -489,6 +489,10 @@ class acc_BalanceHistory extends core_Manager
             }
         }
         
+        if($data->orderField){
+        	arr::order($data->recs, $data->orderField, strtoupper($data->orderBy));
+        }
+       
         // Крайното салдо е изчисленото крайно салдо на сметката
         $rec->blAmount = $calcedBalance[$indexArr]['blAmount'];
         $rec->blQuantity = $calcedBalance[$indexArr]['blQuantity'];
