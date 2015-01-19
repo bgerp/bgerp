@@ -320,6 +320,8 @@ class change_Plugin extends core_Plugin
             // Ако има избрана версия
             if ($selVerArr['first']) {
                 
+                $lastArr = array();
+                
                 // Вземаме стойността за съответното поле, за първата версия
                 $firstArr = change_Log::getVerbalValue($classId, $data->rec->id, $selVerArr['first'], $allowedFieldsArr);
                 
