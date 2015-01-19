@@ -239,6 +239,7 @@ class trans_Lines extends core_Master
     		$row->header = $mvc->singleTitle . " №<b>{$mvc->getHandle($rec->id)}</b> ({$row->state})";
     	}
     	
+    	$attr = array();
     	$attr['class'] = "linkWithIcon";
     	if($rec->vehicleId && trans_Vehicles::haveRightFor('read', $rec->vehicleId)){
     		$attr['style'] = "background-image:url('" . sbf('img/16/tractor.png', "") . "');";
