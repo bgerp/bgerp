@@ -464,6 +464,7 @@ class cms_Articles extends core_Master
         if ($title) {
             
             // Създаваме линк с загллавието
+            $attr = array();
             $attr['class'] = 'linkWithIcon';
             $attr['style'] = 'background-image:url(' . $editSbf . ');';
             
