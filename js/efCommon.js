@@ -2240,17 +2240,20 @@ efae.prototype.process = function(subscribedObj, otherData, async) {
             	getEfae().AJAXErrorRepaired = true;
             }
         }).fail(function(res) {
-        	
-        	// Ако не е добавено съобщение за грешка
-        	if (!$(".connection-error-status").length) {
-        		// Ако възникне грешка
-                getEO().log('Грешка при извличане на данни по AJAX');
-                var errorData = {id: "statuses", html: "<div class='statuses-message statuses-error connection-error-status'> Connection error </div>", replace: false};
-                render_html(errorData);
-                
-                getEfae().AJAXHaveError = true;
-                getEfae().AJAXErrorRepaired = false;
-        	}
+        	if(res.readyState == 0 || res.status == 0) return;
+            
+        	setTimeout(function(){
+        		// Ако не е добавено съобщение за грешка
+            	if (!$(".connection-error-status").length) {
+            		// Ако възникне грешка
+                    getEO().log('Грешка при извличане на данни по AJAX');
+                    var errorData = {id: "statuses", html: "<div class='statuses-message statuses-error connection-error-status'> Connection error </div>", replace: false};
+                    render_html(errorData);
+                    
+                    getEfae().AJAXHaveError = true;
+                    getEfae().AJAXErrorRepaired = false;
+            	}
+        	}, 1000);
         }).always(function(res) {
         	// Ако е имало грешка и е оправенена, премахваме статуса
         	if (getEfae().AJAXHaveError && getEfae().AJAXErrorRepaired && $(".connection-error-status").length) {
