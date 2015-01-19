@@ -97,7 +97,7 @@ class drdata_VatType extends type_Varchar
         if(!$status) {
             $status = $this->statuses[''];
         }
-
+        $attr = array();
         $attr['title'] = tr($status[0]);
         
         if(trim($info)) {
