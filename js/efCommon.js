@@ -1584,46 +1584,46 @@ function addLinkOnCopy(text) {
  * При копиране на текст, маха интервалите от вербалната форма на дробните числа
  */
 function editCopiedTextBeforePaste() {
-
-	var body_element = document.getElementsByTagName('body')[0];
-	var selection = window.getSelection();
+	$('.listTable').bind('copy', function(event, data) {
+		var body_element = document.getElementsByTagName('body')[0];
+		var selection = window.getSelection();
+		
+		var htmlDiv = document.createElement('div');
+		  
+		htmlDiv.style.position = 'absolute';
+		htmlDiv.style.left = '-99999px';
+		
+		body_element.appendChild(htmlDiv);
+		
+		htmlDiv.appendChild(selection.getRangeAt(0).cloneContents());
+		
+		// временна променлива, в която ще заменстваме
+		var current = htmlDiv.innerHTML.toString();
+		
+		//намира всеки стринг, който отгоравя на израза
+		var matchedStr =  current.match(/(\-)?([0-9]{1,3})((&nbsp;){1}[0-9]{3})*(\.{1}[0-9]{2,5})\z*/g);
+		
+		if(matchedStr){
+			var replacedStr = new Array();
+			 
+			for(var i=0; i< matchedStr.length;i++){
+				// променя всеки от стринговете
+				replacedStr[i] = matchedStr[i].replace(/(&nbsp;)/g, '');
+				var regExp = new RegExp(matchedStr[i], "g");    
+				// прави замяната в тези стрингове
+				current = current.replace(regExp ,replacedStr[i]);
+			}
 	
-	var htmlDiv = document.createElement('div');
-	  
-	htmlDiv.style.position = 'absolute';
-	htmlDiv.style.left = '-99999px';
-	
-	body_element.appendChild(htmlDiv);
-	
-	htmlDiv.appendChild(selection.getRangeAt(0).cloneContents());
-	
-	// временна променлива, в която ще заменстваме
-	var current = htmlDiv.innerHTML.toString();
-	
-	//намира всеки стринг, който отгоравя на израза
-	var matchedStr =  current.match(/(\-)?([0-9]{1,3})((&nbsp;){1}[0-9]{3})*(\.{1}[0-9]{2,5})\z*/g);
-	
-	if(matchedStr){
-		var replacedStr = new Array();
-		 
-		for(var i=0; i< matchedStr.length;i++){
-			// променя всеки от стринговете
-			replacedStr[i] = matchedStr[i].replace(/(&nbsp;)/g, '');
-			var regExp = new RegExp(matchedStr[i], "g");    
-			// прави замяната в тези стрингове
-			current = current.replace(regExp ,replacedStr[i]);
+			current = '<table>' + current + "</table>";
+			htmlDiv.innerHTML = current;
+			selection.selectAllChildren(htmlDiv);
 		}
-
-		current = '<table>' + current + "</table>";
-		htmlDiv.innerHTML = current;
-		selection.selectAllChildren(htmlDiv);
-	}
-	
-	window.setTimeout(function() {
-		body_element.removeChild(htmlDiv);
-	}, 0);
+		
+		window.setTimeout(function() {
+			body_element.removeChild(htmlDiv);
+		}, 0);
+	});
 }
-
 
 /**
  * Масив със сингълтон обектите
@@ -3274,7 +3274,7 @@ $.fn.scrollView = function () {
                             scrollTop: $(this).offset().top - $(window).height() + $(this).height()
                         }, 500);
                     });
-}
+};
 
 function mailServerSettings() {
     var email = document.getElementById('email');
