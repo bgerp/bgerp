@@ -245,6 +245,7 @@ class webkittopdf_Setup extends core_ProtoSetup
         // Ако не може да се открие версията/подверсията
         if (!isset($version) || !isset($subVersion)) return ;
         
+        $versionArr = array();
         $versionArr['version'] = $version;
         $versionArr['subVersion'] = $subVersion;
         
