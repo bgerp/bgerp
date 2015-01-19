@@ -1790,11 +1790,6 @@ function keylistActions(el) {
 	 $('.keylistCategory').on('click', function(e) {
 		 // ако натиснем бутона за инвертиране на чекбоксовете
 		  if ($(e.target).is(".invert-checkbox")) {
-			  // ако групата е затворена я отваряме
-			  var category = $(e.target).closest('.keylistCategory');
-			  if ($(category).hasClass('closed')) {
-				  toggleKeylistGroups(category);
-			  }
 			  //инвертираме
 			  inverseCheckBox(e.target);
 		  } else {
@@ -2716,12 +2711,12 @@ function removeParentTag(el) {
  * Функция, която отваря посоченото URL, като спира разпространението на събитието
  */
 function openUrl(url, event) {
-	if(typeof event !== "undefined") {
+	if(event) {
 		if(event.stopPropagation){
 			event.stopPropagation();
 		}
 		event.cancelBubble = true;
-	} 
+	}
 	
 	window.location = url;
 
