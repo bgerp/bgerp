@@ -2711,12 +2711,12 @@ function removeParentTag(el) {
  * Функция, която отваря посоченото URL, като спира разпространението на събитието
  */
 function openUrl(url, event) {
-	if(typeof event !== "undefined") {
+	if(event) {
 		if(event.stopPropagation){
 			event.stopPropagation();
 		}
 		event.cancelBubble = true;
-	} 
+	}
 	
 	window.location = url;
 
