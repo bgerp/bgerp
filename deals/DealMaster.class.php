@@ -795,7 +795,9 @@ abstract class deals_DealMaster extends deals_DealBase
 		
 		foreach (array('Deal', 'Paid', 'Delivered', 'Invoiced', 'ToPay', 'ToDeliver', 'ToInvoice', 'Bl') as $amnt) {
             if (round($rec->{"amount{$amnt}"}, 2) == 0) {
-                $row->{"amount{$amnt}"} = '<span class="quiet">0,00</span>';
+            	$coreConf = core_Packs::getConfig('core');
+            	$pointSign = $coreConf->EF_NUMBER_DEC_POINT;
+            	$row->{"amount{$amnt}"} = '<span class="quiet">0' . $pointSign . '00</span>';
             } else {
             	$value = round($rec->{"amount{$amnt}"} / $rec->currencyRate, 2);
             	$row->{"amount{$amnt}"} = $amountType->toVerbal($value);
