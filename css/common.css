@@ -1155,6 +1155,10 @@ input:focus[type=button] {
     padding: 0; }
   .simpleForm .formFields {
     margin: 0; }
+  .simpleForm .vertical .formGroup {
+    font-weight: bold !important;
+    color: black !important;
+    background: none !important; }
 
 .wide #main-container .formTable .formElement {
   min-width: 32em; }

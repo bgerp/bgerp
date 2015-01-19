@@ -1214,6 +1214,11 @@ td.formElement {
     .formFields{
         margin:0;
     }
+    .vertical .formGroup {
+        font-weight: bold !important;
+        color: black !important;
+        background: none !important;
+    }
 }
 
 .wide #main-container .formTable .formElement{
