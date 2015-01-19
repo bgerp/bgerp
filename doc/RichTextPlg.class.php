@@ -322,7 +322,7 @@ class doc_RichTextPlg extends core_Plugin
      * Добавя бутон за качване на документ
      * 
      * @param core_Mvc $mvc
-     * @param core_Toolbar $toolbarArr
+     * @param core_ObjectCollection $toolbarArr
      * @param array $attr
      */
     function on_AfterGetToolbar($mvc, &$toolbarArr, &$attr)
