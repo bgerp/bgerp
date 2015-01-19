@@ -131,7 +131,12 @@ class techno2_BomStageDetails extends core_Detail
     		
     		// Ако добавяме нов ресурс
     		$resourceArr = techno2_Boms::makeResourceOptions($masterRec->bomId, $masterRec->stage);
+    		if($form->rec->resourceId){
+    			$resourceArr[$form->rec->resourceId] = mp_Resources::getTitleById($form->rec->resourceId, FALSE);
+    		}
+    		
     		$form->setOptions('resourceId', $resourceArr);
+    		$form->setDefault($form->rec->resourceId);
     		
     	} elseif($form->rec->type == 'pop'){
     		

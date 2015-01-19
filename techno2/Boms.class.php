@@ -376,6 +376,12 @@ class techno2_Boms extends core_Master
     	
     	// Намираме ресурсите, които са заготовки за тази рецепта
     	$bomResources = cls::get('mp_Resources')->makeArray4Select('title', array("#bomId IS NOT NULL && state NOT IN ('rejected') && #bomId = {$bomId}"));
+
+    	if(isset($stageId)){
+    		$resTitle = mp_Stages::getVerbal($stageId, 'name') . "[{$bomId}]";
+    		$resId = mp_Resources::fetchField(array("#title = '[#1#]'", $resTitle), 'id');
+    		unset($bomResources[$resId]);
+    	}
     	
     	// Добавяме ги към списъка, ако има
     	if(count($bomResources)){
@@ -388,12 +394,6 @@ class techno2_Boms extends core_Master
     	
     	// Намираме тези ресурси, които не са използвани в рецептата
     	$diffArr = array_diff_key($allResources, $usedRes);
-    	
-    	if(isset($stageId)){
-    		$resTitle = mp_Stages::getVerbal($stageId, 'name') . "[{$bomId}]";
-    		$resId = mp_Resources::fetchField(array("#title = '[#1#]'", $resTitle), 'id');
-    		unset($diffArr[$resId]);
-    	}
     	
     	// Връщаме масива
     	return $diffArr;
