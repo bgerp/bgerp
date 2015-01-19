@@ -186,6 +186,15 @@ class techno2_Boms extends core_Master
     	if($action == 'activate' && isset($rec->id)){
     		if(!count($mvc->getResourceInfo($rec->id))){
     			$res = 'no_one';
+    		} else {
+    			
+    			
+    			return;
+    			$exitResources = static::getExitResources($bomId);
+    			
+    			$query2 = static::getDetailQuery($rec->id);
+    			$r = $query2->fetchAll();
+    			bp($exitResources, $r);
     		}
     	}
     }
@@ -350,6 +359,26 @@ class techno2_Boms extends core_Master
 
 
     /**
+     * Връща масив с изходните ресурси на етапите
+     * 
+     * @param int $bomId - ид
+     * @return array $exitResources - масив с изходните ресурси
+     */
+    public static function getExitResources($bomId)
+    {
+    	$exitResources = array();
+    	$dQuery = techno2_BomStages::getQuery();
+    	$dQuery->where("#bomId = {$bomId}");
+    	$dQuery->show('resourceId,exitQuantity');
+    	while($dRec = $dQuery->fetch()){
+    		$exitResources[$dRec->resourceId] = $dRec->exitQuantity;
+    	}
+    	
+    	return $exitResources;
+    }
+    
+    
+    /**
      * Връща ресурсите които могат да се добавят към дадена рецепта, това са тези, които вече не са добавени
      *
      * @param int $bomId - ид
@@ -421,5 +450,55 @@ class techno2_Boms extends core_Master
     	
     	// Връщаме заявката
     	return $query2;
+    }
+    
+    
+    /**
+     * Извиква се след успешен запис в модела
+     *
+     * @param core_Mvc $mvc
+     * @param int $id първичния ключ на направения запис
+     * @param stdClass $rec всички полета, които току-що са били записани
+     */
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    {
+    	if($rec->state == 'active'){
+    		if($rejectedCount = $mvc->rejectNotUsedResources($rec->id)){
+    			core_Statuses::newStatus(tr("|Оттеглени са|* {$rejectedCount} |неизползвани ресурси|*"));
+    		}
+    	} elseif($rec->state == 'rejected'){
+    		
+    	}
+    }
+    
+    
+    /**
+     * Оттегля всички ресурси-заготовки за тази рецепта които вече не фигурират в нея
+     * 
+     * @param int $bomId
+     * @return mixed $count/FALSE - Броя на оттеглените ресурси
+     */
+    private function rejectNotUsedResources($bomId)
+    {
+    	// Намираме всички изходни ресурси за тази рецепта
+    	$exitResources = static::getExitResources($bomId);
+    	
+    	// Кои са създадените ресурси за рецептата като цяло
+    	$resQuery = mp_Resources::getQuery();
+    	$resQuery->where("#bomId = {$bomId}");
+    	$resQuery->where("#state = 'active'");
+    	$resQuery->show('id');
+    	 
+    	// Ако има създадени ресурси-заготовки, които не фигурират в рецептата към момента, ги оттегляме
+    	$notUsedResources = array_diff_key($resQuery->fetchAll(), $exitResources);
+    	if(count($notUsedResources)){
+    		foreach ($notUsedResources as $resRec){
+    			mp_Resources::reject($resRec);
+    		}
+    		
+    		return count($notUsedResources);
+    	}
+    	
+    	return FALSE;
     }
 }
