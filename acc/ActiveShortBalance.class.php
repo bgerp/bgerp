@@ -122,6 +122,8 @@ class acc_ActiveShortBalance {
                     $b['ent2Id'] = $item2;
                     $b['ent3Id'] = $item3;
                     
+                    $b["{$type}Quantity"] += $rec->{"{$type}Quantity"};
+                    $b["{$type}Amount"] += $rec->amount;
                     $b['blQuantity'] += round($rec->{"{$type}Quantity"} * $sign, 6);
                     $b['blAmount'] += round($rec->amount * $sign, 6);
                 }
