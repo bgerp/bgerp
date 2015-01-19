@@ -2184,7 +2184,7 @@ class log_Documents extends core_Manager
      * @param string $mid - Mid' а на действието
      * @param string $action - Действието, което искаме да търсим
      * 
-     * @return log_Documents - Обект с данни
+     * @return object - Обект с данни
      */
     static function getActionRecForMid($mid, $action=NULL)
     {
