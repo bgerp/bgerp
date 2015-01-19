@@ -221,6 +221,8 @@ class webkittopdf_Setup extends core_ProtoSetup
      */
     static function getVersionAndSubVersion()
     {
+        $versionArr = array();
+        
         // Вземаме конфига
         $confWebkit = core_Packs::getConfig('webkittopdf');
         
@@ -234,7 +236,7 @@ class webkittopdf_Setup extends core_ProtoSetup
             }
         }
         
-        if (!$trimRes) return ;
+        if (!$trimRes) return $versionArr;
         
         // Вземаме масива с версията
         $versionArrExplode = explode(" ", $trimRes);
@@ -243,9 +245,8 @@ class webkittopdf_Setup extends core_ProtoSetup
         list($version, $subVersion) = explode(".", trim($versionArrExplode[1]));
         
         // Ако не може да се открие версията/подверсията
-        if (!isset($version) || !isset($subVersion)) return ;
+        if (!isset($version) || !isset($subVersion)) return $versionArr;
         
-        $versionArr = array();
         $versionArr['version'] = $version;
         $versionArr['subVersion'] = $subVersion;
         
