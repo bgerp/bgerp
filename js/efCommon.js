@@ -3289,10 +3289,10 @@ function mailServerSettings() {
     var smtpAuth = document.getElementById('smtpAuth');
     var smtpUser = document.getElementById('smtpUser');
    
-    n = email.value.search("@"); 
+    var n = email.value.search("@"); 
     
-    provider = email.value.substr(n+1)
-    userAccountt = email.value.substr(0,n)
+    var provider = email.value.substr(n+1);
+    var userAccountt = email.value.substr(0,n);
     
     if (server.value == "") {
 		switch (provider) {
