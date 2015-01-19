@@ -76,6 +76,8 @@ class avatar_Plugin extends core_Plugin
             $width = Mode::is('screenMode', 'narrow') ? 48 : 100;
         }
         
+        $attr = array();
+        
         if($userId < 0) {
             // Ако става дума за системния потребител
             $imgUrl = sbf('img/100/system.png', '');
