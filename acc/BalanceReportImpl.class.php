@@ -55,8 +55,8 @@ class acc_BalanceReportImpl extends frame_BaseDriver
     public function addEmbeddedFields(core_Form &$form)
     {
     	$form->FLD('accountId', 'acc_type_Account(allowEmpty)', 'caption=Сметка,mandatory,silent', array('attr' => array('onchange' => "addCmdRefresh(this.form);this.form.submit()")));
-    	$form->FLD('from', 'datetime', 'caption=От,mandatory');
-    	$form->FLD('to', 'datetime', 'caption=До,mandatory');
+    	$form->FLD('from', 'date', 'caption=От,mandatory');
+    	$form->FLD('to', 'date', 'caption=До,mandatory');
     	$form->FLD("action", 'varchar', "caption=Действие,width=330px,silent,input=hidden", array('attr' => array('onchange' => "addCmdRefresh(this.form);this.form.submit()")));
     	$form->setOptions('action', array('' => '', 'filter' => 'Филтриране по пера', 'group' => 'Групиране по пера'));
     }
