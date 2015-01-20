@@ -405,33 +405,95 @@ class techno2_Boms extends core_Master
     			$usedRes[$dRec->resourceId] = mp_Resources::getTitleById($dRec->resourceId, FALSE);
     		}
     	}
-    	 
+    	
     	// Намираме всички стандартни ресурси
     	$allResources = cls::get('mp_Resources')->makeArray4Select('title', array("#bomId IS NULL && state NOT IN ('rejected')"));
     	
     	// Намираме ресурсите, които са заготовки за тази рецепта
     	$bomResources = cls::get('mp_Resources')->makeArray4Select('title', array("#bomId IS NOT NULL && state NOT IN ('rejected') && #bomId = {$bomId}"));
 
-    	if(isset($stageId)){
-    		$resTitle = mp_Stages::getVerbal($stageId, 'name') . "[{$bomId}]";
-    		$resId = mp_Resources::fetchField(array("#title = '[#1#]'", $resTitle), 'id');
-    		unset($bomResources[$resId]);
-    	}
-    	
     	// Добавяме ги към списъка, ако има
     	if(count($bomResources)){
-    		$allResources[0] = (object)array(
-    				'title' => 'Заготовки',
-    				'group' => TRUE,
-    		);
-    		$allResources = $allResources + $bomResources;
+    		
+    		$notAllowed = array();
+    		$needle = techno2_BomStages::fetchField("#bomId = {$bomId} AND #stage = '{$stageId}'", 'resourceId');
+    		
+    		if(count($bomResources)){
+    			foreach ($bomResources as $id => $name){
+    				self::traverseTree($id, $needle, $notAllowed);
+    			}
+    		}
+    		
+    		if(count($notAllowed)){
+    			foreach ($notAllowed as $notId){
+    				unset($bomResources[$notId]);
+    			}
+    		}
+    		
+    		if(count($bomResources)){
+    			$allResources['Заготовки'] = (object)array(
+    					'title' => 'Заготовки',
+    					'group' => TRUE,
+    			);
+    			
+    			$allResources = $allResources + $bomResources;
+    		}
     	}
     	
     	// Намираме тези ресурси, които не са използвани в рецептата
     	$diffArr = array_diff_key($allResources, $usedRes);
     	
+    	
     	// Връщаме масива
     	return $diffArr;
+    }
+    
+    
+    /**
+     * Рекурсивно обхождаме дървото на рецептата и търсим дали
+     * тя съдържа някъде определен ресурс, ако да то добавяме
+     * всички ресурси които са част от дървото към масив.
+     * 
+     * @param int $resourceId - ид на ресурса
+     * @param array $notAllowed - масив където се добавят
+     * забранените ресурси
+     * @param int $needle - ресурс, който търсим
+     * @param array $path - пътя до ресурса в дървото
+     */
+    private static function traverseTree($resourceId, $needle, &$notAllowed, $path = array())
+    {
+    	// Добавяме текущия продукт
+    	$path[] = $resourceId;
+    	
+    	// Ако стигнем до началния, прекратяваме рекурсията
+    	if($resourceId == $needle){
+    		foreach($path as $p){
+    			 
+    			// За всеки продукт в пътя до намерения ние го
+    			// добавяме в масива notAllowed, ако той, вече не е там
+    			if(!array_key_exists($p, $path)){
+    				$notAllowed[$p] = $p;
+    			}
+    		}
+    		return;
+    	}
+    	
+    	// Взимаме вложените ресурси в етапа
+    	$query = techno2_BomStageDetails::getQuery();
+    	$stageRec = techno2_BomStages::fetch("#resourceId = {$resourceId}");
+    	
+    	$query->where("#bomstageId = {$stageRec->id} AND #type = 'input'");
+    	
+    	// За всеки
+    	while($rec = $query->fetch()){
+    		
+    		// Ако някой от вложимите е изходен за друг етап от рецептата
+    		if($sRec = techno2_BomStages::fetch("#bomId = {$stageRec->bomId} AND #resourceId = {$rec->resourceId}")){
+    			
+    			// Извикваме рекурсивно
+    			self::traverseTree($sRec->resourceId, $needle, $notAllowed, $path);
+    		}
+    	}
     }
     
     

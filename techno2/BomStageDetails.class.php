@@ -299,4 +299,9 @@ class techno2_BomStageDetails extends core_Detail
     	$data->query->orderBy("type");
     	$data->query->orderBy("id", 'ASC');
     }
+    
+    
+
+
+    
 }
