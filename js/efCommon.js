@@ -2240,7 +2240,6 @@ efae.prototype.process = function(subscribedObj, otherData, async) {
             	getEfae().AJAXErrorRepaired = true;
             }
         }).fail(function(res) {
-        	if(res.readyState == 0 || res.status == 0) return;
             
         	setTimeout(function(){
         		// Ако не е добавено съобщение за грешка
@@ -2253,7 +2252,7 @@ efae.prototype.process = function(subscribedObj, otherData, async) {
                     getEfae().AJAXHaveError = true;
                     getEfae().AJAXErrorRepaired = false;
             	}
-        	}, 1000);
+        	}, 1500);
         }).always(function(res) {
         	// Ако е имало грешка и е оправенена, премахваме статуса
         	if (getEfae().AJAXHaveError && getEfae().AJAXErrorRepaired && $(".connection-error-status").length) {
