@@ -806,7 +806,7 @@ class techno2_SpecificationDoc extends core_Embedder
     {
     	$res = array();
     	 
-    	$Driver = $this->getDriver($productId);
+    	if(!$Driver = $this->getDriver($productId)) return;
     	
     	if($usedDocs = $Driver->getUsedDocs()) {
     		if(count($usedDocs)){
