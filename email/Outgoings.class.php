@@ -462,7 +462,7 @@ class email_Outgoings extends core_Master
         
         // Ако има успешно изпращане
         if ($success) {
-            $msg = 'Успешно изпратено до|*: ' . implode(', ', $success);
+            $msg = '|Успешно изпратено до|*: ' . implode(', ', $success);
             $statusType = 'notice';
             
             // Добавяме статус
@@ -511,7 +511,7 @@ class email_Outgoings extends core_Master
         
         // Ако има провалено изпращане
         if ($failure) {
-            $msg = 'Грешка при изпращане до|*: ' . implode(', ', $failure);
+            $msg = '|Грешка при изпращане до|*: ' . implode(', ', $failure);
             $statusType = 'warning';
             
             // Добавяме статус
