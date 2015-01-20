@@ -2242,14 +2242,20 @@ efae.prototype.process = function(subscribedObj, otherData, async) {
         }).fail(function(res) {
             
         	setTimeout(function(){
+        		
+        		getEfae().AJAXHaveError = true;
+                getEfae().AJAXErrorRepaired = false;
+        		
 	        	if (typeof showToast != 'undefined') {
-	                showToast({
-	                    timeOut: 1,
-	                    text: 'Connection error',
-	                    isSticky: false,
-	                    stayTime: 4000,
-	                    type: 'error'
-	                });
+	        		if (!$(".toast-type-error").length) {
+	        			showToast({
+		                    timeOut: 1,
+		                    text: 'Connection error',
+		                    isSticky: true,
+		                    stayTime: 4000,
+		                    type: 'error'
+		                });
+	        		}
 	            } else {
 	            	// Ако не е добавено съобщение за грешка
 	            	if (!$(".connection-error-status").length) {
@@ -2257,16 +2263,20 @@ efae.prototype.process = function(subscribedObj, otherData, async) {
 	                    getEO().log('Грешка при извличане на данни по AJAX');
 	                    var errorData = {id: "statuses", html: "<div class='statuses-message statuses-error connection-error-status'>Connection error</div>", replace: false};
 	                    render_html(errorData);
-	                    
-	                    getEfae().AJAXHaveError = true;
-	                    getEfae().AJAXErrorRepaired = false;
 	            	}
 	            }
         	}, 1500);
         }).always(function(res) {
         	// Ако е имало грешка и е оправенена, премахваме статуса
-        	if (getEfae().AJAXHaveError && getEfae().AJAXErrorRepaired && $(".connection-error-status").length) {
-    			$('.connection-error-status').remove();
+        	if (getEfae().AJAXHaveError && getEfae().AJAXErrorRepaired) {
+    			
+        		if ($('.connection-error-status').length) {
+        			$('.connection-error-status').remove();
+        		}
+        		
+        		if ($('.toast-type-error').length) {
+        			$('.toast-type-error').remove();
+        		}
         	}
         });
     } else {
