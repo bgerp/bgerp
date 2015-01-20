@@ -64,13 +64,18 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     
 
     /**
-     * Връща продуктите, които могат да се продават на посочения клиент
-     *
-     * @return array() - масив с опции, подходящ за setOptions на форма
+     * Връща артикули, които могат да се продават на посочения клиент
+     * 
+     * @param mixed $customerClass - клас/ид на контрагента
+     * @param int $customerId - ид на контрагента
+     * @param string $date - дата към която извличаме артикулите
+     * @param string $properties - мета данни, на които да отговарят артикулите
+     * @param string $limit - колко опции да върнем
+     * @return array - масив с опции на продуктите, според контрагента, датата и мета данните им 
      */
-    function getProducts($customerClass, $customerId, $date = NULL)
+    function getProducts($customerClass, $customerId, $date = NULL, $properties = NULL, $limit = NULL)
     {
-        return $this->class->getProducts($customerClass, $customerId, $date);
+        return $this->class->getProducts($customerClass, $customerId, $date, $properties, $limit);
     }
     
     

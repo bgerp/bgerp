@@ -418,7 +418,7 @@ class techno2_SpecificationDoc extends core_Embedder
      * Това са всички спецификации от неговата папка, както и
      * всички общи спецификации (създадени в папка "Проект")
      */
-    function getProducts($customerClass, $customerId, $date = NULL, $properties, $limit = NULL)
+    function getProducts($customerClass, $customerId, $date = NULL, $properties = NULL, $limit = NULL)
     {
     	$Class = cls::get($customerClass);
     	$folderId = $Class->forceCoverAndFolder($customerId, FALSE);

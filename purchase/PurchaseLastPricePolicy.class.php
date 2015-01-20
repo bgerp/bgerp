@@ -35,7 +35,7 @@ class purchase_PurchaseLastPricePolicy extends core_Manager
      * 
      * @return array - масив с опции, подходящ за setOptions на форма
      */
-    public function getProducts($customerClass, $customerId, $datetime = NULL, $limit = NULL)
+    public function getProducts($customerClass, $customerId, $datetime = NULL, $properties = NULL, $limit = NULL)
     {
     	return cat_Products::getByProperty('canBuy', $limit);
     }

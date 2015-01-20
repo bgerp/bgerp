@@ -805,7 +805,7 @@ class cat_Products extends core_Embedder {
      *
      * @return array() - масив с опции, подходящ за setOptions на форма
      */
-    public function getProducts($customerClass, $customerId, $datetime = NULL, $properties, $limit = NULL)
+    public function getProducts($customerClass, $customerId, $datetime = NULL, $properties = NULL, $limit = NULL)
     {
     	return static::getByProperty($properties, $limit);
     }
