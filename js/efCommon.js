@@ -2242,16 +2242,26 @@ efae.prototype.process = function(subscribedObj, otherData, async) {
         }).fail(function(res) {
             
         	setTimeout(function(){
-        		// Ако не е добавено съобщение за грешка
-            	if (!$(".connection-error-status").length) {
-            		// Ако възникне грешка
-                    getEO().log('Грешка при извличане на данни по AJAX');
-                    var errorData = {id: "statuses", html: "<div class='statuses-message statuses-error connection-error-status'> Connection error </div>", replace: false};
-                    render_html(errorData);
-                    
-                    getEfae().AJAXHaveError = true;
-                    getEfae().AJAXErrorRepaired = false;
-            	}
+	        	if (typeof showToast != 'undefined') {
+	                showToast({
+	                    timeOut: 1,
+	                    text: 'Connection error',
+	                    isSticky: false,
+	                    stayTime: 4000,
+	                    type: 'error'
+	                });
+	            } else {
+	            	// Ако не е добавено съобщение за грешка
+	            	if (!$(".connection-error-status").length) {
+	            		// Ако възникне грешка
+	                    getEO().log('Грешка при извличане на данни по AJAX');
+	                    var errorData = {id: "statuses", html: "<div class='statuses-message statuses-error connection-error-status'>Connection error</div>", replace: false};
+	                    render_html(errorData);
+	                    
+	                    getEfae().AJAXHaveError = true;
+	                    getEfae().AJAXErrorRepaired = false;
+	            	}
+	            }
         	}, 1500);
         }).always(function(res) {
         	// Ако е имало грешка и е оправенена, премахваме статуса
