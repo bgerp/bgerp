@@ -28,7 +28,7 @@
             <!--ET_END docType-->
             <tr class='vtop'>
                 <td class="title-style aright" style='padding-right: 5px'>|Създаване|*:</td>
-                <td>|на|* <b>[#createdOn#]</b> |от|* <b>[#createdBy#]</b></td>
+                <td><b>[#createdBy#]</b>, <b>[#createdOn#]</b></td>
             </tr>
             <!--ET_BEGIN reason-->
             <tr class='vtop'>
