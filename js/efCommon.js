@@ -2240,6 +2240,8 @@ efae.prototype.process = function(subscribedObj, otherData, async) {
             	getEfae().AJAXErrorRepaired = true;
             }
         }).fail(function(res) {
+        	
+        	if((res.readyState == 0 || res.status == 0) && res.getAllResponseHeaders()) return;
             
         	setTimeout(function(){
         		
