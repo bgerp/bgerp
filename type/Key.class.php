@@ -212,7 +212,7 @@ class type_Key extends type_Int
                 
                 $titles = array();
                 
-                foreach($options as $id => &$title) {
+                foreach($options as $id => $title) {
                     
                     if(is_object($title)) continue;
                     
@@ -222,6 +222,7 @@ class type_Key extends type_Int
                     
                     $titles[$title] = TRUE;
                     $this->maxFieldSize = max($this->maxFieldSize, mb_strlen($title));
+                    $options[$id] = $title;
                 }
             }
             
@@ -581,7 +582,7 @@ class type_Key extends type_Int
      * Връща заглавието на опцията, независимо от това дали тя е стринг или обект
      */
     static function getOptionTitle($v)
-    {   
+    {
         if($v == NULL || is_string($v)) {
             $title = $v;
         } else {
