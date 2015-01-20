@@ -210,14 +210,14 @@ class techno2_BomStageDetails extends core_Detail
     {
     	// Ако има ресурс, показваме му мярката
     	if(isset($rec->resourceId)){
-    		$row->measureId = cat_UoM::getTitleById(mp_Resources::fetchField($rec->resourceId, 'measureId'));
+    		$row->measureId = cat_UoM::getShortName(mp_Resources::fetchField($rec->resourceId, 'measureId'));
     	} 
     	
     	// Името и мярката на изходния артикул/спецификация
     	foreach (array('productId' => 'cat_Products', 'specId' => 'techno2_SpecificationDoc') as $fld => $ProductMan){
     		if(isset($rec->$fld)){
     			$mId = $ProductMan::getProductInfo($rec->$fld)->productRec->measureId;
-    			$row->measureId = cat_UoM::getTitleById($mId);
+    			$row->measureId = cat_UoM::getShortName($mId);
     			$row->resourceId = $row->$fld;
     		}
     	}

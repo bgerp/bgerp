@@ -102,7 +102,6 @@ class techno2_BomStages extends core_Master
     {
     	$this->FLD('bomId', 'key(mvc=techno2_Boms)', 'column=none,input=hidden,silent,oldFieldName=mapId');
     	$this->FLD("stage", 'key(mvc=mp_Stages,select=name,allowEmpty)', 'caption=Етап,mandatory');
-    	$this->FLD('exitQuantity', 'double(smartRound)', 'input,column=none,caption=Изходно к-во,mandatory');
     	$this->FLD("description", 'richtext(rows=2)', 'caption=Описание');
     	$this->FLD("resourceId", 'key(mvc=mp_Resources,select=title)', 'input=hidden');
     	
@@ -122,7 +121,7 @@ class techno2_BomStages extends core_Master
     		$rQuery->where("#id != {$rec->id}");
     		
     		if($rRec = $rQuery->fetch()){
-    			$dRec = (object)array('bomstageId' => $rec->id, 'type' => 'input', 'resourceId' => $rRec->resourceId, 'propQuantity' => $rRec->exitQuantity);
+    			$dRec = (object)array('bomstageId' => $rec->id, 'type' => 'input', 'resourceId' => $rRec->resourceId);
     			techno2_BomStageDetails::save($dRec);
     		}
     	}
@@ -203,7 +202,7 @@ class techno2_BomStages extends core_Master
     			$row->addBtnRemProd = ht::createLink('', array('techno2_BomStageDetails', 'add', 'bomstageId' => $dRec->id, 'ret_url' => TRUE, 'type' => 'pop'), FALSE, "ef_icon=img/16/remove-icon.png,title=Добавяне на изходен артикул");
     		}
     		$dRow = $this->recToVerbal($dRec);
-    		$detailData->rows[] = (object)array('resourceId' => $dRow->resourceId, 'type' => 'pop', 'propQuantity' => $dRow->exitQuantity, 'ROW_ATTR' => array('class' => 'row-removed'));
+    		$detailData->rows[] = (object)array('resourceId' => $dRow->resourceId, 'type' => 'pop', 'ROW_ATTR' => array('class' => 'row-removed'));
     		
     		$data->bomStageDetailRows[$dRec->id] = $detailData->rows;
     		$data->rows[$dRec->id] = $row;

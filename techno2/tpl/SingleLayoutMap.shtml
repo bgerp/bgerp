@@ -6,6 +6,9 @@
     </div>
     <!--ET_END header-->
     <div>|За|*: [#originId#]</div>
+    <!--ET_BEGIN quantity-->
+    <div>|За количество|*: [#quantity#]</div>
+    <!--ET_END quantity-->
     [#Stages#]
     [#DETAILS#]
     

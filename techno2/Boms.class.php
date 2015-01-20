@@ -131,6 +131,7 @@ class techno2_Boms extends core_Master
     {
     	$this->FLD('notes', 'richtext(rows=4)', 'caption=Забележки');
     	$this->FLD('state','enum(draft=Чернова, active=Активиран, rejected=Оттеглен)', 'caption=Статус, input=none');
+    	$this->FLD('quantity', 'double(smartRound)', 'caption=За к-во');
     }
     
     
@@ -262,6 +263,11 @@ class techno2_Boms extends core_Master
     	 
     	$origin = doc_Containers::getDocument($rec->originId);
     	$row->originId = $origin->getHyperLink(TRUE);
+    	
+    	if($row->quantity){
+    		$measureId = doc_Containers::getDocument($rec->originId)->getProductInfo()->productRec->measureId;
+    		$row->quantity .= " " . cat_UoM::getShortName($measureId);
+    	}
     }
     
     
