@@ -141,6 +141,14 @@ class acc_BalanceReportImpl extends frame_BaseDriver
     				$form->setError("grouping{$i},feat{$i}", "Не може да са избрани едновременно перо и свойтво за една позиция");
     			}
     		}
+    		
+    		if($form->rec->orderField == ''){
+    			unset($form->rec->orderField);
+    		}
+    		
+    		if($form->rec->orderBy == ''){
+    			unset($form->rec->orderBy);
+    		}
     	}
     }
     
