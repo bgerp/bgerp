@@ -271,7 +271,11 @@ class acc_plg_Contable extends core_Plugin
             }
         } elseif ($action == 'revert') {
             if ($rec->id) {
-                $periodRec = acc_Periods::fetchByDate($rec->{$mvc->valiorFld});
+            	
+            	// Ако има запис в журнала, вальора е този от него, иначе е полето за вальор от документа
+            	$jRec = acc_Journal::fetchByDoc($mvc->getClassId(), $rec->id);
+            	$valior = isset($jRec) ? $jRec->valior : $rec->{$mvc->valiorFld};
+                $periodRec = acc_Periods::fetchByDate($valior);
                 
                 if (($rec->state != 'active' && $rec->state != 'closed') || ($periodRec->state != 'closed')) {
                     $requiredRoles = 'no_one';
@@ -280,8 +284,12 @@ class acc_plg_Contable extends core_Plugin
         } elseif ($action == 'reject') {
             if ($rec->id) {
                 
-                $periodRec = acc_Periods::fetchByDate($rec->{$mvc->valiorFld});
+            	// Ако има запис в журнала, вальора е този от него, иначе е полето за вальор от документа
+            	$jRec = acc_Journal::fetchByDoc($mvc->getClassId(), $rec->id);
+            	$valior = isset($jRec) ? $jRec->valior : $rec->{$mvc->valiorFld};
+            	$periodRec = acc_Periods::fetchByDate($valior);
                 
+            	// Ако периода на вальора е затворен, забраняваме
                 if ($periodRec->state == 'closed') {
                     $requiredRoles = 'no_one';
                 } else {
