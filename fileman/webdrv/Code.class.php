@@ -73,6 +73,8 @@ class fileman_webdrv_Code extends fileman_webdrv_Generic
         // Обвиваме съдъжанието на файла в код
         $content = "[code={$type}]{$content}[/code]";    
         
+        $content = i18n_Charset::convertToUtf8($content);
+        
         // Инстанция на класа
         $richTextInst = cls::get('type_Richtext');
         
