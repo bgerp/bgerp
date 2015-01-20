@@ -456,6 +456,7 @@ class pos_Receipts extends core_Master {
     	// Лейаут на терминала
     	$tpl = getTplFromFile("pos/tpl/terminal/Layout.shtml");
     	$tpl->replace(pos_Points::getTitleById($rec->pointId), 'PAGE_TITLE');
+    	$tpl->appendOnce("\n<link  rel=\"shortcut icon\" href=" . sbf("img/16/cash-register.png", '"', TRUE) . ">", "HEAD");
     	Mode::set('wrapper', 'page_Empty');
     	
     	// Добавяме бележката в изгледа
