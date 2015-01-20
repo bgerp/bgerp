@@ -75,7 +75,7 @@ class pos_ReceiptDetails extends core_Detail {
     	$this->FNC('ean', 'varchar(32)', 'caption=ЕАН, input, class=ean-text');
     	$this->FLD('productId', 'key(mvc=cat_Products, select=name, allowEmpty)', 'caption=Продукт,input=none');
     	$this->FLD('price', 'double(decimals=2)', 'caption=Цена,input=none');
-        $this->FLD('quantity', 'int', 'caption=К-во,placeholder=К-во,width=4em');
+        $this->FLD('quantity', 'double(smartRound)', 'caption=К-во,placeholder=К-во,width=4em');
         $this->FLD('amount', 'double(decimals=2)', 'caption=Сума, input=none');
     	$this->FLD('value', 'varchar(32)', 'caption=Стойност, input=hidden');
     	$this->FLD('discountPercent', 'percent(min=0,max=1)', 'caption=Отстъпка,input=none');
