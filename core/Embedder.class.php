@@ -104,9 +104,14 @@ class core_Embedder extends core_Master
 		}
 		
 		if(empty(self::$Drivers[$rec->id])){
-			$Driver = cls::get($rec->{$this->innerClassField});
-			$Driver->EmbedderRec = new core_ObjectReference($this, $rec->id);
-			self::$Drivers[$rec->id] = $Driver;
+			if(cls::load($rec->{$this->innerClassField}, TRUE)){
+				$Driver = cls::get($rec->{$this->innerClassField});
+				$Driver->EmbedderRec = new core_ObjectReference($this, $rec->id);
+				self::$Drivers[$rec->id] = $Driver;
+			} else {
+				
+				return FALSE;
+			}
 		}
 		
 		// За всеки случай задава наново вътрешното състояние и форма
@@ -132,8 +137,10 @@ class core_Embedder extends core_Master
 		$interfaces = core_Classes::getOptionsByInterface($mvc->innerObjectInterface, 'title');
 		if(count($interfaces)){
 			foreach ($interfaces as $id => $int){
+				if(!cls::load($id, TRUE)) continue;
+				
 				$Driver = cls::get($id);
-	
+				
 				// Ако потребителя не може да го избира, махаме го от масива
 				if(!$Driver->canSelectInnerObject()){
 					unset($interfaces[$id]);
@@ -167,15 +174,18 @@ class core_Embedder extends core_Master
 		
 		// Ако има източник инстанцираме го
 		if($rec->{$mvc->innerClassField}) {
-			$Driver = $mvc->getDriver($rec);
-			
-			// Източника добавя полета към формата
-			$Driver->addEmbeddedFields($form);
-			
-			$form->input(NULL, 'silent');
-			
-			// Източника модифицира формата при нужда
-			$Driver->prepareEmbeddedForm($form);
+			if($Driver = $mvc->getDriver($rec)){
+				
+				// Източника добавя полета към формата
+				$Driver->addEmbeddedFields($form);
+					
+				$form->input(NULL, 'silent');
+					
+				// Източника модифицира формата при нужда
+				$Driver->prepareEmbeddedForm($form);
+			} else {
+				$form->info = tr("|*<b style='color:red'>|Има проблем при зареждането на драйвера|*</b>");
+			}
 		}
 		
 		$form->input(NULL, 'silent');
@@ -191,15 +201,15 @@ class core_Embedder extends core_Master
 		if($form->rec->{$mvc->innerClassField}){
 			
 			// Инстанцираме драйвера
-			$Driver = $mvc->getDriver($form->rec);
-			
-			// Проверяваме можели въпросния драйвер да бъде избран
-			if(!$Driver->canSelectInnerObject()){
-				$form->setError($mvc->innerClassField, 'Нямате права за избрания източник');
+			if($Driver = $mvc->getDriver($form->rec)){
+				// Проверяваме можели въпросния драйвер да бъде избран
+				if(!$Driver->canSelectInnerObject()){
+					$form->setError($mvc->innerClassField, 'Нямате права за избрания източник');
+				}
+					
+				// Източника проверява подадената форма
+				$Driver->checkEmbeddedForm($form);
 			}
-			
-			// Източника проверява подадената форма
-			$Driver->checkEmbeddedForm($form);
 		}
 		 
 		if($form->isSubmitted()) {
@@ -213,15 +223,15 @@ class core_Embedder extends core_Master
 	 */
 	public static function on_AfterPrepareSingle($mvc, &$res, $data)
 	{
-		$Driver = $mvc->getDriver($data->rec);
-		
-		// Драйвера подготвя данните
-		$embeddedData = $Driver->prepareEmbeddedData();
-		
-		// Предизвикваме ивент, ако мениджъра иска да обработи подготвените данни
-		$mvc->invoke('AfterPrepareEmbeddedData', array(&$data, &$embeddedData));
-		
-		$data->embeddedData = $embeddedData;
+		if($Driver = $mvc->getDriver($data->rec)){
+			// Драйвера подготвя данните
+			$embeddedData = $Driver->prepareEmbeddedData();
+			
+			// Предизвикваме ивент, ако мениджъра иска да обработи подготвените данни
+			$mvc->invoke('AfterPrepareEmbeddedData', array(&$data, &$embeddedData));
+			
+			$data->embeddedData = $embeddedData;
+		}
 	}
 	
 	
@@ -230,13 +240,16 @@ class core_Embedder extends core_Master
 	 */
 	public static function on_AfterRenderSingle($mvc, &$tpl, $data)
 	{
-		$Driver = $mvc->getDriver($data->rec);
-		
-		// Драйвера рендира подготвените данни
-		$embededDataTpl = $Driver->renderEmbeddedData($data->embeddedData);
-		
-		// Мениджъра рендира рендираните данни от драйвера
-		$mvc->renderEmbeddedData($tpl, $embededDataTpl, $data);
+		if($Driver = $mvc->getDriver($data->rec)){
+			
+			// Драйвера рендира подготвените данни
+			$embededDataTpl = $Driver->renderEmbeddedData($data->embeddedData);
+			
+			// Мениджъра рендира рендираните данни от драйвера
+			$mvc->renderEmbeddedData($tpl, $embededDataTpl, $data);
+		} else {
+			$tpl->append(new ET(tr("|*<h2 class='red'>|Проблем при показването на драйвера|*</h2>")));
+		}
 	}
 	
 	
@@ -266,6 +279,7 @@ class core_Embedder extends core_Master
 			$rec->{$mvc->innerFormField} = (!empty($rec->{$mvc->innerFormField})) ? $rec->{$mvc->innerFormField} : $mvc->fetchField($rec->id, $mvc->innerFormField);
 		}
 		
+		if(!cls::load($innerClass, TRUE)) return;
 		$innerDrv = cls::get($innerClass);
 		
 		// Извикваме на драйвера събитие, той да се грижи за вътрешното си състояние
