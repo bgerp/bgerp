@@ -366,7 +366,9 @@ class type_Key extends type_Int
             if(!is_array($options)) {
                 $options = $this->options;
             }
-
+            
+            $optionsCnt = count($options);
+            
             if($this->params['allowEmpty']) {
                 $placeHolder = array('' => (object) array('title' => $attr['placeholder'] ? $attr['placeholder'] : ' ', 'attr' => 
                     array('style' => 'color:#777;')));
@@ -376,12 +378,12 @@ class type_Key extends type_Int
                     array('style' => 'color:#777;', 'disabled' => 'disabled')));
                 $options = arr::combine($placeHolder, $options);
             }
-
+            
             $maxSuggestions = $this->getMaxSuggestions();
             
             parent::setFieldWidth($attr);
             
-            if (count($options) > $maxSuggestions) {
+            if ($optionsCnt > $maxSuggestions) {
                 
                 $selOptCache = (array) unserialize(core_Cache::get('SelectOpt', $this->handler));
                 
