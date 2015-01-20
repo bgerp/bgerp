@@ -936,7 +936,7 @@ class core_Form extends core_FieldSet
     public function renderStaticHtml($fields = NULL, $vars = NULL)
     {
     	Mode::push('staticFormView', TRUE);
-    	$html = $this->renderHtml($fields, $vars);
+    	$html = $this->renderHtml_($fields, $vars);
     	Mode::pop();
     	
     	return $html;
