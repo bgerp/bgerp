@@ -322,10 +322,10 @@ class email_FaxSent extends core_Manager
 
         // Създаваме съобщение, в зависимост от състоянието на изпращане
         if (empty($failure)) {
-            $msg = 'Успешно изпратено до|*: ' . implode(', ', $success);
+            $msg = '|Успешно изпратено до|*: ' . implode(', ', $success);
             $statusType = 'notice';
         } else {
-            $msg = 'Грешка при изпращане до|*: ' . implode(', ', $failure);
+            $msg = '|Грешка при изпращане до|*: ' . implode(', ', $failure);
             $statusType = 'warning';
         }
         
