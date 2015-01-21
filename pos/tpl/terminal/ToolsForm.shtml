@@ -72,3 +72,9 @@
 <!--ET_BEGIN DRAFTS-->
 [#DRAFTS#]
 <!--ET_END DRAFTS-->
+
+<!--ET_BEGIN TRANSFERS_BLOCK-->
+<div style='display:inline-block;width:60%;'>[#TRANSFERS_BLOCK#][#BTNS#]</div>
+<div id='result_contragents'>
+</div>
+<!--ET_END TRANSFERS_BLOCK-->

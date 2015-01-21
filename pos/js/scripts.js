@@ -362,7 +362,6 @@ function posActions() {
 		}, 700);
 	});
 	
-	
 	// Добавяне на продукт от резултатите за търсене
 	$(document.body).on('click', ".pos-add-res-btn", function(e){
 		var elemRow = $(this).closest('tr');
@@ -375,6 +374,22 @@ function posActions() {
 		resObj = new Object();
 		resObj['url'] = url;
 		getEfae().process(resObj, {receiptId:receiptId,productId:productId});
+	});
+	
+	
+	// Добавяне на продукт от резултатите за търсене
+	$(document.body).on('click', ".pos-search-contragent-btn", function(e){
+		var searchStr = $("input[name=input-search-contragent]").val();
+		
+		var url2 = $(this).attr("data-url");
+		
+		if(!url2 || !searchStr){
+			return;
+		}
+		
+		resObj = new Object();
+		resObj['url'] = url2;
+		getEfae().process(resObj, {searchString:searchStr});
 	});
 }
 

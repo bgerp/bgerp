@@ -177,11 +177,18 @@ class pos_Cards extends core_Manager {
      * Връща контрагента отговарящ на номера на картата
      * 
      * @param varchar $number - номер на карта
+     * @param int $ctrClassId - ид на класа от който трябва да е контрагента
      * @return core_ObjectReference - референция към контрагента
      */
-    public static function getContragent($number)
+    public static function getContragent($number, $ctrClassId = NULL)
     {
-    	if($rec = static::fetch(array("#number = '[#1#]'", $number))){
+    	$query = static::getQuery();
+    	$query->where("#number = '{$number}'");
+    	if(isset($ctrClassId)){
+    		$query->where("#contragentClassId = $ctrClassId");
+    	}
+    	
+    	if($rec = $query->fetch()){
     		return new core_ObjectReference($rec->contragentClassId, $rec->contragentId);
     	}
     	
