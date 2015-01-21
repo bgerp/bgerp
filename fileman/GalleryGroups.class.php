@@ -112,7 +112,7 @@ class fileman_GalleryGroups extends core_Manager
     /**
      * Извиква се след SetUp-а на таблицата за модела
      */
-    static function on_AfterSetupMvc($mvc, &$res) 
+    public function loadSetupData()
     {
     	// Пътя до файла с данните 
     	$file = "fileman/csv/GalleryGroups.csv";
@@ -132,7 +132,7 @@ class fileman_GalleryGroups extends core_Manager
     	    	
     	// Импортираме данните от CSV файла. 
     	// Ако той не е променян - няма да се импортират повторно 
-    	$cntObj = csv_Lib::importOnce($mvc, $file, $fields, NULL, array('delimiter' => '|'), FALSE); 
+    	$cntObj = csv_Lib::importOnce($this, $file, $fields, NULL, array('delimiter' => '|'), FALSE); 
      	
     	// Записваме в лога вербалното представяне на резултата от импортирането 
     	$res .= $cntObj->html;
