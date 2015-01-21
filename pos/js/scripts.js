@@ -282,6 +282,8 @@ function posActions() {
 		}
 	});
 	
+	var tabContent = $('#tools-wide-tabs li.active a').attr('href');
+	$(tabContent).addClass('active');
 	
 	// Скриване на табовете
 	$(document.body).on('click', ".pos-tabs a ", function(e){
