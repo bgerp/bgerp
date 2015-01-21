@@ -104,6 +104,13 @@ class blast_ListDetails extends doc_Detail
     
     
     /**
+     * Стойност по подразбиране на състоянието
+     * @see plg_State
+     */
+    public $defaultState = 'active';
+    
+    
+    /**
      * Описание на полетата на модела
      */
     function description()
