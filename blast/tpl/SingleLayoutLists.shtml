@@ -32,16 +32,10 @@
                         <!--ET_END lastUsedOn-->
                         <!--ET_BEGIN createdOn-->          
                         <tr>
-                            <td class='aright' style='white-space: nowrap;'>|Създадено на|*:</td>
-                            <td>[#createdOn#]</td>
+                            <td class='aright' style='white-space: nowrap;'>|Създаване|*:</td>
+                            <td>[#createdBy#], [#createdOn#]</td>
                         </tr>
                         <!--ET_END createdOn-->
-                        <!--ET_BEGIN createdBy-->          
-                        <tr>
-                            <td class='aright' style='white-space: nowrap;'>|Създадено от|*:</td>
-                            <td>[#createdBy#]</td>
-                        </tr>
-                        <!--ET_END createdBy-->
                     </table>
             <div style='clear: both;'></div>
         </div>
