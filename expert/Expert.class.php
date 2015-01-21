@@ -705,7 +705,7 @@ class expert_Expert extends core_FieldSet {
     {
         $debug = '';
         
-        if (!isDebug()) {
+        if (isDebug()) {
             $debug = "<hr style='margin-top:10px;'><small><a href='#' onclick=\"toggleDisplay('expDebug');\">" . tr("Дебъг") . "</a><div id='expDebug' style='padding-left:15px; display:none;'>";
         
             if(count($this->reason)) {
