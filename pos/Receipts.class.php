@@ -795,9 +795,8 @@ class pos_Receipts extends core_Master {
 		$table = cls::get('core_TableView');
 		$fields = arr::make('count=№,name=Име,btn=Действие');
 		
-		$tpl = new ET("");
-		$tpl->append($data->title);
-		$tpl->append($table->get($data->rows, $fields));
+		$tpl = new ET("<div class='result-string'>{$data->title}</div><div class='pos-table'>[#TABLE#]</div>");
+		$tpl->append($table->get($data->rows, $fields), 'TABLE');
 		
 		return $tpl->getContent();
 	}
@@ -845,7 +844,7 @@ class pos_Receipts extends core_Master {
     	
     	$searchUrl1 = toUrl(array('pos_Receipts', 'searchContragents', 'type' => 'company'), 'local');
     	$searchUrl2 = toUrl(array('pos_Receipts', 'searchContragents', 'type' => 'person'), 'local');
-    	$inpFld = ht::createElement('input', array('name' => 'input-search-contragent', 'id' => 'input-search-contragent', 'type' => 'text', 'style' => 'text-align:right'));
+    	$inpFld = ht::createElement('input', array('name' => 'input-search-contragent', 'id' => 'input-search-contragent', 'type' => 'text'));
     	
     	$block->append($inpFld, 'TRANSFERS_BLOCK');
     	
