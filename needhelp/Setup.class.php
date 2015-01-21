@@ -1,6 +1,20 @@
 <?php
 
 
+
+/**
+ *  id на системата
+ */
+defIfNot('NEEDHELP_TYPEID', 28);
+
+
+/**
+ *  След колко време трябва да се покаже прозореца за помощ
+*/
+defIfNot('NEEDHELP_INACTIVE_SECS', 15);
+
+
+
 /** Въпроси
  * 
  * @category  bgerp
@@ -12,6 +26,15 @@
  */
 class  needhelp_Setup extends core_ProtoSetup
 {
+	
+	/**
+	 * Описание на конфигурационните константи
+	 */
+	var $configDescription = array(
+			'NEEDHELP_TYPEID'  => array('int', 'caption=Номер на системата'),
+			'NEEDHELP_INACTIVE_SECS'    => array('int', 'caption=След колко време трябва да се покаже прозореца за помощ->Секунди'),
+	);
+	
 	/**
 	 * Инсталиране на пакета
 	 */
