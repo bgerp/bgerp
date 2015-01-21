@@ -1519,22 +1519,24 @@ td.keylist-group{
 	    margin-top: 1px;
 	    cursor: pointer; 
 	    img {
+	       display:none;
 	    	margin-right: 5px;
 	    	top: 2px;
 	    	position: relative;
 	    } 
-	    .invert-checkbox {
-	       float: right;
-	    }
-	    .hidden {
-	       display: none;
-	    }
     }
 }
 
-.keylistCategory.closed {
-	.invert-checkbox {
-	   display: none;
+.keylistCategory{
+	&.opened  .invert-checkbox {
+	   float: right;
+	   display: block;
+	}
+	&.closed  .invert-checkbox {
+        display: none;
+	}
+	 .hidden {
+        display: none !important;
     }
 }
 
