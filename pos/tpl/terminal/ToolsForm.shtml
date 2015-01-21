@@ -35,7 +35,7 @@
 [#KEYBOARDS#]
 [#INPUT_SEARCH#]
 </div>
-<div id='pos-search-result-table'>
+<div id='pos-search-result-table' class='pos-table'>
 </div>
 
 <!--ET_END SEARCH_DIV-->
@@ -74,7 +74,8 @@
 <!--ET_END DRAFTS-->
 
 <!--ET_BEGIN TRANSFERS_BLOCK-->
-<div style='display:inline-block;width:60%;'>[#TRANSFERS_BLOCK#][#BTNS#]</div>
+<div class='contragent-form'>[#TRANSFERS_BLOCK#]<span class='contragent-btn'>[#BTNS#]</span></div>
+
 <div id='result_contragents'>
 </div>
 <!--ET_END TRANSFERS_BLOCK-->

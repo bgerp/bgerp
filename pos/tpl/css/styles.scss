@@ -342,7 +342,7 @@
 	left: 0;
 }
 .colum-btn .button , .tools-btn .button,  #tools-form form[method="post"] input[type="submit"],.tools-btn input,
-.tools-btn .button.disabledBtn:hover, .colum-btn .button.disabledBtn:hover, #webScan{
+.tools-btn .button.disabledBtn:hover, .colum-btn .button.disabledBtn:hover, #webScan, .contragent-btn .button{
 	width: 100%;
 	height: 43px;
     margin-bottom: 7px !important;
@@ -372,6 +372,17 @@
 	text-shadow: 0 1px 0 #EEE;
 	box-shadow: 1px 1px 2px rgba(0,0,0,0.5);
 }
+
+.contragent-btn {
+	display: inline-block;
+	margin-left: 20px;
+	.button {
+	    width: auto;
+	    position: relative;
+	    top: -1px;
+	}
+}
+ 
 
 .colum-btn .button:hover , .tools-btn .button:hover, #webScan:hover, .wide #tools-form form[method="post"] input[type="submit"]:hover{
 	background-color: #DDD;
@@ -517,7 +528,7 @@
 
 .input-field input[type=text], #select-input-pos, #input-search-contragent{
 	width: 100%;
-	height: 2.1em;
+	height: 2.2em;
 	font-size: 1.2em;
 	border: 1px solid #aaa;
 	border-radius: 4px;
@@ -664,36 +675,36 @@
 	min-width: 304px;
 }
 
-#pos-search-result-table{
+.pos-table{
 	overflow-y:auto;
 	box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.2) ,inset 0 0 20px rgba(0, 0, 0, 0.1);
 }
 
-#pos-search-result-table table{
+.pos-table table{
 	width: 100%;
 	margin-bottom: 0;
 }
 
-#pos-search-result-table th{
+.pos-table th{
 	display: none;
 }
 
-#pos-search-result-table td{
+.pos-table td{
 	border-left: none;
 	border-right: none;
 	background-color: #fff;
 	height: 64px;
 }
 
-.narrow #pos-search-result-table td{
+.narrow .pos-table td{
 	height: 34px;
 }
 
-#pos-search-result-table tr{
+.pos-table tr{
 	background: #fff !important;
 }
 
-#pos-search-result-table tr td:last-child{
+.pos-table tr td:last-child{
 	width: 1%;
 }
 
@@ -710,7 +721,7 @@
     width: 1%;
 }
 
-#pos-search-result-table .linkWithIcon{
+.pos-search-result-table .linkWithIcon{
 	font-weight: bold;
 }
 
@@ -735,7 +746,7 @@
 	text-align: center;
 }
 
-#pos-search-result-table tr:nth-child(even) td {
+.pos-search-result-table tr:nth-child(even) td {
 	background: #F1F1F1;
 	background: -moz-linear-gradient(top, rgba(241,241,241,1) 0%, rgba(221,221,221,1) 100%);
 	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#F1F1F1), color-stop(100%,#DDD));
@@ -745,7 +756,25 @@
 	background: linear-gradient(to bottom, #F1F1F1 0%,#DDD 100%);
 	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f1f1f1', endColorstr='#dddddd',GradientType=0 );
 }
-
+#result_contragents .pos-table td{
+	height: auto !important;
+	&:first-child {
+	   width: 1%;
+	}
+	.different-btns {
+	   margin-bottom: 5px;
+	}
+}
+.result-string {
+	margin-bottom: 10px;
+}
+.contragent-form input{
+	float: left;
+	&#input-search-contragent {
+	   width: auto;
+	   max-width: 60%;
+	}
+}
 /*media queries за клавиатурата*/
 @media handheld, only screen and (max-width: 1600px) { 
     .keyboard{

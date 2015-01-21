@@ -1383,4 +1383,158 @@ abstract class deals_DealMaster extends deals_DealBase
     		$tpl->placeObject($data->paymentPlan);
     	}
     }
+    
+
+   /*
+    * API за генериране на сделка
+    */
+    
+    
+    /**
+     * Метод за бързо създаване на чернова сделка към контрагент
+     *
+     * @param mixed $contragentClass - ид/инстанция/име на класа на котрагента
+     * @param int $contragentId - ид на контрагента
+     * @param array $fields - стойности на полетата на сделката
+     *
+     * 		o $fields['valior']             -  вальор (ако няма е текущата дата)
+     * 		o $fields['currencyId']         -  код на валута (ако няма е основната за периода)
+     * 		o $fields['currencyRate']       -  курс към валутата (ако няма е този към основната валута)
+     * 		o $fields['paymentMethodId']    -  ид на платежен метод (Ако няма е плащане в брой, @see cond_PaymentMethods)
+     * 		o $fields['chargeVat']          -  да се начислява ли ДДС - yes=Да,no=Не,free=Освободено (ако няма, се определя според контрагента)
+     * 		o $fields['shipmentStoreId']    -  ид на склад (@see store_Stores)
+     * 		o $fields['deliveryTermId']     -  ид на метод на доставка (@see cond_DeliveryTerms)
+     * 		o $fields['deliveryLocationId'] -  ид на локация за доставка (@see crm_Locations)
+     * 		o $fields['deliveryTime']       -  дата на доставка
+     * 		o $fields['dealerId']           -  ид на потребител търговец
+     * 		o $fields['initiatorId']        -  ид на потребител инициатора (ако няма е отговорника на контрагента)
+     * 		o $fields['caseId']             -  ид на каса (@see cash_Cases)
+     * 		o $fields['note'] 				-  бележки за сделката
+     *
+     * @return mixed $id/FALSE - ид на запис или FALSE
+     */
+    public static function createNewDraft($contragentClass, $contragentId, $fields = array())
+    {
+    	$contragentClass = cls::get($contragentClass);
+    	expect($cRec = $contragentClass->fetch($contragentId), 'Контрагента не съществува');
+    	expect($cRec->state != 'rejected', 'Не може да добавите продажба към оттеглен контрагент');
+    	 
+    	// Намираме всички полета, които не са скрити или не се инпутват, те са ни позволените полета
+    	$me = cls::get(get_called_class());
+    	$fields = arr::make($fields);
+    	$allowedFields = $me->selectFields("#input != 'none' AND #input != 'hidden'");
+    	 
+    	// Проверяваме подадените полета дали са позволени
+    	if(count($fields)){
+    		foreach ($fields as $fld => $value){
+    			expect(array_key_exists($fld, $allowedFields), 'Въпросното поле не е от позволените');
+    		}
+    	}
+    	 
+    	// Ако не е подадена дата, това е сегашната
+    	$fields['valior'] = (empty($fields['valior'])) ? dt::today() : $fields['valior'];
+    	 
+    	// Записваме данните на контрагента
+    	$fields['contragentClassId'] = $contragentClass->getClassId();
+    	$fields['contragentId'] = $contragentId;
+    	 
+    	// Ако няма валута, това е основната за периода
+    	$fields['currencyId'] = (empty($fields['currencyId'])) ? acc_Periods::getBaseCurrencyCode($fields['valior']) : $fields['currencyId'];
+    	 
+    	// Ако няма курс, това е този за основната валута
+    	$fields['currencyRate'] = (empty($fields['currencyRate'])) ? currency_CurrencyRates::getRate($fields['currencyRate'], $fields['currencyId'], NULL) : $fields['currencyRate'];
+    	 
+    	// Форсираме папката на клиента
+    	$fields['folderId'] = $contragentClass::forceCoverAndFolder($contragentId);
+    	 
+    	// Ако няма платежен план, това е плащане в брой
+    	$fields['paymentMethodId'] = (empty($fields['paymentMethodId'])) ? cond_PaymentMethods::fetchField("#name = 'Cash on Delivery'", 'id') : $fields['paymentMethodId'];
+    	 
+    	// Ако няма търговец, това е текущия потребител
+    	$fields['dealerId'] = (empty($fields['dealerId'])) ? core_Users::getCurrent() : $fields['dealerId'];
+    	 
+    	// Ако няма инициатор, това е отговорника на контрагента
+    	$fields['initiatorId'] = (empty($fields['initiatorId'])) ? $contragentClass::fetchField($contragentId, 'inCharge') : $fields['initiatorId'];
+    	 
+    	// Ако не е подадено да се начислявали ддс, определяме от контрагента
+    	if(empty($fields['chargeVat'])){
+    		$fields['chargeVat'] = ($contragentClass::shouldChargeVat($contragentId)) ? 'yes' : 'no';
+    	}
+    	 
+    	// Опиваме се да запишем мастъра на сделката
+    	if($id = $me->save((object)$fields)){
+    
+    		// Ако е успешно, споделяме текущия потребител към новосъздадената нишка
+    		$rec = $me->fetchField($id);
+    		doc_ThreadUsers::addShared($rec->threadId, $rec->containerId, core_Users::getCurrent());
+    
+    		return $id;
+    	}
+    	 
+    	return FALSE;
+    }
+
+    
+    /**
+     * Добавя нов ред в главния детайл на чернова сделка
+     * 
+     * @param int $id 			   - ид на сделка
+     * @param mixed $pMan		   - продуктов мениджър
+     * @param int $productId	   - ид на артикул
+     * @param double $packQuantity - количество продадени опаковки (ако няма опаковки е цялото количество)
+     * @param double $price        - цена на единична бройка (ако не е подадена, определя се от политиката)
+     * @param int $packagingId     - ид на опаковка (не е задължителна)
+     * @param double $discount     - отстъпка между 0(0%) и 1(100%) (не е задължителна)
+     * @return mixed $id/FALSE     - ид на запис или FALSE
+     */
+    public static function addRow($id, $pMan, $productId, $packQuantity, $price = NULL, $packagingId = NULL, $discount = NULL)
+    {
+    	$me = cls::get(get_called_class());
+    	$Detail = cls::get($me->mainDetail);
+    	 
+    	expect($rec = $me->fetch($id));
+    	expect($rec->state == 'draft');
+    	if(isset($discount)){
+    		expect($discount >= 0 && $discount <= 1, 'Отстъпката трябва да е между 0 и 1');
+    	}
+    	
+    	$ProductMan = cls::get($pMan);
+    	expect($ProductMan->fetchField($productId, 'id'), 'Несъществуващ артикул');
+    	if(isset($packagingId)){
+    		expect(cat_Packagings::fetchField($packagingId, 'id'), 'Несъществуваща опаковка');
+    	}
+    	
+    	// Броя еденици в опаковка, се определя от информацията за продукта
+    	$productInfo = $ProductMan->getProductInfo($productId, $packagingId);
+    	$quantityInPack = isset($packagingId) ? $productInfo->packagingRec->quantity : 1;
+    	$productManId = $ProductMan->getClassId();
+    	
+    	// Ако няма цена, опитваме се да я намерим от съответната ценова политика
+    	if(empty($price)){
+    		$Policy = (isset($Detail->Policy)) ? $Detail->Policy : $ProductMan->getPolicy();
+    		$policyInfo = $Policy->getPriceInfo($rec->contragentClassId, $rec->contragentId, $productId, $productManId, $packagingId, $packQuantity);
+    		$price = $policyInfo->price;
+    	}
+    	
+    	// Подготвяме детайла
+    	$dRec = (object)array($Detail->masterKey => $id, 
+    						  'classId'          => $productManId, 
+    						  'productId'        => $productId,
+    						  'packagingId'      => $packagingId,
+    						  'quantity'         => $quantityInPack * $packQuantity,
+    						  'discount'         => $discount,
+    						  'price'            => $price,
+    						  'quantityInPack'   => $quantityInPack,
+    	);
+    	
+    	// Трябва този артикул да се среща само веднъж
+    	expect(!$Detail->fetch("#{$Detail->masterKey} = {$id} AND #classId = {$dRec->classId} AND #productId = {$dRec->productId}"), 'Този артикул вече е добавен към продажбата');
+    	
+    	// Опиваме се да запишем мастъра на продажбата
+    	if($id = $Detail->save($dRec)){
+    		return $id;
+    	}
+    	
+    	return FALSE;
+    }
 }

@@ -33,6 +33,7 @@
 .needhelp-holder a{
 	color: #fff;
 	font-weight: normal;
+	cursor: pointer;
 	font-size: 1.2em;
 }
 .close {
@@ -47,4 +48,10 @@
 .close:hover {
 	opacity: 0.8;
 	cursor: pointer;
+}
+
+.logo {
+	background: url(favicon.ico) left center no-repeat;
+	padding-left: 18px;
+	padding-top: 1px;
 }

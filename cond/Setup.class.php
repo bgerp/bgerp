@@ -57,7 +57,8 @@ class cond_Setup  extends core_ProtoSetup
         	'cond_DeliveryTerms',
         	'cond_Parameters',
         	'cond_ConditionsToCustomers',
-    		'cond_Payments'
+    		'cond_Payments',
+    		'migrate::oldPosPayments',
         );
 
         
@@ -103,4 +104,16 @@ class cond_Setup  extends core_ProtoSetup
         
         return $res;
     }
+    
+    
+    /**
+     * Изтриване на стар платежен метод
+     */
+    public function oldPosPayments()
+    {
+    	if($id = cond_Payments::fetchField("#title = 'Кеш'", 'id')){
+    		cond_Payments::delete($id);
+    	}
+    }
+    
 }

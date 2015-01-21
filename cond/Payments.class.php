@@ -125,6 +125,7 @@ class cond_Payments extends core_Manager {
     	$payments = array();
     	$query = static::getQuery();
 	    $query->where("#state = 'active'");
+	    $query->orderBy("code");
 	    while($rec = $query->fetch()) {
 	    	$payment = new stdClass();
 	    	$payment->id = $rec->id;

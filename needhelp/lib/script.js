@@ -1,21 +1,33 @@
-function needHelpActions(text) {
+function needHelpActions(text, secondsInactive) {
 	var isset=false;
+	// ако няма контейнера, в който ще показване прозорчето, го добавяме
 	if (!$('body').has('.toast-container').length) {
 		$('body').append("<div class='toast-container toast-position-bottom-right'></div>");
 	}
-	var needHelpBlock = "<div class='toast-item-wrapper needhelp-holder'><div class='close'></div><a href='https://experta.bg/support_Issues/new/?systemId=1&typeId=28' target='_blank'>" + text + "</a></div></div>";
+	// създаваме прозорчето
+	var needHelpBlock = "<div class='toast-item-wrapper needhelp-holder'><div class='close'></div><a class='needHelpBtn'>" + text + "</a></div></div>";
 	
 	setInterval(function(){
 		if (isset) return false;
-		if(!isset && getEO().getIdleTime() > 25){
+		// ако не е показано и бездействието повече от определените секунди го показваме
+		if(!isset && getEO().getIdleTime() > secondsInactive){
 			isset=true;
 			$('.toast-container').append(needHelpBlock);
 			$('.needhelp-holder').fadeIn(800);
 		}
 	}, 5000);
 	
+	// при клик на 'х'-а го затваняме
 	$(document.body).on('click', ".needhelp-holder .close", function(e){
 		$('.needhelp-holder').fadeOut();
+	});
+	
+	// при клик на линка събмитваме формата
+	$(document.body).on('click', ".needHelpBtn", function(e){
+		$('.needHelpForm').submit();
+		setTimeout(function(){ 
+			$('.needhelp-holder').fadeOut();
+		}, 3000);
 	});
 	
 }

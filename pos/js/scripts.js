@@ -379,9 +379,10 @@ function posActions() {
 	});
 	
 	
-	// Добавяне на продукт от резултатите за търсене
+	// Търсене на контрагенти
 	$(document.body).on('click', ".pos-search-contragent-btn", function(e){
 		var searchStr = $("input[name=input-search-contragent]").val();
+		var receiptId = $("input[name=receiptId]").val();
 		
 		var url2 = $(this).attr("data-url");
 		
@@ -391,7 +392,7 @@ function posActions() {
 		
 		resObj = new Object();
 		resObj['url'] = url2;
-		getEfae().process(resObj, {searchString:searchStr});
+		getEfae().process(resObj, {receiptId:receiptId,searchString:searchStr});
 	});
 }
 

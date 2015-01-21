@@ -1416,16 +1416,18 @@ td.keylist-group {
     margin-top: 1px;
     cursor: pointer; }
     td.keylist-group > div img {
+      display: none;
       margin-right: 5px;
       top: 2px;
       position: relative; }
-    td.keylist-group > div .invert-checkbox {
-      float: right; }
-    td.keylist-group > div .hidden {
-      display: none; }
 
-  .keylistCategory.closed .invert-checkbox {
+  .keylistCategory.opened  .invert-checkbox {
+    float: right;
+    display: block; }
+  .keylistCategory.closed  .invert-checkbox {
     display: none; }
+  .keylistCategory .hidden {
+    display: none !important; }
 
   .opened td.keylist-group > div .plus {
     display: none; }

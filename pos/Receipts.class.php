@@ -67,6 +67,12 @@ class pos_Receipts extends core_Master {
     
     
     /**
+     * Кой може да прехвърли бележка?
+     */
+    var $canTransfer = 'ceo, pos';
+   
+    
+    /**
      * Кой може да променя?
      */
     var $canAdd = 'pos, ceo';
@@ -425,6 +431,13 @@ class pos_Receipts extends core_Master {
 				$res = 'no_one';
 			}
 		}
+		
+		// Не може да се прехвърля бележката, ако общото и е нула, има платено или не е чернова
+		if($action == 'transfer' && isset($rec->id)) {
+			if($rec->total == 0 || round($rec->paid, 2) > 0 || $rec->state != 'draft') {
+				$res = 'no_one';
+			}
+		}
 	}
     
     
@@ -731,7 +744,7 @@ class pos_Receipts extends core_Master {
      * @param enum(company,person) $type - какво ще търсим Лице/Фирма
      * @return stdClass $data
      */
-	private function prepareContragents($string, $type)
+	private function prepareContragents($rec, $string, $type)
 	{
 		$data = new stdClass();
 		$data->recs = $data->rows = array();
@@ -759,10 +772,14 @@ class pos_Receipts extends core_Master {
 		}
 		
 		// Филтрираме контрагентите по ключовите думи
-		$query->where(array("#searchKeywords LIKE '%[#1#]%'", $searchString));
+		if($searchString){
+			$query->where(array("#searchKeywords LIKE '%[#1#]%'", $searchString));
+		}
+		
 		$query->show('id,name');
-    	while($rec = $query->fetch()){
-    		$data->recs[$rec->id] = $rec;
+		$query->limit(20);
+    	while($rec1 = $query->fetch()){
+    		$data->recs[$rec1->id] = $rec1;
     	}
     	
     	// Ако има намерени записи
@@ -771,8 +788,12 @@ class pos_Receipts extends core_Master {
     		
     		// Обръщаме ги във вербален вид
     		foreach ($data->recs as $dRec){
-    			$recUrl = array($this, 'transferSale', 'contragentClassId' => $classId, 'contragentId' => $dRec->id);
+    			if($this->haveRightFor('transfer', $rec)){
+    				$recUrl = array($this, 'transferSale', 'contragentClassId' => $classId, 'contragentId' => $dRec->id);
+    			}
+    			$disClass = ($recUrl) ? '' : 'disabledBtn';
     			$btn = ht::createBtn('Прехвърли', $recUrl, NULL, TRUE, array('class' => "{$disClass} different-btns", 'title' => 'Прехвърли продажбата на контрагента'));
+    			
     			$data->rows[$dRec->id] = (object)array('count' => $count, 'name' => $icon . " " . $dRec->name, 'btn' => $btn);
     			$count++;
     		}
@@ -795,9 +816,8 @@ class pos_Receipts extends core_Master {
 		$table = cls::get('core_TableView');
 		$fields = arr::make('count=№,name=Име,btn=Действие');
 		
-		$tpl = new ET("");
-		$tpl->append($data->title);
-		$tpl->append($table->get($data->rows, $fields));
+		$tpl = new ET("<div class='result-string'>{$data->title}</div><div class='pos-table'>[#TABLE#]</div>");
+		$tpl->append($table->get($data->rows, $fields), 'TABLE');
 		
 		return $tpl->getContent();
 	}
@@ -809,12 +829,14 @@ class pos_Receipts extends core_Master {
     function act_SearchContragents()
     {
     	$this->requireRightFor('terminal');
-    	 
-    	if(!$searchString = Request::get('searchString')) return array();
+    	
+    	if(!$receiptId = Request::get('receiptId', 'int')) return array();
     	if(!$type = Request::get('type', 'enum(company,person)')) return array();
-    	 
+    	if(!$rec = $this->fetch($receiptId)) return array();
+    	$searchString = Request::get('searchString');
+    	
     	// Подготвяме информацията за контрагентите
-    	$data = $this->prepareContragents($searchString, $type);
+    	$data = $this->prepareContragents($rec, $searchString, $type);
     	
     	// Рендираме я
     	$html = $this->renderFoundContragents($data);
@@ -845,7 +867,7 @@ class pos_Receipts extends core_Master {
     	
     	$searchUrl1 = toUrl(array('pos_Receipts', 'searchContragents', 'type' => 'company'), 'local');
     	$searchUrl2 = toUrl(array('pos_Receipts', 'searchContragents', 'type' => 'person'), 'local');
-    	$inpFld = ht::createElement('input', array('name' => 'input-search-contragent', 'id' => 'input-search-contragent', 'type' => 'text', 'style' => 'text-align:right'));
+    	$inpFld = ht::createElement('input', array('name' => 'input-search-contragent', 'id' => 'input-search-contragent', 'type' => 'text'));
     	
     	$block->append($inpFld, 'TRANSFERS_BLOCK');
     	

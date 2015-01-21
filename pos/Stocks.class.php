@@ -220,7 +220,9 @@ class pos_Stocks extends core_Manager {
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
     	$row->storeId = store_Stores::getHyperLink($rec->storeId, TRUE);
-    	$row->productId = cls::get($rec->classId)->getHyperLink($rec->productId, TRUE);
+        if($rec->classId) {
+    	    $row->productId = cls::get($rec->classId)->getHyperLink($rec->productId, TRUE);
+        }
     	$row->productId = "<span style='float:left'>{$row->productId}</span>";
     }
     

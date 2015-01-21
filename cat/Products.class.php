@@ -1152,7 +1152,10 @@ class cat_Products extends core_Embedder {
     {
     	$rec = $this->fetchRec($id);
     	
-    	return $rec->name;
+    	$tpl = new ET($this->recTitleTpl);
+    	$tpl->placeObject($rec);
+    	
+    	return $tpl->getContent();
     }
     
     
