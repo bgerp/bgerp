@@ -300,6 +300,7 @@ class blast_ListDetails extends doc_Detail
      */
     function on_AfterGetQuery($mvc, $query)
     {
+        $query->orderBy('state');
         $query->orderBy('createdOn', 'DESC');
     }
     
