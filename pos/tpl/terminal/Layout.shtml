@@ -29,6 +29,12 @@
 						   </div>
 						<!--ET_END PAYMENTS_BLOCK-->
 						
+						<!--ET_BEGIN TRANSFER_BLOCK-->
+						   <div class='tab-content' id = 'tools-transfer'>
+						      [#TRANSFERS#]
+						   </div>
+						<!--ET_END TRANSFER_BLOCK-->
+						
 						<!--ET_BEGIN DRAFTS-->
 						   <div class='tab-content' id = 'tools-drafts'>
 						      [#DRAFTS#]

@@ -185,7 +185,7 @@ class findeals_Deals extends deals_DealBase
     	$this->FLD('secondContragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=none');
     	$this->FLD('secondContragentId', 'int', 'input=none');
     	
-    	$this->FLD('description', 'richtext(rows=4)', 'caption=Допълнителno->Описание');
+    	$this->FLD('description', 'richtext(rows=4)', 'caption=Допълнително->Описание');
     	$this->FLD('state','enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Приключен)','caption=Състояние, input=none');
     	
     	$this->FNC('detailedName', 'varchar', 'column=none,caption=Име');

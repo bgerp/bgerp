@@ -92,7 +92,6 @@ class pos_ReceiptDetails extends core_Detail {
     	$blocksTpl = getTplFromFile('pos/tpl/terminal/ReceiptDetail.shtml');
     	$saleTpl = $blocksTpl->getBlock('sale');
     	$paymentTpl = $blocksTpl->getBlock('payment');
-    	$clientTpl = $blocksTpl->getBlock('client');
     	if($data->rows) {
 	    	foreach($data->rows as $row) {
 	    		$action = $this->getAction($data->rows[$row->id]->action);
@@ -382,56 +381,6 @@ class pos_ReceiptDetails extends core_Detail {
     
     
     /**
-     * Добавяне на клиент
-     */
-    function act_addClientByCard()
-    {
-    	$this->requireRightFor('add');
-    	
-    	// Трябва да има такава бележка
-    	if(!$receiptId = Request::get('receiptId', 'int')) return $this->returnError($receiptId);
-    	
-    	// Трябва да има въведен номер на карта
-    	if(!$number = Request::get('ean')) {
-    		core_Statuses::newStatus(tr('|Не е подадена клиентска карта|*!'), 'error');
-	    	return $this->returnError($receiptId);
-    	}
-    	
-    	// Трябва да можем да добавяме към нея
-    	$this->requireRightFor('add', (object)array('receiptId' => $receiptId));
-    	
-    	// Трябва да няма добавен клиент досега
-    	if($this->hasClient($receiptId)){
-    		core_Statuses::newStatus(tr('|Има вече въведена клиентска карта|*!'), 'error');
-    		return $this->returnError($receiptId);
-    	}
-    	
-    	// Ако няма клиент оговарящ на картата
-    	if(!$Contragent = pos_Cards::getContragent($number)) {
-    		core_Statuses::newStatus(tr('|Няма контрагент с такава карта|*!'), 'error');
-	    	return $this->returnError($receiptId);
-    	}
-    	
-    	// Запис на продукта
-    	$rec = new stdClass();
-    	$rec->receiptId = $receiptId;
-    	$rec->action = 'client|ccard';
-    	$rec->param = $Contragent->that . "|" . $Contragent->className;
-    	
-    	// Добавяне/обновяване на продукта
-    	if($this->save($rec)){
-    		core_Statuses::newStatus(tr('|Картата е добавена успешно|*!'));
-    		
-    		return $this->returnResponse($rec->receiptId);
-    	} else {
-    		core_Statuses::newStatus(tr('|Проблем при добавяне на карта|*!'), 'error');
-    	}
-		
-    	return $this->returnError($receiptId);
-    }
-    
-    
-    /**
      * Подготвя детайла на бележката
      */
     public function prepareReceiptDetails($receiptId)
@@ -473,14 +422,6 @@ class pos_ReceiptDetails extends core_Detail {
     				$row->productId = tr('Плащане') . ": " . $row->actionValue;
     				unset($row->quantity,$row->value);
     			}
-    			break;
-    		case "client":
-    			$clientArr = explode("|", $rec->param);
-    			$row->clientName = $clientArr[1]::getTitleById($clientArr[0]);
-    			if($fields['-list']){
-    				$row->productId =  tr('Клиент') . ": " . $row->clientName;
-    				unset($row->quantity);
-    			} 
     			break;
     	}
     	
@@ -556,7 +497,7 @@ class pos_ReceiptDetails extends core_Detail {
     function getAction($string)
     {
     	$actionArr = explode("|", $string);
-    	$allowed = array('sale', 'discount', 'client', 'payment');
+    	$allowed = array('sale', 'discount', 'payment');
     	expect(in_array($actionArr[0], $allowed), 'Не е позволена такава операция');
     	expect(count($actionArr) == 2, 'Стрингът не е в правилен формат');
     	
@@ -638,28 +579,6 @@ class pos_ReceiptDetails extends core_Detail {
     	} 
     	
     	return FALSE;
-    }
-    
-    
-    /**
-     * Определяме кой е клиента на бележката
-     * @param int $receiptId - id на бележка
-     * @return mixed $rec - запис на клиента, FALSE ако няма
-     */
-    public function hasClient($receiptId)
-    {
-    	$query = $this->getQuery();
-    	$query->where(array("#receiptId = [#1#]", $receiptId));
-    	$query->where("#action = 'client|ccard'");
-    	$query->orderBy("#id", "DESC");
-    	
-    	$rec = $query->fetch();
-    	if(!$rec) return FALSE;
-    	
-    	$res = new stdClass();
-    	list($res->id, $res->class) = explode('|', $rec->param);
-    	
-    	return $res;
     }
 	
 	

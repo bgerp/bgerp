@@ -470,7 +470,8 @@
   min-width: 140px !important; }
 
 .input-field input[type=text],
-#select-input-pos {
+#select-input-pos,
+#input-search-contragent {
   width: 100%;
   height: 2.1em;
   font-size: 1.2em;

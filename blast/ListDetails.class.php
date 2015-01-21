@@ -104,6 +104,13 @@ class blast_ListDetails extends doc_Detail
     
     
     /**
+     * Стойност по подразбиране на състоянието
+     * @see plg_State
+     */
+    public $defaultState = 'active';
+    
+    
+    /**
      * Описание на полетата на модела
      */
     function description()
@@ -293,7 +300,7 @@ class blast_ListDetails extends doc_Detail
      */
     function on_AfterGetQuery($mvc, $query)
     {
-        $query->orderBy('state');
+        $query->orderBy('createdOn', 'DESC');
     }
     
     
