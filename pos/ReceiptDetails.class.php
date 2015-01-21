@@ -224,12 +224,17 @@ class pos_ReceiptDetails extends core_Detail {
 			$resObj2->func = "html";
 			$resObj2->arg = array('id' => 'tools-form', 'html' => $toolsTpl->getContent(), 'replace' => TRUE);
 			
+			// Ще реплесйнем и таба за плащанията
+			$resObj3 = new stdClass();
+			$resObj3->func = "html";
+			$resObj3->arg = array('id' => 'result_contragents', 'html' => ' ', 'replace' => TRUE);
+			
 			// Показваме веднага и чакащите статуси
 			$hitTime = Request::get('hitTime', 'int');
 			$idleTime = Request::get('idleTime', 'int');
 			$statusData = status_Messages::getStatusesData($hitTime, $idleTime);
         	
-			$res = array_merge(array($resObj, $resObj1, $resObj2), (array)$statusData);
+			$res = array_merge(array($resObj, $resObj1, $resObj2, $resObj3), (array)$statusData);
 			
 			return $res;
         } else {
