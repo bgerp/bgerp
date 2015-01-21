@@ -236,6 +236,26 @@ class fileman_GalleryGroups extends core_Manager
     
     
     /**
+     * Преди записване на клонирания запис
+     * 
+     * @param core_Mvc $mvc
+     * @param object $rec
+     * @param object $nRec
+     * 
+     * @see plg_Clone
+     */
+    function on_BeforeSaveCloneRec($mvc, $rec, $nRec)
+    {
+        // Премахваме ненужните полета
+        unset($nRec->createdOn);
+        unset($nRec->createdBy);
+        unset($nRec->modifiedOn);
+        unset($nRec->modifiedBy);
+        unset($nRec->state);
+    }
+    
+    
+    /**
 	 *  Подготовка на филтър формата
 	 */
 	static function on_AfterPrepareListFilter($mvc, &$data)
