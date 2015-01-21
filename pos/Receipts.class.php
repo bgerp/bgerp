@@ -738,31 +738,38 @@ class pos_Receipts extends core_Master {
 		
 		$searchString = plg_Search::normalizeText($string);
 		
+		// Ако търсим фирма
 		if($type == 'company'){
 			$classId = crm_Companies::getClassId();
 			$query = crm_Companies::getQuery();
 			$title = tr('фирми');
 			$icon = ht::createElement('img', array('src' => sbf('img/16/office-building.png', '')));
 		} else {
+			
+			// Ако търсим лице
 			$classId = crm_Companies::getClassId();
 			$icon = ht::createElement('img', array('src' => sbf('img/16/vcard.png', '')));
 			$title = tr('лица');
 			$query = crm_Persons::getQuery();
 			
+			// Намираме лицето по клиентската му карта
 			if($Contragent = pos_Cards::getContragent($searchString, $classId)){
 				$data->recs[$pRec->id] = $Contragent->rec;
 			}
 		}
 		
+		// Филтрираме контрагентите по ключовите думи
 		$query->where(array("#searchKeywords LIKE '%[#1#]%'", $searchString));
 		$query->show('id,name');
     	while($rec = $query->fetch()){
     		$data->recs[$rec->id] = $rec;
     	}
     	
+    	// Ако има намерени записи
     	if(count($data->recs)){
-    		
     		$count = 1;
+    		
+    		// Обръщаме ги във вербален вид
     		foreach ($data->recs as $dRec){
     			$recUrl = array($this, 'transferSale', 'contragentClassId' => $classId, 'contragentId' => $dRec->id);
     			$btn = ht::createBtn('Прехвърли', $recUrl, NULL, TRUE, array('class' => "{$disClass} different-btns", 'title' => 'Прехвърли продажбата на контрагента'));
@@ -806,7 +813,10 @@ class pos_Receipts extends core_Master {
     	if(!$searchString = Request::get('searchString')) return array();
     	if(!$type = Request::get('type', 'enum(company,person)')) return array();
     	 
+    	// Подготвяме информацията за контрагентите
     	$data = $this->prepareContragents($searchString, $type);
+    	
+    	// Рендираме я
     	$html = $this->renderFoundContragents($data);
     	
     	if(Request::get('ajax_mode')){
