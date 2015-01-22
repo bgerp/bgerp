@@ -496,7 +496,9 @@ class fileman_Files extends core_Master
     {   
         try {
 			$row->name = static::getLink($rec->fileHnd);
-        } catch(core_Exception_Expect $e) { }
+        } catch(core_Exception_Expect $e) {
+            // Вместо линк използваме името
+        }
     }
     
     
@@ -1258,6 +1260,8 @@ class fileman_Files extends core_Master
         if (!is_file(getFullPath($icon))) {
             $icon = "fileman/icons/default.png";
         }
+        
+        $attr = array();
         
         // Икона на линка
         $attr['ef_icon'] = $icon;
