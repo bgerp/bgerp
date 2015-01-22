@@ -294,12 +294,13 @@ class pos_Receipts extends core_Master {
     	
 	    while($rec = $query->fetch()) {
 	    	$info = cat_Products::getProductInfo($rec->productId, $rec->value);
-	    	$packagingId = ($info->packagingRec) ? $info->packagingRec->packagingId : NULL;
+	    	$packagingId = $rec->value;
+	    	$quantityInPack = isset($packagingId) ? $info->packagingRec->quantity : 1;
 	    	
 	    	$products[] = (object) array(
 	    		'classId'     => cat_Products::getClassId(),
 	    		'productId'   => $rec->productId,
-		    	'price'       => $rec->price,
+		    	'price'       => $rec->price / $quantityInPack,
 	    	    'packagingId' => $packagingId,
 	    		'vatPrice'    => $rec->price * $rec->param,
 	    		'discount'    => $rec->discountPercent,
