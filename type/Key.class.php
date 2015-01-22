@@ -446,12 +446,9 @@ class type_Key extends type_Int
         
         $options = $this->options;
         
-        $pOptions = $this->prepareOptions();
-        
         if ($this->getSelectFld() || count($options)) {
             
-            $options = $pOptions;
-            
+            $options = $this->prepareOptions();
             
             if(!is_array($options)) {
                 $options = $this->options;
