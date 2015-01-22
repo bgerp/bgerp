@@ -814,11 +814,11 @@ class pos_Receipts extends core_Master {
     	// Ако има намерени записи
     	if(count($data->recs)){
     		$count = 1;
-    		
+    	
     		// Обръщаме ги във вербален вид
     		foreach ($data->recs as $dRec){
     			if($this->haveRightFor('transfer', $rec)){
-    				$recUrl = array($this, 'Transfer', 'id' => $rec->id, 'contragentClassId' => $classId, 'contragentId' => $dRec->id);
+    				$recUrl = array($this, 'Transfer', 'id' => $rec->id, 'contragentClassId' => cls::get($dRec->class)->getClassId(), 'contragentId' => $dRec->id);
     				$newUrl = toUrl(array('pos_Receipts', 'new'), 'local');
     			}
     			$disClass = ($recUrl) ? '' : 'disabledBtn';
@@ -1035,14 +1035,27 @@ class pos_Receipts extends core_Master {
     	 
     	// Ако е зададен код на продукта
     	if($ean = Request::get('ean')) {
-    		$rec->ean = $ean;
+    		
+    		// Проверяваме дали въведения "код" дали е във формата '< число > * < код >', 
+    		// ако да то приемаме числото преди '*' за количество а след '*' за код
+    		preg_match('/([0-9+\ ?]*[\.|\,]?[0-9]*\ *)(\ ?\* ?)([0-9a-zа-я\- _]*)/iu', $ean, $matches);
+    		
+    		// Ако има намерени к-во и код от регулярния израз
+    		if(!empty($matches[1]) && !empty($matches[3])){
+    			$rec->quantity = cls::get('type_Double')->fromVerbal($matches[1]);
+    			$rec->ean = $matches[3];
+    		} else {
+    			
+    			// Иначе целия стринг приемаме за код
+    			$rec->ean = $ean;
+    		}
     	}
-    	 
+    	
     	// Ако е зададено ид на продукта
     	if($productId = Request::get('productId', 'int')) {
     		$rec->productId  = $productId;
     	}
-    	 
+    	
     	// Трябва да е подаден код или ид на продукт
     	if(!$rec->productId && !$rec->ean){
     		core_Statuses::newStatus(tr('|Не е избран артикул|*!'), 'error');
