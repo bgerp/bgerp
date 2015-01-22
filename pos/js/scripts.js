@@ -386,9 +386,7 @@ function posActions() {
 		
 		var url2 = $(this).attr("data-url");
 		
-		if(!url2 || !searchStr){
-			return;
-		}
+		if(!url2) return;
 		
 		resObj = new Object();
 		resObj['url'] = url2;
@@ -404,6 +402,26 @@ function posActions() {
 		resObj = new Object();
 		resObj['url'] = url;
 		getEfae().process(resObj);
+	});
+	
+	// Време за изчакване
+	var timeout1;
+	
+	// Търсене на контрагенти след освобождаване на клавиш
+	$("input[name=input-search-contragent]").keyup(function() {
+		var url = $(this).attr("data-url");
+		var receiptId = $("input[name=receiptId]").val();
+		var inpVal = $("input[name=input-search-contragent]").val();
+		
+		// След всяко натискане на бутон изчистваме времето на изчакване
+		clearTimeout(timeout1);
+		
+		// Правим Ajax заявката като изтече време за изчакване
+		timeout1 = setTimeout(function(){
+			resObj = new Object();
+			resObj['url'] = url;
+			getEfae().process(resObj, {receiptId:receiptId,searchString:inpVal});
+		}, 3000);
 	});
 }
 

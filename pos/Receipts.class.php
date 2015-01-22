@@ -781,37 +781,34 @@ class pos_Receipts extends core_Master {
 		
 		$searchString = plg_Search::normalizeText($string);
 		
-		// Ако търсим фирма
-		if($type == 'company'){
-			$classId = crm_Companies::getClassId();
-			$query = crm_Companies::getQuery();
-			$title = tr('фирми');
-			$icon = ht::createElement('img', array('src' => sbf('img/16/office-building.png', '')));
-		} else {
-			
-			// Ако търсим лице
-			$classId = crm_Companies::getClassId();
-			$icon = ht::createElement('img', array('src' => sbf('img/16/vcard.png', '')));
-			$title = tr('лица');
-			$query = crm_Persons::getQuery();
-			
-			// Намираме лицето по клиентската му карта
-			if($Contragent = pos_Cards::getContragent($searchString, $classId)){
-				$data->recs[$pRec->id] = $Contragent->rec;
+		foreach (array('person' => 'crm_Persons', 'company' => 'crm_Companies') as $type1 => $class){
+			if($type1 === $type || !$type){
+				$query = $class::getQuery();
+				if($searchString){
+					$query->where(array("#searchKeywords LIKE '%[#1#]%'", $searchString));
+				}
+				$query->where("#state != 'rejected'");
+				$query->show('id,name');
+				
+				if($type){
+					$query->limit(20);
+				} else {
+					$query->limit(10);
+				}
+					
+				while($rec1 = $query->fetch()){
+					$rec1->class = $class;
+					$rec1->icon = cls::get($class)->singleIcon;
+					$data->recs["$type1|{$rec1->id}"] = $rec1;
+				}
+				
+				if($type1 == 'person'){
+					if($Contragent = pos_Cards::getContragent($searchString, crm_Persons::getClassId())){
+						$data->recs["$type1|{$Contragent->that}"] = $Contragent->rec();
+					}
+				}
 			}
 		}
-		
-		// Филтрираме контрагентите по ключовите думи
-		if($searchString){
-			$query->where(array("#searchKeywords LIKE '%[#1#]%'", $searchString));
-		}
-		
-		$query->where("#state != 'rejected'");
-		$query->show('id,name');
-		$query->limit(20);
-    	while($rec1 = $query->fetch()){
-    		$data->recs[$rec1->id] = $rec1;
-    	}
     	
     	// Ако има намерени записи
     	if(count($data->recs)){
@@ -826,13 +823,20 @@ class pos_Receipts extends core_Master {
     			$disClass = ($recUrl) ? '' : 'disabledBtn';
     			$btn = ht::createBtn('Прехвърли', $recUrl, NULL, TRUE, array('class' => "{$disClass} different-btns transferBtn", 'data-url' => $newUrl, 'title' => 'Прехвърли продажбата на контрагента'));
     			
-    			$data->rows[$dRec->id] = (object)array('count' => $count, 'name' => $icon . " " . $dRec->name, 'btn' => $btn);
+    			$icon = ht::createElement('img', array('src' => sbf($dRec->icon, '')));
+    			
+    			$name = $icon . " " . $dRec->name;
+    			if(cls::get($dRec->class)->haveRightFor('single', $dRec->id)){
+    				$name = " " . ht::createLinkRef($name, array($dRec->class, 'single', $dRec->id));
+    			}
+    			
+    			$data->rows[$dRec->id] = (object)array('count' => $count, 'name' => $name, 'btn' => $btn);
     			$count++;
     		}
     	}
     	
     	$count = count($data->recs);
-    	$data->title = tr("|Намерени са|* {$count}") . " " . $title;
+    	$data->title = tr("|Намерени са|* {$count}") . " контрагента";
     	
     	return $data;
 	}
@@ -863,9 +867,9 @@ class pos_Receipts extends core_Master {
     	$this->requireRightFor('terminal');
     	
     	if(!$receiptId = Request::get('receiptId', 'int')) return array();
-    	if(!$type = Request::get('type', 'enum(company,person)')) return array();
     	if(!$rec = $this->fetch($receiptId)) return array();
     	$searchString = Request::get('searchString');
+    	$type = Request::get('type');
     	
     	// Подготвяме информацията за контрагентите
     	$data = $this->prepareContragents($rec, $searchString, $type);
@@ -899,8 +903,9 @@ class pos_Receipts extends core_Master {
     	
     	$searchUrl1 = toUrl(array('pos_Receipts', 'searchContragents', 'type' => 'company'), 'local');
     	$searchUrl2 = toUrl(array('pos_Receipts', 'searchContragents', 'type' => 'person'), 'local');
+    	$searchUrl3 = toUrl(array('pos_Receipts', 'searchContragents'), 'local');
     	
-    	$inpFld = ht::createElement('input', array('name' => 'input-search-contragent', 'id' => 'input-search-contragent', 'type' => 'text'));
+    	$inpFld = ht::createElement('input', array('name' => 'input-search-contragent', 'id' => 'input-search-contragent', 'type' => 'text', 'data-url' => $searchUrl3));
     	
     	$block->append($inpFld, 'TRANSFERS_BLOCK');
     	
