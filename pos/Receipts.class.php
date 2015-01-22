@@ -1032,8 +1032,15 @@ class pos_Receipts extends core_Master {
     	$rec = new stdClass();
     	$rec->receiptId = $receiptId;
     	$rec->action = 'sale|code';
-    	$rec->quantity = 1;
-    	 
+    	
+    	// Ако има к-во и то валидно задаваме го на записа
+    	$quantity = Request::get('quantity');
+    	if($quantity = cls::get('type_Double')->fromVerbal($quantity)){
+    		$rec->quantity = $quantity;
+    	} else {
+    		$rec->quantity = 1;
+    	}
+    	
     	// Ако е зададен код на продукта
     	if($ean = Request::get('ean')) {
     		
