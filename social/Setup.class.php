@@ -6,13 +6,13 @@
  * class dec_Setup
  *
  * Инсталиране/Деинсталиране на
- * мениджъри свързани с декларациите за съответствия
+ * мениджъри свързани със социалните мрежи
  *
  *
  * @category  bgerp
- * @package   dec
+ * @package   social
  * @author    Gabriela Petrova <gab4eto@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
