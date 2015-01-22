@@ -18,7 +18,7 @@ class plg_RefreshRows extends core_Plugin
     /**
      * Колко дни да стои в лога
      */
-    static $logKeepDays = 5;
+    public static $logKeepDays = 5;
     
     
     /**
@@ -153,7 +153,7 @@ class plg_RefreshRows extends core_Plugin
             $res = array($resObj);
             
             // Добавяме в лога
-            core_Logs::add($mvc, NULL, 'AJAX refresh list: ' . $mvc->title, static::$logKeepDays);
+            core_Logs::add($mvc, NULL, 'AJAX refresh list: ' . $mvc->title, self::$logKeepDays);
         }
         
         return FALSE;
