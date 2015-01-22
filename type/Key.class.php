@@ -354,11 +354,8 @@ class type_Key extends type_Int
      */
     public static function calcCrc($val)
     {
-        $crc =  crc32($val . '_' . KEY_CRC_SALT);
         
-        $crc = substr($crc, 0, 4);
-        
-        return $crc;
+        return crc32($val . '_' . KEY_CRC_SALT);
     }
     
     
