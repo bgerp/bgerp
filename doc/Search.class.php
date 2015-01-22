@@ -384,7 +384,8 @@ class doc_Search extends core_Manager
     
             return;
         }
-    
+        
+        $attr = array();
         $attr['class'] .= 'linkWithIcon';
         $attr['style'] = 'background-image:url(' . sbf($docProxy->getIcon($docProxy->that)) . ');';
         
