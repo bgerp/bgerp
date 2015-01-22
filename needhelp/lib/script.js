@@ -1,4 +1,5 @@
-function needHelpActions(text, secondsInactive) {
+function needHelpActions(text, secondsInactive, afterCloseUrl)
+{
 	var isset=false;
 	// ако няма контейнера, в който ще показване прозорчето, го добавяме
 	if (!$('body').has('.toast-container').length) {
@@ -20,6 +21,8 @@ function needHelpActions(text, secondsInactive) {
 	// при клик на 'х'-а го затваняме
 	$(document.body).on('click', ".needhelp-holder .close", function(e){
 		$('.needhelp-holder').fadeOut();
+		
+		getEfae().process({'url': afterCloseUrl});
 	});
 	
 	// при клик на линка събмитваме формата

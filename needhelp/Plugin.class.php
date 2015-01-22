@@ -15,6 +15,12 @@ class needhelp_Plugin extends core_Plugin
     
 	public static function on_AfterRenderWrapping($mvc, &$tpl)
     {
+        $currUserId = core_Users::getCurrent();
+        
+        if ($currUserId <= 0) return ;
+        
+        if (needhelp_Log::isShowLimitReached($currUserId)) return ;
+        
     	cls::get(page_InternalFooter);
     	$baseUrl = BGERP_SUPPORT_URL;
     	$conf = core_Packs::getConfig('needhelp');
@@ -37,6 +43,10 @@ class needhelp_Plugin extends core_Plugin
     	$inactiveTime = $conf->NEEDHELP_INACTIVE_SECS;
     	
     	$text = tr('Имате ли въпроси за') . ' <span class="logo">bgERP</span>?';
-    	jquery_Jquery::run($tpl, "needHelpActions('{$text}', $inactiveTime);", TRUE);;
+    	
+    	$url = toUrl(array('needhelp_Log', 'addToLog'), 'local');
+    	$url = urlencode($url);
+    	
+    	jquery_Jquery::run($tpl, "needHelpActions('{$text}', $inactiveTime, '{$url}');", TRUE);;
     }
 }
