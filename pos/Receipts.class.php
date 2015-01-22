@@ -934,7 +934,9 @@ class pos_Receipts extends core_Master {
     		$payUrl = toUrl(array('pos_ReceiptDetails', 'makePayment'), 'local');
     	}
     	
-    	$block->append(ht::createElement('input', array('name' => 'paysum', 'type' => 'text', 'style' => 'text-align:right;float:left;')) . "<br />", 'INPUT_PAYMENT');
+    	$value = $rec->total - $rec->paid;
+    	$value = ($value >= 0) ? $value : NULL;
+    	$block->append(ht::createElement('input', array('name' => 'paysum', 'type' => 'text', 'style' => 'text-align:right;float:left;', 'value' => $value)) . "<br />", 'INPUT_PAYMENT');
     	
     	// Показваме всички активни методи за плащания
     	$disClass = ($payUrl) ? '' : 'disabledBtn';
