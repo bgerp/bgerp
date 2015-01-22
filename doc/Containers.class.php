@@ -1136,7 +1136,7 @@ class doc_Containers extends core_Manager
      * @param $params['Act'] - Действието
      * @param $params['id'] - id' то на сингъла
      * 
-     * @return core_ET - Линк
+     * @return core_ET|FALSE - Линк
      */
     static function getVerbalLink($params)
     {
