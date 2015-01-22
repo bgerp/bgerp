@@ -828,7 +828,7 @@ class core_Manager extends core_Mvc
     static function log_($detail, $objectId = NULL, $logKeepDays = NULL)
     {
         if (!$logKeepDays) {
-            $logKeepDays = static::$logKeepDays;
+            $logKeepDays = self::$logKeepDays;
         }
         
         core_Logs::add(get_called_class(), $objectId, $detail, $logKeepDays);
