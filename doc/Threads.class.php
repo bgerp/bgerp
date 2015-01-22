@@ -1602,7 +1602,7 @@ class doc_Threads extends core_Manager
      * @param $params['Act'] - Действието
      * @param $params['threadId'] - id' то на нишката
      * 
-     * @return core_ET - Линк
+     * @return core_ET|FALSE - Линк
      */
     static function getVerbalLink($params)
     {
