@@ -323,6 +323,8 @@ class type_Key extends type_Int
      */
     public static function prepareOptKey($key)
     {
+        if (!trim($key)) return $key;
+        
         $crc = self::calcCrc($key);
         
         $newKey = $key . self::$keyDelimiter . $crc;
