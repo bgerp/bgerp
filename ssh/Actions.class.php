@@ -113,10 +113,10 @@ class ssh_Actions
     public function put($localFileName)
     {
         
-        $remoteFileName = $localFileName;
+        $remoteFileName = basename($localFileName);
         
-        if (ssh2_scp_send($this->connection, $localFileName, $remoteFileName)) {
-            throw new core_exception_Expect("Грешка при качване на файл от отдалечен хост");
+        if (!ssh2_scp_send($this->connection, $localFileName, $remoteFileName)) {
+            throw new core_exception_Expect("Грешка при качване на файл на отдалечен хост");
         }
     }
     
