@@ -519,7 +519,9 @@ class type_Key extends type_Int
                     return new Redirect(array($mvc, 'list'), $msg);
                 }
                 
-                $value = self::prepareOptKey($value);
+                if (!self::getKeyFromCrc($value)) {
+                    $value = self::prepareOptKey($value);
+                }
                 
                 $tpl = ht::createSmartSelect($options, $name, $value, $attr,
                     $this->params['maxRadio'],
