@@ -162,6 +162,7 @@ class bgerp_Recently extends core_Manager
                 $docRow = $docProxy->getDocumentRow();
                 $docRec = $docProxy->fetch();
                 
+                $attr = array();
                 $attr['class'] .= 'linkWithIcon';
                 $attr['style'] = 'background-image:url(' . sbf($docProxy->getIcon($docRec->id)) . ');';
                 
