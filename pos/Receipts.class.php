@@ -820,9 +820,10 @@ class pos_Receipts extends core_Master {
     		foreach ($data->recs as $dRec){
     			if($this->haveRightFor('transfer', $rec)){
     				$recUrl = array($this, 'Transfer', 'id' => $rec->id, 'contragentClassId' => $classId, 'contragentId' => $dRec->id);
+    				$newUrl = toUrl(array('pos_Receipts', 'new'), 'local');
     			}
     			$disClass = ($recUrl) ? '' : 'disabledBtn';
-    			$btn = ht::createBtn('Прехвърли', $recUrl, NULL, TRUE, array('class' => "{$disClass} different-btns", 'title' => 'Прехвърли продажбата на контрагента'));
+    			$btn = ht::createBtn('Прехвърли', $recUrl, NULL, TRUE, array('class' => "{$disClass} different-btns transferBtn", 'data-url' => $newUrl, 'title' => 'Прехвърли продажбата на контрагента'));
     			
     			$data->rows[$dRec->id] = (object)array('count' => $count, 'name' => $icon . " " . $dRec->name, 'btn' => $btn);
     			$count++;
@@ -897,6 +898,7 @@ class pos_Receipts extends core_Master {
     	
     	$searchUrl1 = toUrl(array('pos_Receipts', 'searchContragents', 'type' => 'company'), 'local');
     	$searchUrl2 = toUrl(array('pos_Receipts', 'searchContragents', 'type' => 'person'), 'local');
+    	
     	$inpFld = ht::createElement('input', array('name' => 'input-search-contragent', 'id' => 'input-search-contragent', 'type' => 'text'));
     	
     	$block->append($inpFld, 'TRANSFERS_BLOCK');

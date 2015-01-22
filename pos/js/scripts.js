@@ -394,6 +394,17 @@ function posActions() {
 		resObj['url'] = url2;
 		getEfae().process(resObj, {receiptId:receiptId,searchString:searchStr});
 	});
+	
+	// При прехвърляне на бележка, автоматично създаваме нова
+	$(document.body).on('click', ".transferBtn", function(e){
+		var url = $(this).attr("data-url");
+		
+		if(!url) return;
+		
+		resObj = new Object();
+		resObj['url'] = url;
+		getEfae().process(resObj);
+	});
 }
 
 // Калкулира ширината
