@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   pos
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.11
  */
@@ -17,12 +17,6 @@ class pos_Receipts extends core_Master {
     
     
 	/**
-     * Какви интерфейси поддържа този мениджър
-     */
-    var $interfaces = 'bgerp_DealAggregatorIntf';
-    
-    
-    /**
      * Заглавие
      */
     var $title = "Бележки за продажба";
@@ -150,6 +144,7 @@ class pos_Receipts extends core_Master {
             'enum(draft=Чернова, active=Контиран, rejected=Сторниран, closed=Затворен)', 
             'caption=Статус, input=none'
         );
+    	$this->FLD('transferedIn', 'key(mvc=sales_Sales)', 'input=none');
     }
     
     
@@ -231,6 +226,9 @@ class pos_Receipts extends core_Master {
     		$row->caseId = cash_Cases::getHyperLink(pos_Points::fetchField($rec->pointId, 'caseId'), TRUE);
     		$row->storeId = store_Stores::getHyperLink(pos_Points::fetchField($rec->pointId, 'storeId'), TRUE);
     		$row->baseCurrency = acc_Periods::getBaseCurrencyCode($rec->createdOn);
+    		if($rec->transferedIn){
+    			$row->transferedIn = sales_Sales::getHyperlink($rec->transferedIn, TRUE);
+    		}
     	}
     	
     	if($rec->state != 'draft'){
@@ -280,48 +278,33 @@ class pos_Receipts extends core_Master {
      * тази бележки, във вид подходящ за контирането
      * 
      * @param int id - ид на бележката
-     * @param boolean $count - FALSE  връща масив от продуктите
-     * 						   TRUE връща само броя на продуктите
      * @return mixed $products - Масив от продукти
      */
-    public static function getProducts($id, $count = FALSE)
+    public static function getProducts($id)
     {
     	expect($rec = static::fetch($id), 'Несъществуваща бележка');
     	
     	$products = array();
-    	$totalQuantity = 0;
     	
     	$query = pos_ReceiptDetails::getQuery();
     	$query->where("#receiptId = {$id}");
     	$query->where("#quantity != 0");
     	$query->where("#action LIKE '%sale%'");
+    	$query->orderBy("id", "ASC");
     	
 	    while($rec = $query->fetch()) {
 	    	$info = cat_Products::getProductInfo($rec->productId, $rec->value);
+	    	$packagingId = ($info->packagingRec) ? $info->packagingRec->packagingId : NULL;
 	    	
-	    	if($info->packagingRec){
-	    		$packagingId = $info->packagingRec->packagingId;
-	    		$quantityInPack = $info->packagingRec->quantity;
-	    	} else {
-	    		$packagingId = NULL;
-	    		$quantityInPack = 1;
-	    	}
-	    	
-	    	$totalQuantity += $rec->quantity;
 	    	$products[] = (object) array(
-	    		'classId'        => cat_Products::getClassId(),
-	    		'productId'      => $rec->productId,
-		    	'price'          => $rec->price,
-	    	    'packagingId'    => $packagingId,
-	    	    'quantityInPack' => $quantityInPack,
-	    		'vatPrice'       => $rec->price * $rec->param,
-	    	    'uomId' 		 => $info->productRec->measureId,
-		    	'quantity'       => $rec->quantity);
+	    		'classId'     => cat_Products::getClassId(),
+	    		'productId'   => $rec->productId,
+		    	'price'       => $rec->price,
+	    	    'packagingId' => $packagingId,
+	    		'vatPrice'    => $rec->price * $rec->param,
+	    		'discount'    => $rec->discountPercent,
+		    	'quantity'    => $rec->quantity);
 	    }
-	    
-    	if($count){
-    		return $totalQuantity;
-    	}
 	    
     	return $products;
     }
@@ -433,8 +416,8 @@ class pos_Receipts extends core_Master {
 		}
 		
 		// Не може да се прехвърля бележката, ако общото и е нула, има платено или не е чернова
-		if($action == 'transfer' && isset($rec->id)) {
-			if($rec->total == 0 || round($rec->paid, 2) > 0 || $rec->state != 'draft') {
+		if($action == 'transfer' && isset($rec)) {
+			if(empty($rec->id) || $rec->total == 0 || round($rec->paid, 2) > 0 || $rec->state != 'draft') {
 				$res = 'no_one';
 			}
 		}
@@ -481,7 +464,7 @@ class pos_Receipts extends core_Master {
 	    		} else {
 	    			$tab->replace("class='active'", 'active');
 	    		}
-	    		//bp($tab);
+	    		
 	    		$tpl->append($this->renderChooseTab($id), 'SEARCH_DIV_WIDE');
 	    		$tpl->append($this->renderDraftsTab($id), 'DRAFTS_WIDE');
 	    		
@@ -738,6 +721,53 @@ class pos_Receipts extends core_Master {
     
     
     /**
+     * Активира документа и ако е зададено пренасочва към създаването на нова фактура
+     */
+    function act_Transfer()
+    {
+    	$this->requireRightFor('transfer');
+    	
+    	expect($id = Request::get('id', 'int'));
+    	expect($rec = $this->fetch($id));
+    	
+    	// Извличаме нужните ни параметри от рекуеста
+    	expect($contragentClassId = Request::get('contragentClassId', 'int'));
+    	expect($contragentId = Request::get('contragentId', 'int'));
+    	expect($contragentClass = cls::get($contragentClassId));
+    	expect($contragentClass->fetch($contragentId));
+    	
+    	$this->requireRightFor('transfer', $rec);
+    	
+    	// Подготвяме масива с данните на новата продажба, подаваме склада и касата на точката
+    	$posRec = pos_Points::fetch($rec->pointId);
+    	$fields = array('shipmentStoreId' => $posRec->storeId, 'caseId' => $posRec->caseId);
+    	
+    	// Опитваме се да създадем чернова на нова продажба породена от бележката
+    	if($sId = sales_Sales::createNewDraft($contragentClassId, $contragentId, $fields)){
+    		
+    		// Намираме продуктите на бележката (трябва да има поне един)
+    		$products = $this->getProducts($rec->id);
+    		
+    		// За всеки продукт
+    		foreach ($products as $product){
+    			
+    			// Добавяме го като детайл на продажбата;
+    			sales_Sales::addRow($sId, $product->classId, $product->productId, $product->quantity, $product->price, $product->packagingId,$product->discount);
+    		}
+    	}
+    	
+    	// Отбелязваме къде е прехвърлена рецептата
+    	$rec->transferedIn = $sId;
+    	$rec->state = 'closed';
+    	$this->save($rec);
+    	core_Statuses::newStatus(tr("|Бележка|* №{$rec->id} |е затворена|*"));
+    	
+    	// Редирект към новата бележка
+    	return new redirect(array('sales_Sales', 'single', $sId), 'Успешно прехвърляне на бележката');
+    }
+    
+    
+    /**
      * Подготвя данните на намерените контрагенти
      * 
      * @param string $string - По кой стринг ще се търси
@@ -789,7 +819,7 @@ class pos_Receipts extends core_Master {
     		// Обръщаме ги във вербален вид
     		foreach ($data->recs as $dRec){
     			if($this->haveRightFor('transfer', $rec)){
-    				$recUrl = array($this, 'transferSale', 'contragentClassId' => $classId, 'contragentId' => $dRec->id);
+    				$recUrl = array($this, 'Transfer', 'id' => $rec->id, 'contragentClassId' => $classId, 'contragentId' => $dRec->id);
     			}
     			$disClass = ($recUrl) ? '' : 'disabledBtn';
     			$btn = ht::createBtn('Прехвърли', $recUrl, NULL, TRUE, array('class' => "{$disClass} different-btns", 'title' => 'Прехвърли продажбата на контрагента'));
@@ -950,55 +980,6 @@ class pos_Receipts extends core_Master {
     static function getLink($id)
     {
     	return static::recToVerbal(static::fetchRec($id), 'id,title,-list')->title;
-    }
-    
-    
-	/**
-     * Имплементация на @link bgerp_DealAggregatorIntf::getAggregateDealInfo()
-     * 
-     * @param int|object $id
-     * @return bgerp_iface_DealResponse
-     * @see bgerp_DealAggregatorIntf::getAggregateDealInfo()
-     */
-    public function getAggregateDealInfo($id)
-    {
-        $rec = self::fetchRec($id);
-        $products = static::getProducts($id);
-        $currencyId = acc_Periods::getBaseCurrencyCode($rec->valior);
-        $posRec = pos_Points::fetch($rec->pointId);
-        
-        $result = new bgerp_iface_DealAggregator();
-        
-        
-        $result->set('dealType', sales_Sales::AGGREGATOR_TYPE);
-        $result->set('amount', $rec->total);
-        $result->set('currency', $currencyId);
-        $result->set('vatType', 'yes');
-        $result->set('agreedValior', $rec->valior);
-        $result->set('storeId', $posRec->storeId);
-        $result->set('paymentMethodId', cond_PaymentMethods::fetchField("#name = 'COD'", 'id'));
-        $result->set('caseId', $posRec->caseId);
-        $result->set('amountPaid', $rec->total);
-        $result->set('deliveryAmount', $rec->total);
-         
-        $productManId = cat_Products::getClassId();
-        
-        foreach ($products as $pr) {
-            $p = new bgerp_iface_DealProduct();
-            
-            $p->classId     = $productManId;
-            $p->productId   = $pr->productId;
-            $p->packagingId = $pr->packagingId;
-            $p->discount    = $pr->discountPercent;
-            $p->quantity    = $pr->quantity;
-            $p->price       = $pr->price;
-            $p->uomId       = $pr->uomId;
-            
-            $result->push('products', $p);
-            $result->push('shippedProducts', $p);
-        }
-        
-        return $result;
     }
     
     
@@ -1203,12 +1184,12 @@ class pos_Receipts extends core_Master {
     		
     		// Ако няма цена също го пропускаме
     		if(empty($price->price)) continue;
-    		
+    		$vat = $Products->getVat($id);
     		$obj = (object)array('productId' => $id, 
     							 'measureId' => $pRec->measureId,
     							 'price'     => $price->price, 
     							 'photo'     => $pRec->photo,
-    							 'vat'	     => $Products->getVat($id));
+    							 'vat'	     => $vat);
     		
     		$pInfo = cat_Products:: getProductInfo($id);
     		if(isset($pInfo->meta['canStore'])){
@@ -1229,7 +1210,7 @@ class pos_Receipts extends core_Master {
     private function getVerbalSearchResult($obj, &$data)
     {
     	$Double = cls::get('type_Double');
-    	$Double->params['decimals'] = 2;
+    	$Double->params['double'] = 2;
     	$row = new stdClass();
     	
     	$row->price = $Double->toVerbal($obj->price);
