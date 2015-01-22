@@ -404,6 +404,18 @@ function posActions() {
 		getEfae().process(resObj);
 	});
 	
+	// При натискане на бутон със знак добавя знака в полето за търсене на код
+	$(document.body).on('click', ".tools-sign", function(e){
+		var sign = $(this).val();
+		
+		var inpVal = $("input[name=ean]").val();
+		inpVal += sign;
+		
+		$("input[name=ean]").val(inpVal);
+		$("input[name=ean]").focus();
+	});
+	
+	
 	// Време за изчакване
 	var timeout1;
 	
