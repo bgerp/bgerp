@@ -1052,9 +1052,9 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
   table.listTable:not(.noHoverTable) > tbody > tr:hover.state-draft {
     background-color: #88ffff; }
   table.listTable:not(.noHoverTable) > tbody > tr:hover.state-active {
-    background: rgba(248, 209, 163, 0.5); }
+    background: rgba(247, 197, 139, 0.5); }
   table.listTable:not(.noHoverTable) > tbody > tr:hover.state-opened {
-    background-color: #88ffa6; }
+    background-color: #97ffb1; }
   table.listTable:not(.noHoverTable) > tbody > tr:hover.state-pending {
     background-color: #e6b3ff; }
   table.listTable:not(.noHoverTable) > tbody > tr:hover.state-closed {

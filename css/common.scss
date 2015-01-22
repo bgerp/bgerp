@@ -1085,10 +1085,10 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
         background-color: darken(#bff, 10%);
 	}
 	&.state-active {
-	    background: darken(rgba(250, 221, 187, 0.5), 5%);
+	    background: darken(rgba(250, 221, 187, 0.5), 10%);
 	}
 	&.state-opened {
-	    background-color: darken(#bfc, 10%);
+	    background-color: darken(#bfc, 7%);
 	}
 	&.state-pending{
 	    background-color: darken(#ecf, 5%);
