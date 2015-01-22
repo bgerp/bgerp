@@ -106,14 +106,19 @@ class type_Key extends type_Int
             
             $options = $this->options;
             
+            $selOptCache = unserialize(core_Cache::get('SelectOpt', $this->handler));
+            
+            if ($selOptCache === FALSE) {
+                $options = $this->prepareOptions();
+                $selOptCache = unserialize(core_Cache::get('SelectOpt', $this->handler));
+            }
+            
             if (($field = $this->getSelectFld()) && (!count($options))) {
                 $options = $this->prepareOptions();
             }
             
-            $selOptCache = (array) unserialize(core_Cache::get('SelectOpt', $this->handler));
-            
-            if(count($selOptCache)) {
-                foreach($selOptCache as $id => $titleArr) {
+            if (($selOptCache !== FALSE) && count((array)$selOptCache)) {
+                foreach((array)$selOptCache as $id => $titleArr) {
                     
                     if ($value == $titleArr['title']) {
                         $value = $id;
