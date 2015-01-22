@@ -452,7 +452,7 @@ class pos_ReceiptDetails extends core_Detail {
     	$productInfo = cat_Products::getProductInfo($rec->productId, $rec->value);
     	$perPack = ($productInfo->packagingRec->quantity) ? $productInfo->packagingRec->quantity : 1;
     	
-    	$rec->price = $rec->price * (1 - $rec->discountPercent);
+    	$rec->price = $rec->price * (1 + $rec->param) * (1 - $rec->discountPercent);
     	$row->price = $Double->toVerbal($rec->price);
     	$row->amount = $Double->toVerbal($rec->price * $rec->quantity);
     	if($rec->discountPercent < 0){
@@ -550,7 +550,7 @@ class pos_ReceiptDetails extends core_Detail {
     	$receiptRec = pos_Receipts::fetch($rec->receiptId);
     	
     	$Policy = cls::get('price_ListToCustomers');
-    	$price = $Policy->getPriceInfo($receiptRec->contragentClass, $receiptRec->contragentObjectId, $product->productId, cat_Products::getClassId(), $product->packagingId, NULL, $receiptRec->createdOn, 1, 'yes');
+    	$price = $Policy->getPriceInfo($receiptRec->contragentClass, $receiptRec->contragentObjectId, $product->productId, cat_Products::getClassId(), $product->packagingId, NULL, $receiptRec->createdOn);
     	
     	$rec->price = $price->price * $perPack;
     	$rec->param = cat_Products::getVat($rec->productId, $receiptRec->valior);

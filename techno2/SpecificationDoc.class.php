@@ -86,7 +86,7 @@ class techno2_SpecificationDoc extends core_Embedder
     /**
      * Групиране на документите
      */
-    public $newBtnGroup = "18.9|Производство";
+    public $newBtnGroup = "9.9|Производство";
 
 
     /**
