@@ -218,6 +218,7 @@ class techno_Specifications extends core_Manager {
 	    	
 	    	if(doc_Threads::haveRightFor('single', $docThreadId)){
 	    		$icon = $DocClass->getIcon($rec->id);
+	    		$attr = array();
 		    	$attr['class'] = 'linkWithIcon';
 	            $attr['style'] = 'background-image:url(' . sbf($icon) . ');';
 	            $row->title = str::limitLen(strip_tags($row->title), 70);
