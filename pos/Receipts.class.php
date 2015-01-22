@@ -806,6 +806,7 @@ class pos_Receipts extends core_Master {
 			$query->where(array("#searchKeywords LIKE '%[#1#]%'", $searchString));
 		}
 		
+		$query->where("#state != 'rejected'");
 		$query->show('id,name');
 		$query->limit(20);
     	while($rec1 = $query->fetch()){
