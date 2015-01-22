@@ -448,7 +448,9 @@ class email_Inboxes extends core_Master
         if (!$userId) {
             $userId = core_Users::getCurrent();
         }
-                
+        
+        if (!$userId || ($userId <= 0)) return FALSE;
+        
         // Вземаме nick' а на потребителя
         $nick = core_Users::fetchField($userId, 'nick');
 
