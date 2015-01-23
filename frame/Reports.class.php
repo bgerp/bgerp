@@ -140,7 +140,7 @@ class frame_Reports extends core_Embedder
         $this->FLD('data', 'blob(1000000, serialize, compress)', 'caption=Данни,input=none,single=none,column=none');
  
         // Най-ранната дата когато отчета може да се активира
-        $this->FLD('earlyActivationOn', 'datetime', 'input=none');
+        $this->FLD('earlyActivationOn', 'datetime(format=smartTime)', 'input=none,caption=Активиране');
     }
 
     
@@ -155,11 +155,15 @@ class frame_Reports extends core_Embedder
             if(!Mode::is('printing')){
                 $row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " (" . $mvc->getVerbal($rec, 'state') . ")" ;
             }
-            
+           
             // Обновяваме данните, ако отчета е в състояние 'draft'
             if($rec->state == 'draft') {
             	$Source = $mvc->getDriver($rec);
             	$rec->data = $Source->prepareInnerState();
+            }
+            
+            if($rec->state == 'active' || $rec->state == 'rejected'){
+            	unset($row->earlyActivationOn);
             }
         }
     }
@@ -269,7 +273,7 @@ class frame_Reports extends core_Embedder
     {
     	$me = cls::get(get_called_class());
     	$Driver = $me->getDriver($rec);
-    	$title = $me->singleTitle . " '{$Driver->getReportTitle()}\' №{$rec->id}";
+    	$title = $me->singleTitle . " '{$Driver->getReportTitle()}' №{$rec->id}";
     
     	return $title;
     }
