@@ -108,14 +108,14 @@ abstract class deals_DealBase extends core_Master
 	 * неговата "порция" бизнес информация. Всяка порция се натрупва към общия резултат до
 	 * момента.
 	 *
-	 * Списъка с въпросните документи, имащи отношение към бизнес информацията за пробдажбата е
+	 * Списъка с въпросните документи, имащи отношение към бизнес информацията за продажбата е
 	 * сечението на следните множества:
 	 *
 	 *  * Документите, върнати от @link doc_DocumentIntf::getDescendants()
 	 *  * Документите, реализиращи интерфейса @link bgerp_DealIntf
 	 *  * Документите, в състояние различно от `draft` и `rejected`
 	 *
-	 * @return bgerp_iface_DealResponse
+	 * @return bgerp_iface_DealAggregator
 	 */
 	public function getAggregateDealInfo($id)
 	{

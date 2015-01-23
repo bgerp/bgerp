@@ -9,13 +9,14 @@
  * @category  bgerp
  * @package   bgerp
  * @author    Ivelin Dimov <ivelin_pdimov@gmail.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
 class bgerp_iface_DealAggregator
 {
     
+	
     /**
      * Задава стойност на пропърти, ако няма
      *

@@ -12,23 +12,30 @@
  * @category  bgerp
  * @package   bgerp
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
 class bgerp_DealAggregatorIntf
 {
     
+	
     /**
-     * Обобщена бизнес информация отнасяща се за една сделка
-     *
-     * Структурата на резултата е идентична с тази на @link bgerp_DealIntf::getInfo(), но
-     * семантиката на стойностите в него е различна. bgerp_DealIntf предоставя информация за
-     * един конкретен документ, докато тук информацията е обобщена (сумирана) за всички
-     * документи по сделката.
+     * Генерира агрегираната бизнес информация за тази сделка
+	 *
+	 * Обикаля всички документи, имащи отношение към бизнес информацията и извлича от всеки един
+	 * неговата "порция" бизнес информация. Всяка порция се натрупва към общия резултат до
+	 * момента.
+	 *
+	 * Списъка с въпросните документи, имащи отношение към бизнес информацията за продажбата е
+	 * сечението на следните множества:
+	 *
+	 *  Документите, върнати от @link doc_DocumentIntf::getDescendants()
+	 *  Документите, реализиращи интерфейса @link bgerp_DealIntf
+	 *  Документите, в състояние различно от `draft` и `rejected`
      *
      * @param int $id ид на документ
-     * @return bgerp_iface_DealResponse
+     * @return bgerp_iface_DealAggregator
      */
     public function getAggregateDealInfo($id)
     {
@@ -39,10 +46,11 @@ class bgerp_DealAggregatorIntf
     /**
      * Връща масив с кои платежни операции са позволени
      * Масив с елементи:
-     * [operation_system_id]['title'] - име на операцията
-     * ['debit'] - systemId на дебитната сметка ('*' ако сметката се определя от документа)
-     * ['credit'] - systemId на кредит сметка ('*' ако сметката се определя от документа)
-     * ['reverse'] - TRUE/FALSE  дали да е обратна операция
+     * 
+     * 		[operation_system_id]['title'] - име на операцията
+     * 		['debit'] - systemId на дебитната сметка ('*' ако сметката се определя от документа)
+     * 		['credit'] - systemId на кредит сметка ('*' ако сметката се определя от документа)
+     * 		['reverse'] - TRUE/FALSE  дали да е обратна операция
      */
     public function getPaymentOperations($id)
     {

@@ -271,36 +271,6 @@ class sales_Sales extends deals_DealMaster
     }
     
     
-    /**
-     * Зареждане на стойности по подразбиране от документа-основание 
-     * 
-     * @param core_Mvc $mvc
-     * @param core_Form $form
-     */
-    protected static function setDefaultsFromOrigin(core_Mvc $mvc, core_Form $form)
-    {
-        if (!($origin = $mvc->getOrigin($form->rec)) || !$origin->haveInterface('bgerp_DealIntf')) {
-            // Не може да се използва `bgerp_DealIntf`
-            return false;
-        }
-        
-        /* @var $dealInfo bgerp_iface_DealResponse */
-        $dealInfo = $origin->getDealInfo();
-        $originRec = $origin->fetch();
-        $aspect   = $dealInfo->quoted;
-        
-        $form->rec->note			   = $originRec->others;
-        $form->rec->deliveryTermId     = $aspect->delivery->term;
-        $form->rec->deliveryLocationId = $aspect->delivery->location;
-        $form->rec->paymentMethodId    = $aspect->payment->method;
-        $form->rec->bankAccountId      = $aspect->payment->bankAccountId;
-        $form->rec->currencyId         = $aspect->currency;
-        $form->rec->currencyRate       = $aspect->rate;
-        $form->rec->chargeVat          = $aspect->vatType;
-        $form->setReadOnly('chargeVat');
-    }
-    
-    
 	/**
      * След подготовка на тулбара на единичен изглед
      */
