@@ -457,10 +457,10 @@ class pos_Receipts extends core_Master {
     		// Добавяне на табовете показващи се в широк изглед отстрани
 	    	if(!Mode::is('screenMode', 'narrow')){
 	    		$DraftsUrl = toUrl(array('pos_Receipts', 'showDrafts', $rec->id), 'absolute');
-	    		$tab = new ET("<li [#active#]><a href='#tools-search'>Търсене</a></li><li><a href='#tools-drafts' data-url='{$DraftsUrl}'>Бележки</a></li>");
+	    		$tab = new ET(tr("|*<li [#active#] title='|Търсене на артикул|*'><a href='#tools-search'>|Търсене|*</a></li><li title='|Всички чернови бележки|*'><a href='#tools-drafts' data-url='{$DraftsUrl}'>|Бележки|*</a></li>"));
 	    		
 	    		if($selectedFavourites = $this->getSelectFavourites()){
-	    			$tab->prepend("<li class='active'><a href='#tools-choose'>Избор</a></li>");
+	    			$tab->prepend(tr("|*<li class='active' title='|Избор на бърз артикул|*'><a href='#tools-choose'>|Избор|*</a></li>"));
 	    			$tpl->replace($selectedFavourites, 'CHOOSE_DIV_WIDE');
 	    		} else {
 	    			$tab->replace("class='active'", 'active');
@@ -555,7 +555,7 @@ class pos_Receipts extends core_Master {
     	expect($rec = $this->fetchRec($id));
     	
     	// Рендиране на пулта
-    	$tab = "<li class='active'><a href='#tools-form'>Пулт</a></li><li><a href='#tools-payment'>Плащане</a></li><li><a href='#tools-transfer'>Прехвърляне</a></li>";
+    	$tab = tr("|*<li class='active' title='|Пулт|*'><a href='#tools-form'>|Пулт|*</a></li><li title='|Пулт за плащане|*'><a href='#tools-payment'>|Плащане|*</a></li><li title='|Прехвърляне на продажбата на контрагент|*'><a href='#tools-transfer'>|Прехвърляне|*</a></li>");
     	$tpl->append($this->renderToolsTab($id), 'TAB_TOOLS');
     	
     	// Ако сме в тесен режим
@@ -566,7 +566,7 @@ class pos_Receipts extends core_Master {
     		
     		// Добавяне на таба с избор
     		$tpl->append($this->renderChooseTab($id), 'SEARCH_DIV');
-    		$tab .= "<li><a href='#tools-choose'>Избор</a></li><li><a href='#tools-search'>Търсене</a></li><li><a href='#tools-drafts'>Чернови</a></li>";
+    		$tab .= tr("|*<li title='|Избор на бърз артикул|*'><a href='#tools-choose'>|Избор|*</a></li><li title='|Търсене на артикул|*'><a href='#tools-search'>|Търсене|*</a></li><li><a href='#tools-drafts' '|Всички чернови бележки|*'>|Бележки|*</a></li>");
     	
     		// Добавяне на таба с черновите
     		$tpl->append($this->renderDraftsTab($id), 'DRAFTS');
@@ -641,7 +641,7 @@ class pos_Receipts extends core_Master {
     	$block->append(ht::createElement('input', array('name' => 'ean', 'type' => 'text', 'style' => 'text-align:right')), 'INPUT_FLD');
     	$block->append(ht::createElement('input', array('name' => 'receiptId', 'type' => 'hidden', 'value' => $rec->id)), 'INPUT_FLD');
     	$block->append(ht::createElement('input', array('name' => 'rowId', 'type' => 'hidden', 'value' => $value)), 'INPUT_FLD');
-    	$block->append(ht::createFnBtn('Код', NULL, NULL, array('class' => "{$disClass} buttonForm", 'id' => 'addProductBtn', 'data-url' => $addUrl)), 'FIRST_TOOLS_ROW');
+    	$block->append(ht::createFnBtn('Код', NULL, NULL, array('class' => "{$disClass} buttonForm", 'id' => 'addProductBtn', 'data-url' => $addUrl, 'title' => 'Продуктов код или баркод')), 'FIRST_TOOLS_ROW');
     	$block->append("<br />" . ht::createFnBtn('К-во', NULL, NULL, array('class' => "{$disClass} buttonForm tools-modify", 'data-url' => $modQUrl, 'title' => 'Промени количество')), 'FIRST_TOOLS_ROW');
     	$block->append("<br />" . ht::createFnBtn('Отстъпка %', NULL, NULL, array('class' => "{$disClass} buttonForm tools-modify", 'data-url' => $discUrl, 'title' => 'Задай отстъпка')), 'FIRST_TOOLS_ROW');
     	$block->append("<br />" . ht::createFnBtn('*', NULL, NULL, array('class' => "buttonForm tools-sign", 'title' => 'Умножение', 'value' => '*')), 'FIRST_TOOLS_ROW');
@@ -839,7 +839,7 @@ class pos_Receipts extends core_Master {
     				$newUrl = toUrl(array('pos_Receipts', 'new'), 'local');
     			}
     			$disClass = ($recUrl) ? '' : 'disabledBtn';
-    			$btn = ht::createBtn('Прехвърли', $recUrl, NULL, TRUE, array('class' => "{$disClass} different-btns transferBtn", 'data-url' => $newUrl, 'title' => 'Прехвърли продажбата на контрагента'));
+    			$btn = ht::createBtn('Прехвърли', $recUrl, NULL, TRUE, array('class' => "{$disClass} different-btns transferBtn", 'data-url' => $newUrl, 'title' => 'Прехвърли продажбата към контрагента'));
     			
     			$icon = ht::createElement('img', array('src' => sbf($dRec->icon, '')));
     			
