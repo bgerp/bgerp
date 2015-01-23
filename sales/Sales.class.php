@@ -250,9 +250,6 @@ class sales_Sales extends deals_DealMaster
     {
         $form = &$data->form;
         
-    	// Задаване на стойности на полетата на формата по подразбиране
-        self::setDefaultsFromOrigin($mvc, $form);
-        
         $myCompany = crm_Companies::fetchOwnCompany();
         
         $form->setOptions('bankAccountId',  bank_Accounts::getContragentIbans($myCompany->companyId, 'crm_Companies', TRUE));
