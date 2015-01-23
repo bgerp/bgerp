@@ -58,6 +58,7 @@ class cat_Setup extends core_ProtoSetup
             'cat_Params',
             'cat_Packagings',
     		'migrate::updateProducts',
+    		'migrate::updateProducts2',
         );
 
         
@@ -145,6 +146,28 @@ class cat_Setup extends core_ProtoSetup
     	while($pRec = $pQuery->fetch()){
     		$pRec->classId = $cId;
     		cat_products_Params::save($pRec);
+    	}
+    }
+    
+    
+    /**
+     * Миграция за продуктовите драйвъри
+     */
+    function updateProducts2()
+    {
+    	$pQuery = cat_Products::getQuery();
+    	while($rec = $pQuery->fetch()){
+    		if($rec->innerClass){
+    			try{
+    				$pRec->innerForm->photo = $rec->photo;
+    				$pRec->innerState->photo = $rec->photo;
+    				 
+    				cat_Products::save($pRec);
+    			} catch(core_exception_Expect $e){
+    				
+    			}
+    			
+    		}
     	}
     }
 }
