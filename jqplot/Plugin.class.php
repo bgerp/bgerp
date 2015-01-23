@@ -2,10 +2,10 @@
 /**
  * Плъгин за рендиране на графики, използващ jqplot - http://www.jqplot.com/
  *
- * @category  vendors
+ * @category  bgerp
  * @package   jqplot
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  *
  */
