@@ -854,7 +854,6 @@ class pos_Receipts extends core_Master {
     	}
     	
     	$count = count($data->recs);
-    	$data->title = tr("|Намерени са|* {$count}") . " контрагента";
     	
     	return $data;
 	}
@@ -1316,7 +1315,7 @@ class pos_Receipts extends core_Master {
     	$fSet->FNC('stock', 'double', 'tdClass=pos-stock-field');
     	
     	$table = cls::get('core_TableView', array('mvc' => $fSet));
-    	$fields = arr::make('photo=Снимка,productId=Продукт,price=Цена,stock=Наличност,singleBtn=Добави');
+    	$fields = arr::make('photo=Снимка,productId=Продукт,price=Цена,stock=Наличност');
     	if(!$data->showImg){
     		unset($fields['photo']);
     	}
