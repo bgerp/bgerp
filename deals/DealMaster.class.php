@@ -1071,7 +1071,7 @@ abstract class deals_DealMaster extends deals_DealBase
     public static function on_BeforeRenderSingleToolbar($mvc, &$res, &$data)
     {
     	$rec = &$data->rec;
-    	 
+    	
     	// Ако има бутон за принтиране, подменяме го с такъв стоящ на първия ред
     	if(isset($data->toolbar->buttons['btnPrint'])){
     		$data->toolbar->removeBtn('btnPrint');
