@@ -251,15 +251,27 @@ class frame_Reports extends core_Embedder
     {
     	$rec = $this->fetch($id);
     	
-    	$Driver = $this->getDriver($rec);
         $row = new stdClass();
-        $row->title = $this->singleTitle . " \"{$Driver->getReportTitle()}\" №{$id}";
+        $row->title    = $this->getRecTitle($rec);
         $row->authorId = $rec->createdBy;
-        $row->author = $this->getVerbal($rec, 'createdBy');
-        $row->state = $rec->state;
-		$row->recTitle = $rec->reason;
+        $row->author   = $this->getVerbal($rec, 'createdBy');
+        $row->state    = $rec->state;
+		$row->recTitle = $row->title;
 		
         return $row;
+    }
+    
+    
+    /**
+     * Връща разбираемо за човека заглавие, отговарящо на записа
+     */
+    public static function getRecTitle($rec, $escaped = TRUE)
+    {
+    	$me = cls::get(get_called_class());
+    	$Driver = $me->getDriver($rec);
+    	$title = $me->singleTitle . " '{$Driver->getReportTitle()}\' №{$rec->id}";
+    
+    	return $title;
     }
     
     
