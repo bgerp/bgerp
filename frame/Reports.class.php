@@ -272,8 +272,13 @@ class frame_Reports extends core_Embedder
     public static function getRecTitle($rec, $escaped = TRUE)
     {
     	$me = cls::get(get_called_class());
-    	$Driver = $me->getDriver($rec);
-    	$title = $me->singleTitle . " '{$Driver->getReportTitle()}' №{$rec->id}";
+    	
+    	try{
+    		$Driver = $me->getDriver($rec);
+    		$title = $me->singleTitle . " '{$Driver->getReportTitle()}' №{$rec->id}";
+    	} catch(core_exception_Expect $e){
+    		$title = "<span class='red'>" . tr('Проблем при показването') . "</span>";
+    	}
     
     	return $title;
     }
