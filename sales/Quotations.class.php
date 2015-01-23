@@ -39,7 +39,7 @@ class sales_Quotations extends core_Master
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, doc_ContragentDataIntf, email_DocumentIntf,  bgerp_DealIntf';
+    public $interfaces = 'doc_DocumentIntf, doc_ContragentDataIntf, email_DocumentIntf';
     
     
     /**
@@ -263,7 +263,7 @@ class sales_Quotations extends core_Master
 	    	} elseif($items && sales_Sales::haveRightFor('add')){
 	    		
 	    		// Ако има уникални продукти и потребителя има може да създава продажба, се поставя бутон за продажба
-	    		$data->toolbar->addBtn('Продажба', array('sales_Sales', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE), NULL, 'ef_icon=img/16/star_2.png,title=Създаване на продажба по офертата');
+	    		$data->toolbar->addBtn('Продажба', array($mvc, 'CreateSale', $data->rec->id, 'ret_url' => TRUE), 'warning=Сигурнили сте че искате да създадете продажба?', 'target=_blank,ef_icon=img/16/star_2.png,title=Създаване на продажба по офертата');
 	    	}
 	    }
     }
@@ -557,40 +557,6 @@ class sales_Quotations extends core_Master
     
     
     /**
-     * Имплементация на @link bgerp_DealIntf::getDealInfo()
-     * 
-     * @param int|object $id
-     * @return bgerp_iface_DealResponse
-     * @see bgerp_DealIntf::getDealInfo()
-     */
-    public function getDealInfo($id)
-    {
-    	$rec = $this->fetchRec($id);
-    	$products = $this->getItems($id, $total);
-    	
-    	if(!count($products)) return FALSE;
-    	
-    	/* @var $result bgerp_iface_DealResponse */
-        $result = new bgerp_iface_DealResponse();
-    	$result->dealType = bgerp_iface_DealResponse::TYPE_SALE;
-        
-        $result->quoted->amount                  = $total;
-        $result->quoted->currency                = $rec->currencyId;
-        $result->quoted->rate 					 = $rec->currencyRate;
-        $result->quoted->vatType 				 = $rec->chargeVat;  
-        if($rec->deliveryPlaceId){
-        	$result->quoted->delivery->location  = crm_Locations::fetchField("#title = '{$rec->deliveryPlaceId}'", 'id');
-        }
-        $result->quoted->delivery->term          = $rec->deliveryTermId;
-    	$result->quoted->payment->method         = $rec->paymentMethodId;
-    	
-    	$result->quoted->products = $products;
-        
-        return $result;
-    }
-    
-    
-    /**
      * Помощна ф-я за връщане на всички продукти от офертата.
      * Ако има вариации на даден продукт и не може да се
      * изчисли общата сума ф-ята връща NULL
@@ -713,14 +679,36 @@ class sales_Quotations extends core_Master
     
     
     /**
-     * Имплементация на @link bgerp_DealIntf::getDealInfo()
-     *
-     * @param int|object $id
-     * @return bgerp_iface_DealAggregator
-     * @see bgerp_DealIntf::getDealInfo()
+     * Екшън генериращ продажба от оферта
      */
-    public function pushDealInfo($id, &$aggregator)
+    function act_CreateSale()
     {
+    	sales_Sales::requireRightFor('add');
+    	expect($id = Request::get('id', 'int'));
+    	expect($rec = $this->fetchRec($id));
+    	expect($items = $this->getItems($id));
     	
+    	// Подготвяме данните на мастъра на генерираната продажба
+    	$fields = array('currencyId'         => $rec->currencyId,
+    					'currencyRate'       => $rec->currencyRate,
+    					'paymentMethodId'    => $rec->paymentMethodId,
+    					'deliveryTermId'     => $rec->deliveryTermId,
+    					'chargeVat'          => $rec->chargeVat,
+    					'deliveryLocationId' => crm_Locations::fetchField("#title = '{$rec->deliveryPlaceId}'", 'id'),
+    	);
+    	
+    	// Създаваме нова продажба от офертата
+    	$sId = sales_Sales::createNewDraft($rec->contragentClassId, $rec->contragentId, $fields);
+    	
+    	// Ако не е успешно се връщаме към офертата
+    	if(!$sId) return Redirect(array($this, 'single', $id), tr('Проблем при генериране на продажбата'));
+    	
+    	// За всеки детайл на офертата подаваме го като детайл на продажбата
+    	foreach ($items as $item){
+    		sales_Sales::addRow($sId, $item->classId, $item->productId, $item->quantity, $item->price, NULL, $item->discount);
+    	}
+    	
+    	// Редирект към новата продажба
+    	return Redirect(array('sales_Sales', 'single', $sId), tr('Успешно е създадена продажба от офертата'));
     }
 }
