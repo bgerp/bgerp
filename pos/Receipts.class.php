@@ -744,6 +744,8 @@ class pos_Receipts extends core_Master {
     	$posRec = pos_Points::fetch($rec->pointId);
     	$fields = array('shipmentStoreId' => $posRec->storeId, 'caseId' => $posRec->caseId);
     	
+    	$products = $this->getProducts($rec->id);
+    	
     	// Опитваме се да създадем чернова на нова продажба породена от бележката
     	if($sId = sales_Sales::createNewDraft($contragentClassId, $contragentId, $fields)){
     		
@@ -752,6 +754,20 @@ class pos_Receipts extends core_Master {
     		
     		// За всеки продукт
     		foreach ($products as $product){
+    			
+    			// Намираме цената от ценовата политика
+    			$Policy = cls::get($product->classId)->getPolicy();
+    			$pInfo = $Policy->getPriceInfo($contragentClassId, $contragentId, $product->productId, $product->classId, $product->packagingId);
+    			
+    			// Колко са двете цени с приспадната отстъпка
+    			$rPrice1 = $product->price * (1 - $product->discount);
+    			$rPrice2 = $pInfo->price * (1 - $pInfo->discount);
+    			
+    			// Оставяме по малката цена
+    			if($rPrice2 < $rPrice1) {
+    				$product->price = $pInfo->price;
+    				$product->discount = $pInfo->discount;
+    			}
     			
     			// Добавяме го като детайл на продажбата;
     			sales_Sales::addRow($sId, $product->classId, $product->productId, $product->quantity, $product->price, $product->packagingId,$product->discount);
