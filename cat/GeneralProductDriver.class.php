@@ -230,7 +230,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	public function prepareEmbeddedForm(core_Form &$form)
 	{
 		if($this->EmbedderRec->haveInterface('marketing_InquiryEmbedderIntf')){
-			$form->setField('image', 'input=none');
+			$form->setField('photo', 'input=none');
 			$form->setDefault('measureId', $this->getDriverUom());
 			$form->setField('measureId', 'display=hidden');
 		}
