@@ -853,8 +853,6 @@ class pos_Receipts extends core_Master {
     		}
     	}
     	
-    	$count = count($data->recs);
-    	
     	return $data;
 	}
 
@@ -1257,7 +1255,7 @@ class pos_Receipts extends core_Master {
     private function getVerbalSearchResult($obj, &$data)
     {
     	$Double = cls::get('type_Double');
-    	$Double->params['double'] = 2;
+    	$Double->params['decimals'] = 2;
     	$row = new stdClass();
     	
     	$row->price = $Double->toVerbal($obj->price);
