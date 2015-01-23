@@ -101,10 +101,10 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 			$row->{$name} = $fld->type->toVerbal($innerState->{$name});
 		}
 		
-		if($innerState->image){
+		if($innerState->photo){
 			$size = array(280, 150);
 			$Fancybox = cls::get('fancybox_Fancybox');
-			$row->image = $Fancybox->getImage($innerState->image, $size, array(550, 550));
+			$row->image = $Fancybox->getImage($innerState->photo, $size, array(550, 550));
 		}
 		
 		$data->row = $row;
