@@ -1495,7 +1495,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	expect($rec = $me->fetch($id));
     	expect($rec->state == 'draft');
     	if(isset($discount)){
-    		expect($discount >= 0 && $discount <= 1, 'Отстъпката трябва да е между 0 и 1');
+    		expect($discount >= -1 && $discount <= 1, 'Отстъпката трябва да е между 0 и 1');
     	}
     	
     	$ProductMan = cls::get($pMan);
