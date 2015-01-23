@@ -377,6 +377,7 @@ function posActions() {
 		resObj = new Object();
 		resObj['url'] = url;
 		getEfae().process(resObj, {receiptId:receiptId,productId:productId});
+		calculateWidth();
 	});
 	
 	
@@ -392,6 +393,7 @@ function posActions() {
 		resObj = new Object();
 		resObj['url'] = url2;
 		getEfae().process(resObj, {receiptId:receiptId,searchString:searchStr});
+		calculateWidth();
 	});
 	
 	// При прехвърляне на бележка, автоматично създаваме нова
@@ -434,7 +436,9 @@ function posActions() {
 			resObj = new Object();
 			resObj['url'] = url;
 			getEfae().process(resObj, {receiptId:receiptId,searchString:inpVal});
+			calculateWidth();
 		}, 3000);
+		
 	});
 }
 
@@ -458,7 +462,7 @@ function calculateWidth(){
 	$('#single-receipt').css('width', maxColWidth);
 	$('.tabs-holder-content').css('width', maxColWidth);
 	$('.tools-wide-select-content').css('width', maxColWidth);
-
+	
 	//максимална височина на дясната колона и на елементите й
 	$('.tools-wide-select-content').css('maxHeight', winHeight-85);
 	$('.wide #pos-products').css('maxHeight', winHeight-155);
@@ -466,13 +470,15 @@ function calculateWidth(){
 	//височина за таблицата с резултатите
 	var searchTopHeight = parseInt($('.search-top-holder').height());
 	$('#pos-search-result-table').css('maxHeight', winHeight - searchTopHeight - 120);
+
+	$('#result_contragents').css('max-height', 239);
+	$('#result_contragents').css('overflow-y', 'auto');
 	
-	//максимална височина на бележката
-	var downPanelHeight = parseInt($('#tools-holder').outerHeight());
-	$('.scrolling-vertical').css('maxHeight', winHeight -  totalOffset - downPanelHeight -30);
+	var receiptHeight = winHeight -  totalOffset - 410;
+	$('.scrolling-vertical').css('maxHeight',receiptHeight);
+	$('.scrolling-vertical').css('minHeight',130);
 	$('.scrolling-vertical').scrollTo = $('.scrolling-vertical').scrollHeight;
 	scrollRecieptBottom();
-	
 }
 
 // Скролиране на бележката до долу
