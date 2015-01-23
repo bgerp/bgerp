@@ -780,8 +780,21 @@ class pos_Receipts extends core_Master {
     	$this->save($rec);
     	core_Statuses::newStatus(tr("|Бележка|* №{$rec->id} |е затворена|*"));
     	
+    	// Споделяме потребителя към нишката на създадената продажба
+    	$cu = core_Users::getCurrent();
+    	$sRec = sales_Sales::fetch($sId);
+    	doc_ThreadUsers::addShared($sRec->threadId, $sRec->containerId, $cu);
+    	
     	// Редирект към новата бележка
     	return new redirect(array('sales_Sales', 'single', $sId), 'Успешно прехвърляне на бележката');
+    
+    	/*
+    	 * // добавяме текущия потребител
+            $sharedUsers[$cu] = $cu;
+            
+            // връщаме в кей лист масива
+            $rec->sharedUsers =  keylist::fromArray($sharedUsers);
+    	 */
     }
     
     
