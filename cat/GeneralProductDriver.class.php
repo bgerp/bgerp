@@ -49,10 +49,10 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 			$form->setField('measureId', 'input');
 		}
 		
-		if(!$form->getField('image', FALSE)){
-			$form->FLD('image', 'fileman_FileType(bucket=pictures)', "caption=Изображение,formOrder=4");
+		if(!$form->getField('photo', FALSE)){
+			$form->FLD('photo', 'fileman_FileType(bucket=pictures)', "caption=Изображение,formOrder=4");
 		} else {
-			$form->setField('image', 'input');
+			$form->setField('photo', 'input');
 		}
 	}
 	
