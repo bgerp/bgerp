@@ -560,7 +560,13 @@ class type_Key extends type_Int
             $maxSuggestions = $this->getMaxSuggestions();
         }
         
-        $options = (array) unserialize(core_Cache::get('SelectOpt', $hnd));
+        $options = unserialize(core_Cache::get('SelectOpt', $hnd));
+        
+        if ($options === FALSE) {
+            $this->prepareOptions();
+            $options = unserialize(core_Cache::get('SelectOpt', $hnd));
+        }
+        
         
         $select = new ET('<option value="">&nbsp;</option>');
         
