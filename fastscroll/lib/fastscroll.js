@@ -33,6 +33,9 @@ function fastScroll(hideAfterSec, activateRatio)
 		   
 		      if($(this).scrollTop() > 200) {
 		          $('#scroll-to-top').fadeIn('slow');
+		          if($('.toast-item-wrapper').length) {
+		        	  $('.toast-item-wrapper').fadeOut('slow');
+		          }
 		      } else {
 		          $('#scroll-to-top').fadeOut('slow');
 		      }
@@ -41,6 +44,9 @@ function fastScroll(hideAfterSec, activateRatio)
 		         $('#scroll-to-bottom').fadeOut('slow');
 		      } else {
 		         $('#scroll-to-bottom').fadeIn('slow');
+		         if($('.toast-item-wrapper').length) {
+		        	  $('.toast-item-wrapper').fadeOut('slow');
+		         }
 		      }
 		 });   
 	}
