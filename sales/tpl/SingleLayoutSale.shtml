@@ -43,7 +43,7 @@
                         <td class = 'nowrap'>[#amountDelivered#] </td>
                         <td class = 'nowrap'>[#amountPaid#]</td>
                         <td class = 'nowrap'>[#amountInvoiced#]</td>
-                        <td class = 'nowrap' style='font-size:0.8em;vertical-align:top;' rowspan='3'>
+                        <td class = 'nowrap' style='font-size:0.8em;vertical-align:top;text-align:left' rowspan='3'>
                         	<!--ET_BEGIN paymentState-->
                             <span style='font-weight:normal'>|Плащане|*</span>: [#paymentState#]<br>
                             <!--ET_END paymentState-->
