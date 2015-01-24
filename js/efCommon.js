@@ -2273,7 +2273,7 @@ efae.prototype.process = function(subscribedObj, otherData, async) {
 	                    render_html(errorData);
 	            	}
 	            }
-        	}, 2500);
+        	}, 3000);
         }).always(function(res) {
         	// Ако е имало грешка и е оправенена, премахваме статуса
         	if (getEfae().AJAXHaveError && getEfae().AJAXErrorRepaired) {
