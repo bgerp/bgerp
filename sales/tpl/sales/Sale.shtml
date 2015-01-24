@@ -27,12 +27,6 @@
                                         [#contragentAddress#]
                                     </div>
                                     <!--ET_END contragentAddress-->
-                                    <!--ET_BEGIN deliveryLocationId-->
-                                        <div style='font-size: 0.9em;'>
-                                            <div class='custom-bg-block'>|Локация|*: <b>[#deliveryLocationId#]</b></div>
-                                            [#deliveryLocationAddress#]
-                                        </div>
-                                    <!--ET_END deliveryLocationId-->
                                 <!--ET_END contragentName-->
                             </td>
                             <td>
@@ -43,12 +37,6 @@
                                         [#MyAddress#]
                                     </div>
                                     <!--ET_END MyAddress-->
-                                    <!--ET_BEGIN ourLocation-->
-                                        <div style='font-size: 0.9em;'>
-                                            <div class='custom-bg-block'>|Локация|*: <b>[#ourLocation#]</b></div>
-                                            [#ourLocationAddress#]
-                                        </div>
-                                    <!--ET_END ourLocation-->
                                 <!--ET_END MyCompany-->
                             </td>
                         </tr>
@@ -95,39 +83,40 @@
                                     <span class='quiet'>|Банк. с-ка|*: </span>[#bankAccountId#]
                                 </div>
                                 <!--ET_END bankAccountId-->
-                                <!--ET_BEGIN caseId-->
+                                 <!--ET_BEGIN caseId-->
                                 <hr>
                                 <div class='cellRow'>
-                                    <span class='quiet'>|Каса|*: </span>[#caseId#]  
-                                    <!--ET_BEGIN isPaid-->
-                                		<span style='color:red'>[#isPaid#]</span>
-                                	<!--ET_END isPaid-->
+                                    <span class='quiet'>|Каса|*: </span>[#caseId#]
                                 </div>
                                 <!--ET_END caseId-->
+                                <div class='cellRow'>
+                                    <!--ET_BEGIN isPaid-->
+                                     <div class='stamp'>[#isPaid#]</div>
+                                    <!--ET_END isPaid-->
+                                </div>
                             </td>
                             <!--ET_BEGIN conditions-->
                             [#conditions#]
-                            
-                            <td class="topCell first vtop">
+                            <td class="topCell first vtop" rowspan="2">
+                                <!--ET_BEGIN deliveryInfo-->
+                                [#deliveryInfo#]
                             	<div>
                             	<!--ET_BEGIN deliveryROW-->
                             	[#deliveryROW#]
-                            		<div>|Доставка|* <b>[#deliveryTermId#]</b> [#deliveryLocationId#]</div>
+                            		<div><span class='quiet'>|Доставка|*:</span>  <b>[#deliveryTermId#]</b> [#deliveryLocationId#]</div>
                             	<!--ET_END deliveryROW-->
                             		<!--ET_BEGIN deliveryTime-->
-                                    <div>
-                                        |Срок до|*: <b>[#deliveryTime#]</b>
-                                    </div>
+                                    <div><span class='quiet'>|Срок до|*:</span> <b>[#deliveryTime#]</b></div>
                                     <!--ET_END deliveryTime-->
                                     <!--ET_BEGIN shipmentStoreId-->
-                            		<div style='font-weight:normal'>|Склад|*: <b>[#shipmentStoreId#]</b>
+                            		<div><span class='quiet'>|Склад|*: </span> <b>[#shipmentStoreId#]</b></div>
                             		<!--ET_BEGIN isDelivered-->
-		                            <span style='color:red'>[#isDelivered#]</span>
+		                            <div class='stamp'>[#isDelivered#]</div>
 		                            <!--ET_END isDelivered-->
-                            		</div>
 		                            <!--ET_END shipmentStoreId-->
                             	</div>
-                            	<br>
+                            	<hr>
+                                <!--ET_END deliveryInfo-->
                             	<div>
                                 <b>|Условия|*:</b>
                                 <ol style = 'margin-top:1px'>

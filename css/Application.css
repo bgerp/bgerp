@@ -1002,6 +1002,15 @@ td.portal-date {
     background-color: #e0e0e0;
     height: 20px; }
 
+.stamp {
+  color: #bb0000;
+  border: 1px dotted #bb0000;
+  display: inline-block;
+  font-size: 0.85em;
+  padding: 2px 2px 1px 2px;
+  border-radius: 3px;
+  margin-top: 5px; }
+
 .centered {
   text-align: center; }
 

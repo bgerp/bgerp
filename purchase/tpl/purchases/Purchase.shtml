@@ -26,12 +26,6 @@
                          <div class='address-block'>
                              [#MyAddress#]
                          </div>
-                         <!--ET_BEGIN ourLocation-->
-                            <div style='font-size: 0.9em;'>
-                                <div class='custom-bg-block'>|Локация|*: <b>[#ourLocation#]</b></div>
-                                    [#ourLocationAddress#]
-                            </div>
-                         <!--ET_END ourLocation-->
                     </td>
                     <td class="cell">
                        <b>[#contragentName#]</b>
@@ -39,12 +33,6 @@
                            [#contragentCountryId#]
                            <!--ET_BEGIN contragentAddress-->[#contragentAddress#] <!--ET_END contragentAddress-->
                        </div>
-                       <!--ET_BEGIN deliveryLocationId-->
-                            <div style='font-size: 0.9em;'>
-                                <div class='custom-bg-block'>|Локация|*: <b>[#deliveryLocationId#]</b></div>
-                                    [#deliveryLocationAddress#]
-                            </div>
-                       <!--ET_END deliveryLocationId-->
                     </td>
                 </tr>
                 </tbody>
@@ -101,58 +89,62 @@
                                 <span class='quiet'>|Банк. с-ка|*: </span>[#bankAccountId#]
                             </div> 
                             <!--ET_END bankAccountId-->
-                            
                             <!--ET_BEGIN caseId-->
                             <hr>
                             <div class='cellRow'>
                                 <span class='quiet'>|Каса|*: </span>[#caseId#]
-                                <!--ET_BEGIN isPaid-->
-                                	<span style='color:red'>[#isPaid#]</span>
-                                <!--ET_END isPaid-->
-                            </div> 
+                            </div>
                             <!--ET_END caseId-->
+                            <div class='cellRow'>
+                                <!--ET_BEGIN isPaid-->
+                                 <div class='stamp'>[#isPaid#]</div>
+                                <!--ET_END isPaid-->
+                            </div>
                     </td>
                     
                     <!--ET_BEGIN purchaseConditions-->
                          [#purchaseConditions#]
                         <td class="topCell first vtop" rowspan="2">
-                        <div>
+                            <!--ET_BEGIN deliveryInfo-->
+                            [#deliveryInfo#]
+                            <div>
                             	<!--ET_BEGIN deliveryROW-->
                             	[#deliveryROW#]
-                            		<div>|Доставка|* <b>[#deliveryTermId#]</b> [#deliveryLocationId#]</div>
+                            	<div><span class='quiet'>|Доставка|*:</span> <b>[#deliveryTermId#]</b> [#deliveryLocationId#]</div>
                             	<!--ET_END deliveryROW-->
-                            		<!--ET_BEGIN deliveryTime-->
-                                    <div>
-                                        |Срок до|*: <b>[#deliveryTime#]</b>
-                                    </div>
-                                    <!--ET_END deliveryTime-->
-                                    <!--ET_BEGIN shipmentStoreId-->
-                            		<div style='font-weight:normal'>|Склад|*: <b>[#shipmentStoreId#]</b>
-                            		<!--ET_BEGIN isDelivered-->
-		                            <span style='color:red'>[#isDelivered#]</span>
-		                            <!--ET_END isDelivered-->
-                            		</div>
-		                            <!--ET_END shipmentStoreId-->
-                            	</div>
-                            	<div>
-                            <b>|Условия|*:</b>
-                            <ol style = 'margin-top:1px'>
-	                            <!--ET_BEGIN withVat-->
-	                            <li>|Цените са с включен ДДС|*[#withVat#]</li>
-	                            <!--ET_END withVat-->
-	                            <!--ET_BEGIN sepVat-->
-	                            <li>|Цените са с отделно ДДС|*[#sepVat#]</li>
-	                            <!--ET_END sepVat-->
-	                            <!--ET_BEGIN noVat-->
-	                            <li>|Цените са без ДДС|*[#noVat#]</li>
-	                            <!--ET_END noVat-->
-	                            <!--ET_BEGIN closedDocuments-->
-	                            <li>|Обединява|*: [#closedDocuments#]</li>
-	                            <!--ET_END closedDocuments-->
-	                            <!--ET_BEGIN notes-->
-	                                [#notes#]
-	                            <!--ET_END notes-->
-                            </ol></div>
+                           		<!--ET_BEGIN deliveryTime-->
+                                   <div><span class='quiet'>|Срок до|*:</span> <b>[#deliveryTime#]</b></div>
+                                   <!--ET_END deliveryTime-->
+                                   <!--ET_BEGIN shipmentStoreId-->
+                           		<div><span class='quiet'>|Склад|*: </span><b>[#shipmentStoreId#]</b></div>
+                           		<!--ET_BEGIN isDelivered-->
+	                            <div class='stamp'>[#isDelivered#]</div>
+	                            <!--ET_END isDelivered-->
+                           		
+	                            <!--ET_END shipmentStoreId-->
+                            </div>
+                            <hr>
+                            <!--ET_END deliveryInfo-->
+                            <div>
+	                            <b>|Условия|*:</b>
+	                            <ol style = 'margin-top:1px'>
+		                            <!--ET_BEGIN withVat-->
+		                            <li>|Цените са с включен ДДС|*[#withVat#]</li>
+		                            <!--ET_END withVat-->
+		                            <!--ET_BEGIN sepVat-->
+		                            <li>|Цените са с отделно ДДС|*[#sepVat#]</li>
+		                            <!--ET_END sepVat-->
+		                            <!--ET_BEGIN noVat-->
+		                            <li>|Цените са без ДДС|*[#noVat#]</li>
+		                            <!--ET_END noVat-->
+		                            <!--ET_BEGIN closedDocuments-->
+		                            <li>|Обединява|*: [#closedDocuments#]</li>
+		                            <!--ET_END closedDocuments-->
+		                            <!--ET_BEGIN notes-->
+		                                [#notes#]
+		                            <!--ET_END notes-->
+	                            </ol>
+                            </div>
                         </td>
                    <!--ET_END purchaseConditions-->
                    
