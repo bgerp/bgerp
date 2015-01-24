@@ -110,7 +110,7 @@ class sales_QuotationsDetails extends doc_Detail {
     	$this->FLD('quantity', 'double(Min=0)', 'caption=К-во');
     	$this->FLD('price', 'double(minDecimals=2,maxDecimals=4)', 'caption=Ед. цена, input');
         $this->FLD('discount', 'percent(maxDecimals=2)', 'caption=Отстъпка');
-        $this->FLD('tolerance', 'percent(min=0,max=1,decimals=0)', 'caption=Толеранс;');
+        $this->FLD('tolerance', 'percent(min=0,max=1,decimals=0)', 'caption=Толеранс');
     	$this->FLD('term', 'time(uom=days,suggestions=1 ден|5 дни|7 дни|10 дни|15 дни|20 дни|30 дни)', 'caption=Срок');
     	$this->FLD('vatPercent', 'percent(min=0,max=1,decimals=2)', 'caption=ДДС,input=none');
         $this->FLD('optional', 'enum(no=Не,yes=Да)', 'caption=Опционален,maxRadio=2,columns=2,remember');
