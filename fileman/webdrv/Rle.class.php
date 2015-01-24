@@ -4,10 +4,10 @@
 /**
  * Драйвер за работа с .rle файлове.
  * 
- * @category  vendors
+ * @category  bgerp
  * @package   fileman
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
