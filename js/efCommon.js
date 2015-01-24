@@ -2038,6 +2038,9 @@ function efae() {
 	
     // УРЛ, от което се вика AJAX-a - отворения таб
     Experta.prototype.parentUrl;
+    
+    // Флаг, който се вдига преди обновяване на страницата
+    Experta.prototype.onBeforUnload = false;
 }
 
 
@@ -2241,6 +2244,9 @@ efae.prototype.process = function(subscribedObj, otherData, async) {
             }
         }).fail(function(res) {
         	
+        	// Ако се обновява страницата без AJAX и възникне грешка
+        	if (getEO().onBeforUnload) return ;
+        	
         	if((res.readyState == 0 || res.status == 0) && res.getAllResponseHeaders()) return;
             
         	setTimeout(function(){
@@ -2267,7 +2273,7 @@ efae.prototype.process = function(subscribedObj, otherData, async) {
 	                    render_html(errorData);
 	            	}
 	            }
-        	}, 1500);
+        	}, 2500);
         }).always(function(res) {
         	// Ако е имало грешка и е оправенена, премахваме статуса
         	if (getEfae().AJAXHaveError && getEfae().AJAXErrorRepaired) {
@@ -3384,5 +3390,17 @@ function mailServerSettings() {
     }
 };
 
+
+/**
+ * Прихващач за обновяването на страницата без AJAX
+ */
+function onBeforeUnload()
+{
+	window.onbeforeunload = function () {
+		getEO().onBeforUnload = true;
+	}
+}
+
 runOnLoad(showTooltip);
 runOnLoad(removeNarrowScroll);
+runOnLoad(onBeforeUnload);
