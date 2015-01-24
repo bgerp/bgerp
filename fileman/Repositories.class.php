@@ -126,7 +126,7 @@ class fileman_Repositories extends core_Master
     /**
      * Името на кофата за файловете
      */
-    static $bucket = 'repositories';
+    public static $bucket = 'repositories';
     
     
     /**
