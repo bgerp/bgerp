@@ -2040,7 +2040,7 @@ function efae() {
     Experta.prototype.parentUrl;
     
     // Флаг, който се вдига преди обновяване на страницата
-    Experta.prototype.onBeforUnload = false;
+    Experta.prototype.isReloading = false;
 }
 
 
@@ -2245,7 +2245,7 @@ efae.prototype.process = function(subscribedObj, otherData, async) {
         }).fail(function(res) {
         	
         	// Ако се обновява страницата без AJAX и възникне грешка
-        	if (getEO().onBeforUnload) return ;
+        	if (getEO().isReloading) return ;
         	
         	if((res.readyState == 0 || res.status == 0) && res.getAllResponseHeaders()) return;
             
@@ -3397,7 +3397,7 @@ function mailServerSettings() {
 function onBeforeUnload()
 {
 	window.onbeforeunload = function () {
-		getEO().onBeforUnload = true;
+		getEO().isReloading = true;
 	}
 }
 
