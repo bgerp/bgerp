@@ -14,7 +14,7 @@
  * @since     v 0.11
  */
 class sales_SaleRequestDetails extends doc_Detail {
-    
+    //deals_DealDetail
     
     /**
      * Заглавие

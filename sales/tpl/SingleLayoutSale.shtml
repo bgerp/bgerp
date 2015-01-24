@@ -53,12 +53,6 @@
                             <!--ET_BEGIN dealerId-->
                             <span style='font-weight:normal'>|дилър|*</span>: [#dealerId#]
                             <!--ET_END dealerId-->
-                            <!--ET_BEGIN shipmentStoreId-->
-                            <div style='font-weight:normal'>|от склад|*: <b>[#shipmentStoreId#]</b></div>
-                            <!--ET_END shipmentStoreId-->
-                            <!--ET_BEGIN isDelivered-->
-                            <div style='color:red'>[#isDelivered#]</div>
-                            <!--ET_END isDelivered-->
                         </td>
                     </tr>
                     <tr>

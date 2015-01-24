@@ -96,9 +96,6 @@
                                     [#currencyId#] [#currencyRateText#]
                                 </div>
                                 <!--ET_END currencyId-->
-                                <!--ET_BEGIN isPaid-->
-                                <div style='color:red'>[#isPaid#]</div>
-                                <!--ET_END isPaid-->
                                 <!--ET_BEGIN bankAccountId-->
                                 <hr>
                                 <div class='cellRow'>
@@ -109,12 +106,34 @@
                                 <hr>
                                 <div>
                                     <span class='quiet'>Case: </span>[#caseId#]
+                                    <!--ET_BEGIN isPaid-->
+                                		<span style='color:red'>[#isPaid#]</span>
+                                	<!--ET_END isPaid-->
                                 </div>
                                 <!--ET_END caseId-->
                             </td>
                             <!--ET_BEGIN conditions-->
                             [#conditions#]
                             <td class="topCell first vtop" rowspan=2>
+                            <div>
+                            	<!--ET_BEGIN deliveryROW-->
+                            	[#deliveryROW#]
+                            		<div>Delivery <b>[#deliveryTermId#]</b> [#deliveryLocationId#]</div>
+                            	<!--ET_END deliveryROW-->
+                            		<!--ET_BEGIN deliveryTime-->
+                                    <div>
+                                        Delivery time: <b>[#deliveryTime#]</b>
+                                    </div>
+                                    <!--ET_END deliveryTime-->
+                                    <!--ET_BEGIN shipmentStoreId-->
+                            		<div style='font-weight:normal'>Store: <b>[#shipmentStoreId#]</b>
+                            		<!--ET_BEGIN isDelivered-->
+		                            <span style='color:red'>[#isDelivered#]</span>
+		                            <!--ET_END isDelivered-->
+                            		</div>
+		                            <!--ET_END shipmentStoreId-->
+		                        </div>
+		                        <div>
                                 <b>Conditions</b>
                                 <ol style = 'margin-top:1px'>
                                     <!--ET_BEGIN deliveryTermId-->
@@ -147,7 +166,7 @@
                                     <!--ET_BEGIN notes-->
                                     [#notes#]
                                     <!--ET_END notes-->
-                                </ol>
+                                </ol></div>
                             </td>
                             <!--ET_END conditions-->
                             <td class="topCell aright vtop" style='width:33%;'>

@@ -94,43 +94,51 @@
                                     <span class='quiet'>|Валута|*: </span>[#currencyId#] [#currencyRateText#]
                                 </div>
                                 <!--ET_END currencyId-->
-                                <!--ET_BEGIN isPaid-->
-                                <div style='color:red'>[#isPaid#]</div>
-                                <!--ET_END isPaid-->
                                 <!--ET_BEGIN bankAccountId-->
                                 <hr>
                                 <div class='cellRow'>
-                                    <span class='quiet'>|Банкова с-ка|*: </span>[#bankAccountId#]
+                                    <span class='quiet'>|Банк. с-ка|*: </span>[#bankAccountId#]
                                 </div>
                                 <!--ET_END bankAccountId-->
                                 <!--ET_BEGIN caseId-->
                                 <hr>
                                 <div class='cellRow'>
                                     <span class='quiet'>|Каса|*: </span>[#caseId#]
+                                    <!--ET_BEGIN isPaid-->
+                                		<span style='color:red'>[#isPaid#]</span>
+                                	<!--ET_END isPaid-->
                                 </div>
                                 <!--ET_END caseId-->
                             </td>
                             <!--ET_BEGIN conditions-->
                             [#conditions#]
                             <td class="topCell first vtop" rowspan=2>
-                                <!--ET_END deliveryTime-->
+                                <div>
+                            	<!--ET_BEGIN deliveryROW-->
+                            	[#deliveryROW#]
+                            		<div>|Доставка|* <b>[#deliveryTermId#]</b> [#deliveryLocationId#]</div>
+                            	<!--ET_END deliveryROW-->
+                            		<!--ET_BEGIN deliveryTime-->
+                                    <div>
+                                        |Срок до|*: <b>[#deliveryTime#]</b>
+                                    </div>
+                                    <!--ET_END deliveryTime-->
+                                    <!--ET_BEGIN shipmentStoreId-->
+                            		<div style='font-weight:normal'>|Склад|*: <b>[#shipmentStoreId#]</b>
+                            		<!--ET_BEGIN isDelivered-->
+		                            <span style='color:red'>[#isDelivered#]</span>
+		                            <!--ET_END isDelivered-->
+                            		</div>
+		                            <!--ET_END shipmentStoreId-->
+                            	</div>
+                            	<div>
                                 <b>|Условия|*:</b>
                                 <ol style = 'margin-top:1px'>
-                                    <!--ET_BEGIN deliveryTermId-->
-                                    <li>
-                                        |Доставка|*: <b>[#deliveryTermId#]</b>
-                                    </li>
-                                    <!--ET_END deliveryTermId-->
                                     <!--ET_BEGIN pricesAtDate-->
                                     <li>
                                         |Цени към|*: <b>[#pricesAtDate#]</b><br>
                                     </li>
                                     <!--ET_END pricesAtDate-->
-                                    <!--ET_BEGIN deliveryTime-->
-                                    <li>
-                                        |Срок до|*: <b>[#deliveryTime#]</b>
-                                    </li>
-                                    <!--ET_END deliveryTime-->
                                     <!--ET_BEGIN withVat-->
                                     <li>|Цените са с включен ДДС|*[#withVat#]</li>
                                     <!--ET_END withVat-->
@@ -146,7 +154,7 @@
                                     <!--ET_BEGIN notes-->
                                     [#notes#]
                                     <!--ET_END notes-->
-                                </ol>
+                                </ol></div>
                             </td>
                             <!--ET_END conditions-->
                             <td class="topCell aright vtop" style='width:33%;'>
