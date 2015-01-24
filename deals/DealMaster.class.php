@@ -1416,8 +1416,8 @@ abstract class deals_DealMaster extends deals_DealBase
     public static function createNewDraft($contragentClass, $contragentId, $fields = array())
     {
     	$contragentClass = cls::get($contragentClass);
-    	expect($cRec = $contragentClass->fetch($contragentId), 'Контрагента не съществува');
-    	expect($cRec->state != 'rejected', 'Не може да добавите продажба към оттеглен контрагент');
+    	expect($cRec = $contragentClass->fetch($contragentId));
+    	expect($cRec->state != 'rejected');
     	 
     	// Намираме всички полета, които не са скрити или не се инпутват, те са ни позволените полета
     	$me = cls::get(get_called_class());
@@ -1427,10 +1427,30 @@ abstract class deals_DealMaster extends deals_DealBase
     	// Проверяваме подадените полета дали са позволени
     	if(count($fields)){
     		foreach ($fields as $fld => $value){
-    			expect(array_key_exists($fld, $allowedFields), 'Въпросното поле не е от позволените');
+    			expect(array_key_exists($fld, $allowedFields));
     		}
     	}
     	 
+    	// Ако има склад, съществува ли?
+    	if(isset($fields['shipmentStoreId'])){
+    		expect(store_Stores::fetch($fields['shipmentStoreId']));
+    	}
+    	
+    	// Ако има каса, съществува ли?
+    	if(isset($fields['caseId'])){
+    		expect(cash_Cases::fetch($fields['caseId']));
+    	}
+    	
+    	// Ако има условие на доставка, съществува ли?
+    	if(isset($fields['deliveryTermId'])){
+    		expect(cond_DeliveryTerms::fetch($fields['deliveryTermId']));
+    	}
+    	
+    	// Ако има платежен метод, съществува ли?
+    	if(isset($fields['paymentMethodId'])){
+    		expect(cond_PaymentMethods::fetch($fields['paymentMethodId']));
+    	}
+    	
     	// Ако не е подадена дата, това е сегашната
     	$fields['valior'] = (empty($fields['valior'])) ? dt::today() : $fields['valior'];
     	 
@@ -1461,6 +1481,9 @@ abstract class deals_DealMaster extends deals_DealBase
     		$fields['chargeVat'] = ($contragentClass::shouldChargeVat($contragentId)) ? 'yes' : 'no';
     	}
     	 
+    	// Състояние на плащането, чакащо
+    	$fields['paymentState'] = 'pending';
+    	
     	// Опиваме се да запишем мастъра на сделката
     	if($id = $me->save((object)$fields)){
     
@@ -1476,7 +1499,9 @@ abstract class deals_DealMaster extends deals_DealBase
 
     
     /**
-     * Добавя нов ред в главния детайл на чернова сделка
+     * Добавя нов ред в главния детайл на чернова сделка.
+     * Ако има вече такъв артикул добавен към сделката, наслагва к-то, цената и отстъпката
+     * на новия запис към съществуващия (цените и отстъпките стават по средно притеглени)
      * 
      * @param int $id 			   - ид на сделка
      * @param mixed $pMan		   - продуктов мениджър
@@ -1494,14 +1519,17 @@ abstract class deals_DealMaster extends deals_DealBase
     	 
     	expect($rec = $me->fetch($id));
     	expect($rec->state == 'draft');
+    	
+    	// Дали отстъпката е между -1 и 1
     	if(isset($discount)){
-    		expect($discount >= -1 && $discount <= 1, 'Отстъпката трябва да е между -1 и 1');
+    		expect($discount >= -1 && $discount <= 1);
     	}
     	
+    	// Трябва да има такъв продукт и опаковка
     	$ProductMan = cls::get($pMan);
-    	expect($ProductMan->fetchField($productId, 'id'), 'Несъществуващ артикул');
+    	expect($ProductMan->fetchField($productId, 'id'));
     	if(isset($packagingId)){
-    		expect(cat_Packagings::fetchField($packagingId, 'id'), 'Несъществуваща опаковка');
+    		expect(cat_Packagings::fetchField($packagingId, 'id'));
     	}
     	
     	// Броя еденици в опаковка, се определя от информацията за продукта
@@ -1527,15 +1555,28 @@ abstract class deals_DealMaster extends deals_DealBase
     						  'quantityInPack'   => $quantityInPack,
     	);
     	
-    	// Трябва този артикул да се среща само веднъж
-    	expect(!$Detail->fetch("#{$Detail->masterKey} = {$id} AND #classId = {$dRec->classId} AND #productId = {$dRec->productId}"), 'Този артикул вече е добавен към продажбата');
-    	
-    	// Опиваме се да запишем мастъра на продажбата
-    	if($id = $Detail->save($dRec)){
-    		return $id;
+    	// Проверяваме дали въвдения детайл е уникален
+    	if($exRec = $Detail->fetch("#{$Detail->masterKey} = {$id} AND #classId = {$dRec->classId} AND #productId = {$dRec->productId}")){
+    		
+    		// Смятаме средно притеглената цена и отстъпка
+    		$nPrice = ($exRec->quantity * $exRec->price +  $dRec->quantity * $dRec->price) / ($dRec->quantity + $exRec->quantity);
+    		$nDiscount = ($exRec->quantity * $exRec->discount +  $dRec->quantity * $dRec->discount) / ($dRec->quantity + $exRec->quantity);
+    		
+    		// Ъпдейтваме к-то, цената и отстъпката на записа с новите
+    		$exRec->quantity += $dRec->quantity;
+    		$exRec->price = $nPrice;
+    		$exRec->discount = (empty($nDiscount)) ? NULL : $nDiscount;
+    		
+    		// Ъпдейтваме съществуващия запис
+    		$id = $Detail->save($exRec);
+    	} else {
+    		
+    		// Ако е уникален, добавяме го
+    		$id = $Detail->save($dRec);
     	}
     	
-    	return FALSE;
+    	// Връщаме резултата от записа
+    	return $id;
     }
     
     
