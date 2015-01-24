@@ -1537,4 +1537,18 @@ abstract class deals_DealMaster extends deals_DealBase
     	
     	return FALSE;
     }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    {
+		// не може да се клонира ако потребителя няма достъп до папката
+    	if($action == 'clonerec' && isset($rec)){
+    		if(!doc_Folders::haveRightToFolder($rec->folderId, $userId)){
+    			$res = 'no_one';
+    		}
+    	}
+    }
 }
