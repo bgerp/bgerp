@@ -24,9 +24,8 @@ class help_Wrapper extends plg_ProtoWrapper
     function description()
     {
        
-        
-        $this->TAB('help_Info', 'Помощ', 'debug, help');
-        $this->TAB('help_Log', 'Лог', 'debug, help');
+        $this->TAB('help_Info', 'Помощ', 'debug, help,admin');
+        $this->TAB('help_Log', 'Лог', 'debug, help,admin');
        
     }
 }
