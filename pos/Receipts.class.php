@@ -787,14 +787,6 @@ class pos_Receipts extends core_Master {
     	
     	// Редирект към новата бележка
     	return new redirect(array('sales_Sales', 'single', $sId), 'Успешно прехвърляне на бележката');
-    
-    	/*
-    	 * // добавяме текущия потребител
-            $sharedUsers[$cu] = $cu;
-            
-            // връщаме в кей лист масива
-            $rec->sharedUsers =  keylist::fromArray($sharedUsers);
-    	 */
     }
     
     
@@ -1363,7 +1355,7 @@ class pos_Receipts extends core_Master {
     			$pInfo = cls::get('cat_Products')->getProductInfo($rec->productId);
     			$nRec->measure = ($rec->value) ? cat_Packagings::getTitleById($rec->value) : cat_UoM::getShortName($pInfo->productRec->measureId);
     			$nRec->vat = $rec->param;
-    			$nRec->price = $rec->price / (1 + $rec->param);
+    			$nRec->price = $rec->price;
     			$nRec->name = $pInfo->productRec->name;
     			if($pInfo->productRec){
     				$nRec->vatGroup = $pInfo->productRec->vatGroup;

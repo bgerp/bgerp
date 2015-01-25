@@ -591,6 +591,7 @@ class distro_Files extends core_Detail
                 if ($renamed != $renamedArr['newName']) {
                     
                     // Сетваме масива за грешките
+                    $renamedFileHndArr = array();
                     $renamedFileHndArr['renamed'] = $renamed;
                     $renamedFileHndArr['newName'] = $renamedArr['newName'];
                     
@@ -1388,6 +1389,9 @@ class distro_Files extends core_Detail
         // Вземаме формата към този модел
         $form = $this->getForm();
         
+        $filesInReposArr = array();
+        $fileHndArr = array();
+        
         // Обхождаме ги
         foreach ($docAndFilesArr as $docId => $filesArr) {
             
@@ -1431,6 +1435,8 @@ class distro_Files extends core_Detail
             return new Redirect($retUrl);
         }
         
+        $repoFncArr = array();
+        
         // Обхощдаме всички хранилища
         foreach ((array)$filesInReposArr as $repoId => $fileArr) {
             
@@ -1459,6 +1465,8 @@ class distro_Files extends core_Detail
             
             // Вземаме заглавието/титлата на полето
             $title = $this->Master->getGroupTitle($masterKey);
+            
+            $filesArrToSave = array();
             
             // Обхождаме фунцкионалните полета
             foreach ($repoFncArr as $repoId => $fncName) {

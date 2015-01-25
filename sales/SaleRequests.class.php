@@ -200,6 +200,7 @@ class sales_SaleRequests extends core_Master
     	$this->sales_SaleRequestDetails->delete("#requestId = {$rec->id}");
     	
     	$items = $this->prepareProducts($dRec);
+    	
     	foreach ($items as $item){
     		$item->requestId = $rec->id;
     		$this->sales_SaleRequestDetails->save($item);
@@ -240,11 +241,13 @@ class sales_SaleRequests extends core_Master
     		
     		// Намира се кой детайл отговаря на този продукт
     		$obj = (object)$this->findDetail($productId, $classId, $quantity, $optional);
-            $items[] = (object)array('classId'   => $obj->classId,
-        					         'productId' => $obj->productId,
-        					 		 'discount'  => $obj->discount,
-        					 		 'quantity'  => $obj->quantity,
-        					 		 'price'     => $obj->price);
+            $items[] = (object)array('classId'        => $obj->classId,
+        					         'productId'      => $obj->productId,
+        					 		 'discount'       => $obj->discount,
+        					 		 'quantity'       => $obj->quantity,
+        					 		 'price'          => $obj->price,
+            						 'quantityInPack' => 1,
+            );
     	}
     	
     	return $items;
@@ -299,14 +302,15 @@ class sales_SaleRequests extends core_Master
     	$filteredProducts = $this->filterProducts($quotationId);
     	
     	foreach ($filteredProducts as $index => $product){
+    		
     		if($product->optional == 'yes') {
-    			$product->title = "Опционални->{$product->title}";
-    			$product->options = array('' => '&nbsp;') + $product->options;
+    			$product->title = "Опционални->|*{$product->title}";
+    			$product->options = array('' => '') + $product->options;
     			$mandatory = '';
     		} else {
-    			$product->title = "Оферирани->{$product->title}";
+    			$product->title = "Оферирани->|*{$product->title}";
 	    		if(count($product->options) > 1) {
-	    			$product->options = array('' => '&nbsp;') + $product->options;
+	    			$product->options = array('' => '') + $product->options;
 	    			$mandatory = 'mandatory';
 	    		} else {
 	    			$mandatory = '';

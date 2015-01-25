@@ -219,6 +219,19 @@ class price_GroupOfProducts extends core_Detail
     
 
     /**
+     * Извиква се след подготовката на toolbar-а на формата за редактиране/добавяне
+     */
+    public static function on_AfterPrepareEditToolbar($mvc, $data)
+    {
+    	if($data->masterMvc instanceof cat_Products) {
+    		if (!empty($data->form->toolbar->buttons['saveAndNew'])) {
+    			$data->form->toolbar->removeBtn('saveAndNew');
+    		}
+    	}
+    }
+    
+    
+    /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      * 
      * @param core_Mvc $mvc

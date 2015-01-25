@@ -97,13 +97,13 @@ class label_TemplateFormats extends core_Detail
     /**
      * Данни за тип
      */
-    static $typeEnumOpt = 'caption=Надпис,counter=Брояч,image=Картинка';
+    protected static $typeEnumOpt = 'caption=Надпис,counter=Брояч,image=Картинка';
     
     
     /**
      * 
      */
-    static $bucket = 'label';
+    protected static $bucket = 'label';
     
     
     /**
@@ -119,7 +119,7 @@ class label_TemplateFormats extends core_Detail
     {
         $this->FLD('templateId', 'key(mvc=label_Templates, select=title)', 'caption=Шаблон');
         $this->FLD('placeHolder', 'varchar', 'caption=Плейсхолдер, title=Име на плейсхолдер, mandatory');
-        $this->FLD('type', 'enum(' . static::$typeEnumOpt . ')', 'caption=Тип, silent, mandatory');
+        $this->FLD('type', 'enum(' . self::$typeEnumOpt . ')', 'caption=Тип, silent, mandatory');
         $this->FLD('formatParams', 'blob(serialize, compress)', 'caption=Параметри, title=Параметри за конвертиране на шаблона, input=none');
         
         $this->setDbUnique('templateId, placeHolder');
@@ -204,7 +204,7 @@ class label_TemplateFormats extends core_Detail
         }
         
         // Масив с типовете на полето
-        $typeArr = arr::make(static::$typeEnumOpt, TRUE);
+        $typeArr = arr::make(self::$typeEnumOpt, TRUE);
         
         // Очакваме да има тип и типа да отговаря
         expect($type && $typeArr[$type]);
@@ -344,6 +344,8 @@ class label_TemplateFormats extends core_Detail
                 $form->rec->Format = '%';
             }
             
+            $dataArr = array();
+            
             // Обхождаме масива
             foreach ((array)$fncForm->fields as $fieldName => $dummy) {
                 
@@ -465,7 +467,7 @@ class label_TemplateFormats extends core_Detail
             if ($rec->type == 'image') {
                 
                 // Добавяме поле за качване на изображение
-                $form->FNC($placeHolderField, 'fileman_FileType(bucket=' . static::$bucket . ')', "caption={$caption}, input=input");
+                $form->FNC($placeHolderField, 'fileman_FileType(bucket=' . self::$bucket . ')', "caption={$caption}, input=input");
             } elseif ($rec->type == 'caption') {
                 
                 // Ако е зададена максимална дължина
@@ -754,7 +756,7 @@ class label_TemplateFormats extends core_Detail
         $Bucket = cls::get('fileman_Buckets');
         
         // Създаваме, кофа, където ще държим всички прикачени файлове
-        $res .= $Bucket->createBucket(static::$bucket, 'Файлове в етикети', 'jpg,jpeg,png,bmp,gif,image/*', '10MB', 'user', 'user');
+        $res .= $Bucket->createBucket(self::$bucket, 'Файлове в етикети', 'jpg,jpeg,png,bmp,gif,image/*', '10MB', 'user', 'user');
     }
     
     

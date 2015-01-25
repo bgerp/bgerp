@@ -240,6 +240,10 @@ class cat_Products extends core_Embedder {
     		$data->form->setField($mvc->innerClassField, 'remember');
     	}
     	
+    	if(isset($data->form->rec->innerClass)){
+    		$data->form->setField('innerClass', 'input=hidden');
+    	}
+    	
     	if(!$data->form->rec->id && ($code = Mode::get('catLastProductCode'))) {
             if ($newCode = str::increment($code)) {
             	
@@ -281,9 +285,9 @@ class cat_Products extends core_Embedder {
     			$defMetas = arr::make($defMetas, TRUE);
     			$grMetas = arr::make($mvc->getMetaData($rec->groups), TRUE);
     			if(isset($grMetas['canStore']) && !isset($defMetas['canStore'])){
-    				$form->setError('groups', "Не може избрания драйвер да е за услуга, а артикула да е складируем");
+    				$form->setError('groups', "Не може да създавате услуга, и да я правите складируема");
     			} elseif(isset($defMetas['canStore']) && !isset($grMetas['canStore'])){
-    				$form->setError('groups', "Не може избрания драйвер да е за стока, а артикула да не е складируем");
+    				$form->setError('groups', "Не може да създавате стока, и да не е складируема");
     			}
     		}
         }
@@ -1192,5 +1196,18 @@ class cat_Products extends core_Embedder {
     {
     	expect(cls::haveInterface('cat_ProductDriverIntf', $rec->innerClass));
     	$rec->innerClass = cls::get($rec->innerClass)->getClassId();
+    }
+    
+    
+    /**
+     * Извиква се след подготовката на toolbar-а за табличния изглед
+     */
+    protected static function on_AfterPrepareListToolbar($mvc, &$data)
+    {
+    	$data->toolbar->removeBtn('btnAdd');
+    	if($mvc->haveRightFor('add')){
+    		 $data->toolbar->addBtn('Нова стока', array($mvc, 'add', 'innerClass' => cat_GeneralProductDriver::getClassId(), 'ret_url' => TRUE), 'order=1', 'ef_icon = img/16/shopping.png,title=Създаване на нова стока');
+    		 $data->toolbar->addBtn('Нова услуга', array($mvc, 'add', 'innerClass' => cat_GeneralServiceDriver::getClassId(), 'ret_url' => TRUE), 'order=1', 'ef_icon = img/16/shopping.png,title=Създаване на нова услуга');
+    	}
     }
 }

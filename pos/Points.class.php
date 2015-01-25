@@ -32,7 +32,7 @@ class pos_Points extends core_Master {
     /**
      * Наименование на единичния обект
      */
-    var $singleTitle = "Точка на продажба";
+    var $singleTitle = "POS";
     
     
     /**

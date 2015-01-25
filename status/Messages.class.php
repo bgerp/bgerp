@@ -102,9 +102,8 @@ class status_Messages extends core_Manager
         
         // Стойности за записа
         $rec = new stdClass();
-        if (!$userId) {
-            $rec->sid = self::getSid();
-        }
+        
+        $rec->sid = self::getSid();
         $rec->text = $text;
         $rec->type = $type;
         $rec->userId = $userId;
@@ -178,11 +177,11 @@ class status_Messages extends core_Manager
             
             // Статусите за него
             $query->where(array("#userId = '[#1#]'", $userId));
-        } else {
-            // Статусите за съответния SID
-            $sid = self::getSid();
-            $query->where(array("#sid = '[#1#]'", $sid));
         }
+        
+        // Статусите за съответния SID
+        $sid = self::getSid();
+        $query->where(array("#sid = '[#1#]'", $sid));
         
         $query->orderBy('createdOn', 'ASC');
         

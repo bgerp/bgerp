@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   ssh
  * @author    Dimitar Minekov <mitko@experta.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -116,22 +116,28 @@ class ssh_Actions
         $remoteFileName = basename($localFileName);
         
         if (!ssh2_scp_send($this->connection, $localFileName, $remoteFileName)) {
-            throw new core_exception_Expect("Грешка при качване на файл на отдалечен хост");
+            throw new core_exception_Expect("Грешка при качване на файл на отдалечен хост.");
         }
     }
     
     /**
-     * Смъква файл от отдалечен хост
+     * Връща съдържанието на файл от отдалечен хост
      *
      * @param string $remoteFileName - име на отдалечения файл
+     * @return string $contents - съдържанието на отдалечения файл
      */
-    public function get($remoteFileName)
+    public function getContents($remoteFileName)
     {
-        $localFileName = $remoteFileName;
+        if (!($localFileName = tempnam(EF_TEMP_PATH, $remoteFileName))) {
+        	throw core_exception_Expect("Грешка при създаване на временен файл.");
+        }
         
         if (!ssh2_scp_recv($this->connection, $remoteFileName, $localFileName)) {
-            throw core_exception_Expect("Грешка при сваляне на файл от отдалечен хост");
-        }        
+            throw core_exception_Expect("Грешка при сваляне на файл от отдалечен хост.");
+        }
+        $contents = file_get_contents($localFileName);
+        @unlink($localFileName);
+        
+        return $contents;
     }
-    
 }

@@ -538,7 +538,7 @@ class type_Key extends type_Int
      * Връща списък е елементи <option> при ajax заявка
      */
     function act_ajax_GetOptions()
-    {    
+    {
         // Приключваме, ако няма заявка за търсене
         $hnd = Request::get('hnd');
         
@@ -560,13 +560,15 @@ class type_Key extends type_Int
             $maxSuggestions = $this->getMaxSuggestions();
         }
         
-        $options = (array) unserialize(core_Cache::get('SelectOpt', $hnd));
+        $options = unserialize(core_Cache::get('SelectOpt', $hnd));
         
-        if ($options['']) {
-            $select = new ET('');
-        } else {
-            $select = new ET('<option value="">&nbsp;</option>');
+        if ($options === FALSE) {
+            $this->prepareOptions();
+            $options = unserialize(core_Cache::get('SelectOpt', $hnd));
         }
+        
+        
+        $select = new ET('<option value="">&nbsp;</option>');
         
         $cnt = 0;
         
@@ -580,6 +582,8 @@ class type_Key extends type_Int
                 $id = $titleArr['id'];
                 
                 $attr = array();
+                
+                if ($key == '') continue;
                 
                 if((!is_object($title) && !isset($title->group)) && $q && (!preg_match($q, ' ' . $id)) ) continue;
                 

@@ -290,6 +290,7 @@ class email_Outgoings extends core_Master
         // Имейлите от получател
         $oEmails = $options->emailsTo;
         
+        $groupEmailsArr = array();
         $groupEmailsArr['cc'][0] = $options->emailsCc;
         
         // Ако не сме променили имейлите
@@ -441,6 +442,7 @@ class email_Outgoings extends core_Master
                 if ($rec->folderId) {
                     $currUserId = core_Users::getCurrent();
                     if ($currUserId > 0) {
+                        $valArr = array();
                         $valArr['defaultEmail'] = $options->boxFrom;
                         $key = doc_Folders::getSettingsKey($rec->folderId);
                         core_Settings::setValues($key, $valArr, core_Users::getCurrent(), TRUE);
@@ -643,6 +645,9 @@ class email_Outgoings extends core_Master
         
         if(count($docHandlesArr) > 0) {
             $data->form->FNC('documentsSet', 'set', 'input,caption=Документи,columns=4,formOrder=6');
+            
+            $suggestion = array();
+            $setDef = array();
             
             //Вземаме всички документи
             foreach ($docHandlesArr as $name => $checked) {
@@ -890,6 +895,9 @@ class email_Outgoings extends core_Master
                         // Вземаме имейлите CC
                         $emailsCcArr = arr::make($form->rec->emailsCc, TRUE);
                         
+                        $toWarningArr = array();
+                        $ccWarningArr = array();
+                        
                         // Обхождаме масива с no-reply имейлите
                         foreach ($noReplayEmailsArr as $noReplayEmail) {
                             
@@ -1015,6 +1023,8 @@ class email_Outgoings extends core_Master
             
             // Масив с всички документи
             $docHandlesArr = $mvc->GetPossibleTypeConvertings($rec->id);
+            
+            $docsArr = array();
             
             // Обхождаме документите
             foreach ($docHandlesArr as $name => $checked) {
@@ -2324,6 +2334,8 @@ class email_Outgoings extends core_Master
         // Превръщаме всички имейли на масив
         $emailsArr = type_Emails::toArray($emails);
         
+        $arr = array();
+        
         // Обхождаме масива
         foreach ($emailsArr as $email) {
             
@@ -2469,6 +2481,8 @@ class email_Outgoings extends core_Master
         
         // Да извлече само достъпните
         crm_Persons::applyAccessQuery($personsQuery);
+        
+        $personsArr = array();
         
         // Обхождаме всички откити резултати
         while ($personsRec = $personsQuery->fetch()) {

@@ -151,7 +151,7 @@ class acc_plg_Contable extends core_Plugin
                 'docType' => $mvc->className,
                 'ret_url' => TRUE
             );
-            $data->toolbar->addBtn('Сторно', $rejectUrl, 'id=revert,warning=Наистина ли желаете документа да бъде сторниран?', 'ef_icon = img/16/red-back.png,title=Сторниране на документа');
+            $data->toolbar->addBtn('Сторно', $rejectUrl, 'id=revert,warning=Наистина ли желаете документа да бъде сторниран?', 'ef_icon = img/16/red-back.png,title=Сторниране на документа, row=2');
         } else {
         	
         	// Ако потребителя може да създава коригиращ документ, слагаме бутон
