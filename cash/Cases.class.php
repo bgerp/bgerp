@@ -175,6 +175,17 @@ class cash_Cases extends core_Master {
     }
     
     
+    /**
+     * Изпълнява се преди преобразуването към вербални стойности на полетата на записа
+     */
+    protected static function on_BeforeRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+    	if(is_object($rec)){
+    		$rec->name =  $mvc->singleTitle . " \"{$rec->name}\"";
+    	}
+    }
+    
+    
 	/**
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
@@ -183,6 +194,7 @@ class cash_Cases extends core_Master {
         $row->STATE_CLASS .= ($rec->state == 'rejected') ? " state-rejected" : " state-active";
         
         if(isset($fields['-list'])){
+        	
         	$caseItem = acc_Items::fetchItem($mvc->getClassId(), $rec->id);
         	
         	// Намираме всички записи от текущия баланс за това перо

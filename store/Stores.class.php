@@ -338,6 +338,17 @@ class store_Stores extends core_Master
     
     
     /**
+     * Изпълнява се преди преобразуването към вербални стойности на полетата на записа
+     */
+    protected static function on_BeforeRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+    	if(is_object($rec)){
+    		$rec->name =  $mvc->singleTitle . " \"{$rec->name}\"";
+    	}
+    }
+    
+    
+    /**
      * След преобразуване на записа в четим за хора вид
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
