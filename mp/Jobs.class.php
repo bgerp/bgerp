@@ -130,7 +130,7 @@ class mp_Jobs extends core_Master
     	$this->FLD('notes', 'richtext(rows=3)', 'caption=Забележки');
     	$this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Доставка->Условие');
     	$this->FLD('deliveryDate', 'date(smartTime)', 'caption=Доставка->Срок');
-    	$this->FLD('deliveryPlace', 'key(mvc=crm_Locations,select=title)', 'caption=Доставка->Място');
+    	$this->FLD('deliveryPlace', 'key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Доставка->Място');
     	$this->FLD('weight', 'cat_type_Weight', 'caption=Тегло,input=none');
     	$this->FLD('brutoWeight', 'cat_type_Weight', 'caption=Бруто,input=none');
     	$this->FLD('data', 'blob(serialize,compress)', 'input=none');
