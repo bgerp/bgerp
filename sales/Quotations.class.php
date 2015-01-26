@@ -435,7 +435,7 @@ class sales_Quotations extends core_Master
     /**
      * След проверка на ролите
      */
-    function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec, $userId)
+    protected static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec, $userId)
     {
     	if($res == 'no_one') return;
     	if($action == 'activate'){
@@ -443,6 +443,12 @@ class sales_Quotations extends core_Master
     			
     			// Ако документа се създава, то не може да се активира
     			$res = 'no_one';
+    		} else {
+    			
+    			// За да се активира, трябва да има детайли
+    			if(empty(sales_QuotationsDetails::fetchField("#quotationId = {$rec->id}"))){
+    				$res = 'no_one';
+    			}
     		}
     	}
     	
