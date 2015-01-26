@@ -1251,10 +1251,13 @@ function setFormElementsWidth() {
         if (winWidth < 320) {
             winWidth = 320;
         }
-       
         // предпочитана ширина в em
         var preferredSizeInEm = 42;
-
+        // разстояние около формата
+    	var outsideWidth = 42;
+    	if($('#all').length) {
+    		outsideWidth = 30;
+    	}
         // изчислена максимална ширина формата
         var formElWidth = winWidth - outsideWidth;
 
@@ -1280,7 +1283,9 @@ function setFormElementsWidth() {
                 colsInRow = 1;
             }
 
-            $(this).css('maxWidth', parseInt((formElWidth - 50) / colsInRow));
+            $(this).parent().css('maxWidth', parseInt((formElWidth - 10) / colsInRow));
+        	$(this).parent().css('overflow-x', 'hidden');
+           
             $(this).attr('title', $(this).text());
         });
 
