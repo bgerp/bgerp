@@ -186,7 +186,7 @@ class core_Setup extends core_ProtoSetup {
             
            'TYPE_KEY_MAX_SUGGESTIONS'   => array ('int', 'caption=Критичен брой опции|*&comma;| над които търсенето става по ajax->Опции'), 
     
-           'EF_APP_TITLE'   => array ('varchar', 'caption=Наименование на приложението->Име'),
+           'EF_APP_TITLE'   => array ('varchar(16)', 'caption=Наименование на приложението->Име'),
            
            'CORE_LOGIN_INFO'   => array ('varchar', 'caption=Информация във формата за логване->Текст'),
       

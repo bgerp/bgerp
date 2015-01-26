@@ -80,10 +80,12 @@ class cms_Page extends page_Html {
         }
 
         $this->replace(new ET($pageTpl), 'PAGE_CONTENT');
-        
+        if(!($conf->EF_PRIVATE_PATH && file_exists($conf->EF_PRIVATE_PATH . '/cms/img/bgERP.jpg'))){
+        	$this->replace($conf->EF_APP_TITLE, 'CORE_APP_NAME');
+    	}
         // Скрипт за генериране на min-height, според устройството
         $this->append("runOnLoad(setMinHeightExt);", "JQRUN");
-                
+              
         // Добавка за разпознаване на браузъра
         $Browser = cls::get('core_Browser');
         $this->append($Browser->renderBrowserDetectingCode(), 'BROWSER_DETECT');
