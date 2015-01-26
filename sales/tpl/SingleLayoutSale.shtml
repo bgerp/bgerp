@@ -51,7 +51,7 @@
                             <span style='font-weight:normal'>|Инициатор|*</span>: [#initiatorId#]<br>
                             <!--ET_END initiatorId-->
                             <!--ET_BEGIN dealerId-->
-                            <span style='font-weight:normal'>|дилър|*</span>: [#dealerId#]
+                            <span style='font-weight:normal'>|Дилър|*</span>: [#dealerId#]
                             <!--ET_END dealerId-->
                         </td>
                     </tr>
