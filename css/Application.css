@@ -516,7 +516,7 @@ div.folder-cover {
 
 .narrow .user-profile {
   margin-top: 7px;
-  min-width: 100px;
+  display: table;
   max-width: 600px; }
   .narrow .user-profile .user-title {
     font-size: 1.1em;
