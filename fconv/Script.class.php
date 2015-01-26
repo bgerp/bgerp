@@ -131,7 +131,7 @@ class fconv_Script
         
         if ($addTimeLimit && $cmdLine) {
             $conf = core_Packs::getConfig('fconv');
-            if ($conf->FCONV_TIME_LIMIT) {
+            if ($conf->FCONV_USE_TIME_LIMIT == 'yes') {
                 $cmdLine = $conf->FCONV_TIME_LIMIT . ' ' . $cmdLine;
             }
         }
