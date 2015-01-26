@@ -309,11 +309,11 @@ class sales_SaleRequests extends core_Master
     	foreach ($filteredProducts as $index => $product){
     		
     		if($product->optional == 'yes') {
-    			$product->title = "Опционални->|*{$product->title}";
+    			$product->title = "|Опционални|*->|*{$product->title}";
     			$product->options = array('' => '') + $product->options;
     			$mandatory = '';
     		} else {
-    			$product->title = "Оферирани->|*{$product->title}";
+    			$product->title = "|Оферирани|*->|*{$product->title}";
 	    		if(count($product->options) > 1) {
 	    			$product->options = array('' => '') + $product->options;
 	    			$mandatory = 'mandatory';
@@ -334,7 +334,7 @@ class sales_SaleRequests extends core_Master
     		if($fRec = (object)$this->fetchField($id, 'data')){
     			$form->rec = $fRec;
     		}
-    		$form->title = "|Редактиране на|*&nbsp; <b>Заявка за продажба №{$id}</b>";
+    		$form->title = "|Редактиране на|*&nbsp; <b>{$this->singleTitle} №{$id}</b>";
     	} else {
     		$form->title = "|Заявка към|*&nbsp;<b>" . sales_Quotations::getRecTitle($quotationId) . "</b>";
     	}
