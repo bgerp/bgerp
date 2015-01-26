@@ -39,7 +39,7 @@ class sales_SaleRequests extends core_Master
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, bgerp_DealIntf';
+    public $interfaces = 'doc_DocumentIntf';
     
     
     /**
@@ -372,39 +372,51 @@ class sales_SaleRequests extends core_Master
     
     
     /**
-     * Имплементация на @link bgerp_DealIntf::getDealInfo()
+     * Екшън генериращ продажба от оферта
      */
-    public function getDealInfo($id)
+    function act_CreateSale()
     {
-    	$rec = self::fetchRec($id);
-    	$query = $this->sales_SaleRequestDetails->getQuery();
+    	sales_Sales::requireRightFor('add');
+    	expect($id = Request::get('id', 'int'));
+    	expect($rec = $this->fetchRec($id));
+    	 
+    	// Опитваме се да намерим съществуваща чернова продажба
+    	if(!Request::get('dealId', 'key(mvc=sales_Sales)') && !Request::get('stop')){
+    		Redirect(array('sales_Sales', 'ChooseDraft', 'contragentClassId' => $rec->contragentClassId, 'contragentId' => $rec->contragentId, 'ret_url' => TRUE));
+    	}
+    	 
+    	// Ако няма създаваме нова
+    	if(!$sId = Request::get('dealId', 'key(mvc=sales_Sales)')){
+    
+    		// Подготвяме данните на мастъра на генерираната продажба
+    		$fields = array('currencyId'         => $rec->currencyId,
+    						'currencyRate'       => $rec->currencyRate,
+    						'paymentMethodId'    => $rec->paymentMethodId,
+    						'deliveryTermId'     => $rec->deliveryTermId,
+    						'chargeVat'          => $rec->chargeVat,
+    						'note'				 => $rec->others,
+    						'deliveryLocationId' => crm_Locations::fetchField("#title = '{$rec->deliveryPlaceId}'", 'id'),
+    		);
+    		 
+    		// Създаваме нова продажба от офертата
+    		$sId = sales_Sales::createNewDraft($rec->contragentClassId, $rec->contragentId, $fields);
+    	}
+    	 
+    	$query = sales_SaleRequestDetails::getQuery();
     	$query->where("#requestId = {$id}");
-    	$details = $query->fetchAll();
-    	
-    	$result = new bgerp_iface_DealResponse();
-    	$result->dealType          = bgerp_iface_DealResponse::TYPE_SALE;
-        $result->quoted->amount    = $rec->amountDeal;
-        $result->quoted->currency  = $rec->currencyId;
-        $result->quoted->rate 	   = $rec->currencyRate;
-        $result->quoted->vatType   = $rec->chargeVat;
-        if($rec->deliveryPlaceId){
-        	$result->quoted->delivery->location = crm_Locations::fetchField("#title = '{$rec->deliveryPlaceId}'", 'id');
-        }
-        $result->quoted->delivery->term  = $rec->deliveryTermId;
-        $result->quoted->payment->method = $rec->paymentMethodId;
-    	
-    	foreach ($details as $dRec) {
-            $result->quoted->products[] = $dRec;
-        }
-        
-        return $result;
+    	while($dRec = $query->fetch()){
+    		sales_Sales::addRow($sId, $dRec->classId, $dRec->productId, $dRec->quantity, $dRec->price, NULL, $dRec->discount);
+    	}
+    	 
+    	// Редирект към новата продажба
+    	return Redirect(array('sales_Sales', 'single', $sId), tr('Успешно е създадена продажба от заявка'));
     }
     
     
 	/**
      * След проверка на ролите
      */
-    function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec, $userId)
+    protected static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec, $userId)
     {
     	if(($action == 'add') && isset($rec)){
     		if(!$rec->originId){
@@ -482,7 +494,7 @@ class sales_SaleRequests extends core_Master
     /**
      * Обработка на завката
      */
-    static function on_AfterPrepareSingle($mvc, &$res, &$data)
+    protected static function on_AfterPrepareSingle($mvc, &$res, &$data)
     {	
     	$rec = &$data->rec;
     	$row = &$data->row;
@@ -571,10 +583,10 @@ class sales_SaleRequests extends core_Master
 	/**
      * Извиква се след подготовката на toolbar-а за единичен изглед
      */
-    static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
     	if ($data->rec->state == 'active') {
-    		$data->toolbar->addBtn('Продажба', array('sales_Sales', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE), NULL, 'order=22,ef_icon = img/16/cart_go.png,title=Създаване на нова продажба по заявката');
+    		$data->toolbar->addBtn('Продажба', array($mvc, 'createSale', $data->rec->id, 'ret_url' => TRUE), 'warning=Сигурнили сте че искате да създадете продажба?', 'order=22,ef_icon = img/16/cart_go.png,title=Създаване на нова продажба по заявката');
     	}
     	
     	if($data->rec->state == 'draft') {
