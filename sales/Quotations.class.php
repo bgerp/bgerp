@@ -688,21 +688,27 @@ class sales_Quotations extends core_Master
     	expect($rec = $this->fetchRec($id));
     	expect($items = $this->getItems($id));
     	
-    	// Подготвяме данните на мастъра на генерираната продажба
-    	$fields = array('currencyId'         => $rec->currencyId,
-    					'currencyRate'       => $rec->currencyRate,
-    					'paymentMethodId'    => $rec->paymentMethodId,
-    					'deliveryTermId'     => $rec->deliveryTermId,
-    					'chargeVat'          => $rec->chargeVat,
-    					'note'				 => $rec->others,
-    					'deliveryLocationId' => crm_Locations::fetchField("#title = '{$rec->deliveryPlaceId}'", 'id'),
-    	);
+    	// Опитваме се да намерим съществуваща чернова продажба
+    	if(!Request::get('dealId', 'key(mvc=sales_Sales)') && !Request::get('stop')){
+    		Redirect(array('sales_Sales', 'ChooseDraft', 'contragentClassId' => $rec->contragentClassId, 'contragentId' => $rec->contragentId, 'ret_url' => TRUE));
+    	}
     	
-    	// Създаваме нова продажба от офертата
-    	$sId = sales_Sales::createNewDraft($rec->contragentClassId, $rec->contragentId, $fields);
-    	
-    	// Ако не е успешно се връщаме към офертата
-    	if(!$sId) return Redirect(array($this, 'single', $id), tr('Проблем при генериране на продажбата'));
+    	// Ако няма създаваме нова
+    	if(!$sId = Request::get('dealId', 'key(mvc=sales_Sales)')){
+    		
+    		// Подготвяме данните на мастъра на генерираната продажба
+    		$fields = array('currencyId'         => $rec->currencyId,
+    				'currencyRate'       => $rec->currencyRate,
+    				'paymentMethodId'    => $rec->paymentMethodId,
+    				'deliveryTermId'     => $rec->deliveryTermId,
+    				'chargeVat'          => $rec->chargeVat,
+    				'note'				 => $rec->others,
+    				'deliveryLocationId' => crm_Locations::fetchField("#title = '{$rec->deliveryPlaceId}'", 'id'),
+    		);
+    		 
+    		// Създаваме нова продажба от офертата
+    		$sId = sales_Sales::createNewDraft($rec->contragentClassId, $rec->contragentId, $fields);
+    	}
     	
     	// За всеки детайл на офертата подаваме го като детайл на продажбата
     	foreach ($items as $item){

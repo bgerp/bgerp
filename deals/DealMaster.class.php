@@ -1592,4 +1592,52 @@ abstract class deals_DealMaster extends deals_DealBase
     		}
     	}
     }
+    
+    
+    /**
+     * Екшън показващ форма за избор на чернова бележка от папката на даден контрагент
+     */
+    public function act_ChooseDraft()
+    {
+    	$this->requireRightFor('edit');
+    	$contragentClassId = Request::get('contragentClassId', 'int');
+    	$contragentId = Request::get('contragentId', 'int');
+    	
+    	$query = $this->getQuery();
+    	$query->where("#state = 'draft' AND #contragentId = {$contragentId} AND #contragentClassId = {$contragentClassId}");
+    	
+    	$options = array();
+    	while($rec = $query->fetch()){
+    		$options[$rec->id] = $this->getTitleById($rec->id, TRUE);
+    	}
+    	
+    	$retUrl = getRetUrl();
+    	
+    	// Ако няма опции, връщаме се назад
+    	if(!count($options)){
+    		$retUrl['stop'] = TRUE;
+    		
+    		return Redirect($retUrl);
+    	}
+    	
+    	// Подготвяме и показваме формата за избор на чернова оферта, ако има чернови
+    	$me = get_called_class();
+    	$form = cls::get('core_Form');
+    	$form->title = 'Избор на чернова';
+    	$form->FLD('dealId', "key(mvc={$me},select=id,allowEmpty)", "caption={$this->singleTitle},mandatory");
+    	$form->setOptions('dealId', $options);
+    	
+    	$form->input();
+    	if($form->isSubmitted()){
+    		$retUrl['dealId'] = $form->rec->dealId;
+    		
+    		// Подаваме намерената форма в урл-то за връщане
+    		return Redirect($retUrl);
+    	}
+    	
+    	$form->toolbar->addSbBtn('Избор', 'save', 'ef_icon = img/16/disk.png, title = Избор на документа');
+    	$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
+    	
+    	return $this->renderWrapping($form->renderHtml());
+    }
 }
