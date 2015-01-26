@@ -361,8 +361,9 @@ class core_Embedder extends core_Master
 	{
 		if(!empty($rec->{$mvc->innerClassField})){
 			
-			$Driver = $mvc->getDriver($rec);
-			$Driver->alterSearchKeywords($res);
+			if($Driver = $mvc->getDriver($rec)){
+				$Driver->alterSearchKeywords($res);
+			}
 		}
 	}
 }
