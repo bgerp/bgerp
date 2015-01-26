@@ -1623,7 +1623,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	// Подготвяме и показваме формата за избор на чернова оферта, ако има чернови
     	$me = get_called_class();
     	$form = cls::get('core_Form');
-    	$form->title = 'Избор на чернова';
+    	$form->title = "|Избор на чернова|* " . mb_strtolower($this->singleTitle);
     	$form->FLD('dealId', "key(mvc={$me},select=id,allowEmpty)", "caption={$this->singleTitle},mandatory");
     	$form->setOptions('dealId', $options);
     	
