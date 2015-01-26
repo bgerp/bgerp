@@ -2,12 +2,6 @@
 
 
 /**
- * "Подправка" за кодиране на CRC за ключа
- */
-defIfNot('KEY_CRC_SALT', md5(EF_SALT . '_KEY_CRC'));
-
-
-/**
  * Клас  'type_Key' - Ключ към ред от MVC модел
  *
  *
@@ -40,12 +34,6 @@ class type_Key extends type_Int
      * Параметър определящ максималната широчина на полето
      */
     public $maxFieldSize = 0;
-    
-    
-    /**
-     * Разделител при генериране на ключ
-     */
-    protected static $keyDelimiter = '|';
     
     
     /**
@@ -94,7 +82,7 @@ class type_Key extends type_Int
     {
         if(empty($value)) return NULL;
         
-        $key = self::getKeyFromCrc($value);
+        $key = self::getKeyFromTitle($value);
         
         $oValue = $value;
         
@@ -275,6 +263,18 @@ class type_Key extends type_Int
             foreach($options as $key => $v) {
                 
                 $title = self::getOptionTitle($v);
+                
+                // Ако вече е добавено id-то след края на текста, да не се добавя повторвно
+                if (!self::haveId($title, $key)) {
+                    $title = self::getUniqTitle($title, $key);
+                    if (is_object($v->title)) {
+                        $v->title = $title;
+                        $options[$key] = $v;
+                    } else {
+                        $options[$key] = $title;
+                    }
+                }
+                
                 if ($titles[$title]) {
                     $title = self::getUniqTitle($title, $key);
                 }
@@ -294,78 +294,15 @@ class type_Key extends type_Int
             }
             
             core_Cache::set('SelectOpt', $this->handler, serialize($cacheOpt), 20, array($this->params['mvc']));
-        } else {
-            $nArrOpt = array();
-            
-            foreach ($options as $key => $v) {
-                
-                $key = self::prepareOptKey($key);
-                $nArrOpt[$key] = $v;
-            }
-            
-            $options = $nArrOpt;
         }
         
         Debug::stopTimer('prepareOPT ' . $this->params['mvc']);
         
         Mode::pop('text');
         
+        $this->options = $options;
+        
         return $options;
-    }
-    
-    
-    /**
-     * Подготвя подадения ключ, като добавя crc сумата след него
-     * 
-     * @param string $key
-     * 
-     * @return string
-     */
-    public static function prepareOptKey($key)
-    {
-        if (!trim($key)) return $key;
-        
-        $crc = self::calcCrc($key);
-        
-        $newKey = $key . self::$keyDelimiter . $crc;
-        
-        return $newKey;
-    }
-    
-    
-    /**
-     * Връща ключа от стринга, като проверява дали е коректен CRC сумата
-     * 
-     * @param string $str
-     * 
-     * @return integer|string|NULL
-     */
-    public static function getKeyFromCrc($str)
-    {
-        if (strpos($str, self::$keyDelimiter) === FALSE) return ;
-        
-        list($key, $crc) = explode(self::$keyDelimiter, $str);
-        
-        if (self::calcCrc($key) != $crc) return ;
-        
-        return $key;
-    }
-    
-    
-    /**
-     * Изчислява CRC сумата за ключа
-     * 
-     * @param string $val
-     * 
-     * @return integer
-     */
-    public static function calcCrc($val)
-    {
-        $crc =  crc32($val . '_' . KEY_CRC_SALT);
-        
-        $crc = substr($crc, 0, 4);
-        
-        return $crc;
     }
     
     
@@ -413,6 +350,58 @@ class type_Key extends type_Int
     {
         
         return $title . " ({$id})";
+    }
+    
+    
+    /**
+     * Проверява дали има 'id' в края на стринга
+     * 
+     * @param string $title
+     * @param integer $id
+     * 
+     * @return NULL|boolean
+     */
+    protected static function haveId($title, $id)
+    {
+        $nKey = " ({$id})";
+        $pos = mb_strrpos($title, $nKey);
+        
+        if ($pos === FALSE) return FALSE;
+        
+        $len = mb_strlen($title);
+        $keyLen = mb_strlen($nKey);
+        
+        if (($pos+$keyLen) == $len) return TRUE;
+    }
+    
+    
+    /**
+     * Опитва се да извлече ключа от текста
+     * 
+     * @param string $title
+     * 
+     * return integer|NULL
+     */
+    protected static function getKeyFromTitle($title)
+    {
+        if (is_numeric($title) || !isset($title)) return $title;
+        
+        $len = mb_strlen($title);
+        
+        $lastCloseBracketPos = mb_strrpos($title, ')');
+        
+        if (!$lastCloseBracketPos) return $title;
+        
+        if ($len != ($lastCloseBracketPos+1)) return $title;
+        
+        $lastOpenBracketPos = mb_strrpos($title, ' (');
+        
+        if (!$lastOpenBracketPos) return $title;
+        
+        $lastOpenBracketPos += 2;
+        
+        $key = mb_substr($title, $lastOpenBracketPos, $lastCloseBracketPos-$lastOpenBracketPos);
+        return $key;
     }
     
     
@@ -514,10 +503,6 @@ class type_Key extends type_Int
                     }
                     
                     return new Redirect(array($mvc, 'list'), $msg);
-                }
-                
-                if (!self::getKeyFromCrc($value)) {
-                    $value = self::prepareOptKey($value);
                 }
                 
                 $tpl = ht::createSmartSelect($options, $name, $value, $attr,
