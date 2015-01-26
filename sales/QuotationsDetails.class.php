@@ -253,6 +253,14 @@ class sales_QuotationsDetails extends doc_Detail {
 	    		return;
     		}
 	    	
+    		if($sameProduct = $mvc->fetch("#quotationId = {$rec->quotationId} AND #classId = {$rec->classId} AND #productId = {$rec->productId}  AND #quantity='{$rec->quantity}'")){
+    			if($sameProduct->id != $rec->id){
+    				$form->setError('quantity', 'Избрания продукт вече фигурира с това количество');
+    			}
+    			
+    			return;
+    		}
+    		
 	    	$ProductMan = cls::get($rec->classId);
 	    	if(!$rec->vatPercent){ 
 	    		$rec->vatPercent = $ProductMan::getVat($rec->productId, $masterRec->date);
