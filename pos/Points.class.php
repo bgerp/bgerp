@@ -26,7 +26,7 @@ class pos_Points extends core_Master {
      * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_RowTools, plg_Rejected, doc_FolderPlg,
-                     pos_Wrapper, plg_Sorting, plg_Printing, plg_Current';
+                     pos_Wrapper, plg_Sorting, plg_Printing, plg_Current,plg_State';
 
     
     /**

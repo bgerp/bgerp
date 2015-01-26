@@ -11,10 +11,9 @@
  * @category  bgerp
  * @package   store
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @TODO      Това е само примерна реализация за тестване на продажбите. Да се вземе реализацията от bagdealing.
  */
 class store_Stores extends core_Master
 {
