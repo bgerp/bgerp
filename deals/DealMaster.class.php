@@ -821,6 +821,16 @@ abstract class deals_DealMaster extends deals_DealBase
     	}
 	    
 	    if($fields['-single']){
+	    	if($rec->deliveryLocationId){
+	    		$row->deliveryLocationId = crm_Locations::getHyperlink($rec->deliveryLocationId);
+	    	}
+	    	
+	    	if($rec->deliveryTime){
+	    		if(strstr($rec->deliveryTime, ' 00:00') !== FALSE){
+	    			$row->deliveryTime = cls::get('type_Date')->toVerbal($rec->deliveryTime);
+	    		}
+	    	}
+	    	
 	    	$row->username = core_Users::getVerbal($rec->createdBy, 'names');
 	    	
 	    	$row->header = $mvc->singleTitle . " #<b>{$mvc->abbr}{$row->id}</b> ({$row->state})";
