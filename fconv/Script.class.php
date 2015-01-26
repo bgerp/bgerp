@@ -115,7 +115,7 @@ class fconv_Script
     /**
      * Добавя извикване на външна програма в текста на скрипта
      */
-    function lineExec($cmdLine, $params = array())
+    function lineExec($cmdLine, $params = array(), $addTimeLimit = TRUE)
     {
         $cmdArr = explode(' ', $cmdLine);
         $program = $cmdArr[0];
@@ -128,7 +128,14 @@ class fconv_Script
                 $cmdLine = str_replace("[#{$placeHolder}#]", $value, $cmdLine);
             }
         }
-
+        
+        if ($addTimeLimit && $cmdLine) {
+            $conf = core_Packs::getConfig('fconv');
+            if ($conf->FCONV_TIME_LIMIT) {
+                $cmdLine = $conf->FCONV_TIME_LIMIT . ' ' . $cmdLine;
+            }
+        }
+        
         $this->script .= $this->nl($cmdLine);
         
         // Ако е подаден параметър език, тогава се добавя в началото на скрипта
@@ -232,7 +239,7 @@ class fconv_Script
                 }
             }
         }
-            
+        
         $shellName = $this->tempDir . $this->id . $this->addExtensionScript();
         $fh = fopen($shellName, 'w') or die("can't open file");
         fwrite($fh, $this->script);
