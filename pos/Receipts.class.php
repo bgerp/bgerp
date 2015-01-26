@@ -848,9 +848,11 @@ class pos_Receipts extends core_Master {
     			
     			$icon = ht::createElement('img', array('src' => sbf($dRec->icon, '')));
     			
-    			$name = $icon . " " . $dRec->name;
     			if(cls::get($dRec->class)->haveRightFor('single', $dRec->id)){
-    				$name = " " . ht::createLinkRef($name, array($dRec->class, 'single', $dRec->id));
+    				$name = " " . ht::createLinkRef($icon . " " . $dRec->name, array($dRec->class, 'single', $dRec->id));
+    			} else {
+    				$icon = ht::createElement('img', array('src' => sbf('img/16/lock.png', '')));
+    				$name = $icon . " <span style='color:#777'>{$dRec->name}</span>";
     			}
     			
     			$data->rows[$dRec->id] = (object)array('count' => $count, 'name' => $name, 'btn' => $btn);
