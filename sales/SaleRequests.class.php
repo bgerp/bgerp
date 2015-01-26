@@ -165,6 +165,7 @@ class sales_SaleRequests extends core_Master
         						 'folderId' => $originRec->folderId);
         	if(Request::get('edit')){
         		$rec->id = $id;
+        		unset($rec->threadId);
         	}
         	
         	// Подготовка на данните
@@ -193,6 +194,10 @@ class sales_SaleRequests extends core_Master
     		if(isset($quoteRec->{$name})){
     			$rec->{$name} = $quoteRec->{$name};
     		}
+    	}
+    	
+    	if(!$rec->id){
+    		unset($rec->threadId);
     	}
     	
     	$rec->others = $quoteRec->others;
