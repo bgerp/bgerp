@@ -385,23 +385,23 @@ abstract class deals_DealBase extends core_Master
     		
     		$histUrl = $url;
     		$histUrl['dealHistory'] = TRUE;
-    	}
-    	
-    	// Ако сме в нормален режим
-    	if(!Mode::is('printing') && !Mode::is('text', 'xhtml')){
-    		$tabs->TAB('statistic', 'Статистика' , $url);
-    		$tabs->TAB('dealHistory', 'История' , $histUrl);
     		
-    		// Ако е зареден флаг в урл-то и имаме право за журнала подготвяме историята
-    		if(Request::get('dealHistory', 'int') && haveRole('acc, ceo')){
-    			$mvc->prepareDealHistory($data);
-    		}
+    		// Ако сме в нормален режим
+    		if(!Mode::is('printing') && !Mode::is('text', 'xhtml')){
+    			$tabs->TAB('statistic', 'Статистика' , $url);
+    			$tabs->TAB('dealHistory', 'История' , $histUrl);
     		
-    		// Ако имаме сч. права показваме табовете
-    		if(haveRole('acc, ceo')){
-    			$data->tabs = $tabs;
+    			// Ако е зареден флаг в урл-то и имаме право за журнала подготвяме историята
+    			if(Request::get('dealHistory', 'int') && haveRole('acc, ceo')){
+    				$mvc->prepareDealHistory($data);
+    			}
+    		
+    			// Ако имаме сч. права показваме табовете
+    			if(haveRole('acc, ceo')){
+    				$data->tabs = $tabs;
+    			}
     		}
-    	}
+    	} 
     }
     
     
