@@ -15,7 +15,13 @@
  */
 class cond_Payments extends core_Manager {
     
-    
+	
+	/**
+	 * Интерфейси, поддържани от този мениджър
+	 */
+	public $interfaces = 'cond_PaymentAccRegIntf';
+	
+	
 	/**
 	 * За конвертиране на съществуващи MySQL таблици от предишни версии
 	 */
