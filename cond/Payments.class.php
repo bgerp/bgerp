@@ -95,22 +95,22 @@ class cond_Payments extends core_Manager {
     
     
     /**
-     * Записи за инициализиране на таблицата
+     * Извиква се след SetUp-а на таблицата за модела
      */
-    protected static function on_AfterSetupMvc($mvc, &$res)
+    function loadSetupData()
     {
     	$file = "cond/csv/Pospayments.csv";
-    	
+    	 
     	$fields = array(
-	    	0 => "title", 
-	    	1 => "state", 
-	    	2 => "change",
-    		3 => "code",);
-    	
+    			0 => "title",
+    			1 => "state",
+    			2 => "change",
+    			3 => "code",);
+    	 
     	$cntObj = csv_Lib::importOnce($mvc, $file, $fields);
-    	
+    	 
     	$res .= $cntObj->html;
-    	
+    	 
     	return $res;
     }
     
