@@ -1276,7 +1276,7 @@ class pos_Receipts extends core_Master {
     		$addUrl = NULL;
     	}
     	
-    	$row->productId = "<span class='pos-add-res-btn' data-url='{$addUrl}' data-productId='{$obj->productId}'>" . cat_Products::getTitleById($obj->productId) . "</span>";
+    	$row->productId = "<span title = '" . tr('Добавете артикула към бележката') . "' class='pos-add-res-btn' data-url='{$addUrl}' data-productId='{$obj->productId}'>" . cat_Products::getTitleById($obj->productId) . "</span>";
     	if($data->showParams){
     		$params = keylist::toArray($data->showParams);
     		$values = NULL;
