@@ -64,7 +64,7 @@ class techno2_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     var $menuItems = array(
-            array(3.11, 'Производство', 'Технологии', 'techno2_SpecificationDoc', 'default', "techno, ceo"),
+            array(3.11, 'Производство', 'Технологии2', 'techno2_SpecificationDoc', 'default', "techno, ceo"),
         );
     
     
