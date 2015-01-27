@@ -963,9 +963,12 @@ class pos_Receipts extends core_Master {
     	
     	$payments = cond_Payments::fetchSelected();
     	$payments = array('' => (object)array('title' => 'В брой', 'id' => -1)) + $payments;
+	    
+	    $placeholder = (count($payments) != 1) ? 'PAYMENT_TYPE' : 'CLOSE_BTNS';
+	   
 	    foreach($payments as $payment) {
 	    	$attr = array('class' => "{$disClass} actionBtn paymentBtn", 'data-type' => "$payment->id", 'data-url' => $payUrl);
-	    	$block->append(ht::createFnBtn($payment->title, '', '', $attr), 'PAYMENT_TYPE');
+	    	$block->append(ht::createFnBtn($payment->title, '', '', $attr), $placeholder);
 	    }
 	    
 	    // Ако може да се издаде касова бележка, активираме бутона
