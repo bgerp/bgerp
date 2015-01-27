@@ -181,7 +181,9 @@ class cash_Cases extends core_Master {
     protected static function on_BeforeRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	if(is_object($rec)){
-    		$rec->name =  $mvc->singleTitle . " \"{$rec->name}\"";
+    		if(isset($fields['-list'])){
+    			$rec->name =  $mvc->singleTitle . " \"{$rec->name}\"";
+    		}
     	}
     }
     
