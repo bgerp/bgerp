@@ -60,6 +60,7 @@ class cond_Setup  extends core_ProtoSetup
     		'cond_Payments',
     		'migrate::oldPosPayments',
     		'migrate::removePayment',
+    		'migrate::deleteOldPaymentTime',
         );
 
         
@@ -124,5 +125,12 @@ class cond_Setup  extends core_ProtoSetup
     public function removePayment()
     {
     	cond_Payments::delete("#title = 'В брой'");
+    }
+    
+    
+    function deleteOldPaymentTime()
+    {
+    	$paymentClassId = cond_Payments::getClassId();
+    	acc_Items::delete("#classId = '{$paymentClassId}' AND #title='В брой'");
     }
 }
