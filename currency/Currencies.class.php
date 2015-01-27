@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   currency
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -176,7 +176,7 @@ class currency_Currencies extends core_Master {
      * @param stdClass $res
      * @param stdClass $data
      */
-    static function on_AfterPrepareListFilter($mvc, &$data)
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
         if ($groupId = Request::get('groupId', 'int')) {
             
@@ -198,6 +198,7 @@ class currency_Currencies extends core_Master {
     {
     	return FALSE;
     }
+    
     
     /**
      * Смяна на бутона
@@ -221,7 +222,7 @@ class currency_Currencies extends core_Master {
      * @param stdClass $res
      * @param stdClass $data
      */
-    static function on_AfterPrepareEditForm($mvc, &$res, $data)
+    protected static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         if (empty($data->form->rec->id) && ($groupId = Request::get('groupId', 'int'))) {
             $data->form->setDefault('groups', '|' . $groupId . '|');
@@ -234,7 +235,7 @@ class currency_Currencies extends core_Master {
      *
      * Част от интерфейса: intf_Register
      */
-    static function getAccItemRec($rec)
+    public static function getAccItemRec($rec)
     {
         return (object) array('title' => $rec->code);
     }
@@ -243,7 +244,7 @@ class currency_Currencies extends core_Master {
 	/**
      * Извиква се след SetUp-а на таблицата за модела
      */
-    function loadSetupData()
+    public function loadSetupData()
     {
     	$file = "currency/csv/Currencies.csv";
     	$fields = array( 
@@ -283,7 +284,7 @@ class currency_Currencies extends core_Master {
     /**
      * След промяна на обект от регистър
      */
-    function on_AfterSave($mvc, &$id, &$rec, $fieldList = NULL)
+    protected static function on_AfterSave($mvc, &$id, &$rec, $fieldList = NULL)
     {
     	if($rec->state == 'active'){
     		
@@ -323,7 +324,7 @@ class currency_Currencies extends core_Master {
      * @see crm_ContragentAccRegIntf::getItemRec
      * @param int $objectId
      */
-    static function getItemRec($objectId)
+    public static function getItemRec($objectId)
     {
         $self = cls::get(__CLASS__);
         $result = NULL;
@@ -344,10 +345,11 @@ class currency_Currencies extends core_Master {
      * @see crm_ContragentAccRegIntf::itemInUse
      * @param int $objectId
      */
-    static function itemInUse($objectId)
+    public static function itemInUse($objectId)
     {
         // @todo!
     }
+    
     
     /**
      * КРАЙ НА интерфейса @see acc_RegisterIntf
