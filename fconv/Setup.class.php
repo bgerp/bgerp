@@ -10,7 +10,7 @@ defIfNot('FCONV_TEMP_PATH', EF_TEMP_PATH . "/fconv");
 /**
  * Убиване на увиснали скриптове
  */
-defIfNot('FCONV_TIME_LIMIT', "timeout 3600");
+defIfNot('FCONV_TIME_LIMIT', "timelimit -t 3600");
 
 
 /**
