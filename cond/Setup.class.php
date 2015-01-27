@@ -59,6 +59,7 @@ class cond_Setup  extends core_ProtoSetup
         	'cond_ConditionsToCustomers',
     		'cond_Payments',
     		'migrate::oldPosPayments',
+    		'migrate::removePayment',
         );
 
         
@@ -116,4 +117,12 @@ class cond_Setup  extends core_ProtoSetup
     	}
     }
     
+    
+    /**
+     * Изтриване на стари начини за плащане
+     */
+    public function removePayment()
+    {
+    	cond_Payments::delete("#title = 'В брой'");
+    }
 }
