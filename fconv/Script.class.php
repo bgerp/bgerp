@@ -132,7 +132,19 @@ class fconv_Script
         if ($addTimeLimit && $cmdLine) {
             $conf = core_Packs::getConfig('fconv');
             if ($conf->FCONV_USE_TIME_LIMIT == 'yes') {
-                $cmdLine = $conf->FCONV_TIME_LIMIT . ' ' . $cmdLine;
+                
+                $timeLimitArr = explode(' ', $conf->FCONV_TIME_LIMIT);
+                
+                $timeLimitArr[0] = escapeshellcmd($timeLimitArr[0]);
+                
+                foreach ($timeLimitArr as $key => &$val) {
+                    if ($key == 0) continue;
+                    if ($val{0} == '-') continue;
+                    
+                    $val = escapeshellarg($val);
+                }
+                
+                $cmdLine = implode(' ', $timeLimitArr) . ' ' . $cmdLine;
             }
         }
         
