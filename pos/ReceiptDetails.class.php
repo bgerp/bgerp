@@ -308,8 +308,9 @@ class pos_ReceiptDetails extends core_Detail {
     	if(!$receipt = $this->Master->fetch($recId)) return $this->returnError($recId);
     	
     	// Трябва да е подаден валидно ид на начин на плащане
-    	$type = Request::get('type');
-    	if(!cond_Payments::fetch($type))  return $this->returnError($recId);
+    	$type = Request::get('type', 'int');
+    	
+    	if(!cond_Payments::fetch($type) && $type != -1)  return $this->returnError($recId);
     	
     	// Трябва да е подадена валидна сума
     	$amount = Request::get('amount');
@@ -321,10 +322,12 @@ class pos_ReceiptDetails extends core_Detail {
     	
     	$diff = abs($receipt->paid - $receipt->total);
     	
-    	// Ако платежния метод не поддържа ресто, не може да се плати по-голяма сума
-    	if(!cond_Payments::returnsChange($type) && (string)$amount > (string)$diff){
-    		core_Statuses::newStatus(tr('|Не може с този платежен метод да се плати по-голяма сума от общата|*!'), 'error');
-	    	return $this->returnError($recId);
+    	if($type != -1){
+    		// Ако платежния метод не поддържа ресто, не може да се плати по-голяма сума
+    		if(!cond_Payments::returnsChange($type) && (string)$amount > (string)$diff){
+    			core_Statuses::newStatus(tr('|Не може с този платежен метод да се плати по-голяма сума от общата|*!'), 'error');
+    			return $this->returnError($recId);
+    		}
     	}
     	
     	// Подготвяме записа на плащането
@@ -422,7 +425,8 @@ class pos_ReceiptDetails extends core_Detail {
     			}
     			break;
     		case "payment":
-    			$row->actionValue = cond_Payments::getTitleById($action->value);
+    			$row->actionValue = ($action->value != -1) ? cond_Payments::getTitleById($action->value) : tr("В брой");
+    			
     			if($fields['-list']){
     				$row->productId = tr('Плащане') . ": " . $row->actionValue;
     				unset($row->quantity,$row->value);
