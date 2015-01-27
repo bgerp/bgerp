@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Складове
  *
@@ -195,12 +194,13 @@ class store_Stores extends core_Master
     /**
      * Имплементация на @see intf_Register::getAccItemRec()
      */
-    static function getAccItemRec($rec)
+    public static function getAccItemRec($rec)
     {
         return (object)array(
             'title' => $rec->name
         );
     }
+    
     
     /*******************************************************************************************
      * 
@@ -213,7 +213,7 @@ class store_Stores extends core_Master
      * @see crm_ContragentAccRegIntf::getItemRec
      * @param int $objectId
      */
-    static function getItemRec($objectId)
+    public static function getItemRec($objectId)
     {
         $self = cls::get(__CLASS__);
         $result = NULL;
@@ -248,7 +248,7 @@ class store_Stores extends core_Master
 	/**
 	 * Преди подготовка на резултатите
 	 */
-	function on_AfterPrepareListFilter($mvc, &$data)
+	protected static function on_AfterPrepareListFilter($mvc, &$data)
 	{
 		if(!haveRole($mvc->canSelectAll)){
 			
@@ -260,7 +260,7 @@ class store_Stores extends core_Master
 	}
 
 
-	static function on_AfterPrepareEditForm($mvc, &$res, $data)
+	protected static function on_AfterPrepareEditForm($mvc, &$res, $data)
 	{
 		$company = crm_Companies::fetchOwnCompany();
 		$locations = crm_Locations::getContragentOptions(crm_Companies::getClassId(), $company->companyId);

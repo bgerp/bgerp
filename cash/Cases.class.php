@@ -3,13 +3,13 @@
 
 
 /**
- * Каса сметки
+ * Мениджър на Каси
  *
  *
  * @category  bgerp
  * @package   cash
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -191,7 +191,7 @@ class cash_Cases extends core_Master {
 	/**
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
-    function on_AfterRecToVerbal(&$mvc, &$row, &$rec, $fields = array())
+    protected static function on_AfterRecToVerbal(&$mvc, &$row, &$rec, $fields = array())
     {
         $row->STATE_CLASS .= ($rec->state == 'rejected') ? " state-rejected" : " state-active";
         
@@ -224,7 +224,7 @@ class cash_Cases extends core_Master {
     /**
      * Извиква се след подготовката на колоните ($data->listFields)
      */
-    static function on_AfterPrepareListFields($mvc, $data)
+    protected static function on_AfterPrepareListFields($mvc, $data)
     {
     	$data->listFields['blAmount'] .= ", " . acc_Periods::getBaseCurrencyCode();
     }
@@ -271,8 +271,9 @@ class cash_Cases extends core_Master {
     		$total = "<span style='color:red'>{$total}</span>";
     	}
     	
+    	$state = (Request::get('Rejected', 'int')) ? 'rejected' : 'closed';
     	$colspan = count($data->listFields) - 1;
-    	$lastRow = new ET("<tr style='text-align:right' class='state-closed'><td colspan='{$colspan}'>[#caption#]: &nbsp;<b>[#total#]</b></td><td>&nbsp;</td></tr>");
+    	$lastRow = new ET("<tr style='text-align:right' class='state-{$state}'><td colspan='{$colspan}'>[#caption#]: &nbsp;<b>[#total#]</b></td><td>&nbsp;</td></tr>");
     	$lastRow->replace(tr("Общо"), 'caption');
     	$lastRow->replace($total, 'total');
     	
@@ -291,7 +292,7 @@ class cash_Cases extends core_Master {
      * @see crm_ContragentAccRegIntf::getItemRec
      * @param int $objectId
      */
-    static function getItemRec($objectId)
+    public static function getItemRec($objectId)
     {
         $self = cls::get(__CLASS__);
         $result = NULL;
@@ -311,7 +312,7 @@ class cash_Cases extends core_Master {
 	/**
 	 * Преди подготовка на резултатите
 	 */
-	function on_AfterPrepareListFilter($mvc, &$data)
+	protected static function on_AfterPrepareListFilter($mvc, &$data)
 	{
 		if(!haveRole($mvc->canSelectAll)){
 			
@@ -335,7 +336,7 @@ class cash_Cases extends core_Master {
      * @see crm_ContragentAccRegIntf::itemInUse
      * @param int $objectId
      */
-    static function itemInUse($objectId)
+    public static function itemInUse($objectId)
     {
         // @todo!
     }
