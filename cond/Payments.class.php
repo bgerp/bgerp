@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Мениджър за "Средства за плащане" 
  *
@@ -14,7 +13,7 @@
  * @since     v 0.11
  */
 class cond_Payments extends core_Manager {
-    
+	
 	
 	/**
 	 * Интерфейси, поддържани от този мениджър
@@ -31,61 +30,55 @@ class cond_Payments extends core_Manager {
     /**
      * Заглавие
      */
-    var $title = "Средства за плащане";
+    public $title = "Безналични методи за плащане";
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, plg_State2, cond_Wrapper';
+    public $loadList = 'plg_Created, plg_RowTools, plg_State2, cond_Wrapper, acc_plg_Registry';
 
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, title, change, code, state';
+    public $listFields = 'id, title, change, code, state';
     
     
     /**
      * Кой може да го прочете?
      */
-    var $canRead = 'ceo, cond';
+    public $canRead = 'ceo, cond';
     
     
     /**
      * Кой може да променя?
      */
-    var $canWrite = 'ceo, cond';
+    public $canWrite = 'ceo, cond';
     
     
     /**
 	 * Кой може да променя състоянието на валутата
 	 */
-    var $canChangestate = 'ceo,cond,admin';
+    public $canChangestate = 'ceo,cond,admin';
     
     
     /**
      * Кой може да го отхвърли?
      */
-    var $canReject = 'ceo, cond';
+    public $canReject = 'ceo, cond';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'ceo,cond';
+	public $canList = 'ceo,cond';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'ceo,cond';
-    
-
-	/**
-	 * Какъв е кода на плащането в брой
-	 */
-	public static $cashCode = '0';
+	public $canSingle = 'ceo,cond';
 	
 	
     /**
@@ -104,7 +97,7 @@ class cond_Payments extends core_Manager {
     /**
      * Записи за инициализиране на таблицата
      */
-    static function on_AfterSetupMvc($mvc, &$res)
+    protected static function on_AfterSetupMvc($mvc, &$res)
     {
     	$file = "cond/csv/Pospayments.csv";
     	
@@ -154,5 +147,53 @@ class cond_Payments extends core_Manager {
     	($rec->change == 'yes') ? $res = TRUE : $res = FALSE;
     	
     	return $res;
+    }
+    
+    
+    /**
+     * @see crm_ContragentAccRegIntf::getItemRec
+     * @param int $objectId
+     */
+    public static function getItemRec($objectId)
+    {
+    	$self = cls::get(__CLASS__);
+    	$result = NULL;
+    
+    	if ($rec = $self->fetch($objectId)) {
+    		$result = (object)array(
+    				'num' => $rec->id,
+    				'title' => $rec->title,
+    		);
+    	}
+    
+    	return $result;
+    }
+    
+    
+    /**
+     * @see crm_ContragentAccRegIntf::itemInUse
+     * @param int $objectId
+     */
+    public static function itemInUse($objectId)
+    {
+    	// @todo!
+    }
+    
+    
+    /**
+     * След промяна на обект от регистър
+     */
+    protected static function on_AfterSave($mvc, &$id, &$rec, $fieldList = NULL)
+    {
+    	if($rec->state == 'active'){
+    
+    		// Ако валутата е активна, добавя се като перо
+    		$rec->lists = keylist::addKey($rec->lists, acc_Lists::fetchField(array("#systemId = '[#1#]'", 'nonCash'), 'id'));
+    		acc_Lists::updateItem($mvc, $rec->id, $rec->lists);
+    	} else {
+    		// Ако валутата НЕ е активна, перото се изтрива ("изключва" ако вече е използвано)
+    		$rec->lists = keylist::addKey($rec->lists, acc_Lists::fetchField(array("#systemId = '[#1#]'", 'nonCash'), 'id'));
+    		acc_Lists::removeItem($mvc, $rec->id, $rec->lists);
+    	}
     }
 }
