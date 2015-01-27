@@ -107,7 +107,7 @@ class cond_Payments extends core_Manager {
     			2 => "change",
     			3 => "code",);
     	 
-    	$cntObj = csv_Lib::importOnce($mvc, $file, $fields);
+    	$cntObj = csv_Lib::importOnce($this, $file, $fields);
     	 
     	$res .= $cntObj->html;
     	 
