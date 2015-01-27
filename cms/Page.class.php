@@ -78,11 +78,23 @@ class cms_Page extends page_Html {
         if(isDebug() && Request::get('Debug') && haveRole('debug')) {
             $pageTpl .= '[#Debug::getLog#]';
         }
-
         $this->replace(new ET($pageTpl), 'PAGE_CONTENT');
-        if(!($conf->EF_PRIVATE_PATH && file_exists($conf->EF_PRIVATE_PATH . '/cms/img/bgERP.jpg'))){
+        
+        $path = self::getHeaderImagePath();
+        
+        $show = FALSE;
+        if (!$conf->EF_PRIVATE_PATH) {
+        	$show = TRUE;
+        } else {
+        	if (!file_exists($conf->EF_PRIVATE_PATH . "/" . $path)) {
+        		$show = TRUE;
+        	}
+        }
+        // ако нямаме частен пакет или в него няма специфична картинка, показваме името на приложението
+        if ($show) {
         	$this->replace($conf->EF_APP_TITLE, 'CORE_APP_NAME');
     	}
+    	
         // Скрипт за генериране на min-height, според устройството
         $this->append("runOnLoad(setMinHeightExt);", "JQRUN");
               
@@ -116,35 +128,45 @@ class cms_Page extends page_Html {
         cms_Includes::insert($invoker);
     }
 
+    /**
+     * Връща пътя до картинката за главата на публичната страница
+     */
+    static function getHeaderImagePath()
+    {
+    	if(!Mode::is('screenMode', 'wide')) {
+    		$screen = '-narrow';
+    	} else {
+    		$screen = '';
+    	}
+    	
+    	$lg = '-' . cms_Content::getLang();
+    	
+    	$path = "cms/img/header{$screen}{$lg}.jpg";
+    	
+    	if(!getFullPath($path)) {
+    		$path = "cms/img/header{$screen}.jpg";
+    		if(!getFullPath($path)) {
+    			$path = "cms/img/header.jpg";
+    			if(!getFullPath($path)) {
+    				if(Mode::is('screenMode', 'wide')) {
+    					$path = "cms/img/bgERP.jpg";
+    				} else {
+    					$path = "cms/img/bgERP-small.jpg";
+    				}
+    			}
+    		}
+    	}
+    	 
+    	return $path;
+    }
 
+    
     /**
      * Връща картинката за главата на публичната страница
      */
     static function getHeaderImg() 
     {
-        if(!Mode::is('screenMode', 'wide')) {
-      	 	$screen = '-narrow';
-        } else {
-            $screen = '';
-        }
-        
-        $lg = '-' . cms_Content::getLang();
-
-        $path = "cms/img/header{$screen}{$lg}.jpg";
- 
-        if(!getFullPath($path)) {
-            $path = "cms/img/header{$screen}.jpg";
-            if(!getFullPath($path)) {
-                $path = "cms/img/header.jpg";
-                if(!getFullPath($path)) {
-                    if(Mode::is('screenMode', 'wide')) {
-      	 	            $path = "cms/img/bgERP.jpg";
-                    } else {
-      	 	            $path = "cms/img/bgERP-small.jpg";
-                    }
-                }
-            }
-        }
+   		$path = self::getHeaderImagePath();
 
         $conf = core_Packs::getConfig('core');
         
