@@ -108,14 +108,14 @@ abstract class deals_DealBase extends core_Master
 	 * неговата "порция" бизнес информация. Всяка порция се натрупва към общия резултат до
 	 * момента.
 	 *
-	 * Списъка с въпросните документи, имащи отношение към бизнес информацията за пробдажбата е
+	 * Списъка с въпросните документи, имащи отношение към бизнес информацията за продажбата е
 	 * сечението на следните множества:
 	 *
 	 *  * Документите, върнати от @link doc_DocumentIntf::getDescendants()
 	 *  * Документите, реализиращи интерфейса @link bgerp_DealIntf
 	 *  * Документите, в състояние различно от `draft` и `rejected`
 	 *
-	 * @return bgerp_iface_DealResponse
+	 * @return bgerp_iface_DealAggregator
 	 */
 	public function getAggregateDealInfo($id)
 	{
@@ -179,7 +179,7 @@ abstract class deals_DealBase extends core_Master
     /**
      * Кои сделки ще могатд а се приключат с документа
      *
-     * @param int $id - ид на документа
+     * @param object $rec
      * @return array $options - опции
      */
     public function getDealsToCloseWith($rec)
@@ -385,23 +385,23 @@ abstract class deals_DealBase extends core_Master
     		
     		$histUrl = $url;
     		$histUrl['dealHistory'] = TRUE;
-    	}
-    	
-    	// Ако сме в нормален режим
-    	if(!Mode::is('printing') && !Mode::is('text', 'xhtml')){
-    		$tabs->TAB('statistic', 'Статистика' , $url);
-    		$tabs->TAB('dealHistory', 'История' , $histUrl);
     		
-    		// Ако е зареден флаг в урл-то и имаме право за журнала подготвяме историята
-    		if(Request::get('dealHistory', 'int') && haveRole('acc, ceo')){
-    			$mvc->prepareDealHistory($data);
-    		}
+    		// Ако сме в нормален режим
+    		if(!Mode::is('printing') && !Mode::is('text', 'xhtml')){
+    			$tabs->TAB('statistic', 'Статистика' , $url);
+    			$tabs->TAB('dealHistory', 'История' , $histUrl);
     		
-    		// Ако имаме сч. права показваме табовете
-    		if(haveRole('acc, ceo')){
-    			$data->tabs = $tabs;
+    			// Ако е зареден флаг в урл-то и имаме право за журнала подготвяме историята
+    			if(Request::get('dealHistory', 'int') && haveRole('acc, ceo')){
+    				$mvc->prepareDealHistory($data);
+    			}
+    		
+    			// Ако имаме сч. права показваме табовете
+    			if(haveRole('acc, ceo')){
+    				$data->tabs = $tabs;
+    			}
     		}
-    	}
+    	} 
     }
     
     

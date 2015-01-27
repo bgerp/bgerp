@@ -28,12 +28,6 @@
 	                                    [#contragentAddress#]
 	                                </div>
 	                                <!--ET_END contragentAddress-->
-	                                <!--ET_BEGIN deliveryLocationId-->
-	                                    <div style='font-size: 0.9em;'>
-	                                        <div class='custom-bg-block'>Location: <b>[#deliveryLocationId#]</b></div>
-	                                        [#deliveryLocationAddress#]
-	                                    </div>
-	                                <!--ET_END deliveryLocationId-->
                                 <!--ET_END contragentName-->
                             </td>
                             <td>
@@ -44,12 +38,6 @@
 	                                    [#MyAddress#]
 	                                </div>
 	                                <!--ET_END MyAddress-->
-	                                <!--ET_BEGIN ourLocation-->
-	                                    <div style='font-size: 0.9em;'>
-	                                        <div class='custom-bg-block'>Location: <b>[#ourLocation#]</b></div>
-	                                        [#ourLocationAddress#]
-	                                    </div>
-	                                <!--ET_END ourLocation-->
                                 <!--ET_END MyCompany-->
                             </td>
                         </tr>
@@ -96,9 +84,6 @@
                                     [#currencyId#] [#currencyRateText#]
                                 </div>
                                 <!--ET_END currencyId-->
-                                <!--ET_BEGIN isPaid-->
-                                <div style='color:red'>[#isPaid#]</div>
-                                <!--ET_END isPaid-->
                                 <!--ET_BEGIN bankAccountId-->
                                 <hr>
                                 <div class='cellRow'>
@@ -107,47 +92,73 @@
                                 <!--ET_END bankAccountId-->
                                 <!--ET_BEGIN caseId-->
                                 <hr>
-                                <div>
+                                <div class='cellRow'>
                                     <span class='quiet'>Case: </span>[#caseId#]
                                 </div>
                                 <!--ET_END caseId-->
+                                <div class='cellRow'>
+                                    <!--ET_BEGIN isPaid-->
+                                     <div class='stamp'>[#isPaid#]</div>
+                                    <!--ET_END isPaid-->
+                                </div>
                             </td>
                             <!--ET_BEGIN conditions-->
                             [#conditions#]
-                            <td class="topCell first vtop" rowspan=2>
-                                <b>Conditions</b>
-                                <ol style = 'margin-top:1px'>
-                                    <!--ET_BEGIN deliveryTermId-->
-                                    <li>
-                                        Delivery: <b>[#deliveryTermId#]</b>
-                                    </li>
-                                    <!--ET_END deliveryTermId-->
-                                    <!--ET_BEGIN pricesAtDate-->
-                                    <li>
-                                        Prices at: <b>[#pricesAtDate#]</b><br>
-                                    </li>
-                                    <!--ET_END pricesAtDate-->
-                                    <!--ET_BEGIN deliveryTime-->
-                                    <li>
-                                        Del. time: <b>[#deliveryTime#]</b>
-                                    </li>
-                                    <!--ET_END deliveryTime-->
-                                    <!--ET_BEGIN withVat-->
-                                    <li>Prices are with apllied VAT[#withVat#]</li>
-                                    <!--ET_END withVat-->
-                                    <!--ET_BEGIN sepVat-->
-                                    <li>Prices are with separate VAT[#sepVat#]</li>
-                                    <!--ET_END sepVat-->
-                                    <!--ET_BEGIN noVat-->
-                                    <li>Prices are without VAT[#noVat#]</li>
-                                    <!--ET_END noVat-->
-                                    <!--ET_BEGIN closedDocuments-->
-                                    <li>Combines: [#closedDocuments#]</li>
-                                    <!--ET_END closedDocuments-->
-                                    <!--ET_BEGIN notes-->
-                                    [#notes#]
-                                    <!--ET_END notes-->
-                                </ol>
+                            <td class="topCell first vtop" rowspan="2">
+                                <!--ET_BEGIN deliveryInfo-->
+                                [#deliveryInfo#]
+	                            <div>
+	                            	<!--ET_BEGIN deliveryROW-->
+	                            	[#deliveryROW#]
+	                            		<div><span class='quiet'>Delivery:</span> <b>[#deliveryTermId#]</b> [#deliveryLocationId#]</div>
+	                            	<!--ET_END deliveryROW-->
+	                            		<!--ET_BEGIN deliveryTime-->
+	                                    <div><span class='quiet'>Delivery time:</span> <b>[#deliveryTime#]</b></div>
+	                                    <!--ET_END deliveryTime-->
+	                                    <!--ET_BEGIN shipmentStoreId-->
+	                            		<div><span class='quiet'>Store: </span><b>[#shipmentStoreId#]</b></div>
+	                            		<!--ET_BEGIN isDelivered-->
+			                            <div class='stamp'>[#isDelivered#]</div>
+			                            <!--ET_END isDelivered-->
+			                            <!--ET_END shipmentStoreId-->
+			                     </div>
+			                    <hr>
+                                <!--ET_END deliveryInfo-->
+			                     <div>
+	                                <b>Conditions</b>
+	                                <ol style = 'margin-top:1px'>
+	                                    <!--ET_BEGIN deliveryTermId-->
+	                                    <li>
+	                                        Delivery: <b>[#deliveryTermId#]</b>
+	                                    </li>
+	                                    <!--ET_END deliveryTermId-->
+	                                    <!--ET_BEGIN pricesAtDate-->
+	                                    <li>
+	                                        Prices at: <b>[#pricesAtDate#]</b><br>
+	                                    </li>
+	                                    <!--ET_END pricesAtDate-->
+	                                    <!--ET_BEGIN deliveryTime-->
+	                                    <li>
+	                                        Del. time: <b>[#deliveryTime#]</b>
+	                                    </li>
+	                                    <!--ET_END deliveryTime-->
+	                                    <!--ET_BEGIN withVat-->
+	                                    <li>Prices are with apllied VAT[#withVat#]</li>
+	                                    <!--ET_END withVat-->
+	                                    <!--ET_BEGIN sepVat-->
+	                                    <li>Prices are with separate VAT[#sepVat#]</li>
+	                                    <!--ET_END sepVat-->
+	                                    <!--ET_BEGIN noVat-->
+	                                    <li>Prices are without VAT[#noVat#]</li>
+	                                    <!--ET_END noVat-->
+	                                    <!--ET_BEGIN closedDocuments-->
+	                                    <li>Combines: [#closedDocuments#]</li>
+	                                    <!--ET_END closedDocuments-->
+	                                    <!--ET_BEGIN notes-->
+	                                    [#notes#]
+	                                    <!--ET_END notes-->
+	                                </ol>
+	                            </div>
                             </td>
                             <!--ET_END conditions-->
                             <td class="topCell aright vtop" style='width:33%;'>

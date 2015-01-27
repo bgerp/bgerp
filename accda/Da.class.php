@@ -138,9 +138,9 @@ class accda_Da extends core_Master
      */
     function description()
     {
-    	$this->FLD('accountId', 'acc_type_Account(allowEmpty)', 'caption=Сметка,mandatory');
+    	$this->FLD('productId', 'key(mvc=cat_Products)', 'caption=Артикул,mandatory,silent', array('attr' => array('onchange' => 'addCmdRefresh(this.form);this.form.submit();')));
+    	$this->FLD('accountId', 'acc_type_Account(allowEmpty)', 'caption=Сметка,mandatory,input=hidden');
     	$this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,input=none,silent', array('attr' => array('onchange' => "addCmdRefresh(this.form);this.form.submit()")));
-    	$this->FLD('productId', 'key(mvc=cat_Products)', 'input=none');
     	$this->FLD('valior', 'date(format=d.m.Y)', 'caption=В употреба от,mandatory');
     	$this->FLD('title', 'varchar', 'caption=Наименование,mandatory,width=400px');
     	$this->FLD('num', 'varchar(32)', 'caption=Наш номер, mandatory');
@@ -166,32 +166,40 @@ class accda_Da extends core_Master
     	$form = &$data->form;
     	$rec = &$form->rec;
     	
-    	$folderCover = doc_Folders::getCover($rec->folderId);
-    	$pInfo = $folderCover->getProductInfo();
-    	
-    	$form->rec->productId = $folderCover->that;
-    	
-    	$form->setDefault('title', $pInfo->productRec->name);
+    	$assets = cat_Products::getByProperty('fixedAsset');
+    	$form->setOptions('productId', array('' => '') + $assets);
     	$form->setDefault('valior', dt::today());
     	
-    	if(isset($pInfo->meta['canStore'])){
-    		$form->setField('storeId', 'input,mandatory');
-    		$form->setFieldTypeParams('accountId', 'root=20');
+    	if(!empty($rec->id)){
+    		$form->setReadOnly('productId');
+    	}
+    	
+    	if($rec->productId){
+    		$pInfo = cat_Products::getProductInfo($rec->productId);
+    		$rec->title = $pInfo->productRec->name;
     		
-    		// Ако е избрана сметка
-    		if($rec->storeId){
-    			$quantity = store_Products::fetchField("#productId = {$folderCover->that} AND #classId = {$folderCover->getClassId()} AND #storeId = {$rec->storeId}", 'quantity');
-    			$quantity = ($quantity) ? $quantity : 0;
-    			
-    			$Double = cls::get('type_Double');
-    			$Double->params['smartRound'] = 'smartRound';
-    			
-    			$shortUom = cat_UoM::getShortName($pInfo->productRec->measureId);
-    			$storeName = store_Stores::getTitleById($rec->storeId);
-    			$form->info = tr("|Количество в|* <b>{$storeName}</b> : {$Double->toVerbal($quantity)} {$shortUom}");
+    		if(isset($pInfo->meta['canStore'])){
+    			$form->setField('storeId', 'input,mandatory');
+    			$form->setFieldTypeParams('accountId', 'root=20');
+    		
+    			// Ако е избрана сметка
+    			if($rec->storeId){
+    				$productsClassId = cat_Products::getClassId();
+    				$quantity = store_Products::fetchField("#productId = {$rec->productId} AND #classId = {$productsClassId} AND #storeId = {$rec->storeId}", 'quantity');
+    				$quantity = ($quantity) ? $quantity : 0;
+    				 
+    				$Double = cls::get('type_Double');
+    				$Double->params['smartRound'] = 'smartRound';
+    				 
+    				$shortUom = cat_UoM::getShortName($pInfo->productRec->measureId);
+    				$storeName = store_Stores::getTitleById($rec->storeId);
+    				$form->info = tr("|Количество в|* <b>{$storeName}</b> : {$Double->toVerbal($quantity)} {$shortUom}");
+    			}
+    		} else {
+    			$form->setFieldTypeParams('accountId', 'root=21');
     		}
-    	} else {
-    		$form->setFieldTypeParams('accountId', 'root=21');
+    		
+    		$form->setField('accountId', 'input,mandatory');
     	}
     }
     
@@ -227,16 +235,8 @@ class accda_Da extends core_Master
     public static function canAddToFolder($folderId)
     {
         $folderCover = doc_Folders::getCover($folderId);
-      
-        if($folderCover->getInstance() instanceof cat_Products){
-        	$pInfo = $folderCover->getProductInfo();
-        	if(isset($pInfo->meta['fixedAsset'])){
-        		
-        		return TRUE;
-        	}
-        }
         
-        return FALSE;
+        return $folderCover->haveInterface('accda_DaFolderCoverIntf');
     }
     
     

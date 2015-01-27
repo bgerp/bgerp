@@ -32,6 +32,7 @@ class type_Url extends type_Varchar {
         
         if(empty($value)) return NULL;
         
+        $attr = array();
         $attr['target'] = '_blank';
         $attr['class'] = 'out';
         if(!strpos($value, '://')) {

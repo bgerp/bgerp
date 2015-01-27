@@ -201,7 +201,10 @@ class deals_OpenDeals extends core_Manager {
 	    	foreach (array('Deal', 'Paid') as $name){
 	    		$field = "amount{$name}";
 		    	if(empty($rec->$field)){
-		    		$row->$field = "<span class='quiet'>0,00</span>";
+		    		$coreConf = core_Packs::getConfig('core');
+		    		$pointSign = $coreConf->EF_NUMBER_DEC_POINT;
+		    		
+		    		$row->$field = "<span class='quiet'>0" . $pointSign . "00</span>";
 		    	} else {
 		    		$row->$field = $mvc->getFieldType($field)->toVerbal($rec->$field / $docRec->currencyRate);
 		    	}

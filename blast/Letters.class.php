@@ -265,6 +265,7 @@ class blast_Letters extends core_Master
             $query->where("#keyField = 'names' OR #keyField = 'company' OR #keyField = 'uniqId'");
             $query->orderBy("createdOn", 'DESC');
             
+            $files = array();
             while ($rec = $query->fetch()) {
                 $files[$rec->id] = blast_Lists::getVerbal($rec, 'title');
             }
@@ -281,6 +282,7 @@ class blast_Letters extends core_Master
                 $form->setOptions('listId', $files, $form->rec->id);
             } else {
                 
+                $file = array();
                 //Ако редактираме, показваме списъка, който го редактираме
                 $file[$form->rec->listId] = $files[$form->rec->listId];
                 $form->setOptions('listId', $file, $form->rec->id);
@@ -658,6 +660,8 @@ class blast_Letters extends core_Master
             }
         }
         
+        $coverArr = array();
+        
         // Ако формата е изпратена успешно
         if($form->isSubmitted()) {
             
@@ -688,6 +692,8 @@ class blast_Letters extends core_Master
                 // Добавяме keylist'а към стринга
                 $exist .= $recLetterDetail->listDetailsId;
             }
+            
+            $allNewId = array();
             
             // Ако е лист
             if ($rec->listId) {
@@ -1047,6 +1053,7 @@ class blast_Letters extends core_Master
             $bodyAndSubject = $recArr['body'] . ' ' . $recArr['subject'];
             
             // Масив с данни от плейсхолдера
+            $nRecArr = array();
             $nRecArr['recipient'] = $recArr['recipient'];
             $nRecArr['attn'] = $recArr['attn'];
             $nRecArr['country'] = $recArr['country'];
@@ -1089,6 +1096,8 @@ class blast_Letters extends core_Master
             
             // Премахваме дублиращите се плейсхолдери
             $allPlaceHolder = array_unique($allPlaceHolder);
+            
+            $warningPlaceHolderArr = array();
             
             //Търсим всички полета, които сме въвели, но ги няма в полетата за заместване
             foreach ($allPlaceHolder as $placeHolder) {
@@ -1244,6 +1253,8 @@ class blast_Letters extends core_Master
             // Класа на групата
             $groupClass = 'crm_Persons';
         }
+        
+        $data = array();
         
         // Обхождаме масива с плейсхолдерите
         foreach ((array)$placeArr as $field => $place) {

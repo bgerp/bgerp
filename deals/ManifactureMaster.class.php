@@ -15,7 +15,8 @@
 */
 abstract class deals_ManifactureMaster extends core_Master
 {
-
+	
+	
 	/**
 	 * Опашка от записи за записване в on_Shutdown
 	 */

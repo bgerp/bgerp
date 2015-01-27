@@ -64,13 +64,18 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     
 
     /**
-     * Връща продуктите, които могат да се продават на посочения клиент
-     *
-     * @return array() - масив с опции, подходящ за setOptions на форма
+     * Връща артикули, които могат да се продават на посочения клиент
+     * 
+     * @param mixed $customerClass - клас/ид на контрагента
+     * @param int $customerId - ид на контрагента
+     * @param string $date - дата към която извличаме артикулите
+     * @param string $properties - мета данни, на които да отговарят артикулите
+     * @param string $limit - колко опции да върнем
+     * @return array - масив с опции на продуктите, според контрагента, датата и мета данните им 
      */
-    function getProducts($customerClass, $customerId, $date = NULL)
+    function getProducts($customerClass, $customerId, $date = NULL, $properties = NULL, $limit = NULL)
     {
-        return $this->class->getProducts($customerClass, $customerId, $date);
+        return $this->class->getProducts($customerClass, $customerId, $date, $properties, $limit);
     }
     
     
@@ -183,14 +188,48 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     
     
     /**
-     * Връща подробното описанието на артикула
+     * Връща описанието на артикула
      *
      * @param mixed $id - ид/запис
+     * @param core_Mvc $documentMvc - модела
      * @param datetime $time - към кое време
      * @return mixed - описанието на артикула
      */
-    public function getProductDesc($id, $time = NULL)
+    public function getProductDesc($id, $documentMvc, $time = NULL)
     {
-    	return $this->getProductDesc($id, $time);
+    	return $this->getProductDesc($id, $documentMvc, $time);
+    }
+    
+    
+    /**
+     * Променя ключовите думи от мениджъра
+     */
+    public function alterSearchKeywords(&$searchKeywords)
+    {
+    	return $this->alterSearchKeywords($searchKeywords);
+    }
+    
+    
+    /**
+     * Намира последното активно задание за артикула
+     * 
+     * @param mixed $id - ид или запис
+     * @return mixed $res - записа на заданието или FALSE ако няма
+     */
+    public function getLastActiveJob($id)
+    {
+    	return $this->getLastActiveJob($id);
+    }
+    
+    
+    /**
+     * Намира последната активна технологична рецепта за артикула
+     *
+     * @param mixed $id - ид или запис
+     * @return mixed $res - записа на рецептата или FALSE ако няма
+     */
+    public function getLastActiveBom($id)
+    {
+    	return $this->getLastActiveBom($id);
     }
 }

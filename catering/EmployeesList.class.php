@@ -20,13 +20,19 @@ class catering_EmployeesList extends core_Manager
     /**
      * Заглавие
      */
-    var $title = "Столуващи хора";
+    public $title = "Столуващи хора";
+    
+    
+    /**
+     * Заглавие в еднично число
+     */
+    public $singleTitle = "Столуващ персонал";
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, plg_Created, plg_Search,
+    public $loadList = 'plg_RowTools, plg_Created, plg_Search,
                              catering_Wrapper,
                              CrmPersons=crm_Persons,
                              Nom=acc_Lists';
@@ -35,38 +41,38 @@ class catering_EmployeesList extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'num, personId, tel, email, tools=Пулт';
+    public $listFields = 'id, personId, tel, email';
     
     
     /**
      * полета от БД по които ще се търси
      */
-    var $searchFields = 'personId';     // Полетата, които ще видим в таблицата
+    public $searchFields = 'personId';     // Полетата, които ще видим в таблицата
+    
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    var $rowToolsField = 'tools';
+    public $rowToolsField = 'id';
     
     
     /**
      * Кой  може да пише?
      */
-    var $canWrite = 'catering, ceo';
+    public $canWrite = 'catering, ceo';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'catering, ceo' ;
+    public $canRead = 'catering, ceo' ;
     
     
     /**
      * Описание на модела
      */
-    function description()
+    public function description()
     {
-        $this->FNC('num', 'int', 'caption=№, notSorting');
         $this->FLD('personId', 'key(mvc=crm_Persons, select=name)', 'caption=Име, notNull, mandatory');
         $this->FNC('tel', 'varchar(64)', 'caption=Телефон');
         $this->FNC('email', 'email(64)', 'caption=Email');
@@ -80,41 +86,41 @@ class catering_EmployeesList extends core_Manager
      *
      * @param stdClass $data
      */
-    static function on_BeforePrepareListTitle($data)
+    public static function on_BeforePrepareListTitle($data)
     {
         // Check current user roles
         if (!haveRole('admin,catering')) {
             $data->title = "Столуващ";
         }
     }
-    
+
     
     /**
-     * Слагаме пореден номер на реда
+     * След преобразуване на записа в четим за хора вид.
      *
      * @param core_Mvc $mvc
-     * @param stdClass $row
-     * @param stdClass $rec
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
      */
-    static function on_AfterRecToVerbal($mvc, $row, $rec)
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-        // Prpare 'Num'
-        static $num;
-        $num += 1;
-        $row->num = $num;
-        
-        // Prepare tel, email
+    	// Ако имаме права да видим визитката
+    	if(crm_Persons::haveRightFor('single', $rec->personId)){
+    		$name = crm_Persons::fetchField("#id = '{$rec->personId}'", 'name');
+    		$row->personId = ht::createLink($name, array ('crm_Persons', 'single', 'id' => $rec->personId), NULL, 'ef_icon = img/16/vcard.png');
+    	}
+    	
+    	/*// Prepare tel, email
         $row->tel = $mvc->CrmPersons->fetchField($rec->personId, 'tel');
-        $row->email = "<a href='mailto:" . $mvc->CrmPersons->fetchField($rec->personId, 'email') . "'>" . $mvc->CrmPersons->fetchField($rec->personId, 'email') . "</a>";
+        $row->email = "<a href='mailto:" . $mvc->CrmPersons->fetchField($rec->personId, 'email') . "'>" . $mvc->CrmPersons->fetchField($rec->personId, 'email') . "</a>";*/
     }
-    
     
     /**
      * Връща $personId от модела EmployeesList по потребител в системата
      *
      * @return int $personId
      */
-    static function getPersonIdForCurrentUser()
+    public static function getPersonIdForCurrentUser()
     {
         // get current user name
         $userName = Users::getCurrent('names');
@@ -134,7 +140,7 @@ class catering_EmployeesList extends core_Manager
      *
      * @return int $personName
      */
-    static function getPersonNameForCurrentUser()
+    public static function getPersonNameForCurrentUser()
     {
         // get current user name
         $userName = core_Users::getCurrent('names');
@@ -152,7 +158,7 @@ class catering_EmployeesList extends core_Manager
      * @param stdClass $res
      * @param stdClass $data
      */
-    static function on_AfterPrepareEditForm($mvc, &$res, $data)
+    public static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         /*
         $nomPersonal = $mvc->Nom->fetchField("#name = 'Персонал'", 'id');
@@ -179,7 +185,7 @@ class catering_EmployeesList extends core_Manager
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    static function on_AfterPrepareListFilter($mvc, $data)
+    public static function on_AfterPrepareListFilter($mvc, $data)
     {
         $data->listFilter->view = 'horizontal';
         $data->listFilter->showFields = 'search';

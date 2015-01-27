@@ -37,6 +37,12 @@ require_once(EF_APP_PATH . "/core/Cls.class.php");
 // Зареждаме 'APP' класа с помощни функции за приложението
 require_once(EF_APP_PATH . "/core/App.class.php");
 
+// Зареждаме 'APP' класа с помощни функции за приложението
+require_once(EF_APP_PATH . "/core/BaseClass.class.php");
+
+// Зареждаме 'APP' класа с помощни функции за приложението
+require_once(EF_APP_PATH . "/core/Html.class.php");
+
 // Прихващаме грешките
 core_Debug::setErrorWaching();
 

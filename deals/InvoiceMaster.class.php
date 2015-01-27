@@ -15,8 +15,8 @@
  */
 abstract class deals_InvoiceMaster extends core_Master
 {
-    
-    
+	
+	
 	/**
 	 * Поле за единичния изглед
 	 */
@@ -863,7 +863,10 @@ abstract class deals_InvoiceMaster extends core_Master
     		}
     			
     		if(!$row->vatAmount){
-    			$row->vatAmount = "<span class='quiet'>0,00</span>";
+    			$coreConf = core_Packs::getConfig('core');
+    			$pointSign = $coreConf->EF_NUMBER_DEC_POINT;
+    			
+    			$row->vatAmount = "<span class='quiet'>0" . $pointSign . "00</span>";
     		}
     		
     		if($rec->deliveryPlaceId){

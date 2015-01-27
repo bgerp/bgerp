@@ -845,6 +845,7 @@ class cams_Records extends core_Master
      */
     static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
+        $attr = array();
         $attr['src'] = toUrl(array($mvc, 'StartJpg', $rec->id, 'thumb' => 'yes'));
         
         $row->thumb = ht::createElement('img', $attr);

@@ -126,7 +126,7 @@ class fileman_Repositories extends core_Master
     /**
      * Името на кофата за файловете
      */
-    static $bucket = 'repositories';
+    public static $bucket = 'repositories';
     
     
     /**
@@ -405,7 +405,7 @@ class fileman_Repositories extends core_Master
     static function absorbFile($repoPath, $file, $subPath='', $bucket=NULL)
     {
         // Задаваме кофата, ако не е зададена
-        setIfNot($bucket, static::$bucket);
+        setIfNot($bucket, self::$bucket);
         
         // Обединяваме подпапката и хранилището
         $repoPath = static::getFullPath($repoPath, $subPath);
@@ -1594,7 +1594,7 @@ class fileman_Repositories extends core_Master
         
         //Създаваме, кофа, където ще държим всички прикачени файлове на blast имейлите
         $Bucket = cls::get('fileman_Buckets');
-        $res .= $Bucket->createBucket(static::$bucket, 'Файлове в хранилищата', NULL, '104857600', 'user', 'user');
+        $res .= $Bucket->createBucket(self::$bucket, 'Файлове в хранилищата', NULL, '104857600', 'user', 'user');
     }
     
     

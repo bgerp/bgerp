@@ -179,7 +179,7 @@ class cond_Parameters extends core_Master
     
 	/**
      * Връща стойността на дадено търговско условие за клиента
-     * @param int $id - ид на контрагента
+     * @param int $cId - ид на контрагента
      * @param string $conditionSysId - sysId на параметър (@see cond_Parameters)
      * @return string $value - стойността на параметъра
      * Намира се в следния ред:

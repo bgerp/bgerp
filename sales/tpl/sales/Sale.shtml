@@ -27,12 +27,6 @@
                                         [#contragentAddress#]
                                     </div>
                                     <!--ET_END contragentAddress-->
-                                    <!--ET_BEGIN deliveryLocationId-->
-                                        <div style='font-size: 0.9em;'>
-                                            <div class='custom-bg-block'>|Локация|*: <b>[#deliveryLocationId#]</b></div>
-                                            [#deliveryLocationAddress#]
-                                        </div>
-                                    <!--ET_END deliveryLocationId-->
                                 <!--ET_END contragentName-->
                             </td>
                             <td>
@@ -43,12 +37,6 @@
                                         [#MyAddress#]
                                     </div>
                                     <!--ET_END MyAddress-->
-                                    <!--ET_BEGIN ourLocation-->
-                                        <div style='font-size: 0.9em;'>
-                                            <div class='custom-bg-block'>|Локация|*: <b>[#ourLocation#]</b></div>
-                                            [#ourLocationAddress#]
-                                        </div>
-                                    <!--ET_END ourLocation-->
                                 <!--ET_END MyCompany-->
                             </td>
                         </tr>
@@ -65,7 +53,7 @@
                             <td class="topCell vtop" style='width:33%;'>
                                 <!--ET_BEGIN paymentMethodId-->
                                 <div class='cellRow'>
-                                    <span class='quiet'>|Метод на плащане|*: </span>[#paymentMethodId#]
+                                    <span class='quiet'>|Плащане|*: </span>[#paymentMethodId#]
                                 </div>
                                 <!--ET_END paymentMethodId-->
                                 <!--ET_BEGIN downpayment-->
@@ -78,11 +66,6 @@
                                     <span class='quiet'>|Преди експедиция|*:</span> [#paymentBeforeShipping#]
                                 </div>
                                 <!--ET_END paymentBeforeShipping-->
-                                <!--ET_BEGIN paymentOnDelivery-->
-                                <div class='cellRow'>
-                                    <span class='quiet'>|При получаване|*:</span> [#paymentOnDelivery#]
-                                </div>
-                                <!--ET_END paymentOnDelivery-->
                                 <!--ET_BEGIN paymentAfterInvoice-->
                                 <div class='cellRow'>
                                     <span class='quiet'>|Окончателно|*: </span>[#paymentAfterInvoice#]  |до|* [#deadlineForBalancePayment#]
@@ -93,42 +76,55 @@
                                     <span class='quiet'>|Валута|*: </span>[#currencyId#] [#currencyRateText#]
                                 </div>
                                 <!--ET_END currencyId-->
-                                <!--ET_BEGIN isPaid-->
-                                <div style='color:red'>[#isPaid#]</div>
-                                <!--ET_END isPaid-->
+                               
                                 <!--ET_BEGIN bankAccountId-->
                                 <hr>
                                 <div class='cellRow'>
-                                    <span class='quiet'>|Банкова с-ка|*: </span>[#bankAccountId#]
+                                    <span class='quiet'>|Банк. с-ка|*: </span>[#bankAccountId#]
                                 </div>
                                 <!--ET_END bankAccountId-->
-                                <!--ET_BEGIN caseId-->
+                                 <!--ET_BEGIN caseId-->
                                 <hr>
                                 <div class='cellRow'>
                                     <span class='quiet'>|Каса|*: </span>[#caseId#]
                                 </div>
                                 <!--ET_END caseId-->
+                                <div class='cellRow'>
+                                    <!--ET_BEGIN isPaid-->
+                                     <div class='stamp'>[#isPaid#]</div>
+                                    <!--ET_END isPaid-->
+                                </div>
                             </td>
                             <!--ET_BEGIN conditions-->
                             [#conditions#]
-                            <td class="topCell first vtop" rowspan=2>
+                            <td class="topCell first vtop" rowspan="2">
+                                <!--ET_BEGIN deliveryInfo-->
+                                [#deliveryInfo#]
+                            	<div>
+                            	<!--ET_BEGIN deliveryROW-->
+                            	[#deliveryROW#]
+                            		<div><span class='quiet'>|Доставка|*:</span>  <b>[#deliveryTermId#]</b> [#deliveryLocationId#]</div>
+                            	<!--ET_END deliveryROW-->
+                            		<!--ET_BEGIN deliveryTime-->
+                                    <div><span class='quiet'>|Срок до|*:</span> <b>[#deliveryTime#]</b></div>
+                                    <!--ET_END deliveryTime-->
+                                    <!--ET_BEGIN shipmentStoreId-->
+                            		<div><span class='quiet'>|Склад|*: </span> <b>[#shipmentStoreId#]</b></div>
+                            		<!--ET_BEGIN isDelivered-->
+		                            <div class='stamp'>[#isDelivered#]</div>
+		                            <!--ET_END isDelivered-->
+		                            <!--ET_END shipmentStoreId-->
+                            	</div>
+                            	<hr>
+                                <!--ET_END deliveryInfo-->
+                            	<div>
                                 <b>|Условия|*:</b>
                                 <ol style = 'margin-top:1px'>
-                                    <!--ET_BEGIN deliveryTermId-->
-                                    <li>
-                                        |Доставка|*: <b>[#deliveryTermId#]</b>
-                                    </li>
-                                    <!--ET_END deliveryTermId-->
                                     <!--ET_BEGIN pricesAtDate-->
                                     <li>
                                         |Цени към|*: <b>[#pricesAtDate#]</b><br>
                                     </li>
                                     <!--ET_END pricesAtDate-->
-                                    <!--ET_BEGIN deliveryTime-->
-                                    <li>
-                                        |Срок до|*: <b>[#deliveryTime#]</b>
-                                    </li>
-                                    <!--ET_END deliveryTime-->
                                     <!--ET_BEGIN withVat-->
                                     <li>|Цените са с включен ДДС|*[#withVat#]</li>
                                     <!--ET_END withVat-->
@@ -145,6 +141,7 @@
                                     <li>|Обединява|*: [#closedDocuments#]</li>
                                     <!--ET_END closedDocuments-->
                                 </ol>
+                                </div>
                             </td>
                             <!--ET_END conditions-->
                             <td class="topCell aright vtop" style='width:33%;'>
@@ -229,7 +226,7 @@
                         </tr>
                         <tr class='footerDocInfo'>
 							<td colspan="3">
-							     <div class='aright'>Документът е създаден чрез системата <b><a href='http://bgerp.com'>bgERP</a></b>.</div>
+							     <div class='aright'>|Документът е създаден чрез системата|* <b><a href='http://bgerp.com'>bgERP</a></b>.</div>
 							</td>
                         </tr>
                     </tbody>

@@ -51,6 +51,9 @@ class sens2_DataLogReportsImpl extends frame_BaseDriver
     	$form->FLD('from', 'datetime', 'caption=От,mandatory');
     	$form->FLD('to', 'datetime', 'caption=До,mandatory');
     	$form->FLD('indicators', 'keylist(mvc=sens2_Indicators,select=title)', 'caption=Сензори,mandatory');
+    	
+    	$form->FLD('orderField', "enum(,time=Време,indicatorId=Индикатор,value=Стойност)", 'caption=Подредба->По,formOrder=110000');
+    	$form->FLD('orderBy', 'enum(,asc=Въздходящ,desc=Низходящ)', 'caption=Подредба->Тип,formOrder=110001');
     }
 
 
@@ -70,7 +73,15 @@ class sens2_DataLogReportsImpl extends frame_BaseDriver
      */
     public function checkEmbeddedForm(core_Form &$form)
     {
-    
+    	if($form->isSubmitted()){
+    		if($form->rec->orderField == ''){
+    			unset($form->rec->orderField);
+    		}
+    		
+    		if($form->rec->orderBy == ''){
+    			unset($form->rec->orderBy);
+    		}
+    	}
     }
     
 
@@ -113,11 +124,17 @@ class sens2_DataLogReportsImpl extends frame_BaseDriver
      */
     public function renderEmbeddedData($data)
     {
-    	$layout = new ET(getFileContent('sens2/tpl/ReportLayout.shtml'));
-    
+    	$layout = getTplFromFile('sens2/tpl/ReportLayout.shtml');
+    	$layout->replace($this->title, 'TITLE');
+    	
     	$this->prependStaticForm($layout, 'FORM');
     
     	if(count($data->recs)) {
+    		
+    		if($this->innerForm->orderField){
+    			arr::order($data->recs, $this->innerForm->orderField, strtoupper($this->innerForm->orderBy));
+    		}
+    		
     		foreach($data->recs as $id => $rec) {
     			$data->rows[$id] = sens2_DataLogs::recToVerbal($rec);
     			$data->rows[$id]->time = str_replace(' ', '&nbsp;', $data->rows[$id]->time);
@@ -126,7 +143,7 @@ class sens2_DataLogReportsImpl extends frame_BaseDriver
     		$this->invoke('AfterPrepareListRows', array($data, $data));
     	}
     		
-    	$table = cls::get('core_TableView');
+    	$table = cls::get('core_TableView', array('mvc' => cls::get('sens2_DataLogs')));
     
     	$layout->append($table->get($data->rows, 'time=Време,indicatorId=Индикатор,value=Стойност'), 'data');
     		

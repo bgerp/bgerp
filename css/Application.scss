@@ -459,6 +459,46 @@ div.folder-cover {
 }
 /*край на стилове за корици*/
 
+.fieldset-holder {
+	border:none;
+	padding:0 0 20px;
+	background:transparent;
+	.listTable{
+		border: none;
+		th{
+			background: #f1f1f1 !important;
+			border: 1px solid white !important;
+			display: table-cell !important;
+			visibility: visible !important;
+			vertical-align: middle !important;
+		}
+		td {
+			border: none !important;
+			border-top: dotted 1px #cccccc !important;
+			vertical-align: top !important;
+		}
+	}
+	legend {
+	padding: 0 5px;
+		div.rowtools{
+	       white-space: nowrap;
+	       width: auto;
+	       display: inline-block;
+	    }
+	    .add-btn {
+	       position: relative;
+	       top: -4px;
+	       display: inline-block;
+	    }
+	}
+	tr.row-added {
+        background-color: #e6ffe0;
+    }
+	tr.row-removed {
+	    background-color: #cce3fe;
+	}
+}
+
 /*потребителски профил*/
 .user-profile {
 	max-width: 760px;
@@ -528,7 +568,7 @@ div.folder-cover {
 
 .narrow .user-profile {
 	margin-top: 7px; 
-	min-width: 100px;
+	display: table;
 	max-width: 600px;
 	.user-title {
 		font-size: 1.1em;
@@ -1017,6 +1057,9 @@ td.portal-date {
 			color: #000;	
 		}
 	}
+	.listTable {
+	   width: 100%;
+	}
 	.custom-ul {
 		margin: 0 0 0 20px;
 	}
@@ -1069,9 +1112,21 @@ td.portal-date {
 		height: 20px;
 	}
 }
-
+.stamp{
+	color: #b00;
+	border: 1px dotted #b00;
+	display: inline-block;
+	font-size: 0.85em;
+	padding: 2px 2px 1px 2px;
+	border-radius: 3px;
+	margin-top: 5px;
+}
 .centered {
     text-align: center;
+}
+
+.selectRows .listTable > tbody > tr > td:first-child {
+	text-align: center;
 }
 
 .document-title{
@@ -1085,7 +1140,7 @@ td.portal-date {
 	white-space: nowrap;
 }
 
-.document  .listTable  tr > th:first-child{
+.document .rowtools-column {
     width:1%;
 }
 
@@ -4017,10 +4072,11 @@ body.narrow {
 
 .plus-icon{
 	display: inline-block; 
-	width: 12px; 
-	height: 12px;
+	position: relative;
+	top: 2px;
 }
-    
+
+
 .vislog {
 	white-space:nowrap;
 	display: inline;

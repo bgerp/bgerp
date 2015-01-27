@@ -59,7 +59,7 @@ class mp_transaction_ConsumptionNote extends acc_DocumentTransactionSource
 		while($dRec = $dQuery->fetch()){
 			$resourceRec = mp_ObjectResources::getResource($dRec->classId, $dRec->productId);
 			
-			acc_journal_Exception::expect($resourceRec, 'Трябва да е ресурс');
+			if(!$resourceRec) return $entries;
 			
 			$pInfo = cls::get($dRec->classId)->getProductInfo($dRec->productId);
 			 

@@ -26,7 +26,7 @@ class marketing_Inquiries extends core_Master
     /**
      * Абревиатура
      */
-    public $abbr = 'Inq';
+    public $abbr = 'Inq2';
     
     
     /**
@@ -63,7 +63,7 @@ class marketing_Inquiries extends core_Master
     /**
      * Кой има право да чете?
      */
-    public $canRead = 'ceo,sales,marketing';
+    public $canRead = 'ceo,marketing';
     
     
     /**
@@ -75,7 +75,7 @@ class marketing_Inquiries extends core_Master
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,sales,marketing';
+	public $canList = 'ceo,marketing';
 	
 	
 	/**
@@ -105,7 +105,7 @@ class marketing_Inquiries extends core_Master
     /**
      * Кой има право да създава визитки на лица?
      */
-    public $canMakeperson = 'ceo,sales,crm,marketing';
+    public $canMakeperson = 'ceo,crm,marketing';
     
     
     /**

@@ -51,7 +51,7 @@ class core_Manager extends core_Mvc
     /**
      * Колко дни да пазим логовете за този клас?
      */
-    static $logKeepDays = 180;
+    public static $logKeepDays = 180;
     
     
     /**
@@ -309,9 +309,7 @@ class core_Manager extends core_Mvc
      */
     function act_SetupMVC()
     {
-        $tpl = new ET(parent::setupMVC());
-        
-        $tpl->append(core_Classes::add($this));
+        $tpl = new ET(parent::act_SetupMVC());
         
         $tpl = $this->renderWrapping($tpl);
         
@@ -830,7 +828,7 @@ class core_Manager extends core_Mvc
     static function log_($detail, $objectId = NULL, $logKeepDays = NULL)
     {
         if (!$logKeepDays) {
-            $logKeepDays = static::$logKeepDays;
+            $logKeepDays = self::$logKeepDays;
         }
         
         core_Logs::add(get_called_class(), $objectId, $detail, $logKeepDays);
@@ -992,34 +990,6 @@ class core_Manager extends core_Mvc
         $rec->id = str_pad($rec->id, $pad, '0', STR_PAD_LEFT);
         
         return implode(' ', get_object_vars($rec));
-    }
-    
-    
-    public static function getHyperlink($id, $icon = FALSE)
-    {   
-        $me = cls::get(get_called_class());
-
-        $title = $me->getTitleById($id);
-        
-        if($icon === TRUE) {
-            $icon = 'ef_icon=' . $me->singleIcon;
-        } elseif($icon) {
-            $icon = 'ef_icon=' . $icon;
-        }
-
-        if(!$id) {
-            return "<span style='color:red;'>&nbsp;- - -</span>";
-        }
-
-        if ($me->haveRightFor('single', $id)) {
-            $title = ht::createLink($title,
-                array($me, 'single', $id),
-                NULL,
-                $icon
-             );
-        }
-        
-        return $title;
     }
 
     

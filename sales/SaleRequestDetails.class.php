@@ -13,8 +13,7 @@
  * @license   GPL 3
  * @since     v 0.11
  */
-class sales_SaleRequestDetails extends doc_Detail {
-    
+class sales_SaleRequestDetails extends deals_DealDetail {
     
     /**
      * Заглавие
@@ -43,7 +42,7 @@ class sales_SaleRequestDetails extends doc_Detail {
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_AlignDecimals2, plg_RowNumbering, sales_Wrapper, doc_plg_HidePrices';
+    public $loadList = 'plg_RowTools, plg_Created, plg_AlignDecimals2, plg_RowNumbering, sales_Wrapper, doc_plg_HidePrices';
     
     
     /**
@@ -55,7 +54,7 @@ class sales_SaleRequestDetails extends doc_Detail {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, uomId=Мярка, quantity, price, discount, amount=Сума';
+    public $listFields = 'productId, packagingId, uomId, packQuantity, packPrice, discount, amount';
     
     
     /**
@@ -76,86 +75,6 @@ class sales_SaleRequestDetails extends doc_Detail {
     function description()
     {
     	$this->FLD('requestId', 'key(mvc=sales_SaleRequests)', 'column=none,notNull,silent,hidden,mandatory');
-    	$this->FLD('productId', 'int', 'caption=Продукт,notNull,mandatory', 'tdClass=large-field leftCol wrap');
-        $this->FLD('classId', 'class(interface=cat_ProductAccRegIntf, select=title)', 'caption=Мениджър,silent,input=hidden,oldFieldName=productManId');
-    	$this->FLD('quantity', 'double', 'caption=К-во', 'tdClass=small-field');
-    	$this->FLD('price', 'double', 'caption=Ед. цена');
-        $this->FLD('discount', 'percent(decimals=2,min=0)', 'caption=Отстъпка');
-        $this->FNC('amount', 'double(minDecimals=2,maxDecimals=2)', 'caption=Сума');
-    }
-    
-    
-    /**
-     * Изчисляване на сумата на реда
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $rec
-     */
-    public function on_CalcAmount(core_Mvc $mvc, $rec)
-    {
-    	if (empty($rec->price) || empty($rec->quantity)) {
-    		return;
-    	}
-    
-    	$rec->amount = $rec->price * $rec->quantity;
-    }
-    
-    
-	/**
-     * Сортиране по ред на добавяне
-     */
-    static function on_BeforePrepareListFilter($mvc, &$res, $data)
-    {
-        $data->query->orderBy('id', 'ASC');
-    }
-        
-    
-    /**
-     * След преобразуване на записа в четим за хора вид.
-     */
-    static function on_AfterPrepareListRecs($mvc, $data)
-    {
-    	if(!count($data->recs)) return;
-    	$recs = &$data->recs;
-    	$masterRec = $data->masterData->rec;
-    	
-    	deals_Helper::fillRecs($mvc->Master, $data->recs, $masterRec, static::$map);
-    }
-    
-    
-    /**
-     * Скриване на колоната за отстъпка ако няма отстъпки
-     */
-    public static function on_AfterPrepareListRows(core_Mvc $mvc, $data)
-    {
-        $rows = $data->rows;
-        $haveDiscount = FALSE;
-        if(count($data->rows)) {
-            foreach ($data->rows as $i => &$row) {
-            	$haveDiscount = $haveDiscount || !empty($data->recs[$i]->discount);
-            }
-        }
-        
-    	if(!$haveDiscount) {
-            unset($data->listFields['discount']);
-        }
-    }
-    
-    
-	/**
-     * След преобразуване на записа в четим за хора вид.
-     */
-    public static function on_AfterRecToVerbal(core_Manager $mvc, &$row, $rec)
-    { 
-    	$productMan = cls::get($rec->classId);
-    	$masterRec = $mvc->Master->fetch($rec->requestId);
-    	
-    	$row->productId = $productMan->getTitleById($rec->productId);
-    	if(!Mode::is('text', 'xhtml') && !Mode::is('printing') && $productMan->haveRightFor('read', $rec->productId)){
-    		$row->productId = ht::createLinkRef($row->productId, array($productMan, 'single', $rec->productId));
-    	}
-    	
-    	$measureId = $productMan->getProductInfo($rec->productId, NULL)->productRec->measureId;
-    	$row->uomId = cat_UoM::getShortName($measureId);
+    	parent::getDealDetailFields($this);
     }
 }

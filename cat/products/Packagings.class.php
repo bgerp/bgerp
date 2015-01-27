@@ -72,7 +72,7 @@ class cat_products_Packagings extends cat_products_Detail
     function description()
     {
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden, silent');
-        $this->FLD('packagingId', 'key(mvc=cat_Packagings,select=name)', 'input,caption=Опаковка,mandatory,width=7em');
+        $this->FLD('packagingId', 'key(mvc=cat_Packagings,select=name,allowEmpty)', 'input,caption=Опаковка,mandatory,width=7em');
         $this->FLD('quantity', 'double', 'input,caption=Количество,mandatory');
         $this->FLD('isBase', 'enum(yes=Да,no=Не)', 'caption=Основна,mandatory,maxRadio=2');
         $this->FLD('netWeight', 'cat_type_Weight', 'caption=Тегло->Нето');
@@ -124,7 +124,7 @@ class cat_products_Packagings extends cat_products_Detail
         	if (!count($mvc::getRemainingOptions($rec->productId))) {
                 $requiredRoles = 'no_one';
             } else {
-            	$productInfo = cat_Products::getProductInfo($rec->productId);
+            	$productInfo = $mvc->Master->getProductInfo($rec->productId);
             	if(empty($productInfo->meta['canStore'])){
             		$requiredRoles = 'no_one';
             	}
@@ -282,20 +282,62 @@ class cat_products_Packagings extends cat_products_Detail
     public static function on_AfterRenderDetail($mvc, &$tpl, $data)
     {
         if ($data->addUrl) {
-            $addBtn = ht::createLink("<img src=" . sbf('img/16/add.png') . " valign=bottom style='margin-left:5px;'>", $data->addUrl);
+            $addBtn = ht::createLink("<img src=" . sbf('img/16/add.png') . " valign=bottom style='margin-left:5px;'>", $data->addUrl, FALSE, 'title=Добавяне на нова опаковка');
             $tpl->append($addBtn, 'TITLE');
         }
     }
     
     
+    /**
+     * Подготвя опаковките на артикула
+     * 
+     * @param stdClass $data
+     */
     public static function preparePackagings($data)
     {
-        static::prepareDetail($data);
+    	// Ако мастъра не е складируем, няма смисъл да показваме опаковките му
+    	$productInfo = $data->masterMvc->getProductInfo($data->masterId);
+    	if(empty($productInfo->meta['canStore'])){
+    		$data->hide = TRUE;
+    		return;
+    	}
+    	
+    	static::prepareDetail($data);
     }
     
     
+    /**
+     * Подготвя опаковките на артикула
+     * 
+     * @param stdClass $data
+     */
     public function renderPackagings($data)
     {
+    	if($data->hide === TRUE) return;
+    	
         return static::renderDetail($data);
+    }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     */
+    protected static function on_AfterPrepareListRows($mvc, &$res)
+    {
+    	$recs = &$res->recs;
+    
+    	$hasReasonFld = FALSE;
+    	
+    	if (count($recs)) {
+    		foreach ($recs as $id => $rec) {
+    			$row = &$res->rows[$id];
+    
+    			$hasReasonFld = !empty($rec->eanCode) ? TRUE : $hasReasonFld;
+    		}
+    		 
+    		if($hasReasonFld === FALSE){
+    			unset($res->listFields['code']);
+    		}
+    	}
     }
 }

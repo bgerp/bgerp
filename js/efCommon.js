@@ -220,6 +220,14 @@ function getUserAgent()
 }
 
 
+/**
+ * Връща разликата в минути между часовите зони на Гринуич и местното време
+ */
+function getTimezoneOffset(){
+	var date = new Date();
+	
+	return date.getTimezoneOffset();
+}
 
 /**
  * Проверява дали браузърът е IE
@@ -1235,53 +1243,71 @@ function setMinHeightExt() {
  * Задава ширина на елементите от форма в зависимост от ширината на прозореца/устройството
  */
 function setFormElementsWidth() {
-    var winWidth = parseInt($(window).width());
-
-    // Приемаме, че най-малкият екран е 320px
-    if (winWidth < 320) {
-        winWidth = 320;
-    }
-    // разстояние около формата
-    var outsideWidth = 42;
-    if($('#all').length) {
-    	outsideWidth = 30;
-    }
     
-    // предпочитана ширина в em
-    var preferredSizeInEm = 42;
 
-    // изчислена максимална ширина формата
-    var formElWidth = winWidth - outsideWidth;
+    if ($('body').hasClass('narrow')){
+    	var winWidth = parseInt($(window).width());
+    	// Приемаме, че най-малкият екран е 320px
+        if (winWidth < 320) {
+            winWidth = 320;
+        }
+        // предпочитана ширина в em
+        var preferredSizeInEm = 42;
+        // разстояние около формата
+    	var outsideWidth = 42;
+    	if($('#all').length) {
+    		outsideWidth = 30;
+    	}
+        // изчислена максимална ширина формата
+        var formElWidth = winWidth - outsideWidth;
 
-    // колко ЕМ е широка страницата
-    var currentEm = parseFloat($(".formTable input[type=text]").first().css("font-size"));
-    if (!currentEm) {
-        currentEm = parseFloat($(".formTable select").first().css("font-size"));
-    }
-
-    var sizeInEm = winWidth / currentEm;
-
-    // колко РХ е 1 ЕМ
-    var em = parseInt(winWidth / sizeInEm);
-
-    // изчислена ширина, равна на ширината в ем, която предпочитаме
-    var preferredSizeInPx = preferredSizeInEm * em;
-
-    if (formElWidth > preferredSizeInPx) formElWidth = preferredSizeInPx;
-
-    $('.formTable label').each(function() {
-        var colsInRow = parseInt($(this).attr('data-colsInRow'));
-        if (!colsInRow) {
-            colsInRow = 1;
+        // колко ЕМ е широка страницата
+        var currentEm = parseFloat($(".formTable input[type=text]").first().css("font-size"));
+        if (!currentEm) {
+            currentEm = parseFloat($(".formTable select").first().css("font-size"));
         }
 
-        $(this).css('maxWidth', parseInt((formElWidth - 50) / colsInRow));
-    });
+        var sizeInEm = winWidth / currentEm;
 
-    $('.formSection').css('width', formElWidth);
-    $('.formTable textarea').css('width', formElWidth);
-    $('.formTable .chzn-container').css('maxWidth', formElWidth);
-    $('.formTable select').css('maxWidth', formElWidth);
+        // колко РХ е 1 ЕМ
+        var em = parseInt(winWidth / sizeInEm);
+
+        // изчислена ширина, равна на ширината в ем, която предпочитаме
+        var preferredSizeInPx = preferredSizeInEm * em;
+
+        if (formElWidth > preferredSizeInPx) formElWidth = preferredSizeInPx;
+
+        $('.formTable label').each(function() {
+            var colsInRow = parseInt($(this).attr('data-colsInRow'));
+            if (!colsInRow) {
+                colsInRow = 1;
+            }
+
+            $(this).parent().css('maxWidth', parseInt((formElWidth - 10) / colsInRow));
+        	$(this).parent().css('overflow-x', 'hidden');
+           
+            $(this).attr('title', $(this).text());
+        });
+
+        $('.formSection').css('width', formElWidth);
+        $('.formTable textarea').css('width', formElWidth);
+        $('.formTable .chzn-container').css('maxWidth', formElWidth);
+        $('.formTable select').css('maxWidth', formElWidth);
+    } else {
+    	 $('.formTable label').each(function() {
+             $(this).parent().css('white-space', "nowrap");
+             $(this).parent().css('width', "1%");
+             
+             // ако етикета е много широк, режем го и слагаме хинт
+             if ($(this).width() > 450){
+            	 $(this).css('max-width', "450px");
+                 $(this).css('position', "relative");
+                 $(this).css('top', "3px");
+                 $(this).css('overflow', "hidden");
+                 $(this).attr('title', $(this).text());
+             }
+         });
+    }
 }
 
 
@@ -1560,6 +1586,51 @@ function addLinkOnCopy(text) {
 
 
 /**
+ * При копиране на текст, маха интервалите от вербалната форма на дробните числа
+ */
+function editCopiedTextBeforePaste() {
+	$('.listTable').bind('copy', function(event, data) {
+		var body_element = document.getElementsByTagName('body')[0];
+		var selection = window.getSelection();
+		
+		var htmlDiv = document.createElement('div');
+		  
+		htmlDiv.style.position = 'absolute';
+		htmlDiv.style.left = '-99999px';
+		
+		body_element.appendChild(htmlDiv);
+		
+		htmlDiv.appendChild(selection.getRangeAt(0).cloneContents());
+		
+		// временна променлива, в която ще заменстваме
+		var current = htmlDiv.innerHTML.toString();
+		
+		//намира всеки стринг, който отгоравя на израза
+		var matchedStr =  current.match(/(\-)?([0-9]{1,3})((&nbsp;){1}[0-9]{3})*(\.{1}[0-9]{2,5})\z*/g);
+		
+		if(matchedStr){
+			var replacedStr = new Array();
+			 
+			for(var i=0; i< matchedStr.length;i++){
+				// променя всеки от стринговете
+				replacedStr[i] = matchedStr[i].replace(/(&nbsp;)/g, '');
+				var regExp = new RegExp(matchedStr[i], "g");    
+				// прави замяната в тези стрингове
+				current = current.replace(regExp ,replacedStr[i]);
+			}
+	
+			current = '<table>' + current + "</table>";
+			htmlDiv.innerHTML = current;
+			selection.selectAllChildren(htmlDiv);
+		}
+		
+		window.setTimeout(function() {
+			body_element.removeChild(htmlDiv);
+		}, 0);
+	});
+}
+
+/**
  * Масив със сингълтон обектите
  */
 var _singletonInstance = new Array();
@@ -1718,19 +1789,30 @@ function checkForHiddenGroups() {
 
 
 /**
- * Показване и скриване на keylist групи
+ * В зависимост от натиснатия елемент, се определя какво действие трябва да се извърши с кейлист полетата
+ */
+function keylistActions(el) {
+	 $('.keylistCategory').on('click', function(e) {
+		 // ако натиснем бутона за инвертиране на чекбоксовете
+		  if ($(e.target).is(".invert-checkbox")) {
+			  //инвертираме
+			  inverseCheckBox(e.target);
+		  } else {
+			  // в противен случай затваряме/отваряме групата
+			  toggleKeylistGroups(e.target);
+			    
+		  }
+	 });
+}
+
+/**
+ *  скриваме/показваме прилежащата на елемента група
  */
 function toggleKeylistGroups(el) {
-    //намираме id-то на елемента, на който е кликнато
+	//в нея намириме всички класове, чието име е като id-то на елемента, който ще ги скрива
+    var trItems = findElementKeylistGroup(el);
     var element = $(el).closest("tr.keylistCategory");
-
-    var trId = element.attr("id");
-
-    //намираме keylist таблицата, в която се намира
-    var tableHolder = $(element).closest("table.keylist");
-
-    //в нея намириме всички класове, чието име е като id-то на елемента, който ще ги скрива
-    var trItems = tableHolder.find("tr." + trId);
+    
     if (trItems.length) {
         //и ги скриваме
         trItems.toggle("slow");
@@ -1739,6 +1821,44 @@ function toggleKeylistGroups(el) {
         element.toggleClass('closed');
         element.toggleClass('opened');
     }
+	
+}
+
+/**
+ *  намираме прилежащата на елемента група
+ */
+function findElementKeylistGroup(el){
+	  var element = $(el).closest("tr.keylistCategory");
+
+	    var trId = element.attr("id");
+
+	    //намираме keylist таблицата, в която се намира
+	    var tableHolder = $(element).closest("table.keylist");
+
+	    //в нея намириме всички класове, чието име е като id-то на елемента, който ще ги скрива
+	    var keylistGroups = tableHolder.find("tr." + trId);
+	    
+	    return keylistGroups;
+}
+
+
+/**
+ *  инвертираме чекбоксовете в групата на елемента
+ */
+function inverseCheckBox(el){
+	// сменяме иконката
+	$(el).parent().find(".invert-checkbox").toggleClass('hidden');
+	
+	var trItems = findElementKeylistGroup(el);
+	
+	//инвертираме
+	$(trItems).find('.checkbox').each(function() {
+		if( $(this).attr('checked') == 'checked') {
+			$(this).removeAttr('checked');
+		} else {
+			$(this).attr('checked', 'checked');
+		}
+	});
 }
 
 
@@ -1914,9 +2034,18 @@ function efae() {
 
     // Дали процеса е изпратена AJAX заявка за извличане на данните за показване след рефреш
     efae.prototype.isSendedAfterRefresh = false;
-
+    
+    // Флаг, указващ дали има грешка в AJAX
+    efae.prototype.AJAXHaveError = false;
+    
+    // Флаг, указващ дали е оправена грешката в AJAX
+    efae.prototype.AJAXErrorRepaired = false;
+	
     // УРЛ, от което се вика AJAX-a - отворения таб
     Experta.prototype.parentUrl;
+    
+    // Флаг, който се вдига преди обновяване на страницата
+    Experta.prototype.isReloading = false;
 }
 
 
@@ -1945,13 +2074,13 @@ efae.prototype.run = function() {
     try {
         // Увеличаваме брояча
         this.increaseTimeout();
-
+        
         // Вземаме всички URL-та, които трябва да се извикат в този цикъл
         var subscribedObj = this.getSubscribed();
-
+        
         // Стартираме процеса
         this.process(subscribedObj);
-
+        
     } catch (err) {
 
         // Ако възникне грешка
@@ -2071,7 +2200,7 @@ efae.prototype.process = function(subscribedObj, otherData, async) {
 
         // Добавяме флаг, който указва, че заявката е по AJAX
         dataObj['ajax_mode'] = 1;
-
+        
         // Извикваме по AJAX URL-то и подаваме необходимите данни и очакваме резултата в JSON формат
         $.ajax({
             async: async,
@@ -2114,11 +2243,54 @@ efae.prototype.process = function(subscribedObj, otherData, async) {
                     getEO().log(err + 'Несъществуваща фунцкция: ' + func + ' с аргументи: ' + arg);
                 }
             }
-
+            
+            if (getEfae().AJAXHaveError) {
+            	getEfae().AJAXErrorRepaired = true;
+            }
         }).fail(function(res) {
-
-            // Ако възникне грешка
-            getEO().log('Грешка при извличане на данни по AJAX');
+        	
+        	// Ако се обновява страницата без AJAX и възникне грешка
+        	if (getEO().isReloading) return ;
+        	
+        	if((res.readyState == 0 || res.status == 0) && res.getAllResponseHeaders()) return;
+            
+        	setTimeout(function(){
+        		
+        		getEfae().AJAXHaveError = true;
+                getEfae().AJAXErrorRepaired = false;
+        		
+	        	if (typeof showToast != 'undefined') {
+	        		if (!$(".toast-type-error").length) {
+	        			showToast({
+		                    timeOut: 1,
+		                    text: 'Connection error',
+		                    isSticky: true,
+		                    stayTime: 4000,
+		                    type: 'error'
+		                });
+	        		}
+	            } else {
+	            	// Ако не е добавено съобщение за грешка
+	            	if (!$(".connection-error-status").length) {
+	            		// Ако възникне грешка
+	                    getEO().log('Грешка при извличане на данни по AJAX');
+	                    var errorData = {id: "statuses", html: "<div class='statuses-message statuses-error connection-error-status'>Connection error</div>", replace: false};
+	                    render_html(errorData);
+	            	}
+	            }
+        	}, 3000);
+        }).always(function(res) {
+        	// Ако е имало грешка и е оправенена, премахваме статуса
+        	if (getEfae().AJAXHaveError && getEfae().AJAXErrorRepaired) {
+    			
+        		if ($('.connection-error-status').length) {
+        			$('.connection-error-status').remove();
+        		}
+        		
+        		if ($('.toast-type-error').length) {
+        			$('.toast-type-error').remove();
+        		}
+        	}
         });
     } else {
 
@@ -2574,12 +2746,12 @@ function removeParentTag(el) {
  * Функция, която отваря посоченото URL, като спира разпространението на събитието
  */
 function openUrl(url, event) {
-	if(typeof event !== "undefined") {
+	if(event) {
 		if(event.stopPropagation){
 			event.stopPropagation();
 		}
 		event.cancelBubble = true;
-	} 
+	}
 	
 	window.location = url;
 
@@ -3134,7 +3306,106 @@ $.fn.scrollView = function () {
                             scrollTop: $(this).offset().top - $(window).height() + $(this).height()
                         }, 500);
                     });
+};
+
+function mailServerSettings() {
+    var email = document.getElementById('email');
+    var server = document.getElementById('server');
+    var protocol = document.getElementById('protocol');
+    var security = document.getElementById('security');
+    var cert = document.getElementById('cert');
+    var folder = document.getElementById('folder');
+    var user = document.getElementById('user');
+    var smtpServer = document.getElementById('smtpServer');
+    var smtpSecure = document.getElementById('smtpSecure');
+    var smtpAuth = document.getElementById('smtpAuth');
+    var smtpUser = document.getElementById('smtpUser');
+   
+    var n = email.value.search("@"); 
+    
+    var provider = email.value.substr(n+1);
+    var userAccountt = email.value.substr(0,n);
+    
+    if (server.value == "") {
+		switch (provider) {
+		    case "abv.bg":
+		    	server.value = "pop3.abv.bg:995";
+			    protocol.value = "pop3";
+			    security.value = "ssl";
+			    cert.value = "validate";
+			    smtpServer.value = "smtp.abv.bg:465";
+			    smtpSecure.value = "tls";
+			    smtpAuth.value = "LOGIN";
+			    user.value = userAccountt;
+			    smtpUser.value = userAccountt;
+		    	break;
+		    case "gmail.com":
+		    	server.value = "imap.gmail.com:993";
+		    	protocol.value = "imap";
+		    	security.value = "ssl";
+		    	cert.value = "validate";
+		    	smtpServer.value = "smtp.gmail.com:587";
+		    	smtpSecure.value = "tls";
+		    	smtpAuth.value = "LOGIN";
+		    	user.value = userAccountt;
+		    	smtpUser.value = userAccountt;
+		        break;
+		    case "yahoo.com":
+		    	server.value = "imap.mail.yahoo.com:993";
+		    	protocol.value = "imap";
+		    	security.value = "ssl";
+		    	cert.value = "validate";
+		    	smtpServer.value = "smtp.mail.yahoo.com:465";
+		    	smtpSecure.value = "ssl";
+		    	smtpAuth.value = "LOGIN";
+		    	user.value = userAccountt;
+		    	smtpUser.value = userAccountt;
+		        break;
+		    case "outlook.com":
+		    	server.value = "imap-mail.outlook.com:993";
+		    	protocol.value = "imap";
+		    	security.value = "ssl";
+		    	cert.value = "validate";
+		    	smtpServer.value = "smtp-mail.outlook.com:587";
+		    	smtpSecure.value = "tls";
+		    	smtpAuth.value = "LOGIN";
+		    	user.value = userAccountt;
+		    	smtpUser.value = userAccountt;;
+		        break;
+		    case "mail.bg":
+		    	server.value = " imap.mail.bg:143";
+		    	protocol.value = "imap";
+		    	security.value = "ssl";
+		    	cert.value = "validate";
+		    	smtpServer.value = "smtp.mail.bg:25";
+		    	smtpSecure.value = "tls";
+		    	smtpAuth.value = "LOGIN";
+		    	user.value = userAccountt;
+		    	smtpUser.value = userAccountt;
+		        break;
+	
+		    default:
+		    	protocol.value = "imap";
+		    	security.value = "default";
+		    	cert.value = "noValidate";
+		    	smtpSecure.value = "no";
+		    	smtpAuth.value = "no";
+		}
+
+    }
+};
+
+
+/**
+ * Прихващач за обновяването на страницата без AJAX
+ */
+function onBeforeUnload()
+{
+	window.onbeforeunload = function () {
+		getEO().isReloading = true;
+	}
 }
 
 runOnLoad(showTooltip);
 runOnLoad(removeNarrowScroll);
+runOnLoad(onBeforeUnload);

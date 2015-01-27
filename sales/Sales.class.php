@@ -241,70 +241,6 @@ class sales_Sales extends deals_DealMaster
     
     
     /**
-     * Определяне на документа-източник (пораждащия документ)
-     */
-    public function getOrigin_($rec)
-    {
-        $rec = static::fetchRec($rec);
-        
-        if (!empty($rec->originId)) {
-            $origin = doc_Containers::getDocument($rec->originId);
-        } else {
-            $origin = FALSE;
-        }
-        
-        return $origin;
-    }
-
-
-    /**
-     * След създаване на запис в модела
-     */
-    public static function on_AfterCreate($mvc, $rec)
-    {
-        if (!$origin = $mvc->getOrigin($rec)) {
-            return;
-        }
-    
-        // Ако новосъздадения документ има origin, който поддържа bgerp_DealIntf,
-        // използваме го за автоматично попълване на детайлите на продажбата
-    
-        if ($origin->haveInterface('bgerp_DealIntf')) {
-            /* @var $dealInfo bgerp_iface_DealResponse */
-            $dealInfo = $origin->getDealInfo();
-            
-            $quoted = $dealInfo->quoted;
-            
-            /* @var $product bgerp_iface_DealProduct */
-            foreach ($quoted->products as $product) {
-                $product = (object)$product;
-
-                if ($product->quantity <= 0) {
-                    continue;
-                }
-        
-                $saleProduct = new stdClass();
-        		$ProductMan = cls::get($product->classId);
-                
-                $saleProduct->saleId      = $rec->id;
-                $saleProduct->classId     = $ProductMan->getClassId();
-                $saleProduct->productId   = $product->productId;
-                $saleProduct->packagingId = $product->packagingId;
-                $saleProduct->quantity    = $product->quantity;
-                $saleProduct->discount    = $product->discount;
-                $saleProduct->price       = $product->price;
-                $saleProduct->uomId       = $product->uomId;
-        
-                $productInfo = $ProductMan->getProductInfo($saleProduct->productId, $saleProduct->packagingId);
-                $saleProduct->quantityInPack = ($saleProduct->packagingId) ? $productInfo->packagingRec->quantity : 1;
-                
-                sales_SalesDetails::save($saleProduct);
-            }
-        }
-    }
-    
-    
-    /**
      * Преди показване на форма за добавяне/промяна.
      *
      * @param sales_Sales $mvc
@@ -313,9 +249,6 @@ class sales_Sales extends deals_DealMaster
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = &$data->form;
-        
-    	// Задаване на стойности на полетата на формата по подразбиране
-        self::setDefaultsFromOrigin($mvc, $form);
         
         $myCompany = crm_Companies::fetchOwnCompany();
         
@@ -332,36 +265,6 @@ class sales_Sales extends deals_DealMaster
         $priceAtDateFld = $form->getFieldType('pricesAtDate');
         $priceAtDateFld->params['max'] = dt::addMonths($maxMonths);
         $priceAtDateFld->params['min'] = dt::addMonths(-$minMonths);
-    }
-    
-    
-    /**
-     * Зареждане на стойности по подразбиране от документа-основание 
-     * 
-     * @param core_Mvc $mvc
-     * @param core_Form $form
-     */
-    protected static function setDefaultsFromOrigin(core_Mvc $mvc, core_Form $form)
-    {
-        if (!($origin = $mvc->getOrigin($form->rec)) || !$origin->haveInterface('bgerp_DealIntf')) {
-            // Не може да се използва `bgerp_DealIntf`
-            return false;
-        }
-        
-        /* @var $dealInfo bgerp_iface_DealResponse */
-        $dealInfo = $origin->getDealInfo();
-        $originRec = $origin->fetch();
-        $aspect   = $dealInfo->quoted;
-        
-        $form->rec->note			   = $originRec->others;
-        $form->rec->deliveryTermId     = $aspect->delivery->term;
-        $form->rec->deliveryLocationId = $aspect->delivery->location;
-        $form->rec->paymentMethodId    = $aspect->payment->method;
-        $form->rec->bankAccountId      = $aspect->payment->bankAccountId;
-        $form->rec->currencyId         = $aspect->currency;
-        $form->rec->currencyRate       = $aspect->rate;
-        $form->rec->chargeVat          = $aspect->vatType;
-        $form->setReadOnly('chargeVat');
     }
     
     
@@ -721,104 +624,5 @@ class sales_Sales extends deals_DealMaster
     			$res = 'no_one';
     		}
     	}
-    }
-    
-    
-    /**
-     * Разпределя платеното в брой по фактурите към продажбата, започва от първата фактура
-     * и разпределя сумата последнователно на всички фактури, докато има какво да се разпределя
-     * 
-     * @param int $id - ид на продажба
-     * @return void
-     */
-    private static function allocateCash($id)
-    {
-    	// Намираме останалите документи в треда на продажбата
-    	$desc = self::getDescendants($id);
-    	
-    	// Ако няма такива не правим нищо
-    	if(!count($desc)) return;
-    	
-    	// Отделяме всички активни фактури/ди/ки към продажбата
-    	$invoices = array();
-    	foreach ($desc as $desc){
-    		if($desc->getInstance() instanceof sales_Invoices){
-    			$recI = $desc->rec();
-    			if($recI->state == 'active'){
-    				$invoices[$desc->that] = $desc->rec();
-    			}
-    		}
-    	}
-    	
-    	// Ако няма фактури към продажбата не правим нищо
-    	if(!count($invoices)) return;
-    	
-    	// Колко е платеното в брой по продажбата (по сметка 501. Каси)
-    	$jRecs = acc_Journal::getEntries(array('sales_Sales', $id));
-    	$cashAmount = acc_Balances::getBlAmounts($jRecs, '501')->amount;
-    	
-    	// Третираме отрицателното платено (върнато) като 0
-    	$cashAmount = ($cashAmount <= 0) ? 0 : $cashAmount;
-    	$Invoices = cls::get('sales_Invoices');
-    	
-    	// За всяка фактура разпределяме платеното в брой според сумата на всяка фактура
-    	foreach ($invoices as &$invRec)
-    	{
-    		$total = round($invRec->dealValue + $invRec->vatAmount - $invRec->discountAmount, 2);
-    		
-    		// Ако има още платено в брой за разпределяне
-    		if($cashAmount != 0){
-    			
-    			// Ако платеното е по малко от сумата на ф-та взимаме него, иначе приемаме че цялата ф-ра е платена
-    			$amount = ($cashAmount < $total) ? $cashAmount : $total;
-    			$invRec->paymentType = 'cash';
-    			
-    			// Приспадаме разпределената сума от общоо платено
-    			$cashAmount -= $amount;
-    		} else {
-    			if(cond_PaymentMethods::isCOD($invRec->paymentMethodId)){
-    				$invRec->paymentType = 'cash';
-    			} else {
-    				$invRec->paymentType = 'bank';
-    			}
-    		}
-    		
-    		// Обновяваме сумата на платеното в брой на фактурата
-    		$Invoices->save_($invRec, 'paymentType');
-    	}
-    }
-    
-    
-    /**
-     * Разпределя платеното в брой на всяка фактура
-     */
-    public function allocateCashToInvoices($oldBefore = NULL)
-    {
-    	core_Debug::$isLogging = FALSE;
-    	
-    	// Избираме всички активни/приключени продажби, по които има промяна в определен интервал
-    	$query = $this->getQuery();
-    	$query->EXT('threadModifiedOn', 'doc_Threads', 'externalName=last,externalKey=threadId');
-    	$query->where("#amountInvoiced IS NOT NULL");
-    	$query->where("#state = 'active' || #state = 'closed'");
-    	
-    	// Ако не е зададен интервал правим го на всички продажби
-    	if(!is_null($oldBefore)){
-    		$query->where("#threadModifiedOn >= '{$oldBefore}'");
-    	}
-    	
-    	$query->show('id');
-    	
-    	while($rec = $query->fetch()){
-    	
-    		// Преразпределяме платеното в брой на всички фактури
-    		try{
-    			self::allocateCash($rec->id);
-    		} catch(core_exception_Expect $e){
-    			$this->log("Проблем при разпределението на платеното в брой на фактурите; {$e->getMessage()}");
-    		}
-    	}
-    	
-    	core_Debug::$isLogging = TRUE;
     }
 }

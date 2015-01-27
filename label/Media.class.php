@@ -22,6 +22,12 @@ class label_Media extends core_Manager
     
     
     /**
+     * Заглавие в единично число
+     */
+    public $singleTitle = 'Медия';
+    
+    
+    /**
      * Кой има право да чете?
      */
     public $canRead = 'labelMaster, admin, ceo';
@@ -220,8 +226,8 @@ class label_Media extends core_Manager
         setIfNot($data->pageLayout->linesCnt, 1);
         
         // Отместване на цялата страница
-        $data->pageLayout->up = (int) ($rec->fieldUp - $rec->linesDist) . 'mm';
-        $data->pageLayout->left = (int) ($rec->fieldLeft - $rec->columnsDist) . 'mm';
+        $data->pageLayout->up = (int) ($rec->fieldUp) . 'mm';
+        $data->pageLayout->left = (int) ($rec->fieldLeft) . 'mm';
 
         // Отместване на колона
         $data->pageLayout->columnsDist = (int) $rec->columnsDist . 'mm';
@@ -244,17 +250,11 @@ class label_Media extends core_Manager
         // Брой редове
         $lines = $data->pageLayout->linesCnt;
         
-        // Отместване редове
-        $linesDist = $data->pageLayout->linesDist;
-        
-        // Отместване колони
-        $columnsDist = $data->pageLayout->columnsDist;
-        
         // Брояч
         $cnt = 0;
         
         // Създаваме таблицата
-        $t = "<table class='label-table printing-page-break' style='border-collapse: separate; border-spacing: {$columnsDist} {$linesDist}; margin-top: {$data->pageLayout->up}; margin-left: {$data->pageLayout->left};'>";
+        $t = "<table class='label-table printing-page-break' style='border-collapse: separate; margin-top: {$data->pageLayout->up}; margin-left: {$data->pageLayout->left};'>";
         
         // Броя на редовете
         for ($i = 0; $i < $lines; $i++) {

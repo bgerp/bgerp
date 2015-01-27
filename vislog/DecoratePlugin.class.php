@@ -54,7 +54,7 @@ class vislog_DecoratePlugin extends core_Plugin
         $country = ht::createLink($country2, "http://bgwhois.com/?query=" . $ip, NULL, array('target' => '_blank', 'class' => 'vislog-country', 'title' => $countryName));
     
         if($showNames) { 
-            list($p1, $p2, $p3, $p4) = explode('.', $ip);
+            list($p1, $p2, $p3) = explode('.', $ip);
             $ip3 = "{$p1}.{$p2}.{$p3}.*";
             $ip2 = "{$p1}.{$p2}.*.*";
             $ipRec = vislog_IpNames::fetch(array("(#ip = '[#1#]') OR (#ip = '[#2#]') OR (#ip = '[#3#]')", $ip, $ip3, $ip2));

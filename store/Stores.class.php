@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Складове
  *
@@ -11,10 +10,9 @@
  * @category  bgerp
  * @package   store
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @TODO      Това е само примерна реализация за тестване на продажбите. Да се вземе реализацията от bagdealing.
  */
 class store_Stores extends core_Master
 {
@@ -196,12 +194,13 @@ class store_Stores extends core_Master
     /**
      * Имплементация на @see intf_Register::getAccItemRec()
      */
-    static function getAccItemRec($rec)
+    public static function getAccItemRec($rec)
     {
         return (object)array(
             'title' => $rec->name
         );
     }
+    
     
     /*******************************************************************************************
      * 
@@ -214,7 +213,7 @@ class store_Stores extends core_Master
      * @see crm_ContragentAccRegIntf::getItemRec
      * @param int $objectId
      */
-    static function getItemRec($objectId)
+    public static function getItemRec($objectId)
     {
         $self = cls::get(__CLASS__);
         $result = NULL;
@@ -249,7 +248,7 @@ class store_Stores extends core_Master
 	/**
 	 * Преди подготовка на резултатите
 	 */
-	function on_AfterPrepareListFilter($mvc, &$data)
+	protected static function on_AfterPrepareListFilter($mvc, &$data)
 	{
 		if(!haveRole($mvc->canSelectAll)){
 			
@@ -261,7 +260,7 @@ class store_Stores extends core_Master
 	}
 
 
-	static function on_AfterPrepareEditForm($mvc, &$res, $data)
+	protected static function on_AfterPrepareEditForm($mvc, &$res, $data)
 	{
 		$company = crm_Companies::fetchOwnCompany();
 		$locations = crm_Locations::getContragentOptions(crm_Companies::getClassId(), $company->companyId);
@@ -332,6 +331,19 @@ class store_Stores extends core_Master
     			foreach ($arrs['rows'] as &$row){
     				$row['packId'] = $data->uomNames[$row['id']];
     			}
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Изпълнява се преди преобразуването към вербални стойности на полетата на записа
+     */
+    protected static function on_BeforeRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+    	if(is_object($rec)){
+    		if(isset($fields['-list'])){
+    			$rec->name =  $mvc->singleTitle . " \"{$rec->name}\"";
     		}
     	}
     }

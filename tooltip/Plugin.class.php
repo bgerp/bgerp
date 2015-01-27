@@ -14,7 +14,7 @@
  */
 class tooltip_Plugin { 
     
-    static function renderView($text, $isShown, $icon = "img/mark.png")
+    static function renderView($text, $isShown, $icon = "img/mark.png", $closeURL)
     {
     	$imageUrl = sbf($icon,"");
     	$img = ht::createElement("img", array('src' => $imageUrl, 'alt' => 'help', 'width' => 24));

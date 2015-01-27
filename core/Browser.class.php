@@ -419,8 +419,12 @@ class core_Browser extends core_Manager
         Mode::setPermanent('windowWidth', $w = Request::get('winW', 'int'));
         Mode::setPermanent('windowHeight', Request::get('winH', 'int'));
         Mode::setPermanent('getUserAgent', Request::get('browserCheck'));
-   
-           
+        
+        $timezoneOffset = Request::get('timezoneInfo');
+        $timezoneOffset *= 60;
+        $timezoneDiff = $timezoneOffset + date('Z');
+        Mode::setPermanent('timezoneDiff', $timezoneDiff);
+        
         if($w > 1000 && !Mode::is("ScreenModeFromScreenSize")) {
             Mode::setPermanent('screenMode', 'wide');
             Mode::setPermanent("ScreenModeFromScreenSize");
@@ -507,7 +511,7 @@ class core_Browser extends core_Manager
                 document.documentElement.offsetWidth ) { winW = document.documentElement.offsetWidth;
                 winH = document.documentElement.offsetHeight; } if (window.innerWidth && window.innerHeight) {
                 winW = window.innerWidth; winH = window.innerHeight;}  var brdet=document.getElementById("brdet"); 
-                brdet.src="' . $url . '?w=" + screen.width + "&h=" + screen.height + "&winH=" + winH + "&winW=" + winW + "&browserCheck=" + getUserAgent();
+                brdet.src="' . $url . '?w=" + screen.width + "&h=" + screen.height + "&winH=" + winH + "&winW=" + winW + "&browserCheck=" + getUserAgent() + "&timezoneInfo=" + getTimezoneOffset();
                 //--> </script>';
             }
         }

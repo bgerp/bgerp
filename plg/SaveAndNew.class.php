@@ -50,7 +50,7 @@ class plg_SaveAndNew extends core_Plugin
                     Mode::setPermanent($permanentName, $data->form->rec->{$name});
                 }
             }
-        } elseif($data->cmd != 'delete') {
+        } elseif($data->cmd != 'delete' && $data->form->cmd != 'refresh') {
             
             if (!$data->form->gotErrors()) {
                 $fields = $data->form->selectFields("#remember == 'info'");
@@ -65,7 +65,7 @@ class plg_SaveAndNew extends core_Plugin
                         }
                     }
                 }
-                
+             
                 if($info) {
                     $info = '<div style="padding:5px; background-color:#ffffcc; border:solid 1px #cc9;">' .
                     tr('Последно добавенo') . ": <ul style='margin:5px;padding-left:10px;'>{$info}</ul></div>";

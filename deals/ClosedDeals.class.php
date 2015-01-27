@@ -641,15 +641,30 @@ abstract class deals_ClosedDeals extends core_Master
                 return ($a < $b) ? 1 : -1;
             });
         
+        // Намираме най-голямата дата от намерените
         $date = $dates[0];
         
         // Ако периода на избраната дата е затворен, вальора става датата на документа
         $pRec = acc_Periods::fetchByDate($date);
-        if($pRec->state == 'closed'){
-        	$date = $rec->createdOn;
+        if($pRec->state == 'closed' || empty($date)){
+        	
+        	// Намираме първия валиден период, след този на датата
+        	$pQuery = acc_Periods::getQuery();
+        	$pQuery->where("#state = 'active' || #state = 'pending'");
+        	$pQuery->where("#id > {$pRec->id}");
+        	$pQuery->orderBy("start", 'DESC');
+        	
+        	// Ако има такъв връщаме му началната дата
+        	if($pRec2 = $pQuery->fetch()){
+        		$date = $pRec2->start;
+        	} else {
+        		
+        		// Ако няма, датата на създаване на документа
+        		$date = $rec->createdOn;
+        	}
         }
         
-        // и връщаме най-голямата дата от тях
-        return $dates[0];
+        // и връщаме намерената дата
+        return $date;
     }
 }

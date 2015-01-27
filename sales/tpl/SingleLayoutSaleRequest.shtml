@@ -24,12 +24,10 @@
                                             <span class="bigData">[#createdDate#]</span>
                                         </div>
                                         <!--ET_BEGIN stateText-->
-                                        <br>
-                                        <div class="[#STATE_CLASS#]">[#state#]</div>
-                                        <br>
+                                        <div class="[#STATE_CLASS#]" style='margin:10px 0'>[#state#]</div>
                                         <!--ET_END stateText-->
                                         <!--ET_BEGIN originLink-->
-                                        <div style='padding:7px 0px'>|към|* [#originLink#]</div>
+                                        <div>|към|* [#originLink#]</div>
                                         <!--ET_END originLink-->
                                     </td>
                                     <td class="cell custom-header-bg" style='vertical-align:middle !important;width:35%;'><b>|Доставчик|*</b></td>
@@ -59,7 +57,7 @@
                         <table class="innerTable footer-notes border-table paddingCells" style='width:100%;'>
                             <tbody>
                                 <tr>
-                                    <td class="topCell first vtop" style='width:50%;'>
+                                    <td class="topCell first vtop" style='width:33%;'>
                                         <table style='width:100%;' class='no-border'>
                                             <!--ET_BEGIN deliveryTermId-->
                                             <tr>
@@ -98,7 +96,26 @@
                                             <!--ET_END note-->
                                         </table>
                                     </td>
-                                    <td class="topCell noWrap aright vtop">
+                                    <!--ET_BEGIN conditions-->
+		                            [#conditions#]
+		                            <td class="topCell first vtop" rowspan="2" >
+									    <ol style='margin:2px 0;'>
+									        <!--ET_BEGIN withVat-->
+									        <li>|Цените са с включен ДДС|*[#withVat#]</li>
+									        <!--ET_END withVat-->
+									        <!--ET_BEGIN sepVat-->
+									        <li>|Цените са с отделно ДДС|*[#sepVat#]</li>
+									        <!--ET_END sepVat-->
+									        <!--ET_BEGIN noVat-->
+									        <li>|Цените са без ДДС|*[#noVat#]</li>
+									        <!--ET_END noVat-->
+									        <!--ET_BEGIN others-->
+									        [#others#]
+									        <!--ET_END others-->
+									    </ol>
+		                            </td>
+                                    <!--ET_END conditions-->
+                                    <td class="topCell nowrap aright vtop" style='width:33%;'>
                                         <table class='no-border' style='float:right;width:100%;' id='business-doc-summary-table'>
                                             <tr class='nowrap'>
                                                 <td class='aright'>|Стойност|* :</td>
@@ -159,20 +176,6 @@
             </tbody>
         </table>
     </div>
-    <ol>
-        <!--ET_BEGIN withVat-->
-        <li>|Цените са с включен ДДС|*[#withVat#]</li>
-        <!--ET_END withVat-->
-        <!--ET_BEGIN sepVat-->
-        <li>|Цените са с отделно ДДС|*[#sepVat#]</li>
-        <!--ET_END sepVat-->
-        <!--ET_BEGIN noVat-->
-        <li>|Цените са без ДДС|*[#noVat#]</li>
-        <!--ET_END noVat-->
-        <!--ET_BEGIN others-->
-        [#others#]
-        <!--ET_END others-->
-    </ol>
     <!--ET_BEGIN DETAILS-->
     <div class='details'>
         [#DETAILS#]

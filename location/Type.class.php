@@ -46,7 +46,7 @@ class location_Type extends type_Varchar {
         
         $tpl = parent::createInput($name, $value, $attr);
         
-        $tpl->appendOnce("\n<script type=\"text/javascript\" src=\"http://maps.google.com/maps/api/js?sensor=false&language=" . core_Lg::getCurrent() . "\"></script>", "HEAD", TRUE);
+        $tpl->appendOnce("\n<script type=\"text/javascript\" src=\"https://maps.google.com/maps/api/js?sensor=false&language=" . core_Lg::getCurrent() . "\"></script>", "HEAD", TRUE);
         
         $Lg = cls::get('core_Lg');
         
@@ -82,7 +82,7 @@ class location_Type extends type_Varchar {
 
         $res = new ET("<div class='location-map'><div style='width:{$width}px;height:{$height}px;' id=\"{$id}\"></div></div>");
         
-        $res->appendOnce("\n<script type=\"text/javascript\" src=\"http://maps.google.com/maps/api/js?sensor=false&language=" . core_Lg::getCurrent() . "\"></script>", "HEAD", TRUE);
+        $res->appendOnce("\n<script type=\"text/javascript\" src=\"https://maps.google.com/maps/api/js?sensor=false&language=" . core_Lg::getCurrent() . "\"></script>", "HEAD", TRUE);
         
         $res->push("location/" . GMAP3_VERSION . "/gmap3.js", 'JS');
 

@@ -396,6 +396,37 @@ div.folder-cover {
 /*
  * край на стилове за корици
  */
+.fieldset-holder {
+  border: none;
+  padding: 0 0 20px;
+  background: transparent; }
+  .fieldset-holder .listTable {
+    border: none; }
+    .fieldset-holder .listTable th {
+      background: #f1f1f1 !important;
+      border: 1px solid white !important;
+      display: table-cell !important;
+      visibility: visible !important;
+      vertical-align: middle !important; }
+    .fieldset-holder .listTable td {
+      border: none !important;
+      border-top: dotted 1px #cccccc !important;
+      vertical-align: top !important; }
+  .fieldset-holder legend {
+    padding: 0 5px; }
+    .fieldset-holder legend div.rowtools {
+      white-space: nowrap;
+      width: auto;
+      display: inline-block; }
+    .fieldset-holder legend .add-btn {
+      position: relative;
+      top: -4px;
+      display: inline-block; }
+  .fieldset-holder tr.row-added {
+    background-color: #e6ffe0; }
+  .fieldset-holder tr.row-removed {
+    background-color: #cce3fe; }
+
 /*
  * потребителски профил
  */
@@ -485,7 +516,7 @@ div.folder-cover {
 
 .narrow .user-profile {
   margin-top: 7px;
-  min-width: 100px;
+  display: table;
   max-width: 600px; }
   .narrow .user-profile .user-title {
     font-size: 1.1em;
@@ -925,6 +956,8 @@ td.portal-date {
     .document div.richtext-holder .richtext {
       display: inline;
       color: black; }
+  .document .listTable {
+    width: 100%; }
   .document .custom-ul {
     margin: 0 0 0 20px; }
   .document .header {
@@ -969,7 +1002,19 @@ td.portal-date {
     background-color: #e0e0e0;
     height: 20px; }
 
+.stamp {
+  color: #bb0000;
+  border: 1px dotted #bb0000;
+  display: inline-block;
+  font-size: 0.85em;
+  padding: 2px 2px 1px 2px;
+  border-radius: 3px;
+  margin-top: 5px; }
+
 .centered {
+  text-align: center; }
+
+.selectRows .listTable > tbody > tr > td:first-child {
   text-align: center; }
 
 .document-title {
@@ -981,7 +1026,7 @@ td.portal-date {
 .document .listTable th {
   white-space: nowrap; }
 
-.document  .listTable  tr > th:first-child {
+.document .rowtools-column {
   width: 1%; }
 
 .small-field {
@@ -3754,8 +3799,8 @@ only screen and (max-width: 320px) {
 
 .plus-icon {
   display: inline-block;
-  width: 12px;
-  height: 12px; }
+  position: relative;
+  top: 2px; }
 
 .vislog {
   white-space: nowrap;

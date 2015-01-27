@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   trz
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Бонуси
@@ -102,6 +102,12 @@ class trz_Bonuses extends core_Master
     
     
     /**
+     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
+     */
+    public $rowToolsSingleField = 'periodId';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -112,6 +118,24 @@ class trz_Bonuses extends core_Master
     	$this->FLD('sum', 'double',     'caption=Сума');
     	
     }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    {
+    	// Ако имаме права да видим визитката
+    	if(crm_Persons::haveRightFor('single', $rec->personId)){
+    		$name = crm_Persons::fetchField("#id = '{$rec->personId}'", 'name');
+    		$row->personId = ht::createLink($name, array ('crm_Persons', 'single', 'id' => $rec->personId), NULL, 'ef_icon = img/16/vcard.png');
+    	}
+    }
+    
     
     public static function act_Test()
     {

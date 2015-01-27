@@ -111,6 +111,62 @@ class core_Packs extends core_Manager
     
     
     /**
+     * Деинсталира пакет от системата
+     * 
+     * @param string $pack - името на пакета, който ще се деинсталира
+     * @return string $res - резултата
+     */
+    public function deinstall($pack)
+    {
+    	if (!$pack) error('@Липсващ пакет', $pack);
+    	
+    	if (!$this->fetch("#name = '{$pack}'")) {
+    		error('@Този пакет не е инсталиран', $pack);
+    	}
+    	
+    	if ($this->fetch("(#name = '{$pack}') AND (#deinstall = 'yes')")) {
+    	
+    		$cls = $pack . "_Setup";
+    	
+    		if (cls::load($cls, TRUE)) {
+    	
+    			$setup = cls::get($cls);
+    	
+    			if (!method_exists($setup, 'deinstall')) {
+    				$res = "<h2>Пакета <span class=\"green\">'{$pack}'</span> няма деинсталатор.</h2>";
+    			} else {
+    				$res = "<h2>Деинсталиране на пакета <span class=\"green\">'{$pack}'</span></h2>";
+    				$res .= (string) "<ul>" . $setup->deinstall() . "</ul>";
+    			}
+    		} else {
+    			$res = "<h2 class='red''>Липсва кода на пакета '{$pack}'</h2>";
+    		}
+    	}
+    	
+    	// Общи действия по деинсталирането на пакета
+    	
+    	// Премахване от core_Interfaces
+    	core_Interfaces::deinstallPack($pack);
+    	
+    	// Скриване от core_Classes
+    	core_Classes::deinstallPack($pack);
+    	
+    	// Премахване от core_Cron
+    	core_Cron::deinstallPack($pack);
+    	
+    	// Премахване от core_Plugins
+    	core_Plugins::deinstallPack($pack);
+    	
+    	// Премахване на информацията за инсталацията
+    	$this->delete("#name = '{$pack}'");
+    	
+    	$res .= "<div>Успешно деинсталиране.</div>";
+    	
+    	return $res;
+    }
+    
+    
+    /**
      * Деинсталиране на пакет
      */
     function act_Deinstall()
@@ -119,49 +175,7 @@ class core_Packs extends core_Manager
         
         $pack = Request::get('pack', 'identifier');
         
-        if (!$pack) error('@Липсващ пакет', $pack);
-        
-        if (!$this->fetch("#name = '{$pack}'")) {
-            error('@Този пакет не е инсталиран', $pack);
-        }
-        
-        if ($this->fetch("(#name = '{$pack}') AND (#deinstall = 'yes')")) {
-            
-            $cls = $pack . "_Setup";
-            
-            if (cls::load($cls, TRUE)) {
-                
-                $setup = cls::get($cls);
-                
-                if (!method_exists($setup, 'deinstall')) {
-                    $res = "<h2>Пакета <span class=\"green\">'{$pack}'</span> няма деинсталатор.</h2>";
-                } else {
-                    $res = "<h2>Деинсталиране на пакета <span class=\"green\">'{$pack}'</span></h2>";
-                    $res .= (string) "<ul>" . $setup->deinstall() . "</ul>";
-                }
-            } else {
-                $res = "<h2 class='red''>Липсва кода на пакета '{$pack}'</h2>";
-            }
-        }
-        
-        // Общи действия по деинсталирането на пакета
-        
-        // Премахване от core_Interfaces
-        core_Interfaces::deinstallPack($pack);
-        
-        // Скриване от core_Classes
-        core_Classes::deinstallPack($pack);
-        
-        // Премахване от core_Cron
-        core_Cron::deinstallPack($pack);
-        
-        // Премахване от core_Plugins
-        core_Plugins::deinstallPack($pack);
-        
-        // Премахване на информацията за инсталацията
-        $this->delete("#name = '{$pack}'");
-        
-        $res .= "<div>Успешно деинсталиране.</div>";
+        $res = $this->deinstall($pack);
         
         return new Redirect(array($this), $res);
     }
@@ -643,7 +657,7 @@ class core_Packs extends core_Manager
         //                                'suggestions' => $suggestions, 
         //        'CONSTANT_NAME2' => .....
                
-        $conf = cls::get('core_ObjectConfiguration', array($setup->getConfigDescription(), $rec->configData, $userId));
+        $conf = cls::get('core_ObjectConfiguration', array($setup->getConfigDescription(), $rec->configData));
     
         return $conf;
     }
@@ -759,7 +773,7 @@ class core_Packs extends core_Manager
         }
         
         if (!($description = $setup->getConfigDescription())) {
-            error("@Пакета няма нищо за конфигуриране", $pack);
+            error("@Пакета няма нищо за конфигуриране", $packName);
         }
         
         if ($rec->configData) {

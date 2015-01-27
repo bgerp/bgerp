@@ -26,13 +26,13 @@ class techno2_SpecificationDoc extends core_Embedder
     /**
      * Необходими плъгини
      */
-    public $loadList = 'plg_RowTools, techno2_Wrapper, doc_DocumentPlg, doc_plg_BusinessDoc, doc_ActivatePlg, plg_Search, plg_Printing, Params=techno2_GeneralProductsParameters, doc_SharablePlg';
+    public $loadList = 'plg_RowTools, techno2_Wrapper, doc_DocumentPlg, doc_plg_BusinessDoc, doc_ActivatePlg, plg_Search, plg_Printing, plg_Clone';
                       
     
     /**
      * Заглавие
      */
-    public $singleTitle = 'Нестандартен артикул';
+    public $singleTitle = 'Спецификация на артикул';
     
 
     /**
@@ -44,13 +44,19 @@ class techno2_SpecificationDoc extends core_Embedder
     /**
      * Заглавие на мениджъра
      */
-    public $title = "Нестандартни артикули";
+    public $title = "Спецификации на артикули";
 
     
     /**
      * Права за писане
      */
     public $canWrite = 'ceo, techno';
+    
+    
+    /**
+     * Права за запис
+     */
+    public $canAdd = 'ceo, techno';
     
     
     /**
@@ -80,7 +86,7 @@ class techno2_SpecificationDoc extends core_Embedder
     /**
      * Групиране на документите
      */
-    public $newBtnGroup = "18.9|Производство";
+    public $newBtnGroup = "9.9|Производство";
 
 
     /**
@@ -110,7 +116,7 @@ class techno2_SpecificationDoc extends core_Embedder
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, title, folderId, innerClass';
+    public $listFields = 'id, title, folderId, innerClass,isPublic=Достъп';
     
     
     /**
@@ -122,7 +128,45 @@ class techno2_SpecificationDoc extends core_Embedder
     /**
      * Дефолт мета данни за всички продукти
      */
-    public static $defaultMetaData = 'canSell,canBuy,canConvert,canManifacture,canStore';
+    public static $defaultMetaData = 'canSell,canBuy,canConvert,canManifacture';
+    
+    
+    /**
+     * Детайли на този мастър обект
+     *
+     * @var string|array
+     */
+    public $details = 'AccReports=acc_ReportDetails';
+
+    
+    /**
+     * По кои сметки ще се правят справки
+     */
+    public $balanceRefAccounts = '301,302,304,305,306,309,321';
+    
+    
+    /**
+     * Да се показват ли в репортите нулевите редове
+     */
+    public $balanceRefShowZeroRows = TRUE;
+    
+    
+    /**
+     * По кой итнерфейс ще се групират сметките
+     */
+    public $balanceRefGroupBy = 'cat_ProductAccRegIntf';
+    
+    
+    /**
+     * Кой  може да вижда счетоводните справки?
+     */
+    public $canReports = 'ceo,sales,purchase,store,acc,cat';
+    
+    
+    /**
+     * Дали може да бъде само в началото на нишка
+     */
+    public $onlyFirstInThread = TRUE;
     
     
     /**
@@ -134,7 +178,7 @@ class techno2_SpecificationDoc extends core_Embedder
     	$this->FLD('meta', 'set(canSell=Продаваем,canBuy=Купуваем,
         						canStore=Складируем,canConvert=Вложим,
         						fixedAsset=Дма,canManifacture=Производим)', 'caption=Свойства->Списък,columns=2,formOrder=100000000,input=none');
-    	$this->FLD('sharedUsers', 'userList', 'caption=Споделяне->Потребители,input=none');
+    	$this->FLD("isPublic", 'varchar', 'caption=Показване за избор в документи->Достъп,notNull,default=no,formOrder=100000000');
     	
     	$this->setDbUnique('title');
     }
@@ -145,9 +189,36 @@ class techno2_SpecificationDoc extends core_Embedder
      */
     public static function on_AfterInputEditForm($mvc, $form)
     {
-    	if($form->rec->innerClass){
-    		$form->setField('sharedUsers', 'input,formOrder=100000000');
+    	if(isset($form->rec->innerClass)){
+    		if(isset($form->rec->originId)){
+    			$form->setReadOnly('innerClass');
+    			
+    			$origin = doc_Containers::getDocument($form->rec->originId);
+    			expect($origin->instance instanceof marketing_Inquiries2);
+    			
+    			$fields = array('title' => 'title') + $origin->getFieldsFromDriver();
+    			$originRec = $origin->rec()->innerForm;
+    			
+    			foreach ($fields as $fld){
+    				$form->setDefault($fld, $originRec->$fld);
+    			}
+    		}
+    		
+    		$form->setField('isPublic', 'input');
+    		$options = arr::make('no=Частен,yes=Публичен');
+    		$form->setOptions('isPublic', $options);
+    	} else {
+    		$form->setField('isPublic', 'input=none');
     	}
+    }
+
+
+    /**
+     * След рендиране на единичния изглед
+     */
+    public function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
+    {
+    	$tpl->push(('techno2/tpl/css/SpecificationStyles.css'), 'CSS');
     }
     
     
@@ -162,13 +233,8 @@ class techno2_SpecificationDoc extends core_Embedder
     	if(isset($rec->innerClass)){
     		
     		$Driver = $mvc->getDriver($rec);
-    		 
-    		$meta = $Driver->getDefaultMetas();
-    		 
-    		if(!count($meta)){
-    			$meta = arr::make(self::$defaultMetaData, TRUE);
-    		}
-    		 
+    		$meta = $Driver->getDefaultMetas(self::$defaultMetaData);
+    		
     		$Set = cls::get('type_Set');
     		$rec->meta = $Set->fromVerbal($meta);
     	}
@@ -194,7 +260,7 @@ class techno2_SpecificationDoc extends core_Embedder
     public static function canAddToFolder($folderId)
     {
     	$coverClass = doc_Folders::fetchCoverClassName($folderId);
-    
+    	
     	return cls::haveInterface('doc_ContragentDataIntf', $coverClass);
     }
     
@@ -231,6 +297,8 @@ class techno2_SpecificationDoc extends core_Embedder
     	
     	if($fields['-list']){
     		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
+    		$options = arr::make('no=Частен,yes=Публичен');
+    		$row->isPublic = $options[$rec->isPublic];
     	}
     }
     
@@ -243,7 +311,7 @@ class techno2_SpecificationDoc extends core_Embedder
     	$rec = $this->fetch($id);
     	
     	$row = new stdClass();
-    	$row->title = $this->singleTitle . "№{$rec->id}";
+    	$row->title = $this->getVerbal($rec, 'title');
     	$row->authorId = $rec->createdBy;
     	$row->author = $this->getVerbal($rec, 'createdBy');
     	$row->state = $rec->state;
@@ -254,11 +322,11 @@ class techno2_SpecificationDoc extends core_Embedder
     
     
     /**
-     * След подготовка на сингъла
+     * Връща разбираемо за човека заглавие, отговарящо на записа
      */
-    public static function on_AfterPrepareSingle($mvc, &$res, $data)
+    public static function getRecTitle($rec, $escaped = TRUE)
     {
-    	$data->params = $mvc->Params->prepareParams($data->rec->id);
+    	return $rec->title;
     }
     
     
@@ -277,22 +345,43 @@ class techno2_SpecificationDoc extends core_Embedder
     		
     		// Добавяме бутона за промяна
     		if($mvc->haveRightFor('edit', $data->rec)){
-    			$data->toolbar->addBtn('Промяна', array($mvc, 'edit', $data->rec->id), 'id=btnEdit,order=1', 'ef_icon = img/16/to_do_list.png,title=Редакция на активирана спецификация');
+    			$data->toolbar->addBtn('Промяна', array($mvc, 'edit', $data->rec->id, 'ret_url' => TRUE), 'id=btnEdit,order=1', 'ef_icon = img/16/to_do_list.png,title=Редакция на активирана спецификация');
     		}
     	}
-    }
-    
-    
-    /**
-     * След рендиране на данните върнати от драйвера
-     *
-     * @param core_ET $tpl
-     * @param core_ET $embededDataTpl
-     */
-    public static function on_AfterrenderEmbeddedData($mvc, &$res, core_ET &$tpl, core_ET $embededDataTpl, &$data)
-    {
-    	$InnerClass = $mvc->getDriver($data->rec);
-    	$InnerClass->renderParams($data->params, $tpl, FALSE);
+    	
+    	if($data->rec->state != 'rejected'){
+    		$tId = $mvc->fetchField($data->rec->id, 'threadId');
+    		
+    		if(sales_Quotations::haveRightFor('add', (object)array('threadId' => $tId))){
+    			if($qRec = sales_Quotations::fetch("#originId = {$data->rec->containerId} AND #state = 'draft'")){
+    				$data->toolbar->addBtn("Оферта", array('sales_Quotations', 'edit', $qRec->id, 'ret_url' => TRUE), 'ef_icon = img/16/document_quote.png,title=Редактиране на оферта');
+    			} else {
+    				$data->toolbar->addBtn("Оферта", array('sales_Quotations', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE), 'ef_icon = img/16/document_quote.png,title=Нова оферта за спецификацията');
+    			}
+    		}
+    		
+    		if(techno2_SpecTplCache::haveRightFor('read')){
+    			$data->toolbar->addBtn("История", array('techno2_SpecTplCache', 'list', 'docId' => $data->rec->id), 'ef_icon = img/16/view.png,title=Минали изгледи на спецификации');
+    		}
+    	}
+    	
+    	if($data->rec->state == 'active'){
+    		if(techno2_Boms::haveRightFor('write', (object)array('originId' => $data->rec->containerId))){
+    			if($qRec = techno2_Boms::fetch("#originId = {$data->rec->containerId} AND #state = 'draft'")){
+    				$data->toolbar->addBtn("Рецепта", array('techno2_Boms', 'edit', $qRec->id, 'ret_url' => TRUE), 'ef_icon = img/16/legend.png,title=Редактиране на технологична рецепта');
+    			} else {
+    				$data->toolbar->addBtn("Рецепта", array('techno2_Boms', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE), 'ef_icon = img/16/legend.png,title=Създаване на нова технологична рецепта');
+    			}
+    		}
+    		
+    		if(mp_Jobs::haveRightFor('write', (object)array('originId' => $data->rec->containerId))){
+    			if($qRec = mp_Jobs::fetch("#originId = {$data->rec->containerId} AND #state = 'draft'")){
+    				$data->toolbar->addBtn("Задание", array('mp_Jobs', 'edit', $qRec->id, 'ret_url' => TRUE), 'ef_icon = img/16/clipboard_text.png,title=Редактиране на задание за производство');
+    			} else {
+    				$data->toolbar->addBtn("Задание", array('mp_Jobs', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE), 'ef_icon = img/16/clipboard_text.png,title=Създаване на ново задание за производство');
+    			}
+    		}
+    	}
     }
     
     
@@ -314,6 +403,8 @@ class techno2_SpecificationDoc extends core_Embedder
     			$data->query->where("#innerClass = {$rec->driver}");
     		}
     	}
+    	
+    	$data->query->orderBy('id', 'DESC');
     }
     
     
@@ -327,7 +418,7 @@ class techno2_SpecificationDoc extends core_Embedder
      * Това са всички спецификации от неговата папка, както и
      * всички общи спецификации (създадени в папка "Проект")
      */
-    function getProducts($customerClass, $customerId, $date = NULL, $properties, $limit = NULL)
+    function getProducts($customerClass, $customerId, $date = NULL, $properties = NULL, $limit = NULL)
     {
     	$Class = cls::get($customerClass);
     	$folderId = $Class->forceCoverAndFolder($customerId, FALSE);
@@ -337,6 +428,7 @@ class techno2_SpecificationDoc extends core_Embedder
     	$products = array();
     	$query = $this->getQuery();
     	$query->where("#folderId = {$folderId}");
+    	$query->orWhere("#isPublic = 'yes'");
     	$query->where("#state = 'active'");
     	
     	while($rec = $query->fetch()){
@@ -389,20 +481,21 @@ class techno2_SpecificationDoc extends core_Embedder
     
     
     /**
-     * Връща стойноства на даден параметър на продукта, ако я има
+     * Връща стойноста на даден параметър на продукта, ако я има
      * 
      * @param int $id - ид на продукт
      * @param string $sysId - sysId на параметър
      */
     public function getParam($id, $sysId)
     {
+    	return;
     	expect($paramId = cat_Params::fetchIdBySysId($sysId));
     	 
     	$value = $this->Params->fetchField("#generalProductId = {$id} AND #paramId = '{$paramId}'", 'value');
     	 
     	if($value) return $value;
     	 
-    	// Връщаме дефолт стойността за параметъра
+    	// Връщаме дефолт стойноста за параметъра
     	return cat_Params::getDefault($paramId);
     }
     
@@ -463,7 +556,7 @@ class techno2_SpecificationDoc extends core_Embedder
     public static function getByProperty($properties, $limit = NULL)
     {
     	$products = array();
-    	$properties = arr::make($properties);
+    	$properties = arr::make($properties, TRUE);
     	expect(count($properties));
     	 
     	$count = 0;
@@ -471,8 +564,10 @@ class techno2_SpecificationDoc extends core_Embedder
     	// Всички активни спецификации
     	$query = static::getQuery();
     	$query->where("#state = 'active'");
+    
     	while($rec = $query->fetch()){
     		$meta = type_Set::toArray($rec->meta);
+    		
     		if(count($meta)){
     			
     			// Оставяме само тези спецификации, отговарящи поне на едно условие
@@ -486,7 +581,9 @@ class techno2_SpecificationDoc extends core_Embedder
     		}
     		
     		// Ако сме достигнали лимита не продължаваме
-    		if($count == $limit) break;
+    		if(isset($limit)){
+    			if($count === $limit) break;
+    		}
     	}
     	
     	// Връщаме намерените продукти
@@ -586,7 +683,39 @@ class techno2_SpecificationDoc extends core_Embedder
      */
     public function getPriceInfo($customerClass, $customerId, $productId, $productManId, $packagingId = NULL, $quantity = NULL, $datetime = NULL, $rate = 1, $chargeVat = 'no')
     {
-    	return (object)array('price' => NULL);
+    	$rec = $this->fetchRec($productId);
+    	$price = (object)array('price' => NULL);
+    	
+    	// Ако има к-во в активно задание за спецификацията, да се вземе
+    	
+    	$quantityJob = $this->getLastActiveJob($rec)->quantity;
+    	if(isset($quantityJob)){
+    		$quantity = $quantityJob;
+    	}
+    	
+    	// Опитваме се да намерим цена според технологичната карта
+    	if($amounts = techno2_Boms::getTotalByOrigin($rec->containerId)){
+    		
+    		// Какви са максималната и минималната надценка за контрагента
+    		$minCharge = cond_Parameters::getParameter($customerClass, $customerId, 'minSurplusCharge');
+    		$maxCharge = cond_Parameters::getParameter($customerClass, $customerId, 'maxSurplusCharge');
+    		
+    		// Връщаме цената спрямо минималната и максималната отстъпка, началното и пропорционалното количество
+    		$price->price = ($amounts->base * (1 + $maxCharge) + $quantity * $amounts->prop * (1 + $minCharge)) / $quantity;
+    		
+    		// Обръщаме цената в посочената валута
+    		$vat = $this->getVat($id);
+    		$price->price = deals_Helper::getDisplayPrice($price->price, $vat, $rate, $chargeVat, 2);
+    		
+    		return $price;
+    	}
+    	
+    	// Ако продукта няма цена, връщаме цената от последно продадената спецификация на този клиент (ако има)
+    	$LastPricePolicy = cls::get('sales_SalesLastPricePolicy');
+    	$lastPrice = $LastPricePolicy->getPriceInfo($customerClass, $customerId, $productId, $productManId, $packagingId, $quantity, $datetime, $rate, $chargeVatd);
+    	
+    	// Връщаме последната цена
+    	return $lastPrice;
     }
 
 
@@ -622,28 +751,23 @@ class techno2_SpecificationDoc extends core_Embedder
      */
     private static function cacheTpl($id, $time)
     {
+    	//Ако има кеширан изглед за тази дата връщаме го
     	if(!$cache = techno2_SpecTplCache::getTpl($id, $time)){
     		
+    		// Ако няма генерираме наново и го кешираме
     		$cacheRec = new stdClass();
     		$cacheRec->time = $time;
     		$cacheRec->specId = $id;
     		
-    		$self = cls::get(get_called_class());
-    		$Driver = $self->getDriver($id);
-    		$data = $Driver->prepareEmbeddedData();
-    		$data->params = $self->Params->prepareParams($id);
-    		
-    		$tpl = $Driver->renderDescription($data);
-    		$title = ht::createLinkRef($self->getTitleById($id), array($self, 'single', $id));
-    		$tpl->replace($title, "TITLE");
-    		
-    		$cacheRec->cache = $tpl;
+    		$Driver = cls::get(get_called_class())->getDriver($id);
+    		$cacheRec->cache = $Driver->getProductDescription();
     		
     		techno2_SpecTplCache::save($cacheRec);
     		
     		$cache = $cacheRec->cache;
     	}
     	
+    	// Връщаме намерения изглед
     	return $cache;
     }
     
@@ -652,12 +776,108 @@ class techno2_SpecificationDoc extends core_Embedder
      * Връща описанието на артикула
      *
      * @param mixed $id - ид/запис
+     * @param core_Mvc $documentMvc - модела
      * @return mixed - описанието на артикула
      */
-    public function getProductDesc($id, $time = NULL)
+    public function getProductDesc($id, $documentMvc, $time = NULL)
     {
-    	$tpl = self::cacheTpl($id, $time);
+    	// Ако документа където ще се показва е договор, тогава показваме подробното описание
+    	if($documentMvc instanceof deals_DealMaster || $documentMvc instanceof mp_Jobs || $documentMvc instanceof sales_Quotations){
+    		$tpl = self::cacheTpl($id, $time);
+    		 
+    		return $tpl;
+    	}
     	
-    	return $tpl;
+    	return $this->getProductTitle($id);
+    	
+    }
+    
+    
+    /**
+     * Връща масив от използваните документи в даден документ (като цитат или
+     * са включени в детайлите му)
+     * 
+     * @param int $data - сериализираната дата от документа
+     * @return param $res - масив с използваните документи
+     * 					[class] - инстанция на документа
+     * 					[id] - ид на документа
+     */
+    function getUsedDocs_($productId)
+    {
+    	$res = array();
+    	 
+    	if(!$Driver = $this->getDriver($productId)) return;
+    	
+    	if($usedDocs = $Driver->getUsedDocs()) {
+    		if(count($usedDocs)){
+    			foreach ($usedDocs as $doc){
+    				$res[] = (object)array('class' => $doc['mvc'], 'id' => $doc['rec']->id);
+    			}
+    		}
+    	}
+    	 
+    	return $res;
+    }
+    
+    
+    /**
+     * Връща последното активно задание за спецификацията
+     * 
+     * @param mixed $id - ид или запис
+     * @return mixed $res - записа на заданието или FALSE ако няма
+     */
+    public static function getLastActiveJob($id)
+    {
+    	$rec = self::fetchRec($id);
+    	
+    	// Какво е к-то от последното активно задание
+    	return mp_Jobs::fetch("#originId = {$rec->containerId} AND #state = 'active'");
+    }
+    
+    
+    /**
+     * Връща последната активна рецепта на спецификацията
+     *
+     * @param mixed $id - ид или запис
+     * @return mixed $res - записа на рецептата или FALSE ако няма
+     */
+    public static function getLastActiveBom($id)
+    {
+    	$rec = self::fetchRec($id);
+    	 
+    	// Какво е к-то от последното активно задание
+    	return techno2_Boms::fetch("#originId = {$rec->containerId} AND #state = 'active'");
+    }
+
+    
+    /**
+     * Рендира изглед за задание
+     * 
+     * @param mixed $id
+     * @param string $time
+     * @return mixed
+     */
+    public function renderJobView($id, $time = NULL)
+    {
+    	//@TODO дали е удачно да се кешира изгледа
+    	$Jobs = cls::get('mp_Jobs');
+    	return $this->getProductDesc($id, $Jobs, $time);
+    }
+    
+    
+    /**
+     * Изпълнява се след клониране на запис
+     */
+    public static function on_AfterSaveCloneRec($mvc, $rec, $nRec)
+    {
+    	// Клонираме и параметрите
+    	$pQuery = cat_products_Params::getQuery();
+    	$pQuery->where("#classId = {$mvc->getClassId()} AND #productId = {$rec->id}");
+    	
+    	while($dRec = $pQuery->fetch()){
+    		$dRec->productId = $nRec->id;
+    		unset($dRec->id);
+    		cat_products_Params::save($dRec);
+    	}
     }
 }

@@ -205,6 +205,7 @@ class bgerp_Notifications extends core_Manager
         $query = self::getQuery();
         $query->where("#url = '{$url}'");
         
+        $usersArr = array();
         while ($rec = $query->fetch()) {
             $usersArr[$rec->userId] = $rec->hidden;
         }
@@ -278,6 +279,7 @@ class bgerp_Notifications extends core_Manager
             //  $row->msg .= " ({$rec->cnt})";
         }
         
+        $attr = array();
         if($rec->state == 'active') {
             $attr['style'] = 'font-weight:bold;';
         } else {

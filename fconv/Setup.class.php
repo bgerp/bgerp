@@ -8,6 +8,18 @@ defIfNot('FCONV_TEMP_PATH', EF_TEMP_PATH . "/fconv");
 
 
 /**
+ * Убиване на увиснали скриптове
+ */
+defIfNot('FCONV_TIME_LIMIT', "timelimit -t 3600");
+
+
+/**
+ * Дали да се използва скрипт за убиване на увиснали програми
+ */
+defIfNot('FCONV_USE_TIME_LIMIT', "no");
+
+
+/**
  * Конвертиране на файлове
  *
  * @category  vendors
@@ -51,6 +63,15 @@ class fconv_Setup extends core_ProtoSetup
     var $managers = array(
             'fconv_Processes',
         );
+    
+    
+    /**
+     * Описание на конфигурационните константи
+     */
+    var $configDescription = array(
+        'FCONV_TIME_LIMIT' => array ('varchar', 'caption=Убиване на увиснали скриптове->Скрипт'),                
+        'FCONV_USE_TIME_LIMIT' => array ('enum(no=Не, yes=Да)', 'caption=Дали да се използва скрипт за убиване на увиснали програми->Избор'),                
+    );
     
     
     /**

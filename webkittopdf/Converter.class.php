@@ -42,7 +42,7 @@ class webkittopdf_Converter extends core_Manager
      * @param string $bucketName - Името на кофата, където ще се записват данните
      * @param array $jsArr - Масив с JS и JQUERY_CODE
      *
-     * @return string $fh - Файлов манипулатор на новосъздадения pdf файл
+     * @return string|NULL $fh - Файлов манипулатор на новосъздадения pdf файл
      */
     static function convert($html, $fileName, $bucketName, $jsArr=array())
     {   
@@ -197,7 +197,9 @@ class webkittopdf_Converter extends core_Manager
             
             // Качваме файла в кофата и му вземаме манипулатора
             $fh = $Fileman->addNewFile($pdfPath, $bucketName, $fileName); 
-        } catch (core_exception_Expect $e) {}
+        } catch (core_exception_Expect $e) {
+            $fh = NULL;
+        }
         
         //Изтриваме временната директория заедно с всички създадени папки
         core_Os::deleteDir($tempPath);

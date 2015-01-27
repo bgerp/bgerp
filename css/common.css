@@ -590,10 +590,17 @@ input[type=checkbox],
 input[type=radio] {
   border: none !important;
   box-shadow: none;
-  margin: 3px 3px 3px 4px;
   background-color: transparent;
-  outline: none;
-  vertical-align: -1px; }
+  outline: none; }
+
+.checkbox,
+input[type=checkbox] {
+  margin: 3px 3px 3px 4px; }
+
+.radiobutton,
+input[type=radio] {
+  margin: 2px 3px 3px 4px;
+  vertical-align: middle; }
 
 input[type=radio] + label,
 input[type=checkbox] + label {
@@ -804,17 +811,23 @@ table .linkWithIcon {
   .linkWithIcon.nameday {
     background-image: url('../img/16/orthodox.png'); }
 
-.more-btn {
+input.more-btn {
   float: left;
-  margin-top: 0;
   margin-bottom: 0;
   background-position: center center;
   background-image: url(../img/16/toggle-expand.png) !important;
-  background-repeat: no-repeat !important;
   padding-left: 0.3em !important;
   padding-right: 0.3em !important;
   width: 1.9em;
   height: 2em \9; }
+
+.more-btn {
+  background-image: url(../img/16/toggle-expand.png) !important;
+  background-repeat: no-repeat !important; }
+
+a.more-btn {
+  padding-left: 17px !important;
+  height: 16px; }
 
 .narrow .more-btn {
   float: none; }
@@ -931,6 +944,88 @@ a.profile {
  * край на хипервръзки към профилите на потребители
  */
 /*
+ * състояния
+ */
+.state-draft {
+  background-color: #bbffff; }
+
+.state-active {
+  background-color: #ffeedd;
+  background: rgba(250, 221, 187, 0.5); }
+
+.state-opened {
+  background-color: #bbffcc; }
+
+.state-pending {
+  background-color: #eeccff; }
+
+.state-closed {
+  background-color: #dddddd; }
+
+.state-stopped,
+.state-blocked {
+  background-color: #ffaa00; }
+
+.state-rejected {
+  background-color: #cc6666; }
+
+.state-rejected td,
+.state-rejected .document th,
+.state-rejected .document td a,
+.state-rejected .document p,
+.state-rejected .document h3,
+.state-rejected .document h4,
+.state-rejected .richtext,
+.state-rejected .document a,
+.state-rejected .document span,
+.state-rejected .richtext div,
+.state-rejected .cCode,
+.state-rejected .antetka,
+.state-rejected .document ul,
+.state-rejected .document ol,
+.state-rejected .document li,
+.state-rejected .document b,
+.state-rejected .document font {
+  color: #999999 !important;
+  text-decoration: line-through !important; }
+
+.state-rejected .docBgIcon,
+.state-rejected .document .docBgIcon b {
+  color: #444444 !important; }
+
+.state-rejected .document img,
+.state-rejected .anchor-arrow {
+  opacity: 0.5;
+  -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=50)"; }
+
+.state-rejected .linkWithIcon.state-rejected {
+  background-color: transparent; }
+
+.state-free {
+  background-color: #33ccf5; }
+
+.state-hidden {
+  background-color: #ffee77; }
+
+.state-revert {
+  background-color: #cc9933; }
+
+.state-wakeup {
+  background-color: #259641; }
+
+.stateIndicator {
+  height: 0.6em;
+  width: 0.6em;
+  border: solid 1px #999999;
+  -moz-border-radius: 0.3em;
+  -webkit-border-radius: 0.3em;
+  -ms-border-radius: 0.3em;
+  border-radius: 0.3em; }
+
+/*
+ * край на състояния
+ */
+/*
  * Стилове за елемента 'list Table'
  */
 table.listTable {
@@ -961,6 +1056,29 @@ table.listTable {
 
 table.listTable:not(.noHoverTable) > tbody > tr:hover {
   background-color: #ffffcc; }
+  table.listTable:not(.noHoverTable) > tbody > tr:hover.state-draft {
+    background-color: #88ffff; }
+  table.listTable:not(.noHoverTable) > tbody > tr:hover.state-active {
+    background: rgba(247, 197, 139, 0.5); }
+  table.listTable:not(.noHoverTable) > tbody > tr:hover.state-opened {
+    background-color: #97ffb1; }
+  table.listTable:not(.noHoverTable) > tbody > tr:hover.state-pending {
+    background-color: #e6b3ff; }
+  table.listTable:not(.noHoverTable) > tbody > tr:hover.state-closed {
+    background-color: #d0d0d0; }
+  table.listTable:not(.noHoverTable) > tbody > tr:hover.state-stopped,
+  table.listTable:not(.noHoverTable) > tbody > tr:hover.state-blocked {
+    background-color: #cc8800; }
+  table.listTable:not(.noHoverTable) > tbody > tr:hover.state-rejected {
+    background-color: #bf4040; }
+  table.listTable:not(.noHoverTable) > tbody > tr:hover.state-free {
+    background-color: #0bbbea; }
+  table.listTable:not(.noHoverTable) > tbody > tr:hover.state-hidden {
+    background-color: #ffe42b; }
+  table.listTable:not(.noHoverTable) > tbody > tr:hover.state-revert {
+    background-color: #a37a29; }
+  table.listTable:not(.noHoverTable) > tbody > tr:hover.state-wakeup {
+    background-color: #208238; }
 
 .listTitle {
   margin-bottom: 12px;
@@ -1043,7 +1161,11 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
 .staticFormView .formFieldValue {
   border: solid 1px #9999ff;
   padding: 3px;
-  background-color: white; }
+  background-color: white;
+  min-height: 1.2em; }
+
+.wide #main-container .formTable .staticFormView .formElement {
+  min-width: 200px; }
 
 .formFields > table {
   width: 100%; }
@@ -1145,6 +1267,10 @@ input:focus[type=button] {
     padding: 0; }
   .simpleForm .formFields {
     margin: 0; }
+  .simpleForm .vertical .formGroup {
+    font-weight: bold !important;
+    color: black !important;
+    background: none !important; }
 
 .wide #main-container .formTable .formElement {
   min-width: 32em; }
@@ -1406,6 +1532,14 @@ td.keylist-group {
       margin-right: 5px;
       top: 2px;
       position: relative; }
+
+  .keylistCategory.opened  .invert-checkbox {
+    float: right;
+    display: block; }
+  .keylistCategory.closed  .invert-checkbox {
+    display: none; }
+  .keylistCategory .hidden {
+    display: none !important; }
 
   .opened td.keylist-group > div .plus {
     display: none; }
@@ -2300,88 +2434,6 @@ div.statuses-message h2 {
 
 /*
  * край на нотификации
- */
-/*
- * състояния
- */
-.state-draft {
-  background-color: #bbffff; }
-
-.state-active {
-  background-color: #ffeedd;
-  background: rgba(250, 221, 187, 0.5); }
-
-.state-opened {
-  background-color: #bbffcc; }
-
-.state-pending {
-  background-color: #eeccff; }
-
-.state-closed {
-  background-color: #dddddd; }
-
-.state-stopped,
-.state-blocked {
-  background-color: #ffaa00; }
-
-.state-rejected {
-  background-color: #cc6666; }
-
-.state-rejected td,
-.state-rejected .document th,
-.state-rejected .document td a,
-.state-rejected .document p,
-.state-rejected .document h3,
-.state-rejected .document h4,
-.state-rejected .richtext,
-.state-rejected .document a,
-.state-rejected .document span,
-.state-rejected .richtext div,
-.state-rejected .cCode,
-.state-rejected .antetka,
-.state-rejected .document ul,
-.state-rejected .document ol,
-.state-rejected .document li,
-.state-rejected .document b,
-.state-rejected .document font {
-  color: #999999 !important;
-  text-decoration: line-through !important; }
-
-.state-rejected .docBgIcon,
-.state-rejected .document .docBgIcon b {
-  color: #444444 !important; }
-
-.state-rejected .document img,
-.state-rejected .anchor-arrow {
-  opacity: 0.5;
-  -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=50)"; }
-
-.state-rejected .linkWithIcon.state-rejected {
-  background-color: transparent; }
-
-.state-free {
-  background-color: #33ccf5; }
-
-.state-hidden {
-  background-color: #ffee77; }
-
-.state-revert {
-  background-color: #cc9933; }
-
-.state-wakeup {
-  background-color: #259641; }
-
-.stateIndicator {
-  height: 0.6em;
-  width: 0.6em;
-  border: solid 1px #999999;
-  -moz-border-radius: 0.3em;
-  -webkit-border-radius: 0.3em;
-  -ms-border-radius: 0.3em;
-  border-radius: 0.3em; }
-
-/*
- * край на състояния
  */
 .core_Cron .listTable td p {
   margin: 5px;

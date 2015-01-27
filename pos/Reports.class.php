@@ -19,7 +19,7 @@ class pos_Reports extends core_Master {
 	/**
      * Какви интерфейси поддържа този мениджър
      */
-    var $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf=pos_TransactionSourceImpl, deals_DealsAccRegIntf, acc_RegisterIntf';
+    var $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf=pos_transaction_Report, deals_DealsAccRegIntf, acc_RegisterIntf';
     
     
     /**
@@ -216,7 +216,7 @@ class pos_Reports extends core_Master {
     public static function on_AfterInputEditForm($mvc, &$form)
     {
     	if($form->isSubmitted()) {
-    		$draftRec = static::fetch("#state='draft' AND #pointId={$form->rec->pointId} AND #cashier={$form->rec->cashier}");
+    		$draftRec = static::fetch("#state='draft' AND #pointId={$form->rec->pointId} AND #cashier={$form->rec->cashier} AND #id != '{$form->rec->id}'");
     		if($draftRec) {
     			
     			// Ако има вече чернова с тези параметри директно я отваряме
@@ -461,6 +461,10 @@ class pos_Reports extends core_Master {
     		if(!$rec->details){
     			$mvc->extractData($rec);
     		}
+    	}
+    	
+    	if(empty($rec->id)){
+    		$rec->isContable = 'yes';
     	}
     }
     

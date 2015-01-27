@@ -224,8 +224,9 @@ function posActions() {
 		
 		var productId = $(this).attr("data-id");
 		var receiptId = $("input[name=receiptId]").val();
+		var quant = $("input[name=ean]").val();
 		
-		var data = {receiptId:receiptId,productId:productId};
+		var data = {receiptId:receiptId,productId:productId,quantity:quant};
 		
 		resObj = new Object();
 		resObj['url'] = url;
@@ -282,6 +283,8 @@ function posActions() {
 		}
 	});
 	
+	var tabContent = $('#tools-wide-tabs li.active a').attr('href');
+	$(tabContent).addClass('active');
 	
 	// Скриване на табовете
 	$(document.body).on('click', ".pos-tabs a ", function(e){
@@ -362,7 +365,6 @@ function posActions() {
 		}, 700);
 	});
 	
-	
 	// Добавяне на продукт от резултатите за търсене
 	$(document.body).on('click', ".pos-add-res-btn", function(e){
 		var elemRow = $(this).closest('tr');
@@ -375,6 +377,68 @@ function posActions() {
 		resObj = new Object();
 		resObj['url'] = url;
 		getEfae().process(resObj, {receiptId:receiptId,productId:productId});
+		calculateWidth();
+	});
+	
+	
+	// Търсене на контрагенти
+	$(document.body).on('click', ".pos-search-contragent-btn", function(e){
+		var searchStr = $("input[name=input-search-contragent]").val();
+		var receiptId = $("input[name=receiptId]").val();
+		
+		var url2 = $(this).attr("data-url");
+		
+		if(!url2) return;
+		
+		resObj = new Object();
+		resObj['url'] = url2;
+		getEfae().process(resObj, {receiptId:receiptId,searchString:searchStr});
+		calculateWidth();
+	});
+	
+	// При прехвърляне на бележка, автоматично създаваме нова
+	$(document.body).on('click', ".transferBtn", function(e){
+		var url = $(this).attr("data-url");
+		
+		if(!url) return;
+		
+		resObj = new Object();
+		resObj['url'] = url;
+		getEfae().process(resObj);
+	});
+	
+	// При натискане на бутон със знак добавя знака в полето за търсене на код
+	$(document.body).on('click', ".tools-sign", function(e){
+		var sign = $(this).val();
+		
+		var inpVal = $("input[name=ean]").val();
+		inpVal += sign;
+		
+		$("input[name=ean]").val(inpVal);
+		$("input[name=ean]").focus();
+	});
+	
+	
+	// Време за изчакване
+	var timeout1;
+	
+	// Търсене на контрагенти след освобождаване на клавиш
+	$("input[name=input-search-contragent]").keyup(function() {
+		var url = $(this).attr("data-url");
+		var receiptId = $("input[name=receiptId]").val();
+		var inpVal = $("input[name=input-search-contragent]").val();
+		
+		// След всяко натискане на бутон изчистваме времето на изчакване
+		clearTimeout(timeout1);
+		
+		// Правим Ajax заявката като изтече време за изчакване
+		timeout1 = setTimeout(function(){
+			resObj = new Object();
+			resObj['url'] = url;
+			getEfae().process(resObj, {receiptId:receiptId,searchString:inpVal});
+			calculateWidth();
+		}, 3000);
+		
 	});
 }
 
@@ -398,7 +462,7 @@ function calculateWidth(){
 	$('#single-receipt').css('width', maxColWidth);
 	$('.tabs-holder-content').css('width', maxColWidth);
 	$('.tools-wide-select-content').css('width', maxColWidth);
-
+	
 	//максимална височина на дясната колона и на елементите й
 	$('.tools-wide-select-content').css('maxHeight', winHeight-85);
 	$('.wide #pos-products').css('maxHeight', winHeight-155);
@@ -406,13 +470,15 @@ function calculateWidth(){
 	//височина за таблицата с резултатите
 	var searchTopHeight = parseInt($('.search-top-holder').height());
 	$('#pos-search-result-table').css('maxHeight', winHeight - searchTopHeight - 120);
+
+	$('#result_contragents').css('max-height', 239);
+	$('#result_contragents').css('overflow-y', 'auto');
 	
-	//максимална височина на бележката
-	var downPanelHeight = parseInt($('#tools-holder').outerHeight());
-	$('.scrolling-vertical').css('maxHeight', winHeight -  totalOffset - downPanelHeight -30);
+	var receiptHeight = winHeight -  totalOffset - 410;
+	$('.scrolling-vertical').css('maxHeight',receiptHeight);
+	$('.scrolling-vertical').css('minHeight',130);
 	$('.scrolling-vertical').scrollTo = $('.scrolling-vertical').scrollHeight;
 	scrollRecieptBottom();
-	
 }
 
 // Скролиране на бележката до долу

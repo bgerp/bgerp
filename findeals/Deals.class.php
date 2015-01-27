@@ -185,7 +185,7 @@ class findeals_Deals extends deals_DealBase
     	$this->FLD('secondContragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=none');
     	$this->FLD('secondContragentId', 'int', 'input=none');
     	
-    	$this->FLD('description', 'richtext(rows=4)', 'caption=Допълнителno->Описание');
+    	$this->FLD('description', 'richtext(rows=4)', 'caption=Допълнително->Описание');
     	$this->FLD('state','enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Приключен)','caption=Състояние, input=none');
     	
     	$this->FNC('detailedName', 'varchar', 'column=none,caption=Име');
@@ -837,8 +837,9 @@ class findeals_Deals extends deals_DealBase
     /**
      * Кои сделки ще могатд а се приключат с документа
      * 
-     * @param int $id - ид на документа
-     * @return array $options - опции
+     * @param findeals_Deals $mvc
+     * @param array $res
+     * @param object $rec
      */
     public static function on_AfterGetDealsToCloseWith($mvc, &$res, $rec)
     {

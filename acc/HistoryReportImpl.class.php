@@ -16,6 +16,13 @@
 class acc_HistoryReportImpl extends frame_BaseDriver
 {
 	
+	
+	/**
+	 * За конвертиране на съществуващи MySQL таблици от предишни версии
+	 */
+	public $oldClassName = 'acc_HistoryReport';
+	
+	
 	/**
 	 * Кой може да избира драйвъра
 	 */
@@ -63,6 +70,11 @@ class acc_HistoryReportImpl extends frame_BaseDriver
 		$form->FLD('toDate', 'date(allowEmpty)', 'caption=До,input,mandatory');
 		$form->FLD('isGrouped', 'varchar', 'caption=Групиране');
 		$form->setOptions('isGrouped', array('' => '', 'yes' => 'Да', 'no' => 'Не'));
+		
+		$orderFields = ",valior=Вальор,docId=Документ,debitQuantity=Дебит»К-во,debitAmount=Дебит»Сума,creditQuantity=Кредит»К-во,creditAmount=Кредит»Сума,blQuantity=Остатък»К-во,blAmount=Остатък»Сума";
+		
+		$form->FLD('orderField', "enum({$orderFields})", 'caption=Подредба->По,formOrder=110000');
+		$form->FLD('orderBy', 'enum(,asc=Въздходящ,desc=Низходящ)', 'caption=Подредба->Тип,formOrder=110001');
 	}
 	
 	
@@ -87,7 +99,7 @@ class acc_HistoryReportImpl extends frame_BaseDriver
 			if($form->rec->id){
 				if(frame_Reports::fetchField($form->rec->id, 'filter')->accountId != $form->rec->accountId){
 					unset($form->rec->ent1Id, $form->rec->ent2Id, $form->rec->ent3Id);
-					Request::push(array('ent1Id' => NULL, 'ent2Id' => NULL, 'ent3Id' => NULL));
+					Request::push(array('ent1Id' => NULL, 'ent2Id' => NULL, 'ent3Id' => NULL, 'orderField' => NULL, 'orderBy' => NULL));
 				}
 			}
 			 
@@ -99,7 +111,6 @@ class acc_HistoryReportImpl extends frame_BaseDriver
 					$form->FNC("ent{$i}Id", "acc_type_Item(lists={$gr->rec->num}, allowEmpty)", "caption=Избор на пера->{$gr->rec->name},input,mandatory");
 				} else {
 					$form->FNC("ent{$i}Id", "int", "");
-					//$form->rec->{"ent{$i}Id"} = NULL;
 				}
 			}
 		}
@@ -116,6 +127,14 @@ class acc_HistoryReportImpl extends frame_BaseDriver
 		if($form->isSubmitted()){
 			if($form->rec->toDate < $form->rec->fromDate){
 				$form->setError('to, from', 'Началната дата трябва да е по малка от крайната');
+			}
+			
+			if($form->rec->orderField == ''){
+				unset($form->rec->orderField);
+			}
+			
+			if($form->rec->orderBy == ''){
+				unset($form->rec->orderBy);
 			}
 		}
 	}
@@ -150,6 +169,9 @@ class acc_HistoryReportImpl extends frame_BaseDriver
 		$data->toDate = $filter->toDate;
 		$data->isGrouped = ($filter->isGrouped != 'no') ? 'yes' : 'no';
 		
+		$data->orderField = $this->innerForm->orderField;
+		$data->orderBy = $this->innerForm->orderBy;
+		
 		$this->History->prepareHistory($data);
 		 
 		return $data;
@@ -172,7 +194,10 @@ class acc_HistoryReportImpl extends frame_BaseDriver
 	 */
 	public function renderEmbeddedData($data)
 	{
-		return $this->History->renderHistory($data);
+		$tpl = $this->History->renderHistory($data);
+		$tpl->replace($this->title, 'TITLE');
+		
+		return $tpl;
 	}
 
 
@@ -184,6 +209,7 @@ class acc_HistoryReportImpl extends frame_BaseDriver
 	public function alterSearchKeywords(&$searchKeywords)
 	{
 		if(!empty($this->innerForm)){
+			$newKeywords = '';
 			$newKeywords .= acc_Accounts::getVerbal($this->innerForm->accountId, 'title');
 			$newKeywords .= " " . acc_Accounts::getVerbal($this->innerForm->accountId, 'num');
 			

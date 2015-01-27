@@ -72,6 +72,19 @@ class plg_Select extends core_Plugin
     
     
     /**
+     * Преди рендиране на таблицата
+     */
+    function on_BeforeRenderListTable($mvc, &$res, $data) 
+    {
+    	if(!$data->listClass) {
+    		$data->listClass = "listRows selectRows";
+    	} else {
+    		$data->listClass .= " selectRows";
+    	}
+    }
+    
+    
+    /**
      * Извиква се преди изпълняването на екшън
      */
     function on_BeforeAction($mvc, &$res, $act)

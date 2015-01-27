@@ -27,7 +27,13 @@ class mp_Stages extends core_Manager
 	/**
 	 * Плъгини за зареждане
 	 */
-	public $loadList = 'plg_RowTools, mp_Wrapper, plg_Printing, plg_Sorting';
+	public $loadList = 'plg_RowTools, mp_Wrapper, plg_Printing, plg_LastUsedKeys, plg_Sorting';
+	
+	
+	/**
+	 * Кои ключове да се тракват, кога за последно са използвани
+	 */
+	public $lastUsedKeys = 'departmentId';
 	
 	
 	/**
@@ -113,7 +119,7 @@ class mp_Stages extends core_Manager
 	 */
 	protected static function on_AfterPrepareListFilter($mvc, &$data)
 	{
-		$data->listFilter->FNC('department', 'key(mvc=mp_Stages,select=name,allowEmpty)', 'caption=Център на дейност,input');
+		$data->listFilter->FNC('department', 'key(mvc=hr_Departments,select=name,allowEmpty)', 'caption=Център на дейност,input');
 		$data->listFilter->showFields = 'department';
 		$data->listFilter->view = 'horizontal';
 		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
@@ -141,22 +147,6 @@ class mp_Stages extends core_Manager
 	public static function on_AfterRecToVerbal($mvc, &$row, $rec)
 	{
 		$row->departmentId = hr_Departments::getHyperlink($rec->departmentId, TRUE);
-	}
-	
-	
-	/**
-	 * Поставя изискване да се селектират само активните записи
-	 */
-	public static function on_AfterMakeArray4Select($mvc, &$optArr, $fields = NULL, &$where = NULL)
-	{
-		if(count($optArr)){
-			
-			// Към името на записа, добавяме и центъра му на дейност да могат да се различават
-			foreach ($optArr as $id => &$title){
-				$departmentVerbal = hr_Departments::getTitleById($mvc->fetchField($id, 'departmentId'), FALSE);
-				$title .= " ({$departmentVerbal})";
-			}
-		}
 	}
 	
 	

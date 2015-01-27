@@ -83,6 +83,9 @@ class doc_FilesPlg extends core_Plugin
             $limit = $query->limit($limit);
         }
         
+        $threadArr = array();
+        $folderArr = array();
+        
         // Обхождаме всички извлечени резултати
         while ($fRec = $query->fetch()) {
             
@@ -107,6 +110,8 @@ class doc_FilesPlg extends core_Plugin
             // Полетата на документа във вербален вид
             $docRow = $doc->getDocumentRow();
             
+            $attr = array();
+            
             // Атрибутеите на линка
             $attr['title'] = tr('Документ') . ': ' . $docRow->title;
             
@@ -126,6 +131,8 @@ class doc_FilesPlg extends core_Plugin
                     
                     // Полетата на документа във вербален вид
                     $docProxyRow = $docProxy->getDocumentRow();
+                    
+                    $attr = array();
                     
                     // Атрибутеите на линка
                     $attr['title'] = tr('Нишка') . ': ' . $docProxyRow->title;
@@ -217,6 +224,7 @@ class doc_FilesPlg extends core_Plugin
             $docRow = $doc->getDocumentRow();
             
             // Атрибутеите на линка
+            $attr = array();
             $attr['class'] = 'linkWithIcon';
             $attr['style'] = 'background-image:url(' . sbf($doc->getIcon($doc->that)) . ');';
             $attr['title'] = tr('Документ') . ': ' . $docRow->title;
@@ -241,6 +249,7 @@ class doc_FilesPlg extends core_Plugin
                 $docProxyRow = $docProxy->getDocumentRow();
                 
                 // Атрибутеите на линка
+                $attr = array();
                 $attr['class'] = 'linkWithIcon';
                 $attr['style'] = 'background-image:url(' . sbf($docProxy->getIcon($doc->that)) . ');';
                 $attr['title'] = tr('Нишка') . ': ' . $docProxyRow->title;

@@ -591,10 +591,17 @@ select.combo {
 .checkbox, .radiobutton, input[type=checkbox], input[type=radio] { 
 	border: none !important;
 	box-shadow: none;
-	margin: 3px 3px 3px 4px;
 	background-color: transparent;
 	outline: none;
-	vertical-align: -1px;
+}
+
+.checkbox, input[type=checkbox] {
+	margin: 3px 3px 3px 4px;
+}
+
+.radiobutton,  input[type=radio] {
+	margin: 2px 3px 3px 4px;
+	vertical-align: middle;
 }
 
 input[type=radio] + label, input[type=checkbox] + label {
@@ -818,17 +825,24 @@ table .linkWithIcon {
 	}
 }
 
-.more-btn {
+input.more-btn {
 	float: left;
-	margin-top: 0;
 	margin-bottom: 0;
 	background-position: center center;
 	background-image: url(../img/16/toggle-expand.png) !important;
-	background-repeat: no-repeat !important;
 	padding-left: 0.3em !important;
 	padding-right: 0.3em !important;
 	width: 1.9em;
 	height: 2em \9;
+}
+.more-btn {
+	background-image: url(../img/16/toggle-expand.png) !important;
+    background-repeat: no-repeat !important;
+}
+
+a.more-btn {
+	padding-left: 17px !important;
+	height: 16px;
 }
 
 .narrow .more-btn {
@@ -965,6 +979,80 @@ a.profile {
 }
 /*край на хипервръзки към профилите на потребители*/
 
+/*състояния*/
+.state-draft {
+    background-color: #bff;
+}
+
+.state-active {
+    background-color: #fed;
+    background: rgba(250, 221, 187, 0.5);
+}
+
+.state-opened {
+    background-color: #bfc;
+}
+
+.state-pending{
+    background-color: #ecf;
+}
+
+.state-closed {
+    background-color: #ddd;
+}
+
+.state-stopped, .state-blocked {
+    background-color: #fa0;
+}
+
+.state-rejected { 
+    background-color: #c66;
+}
+
+.state-rejected td, .state-rejected .document th, .state-rejected .document td a , .state-rejected .document p, .state-rejected .document h3, .state-rejected .document h4,
+.state-rejected .richtext, .state-rejected .document a, .state-rejected .document span, .state-rejected .richtext div, .state-rejected .cCode, .state-rejected .antetka,
+.state-rejected .document ul, .state-rejected .document ol, .state-rejected .document li, .state-rejected .document b, .state-rejected .document font {
+    color: #999 !important;
+    text-decoration: line-through !important;
+}
+
+.state-rejected .docBgIcon, .state-rejected .document .docBgIcon b {
+    color: #444 !important;
+}
+
+.state-rejected .document img, .state-rejected .anchor-arrow {
+    opacity: 0.5;
+    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=50)";
+}
+
+.state-rejected .linkWithIcon.state-rejected {
+    background-color: transparent;
+}
+
+.state-free { 
+    background-color: #33CCF5;
+}
+
+.state-hidden {
+    background-color: #ffee77;
+}
+
+.state-revert {
+    background-color: #cc9933;
+}
+
+.state-wakeup {
+    background-color: #259641;
+}
+
+.stateIndicator {
+    height: 0.6em;
+    width: 0.6em;
+    border: solid 1px #999;
+    @include border-radius(0.3em);
+}
+/*край на състояния*/
+
 
 /* Стилове за елемента 'list Table' */
 table.listTable { 
@@ -999,7 +1087,40 @@ table.listTable {
 }
 
 table.listTable:not(.noHoverTable) > tbody > tr:hover {
-        background-color: $beige;
+ 	background-color: $beige;
+    &.state-draft {
+        background-color: darken(#bff, 10%);
+	}
+	&.state-active {
+	    background: darken(rgba(250, 221, 187, 0.5), 10%);
+	}
+	&.state-opened {
+	    background-color: darken(#bfc, 7%);
+	}
+	&.state-pending{
+	    background-color: darken(#ecf, 5%);
+	}
+	&.state-closed {
+	    background-color: darken(#ddd, 5%);
+	}
+	&.state-stopped, &.state-blocked {
+	    background-color: darken(#fa0, 10%);
+	}
+	&.state-rejected { 
+	    background-color: darken(#c66, 10%);
+	}
+	&.state-free { 
+	    background-color: darken(#33CCF5, 10%);
+	}
+	&.state-hidden {
+	    background-color: darken(#ffee77, 15%);
+	}
+	&.state-revert {
+	    background-color: darken(#cc9933, 10%);
+	}
+	&.state-wakeup {
+	    background-color: darken(#259641, 5%);
+	}
 }
 
 .listTitle {
@@ -1085,7 +1206,12 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
     border:solid 1px #99f; 
     padding:3px;
     background-color:#fff;
-}   
+    min-height: 1.2em;
+}
+
+.wide #main-container .formTable .staticFormView .formElement {
+    min-width: 200px;
+}
 
 .formFields > table {
 	width: 100%;
@@ -1201,6 +1327,11 @@ td.formElement {
     }
     .formFields{
         margin:0;
+    }
+    .vertical .formGroup {
+        font-weight: bold !important;
+        color: black !important;
+        background: none !important;
     }
 }
 
@@ -1502,11 +1633,24 @@ td.keylist-group{
 	    margin-top: 1px;
 	    cursor: pointer; 
 	    img {
-	    	display: none;
+	       display:none;
 	    	margin-right: 5px;
 	    	top: 2px;
 	    	position: relative;
 	    } 
+    }
+}
+
+.keylistCategory{
+	&.opened  .invert-checkbox {
+	   float: right;
+	   display: block;
+	}
+	&.closed  .invert-checkbox {
+        display: none;
+	}
+	 .hidden {
+        display: none !important;
     }
 }
 
@@ -2479,81 +2623,6 @@ div.statuses-message h2 {
 	@include border-radius(0px);
 }
 /*край на нотификации*/
-
-
-/*състояния*/
-.state-draft {
-    background-color: #bff;
-}
-
-.state-active {
-    background-color: #fed;
-	background: rgba(250, 221, 187, 0.5);
-}
-
-.state-opened {
-    background-color: #bfc;
-}
-
-.state-pending{
-    background-color: #ecf;
-}
-
-.state-closed {
-    background-color: #ddd;
-}
-
-.state-stopped, .state-blocked {
-    background-color: #fa0;
-}
-
-.state-rejected { 
-    background-color: #c66;
-}
-
-.state-rejected td, .state-rejected .document th, .state-rejected .document td a , .state-rejected .document p, .state-rejected .document h3, .state-rejected .document h4,
-.state-rejected .richtext, .state-rejected .document a, .state-rejected .document span, .state-rejected .richtext div, .state-rejected .cCode, .state-rejected .antetka,
-.state-rejected .document ul, .state-rejected .document ol, .state-rejected .document li, .state-rejected .document b, .state-rejected .document font {
-	color: #999 !important;
-	text-decoration: line-through !important;
-}
-
-.state-rejected .docBgIcon, .state-rejected .document .docBgIcon b {
-	color: #444 !important;
-}
-
-.state-rejected .document img, .state-rejected .anchor-arrow {
-	opacity: 0.5;
-	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=50)";
-}
-
-.state-rejected .linkWithIcon.state-rejected {
-	background-color: transparent;
-}
-
-.state-free { 
-    background-color: #33CCF5;
-}
-
-.state-hidden {
-    background-color: #ffee77;
-}
-
-.state-revert {
- 	background-color: #cc9933;
-}
-
-.state-wakeup {
-	background-color: #259641;
-}
-
-.stateIndicator {
-	height: 0.6em;
-	width: 0.6em;
-	border: solid 1px #999;
-	@include border-radius(0.3em);
-}
-/*край на състояния*/
 
 .core_Cron .listTable td p { 
 	margin: 5px; 

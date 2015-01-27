@@ -1,4 +1,6 @@
 <?php
+
+
 /**
  * Документ "Оферта"
  *
@@ -14,12 +16,14 @@
  */
 class sales_Quotations extends core_Master
 {
+	
+	
     /**
      * Заглавие
      */
     public $title = 'Изходящи оферти';
-
-
+    
+    
     /**
      * Абревиатура
      */
@@ -35,14 +39,14 @@ class sales_Quotations extends core_Master
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, doc_ContragentDataIntf, email_DocumentIntf,  bgerp_DealIntf';
+    public $interfaces = 'doc_DocumentIntf, doc_ContragentDataIntf, email_DocumentIntf';
     
     
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, plg_Printing, doc_EmailCreatePlg, acc_plg_DocumentSummary, plg_Search, doc_plg_HidePrices, doc_plg_TplManager,
-                    doc_DocumentPlg, doc_ActivatePlg, bgerp_plg_Blank, doc_plg_BusinessDoc, cond_plg_DefaultValues';
+    public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, doc_EmailCreatePlg, acc_plg_DocumentSummary, plg_Search, doc_plg_HidePrices, doc_plg_TplManager,
+                    doc_DocumentPlg, plg_Printing, doc_ActivatePlg, bgerp_plg_Blank, doc_plg_BusinessDoc, cond_plg_DefaultValues';
        
     
     /**
@@ -225,8 +229,8 @@ class sales_Quotations extends core_Master
        		$data->form->setField('row1,row2,row3', 'input');
        		$origin = doc_Containers::getDocument($rec->originId);
        		
-       		if($origin->haveInterface('techno_ProductsIntf')){
-       			$price = $origin->getPriceInfo()->price;
+       		if($origin->haveInterface('cat_ProductAccRegIntf')){
+       			$price = $origin->getInstance()->getPriceInfo($rec->contragentClassId, $rec->contragentId, $origin->that, $origin->getInstance()->getClassId())->price;
 	       		
        			// Ако няма цена офертата потребителя е длъжен да я въведе от формата
 	       		if(!$price){
@@ -259,7 +263,7 @@ class sales_Quotations extends core_Master
 	    	} elseif($items && sales_Sales::haveRightFor('add')){
 	    		
 	    		// Ако има уникални продукти и потребителя има може да създава продажба, се поставя бутон за продажба
-	    		$data->toolbar->addBtn('Продажба', array('sales_Sales', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE), NULL, 'ef_icon=img/16/star_2.png,title=Създаване на продажба по офертата');
+	    		$data->toolbar->addBtn('Продажба', array($mvc, 'CreateSale', $data->rec->id, 'ret_url' => TRUE), 'warning=Сигурнили сте че искате да създадете продажба?', 'target=_blank,ef_icon=img/16/star_2.png,title=Създаване на продажба по офертата');
 	    	}
 	    }
     }
@@ -431,7 +435,7 @@ class sales_Quotations extends core_Master
     /**
      * След проверка на ролите
      */
-    function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec, $userId)
+    protected static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec, $userId)
     {
     	if($res == 'no_one') return;
     	if($action == 'activate'){
@@ -439,6 +443,12 @@ class sales_Quotations extends core_Master
     			
     			// Ако документа се създава, то не може да се активира
     			$res = 'no_one';
+    		} else {
+    			
+    			// За да се активира, трябва да има детайли
+    			if(!sales_QuotationsDetails::fetchField("#quotationId = {$rec->id}")){
+    				$res = 'no_one';
+    			}
     		}
     	}
     	
@@ -497,11 +507,14 @@ class sales_Quotations extends core_Master
     {
     	if($rec->originId){
     		$origin = doc_Containers::getDocument($rec->originId);
-	    	if($origin->haveInterface('techno_ProductsIntf')){
+	    	if($origin->haveInterface('cat_ProductAccRegIntf')){
 	    		$originRec = $origin->fetch();
 	    		if($originRec->state == 'draft'){
 	    			$originRec->state = 'active';
 	    			$origin->getInstance()->save($originRec);
+	    			
+	    			$msg = "|Активиран е документ|* #{$origin->abbr}{$origin->that}";
+	    			core_Statuses::newStatus(tr($msg));
 	    		}		
 	    	}
     	}
@@ -546,40 +559,6 @@ class sales_Quotations extends core_Master
     	}
     	
     	return $res;
-    }
-    
-    
-    /**
-     * Имплементация на @link bgerp_DealIntf::getDealInfo()
-     * 
-     * @param int|object $id
-     * @return bgerp_iface_DealResponse
-     * @see bgerp_DealIntf::getDealInfo()
-     */
-    public function getDealInfo($id)
-    {
-    	$rec = $this->fetchRec($id);
-    	$products = $this->getItems($id, $total);
-    	
-    	if(!count($products)) return FALSE;
-    	
-    	/* @var $result bgerp_iface_DealResponse */
-        $result = new bgerp_iface_DealResponse();
-    	$result->dealType = bgerp_iface_DealResponse::TYPE_SALE;
-        
-        $result->quoted->amount                  = $total;
-        $result->quoted->currency                = $rec->currencyId;
-        $result->quoted->rate 					 = $rec->currencyRate;
-        $result->quoted->vatType 				 = $rec->chargeVat;  
-        if($rec->deliveryPlaceId){
-        	$result->quoted->delivery->location  = crm_Locations::fetchField("#title = '{$rec->deliveryPlaceId}'", 'id');
-        }
-        $result->quoted->delivery->term          = $rec->deliveryTermId;
-    	$result->quoted->payment->method         = $rec->paymentMethodId;
-    	
-    	$result->quoted->products = $products;
-        
-        return $result;
     }
     
     
@@ -706,14 +685,43 @@ class sales_Quotations extends core_Master
     
     
     /**
-     * Имплементация на @link bgerp_DealIntf::getDealInfo()
-     *
-     * @param int|object $id
-     * @return bgerp_iface_DealAggregator
-     * @see bgerp_DealIntf::getDealInfo()
+     * Екшън генериращ продажба от оферта
      */
-    public function pushDealInfo($id, &$aggregator)
+    function act_CreateSale()
     {
+    	sales_Sales::requireRightFor('add');
+    	expect($id = Request::get('id', 'int'));
+    	expect($rec = $this->fetchRec($id));
+    	expect($items = $this->getItems($id));
     	
+    	// Опитваме се да намерим съществуваща чернова продажба
+    	if(!Request::get('dealId', 'key(mvc=sales_Sales)') && !Request::get('stop')){
+    		Redirect(array('sales_Sales', 'ChooseDraft', 'contragentClassId' => $rec->contragentClassId, 'contragentId' => $rec->contragentId, 'ret_url' => TRUE));
+    	}
+    	
+    	// Ако няма създаваме нова
+    	if(!$sId = Request::get('dealId', 'key(mvc=sales_Sales)')){
+    		
+    		// Подготвяме данните на мастъра на генерираната продажба
+    		$fields = array('currencyId'         => $rec->currencyId,
+    				'currencyRate'       => $rec->currencyRate,
+    				'paymentMethodId'    => $rec->paymentMethodId,
+    				'deliveryTermId'     => $rec->deliveryTermId,
+    				'chargeVat'          => $rec->chargeVat,
+    				'note'				 => $rec->others,
+    				'deliveryLocationId' => crm_Locations::fetchField("#title = '{$rec->deliveryPlaceId}'", 'id'),
+    		);
+    		 
+    		// Създаваме нова продажба от офертата
+    		$sId = sales_Sales::createNewDraft($rec->contragentClassId, $rec->contragentId, $fields);
+    	}
+    	
+    	// За всеки детайл на офертата подаваме го като детайл на продажбата
+    	foreach ($items as $item){
+    		sales_Sales::addRow($sId, $item->classId, $item->productId, $item->quantity, $item->price, NULL, $item->discount);
+    	}
+    	
+    	// Редирект към новата продажба
+    	return Redirect(array('sales_Sales', 'single', $sId), tr('Успешно е създадена продажба от офертата'));
     }
 }

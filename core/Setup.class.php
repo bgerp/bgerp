@@ -21,6 +21,12 @@ defIfNot('EF_DATE_FORMAT', 'd.m.Y');
 
 
 /**
+ * Дали да се използва времевата зона на потребителя
+ */
+defIfNot('EF_DATE_USE_TIMEOFFSET', 'yes');
+
+
+/**
  * Формат по подразбиране за датата при тесни екрани
  */
 defIfNot('EF_DATE_NARROW_FORMAT', 'd.m.y');
@@ -167,9 +173,11 @@ class core_Setup extends core_ProtoSetup {
     var $configDescription = array(
                
            'EF_DATE_FORMAT'   => array ('enum(d.m.Y=|*22.11.1999, d-m-Y=|*22-11-1999, d/m/Y=|*22/11/1999, m.d.Y=|*11.22.1999, m-d-Y=|*11-22-1999, m/d/Y=|*11/22/1999, d.m.y=|*22.11.99, d-m-y=|*22-11-99, d/m/y=|*22/11/99, m.d.y=|*11.22.99, m-d-y=|*11-22-99, m/d/y=|*11/22/99)', 'caption=Формат по подразбиране за датата->Десктоп, customizeBy=powerUser'),
-            
+           
            'EF_DATE_NARROW_FORMAT'   => array ('enum(d.m.y=|*22.11.99, d-m-y=|*22-11-99, d/m/y=|*22/11/99, m.d.y=|*11.22.99, m-d-y=|*11-22-99, m/d/y=|*11/22/99, d.m.Y=|*22.11.1999, d-m-Y=|*22-11-1999, d/m/Y=|*22/11/1999, m.d.Y=|*11.22.1999, m-d-Y=|*11-22-1999, m/d/Y=|*11/22/1999)', 'caption=Формат по подразбиране за датата->Мобилен, customizeBy=powerUser'),
            
+           'EF_DATE_USE_TIMEOFFSET'   => array ('enum(yes=Да, no=Не)', 'caption=Дали да се използва времевата зона на потребителя->Избор, customizeBy=powerUser'),
+            
            'EF_NUMBER_THOUSANDS_SEP' => array( 'enum(&#x20;=Интервал,\'=Апостроф,`=Обратен апостроф)', 'caption=Форматиране на числа->Разделител, customizeBy=powerUser'),
             
            'EF_NUMBER_DEC_POINT' => array( 'enum(.=Точка,&#44;=Запетая)', 'caption=Форматиране на числа->Дробен знак, customizeBy=powerUser'),
@@ -178,7 +186,7 @@ class core_Setup extends core_ProtoSetup {
             
            'TYPE_KEY_MAX_SUGGESTIONS'   => array ('int', 'caption=Критичен брой опции|*&comma;| над които търсенето става по ajax->Опции'), 
     
-           'EF_APP_TITLE'   => array ('varchar', 'caption=Наименование на приложението->Име'),
+           'EF_APP_TITLE'   => array ('varchar(16)', 'caption=Наименование на приложението->Име'),
            
            'CORE_LOGIN_INFO'   => array ('varchar', 'caption=Информация във формата за логване->Текст'),
       
@@ -366,6 +374,8 @@ class core_Setup extends core_ProtoSetup {
         $inst = cls::get('custom_Settings');
         
         if (!$inst->db->tableExists($inst->dbTableName)) return ;
+        
+        $dataArr = array();
         
         // Взема всички записи и общите ги обядинява в един
         $cQuery = custom_Settings::getQuery();

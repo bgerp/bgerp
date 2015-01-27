@@ -118,7 +118,7 @@ class cms_Articles extends core_Master
     function description()
     {
         $this->FLD('level', 'order', 'caption=Номер,mandatory');
-        $this->FLD('menuId', 'key(mvc=cms_Content,select=menu)', 'caption=Меню,mandatory,silent,autoFilter');
+        $this->FLD('menuId', 'key(mvc=cms_Content,select=menu)', 'caption=Меню,mandatory,silent');
         $this->FLD('title', 'varchar', 'caption=Заглавие,mandatory,width=100%');
         $this->FLD('body', 'richtext(bucket=Notes)', 'caption=Текст,column=none');
 
@@ -150,7 +150,7 @@ class cms_Articles extends core_Master
         if(!$opt[$form->rec->menuId]) {
             $form->rec->menuId = key($opt);
         }
-
+        
         $data->query->where(array("#menuId = '[#1#]'", $form->rec->menuId));
         
         $data->query->orderBy('#menuId,#level');
@@ -168,14 +168,15 @@ class cms_Articles extends core_Master
         }
         
         $cQuery = cms_Content::getQuery();
- 
+     
         $cQuery->where("#lang = '{$lang}'");
          
         $cQuery->orderBy('#menu');
         
         $options = array();
-        
+    
         while($cRec = $cQuery->fetch(array("#source = [#1#]" , self::getClassId()))) {
+        	
             $options[$cRec->id] = $cRec->menu;
         }
 
@@ -463,6 +464,7 @@ class cms_Articles extends core_Master
         if ($title) {
             
             // Създаваме линк с загллавието
+            $attr = array();
             $attr['class'] = 'linkWithIcon';
             $attr['style'] = 'background-image:url(' . $editSbf . ');';
             

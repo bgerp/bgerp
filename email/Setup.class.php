@@ -112,27 +112,37 @@ defIfNot('EMAIL_OUTGOING_HEADER_TEXT_EN', "[#hello#] [#salutation#] [#name#]");
 /**
  * Футъра на имейла на текстовата част, който се генерира автоматично при създаване на изходящ имейл
  */
-defIfNot('EMAIL_OUTGOING_FOOTER_TEXT', "Сърдечни поздрави,\r
-[#name#]\r
-[#company#]\r
-[#position#]\r
-Тел.: [#tel#]\r
-Факс: [#fax#]\r
-[#email#]\r
-[#website#]");
+defIfNot('EMAIL_OUTGOING_FOOTER_TEXT', "Сърдечни поздрави,\n[#name#]\n[#company#]\n[#position#]\nТел.: [#tel#]\nФакс: [#fax#]\n[#email#]\n[#website#]");
 
 
 /**
  * Футъра на имейла на текстовата част, който се генерира автоматично при създаване на изходящ имейл - на английски
  */
-defIfNot('EMAIL_OUTGOING_FOOTER_TEXT_EN', "Best regards,\r
-[#name#]\r
-[#company#]\r
-[#position#]\r
-Tel.: [#tel#]\r
-Fax: [#fax#]\r
-[#email#]\r
-[#website#]");
+defIfNot('EMAIL_OUTGOING_FOOTER_TEXT_EN', "Best regards,\n[#name#]\n[#company#]\n[#position#]\nTel.: [#tel#]\nFax: [#fax#]\n[#email#]\n[#website#]");
+
+
+/**
+ * Текст по подразбиране при отговор на имейл
+ */
+defIfNot('EMAIL_INCOMINGS_DEFAULT_EMAIL_BODY', "Благодаря за имейла от [#DATETIME#]");
+
+
+/**
+ * Текст по подразбиране при отговор на имейл - на английски
+ */
+defIfNot('EMAIL_INCOMINGS_DEFAULT_EMAIL_BODY_EN', "Thanks for the email on [#DATETIME#]");
+
+
+/**
+ * Текст по подразбиране при препращане на имейл
+ */
+defIfNot('EMAIL_FORWARDING_DEFAULT_EMAIL_BODY_FORWARDING', "Моля запознайте се с препратения имейл [#MSG#]");
+
+
+/**
+ * Текст по подразбиране при препращане на имейл - на английски
+ */
+defIfNot('EMAIL_FORWARDING_DEFAULT_EMAIL_BODY_FORWARDING_EN', "Please read the forwarded email [#MSG#]");
 
 
 /**
@@ -235,6 +245,14 @@ class email_Setup extends core_ProtoSetup
             'EMAIL_OUTGOING_FOOTER_TEXT_EN' => array ('richtext(rows=5,bucket=Postings)', 'caption=Изходящ имейл->Подпис EN, customizeBy=powerUser'),
     
             'EMAIL_SALUTATION_EMAIL_TIME_LIMIT' => array ('time(suggestions=30 дни|90 дни|180 дни)', 'caption=След колко време да не се използват обръщеният по имейл за нова нишка->Време'),
+            
+            'EMAIL_INCOMINGS_DEFAULT_EMAIL_BODY' => array ('varchar', 'caption=Текст по подразбиране при отговор на имейл->Текст, customizeBy=powerUser'),
+            
+            'EMAIL_INCOMINGS_DEFAULT_EMAIL_BODY_EN' => array ('varchar', 'caption=Текст по подразбиране при отговор на имейл->Текст EN, customizeBy=powerUser'),
+    
+            'EMAIL_FORWARDING_DEFAULT_EMAIL_BODY_FORWARDING' => array ('varchar', 'caption=Текст по подразбиране при препращане на имейл->Текст, customizeBy=powerUser'),
+    
+            'EMAIL_FORWARDING_DEFAULT_EMAIL_BODY_FORWARDING_EN' => array ('varchar', 'caption=Текст по подразбиране при препращане на имейл->Текст EN, customizeBy=powerUser'),
         );
         
         

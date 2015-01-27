@@ -554,6 +554,7 @@ class blast_Lists extends core_Master
         
         //Добавя в лист само списъци с имейли
         $query = $this->getQuery();
+        $query->where("#state != 'rejected'");
         $query->orderBy("createdOn", 'DESC');
         
         // Обхождаме откритите резултати

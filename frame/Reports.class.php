@@ -140,7 +140,7 @@ class frame_Reports extends core_Embedder
         $this->FLD('data', 'blob(1000000, serialize, compress)', 'caption=Данни,input=none,single=none,column=none');
  
         // Най-ранната дата когато отчета може да се активира
-        $this->FLD('earlyActivationOn', 'datetime', 'input=none');
+        $this->FLD('earlyActivationOn', 'datetime(format=smartTime)', 'input=none,caption=Активиране');
     }
 
     
@@ -155,11 +155,15 @@ class frame_Reports extends core_Embedder
             if(!Mode::is('printing')){
                 $row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " (" . $mvc->getVerbal($rec, 'state') . ")" ;
             }
-            
+           
             // Обновяваме данните, ако отчета е в състояние 'draft'
             if($rec->state == 'draft') {
             	$Source = $mvc->getDriver($rec);
             	$rec->data = $Source->prepareInnerState();
+            }
+            
+            if($rec->state == 'active' || $rec->state == 'rejected'){
+            	unset($row->earlyActivationOn);
             }
         }
     }
@@ -175,7 +179,7 @@ class frame_Reports extends core_Embedder
     		// Обновяваме датата на кога най-рано може да се активира
     		$Source = $mvc->getDriver($rec);
     		$rec->earlyActivationOn = $Source->getEarlyActivation();
-    		//$rec->state = 'draft';
+    		$rec->state = 'draft';
     		$mvc->save($rec, 'earlyActivationOn,state');
     	}
     }
@@ -251,16 +255,32 @@ class frame_Reports extends core_Embedder
     {
     	$rec = $this->fetch($id);
     	
-    	$Driver = $this->getDriver($rec);
-    	
         $row = new stdClass();
-        $row->title = $this->singleTitle . " №{$id}";
+        $row->title    = $this->getRecTitle($rec);
         $row->authorId = $rec->createdBy;
-        $row->author = $this->getVerbal($rec, 'createdBy');
-        $row->state = $rec->state;
-		$row->recTitle = $rec->reason;
+        $row->author   = $this->getVerbal($rec, 'createdBy');
+        $row->state    = $rec->state;
+		$row->recTitle = $row->title;
 		
         return $row;
+    }
+    
+    
+    /**
+     * Връща разбираемо за човека заглавие, отговарящо на записа
+     */
+    public static function getRecTitle($rec, $escaped = TRUE)
+    {
+    	$me = cls::get(get_called_class());
+    	
+    	try{
+    		$Driver = $me->getDriver($rec);
+    		$title = $me->singleTitle . " '{$Driver->getReportTitle()}' №{$rec->id}";
+    	} catch(core_exception_Expect $e){
+    		$title = "<span class='red'>" . tr('Проблем при показването') . "</span>";
+    	}
+    
+    	return $title;
     }
     
     
@@ -383,7 +403,8 @@ class frame_Reports extends core_Embedder
     	
     	// Ако отчета е чакащ, може да се редактира
     	if($action == 'edit' && isset($rec)){
-    		if($rec->state == 'pending'){
+    		$state = (!isset($rec->state)) ? $mvc->fetchField($rec->id, 'state') : $rec->state;
+    		if($state == 'pending'){
     			$requiredRoles = $mvc->getRequiredRoles('edit');
     		}
     	}

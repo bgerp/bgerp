@@ -6,7 +6,7 @@
 	</div>
 	<!--ET_END header-->
 	
-		<table cellpadding='2px' class='report-info' border='0'>
+		<table class='report-info'>
 			<tr>
 				<td>|Касиер|*: </td>
 				<td></td>
@@ -27,6 +27,15 @@
 				<td></td>
 				<td><b>[#storeId#]</b></td>
 			</tr>
+			
+			<!--ET_BEGIN transferedIn-->
+			<tr>
+				<td>|Прехвълено към|*:</td>
+				<td></td>
+				<td><b>[#transferedIn#]</b></td>
+			</tr>
+			<!--ET_END transferedIn-->
+			
 			<tr>
 				<td>|Продукти|*:</td>
 				<td></td>

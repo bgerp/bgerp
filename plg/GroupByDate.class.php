@@ -70,7 +70,7 @@ class plg_GroupByDate extends core_Plugin
             $rows[$id] = $data->rows[$id];
                         
             if(trim($t) && ($t != '00:00:00')) {
-                list($h, $m, $s) = explode(':', $t);
+                list($h, $m) = explode(':', $t);
                 $color = dt::getColorByTime($rec->{$field});
                 $rows[$id]->{$field} = "<span style='color:#{$color}'>{$h}:{$m}</span>";
             } else {

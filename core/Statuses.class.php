@@ -25,10 +25,12 @@ class core_Statuses extends core_BaseClass
      * @param integer $lifeTime - След колко време да е неактивно
      * @param string $hitId - Уникално ID на хита
      * 
-     * @return integer - При успешен запис връща id' то на записа
+     * @return integer|FALSE - При успешен запис връща id' то на записа
      */
     static function newStatus($text, $type='notice', $userId=NULL, $lifeTime=60, $hitId=NULL)
     {
+        $res = 0;
+        
         // Инстанция на самия клас
         $me = cls::get('core_Statuses');
 
@@ -51,13 +53,15 @@ class core_Statuses extends core_BaseClass
     /**
      * Абонира за извличане на статус съобщения
      * 
-     * @return core_ET
+     * @return core_ET|FALSE
      */
     static function subscribe()
     {
         // Инстанция на самия клас
         $me = cls::get('core_Statuses');
-
+        
+        $tpl = new ET();
+        
         // Извикваме функцията
         $subscribed = $me->invoke('AfterSubscribe', array(&$tpl));
         

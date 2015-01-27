@@ -80,6 +80,8 @@ class doc_RichTextPlg extends core_Plugin
             $this->mvc->_htmlBoard[$place] = "{$docName} ( $link )";
         } else {
             
+            $attr = array();
+            
             // Икона на линка
             $attr['ef_icon'] = $doc->getIcon($doc->that);
             
@@ -154,7 +156,7 @@ class doc_RichTextPlg extends core_Plugin
      *
      * @param string $fileName - името на файла
      *
-     * @return array $info - Информация за масива. $info['className'] - Името на класа. $info['id'] - id' то на документа
+     * @return array|NULL - Информация за масива. $info['className'] - Името на класа. $info['id'] - id' то на документа
      */
     static function getFileInfo($fileName)
     {
@@ -176,6 +178,8 @@ class doc_RichTextPlg extends core_Plugin
         //id' то на класа
         $id = $matches['id'];
         
+        $handleInfo = array();
+        
         // Вземаме записа от модела
         if ($id && $className) {
             
@@ -191,10 +195,7 @@ class doc_RichTextPlg extends core_Plugin
         // Провяряваме дали имаме права и дали има такъв запис
         if (($rec) && ($className::haveRightFor('single', $rec))) {
             
-            // Масив с id и класа
-            $info = $handleInfo;
-            
-            return $info;
+            return $handleInfo;
         }
     }
     
@@ -321,7 +322,7 @@ class doc_RichTextPlg extends core_Plugin
      * Добавя бутон за качване на документ
      * 
      * @param core_Mvc $mvc
-     * @param core_Toolbar $toolbarArr
+     * @param core_ObjectCollection $toolbarArr
      * @param array $attr
      */
     function on_AfterGetToolbar($mvc, &$toolbarArr, &$attr)

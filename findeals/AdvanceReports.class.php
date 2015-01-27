@@ -26,8 +26,8 @@ class findeals_AdvanceReports extends core_Master
      * Заглавие
      */
     public $title = 'Авансови отчети';
-
-
+    
+    
     /**
      * Абревиатура
      */

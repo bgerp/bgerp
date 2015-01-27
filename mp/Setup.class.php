@@ -45,6 +45,7 @@ class mp_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     var $managers = array(
+    		'mp_Jobs',
             'mp_Tasks',
     		'mp_Resources',
     		'mp_Stages',
@@ -53,7 +54,8 @@ class mp_Setup extends core_ProtoSetup
     		'mp_ConsumptionNoteDetails',
     		'mp_ProductionNotes',
     		'mp_ProductionNoteDetails',
-    		'migrate::removeOldDefResource5'
+    		'migrate::removeOldDefResource5',
+    		'migrate::updateResourceState',
         );
 
         
@@ -95,5 +97,19 @@ class mp_Setup extends core_ProtoSetup
     public function removeOldDefResource5()
     {
     	mp_Resources::delete("#title = 'Общ'");
+    }
+    
+    
+    /**
+     * Миграция за обновяване на състоянието на ресурсите
+     */
+    public function updateResourceState()
+    {
+    	$query = mp_Resources::getQuery();
+    	$query->where("#state != 'rejected'");
+    	while($rec = $query->fetch()){
+    		$rec->state = 'active';
+    		cls::get('mp_Resources')->save_($rec);
+    	}
     }
 }

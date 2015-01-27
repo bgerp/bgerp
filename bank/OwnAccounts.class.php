@@ -26,7 +26,7 @@ class bank_OwnAccounts extends core_Master {
      * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_RowTools, bank_Wrapper, acc_plg_Registry,
-                     plg_Sorting, plg_Current, plg_LastUsedKeys, doc_FolderPlg, plg_Rejected';
+                     plg_Sorting, plg_Current, plg_LastUsedKeys, doc_FolderPlg, plg_Rejected, plg_State';
     
     
     /**
@@ -182,7 +182,7 @@ class bank_OwnAccounts extends core_Master {
     /**
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
-    function on_AfterRecToVerbal(&$mvc, &$row, &$rec, $fields = array())
+    protected static function on_AfterRecToVerbal(&$mvc, &$row, &$rec, $fields = array())
     {
         $row->STATE_CLASS .= ($rec->state == 'rejected') ? " state-rejected" : " state-active";
         $row->bankAccountId = ht::createLink($row->bankAccountId, array('bank_Accounts', 'single', $rec->bankAccountId));
@@ -219,7 +219,7 @@ class bank_OwnAccounts extends core_Master {
     /**
      * Извиква се след подготовката на колоните ($data->listFields)
      */
-    static function on_AfterPrepareListFields($mvc, $data)
+    protected static function on_AfterPrepareListFields($mvc, $data)
     {
         $data->listFields['blAmount'] .= ", " . acc_Periods::getBaseCurrencyCode();
     }
@@ -244,8 +244,9 @@ class bank_OwnAccounts extends core_Master {
             $total = "<span style='color:red'>{$total}</span>";
         }
         
+        $state = (Request::get('Rejected', 'int')) ? 'rejected' : 'closed';
         $colspan = count($data->listFields) - 1;
-        $lastRow = new ET("<tr style='text-align:right' class='state-closed'><td colspan='{$colspan}'>[#caption#]: &nbsp;<b>[#total#]</b></td><td>&nbsp;</td></tr>");
+        $lastRow = new ET("<tr style='text-align:right' class='state-{$state}'><td colspan='{$colspan}'>[#caption#]: &nbsp;<b>[#total#]</b></td><td>&nbsp;</td></tr>");
         $lastRow->replace(tr("Общо"), 'caption');
         $lastRow->replace($total, 'total');
         
@@ -259,7 +260,7 @@ class bank_OwnAccounts extends core_Master {
      * @param stdClass $res
      * @param stdClass $data
      */
-    static function on_AfterPrepareEditForm($mvc, &$res, $data)
+    protected static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         $optionAccounts = $mvc->getPossibleBankAccounts();
         
@@ -352,9 +353,10 @@ class bank_OwnAccounts extends core_Master {
     
     /**
      * Изчличане на цялата информация за сметката която е активна
+     * 
      * @return stdClass $acc - записа отговарящ на текущата ни сметка
      */
-    static function getOwnAccountInfo($id = NULL)
+    protected static function getOwnAccountInfo($id = NULL)
     {
         if($id) {
             $ownAcc = static::fetch($id);
@@ -379,7 +381,7 @@ class bank_OwnAccounts extends core_Master {
     /**
      * Изпълнява се след въвеждането на данните от формата
      */
-    function on_AfterInputEditForm($mvc, $form)
+    protected static function on_AfterInputEditForm($mvc, $form)
     {
         $rec = $form->rec;
         
@@ -394,7 +396,7 @@ class bank_OwnAccounts extends core_Master {
     /**
      * Обработка на ролите
      */
-    function on_AfterGetRequiredRoles($mvc, &$res, $action)
+    protected static function on_AfterGetRequiredRoles($mvc, &$res, $action)
     {
         if($action == 'add') {
             if(!$mvc->canAddOwnAccount()) {
@@ -414,7 +416,7 @@ class bank_OwnAccounts extends core_Master {
      * @see crm_ContragentAccRegIntf::getItemRec
      * @param int $objectId
      */
-    static function getItemRec($objectId)
+    public static function getItemRec($objectId)
     {
         $result = NULL;
         
@@ -436,10 +438,11 @@ class bank_OwnAccounts extends core_Master {
      * @see crm_ContragentAccRegIntf::itemInUse
      * @param int $objectId
      */
-    static function itemInUse($objectId)
+    public static function itemInUse($objectId)
     {
         // @todo!
     }
+    
     
     /**
      * КРАЙ НА интерфейса @see acc_RegisterIntf
@@ -449,7 +452,7 @@ class bank_OwnAccounts extends core_Master {
     /**
      * Връща Валутата и iban-a на всивки наши сметки разделени с "-"
      */
-    static function getOwnAccounts()
+    public static function getOwnAccounts()
     {
         $Iban = cls::get('iban_Type');
         $accounts = array();
@@ -502,7 +505,7 @@ class bank_OwnAccounts extends core_Master {
     /**
      * Преди подготовка на резултатите
      */
-    function on_AfterPrepareListFilter($mvc, &$data)
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
         if(!haveRole($mvc->canSelectAll)){
             

@@ -48,19 +48,7 @@ class cat_ProductDriverIntf extends core_InnerObjectIntf
 	 *
 	 * @param core_ObjectReference
 	 */
-	public $ProductRec;
-	
-	
-	/**
-	 * Рендиране на параметрите
-	 *
-	 * @param данни за параметрите $paramData
-	 * @param core_ET $tpl - шаблон
-	 */
-	public function renderParams($paramData, &$tpl, $short = FALSE)
-	{
-		return $this->class->renderParams($paramData, $tpl, $short);
-	}
+	public $EmbedderRec;
 	
 	
 	/**
@@ -86,22 +74,74 @@ class cat_ProductDriverIntf extends core_InnerObjectIntf
 	
 	
 	/**
-	 * Как да се рендира изгледа в друг документ
-	 *
-	 * @param stdClass $data - дата
-	 * @return core_ET $tpl - шаблон
+	 * Кои опаковки поддържа продукта
+	 * 
+	 * @param array $metas - кои са дефолтните мета данни от ембедъра
+	 * @return array $metas - кои са дефолтните мета данни
 	 */
-	public function renderDescription($data)
+	public function getDefaultMetas($metas)
 	{
-		return $this->class->renderDescription($data);
+		return $this->class->getDefaultMetas($metas);
 	}
 	
 	
 	/**
-	 * Връща масив с мета данните които ще се форсират на продукта
+	 * Връща счетоводните свойства на обекта
 	 */
-	public function getDefaultMetas($innerState)
+	public function getFeatures()
 	{
-		return $this->class->getDefaultMetas($innerState);
+		return $this->class->getFeatures();
+	}
+	
+	
+	/**
+	 * Връща стойността на продукта отговаряща на параметъра
+	 *
+	 * @param string $sysId - систем ид на параметър (@see cat_Params)
+	 * @return mixed - стойността на параметъра за продукта
+	 */
+	public function getParamValue($sysId)
+	{
+		return $this->class->getParamValue($sysId);
+	}
+	
+	
+	/**
+	 * Връща описанието на артикула според драйвъра
+	 * 
+	 * @return core_ET
+	 */
+	public function getProductDescription()
+	{
+		return $this->class->getProductDescription();
+	}
+	
+	
+	/**
+	 * Кои документи са използвани в полетата на драйвера
+	 */
+	public function getUsedDocs()
+	{
+		return $this->class->getUsedDocs();
+	}
+	
+	
+	/**
+	 * Коя е основната мярка на драйвера
+	 */
+	public function getDriverUom($params = array())
+	{
+		return $this->class->getDriverUom($params);
+	}
+	
+	
+	/**
+	 * Задава параметрите на обекта
+	 *
+	 * @param mixed $params
+	 */
+	public function setParams($params)
+	{
+		return $this->class->setParams($params);
 	}
 }

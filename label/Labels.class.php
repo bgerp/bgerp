@@ -248,6 +248,8 @@ class label_Labels extends core_Master
             // Вземаме функционалните полета за типа
             label_TemplateFormats::addFieldForTemplate($fncForm, $form->rec->templateId);
             
+            $dataArr = array();
+            
             // Обхождаме масива
             foreach ((array)$fncForm->fields as $fieldName => $dummy) {
                 
@@ -339,7 +341,7 @@ class label_Labels extends core_Master
     {
         // Ако има права за отпечатване
         if (label_Prints::haveRightFor('print') && label_Labels::haveRightFor('uselabel', $data->rec)) {
-            $data->toolbar->addBtn('Отпечатване', array('label_Prints', 'new', 'labelId' => $data->rec->id, 'ret_url' => TRUE), "ef_icon=img/16/print_go.png, order=30");
+            $data->toolbar->addBtn('Отпечатване', array('label_Prints', 'new', 'labelId' => $data->rec->id, 'ret_url' => TRUE), "ef_icon=img/16/print_go.png, order=30, title=Започване на принтиране");
         }
     }
     
@@ -464,6 +466,10 @@ class label_Labels extends core_Master
             }
             $perPageCnt++;
             
+            if (!isset($data->rows[$rowId])) {
+                $data->rows[$rowId] = array();
+            }
+            
             // Обхождаме масива с шаблоните
             foreach ((array)$placesArr as $place) {
                 
@@ -537,6 +543,26 @@ class label_Labels extends core_Master
             
             // Вкарваме CSS-a, като инлайн
             $template = label_Templates::addCssToTemplate($data->Label->rec->templateId, $template);
+            
+            $divStyle = '';
+            
+            $cCol = $n % $data->pageLayout->columnsCnt;
+            
+            // За всяка колона без първата и се добавя междината за колоните
+            if (isset($data->pageLayout->columnsDist) && ($n !== 0) && ($cCol != 0)) {
+                $divStyle =  "margin-left: {$data->pageLayout->columnsDist}; ";
+            }
+            
+            // За всеки ред без първия се добавя междината за редовете
+            if (isset($data->pageLayout->linesDist) && $n >= $data->pageLayout->columnsCnt) {
+                $divStyle .=  "margin-top: {$data->pageLayout->linesDist};";
+            }
+            
+            if ($divStyle) {
+                $divStyle = "style='{$divStyle}'";
+            }
+            
+            $template = "<div {$divStyle}>" . $template . "</div>";
             
             // Заместваме шаблона в таблицата на страницата
             $tpl->replace($template, $n);

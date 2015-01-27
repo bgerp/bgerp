@@ -703,16 +703,19 @@ class expert_Expert extends core_FieldSet {
      */
     function getResult()
     {
+        $debug = '';
         
-        $debug = "<hr style='margin-top:10px;'><small><a href='#' onclick=\"toggleDisplay('expDebug');\">" . tr("Дебъг") . "</a><div id='expDebug' style='padding-left:15px; display:none;'>";
+        if (isDebug()) {
+            $debug = "<hr style='margin-top:10px;'><small><a href='#' onclick=\"toggleDisplay('expDebug');\">" . tr("Дебъг") . "</a><div id='expDebug' style='padding-left:15px; display:none;'>";
         
-        if(count($this->reason)) {
-            foreach($this->reason as $l) {
-                $debug .= "<li> $l</li>";
+            if(count($this->reason)) {
+                foreach($this->reason as $l) {
+                    $debug .= "<li> $l</li>";
+                }
             }
+            
+            $debug .= "<div></small>";
         }
-        
-        $debug .= "<div></small>";
         
         if(Request::get('AjaxCmd')) {
             

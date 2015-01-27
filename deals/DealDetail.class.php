@@ -326,16 +326,12 @@ abstract class deals_DealDetail extends doc_Detail
     		
     		$ProductManager = cls::get($rec->classId);
     		
-    		$row->productId = $ProductManager->getTitleById($rec->productId, TRUE, TRUE, $rec->tplLang);
-    		 
+    		$row->productId = $ProductManager->getProductDesc($rec->productId, $mvc->Master, $modifiedOn);
+    		
     		if($ProductManager->isProductStandart($rec->productId)){
-    			$row->productId = $ProductManager->getProductTitle($rec->productId);
-    			 
     			if(!Mode::is('printing') && !Mode::is('text', 'xhtml')){
     				$row->productId = ht::createLinkRef($row->productId, array($ProductManager, 'single', $rec->productId));
     			}
-    		} else {
-    			$row->productId = $ProductManager->getProductDesc($rec->productId, $modifiedOn);
     		}
     	}
     }
@@ -356,8 +352,9 @@ abstract class deals_DealDetail extends doc_Detail
                 	$error = "error=Няма продаваеми {$productMan->title}";
                 }
                 
+                $title = mb_strtolower($productMan->singleTitle);
             	$data->toolbar->addBtn($productMan->singleTitle, array($mvc, 'add', "{$mvc->masterKey}" => $masterRec->id, 'classId' => $manId, 'ret_url' => TRUE),
-                    "id=btnAdd-{$manId},{$error},order=10", 'ef_icon = img/16/shopping.png');
+                    "id=btnAdd-{$manId},{$error},order=10,title=Добавяне на {$title}", 'ef_icon = img/16/shopping.png');
             	unset($error);
             }
             

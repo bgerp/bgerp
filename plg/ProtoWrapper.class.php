@@ -138,7 +138,9 @@ class plg_ProtoWrapper extends core_Plugin
                             $rec->haveRight = $tabCtr->haveRightFor('list');
                         }
                     }
-                } catch (core_Exception_Expect $expect) {}
+                } catch (core_Exception_Expect $expect) {
+                    // Не се добавя нищо
+                }
             }
 
         }
@@ -148,7 +150,10 @@ class plg_ProtoWrapper extends core_Plugin
         $subTabs = array();
  
         $tabs->htmlId = 'packWrapper';
-
+        
+        $hint = '';
+        $hintBtn = '';
+        
         foreach($this->tabs as $name => $rec) {
             
             // Дали ще правим един или два таб контрола?

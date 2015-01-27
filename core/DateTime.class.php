@@ -233,6 +233,17 @@ class core_DateTime
     
     
     /**
+     * Връща разликата в секунди от timezone на сървъра и на потребителя
+     */
+    public static function getTimezoneDiff()
+    {
+        $timeZoneDiff = Mode::get('timezoneDiff');
+        
+        return $timeZoneDiff;
+    }
+    
+    
+    /**
      * Превръща MySQL-ска data/време към вербална дата/време
      */
     static function mysql2verbal($mysqlDate, $mask = "d.m.y H:i", $lg = NULL)
@@ -256,6 +267,12 @@ class core_DateTime
         $mysqlDate = str_replace("'", ":", $mysqlDate);
         
         $time = strtotime($mysqlDate);
+        
+        $conf = core_Packs::getConfig('core');
+        if ($conf->EF_DATE_USE_TIMEOFFSET == 'yes') {
+            $timeZoneDiff = self::getTimezoneDiff();
+            $time += $timeZoneDiff;
+        }
         
         $year = date('y', $time);
         $yearNow = date('y', time());
@@ -401,7 +418,7 @@ class core_DateTime
  
         if($dist < 0) {
             $dist =  1 - $dist / (24 * 60 * 60);
-            $g = round(max(4, 11 - $dist * $dist));
+            $g = round(max(4, 9 - $dist * $dist));
             $color = "0" . dechex($g) . "0";
         } else {
             

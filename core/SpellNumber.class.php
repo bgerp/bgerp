@@ -369,7 +369,9 @@ class core_SpellNumber
         	$numEuro = '';
         	$centEuro = '';
         }
-        	
+        $coreConf = core_Packs::getConfig('core');
+        $pointSign = $coreConf->EF_NUMBER_DEC_POINT;
+        
         if ($lg == "bg") {
         	
         	$text = $this->num2Text((int) $num) . $numBgn;
@@ -378,9 +380,9 @@ class core_SpellNumber
             	$text .= " <span class='cCode'>{$showCurrencyCode}</span>";
             }
             if ($cents > 0){
-            	$text .= " и " . ($cents) . " " . $centBgn;
+            	$text .= " и 0". $pointSign . ($cents) . " " . $centBgn;
             } elseif($cents == 0){
-            	$text .= ", 00" . $centBgn;
+            	$text .= ", 0" . $pointSign . "00" . $centBgn;
             }
             	
             $text = str_replace(" и и ", " и ", $text);
@@ -396,7 +398,7 @@ class core_SpellNumber
             }
             
             if ($cents > 0){
-            	$text .= " and " . $cents. " " . $centEuro;
+            	$text .= " and 0". $pointSign . $cents. " " . $centEuro;
             }
             
             return $text;

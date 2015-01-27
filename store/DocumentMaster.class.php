@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Абстрактен клас за наследяване на складови документи
  *
@@ -15,8 +14,8 @@
  */
 abstract class store_DocumentMaster extends core_Master
 {
-    
-    
+	
+	
     /**
      * Полета свързани с цени
      */

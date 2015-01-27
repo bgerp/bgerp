@@ -55,10 +55,13 @@ class acc_BalanceReportImpl extends frame_BaseDriver
     public function addEmbeddedFields(core_Form &$form)
     {
     	$form->FLD('accountId', 'acc_type_Account(allowEmpty)', 'caption=Сметка,mandatory,silent', array('attr' => array('onchange' => "addCmdRefresh(this.form);this.form.submit()")));
-    	$form->FLD('from', 'datetime', 'caption=От,mandatory');
-    	$form->FLD('to', 'datetime', 'caption=До,mandatory');
+    	$form->FLD('from', 'date', 'caption=От,mandatory');
+    	$form->FLD('to', 'date', 'caption=До,mandatory');
     	$form->FLD("action", 'varchar', "caption=Действие,width=330px,silent,input=hidden", array('attr' => array('onchange' => "addCmdRefresh(this.form);this.form.submit()")));
     	$form->setOptions('action', array('' => '', 'filter' => 'Филтриране по пера', 'group' => 'Групиране по пера'));
+    
+    	$form->FLD('orderField', "enum(,ent1Id=Перо 1,ent2Id=Перо 2,ent3Id=Перо 3,baseQuantity=К-во»Начално,baseAmount=Сума»Начална,debitQuantity=К-во»Дебит,debitAmount=Сума»Дебит,creditQuantity=К-во»Кредит,creditAmount=Сума»Кредит,blQuantity=К-во»Крайно,blAmount=Сума»Крайна)", 'caption=Подредба->По,formOrder=110000');
+    	$form->FLD('orderBy', 'enum(,asc=Въздходящ,desc=Низходящ)', 'caption=Подредба->Тип,formOrder=110001');
     }
     
     
@@ -77,7 +80,7 @@ class acc_BalanceReportImpl extends frame_BaseDriver
     			
     			if(frame_Reports::fetchField($form->rec->id, 'filter')->accountId != $form->rec->accountId){
     				unset($form->rec->grouping1, $form->rec->grouping2, $form->rec->grouping3, $form->rec->feat1, $form->rec->feat2, $form->rec->feat3);
-    				Request::push(array('grouping1' => NULL, 'grouping2' => NULL, 'grouping3' => NULL, 'feat1' => NULL, 'feat2' => NULL, 'feat3' => NULL));
+    				Request::push(array('grouping1' => NULL, 'grouping2' => NULL, 'grouping3' => NULL, 'feat1' => NULL, 'feat2' => NULL, 'feat3' => NULL, 'orderField' => NULL, 'orderBy' => NULL));
     			}
     		}
     		
@@ -138,6 +141,14 @@ class acc_BalanceReportImpl extends frame_BaseDriver
     				$form->setError("grouping{$i},feat{$i}", "Не може да са избрани едновременно перо и свойтво за една позиция");
     			}
     		}
+    		
+    		if($form->rec->orderField == ''){
+    			unset($form->rec->orderField);
+    		}
+    		
+    		if($form->rec->orderBy == ''){
+    			unset($form->rec->orderBy);
+    		}
     	}
     }
     
@@ -155,8 +166,9 @@ class acc_BalanceReportImpl extends frame_BaseDriver
         $this->prepareListFields($data);
         
         $accSysId = acc_Accounts::fetchField($data->rec->accountId, 'systemId');
-        $Balance = new acc_ActiveShortBalance(array('from' => $data->rec->from, 'to' => $data->rec->to));
+        $Balance = new acc_ActiveShortBalance(array('from' => $data->rec->from, 'to' => $data->rec->to, 'accs' => $accSysId, 'cacheBalance' => FALSE));
         $data->recs = $Balance->getBalance($accSysId);
+        
         if(count($data->recs)){
         	foreach ($data->recs as $rec){
         		foreach (range(1, 3) as $i){
@@ -176,7 +188,6 @@ class acc_BalanceReportImpl extends frame_BaseDriver
 	            }
         	}
         }
-        
         
         $this->filterRecsByItems($data);
         
@@ -250,6 +261,7 @@ class acc_BalanceReportImpl extends frame_BaseDriver
     	if(empty($data)) return;
     	
     	$tpl = getTplFromFile('acc/tpl/ReportDetailedBalance.shtml');
+    	$tpl->replace($this->title, 'TITLE');
     	
     	$this->prependStaticForm($tpl, 'FORM');
     	
@@ -379,13 +391,20 @@ class acc_BalanceReportImpl extends frame_BaseDriver
      {
      	$Balance = cls::get('acc_BalanceDetails');
      	
-     	 if(!empty($data->rec->action)){
+     	//
+     	if(!empty($data->rec->action)){
          	$cmd = ($data->rec->action == 'filter') ? 'default' : 'group';
          	$Balance->doGrouping($data, (array)$data->rec, $cmd, $data->recs);
+        }
+         
+         // Ако е посочено поле за сортиране, сортираме по него
+         if($this->innerForm->orderField){
+         	arr::order($data->recs, $this->innerForm->orderField, strtoupper($this->innerForm->orderBy));
+         } else {
+         	
+         	// Ако не се сортира по номерата на перата
+         	$Balance->canonizeSortRecs($data, $this->cache);
          }
-         
-         
-         $Balance->canonizeSortRecs($data, $this->cache);
       }
        
        

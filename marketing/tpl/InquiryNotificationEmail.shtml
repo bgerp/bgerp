@@ -4,7 +4,7 @@
     [#CAPTION#]: [#VALUE#]<br>
     <!--ET_END DATA_ROW-->
     <!--ET_BEGIN quantity-->
-    [#quantity#]<b>|Количества|*</b><br>
+    <br>[#quantity#]<b>|Количества|*</b><br>
     <!--ET_BEGIN quantity1-->
     |Количество|*: [#quantity1#]<br>
     <!--ET_END quantity1-->

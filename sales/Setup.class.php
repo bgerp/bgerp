@@ -97,7 +97,7 @@ class sales_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    var $info = "Продажби на продукти и стоки";
+    var $info = "Продажби на артикули";
     
     
     /**
@@ -136,7 +136,6 @@ class sales_Setup extends core_ProtoSetup
     		'sales_Proformas',
     		'sales_ProformaDetails',
     		'migrate::transformProformas1',
-    		'migrate::allocateCashToInvoices3',
         );
 
         
@@ -265,16 +264,5 @@ class sales_Setup extends core_ProtoSetup
     			sales_ProformaDetails::save($dRec);
     		}
     	}
-    }
-    
-    
-    /**
-     * Разпределя платеното в брой на всички фактури
-     */
-    public function allocateCashToInvoices3()
-    {
-    	set_time_limit(90);
-    	$Sales = cls::get('sales_Sales');
-    	$Sales->allocateCashToInvoices();
     }
 }

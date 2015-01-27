@@ -97,6 +97,8 @@ class acc_type_Item extends type_Key
         }
         
         $this->handler = md5($this->getSelectFld() . $where . $this->params['mvc']);
+        
+        $this->options = parent::prepareOptions();
     }
     
     

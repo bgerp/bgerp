@@ -73,7 +73,7 @@ class status_Retrieving extends core_Manager
         $this->FLD('sid', 'varchar(32)', 'caption=Идентификатор,notNull');
         $this->FLD('retTime', 'datetime', 'caption=Изтегляне');
         $this->FLD('hitTime', 'datetime', 'caption=Заявка');
-        $this->FLD('idleTime', 'int', 'caption=Бездействие');
+        $this->FLD('idleTime', 'int', 'caption=Бездействие, notNull');
         
         $this->setDbUnique('messageId, hitTime, sid, userId');
     }

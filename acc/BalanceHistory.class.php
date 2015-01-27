@@ -489,6 +489,10 @@ class acc_BalanceHistory extends core_Manager
             }
         }
         
+        if($data->orderField){
+        	arr::order($data->recs, $data->orderField, strtoupper($data->orderBy));
+        }
+       
         // Крайното салдо е изчисленото крайно салдо на сметката
         $rec->blAmount = $calcedBalance[$indexArr]['blAmount'];
         $rec->blQuantity = $calcedBalance[$indexArr]['blQuantity'];
@@ -679,6 +683,9 @@ class acc_BalanceHistory extends core_Manager
         // Ако равнят не показваме количествата
         if($equalBl){
             unset($data->listFields['debitQuantity'], $data->listFields['creditQuantity'], $data->listFields['blQuantity']);
+            $data->listFields['debitAmount']  = 'Сума->Дебит';
+            $data->listFields['creditAmount'] = 'Сума->Кредит';
+            $data->listFields['blAmount']     = 'Сума->Остатък';
         }
         
         // Ако сумите на крайното салдо са отрицателни - оцветяваме ги

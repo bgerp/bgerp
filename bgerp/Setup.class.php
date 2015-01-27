@@ -123,7 +123,7 @@ class bgerp_Setup extends core_ProtoSetup {
         $packs = "core,fileman,drdata,bglocal,editwatch,recently,thumb,doc,acc,currency,cms,
                   email,crm, cat, trans, price, blast,rfid,hr,trz,lab,sales,mp,marketing,store,cond,cash,bank,
                   budget,purchase,accda,sens,cams,frame,cal,fconv,log,fconv,cms,blogm,forum,deals,findeals,
-                  vislog,docoffice,incoming,support,survey,pos,change,sass,techno,
+                  vislog,docoffice,incoming,support,survey,pos,change,sass,techno2,
                   callcenter,social,hyphen,distro,dec,status,phpmailer,label";
         
         // Ако има private проект, добавяме и инсталатора на едноименния му модул
@@ -135,7 +135,7 @@ class bgerp_Setup extends core_ProtoSetup {
         $Folders = cls::get('doc_Folders');
         
         if (!$Folders->db->tableExists($Folders->dbTableName) || ($isFirstSetup)) {
-            $packs .= ",avatar,keyboard,statuses,google,catering,gdocs,jqdatepick,imagics,fastscroll,context,autosize,oembed,hclean,chosen,help,toast,compactor,rtac";
+            $packs .= ",avatar,keyboard,statuses,google,catering,gdocs,jqdatepick,imagics,fastscroll,context,autosize,oembed,hclean,chosen,help,toast,compactor,rtac,needhelp";
         } else {
             $packs = arr::make($packs, TRUE);
             $pQuery = $Packs->getQuery();

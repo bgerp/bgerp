@@ -7,7 +7,7 @@
  * @category  bgerp
  * @package   cms
  * @author    Ивелин Димов <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -17,24 +17,31 @@ class cms_Feeds extends core_Manager {
 	/**
 	 * Заглавие на страницата
 	 */
-	var $title = 'Хранилки';
+	public $title = 'Хранилки';
+	
+	
+	/**
+	 * Заглавие в единично число
+	 */
+	public $singleTitle = "Хранилка";
 	
 	
 	/**
 	 * Зареждане на необходимите плъгини
 	 */
-	var $loadList = 'plg_RowTools, plg_Created, plg_Modified, cms_Wrapper';
+	public $loadList = 'plg_RowTools, plg_Created, plg_Modified, cms_Wrapper';
 	
 
     /**
      * Да не се кодират id-тата
      */
-    var $protectId = FALSE;
+    public $protectId = FALSE;
 	
+    
 	/**
 	 * Поле за лентата с инструменти
 	 */
-	var $rowToolsField = 'tools';
+	public $rowToolsField = 'tools';
 	
 	
 	/**
@@ -46,25 +53,25 @@ class cms_Feeds extends core_Manager {
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'ceo,admin,cms';
+	public $canList = 'ceo,admin,cms';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'ceo,admin,cms';
+	public $canSingle = 'ceo,admin,cms';
     
     
 	/**
 	 * Полета за листов изглед 
 	 */
-	var $listFields = 'tools=Пулт, title, description, type, url, source, logo, lg, maxItems, createdOn, createdBy, modifiedOn, modifiedBy';
+	public $listFields = 'tools=Пулт, title, description, type, url, source, logo, lg, maxItems, createdOn, createdBy, modifiedOn, modifiedBy';
 	
 	
 	/**
 	 * Описание на модела
 	 */
-	function description()
+	public function description()
 	{
 		$this->FLD('title', 'varchar(50)', 'caption=Наименование, mandatory');
 		$this->FLD('description', 'text', 'caption=Oписание, mandatory');
@@ -83,7 +90,7 @@ class cms_Feeds extends core_Manager {
 	/**
 	 *  Създаваме нова кофа за логото
 	 */
-	static function on_AfterSetupMvc($mvc, &$res)
+	public static function on_AfterSetupMvc($mvc, &$res)
     {
         // Кофа за логото
         $Bucket = cls::get('fileman_Buckets');
@@ -94,7 +101,7 @@ class cms_Feeds extends core_Manager {
     /**
      *  Генерира хранилка 
      */
-	function act_Get()
+	public function act_Get()
 	{
 		// Извличаме записа на хранилката
 		expect($id = Request::get('id', 'int'));
@@ -186,7 +193,7 @@ class cms_Feeds extends core_Manager {
 	/**
 	 *  Екшън за показване на всички Хранилки за външен достъп
 	 */
-	function act_Feeds()
+	public function act_Feeds()
 	{
         cms_Content::setCurrent();
 
@@ -210,7 +217,7 @@ class cms_Feeds extends core_Manager {
 	/**
 	 * Подготвяме хранилката
 	 */
-	function prepareFeeds($data)
+	public function prepareFeeds($data)
 	{
 		$fields = $this->selectFields("");
 		$fields['-feeds'] = TRUE;
@@ -236,7 +243,7 @@ class cms_Feeds extends core_Manager {
 	 * Рендираме списъка от хранилки за външен изглед
 	 * @return core_ET
 	 */
-	function renderFeeds($data)
+	public function renderFeeds($data)
 	{
 		$layout = getTplFromFile('cms/tpl/Feeds.shtml');
 		
@@ -259,7 +266,7 @@ class cms_Feeds extends core_Manager {
 	/**
 	 * Модификация по вербалните записи
 	 */
-	static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
+	public static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
 	{
 		// Подготвяме адреса на хранилката
 		$rssLink = array($mvc, 'get', $rec->id);
@@ -281,7 +288,7 @@ class cms_Feeds extends core_Manager {
 	 * Генерира хедърите за обвивката
 	 * @return core_ET
 	 */
-	static function generateHeaders()
+	public static function generateHeaders()
 	{
 		// Шаблона който ще се връща
 		$tpl = new ET('');
@@ -320,7 +327,7 @@ class cms_Feeds extends core_Manager {
 	 * Генерира икона с линк за екшъна с хранилките
 	 * @return core_ET
 	 */
-	static function generateFeedLink()
+	public static function generateFeedLink()
 	{
 		// Шаблон в който ще се добави линка
 		$tpl = new ET('');
@@ -349,7 +356,7 @@ class cms_Feeds extends core_Manager {
 	/**
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
-    static function on_AfterPrepareEditForm($mvc, $data)
+    public static function on_AfterPrepareEditForm($mvc, $data)
     {
     	$form = &$data->form;
     	$form->addAttr('source', array('onchange' => "addCmdRefresh(this.form);this.form.submit();"));

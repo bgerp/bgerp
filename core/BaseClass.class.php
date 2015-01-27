@@ -180,7 +180,6 @@ class core_BaseClass
     {
         $method = 'on_' . $event;
         
-        $status = -1;
         
         $args1 = array(&$this);
         
@@ -188,61 +187,51 @@ class core_BaseClass
             $args1[] = & $args[$i];
         }
 
-        if(isset($this->_listenerCache[$method])) {
-            foreach($this->_listenerCache[$method] as $subject) {
-                if(call_user_func_array(array($subject, $method),  $args1) === FALSE) return FALSE;
-                $status = TRUE;
-            }
-
-            return $status;
-        }
-
-        $this->_listenerCache[$method] = array();
-
-        // Проверяваме дали имаме плъгин(и), който да обработва това събитие
-        if (count($this->_plugins)) {
+        // Ако нямаме - генерираме кеша с обработвачите
+        if(!isset($this->_listenerCache[$method])) {
             
-            $plugins = array_reverse($this->_plugins);
-            
-            foreach ($plugins as $plg) {
-                
-                if (method_exists($plg, $method)) {
-                    
-                    $status = TRUE;
-                    $this->_listenerCache[$method][] = $plg;
+            $this->_listenerCache[$method] = array();
 
-                    // Извикваме метода, прехванал обработката на това събитие
-                    if (call_user_func_array(array($plg, $method),  $args1) === FALSE) return FALSE;
-                }
-            }
-        }
-        
-        // Търсим обработвачите на събития по методите на този клас и предшествениците му
-        $className = get_class($this);
-        $first = TRUE;
-        
-        do {
-            if (method_exists($className, $method)) {
-                
-                $status = TRUE;
-                
-                $RM = new ReflectionMethod($className, $method);
-                
-                if($className == $RM->class) {
-                    if (call_user_func_array(array($this->_listenerCache[$method][] = $first ? $this : $className, $method),  $args1) === FALSE) {
-                        
-                        return FALSE;
+            // Проверяваме дали имаме плъгин(и), който да обработва това събитие
+            if (count($this->_plugins)) {
+                $plugins = array_reverse($this->_plugins);
+                foreach ($plugins as $plg) {
+                    if (method_exists($plg, $method)) {
+                        $this->_listenerCache[$method][] = $plg;
                     }
                 }
             }
-            $first = FALSE;
-            $flag = strcasecmp($className = get_parent_class($className), __CLASS__);
-        } while ($flag);
+            
+            // Търсим обработвачите на събития по методите на този клас и предшествениците му
+            $className = get_class($this);
+            $first = TRUE;
+            do {
+                if (method_exists($className, $method)) {
+                    $RM = new ReflectionMethod($className, $method);
+                    if($className == $RM->class) {
+                         $this->_listenerCache[$method][] = $first ? $this : $className;
+                    }
+                }
+                $first = FALSE;
+                $flag = strcasecmp($className = get_parent_class($className), __CLASS__);
+            } while ($flag);
+
+        }
         
-        return $status;
+        // Използваме кеша за извикаване на обработвачите
+        if(count($this->_listenerCache[$method])) {
+            foreach($this->_listenerCache[$method] as $subject) {
+                if(call_user_func_array(array($subject, $method),  $args1) === FALSE) return FALSE;
+            }
+
+            return TRUE;
+        }
+
+        return -1;
     }
 
-    
+
+
     /**
      * Рутинна процедура, която се задейства, ако извиквания метод липсва
      * Методи, които съдържат в името си "_" ще бъдат извикани, ако без тази черта,

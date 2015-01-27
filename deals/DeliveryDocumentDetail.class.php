@@ -233,7 +233,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 				$rec = &$data->recs[$i];
 				$ProductManager = cls::get($rec->classId);
 		
-				$row->productId = $ProductManager->getProductTitle($rec->productId);
+				$row->productId = $ProductManager->getProductDesc($rec->productId, $mvc->Master, $data->masterData->rec->modifiedOn);
 				$haveDiscount = $haveDiscount || !empty($rec->discount);
 					 
 				if (empty($rec->packagingId)) {
@@ -300,8 +300,9 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 					$error = "error=Няма {$productMan->title}";
 				}
 	
+				$title = mb_strtolower($productMan->singleTitle);
 				$data->toolbar->addBtn($productMan->singleTitle, array($mvc, 'add', $mvc->masterKey => $masterRec->id, 'classId' => $manId, 'ret_url' => TRUE),
-						"id=btnAdd-{$manId},{$error},order=10", 'ef_icon = img/16/shopping.png');
+						"id=btnAdd-{$manId},{$error},order=10,title=Добавяне на {$title}", 'ef_icon = img/16/shopping.png');
 				unset($error);
 			}
 	

@@ -110,7 +110,7 @@ class sales_QuotationsDetails extends doc_Detail {
     	$this->FLD('quantity', 'double(Min=0)', 'caption=К-во');
     	$this->FLD('price', 'double(minDecimals=2,maxDecimals=4)', 'caption=Ед. цена, input');
         $this->FLD('discount', 'percent(maxDecimals=2)', 'caption=Отстъпка');
-        $this->FLD('tolerance', 'percent(min=0,max=1,decimals=0)', 'caption=Толеранс;');
+        $this->FLD('tolerance', 'percent(min=0,max=1,decimals=0)', 'caption=Толеранс');
     	$this->FLD('term', 'time(uom=days,suggestions=1 ден|5 дни|7 дни|10 дни|15 дни|20 дни|30 дни)', 'caption=Срок');
     	$this->FLD('vatPercent', 'percent(min=0,max=1,decimals=2)', 'caption=ДДС,input=none');
         $this->FLD('optional', 'enum(no=Не,yes=Да)', 'caption=Опционален,maxRadio=2,columns=2,remember');
@@ -193,7 +193,17 @@ class sales_QuotationsDetails extends doc_Detail {
 	   		$products = array();
 	   		$products[$rec->productId] = $productName;
 	    } else {
-	    	$products = array('' => '') + $productMan->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date, 'canSell');
+	    	
+	    	// Кои са продаваемите продукти
+	    	$products = $productMan->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date, 'canSell');
+	    	
+	    	// Подсигуряваме се че ориджина винаги може да се добави
+	    	if($masterRec->originId){
+	    		$origin = doc_Containers::getDocument($masterRec->originId);
+	    		$products[$origin->that] = $origin->fetchField('title');
+	    	}
+	    	
+	    	$products = array('' => '') + $products;
 	    }
 	   
         $form->setDefault('optional', 'no');
@@ -243,6 +253,14 @@ class sales_QuotationsDetails extends doc_Detail {
 	    		return;
     		}
 	    	
+    		if($sameProduct = $mvc->fetch("#quotationId = {$rec->quotationId} AND #classId = {$rec->classId} AND #productId = {$rec->productId}  AND #quantity='{$rec->quantity}'")){
+    			if($sameProduct->id != $rec->id){
+    				$form->setError('quantity', 'Избрания продукт вече фигурира с това количество');
+    			}
+    			
+    			return;
+    		}
+    		
 	    	$ProductMan = cls::get($rec->classId);
 	    	if(!$rec->vatPercent){ 
 	    		$rec->vatPercent = $ProductMan::getVat($rec->productId, $masterRec->date);
@@ -289,20 +307,17 @@ class sales_QuotationsDetails extends doc_Detail {
             foreach ($productManagers as $manId => $manName) {
             	$productMan = cls::get($manId);
             	$products = $productMan->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date, 'canSell');
-                
-            	// Ако е спецификация и офертата е генерирана от нейния драйвер
-            	// тази спецификация може винаги да се добавя в офертата
-            	// дори ако драйвера и е чернова
-            	if($productMan instanceof techno_Specifications){
-                	if($masterRec->originId && $origin = $mvc->Master->getOrigin($masterRec)){
-                		$originSpec = techno_Specifications::fetchByDoc($origin->getClassId(), $origin->that);
-                		$products[$originSpec->id] = $productMan->getTitleById($originSpec->id);
-                	}
-                }
+            	
+            	// Добавяме ориджина като възможен избор, ако го няма
+            	if($masterRec->originId){
+            		$origin = doc_Containers::getDocument($masterRec->originId);
+            		$products[$origin->that] = $origin->fetchField('title');
+            	}
             	
             	if(!count($products)){
                 	$error = "error=Няма продаваеми {$productMan->title}";
                 }
+                
                 $productKind = mb_strtolower($productMan->singleTitle);
             	$data->toolbar->addBtn($productMan->singleTitle, $addUrl + array('classId' => $manId),
                     "id=btnAdd-{$manId},{$error},order=10", "ef_icon = img/16/shopping.png, title=Добавяне на {$productKind} към офертата");
@@ -472,14 +487,12 @@ class sales_QuotationsDetails extends doc_Detail {
     		
     		$ProductMan = cls::get($rec->classId);
     		
-    		if($ProductMan->isProductStandart($rec->productId)){
-    			$row->productId = $ProductMan->getProductTitle($rec->productId);
+    		$row->productId = $ProductMan->getProductDesc($rec->productId, $mvc->Master, $modifiedOn);
     		
+    		if($ProductMan->isProductStandart($rec->productId)){
     			if(!Mode::is('printing') && !Mode::is('text', 'xhtml')){
     				$row->productId = ht::createLinkRef($row->productId, array($ProductMan, 'single', $rec->productId));
     			}
-    		} else {
-    			$row->productId = $ProductMan->getProductDesc($rec->productId, $modifiedOn);
     		}
     	}
     }
@@ -537,19 +550,11 @@ class sales_QuotationsDetails extends doc_Detail {
      */
     public function insertFromSpecification($rec, $origin, $dRows = array())
     {
-    	$docClassId = $origin->getInstance()->getClassId();
-    	$docId = $origin->that;
-    
-    	if(!$specRec = techno_Specifications::fetchByDoc($docClassId, $docId)){
-    		$specId  = techno_Specifications::forceRec($origin->getInstance(), $origin->fetch());
-    		$specRec = techno_Specifications::fetch($specId);
-    	}
-    	
-    	$classId = techno_Specifications::getClassId();
-    	$ProductMan = cls::get($classId);
+    	$ProductMan = $origin->getInstance();
+    	$productRec = $origin->rec();
     	
     	// Изтриват се предишни записи на спецификацията в офертата
-    	$this->delete("#quotationId = {$rec->id} AND #productId = {$specRec->id} AND #classId = {$classId}");
+    	$this->delete("#quotationId = {$rec->id} AND #productId = {$productRec->id} AND #classId = {$ProductMan->getClassId()}");
     	
     	foreach ($dRows as $row) {
     		if(empty($row)) continue;
@@ -560,9 +565,9 @@ class sales_QuotationsDetails extends doc_Detail {
     		// Записва се нов детайл за всяко зададено к-во
     		$dRec = new stdClass();
     		$dRec->quotationId = $rec->id;
-    		$dRec->productId = $specRec->id;
+    		$dRec->productId = $productRec->id;
     		$dRec->quantity = $row['left'];
-    		$dRec->classId = $classId;
+    		$dRec->classId = $ProductMan->getClassId();
     		$dRec->vatPercent = $ProductMan->getVat($dRec->productId, $rec->date);
     		
     		// Ако полето от формата има дясна част, това е цената

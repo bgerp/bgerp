@@ -173,6 +173,12 @@ class type_Keylist extends core_Type {
                     $plusUrl = sbf("img/16/toggle1.png", "");
                     $plusImg =  ht::createElement("img", array('src' => $plusUrl, 'class' => 'btns-icon plus'));
                     
+                    $checkedUrl = sbf("img/16/checked.png", "");
+                    $checkImg =  ht::createElement("img", array('src' => $checkedUrl, 'class' => 'btns-icon invert-checkbox hidden'));
+                    
+                    $uncheckedUrl = sbf("img/16/unchecked.png", "");
+                    $uncheckImg =  ht::createElement("img", array('src' => $uncheckedUrl, 'class' => 'btns-icon invert-checkbox '));
+                    
                     // Класа за групите
                     $class = 'keylistCategory';
                     
@@ -183,9 +189,9 @@ class type_Keylist extends core_Type {
                         $class .= ' group-autoOpen';
                     }
                     
-                    $html .= "\n<tr id='row-". $j . "' class='{$class}' ><td class='keylist-group'><div onclick='toggleKeylistGroups(this)'>". $plusImg . $minusImg . $v->title . "</div></td></tr>" .
+                    $html .= "\n<tr id='row-". $j . "' class='{$class}' ><td class='keylist-group'><div>". $plusImg . $minusImg . $v->title . $checkImg  . $uncheckImg."</div></td></tr>" .
                         "<tr><td><table class='inner-keylist'>";
-                    
+                  
                     $groupOpen = 1;
                     $haveChecked = FALSE;
                     $i = 0;
@@ -242,7 +248,7 @@ class type_Keylist extends core_Type {
         
         $attr['class'] .= ' keylist';
         $tpl = HT::createElement('table', $attr, $html);
-        
+        jquery_Jquery::run($tpl, "keylistActions();", TRUE);
         jquery_Jquery::run($tpl, "checkForHiddenGroups();", TRUE);
         return $tpl;
     }

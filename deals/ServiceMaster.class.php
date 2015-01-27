@@ -16,6 +16,7 @@
 abstract class deals_ServiceMaster extends core_Master
 {
 	
+	
 	/**
 	 * Опашка от записи за записване в on_Shutdown
 	 */

@@ -67,7 +67,7 @@ class type_Enum extends core_Type {
             foreach($this->options as $id => $title) {
                 if(is_object($title)) {
                     $arr[$id] = $title;
-                    $arr[$id]->title = tr($arr[$id]->title);
+                    $arr[$id]->title = html_entity_decode(tr($arr[$id]->title));
                 } else {
                     $t1 = explode('<style>', $title);
                     
@@ -75,7 +75,7 @@ class type_Enum extends core_Type {
                         $arr[$id]->title = tr($t1[0]);
                         $arr[$id]->attr['style'] = $t1[1];
                     } else {
-                        $arr[$id] = tr($title);
+                        $arr[$id] = html_entity_decode(tr($title));
                     }
                 }
             }

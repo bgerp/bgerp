@@ -75,7 +75,7 @@ class pos_ReceiptDetails extends core_Detail {
     	$this->FNC('ean', 'varchar(32)', 'caption=ЕАН, input, class=ean-text');
     	$this->FLD('productId', 'key(mvc=cat_Products, select=name, allowEmpty)', 'caption=Продукт,input=none');
     	$this->FLD('price', 'double(decimals=2)', 'caption=Цена,input=none');
-        $this->FLD('quantity', 'int', 'caption=К-во,placeholder=К-во,width=4em');
+        $this->FLD('quantity', 'double(smartRound)', 'caption=К-во,placeholder=К-во,width=4em');
         $this->FLD('amount', 'double(decimals=2)', 'caption=Сума, input=none');
     	$this->FLD('value', 'varchar(32)', 'caption=Стойност, input=hidden');
     	$this->FLD('discountPercent', 'percent(min=0,max=1)', 'caption=Отстъпка,input=none');
@@ -92,7 +92,6 @@ class pos_ReceiptDetails extends core_Detail {
     	$blocksTpl = getTplFromFile('pos/tpl/terminal/ReceiptDetail.shtml');
     	$saleTpl = $blocksTpl->getBlock('sale');
     	$paymentTpl = $blocksTpl->getBlock('payment');
-    	$clientTpl = $blocksTpl->getBlock('client');
     	if($data->rows) {
 	    	foreach($data->rows as $row) {
 	    		$action = $this->getAction($data->rows[$row->id]->action);
@@ -225,12 +224,17 @@ class pos_ReceiptDetails extends core_Detail {
 			$resObj2->func = "html";
 			$resObj2->arg = array('id' => 'tools-form', 'html' => $toolsTpl->getContent(), 'replace' => TRUE);
 			
+			// Ще реплесйнем и таба за плащанията
+			$resObj3 = new stdClass();
+			$resObj3->func = "html";
+			$resObj3->arg = array('id' => 'result_contragents', 'html' => ' ', 'replace' => TRUE);
+			
 			// Показваме веднага и чакащите статуси
 			$hitTime = Request::get('hitTime', 'int');
 			$idleTime = Request::get('idleTime', 'int');
 			$statusData = status_Messages::getStatusesData($hitTime, $idleTime);
         	
-			$res = array_merge(array($resObj, $resObj1, $resObj2), (array)$statusData);
+			$res = array_merge(array($resObj, $resObj1, $resObj2, $resObj3), (array)$statusData);
 			
 			return $res;
         } else {
@@ -304,8 +308,9 @@ class pos_ReceiptDetails extends core_Detail {
     	if(!$receipt = $this->Master->fetch($recId)) return $this->returnError($recId);
     	
     	// Трябва да е подаден валидно ид на начин на плащане
-    	$type = Request::get('type');
-    	if(!cond_Payments::fetch($type))  return $this->returnError($recId);
+    	$type = Request::get('type', 'int');
+    	
+    	if(!cond_Payments::fetch($type) && $type != -1)  return $this->returnError($recId);
     	
     	// Трябва да е подадена валидна сума
     	$amount = Request::get('amount');
@@ -317,10 +322,12 @@ class pos_ReceiptDetails extends core_Detail {
     	
     	$diff = abs($receipt->paid - $receipt->total);
     	
-    	// Ако платежния метод не поддържа ресто, не може да се плати по-голяма сума
-    	if(!cond_Payments::returnsChange($type) && (string)$amount > (string)$diff){
-    		core_Statuses::newStatus(tr('|Не може с този платежен метод да се плати по-голяма сума от общата|*!'), 'error');
-	    	return $this->returnError($recId);
+    	if($type != -1){
+    		// Ако платежния метод не поддържа ресто, не може да се плати по-голяма сума
+    		if(!cond_Payments::returnsChange($type) && (string)$amount > (string)$diff){
+    			core_Statuses::newStatus(tr('|Не може с този платежен метод да се плати по-голяма сума от общата|*!'), 'error');
+    			return $this->returnError($recId);
+    		}
     	}
     	
     	// Подготвяме записа на плащането
@@ -382,56 +389,6 @@ class pos_ReceiptDetails extends core_Detail {
     
     
     /**
-     * Добавяне на клиент
-     */
-    function act_addClientByCard()
-    {
-    	$this->requireRightFor('add');
-    	
-    	// Трябва да има такава бележка
-    	if(!$receiptId = Request::get('receiptId', 'int')) return $this->returnError($receiptId);
-    	
-    	// Трябва да има въведен номер на карта
-    	if(!$number = Request::get('ean')) {
-    		core_Statuses::newStatus(tr('|Не е подадена клиентска карта|*!'), 'error');
-	    	return $this->returnError($receiptId);
-    	}
-    	
-    	// Трябва да можем да добавяме към нея
-    	$this->requireRightFor('add', (object)array('receiptId' => $receiptId));
-    	
-    	// Трябва да няма добавен клиент досега
-    	if($this->hasClient($receiptId)){
-    		core_Statuses::newStatus(tr('|Има вече въведена клиентска карта|*!'), 'error');
-    		return $this->returnError($receiptId);
-    	}
-    	
-    	// Ако няма клиент оговарящ на картата
-    	if(!$Contragent = pos_Cards::getContragent($number)) {
-    		core_Statuses::newStatus(tr('|Няма контрагент с такава карта|*!'), 'error');
-	    	return $this->returnError($receiptId);
-    	}
-    	
-    	// Запис на продукта
-    	$rec = new stdClass();
-    	$rec->receiptId = $receiptId;
-    	$rec->action = 'client|ccard';
-    	$rec->param = $Contragent->that . "|" . $Contragent->className;
-    	
-    	// Добавяне/обновяване на продукта
-    	if($this->save($rec)){
-    		core_Statuses::newStatus(tr('|Картата е добавена успешно|*!'));
-    		
-    		return $this->returnResponse($rec->receiptId);
-    	} else {
-    		core_Statuses::newStatus(tr('|Проблем при добавяне на карта|*!'), 'error');
-    	}
-		
-    	return $this->returnError($receiptId);
-    }
-    
-    
-    /**
      * Подготвя детайла на бележката
      */
     public function prepareReceiptDetails($receiptId)
@@ -468,19 +425,12 @@ class pos_ReceiptDetails extends core_Detail {
     			}
     			break;
     		case "payment":
-    			$row->actionValue = cond_Payments::getTitleById($action->value);
+    			$row->actionValue = ($action->value != -1) ? cond_Payments::getTitleById($action->value) : tr("В брой");
+    			
     			if($fields['-list']){
     				$row->productId = tr('Плащане') . ": " . $row->actionValue;
     				unset($row->quantity,$row->value);
     			}
-    			break;
-    		case "client":
-    			$clientArr = explode("|", $rec->param);
-    			$row->clientName = $clientArr[1]::getTitleById($clientArr[0]);
-    			if($fields['-list']){
-    				$row->productId =  tr('Клиент') . ": " . $row->clientName;
-    				unset($row->quantity);
-    			} 
     			break;
     	}
     	
@@ -488,7 +438,8 @@ class pos_ReceiptDetails extends core_Detail {
     		$delUrl = toUrl(array($mvc->className, 'deleteRec'), 'local');
     		$row->DEL_BTN = ht::createElement('img', array('src' => sbf('img/16/deletered.png', ''), 
     													   'class' => 'pos-del-btn', 'data-recId' => $rec->id, 
-    													   'data-warning' => tr('Наистина ли искате да изтриете записа?'), 
+    													   'title' => tr('Изтриване на реда'),
+    													   'data-warning' => tr('|Наистина ли искате да изтриете записа|*?'), 
     													   'data-url' => $delUrl));
     	}
     }
@@ -506,7 +457,7 @@ class pos_ReceiptDetails extends core_Detail {
     	$productInfo = cat_Products::getProductInfo($rec->productId, $rec->value);
     	$perPack = ($productInfo->packagingRec->quantity) ? $productInfo->packagingRec->quantity : 1;
     	
-    	$rec->price = $rec->price * (1 - $rec->discountPercent);
+    	$rec->price = $rec->price * (1 + $rec->param) * (1 - $rec->discountPercent);
     	$row->price = $Double->toVerbal($rec->price);
     	$row->amount = $Double->toVerbal($rec->price * $rec->quantity);
     	if($rec->discountPercent < 0){
@@ -556,7 +507,7 @@ class pos_ReceiptDetails extends core_Detail {
     function getAction($string)
     {
     	$actionArr = explode("|", $string);
-    	$allowed = array('sale', 'discount', 'client', 'payment');
+    	$allowed = array('sale', 'discount', 'payment');
     	expect(in_array($actionArr[0], $allowed), 'Не е позволена такава операция');
     	expect(count($actionArr) == 2, 'Стрингът не е в правилен формат');
     	
@@ -604,7 +555,7 @@ class pos_ReceiptDetails extends core_Detail {
     	$receiptRec = pos_Receipts::fetch($rec->receiptId);
     	
     	$Policy = cls::get('price_ListToCustomers');
-    	$price = $Policy->getPriceInfo($receiptRec->contragentClass, $receiptRec->contragentObjectId, $product->productId, cat_Products::getClassId(), $product->packagingId, NULL, $receiptRec->createdOn, 1, 'yes');
+    	$price = $Policy->getPriceInfo($receiptRec->contragentClass, $receiptRec->contragentObjectId, $product->productId, cat_Products::getClassId(), $product->packagingId, NULL, $receiptRec->createdOn);
     	
     	$rec->price = $price->price * $perPack;
     	$rec->param = cat_Products::getVat($rec->productId, $receiptRec->valior);
@@ -638,28 +589,6 @@ class pos_ReceiptDetails extends core_Detail {
     	} 
     	
     	return FALSE;
-    }
-    
-    
-    /**
-     * Определяме кой е клиента на бележката
-     * @param int $receiptId - id на бележка
-     * @return mixed $rec - запис на клиента, FALSE ако няма
-     */
-    public function hasClient($receiptId)
-    {
-    	$query = $this->getQuery();
-    	$query->where(array("#receiptId = [#1#]", $receiptId));
-    	$query->where("#action = 'client|ccard'");
-    	$query->orderBy("#id", "DESC");
-    	
-    	$rec = $query->fetch();
-    	if(!$rec) return FALSE;
-    	
-    	$res = new stdClass();
-    	list($res->id, $res->class) = explode('|', $rec->param);
-    	
-    	return $res;
     }
 	
 	

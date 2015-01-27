@@ -81,7 +81,7 @@ class acc_Items extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'num,titleLink=Наименование,uomId,lastUseOn,state,tools=Пулт,createdBy';
+    var $listFields = 'num,titleLink=Наименование,uomId,lastUseOn,tools=Пулт,createdBy,state';
     
     
     /**
@@ -412,6 +412,15 @@ class acc_Items extends core_Manager
                 
                 if(!$Class->haveRightFor('edit', (object)array('id' => $rec->objectId))){
                     $res = 'no_one';
+                } else {
+                	
+                	// Ако перото е документ, то то не трябва да е чернова
+                	if(cls::haveInterface('doc_DocumentIntf', $rec->classId)){
+                		$state = cls::get($rec->classId)->fetchField($rec->objectId, 'state');
+                		if($state == 'draft'){
+                			$res = 'no_one';
+                		}
+                	}
                 }
             }
         }

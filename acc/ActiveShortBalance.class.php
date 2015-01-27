@@ -91,7 +91,7 @@ class acc_ActiveShortBalance {
     /**
      * Изчислява мини баланса
      */
-    private function calcBalance($recs, &$balance = array(), $sumDC = TRUE)
+    private function calcBalance($recs, &$balance = array())
     {
         if(count($recs)){
         	$sysIds = array();
@@ -122,20 +122,10 @@ class acc_ActiveShortBalance {
                     $b['ent2Id'] = $item2;
                     $b['ent3Id'] = $item3;
                     
-                    // Ако искаме да се сумира и оборота по дебит и кредит
-                    if($sumDC === TRUE){
-                        $b["{$type}Quantity"] += $rec->{"{$type}Quantity"};
-                        $b["{$type}Amount"] += $rec->amount;
-                    }
-                    
-                    $b['blQuantity'] += $rec->{"{$type}Quantity"} * $sign;
-                    $b['blAmount'] += $rec->amount * $sign;
-                }
-                
-                // Закръгляме крайните суми и количества
-                foreach ($balance as &$bl){
-                    $bl['blQuantity'] = round($bl['blQuantity'], 6);
-                    $bl['blAmount'] = round($bl['blAmount'], 6);
+                    $b["{$type}Quantity"] += $rec->{"{$type}Quantity"};
+                    $b["{$type}Amount"] += $rec->amount;
+                    $b['blQuantity'] += round($rec->{"{$type}Quantity"} * $sign, 6);
+                    $b['blAmount'] += round($rec->amount * $sign, 6);
                 }
             }
         }
@@ -268,7 +258,8 @@ class acc_ActiveShortBalance {
         // Извличаме записите, направени в избрания период на търсене
         $jQuery = acc_JournalDetails::getQuery();
         acc_JournalDetails::filterQuery($jQuery, $this->from, $this->to, $accs);
-        $this->calcBalance($jQuery->fetchAll(), $newBalance);
+        $all = $jQuery->fetchAll();
+        $this->calcBalance($all, $newBalance);
         
         // Оставяме само тези, които са на избраната сметка
         if(count($newBalance)){

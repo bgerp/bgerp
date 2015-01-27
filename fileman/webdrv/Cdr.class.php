@@ -53,7 +53,7 @@ class fileman_webdrv_Cdr extends fileman_webdrv_Image
      * 
      * @param object $fRec - Записите за файла
      * 
-     * @return core_Et - Шаблон с превюто на файла
+     * @return string|core_ET - Шаблон с превюто на файла
      * 
      * @Override
      * @see fileman_webdrv_Image::getThumbPrev

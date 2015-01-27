@@ -57,6 +57,8 @@ class cat_Setup extends core_ProtoSetup
     		'cat_products_VatGroups',
             'cat_Params',
             'cat_Packagings',
+    		'migrate::updateProducts',
+    		'migrate::updateProducts3',
         );
 
         
@@ -73,7 +75,13 @@ class cat_Setup extends core_ProtoSetup
             array(1.42, 'Артикули', 'Каталог', 'cat_Products', 'default', "powerUser, ceo"),
         );
     
-        
+
+    /**
+     * Дефинирани класове, които имат интерфейси
+     */
+    var $defClasses = "cat_GeneralProductDriver, cat_GeneralServiceDriver";
+    
+    
     /**
      * Инсталиране на пакета
      */
@@ -98,5 +106,68 @@ class cat_Setup extends core_ProtoSetup
         $res .= bgerp_Menu::remove($this);
         
         return $res;
+    }
+    
+    
+    /**
+     * Миграция за продуктовите драйвъри
+     */
+    function updateProducts()
+    {
+    	$cQuery = cat_Products::getQuery();
+    	
+    	core_Classes::add('cat_GeneralProductDriver');
+    	core_Classes::add('cat_GeneralServiceDriver');
+    	
+    	$technoDriverId = cat_GeneralProductDriver::getClassId();
+    	$technoDriverServiceId = cat_GeneralServiceDriver::getClassId();
+    	
+    	while($pRec = $cQuery->fetch()){
+    		$meta = cat_Products::getMetaData($pRec->groups);
+    		$meta = arr::make($meta, TRUE);
+    		
+    		if(isset($meta['canStore'])){
+    			$pRec->innerClass = $technoDriverId;
+    		} else {
+    			$pRec->innerClass = $technoDriverServiceId;
+    		}
+    		
+    		$clone = clone $pRec;
+    		unset($clone->innerForm, $clone->innerState);
+    		
+    		$pRec->innerForm = $clone;
+    		$pRec->innerState = $clone;
+    		
+    		cat_Products::save($pRec, 'innerClass,innerForm,innerState');
+    	}
+    	
+    	$pQuery = cat_products_Params::getQuery();
+    	$cId = cat_Products::getClassId();
+    	while($pRec = $pQuery->fetch()){
+    		$pRec->classId = $cId;
+    		cat_products_Params::save($pRec);
+    	}
+    }
+    
+    
+    /**
+     * Миграция за продуктовите драйвъри
+     */
+    function updateProducts3()
+    {
+    	$pQuery = cat_Products::getQuery();
+    	while($rec = $pQuery->fetch()){
+    		if($rec->innerClass){
+    			try{
+    				$rec->innerForm->photo = $rec->photo;
+    				$rec->innerState->photo = $rec->photo;
+    				 
+    				cat_Products::save($rec);
+    			} catch(core_exception_Expect $e){
+    				
+    			}
+    			
+    		}
+    	}
     }
 }

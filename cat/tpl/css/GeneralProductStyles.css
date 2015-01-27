@@ -1,0 +1,19 @@
+.general-product-description .detail-info {
+	border: none;
+	padding: 5px 0;
+	color: #333;
+	font-size: 0.9em;
+}
+
+.general-product-description .detail-info .richtext{
+	color: #333;
+}
+
+.general-product-description a.fancybox img {
+	max-width: 160px;
+	height: auto;
+}
+
+.general-product-description .detail-info .groupTitle{
+	display: none;
+}

@@ -153,7 +153,7 @@ class label_Templates extends core_Master
         if ($mvc->haveRightFor('createlabel', $data->rec->id)) {
         
         	// Добавяме бутон за нов етикет
-            $data->toolbar->addBtn('Нов етикет', array('label_Labels', 'add', 'templateId' => $data->rec->id, 'ret_url' => TRUE), 'ef_icon = img/16/star_2.png');
+            $data->toolbar->addBtn('Нов етикет', array('label_Labels', 'add', 'templateId' => $data->rec->id, 'ret_url' => TRUE), 'ef_icon = img/16/star_2.png, title=Създаване на нов етикет');
         }
     }
     

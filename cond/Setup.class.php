@@ -57,7 +57,9 @@ class cond_Setup  extends core_ProtoSetup
         	'cond_DeliveryTerms',
         	'cond_Parameters',
         	'cond_ConditionsToCustomers',
-    		'cond_Payments'
+    		'cond_Payments',
+    		'migrate::oldPosPayments',
+    		'migrate::removePayment',
         );
 
         
@@ -102,5 +104,25 @@ class cond_Setup  extends core_ProtoSetup
         $res .= bgerp_Menu::remove($this);
         
         return $res;
+    }
+    
+    
+    /**
+     * Изтриване на стар платежен метод
+     */
+    public function oldPosPayments()
+    {
+    	if($id = cond_Payments::fetchField("#title = 'Кеш'", 'id')){
+    		cond_Payments::delete($id);
+    	}
+    }
+    
+    
+    /**
+     * Изтриване на стари начини за плащане
+     */
+    public function removePayment()
+    {
+    	cond_Payments::delete("#title = 'В брой'");
     }
 }

@@ -281,25 +281,27 @@ class email_Inboxes extends core_Master
             
             // Вземаме масив от PowerUsers, като индекса е ника на потребителя
             $powerUsers = static::getPowerUsers();
-
+            
+            list(, $accDomain) = explode('@', $accRec->email);
+            
             // Ако имейла е съставен от ник на потребител и домейн на корпоративна сметка
             // тогава създаваме кутия за този имейл, вързана към съответния потребител
             foreach ($emailsArr as $eml) {
                 
                 list($nick, $domain) = explode('@', $eml);
                 
-                if(!$nick || !$domain) break;
+                if(!$nick || !$domain) continue;
 
                 // Намираме потребител, съответстващ на емейл адреса
                 $userRec = $powerUsers[$nick];
                 
-                // Ако няма такъв потребител - прекратяваме обработката
-                if(!$userRec) break;
+                // Ако няма такъв потребител
+                if(!$userRec) continue;
                 
                 // Ако домейна на имейла  корпоративния домейн, то 
                 // Създаваме кутия (основна) на потребителя, към този домейн
-                // и връщаме имейла на тази кутия
-                if($accRec->domain == $domain)  {
+                // и връщаме имейла на тази кутия 
+                if($accDomain == $domain)  {
 
                     $rec = new stdClass();
                     $rec->email = $eml;
@@ -446,7 +448,9 @@ class email_Inboxes extends core_Master
         if (!$userId) {
             $userId = core_Users::getCurrent();
         }
-                
+        
+        if (!$userId || ($userId <= 0)) return FALSE;
+        
         // Вземаме nick' а на потребителя
         $nick = core_Users::fetchField($userId, 'nick');
 
@@ -505,8 +509,12 @@ class email_Inboxes extends core_Master
     {
         $folderId = $type->params['folderId'];
         
+        $options = array();
+        
         if ($folderId) {
-            $options = $mvc->getFromEmailOptions($folderId);
+            try {
+                $options = $mvc->getFromEmailOptions($folderId);
+            } catch (Exception $e) {}
             
             // Ако може да има празен запис
             if ($type->params['allowEmpty']) {
@@ -516,7 +524,33 @@ class email_Inboxes extends core_Master
     }
 
     
-
+    /**
+     * Редиректва към добавяне на кутия
+     * @redirect
+     */
+    public static function redirect()
+    {
+        // Ако има права за добавяне редиректва към добавана на кутия
+        if (self::haveRightFor('add')) {
+            redirect(array('email_Inboxes', 'add', 'ret_url' => TRUE), FALSE, '|Трябва да добавите кутия за изпращане на имейл');
+        } else {
+            
+            $msg = '|Трябва да имате поне една кутия за изпращане на имейл';
+            if (self::haveRightFor('list')) {
+                redirect(array('email_Inboxes', 'list', 'ret_url' => TRUE), FALSE, $msg);
+            }else {
+                $retUrl = getRetUrl();
+                if ($retUrl) {
+                    redirect($retUrl, FALSE, $msg);
+                }
+            }
+            
+            // Не би трябвало да се стигне до тук
+            status_Messages::newStatus($msg);
+        }
+    }
+    
+    
     /**
      * Връща списък с [id на кутия] => имейл от които текущия потребител може да изпраща писма от папката
      * Първия имейл е най-предпочитания

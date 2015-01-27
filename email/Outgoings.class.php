@@ -290,6 +290,7 @@ class email_Outgoings extends core_Master
         // Имейлите от получател
         $oEmails = $options->emailsTo;
         
+        $groupEmailsArr = array();
         $groupEmailsArr['cc'][0] = $options->emailsCc;
         
         // Ако не сме променили имейлите
@@ -441,6 +442,7 @@ class email_Outgoings extends core_Master
                 if ($rec->folderId) {
                     $currUserId = core_Users::getCurrent();
                     if ($currUserId > 0) {
+                        $valArr = array();
                         $valArr['defaultEmail'] = $options->boxFrom;
                         $key = doc_Folders::getSettingsKey($rec->folderId);
                         core_Settings::setValues($key, $valArr, core_Users::getCurrent(), TRUE);
@@ -462,7 +464,7 @@ class email_Outgoings extends core_Master
         
         // Ако има успешно изпращане
         if ($success) {
-            $msg = 'Успешно изпратено до|*: ' . implode(', ', $success);
+            $msg = '|Успешно изпратено до|*: ' . implode(', ', $success);
             $statusType = 'notice';
             
             // Добавяме статус
@@ -511,7 +513,7 @@ class email_Outgoings extends core_Master
         
         // Ако има провалено изпращане
         if ($failure) {
-            $msg = 'Грешка при изпращане до|*: ' . implode(', ', $failure);
+            $msg = '|Грешка при изпращане до|*: ' . implode(', ', $failure);
             $statusType = 'warning';
             
             // Добавяме статус
@@ -644,6 +646,9 @@ class email_Outgoings extends core_Master
         if(count($docHandlesArr) > 0) {
             $data->form->FNC('documentsSet', 'set', 'input,caption=Документи,columns=4,formOrder=6');
             
+            $suggestion = array();
+            $setDef = array();
+            
             //Вземаме всички документи
             foreach ($docHandlesArr as $name => $checked) {
                 
@@ -734,7 +739,12 @@ class email_Outgoings extends core_Master
         $data->form->setDefault('emailsCc', $data->rec->emailCc);
         
         // Стойността на полето От, дефинирано в персонализацията на профилите
-        $defaultBoxFromId = static::getDefaultInboxId($data->rec->folderId);
+        $defaultBoxFromId = self::getDefaultInboxId($data->rec->folderId);
+        
+        if (!$defaultBoxFromId) {
+            email_Inboxes::redirect();
+        }
+        
         $data->form->setDefault('boxFrom', $defaultBoxFromId);
         
         // Ако имам папка
@@ -885,6 +895,9 @@ class email_Outgoings extends core_Master
                         // Вземаме имейлите CC
                         $emailsCcArr = arr::make($form->rec->emailsCc, TRUE);
                         
+                        $toWarningArr = array();
+                        $ccWarningArr = array();
+                        
                         // Обхождаме масива с no-reply имейлите
                         foreach ($noReplayEmailsArr as $noReplayEmail) {
                             
@@ -1010,6 +1023,8 @@ class email_Outgoings extends core_Master
             
             // Масив с всички документи
             $docHandlesArr = $mvc->GetPossibleTypeConvertings($rec->id);
+            
+            $docsArr = array();
             
             // Обхождаме документите
             foreach ($docHandlesArr as $name => $checked) {
@@ -1776,14 +1791,72 @@ class email_Outgoings extends core_Master
         // Ако препращаме
         if ($forward) {
             
-            // Манипулатора на документа
-            $handle = static::getHandle($id);
-            
-            // Текстова част
-            $text = tr("Моля запознайте се с препратения имейл|* #{$handle}.");
+            $mvc = cls::get('email_Outgoings');
+        
+            $text = email_Outgoings::prepareDefaultEmailBodyText($mvc, $id, 'createdOn', $forward);
         }
         
         return $text;
+    }
+    
+    
+    /**
+     * Подготвя текст за тялото на имейла при отговор и препращане
+     * 
+     * @param core_Mvc $class
+     * @param integer $id
+     * @param string $dateField
+     * @param boolean $forward
+     * 
+     * @return core_ET
+     */
+    public static function prepareDefaultEmailBodyText($class, $id, $dateField = 'date', $forward = FALSE)
+    {
+        //Вземаме датата от базата от данни
+        $date = $class->fetchField($id, $dateField);
+        
+        if ($forward) {
+            $key = 'EMAIL_FORWARDING_DEFAULT_EMAIL_BODY_FORWARDING';
+        } else {
+            $key = 'EMAIL_INCOMINGS_DEFAULT_EMAIL_BODY';
+        }
+        
+        $text = core_Packs::getConfigValue('email', $key);
+        
+        $textTpl = new ET($text);
+        
+        $placeArr = $textTpl->getPlaceholders();
+        
+        $valArr = array();
+        
+        foreach ((array)$placeArr as $placeHolder) {
+            
+            $placeHolderU = strtoupper($placeHolder);
+            
+            switch ($placeHolderU) {
+                case 'DATETIME':
+                    $valArr[$placeHolder] = dt::mysql2verbal($date, 'd-M H:i');
+                break;
+                
+                case 'DATE':
+                    $valArr[$placeHolder] = dt::mysql2verbal($date, 'd-M');
+                break;
+                
+                case 'MSG':
+                    // Манипулатора на документа
+                    $valArr[$placeHolder] = '#' . $class->getHandle($id);
+                break;
+                
+                default:
+                    ;
+                break;
+            }
+        }
+        
+        $textTpl->placeArray($valArr);
+        
+        return $textTpl;
+        
     }
     
     
@@ -2261,6 +2334,8 @@ class email_Outgoings extends core_Master
         // Превръщаме всички имейли на масив
         $emailsArr = type_Emails::toArray($emails);
         
+        $arr = array();
+        
         // Обхождаме масива
         foreach ($emailsArr as $email) {
             
@@ -2401,6 +2476,56 @@ class email_Outgoings extends core_Master
         
         $form->FNC('userEmail', 'email', 'input=input,silent,caption=Имейл->Адрес,width=100%,recently');
         
+        // Заявка за извличане на потребителите
+        $personsQuery = crm_Persons::getQuery();
+        
+        // Да извлече само достъпните
+        crm_Persons::applyAccessQuery($personsQuery);
+        
+        $personsArr = array();
+        
+        // Обхождаме всички откити резултати
+        while ($personsRec = $personsQuery->fetch()) {
+            
+            // Добавяме в масива
+            $personsArr[$personsRec->id] = crm_Persons::getVerbal($personsRec, 'name');
+        }
+        
+        // Ако има открити стойности
+        if (count($personsArr)) {
+            
+            // Добавяме ги в комбобокса
+            $form->setOptions('personId', $personsArr);
+        } else {
+            
+            // Добавяме празен стринг, за да не се покажат всичките записи
+            $form->setOptions('personId', array('' => ''));
+        }
+        
+        // Заявка за извличане на фирмите
+        $companyQuery = crm_Companies::getQuery();
+        
+        // Да извлече само достъпните
+        crm_Companies::applyAccessQuery($companyQuery);
+        
+        // Обхождаме всички откити резултати
+        while ($companiesRec = $companyQuery->fetch()) {
+            
+            // Добавяме в масива
+            $companiesArr[$companiesRec->id] = crm_Companies::getVerbal($companiesRec, 'name');
+        }
+        
+        // Ако има открити стойности
+        if (count($companiesArr)) {
+            
+            // Добавяме ги в комбобокса
+            $form->setOptions('companyId', $companiesArr);
+        } else {
+            
+            // Добавяме празен стринг, за да не се покажат всичките записи
+            $form->setOptions('companyId', array('' => ''));
+        }
+        
         $form->input();
         
         // Проверка за грешки
@@ -2466,54 +2591,6 @@ class email_Outgoings extends core_Master
                         'forward' => 'forward',
                         'ret_url' => $retUrl,
                     )));
-        }
-        
-        // Заявка за извличане на потребителите
-        $personsQuery = crm_Persons::getQuery();
-        
-        // Да извлече само достъпните
-        crm_Persons::applyAccessQuery($personsQuery);
-        
-        // Обхождаме всички откити резултати
-        while ($personsRec = $personsQuery->fetch()) {
-            
-            // Добавяме в масива
-            $personsArr[$personsRec->id] = crm_Persons::getVerbal($personsRec, 'name');
-        }
-        
-        // Ако има открити стойности
-        if (count($personsArr)) {
-            
-            // Добавяме ги в комбобокса
-            $form->setOptions('personId', $personsArr);
-        } else {
-            
-            // Добавяме празен стринг, за да не се покажат всичките записи
-            $form->setOptions('personId', array('' => ''));
-        }
-        
-        // Заявка за извличане на фирмите
-        $companyQuery = crm_Companies::getQuery();
-        
-        // Да извлече само достъпните
-        crm_Companies::applyAccessQuery($companyQuery);
-        
-        // Обхождаме всички откити резултати
-        while ($companiesRec = $companyQuery->fetch()) {
-            
-            // Добавяме в масива
-            $companiesArr[$companiesRec->id] = crm_Companies::getVerbal($companiesRec, 'name');
-        }
-        
-        // Ако има открити стойности
-        if (count($companiesArr)) {
-            
-            // Добавяме ги в комбобокса
-            $form->setOptions('companyId', $companiesArr);
-        } else {
-            
-            // Добавяме празен стринг, за да не се покажат всичките записи
-            $form->setOptions('companyId', array('' => ''));
         }
         
         // Подготвяме лентата с инструменти на формата
