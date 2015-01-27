@@ -446,7 +446,7 @@ class sales_Quotations extends core_Master
     		} else {
     			
     			// За да се активира, трябва да има детайли
-    			if(empty(sales_QuotationsDetails::fetchField("#quotationId = {$rec->id}"))){
+    			if(!sales_QuotationsDetails::fetchField("#quotationId = {$rec->id}")){
     				$res = 'no_one';
     			}
     		}
