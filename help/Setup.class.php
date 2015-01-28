@@ -138,7 +138,9 @@ class help_Setup extends core_ProtoSetup
         
         // Инсталираме клавиатурата към password полета
         $html .= $Plugins->installPlugin('helpHint', 'help_Plugin', 'plg_ProtoWrapper', 'family');
- 	         
+ 	    
+        $html .= $Plugins->installPlugin('Въпроси за bgERP', 'help_bgerpPlg', 'core_Manager', 'family');
+	
         return $html;
     }
     
