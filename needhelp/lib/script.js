@@ -1,4 +1,13 @@
-function needHelpActions(text, secondsInactive, afterCloseUrl)
+
+
+/**
+ * 
+ * @param string text
+ * @param integer secondsInactive
+ * @param url afterCloseUrl
+ * @param url seeUrl
+ */
+function needHelpActions(text, secondsInactive, afterCloseUrl, seeUrl)
 {
 	var isset=false;
 	// ако няма контейнера, в който ще показване прозорчето, го добавяме
@@ -15,6 +24,7 @@ function needHelpActions(text, secondsInactive, afterCloseUrl)
 			isset=true;
 			$('.toast-container').append(needHelpBlock);
 			$('.needhelp-holder').fadeIn(800);
+			getEfae().process({'url': seeUrl});
 		}
 	}, 5000);
 	
@@ -32,5 +42,4 @@ function needHelpActions(text, secondsInactive, afterCloseUrl)
 			$('.needhelp-holder').fadeOut();
 		}, 3000);
 	});
-	
 }
