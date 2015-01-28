@@ -44,7 +44,7 @@
                 <table class="innerTable footer-notes paddingCells" style='width:100%'>
                     <tbody>
                         <tr>
-                            <td class="topCell vtop" style='width:35%'>
+                            <td class="topCell vtop" style='width:33%'>
                                 <!--ET_BEGIN paymentMethodId-->
                                 <div class='cellRow'>
                                     <span class='quiet'>Payment: </span>
@@ -87,13 +87,11 @@
                                 <hr>
                                 <div class='cellRow'>
                                     <span class='quiet'>Case: </span>[#caseId#]
+                                     <!--ET_BEGIN isPaid-->
+                                     <div class='stamp'>[#isPaid#]</div>
+                                     <!--ET_END isPaid-->
                                 </div>
                                 <!--ET_END caseId-->
-                                <div class='cellRow'>
-                                    <!--ET_BEGIN isPaid-->
-                                     <div class='stamp'>[#isPaid#]</div>
-                                	<!--ET_END isPaid-->
-                                </div>
                             </td>
                             <!--ET_BEGIN purchaseConditions-->
                             [#purchaseConditions#]
@@ -103,16 +101,18 @@
                             <div>
                             	<!--ET_BEGIN deliveryROW-->
                             	[#deliveryROW#]
-                            		<div><span class='quiet'>Delivery:</span> <b>[#deliveryTermId#]</b> [#ourLocation#]</div>
+                            		<div class='cellRow'><span class='quiet'>Delivery:</span> <b>[#deliveryTermId#]</b> [#ourLocation#]</div>
                             	<!--ET_END deliveryROW-->
                             		<!--ET_BEGIN deliveryTime-->
-                                    <div><span class='quiet'>Delivery time:</span> <b>[#deliveryTime#]</b></div>
+                                    <div class='cellRow'><span class='quiet'>Delivery time:</span> <b>[#deliveryTime#]</b></div>
                                     <!--ET_END deliveryTime-->
                                     <!--ET_BEGIN shipmentStoreId-->
-                            		<div><span class='quiet'>Store:</span> <b>[#shipmentStoreId#]</b></div>
-                            		<!--ET_BEGIN isDelivered-->
-		                            <div class='stamp'>[#isDelivered#]</div>
-		                            <!--ET_END isDelivered-->
+                            		<div class='cellRow'>
+                            		    <span class='quiet'>Store:</span> <b>[#shipmentStoreId#]</b>
+                            		    <!--ET_BEGIN isDelivered-->
+	                                    <div class='stamp'>[#isDelivered#]</div>
+	                                    <!--ET_END isDelivered-->
+	                                </div>
 		                            <!--ET_END shipmentStoreId-->
                             	</div>
                             	<hr>
@@ -139,7 +139,7 @@
 	                           </ol></div>
                             </td>
                             <!--ET_END purchaseConditions-->
-                            <td class="topCell vtop aright" style='width:35%'>
+                            <td class="topCell vtop aright" style='width:33%'>
                                 <table style='float:right; width:100%;' id='business-doc-summary-table'>
                                     <tr class='nowrap'>
                                         <td class='aright'>Value :</td>

@@ -94,13 +94,11 @@
                                 <hr>
                                 <div class='cellRow'>
                                     <span class='quiet'>Case: </span>[#caseId#]
+                                     <!--ET_BEGIN isPaid-->
+                                     <div class='stamp'>[#isPaid#]</div>
+                                     <!--ET_END isPaid-->
                                 </div>
                                 <!--ET_END caseId-->
-                                <div class='cellRow'>
-                                    <!--ET_BEGIN isPaid-->
-                                     <div class='stamp'>[#isPaid#]</div>
-                                    <!--ET_END isPaid-->
-                                </div>
                             </td>
                             <!--ET_BEGIN conditions-->
                             [#conditions#]
@@ -110,18 +108,19 @@
                             	<div>
                             	<!--ET_BEGIN deliveryROW-->
                             	[#deliveryROW#]
-                            		<div><span class='quiet'>Delivery:</span> <b>[#deliveryTermId#]</b> [#deliveryLocationId#]</div>
+                            		<div class='cellRow'><span class='quiet'>Delivery:</span> <b>[#deliveryTermId#]</b> [#deliveryLocationId#]</div>
                             	<!--ET_END deliveryROW-->
                             		<!--ET_BEGIN deliveryTime-->
-                                    <div>
+                                    <div class='cellRow'>
                                         <span class='quiet'>Delivery time: </span><b>[#deliveryTime#]</b>
                                     </div>
                                     <!--ET_END deliveryTime-->
                                     <!--ET_BEGIN shipmentStoreId-->
-                            		<div><span class='quiet'>Store: </span><b>[#shipmentStoreId#]</b></div>
-                            		<!--ET_BEGIN isDelivered-->
-		                            <div class='stamp'>[#isDelivered#]</div>
-		                            <!--ET_END isDelivered-->
+                            		<div class='cellRow'><span class='quiet'>Store: </span><b>[#shipmentStoreId#]</b>
+                            		    <!--ET_BEGIN isDelivered-->
+	                                    <div class='stamp'>[#isDelivered#]</div>
+	                                    <!--ET_END isDelivered-->
+                            		</div>
 		                            <!--ET_END shipmentStoreId-->
 		                        </div>
 		                        <hr>
