@@ -374,6 +374,13 @@ class techno2_SpecificationDoc extends core_Embedder
     				$data->toolbar->addBtn("Задание", array('mp_Jobs', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE), 'ef_icon = img/16/clipboard_text.png,title=Създаване на ново задание за производство');
     			}
     		}
+    		
+    		// Ако има артикул генериран от спецификацията, показваме бутон към него
+    		if($pRec = cat_Products::fetch("#specificationId = {$data->rec->id}")){
+    			if(cat_Products::haveRightFor('single', $pRec)){
+    				$data->toolbar->addBtn("Артикул", array('cat_Products', 'single', $pRec->id, 'ret_url' => TRUE), "ef_icon = img/16/wooden-box.png,title=Към артикул '{$pRec->name}'");
+    			}
+    		}
     	}
     }
     
@@ -875,8 +882,44 @@ class techno2_SpecificationDoc extends core_Embedder
     }
     
     
-    public static function createNewDraft($title, $innerClass, $innerForm, $innerState, $folderId = NULL)
+    /**
+     * Създава нова спецификация
+     * 
+     * @param string $title  - име на спецификацията
+     * @param int $innerClass - драйвера на спецификацията
+     * @param stdClass $innerForm - вътрешната форма
+     * @param stdClass $innerState - вътрешното състояние
+     * @param int $folderId - ид на папка
+     * @param int $threadId - ид на нишка
+     * @param enum(draft,active,rejected) $state - в какво състояние да се създаде
+     * @return stdClass $obj - записа на спецификацията
+     */
+    public static function createNew($title, $innerClass, $innerForm, $innerState, $folderId = NULL, $threadId = NULL, $state = 'active')
     {
-    	//@TODO
+    	expect(!static::fetchField("#title = '{$title}'"));
+    	expect(cls::haveInterface('cat_ProductDriverIntf', $innerClass));
+    	
+    	if(!isset($folderId)){
+    		if(!isset($threadId)){
+    			$folderId = static::getDefaultFolder();
+    		} else {
+    			$folderId = doc_Threads::fetchField($threadId, 'folderId');
+    		}
+    	}
+    	
+    	expect(static::canAddToFolder($folderId));
+    	
+    	$obj = (object)array('title'      => $title,
+    						 'innerClass' => $innerClass,
+    						 'innerForm'  => $innerForm,
+    						 'innerState' => $innerState,
+    						 'folderId'   => $folderId,
+    						 'state'      => $state,
+    						 'threadId'   => $threadId,
+    	);
+    	
+    	static::save($obj);
+    	
+    	return $obj;
     }
 }
