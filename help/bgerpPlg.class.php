@@ -1,7 +1,8 @@
 <?php
 
 
-/** Въпроси
+/** 
+ * Въпроси за bgerp
  * 
  * @category  bgerp
  * @package   help
