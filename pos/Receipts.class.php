@@ -1243,16 +1243,26 @@ class pos_Receipts extends core_Master {
     		// Ако продукта не отговаря на търсения стринг, го пропускаме
     		if(!$pRec = $Products->fetch(array("#id = {$id} AND #searchKeywords LIKE '%[#1#]%'", $data->searchString))) continue;
     		
-    		$price = $Policy->getPriceInfo($data->rec->contragentClass, $data->rec->contragentObjectId, $id, $Products->getClassId(), NULL, NULL, $data->rec->createdOn, 1, 'yes');
+    		$basePackInfo = $Products->getBasePackInfo($id);
+    		if($basePackInfo->classId != 'cat_UoM'){
+    			$packId = $basePackInfo->id;
+    			$perPack = $basePackInfo->quantity;
+    		} else {
+    			$packId = NULL;
+    			$perPack = 1;
+    		}
+    		
+    		$price = $Policy->getPriceInfo($data->rec->contragentClass, $data->rec->contragentObjectId, $id, $Products->getClassId(), $packId, NULL, $data->rec->createdOn, 1, 'yes');
     		
     		// Ако няма цена също го пропускаме
     		if(empty($price->price)) continue;
     		$vat = $Products->getVat($id);
-    		$obj = (object)array('productId' => $id, 
-    							 'measureId' => $pRec->measureId,
-    							 'price'     => $price->price, 
-    							 'photo'     => $pRec->photo,
-    							 'vat'	     => $vat);
+    		$obj = (object)array('productId'   => $id, 
+    							 'measureId'   => $pRec->measureId,
+    							 'price'       => $price->price * $perPack, 
+    							 'photo'       => $pRec->photo,
+    							 'packagingId' => $packId,
+    							 'vat'	       => $vat);
     		
     		$pInfo = cat_Products:: getProductInfo($id);
     		if(isset($pInfo->meta['canStore'])){
@@ -1279,6 +1289,7 @@ class pos_Receipts extends core_Master {
     	$row->price = $Double->toVerbal($obj->price);
     	$row->price .= "&nbsp;<span class='cCode'>{$data->baseCurrency}</span>";
     	$row->stock = $Double->toVerbal($obj->stock);
+    	$row->packagingId = cat_Packagings::getTitleById($obj->packagingId);
     	
     	$obj->receiptId = $data->rec->id;
     	if($this->pos_ReceiptDetails->haveRightFor('add', $obj)){
@@ -1331,7 +1342,7 @@ class pos_Receipts extends core_Master {
     	$fSet->FNC('stock', 'double', 'tdClass=pos-stock-field');
     	
     	$table = cls::get('core_TableView', array('mvc' => $fSet));
-    	$fields = arr::make('photo=Снимка,productId=Продукт,price=Цена,stock=Наличност');
+    	$fields = arr::make('photo=Снимка,productId=Продукт,packagingId=Опаковка,price=Цена,stock=Наличност');
     	if(!$data->showImg){
     		unset($fields['photo']);
     	}
