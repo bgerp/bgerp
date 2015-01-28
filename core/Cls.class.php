@@ -329,8 +329,14 @@ class core_Cls
      */
     static function haveInterface($interface, $class)
     {
-        /* @var $classObj core_BaseClass */
-        
+        if(is_numeric($interface)){
+    		
+    		// Ако е подадено ид, намираме името на интерфейса с това ид
+    		$interface = core_Interfaces::fetchField($interface, 'name');
+    	}
+    	
+    	/* @var $classObj core_BaseClass */
+    	
         if(is_scalar($class)) {
             $classObj = cls::get($class);
         } else {
