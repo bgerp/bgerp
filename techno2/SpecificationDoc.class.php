@@ -178,7 +178,7 @@ class techno2_SpecificationDoc extends core_Embedder
     	$this->FLD('meta', 'set(canSell=Продаваем,canBuy=Купуваем,
         						canStore=Складируем,canConvert=Вложим,
         						fixedAsset=Дма,canManifacture=Производим)', 'caption=Свойства->Списък,columns=2,formOrder=100000000,input=none');
-    	$this->FLD("isPublic", 'varchar', 'caption=Показване за избор в документи->Достъп,notNull,default=no,formOrder=100000000');
+    	$this->FLD("isPublic", 'enum(no=Частен,yes=Публичен)', 'input=none');
     	
     	$this->setDbUnique('title');
     }
@@ -203,12 +203,6 @@ class techno2_SpecificationDoc extends core_Embedder
     				$form->setDefault($fld, $originRec->$fld);
     			}
     		}
-    		
-    		$form->setField('isPublic', 'input');
-    		$options = arr::make('no=Частен,yes=Публичен');
-    		$form->setOptions('isPublic', $options);
-    	} else {
-    		$form->setField('isPublic', 'input=none');
     	}
     }
 
@@ -237,6 +231,11 @@ class techno2_SpecificationDoc extends core_Embedder
     		
     		$Set = cls::get('type_Set');
     		$rec->meta = $Set->fromVerbal($meta);
+    	}
+    	
+    	if(isset($rec->folderId)){
+    		$cover = doc_Folders::getCover($rec->folderId);
+    		$rec->isPublic = ($cover->haveInterface('crm_ContragentAccRegIntf')) ? 'no' : 'yes';
     	}
     }
     
@@ -293,13 +292,7 @@ class techno2_SpecificationDoc extends core_Embedder
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	$row->header = $mvc->singleTitle . " №<b>{$row->id}</b> ({$row->state})" ;
-    	
-    	if($fields['-list']){
-    		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
-    		$options = arr::make('no=Частен,yes=Публичен');
-    		$row->isPublic = $options[$rec->isPublic];
-    	}
+    	$row->header = $mvc->singleTitle . " №<b>{$row->id}</b> ({$row->state})";
     }
     
     
@@ -879,5 +872,11 @@ class techno2_SpecificationDoc extends core_Embedder
     		unset($dRec->id);
     		cat_products_Params::save($dRec);
     	}
+    }
+    
+    
+    public static function createNewDraft($title, $innerClass, $innerForm, $innerState, $folderId = NULL)
+    {
+    	//@TODO
     }
 }
