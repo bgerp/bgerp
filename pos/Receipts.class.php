@@ -1117,7 +1117,7 @@ class pos_Receipts extends core_Master {
     		core_Statuses::newStatus(tr('|Артикулът няма цена|*!'), 'error');
     		return $this->pos_ReceiptDetails->returnError($receiptId);
     	}
-    
+    	
     	// Намираме дали този проект го има въведен
     	$sameProduct = $this->pos_ReceiptDetails->findSale($rec->productId, $rec->receiptId, $rec->value);
     	if($sameProduct) {
