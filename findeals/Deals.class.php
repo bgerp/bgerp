@@ -73,6 +73,12 @@ class findeals_Deals extends deals_DealBase
     
     
     /**
+     * Кой може да го контира?
+     */
+    public $canConto = 'ceo,findeals';
+    
+    
+    /**
 	 * Кой може да го разглежда?
 	 */
 	public $canList = 'ceo,findealsMaster';
