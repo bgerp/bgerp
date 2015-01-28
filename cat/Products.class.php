@@ -38,7 +38,7 @@ class cat_Products extends core_Embedder {
      * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_RowTools, plg_SaveAndNew, plg_PrevAndNext, acc_plg_Registry, plg_Rejected, plg_State,
-                     cat_Wrapper, plg_Sorting, bgerp_plg_Groups, plg_Printing, Groups=cat_Groups, doc_FolderPlg, plg_Select, plg_Search, bgerp_plg_Import';
+                     cat_Wrapper, plg_Sorting, bgerp_plg_Groups, plg_Printing, Groups=cat_Groups, plg_Select, plg_Search, bgerp_plg_Import';
     
     
     /**
@@ -161,7 +161,7 @@ class cat_Products extends core_Embedder {
     /**
      * Клас за елемента на обграждащия <div>
      */
-    var $cssClass = 'folder-cover';
+    //var $cssClass = 'folder-cover';
     
     
     /**  
