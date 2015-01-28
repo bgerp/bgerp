@@ -52,6 +52,8 @@ class doc_SharablePlg extends core_Plugin
             foreach ((array)$mvc->fields as $name=>$field) {
                 if ($field->type instanceof type_Richtext) {
                     
+                    if ($field->type->params['nickToLink'] == 'no') continue;
+                    
                     // Вземаме споделените потребители
                     $sharedUsersArr = rtac_Plugin::getNicksArr($rec->$name);
                     if (!$sharedUsersArr) continue;

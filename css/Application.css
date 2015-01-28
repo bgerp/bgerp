@@ -3696,6 +3696,10 @@ only screen and (max-width: 320px) {
   .printing .#fancybox-left,
   .printing #fancybox-right {
     background-color: transparent !important; }
+  .printing .selectRows .listTable > tbody > tr > td:first-child {
+    text-align: left; }
+  .printing .new-folder-btn {
+    display: none; }
 
 .narrow .printing .document {
   width: 850px; }

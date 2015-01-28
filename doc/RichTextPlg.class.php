@@ -38,11 +38,15 @@ class doc_RichTextPlg extends core_Plugin
     {
         $this->mvc = $mvc;
         
-        //Ако намери съвпадение на регулярния израз изпълнява функцията
-        $html = preg_replace_callback(self::$pattern, array($this, '_catchFile'), $html);
+        if ($mvc->params['hndToLink'] != 'no') {
+            //Ако намери съвпадение на регулярния израз изпълнява функцията
+            $html = preg_replace_callback(self::$pattern, array($this, '_catchFile'), $html);
+        }
         
-        // Прихваща всички никове в ричтекста
-        $html = preg_replace_callback(rtac_Plugin::$pattern, array($this, '_catchNick'), $html);
+        if ($mvc->params['nickToLink'] != 'no') {
+            // Прихваща всички никове в ричтекста
+            $html = preg_replace_callback(rtac_Plugin::$pattern, array($this, '_catchNick'), $html);
+        }
     }
     
     
@@ -308,7 +312,8 @@ class doc_RichTextPlg extends core_Plugin
     	$rec = $mvc->fetch($rec->id);
     	$fields = $mvc->selectFields();
     	foreach ($fields as $name => $fld){
-    		if($fld->type instanceof type_Richtext){
+    		if ($fld->type instanceof type_Richtext){
+    		    if ($fld->type->params['hndToLink'] == 'no') continue;
     			$all .= $rec->{$name};
     		}
     	}
