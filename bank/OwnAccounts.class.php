@@ -356,7 +356,7 @@ class bank_OwnAccounts extends core_Master {
      * 
      * @return stdClass $acc - записа отговарящ на текущата ни сметка
      */
-    protected static function getOwnAccountInfo($id = NULL)
+    public static function getOwnAccountInfo($id = NULL)
     {
         if($id) {
             $ownAcc = static::fetch($id);
