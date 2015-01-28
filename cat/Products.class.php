@@ -158,12 +158,6 @@ class cat_Products extends core_Embedder {
     var $canWrite = 'ceo,cat';
     
     
-    /**
-     * Клас за елемента на обграждащия <div>
-     */
-    //var $cssClass = 'folder-cover';
-    
-    
     /**  
      * Кой има право да променя системните данни?  
      */  
@@ -225,7 +219,8 @@ class cat_Products extends core_Embedder {
         $this->FLD('measureId', 'key(mvc=cat_UoM, select=name,allowEmpty)', 'caption=Мярка,mandatory,remember,notSorting,input=none,formOrder=4');
         $this->FLD('photo', 'fileman_FileType(bucket=pictures)', 'caption=Фото,input=none,formOrder=4');
         $this->FLD('groups', 'keylist(mvc=cat_Groups, select=name, makeLinks)', 'caption=Групи,maxColumns=2,remember,formOrder=100');
-        $this->FLD('privateFolderId', 'key(mvc=doc_Folders)', 'input=none');
+        $this->FLD('privateFolderId', 'key(mvc=doc_Folders)', 'input=none'); // В коя частна папка да се показва
+        $this->FLD('specificationId', 'key(mvc=techno2_SpecificationDoc)', 'input=none'); // Поле за пораждаща спецификация
         
         $this->setDbUnique('code');
     }
