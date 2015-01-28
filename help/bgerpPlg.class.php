@@ -50,8 +50,8 @@ class help_bgerpPlg extends core_Plugin
         
     	cls::get(page_InternalFooter);
     	$baseUrl = BGERP_SUPPORT_URL;
-    	$conf = core_Packs::getConfig('needhelp');
-    	$typeId = $conf->NEEDHELP_TYPEID;
+    	$conf = core_Packs::getConfig('help');
+    	$typeId = $conf->HELP_BGERP_TYPEID;
     	$url = core_Url::addParams($baseUrl, array('typeId' => $typeId));
     	
     	if(defined('BGERP_SUPPORT_URL') && strpos(BGERP_SUPPORT_URL, '//') !== FALSE) {
@@ -64,10 +64,10 @@ class help_bgerpPlg extends core_Plugin
     		$form = new ET("<form class='needHelpForm' style='display:inline' method='post' target='_blank' onSubmit=\"prepareBugReport(this, '{$user}', '{$domain}', '{$name}');\" action='" . $url . "'></form>");
     		$res->append($form);
     	}
-    	$res->push('needhelp/lib/style.css', 'CSS');
-    	$res->push('needhelp/lib/script.js', 'JS');
+    	$res->push('help/lib/style.css', 'CSS');
+    	$res->push('help/lib/script.js', 'JS');
 
-    	$inactiveTime = $conf->NEEDHELP_INACTIVE_SECS;
+    	$inactiveTime = $conf->HELP_BGERP_INACTIVE_SECS;
     	
     	$text = tr('Имате ли въпроси за') . ' <span class="logo">bgERP</span>?';
     	
