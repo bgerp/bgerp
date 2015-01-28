@@ -3954,8 +3954,11 @@ body.narrow {
         display: block !important;
     }
     .#fancybox-left, #fancybox-right{
-    background-color: transparent !important;
-}
+        background-color: transparent !important;
+    }
+    .selectRows .listTable > tbody > tr > td:first-child {
+        text-align: left;
+    }
 }
 
 .narrow .printing .document{
