@@ -296,7 +296,7 @@ class acc_ArticleDetails extends doc_Detail
                 	// Ако корицата има итнерфейса на номенклатурата и е перо, слагаме я по дефолт
                 	if($cover->haveInterface($list->rec->regInterfaceId)){
                 		if($coverClassId = $cover->getInstance()->getClassId()){
-                			if($itemId = acc_Items::fetchItem($coverClassId, $cover->that)->id){bp();
+                			if($itemId = acc_Items::fetchItem($coverClassId, $cover->that)->id){
                 				$form->setDefault("{$type}Ent{$i}", $itemId);
                 			}
                 		}
@@ -305,7 +305,7 @@ class acc_ArticleDetails extends doc_Detail
                 	// Ако първия документ има итнерфейса на номенклатурата и е перо, слагаме го по дефолт
                 	if($firstDoc->haveInterface($list->rec->regInterfaceId)){
                 		if($docClassId = $firstDoc->getInstance()->getClassId()){
-                			if($itemId = acc_Items::fetchItem($docClassId, $firstDoc->that)->id){bp();
+                			if($itemId = acc_Items::fetchItem($docClassId, $firstDoc->that)->id){
                 				$form->setDefault("{$type}Ent{$i}", $itemId);
                 			}
                 		}
