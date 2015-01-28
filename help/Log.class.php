@@ -78,12 +78,12 @@ class help_Log extends core_Master
 
         $this->setDbUnique("userId,infoId");
     }
-
-
+    
+    
     /**
      * Как да вижда текущият потребител тази помощна информация?
      */
-    static function getDisplayMode($infoId, $userId = NULL)
+    static function getDisplayMode($infoId, $userId = NULL, $increasSeeCnt=TRUE)
     {
         // Ако нямаме потребител, вземаме текущия
         if(!$userId) {
@@ -103,7 +103,11 @@ class help_Log extends core_Master
         }
 
         if($rec->seeCnt < max($conf->HELP_MAX_CLOSE_DISPLAY_CNT, $conf->HELP_MAX_OPEN_DISPLAY_CNT)) {
-            $rec->seeCnt++;
+            
+            if ($increasSeeCnt) {
+                $rec->seeCnt++;
+            }
+            
             self::save($rec);
         }
 		
@@ -147,16 +151,49 @@ class help_Log extends core_Master
     	// Намираме  запис
     	$rec = help_Log::fetch("#infoId = {$id} AND #userId = {$cu}"); 
     	
-    	if($rec){
+    	if ($rec) {
     		
 	    	// добавяме дата
 	    	$rec->closedOn = $nowDate;
 	    	
 	    	// и я записваме
 	    	self::save($rec, 'closedOn');
-
     	}
     	
-    	shutdown();
+    	if (Request::get('ajax_mode')) {
+    	    
+    	    return array();
+    	} else {
+    	    shutdown();
+    	}
+    }
+    
+    
+    /**
+     * Увеличава броя на вижданията
+     */
+    static function act_See()
+    {
+    	// За кой клас се отнася
+    	$id = core_Request::get('id', 'int');
+        
+        $cu = core_Users::getCurrent();
+    	
+    	// Намираме  запис
+    	$rec = help_Log::fetch("#infoId = {$id} AND #userId = {$cu}"); 
+    	
+    	if ($rec){
+    		
+	    	$rec->seeCnt++;
+	    	
+	    	self::save($rec, 'seeCnt');
+    	}
+    	
+    	if (Request::get('ajax_mode')) {
+    	    
+    	    return array();
+    	} else {
+    	    shutdown();
+    	}
     }
 }
