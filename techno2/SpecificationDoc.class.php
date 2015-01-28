@@ -247,7 +247,7 @@ class techno2_SpecificationDoc extends core_Embedder
      */
     public static function getAllowedFolders()
     {
-    	return array('doc_ContragentDataIntf');
+    	return array('doc_ContragentDataIntf', 'techno2_SpecificationFolderCoverIntf');
     }
 
     
@@ -261,7 +261,7 @@ class techno2_SpecificationDoc extends core_Embedder
     {
     	$coverClass = doc_Folders::fetchCoverClassName($folderId);
     	
-    	return cls::haveInterface('doc_ContragentDataIntf', $coverClass);
+    	return cls::haveInterface('doc_ContragentDataIntf', $coverClass) || cls::haveInterface('techno2_SpecificationFolderCoverIntf', $coverClass);
     }
     
     
