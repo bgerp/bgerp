@@ -11,7 +11,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class help_bgerpPlg extends core_Plugin
+class help_BgerpPlg extends core_Plugin
 {    
 
     
