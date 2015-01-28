@@ -10,7 +10,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class needhelp_Plugin extends core_Plugin
+class needhelp_bgerpPlg extends core_Plugin
 {    
 
     

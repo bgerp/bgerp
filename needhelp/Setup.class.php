@@ -46,7 +46,7 @@ class  needhelp_Setup extends core_ProtoSetup
 		$Plugins = cls::get('core_Plugins');
 	
 		// Инсталираме клавиатурата към password полета
-		$html .= $Plugins->installPlugin('Задаване на въпроси от потребители', 'needhelp_Plugin', 'core_Manager', 'family');
+		$html .= $Plugins->installPlugin('Задаване на въпроси за bgERP', 'needhelp_bgerpPlg', 'core_Manager', 'family');
 	
 		return $html;
 	}
