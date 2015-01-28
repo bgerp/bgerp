@@ -1471,6 +1471,8 @@ class doc_DocumentPlg extends core_Plugin
             //Проверяваме дали е инстанция на type_RIchtext
             if ($field->type instanceof type_Richtext) {
                 
+                if ($field->type->params['hndToLink'] == 'no') continue;
+                
                 //Името на полето
                 $fieldName = $field->name;
                 
@@ -1887,6 +1889,8 @@ class doc_DocumentPlg extends core_Plugin
      */
     public static function on_AfterGetLinkedDocuments($mvc, &$res, $id, $userId=NULL, $data=NULL)
     {
+        if ($mvc->fields['body']->type->params['hndToLink'] == 'no') return ;
+        
         // Ако не е зададено id използваме текущото id на потребите (ако има) и в краен случай id на активиралия потребител
         if (!$userId) {
             $userId = core_Users::getCurrent();
