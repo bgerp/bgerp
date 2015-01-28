@@ -155,8 +155,20 @@ class acc_Items extends core_Manager
         
         // Титла - хипервръзка
         $this->FNC('titleLink', 'html', 'column=none');
+        $this->FNC('titleNum', 'varchar', 'column=none');
         
         $this->setDbUnique('objectId,classId');
+    }
+    
+    
+    /**
+     * За полето titleNum създава линк към обекта от регистъра
+     *
+     * @internal: Това не е добро решение, защото това функционално поле ще се изчислява в много случаи без нужда.
+     */
+    static function on_CalcTitleNum($mvc, $rec)
+    {
+    	$rec->titleNum = $rec->title . " ({$rec->num})";
     }
     
     
@@ -169,7 +181,7 @@ class acc_Items extends core_Manager
     {
         $title = $mvc->getVerbal($rec, 'title');
         $num = $mvc->getVerbal($rec, 'num');
-        $rec->titleLink = $title . "&nbsp;($num)";
+        $rec->titleLink = $title . " ($num)";
     }
     
     

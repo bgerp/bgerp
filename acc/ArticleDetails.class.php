@@ -112,17 +112,17 @@ class acc_ArticleDetails extends doc_Detail
         
         $this->FLD('debitAccId', 'acc_type_Account(remember)',
             'silent,caption=Дебит->Сметка и пера,mandatory,input', 'tdClass=articleCell');
-        $this->FLD('debitEnt1', 'acc_type_Item(select=title,allowEmpty)', 'caption=Дебит->перо 1,remember');
-        $this->FLD('debitEnt2', 'acc_type_Item(select=title,allowEmpty)', 'caption=Дебит->перо 2,remember');
-        $this->FLD('debitEnt3', 'acc_type_Item(select=title,allowEmpty)', 'caption=Дебит->перо 3,remember');
+        $this->FLD('debitEnt1', 'acc_type_Item(select=titleNum,allowEmpty)', 'caption=Дебит->перо 1,remember');
+        $this->FLD('debitEnt2', 'acc_type_Item(select=titleNum,allowEmpty)', 'caption=Дебит->перо 2,remember');
+        $this->FLD('debitEnt3', 'acc_type_Item(select=titleNum,allowEmpty)', 'caption=Дебит->перо 3,remember');
         $this->FLD('debitQuantity', 'double', 'caption=Дебит->Количество');
         $this->FLD('debitPrice', 'double(minDecimals=2)', 'caption=Дебит->Цена');
         
         $this->FLD('creditAccId', 'acc_type_Account(remember)',
             'silent,caption=Кредит->Сметка и пера,mandatory,input', 'tdClass=articleCell');
-        $this->FLD('creditEnt1', 'acc_type_Item(select=title,allowEmpty)', 'caption=Кредит->перо 1,remember');
-        $this->FLD('creditEnt2', 'acc_type_Item(select=title,allowEmpty)', 'caption=Кредит->перо 2,remember');
-        $this->FLD('creditEnt3', 'acc_type_Item(select=title,allowEmpty)', 'caption=Кредит->перо 3,remember');
+        $this->FLD('creditEnt1', 'acc_type_Item(select=titleNum,allowEmpty)', 'caption=Кредит->перо 1,remember');
+        $this->FLD('creditEnt2', 'acc_type_Item(select=titleNum,allowEmpty)', 'caption=Кредит->перо 2,remember');
+        $this->FLD('creditEnt3', 'acc_type_Item(select=titleNum,allowEmpty)', 'caption=Кредит->перо 3,remember');
         $this->FLD('creditQuantity', 'double', 'caption=Кредит->Количество');
         $this->FLD('creditPrice', 'double(minDecimals=2)', 'caption=Кредит->Цена');
         
