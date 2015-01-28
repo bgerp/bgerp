@@ -295,15 +295,19 @@ class acc_ArticleDetails extends doc_Detail
                 	
                 	// Ако корицата има итнерфейса на номенклатурата и е перо, слагаме я по дефолт
                 	if($cover->haveInterface($list->rec->regInterfaceId)){
-                		if($itemId = acc_Items::fetchItem($cover->getInstance()->getClassId(), $cover->that)->id){
-                			$form->setDefault("{$type}Ent{$i}", $itemId);
+                		if($coverClassId = $cover->getInstance()->getClassId()){
+                			if($itemId = acc_Items::fetchItem($coverClassId, $cover->that)->id){bp();
+                				$form->setDefault("{$type}Ent{$i}", $itemId);
+                			}
                 		}
                 	}
                 	
                 	// Ако първия документ има итнерфейса на номенклатурата и е перо, слагаме го по дефолт
                 	if($firstDoc->haveInterface($list->rec->regInterfaceId)){
-                		if($itemId = acc_Items::fetchItem($firstDoc->getInstance()->getClassId(), $firstDoc->that)->id){
-                			$form->setDefault("{$type}Ent{$i}", $itemId);
+                		if($docClassId = $firstDoc->getInstance()->getClassId()){
+                			if($itemId = acc_Items::fetchItem($docClassId, $firstDoc->that)->id){bp();
+                				$form->setDefault("{$type}Ent{$i}", $itemId);
+                			}
                 		}
                 	}
                 }
