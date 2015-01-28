@@ -465,11 +465,11 @@ class pos_ReceiptDetails extends core_Detail {
     	}
     	
     	$row->code = $Varchar->toVerbal($productInfo->productRec->code);
-    	$row->uomId = cat_UoM::getShortName($productInfo->productRec->measureId);
-    	
-    	if($perPack != 1){
-    		$row->perPack = $Double->toVerbal($perPack);
+    	if($productInfo->productRec->measureId){
+    		$row->uomId = cat_UoM::getShortName($productInfo->productRec->measureId);
     	}
+    	
+    	$row->perPack = $Double->toVerbal($perPack);
     	
     	if($rec->value) {
     		$row->value = cat_Packagings::getTitleById($rec->value);
@@ -549,17 +549,25 @@ class pos_ReceiptDetails extends core_Detail {
     		$rec->value = $info->packagingRec->packagingId;
     		$perPack = $info->packagingRec->quantity;
     	} else {
-    		$perPack = 1;
+    		$basePackInfo = cls::get('cat_Products')->getBasePackInfo($product->productId);
+    		if($basePackInfo->classId == 'cat_UoM'){
+    			$rec->value = NULL;
+    			$perPack = 1;
+    		} else {
+    			$rec->value = $basePackInfo->id;
+    			$perPack = $basePackInfo->quantity;
+    		}
     	}
+    	
     	$rec->productId = $product->productId;
     	$receiptRec = pos_Receipts::fetch($rec->receiptId);
     	
     	$Policy = cls::get('price_ListToCustomers');
-    	$price = $Policy->getPriceInfo($receiptRec->contragentClass, $receiptRec->contragentObjectId, $product->productId, cat_Products::getClassId(), $product->packagingId, NULL, $receiptRec->createdOn);
+    	$price = $Policy->getPriceInfo($receiptRec->contragentClass, $receiptRec->contragentObjectId, $product->productId, cat_Products::getClassId(), $rec->value, NULL, $receiptRec->createdOn);
     	
     	$rec->price = $price->price * $perPack;
     	$rec->param = cat_Products::getVat($rec->productId, $receiptRec->valior);
-    	$rec->amount = $rec->price * $rec->quantity;	
+    	$rec->amount = $rec->price * $rec->quantity;
     }
     
     

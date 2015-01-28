@@ -24,6 +24,8 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
     public $class;
     
     
+    public $totalAmount = 0;
+    
     /**
      * Връща транзакцията на бележката
      */
@@ -33,6 +35,7 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
         $posRec = pos_Points::fetch($rec->pointId);
     	$entries = array();
         $totalVat = array();
+        $totalAmount = 0;
         
         $paymentsArr = $productsArr = array();
     	if(!$rec->details){
@@ -64,6 +67,7 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
         $transaction = (object)array(
             'reason'  => 'Отчет за POS продажба №' . $rec->id,
             'valior'  => $rec->createdOn,
+        	'totalAmount' => $this->totalAmount,
             'entries' => $entries, 
         );
         
@@ -110,24 +114,26 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
     		$creditAccId = ($storable) ? (($convertable) ? '706' : '701') : '703';
     		$credit = array(
 	              $creditAccId, 
-	                    array($product->contragentClassId, $product->contragentId), // Перо 1 - Клиент
-	                    array('pos_Reports', $rec->id),								// Перо 2 - Сделка
-	                    array('cat_Products', $product->value), // Перо 3 - Артикул
-	              'quantity' => $product->totalQuantity, // Количество продукт в основната му мярка
+	                    array($product->contragentClassId, $product->contragentId), 
+	                    array('pos_Reports', $rec->id),								
+	                    array('cat_Products', $product->value), 
+	              'quantity' => $product->totalQuantity, 
 	        );
 	        
     		$entries[] = array(
-	        'amount' => $totalAmount, // Стойност на продукта за цялото количество, в основна валута
+	        'amount' => $totalAmount, 
 	        'debit' => array(
 	            '411',  
-	                array($product->contragentClassId, $product->contragentId), // Перо 1 - Клиент
-	        		array('pos_Reports', $rec->id),								// Перо 2 - Сделка
-	                array('currency_Currencies', $currencyId), // Перо 3 - Валута
-	            'quantity' => $totalAmount), // "брой пари" във валутата на продажбата
+	                array($product->contragentClassId, $product->contragentId), 
+	        		array('pos_Reports', $rec->id),								
+	                array('currency_Currencies', $currencyId), 
+	            'quantity' => $totalAmount), 
 	        
 	        'credit' => $credit,
 	    	);
 	    	
+    		$this->totalAmount += $totalAmount;
+    		
 	    	if($storable){
 	    		$entries = array_merge($entries, $this->getDeliveryPart($rec, $product, $posRec, $convertable));
 	    	}
@@ -163,15 +169,15 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
 	    $entries[] = array(
 			 'debit' => array(
 			       $debitAccId,
-			       		array($product->contragentClassId, $product->contragentId), // Перо 1 - Клиент
-			 			array('pos_Reports', $rec->id),								// Перо 2 - Сделка
-			            array('cat_Products', $product->value), // Перо 3 - Продукт
+			       		array($product->contragentClassId, $product->contragentId),
+			 			array('pos_Reports', $rec->id),								
+			            array('cat_Products', $product->value), 
 		           'quantity' => $product->totalQuantity),
 			        
 			 'credit' => array(
 			        $creditAccId,
-			            array('store_Stores', $posRec->storeId), // Перо 1 - Склад
-			            array('cat_Products', $product->value), // Перо 2 - Продукт
+			            array('store_Stores', $posRec->storeId), 
+			            array('cat_Products', $product->value), 
 		            'quantity' => $product->totalQuantity),
 		);
 		
@@ -197,18 +203,20 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
     		$contragentArr = explode("|", $index);
     		
     		$entries[] = array(
-	         'amount' => currency_Currencies::round($value), // равностойноста на сумата в основната валута
+	         'amount' => currency_Currencies::round($value),
 	            
 	         'debit' => array(
 	              '411',  
-	            	 $contragentArr, // Перо 1 - Клиент
-	         		 array('pos_Reports', $rec->id),								// Перо 2 - Сделка
-	            	 array('currency_Currencies', acc_Periods::getBaseCurrencyId($rec->createdOn)), // Валута в основна мярка
+	            	 $contragentArr,
+	         		 array('pos_Reports', $rec->id),	
+	            	 array('currency_Currencies', acc_Periods::getBaseCurrencyId($rec->createdOn)),
 	              'quantity' => currency_Currencies::round($value), 
 	            ),
 	            
 	        'credit' => array('4532')
 	    	);
+    		
+    		$this->totalAmount += currency_Currencies::round($value);
     	}
 	    	
 	    return $entries;
@@ -218,9 +226,13 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
 	/**
      * Помощен метод - генерира платежната част от транзакцията за продажба (ако има)
      * 
-     *    Dt: 501. Каси                  (Каса, Валута)
-     *        
-     *    Ct: 411. Вземания от клиенти   (Клиент, Сделки, Валута)
+     *    Dt: 501. Каси                  (Каси, Валута)
+     *    Ct: 411. Вземания от клиенти   (Контрагенти, Сделки, Валута)
+     *    
+     * Ако има безналични методи на пращане (плащания не във брой)
+     *    
+     *    Dt: 502. Каси - безналични плащания   (Каси, Безналични методи за плащане)
+     *    Dt: 501. Каси                         (Каси, Валута)
      *    
      * @param stdClass $rec
      * @return array
@@ -231,28 +243,60 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
         
         // Продажбата съхранява валутата като ISO код; преобразуваме в ПК.
         $currencyId = acc_Periods::getBaseCurrencyId($rec->createdOn);
+        $nonCashPayments = array();
         
         foreach ($paymentsArr as $payment) {
         	$entries[] = array(
-                'amount' => currency_Currencies::round($payment->amount), // В основна валута
+                'amount' => currency_Currencies::round($payment->amount),
                 
                 'debit' => array(
                     '501', // Сметка "501. Каси"
-                        array('cash_Cases', $posRec->caseId),         // Перо 1 - Каса
-                        array('currency_Currencies', $currencyId), // Перо 2 - Валута
-                    'quantity' => currency_Currencies::round($payment->amount), // "брой пари" във валутата на продажбата
+                        array('cash_Cases', $posRec->caseId),      
+                        array('currency_Currencies', $currencyId), 
+                    'quantity' => currency_Currencies::round($payment->amount),
                 ),
                 
                 'credit' => array(
                     '411', // Сметка "411. Вземания от клиенти"
-                        array($payment->contragentClassId, $payment->contragentId), // Перо 1 - Клиент
-                		array('pos_Reports', $rec->id),								// Перо 2 - Сделка
-                        array('currency_Currencies', $currencyId),          // Перо 3 - Валута
-                    'quantity' => currency_Currencies::round($payment->amount), // "брой пари" във валутата на продажбата
+                        array($payment->contragentClassId, $payment->contragentId), 
+                		array('pos_Reports', $rec->id),								
+                        array('currency_Currencies', $currencyId),          
+                    'quantity' => currency_Currencies::round($payment->amount),
                 ),
             );
+        	
+        	$this->totalAmount += currency_Currencies::round($payment->amount);
+        	
+        	if($payment->value != -1){
+        		$nonCashPayments[] = $payment;
+        	}
         }
             
+        if(count($nonCashPayments)){
+        	foreach ($nonCashPayments as $payment1) {
+        		$entries[] = array(
+        				'amount' => currency_Currencies::round($payment1->amount),
+        		
+        				'debit' => array(
+        						'502', // Сметка "502. Каси - безналични плащания"
+        						array('cash_Cases', $posRec->caseId),
+        						array('cond_Payments', $payment1->value),
+        						'quantity' => currency_Currencies::round($payment1->amount),
+        				),
+        		
+        				'credit' => array(
+        						'501', // Сметка "501. Каси"
+        						array('cash_Cases', $posRec->caseId), 
+        						array('currency_Currencies', $currencyId),
+        						'quantity' => currency_Currencies::round($payment1->amount),
+        				),
+        				
+        		);
+        		
+        		$this->totalAmount += currency_Currencies::round($payment1->amount);
+        	}
+        }
+        
         return $entries;
     }
 }

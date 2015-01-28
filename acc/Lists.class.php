@@ -462,7 +462,7 @@ class acc_Lists extends core_Manager {
         $itemRec->state = empty($lists) ? 'closed' : 'active';
         
         if (($result = acc_Items::save($itemRec)) && $itemRec->state == 'active') {
-            $AccRegister->itemInUse($objectId, true);
+            $AccRegister->itemInUse($objectId, TRUE);
             
             // Нотифициране на номенклатурите, от които перото е било премахнато
             $removedFromLists = array_diff($oldLists, $lists);

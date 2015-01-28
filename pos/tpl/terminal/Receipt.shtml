@@ -10,33 +10,30 @@
 			</td>
 		</tr>
 		<tr id='receipt-details-th'>
-				<td>|К-во|*</td>
-				<td>|Цена|* <small class='currency-element'>[#currency#]</small></td>
-				<td>|Стойност|* <small class='currency-element'>[#currency#]</small></td>
+			<td>|К-во|*</td>
+			<td>|Цена|* <small class='currency-element'>[#currency#]</small></td>
+			<td>|Стойност|* <small class='currency-element'>[#currency#]</small></td>
 		</tr>
 		
 		<!--ET_BEGIN DETAILS-->
 			[#DETAILS#]
 		<!--ET_END DETAILS-->
-			<tr>
-			   <td colspan=3 style='padding: 0;'>
-			     <table class='gradient' >
-				<tr>
-					<td style='padding-top:6px'>|Клиент|*:</td>
-					<td colspan='2' style='padding-top:6px' class = 'receipt-info-right'>[#contragentName#]</td>
-				</tr>
-				<tr>
-					<td id = 'total-label'>|Общо|*:</td>
-					<td colspan='2' id = 'receipt-total-sum' class = 'receipt-info-right'>[#total#] [#currency#]</td>
-				</tr>
-				<tr>
-					<td>|Платено|*:</td>
-					<td colspan='2' class = 'receipt-info-right'><b>[#paid#]</b> <small>[#currency#]</small></td>
-				</tr>
-				<tr>
-					<td style='padding-bottom:6px'>|Ресто|*:</td>	
-					<td  colspan='2' style='padding-bottom:6px' class = 'receipt-info-right'>[#change#] <small>[#currency#]</small></td>
-				</tr>
+		<tr>
+			<td colspan=3 style='padding: 0;'>
+				<table class='gradient' >
+					<tr>
+						<td id = 'total-label'>|Общо|*:</td>
+						<td colspan='2' id = 'receipt-total-sum' class = 'receipt-info-right'>[#total#] [#currency#]</td>
+					</tr>
+					<tr>
+						<td>|Платено|*:</td>
+						<td colspan='2' class = 'receipt-info-right'><b>[#paid#]</b> <small>[#currency#]</small></td>
+					</tr>
+					<tr>
+						<td style='padding-bottom:6px'>|Ресто|*:</td>	
+						<td  colspan='2' style='padding-bottom:6px' class = 'receipt-info-right'>[#change#] <small>[#currency#]</small></td>
+					</tr>
 				</table>
-			</td></tr>
-		</table>			
+			</td>
+		</tr>
+</table>			

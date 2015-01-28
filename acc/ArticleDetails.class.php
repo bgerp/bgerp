@@ -263,6 +263,10 @@ class acc_ArticleDetails extends doc_Detail
         
         $masterRec = $mvc->Master->fetch($form->rec->articleId);
         
+        // Кои са корицата на папката на ордера, и първия докумен в нишката му
+        $cover = doc_Folders::getCover($masterRec->folderId);
+        $firstDoc = doc_Threads::getFirstDocument($masterRec->threadId);
+        
         foreach (array('debit' => 'Дебит', 'credit' => 'Кредит') as $type => $caption) {
             
             $acc = ${"{$type}Acc"};
@@ -273,7 +277,7 @@ class acc_ArticleDetails extends doc_Detail
             $form->setField("{$type}Ent2", 'input=none');
             $form->setField("{$type}Ent3", 'input=none');
             
-            foreach ($acc->groups as $i=>$list) {
+            foreach ($acc->groups as $i => $list) {
                 if (!$list->rec->itemsCnt) {
                     redirect(array('acc_Items', 'list', 'listId'=>$list->rec->id), FALSE, tr("Липсва избор за |* \"" . acc_Lists::getVerbal($list->rec, 'name') . "\""));
                 }
@@ -284,6 +288,24 @@ class acc_ArticleDetails extends doc_Detail
                 // Ако може да се избират приключени пера, сетваме параметър в типа на перата
                 if($masterRec->useCloseItems == 'yes'){
                     $form->getField("{$type}Ent{$i}")->type->params['showAll'] = TRUE;
+                }
+               
+                // Ако номенклатурата има интерфейс
+                if(!empty($list->rec->regInterfaceId)){
+                	
+                	// Ако корицата има итнерфейса на номенклатурата и е перо, слагаме я по дефолт
+                	if($cover->haveInterface($list->rec->regInterfaceId)){
+                		if($itemId = acc_Items::fetchItem($cover->getInstance()->getClassId(), $cover->that)->id){
+                			$form->setDefault("{$type}Ent{$i}", $itemId);
+                		}
+                	}
+                	
+                	// Ако първия документ има итнерфейса на номенклатурата и е перо, слагаме го по дефолт
+                	if($firstDoc->haveInterface($list->rec->regInterfaceId)){
+                		if($itemId = acc_Items::fetchItem($firstDoc->getInstance()->getClassId(), $firstDoc->that)->id){
+                			$form->setDefault("{$type}Ent{$i}", $itemId);
+                		}
+                	}
                 }
             }
             

@@ -9,12 +9,13 @@
  * @category  bgerp
  * @package   pos
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.11
  */
 class pos_Favourites extends core_Manager {
     
+	
     /**
      * Заглавие
      */
@@ -27,6 +28,7 @@ class pos_Favourites extends core_Manager {
     var $loadList = 'plg_Created, plg_RowTools, plg_Rejected, plg_Sorting,
     				 plg_Printing, pos_Wrapper, plg_State2';
 
+    
     /**
      * Полета, които ще се показват в листов изглед
      */
@@ -80,7 +82,7 @@ class pos_Favourites extends core_Manager {
      */
     function description()
     {
-    	$this->FLD('productId', 'key(mvc=cat_Products, select=name)', 'caption=Продукт, mandatory');
+    	$this->FLD('productId', 'key(mvc=cat_Products, select=name)', 'caption=Продукт, mandatory, silent', array('attr' => array('onchange' => "addCmdRefresh(this.form);this.form.submit()")));
     	$this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Опаковка');
     	$this->FLD('catId', 'keylist(mvc=pos_FavouritesCategories, select=name)', 'caption=Категория, mandatory');
     	$this->FLD('pointId', 'keylist(mvc=pos_Points, select=name, makeLinks)', 'caption=Точка на продажба');
@@ -95,18 +97,36 @@ class pos_Favourites extends core_Manager {
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
+    	$form = &$data->form;
+    	
     	// намираме дефолт контрагента на текущата точка на продажба
     	$contragentId = pos_Points::defaultContragent();
     	$ProductMan = cls::get('cat_Products');
-    	$data->form->setOptions('productId', $ProductMan->getProducts(crm_Persons::getClassId(), $contragentId), 'canSell');
+    	
+    	$form->setOptions('productId', array('' => '') + $ProductMan->getByProperty('canSell'));
     }
     
     
     /**
      * Изпълнява се след въвеждане на данните от Request
      */
-    static function on_AfterInputEditForm($mvc, $form)
+    protected static function on_AfterInputEditForm($mvc, $form)
     {
+    	if(isset($form->rec->productId)){
+    		$ProductMan = cls::get('cat_Products');
+    		$form->setOptions('packagingId', $ProductMan->getPacks($form->rec->productId));
+    		unset($form->getFieldType('packagingId')->params['allowEmpty']);
+    	
+    		// Само при рефреш слагаме основната опаковка за дефолт
+    		if($form->cmd == 'refresh'){
+    			$baseInfo = $ProductMan->getBasePackInfo($form->rec->productId);
+    	
+    			if($baseInfo->classId == 'cat_Packagings'){
+    				$form->rec->packagingId = $baseInfo->id;
+    			}
+    		}
+    	}
+    	
     	if($form->isSubmitted()) {
     		if(!$productInfo = cat_Products::getProductInfo($form->rec->productId, $form->rec->packagingId)) {
     			$form->setError('productId', 'Избрания продукт не поддържа посочената опаковка');
@@ -136,7 +156,7 @@ class pos_Favourites extends core_Manager {
      * 
      * @return array $arr - масив от всички позволени продукти
      */
-    function preparePosProducts()
+    public function preparePosProducts()
     {
     	$varchar = cls::get('type_Varchar');
     	$double = cls::get('type_Double');
@@ -192,7 +212,7 @@ class pos_Favourites extends core_Manager {
      * @param stdClass $rec - запис от модела
      * @return stdClass $obj - обект с информацията за продукта
      */
-    function prepareProductObject($rec)
+    public function prepareProductObject($rec)
     {
     	// Информацията за продукта с неговата опаковка
     	$info = cat_Products::getProductInfo($rec->productId, $rec->packagingId);
@@ -247,7 +267,7 @@ class pos_Favourites extends core_Manager {
      * @param array $categories - Масив от продуктовите категории
      * @param core_ET $tpl - шаблона в който ще поставяме категориите
      */
-    function renderCategories($categories, &$tpl)
+    public function renderCategories($categories, &$tpl)
     {
     	$blockTpl = $tpl->getBlock('CAT');
     	foreach($categories as $cat) {
@@ -265,7 +285,7 @@ class pos_Favourites extends core_Manager {
      * @param array $products - масив от продукти с информацията за тях
      * @return core_ET $tpl - шаблон с продуктите
      */
-	function renderProducts($products, &$tpl)
+	public function renderProducts($products, &$tpl)
 	{
     	$blockTpl = $tpl->getBlock('ITEM');
 		
@@ -290,7 +310,7 @@ class pos_Favourites extends core_Manager {
     /**
      * Вербална обработка на продуктите
      */
-    static function on_AfterRecToVerbal ($mvc, $row, $rec)
+    protected static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
     	$varchar = cls::get('type_Varchar');
     	if($rec->image) {

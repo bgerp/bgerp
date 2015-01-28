@@ -38,7 +38,7 @@ class cat_Products extends core_Embedder {
      * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_RowTools, plg_SaveAndNew, plg_PrevAndNext, acc_plg_Registry, plg_Rejected, plg_State,
-                     cat_Wrapper, plg_Sorting, bgerp_plg_Groups, plg_Printing, Groups=cat_Groups, doc_FolderPlg, plg_Select, plg_Search, bgerp_plg_Import';
+                     cat_Wrapper, plg_Sorting, bgerp_plg_Groups, plg_Printing, Groups=cat_Groups, plg_Select, plg_Search, bgerp_plg_Import';
     
     
     /**
@@ -158,12 +158,6 @@ class cat_Products extends core_Embedder {
     var $canWrite = 'ceo,cat';
     
     
-    /**
-     * Клас за елемента на обграждащия <div>
-     */
-    var $cssClass = 'folder-cover';
-    
-    
     /**  
      * Кой има право да променя системните данни?  
      */  
@@ -225,6 +219,8 @@ class cat_Products extends core_Embedder {
         $this->FLD('measureId', 'key(mvc=cat_UoM, select=name,allowEmpty)', 'caption=Мярка,mandatory,remember,notSorting,input=none,formOrder=4');
         $this->FLD('photo', 'fileman_FileType(bucket=pictures)', 'caption=Фото,input=none,formOrder=4');
         $this->FLD('groups', 'keylist(mvc=cat_Groups, select=name, makeLinks)', 'caption=Групи,maxColumns=2,remember,formOrder=100');
+        $this->FLD('privateFolderId', 'key(mvc=doc_Folders)', 'input=none'); // В коя частна папка да се показва
+        $this->FLD('specificationId', 'key(mvc=techno2_SpecificationDoc)', 'input=none'); // Поле за пораждаща спецификация
         
         $this->setDbUnique('code');
     }
@@ -529,6 +525,7 @@ class cat_Products extends core_Embedder {
     	$self = cls::get(get_called_class());
     	$Driver = $self->getDriver($productId);
     	$res = $Driver->getProductInfo($packagingId);
+    	
     	$res->productRec->code = $productRec->code;
     	
     	if($grRec = cat_products_VatGroups::getCurrentGroup($productId)){

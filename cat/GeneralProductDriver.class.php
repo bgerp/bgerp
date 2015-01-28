@@ -134,6 +134,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		$res->productRec->name = ($innerState->title) ? $innerState->title : $innerState->name;
 		$res->productRec->info = $innerState->info;
 		$res->productRec->measureId = $innerState->measureId;
+		$res->productRec->photo = $innerState->photo;
 		
 		(!$packagingId) ? $res->packagings = array() : $res->packagingRec = new stdClass();
 		
