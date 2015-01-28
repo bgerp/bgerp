@@ -191,6 +191,7 @@ class pos_Points extends core_Master {
     	
     	if($fields['-list']){
     		$cu = core_Users::getCurrent();
+    		$reportUrl = array();
     		if(pos_Reports::haveRightFor('add')){
     			
     			// Ако има чернова репорт за тази точка и този потребител слагаме бутон към сингъла му
@@ -202,10 +203,11 @@ class pos_Points extends core_Master {
 	    				// Ако няма репорт слагаме бутон за създаване на нов
 	    				$reportUrl = array('pos_Reports', 'add', 'pointId' => $rec->id);
 	    			}
-	    			
-	    			$row->report = ht::createBtn('Отчет', $reportUrl, NULL, TRUE, 'title=Направи отчет,ef_icon=img/16/report.png');
 	    		}
     		}
+    		
+    		$title = (count($reportUrl)) ? 'Направи отчет' : 'Няма бележки за отчитане';
+    		$row->report = ht::createBtn('Отчет', $reportUrl, NULL, TRUE, "title={$title},ef_icon=img/16/report.png");
     	}
     }
     
@@ -223,25 +225,4 @@ class pos_Points extends core_Master {
 			$data->query->like("cashier", "|{$cu}|");
 		}
 	}
-	
-	
-	/**
-     * След преобразуване на записа в четим за хора вид.
-     */
-    public static function on_AfterPrepareListRows($mvc, &$data)
-    {
-        $rows = &$data->rows;
-        if(!count($rows)) return;
-        
-        $hideReportColumn = TRUE;
-        foreach ($rows as $row){
-        	if($row->report){
-        		$hideReportColumn = FALSE;
-        	}
-        }
-        
-        if($hideReportColumn){
-        	 unset($data->listFields['report']);
-        }
-    }
 }
