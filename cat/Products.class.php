@@ -225,6 +225,7 @@ class cat_Products extends core_Embedder {
         $this->FLD('measureId', 'key(mvc=cat_UoM, select=name,allowEmpty)', 'caption=Мярка,mandatory,remember,notSorting,input=none,formOrder=4');
         $this->FLD('photo', 'fileman_FileType(bucket=pictures)', 'caption=Фото,input=none,formOrder=4');
         $this->FLD('groups', 'keylist(mvc=cat_Groups, select=name, makeLinks)', 'caption=Групи,maxColumns=2,remember,formOrder=100');
+        $this->FLD('privateFolderId', 'key(mvc=doc_Folders)', 'input=none');
         
         $this->setDbUnique('code');
     }
@@ -529,6 +530,7 @@ class cat_Products extends core_Embedder {
     	$self = cls::get(get_called_class());
     	$Driver = $self->getDriver($productId);
     	$res = $Driver->getProductInfo($packagingId);
+    	
     	$res->productRec->code = $productRec->code;
     	
     	if($grRec = cat_products_VatGroups::getCurrentGroup($productId)){
