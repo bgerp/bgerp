@@ -3698,6 +3698,8 @@ only screen and (max-width: 320px) {
     background-color: transparent !important; }
   .printing .selectRows .listTable > tbody > tr > td:first-child {
     text-align: left; }
+  .printing .new-folder-btn {
+    display: none; }
 
 .narrow .printing .document {
   width: 850px; }
