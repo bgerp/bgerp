@@ -38,6 +38,8 @@ class doc_RichTextPlg extends core_Plugin
     {
         $this->mvc = $mvc;
         
+        if ($mvc->params['hndToLink'] == 'no') return ;
+        
         //Ако намери съвпадение на регулярния израз изпълнява функцията
         $html = preg_replace_callback(self::$pattern, array($this, '_catchFile'), $html);
         
