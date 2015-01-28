@@ -328,7 +328,8 @@ class pos_Receipts extends core_Master {
     		switch($action[0]) {
     			case 'sale':
     				$vat = cat_Products::getVat($dRec->productId, $rec->createdOn);
-    				$rec->total += $dRec->quantity * $dRec->price * (1 - $dRec->discountPercent) * (1 + $vat);
+    				$price = $dRec->price * (1 - $dRec->discountPercent) * (1 + $vat);
+    				$rec->total += round($dRec->quantity * $price, 2);
     				break;
     			case 'payment':
     				$rec->paid += $dRec->amount;
@@ -344,7 +345,7 @@ class pos_Receipts extends core_Master {
     	
     	$diff = round($rec->paid - $rec->total, 2);
     	$rec->change = ($diff <= 0) ? 0 : $diff;
-    	$rec->total = round($rec->total, 2);
+    	$rec->total = $rec->total;
     	
     	$this->save($rec);
     }
@@ -520,6 +521,7 @@ class pos_Receipts extends core_Master {
     private function prepareReceipt(&$data)
     {
     	$data->row = $this->recToverbal($data->rec);
+    	unset($data->row->contragentName);
     	$data->details = $this->pos_ReceiptDetails->prepareReceiptDetails($data->rec->id);
     }
     
