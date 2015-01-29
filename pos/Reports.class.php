@@ -252,9 +252,11 @@ class pos_Reports extends core_Master {
     	if(count($reportData['receiptDetails'])){
 		    foreach($reportData['receiptDetails'] as $index => $detail) {
 		    	list($action) = explode('|', $index);
-		    	
-		    	// Изчисляваме общата и платената сума на всички 
-		    	($action == 'sale') ? $rec->total += $detail->amount : $rec->paid += $detail->amount;
+		    	if($action == 'sale'){
+		    		$rec->total += $detail->amount * (1 + $detail->param);
+		    	} else {
+		    		$rec->paid += $detail->amount;
+		    	}
 		    }
    	 	}
     }
