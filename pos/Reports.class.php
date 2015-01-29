@@ -470,6 +470,16 @@ class pos_Reports extends core_Master {
     
     
     /**
+     * След създаване автоматично да се контира
+     */
+    public static function on_AfterCreate($mvc, $rec)
+    {
+    	// Контираме документа
+    	$mvc->conto($rec);
+    }
+    
+    
+    /**
      * Извиква се след успешен запис в модела
      *
      * @param core_Mvc $mvc
