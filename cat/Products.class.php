@@ -1206,8 +1206,8 @@ class cat_Products extends core_Embedder {
     {
     	$data->toolbar->removeBtn('btnAdd');
     	if($mvc->haveRightFor('add')){
-    		 $data->toolbar->addBtn('Нова стока', array($mvc, 'add', 'innerClass' => cat_GeneralProductDriver::getClassId(), 'ret_url' => TRUE), 'order=1', 'ef_icon = img/16/shopping.png,title=Създаване на нова стока');
-    		 $data->toolbar->addBtn('Нова услуга', array($mvc, 'add', 'innerClass' => cat_GeneralServiceDriver::getClassId(), 'ret_url' => TRUE), 'order=1', 'ef_icon = img/16/shopping.png,title=Създаване на нова услуга');
+    		 $data->toolbar->addBtn('Нова стока', array($mvc, 'add', 'innerClass' => cat_GeneralProductDriver::getClassId()), 'order=1', 'ef_icon = img/16/shopping.png,title=Създаване на нова стока');
+    		 $data->toolbar->addBtn('Нова услуга', array($mvc, 'add', 'innerClass' => cat_GeneralServiceDriver::getClassId()), 'order=1', 'ef_icon = img/16/shopping.png,title=Създаване на нова услуга');
     	}
     }
     
