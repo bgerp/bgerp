@@ -835,6 +835,10 @@ class pos_Receipts extends core_Master {
 			}
 		}
     	
+		// Махаме нашата фирма от опциите
+		$ownId = crm_Setup::BGERP_OWN_COMPANY_ID;
+		unset($data->recs["company|{$ownId}"]);
+		
     	// Ако има намерени записи
     	if(count($data->recs)){
     		$count = 1;
