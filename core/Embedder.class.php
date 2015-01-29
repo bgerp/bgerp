@@ -188,8 +188,9 @@ class core_Embedder extends core_Master
 			}
 		}
 		
-		$form->input(NULL, 'silent');
+		$mvc->invoke('AfterPrepareEmbeddedForm', array($form));
 		
+		$form->input(NULL, 'silent');
 	}
 	
 	
