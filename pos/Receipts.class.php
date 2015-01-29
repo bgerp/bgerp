@@ -1424,4 +1424,15 @@ class pos_Receipts extends core_Master {
     	
     	return $data;
     }
+    
+
+    /**
+     * Връща разбираемо за човека заглавие, отговарящо на записа
+     */
+    public static function getRecTitle($rec, $escaped = TRUE)
+    {
+    	$me = cls::get(get_called_class());
+    	
+    	return $me->singleTitle . " №{$rec->id}";
+    }
 }

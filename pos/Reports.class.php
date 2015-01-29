@@ -185,7 +185,7 @@ class pos_Reports extends core_Master {
     		$mvc->extractData($rec);
     	}
     }
-	
+    
     
     /**
      * След преобразуване на записа в четим за хора вид.
@@ -195,6 +195,9 @@ class pos_Reports extends core_Master {
     	$row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " ({$row->state})" ;
     	$row->title = "Отчет за POS продажба №{$rec->id}";
     	$row->pointId = pos_Points::getHyperLink($rec->pointId, TRUE);
+    	
+    	$row->earliestReceipt = pos_Receipts::getHyperLink($rec->details['receipts'][0]->id);
+    	$row->lastReceipt = pos_Receipts::getHyperLink($rec->details['receipts'][count($rec->details['receipts']) -1]->id);
     	
     	if($fields['-single']) {
     		$pointRec = pos_Points::fetch($rec->pointId);

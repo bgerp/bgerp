@@ -40,6 +40,16 @@
 				<td><span class='cCode' style='margin:0px 12px'>[#baseCurrency#]</span></td>
 				<td class = 'summary-right'><b>[#paid#]</b></td>
 			</tr>
+			<tr>
+				<td>|Най-ранна|*:</td>
+				<td colspan='2'><span>[#earliestReceipt#]</span></td>
+			</tr>
+			
+			<tr>
+				<td>|Последна|*:</td>
+				<td colspan='2'><span>[#lastReceipt#]</span></td>
+			</tr>
+			
 		</table>
 	<span>|Създаден на|* <b>[#createdDate#]</b> |от|* <b>[#createdBy#]</b></span>
 	<div class='overflow-scroll' style='margin: 15px 0;'>
