@@ -183,9 +183,9 @@ class pos_Points extends core_Master {
     	}
     	
     	$row->caseId = cash_Cases::getHyperlink($rec->caseId, TRUE);
+    	$row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
     	
     	if($fields['-single']){
-    		$row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
     		$row->policyId = price_Lists::getHyperlink($rec->policyId, TRUE);
     	}
     	
@@ -234,7 +234,7 @@ class pos_Points extends core_Master {
 	{
 		// Ако сме се логнали в точка
 		if($res && $part == 'id'){
-			$rec = $this->fetchRec($res);
+			$rec = $mvc->fetchRec($res);
 			
 			// .. и имаме право да изберем склада и, логваме се в него
 			if(store_Stores::haveRightFor('select', $rec->storeId)){
