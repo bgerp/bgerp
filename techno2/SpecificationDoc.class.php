@@ -179,8 +179,6 @@ class techno2_SpecificationDoc extends core_Embedder
         						canStore=Складируем,canConvert=Вложим,
         						fixedAsset=Дма,canManifacture=Производим)', 'caption=Свойства->Списък,columns=2,formOrder=100000000,input=none');
     	$this->FLD("isPublic", 'enum(no=Частен,yes=Публичен)', 'input=none,formOrder=10000,caption=Показване за избор в документи->Достъп');
-    	
-    	$this->setDbUnique('title');
     }
     
     
@@ -900,7 +898,6 @@ class techno2_SpecificationDoc extends core_Embedder
      */
     public static function createNew($title, $innerClass, $innerForm, $innerState, $folderId = NULL, $threadId = NULL, $state = 'active')
     {
-    	expect(!static::fetchField("#title = '{$title}'"));
     	expect(cls::haveInterface('cat_ProductDriverIntf', $innerClass));
     	
     	// Опитваме се да определим папката ако не е зададена
