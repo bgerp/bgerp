@@ -398,6 +398,13 @@ class pos_Receipts extends core_Master {
 			}
 		}
 		
+		// не могат да се възстановяват пранзи бележки
+		if($action == 'restore' && isset($rec)){
+			if($rec->total == 0){
+				$res = 'no_one';
+			}
+		}
+		
 		// Можели да бъде направено плащане по бележката
 		if($action == 'pay' && isset($rec)){
 			if(!$rec->total || ($rec->total && $rec->paid >= $rec->total)){
