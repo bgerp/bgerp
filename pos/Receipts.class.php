@@ -1268,6 +1268,7 @@ class pos_Receipts extends core_Master {
     		if(isset($pInfo->meta['canStore'])){
     			$obj->stock = pos_Stocks::getQuantity($id, $data->rec->pointId);
     		}
+    		$obj->measureId = $pInfo->productRec->measureId;
     		
     		// Обръщаме реда във вербален вид
     		$data->rows[$id] = $this->getVerbalSearchresult($obj, $data);
@@ -1289,7 +1290,8 @@ class pos_Receipts extends core_Master {
     	$row->price = $Double->toVerbal($obj->price);
     	$row->price .= "&nbsp;<span class='cCode'>{$data->baseCurrency}</span>";
     	$row->stock = $Double->toVerbal($obj->stock);
-    	$row->packagingId = cat_Packagings::getTitleById($obj->packagingId);
+    	
+    	$row->packagingId = ($obj->packagingId) ? cat_Packagings::getTitleById($obj->packagingId) : cat_UoM::getTitleById($obj->measureId);
     	
     	$obj->receiptId = $data->rec->id;
     	if($this->pos_ReceiptDetails->haveRightFor('add', $obj)){
