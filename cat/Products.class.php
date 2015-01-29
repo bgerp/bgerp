@@ -249,6 +249,8 @@ class cat_Products extends core_Embedder {
                 }
             }
         }
+        
+        $data->form->rec->state = 'active';
     }
     
     
