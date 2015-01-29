@@ -284,7 +284,7 @@ class pos_Reports extends core_Master {
     	arr::orderA($detail->receiptDetails, 'action');
 	    
     	// Табличната информация и пейджъра на плащанията
-	    $detail->listFields = "value=Действие,client=Контрагент,pack=Мярка, quantity=Количество, amount=Сума ({$data->row->baseCurrency})";
+	    $detail->listFields = "value=Действие,pack=Мярка, quantity=Количество, amount=Сума ({$data->row->baseCurrency})";
     	$detail->rows = $detail->receiptDetails;
     	$mvc->prepareDetail($detail);
     	$data->rec->details = $detail;
@@ -306,6 +306,14 @@ class pos_Reports extends core_Master {
     	
     	// Добавяме всеки елемент отговарящ на условието на пейджъра в нов масив
     	if($detail->rows){
+    		
+    		 // Подготвяме поле по което да сортираме
+    		 foreach ($detail->rows as $key => &$value){
+    		 	$value->sortString = mb_strtolower(cat_Products::fetchField($value->value, 'name'));
+    		 }
+    		 usort($detail->rows, array($this, "sortResults"));
+    		
+    		 // Обръщаме във вербален вид
     		 $start = $Pager->rangeStart;
     		 $end = $Pager->rangeEnd - 1;
              $rowsCnt = count($detail->rows);
@@ -318,9 +326,30 @@ class pos_Reports extends core_Master {
     		 
     		 // Заместваме стария масив с новия филтриран
     		 $detail->rows = $newRows;
-    		 
+    		
     		 // Добавяме пейджъра
     		 $detail->pager = $Pager;
+    	}
+    }
+    
+    
+    /**
+     * Сортира масива първо по код после по сума (ако кодовете съвпадат)
+     */
+    private function sortResults($a, $b) {
+    	
+    	return strcmp($a->sortString, $b->sortString);
+    }
+    
+    
+    /**
+     * Извиква се след подготовката на toolbar-а на формата за редактиране/добавяне
+     */
+    protected static function on_AfterPrepareEditToolbar($mvc, $data)
+    {
+    	if (!empty($data->form->toolbar->buttons['save'])) {
+    		$data->form->toolbar->removeBtn('save');
+    		$data->form->toolbar->addSbBtn('Контиране', 'save', 'ef_icon = img/16/disk.png, title = Контиране на документа');
     	}
     }
     
@@ -359,7 +388,6 @@ class pos_Reports extends core_Master {
     	}
     	
     	$row->value = "<span style='white-space:nowrap;'>{$row->value}</span>";
-    	$row->client = "<span style='white-space:nowrap;'>" . cls::get($obj->contragentClassId)->getHyperLink($obj->contragentId, TRUE) . "</span>";
     	$row->amount = "<span style='float:right'>" . $double->toVerbal($obj->amount) . "</span>"; 
     	
     	return $row;
