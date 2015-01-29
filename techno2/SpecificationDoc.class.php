@@ -927,4 +927,28 @@ class techno2_SpecificationDoc extends core_Embedder
     	
     	return $obj;
     }
+    
+    
+    /**
+     * След подготовката на ембеднатата форма
+     * 
+     * @param core_Mvc $mvc
+     * @param core_Form $form
+     */
+	protected static function on_AfterPrepareEmbeddedForm($mvc, core_Form &$form)
+    {
+    	if($form->rec->state == 'active'){
+    		
+    		$fields = $form->selectFields("#input != 'hidden' AND #input != 'none'");
+    		
+    		// Намираме всички попълнени полета, които не са енум и ги правим readOnly
+    		foreach ($fields as $name => $fld){
+    			if(!($fld->type instanceof type_Enum)){
+    				if(isset($form->rec->{$name})){
+    					$form->setReadOnly($name);
+    				}
+    			}
+    		}
+    	}
+    }
 }
