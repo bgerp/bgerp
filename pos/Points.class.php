@@ -192,21 +192,11 @@ class pos_Points extends core_Master {
     	if($fields['-list']){
     		$cu = core_Users::getCurrent();
     		$reportUrl = array();
-    		if(pos_Reports::haveRightFor('add')){
-    			
-    			// Ако има чернова репорт за тази точка и този потребител слагаме бутон към сингъла му
-	    		if(static::getCurrent() && pos_Receipts::fetch("#pointId = {$rec->id} AND #createdBy = {$cu} AND #state = 'active'")){
-	    			if($repId = pos_Reports::fetchField("#pointId = {$rec->id} AND #cashier = {$cu} AND #state='draft'")){
-	    				$reportUrl = array('pos_Reports', 'single', $repId);
-	    			} else {
-	    				
-	    				// Ако няма репорт слагаме бутон за създаване на нов
-	    				$reportUrl = array('pos_Reports', 'add', 'pointId' => $rec->id);
-	    			}
-	    		}
+    		if(pos_Reports::haveRightFor('add') && pos_Reports::canMakeReport($rec->id, $cu)){
+    			$reportUrl = array('pos_Reports', 'add', 'pointId' => $rec->id);
     		}
     		
-    		$title = (count($reportUrl)) ? 'Направи отчет' : 'Няма бележки за отчитане';
+    		$title = (count($reportUrl)) ? 'Направи отчет' : 'Не може да направите отчет, все още';
     		$row->report = ht::createBtn('Отчет', $reportUrl, FALSE, FALSE, "title={$title},ef_icon=img/16/report.png");
     	}
     }

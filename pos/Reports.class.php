@@ -213,25 +213,19 @@ class pos_Reports extends core_Master {
     /**
      * Извиква се след въвеждането на данните
      */
-    public static function on_AfterInputEditForm($mvc, &$form)
+    public static function on_AfterInputEditForm($mvc,core_Form &$form)
     {
     	if($form->isSubmitted()) {
-    		$draftRec = static::fetch("#state='draft' AND #pointId={$form->rec->pointId} AND #cashier={$form->rec->cashier} AND #id != '{$form->rec->id}'");
-    		if($draftRec) {
-    			
-    			// Ако има вече чернова с тези параметри директно я отваряме
-    			Redirect(array($mvc, 'single', $draftRec->id), FALSE, 'Има вече създадена чернова за посочените касиер и каса');
+    		
+    		// Можем ли да създадем отчет за този касиер или точка
+    		if(!self::canMakeReport($form->rec->pointId, $form->rec->cashier)){
+    			$form->setError('cashier, pointId', 'Не може да създадете отчет за тази точка и касиер');
     		}
     		
-    		$reportData = $mvc->fetchData($form->rec->pointId, $form->rec->cashier);
-    		
-    		// Проверяваме все пак дали има данни за репорта
-    		if(!count($reportData['receiptDetails'])){
-    			$form->setError('cashier, pointId', 'Няма активни бележки');
-    			return;
+    		// Ако няма грешки, форсираме отчета да се създаде в папката на точката
+    		if(!$form->gotErrors()){
+    			$form->rec->folderId = pos_Points::forceCoverAndFolder($form->rec->pointId);
     		}
-    		
-    		$form->rec->folderId = pos_Points::forceCoverAndFolder($form->rec->pointId);
     	}	
     }
     
@@ -614,5 +608,38 @@ class pos_Reports extends core_Master {
     	$self = cls::get(__CLASS__);
     
     	return "{$self->singleTitle} №{$rec->id}";
+    }
+    
+    
+    /**
+     * Проверява можели да се създаде отчет за този клиент. За създаване трябва
+     * да е изпълнено:
+     * 	1. Да има поне една активна (приключена) бележка за касиера и точката
+     *  2. Да няма нито една започната, но неприключена бележка
+     * 
+     * @param int $pointId - ид на точка
+     * @param string $cashier - касиер
+     * @return boolean
+     */
+    public static function canMakeReport($pointId, $cashier = NULL)
+    {
+    	// Ако няма потебител е текущия
+    	if(!isset($cashier)){
+    		$cashier = core_Users::getCurrent();
+    	}
+    	
+    	// Ако няма нито една активна бележка за посочената каса и касиер, не може да се създаде отчет
+    	if(!pos_Receipts::fetch("#pointId = {$pointId} AND #createdBy = {$cashier} AND #state = 'active'")){
+    		
+    		return FALSE;
+    	}
+    	
+    	// Ако има неприключена започната бележка в тачката от касиера, също не може да се направи отчет
+    	if(pos_Receipts::fetch("#pointId = {$pointId} AND #createdBy = {$cashier} AND #total != 0 AND #state = 'draft'")){
+    		
+    		return FALSE;
+    	}
+    	
+    	return TRUE;
     }
 }
