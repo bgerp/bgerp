@@ -1137,11 +1137,17 @@ class pos_Receipts extends core_Master {
     	// Добавяне/обновяване на продукта
     	if($this->pos_ReceiptDetails->save($rec)){
     		if(Mode::is('screenMode', 'wide')){
-    			$msg = tr('Добавен/а') . " " . cat_Products::getTitleById($rec->productId);
-    			core_Statuses::newStatus($msg);
+    			$resObj = new stdClass();
+    			$resObj->func = 'Sound';
+    			$resObj->arg = array('soundOgg' => sbf("sounds/snap.ogg", ''),
+    			'soundMp3' => sbf("sounds/snap.mp3", ''),
+    			);
     		}
-    
-    		return $this->pos_ReceiptDetails->returnResponse($rec->receiptId);
+ 
+    		$resArr =  $this->pos_ReceiptDetails->returnResponse($rec->receiptId);
+    		$resArr[] = $resObj;
+    		
+    		return $resArr;
     	} else {
     		core_Statuses::newStatus(tr('|Проблем при добавяне на артикул|*!'), 'error');
     	}
