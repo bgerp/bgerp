@@ -2632,7 +2632,7 @@ var blinkerWorking = false;
 function render_Notify(data) {
 	if(blinkerWorking) return;
 	
-	playSound(data.soundMp3, data.soundOgg);
+	render_Sound(data);
 	blinkerWorking = true;
 	var counter = 1;
 	
@@ -2723,7 +2723,9 @@ function restoreFavIcon(oldIcon) {
  * @param soundMp3 - път до mp3 файла
  * @param soundOgg - път до ogg файла
  */
-function playSound(soundMp3, soundOgg){
+function render_Sound(data){
+	var soundMp3 = data.soundMp3;
+	var soundOgg = data.soundOgg;
 	if(soundMp3 != undefined || soundOgg  != undefined){
 		// добавяме аудио таг и пускаме звука
 		setTimeout(function(){
