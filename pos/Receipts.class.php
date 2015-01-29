@@ -1338,8 +1338,8 @@ class pos_Receipts extends core_Master {
     		$row->stock .= "&nbsp;" . cat_UoM::getShortName($obj->measureId);
     	}
     	
-    	if($obj->photo && !Mode::is('screenMode', 'narrow')) {
-    		$thumb = new thumb_Img($obj->photo, 64, 64);
+    	if(!Mode::is('screenMode', 'narrow')) {
+    		$thumb = ($obj->photo) ? new thumb_Img($obj->photo, 64, 64) : new thumb_Img(getFullPath('pos/img/default-image.jpg'), 64, 64, 'path');
     		$arr = array();
     		$row->photo = "<div class='pos-search-pic'>" . $thumb->createImg($arr) . "</div>";
     		$data->showImg = TRUE;
