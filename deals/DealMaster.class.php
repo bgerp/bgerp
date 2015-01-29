@@ -534,7 +534,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	
     	// Ако има склад, се нотифицира отговорника му
     	if(empty($actions['ship']) && $rec->shipmentStoreId){
-    		$storeRec = cash_Cases::fetch($rec->shipmentStoreId);
+    		$storeRec = store_Stores::fetch($rec->shipmentStoreId);
     		if($storeRec->autoShare == 'yes'){
     			$rec->sharedUsers = keylist::merge($rec->sharedUsers, $storeRec->chiefs);
     		}
