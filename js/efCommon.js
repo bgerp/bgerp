@@ -2248,12 +2248,22 @@ efae.prototype.process = function(subscribedObj, otherData, async) {
             	getEfae().AJAXErrorRepaired = true;
             }
         }).fail(function(res) {
-        	
+    		
         	// Ако се обновява страницата без AJAX и възникне грешка
         	if (getEO().isReloading) return ;
         	
         	if((res.readyState == 0 || res.status == 0) && res.getAllResponseHeaders()) return;
             
+        	var text = 'Connection error';
+        	
+        	if (res.status == 404) {
+        		text = 'Липсващ ресурс';
+        	} else if (res.status == 500) {
+        		text = 'Грешка в сървъра';
+        	}
+        	
+        	getEO().log('Грешка при извличане на данни по AJAX');
+        	
         	setTimeout(function(){
         		
         		getEfae().AJAXHaveError = true;
@@ -2263,7 +2273,7 @@ efae.prototype.process = function(subscribedObj, otherData, async) {
 	        		if (!$(".toast-type-error").length) {
 	        			showToast({
 		                    timeOut: 1,
-		                    text: 'Connection error',
+		                    text: text,
 		                    isSticky: true,
 		                    stayTime: 4000,
 		                    type: 'error'
@@ -2273,8 +2283,7 @@ efae.prototype.process = function(subscribedObj, otherData, async) {
 	            	// Ако не е добавено съобщение за грешка
 	            	if (!$(".connection-error-status").length) {
 	            		// Ако възникне грешка
-	                    getEO().log('Грешка при извличане на данни по AJAX');
-	                    var errorData = {id: "statuses", html: "<div class='statuses-message statuses-error connection-error-status'>Connection error</div>", replace: false};
+	                    var errorData = {id: "statuses", html: "<div class='statuses-message statuses-error connection-error-status'>" + text +"</div>", replace: false};
 	                    render_html(errorData);
 	            	}
 	            }
