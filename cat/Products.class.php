@@ -1207,4 +1207,79 @@ class cat_Products extends core_Embedder {
     		 $data->toolbar->addBtn('Нова услуга', array($mvc, 'add', 'innerClass' => cat_GeneralServiceDriver::getClassId(), 'ret_url' => TRUE), 'order=1', 'ef_icon = img/16/shopping.png,title=Създаване на нова услуга');
     	}
     }
+    
+    
+    /**
+     * Създава спецификация по даден артикул, ако няма такава
+     * 
+     * @param mixed $productId - ид или запис на артикул
+     * @return int $specificationId - ид на новосъздадената спецификация
+     */
+    public static function createSpecification($productId, $folderId = NULL)
+    {
+    	expect($rec = static::fetchRec($productId));
+    	
+    	// Създаваме нова спецификация, ако има проблем, не правим нищо
+    	$specificationRec = techno2_SpecificationDoc::createNew($rec->name, $rec->innerClass, $rec->innerForm, $rec->innerState, $folderId);
+    	
+    	$rec->specificationId = $specificationRec->id;
+    	if($specificationRec->isPublic == 'no'){
+    		$rec->privateFolderId = $specificationRec->folderId;
+    	}
+    	
+    	static::save($rec, 'privateFolderId,specificationId');
+    	
+    	return $rec;
+    }
+    
+    
+    /**
+     * Екшън да се добавя спецификация от артикул в папка
+     */
+    public function act_addSpecification()
+    {
+    	techno2_SpecificationDoc::requireRightFor('add');
+    	expect($id = Request::get('id', int));
+    	expect($rec = $this->fetch($id));
+    	expect($rec->state != 'rejected');
+    	expect(!$rec->specificationId);
+    	
+    	$form = cls::get('core_Form');
+    	$form->title = 'Създаване на спецификация';
+    	$form->FNC('unsortedFolderId', "key(mvc=doc_UnsortedFolders,select=name,allowEmpty)", 'caption=Папка,mandatory,input');
+    	
+    	$form->input();
+    	if($form->isSubmitted()){
+    		$folderId = doc_UnsortedFolders::forceCoverAndFolder($form->rec->unsortedFolderId);
+    		$pRec = $this->createSpecification($rec, $folderId);
+    		
+    		return Redirect(array('techno2_SpecificationDoc', 'single', $pRec->specificationId), 'Създадена е нова спецификация');
+    	}
+    	
+    	$form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png, title = Запис на документа');
+        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
+        
+        return $this->renderWrapping($form->renderHtml());
+    }
+    
+    
+    /**
+     * След подготовка на тулбара за еденичния изглед
+     */
+    protected static function on_AfterPrepareSingleToolbar(core_Mvc $mvc, &$res, $data)
+    {
+    	if($data->rec->state != 'rejected'){
+    		if(isset($data->rec->specificationId)){
+    			
+    			// Добавяме бутон линк към спецификацията
+    			if(techno2_SpecificationDoc::haveRightFor('single', $data->rec->specificationId)){
+    				$data->toolbar->addBtn('Спецификация', array('techno2_SpecificationDoc', 'single', $data->rec->specificationId, 'ret_url' => TRUE), NULL, 'ef_icon = img/16/specification.png,title=Преглед на спецификацията');
+    			}
+    		} else {
+    			if(techno2_SpecificationDoc::haveRightFor('add')){
+    				$data->toolbar->addBtn('Спецификация', array('cat_Products', 'addSpecification', $data->rec->id, 'ret_url' => TRUE), NULL, 'ef_icon = img/16/specification.png,title=Създаване на нова спецификация');
+    			}
+    		}
+    	}
+    }
 }
