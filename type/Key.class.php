@@ -401,6 +401,7 @@ class type_Key extends type_Int
         $lastOpenBracketPos += 2;
         
         $key = mb_substr($title, $lastOpenBracketPos, $lastCloseBracketPos-$lastOpenBracketPos);
+        
         return $key;
     }
     

@@ -1401,6 +1401,8 @@ class email_Incomings extends core_Master
         set_time_limit(3600);
         $query = self::getQuery();
         
+        $i = 0;
+        
         while($rec = $query->fetch()) {
             $i++;
             

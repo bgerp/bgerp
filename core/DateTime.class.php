@@ -271,7 +271,7 @@ class core_DateTime
         $conf = core_Packs::getConfig('core');
         if ($conf->EF_DATE_USE_TIMEOFFSET == 'yes') {
             $timeZoneDiff = self::getTimezoneDiff();
-            $time += $timeZoneDiff;
+            $time -= $timeZoneDiff;
         }
         
         $year = date('y', $time);
