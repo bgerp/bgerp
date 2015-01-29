@@ -207,7 +207,7 @@ class pos_Points extends core_Master {
     		}
     		
     		$title = (count($reportUrl)) ? 'Направи отчет' : 'Няма бележки за отчитане';
-    		$row->report = ht::createBtn('Отчет', $reportUrl, NULL, TRUE, "title={$title},ef_icon=img/16/report.png");
+    		$row->report = ht::createBtn('Отчет', $reportUrl, FALSE, FALSE, "title={$title},ef_icon=img/16/report.png");
     	}
     }
     
