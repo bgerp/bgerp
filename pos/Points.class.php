@@ -38,7 +38,7 @@ class pos_Points extends core_Master {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт, name, caseId, report=Отчет';
+    var $listFields = 'tools=Пулт, name, caseId, storeId, report=Отчет';
     
     
     /**
@@ -223,6 +223,28 @@ class pos_Points extends core_Master {
 			$cu = core_Users::getCurrent();
 			$data->query->EXT('cashier', 'cash_Cases', 'externalKey=caseId,externalName=cashiers');
 			$data->query->like("cashier", "|{$cu}|");
+		}
+	}
+	
+	
+	/**
+	 * След връщане на избраната точка
+	 */
+	protected static function on_AfterGetCurrent($mvc, &$res, $part = 'id', $bForce = TRUE)
+	{
+		// Ако сме се логнали в точка
+		if($res && $part == 'id'){
+			$rec = $this->fetchRec($res);
+			
+			// .. и имаме право да изберем склада и, логваме се в него
+			if(store_Stores::haveRightFor('select', $rec->storeId)){
+				store_Stores::selectSilent($rec->storeId);
+			}
+			
+			// .. и имаме право да изберем касата и, логваме се в нея
+			if(cash_Cases::haveRightFor('select', $rec->caseId)){
+				cash_Cases::selectSilent($rec->caseId);
+			}
 		}
 	}
 }
