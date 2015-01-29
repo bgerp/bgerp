@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   pos
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -19,111 +19,110 @@ class pos_Reports extends core_Master {
 	/**
      * Какви интерфейси поддържа този мениджър
      */
-    var $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf=pos_transaction_Report, deals_DealsAccRegIntf, acc_RegisterIntf';
+    public $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf=pos_transaction_Report, deals_DealsAccRegIntf, acc_RegisterIntf';
     
     
     /**
      * Заглавие
      */
-    var $title = 'Отчети за POS продажби';
+    public $title = 'Отчети за POS продажби';
     
     
     /**
      * Дали може да бъде само в началото на нишка
      */
-    var $onlyFirstInThread = TRUE;
+    public $onlyFirstInThread = TRUE;
     
     
     /**
      * Плъгини за зареждане
      */
-   var $loadList = 'pos_Wrapper, plg_Printing, doc_DocumentPlg, acc_plg_Contable, acc_plg_DocumentSummary, plg_Search, 
+    public $loadList = 'pos_Wrapper, plg_Printing, doc_DocumentPlg, acc_plg_Contable, acc_plg_DocumentSummary, plg_Search, 
    					bgerp_plg_Blank, plg_Sorting';
    
     
     /**
      * Наименование на единичния обект
      */
-    var $singleTitle = "Отчет за POS продажби";
+    public $singleTitle = "Отчет за POS продажби";
     
     
     /**
      * Икона на единичния обект
      */
-    var $singleIcon = 'img/16/report.png';
+    public $singleIcon = 'img/16/report.png';
     
 
     /**
 	 *  Брой елементи на страница 
 	 */
-    var $listItemsPerPage = "40";
+    public $listItemsPerPage = "40";
     
     
     /**
      * Брой продажби на страница
      */
-    var $listDetailsPerPage = '50';
+    public $listDetailsPerPage = '50';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'pos, ceo';
+    public $canRead = 'pos, ceo';
     
     
 	/**
      * Абревиатура
      */
-    var $abbr = "Otc";
+    public $abbr = "Otc";
  
     
     /**
      * Кой може да пише?
      */
-    var $canWrite = 'pos, ceo';
-    
+    public $canWrite = 'pos, ceo';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'ceo, pos';
+	public $canList = 'ceo, pos';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'ceo, pos';
+	public $canSingle = 'ceo, pos';
     
 	
     /**
      * Кой има право да контира?
      */
-    var $canConto = 'pos, ceo';
+    public $canConto = 'pos, ceo';
     
     
     /**
 	 * Файл за единичен изглед
 	 */
-	var $singleLayoutFile = 'pos/tpl/SingleReport.shtml';
+	public $singleLayoutFile = 'pos/tpl/SingleReport.shtml';
 	
 	
 	/**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, title=Заглавие, pointId, cashier, total, paid, state, createdOn, createdBy';
+    public $listFields = 'id, title=Заглавие, pointId, cashier, total, paid, state, createdOn, createdBy';
     
     
 	/**
      * Групиране на документите
      */
-    var $newBtnGroup = "3.5|Търговия";
+    public $newBtnGroup = "3.5|Търговия";
     
     
     /**
      * Поле за филтриране по дата
      */
-    var $filterDateField = 'createdOn';
+    public $filterDateField = 'createdOn';
     
     
     /**
@@ -143,7 +142,7 @@ class pos_Reports extends core_Master {
     /**
      * Подготовка на формата за добавяне
      */
-    static function on_AfterPrepareEditForm($mvc, $res, $data)
+    protected static function on_AfterPrepareEditForm($mvc, $res, $data)
     { 
     	$data->form->setDefault('cashier', core_Users::getCurrent());
     	$data->form->setDefault('pointId', pos_Points::getCurrent());
@@ -153,7 +152,7 @@ class pos_Reports extends core_Master {
 	/**
 	 *  Подготовка на филтър формата
 	 */
-	static function on_AfterPrepareListFilter($mvc, $data)
+	protected static function on_AfterPrepareListFilter($mvc, $data)
 	{	
         $data->query->orderBy('#createdOn', 'DESC');
 		$data->listFilter->FNC('user', 'user(roles=pos|admin, allowEmpty)', 'caption=Касиер,width=12em,silent');
@@ -179,7 +178,7 @@ class pos_Reports extends core_Master {
 	/**
 	 * Изпълнява се преди вербалното представяне
 	 */
-	static function on_BeforeRecToVerbal($mvc, &$row, $rec, $fields)
+	protected static function on_BeforeRecToVerbal($mvc, &$row, $rec, $fields)
     {
     	// Ако няма записани детайли извличаме актуалните
     	if(!$rec->details){
@@ -259,7 +258,7 @@ class pos_Reports extends core_Master {
     /**
      * Пушваме css и рендираме "детайлите"
      */
-    static function on_AfterRenderSingle($mvc, &$tpl, $data)
+    protected static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {	
     	// Рендираме продажбите
     	$tpl->append($mvc->renderListTable($data->rec->details), "SALES");
@@ -274,7 +273,7 @@ class pos_Reports extends core_Master {
     /**
      * Обработка детайлите на репорта
      */
-    static function on_AfterPrepareSingle($mvc, &$data)
+    protected static function on_AfterPrepareSingle($mvc, &$data)
     {
     	$detail = (object)$data->rec->details;
     	arr::orderA($detail->receiptDetails, 'action');
@@ -291,7 +290,7 @@ class pos_Reports extends core_Master {
 	 * Инстанциране на пейджъра и модификации по данните спрямо него
 	 * @param stdClass $detail - Масив с детайли на отчета (плащания или продажби)
 	 */
-    function prepareDetail(&$detail)
+    public function prepareDetail(&$detail)
     {
     	$newRows = array();
     	
@@ -393,7 +392,7 @@ class pos_Reports extends core_Master {
 	/**
      * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
      */
-    function getDocumentRow($id)
+    public function getDocumentRow($id)
     {
     	$rec           = $this->fetch($id);
     	$title         = "Отчет за POS продажба №{$rec->id}";
@@ -411,7 +410,7 @@ class pos_Reports extends core_Master {
     /**
      * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
      */
-    static function getHandle($id)
+    public static function getHandle($id)
     {
     	$rec = static::fetch($id);
     	$self = cls::get(get_called_class());
@@ -500,6 +499,28 @@ class pos_Reports extends core_Master {
     {
     	// Контираме документа
     	$mvc->conto($rec);
+    	
+    	// Еднократно оттегляме всички празни чернови бележки
+    	$mvc->rejectEmptyReceipts($rec->pointId, $rec->cashier);
+    }
+    
+    
+    /**
+     * Оттегля всички празни чернови бележки в дадена точка от даден касиер
+     * 
+     * @param int $pointId - ид на точка
+     * @param int $cashier - ид на касиер
+     */
+    private function rejectEmptyReceipts($pointId, $cashier)
+    {
+    	$rQuery = pos_Receipts::getQuery();
+    	$rQuery->where("#pointId = {$pointId} AND #createdBy = {$cashier} AND #state = 'draft' AND #total = 0");
+    	$count = $rQuery->count();
+    	while($rRec = $rQuery->fetch()){
+    		pos_Receipts::reject($rRec);
+    	}
+    	
+    	core_Statuses::newStatus("|Оттеглени са|* {$count} |празни бележки|*");
     }
     
     
@@ -536,7 +557,7 @@ class pos_Reports extends core_Master {
     /**
      * След обработка на ролите
      */
-	static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+	protected static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
 	{
 		// Никой неможе да редактира бележка
 		if($action == 'activate' && !$rec) {
@@ -563,7 +584,7 @@ class pos_Reports extends core_Master {
      * Метод по подразбиране
      * Връща иконата на документа
      */
-    function on_AfterGetIcon($mvc, &$res, $id = NULL)
+    public static function on_AfterGetIcon($mvc, &$res, $id = NULL)
     {
         if(!$res) { 
             $res = $mvc->singleIcon;
@@ -576,7 +597,7 @@ class pos_Reports extends core_Master {
      *
      * Част от интерфейса: acc_RegisterIntf
      */
-    static function getItemRec($objectId)
+    public static function getItemRec($objectId)
     {
     	$result = NULL;
     	 
@@ -595,7 +616,7 @@ class pos_Reports extends core_Master {
      * @see acc_RegisterIntf::itemInUse()
      * @param int $objectId
      */
-    static function itemInUse($objectId)
+    public static function itemInUse($objectId)
     {
     }
     
@@ -603,7 +624,7 @@ class pos_Reports extends core_Master {
     /**
      * Връща разбираемо за човека заглавие, отговарящо на записа
      */
-    static function getRecTitle($rec, $escaped = TRUE)
+    public static function getRecTitle($rec, $escaped = TRUE)
     {
     	$self = cls::get(__CLASS__);
     
