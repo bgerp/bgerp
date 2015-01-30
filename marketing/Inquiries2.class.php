@@ -478,10 +478,12 @@ class marketing_Inquiries2 extends core_Embedder
     	 
     	if($rec->state == 'active'){
     
-    		if(core_Packs::fetch("#name = 'techno2'")){
+    		if($sId = techno2_SpecificationDoc::fetchField("#originId = {$rec->containerId} AND #state = 'active'")){
+    			$data->toolbar->addBtn($data->row->innerClass, array('techno2_SpecificationDoc', 'single', $sId), "ef_icon=img/16/specification.png,title=Спецификация");
+    		} else {
+    			// Създаване на нова спецификация от запитването
     			if(techno2_SpecificationDoc::haveRightFor('add')){
-    				
-    				$data->toolbar->addBtn($data->row->innerClass, array('techno2_SpecificationDoc', 'add', 'originId' => $rec->containerId, 'innerClass' => $rec->innerClass), "ef_icon=img/16/specification.png,title=Създаване на нов " . mb_strtolower($data->row->innerClass));
+    				$data->toolbar->addBtn($data->row->innerClass, array($mvc, 'createSpecification', $rec->id), "ef_icon=img/16/specification.png,warning=Искате ли да създадете нова спецификация,title=Създаване на нова спецификация");
     			}
     		}
     
@@ -491,6 +493,7 @@ class marketing_Inquiries2 extends core_Embedder
     			$data->toolbar->addBtn('Визитка на лице', array('crm_Persons', 'add', 'name' => $rec->name, 'buzCompanyId' => $companyId, 'country' => $rec->country), "ef_icon=img/16/vcard.png,title=Създаване на визитка с адресните данни на подателя");
     		}
     		
+    		// Ако е настроено да се изпраща нотифициращ имейл, добавяме бутона за препращане
     		$conf = core_Packs::getConfig('marketing');
     		if($mvc->haveRightFor('add') && $conf->MARKETING_INQUIRE_TO_EMAIL && $conf->MARKETING_INQUIRE_FROM_EMAIL){
     			$data->toolbar->addBtn('Препращане', array($mvc, 'send', $rec->id), "ef_icon=img/16/email_forward.png,warning=Сигурни ли сте че искате да препратите имейла на '{$conf->MARKETING_INQUIRE_TO_EMAIL}',title=Препращане на имейла с запитването на '{$conf->MARKETING_INQUIRE_TO_EMAIL}'");
@@ -782,5 +785,23 @@ class marketing_Inquiries2 extends core_Embedder
     	if(isset($rec->oldCreatedOn)){
     		$rec->createdOn = $rec->oldCreatedOn;
     	}
+    }
+    
+    
+    /**
+     * Препраща имейл-а генериран от създаването на запитването отново
+     */
+    public function act_createSpecification()
+    {
+    	techno2_SpecificationDoc::requireRightFor('add');
+    	expect($id = Request::get('id', 'int'));
+    	expect($rec = $this->fetch($id));
+    	expect($rec->state != 'rejected');
+    	
+    	$specificationRec = techno2_SpecificationDoc::createNew($rec->title, $rec->innerClass, $rec->innerForm, 'active', NULL, $rec->threadId);
+    	$specificationRec->originId = $rec->containerId;
+    	techno2_SpecificationDoc::save($specificationRec, 'originId');
+    	
+    	return redirect(array('techno2_SpecificationDoc', 'single', $specificationRec->id), 'Успешно е генерирана спецификация');
     }
 }
