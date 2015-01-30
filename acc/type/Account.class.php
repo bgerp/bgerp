@@ -65,27 +65,6 @@ class acc_type_Account extends type_Key
     
     
     /**
-     * Рендира HTML инпут поле
-     */
-    function renderInput_($name, $value = "", &$attr = array())
-    {
-        $this->prepareOptions();
-        
-        return parent::renderInput_($name, $value, $attr);
-    }
-    
-    
-    /**
-     * Конвертира стойността от вербална към (int) - ключ към core_Interfaces
-     */
-    function fromVerbal_($value)
-    {
-        $this->prepareOptions();
-        
-        return parent::fromVerbal_($value);
-    }
-    
-    /**
      * Конвертира стойността от вербална към (int) - ключ към core_Interfaces
      */
     function toVerbal_($value)
