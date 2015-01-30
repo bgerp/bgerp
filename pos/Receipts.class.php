@@ -233,7 +233,7 @@ class pos_Receipts extends core_Master {
     	
     	// Слагаме бутон за оттегляне ако имаме права
     	if($mvc->haveRightFor('reject', $rec)){
-    		$row->rejectBtn = ht::createLink('', array($mvc, 'reject', $rec->id, 'ret_url' => toUrl(array($mvc, 'new'), 'local')), 'Наистина ли желаете да оттеглите документа', 'ef_icon=img/16/reject.png,title=Оттегляне на бележката');
+    		$row->rejectBtn = ht::createLink('', array($mvc, 'reject', $rec->id, 'ret_url' => toUrl(array($mvc, 'new'), 'local')), 'Наистина ли желаете да оттеглите документа', 'ef_icon=img/16/reject.png,title=Оттегляне на бележката, class=reject-btn');
     	}
     	
     	if($rec->state != 'draft'){
