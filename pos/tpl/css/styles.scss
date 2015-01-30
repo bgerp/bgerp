@@ -636,8 +636,16 @@
 }
 
 .narrow .pos-tabs a{
-	padding:7px 13px;
-    font-size: 1em;
+	padding:7px 15px;
+	margin-left: 7px;
+	margin-bottom: 7px;
+	border-radius:5px;
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+     box-shadow: 2px 1px 3px rgba(0,0,0,0.5), inset 0 0 25px rgba(0,0,0,0.4);
+     &:hover {
+        box-shadow: 2px 0px 3px rgba(0,0,0,0.5), inset 0 0 25px rgba(0,0,0,0.4);
+     }
 }
 
 .pos-tabs a:hover {
@@ -778,6 +786,9 @@
 	   margin-bottom: 5px;
 	}
 }
+.narrow #result_contragents .pos-table td{
+	font-size: 0.8em;
+}
 .result-string {
 	margin-bottom: 10px;
 }
@@ -857,10 +868,6 @@
 	.wide #single-receipt, .wide #tools-holder .tabs-holder-content{
 	   width: 100% !important;
 	}
-	 .narrow .pos-tabs>li>a{
-        padding:5px 4px;
-        font-size: 1em;
-    }
 }
 @media handheld, only screen and (max-width: 533px) {
     .narrow .pos-tabs>li>a{
@@ -883,17 +890,8 @@
 	.narrow .colum-btn {
 	   margin-top: 0;
 	}
-	 .narrow .pos-tabs > li >a{
-        padding:3px 2px;
-        font-size: 0.7em;
-    }
 }
-@media handheld, only screen and (max-width: 320px) {
-	.narrow .pos-tabs>li>a{
-	    padding:3px 2px;
-	    font-size: 0.6em;
-	}
-}
+
 .printing{
 	.receipt-sale, .gradient {
 	   background: none;
