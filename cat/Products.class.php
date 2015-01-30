@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   cat
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.11
  */
@@ -381,7 +381,7 @@ class cat_Products extends core_Embedder {
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    static function on_AfterPrepareListFilter($mvc, $data)
+    protected static function on_AfterPrepareListFilter($mvc, $data)
     {
         $data->listFilter->FNC('order', 'enum(alphabetic=Азбучно,last=Последно добавени)',
             'caption=Подредба,input,silent,remember');
@@ -457,7 +457,7 @@ class cat_Products extends core_Embedder {
      * @see acc_RegisterIntf::itemInUse()
      * @param int $objectId
      */
-    static function itemInUse($objectId)
+    public static function itemInUse($objectId)
     {
     }
     
@@ -1253,15 +1253,24 @@ class cat_Products extends core_Embedder {
     	
     	$form->input();
     	if($form->isSubmitted()){
+    		
+    		// Създаваме спецификация във въпросната папка
     		$folderId = doc_UnsortedFolders::forceCoverAndFolder($form->rec->unsortedFolderId);
     		$pRec = $this->createSpecification($rec, $folderId);
     		
+    		// Споделяме потребителя до нишката на папката
+    		$cu = core_Users::getCurrent();
+    		$sRec = techno2_SpecificationDoc::fetch($pRec->specificationId);
+    		doc_ThreadUsers::addShared($sRec->threadId, $sRec->containerId, $cu);
+    		
+    		// Редирект към новосъздадената спецификация
     		return Redirect(array('techno2_SpecificationDoc', 'single', $pRec->specificationId), 'Създадена е нова спецификация');
     	}
     	
     	$form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png, title = Запис на документа');
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
         
+        // Рендиране на обвивката и формата
         return $this->renderWrapping($form->renderHtml());
     }
     
