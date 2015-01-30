@@ -527,18 +527,14 @@ class pos_ReceiptDetails extends core_Detail {
      */
     public function getProductInfo(&$rec)
     {
-    	if($rec->ean){
-	    	if(!$product = cat_Products::getByCode($rec->ean)) {
-	    		
-	    		return $rec->productid = NULL;
-	    	}
-    	} else{
-    		if(!$rec->productId) {
-    			return $rec->productid = NULL;
-    		}
+    	if($rec->productId){
     		expect($productId = cat_Products::fetch($rec->productId));
     		$product = (object)array('productId' => $rec->productId);
+    	} elseif($rec->ean){
+    		$product = cat_Products::getByCode($rec->ean);
     	}
+    	
+    	if(!$product) return $rec->productid = NULL;
     	
     	$info = cat_Products::getProductInfo($product->productId, $product->packagingId);
     	if(empty($info->meta['canSell'])){
