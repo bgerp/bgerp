@@ -42,7 +42,7 @@ class help_BgerpPlg extends core_Plugin
      * @param core_Manager $mvc
      * @param core_ET $res
      * @param core_ET $tpl
-     * @param object $data
+     * @param object|NULL $data
      */
 	public static function on_AfterRenderWrapping($mvc, &$res, $tpl, $data=NULL)
     {
