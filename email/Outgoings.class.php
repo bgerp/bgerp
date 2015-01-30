@@ -26,7 +26,7 @@ class email_Outgoings extends core_Master
     /**
      * Полета, които ще се клонират
      */
-    var $cloneFields = 'subject, body, recipient, attn, email, emailCc, tel, fax, country, pcode, place, address';
+    var $cloneFields = 'subject, body, recipient, attn, email, emailCc, tel, fax, country, pcode, place, address, forward';
     
     
     /**
@@ -174,6 +174,7 @@ class email_Outgoings extends core_Master
         $this->FLD('waiting', 'time', 'input=none, caption=Изчакване');
         $this->FLD('lastSendedOn', 'datetime(format=smartTime)', 'input=none, caption=Изпратено->на');
         $this->FLD('lastSendedBy', 'key(mvc=core_Users)', 'caption=Изпратено->От, notNull, input=none');
+        $this->FLD('forward', 'enum(no=Не, yes=Да)', 'caption=Препращане, input=hidden');
         
         //Данни за адресата
         $this->FLD('email', 'emails', 'caption=Адресат->Имейл, width=100%, silent');
@@ -686,7 +687,7 @@ class email_Outgoings extends core_Master
         }
         
         // Ако има originId
-        if ($data->rec->originId) {
+        if (($data->rec->originId) && ($data->rec->forward != 'yes')) {
             
             // Контрагент данните от контейнера
             $contrData = doc_Containers::getContragentData($data->rec->originId);
@@ -1102,14 +1103,7 @@ class email_Outgoings extends core_Master
         email_Salutations::add($nRec);
         
         // Ако препащме имейла
-        if ($rec->forward && $rec->originId) {
-            
-            // Записваме в лога, че имейла, който е създаден е препратен
-            log_Documents::forward($rec);
-        }
-        
-        // Ако препащме имейла
-        if ($rec->forward && $rec->originId) {
+        if (($rec->forward == 'yes') && $rec->originId) {
             
             // Записваме в лога, че имейла, който е създаден е препратен
             log_Documents::forward($rec);
@@ -1303,14 +1297,14 @@ class email_Outgoings extends core_Master
                 // Заглавието на темата
                 $title = html_entity_decode($oRow->title, ENT_COMPAT | ENT_HTML401, 'UTF-8');
                 
-                $oContragentData = $oDoc->getContragentData();
-                
                 // Ако се препраща
                 if ($forward) {
                     
                     // Полето относно
                     $rec->subject = 'Fw: ' . $title;
                 } else {
+                    
+                    $oContragentData = $oDoc->getContragentData();
                     
                     if ($oDoc->instance instanceof email_Incomings) {
                         $rec->subject = 'Re: ' . $title;
@@ -1551,11 +1545,9 @@ class email_Outgoings extends core_Master
         // Ако препращаме писмото
         if ($forward) {
             
-            // Добавяме функционално поле
-            $data->form->FNC('forward', 'varchar', 'input=hidden');
-            
-            // Задаваме стойност
-            $data->form->setDefault('forward', $forward);
+            $rec->forward = 'yes';
+        } else if (!$rec->forward) {
+            $rec->forward = 'no';
         }
         
         // Ако има открит език
@@ -2158,7 +2150,7 @@ class email_Outgoings extends core_Master
         }
         
         // Ако има originId
-        if ($posting->originId) {
+        if ($posting->originId && $posting->forward != 'yes') {
             
             // Вземаме контрагент данните на оригиналния документ (когато клонираме изходящ имейл)
             $originContr = doc_Containers::getContragentData($posting->originId);
