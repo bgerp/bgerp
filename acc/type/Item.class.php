@@ -128,6 +128,21 @@ class acc_type_Item extends type_Key
     /**
      * 
      * 
+     * @see type_Key::fromVerbal_()
+     */
+    function fromVerbal_($value)
+    {
+        $value = parent::fromVerbal_($value);
+        
+        $value = intval($value);
+        
+        return $value;
+    }
+    
+    
+    /**
+     * 
+     * 
      * @param string $value
      * 
      * @return object
