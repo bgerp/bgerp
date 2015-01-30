@@ -115,10 +115,8 @@ class acc_type_Item extends type_Key
         foreach ($this->options as $key => $val) {
             if (!is_object($val) && intval($key) == $value) {
                 
-                // Workaround
-                // Ако опциите са повече от допустимите и се използва Ajax, подаваме инт еквивалента на стойността за да
-                // работи, иначе връща грешни данни, ако не се използва Ajax подаваме дробната стойност
-                $value = (count($this->options) > $maxSuggestions) ? intval($key) : $key;
+                $value = $key;
+                
                 break;
             }
         }
