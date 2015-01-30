@@ -996,7 +996,7 @@ class pos_Receipts extends core_Master {
     	}
 	    
     	$printUrl = array($mvc, 'terminal', $rec->id, 'Printing' => 'yes');
-    	$block->append(ht::createBtn('Печат', $printUrl, NULL, NULL, array('class' => "actionBtn", 'title' => tr('ПринтираНе на бележката'))), 'CLOSE_BTNS');
+    	$block->append(ht::createBtn('Печат', $printUrl, NULL, NULL, array('class' => "actionBtn", 'title' => tr('Принтиране на бележката'))), 'CLOSE_BTNS');
     	
 	    // Ако може да се издаде касова бележка, активираме бутона
 	    if($this->haveRightFor('printReceipt', $rec)){

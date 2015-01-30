@@ -60,7 +60,7 @@ class cond_Setup  extends core_ProtoSetup
     		'cond_Payments',
     		'migrate::oldPosPayments',
     		'migrate::removePayment',
-    		'migrate::deleteOldPaymentTime',
+    		'migrate::deleteOldPaymentTime1',
         );
 
         
@@ -128,9 +128,16 @@ class cond_Setup  extends core_ProtoSetup
     }
     
     
-    function deleteOldPaymentTime()
+    /**
+     * Изтрива старите начини на плащания
+     */
+    function deleteOldPaymentTime1()
     {
     	$paymentClassId = cond_Payments::getClassId();
-    	acc_Items::delete("#classId = '{$paymentClassId}' AND #title='В брой'");
+    	
+    	foreach (array('В брой', 'Transcard', 'vaucherCBA', 'vaucherCheck', 'Стая') as $name){
+    		cond_Payments::delete("#title = '{$name}'");
+    		acc_Items::delete("#classId = '{$paymentClassId}' AND #title='{$name}'");
+    	}
     }
 }
