@@ -839,6 +839,9 @@
 	   min-width: 20px;
 	   margin: 0 !important;
 	}
+	.narrow .pos-span-name {
+        font-size: 0.9em;
+    }
 }
 @media handheld, only screen and (max-width: 640px) {
 	.wide #tools-wide-holder{
@@ -856,6 +859,9 @@
     .narrow .pos-tabs>li>a{
         padding:4px 3px;
         font-size: 0.9em;
+    }
+    .narrow .pos-span-name {
+        font-size: 0.8em;
     }
 }
 
@@ -881,9 +887,16 @@
 	    font-size: 0.6em;
 	}
 }
-@media print{
+.printing{
+	.receipt-sale, .gradient {
+	   background: none;
+	}
     .single-receipt-wrapper{
         border:none;
         padding:0;
+    }
+    .scrolling-vertical {
+        overflow: visible;
+        box-shadow: none;
     }
 }

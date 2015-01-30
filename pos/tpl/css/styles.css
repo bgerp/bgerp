@@ -765,7 +765,10 @@ only screen and (max-width: 800px) {
   .keyboard-btn,
   .keyboard-back-btn {
     min-width: 20px;
-    margin: 0 !important; } }
+    margin: 0 !important; }
+
+  .narrow .pos-span-name {
+    font-size: 0.9em; } }
 
 @media handheld,
 only screen and (max-width: 640px) {
@@ -784,7 +787,10 @@ only screen and (max-width: 640px) {
 only screen and (max-width: 533px) {
   .narrow .pos-tabs>li>a {
     padding: 4px 3px;
-    font-size: 0.9em; } }
+    font-size: 0.9em; }
+
+  .narrow .pos-span-name {
+    font-size: 0.8em; } }
 
 @media handheld,
 only screen and (max-width: 360px) {
@@ -809,8 +815,13 @@ only screen and (max-width: 320px) {
     padding: 3px 2px;
     font-size: 0.6em; } }
 
-@media print {
-  .single-receipt-wrapper {
+  .printing .receipt-sale,
+  .printing .gradient {
+    background: none; }
+  .printing .single-receipt-wrapper {
     border: none;
-    padding: 0; } }
+    padding: 0; }
+  .printing .scrolling-vertical {
+    overflow: visible;
+    box-shadow: none; }
 
