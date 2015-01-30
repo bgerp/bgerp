@@ -1328,7 +1328,7 @@ class pos_Receipts extends core_Master {
     		$addUrl = NULL;
     	}
     	
-    	$row->productId = "<span title = '" . tr('Добавете артикула към бележката') . "' class='pos-add-res-btn' data-url='{$addUrl}' data-productId='{$obj->productId}'>" . cat_Products::getTitleById($obj->productId) . "</span>";
+    	$row->productId = cat_Products::getTitleById($obj->productId);
     	if($data->showParams){
     		$params = keylist::toArray($data->showParams);
     		$values = NULL;
@@ -1349,11 +1349,15 @@ class pos_Receipts extends core_Master {
     		$row->stock .= "&nbsp;" . cat_UoM::getShortName($obj->measureId);
     	}
     	
+    	$row->ROW_ATTR['class'] = "search-product-row pos-add-res-btn";
+    	$row->ROW_ATTR['data-url'] = $addUrl;
+    	$row->ROW_ATTR['data-productId'] = $obj->productId;
+    	$row->ROW_ATTR['title'] = tr('Добавете артикула към бележката');
+    	
     	if(!Mode::is('screenMode', 'narrow')) {
     		$thumb = ($obj->photo) ? new thumb_Img($obj->photo, 64, 64) : new thumb_Img(getFullPath('pos/img/default-image.jpg'), 64, 64, 'path');
     		$arr = array();
-    		$row->photo = "<div class='pos-search-pic'>" . $thumb->createImg($arr) . "</div>";
-    		$data->showImg = TRUE;
+    		$row->photo = $thumb->createImg($arr);
     	}
     	
     	return $row;
@@ -1373,7 +1377,7 @@ class pos_Receipts extends core_Master {
     	
     	$table = cls::get('core_TableView', array('mvc' => $fSet));
     	$fields = arr::make('photo=Снимка,productId=Продукт,packagingId=Опаковка,price=Цена,stock=Наличност');
-    	if(!$data->showImg){
+    	if(Mode::is('screenMode', 'narrow')){
     		unset($fields['photo']);
     	}
     	
