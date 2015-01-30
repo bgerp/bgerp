@@ -142,6 +142,9 @@
   line-height: 1.5;
   padding: 2px 5px !important; }
 
+.reject-btn {
+  margin-left: 5px; }
+
 #receipt-info {
   background: #f1f1f1;
   background: -moz-linear-gradient(top, #f1f1f1 0%, #dddddd 100%);
