@@ -44,10 +44,10 @@ class help_BgerpPlg extends core_Plugin
      * @param core_ET $tpl
      * @param object $data
      */
-	public static function on_AfterRenderWrapping($mvc, &$res, $tpl, $data)
+	public static function on_AfterRenderWrapping($mvc, &$res, $tpl, $data=NULL)
     {
         // Ако е зададено да не се показва
-        if (!$data->__needHelp) return ;
+        if (!$data || !$data->__needHelp) return ;
         
     	cls::get(page_InternalFooter);
     	$baseUrl = BGERP_SUPPORT_URL;
