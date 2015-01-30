@@ -122,22 +122,6 @@ function posActions() {
 	});
 	
 	
-	// Добавяне на клиентска карта
-	$(document.body).on('click', "#tools-addclient", function(e){
-		var inpVal = $("input[name=ean]").val();
-		var rowVal = $("input[name=receiptId]").val();
-
-		var url = $(this).attr("data-url");
-		var data = {receiptId:rowVal, ean:inpVal};
-		
-		resObj = new Object();
-		resObj['url'] = url;
-		
-		getEfae().process(resObj, data);
-		$("input[name=ean]").val("");
-	});
-	
-	
 	// При натискане на бутон от клавиатурата, ако е 'ENTER'
 	$(document).keypress(function(e) {
 	    if(e.which == 13) {
@@ -373,10 +357,11 @@ function posActions() {
 		var receiptId = $(this).attr("data-recId");
 		var url = $(this).attr("data-url");
 		var productId = $(this).attr("data-productId");
+		var quant = $("input[name=ean]").val();
 		
 		resObj = new Object();
 		resObj['url'] = url;
-		getEfae().process(resObj, {receiptId:receiptId,productId:productId});
+		getEfae().process(resObj, {receiptId:receiptId,productId:productId,quantity:quant});
 		calculateWidth();
 	});
 	
