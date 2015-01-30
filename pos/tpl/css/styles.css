@@ -639,8 +639,7 @@
 .pos-table td {
   border-left: none;
   border-right: none;
-  background-color: white;
-  height: 64px; }
+  background-color: white; }
 
 .narrow .pos-table td {
   height: 34px; }
@@ -652,7 +651,7 @@
   width: 1%; }
 
 .pos-photo-field {
-  width: 80px; }
+  width: 64px; }
 
 .narrow .pos-product-field {
   font-size: 0.9em; }
@@ -670,8 +669,9 @@
   color: #333333; }
 
 .pos-add-res-btn:hover {
-  cursor: pointer;
-  opacity: 0.8; }
+  cursor: pointer; }
+  .pos-add-res-btn:hover > * {
+    opacity: 0.8; }
 
 .singleProd {
   margin: 0 2px; }

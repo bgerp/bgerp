@@ -703,7 +703,6 @@
 	border-left: none;
 	border-right: none;
 	background-color: #fff;
-	height: 64px;
 }
 
 .narrow .pos-table td{
@@ -719,7 +718,7 @@
 }
 
 .pos-photo-field{
-    width: 80px;
+    width: 64px;
 }
 
 .narrow .pos-product-field{
@@ -742,7 +741,9 @@
 
 .pos-add-res-btn:hover{
 	cursor: pointer;
-	opacity:0.8;
+	> * {
+	   opacity: 0.8;
+	}
 }
 
 .singleProd{
