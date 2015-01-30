@@ -280,7 +280,6 @@
 	float: left;
 	width: 17%;
 	position: relative;
-	
 }
 
 .buttonForm{
@@ -337,16 +336,12 @@
 	margin-left: 5%;
 	min-width: 95px;
 }
-#webScan{
-	position: absolute;
-	top: -50px;
-	left: 0;
-}
+
 .colum-btn .button , .tools-btn .button,  #tools-form form[method="post"] input[type="submit"],.tools-btn input,
 .tools-btn .button.disabledBtn:hover, .colum-btn .button.disabledBtn:hover, #webScan, .contragent-btn .button{
 	width: 100%;
-	height: 43px;
-    margin-bottom: 7px !important;
+	height: 41px;
+    margin-bottom: 10px !important;
     min-width: 95px;
     padding-left: 3px;
     padding-right: 3px;
@@ -373,7 +368,13 @@
 	text-shadow: 0 1px 0 #EEE;
 	box-shadow: 1px 1px 2px rgba(0,0,0,0.5);
 }
-
+.narrow {
+    .colum-btn .button , .tools-btn .button,  #tools-form form[method="post"] input[type="submit"],.tools-btn input,
+    .tools-btn .button.disabledBtn:hover, .colum-btn .button.disabledBtn:hover, #webScan, .contragent-btn .button{	
+        margin-bottom: 9px !important;
+        font-size: 0.8em !important;
+    }
+}
 .contragent-btn {
 	display: inline-block;
 	margin-left: 20px;
@@ -504,10 +505,13 @@
 	float:left;
 	min-width: 90px;
 	width: 17%;
+	margin-top: -52px;
 }
-
+.narrow .tools-btn, .narrow .colum-btn{
+	margin-top: -48px;
+}
 .payment-type, .close-btn, .tools-btn{
-	margin: 0 ;
+	margin-left: 0 ;
 }
 
 .close-btn .button{
@@ -524,7 +528,7 @@
 
 .narrow .input-field{
 	width: 30%;
-	min-width: 140px !important;
+	max-width: 130px !important;
 }
 
 .input-field input[type=text], #select-input-pos, #input-search-contragent{
@@ -544,9 +548,10 @@
     margin: 0 0 10px;
 }
 
-.narrow .input-field input[type=text]{
+.narrow .input-field input[type=text],  .narrow #input-search-contragent{
     height:1.8em;
 }
+
 
 /*tabs */
 .tabs-holder-content {
@@ -842,18 +847,38 @@
 	.wide #single-receipt, .wide #tools-holder .tabs-holder-content{
 	   width: 100% !important;
 	}
-}
-@media handheld, only screen and (max-width: 533px) {
-    .narrow .pos-tabs>li>a{
+	 .narrow .pos-tabs>li>a{
         padding:5px 4px;
         font-size: 1em;
     }
 }
+@media handheld, only screen and (max-width: 533px) {
+    .narrow .pos-tabs>li>a{
+        padding:4px 3px;
+        font-size: 0.9em;
+    }
+}
 
+@media handheld, only screen and (max-width: 360px) {
+	.narrow .contragent-btn ,.narrow .colum-btn-holder{
+	    max-width: 60px;
+	    float: left;
+	}
+	.narrow .colum-btn-holder{
+	   margin-top:-48px;
+	}
+	.narrow .colum-btn {
+	   margin-top: 0;
+	}
+	 .narrow .pos-tabs > li >a{
+        padding:3px 2px;
+        font-size: 0.7em;
+    }
+}
 @media handheld, only screen and (max-width: 320px) {
 	.narrow .pos-tabs>li>a{
-	    padding:4px;
-	    font-size: 0.9em;
+	    padding:3px 2px;
+	    font-size: 0.6em;
 	}
 }
 @media print{
