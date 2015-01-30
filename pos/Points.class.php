@@ -190,9 +190,8 @@ class pos_Points extends core_Master {
     	}
     	
     	if($fields['-list']){
-    		$cu = core_Users::getCurrent();
     		$reportUrl = array();
-    		if(pos_Reports::haveRightFor('add') && pos_Reports::canMakeReport($rec->id, $cu)){
+    		if(pos_Reports::haveRightFor('add') && pos_Reports::canMakeReport($rec->id)){
     			$reportUrl = array('pos_Reports', 'add', 'pointId' => $rec->id);
     		}
     		

@@ -110,7 +110,7 @@ class pos_Reports extends core_Master {
 	/**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, title=Заглавие, pointId, cashier, total, paid, state, createdOn, createdBy';
+    public $listFields = 'id, title=Заглавие, pointId, total, paid, state, createdOn, createdBy';
     
     
 	/**
@@ -131,7 +131,6 @@ class pos_Reports extends core_Master {
     function description()
     {
     	$this->FLD('pointId', 'key(mvc=pos_Points, select=name)', 'caption=Точка, width=9em, mandatory,silent');
-    	$this->FLD('cashier', 'user(roles=pos|ceo)', 'caption=Касиер, width=9em');
     	$this->FLD('paid', 'double(decimals=2)', 'caption=Сума->Платено, input=none, value=0, summary=amount');
     	$this->FLD('total', 'double(decimals=2)', 'caption=Сума->Продадено, input=none, value=0, summary=amount');
     	$this->FLD('state', 'enum(draft=Чернова,active=Активиран,rejected=Оттеглена)', 'caption=Състояние,input=none,width=8em');
@@ -144,8 +143,7 @@ class pos_Reports extends core_Master {
      */
     protected static function on_AfterPrepareEditForm($mvc, $res, $data)
     { 
-    	$data->form->setDefault('cashier', core_Users::getCurrent());
-    	$data->form->setDefault('pointId', pos_Points::getCurrent());
+    	$data->form->setDefault('pointId', pos_Points::getCurrent('id', FALSE));
     }
     
     
@@ -155,7 +153,6 @@ class pos_Reports extends core_Master {
 	protected static function on_AfterPrepareListFilter($mvc, $data)
 	{	
         $data->query->orderBy('#createdOn', 'DESC');
-		$data->listFilter->FNC('user', 'user(roles=pos|admin, allowEmpty)', 'caption=Касиер,width=12em,silent');
 		$data->listFilter->FNC('point', 'key(mvc=pos_Points, select=name, allowEmpty)', 'caption=Точка,width=12em,silent');
         $data->listFilter->showFields .= ',user,point';
         
@@ -163,10 +160,6 @@ class pos_Reports extends core_Master {
         $data->listFilter->input(NULL, 'silent');
 		
 		if($filter = $data->listFilter->rec) {
-				
-			if($filter->user) {
-	    		$data->query->where("#cashier = {$filter->user}");
-	    	}
 	    		
 	    	if($filter->point) {
 	    		$data->query->where("#pointId = {$filter->point}");
@@ -196,8 +189,8 @@ class pos_Reports extends core_Master {
     	$row->title = "Отчет за POS продажба №{$rec->id}";
     	$row->pointId = pos_Points::getHyperLink($rec->pointId, TRUE);
     	
-    	$row->earliestReceipt = pos_Receipts::getHyperLink($rec->details['receipts'][0]->id);
-    	$row->lastReceipt = pos_Receipts::getHyperLink($rec->details['receipts'][count($rec->details['receipts']) -1]->id);
+    	$row->earliestReceipt = dt::mysql2verbal(pos_Receipts::fetchField($rec->details['receipts'][0]->id, 'createdOn'));
+		$row->lastReceipt = dt::mysql2verbal(pos_Receipts::fetchField($rec->details['receipts'][count($rec->details['receipts']) -1]->id, 'createdOn'));
     	
     	if($fields['-single']) {
     		$pointRec = pos_Points::fetch($rec->pointId);
@@ -220,8 +213,8 @@ class pos_Reports extends core_Master {
     	if($form->isSubmitted()) {
     		
     		// Можем ли да създадем отчет за този касиер или точка
-    		if(!self::canMakeReport($form->rec->pointId, $form->rec->cashier)){
-    			$form->setError('cashier, pointId', 'Не може да създадете отчет за тази точка и касиер');
+    		if(!self::canMakeReport($form->rec->pointId)){
+    			$form->setError('pointId', 'Не може да създадете отчет за тази точка');
     		}
     		
     		// Ако няма грешки, форсираме отчета да се създаде в папката на точката
@@ -241,7 +234,7 @@ class pos_Reports extends core_Master {
     public function extractData(&$rec)
     {
     	// Извличаме информацията от бележките
-    	$reportData = $this->fetchData($rec->pointId, $rec->cashier);
+    	$reportData = $this->fetchData($rec->pointId);
     	
     	$rec->details = $reportData;
     	$rec->total = $rec->paid = 0;
@@ -307,8 +300,11 @@ class pos_Reports extends core_Master {
     		
     		 // Подготвяме поле по което да сортираме
     		 foreach ($detail->rows as $key => &$value){
-    		 	$value->sortString = mb_strtolower(cat_Products::fetchField($value->value, 'name'));
+    		 	if($value->action == 'sale'){
+    		 		$value->sortString = mb_strtolower(cat_Products::fetchField($value->value, 'name'));
+    		 	}
     		 }
+    		 
     		 usort($detail->rows, array($this, "sortResults"));
     		
     		 // Обръщаме във вербален вид
@@ -427,15 +423,13 @@ class pos_Reports extends core_Master {
      * от всички бележки за даден период от време на даден потребител
      * на дадена точка
      * @param int $pointId - Ид на точката на продажба
-     * @param int $userId - Ид на потребител в системата
      * @return array $result - масив с резултати
      * */
-    private function fetchData($pointId, $userId)
+    private function fetchData($pointId)
     {
     	$details = $receipts = array();
     	$query = pos_Receipts::getQuery();
     	$query->where("#pointId = {$pointId}");
-    	$query->where("#createdBy = {$userId}");
     	$query->where("#state = 'active'");
     	
     	// извличаме нужната информация за продажбите и плащанията
@@ -504,7 +498,7 @@ class pos_Reports extends core_Master {
     	$mvc->conto($rec);
     	
     	// Еднократно оттегляме всички празни чернови бележки
-    	$mvc->rejectEmptyReceipts($rec->pointId, $rec->cashier);
+    	$mvc->rejectEmptyReceipts($rec->pointId);
     }
     
     
@@ -512,12 +506,11 @@ class pos_Reports extends core_Master {
      * Оттегля всички празни чернови бележки в дадена точка от даден касиер
      * 
      * @param int $pointId - ид на точка
-     * @param int $cashier - ид на касиер
      */
-    private function rejectEmptyReceipts($pointId, $cashier)
+    private function rejectEmptyReceipts($pointId)
     {
     	$rQuery = pos_Receipts::getQuery();
-    	$rQuery->where("#pointId = {$pointId} AND #createdBy = {$cashier} AND #state = 'draft' AND #total = 0");
+    	$rQuery->where("#pointId = {$pointId} AND #state = 'draft' AND #total = 0");
     	$count = $rQuery->count();
     	while($rRec = $rQuery->fetch()){
     		pos_Receipts::reject($rRec);
@@ -642,24 +635,19 @@ class pos_Reports extends core_Master {
      *  2. Да няма нито една започната, но неприключена бележка
      * 
      * @param int $pointId - ид на точка
-     * @param string $cashier - касиер
      * @return boolean
      */
-    public static function canMakeReport($pointId, $cashier = NULL)
+    public static function canMakeReport($pointId)
     {
-    	// Ако няма потебител е текущия
-    	if(!isset($cashier)){
-    		$cashier = core_Users::getCurrent();
-    	}
     	
     	// Ако няма нито една активна бележка за посочената каса и касиер, не може да се създаде отчет
-    	if(!pos_Receipts::fetch("#pointId = {$pointId} AND #createdBy = {$cashier} AND #state = 'active'")){
+    	if(!pos_Receipts::fetch("#pointId = {$pointId} AND #state = 'active'")){
     		
     		return FALSE;
     	}
     	
     	// Ако има неприключена започната бележка в тачката от касиера, също не може да се направи отчет
-    	if(pos_Receipts::fetch("#pointId = {$pointId} AND #createdBy = {$cashier} AND #total != 0 AND #state = 'draft'")){
+    	if(pos_Receipts::fetch("#pointId = {$pointId} AND #total != 0 AND #state = 'draft'")){
     		
     		return FALSE;
     	}

@@ -11,11 +11,6 @@
 	
 		<table cellpadding='2px' class='report-info' border='0'>
 			<tr>
-				<td>|Касиер|*: </td>
-				<td></td>
-				<td><b>[#cashier#]</b></td>
-			</tr>
-			<tr>
 				<td>|Точка на продажба|*:</td>
 				<td></td>
 				<td><b>[#pointId#]</b></td>
