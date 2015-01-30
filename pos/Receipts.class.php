@@ -25,7 +25,7 @@ class pos_Receipts extends core_Master {
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_Rejected, plg_Printing, acc_plg_DocumentSummary,
+    var $loadList = 'plg_Created, plg_Rejected, plg_Printing, acc_plg_DocumentSummary, plg_Printing,
     				 plg_State, bgerp_plg_Blank, pos_Wrapper, plg_Search, plg_Sorting,
                      plg_Modified';
 
@@ -449,40 +449,48 @@ class pos_Receipts extends core_Master {
     	$tpl = getTplFromFile("pos/tpl/terminal/Layout.shtml");
     	$tpl->replace(pos_Points::getTitleById($rec->pointId), 'PAGE_TITLE');
     	$tpl->appendOnce("\n<link  rel=\"shortcut icon\" href=" . sbf("img/16/cash-register.png", '"', TRUE) . ">", "HEAD");
-    	Mode::set('wrapper', 'page_Empty');
     	
     	// Добавяме бележката в изгледа
     	$receiptTpl = $this->getReceipt($rec);
     	$tpl->replace($receiptTpl, 'RECEIPT');
     	
-    	// Ако сме чернова, добавяме пултовете
-    	if($rec->state == 'draft'){
+    	// Ако не сме в принтиране, сменяме обвивквата и рендираме табовете
+    	if(!Mode::is('printing')){
     		
-    		// Добавяне на табовете под бележката
-    		$toolsTpl = $this->getTools($rec);
-    		$tpl->replace($toolsTpl, 'TOOLS');
+    		// Задаваме празна обвивка
+    		Mode::set('wrapper', 'page_Empty');
+    	
+    		// Ако сме чернова, добавяме пултовете
+    		if($rec->state == 'draft'){
     		
-    		// Добавяне на табовете показващи се в широк изглед отстрани
-	    	if(!Mode::is('screenMode', 'narrow')){
-	    		$DraftsUrl = toUrl(array('pos_Receipts', 'showDrafts', $rec->id), 'absolute');
-	    		$tab = new ET(tr("|*<li [#active#] title='|Търсене на артикул|*'><a href='#tools-search'>|Търсене|*</a></li><li title='|Всички чернови бележки|*'><a href='#tools-drafts' data-url='{$DraftsUrl}'>|Бележки|*</a></li>"));
-	    		
-	    		if($selectedFavourites = $this->getSelectFavourites()){
-	    			$tab->prepend(tr("|*<li class='active' title='|Избор на бърз артикул|*'><a href='#tools-choose'>|Избор|*</a></li>"));
-	    			$tpl->replace($selectedFavourites, 'CHOOSE_DIV_WIDE');
-	    		} else {
-	    			$tab->replace("class='active'", 'active');
-	    		}
-	    		
-	    		$tpl->append($this->renderChooseTab($id), 'SEARCH_DIV_WIDE');
-	    		$tpl->append($this->renderDraftsTab($id), 'DRAFTS_WIDE');
-	    		
-	    		$tpl->replace($tab, 'TABS_WIDE');
-	    	}
+    			// Добавяне на табовете под бележката
+    			$toolsTpl = $this->getTools($rec);
+    			$tpl->replace($toolsTpl, 'TOOLS');
+    		
+    			// Добавяне на табовете показващи се в широк изглед отстрани
+    			if(!Mode::is('screenMode', 'narrow')){
+    				$DraftsUrl = toUrl(array('pos_Receipts', 'showDrafts', $rec->id), 'absolute');
+    				$tab = new ET(tr("|*<li [#active#] title='|Търсене на артикул|*'><a href='#tools-search'>|Търсене|*</a></li><li title='|Всички чернови бележки|*'><a href='#tools-drafts' data-url='{$DraftsUrl}'>|Бележки|*</a></li>"));
+    				 
+    				if($selectedFavourites = $this->getSelectFavourites()){
+    					$tab->prepend(tr("|*<li class='active' title='|Избор на бърз артикул|*'><a href='#tools-choose'>|Избор|*</a></li>"));
+    					$tpl->replace($selectedFavourites, 'CHOOSE_DIV_WIDE');
+    				} else {
+    					$tab->replace("class='active'", 'active');
+    				}
+    				 
+    				$tpl->append($this->renderChooseTab($id), 'SEARCH_DIV_WIDE');
+    				$tpl->append($this->renderDraftsTab($id), 'DRAFTS_WIDE');
+    				 
+    				$tpl->replace($tab, 'TABS_WIDE');
+    			}
+    		}
     	}
     	
     	// Вкарване на css и js файлове
     	$this->pushFiles($tpl);
+    	
+    	$this->renderWrapping($tpl);
     	
     	return $tpl;
     }
@@ -987,6 +995,9 @@ class pos_Receipts extends core_Master {
     		$block->append("</div>", 'PAYMENT_TYPE');
     	}
 	    
+    	$printUrl = array($mvc, 'terminal', $rec->id, 'Printing' => 'yes');
+    	$block->append(ht::createBtn('Печат', $printUrl, NULL, NULL, array('class' => "actionBtn", 'title' => tr('ПринтираНе на бележката'))), 'CLOSE_BTNS');
+    	
 	    // Ако може да се издаде касова бележка, активираме бутона
 	    if($this->haveRightFor('printReceipt', $rec)){
 	    	$recUrl = array($this, 'printReceipt', $rec->id);

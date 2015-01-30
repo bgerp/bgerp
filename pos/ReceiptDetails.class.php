@@ -434,7 +434,8 @@ class pos_ReceiptDetails extends core_Detail {
     			break;
     	}
     	
-    	if($mvc->haveRightFor('delete', $rec)){
+    	// Ако може да изтриваме ред и не сме в режим принтиране
+    	if($mvc->haveRightFor('delete', $rec) && !Mode::is('printing')){
     		$delUrl = toUrl(array($mvc->className, 'deleteRec'), 'local');
     		$row->DEL_BTN = ht::createElement('img', array('src' => sbf('img/16/deletered.png', ''), 
     													   'class' => 'pos-del-btn', 'data-recId' => $rec->id, 
