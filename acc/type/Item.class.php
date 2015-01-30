@@ -128,16 +128,18 @@ class acc_type_Item extends type_Key
     
     
     /**
-     * Конвертира стойността от вербална към (int) - ключ към core_Interfaces
+     * 
+     * 
+     * @param string $value
+     * 
+     * @return object
      */
-    function fromVerbal_($value)
+    protected function fetchVal($value)
     {
-        $this->prepareOptions();
+        $mvc = &cls::get($this->params['mvc']);
         
-        if ($result = parent::fromVerbal_($value)) {
-            $result = intval($result);
-        }
+        $rec = $mvc->fetch(intval($value));
         
-        return $result;
+        return $rec;
     }
 }
