@@ -2572,8 +2572,8 @@ table.styled-table tr:hover td {
 
 
 /*стилове за локации*/
-div.location {
-	max-width: 720px;
+div.no-cover {
+	max-width: 725px;
 	@include border-radius(5px);
 	border: 1px solid #ccc;
 	padding: 10px 20px 20px;
@@ -2599,6 +2599,10 @@ div.location {
 		color: #666;
 		display: inline;
 		vertical-align: baseline;
+	}
+	.groupList {
+		font-size: 0.95em;
+		max-width: 700px;
 	}
 }
 

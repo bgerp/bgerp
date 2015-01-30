@@ -1,9 +1,9 @@
 <div class="singleView">
     [#SingleToolbar#]
     <div class='scrolling-holder'>
-        <div class="folder-cover [#STATE_CLASS#]">
+        <div class="no-cover">
             <div class="inner-folder">
-                <div class="block_title [#STATE_CLASS#] special-title">[#SingleIcon#] |Артикул|* <b style="color:green;">[#name#]</b></div>
+                <h2 style='line-height:26px'>[#SingleIcon#] |Артикул|* <b style="color:green;">[#name#]</b></h2>
                 [#innerState#]
                 <!--ET_BEGIN groups-->
                 <fieldset class="detail-info">

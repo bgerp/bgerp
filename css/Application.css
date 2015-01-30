@@ -2355,8 +2355,8 @@ table.styled-table tr:hover td {
 /*
  * стилове за локации
  */
-div.location {
-  max-width: 720px;
+div.no-cover {
+  max-width: 725px;
   -moz-border-radius: 5px;
   -webkit-border-radius: 5px;
   -ms-border-radius: 5px;
@@ -2364,23 +2364,26 @@ div.location {
   border: 1px solid #cccccc;
   padding: 10px 20px 20px;
   margin-top: 16px; }
-  div.location h2 {
+  div.no-cover h2 {
     margin-top: 0;
     background-color: transparent; }
-  div.location ul {
+  div.no-cover ul {
     padding: 0;
     margin: 0;
     list-style-type: none; }
-    div.location ul li {
+    div.no-cover ul li {
       padding: 0;
       margin: 0;
       list-style-type: none; }
-  div.location div.locImage {
+  div.no-cover div.locImage {
     padding-bottom: 0; }
-  div.location .gray-title {
+  div.no-cover .gray-title {
     color: #666666;
     display: inline;
     vertical-align: baseline; }
+  div.no-cover .groupList {
+    font-size: 0.95em;
+    max-width: 700px; }
 
 div.location.public {
   border: none;
