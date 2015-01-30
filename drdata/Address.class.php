@@ -498,7 +498,7 @@ class drdata_Address extends core_MVC
             $res[$id]->add('mob', $mobArr = self::extractMobNumbers($lN));
             $res[$id]->add('tel', $telArr = self::extractTelNumbers($lN));
             $res[$id]->add('email', $emailArr = type_Email::extractEmails($lN));
-            $res[$id]->add('web', core_Url::extractWebAddress($lN));
+            $res[$id]->add('web', $webArr = core_Url::extractWebAddress($lN));
             
             $j = 0;
             
@@ -673,7 +673,11 @@ class drdata_Address extends core_MVC
                     $companyCnt -= 3.2;
                     $addressCnt -= 3.2;
                     $nameCnt -= 1.2;
-
+                }
+                
+                // Ако е линк, намаляме вероятността да е адрес
+                if ($webArr) {
+                    $addressCnt -= 0.5;
                 }
 
                 if(($r = ($companyCnt + 0.03 * $titleCaseCnt + 0.1 * $upperCaseCnt)/(($i == $wordsCnt) ? ($i*($i/10)) : $i) + ($expected['company'] ? 0.2 : 0)) > 0.65) {
@@ -692,8 +696,7 @@ class drdata_Address extends core_MVC
                     $expected['name'] = 0;
                     $expected['company'] = 2;
                 }
-
-
+                
                 if(($r = ($addressCnt)/$i + ($expected['address'] ? 0.2 : 0)) > 0.6) {
                     //echo "<li> $addressCnt + min($streetAddrCnt,2))/$i + {$expected['address']} $l";
                     $res[$id]->add('address', array(trim($l)), round($r, 2));
@@ -711,7 +714,7 @@ class drdata_Address extends core_MVC
             }
 
         }
-
+        
         // Отделяме блоковете с данни
         $blocks = array();
         $i = 1;
