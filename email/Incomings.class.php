@@ -456,7 +456,6 @@ class email_Incomings extends core_Master
         
         // Запазване на допълнителни MIME-хедъри за нуждите на рутирането
         $rec->inReplyTo   = $mime->getHeader('In-Reply-To');
-        $rec->bgerpThread = $mime->getHeader('X-Bgerp-Thread');
         
         // От коя сметка е получено писмото
         $rec->accId = $accId;
@@ -1240,10 +1239,9 @@ class email_Incomings extends core_Master
         $textPart = $rt->toVerbal($msg->textPart);
         Mode::pop('ClearFormat');
         Mode::pop('text');
-
+        
         $contragentData = $addrParse->extractContact($textPart);
         
-         
         // Ако няма хедъри
         // За съвместимост със стар код
         if (!$msg->headers) {

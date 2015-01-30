@@ -2,6 +2,12 @@
 
 
 /**
+ * 
+ */
+defIfNot('EMAIL_SENT_DOMAIN_HASH', md5(EF_SALT . '_DOMAIN_' . BGERP_DEFAULT_EMAIL_DOMAIN));
+
+
+/**
  * Изпращане на писма
  * 
  * @category  bgerp
@@ -36,7 +42,7 @@ class email_Sent
             'html'    => $body->html,
             'text'    => $body->text,
             'attachments' => array_merge((array)$body->attachmentsFh, (array)$body->documentsFh),
-            'headers' => array(),
+            'headers' => array('X-Bgerp-Hash' => EMAIL_SENT_DOMAIN_HASH),
             'emailFrom' => email_Inboxes::fetchField($boxFrom, 'email'),
             'charset'   => $options['encoding'],
         );

@@ -421,7 +421,7 @@ class email_Mime extends core_BaseClass
                 $fRec->fmId = $this->addFileToFileman($fRec->data, $fRec->name);
             }
         }
-
+        
         // Минаваме по всички текстови и HTML части да ги запишем като прикачени файлове
         // Пропускаме само тази PLAIN TEXT част, която е използване
         foreach($this->parts as $index => $p) {
@@ -949,7 +949,7 @@ class email_Mime extends core_BaseClass
                 if($p->subType == 'PLAIN') {
                     $textRate = $textRate * 0.8;
                     
-                    if($this->getHeader('X-Bgerp-Thread')) {
+                    if($this->getHeader('X-Bgerp-Hash')) {
                         $textRate = $textRate * 1.8;
                     }
 
