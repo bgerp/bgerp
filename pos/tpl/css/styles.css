@@ -241,12 +241,6 @@
   background: #505050 !important;
   box-shadow: inset 0 0 50px black; }
 
-.tools-btn {
-  margin-top: 1px;
-  float: left;
-  width: 17%;
-  position: relative; }
-
 .buttonForm {
   height: 43px;
   margin-bottom: 7px; }
@@ -468,6 +462,13 @@
   float: left;
   min-width: 90px;
   width: 17%;
+  margin-top: -52px; }
+
+.tools-btn {
+  margin-top: 1px;
+  float: left;
+  width: 17%;
+  position: relative;
   margin-top: -52px; }
 
 .narrow .tools-btn,
