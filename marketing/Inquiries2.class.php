@@ -44,7 +44,7 @@ class marketing_Inquiries2 extends core_Embedder
     /**
      * Единично заглавие
      */
-    public $singleTitle = 'Запитване 2';
+    public $singleTitle = 'Запитване';
     
     
     /**
@@ -222,10 +222,7 @@ class marketing_Inquiries2 extends core_Embedder
      */
     public static function canAddToFolder($folderId)
     {
-    	// Можем да добавяме или ако корицата е контрагент или сме в папката на текущата каса
-    	$cover = doc_Folders::getCover($folderId);
-  
-    	return $cover->haveInterface('doc_ContragentDataIntf');
+    	return FALSE;
     }
     
     
