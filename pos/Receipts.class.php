@@ -1112,8 +1112,10 @@ class pos_Receipts extends core_Master {
     		if(!empty($matches[1]) && !empty($matches[3])){
     			$rec->quantity = cls::get('type_Double')->fromVerbal($matches[1]);
     			$rec->ean = $matches[3];
-    		} else {
+    		} elseif(!empty($matches[1]) && empty($matches[3])) {
+    			$rec->quantity = cls::get('type_Double')->fromVerbal($matches[1]);
     			
+    		} else {
     			// Иначе целия стринг приемаме за код
     			$rec->ean = $ean;
     		}
@@ -1123,7 +1125,7 @@ class pos_Receipts extends core_Master {
     	if($productId = Request::get('productId', 'int')) {
     		$rec->productId  = $productId;
     	}
-    	
+    	//bp($rec);
     	// Трябва да е подаден код или ид на продукт
     	if(!$rec->productId && !$rec->ean){
     		core_Statuses::newStatus(tr('|Не е избран артикул|*!'), 'error');
