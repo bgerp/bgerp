@@ -96,7 +96,7 @@ class support_Issues extends core_Master
     /**
      * Поддържани интерфейси
      */
-    var $interfaces = 'doc_DocumentIntf, doc_AddToFolderIntf';
+    var $interfaces = 'doc_DocumentIntf, doc_AddToFolderIntf, doc_ContragentDataIntf';
     
     
     /**
@@ -854,6 +854,32 @@ class support_Issues extends core_Master
     	}
     }
     
+    
+    /**
+     * Интерфейсен метод
+     * 
+     * @param integer $id
+     * 
+     * @return object
+     * @see doc_ContragentDataIntf
+     */
+    public static function getContragentData($id)
+    {
+        if (!$id) return ;
+        $rec = self::fetch($id);
+        
+        $contrData = new stdClass();
+        
+        if ($rec->createdBy > 0) {
+            $personId = crm_Profiles::fetchField("#userId = '{$rec->createdBy}'", 'personId');
+            $contrData = crm_Persons::getContragentData($personId);
+        } else {
+            $contrData->email = $rec->email;
+            $contrData->person = $rec->name;
+        }
+        
+        return $contrData;
+    }
     
     /**
      * Да се показвали бърз бутон за създаване на документа в папка
