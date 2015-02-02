@@ -24,14 +24,20 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
     public $class;
     
     
+    /**
+     * Обща сума
+     */
     public $totalAmount = 0;
+    
     
     /**
      * Връща транзакцията на бележката
      */
     public function getTransaction($id)
     {
-        $rec = $this->class->fetchRec($id);
+    	set_time_limit(300);
+    	
+    	$rec = $this->class->fetchRec($id);
         $posRec = pos_Points::fetch($rec->pointId);
     	$entries = array();
         $totalVat = array();
