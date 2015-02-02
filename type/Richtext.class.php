@@ -1093,7 +1093,7 @@ class type_Richtext extends type_Blob
         
         if(!Mode::is('text', 'plain')) {
             $name = str::canonize($text);
-            $res = "<a id=\"{$name}\" class='header'><h{$level}>{$text}</h{$level}></a>{$end}";
+            $res = "<h{$level} id=\"{$name}\">{$text}</h{$level}>{$end}";
         } else {
             $res =   mb_strtoupper($text) . "\n" . str_repeat('=', mb_strlen($text)) . "\n";
         }
