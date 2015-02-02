@@ -32,6 +32,8 @@ class type_Class  extends type_Key {
 
     public function prepareOptions()
     {
+        Mode::push('text', 'plain');
+        
         expect($this->params['mvc'], $this);
         
         $mvc = cls::get($this->params['mvc']);
@@ -43,10 +45,14 @@ class type_Class  extends type_Key {
         } else {
             $options = $mvc->getOptionsByInterface($interface, $this->params['select']);
         }
-                
+        
+        Mode::pop('text');
+        
         $this->options = $options;
-
-        parent::prepareOptions();
+        
+        $this->options = parent::prepareOptions();
+        
+        return $this->options;
     }
     
     
@@ -55,6 +61,7 @@ class type_Class  extends type_Key {
      */
     function renderInput_($name, $value = "", &$attr = array())
     {
+        Mode::push('text', 'plain');
         if(!$value) {
             $value = $attr['value'];
         }
@@ -62,8 +69,8 @@ class type_Class  extends type_Key {
         if(!is_numeric($value)) {
             $value = $this->fromVerbal($value);
         }
-
-          
+        Mode::pop('text');
+        
         return parent::renderInput_($name, $value, $attr);
     }
     
