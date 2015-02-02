@@ -369,6 +369,10 @@ class techno2_SpecificationDoc extends core_Embedder
     			if(cat_Products::haveRightFor('single', $pRec)){
     				$data->toolbar->addBtn("Артикул", array('cat_Products', 'single', $pRec->id, 'ret_url' => TRUE), "ef_icon = img/16/wooden-box.png,title=Към артикул '{$pRec->name}'");
     			}
+    		} else {
+    			if(cat_Products::haveRightFor('add')){
+    				$data->toolbar->addBtn("Нов артикул", array($mvc, 'CreateProduct', $data->rec->id, 'ret_url' => TRUE), "ef_icon = img/16/wooden-box.png,title=Създаване на нов артикул");
+    			}
     		}
     	}
     }
@@ -477,7 +481,6 @@ class techno2_SpecificationDoc extends core_Embedder
      */
     public function getParam($id, $sysId)
     {
-    	return;
     	expect($paramId = cat_Params::fetchIdBySysId($sysId));
     	 
     	$value = $this->Params->fetchField("#generalProductId = {$id} AND #paramId = '{$paramId}'", 'value');
@@ -869,6 +872,72 @@ class techno2_SpecificationDoc extends core_Embedder
     		cat_products_Params::save($dRec);
     	}
     }
+    
+    
+    /**
+     * Екшън за създаване на нов артикул от спецификацията
+     */
+    public function act_CreateProduct()
+    {
+    	cat_Products::requireRightFor('add');
+    	expect($id = Request::get('id', 'int'));
+    	expect(!cat_Products::fetch("#specificationId = {$id}"));
+    	expect($rec = $this->fetch($id));
+    	
+    	$form = cls::get('core_Form');
+    	$form->title = 'Създаване на артикул от спецификация';
+    	$form->FLD('code', 'varchar(64)', 'caption=Код, mandatory,width=15em');
+    	 
+    	$form->input();
+    	if($form->isSubmitted()){
+    		$rec = &$form->rec;
+    		if (preg_match('/[^0-9a-zа-я\- _]/iu', $rec->code)) {
+    			$form->setError('code', 'Полето може да съдържа само букви, цифри, тирета, интервали и долна черта!');
+    		}
+    		
+    		if(cat_Products::getByCode($rec->code)){
+    			$form->setError('code', 'Има артикул с такъв код');
+    		}
+    		
+    		if(!$form->gotErrors()){
+    			$pId = self::createProduct($id, $rec->code);
+    			
+    			return Redirect(array('cat_Products', 'single', $pId), 'Успешно е създаден нов артикул');
+    		}
+    	}
+    	
+    	$form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png, title = Запис на документа');
+    	$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
+    	
+    	// Рендиране на обвивката и формата
+    	return $this->renderWrapping($form->renderHtml());
+    }
+    
+    
+    /**
+     * Създава артикул от спецификацията
+     * 
+     * @param mixed $id - ид или запис
+     * @param string $code - код на продукта
+     * @return number
+     */
+    public static function createProduct($id, $code = NULL)
+    {
+    	expect($rec = self::fetchRec($id));
+    	
+    	$pRec = (object)array('name'            => $rec->title, 
+    						  'code'			=> $code,
+    						  'innerClass'      => $rec->innerClass, 
+    						  'innerForm'       => $rec->innerForm, 
+    						  'innerState'      => $rec->innerState, 
+    						  'privateFolderId' => $rec->folderId, 
+    						  'specificationId' => $rec->id,
+    						  'state' 			=> 'active',
+    	);
+    	
+    	return cat_Products::save($pRec);
+    }
+    
     
     
     /**
