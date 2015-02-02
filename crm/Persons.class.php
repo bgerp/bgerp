@@ -998,7 +998,11 @@ class crm_Persons extends core_Master
         while($rec = $query->fetch()) {
             $data->recs[$rec->id] = $rec;
             $row = $data->rows[$rec->id] = $this->recToVerbal($rec, 'name,mobile,tel,email,buzEmail,buzTel,buzLocationId,buzPosition');
-            $row->name = ht::createLink($row->name, array($this, 'Single', $rec->id));
+            
+            if ($this->haveRightFor('single', $rec)) {
+                $row->name = ht::createLink($row->name, array($this, 'Single', $rec->id));
+            }
+            
             if($rec->buzLocationId){
             	$row->name .= " - {$row->buzLocationId}";
             }
