@@ -61,7 +61,6 @@ class type_Class  extends type_Key {
      */
     function renderInput_($name, $value = "", &$attr = array())
     {
-        Mode::push('text', 'plain');
         if(!$value) {
             $value = $attr['value'];
         }
@@ -69,7 +68,6 @@ class type_Class  extends type_Key {
         if(!is_numeric($value)) {
             $value = $this->fromVerbal($value);
         }
-        Mode::pop('text');
         
         return parent::renderInput_($name, $value, $attr);
     }
@@ -84,6 +82,7 @@ class type_Class  extends type_Key {
         if(is_numeric($value)) {
             $value = parent::toVerbal($value);
         }
+        
         return $value;
     }
 }
