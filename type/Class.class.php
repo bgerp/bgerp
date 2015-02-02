@@ -85,4 +85,19 @@ class type_Class  extends type_Key {
         
         return $value;
     }
+    
+    
+    /**
+     * 
+     * 
+     * @param string|integer $value
+     */
+    function fromVerbal($value)
+    {
+        if(is_numeric($value)) {
+            $value = parent::fromVerbal($value);
+        }
+        
+        return $value;
+    }
 }
