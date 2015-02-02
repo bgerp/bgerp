@@ -1196,6 +1196,7 @@ class cat_Products extends core_Embedder {
     {
     	expect(cls::haveInterface('cat_ProductDriverIntf', $rec->innerClass));
     	$rec->innerClass = cls::get($rec->innerClass)->getClassId();
+    	$rec->state = 'active';
     }
     
     
