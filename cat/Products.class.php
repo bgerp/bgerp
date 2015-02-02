@@ -1250,13 +1250,17 @@ class cat_Products extends core_Embedder {
     	
     	$form = cls::get('core_Form');
     	$form->title = 'Създаване на спецификация';
-    	$form->FNC('unsortedFolderId', "key(mvc=doc_UnsortedFolders,select=name,allowEmpty)", 'caption=Папка,mandatory,input');
+    	$form->FNC('unsortedFolderId', "key(mvc=techno2_SpecificationFolders,select=name,allowEmpty)", 'caption=Папка,mandatory,input');
+    	
+    	if(!techno2_SpecificationFolders::count("#state = 'active'")){
+    		return Redirect(array('techno2_SpecificationFolders', 'list'), NULL, 'Няма налични папки за избор');
+    	}
     	
     	$form->input();
     	if($form->isSubmitted()){
     		
     		// Създаваме спецификация във въпросната папка
-    		$folderId = doc_UnsortedFolders::forceCoverAndFolder($form->rec->unsortedFolderId);
+    		$folderId = techno2_SpecificationFolders::forceCoverAndFolder($form->rec->unsortedFolderId);
     		$pRec = $this->createSpecification($rec, $folderId);
     		
     		// Споделяме потребителя до нишката на папката
