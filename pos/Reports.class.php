@@ -293,12 +293,23 @@ class pos_Reports extends core_Master {
     	$mvc->prepareDetail($detail);
     	$data->rec->details = $detail;
     	
+    	/*
+    	 * Обработваме статистиката за това всеки касиер, колко е продал
+    	 */
     	$Double = cls::get('type_Double');
     	$Double->params['decimals'] = 2;
     	$data->row->statisticArr = array();
     	foreach ($detail->receipts as $id => $receiptRec){
-    		$data->row->statisticArr[$id] = (object)array('receiptBy' => core_Users::getVerbal($receiptRec->createdBy, 'names'),
-    												      'receiptTotal' => $Double->toVerbal($receiptRec->total),);
+    		if(!array_key_exists($receiptRec->createdBy, $data->row->statisticArr)){
+    			$data->row->statisticArr[$receiptRec->createdBy] = (object)array('receiptBy' => core_Users::getVerbal($receiptRec->createdBy, 'names'),
+    																			 'receiptTotal' => $receiptRec->total);
+    		} else {
+    			$data->row->statisticArr[$receiptRec->createdBy]->receiptTotal += $receiptRec->total;
+    		}
+    	}
+    	
+    	foreach ($data->row->statisticArr as $cr => &$rRec){
+    		$rRec->receiptTotal = $Double->toVerbal($rRec->receiptTotal);
     	}
 	}
     
