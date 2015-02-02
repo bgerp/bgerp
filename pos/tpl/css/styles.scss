@@ -66,7 +66,37 @@
 #receipt-title {
 	font-size: 1.5em;
 	font-weight:bold;
-	padding-right:20px;
+}
+
+.narrow #receipt-title {
+    font-size: 1.1em;
+}
+.portalLink {
+    float: right;
+    img {
+       max-height: 30px;
+    }
+}
+
+.wide .portalLink {
+	 margin-top: -20px;
+}
+
+.wide .secondRow {
+	margin-top: 5px;
+}
+
+.narrow .portalLink img {
+	margin-top: 7px;
+	 max-height: 24px;
+}
+
+.narrow .hiddenElem {
+	display: none;
+}
+
+.narrow .newLine {
+	display:block;
 }
 
 #receipt-contragent {

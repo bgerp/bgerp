@@ -243,7 +243,7 @@ class pos_Receipts extends core_Master {
     	}
     	
     	$cu = core_Users::fetch($rec->createdBy);
-    	$row->createdBy = core_Users::recToVerbal($cu)->names;
+    	$row->createdBy = core_Users::recToVerbal($cu)->nick;
     }
 
     
@@ -556,6 +556,10 @@ class pos_Receipts extends core_Master {
     	// Слагане на мастър данните
     	$tpl = getTplFromFile('pos/tpl/terminal/Receipt.shtml');
     	$tpl->placeObject($data->row);
+    	
+    	$img = ht::createElement('img',  array('src' => sbf('pos/img/bgerp.png', '')));
+    	$logo = ht::createLink($img, array('bgerp_Portal', 'Show'), NULL, array('target'=>'_blank', 'class' => 'portalLink'));
+    	$tpl->append($logo, 'LOGO');
     	
     	// Слагане на детайлите на бележката
     	$detailsTpl = $this->pos_ReceiptDetails->renderReceiptDetail($data->details);
