@@ -76,35 +76,6 @@ class type_Class  extends type_Key {
     
     
     /**
-     * Връща вътрешното представяне на вербалната стойност
-     */
-    function fromVerbal_($value)
-    {
-        if(empty($value)) return NULL;
-        
-        
-        $interface = $this->params['interface'];
-        
-        $mvc = cls::get($this->params['mvc']);
-        
-        $options = $mvc->getOptionsByInterface($interface, $this->params['select']);
-        
-        if(!is_numeric($value)) {
-            $value = array_search($value, $options);
-        }
-        
-        if(!$options[$value]) {
-            $this->error = 'Несъществуващ клас';
-            
-            return FALSE;
-        } else {
-            
-            return $value;
-        }
-    }
-
-
-    /**
      * Конвертира текстова или числова (id от core_Classes) стойност
      * за име на клас към вербална (текстова)
      */
