@@ -19,13 +19,13 @@ class pos_Receipts extends core_Master {
 	/**
      * Заглавие
      */
-    var $title = "Бележки за продажба";
+    public $title = "Бележки за продажба";
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_Rejected, plg_Printing, acc_plg_DocumentSummary, plg_Printing,
+    public $loadList = 'plg_Created, plg_Rejected, plg_Printing, acc_plg_DocumentSummary, plg_Printing,
     				 plg_State, bgerp_plg_Blank, pos_Wrapper, plg_Search, plg_Sorting,
                      plg_Modified';
 
@@ -33,85 +33,85 @@ class pos_Receipts extends core_Master {
     /**
      * Наименование на единичния обект
      */
-    var $singleTitle = "Бележка за продажба";
+    public $singleTitle = "Бележка за продажба";
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, title=Заглавие, contragentName, total, paid, change, state , createdOn, createdBy';
+    public $listFields = 'id, title=Заглавие, contragentName, total, paid, change, state , createdOn, createdBy';
     
     
     /**
 	 * Детайли на бележката
 	 */
-	var $details = 'pos_ReceiptDetails';
+	public $details = 'pos_ReceiptDetails';
 	
 	
     /**
      * Кой може да го прочете?
      */
-    var $canRead = 'ceo, pos';
+    public $canRead = 'ceo, pos';
     
     
     /**
      * Кой може да приключи бележка?
      */
-    var $canClose = 'ceo, pos';
+    public $canClose = 'ceo, pos';
     
     
     /**
      * Кой може да прехвърли бележка?
      */
-    var $canTransfer = 'ceo, pos';
+    public $canTransfer = 'ceo, pos';
    
     
     /**
      * Кой може да променя?
      */
-    var $canAdd = 'pos, ceo';
+    public $canAdd = 'pos, ceo';
     
     
     /**
      * Кой може да плати?
      */
-    var $canPay = 'pos, ceo';
+    public $canPay = 'pos, ceo';
     
     
     /**
      * Кой може да променя?
      */
-    var $canTerminal = 'pos, ceo';
+    public $canTerminal = 'pos, ceo';
+    
+    
+    /**
+     * Кой може да оттегля
+     */
+    public $canReject = 'pos, ceo';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'ceo,pos';
+	public $canList = 'ceo,pos';
 
 	
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'ceo,pos';
+	public $canSingle = 'ceo,pos';
     
     
     /**
      * Кой може да променя?
      */
-    var $canEdit = 'pos, ceo';
-    
-    
-    /**
-	 * Полета които да са достъпни след изтриване на дъска
-	 */
-	var $fetchFieldsBeforeDelete = 'id';
+    public $canEdit = 'pos, ceo';
 	
     
 	/** 
 	 *  Полета по които ще се търси
 	 */
-	var $searchFields = 'contragentName';
+	public $searchFields = 'contragentName';
 	
 	
     /**
@@ -123,7 +123,7 @@ class pos_Receipts extends core_Master {
     /**
      * При търсене до колко продукта да се показват в таба
      */
-    public $maxSearchProducts = 20;
+    protected $maxSearchProducts = 20;
     
     
     /**
@@ -232,7 +232,7 @@ class pos_Receipts extends core_Master {
     	}
     	
     	// Слагаме бутон за оттегляне ако имаме права
-    	if($mvc->haveRightFor('reject', $rec)){
+    	if($mvc->haveRightFor('reject', $rec) && !Mode::is('printing')){
     		$row->rejectBtn = ht::createLink('', array($mvc, 'reject', $rec->id, 'ret_url' => toUrl(array($mvc, 'new'), 'local')), 'Наистина ли желаете да оттеглите документа', 'ef_icon=img/16/reject.png,title=Оттегляне на бележката, class=reject-btn');
     	}
     	
@@ -250,7 +250,7 @@ class pos_Receipts extends core_Master {
 	/**
      * След подготовка на тулбара на единичен изглед.
      */
-    static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
         if($mvc->haveRightFor('list')) {
     		
@@ -269,7 +269,7 @@ class pos_Receipts extends core_Master {
     /**
      * След подготовката на туулбара на списъчния изглед
      */
-	static function on_AfterPrepareListToolbar($mvc, &$data)
+	protected static function on_AfterPrepareListToolbar($mvc, &$data)
     {
     	if($mvc->haveRightFor('add')){
     		$addUrl = array($mvc, 'new');
@@ -366,9 +366,9 @@ class pos_Receipts extends core_Master {
     
     
     /**
-	 * Модификация на ролите, които могат да видят избраната тема
+	 * Модификация на ролите
 	 */
-    static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    protected static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
 	{ 
 		// Само черновите бележки могат да се редактират в терминала
 		if($action == 'terminal' && isset($rec)) {
@@ -1004,7 +1004,7 @@ class pos_Receipts extends core_Master {
     		$block->append("</div>", 'PAYMENT_TYPE');
     	}
 	    
-    	$printUrl = array($mvc, 'terminal', $rec->id, 'Printing' => 'yes');
+    	$printUrl = array($this, 'terminal', $rec->id, 'Printing' => 'yes');
     	$block->append(ht::createBtn('Печат', $printUrl, NULL, NULL, array('class' => "actionBtn", 'title' => tr('Принтиране на бележката'))), 'CLOSE_BTNS');
     	
 	    // Ако може да се издаде касова бележка, активираме бутона
