@@ -181,7 +181,21 @@ class pos_Receipts extends core_Master {
      */
     function act_New()
     {
-    	$id = $this->createNew();
+    	$cu = core_Users::getCurrent();
+    	$posId = pos_Points::getCurrent();
+    	$forced = Request::get('forced', 'int');
+    	
+    	// Ако форсираме, винаги създаваме нова бележка
+    	if($forced){
+    		$id = $this->createNew();
+    	} else {
+    		
+    		// Ако има чернова бележка от същия ден, не създаваме нова
+    		$today = dt::today();
+    		if(!$id = $this->fetchField("#valior = '{$today}' AND #createdBy = {$cu} AND #pointId = {$posId} AND #state = 'draft'", 'id')){
+    			$id = $this->createNew();
+    		}
+    	}
     	
     	return Redirect(array($this, 'terminal', $id));
     }
@@ -741,7 +755,7 @@ class pos_Receipts extends core_Master {
     	}
     	
     	if($this->haveRightFor('add')){
-    		$addBtn = ht::createLink("Нова<br>бележка", array('pos_Receipts', 'new'), NULL, "class=pos-notes");
+    		$addBtn = ht::createLink("Нова<br>бележка", array('pos_Receipts', 'new', 'forced' => TRUE), NULL, "class=pos-notes");
     		$block->prepend($addBtn);
     	}
     	
