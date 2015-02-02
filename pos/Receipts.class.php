@@ -236,7 +236,6 @@ class pos_Receipts extends core_Master {
     	} elseif($fields['-single']){
     		$row->iconStyle = 'background-image:url("' . sbf('img/16/view.png', '') . '");';
     		$row->header = $mvc->singleTitle . " #<b>{$mvc->abbr}{$row->id}</b> ({$row->state})";
-    		$row->pointId = pos_Points::getHyperLink($rec->pointId, TRUE);
     		$row->caseId = cash_Cases::getHyperLink(pos_Points::fetchField($rec->pointId, 'caseId'), TRUE);
     		$row->storeId = store_Stores::getHyperLink(pos_Points::fetchField($rec->pointId, 'storeId'), TRUE);
     		$row->baseCurrency = acc_Periods::getBaseCurrencyCode($rec->createdOn);
@@ -244,6 +243,7 @@ class pos_Receipts extends core_Master {
     			$row->transferedIn = sales_Sales::getHyperlink($rec->transferedIn, TRUE);
     		}
     	}
+    	
     	
     	// Слагаме бутон за оттегляне ако имаме права
     	if($mvc->haveRightFor('reject', $rec) && !Mode::is('printing')){
@@ -258,6 +258,7 @@ class pos_Receipts extends core_Master {
     	
     	$cu = core_Users::fetch($rec->createdBy);
     	$row->createdBy = core_Users::recToVerbal($cu)->nick;
+    	$row->pointId = pos_Points::getHyperLink($rec->pointId, TRUE);
     }
 
     
