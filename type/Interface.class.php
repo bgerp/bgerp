@@ -42,31 +42,27 @@ class type_Interface extends type_Key
         
     	$this->invoke('BeforePrepareKeyOptions', array(&$this->options, $this));
     	
-    	if (isset($this->options)) {
+    	if (!isset($this->options)) {
     	    
-    	    Mode::pop('text');
-    	    
-    		return;
-    	}
-    	
-    	$mvc = cls::get($this->params['mvc']);
-        
-        $allInterfaces = $mvc->makeArray4Select('name');
-        
-        $this->options = array();
-        
-        $suffix = $this->params['suffix'];
-        
-        $lenSuffix = strlen($suffix);
-        
-        if(count($allInterfaces)) {
-            foreach ($allInterfaces as $id => $name) {
-                if ((!$suffix) || (strrpos($name, $suffix) == (strlen($name) - $lenSuffix))) {
-                    $mvc->fetchByName($name);
-                    $this->options[$id] = $mvc->fetchField($id, $this->params['select']);
+        	$mvc = cls::get($this->params['mvc']);
+            
+            $allInterfaces = $mvc->makeArray4Select('name');
+            
+            $this->options = array();
+            
+            $suffix = $this->params['suffix'];
+            
+            $lenSuffix = strlen($suffix);
+            
+            if(count($allInterfaces)) {
+                foreach ($allInterfaces as $id => $name) {
+                    if ((!$suffix) || (strrpos($name, $suffix) == (strlen($name) - $lenSuffix))) {
+                        $mvc->fetchByName($name);
+                        $this->options[$id] = $mvc->fetchField($id, $this->params['select']);
+                    }
                 }
             }
-        }
+    	}
         
         Mode::pop('text');
         
