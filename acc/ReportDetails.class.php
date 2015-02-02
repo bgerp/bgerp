@@ -45,6 +45,7 @@ class acc_ReportDetails extends core_Manager
         // Роли по подразбиране
         setIfNot($data->masterMvc->canReports, 'ceo');
         setIfNot($data->masterMvc->balanceRefShowZeroRows, FALSE);
+        setIfNot($data->masterMvc->showAccReportsInTab, TRUE);
         
         // Ако потребителя има достъп до репортите
         if(haveRole($data->masterMvc->canReports)){
@@ -66,7 +67,7 @@ class acc_ReportDetails extends core_Manager
         $data->TabCaption = 'Счетоводство';
         
         // Махаме TabCaption, ако мастъра не е корица
-        if(!cls::haveInterface('doc_FolderIntf', $data->masterMvc)){
+        if($data->masterMvc->showAccReportsInTab === FALSE){
         	unset($data->TabCaption);
         }
     }
