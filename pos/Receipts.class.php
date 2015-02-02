@@ -744,6 +744,11 @@ class pos_Receipts extends core_Master {
     		$block->append("<div class='pos-no-result'>" . tr('Няма чернови') . "</div>");
     	}
     	
+    	if($this->haveRightFor('add')){
+    		$addBtn = ht::createLink("Нова бележка", array('pos_Receipts', 'new'), NULL, "ef_icon=img/16/view.png");
+    		$block->append($addBtn);
+    	}
+    	
     	return $block;
     }
     
