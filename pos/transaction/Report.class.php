@@ -52,7 +52,7 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
     		}
     	}
     	
-    	if(isset($rec->id)){
+    	if(!empty($rec->id)){
     		// Генериране на записите
     		$entries = array_merge($entries, $this->getTakingPart($rec, $productsArr, $totalVat, $posRec));
     		
