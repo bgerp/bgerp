@@ -189,9 +189,8 @@ class pos_Reports extends core_Master {
     	$row->title = "Отчет за POS продажба №{$rec->id}";
     	$row->pointId = pos_Points::getHyperLink($rec->pointId, TRUE);
     	
-    	$row->earliestReceipt = dt::mysql2verbal(pos_Receipts::fetchField($rec->details['receipts'][0]->id, 'createdOn'));
-		$row->lastReceipt = dt::mysql2verbal(pos_Receipts::fetchField($rec->details['receipts'][count($rec->details['receipts']) -1]->id, 'createdOn'));
-    	
+    	$row->period = dt::mysql2verbal($rec->details['receipts'][0]->createdOn) . " - " . dt::mysql2verbal($rec->details['receipts'][count($rec->details['receipts']) -1]->createdOn);
+		
     	if($fields['-single']) {
     		$pointRec = pos_Points::fetch($rec->pointId);
     		$row->storeId = store_Stores::getHyperLink($pointRec->storeId, TRUE);
@@ -262,6 +261,16 @@ class pos_Reports extends core_Master {
     		$tpl->append($data->rec->details->pager->getHtml(), "SALE_PAGINATOR");
     	}
     	
+    	if(count($data->row->statisticArr)){
+    		$rowTpl = clone $tpl->getBlock('ROW');
+    		
+    		foreach ($data->row->statisticArr as $statRow){
+    			$rowTpl->placeObject($statRow);
+    		}
+    		$rowTpl->removeBlocks();
+    		$rowTpl->append2master();
+    	}
+    	
     	$tpl->push('pos/tpl/css/styles.css', 'CSS');
     }
     
@@ -279,6 +288,14 @@ class pos_Reports extends core_Master {
     	$detail->rows = $detail->receiptDetails;
     	$mvc->prepareDetail($detail);
     	$data->rec->details = $detail;
+    	
+    	$Double = cls::get('type_Double');
+    	$Double->params['decimals'] = 2;
+    	$data->row->statisticArr = array();
+    	foreach ($detail->receipts as $id => $receiptRec){
+    		$data->row->statisticArr[$id] = (object)array('receiptBy' => core_Users::getVerbal($receiptRec->createdBy, 'names'),
+    												      'receiptTotal' => $Double->toVerbal($receiptRec->total),);
+    	}
 	}
     
     
@@ -441,6 +458,7 @@ class pos_Reports extends core_Master {
     
     /**
      * Връща продажбите и плащанията направени в търсените бележки групирани
+     * 
      * @param core_Query $query - Заявка към модела
      * @param array $results - Масив в който ще връщаме резултатите
      * @param array $receipts - Масив от бележките които сме обходили
@@ -450,7 +468,7 @@ class pos_Reports extends core_Master {
     	while($rec = $query->fetch()) {
 	    	
     		// запомняме кои бележки сме обиколили
-    		$receipts[] = (object)array('id' => $rec->id);
+    		$receipts[] = (object)array('id' => $rec->id, 'createdOn' => $rec->createdOn, 'createdBy' => $rec->createdBy, 'total' => $rec->total);
     		
     		// Добавяме детайлите на бележката
 	    	$data = pos_ReceiptDetails::fetchReportData($rec->id);
