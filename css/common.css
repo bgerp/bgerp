@@ -707,7 +707,12 @@ input[type="submit"].fright,
 button.fright {
   margin: 1px 0 0 0.5em; }
 
-a.header:target {
+h1:target,
+h2:target,
+h3:target,
+h4:target,
+h5:target,
+h6:target {
   color: blue; }
 
 a.header:hover {
@@ -1123,7 +1128,7 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
   border: solid 1px red; }
 
 .inputWarning {
-  border: solid 1px #ff9900; }
+  border: solid 1px #99ff00; }
 
 .formInfo,
 .formWarning {
@@ -2354,7 +2359,7 @@ div.richtext ol ol ol {
  */
 div.notification-info {
   display: table;
-  border: solid 1px #ff9900;
+  border: solid 1px #99ff00;
   background-color: #ffffcc;
   text-align: center;
   font-weight: bold;
@@ -2370,7 +2375,7 @@ div.notification-info {
 .narrow div.notification-info {
   display: table;
   margin: 5px 0;
-  border: solid 1px #ff9900;
+  border: solid 1px #99ff00;
   background-color: #ffffcc;
   padding: 5px;
   font-size: 1.5em;

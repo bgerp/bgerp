@@ -17,7 +17,7 @@ $gray3: #ddd; /*като mainmenu и бутони*/
 $gray4: #bbb; /*като фона на известията в мобилен и стандартен бордър*/
 $violet: #9999ff; /*лилаво от формите*/
 $beige: #ffffcc; /*бледо жълто от формите*/
-$orange: #f90; /*оранжево като при ховър на менюто*/
+$orange: #9f0; /*оранжево като при ховър на менюто*/
 
 
 @mixin border-radius($radius) {
@@ -709,7 +709,7 @@ a.button.fright, input[type="button"].fright, input[type="submit"].fright, butto
 	margin: 1px 0 0 0.5em;
 }
 
-a.header:target  {
+h1:target, h2:target, h3:target, h4:target, h5:target, h6:target {
    color: blue;
 }
 
