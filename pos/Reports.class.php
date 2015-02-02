@@ -154,7 +154,7 @@ class pos_Reports extends core_Master {
 	{	
         $data->query->orderBy('#createdOn', 'DESC');
 		$data->listFilter->FNC('point', 'key(mvc=pos_Points, select=name, allowEmpty)', 'caption=Точка,width=12em,silent');
-        $data->listFilter->showFields .= ',user,point';
+        $data->listFilter->showFields .= ',point';
         
         // Активиране на филтъра
         $data->listFilter->input(NULL, 'silent');
