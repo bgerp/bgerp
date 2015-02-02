@@ -2,7 +2,7 @@
     [#SingleToolbar#]
     <div class='folder-cover [#STATE_CLASS#]'>
         <div class='inner-folder'>
-            <div class='block_title [#STATE_CLASS#] special-title'>[#SingleIcon#] |Спецификация |* « [#name#] »</div>
+            <div class='block_title [#STATE_CLASS#] special-title'>[#SingleIcon#] |Спецификация|* « [#name#] »</div>
              <!--ET_BEGIN detailBlock-->
             <fieldset class="detail-info">
                 <legend class="groupTitle">|Детайли|*</legend>
@@ -19,6 +19,14 @@
                 </div>
             </fieldset>
             <!--ET_END detailBlock-->
+            
+            <!--ET_END meta-->
+            <fieldset class="detail-info">
+                <legend class="groupTitle">|Свойства|*</legend>
+                [#meta#]
+            </fieldset>
+            <!--ET_END meta-->
+            
             <!--ET_BEGIN DETAILS-->
             [#DETAILS#]
             <!--ET_END DETAILS-->

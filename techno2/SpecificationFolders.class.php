@@ -19,7 +19,7 @@ class techno2_SpecificationFolders extends core_Master
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    //public $interfaces = 'price_PriceListFolderCoverIntf, trans_LinesFolderCoverIntf, frame_FolderCoverIntf, accda_DaFolderCoverIntf, techno2_SpecificationFolderCoverIntf';
+    public $interfaces = 'techno2_SpecificationFolderCoverIntf';
     
     
     /**
@@ -61,7 +61,7 @@ class techno2_SpecificationFolders extends core_Master
     /**
      * Шаблон за единичния изглед
      */
-    public $singleLayoutFile = 'doc/tpl/SingleLayoutUnsortedFolder.shtml';
+    public $singleLayoutFile = 'techno2/tpl/SingleLayoutSpecificationFolders.class.php';
     
     
     /**
