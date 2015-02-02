@@ -1,5 +1,6 @@
 <div class = 'singleView'>
 [#SingleToolbar#]
+<div class='document' style='width: auto'>
 	<!--ET_BEGIN header-->
 	<div class='header [#STATE_CLASS#]'>
 		<div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
@@ -64,4 +65,5 @@
 			[#DETAILS#]
 		</div>
 	<!--ET_END DETAILS-->
+</div>
 </div>
