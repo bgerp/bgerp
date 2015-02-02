@@ -1101,6 +1101,11 @@ class pos_Receipts extends core_Master {
     		$rec->quantity = 1;
     	}
     	
+    	// Ако е зададено ид на продукта
+    	if($productId = Request::get('productId', 'int')) {
+    		$rec->productId  = $productId;
+    	}
+    	
     	// Ако е зададен код на продукта
     	if($ean = Request::get('ean')) {
     		
@@ -1110,22 +1115,29 @@ class pos_Receipts extends core_Master {
     		
     		// Ако има намерени к-во и код от регулярния израз
     		if(!empty($matches[1]) && !empty($matches[3])){
-    			$rec->quantity = cls::get('type_Double')->fromVerbal($matches[1]);
-    			$rec->ean = $matches[3];
+    			
+    			// Ако има ид на продукт
+    			if(isset($rec->productId)){
+    				$rec->quantity = cls::get('type_Double')->fromVerbal($matches[1] * $matches[3]);
+    			} else {
+    				
+    				// Ако няма приемаме че от ляво е колчиество а от дясно код
+    				$rec->quantity = cls::get('type_Double')->fromVerbal($matches[1]);
+    				$rec->ean = $matches[3];
+    			}
+    			
+    			// Ако има само лява част приемаме че е количество
     		} elseif(!empty($matches[1]) && empty($matches[3])) {
     			$rec->quantity = cls::get('type_Double')->fromVerbal($matches[1]);
-    			
     		} else {
-    			// Иначе целия стринг приемаме за код
-    			$rec->ean = $ean;
+    			if(isset($rec->productId)){
+					$rec->quantity = cls::get('type_Double')->fromVerbal($ean);
+    			} else {
+    				$rec->ean = $ean;
+    			}
     		}
     	}
     	
-    	// Ако е зададено ид на продукта
-    	if($productId = Request::get('productId', 'int')) {
-    		$rec->productId  = $productId;
-    	}
-    	//bp($rec);
     	// Трябва да е подаден код или ид на продукт
     	if(!$rec->productId && !$rec->ean){
     		core_Statuses::newStatus(tr('|Не е избран артикул|*!'), 'error');

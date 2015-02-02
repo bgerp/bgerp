@@ -210,7 +210,7 @@ function posActions() {
 		var receiptId = $("input[name=receiptId]").val();
 		var quant = $("input[name=ean]").val();
 		
-		var data = {receiptId:receiptId,productId:productId,quantity:quant};
+		var data = {receiptId:receiptId,productId:productId,ean:quant};
 		
 		resObj = new Object();
 		resObj['url'] = url;
