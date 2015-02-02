@@ -284,14 +284,14 @@ class currency_CurrencyRates extends core_Detail
         }
         
         if (!is_null($rate = static::getDirectRate($date, $fromId, $toId))) {
-            return round($rate, 4);
+            return round($rate, 5);
         }
         
         $crossCurrencyId = currency_Currencies::getIdByCode(static::$crossCurrencyCode);
 
         if ($crossCurrencyId != $fromId && $crossCurrencyId != $toId) {
             if (!is_null($rate = static::getCrossRate($date, $fromId, $toId, $crossCurrencyId))) {
-                return round($rate, 4);
+                return round($rate, 5);
             }
         }
         
