@@ -36,16 +36,31 @@
 				<td class = 'summary-right'><b>[#paid#]</b></td>
 			</tr>
 			<tr>
-				<td>|Най-ранна|*:</td>
-				<td colspan='2'><span>[#earliestReceipt#]</span></td>
+				<td>|Период|*:</td>
+				<td colspan='2'><span>[#period#]</span></td>
 			</tr>
-			
-			<tr>
-				<td>|Последна|*:</td>
-				<td colspan='2'><span>[#lastReceipt#]</span></td>
-			</tr>
-			
 		</table>
+		
+		<!--ET_BEGIN STATISTIC-->
+		[#STATISTIC#]
+		<table class='report-info'>
+			<tr>
+				<th colspan='2'></th>
+			</tr>
+			<!--ET_BEGIN ROW-->
+			[#ROW#]
+			<tr>
+				<td>
+				[#receiptBy#]:
+				</td>
+				<td><span class='cCode' style='margin:0px 12px'>[#baseCurrency#]</span>
+				[#receiptTotal#]
+				</td>
+			</tr>
+			<!--ET_END ROW-->
+		</table>
+		<!--ET_END STATISTIC-->
+		
 	<span>|Създаден на|* <b>[#createdDate#]</b> |от|* <b>[#createdBy#]</b></span>
 	<div class='overflow-scroll' style='margin: 15px 0;'>
 		[#SALES#]
