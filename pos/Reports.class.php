@@ -261,16 +261,20 @@ class pos_Reports extends core_Master {
     		$tpl->append($data->rec->details->pager->getHtml(), "SALE_PAGINATOR");
     	}
     	
+    	// Рендираме обобщената информация за касиерите
     	if(count($data->row->statisticArr)){
-    		$rowTpl = clone $tpl->getBlock('ROW');
+    		$block = $tpl->getBlock('ROW');
     		
     		foreach ($data->row->statisticArr as $statRow){
+    			$rowTpl = clone $block;
     			$rowTpl->placeObject($statRow);
+    			
+    			$rowTpl->removeBlocks();
+    			$rowTpl->append2master();
     		}
-    		$rowTpl->removeBlocks();
-    		$rowTpl->append2master();
     	}
     	
+    	// Пушваме стиловете
     	$tpl->push('pos/tpl/css/styles.css', 'CSS');
     }
     
