@@ -175,12 +175,15 @@ class techno2_SpecificationDoc extends core_Embedder
     function description()
     {
     	$this->FLD("title", 'varchar', 'caption=Име,mandatory');
-    	$this->FLD('meta', 'set(canSell=Продаваем,canBuy=Купуваем,
-        						canStore=Складируем,canConvert=Вложим,
-        						fixedAsset=Дма,canManifacture=Производим)', 'caption=Свойства->Списък,columns=2,formOrder=100000000,input=none');
-    	$this->FLD("isPublic", 'enum(no=Частен,yes=Публичен)', 'input=none,formOrder=10000,caption=Показване за избор в документи->Достъп');
+    	$this->FLD('meta', 'set(canSell=Продаваеми,
+                                canBuy=Купуваеми,
+                                canStore=Складируеми,
+                                canConvert=Вложими,
+                                fixedAsset=Дълготрайни активи,
+        						canManifacture=Производими,
+        						waste=Отпаден)', 'caption=Свойства->Списък,columns=2,formOrder=100000000,input=none');
+    	$this->FLD("isPublic", 'enum(no=Частен,yes=Публичен)', 'input=none,formOrder=100000002,caption=Показване за избор в документи->Достъп');
     }
-    
     
     /**
      * Преди показване на форма за добавяне/промяна.
@@ -190,12 +193,54 @@ class techno2_SpecificationDoc extends core_Embedder
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
-    	if(isset($data->form->rec->id)){
+    	$rec = &$data->form->rec;
+    	
+    	// Само при редакция, потребителя може да промени дали специфиакцията е публична или не
+    	if(isset($rec->id)){
     		$data->form->setField('isPublic', 'input');
+    	}
+    	
+    	if(isset($rec->innerClass)){
+    		$data->form->setField('meta', 'input');
     	}
     }
 
 
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     *
+     * @param core_Mvc $mvc
+     * @param core_Form $form
+     */
+    public static function on_AfterInputEditForm($mvc, &$form)
+    {
+    	$rec = &$form->rec;
+    	
+    	if(isset($rec->innerClass)){
+    	
+    		// При нова спецификация на артикул
+    		if(empty($rec->id)){
+    			$Cover = doc_Folders::getCover($rec->folderId);
+    			
+    			// Ако корицата е 'Спецификация
+    			if($Cover->getInstance() instanceof techno2_SpecificationFolders){
+    				
+    				// Намираме кои са дефолтните мета данни, това са тези от корицата и идващите от драйвера
+    				$defMetas = $Cover->getDefaultMeta();
+    			} else {
+    				$defMetas = self::$defaultMetaData;
+    			}
+    			
+    			$Driver = $mvc->getDriver($rec);
+    			$meta = $Driver->getDefaultMetas($defMetas);
+    			
+    			//@TODO да се направи проверка дали ако е услуга да не е складируем
+    			$form->setDefault('meta', cls::get('type_Set')->fromVerbal($meta));
+    		}
+    	}
+    }
+    
+    
     /**
      * След рендиране на единичния изглед
      */
@@ -213,15 +258,6 @@ class techno2_SpecificationDoc extends core_Embedder
      */
     public static function on_BeforeSave($mvc, &$id, $rec, $fields = NULL, $mode = NUL)
     {
-    	if(isset($rec->innerClass)){
-    		
-    		$Driver = $mvc->getDriver($rec);
-    		$meta = $Driver->getDefaultMetas(self::$defaultMetaData);
-    		
-    		$Set = cls::get('type_Set');
-    		$rec->meta = $Set->fromVerbal($meta);
-    	}
-    	
     	if(isset($rec->folderId)){
     		$cover = doc_Folders::getCover($rec->folderId);
     		

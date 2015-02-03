@@ -143,4 +143,18 @@ class techno2_SpecificationFolders extends core_Master
         
         $this->setDbUnique('name');
     }
+    
+    
+    /**
+     * Връща мета дефолт мета данните на папката
+     * 
+     * @param int $id - ид на спецификация папка
+     * @return array $meta - масив с дефолт мета данни
+     */
+    public function getDefaultMeta($id)
+    {
+    	$meta = type_Set::toArray($this->fetchField($id, 'meta'));
+    	
+    	return $meta;
+    }
 }

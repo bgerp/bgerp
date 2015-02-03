@@ -16,5 +16,16 @@
  */
 class techno2_SpecificationFolderCoverIntf extends doc_FolderIntf
 {
-
+	
+	
+	/**
+     * Връща мета дефолт мета данните на папката
+     * 
+     * @param int $id - ид на спецификация папка
+     * @return array $meta - масив с дефолт мета данни
+     */
+    public function getDefaultMeta($id)
+    {
+    	return $this->class->getDefaultMeta($id);
+    }
 }
