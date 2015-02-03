@@ -1299,4 +1299,19 @@ class cat_Products extends core_Embedder {
     		}
     	}
     }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+    	if($action == 'edit' && isset($rec)){
+    		
+    		// Ако има спецификация не може да се редактира артикула
+    		if(isset($rec->specificationId)){
+    			$requiredRoles = 'no_one';
+    		}
+    	}
+    }
 }
