@@ -138,8 +138,8 @@ class techno2_SpecificationFolders extends core_Master
                                 canStore=Складируеми,
                                 canConvert=Вложими,
                                 fixedAsset=Дълготрайни активи,
-        						waste=Отпаден,
-        		)', 'caption=Свойства->Списък,columns=2');
+        						canManifacture=Производими,
+        						waste=Отпаден)', 'caption=Свойства->Списък,columns=2');
         
         $this->setDbUnique('name');
     }

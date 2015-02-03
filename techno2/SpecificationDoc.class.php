@@ -38,7 +38,7 @@ class techno2_SpecificationDoc extends core_Embedder
     /**
      * Какви интерфейси поддържа този мениджър
      */
-    public $interfaces = 'doc_DocumentIntf, price_PolicyIntf, acc_RegisterIntf, cat_ProductAccRegIntf';
+    public $interfaces = 'doc_DocumentIntf, price_PolicyIntf, acc_RegisterIntf, cat_ProductAccRegIntf, doc_AddToFolderIntf';
    
     
     /**
@@ -178,20 +178,20 @@ class techno2_SpecificationDoc extends core_Embedder
     	$this->FLD('meta', 'set(canSell=Продаваем,canBuy=Купуваем,
         						canStore=Складируем,canConvert=Вложим,
         						fixedAsset=Дма,canManifacture=Производим)', 'caption=Свойства->Списък,columns=2,formOrder=100000000,input=none');
-    	$this->FLD("isPublic", 'enum(no=Частен,yes=Публичен)', 'input=hidden,formOrder=10000,caption=Показване за избор в документи->Достъп');
+    	$this->FLD("isPublic", 'enum(no=Частен,yes=Публичен)', 'input=none,formOrder=10000,caption=Показване за избор в документи->Достъп');
     }
     
     
     /**
-     * Изпълнява се след въвеждането на данните от заявката във формата
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $data
      */
-    public static function on_AfterInputEditForm($mvc, $form)
+    public static function on_AfterPrepareEditForm($mvc, &$data)
     {
-    	if(isset($form->rec->innerClass)){
-    		
-    		if(isset($form->rec->id)){
-    			$form->setField('isPublic', 'input');
-    		}
+    	if(isset($data->form->rec->id)){
+    		$data->form->setField('isPublic', 'input');
     	}
     }
 
@@ -980,20 +980,19 @@ class techno2_SpecificationDoc extends core_Embedder
     }
     
     
-// 	protected static function on_AfterPrepareEmbeddedForm($mvc, core_Form &$form)
-//     {
-//     	if($form->rec->state == 'active'){
+    /**
+     * Да се показвали бърз бутон за създаване на документа в папка
+     */
+    public function mustShowButton($folderRec, $userId = NULL)
+    {
+    	$Cover = doc_Folders::getCover($folderRec->id);
+    	
+    	// Ако папката е на контрагент
+    	if($Cover->haveInterface('techno2_SpecificationFolderCoverIntf')){
     		
-//     		$fields = $form->selectFields("#input != 'hidden' AND #input != 'none'");
-    		
-//     		// Намираме всички попълнени полета, които не са енум и ги правим readOnly
-//     		foreach ($fields as $name => $fld){
-//     			if(!($fld->type instanceof type_Enum)){
-//     				if(isset($form->rec->{$name})){
-//     					$form->setReadOnly($name);
-//     				}
-//     			}
-//     		}
-//     	}
-//     }
+    		return TRUE;
+    	}
+    	
+    	return FALSE;
+    }
 }
