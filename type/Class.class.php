@@ -94,10 +94,53 @@ class type_Class  extends type_Key {
      */
     function fromVerbal($value)
     {
-        if(is_numeric($value)) {
-            $value = parent::fromVerbal($value);
+        $error = FALSE;
+        
+        $interface = $this->params['interface'];
+        $mvc = cls::get($this->params['mvc']);
+        $options = $mvc->getOptionsByInterface($interface, $this->params['select']);
+        
+        $value = parent::fromVerbal($value);
+        
+        // Възможно е $value да е името на класа
+        if (is_numeric($value)) {
+            if (!$options[$value]) {
+                $error = TRUE;
+            }
+        } else {
+            if (!array_search($value, $options)) {
+                $error = TRUE;
+            }
+        }
+        
+        if ($error) {
+            $this->error = 'Несъществуващ клас';
         }
         
         return $value;
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param string $value
+     * 
+     * @return object
+     * 
+     * @see type_Key::fetchVal()
+     */
+    protected function fetchVal($value)
+    {
+        if (is_numeric($value)) {
+            $mvc = &cls::get($this->params['mvc']);
+            $rec = $mvc->fetch((int)$value);
+        } else {
+            
+            // Ако е подадено името на класа
+            $rec = core_Classes::fetch(array("#name = '[#1#]'", $value));
+        }
+        
+        return $rec;
     }
 }
