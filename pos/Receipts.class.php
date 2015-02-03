@@ -244,7 +244,6 @@ class pos_Receipts extends core_Master {
     		}
     	}
     	
-    	
     	// Слагаме бутон за оттегляне ако имаме права
     	if($mvc->haveRightFor('reject', $rec) && !Mode::is('printing')){
     		$row->rejectBtn = ht::createLink('', array($mvc, 'reject', $rec->id, 'ret_url' => toUrl(array($mvc, 'new'), 'local')), 'Наистина ли желаете да оттеглите документа', 'ef_icon=img/16/reject.png,title=Оттегляне на бележката, class=reject-btn');
@@ -1512,8 +1511,11 @@ class pos_Receipts extends core_Master {
     		$data->rows[$rec->id]->docId = $this->getHyperlink($rec->id, TRUE);
     		
     		if($rec->state == 'draft'){
-    			$data->rows[$rec->id]->count = $data->rows[$rec->id]->rejectBtn;
+    			if($this->haveRightFor('reject', $rec)){
+    				$data->rows[$rec->id]->count = ht::createLink('', array($this, 'reject', $rec->id, 'ret_url' => TRUE), 'Наистина ли желаете да оттеглите документа', 'ef_icon=img/16/reject.png,title=Оттегляне на бележката, class=reject-btn');
+    			}
     		}
+    		
     		$data->rows[$rec->id]->count .= cls::get('type_Int')->toVerbal($count);
     		
     		$count++;
