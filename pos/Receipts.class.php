@@ -1489,4 +1489,58 @@ class pos_Receipts extends core_Master {
     	
     	return $me->singleTitle . " №{$rec->id}";
     }
+    
+    
+    /**
+     * Подготвя чакащите бележки в сингъла на точката на продажба
+     * 
+     * @param stdClass $data
+     * @return void
+     */
+    public function prepareReceipts(&$data)
+    {
+    	$data->rows = array();
+    	
+    	$query = $this->getQuery();
+    	$query->where("#pointId = {$data->masterId}");
+    	$query->where("#state = 'active' OR #state = 'draft'");
+    	$query->orderBy("#state");
+    	
+    	$count = 1;
+    	while($rec = $query->fetch()){
+    		$data->rows[$rec->id] = $this->recToVerbal($rec);
+    		$data->rows[$rec->id]->docId = $this->getHyperlink($rec->id, TRUE);
+    		
+    		if($rec->state == 'draft'){
+    			$data->rows[$rec->id]->count = $data->rows[$rec->id]->rejectBtn;
+    		}
+    		$data->rows[$rec->id]->count .= cls::get('type_Int')->toVerbal($count);
+    		
+    		$count++;
+    	}
+    }
+    
+    
+    /**
+     * Рендиране на чакащите бележки в сингъла на точката на продажба
+     * 
+     * @param stdClass $data
+     * @return core_ET $tpl
+     */
+    public function renderReceipts($data)
+    {
+    	$tpl = new ET('');
+    	$table = cls::get('core_TableView', array('mvc' => $this));
+        $data->listFields = array('count'   => '№',
+        						  'valior'  => 'Вальор',
+					              'docId'   => 'Документ',
+        						  'total'   => 'Общо',
+        						  'paid'    => 'Платено',
+        );
+    	
+         $details = $table->get($data->rows, $data->listFields);
+         $tpl->append($details);	
+         
+    	 return $tpl;
+    }
 }

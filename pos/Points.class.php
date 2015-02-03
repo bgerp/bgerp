@@ -38,7 +38,7 @@ class pos_Points extends core_Master {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт, name, caseId, storeId, report=Отчет';
+    var $listFields = 'tools=Пулт, name, caseId, storeId';
     
     
     /**
@@ -107,6 +107,12 @@ class pos_Points extends core_Master {
 	var $canSelectAll = 'ceo, posMaster';
 	
 	
+	/**
+	 * Детайли на бележката
+	 */
+	public $details = 'Receipts=pos_Receipts';
+	
+	
     /**
      * Описание на модела
      */
@@ -166,9 +172,20 @@ class pos_Points extends core_Master {
      */
     public static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-    	if($data->rec->id == $mvc->getCurrent('id', NULL, FALSE)) {
+    	$rec = $data->rec;
+    	
+    	if($rec->id == $mvc->getCurrent('id', NULL, FALSE)) {
     		$data->toolbar->addBtn("Отвори", array('pos_Receipts', 'Terminal'), NULL, 'title=Отваряне на точката,ef_icon=img/16/forward16.png,target=_blank');
     	}
+    	
+    	$reportUrl = array();
+    	if(pos_Reports::haveRightFor('add', (object)array('pointId' => $rec->id)) && pos_Reports::canMakeReport($rec->id)){
+    		$reportUrl = array('pos_Reports', 'add', 'pointId' => $rec->id, 'ret_url' => TRUE);
+    	}
+    	
+    	$title = (count($reportUrl)) ? 'Направи отчет' : 'Не може да направите отчет все още';
+    	
+    	$data->toolbar->addBtn("Отчет", $reportUrl, NULL, "title={$title},ef_icon=img/16/report.png");
     }
     
     
@@ -187,16 +204,6 @@ class pos_Points extends core_Master {
     	
     	if($fields['-single']){
     		$row->policyId = price_Lists::getHyperlink($rec->policyId, TRUE);
-    	}
-    	
-    	if($fields['-list']){
-    		$reportUrl = array();
-    		if(pos_Reports::haveRightFor('add') && pos_Reports::canMakeReport($rec->id)){
-    			$reportUrl = array('pos_Reports', 'add', 'pointId' => $rec->id);
-    		}
-    		
-    		$title = (count($reportUrl)) ? 'Направи отчет' : 'Не може да направите отчет, все още';
-    		$row->report = ht::createBtn('Отчет', $reportUrl, FALSE, FALSE, "title={$title},ef_icon=img/16/report.png");
     	}
     }
     

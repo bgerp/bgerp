@@ -26,6 +26,14 @@
 						</table>
 				</div>
 			</fieldset>
+			
+			<!--ET_BEGIN Receipts-->
+			<fieldset class="detail-info">
+				<legend class="groupTitle">|Чакащи бележки|*</legend>
+				[#Receipts#]
+			</fieldset>
+			<!--ET_END Receipts-->
+			
 			[#DETAILS#]
 		</div>
 	</div>

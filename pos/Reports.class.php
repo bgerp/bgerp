@@ -143,7 +143,7 @@ class pos_Reports extends core_Master {
      */
     protected static function on_AfterPrepareEditForm($mvc, $res, $data)
     { 
-    	$data->form->setDefault('pointId', pos_Points::getCurrent('id', FALSE));
+    	$data->form->setReadOnly('pointId');
     }
     
     
@@ -592,6 +592,12 @@ class pos_Reports extends core_Master {
 		if($action == 'activate' && !$rec) {
 			$res = 'no_one';
 		}
+		
+		if($action == 'add' && isset($rec)){
+			if(empty($rec->pointId)){
+				$res = 'no_one';
+			}
+		}
 	}
 	
 	
@@ -686,5 +692,34 @@ class pos_Reports extends core_Master {
     	}
     	
     	return TRUE;
+    }
+    
+    
+    /**
+     * Извиква се след подготовката на toolbar-а за табличния изглед
+     */
+    protected static function on_AfterPrepareListToolbar($mvc, &$data)
+    {
+    	$data->toolbar->removeBtn('btnAdd');
+    }
+    
+    
+    /**
+     * Извиква се преди изпълняването на екшън
+     *
+     * @param core_Mvc $mvc
+     * @param mixed $res
+     * @param string $action
+     */
+    public static function on_BeforeAction($mvc, &$res, $action)
+    {
+    	if($action == 'add'){
+    		if($pointId = Request::get('pointId', 'key(mvc=pos_Points)')){
+    			if(!self::canMakeReport($pointId)){
+    				 
+    				return followRetUrl(NULL, 'Не може да се направи отчет');
+    			}
+    		}
+    	}
     }
 }
