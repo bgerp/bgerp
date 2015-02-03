@@ -1638,4 +1638,19 @@ class email_Incomings extends core_Master
         
         return $query;
     }
+    
+    
+    /**
+     * 
+     * 
+     * @param integer $id
+     */
+    public function getLangFromRec($id)
+    {
+        if (!$id) return ;
+        
+        $rec = $this->fetch($id);
+        
+        return $rec->lg;
+    }
 }

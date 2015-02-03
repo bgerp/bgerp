@@ -95,6 +95,19 @@ class doc_DocumentPlg extends core_Plugin
     
     
     /**
+     * 
+     * 
+     * @param core_Mvc $mvc
+     * @param NULL|string $res
+     * @param integer $id
+     */
+    function on_AfterGetLangFromRec($mvc, &$res, $id)
+    {
+        
+    }
+    
+    
+    /**
      * Изпълнява се след подготовката на единичния изглед
      * Подготвя иконата за единичния изглед
      * 
