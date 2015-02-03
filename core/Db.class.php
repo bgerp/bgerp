@@ -701,4 +701,34 @@ class core_Db extends core_BaseClass
         
         return FALSE;
     }
+    
+    
+    /**
+     * Връща информация за таблиците в БД
+     * 
+     * @return array|FALSE
+     * ['Name'] - dbName
+     * ['Rows'] - брой редове
+     * ['Size'] - размер
+     */
+    public static function getDBInfo()
+    {
+        $db = cls::get('core_Db');
+        
+        $dbRes = $db->query("SELECT table_schema 'Name', Sum(table_rows) 'Rows',
+        					 Sum(data_length + index_length) 'Size'
+        					 FROM information_schema.tables
+        					 WHERE table_schema = '{$db->escape($db->dbName)}'", TRUE);
+        
+        if (!is_resource($dbRes)) {
+        
+        	return FALSE;
+        }
+        
+        $resArr = $db->fetchArray();
+        
+        $db->freeResult($dbRes);
+        
+        return $resArr;
+    }
 }
