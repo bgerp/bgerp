@@ -55,7 +55,7 @@ class techno2_SpecificationFolders extends core_Master
     /**
      * Път към картинка 16x16
      */
-    //public $singleIcon = 'img/16/project-archive.png';
+    public $singleIcon = 'img/16/project-archive.png';
     
     
     /**
@@ -73,7 +73,7 @@ class techno2_SpecificationFolders extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id=№,name,description,inCharge,access,shared,createdOn,createdBy';
+    public $listFields = 'id=№,name,meta=Свойства,inCharge,access,shared,createdOn,createdBy';
     
     
     /**
