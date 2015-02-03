@@ -414,7 +414,7 @@ class techno2_SpecificationDoc extends core_Embedder
     			}
     		} else {
     			if(cat_Products::haveRightFor('add')){
-    				$data->toolbar->addBtn("Нов артикул", array($mvc, 'CreateProduct', $data->rec->id, 'ret_url' => TRUE), "ef_icon = img/16/wooden-box.png,title=Създаване на нов артикул");
+    				$data->toolbar->addBtn("Нов артикул", array($mvc, 'CreateProduct', $data->rec->id, 'ret_url' => TRUE), "ef_icon = img/16/star_2.png,title=Създаване на нов артикул");
     			}
     		}
     	}

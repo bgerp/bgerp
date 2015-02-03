@@ -1294,7 +1294,7 @@ class cat_Products extends core_Embedder {
     			}
     		} else {
     			if(techno2_SpecificationDoc::haveRightFor('add')){
-    				$data->toolbar->addBtn('Спецификация', array('cat_Products', 'addSpecification', $data->rec->id, 'ret_url' => TRUE), NULL, 'ef_icon = img/16/specification.png,title=Създаване на нова спецификация');
+    				$data->toolbar->addBtn('Нова спецификация', array('cat_Products', 'addSpecification', $data->rec->id, 'ret_url' => TRUE), NULL, 'ef_icon = img/16/star_2.png,title=Създаване на нова спецификация');
     			}
     		}
     	}
