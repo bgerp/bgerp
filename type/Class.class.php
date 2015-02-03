@@ -109,13 +109,13 @@ class type_Class  extends type_Key {
             if (!$options[$value]) {
                 $error = TRUE;
             }
-        } else {
+        } elseif (isset($value)) {
             if (!array_search($value, $options)) {
                 $error = TRUE;
             }
         }
         
-        if (isset($value) && $error) {
+        if ($error) {
             $this->error = 'Несъществуващ клас';
         }
         
