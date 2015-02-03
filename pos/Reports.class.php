@@ -483,7 +483,7 @@ class pos_Reports extends core_Master {
     	while($rec = $query->fetch()) {
 	    	
     		// запомняме кои бележки сме обиколили
-    		$receipts[] = (object)array('id' => $rec->id, 'createdOn' => $rec->createdOn, 'createdBy' => $rec->createdBy, 'total' => $rec->total);
+    		$receipts[] = (object)array('id' => $rec->id, 'createdOn' => $rec->valior, 'createdBy' => $rec->createdBy, 'total' => $rec->total);
     		
     		// Добавяме детайлите на бележката
 	    	$data = pos_ReceiptDetails::fetchReportData($rec->id);
@@ -531,7 +531,7 @@ class pos_Reports extends core_Master {
     	$mvc->conto($rec);
     	
     	// Еднократно оттегляме всички празни чернови бележки
-    	$mvc->rejectEmptyReceipts($rec->pointId);
+    	$mvc->rejectEmptyReceipts($rec);
     }
     
     
@@ -540,10 +540,15 @@ class pos_Reports extends core_Master {
      * 
      * @param int $pointId - ид на точка
      */
-    private function rejectEmptyReceipts($pointId)
+    private function rejectEmptyReceipts($rec)
     {
     	$rQuery = pos_Receipts::getQuery();
-    	$rQuery->where("#pointId = {$pointId} AND #state = 'draft' AND #total = 0");
+    	$rQuery->where("#pointId = {$rec->pointId} AND #state = 'draft' AND #total = 0");
+    	
+    	// Оттегляме само тези чернови чиято дата е преди тази на последната активна бележка
+    	$lastReceiptDate = $rec->details['receipts'][count($rec->details['receipts'])-1]->createdOn;
+    	$rQuery->where("#valior < '{$lastReceiptDate}'");
+    	
     	$count = $rQuery->count();
     	while($rRec = $rQuery->fetch()){
     		pos_Receipts::reject($rRec);
