@@ -1175,15 +1175,13 @@ class fileman_Files extends core_Master
         // Ако няма заявка, да не се изпълнява
         if (!$data->listSummary->query) return ;
         
-        $fileLen = 0;
-        $fileCnt = 0;
+        // Брой записи
+        $fileCnt = $data->listSummary->query->count();
         
-    	// Обхождаме всички клонирани записи
-        while ($rec = $data->listSummary->query->fetch()) {
-            
-            $fileLen += $rec->fileLen;
-            $fileCnt++;
-        }
+        // Размер на всички файлове
+        $data->listSummary->query->XPR('sumLen', 'int', 'SUM(#fileLen)');
+        $rec = $data->listSummary->query->fetch();
+        $fileLen = $rec->sumLen;
         
         if (!isset($data->listSummary->statVerb)) {
             $data->listSummary->statVerb = array();
