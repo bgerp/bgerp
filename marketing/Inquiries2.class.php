@@ -204,7 +204,7 @@ class marketing_Inquiries2 extends core_Embedder
     /**
      * Проверка и валидиране на формата
      */
-    public static function on_AfterInputEditForm($mvc, $form)
+    public static function on_AfterInputEditForm($mvc, &$form)
     {
     	if ($form->isSubmitted()){
     		$form->rec->ip = core_Users::getRealIpAddr();
