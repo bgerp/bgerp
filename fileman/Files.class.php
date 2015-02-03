@@ -63,7 +63,7 @@ class fileman_Files extends core_Master
     /**
      * 
      */
-    protected $singleLayoutFile = 'fileman/tpl/SingleLayoutFile.shtml';
+    public $singleLayoutFile = 'fileman/tpl/SingleLayoutFile.shtml';
     
     
     /**
