@@ -178,7 +178,7 @@ class techno2_SpecificationDoc extends core_Embedder
     	$this->FLD('meta', 'set(canSell=Продаваем,canBuy=Купуваем,
         						canStore=Складируем,canConvert=Вложим,
         						fixedAsset=Дма,canManifacture=Производим)', 'caption=Свойства->Списък,columns=2,formOrder=100000000,input=none');
-    	$this->FLD("isPublic", 'enum(no=Частен,yes=Публичен)', 'input=none,formOrder=10000,caption=Показване за избор в документи->Достъп');
+    	$this->FLD("isPublic", 'enum(no=Частен,yes=Публичен)', 'input=hidden,formOrder=10000,caption=Показване за избор в документи->Достъп');
     }
     
     
@@ -224,7 +224,10 @@ class techno2_SpecificationDoc extends core_Embedder
     	
     	if(isset($rec->folderId)){
     		$cover = doc_Folders::getCover($rec->folderId);
-    		$rec->isPublic = ($cover->haveInterface('crm_ContragentAccRegIntf')) ? 'no' : 'yes';
+    		
+    		if(empty($rec->id)){
+    			$rec->isPublic = ($cover->haveInterface('crm_ContragentAccRegIntf')) ? 'no' : 'yes';
+    		}
     	}
     }
     
@@ -481,14 +484,9 @@ class techno2_SpecificationDoc extends core_Embedder
      */
     public function getParam($id, $sysId)
     {
-    	expect($paramId = cat_Params::fetchIdBySysId($sysId));
-    	 
-    	$value = $this->Params->fetchField("#generalProductId = {$id} AND #paramId = '{$paramId}'", 'value');
-    	 
-    	if($value) return $value;
-    	 
-    	// Връщаме дефолт стойноста за параметъра
-    	return cat_Params::getDefault($paramId);
+    	$Driver = $this->getDriver($id);
+    	
+    	return $Driver->getParamValue($sysId);
     }
     
     
