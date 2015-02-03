@@ -257,7 +257,7 @@ class cat_Products extends core_Embedder {
     /**
      * Изпълнява се след въвеждане на данните от Request
      */
-    public static function on_AfterInputEditForm($mvc, $form)
+    public static function on_AfterInputEditForm($mvc, &$form)
     {
 		//Проверяваме за недопустими символи
         if ($form->isSubmitted()){
