@@ -1,0 +1,18 @@
+<form style="float:left" [#FORM_ATTR#]> 
+<!--ET_BEGIN FORM_ERROR-->
+<div class="formError">
+    [#FORM_ERROR#]
+</div>
+<!--ET_END FORM_ERROR-->
+<!--ET_BEGIN FORM_FIELDS-->
+[#FORM_FIELDS#]
+<!--ET_END FORM_FIELDS-->
+<!--ET_BEGIN FORM_TOOLBAR-->
+<div class='form-filter-btn'>
+    [#FORM_TOOLBAR#]
+</div>
+<!--ET_END FORM_TOOLBAR-->
+<!--ET_BEGIN FORM_HIDDEN-->
+[#FORM_HIDDEN#]
+<!--ET_END FORM_HIDDEN-->
+</form>
