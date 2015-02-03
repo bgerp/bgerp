@@ -23,7 +23,7 @@ function needHelpActions(text, secondsInactive, afterCloseUrl, seeUrl)
 		if(!isset && getEO().getIdleTime() > secondsInactive){
 			isset=true;
 			$('.toast-container').append(needHelpBlock);
-			$('.needhelp-holder').fadeIn();
+			$('.needhelp-holder').fadeIn(800);
 			getEfae().process({'url': seeUrl});
 		}
 	}, 5000);
