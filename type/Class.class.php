@@ -94,6 +94,8 @@ class type_Class  extends type_Key {
      */
     function fromVerbal($value)
     {
+        if (!isset($value)) return $value;
+        
         $error = FALSE;
         
         $interface = $this->params['interface'];
@@ -113,7 +115,7 @@ class type_Class  extends type_Key {
             }
         }
         
-        if ($error) {
+        if (isset($value) && $error) {
             $this->error = 'Несъществуващ клас';
         }
         
