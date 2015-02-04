@@ -19,7 +19,7 @@ function posActions() {
 	
 	// Ширина на контейнера на бързите бутони в мобилен
 	var width = (parseInt($('.pos-product').length) + 1) * 45 ;
-	$('.narrow #pos-products > div').css('width',width);
+	$('.narrow #pos-products').css('width',width);
 	
 	
 	// Засветяване на избрания ред и запис в хидън поле
@@ -203,7 +203,6 @@ function posActions() {
 	// Добавяне на продукти от бързите бутони
 	$(document.body).on('click', ".pos-product", function(e){
 		var url = $(this).attr("data-url");
-		
 		if(!url) return;
 		
 		var productId = $(this).attr("data-id");
