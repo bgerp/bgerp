@@ -253,7 +253,9 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     	foreach ($rows as $id => $row){
     		$rec = $data->recs[$id];
     		$quantityInStore = store_Products::fetchField("#productId = {$rec->productId} AND #classId = {$rec->classId} AND #storeId = {$storeId}", 'quantity');
-    		if(($quantityInStore - $rec->quantity) < 0){
+    		$diff = ($data->masterData->rec->state == 'active') ? $quantityInStore : $quantityInStore - $rec->quantity;
+    			    		
+    		if($diff < 0){
     			$row->ROW_ATTR['class'] .= ' row-negative';
     		}
     	}
