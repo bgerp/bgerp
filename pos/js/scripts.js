@@ -438,7 +438,12 @@ function calculateWidth(){
 	
 	var usefulWidth = winWidth - totalOffset;
 	
-	var maxColWidth = parseInt(usefulWidth/2) - 10;
+	var maxColWidth;
+	if($('body').hasClass('wide')) {
+		maxColWidth = parseInt(usefulWidth/2) - 10;
+	} else {
+		maxColWidth = usefulWidth;
+	}
 	if(maxColWidth < 285) {
 		maxColWidth = 245;
 	}

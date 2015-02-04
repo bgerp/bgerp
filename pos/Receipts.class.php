@@ -19,13 +19,13 @@ class pos_Receipts extends core_Master {
 	/**
      * Заглавие
      */
-    var $title = "Бележки за продажба";
+    public $title = "Бележки за продажба";
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_Rejected, plg_Printing, acc_plg_DocumentSummary, plg_Printing,
+    public $loadList = 'plg_Created, plg_Rejected, plg_Printing, acc_plg_DocumentSummary, plg_Printing,
     				 plg_State, bgerp_plg_Blank, pos_Wrapper, plg_Search, plg_Sorting,
                      plg_Modified';
 
@@ -33,85 +33,85 @@ class pos_Receipts extends core_Master {
     /**
      * Наименование на единичния обект
      */
-    var $singleTitle = "Бележка за продажба";
+    public $singleTitle = "Бележка за продажба";
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, title=Заглавие, contragentName, total, paid, change, state , createdOn, createdBy';
+    public $listFields = 'id, title=Заглавие, contragentName, total, paid, change, state , createdOn, createdBy';
     
     
     /**
 	 * Детайли на бележката
 	 */
-	var $details = 'pos_ReceiptDetails';
+	public $details = 'pos_ReceiptDetails';
 	
 	
     /**
      * Кой може да го прочете?
      */
-    var $canRead = 'ceo, pos';
+    public $canRead = 'ceo, pos';
     
     
     /**
      * Кой може да приключи бележка?
      */
-    var $canClose = 'ceo, pos';
+    public $canClose = 'ceo, pos';
     
     
     /**
      * Кой може да прехвърли бележка?
      */
-    var $canTransfer = 'ceo, pos';
+    public $canTransfer = 'ceo, pos';
    
     
     /**
      * Кой може да променя?
      */
-    var $canAdd = 'pos, ceo';
+    public $canAdd = 'pos, ceo';
     
     
     /**
      * Кой може да плати?
      */
-    var $canPay = 'pos, ceo';
+    public $canPay = 'pos, ceo';
     
     
     /**
      * Кой може да променя?
      */
-    var $canTerminal = 'pos, ceo';
+    public $canTerminal = 'pos, ceo';
+    
+    
+    /**
+     * Кой може да оттегля
+     */
+    public $canReject = 'pos, ceo';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'ceo,pos';
+	public $canList = 'ceo,pos';
 
 	
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'ceo,pos';
+	public $canSingle = 'ceo,pos';
     
     
     /**
      * Кой може да променя?
      */
-    var $canEdit = 'pos, ceo';
-    
-    
-    /**
-	 * Полета които да са достъпни след изтриване на дъска
-	 */
-	var $fetchFieldsBeforeDelete = 'id';
+    public $canEdit = 'pos, ceo';
 	
     
 	/** 
 	 *  Полета по които ще се търси
 	 */
-	var $searchFields = 'contragentName';
+	public $searchFields = 'contragentName';
 	
 	
     /**
@@ -123,7 +123,7 @@ class pos_Receipts extends core_Master {
     /**
      * При търсене до колко продукта да се показват в таба
      */
-    public $maxSearchProducts = 20;
+    protected $maxSearchProducts = 20;
     
     
     /**
@@ -141,7 +141,7 @@ class pos_Receipts extends core_Master {
     	$this->FLD('change', 'double(decimals=2)', 'caption=Ресто, input=none, value=0, summary=amount');
     	$this->FLD('tax', 'double(decimals=2)', 'caption=Такса, input=none, value=0');
     	$this->FLD('state', 
-            'enum(draft=Чернова, active=Контиран, rejected=Сторниран, closed=Затворен)', 
+            'enum(draft=Чернова, active=Контиран, rejected=Сторниран, closed=Затворен,pending=Чакащ)', 
             'caption=Статус, input=none'
         );
     	$this->FLD('transferedIn', 'key(mvc=sales_Sales)', 'input=none');
@@ -181,7 +181,21 @@ class pos_Receipts extends core_Master {
      */
     function act_New()
     {
-    	$id = $this->createNew();
+    	$cu = core_Users::getCurrent();
+    	$posId = pos_Points::getCurrent();
+    	$forced = Request::get('forced', 'int');
+    	
+    	// Ако форсираме, винаги създаваме нова бележка
+    	if($forced){
+    		$id = $this->createNew();
+    	} else {
+    		
+    		// Ако има чернова бележка от същия ден, не създаваме нова
+    		$today = dt::today();
+    		if(!$id = $this->fetchField("#valior = '{$today}' AND #createdBy = {$cu} AND #pointId = {$posId} AND #state = 'draft'", 'id')){
+    			$id = $this->createNew();
+    		}
+    	}
     	
     	return Redirect(array($this, 'terminal', $id));
     }
@@ -222,7 +236,6 @@ class pos_Receipts extends core_Master {
     	} elseif($fields['-single']){
     		$row->iconStyle = 'background-image:url("' . sbf('img/16/view.png', '') . '");';
     		$row->header = $mvc->singleTitle . " #<b>{$mvc->abbr}{$row->id}</b> ({$row->state})";
-    		$row->pointId = pos_Points::getHyperLink($rec->pointId, TRUE);
     		$row->caseId = cash_Cases::getHyperLink(pos_Points::fetchField($rec->pointId, 'caseId'), TRUE);
     		$row->storeId = store_Stores::getHyperLink(pos_Points::fetchField($rec->pointId, 'storeId'), TRUE);
     		$row->baseCurrency = acc_Periods::getBaseCurrencyCode($rec->createdOn);
@@ -232,7 +245,7 @@ class pos_Receipts extends core_Master {
     	}
     	
     	// Слагаме бутон за оттегляне ако имаме права
-    	if($mvc->haveRightFor('reject', $rec)){
+    	if($mvc->haveRightFor('reject', $rec) && !Mode::is('printing')){
     		$row->rejectBtn = ht::createLink('', array($mvc, 'reject', $rec->id, 'ret_url' => toUrl(array($mvc, 'new'), 'local')), 'Наистина ли желаете да оттеглите документа', 'ef_icon=img/16/reject.png,title=Оттегляне на бележката, class=reject-btn');
     	}
     	
@@ -243,14 +256,15 @@ class pos_Receipts extends core_Master {
     	}
     	
     	$cu = core_Users::fetch($rec->createdBy);
-    	$row->createdBy = core_Users::recToVerbal($cu)->names;
+    	$row->createdBy = core_Users::recToVerbal($cu)->nick;
+    	$row->pointId = pos_Points::getHyperLink($rec->pointId, TRUE);
     }
 
     
 	/**
      * След подготовка на тулбара на единичен изглед.
      */
-    static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
         if($mvc->haveRightFor('list')) {
     		
@@ -269,7 +283,7 @@ class pos_Receipts extends core_Master {
     /**
      * След подготовката на туулбара на списъчния изглед
      */
-	static function on_AfterPrepareListToolbar($mvc, &$data)
+	protected static function on_AfterPrepareListToolbar($mvc, &$data)
     {
     	if($mvc->haveRightFor('add')){
     		$addUrl = array($mvc, 'new');
@@ -366,9 +380,9 @@ class pos_Receipts extends core_Master {
     
     
     /**
-	 * Модификация на ролите, които могат да видят избраната тема
+	 * Модификация на ролите
 	 */
-    static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    protected static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
 	{ 
 		// Само черновите бележки могат да се редактират в терминала
 		if($action == 'terminal' && isset($rec)) {
@@ -557,6 +571,10 @@ class pos_Receipts extends core_Master {
     	$tpl = getTplFromFile('pos/tpl/terminal/Receipt.shtml');
     	$tpl->placeObject($data->row);
     	
+    	$img = ht::createElement('img',  array('src' => sbf('pos/img/bgerp.png', '')));
+    	$logo = ht::createLink($img, array('bgerp_Portal', 'Show'), NULL, array('target'=>'_blank', 'class' => 'portalLink'));
+    	$tpl->append($logo, 'LOGO');
+    	
     	// Слагане на детайлите на бележката
     	$detailsTpl = $this->pos_ReceiptDetails->renderReceiptDetail($data->details);
     	$tpl->append($detailsTpl, 'DETAILS');
@@ -736,8 +754,9 @@ class pos_Receipts extends core_Master {
     		$block->append($row);
     	}
     	
-    	if(!$query->count()){
-    		$block->append("<div class='pos-no-result'>" . tr('Няма чернови') . "</div>");
+    	if($this->haveRightFor('add')){
+    		$addBtn = ht::createLink("Нова<br>бележка", array('pos_Receipts', 'new', 'forced' => TRUE), NULL, "class=pos-notes");
+    		$block->prepend($addBtn);
     	}
     	
     	return $block;
@@ -1000,7 +1019,7 @@ class pos_Receipts extends core_Master {
     		$block->append("</div>", 'PAYMENT_TYPE');
     	}
 	    
-    	$printUrl = array($mvc, 'terminal', $rec->id, 'Printing' => 'yes');
+    	$printUrl = array($this, 'terminal', $rec->id, 'Printing' => 'yes');
     	$block->append(ht::createBtn('Печат', $printUrl, NULL, NULL, array('class' => "actionBtn", 'title' => tr('Принтиране на бележката'))), 'CLOSE_BTNS');
     	
 	    // Ако може да се издаде касова бележка, активираме бутона
@@ -1204,7 +1223,7 @@ class pos_Receipts extends core_Master {
     	
     	$this->requireRightFor('close', $rec);
     	
-    	$rec->state = 'active';
+    	$rec->state = 'pending';
     	if($this->save($rec)){
     		
     		// Обновяваме складовите наличности
@@ -1468,5 +1487,62 @@ class pos_Receipts extends core_Master {
     	$me = cls::get(get_called_class());
     	
     	return $me->singleTitle . " №{$rec->id}";
+    }
+    
+    
+    /**
+     * Подготвя чакащите бележки в сингъла на точката на продажба
+     * 
+     * @param stdClass $data
+     * @return void
+     */
+    public function prepareReceipts(&$data)
+    {
+    	$data->rows = array();
+    	
+    	$query = $this->getQuery();
+    	$query->where("#pointId = {$data->masterId}");
+    	$query->where("#state = 'pending' OR #state = 'draft'");
+    	$query->orderBy("#state");
+    	
+    	$count = 1;
+    	while($rec = $query->fetch()){
+    		$data->rows[$rec->id] = $this->recToVerbal($rec);
+    		$data->rows[$rec->id]->docId = $this->getHyperlink($rec->id, TRUE);
+    		
+    		if($rec->state == 'draft'){
+    			if($this->haveRightFor('reject', $rec)){
+    				$data->rows[$rec->id]->count = ht::createLink('', array($this, 'reject', $rec->id, 'ret_url' => TRUE), 'Наистина ли желаете да оттеглите документа', 'ef_icon=img/16/reject.png,title=Оттегляне на бележката, class=reject-btn');
+    			}
+    		}
+    		
+    		$data->rows[$rec->id]->count .= cls::get('type_Int')->toVerbal($count);
+    		
+    		$count++;
+    	}
+    }
+    
+    
+    /**
+     * Рендиране на чакащите бележки в сингъла на точката на продажба
+     * 
+     * @param stdClass $data
+     * @return core_ET $tpl
+     */
+    public function renderReceipts($data)
+    {
+    	$tpl = new ET('');
+    	$table = cls::get('core_TableView', array('mvc' => $this));
+        $data->listFields = array('count'   => '№',
+        						  'valior'  => 'Вальор',
+					              'docId'   => 'Документ',
+        						  'total'   => 'Общо',
+        						  'paid'    => 'Платено',
+        );
+    	
+         $details = $table->get($data->rows, $data->listFields);
+         $tpl->append($details);	
+         
+    	 return $tpl;
     }
 }

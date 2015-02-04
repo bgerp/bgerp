@@ -257,7 +257,7 @@ class cat_Products extends core_Embedder {
     /**
      * Изпълнява се след въвеждане на данните от Request
      */
-    public static function on_AfterInputEditForm($mvc, $form)
+    public static function on_AfterInputEditForm($mvc, &$form)
     {
 		//Проверяваме за недопустими символи
         if ($form->isSubmitted()){
@@ -1196,6 +1196,7 @@ class cat_Products extends core_Embedder {
     {
     	expect(cls::haveInterface('cat_ProductDriverIntf', $rec->innerClass));
     	$rec->innerClass = cls::get($rec->innerClass)->getClassId();
+    	$rec->state = 'active';
     }
     
     
@@ -1249,13 +1250,17 @@ class cat_Products extends core_Embedder {
     	
     	$form = cls::get('core_Form');
     	$form->title = 'Създаване на спецификация';
-    	$form->FNC('unsortedFolderId', "key(mvc=doc_UnsortedFolders,select=name,allowEmpty)", 'caption=Папка,mandatory,input');
+    	$form->FNC('unsortedFolderId', "key(mvc=techno2_SpecificationFolders,select=name,allowEmpty)", 'caption=Папка,mandatory,input');
+    	
+    	if(!techno2_SpecificationFolders::count("#state = 'active'")){
+    		return Redirect(array('techno2_SpecificationFolders', 'list'), NULL, 'Няма налични папки за избор');
+    	}
     	
     	$form->input();
     	if($form->isSubmitted()){
     		
     		// Създаваме спецификация във въпросната папка
-    		$folderId = doc_UnsortedFolders::forceCoverAndFolder($form->rec->unsortedFolderId);
+    		$folderId = techno2_SpecificationFolders::forceCoverAndFolder($form->rec->unsortedFolderId);
     		$pRec = $this->createSpecification($rec, $folderId);
     		
     		// Споделяме потребителя до нишката на папката
@@ -1289,8 +1294,23 @@ class cat_Products extends core_Embedder {
     			}
     		} else {
     			if(techno2_SpecificationDoc::haveRightFor('add')){
-    				$data->toolbar->addBtn('Спецификация', array('cat_Products', 'addSpecification', $data->rec->id, 'ret_url' => TRUE), NULL, 'ef_icon = img/16/specification.png,title=Създаване на нова спецификация');
+    				$data->toolbar->addBtn('Нова спецификация', array('cat_Products', 'addSpecification', $data->rec->id, 'ret_url' => TRUE), NULL, 'ef_icon = img/16/star_2.png,title=Създаване на нова спецификация');
     			}
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+    	if($action == 'edit' && isset($rec)){
+    		
+    		// Ако има спецификация не може да се редактира артикула
+    		if(isset($rec->specificationId)){
+    			$requiredRoles = 'no_one';
     		}
     	}
     }

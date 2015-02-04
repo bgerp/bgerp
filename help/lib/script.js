@@ -30,7 +30,7 @@ function needHelpActions(text, secondsInactive, afterCloseUrl, seeUrl)
 	
 	// при клик на 'х'-а го затваняме
 	$(document.body).on('click', ".needhelp-holder .close", function(e){
-		$('.needhelp-holder').fadeOut();
+		$('.needhelp-holder').fadeOut(800);
 		
 		getEfae().process({'url': afterCloseUrl});
 	});
@@ -38,8 +38,18 @@ function needHelpActions(text, secondsInactive, afterCloseUrl, seeUrl)
 	// при клик на линка събмитваме формата
 	$(document.body).on('click', ".needHelpBtn", function(e){
 		$('.needHelpForm').submit();
-		setTimeout(function(){ 
-			$('.needhelp-holder').fadeOut();
-		}, 3000);
+		hideAfterTimeout();
 	});
+	
+	window.onscroll = hideAfterTimeout;
+	
+	window.onkeypress = hideAfterTimeout;
+}
+
+
+function hideAfterTimeout() 
+{
+	setTimeout(function(){ 
+		$('.needhelp-holder').fadeOut(800);
+	}, 3000);
 }

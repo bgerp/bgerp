@@ -19,7 +19,7 @@ class doc_UnsortedFolders extends core_Master
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    public $interfaces = 'price_PriceListFolderCoverIntf, trans_LinesFolderCoverIntf, frame_FolderCoverIntf, accda_DaFolderCoverIntf, techno2_SpecificationFolderCoverIntf';
+    public $interfaces = 'price_PriceListFolderCoverIntf, trans_LinesFolderCoverIntf, frame_FolderCoverIntf, accda_DaFolderCoverIntf';
     
     
     /**

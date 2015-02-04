@@ -85,7 +85,7 @@ class fileman_Data extends core_Manager {
                 $rec->links = 0;
                 $status = static::save($rec);
             } else {
-                error("@Не може да бъде копиран файла", $file, $dir);
+                error("@Не може да бъде копиран файла", $file, $path);
             }
         }
         

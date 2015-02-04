@@ -26,7 +26,7 @@ class i18n_Language {
     /**
      * Определя езика в началото на даден текст
      */
-    static function detect($text)
+    static function detect($text, $prefLangArr = array())
     {
         $res = self::getLgRates($text);
         
@@ -34,8 +34,18 @@ class i18n_Language {
 
             return ;
         }
+        
+        foreach ((array)$prefLangArr as $lg => $ratio) {
+            
+            $lg = strtolower($lg);
+            
+            if (!$res[$lg]) continue;
+            
+            $res[$lg] *= $ratio;
+        }
+        
         $maxs = array_keys($res, max($res));
-
+        
         return $maxs[0];
     }
 

@@ -1,0 +1,44 @@
+<div class="summary-block">
+    <table>
+    	<!--ET_BEGIN filesInfo-->
+    		[#filesInfo#]
+	        <tr>
+	            <th colspan="2">|Файлове|*:</th>
+	        </tr>
+	        <!--ET_BEGIN fileSize-->
+		        <tr class='border-top'>
+		            <td class='quiet'>|Размер|*:</td>
+		            <td class='aright'>[#fileSize#]</td>
+		        </tr>
+	        <!--ET_END fileSize-->
+	        
+	        <!--ET_BEGIN fileCnt-->
+		        <tr>
+		            <td class='quiet'>|Брой|*:</td>
+		            <td class='aright'>[#fileCnt#] |бр.|*</td>
+		        </tr>
+	        <!--ET_END fileCnt-->
+        <!--ET_END filesInfo-->
+        
+        <!--ET_BEGIN bdInfo-->
+        	[#bdInfo#]
+	        <tr >
+	            <th colspan="2">|БД|*:</th>
+	        </tr>
+	        
+	        <!--ET_BEGIN sqlSize-->
+		        <tr class='border-top'>
+		            <td class='quiet'>|Размер|*:</td>
+		            <td class='aright'>[#sqlSize#]</td>
+		        </tr>
+	        <!--ET_END sqlSize-->
+	        
+	        <!--ET_BEGIN rowCnt-->
+		        <tr>
+		            <td class='quiet'>|Редове|*:</td>
+		            <td class='aright'>[#rowCnt#] |бр.|*</td>
+		        </tr>
+	        <!--ET_END rowCnt-->
+        <!--ET_END bdInfo-->
+    </table>
+</div>

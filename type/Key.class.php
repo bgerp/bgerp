@@ -415,7 +415,7 @@ class type_Key extends type_Int
      */
     protected static function normalizeKey($val)
     {
-        $val = trim(strtolower(str::utf2ascii(trim($val))));
+        $val = plg_Search::normalizeText($val);
         
         return $val;
     }
@@ -533,7 +533,7 @@ class type_Key extends type_Int
         $q = plg_Search::normalizeText($q);
         
         $q = '/[ \"\'\(\[\-\s]' . str_replace(' ', '.* ', $q) . '/';
- 
+        
         core_Logs::add('type_Key', NULL, "ajaxGetOptions|{$hnd}|{$q}", 1);
         
         if (!$hnd) {
@@ -547,12 +547,6 @@ class type_Key extends type_Int
         }
         
         $options = unserialize(core_Cache::get('SelectOpt', $hnd));
-        
-        if ($options === FALSE) {
-            $this->prepareOptions();
-            $options = unserialize(core_Cache::get('SelectOpt', $hnd));
-        }
-        
         
         $select = new ET('<option value="">&nbsp;</option>');
         

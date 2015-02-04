@@ -197,7 +197,7 @@ class core_Embedder extends core_Master
 	/**
 	 * Изпълнява се след въвеждането на данните от заявката във формата
 	 */
-	public static function on_AfterInputEditForm($mvc, $form)
+	public static function on_AfterInputEditForm($mvc, &$form)
 	{
 		if($form->rec->{$mvc->innerClassField}){
 			

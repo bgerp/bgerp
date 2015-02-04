@@ -178,9 +178,6 @@ class sales_Invoices extends deals_InvoiceMaster
     	$this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 'caption=Статус, input=none,export=Csv');
         $this->FLD('type', 'enum(invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие)', 'caption=Вид, input=hidden');
         
-        $this->FLD('docType', 'class(interface=bgerp_DealAggregatorIntf)', 'input=hidden,silent');
-        $this->FLD('docId', 'int', 'input=hidden,silent');
-        
         $this->setDbUnique('number');
     }
 	
@@ -255,11 +252,6 @@ class sales_Invoices extends deals_InvoiceMaster
     	
     	if($rec->originId) {
     		return doc_Containers::getDocument($rec->originId);
-    	}
-    	
-    	if($rec->docType && $rec->docId) {
-    		// Ако се генерира от пос продажба
-    		return new core_ObjectReference($rec->docType, $rec->docId);
     	}
     	
     	if($rec->threadId){
@@ -342,10 +334,6 @@ class sales_Invoices extends deals_InvoiceMaster
     	if($fields['-single']){
 			$row->type .= " / <i>" . str_replace('_', " ", $rec->type) . "</i>";
     		
-    		if($rec->docType && $rec->docId){
-    			$row->POS = tr("|към ПОС продажба|* №{$rec->docId}");
-    		}
-    		
     		if($rec->accountId){
     			$Varchar = cls::get('type_Varchar');
     			$ownAcc = bank_OwnAccounts::getOwnAccountInfo($rec->accountId);
@@ -369,11 +357,7 @@ class sales_Invoices extends deals_InvoiceMaster
      */
     public static function canAddToFolder($folderId)
     {
-        if(Request::get('docType', 'int') && Request::get('docId', 'int')){
-        	return TRUE;
-        }
-        
-    	return FALSE;
+        return FALSE;
     }
     
     
@@ -532,6 +516,7 @@ class sales_Invoices extends deals_InvoiceMaster
    		$amount = 0;
    		$query = static::getQuery();
    		$query->where("#paymentType = 'cash'");
+   		$query->where("#state = 'active'");
    		$query->between("date", $from, $to);
    		
    		while($rec = $query->fetch()){

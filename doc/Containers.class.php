@@ -1112,17 +1112,8 @@ class doc_Containers extends core_Manager
         // Записите на контейнера
         $doc = doc_Containers::getDocument($id);
         
-        // Вземаме записите на класа
-        $docRec = $doc->fetch();
+        $lg = $doc->getLangFromRec();
         
-        if($docRec->textPart) {
-
-            $lg = i18n_Language::detect($docRec->textPart);
-          
-        } else {
-            $lg = $docRec->lg;
-        }
-
         // Връщаме езика
         return $lg;
     }

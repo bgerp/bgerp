@@ -99,7 +99,7 @@ class currency_CurrencyRates extends core_Detail
         $this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,chart=diff');
         $this->FLD('baseCurrencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Курс->База,width=6em');
         $this->FLD('date', 'date', 'caption=Курс->Дата,chart=ax');
-        $this->FLD('rate', 'double', 'caption=Курс->Стойност,chart=ay');
+        $this->FLD('rate', 'double(decimals=5)', 'caption=Курс->Стойност,chart=ay');
         
         $this->setDbUnique('currencyId,baseCurrencyId,date');
     }
@@ -125,6 +125,11 @@ class currency_CurrencyRates extends core_Detail
         foreach($XML->Cube->Cube->Cube as $item){
             $rate = $item['rate']->__toString();
             $currency = $item['currency']->__toString();
+            
+            if (($currency == 'BGN') && ($rate == '1.9558')) {
+                $rate = '1.95583';
+            }
+            
             $currencyId = $this->Currencies->fetchField(array("#code='[#1#]'", $currency), 'id');
             
             if(!$currencyId) continue;
@@ -284,14 +289,14 @@ class currency_CurrencyRates extends core_Detail
         }
         
         if (!is_null($rate = static::getDirectRate($date, $fromId, $toId))) {
-            return round($rate, 4);
+            return round($rate, 5);
         }
         
         $crossCurrencyId = currency_Currencies::getIdByCode(static::$crossCurrencyCode);
 
         if ($crossCurrencyId != $fromId && $crossCurrencyId != $toId) {
             if (!is_null($rate = static::getCrossRate($date, $fromId, $toId, $crossCurrencyId))) {
-                return round($rate, 4);
+                return round($rate, 5);
             }
         }
         

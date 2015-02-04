@@ -185,6 +185,8 @@ class fileman_Setup extends core_ProtoSetup
     
             // Установяваме модела за галериите 
             'fileman_GalleryImages',
+            
+            'migrate::addFileLen'
         );
     
     
@@ -348,5 +350,28 @@ class fileman_Setup extends core_ProtoSetup
         $versionArr['subVersion'] = $subVersion;
         
         return $versionArr;
+    }
+    
+    
+    /**
+     * Миграция, за добавяне на размера на файловете
+     */
+    static function addFileLen()
+    {
+        $query = fileman_Files::getQuery();
+        $query->where('#fileLen IS NULL');
+        $query->where('#dataId IS NOT NULL');
+        
+        $lenArr = array();
+        while ($rec = $query->fetch()) {
+            if (!$rec->dataId || ($rec->dataId < 0)) continue;
+            
+            if (!$lenArr[$rec->dataId]) {
+                $lenArr[$rec->dataId] = fileman_Data::fetchField($rec->dataId, 'fileLen', FALSE);
+            }
+            
+            $rec->fileLen = $lenArr[$rec->dataId];
+            fileman_Files::save($rec, 'fileLen');
+        }
     }
 }

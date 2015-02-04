@@ -143,7 +143,7 @@ class pos_Reports extends core_Master {
      */
     protected static function on_AfterPrepareEditForm($mvc, $res, $data)
     { 
-    	$data->form->setDefault('pointId', pos_Points::getCurrent('id', FALSE));
+    	$data->form->setReadOnly('pointId');
     }
     
     
@@ -154,7 +154,7 @@ class pos_Reports extends core_Master {
 	{	
         $data->query->orderBy('#createdOn', 'DESC');
 		$data->listFilter->FNC('point', 'key(mvc=pos_Points, select=name, allowEmpty)', 'caption=Точка,width=12em,silent');
-        $data->listFilter->showFields .= ',user,point';
+        $data->listFilter->showFields .= ',point';
         
         // Активиране на филтъра
         $data->listFilter->input(NULL, 'silent');
@@ -261,16 +261,20 @@ class pos_Reports extends core_Master {
     		$tpl->append($data->rec->details->pager->getHtml(), "SALE_PAGINATOR");
     	}
     	
+    	// Рендираме обобщената информация за касиерите
     	if(count($data->row->statisticArr)){
-    		$rowTpl = clone $tpl->getBlock('ROW');
+    		$block = $tpl->getBlock('ROW');
     		
     		foreach ($data->row->statisticArr as $statRow){
+    			$rowTpl = clone $block;
     			$rowTpl->placeObject($statRow);
+    			
+    			$rowTpl->removeBlocks();
+    			$rowTpl->append2master();
     		}
-    		$rowTpl->removeBlocks();
-    		$rowTpl->append2master();
     	}
     	
+    	// Пушваме стиловете
     	$tpl->push('pos/tpl/css/styles.css', 'CSS');
     }
     
@@ -289,12 +293,23 @@ class pos_Reports extends core_Master {
     	$mvc->prepareDetail($detail);
     	$data->rec->details = $detail;
     	
+    	/*
+    	 * Обработваме статистиката за това всеки касиер, колко е продал
+    	 */
     	$Double = cls::get('type_Double');
     	$Double->params['decimals'] = 2;
     	$data->row->statisticArr = array();
     	foreach ($detail->receipts as $id => $receiptRec){
-    		$data->row->statisticArr[$id] = (object)array('receiptBy' => core_Users::getVerbal($receiptRec->createdBy, 'names'),
-    												      'receiptTotal' => $Double->toVerbal($receiptRec->total),);
+    		if(!array_key_exists($receiptRec->createdBy, $data->row->statisticArr)){
+    			$data->row->statisticArr[$receiptRec->createdBy] = (object)array('receiptBy' => core_Users::getVerbal($receiptRec->createdBy, 'names'),
+    																			 'receiptTotal' => $receiptRec->total);
+    		} else {
+    			$data->row->statisticArr[$receiptRec->createdBy]->receiptTotal += $receiptRec->total;
+    		}
+    	}
+    	
+    	foreach ($data->row->statisticArr as $cr => &$rRec){
+    		$rRec->receiptTotal = $Double->toVerbal($rRec->receiptTotal);
     	}
 	}
     
@@ -447,7 +462,7 @@ class pos_Reports extends core_Master {
     	$details = $receipts = array();
     	$query = pos_Receipts::getQuery();
     	$query->where("#pointId = {$pointId}");
-    	$query->where("#state = 'active'");
+    	$query->where("#state = 'pending'");
     	
     	// извличаме нужната информация за продажбите и плащанията
     	$this->fetchReceiptData($query, $details, $receipts);
@@ -468,7 +483,7 @@ class pos_Reports extends core_Master {
     	while($rec = $query->fetch()) {
 	    	
     		// запомняме кои бележки сме обиколили
-    		$receipts[] = (object)array('id' => $rec->id, 'createdOn' => $rec->createdOn, 'createdBy' => $rec->createdBy, 'total' => $rec->total);
+    		$receipts[] = (object)array('id' => $rec->id, 'createdOn' => $rec->valior, 'createdBy' => $rec->createdBy, 'total' => $rec->total);
     		
     		// Добавяме детайлите на бележката
 	    	$data = pos_ReceiptDetails::fetchReportData($rec->id);
@@ -516,7 +531,7 @@ class pos_Reports extends core_Master {
     	$mvc->conto($rec);
     	
     	// Еднократно оттегляме всички празни чернови бележки
-    	$mvc->rejectEmptyReceipts($rec->pointId);
+    	$mvc->rejectEmptyReceipts($rec);
     }
     
     
@@ -525,10 +540,15 @@ class pos_Reports extends core_Master {
      * 
      * @param int $pointId - ид на точка
      */
-    private function rejectEmptyReceipts($pointId)
+    private function rejectEmptyReceipts($rec)
     {
     	$rQuery = pos_Receipts::getQuery();
-    	$rQuery->where("#pointId = {$pointId} AND #state = 'draft' AND #total = 0");
+    	$rQuery->where("#pointId = {$rec->pointId} AND #state = 'draft' AND #total = 0");
+    	
+    	// Оттегляме само тези чернови чиято дата е преди тази на последната активна бележка
+    	$lastReceiptDate = $rec->details['receipts'][count($rec->details['receipts'])-1]->createdOn;
+    	$rQuery->where("#valior < '{$lastReceiptDate}'");
+    	
     	$count = $rQuery->count();
     	while($rRec = $rQuery->fetch()){
     		pos_Receipts::reject($rRec);
@@ -552,7 +572,7 @@ class pos_Reports extends core_Master {
     			$nextState = 'closed';
     			$msg = 'Приключени';
     		} else {
-    			$nextState = 'active';
+    			$nextState = 'pending';
     			$msg = 'Активирани';
     		}
     		
@@ -576,6 +596,12 @@ class pos_Reports extends core_Master {
 		// Никой неможе да редактира бележка
 		if($action == 'activate' && !$rec) {
 			$res = 'no_one';
+		}
+		
+		if($action == 'add' && isset($rec)){
+			if(empty($rec->pointId)){
+				$res = 'no_one';
+			}
 		}
 	}
 	
@@ -659,7 +685,7 @@ class pos_Reports extends core_Master {
     {
     	
     	// Ако няма нито една активна бележка за посочената каса и касиер, не може да се създаде отчет
-    	if(!pos_Receipts::fetch("#pointId = {$pointId} AND #state = 'active'")){
+    	if(!pos_Receipts::fetch("#pointId = {$pointId} AND #state = 'pending'")){
     		
     		return FALSE;
     	}
@@ -671,5 +697,34 @@ class pos_Reports extends core_Master {
     	}
     	
     	return TRUE;
+    }
+    
+    
+    /**
+     * Извиква се след подготовката на toolbar-а за табличния изглед
+     */
+    protected static function on_AfterPrepareListToolbar($mvc, &$data)
+    {
+    	$data->toolbar->removeBtn('btnAdd');
+    }
+    
+    
+    /**
+     * Извиква се преди изпълняването на екшън
+     *
+     * @param core_Mvc $mvc
+     * @param mixed $res
+     * @param string $action
+     */
+    public static function on_BeforeAction($mvc, &$res, $action)
+    {
+    	if($action == 'add'){
+    		if($pointId = Request::get('pointId', 'key(mvc=pos_Points)')){
+    			if(!self::canMakeReport($pointId)){
+    				 
+    				return followRetUrl(NULL, 'Не може да се направи отчет');
+    			}
+    		}
+    	}
     }
 }
