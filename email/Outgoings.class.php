@@ -1193,7 +1193,9 @@ class email_Outgoings extends core_Master
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
     static function on_AfterPrepareEditForm($mvc, &$data)
-    {
+    {        
+        $hintStr = tr('Смяна на езика');
+        
         $rec = $data->form->rec;
         $form = $data->form;
         
@@ -1317,15 +1319,15 @@ class email_Outgoings extends core_Master
             if ($forward) {
                 
                 // Определяме езика от папката
-                $lg = email_Outgoings::getLanguage(FALSE, FALSE, $folderId);
+                $currLg = email_Outgoings::getLanguage(FALSE, FALSE, $folderId);
             } else {
                 
                 // Определяме езика на който трябва да е имейла
-                $lg = email_Outgoings::getLanguage($originId, $threadId, $folderId);
+                $currLg = email_Outgoings::getLanguage($originId, $threadId, $folderId);
             }
             
             //Сетваме езика, който сме определили за превод на съобщението
-            core_Lg::push($lg);
+            core_Lg::push($currLg);
             
             //Ако сме в треда, вземаме данните на получателя и не препращаме имейла
             if ($threadId && !$forward) {
@@ -1400,33 +1402,31 @@ class email_Outgoings extends core_Master
                 }
             }
             
-            $contragentDataHeader = (array)$contragentData;
-            
-            //Данни необходими за създаване на хедър-а на съобщението
-            $contragentDataHeader['name'] = $contragentData->person;
-            
-            // Ако има обръщение
-            if($contragentData->salutationRec) {
-                if($contragentData->salutationRec == 'mrs' || $contragentData->salutationRec == 'miss') {
-                    $contragentDataHeader['hello'] = tr("Уважаема");
-                } else {
-                    $contragentDataHeader['hello'] = tr("Уважаеми");
-                }
-            }
-            
-            if (!$contragentDataHeader['hello']) {
-                if($contragentData->person) {
-                    $contragentDataHeader['hello'] = tr('Здравейте');
-                } else {
-                    $contragentDataHeader['hello'] = tr('Уважаеми колеги');
-                }
-            }
+            $bodyLangArr = array();
             
             //Създаваме тялото на постинга
-            $rec->body = $mvc->createDefaultBody($contragentDataHeader, $rec, $forward);
+            $rec->body = $bodyLangArr[$currLg] = $mvc->createDefaultBody($contragentData, $rec, $forward);
             
-            //След превода връщаме стария език
-            core_Lg::pop();
+            $allLangArr = arr::make(EF_LANGUAGES);
+            
+            if ($allLangArr) {
+                foreach ($allLangArr as $lang => $verbLang) {
+                    
+                    if ($lang == $currLg) continue;
+                    
+                    // За всеки език подоготвяме текста
+                    core_Lg::push($lang);
+                    $bodyLangArr[$lang] = $mvc->createDefaultBody($contragentData, $rec, $forward);
+                    core_Lg::pop();
+                }
+            }
+            
+            if ($data->form->layout instanceof core_ET) {
+                
+                $bodyLgArr = array('hint' => $hintStr, 'lg' => $currLg, 'data' => $bodyLangArr);
+                
+//                $data->form->layout->append("\n runOnLoad(function(){ prepareLangBtn(" . json_encode($bodyLgArr) . ")}); ", 'JQRUN');
+            }
             
             //Добавяме новите стойности на $rec
             if($threadId && !$forward) {
@@ -1551,9 +1551,9 @@ class email_Outgoings extends core_Master
         }
         
         // Ако има открит език
-        if ($lg) {
+        if ($currLg) {
             
-            $langAttrArr = array("lang" => $lg, "spellcheck" => "true");
+            $langAttrArr = array("lang" => $currLg, "spellcheck" => "true");
             
             // Добавяме атрибути към тялото и заглавието
             $data->form->addAttr('body', $langAttrArr);
@@ -1565,16 +1565,38 @@ class email_Outgoings extends core_Master
     /**
      * Създава тялото на постинга
      */
-    function createDefaultBody($headerData, $rec, $forward = FALSE)
+    function createDefaultBody($contragentData, $rec, $forward = FALSE)
     {
+        $contragentDataHeader = (array)$contragentData;
+            
+        //Данни необходими за създаване на хедър-а на съобщението
+        $contragentDataHeader['name'] = $contragentData->person;
+        
+        // Ако има обръщение
+        if($contragentData->salutationRec) {
+            if($contragentData->salutationRec == 'mrs' || $contragentData->salutationRec == 'miss') {
+                $contragentDataHeader['hello'] = tr("Уважаема");
+            } else {
+                $contragentDataHeader['hello'] = tr("Уважаеми");
+            }
+        }
+        
+        if (!$contragentDataHeader['hello']) {
+            if($contragentData->person) {
+                $contragentDataHeader['hello'] = tr('Здравейте');
+            } else {
+                $contragentDataHeader['hello'] = tr('Уважаеми колеги');
+            }
+        }
+        
         //Хедър на съобщението
-        $header = $this->getHeader($headerData, $rec);
+        $header = $this->getHeader($contragentDataHeader, $rec);
         
         //Текста между заглавието и подписа
         $body = $this->getBody($rec->originId, $forward);
         
         //Футър на съобщението
-        $footer = $this->getFooter($headerData['countryId']);
+        $footer = $this->getFooter($contragentDataHeader['countryId']);
         
         //Текста по подразбиране в "Съобщение"
         $defaultBody = $header . "\n\n" . $body . "\n\n" . $footer;
