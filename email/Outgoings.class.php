@@ -1422,12 +1422,8 @@ class email_Outgoings extends core_Master
                     core_Lg::pop();
                 }
             }
-            if ($data->form->layout instanceof core_ET) {
-                
-               $bodyLgArr = array('hint' => $hintStr, 'lg' => $currLg, 'data' => $bodyLangArr);
-                
-               //$data->form->layout->append("\n runOnLoad(function(){ prepareLangBtn(" . json_encode($bodyLgArr) . ")}); ", 'JQRUN');
-            }
+            
+            $data->__bodyLgArr = array('hint' => $hintStr, 'lg' => $currLg, 'data' => $bodyLangArr);
             
             //Добавяме новите стойности на $rec
             if($threadId && !$forward) {
@@ -1560,6 +1556,26 @@ class email_Outgoings extends core_Master
             $data->form->addAttr('body', $langAttrArr);
             $data->form->addAttr('subject', $langAttrArr);
         }
+    }
+    
+    
+    /**
+     * Изпълнява се след опаковане на съдаржанието от мениджъра
+     *
+     * @param email_Outgoings $mvc
+     * @param string|core_ET $res
+     * @param string|core_ET $tpl
+     * @param stdClass $data
+     *
+     * @return boolean
+     */
+    protected static function on_AfterRenderWrapping($mvc, &$res, &$tpl = NULL, $data = NULL)
+    {
+        if (!$data->__bodyLgArr) return ;
+        
+        if (!($res instanceof core_ET)) return ;
+        
+//        $res->append("\n runOnLoad(function(){ prepareLangBtn(" . json_encode($data->__bodyLgArr) . ")}); ", 'JQRUN');
     }
     
     
