@@ -192,6 +192,29 @@ class currency_Currencies extends core_Master {
     
     
     /**
+     * 
+     * 
+     * @param currency_Currencies $mvc
+     * @param object $data
+     * @param object $data
+     */
+    public static function on_AfterPrepareListRecs($mvc, &$res, $data)
+    {
+        $accConf = core_Packs::getConfig('acc');
+        
+        $bgnRate = $mvc->fetchField(array("#code = '[#1#]'", $accConf->BASE_CURRENCY_CODE), 'lastRate');
+        
+        if (!$bgnRate) return ;
+        
+        foreach ((array)$data->recs as $rec) {
+            if (!$rec->lastRate) continue;
+            
+            $rec->lastRate = $bgnRate / $rec->lastRate;
+        }
+    }
+    
+    
+    /**
      * Преди рендиране на детайлите
      */
     public static function on_BeforeRenderDetails($mvc, $res, &$data)
