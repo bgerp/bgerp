@@ -352,7 +352,7 @@ class acc_ArticleDetails extends doc_Detail
         }
         
         $rec = $form->rec;
-        
+       
         $accs = array(
             'debit' => acc_Accounts::getAccountInfo($rec->debitAccId),
             'credit' => acc_Accounts::getAccountInfo($rec->creditAccId),
@@ -368,13 +368,14 @@ class acc_ArticleDetails extends doc_Detail
              * аналитичности на дебит и кредит сметките са едни и същи.
              */
         } else {
-            foreach ($accs as $type=>$acc) {
+            foreach ($accs as $type => $acc) {
                 if ($acc->isDimensional) {
                     
                     /**
                      * @TODO За размерни сметки: проверка дали са въведени поне два от трите оборота.
                      * Изчисление на (евентуално) липсващия оборот.
                      */
+                	
                     $nEmpty = (int)!isset($rec->{"{$type}Quantity"}) +
                     (int)!isset($rec->{"{$type}Price"}) +
                     (int)!isset($rec->amount);
@@ -391,14 +392,14 @@ class acc_ArticleDetails extends doc_Detail
                          *
                          */
                         switch (true) {
-                            case empty($rec->{"{$type}Quantity"}) :
+                            case !isset($rec->{"{$type}Quantity"}) :
                             @$rec->{"{$type}Quantity"} = $rec->amount / $rec->{"{$type}Price"};
                             break;
-                            case empty($rec->{"{$type}Price"}) :
+                            case !isset($rec->{"{$type}Price"}) :
                             @$rec->{"{$type}Price"} = $rec->amount / $rec->{"{$type}Quantity"};
                             break;
-                            case empty($rec->amount) :
-                            @$rec->amount = $rec->{"{$type}Price"} * $rec->{"{$type}Quantity"};
+                            case !isset($rec->amount) :
+                            @$rec->amount = $rec->{"{$type}Price"} * (!empty($rec->{"{$type}Quantity"}) ? $rec->{"{$type}Quantity"} : 1);
                             break;
                         }
                         
@@ -410,7 +411,7 @@ class acc_ArticleDetails extends doc_Detail
                     }
                     
                     
-                } else {
+                } else {bp();
                     $rec->{"{$type}Amount"} = $rec->amount;
                 }
             }
