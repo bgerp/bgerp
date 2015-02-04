@@ -699,10 +699,8 @@
 }
 
 .narrow #pos-products{
-    max-width: 100%;
-    overflow-y: hidden !important;
-    height: 185px;
-    overflow-x: auto;
+    overflow-x: hidden !important;
+    overflow-y: visible !important;
     padding-bottom:5px;
 }
 
