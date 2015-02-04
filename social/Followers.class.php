@@ -19,13 +19,13 @@ class social_Followers extends core_Master
     /**
      * Заглавие
      */
-    var $title = "Следени";
+    var $title = "Бутони за проследяване в социалните мрежи";
     
     
     /**
      * Заглавие в единствено число
      */
-    var $singleTitle = "Следене";
+    var $singleTitle = "Проследяване";
         
     
     /**

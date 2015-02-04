@@ -65,7 +65,7 @@ class social_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     var $menuItems = array(
-            array(3.9, 'Сайт', 'SNM', 'social_Sharings', 'list', "cms, social, admin, ceo"),
+            array(3.9, 'Сайт', 'Соц', 'social_Sharings', 'list', "cms, social, admin, ceo"),
         );
 
         
