@@ -1157,7 +1157,8 @@ class cat_Products extends core_Embedder {
     	$row = $this->recToVerbal($rec);
     	
     	$tpl = new ET($this->recTitleTpl);
-    	$tpl->placeObject($row);
+    	$tpl->replace($this->getVerbal($rec, 'code'), 'code');
+    	$tpl->replace($this->getVerbal($rec, 'name'), 'name');
     	
     	return $tpl->getContent();
     }
