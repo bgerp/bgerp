@@ -135,4 +135,33 @@ class sales_SalesDetails extends deals_DealDetail
         
         parent::getDealDetailFields($this);
     }
+    
+    
+    /**
+     * Проверка и валидиране на формата
+     */
+    public static function on_AfterInputEditForm($mvc, $form)
+    {
+    	$rec = &$form->rec;
+    	$masterStore = $mvc->Master->fetch($rec->{$mvc->masterKey})->shipmentStoreId;
+    	
+    	if(isset($rec->productId)){
+    		if(isset($masterStore)){
+    			$storeInfo = deals_Helper::getProductQuantityInStoreInfo($rec->productId, $rec->classId, $masterStore);
+    			$form->info = $storeInfo->formInfo;
+    		}
+    	}
+    	
+    	if ($form->isSubmitted()){
+    		if(isset($storeInfo)){
+    			$productInfo = cls::get($rec->classId)->getProductInfo($rec->productId);
+    			$quantityInPack = (empty($rec->packagingId)) ? 1 : $productInfo->packagings[$rec->packagingId]->quantity;
+    			$quantity = $rec->packQuantity * $quantityInPack;
+    			
+    			if($quantity > $storeInfo->quantity){
+    				$form->setWarning('packQuantity', 'Въведеното количество е по-голямо от наличното в склада');
+    			}
+    		}
+    	}
+    }
 }

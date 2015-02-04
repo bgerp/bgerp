@@ -198,6 +198,34 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     }
     
     
+    /*
+     * /**
+     * Проверка и валидиране на формата
+    public static function on_AfterInputEditForm($mvc, $form)
+    {
+    	$rec = &$form->rec;
+    	$masterStore = $mvc->Master->fetch($rec->{$mvc->masterKey})->shipmentStoreId;
+    	
+    	if(isset($rec->productId)){
+    		if(isset($masterStore)){
+    			$storeInfo = deals_Helper::getProductQuantityInStoreInfo($rec->productId, $rec->classId, $masterStore);
+    			$form->info = $storeInfo->formInfo;
+    		}
+    	}
+    	
+    	if ($form->isSubmitted()){
+    		if(isset($storeInfo)){
+    			$productInfo = cls::get($rec->classId)->getProductInfo($rec->productId);
+    			$quantityInPack = (empty($rec->packagingId)) ? 1 : $productInfo->packagings[$rec->packagingId]->quantity;
+    			$quantity = $rec->packQuantity * $quantityInPack;
+    			
+    			if($quantity > $storeInfo->quantity){
+    				$form->setWarning('packQuantity', 'Въведеното количество е по-голямо от наличното в склада');
+    			}
+    		}
+    	}
+    }
+     */
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      * 
@@ -206,12 +234,28 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
      */
     public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form &$form)
     { 
+    	$rec = &$form->rec;
+    	$masterStore = $mvc->Master->fetch($rec->{$mvc->masterKey})->storeId;
+    	 
+    	if(isset($rec->productId)){
+    		if(isset($masterStore)){
+    			$storeInfo = deals_Helper::getProductQuantityInStoreInfo($rec->productId, $rec->classId, $masterStore);
+    			$form->info = $storeInfo->formInfo;
+    		}
+    	}
+    	
     	parent::inputDocForm($mvc, $form);
     	
     	if ($form->isSubmitted() && !$form->gotErrors()) {
             
             // Извличане на информация за продукта - количество в опаковка, единична цена
             $rec = $form->rec;
+            
+            if(isset($storeInfo)){
+            	if($rec->quantity > $storeInfo->quantity){
+            		$form->setWarning('packQuantity', 'Въведеното количество е по-голямо от наличното в склада');
+            	}
+            }
             
             if($rec->info){
             	if(!preg_match('/^[0-9]+[\ \,\-0-9]*$/', $rec->info, $matches)){

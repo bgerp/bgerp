@@ -182,18 +182,10 @@ class accda_Da extends core_Master
     			$form->setField('storeId', 'input,mandatory');
     			$form->setFieldTypeParams('accountId', 'root=20');
     		
-    			// Ако е избрана сметка
+    			// Ако е избран склад
     			if($rec->storeId){
     				$productsClassId = cat_Products::getClassId();
-    				$quantity = store_Products::fetchField("#productId = {$rec->productId} AND #classId = {$productsClassId} AND #storeId = {$rec->storeId}", 'quantity');
-    				$quantity = ($quantity) ? $quantity : 0;
-    				 
-    				$Double = cls::get('type_Double');
-    				$Double->params['smartRound'] = 'smartRound';
-    				 
-    				$shortUom = cat_UoM::getShortName($pInfo->productRec->measureId);
-    				$storeName = store_Stores::getTitleById($rec->storeId);
-    				$form->info = tr("|Количество в|* <b>{$storeName}</b> : {$Double->toVerbal($quantity)} {$shortUom}");
+    				$form->info = deals_Helper::getProductQuantityInStoreInfo($rec->productId, $productsClassId, $rec->storeId)->formInfo;
     			}
     		} else {
     			$form->setFieldTypeParams('accountId', 'root=21');
