@@ -164,4 +164,25 @@ class sales_SalesDetails extends deals_DealDetail
     		}
     	}
     }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     */
+    public static function on_AfterPrepareListRows($mvc, &$data)
+    {
+    	$rows = &$data->rows;
+    	 
+    	if(!count($data->recs)) return;
+    	 
+    	if($storeId = $data->masterData->rec->shipmentStoreId){
+    		foreach ($rows as $id => $row){
+    			$rec = $data->recs[$id];
+    			$quantityInStore = store_Products::fetchField("#productId = {$rec->productId} AND #classId = {$rec->classId} AND #storeId = {$storeId}", 'quantity');
+    			if(($quantityInStore - $rec->quantity) < 0){
+    				$row->ROW_ATTR['class'] .= ' row-negative';
+    			}
+    		}
+    	}
+    }
 }

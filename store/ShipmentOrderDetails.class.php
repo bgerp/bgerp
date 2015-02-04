@@ -198,34 +198,6 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     }
     
     
-    /*
-     * /**
-     * Проверка и валидиране на формата
-    public static function on_AfterInputEditForm($mvc, $form)
-    {
-    	$rec = &$form->rec;
-    	$masterStore = $mvc->Master->fetch($rec->{$mvc->masterKey})->shipmentStoreId;
-    	
-    	if(isset($rec->productId)){
-    		if(isset($masterStore)){
-    			$storeInfo = deals_Helper::getProductQuantityInStoreInfo($rec->productId, $rec->classId, $masterStore);
-    			$form->info = $storeInfo->formInfo;
-    		}
-    	}
-    	
-    	if ($form->isSubmitted()){
-    		if(isset($storeInfo)){
-    			$productInfo = cls::get($rec->classId)->getProductInfo($rec->productId);
-    			$quantityInPack = (empty($rec->packagingId)) ? 1 : $productInfo->packagings[$rec->packagingId]->quantity;
-    			$quantity = $rec->packQuantity * $quantityInPack;
-    			
-    			if($quantity > $storeInfo->quantity){
-    				$form->setWarning('packQuantity', 'Въведеното количество е по-голямо от наличното в склада');
-    			}
-    		}
-    	}
-    }
-     */
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      * 
@@ -265,5 +237,25 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
             	$rec->info = preg_replace("/\s+/", "", $rec->info);
             }
         }
+    }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     */
+    public static function on_AfterPrepareListRows($mvc, &$data)
+    {
+    	$rows = &$data->rows;
+    	
+    	if(!count($data->recs)) return;
+    	
+    	$storeId = $data->masterData->rec->storeId;
+    	foreach ($rows as $id => $row){
+    		$rec = $data->recs[$id];
+    		$quantityInStore = store_Products::fetchField("#productId = {$rec->productId} AND #classId = {$rec->classId} AND #storeId = {$storeId}", 'quantity');
+    		if(($quantityInStore - $rec->quantity) < 0){
+    			$row->ROW_ATTR['class'] .= ' row-negative';
+    		}
+    	}
     }
 }
