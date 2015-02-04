@@ -1507,20 +1507,20 @@ class pos_Receipts extends core_Master {
     	$query->where("#state = 'pending' OR #state = 'draft'");
     	$query->orderBy("#state");
     	
-    	$count = 1;
+    	$conf =core_Packs::getConfig('pos');
+    	
     	while($rec = $query->fetch()){
-    		$data->rows[$rec->id] = $this->recToVerbal($rec);
-    		$data->rows[$rec->id]->docId = $this->getHyperlink($rec->id, TRUE);
+    		$num = substr($rec->id, -1 * $conf->POS_SHOW_RECEIPT_DIGITS);
+    		$background = ($rec->state == 'draft') ? "#97FFB1" : "#FBE2C5";
     		
-    		if($rec->state == 'draft'){
-    			if($this->haveRightFor('reject', $rec)){
-    				$data->rows[$rec->id]->count = ht::createLink('', array($this, 'reject', $rec->id, 'ret_url' => TRUE), 'Наистина ли желаете да оттеглите документа', 'ef_icon=img/16/reject.png,title=Оттегляне на бележката, class=reject-btn');
-    			}
+    		if($this->haveRightFor('terminal', $rec)){
+    			$num = ht::createLink($num, array($this, 'terminal', $rec->id));
+    		} elseif($this->haveRightFor('single', $rec)){
+    			$num = ht::createLink($num, array($this, 'single', $rec->id));
     		}
     		
-    		$data->rows[$rec->id]->count .= cls::get('type_Int')->toVerbal($count);
-    		
-    		$count++;
+    		$num = "<span style='background:{$background};margin-left:5px'>{$num}</span>";
+    		$data->rows[$rec->id] = $num;
     	}
     }
     
@@ -1534,17 +1534,9 @@ class pos_Receipts extends core_Master {
     public function renderReceipts($data)
     {
     	$tpl = new ET('');
-    	$table = cls::get('core_TableView', array('mvc' => $this));
-        $data->listFields = array('count'   => '№',
-        						  'valior'  => 'Вальор',
-					              'docId'   => 'Документ',
-        						  'total'   => 'Общо',
-        						  'paid'    => 'Платено',
-        );
-    	
-         $details = $table->get($data->rows, $data->listFields);
-         $tpl->append($details);	
+    	$str = implode(',', $data->rows);
+        $tpl->append($str);	
          
-    	 return $tpl;
+    	return $tpl;
     }
 }
