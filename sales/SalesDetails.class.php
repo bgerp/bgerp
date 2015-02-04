@@ -153,23 +153,30 @@ class sales_SalesDetails extends deals_DealDetail
     	}
     	
     	if ($form->isSubmitted()){
+    		$pInfo = cls::get($rec->classId)->getProductInfo($rec->productId, $rec->packagingId);
+    		$quantityInPack = ($pInfo->packagingRec) ? $pInfo->packagingRec->quantity : 1;
+    		
     		if(isset($storeInfo)){
-    			$productInfo = cls::get($rec->classId)->getProductInfo($rec->productId);
-    			$quantityInPack = (empty($rec->packagingId)) ? 1 : $productInfo->packagings[$rec->packagingId]->quantity;
-    			$quantity = $rec->packQuantity * $quantityInPack;
-    			
-    			if($quantity > $storeInfo->quantity){
+    			if($rec->packQuantity > ($storeInfo->quantity / $quantityInPack)){
     				$form->setWarning('packQuantity', 'Въведеното количество е по-голямо от наличното в склада');
     			}
     		}
+    		
+    		if(isset($rec->packPrice)){
+    			if($rec->packPrice < cls::get($rec->classId)->getSelfValue($rec->productId) * $quantityInPack){
+    				$form->setWarning('packPrice', 'Цената е под себестойност');
+    			}
+    		}
     	}
+    	
+    	parent::inputDocForm($mvc, $form);
     }
     
     
     /**
      * След преобразуване на записа в четим за хора вид.
      */
-    public static function on_AfterPrepareListRows($mvc, &$data)
+    public static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
     	$rows = &$data->rows;
     	 
@@ -182,7 +189,11 @@ class sales_SalesDetails extends deals_DealDetail
     			$diff = ($data->masterData->rec->state == 'active') ? $quantityInStore : $quantityInStore - $rec->quantity;
     			
     			if($diff < 0){
-    				$row->ROW_ATTR['class'] .= ' row-negative';
+    				$row->packQuantity = "<span class='row-negative' title = '" . tr('Количеството в скалда е отрицателно') . "'>{$row->packQuantity}</span>";
+    			}
+    			
+    			if($rec->price < cls::get($rec->classId)->getSelfValue($rec->productId)){
+    				$row->packPrice = "<span class='row-negative' title = '" . tr('Цената е под себестойност') . "'>{$row->packPrice}</span>";
     			}
     		}
     	}

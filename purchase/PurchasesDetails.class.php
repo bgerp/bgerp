@@ -108,4 +108,13 @@ class purchase_PurchasesDetails extends deals_DealDetail
         
         parent::getDealDetailFields($this);
     }
+    
+    
+    /**
+     * Проверка и валидиране на формата
+     */
+    public static function on_AfterInputEditForm($mvc, $form)
+    {
+    	parent::inputDocForm($mvc, $form);
+    }
 }
