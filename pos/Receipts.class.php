@@ -522,10 +522,11 @@ class pos_Receipts extends core_Master {
      */
     private function pushFiles(&$tpl)
     {
-	    $tpl->push('pos/tpl/css/styles.css', 'CSS');
-	    $tpl->push('pos/js/scripts.js', 'JS');
-		jquery_Jquery::run($tpl, "posActions();");
-	    
+    	$tpl->push('pos/tpl/css/styles.css', 'CSS');
+    	if(!Mode::is('printing')){
+    		$tpl->push('pos/js/scripts.js', 'JS');
+    		jquery_Jquery::run($tpl, "posActions();");
+    	}
 	    $conf = core_Packs::getConfig('pos');
         $ThemeClass = cls::get($conf->POS_PRODUCTS_DEFAULT_THEME);
         $tpl->push($ThemeClass->getStyleFile(), 'CSS');

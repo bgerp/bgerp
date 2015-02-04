@@ -836,6 +836,8 @@ only screen and (max-width: 360px) {
   .narrow .colum-btn {
     margin-top: 0; } }
 
+  .printing #single-receipt {
+    width: 100%; }
   .printing .receipt-sale,
   .printing .gradient {
     background: none; }
