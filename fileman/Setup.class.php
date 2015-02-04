@@ -362,15 +362,12 @@ class fileman_Setup extends core_ProtoSetup
         $query->where('#fileLen IS NULL');
         $query->where('#dataId IS NOT NULL');
         
-        $lenArr = array();
+        $query->EXT('dataSize', 'fileman_Data', 'externalName=fileLen,externalKey=dataId');
+        
         while ($rec = $query->fetch()) {
             if (!$rec->dataId || ($rec->dataId < 0)) continue;
             
-            if (!$lenArr[$rec->dataId]) {
-                $lenArr[$rec->dataId] = fileman_Data::fetchField($rec->dataId, 'fileLen', FALSE);
-            }
-            
-            $rec->fileLen = $lenArr[$rec->dataId];
+            $rec->fileLen = $rec->dataSize;
             fileman_Files::save($rec, 'fileLen');
         }
     }
