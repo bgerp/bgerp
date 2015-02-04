@@ -1567,7 +1567,7 @@ class email_Outgoings extends core_Master
      * @param string|core_ET $tpl
      * @param stdClass $data
      *
-     * @return boolean
+     * @return NULL|boolean
      */
     protected static function on_AfterRenderWrapping($mvc, &$res, &$tpl = NULL, $data = NULL)
     {
