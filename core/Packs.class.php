@@ -707,8 +707,10 @@ class core_Packs extends core_Manager
                 
                 if (is_null($value) && ($currLg != 'en')) {
                     
+                    $currLgHeader = $key . '_EN';
+                    
                     // Ако няма данни за текущия език използваме на английски
-                    $value = $key . '_EN';
+                    $value = $packConfig->$currLgHeader;
                 }
             } catch (core_exception_Expect $e) {
             }
