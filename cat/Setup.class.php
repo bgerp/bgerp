@@ -170,4 +170,40 @@ class cat_Setup extends core_ProtoSetup
     		}
     	}
     }
+    
+    
+    /**
+     * Миграция от старите мета данни към новите
+     */
+    public function migrateMetas()
+    {
+    	if(!cat_Products::count()) return;
+    	
+    	set_time_limit(600);
+    	
+    	$Products = cls::get('cat_Products');
+    	$query = $Products->getQuery();
+    	$query->where("#groups IS NOT NULL");
+    	
+    	$Set = cls::get('type_Set');
+    	
+    	while($rec = $query->fetch()){
+    		$meta = cat_Products::getMetaData($rec->groups);
+    		$metaArr = type_Set::toArray($meta);
+    		
+    		if(isset($metaArr['materials'])){
+    			unset($metaArr['materials']);
+    			$metaArr['canStore'] = 'canStore';
+    			$metaArr['canConvert'] = 'canConvert';
+    		}
+    		
+    		foreach ($metaArr as $metaName){
+    			$rec->$metaName = 'yes';
+    		}
+    		
+    		$rec->meta = $Set->fromVerbal($metaArr);
+    		
+    		$Products->save_($rec);
+    	}
+    }
 }
