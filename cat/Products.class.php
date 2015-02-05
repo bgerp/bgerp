@@ -1154,7 +1154,6 @@ class cat_Products extends core_Embedder {
     public function getProductDesc($id, $documentMvc, $time = NULL)
     {
     	$rec = $this->fetchRec($id);
-    	$row = $this->recToVerbal($rec);
     	
     	$tpl = new ET($this->recTitleTpl);
     	$tpl->replace($this->getVerbal($rec, 'code'), 'code');
