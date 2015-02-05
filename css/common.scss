@@ -2158,7 +2158,7 @@ a.lang {
     margin-top: 3px;
     text-align: center;
     padding: 2px 2px 1px 2px !important;
-  
+    border-radius: 2px;
     &.en {
         background-color: #05008e;
         color:#fff;
@@ -2191,7 +2191,6 @@ a.lang {
         background-color: none !important;
         border-style: outset;
         border: 1px solid #99c;
-        border-radius: 0;
     }
 }
 @-moz-document url-prefix() {

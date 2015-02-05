@@ -2011,7 +2011,8 @@ a.lang {
   font-size: 0.9em;
   margin-top: 3px;
   text-align: center;
-  padding: 2px 2px 1px 2px !important; }
+  padding: 2px 2px 1px 2px !important;
+  border-radius: 2px; }
   a.lang.en {
     background-color: #05008e;
     color: white; }
@@ -2035,8 +2036,7 @@ a.lang {
   a.lang:hover {
     background-color: none !important;
     border-style: outset;
-    border: 1px solid #9999cc;
-    border-radius: 0; }
+    border: 1px solid #9999cc; }
 
 @-moz-document url-prefix() {
     a.lang {
