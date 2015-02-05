@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   acc
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -133,7 +133,7 @@ class acc_ArticleDetails extends doc_Detail
     /**
      * След преобразуване на записа в четим за хора вид.
      */
-    static function on_AfterPrepareListRows($mvc, &$res)
+    protected static function on_AfterPrepareListRows($mvc, &$res)
     {
         $rows = &$res->rows;
         $recs = &$res->recs;
@@ -176,7 +176,7 @@ class acc_ArticleDetails extends doc_Detail
     /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
-    static function on_AfterPrepareListToolbar($mvc, &$data)
+    protected static function on_AfterPrepareListToolbar($mvc, &$data)
     {
         if (!$mvc->Master->haveRightFor('edit', $data->masterData->rec)) {
             
@@ -222,7 +222,7 @@ class acc_ArticleDetails extends doc_Detail
     /**
      * Извиква се след рендиране на Toolbar-а
      */
-    static function on_AfterRenderListToolbar($mvc, &$tpl, $data)
+    protected static function on_AfterRenderListToolbar($mvc, &$tpl, $data)
     {
         if ($data->accSelectToolbar) {
             $form = $data->accSelectToolbar->renderHtml();
@@ -237,7 +237,7 @@ class acc_ArticleDetails extends doc_Detail
     /**
      * След подготовка на формата за добавяне/редакция
      */
-    static function on_AfterPrepareEditForm($mvc, $data)
+    protected static function on_AfterPrepareEditForm($mvc, $data)
     {
         $form = $data->form;
         $rec = $form->rec;
@@ -345,7 +345,7 @@ class acc_ArticleDetails extends doc_Detail
     /**
      * След изпращане на формата
      */
-    static function on_AfterInputEditForm($mvc, $form)
+    protected static function on_AfterInputEditForm($mvc, $form)
     {
         if (!$form->isSubmitted()){
             return;
@@ -409,9 +409,7 @@ class acc_ArticleDetails extends doc_Detail
                     if (!empty($rec->{"{$type}Price"}) && !empty($rec->{"{$type}Quantity"}) && $rec->amount != $rec->{"{$type}Price"} * $rec->{"{$type}Quantity"}) {
                         $form->setError("{$type}Quantity, {$type}Price, amount", 'Невъзможни стойности на оборотите');
                     }
-                    
-                    
-                } else {bp();
+                } else {
                     $rec->{"{$type}Amount"} = $rec->amount;
                 }
             }
@@ -429,7 +427,7 @@ class acc_ArticleDetails extends doc_Detail
     /**
      * Преди изтриване на запис
      */
-    static function on_BeforeDelete($mvc, &$res, &$query, $cond)
+    protected static function on_BeforeDelete($mvc, &$res, &$query, $cond)
     {
         $_query = clone($query);
         $query->notifyMasterIds = array();
