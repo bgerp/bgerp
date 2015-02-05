@@ -1575,7 +1575,7 @@ class email_Outgoings extends core_Master
         
         if (!($res instanceof core_ET)) return ;
         
-//        $res->append("\n runOnLoad(function(){ prepareLangBtn(" . json_encode($data->__bodyLgArr) . ")}); ", 'JQRUN');
+        $res->append("\n runOnLoad(function(){ prepareLangBtn(" . json_encode($data->__bodyLgArr) . ")}); ", 'JQRUN');
     }
     
     
