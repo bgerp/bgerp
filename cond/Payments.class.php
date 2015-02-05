@@ -161,7 +161,7 @@ class cond_Payments extends core_Manager {
     
     	if ($rec = $self->fetch($objectId)) {
     		$result = (object)array(
-    				'num' => $rec->id,
+    				'num' => $rec->id . "-p",
     				'title' => $rec->title,
     		);
     	}

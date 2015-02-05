@@ -205,10 +205,10 @@ class accda_Da extends core_Master
     {
         $result = NULL;
         $self = cls::get(get_called_class());
-        
+       
         if ($rec = self::fetch($objectId)) {
             $result = (object)array(
-                'num' => $self->abbr . $rec->num,
+                'num' => $rec->num .  "-" . mb_strtolower($self->abbr),
                 'title' => $rec->title,
                 'features' => 'foobar' // @todo!
             );

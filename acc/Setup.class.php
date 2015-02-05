@@ -98,7 +98,7 @@ class acc_Setup extends core_ProtoSetup
     	'acc_BalanceRepairs',
     	'acc_BalanceRepairDetails',
         'migrate::removeYearInterfAndItem',
-        'migrate::updateItemNums2',
+        'migrate::updateItemsN',
     );
     
     
@@ -190,7 +190,7 @@ class acc_Setup extends core_ProtoSetup
     /**
      * Обновява номерата на перата
      */
-    function updateItemNums2()
+    function updateItemsN()
     {
         $Items = cls::get('acc_Items');
         $itemsQuery = $Items->getQuery();

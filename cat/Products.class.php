@@ -435,7 +435,7 @@ class cat_Products extends core_Embedder {
         	$pInfo = $Driver->getProductInfo();
         	
         	$result = (object)array(
-                'num'      => "A" . $rec->code,
+                'num'      => $rec->code . "-a",
                 'title'    => $pInfo->productRec->name,
                 'uomId'    => $pInfo->productRec->measureId,
                 'features' => array()

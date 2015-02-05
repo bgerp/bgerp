@@ -740,7 +740,7 @@ class hr_EmployeeContracts extends core_Master
         if ($rec = self::fetch($objectId)) {
             $result = (object)array(
                 'title' => $this->getVerbal($rec, 'personId') . " [" . $this->getVerbal($rec, 'startFrom') . ']',
-                'num' => "Ec" . $rec->id,
+                'num' => $rec->id . "-ec",
                 'features' => 'foobar' // @todo!
             );
         }

@@ -185,7 +185,7 @@ class mp_Resources extends core_Master
     
     	if ($rec = $self->fetch($objectId)) {
     		$result = (object)array(
-    				'num' => $rec->id,
+    				'num' => $rec->id . "-r",
     				'title' => $rec->title,
     		);
     	}

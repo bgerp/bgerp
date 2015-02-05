@@ -640,10 +640,11 @@ class pos_Reports extends core_Master {
     public static function getItemRec($objectId)
     {
     	$result = NULL;
-    	 
+    	$self = cls::get(get_called_class());
+    	
     	if ($rec = self::fetch($objectId)) {
     		$result = (object)array(
-    				'num' => $objectId,
+    				'num' => $objectId . "-" . mb_strtolower($self->abbr),
     				'title' => static::getRecTitle($rec),
     		);
     	}
