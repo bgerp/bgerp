@@ -1348,8 +1348,8 @@ class pos_Receipts extends core_Master {
     		$pInfo = cat_Products:: getProductInfo($id);
     		if(isset($pInfo->meta['canStore'])){
     			$obj->stock = pos_Stocks::getQuantity($id, $data->rec->pointId);
+    			$obj->stock /= $perPack;
     		}
-    		$obj->measureId = $pInfo->productRec->measureId;
     		
     		// Обръщаме реда във вербален вид
     		$data->rows[$id] = $this->getVerbalSearchresult($obj, $data);
@@ -1396,10 +1396,6 @@ class pos_Receipts extends core_Master {
     	
     	if($obj->stock < 0){
     		$row->stock = "<span style='color:red'>{$row->stock}</span>";	
-    	}
-    	
-    	if($obj->stock){
-    		$row->stock .= "&nbsp;" . cat_UoM::getShortName($obj->measureId);
     	}
     	
     	$row->ROW_ATTR['class'] = "search-product-row pos-add-res-btn";
