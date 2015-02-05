@@ -2151,10 +2151,13 @@ a.rtbutton:hover, a.rtbutton:active, a.rtbutton:focus {
 }
 a.lang {
     color:#fff;
+    border: 1px solid #bbd;
     text-transform: uppercase;
-    min-width: 24px;
+    min-width: 22px;
+    font-size: 0.9em;
+    margin-top: 3px;
     text-align: center;
-    padding: 3px 3px  2px 3px !important;
+    padding: 2px 2px 1px 2px !important;
   
     &.en {
         background-color: #05008e;
@@ -2187,10 +2190,14 @@ a.lang {
     &:hover {
         background-color: none !important;
         border-style: outset;
-        border: 1px solid #bbd;
+        border: 1px solid #99c;
         border-radius: 0;
     }
-   
+}
+@-moz-document url-prefix() {
+	a.lang{
+	   padding: 2px !important;
+	}
 }
 .richtext-emoticons, .richtext-emoticons2, .richtext-emoticons3, .richtext-emoticons4, .richtext-emoticons5, .richtext-emoticons7 {
     position: absolute;

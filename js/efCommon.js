@@ -945,7 +945,11 @@ function prepareLangBtn(obj) {
 	
 	// при промяна на текста да скрием бутона
 	$('textarea').bind('input propertychange', function() {
-		 $('.rtbutton.lang').remove();
+		 $('.rtbutton.lang').fadeOut(600);
+		 setTimeout(function() {
+			 $('.rtbutton.lang').remove();
+		 }, 1000);
+		
 	});
 }
 
