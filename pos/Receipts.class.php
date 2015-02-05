@@ -863,6 +863,12 @@ class pos_Receipts extends core_Master {
 		foreach (array('person' => 'crm_Persons', 'company' => 'crm_Companies') as $type1 => $class){
 			if($type1 === $type || !$type){
 				$query = $class::getQuery();
+				
+				if($type1 == 'company'){
+					$ownId = crm_Setup::BGERP_OWN_COMPANY_ID;
+					$query->where("#id != {$ownId}");
+				}
+				
 				if($searchString){
 					$query->where(array("#searchKeywords LIKE '%[#1#]%'", $searchString));
 				}
@@ -888,10 +894,6 @@ class pos_Receipts extends core_Master {
 				}
 			}
 		}
-    	
-		// Махаме нашата фирма от опциите
-		$ownId = crm_Setup::BGERP_OWN_COMPANY_ID;
-		unset($data->recs["company|{$ownId}"]);
 		
     	// Ако има намерени записи
     	if(count($data->recs)){
