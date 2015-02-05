@@ -13,6 +13,12 @@ defIfNot('POS_RESULT_PRODUCT_PARAMS', '');
 
 
 /**
+ *  Колко цифри от края на бележката да се показват в номера и
+ */
+defIfNot('POS_SHOW_RECEIPT_DIGITS', 4);
+
+
+/**
  * Модул "Точки на продажба" - инсталиране/деинсталиране
  *
  *
@@ -58,6 +64,8 @@ class pos_Setup extends core_ProtoSetup
     var $configDescription = array(
     		'POS_PRODUCTS_DEFAULT_THEME' => array ('class(interface=pos_ThemeIntf,select=title)', 'caption=Tемата по-подразбиране за пос терминала->Тема'),
         	'POS_RESULT_PRODUCT_PARAMS'  => array("keylist(mvc=cat_Params,select=name)", 'caption=Параметри за показване търсене на продукт->Параметри,columns=2'),
+    		'POS_SHOW_RECEIPT_DIGITS'    => array('double', 'caption=Брой цифри показващи се цифри от кода на бележката'),
+    		
     );
     
 
