@@ -1018,8 +1018,8 @@ a.profile {
 .state-wakeup {
   background-color: #259641; }
 
-tr.row-negative {
-  background-color: #feadad; }
+.row-negative {
+  color: #ff3333; }
 
 .stateIndicator {
   height: 0.6em;
