@@ -428,7 +428,7 @@ class hr_Departments extends core_Master
         
         if ($rec = self::fetch($objectId)) {
             $result = (object)array(
-                'title' => $rec->name . "-dp",
+                'title' => $rec->name . " dp",
                 'num' => "Dep" . $rec->id,
                 //'features' => 'foobar' // @todo!
             );

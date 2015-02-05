@@ -208,7 +208,7 @@ class accda_Da extends core_Master
        
         if ($rec = self::fetch($objectId)) {
             $result = (object)array(
-                'num' => $rec->num .  "-" . mb_strtolower($self->abbr),
+                'num' => $rec->num . " " . mb_strtolower($self->abbr),
                 'title' => $rec->title,
                 'features' => 'foobar' // @todo!
             );

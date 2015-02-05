@@ -299,7 +299,7 @@ class cash_Cases extends core_Master {
         
         if ($rec = $self->fetch($objectId)) {
             $result = (object)array(
-                'num' => $rec->id . "-cs",
+                'num' => $rec->id . " cs",
                 'title' => $rec->name,
                 'features' => 'foobar' // @todo!
             );

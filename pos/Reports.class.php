@@ -644,7 +644,7 @@ class pos_Reports extends core_Master {
     	
     	if ($rec = self::fetch($objectId)) {
     		$result = (object)array(
-    				'num' => $objectId . "-" . mb_strtolower($self->abbr),
+    				'num' => $objectId . " " . mb_strtolower($self->abbr),
     				'title' => static::getRecTitle($rec),
     		);
     	}
