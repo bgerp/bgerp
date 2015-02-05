@@ -55,6 +55,12 @@ class pos_Receipts extends core_Master {
     
     
     /**
+     * Кой може да го изтрие?
+     */
+    public $canDelete = 'ceo, pos';
+    
+    
+    /**
      * Кой може да приключи бележка?
      */
     public $canClose = 'ceo, pos';
@@ -245,8 +251,12 @@ class pos_Receipts extends core_Master {
     	}
     	
     	// Слагаме бутон за оттегляне ако имаме права
-    	if($mvc->haveRightFor('reject', $rec) && !Mode::is('printing')){
-    		$row->rejectBtn = ht::createLink('', array($mvc, 'reject', $rec->id, 'ret_url' => toUrl(array($mvc, 'new'), 'local')), 'Наистина ли желаете да оттеглите документа', 'ef_icon=img/16/reject.png,title=Оттегляне на бележката, class=reject-btn');
+    	if(!Mode::is('printing')){
+    		if($mvc->haveRightFor('reject', $rec)){
+    			$row->rejectBtn = ht::createLink('', array($mvc, 'reject', $rec->id, 'ret_url' => toUrl(array($mvc, 'new'), 'local')), 'Наистина ли желаете да оттеглите документа?', 'ef_icon=img/16/reject.png,title=Оттегляне на бележката, class=reject-btn');
+    		} elseif($mvc->haveRightFor('delete', $rec)){
+    			$row->rejectBtn = ht::createLink('', array($mvc, 'delete', $rec->id, 'ret_url' => toUrl(array($mvc, 'new'), 'local')), 'Наистина ли желаете да изтриете документа?', 'ef_icon=img/16/delete.png,title=Изтриване на бележката, class=reject-btn');
+    		}
     	}
     	
     	if($rec->state != 'draft'){
@@ -396,9 +406,11 @@ class pos_Receipts extends core_Master {
 			$res = 'no_one';
 		}
 		
-		// Никой неможе да изтрива активирана или затворена бележка
+		// Ако бележката е започната, може да се изтрие
 		if($action == 'delete' && isset($rec)) {
-			$res = 'no_one';
+			if(pos_ReceiptDetails::fetch("#receiptId = {$rec->id}") || $rec->state != 'draft'){
+				$res = 'no_one';
+			}
 		}
 		
 		// Можем да контираме бележки само когато те са чернови и платената
