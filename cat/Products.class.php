@@ -222,7 +222,38 @@ class cat_Products extends core_Embedder {
         $this->FLD('privateFolderId', 'key(mvc=doc_Folders)', 'input=none'); // В коя частна папка да се показва
         $this->FLD('specificationId', 'key(mvc=techno2_SpecificationDoc)', 'input=none'); // Поле за пораждаща спецификация
         
+        // Разбивки на свойствата за по-бързо индексиране и търсене
+        $this->FLD('canSell', 'enum(yes=Да,no=Не)', 'input=none');
+        $this->FLD('canBuy', 'enum(yes=Да,no=Не)', 'input=none');
+        $this->FLD('canStore', 'enum(yes=Да,no=Не)', 'input=none');
+        $this->FLD('canConvert', 'enum(yes=Да,no=Не)', 'input=none');
+        $this->FLD('fixedAsset', 'enum(yes=Да,no=Не)', 'input=none');
+        $this->FLD('canManifacture', 'enum(yes=Да,no=Не)', 'input=none');
+        $this->FLD('waste', 'enum(yes=Да,no=Не)', 'input=none');
+        
+        $this->FLD('meta', 'set(canSell=Продаваеми,
+                                canBuy=Купуваеми,
+                                canStore=Складируеми,
+                                canConvert=Вложими,
+                                fixedAsset=Дълготрайни активи,
+        						canManifacture=Производими,
+        						waste=Отпаден)', 'caption=Свойства->Списък,columns=2,formOrder=100000000,mandatory,input=none');
+        
+        $this->setDbIndex('canSell');
+        $this->setDbIndex('canBuy');
+        $this->setDbIndex('canStore');
+        $this->setDbIndex('canConvert');
+        $this->setDbIndex('fixedAsset');
+        $this->setDbIndex('canManifacture');
+        $this->setDbIndex('waste');
+        
         $this->setDbUnique('code');
+    }
+    
+    function act_Test()
+    {
+    	$S = cls::get('cat_Setup');
+    	$S->migrateMetas();
     }
     
     
@@ -389,7 +420,7 @@ class cat_Products extends core_Embedder {
         $data->listFilter->FNC('groupId', 'key(mvc=cat_Groups,select=name,allowEmpty)',
             'placeholder=Всички групи,caption=Група,input,silent,remember');
 		
-        $data->listFilter->FNC('meta', 'enum(all=Свойства,canSell=Продаваеми,
+        $data->listFilter->FNC('meta1', 'enum(all=Свойства,canSell=Продаваеми,
         						canBuy=Купуваеми,
         						canStore=Складируеми,
         						canConvert=Вложими,
@@ -399,8 +430,8 @@ class cat_Products extends core_Embedder {
 		
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        $data->listFilter->showFields = 'search,order,meta,groupId';
-        $data->listFilter->input('order,groupId,search,meta', 'silent');
+        $data->listFilter->showFields = 'search,order,meta1,groupId';
+        $data->listFilter->input('order,groupId,search,meta1', 'silent');
         
     	// Подредба
         if($data->listFilter->rec->order == 'alphabetic' || !$data->listFilter->rec->order) {
@@ -413,8 +444,8 @@ class cat_Products extends core_Embedder {
             $data->query->where("#groups LIKE '%|{$data->listFilter->rec->groupId}|%'");
         }
         
-        if ($data->listFilter->rec->meta && $data->listFilter->rec->meta != 'all') {
-        	$groupIds = cat_Groups::getByMeta($data->listFilter->rec->meta);
+        if ($data->listFilter->rec->meta1 && $data->listFilter->rec->meta1 != 'all') {
+        	$groupIds = cat_Groups::getByMeta($data->listFilter->rec->meta1);
         	$data->query->likeKeylist('groups', keylist::fromArray($groupIds));
         }
     }

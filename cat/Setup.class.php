@@ -59,6 +59,7 @@ class cat_Setup extends core_ProtoSetup
             'cat_Packagings',
     		'migrate::updateProducts',
     		'migrate::updateProducts3',
+    		'migrate::migrateMetas',
         );
 
         
