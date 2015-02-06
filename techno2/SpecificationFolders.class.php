@@ -61,7 +61,7 @@ class techno2_SpecificationFolders extends core_Master
     /**
      * Шаблон за единичния изглед
      */
-    public $singleLayoutFile = 'techno2/tpl/SingleLayoutSpecificationFolders.class.php';
+    public $singleLayoutFile = 'techno2/tpl/SingleLayoutSpecificationFolders.shtml';
     
     
     /**
