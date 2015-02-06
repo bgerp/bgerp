@@ -72,11 +72,6 @@
                                         <span class='quiet'>|При получаване|*:</span> [#paymentOnDelivery#]
                                     </div>
                                     <!--ET_END paymentOnDelivery-->
-                                    <!--ET_BEGIN paymentAfterInvoice-->
-                                    <div class='cellRow'>
-                                        <span class='quiet'>|Окончателно|*: </span>[#paymentAfterInvoice#]  |до|* [#deadlineForBalancePayment#]
-                                    </div>
-                                    <!--ET_END paymentAfterInvoice-->
                                     <!--ET_BEGIN currencyId-->
                                     <div class='cellRow'>
                                         <span class='quiet'>|Валута|*: </span>[#currencyId#] [#currencyRateText#]
@@ -115,7 +110,7 @@
                                         <!--ET_END deliveryTime-->
                                         <!--ET_BEGIN shipmentStoreId-->
                                         <div class='cellRow'>
-                                            <span class='quiet'>|Склад|*:</span> <b>[#shipmentStoreId#]</b>
+                                            <span class='quiet'>|Склад|*:</span> [#shipmentStoreId#]
                                             <!--ET_BEGIN isDelivered-->
                                             <div class='stamp'>[#isDelivered#]</div>
                                             <!--ET_END isDelivered-->

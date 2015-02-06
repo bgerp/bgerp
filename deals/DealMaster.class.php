@@ -822,7 +822,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	}
 	    
 	    if($fields['-single']){
-	    	if($rec->deliveryLocationId){
+	    	if($rec->deliveryLocationId && !Mode::is('printing')){
 	    		$row->deliveryLocationId = crm_Locations::getHyperlink($rec->deliveryLocationId);
 	    	}
 	    	
@@ -837,7 +837,12 @@ abstract class deals_DealMaster extends deals_DealBase
 	    	$row->header = $mvc->singleTitle . " #<b>{$mvc->abbr}{$row->id}</b> ({$row->state})";
 	    	
 		    $mvc->prepareHeaderInfo($row, $rec);
-	        
+		   
+		    // Ако валутата е основната валута да не се показва
+		    if($rec->currencyId == acc_Periods::getBaseCurrencyCode($rec->valior)){
+		    	$row->currencyId = NULL;
+		    }
+		    
 	        if ($rec->currencyRate != 1) {
 	            $row->currencyRateText = '(<span class="quiet">' . tr('курс') . "</span> {$row->currencyRate})";
 	        }
