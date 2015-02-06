@@ -237,7 +237,7 @@ class cat_Products extends core_Embedder {
                                 canConvert=Вложими,
                                 fixedAsset=Дълготрайни активи,
         						canManifacture=Производими,
-        						waste=Отпаден)', 'caption=Свойства->Списък,columns=2,formOrder=100000000,mandatory,input=none');
+        						waste=Отпаден)', 'caption=Свойства->Списък,columns=2,formOrder=100000000,mandatory');
         
         $this->setDbIndex('canSell');
         $this->setDbIndex('canBuy');
