@@ -92,13 +92,13 @@ tr.noHover td:hover {
 .bugReport {
   border: none;
   background-color: transparent;
-  vertical-align: middle; }
+  vertical-align: middle;
+  width: 20px;
+  height: 20px;
+  border: 1px; }
 
 .narrow .bugReport {
   position: relative;
-  top: -2px;
-  width: 16px;
-  height: 16px;
   padding: 0; }
 
 .narrow #framecontentBottom {
