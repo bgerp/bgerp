@@ -1100,6 +1100,24 @@ class doc_Threads extends core_Manager
     
     
     /**
+     * Извиква се след успешен запис в модела
+     *
+     * @param doc_Threads $mvc
+     * @param int $id - първичния ключ на направения запис
+     * @param stdClass $rec - всички полета, които току-що са били записани
+     */
+    public static function on_AfterSave($mvc, &$id, $rec)
+    {
+        if ($rec->folderId) {
+            $Folders = cls::get('doc_Folders');
+            if (Mode::is('isMigrate')) {
+                $Folders->preventNotification[$rec->folderId] = $rec->folderId;
+            }
+        }
+    }
+    
+    
+    /**
      * Възстановява цяла нишка, заедно с всички документи в нея 
      * 
      * @param int $id
