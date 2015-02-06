@@ -81,12 +81,7 @@
                                                     <!--ET_BEGIN formLocation-->
 	                                                    [#formLocation#]
 	                                                    <td>
-		                                                    <!--ET_BEGIN country-->[#country#],<!--ET_END country--> 
-                                                            <!--ET_BEGIN place-->[#pCode#] [#place#], <!--ET_END place-->
-                                                            <!--ET_BEGIN address-->[#address#],<!--ET_END address-->
-                                                            <!--ET_BEGIN company--> [#company#] <!--ET_END company-->
-                                                            <!--ET_BEGIN person-->[#person#] <!--ET_END person-->
-                                                            <!--ET_BEGIN tel--><br>[#tel#]<!--ET_END tel-->
+		                                                     [#deliveryTo#]
 	                                                    </td>
                                                     <!--ET_END formLocation-->
                                                 </tr>
