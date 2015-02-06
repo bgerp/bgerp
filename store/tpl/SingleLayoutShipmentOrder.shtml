@@ -71,7 +71,8 @@
                                                     <td>[#storeId#]</td>
                                                 </tr>
                                                 <!--ET_END storeId-->
-                                               
+                                                <!--ET_BEGIN locationData-->
+                                                [#locationData#]
                                                 <tr>
                                                     <td class='quiet nowrap aright'>|До|*:</td>
                                                     <!--ET_BEGIN locationId-->
@@ -89,7 +90,7 @@
 	                                                    </td>
                                                     <!--ET_END formLocation-->
                                                 </tr>
-                                              
+                                                <!--ET_END locationData-->
                                                 <!--ET_BEGIN lineId-->
                                                 <tr>
                                                     <td class='quiet nowrap aright'>|Транспорт|*: </td>
