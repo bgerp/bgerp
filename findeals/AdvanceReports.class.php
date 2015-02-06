@@ -51,43 +51,43 @@ class findeals_AdvanceReports extends core_Master
     /**
      * Кой има право да чете?
      */
-    public $canRead = 'ceo,deals';
+    public $canRead = 'ceo,findeals';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,dealsMaster';
+	public $canList = 'ceo,findeals';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'ceo,deals';
+	public $canSingle = 'ceo,findeals';
     
     
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo,deals';
+    public $canEdit = 'ceo,findeals';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo,deals';
+    public $canAdd = 'ceo,findeals';
 
 
     /**
      * Кой може да го види?
      */
-    public $canViewprices = 'ceo,deals';
+    public $canViewprices = 'ceo,findeals';
     
     
     /**
      * Кой може да го изтрие?
      */
-    public $canConto = 'ceo,deals';
+    public $canConto = 'ceo,findeals';
     
     
     /**
