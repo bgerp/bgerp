@@ -1522,7 +1522,7 @@ class pos_Receipts extends core_Master {
     	
     	while($rec = $query->fetch()){
     		$num = substr($rec->id, -1 * $conf->POS_SHOW_RECEIPT_DIGITS);
-    		$background = ($rec->state == 'draft') ? "#97FFB1" : "#FBE2C5";
+    		$stateClass = ($rec->state == 'draft') ? "state-opened" : "state-active";
     		
     		if($this->haveRightFor('terminal', $rec)){
     			$num = ht::createLink($num, array($this, 'terminal', $rec->id));
@@ -1530,7 +1530,7 @@ class pos_Receipts extends core_Master {
     			$num = ht::createLink($num, array($this, 'single', $rec->id));
     		}
     		
-    		$num = "<span style='background:{$background};margin-left:5px'>{$num}</span>";
+    		$num = " <span class='open-note {$stateClass}'>{$num}</span>";
     		$data->rows[$rec->id] = $num;
     	}
     }
