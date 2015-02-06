@@ -1860,8 +1860,8 @@ div.alphabet div.tab-page {
     border: none;
     padding: 0; }
   div.tab-control.deal-history-tab .tab-row {
-    float: right;
-    margin-top: -35px; }
+    float: left;
+    margin-bottom: 10px; }
     div.tab-control.deal-history-tab .tab-row .tab {
       line-height: 1.1em;
       padding: 4px;
