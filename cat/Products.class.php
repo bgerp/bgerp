@@ -386,26 +386,6 @@ class cat_Products extends core_Embedder {
     
     
     /**
-     * След преобразуване на записа в четим вид
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $row
-     * @param stdClass $rec
-     */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
-    {
-        if($fields['-single']) {
-        	
-        	// извличане на мета данните според групите
-    		if($meta = $mvc->getMetaData($rec->groups)){
-    			$Groups = cls::get('cat_Groups');
-        		$row->meta = $Groups->getFieldType('meta')->toVerbal($meta);
-    		}
-        }
-    }
-    
-    
-    /**
      * Филтър на on_AfterPrepareListFilter()
      * Малко манипулации след подготвянето на формата за филтриране
      *
