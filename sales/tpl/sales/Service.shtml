@@ -72,11 +72,11 @@
                                         <span class='quiet'>|При получаване|*:</span> [#paymentOnDelivery#]
                                     </div>
                                     <!--ET_END paymentOnDelivery-->
-                                    <!--ET_BEGIN currencyId-->
+                                    <!--ET_BEGIN currencyCode-->
                                     <div class='cellRow'>
-                                        <span class='quiet'>|Валута|*: </span>[#currencyId#] [#currencyRateText#]
+                                        <span class='quiet'>|Валута|*: </span>[#currencyCode#] [#currencyRateText#]
                                     </div>
-                                    <!--ET_END currencyId-->
+                                    <!--ET_END currencyCode-->
                                     <!--ET_BEGIN bankAccountId-->
                                     <hr>
                                     <div class='cellRow'>

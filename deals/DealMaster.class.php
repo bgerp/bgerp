@@ -839,8 +839,8 @@ abstract class deals_DealMaster extends deals_DealBase
 		    $mvc->prepareHeaderInfo($row, $rec);
 		   
 		    // Ако валутата е основната валута да не се показва
-		    if($rec->currencyId == acc_Periods::getBaseCurrencyCode($rec->valior)){
-		    	$row->currencyId = NULL;
+		    if($rec->currencyId != acc_Periods::getBaseCurrencyCode($rec->valior)){
+		    	$row->currencyCode = $row->currencyId;
 		    }
 		    
 	        if ($rec->currencyRate != 1) {

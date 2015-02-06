@@ -73,12 +73,12 @@
                                         <span class='quiet'>On delivery:</span> [#paymentOnDelivery#]
                                     </div>
                                     <!--ET_END paymentOnDelivery-->
-                                    <!--ET_BEGIN currencyId-->
+                                    <!--ET_BEGIN currencyCode-->
                                     <div class='cellRow'>
                                         <span class='quiet'>Currency: </span>
-                                        [#currencyId#] [#currencyRateText#]
+                                        [#currencyCode#] [#currencyRateText#]
                                     </div>
-                                    <!--ET_END currencyId-->
+                                    <!--ET_END currencyCode-->
                                     <!--ET_BEGIN bankAccountId-->
                                     <hr>
                                     <div class='cellRow'>
