@@ -54,31 +54,31 @@ class findeals_AdvanceReportDetails extends doc_Detail
     /**
      * Кой има право да чете?
      */
-    public $canRead = 'ceo, deals';
+    public $canRead = 'ceo, findeals';
     
     
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo, deals';
+    public $canEdit = 'ceo, findeals';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo, deals';
+    public $canAdd = 'ceo, findeals';
     
     
     /**
      * Кой може да го види?
      */
-    public $canView = 'ceo, deals';
+    public $canView = 'ceo, findeals';
     
     
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'ceo, deals';
+    public $canDelete = 'ceo, findeals';
     
     
     /**
