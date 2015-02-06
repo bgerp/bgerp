@@ -181,6 +181,24 @@ class store_ShipmentOrders extends store_DocumentMaster
     
     
     /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    {
+    	$row->deliveryTo = $row->pCode . " " . $row->place;
+    	foreach(array('address', 'company', 'person', 'tel') as $fld){
+    		if(isset($rec->$fld)){
+    			$row->deliveryTo .= ", {$row->$fld}";
+    		}
+    	}
+    }
+    
+    
+    /**
      * След изпращане на формата
      */
     public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)

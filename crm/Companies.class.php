@@ -1050,7 +1050,7 @@ class crm_Companies extends core_Master
         
         if ($rec = $self->fetch($objectId)) {
             $result = (object)array(
-                'num' => "F" . $rec->id,
+                'num' => $rec->id . " f",
                 'title' => $rec->name,
                 'features' => array('Държава' => $self->getVerbal($rec, 'country'),
             						'Град' => bglocal_Address::canonizePlace($self->getVerbal($rec, 'place')),)

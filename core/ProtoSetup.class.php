@@ -111,6 +111,9 @@ class core_ProtoSetup
 
             // Ако менидръжит е миграция - изпълняваме я еднократно
             if (stripos($manager, 'migrate::') === 0) {
+                
+                Mode::push('isMigrate', TRUE);
+                
                 list($migrate, $method) = explode('::', $manager);
                 
                 // Ключ в настойките на пакета `core` под който се пази изпълнението на миграцията
@@ -129,6 +132,8 @@ class core_ProtoSetup
                         $html .= "<li style='color:red;'>Миграцията {$packName}::{$method} не беше успешна</li>";
                     }
                 }
+                
+                Mode::pop('isMigrate');
 
                 continue;
             }

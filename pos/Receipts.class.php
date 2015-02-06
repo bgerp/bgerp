@@ -25,7 +25,7 @@ class pos_Receipts extends core_Master {
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_Rejected, plg_Printing, acc_plg_DocumentSummary, plg_Printing,
+    public $loadList = 'plg_Created, plg_Rejected, doc_plg_MultiPrint, plg_Printing, acc_plg_DocumentSummary, plg_Printing,
     				 plg_State, bgerp_plg_Blank, pos_Wrapper, plg_Search, plg_Sorting,
                      plg_Modified';
 
@@ -52,6 +52,12 @@ class pos_Receipts extends core_Master {
      * Кой може да го прочете?
      */
     public $canRead = 'ceo, pos';
+    
+    
+    /**
+     * Кой може да го изтрие?
+     */
+    public $canDelete = 'ceo, pos';
     
     
     /**
@@ -245,8 +251,12 @@ class pos_Receipts extends core_Master {
     	}
     	
     	// Слагаме бутон за оттегляне ако имаме права
-    	if($mvc->haveRightFor('reject', $rec) && !Mode::is('printing')){
-    		$row->rejectBtn = ht::createLink('', array($mvc, 'reject', $rec->id, 'ret_url' => toUrl(array($mvc, 'new'), 'local')), 'Наистина ли желаете да оттеглите документа', 'ef_icon=img/16/reject.png,title=Оттегляне на бележката, class=reject-btn');
+    	if(!Mode::is('printing')){
+    		if($mvc->haveRightFor('reject', $rec)){
+    			$row->rejectBtn = ht::createLink('', array($mvc, 'reject', $rec->id, 'ret_url' => toUrl(array($mvc, 'new'), 'local')), 'Наистина ли желаете да оттеглите документа?', 'ef_icon=img/16/reject.png,title=Оттегляне на бележката, class=reject-btn');
+    		} elseif($mvc->haveRightFor('delete', $rec)){
+    			$row->rejectBtn = ht::createLink('', array($mvc, 'delete', $rec->id, 'ret_url' => toUrl(array($mvc, 'new'), 'local')), 'Наистина ли желаете да изтриете документа?', 'ef_icon=img/16/delete.png,title=Изтриване на бележката, class=reject-btn');
+    		}
     	}
     	
     	if($rec->state != 'draft'){
@@ -396,9 +406,11 @@ class pos_Receipts extends core_Master {
 			$res = 'no_one';
 		}
 		
-		// Никой неможе да изтрива активирана или затворена бележка
+		// Ако бележката е започната, може да се изтрие
 		if($action == 'delete' && isset($rec)) {
-			$res = 'no_one';
+			if(pos_ReceiptDetails::fetch("#receiptId = {$rec->id}") || $rec->state != 'draft'){
+				$res = 'no_one';
+			}
 		}
 		
 		// Можем да контираме бележки само когато те са чернови и платената
@@ -506,6 +518,8 @@ class pos_Receipts extends core_Master {
     		}
     	}
     	
+    	$this->invoke('AfterRenderSingle', array(&$tpl));
+    	
     	// Вкарване на css и js файлове
     	$this->pushFiles($tpl);
     	
@@ -520,10 +534,11 @@ class pos_Receipts extends core_Master {
      */
     private function pushFiles(&$tpl)
     {
-	    $tpl->push('pos/tpl/css/styles.css', 'CSS');
-	    $tpl->push('pos/js/scripts.js', 'JS');
-		jquery_Jquery::run($tpl, "posActions();");
-	    
+    	$tpl->push('pos/tpl/css/styles.css', 'CSS');
+    	if(!Mode::is('printing')){
+    		$tpl->push('pos/js/scripts.js', 'JS');
+    		jquery_Jquery::run($tpl, "posActions();");
+    	}
 	    $conf = core_Packs::getConfig('pos');
         $ThemeClass = cls::get($conf->POS_PRODUCTS_DEFAULT_THEME);
         $tpl->push($ThemeClass->getStyleFile(), 'CSS');
@@ -848,6 +863,12 @@ class pos_Receipts extends core_Master {
 		foreach (array('person' => 'crm_Persons', 'company' => 'crm_Companies') as $type1 => $class){
 			if($type1 === $type || !$type){
 				$query = $class::getQuery();
+				
+				if($type1 == 'company'){
+					$ownId = crm_Setup::BGERP_OWN_COMPANY_ID;
+					$query->where("#id != {$ownId}");
+				}
+				
 				if($searchString){
 					$query->where(array("#searchKeywords LIKE '%[#1#]%'", $searchString));
 				}
@@ -873,10 +894,6 @@ class pos_Receipts extends core_Master {
 				}
 			}
 		}
-    	
-		// Махаме нашата фирма от опциите
-		$ownId = crm_Setup::BGERP_OWN_COMPANY_ID;
-		unset($data->recs["company|{$ownId}"]);
 		
     	// Ако има намерени записи
     	if(count($data->recs)){
@@ -1333,8 +1350,8 @@ class pos_Receipts extends core_Master {
     		$pInfo = cat_Products:: getProductInfo($id);
     		if(isset($pInfo->meta['canStore'])){
     			$obj->stock = pos_Stocks::getQuantity($id, $data->rec->pointId);
+    			$obj->stock /= $perPack;
     		}
-    		$obj->measureId = $pInfo->productRec->measureId;
     		
     		// Обръщаме реда във вербален вид
     		$data->rows[$id] = $this->getVerbalSearchresult($obj, $data);
@@ -1381,10 +1398,6 @@ class pos_Receipts extends core_Master {
     	
     	if($obj->stock < 0){
     		$row->stock = "<span style='color:red'>{$row->stock}</span>";	
-    	}
-    	
-    	if($obj->stock){
-    		$row->stock .= "&nbsp;" . cat_UoM::getShortName($obj->measureId);
     	}
     	
     	$row->ROW_ATTR['class'] = "search-product-row pos-add-res-btn";
@@ -1505,20 +1518,20 @@ class pos_Receipts extends core_Master {
     	$query->where("#state = 'pending' OR #state = 'draft'");
     	$query->orderBy("#state");
     	
-    	$count = 1;
+    	$conf =core_Packs::getConfig('pos');
+    	
     	while($rec = $query->fetch()){
-    		$data->rows[$rec->id] = $this->recToVerbal($rec);
-    		$data->rows[$rec->id]->docId = $this->getHyperlink($rec->id, TRUE);
+    		$num = substr($rec->id, -1 * $conf->POS_SHOW_RECEIPT_DIGITS);
+    		$stateClass = ($rec->state == 'draft') ? "state-opened" : "state-active";
     		
-    		if($rec->state == 'draft'){
-    			if($this->haveRightFor('reject', $rec)){
-    				$data->rows[$rec->id]->count = ht::createLink('', array($this, 'reject', $rec->id, 'ret_url' => TRUE), 'Наистина ли желаете да оттеглите документа', 'ef_icon=img/16/reject.png,title=Оттегляне на бележката, class=reject-btn');
-    			}
+    		if($this->haveRightFor('terminal', $rec)){
+    			$num = ht::createLink($num, array($this, 'terminal', $rec->id));
+    		} elseif($this->haveRightFor('single', $rec)){
+    			$num = ht::createLink($num, array($this, 'single', $rec->id));
     		}
     		
-    		$data->rows[$rec->id]->count .= cls::get('type_Int')->toVerbal($count);
-    		
-    		$count++;
+    		$num = " <span class='open-note {$stateClass}'>{$num}</span>";
+    		$data->rows[$rec->id] = $num;
     	}
     }
     
@@ -1532,17 +1545,9 @@ class pos_Receipts extends core_Master {
     public function renderReceipts($data)
     {
     	$tpl = new ET('');
-    	$table = cls::get('core_TableView', array('mvc' => $this));
-        $data->listFields = array('count'   => '№',
-        						  'valior'  => 'Вальор',
-					              'docId'   => 'Документ',
-        						  'total'   => 'Общо',
-        						  'paid'    => 'Платено',
-        );
-    	
-         $details = $table->get($data->rows, $data->listFields);
-         $tpl->append($details);	
+    	$str = implode(',', $data->rows);
+        $tpl->append($str);	
          
-    	 return $tpl;
+    	return $tpl;
     }
 }

@@ -222,7 +222,38 @@ class cat_Products extends core_Embedder {
         $this->FLD('privateFolderId', 'key(mvc=doc_Folders)', 'input=none'); // В коя частна папка да се показва
         $this->FLD('specificationId', 'key(mvc=techno2_SpecificationDoc)', 'input=none'); // Поле за пораждаща спецификация
         
+        // Разбивки на свойствата за по-бързо индексиране и търсене
+        $this->FLD('canSell', 'enum(yes=Да,no=Не)', 'input=none');
+        $this->FLD('canBuy', 'enum(yes=Да,no=Не)', 'input=none');
+        $this->FLD('canStore', 'enum(yes=Да,no=Не)', 'input=none');
+        $this->FLD('canConvert', 'enum(yes=Да,no=Не)', 'input=none');
+        $this->FLD('fixedAsset', 'enum(yes=Да,no=Не)', 'input=none');
+        $this->FLD('canManifacture', 'enum(yes=Да,no=Не)', 'input=none');
+        $this->FLD('waste', 'enum(yes=Да,no=Не)', 'input=none');
+        
+        $this->FLD('meta', 'set(canSell=Продаваеми,
+                                canBuy=Купуваеми,
+                                canStore=Складируеми,
+                                canConvert=Вложими,
+                                fixedAsset=Дълготрайни активи,
+        						canManifacture=Производими,
+        						waste=Отпаден)', 'caption=Свойства->Списък,columns=2,formOrder=100000000,mandatory');
+        
+        $this->setDbIndex('canSell');
+        $this->setDbIndex('canBuy');
+        $this->setDbIndex('canStore');
+        $this->setDbIndex('canConvert');
+        $this->setDbIndex('fixedAsset');
+        $this->setDbIndex('canManifacture');
+        $this->setDbIndex('waste');
+        
         $this->setDbUnique('code');
+    }
+    
+    function act_Test()
+    {
+    	$S = cls::get('cat_Setup');
+    	$S->migrateMetas();
     }
     
     
@@ -279,13 +310,15 @@ class cat_Products extends core_Embedder {
     		// Проверяваме дали избраните групи са в противоречие с драйвера
     		$Driver = $mvc->getDriver($rec);
     		$defMetas = $Driver->getDefaultMetas($mvc->defMetas);
+    		
     		if(count($defMetas)){
     			$defMetas = arr::make($defMetas, TRUE);
-    			$grMetas = arr::make($mvc->getMetaData($rec->groups), TRUE);
-    			if(isset($grMetas['canStore']) && !isset($defMetas['canStore'])){
-    				$form->setError('groups', "Не може да създавате услуга, и да я правите складируема");
-    			} elseif(isset($defMetas['canStore']) && !isset($grMetas['canStore'])){
-    				$form->setError('groups', "Не може да създавате стока, и да не е складируема");
+    			$ourMetas = arr::make($rec->meta, TRUE);
+    			
+    			if(isset($ourMetas['canStore']) && !isset($defMetas['canStore'])){
+    				$form->setError('meta', "Не може да създавате услуга, и да я правите складируема");
+    			} elseif(isset($defMetas['canStore']) && !isset($ourMetas['canStore'])){
+    				$form->setError('meta', "Не може да създавате стока, и да не е складируема");
     			}
     		}
         }
@@ -297,7 +330,15 @@ class cat_Products extends core_Embedder {
         }
     }
     
-    
+    /*
+     * canSell=Продаваеми,
+                                canBuy=Купуваеми,
+                                canStore=Складируеми,
+                                canConvert=Вложими,
+                                fixedAsset=Дълготрайни активи,
+        						canManifacture=Производими,
+        						waste=Отпаден
+     */
     /**
      * Преди запис на продукт
      */
@@ -323,6 +364,12 @@ class cat_Products extends core_Embedder {
     	if(isset($rec->csv_name)){
     		$rec->name = $rec->csv_name;
     		$rec->innerForm = (object)array('measureId' => $rec->measureId);
+    	}
+    	
+    	// Разпределяме свойствата в отделни полета за полесно търсене
+    	$metas = type_Set::toArray($rec->meta);
+    	foreach (array('canSell', 'canBuy', 'canStore', 'canConvert', 'fixedAsset', 'canManifacture', 'waste') as $fld){
+    		$rec->$fld = (isset($metas[$fld])) ? 'yes' : 'no';
     	}
     }
     
@@ -355,26 +402,6 @@ class cat_Products extends core_Embedder {
     
     
     /**
-     * След преобразуване на записа в четим вид
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $row
-     * @param stdClass $rec
-     */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
-    {
-        if($fields['-single']) {
-        	
-        	// извличане на мета данните според групите
-    		if($meta = $mvc->getMetaData($rec->groups)){
-    			$Groups = cls::get('cat_Groups');
-        		$row->meta = $Groups->getFieldType('meta')->toVerbal($meta);
-    		}
-        }
-    }
-    
-    
-    /**
      * Филтър на on_AfterPrepareListFilter()
      * Малко манипулации след подготвянето на формата за филтриране
      *
@@ -389,18 +416,19 @@ class cat_Products extends core_Embedder {
         $data->listFilter->FNC('groupId', 'key(mvc=cat_Groups,select=name,allowEmpty)',
             'placeholder=Всички групи,caption=Група,input,silent,remember');
 		
-        $data->listFilter->FNC('meta', 'enum(all=Свойства,canSell=Продаваеми,
-        						canBuy=Купуваеми,
-        						canStore=Складируеми,
-        						canConvert=Вложими,
-        						fixedAsset=ДМА,
+        $data->listFilter->FNC('meta1', 'enum(all=Свойства,
+        						canSell=Продаваеми,
+                                canBuy=Купуваеми,
+                                canStore=Складируеми,
+                                canConvert=Вложими,
+                                fixedAsset=Дълготрайни активи,
         						canManifacture=Производими,
-        						materials=Материали)', 'input');
+        						waste=Отпаден)', 'input');
 		
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        $data->listFilter->showFields = 'search,order,meta,groupId';
-        $data->listFilter->input('order,groupId,search,meta', 'silent');
+        $data->listFilter->showFields = 'search,order,meta1,groupId';
+        $data->listFilter->input('order,groupId,search,meta1', 'silent');
         
     	// Подредба
         if($data->listFilter->rec->order == 'alphabetic' || !$data->listFilter->rec->order) {
@@ -413,9 +441,8 @@ class cat_Products extends core_Embedder {
             $data->query->where("#groups LIKE '%|{$data->listFilter->rec->groupId}|%'");
         }
         
-        if ($data->listFilter->rec->meta && $data->listFilter->rec->meta != 'all') {
-        	$groupIds = cat_Groups::getByMeta($data->listFilter->rec->meta);
-        	$data->query->likeKeylist('groups', keylist::fromArray($groupIds));
+        if ($data->listFilter->rec->meta1 && $data->listFilter->rec->meta1 != 'all') {
+        	$data->query->like('meta', "%{$data->listFilter->rec->meta1}%");
         }
     }
 
@@ -435,7 +462,7 @@ class cat_Products extends core_Embedder {
         	$pInfo = $Driver->getProductInfo();
         	
         	$result = (object)array(
-                'num'      => "A" . $rec->code,
+                'num'      => $rec->code . " a",
                 'title'    => $pInfo->productRec->name,
                 'uomId'    => $pInfo->productRec->measureId,
                 'features' => array()
@@ -476,23 +503,26 @@ class cat_Products extends core_Embedder {
     {
     	$products = array();
     	$metaArr = arr::make($properties);
+    	$query = self::getQuery();
     	
-    	if(!$allProducts = core_Cache::get('cat_Products', "productsMeta")){
-    		$allProducts = static::cacheMetaData();
+    	// Само активните артикули
+    	$query->where("#state = 'active'");
+    	
+    	// Ограничаваме намерените записи
+    	if(isset($limit)){
+    		$query->limit($limit);
     	}
     	
+    	// За всяко свойство търсим по полето за бързо търсене
     	if(count($metaArr)){
     		foreach ($metaArr as $meta){
-    			$products = $products + $allProducts[$meta];
+    			$query->where("#{$meta} = 'yes'");
     		}
     	}
     	
-    	// Премахват се тези продукти до които потребителя няма достъп
-    	//self::unsetUnavailableProducts($products);
-    	
-    	// Ако е посочен лимит, връщаме първите $limit продукти
-    	if(isset($limit)){
-    		$products = array_slice($products, 0, $limit, TRUE);
+    	// Подготвяме опциите
+    	while($rec = $query->fetch()){
+    		$products[$rec->id] = static::getTitleById($rec->id, FALSE);
     	}
     	
     	return $products;
@@ -534,9 +564,8 @@ class cat_Products extends core_Embedder {
     		$res->productRec->vatGroup = $grRec->title;
     	}
     	
-    	// Добавяне на мета данните за продукта
-    	if($productRec->groups){
-    		if($meta = explode(',', self::getMetaData($productRec->groups))){
+    	if($productRec->meta){
+    		if($meta = explode(',', $productRec->meta)){
     			foreach($meta as $value){
     				$res->meta[$value] = TRUE;
     			}
@@ -704,34 +733,6 @@ class cat_Products extends core_Embedder {
     }
     
     
-    /**
-     * Изпълнява се след оттегляне
-     *
-     * @param core_Mvc $mvc
-     * @param mixed $res
-     * @param int|object $id първичен ключ или запис на $mvc
-     */
-    public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
-    {
-    	// Инвалидираме кешираните артикули
-    	core_Cache::remove('cat_Products', "productsMeta");
-    }
-    
-    
-    /**
-     * Изпълнява се след възстановяване
-     *
-     * @param core_Mvc $mvc
-     * @param mixed $res
-     * @param int|object $id първичен ключ или запис на $mvc
-     */
-    public static function on_AfterRestore(core_Mvc $mvc, &$res, $id)
-    {
-    	// Инвалидираме кешираните артикули
-    	core_Cache::remove('cat_Products', "productsMeta");
-    }
-    
-    
 	/**
      * След всеки запис
      */
@@ -739,11 +740,6 @@ class cat_Products extends core_Embedder {
     {
         if($rec->groups) {
             $mvc->updateGroupsCnt = TRUE;
-        }
-        
-        // Ако има промяна в групите, името или кода инвалидираме кеша
-    	if($rec->oldGroups != $rec->groups || $rec->oldName != $rec->name || $rec->oldCode != $rec->code) {
-			core_Cache::remove('cat_Products', "productsMeta");
         }
     }
     
@@ -847,58 +843,6 @@ class cat_Products extends core_Embedder {
     	}
     	
     	return $options;
-    }
-    
-    
-    /**
-     * Ъпдейтва мета данните на всички продукти
-     * участващи в дадена група
-     * @param int $groupId - ид на променената група
-     */
-    public static function updateMetaData($groupId)
-    {
-     	// За всички продукти участващи в групата
-    	$query = static::getQuery();
-     	$query->like('groups', "|{$groupId}|");
-     	while($rec = $query->fetch()){
-     		
-     		// Презаписване на продукта, което ще преизчисли мета данните му
-     		static::save($rec);
-     	}
-    }
-    
-    
-    /**
-     * Записва в кеша продуктите групирани по техните мета данни
-     */
-    public static function cacheMetaData()
-    {
-    	$cache = array();
-    	$tmp = array();
-    	$metas = array('canSell', 'canBuy', 'canStore', 'canConvert', 'fixedAsset', 'canManifacture', 'costs');
-    	foreach($metas as $meta){
-    		$catGroups = cat_Groups::getByMeta($meta);
-    		$keylist = keylist::fromArray($catGroups);
-    		
-    		$products = array();
-    		$query = static::getQuery();
-	    	$query->likeKeylist('groups', $keylist);
-	    	$query->where("#state != 'rejected'");
-	    	
-	    	while($rec = $query->fetch()){
-	    		if(!array_key_exists($rec->id, $tmp)){
-	    			$tmp[$rec->id] = static::getTitleById($rec->id, FALSE);
-	    		}
-	    		
-	    		$products[$rec->id] = $tmp[$rec->id];
-	    	}
-	    	
-	    	$cache[$meta] = $products;
-    	}
-    	
-    	core_Cache::set('cat_Products', "productsMeta", $cache, 2880, array('cat_Products'));
-    	
-    	return $cache;
     }
     
     
@@ -1080,7 +1024,7 @@ class cat_Products extends core_Embedder {
     		$pInfo = $this->getProductInfo($id);
     		
     		// Може да се добавя ресурс само към Артикули, които са материали, ДА или вложими
-    		if(isset($pInfo->meta['materials']) || isset($pInfo->meta['canConvert']) || isset($pInfo->meta['fixedAsset'])){
+    		if(isset($pInfo->meta['canConvert']) || isset($pInfo->meta['fixedAsset'])){
     			
     			return TRUE;
     		}
@@ -1113,7 +1057,7 @@ class cat_Products extends core_Embedder {
     	}
     	 
     	// Ако артикула е материал, ще може да се избират само ресурси - материали
-    	if(isset($pInfo->meta['materials']) || isset($pInfo->meta['canConvert'])){
+    	if(isset($pInfo->meta['canConvert'])){
     		$res->type = 'material';
     	}
     	
@@ -1154,10 +1098,10 @@ class cat_Products extends core_Embedder {
     public function getProductDesc($id, $documentMvc, $time = NULL)
     {
     	$rec = $this->fetchRec($id);
-    	$row = $this->recToVerbal($rec);
     	
     	$tpl = new ET($this->recTitleTpl);
-    	$tpl->placeObject($row);
+    	$tpl->replace($this->getVerbal($rec, 'code'), 'code');
+    	$tpl->replace($this->getVerbal($rec, 'name'), 'name');
     	
     	return $tpl->getContent();
     }

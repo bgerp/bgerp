@@ -669,7 +669,7 @@ class techno2_SpecificationDoc extends core_Embedder
     	$info = $this->getProductInfo($objectId);
     	
     	$itemRec = (object)array(
-    			'num' => 'Sp' . $objectId,
+    			'num' => $objectId . " sp",
     			'title' => $info->productRec->name,
     			'uomId' => $info->productRec->measureId,
     			'features' => array("{$self->title}" => $self->title,)

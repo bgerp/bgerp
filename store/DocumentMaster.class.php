@@ -92,17 +92,19 @@ abstract class store_DocumentMaster extends core_Master
     	$form->getField('locationId')->type->options =
     	array('' => '') + crm_Locations::getContragentOptions($rec->contragentClassId, $rec->contragentId);
     
-    	expect($origin = ($form->rec->originId) ? doc_Containers::getDocument($form->rec->originId) : doc_Threads::getFirstDocument($form->rec->threadId));
-    	expect($origin->haveInterface('bgerp_DealAggregatorIntf'));
-    	$dealInfo = $origin->getAggregateDealInfo();
-    	$form->dealInfo = $dealInfo;
-    	
-    	$form->setDefault('currencyId', $dealInfo->get('currency'));
-    	$form->setDefault('currencyRate', $dealInfo->get('rate'));
-    	$form->setDefault('locationId', $dealInfo->get('deliveryLocation'));
-    	$form->setDefault('deliveryTime', $dealInfo->get('deliveryTime'));
-    	$form->setDefault('chargeVat', $dealInfo->get('vatType'));
-    	$form->setDefault('storeId', $dealInfo->get('storeId'));
+    	if(empty($rec->id)){
+    		expect($origin = ($form->rec->originId) ? doc_Containers::getDocument($form->rec->originId) : doc_Threads::getFirstDocument($form->rec->threadId));
+    		expect($origin->haveInterface('bgerp_DealAggregatorIntf'));
+    		$dealInfo = $origin->getAggregateDealInfo();
+    		$form->dealInfo = $dealInfo;
+    		 
+    		$form->setDefault('currencyId', $dealInfo->get('currency'));
+    		$form->setDefault('currencyRate', $dealInfo->get('rate'));
+    		$form->setDefault('locationId', $dealInfo->get('deliveryLocation'));
+    		$form->setDefault('deliveryTime', $dealInfo->get('deliveryTime'));
+    		$form->setDefault('chargeVat', $dealInfo->get('vatType'));
+    		$form->setDefault('storeId', $dealInfo->get('storeId'));
+    	}
     }
     
     

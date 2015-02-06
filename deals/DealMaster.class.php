@@ -669,7 +669,7 @@ abstract class deals_DealMaster extends deals_DealBase
      	if ($rec = $self->fetch($objectId)) {
      		$contragentName = cls::get($rec->contragentClassId)->getTitleById($rec->contragentId, FALSE);
      		$result = (object)array(
-     				'num' => $self->abbr . $objectId,
+     				'num' => $objectId . " " . mb_strtolower($self->abbr),
      				'title' => $self::getRecTitle($objectId),
      				'features' => array('Контрагент' => $contragentName)
      		);
@@ -822,7 +822,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	}
 	    
 	    if($fields['-single']){
-	    	if($rec->deliveryLocationId){
+	    	if($rec->deliveryLocationId && !Mode::is('printing')){
 	    		$row->deliveryLocationId = crm_Locations::getHyperlink($rec->deliveryLocationId);
 	    	}
 	    	
@@ -837,7 +837,12 @@ abstract class deals_DealMaster extends deals_DealBase
 	    	$row->header = $mvc->singleTitle . " #<b>{$mvc->abbr}{$row->id}</b> ({$row->state})";
 	    	
 		    $mvc->prepareHeaderInfo($row, $rec);
-	        
+		   
+		    // Ако валутата е основната валута да не се показва
+		    if($rec->currencyId != acc_Periods::getBaseCurrencyCode($rec->valior)){
+		    	$row->currencyCode = $row->currencyId;
+		    }
+		    
 	        if ($rec->currencyRate != 1) {
 	            $row->currencyRateText = '(<span class="quiet">' . tr('курс') . "</span> {$row->currencyRate})";
 	        }

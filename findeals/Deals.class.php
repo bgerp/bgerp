@@ -666,7 +666,7 @@ class findeals_Deals extends deals_DealBase
     	if ($rec = self::fetch($objectId)) {
     		$contragentName = cls::get($rec->contragentClassId)->getTitleById($rec->contragentId, FALSE);
     		$result = (object)array(
-    				'num' => $self->abbr . $objectId,
+    				'num' => $objectId . " " . mb_strtolower($self->abbr),
     				'title' => static::getRecTitle($objectId),
     				'features' => array('Контрагент' => $contragentName)
     		);

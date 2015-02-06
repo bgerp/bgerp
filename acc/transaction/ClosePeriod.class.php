@@ -75,7 +75,7 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
     			'entries' => array()
     	);
     	
-    	$this->date = acc_Periods::forceYearItem($rec->valior);
+    	$this->date = acc_Periods::forceYearItem($result->valior);
     	
     	$total = $incomeFromProducts = 0;
     	$this->balanceId =  acc_Balances::fetchField("#periodId = {$this->periodRec->id}");

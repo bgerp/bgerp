@@ -191,50 +191,50 @@ abstract class deals_DealDetail extends doc_Detail
     
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
-     * 
+     *
      * @param core_Mvc $mvc
      * @param core_Form $form
      */
-    public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
-    { 
-        $rec = &$form->rec;
-        $masterRec  = $mvc->Master->fetch($rec->{$mvc->masterKey});
-        $priceAtDate = ($masterRec->pricesAtDate) ? $masterRec->pricesAtDate : dt::now();
-        $update = FALSE;
-        
-        expect($ProductMan = cls::get($rec->classId));
+    protected static function inputDocForm(core_Mvc $mvc, core_Form $form)
+    {
+    	$rec = &$form->rec;
+    	$masterRec  = $mvc->Master->fetch($rec->{$mvc->masterKey});
+    	$priceAtDate = ($masterRec->pricesAtDate) ? $masterRec->pricesAtDate : dt::now();
+    	$update = FALSE;
+    	
+    	expect($ProductMan = cls::get($rec->classId));
     	if($rec->productId){
     		$vat = cls::get($rec->classId)->getVat($rec->productId, $masterRec->valior);
     		$form->setOptions('packagingId', $ProductMan->getPacks($rec->productId));
     		unset($form->getFieldType('packagingId')->params['allowEmpty']);
-    		
+    	
     		// Само при рефреш слагаме основната опаковка за дефолт
     		if($form->cmd == 'refresh'){
-	    		$baseInfo = $ProductMan->getBasePackInfo($rec->productId);
-	    		
-	    		if($baseInfo->classId == 'cat_Packagings'){
-	    			$form->rec->packagingId = $baseInfo->id;
-	    		}
-	    	}
-	    	
-	    	if(isset($mvc->LastPricePolicy)){
-	    		$policyInfoLast = $mvc->LastPricePolicy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->classId, $rec->packagingId, $rec->packQuantity, $priceAtDate, $masterRec->currencyRate, $masterRec->chargeVat);
-	    		if($policyInfoLast->price != 0){
-	    			$form->setSuggestions('packPrice', array('' => '', "{$policyInfoLast->price}" => $policyInfoLast->price));
-	    		}
-	    	}
-        }
-      	
+    			$baseInfo = $ProductMan->getBasePackInfo($rec->productId);
+    			 
+    			if($baseInfo->classId == 'cat_Packagings'){
+    				$form->rec->packagingId = $baseInfo->id;
+    			}
+    		}
+    	
+    		if(isset($mvc->LastPricePolicy)){
+    			$policyInfoLast = $mvc->LastPricePolicy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->classId, $rec->packagingId, $rec->packQuantity, $priceAtDate, $masterRec->currencyRate, $masterRec->chargeVat);
+    			if($policyInfoLast->price != 0){
+    				$form->setSuggestions('packPrice', array('' => '', "{$policyInfoLast->price}" => $policyInfoLast->price));
+    			}
+    		}
+    	}
+    	 
     	if ($form->isSubmitted() && !$form->gotErrors()) {
-            
-        	// Извличане на информация за продукта - количество в опаковка, единична цена
-            $rec = &$form->rec;
-
+    	
+    		// Извличане на информация за продукта - количество в опаковка, единична цена
+    		$rec = &$form->rec;
+    	
     		if($rec->packQuantity == 0){
     			$form->setError('packQuantity', 'Количеството не може да е|* "0"');
     		}
-            
-        	if(empty($rec->id)){
+    	
+    		if(empty($rec->id)){
     			$where = "#{$mvc->masterKey} = {$rec->{$mvc->masterKey}} AND #classId = {$rec->classId} AND #productId = {$rec->productId} AND #packagingId";
     			$where .= ($rec->packagingId) ? "={$rec->packagingId}" : " IS NULL";
     			if($pRec = $mvc->fetch($where)){
@@ -242,56 +242,56 @@ abstract class deals_DealDetail extends doc_Detail
     				$rec->id = $pRec->id;
     				$update = TRUE;
     			}
-            }
-            
-            $productRef = new core_ObjectReference($ProductMan, $rec->productId);
-            expect($productInfo = $productRef->getProductInfo());
-            
-            $rec->quantityInPack = (empty($rec->packagingId)) ? 1 : $productInfo->packagings[$rec->packagingId]->quantity;
-            $rec->quantity = $rec->packQuantity * $rec->quantityInPack;
-            
-            if (!isset($rec->packPrice)) {
-            	$Policy = (isset($mvc->Policy)) ? $mvc->Policy : cls::get($rec->classId)->getPolicy();
-            	$policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->classId, $rec->packagingId, $rec->packQuantity, $priceAtDate, $masterRec->currencyRate, $masterRec->chargeVat);
-            	
-            	
-            	if (empty($policyInfo->price) && empty($pRec)) {
-            		$form->setError('packPrice', 'Продукта няма цена в избраната ценова политика');
-            	} else {
-            		// Ако се обновява вече съществуващ запис
-            		if($pRec){
-            			$pRec->packPrice = deals_Helper::getDisplayPrice($pRec->packPrice, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
-            		}
-            		
-            		// Ако се обновява запис се взима цената от него, ако не от политиката
-            		$price = ($pRec->price) ? $pRec->price : $policyInfo->price;
-            		$rec->packPrice = ($pRec->packPrice) ? $pRec->packPrice : $policyInfo->price * $rec->quantityInPack;
-            		if($policyInfo->discount && empty($rec->discount)){
-            			$rec->discount = $policyInfo->discount;
-            		}
-            	}
-            	
-            	$price = $policyInfo->price;
-            } else {
-            	$price = $rec->packPrice / $rec->quantityInPack;
-            	
-            	// Обръщаме цената в основна валута, само ако не се ъпдейтва или се ъпдейтва и е чекнат игнора
-            	if(!$update || ($update && Request::get('Ignore'))){
-            		$rec->packPrice =  deals_Helper::getPurePrice($rec->packPrice, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
-            	}
-            }
-            
-            $price = deals_Helper::getPurePrice($price, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
-            $rec->price  = $price;
-            
-            // При редакция, ако е променена опаковката слагаме преудпреждение
-            if($rec->id){
-            	$oldRec = $mvc->fetch($rec->id);
-            	if($oldRec && $rec->packagingId != $oldRec->packagingId && round($rec->packPrice, 4) == round($oldRec->packPrice, 4)){
-            		$form->setWarning('packPrice,packagingId', 'Опаковката е променена без да е променена цената.|*<br />| Сигурнили сте че зададената цена отговаря на  новата опаковка!');
-            	}
-            }
-        }
+    			}
+    	
+    			$productRef = new core_ObjectReference($ProductMan, $rec->productId);
+    			expect($productInfo = $productRef->getProductInfo());
+    	
+    			$rec->quantityInPack = (empty($rec->packagingId)) ? 1 : $productInfo->packagings[$rec->packagingId]->quantity;
+    			$rec->quantity = $rec->packQuantity * $rec->quantityInPack;
+    	
+    			if (!isset($rec->packPrice)) {
+    				$Policy = (isset($mvc->Policy)) ? $mvc->Policy : cls::get($rec->classId)->getPolicy();
+    				$policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->classId, $rec->packagingId, $rec->packQuantity, $priceAtDate, $masterRec->currencyRate, $masterRec->chargeVat);
+    				 
+    				 
+    				if (empty($policyInfo->price) && empty($pRec)) {
+    					$form->setError('packPrice', 'Продукта няма цена в избраната ценова политика');
+    				} else {
+    					// Ако се обновява вече съществуващ запис
+    					if($pRec){
+    						$pRec->packPrice = deals_Helper::getDisplayPrice($pRec->packPrice, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
+    					}
+    	
+    					// Ако се обновява запис се взима цената от него, ако не от политиката
+    					$price = ($pRec->price) ? $pRec->price : $policyInfo->price;
+    					$rec->packPrice = ($pRec->packPrice) ? $pRec->packPrice : $policyInfo->price * $rec->quantityInPack;
+    					if($policyInfo->discount && empty($rec->discount)){
+    						$rec->discount = $policyInfo->discount;
+    					}
+    				}
+    				 
+    				$price = $policyInfo->price;
+    			} else {
+    				$price = $rec->packPrice / $rec->quantityInPack;
+    				 
+    				// Обръщаме цената в основна валута, само ако не се ъпдейтва или се ъпдейтва и е чекнат игнора
+    				if(!$update || ($update && Request::get('Ignore'))){
+    					$rec->packPrice =  deals_Helper::getPurePrice($rec->packPrice, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
+    				}
+    			}
+    	
+    			$price = deals_Helper::getPurePrice($price, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
+    			$rec->price  = $price;
+    	
+    			// При редакция, ако е променена опаковката слагаме преудпреждение
+    			if($rec->id){
+    				$oldRec = $mvc->fetch($rec->id);
+    				if($oldRec && $rec->packagingId != $oldRec->packagingId && round($rec->packPrice, 4) == round($oldRec->packPrice, 4)){
+    					$form->setWarning('packPrice,packagingId', 'Опаковката е променена без да е променена цената.|*<br />| Сигурнили сте че зададената цена отговаря на  новата опаковка!');
+    				}
+    			}
+    		}
     }
     
     

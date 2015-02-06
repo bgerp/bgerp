@@ -66,17 +66,12 @@
                                         <span class='quiet'>On delivery:</span> [#paymentOnDelivery#]
                                     </div>
                                     <!--ET_END paymentOnDelivery-->
-                                    <!--ET_BEGIN paymentAfterInvoice-->
-                                    <div class='cellRow'>
-                                        <span class='quiet'>Finally: </span>[#paymentAfterInvoice#] due date [#deadlineForBalancePayment#]
-                                    </div>
-                                    <!--ET_END paymentAfterInvoice-->
-                                    <!--ET_BEGIN currencyId-->
+                                    <!--ET_BEGIN currencyCode-->
                                     <div class='cellRow'>
                                         <span class='quiet'>Currency: </span>
-                                        [#currencyId#] [#currencyRateText#]
+                                        [#currencyCode#] [#currencyRateText#]
                                     </div>
-                                    <!--ET_END currencyId-->
+                                    <!--ET_END currencyCode-->
                                     <!--ET_BEGIN bankAccountId-->
                                     <hr>
                                     <div class='cellRow'>
@@ -110,7 +105,7 @@
                                         <!--ET_END deliveryTime-->
                                         <!--ET_BEGIN shipmentStoreId-->
                                         <div class='cellRow'>
-                                            <span class='quiet'>Store: </span><b>[#shipmentStoreId#]</b>
+                                            <span class='quiet'>Store: </span> [#shipmentStoreId#]
                                             <!--ET_BEGIN isDelivered-->
                                             <div class='stamp'>[#isDelivered#]</div>
                                             <!--ET_END isDelivered-->

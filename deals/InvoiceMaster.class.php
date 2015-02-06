@@ -784,10 +784,6 @@ abstract class deals_InvoiceMaster extends core_Master
      */
     protected static function beforeInvoiceSave($rec)
     {
-    	if (empty($rec->vatDate)) {
-    		$rec->vatDate = $rec->date;
-    	}
-    
     	if (!empty($rec->folderId)) {
     		$rec->contragentClassId = doc_Folders::fetchCoverClassId($rec->folderId);
     		$rec->contragentId = doc_Folders::fetchCoverId($rec->folderId);
@@ -873,6 +869,11 @@ abstract class deals_InvoiceMaster extends core_Master
     			if($gln = crm_Locations::fetchField($rec->deliveryPlaceId, 'gln')){
     				$row->deliveryPlaceId .= ', ' . $gln;
     			}
+    		}
+    		
+    		// Ако не е въведена дата на даначно събитие, приема се че е текущата
+    		if(empty($rec->vatDate)){
+    			$row->vatDate = $mvc->getFieldType('vatDate')->toVerbal($rec->date);
     		}
     		
     		$mvc->prepareMyCompanyInfo($row);

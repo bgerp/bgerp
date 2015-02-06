@@ -54,31 +54,31 @@ class findeals_AdvanceReportDetails extends doc_Detail
     /**
      * Кой има право да чете?
      */
-    public $canRead = 'ceo, deals';
+    public $canRead = 'ceo, findeals';
     
     
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo, deals';
+    public $canEdit = 'ceo, findeals';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo, deals';
+    public $canAdd = 'ceo, findeals';
     
     
     /**
      * Кой може да го види?
      */
-    public $canView = 'ceo, deals';
+    public $canView = 'ceo, findeals';
     
     
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'ceo, deals';
+    public $canDelete = 'ceo, findeals';
     
     
     /**
@@ -129,8 +129,8 @@ class findeals_AdvanceReportDetails extends doc_Detail
     	// Взимаме всички продаваеми продукти и махаме складируемите от тях
     	$products = cat_Products::getByProperty('canBuy');
         $products2 = cat_Products::getByProperty('canStore');
+        
         $products = array_diff_key($products, $products2);
-         
         expect(count($products));
         
     	$form->setOptions('productId', $products);

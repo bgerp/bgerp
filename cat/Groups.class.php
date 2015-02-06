@@ -45,7 +45,7 @@ class cat_Groups extends core_Master
     /**
      * Полета по които се прави пълнотекстово търсене от плъгина plg_Search
      */
-    var $searchFields = 'sysId, name, productCnt, info, meta';
+    var $searchFields = 'sysId, name, productCnt, info';
     
     
     /**
@@ -193,19 +193,6 @@ class cat_Groups extends core_Master
     
     
     /**
-     * Изпълнява се след подготовка на Едит Формата
-     */
-    static function on_AfterPrepareEditForm($mvc, $data)
-    {
-        if(!haveRole('ceo')){
-            
-            // Кой може да променя мета пропъртитата на групите
-            $data->form->setField('meta', 'input=none');
-        }
-    }
-    
-    
-    /**
      * След преобразуване на записа в четим за хора вид.
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
@@ -280,57 +267,6 @@ class cat_Groups extends core_Master
         
         $cntObj = csv_Lib::importOnce($mvc, $file, $fields);
         $res .= $cntObj->html;
-        
-        return $res;
-    }
-    
-    
-    /**
-     * Преди запис в модела
-     */
-    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
-    {
-        if($rec->id){
-            // Старите мета данни
-            $rec->oldMeta = $mvc->fetchField($rec->id, 'meta');
-        }
-    }
-    
-    
-    /**
-     * След запис в модела
-     */
-    static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
-    {
-        if($rec->oldMeta != $rec->meta) {
-            
-            // Ако има промяна на групите, Инвалидира се кеша
-            core_Cache::remove('cat_Products', "productsMeta");
-        }
-    }
-    
-    
-    /**
-     * Връща групите които отговарят на посочени мета данни
-     * @param mixed $meta - списък от мета данни
-     * @return array $res - масив с опции
-     */
-    public static function getByMeta($meta)
-    {
-        $metaArr = arr::make($meta);
-        $query = static::getQuery();
-        
-        if(count($metaArr)){
-            foreach ($metaArr as $m){
-                $query->like('meta', $m);
-            }
-        }
-        
-        $res = array();
-        
-        while($rec = $query->fetch()){
-            $res[$rec->id] = static::getTitleById($rec->id);
-        }
         
         return $res;
     }

@@ -1045,6 +1045,10 @@ a.profile {
     background-color: #259641;
 }
 
+.row-negative {
+    color: #f33;
+}
+
 .stateIndicator {
     height: 0.6em;
     width: 0.6em;
@@ -1986,8 +1990,8 @@ div.tab-control.deal-history-tab{
        padding: 0;
     }
     .tab-row {
-        float: right;
-        margin-top: -35px;
+        float: left;
+        margin-bottom: 10px;
         .tab {
             line-height: 1.1em;
             padding: 4px;
@@ -2143,9 +2147,57 @@ a.rtbutton:hover, a.rtbutton:active, a.rtbutton:focus {
     border-style: outset;
     border: 1px solid #bbd;
 	border-radius:3px;
-	color:black !important;
+	color:black ;
 }
-
+a.lang {
+    color:#fff;
+    border: 1px solid #bbd;
+    text-transform: uppercase;
+    min-width: 22px;
+    font-size: 0.9em;
+    margin-top: 3px;
+    text-align: center;
+    padding: 2px 2px 1px 2px !important;
+    border-radius: 2px;
+    &.en {
+        background-color: #05008e;
+        color:#fff;
+    }
+    &.bg {
+        background-color: #FFFF00;
+        color: #000 !important;
+    }
+    &.ro {
+        background-color: #AE1C26;
+        &:hover {
+            color:#fff;
+        }
+    }
+    &.sr {
+        background-color: #2b7728;
+        &:hover {
+            color:#fff;
+        }
+    }
+    &.ru {
+        background-color: #578ADE;
+        color: #000;
+    }
+    &.it {
+        background-color: #fff;
+        color: #000;
+    }
+    &:hover {
+        background-color: none !important;
+        border-style: outset;
+        border: 1px solid #99c;
+    }
+}
+@-moz-document url-prefix() {
+	a.lang{
+	   padding: 2px !important;
+	}
+}
 .richtext-emoticons, .richtext-emoticons2, .richtext-emoticons3, .richtext-emoticons4, .richtext-emoticons5, .richtext-emoticons7 {
     position: absolute;
     left: 0;

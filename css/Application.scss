@@ -2964,13 +2964,9 @@ div.location.public {
 /* Край на стиловете за `sens` */
 
 /*Стилове за пос*/
-.narrow .pos-open-btn {
-	display: block;
-	float: none;
-}
-
-.wide .pos-open-btn {
-	margin-left: 20px !important;
+.open-note {
+	padding: 2px;
+	border-radius: 3px;
 }
 /*Край на стилове за пос*/
 

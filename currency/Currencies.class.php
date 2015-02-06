@@ -132,8 +132,8 @@ class currency_Currencies extends core_Master {
     {
         $this->FLD('name', 'varchar(64)', 'caption=Наименование,width=100%,mandatory');
         $this->FLD('code', 'varchar(3)', 'caption=Код,mandatory,width=60px');
-        $this->FLD('lastUpdate', 'date', 'caption=Последно->обновяване, input=none');
-        $this->FLD('lastRate', 'double(decimals=5)', 'caption=Последно->курс, input=none');
+        $this->FLD('lastUpdate', 'date', 'caption=Последно->Обновяване, input=none');
+        $this->FLD('lastRate', 'double(decimals=5)', 'caption=Последно->Курс, input=none');
         
         $this->setDbUnique('code');
     }
@@ -187,6 +187,29 @@ class currency_Currencies extends core_Master {
             
             // Сменяме заглавието
             $data->title = 'Валути в група "|*' . $groupRec->name . "\"";
+        }
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param currency_Currencies $mvc
+     * @param object $data
+     * @param object $data
+     */
+    public static function on_AfterPrepareListRecs($mvc, &$res, $data)
+    {
+        $accConf = core_Packs::getConfig('acc');
+        
+        $bgnRate = $mvc->fetchField(array("#code = '[#1#]'", $accConf->BASE_CURRENCY_CODE), 'lastRate');
+        
+        if (!$bgnRate) return ;
+        
+        foreach ((array)$data->recs as $rec) {
+            if (!$rec->lastRate) continue;
+            
+            $rec->lastRate = $bgnRate / $rec->lastRate;
         }
     }
     

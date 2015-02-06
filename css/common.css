@@ -1018,6 +1018,9 @@ a.profile {
 .state-wakeup {
   background-color: #259641; }
 
+.row-negative {
+  color: #ff3333; }
+
 .stateIndicator {
   height: 0.6em;
   width: 0.6em;
@@ -1857,8 +1860,8 @@ div.alphabet div.tab-page {
     border: none;
     padding: 0; }
   div.tab-control.deal-history-tab .tab-row {
-    float: right;
-    margin-top: -35px; }
+    float: left;
+    margin-bottom: 10px; }
     div.tab-control.deal-history-tab .tab-row .tab {
       line-height: 1.1em;
       padding: 4px;
@@ -1998,8 +2001,47 @@ a.rtbutton:focus {
   border-style: outset;
   border: 1px solid #bbbbdd;
   border-radius: 3px;
-  color: black !important; }
+  color: black; }
 
+a.lang {
+  color: white;
+  border: 1px solid #bbbbdd;
+  text-transform: uppercase;
+  min-width: 22px;
+  font-size: 0.9em;
+  margin-top: 3px;
+  text-align: center;
+  padding: 2px 2px 1px 2px !important;
+  border-radius: 2px; }
+  a.lang.en {
+    background-color: #05008e;
+    color: white; }
+  a.lang.bg {
+    background-color: yellow;
+    color: black !important; }
+  a.lang.ro {
+    background-color: #ae1c26; }
+    a.lang.ro:hover {
+      color: white; }
+  a.lang.sr {
+    background-color: #2b7728; }
+    a.lang.sr:hover {
+      color: white; }
+  a.lang.ru {
+    background-color: #578ade;
+    color: black; }
+  a.lang.it {
+    background-color: white;
+    color: black; }
+  a.lang:hover {
+    background-color: none !important;
+    border-style: outset;
+    border: 1px solid #9999cc; }
+
+@-moz-document url-prefix() {
+    a.lang {
+    padding: 2px !important; }
+ }
 .richtext-emoticons,
 .richtext-emoticons2,
 .richtext-emoticons3,

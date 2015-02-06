@@ -67,16 +67,11 @@
                                         <span class='quiet'>|Преди експедиция|*:</span> [#paymentBeforeShipping#]
                                     </div>
                                     <!--ET_END paymentBeforeShipping-->
-                                    <!--ET_BEGIN paymentAfterInvoice-->
+                                    <!--ET_BEGIN currencyCode-->
                                     <div class='cellRow'>
-                                        <span class='quiet'>|Окончателно|*: </span>[#paymentAfterInvoice#]  |до|* [#deadlineForBalancePayment#]
+                                        <span class='quiet'>|Валута|*: </span>[#currencyCode#] [#currencyRateText#]
                                     </div>
-                                    <!--ET_END paymentAfterInvoice-->
-                                    <!--ET_BEGIN currencyId-->
-                                    <div class='cellRow'>
-                                        <span class='quiet'>|Валута|*: </span>[#currencyId#] [#currencyRateText#]
-                                    </div>
-                                    <!--ET_END currencyId-->
+                                    <!--ET_END currencyCode-->
                                     <!--ET_BEGIN bankAccountId-->
                                     <hr>
                                     <div class='cellRow'>
@@ -108,7 +103,7 @@
                                         <!--ET_END deliveryTime-->
                                         <!--ET_BEGIN shipmentStoreId-->
                                         <div class='cellRow'>
-                                            <span class='quiet'>|Склад|*: </span> <b>[#shipmentStoreId#]</b>
+                                            <span class='quiet'>|Склад|*: </span> [#shipmentStoreId#]
                                             <!--ET_BEGIN isDelivered-->
                                             <div class='stamp'>[#isDelivered#]</div>
                                             <!--ET_END isDelivered-->

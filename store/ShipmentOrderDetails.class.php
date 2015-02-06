@@ -206,12 +206,36 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
      */
     public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form &$form)
     { 
+    	$rec = &$form->rec;
+    	$masterStore = $mvc->Master->fetch($rec->{$mvc->masterKey})->storeId;
+    	 
+    	if(isset($rec->productId)){
+    		if(isset($masterStore)){
+    			$storeInfo = deals_Helper::getProductQuantityInStoreInfo($rec->productId, $rec->classId, $masterStore);
+    			$form->info = $storeInfo->formInfo;
+    		}
+    	}
+    	
+    	if ($form->isSubmitted()){
+    		$pInfo = cls::get($rec->classId)->getProductInfo($rec->productId, $rec->packagingId);
+    		$quantityInPack = ($pInfo->packagingRec) ? $pInfo->packagingRec->quantity : 1;
+    		
+			if(isset($storeInfo)){
+    			if($rec->packQuantity > ($storeInfo->quantity / $quantityInPack)){
+    				$form->setWarning('packQuantity', 'Въведеното количество е по-голямо от наличното в склада');
+    			}
+    		}
+    		
+    		if(isset($rec->packPrice)){
+    			if($rec->packPrice < (cls::get($rec->classId)->getSelfValue($rec->productId) * $quantityInPack)){
+    				$form->setWarning('packPrice', 'Цената е под себестойност');
+    			}
+    		}
+    	}
+    	
     	parent::inputDocForm($mvc, $form);
     	
     	if ($form->isSubmitted() && !$form->gotErrors()) {
-            
-            // Извличане на информация за продукта - количество в опаковка, единична цена
-            $rec = $form->rec;
             
             if($rec->info){
             	if(!preg_match('/^[0-9]+[\ \,\-0-9]*$/', $rec->info, $matches)){
@@ -221,5 +245,32 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
             	$rec->info = preg_replace("/\s+/", "", $rec->info);
             }
         }
+    }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     */
+    public static function on_BeforeRenderListTable($mvc, &$tpl, $data)
+    {
+    	$rows = &$data->rows;
+    	
+    	if(!count($data->recs)) return;
+    	
+    	$storeId = $data->masterData->rec->storeId;
+    	foreach ($rows as $id => $row){
+    		$rec = $data->recs[$id];
+    		$quantityInStore = store_Products::fetchField("#productId = {$rec->productId} AND #classId = {$rec->classId} AND #storeId = {$storeId}", 'quantity');
+    		
+    		$diff = ($data->masterData->rec->state == 'active') ? $quantityInStore : $quantityInStore - $rec->quantity;
+    		
+    		if($diff < 0){
+    			$row->packQuantity = "<span class='row-negative' title = '" . tr('Количеството в скалда е отрицателно') . "'>{$row->packQuantity}</span>";
+    		}
+    		 
+    		if($rec->price < cls::get($rec->classId)->getSelfValue($rec->productId)){
+    			$row->packPrice = "<span class='row-negative' title = '" . tr('Цената е под себестойност') . "'>{$row->packPrice}</span>";
+    		}
+    	}
     }
 }
