@@ -179,14 +179,6 @@ class store_ShipmentOrders extends store_DocumentMaster
     	$tpl->append($deliveryAddress, 'deliveryAddress');
     }
     
-   /*
-    * <!--ET_BEGIN country-->[#country#],<!--ET_END country--> 
-                                                            <!--ET_BEGIN place-->[#pCode#] [#place#], <!--ET_END place-->
-                                                            <!--ET_BEGIN address-->[#address#],<!--ET_END address-->
-                                                            <!--ET_BEGIN company--> [#company#] <!--ET_END company-->
-                                                            <!--ET_BEGIN person-->[#person#] <!--ET_END person-->
-                                                            <!--ET_BEGIN tel--><br>[#tel#]<!--ET_END tel-->
-    */
     
     /**
      * След преобразуване на записа в четим за хора вид.
