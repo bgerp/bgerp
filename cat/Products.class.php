@@ -400,13 +400,14 @@ class cat_Products extends core_Embedder {
         $data->listFilter->FNC('groupId', 'key(mvc=cat_Groups,select=name,allowEmpty)',
             'placeholder=Всички групи,caption=Група,input,silent,remember');
 		
-        $data->listFilter->FNC('meta1', 'enum(all=Свойства,canSell=Продаваеми,
-        						canBuy=Купуваеми,
-        						canStore=Складируеми,
-        						canConvert=Вложими,
-        						fixedAsset=ДМА,
+        $data->listFilter->FNC('meta1', 'enum(all=Свойства,
+        						canSell=Продаваеми,
+                                canBuy=Купуваеми,
+                                canStore=Складируеми,
+                                canConvert=Вложими,
+                                fixedAsset=Дълготрайни активи,
         						canManifacture=Производими,
-        						materials=Материали)', 'input');
+        						waste=Отпаден)', 'input');
 		
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
@@ -425,8 +426,7 @@ class cat_Products extends core_Embedder {
         }
         
         if ($data->listFilter->rec->meta1 && $data->listFilter->rec->meta1 != 'all') {
-        	$groupIds = cat_Groups::getByMeta($data->listFilter->rec->meta1);
-        	$data->query->likeKeylist('groups', keylist::fromArray($groupIds));
+        	$data->query->like('meta', "%{$data->listFilter->rec->meta1}%");
         }
     }
 
