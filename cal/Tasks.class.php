@@ -453,9 +453,10 @@ class cal_Tasks extends core_Master
         		
         		// за всяка една задача отговаряща на условията проверяваме 
         		if ($recTask = $query->fetch()){
-        		 
+        		    
+        			$link = ht::createLink($rec->title, array('cal_Tasks', 'single', $recTask->id, 'ret_url' => TRUE, ''), NULL, "ef_icon=img/16/task-normal.png");
         			// и изписваме предупреждение 
-        		 	$form->setWarning('timeStart, timeDuration, timeEnd', 'Има колизия във времената на задачата');
+        		 	$form->setWarning('timeStart, timeDuration, timeEnd', "|Засичане по време с |*{$link}");
         		}
         	}
         }
