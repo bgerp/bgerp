@@ -524,7 +524,6 @@ class acc_Items extends core_Manager
         $objectId = $data->masterId;
         
         $data->itemRec = static::fetchItem($classId, $objectId);
-        $data->canChange = static::haveRightFor('edit', (object)(array('classId' => $classId, 'objectId' => $objectId)));
     }
     
     
@@ -581,18 +580,6 @@ class acc_Items extends core_Manager
         }
         
         $tpl->append(tr('Номенклатури'), 'title');
-        
-        if($data->canChange && !Mode::is('printing')) {
-            $url = array(get_called_class(), 'edit', 'classId' => $masterMvc::getClassId(), 'objectId'=>$data->masterId, 'ret_url' => TRUE);
-            $img = "<img src=" . sbf('img/16/edit.png') . " width='16' height='16' />";
-            $tpl->append(
-                ht::createLink(
-                    $img, $url, FALSE,
-                    'title=' . tr('Промяна')
-                ),
-                'title'
-            );
-        }
         
         if ($data->itemRec->lists) {
             $content = static::getVerbal($data->itemRec, 'lists');
