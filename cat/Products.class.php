@@ -330,7 +330,15 @@ class cat_Products extends core_Embedder {
         }
     }
     
-    
+    /*
+     * canSell=Продаваеми,
+                                canBuy=Купуваеми,
+                                canStore=Складируеми,
+                                canConvert=Вложими,
+                                fixedAsset=Дълготрайни активи,
+        						canManifacture=Производими,
+        						waste=Отпаден
+     */
     /**
      * Преди запис на продукт
      */
@@ -356,6 +364,12 @@ class cat_Products extends core_Embedder {
     	if(isset($rec->csv_name)){
     		$rec->name = $rec->csv_name;
     		$rec->innerForm = (object)array('measureId' => $rec->measureId);
+    	}
+    	
+    	// Разпределяме свойствата в отделни полета за полесно търсене
+    	$metas = type_Set::toArray($rec->meta);
+    	foreach (array('canSell', 'canBuy', 'canStore', 'canConvert', 'fixedAsset', 'canManifacture', 'waste') as $fld){
+    		$rec->$fld = (isset($metas[$fld])) ? 'yes' : 'no';
     	}
     }
     

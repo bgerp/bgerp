@@ -129,8 +129,8 @@ class findeals_AdvanceReportDetails extends doc_Detail
     	// Взимаме всички продаваеми продукти и махаме складируемите от тях
     	$products = cat_Products::getByProperty('canBuy');
         $products2 = cat_Products::getByProperty('canStore');
+        
         $products = array_diff_key($products, $products2);
-         
         expect(count($products));
         
     	$form->setOptions('productId', $products);
