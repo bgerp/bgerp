@@ -98,7 +98,7 @@ class acc_Setup extends core_ProtoSetup
     	'acc_BalanceRepairs',
     	'acc_BalanceRepairDetails',
         'migrate::removeYearInterfAndItem',
-        'migrate::updateItemsNum',
+        'migrate::updateItemsNum1',
     );
     
     
@@ -190,7 +190,7 @@ class acc_Setup extends core_ProtoSetup
     /**
      * Обновява номерата на перата
      */
-    function updateItemsNum()
+    function updateItemsNum1()
     {
         $Items = cls::get('acc_Items');
         $itemsQuery = $Items->getQuery();
@@ -200,22 +200,24 @@ class acc_Setup extends core_ProtoSetup
                 $iRec = $itemsQuery->fetch();
                 
                 if($iRec === NULL) break;
+            
+            	if(cls::load($iRec->classId, TRUE)){
+	                $Register = cls::get($iRec->classId);
+	                
+	                if($iRec->objectId) {
+	                    $regRec = $Register->getItemRec($iRec->objectId);
+	                    
+	                    if($regRec->num != $iRec->num){
+	                        $iRec->num = $regRec->num;
+	                        $Items->save_($iRec, 'num');
+	                    }
+	                }
+	            }
             } catch (core_exception_Expect $e) {
-                continue;
+            	$Items->log($e->getMessage());
+            	continue;
             }
             
-            if(cls::load($iRec->classId, TRUE)){
-                $Register = cls::get($iRec->classId);
-                
-                if($iRec->objectId) {
-                    $regRec = $Register->getItemRec($iRec->objectId);
-                    
-                    if($regRec->num != $iRec->num){
-                        $iRec->num = $regRec->num;
-                        $Items->save_($iRec, 'num');
-                    }
-                }
-            }
         } while(TRUE);
     }
     
