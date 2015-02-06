@@ -155,7 +155,7 @@ class cat_Groups extends core_Master
                                 canConvert=Вложими,
                                 fixedAsset=ДМА,
                                 canManifacture=Производими,
-                                materials=Материали)', 'caption=Свойства->Списък,columns=2,input=none');
+                                materials=Материали)', 'caption=Свойства->Списък,columns=2');
         
         $this->setDbUnique("sysId");
     }
