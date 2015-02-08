@@ -149,10 +149,10 @@ class dec_Declarations extends core_Master
     	$this->FLD('productId', 'set', 'caption=Продукти->Продукти');
     
     	// на какви твърдения отговарят
-		$this->FLD('statements', 'keylist(mvc=dec_Statements,select=title)', 'caption=Твърдения и материали->Отговарят на, mandatory');
+		$this->FLD('statements', 'keylist(mvc=dec_Statements,select=title)', 'caption=Твърдения->Отговарят на, mandatory');
 		
 		// от какви материали е
-		$this->FLD('materials', 'keylist(mvc=dec_Materials,select=title)', 'caption=Твърдения и материали->Материали, mandatory');
+		$this->FLD('materials', 'keylist(mvc=dec_Materials,select=title)', 'caption=Материали->Изработени от, mandatory');
         
 		// допълнителен текст
 		$this->FLD('note', 'richtext(bucket=Notes)', 'caption=Бележки->Допълнения');
