@@ -240,8 +240,10 @@ class core_Form extends core_FieldSet
                 
                 $this->setErrorFromResult($result, $field, $name);
             }
-             
-            $this->rec->{$name} = $value;
+           
+            if($this->cmd != 'refresh' || strlen($value)) {
+                $this->rec->{$name} = $value; 
+            }
         }
    
         return $this->rec;
