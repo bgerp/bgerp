@@ -445,12 +445,12 @@ class type_Key extends type_Int
             }
             
             $optionsCnt = count($options);
-            
+
             if($this->params['allowEmpty']) {
                 $placeHolder = array('' => (object) array('title' => $attr['placeholder'] ? $attr['placeholder'] : ' ', 'attr' => 
                     array('style' => 'color:#777;')));
                 $options = arr::combine($placeHolder, $options);
-            } elseif($attr['placeholder']) {
+            } elseif($attr['placeholder'] && $optionsCnt != 1) {
                 $placeHolder = array('' => (object) array('title' => $attr['placeholder'], 'attr' => 
                     array('style' => 'color:#777;', 'disabled' => 'disabled')));
                 $options = arr::combine($placeHolder, $options);

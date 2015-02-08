@@ -253,10 +253,11 @@ class core_Html
     {
         $optionsCnt = self::countOptions($options);
 
-        if($optionsCnt <= 1) {
-            // Когато имаме само една опция, правим readOnly <input>
-
-            expect($optionsCnt>0, "'Липсват опции за '{$name}'");
+        // Очакваме да има поне една опция
+        expect($optionsCnt>0, "'Липсват опции за '{$name}'");
+        
+        // Когато имаме само една опция, правим readOnly <input>
+        if($optionsCnt == 1) {
 
             foreach($options as $id => $opt) {
 
