@@ -192,7 +192,7 @@ class cond_plg_DefaultValues extends core_Plugin
     
     
 	/**
-     * Определяне ст-ст по подразбиране на поелто template
+     * Определяне ст-ст по подразбиране на полето template
      */
     public static function getFromLastDocSameCuntry(core_Mvc $mvc, $rec, $name)
     {
@@ -207,12 +207,14 @@ class cond_plg_DefaultValues extends core_Plugin
         $query->show("{$name},folderId");
         
         while($oRec = $query->fetch()){
-       		$cData2 = doc_Folders::getContragentData($oRec->folderId);
-       		if($cData->countryId == $cData2->countryId){
-       			
-       			// Ако контрагента е от същата държава 
-       			return $oRec->$name;
-       		}
+            try {
+                $cData2 = doc_Folders::getContragentData($oRec->folderId);
+                if($cData->countryId == $cData2->countryId){
+                    
+                    // Ако контрагента е от същата държава 
+                    return $oRec->$name;
+                }
+            } catch(core_exception_Expect $e){}
         }
         
         return NULL;
