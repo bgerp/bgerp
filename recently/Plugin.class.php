@@ -35,11 +35,6 @@ class recently_Plugin extends core_Plugin
                     $saveName = $prefix . "." . $name;
                     
                     $suggetions = $Values->getSuggestions($saveName);
-
-                    // Ако полето е mandatory премахваме празния стринг от предложенията
-                    if ($field->mandatory) {
-                        unset($suggetions['']);
-                    }
                     
                     $form->appendSuggestions($name, $suggetions);
                 }
