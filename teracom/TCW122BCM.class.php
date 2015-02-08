@@ -14,7 +14,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class teracom_TCW122BCM
+class teracom_TCW122BCM extends sens2_ProtoDriver
 {
     
     /**
@@ -22,12 +22,6 @@ class teracom_TCW122BCM
      */
     var $title = 'TCW122B-CM';
     
-    
-    /**
-     * Интерфeйси, поддържани от всички наследници
-     */
-    var $interfaces = 'sens2_DriverIntf';
-
     
     /**
      * Описание на входовете на драйвера
@@ -102,18 +96,6 @@ class teracom_TCW122BCM
         $form->FNC('password', 'password(allowEmpty)', 'caption=Password,hint=Парола, input, value=admin, notNull,autocomplete=off');
     }
     
-
-    /**
-     * Проверява след  субмитване формата с настройки на контролера
-     *
-     * @see  sens2_DriverIntf
-     *
-     * @param   core_Form
-     */
-    function checkConfigForm($form)
-    {
-    }
-
 
     /**
      * Прочита стойностите от сензорните входове

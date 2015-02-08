@@ -14,7 +14,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class teracom_TCW121
+class teracom_TCW121 extends sens2_ProtoDriver
 {
     
     /**
@@ -22,13 +22,7 @@ class teracom_TCW121
      */
     var $title = 'TCW121';
     
-    
-    /**
-     * Интерфeйси, поддържани от всички наследници
-     */
-    var $interfaces = 'sens2_DriverIntf';
-
-    
+        
     /**
      * Описание на входовете
      */
@@ -103,17 +97,6 @@ class teracom_TCW121
     }
     
 
-    /**
-     * Проверява след  субмитване формата с настройки на контролера
-     *
-     * @see  sens2_DriverIntf
-     *
-     * @param   core_Form
-     */
-    function checkConfigForm($form)
-    {
-    }
-
 
     /**
      * Прочита стойностите от сензорните входове
@@ -133,7 +116,7 @@ class teracom_TCW121
         $url->placeArray($config);
         $url = $url->getContent();
         
-        echo "<li> $url";
+        // echo "<li> $url";
 
         // Извличаме XML-a
         $ch = curl_init();
@@ -153,7 +136,7 @@ class teracom_TCW121
         // Малък бъгфикс на фирмуеъра на контролера
         $xml = str_replace('</strong><sup>o</sup>C', '', $xml);
 
-        echo "<br><pre>$xml</pre>";
+        // echo "<br><pre>$xml</pre>";
 
         // Парсираме XML-а
         $result = array();
@@ -192,71 +175,6 @@ class teracom_TCW121
         return $res;
     }
 
-
-
-    
-    
-    /**
-     * Прочита текущото състояние на драйвера/устройството
-     */
-    function updateState()
-    {
-        // Необходимо е само ако ни интересуват предходни стойности на базата на които да правим изчисления 
-        //$stateOld = $this->loadState();
-        
-    	$settingsArr = (array) $this->getSettings();
-    	
-        $state = array();
-        
-        $url = "http://{$this->settings->ip}:{$this->settings->port}/m.xml";
-        
-        $context = stream_context_create(array('http' => array('timeout' => 4)));
-        
-        $xml = @file_get_contents($url, FALSE, $context);
-        
-        if (empty($xml) || !$xml) {
-            $this->stateArr = NULL;
-            
-            return FALSE;
-        }
-        
-        $xml = str_replace('</strong><sup>o</sup>C', '', $xml);
-        
-        $result = array();
-        
-        $this->XMLToArrayFlat(simplexml_load_string($xml), $result);
-        
-        foreach ($this->params as $param => $details) {
-            
-            $state[$param] = $result[$details['xmlPath']];
-            
-            // Ако има изчисляеми параметри
-            if (!empty($settingsArr["name_{$param}"]) && $settingsArr["name_{$param}"] != 'empty') {
-       		 	$paramValue = $settingsArr["angular_{$param}"] * $state["{$param}"] + $settingsArr["linear_{$param}"];
-        		$state["{$settingsArr["name_{$param}"]}"] = $paramValue;
-            }
-       		 	
-            
-            if ($details['details'] == '(ON,OFF)') {
-                $state[$param] = trim(strtoupper($result[$details['xmlPath']]));
-                
-                // Санитизираме цифровите входове и изходи
-                switch ($state[$param]) {
-                    case 'ON' :
-                        $state[$param] = 1;
-                        break;
-                    case 'OFF' :
-                        $state[$param] = 0;
-                        break;
-                }
-            }
-        }
-        
-        $this->stateArr = $state;
-        
-        return TRUE;
-    }
-    
     
     /**
      * Сетва изходите на драйвера по зададен масив

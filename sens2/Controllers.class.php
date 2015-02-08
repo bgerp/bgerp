@@ -102,6 +102,36 @@ class sens2_Controllers extends core_Master
 
 
     /**
+     * Връща обекта драйвер за посочения контролер
+     */
+    static function getActivePorts($controllerId)
+    {
+        $rec = self::fetch($controllerId);
+        $drv = cls::get($rec->driver);
+ 
+        $ports = $drv->getInputPorts() + $drv->getOutputPorts();
+
+        $config = $rec->config;
+        $res = array('' => ' ');
+        foreach($ports as $port => $params) {
+            $partName = $port . '_name';
+            if($config->{$partName}) {
+                $caption = $port . " (". $config->{$partName} . ")";
+            } else {
+                $caption = new stdClass();
+                $caption->title = $port . " (". $params->caption . ")";
+                $caption->attr = array('style' => 'color:#999;');
+            }
+            
+            $res[$port] = $caption;
+
+        }
+  
+        return  $res;
+    }
+
+
+    /**
      * Подготвя конфигурационната форма на посочения драйвер
      */
     static function prepareConfigForm($form, $driver)
@@ -119,10 +149,10 @@ class sens2_Controllers extends core_Master
 
         foreach($ports as $port => $params) {
             
-            $prefix = $params->caption . " ({$port})";
+            $prefix = $port . ($params->caption ? " ({$params->caption})" : "");
 
             $form->FLD($port . '_name', 'varchar(32)', "caption={$prefix}->Наименование");
-            $form->FLD($port . '_scale', 'varchar(255,valid=sens2_Controllers::isValidExpr)', "caption={$prefix}->Скалиране,hint=Въведете функция на X с която да се скалира стойността на входа");
+            $form->FLD($port . '_scale', 'varchar(255,valid=sens2_Controllers::isValidExpr)', "caption={$prefix}->Скалиране,hint=Въведете функция на X с която да се скалира стойността на входа. Например: `X*50` или `X/2`");
             $form->FLD($port . '_uom', 'varchar(16)', "caption={$prefix}->Единица");
             $form->FLD($port . '_update', 'time(suggestions=1 min|2 min|5 min|10 min|30 min,uom=minutes)', "caption={$prefix}->Четене през");
             $form->FLD($port . '_log', 'time(suggestions=1 min|2 min|5 min|10 min|30 min,uom=minutes)', "caption={$prefix}->Логване през");
@@ -139,7 +169,7 @@ class sens2_Controllers extends core_Master
         
         foreach($ports as $port => $params) {
 
-            $prefix = $params->caption . " ({$port})";
+            $prefix = $port . ($params->caption ? " ({$params->caption})" : "");
 
             $form->FLD($port . '_name', 'varchar(32)', "caption={$prefix}->Наименование");
             $form->FLD($port . '_uom', 'varchar(16)', "caption={$prefix}->Единица");

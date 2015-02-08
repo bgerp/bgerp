@@ -14,7 +14,7 @@
  * @since     v 0.1
  * @title     Имитация на драйвер за IP сензор
  */
-class sens2_MockupDrv  
+class sens2_MockupDrv  extends sens2_ProtoDriver
 {
     
     /**
