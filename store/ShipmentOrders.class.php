@@ -187,7 +187,7 @@ class store_ShipmentOrders extends store_DocumentMaster
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = NULL)
     {
     	$row->deliveryTo = $row->pCode . " " . $row->place;
     	foreach(array('address', 'company', 'person', 'tel') as $fld){
