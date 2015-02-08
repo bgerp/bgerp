@@ -125,14 +125,19 @@ tr.noHover td:hover {
 	border-top: solid 2px $blue;
 	padding-left: 0.2em;
 	padding-top: 0.2em;
+    small {
+        color:#999;
+        vertical-align:middle;
+        font-size:10px;
+    }
 }
 
 .bugReport{
 	border:none; 
 	background-color:transparent; 
-	vertical-align: middle;
-	width: 20px;
-	height: 20px;
+	vertical-align: top;
+  	position: relative;
+    margin-top:-1;
     border:1px;
 }
 

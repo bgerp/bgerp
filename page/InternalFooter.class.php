@@ -40,30 +40,32 @@ class page_InternalFooter extends core_ET {
             }
                         
             if($isGet) {
-                $this->append("&nbsp;|&nbsp;");
+                $this->append("&nbsp;<small>|</small>&nbsp;");
                 $this->append(ht::createLink(tr("Широк"), array('core_Browser', 'setWideScreen', 'ret_url' => TRUE), FALSE, array('title' => " Превключване на системата в десктоп режим")));
-            
+
                 // Добавяме превключване между езиците
+                $this->append("&nbsp;<small>|</small>&nbsp;");
                 $this->addLgChange();
             }
 
-            $this->append("&nbsp;|&nbsp;");
+            $this->append("&nbsp;<small>|</small>&nbsp;");
             $this->append(ht::createLink(dt::mysql2verbal(dt::verbal2mysql(), 'H:i'), array('Index', 'default'), NULL, array('title' => tr('Страницата е заредена на') . ' ' . dt::mysql2verbal(dt::verbal2mysql(), 'd-m H:i:s'))));
         } else {
             if($nick) {
                 $this->append(ht::createLink("&nbsp;" . tr('изход') . ":" . $nick, array('core_Users', 'logout'), FALSE, array('title' => "Прекъсване на сесията")));
-                $this->append('&nbsp;|');
+                $this->append('&nbsp;<small>|</small>');
             }
             
             $this->append('&nbsp;');
             $this->append(dt::mysql2verbal(dt::verbal2mysql()));
             
             if($isGet) {
-                $this->append(" | ");
+                $this->append("&nbsp;<small>|</small>&nbsp;");
                 $this->append(ht::createLink(tr("Тесен"), array('core_Browser', 'setNarrowScreen', 'ret_url' => TRUE), FALSE, array('title' => "Превключване на системата в мобилен режим")));
             
-            
+
                 // Добавяме превключване между езиците
+                $this->append("&nbsp;<small>|</small>&nbsp;");
                 $this->addLgChange();
             }
             // Добавяме кода, за определяне параметрите на браузъра
@@ -71,11 +73,11 @@ class page_InternalFooter extends core_ET {
             $this->append($Browser->renderBrowserDetectingCode(), 'BROWSER_DETECT');
 
             // Добавя бутон за калкулатора
-            $this->append('&nbsp;|&nbsp;');
+            $this->append('&nbsp;<small>|</small>&nbsp;');
             $this->append(calculator_View::getBtn());
             
             if(isDebug()) {
-                $this->append('&nbsp;|&nbsp;<a href="#wer" onclick="toggleDisplay(\'debug_info\')">Debug</a>');
+                $this->append('&nbsp;<small>|</small>&nbsp;<a href="#wer" onclick="toggleDisplay(\'debug_info\')">Debug</a>');
                 
                 $this->append(new ET("<div id='debug_info' style='margin:5px; display:none;'> 
                                      Време за изпълнение: [#DEBUG::getExecutionTime#]
@@ -94,7 +96,7 @@ class page_InternalFooter extends core_ET {
             $img = sbf('img/supportmale-20.png', '');
             $btn = "<input title='Сигнал за бъг, въпрос или предложение' class='bugReport' type=image src='{$img}' name='Cmd[refresh]' value=1>";
             $form = new et("<form style='display:inline' method='post' target='_blank' onSubmit=\"prepareBugReport(this, '{$user}', '{$domain}', '{$name}');\" action='" . BGERP_SUPPORT_URL . "'>[#1#]</form>", $btn);
-            $this->append('&nbsp;|&nbsp;');
+            $this->append('&nbsp;<small>|</small>&nbsp;');
             $this->append($form);
         }
 
@@ -115,7 +117,7 @@ class page_InternalFooter extends core_ET {
                 $url = toUrl(array('core_Lg', 'Set', 'lg' => $lg, 'ret_url' => TRUE));
                 $attr = array('href' => $url, 'title' => $title);
                 $lg{0} = strtoupper($lg{0});
-                $this->append("&nbsp;|&nbsp;" . ht::createElement('a', $attr, $lg));
+                $this->append(ht::createElement('a', $attr, $lg));
             }
         }
     }
