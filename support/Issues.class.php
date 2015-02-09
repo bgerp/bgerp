@@ -276,7 +276,11 @@ class support_Issues extends core_Master
                 }
             }
         }
-
+        
+        if ($sysRec->defaultType) {
+            $form->setDefault('typeId', $sysRec->defaultType);
+        }
+        
     	// След събмит на формата
     	if($form->isSubmitted()){
 
@@ -538,6 +542,13 @@ class support_Issues extends core_Master
             
             // Скриваме полето за споделяне
             $data->form->setField('sharedUsers', 'input=none');
+        }
+        
+        if ($systemId) {
+            $sysRec = support_Systems::fetch($systemId);
+            if ($sysRec->defaultType) {
+                $data->form->setDefault('typeId', $sysRec->defaultType);
+            }
         }
     }
     
