@@ -242,12 +242,35 @@ class support_Issues extends core_Master
         $rec = $form->rec;
         expect($rec->systemId);
         expect($sysRec = support_Systems::fetch($rec->systemId));
-
+        
+        $allSystemsArr = support_Systems::getSystems($sysRec->id);
+        
+        unset($allSystemsArr[$sysRec->id]);
+        
+        $allowedTypesKeys = '';
+        
+        if ($allSystemsArr) {
+            $allSysQuery = support_Systems::getQuery();
+            
+            $allSysQuery->where($rec->systemId);
+            
+            foreach ($allSystemsArr as $sysId) {
+                $allSysQuery->orWhere($sysId);
+            }
+            
+            while ($allSysRec = $allSysQuery->fetch()) {
+                
+                $allowedTypesKeys = keylist::merge($allSysRec->allowedTypes, $allowedTypesKeys);
+            }
+        } else {
+            $allowedTypesKeys = $sysRec->allowedTypes;
+        }
+        
+        $allowedTypes = keylist::toArray($allowedTypesKeys);
+        
         $systemName = support_Systems::getTitleById($rec->systemId);
 
         $form->title = "Сигнал към екипа за поддръжка на {$systemName}";
-        
-        $allowedTypes = keylist::toArray($sysRec->allowedTypes);
         
         $atOpt = array();
         foreach($allowedTypes as $tId) {
