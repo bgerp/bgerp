@@ -49,20 +49,20 @@ class help_BgerpPlg extends core_Plugin
         // Ако е зададено да не се показва
         if (!$data || !$data->__needHelp) return ;
         
+        $conf = core_Packs::getConfig('help');
+        
     	cls::get(page_InternalFooter);
-    	$baseUrl = BGERP_SUPPORT_URL;
+    	$baseUrl = $conf->BGERP_SUPPORT_URL;
     	$conf = core_Packs::getConfig('help');
-    	$typeId = $conf->HELP_BGERP_TYPEID;
-    	$url = core_Url::addParams($baseUrl, array('typeId' => $typeId));
     	
-    	if(defined('BGERP_SUPPORT_URL') && strpos(BGERP_SUPPORT_URL, '//') !== FALSE) {
+    	if($conf->BGERP_SUPPORT_URL && strpos($conf->BGERP_SUPPORT_URL, '//') !== FALSE) {
     		$email = email_Inboxes::getUserEmail();
     		if(!$email) {
     			$email = core_Users::getCurrent('email');
     		}
     		list($user, $domain) = explode('@', $email);
     		$name = core_Users::getCurrent('names');
-    		$form = new ET("<form class='needHelpForm' style='display:inline' method='post' target='_blank' onSubmit=\"prepareBugReport(this, '{$user}', '{$domain}', '{$name}');\" action='" . $url . "'></form>");
+    		$form = new ET("<form class='needHelpForm' style='display:inline' method='post' target='_blank' onSubmit=\"prepareBugReport(this, '{$user}', '{$domain}', '{$name}');\" action='" . $baseUrl . "'></form>");
     		$res->append($form);
     	}
     	$res->push('help/lib/style.css', 'CSS');

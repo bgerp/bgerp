@@ -121,6 +121,7 @@ class callcenter_Setup extends core_ProtoSetup
             'callcenter_Numbers',
             'migrate::nullWrongAnswerAndEndTime',
             'migrate::fixDurationField',
+            'migrate::clearBrokenNotificaions'
         );
     
     
@@ -230,5 +231,16 @@ class callcenter_Setup extends core_ProtoSetup
             if (!$rec->duration) continue;
             callcenter_Talks::save($rec);
         }
+    }
+    
+    
+    /**
+     * Изчиства старите (счупените) нотификация за пропуснато повикване
+     */
+    public static function clearBrokenNotificaions()
+    {
+        $urlArr = array('callcenter_Talks', 'list');
+        
+        bgerp_Notifications::clear($urlArr, '*');
     }
 }

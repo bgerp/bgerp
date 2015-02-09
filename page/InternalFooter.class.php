@@ -1,9 +1,5 @@
 <?php
 
-/**
- * URL за подаване на сигнал за поддръжка на bgERP
- */
-defIfNot('BGERP_SUPPORT_URL', 'https://experta.bg/support_Issues/new/?systemId=1');
 
 /**
  * Клас 'page_InternalFooter' - Долния завършек на страницата
@@ -85,8 +81,10 @@ class page_InternalFooter extends core_ET {
             }
             
         }
-
-        if(defined('BGERP_SUPPORT_URL') && strpos(BGERP_SUPPORT_URL, '//') !== FALSE) {
+        
+        $conf = core_Packs::getConfig('help');
+        
+        if($conf->BGERP_SUPPORT_URL && strpos($conf->BGERP_SUPPORT_URL, '//') !== FALSE) {
             $email = email_Inboxes::getUserEmail();
             if(!$email) {
                 $email = core_Users::getCurrent('email');
@@ -95,7 +93,7 @@ class page_InternalFooter extends core_ET {
             $name = core_Users::getCurrent('names');
             $img = sbf('img/supportmale-20.png', '');
             $btn = "<input title='Сигнал за бъг, въпрос или предложение' class='bugReport' type=image src='{$img}' name='Cmd[refresh]' value=1>";
-            $form = new et("<form style='display:inline' method='post' target='_blank' onSubmit=\"prepareBugReport(this, '{$user}', '{$domain}', '{$name}');\" action='" . BGERP_SUPPORT_URL . "'>[#1#]</form>", $btn);
+            $form = new et("<form style='display:inline' method='post' target='_blank' onSubmit=\"prepareBugReport(this, '{$user}', '{$domain}', '{$name}');\" action='" . $conf->BGERP_SUPPORT_URL . "'>[#1#]</form>", $btn);
             $this->append('&nbsp;<small>|</small>&nbsp;');
             $this->append($form);
         }

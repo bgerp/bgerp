@@ -26,15 +26,15 @@ defIfNot('HELP_MAX_CLOSE_DISPLAY_TIME', 30*24*60*60);
 
 
 /**
- * typeId на системата
- */
-defIfNot('HELP_BGERP_TYPEID', 28);
-
-
-/**
  * След колко на бездействие трябва да се покаже прозореца за помощ
  */
 defIfNot('HELP_BGERP_INACTIVE_SECS', 15);
+
+
+/**
+ * URL за подаване на сигнал за поддръжка на bgERP
+ */
+defIfNot('BGERP_SUPPORT_URL', 'https://experta.bg/support_Issues/new/?systemId=1');
 
 
 /**
@@ -106,8 +106,6 @@ class help_Setup extends core_ProtoSetup
         'HELP_MAX_CLOSE_DISPLAY_TIME' => array ('time', 'caption=Затворен изглед за помощната информация->Максимално време'),
         
         'HELP_MAX_CLOSE_DISPLAY_CNT'  => array ('int', 'caption=Затворен изглед за помощната информация->Максимален брой пъти'),
-        
-        'HELP_BGERP_TYPEID' => array('int', 'caption=id на типа на външната система->Номер'),
         
         'HELP_BGERP_INACTIVE_SECS' => array('time(suggestions=10 сек.|15 сек.|30 сек.|1 мин)', 'caption=След колко време на бездействие трябва да се покаже прозореца за помощ->Време'),
 	

@@ -251,7 +251,7 @@ class dec_Declarations extends core_Master
         // Адреса на фирмата
         $address = trim($ownCompanyData->place . ' ' . $ownCompanyData->pCode);
         if ($address && !empty($ownCompanyData->address)) {
-            $address .= ' ' . $ownCompanyData->address;
+            $address .= ', ' . $ownCompanyData->address;
         } 
         
         $Varchar = cls::get('type_Varchar');
@@ -320,7 +320,7 @@ class dec_Declarations extends core_Master
     		// Попълваме данните от контрагента. Идват от фактурата
     		$addressContragent = trim($rec->contragentPlace . ' ' . $rec->contragentPCode);
 	        if ($addressContragent && !empty($rec->contragentAddress)) {
-	            $addressContragent .= ' ' . $rec->contragentAddress;
+	            $addressContragent .= ', ' . $rec->contragentAddress;
 	        }
 	        $row->contragentCompany = cls::get($rec->contragentClassId)->getTitleById($rec->contragentId);
 	        $row->contragentCountry = drdata_Countries::fetchField($rec->contragentCountryId, 'commonNameBg');
@@ -362,7 +362,7 @@ class dec_Declarations extends core_Master
     		foreach ($statements as $statement) {  
     			
     			$s = dec_Statements::fetch($statement);
-    			$text = "<ul><li>изделията отговарят на изискванията"." ". $s->text ."</li></ul>";
+    			$text = "<li>изделията отговарят на изискванията"." ". $s->text ."</li>";
     			$cTpl->replace($text, 'statements');
     			$cTpl->append2master();
     		}
