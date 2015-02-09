@@ -243,33 +243,14 @@ class support_Issues extends core_Master
         expect($rec->systemId);
         expect($sysRec = support_Systems::fetch($rec->systemId));
         
-        $allSystemsArr = support_Systems::getSystems($sysRec->id);
-        
-        unset($allSystemsArr[$sysRec->id]);
-        
-        $allowedTypesKeys = $sysRec->allowedTypes;
-        
-        if ($allSystemsArr) {
-            $allSysQuery = support_Systems::getQuery();
-            
-            foreach ($allSystemsArr as $sysId) {
-                $allSysQuery->orWhere($sysId);
-            }
-            
-            while ($allSysRec = $allSysQuery->fetch()) {
-                
-                $allowedTypesKeys = keylist::merge($allSysRec->allowedTypes, $allowedTypesKeys);
-            }
-        }
-        
-        $allowedTypes = keylist::toArray($allowedTypesKeys);
+        $allowedTypesArr = support_Systems::getAllowedFieldsArr($sysRec->id);
         
         $systemName = support_Systems::getTitleById($rec->systemId);
 
         $form->title = "Сигнал към екипа за поддръжка на {$systemName}";
         
         $atOpt = array();
-        foreach($allowedTypes as $tId) {
+        foreach($allowedTypesArr as $tId) {
             $tRec = support_IssueTypes::fetchField($tId);
             $atOpt[$tId] =  support_IssueTypes::getVerbal($tRec, 'type');
         }
@@ -539,27 +520,8 @@ class support_Issues extends core_Master
         // Променяме съдържанието на полето компоненти с определения от нас масив
         $data->form->setOptions('componentId', $components);
         
-        // Запитване за извличане на системите
-        $sQuery = support_Systems::getQuery();
-        
-        $sQuery->where($systemId);
-        
-        // Обхождаме всики наследени системи
-        foreach ($allSystemsArr as $allSystemId) {
-            
-            // Добавяме OR
-            $sQuery->orWhere($allSystemId);
-        }
-        
-        // Обхождаме всички открити записи
-        while ($sRec = $sQuery->fetch()) {
-            
-            // Обединяваме всички позволени типове
-            $allowedTypes = keylist::merge($sRec->allowedTypes, $allowedTypes);
-        }
-
         // Разрешените типове за съответната система
-        $allowedTypesArr = keylist::toArray($allowedTypes);
+        $allowedTypesArr = support_Systems::getAllowedFieldsArr($systemId);
 
         // Обхождаме масива с всички разрешени типове
         foreach ($allowedTypesArr as $allowedType) {
