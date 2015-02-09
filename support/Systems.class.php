@@ -159,6 +159,71 @@ class support_Systems extends core_Master
     
     
     /**
+     * Връща масив с всички типове на системата и на родителите
+     * 
+     * @param integer $id
+     * 
+     * @return array
+     */
+    public static function getAllowedFieldsArr($id)
+    {
+        $allSystemsArr = support_Systems::getSystems($id);
+        
+        // Запитване за извличане на системите
+        $sQuery = support_Systems::getQuery();
+        
+        $sQuery->where($id);
+        
+        // Обхождаме всики наследени системи
+        foreach ($allSystemsArr as $allSystemId) {
+            
+            // Добавяме OR
+            $sQuery->orWhere($allSystemId);
+        }
+        
+        // Обхождаме всички открити записи
+        while ($sRec = $sQuery->fetch()) {
+            
+            // Обединяваме всички позволени типове
+            $allowedTypes = keylist::merge($sRec->allowedTypes, $allowedTypes);
+        }
+        
+        $allowedTypesArr = keylist::toArray($allowedTypes);
+        
+        return $allowedTypesArr;
+    }
+    
+    
+    /**
+     * Връща всички системи и компоненти, които се използват
+     * 
+     * @param integer $systemId - id на система
+     * 
+     * @return array $arr - Масив с всички системи
+     */
+    static function getSystems($systemId)
+    {
+        // Ако не е зададена система връщаме
+        if (!$systemId) array();
+        
+        // Добавяме в масива
+        $arr[$systemId] = $systemId;
+        
+        // Вземаме записа
+        $sRec = static::fetch($systemId);
+        
+        // Ако има прототип
+        if ($sRec->prototype) {
+            
+            // Вземаме системата
+            $arr += static::getSystems($sRec->prototype);
+        }
+        
+        return $arr;
+    }
+    
+    
+    /**
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
     static function on_AfterRecToVerbal($mvc, &$row, $rec)
@@ -333,35 +398,6 @@ class support_Systems extends core_Master
         }
     }
     
-    
-    /**
-     * Връща всички системи и компоненти, които се използват
-     * 
-     * @param integer $systemId - id на система
-     * 
-     * @return array $arr - Масив с всички системи
-     */
-    static function getSystems($systemId)
-    {
-        // Ако не е зададена система връщаме
-        if (!$systemId) array();
-        
-        // Добавяме в масива
-        $arr[$systemId] = $systemId;
-        
-        // Вземаме записа
-        $sRec = static::fetch($systemId);
-        
-        // Ако има прототип
-        if ($sRec->prototype) {
-            
-            // Вземаме системата
-            $arr += static::getSystems($sRec->prototype);
-        }
-        
-        return $arr;
-    }
-    
 
     /**
      * Модифициране на edit формата
@@ -386,6 +422,17 @@ class support_Systems extends core_Master
         }
 
         $data->form->setSuggestions('allowedTypes', $options);
-
+    }
+    
+    
+    /**
+     * След подготовка на тулбара на единичен изглед.
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+        $data->rec->allowedTypes = type_Keylist::fromArray($mvc->getAllowedFieldsArr($data->rec->id));
     }
 }
