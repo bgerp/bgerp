@@ -152,7 +152,7 @@ class support_Systems extends core_Master
         $this->FLD('prototype', 'key(mvc=support_Systems, select=name, allowEmpty)', "caption=Прототип, width=100%");
         $this->FLD('description', 'richtext(rows=10,bucket=Support)', "caption=Описание");
         $this->FLD('allowedTypes', 'keylist(mvc=support_IssueTypes, select=type)', 'caption=Сигнали->Използвани, width=100%, maxColumns=3');
-        $this->FLD('defaultType', 'key(mvc=support_IssueTypes, select=type)', 'caption=Сигнали->По подразбиране');
+        $this->FLD('defaultType', 'key(mvc=support_IssueTypes, select=type, allowEmpty)', 'caption=Сигнали->По подразбиране');
 
         $this->setDbUnique('name');
     }
@@ -393,6 +393,22 @@ class support_Systems extends core_Master
                     
                     // Сетваме грешка
                     $form->setError('prototype', 'Не може да се използва наследника като родител.');
+                }
+            }
+        }
+        
+        if ($form->isSubmitted()) {
+            
+            if ($form->rec->defaultType) {
+                $parentAllowed = '';
+                if ($form->rec->prototype) {
+                    $parentAllowed = $mvc->getAllowedFieldsArr($form->rec->prototype);
+                }
+                
+                $allAllowed = type_Keylist::merge($parentAllowed, $form->rec->allowedTypes);
+                
+                if (!type_Keylist::isIn($form->rec->defaultType, $allAllowed)) {
+                    $form->setError('defaultType', 'Сигналът по подразбиране трябва да е добавен в използвани');
                 }
             }
         }
