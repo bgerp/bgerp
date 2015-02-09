@@ -247,12 +247,10 @@ class support_Issues extends core_Master
         
         unset($allSystemsArr[$sysRec->id]);
         
-        $allowedTypesKeys = '';
+        $allowedTypesKeys = $sysRec->allowedTypes;
         
         if ($allSystemsArr) {
             $allSysQuery = support_Systems::getQuery();
-            
-            $allSysQuery->where($rec->systemId);
             
             foreach ($allSystemsArr as $sysId) {
                 $allSysQuery->orWhere($sysId);
@@ -262,8 +260,6 @@ class support_Issues extends core_Master
                 
                 $allowedTypesKeys = keylist::merge($allSysRec->allowedTypes, $allowedTypesKeys);
             }
-        } else {
-            $allowedTypesKeys = $sysRec->allowedTypes;
         }
         
         $allowedTypes = keylist::toArray($allowedTypesKeys);
