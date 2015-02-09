@@ -176,11 +176,11 @@ class pos_Points extends core_Master {
     	
     	if($mvc->haveRightFor('select', $rec->id) && pos_Receipts::haveRightFor('terminal')){
     		$urlArr = array('pos_Points', 'OpenTerminal', $rec->id);
-    		$data->toolbar->addBtn("Отвори", $urlArr, NULL, 'title=Отваряне на точката,class=pos-open-btn,ef_icon=img/16/forward16.png,target=_blank');
+    		$data->toolbar->addBtn("Отвори", $urlArr, NULL, 'title=Отваряне на терминала за POS продажби,class=pos-open-btn,ef_icon=img/16/forward16.png,target=_blank');
     	}
     	
     	if($rec->id == $mvc->getCurrent('id', NULL, FALSE)) {
-    		$data->toolbar->addBtn("Отвори", array('pos_Receipts', 'Terminal'), NULL, 'title=Отваряне на точката,ef_icon=img/16/forward16.png,target=_blank');
+    		$data->toolbar->addBtn("Отвори", array('pos_Receipts', 'Terminal'), NULL, 'title=Отваряне на терминала за POS продажби,ef_icon=img/16/forward16.png,target=_blank');
     	}
     	
     	$reportUrl = array();
@@ -188,7 +188,7 @@ class pos_Points extends core_Master {
     		$reportUrl = array('pos_Reports', 'add', 'pointId' => $rec->id, 'ret_url' => TRUE);
     	}
     	
-    	$title = (count($reportUrl)) ? 'Направи отчет' : 'Не може да направите отчет все още';
+    	$title = (count($reportUrl)) ? 'Направи отчет' : 'Не може да се генерира отчет. Възможна причина - неприключени бележки.';
     	
     	$data->toolbar->addBtn("Отчет", $reportUrl, NULL, "title={$title},ef_icon=img/16/report.png");
     }
@@ -216,7 +216,7 @@ class pos_Points extends core_Master {
     	unset($row->currentPlg);
     	if($mvc->haveRightFor('select', $rec->id) && pos_Receipts::haveRightFor('terminal')){
     		$urlArr = array('pos_Points', 'OpenTerminal', $rec->id);
-    		$row->currentPlg = ht::createBtn('Отвори', $urlArr, NULL, TRUE, 'title=Отваряне на точката,class=pos-open-btn,ef_icon=img/16/forward16.png');
+    		$row->currentPlg = ht::createBtn('Отвори', $urlArr, NULL, TRUE, 'title=Отваряне на терминала за POS продажби,class=pos-open-btn,ef_icon=img/16/forward16.png');
     	}
     	
     	$row->caseId = cash_Cases::getHyperlink($rec->caseId, TRUE);
@@ -240,6 +240,8 @@ class pos_Points extends core_Master {
 			$data->query->EXT('cashier', 'cash_Cases', 'externalKey=caseId,externalName=cashiers');
 			$data->query->like("cashier", "|{$cu}|");
 		}
+
+        $data->listFields['currentPlg'] = "Терминал";
 	}
 	
 	

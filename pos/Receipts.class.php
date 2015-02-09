@@ -524,8 +524,10 @@ class pos_Receipts extends core_Master {
     			}
     		}
     	}
+
+        $data = (object) array('rec' => $rec);
     	
-    	$this->invoke('AfterRenderSingle', array(&$tpl));
+    	$this->invoke('AfterRenderSingle', array(&$tpl, $data));
     	
     	// Вкарване на css и js файлове
     	$this->pushFiles($tpl);
