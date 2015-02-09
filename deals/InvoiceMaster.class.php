@@ -698,7 +698,8 @@ abstract class deals_InvoiceMaster extends core_Master
     		}
     		
     		if(isset($plan) && isset($plan['deadlineForBalancePayment'])){
-				$form->setReadOnly('dueDate', $plan['deadlineForBalancePayment']);
+    			$form->rec->dueDate = $plan['deadlineForBalancePayment'];
+    			$form->setReadOnly('dueDate');
     		}	else {
     			$form->setField('dueDate', 'input=none');
     		}
