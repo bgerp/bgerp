@@ -961,17 +961,26 @@ class techno2_SpecificationDoc extends core_Embedder
      */
     public static function createProduct($id, $code = NULL)
     {
+    	$Products = cls::get('cat_Products');
     	expect($rec = self::fetchRec($id));
     	
-    	$pRec = (object)array('name'            => $rec->title, 
-    						  'code'			=> $code,
-    						  'innerClass'      => $rec->innerClass, 
-    						  'innerForm'       => $rec->innerForm, 
-    						  'innerState'      => $rec->innerState, 
-    						  'privateFolderId' => $rec->folderId, 
-    						  'specificationId' => $rec->id,
-    						  'state' 			=> 'active',
+    	$cover = doc_Folders::getCover($rec->folderId);
+    	if($cover->haveInterface('doc_ContragentDataIntf')){
+    		$folderId = $rec->folderId;
+    	} else {
+    		$folderId = cat_Groups::forceCoverAndFolder(cat_Groups::fetchField("#sysId = 'products'", 'id'));
+    		$code = "SPEC{$rec->id}";
+    	}
+    	
+    	$pRec = (object)array('name'       => $rec->title, 
+    						  'code'	   => $code,
+    						  'innerClass' => $rec->innerClass, 
+    						  'innerForm'  => $rec->innerForm, 
+    						  'innerState' => $rec->innerState, 
+    						  'folderId'   => $folderId,
+    						  'state' 	   => 'active',
     	);
+    	$Products->route($pRec);
     	
     	return cat_Products::save($pRec);
     }

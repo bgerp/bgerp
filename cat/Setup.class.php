@@ -64,6 +64,7 @@ class cat_Setup extends core_ProtoSetup
     		'migrate::updateProducts3',
     		'migrate::migrateMetas',
     		'migrate::migrateGroups',
+    		'migrate::makeProductsDocuments2',
         );
 
         
@@ -232,5 +233,54 @@ class cat_Setup extends core_ProtoSetup
     		$rec->meta = $Set->fromVerbal($meta);
     		cat_Groups::save($rec, 'meta');
     	}
+    }
+    
+    
+    /**
+     * Прави всички артикули документи в папката на първата им група,
+     * ако нямат отиват в папката на 'Услуги'
+     */
+    public function makeProductsDocuments2()
+    {
+    	core_Users::cancelSystemUser();
+    	
+    	$Products = cls::get('cat_Products');
+    	$query = cat_Products::getQuery();
+    	$query->where("#threadId IS NULL");
+    	 
+    	while($rec = $query->fetch()){
+    		try {
+    			if(isset($rec->groups)){
+    				$groups = keylist::toArray($rec->groups);
+    				$first = key($groups);
+    			} else {
+    				$first = cat_Groups::fetch("#sysId = 'services'");
+    			}
+    			
+    			$rec->folderId = cat_Groups::forceCoverAndFolder($first);
+    			$Products->route($rec);
+    			$Products->save($rec);
+    		} catch(core_exception_Expect $e){
+    			$Products->log("Проблем при прехвърлянето на артикул: {$rec->name}: {$e->getMessage()}");
+    		}
+    	}
+    	
+    	if(core_Packs::fetch("#name = 'techno2'")){
+    		$tQuery = techno2_SpecificationDoc::getQuery();
+    		$tQuery->where("#state != 'rejected'");
+    		while($tRec = $tQuery->fetch()){
+    			core_Users::sudo($tRec->createdBy);
+    			
+    			try{
+    				techno2_SpecificationDoc::createProduct($tRec);
+    			} catch(core_exception_Expect $e){
+    				$Products->log("Проблем при прехвърляне на спецификация {$tRec->id}: {$e->getMessage()}");
+    			}
+    			
+    			core_Users::exitSudo();
+    		}
+    	}
+    	
+    	core_Users::forceSystemUser();
     }
 }

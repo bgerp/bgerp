@@ -37,8 +37,8 @@ class cat_Products extends core_Embedder {
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, plg_SaveAndNew, plg_PrevAndNext, acc_plg_Registry, plg_Rejected, plg_State,
-                     cat_Wrapper, plg_Sorting, bgerp_plg_Groups, plg_Printing, Groups=cat_Groups, plg_Select, plg_Search, bgerp_plg_Import';
+    var $loadList = 'plg_RowTools, plg_SaveAndNew, doc_DocumentPlg, plg_PrevAndNext, acc_plg_Registry, plg_Rejected, plg_State,
+                     cat_Wrapper, plg_Sorting, doc_ActivatePlg, bgerp_plg_Groups, plg_Printing, Groups=cat_Groups, plg_Select, plg_Search, bgerp_plg_Import';
     
     
     /**
@@ -101,7 +101,7 @@ class cat_Products extends core_Embedder {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'name,code,groups,innerClass,tools=Пулт';
+    var $listFields = 'name,code,groups,innerClass,tools=Пулт,folderId,isPublic';
     
     
     /**
@@ -199,7 +199,7 @@ class cat_Products extends core_Embedder {
 	 * 
 	 * @var string
 	 */
-	public $recTitleTpl = '[#name#] ( [#code#] )';
+	public $recTitleTpl = '[#name#]<!--ET_BEGIN code--> ( [#code#] )<!--ET_END code-->';
     
     
 	/**
@@ -208,19 +208,24 @@ class cat_Products extends core_Embedder {
 	public $fieldsToBeManagedByDriver = 'info, measureId, photo';
 	
 	
+	/**
+	 * Групиране на документите
+	 */
+	public $newBtnGroup = "9.8|Производство";
+	
+	
     /**
      * Описание на модела
      */
     function description()
     {
         $this->FLD('name', 'varchar', 'caption=Наименование, mandatory,remember=info,width=100%');
-		$this->FLD('code', 'varchar(64)', 'caption=Код, mandatory,remember=info,width=15em');
+		$this->FLD('code', 'varchar(64)', 'caption=Код,remember=info,width=15em');
         $this->FLD('info', 'richtext(bucket=Notes)', 'caption=Описание,input=none,formOrder=4');
         $this->FLD('measureId', 'key(mvc=cat_UoM, select=name,allowEmpty)', 'caption=Мярка,mandatory,remember,notSorting,input=none,formOrder=4');
         $this->FLD('photo', 'fileman_FileType(bucket=pictures)', 'caption=Фото,input=none,formOrder=4');
         $this->FLD('groups', 'keylist(mvc=cat_Groups, select=name, makeLinks)', 'caption=Групи,maxColumns=2,remember,formOrder=100');
-        $this->FLD('privateFolderId', 'key(mvc=doc_Folders)', 'input=none'); // В коя частна папка да се показва
-        $this->FLD('specificationId', 'key(mvc=techno2_SpecificationDoc)', 'input=none'); // Поле за пораждаща спецификация
+        $this->FLD("isPublic", 'enum(no=Частен,yes=Публичен)', 'input=none,formOrder=100000002,caption=Показване за избор в документи->Достъп');
         
         // Разбивки на свойствата за по-бързо индексиране и търсене
         $this->FLD('canSell', 'enum(yes=Да,no=Не)', 'input=none');
@@ -261,6 +266,13 @@ class cat_Products extends core_Embedder {
     		$data->form->setField($mvc->innerClassField, 'remember');
     	}
     	
+    	if(isset($data->form->rec->folderId)){
+    		$cover = doc_Folders::getCover($data->form->rec->folderId);
+    		if(!$cover->haveInterface('doc_ContragentDataIntf')){
+    			$data->form->setField('code', 'mandatory');
+    		}
+    	}
+    	
     	if(isset($data->form->rec->innerClass)){
     		$data->form->setField('innerClass', 'input=hidden');
     	}
@@ -274,8 +286,6 @@ class cat_Products extends core_Embedder {
                 }
             }
         }
-        
-        $data->form->rec->state = 'active';
     }
     
     
@@ -365,6 +375,8 @@ class cat_Products extends core_Embedder {
     	foreach (array('canSell', 'canBuy', 'canStore', 'canConvert', 'fixedAsset', 'canManifacture', 'waste') as $fld){
     		$rec->$fld = (isset($metas[$fld])) ? 'yes' : 'no';
     	}
+    	
+    	$rec->isPublic = (isset($rec->code)) ? 'yes' : 'no';
     }
     
     
@@ -946,6 +958,19 @@ class cat_Products extends core_Embedder {
     
     
     /**
+     * След преобразуване на записа в четим за хора вид.
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+    	$row->header = $mvc->singleTitle . " №<b>{$row->id}</b> ({$row->state})";
+    	 
+    	if($fields['-list']){
+    		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
+    	}
+    }
+    
+    
+    /**
      * Връща информация за основната опаковка на артикула
      * 
      * @param int $id - ид на продукт
@@ -1153,5 +1178,56 @@ class cat_Products extends core_Embedder {
     	static::save($rec, 'privateFolderId,specificationId');
     	
     	return $rec;
+    }
+    
+    
+    /**
+     * Интерфейсен метод на doc_DocumentInterface
+     */
+    public function getDocumentRow($id)
+    {
+    	$rec = $this->fetch($id);
+        $row = new stdClass();
+    
+    	$row->title    = $this->getRecTitle($rec);
+        $row->authorId = $rec->createdBy;
+    	$row->author   = $this->getVerbal($rec, 'createdBy');
+    	$row->recTitle = $row->title;
+    	$row->state    = $rec->state;
+    
+    	return $row;
+    }
+    
+    
+    /**
+     * В кои корици може да се вкарва документа
+     * @return array - интерфейси, които трябва да имат кориците
+     */
+    public static function getAllowedFolders()
+    {
+    	return array('doc_ContragentDataIntf', 'cat_ProductFolderCoverIntf');
+    }
+    
+    
+    /**
+     * Може ли документа да се добави в посочената папка?
+     *
+     * @param $folderId int ид на папката
+     * @return boolean
+     */
+    public static function canAddToFolder1($folderId)
+    {
+    	$coverClass = doc_Folders::fetchCoverClassName($folderId);
+    	 
+    	return cls::haveInterface('doc_ContragentDataIntf', $coverClass) || cls::haveInterface('cat_ProductFolderCoverIntf', $coverClass);
+    }
+    
+    
+    /**
+     * Коя е дефолт папката за нови записи
+     */
+    public function getDefaultFolder()
+    {
+    	return cat_Groups::forceCoverAndFolder(cat_Groups::fetchField("#sysId = 'goods'", 'id'));
     }
 }
