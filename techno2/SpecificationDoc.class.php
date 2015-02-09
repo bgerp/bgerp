@@ -274,7 +274,7 @@ class techno2_SpecificationDoc extends core_Embedder
      */
     public static function getAllowedFolders()
     {
-    	return array('doc_ContragentDataIntf', 'techno2_SpecificationFolderCoverIntf');
+    	return array('doc_ContragentDataIntf', 'cat_ProductFolderCoverIntf');
     }
 
     
@@ -288,7 +288,7 @@ class techno2_SpecificationDoc extends core_Embedder
     {
     	$coverClass = doc_Folders::fetchCoverClassName($folderId);
     	
-    	return cls::haveInterface('doc_ContragentDataIntf', $coverClass) || cls::haveInterface('techno2_SpecificationFolderCoverIntf', $coverClass);
+    	return cls::haveInterface('doc_ContragentDataIntf', $coverClass) || cls::haveInterface('cat_ProductFolderCoverIntf', $coverClass);
     }
     
     
@@ -1028,7 +1028,7 @@ class techno2_SpecificationDoc extends core_Embedder
     	$Cover = doc_Folders::getCover($folderRec->id);
     	
     	// Ако папката е на контрагент
-    	if($Cover->haveInterface('techno2_SpecificationFolderCoverIntf')){
+    	if($Cover->haveInterface('cat_ProductFolderCoverIntf')){
     		
     		return TRUE;
     	}

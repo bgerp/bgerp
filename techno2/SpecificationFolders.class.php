@@ -19,7 +19,7 @@ class techno2_SpecificationFolders extends core_Master
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    public $interfaces = 'techno2_SpecificationFolderCoverIntf';
+    //public $interfaces = 'cat_ProductFolderCoverIntf';
     
     
     /**

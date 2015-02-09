@@ -3,19 +3,25 @@
 
 
 /**
- * Клас 'techno2_SpecificationFolderCoverIntf' - Интерфейс за корици на папки, 
+ * Клас 'cat_ProductFolderCoverIntf' - Интерфейс за корици на папки, 
  * в които могат да се създават документи спецификации
  *
  *
  * @category  bgerp
- * @package   techno
+ * @package   cat
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class techno2_SpecificationFolderCoverIntf extends doc_FolderIntf
+class cat_ProductFolderCoverIntf extends doc_FolderIntf
 {
+	
+	
+	/**
+	 * За конвертиране на съществуващи MySQL таблици от предишни версии
+	 */
+	public $oldClassName = 'techno2_SpecificationFolderCoverIntf';
 	
 	
 	/**
