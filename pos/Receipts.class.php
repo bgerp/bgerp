@@ -133,6 +133,12 @@ class pos_Receipts extends core_Master {
     
     
     /**
+     * Кои полета да се извлекат преди изтриване
+     */
+    public $fetchFieldsBeforeDelete = 'id';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -266,7 +272,7 @@ class pos_Receipts extends core_Master {
     	}
     	
     	$cu = core_Users::fetch($rec->createdBy);
-    	$row->createdBy = core_Users::recToVerbal($cu)->nick;
+    	$row->createdBy = ht::createLink(core_Users::recToVerbal($cu)->nick, crm_Profiles::getUrl($rec->createdBy));
     	$row->pointId = pos_Points::getHyperLink($rec->pointId, TRUE);
     }
 
@@ -408,7 +414,7 @@ class pos_Receipts extends core_Master {
 		
 		// Ако бележката е започната, може да се изтрие
 		if($action == 'delete' && isset($rec)) {
-			if(pos_ReceiptDetails::fetch("#receiptId = {$rec->id}") || $rec->state != 'draft'){
+			if($rec->state != 'draft'){
 				$res = 'no_one';
 			}
 		}
@@ -429,7 +435,7 @@ class pos_Receipts extends core_Master {
 			}
 		}
 		
-		// не могат да се възстановяват пранзи бележки
+		// Не могат да се възстановяват пранзи бележки
 		if($action == 'restore' && isset($rec)){
 			if($rec->total == 0){
 				$res = 'no_one';
@@ -1549,5 +1555,16 @@ class pos_Receipts extends core_Master {
         $tpl->append($str);	
          
     	return $tpl;
+    }
+    
+    
+    /**
+     * Преди изтриване
+     */
+    public static function on_AfterDelete($mvc, &$numRows, $query, $cond)
+    {
+    	foreach ($query->getDeletedRecs() as $rec) {
+    		pos_ReceiptDetails::delete("#receiptId = {$rec->id}");
+    	}
     }
 }
