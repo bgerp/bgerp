@@ -1131,7 +1131,7 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
   border: solid 1px red; }
 
 .inputWarning {
-  border: solid 1px #99ff00; }
+  border: solid 1px #ff9900; }
 
 .formInfo,
 .formWarning {
@@ -2401,7 +2401,7 @@ div.richtext ol ol ol {
  */
 div.notification-info {
   display: table;
-  border: solid 1px #99ff00;
+  border: solid 1px #ff9900;
   background-color: #ffffcc;
   text-align: center;
   font-weight: bold;
@@ -2417,7 +2417,7 @@ div.notification-info {
 .narrow div.notification-info {
   display: table;
   margin: 5px 0;
-  border: solid 1px #99ff00;
+  border: solid 1px #ff9900;
   background-color: #ffffcc;
   padding: 5px;
   font-size: 1.5em;
