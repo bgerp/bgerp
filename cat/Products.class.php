@@ -250,12 +250,6 @@ class cat_Products extends core_Embedder {
         $this->setDbUnique('code');
     }
     
-    function act_Test()
-    {
-    	$S = cls::get('cat_Setup');
-    	$S->migrateMetas();
-    }
-    
     
     /**
      * Изпълнява се след подготовка на Едит Формата
