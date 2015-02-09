@@ -52,8 +52,6 @@ class help_BgerpPlg extends core_Plugin
     	cls::get(page_InternalFooter);
     	$baseUrl = BGERP_SUPPORT_URL;
     	$conf = core_Packs::getConfig('help');
-    	$typeId = $conf->HELP_BGERP_TYPEID;
-    	$url = core_Url::addParams($baseUrl, array('typeId' => $typeId));
     	
     	if(defined('BGERP_SUPPORT_URL') && strpos(BGERP_SUPPORT_URL, '//') !== FALSE) {
     		$email = email_Inboxes::getUserEmail();
