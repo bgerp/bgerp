@@ -174,6 +174,11 @@ class pos_Points extends core_Master {
     {
     	$rec = $data->rec;
     	
+    	if($mvc->haveRightFor('select', $rec->id) && pos_Receipts::haveRightFor('terminal')){
+    		$urlArr = array('pos_Points', 'OpenTerminal', $rec->id);
+    		$data->toolbar->addBtn("Отвори", $urlArr, NULL, 'title=Отваряне на точката,class=pos-open-btn,ef_icon=img/16/forward16.png,target=_blank');
+    	}
+    	
     	if($rec->id == $mvc->getCurrent('id', NULL, FALSE)) {
     		$data->toolbar->addBtn("Отвори", array('pos_Receipts', 'Terminal'), NULL, 'title=Отваряне на точката,ef_icon=img/16/forward16.png,target=_blank');
     	}
@@ -190,13 +195,28 @@ class pos_Points extends core_Master {
     
     
     /**
+     * Екшън форсиращ избирането на точката и отваряне на терминала
+     */
+    function act_OpenTerminal()
+    {
+    	expect($pointId = Request::get('id', 'int'));
+    	expect($rec = $this->fetch($pointId));
+    	$this->requireRightFor('select', $pointId);
+    	$this->selectSilent($pointId);
+    	
+    	return redirect(array('pos_Receipts', 'terminal'));
+    }
+    
+    
+    /**
      * Обработка по вербалното представяне на данните
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    public static function on_AfterRecToVerbal(core_Mvc $mvc, &$row, $rec, $fields = array())
     {
-    	if($rec->id == $mvc->getCurrent('id', NULL, FALSE)) {
-    		$urlArr = toUrl(array('pos_Receipts', 'Terminal'));
-    		$row->currentPlg .= ht::createBtn('Отвори', $urlArr, NULL, TRUE, 'title=Отваряне на точката,class=pos-open-btn,ef_icon=img/16/forward16.png');
+    	unset($row->currentPlg);
+    	if($mvc->haveRightFor('select', $rec->id) && pos_Receipts::haveRightFor('terminal')){
+    		$urlArr = array('pos_Points', 'OpenTerminal', $rec->id);
+    		$row->currentPlg = ht::createBtn('Отвори', $urlArr, NULL, TRUE, 'title=Отваряне на точката,class=pos-open-btn,ef_icon=img/16/forward16.png');
     	}
     	
     	$row->caseId = cash_Cases::getHyperlink($rec->caseId, TRUE);
