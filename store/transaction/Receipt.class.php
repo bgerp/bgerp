@@ -126,8 +126,8 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
         	$amount = ($detailRec->discount) ?  $amount * (1 - $detailRec->discount) : $amount;
         	$amount = round($amount, 2);
         	
-        	// Ако е материал дебит 302 иначе 321
-        	$debitAccId = (isset($pInfo->meta['materials'])) ? '302' : '321';
+        	// Ако е вложим дебит 302 иначе 321
+        	$debitAccId = (isset($pInfo->meta['canConvert'])) ? '302' : '321';
         		
         	$debit = array(
                   $debitAccId, 

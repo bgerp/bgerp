@@ -179,8 +179,8 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
 					$costsAccNumber = '613';
 				} else {
 					
-					// Ако е "Материали" дебит 601, иначе 602
-					$costsAccNumber = (isset($pInfo->meta['materials'])) ? '601' : '602';
+					// Ако е "Вложим" 602
+					$costsAccNumber = '602';
 				}
 
     			$entries[] = array(
@@ -324,8 +324,8 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
         	// Само складируемите продукти се изписват от склада
         	if(isset($pInfo->meta['canStore'])){
         		
-        		// Ако е материал дебит 302 иначе 321
-	        	$debitAccId = (isset($pInfo->meta['materials'])) ? '302' : '321';
+        		// Ако е вложим дебит 302 иначе 321
+	        	$debitAccId = (isset($pInfo->meta['canConvert'])) ? '302' : '321';
 	        		
 	        	$debit = array(
 	                  $debitAccId, 
