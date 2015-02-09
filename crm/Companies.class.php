@@ -529,7 +529,7 @@ class crm_Companies extends core_Master
      */
     static function on_AfterRecToVerbal($mvc, $row, $rec, $fields=NULL)
     {
-        $row->nameList = new ET('[#1#]', $row->name);
+        $row->nameList = $mvc->getLinkToSingle($rec->id, 'name');
         
         // $row->nameTitle = mb_strtoupper($rec->name);
         // $row->nameLower = mb_strtolower($rec->name);
@@ -579,7 +579,7 @@ class crm_Companies extends core_Master
         } else {
             
             // Добавяме линк към профила на потребителя, който е inCharge на визитката
-            $row->phonesBox = crm_Profiles::createLink($rec->inCharge);
+            $row->phonesBox = tr('Отговорник') . ': ' . crm_Profiles::createLink($rec->inCharge);
         }
      
         $ownCompany = crm_Companies::fetchOurCompany();
