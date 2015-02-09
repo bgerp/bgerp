@@ -31,11 +31,18 @@ class sens2_ProtoDriver
      */
     function getInputPorts()
     {
-        return array();
-    }
-    
-    
+        $res = array();
+        
+        if(is_array($this->inputs)) {
+            foreach($this->inputs as $name => $params) {
+                $res[$name] = (object) array('caption' => $params['caption'], 'uom' => $params['uom']);
+            }
+        }
 
+        return $res;
+    }
+
+    
     /**
      * Информация за изходните портове на устройството
      *
@@ -45,7 +52,15 @@ class sens2_ProtoDriver
      */
     function getOutputPorts()
     {
-        return array();
+        $res = array();
+
+        if(is_array($this->outputs)) {
+            foreach($this->outputs as $name => $params) {
+                $res[$name] = array('caption' => $params['caption'], 'uom' => $params['uom']);
+            }
+        }
+
+        return $res;
     }
 
 

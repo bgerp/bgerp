@@ -193,10 +193,12 @@ class sens2_Indicators extends core_Manager
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    static function on_AfterPrepareListFilter($mvc, $data)
+    static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
-        
+        $data->query->EXT('ctrState', 'sens2_Controllers', 'externalName=state,externalKey=controllerId');
+        $data->query->where("#ctrState = 'active'");
         $data->query->orderBy('#controllerId,#port', 'DESC');
+
     }
 
 

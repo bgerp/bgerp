@@ -129,14 +129,14 @@ class teracom_TCW122BCM extends sens2_ProtoDriver
         // Ако не сме получили xml - връщаме грешка
         if (empty($xml) || !$xml) {
             
-            return "Грешка при четене от {$config->ip}";
+            return "Грешка при четене от {$config->ip}:{$config->ip}";
         }
         
         echo "<br><pre>$xml</pre>";
 
         // Парсираме XML-а
         $result = array();
-        $this->XMLToArrayFlat(simplexml_load_string($xml), $result);
+        core_XML::toArrayFlat(simplexml_load_string($xml), $result);
         
         // Извличаме състоянията на входовете от парсирания XML
         foreach ($this->inputs as $name => $details) {
@@ -195,39 +195,5 @@ class teracom_TCW122BCM extends sens2_ProtoDriver
             curl_close($ch);
         }
     }
-    
-    
-    /**
-     * Преобразува SimpleXMLElement в масив
-     */
-    function XMLToArrayFlat($xml, &$return, $path = '', $root = FALSE)
-    {
-        $children = array();
-        
-        if ($xml instanceof SimpleXMLElement) {
-            $children = $xml->children();
-            
-            if ($root){ // we're at root
-                $path .= '/' . $xml->getName();
-            }
-        }
-        
-        if (count($children) == 0){
-            $return[$path] = (string) $xml;
-            
-            return;
-        }
-        
-        $seen = array();
-        
-        foreach ($children as $child => $value) {
-            $childname = ($child instanceof SimpleXMLElement) ? $child->getName() : $child;
-            
-            if (!isset($seen[$childname])){
-                $seen[$childname] = 0;
-            }
-            $seen[$childname]++;
-            $this->XMLToArrayFlat($value, $return, $path . '/' . $child . '[' . $seen[$childname] . ']');
-        }
-    }
+
 }
