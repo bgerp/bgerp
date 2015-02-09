@@ -60,6 +60,7 @@ class cat_Setup extends core_ProtoSetup
     		'migrate::updateProducts',
     		'migrate::updateProducts3',
     		'migrate::migrateMetas',
+    		'migrate::migrateGroups',
         );
 
         
@@ -205,6 +206,28 @@ class cat_Setup extends core_ProtoSetup
     		$rec->meta = $Set->fromVerbal($metaArr);
     		
     		$Products->save_($rec);
+    	}
+    }
+    
+    
+    /**
+     * Миграция на мета данните на групите
+     */
+    public function migrateGroups()
+    {
+    	$Set = cls::get('type_Set');
+    	
+    	$query = cat_Groups::getQuery();
+    	while($rec = $query->fetch()){
+    		$meta = type_Set::toArray($rec->meta);
+    		if(isset($meta['materials'])){
+    			$meta['canStore'] = 'canStore';
+    			$meta['canConvert'] = 'canConvert';
+    			unset($meta['materials']);
+    		}
+    		
+    		$rec->meta = $Set->fromVerbal($meta);
+    		cat_Groups::save($rec, 'meta');
     	}
     }
 }

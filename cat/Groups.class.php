@@ -17,6 +17,12 @@ class cat_Groups extends core_Master
 {
     
     
+	/**
+	 * Поддържани интерфейси
+	 */
+	public $interfaces = 'techno2_SpecificationFolderCoverIntf';
+	
+	
     /**
      * Заглавие
      */
@@ -153,9 +159,10 @@ class cat_Groups extends core_Master
                                 canBuy=Купуваеми,
                                 canStore=Складируеми,
                                 canConvert=Вложими,
-                                fixedAsset=ДМА,
-                                canManifacture=Производими,
-                                materials=Материали)', 'caption=Свойства->Списък,columns=2');
+                                fixedAsset=Дълготрайни активи,
+        						canManifacture=Производими,
+        						waste=Отпаден)', 'caption=Свойства->Списък,columns=2');
+        
         
         $this->setDbUnique("sysId");
     }
