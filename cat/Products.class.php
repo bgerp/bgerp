@@ -501,12 +501,15 @@ class cat_Products extends core_Embedder {
      */
     public static function getByProperty($properties, $limit = NULL)
     {
+    	$me = cls::get(get_called_class());
     	$products = array();
     	$metaArr = arr::make($properties);
     	$query = self::getQuery();
+    	$query->show('id,name,code');
     	
     	// Само активните артикули
     	$query->where("#state = 'active'");
+    	$Varchar = cls::get('type_Varchar');
     	
     	// Ограничаваме намерените записи
     	if(isset($limit)){
@@ -522,7 +525,11 @@ class cat_Products extends core_Embedder {
     	
     	// Подготвяме опциите
     	while($rec = $query->fetch()){
-    		$products[$rec->id] = static::getTitleById($rec->id, FALSE);
+    		$row = (object)array('code' => $Varchar->toVerbal($rec->code), 'name' => $Varchar->toVerbal($rec->name));
+    		$tpl = new ET($me->recTitleTpl);
+    		$tpl->placeObject($row);
+    		
+    		$products[$rec->id] = $tpl->getContent();
     	}
     	
     	return $products;

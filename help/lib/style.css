@@ -7,7 +7,7 @@
 }
 
 .needhelp-holder {
-	width: 180px;
+	width: 160px;
     z-index: 9999;
 	height: 40px;
 	background: #333;
@@ -16,18 +16,18 @@
 	-moz-border-radius: 10px;
 	-webkit-border-radius: 10px;
 	color: #eee;
-	padding-top: 27px;
+	padding-top: 22px;
 	padding-bottom: 20px;
 	padding-left: 90px;
-	padding-right: 6px;
+	padding-right: 26px;
 	font-family: lucida Grande;
-	font-size: 14px;
+	font-size: 13px;
 	border: 2px solid #999;
 	display: block;
 	position: relative;
 	margin: 0 0 25px 0;
     display:none;
-	background: #333 url('supportmale-64.png') 5px 8px no-repeat;
+	background: #333 url('supportmale-64.png') 12px 10px no-repeat;
 }
 
 .needhelp-holder a{

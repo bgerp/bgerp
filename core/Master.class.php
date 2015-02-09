@@ -517,7 +517,7 @@ class core_Master extends core_Manager
         $url = array();
         
         // Ако има права за сингъла
-        if ($me->haveRightFor('single')) { 
+        if ($me->haveRightFor('single', $id)) { 
             
             // Линка към сингъла
             $url = array($me, 'single', $id);

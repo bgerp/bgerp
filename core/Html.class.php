@@ -676,7 +676,7 @@ class core_Html
         if($attr['ef_icon']) {
             $iconSrc = sbf($attr['ef_icon'], '', Mode::is('text', 'xhtml'));
             
-            if (Mode::is('text', 'xhtml') || Mode::is('printing')) {
+            if (Mode::is('text', 'xhtml')) {
                 $icon    = "<img src='$iconSrc' width='16' height='16' style='float:left;margin:3px 2px 4px 0px;' alt=''>";
                 $title   = "<span style='display:inline-block;'>{$icon}{$title}</span>";
             } else {

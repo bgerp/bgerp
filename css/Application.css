@@ -3643,6 +3643,8 @@ only screen and (max-width: 320px) {
   .footerDocTable {
     display: table !important; } }
 
+  .printing a {
+    color: black !important; }
   .printing .docBgIcon {
     padding: 0 !important;
     background-image: none !important; }

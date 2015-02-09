@@ -532,7 +532,7 @@ class crm_Persons extends core_Master
             // Дали има права single' а на този потребител
             $canSingle = static::haveRightFor('single', $rec);
             
-            $row->nameList = $row->name;
+            $row->nameList = $mvc->getLinkToSingle($rec->id, 'name');
             
             if ($row->country) {
                 $row->addressBox = $row->country;
@@ -568,7 +568,7 @@ class crm_Persons extends core_Master
             } else {
                 
                 // Добавяме линк към профила на потребителя, който е inCharge на визитката
-                $row->phonesBox = crm_Profiles::createLink($rec->inCharge);
+                $row->phonesBox = tr('Отговорник') . ': ' . crm_Profiles::createLink($rec->inCharge);
             }
         }
         $currentId = $mvc->getVerbal($rec, 'id');

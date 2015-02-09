@@ -462,6 +462,7 @@ function calculateWidth(){
 
 	$('#result_contragents').css('max-height', 239);
 	$('#result_contragents').css('overflow-y', 'auto');
+	$('#result_contragents').css('width', '100%');
 	
 	var receiptHeight = winHeight -  totalOffset - 410;
 	$('.scrolling-vertical').css('maxHeight',receiptHeight);
