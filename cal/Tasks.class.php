@@ -339,8 +339,17 @@ class cal_Tasks extends core_Master
         } else { 
             $data->query->where("#sharedUsers LIKE '%|{$userId}|%'");
         }
+        
+        $today = dt::mysql2timestamp(dt::today());
+        $oneWeakLater = dt::timestamp2Mysql($today + 7 * 24 * 60 *60);
+       
 
-        $data->query->where("#state = 'active' OR #state = 'pending'");
+        $data->query->where("#state = 'active' OR (#state = 'pending' AND #timeStart IS NOT NULL AND #timeEnd IS NOT NULL AND #timeStart <= '{$oneWeakLater}' AND #timeEnd >= '{$today}')
+	        		              OR
+	        		              (#timeStart IS NOT NULL AND #timeDuration IS NOT NULL  AND #timeStart <= '{$oneWeakLater}' AND ADDDATE(#timeStart, INTERVAL #timeDuration SECOND) >= '{$today}')
+	        		              OR
+	        		              (#timeStart IS NOT NULL AND #timeStart <= '{$oneWeakLater}' AND  #timeStart >= '{$today}')");
+        
         $data->query->orderBy("timeStart=DESC");
         
         // Подготвяме навигацията по страници
