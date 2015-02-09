@@ -685,32 +685,6 @@ class cat_Products extends core_Embedder {
     
     
     /**
-     * Връща всички продукти които са в посочените групи/група 
-     * зададени, чрез техни systemId-та
-     * 
-     * @param mixed $group - sysId (стринг) или масив от sysId-та на групи
-     * @return array $result - Продукти отговарящи на посочената група/групи
-     */
-    public static function getByGroup($group)
-    {
-    	if(!is_array($group)){
-    		$group = array($group);
-    	}
-    	
-    	$result = array();
-    	$query = static::getQuery();
-    	$groupIds = cat_Groups::getKeylistBySysIds($group);
-    	$query->likeKeylist('groups', $groupIds, TRUE);
-    	
-    	while($rec = $query->fetch()){
-	    	$result[$rec->id] = static::getTitleById($rec->id);
-	    }
-	    
-	    return $result;
-    }
-    
-    
-    /**
      * Връща ДДС на даден продукт
      * 
      * @param int $productId - Ид на продукт
@@ -1185,84 +1159,5 @@ class cat_Products extends core_Embedder {
     	static::save($rec, 'privateFolderId,specificationId');
     	
     	return $rec;
-    }
-    
-    
-    /**
-     * Екшън да се добавя спецификация от артикул в папка
-     */
-    public function act_addSpecification()
-    {
-    	techno2_SpecificationDoc::requireRightFor('add');
-    	expect($id = Request::get('id', int));
-    	expect($rec = $this->fetch($id));
-    	expect($rec->state != 'rejected');
-    	expect(!$rec->specificationId);
-    	
-    	$form = cls::get('core_Form');
-    	$form->title = 'Създаване на спецификация';
-    	$form->FNC('unsortedFolderId', "key(mvc=techno2_SpecificationFolders,select=name,allowEmpty)", 'caption=Папка,mandatory,input');
-    	
-    	if(!techno2_SpecificationFolders::count("#state = 'active'")){
-    		return Redirect(array('techno2_SpecificationFolders', 'list'), NULL, 'Няма налични папки за избор');
-    	}
-    	
-    	$form->input();
-    	if($form->isSubmitted()){
-    		
-    		// Създаваме спецификация във въпросната папка
-    		$folderId = techno2_SpecificationFolders::forceCoverAndFolder($form->rec->unsortedFolderId);
-    		$pRec = $this->createSpecification($rec, $folderId);
-    		
-    		// Споделяме потребителя до нишката на папката
-    		$cu = core_Users::getCurrent();
-    		$sRec = techno2_SpecificationDoc::fetch($pRec->specificationId);
-    		doc_ThreadUsers::addShared($sRec->threadId, $sRec->containerId, $cu);
-    		
-    		// Редирект към новосъздадената спецификация
-    		return Redirect(array('techno2_SpecificationDoc', 'single', $pRec->specificationId), 'Създадена е нова спецификация');
-    	}
-    	
-    	$form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png, title = Запис на документа');
-        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
-        
-        // Рендиране на обвивката и формата
-        return $this->renderWrapping($form->renderHtml());
-    }
-    
-    
-    /**
-     * След подготовка на тулбара за еденичния изглед
-     */
-    protected static function on_AfterPrepareSingleToolbar(core_Mvc $mvc, &$res, $data)
-    {
-    	if($data->rec->state != 'rejected'){
-    		if(isset($data->rec->specificationId)){
-    			
-    			// Добавяме бутон линк към спецификацията
-    			if(techno2_SpecificationDoc::haveRightFor('single', $data->rec->specificationId)){
-    				$data->toolbar->addBtn('Спецификация', array('techno2_SpecificationDoc', 'single', $data->rec->specificationId, 'ret_url' => TRUE), NULL, 'ef_icon = img/16/specification.png,title=Преглед на спецификацията');
-    			}
-    		} else {
-    			if(techno2_SpecificationDoc::haveRightFor('add')){
-    				$data->toolbar->addBtn('Нова спецификация', array('cat_Products', 'addSpecification', $data->rec->id, 'ret_url' => TRUE), NULL, 'ef_icon = img/16/star_2.png,title=Създаване на нова спецификация');
-    			}
-    		}
-    	}
-    }
-    
-    
-    /**
-     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
-     */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
-    {
-    	if($action == 'edit' && isset($rec)){
-    		
-    		// Ако има спецификация не може да се редактира артикула
-    		if(isset($rec->specificationId)){
-    			$requiredRoles = 'no_one';
-    		}
-    	}
     }
 }
