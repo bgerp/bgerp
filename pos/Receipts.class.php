@@ -364,6 +364,7 @@ class pos_Receipts extends core_Master {
     			case 'sale':
     				$vat = cat_Products::getVat($dRec->productId, $rec->createdOn);
     				$price = $dRec->price * (1 - $dRec->discountPercent) * (1 + $vat);
+    				$price = round($price, 2);
     				$rec->total += round($dRec->quantity * $price, 2);
     				break;
     			case 'payment':

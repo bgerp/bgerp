@@ -459,6 +459,7 @@ class pos_ReceiptDetails extends core_Detail {
     	$perPack = ($productInfo->packagingRec->quantity) ? $productInfo->packagingRec->quantity : 1;
     	
     	$rec->price = $rec->price * (1 + $rec->param) * (1 - $rec->discountPercent);
+    	$rec->price = round($rec->price, 2);
     	$row->price = $Double->toVerbal($rec->price);
     	$row->amount = $Double->toVerbal($rec->price * $rec->quantity);
     	if($rec->discountPercent < 0){
