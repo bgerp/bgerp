@@ -7,15 +7,21 @@
  *
  *
  * @category  bgerp
- * @package   techno
+ * @package   cat
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class techno2_BomStages extends core_Master
+class cat_BomStages extends core_Master
 {
     
+	
+	/**
+	 * За конвертиране на съществуващи MySQL таблици от предишни версии
+	 */
+	public $oldClassName = 'techno2_BomStages';
+	
 	
     /**
      * Заглавие
@@ -38,7 +44,7 @@ class techno2_BomStages extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, techno2_Wrapper';
+    var $loadList = 'plg_Created, plg_RowTools, cat_Wrapper';
     
     
     /**
@@ -62,7 +68,7 @@ class techno2_BomStages extends core_Master
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'ceo,techno';
+    var $canRead = 'ceo,cat';
     
     
     /**
@@ -74,13 +80,13 @@ class techno2_BomStages extends core_Master
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'ceo,techno';
+    var $canEdit = 'ceo,cat';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'ceo,techno';
+    var $canAdd = 'ceo,cat';
     
     
     /**
@@ -92,7 +98,7 @@ class techno2_BomStages extends core_Master
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'ceo,techno';
+    var $canDelete = 'ceo,cat';
     
     
     /**
@@ -100,7 +106,7 @@ class techno2_BomStages extends core_Master
      */
     function description()
     {
-    	$this->FLD('bomId', 'key(mvc=techno2_Boms)', 'column=none,input=hidden,silent,oldFieldName=mapId');
+    	$this->FLD('bomId', 'key(mvc=cat_Boms)', 'column=none,input=hidden,silent,oldFieldName=mapId');
     	$this->FLD("stage", 'key(mvc=mp_Stages,select=name,allowEmpty)', 'caption=Етап,mandatory');
     	$this->FLD("description", 'richtext(rows=2)', 'caption=Описание');
     	$this->FLD("resourceId", 'key(mvc=mp_Resources,select=title)', 'input=hidden');
@@ -122,7 +128,7 @@ class techno2_BomStages extends core_Master
     		
     		if($rRec = $rQuery->fetch()){
     			$dRec = (object)array('bomstageId' => $rec->id, 'type' => 'input', 'resourceId' => $rRec->resourceId);
-    			techno2_BomStageDetails::save($dRec);
+    			cat_BomStageDetails::save($dRec);
     		}
     	}
     }
@@ -194,12 +200,12 @@ class techno2_BomStages extends core_Master
     		$nData->masterId = $dRec->id;
     		$nData->masterData = $dRec;
     		
-    		$detailData = cls::get('techno2_BomStageDetails')->prepareDetail($nData);
+    		$detailData = cls::get('cat_BomStageDetails')->prepareDetail($nData);
     		
     		// Добавяме бутон за добавяне на детайл към този клас
-    		if(techno2_BomStageDetails::haveRightFor('add', (object)array('bomstageId' => $dRec->id))){
-    			$row->addBtn = ht::createLink('', array('techno2_BomStageDetails', 'add', 'bomstageId' => $dRec->id, 'ret_url' => TRUE, 'type' => 'input'), FALSE, "ef_icon=img/16/add.png,title=Добавяне на ресурс");
-    			$row->addBtnRemProd = ht::createLink('', array('techno2_BomStageDetails', 'add', 'bomstageId' => $dRec->id, 'ret_url' => TRUE, 'type' => 'pop'), FALSE, "ef_icon=img/16/remove-icon.png,title=Добавяне на изходен артикул");
+    		if(cat_BomStageDetails::haveRightFor('add', (object)array('bomstageId' => $dRec->id))){
+    			$row->addBtn = ht::createLink('', array('cat_BomStageDetails', 'add', 'bomstageId' => $dRec->id, 'ret_url' => TRUE, 'type' => 'input'), FALSE, "ef_icon=img/16/add.png,title=Добавяне на ресурс");
+    			$row->addBtnRemProd = ht::createLink('', array('cat_BomStageDetails', 'add', 'bomstageId' => $dRec->id, 'ret_url' => TRUE, 'type' => 'pop'), FALSE, "ef_icon=img/16/remove-icon.png,title=Добавяне на изходен артикул");
     		}
     		$dRow = $this->recToVerbal($dRec);
     		$detailData->rows[] = (object)array('resourceId' => $dRow->resourceId, 'type' => 'pop', 'ROW_ATTR' => array('class' => 'row-removed'));
@@ -225,7 +231,7 @@ class techno2_BomStages extends core_Master
     public function renderStages($data)
     {
     	// Взимаме шаблона
-    	$tpl = getTplFromFile("techno2/tpl/SingleBomStages.shtml");
+    	$tpl = getTplFromFile("cat/tpl/SingleBomStages.shtml");
     	
     	// Ако има записи, обхождаме ги
     	if(count($data->rows)){
@@ -235,7 +241,7 @@ class techno2_BomStages extends core_Master
     			$blockTpl = clone $tpl->getBlock('ROW');
     			$blockTpl->placeObject($row);
     			
-    			$table = cls::get('core_TableView', array('mvc' => cls::get('techno2_BomStageDetails')));
+    			$table = cls::get('core_TableView', array('mvc' => cls::get('cat_BomStageDetails')));
     			$listFields = array('RowNumb'        => 'Пулт', 
     							    'resourceId'     => 'Ресурс',
     								'measureId'	   => 'Мярка',
@@ -285,7 +291,7 @@ class techno2_BomStages extends core_Master
     		} else {
     			
     			// Ако има рецепта и тя не е чернова забраняваме действията
-    			$masterState = techno2_Boms::fetchField($rec->bomId, 'state');
+    			$masterState = cat_Boms::fetchField($rec->bomId, 'state');
     			
     			if($masterState != 'draft'){
     				$requiredRoles = 'no_one';
@@ -296,7 +302,7 @@ class techno2_BomStages extends core_Master
     	if($action == 'delete' && isset($rec)){
     		
     		// Ако има поне един детайл обвързан към етапа, не може да се изтрива
-    		if(techno2_BomStageDetails::fetchField("#bomstageId = {$rec->id}")){
+    		if(cat_BomStageDetails::fetchField("#bomstageId = {$rec->id}")){
     			$requiredRoles = 'no_one';
     		}
     	}
@@ -310,7 +316,7 @@ class techno2_BomStages extends core_Master
     {
     	$rec = static::fetchRec($rec);
     	
-    	return techno2_Boms::getRecTitle(techno2_Boms::fetch($rec->bomId), $escaped);
+    	return cat_Boms::getRecTitle(cat_Boms::fetch($rec->bomId), $escaped);
     }
     
     
@@ -319,7 +325,7 @@ class techno2_BomStages extends core_Master
      */
     public function getRetUrl($rec)
     {
-    	$url = array('techno2_Boms', 'single', $rec->bomId);
+    	$url = array('cat_Boms', 'single', $rec->bomId);
     
     	return $url;
     }
@@ -334,7 +340,7 @@ class techno2_BomStages extends core_Master
     	if (isset($data->form) && ($data->form->cmd === 'save' || is_null($data->form->cmd))) {
     
     		// Променяма да сочи към single-a
-    		$data->retUrl = toUrl(array('techno2_Boms', 'single', $data->form->rec->bomId));
+    		$data->retUrl = toUrl(array('cat_Boms', 'single', $data->form->rec->bomId));
     	}
     }
 }

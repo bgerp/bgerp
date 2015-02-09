@@ -24,7 +24,6 @@ class techno2_Wrapper extends plg_ProtoWrapper
     {
     	$this->TAB('techno2_SpecificationFolders', 'Спецификации', 'ceo,techno');
     	$this->TAB('techno2_SpecificationDoc', 'Спецификации на артикули', 'ceo,techno');
-        $this->TAB('techno2_Boms', 'Рецепти', 'ceo,techno');
         $this->TAB('techno2_SpecTplCache', 'Кеш', 'ceo,debug');
     }
 }

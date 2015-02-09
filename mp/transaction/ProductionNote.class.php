@@ -97,9 +97,9 @@ class mp_transaction_ProductionNote extends acc_DocumentTransactionSource
 				if(isset($dRec->bomId)){
 					$usesResources = TRUE;
 					
-					$bomId = techno2_Boms::fetchField($dRec->bomId, 'id');
+					$bomId = cat_Boms::fetchField($dRec->bomId, 'id');
 					
-					$mapArr = techno2_Boms::getResourceInfo($bomId);
+					$mapArr = cat_Boms::getResourceInfo($bomId);
 					
 					// За всеки ресурс от картата
 					foreach ($mapArr as $index => $resInfo){

@@ -107,7 +107,7 @@ class mp_Resources extends core_Master
     	$this->FLD('selfValue', 'double', 'caption=Себестойност');
     	$this->FLD('systemId', 'varchar', 'caption=Системен №,input=none');
     	$this->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none');
-    	$this->FLD('bomId', 'key(mvc=techno2_Boms)', 'input=none');
+    	$this->FLD('bomId', 'key(mvc=cat_Boms)', 'input=none');
     	$this->FLD('state', 'enum(active=Активиран,rejected=Оттеглен)', 'caption=Състояние,input=none,notNull,default=active');
     	
     	// Поставяме уникален индекс

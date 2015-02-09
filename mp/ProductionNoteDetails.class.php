@@ -93,7 +93,7 @@ class mp_ProductionNoteDetails extends deals_ManifactureDetail
         parent::setDetailFields($this);
         
         $this->FLD('jobId', 'key(mvc=mp_Jobs)', 'input=none,caption=Задание');
-        $this->FLD('bomId', 'key(mvc=techno2_Boms)', 'input=none,caption=Рецепта');
+        $this->FLD('bomId', 'key(mvc=cat_Boms)', 'input=none,caption=Рецепта');
         
         $this->FLD('selfValue', 'double', 'caption=С-ст,input=hidden');
         $this->FNC('amount', 'double', 'caption=Сума');
@@ -179,9 +179,9 @@ class mp_ProductionNoteDetails extends deals_ManifactureDetail
     	}
     	
     	if(isset($rec->bomId)){
-    		$row->bomId = "#" . cls::get('techno2_Boms')->getHandle($rec->bomId);
+    		$row->bomId = "#" . cls::get('cat_Boms')->getHandle($rec->bomId);
     		if(!Mode::is('printing') && !Mode::is('text', 'xhtml')){
-    			$row->bomId = ht::createLink($row->bomId, array('techno2_Boms', 'single', $rec->bomId));
+    			$row->bomId = ht::createLink($row->bomId, array('cat_Boms', 'single', $rec->bomId));
     		}
     	}
     }

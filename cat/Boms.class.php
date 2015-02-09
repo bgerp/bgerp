@@ -6,20 +6,20 @@
  *
  *
  * @category  bgerp
- * @package   techno
+ * @package   cat
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class techno2_Boms extends core_Master
+class cat_Boms extends core_Master
 {
    
 	
 	/**
 	 * За конвертиране на съществуващи MySQL таблици от предишни версии
 	 */
-	public $oldClassName = 'techno2_Maps';
+	public $oldClassName = 'techno2_Boms';
 	
 	
    /**
@@ -37,7 +37,7 @@ class techno2_Boms extends core_Master
     /**
      * Неща, подлежащи на начално зареждане
      */
-    var $loadList = 'plg_RowTools, techno2_Wrapper, plg_Sorting, doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, doc_ActivatePlg';
+    var $loadList = 'plg_RowTools, cat_Wrapper, plg_Sorting, doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, doc_ActivatePlg';
     
     
     /**
@@ -55,7 +55,7 @@ class techno2_Boms extends core_Master
     /**
      * Детайла, на модела
      */
-    var $details = 'Stages=techno2_BomStages';
+    var $details = 'Stages=cat_BomStages';
     
     
     /**
@@ -79,43 +79,43 @@ class techno2_Boms extends core_Master
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'techno,ceo';
+    var $canRead = 'cat,ceo';
     
     
     /**
      * Кой може да пише?
      */
-    var $canWrite = 'techno,ceo';
+    var $canWrite = 'cat,ceo';
     
     
     /**
      * Кой може да го контира?
      */
-    var $canConto = 'techno,ceo';
+    var $canConto = 'cat,ceo';
     
     
     /**
      * Кой може да го отхвърли?
      */
-    var $canReject = 'techno,ceo';
+    var $canReject = 'cat,ceo';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'ceo,techno';
+    var $canList = 'ceo,cat';
     
     
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    var $canSingle = 'ceo,techno';
+    var $canSingle = 'ceo,cat';
     
     
     /**
      * Файл с шаблон за единичен изглед на статия
      */
-    var $singleLayoutFile = 'techno2/tpl/SingleLayoutMap.shtml';
+    var $singleLayoutFile = 'cat/tpl/SingleLayoutMap.shtml';
     
     
     /**
@@ -336,14 +336,14 @@ class techno2_Boms extends core_Master
     	expect($rec = static::fetchRec($id));
     	
     	// Намираме всички етапи в рецептата
-    	$dQuery = techno2_BomStages::getQuery();
+    	$dQuery = cat_BomStages::getQuery();
     	$dQuery->where("#bomId = {$rec->id}");
     	
     	// За всеки етап
     	while($dRec = $dQuery->fetch()){
     		
     		// Проверяваме имали вързани ресурси към него
-    		$sQuery = techno2_BomStageDetails::getQuery();
+    		$sQuery = cat_BomStageDetails::getQuery();
     		$sQuery->where("#bomstageId = {$dRec->id}");
     		while($sRec = $sQuery->fetch()){
     			$arr = array();
@@ -373,11 +373,11 @@ class techno2_Boms extends core_Master
     public static function getExitResources($bomId)
     {
     	$exitResources = array();
-    	$dQuery = techno2_BomStages::getQuery();
+    	$dQuery = cat_BomStages::getQuery();
     	$dQuery->where("#bomId = {$bomId}");
     	$dQuery->show('resourceId,exitQuantity');
     	while($dRec = $dQuery->fetch()){
-    		$exitResources[$dRec->resourceId] = $dRec->exitQuantity;
+    		$exitResources[$dRec->resourceId] = 1;
     	}
     	
     	return $exitResources;
@@ -396,10 +396,10 @@ class techno2_Boms extends core_Master
     	$usedRes = array();
     	 
     	// Намираме всички ресурси, които са използвани в рецептата
-    	$query = techno2_BomStages::getQuery();
+    	$query = cat_BomStages::getQuery();
     	$query->where("#bomId = {$bomId}");
     	while($qRec = $query->fetch()){
-    		$dQuery = techno2_BomStageDetails::getQuery();
+    		$dQuery = cat_BomStageDetails::getQuery();
     		$dQuery->where("#bomstageId = {$qRec->id}");
     		while($dRec = $dQuery->fetch()){
     			$usedRes[$dRec->resourceId] = mp_Resources::getTitleById($dRec->resourceId, FALSE);
@@ -416,7 +416,7 @@ class techno2_Boms extends core_Master
     	if(count($bomResources)){
     		
     		$notAllowed = array();
-    		$needle = techno2_BomStages::fetchField("#bomId = {$bomId} AND #stage = '{$stageId}'", 'resourceId');
+    		$needle = cat_BomStages::fetchField("#bomId = {$bomId} AND #stage = '{$stageId}'", 'resourceId');
     		
     		if(count($bomResources)){
     			foreach ($bomResources as $id => $name){
@@ -479,8 +479,8 @@ class techno2_Boms extends core_Master
     	}
     	
     	// Взимаме вложените ресурси в етапа
-    	$query = techno2_BomStageDetails::getQuery();
-    	$stageRec = techno2_BomStages::fetch("#resourceId = {$resourceId}");
+    	$query = cat_BomStageDetails::getQuery();
+    	$stageRec = cat_BomStages::fetch("#resourceId = {$resourceId}");
     	
     	$query->where("#bomstageId = {$stageRec->id} AND #type = 'input'");
     	
@@ -488,7 +488,7 @@ class techno2_Boms extends core_Master
     	while($rec = $query->fetch()){
     		
     		// Ако някой от вложимите е изходен за друг етап от рецептата
-    		if($sRec = techno2_BomStages::fetch("#bomId = {$stageRec->bomId} AND #resourceId = {$rec->resourceId}")){
+    		if($sRec = cat_BomStages::fetch("#bomId = {$stageRec->bomId} AND #resourceId = {$rec->resourceId}")){
     			
     			// Извикваме рекурсивно
     			self::traverseTree($sRec->resourceId, $needle, $notAllowed, $path);
@@ -508,12 +508,12 @@ class techno2_Boms extends core_Master
     	$rec = static::fetchRec($id);
     	
     	// Намираме всички етапи в тази рецепта
-    	$dQuery = techno2_BomStages::getQuery();
+    	$dQuery = cat_BomStages::getQuery();
     	$dQuery->where("#bomId = '{$rec->id}'");
     	$dQuery->show('id');
     	
     	// След това намираме всички детайли на етапите на рецептата
-    	$query2 = techno2_BomStageDetails::getQuery();
+    	$query2 = cat_BomStageDetails::getQuery();
     	$query2->in("bomstageId", arr::make(array_keys($dQuery->fetchAll()), TRUE));
     	
     	// Връщаме заявката

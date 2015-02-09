@@ -391,11 +391,11 @@ class techno2_SpecificationDoc extends core_Embedder
     	}
     	
     	if($data->rec->state == 'active'){
-    		if(techno2_Boms::haveRightFor('write', (object)array('originId' => $data->rec->containerId))){
-    			if($qRec = techno2_Boms::fetch("#originId = {$data->rec->containerId} AND #state = 'draft'")){
-    				$data->toolbar->addBtn("Рецепта", array('techno2_Boms', 'edit', $qRec->id, 'ret_url' => TRUE), 'ef_icon = img/16/legend.png,title=Редактиране на технологична рецепта');
+    		if(cat_Boms::haveRightFor('write', (object)array('originId' => $data->rec->containerId))){
+    			if($qRec = cat_Boms::fetch("#originId = {$data->rec->containerId} AND #state = 'draft'")){
+    				$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'edit', $qRec->id, 'ret_url' => TRUE), 'ef_icon = img/16/legend.png,title=Редактиране на технологична рецепта');
     			} else {
-    				$data->toolbar->addBtn("Рецепта", array('techno2_Boms', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE), 'ef_icon = img/16/legend.png,title=Създаване на нова технологична рецепта');
+    				$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE), 'ef_icon = img/16/legend.png,title=Създаване на нова технологична рецепта');
     			}
     		}
     		
@@ -724,7 +724,7 @@ class techno2_SpecificationDoc extends core_Embedder
     	}
     	
     	// Опитваме се да намерим цена според технологичната карта
-    	if($amounts = techno2_Boms::getTotalByOrigin($rec->containerId)){
+    	if($amounts = cat_Boms::getTotalByOrigin($rec->containerId)){
     		
     		// Какви са максималната и минималната надценка за контрагента
     		$minCharge = cond_Parameters::getParameter($customerClass, $customerId, 'minSurplusCharge');
@@ -876,7 +876,7 @@ class techno2_SpecificationDoc extends core_Embedder
     	$rec = self::fetchRec($id);
     	 
     	// Какво е к-то от последното активно задание
-    	return techno2_Boms::fetch("#originId = {$rec->containerId} AND #state = 'active'");
+    	return cat_Boms::fetch("#originId = {$rec->containerId} AND #state = 'active'");
     }
 
     

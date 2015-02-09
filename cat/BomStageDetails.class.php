@@ -7,15 +7,21 @@
  *
  *
  * @category  bgerp
- * @package   techno
+ * @package   cat
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class techno2_BomStageDetails extends core_Detail
+class cat_BomStageDetails extends core_Detail
 {
     
+	
+	/**
+	 * За конвертиране на съществуващи MySQL таблици от предишни версии
+	 */
+	public $oldClassName = 'techno2_BomStageDetails';
+	
 	
     /**
      * Заглавие
@@ -38,7 +44,7 @@ class techno2_BomStageDetails extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, techno2_Wrapper, plg_LastUsedKeys, plg_RowNumbering, plg_AlignDecimals';
+    var $loadList = 'plg_Created, plg_RowTools, cat_Wrapper, plg_LastUsedKeys, plg_RowNumbering, plg_AlignDecimals';
     
     
     /**
@@ -62,19 +68,19 @@ class techno2_BomStageDetails extends core_Detail
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'ceo,techno';
+    var $canRead = 'ceo,cat';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'ceo,techno';
+    var $canEdit = 'ceo,cat';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'ceo,techno';
+    var $canAdd = 'ceo,cat';
     
     
     /**
@@ -86,7 +92,7 @@ class techno2_BomStageDetails extends core_Detail
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'ceo,techno';
+    var $canDelete = 'ceo,cat';
     
     
     /**
@@ -94,7 +100,7 @@ class techno2_BomStageDetails extends core_Detail
      */
     function description()
     {
-    	$this->FLD('bomstageId', 'key(mvc=techno2_BomStages)', 'column=none,input=hidden,silent');
+    	$this->FLD('bomstageId', 'key(mvc=cat_BomStages)', 'column=none,input=hidden,silent');
     	$this->FLD("resourceId", 'key(mvc=mp_Resources,select=title,allowEmpty)', 'caption=Ресурс,mandatory,silent', array('attr' => array('onchange' => 'addCmdRefresh(this.form);this.form.submit();')));
     	$this->FLD("productId", 'key(mvc=cat_Products, select=name, allowEmpty)', 'caption=Артикул,input=none');
     	$this->FLD("specId", 'key(mvc=techno2_SpecificationDoc, select=title, allowEmpty)', 'caption=Спецификация,input=none');
@@ -118,7 +124,7 @@ class techno2_BomStageDetails extends core_Detail
     	$form = &$data->form;
     	$masterRec = $mvc->Master->fetch($form->rec->bomstageId);
     	$act = (empty($form->rec->id)) ? tr('Добавяне') : tr('Редактиране');
-    	$mTitle = techno2_BomStages::getRecTitle($form->rec->bomstageId);
+    	$mTitle = cat_BomStages::getRecTitle($form->rec->bomstageId);
     	
     	// Ако детайла е добавен към етап, показваме го в инфото
     	$stage = $mvc->Master->getVerbal($masterRec, 'stage');
@@ -130,7 +136,7 @@ class techno2_BomStageDetails extends core_Detail
     	if ($form->rec->type == 'input'){
     		
     		// Ако добавяме нов ресурс
-    		$resourceArr = techno2_Boms::makeResourceOptions($masterRec->bomId, $masterRec->stage);
+    		$resourceArr = cat_Boms::makeResourceOptions($masterRec->bomId, $masterRec->stage);
     		if($form->rec->resourceId){
     			$resourceArr[$form->rec->resourceId] = mp_Resources::getTitleById($form->rec->resourceId, FALSE);
     		}
@@ -254,7 +260,7 @@ class techno2_BomStageDetails extends core_Detail
     			$requiredRoles = 'no_one';
     		} else {
     			$masterBomId = $mvc->Master->fetchField($rec->bomstageId, 'bomId');
-    			$masterState = techno2_Boms::fetchField($masterBomId, 'state');
+    			$masterState = cat_Boms::fetchField($masterBomId, 'state');
     			
     			if($masterState != 'draft'){
     				$requiredRoles = 'no_one';
@@ -270,7 +276,7 @@ class techno2_BomStageDetails extends core_Detail
     public function getRetUrl($rec)
     {
     	$bomId = $this->Master->fetchField($rec->bomstageId, 'bomId');
-    	$url = array('techno2_Boms', 'single', $bomId);
+    	$url = array('cat_Boms', 'single', $bomId);
     
     	return $url;
     }
@@ -285,8 +291,8 @@ class techno2_BomStageDetails extends core_Detail
     	if (isset($data->form) && ($data->form->cmd === 'save' || is_null($data->form->cmd))) {
     
     		// Променяма да сочи към single-a
-    		$bomId = techno2_BomStages::fetchField($data->form->rec->bomstageId, 'bomId');
-    		$data->retUrl = toUrl(array('techno2_Boms', 'single', $bomId));
+    		$bomId = cat_BomStages::fetchField($data->form->rec->bomstageId, 'bomId');
+    		$data->retUrl = toUrl(array('cat_Boms', 'single', $bomId));
     	}
     }
     

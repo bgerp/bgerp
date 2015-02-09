@@ -48,9 +48,6 @@ class techno2_Setup extends core_ProtoSetup
     		'techno2_SpecificationFolders',
     		'techno2_SpecificationDoc',
     		'techno2_SpecTplCache',
-    		'techno2_Boms',
-    		'techno2_BomStages',
-    		'techno2_BomStageDetails',
     		'migrate::copyOldTechnoDocuments8'
         );
     

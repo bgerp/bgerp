@@ -135,7 +135,7 @@ class purchase_transaction_CloseDeal extends acc_DocumentTransactionSource
     	$jRecs = acc_Journal::getEntries(array($firstDoc->className, $firstDoc->that));
     
     	// Колко е направеното авансовото плащане
-    	$downpaymentAmount = acc_Balances::getBlAmounts($jRecs, '402')->amount;
+    	//$downpaymentAmount = acc_Balances::getBlAmounts($jRecs, '402')->amount;
     	if($downpaymentAmount == 0) return $entryArr;
     	 
     	// Валутата на плащането е тази на сделката
@@ -188,8 +188,8 @@ class purchase_transaction_CloseDeal extends acc_DocumentTransactionSource
     	$entries = array();
     	 
     	$jRecs = acc_Journal::getEntries(array($firstDoc->className, $firstDoc->that));
-    	$blAmount = acc_Balances::getBlAmounts($jRecs, '4530')->amount;
-    	 
+    	//$blAmount = acc_Balances::getBlAmounts($jRecs, '4530')->amount;
+    	bp($blAmount, $jRecs,acc_Balances::getBlAmounts($jRecs, '4530'));
     	$total += abs($blAmount);
     	 
     	if($blAmount == 0) return $entries;
