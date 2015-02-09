@@ -389,6 +389,7 @@ class cal_Tasks extends core_Master
         $tpl = new ET("
             [#PortalPagerTop#]
             [#PortalTable#]
+        	[#PortalPagerBottom#]
           ");
         
         // Попълваме таблицата с редовете
@@ -400,7 +401,9 @@ class cal_Tasks extends core_Master
         	$tpl->append($formTpl, 'ListFilter');
         }
         
+        $tpl->append(self::renderListPager($data), 'PortalPagerTop');
         $tpl->append(self::renderListTable($data), 'PortalTable');
+        $tpl->append(self::renderListPager($data), 'PortalPagerBottom');
 
         return $tpl;
     }
