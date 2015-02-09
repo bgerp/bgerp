@@ -692,19 +692,9 @@ abstract class deals_InvoiceMaster extends core_Master
     			$form->setDefault('deliveryPlaceId', $aggregateInfo->get('deliveryLocation'));
     		}
     		
-    		// Извлича се платежния план
-    		if($form->rec->paymentMethodId){
-    			$plan = cond_PaymentMethods::getPaymentPlan($form->rec->paymentMethodId, $aggregateInfo->get('amount'), $form->rec->date);
-    		}
-    		
-    		if(isset($plan) && isset($plan['deadlineForBalancePayment'])){
-    			$form->rec->dueDate = $plan['deadlineForBalancePayment'];
-    			$form->setReadOnly('dueDate');
-    		}	else {
-    			$form->setField('dueDate', 'input=none');
-    		}
-    		
+    		$form->setField('dueDate', 'input=none');
     		$data->aggregateInfo = $aggregateInfo;
+    		$form->aggregateInfo = $aggregateInfo;
     	} 
     	 
     	// Ако ориджина също е фактура
@@ -732,6 +722,15 @@ abstract class deals_InvoiceMaster extends core_Master
     	if ($form->isSubmitted()) {
     		$rec = &$form->rec;
     		 
+    		// Извлича се платежния план
+    		if($form->rec->paymentMethodId){
+    			$plan = cond_PaymentMethods::getPaymentPlan($form->rec->paymentMethodId, $form->aggregateInfo->get('amount'), $form->rec->date);
+    		
+    			if(isset($plan['deadlineForBalancePayment'])){
+    				$rec->dueDate = $plan['deadlineForBalancePayment'];
+    			}
+    		}
+    		
     		if(!$rec->rate){
     			$rec->rate = round(currency_CurrencyRates::getRate($rec->date, $rec->currencyId, NULL), 4);
     		}
