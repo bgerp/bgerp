@@ -116,8 +116,29 @@ class doc_RichTextPlg extends core_Plugin
 
         return  $res;
     }
-
-
+    
+    
+    /**
+     * Парсира манипулатора
+     * 
+     * @param string $handle
+     * 
+     * @return array|NULL
+     */
+    public static function parseHandle($handle)
+    {
+        preg_match(self::$pattern, $handle, $matches);
+        
+        if (!$matches) return ;
+        
+        $resArr = array();
+        $resArr['abbr'] = $matches['abbr'];
+        $resArr['id'] = $matches['id'];
+        
+        return $resArr;
+    }
+    
+    
     /**
      * Намира всички цитирания на хендъли на документи в текст
      *
