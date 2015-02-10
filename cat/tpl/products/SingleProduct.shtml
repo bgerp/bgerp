@@ -6,7 +6,7 @@
     </div>
     <!--ET_END header-->
     <div class='scrolling-holder'>
-           <h2 style='line-height:26px'>[#SingleIcon#] |Артикул|* <b style="color:green;">[#name#]</b></h2>
+           <h2 style='line-height:26px'>[#SingleIcon#] |Артикул|* <b style="color:green;">[#name#]<!--ET_BEGIN code--> ([#code#])<!--ET_END code--></b></h2>
            [#innerState#]
            <!--ET_BEGIN groups-->
            <fieldset class="detail-info">

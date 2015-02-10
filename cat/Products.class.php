@@ -620,16 +620,6 @@ class cat_Products extends core_Embedder {
     
     
     /**
-     * След рендиране на вградените данни от драйвера
-     */
-    public static function on_AfterRenderEmbeddedData($mvc, $res, core_ET &$tpl, core_ET $embededDataTpl, &$data)
-    {
-    	// Добавяме кода на продукта в шаблона
-    	$tpl->replace($data->rec->code, 'code');
-    }
-    
-    
-    /**
      * Връща ид на продукта и неговата опаковка по зададен Код/Баркод
      * 
      * @param mixed $code - Код/Баркод на търсения продукт
