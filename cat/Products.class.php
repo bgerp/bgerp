@@ -312,17 +312,6 @@ class cat_Products extends core_Embedder {
     		// Проверяваме дали избраните групи са в противоречие с драйвера
     		$Driver = $mvc->getDriver($rec);
     		$defMetas = $Driver->getDefaultMetas($mvc->defMetas);
-    		
-    		if(count($defMetas)){
-    			$defMetas = arr::make($defMetas, TRUE);
-    			$ourMetas = arr::make($rec->meta, TRUE);
-    			
-    			if(isset($ourMetas['canStore']) && !isset($defMetas['canStore'])){
-    				$form->setError('meta', "Не може да създавате услуга, и да я правите складируема");
-    			} elseif(isset($defMetas['canStore']) && !isset($ourMetas['canStore'])){
-    				$form->setError('meta', "Не може да създавате стока, и да не е складируема");
-    			}
-    		}
         }
                 
         if (!$form->gotErrors()) {
@@ -343,7 +332,12 @@ class cat_Products extends core_Embedder {
     	}
     	
     	if(isset($rec->csv_groups) && strlen($rec->csv_groups) != 0){
-    		$rec->groups = cat_Groups::getKeylistBySysIds($rec->csv_groups);
+    		$csvGroups = arr::make($rec->csv_groups);
+    		$kList = '';
+    		foreach($csvGroups as $grId){
+    			$kList = keylist::addKey($kList, cat_Groups::fetchField("#sysId = '{$grId}'", 'id'));
+    		}
+    		$rec->groups = $kList;
     	}
     	
     	if(isset($rec->csv_name)){
@@ -489,7 +483,6 @@ class cat_Products extends core_Embedder {
      */
     public static function getByProperty($properties, $hasnotProperties = NULL, $query = NULL)
     {
-    	
     	$me = cls::get(get_called_class());
     	$products = array();
     	$metaArr = arr::make($properties);
