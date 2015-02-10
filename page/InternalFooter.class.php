@@ -59,9 +59,7 @@ class page_InternalFooter extends core_ET {
                 $this->append("&nbsp;<small>|</small>&nbsp;");
                 $this->append(ht::createLink(tr("Тесен"), array('core_Browser', 'setNarrowScreen', 'ret_url' => TRUE), FALSE, array('title' => "Превключване на системата в мобилен режим")));
             
-
                 // Добавяме превключване между езиците
-                $this->append("&nbsp;<small>|</small>&nbsp;");
                 $this->addLgChange();
             }
             // Добавяме кода, за определяне параметрите на браузъра
@@ -116,6 +114,7 @@ class page_InternalFooter extends core_ET {
                 $url = toUrl(array('core_Lg', 'Set', 'lg' => $lg, 'ret_url' => TRUE));
                 $attr = array('href' => $url, 'title' => $title);
                 $lg{0} = strtoupper($lg{0});
+                $this->append('&nbsp;<small>|</small>&nbsp;');
                 $this->append(ht::createElement('a', $attr, $lg));
             }
         }
