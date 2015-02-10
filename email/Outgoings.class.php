@@ -656,6 +656,8 @@ class email_Outgoings extends core_Master
                 // Масив, с информация за документа
                 $documentInfoArr = doc_RichTextPlg::getFileInfo($name);
                 
+                if (!$documentInfoArr['className']) continue;
+                
                 $rec = $documentInfoArr['className']::fetchByHandle($documentInfoArr);
                 
                 // Вземаме прикачените файлове от линковете към други документи в имейла
