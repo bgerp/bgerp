@@ -50,6 +50,7 @@ class cat_Setup extends core_ProtoSetup
     var $managers = array(
             'cat_UoM',
             'cat_Groups',
+    		'cat_Categories',
             'cat_Products',
             'cat_products_Params',
             'cat_products_Packagings',
@@ -242,6 +243,7 @@ class cat_Setup extends core_ProtoSetup
      */
     public function makeProductsDocuments2()
     {
+    	set_time_limit(600);
     	core_Users::cancelSystemUser();
     	
     	$Products = cls::get('cat_Products');
@@ -249,12 +251,22 @@ class cat_Setup extends core_ProtoSetup
     	$query->where("#threadId IS NULL");
     	 
     	while($rec = $query->fetch()){
+    		$first = NULL;
     		try {
     			if(isset($rec->groups)){
     				$groups = keylist::toArray($rec->groups);
-    				$first = key($groups);
+    				foreach ($groups as $index => $gr){
+    					if($sysId = cat_Groups::fetchField($gr, 'sysId')){
+    						$first = cat_Categories::fetchField("#sysId = '{$sysId}'", 'id');
+    						break;
+    					}
+    				}
+    				
+    				if(empty($first)){
+    					$first = cat_Categories::fetchField("#sysId = 'goods'", 'id');
+    				}
     			} else {
-    				$first = cat_Groups::fetch("#sysId = 'services'");
+    				$first = cat_Categories::fetchField("#sysId = 'services'", 'id');
     			}
     			
     			$rec->folderId = cat_Groups::forceCoverAndFolder($first);

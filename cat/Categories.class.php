@@ -8,12 +8,12 @@
  *
  * @category  bgerp
  * @package   cat
- * @author    Stefan Stefanov <stefan.bg@gmail.com>
+ * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class cat_Groups extends core_Master
+class cat_Categories extends core_Master
 {
     
     
@@ -26,7 +26,7 @@ class cat_Groups extends core_Master
     /**
      * Заглавие
      */
-    var $title = "Групи на артикулите";
+    var $title = "Категории на артикулите";
     
     
     /**
@@ -38,8 +38,7 @@ class cat_Groups extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, cat_Wrapper, 
-                     doc_FolderPlg, plg_Search, plg_Translate, plg_Rejected';
+    var $loadList = 'plg_Created, plg_RowTools, cat_Wrapper, doc_FolderPlg, plg_Rejected';
     
     
     /**
@@ -69,7 +68,7 @@ class cat_Groups extends core_Master
     /**
      * Наименование на единичния обект
      */
-    var $singleTitle = "Група";
+    var $singleTitle = "Категория";
     
     
     /**
@@ -141,7 +140,7 @@ class cat_Groups extends core_Master
     /**
      * Нов темплейт за показване
      */
-    var $singleLayoutFile = 'cat/tpl/SingleGroup.shtml';
+    var $singleLayoutFile = 'cat/tpl/SingleCategories.shtml';
     
     
     /**
@@ -152,7 +151,6 @@ class cat_Groups extends core_Master
         $this->FLD('name', 'varchar(64)', 'caption=Наименование, mandatory,translate');
         $this->FLD('sysId', 'varchar(32)', 'caption=System Id,oldFieldName=systemId,input=none,column=none');
         $this->FLD('info', 'richtext(bucket=Notes)', 'caption=Бележки');
-        $this->FLD('productCnt', 'int', 'input=none');
         
         // Свойства присъщи на продуктите в групата
         $this->FLD('meta', 'set(canSell=Продаваеми,
@@ -161,7 +159,7 @@ class cat_Groups extends core_Master
                                 canConvert=Вложими,
                                 fixedAsset=Дълготрайни активи,
         						canManifacture=Производими,
-        						waste=Отпаден)', 'caption=Свойства->Списък,columns=2,input=none');
+        						waste=Отпаден)', 'caption=Свойства->Списък,columns=2');
         
         
         $this->setDbUnique("sysId");
@@ -200,19 +198,6 @@ class cat_Groups extends core_Master
     
     
     /**
-     * След преобразуване на записа в четим за хора вид.
-     */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
-    {
-        $row->productCnt = intval($rec->productCnt);
-        
-        if($fields['-list']){
-            $row->name .= " ({$row->productCnt})";
-        }
-    }
-    
-    
-    /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
      * @param core_Mvc $mvc
@@ -230,18 +215,59 @@ class cat_Groups extends core_Master
     }
     
     
+    /**
+     * Връща keylist от id-та на групи, съответстващи на даден стрингов
+     * списък от sysId-та, разделени със запетайки
+     */
+    static function getKeylistBySysIds($list, $strict = FALSE)
+    {
+        $sysArr = arr::make($list);
+        
+        foreach($sysArr as $sysId) {
+            $id = static::fetchField("#sysId = '{$sysId}'", 'id');
+            
+            if($strict) {
+                expect($id, $sysId, $list);
+            }
+            
+            if($id) {
+                $keylist .= '|' . $id;
+            }
+        }
+        
+        if($keylist) {
+            $keylist .= '|';
+        }
+        
+        return $keylist;
+    }
+    
+    
+    /**
+     * Извиква се след SetUp-а на таблицата за модела
+     */
     static function on_AfterSetupMvc($mvc, &$res)
     {
-    	$file = "cat/csv/Groups.csv";
-    	$fields = array(
-    			0 => "name",
-    			1 => "info",
-    			2 => "sysId",
-    	);
+        $file = "cat/csv/Categories.csv";
+        $fields = array(
+            0 => "name",
+            1 => "info",
+            2 => "sysId",
+            3 => "meta",
+            4 => "access",
+        );
+        
+        $cntObj = csv_Lib::importOnce($mvc, $file, $fields);
+        $res .= $cntObj->html;
+        
+        return $res;
+    }
     
-    	$cntObj = csv_Lib::importOnce($mvc, $file, $fields);
-    	$res .= $cntObj->html;
     
-    	return $res;
+    function act_Test()
+    {
+    	$Setup = cls::get('cat_Setup');
+    	$Setup->makeProductsDocuments2();
+    	bp();
     }
 }

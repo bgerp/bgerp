@@ -101,7 +101,7 @@ class cat_Products extends core_Embedder {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'name,code,groups,innerClass,tools=Пулт,folderId,isPublic';
+    var $listFields = 'tools=Пулт,name,code,groups,folderId,innerClass';
     
     
     /**
@@ -376,7 +376,7 @@ class cat_Products extends core_Embedder {
     		$rec->$fld = (isset($metas[$fld])) ? 'yes' : 'no';
     	}
     	
-    	$rec->isPublic = (isset($rec->code)) ? 'yes' : 'no';
+    	$rec->isPublic = (!empty($rec->code)) ? 'yes' : 'no';
     }
     
     
@@ -499,33 +499,42 @@ class cat_Products extends core_Embedder {
      * Връща масив от продукти отговарящи на зададени мета данни:
      * canSell, canBuy, canManifacture, canConvert, fixedAsset, canStore
      * 
+     * @param mixed $hasnotProperties - комбинация на горе посочените мета 
+     * 							  данни, на които трябва да отговарят
      * @param mixed $properties - комбинация на горе посочените мета 
-     * 							  данни или като масив или като стринг
-     * @param int $limit 		- колко опции да върне
-     * @return array $products - продукти отговарящи на условието, ако не са
-     * 							 зададени мета данни връща всички продукти
+     * 							  които не трябва да имат
+     * 
+     * @return core_Query $query - подготвена заявка, ако няма се търси по всички активни артикули
      */
-    public static function getByProperty($properties, $limit = NULL)
+    public static function getByProperty($properties, $hasnotProperties = NULL, $query = NULL)
     {
+    	
     	$me = cls::get(get_called_class());
     	$products = array();
     	$metaArr = arr::make($properties);
-    	$query = self::getQuery();
-    	$query->show('id,name,code');
+    	$hasnotProperties = arr::make($hasnotProperties);
     	
-    	// Само активните артикули
-    	$query->where("#state = 'active'");
-    	$Varchar = cls::get('type_Varchar');
-    	
-    	// Ограничаваме намерените записи
-    	if(isset($limit)){
-    		$query->limit($limit);
+    	if(!isset($query)){
+    		$query = self::getQuery();
+    		$query->show('id,name,code');
+    		$query->where("#state = 'active'");
     	}
+    	
+    	$Varchar = cls::get('type_Varchar');
     	
     	// За всяко свойство търсим по полето за бързо търсене
     	if(count($metaArr)){
     		foreach ($metaArr as $meta){
     			$query->where("#{$meta} = 'yes'");
+    		}
+    	}
+    	
+    	if(count($hasnotProperties)){
+    		foreach ($hasnotProperties as $meta1){
+    			
+    			//@TODO докато направим промените в бизнес документите
+    			if(is_numeric($meta1)) continue;
+    			$query->where("#{$meta1} = 'no'");
     		}
     	}
     	
@@ -791,9 +800,31 @@ class cat_Products extends core_Embedder {
      *
      * @return array() - масив с опции, подходящ за setOptions на форма
      */
-    public function getProducts($customerClass, $customerId, $datetime = NULL, $properties = NULL, $limit = NULL)
+    public function getProducts($customerClass, $customerId, $datetime = NULL, $hasProperties = NULL, $hasnotProperties = NULL, $limit = NULL)
     {
-    	return static::getByProperty($properties, $limit);
+    	$query = $this->getQuery();
+    	
+    	// Само активни артикули
+    	$query->where("#state = 'active'");
+    	$folderId = cls::get($customerClass)->forceCoverAndFolder($customerId);
+    	
+    	// Само тези до чиято папка, текущия потребител има достъп
+    	doc_Folders::restrictAccess($query);
+    	
+    	// Избираме всички публични артикули, или частните за тази папка
+    	$query->where("#isPublic = 'yes'");
+    	$query->orWhere("#folderId = {$folderId}");
+    	$query->show('isPublic,folderId,meta,id,code,name');
+    	
+    	// Ограничаваме заявката при нужда
+    	if(isset($limit)){
+    		$query->limit($limit);
+    	}
+    	
+    	// Извличаме тези артикули, отговарящи на заявката с посочените свойства
+    	$products = static::getByProperty($hasProperties, $hasnotProperties, $query);
+    	
+    	return $products;
     }
     
     
@@ -1229,5 +1260,18 @@ class cat_Products extends core_Embedder {
     public function getDefaultFolder()
     {
     	return cat_Groups::forceCoverAndFolder(cat_Groups::fetchField("#sysId = 'goods'", 'id'));
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    {
+    	if($action == 'edit' && isset($rec)){
+    		if($rec->state == 'active'){
+    			$res = $mvc->getRequiredRoles('edit');
+    		}
+    	}
     }
 }
