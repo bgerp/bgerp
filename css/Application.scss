@@ -1359,7 +1359,15 @@ pre.document {
 .dec-document{
 	font-size: 0.95em;
 	ul{
-		margin: 5px 0;
+		margin-top: 5px;
+		margin-bottom: 0;
+	}
+	.richtext {
+	   color: #000;
+	   line-height: 1em;
+	   ul {
+	       margin-left: 10px;
+	   }
 	}
     table.signiture{
         width: 10% !important;
