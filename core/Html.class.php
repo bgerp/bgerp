@@ -678,7 +678,7 @@ class core_Html
             
             if (Mode::is('text', 'xhtml') || Mode::is('printing')) {
                 $icon    = "<img src='$iconSrc' width='16' height='16' style='float:left;margin:3px 2px 4px 0px;' alt=''>";
-                $title   = "<span style='display:inline-block;'>{$icon}{$title}</span>";
+                $title   = "<span class='linkWithIconSpan'>{$icon}{$title}</span>";
             } else {
                 $attr['class'] .= ' linkWithIcon';
                 $attr['style'] .= "background-image:url('{$iconSrc}');";
