@@ -37,6 +37,19 @@ class type_Key extends type_Int
     
     
     /**
+     * Инициализиране на типа
+     */
+    function init($params = array())
+    {
+        parent::init($params);
+        
+        if (Mode::is('keyStopAutocomplete')) {
+            $this->params['autocomplete'] = 'off';
+        }
+    }
+    
+    
+    /**
      * Конвертира стойността от вербална към (int) - ключ към core_Interfaces
      */
     function toVerbal_($value)
@@ -125,6 +138,9 @@ class type_Key extends type_Int
                 
                 return $value;
             } else {
+                
+                Mode::setPermanent('keyStopAutocomplete', TRUE);
+                
                 $this->error = 'Несъществуващ обект';
             }
             
@@ -461,6 +477,10 @@ class type_Key extends type_Int
             parent::setFieldWidth($attr);
             
             if ($optionsCnt > $maxSuggestions) {
+                
+                if ($this->params['autocomplete']) {
+                    $attr['autocomplete'] = $this->params['autocomplete'];
+                }
                 
                 $selOptCache = (array) unserialize(core_Cache::get('SelectOpt', $this->handler));
                 
