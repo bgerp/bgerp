@@ -3979,6 +3979,9 @@ body.narrow {
     .new-folder-btn {
         display: none;
     }
+    .staticFormView .formFieldValue {
+        border: 1px solid #ccc;
+    }
 }
 
 .narrow .printing .document{

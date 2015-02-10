@@ -3712,6 +3712,8 @@ only screen and (max-width: 320px) {
     text-align: left; }
   .printing .new-folder-btn {
     display: none; }
+  .printing .staticFormView .formFieldValue {
+    border: 1px solid #cccccc; }
 
 .narrow .printing .document {
   width: 850px; }
