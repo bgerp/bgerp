@@ -373,6 +373,8 @@ class dec_Declarations extends core_Master
     	// ако има допълнителни бележки
     	if($recDec->note) { 
     		$cTpl = $decContent->getBlock("note");
+    		$Richtext = cls::get('type_Richtext');
+    		$recDec->note = $Richtext->toVerbal($recDec->note);
     		$cTpl->replace($recDec->note, 'note');
     	    $cTpl->append2master();
     	}
