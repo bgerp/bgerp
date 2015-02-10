@@ -290,7 +290,7 @@ class dec_Declarations extends core_Master
     		$row->date = $rec->createdOn;
     	} else {
     		if (core_Lg::getCurrent() == 'bg') {
-    			$row->date = dt::mysql2verbal($rec->date, "d.m.Y") . "|г.|*";
+    			$row->date = dt::mysql2verbal($rec->date, "d.m.Y") . tr("|г.|*");
     		} else {
     			$row->date = dt::mysql2verbal($rec->date, "d.m.Y");
     		}
