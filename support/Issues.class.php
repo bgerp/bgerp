@@ -720,10 +720,15 @@ class support_Issues extends core_Master
         if ($rec->assign) {
             
             // В заглавието добавяме потребителя
-            $row->subTitle = $this->getVerbal($rec, 'assign') . ", ";   
+            $row->subTitle = $this->getVerbal($rec, 'assign');   
         }
         
-        $row->subTitle .= "{$component}";
+        if ($component) {
+            if ($row->subTitle) {
+                $row->subTitle .= ", ";
+            }
+            $row->subTitle .= "{$component}";
+        }
 
         if($row->authorId = $rec->createdBy) {
             $row->author = $this->getVerbal($rec, 'createdBy');
