@@ -261,9 +261,10 @@ class cat_Products extends core_Embedder {
     {
     	$form = &$data->form;
     	
-    	$folderId = Request::get('folderId', 'int');
-    	if(!isset($folderId)){
-    		$form->setField('folderId', 'input');
+    	// Добавяме поле за избор на категория само ако не е зададено в заявката
+    	$folderId = Request::get('folderId');
+    	if(!isset($folderId) || $form->cmd == 'save'){
+    		$data->form->FLD('categoryId', 'key(mvc=cat_Categories,select=name,allowEmpty)', 'caption=Категория');
     	}
     	
     	// Слагаме полето за драйвър да е 'remember'
@@ -280,6 +281,8 @@ class cat_Products extends core_Embedder {
     	
     	if(isset($form->rec->innerClass)){
     		$form->setField('innerClass', 'input=hidden');
+    		
+    		
     	}
     	
     	if(!$form->rec->id && ($code = Mode::get('catLastProductCode'))) {
@@ -302,6 +305,7 @@ class cat_Products extends core_Embedder {
 		//Проверяваме за недопустими символи
         if ($form->isSubmitted()){
         	$rec = &$form->rec;
+        	
             if (preg_match('/[^0-9a-zа-я\- _]/iu', $rec->code)) {
                 $form->setError('code', 'Полето може да съдържа само букви, цифри, тирета, интервали и долна черта!');
             }
@@ -319,6 +323,11 @@ class cat_Products extends core_Embedder {
     		// Проверяваме дали избраните групи са в противоречие с драйвера
     		$Driver = $mvc->getDriver($rec);
     		$defMetas = $Driver->getDefaultMetas($mvc->defMetas);
+    		
+    		// Ако има избрана категория, артикула се форсира в папката и
+    		if(isset($rec->categoryId)){
+    			$rec->folderId = cat_Categories::forceCoverAndFolder($rec->categoryId);
+    		}
         }
                 
         if (!$form->gotErrors()) {
