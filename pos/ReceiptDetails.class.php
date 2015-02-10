@@ -95,13 +95,16 @@ class pos_ReceiptDetails extends core_Detail {
     	if($data->rows) {
 	    	foreach($data->rows as $row) {
 	    		$action = $this->getAction($data->rows[$row->id]->action);
-	    		$rowTpl = clone(${"{$action->type}Tpl"});
-	    		$rowTpl->placeObject($row);
-	    		if($lastRow == $row->id) {
-	    			$rowTpl->replace("pos-hightligted", 'lastRow');
-	    		}
-	    		$rowTpl->removeBlocks();
-	    		$tpl->append($rowTpl);
+                $at = ${"{$action->type}Tpl"};
+                if(is_object($at)) {
+                    $rowTpl = clone(${"{$action->type}Tpl"});
+                    $rowTpl->placeObject($row);
+                    if($lastRow == $row->id) {
+                        $rowTpl->replace("pos-hightligted", 'lastRow');
+                    }
+                    $rowTpl->removeBlocks();
+                    $tpl->append($rowTpl);
+                }
 	    	}
     	} else {
     		$tpl->append(new ET("<tr><td colspan='3' class='receipt-sale'>" . tr('Няма записи') . "</td></tr>"));
