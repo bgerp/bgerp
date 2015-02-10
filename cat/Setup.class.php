@@ -243,7 +243,7 @@ class cat_Setup extends core_ProtoSetup
     	$Products = cls::get('cat_Products');
     	$query = cat_Products::getQuery();
     	$query->where("#threadId IS NULL");
-    	 
+    	
     	while($rec = $query->fetch()){
     		$first = NULL;
     		try {
@@ -285,6 +285,7 @@ class cat_Setup extends core_ProtoSetup
     		$specId = techno2_SpecificationDoc::getClassId();
     		$tQuery = techno2_SpecificationDoc::getQuery();
     		$tQuery->where("#state != 'rejected'");
+    		
     		while($tRec = $tQuery->fetch()){
     			core_Users::sudo($tRec->createdBy);
     			
@@ -293,10 +294,13 @@ class cat_Setup extends core_ProtoSetup
     				
     				$paramQ = cat_products_Params::getQuery();
     				$paramQ->where("#classId = {$specId} AND #productId = {$tRec->id}");
+    				
     				while($pRec = $paramQ->fetch()){
     					$pRec->classId = $manId;
-    					$pRec->objectId = $pId;
-    					cat_products_Params::save($pRec);
+    					$pRec->productId = $pId;
+    					
+    					cat_products_Params::save($pRec, 'productId,classId');
+    					
     				}
     			} catch(core_exception_Expect $e){
     				$Products->log("Проблем при прехвърляне на спецификация {$tRec->id}: {$e->getMessage()}");
