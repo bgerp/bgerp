@@ -39,7 +39,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
         $tabsArr = parent::getTabs($fRec);
         
         // Инстанция на класа
-        $mime = new email_Mime();
+        $mime = cls::get('email_Mime');
         
         // Вземаме съдържанието на eml файла
         $source = static::getSource($fRec);
@@ -373,7 +373,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
         $fRec = fileman_Files::fetchByFh($fileHnd);
         
         // Инстанция на класа
-        $mime = new email_Mime();
+        $mime = cls::get('email_Mime');
         
         // Очакваме да няма проблем при парсирането
 //        expect($emlRec = $mime->getEmail(static::getSource($fRec)));
