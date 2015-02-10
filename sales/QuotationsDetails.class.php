@@ -200,7 +200,7 @@ class sales_QuotationsDetails extends doc_Detail {
 	    	// Подсигуряваме се че ориджина винаги може да се добави
 	    	if($masterRec->originId){
 	    		$origin = doc_Containers::getDocument($masterRec->originId);
-	    		$products[$origin->that] = $origin->fetchField('title');
+	    		$products[$origin->that] = $origin->getTitleById(FALSE);
 	    	}
 	    	
 	    	$products = array('' => '') + $products;
@@ -311,7 +311,7 @@ class sales_QuotationsDetails extends doc_Detail {
             	// Добавяме ориджина като възможен избор, ако го няма
             	if($masterRec->originId){
             		$origin = doc_Containers::getDocument($masterRec->originId);
-            		$products[$origin->that] = $origin->fetchField('title');
+            		$products[$origin->that] = $origin->getTitleById(FALSE);
             	}
             	
             	if(!count($products)){

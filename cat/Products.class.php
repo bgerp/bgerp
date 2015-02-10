@@ -1260,6 +1260,18 @@ class cat_Products extends core_Embedder {
      */
     public static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
+    	if($data->rec->state != 'rejected'){
+    		$tId = $mvc->fetchField($data->rec->id, 'threadId');
+    	
+    		if(sales_Quotations::haveRightFor('add', (object)array('threadId' => $tId))){
+    			if($qRec = sales_Quotations::fetch("#originId = {$data->rec->containerId} AND #state = 'draft'")){
+    				$data->toolbar->addBtn("Оферта", array('sales_Quotations', 'edit', $qRec->id, 'ret_url' => TRUE), 'ef_icon = img/16/document_quote.png,title=Редактиране на оферта');
+    			} else {
+    				$data->toolbar->addBtn("Оферта", array('sales_Quotations', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE), 'ef_icon = img/16/document_quote.png,title=Нова оферта за спецификацията');
+    			}
+    		}
+    	}
+    	
     	if($data->rec->state == 'active'){
     		if(cat_Boms::haveRightFor('write', (object)array('originId' => $data->rec->containerId))){
     			if($qRec = cat_Boms::fetch("#originId = {$data->rec->containerId} AND #state = 'draft'")){
