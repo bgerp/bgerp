@@ -1203,6 +1203,8 @@ pre.document {
     line-height: 1em; }
     .dec-document .richtext ul {
       margin-left: 10px; }
+  .dec-document .inner-text {
+    padding-left: 30px; }
   .dec-document table.signiture {
     width: 10% !important; }
 
