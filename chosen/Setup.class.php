@@ -90,6 +90,9 @@ class chosen_Setup extends core_ProtoSetup {
         $html .= $Plugins->forcePlugin('ChosenSelect', 'chosen_PluginSelect', 'type_Key', 'private');
         $html .= $Plugins->forcePlugin('ChosenSelectUser', 'chosen_PluginSelect', 'type_User', 'private');
         $html .= $Plugins->forcePlugin('ChosenSelectUsers', 'chosen_PluginSelect', 'type_Users', 'private');
+        $html .= $Plugins->forcePlugin('ChosenSelectUsers', 'chosen_PluginSelect', 'acc_type_Item', 'private');
+        $html .= $Plugins->forcePlugin('ChosenSelectUsers', 'chosen_PluginSelect', 'acc_type_Account', 'private');
+        $html .= $Plugins->forcePlugin('Chosen', 'chosen_Plugin', 'acc_type_Accounts', 'private');
 
         return $html;
     }
