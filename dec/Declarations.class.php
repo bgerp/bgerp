@@ -285,9 +285,15 @@ class dec_Declarations extends core_Master
 	    	$cTpl->replace($recDec->declaratorPosition, 'declaratorPosition');
 	    	$cTpl->append2master();
     	}
-
+    	
     	if($rec->date == NULL){
     		$row->date = $rec->createdOn;
+    	} else {
+    		if (core_Lg::getCurrent() == 'bg') {
+    			$row->date = dt::mysql2verbal($rec->date, "d.m.Y") . "|г.|*";
+    		} else {
+    			$row->date = dt::mysql2verbal($rec->date, "d.m.Y");
+    		}
     	}
     	    	
     	// вземаме избраните продукти
