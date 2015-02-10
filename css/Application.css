@@ -96,10 +96,7 @@ tr.noHover td:hover {
 .bugReport {
   border: none;
   background-color: transparent;
-  vertical-align: top;
-  position: relative;
-  margin-top: -1;
-  border: 1px; }
+  vertical-align: top; }
 
 .narrow .bugReport {
   position: relative;
