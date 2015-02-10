@@ -59,9 +59,7 @@ class page_InternalFooter extends core_ET {
                 $this->append("&nbsp;<small>|</small>&nbsp;");
                 $this->append(ht::createLink(tr("Тесен"), array('core_Browser', 'setNarrowScreen', 'ret_url' => TRUE), FALSE, array('title' => "Превключване на системата в мобилен режим")));
             
-
                 // Добавяме превключване между езиците
-                $this->append("&nbsp;<small>|</small>&nbsp;");
                 $this->addLgChange();
             }
             // Добавяме кода, за определяне параметрите на браузъра
@@ -73,13 +71,8 @@ class page_InternalFooter extends core_ET {
             $this->append(calculator_View::getBtn());
             
             if(isDebug()) {
-                $this->append('&nbsp;<small>|</small>&nbsp;<a href="#wer" onclick="toggleDisplay(\'debug_info\')">Debug</a>');
-                
-                $this->append(new ET("<div id='debug_info' style='margin:5px; display:none;'> 
-                                     Време за изпълнение: [#DEBUG::getExecutionTime#]
-                                     [#Debug::getLog#]</div>"));
+            	$this->append('&nbsp;<small>|</small>&nbsp;<a href="#wer" onclick="toggleDisplay(\'debug_info\')">Debug</a>');
             }
-            
         }
         
         $conf = core_Packs::getConfig('help');
@@ -96,6 +89,12 @@ class page_InternalFooter extends core_ET {
             $form = new et("<form style='display:inline' method='post' target='_blank' onSubmit=\"prepareBugReport(this, '{$user}', '{$domain}', '{$name}');\" action='" . $conf->BGERP_SUPPORT_URL . "'>[#1#]</form>", $btn);
             $this->append('&nbsp;<small>|</small>&nbsp;');
             $this->append($form);
+        }
+        
+        if(isDebug() && Mode::is('screenMode', 'wide')) {
+        	$this->append(new ET("<div id='debug_info' style='margin:5px; display:none;'>
+                                     Време за изпълнение: [#DEBUG::getExecutionTime#]
+                                     [#Debug::getLog#]</div>"));
         }
 
     }
@@ -115,6 +114,7 @@ class page_InternalFooter extends core_ET {
                 $url = toUrl(array('core_Lg', 'Set', 'lg' => $lg, 'ret_url' => TRUE));
                 $attr = array('href' => $url, 'title' => $title);
                 $lg{0} = strtoupper($lg{0});
+                $this->append('&nbsp;<small>|</small>&nbsp;');
                 $this->append(ht::createElement('a', $attr, $lg));
             }
         }

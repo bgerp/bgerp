@@ -414,7 +414,7 @@ class email_Mime extends core_BaseClass
     /**
      * Записва във fileman всички файлове, които са извлечени при парсирането
      */
-    function saveFiles()
+    function saveFiles_()
     {
         foreach($this->files as $id => &$fRec) { 
             if(!$fRec->fmId) {

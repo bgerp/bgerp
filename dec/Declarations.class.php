@@ -285,9 +285,15 @@ class dec_Declarations extends core_Master
 	    	$cTpl->replace($recDec->declaratorPosition, 'declaratorPosition');
 	    	$cTpl->append2master();
     	}
-
+    	
     	if($rec->date == NULL){
     		$row->date = $rec->createdOn;
+    	} else {
+    		if (core_Lg::getCurrent() == 'bg') {
+    			$row->date = dt::mysql2verbal($rec->date, "d.m.Y") . tr("|г.|*");
+    		} else {
+    			$row->date = dt::mysql2verbal($rec->date, "d.m.Y");
+    		}
     	}
     	    	
     	// вземаме избраните продукти
@@ -349,6 +355,7 @@ class dec_Declarations extends core_Master
     			$text = "изделията са произведени от";
     			$text2 .= " ". $m->text . ",";
     		}
+    			$text2 = rtrim($text2, ',');
     			$cTpl->replace($text2, 'material');
     			$cTpl->append2master();
     	}
@@ -373,6 +380,8 @@ class dec_Declarations extends core_Master
     	// ако има допълнителни бележки
     	if($recDec->note) { 
     		$cTpl = $decContent->getBlock("note");
+    		$Richtext = cls::get('type_Richtext');
+    		$recDec->note = $Richtext->toVerbal($recDec->note);
     		$cTpl->replace($recDec->note, 'note');
     	    $cTpl->append2master();
     	}

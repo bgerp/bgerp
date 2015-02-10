@@ -1221,8 +1221,8 @@ class pos_Receipts extends core_Master {
     		if(Mode::is('screenMode', 'wide')){
     			$resObj = new stdClass();
     			$resObj->func = 'Sound';
-    			$resObj->arg = array('soundOgg' => sbf("sounds/snap.ogg", ''),
-    			'soundMp3' => sbf("sounds/snap.mp3", ''),
+    			$resObj->arg = array('soundOgg' => sbf("sounds/scanner.ogg", ''),
+    			'soundMp3' => sbf("sounds/scanner.mp3", ''),
     			);
     		}
  
