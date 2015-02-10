@@ -375,7 +375,7 @@ class cat_Boms extends core_Master
     	$exitResources = array();
     	$dQuery = cat_BomStages::getQuery();
     	$dQuery->where("#bomId = {$bomId}");
-    	$dQuery->show('resourceId,exitQuantity');
+    	$dQuery->show('resourceId');
     	while($dRec = $dQuery->fetch()){
     		$exitResources[$dRec->resourceId] = 1;
     	}
