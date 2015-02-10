@@ -349,6 +349,7 @@ class dec_Declarations extends core_Master
     			$text = "изделията са произведени от";
     			$text2 .= " ". $m->text . ",";
     		}
+    			$text2 = rtrim($text2, ',');
     			$cTpl->replace($text2, 'material');
     			$cTpl->append2master();
     	}
