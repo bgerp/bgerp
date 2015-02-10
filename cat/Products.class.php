@@ -1094,7 +1094,9 @@ class cat_Products extends core_Embedder {
      */
     public function isProductStandart($id)
     {
-    	return TRUE;
+    	$rec = $this->fetchRec($id);
+    	
+    	return ($rec->isPublic == 'yes') ? TRUE : FALSE;
     }
     
     
@@ -1109,9 +1111,18 @@ class cat_Products extends core_Embedder {
     {
     	$rec = $this->fetchRec($id);
     	
-    	$tpl = new ET($this->recTitleTpl);
-    	$tpl->replace($this->getVerbal($rec, 'code'), 'code');
-    	$tpl->replace($this->getVerbal($rec, 'name'), 'name');
+    	if($documentMvc instanceof deals_DealMaster || $documentMvc instanceof mp_Jobs || $documentMvc instanceof sales_Quotations){
+    		if($rec->isPublic == 'no'){
+    			$Driver = $this->getDriver($id);
+    			$tpl = $Driver->getProductDescription();
+    		}
+    	}
+    	
+    	if(!isset($tpl)){
+    		$tpl = new ET($this->recTitleTpl);
+    		$tpl->replace($this->getVerbal($rec, 'code'), 'code');
+    		$tpl->replace($this->getVerbal($rec, 'name'), 'name');
+    	}
     	
     	return $tpl->getContent();
     }
