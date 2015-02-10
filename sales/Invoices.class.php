@@ -367,10 +367,19 @@ class sales_Invoices extends deals_InvoiceMaster
     public static function getHandle($id)
     {
         $self = cls::get(get_called_class());
-        $number = static::fetchField($id, 'number');
-        $number = str_pad($number, '10', '0', STR_PAD_LEFT);
         
-        return $self->abbr . $number;
+        $rec = $self->fetch($id);
+        
+        if (!$rec->number) {
+            
+            $hnd = $self->abbr . $rec->id . doc_RichTextPlg::$identEnd;
+        } else {
+            $number = str_pad($rec->number, '10', '0', STR_PAD_LEFT);
+        
+            $hnd = $self->abbr . $number;
+        }
+        
+        return $hnd;
     } 
     
     
@@ -379,9 +388,16 @@ class sales_Invoices extends deals_InvoiceMaster
     */
     public static function fetchByHandle($parsedHandle)
     {
-    	$number = ltrim($parsedHandle['id'], '0');
+        if ($parsedHandle['endDs']) {
+            $rec = static::fetch($parsedHandle['id']);
+        } else {
+            $number = ltrim($parsedHandle['id'], '0');
+            if ($number) {
+                $rec = static::fetch("#number = '{$number}'");
+            }
+        }
     	
-        return static::fetch("#number = '{$number}'");
+        return $rec;
     }
     
     
