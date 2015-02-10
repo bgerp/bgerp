@@ -72,14 +72,9 @@ class page_InternalFooter extends core_ET {
             $this->append('&nbsp;<small>|</small>&nbsp;');
             $this->append(calculator_View::getBtn());
             
-            if(isDebug()) {
-                $this->append('&nbsp;<small>|</small>&nbsp;<a href="#wer" onclick="toggleDisplay(\'debug_info\')">Debug</a>');
-                
-                $this->append(new ET("<div id='debug_info' style='margin:5px; display:none;'> 
-                                     Време за изпълнение: [#DEBUG::getExecutionTime#]
-                                     [#Debug::getLog#]</div>"));
-            }
-            
+        }
+        if(isDebug()) {
+        	$this->append('&nbsp;<small>|</small>&nbsp;<a href="#wer" onclick="toggleDisplay(\'debug_info\')">Debug</a>');
         }
         
         $conf = core_Packs::getConfig('help');
@@ -96,6 +91,12 @@ class page_InternalFooter extends core_ET {
             $form = new et("<form style='display:inline' method='post' target='_blank' onSubmit=\"prepareBugReport(this, '{$user}', '{$domain}', '{$name}');\" action='" . $conf->BGERP_SUPPORT_URL . "'>[#1#]</form>", $btn);
             $this->append('&nbsp;<small>|</small>&nbsp;');
             $this->append($form);
+        }
+        
+        if(isDebug()) {
+        	$this->append(new ET("<div id='debug_info' style='margin:5px; display:none;'>
+                                     Време за изпълнение: [#DEBUG::getExecutionTime#]
+                                     [#Debug::getLog#]</div>"));
         }
 
     }
