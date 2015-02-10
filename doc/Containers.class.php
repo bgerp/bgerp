@@ -817,7 +817,7 @@ class doc_Containers extends core_Manager
     {
         $handle = trim($handle);
         
-        if (!preg_match("/(?'abbr'[a-z]{1,3})(?'id'[0-9]{1,10})/i", $handle, $matches)) {
+        if (!preg_match(doc_RichTextPlg::$identPattern, $handle, $matches)) {
             return FALSE;
         }
         
