@@ -5,6 +5,7 @@
         <div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
     </div>
     <!--ET_END header-->
+    [#TEST#]
     <div class='scrolling-holder'>
            <h2 style='line-height:26px'>[#SingleIcon#] |Артикул|* <b style="color:green;">[#name#]<!--ET_BEGIN code--> ([#code#])<!--ET_END code--></b></h2>
            [#innerState#]

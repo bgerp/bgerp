@@ -1176,7 +1176,7 @@ class cat_Products extends core_Embedder {
     {
     	$data->toolbar->removeBtn('btnAdd');
     	if($mvc->haveRightFor('add')){
-    		 $data->toolbar->addBtn('Нов артикул', array($mvc, 'add', 'innerClass' => cat_GeneralProductDriver::getClassId()), 'order=1', 'ef_icon = img/16/shopping.png,title=Създаване на нова стока');
+    		 $data->toolbar->addBtn('Нов запис', array($mvc, 'add', 'innerClass' => cat_GeneralProductDriver::getClassId()), 'order=1', 'ef_icon = img/16/shopping.png,title=Създаване на нова стока');
     	}
     }
     
