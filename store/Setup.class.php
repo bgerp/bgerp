@@ -24,7 +24,7 @@ class store_Setup extends core_ProtoSetup
 	/**
 	 * Систем ид-та на счетоводните сметки за синхронизация
 	 */
-    protected static $accAccount = array('321', '302');
+    protected static $accAccount = array('321', '302', '330');
     
     
     /**

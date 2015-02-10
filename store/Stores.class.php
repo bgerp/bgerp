@@ -93,7 +93,7 @@ class store_Stores extends core_Master
     /**
      * По кои сметки ще се правят справки
      */
-    public $balanceRefAccounts = '302, 304, 305, 306, 309, 321';
+    public $balanceRefAccounts = '302, 304, 305, 306, 309, 330';
     
     
     /**

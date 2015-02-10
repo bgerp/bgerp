@@ -55,8 +55,7 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
      * 
      * 2. Засклаждане на стоката в склада (в някой случаи)
      *
-     *    Dt: 302. Суровини и материали 	  (Склад, Суровини и Материали) - за вложимите продукти
-     *	  	  321. Стоки и Продукти 		  (Склад, Стоки и Продукти) - за всички останали складируеми продукти
+     *    Dt: 330. Суровини, материали, продукция, стоки (Склад, Артикули)
      *
      *    Ct: 401. Задължения към доставчици (Доставчик, Сделки, Валути)
      *
@@ -297,8 +296,7 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
      * Помощен метод - генерира доставната част от транзакцията за покупка
      * Вкарване на стоката в склада (в някои случаи)
      * 
-     *	  Dt: 302. Суровини и материали 	  (Склад, Суровини и Материали) - за вложимите продукти
-     *	  	  321. Стоки и Продукти 		  (Склад, Стоки и Продукти) - за всички останали складируеми продукти
+     *	  Dt: 330. Суровини, материали, продукция, стоки 	  (Склад, Суровини и Материали)
      *
      *    Ct: 401. Задължения към доставчици (Доставчик, Сделки, Валути)
      *    
@@ -324,8 +322,7 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
         	// Само складируемите продукти се изписват от склада
         	if(isset($pInfo->meta['canStore'])){
         		
-        		// Ако е вложим дебит 302 иначе 321
-	        	$debitAccId = (isset($pInfo->meta['canConvert'])) ? '302' : '321';
+	        	$debitAccId = '330';
 	        		
 	        	$debit = array(
 	                  $debitAccId, 
@@ -453,7 +450,7 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
     	$jRecs = self::getEntries($id);
     
     	// Извличаме тези, отнасящи се за експедиране
-    	$dInfo = acc_Balances::getBlAmounts($jRecs, '321,302,601,602', 'debit');
+    	$dInfo = acc_Balances::getBlAmounts($jRecs, '330,321,302,601,602', 'debit');
     	
     	if(!count($dInfo->recs)) return $res;
     
