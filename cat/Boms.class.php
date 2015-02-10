@@ -159,7 +159,7 @@ class cat_Boms extends core_Master
     			$res = 'no_one';
     		} else {
     			$origin = doc_Containers::getDocument($rec->originId);
-    			if(!($origin->getInstance() instanceof techno2_SpecificationDoc)){
+    			if(!$origin->haveInterface('cat_ProductAccRegIntf')){
     				$res = 'no_one';
     			}
     			
@@ -214,7 +214,7 @@ class cat_Boms extends core_Master
     		
     		// Очакваме той да е 'techno2_SpecificationDoc' - спецификация
     		$origin = doc_Containers::getDocument($originId);
-    		expect($origin->getInstance() instanceof techno2_SpecificationDoc);
+    		expect($origin->haveInterface('cat_ProductAccRegIntf'));
     		expect($origin->fetchField('state') == 'active');
     		
     		// Ако е спецификация, документа може да се добави към нишката

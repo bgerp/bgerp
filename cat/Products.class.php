@@ -1120,27 +1120,31 @@ class cat_Products extends core_Embedder {
     
     /**
      * Връща последното активно задание за спецификацията
-     *
+     * 
      * @param mixed $id - ид или запис
      * @return mixed $res - записа на заданието или FALSE ако няма
      */
     public static function getLastActiveJob($id)
     {
-    	//@TODO временно
-    	return FALSE;
+    	$rec = self::fetchRec($id);
+    	
+    	// Какво е к-то от последното активно задание
+    	return mp_Jobs::fetch("#originId = {$rec->containerId} AND #state = 'active'");
     }
     
     
     /**
-     * Намира последната активна технологична рецепта за артикула
+     * Връща последната активна рецепта на спецификацията
      *
      * @param mixed $id - ид или запис
      * @return mixed $res - записа на рецептата или FALSE ако няма
      */
     public static function getLastActiveBom($id)
     {
-    	//@TODO временно
-    	return FALSE;
+    	$rec = self::fetchRec($id);
+    	 
+    	// Какво е к-то от последното активно задание
+    	return cat_Boms::fetch("#originId = {$rec->containerId} AND #state = 'active'");
     }
     
     
@@ -1245,5 +1249,44 @@ class cat_Products extends core_Embedder {
     	}
     	 
     	return FALSE;
+    }
+    
+    
+    /**
+     * След подготовка на тулбара на единичен изглед.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+    	if($data->rec->state == 'active'){
+    		if(cat_Boms::haveRightFor('write', (object)array('originId' => $data->rec->containerId))){
+    			if($qRec = cat_Boms::fetch("#originId = {$data->rec->containerId} AND #state = 'draft'")){
+    				$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'edit', $qRec->id, 'ret_url' => TRUE), 'ef_icon = img/16/legend.png,title=Редактиране на технологична рецепта');
+    			} else {
+    				$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE), 'ef_icon = img/16/legend.png,title=Създаване на нова технологична рецепта');
+    			}
+    		}
+    	
+    		if(mp_Jobs::haveRightFor('write', (object)array('originId' => $data->rec->containerId))){
+    			if($qRec = mp_Jobs::fetch("#originId = {$data->rec->containerId} AND #state = 'draft'")){
+    				$data->toolbar->addBtn("Задание", array('mp_Jobs', 'edit', $qRec->id, 'ret_url' => TRUE), 'ef_icon = img/16/clipboard_text.png,title=Редактиране на задание за производство');
+    			} else {
+    				$data->toolbar->addBtn("Задание", array('mp_Jobs', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE), 'ef_icon = img/16/clipboard_text.png,title=Създаване на ново задание за производство');
+    			}
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Рендира изглед за задание
+     */
+    public function renderJobView($id, $time = NULL)
+    {
+    	$Jobs = cls::get('mp_Jobs');
+    	
+    	return $this->getProductDesc($id, $Jobs, $time);
     }
 }
