@@ -3327,7 +3327,7 @@ function getEfae() {
 
 function prepareBugReport(form, user, domain, name)
 {
-	var title = window.location.host + window.location.pathname;
+	var title = document.URL;
 	var width = $(window).width();
 	var height = $(window).height();
 	var browser = getUserAgent();
