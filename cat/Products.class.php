@@ -25,7 +25,7 @@ class cat_Products extends core_Embedder {
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    var $interfaces = 'acc_RegisterIntf,cat_ProductAccRegIntf,mp_ResourceSourceIntf';
+    var $interfaces = 'acc_RegisterIntf,cat_ProductAccRegIntf,mp_ResourceSourceIntf,doc_AddToFolderIntf';
     
     
     /**
@@ -251,8 +251,6 @@ class cat_Products extends core_Embedder {
         $this->setDbIndex('fixedAsset');
         $this->setDbIndex('canManifacture');
         $this->setDbIndex('waste');
-        
-        $this->setDbUnique('code');
     }
     
     
@@ -334,15 +332,7 @@ class cat_Products extends core_Embedder {
         }
     }
     
-    /*
-     * canSell=Продаваеми,
-                                canBuy=Купуваеми,
-                                canStore=Складируеми,
-                                canConvert=Вложими,
-                                fixedAsset=Дълготрайни активи,
-        						canManifacture=Производими,
-        						waste=Отпаден
-     */
+    
     /**
      * Преди запис на продукт
      */
@@ -354,15 +344,6 @@ class cat_Products extends core_Embedder {
     	
     	if(isset($rec->csv_groups) && strlen($rec->csv_groups) != 0){
     		$rec->groups = cat_Groups::getKeylistBySysIds($rec->csv_groups);
-    	}
-    	
-    	if($rec->id){
-    		$oldRec = $mvc->fetch($rec->id);
-    		
-    		// Старите мета данни
-    		$rec->oldGroups = $oldRec->groups;
-    		$rec->oldName = $oldRec->name;
-    		$rec->oldCode = $oldRec->code;
     	}
     	
     	if(isset($rec->csv_name)){
@@ -531,7 +512,6 @@ class cat_Products extends core_Embedder {
     	
     	if(count($hasnotProperties)){
     		foreach ($hasnotProperties as $meta1){
-    			
     			//@TODO докато направим промените в бизнес документите
     			if(is_numeric($meta1)) continue;
     			$query->where("#{$meta1} = 'no'");
@@ -813,7 +793,7 @@ class cat_Products extends core_Embedder {
     	
     	// Избираме всички публични артикули, или частните за тази папка
     	$query->where("#isPublic = 'yes'");
-    	$query->orWhere("#folderId = {$folderId}");
+    	$query->orWhere("#isPublic = 'no' AND #folderId = {$folderId}");
     	$query->show('isPublic,folderId,meta,id,code,name');
     	
     	// Ограничаваме заявката при нужда
@@ -1182,33 +1162,8 @@ class cat_Products extends core_Embedder {
     {
     	$data->toolbar->removeBtn('btnAdd');
     	if($mvc->haveRightFor('add')){
-    		 $data->toolbar->addBtn('Нова стока', array($mvc, 'add', 'innerClass' => cat_GeneralProductDriver::getClassId()), 'order=1', 'ef_icon = img/16/shopping.png,title=Създаване на нова стока');
-    		 $data->toolbar->addBtn('Нова услуга', array($mvc, 'add', 'innerClass' => cat_GeneralServiceDriver::getClassId()), 'order=1', 'ef_icon = img/16/shopping.png,title=Създаване на нова услуга');
+    		 $data->toolbar->addBtn('Нов артикул', array($mvc, 'add', 'innerClass' => cat_GeneralProductDriver::getClassId()), 'order=1', 'ef_icon = img/16/shopping.png,title=Създаване на нова стока');
     	}
-    }
-    
-    
-    /**
-     * Създава спецификация по даден артикул, ако няма такава
-     * 
-     * @param mixed $productId - ид или запис на артикул
-     * @return int $specificationId - ид на новосъздадената спецификация
-     */
-    public static function createSpecification($productId, $folderId = NULL)
-    {
-    	expect($rec = static::fetchRec($productId));
-    	
-    	// Създаваме нова спецификация, ако има проблем, не правим нищо
-    	$specificationRec = techno2_SpecificationDoc::createNew($rec->name, $rec->innerClass, $rec->innerForm, $rec->innerState, $folderId);
-    	
-    	$rec->specificationId = $specificationRec->id;
-    	if($specificationRec->isPublic == 'no'){
-    		$rec->privateFolderId = $specificationRec->folderId;
-    	}
-    	
-    	static::save($rec, 'privateFolderId,specificationId');
-    	
-    	return $rec;
     }
     
     
@@ -1246,7 +1201,7 @@ class cat_Products extends core_Embedder {
      * @param $folderId int ид на папката
      * @return boolean
      */
-    public static function canAddToFolder1($folderId)
+    public static function canAddToFolder($folderId)
     {
     	$coverClass = doc_Folders::fetchCoverClassName($folderId);
     	 
@@ -1273,5 +1228,22 @@ class cat_Products extends core_Embedder {
     			$res = $mvc->getRequiredRoles('edit');
     		}
     	}
+    }
+    
+    
+    /**
+     * Да се показвали бърз бутон за създаване на документа в папка
+     */
+    public function mustShowButton($folderRec, $userId = NULL)
+    {
+    	$Cover = doc_Folders::getCover($folderRec->id);
+    	 
+    	// Ако папката е на контрагент
+    	if($Cover->haveInterface('cat_ProductFolderCoverIntf')){
+    
+    		return TRUE;
+    	}
+    	 
+    	return FALSE;
     }
 }

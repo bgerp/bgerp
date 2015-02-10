@@ -86,7 +86,7 @@ class cat_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    var $defClasses = "cat_GeneralProductDriver, cat_GeneralServiceDriver";
+    var $defClasses = "cat_GeneralProductDriver";
     
     
     /**
@@ -124,20 +124,14 @@ class cat_Setup extends core_ProtoSetup
     	$cQuery = cat_Products::getQuery();
     	
     	core_Classes::add('cat_GeneralProductDriver');
-    	core_Classes::add('cat_GeneralServiceDriver');
     	
     	$technoDriverId = cat_GeneralProductDriver::getClassId();
-    	$technoDriverServiceId = cat_GeneralServiceDriver::getClassId();
     	
     	while($pRec = $cQuery->fetch()){
     		$meta = cat_Products::getMetaData($pRec->groups);
     		$meta = arr::make($meta, TRUE);
     		
-    		if(isset($meta['canStore'])){
-    			$pRec->innerClass = $technoDriverId;
-    		} else {
-    			$pRec->innerClass = $technoDriverServiceId;
-    		}
+    		$pRec->innerClass = $technoDriverId;
     		
     		$clone = clone $pRec;
     		unset($clone->innerForm, $clone->innerState);
@@ -263,10 +257,18 @@ class cat_Setup extends core_ProtoSetup
     				}
     				
     				if(empty($first)){
-    					$first = cat_Categories::fetchField("#sysId = 'goods'", 'id');
+    					if($rec->createdBy == -1){
+    						$first = cat_Categories::fetchField("#sysId = 'externalServices'", 'id');
+    					} else {
+    						$first = cat_Categories::fetchField("#sysId = 'goods'", 'id');
+    					}
     				}
     			} else {
     				$first = cat_Categories::fetchField("#sysId = 'services'", 'id');
+    			}
+    			
+    			if(core_Classes::fetchIdByName('cat_GeneralServiceDriver') == $rec->innerClass){
+    				$rec->innerClass = cat_GeneralProductDriver::getClassId();
     			}
     			
     			$rec->folderId = cat_Groups::forceCoverAndFolder($first);
