@@ -816,6 +816,9 @@ table .linkWithIcon {
   .linkWithIcon.nameday {
     background-image: url('../img/16/orthodox.png'); }
 
+.linkWithIconSpan {
+  display: inline-block; }
+
 input.more-btn {
   float: left;
   margin-bottom: 0;
