@@ -259,28 +259,35 @@ class cat_Products extends core_Embedder {
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
-    	// Слагаме полето за драйвър да е 'remember'
-    	if($data->form->getField($mvc->innerClassField)){
-    		$data->form->setField($mvc->innerClassField, 'remember');
+    	$form = &$data->form;
+    	
+    	$folderId = Request::get('folderId', 'int');
+    	if(!isset($folderId)){
+    		$form->setField('folderId', 'input');
     	}
     	
-    	if(isset($data->form->rec->folderId)){
-    		$cover = doc_Folders::getCover($data->form->rec->folderId);
+    	// Слагаме полето за драйвър да е 'remember'
+    	if($form->getField($mvc->innerClassField)){
+    		$form->setField($mvc->innerClassField, 'remember');
+    	}
+    	
+    	if(isset($form->rec->folderId)){
+    		$cover = doc_Folders::getCover($form->rec->folderId);
     		if(!$cover->haveInterface('doc_ContragentDataIntf')){
-    			$data->form->setField('code', 'mandatory');
+    			$form->setField('code', 'mandatory');
     		}
     	}
     	
-    	if(isset($data->form->rec->innerClass)){
-    		$data->form->setField('innerClass', 'input=hidden');
+    	if(isset($form->rec->innerClass)){
+    		$form->setField('innerClass', 'input=hidden');
     	}
     	
-    	if(!$data->form->rec->id && ($code = Mode::get('catLastProductCode'))) {
+    	if(!$form->rec->id && ($code = Mode::get('catLastProductCode'))) {
             if ($newCode = str::increment($code)) {
             	
                 //Проверяваме дали има такъв запис в системата
                 if (!$mvc->fetch("#code = '$newCode'")) {
-                    $data->form->rec->code = $newCode;
+                    $form->rec->code = $newCode;
                 }
             }
         }
