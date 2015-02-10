@@ -72,9 +72,9 @@ class page_InternalFooter extends core_ET {
             $this->append('&nbsp;<small>|</small>&nbsp;');
             $this->append(calculator_View::getBtn());
             
-        }
-        if(isDebug()) {
-        	$this->append('&nbsp;<small>|</small>&nbsp;<a href="#wer" onclick="toggleDisplay(\'debug_info\')">Debug</a>');
+            if(isDebug()) {
+            	$this->append('&nbsp;<small>|</small>&nbsp;<a href="#wer" onclick="toggleDisplay(\'debug_info\')">Debug</a>');
+            }
         }
         
         $conf = core_Packs::getConfig('help');
@@ -93,7 +93,7 @@ class page_InternalFooter extends core_ET {
             $this->append($form);
         }
         
-        if(isDebug()) {
+        if(isDebug() && Mode::is('screenMode', 'wide')) {
         	$this->append(new ET("<div id='debug_info' style='margin:5px; display:none;'>
                                      Време за изпълнение: [#DEBUG::getExecutionTime#]
                                      [#Debug::getLog#]</div>"));
