@@ -7,7 +7,7 @@
  * @category  bgerp
  * @package   dec
  * @author    Gabriela Petrova <gab4eto@gmail.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -422,6 +422,19 @@ class dec_Declarations extends core_Master
                 } 
                 break;
     	}
+    }
+    
+    /**
+     * Добавя след таблицата
+     *
+     * @param core_Mvc $mvc
+     * @param StdClass $res
+     * @param StdClass $data
+     */
+    static function on_AfterRenderListTable($mvc, &$tpl, $data)
+    {
+    	$mvc->currentTab = "Декларации->Списък";
+    	$mvc->menuPage = "Търговия:Продажби";
     }
     
     
