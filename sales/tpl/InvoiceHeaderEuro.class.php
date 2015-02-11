@@ -54,12 +54,13 @@ class sales_tpl_InvoiceHeaderEuro extends doc_TplScript {
 		$data->listFields['packPrice'] = "Ед. цена";
 		
 		$euroRate = round(currency_CurrencyRates::getRate($data->masterData->rec->date, 'EUR', NULL), 4);
+		
 		$conf = core_Packs::getConfig('core');
 		$decPoint = html_entity_decode($conf->EF_NUMBER_DEC_POINT);
 		
 		foreach ($data->rows as $id => $row){
 			$rec = $data->recs[$id];
-			$priceEuro = ($rec->packPrice * $data->masterData->rec->currencyRate) / $euroRate;
+			$priceEuro = ($rec->packPrice * $data->masterData->rec->rate) / $euroRate;
 			
 			$Double = cls::get('type_Double');
 			$Double->params['decimals'] = 2;

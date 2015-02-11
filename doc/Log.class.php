@@ -161,6 +161,18 @@ class doc_Log extends core_Manager
                 // Вземаме полетата
                 $docRow = $document->getDocumentRow();
                 
+                // Манипулатор на докуемнта
+                $handle = '#' . $document->getHandle();
+                
+                $handleArr = doc_RichTextPlg::parseHandle($handle);
+                
+                // Ако има само нули, да не се показва
+                $hndId = trim($handleArr['id'], '0');
+                if (!strlen($hndId)) {
+                    $c--;
+                    continue;
+                }
+                
                 // Масив за вземане на уникалното id
                 $attrId = array();
                 
@@ -172,9 +184,6 @@ class doc_Log extends core_Manager
                 
                 // Заглавие на документа
                 $resArr[$docId]['title'] = str::limitLen($docRow->title, 55);
-                
-                // Манипулатор на докуемнта
-                $handle = '#' . $document->getHandle();
                 
                 // Данни за създаването на документа
                 $resArr[$docId]['createdOn'] = doc_Containers::getVerbal($docRec, 'createdOn');

@@ -19,7 +19,7 @@ class tnef_EmailPlg extends core_Plugin
     /**
      * Преди записване на файловете
      * 
-     * @param core_Master $mvc
+     * @param email_Mime $mvc
      * @param NULL $res
      */
     function on_BeforeSaveFiles($mvc, &$res)
