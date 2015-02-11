@@ -237,7 +237,7 @@ class cat_Setup extends core_ProtoSetup
      */
     public function makeProductsDocuments2()
     {
-    	set_time_limit(600);
+    	set_time_limit(900);
     	core_Users::cancelSystemUser();
     	
     	$Products = cls::get('cat_Products');
@@ -280,7 +280,7 @@ class cat_Setup extends core_ProtoSetup
     	}
     	
     	if(core_Packs::fetch("#name = 'techno2'")){
-    		
+    		$allProducts = array();
     		$manId = $Products->getClassId();
     		$specId = techno2_SpecificationDoc::getClassId();
     		$tQuery = techno2_SpecificationDoc::getQuery();
@@ -291,6 +291,7 @@ class cat_Setup extends core_ProtoSetup
     			
     			try{
     				$pId = techno2_SpecificationDoc::createProduct($tRec);
+    				$allProducts[$tRec->id] = $pId;
     				
     				$paramQ = cat_products_Params::getQuery();
     				$paramQ->where("#classId = {$specId} AND #productId = {$tRec->id}");
@@ -300,7 +301,6 @@ class cat_Setup extends core_ProtoSetup
     					$pRec->productId = $pId;
     					
     					cat_products_Params::save($pRec, 'productId,classId');
-    					
     				}
     			} catch(core_exception_Expect $e){
     				$Products->log("Проблем при прехвърляне на спецификация {$tRec->id}: {$e->getMessage()}");
@@ -311,5 +311,27 @@ class cat_Setup extends core_ProtoSetup
     	}
     	
     	core_Users::forceSystemUser();
+    	
+    	$docsArr = array('sales_SalesDetails', 'sales_InvoiceDetails', 'store_ShipmentOrderDetails', 'store_ReceiptDetails', 'sales_ServicesDetails', 'purchase_InvoiceDetails', 'purchase_PurchasesDetails', 'purchase_ServicesDetails', 'sales_QuotationsDetails');
+    	if(count($allProducts)){
+    		foreach ($allProducts as $sId => $pId){
+    			
+    			if($itemRec = acc_Items::fetchItem('techno2_SpecificationDoc', $sId)){
+    				$itemRec->classId = $manId;
+    				$itemRec->objectId = $pId;
+    				acc_Items::save($itemRec);
+    			}
+    			
+    			foreach ($docsArr as $manName){
+    				$dQuery = $manName::getQuery();
+    				$dQuery->where("#classId = {$specId} AND #productId = {$sId}");
+    				while($dRec = $dQuery->fetch()){
+    					$dRec->classId = $manId;
+    					$dRec->productId = $pId;
+    					$manName::save($dRec);
+    				}
+    			}
+    		}
+    	}
     }
 }
