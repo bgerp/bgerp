@@ -40,7 +40,6 @@ class page_InternalFooter extends core_ET {
                 $this->append(ht::createLink(tr("Широк"), array('core_Browser', 'setWideScreen', 'ret_url' => TRUE), FALSE, array('title' => " Превключване на системата в десктоп режим")));
 
                 // Добавяме превключване между езиците
-                $this->append("&nbsp;<small>|</small>&nbsp;");
                 $this->addLgChange();
             }
 
