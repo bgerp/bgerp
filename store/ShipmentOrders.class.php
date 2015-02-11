@@ -191,7 +191,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     {
     	$row->deliveryTo = $row->pCode . " " . $row->place;
     	foreach(array('address', 'company', 'person', 'tel') as $fld){
-    		if(isset($rec->$fld)){
+    		if(!empty($rec->$fld)){
     			$row->deliveryTo .= ", {$row->$fld}";
     		}
     	}
