@@ -32,7 +32,7 @@ class techno2_SpecificationDoc extends core_Embedder
     /**
      * Заглавие
      */
-    public $singleTitle = 'Спецификация на артикул';
+    public $singleTitle = 'Спецификация на артикул 2';
     
 
     /**
