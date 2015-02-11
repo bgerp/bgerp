@@ -877,6 +877,9 @@ class fileman_Files extends core_Master
         
         // Добавяме табовете в шаблона
         $tpl->append($fileInfo, 'fileDetail');
+        
+        // Отбелязваме като разгледан
+        fileman_Log::updateLogInfo($fh, 'preview');
     }
     
     
