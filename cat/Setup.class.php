@@ -308,30 +308,30 @@ class cat_Setup extends core_ProtoSetup
     			
     			core_Users::exitSudo();
     		}
-    	}
-    	
-    	core_Users::forceSystemUser();
-    	
-    	$docsArr = array('sales_SalesDetails', 'sales_InvoiceDetails', 'store_ShipmentOrderDetails', 'store_ReceiptDetails', 'sales_ServicesDetails', 'purchase_InvoiceDetails', 'purchase_PurchasesDetails', 'purchase_ServicesDetails', 'sales_QuotationsDetails');
-    	if(count($allProducts)){
-    		foreach ($allProducts as $sId => $pId){
-    			
-    			if($itemRec = acc_Items::fetchItem('techno2_SpecificationDoc', $sId)){
-    				$itemRec->classId = $manId;
-    				$itemRec->objectId = $pId;
-    				acc_Items::save($itemRec);
-    			}
-    			
-    			foreach ($docsArr as $manName){
-    				$dQuery = $manName::getQuery();
-    				$dQuery->where("#classId = {$specId} AND #productId = {$sId}");
-    				while($dRec = $dQuery->fetch()){
-    					$dRec->classId = $manId;
-    					$dRec->productId = $pId;
-    					$manName::save($dRec);
+
+    		$docsArr = array('sales_SalesDetails', 'sales_InvoiceDetails', 'store_ShipmentOrderDetails', 'store_ReceiptDetails', 'sales_ServicesDetails', 'purchase_InvoiceDetails', 'purchase_PurchasesDetails', 'purchase_ServicesDetails', 'sales_QuotationsDetails');
+    		if(count($allProducts)){
+    			foreach ($allProducts as $sId => $pId){
+    				 
+    				if($itemRec = acc_Items::fetchItem('techno2_SpecificationDoc', $sId)){
+    					$itemRec->classId = $manId;
+    					$itemRec->objectId = $pId;
+    					acc_Items::save($itemRec);
+    				}
+    				 
+    				foreach ($docsArr as $manName){
+    					$dQuery = $manName::getQuery();
+    					$dQuery->where("#classId = {$specId} AND #productId = {$sId}");
+    					while($dRec = $dQuery->fetch()){
+    						$dRec->classId = $manId;
+    						$dRec->productId = $pId;
+    						$manName::save($dRec);
+    					}
     				}
     			}
     		}
     	}
+    	
+    	core_Users::forceSystemUser();
     }
 }
