@@ -200,7 +200,7 @@ class email_Filters extends core_Manager
             }
             
             // Добавяме текста
-            $rec->fromName .= ' ' . tr('чрез') . ' ' . $rec->fromEml;
+            $rec->fromName .= ' чрез ' . $rec->fromEml;
             
             // Задаваме първия имейл
             $rec->fromEml = $emails[0];
@@ -268,12 +268,43 @@ class email_Filters extends core_Manager
             if (empty($filterRec->{$filterField})) {
                 continue;
             }
-            if (mb_stripos($haystack, $filterRec->{$filterField}) === FALSE) {
-                return FALSE;
+            
+            $pattern = self::getPatternForFilter($filterRec->{$filterField});
+            
+            if (preg_match($pattern, $haystack)) {
+                return TRUE;
             }
+            
         }
         
-        return TRUE;
+        return FALSE;
+    }
+    
+    
+    /**
+     * Връща шаблона за търсене с preg
+     * 
+     * @param string $str
+     * 
+     * @return string
+     */
+    protected static function getPatternForFilter($str)
+    {
+        static $filtersArr = array();
+        
+        if ($filtersArr[$str]) return $filtersArr[$str];
+        
+        $pattern = $str;
+        
+        $pattern = preg_quote($pattern, '/');
+        
+        $pattern = str_ireplace(array('\\*', '%', '\\%'), '.*', $pattern);
+        
+        $pattern = "/" . $pattern . "/iu";
+        
+        $filtersArr[$str] = $pattern;
+        
+        return $filtersArr[$str];
     }
     
     
