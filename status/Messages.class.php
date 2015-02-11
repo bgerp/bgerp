@@ -97,13 +97,19 @@ class status_Messages extends core_Manager
             Mode::set('hitTime', dt::mysql2timestamp());
         }
         
+        $currUserId = core_Users::getCurrent();
+        
         // Ако не подаден потребител, тогава използваме текущия
-        $userId = ($userId) ? ($userId) : (core_Users::getCurrent());
+        $userId = ($userId) ? ($userId) : ($currUserId);
         
         // Стойности за записа
         $rec = new stdClass();
         
-        $rec->sid = self::getSid();
+        // Ако текущия потребител добавя за себи си, тогава да се добавя sid
+        if ($userId == $currUserId) {
+            $rec->sid = self::getSid();
+        }
+        
         $rec->text = $text;
         $rec->type = $type;
         $rec->userId = $userId;
@@ -182,6 +188,7 @@ class status_Messages extends core_Manager
         // Статусите за съответния SID
         $sid = self::getSid();
         $query->where(array("#sid = '[#1#]'", $sid));
+        $query->orWhere("#sid IS NULL");
         
         $query->orderBy('createdOn', 'ASC');
         
