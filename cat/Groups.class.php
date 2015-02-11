@@ -18,12 +18,6 @@ class cat_Groups extends core_Master
     
     
 	/**
-	 * Поддържани интерфейси
-	 */
-	public $interfaces = 'cat_ProductFolderCoverIntf';
-	
-	
-    /**
      * Заглавие
      */
     var $title = "Групи на артикулите";
