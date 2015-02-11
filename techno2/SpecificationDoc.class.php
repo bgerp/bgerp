@@ -183,8 +183,8 @@ class techno2_SpecificationDoc extends core_Embedder
         						canManifacture=Производими,
         						waste=Отпаден)', 'caption=Свойства->Списък,columns=2,formOrder=100000000,input=none');
     	$this->FLD("isPublic", 'enum(no=Частен,yes=Публичен)', 'input=none,formOrder=100000002,caption=Показване за избор в документи->Достъп');
-    	$this->FLD("productId", 'key(mvc=cat_Products)', 'input=none');
     }
+    
     
     /**
      * Преди показване на форма за добавяне/промяна.
