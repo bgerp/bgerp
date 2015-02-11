@@ -808,6 +808,8 @@ class fileman_Files extends core_Master
         
         if (!$saveId) return FALSE;
         
+        fileman_Log::updateLogInfo($nRec->fileHnd, 'rename');
+        
         // Ако е форсирано рендирането на драйверите
         if ($forceDriver) {
             
