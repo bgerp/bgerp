@@ -488,12 +488,12 @@ class cat_Products extends core_Embedder {
     
     /**
      * Връща масив от продукти отговарящи на зададени мета данни:
-     * canSell, canBuy, canManifacture, canConvert, fixedAsset, canStore
+     * canSell, canBuy, canManifacture, canConvert, fixedAsset, canStore, waste
      * 
+     * @param mixed $properties       - комбинация на горе посочените мета 
+     * 							        данни, на които трябва да отговарят
      * @param mixed $hasnotProperties - комбинация на горе посочените мета 
-     * 							  данни, на които трябва да отговарят
-     * @param mixed $properties - комбинация на горе посочените мета 
-     * 							  които не трябва да имат
+     * 							        които не трябва да имат
      * 
      * @return core_Query $query - подготвена заявка, ако няма се търси по всички активни артикули
      */
