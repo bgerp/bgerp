@@ -1005,7 +1005,7 @@ class cal_Tasks extends core_Master
      */
     static function getNumbPriority($rec)
     {
-        if($rec->state == 'active') {
+        if($rec->state == 'active' || $rec->state == 'pending') {
 
             switch($rec->priority) {
                 case 'low':
