@@ -232,7 +232,6 @@ class mp_Jobs extends core_Master
         // Ако има ориджин в рекуеста
     	if($originId = Request::get('originId', 'int')){
     		
-    		// Очакваме той да е 'techno2_SpecificationDoc' - спецификация
     		$origin = doc_Containers::getDocument($originId);
     		expect($origin->haveInterface('cat_ProductAccRegIntf'));
     		expect($origin->fetchField('state') == 'active');

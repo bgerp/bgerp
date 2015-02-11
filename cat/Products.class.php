@@ -286,7 +286,6 @@ class cat_Products extends core_Embedder {
 					$form->getFieldType('meta')->setDisabled($defMetas);
 					$form->setDefault('meta', $form->getFieldType('meta')->fromVerbal($defMetas));
 				}
-    			
     		}
     	}
     	
