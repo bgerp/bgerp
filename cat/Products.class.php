@@ -787,9 +787,6 @@ class cat_Products extends core_Embedder {
     	$query->where("#state = 'active'");
     	$folderId = cls::get($customerClass)->forceCoverAndFolder($customerId);
     	
-    	// Само тези до чиято папка, текущия потребител има достъп
-    	doc_Folders::restrictAccess($query);
-    	
     	// Избираме всички публични артикули, или частните за тази папка
     	$query->where("#isPublic = 'yes'");
     	$query->orWhere("#isPublic = 'no' AND #folderId = {$folderId}");
