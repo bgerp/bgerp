@@ -276,13 +276,22 @@ class cat_Products extends core_Embedder {
     		$cover = doc_Folders::getCover($form->rec->folderId);
     		if(!$cover->haveInterface('doc_ContragentDataIntf')){
     			$form->setField('code', 'mandatory');
+    			
+    			// Ако е избран драйвер слагаме задъжителните мета данни според корицата и драйвера
+				if(isset($form->rec->innerClass)){
+					$defMetas = $cover->getDefaultMeta();
+					$Driver = $mvc->getDriver($form->rec);
+					$defMetas = $Driver->getDefaultMetas($defMetas);
+				
+					$form->getFieldType('meta')->setDisabled($defMetas);
+					$form->setDefault('meta', $form->getFieldType('meta')->fromVerbal($defMetas));
+				}
+    			
     		}
     	}
     	
     	if(isset($form->rec->innerClass)){
     		$form->setField('innerClass', 'input=hidden');
-    		
-    		
     	}
     	
     	if(!$form->rec->id && ($code = Mode::get('catLastProductCode'))) {
@@ -319,10 +328,6 @@ class cat_Products extends core_Embedder {
 	    			$form->setError('code', 'Има вече артикул с такъв код!');
 			    }
     		}
-    		
-    		// Проверяваме дали избраните групи са в противоречие с драйвера
-    		$Driver = $mvc->getDriver($rec);
-    		$defMetas = $Driver->getDefaultMetas($mvc->defMetas);
     		
     		// Ако има избрана категория, артикула се форсира в папката и
     		if(isset($rec->categoryId)){

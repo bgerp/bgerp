@@ -264,10 +264,16 @@ class cat_Categories extends core_Master
     }
     
     
-    function act_Test()
+    /**
+     * Връща мета дефолт мета данните на папката
+     *
+     * @param int $id - ид на спецификация папка
+     * @return array $meta - масив с дефолт мета данни
+     */
+    public function getDefaultMeta($id)
     {
-    	$Setup = cls::get('cat_Setup');
-    	$Setup->makeProductsDocuments2();
-    	bp();
+    	$rec = $this->fetchRec($id);
+    	
+    	return arr::make($rec->meta, TRUE);
     }
 }
