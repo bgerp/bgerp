@@ -238,7 +238,6 @@ class cat_Setup extends core_ProtoSetup
     public function makeProductsDocuments2()
     {
     	set_time_limit(900);
-    	core_Users::cancelSystemUser();
     	
     	$Products = cls::get('cat_Products');
     	$query = cat_Products::getQuery();
@@ -286,6 +285,7 @@ class cat_Setup extends core_ProtoSetup
     		$tQuery = techno2_SpecificationDoc::getQuery();
     		$tQuery->where("#state != 'rejected'");
     		
+    		core_Users::cancelSystemUser();
     		while($tRec = $tQuery->fetch()){
     			core_Users::sudo($tRec->createdBy);
     			
@@ -308,17 +308,20 @@ class cat_Setup extends core_ProtoSetup
     			
     			core_Users::exitSudo();
     		}
+    		core_Users::forceSystemUser();
+    	}
 
-    		$docsArr = array('sales_SalesDetails', 'sales_InvoiceDetails', 'store_ShipmentOrderDetails', 'store_ReceiptDetails', 'sales_ServicesDetails', 'purchase_InvoiceDetails', 'purchase_PurchasesDetails', 'purchase_ServicesDetails', 'sales_QuotationsDetails');
-    		if(count($allProducts)){
-    			foreach ($allProducts as $sId => $pId){
-    				 
+    	$docsArr = array('sales_SalesDetails', 'sales_InvoiceDetails', 'store_ShipmentOrderDetails', 'store_ReceiptDetails', 'sales_ServicesDetails', 'purchase_InvoiceDetails', 'purchase_PurchasesDetails', 'purchase_ServicesDetails', 'sales_QuotationsDetails');
+    	if(count($allProducts)){
+    		foreach ($allProducts as $sId => $pId){
+    				
+    			try{
     				if($itemRec = acc_Items::fetchItem('techno2_SpecificationDoc', $sId)){
     					$itemRec->classId = $manId;
     					$itemRec->objectId = $pId;
     					acc_Items::save($itemRec);
     				}
-    				 
+    				
     				foreach ($docsArr as $manName){
     					$dQuery = $manName::getQuery();
     					$dQuery->where("#classId = {$specId} AND #productId = {$sId}");
@@ -328,10 +331,11 @@ class cat_Setup extends core_ProtoSetup
     						$manName::save($dRec);
     					}
     				}
+    			} catch(core_exception_Expect $e){
+    				$Products->log("Проблем при Заместване на спецификация {$tRec->id}: {$e->getMessage()}");
     			}
+    			
     		}
     	}
-    	
-    	core_Users::forceSystemUser();
     }
 }
