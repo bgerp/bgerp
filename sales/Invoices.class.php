@@ -388,7 +388,7 @@ class sales_Invoices extends deals_InvoiceMaster
     */
     public static function fetchByHandle($parsedHandle)
     {
-        if ($parsedHandle['endDs']) {
+        if ($parsedHandle['endDs'] && (strlen($parsedHandle['id']) != 10)) {
             $rec = static::fetch($parsedHandle['id']);
         } else {
             $number = ltrim($parsedHandle['id'], '0');
