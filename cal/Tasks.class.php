@@ -655,7 +655,7 @@ class cal_Tasks extends core_Master
         $data->listFilter->FNC('selectedUsers', 'users', 'caption=Потребител,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
         $data->listFilter->FNC('Chart', 'varchar', 'caption=Таблица,input=hidden,silent', array('attr' => array('onchange' => 'this.form.submit();'), 'value' => Request::get('Chart')));
         $data->listFilter->FNC('View', 'varchar', 'caption=Изглед,input=hidden,silent', array('attr' => array('onchange' => 'this.form.submit();'), 'value' => Request::get('View')));
-        $data->listFilter->FNC('stateTask', 'enum(all=Всички,active=Активни,draft=Чернови,pending=Чакащи,closed=Приключени)', 'caption=Състояние,input,silent', array('attr' => array('onchange' => 'this.form.submit();'), 'value' => Request::get('stateTask')));
+        $data->listFilter->FNC('stateTask', 'enum(all=Всички,active=Активни,draft=Чернови,pending=Чакащи,actPend=Активни+Чакащи,closed=Приключени)', 'caption=Състояние,input,silent', array('attr' => array('onchange' => 'this.form.submit();'), 'value' => Request::get('stateTask')));
         
         // Подготовка на полето за подредба
         foreach($mvc->listOrderBy as $key => $attr) {
@@ -664,26 +664,29 @@ class cal_Tasks extends core_Master
         $orderType = cls::get('type_Enum');
         
         $orderType->options = $options;
-        //bp(key($orderType->options));
-        //$orderType->defVal();
+        
         $data->listFilter->FNC('order', $orderType, 'caption=Подредба,input,silent', array('attr' => array('onchange' => "addCmdRefresh(this.form);this.form.submit();")));
 
         $data->listFilter->view = 'vertical';
         $data->listFilter->title = 'Задачи';
         $data->listFilter->layout = new ET(tr('|*' . getFileContent('acc/plg/tpl/FilterForm.shtml')));
 
+        // по подразбиране е текущия потребител
         if (!$data->listFilter->rec->selectedUsers) {
             $data->listFilter->rec->selectedUsers = keylist::fromArray(arr::make(core_Users::getCurrent('id'), TRUE));
 	  	}
 	  	
+	  	// задачи с всякакъв статус
     	if (!$data->listFilter->rec->stateTask) {
             $data->listFilter->rec->stateTask = 'all';
 	  	}
 	  	
+	  	// по критерий "Всички"
 	  	if(!$data->listFilter->rec->order) {
 	  	   $data->listFilter->rec->order = 'all'; 
 	  	}
 	  	
+	  	// филтъра по дата е -1/+1 месец от днещната дата
 	  	$data->listFilter->setDefault('from', date('Y-m-01', strtotime("-1 months", dt::mysql2timestamp(dt::now()))));
 		$data->listFilter->setDefault('to', date("Y-m-t",strtotime("+1 months", dt::mysql2timestamp(dt::now()))));
 	  	
@@ -699,6 +702,7 @@ class cal_Tasks extends core_Master
         }
         $data->listFilter->input('selectedUsers, Chart, View, stateTask, order', 'silent');
         
+        // размяна на датите във филтъра
         $dateRange = array();
         
         if ($data->listFilter->rec->from) {
@@ -712,35 +716,40 @@ class cal_Tasks extends core_Master
         if (count($dateRange) == 2) {
         	sort($dateRange);
         }
+        
+        // сега
         $now = dt::now();
+        // поле което прави подредба по очакваните времена
         $data->query->XPR('relativeDate', 'datetime', "if(#expectationTimeEnd, #expectationTimeEnd, if(#expectationTimeStart,#expectationTimeStart, '{$now}'))");
         
+        // възможност за подредба "най-нови->стари"
         if ($data->listFilter->rec->order == 'endStart') { 
-	    	$data->query->orderBy("#state, #priority=DESC, #relativeDate=DESC, #createdOn=DESC");
+	    	$data->query->orderBy("#state, #priority=DESC, #relativeDate=ASC, #createdOn=DESC");
+	    // възможност за подредба "стари->най-нови"
         } else {
-        	$data->query->orderBy("#state, #priority=DESC, #relativeDate=ASC, #createdOn=DESC");
+        	$data->query->orderBy("#state, #priority=DESC, #relativeDate=DESC, #createdOn=DESC");
         }
       
         if ($data->action === 'list') { 
         	$chart = Request::get('Chart');
         	
+        	// ако ще подреждаме по "начало" или "край" на задачата ще показваме и филтъра за дата
             if ($data->listFilter->rec->order == 'onStart' || $data->listFilter->rec->order == 'onEnd') {
                 $data->listFilter->showFields = 'search,selectedUsers,order, from, to,stateTask';
             	$data->listFilter->input('from, to', 'silent');
             }
-
         	
             if ($data->listFilter->rec->selectedUsers != 'all_users') {  
 	            $data->query->likeKeylist('sharedUsers', $data->listFilter->rec->selectedUsers);
             }
             
-        	if ($data->listFilter->rec->stateTask != 'all') {  
+        	if ($data->listFilter->rec->stateTask != 'all' && $data->listFilter->rec->stateTask != 'actPend' ) {  
 	            $data->query->where(array("#state = '[#1#]'", $data->listFilter->rec->stateTask));
+            } elseif ($data->listFilter->rec->stateTask == 'actPend') {
+            	$data->query->where("#state = 'active' OR #state = 'pending'");
             } else {
             	$data->query->fetchAll();
             }
-          
-	        
 		    
 		    if ($data->listFilter->rec->order == 'onStart') {
 		        
