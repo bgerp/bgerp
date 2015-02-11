@@ -38,7 +38,7 @@ class cat_Products extends core_Embedder {
      * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools, plg_SaveAndNew, doc_DocumentPlg, plg_PrevAndNext, acc_plg_Registry, plg_Rejected, plg_State,
-                     cat_Wrapper, plg_Sorting, doc_ActivatePlg, bgerp_plg_Groups, plg_Printing, Groups=cat_Groups, plg_Select, plg_Search, bgerp_plg_Import';
+                     cat_Wrapper, plg_Sorting, doc_ActivatePlg, doc_plg_BusinessDoc, bgerp_plg_Groups, plg_Printing, Groups=cat_Groups, plg_Select, plg_Search, bgerp_plg_Import';
     
     
     /**
@@ -262,10 +262,10 @@ class cat_Products extends core_Embedder {
     	$form = &$data->form;
     	
     	// Добавяме поле за избор на категория само ако не е зададено в заявката
-    	$folderId = Request::get('folderId');
+    	/*$folderId = Request::get('folderId');
     	if(!isset($folderId) || $form->cmd == 'save'){
     		$data->form->FLD('categoryId', 'key(mvc=cat_Categories,select=name,allowEmpty)', 'caption=Категория');
-    	}
+    	}*/
     	
     	// Слагаме полето за драйвър да е 'remember'
     	if($form->getField($mvc->innerClassField)){
@@ -328,10 +328,12 @@ class cat_Products extends core_Embedder {
 			    }
     		}
     		
-    		// Ако има избрана категория, артикула се форсира в папката и
+    		/*
+    		 * // Ако има избрана категория, артикула се форсира в папката и
     		if(isset($rec->categoryId)){
     			$rec->folderId = cat_Categories::forceCoverAndFolder($rec->categoryId);
     		}
+    		 */
         }
                 
         if (!$form->gotErrors()) {
@@ -1206,7 +1208,7 @@ class cat_Products extends core_Embedder {
      */
     public static function getAllowedFolders()
     {
-    	return array('doc_ContragentDataIntf', 'cat_ProductFolderCoverIntf');
+    	return array('cat_ProductFolderCoverIntf');
     }
     
     
@@ -1229,7 +1231,7 @@ class cat_Products extends core_Embedder {
      */
     public function getDefaultFolder()
     {
-    	return cat_Groups::forceCoverAndFolder(cat_Groups::fetchField("#sysId = 'goods'", 'id'));
+    	return cat_Categories::forceCoverAndFolder(cat_Categories::fetchField("#sysId = 'goods'", 'id'));
     }
     
     
