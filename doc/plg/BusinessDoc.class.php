@@ -248,8 +248,19 @@ class doc_plg_BusinessDoc extends core_Plugin
     		return;
     	}
     	
+    	$params = array('folderId' => $selectedField::forceCoverAndFolder($value));
+    	
+    	// Да се подават и другите параметри от урл-то
+    	foreach(getCurrentUrl() as $key => $value){
+    		if($key != 'App' && $key != 'Ctr' && $key != 'Act' && $key != 'Cmd'){
+    			if(!$form->getField($key, FALSE)){
+    				$params[$key] = $value;
+    			}
+    		}
+    	}
+    	
     	// При избран точно един обект се форсира неговата папка и се връща
-    	return array('folderId' => $selectedField::forceCoverAndFolder($value));
+    	return $params;
     }
     
     
