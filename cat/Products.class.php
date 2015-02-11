@@ -267,6 +267,16 @@ class cat_Products extends core_Embedder {
     		$data->form->FLD('categoryId', 'key(mvc=cat_Categories,select=name,allowEmpty)', 'caption=Категория');
     	}*/
     	
+    	if($sourceId = Request::get('sourceId', 'int')){
+    		$document = doc_Containers::getDocument($sourceId);
+    		expect($document->haveInterface('marketing_InquiryEmbedderIntf'));
+    		//$form->set
+    		//$Driver = $mvc->getDriver($form->rec);
+    		//bp($document->rec()->innerForm);
+    		//$Driver->setInnerState($document->rec()->innerState);
+    		//bp($Driver);
+    		
+    	}
     	// Слагаме полето за драйвър да е 'remember'
     	if($form->getField($mvc->innerClassField)){
     		$form->setField($mvc->innerClassField, 'remember');
@@ -327,13 +337,6 @@ class cat_Products extends core_Embedder {
 	    			$form->setError('code', 'Има вече артикул с такъв код!');
 			    }
     		}
-    		
-    		/*
-    		 * // Ако има избрана категория, артикула се форсира в папката и
-    		if(isset($rec->categoryId)){
-    			$rec->folderId = cat_Categories::forceCoverAndFolder($rec->categoryId);
-    		}
-    		 */
         }
                 
         if (!$form->gotErrors()) {
@@ -341,6 +344,25 @@ class cat_Products extends core_Embedder {
                 Mode::setPermanent('catLastProductCode', $code);
             }    
         }
+    }
+    
+    
+    /**
+     * След подготовка на ембеднатата форма
+     */
+    public static function on_AfterPrepareEmbeddedForm(core_Mvc $mvc, &$form)
+    {
+    	if($sourceId = Request::get('sourceId', 'int')){
+    		$document = doc_Containers::getDocument($sourceId);
+    		expect($document->haveInterface('marketing_InquiryEmbedderIntf'));
+    		$fieldsFromSource = $document->getFieldsFromDriver();
+    		$sourceRec = $document->rec();
+    		
+    		$form->setDefault('name', $sourceRec->title);
+    		foreach ($fieldsFromSource as $fld){
+    			$form->rec->$fld = $sourceRec->innerForm->$fld;
+    		}
+    	}
     }
     
     
