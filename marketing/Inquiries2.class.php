@@ -486,6 +486,7 @@ class marketing_Inquiries2 extends core_Embedder
     				$url = array('cat_Products', 'add', "innerClass" => $rec->innerClass, "sourceId" => $rec->containerId);
     				if(doc_Folders::getCover($rec->folderId)->haveInterface('doc_ContragentDataIntf')){
     					$url['folderId'] = $rec->folderId; 
+    					$url['threadId'] = $rec->threadId;
     				}
     				
     				$data->toolbar->addBtn($data->row->innerClass, $url, "ef_icon=img/16/specification.png,title=Създаване на нов частен артикул");
