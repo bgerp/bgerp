@@ -12,7 +12,7 @@
             <!--ET_END MyCountry-->
         </div>
         <br>
-        <p><b>ДЕКЛАРИРАМЕ, ЧЕ ПРОДУКТИТЕ</b></p>
+        <p><b>ДЕКЛАРИРАМЕ, ЧЕ ПРОДУКТИТЕ:</b></p>
         <!--ET_BEGIN products-->
         [#products#]
         <!--ET_END products-->        
@@ -27,7 +27,7 @@
          <li> Изделията са произведени от [#material#] </li>
         <!--ET_END material-->
 		<!--ET_BEGIN statements-->
-		[#statements#]
+		 <li> Изделията отговарят на изискванията [#statements#] </li>
 		<!--ET_END statements-->
         </ul>
         <!--ET_BEGIN note-->
