@@ -1626,17 +1626,21 @@ class email_Incomings extends core_Master
     /**
      * Разширява query-то в doc_DocumentPlg, като добавя и имейла от който е получен
      * 
+     * @param email_Incomings $mvc
+     * @param core_Query $query
      * @param integer $folderId
      * @param array $params
      * 
      * @return core_Query
      */
-    public static function getSameFirstDocumentsQuery_($folderId, $params=array())
+    public static function on_AfterGetSameFirstDocumentsQuery($mvc, &$query, $folderId, $params=array())
     {
-        $query = static::getQuery();
+        if (!$query) {
+            $query = $mvc->getQuery();
+        }
         
         if ($params['fromEml']) {
-            $query->where(array("LOWER(#fromEml) = LOWER('[#1#]')", $params['fromEml']));
+            $query->where(array("LOWER(#fromEml) = '[#1#]'", mb_strtolower($params['fromEml'])));
         }
         
         return $query;
