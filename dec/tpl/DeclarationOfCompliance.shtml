@@ -8,7 +8,6 @@
             <!--ET_BEGIN MyAddress-->[#MyAddress#],<!--ET_END MyAddress-->
             <!--ET_END MyCountry-->
             <!--ET_BEGIN MyCompanyVatNo--> with VAT ID <b>[#MyCompanyVatNo#]</b>, <!--ET_END MyCompanyVatNo-->
-            <!--ET_BEGIN uicId--> UIC [#uicId#],<!--ET_END uicId-->
             <!--ET_END MyCountry-->
         </div>
          <br>
@@ -28,7 +27,7 @@
          <li> The manufactures are made of [#material#] </li>
         <!--ET_END material-->
         <!--ET_BEGIN statements-->
-        [#statements#]
+        <li> The manufactures meet the requirements [#statements#]</li>
         <!--ET_END statements-->
         </ul>
         <!--ET_BEGIN note-->
@@ -59,5 +58,5 @@
 	        <div class='aright'>This document is created by <b><a href='http://bgerp.com'>bgERP</a></b>.</div>
 	    </div>
     </div>
-    
+  </div>  
 </div>

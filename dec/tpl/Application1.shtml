@@ -10,7 +10,7 @@
             <tr>
                 <td class='nowrap aright' style='padding-right:20px;width:1%;'>Производител/доставчик:</td>
                 <td>
-                    [#MyCompany#]<!--ET_BEGIN MyCompanyVatNo-->, с ЕИН [#MyCompanyVatNo#]<!--ET_END MyCompanyVatNo--><!--ET_BEGIN uicId-->, ЕИК [#uicId#]<!--ET_END uicId-->
+                    [#MyCompany#]<!--ET_BEGIN MyCompanyVatNo-->, с ДДС№ [#MyCompanyVatNo#]<!--ET_END MyCompanyVatNo--><!--ET_BEGIN uicId-->, ЕИК [#uicId#]<!--ET_END uicId-->
                 </td>
             </tr>
             <tr>
@@ -20,7 +20,7 @@
                 </td>
             </tr>
             <tr>
-                <td class='nowrap aright' style='padding-right:20px;width:1%;'>Седалище на фирмата:  </td>
+                <td class='nowrap aright' style='padding-right:20px;width:1%;'>Адрес:  </td>
                 <td>
                     <!--ET_BEGIN MyCountry-->[#MyCountry#], <!--ET_END MyCountry--><!--ET_BEGIN MyAddress-->гр. [#MyAddress#]<!--ET_END MyAddress-->
                 </td>
@@ -35,7 +35,7 @@
     <div class='inner-text'>
 	    <ul>
 	        <!--ET_BEGIN statements-->
-	        [#statements#]
+	        <li>изизкванията [#statements#]</li>
 	        <!--ET_END statements-->
 	    </ul>
 	    <!--ET_BEGIN note-->

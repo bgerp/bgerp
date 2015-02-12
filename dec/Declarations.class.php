@@ -149,7 +149,7 @@ class dec_Declarations extends core_Master
     	$this->FLD('declaratorPosition', 'varchar', 'caption=Представлявана от->Позиция, recently, mandatory');
         
     	// продукти, идват от фактурата
-    	$this->FLD('productId', 'set', 'caption=Продукти->Продукти');
+    	$this->FLD('productId', 'set', 'caption=Продукти->Продукти, maxColumns=2');
     
     	// на какви твърдения отговарят
 		$this->FLD('statements', 'keylist(mvc=dec_Statements,select=title)', 'caption=Твърдения->Отговарят на, mandatory');
@@ -313,7 +313,7 @@ class dec_Declarations extends core_Master
 		        	$productName = $ProductMan::getTitleById($name[1]);
 		        	$row->products .= "<li>".$productName."</li>";
 			}
-				$row->products .= "</ol>";
+			$row->products .= "</ol>";
     	}
     	
     	// ако декларацията е към документ
@@ -370,11 +370,10 @@ class dec_Declarations extends core_Master
     		foreach ($statements as $statement) {  
     			
     			$s = dec_Statements::fetch($statement);
-    			$text = "<li>изделията отговарят на изискванията"." ". $s->text ."</li>";
+    			$text = $s->text;
     			$cTpl->replace($text, 'statements');
     			$cTpl->append2master();
     		}
-    		$row->statements = "</ol>";
     	}
     	
     	
