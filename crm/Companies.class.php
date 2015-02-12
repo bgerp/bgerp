@@ -36,8 +36,11 @@ class crm_Companies extends core_Master
         // Интерфейс за корица на папка
         'doc_FolderIntf',
         
-        //Интерфейс за данните на контрагента
-        'doc_ContragentDataIntf'
+        // Интерфейс за данните на контрагента
+        'doc_ContragentDataIntf',
+    		
+    	// Интерфейс за корица на папка в която може да се създава артикул
+    	'cat_ProductFolderCoverIntf',
     );
     
     
@@ -1524,5 +1527,17 @@ class crm_Companies extends core_Master
     	}
     	
     	return TRUE;
+    }
+    
+    
+    /**
+     * Връща мета дефолт мета данните на папката
+     *
+     * @param int $id - ид на папка
+     * @return array $meta - масив с дефолт мета данни
+     */
+    public function getDefaultMeta($id)
+    {
+    	return array();
     }
 }

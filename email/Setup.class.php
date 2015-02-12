@@ -276,7 +276,8 @@ class email_Setup extends core_ProtoSetup
             'email_Salutations',
             'email_ThreadHandles',
             'migrate::transferThreadHandles',
-            'migrate::fixEmailSalutations'
+            'migrate::fixEmailSalutations',
+            'migrate::repairRecsInFilters',
         );
     
 
@@ -386,6 +387,43 @@ class email_Setup extends core_ProtoSetup
                 
                 email_Salutations::save($rec);
             }
+        }
+    }
+    
+    
+    /**
+     * Миграция, за да се изтрият повтарящите се записи и да се изчисли systemId
+     */
+    public static function repairRecsInFilters()
+    {
+        $query = email_Filters::getQuery();
+        
+        $condFieldArr = array();
+        $condFieldArr[] = 'email';
+        $condFieldArr[] = 'subject';
+        $condFieldArr[] = 'body';
+        
+        $systemArr = array();
+        
+        while ($rec = $query->fetch()) {
+            
+            foreach ($condFieldArr as $field) {
+                $rec->$field = str_replace('%', '*', $rec->$field);
+            }
+            
+            $systemId = email_Filters::getSystemId($rec);
+            
+            if ($systemArr[$systemId]) {
+                
+                email_Filters::delete($rec->id);
+                continue;
+            }
+                
+            $systemArr[$systemId] = $systemId;
+        
+            $rec->systemId = $systemId;
+            
+            email_Filters::save($rec);
         }
     }
 }

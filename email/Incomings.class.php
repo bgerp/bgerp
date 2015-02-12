@@ -689,6 +689,8 @@ class email_Incomings extends core_Master
             $row->fromIp = type_Ip::decorateIp($rec->fromIp, $rec->createdOn);
         }
         
+        $row->fromName = str_replace(' чрез ', ' ' . tr('чрез') . ' ', $row->fromName);
+        
         if(trim($row->fromName) && (strtolower(trim($rec->fromName)) != strtolower(trim($rec->fromEml)))) {
             $row->fromEml = $row->fromEml . ' (' . trim($row->fromName) . ')';
         }
@@ -883,6 +885,7 @@ class email_Incomings extends core_Master
         $row->title = $subject;
         
         if(trim($rec->fromName)) {
+            $rec->fromName = str_replace(' чрез ', ' ' . tr('чрез') . ' ', $rec->fromName);
             $row->author = $this->getVerbal($rec, 'fromName');
         } else {
             $row->author = "<small>{$rec->fromEml}</small>";

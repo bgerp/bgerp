@@ -133,6 +133,9 @@ class dec_Declarations extends core_Master
      */
     function description()
     {
+    	// бланка
+    	$this->FLD('typeId', 'key(mvc=dec_DeclarationTypes,select=name)', "caption=Бланка");
+    	
     	// номера на документа
     	$this->FLD('doc', 'key(mvc=doc_Containers)', 'caption=Към документ, input=none');
     	
@@ -156,9 +159,7 @@ class dec_Declarations extends core_Master
         
 		// допълнителен текст
 		$this->FLD('note', 'richtext(bucket=Notes)', 'caption=Бележки->Допълнения');
-		
-		// бланка
-		$this->FLD('typeId', 'key(mvc=dec_DeclarationTypes,select=name)', "caption=Бланка");
+
 	}
 
     
