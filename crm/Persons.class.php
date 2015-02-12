@@ -699,6 +699,8 @@ class crm_Persons extends core_Master
      */
     static function updateNumbers($rec)
     {
+        $numbersArr = array();
+        
         // Ако има телефон
         if ($rec->tel) {
             
@@ -1664,7 +1666,7 @@ class crm_Persons extends core_Master
      * Вземаме всики папки на които сме inCharge или са споделени с нас или са публични или 
      * (са екипни и inCharge е някой от нашия екип) и състоянието е активно
      * 
-     * @param crm_Persons $query - Заявката към системата
+     * @param core_Query $query - Заявката към системата
      * @param int $userId - Потребителя, за който ще се отнася
      */
     static function applyAccessQuery(&$query, $userId = NULL)
@@ -1813,15 +1815,15 @@ class crm_Persons extends core_Master
         // Обхождаме всички драйвери
         foreach ($drivers as $driver) {
             
-            // Данните за визитката от съответния драйвер
-            $data = array();
-            
             // Опитваме се да подготвим данните
             try {
                 
                 // Подготвяме данните
                 $data = $driver->prepareData($fRec);
-            } catch (core_exception_Expect $e) { }
+            } catch (core_exception_Expect $e) {
+                // Данните за визитката от съответния драйвер
+                $data = array();
+            }
 
             // Събираме всички данни
             $allVcards = array_merge($allVcards, $data);
