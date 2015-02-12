@@ -206,6 +206,8 @@ class support_Systems extends core_Master
         // Ако не е зададена система връщаме
         if (!$systemId) array();
         
+        $arr = array();
+        
         // Добавяме в масива
         $arr[$systemId] = $systemId;
         

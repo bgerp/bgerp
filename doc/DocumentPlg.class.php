@@ -91,6 +91,11 @@ class doc_DocumentPlg extends core_Plugin
         
         // Дали могат да се принтират оттеглените документи
         setIfNot($mvc->printRejected, FALSE);
+        
+        $mvc->setDbIndex('folderId');
+        $mvc->setDbIndex('threadId');
+        $mvc->setDbIndex('containerId');
+        $mvc->setDbIndex('originId');
     }
     
     

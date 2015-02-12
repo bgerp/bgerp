@@ -47,6 +47,10 @@ class email_Sent
             'charset'   => $options['encoding'],
         );
         
+        if ($body->__inReplyTo) {
+            $messageBase['headers']['In-Reply-To'] = $body->__inReplyTo;
+        }
+        
         // Добавя манипулатора на нишката в събджекта на имейла, ако няма забрана да направи това
         if (empty($options['no_thread_hnd'])) {
             $messageBase['subject'] = email_ThreadHandles::decorateSubject($messageBase['subject'], $body->threadId);
@@ -188,8 +192,8 @@ class email_Sent
             }
         }
         
-        if (!empty($message->inReplyTo)) {
-            $PML->AddReplyTo($message->inReplyTo);
+        if (!empty($message->replyTo)) {
+            $PML->AddReplyTo($message->replyTo);
         }
         
         $isSended = $PML->Send();

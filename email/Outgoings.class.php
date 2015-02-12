@@ -333,6 +333,19 @@ class email_Outgoings extends core_Master
         // списъци с изпратени и проблеми получатели
         $success  = $failure = array();
         
+        // Ако е отговор на имейл опитваме се да извлечем In-Reply-To
+        if ($rec->originId) {
+            $originDoc = doc_Containers::getDocument($rec->originId);
+            if ($originDoc->instance instanceof email_Incomings) {
+                $iRec = $originDoc->fetch();
+                $messageIdArr = (array)$iRec->headers['message-id'];
+                $messageId = reset($messageIdArr);
+                if ($messageId) {
+                    $rec->__inReplyTo = trim($messageId, '<>');
+                }
+            }
+        }
+        
         // Обхождаме масива с всички групи имейли
         foreach ($groupEmailsArr['to'] as $key => $emailTo) {
             
