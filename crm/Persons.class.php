@@ -39,7 +39,11 @@ class crm_Persons extends core_Master
         // Интерфейс за входящ документ
         'incoming_CreateDocumentIntf',
     		
+    	// Интерфейс за източник на производствен ресурс
     	'mp_ResourceSourceIntf',
+    		
+    	// Интерфейс за корица на папка в която може да се създава артикул
+    	'cat_ProductFolderCoverIntf',
     );
 
 
@@ -2391,5 +2395,17 @@ class crm_Persons extends core_Master
     	$res->type = 'labor'; 
     	
     	return $res;
+    }
+    
+    
+    /**
+     * Връща мета дефолт мета данните на папката
+     *
+     * @param int $id - ид на папка
+     * @return array $meta - масив с дефолт мета данни
+     */
+    public function getDefaultMeta($id)
+    {
+    	return array();
     }
 }
