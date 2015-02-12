@@ -1455,6 +1455,8 @@ class email_Outgoings extends core_Master
                 // Използваме контрагент данните от ковъра
                 $contrData = $contragentData;
             }
+            
+            core_Lg::pop();
         } else {
             
             // Флаг
@@ -1986,7 +1988,7 @@ class email_Outgoings extends core_Master
         $tpl = new ET(tr('|*' . getFileContent($tpl)));
         
         if (Mode::is('printing')) {
-            core_Lg::pop($data->lg);
+            core_Lg::pop();
         }
         
         return $tpl;

@@ -161,12 +161,6 @@ class sales_SalesDetails extends deals_DealDetail
     				$form->setWarning('packQuantity', 'Въведеното количество е по-голямо от наличното в склада');
     			}
     		}
-    		
-    		if(isset($rec->packPrice)){
-    			if($rec->packPrice < cls::get($rec->classId)->getSelfValue($rec->productId) * $quantityInPack){
-    				$form->setWarning('packPrice', 'Цената е под себестойност');
-    			}
-    		}
     	}
     	
     	parent::inputDocForm($mvc, $form);
