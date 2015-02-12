@@ -184,6 +184,7 @@ class mp_ObjectResources extends core_Manager
      */
     public function prepareResources(&$data)
     {
+    	$data->TabPlaceholder = 'MAIN_DETAILS';
     	$data->TabCaption = 'Ресурси';
     	$data->rows = array();
     	 

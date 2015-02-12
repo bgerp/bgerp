@@ -65,11 +65,8 @@ class acc_ReportDetails extends core_Manager
         
         // Име на таба
         $data->TabCaption = 'Счетоводство';
+        $data->TabPlaceholder = 'MAIN_DETAILS';
         
-        // Махаме TabCaption, ако мастъра не е корица
-        if($data->masterMvc->showAccReportsInTab === FALSE){
-        	unset($data->TabCaption);
-        }
     }
     
     

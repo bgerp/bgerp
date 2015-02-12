@@ -153,6 +153,8 @@ class cat_products_VatGroups extends cat_products_Detail
     public static function prepareVatGroups($data)
     {   
         $data->TabCaption = 'ДДС';
+        $data->TabPlaceholder = 'MAIN_DETAILS';
+        
         $data->Order = 60;
 
         static::prepareDetail($data);

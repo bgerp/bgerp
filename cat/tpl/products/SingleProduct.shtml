@@ -4,6 +4,7 @@
     <div class='header [#STATE_CLASS#]'>
         <div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
     </div>
+    [#MAIN_DETAILS#]
     <!--ET_END header-->
     <div class='scrolling-holder'>
            <h2 style='line-height:26px'><b style="color:green;">[#name#]<!--ET_BEGIN code--> ([#code#])<!--ET_END code--></b></h2>

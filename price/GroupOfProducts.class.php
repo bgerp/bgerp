@@ -355,6 +355,7 @@ class price_GroupOfProducts extends core_Detail
     public function preparePriceGroup($data)
     { 
         $data->TabCaption = 'Ценова група';
+        $data->TabPlaceholder = 'MAIN_DETAILS';
         $data->Order = 5;
 
         $query = $this->getQuery();

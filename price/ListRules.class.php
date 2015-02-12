@@ -620,6 +620,8 @@ class price_ListRules extends core_Detail
 	public function preparePriceList($data)
 	{
 		$data->TabCaption = 'Себестойност';
+		$data->TabPlaceholder = 'MAIN_DETAILS';
+		
 		$pRec = $data->masterData->rec;
 		$listId = static::PRICE_LIST_COST;
 		$data->priceLists = new stdClass();
