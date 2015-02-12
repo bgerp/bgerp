@@ -632,7 +632,15 @@ class core_Html
 
 
     /**
+     * 
      * Създава хипервръзка
+     * 
+     * @param string $title
+     * @param FALSE|array $url
+     * @param FALSE|string $warning
+     * @param array $attr
+     * 
+     * @return core_ET
      */
     static function createLink($title, $url = FALSE, $warning = FALSE, $attr = array())
     {
