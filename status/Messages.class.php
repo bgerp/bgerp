@@ -188,7 +188,11 @@ class status_Messages extends core_Manager
         // Статусите за съответния SID
         $sid = self::getSid();
         $query->where(array("#sid = '[#1#]'", $sid));
-        $query->orWhere("#sid IS NULL");
+        
+        // Само логнатите потребители могат да видят статусите без sid
+        if ($userId > 0) {
+            $query->orWhere("#sid IS NULL");
+        }
         
         $query->orderBy('createdOn', 'ASC');
         
