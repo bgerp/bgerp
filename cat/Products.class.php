@@ -286,7 +286,7 @@ class cat_Products extends core_Embedder {
     	if(!$form->rec->id && ($code = Mode::get('catLastProductCode'))) {
             if ($newCode = str::increment($code)) {
             	
-                //Проверяваме дали има такъв запис в системата
+                // Проверяваме дали има такъв запис в системата
                 if (!$mvc->fetch("#code = '$newCode'")) {
                     $form->rec->code = $newCode;
                 }
@@ -552,7 +552,15 @@ class cat_Products extends core_Embedder {
     	return $products;
     }
     
-    
+    /*
+     * canSell=Продаваеми,
+                                canBuy=Купуваеми,
+                                canStore=Складируеми,
+                                canConvert=Вложими,
+                                fixedAsset=Дълготрайни активи,
+        						canManifacture=Производими,
+        						waste=Отпаден
+     */
     /**
      * Метод връщаш информация за продукта и неговите опаковки
      * 
@@ -567,6 +575,7 @@ class cat_Products extends core_Embedder {
 	 * 	     meta['canStore']       - дали може да се съхранява
 	 * 	     meta['canManifacture'] - дали може да се прозивежда
 	 * 	     meta['fixedAsset']     - дали е ДМА
+	 * 		 meta['waste]			- дали е отпаден
      * 	-> packagingRec - записа на опаковката, ако е зададена
      * 	-> packagings - всички опаковки на продукта, ако не е зададена
      */					
