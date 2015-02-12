@@ -32,8 +32,7 @@ class cat_Groups extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, cat_Wrapper, 
-                     doc_FolderPlg, plg_Search, plg_Translate, plg_Rejected';
+    var $loadList = 'plg_Created, plg_RowTools, cat_Wrapper, plg_Search, plg_Translate, plg_Rejected';
     
     
     /**

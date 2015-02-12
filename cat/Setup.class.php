@@ -239,6 +239,7 @@ class cat_Setup extends core_ProtoSetup
     {
     	set_time_limit(900);
     	
+    	core_Classes::add('cat_Categories');
     	$Products = cls::get('cat_Products');
     	$query = cat_Products::getQuery();
     	$query->where("#threadId IS NULL");
@@ -270,7 +271,7 @@ class cat_Setup extends core_ProtoSetup
     				$rec->innerClass = cat_GeneralProductDriver::getClassId();
     			}
     			
-    			$rec->folderId = cat_Groups::forceCoverAndFolder($first);
+    			$rec->folderId = cat_Categories::forceCoverAndFolder($first);
     			$Products->route($rec);
     			$Products->save($rec);
     		} catch(core_exception_Expect $e){
