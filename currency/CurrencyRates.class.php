@@ -300,10 +300,7 @@ class currency_CurrencyRates extends core_Detail
             }
         }
         
-        $from = currency_Currencies::getCodeById($fromId);
-        $to   = currency_Currencies::getCodeById($toId);
-
-        expect(FALSE, "Не може да се определи валутен курс {$from}->{$to}");
+        return NULL;
     }
     
 
