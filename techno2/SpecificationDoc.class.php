@@ -958,7 +958,7 @@ class techno2_SpecificationDoc extends core_Embedder
     	if($cover->haveInterface('doc_ContragentDataIntf')){
     		$folderId = $rec->folderId;
     	} else {
-    		$folderId = cat_Groups::forceCoverAndFolder(cat_Groups::fetchField("#sysId = 'products'", 'id'));
+    		$folderId = cat_Categories::forceCoverAndFolder(cat_Categories::fetchField("#sysId = 'products'", 'id'));
     		$code = "SPEC{$rec->id}";
     	}
     	

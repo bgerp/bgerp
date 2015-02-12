@@ -101,7 +101,7 @@ class cat_Products extends core_Embedder {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт,name,code,groups,folderId,innerClass';
+    var $listFields = 'tools=Пулт,name,code,groups,folderId,createdOn,createdBy';
     
     
     /**
@@ -251,6 +251,8 @@ class cat_Products extends core_Embedder {
         $this->setDbIndex('fixedAsset');
         $this->setDbIndex('canManifacture');
         $this->setDbIndex('waste');
+        
+        $this->setDbUnique('code');
     }
     
     
@@ -261,22 +263,6 @@ class cat_Products extends core_Embedder {
     {
     	$form = &$data->form;
     	
-    	// Добавяме поле за избор на категория само ако не е зададено в заявката
-    	/*$folderId = Request::get('folderId');
-    	if(!isset($folderId) || $form->cmd == 'save'){
-    		$data->form->FLD('categoryId', 'key(mvc=cat_Categories,select=name,allowEmpty)', 'caption=Категория');
-    	}*/
-    	
-    	if($sourceId = Request::get('sourceId', 'int')){
-    		$document = doc_Containers::getDocument($sourceId);
-    		expect($document->haveInterface('marketing_InquiryEmbedderIntf'));
-    		//$form->set
-    		//$Driver = $mvc->getDriver($form->rec);
-    		//bp($document->rec()->innerForm);
-    		//$Driver->setInnerState($document->rec()->innerState);
-    		//bp($Driver);
-    		
-    	}
     	// Слагаме полето за драйвър да е 'remember'
     	if($form->getField($mvc->innerClassField)){
     		$form->setField($mvc->innerClassField, 'remember');
@@ -338,7 +324,7 @@ class cat_Products extends core_Embedder {
 			    }
     		}
         }
-                
+        
         if (!$form->gotErrors()) {
             if(!$form->rec->id && ($code = Request::get('code', 'varchar'))) {
                 Mode::setPermanent('catLastProductCode', $code);
@@ -396,6 +382,11 @@ class cat_Products extends core_Embedder {
     	}
     	
     	$rec->isPublic = (!empty($rec->code)) ? 'yes' : 'no';
+    	
+    	// Ако кода е празен символ, правим го NULL
+    	if($rec->code == ''){
+    		$rec->code = NULL;
+    	}
     }
     
     
@@ -793,7 +784,9 @@ class cat_Products extends core_Embedder {
 	    	2 => "csv_measureId", 
 	    	3 => "csv_groups",
 	    	4 => "access",
-    		5 => "innerClass",);
+    		5 => "innerClass",
+    		6 => "csv_category",
+    	);
     	
     	$cntObj = csv_Lib::importOnce($this, $file, $fields);
     	$res .= $cntObj->html;
@@ -1191,6 +1184,24 @@ class cat_Products extends core_Embedder {
     	expect(cls::haveInterface('cat_ProductDriverIntf', $rec->innerClass));
     	$rec->innerClass = cls::get($rec->innerClass)->getClassId();
     	$rec->state = 'active';
+    	
+    	// Ако няма такъв артикул създаваме документа
+    	if(!$exRec = $mvc->fetch("#code = '{$rec->code}'")){
+    		$categoryId = cat_Categories::fetchField("#sysId = '{$rec->csv_category}'", 'id');
+    		$rec->folderId = cat_Categories::forceCoverAndFolder($categoryId);
+    		$mvc->route($rec);
+    		
+    		$defMetas = cls::get('cat_Categories')->getDefaultMeta($categoryId);
+    		$Driver = $mvc->getDriver($rec);
+    		
+    		$defMetas = $Driver->getDefaultMetas($defMetas);
+    		$rec->meta = $mvc->getFieldType('meta')->fromVerbal($defMetas);
+    		if(count($defMetas)){
+    			foreach ($defMetas as $meta){
+    				$rec->$meta = 'yes';
+    			}
+    		}
+    	}
     }
     
     
@@ -1211,10 +1222,10 @@ class cat_Products extends core_Embedder {
      */
     public function getDocumentRow($id)
     {
-    	$rec = $this->fetch($id);
-        $row = new stdClass();
-    
-    	$row->title    = $this->getRecTitle($rec);
+    	$rec = $this->fetchRec($id);
+    	$row = new stdClass();
+        
+    	$row->title    = $this->getVerbal($rec, 'name');
         $row->authorId = $rec->createdBy;
     	$row->author   = $this->getVerbal($rec, 'createdBy');
     	$row->recTitle = $row->title;

@@ -1,3 +1,10 @@
-Труд,work,час,labor,public,cat_GeneralProductDriver
-Електричество,electricity,киловатчас,externalServices,public,cat_GeneralProductDriver
-Вода,water,кубичен метър,externalServices,public,cat_GeneralProductDriver
+"Други суровини и материали",materials,брой,materials,public,cat_GeneralProductDriver,materials
+"Друг труд",labor,час,labor,public,cat_GeneralProductDriver,labor
+"Други външни услуги",exServices,брой,externalServices,public,cat_GeneralProductDriver,externalServices
+"Други консумативи",consumables,брой,consumables,public,cat_GeneralProductDriver,consumables
+"Други резервни части",replacements,брой,replacements,public,cat_GeneralProductDriver,replacements
+"Други стоки",goods,брой,goods,public,cat_GeneralProductDriver,goods
+"Други продукти",products,брой,products,public,cat_GeneralProductDriver,products
+"Други заготовки",prefabrications,брой,prefabrications,public,cat_GeneralProductDriver,prefabrications
+"Други услуги",services,брой,services,public,cat_GeneralProductDriver,services
+"Други дълготрайни активи",fixedAssets,брой,fixedAssets,public,cat_GeneralProductDriver,fixedAssets
