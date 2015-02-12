@@ -3,7 +3,7 @@
 
 
 /**
- * Мениджър на групи с продукти.
+ * Мениджър на категории с продукти.
  *
  *
  * @category  bgerp
@@ -141,6 +141,12 @@ class cat_Categories extends core_Master
      * Нов темплейт за показване
      */
     var $singleLayoutFile = 'cat/tpl/SingleCategories.shtml';
+    
+    
+    /**
+     * Дефолт достъп до новите корици
+     */
+    public $defaultAccess = 'public';
     
     
     /**

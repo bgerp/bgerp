@@ -65,7 +65,7 @@ class cat_Products extends core_Embedder {
     /**
      * По кои сметки ще се правят справки
      */
-    public $balanceRefAccounts = '301,302,304,305,306,309,321';
+    public $balanceRefAccounts = '301,302,304,305,306,309,321,330';
     
     
     /**
@@ -186,12 +186,6 @@ class cat_Products extends core_Embedder {
 	 *  Полета по които ще се търси
 	 */
 	var $searchFields = 'name, code';
-	
-	
-	/**
-	 * Дефолт достъп до новите корици
-	 */
-	public $defaultAccess = 'public';
 	
 	
 	/**
@@ -783,9 +777,8 @@ class cat_Products extends core_Embedder {
 	    	1 => "code", 
 	    	2 => "csv_measureId", 
 	    	3 => "csv_groups",
-	    	4 => "access",
-    		5 => "innerClass",
-    		6 => "csv_category",
+    		4 => "innerClass",
+    		5 => "csv_category",
     	);
     	
     	$cntObj = csv_Lib::importOnce($this, $file, $fields);
@@ -1196,11 +1189,6 @@ class cat_Products extends core_Embedder {
     		
     		$defMetas = $Driver->getDefaultMetas($defMetas);
     		$rec->meta = $mvc->getFieldType('meta')->fromVerbal($defMetas);
-    		if(count($defMetas)){
-    			foreach ($defMetas as $meta){
-    				$rec->$meta = 'yes';
-    			}
-    		}
     	}
     }
     
