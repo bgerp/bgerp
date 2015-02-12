@@ -1277,7 +1277,7 @@ class cat_Products extends core_Embedder {
     	$Cover = doc_Folders::getCover($folderRec->id);
     	 
     	// Ако папката е на контрагент
-    	if($Cover->haveInterface('cat_ProductFolderCoverIntf')){
+    	if($Cover->getInstance() instanceof cat_Categories){
     
     		return TRUE;
     	}
