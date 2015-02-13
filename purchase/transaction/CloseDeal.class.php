@@ -188,8 +188,8 @@ class purchase_transaction_CloseDeal extends acc_DocumentTransactionSource
     	$entries = array();
     	 
     	$jRecs = acc_Journal::getEntries(array($firstDoc->className, $firstDoc->that));
-    	//$blAmount = acc_Balances::getBlAmounts($jRecs, '4530')->amount;
-    	bp($blAmount, $jRecs,acc_Balances::getBlAmounts($jRecs, '4530'));
+    	$blAmount = acc_Balances::getBlAmounts($jRecs, '4530')->amount;
+    	
     	$total += abs($blAmount);
     	 
     	if($blAmount == 0) return $entries;
