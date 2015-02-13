@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   marketing
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -791,24 +791,5 @@ class marketing_Inquiries2 extends core_Embedder
     	if(isset($rec->oldCreatedOn)){
     		$rec->createdOn = $rec->oldCreatedOn;
     	}
-    }
-    
-    
-    /**
-     * Препраща имейл-а генериран от създаването на запитването отново
-     */
-    public function act_createProduct()
-    {
-    	cat_Products::requireRightFor('add');
-    	expect($id = Request::get('id', 'int'));
-    	expect($rec = $this->fetch($id));
-    	expect($rec->state != 'rejected');
-    	
-    	//bp();
-    	$specificationRec = techno2_SpecificationDoc::createNew($rec->title, $rec->innerClass, $rec->innerForm, 'active', NULL, $rec->threadId);
-    	$specificationRec->originId = $rec->containerId;
-    	techno2_SpecificationDoc::save($specificationRec, 'originId');
-    	
-    	return redirect(array('techno2_SpecificationDoc', 'single', $specificationRec->id), 'Успешно е генерирана спецификация');
     }
 }
