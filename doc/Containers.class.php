@@ -1336,6 +1336,14 @@ class doc_Containers extends core_Manager
                         if (self::save($rec)) {
                             $resArr['docId']++;
                         }
+                    } else {
+                        if ($rec->id) {
+                            
+                            // Ако не може да се намери съответен документ, изтриваме го
+                            if (self::delete($rec->id)) {
+                                $resArr['del_cnt']++;
+                            }
+                        }
                     }
                 }
             }

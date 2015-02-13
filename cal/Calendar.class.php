@@ -347,6 +347,13 @@ class cal_Calendar extends core_Master
         	$row->event = ht::createLink($row->title, $url, NULL, $attr);
         } else {
         	$row->event = ht::createElement("span", $attr, $row->title);
+            if($url['Ctr'] == 'crm_Persons' && ($url['id'])) {
+                $pRec = crm_Persons::fetch($url['id']);
+                
+                if ($pRec->inCharge) {
+                    $row->event .= ' - ' . crm_Profiles::createLink($pRec->inCharge);
+                }
+            }
         }
         // TODO
         $today     = date('Y-m-d');
@@ -620,13 +627,16 @@ class cal_Calendar extends core_Master
         $Calendar->prepareListFilter($state); 
         $Calendar->prepareListRecs($state); 
         $Calendar->prepareListRows($state);
-
+        
         $tpl->replace($Calendar->renderListTable($state), 'AGENDA');
 
         return $tpl;
         //return static::renderWrapping($tpl);
     }
-
+    static function on_AfterPrepareListRows($mvc, &$res, $data)
+    {
+//        bp($data, $res);
+    }
     
     /**
      * Намира какъв е типа на деня (празник, работен, не работен, събота, неделя)

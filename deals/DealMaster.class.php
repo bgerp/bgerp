@@ -38,6 +38,12 @@ abstract class deals_DealMaster extends deals_DealBase
 	
 	
 	/**
+	 * На кой ред в тулбара да се показва бутона за принтиране
+	 */
+	public $printBtnToolbarRow = 1;
+	
+	
+	/**
 	 * Извиква се след описанието на модела
 	 *
 	 * @param core_Mvc $mvc
@@ -1087,13 +1093,6 @@ abstract class deals_DealMaster extends deals_DealBase
     public static function on_BeforeRenderSingleToolbar($mvc, &$res, &$data)
     {
     	$rec = &$data->rec;
-    	
-    	// Ако има бутон за принтиране, подменяме го с такъв стоящ на първия ред
-    	if(isset($data->toolbar->buttons['btnPrint'])){
-    		$data->toolbar->removeBtn('btnPrint');
-    		$url = array($mvc, 'single', $rec->id, 'Printing' => 'yes');
-    		$data->toolbar->addBtn('Печат', $url, 'id=btnPrint,target=_blank', 'ef_icon = img/16/printer.png,title=Печат на страницата');
-    	}
     	 
     	// Ако има опции за избор на контирането, подмяна на бутона за контиране
     	if(isset($data->toolbar->buttons['btnConto'])){

@@ -54,6 +54,12 @@ abstract class deals_InvoiceMaster extends core_Master
     
     
     /**
+     * На кой ред в тулбара да се показва бутона за принтиране
+     */
+    public $printBtnToolbarRow = 1;
+    
+    
+    /**
      * След описанието на полетата
      */
     protected static function setInvoiceFields(core_Master &$mvc)
@@ -310,13 +316,6 @@ abstract class deals_InvoiceMaster extends core_Master
     public static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
     	$rec = &$data->rec;
-    	
-    	// Ако има бутон за принтиране, слагаме го да е първия бутон
-    	if(!empty($data->toolbar->buttons['btnPrint'])){
-    		$printUrl = array($mvc, 'single', $rec->id, 'Printing' => 'yes');
-    		$data->toolbar->removeBtn('btnPrint');
-    		$data->toolbar->addBtn('Печат', $printUrl, 'id=btnPrint,target=_blank,order=1', 'ef_icon = img/16/printer.png,title=Печат на страницата');
-    	}
     	 
     	if($rec->type == 'invoice' && $rec->state == 'active' && $rec->dealValue){
     		if($mvc->haveRightFor('add', (object)array('type' => 'debit_note','threadId' => $rec->threadId)) && $mvc->canAddToThread($rec->threadId)){
