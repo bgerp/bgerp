@@ -969,6 +969,7 @@ class techno2_SpecificationDoc extends core_Embedder
     						  'innerState' => $rec->innerState, 
     						  'folderId'   => $folderId,
     						  'state' 	   => 'active',
+    						  'meta'	   => $rec->meta,
     	);
     	$Products->route($pRec);
     	
