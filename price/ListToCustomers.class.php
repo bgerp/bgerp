@@ -449,10 +449,13 @@ class price_ListToCustomers extends core_Detail
     	$rec = $ProductMan->fetchRec($productId);
     	$price = (object)array('price' => NULL);
     	 
-    	// Ако има к-во в активно задание за спецификацията, да се вземе
-    	$quantityJob = $ProductMan->getLastActiveJob($rec)->quantity;
-    	if(isset($quantityJob)){
-    		$quantity = $quantityJob;
+    	// Ако не е зададено количество, взимаме това от последното активно задание, ако има такова
+    	if(!isset($quantity)){
+    		
+    		$quantityJob = $ProductMan->getLastActiveJob($rec)->quantity;
+    		if(isset($quantityJob)){
+    			$quantity = $quantityJob;
+    		}
     	}
     	
     	// Опитваме се да намерим цена според технологичната карта
