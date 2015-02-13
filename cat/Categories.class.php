@@ -38,7 +38,7 @@ class cat_Categories extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, cat_Wrapper, doc_FolderPlg, plg_Rejected';
+    var $loadList = 'plg_Created, plg_RowTools, cat_Wrapper, plg_State, doc_FolderPlg, plg_Rejected';
     
     
     /**
@@ -150,6 +150,12 @@ class cat_Categories extends core_Master
     
     
     /**
+     * Поле, в което да се постави връзка към папката в листови изглед
+     */
+    public $listFieldForFolderLink = 'folder';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -218,6 +224,17 @@ class cat_Categories extends core_Master
         if($action == 'delete' && ($rec->sysId || $rec->productCnt)) {
             $requiredRoles = 'no_one';
         }
+    }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+    	if($fields['-list']){
+    		$row->name .= " {$row->folder}";
+    	}
     }
     
     
