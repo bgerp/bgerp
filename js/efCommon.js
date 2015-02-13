@@ -963,8 +963,8 @@ function changeLang(data){
 	$('.rtbutton.lang').text(lang);
 	
 	// spellcheck
-	$('input[name=subject]').attr('spellcheck','yes');
-	$('.richEdit textarea').attr('spellcheck','yes');
+	$('input[name=subject]').attr('spellcheck','true');
+	$('.richEdit textarea').attr('spellcheck','true');
 	$('input[name=subject]').attr('lang',lang);
 	$('.richEdit textarea').attr('lang',lang);
 }
