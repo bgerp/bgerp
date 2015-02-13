@@ -276,22 +276,22 @@ class cat_Products extends core_Embedder {
 					$form->getFieldType('meta')->setDisabled($defMetas);
 					$form->setDefault('meta', $form->getFieldType('meta')->fromVerbal($defMetas));
 				}
+				
+				if($code = Mode::get('catLastProductCode')) {
+					if ($newCode = str::increment($code)) {
+						 
+						// Проверяваме дали има такъв запис в системата
+						if (!$mvc->fetch("#code = '$newCode'")) {
+							$form->setDefault('code', $newCode);
+						}
+					}
+				}
     		}
     	}
     	
     	if(isset($form->rec->innerClass)){
     		$form->setField('innerClass', 'input=hidden');
     	}
-    	
-    	if(!$form->rec->id && ($code = Mode::get('catLastProductCode'))) {
-            if ($newCode = str::increment($code)) {
-            	
-                // Проверяваме дали има такъв запис в системата
-                if (!$mvc->fetch("#code = '$newCode'")) {
-                    $form->rec->code = $newCode;
-                }
-            }
-        }
     }
     
     
@@ -320,7 +320,7 @@ class cat_Products extends core_Embedder {
         }
         
         if (!$form->gotErrors()) {
-            if(!$form->rec->id && ($code = Request::get('code', 'varchar'))) {
+            if(!$form->rec->id && ($rec->code)) {
                 Mode::setPermanent('catLastProductCode', $code);
             }    
         }
@@ -420,7 +420,7 @@ class cat_Products extends core_Embedder {
      */
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
-        $data->listFilter->FNC('order', 'enum(alphabetic=Азбучно,last=Последно добавени)',
+        $data->listFilter->FNC('order', 'enum(alphabetic=Азбучно,last=Последно добавени,public=Публични,private=Частни)',
             'caption=Подредба,input,silent,remember');
 
         $data->listFilter->FNC('groupId', 'key(mvc=cat_Groups,select=name,allowEmpty)',
@@ -440,11 +440,19 @@ class cat_Products extends core_Embedder {
         $data->listFilter->showFields = 'search,order,meta1,groupId';
         $data->listFilter->input('order,groupId,search,meta1', 'silent');
         
-    	// Подредба
-        if($data->listFilter->rec->order == 'alphabetic' || !$data->listFilter->rec->order) {
-            $data->query->orderBy('#name');
-        } elseif($data->listFilter->rec->order == 'last') {
-            $data->query->orderBy('#createdOn=DESC');
+        switch($data->listFilter->rec->order){
+        	case 'last':
+        		$data->query->orderBy('#createdOn=DESC');
+        		break;
+        	case 'public':
+        		$data->query->where("#isPublic = 'yes'");
+        		break;
+        	case 'private':
+        		$data->query->where("#isPublic = 'no'");
+        		break;
+        	default :
+        		$data->query->orderBy('#name');
+        		break;
         }
         
         if ($data->listFilter->rec->groupId) {
@@ -552,15 +560,7 @@ class cat_Products extends core_Embedder {
     	return $products;
     }
     
-    /*
-     * canSell=Продаваеми,
-                                canBuy=Купуваеми,
-                                canStore=Складируеми,
-                                canConvert=Вложими,
-                                fixedAsset=Дълготрайни активи,
-        						canManifacture=Производими,
-        						waste=Отпаден
-     */
+    
     /**
      * Метод връщаш информация за продукта и неговите опаковки
      * 
