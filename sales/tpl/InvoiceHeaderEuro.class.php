@@ -46,12 +46,12 @@ class sales_tpl_InvoiceHeaderEuro extends doc_TplScript {
 	 */
 	public function modifyDetailData(core_Mvc $detail, &$data)
 	{
-		if(!count($data->rows)) return;
-		
 		if($data->masterData->rec->currencyId == 'EUR') return;
 		
 		arr::placeInAssocArray($data->listFields, 'priceEuro=Ед. цена в EUR', 'packPrice');
-		$data->listFields['packPrice'] = "Ед. цена";
+		$data->listFields['packPrice'] = "Ед. цена " . $data->masterData->rec->currencyId;
+		
+		if(!count($data->rows)) return;
 		
 		$euroRate = round(currency_CurrencyRates::getRate($data->masterData->rec->date, 'EUR', NULL), 4);
 		
