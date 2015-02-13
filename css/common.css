@@ -2015,7 +2015,7 @@ a.lang {
   margin-top: 3px;
   text-align: center;
   padding: 2px 2px 1px 2px !important;
-  border-radius: 2px; }
+  border-radius: 3px !important; }
   a.lang.en {
     background-color: #05008e;
     color: white; }
