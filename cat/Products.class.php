@@ -8,7 +8,7 @@
  *
  * @category  bgerp
  * @package   cat
- * @author    Milen Georgiev <milen@download.bg>
+ * @author    Milen Georgiev <milen@download.bg> и Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.11
@@ -230,12 +230,12 @@ class cat_Products extends core_Embedder {
         $this->FLD('canManifacture', 'enum(yes=Да,no=Не)', 'input=none');
         $this->FLD('waste', 'enum(yes=Да,no=Не)', 'input=none');
         
-        $this->FLD('meta', 'set(canSell=Продаваеми,
-                                canBuy=Купуваеми,
-                                canStore=Складируеми,
-                                canConvert=Вложими,
-                                fixedAsset=Дълготрайни активи,
-        						canManifacture=Производими,
+        $this->FLD('meta', 'set(canSell=Продаваем,
+                                canBuy=Купуваем,
+                                canStore=Складируем,
+                                canConvert=Вложим,
+                                fixedAsset=Дълготрайни актив,
+        						canManifacture=Производим,
         						waste=Отпаден)', 'caption=Свойства->Списък,columns=2,formOrder=100000000,mandatory');
         
         $this->setDbIndex('canSell');
@@ -1053,7 +1053,7 @@ class cat_Products extends core_Embedder {
     	if(!mp_ObjectResources::fetch("#classId = '{$this->getClassId()}' AND #objectId = {$id}")){
     		$pInfo = $this->getProductInfo($id);
     		
-    		// Може да се добавя ресурс само към Артикули, които са материали, ДА или вложими
+    		// Може да се добавя ресурс само към артикули, които са материали, ДА или вложими
     		if(isset($pInfo->meta['canConvert']) || isset($pInfo->meta['fixedAsset'])){
     			
     			return TRUE;
@@ -1252,7 +1252,7 @@ class cat_Products extends core_Embedder {
     {
     	$coverClass = doc_Folders::fetchCoverClassName($folderId);
     	 
-    	return cls::haveInterface('doc_ContragentDataIntf', $coverClass) || cls::haveInterface('cat_ProductFolderCoverIntf', $coverClass);
+    	return cls::haveInterface('cat_ProductFolderCoverIntf', $coverClass);
     }
     
     
