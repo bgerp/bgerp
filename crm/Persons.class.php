@@ -856,7 +856,12 @@ class crm_Persons extends core_Master
                     $calRec->title = "ЧРД: {$rec->name}";
                 }
                 
-                $calRec->users = '';
+                if(crm_Profiles::fetch("#personId = {$id}")) {
+                    $calRec->users = '';
+                } else {
+                    $calRec->users =  str_replace('||', '|', "|{$rec->inCharge}|" . $rec->shared);
+                }
+
 
                 $calRec->url = array('crm_Persons', 'Single', $id);
 
