@@ -964,8 +964,14 @@ a.profile {
 .state-opened {
   background-color: #bbffcc; }
 
+.state-opened-link > a {
+  text-shadow: 0px 0px 12px #44aa55; }
+
 .state-pending {
   background-color: #eeccff; }
+
+.state-pending-link > a {
+  text-shadow: 0px 0px 8px #9933aa; }
 
 .state-closed {
   background-color: #dddddd; }

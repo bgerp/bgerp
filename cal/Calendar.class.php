@@ -351,7 +351,7 @@ class cal_Calendar extends core_Master
                 $pRec = crm_Persons::fetch($url['id']);
                 
                 if ($pRec->inCharge) {
-                    $row->event .= ' - ' . crm_Profiles::createLink($pRec->inCharge);
+                    $row->event .= ' (' . crm_Profiles::createLink($pRec->inCharge) . ')';
                 }
             }
         }
