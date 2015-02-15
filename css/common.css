@@ -971,7 +971,7 @@ a.profile {
   background-color: #eeccff; }
 
 .state-pending-link > a {
-  text-shadow: 0px 0px 8px #9933aa; }
+  text-shadow: 0px 0px 12px #9933aa; }
 
 .state-closed {
   background-color: #dddddd; }
@@ -2712,4 +2712,8 @@ td.leftCol {
 td.centerCol {
   white-space: nowrap;
   text-align: center; }
+
+td.leftColImportant {
+  white-space: nowrap;
+  text-align: left !important; }
 
