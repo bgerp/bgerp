@@ -18,7 +18,7 @@ class core_LoginLog extends core_Manager
     /**
      * Заглавие на таблицата
      */
-    var $title = "Логин лог на потребителите";
+    var $title = "Логвания на потребителите";
     
     
     /**
