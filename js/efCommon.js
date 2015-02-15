@@ -1552,10 +1552,10 @@ function addCmdRefresh(form) {
 function refreshForm(form, removeFields) {
     addCmdRefresh(form);
 	if(typeof removeFields != 'undefined') {
-	var fieldsCnt = removeFields.length;
-	for (var i = 0; i < fieldsCnt; i++) {
-		$("[name='" + removeFields[i] + "']").remove();
-	}
+		var fieldsCnt = removeFields.length;
+		for (var i = 0; i < fieldsCnt; i++) {
+			$("[name='" + removeFields[i] + "']").prop('disabled', true);;
+		}
 	}
     form.submit();
 }
