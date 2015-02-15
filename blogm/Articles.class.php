@@ -232,7 +232,7 @@ class blogm_Articles extends core_Master {
         $data->listFilter->title = 'Търсене';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        $data->listFilter->FNC('category', 'key(mvc=blogm_Categories,select=title,allowEmpty)', 'placeholder=Категория,silent');
+        $data->listFilter->FNC('category', 'key(mvc=blogm_Categories,select=title,allowEmpty)', 'placeholder=Категория,silent,refreshForm');
 		$data->listFilter->setOptions('category', blogm_Categories::getCategoriesByLang());
         $data->listFilter->showFields = 'search,category';
         

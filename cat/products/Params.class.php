@@ -140,13 +140,13 @@ class cat_products_Params extends core_Manager
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
     public static function on_AfterPrepareEditForm($mvc, $data)
-    {
+    { 
         $form = &$data->form;
         $masterTitle = cls::get($form->rec->classId)->getProductTitle($form->rec->productId);
         
     	if(!$form->rec->id){
     		$form->title = "Добавяне на параметър към|* <b>{$masterTitle}</b>";
-    		$form->addAttr('paramId', array('onchange' => "addCmdRefresh(this.form);this.form.submit();"));
+    		$form->setField('paramId', array('removeAndRefreshForm' => "paramValue|paramValue[lP]|paramValue[rP]"));
 	    	expect($productId = $form->rec->productId);
 			$options = self::getRemainingOptions($productId, $form->rec->classId, $form->rec->id);
 			expect(count($options));

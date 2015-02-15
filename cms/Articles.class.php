@@ -147,6 +147,8 @@ class cms_Articles extends core_Master
 
         $form->setOptions('menuId', $opt = self::getMenuOpt());
 
+        $form->setField('menuId', 'refreshForm');
+
         if(!$opt[$form->rec->menuId]) {
             $form->rec->menuId = key($opt);
         }
