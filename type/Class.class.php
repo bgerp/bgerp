@@ -100,17 +100,17 @@ class type_Class  extends type_Key {
         
         $interface = $this->params['interface'];
         $mvc = cls::get($this->params['mvc']);
-        $options = $mvc->getOptionsByInterface($interface, $this->params['select']);
-        
+        $this->options = $mvc->getOptionsByInterface($interface, $this->params['select']);
+        //bp($value, $options, array_search($value, $options));
         $value = parent::fromVerbal($value);
-        
+     
         // Възможно е $value да е името на класа
         if (is_numeric($value)) {
-            if (!$options[$value]) {
+            if (!$this->options[$value]) {
                 $error = TRUE;
             }
         } elseif (isset($value)) {
-            if (!array_search($value, $options)) {
+            if (!($value = array_search($value, $this->options))) {
                 $error = TRUE;
             }
         }
