@@ -856,7 +856,8 @@ class crm_Persons extends core_Master
                     $calRec->title = "ЧРД: {$rec->name}";
                 }
                 
-                if(crm_Profiles::fetch("#personId = {$id}")) {
+                // Само рожденните дни на потребителите и на публично достъпните лица се виждат от всички
+                if(crm_Profiles::fetch("#personId = {$id}") || $rec->access == 'public') {
                     $calRec->users = '';
                 } else {
                     $calRec->users =  str_replace('||', '|', "|{$rec->inCharge}|" . $rec->shared);
