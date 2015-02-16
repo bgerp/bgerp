@@ -66,12 +66,6 @@ class cat_Groups extends core_Manager
     
     
     /**
-     * Икона за единичен изглед
-     */
-    var $singleIcon = 'img/16/category-icon.png';
-    
-    
-    /**
      * Кой може да чете
      */
     var $canRead = 'powerUser';

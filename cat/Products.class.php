@@ -828,15 +828,26 @@ class cat_Products extends core_Embedder {
     
     /**
      * Връща цената по себестойност на продукта
+     * 
      * @return double
      */
     public function getSelfValue($productId, $packagingId = NULL, $quantity = NULL, $date = NULL)
     {
-    	// Ценоразпис себестойност
+    	// Опитваме се да намерим запис в в себестойностти за артикула
     	$listId = price_ListRules::PRICE_LIST_COST;
     	price_ListToCustomers::canonizeTime($date);
+    	$price = price_ListRules::getPrice($listId, $productId, $packagingId, $date);
     	
-    	return price_ListRules::getPrice($listId, $productId, $packagingId, $date);
+    	// Ако няма се мъчим да намерим себестойността по рецепта, ако има такава
+    	if(!$price){
+    		if($amounts = cat_Boms::getTotalByOrigin($this->fetchField($productId, 'containerId'))){
+    			$price = new stdClass();
+    			$price->price = ($amounts->base + $quantity * $amounts->prop) / $quantity;
+    		}
+    	}
+    	
+    	// Връщаме цената по себестойност
+    	return $price;
     }
     
     
