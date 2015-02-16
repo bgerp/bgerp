@@ -180,6 +180,12 @@ class cat_products_VatGroups extends cat_products_Detail
     			$requiredRoles = 'no_one';
     		}
     	}
+    	
+    	if($action == 'add' && isset($rec->productId)){
+    		if($mvc->Master->fetchField($rec->productId, 'state') != 'active'){
+    			$requiredRoles = 'no_one';
+    		}
+    	}
     }
     
     
