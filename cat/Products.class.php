@@ -1248,7 +1248,7 @@ class cat_Products extends core_Embedder {
      */
     public static function getAllowedFolders()
     {
-    	return array('cat_ProductFolderCoverIntf');
+    	return array('folderClass' => 'cat_Categories');
     }
     
     
