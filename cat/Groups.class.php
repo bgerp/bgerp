@@ -13,7 +13,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class cat_Groups extends core_Master
+class cat_Groups extends core_Manager
 {
     
     
@@ -32,19 +32,19 @@ class cat_Groups extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, cat_Wrapper, plg_Search, plg_Translate, plg_Rejected';
+    var $loadList = 'plg_Created, plg_RowTools, cat_Wrapper, plg_Search, plg_Translate';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id,name';
+    var $listFields = 'id,name,productCnt';
     
     
     /**
      * Полета по които се прави пълнотекстово търсене от плъгина plg_Search
      */
-    var $searchFields = 'sysId, name, productCnt, info';
+    var $searchFields = 'sysId, name, productCnt';
     
     
     /**
@@ -144,8 +144,7 @@ class cat_Groups extends core_Master
     {
         $this->FLD('name', 'varchar(64)', 'caption=Наименование, mandatory,translate');
         $this->FLD('sysId', 'varchar(32)', 'caption=System Id,oldFieldName=systemId,input=none,column=none');
-        $this->FLD('info', 'richtext(bucket=Notes)', 'caption=Бележки');
-        $this->FLD('productCnt', 'int', 'input=none');
+        $this->FLD('productCnt', 'int', 'input=none,caption=Артикули');
         
         // Свойства присъщи на продуктите в групата
         $this->FLD('meta', 'set(canSell=Продаваеми,
@@ -197,10 +196,11 @@ class cat_Groups extends core_Master
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        $row->productCnt = intval($rec->productCnt);
+        //$row->productCnt = intval($rec->productCnt);
         
         if($fields['-list']){
-            $row->name .= " ({$row->productCnt})";
+            //$row->name .= " ({$row->productCnt})";
+            $row->name = ht::createLink($row->name, array('cat_Products', 'list', 'groupId' => $rec->id));
         }
     }
     
@@ -218,18 +218,17 @@ class cat_Groups extends core_Master
     {
         // Ако групата е системна или в нея има нещо записано - не позволяваме да я изтриваме
         if($action == 'delete' && ($rec->sysId || $rec->productCnt)) {
-            $requiredRoles = 'no_one';
+        	$requiredRoles = 'no_one';
         }
     }
     
     
-    static function on_AfterSetupMvc($mvc, &$res)
+    protected static function on_AfterSetupMvc($mvc, &$res)
     {
     	$file = "cat/csv/Groups.csv";
     	$fields = array(
     			0 => "name",
-    			1 => "info",
-    			2 => "sysId",
+    			1 => "sysId",
     	);
     
     	$cntObj = csv_Lib::importOnce($mvc, $file, $fields);
