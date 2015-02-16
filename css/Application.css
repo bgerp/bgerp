@@ -724,6 +724,14 @@ div.acc-detail {
 .portal table.listTable .additionalInfo-holder td {
   border: none !important; }
 
+.acc-footer {
+  text-align: right;
+  margin-top: 20px;
+  font-size: 1.1em;
+  font-weight: bold;
+  background-color: #e1e1e1;
+  padding: 5px; }
+
 /*
  * детайли
  */

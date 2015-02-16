@@ -279,7 +279,7 @@ class acc_ReportDetails extends core_Manager
                 
             }
             
-            $lastRow = "<div><b>" . tr('Крайно') . "</b>: <b>" . $data->totalRow . "</b></div>";
+            $lastRow = "<div class='acc-footer'>" . tr('Крайно'). ": " . $data->totalRow . "</div>";
             $tpl->append($lastRow, 'CONTENT');
         } else {
             
