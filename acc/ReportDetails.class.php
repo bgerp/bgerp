@@ -65,8 +65,11 @@ class acc_ReportDetails extends core_Manager
         
         // Име на таба
         $data->TabCaption = 'Счетоводство';
-        $data->Tab = 'top';
         
+        // Ако мастъра е документ, искаме детайла да се показва в горния таб с детайл
+        if(cls::haveInterface('doc_DocumentIntf', $data->masterMvc)){
+        	$data->Tab = 'top';
+        }
     }
     
     
