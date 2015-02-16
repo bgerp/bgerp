@@ -119,6 +119,7 @@ class acc_ReportDetails extends core_Manager
         $data->reportTableMvc->FLD('tools', 'varchar', 'tdClass=accToolsCell');
         $data->reportTableMvc->FLD('blQuantity', 'int', 'tdClass=accCell');
         $data->reportTableMvc->FLD('blAmount', 'int', 'tdClass=accCell');
+        $data->total = 0;
         
         // Перото с което мастъра фигурира в счетоводството
         $items = acc_Items::fetchItem($data->masterMvc->getClassId(), $data->masterId);
@@ -204,7 +205,11 @@ class acc_ReportDetails extends core_Manager
             
             $rows[$dRec->accountId]['rows'][] = $row;
             $rows[$dRec->accountId]['total'] += $dRec->blAmount;
+            $data->total += $dRec->blAmount;
         }
+        
+        $data->totalRow = $Double->toVerbal($data->total);
+        $data->totalRow = ($data->total < 0) ? "<span class='red'>{$data->totalRow}</span>" : $data->totalRow;
         
         // Връщане на извлечените данни
         $data->balanceRows = $rows;
@@ -271,12 +276,17 @@ class acc_ReportDetails extends core_Manager
                 // Добавяне на таблицата в шаблона
                 $content->append($tableHtml);
                 $tpl->append("<div class='summary-group'>" . $content . "</div>" , 'CONTENT');
+                
             }
+            
+            $lastRow = "<div><b>" . tr('Крайно') . "</b>: <b>" . $data->totalRow . "</b></div>";
+            $tpl->append($lastRow, 'CONTENT');
         } else {
             
             // Ако няма какво да се показва
             $tpl->append(tr("Няма записи"), 'CONTENT');
         }
+        
         
         // Връщане на шаблона
         return $tpl;
