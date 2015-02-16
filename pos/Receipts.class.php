@@ -1321,8 +1321,8 @@ class pos_Receipts extends core_Master {
     	$conf = core_Packs::getConfig('pos');
     	$data->showParams = $conf->POS_RESULT_PRODUCT_PARAMS;
     	
-    	// Намираме всички продаваеми продукти
-    	$sellable = cat_Products::getByProperty('canSell');
+    	// Намираме всички продаваеми продукти, за анонимния клиент
+    	$sellable = cls::get('cat_Products')->getProducts($data->rec->contragentClass, $data->rec->contragentObjectId, $data->rec->valior, 'canSell');
     	if(!count($sellable)) return;
     	
     	$Policy = cls::get('price_ListToCustomers');
