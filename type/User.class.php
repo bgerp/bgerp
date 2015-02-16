@@ -52,14 +52,10 @@ class type_User extends type_Key
     {
         $mvc = cls::get($this->params['mvc']);
         
-        $mvc->invoke('BeforePrepareKeyOptions', array(&$this->options, $this));
-        
-        if (isset($this->options)) {
-            
-            return;
+        if (!$this->options) {
+            $this->options = array();
         }
         
-        $this->options = array();
         $part = $this->params['select'];
         
         // Вариант 1: Потребителя няма права да вижда екипите
@@ -67,11 +63,16 @@ class type_User extends type_Key
         if(!haveRole($this->params['rolesForTeams'])) {
             if(haveRole($this->params['roles'])) {
                 $userId = core_Users::getCurrent();
-                if (!$this->options[$userId]) {
-                    $this->options[$userId] = new stdClass();
+                
+                $userIdKey = self::getUserFromTeams($userId);
+        
+                $userIdKey = reset($userIdKey);
+                
+                if (!$this->options[$userIdKey]) {
+                    $this->options[$userIdKey] = new stdClass();
                 }
-                $this->options[$userId]->title = core_Users::getCurrent($part);
-                $this->options[$userId]->value = $userId;
+                $this->options[$userIdKey]->title = core_Users::getCurrent($part);
+                $this->options[$userIdKey]->value = $userId;
             }
         } else {
             
@@ -92,8 +93,6 @@ class type_User extends type_Key
             }
             
             $teams = keylist::toArray($teams);
-            
-            $this->options = array();
             
             foreach($teams as $t) {
                 $group = new stdClass();
@@ -128,7 +127,9 @@ class type_User extends type_Key
             }
         }
         
-        $mvc->invoke('AfterPrepareKeyOptions', array(&$this->options, $this));
+        $this->options = parent::prepareOptions();
+        
+        return $this->options;
     }
     
     
@@ -137,57 +138,40 @@ class type_User extends type_Key
      */
     function renderInput_($name, $value = "", &$attr = array())
     {
-        $this->prepareOptions();
-        
-        if ($this->params['allowEmpty']) {
-            
-            $this->options = array(' ' => ' ') + $this->options;
-        } elseif (empty($value)) {
+        if (empty($value) && !$this->params['allowEmpty']) {
             $value = core_Users::getCurrent();
         }
         
-        foreach($this->options as $key => $optObj) {
-            if($value == $optObj->value) {
-                break;
+        if (!empty($value)) {
+            if (!$this->params['mvc'] || ($this->params['mvc'] instanceof core_Users) || ($this->params['mvc'] == 'core_Users')) {
+                $value = self::getUserFromTeams($value);
+            
+                $value = reset($value);
             }
         }
         
-        parent::setFieldWidth($attr);
-
-        return ht::createSelect($name, $this->options, $key, $attr);
+        return parent::renderInput_($name, $value, $attr);
     }
     
     
     /**
-     * Конвертира стойността от вербална към (int) - ключ към core_Interfaces
+     * 
+     * 
+     * @param string $value
+     * 
+     * @return object
      */
-    function fromVerbal_($value)
+    protected function fetchVal(&$value)
     {
-        $this->prepareOptions();
-        
-        return $this->options[$value]->value;
-    }
-    
-    
-    /**
-     * Конвертира стойността от вербална към (int) - ключ към core_Interfaces
-     */
-    function toVerbal_($value)
-    {
-        $exist = FALSE;
-        
-        $this->prepareOptions();
-        
-        foreach($this->options as $key => $optObj) {
-            if(isset($value) && $value == $optObj->value) {
-                $exist = TRUE;
-                break;
+        if ($value && (strpos($value, '_') !== FALSE)) {
+            list(,$userId) = explode('_', $value);
+            
+            if ($userId) {
+                $value = $userId;
             }
         }
         
-        if (!$exist) return NULL;
-        
-        return self::escape($this->options[$key]->title);
+        return parent::fetchVal($value);
     }
     
     
