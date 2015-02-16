@@ -152,11 +152,6 @@ class cat_products_VatGroups extends core_Detail
      */
     public static function prepareVatGroups($data)
     {   
-        $data->TabCaption = 'ДДС';
-        $data->TabPlaceholder = 'MAIN_DETAILS';
-        
-        $data->Order = 60;
-
         $query = static::getQuery();
         $query->where("#productId = {$data->masterId}");
         while($rec = $query->fetch()){

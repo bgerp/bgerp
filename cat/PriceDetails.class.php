@@ -39,7 +39,7 @@ class cat_PriceDetails extends core_Manager
 	public function preparePrices($data)
     {
     	$data->TabCaption = 'Цени';
-    	$data->TabPlaceholder = 'MAIN_DETAILS';
+    	$data->Tab = 'top';
     	$data->Order = 5;
     	 
     	$groupsData = clone $data;

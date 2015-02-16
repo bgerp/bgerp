@@ -65,7 +65,7 @@ class acc_ReportDetails extends core_Manager
         
         // Име на таба
         $data->TabCaption = 'Счетоводство';
-        $data->TabPlaceholder = 'MAIN_DETAILS';
+        $data->Tab = 'top';
         
     }
     
