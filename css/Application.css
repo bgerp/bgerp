@@ -751,7 +751,8 @@ div.acc-detail {
     line-height: 1.2; }
   .detail-info.portal {
     padding-top: 5px;
-    margin-top: 10px; }
+    margin-top: 10px;
+    background-color: transparent; }
     .detail-info.portal p {
       margin: 0; }
     .detail-info.portal table.listTable th {
