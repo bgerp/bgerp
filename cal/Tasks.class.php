@@ -32,13 +32,13 @@ class cal_Tasks extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, cal_Wrapper, doc_DocumentPlg, doc_ActivatePlg, plg_Printing, 
-    				 doc_SharablePlg, bgerp_plg_Blank, plg_Search, change_Plugin';
+    				 doc_SharablePlg, bgerp_plg_Blank, plg_Search, change_Plugin, plg_Sorting';
     
 
     /**
      * Името на полито, по което плъгина GroupByDate ще групира редовете
      */
-    public $groupByDateField = 'timeStart';
+    public $groupByDateField = 'groupDate';
     
 
     /**
@@ -209,13 +209,13 @@ class cal_Tasks extends core_Master
         
         // Начало на задачата
         $this->FLD('timeStart', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00)', 
-            'caption=Времена->Начало, silent, changable');
+            'caption=Времена->Начало, silent, changable, tdClass=leftColImportant');
         
         // Продължителност на задачата
         $this->FLD('timeDuration', 'time', 'caption=Времена->Продължителност,changable');
         
         // Краен срок на задачата
-        $this->FLD('timeEnd', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00)', 'caption=Времена->Край,changable');
+        $this->FLD('timeEnd', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00)', 'caption=Времена->Край,changable, tdClass=leftColImportant');
         
         // Изпратена ли е нотификация?
         $this->FLD('notifySent', 'enum(no,yes)', 'caption=Изпратена нотификация,notNull,input=none');
@@ -289,6 +289,9 @@ class cal_Tasks extends core_Master
         $grey->setGradient($blue, $rec->progress);
  
         $row->progress = "<span style='color:{$grey};'>{$row->progress}</span>";
+        
+        $row->timeStart = str_replace('00:00', '', $row->timeStart);
+        $row->timeEnd   = str_replace('00:00', '', $row->timeEnd);
 
         // Ако имаме само начална дата на задачата
         if($rec->timeStart && !$rec->timeEnd){
@@ -331,7 +334,7 @@ class cal_Tasks extends core_Master
         $data->query = self::getQuery();
         
         // Подготвяме полетата за показване
-        $data->listFields = 'timeStart,title,progress';
+        $data->listFields = 'groupDate,title,progress';
 
         $now = dt::verbal2mysql();
         
@@ -341,19 +344,16 @@ class cal_Tasks extends core_Master
             $data->query->where("#sharedUsers LIKE '%|{$userId}|%'");
         }
         
-        $today = dt::mysql2timestamp(dt::today());
-        $oneWeakLater = dt::timestamp2Mysql($today + 7 * 24 * 60 *60);
-       
-
-        $data->query->where("#state = 'active' OR ( #state = 'pending' AND #timeStart IS NOT NULL AND #timeEnd IS NOT NULL AND #timeStart <= '{$oneWeakLater}' AND #timeEnd >= '{$today}')
-	        		              OR
-	        		              ( #state = 'pending' AND #timeStart IS NOT NULL AND #timeDuration IS NOT NULL  AND #timeStart <= '{$oneWeakLater}' AND ADDDATE(#timeStart, INTERVAL #timeDuration SECOND) >= '{$today}')
-	        		              OR
-	        		              ( #state = 'pending' AND #timeStart IS NOT NULL AND #timeStart <= '{$oneWeakLater}' AND  #timeStart >= '{$today}')");
+        $today = dt::today();
+        $oneWeakLater = dt::addDays(7);
+        $data->query->where("#state = 'active' OR (#state = 'pending' AND #timeStart IS NOT NULL AND #timeStart <= '{$oneWeakLater}')");
         
-        $data->query->XPR('calcDate', 'datetime', "if(#expectationTimeEnd, #expectationTimeEnd, if(#expectationTimeStart,#expectationTimeStart, '{$today}'))");
-        //$data->query->orderBy("#state, #priority=DESC, #calcDate=DESC, #createdOn=DESC");
-        $data->query->orderBy("timeStart=DESC");
+        // Време за подредба на записите в портала
+        $data->query->XPR('orderDate', 'datetime', "if(#timeStart, #timeStart, '{$today} 00:00:00')");
+        $data->query->orderBy("orderDate=DESC");
+        
+        // Време за групиране на записите в портала
+        $data->query->XPR('groupDate', 'datetime', "if(#timeStart, #timeStart, '')");
         
         // Подготвяме навигацията по страници
         self::prepareListPager($data);
@@ -384,7 +384,7 @@ class cal_Tasks extends core_Master
 	        foreach ($data->recs as $id => $rec) {
 	        	$row = $data->rows[$id];
 	        	if ($rec->savedState == 'pending') {
-	        		$row->title .= '<div style="margin-left: 10px;display:inline-block;" class="stateIndicator state-pending"></div>';
+	        		$row->title = "<div class='state-pending-link'>{$row->title}</div>";
 	        	}
 	        }
         }
@@ -720,7 +720,7 @@ class cal_Tasks extends core_Master
         // сега
         $now = dt::now();
         // поле което прави подредба по очакваните времена
-        $data->query->XPR('relativeDate', 'datetime', "if(#expectationTimeEnd, #expectationTimeEnd, if(#expectationTimeStart,#expectationTimeStart, '{$now}'))");
+        $data->query->XPR('relativeDate', 'datetime', "if(#expectationTimeStart, #expectationTimeStart, '{$now}')");
         
         // възможност за подредба "най-нови->стари"
         if ($data->listFilter->rec->order == 'endStart') { 

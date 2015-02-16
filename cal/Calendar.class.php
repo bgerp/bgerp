@@ -244,7 +244,7 @@ class cal_Calendar extends core_Master
 
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC('from', 'date', 'caption=От,input,silent, width = 150px', array('attr' => array('onchange' => 'this.form.submit();')));
-        $data->listFilter->FNC('selectedUsers', 'users', 'caption=Потребител,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
+        $data->listFilter->FNC('selectedUsers', 'users', 'caption=Потребител,input,silent,refreshForm');
         $data->listFilter->setdefault('from', date('Y-m-d'));
         
         $data->listFilter->view = 'horizontal';
@@ -351,7 +351,7 @@ class cal_Calendar extends core_Master
                 $pRec = crm_Persons::fetch($url['id']);
                 
                 if ($pRec->inCharge) {
-                    $row->event .= ' - ' . crm_Profiles::createLink($pRec->inCharge);
+                    $row->event .= ' (' . crm_Profiles::createLink($pRec->inCharge) . ')';
                 }
             }
         }

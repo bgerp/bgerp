@@ -963,8 +963,8 @@ function changeLang(data){
 	$('.rtbutton.lang').text(lang);
 	
 	// spellcheck
-	$('input[name=subject]').attr('spellcheck','yes');
-	$('.richEdit textarea').attr('spellcheck','yes');
+	$('input[name=subject]').attr('spellcheck','true');
+	$('.richEdit textarea').attr('spellcheck','true');
 	$('input[name=subject]').attr('lang',lang);
 	$('.richEdit textarea').attr('lang',lang);
 }
@@ -1533,23 +1533,30 @@ function appendQuote(id) {
  * @param form
  */
 function addCmdRefresh(form) {
-    var input = document.createElement("input");
-
-    input.setAttribute("type", "hidden");
-
-    input.setAttribute("name", "Cmd[refresh]");
-
-    input.setAttribute("value", "1");
-
-    form.appendChild(input);
+	
+	if(typeof form.elements["Cmd[refresh]"] != 'undefined') {
+		form.elements["Cmd[refresh]"].value = 1;
+	} else {
+		var input = document.createElement("input");
+		input.setAttribute("type", "hidden");
+		input.setAttribute("name", "Cmd[refresh]");
+		input.setAttribute("value", "1");
+		form.appendChild(input);
+	}
 }
 
 
 /**
- * Рефрешва посочената форма
+ * Рефрешва посочената форма. добавя команда за refresh и маха посочените полета
  */
-function refreshForm(form) {
+function refreshForm(form, removeFields) {
     addCmdRefresh(form);
+	if(typeof removeFields != 'undefined') {
+		var fieldsCnt = removeFields.length;
+		for (var i = 0; i < fieldsCnt; i++) {
+			$("[name='" + removeFields[i] + "']").prop('disabled', true);;
+		}
+	}
     form.submit();
 }
 

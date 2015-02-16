@@ -997,8 +997,16 @@ a.profile {
     background-color: #bfc;
 }
 
+.state-opened-link > a {
+	text-shadow: 0px 0px 12px #4a5;
+}
+
 .state-pending{
     background-color: #ecf;
+}
+
+.state-pending-link > a {
+	text-shadow: 0px 0px 12px #93a;
 }
 
 .state-closed {
@@ -2162,7 +2170,7 @@ a.lang {
     margin-top: 3px;
     text-align: center;
     padding: 2px 2px 1px 2px !important;
-    border-radius: 2px;
+    border-radius: 3px !important;
     &.en {
         background-color: #05008e;
         color:#fff;
@@ -2938,4 +2946,9 @@ td.leftCol {
 td.centerCol {
 	white-space:nowrap;
 	text-align:center;
+}
+
+td.leftColImportant {
+	white-space:nowrap;
+	text-align:left !important;
 }

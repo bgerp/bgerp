@@ -156,15 +156,18 @@ class bgerp_Recently extends core_Manager
                 $row->title = tr("Проблемна папка|* № {$rec->objectId}");
             }
         } elseif ($rec->type == 'document') {
-            
             try {
+                
                 $docProxy = doc_Containers::getDocument($rec->objectId);
                 $docRow = $docProxy->getDocumentRow();
                 $docRec = $docProxy->fetch();
                 
                 $attr = array();
-                $attr['class'] .= 'linkWithIcon';
+                $attr['class'] .= "linkWithIcon state-{$state}";
                 $attr['style'] = 'background-image:url(' . sbf($docProxy->getIcon($docRec->id)) . ');';
+                
+                $threadRec = doc_Threads::fetch($docRec->threadId);
+                $state     = $threadRec->state;
                 
                 if(mb_strlen($docRow->title) > self::maxLenTitle) {
                     $attr['title'] = $docRow->title;
@@ -180,16 +183,15 @@ class bgerp_Recently extends core_Manager
                     $linkUrl,
                     NULL, $attr);
                 
-                $threadRec = doc_Threads::fetch($docRec->threadId);
-                $state     = $threadRec->state;
+                
             } catch (core_exception_Expect $ex) {
                 $row->title = tr("Проблемен контейнер|* № {$rec->objectId}");
             }
         }
         
         if($state == 'opened') {
-            $row->title = new ET("<div class='state-{$state}'>[#1#]</div>", $row->title);
-        }
+            $row->title = new ET("<span class='state-opened-link'>[#1#]</div>", $row->title);
+        } 
     }
     
     

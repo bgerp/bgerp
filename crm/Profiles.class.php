@@ -250,7 +250,7 @@ class crm_Profiles extends core_Master
                         $attr = array();
                         $attr['class'] = 'linkWithIcon';
         		        $attr['style'] = 'background-image:url(' . sbf('/img/16/page_go.png') . ');';
-        		        $attr['title'] = tr('Логин лог за потребителя');
+        		        $attr['title'] = tr('Логвания на потребителя');
                         
                         // URL за промяна
                         $loginLogUrl = array('core_LoginLog', 'list', 'users' => $userId, 'ret_url' => TRUE);
