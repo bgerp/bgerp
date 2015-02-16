@@ -363,6 +363,8 @@ div.folder-cover {
   div.folder-cover .tab-page .detail-info {
     margin-bottom: 0 !important;
     margin-top: 0; }
+  div.folder-cover .tab-top {
+    margin-top: 20px; }
 
 .narrow .folder-cover {
   line-height: 1.3em;
