@@ -341,7 +341,7 @@ class core_Master extends core_Manager
                 
                 // Долния таб го показваме само ако има избран детайл от него
                 if($tabBottom->hasTab($selected)){
-                	$tabHtml2 = new ET("<div style='margin-top:20px;' class='clearfix21'></div><div class='docStatistic'><a id='detailTabs'></a>[#1#]</div>", $tabHtml);
+                	$tabHtml2 = new ET("<div class='clearfix21'></div><div class='docStatistic'><a id='detailTabs'></a>[#1#]</div>", $tabHtml);
                 	$detailsTpl->append($tabHtml2);
                 }
                
