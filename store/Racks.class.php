@@ -117,8 +117,8 @@ class store_Racks extends core_Master
         $this->FLD('rows', 'int(max=100)', 'caption=Редове,mandatory');
         $this->FLD('columns', 'int(max=100)', 'caption=Колони,mandatory');
         $this->FLD('comment', 'text', 'caption=Коментар');
-        $this->FLD('groupsAllowed', 'keylist(mvc=cat_Groups, select=name)', 'caption=Групи');
-        $this->FLD('constrColumnsStep', 'int', 'caption=Носещи колони през брой палет места');
+        $this->FLD('groupsAllowed', 'keylist(mvc=cat_Categories, select=name)', 'caption=Групи');
+        $this->FLD('constrColumnsStep', 'int', 'caption=Носещи колони през брой палет->Места');
         
         $this->setDbUnique('storeId,num');
     }
@@ -238,9 +238,6 @@ class store_Racks extends core_Master
             $data->form->setDefault('columns', 24);
             $data->form->setDefault('constrColumnsStep', 3);
         }
-        
-        // Може да се избира само от групите, чиите продукти могат да се складирар
-        $form->setSuggestions('groupsAllowed', cat_Groups::getByMeta('canStore'));
     }
     
     
