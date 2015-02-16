@@ -291,6 +291,8 @@ class cat_Products extends core_Embedder {
     	
     	if(isset($form->rec->innerClass)){
     		$form->setField('innerClass', 'input=hidden');
+    	} else {
+    		$form->setField('meta', 'input=hidden');
     	}
     }
     
