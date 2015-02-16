@@ -1862,6 +1862,9 @@ div.alphabet div.tab-page {
 .narrow .single-thread .document div.alphabet .listTable {
   font-size: 0.9em; }
 
+.tab-top {
+  margin-top: 20px; }
+
 /*
  * табове за поддетайли на документ
  */
