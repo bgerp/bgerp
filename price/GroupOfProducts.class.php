@@ -191,8 +191,13 @@ class price_GroupOfProducts extends core_Detail
 	        $data->form->title = '|Добавяне на артикул към група|* "' . $groupName . '"';
         }
         
+        
         // За опции се слагат само продаваемите продукти
-        $products = cat_Products::getByProperty('canSell');
+        $query = cat_Products::getQuery();
+        $query->show('id,name,code');
+        $query->where("#state = 'active'");
+        $products = cat_Products::getByProperty('canSell', NULL, $query);
+        
         expect(count($products), 'Няма продаваеми продукти');
         $now = dt::now();
         foreach ($products as $id => &$product){
