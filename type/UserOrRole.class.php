@@ -54,8 +54,6 @@ class type_UserOrRole extends type_User
      */
     public function prepareOptions()
     {
-        parent::prepareOptions();
-        
         // Ако има съответната роля за виждане на ролите
         if (haveRole($this->params['rolesForAllRoles'])) {
             
@@ -88,6 +86,106 @@ class type_UserOrRole extends type_User
                 $this->options['r_' . 'allSysTeam'] = $roleObj;
             }
         }
+        
+        $this->options = parent::prepareOptions();
+        
+        return $this->options;
+    }
+    
+    
+    /**
+     * 
+     * @param string $value
+     * 
+     * @see type_User::toVerbal_()
+     * 
+     * @return string
+     */
+    function toVerbal_($value)
+    {
+        if ($value < 0) {
+            $this->params['mvc'] = &cls::get('core_Roles');
+            $this->params['select'] = 'role';
+        }
+        
+        return parent::toVerbal_($value);
+    }
+    
+    
+    /**
+     * 
+     * @param string $value
+     * 
+     * @see type_User::fromVerbal_()
+     * 
+     * @return string
+     */
+    function fromVerbal_($value)
+    {
+        $key = self::getKeyFromTitle($value);
+        
+        if (!$key) {
+            $key = $value;
+        }
+        
+        list($type, $id) = explode('_', $key);
+        
+        if ($type == 'r') {
+            $this->params['mvc'] = &cls::get('core_Roles');
+            $this->params['select'] = 'role';
+            
+            $value = self::getSysRoleId($id);
+        }
+        
+        return parent::fromVerbal_($value);
+    }
+    
+    
+    
+    /**
+     * 
+     * 
+     * @param string $value
+     * 
+     * @see type_User::fetchVal()
+     * 
+     * @return object
+     */
+    protected function fetchVal(&$value)
+    {
+        if ($value < 0) {
+            $roleId = self::getRoleIdFromSys($value);
+            $this->params['mvc'] = &cls::get('core_Roles');
+            $this->params['select'] = 'role';
+            
+            return $this->params['mvc']->fetch((int)$roleId);
+        }
+        
+        return parent::fetchVal($value);
+    }
+    
+    
+    /**
+     * @see type_User::renderInput_()
+     * 
+     * @param string $name
+     * @param string $value
+     * @param array $attr
+     * 
+     * @return core_ET
+     */
+    function renderInput_($name, $value = "", &$attr = array())
+    {
+        if ($value < 0) {
+            $value = self::getRoleIdFromSys($value);
+            
+            $this->params['mvc'] = &cls::get('core_Roles');
+            $this->params['select'] = 'role';
+            
+            $value = 'r_' . $value;
+        }
+        
+        return parent::renderInput_($name, $value, $attr);
     }
     
     
