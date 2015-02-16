@@ -93,6 +93,10 @@ class core_Tabs extends core_BaseClass
             $selectedTab = Request::get('selectedTab');
         }
         
+        if (!$selectedTab) {
+        	$selectedTab = Request::get('Tab');
+        }
+        
         //  ,     
         if (!$selectedTab) {
             $selectedTab = key($this->tabs);
