@@ -1,4 +1,4 @@
-<fieldset class='detail-info portal acc-summary'>
+<fieldset class='detail-info acc-summary'>
     <legend class='groupTitle'>|Счетоводни справки|*</legend>
     [#LISTS#]
     <div class='groupList clearfix21' style='max-width: 730px;'>
