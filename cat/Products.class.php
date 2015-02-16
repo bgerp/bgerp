@@ -529,6 +529,7 @@ class cat_Products extends core_Embedder {
     		$query = self::getQuery();
     		$query->show('id,name,code');
     		$query->where("#state = 'active'");
+    		$query->where("#isPublic = 'yes'");
     	}
     	
     	$Varchar = cls::get('type_Varchar');
