@@ -388,7 +388,7 @@ class price_GroupOfProducts extends core_Detail
         $table = cls::get('core_TableView', array('mvc' => $this));
         $data->listFields = $this->listFields;
         
-        $data->listFields = array("groupId" => "Група", 'validFrom' => 'В сила oт', 'createdBy' => 'Създаване->От', 'createdOn' => 'Създаване->На');
+        $data->listFields = array("groupId" => "Група", 'validFrom' => 'В сила oт', 'createdBy' => 'Създаване от', 'createdOn' => 'Създаване на');
         $details = $table->get($data->rows, $data->listFields);
         
         $tpl = getTplFromFile('cat/tpl/ProductDetail.shtml');
