@@ -132,7 +132,7 @@ class type_Class  extends type_Key {
      * 
      * @see type_Key::fetchVal()
      */
-    protected function fetchVal($value)
+    protected function fetchVal(&$value)
     {
         if (is_numeric($value)) {
             $mvc = &cls::get($this->params['mvc']);
