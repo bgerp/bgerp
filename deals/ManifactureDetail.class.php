@@ -112,7 +112,7 @@ abstract class deals_ManifactureDetail extends doc_Detail
 	
 			foreach ($productManagers as $manId => $manName) {
 				$productMan = cls::get($manId);
-				$products = $productMan->getByProperty($mvc->defaultMeta, NULL, 1);
+				$products = $productMan->getByProperty($mvc->defaultMeta, NULL, NULL, 1);
 	
 				if(!count($products)){
 					$error = "error=Няма {$productMan->title}";
