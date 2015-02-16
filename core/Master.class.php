@@ -335,12 +335,12 @@ class core_Master extends core_Manager
                 $detailsTpl = new ET('');
                 
                 // Горния таб с детайли го показваме винаги
-                $tabHtml1 = (!array_key_exists($selected, $tabTop->tabs)) ? $tabTop->renderHtml() : $tabHtml;
+                $tabHtml1 = (!$tabTop->hasTab($selected)) ? $tabTop->renderHtml() : $tabHtml;
                 $tabHtml1 = new ET("<div class='tab-top'><a id='detailTabsTop'></a>[#1#]</div>", $tabHtml1);
                 $detailsTpl->append($tabHtml1);
                 
                 // Долния таб го показваме само ако има избран детайл от него
-                if(array_key_exists($selected, $tabBottom->tabs)){
+                if($tabBottom->hasTab($selected)){
                 	$tabHtml2 = new ET("<div style='margin-top:20px;' class='clearfix21'></div><div class='docStatistic'><a id='detailTabs'></a>[#1#]</div>", $tabHtml);
                 	$detailsTpl->append($tabHtml2);
                 }
