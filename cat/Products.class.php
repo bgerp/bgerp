@@ -543,8 +543,6 @@ class cat_Products extends core_Embedder {
     	
     	if(count($hasnotProperties)){
     		foreach ($hasnotProperties as $meta1){
-    			//@TODO докато направим промените в бизнес документите
-    			if(is_numeric($meta1)) continue;
     			$query->where("#{$meta1} = 'no'");
     		}
     	}
