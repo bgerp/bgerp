@@ -37,7 +37,7 @@ class purchase_PurchaseLastPricePolicy extends core_Manager
      */
     public function getProducts($customerClass, $customerId, $datetime = NULL, $hasProperties = NULL, $hasnotProperties = NULL, $limit = NULL)
     {
-    	return $this->class->$customerClass, $customerId, $datetime, $hasProperties, $hasnotProperties, $limit);
+    	return $this->class->getProducts($customerClass, $customerId, $datetime, $hasProperties, $hasnotProperties, $limit);
     }
     
     
