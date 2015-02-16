@@ -173,37 +173,6 @@ class cat_Categories extends core_Master
     
     
     /**
-     * Филтър на on_AfterPrepareListFilter()
-     * Малко манипулации след подготвянето на формата за филтриране
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $data
-     */
-    static function on_AfterPrepareListFilter($mvc, $data)
-    {
-        // Добавяме поле във формата за търсене
-        $data->listFilter->FNC('product', 'key(mvc=cat_Products, select=name, allowEmpty=TRUE)', 'caption=Продукт');
-        
-        $data->listFilter->view = 'horizontal';
-        
-        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        
-        // Показваме само това поле. Иначе и другите полета 
-        // на модела ще се появят
-        $data->listFilter->showFields = 'product';
-        
-        $rec = $data->listFilter->input(NULL, 'silent');
-        
-        $data->query->orderBy('#name');
-        
-        if($data->listFilter->rec->product) {
-            $groupList = cat_Products::fetchField($data->listFilter->rec->product, 'groups');
-            $data->query->where("'{$groupList}' LIKE CONCAT('%|', #id, '|%')");
-        }
-    }
-    
-    
-    /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
      * @param core_Mvc $mvc

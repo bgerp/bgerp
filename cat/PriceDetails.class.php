@@ -62,9 +62,9 @@ class cat_PriceDetails extends core_Manager
     public function renderPrices($data)
     {
     	$tpl = getTplFromFile('cat/tpl/PriceDetails.shtml');
-    	$tpl->append($this->PriceGroup->renderPriceGroup($data->groupsData, 'PriceGroup'));
-    	$tpl->append($this->PriceList->renderPriceList($data->listsData, 'PriceList'));
-    	$tpl->append($this->VatGroups->renderVatGroups($data->vatData, 'VatGroups'));
+    	$tpl->append($this->PriceGroup->renderPriceGroup($data->groupsData), 'PriceGroup');
+    	$tpl->append($this->PriceList->renderPriceList($data->listsData), 'PriceList');
+    	$tpl->append($this->VatGroups->renderVatGroups($data->vatData), 'VatGroups');
     	
     	return $tpl;
     }
