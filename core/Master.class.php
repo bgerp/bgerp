@@ -336,7 +336,7 @@ class core_Master extends core_Manager
                 
                 // Горния таб с детайли го показваме винаги
                 $tabHtml1 = (!$tabTop->hasTab($selected)) ? $tabTop->renderHtml() : $tabHtml;
-                $tabHtml1 = new ET("<div class='tab-top'><a id='detailTabsTop'></a>[#1#]</div>", $tabHtml1);
+                $tabHtml1 = new ET("<div style='margin-top:20px;' class='tab-top'><a id='detailTabsTop'></a>[#1#]</div>", $tabHtml1);
                 $detailsTpl->append($tabHtml1);
                 
                 // Долния таб го показваме само ако има избран детайл от него
