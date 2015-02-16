@@ -348,7 +348,7 @@ abstract class deals_DealDetail extends doc_Detail
             
             foreach ($productManagers as $manId => $manName) {
             	$productMan = cls::get($manId);
-            	if(!count($productMan->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->valior, $mvc->metaProducts, 1))){
+            	if(!count($productMan->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->valior, $mvc->metaProducts, NULL, 1))){
                 	$error = "error=Няма продаваеми {$productMan->title}";
                 }
                 
