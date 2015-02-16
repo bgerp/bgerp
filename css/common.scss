@@ -1860,7 +1860,7 @@ div.alphabet div.tab-page {
 }
 
 /*вътрешни alphabet табовете в документ - изглеждат като основните, но по-малки*/
-.single-thread .document div.alphabet {
+.single-thread .document .docStatistic div.alphabet {
 	padding-bottom: 0;
 	.tab-page {
 		padding: 0 !important;
@@ -1996,7 +1996,7 @@ div.alphabet div.tab-page {
 }
 
 /*табове за поддетайли на документ*/
-div.tab-control.deal-history-tab{
+div.tab-control.deal-history-tab, .single-thread .document .tab-top div.alphabet {
     .tab-page {
        border: none;
        padding: 0;
@@ -2005,6 +2005,7 @@ div.tab-control.deal-history-tab{
         float: left;
         margin-bottom: 10px;
         .tab {
+            display: inline-block;
             line-height: 1.1em;
             padding: 4px;
             font-size: 0.7em;
