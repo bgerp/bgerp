@@ -150,12 +150,6 @@ class cat_Categories extends core_Master
     
     
     /**
-     * Поле, в което да се постави връзка към папката в листови изглед
-     */
-    public $listFieldForFolderLink = 'folder';
-    
-    
-    /**
      * Описание на модела
      */
     function description()
