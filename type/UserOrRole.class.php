@@ -182,6 +182,10 @@ class type_UserOrRole extends type_User
             $this->params['mvc'] = &cls::get('core_Roles');
             $this->params['select'] = 'role';
             
+            if ($value == 0) {
+                $value = 'allSysTeam';
+            }
+            
             $value = 'r_' . $value;
         }
         
