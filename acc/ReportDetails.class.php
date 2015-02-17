@@ -263,8 +263,10 @@ class acc_ReportDetails extends core_Manager
                 
             }
             
-            $lastRow = "<div class='acc-footer'>" . tr('Крайно'). ": " . $data->totalRow . "</div>";
-            $tpl->append($lastRow, 'CONTENT');
+            if(count($data->balanceRows) > 1){
+            	$lastRow = "<div class='acc-footer'>" . tr('Сумарно'). ": " . $data->totalRow . "</div>";
+            	$tpl->append($lastRow, 'CONTENT');
+            }
         } else {
             
             // Ако няма какво да се показва
