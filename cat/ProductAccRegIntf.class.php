@@ -67,9 +67,10 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     }
     
     
-
     /**
-     * Връща артикули, които могат да се продават на посочения клиент
+     * Връща продуктите опции с продукти:
+     * 	 Ако е зададен клиент се връщат всички публични + частните за него
+     *   Ако не е зададен клиент се връщат всички активни продукти
      * 
      * @param mixed $customerClass - клас/ид на контрагента
      * @param int $customerId - ид на контрагента
@@ -104,12 +105,10 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
      * 							        данни, на които трябва да отговарят
      * @param mixed $hasnotProperties - комбинация на горе посочените мета 
      * 							        които не трябва да имат
-     * 
-     * @return core_Query $query - подготвена заявка, ако няма се търси по всички активни артикули
      */
-    function getByProperty($properties, $hasnotProperties = NULL, $query = NULL)
+    function getByProperty($properties, $hasnotProperties = NULL)
     {
-    	return $this->class->getByProperty($properties, $hasnotProperties, $query);
+    	return $this->class->getByProperty($properties, $hasnotProperties);
     }
     
     
