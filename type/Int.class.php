@@ -77,7 +77,6 @@ class type_Int extends core_Type {
             }
         }
         
-        
         if($val === '') return NULL;
         
         // Превръщаме 16-тичните числа в десетични
@@ -86,6 +85,20 @@ class type_Int extends core_Type {
         // Ако имаме букви или др. непозволени символи - връщаме грешка
         if(preg_replace('`([^+\-*=/\(\)\d\^<>&|\.]*)`', '', $val) != $val) {
             $this->error = "Недопустими символи в число/израз";
+            
+            return FALSE;
+        }
+        
+        // Проверка да не сме препълнили int
+        if (($val) && ($val > PHP_INT_MAX)) {
+            $this->error = "Над допустимото|* " . $this->toVerbal(PHP_INT_MAX);
+            
+            return FALSE;
+        }
+        
+        // Проверка да не сме препълнили int с отрицателни стойности
+        if (($val) && ($val < ~PHP_INT_MAX)) {
+            $this->error = "Под допустимото|* " . $this->toVerbal(~PHP_INT_MAX);
             
             return FALSE;
         }
