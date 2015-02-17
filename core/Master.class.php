@@ -325,7 +325,7 @@ class core_Master extends core_Manager
                 if(count($detailTabbed) > 1) {
                 	$selectedHtml = NULL;
                 
-                	$tab = (array_key_exists($selected, $tabTop->tabs)) ? $tabTop : $tabBottom;
+                	$tab = ($tabTop->hasTab($selected)) ? $tabTop : $tabBottom;
                 	$selectedHtml = $this->{$selected}->$method($data->{$selected});
                 	$tabHtml = $tab->renderHtml($selectedHtml, $selected);
                 } else {
