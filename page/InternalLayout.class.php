@@ -30,7 +30,6 @@ class page_InternalLayout extends core_ET
             "[#bgerp_Menu::renderMenu#]" .
             "</div>" .
             "<div id=\"maincontent\"><div>" .
-            "<!--ET_BEGIN NAV_BAR--><div id=\"navBar\">[#NAV_BAR#]</div>\n<!--ET_END NAV_BAR--><div class='clearfix' style='min-height:10px;'></div>" .
             "<div id='statuses'>[#STATUSES#]</div>" .
             "[#PAGE_CONTENT#]" .
             "</div></div>" .
