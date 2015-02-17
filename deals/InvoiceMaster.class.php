@@ -723,10 +723,12 @@ abstract class deals_InvoiceMaster extends core_Master
     		 
     		// Извлича се платежния план
     		if($form->rec->paymentMethodId){
-    			$plan = cond_PaymentMethods::getPaymentPlan($form->rec->paymentMethodId, $form->aggregateInfo->get('amount'), $form->rec->date);
-    		
-    			if(isset($plan['deadlineForBalancePayment'])){
-    				$rec->dueDate = $plan['deadlineForBalancePayment'];
+    			if(isset($form->aggregateInfo)){
+    				$plan = cond_PaymentMethods::getPaymentPlan($form->rec->paymentMethodId, $form->aggregateInfo->get('amount'), $form->rec->date);
+    				
+    				if(isset($plan['deadlineForBalancePayment'])){
+    					$rec->dueDate = $plan['deadlineForBalancePayment'];
+    				}
     			}
     		}
     		
