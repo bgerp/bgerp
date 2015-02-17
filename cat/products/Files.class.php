@@ -148,6 +148,16 @@ class cat_products_Files extends cat_products_Detail
     }
     
     
+    public static function on_AfterRenderDetail($mvc, &$tpl, $data)
+    {
+    	$wrapTpl = getTplFromFile('cat/tpl/FilesDetail.shtml');
+    	$wrapTpl->append($mvc->title, 'TITLE');
+    	
+    	$wrapTpl->append($tpl, 'CONTENT');
+    	$tpl = $wrapTpl;
+    }
+    
+    
     /**
      * Връща подходящ манипулатор на файла
      * 

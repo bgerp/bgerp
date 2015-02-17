@@ -1,0 +1,8 @@
+<fieldset class='top-tab-content'>
+	<legend class='groupTitle'>[#TITLE#]</legend>
+	<div class='detail-info portal' id="[#DetailName#]">
+	    <div class='groupList'>
+	        [#CONTENT#]
+	    </div>
+	 </div>
+</fieldset>

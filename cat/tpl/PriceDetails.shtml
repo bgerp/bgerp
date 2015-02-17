@@ -1,3 +1,6 @@
-[#PriceGroup#]
-[#PriceList#]
-[#VatGroups#]
+<fieldset class='top-tab-content'>
+	<legend>|Ценова информация|*</legend>
+	[#PriceGroup#]
+	[#PriceList#]
+	[#VatGroups#]
+</fieldset>

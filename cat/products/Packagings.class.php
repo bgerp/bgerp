@@ -281,10 +281,18 @@ class cat_products_Packagings extends cat_products_Detail
     
     public static function on_AfterRenderDetail($mvc, &$tpl, $data)
     {
+        $wrapTpl = getTplFromFile('cat/tpl/PackigingDetail.shtml');
+        $wrapTpl->append($mvc->title, 'TITLE');
+        
         if ($data->addUrl) {
-            $addBtn = ht::createLink("<img src=" . sbf('img/16/add.png') . " valign=bottom style='margin-left:5px;'>", $data->addUrl, FALSE, 'title=Добавяне на нова опаковка');
-            $tpl->append($addBtn, 'TITLE');
+        	$addBtn = ht::createLink("<img src=" . sbf('img/16/add.png') . " valign=bottom style='margin-left:5px;'>", $data->addUrl, FALSE, 'title=Добавяне на нова опаковка');
+        	$tpl->append($addBtn, 'TITLE');
         }
+        
+        $wrapTpl->append($tpl, 'CONTENT');
+        $wrapTpl->replace(get_class($mvc), 'DetailName');
+        
+        $tpl = $wrapTpl;
     }
     
     
