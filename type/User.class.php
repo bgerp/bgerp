@@ -138,16 +138,14 @@ class type_User extends type_Key
      */
     function renderInput_($name, $value = "", &$attr = array())
     {
-        if (empty($value) && !$this->params['allowEmpty']) {
+        if (is_null($value) && !$this->params['allowEmpty']) {
             $value = core_Users::getCurrent();
         }
         
         if (!empty($value)) {
-            if (!$this->params['mvc'] || ($this->params['mvc'] instanceof core_Users) || ($this->params['mvc'] == 'core_Users')) {
-                $value = self::getUserFromTeams($value);
+            $value = self::getUserFromTeams($value);
             
-                $value = reset($value);
-            }
+            $value = reset($value);
         }
         
         return parent::renderInput_($name, $value, $attr);
