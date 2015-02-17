@@ -136,7 +136,9 @@ class acc_type_Item extends type_Key
     {
         $value = parent::fromVerbal_($value);
         
-        $value = intval($value);
+        if(isset($value)){
+        	$value = intval($value);
+        }
         
         return $value;
     }
