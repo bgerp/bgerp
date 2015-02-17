@@ -54,6 +54,10 @@ class type_UserOrRole extends type_User
      */
     public function prepareOptions()
     {
+        $this->prepareSelOpt = FALSE;
+        
+        $this->options = parent::prepareOptions();
+        
         // Ако има съответната роля за виждане на ролите
         if (haveRole($this->params['rolesForAllRoles'])) {
             
@@ -87,7 +91,9 @@ class type_UserOrRole extends type_User
             }
         }
         
-        $this->options = parent::prepareOptions();
+        $this->prepareSelOpt = TRUE;
+        
+        $this->prepareSelectOpt($this->options);
         
         return $this->options;
     }
@@ -131,9 +137,6 @@ class type_UserOrRole extends type_User
         list($type, $id) = explode('_', $key);
         
         if ($type == 'r') {
-            $this->params['mvc'] = &cls::get('core_Roles');
-            $this->params['select'] = 'role';
-            
             $value = self::getSysRoleId($id);
         }
         
@@ -155,10 +158,8 @@ class type_UserOrRole extends type_User
     {
         if ($value < 0) {
             $roleId = self::getRoleIdFromSys($value);
-            $this->params['mvc'] = &cls::get('core_Roles');
-            $this->params['select'] = 'role';
             
-            return $this->params['mvc']->fetch((int)$roleId);
+            return core_Roles::fetch((int)$roleId);
         }
         
         return parent::fetchVal($value);
@@ -179,14 +180,12 @@ class type_UserOrRole extends type_User
         if ($value < 0) {
             $value = self::getRoleIdFromSys($value);
             
-            $this->params['mvc'] = &cls::get('core_Roles');
-            $this->params['select'] = 'role';
-            
             if ($value == 0) {
                 $value = 'allSysTeam';
             }
             
-            $value = 'r_' . $value;
+            $attr['value'] = 'r_' . $value;
+            $value = '';
         }
         
         return parent::renderInput_($name, $value, $attr);
