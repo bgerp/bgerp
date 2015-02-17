@@ -2942,6 +2942,9 @@ function Experta() {
 
     // Времето на бездействие в таба
     Experta.prototype.idleTime;
+    
+    // id на атрибута в който ще се добавя локацията
+    Experta.prototype.geolocationId;
 }
 
 
@@ -3226,6 +3229,63 @@ Experta.prototype.scrollTo = function(id) {
 
 
 /**
+ * Закръгля дробни числа до подадения брой символи след десетичната запетая
+ * 
+ * @param double id
+ * @param integer id
+ * 
+ * @return integer|double|NULL
+ */
+Experta.prototype.round = function(val, decimals) {
+	
+	if (typeof Math == "undefined") return ;
+	
+	var pow = Math.pow(10, parseInt(decimals));
+	
+	val = Math.round(parseFloat(val) * pow) / pow;
+	
+	return val;
+}
+
+
+/**
+ * Задава позицията от geolocation в полето
+ * 
+ * @param string attrId
+ */
+Experta.prototype.setPosition = function(attrId) {
+	this.setGeolocation(attrId);
+}
+
+
+/**
+ * Задава геолокациите
+ * 
+ * @param string attrId
+ */
+Experta.prototype.setGeolocation = function(attrId) {
+	if (navigator.geolocation) {
+		this.geolocationId = attrId;
+        navigator.geolocation.getCurrentPosition(this.setCoords);
+    }
+}
+
+
+/**
+ * Задава координатите
+ * 
+ * @param object
+ */
+Experta.prototype.setCoords = function(position) {
+	
+	var lat = getEO().round(position.coords.latitude, 6);
+	var long = getEO().round(position.coords.longitude, 6);
+	
+	$('#' + getEO().geolocationId).val(lat + ',' + long);
+}
+
+
+/**
  * Показва съобщението в лога
  * 
  * @param string txt - Съобщението, което да се покаже
@@ -3238,6 +3298,7 @@ Experta.prototype.log = function(txt) {
         console.log(txt);
     }
 };
+
 
 /**
  * Намаляващ брояч на време
@@ -3289,6 +3350,7 @@ Experta.prototype.doCountdown = function(l1, l2, l3) {
 		}
 	});
 };
+
 
 /**
  * Извиква функцията doCountdown през 1 сек
