@@ -11,7 +11,7 @@
  * @category  bgerp
  * @package   page
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @link
@@ -26,8 +26,7 @@ class page_Internal extends page_Html {
      */
     function page_Internal()
     {
-    	$conf = core_Packs::getConfig('core');
-    	
+    	// Конструиране на родителския клас
         $this->page_Html();
         
         $this->appendOnce(new ET('[#bgerp_Notifications::subscribeCounter#]'));
@@ -48,29 +47,26 @@ class page_Internal extends page_Html {
 		         ", "STYLES");
         }
         
+        // Добавяне на базовия JS
         jquery_Jquery::enable($this);
         $this->push('js/efCommon.js', 'JS');
         $this->push('js/overthrow-detect.js', 'JS');
         
+        // Хедъри за контрол на кеша
         $this->push('Cache-Control: private, max-age=0', 'HTTP_HEADER');
-        //$this->push('Pragma: no-cache', 'HTTP_HEADER');
         $this->push('Expires: ' . gmdate("D, d M Y H:i:s", time() + 3600) . ' GMT', 'HTTP_HEADER');
-
+        
+        // Добавяне на favicon
         $this->appendOnce("\n<link  rel=\"shortcut icon\" href=" . sbf("img/favicon.ico", '"', TRUE) . " type=\"image/x-icon\">", "HEAD");
-         
+        
+        // Добавяне на титлата на страницата
+    	$conf = core_Packs::getConfig('core');
         $this->prepend($conf->EF_APP_TITLE, 'PAGE_TITLE');
         
+        // Вкарваме съдържанието
         $this->replace(cls::get('page_InternalLayout'), 'PAGE_CONTENT');
         
-        $navBar = cls::get('page_Navbar');
-        $navBar = $navBar->getContent();
-        
-        if(!empty($navBar)) {
-            $this->replace($navBar, 'NAV_BAR');
-        }
-        
-        // Вкарваме хедър-а и футъра
-        // $this->replace(cls::get('page_InternalHeader'), 'PAGE_HEADER');
+        // Вкарваме  футъра
         $this->replace(cls::get('page_InternalFooter'), 'PAGE_FOOTER');
     }
 
