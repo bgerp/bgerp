@@ -37,6 +37,18 @@ class type_Key extends type_Int
     
     
     /**
+     * Дали да се подготвят SelectOpt
+     */
+    protected $prepareSelOpt = TRUE;
+    
+    
+    /**
+     * Името на selectOpt
+     */
+    protected $selectOpt = 'SelectOpt';
+    
+    
+    /**
      * Инициализиране на типа
      */
     function init($params = array())
@@ -107,11 +119,11 @@ class type_Key extends type_Int
             
             $options = $this->options;
             
-            $selOptCache = unserialize(core_Cache::get('SelectOpt', $this->handler));
+            $selOptCache = unserialize(core_Cache::get($this->selectOpt, $this->handler));
             
             if ($selOptCache === FALSE) {
                 $options = $this->prepareOptions();
-                $selOptCache = unserialize(core_Cache::get('SelectOpt', $this->handler));
+                $selOptCache = unserialize(core_Cache::get($this->selectOpt, $this->handler));
             }
             
             if (($field = $this->getSelectFld()) && (!count($options))) {
@@ -263,55 +275,7 @@ class type_Key extends type_Int
         
         setIfNot($this->handler, md5(json_encode($this->options)));
         
-        $maxSuggestions = $this->getMaxSuggestions();
-        
-        // Ако трябва да показваме combo-box
-        if(count($options) > $maxSuggestions) {
- 
-            if(is_object($options[''])) {
-                $options['']->title = '';
-            }
-            
-            $cacheOpt = array();
-            
-            $titles = array();
-            
-            foreach($options as $key => $v) {
-                
-                $title = self::getOptionTitle($v);
-                
-                // Ако вече е добавено id-то след края на текста, да не се добавя повторвно
-                if (!self::haveId($title, $key)) {
-                    $title = self::getUniqTitle($title, $key);
-                    
-                    if (is_object($v)) {
-                        $v->title = $title;
-                        $options[$key] = $v;
-                    } else {
-                        $options[$key] = $title;
-                    }
-                }
-                
-                if ($titles[$title]) {
-                    $title = self::getUniqTitle($title, $key);
-                }
-                
-                $titles[$title] = TRUE;
-                
-                $vNorm = self::normalizeKey($title);
-                
-                if (is_object($v)) {
-                    $v->title = $title;
-                } else {
-                    $v = $title;
-                }
-                
-                $cacheOpt[$key]['title'] = $v;
-                $cacheOpt[$key]['id'] = $vNorm;
-            }
-            
-            core_Cache::set('SelectOpt', $this->handler, serialize($cacheOpt), 20, array($this->params['mvc']));
-        }
+        $this->prepareSelectOpt($options);
         
         Debug::stopTimer('prepareOPT ' . $this->params['mvc']);
         
@@ -320,6 +284,66 @@ class type_Key extends type_Int
         $this->options = $options;
         
         return $options;
+    }
+    
+    
+    /**
+     * Подготвя опциите за селект, ако условията са изпълнени
+     * 
+     * @param array $options
+     */
+    protected function prepareSelectOpt(&$options)
+    {
+        if (!$this->prepareSelOpt) return ;
+        
+        $maxSuggestions = $this->getMaxSuggestions();
+        
+        // Ако трябва да показваме combo-box
+        if (count($options) <= $maxSuggestions) return ;
+        
+        if(is_object($options[''])) {
+            $options['']->title = '';
+        }
+        
+        $cacheOpt = array();
+        
+        $titles = array();
+        
+        foreach($options as $key => $v) {
+            
+            $title = self::getOptionTitle($v);
+            
+            // Ако вече е добавено id-то след края на текста, да не се добавя повторвно
+            if (!self::haveId($title, $key)) {
+                $title = self::getUniqTitle($title, $key);
+                
+                if (is_object($v)) {
+                    $v->title = $title;
+                    $options[$key] = $v;
+                } else {
+                    $options[$key] = $title;
+                }
+            }
+            
+            if ($titles[$title]) {
+                $title = self::getUniqTitle($title, $key);
+            }
+            
+            $titles[$title] = TRUE;
+            
+            $vNorm = self::normalizeKey($title);
+            
+            if (is_object($v)) {
+                $v->title = $title;
+            } else {
+                $v = $title;
+            }
+            
+            $cacheOpt[$key]['title'] = $v;
+            $cacheOpt[$key]['id'] = $vNorm;
+        }
+        
+        core_Cache::set($this->selectOpt, $this->handler, serialize($cacheOpt), 20, array($this->params['mvc']));
     }
     
     
@@ -483,7 +507,7 @@ class type_Key extends type_Int
                     $attr['autocomplete'] = $this->params['autocomplete'];
                 }
                 
-                $selOptCache = (array) unserialize(core_Cache::get('SelectOpt', $this->handler));
+                $selOptCache = (array) unserialize(core_Cache::get($this->selectOpt, $this->handler));
                 
                 if($this->suggestions) {
                     $suggestions = $this->suggestions;
@@ -571,7 +595,7 @@ class type_Key extends type_Int
             $maxSuggestions = $this->getMaxSuggestions();
         }
         
-        $options = unserialize(core_Cache::get('SelectOpt', $hnd));
+        $options = unserialize(core_Cache::get($this->selectOpt, $hnd));
         
         $select = new ET('<option value="">&nbsp;</option>');
         

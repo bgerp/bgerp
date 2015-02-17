@@ -8,17 +8,6 @@ class cat_products_Detail extends core_Detail
     var $masterKey = 'productId';
     
     
-    public static function on_AfterRenderDetail($mvc, &$tpl, $data)
-    {
-        $wrapTpl = getTplFromFile('cat/tpl/ProductDetail.shtml');
-        $wrapTpl->append($mvc->title, 'TITLE');
-        $wrapTpl->append($tpl, 'CONTENT');
-        $wrapTpl->replace(get_class($mvc), 'DetailName');
-        
-        $tpl = $wrapTpl;
-    }
-    
-    
     /**
      * Намира всички опаковки на продукта
      * @param int $masterId - id на продукт

@@ -422,6 +422,12 @@ div.folder-cover {
 		margin-bottom: 0 !important;
 		margin-top: 0;
 	}
+	.docStatistic {
+	    margin-top: 20px;
+	}
+	.top-tab-content {
+	   padding: 5px 10px 10px 10px;
+	}
 }
 
 .narrow .folder-cover {
@@ -1152,7 +1158,7 @@ td.portal-date {
 	white-space: nowrap;
 }
 
-.document .rowtools-column {
+td.rowtools-column {
     width:1%;
 }
 

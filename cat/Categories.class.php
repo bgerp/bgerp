@@ -44,7 +44,7 @@ class cat_Categories extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id,name';
+    var $listFields = 'id,name,meta=Свойства';
     
     
     /**

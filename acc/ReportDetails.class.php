@@ -20,13 +20,9 @@
  */
 class acc_ReportDetails extends core_Manager
 {
-    
-    /**
-     * Кои мениджъри ще се зареждат
-     */
-    public $loadList = 'ObjectLists=acc_Items';
-    
-    /**
+
+	
+	/**
      * Кой има достъп до списъчния изглед
      */
     public $canList = 'no_one';
@@ -52,9 +48,6 @@ class acc_ReportDetails extends core_Manager
             
             // Извличане на счетоводните записи
             $this->prepareBalanceReports($data);
-            
-            // Информацията за перата
-            $this->ObjectLists->prepareObjectLists($data);
             $data->Order = 1;
         } else {
             
@@ -86,15 +79,6 @@ class acc_ReportDetails extends core_Manager
         
         // Добавяне на репорта в шаблона
         $tpl->append($balanceTpl);
-        
-        // Добавяне на интервал между двата детайла
-        $tpl->append("<br />");
-        
-        // Рендиране на данните за номенклатурата
-        $itemsTpl = $this->ObjectLists->renderObjectLists($data);
-        
-        // Добаяне на информацията за номенклатурите в шаблона
-        $tpl->append($itemsTpl);
        
         // Връщане на шаблона
         return $tpl;
@@ -279,8 +263,10 @@ class acc_ReportDetails extends core_Manager
                 
             }
             
-            $lastRow = "<div class='acc-footer'>" . tr('Крайно'). ": " . $data->totalRow . "</div>";
-            $tpl->append($lastRow, 'CONTENT');
+            if(count($data->balanceRows) > 1){
+            	$lastRow = "<div class='acc-footer'>" . tr('Сумарно'). ": " . $data->totalRow . "</div>";
+            	$tpl->append($lastRow, 'CONTENT');
+            }
         } else {
             
             // Ако няма какво да се показва

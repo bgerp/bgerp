@@ -193,10 +193,7 @@ class price_GroupOfProducts extends core_Detail
         
         
         // За опции се слагат само продаваемите продукти
-        $query = cat_Products::getQuery();
-        $query->show('id,name,code');
-        $query->where("#state = 'active'");
-        $products = cat_Products::getByProperty('canSell', NULL, $query);
+        $products = cat_Products::getByProperty('canSell');
         
         expect(count($products), 'Няма продаваеми продукти');
         $now = dt::now();

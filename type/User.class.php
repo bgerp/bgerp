@@ -100,7 +100,7 @@ class type_User extends type_Key
                 $group->title = tr('Екип') . " \"" . $tRole . "\"";
                 $group->attr = array('class' => 'team');
                 $group->group = TRUE;
-                $group->keylist = $this->options[$t . ' team'] = $group;
+                $this->options[$t . ' team'] = $group;
                 
                 $uQueryCopy = clone($uQuery);
                 
@@ -120,7 +120,7 @@ class type_User extends type_Key
                 }
                 
                 if($teamMembers) {
-                    // $this->options[$t. ' team']->keylist = "|{$teamMembers}|";
+                    $this->options[$t. ' team']->keylist = "|{$teamMembers}|";
                 } else {
                     unset($this->options[$t . ' team']);
                 }
@@ -138,16 +138,14 @@ class type_User extends type_Key
      */
     function renderInput_($name, $value = "", &$attr = array())
     {
-        if (empty($value) && !$this->params['allowEmpty']) {
+        if (is_null($value) && !$this->params['allowEmpty']) {
             $value = core_Users::getCurrent();
         }
         
         if (!empty($value)) {
-            if (!$this->params['mvc'] || ($this->params['mvc'] instanceof core_Users) || ($this->params['mvc'] == 'core_Users')) {
-                $value = self::getUserFromTeams($value);
+            $value = self::getUserFromTeams($value);
             
-                $value = reset($value);
-            }
+            $value = reset($value);
         }
         
         return parent::renderInput_($name, $value, $attr);

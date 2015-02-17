@@ -151,8 +151,12 @@ class cat_BomStageDetails extends core_Detail
     		$form->setField('productId', 'input,mandatory');
     		$form->setField('toStore', 'input,mandatory');
     		
-    		// Оставяме само производимите артикули и спецификации
-    		$form->setOptions('productId', cat_Products::getByProperty('canManifacture'));
+    		$products = cat_Products::getByProperty('waste');
+    		if(count($products)){
+    			$form->setOptions('productId', $products);
+    		} else {
+    			return Redirect(array('cat_Boms', 'single', $masterRec->bomId), NULL, 'Няма наличини отпадни артикули'); 
+    		}
     		
     		$form->title = $act . tr(" |на|* ") . tr('изходен артикул') . tr(' |към|* ') . "|*<b style='color:#ffffcc;'>{$mTitle}</span>";
     	}

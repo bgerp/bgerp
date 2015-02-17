@@ -1916,7 +1916,7 @@ class log_Documents extends core_Manager
         }
         
         $html = '';
-        
+       
         foreach ($data->summary as $action=>$count) {
             if ($count == 0) {
                 continue;
@@ -1934,6 +1934,7 @@ class log_Documents extends core_Manager
             
             $actionVerbal = tr($actionVerbal);
             $linkArr = static::getLinkToSingle($data->containerId, $actionToTab[$action]);
+            
 	        $link = ht::createLink("<b>{$count}</b><span>{$actionVerbal}</span>", $linkArr, FALSE, array('title' => $actionTitle));
             $html .= "<li class=\"action {$action}\">{$link}</li>";
         }
@@ -1961,7 +1962,11 @@ class log_Documents extends core_Manager
 	                 'Cid' => $cid, 
 	                 'Tab' => $detailTab,
 	                );
-
+        
+		if($topTab = Request::get('TabTop')){
+			$link['TabTop'] = $topTab;
+		}
+        
         return $link;
     }
     
