@@ -135,6 +135,12 @@ class cat_Products extends core_Embedder {
     
     
     /**
+     * Кой може да добавя?
+     */
+    var $canClose = 'cat,ceo';
+    
+    
+    /**
      * Кой може да го разгледа?
      */
     var $canList = 'powerUser';
@@ -1344,6 +1350,14 @@ class cat_Products extends core_Embedder {
     			}
     		}
     	}
+    	
+		if($mvc->haveRightFor('close', $data->rec)){
+			if($data->rec->state == 'closed'){
+				$data->toolbar->addBtn("Отваряне", array($mvc, 'changeState', $data->rec->id, 'ret_url' => TRUE), 'ef_icon = img/16/lightbulb.png,title=Отваряне на артикула,warning=Сигурнили сте че искате да отворите артикула, това ще му активира перото');
+			} elseif($data->rec->state == 'active'){
+				$data->toolbar->addBtn("Затваряне", array($mvc, 'changeState', $data->rec->id, 'ret_url' => TRUE), 'ef_icon = img/16/lightbulb_off.png,title=Затваряне на артикула,warning=Сигурнили сте че искате да Затворите артикула, това ще му затвори перото');
+			}
+		}
     }
     
     
@@ -1355,5 +1369,39 @@ class cat_Products extends core_Embedder {
     	$Jobs = cls::get('mp_Jobs');
     	
     	return $this->getProductDesc($id, $Jobs, $time);
+    }
+    
+    
+    /**
+     * Затваря/отваря артикула и перото му
+     */
+    public function act_changeState()
+    {
+    	$this->requireRightFor('close');
+    	expect($id = Request::get('id', 'int'));
+    	expect($rec = $this->fetch($id));
+    	$this->requireRightFor('close', $rec);
+    	
+    	$state = ($rec->state == 'closed') ? 'active' : 'closed';
+    	$rec->exState = $rec->state;
+    	$rec->state = $state;
+    	
+    	$this->save($rec, 'state');
+    	
+    	if($itemRec = acc_Items::fetchItem($this, $id)){
+    		
+    		$lists = keylist::addKey($rec->lists, acc_Lists::fetchField(array("#systemId = '[#1#]'", 'catProducts'), 'id'));
+    		if($rec->state == 'active'){
+    			acc_Lists::updateItem($this, $rec->id, $lists);
+    			$msg = tr("|Отворено е перо|*: {$itemRec->title}");
+    		} else {
+    			acc_Lists::removeItem($this, $rec->id, $lists);
+    			$msg = tr("|Затворено е перо|*: {$itemRec->title}");
+    		}
+    		
+    		core_Statuses::newStatus($msg);
+    	}
+    	
+    	return followRetUrl();
     }
 }
