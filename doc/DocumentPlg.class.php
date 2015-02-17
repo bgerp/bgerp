@@ -546,6 +546,14 @@ class doc_DocumentPlg extends core_Plugin
                         $url['#'] = 'detailTabs';
                     }
                     
+                    // Ако има подаден горен таб
+                    if ($tab1 = Request::get('TabTop')) {
+                    	
+                    	// Добавяме таба
+                    	$url['TabTop'] = $tab1;
+                    	$url['#'] = 'detailTabsTop';
+                    }
+                   
                     // Ако има страница на документа
                     if ($P = Request::get('P_log_Documents')) {
                         

@@ -302,49 +302,66 @@ class core_Master extends core_Manager
               	$tabArray = array();
 
               	// Подготвяме горни и долни табове
-              	$tabTop = cls::get('core_Tabs', array('htmlClass' => 'alphabet'));
+              	$tabTop = cls::get('core_Tabs', array('htmlClass' => 'alphabet', 'urlParam' => 'TabTop'));
               	$tabBottom = cls::get('core_Tabs', array('htmlClass' => 'alphabet'));
               	
                 foreach($detailTabbed as $var => $order) {
+                	$url = getCurrentUrl();
+                	
+                	// Ако е зададено детайла да е в горния таб, добавяме го, иначе е в долния
+                	if($data->{$var}->Tab == 'top'){
+                		$tab = &$tabTop;
+                		
+                		// Да се погрижим да се затвори долния таб ако е бил отворен
+                		unset($url[$tabBottom->getUrlParam()]);
+                	} else {
+                		$tab = &$tabBottom;
+                	}
 
-                    $url = getCurrentUrl();
-                    $url['Tab'] = $var;
-                    $url['#'] = 'detailTabs';
-                    
-                    // Ако е зададено детайла да е в горния таб, добавяме го, иначе е в долния
-                    $tab = ($data->{$var}->Tab == 'top') ? $tabTop : $tabBottom;
+                    $url[$tab->getUrlParam()] = $var;
                     $url['#'] = ($data->{$var}->Tab == 'top') ? 'detailTabsTop' : 'detailTabs';
                     $tab->TAB($var, $data->{$var}->TabCaption ? $data->{$var}->TabCaption : $var, $data->{$var}->disabled ? array() : toUrl($url));
-					if($var == $data->Tab || (!$data->Tab && !$selected)) {
-                        $selected = $var;
-                    }
-                }
+				}
                 
-                $method = ($selected ==  $this->details[$selected]) ? 'renderDetail' : 'render' . $selected;
-                
-                if(count($detailTabbed) > 1) {
-                	$selectedHtml = NULL;
-                
-                	$tab = ($tabTop->hasTab($selected)) ? $tabTop : $tabBottom;
-                	$selectedHtml = $this->{$selected}->$method($data->{$selected});
-                	$tabHtml = $tab->renderHtml($selectedHtml, $selected);
-                } else {
-                	$tabHtml = $this->{$selected}->$method($data->{$selected});
-                }
-                
-                $detailsTpl = new ET('');
-                
-                // Горния таб с детайли го показваме винаги
-                $tabHtml1 = (!$tabTop->hasTab($selected)) ? $tabTop->renderHtml(NULL, NULL) : $tabHtml;
-                $tabHtml1 = new ET("<div style='margin-top:20px;' class='tab-top'><a id='detailTabsTop'></a>[#1#]</div>", $tabHtml1);
-                $detailsTpl->append($tabHtml1);
-                
-                // Долния таб го показваме само ако има избран детайл от него
-                if($tabBottom->hasTab($selected)){
-                	$tabHtml2 = new ET("<div class='clearfix21'></div><div class='docStatistic'><a id='detailTabs'></a>[#1#]</div>", $tabHtml);
-                	$detailsTpl->append($tabHtml2);
-                }
+				$detailsTpl = new ET('');
+				
+				// Ако има избран детайл от горния таб, показваме го, ако няма винаги рендираме първия
+				$selectedTop = $tabTop->getSelected();
+				if(!$selectedTop){
+					$selectedTop = $tabTop->getFirstTab();
+				}
+				
+				// Ако има избран детайл от горния таб рендираме го
+				if($selectedTop){
+					$method = ($selected ==  $this->details[$selectedTop]) ? 'renderDetail' : 'render' . $selectedTop;
+					
+					$selectedHtml = $this->{$selectedTop}->$method($data->{$selectedTop});
+					$tabHtml = $tabTop->renderHtml($selectedHtml, $selectedTop);
+						
+					$tabHtml = new ET("<div style='margin-top:20px;' class='tab-top'><a id='detailTabsTop'></a>[#1#]</div>", $tabHtml);
+					$detailsTpl->append($tabHtml);
+				}
+				
+				// Проверяваме имали избран детайл от долния таб
+				$selectedBottom = $tabBottom->getSelected();
+				
+				// Ако няма и горния детайл няма табове, показваме първия таб на долния
+				if(!$selectedBottom && !count($tabTop->getTabs())){
+					$selectedBottom = $tabBottom->getFirstTab();
+				}
+				
+				// Ако има избран детайл от горния таб, добавяме го
+				if($selectedBottom){
+					$method = ($selected ==  $this->details[$selectedBottom]) ? 'renderDetail' : 'render' . $selectedBottom;
+					
+					$selectedHtml = $this->{$selectedBottom}->$method($data->{$selectedBottom});
+					$tabHtml = $tabBottom->renderHtml($selectedHtml, $selectedBottom);
+						
+					$tabHtml = new ET("<div class='clearfix21'></div><div class='docStatistic'><a id='detailTabs'></a>[#1#]</div>", $tabHtml);
+					$detailsTpl->append($tabHtml);
+				}
                
+				// Добавяме табовете
                 $tpl->append($detailsTpl, 'DETAILS');
             }
         }
