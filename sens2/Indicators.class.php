@@ -259,6 +259,8 @@ class sens2_Indicators extends core_Manager
             $row->port = $rec->port . " (" . type_Varchar::escape($params[$rec->controllerId][$rec->port]->caption . ")");
         }
 
+        $row->controllerId = sens2_Controllers::getLinkToSingle($rec->controllerId, 'name');
+
     }
     
 }

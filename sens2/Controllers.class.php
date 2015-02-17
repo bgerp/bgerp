@@ -30,6 +30,24 @@ class sens2_Controllers extends core_Master
     
     
     /**
+     * Полето "Наименование" да е хипервръзка към единичния изглед
+     */
+    var $rowToolsSingleField = 'name';
+
+
+    /**
+     * Заглавие в единичния изглед
+     */
+    var $singleTitle = 'Контролер';
+
+
+    /**
+     * Икона за единичния изглед
+     */
+    var $singleIcon = 'img/16/network-ethernet-icon.png';
+
+
+    /**
      * Права за писане
      */
     var $canWrite = 'ceo,sens,admin';
