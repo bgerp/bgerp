@@ -100,7 +100,7 @@ class type_User extends type_Key
                 $group->title = tr('Екип') . " \"" . $tRole . "\"";
                 $group->attr = array('class' => 'team');
                 $group->group = TRUE;
-                $group->keylist = $this->options[$t . ' team'] = $group;
+                $this->options[$t . ' team'] = $group;
                 
                 $uQueryCopy = clone($uQuery);
                 
@@ -120,7 +120,7 @@ class type_User extends type_Key
                 }
                 
                 if($teamMembers) {
-                    // $this->options[$t. ' team']->keylist = "|{$teamMembers}|";
+                    $this->options[$t. ' team']->keylist = "|{$teamMembers}|";
                 } else {
                     unset($this->options[$t . ' team']);
                 }
