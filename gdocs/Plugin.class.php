@@ -58,12 +58,39 @@ class gdocs_Plugin extends core_Plugin
         // Ако е презентация, трябва да се промени линка
         if (strpos($url, '/presentation/')) {
             $url = str_replace('/pub', '/embed', $url);
+        } elseif (strpos($url, '/file/')) {
+            
+            $urlArr = parse_url($url);
+            
+            $urlPathArr = explode('/', $urlArr['path']);
+            
+            $lastKey = key(array_slice($urlPathArr, -1, 1, TRUE));
+            
+            if (($lastKey == 4) && (
+                    ($urlPathArr[$lastKey] == 'preview') || 
+                    ($urlPathArr[$lastKey] == 'edit') || 
+                    ($urlPathArr[$lastKey] == 'view') || 
+                    ($urlPathArr[$lastKey] == 'share'))
+                ) {
+                $urlPathArr[$lastKey] = 'preview';
+            } else {
+                $urlPathArr[] = 'preview';
+            }
+            
+            $urlArr['path'] = implode('/', $urlPathArr);
+            
+            $url = $urlArr['scheme'];
+            if ($url) {
+                $url .= '://';
+            }
+            
+            $url .= $urlArr['host'];
+            $url .= $urlArr['path'];
         } else {
             
             // Добавяме необходимите параметри
             $url = core_Url::addParams($url, array('widget' => 'true', 'embedded' => 'true'));
         }
-        
         
         setIfNot($width, $params['width'], 480);
         setIfNot($height, $params['height'], 389);
