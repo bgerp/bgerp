@@ -30,6 +30,12 @@ class core_Tabs extends core_BaseClass
 	var $maxTabsNarrow = 26;
     
     
+	/**
+	 * Масив с табове
+	 */
+	protected $tabs = array();
+	
+	
     /**
      * Инициализиране на обекта
      */
