@@ -511,23 +511,6 @@ class acc_Items extends core_Manager
     
     
     /**
-     * Подготовка на номенклатурите, в които участва обекта
-     */
-    public static function prepareObjectLists($data)
-    {
-        $data->TabCaption = 'Номенклатури';
-        
-        /* @var $masterMvc core_Mvc */
-        $masterMvc = $data->masterMvc;
-        
-        $classId  = $masterMvc::getClassId();
-        $objectId = $data->masterId;
-        
-        $data->itemRec = static::fetchItem($classId, $objectId);
-    }
-    
-    
-    /**
      * Предефиниране на подготовката на лентата с инструменти за табличния изглед
      */
     function prepareListToolbar_(&$data)
@@ -563,32 +546,6 @@ class acc_Items extends core_Manager
                 $data->form->toolbar->removeBtn('saveAndNew');
             }
         }
-    }
-    
-    
-    /**
-     * Рендиране на номенклатурите на обекта
-     */
-    public static function renderObjectLists($data)
-    {
-        $masterMvc = $data->masterMvc;
-        
-        try {
-            $tpl = $masterMvc::getDetailWrapper();
-        } catch (core_exception_Expect $e) {
-            $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
-        }
-        
-        $tpl->append(tr('Номенклатури'), 'title');
-        
-        if ($data->itemRec->lists) {
-            $content = static::getVerbal($data->itemRec, 'lists');
-            $tpl->append($content, 'content');
-        } else {
-            $tpl->append(tr("Не е включен в номенклатура"), 'content');
-        }
-        
-        return $tpl;
     }
     
     
