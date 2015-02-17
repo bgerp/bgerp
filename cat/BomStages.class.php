@@ -142,11 +142,6 @@ class cat_BomStages extends core_Master
      */
     public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
-    	//$l = $mvc->getQuery();
-    	//$l->where("#bomId = {$rec->bomId}");
-    	//bp($l->fetchAll());
-    	
-    	
     	$resTitle = mp_Stages::getVerbal($rec->stage, 'name') . "[{$rec->bomId}]";
     	if(!$rRec = mp_Resources::fetch(array("#title = '[#1#]'", $resTitle))){
     		$rec->resourceId = mp_Resources::save((object)array("title" => $resTitle, 'type' => 'material', 'bomId' => $rec->bomId));
@@ -169,6 +164,10 @@ class cat_BomStages extends core_Master
     	 
     	if(isset($form->rec->id)){
     		$form->setReadOnly('stage');
+    	}
+    	
+    	if(!mp_Stages::count()){
+    		return Redirect(array('mp_Stages', 'list'), FALSE, 'Няма въведени производствени етапи');
     	}
     }
     

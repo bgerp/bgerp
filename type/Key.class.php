@@ -174,7 +174,7 @@ class type_Key extends type_Int
      * 
      * @return object
      */
-    protected function fetchVal($value)
+    protected function fetchVal(&$value)
     {
         $mvc = &cls::get($this->params['mvc']);
         
@@ -255,7 +255,7 @@ class type_Key extends type_Int
             }
             
             $this->options = &$options;
-
+            
             $mvc->invoke('AfterPrepareKeyOptions', array(&$this->options, $this));
         } else {
             $options = $this->options;
@@ -283,7 +283,8 @@ class type_Key extends type_Int
                 // Ако вече е добавено id-то след края на текста, да не се добавя повторвно
                 if (!self::haveId($title, $key)) {
                     $title = self::getUniqTitle($title, $key);
-                    if (is_object($v->title)) {
+                    
+                    if (is_object($v)) {
                         $v->title = $title;
                         $options[$key] = $v;
                     } else {
@@ -487,7 +488,7 @@ class type_Key extends type_Int
                 if($this->suggestions) {
                     $suggestions = $this->suggestions;
                 } else {
-                    $suggestions = array_slice($this->options, 0, $maxSuggestions, TRUE);
+                    $suggestions = array_slice($options, 0, $maxSuggestions, TRUE);
                 }
                 
                 foreach((array)$suggestions as $key => $v) {
@@ -507,12 +508,16 @@ class type_Key extends type_Int
                 $setVal = self::getOptionTitle($selOptCache[$value]['title']);
                 
                 if(!$setVal && is_numeric($value)) {
-                    $setVal = $this->toVerbal($value); 
+                    $setVal = $this->toVerbal($value);
                 }
                 
                 // Най-отгоре да е стойността по подразбиране
                 unset($selOpt[$setVal]);
                 $selOpt = array($setVal => $setVal) + $selOpt;
+                
+                if ($selOpt['']) {
+                    $selOpt = array('' => $selOpt['']) + $selOpt;
+                }
                 
                 $tpl = ht::createCombo($name, $setVal, $attr, $selOpt);
             } else {
@@ -585,7 +590,7 @@ class type_Key extends type_Int
                 
                 if ($key == '') continue;
                 
-                if((!is_object($title) && !isset($title->group)) && $q && (!preg_match($q, ' ' . $id)) ) continue;
+                if(!isset($title->group) && $q && (!preg_match($q, ' ' . $id)) ) continue;
                 
                 $element = 'option';
                 
@@ -622,7 +627,9 @@ class type_Key extends type_Int
                 $option = ht::createElement($element, $attr, $title);
                 $select->append($option);
                 
-                $cnt++;
+                if (!is_object($title)) {
+                    $cnt++;
+                }
                 
                 if($cnt >= $maxSuggestions) break;
             }

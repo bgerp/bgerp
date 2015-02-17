@@ -61,7 +61,7 @@ class type_CustomKey extends type_Key
      * 
      * @return object
      */
-    protected function fetchVal($value)
+    protected function fetchVal(&$value)
     {
         $rec = $this->fetchForeignRec($value);
         

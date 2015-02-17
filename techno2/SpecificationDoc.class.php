@@ -32,7 +32,7 @@ class techno2_SpecificationDoc extends core_Embedder
     /**
      * Заглавие
      */
-    public $singleTitle = 'Спецификация на артикул';
+    public $singleTitle = 'Спецификация на артикул 2';
     
 
     /**
@@ -184,6 +184,7 @@ class techno2_SpecificationDoc extends core_Embedder
         						waste=Отпаден)', 'caption=Свойства->Списък,columns=2,formOrder=100000000,input=none');
     	$this->FLD("isPublic", 'enum(no=Частен,yes=Публичен)', 'input=none,formOrder=100000002,caption=Показване за избор в документи->Достъп');
     }
+    
     
     /**
      * Преди показване на форма за добавяне/промяна.
@@ -404,17 +405,6 @@ class techno2_SpecificationDoc extends core_Embedder
     				$data->toolbar->addBtn("Задание", array('mp_Jobs', 'edit', $qRec->id, 'ret_url' => TRUE), 'ef_icon = img/16/clipboard_text.png,title=Редактиране на задание за производство');
     			} else {
     				$data->toolbar->addBtn("Задание", array('mp_Jobs', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE), 'ef_icon = img/16/clipboard_text.png,title=Създаване на ново задание за производство');
-    			}
-    		}
-    		
-    		// Ако има артикул генериран от спецификацията, показваме бутон към него
-    		if($pRec = cat_Products::fetch("#specificationId = {$data->rec->id}")){
-    			if(cat_Products::haveRightFor('single', $pRec)){
-    				$data->toolbar->addBtn("Артикул", array('cat_Products', 'single', $pRec->id, 'ret_url' => TRUE), "ef_icon = img/16/wooden-box.png,title=Към артикул '{$pRec->name}'");
-    			}
-    		} else {
-    			if(cat_Products::haveRightFor('add')){
-    				$data->toolbar->addBtn("Нов артикул", array($mvc, 'CreateProduct', $data->rec->id, 'ret_url' => TRUE), "ef_icon = img/16/star_2.png,title=Създаване на нов артикул");
     			}
     		}
     	}
@@ -961,17 +951,27 @@ class techno2_SpecificationDoc extends core_Embedder
      */
     public static function createProduct($id, $code = NULL)
     {
+    	$Products = cls::get('cat_Products');
     	expect($rec = self::fetchRec($id));
     	
-    	$pRec = (object)array('name'            => $rec->title, 
-    						  'code'			=> $code,
-    						  'innerClass'      => $rec->innerClass, 
-    						  'innerForm'       => $rec->innerForm, 
-    						  'innerState'      => $rec->innerState, 
-    						  'privateFolderId' => $rec->folderId, 
-    						  'specificationId' => $rec->id,
-    						  'state' 			=> 'active',
+    	$cover = doc_Folders::getCover($rec->folderId);
+    	if($cover->haveInterface('doc_ContragentDataIntf')){
+    		$folderId = $rec->folderId;
+    	} else {
+    		$folderId = cat_Categories::forceCoverAndFolder(cat_Categories::fetchField("#sysId = 'products'", 'id'));
+    		$code = "SPEC{$rec->id}";
+    	}
+    	
+    	$pRec = (object)array('name'       => $rec->title, 
+    						  'code'	   => $code,
+    						  'innerClass' => $rec->innerClass, 
+    						  'innerForm'  => $rec->innerForm, 
+    						  'innerState' => $rec->innerState, 
+    						  'folderId'   => $folderId,
+    						  'state' 	   => 'active',
+    						  'meta'	   => $rec->meta,
     	);
+    	$Products->route($pRec);
     	
     	return cat_Products::save($pRec);
     }

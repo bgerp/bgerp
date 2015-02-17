@@ -232,9 +232,8 @@ class mp_Jobs extends core_Master
         // Ако има ориджин в рекуеста
     	if($originId = Request::get('originId', 'int')){
     		
-    		// Очакваме той да е 'techno2_SpecificationDoc' - спецификация
     		$origin = doc_Containers::getDocument($originId);
-    		expect($origin->getInstance() instanceof techno2_SpecificationDoc);
+    		expect($origin->haveInterface('cat_ProductAccRegIntf'));
     		expect($origin->fetchField('state') == 'active');
     		
     		// Ако е спецификация, документа може да се добави към нишката
@@ -257,7 +256,7 @@ class mp_Jobs extends core_Master
     			$res = 'no_one';
     		} else {
     			$origin = doc_Containers::getDocument($rec->originId);
-    			if(!($origin->getInstance() instanceof techno2_SpecificationDoc)){
+    			if(!$origin->haveInterface('cat_ProductAccRegIntf')){
     				$res = 'no_one';
     			}
     			

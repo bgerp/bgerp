@@ -161,29 +161,6 @@ class store_Products extends core_Manager
 	{
 		$res = " " . plg_Search::normalizeText($rec->name);
 	}
-     
-     
-    /**
-     * При добавяне/редакция на палетите - данни по подразбиране
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $res
-     * @param stdClass $data
-     */
-    protected static function on_AfterPrepareEditForm($mvc, &$res, $data)
-    {
-        $form = &$data->form;
-        $rec = &$form->rec;
-        expect($ProductManager = cls::get($rec->classId));
-        
-    	if (empty($rec->id)) {
-            $form->setOptions('productId', $ProductManager::getByProperty('canStore'));
-        } else {
-            $form->setOptions('productId', array($rec->productId => $ProductManager->getTitleById($rec->productId)));
-        }
-        
-        $form->setReadOnly('storeId', store_Stores::getCurrent());
-    }
     
 
     /**

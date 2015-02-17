@@ -10,10 +10,6 @@
                             <td class='dt'>System Id:</td>
                             <td> [#sysId#]</td>
                         </tr>
-                        <tr>
-                            <td class='dt'>|Брой продукти|*:</td>
-                            <td> [#productCnt#]</td>
-                        </tr>
                     </table>
                 </div>
             </fieldset>

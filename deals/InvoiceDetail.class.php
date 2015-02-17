@@ -110,7 +110,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 			foreach ($productManagers as $manId => $manName) {
 				$productMan = cls::get($manId);
 				$error = '';
-				if(!count($productMan->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->valior, $mvc->metaProducts, 1))){
+				if(!count($productMan->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->valior, $mvc->metaProducts, NULL, 1))){
 					$text = ($mvc->metaProducts == 'canSell') ? "продаваеми" : "купуваеми";
 					$error = "error=Няма {$text} {$productMan->title}";
 				}

@@ -323,7 +323,7 @@ class doc_DocumentPlg extends core_Plugin
     {
         // Ако създаваме нов документ и ...
         if(!$rec->id) {
-            
+        	
             // ... този документ няма ключ към папка и нишка, тогава
             // извикваме метода за рутиране на документа
             if(!isset($rec->folderId) || !isset($rec->threadId)) {

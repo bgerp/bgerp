@@ -3,24 +3,30 @@
 
 
 /**
- * Мениджър на групи с продукти.
+ * Мениджър на категории с продукти.
  *
  *
  * @category  bgerp
  * @package   cat
- * @author    Stefan Stefanov <stefan.bg@gmail.com>
+ * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class cat_Groups extends core_Manager
+class cat_Categories extends core_Master
 {
     
     
 	/**
+	 * Поддържани интерфейси
+	 */
+	public $interfaces = 'cat_ProductFolderCoverIntf';
+	
+	
+    /**
      * Заглавие
      */
-    var $title = "Групи на артикулите";
+    var $title = "Категории на артикулите";
     
     
     /**
@@ -32,19 +38,19 @@ class cat_Groups extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, cat_Wrapper, plg_Search, plg_Translate';
+    var $loadList = 'plg_Created, plg_RowTools, cat_Wrapper, plg_State, doc_FolderPlg, plg_Rejected';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id,name,productCnt';
+    var $listFields = 'id,name';
     
     
     /**
      * Полета по които се прави пълнотекстово търсене от плъгина plg_Search
      */
-    var $searchFields = 'sysId, name, productCnt';
+    var $searchFields = 'sysId, name, productCnt, info';
     
     
     /**
@@ -62,7 +68,13 @@ class cat_Groups extends core_Manager
     /**
      * Наименование на единичния обект
      */
-    var $singleTitle = "Група";
+    var $singleTitle = "Категория";
+    
+    
+    /**
+     * Икона за единичен изглед
+     */
+    var $singleIcon = 'img/16/category-icon.png';
     
     
     /**
@@ -128,7 +140,13 @@ class cat_Groups extends core_Manager
     /**
      * Нов темплейт за показване
      */
-    var $singleLayoutFile = 'cat/tpl/SingleGroup.shtml';
+    var $singleLayoutFile = 'cat/tpl/SingleCategories.shtml';
+    
+    
+    /**
+     * Дефолт достъп до новите корици
+     */
+    public $defaultAccess = 'public';
     
     
     /**
@@ -138,7 +156,7 @@ class cat_Groups extends core_Manager
     {
         $this->FLD('name', 'varchar(64)', 'caption=Наименование, mandatory,translate');
         $this->FLD('sysId', 'varchar(32)', 'caption=System Id,oldFieldName=systemId,input=none,column=none');
-        $this->FLD('productCnt', 'int', 'input=none,caption=Артикули');
+        $this->FLD('info', 'richtext(bucket=Notes)', 'caption=Бележки');
         
         // Свойства присъщи на продуктите в групата
         $this->FLD('meta', 'set(canSell=Продаваеми,
@@ -146,56 +164,11 @@ class cat_Groups extends core_Manager
                                 canStore=Складируеми,
                                 canConvert=Вложими,
                                 fixedAsset=Дълготрайни активи,
-        						canManifacture=Производими,
-        						waste=Отпаден)', 'caption=Свойства->Списък,columns=2,input=none');
+        			canManifacture=Производими,
+        			waste=Отпаден)', 'caption=Свойства ( предават се на артикулите, създадени в папката )->Списък,columns=2');
         
         
         $this->setDbUnique("sysId");
-    }
-    
-    
-    /**
-     * Филтър на on_AfterPrepareListFilter()
-     * Малко манипулации след подготвянето на формата за филтриране
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $data
-     */
-    static function on_AfterPrepareListFilter($mvc, $data)
-    {
-        // Добавяме поле във формата за търсене
-        $data->listFilter->FNC('product', 'key(mvc=cat_Products, select=name, allowEmpty=TRUE)', 'caption=Продукт');
-        
-        $data->listFilter->view = 'horizontal';
-        
-        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        
-        // Показваме само това поле. Иначе и другите полета 
-        // на модела ще се появят
-        $data->listFilter->showFields = 'product';
-        
-        $rec = $data->listFilter->input(NULL, 'silent');
-        
-        $data->query->orderBy('#name');
-        
-        if($data->listFilter->rec->product) {
-            $groupList = cat_Products::fetchField($data->listFilter->rec->product, 'groups');
-            $data->query->where("'{$groupList}' LIKE CONCAT('%|', #id, '|%')");
-        }
-    }
-    
-    
-    /**
-     * След преобразуване на записа в четим за хора вид.
-     */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
-    {
-        //$row->productCnt = intval($rec->productCnt);
-        
-        if($fields['-list']){
-            //$row->name .= " ({$row->productCnt})";
-            $row->name = ht::createLink($row->name, array('cat_Products', 'list', 'groupId' => $rec->id));
-        }
     }
     
     
@@ -212,22 +185,81 @@ class cat_Groups extends core_Manager
     {
         // Ако групата е системна или в нея има нещо записано - не позволяваме да я изтриваме
         if($action == 'delete' && ($rec->sysId || $rec->productCnt)) {
-        	$requiredRoles = 'no_one';
+            $requiredRoles = 'no_one';
         }
     }
     
     
-    protected static function on_AfterSetupMvc($mvc, &$res)
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	$file = "cat/csv/Groups.csv";
-    	$fields = array(
-    			0 => "name",
-    			1 => "sysId",
-    	);
+    	if($fields['-list']){
+    		$row->name .= " {$row->folder}";
+    	}
+    }
     
-    	$cntObj = csv_Lib::importOnce($mvc, $file, $fields);
-    	$res .= $cntObj->html;
     
-    	return $res;
+    /**
+     * Връща keylist от id-та на групи, съответстващи на даден стрингов
+     * списък от sysId-та, разделени със запетайки
+     */
+    static function getKeylistBySysIds($list, $strict = FALSE)
+    {
+        $sysArr = arr::make($list);
+        
+        foreach($sysArr as $sysId) {
+            $id = static::fetchField("#sysId = '{$sysId}'", 'id');
+            
+            if($strict) {
+                expect($id, $sysId, $list);
+            }
+            
+            if($id) {
+                $keylist .= '|' . $id;
+            }
+        }
+        
+        if($keylist) {
+            $keylist .= '|';
+        }
+        
+        return $keylist;
+    }
+    
+    
+    /**
+     * Извиква се след SetUp-а на таблицата за модела
+     */
+    static function on_AfterSetupMvc($mvc, &$res)
+    {
+        $file = "cat/csv/Categories.csv";
+        $fields = array(
+            0 => "name",
+            1 => "info",
+            2 => "sysId",
+            3 => "meta",
+            4 => "access",
+        );
+        
+        $cntObj = csv_Lib::importOnce($mvc, $file, $fields);
+        $res .= $cntObj->html;
+        
+        return $res;
+    }
+    
+    
+    /**
+     * Връща мета дефолт мета данните на папката
+     *
+     * @param int $id - ид на спецификация папка
+     * @return array $meta - масив с дефолт мета данни
+     */
+    public function getDefaultMeta($id)
+    {
+    	$rec = $this->fetchRec($id);
+    	
+    	return arr::make($rec->meta, TRUE);
     }
 }

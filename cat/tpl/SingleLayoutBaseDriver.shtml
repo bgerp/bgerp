@@ -13,12 +13,6 @@
                     <legend class="groupTitle">|Информация|*</legend>
                     <div class="groupList">
                         <table class='no-border'>
-                        	<!--ET_BEGIN code-->
-                            <tr>
-                                <td class='dt'>|Код|*:</td>
-                                <td> [#code#]</td>
-                            </tr>
-                            <!--ET_END code-->
                             <tr>
                                 <td class='dt'>|Мярка|*:</td>
                                 <td> [#measureId#]</td>

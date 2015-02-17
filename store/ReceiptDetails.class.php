@@ -118,12 +118,11 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
     protected function getProducts($ProductManager, $masterRec)
     {
     	$property = ($masterRec->isReverse == 'yes') ? 'canSell' : 'canBuy';
+    	$property .= ',canStore';
     	
     	// Намираме всички продаваеми продукти, и оттях оставяме само складируемите за избор
     	$products = $ProductManager->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date, $property);
-    	$products2 = $ProductManager::getByProperty('canStore');
-    	$products = array_intersect_key($products, $products2);
-    	 
+    	
     	return $products;
     }
 

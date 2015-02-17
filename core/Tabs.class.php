@@ -93,6 +93,10 @@ class core_Tabs extends core_BaseClass
             $selectedTab = Request::get('selectedTab');
         }
         
+        if (!$selectedTab) {
+        	$selectedTab = Request::get('Tab');
+        }
+        
         //  ,     
         if (!$selectedTab) {
             $selectedTab = key($this->tabs);
@@ -148,5 +152,17 @@ class core_Tabs extends core_BaseClass
         $tabsTpl = new ET($html, $head, $body);
         
         return $tabsTpl;
+    }
+    
+    
+    /**
+     * Дали в таба има таб с посочено име
+     * 
+     * @param string $name - име на таб, за който проверяваме
+     * @return boolean - дали е в таба или не
+     */
+    public function hasTab($name)
+    {
+    	return array_key_exists($name, $this->tabs);
     }
 }

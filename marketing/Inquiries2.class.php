@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   marketing
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -478,12 +478,18 @@ class marketing_Inquiries2 extends core_Embedder
     	 
     	if($rec->state == 'active'){
     
-    		if($sId = techno2_SpecificationDoc::fetchField("#originId = {$rec->containerId} AND #state = 'active'")){
-    			$data->toolbar->addBtn($data->row->innerClass, array('techno2_SpecificationDoc', 'single', $sId), "ef_icon=img/16/specification.png,title=Спецификация");
+    		if($sId = cat_Products::fetchField("#originId = {$rec->containerId} AND #state = 'active'")){
+    			$data->toolbar->addBtn($data->row->innerClass, array('cat_Products', 'single', $sId), "ef_icon=img/16/specification.png,title=Артикул");
     		} else {
     			// Създаване на нова спецификация от запитването
-    			if(techno2_SpecificationDoc::haveRightFor('add')){
-    				$data->toolbar->addBtn($data->row->innerClass, array($mvc, 'createSpecification', $rec->id), "ef_icon=img/16/specification.png,warning=Искате ли да създадете нова спецификация,title=Създаване на нова спецификация");
+    			if(cat_Products::haveRightFor('add')){
+    				$url = array('cat_Products', 'add', "innerClass" => $rec->innerClass, "sourceId" => $rec->containerId);
+    				if(doc_Folders::getCover($rec->folderId)->haveInterface('doc_ContragentDataIntf')){
+    					$url['folderId'] = $rec->folderId; 
+    					$url['threadId'] = $rec->threadId;
+    				}
+    				
+    				$data->toolbar->addBtn($data->row->innerClass, $url, "ef_icon=img/16/specification.png,title=Създаване на нов частен артикул");
     			}
     		}
     
@@ -785,23 +791,5 @@ class marketing_Inquiries2 extends core_Embedder
     	if(isset($rec->oldCreatedOn)){
     		$rec->createdOn = $rec->oldCreatedOn;
     	}
-    }
-    
-    
-    /**
-     * Препраща имейл-а генериран от създаването на запитването отново
-     */
-    public function act_createSpecification()
-    {
-    	techno2_SpecificationDoc::requireRightFor('add');
-    	expect($id = Request::get('id', 'int'));
-    	expect($rec = $this->fetch($id));
-    	expect($rec->state != 'rejected');
-    	
-    	$specificationRec = techno2_SpecificationDoc::createNew($rec->title, $rec->innerClass, $rec->innerForm, 'active', NULL, $rec->threadId);
-    	$specificationRec->originId = $rec->containerId;
-    	techno2_SpecificationDoc::save($specificationRec, 'originId');
-    	
-    	return redirect(array('techno2_SpecificationDoc', 'single', $specificationRec->id), 'Успешно е генерирана спецификация');
     }
 }

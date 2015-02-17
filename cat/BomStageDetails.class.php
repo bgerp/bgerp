@@ -103,7 +103,6 @@ class cat_BomStageDetails extends core_Detail
     	$this->FLD('bomstageId', 'key(mvc=cat_BomStages)', 'column=none,input=hidden,silent');
     	$this->FLD("resourceId", 'key(mvc=mp_Resources,select=title,allowEmpty)', 'caption=Ресурс,mandatory,silent', array('attr' => array('onchange' => 'addCmdRefresh(this.form);this.form.submit();')));
     	$this->FLD("productId", 'key(mvc=cat_Products, select=name, allowEmpty)', 'caption=Артикул,input=none');
-    	$this->FLD("specId", 'key(mvc=techno2_SpecificationDoc, select=title, allowEmpty)', 'caption=Спецификация,input=none');
     	$this->FLD('toStore', 'key(mvc=store_Stores,select=name,allowEmpty)', 'column=none,input=none,caption=Към склад');
     	$this->FLD("baseQuantity", 'double', 'caption=Количество->Начално,hint=Начално количество');
     	$this->FLD("propQuantity", 'double', 'caption=Количество->Пропорционално,hint=Пропорционално количество');
@@ -149,13 +148,11 @@ class cat_BomStageDetails extends core_Detail
     		$form->setField('baseQuantity', 'mandatory,caption=К-во');
     		$form->setField('propQuantity', 'input=none');
     		$form->setField('resourceId', 'input=none');
-    		$form->setField('productId', 'input');
-    		$form->setField('specId', 'input');
+    		$form->setField('productId', 'input,mandatory');
     		$form->setField('toStore', 'input,mandatory');
     		
     		// Оставяме само производимите артикули и спецификации
     		$form->setOptions('productId', cat_Products::getByProperty('canManifacture'));
-    		$form->setOptions('specId', techno2_SpecificationDoc::getByProperty('canManifacture'));
     		
     		$form->title = $act . tr(" |на|* ") . tr('изходен артикул') . tr(' |към|* ') . "|*<b style='color:#ffffcc;'>{$mTitle}</span>";
     	}
@@ -191,20 +188,6 @@ class cat_BomStageDetails extends core_Detail
     		if(empty($rec->baseQuantity) && empty($rec->propQuantity)){
     			$form->setError('baseQuantity,propQuantity', 'Трябва да е въведено поне едно количество');
     		}
-    		
-    		// При добавяне на изходен артикул
-    		if($rec->type == 'pop'){
-    			
-    			// Трябва да има поне един избран артикул или спецификация на артикул
-    			if(empty($rec->productId) && empty($rec->specId)){
-    				$form->setError('productId,specId', 'Не е избран изходен артикул');
-    			}
-    			
-    			// Не може да се изберат и артикул и спецификация
-    			if(isset($rec->productId) && isset($rec->specId)){
-    				$form->setError('productId,specId', 'Трябва да е избран точно един артикул');
-    			}
-    		}
     	}
     }
     
@@ -220,12 +203,10 @@ class cat_BomStageDetails extends core_Detail
     	} 
     	
     	// Името и мярката на изходния артикул/спецификация
-    	foreach (array('productId' => 'cat_Products', 'specId' => 'techno2_SpecificationDoc') as $fld => $ProductMan){
-    		if(isset($rec->$fld)){
-    			$mId = $ProductMan::getProductInfo($rec->$fld)->productRec->measureId;
-    			$row->measureId = cat_UoM::getShortName($mId);
-    			$row->resourceId = $row->$fld;
-    		}
+    	if(isset($rec->productI)){
+    		$mId = cat_Products::getProductInfo($rec->productId)->productRec->measureId;
+    		$row->measureId = cat_UoM::getShortName($mId);
+    		$row->resourceId = $row->$fld;
     	}
     	
     	// Правим името линк

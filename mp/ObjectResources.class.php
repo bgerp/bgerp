@@ -187,8 +187,12 @@ class mp_ObjectResources extends core_Manager
     	$data->TabCaption = 'Ресурси';
     	$data->rows = array();
     	 
+    	// Таба излиза на горния ред, само ако е в документ
     	$classId = $data->masterMvc->getClassId();
-    	 
+		if(cls::haveInterface('doc_DocumentIntf', $data->masterMvc)){
+			$data->Tab = 'top';
+		}
+    	
     	$query = $this->getQuery();
     	$query->where("#classId = {$classId} AND #objectId = {$data->masterId}");
     	 

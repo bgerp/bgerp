@@ -301,54 +301,51 @@ class core_Master extends core_Manager
                 asort($detailTabbed);
               	$tabArray = array();
 
+              	// Подготвяме горни и долни табове
+              	$tabTop = cls::get('core_Tabs', array('htmlClass' => 'alphabet'));
+              	$tabBottom = cls::get('core_Tabs', array('htmlClass' => 'alphabet'));
+              	
                 foreach($detailTabbed as $var => $order) {
 
                     $url = getCurrentUrl();
                     $url['Tab'] = $var;
                     $url['#'] = 'detailTabs';
                     
-                    // Групираме табовете по зададения им плейсхолдър (ако никой няма ще ги рендираме заедно)
-                    if(!array_key_exists($data->{$var}->TabPlaceholder, $tabArray)){
-                    	$tabArray[$data->{$var}->TabPlaceholder] = cls::get('core_Tabs', array('htmlClass' => 'alphabet'));
-                    }
-                    
-                    // Разпределяме детайлите спрямо това, в кой плейсхолдър трябва да се рендират
-                    $tabsRef = &$tabArray[$data->{$var}->TabPlaceholder];
-                    $tabsRef->TAB($var, $data->{$var}->TabCaption ? $data->{$var}->TabCaption : $var, $data->{$var}->disabled ? array() : toUrl($url));
-
-                    if($var == $data->Tab || (!$data->Tab && !$selected)) {
+                    // Ако е зададено детайла да е в горния таб, добавяме го, иначе е в долния
+                    $tab = ($data->{$var}->Tab == 'top') ? $tabTop : $tabBottom;
+                    $url['#'] = ($data->{$var}->Tab == 'top') ? 'detailTabsTop' : 'detailTabs';
+                    $tab->TAB($var, $data->{$var}->TabCaption ? $data->{$var}->TabCaption : $var, $data->{$var}->disabled ? array() : toUrl($url));
+					if($var == $data->Tab || (!$data->Tab && !$selected)) {
                         $selected = $var;
                     }
                 }
                 
-                // Обикаляме всички табове (винаги е поне един) и ги рендираме в съответния плейсхолдър 
-                // (ако не е посочен плейсхолдър) реднираме ги в 'DETAILS'
-                foreach ($tabArray as $placeholder => $tabs){
-                	
-                	if($selected ==  $this->details[$selected]) {
-                		$method = 'renderDetail';
-                	} else {
-                		$method = 'render' . $selected;
-                	}
-                	
-                	if(count($detailTabbed) > 1) {
-                		$selectedHtml = NULL;
-                		
-                		// Ако избрания таб е точно към текущия обект, само тогава му рендираме 
-                		// съдържанието в таба иначе ще се замести на всички табове
-                		if(array_key_exists($selected, $tabs->tabs)){
-                			$selectedHtml = $this->{$selected}->$method($data->{$selected});
-                		}
-                		$tabHtml = $tabs->renderHtml($selectedHtml, $selected);
-                	} else {
-                		$tabHtml = $this->{$selected}->$method($data->{$selected});
-                	}
-                	
-                	$tabHtml = new ET("<div style='margin-top:20px;' class='clearfix21'></div><div class='docStatistic'><a id='detailTabs'></a>[#1#]</div>", $tabHtml);
-                	
-                	$placeholder = ($placeholder) ? $placeholder : 'DETAILS';
-                	$tpl->append($tabHtml, $placeholder);
+                $method = ($selected ==  $this->details[$selected]) ? 'renderDetail' : 'render' . $selected;
+                
+                if(count($detailTabbed) > 1) {
+                	$selectedHtml = NULL;
+                
+                	$tab = (array_key_exists($selected, $tabTop->tabs)) ? $tabTop : $tabBottom;
+                	$selectedHtml = $this->{$selected}->$method($data->{$selected});
+                	$tabHtml = $tab->renderHtml($selectedHtml, $selected);
+                } else {
+                	$tabHtml = $this->{$selected}->$method($data->{$selected});
                 }
+                
+                $detailsTpl = new ET('');
+                
+                // Горния таб с детайли го показваме винаги
+                $tabHtml1 = (!$tabTop->hasTab($selected)) ? $tabTop->renderHtml() : $tabHtml;
+                $tabHtml1 = new ET("<div style='margin-top:20px;' class='tab-top'><a id='detailTabsTop'></a>[#1#]</div>", $tabHtml1);
+                $detailsTpl->append($tabHtml1);
+                
+                // Долния таб го показваме само ако има избран детайл от него
+                if($tabBottom->hasTab($selected)){
+                	$tabHtml2 = new ET("<div class='clearfix21'></div><div class='docStatistic'><a id='detailTabs'></a>[#1#]</div>", $tabHtml);
+                	$detailsTpl->append($tabHtml2);
+                }
+               
+                $tpl->append($detailsTpl, 'DETAILS');
             }
         }
         

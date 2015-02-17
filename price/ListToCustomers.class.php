@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   price
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Правила за ценоразписи
@@ -376,40 +376,106 @@ class price_ListToCustomers extends core_Detail
     /**
      * Връща цената за посочения продукт към посочения клиент на посочената дата
      * 
-     * @return object $rec->price  - цена
+     * @param mixed $customerClass - клас на контрагента
+     * @param int $customerId - ид на контрагента
+     * @param int $productId - ид на артикула
+     * @param int $productManId - ид на продуктовия мениджър
+     * @param int $packagingId - ид на опаковка
+     * @param double $quantity - количество
+     * @param datetime $datetime - дата
+     * @param double $rate  - валутен курс
+     * @param enum(yes=Включено,no=Без,separate=Отделно,export=Експорт) $chargeVat - начин на начисляване на ддс
+     * @return stdClass $rec->price  - цена
      * 				  $rec->discount - отстъпка
      */
     public function getPriceInfo($customerClass, $customerId, $productId, $productManId, $packagingId = NULL, $quantity = NULL, $datetime = NULL, $rate = 1, $chargeVat = 'no')
     {
-        $listId = self::getListForCustomer($customerClass, $customerId, $datetime);
-		$rec = new stdClass();
-		$rec->price = price_ListRules::getPrice($listId, $productId, $packagingId, $datetime);
-		
-        $listRec = price_Lists::fetch($listId);
-       
-        // Ако е избрано да се връща отстъпката спрямо друга политика
-        if(!empty($listRec->discountCompared)){
+        // Опит за намиране на цената по ценовата политика на клиента
+    	$rec = $this->getPriceByList($customerClass, $customerId, $productId, $productManId, $packagingId, $quantity, $datetime, $rate, $chargeVat);
+    	
+    	// Ако няма цена по политика
+        if(is_null($rec->price)){
         	
-        	// Намираме цената по тази политика и намираме колко % е отстъпката/надценката
-        	$comparePrice = price_ListRules::getPrice($listRec->discountCompared, $productId, $packagingId, $datetime);
-        	if($comparePrice){
-        		$disc = ($rec->price - $comparePrice) / $comparePrice;
-        		$rec->discount = round(-1 * $disc, 4);
-        		
-        		// Подменяме цената за да може като се приспадне отстъпката и, да се получи толкова колкото тя е била
-        		$rec->price  = $comparePrice;
-        	}
+        	// Опитваме се да намерим цената според рецептата и заданието
+        	$rec = $this->getPriceByBom($customerClass, $customerId, $productId, $productManId, $packagingId, $quantity, $datetime, $rate, $chargeVat);
         }
         
         // Обръщаме цената във валута с ДДС ако е зададено и се закръгля спрямо ценоразписа
-        $vat = cls::get($productManId)->getVat($productId);
-        $rec->price = deals_Helper::getDisplayPrice($rec->price, $vat, $rate, $chargeVat, $listRec->roundingPrecision);
-        
+        if(!is_null($rec->price)){
+        	$vat = cls::get($productManId)->getVat($productId);
+        	$rec->price = deals_Helper::getDisplayPrice($rec->price, $vat, $rate, $chargeVat, $listRec->roundingPrecision);
+        }
+       
         // Връщаме цената
         return $rec;
     }
     
 	
+    /**
+     * Опит за намиране на цената според политиката за клиента (ако има такава)
+     */
+    private function getPriceByList($customerClass, $customerId, $productId, $productManId, $packagingId = NULL, $quantity = NULL, $datetime = NULL, $rate = 1, $chargeVat = 'no')
+    {
+    	$listId = self::getListForCustomer($customerClass, $customerId, $datetime);
+    	$rec = new stdClass();
+    	$rec->price = price_ListRules::getPrice($listId, $productId, $packagingId, $datetime);
+    	
+    	$listRec = price_Lists::fetch($listId);
+    	 
+    	// Ако е избрано да се връща отстъпката спрямо друга политика
+    	if(!empty($listRec->discountCompared)){
+    		 
+    		// Намираме цената по тази политика и намираме колко % е отстъпката/надценката
+    		$comparePrice = price_ListRules::getPrice($listRec->discountCompared, $productId, $packagingId, $datetime);
+    		if($comparePrice){
+    			$disc = ($rec->price - $comparePrice) / $comparePrice;
+    			$rec->discount = round(-1 * $disc, 4);
+    	
+    			// Подменяме цената за да може като се приспадне отстъпката и, да се получи толкова колкото тя е била
+    			$rec->price  = $comparePrice;
+    		}
+    	}
+    	
+    	return $rec;
+    }
+    
+    
+    /**
+     * Намиране на цената според технологичната рецепта и задание (ако има такива)
+     */
+    private function getPriceByBom($customerClass, $customerId, $productId, $productManId, $packagingId = NULL, $quantity = NULL, $datetime = NULL, $rate = 1, $chargeVat = 'no')
+    {
+    	$ProductMan = cls::get($productManId);
+    	$rec = $ProductMan->fetchRec($productId);
+    	$price = (object)array('price' => NULL);
+    	 
+    	// Ако не е зададено количество, взимаме това от последното активно задание, ако има такова
+    	if(!isset($quantity)){
+    		
+    		$quantityJob = $ProductMan->getLastActiveJob($rec)->quantity;
+    		if(isset($quantityJob)){
+    			$quantity = $quantityJob;
+    		}
+    	}
+    	
+    	// Опитваме се да намерим цена според технологичната карта
+    	if($amounts = cat_Boms::getTotalByOrigin($rec->containerId)){
+    	
+    		// Какви са максималната и минималната надценка за контрагента
+    		$minCharge = cond_Parameters::getParameter($customerClass, $customerId, 'minSurplusCharge');
+    		$maxCharge = cond_Parameters::getParameter($customerClass, $customerId, 'maxSurplusCharge');
+    	
+    		// Връщаме цената спрямо минималната и максималната отстъпка, началното и пропорционалното количество
+    		$price->price = ($amounts->base * (1 + $maxCharge) + $quantity * $amounts->prop * (1 + $minCharge)) / $quantity;
+    	
+    		return $price;
+    	}
+    	
+    	// Връщаме цената
+    	return $price;
+    }
+    
+    
     /**
      * Помощна функция, добавяща 23:59:59 ако е зададена дата без час
      */

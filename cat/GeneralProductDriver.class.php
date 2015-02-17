@@ -25,7 +25,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	/**
 	 * Дефолт мета данни за всички продукти
 	 */
-	protected $defaultMetaData = 'canSell,canBuy,canStore';
+	protected $defaultMetaData = 'canSell,canBuy';
 	
 	
 	/**

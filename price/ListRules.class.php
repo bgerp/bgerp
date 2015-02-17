@@ -619,7 +619,6 @@ class price_ListRules extends core_Detail
      */
 	public function preparePriceList($data)
 	{
-		$data->TabCaption = 'Себестойност';
 		$pRec = $data->masterData->rec;
 		$listId = static::PRICE_LIST_COST;
 		$data->priceLists = new stdClass();
@@ -650,7 +649,7 @@ class price_ListRules extends core_Detail
 	{
 		$wrapTpl = getTplFromFile('cat/tpl/ProductDetail.shtml');
 		$table = cls::get('core_TableView', array('mvc' => $this));
-		$tpl = $table->get($data->priceLists->rows, "domain=Обхват,rule=Правило,validFrom=В сила->От,validUntil=В сила->До");
+		$tpl = $table->get($data->priceLists->rows, "domain=Обхват,rule=Правило,validFrom=От,validUntil=До");
 		
 		$title = 'Себестойности';
 		if($data->priceLists->addUrl){
