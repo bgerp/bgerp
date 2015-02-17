@@ -365,6 +365,8 @@ div.folder-cover {
     margin-top: 0; }
   div.folder-cover .docStatistic {
     margin-top: 20px; }
+  div.folder-cover .top-tab-content {
+    padding: 5px 10px 10px 10px; }
 
 .narrow .folder-cover {
   line-height: 1.3em;
