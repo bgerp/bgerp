@@ -523,46 +523,12 @@ class cat_Products extends core_Embedder {
      * 							        данни, на които трябва да отговарят
      * @param mixed $hasnotProperties - комбинация на горе посочените мета 
      * 							        които не трябва да имат
-     * 
-     * @return core_Query $query - подготвена заявка, ако няма се търси по всички активни артикули
      */
-    public static function getByProperty($properties, $hasnotProperties = NULL, $query = NULL)
+    public static function getByProperty($properties, $hasnotProperties = NULL)
     {
     	$me = cls::get(get_called_class());
-    	$products = array();
-    	$metaArr = arr::make($properties);
-    	$hasnotProperties = arr::make($hasnotProperties);
     	
-    	if(!isset($query)){
-    		$query = self::getQuery();
-    		$query->show('id,name,code');
-    		$query->where("#state = 'active'");
-    		$query->where("#isPublic = 'yes'");
-    	}
-    	
-    	$Varchar = cls::get('type_Varchar');
-    	
-    	// За всяко свойство търсим по полето за бързо търсене
-    	if(count($metaArr)){
-    		foreach ($metaArr as $meta){
-    			$query->where("#{$meta} = 'yes'");
-    		}
-    	}
-    	
-    	if(count($hasnotProperties)){
-    		foreach ($hasnotProperties as $meta1){
-    			$query->where("#{$meta1} = 'no'");
-    		}
-    	}
-    	
-    	// Подготвяме опциите
-    	while($rec = $query->fetch()){
-    		$row = (object)array('code' => $Varchar->toVerbal($rec->code), 'name' => $Varchar->toVerbal($rec->name));
-    		$tpl = new ET($me->recTitleTpl);
-    		$tpl->placeObject($row);
-    		
-    		$products[$rec->id] = $tpl->getContent();
-    	}
+    	$products = $me->getProducts(NULL, NULL, NULL, $properties, $hasnotProperties);
     	
     	return $products;
     }
@@ -815,20 +781,49 @@ class cat_Products extends core_Embedder {
     	
     	// Само активни артикули
     	$query->where("#state = 'active'");
-    	$folderId = cls::get($customerClass)->forceCoverAndFolder($customerId);
     	
-    	// Избираме всички публични артикули, или частните за тази папка
-    	$query->where("#isPublic = 'yes'");
-    	$query->orWhere("#isPublic = 'no' AND #folderId = {$folderId}");
-    	$query->show('isPublic,folderId,meta,id,code,name');
+    	// Ако е зададен контрагент, оставяме смао публичните + частните за него
+    	if(isset($customerClass) && isset($customerId)){
+    		$folderId = cls::get($customerClass)->forceCoverAndFolder($customerId);
+    		 
+    		// Избираме всички публични артикули, или частните за тази папка
+    		$query->where("#isPublic = 'yes'");
+    		$query->orWhere("#isPublic = 'no' AND #folderId = {$folderId}");
+    		$query->show('isPublic,folderId,meta,id,code,name');
+    	}
     	
     	// Ограничаваме заявката при нужда
     	if(isset($limit)){
     		$query->limit($limit);
     	}
     	
-    	// Извличаме тези артикули, отговарящи на заявката с посочените свойства
-    	$products = static::getByProperty($hasProperties, $hasnotProperties, $query);
+    	$products = array();
+    	$metaArr = arr::make($hasProperties);
+    	$hasnotProperties = arr::make($hasnotProperties);
+    	
+    	$Varchar = cls::get('type_Varchar');
+    	
+    	// За всяко свойство търсим по полето за бързо търсене
+    	if(count($metaArr)){
+    		foreach ($metaArr as $meta){
+    			$query->where("#{$meta} = 'yes'");
+    		}
+    	}
+    	
+    	if(count($hasnotProperties)){
+    		foreach ($hasnotProperties as $meta1){
+    			$query->where("#{$meta1} = 'no'");
+    		}
+    	}
+    	
+    	// Подготвяме опциите
+    	while($rec = $query->fetch()){
+    		$row = (object)array('code' => $Varchar->toVerbal($rec->code), 'name' => $Varchar->toVerbal($rec->name));
+    		$tpl = new ET($this->recTitleTpl);
+    		$tpl->placeObject($row);
+    		
+    		$products[$rec->id] = $tpl->getContent();
+    	}
     	
     	return $products;
     }
