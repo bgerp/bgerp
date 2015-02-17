@@ -387,9 +387,7 @@ class cal_Tasks extends core_Master
 	        foreach ($data->recs as $id => $rec) {
 	        	$row = $data->rows[$id];
 	        	if ($rec->savedState == 'pending') {
-	        		$a = strstr($row->title->content, '" href="', TRUE);
-	        		$b = strstr($row->title->content, '" href="');
-	        		$row->title->content = $a."color: #b7c;".$b;;
+	        		$row->title = "<div class='state-pending-link'>{$row->title}</div>";
 	        	}
 	        }
         }
