@@ -224,11 +224,7 @@ class pos_Favourites extends core_Manager {
     	$obj->quantity = ($packRec) ? $packRec->quantity : 1;
     	
     	if(empty($rec->image)){
-    		
-    		// Ако няма иконка, я взима от продукта (ако има)
-    		if(!$rec->image = $info->productRec->photo){
-    			$rec->image = cat_products_Files::getImgFh($rec->productId);
-    		}
+    		$rec->image = $info->productRec->photo;
     	}
     	
     	$arr['image'] = $rec->image;

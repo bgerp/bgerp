@@ -59,7 +59,7 @@ class cat_Products extends core_Embedder {
     /**
      * Детайла, на модела
      */
-    var $details = 'Packagings=cat_products_Packagings,Files=cat_products_Files,Prices=cat_PriceDetails,AccReports=acc_ReportDetails,Resources=mp_ObjectResources';
+    var $details = 'Packagings=cat_products_Packagings,Prices=cat_PriceDetails,AccReports=acc_ReportDetails,Resources=mp_ObjectResources';
     
     
     /**
