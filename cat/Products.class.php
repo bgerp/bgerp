@@ -378,16 +378,19 @@ class cat_Products extends core_Embedder {
     	}
     	
     	// Разпределяме свойствата в отделни полета за полесно търсене
-    	$metas = type_Set::toArray($rec->meta);
-    	foreach (array('canSell', 'canBuy', 'canStore', 'canConvert', 'fixedAsset', 'canManifacture', 'waste') as $fld){
-    		$rec->$fld = (isset($metas[$fld])) ? 'yes' : 'no';
+    	if($rec->meta){
+    		$metas = type_Set::toArray($rec->meta);
+    		foreach (array('canSell', 'canBuy', 'canStore', 'canConvert', 'fixedAsset', 'canManifacture', 'waste') as $fld){
+    			$rec->$fld = (isset($metas[$fld])) ? 'yes' : 'no';
+    		}
     	}
     	
-    	$rec->isPublic = (!empty($rec->code)) ? 'yes' : 'no';
-    	
     	// Ако кода е празен символ, правим го NULL
-    	if($rec->code == ''){
-    		$rec->code = NULL;
+    	if(isset($rec->code)){
+    		$rec->isPublic = ($rec->code != '') ? 'yes' : 'no';
+    		if($rec->code == ''){
+    			$rec->code = NULL;
+    		}
     	}
     }
     
@@ -710,6 +713,16 @@ class cat_Products extends core_Embedder {
     {
         if($rec->groups) {
             $mvc->updateGroupsCnt = TRUE;
+        }
+        
+        $isPublic = (isset($rec->isPublic)) ? $rec->isPublic : $mvc->fetchField($rec->id, 'isPublic');
+        if($rec->state == 'active' && $isPublic == 'yes'){
+        	if(!acc_Items::fetchItem($mvc, $rec->id)){
+        		$lists = keylist::addKey('', acc_Lists::fetchField(array("#systemId = '[#1#]'", 'catProducts'), 'id'));
+        		acc_Lists::updateItem($mvc, $rec->id, $lists);
+        		$name = $mvc->fetchField($rec->id, 'name');
+        		core_Statuses::newStatus(tr("|Отворено е перо|*: {$name}"));
+        	}
         }
     }
     
