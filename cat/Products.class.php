@@ -1372,9 +1372,9 @@ class cat_Products extends core_Embedder {
     	
 		if($mvc->haveRightFor('close', $data->rec)){
 			if($data->rec->state == 'closed'){
-				$data->toolbar->addBtn("Отваряне", array($mvc, 'changeState', $data->rec->id, 'ret_url' => TRUE), 'ef_icon = img/16/lightbulb.png,title=Отваряне на артикула,warning=Сигурнили сте че искате да отворите артикула, това ще му активира перото');
+				$data->toolbar->addBtn("Активиране", array($mvc, 'changeState', $data->rec->id, 'ret_url' => TRUE), 'ef_icon = img/16/lightbulb.png,title=Активиранe на артикула,warning=Сигурнили сте че искате да активирате артикула, това ще му активира перото');
 			} elseif($data->rec->state == 'active'){
-				$data->toolbar->addBtn("Затваряне", array($mvc, 'changeState', $data->rec->id, 'ret_url' => TRUE), 'ef_icon = img/16/lightbulb_off.png,title=Затваряне на артикула,warning=Сигурнили сте че искате да Затворите артикула, това ще му затвори перото');
+				$data->toolbar->addBtn("Приключване", array($mvc, 'changeState', $data->rec->id, 'ret_url' => TRUE), 'ef_icon = img/16/lightbulb_off.png,title=Затваряне артикула и перото му,warning=Сигурнили сте че искате да приключите артикула, това ще му затвори перото');
 			}
 		}
     }
