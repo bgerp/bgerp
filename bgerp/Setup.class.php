@@ -86,6 +86,11 @@ class bgerp_Setup extends core_ProtoSetup {
     //    var $commonJS = 'js/PortalSearch.js';
     
     
+    /**
+     * Дали пакета е системен
+     */
+    public $isSystem = TRUE;
+    
     
     /**
      * Инсталиране на пакета
