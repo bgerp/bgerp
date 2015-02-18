@@ -89,7 +89,7 @@ class cat_Products extends core_Embedder {
     /**
      * Наименование на единичния обект
      */
-    var $singleTitle = "Спецификация на артикул";
+    var $singleTitle = "Артикул";
     
     
     /**
