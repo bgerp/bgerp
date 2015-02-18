@@ -227,7 +227,6 @@ class acc_ClosePeriods extends core_Master
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	if($fields['-single']){
-    		$row->header = $mvc->singleTitle . " #<b>{$mvc->abbr}{$row->id}</b> ({$row->state})";
     		
     		$row->baseCurrencyId = acc_Periods::getBaseCurrencyCode($rec->valior);
     	
