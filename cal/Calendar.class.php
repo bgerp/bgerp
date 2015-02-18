@@ -576,7 +576,7 @@ class cal_Calendar extends core_Master
         	$options[$next] = tr(dt::$months[$nm-1]) . " " .$ny;
         }
         
-        $select = ht::createSelect('cal', $options, $currentMonth, array('onchange' => "javascript:location.href = this.value;"));
+        $select = ht::createSelect('cal', $options, $currentMonth, array('onchange' => "javascript:location.href = this.value;", 'class' => 'portal-select'));
        
         // правим заглавието на календара, 
         // който ще се състои от линк-селект-линк
