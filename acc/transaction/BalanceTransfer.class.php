@@ -2,7 +2,7 @@
 
 
 /**
- * Помощен клас-имплементация на интерфейса acc_TransactionSourceIntf за класа acc_ClosePeriods
+ * Помощен клас-имплементация на интерфейса acc_TransactionSourceIntf за класа acc_BalanceTransfers
  *
  * @category  bgerp
  * @package   acc
@@ -77,6 +77,13 @@ class acc_transaction_BalanceTransfer extends acc_DocumentTransactionSource
     	return $result;
     }
     
+    
+    /**
+     * Подготвя записите на транзакцията
+     * 
+     * @param stdClass $rec - запис на документ
+     * @return array $entries - генерираните записи
+     */
     private function getEntries($rec)
     {
     	$entries = array();

@@ -3,7 +3,7 @@
 
 
 /**
- * Мениджър на документ за приключване на счетоводен период
+ * Мениджър на документ за прехвърляне на салда
  *
  *
  * @category  bgerp
@@ -214,7 +214,7 @@ class acc_BalanceTransfers extends core_Master
 
 			// Подсигуряваме се че аналитичностите на началната и крайната сметка, наистина съвпадат
 			if($form->fromAccountInterfaces != $form->getFieldTypeParam("toAccount", 'regInterfaces')){
-				$form->setError('fromAccount,toAccount', 'Трябва двете сметки да са със съотвестващи аналитичности');
+				$form->setError('fromAccount,toAccount', 'Трябва двете сметки да са със съответсващи аналитичности');
 			}
 			
 			// Всички аналитичности
@@ -233,7 +233,7 @@ class acc_BalanceTransfers extends core_Master
 						// Проверяваме дали следващото е празно, ако не е показваме грешка
 						$entNext = "fromEnt" . ($i + 1) . "Id";
 						if(empty($from) && !empty($rec->$entNext)){
-							$form->setError("fromEnt{$i}Id,toEnt{$i}Id", 'Не може полетата да не са попълнени а следващите да са');
+							$form->setError("fromEnt{$i}Id,toEnt{$i}Id", 'Ако има непопълнена аналитичност, то и следващата трябва да е празна');
 						}
 					}
 					
@@ -241,7 +241,7 @@ class acc_BalanceTransfers extends core_Master
 					$fromList = $form->getFieldTypeParam("fromEnt{$i}Id", 'lists');
 					$toList = $form->getFieldTypeParam("toEnt{$i}Id", 'lists');
 					if($fromList != $toList){
-						$form->setError("fromEnt{$i}Id,toEnt{$i}Id", 'Неможе номенклатурите на аналитичностите да са различни');
+						$form->setError("fromEnt{$i}Id,toEnt{$i}Id", 'Номенклатурите на аналитичностите трябва да са еднакви');
 					}
 					
 					// Ако номенклатурата е размерна и има избрани пера, то те трябва да са еднакви
@@ -293,11 +293,11 @@ class acc_BalanceTransfers extends core_Master
 	
 		$row = new stdClass();
 	
-		$row->title = $this->getRecTitle($rec);
+		$row->title    = $this->getRecTitle($rec);
 		$row->authorId = $rec->createdBy;
-		$row->author = $this->getVerbal($rec, 'createdBy');
+		$row->author   = $this->getVerbal($rec, 'createdBy');
 		$row->recTitle = $row->title;
-		$row->state = $rec->state;
+		$row->state    = $rec->state;
 	
 		return $row;
 	}
