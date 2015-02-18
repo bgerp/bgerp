@@ -180,7 +180,7 @@ class type_UserOrRole extends type_User
         if ($value < 0) {
             $value = self::getRoleIdFromSys($value);
             
-            if ($value == 0) {
+            if ($value === 0) {
                 $value = 'allSysTeam';
             }
             
