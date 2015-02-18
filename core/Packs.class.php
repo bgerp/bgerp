@@ -606,6 +606,11 @@ class core_Packs extends core_Manager
             $rec->startCtr = $setup->startCtr;
             $rec->startAct = $setup->startAct;
             $rec->deinstall = method_exists($setup, 'deinstall') ? 'yes' : 'no';
+            
+            if ($setup->isSystem) {
+                $rec->deinstall = 'no';
+            }
+            
             $this->save($rec);
         } else {
             $res .= "<li>Пропускаме, има налична инсталация</li>";
