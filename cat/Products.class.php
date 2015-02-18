@@ -464,7 +464,7 @@ class cat_Products extends core_Embedder {
         }
         
         if($data->listFilter->rec->order != 'private'){
-        	//$data->query->where("#isPublic = 'yes'");
+        	$data->query->where("#isPublic = 'yes'");
         }
         
         if ($data->listFilter->rec->groupId) {
