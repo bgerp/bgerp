@@ -568,6 +568,9 @@ class cat_Products extends core_Embedder {
     	
     	$self = cls::get(get_called_class());
     	$Driver = $self->getDriver($productId);
+    	
+    	if (!$Driver) return ;
+    	
     	$res = $Driver->getProductInfo($packagingId);
     	
     	$res->productRec->code = $productRec->code;
