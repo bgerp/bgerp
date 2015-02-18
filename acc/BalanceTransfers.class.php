@@ -32,7 +32,7 @@ class acc_BalanceTransfers extends core_Master
 	/**
 	 * Неща, подлежащи на начално зареждане
 	 */
-	public $loadList = 'plg_RowTools, acc_Wrapper, acc_plg_Contable, doc_DocumentPlg, doc_plg_HidePrices';
+	public $loadList = 'plg_RowTools, acc_Wrapper, acc_plg_Contable, doc_DocumentPlg';
 	
 	
 	/**
@@ -125,12 +125,6 @@ class acc_BalanceTransfers extends core_Master
 	 * Групиране на документите
 	 */
 	public $newBtnGroup = "6.7|Счетоводни";
-	
-	
-	/**
-	 * Полета с цени, които не трябва да се показват ако потребителя няма права да ги вижда
-	 */
-	//public $priceFields = 'amountFromInvoices, amountVatGroup1, amountVatGroup2, amountVatGroup3, amountVatGroup4, amountWithoutInvoice';
 	
 	
 	/**
@@ -257,6 +251,15 @@ class acc_BalanceTransfers extends core_Master
 							$form->setError("fromEnt{$i}Id,toEnt{$i}Id", 'Размерните номенклатури, трябва да са еднакви, или да не са попълнени');
 						}
 					}
+				}
+			}
+			
+			// Ако не са избрани пера а само сметки
+			if(empty($rec->fromEnt1Id) && empty($rec->fromEnt2Id) && empty($rec->fromEnt3Id) && empty($rec->toEnt1Id) && empty($rec->toEnt1Id) && empty($rec->toEnt1Id)){
+				
+				// Сметките трябва да са различни
+				if($rec->fromAccount == $rec->toAccount){
+					$form->setError('fromAccount,toAccount', 'Ако се прехвърля цяла сметка, дестинацията трябва да е различна');
 				}
 			}
 		}
