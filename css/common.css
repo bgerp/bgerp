@@ -1869,7 +1869,7 @@ div.alphabet div.tab-page {
   margin-top: 20px; }
 
 .top-tab-content {
-  background: #ffffee;
+  background: rgba(255, 255, 220, 0.6);
   padding: 20px;
   border-radius: 5px; }
   .top-tab-content legend img {
@@ -1937,17 +1937,17 @@ div.alphabet div.tab-page {
         .single-thread .document .tab-top div.alphabet .tab-row .tab.selected a {
           color: #333333; }
 
-.single-thread .document .tab-top div.alphabet  .tab-row {
+.wide .single-thread .document .tab-top div.alphabet  .tab-row {
   margin-bottom: 5px; }
-  .single-thread .document .tab-top div.alphabet  .tab-row .tab {
+  .wide .single-thread .document .tab-top div.alphabet  .tab-row .tab {
     font-size: 0.8em;
     margin: 0 15px 0 0;
     padding: 6px; }
-    .single-thread .document .tab-top div.alphabet  .tab-row .tab:hover,
-    .single-thread .document .tab-top div.alphabet  .tab-row .tab.selected {
+    .wide .single-thread .document .tab-top div.alphabet  .tab-row .tab:hover,
+    .wide .single-thread .document .tab-top div.alphabet  .tab-row .tab.selected {
       margin: 0 15px 0 0;
       padding: 6px !important; }
-    .single-thread .document .tab-top div.alphabet  .tab-row .tab.selected {
+    .wide .single-thread .document .tab-top div.alphabet  .tab-row .tab.selected {
       top: -4px; }
 
   .narrow div.tab-control.deal-history-tab .tab-row,
