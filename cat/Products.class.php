@@ -214,6 +214,11 @@ class cat_Products extends core_Embedder {
 	public $newBtnGroup = "9.8|Производство";
 	
 	
+	/**
+	 * На кой ред в тулбара да се показва бутона всички
+	 */
+	public $allBtnToolbarRow = 1;
+	
     /**
      * Описание на модела
      */
