@@ -605,10 +605,11 @@ class core_Packs extends core_Manager
             $rec->info = $setup->info;
             $rec->startCtr = $setup->startCtr;
             $rec->startAct = $setup->startAct;
-            $rec->deinstall = method_exists($setup, 'deinstall') ? 'yes' : 'no';
             
             if ($setup->isSystem) {
                 $rec->deinstall = 'no';
+            } else {
+                $rec->deinstall = method_exists($setup, 'deinstall') ? 'yes' : 'no';
             }
             
             $this->save($rec);
