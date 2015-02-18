@@ -61,13 +61,6 @@ class acc_BalanceTransfers extends core_Master
 	public $lockBalances = TRUE;
 	
 	
-	
-	/**
-	 * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
-	 */
-	public $rowToolsSingleField = 'title';
-	
-	
 	/**
 	 * Заглавие на единичен документ
 	 */
