@@ -123,6 +123,12 @@ class fileman_Setup extends core_ProtoSetup
     
     
     /**
+     * Дали пакета е системен
+     */
+    public $isSystem = TRUE;
+    
+    
+    /**
      * Описание на конфигурационните константи
      */
     var $configDescription = array(

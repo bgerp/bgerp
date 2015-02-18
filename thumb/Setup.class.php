@@ -50,6 +50,12 @@ class thumb_Setup extends core_ProtoSetup {
      */
     var $info = "Скалиране на картинки";
     
+    
+    /**
+     * Дали пакета е системен
+     */
+    public $isSystem = TRUE;
+    
         
     protected $folders = THUMB_IMG_PATH;    
     

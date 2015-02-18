@@ -97,6 +97,7 @@ class acc_Setup extends core_ProtoSetup
     	'acc_Operations',
     	'acc_BalanceRepairs',
     	'acc_BalanceRepairDetails',
+    	'acc_BalanceTransfers',
         'migrate::removeYearInterfAndItem',
         'migrate::updateItemsNum1',
     );

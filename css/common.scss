@@ -2004,7 +2004,7 @@ div.alphabet div.tab-page {
 }
 
 .top-tab-content{
-    background: #ffe;
+    background: rgba(255,255,220, 0.6);
     padding: 20px;
     border-radius: 5px;
     legend img {
@@ -2074,7 +2074,7 @@ div.tab-control.deal-history-tab, .single-thread .document .tab-top div.alphabet
 }
 
 
- .single-thread .document .tab-top div.alphabet  .tab-row {
+.wide .single-thread .document .tab-top div.alphabet  .tab-row {
     margin-bottom: 5px;
  	.tab {
 	    font-size: 0.8em;

@@ -92,7 +92,13 @@ class core_ProtoSetup
      */
     protected $cronSettings;
 
-
+    
+    /**
+     * Дали пакета е системен
+     */
+    public $isSystem = FALSE;
+    
+    
     /**
      * Инсталиране на пакета
      */

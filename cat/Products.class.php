@@ -37,7 +37,7 @@ class cat_Products extends core_Embedder {
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, plg_SaveAndNew, doc_DocumentPlg, plg_PrevAndNext, acc_plg_Registry, plg_Rejected, plg_State,
+    var $loadList = 'plg_RowTools, plg_SaveAndNew, plg_Clone, doc_DocumentPlg, plg_PrevAndNext, acc_plg_Registry, plg_State,
                      cat_Wrapper, plg_Sorting, doc_ActivatePlg, doc_plg_BusinessDoc, bgerp_plg_Groups, plg_Printing, Groups=cat_Groups, plg_Select, plg_Search, bgerp_plg_Import';
     
     
@@ -89,7 +89,7 @@ class cat_Products extends core_Embedder {
     /**
      * Наименование на единичния обект
      */
-    var $singleTitle = "Спецификация на артикул";
+    var $singleTitle = "Артикул";
     
     
     /**
@@ -213,6 +213,11 @@ class cat_Products extends core_Embedder {
 	 */
 	public $newBtnGroup = "9.8|Производство";
 	
+	
+	/**
+	 * На кой ред в тулбара да се показва бутона всички
+	 */
+	public $allBtnToolbarRow = 1;
 	
     /**
      * Описание на модела
@@ -378,16 +383,19 @@ class cat_Products extends core_Embedder {
     	}
     	
     	// Разпределяме свойствата в отделни полета за полесно търсене
-    	$metas = type_Set::toArray($rec->meta);
-    	foreach (array('canSell', 'canBuy', 'canStore', 'canConvert', 'fixedAsset', 'canManifacture', 'waste') as $fld){
-    		$rec->$fld = (isset($metas[$fld])) ? 'yes' : 'no';
+    	if($rec->meta){
+    		$metas = type_Set::toArray($rec->meta);
+    		foreach (array('canSell', 'canBuy', 'canStore', 'canConvert', 'fixedAsset', 'canManifacture', 'waste') as $fld){
+    			$rec->$fld = (isset($metas[$fld])) ? 'yes' : 'no';
+    		}
     	}
     	
-    	$rec->isPublic = (!empty($rec->code)) ? 'yes' : 'no';
-    	
     	// Ако кода е празен символ, правим го NULL
-    	if($rec->code == ''){
-    		$rec->code = NULL;
+    	if(isset($rec->code)){
+    		$rec->isPublic = ($rec->code != '') ? 'yes' : 'no';
+    		if($rec->code == ''){
+    			$rec->code = NULL;
+    		}
     	}
     }
     
@@ -428,7 +436,7 @@ class cat_Products extends core_Embedder {
      */
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
-        $data->listFilter->FNC('order', 'enum(alphabetic=Азбучно,last=Последно добавени,public=Публични,private=Частни)',
+        $data->listFilter->FNC('order', 'enum(alphabetic=Азбучно,last=Последно добавени,private=Частни)',
             'caption=Подредба,input,silent,remember');
 
         $data->listFilter->FNC('groupId', 'key(mvc=cat_Groups,select=name,allowEmpty)',
@@ -452,15 +460,16 @@ class cat_Products extends core_Embedder {
         	case 'last':
         		$data->query->orderBy('#createdOn=DESC');
         		break;
-        	case 'public':
-        		$data->query->where("#isPublic = 'yes'");
-        		break;
         	case 'private':
         		$data->query->where("#isPublic = 'no'");
         		break;
         	default :
         		$data->query->orderBy('#name');
         		break;
+        }
+        
+        if($data->listFilter->rec->order != 'private'){
+        	$data->query->where("#isPublic = 'yes'");
         }
         
         if ($data->listFilter->rec->groupId) {
@@ -470,6 +479,8 @@ class cat_Products extends core_Embedder {
         if ($data->listFilter->rec->meta1 && $data->listFilter->rec->meta1 != 'all') {
         	$data->query->like('meta', "%{$data->listFilter->rec->meta1}%");
         }
+        
+        //bp($data->query->where);
     }
 
 
@@ -562,6 +573,9 @@ class cat_Products extends core_Embedder {
     	
     	$self = cls::get(get_called_class());
     	$Driver = $self->getDriver($productId);
+    	
+    	if (!$Driver) return ;
+    	
     	$res = $Driver->getProductInfo($packagingId);
     	
     	$res->productRec->code = $productRec->code;
@@ -710,6 +724,16 @@ class cat_Products extends core_Embedder {
     {
         if($rec->groups) {
             $mvc->updateGroupsCnt = TRUE;
+        }
+        
+        $isPublic = (isset($rec->isPublic)) ? $rec->isPublic : $mvc->fetchField($rec->id, 'isPublic');
+        if($rec->state == 'active' && $isPublic == 'yes'){
+        	if(!acc_Items::fetchItem($mvc, $rec->id)){
+        		$lists = keylist::addKey('', acc_Lists::fetchField(array("#systemId = '[#1#]'", 'catProducts'), 'id'));
+        		acc_Lists::updateItem($mvc, $rec->id, $lists);
+        		$name = $mvc->fetchField($rec->id, 'name');
+        		core_Statuses::newStatus(tr("|Отворено е перо|*: {$name}"));
+        	}
         }
     }
     
@@ -1348,9 +1372,9 @@ class cat_Products extends core_Embedder {
     	
 		if($mvc->haveRightFor('close', $data->rec)){
 			if($data->rec->state == 'closed'){
-				$data->toolbar->addBtn("Отваряне", array($mvc, 'changeState', $data->rec->id, 'ret_url' => TRUE), 'ef_icon = img/16/lightbulb.png,title=Отваряне на артикула,warning=Сигурнили сте че искате да отворите артикула, това ще му активира перото');
+				$data->toolbar->addBtn("Активиране", array($mvc, 'changeState', $data->rec->id, 'ret_url' => TRUE), 'ef_icon = img/16/lightbulb.png,title=Активиранe на артикула,warning=Сигурнили сте че искате да активирате артикула, това ще му активира перото');
 			} elseif($data->rec->state == 'active'){
-				$data->toolbar->addBtn("Затваряне", array($mvc, 'changeState', $data->rec->id, 'ret_url' => TRUE), 'ef_icon = img/16/lightbulb_off.png,title=Затваряне на артикула,warning=Сигурнили сте че искате да Затворите артикула, това ще му затвори перото');
+				$data->toolbar->addBtn("Приключване", array($mvc, 'changeState', $data->rec->id, 'ret_url' => TRUE), 'ef_icon = img/16/lightbulb_off.png,title=Затваряне артикула и перото му,warning=Сигурнили сте че искате да приключите артикула, това ще му затвори перото');
 			}
 		}
     }

@@ -182,7 +182,7 @@ class type_Key extends type_Int
     /**
      * 
      * 
-     * @param string $value
+     * @param integer $value
      * 
      * @return object
      */

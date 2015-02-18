@@ -1,3 +1,4 @@
+<div class='scrolling-holder'>
 <fieldset class='top-tab-content'>
 	<legend class='groupTitle'>[#TITLE#]</legend>
 	<div class='detail-info portal' id="[#DetailName#]">
@@ -6,3 +7,4 @@
 	    </div>
 	 </div>
 </fieldset>
+</div>

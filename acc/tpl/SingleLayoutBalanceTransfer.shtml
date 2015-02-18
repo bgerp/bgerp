@@ -1,0 +1,49 @@
+[#SingleToolbar#]
+<div class='document'>
+    <div class='header [#STATE_CLASS#]'>
+        <div class='docBgIcon' style='[#iconStyle#];'>[#singleTitle#] <b>[#ident#]</b> ([#state#])</div>
+    </div>
+    
+    <div>|Вальор|*: [#valior#]</div>
+    
+    <table class='no-border-table fleft'>
+    	<tr>
+    		<td>
+	    		[#fromAccount#]
+			    <ol>
+			    	<!--ET_BEGIN fromEnt1Id-->
+			    	<li>[#fromEnt1Id#]</li>
+			    	<!--ET_END fromEnt1Id-->
+			    	
+			    	<!--ET_BEGIN fromEnt2Id-->
+			    	<li>[#fromEnt2Id#]</li>
+			    	<!--ET_END fromEnt2Id-->
+			    	
+			    	<!--ET_BEGIN fromEnt3Id-->
+			    	<li>[#fromEnt3Id#]</li>
+			    	<!--ET_END fromEnt3Id-->
+			    </ol>
+    		</td>
+    		<td>
+    		->
+    		</td>
+    		<td>
+    			[#toAccount#]
+			    <ol>
+			    	<!--ET_BEGIN toEnt1Id-->
+			    	<li>[#toEnt1Id#]</li>
+			    	<!--ET_END toEnt1Id-->
+			    	
+			    	<!--ET_BEGIN toEnt2Id-->
+			    	<li>[#toEnt2Id#]</li>
+			    	<!--ET_END toEnt2Id-->
+			    	
+			    	<!--ET_BEGIN toEnt3Id-->
+			    	<li>[#toEnt3Id#]</li>
+			    	<!--ET_END toEnt3Id-->
+			    </ol>
+    		</td>
+    	</tr>
+    </table>
+    [#DETAILS#]
+</div>

@@ -219,13 +219,18 @@ class doc_DocumentPlg extends core_Plugin
         }
 
         if($mvc->haveRightFor('list') && $data->rec->state != 'rejected') { 
+        	
+        	// По подразбиране бутона всички се показва на втория ред на тулбара
+        	setIfNot($mvc->allBtnToolbarRow, 2);
+        	
+        	
             // Бутон за листване на всички обекти от този вид
             $data->toolbar->addBtn('Всички', array(
                     $mvc,
                     'list',
                     'ret_url'=>$retUrl
                 ),
-                'id=btnAll,ef_icon=img/16/application_view_list.png, order=18, row=2, title=' . tr('Всички ' . mb_strtolower($mvc->title)));    
+                "id=btnAll,ef_icon=img/16/application_view_list.png, order=18, row={$mvc->allBtnToolbarRow}, title=" . tr('Всички ' . mb_strtolower($mvc->title)));    
 
         }
     }

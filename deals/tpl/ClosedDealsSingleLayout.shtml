@@ -1,8 +1,9 @@
 [#SingleToolbar#]
 <div class='document'>
     <!--ET_BEGIN header-->
+    [#header#]
     <div class='header [#STATE_CLASS#]'>
-        <div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
+        <div class='docBgIcon' style='[#iconStyle#];'>[#singleTitle#] <b>[#ident#]</b> ([#state#])</div>
     </div>
     <!--ET_END header-->
     <h3 class='centered'>|ПРИКЛЮЧВАНЕ НА|* [#DOC_NAME#]</h3>
@@ -44,4 +45,5 @@
             <!--ET_END notes-->
         </table>
     </div>
+    [#DETAILS#]
 </div>

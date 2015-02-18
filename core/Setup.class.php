@@ -248,6 +248,12 @@ class core_Setup extends core_ProtoSetup {
     
     
     /**
+     * Дали пакета е системен
+     */
+    public $isSystem = TRUE;
+    
+    
+    /**
      * Папки, които трябва да бъдат създадени
      */
     protected $folders = array(

@@ -21,37 +21,49 @@ class core_Packs extends core_Manager
     /**
      * Заглавие на модела
      */
-    var $title = 'Управление на пакети';
+    public $title = 'Управление на пакети';
     
     
     /**
      * Кой може да инсталира?
      */
-    var $canInstall = 'admin';
+    public $canInstall = 'admin';
     
     
     /**
      * Кои може да деинсталира?
      */
-    var $canDeinstall = 'admin';
+    public $canDeinstall = 'admin';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'admin';
+	public $canList = 'admin';
 	
 	
     /**
      * По колко пакета да показва на страница
      */
-    var $listItemsPerPage = 24;
+    public $listItemsPerPage = 24;
     
 
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id,name,install=Обновяване,config=Конфигуриране,deinstall=Премахване';
+    public $listFields = 'id,name,install=Обновяване,config=Конфигуриране,deinstall=Премахване';
+    
+    
+    /**
+     * 
+     */
+    public $loadList = 'plg_Created, plg_SystemWrapper, plg_Search';
+    
+    
+    /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    var $searchFields = 'name, info, startCtr';
     
     
     /**
@@ -69,8 +81,6 @@ class core_Packs extends core_Manager
         // Съхранение на данните за конфигурацията
         $this->FLD('configData', 'text', 'caption=Конфигурация->Данни,input=none,column=none');
 
-        $this->load('plg_Created,plg_SystemWrapper');
-        
         $this->setDbUnique('name');
     }
     
@@ -239,6 +249,16 @@ class core_Packs extends core_Manager
      */
     static function on_AfterPrepareListFilter($mvc, &$data)
     {
+        // В хоризонтален вид
+        $data->listFilter->view = 'horizontal';
+        
+        // Добавяме бутон
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        
+        // Показваме само това поле. Иначе и другите полета 
+        // на модела ще се появят
+        $data->listFilter->showFields = $mvc->searchInputField;
+        
         $data->query->orderBy("#name");
     }
     
@@ -259,7 +279,10 @@ class core_Packs extends core_Manager
         $form->toolbar->addSbBtn('Инсталирай', 'default', 'ef_icon = img/16/install.png, title=Монтиране на пакета');
         $form->toolbar->addBtn('Обновяване на системата', array("core_Packs", "systemUpdate"), 'ef_icon = img/16/install.png, title=Настройване на системата');
         
-        return $form->renderHtml();
+        $html = $form->renderHtml();
+        $html = $html->removeBlocks();
+        
+        return $html;
     }
     
     
@@ -582,7 +605,13 @@ class core_Packs extends core_Manager
             $rec->info = $setup->info;
             $rec->startCtr = $setup->startCtr;
             $rec->startAct = $setup->startAct;
-            $rec->deinstall = method_exists($setup, 'deinstall') ? 'yes' : 'no';
+            
+            if ($setup->isSystem) {
+                $rec->deinstall = 'no';
+            } else {
+                $rec->deinstall = method_exists($setup, 'deinstall') ? 'yes' : 'no';
+            }
+            
             $this->save($rec);
         } else {
             $res .= "<li>Пропускаме, има налична инсталация</li>";
