@@ -242,4 +242,13 @@ abstract class cat_ProductDriver extends core_BaseClass
 		
 		return $params['measureId'];
 	}
+	
+	
+	/**
+	 * Изображението на артикула
+	 */
+	public function getProductImage()
+	{
+		return NULL;
+	}
 }

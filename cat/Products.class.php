@@ -1401,4 +1401,19 @@ class cat_Products extends core_Embedder {
     	
     	return followRetUrl();
     }
+    
+    
+    /**
+     * Връща хендлъра на изображението представящо артикула, ако има такова
+     * 
+     * @param mixed $id - ид или запис
+     * @return fileman_FileType $hnd - файлов хендлър на изображението
+     */
+    public static function getProductImage($id)
+    {
+    	$me = cls::get(get_called_class());
+    	$Driver = $me->getDriver($id);
+    	
+    	return $Driver->getProductImage();
+    }
 }

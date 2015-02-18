@@ -134,7 +134,6 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		$res->productRec->name = ($innerState->title) ? $innerState->title : $innerState->name;
 		$res->productRec->info = $innerState->info;
 		$res->productRec->measureId = $innerState->measureId;
-		$res->productRec->photo = $innerState->photo;
 		
 		(!$packagingId) ? $res->packagings = array() : $res->packagingRec = new stdClass();
 		
@@ -238,5 +237,14 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		
 		// Викаме метода на бащата
 		parent::prepareEmbeddedForm($form);
+	}
+	
+	
+	/**
+	 * Изображението на артикула
+	 */
+	public function getProductImage()
+	{
+		return $this->innerState->photo;
 	}
 }
