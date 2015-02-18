@@ -150,7 +150,6 @@ class cms_Setup extends core_ProtoSetup
         $Plugins = cls::get('core_Plugins');
      
         // Инсталираме плъгина  
-        $html .= $Plugins->forcePlugin('Публична страница', 'cms_PagePlg', 'page_Wrapper', 'private');
         $html .= $Plugins->forcePlugin('Показване на обекти', 'cms_ObjectsInRichtextPlg', 'type_Richtext', 'private');
         $html .= $Plugins->forcePlugin('Копиране с линк към страницата', 'cms_CopyTextPlg', 'cms_Page', 'private');
         

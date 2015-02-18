@@ -21,9 +21,16 @@ class page_Wrapper extends core_BaseClass {
      * Прави стандартна 'обвивка' на изгледа
      */
     function render_($content)
-    {
+    {   
+        // Определяме каква да е темата обвивката на страницата
         if (!($tplName = Mode::get('wrapper'))) {
-            $tplName = Mode::is('printing') ? 'page_Print' : 'page_Internal';
+            if(Mode::is('printing')) {
+                $tplName =  'page_Print';
+            } elseif(haveRole('admin,ceo,manager,officer,executive')) {
+                $tplName = 'page_Internal';
+            } else {
+                $tplName = 'cms_Page';
+            }
         }
         
         // Зареждаме опаковката 

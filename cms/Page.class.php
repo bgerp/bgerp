@@ -50,6 +50,9 @@ class cms_Page extends page_Html {
             }
         }
         
+
+       // bp($this->content);
+
         // Кодировка - UTF-8
         $this->replace("UTF-8", 'ENCODING');
         
@@ -107,7 +110,6 @@ class cms_Page extends page_Html {
         
         // Добавяме лейаута
         $this->replace(cms_Content::getLayout(), 'CMS_LAYOUT');
-
     }
 
     
