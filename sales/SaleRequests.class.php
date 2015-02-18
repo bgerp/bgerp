@@ -539,9 +539,6 @@ class sales_SaleRequests extends core_Master
     	}
 	    
 	    if($fields['-single']){
-	    	if(!Mode::is('printing')){
-	    		$row->header = $mvc->singleTitle . " №<b>{$row->id}</b> ({$row->state})" ;
-	    	}
 	    	$origin = doc_Containers::getDocument($rec->originId);
 	    	$row->originLink = $origin->getDocumentRow()->title;
 	    	

@@ -348,7 +348,6 @@ class sales_Quotations extends core_Master
 				$row->expired = tr("офертата е изтекла");
 			}
 			
-			$row->header = $mvc->singleTitle . " №<b>{$row->id}</b> ({$row->state})";
 	    	$row->number = $mvc->getHandle($rec->id);
 			$row->username = core_Users::recToVerbal(core_Users::fetch($rec->createdBy), 'names')->names;
 			

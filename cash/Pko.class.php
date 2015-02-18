@@ -368,11 +368,6 @@ class cash_Pko extends core_Master
     		$cashierRow = core_Users::recToVerbal($cashierRec);
 	    	$row->cashier = $cashierRow->names;
 	    }
-       
-        // Показваме заглавието само ако не сме в режим принтиране
-    	if(!Mode::is('printing')){
-    		$row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " ({$row->state})" ;
-    	}
     }
     
     

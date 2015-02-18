@@ -374,13 +374,7 @@ class cash_Rko extends core_Master
     		$cashierRec = core_Users::fetch($rec->createdBy);
     		$cashierRow = core_Users::recToVerbal($cashierRec);
 	    	$row->cashier = $cashierRow->names;
-	    	
         }
-       
-        // Показваме заглавието само ако не сме в режим принтиране
-    	if(!Mode::is('printing')){
-    		$row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " ({$row->state})" ;
-    	}
     }
     
     
