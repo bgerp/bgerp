@@ -493,7 +493,9 @@ class cal_Calendar extends core_Master
 
         // Добавяне на първия хедър
         $currentMonth = tr(dt::$months[$month-1]) . " " . $year;
-
+        $nextLink = $prevtLink = $prev = getCurrentUrl();
+        
+        // генериране на един месец назад
         $pm = $month-1;
         if($pm == 0) {
             $pm = 12;
@@ -501,8 +503,14 @@ class cal_Calendar extends core_Master
         } else {
             $py = $year;
         }
+        // името на месеца и годината
         $prevMonth = tr(dt::$months[$pm-1]) . " " .$py;
-
+        // генериране на линк към него
+        $prevtLink['cal_month'] = $pm;
+        $prevtLink['cal_year'] = $py;
+        $prevtLink = toUrl($prevtLink);
+        
+        // генериране на един месец напред
         $nm = $month+1;
         if($nm == 13) {
             $nm = 1;
@@ -510,26 +518,76 @@ class cal_Calendar extends core_Master
         } else {
             $ny = $year;
         }
+        // името на месеца и годината
         $nextMonth = tr(dt::$months[$nm-1]) . " " .$ny;
-        
-        $nextLink = $prevtLink = getCurrentUrl();
-        
+        // генериране на линк към него
         $nextLink['cal_month'] = $nm;
         $nextLink['cal_year'] = $ny;
         $nextLink = toUrl($nextLink);
+               
+        // правим масив с 3 месеца назад от текущия месец,
+        // които е подготовка за нашия select
+        // за value има линк към съответния месец
+        // а за стойност има името намесеца и съответната година
+        // генерираме го в низходящ ред, за да са подредени месеците хронологично
+        for ($i = 3 ; $i >= 1; $i--){
+        	$prev = getCurrentUrl();
+        	$pm = $month-$i;
+        	if($pm == 0) {
+        		$pm = 12;
+        		$py = $year-1;
+        	} elseif($pm <= 0){
+        		$pm = 12 + $pm;
+        		$py = $year-1;
+        	} else {
+        		$py = $year;
+        	}
+        	$prev['cal_month'] = $pm;
+        	$prev['cal_year'] = $py;
+        	$prev = toUrl($prev);
+        	$options[$prev] = tr(dt::$months[$pm-1]) . " " .$py;
+        	
+        }
         
-        $prevtLink['cal_month'] = $pm;
-        $prevtLink['cal_year'] = $py;
-        $prevtLink = toUrl($prevtLink);
+        // добавяме текущия месец къммасива
+        // за него не ни е нужен линк
+        $options[$currentMonth] = tr(dt::$months[$month-1]) . " " . $year;
         
+        // правим масив с 9 месеца напред от текущия месец,
+        // които е подготовка за нашия select
+        // за value има линк към съответния месец
+        // а за стойност има името на месеца и съответната година
+        // генерираме го във възходящ ред, за да са подредени месеците хронологично
+        for ($j = 1; $j <= 9; $j ++) {
+        	$next = getCurrentUrl();
+        	$nm = $month+$j;
+        	if($nm == 13) {
+        		$nm = 1;
+        		$ny = $year+1;
+        	} elseif($nm >= 14) {
+        		$nm = $j - 1;
+        		$ny = $year+1;
+        	} else {
+        		$ny = $year;
+        	}
+        	$next['cal_month'] = $nm;
+        	$next['cal_year'] = $ny;
+        	$next = toUrl($next);
+        	$options[$next] = tr(dt::$months[$nm-1]) . " " .$ny;
+        }
+        
+        $select = ht::createSelect('cal', $options, $currentMonth, array('onchange' => "javascript:location.href = this.value;"));
+       
+        // правим заглавието на календара, 
+        // който ще се състои от линк-селект-линк
+        // като линковете ще са един месец напред и назад в зависимост от избраната стойност в селекта
         $header = "<table class='mc-header' style='width:100%'>
-                <tr>
-                    <td class='aleft'><a href='{$prevtLink}'>{$prevMonth}</a></td>
-                    <td class='centered'><b>{$currentMonth}</b></td>
-                    <td class='aright'><a href='{$nextLink}'>{$nextMonth}</a></td>
-                </tr>
-            </table>";
-        
+        <tr>
+        <td class='aleft'><a href='{$prevtLink}'>{$prevMonth}</a></td>
+        <td class='centered'>{$select}
+        <td class='aright'><a href='{$nextLink}'>{$nextMonth}</a></td>
+        </tr>
+        </table>";
         
         // Съдържание на клетките на календара 
 	       
