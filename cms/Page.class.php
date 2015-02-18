@@ -37,8 +37,8 @@ class cms_Page extends page_Html {
         if (haveRole('user')) {
             
             // Абонираме за промяна на броя на нотификациите
-            $this->appendOnce(new ET('[#bgerp_Notifications::subscribeCounter#]'));
-        
+            bgerp_Notifications::subscribeCounter($this);
+            
             // Броя на отворените нотификации
             $openNotifications = bgerp_Notifications::getOpenCnt();
             
