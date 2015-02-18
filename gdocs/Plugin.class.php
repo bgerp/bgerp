@@ -64,7 +64,9 @@ class gdocs_Plugin extends core_Plugin
             
             $urlPathArr = explode('/', $urlArr['path']);
             
-            $lastKey = key(array_slice($urlPathArr, -1, 1, TRUE));
+            $lastElementOfArray = array_slice($urlPathArr, -1, 1, TRUE);
+            
+            $lastKey = key($lastElementOfArray);
             
             if (($lastKey == 4) && (
                     ($urlPathArr[$lastKey] == 'preview') || 
