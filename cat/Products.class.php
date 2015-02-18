@@ -431,7 +431,7 @@ class cat_Products extends core_Embedder {
      */
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
-        $data->listFilter->FNC('order', 'enum(alphabetic=Азбучно,last=Последно добавени,public=Публични,private=Частни)',
+        $data->listFilter->FNC('order', 'enum(alphabetic=Азбучно,last=Последно добавени,private=Частни)',
             'caption=Подредба,input,silent,remember');
 
         $data->listFilter->FNC('groupId', 'key(mvc=cat_Groups,select=name,allowEmpty)',
@@ -455,15 +455,16 @@ class cat_Products extends core_Embedder {
         	case 'last':
         		$data->query->orderBy('#createdOn=DESC');
         		break;
-        	case 'public':
-        		$data->query->where("#isPublic = 'yes'");
-        		break;
         	case 'private':
         		$data->query->where("#isPublic = 'no'");
         		break;
         	default :
         		$data->query->orderBy('#name');
         		break;
+        }
+        
+        if($data->listFilter->rec->order != 'private'){
+        	//$data->query->where("#isPublic = 'yes'");
         }
         
         if ($data->listFilter->rec->groupId) {
@@ -473,6 +474,8 @@ class cat_Products extends core_Embedder {
         if ($data->listFilter->rec->meta1 && $data->listFilter->rec->meta1 != 'all') {
         	$data->query->like('meta', "%{$data->listFilter->rec->meta1}%");
         }
+        
+        //bp($data->query->where);
     }
 
 
