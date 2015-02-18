@@ -62,7 +62,7 @@ abstract class deals_ClosedDeals extends core_Master
     /**
      * Файл за единичен изглед
      */
-    protected $singleLayoutFile = 'acc/tpl/ClosedDealsSingleLayout.shtml';
+    protected $singleLayoutFile = 'deals/tpl/ClosedDealsSingleLayout.shtml';
     
     
     /**
