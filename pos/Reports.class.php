@@ -185,7 +185,6 @@ class pos_Reports extends core_Master {
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	$row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " ({$row->state})" ;
     	$row->title = "Отчет за POS продажба №{$rec->id}";
     	$row->pointId = pos_Points::getHyperLink($rec->pointId, TRUE);
     	

@@ -176,7 +176,6 @@ class php_Test extends core_Manager
                         $class == 'crm_Companies' ||
                         $class == 'crm_Groups' ||
                         $class == 'cat_Products_Params' ||
-                        $class == 'cat_Products_Files' ||
                         $class == 'cat_Params' ||
                         $class == 'cat_Packagings' ||
                         $class == 'cat_Categories' ||

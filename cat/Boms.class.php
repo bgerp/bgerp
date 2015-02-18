@@ -258,8 +258,6 @@ class cat_Boms extends core_Master
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	$row->header = $mvc->singleTitle . " №<b>{$row->id}</b> ({$row->state})" ;
-    	 
     	$origin = doc_Containers::getDocument($rec->originId);
     	$row->originId = $origin->getHyperLink(TRUE);
     	

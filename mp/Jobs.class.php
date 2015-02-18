@@ -183,7 +183,6 @@ class mp_Jobs extends core_Master
     	}
     	 
     	if($fields['-single']){
-    		$row->header = $mvc->singleTitle . " №<b>{$row->id}</b> ({$row->state})" ;
     
     		$pInfo = $origin->getProductInfo();
     		$row->quantity .= " " . cat_UoM::getShortName($pInfo->productRec->measureId);

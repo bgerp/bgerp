@@ -295,15 +295,6 @@ abstract class store_DocumentMaster extends core_Master
 
 
    /**
-    * След подготовка на единичния изглед
-    */
-   public static function on_AfterPrepareSingle($mvc, &$res, &$data)
-   {
-   		$data->row->header = $mvc->singleTitle . " #<b>{$mvc->abbr}{$data->row->id}</b> ({$data->row->state})";
-   }
-
-
-   /**
     * След преобразуване на записа в четим за хора вид
     */
    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())

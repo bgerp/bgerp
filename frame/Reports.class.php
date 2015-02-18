@@ -150,11 +150,6 @@ class frame_Reports extends core_Embedder
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
 		if($fields['-single']) {
-	    	
-            // Показваме заглавието само ако не сме в режим принтиране
-            if(!Mode::is('printing')){
-                $row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " (" . $mvc->getVerbal($rec, 'state') . ")" ;
-            }
            
             // Обновяваме данните, ако отчета е в състояние 'draft'
             if($rec->state == 'draft') {

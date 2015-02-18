@@ -269,7 +269,6 @@ class accda_Da extends core_Master
     public static function on_AfterPrepareSingle($mvc, &$res, &$data)
     {
         $data->row->createdByName = core_Users::getVerbal($data->rec->createdBy, 'names');
-        $data->row->header = $mvc->singleTitle . " №<b>{$data->row->id}</b> ({$data->row->state})";
         
         if ($data->rec->location) {
             $locationRec = crm_Locations::fetch($data->rec->location);

@@ -840,8 +840,6 @@ abstract class deals_DealMaster extends deals_DealBase
 	    	
 	    	$row->username = core_Users::getVerbal($rec->createdBy, 'names');
 	    	
-	    	$row->header = $mvc->singleTitle . " #<b>{$mvc->abbr}{$row->id}</b> ({$row->state})";
-	    	
 		    $mvc->prepareHeaderInfo($row, $rec);
 		   
 		    // Ако валутата е основната валута да не се показва

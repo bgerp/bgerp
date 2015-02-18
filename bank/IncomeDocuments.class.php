@@ -373,11 +373,6 @@ class bank_IncomeDocuments extends core_Master
                 $row->accCurrencyIban = $row->accCurrency;
             }
             
-            // Показваме заглавието само ако не сме в режим принтиране
-            if(!Mode::is('printing')){
-                $row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " ({$row->state})" ;
-            }
-            
             $ownCompany = crm_Companies::fetchOwnCompany();
             $Companies = cls::get('crm_Companies');
             $row->companyName = cls::get('type_Varchar')->toVerbal($ownCompany->company);

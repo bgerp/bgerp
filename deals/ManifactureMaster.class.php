@@ -69,7 +69,6 @@ abstract class deals_ManifactureMaster extends core_Master
 	public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
 	{
 		if($fields['-single']){
-			$row->header = $mvc->singleTitle . " #<b>{$mvc->abbr}{$row->id}</b> ({$row->state})";
 			
 			$storeLocation = store_Stores::fetchField($rec->storeId, 'locationId');
 			if($storeLocation){

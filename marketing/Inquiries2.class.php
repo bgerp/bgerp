@@ -251,7 +251,6 @@ class marketing_Inquiries2 extends core_Embedder
     	}
     	 
     	if($fields['-single']){
-    		$row->header = $mvc->singleTitle . "&nbsp;#<b>{$mvc->abbr}{$row->id}</b>" . " ({$row->state})";
     		
     		// До всяко количество се слага unit с мярката на продукта
     		$Driver = $mvc->getDriver($rec);

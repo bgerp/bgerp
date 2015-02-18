@@ -144,4 +144,16 @@ class cat_ProductDriverIntf extends core_InnerObjectIntf
 	{
 		return $this->class->setParams($params);
 	}
+	
+	
+	/**
+	 * Връща хендлъра на изображението представящо артикула, ако има такова
+	 *
+	 * @param mixed $id - ид или запис
+	 * @return fileman_FileType $hnd - файлов хендлър на изображението
+	 */
+	public static function getProductImage($id)
+	{
+		return $this->class->getProductImage($id);
+	}
 }

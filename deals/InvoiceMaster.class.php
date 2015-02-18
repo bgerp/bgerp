@@ -844,7 +844,6 @@ abstract class deals_InvoiceMaster extends core_Master
     			$row->cNum = tr('|ЕИК|* / <i>UIC</i>');
     		}
     	
-    		$row->header = "{$row->type} #<b>{$mvc->getHandle($rec->id)}</b> ({$row->state})" ;
     		$userRec = core_Users::fetch($rec->createdBy);
     		$row->username = core_Users::recToVerbal($userRec, 'names')->names;
     	

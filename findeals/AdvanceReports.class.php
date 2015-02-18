@@ -253,11 +253,6 @@ class findeals_AdvanceReports extends core_Master
     	$row->total = $mvc->getFieldType('total')->toVerbal($rec->total);
     	
     	if($fields['-single']){
-    
-    		// Показваме заглавието само ако не сме в режим принтиране
-    		if(!Mode::is('printing')){
-    			$row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>#{$mvc->abbr}{$row->id}</b>" . " ({$row->state})" ;
-    		}
     		
     		if($rec->currencyId == acc_Periods::getBaseCurrencyId($rec->valior)){
     			unset($row->rate);

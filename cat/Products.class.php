@@ -59,7 +59,7 @@ class cat_Products extends core_Embedder {
     /**
      * Детайла, на модела
      */
-    var $details = 'Packagings=cat_products_Packagings,Files=cat_products_Files,Prices=cat_PriceDetails,AccReports=acc_ReportDetails,Resources=mp_ObjectResources';
+    var $details = 'Packagings=cat_products_Packagings,Prices=cat_PriceDetails,AccReports=acc_ReportDetails,Resources=mp_ObjectResources';
     
     
     /**
@@ -224,7 +224,7 @@ class cat_Products extends core_Embedder {
         $this->FLD('info', 'richtext(bucket=Notes)', 'caption=Описание,input=none,formOrder=4');
         $this->FLD('measureId', 'key(mvc=cat_UoM, select=name,allowEmpty)', 'caption=Мярка,mandatory,remember,notSorting,input=none,formOrder=4');
         $this->FLD('photo', 'fileman_FileType(bucket=pictures)', 'caption=Фото,input=none,formOrder=4');
-        $this->FLD('groups', 'keylist(mvc=cat_Groups, select=name, makeLinks)', 'caption=Групи,maxColumns=2,remember,formOrder=100');
+        $this->FLD('groups', 'keylist(mvc=cat_Groups, select=name, makeLinks)', 'caption=Маркери,maxColumns=2,remember,formOrder=100');
         $this->FLD("isPublic", 'enum(no=Частен,yes=Публичен)', 'input=none,formOrder=100000002,caption=Показване за избор в документи->Достъп');
         
         // Разбивки на свойствата за по-бързо индексиране и търсене
@@ -1007,8 +1007,6 @@ class cat_Products extends core_Embedder {
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	$row->header = $mvc->singleTitle . " №<b>{$row->id}</b> ({$row->state})";
-    	 
     	if($fields['-list']){
     		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
     	}
@@ -1400,5 +1398,20 @@ class cat_Products extends core_Embedder {
     	}
     	
     	return followRetUrl();
+    }
+    
+    
+    /**
+     * Връща хендлъра на изображението представящо артикула, ако има такова
+     * 
+     * @param mixed $id - ид или запис
+     * @return fileman_FileType $hnd - файлов хендлър на изображението
+     */
+    public static function getProductImage($id)
+    {
+    	$me = cls::get(get_called_class());
+    	$Driver = $me->getDriver($id);
+    	
+    	return $Driver->getProductImage();
     }
 }

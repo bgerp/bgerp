@@ -26,7 +26,7 @@ class cat_Wrapper extends plg_ProtoWrapper
     function description()
     {
         $this->TAB('cat_Products', 'Списък', 'ceo,user');
-        $this->TAB('cat_Groups', 'Групи', 'ceo,user');
+        $this->TAB('cat_Groups', 'Маркери', 'ceo,user');
         $this->TAB('cat_Categories', 'Категории', 'ceo,user');
         $this->TAB('cat_Boms', 'Рецепти', 'ceo,cat');
         $this->TAB('cat_Packagings', 'Опаковки', 'ceo,user');

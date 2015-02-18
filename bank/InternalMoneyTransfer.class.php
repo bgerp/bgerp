@@ -360,11 +360,6 @@ class bank_InternalMoneyTransfer extends core_Master
                 $row->baseCurrency = acc_Periods::getBaseCurrencyCode($rec->valior);
             }
             
-            // Показваме заглавието само ако не сме в режим принтиране
-            if(!Mode::is('printing')){
-                $row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " ({$row->state})" ;
-            }
-            
             $row->creditBank = bank_OwnAccounts::getHyperLink($rec->creditBank, TRUE);
             
             if($rec->debitCase){

@@ -213,7 +213,6 @@ class store_Transfers extends core_Master
     	}
     	
     	if($fields['-single']){
-    		$row->header = $mvc->singleTitle . " #<b>{$mvc->abbr}{$row->id}</b> ({$row->state})";
 	    	
 	    	$fromStoreLocation = store_Stores::fetchField($rec->fromStore, 'locationId');
 	    	if($fromStoreLocation){

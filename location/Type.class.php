@@ -53,8 +53,10 @@ class location_Type extends type_Varchar {
         $stopGeolocation = FALSE;
             
         if (!$value) {
-            $conf = core_Packs::getConfig('location');
-            $value = $conf->LOCATION_DEFAULT_REGION;
+            if (!($value = $this->params['default'])) {
+                $conf = core_Packs::getConfig('location');
+                $value = $conf->LOCATION_DEFAULT_REGION;
+            }
         } else {
             $stopGeolocation = TRUE;
         }

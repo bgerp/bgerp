@@ -235,10 +235,6 @@ class trans_Lines extends core_Master
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	if($fields['-single']){
-    		$row->header = $mvc->singleTitle . " №<b>{$mvc->getHandle($rec->id)}</b> ({$row->state})";
-    	}
-    	
     	$attr = array();
     	$attr['class'] = "linkWithIcon";
     	if($rec->vehicleId && trans_Vehicles::haveRightFor('read', $rec->vehicleId)){

@@ -29,7 +29,7 @@ class page_Internal extends page_Html {
     	// Конструиране на родителския клас
         $this->page_Html();
         
-        $this->appendOnce(new ET('[#bgerp_Notifications::subscribeCounter#]'));
+        bgerp_Notifications::subscribeCounter($this);
         
         $this->replace("UTF-8", 'ENCODING');
         

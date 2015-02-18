@@ -318,7 +318,6 @@ class findeals_Deals extends deals_DealBase
     	$row->accountId = acc_Accounts::getTitleById($rec->accountId);
     	
     	if($fields['-single']){
-    		$row->header = $mvc->singleTitle . " #<b>{$mvc->abbr}{$row->id}</b> ({$row->state})";
     		$row->contragentName = cls::get($rec->contragentClassId)->getHyperLink($rec->contragentId, TRUE);
     		
     		if($rec->secondContragentClassId){
