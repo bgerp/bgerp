@@ -647,7 +647,7 @@ class acc_Journal extends core_Master
      * @param date $to - до коя дата
      * @return int - колко документа са били реконтирани
      */
-    private function reconto($accSysIds, $from = NULL, $to = NULL)
+    private function reconto($accSysIds, $from = NULL, $to = NULL, $types = array())
     {
     	// Дигаме времето за изпълнение на скрипта
     	set_time_limit(900);
@@ -656,6 +656,9 @@ class acc_Journal extends core_Master
     	$to = (!$to) ? dt::today() : $to;
     	$query = acc_JournalDetails::getQuery();
     	acc_JournalDetails::filterQuery($query, $from, $to, $accSysIds);
+    	if(count($types)){
+    		$query->in("docType", $types);
+    	}
     	
     	// Групираме записите по документи
     	$query->show('docId,docType,valior');
@@ -692,6 +695,8 @@ class acc_Journal extends core_Master
     	$form->FLD('accounts', 'acc_type_Accounts', 'caption=Сметки,mandatory');
     	$form->FLD('from', 'date', 'caption=От,mandatory');
     	$form->FLD('to', 'date', 'caption=До,mandatory');
+    	$form->FLD('types', 'keylist(mvc=core_Classes)', 'caption=Документи');
+    	$form->setSuggestions('types', core_Classes::getOptionsByInterface('acc_TransactionSourceIntf', 'title'));
     	
     	$form->input();
     	
@@ -704,10 +709,11 @@ class acc_Journal extends core_Master
     		
     		if(!$form->gotErrors()){
     			$accounts = keylist::toArray($rec->accounts);
+    			$types = arr::make($rec->types, TRUE);
     			foreach ($accounts as $id => $accId){
     				$accounts[$id] = acc_Accounts::fetchField($accId, 'systemId');
     			}
-    			$res = $this->reconto($accounts, $rec->from, $rec->to);
+    			$res = $this->reconto($accounts, $rec->from, $rec->to, $types);
     			
     			return followRetUrl(NULL, tr("|Реконтирани са|* {$res} |документа|*"));
     		}
