@@ -1527,9 +1527,10 @@ table.mc-calendar {
 }
 
 .portal-select {
-	border: 1px solid #999;
+	border: none;
 	position: relative;
 	top: -3px;
+    color:#333;
 }
     
 table.mc-header a {

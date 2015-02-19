@@ -1344,9 +1344,10 @@ table.mc-calendar {
     color: red; }
 
 .portal-select {
-  border: 1px solid #999999;
+  border: none;
   position: relative;
-  top: -3px; }
+  top: -3px;
+  color: #333333; }
 
 table.mc-header a {
   color: #999999; }

@@ -355,12 +355,10 @@ class cal_Tasks extends core_Master
         $oneWeakLater = dt::addDays(7);
         $data->query->where("#state = 'active' OR (#state = 'pending' AND #timeStart IS NOT NULL AND #timeStart <= '{$oneWeakLater}')");
         
-        $data->query->XPR('orderDate', 'datetime', "if(#expectationTimeStart,#expectationTimeStart, '{$today} 00:00:00')");
+        // Време за подредба на записите в портала
+        $data->query->XPR('orderDate', 'datetime', "if(#expectationTimeStart AND #expectationTimeStart > '{$now}', #expectationTimeStart, if(#timeStart, #timeStart, '{$today} 00:00:00'))");
         $data->query->orderBy("#orderDate=DESC, #createdOn=DESC");
         
-        // Време за подредба на записите в портала
-        //$data->query->XPR('orderDate', 'datetime', "if(#timeStart, #timeStart, '{$today} 00:00:00')");
-        //$data->query->orderBy("orderDate=DESC");
         
         // Време за групиране на записите в портала
         $data->query->XPR('groupDate', 'datetime', "if(#timeStart, #timeStart, '')");
