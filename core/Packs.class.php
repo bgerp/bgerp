@@ -255,6 +255,8 @@ class core_Packs extends core_Manager
         // Добавяме бутон
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
+        $data->listFilter->toolbar->addBtn('Обновяване на системата', array("core_Packs", "systemUpdate"), 'ef_icon = img/16/install.png, title=Обновяване на системата');
+        
         // Показваме само това поле. Иначе и другите полета 
         // на модела ще се появят
         $data->listFilter->showFields = $mvc->searchInputField;
@@ -277,7 +279,6 @@ class core_Packs extends core_Manager
         $form->toolbar = cls::get('core_Toolbar');
         $form->setHidden(array('Act' => 'install'));
         $form->toolbar->addSbBtn('Инсталирай', 'default', 'ef_icon = img/16/install.png, title=Монтиране на пакета');
-        $form->toolbar->addBtn('Обновяване на системата', array("core_Packs", "systemUpdate"), 'ef_icon = img/16/install.png, title=Настройване на системата');
         
         $html = $form->renderHtml();
         $html = $html->removeBlocks();
