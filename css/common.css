@@ -2617,8 +2617,13 @@ div.statuses-message h2 {
   margin-right: 20px;
   margin-bottom: 20px;
   float: left;
-  background: #fcfae8;
   box-shadow: 1px 1px 6px rgba(0, 0, 0, 0.4); }
+  .elem-holder.core-pack-state-active {
+    background: #fcfae8; }
+  .elem-holder.core-pack-state-draft {
+    background: #e5ffff; }
+  .elem-holder.core-pack-state-closed {
+    background: #eeeeee; }
   .elem-holder .pack-title {
     display: inline-block; }
     .elem-holder .pack-title:hover,
