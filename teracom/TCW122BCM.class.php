@@ -12,7 +12,7 @@
  * @author    Dimiter Minekov <mitko@extrapack.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
- * @since     v 0.1
+ * @title     Тераком TCW122B-CM
  */
 class teracom_TCW122BCM extends sens2_ProtoDriver
 {

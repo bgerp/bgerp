@@ -27,12 +27,24 @@ class page_Wrapper extends core_BaseClass {
             if(Mode::is('printing')) {
                 $tplName =  'page_Print';
             } elseif(haveRole('admin,ceo,manager,officer,executive')) {
-                $tplName = 'page_Internal';
+                $tplName = 'core_page_Internal';
             } else {
                 $tplName = 'cms_Page';
             }
         }
         
+        // Определяне на темите, в случаите, когато се изисква външната или вътрешната обвивка
+        $coreConf = core_Packs::getConfig('core');
+        if($tplName == 'core_page_Internal' && $coreConf->CORE_PAGE_WRAPPER) {
+            $tplName = $coreConf->CORE_PAGE_WRAPPER;
+        } else {
+            $cmsConf = core_Packs::getConfig('cms');
+            if($tplName == 'cms_Page' && $cmsConf->CMS_PAGE_WRAPPER) {
+                $tplName = $cmsConf->CMS_PAGE_WRAPPER;
+            }
+        }
+       
+
         // Зареждаме опаковката 
         $wrapperTpl = cls::get($tplName);
         

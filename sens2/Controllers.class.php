@@ -83,7 +83,7 @@ class sens2_Controllers extends core_Master
     function description()
     {
         $this->FLD('name', 'varchar(255)', 'caption=Наименование, mandatory,notConfig');
-        $this->FLD('driver', 'class(interface=sens2_DriverIntf, allowEmpty)', 'caption=Драйвер,silent,mandatory,notConfig,placeholder=Тип на контролера');
+        $this->FLD('driver', 'class(interface=sens2_DriverIntf, allowEmpty, select=title)', 'caption=Драйвер,silent,mandatory,notConfig,placeholder=Тип на контролера');
         $this->FLD('config', 'blob(serialize, compress)', 'caption=Конфигурация,input=none,single=none,column=none');
         $this->FLD('state', 'enum(active=Активен, closed=Спрян)', 'caption=Състояние,input=none');
         $this->FLD('persistentState', 'blob(serialize)', 'caption=Персистентно състояние,input=none,single=none,column=none');

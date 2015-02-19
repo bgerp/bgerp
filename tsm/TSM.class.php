@@ -12,7 +12,7 @@
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title     Драйвер за единична гравиметрична система на TSM
+ * @title     Гравиметрична с-ма TSM
  */
 class tsm_TSM extends sens2_ProtoDriver
 {

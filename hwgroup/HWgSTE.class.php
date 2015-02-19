@@ -12,7 +12,7 @@
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title     Драйвери на сензори
+ * @title     Сензори HWgSTE
  */
 class hwgroup_HWgSTE extends sens2_ProtoDriver
 {

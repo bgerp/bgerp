@@ -12,7 +12,7 @@
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title     Драйвер за IP сензор Teracom TCW-121B
+ * @title     Тераком TCW122B
  */
 class teracom_TCW122B  extends sens2_ProtoDriver
 {

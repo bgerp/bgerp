@@ -12,7 +12,7 @@
  * @author    Dimiter Minekov <mitko@experta.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
- * @since     v 0.1
+ * @title     Тераком TCW121
  */
 class teracom_TCW121 extends sens2_ProtoDriver
 {

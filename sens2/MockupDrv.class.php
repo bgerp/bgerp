@@ -12,7 +12,7 @@
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title     Имитация на драйвер за IP сензор
+ * @title     Имитация на IP сензор
  */
 class sens2_MockupDrv  extends sens2_ProtoDriver
 {
