@@ -169,8 +169,6 @@ class mp_Resources extends core_Master
     			$data->query->where("#type = '{$type}'");
     		}
     	}
-    	
-    	//$data->query->where("#bomId IS NULL");
     }
     
     
