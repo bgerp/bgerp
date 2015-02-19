@@ -64,8 +64,8 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	 */
 	public function renderEmbeddedData($data)
 	{
-		$tpl = getTplFromFile('cat/tpl/SingleLayoutBaseDriver.shtml');
-		
+		// Ако не е зададен шаблон, взимаме дефолтния
+		$tpl = (empty($data->tpl)) ? getTplFromFile('cat/tpl/SingleLayoutBaseDriver.shtml') : $data->tpl;
 		$tpl->placeObject($data->row);
 		
 		// Ако ембедъра няма интерфейса за артикул, то към него немогат да се променят параметрите
@@ -180,6 +180,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	{
 		$data = $this->prepareEmbeddedData();
 		$data->noChange = TRUE;
+		$data->tpl = getTplFromFile('cat/tpl/SingleLayoutBaseDriverShort.shtml');
 		
 		$tpl = $this->renderEmbeddedData($data);
 		
