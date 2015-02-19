@@ -907,7 +907,12 @@ class cal_Tasks extends core_Master
         	}
         }
         
-        if($rec->state == 'draft') { 
+        if ($rec->state == 'draft') { 
+        	$row->expectationTimeEnd = "";
+        }
+        
+        // тука може би е добре да има миграция ?!?
+        if ($rec->state == 'active' && !$rec->expectationTimeEnd) {
         	$row->expectationTimeEnd = "";
         }
     }
