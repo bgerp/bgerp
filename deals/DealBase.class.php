@@ -57,9 +57,15 @@ abstract class deals_DealBase extends core_Master
 		 
 		if($rec->state == 'active'){
 	
-			// Ако валутата е активна, добавя се като перо
-			$lists = keylist::addKey('', acc_Lists::fetchBySystemId('deals')->id);
-			acc_Lists::updateItem($mvc, $rec->id, $lists);
+			if(!acc_Items::fetchItem($mvc, $rec->id)){
+				$lists = keylist::addKey('', acc_Lists::fetchBySystemId('deals')->id);
+				acc_Lists::updateItem($mvc, $rec->id, $lists);
+				
+				if(haveRole('ceo,acc,debug')){
+					$msg = tr("Активирано е перо|* '") . $mvc->getTitleById($rec->id) . tr("' |в номенклатура 'Сделки'|*");
+					core_Statuses::newStatus($msg);
+				}
+			}
 	
 			$Cover = doc_Folders::getCover($rec->folderId);
 			
@@ -72,11 +78,6 @@ abstract class deals_DealBase extends core_Master
 					$msg = tr("Активирано е перо|* '") . $Cover->getTitleById() . tr("' |в номенклатура 'Контрагенти'|*");
 					core_Statuses::newStatus($msg);
 				}
-			}
-			
-			if(haveRole('ceo,acc,debug')){
-				$msg = tr("Активирано е перо|* '") . $mvc->getTitleById($rec->id) . tr("' |в номенклатура 'Сделки'|*");
-				core_Statuses::newStatus($msg);
 			}
 		}
 	}
