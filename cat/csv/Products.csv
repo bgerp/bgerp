@@ -1,10 +1,12 @@
-"Други суровини и материали",materials,брой,materials,cat_GeneralProductDriver,materials
-"Друг труд",labor,час,labor,cat_GeneralProductDriver,labor
-"Други външни услуги",exServices,брой,externalServices,cat_GeneralProductDriver,externalServices
-"Други консумативи",consumables,брой,consumables,cat_GeneralProductDriver,consumables
-"Други резервни части",replacements,брой,replacements,cat_GeneralProductDriver,replacements
-"Други стоки",goods,брой,goods,cat_GeneralProductDriver,goods
-"Други продукти",products,брой,products,cat_GeneralProductDriver,products
-"Други заготовки",prefabrications,брой,prefabrications,cat_GeneralProductDriver,prefabrications
-"Други услуги",services,брой,services,cat_GeneralProductDriver,services
-"Други дълготрайни активи",fixedAssets,брой,fixedAssets,cat_GeneralProductDriver,fixedAssets
+"Други суровини и материали",materials,брой,materials,materials
+"Друг труд",labor,час,labor,labor
+"Други външни услуги",exServices,брой,externalServices,externalServices
+"Други консумативи",consumables,брой,consumables,consumables
+"Други резервни части",replacements,брой,replacements,replacements
+"Други стоки",goods,брой,goods,goods
+"Други продукти",products,брой,products,products
+"Други заготовки",prefabrications,брой,prefabrications,prefabrications
+"Други услуги",services,брой,services,services
+"Други дълготрайни активи",fixedAssets,брой,fixedAssets,fixedAssets
+"AAAAAA",fixedAssets2,брой,fixedAssets,fixedAssets
+"HRUS",fixedAssets3,брой,fixedAssets,fixedAssets

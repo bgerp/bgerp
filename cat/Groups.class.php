@@ -230,4 +230,25 @@ class cat_Groups extends core_Manager
     
     	return $res;
     }
+    
+    
+    /**
+     * Връща кейлист от систем ид-та на маркерите
+     * 
+     * @param mixed $sysIds - масив със систем ид-та
+     * @return string
+     */
+    public static function getKeylistBySysIds($sysIds)
+    {
+    	$kList = '';
+    	$sysIds = arr::make($sysIds);
+    	
+    	if(!count($sysIds)) return $kList;
+    	
+    	foreach($sysIds as $grId){
+    		$kList = keylist::addKey($kList, self::fetchField("#sysId = '{$grId}'", 'id'));
+    	}
+    	
+    	return $kList;
+    }
 }

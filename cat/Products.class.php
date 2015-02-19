@@ -371,22 +371,13 @@ class cat_Products extends core_Embedder {
      */
     public static function on_BeforeSave($mvc, &$id, $rec, $fields = NULL, $mode = NULL)
     {
-    	if(isset($rec->csv_measureId) && strlen($rec->csv_measureId) != 0){
-    		$rec->measureId = cat_UoM::fetchField("#name = '{$rec->csv_measureId}'", "id");
-    	}
-    	
-    	if(isset($rec->csv_groups) && strlen($rec->csv_groups) != 0){
-    		$csvGroups = arr::make($rec->csv_groups);
-    		$kList = '';
-    		foreach($csvGroups as $grId){
-    			$kList = keylist::addKey($kList, cat_Groups::fetchField("#sysId = '{$grId}'", 'id'));
-    		}
-    		$rec->groups = $kList;
-    	}
-    	
     	if(isset($rec->csv_name)){
     		$rec->name = $rec->csv_name;
-    		$rec->innerForm = (object)array('measureId' => $rec->measureId);
+    		$rec->measureId = cat_UoM::fetchBySinonim($rec->csv_measureId)->id;
+    		$rec->groups = cat_Groups::getKeylistBySysIds($rec->csv_groups);
+    		$rec->state = 'active';
+    		
+    		$rec->innerForm = (object)array('name' => $rec->name, 'measureId' => $rec->measureId);
     	}
     	
     	// Разпределяме свойствата в отделни полета за полесно търсене
@@ -403,6 +394,39 @@ class cat_Products extends core_Embedder {
     		if($rec->code == ''){
     			$rec->code = NULL;
     		}
+    	}
+    }
+
+    
+    /**
+     * Рутира публичен артикул в папка на категория
+     */
+	public function routePublicProduct($categorySysId, &$rec)
+	{
+		$categoryId = cat_Categories::fetchField("#sysId = '{$categorySysId}'", 'id');
+		$rec->folderId = cat_Categories::forceCoverAndFolder($categoryId);
+		$this->route($rec);
+		
+		$defMetas = cls::get('cat_Categories')->getDefaultMeta($categoryId);
+		$Driver = $this->getDriver($rec);
+		
+		$defMetas = $Driver->getDefaultMetas($defMetas);
+		$rec->meta = $this->getFieldType('meta')->fromVerbal($defMetas);
+	}
+    
+	
+    /**
+     * Обработка, преди импортиране на запис при начално зареждане
+     */
+    public static function on_BeforeImportRec($mvc, $rec)
+    {
+    	if(empty($rec->innerClass)){
+    		$rec->innerClass = cls::get('cat_GeneralProductDriver')->getClassId();
+    	}
+    	
+    	// Ако няма такъв артикул създаваме документа
+    	if(!$exRec = $mvc->fetch("#code = '{$rec->code}'")){
+    		$mvc->routePublicProduct($rec->csv_category, $rec);
     	}
     }
     
@@ -486,8 +510,6 @@ class cat_Products extends core_Embedder {
         if ($data->listFilter->rec->meta1 && $data->listFilter->rec->meta1 != 'all') {
         	$data->query->like('meta', "%{$data->listFilter->rec->meta1}%");
         }
-        
-        //bp($data->query->where);
     }
 
 
@@ -792,8 +814,7 @@ class cat_Products extends core_Embedder {
 	    	1 => "code", 
 	    	2 => "csv_measureId", 
 	    	3 => "csv_groups",
-    		4 => "innerClass",
-    		5 => "csv_category",
+    		4 => "csv_category",
     	);
     	
     	$cntObj = csv_Lib::importOnce($this, $file, $fields);
@@ -1221,30 +1242,6 @@ class cat_Products extends core_Embedder {
     	 
     	// Какво е к-то от последното активно задание
     	return cat_Boms::fetch("#originId = {$rec->containerId} AND #state = 'active'");
-    }
-    
-    
-    /**
-     * Обработка, преди импортиране на запис при начално зареждане
-     */
-    public static function on_BeforeImportRec($mvc, $rec)
-    {
-    	expect(cls::haveInterface('cat_ProductDriverIntf', $rec->innerClass));
-    	$rec->innerClass = cls::get($rec->innerClass)->getClassId();
-    	$rec->state = 'active';
-    	
-    	// Ако няма такъв артикул създаваме документа
-    	if(!$exRec = $mvc->fetch("#code = '{$rec->code}'")){
-    		$categoryId = cat_Categories::fetchField("#sysId = '{$rec->csv_category}'", 'id');
-    		$rec->folderId = cat_Categories::forceCoverAndFolder($categoryId);
-    		$mvc->route($rec);
-    		
-    		$defMetas = cls::get('cat_Categories')->getDefaultMeta($categoryId);
-    		$Driver = $mvc->getDriver($rec);
-    		
-    		$defMetas = $Driver->getDefaultMetas($defMetas);
-    		$rec->meta = $mvc->getFieldType('meta')->fromVerbal($defMetas);
-    	}
     }
     
     
