@@ -2015,7 +2015,11 @@ class doc_DocumentPlg extends core_Plugin
         
         // За всеки намерен документ, вкарва се във веригата
         foreach ($chainContainers as $cc) {
-            $chain[] = doc_Containers::getDocument($cc->id);
+        	try{
+        		$chain[] = doc_Containers::getDocument($cc->id);
+        	} catch(core_exception_Expect $e){
+        		
+        	}
         }
     }
     
