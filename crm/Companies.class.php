@@ -140,7 +140,7 @@ class crm_Companies extends core_Master
     /**
      * Кой  може да групира "С избраните"?
      */
-    var $canGrouping = 'ceo,crm';
+    var $canGrouping = 'powerUser';
 
     
     /**

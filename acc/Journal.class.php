@@ -631,4 +631,30 @@ class acc_Journal extends core_Master
             $mvc->updated[$id] = $id;
         }
     }
+    
+    
+    /**
+     * Метод реконтиращ всички документи в посочените дати съдържащи определени сметки
+     * Намира всички документи, които имат записи в журнала. Изтриват им се транзакциите
+     * и се записват на ново
+     * 
+     * @param mixed $accSysIds - списък от систем ид-та на сметки
+     * @param date $from - от коя дата
+     * @param date $to - до коя дата
+     * @return void
+     */
+    function reconto($accSysIds, $from = NULL, $to = NULL)
+    {
+    	$to = (!$to) ? dt::today() : $to;
+    	$query = acc_JournalDetails::getQuery();
+    	acc_JournalDetails::filterQuery($query, $from, $to, $accSysIds);
+    	
+    	$query->show('docId,docType,journalId');
+    	$query->groupBy('docId,docType');
+    	
+    	while($rec = $query->fetch()){
+    		acc_Journal::deleteTransaction($rec->docType, $rec->docId);
+    		acc_Journal::saveTransaction($rec->docType, $rec->docId);
+    	}
+    }
 }
