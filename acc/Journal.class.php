@@ -339,10 +339,11 @@ class acc_Journal extends core_Master
      *
      * Документът ($docClassId, $docId) ТРЯБВА да поддържа интерфейс acc_TransactionSourceIntf
      *
-     * @param int $docClassId
-     * @param int $docId
+     * @param mixed $docClassId - класа на документа
+     * @param int $docId - ид на документа
+     * @param boolean $notifyDocument - да нотифицира ли документа, че транзакцията е приключена
      */
-    public static function saveTransaction($docClassId, $docId)
+    public static function saveTransaction($docClassId, $docId, $notifyDocument = TRUE)
     {
         $mvc      = cls::get($docClassId);
         $docClass = cls::getInterface('acc_TransactionSourceIntf', $mvc);
@@ -359,8 +360,11 @@ class acc_Journal extends core_Master
         $transaction->rec->docId   = $docRec->id;
         
         if ($success = $transaction->save()) {
-            // Нотифицира мениджъра на документа за успешно приключилата транзакция
-            $docClass->finalizeTransaction($docRec);
+        	
+        	// Нотифицира мениджъра на документа за успешно приключилата транзакция, ако сме задали
+        	if($notifyDocument === TRUE){
+        		$docClass->finalizeTransaction($docRec);
+        	}
         }
         
         return $success;
@@ -641,20 +645,79 @@ class acc_Journal extends core_Master
      * @param mixed $accSysIds - списък от систем ид-та на сметки
      * @param date $from - от коя дата
      * @param date $to - до коя дата
-     * @return void
+     * @return int - колко документа са били реконтирани
      */
-    function reconto($accSysIds, $from = NULL, $to = NULL)
+    private function reconto($accSysIds, $from = NULL, $to = NULL)
     {
+    	// Дигаме времето за изпълнение на скрипта
+    	set_time_limit(900);
+    	
+    	// Филтрираме записите в журнала по подадените параметри
     	$to = (!$to) ? dt::today() : $to;
     	$query = acc_JournalDetails::getQuery();
     	acc_JournalDetails::filterQuery($query, $from, $to, $accSysIds);
     	
-    	$query->show('docId,docType,journalId');
+    	// Групираме записите по документи
+    	$query->show('docId,docType,valior');
     	$query->groupBy('docId,docType');
+    	$count = $query->count();
     	
+    	// За всеки документ
     	while($rec = $query->fetch()){
+    		
+    		// Ако е в затворен период, пропускаме го
+    		$periodState = acc_Periods::fetchByDate($rec->valior)->state;
+    		if($periodState == 'closed') continue;
+    		
+    		// Изтриваме транзакцията му и я записваме отново
     		acc_Journal::deleteTransaction($rec->docType, $rec->docId);
-    		acc_Journal::saveTransaction($rec->docType, $rec->docId);
+    		acc_Journal::saveTransaction($rec->docType, $rec->docId, FALSE);
     	}
+    	
+    	// Засегнатите документи
+    	return $count;
+    }
+    
+    
+    /**
+     * Екшън реконтиращ всички документи където участва дадена сметка
+     * в даден интервал
+     */
+    public function act_Reconto()
+    {
+    	requireRole('admin,ceo');
+    	
+    	$form = cls::get('core_Form');
+    	$form->title = tr("Реконтиране на документи");
+    	$form->FLD('accounts', 'acc_type_Accounts', 'caption=Сметки,mandatory');
+    	$form->FLD('from', 'date', 'caption=От,mandatory');
+    	$form->FLD('to', 'date', 'caption=До,mandatory');
+    	
+    	$form->input();
+    	
+    	if($form->isSubmitted()){
+    		$rec = &$form->rec;
+    		
+    		if($rec->from > $rec->to){
+    			$form->setError('from', 'Началната дата трябва да е по-малка от крайната');
+    		}
+    		
+    		if(!$form->gotErrors()){
+    			$accounts = keylist::toArray($rec->accounts);
+    			foreach ($accounts as $id => $accId){
+    				$accounts[$id] = acc_Accounts::fetchField($accId, 'systemId');
+    			}
+    			$res = $this->reconto($accounts, $rec->from, $rec->to);
+    			
+    			return followRetUrl(NULL, tr("|Реконтирани са|* {$res} |документа|*"));
+    		}
+    	}
+    	
+    	$form->toolbar->addSbBtn('Реконтиране', 'save', 'ef_icon = img/16/disk.png, title = Реконтиране');
+    	$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
+    	
+    	$tpl = $this->renderWrapping($form->renderHtml());
+    	
+    	return $tpl;
     }
 }

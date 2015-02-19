@@ -131,6 +131,14 @@ class acc_Setup extends core_ProtoSetup
     
     
     /**
+     * Описание на системните действия
+     */
+    var $systemActions = array(
+    		'Реконтиране' => array ('acc_Journal', 'reconto', 'ret_url' => TRUE)
+    );
+    
+    
+    /**
      * Настройки за Cron
      */
     var $cronSettings = array(
