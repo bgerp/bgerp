@@ -75,7 +75,7 @@ class cal_Tasks extends core_Master
      * Поле в което да се показва иконата за единичен изглед
      */
     public $rowToolsSingleField = 'title';
-    
+       
     
     /**
      * Кои полета да се извличат при изтриване
@@ -1859,7 +1859,9 @@ class cal_Tasks extends core_Master
 
 	    	while($recCond = $query->fetch()) {
 				$arrCond[] = $recCond;
+				
 	    	} 
+	    	
 	    	// ако задачата е зависима
 	    	if (is_array($arrCond)) {
     			foreach ($arrCond as $cond) { 
@@ -1875,14 +1877,15 @@ class cal_Tasks extends core_Master
 			    		} else {
 			    		   $calcTime = NULL;
 			    		}
+			    		
+			    		return $calcTime;
 			    	// ако ще правим изчисления по времена
 		    		} else { 
                         // правим масив с всички изчислени времена
 		    			$calcTimeS[] = self::calculateTimeToStart($rec, $cond);
+		    			
 		    		} 		 
 		     	}
-		     	
-		     	return $calcTime;
 		     	
 		     	// взимаме и началното време на текущата задача,
 		     	// ако има такова
@@ -1906,13 +1909,19 @@ class cal_Tasks extends core_Master
 		     	return $calcTime;
 		     	
 		    // задачата не е зависима от други задачи
-    		} else {
+    		} else { 
+    			$timeEnd = self::fetchField($rec->id, "timeEnd");
+    			$timeDuration = self::fetchField($rec->id, "timeDuration");
+    			
     			if ($rec->timeStart != NULL) {
     				// времето за стартиране е времето оказано от потребителя
     				$calcTime = $rec->timeStart;
+    			} elseif (!$rec->timeStart && ($timeEnd && $timeDuration)) {
+    				
+    				$calcTime =  dt::timestamp2Mysql(dt::mysql2timestamp($timeEnd) - $timeDuration);
     			} else { 
     				// ако не е оказано време от потребителя - е сега
-    				$calcTime = $rec->expectationTimeStart;
+    				$calcTime = $now;
     			}
     			
     			return $calcTime;
@@ -2045,7 +2054,7 @@ class cal_Tasks extends core_Master
     	    	}
 	    	}
 	    // ако няма id, то имаме директно началото и края й	
-    	} else {
+    	} else { 
     		$timeStart = $rec->timeStart;
     		$timeEnd = $rec->timeEnd;
     		
@@ -2088,7 +2097,7 @@ class cal_Tasks extends core_Master
     	$rec->expectationTimeStart = $expStart;
     	$rec->expectationTimeEnd = $expEnd;
         
-    	return $expEnd;
+    	//return $expEnd;
     	//self::save($rec, 'expectationTimeStart, expectationTimeEnd');
     }
         

@@ -196,7 +196,9 @@ class cal_TaskConditions extends core_Detail
     	if ($rec->progress == '0') {
     		$row->progress = "";
     	}
-    	
+
+        $row->condition = '<span style="margin-right:5px;position:relative;top:3px;">' . $row->condition . '</span>';
+    	 
     	if ($rec->activationCond == 'onProgress') {
     		$row->condition .= $row->progress . tr(" от изпълнението на ") . ht::createLink($row->dependId, array('cal_Tasks', 'single', $rec->dependId, 'ret_url' => TRUE, ''), NULL, "ef_icon=img/16/task-normal.png");
     	}
@@ -204,7 +206,7 @@ class cal_TaskConditions extends core_Detail
     	if ($rec->activationCond == 'afterTime') {
     		$row->condition .= $row->distTime . tr(" след началото на ") . ht::createLink($row->dependId, array('cal_Tasks', 'single', $rec->dependId, 'ret_url' => TRUE, ''), NULL, "ef_icon=img/16/task-normal.png");
     	}
-    	
+    	//bp($row->condition);
     	if ($rec->activationCond == 'beforeTime') {
     		$row->condition .= $row->distTime . tr(" преди началото на ") . ht::createLink($row->dependId, array('cal_Tasks', 'single', $rec->dependId, 'ret_url' => TRUE, ''), NULL, "ef_icon=img/16/task-normal.png");
     	}
@@ -231,24 +233,24 @@ class cal_TaskConditions extends core_Detail
     function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec, $userId)
     {
     	
-    	if ($rec->id) {
-    		if (!isset($rec->baseId)) {
+    	if ($rec->id) { 
+    		if (!isset($rec->baceId)) {
     			$rec = cal_TaskConditions::fetch($rec->id);
     		}
     		$taskRec = cal_Tasks::fetch($rec->baseId);
     		
-    		 //echo "<li>" .$taskRec->state;
-	    		if ($taskRec->state !== 'draft' || ($taskRec->state !== 'pending') ) {
-	    			if($action == 'edit' || $action == 'delete'){
-	                $requiredRoles = 'no_one'; 
-	            }
-    	    }
+    		if ($taskRec->state == 'active' || ($taskRec->state == 'closed') ) {
+	    			
+	        	$requiredRoles = 'no_one'; 
+	            	
+    	    } else {
          
-         	if ($action == 'edit') { 
-         		if (!cal_Tasks::haveRightFor('single', $taskRec)) {
-	         		$requiredRoles = 'no_one'; 
+	         	if ($action == 'edit' || $action == 'delete') { 
+	         		if (!cal_Tasks::haveRightFor('single', $taskRec)) {
+		         		$requiredRoles = 'no_one'; 
+		         	}
 	         	}
-         	}
+    	    }
     	}
     }
 
