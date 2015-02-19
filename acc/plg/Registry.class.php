@@ -61,21 +61,9 @@ class acc_plg_Registry extends core_Plugin
     	if(!empty($mvc->addToListOnActivation)){
     		if($rec->state == 'active'){
     		
-    			// И вече не е перо, добавяме го в тази номенклатура
-    			if(!acc_Items::fetchItem($mvc, $rec->id)){
-    				
-    				// Проверяваме дали записа може да се добави в номенклатура при активиране
-    				if($mvc->canAddToListOnActivation($rec)){
-    					
-    					// Ако валутата е активна, добавя се като перо
-    					$rec->lists = keylist::addKey($rec->lists, acc_Lists::fetchField(array("#systemId = '[#1#]'", $mvc->addToListOnActivation), 'id'));
-    					acc_Lists::updateItem($mvc, $rec->id, $rec->lists);
-    					
-    					if(haveRole('ceo,acc')){
-    						$list = acc_Lists::fetchField("#systemId = '{$mvc->addToListOnActivation}'", 'name');
-    						core_Statuses::newStatus(tr("|Обекта е добавен в номенклатура|*: {$list}"));
-    					}
-    					
+    			// Ако документа става перо при активиране, добавяме го като перо, ако вече не е
+    			if($mvc->canAddToListOnActivation($rec)){
+    				if($mvc->forceItem($rec, $mvc->addToListOnActivation)){
     					$added = TRUE;
     				}
     			}
@@ -111,6 +99,32 @@ class acc_plg_Registry extends core_Plugin
     			}
     		}
     	}
+    }
+    
+    
+    /**
+     * Метод по подразбиране дали обекта може да се добави в номенклатура при активиране
+     */
+    public static function on_AfterForceItem($mvc, &$res, $id, $listSysId)
+    {
+    	if($rec) return;
+    	
+    	$rec = $mvc->fetchRec($id);
+    	
+    	// Форсираме го в номенклатурата, само ако не е перо
+    	if(!acc_Items::fetchItem($mvc, $rec->id)){
+    		$lists = keylist::addKey('', acc_Lists::fetchBySystemId($listSysId)->id);
+    		acc_Lists::updateItem($mvc, $rec->id, $lists);
+    			
+    		if(haveRole('ceo,acc')){
+    			$list = acc_Lists::fetchBySystemId($listSysId)->name;
+    			core_Statuses::newStatus(tr("|Обекта е добавен в номенклатура|*: {$list}"));
+    		}
+    		
+    		$res = TRUE;
+    	}
+    	
+    	$res = FALSE;
     }
     
     

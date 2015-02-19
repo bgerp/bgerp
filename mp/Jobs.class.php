@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   mp
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Задания за производство
@@ -295,5 +295,16 @@ class mp_Jobs extends core_Master
     	$res[] = (object)array('class' => $origin->getInstance(), 'id' => $origin->that);
     
     	return $res;
+    }
+    
+    
+    /**
+     * Функция, която се извиква след активирането на документа
+     */
+    public static function on_AfterActivation($mvc, &$rec)
+    {
+    	// След активиране на заданието, добавяме артикула като перо
+    	$origin = doc_Containers::getDocument($mvc->fetchRec($rec)->originId);
+    	$origin->forceItem('catProducts');
     }
 }
