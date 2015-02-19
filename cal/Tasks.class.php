@@ -299,16 +299,16 @@ class cal_Tasks extends core_Master
         // Ако имаме само начална дата на задачата
         if($rec->timeStart && !$rec->timeEnd){
         	// я парвим хипервръзка към календара- дневен изглед
-        	$row->timeStart = ht::createLink($row->timeStart, array('cal_Calendar', 'day', 'from' => $row->timeStart, 'Task' => 'true'), NULL, array('ef_icon'=>'img/16/calendar5.png', 'title'=>'Покажи в календара'));
+        	$row->timeStart = ht::createLink(dt::mysql2verbal($rec->timeStart, 'smartTime'), array('cal_Calendar', 'day', 'from' => $row->timeStart, 'Task' => 'true'), NULL, array('ef_icon'=>'img/16/calendar5.png', 'title'=>'Покажи в календара'));
           // Ако имаме само крайна дата на задачата 
         } elseif ($rec->timeEnd && !$rec->timeStart) {
         	// я правим хипервръзка към календара - дневен изглед
-        	$row->timeEnd = ht::createLink($row->timeEnd, array('cal_Calendar', 'day', 'from' => $row->timeEnd, 'Task' => 'true'), NULL, array('ef_icon'=>'img/16/calendar5.png', 'title'=>'Покажи в календара'));
+        	$row->timeEnd = ht::createLink(dt::mysql2verbal($rec->timeEnd, 'smartTime'), array('cal_Calendar', 'day', 'from' => $row->timeEnd, 'Task' => 'true'), NULL, array('ef_icon'=>'img/16/calendar5.png', 'title'=>'Покажи в календара'));
           // Ако задачата е с начало и край едновременно
         } elseif($rec->timeStart && $rec->timeEnd) {
         	// и двете ги правим хипервръзка към календара - дневен изглед 
-        	$row->timeStart = ht::createLink($row->timeStart, array('cal_Calendar', 'day', 'from' => $row->timeStart, 'Task' => 'true'), NULL, array('ef_icon'=>'img/16/calendar5.png', 'title'=>'Покажи в календара'));
-        	$row->timeEnd = ht::createLink($row->timeEnd, array('cal_Calendar', 'day', 'from' => $row->timeEnd, 'Task' => 'true'), NULL, array('ef_icon'=>'img/16/calendar5.png', 'title'=>'Покажи в календара'));
+        	$row->timeStart = ht::createLink(dt::mysql2verbal($rec->timeStart, 'smartTime') , array('cal_Calendar', 'day', 'from' => $row->timeStart, 'Task' => 'true'), NULL, array('ef_icon'=>'img/16/calendar5.png', 'title'=>'Покажи в календара'));
+        	$row->timeEnd = ht::createLink(dt::mysql2verbal($rec->timeEnd, 'smartTime'), array('cal_Calendar', 'day', 'from' => $row->timeEnd, 'Task' => 'true'), NULL, array('ef_icon'=>'img/16/calendar5.png', 'title'=>'Покажи в календара'));
         }
         
         if ($rec->timeDuration || $rec->timeEnd) {
@@ -317,6 +317,10 @@ class cal_Tasks extends core_Master
         } else {
         	$row->expectationTimeEnd = '';
         } 
+        
+        if ($rec->timeClosed) {
+        	$row->timeClosed =  dt::mysql2verbal($rec->timeClosed, 'smartTime'); 
+        }
     }
 
 
