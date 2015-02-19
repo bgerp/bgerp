@@ -1342,10 +1342,11 @@ table.mc-calendar {
     border: solid 2px red; }
   table.mc-calendar td.mc-holiday {
     color: red; }
-  table.mc-calendar .portal-select {
-    border: 1px solid #999999;
-    position: relative;
-    top: -3px; }
+
+.portal-select {
+  border: 1px solid #999999;
+  position: relative;
+  top: -3px; }
 
 table.mc-header a {
   color: #999999; }
