@@ -542,6 +542,8 @@ class pos_Receipts extends core_Master {
      */
     private function pushFiles(&$tpl)
     {
+    	$tpl->push('css/Application.css', 'CSS');
+    	$tpl->push('css/default-theme.css', 'CSS');
     	$tpl->push('pos/tpl/css/styles.css', 'CSS');
     	if(!Mode::is('printing')){
     		$tpl->push('pos/js/scripts.js', 'JS');
