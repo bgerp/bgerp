@@ -328,24 +328,6 @@ class accda_Da extends core_Master
     
     
     /**
-     * Реакция в счетоводния журнал при оттегляне на счетоводен документ
-     */
-    public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
-    {
-    	$rec = $mvc->fetchRec($id);
-    	$listSysId = ($rec->storeId) ? 'fixedAssets' : 'intangibleAssets';
-    	
-    	$lists = keylist::addKey('', acc_Lists::fetchBySystemId($listSysId)->id);
-    	acc_Lists::removeItem($mvc, $rec->id, $lists);
-    		
-    	if(haveRole('ceo,acc,debug')){
-    		$title = $mvc->getTitleById($rec->id);
-    		core_Statuses::newStatus(tr("|Перото|* \"{$title}\" |е затворено/изтрито|*"));
-    	}
-    }
-    
-    
-    /**
      * Функция, която се извиква след активирането на документа
      */
     public static function on_AfterActivation($mvc, &$rec)
@@ -353,16 +335,19 @@ class accda_Da extends core_Master
     	$rec = $mvc->fetchRec($rec);
     		
     	if($rec->state == 'active'){
-    		$listSysId = ($rec->storeId) ? 'fixedAssets' : 'intangibleAssets';
     		
-    		// Ако валутата е активна, добавя се като перо
-    		$lists = keylist::addKey('', acc_Lists::fetchBySystemId($listSysId)->id);
-    		acc_Lists::updateItem($mvc, $rec->id, $lists);
-    
-    		if(haveRole('ceo,acc,debug')){
-    			$listName = acc_Lists::fetchField("#systemId = '{$listSysId}'", 'name');
-    			$msg = tr("Активирано е перо|* '") . $mvc->getTitleById($rec->id) . tr("' |в номенклатура|* '{$listName}'");
-    			core_Statuses::newStatus($msg);
+    		if(!acc_Items::fetchItem($mvc, $rec->id)){
+    			$listSysId = ($rec->storeId) ? 'fixedAssets' : 'intangibleAssets';
+    			
+    			// Ако валутата е активна, добавя се като перо
+    			$lists = keylist::addKey('', acc_Lists::fetchBySystemId($listSysId)->id);
+    			acc_Lists::updateItem($mvc, $rec->id, $lists);
+    			
+    			if(haveRole('ceo,acc,debug')){
+    				$listName = acc_Lists::fetchField("#systemId = '{$listSysId}'", 'name');
+    				$msg = tr("Активирано е перо|* '") . $mvc->getTitleById($rec->id) . tr("' |в номенклатура|* '{$listName}'");
+    				core_Statuses::newStatus($msg);
+    			}
     		}
     	}
     }
