@@ -1407,7 +1407,7 @@ class cat_Products extends core_Embedder {
     	
     	$this->save($rec, 'state');
     	
-    	if($itemRec = acc_Items::fetchItem($this, $id)){
+    	/*if($itemRec = acc_Items::fetchItem($this, $id)){
     		
     		$lists = keylist::addKey($rec->lists, acc_Lists::fetchField(array("#systemId = '[#1#]'", 'catProducts'), 'id'));
     		if($rec->state == 'active'){
@@ -1419,7 +1419,7 @@ class cat_Products extends core_Embedder {
     		}
     		
     		core_Statuses::newStatus($msg);
-    	}
+    	}*/
     	
     	return followRetUrl();
     }
