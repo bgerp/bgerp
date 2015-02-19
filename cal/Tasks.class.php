@@ -240,6 +240,9 @@ class cal_Tasks extends core_Master
         
         // Точното време на активация на задачата
         $this->FLD('timeActivated', 'datetime', 'caption=Времена->Активирана на,input=none');
+        
+        // Точното време на затваряне
+        $this->FLD('timeClosed', 'datetime', 'caption=Времена->Затворена на,input=none');
     }
 
 
@@ -890,6 +893,18 @@ class cal_Tasks extends core_Master
         if ($rec->afterTaskProgress == "0") {
             
             $row->afterTaskProgress = "";
+        }
+        
+        if ($rec->state == 'closed') {
+        	$row->expectationTimeEnd = "";
+        	
+        	if(!$rec->timeClosed) {
+        		$row->timeClosed = "";
+        	}
+        }
+        
+        if($rec->state == 'draft') { 
+        	$row->expectationTimeEnd = "";
         }
     }
     
@@ -2065,11 +2080,11 @@ class cal_Tasks extends core_Master
 	    	$expStart = dt::timestamp2Mysql(dt::mysql2timestamp($expStart) - $rec->timeDuration);
 	    	$expEnd = $timeEnd;
 	    }
-	   
+	    
     	$rec->expectationTimeStart = $expStart;
     	$rec->expectationTimeEnd = $expEnd;
-
-    	
+        
+    	return $expEnd;
     	//self::save($rec, 'expectationTimeStart, expectationTimeEnd');
     }
         
