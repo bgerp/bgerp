@@ -692,9 +692,9 @@ class acc_Journal extends core_Master
     	
     	$form = cls::get('core_Form');
     	$form->title = tr("Реконтиране на документи");
-    	$form->FLD('accounts', 'acc_type_Accounts', 'caption=Сметки,mandatory');
     	$form->FLD('from', 'date', 'caption=От,mandatory');
     	$form->FLD('to', 'date', 'caption=До,mandatory');
+    	$form->FLD('accounts', 'acc_type_Accounts', 'caption=Сметки');
     	$form->FLD('types', 'keylist(mvc=core_Classes)', 'caption=Документи');
     	$form->setSuggestions('types', core_Classes::getOptionsByInterface('acc_TransactionSourceIntf', 'title'));
     	
@@ -705,6 +705,10 @@ class acc_Journal extends core_Master
     		
     		if($rec->from > $rec->to){
     			$form->setError('from', 'Началната дата трябва да е по-малка от крайната');
+    		}
+    		
+    		if(empty($rec->accounts) && empty($rec->types)){
+    			$form->setError('accounts,types', 'Трябва да е избрано, поне едно от двете полета');
     		}
     		
     		if(!$form->gotErrors()){
