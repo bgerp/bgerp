@@ -14,11 +14,12 @@
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @link
+ * @title     Стандартна публична страница
  */
-class cms_Page extends page_Html {
+class cms_Page extends core_page_Active {
     
-    
+    public $interfaces = 'core_page_WrapperIntf';
+
     /**
      * Конструктор за страницата по подразбиране
      * Тази страница използва internal layout, header и footer за да 
@@ -27,7 +28,7 @@ class cms_Page extends page_Html {
     function cms_Page()
     {
         // Конструктора на родителския клас
-        $this->page_Html();
+        $this->core_page_Active();
     	
         // Параметри от конфигурацията
         $conf = core_Packs::getConfig('core');
@@ -53,15 +54,9 @@ class cms_Page extends page_Html {
 
        // bp($this->content);
 
-        // Кодировка - UTF-8
-        $this->replace("UTF-8", 'ENCODING');
-        
-        $this->push('css/common.css','CSS');
-        $this->push('css/Application.css','CSS');
         $this->push('css/default-theme.css', 'CSS');
         $this->push('cms/css/Wide.css', 'CSS');
-        jquery_Jquery::enable($this);
-        $this->push('js/efCommon.js', 'JS');
+
         $this->push('js/overthrow-detect.js', 'JS');
         
         // Евентуално се кешират страници за не PowerUsers
@@ -71,30 +66,19 @@ class cms_Page extends page_Html {
             $this->push('-Pragma', 'HTTP_HEADER');
         } else {
             $this->push('Cache-Control: private, max-age=0', 'HTTP_HEADER');
-            //$this->push('Pragma: no-cache', 'HTTP_HEADER');
             $this->push('Expires: -1', 'HTTP_HEADER');
         }
-        
-        $this->appendOnce("\n<link  rel=\"shortcut icon\" href=" . sbf("img/favicon.ico", '"', TRUE) . " type=\"image/x-icon\">", "HEAD");
-        
+                
         $pageTpl = getFileContent('cms/tpl/Page.shtml');
         if(isDebug() && Request::get('Debug') && haveRole('debug')) {
             $pageTpl .= '[#Debug::getLog#]';
         }
         $this->replace(new ET($pageTpl), 'PAGE_CONTENT');
         
-        $path = self::getHeaderImagePath();
-        
-        $show = FALSE;
-        if (!$conf->EF_PRIVATE_PATH) {
-        	$show = TRUE;
-        } else {
-        	if (!file_exists($conf->EF_PRIVATE_PATH . "/" . $path)) {
-        		$show = TRUE;
-        	}
-        }
+        $this->replace($this->getHeaderImg(), 'HEADER_IMG');
+
         // ако нямаме частен пакет или в него няма специфична картинка, показваме името на приложението
-        if ($show) {
+        if ($this->haveToShowAppTitle()) {
         	$this->replace($conf->EF_APP_TITLE, 'CORE_APP_NAME');
     	}
     	
@@ -175,6 +159,26 @@ class cms_Page extends page_Html {
         $img = ht::createElement('img', array('src' => sbf($path, ''), 'alt' => tr($conf->EF_APP_TITLE), 'id' => 'headerImg'));
         
         return $img;
+    }
+
+
+    /**
+     * Дали да показва името на приложението на заглавния имидж?
+     */
+    private function haveToShowAppTitle()
+    {   
+        $path = self::getHeaderImagePath();
+        $conf = core_Packs::getConfig('core');
+        $res = FALSE;
+        if (!$conf->EF_PRIVATE_PATH) {
+        	$res = TRUE;
+        } else {
+        	if (!file_exists($conf->EF_PRIVATE_PATH . "/" . $path)) {
+        		$res = TRUE;
+        	}
+        }
+
+        return $res;
     }
 
     

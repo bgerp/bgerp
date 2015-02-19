@@ -596,8 +596,8 @@ class bgerp_Menu extends core_Manager
                     <div class=\"menuRow\">[#MENU_ROW1#]</div>
                     <div class=\"menuRow\" style=\"margin-top:3px; margin-bottom:3px;\">[#MENU_ROW2#]</div>
                     <div class=\"menuRow\">[#MENU_ROW3#]</div>                   
-
-                </div> <div class='clearfix'></div>
+                </div>
+                <div class='clearfix'></div>
                 <!--ET_BEGIN SUB_MENU--><div id=\"subMenu\">[#SUB_MENU#]</div>\n<!--ET_END SUB_MENU-->");
             
             $img = ht::createElement('img', array('src' => sbf('img/bgerp.png', ''), 'alt' => '', 'style' => 'border:0; border-top:5px solid transparent;'));

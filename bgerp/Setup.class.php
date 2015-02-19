@@ -21,6 +21,7 @@ defIfNot(BGERP_COMPANY_LOGO, '');
 defIfNot(BGERP_NON_WORKING_CRON_TIME, 3600);
 
 
+
 /**
  * class 'bgerp_Setup' - Начално установяване на 'bgerp'
  *
@@ -68,7 +69,7 @@ class bgerp_Setup extends core_ProtoSetup {
         'BGERP_COMPANY_LOGO_EN' => array ('fileman_FileType(bucket=pictures)', 'caption=Фирмена бланка->На английски, customizeBy=powerUser'),
         
         'BGERP_NON_WORKING_CRON_TIME' => array ('time(suggestions=30 мин.|1 час| 3 часа)', 'caption=След колко време да дава нотификация за неработещ cron->Време'),
-    );
+     );
     
     
     /**
@@ -227,7 +228,7 @@ class bgerp_Setup extends core_ProtoSetup {
         
         // Добавяме Импортиращия драйвър в core_Classes
         $html .= core_Classes::add('bgerp_BaseImporter');
-        
+ 
         //TODO в момента се записват само при инсталация на целия пакет
         
         
