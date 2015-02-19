@@ -219,6 +219,13 @@ class cat_Products extends core_Embedder {
 	 */
 	public $allBtnToolbarRow = 1;
 	
+	
+	/**
+	 * В коя номенклатура да се добави при активиране
+	 */
+	public $addToListOnActivation = 'catProducts';
+	
+	
     /**
      * Описание на модела
      */
@@ -725,16 +732,18 @@ class cat_Products extends core_Embedder {
         if($rec->groups) {
             $mvc->updateGroupsCnt = TRUE;
         }
-        
-        $isPublic = (isset($rec->isPublic)) ? $rec->isPublic : $mvc->fetchField($rec->id, 'isPublic');
-        if($rec->state == 'active' && $isPublic == 'yes'){
-        	if(!acc_Items::fetchItem($mvc, $rec->id)){
-        		$lists = keylist::addKey('', acc_Lists::fetchField(array("#systemId = '[#1#]'", 'catProducts'), 'id'));
-        		acc_Lists::updateItem($mvc, $rec->id, $lists);
-        		$name = $mvc->fetchField($rec->id, 'name');
-        		core_Statuses::newStatus(tr("|Отворено е перо|*: {$name}"));
-        	}
-        }
+    }
+    
+    
+    /**
+     * При активиране да се добавили обекта като перо
+     */
+    public function canAddToListOnActivation($rec)
+    {
+    	$rec = $this->fetchRec($rec);
+    	$isPublic = ($rec->isPublic) ? $rec->isPublic : $this->fetchField($rec->id, 'isPublic');
+    	
+    	return ($isPublic == 'yes') ? TRUE : FALSE;
     }
     
     
@@ -1406,20 +1415,6 @@ class cat_Products extends core_Embedder {
     	$rec->state = $state;
     	
     	$this->save($rec, 'state');
-    	
-    	/*if($itemRec = acc_Items::fetchItem($this, $id)){
-    		
-    		$lists = keylist::addKey($rec->lists, acc_Lists::fetchField(array("#systemId = '[#1#]'", 'catProducts'), 'id'));
-    		if($rec->state == 'active'){
-    			acc_Lists::updateItem($this, $rec->id, $lists);
-    			$msg = tr("|Отворено е перо|*: {$itemRec->title}");
-    		} else {
-    			acc_Lists::removeItem($this, $rec->id, $lists);
-    			$msg = tr("|Затворено е перо|*: {$itemRec->title}");
-    		}
-    		
-    		core_Statuses::newStatus($msg);
-    	}*/
     	
     	return followRetUrl();
     }
