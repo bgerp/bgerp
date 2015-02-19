@@ -145,6 +145,7 @@ class bgerp_Setup extends core_ProtoSetup {
         } else {
             $packs = arr::make($packs, TRUE);
             $pQuery = $Packs->getQuery();
+            $pQuery->where("#state = 'active'");
             
             while ($pRec = $pQuery->fetch()) {
                 if(!$packs[$pRec->name]) {
