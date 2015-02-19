@@ -115,7 +115,7 @@ class cat_Boms extends core_Master
     /**
      * Файл с шаблон за единичен изглед на статия
      */
-    var $singleLayoutFile = 'cat/tpl/SingleLayoutMap.shtml';
+    var $singleLayoutFile = 'cat/tpl/SingleLayoutBom.shtml';
     
     
     /**
