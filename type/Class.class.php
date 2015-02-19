@@ -68,7 +68,7 @@ class type_Class  extends type_Key {
         if(!is_numeric($value)) {
             $value = $this->fromVerbal($value);
         }
-        
+
         return parent::renderInput_($name, $value, $attr);
     }
     
@@ -101,16 +101,21 @@ class type_Class  extends type_Key {
         $interface = $this->params['interface'];
         $mvc = cls::get($this->params['mvc']);
         $this->options = $mvc->getOptionsByInterface($interface, $this->params['select']);
-        //bp($value, $options, array_search($value, $options));
+        
+        $classNameOptions = $mvc->getOptionsByInterface($interface, 'name');
+
         $value = parent::fromVerbal($value);
-     
+ 
         // Възможно е $value да е името на класа
         if (is_numeric($value)) {
             if (!$this->options[$value]) {
                 $error = TRUE;
             }
         } elseif (isset($value)) {
-            if (!($value = array_search($value, $this->options))) {
+            
+            $v = $value;
+
+            if (!(($value1 = array_search($v, $this->options)) || ($value = array_search($v, $classNameOptions)) )) {
                 $error = TRUE;
             }
         }
