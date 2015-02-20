@@ -128,7 +128,7 @@ class acc_plg_Registry extends core_Plugin
     		if($lists !== FALSE){
     			acc_Lists::updateItem($mvc, $rec->id, $lists);
     			if(haveRole('ceo,acc')){
-    				$title = $mvc->getItemRec($rec->id)->title;
+    				$title = $mvc->getTitleById($rec->id);
     				core_Statuses::newStatus("|*'{$title}' |е добавен в номенклатура|* '{$listRec->name}'");
     			}
     			 
