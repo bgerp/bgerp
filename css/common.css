@@ -2621,9 +2621,11 @@ div.statuses-message h2 {
   .elem-holder.core-pack-state-active {
     background: #fcfae8; }
   .elem-holder.core-pack-state-draft {
-    background: #e5ffff; }
+    background: #bbffff; }
   .elem-holder.core-pack-state-closed {
     background: #eeeeee; }
+  .elem-holder.core-pack-state-missing {
+    background: #feadad; }
   .elem-holder .pack-title {
     display: inline-block; }
     .elem-holder .pack-title:hover,

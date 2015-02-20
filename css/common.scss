@@ -2826,17 +2826,19 @@ div.statuses-message h2 {
 	margin-right: 20px;
 	margin-bottom: 20px;
 	float: left;
-	
 	box-shadow: 1px 1px 6px rgba(0,0,0,0.4);
 	&.core-pack-state-active {
 	   background: #fcfae8;
 	}
 	&.core-pack-state-draft {
-	   background:#e5ffff;
+	   background:#bbffff;
 	}
 	&.core-pack-state-closed {
 	   background:#eee;
 	}
+	&.core-pack-state-missing {
+       background:#feadad;
+    }
 	.pack-title {
 		display: inline-block;
 		&:hover, &:hover b {
