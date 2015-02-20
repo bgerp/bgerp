@@ -386,7 +386,7 @@ class cat_Products extends core_Embedder {
     /**
      * Рутира публичен артикул в папка на категория
      */
-	public function routePublicProduct($categorySysId, &$rec)
+	private function routePublicProduct($categorySysId, &$rec)
 	{
 		$categorySysId = ($categorySysId) ? $categorySysId : 'goods';
 		$categoryId = (is_numeric($categorySysId)) ? $categorySysId : cat_Categories::fetchField("#sysId = '{$categorySysId}'", 'id');
