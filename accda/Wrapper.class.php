@@ -26,7 +26,6 @@ class accda_Wrapper extends plg_ProtoWrapper
     {
         
         $this->TAB('accda_Da', 'Инвентарна книга', 'ceo,accda');
-        $this->TAB('accda_Groups', 'Групи', 'ceo,accda');
         $this->TAB('accda_Documents', 'Документи', 'ceo,accda');
         
         $this->title = 'ДА « Счетоводство';

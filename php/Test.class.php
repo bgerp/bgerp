@@ -152,7 +152,6 @@ class php_Test extends core_Manager
                         $class == 'catering_Companies' ||
                         $class == 'accda_Documents' ||
                         $class == 'accda_Da' ||
-                        $class == 'accda_Groups' ||
                         $class == 'catpr_Pricelists_Details' || //core_Details
                         $class == 'catpr_Discounts_Details' ||  //core_Details
                         $class == 'catpr_Costs' ||
