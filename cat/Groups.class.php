@@ -151,6 +151,7 @@ class cat_Groups extends core_Manager
         
         
         $this->setDbUnique("sysId");
+        $this->setDbUnique("name");
     }
     
     

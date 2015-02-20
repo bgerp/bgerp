@@ -169,6 +169,7 @@ class cat_Categories extends core_Master
         
         
         $this->setDbUnique("sysId");
+        $this->setDbUnique("name");
     }
     
     
