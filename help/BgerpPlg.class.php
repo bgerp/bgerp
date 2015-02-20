@@ -51,7 +51,6 @@ class help_BgerpPlg extends core_Plugin
         
         $conf = core_Packs::getConfig('help');
         
-    	cls::get(page_InternalFooter);
     	$baseUrl = $conf->BGERP_SUPPORT_URL;
     	$conf = core_Packs::getConfig('help');
     	
