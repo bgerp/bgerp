@@ -204,7 +204,7 @@ class bgerp_plg_Import extends core_Plugin
         
         // Поле за ръчно въвеждане на csv данни
         $exp->DEF('#csvData=CSV данни', 'text(1000000)', 'width=100%,mandatory');
-        $exp->question("#csvData,#delimiter,#enclosure,#firstRow", tr("Моля, поставете данните, и посочете формата на данните") . ":", "#source == 'csv'", 'title=' . tr('Въвеждане на CSV данни за контакти, и уточняване на разделителя и ограждането'));
+        $exp->question("#csvData,#delimiter,#enclosure,#firstRow", tr("Моля, поставете данните, и посочете формата на данните") . ":", "#source == 'csv'", 'title=' . tr('Въвеждане на CSV данни за импорт, и уточняване на разделителя и ограждането'));
         
         // Поле за ъплоуд на csv файл
         $exp->DEF('#csvFile=CSV файл', 'fileman_FileType(bucket=bnav_importCsv)', 'mandatory');
