@@ -461,7 +461,7 @@ abstract class store_DocumentMaster extends core_Master
     	$row->address .= ", " . (($rec->locationId) ? crm_Locations::getAddress($rec->locationId) : $oldRow->contragentAddress);
     	trim($row->address, ', ');
     	 
-    	$row->TR_CLASS = ($rec->rowNumb % 2 == 0) ? 'zebra0' : 'zebra1';
+    	$row->ROW_ATTR['class'] = "state-{$rec->state}";
     	$row->docId = $this->getDocLink($rec->id);
     	 
     	return $row;

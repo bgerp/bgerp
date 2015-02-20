@@ -354,7 +354,7 @@ class store_Transfers extends core_Master
     	$row = $this->recToVerbal($rec, 'toAdress,weight,volume,-single');
     	$row->rowNumb = $rec->rowNumb;
     	$row->address = $row->toAdress;
-    	$row->TR_CLASS = ($rec->rowNumb % 2 == 0) ? 'zebra0' : 'zebra1';
+    	$row->ROW_ATTR['class'] = "state-{$rec->state}";
     	$row->docId = $this->getDocLink($rec->id);
     	
     	return $row;
