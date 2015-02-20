@@ -7,4 +7,5 @@
 "Други продукти",products,брой,products,products
 "Други заготовки",prefabrications,брой,prefabrications,prefabrications
 "Други услуги",services,брой,services,services
-"Други дълготрайни активи",fixedAssets,брой,fixedAssets,fixedAssets
+"Други нематериални дълготрайни активи",fixedAssets,брой,fixedAssets,fixedAssets
+"Други материални дълготрайни активи",fixedMatAssets,брой,fixedMatAssets,fixedMatAssets
