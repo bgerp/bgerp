@@ -489,7 +489,9 @@ class support_Issues extends core_Master
             // Добавяме OR
             $query->orWhere("#systemId = '{$allSystemId}'");
         }
-
+        
+        $components = array();
+        
         // Обхождаме всички открити резултати
         while ($rec = $query->fetch()) {
             
