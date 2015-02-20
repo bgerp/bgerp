@@ -49,7 +49,7 @@ class purchase_PurchaseLastPricePolicy extends core_Manager
     function getPriceInfo($customerClass, $customerId, $productId, $productManId, $packagingId = NULL, $quantity = NULL, $date = NULL, $rate = 1, $chargeVat = 'no')
     {
        if(!$date){
-       	   $date = dt::now();
+       	   $date = dt::today();
         }
         
         // Намира последната цена на която продукта е бил продаден на този контрагент

@@ -199,7 +199,7 @@ abstract class deals_DealDetail extends doc_Detail
     {
     	$rec = &$form->rec;
     	$masterRec  = $mvc->Master->fetch($rec->{$mvc->masterKey});
-    	$priceAtDate = ($masterRec->pricesAtDate) ? $masterRec->pricesAtDate : dt::now();
+    	$priceAtDate = ($masterRec->pricesAtDate) ? $masterRec->pricesAtDate : $masterRec->valior;
     	$update = FALSE;
     	
     	expect($ProductMan = cls::get($rec->classId));
