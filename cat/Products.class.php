@@ -331,7 +331,7 @@ class cat_Products extends core_Embedder {
         	if($rec->code) {
     				
     			// Проверяваме дали има продукт с такъв код (като изключим текущия)
-	    		$check = $mvc->checkIfCodeExists($rec->code);
+	    		$check = $mvc->getByCode($rec->code);
 	    		if($check && ($check->productId != $rec->id)
 	    			|| ($check->productId == $rec->id && $check->packagingId != $rec->packagingId)) {
 	    			$form->setError('code', 'Има вече артикул с такъв код!');
@@ -702,24 +702,6 @@ class cat_Products extends core_Embedder {
     	}
     	
     	return $res;
-    }
-    
-    
-    /**
-     *  Проверява дали съществува продукт с такъв код, Кода и ЕАН-то на продукта както и тези на опаковките им
-     *  трябва да са уникални
-     *  
-     *  @param string $code - Код/Баркод на продукт
-     *  @return boolean int/FALSE - id на продукта с такъв код или
-     *  FALSE ако няма такъв продукт
-     */
-    function checkIfCodeExists($code)
-    {
-    	if($info = cat_Products::getByCode($code)) {
-    		return $info;
-    	} else {
-    		return FALSE;
-    	}
     }
     
     

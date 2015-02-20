@@ -97,7 +97,7 @@ class cat_products_Packagings extends cat_products_Detail
     		if($rec->eanCode) {
     				
     			// Проверяваме дали има продукт с такъв код (като изключим текущия)
-	    		$check = $mvc->Master->checkIfCodeExists($rec->eanCode);
+	    		$check = $mvc->Master->getByCode($rec->eanCode);
 	    		if($check && ($check->productId != $rec->productId)
 	    			|| ($check->productId == $rec->productId && $check->packagingId != $rec->packagingId)) {
 	    			$form->setError('eanCode', 'Има вече продукт с такъв код!');
