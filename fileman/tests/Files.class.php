@@ -459,6 +459,8 @@ class fileman_tests_Files extends unit_Class
         // Очакваме двата масива да са равни
         ut::expectEqual($idsArr, $idsArrFromKList);
         
+        $newArr = array();
+        
         // Създаваме нов масив от id' тата
         foreach ($idsArr as $id) {
             $newArr[] = $id;
@@ -649,8 +651,6 @@ class fileman_tests_Files extends unit_Class
     
     /**
      * Връща директорията с временните файлове
-     * 
-     * @return $tempDir - Пътя до директорията, където се съхраняват времените файлове
      */
     public static function test_getTempDir($mvc)
     {
