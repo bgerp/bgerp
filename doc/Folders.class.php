@@ -788,7 +788,7 @@ class doc_Folders extends core_Master
      * @param $params['Act'] - Действието
      * @param $params['folderId'] - id' то на папката
      * 
-     * @return core_ET - Линк
+     * @return core_ET|FALSE - Линк
      */
     static function getVerbalLink($params)
     {
@@ -1144,8 +1144,11 @@ class doc_Folders extends core_Master
      * Може ли текущия потребител да пороменя сетингите на посочения потребител/роля?
      * 
      * @param string $key
-     * @param integer $userOrRole
+     * @param integer|NULL $userOrRole
+     * 
      * @see core_SettingsIntf
+     * 
+     * @return boolean
      */
     static function canModifySettings($key, $userOrRole=NULL)
     {
