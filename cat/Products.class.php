@@ -1163,20 +1163,6 @@ class cat_Products extends core_Embedder {
     
     
     /**
-     * Дали артикула е стандартен
-     *
-     * @param mixed $id - ид/запис
-     * @return boolean - дали е стандартен или не
-     */
-    public function isProductStandart($id)
-    {
-    	$rec = $this->fetchRec($id);
-    	
-    	return ($rec->isPublic == 'yes') ? TRUE : FALSE;
-    }
-    
-    
-    /**
      * Връща описанието на артикула
      *
      * @param mixed $id - ид/запис
@@ -1191,16 +1177,21 @@ class cat_Products extends core_Embedder {
     		if($rec->isPublic == 'no'){
     			$Driver = $this->getDriver($id);
     			$tpl = $Driver->getProductDescription();
+    			$res = $tpl->getContent();
     		}
     	}
     	
-    	if(!isset($tpl)){
+    	if(!isset($res)){
     		$tpl = new ET($this->recTitleTpl);
-    		$tpl->replace($this->getVerbal($rec, 'code'), 'code');
-    		$tpl->replace($this->getVerbal($rec, 'name'), 'name');
+    		$tpl->placeObject($rec);
+    		$res = $tpl->getContent();
+    		
+    		if(!Mode::is('printing') && !Mode::is('text', 'xhtml')){
+    			$res = ht::createLinkRef($res, array('cat_Products', 'single', $rec->id));
+    		}
     	}
     	
-    	return $tpl->getContent();
+    	return $res;
     }
     
     
