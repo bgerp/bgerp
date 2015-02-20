@@ -371,14 +371,6 @@ class cat_Products extends core_Embedder {
      */
     public static function on_BeforeSave($mvc, &$id, $rec, $fields = NULL, $mode = NULL)
     {
-    	if(isset($rec->csv_name)){
-    		$rec->name = $rec->csv_name;
-    		$rec->measureId = cat_UoM::fetchBySinonim($rec->csv_measureId)->id;
-    		$rec->groups = cat_Groups::getKeylistBySysIds($rec->csv_groups);
-    		
-    		$rec->innerForm = (object)array('name' => $rec->name, 'measureId' => $rec->measureId);
-    	}
-    	
     	// Разпределяме свойствата в отделни полета за полесно търсене
     	if($rec->meta){
     		$metas = type_Set::toArray($rec->meta);
@@ -403,7 +395,8 @@ class cat_Products extends core_Embedder {
 	public function routePublicProduct($categorySysId, &$rec)
 	{
 		$categorySysId = ($categorySysId) ? $categorySysId : 'goods';
-		$categoryId = cat_Categories::fetchField("#sysId = '{$categorySysId}'", 'id');
+		$categoryId = (is_numeric($categorySysId)) ? $categorySysId : cat_Categories::fetchField("#sysId = '{$categorySysId}'", 'id');
+		
 		$rec->folderId = cat_Categories::forceCoverAndFolder($categoryId);
 		$this->route($rec);
 		
@@ -423,6 +416,16 @@ class cat_Products extends core_Embedder {
     	if(empty($rec->innerClass)){
     		$rec->innerClass = cls::get('cat_GeneralProductDriver')->getClassId();
     	}
+    	
+    	$rec->name = isset($rec->csv_name) ? $rec->csv_name : $rec->name;
+    	if($rec->csv_measureId){
+    		$rec->measureId = cat_UoM::fetchBySinonim($rec->csv_measureId)->id;
+    	}
+    	
+    	if($rec->csv_groups){
+    		$rec->groups = cat_Groups::getKeylistBySysIds($rec->csv_groups);
+    	}
+    	$rec->innerForm = (object)array('name' => $rec->name, 'measureId' => $rec->measureId);
     	
     	$rec->state = ($rec->state) ? $rec->state : 'active';
     	
