@@ -404,7 +404,9 @@ class cat_Products extends core_Embedder {
 		$Driver = $this->getDriver($rec);
 		
 		$defMetas = $Driver->getDefaultMetas($defMetas);
-		$rec->meta = $this->getFieldType('meta')->fromVerbal($defMetas);
+		if(empty($rec->meta)){
+			$rec->meta = $this->getFieldType('meta')->fromVerbal($defMetas);
+		}
 	}
     
 	

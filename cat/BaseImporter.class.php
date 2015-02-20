@@ -254,6 +254,7 @@ class cat_BaseImporter extends core_Manager {
 	    	$rec->code = $row[$fields['code']];
 	    	$rec->groups = keylist::addKey('', $params['groups'][$row[$fields['groups']]]);
 	    	$rec->csv_category = $params['categories'][$row[$fields['category']]];
+	    	$rec->meta = $row[$fields['meta']];
 	    	
 	    	if($rec->id = cat_Products::fetchField(array("#code = '[#1#]'", $code), 'id')){
 	    		$updated++;
