@@ -39,17 +39,4 @@ class price_PolicyIntf
     {
         return $this->class->getPriceInfo($customerClass, $customerId, $productId, $productManId, $packagingId, $date, $rate, $chargeVat);
     }
-    
-    
-    /**
-     * Заглавие на ценоразписа за конкретен клиент 
-     * 
-     * @param mixed $customerClass
-     * @param int $customerId
-     * @return string
-     */
-    public function getPolicyTitle($customerClass, $customerId)
-    {
-        return $this->class->getPolicyTitle($customerClass, $customerId);
-    }
 }

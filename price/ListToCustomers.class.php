@@ -482,38 +482,16 @@ class price_ListToCustomers extends core_Detail
 	public static function canonizeTime(&$datetime)
 	{
 		if(!$datetime) {
-	            $datetime = dt::verbal2mysql();
-	        } else { 
-	            if(strlen($datetime) == 10) {
-	                list($d, $t) = explode(' ', dt::verbal2mysql());
-	                if($datetime == $d) {
-	                    $datetime = dt::verbal2mysql();
-	                    
-	                } else {
-	                    $datetime .= ' 23:59:59';
-	                }
-	            }
-	  		}
+	       $datetime = dt::verbal2mysql();
+	    } else { 
+	       if(strlen($datetime) == 10) {
+	          list($d, $t) = explode(' ', dt::verbal2mysql());
+	          if($datetime == $d) {
+	             $datetime = dt::verbal2mysql();
+	          } else {
+	             $datetime .= ' 23:59:59';
+	          }
+	      }
+	   }
 	}
-    
-    
-    /**
-     * Заглавие на ценоразписа за конкретен клиент
-     *
-     * @see price_PolicyIntf
-     * @param mixed $customerClass
-     * @param int $customerId
-     * @return string
-     */
-    public function getPolicyTitle($customerClass, $customerId)
-    { 
-        $listId = self::getListForCustomer($customerClass, $customerId, $datetime);
-
-        if($listId) {
-            $lRec = price_Lists::fetch($listId); 
-            $title = price_Lists::getVerbal($lRec, 'title');
-
-            return $title;
-        }
-    }
 }

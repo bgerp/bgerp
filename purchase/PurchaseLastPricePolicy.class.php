@@ -66,17 +66,4 @@ class purchase_PurchaseLastPricePolicy extends core_Manager
         
         return (object)array('price' => $lastRec->price, 'discount' => $lastRec->discount);
     }
-    
-    
-    /**
-     * Заглавие на ценоразписа за конкретен клиент 
-     * 
-     * @param mixed $customerClass
-     * @param int $customerId
-     * @return string
-     */
-    public function getPolicyTitle($customerClass, $customerId)
-    {
-        return $this->title;
-    }
 }
