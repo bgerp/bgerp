@@ -608,7 +608,7 @@ class cal_Tasks extends core_Master
 
     	// проверяваме дали може да стане задачата в активно състояние
     	$canActivate = self::canActivateTask($rec);
-     
+       // bp($canActivate,self::calculateExpectationTime($rec), $rec);
     	if ($now >= $canActivate && $canActivate !== NULL) { 
     		
             $rec->timeCalc = $canActivate->calcTime;
@@ -2033,9 +2033,10 @@ class cal_Tasks extends core_Master
 		     	// ако има такова
 		     	$timeStartRec = self::fetchField($rec->id, "timeStart");
 		     	
-		     	if (!$timeStartRec) {
+		     	if (!$timeStartRec) { 
 		     		// в противен случай го слагаме 0
-		     		$timeStartRec = 0;
+		     		$timeStartRec = $now;
+		     		//$timeStartRec = 0;
 		     	}
 		     	// прибавяме го към масива
 		     	array_push($calcTimeS, $timeStartRec);
@@ -2138,6 +2139,8 @@ class cal_Tasks extends core_Master
     	// "timeCalc"
     	$dependTimeStart = self::fetchField($recCond->dependId, "expectationTimeStart");
     	$dependTimeEnd = self::fetchField($recCond->dependId, "expectationTimeEnd");
+    	$closedTime = self::fetchField($recCond->dependId, "timeClosed");
+    	
     	$now = dt::verbal2mysql(); 
 
     	if (!$dependTimeStart) { 
@@ -2145,7 +2148,11 @@ class cal_Tasks extends core_Master
     	}
     	
     	if (!$dependTimeEnd) {
-    		$dependTimeEnd = dt::timestamp2Mysql(dt::mysql2timestamp($dependTimeStart) + $recCond->timeDuration);
+    		if (!$closedTime) {
+    			$dependTimeEnd = dt::timestamp2Mysql(dt::mysql2timestamp($dependTimeStart) + $recCond->timeDuration);
+    		} else {
+    			$dependTimeEnd = $closedTime;
+    		}
     	}
 
     	// ако имаме условие след началото на задачата
@@ -2166,7 +2173,7 @@ class cal_Tasks extends core_Master
     		$calcTime = dt::mysql2timestamp($dependTimeEnd) - $recCond->distTime;
     		$calcTimeStart = dt::timestamp2Mysql($calcTime);
     	}
-
+       
     	// ако задачата е безкрайна
     	if (!$rec->timeStart) { 
     		$rec->timeCalc = $calcTimeStart;
