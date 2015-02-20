@@ -195,7 +195,7 @@ class bgerp_plg_Import extends core_Plugin
         // Избиране на драйвър за импортиране
         $exp->DEF('#driver', 'int', 'caption=Драйвър,input,mandatory');
         $exp->OPTIONS("#driver", "getimportdrivers()");
-        $exp->question("#driver", tr("Моля, изберете драйвър") . ":", TRUE, 'title=' . tr('Какъв драйвер ще се използва') . '?');
+        $exp->question("#driver", tr("Моля, изберете драйвър") . ":", TRUE, 'title=' . tr('Какъв драйвър ще се използва') . '?');
         
         // Избор как ще се въведат данните с copy & paste или с ъплоуд
         $exp->DEF('#source=Източник', 'enum(csvFile=Файл със CSV данни,csv=Copy&Paste на CSV данни)', 'maxRadio=5,columns=1,mandatory');
@@ -208,7 +208,7 @@ class bgerp_plg_Import extends core_Plugin
         
         // Поле за ъплоуд на csv файл
         $exp->DEF('#csvFile=CSV файл', 'fileman_FileType(bucket=bnav_importCsv)', 'mandatory');
-        $exp->question("#csvFile,#delimiter,#enclosure,#firstRow", tr("Въведете файл с контактни данни във CSV формат, и посочете формата на данните") . ":", "#source == 'csvFile'", 'title=' . tr('Въвеждане на данните от файл, и уточняване на разделителя и ограждането'));
+        $exp->question("#csvFile,#delimiter,#enclosure,#firstRow", tr("Въведете файл с във CSV формат, и посочете формата на данните") . ":", "#source == 'csvFile'", 'title=' . tr('Въвеждане на данните от файл, и уточняване на разделителя и ограждането'));
         $exp->rule("#csvData", "getFileContentCsv(#csvFile)");
         
         // Полета за избиране на Разделител, ограждане и вида на първия ред
