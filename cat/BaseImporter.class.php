@@ -221,6 +221,7 @@ class cat_BaseImporter extends core_Manager {
     	foreach($params['measures'] as $measure){
     		if(!$id = cat_UoM::fetchBySinonim($measure)->id){
     			$id = cat_UoM::save((object)array('name' => $measure, 'shortName' => $measure));
+    			$addedMeasures++;
     		}
     		
     		$measures[$measure] = $id;
