@@ -373,6 +373,8 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         // Шаблон за намиране на името на файла
         $pattern = "/" . preg_quote($script->fName, "/") . "\-(?'num'[0-9]+)\.jpg" . "/i";
         
+        $filesArr = array();
+        
         // Обхождаме всички отркити файлове
         foreach ($files as $file) {
             
@@ -394,7 +396,9 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
                 
                 // Качваме файла в кофата и му вземаме манипулатора
                 $fileHnd = $Fileman->addNewFile($script->tempDir . $file, 'fileIndex'); 
-            } catch (core_exception_Expect $e) {}
+            } catch (core_exception_Expect $e) {
+                continue;
+            }
             
             // Ако се качи успешно записваме манипулатора в масив
             if ($fileHnd) {
@@ -542,6 +546,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         }
         
         // Добавяме в масива
+        $arr = array();
         $arr['width'] = $thumbWidth;
         $arr['height'] = $thumbHeight;
         
