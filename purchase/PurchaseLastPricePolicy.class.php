@@ -30,17 +30,6 @@ class purchase_PurchaseLastPricePolicy extends core_Manager
     public $interfaces = 'price_PolicyIntf';
     
     
-	/**
-     * Връща продуктите, които могат да се купят от посочения клиент
-     * 
-     * @return array - масив с опции, подходящ за setOptions на форма
-     */
-    public function getProducts($customerClass, $customerId, $datetime = NULL, $hasProperties = NULL, $hasnotProperties = NULL, $limit = NULL)
-    {
-    	return cls::get('cat_Products')->getProducts($customerClass, $customerId, $datetime, $hasProperties, $hasnotProperties, $limit);
-    }
-    
-    
     /**
      * Връща последната цена за посочения продукт направена в покупка от контрагента
      * @return object $rec->price  - цена
