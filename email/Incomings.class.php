@@ -296,6 +296,8 @@ class email_Incomings extends core_Master
         // Генерираме и записваме лог съобщение
         $msg = "{$accRec->email}: ($duration s); Total: {$numMsg}";
         
+        $newStatusArr = array();
+        
         // Обхождаме всички статуси
         foreach((array)$statusSum as $status => $cnt) {
             
@@ -1310,6 +1312,7 @@ class email_Incomings extends core_Master
         }
 
         // Добавяме всички имейли в масив
+        $allEmailsArr = array();
         $allEmailsArr['email'] = $contragentData->email;
         $allEmailsArr['replyToEmail'] = $contragentData->replyToEmail;
         $allEmailsArr['toEmail'] = $contragentData->toEmail;
@@ -1505,6 +1508,8 @@ class email_Incomings extends core_Master
         
         // Данните за файла
         $data = fileman_Data::fetch($fRec->dataId);
+        
+        $sizeArr = array();
         $sizeArr[$fRec->fileHnd] = $data->fileLen;
         
         // Проверавяме дали размера е в допустимите граници

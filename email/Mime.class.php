@@ -81,7 +81,7 @@ class email_Mime extends core_BaseClass
      */
     var $senderIp;
     
-       
+    
     /**
      * Масив с id => [данни за файл] - прикачени файлове
      * ->name
@@ -1094,86 +1094,6 @@ class email_Mime extends core_BaseClass
         }
         
         return $headersArr;
-    }
-    
-    
-    /**
-     * Връща линкнатите файлове (cid)
-     * 
-     * @return array $linkedFiles - Масив с всички линкнати файлове (cid)
-     */
-    function getLinkedFiles()
-    {
-        // Преборъщаме масива, id'тата да са ключ
-        $linkedFiles = array_flip($this->linkedFiles);
-        
-        return $linkedFiles;
-    }
-    
-    
-    /**
-     * Премахва CID файловете от прикачените и връща масива
-     * 
-     * @return array $attachedFiles - Масив с прикачените файлове, без CID файловете
-     */
-    function getJustAttachedFiles()
-    {
-        // Всички файлове, които са маркирани, като cid
-        $cidFiles = $this->getCidFiles();
-        
-        // Всички прикачени файлове в документа
-        $attachedFiles = $this->attachedFiles;
-        
-        // Конфигурационните константи
-        $conf = core_Packs::getConfig('email');
-        
-        // Обхождаме всики cid файлове
-        foreach ($cidFiles as $key => $cidFile) {
-            
-            // Вземаме записите за съответния файа
-            $fRec = fileman_Files::fetch($cidFile);
-            
-            // Данните за съответния файл
-            $dataRec = fileman_Data::fetch($fRec->dataId);
-            
-            // Дължината на файла
-            $fLen = $dataRec->fileLen;
-            
-            // Ако дължината на файла е по малка от максимално допустимата
-            if ($fLen <= $conf->EMAIL_MAXIMUM_CID_LEN) {
-                
-                // Ако има такъв прикачен файл, премахваме го от прикачените
-                if ($attachedFiles[$key]) unset($attachedFiles[$key]);
-            }
-        }
-
-        return $attachedFiles;
-    }
-    
-    
-    
-    
-    /**
-     * Връща файловете от частите на EML
-     * 
-     * @return array - Масив с всички файлове на частите
-     */
-    function getPartFiles()
-    {
-        
-        return $this->partFiles;
-    }
-    
-    
-    /**
-     * Връща cid файловете
-     * 
-     * @return array - Масив с всички cid файлове
-     */
-    function getCidFiles()
-    {
-        
-        return $this->cidFiles;
     }
     
     

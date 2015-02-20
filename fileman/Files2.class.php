@@ -26,7 +26,7 @@ class fileman_Files2 extends core_Master
      * 
      * @param string $path - Пътя до файла в ОС
      * @param string $bucket - Името на кофата
-     * @param string $name - Името на файла 
+     * @param string|NULL $name - Името на файла 
      * 
      * @return fileHnd $fh - Манипулатора на файла
      */
@@ -182,8 +182,8 @@ class fileman_Files2 extends core_Master
      * Екстрактване на файл в ОС. Връща пълния път до новия файл
      * 
      * @param string $fh - Манипулатор на файла, за който ще се създаде нова версия
-     * @param string $path - Пътя, където да се абсорбира файла
-     * @param string $fileName - Името на файла
+     * @param string|NULL $path - Пътя, където да се абсорбира файла
+     * @param string|NULL $fileName - Името на файла
      * 
      * @return string $copyPath - Пътя до файла
      */
@@ -310,8 +310,8 @@ class fileman_Files2 extends core_Master
      * Копиране на файл
      * 
      * @param string $fh - Манипулатора на файла
-     * @param string $newBucket - Името на новата кофа
-     * @param string $newName - Новото име на файла
+     * @param string|NULL $newBucket - Името на новата кофа
+     * @param string|NULL $newName - Новото име на файла
      * 
      * @return string $newRec->fileHnd - Манипулатора на файла
      */
@@ -579,7 +579,7 @@ class fileman_Files2 extends core_Master
     /**
      * Връща директорията с временните файлове
      * 
-     * @return $tempDir - Пътя до директорията, където се съхраняват времените файлове
+     * @return string - Пътя до директорията, където се съхраняват времените файлове
      */
     public static function getTempDir()
     {
@@ -652,7 +652,7 @@ class fileman_Files2 extends core_Master
      * @param fileman_Buckets $bucketId - id на кофата
      * @param string $inputFileName - Името на файла
      * 
-     * @return string - Ако открие съвпадение връща манипулатора на файла
+     * @return string|FALSE - Ако открие съвпадение връща манипулатора на файла
      */
     static function checkFileNameExist($dataId, $bucketId, $inputFileName)
     {
@@ -902,7 +902,7 @@ class fileman_Files2 extends core_Master
      * @param fileHnd $fh - Манипулатор на файла
      * @param boolean $absolute - Дали линка да е абсолютен
      * @param array $attr - Други параметри
-     * @param string $name - Името, което да се използва
+     * @param string|NULL $name - Името, което да се използва
      * 
      * @return core_Et - Линк
      */
