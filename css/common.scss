@@ -2079,12 +2079,12 @@ div.tab-control.deal-history-tab, .single-thread .document .tab-top div.alphabet
 .wide .single-thread .document .tab-top div.alphabet  .tab-row {
     margin-bottom: 5px;
  	.tab {
-	    font-size: 0.8em;
-	    margin: 0 15px 0 0;
-	    padding: 6px;
+	    font-size: 0.7em;
+	    margin: 0 10px 0 0;
+	    padding: 5px;
 	    &:hover , &.selected {
-	        margin: 0 15px 0 0;
-	        padding: 6px !important;
+	        margin: 0 10px 0 0;
+	        padding: 5px !important;
 	    }
 	    &.selected {
 	        top: -4px;

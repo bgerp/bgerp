@@ -1942,13 +1942,13 @@ div.alphabet div.tab-page {
 .wide .single-thread .document .tab-top div.alphabet  .tab-row {
   margin-bottom: 5px; }
   .wide .single-thread .document .tab-top div.alphabet  .tab-row .tab {
-    font-size: 0.8em;
-    margin: 0 15px 0 0;
-    padding: 6px; }
+    font-size: 0.7em;
+    margin: 0 10px 0 0;
+    padding: 5px; }
     .wide .single-thread .document .tab-top div.alphabet  .tab-row .tab:hover,
     .wide .single-thread .document .tab-top div.alphabet  .tab-row .tab.selected {
-      margin: 0 15px 0 0;
-      padding: 6px !important; }
+      margin: 0 10px 0 0;
+      padding: 5px !important; }
     .wide .single-thread .document .tab-top div.alphabet  .tab-row .tab.selected {
       top: -4px; }
 
