@@ -36,6 +36,12 @@ abstract class deals_DealBase extends core_Master
 	
 	
 	/**
+	 * В коя номенклатура да се вкара след активиране
+	 */
+	public $addToListOnActivation = 'deals';
+	
+	
+	/**
 	 * Извиква се след описанието на модела
 	 *
 	 * @param core_Mvc $mvc
@@ -57,14 +63,6 @@ abstract class deals_DealBase extends core_Master
 		 
 		if($rec->state == 'active'){
 	
-			$lists = keylist::addKey('', acc_Lists::fetchBySystemId('deals')->id);
-			acc_Lists::updateItem($mvc, $rec->id, $lists);
-				
-			if(haveRole('ceo,acc,debug')){
-				$msg = tr("Активирано е перо|* '") . $mvc->getTitleById($rec->id) . tr("' |в номенклатура 'Сделки'|*");
-				core_Statuses::newStatus($msg);
-			}
-	
 			$Cover = doc_Folders::getCover($rec->folderId);
 			
 			if($Cover->haveInterface('crm_ContragentAccRegIntf')){
@@ -75,36 +73,6 @@ abstract class deals_DealBase extends core_Master
 					acc_Lists::updateItem($Cover->getInstance(), $Cover->that, $lists);
 					$msg = tr("Активирано е перо|* '") . $Cover->getTitleById() . tr("' |в номенклатура 'Контрагенти'|*");
 					core_Statuses::newStatus($msg);
-				}
-			}
-		}
-	}
-	
-	
-	/**
-	 * След оттегляме запомняме записа, чието перо трябва да се затври на shutdown
-	 */
-	public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
-	{
-		// Ако документа се е оттеглил успешно, записваме му ид-то в модела
-		$rec = $mvc->fetchRec($id);
-		$mvc->rejectedQueue[$rec->id] = $rec->id;
-	}
-
-
-	/**
-	 * Изчиства записите, заопашени за запис
-	 */
-	public static function on_Shutdown($mvc)
-	{
-		// Ако има оттеглени записи, затваряме им перата
-		if(count($mvc->rejectedQueue)){
-			foreach ($mvc->rejectedQueue as $id) {
-				acc_Lists::removeItem($mvc, $id);
-				 
-				if(haveRole('ceo,acc,debug')){
-					$title = $mvc->getTitleById($id);
-					core_Statuses::newStatus(tr("|Перото|* \"{$title}\" |е затворено|*"));
 				}
 			}
 		}
