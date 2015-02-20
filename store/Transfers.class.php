@@ -369,7 +369,7 @@ class store_Transfers extends core_Master
     	$masterRec = $data->masterData->rec;
     	$query = $this->getQuery();
     	$query->where("#lineId = {$masterRec->id}");
-    	$query->where("#state = 'active'");
+    	$query->where("#state != 'rejected'");
     	$query->orderBy("#createdOn", 'DESC');
     	
     	$i = 1;
