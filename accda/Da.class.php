@@ -313,47 +313,6 @@ class accda_Da extends core_Master
     
     
     /**
-     * Преди да се подготвят опциите на кориците, ако
-     * тя е Продукти, ограничаваме само до тези, които
-     * са ДМА
-     */
-    public static function on_BeforeGetCoverOptions($mvc, &$res, $coverClass)
-    {
-    	if($coverClass instanceof cat_Products){
-    		$res = cat_Products::getByProperty('fixedAsset');
-    		
-    		if(!count($res)) return FALSE;
-    	}
-    }
-    
-    
-    /**
-     * Функция, която се извиква след активирането на документа
-     */
-    public static function on_AfterActivation($mvc, &$rec)
-    {
-    	$rec = $mvc->fetchRec($rec);
-    		
-    	if($rec->state == 'active'){
-    		
-    		if(!acc_Items::fetchItem($mvc, $rec->id)){
-    			$listSysId = ($rec->storeId) ? 'fixedAssets' : 'intangibleAssets';
-    			
-    			// Ако валутата е активна, добавя се като перо
-    			$lists = keylist::addKey('', acc_Lists::fetchBySystemId($listSysId)->id);
-    			acc_Lists::updateItem($mvc, $rec->id, $lists);
-    			
-    			if(haveRole('ceo,acc,debug')){
-    				$listName = acc_Lists::fetchField("#systemId = '{$listSysId}'", 'name');
-    				$msg = tr("Активирано е перо|* '") . $mvc->getTitleById($rec->id) . tr("' |в номенклатура|* '{$listName}'");
-    				core_Statuses::newStatus($msg);
-    			}
-    		}
-    	}
-    }
-    
-    
-    /**
      * Преди запис на документ, изчислява стойността на полето `isContable`
      *
      * @param core_Manager $mvc

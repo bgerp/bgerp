@@ -114,11 +114,12 @@ class acc_plg_Registry extends core_Plugin
     	// Форсираме го в номенклатурата, само ако не е перо
     	if(!acc_Items::fetchItem($mvc, $rec->id)){
     		$lists = keylist::addKey('', acc_Lists::fetchBySystemId($listSysId)->id);
-    		acc_Lists::updateItem($mvc, $rec->id, $lists);
+    		$itemId = acc_Lists::updateItem($mvc, $rec->id, $lists);
     			
     		if(haveRole('ceo,acc')){
+    			$title = acc_Items::fetchField($itemId, 'title');
     			$list = acc_Lists::fetchBySystemId($listSysId)->name;
-    			core_Statuses::newStatus(tr("|Обекта е добавен в номенклатура|*: {$list}"));
+    			core_Statuses::newStatus("|*'{$title}' |е добавен в номенклатура|* '{$list}'");
     		}
     		
     		$res = TRUE;
