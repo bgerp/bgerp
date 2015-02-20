@@ -526,8 +526,13 @@ form[method=post] a.button {
   background-color: #cccccc; }
 
 .pages {
-  float: left;
   margin: 12px 0px 8px 0px; }
+  .pages:after {
+    content: " ";
+    display: block;
+    height: 0;
+    clear: both;
+    visibility: hidden; }
 
 .top-pager .pages {
   margin: 2px 0px 22px 0px; }

@@ -558,9 +558,16 @@ form[method=post] input[type=button], form[method=post] a.button {
 	background-color: #ccc;
 }
 .pages{
-	float: left;
 	margin: 12px 0px 8px 0px;
+	&:after {
+	    content: " ";
+	    display: block;
+	    height: 0;
+	    clear: both;
+	    visibility: hidden;
+	}
 }
+
 .top-pager .pages{
 	margin: 2px 0px 22px 0px;
 }
