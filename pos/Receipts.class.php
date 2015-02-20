@@ -228,9 +228,6 @@ class pos_Receipts extends core_Master {
     	$rec->valior = dt::now();
     	$this->requireRightFor('add', $rec);
     	
-    	// Слагане на статус за потребителя
-    	status_Messages::newStatus(tr("Успешно е създадена нова чернова бележка"));
-    	
     	return $this->save($rec);
     }
     
