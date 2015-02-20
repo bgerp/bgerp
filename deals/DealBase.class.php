@@ -62,18 +62,12 @@ abstract class deals_DealBase extends core_Master
 		$rec = $mvc->fetchRec($rec);
 		 
 		if($rec->state == 'active'){
-	
 			$Cover = doc_Folders::getCover($rec->folderId);
 			
 			if($Cover->haveInterface('crm_ContragentAccRegIntf')){
-				if(!acc_Items::fetchItem($Cover->getInstance(), $Cover->that)){
-					
-					// Добавяме контрагента като перо, ако не е
-					$lists = keylist::addKey('', acc_Lists::fetchBySystemId('contractors')->id);
-					acc_Lists::updateItem($Cover->getInstance(), $Cover->that, $lists);
-					$msg = tr("Активирано е перо|* '") . $Cover->getTitleById() . tr("' |в номенклатура 'Контрагенти'|*");
-					core_Statuses::newStatus($msg);
-				}
+				
+				// Добавяме контрагента като перо, ако не е
+				$Cover->forceItem('contractors');
 			}
 		}
 	}
