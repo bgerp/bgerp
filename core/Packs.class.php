@@ -719,7 +719,7 @@ class core_Packs extends core_Manager
             return $res;
         } else {
             
-            return "Успешна инсталация на пакета '{$pack}'";
+            return "<div>Успешна инсталация на пакета '{$pack}'</div>";
         }
     }
 
