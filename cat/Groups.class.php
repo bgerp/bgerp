@@ -172,7 +172,7 @@ class cat_Groups extends core_Manager
         
         // Показваме само това поле. Иначе и другите полета 
         // на модела ще се появят
-        $data->listFilter->showFields = 'product';
+        $data->listFilter->showFields = 'search,product';
         
         $rec = $data->listFilter->input(NULL, 'silent');
         
