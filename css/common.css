@@ -2624,7 +2624,7 @@ div.statuses-message h2 {
     background: #bbffff; }
   .elem-holder.core-pack-state-closed {
     background: #eeeeee; }
-  .elem-holder.core-pack-state-missing {
+  .elem-holder.core-pack-missing {
     background: #feadad; }
   .elem-holder .pack-title {
     display: inline-block; }
