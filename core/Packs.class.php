@@ -166,7 +166,7 @@ class core_Packs extends core_Manager
 			$setup = cls::get($cls);
 	
 			if (!method_exists($setup, 'deinstall')) {
-				$res = "Пакета '{$pack}' няма деинсталатор.";
+				$res = "<div>Пакета '{$pack}' няма деинсталатор.</div>";
 			} else {
 				$res = (string)$setup->deinstall();
 			}
@@ -192,12 +192,12 @@ class core_Packs extends core_Manager
     	if ($delete) {
     	    $this->delete($rec->id);
     	    
-    	    $res .= "Успешно премахване на пакета '{$pack}'.";
+    	    $res .= "<div>Успешно премахване на пакета '{$pack}'.</div>";
     	} else {
     	    $rec->state = 'closed';
     	    $this->save($rec, 'state');
     	    
-    	    $res .= "Успешно деактивиране на пакета '{$pack}'.";
+    	    $res .= "<div>Успешно деактивиране на пакета '{$pack}'.</div>";
     	}
     	
     	return $res;
