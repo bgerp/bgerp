@@ -723,7 +723,7 @@ class acc_Journal extends core_Master
     		}
     	}
     	
-    	$form->toolbar->addSbBtn('Реконтиране', 'save', 'ef_icon = img/16/disk.png, title = Реконтиране');
+    	$form->toolbar->addSbBtn('Реконтиране', 'save', 'ef_icon = img/16/arrow_refresh.png, title = Реконтиране');
     	$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
     	
     	$tpl = $this->renderWrapping($form->renderHtml());
