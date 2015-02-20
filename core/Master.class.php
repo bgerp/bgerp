@@ -350,12 +350,17 @@ class core_Master extends core_Manager
 					$selectedBottom = $tabBottom->getFirstTab();
 				}
 				
-				// Ако има избран детайл от горния таб, добавяме го
+				// Ако има избран детайл от долния таб, добавяме го
 				if($selectedBottom){
 					$method = ($selected ==  $this->details[$selectedBottom]) ? 'renderDetail' : 'render' . $selectedBottom;
-					
 					$selectedHtml = $this->{$selectedBottom}->$method($data->{$selectedBottom});
-					$tabHtml = $tabBottom->renderHtml($selectedHtml, $selectedBottom);
+					
+					// Ако е избран долен таб, и детайла му е само един, и няма горни табове, го рендираме без таб
+					if(count($tabBottom->getTabs()) == 1 && !count($tabTop->getTabs())){
+						$tabHtml = $selectedHtml;
+					} else {
+						$tabHtml = $tabBottom->renderHtml($selectedHtml, $selectedBottom);
+					}
 						
 					$tabHtml = new ET("<div class='clearfix21'></div><div class='docStatistic'><a id='detailTabs'></a>[#1#]</div>", $tabHtml);
 					$detailsTpl->append($tabHtml);
