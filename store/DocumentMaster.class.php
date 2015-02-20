@@ -476,7 +476,7 @@ abstract class store_DocumentMaster extends core_Master
     	$arr = array();
     	$query = $this->getQuery();
     	$query->where("#lineId = {$masterRec->id}");
-    	$query->where("#state = 'active'");
+    	$query->where("#state != 'rejected'");
     	$query->orderBy("#createdOn", 'DESC');
     	 
     	$i = 1;
