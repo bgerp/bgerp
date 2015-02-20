@@ -228,6 +228,7 @@ class lab_TestDetails extends core_Detail
         
         // Запис в 'lab_Tests'
         if($rec->testId) {
+            $ltRec = new stdClass();
             $ltRec->lastChangedOn = DT::verbal2mysql();
             $ltRec->id = $rec->testId;
             $mvc->Tests->save($ltRec);
