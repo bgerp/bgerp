@@ -100,12 +100,11 @@ abstract class deals_DealBase extends core_Master
 		// Ако има оттеглени записи, затваряме им перата
 		if(count($mvc->rejectedQueue)){
 			foreach ($mvc->rejectedQueue as $id) {
-				$lists = keylist::addKey('', acc_Lists::fetchBySystemId('deals')->id);
-				acc_Lists::removeItem($mvc, $id, $lists);
+				acc_Lists::removeItem($mvc, $id);
 				 
 				if(haveRole('ceo,acc,debug')){
 					$title = $mvc->getTitleById($id);
-					core_Statuses::newStatus(tr("|Перото|* \"{$title}\" |е затворено/изтрито|*"));
+					core_Statuses::newStatus(tr("|Перото|* \"{$title}\" |е затворено|*"));
 				}
 			}
 		}

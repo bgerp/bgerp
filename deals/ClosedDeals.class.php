@@ -310,11 +310,11 @@ abstract class deals_ClosedDeals extends core_Master
                 $Items = cls::get('acc_Items');
                 $Items->flushTouched();
                 
-                acc_Lists::removeItem($DocClass, $firstRec->id, $item->lists);
+                acc_Lists::removeItem($DocClass, $firstRec->id);
                 
                 if(haveRole('ceo,acc,debug')){
                     $title = $DocClass->getTitleById($firstRec->id);
-                    core_Statuses::newStatus(tr("|Перото|* \"{$title}\" |е затворено/изтрито|*"));
+                    core_Statuses::newStatus(tr("|Перото|* \"{$title}\" |е затворено|*"));
                 }
             }
             
