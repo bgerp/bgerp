@@ -328,9 +328,7 @@ class core_Packs extends core_Manager
         
         // Добавяме бутон
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        
-        $data->listFilter->toolbar->addBtn('Обновяване на системата', array("core_Packs", "systemUpdate"), 'ef_icon = img/16/download.png, title=Обновяване на системата, class=system-update-btn');
-        
+                
         // Показваме само това поле. Иначе и другите полета 
         // на модела ще се появят
         $data->listFilter->showFields = "{$mvc->searchInputField}, state";
@@ -344,6 +342,11 @@ class core_Packs extends core_Manager
         }
         
         $data->query->orderBy("#name");
+    }
+
+    function on_AfterPrepareListToolbar($mvc, $res, $data)
+    {
+        $data->toolbar->addBtn('Обновяване на системата', array("core_Packs", "systemUpdate"), 'ef_icon = img/16/download.png, title=Свалане на най-новия код и инициализиране на системата, class=system-update-btn');
     }
     
     
@@ -463,10 +466,10 @@ class core_Packs extends core_Manager
             }
         } elseif ($rec->state == 'draft') {
             $installUrl['status'] = 'install';
-            $row->install = ht::createLink(tr("Инсталирай"), $installUrl, "Наистина ли искате да инсталирате пакета?", array('id'=>$rec->name."-install", 'title'=>'Обновяване на пакета'));
+            $row->install = ht::createLink(tr("Инсталирай"), $installUrl, "Наистина ли искате да инсталирате пакета?", array('id'=>$rec->name."-install", 'title'=>'Начално инсталиране на пакета'));
         } else {
             $installUrl['status'] = 'activate';
-            $row->install = ht::createLink(tr("Активирай"), $installUrl, "Наистина ли искате да активирате пакета?", array('id'=>$rec->name."-install", 'title'=>'Обновяване на пакета'));
+            $row->install = ht::createLink(tr("Активирай"), $installUrl, "Наистина ли искате да активирате пакета?", array('id'=>$rec->name."-install", 'title'=>'Активиране и инициализиране на пакета'));
         }
         
         $row->name .= $row->deinstall;
