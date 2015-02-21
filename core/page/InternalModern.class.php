@@ -75,6 +75,21 @@ class core_page_InternalModern extends core_page_Active {
 
         // Вкарваме съдържанието
         $this->replace(self::getTemplate(), 'PAGE_CONTENT');
+
+        // Извличаме броя на нотификациите за текущия потребител
+        $openNotifications = bgerp_Notifications::getOpenCnt();
+        $url  = toUrl(array('bgerp_Portal', 'Show'));
+        $attr = array('id' => 'nCntLink');
+        
+        // Ако имаме нотификации, добавяме ги към титлата и контейнера до логото
+        if($openNotifications > 0) {
+            $attr['class'] = 'haveNtf';
+            $this->append("({$openNotifications}) ", 'PAGE_TITLE');
+        } else {
+            $attr['class'] = 'noNtf';
+        }
+        $nLink = ht::createLink("{$openNotifications}", $url, NULL, $attr);
+        $this->replace($nLink, 'NOTIFICATIONS_CNT');
     }
 
 
@@ -86,7 +101,7 @@ class core_page_InternalModern extends core_page_Active {
     	$menuImg = ht::createElement('img', array('src' => sbf('img/menu.png', ''), 'class' => 'menuIcon'));
     	$pinImg = ht::createElement('img', array('src' => sbf('img/pin.png', ''), 'class' => 'menuIcon'));
     	$imageUrl = sbf('img/24/me.jpg', '');
-    	$img = ht::createElement('img', array('src' => $imageUrl, 'width' => 30));
+    	$img = avatar_Plugin::getImg(core_Users::getCurrent(), NULL, 30);
     	// Задаваме лейаута на страницата
     	$header = "<div style='position: relative'>
 	    					<a id='nav-panel-btn' href='#nav-panel' class='fleft btn-sidemenu btn-menu-left push-body'>". $menuImg ."</a>
@@ -119,7 +134,7 @@ class core_page_InternalModern extends core_page_Active {
     			"[#PAGE_FOOTER#]" .
     			"</div></div>".
     			"<div id='nav-panel' class='sidemenu sidemenu-left'>[#core_page_InternalModern::renderMenu#]</div>".
-    			"<div id='fav-panel' class='sidemenu sidemenu-right'>test</div>" );
+    			"<div id='fav-panel' class='sidemenu sidemenu-right'><h3><center>Бързи връзки</center></h3></div>" );
     	
     	// Опаковките и главното съдържание заемат екрана до долу
     	
@@ -129,40 +144,23 @@ class core_page_InternalModern extends core_page_Active {
     }
 
 
-    /**
+        /**
      * Рендира основното меню на страницата
      */
     static function renderMenu()
     {
           $tpl = new ET("
-                    [#SUB_MENU#]
-                    <div class=\"menuRow\">[#MENU_ROW1#]</div>
-                    <div class=\"menuRow\">[#MENU_ROW2#]</div>
-                    <div class=\"menuRow\">[#MENU_ROW3#]</div>                   
-					<div class='clearfix'></div>");
+                    <style> ul .selected, ul .selected a {color:white;}</style>
+                    <ul>
+                    [#MENU_ROW#]
+                    </ul>");
         
         
-        $tpl->prepend("\n<meta name=\"robots\" content=\"noindex,nofollow\">", 'HEAD');
-        $tpl->prepend("\n<meta name=\"format-detection\" content=\"telephone=no\">", 'HEAD');
-        $tpl->prepend("\n<meta name=\"google\" content=\"notranslate\">", 'HEAD');
-           
+         
         self::placeMenu($tpl);
         
-        // Извличаме броя на нотификациите за текущия потребител
-        $openNotifications = bgerp_Notifications::getOpenCnt();
-        $url  = toUrl(array('bgerp_Portal', 'Show'));
-        $attr = array('id' => 'nCntLink');
-        
-        // Ако имаме нотификации, добавяме ги към титлата и контейнера до логото
-        if($openNotifications > 0) {
-            $attr['class'] = 'haveNtf';
-            $tpl->append("({$openNotifications}) ", 'PAGE_TITLE');
-        } else {
-            $attr['class'] = 'noNtf';
-        }
-        $nLink = ht::createLink("{$openNotifications}", $url, NULL, $attr);
-        $tpl->replace($nLink, 'NOTIFICATIONS_CNT');
-        
+        self::addLinksToMenu($tpl);
+
         return $tpl;
     }
 
@@ -175,51 +173,42 @@ class core_page_InternalModern extends core_page_Active {
 
         $menuObj = bgerp_Menu::getMenuObject();
         
+        uasort($menuObj, function($a, $b) { return($a->order > $b->order); });
+ 
         $active = bgerp_Menu::getActiveItem($menuObj);
         
-        $activeArr = explode(':', $active);
-        
+        list($aMainMenu, $aSubMenu) = explode(':', $active);
+
+        $html = '';
+        $lastMenu = '';
+ 
         if (($menuObj) && (count($menuObj))) {
-            foreach($menuObj as $key => $rec)
-            {
-                // state: 3 - active, 2 - normal, 1 - disabled, 0 - hidden
-                // $mainMenuItems[$pageMenu] = TRUE; Дали това главно меню вече е показано
-                
-                // Първоначално задаваме 'нормално' състояние на елемента от менюто
-                $rec->state = 2;
-                $rec->link = TRUE;
-                
+            foreach($menuObj as $key => $rec) {
+   
+                // Пропускаме не-достъпните менюта
                 if(!haveRole($rec->accessByRoles)) {
-                    
-                    // Менютата, които се скриват при недостатъчно права, не се обработват
-                    if($rec->autoHide == 'yes') continue;
-                    
-                    $rec->state = 1;      //disabled
-                    $rec->link  = FALSE;
+                    continue;
                 }
-                
+             
                 // Определяме дали състоянието на елемента от менюто не е 'активно'
-                if(($activeArr[0] == $rec->menu) && ($activeArr[1] == $rec->subMenu)) {
-                    $rec->state = 3;
+                $mainClass = $subClass = '';
+                if(($aMainMenu == $rec->menu)) {
+                    $mainClass = ' class="selected"';
+                    if($aSubMenu == $rec->subMenu) {
+                        $subClass = ' class="selected"';
+                    } 
                 }
                 
-                // Дали да влезе в списъка с под-менюта?
-                if($activeArr[0] == $rec->menu) {
-                    $subMenus[$rec->subMenu] = $rec;
+                if($lastMenu != $rec->menu) {
+                    $active = 
+                    $html .= ($html ? "\n</ul></li>" : '') . "\n<li>";
+                    $html .= "\n    <span{$mainClass}>{$rec->menu}</span>";
+                    $html .= "\n<ul>";
                 }
-                
-                // Дали да влезе в списъка с менюта?
-                if((!isset($menus[$rec->menu])) || $menus[$rec->menu]->state < $rec->state) {
-                    $menus[$rec->menu] = $rec;
-                }
-                
-                if($lastRec->menu != $rec->menu && $rec->state != 1) {
-                    $lastRec =  $rec;
-                }
-                
-                $rec->menuCtr = $lastRec->ctr;
-                $rec->menuAct = $lastRec->act;
+                $lastMenu = $rec->menu;
+                $html .= "\n<li{$subClass}>" . ht::createLink($rec->subMenu, array($rec->ctr, $rec->act)) . "</li>";
             }
+            $html .= "\n</ul></li>";
         } else {
             // Ако имаме роля админ
             if (haveRole('admin')) {
@@ -235,26 +224,36 @@ class core_page_InternalModern extends core_page_Active {
                 }
             }
         }
+    
+        $tpl->append($html, 'MENU_ROW');
+    }
+
+
+
+    /**
+     * Допълнителни линкове в менюто
+     */
+    static function addLinksToMenu($tpl)
+    {
+        // Създава линк в менюто за потребители
+        $user = crm_Profiles::createLink(NULL, NULL, FALSE, array('ef_icon'=>'img/16/user-black.png'));
+        $tpl->replace($user, 'USERLINK');
         
-        // До тук имаме определени два списъка $menus (с главните менюта) и $subMenus (с под-менютата);
+        // Създава линк за поддръжка
+        $supportUrl = BGERP_SUPPORT_URL;
+        $singal = ht::createLink(tr("Сигнал"), $supportUrl, FALSE, array('title' => "Изпращане на сигнал", 'target' => '_blank', 'ef_icon' => 'img/16/bug-icon.png'));
         
-		// Отпечатваме менютата
-		if(count($menus)) {
-			foreach($menus as $key => $rec) {
-				$link = self::createLink($rec->menuTr, $rec, TRUE);
-				$row = 'MENU_ROW' . $rec->row;
-                   
-				$tpl->append($link, 'MENU_ROW' . $rec->row);
-				if(count($subMenus) && $rec->state == 3) {
-					foreach($subMenus as $key => $rec) {
-						$link = self::createLink($rec->subMenuTr, $rec);
-						$tpl->append('<span class="subAccord">' .$link. '</span>', 'MENU_ROW' . $rec->row);
-					}
-				}
-				$notFirstInFor[$rec->row] = TRUE;
-			}
-        }
+        // Създава линк за изход
+        $signOut = ht::createLink(tr("Изход"), array('core_Users', 'logout'), FALSE, array('title' => "Излизане от системата", 'ef_icon' => 'img/16/logout.png'));
+       	$tpl->replace($signOut, 'SIGN_OUT');
         
+        // Създава линк за превключване между режимите
+       	if(Mode::is('screenMode', 'wide')) {
+       		$mode = ht::createLink(tr("Тесен"), array('core_Browser', 'setNarrowScreen', 'ret_url' => TRUE), NULL, array('ef_icon' => 'img/16/mobile-icon.png', 'title' => 'Превключване на системата в мобилен режим'));
+       	} else {
+       		$mode = ht::createLink(tr("Широк"), array('core_Browser', 'setWideScreen', 'ret_url' => TRUE), NULL, array('ef_icon' => 'img/16/Monitor-icon.png', 'title' => 'Превключване на системата в десктоп режим'));
+       	}
+       	
         // Извличаме броя на нотификациите за текущия потребител
         $openNotifications = bgerp_Notifications::getOpenCnt();
         
@@ -264,31 +263,17 @@ class core_page_InternalModern extends core_page_Active {
         // Ако имаме нотификации, добавяме ги към титлата и контейнера до логото
         if($openNotifications > 0) {
             $attr['class'] = 'haveNtf';
-            $tpl->append("({$openNotifications}) ", 'PAGE_TITLE');
         } else {
             $attr['class'] = 'noNtf';
         }
-        $user = crm_Profiles::createLink(NULL, NULL, FALSE, array('ef_icon'=>'img/16/user-black.png'));
-        $tpl->replace($user, 'USERLINK');  
-        $supportUrl = BGERP_SUPPORT_URL;
-        $singal = ht::createLink(tr("Сигнал"), $supportUrl, FALSE, array('title' => "Изпращане на сигнал", 'target' => '_blank', 'ef_icon' => 'img/16/bug-icon.png'));
-        
-        $signOut = ht::createLink(tr("Изход"), array('core_Users', 'logout'), FALSE, array('title' => "Излизане от системата", 'ef_icon' => 'img/16/logout.png'));
-       	$tpl->replace($signOut, 'SIGN_OUT');
-       
-       	if(Mode::is('screenMode', 'wide')) {
-       		$mode = ht::createLink(tr("Тесен"), array('core_Browser', 'setNarrowScreen', 'ret_url' => TRUE), NULL, array('ef_icon' => 'img/16/mobile-icon.png', 'title' => 'Превключване на системата в мобилен режим'));
-       	} else {
-       		$mode = ht::createLink(tr("Широк"), array('core_Browser', 'setWideScreen', 'ret_url' => TRUE), NULL, array('ef_icon' => 'img/16/Monitor-icon.png', 'title' => 'Превключване на системата в десктоп режим'));
-       	}
-       	
+        // Добавя линк към броя на отворените нотификации
         $portalLink = ht::createLink("bgERP", $url, NULL, NULL);
         $nLink = ht::createLink("{$openNotifications}", $url, NULL, $attr);
+
         $tpl->replace($mode, 'CHANGE_MODE');
         $tpl->replace($singal, 'SIGNAL');
         $tpl->replace($nLink, 'NOTIFICATIONS_CNT');
         $tpl->replace($portalLink, 'PORTAL');
-        
     }
 
     

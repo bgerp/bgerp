@@ -5,27 +5,25 @@
 /**
  * Клас 'cms_Page' - Шаблон за публична страница
  *
- * Файлът може да се подмени с друг
  *
- *
- * @category  ef
- * @package   page
- * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @category  bgerp
+ * @package   cms
+ * @author    Milen Georgiev <milen@experta.bg>
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Стандартна публична страница
  */
-class cms_Page extends core_page_Active {
+class cms_page_External extends core_page_Active {
     
-    public $interfaces = 'core_page_WrapperIntf';
+    public $interfaces = 'cms_page_WrapperIntf';
 
     /**
      * Конструктор за страницата по подразбиране
      * Тази страница използва internal layout, header и footer за да 
      * покаже една обща обвивка за съдържанието за вътрешни потребители
      */
-    function cms_Page()
+    function cms_page_External()
     {
         // Конструктора на родителския клас
         $this->core_page_Active();
@@ -51,9 +49,6 @@ class cms_Page extends core_page_Active {
             }
         }
         
-
-       // bp($this->content);
-
         $this->push('css/default-theme.css', 'CSS');
         $this->push('cms/css/Wide.css', 'CSS');
 

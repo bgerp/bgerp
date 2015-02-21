@@ -236,13 +236,13 @@ class core_Pager extends core_BaseClass
         
         $start = $this->getPage() - $this->pagesAround;
         
-        if ($start < 3) {
+        if ($start < 5) {
             $start = 1;
         }
         
         $end = $this->getPage() + $this->pagesAround;
         
-        if (($end > $this->getPagesCount()) || ($this->getPagesCount() - $end) < 2) {
+        if (($end > $this->getPagesCount()) || ($this->getPagesCount() - $end) < 5) {
             $end = $this->getPagesCount();
         }
         
@@ -253,15 +253,9 @@ class core_Pager extends core_BaseClass
             if ($this->getPage() > 1) {
                 if ($start > 1) {
                     $html .= "<a href=\"" . htmlspecialchars(Url::addParams($link, array($this->pageVar => 1)), ENT_QUOTES, "UTF-8") . "\" class=\"pager\">1</a>";
-                    
-                    if ($start > $this->minPagesForMid) {
-                        $mid = round($start / 2);
-                        $html .= " .. ";
-                        $html .= "<a href=\"" . htmlspecialchars(Url::addParams($link, array($this->pageVar => $mid)), ENT_QUOTES, "UTF-8") . "\" class=\"pager\">{$mid}</a>";
-                        $html .= " .. ";
-                    } else {
-                        $html .= " ... ";
-                    }
+                    $mid = round($start / 2);
+                    $html .= "<a href=\"" . htmlspecialchars(Url::addParams($link, array($this->pageVar => $mid)), ENT_QUOTES, "UTF-8") . "\" class=\"pager\" title='{$mid}'>...</a>";
+                   
                 }
             }
             
@@ -278,15 +272,8 @@ class core_Pager extends core_BaseClass
             if ($this->getPage() < $this->getPagesCount()) {
                 if ($end < $this->getPagesCount()) {
                     $mid = $this->getPagesCount() - $end;
-                    
-                    if ($mid > $this->minPagesForMid) {
-                        $mid = round($mid / 2) + $end;
-                        $html .= " .. ";
-                        $html .= "<a href=\"" . htmlspecialchars(Url::addParams($link, array($this->pageVar => $mid)), ENT_QUOTES, "UTF-8") . "\" class=\"pager\">{$mid}</a>";
-                        $html .= " .. ";
-                    } else {
-                        $html .= " ... ";
-                    }
+                    $mid = round($mid / 2) + $end;
+                    $html .= "<a href=\"" . htmlspecialchars(Url::addParams($link, array($this->pageVar => $mid)), ENT_QUOTES, "UTF-8") . "\" class=\"pager\" title='{$mid}'>...</a>";
                     $html .= "<a href=\"" . htmlspecialchars(Url::addParams($link, array($this->pageVar => $this->getPagesCount())), ENT_QUOTES, "UTF-8") .
                     "\" class=\"pager\">" . $this->getPagesCount() . "</a>";
                 }

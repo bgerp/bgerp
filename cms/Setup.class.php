@@ -46,7 +46,7 @@ defIfNot('CMS_OGRAPH_IMAGE', '');
 /**
  * Опаковка по подразбиране за публична страница
  */
-defIfNot('CMS_PAGE_WRAPPER', 'cms_Page');
+defIfNot('CMS_PAGE_WRAPPER', 'cms_page_External');
 
 
 /**
@@ -89,7 +89,7 @@ class cms_Setup extends core_ProtoSetup
      * Описание на модула
      */
     var $info = "Управление на публичното съдържание";
-    
+
     
     /**
 	 * Описание на конфигурационните константи
@@ -101,7 +101,7 @@ class cms_Setup extends core_ProtoSetup
 
 			'CMS_THEME' => array ('class(interface=cms_ThemeIntf,select=title)', 'caption=Външен изглед->Тема'),
 			
-            'CMS_PAGE_WRAPPER' => array ('class(interface=core_page_WrapperIntf,select=title)', 'caption=Външен изглед->Страница'),
+            'CMS_PAGE_WRAPPER' => array ('class(interface=cms_page_WrapperIntf,select=title)', 'caption=Външен изглед->Страница'),
 
             'CMS_BROWSER_CACHE_EXPIRES' => array ('time', 'caption=Кеширане в браузъра->Време'),
 			
@@ -163,7 +163,7 @@ class cms_Setup extends core_ProtoSetup
         
         // Добавяме класа връщащ темата в core_Classes
         $html .= core_Classes::add('cms_DefaultTheme');
-        $html .= core_Classes::add('cms_Page');
+        $html .= core_Classes::add('cms_page_External');
 
         return $html;
     }

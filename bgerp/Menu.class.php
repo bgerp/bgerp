@@ -72,24 +72,32 @@ class bgerp_Menu extends core_Manager
     {
         $cacheKey = 'menuObj_' . core_Lg::getCurrent();
         
-        $menuObj = core_Cache::get('Menu', $cacheKey);
+        //$menuObj = core_Cache::get('Menu', $cacheKey);
         
         if(!is_array($menuObj)) {
             
             $query = self::getQuery();
             
             $query->orderBy("#row,#id", "ASC");
-            
+            $pos = array(); $next = 1;
+
             while($rec = $query->fetch()) {
-                $rec->row = (int) $rec->row;
-                $rec->menuTr = tr($rec->menu);
-                $rec->subMenuTr = tr($rec->subMenu);
+                $newRec = clone($rec);
+                if(!($thisMenu = $pos[$rec->menu])) {
+                    $thisMenu = $pos[$rec->menu] = $next++;
+                }
+                list($whole, $decimal) = explode('.', $rec->row);
+                $newRec->order = $thisMenu . '.' . $decimal;
+                
+                $newRec->row =  (int) $rec->row;
+                $newRec->menuTr = tr($rec->menu);
+                $newRec->subMenuTr = tr($rec->subMenu);
                 $ctrArr = explode('_', $rec->ctr);
-                $rec->pack = $ctrArr[0];
-                $rec->act = $rec->act ? $rec->act : 'default';
-                $menuObj[$rec->menu . ':' . $rec->subMenu] = $rec;
+                $newRec->pack = $ctrArr[0];
+                $newRec->act = $rec->act ? $rec->act : 'default';
+                $menuObj[$rec->menu . ':' . $rec->subMenu] = $newRec;  
             }
-            
+        
             core_Cache::set('Menu', $cacheKey, $menuObj, 1400);
         }
         

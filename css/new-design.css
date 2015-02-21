@@ -50,6 +50,7 @@
   left: -200px; }
 
 .sidemenu-right {
+  background-color: #cccccc;
   right: -200px; }
 
 .sidemenu-left.sidemenu-open {
