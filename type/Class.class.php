@@ -79,8 +79,13 @@ class type_Class  extends type_Key {
      */
     function toVerbal($value)
     {
-        if(is_numeric($value)) {
+        if (is_numeric($value)) {
             $value = parent::toVerbal($value);
+        } else {
+            
+            $valId = core_Classes::fetchIdByName($value);
+            
+            $value = parent::toVerbal($valId);
         }
         
         return $value;
