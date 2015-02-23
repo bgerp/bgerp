@@ -1741,7 +1741,7 @@ class doc_Threads extends core_Manager
      * @param core_Form $form
      * @see core_SettingsIntf
      */
-    function prepareForm(&$form)
+    function prepareSettingsForm(&$form)
     {
         // Задаваме таба на менюто да сочи към документите
         Mode::set('pageMenu', 'Документи');

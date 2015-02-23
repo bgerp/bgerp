@@ -352,7 +352,7 @@ class core_Settings extends core_Manager
         }
         
         // Извикваме интерфейсната функция
-        $class->prepareForm($form);
+        $class->prepareSettingsForm($form);
         
         // Ключа може да е променен в интерфейсния метод
         $key = $form->rec->_key;

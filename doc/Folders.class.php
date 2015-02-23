@@ -1184,7 +1184,7 @@ class doc_Folders extends core_Master
      * @param core_Form $form
      * @see core_SettingsIntf
      */
-    function prepareForm(&$form)
+    function prepareSettingsForm(&$form)
     {
         // Задаваме таба на менюто да сочи към документите
         Mode::set('pageMenu', 'Документи');
