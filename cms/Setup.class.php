@@ -159,7 +159,7 @@ class cms_Setup extends core_ProtoSetup
      
         // Инсталираме плъгина  
         $html .= $Plugins->forcePlugin('Показване на обекти', 'cms_ObjectsInRichtextPlg', 'type_Richtext', 'private');
-        $html .= $Plugins->forcePlugin('Копиране с линк към страницата', 'cms_CopyTextPlg', 'cms_Page', 'private');
+        $html .= $Plugins->forcePlugin('Копиране с линк към страницата', 'cms_CopyTextPlg', 'cms_page_External', 'private');
         
         // Добавяме класа връщащ темата в core_Classes
         $html .= core_Classes::add('cms_DefaultTheme');

@@ -320,7 +320,7 @@ class support_Issues extends core_Master
         $tpl = $form->renderHtml();
     	
         // Поставяме шаблона за външен изглед
-		Mode::set('wrapper', 'cms_Page');
+		Mode::set('wrapper', 'cms_page_External');
 		
 		if($lg){
 			core_Lg::pop();

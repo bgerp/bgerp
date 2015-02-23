@@ -83,7 +83,7 @@ class newsbar_Setup extends core_ProtoSetup
         $Plugins = cls::get('core_Plugins');
         
         // Инсталираме клавиатурата към password полета
-        $html .= $Plugins->installPlugin('Лента с Новини', 'newsbar_Plugin', 'cms_Page', 'private');  
+        $html .= $Plugins->installPlugin('Лента с Новини', 'newsbar_Plugin', 'cms_page_External', 'private');  
                
         return $html;
     }

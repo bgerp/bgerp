@@ -675,7 +675,7 @@ class marketing_Inquiries2 extends core_Embedder
     	$tpl = $form->renderHtml();
     	 
     	// Поставяме шаблона за външен изглед
-    	Mode::set('wrapper', 'cms_Page');
+    	Mode::set('wrapper', 'cms_page_External');
     	
     	if($lg){
     		core_Lg::pop();

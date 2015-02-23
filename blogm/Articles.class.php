@@ -760,7 +760,7 @@ class blogm_Articles extends core_Master {
         $layout->push($data->ThemeClass->getStyles(), 'CSS');
 		
         // Поставяме шаблона за външен изглед
-		Mode::set('wrapper', 'cms_Page');
+		Mode::set('wrapper', 'cms_page_External');
 
         // Добавяме лейаута на страницата
         Mode::set('cmsLayout', $data->ThemeClass->getBlogLayout());

@@ -208,7 +208,7 @@ class cms_Feeds extends core_Manager {
 		$layout = $this->renderFeeds($data);
 		
 		// Поставяме обвивката за външен достъп
-		Mode::set('wrapper', 'cms_Page');
+		Mode::set('wrapper', 'cms_page_External');
 		
 		return $layout;
 	}

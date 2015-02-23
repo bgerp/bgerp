@@ -231,7 +231,7 @@ class cms_Articles extends core_Master
      */
     function act_Article()
     {   
-        Mode::set('wrapper', 'cms_Page');
+        Mode::set('wrapper', 'cms_page_External');
         
         $conf = core_Packs::getConfig('cms');
 		$ThemeClass = cls::get($conf->CMS_THEME);

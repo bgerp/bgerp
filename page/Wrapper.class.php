@@ -29,7 +29,7 @@ class page_Wrapper extends core_BaseClass {
             } elseif(haveRole('admin,ceo,manager,officer,executive')) {
                 $tplName = 'core_page_Internal';
             } else {
-                $tplName = 'cms_Page';
+                $tplName = 'cms_page_External';
             }
         }
         
@@ -39,7 +39,7 @@ class page_Wrapper extends core_BaseClass {
             $tplName = $coreConf->CORE_PAGE_WRAPPER;
         } else {
             $cmsConf = core_Packs::getConfig('cms');
-            if($tplName == 'cms_Page' && $cmsConf->CMS_PAGE_WRAPPER) {
+            if($tplName == 'cms_page_External' && $cmsConf->CMS_PAGE_WRAPPER) {
                 $tplName = $cmsConf->CMS_PAGE_WRAPPER;
             }
         }
