@@ -38,7 +38,7 @@ class mp_ProductionNoteDetails extends deals_ManifactureDetail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_Created, mp_Wrapper, plg_RowNumbering, plg_AlignDecimals';
+    public $loadList = 'plg_RowTools, plg_SaveAndNew, plg_Created, mp_Wrapper, plg_RowNumbering, plg_AlignDecimals';
     
     
     /**
@@ -68,7 +68,7 @@ class mp_ProductionNoteDetails extends deals_ManifactureDetail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, jobId, bomId, measureId, quantity, selfValue,amount';
+    public $listFields = 'productId, jobId, bomId, measureId, quantity, selfValue, amount';
     
         
     /**
@@ -81,6 +81,14 @@ class mp_ProductionNoteDetails extends deals_ManifactureDetail
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     public $rowToolsField = 'RowNumb';
+    
+    
+    /**
+     * Какви продукти да могат да се избират в детайла
+     *
+     * @var enum(canManifacture=Производими,canConvert=Вложими)
+     */
+    protected $defaultMeta = 'canManifacture';
     
     
     /**
@@ -136,11 +144,12 @@ class mp_ProductionNoteDetails extends deals_ManifactureDetail
     			$rec->bomId = $bomRec->id;
     		}
     			
-    		// Не показваме полето за себестойност ако активна рецепта и задание
+    		// Не показваме полето за себестойност ако има активна рецепта и задание
     		if(isset($rec->jobId) && isset($rec->bomId)){
     			$showSelfvalue = FALSE;
     		}
     		
+    		// Себестойността е във основната валута за периода
     		$masterValior = $mvc->Master->fetchField($form->rec->noteId, 'valior');
     		$form->setField('selfValue', "unit=" . acc_Periods::getBaseCurrencyCode($masterValior));
     		

@@ -159,6 +159,9 @@ class mp_ConsumptionNotes extends deals_ManifactureMaster
 	}
 	
 	
+	/**
+	 * Екшън стопиращ съответното действие
+	 */
 	private function stopAction($id)
 	{
 		$rec = $this->fetchRec($id);
