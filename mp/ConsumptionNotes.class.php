@@ -70,7 +70,7 @@ class mp_ConsumptionNotes extends deals_ManifactureMaster
 	/**
 	 * Кой има право да добавя?
 	 */
-	public $canAdd = 'debug';//@TODO временно ceo,mo
+	public $canAdd = 'ceo,mp';
 	
 	
 	/**
@@ -159,6 +159,9 @@ class mp_ConsumptionNotes extends deals_ManifactureMaster
 	}
 	
 	
+	/**
+	 * Екшън стопиращ съответното действие
+	 */
 	private function stopAction($id)
 	{
 		$rec = $this->fetchRec($id);

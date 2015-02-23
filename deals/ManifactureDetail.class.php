@@ -32,8 +32,6 @@ abstract class deals_ManifactureDetail extends doc_Detail
 		$mvc->FLD('productId', 'int', 'caption=Продукт,notNull,mandatory', 'tdClass=large-field leftCol wrap');
 		$mvc->FLD('quantity', 'double(Min=0)', 'caption=К-во,mandatory');
 		$mvc->FLD('measureId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,input=hidden,mandatory');
-		
-		setIfNot($mvc->defaultMeta, 'canManifacture');
 	}
 	
 
@@ -61,7 +59,6 @@ abstract class deals_ManifactureDetail extends doc_Detail
 		$form = &$data->form;
 		
 		$ProductManager = ($data->ProductManager) ? $data->ProductManager : cls::get($form->rec->classId);
-		
 		$products = $ProductManager->getByProperty($mvc->defaultMeta);
 		 
 		expect(count($products));

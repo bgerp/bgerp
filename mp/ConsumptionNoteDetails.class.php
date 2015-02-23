@@ -38,7 +38,7 @@ class mp_ConsumptionNoteDetails extends deals_ManifactureDetail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_Created, mp_Wrapper, plg_RowNumbering, plg_AlignDecimals';
+    public $loadList = 'plg_RowTools, plg_SaveAndNew, plg_Created, mp_Wrapper, plg_RowNumbering, plg_AlignDecimals';
     
     
     /**
@@ -118,7 +118,7 @@ class mp_ConsumptionNoteDetails extends deals_ManifactureDetail
     		// Проверка дали артикула не е ресурс
     		if(!mp_ObjectResources::getResource($rec->classId, $rec->productId)){
     			
-    			$row->productId = "<span class='red' title = 'Артикула трябва да стане ресурс, за да се контира документа'>{$row->productId}</span>";
+    			$row->productId = "<span class='red' title = " . tr('Артикула трябва да стане ресурс, за да се контира документа') . ">{$row->productId}</span>";
     			
     			// Ако не е ресурс и имаме права поставямя бутони за добавяне като ресурс
     			if(cls::haveInterface('mp_ResourceSourceIntf', $rec->classId)){
