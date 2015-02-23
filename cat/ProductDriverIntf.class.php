@@ -95,18 +95,6 @@ class cat_ProductDriverIntf extends core_InnerObjectIntf
 	
 	
 	/**
-	 * Връща стойността на продукта отговаряща на параметъра
-	 *
-	 * @param string $sysId - систем ид на параметър (@see cat_Params)
-	 * @return mixed - стойността на параметъра за продукта
-	 */
-	public function getParamValue($sysId)
-	{
-		return $this->class->getParamValue($sysId);
-	}
-	
-	
-	/**
 	 * Връща описанието на артикула според драйвъра
 	 * 
 	 * @return core_ET
@@ -155,5 +143,23 @@ class cat_ProductDriverIntf extends core_InnerObjectIntf
 	public static function getProductImage($id)
 	{
 		return $this->class->getProductImage($id);
+	}
+	
+	
+	/**
+	 * Колко е теглото на артикула
+	 */
+	public static function getWeight()
+	{
+		return $this->class->getWeight($id);
+	}
+	
+	
+	/**
+	 * Колко е обема му
+	 */
+	public static function getVolume()
+	{
+		return $this->class->getVolume();
 	}
 }

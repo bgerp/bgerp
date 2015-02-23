@@ -248,4 +248,22 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	{
 		return $this->innerState->photo;
 	}
+	
+	
+	/**
+	 * Колко е теглото на артикула
+	 */
+	public function getWeight()
+	{
+		return cat_products_Params::fetchParamValue($this->EmbedderRec->rec()->id, $this->EmbedderRec->getClassId(), 'transportWeight');
+	}
+	
+	
+	/**
+	 * Колко е обема му
+	 */
+	public function getVolume()
+	{
+		return cat_products_Params::fetchParamValue($this->EmbedderRec->rec()->id, $this->EmbedderRec->getClassId(), 'transportVolume');
+	}
 }

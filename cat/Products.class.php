@@ -916,20 +916,6 @@ class cat_Products extends core_Embedder {
     
     
     /**
-     * Връща стойноства на даден параметър на продукта, ако я има
-     * @param int $id - ид на продукт
-     * @param string $sysId - sysId на параметър
-     */
-    public function getParam($id, $sysId)
-    {
-    	$Driver = $this->getDriver($id);
-    	$value = $Driver->getParamValue($sysId);
-    	
-    	return $value;
-    }
-    
-    
-    /**
      * Връща теглото на еденица от продукта, ако е в опаковка връща нейното тегло
      * 
      * @param int $productId - ид на продукт
@@ -945,7 +931,8 @@ class cat_Products extends core_Embedder {
     	}
     	
     	if(!$weight){
-    		$weight = $this->getParam($productId, 'transportWeight');
+    		$Driver = $this->getDriver($productId);
+    		$weight = $Driver->getWeight();
     	}
     	
     	return $weight;
@@ -968,7 +955,8 @@ class cat_Products extends core_Embedder {
     	}
     	
     	if(!$volume){
-    		$volume = $this->getParam($productId, 'transportVolume');
+    		$Driver = $this->getDriver($productId);
+    		$weight = $Driver->getVolume();
     	}
     	
     	return $volume;
@@ -990,12 +978,12 @@ class cat_Products extends core_Embedder {
     	if($lang != 'bg'){
      		
     		// Проверяваме имали сетнат параметър "title<LG>" за името на продукта
-     		$paramSysId = "title" . strtoupper($lang);
-     		$Driver = cls::get(get_called_class())->getDriver($id);
-     		$title = $Driver->getParamValue($paramSysId);
+     		//$paramSysId = "title" . strtoupper($lang);
+     		//$Driver = cls::get(get_called_class())->getDriver($id);
+     		//$title = $Driver->getParamValue($paramSysId);
      		
      		// ако има се връща
-     		if($title) return $title;
+     		//if($title) return $title;
      	}
      	
      	// Ако няма зададено заглавие за този език, връща дефолтното
