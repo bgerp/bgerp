@@ -33,7 +33,7 @@ class mp_Resources extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_Created, plg_Search, plg_Rejected, mp_Wrapper, acc_plg_Registry, plg_State, acc_plg_Registry';
+    public $loadList = 'plg_RowTools, plg_Created, plg_Search, plg_Rejected, mp_Wrapper, acc_plg_Registry, plg_State';
     
     
     /**
@@ -57,7 +57,7 @@ class mp_Resources extends core_Master
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'admin,mp';
+    public $canReject = 'ceo,mp';
     
     
     /**
