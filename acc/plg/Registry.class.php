@@ -92,10 +92,12 @@ class acc_plg_Registry extends core_Plugin
     	// Ако обекта е затворен или оттеглен, затваряме перото му
     	if($rec->state == 'rejected' || $rec->state == 'closed'){
     		if($itemRec = acc_Items::fetchItem($mvc, $rec->id)){
-    			acc_Lists::removeItem($mvc, $rec->id);
-    			
-    			if(haveRole('ceo,acc')){
-    				core_Statuses::newStatus(tr("|Затворено е перо|*: {$itemRec->title}"));
+    			if($itemRec->state == 'active'){
+    				acc_Lists::removeItem($mvc, $rec->id);
+    				 
+    				if(haveRole('ceo,acc')){
+    					core_Statuses::newStatus(tr("|Затворено е перо|*: {$itemRec->title}"));
+    				}
     			}
     		}
     	}
