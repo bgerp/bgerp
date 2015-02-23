@@ -127,7 +127,7 @@ class core_page_InternalModern extends core_page_Active {
     	$tpl = new ET("<div id='main-container' class='clearfix21 main-container [#HAS_SCROLL_SUPPORT#]'>" .
     			"<div id=\"framecontentTop\"  class=\"headerBlock\"><div class='inner-framecontentTop'>" . $header . "</div></div>" .
     			"<div id=\"maincontent\">" .
-    			"<!--ET_BEGIN NAV_BAR--><div id=\"navBar\">[#NAV_BAR#]</div>\n<!--ET_END NAV_BAR--><div class='clearfix' style='min-height:10px;'></div>" .
+    			"<!--ET_BEGIN NAV_BAR--><div id=\"navBar\">[#NAV_BAR#]</div>\n<!--ET_END NAV_BAR--><div class='clearfix' style='min-height:9px;'></div>" .
     			"<div id='statuses'>[#STATUSES#]</div>" .
     			"[#PAGE_CONTENT#]</div>" .
     			"<div id=\"framecontentBottom\" class=\"container\">" .

@@ -155,7 +155,7 @@
   position: fixed;
   left: 0;
   right: 0;
-  top: 44px;
+  top: 43px;
   z-index: 9; }
 
 .narrow #maincontent > .tab-control > .tab-row {
@@ -526,6 +526,16 @@ form[method=post] input[type=button],
 form[method=post] a.button {
   background-color: #cccccc; }
 
+.vertical .formTitle {
+  font-size: 1.05em;
+  padding: 5px; }
+
+.vertical .formSection {
+  padding: 8px 15px 0; }
+
+.vertical .formToolbar {
+  padding: 5px; }
+
 .pages {
   margin: 12px 0px 8px 0px; }
   .pages:after {
@@ -548,7 +558,7 @@ form[method=post] a.button {
   min-width: 20px;
   border-radius: 0;
   float: left;
-  color: #222222;
+  color: #666666;
   display: table-cell;
   font-size: 0.9em; }
   .pages a:hover,
@@ -556,7 +566,8 @@ form[method=post] a.button {
     border: 1px solid #cccccc;
     border-left: none;
     border-radius: 0 !important;
-    padding: 4px 3px; }
+    padding: 4px 3px;
+    color: #111111; }
     .pages a:hover.pager,
     .pages a.pagerSelected.pager {
       background-color: #dddddd !important; }
@@ -590,7 +601,7 @@ div.tab-control.alphabet div.tab-row .tab {
   padding: 4px 5px;
   -moz-border-radius: 10px;
   -webkit-border-radius: 10px;
-  border-radius: 10px;
+  border-radius: 4px;
   margin: 0 3px 3px 0;
   text-shadow: white 1px 1px 0;
   -moz-box-shadow: 1px 1px rgba(0, 0, 0, 0.2);

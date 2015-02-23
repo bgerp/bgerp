@@ -153,7 +153,7 @@
 	position: fixed;
     left: 0;
     right: 0;
-    top: 44px;
+    top: 43px;
     z-index: 9;
 }
 
@@ -558,6 +558,20 @@ form[method="post"] input[type="submit"] {
 form[method=post] input[type=button], form[method=post] a.button {
 	background-color: #ccc;
 }
+
+.vertical .formTitle {
+    font-size: 1.05em;
+    padding: 5px;
+}
+
+.vertical .formSection {
+    padding: 8px 15px 0;
+}
+
+.vertical .formToolbar {
+    padding: 5px;
+}
+
 .pages{
 	margin: 12px 0px 8px 0px;
 	&:after {
@@ -582,7 +596,7 @@ form[method=post] input[type=button], form[method=post] a.button {
 	min-width: 20px;
 	border-radius: 0;
 	float: left;
-	color: #222;
+	color: #666;
 	display: table-cell;
 	font-size: 0.9em;
 	&:hover, &.pagerSelected {
@@ -590,6 +604,7 @@ form[method=post] input[type=button], form[method=post] a.button {
 	   border-left: none;
 	   border-radius: 0 !important;
 	   padding:  4px 3px;
+       color:#111;
 	   &.pager {
 	    background-color: #dddddd !important;
 	   }
@@ -633,7 +648,7 @@ div.tab-control.alphabet div.tab-row .tab{
 	padding: 4px 5px;
 	-moz-border-radius: 10px;
 	-webkit-border-radius: 10px;
-	border-radius: 10px;
+	border-radius: 4px;
 	margin: 0 3px 3px 0;
 	text-shadow: #FFF 1px 1px 0;
 	-moz-box-shadow: 1px 1px rgba(0,0,0,0.2);

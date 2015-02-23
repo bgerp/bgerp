@@ -30,7 +30,7 @@ class cond_Payments extends core_Manager {
     /**
      * Заглавие
      */
-    public $title = "Безналични методи за плащане";
+    public $title = "Безналични средства за плащане";
     
     
     /**

@@ -96,16 +96,9 @@ class doc_Search extends core_Manager
     	}
     	
         $data->listFilter->getField('state')->type->options = array('all' => 'Всички') + $data->listFilter->getField('state')->type->options;
-
-    	$data->listFilter->getField('search')->caption = 'Ключови думи';
-        $data->listFilter->getField('search')->width = '100%';
-        $data->listFilter->getField('docClass')->caption = 'Вид документ';
-        $data->listFilter->getField('docClass')->width = '100%';
-        $data->listFilter->getField('docClass')->placeholder = 'Всички';
-        $data->listFilter->getField('author')->width = '100%';
-        $data->listFilter->getField('state')->width = '100%';
-        $data->listFilter->getField('scopeFolderId')->width = '100%';
-        
+    	$data->listFilter->setField('search', 'refreshForm,caption=Ключови думи');
+        $data->listFilter->setField('docClass', 'caption=Вид документ,placeholder=Всички');
+    
         $data->listFilter->setDefault('author', 'all_users');
 
         $data->listFilter->showFields = 'search, scopeFolderId, docClass,  author, state, fromDate, toDate';
