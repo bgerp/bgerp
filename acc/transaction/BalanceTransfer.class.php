@@ -109,21 +109,14 @@ class acc_transaction_BalanceTransfer extends acc_DocumentTransactionSource
     			$toEnt2Id = ($rec->toEnt2Id) ? $rec->toEnt2Id : $b['ent2Id'];
     			$toEnt3Id = ($rec->toEnt3Id) ? $rec->toEnt3Id : $b['ent3Id'];
     			
+    			if($b['accountId'] != $rec->fromAccount) continue;
+    			
     			// Аналитичноста от която ще прехвърляме
     			$fromArr = array($fromSysId, $b['ent1Id'], $b['ent2Id'], $b['ent3Id'], 'quantity' => $quantity);
     			
     			// Аналитичността в която ще прехвърлим
     			$toArr = array($toSysId, $toEnt1Id, $toEnt2Id, $toEnt3Id, 'quantity' => $quantity);
     			
-    			/*
-    			 * if($toAccountRec->type == 'passive'){
-    				$entry['debit'] = $fromArr;
-    				$entry['credit'] = $toArr;
-    			} else {
-    				$entry['debit'] = $toArr;
-    				$entry['credit'] = $fromArr;
-    			}
-    			 */
     			
     			if($b['blAmount'] >= 0){
     				$entry['debit'] = $toArr;
