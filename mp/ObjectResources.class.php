@@ -198,6 +198,7 @@ class mp_ObjectResources extends core_Manager
     	 
     	while($rec = $query->fetch()){
     		$data->rows[$rec->id] = $this->recToVerbal($rec);
+    		$data->rows[$rec->id]->ROW_ATTR['class'] = 'state-active';
     	}
     	 
     	if(!Mode::is('printing')) {
