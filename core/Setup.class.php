@@ -212,7 +212,7 @@ class core_Setup extends core_ProtoSetup {
            
            'CORE_TEMP_PATH_MAX_AGE' => array ('time(suggestions=3 ден|5 дни|10 дни|1 месец)', 'caption=Колко дълго да се пазят файловете в EF_TEMP_PATH директорията->Време'),
             
-           'CORE_PAGE_WRAPPER' => array ('class(interface=core_page_WrapperIntf,select=title)', 'caption=Вътрешен изглед->Страница'),
+           'CORE_PAGE_WRAPPER' => array ('class(interface=core_page_WrapperIntf,select=title)', 'caption=Вътрешен изглед->Страница, customizeBy=powerUser'),
 
         );
     
