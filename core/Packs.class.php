@@ -488,7 +488,7 @@ class core_Packs extends core_Manager
         } elseif ($rec->state == 'draft') {
             $installUrl['status'] = 'install';
             $row->install = ht::createLink(tr("Инсталирай"), $installUrl, "Наистина ли искате да инсталирате пакета?", array('id'=>$rec->name."-install", 'title'=>'Начално инсталиране на пакета'));
-        } else {
+        } elseif ($rec->state == 'closed') {
             $installUrl['status'] = 'activate';
             $row->install = ht::createLink(tr("Активирай"), $installUrl, "Наистина ли искате да активирате пакета?", array('id'=>$rec->name."-install", 'title'=>'Активиране и инициализиране на пакета'));
         }
