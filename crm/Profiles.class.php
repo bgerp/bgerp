@@ -912,7 +912,7 @@ class crm_Profiles extends core_Master
      * @param core_Form $form
      * @see core_SettingsIntf
      */
-    function prepareForm(&$form)
+    function prepareSettingsForm(&$form)
     {
         // Променяме ключа, когато ще се настройва за друг потребител (без ролите)
         if ($form->rec->_userOrRole > 0) {

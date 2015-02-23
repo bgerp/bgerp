@@ -125,7 +125,7 @@ class acc_plg_Registry extends core_Plugin
     		}
     		
     		// Ъпдейтваме информацията за перото, ако е нужно
-    		if($lists !== FALSE){bp($itemRec, $lists);
+    		if($lists !== FALSE){
     			acc_Lists::updateItem($mvc, $rec->id, $lists);
     			if(haveRole('ceo,acc')){
     				$title = $mvc->getTitleById($rec->id);
