@@ -117,7 +117,7 @@ class acc_plg_Registry extends core_Plugin
     		
     		// Ако обекта е перо, но не е в номенклатурата форсираме го
     		if($itemRec = acc_Items::fetchItem($mvc, $rec->id)){
-    			if(!keylist::isIn($itemRec->lists, $listRec->id)){
+    			if(!keylist::isIn($listRec->id, $itemRec->lists)){
     				$lists = keylist::addKey($itemRec->lists, $listRec->id);
     			}
     		} else {
@@ -125,7 +125,7 @@ class acc_plg_Registry extends core_Plugin
     		}
     		
     		// Ъпдейтваме информацията за перото, ако е нужно
-    		if($lists !== FALSE){
+    		if($lists !== FALSE){bp($itemRec, $lists);
     			acc_Lists::updateItem($mvc, $rec->id, $lists);
     			if(haveRole('ceo,acc')){
     				$title = $mvc->getTitleById($rec->id);
