@@ -395,7 +395,7 @@ class doc_Containers extends core_Manager
             $flagJustActived = TRUE;
             $mustSave = TRUE;
         }
-
+        
         if($mustSave) {
             doc_Containers::save($rec, $updateField);
 
@@ -435,6 +435,61 @@ class doc_Containers extends core_Manager
                 
                 // Нотифицираме абонираните потребители
                 static::addNotifiactions($subscribedWithoutSharedArr, $docMvc, $rec, 'добави');
+            }
+        }
+    }
+    
+    
+    /**
+     * Добавя/премахва нотификации
+     * 
+     * @param object $dRec
+     * @param string $oldSharedUsers
+     * @param string $newSharedUsers
+     */
+    public static function changeNotifications($dRec, $oldSharedUsers, $newSharedUsers)
+    {
+        if (($oldSharedUsers == $newSharedUsers)) return ;
+        
+        expect($rec = self::fetch($dRec->containerId), $dRec->containerId);
+        
+        $docMvc = cls::get($rec->docClass);
+        
+        // Масис със споделените потребители
+        $sharedKeylist = type_Keylist::diff($newSharedUsers, $oldSharedUsers);
+        
+        $sharedArr = type_Keylist::toArray($sharedKeylist);
+        
+        $keyUrl = array('doc_Containers', 'list', 'threadId' => $dRec->threadId);
+        
+        // Премахваме контейнера от достъпните
+        doc_ThreadUsers::removeContainer($rec->id);
+        
+        if ($sharedArr) {
+            
+            // Нотифицираме споделените
+            self::addNotifiactions($sharedArr, $docMvc, $rec, 'сподели', FALSE, $dRec->priority);
+            
+            foreach ($sharedArr as $userId) {
+                
+                // Добавяме документа в "Последно" за новия потребител
+                bgerp_Recently::setHidden('document', $rec->id, 'no', $userId);
+            }
+        }
+        
+        $removedUsers = type_Keylist::diff($oldSharedUsers, $newSharedUsers);
+        
+        $removedUsersArr = type_Keylist::toArray($removedUsers);
+        
+        if ($removedUsersArr) {
+            
+            foreach ($removedUsersArr as $userId) {
+                
+                // Добавяме документа в нотификациите за новия потреибител
+                bgerp_Notifications::setHidden($keyUrl, 'yes', $userId);
+                
+                // Добавяме документа в "Последно" за новия потребител
+                bgerp_Recently::setHidden('document', $rec->id, 'yes', $userId);
             }
         }
     }

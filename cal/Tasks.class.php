@@ -916,21 +916,30 @@ class cal_Tasks extends core_Master
     }
     
     
- 	static function on_AfterInputChanges($mvc, &$res, $rec) 
+    /**
+     * Прихваща извикването на AfterInputChanges в change_Plugin
+     * 
+     * @param core_MVc $mvc
+     * @param object $oldRec - Стария запис
+     * @param object $newRec - Новия запис
+     */
+    function on_AfterInputChanges($mvc, $oldRec, $newRec)
     {
     	// Ако не е обект, а е подаден id
-        if (!is_object($rec)) {
+        if (!is_object($newRec)) {
             
             // Опитваме се да извлечем данните
-            $rec = cal_Tasks::fetch($rec);
+            $newRec = cal_Tasks::fetch($newRec);
         }
         
         // Очакваме да има такъв запис
-        expect($rec, 'Няма такъв запис');
-
-    	if ($res->notifySent === 'yes') {
-    		$rec->notifySent = 'no';
+        expect($newRec, 'Няма такъв запис');
+        
+    	if ($newRec->notifySent === 'yes') {
+    		$newRec->notifySent = 'no';
     	}
+    	
+        doc_Containers::changeNotifications($newRec, $oldRec->sharedUsers, $newRec->sharedUsers);
     }
     
     
