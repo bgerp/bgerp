@@ -100,6 +100,12 @@ class core_ProtoSetup
     
     
     /**
+     * 
+     */
+    public $noInstall = FALSE;
+    
+    
+    /**
      * Инсталиране на пакета
      */
     public function install()

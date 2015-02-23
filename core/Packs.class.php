@@ -83,7 +83,7 @@ class core_Packs extends core_Manager
         $this->FLD('startAct', 'varchar(64)', 'caption=Стартов->Контролер,input=none,column=none');
         $this->FLD('deinstall', 'enum(no,yes)', 'caption=Деинсталиране,input=none,column=none');
         
-        $this->FLD('state', 'enum(active=Инсталирани, draft=Неинсталирани, closed=Деактивирани)', 'caption=Състояние,refreshForm,column=none,input=none,notNull,hint=Състояние на пакетите');
+        $this->FLD('state', 'enum(active=Инсталирани, draft=Неинсталирани, closed=Деактивирани, hidden=Без инсталатор)', 'caption=Състояние,refreshForm,column=none,input=none,notNull,hint=Състояние на пакетите');
         
         // Съхранение на данните за конфигурацията
         $this->FLD('configData', 'text', 'caption=Конфигурация->Данни,input=none,column=none');
@@ -250,7 +250,13 @@ class core_Packs extends core_Manager
             $rec->info = $setup->info;
             $rec->startCtr = $setup->startCtr;
             $rec->startAct = $setup->startAct;
-            $rec->state = 'draft';
+            
+            if ($setup->noInstall) {
+                $rec->state = 'hidden';
+            } else {
+                $rec->state = 'draft';
+            }
+            
             $rec->deinstall = 'yes';
             
             self::save($rec);
@@ -315,6 +321,9 @@ class core_Packs extends core_Manager
     
     /**
      * Изпълнява се преди извличането на редовете за листови изглед
+     * 
+     * @param object $mvc
+     * @param object $data
      */
     static function on_AfterPrepareListFilter($mvc, &$data)
     {
@@ -339,11 +348,23 @@ class core_Packs extends core_Manager
             if (($filter->state != 'all') && $filter->state) {
                 $data->query->where(array("#state = '[#1#]'", $filter->state));
             }
+            
+            if ($filter->state != 'hidden') {
+                $data->query->where("#state != 'hidden'");
+            }
         }
         
         $data->query->orderBy("#name");
     }
-
+    
+    
+    /**
+     * 
+     * 
+     * @param core_Packs $mvc
+     * @param object $res
+     * @param object $data
+     */
     function on_AfterPrepareListToolbar($mvc, $res, $data)
     {
         $data->toolbar->addBtn('Обновяване на системата', array("core_Packs", "systemUpdate"), 'ef_icon = img/16/download.png, title=Свалане на най-новия код и инициализиране на системата, class=system-update-btn');
@@ -417,7 +438,7 @@ class core_Packs extends core_Manager
             		$makeLink = TRUE;
             	}
             	
-            	if ($makeLink && ($rec->state != 'draft')) {
+            	if ($makeLink && ($rec->state != 'draft') && ($rec->state != 'hidden')) {
             		$row->name = ht::createLink($row->name, array($rec->startCtr, $rec->startAct), NULL, "class=pack-title");
             		$row->img = ht::createLink($row->img, array($rec->startCtr, $rec->startAct));
             	}
