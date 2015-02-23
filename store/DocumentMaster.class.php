@@ -246,7 +246,7 @@ abstract class store_DocumentMaster extends core_Master
     /**
      * Подготвя данните на хедъра на документа
      */
-    private function prepareHeaderInfo(&$row, $rec)
+    public function prepareHeaderInfo(&$row, $rec)
     {
     	$ownCompanyData = crm_Companies::fetchOwnCompany();
     	$Companies = cls::get('crm_Companies');
