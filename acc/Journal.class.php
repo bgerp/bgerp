@@ -655,7 +655,15 @@ class acc_Journal extends core_Master
     	// Филтрираме записите в журнала по подадените параметри
     	$to = (!$to) ? dt::today() : $to;
     	$query = acc_JournalDetails::getQuery();
-    	acc_JournalDetails::filterQuery($query, $from, $to, $accSysIds);
+    	acc_JournalDetails::filterQuery($query, $from, $to);
+    	
+    	$accSysIds = array_values($accSysIds);
+    	foreach ($accSysIds as $index => $sysId){
+    		$or = ($index == 0) ? FALSE : TRUE;
+    		$acc = acc_Accounts::getRecBySystemId($sysId);
+    		$query->where("#debitAccId = {$acc->id} OR #creditAccId = {$acc->id}", $or);
+    	}
+    	
     	if(count($types)){
     		$query->in("docType", $types);
     	}
