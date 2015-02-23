@@ -133,7 +133,7 @@ class mp_ObjectResources extends core_Manager
     		} else {
     			
     			// Създава нов запис и го свързва с обекта 
-    			$resourceId = mp_Resources::save((object)array('title' => $form->rec->newResource, 'type' => $sourceInfo->type, 'measureId' => $sourceInfo->measureId));
+    			$resourceId = mp_Resources::save((object)array('title' => $form->rec->newResource, 'type' => $sourceInfo->type, 'measureId' => $sourceInfo->measureId, 'state' => 'active'));
     			$nRec = (object)array('classId' => $classId, 'objectId' => $objectId, 'resourceId' => $resourceId);
     			
     			$this->save($nRec);

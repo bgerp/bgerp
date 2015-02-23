@@ -33,7 +33,7 @@ class mp_Resources extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_Created, plg_Rejected, mp_Wrapper, acc_plg_Registry';
+    public $loadList = 'plg_RowTools, plg_Created, plg_Rejected, mp_Wrapper, acc_plg_Registry, plg_State';
     
     
     /**
@@ -100,6 +100,24 @@ class mp_Resources extends core_Master
      * В коя номенклатура да се добави при активиране
      */
     public $addToListOnActivation = 'resources';
+    
+    
+    /**
+     * Детайли на документа
+     */
+    public $details = 'AccReports=acc_ReportDetails';
+    
+    
+    /**
+     * По кои сметки ще се правят справки
+     */
+    public $balanceRefAccounts = '611';
+    
+    
+    /**
+     * По кой итнерфейс ще се групират сметките
+     */
+    public $balanceRefGroupBy = 'mp_ResourceAccRegIntf';
     
     
     /**
@@ -229,7 +247,7 @@ class mp_Resources extends core_Master
     {
     	$table = cls::get('core_TableView');
     	$detailTpl = $table->get($data->detailRows, 'tools=Пулт,objectId=Обект');
-    	$tpl->append($detailTpl, 'DETAILS');
+    	$tpl->append($detailTpl, 'OBJECT_RESOURCES');
     }
     
     
@@ -250,6 +268,7 @@ class mp_Resources extends core_Master
     	
     	$cCode = acc_Periods::getBaseCurrencyCode();
     	$form->setField('selfValue', "unit={$cCode}");
+    	$form->setDefault('state', 'active');
     }
     
     
