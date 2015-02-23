@@ -17,10 +17,10 @@ defIfNot('THUMB_IMG_PATH',  EF_INDEX_PATH . '/' . EF_SBF . '/' . EF_APP_NAME . '
  * Клас 'thumb_Setup'
  *
  *
- * @category  vendors
+ * @category  bgerp
  * @package   minify
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -57,6 +57,12 @@ class thumb_Setup extends core_ProtoSetup {
     public $isSystem = TRUE;
     
         
-    protected $folders = THUMB_IMG_PATH;    
+    protected $folders = THUMB_IMG_PATH; 
+
+    
+    /**
+     * Пакет без инсталация
+     */
+    public $noInstall = TRUE;
     
 }

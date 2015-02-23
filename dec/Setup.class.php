@@ -12,7 +12,7 @@
  * @category  bgerp
  * @package   dec
  * @author    Gabriela Petrova <gab4eto@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -61,21 +61,6 @@ class dec_Setup extends core_ProtoSetup
      */
     var $roles = 'dec';
 
-            
-    /**
-     * Инсталиране на пакета
-     */
-    /*function install()
-    {  
-    	$html = parent::install(); 
-    	 
-        // Кофа за снимки
-        $Bucket = cls::get('fileman_Buckets');
-        $html .= $Bucket->createBucket('humanResources', 'Прикачени файлове в човешки ресурси', NULL, '1GB', 'user', 'hr');
-        
-        return $html;
-    }*/
-    
     
     /**
      * Де-инсталиране на пакета

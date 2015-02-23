@@ -14,10 +14,10 @@ defIfNot('GAUGE_PATH', 'jsgauge/0.4.1');
  * Gauge
  *
  *
- * @category  vendors
+ * @category  bgerp
  * @package   jsgauge
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @link      http://code.google.com/p/jsgauge/
@@ -28,5 +28,11 @@ class jsgauge_Setup extends core_ProtoSetup
 	 * Пътища до JS файлове
 	 */
 //	var $commonJS = "[#GAUGE_PATH#]/gauge.js";
+
+	
+	/**
+	 * Пакет без инсталация
+	 */
+	public $noInstall = TRUE;
 }
 

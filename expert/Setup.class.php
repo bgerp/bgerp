@@ -22,5 +22,11 @@ class expert_Setup extends core_ProtoSetup
 	 * Път до js файла
 	 */
 //	var $commonJS = 'expert/ajaxExpert.js';
+
+	/**
+	 * Пакет без инсталация
+	 */
+	public $noInstall = TRUE;
+	
 }
 
