@@ -108,7 +108,7 @@ class acc_Setup extends core_ProtoSetup
      */
     var $configDescription = array(
         'ACC_MONEY_TOLERANCE' => array("double(decimals=2)", 'caption=Толеранс за допустимо разминаване на суми в основна валута->Сума'),
-        'ACC_DETAILED_BALANCE_ROWS' => array("int", 'caption=Баланс->Редове в детайлния баланс,unit=бр.'),
+        'ACC_DETAILED_BALANCE_ROWS' => array("int", 'caption=Редове в страница от детайлния баланс->Брой редове,unit=бр.'),
     );
     
     
