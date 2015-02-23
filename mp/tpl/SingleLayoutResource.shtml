@@ -4,15 +4,15 @@
         <h2 style='line-height:26px' class='[#STATE_CLASS#]'>|Ресурс|* <b style="color:green;">[#title#]</b></h2>
     	<fieldset class="detail-info" style='margin-bottom:20px'>
             <legend class="groupTitle">|Информация|*</legend>
-            <div>|Вид|*: [#type#]</div>
-            <div>|Мярка|*: [#measureId#]</div>
+            <div><span class='quiet'>|Вид|*</span>: [#type#]</div>
+            <div><span class='quiet'>|Мярка|*</span>: [#measureId#]</div>
             
             <!--ET_BEGIN selfValue-->
-            <div>|Себестойност|*: [#selfValue#]</div>
+            <div><span class='quiet'>|Себестойност|*</span>: [#selfValue#] <!--ET_BEGIN currencyId--><span class='cCode'>[#currencyId#]</span><!--ET_END currencyId--></div>
             <!--ET_END selfValue-->
             
             <!--ET_BEGIN systemId-->
-            <div>|Системен|* №: [#systemId#]</div>
+            <div><span class='quiet'>|Системен|* №</span>: [#systemId#]</div>
             <!--ET_END systemId-->
         </fieldset>
 		[#OBJECT_RESOURCES#]

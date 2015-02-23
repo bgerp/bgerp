@@ -128,7 +128,7 @@ class mp_Resources extends core_Master
     	$this->FLD('title', 'varchar', 'caption=Наименование,mandatory');
     	$this->FLD('type', 'enum(equipment=Оборудване,labor=Труд,material=Материал)', 'caption=Вид,mandatory,silent');
     	$this->FLD('measureId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Мярка,mandatory');
-    	$this->FLD('selfValue', 'double', 'caption=Себестойност');
+    	$this->FLD('selfValue', 'double(decimals=2)', 'caption=Себестойност');
     	$this->FLD('systemId', 'varchar', 'caption=Системен №,input=none');
     	$this->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none');
     	$this->FLD('bomId', 'key(mvc=cat_Boms)', 'input=none');
@@ -231,6 +231,9 @@ class mp_Resources extends core_Master
     {
     	$dQuery = mp_ObjectResources::getQuery();
     	$dQuery->where("#resourceId = {$data->rec->id}");
+    	if(isset($data->rec->selfValue)){
+    		$data->row->currencyId = acc_Periods::getBaseCurrencyCode();
+    	}
     	
     	$data->detailRows = $data->detailRecs = array();
     	while($dRec = $dQuery->fetch()){
