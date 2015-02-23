@@ -71,7 +71,9 @@ class core_page_InternalModern extends core_page_Active {
         
         // Опаковките и главното съдържание заемат екрана до долу
         $this->append("runOnLoad(setMinHeight);", "JQRUN");
-
+        
+        // Акордеона в менюто
+        $this->append("runOnLoad(sidebarAccordeonActions);", "JQRUN");
 
         // Вкарваме съдържанието
         $this->replace(self::getTemplate(), 'PAGE_CONTENT');
@@ -150,7 +152,6 @@ class core_page_InternalModern extends core_page_Active {
     static function renderMenu()
     {
           $tpl = new ET("
-                    <style> ul .selected, ul .selected a {color:white;}</style>
                     <ul>
                     [#MENU_ROW#]
                     </ul>");
@@ -201,8 +202,8 @@ class core_page_InternalModern extends core_page_Active {
                 
                 if($lastMenu != $rec->menu) {
                     $active = 
-                    $html .= ($html ? "\n</ul></li>" : '') . "\n<li>";
-                    $html .= "\n    <span{$mainClass}>{$rec->menu}</span>";
+                    $html .= ($html ? "\n</ul></li>" : '') . "\n<li {$mainClass}>";
+                    $html .= "\n    <span>{$rec->menu}</span>";
                     $html .= "\n<ul>";
                 }
                 $lastMenu = $rec->menu;
@@ -383,36 +384,6 @@ class core_page_InternalModern extends core_page_Active {
         }
 
         return $tpl;
-    }
-
-    
-    /**
-     * Създава връзка отговаряща на състоянието на посочения ред
-     */
-    static function createLink($title, $rec, $menu = FALSE)
-    {
-    	if($menu) {
-    		$url = array($rec->menuCtr, $rec->menuAct);
-    	} else {
-    		$url = array($rec->ctr, $rec->act);
-    	}
-    	if($rec->state == 3 ) {
-    		$attr['class'] = 'itemAccord selected';
-    	} elseif ($rec->state == 2 ) {
-    		$attr['class'] = 'itemAccord';
-    	} else {
-    		$attr['class'] = 'itemAccord';
-    		$url = NULL;
-    	}
-    
-    	if(!$rec->link) {
-    		$url = NULL;
-    	}
-    
-    	if(!$url) {
-    		$attr['class'] .= ' btn-disabled';
-    	}
-    	return ht::createLink($title, $url, '', $attr);
     }
     
     

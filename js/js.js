@@ -1,5 +1,6 @@
 function slidebars(){
 
+	
 	var viewportWidth = $(window).width();
 	if(viewportWidth > 600){
 		 $('.btn-sidemenu').jPushMenu({closeOnClickOutside: false, closeOnClickInside: false});
@@ -31,7 +32,17 @@ function slidebars(){
     	}	
     });
 }
-
+function sidebarAccordeonActions() {
+	$('#nav-panel li:not(.selected) ul').css('display', 'none');
+	$('#nav-panel li.selected span').addClass('up');
+	
+	$("#nav-panel li").click( function() {
+		$('#nav-panel li span').removeClass('up');
+		$(this).find('span').addClass('up');
+		$('#nav-panel li ul').css('display', 'none');
+		$(this).find('ul').css('display', 'block');
+	});
+}
 /**
  * Задава максиналната височина на опаковката и основното съдържание
  */

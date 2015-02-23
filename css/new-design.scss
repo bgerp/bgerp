@@ -202,7 +202,13 @@
 }
 
 /*menu i podmenu*/
-.itemAccord{
+#nav-panel ul , #nav-panel ul li {
+	margin: 0;
+	padding: 0;
+	user-select: none;
+}
+#nav-panel span, #nav-panel li{
+	margin: 0;
 	display: block;
     font-size: 0.95em;
     background-color: #333;
@@ -210,9 +216,8 @@
     text-shadow: 0 1px 0 #111;
     padding: .7em 1em;
     color: #fff !important;
-    &.selected{
-        color: #71aae6 !important;
-    }
+    font-weight: bold;
+    cursor: pointer;
     &:hover{
        background-color: #444 !important;
     }
@@ -222,27 +227,27 @@
     }
 }
 
-.narrow .itemAccord {
-    font-size: 0.9em;
-  
-    padding: 0.4em 0.8em 0.5em;
-    &.selected {
-        background-color: #333;
-        color: #71aae6 !important;
+#nav-panel li.selected {
+	background-color: #222 !important;
+}
+
+#nav-panel li a {
+	display: block;
+	color: #fff !important;
+	padding: .7em 1em .7em 2em;
+}
+
+.narrow #nav-panel span, .narrow #nav-panel li a{
+	padding: .4em 1em;
+}
+#nav-panel span {
+    padding-left: 30px !important;
+    display: block;
+    background: #444 url(../img/16/arrow-down.png) 6px 11px no-repeat !important;
+    &.up {
+       background: #444 url(../img/16/arrow-up.png) 6px 11px no-repeat !important;
     }
 }
-
-.subAccord .itemAccord.selected{
-    color: white !important;
-    @extend .gradient-blue;
-}
-
-.subAccord{
-	font-size: 0.9em;
-    text-indent: 15px;
-    display: block !important;
-}
-
 .menuIcon {
     padding: 3px;
     width: 20px;
