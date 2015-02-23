@@ -33,7 +33,7 @@ class mp_Resources extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_Created, plg_Rejected, mp_Wrapper, acc_plg_Registry, plg_State';
+    public $loadList = 'plg_RowTools, plg_Created, plg_Search, plg_Rejected, mp_Wrapper, acc_plg_Registry, plg_State, acc_plg_Registry';
     
     
     /**
@@ -91,15 +91,15 @@ class mp_Resources extends core_Master
     
     
     /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    public $searchFields = 'title, systemId';
+    
+    
+    /**
      * Шаблон за еденичен изглед
      */
     public $singleLayoutFile = 'mp/tpl/SingleLayoutResource.shtml';
-    		
-
-    /**
-     * В коя номенклатура да се добави при активиране
-     */
-    public $addToListOnActivation = 'resources';
     
     
     /**
@@ -181,7 +181,7 @@ class mp_Resources extends core_Master
     	$data->listFilter->FNC('rType', 'enum(all=Всички,equipment=Оборудване,labor=Труд,material=Материал)', 'caption=Тип,placeholder=aa');
     	$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
     	$data->listFilter->setDefault('rType', 'all');
-    	$data->listFilter->showFields = 'rType';
+    	$data->listFilter->showFields = 'search,rType';
     	$data->listFilter->view = 'horizontal';
     	
     	$data->listFilter->input();

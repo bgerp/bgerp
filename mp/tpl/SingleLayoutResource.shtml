@@ -1,7 +1,7 @@
 <div class='singleView'>
     [#SingleToolbar#]
     <div class="no-cover">
-        <h2 style='line-height:26px' class='[#headerRejected#]'>|Ресурс|* <b style="color:green;">[#title#]</b></h2>
+        <h2 style='line-height:26px' class='[#STATE_CLASS#]'>|Ресурс|* <b style="color:green;">[#title#]</b></h2>
     	<fieldset class="detail-info" style='margin-bottom:20px'>
             <legend class="groupTitle">|Информация|*</legend>
             <div>|Вид|*: [#type#]</div>
