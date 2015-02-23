@@ -246,7 +246,7 @@ class currency_CurrencyRates extends core_Detail
      *                    NULL = базова валута към $date
      *  @return double $amount Конвертираната стойност на сумата
      */
-    public static function convertAmount($amount, $date, $from, $to = NULL)
+    public static function convertAmount($amount, $date = NULL, $from = NULL, $to = NULL)
     {
         return $amount * static::getRate($date, $from, $to);
     }
