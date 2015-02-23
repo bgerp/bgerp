@@ -69,7 +69,7 @@ class mp_Resources extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт,title,type,createdOn,createdBy,lastUsedOn,state';
+    public $listFields = 'tools=Пулт,title,type,state,lastUsedOn,createdOn,createdBy';
     
     
     /**
