@@ -1347,7 +1347,13 @@ table.mc-calendar {
   border: none;
   position: relative;
   top: -3px;
-  color: #333333; }
+  color: #333333;
+  border: none;
+  background: none;
+  box-shadow: none; }
+  .portal-select:focus {
+    outline: none;
+    box-shadow: none; }
 
 table.mc-header a {
   color: #999999; }
