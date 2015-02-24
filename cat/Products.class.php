@@ -284,7 +284,12 @@ class cat_Products extends core_Embedder {
 					$defMetas = $cover->getDefaultMeta();
 					$Driver = $mvc->getDriver($form->rec);
 					$defMetas = $Driver->getDefaultMetas($defMetas);
-				
+					
+					if($form->rec->meta){
+						$meta = arr::make($form->rec->meta);
+						$defMetas = array_intersect($meta, $defMetas);
+					}
+					
 					$form->getFieldType('meta')->setDisabled($defMetas);
 					$form->setDefault('meta', $form->getFieldType('meta')->fromVerbal($defMetas));
 				}
