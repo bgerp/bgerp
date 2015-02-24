@@ -136,8 +136,9 @@ abstract class store_InternalDocumentDetail extends doc_Detail
     	foreach ($data->rows as $i => &$row) {
     		$rec = &$data->recs[$i];
     		
-    		if(cat_Products::haveRightFor('single', $rec->productId)){
-    			$row->productId = ht::createLinkRef(cat_Products::getTitleById($rec->productId), array('cat_Products', 'single', $rec->productId));
+    		$row->productId = cat_Products::getTitleById($rec->productId);
+    		if(cat_Products::haveRightFor('single', $rec->productId) && !Mode::is('printing')){
+    			$row->productId = ht::createLinkRef($row->productId, array('cat_Products', 'single', $rec->productId));
     		}
     		
     		$pInfo = cat_Products::getProductInfo($rec->productId);
