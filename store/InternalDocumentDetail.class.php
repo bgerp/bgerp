@@ -52,7 +52,10 @@ abstract class store_InternalDocumentDetail extends doc_Detail
 			$data->form->setOptions('productId', array($rec->productId => $products[$rec->productId]));
 		}
 		
-		$data->form->setField('packPrice', "unit={$masterRec->currencyId}");
+		$rec->chargeVat = (cls::get($masterRec->contragentClassId)->shouldChargeVat($masterRec->contragentId)) ? 'yes' : 'no';
+		$chargeVat = ($rec->chargeVat == 'yes') ? 'с ДДС' : 'без ДДС';
+		
+		$data->form->setField('packPrice', "unit={$masterRec->currencyId} {$chargeVat}");
     }
     
     
@@ -81,10 +84,10 @@ abstract class store_InternalDocumentDetail extends doc_Detail
     				$form->rec->packagingId = $baseInfo->id;
     			}
     		}
-    			
+    		
     		// Слагаме цената от политиката за последна цена
     		if(isset($mvc->LastPricePolicy)){
-    			$policyInfoLast = $mvc->LastPricePolicy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $ProductMan->getClassId(), $rec->packagingId, $rec->packQuantity, $masterRec->valior, $currencyRate, 'yes');
+    			$policyInfoLast = $mvc->LastPricePolicy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $ProductMan->getClassId(), $rec->packagingId, $rec->packQuantity, $masterRec->valior, $currencyRate, $rec->chargeVat);
     			if($policyInfoLast->price != 0){
     				$form->setSuggestions('packPrice', array('' => '', "{$policyInfoLast->price}" => $policyInfoLast->price));
     			}
@@ -97,7 +100,7 @@ abstract class store_InternalDocumentDetail extends doc_Detail
     		
     		if(!isset($rec->packPrice)){
     			$Policy = $ProductMan->getPolicy();
-    			$rec->packPrice = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $ProductMan->getClassId(), $rec->packagingId, $rec->packQuantity, $masterRec->valior, $currencyRate, 'yes')->price;
+    			$rec->packPrice = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $ProductMan->getClassId(), $rec->packagingId, $rec->packQuantity, $masterRec->valior, $currencyRate, $rec->chargeVat)->price;
     			$rec->packPrice = $rec->packPrice * $rec->quantityInPack;
     		}
     		
