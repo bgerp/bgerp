@@ -280,7 +280,9 @@ class cal_Tasks extends core_Master
         $row->progressBar = "<div style='display:inline-block;top:-5px;border-bottom:solid 10px {$blue}; width:{$progressPx}px;'> </div><div style='display:inline-block;top:-5px;border-bottom:solid 10px {$grey};width:{$progressRemainPx}px;'> </div>";
         
         if($rec->timeEnd && ($rec->state != 'closed' && $rec->state != 'rejected')) {
-            $rec->remainingTime = round((dt::mysql2timestamp($rec->timeEnd) - time()) / 60) * 60;
+        	$remainingTime = dt::mysql2timestamp($rec->timeEnd) - time();
+            $rec->remainingTime = self::roundTime($remainingTime);
+           
             $typeTime = cls::get('type_Time');
             if($rec->remainingTime > 0) {
                 $row->remainingTime = ' (' . tr('остават') . ' ' . $typeTime->toVerbal($rec->remainingTime) . ')';
@@ -2217,5 +2219,38 @@ class cal_Tasks extends core_Master
     	 
     	// Показваме бутона само ако корицата на папката е 'проект'
     	return ($Cover->instance instanceof doc_UnsortedFolders) ? TRUE : FALSE;
+    }
+    
+    
+    public static function roundTime($time)
+    {
+    	if(!isset($time) || !is_numeric($time)) return NULL;
+    	
+    	$t = abs($time);
+    	
+    	$weeks    = floor($t / (7 * 24 * 60 * 60));
+    	$days     = floor(($t - $weeks * (7 * 24 * 60 * 60)) / (24 * 60 * 60));
+    	$hours    = floor(($t - $weeks * (7 * 24 * 60 * 60) - $days * (24 * 60 * 60)) / (60 * 60));
+    	$minutes  = floor(($t - $weeks * (7 * 24 * 60 * 60) - $days * (24 * 60 * 60) - $hours * 60 * 60) / 60);
+    	$secundes = floor(($t - $weeks * (7 * 24 * 60 * 60) - $days * (24 * 60 * 60) - $hours * 60 * 60 - $minutes * 60));
+    	
+    	if ($weeks > 0) { 
+    		$res = round($time / 86400) * 86400;
+    		
+    		return $res;
+    	}
+    	
+    	if ($days > 0) { 
+    		$res = round($time / 3600) * 3600;
+    		
+    		return $res;
+    	}
+    	
+    	if ($hours > 0) {
+    		$res = round($time / 60) * 60;
+    		
+    		return $res;
+    	}
+ 	
     }
 }
