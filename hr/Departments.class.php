@@ -314,7 +314,10 @@ class hr_Departments extends core_Master
         
         if(!$rec->id) {
         	$rec->state = 'active';
+        	$rec->activities == 'yes';
         }
+        
+        $rec->activities == 'yes';
     }
     
     
@@ -329,7 +332,7 @@ class hr_Departments extends core_Master
     		$rec->lists = keylist::addKey($rec->lists, acc_Lists::fetchField(array("#systemId = '[#1#]'", 'departments'), 'id'));
     		acc_Lists::updateItem($mvc, $rec->id, $rec->lists);
         } else {
-    		acc_Lists::removeItem($mvc, $rec->id);
+    		//acc_Lists::removeItem($mvc, $rec->id);
         }
     }
     
