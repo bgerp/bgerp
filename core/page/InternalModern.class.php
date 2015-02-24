@@ -102,8 +102,7 @@ class core_page_InternalModern extends core_page_Active {
     {
     	$menuImg = ht::createElement('img', array('src' => sbf('img/menu.png', ''), 'class' => 'menuIcon'));
     	$pinImg = ht::createElement('img', array('src' => sbf('img/pin.png', ''), 'class' => 'menuIcon'));
-    	$imageUrl = sbf('img/24/me.jpg', '');
-    	$img = avatar_Plugin::getImg(core_Users::getCurrent(), NULL, 30);
+    	$img = avatar_Plugin::getImg(core_Users::getCurrent(), NULL, 26);
     	// Задаваме лейаута на страницата
     	$header = "<div style='position: relative'>
 	    					<a id='nav-panel-btn' href='#nav-panel' class='fleft btn-sidemenu btn-menu-left push-body'>". $menuImg ."</a>
@@ -203,7 +202,7 @@ class core_page_InternalModern extends core_page_Active {
                 if($lastMenu != $rec->menu) {
                     $active = 
                     $html .= ($html ? "\n</ul></li>" : '') . "\n<li {$mainClass}>";
-                    $html .= "\n    <span>{$rec->menu}</span>";
+                    $html .= "\n    <div><span class='arrow'></span>{$rec->menu}</div>";
                     $html .= "\n<ul>";
                 }
                 $lastMenu = $rec->menu;
