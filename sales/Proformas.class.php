@@ -42,12 +42,6 @@ class sales_Proformas extends deals_InvoiceMaster
     
     
     /**
-     * Колоната, в която да се появят инструментите на plg_RowTools
-     */
-    public $rowToolsField = 'tools';
-    
-    
-    /**
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, sales_Wrapper, cond_plg_DefaultValues, plg_Sorting, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search,
@@ -136,7 +130,7 @@ class sales_Proformas extends deals_InvoiceMaster
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт, number, date, place, folderId, dealValue, vatAmount';
+    public $listFields = 'id, number, date, place, folderId, dealValue, vatAmount';
     
     
     /**

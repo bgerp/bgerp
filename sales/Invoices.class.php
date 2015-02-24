@@ -52,13 +52,7 @@ class sales_Invoices extends deals_InvoiceMaster
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт, number, date, place, folderId, dealValue, vatAmount, type, paymentType';
-    
-    
-    /**
-     * Колоната, в която да се появят инструментите на plg_RowTools
-     */
-    public $rowToolsField = 'tools';
+    public $listFields = 'id, number, date, place, folderId, dealValue, vatAmount, type, paymentType';
     
     
     /**

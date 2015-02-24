@@ -52,13 +52,10 @@
                             <div class="lines"></div>
                             <div class="details">
                             	<div style='margin:5px 0px'>
-                            		<b>|Дадено|*</b>
                             		[#store_ConsignmentProtocolDetailsSend#]
                             	</div>
-                                
-                                
+                            	
                                 <div style='margin:5px 0px'>
-                                	<b>|Получено|*</b>
                                 	[#store_ConsignmentProtocolDetailsReceived#]
                                 </div>
                             </div>
@@ -67,8 +64,8 @@
                                 <tbody>
                                     <tr>
                                         <td class="topCell first vtop" style='width:50%;'>
-                                        <table class='shipment-table' style='width:100%;'>
-                                        <tr>
+                                        	<table class='shipment-table' style='width:100%;'>
+                                        		<tr>
                                                     <td class='quiet nowrap aright'>|Валута|*:</td>
                                                     <td>[#currencyId#]</td>
                                                 </tr>

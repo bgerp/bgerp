@@ -91,16 +91,7 @@ class store_ConsignmentProtocols extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт, valior, contragentId=Контрагент, folderId, currencyId=Валута, createdOn, createdBy';
-
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     *
-     * @var string
-     * @see plg_RowTools
-     */
-    public $rowToolsField = 'tools';
+    public $listFields = 'id, valior, contragentId=Контрагент, folderId, createdOn, createdBy';
     
     
     /**
@@ -143,12 +134,6 @@ class store_ConsignmentProtocols extends core_Master
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     var $searchFields = 'valior,folderId,note';
-    
-    
-    /**
-     * Главен детайл на модела
-     */
-    //public $mainDetail = 'store_ShipmentOrderDetails';
     
     
     /**

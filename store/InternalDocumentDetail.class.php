@@ -168,4 +168,16 @@ abstract class store_InternalDocumentDetail extends doc_Detail
     		}
     	}
     }
+    
+    
+    /**
+     * След рендиране на детайла
+     */
+    public static function on_AfterRenderDetail($mvc, &$tpl, $data)
+    {
+    	// Ако документа е активиран и няма записи съответния детайл не го рендираме
+    	if($data->masterData->rec->state != 'draft' && !$data->rows){
+    		$tpl = new ET('');
+    	}
+    }
 }
