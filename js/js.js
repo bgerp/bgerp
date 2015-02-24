@@ -34,13 +34,11 @@ function slidebars(){
 }
 function sidebarAccordeonActions() {
 	$('#nav-panel li:not(.selected) ul').css('display', 'none');
-	$('#nav-panel li.selected span').addClass('up');
+	$('#nav-panel li.selected span').addClass('open');
 	
-	$("#nav-panel li").click( function() {
-		$('#nav-panel li span').removeClass('up');
-		$(this).find('span').addClass('up');
-		$('#nav-panel li ul').css('display', 'none');
-		$(this).find('ul').css('display', 'block');
+	$("#nav-panel li div").click( function() {
+			$(this).parent().find('span').toggleClass('open');
+			$(this).parent().find('ul').slideToggle();
 	});
 }
 /**

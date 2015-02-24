@@ -80,11 +80,6 @@
   width: auto;
   display: block; }
 
-.push-body {
-  overflow-x: hidden;
-  position: relative;
-  left: 0; }
-
 .transition {
   -webkit-transition: left 0.3s ease, right 0.3s ease, margin-left 0.3s ease, margin-right 0.3s ease;
   -moz-transition: left 0.3s ease, right 0.3s ease, margin-left 0.3s ease, margin-right 0.3s ease;
@@ -198,47 +193,80 @@
 #nav-panel ul,
 #nav-panel ul li {
   margin: 0;
-  padding: 0;
-  user-select: none; }
+  padding: 0; }
 
-#nav-panel span,
-#nav-panel li {
-  margin: 0;
-  display: block;
+#nav-panel > ul {
+  border-bottom: 1px solid #666666; }
+
+#nav-panel div {
+  cursor: pointer;
   font-size: 0.95em;
-  background-color: #333333;
-  border-bottom: 1px solid #1f1f1f !important;
-  text-shadow: 0 1px 0 #111111;
-  padding: 0.7em 1em;
-  color: white !important;
+  text-shadow: 0 1px 1px black;
   font-weight: bold;
-  cursor: pointer; }
-  #nav-panel span:hover,
-  #nav-panel li:hover {
-    background-color: #444444 !important; }
-  #nav-panel span.btn-disabled,
-  #nav-panel li.btn-disabled {
-    color: #666666 !important;
-    background-color: #333333 !important; }
+  color: white;
+  padding: 0.7em 0em 0.7em 0;
+  background: #4a4a4a;
+    /*
+   * Old browsers
+   */
+  background: -moz-linear-gradient(top, #4a4a4a 0%, #383838 100%);
+    /*
+   * FF3.6+
+   */
+  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #4a4a4a), color-stop(100%, #383838));
+    /*
+   * Chrome,Safari4+
+   */
+  background: -webkit-linear-gradient(top, #4a4a4a 0%, #383838 100%);
+    /*
+   * Chrome10+,Safari5.1+
+   */
+  background: -o-linear-gradient(top, #4a4a4a 0%, #383838 100%);
+    /*
+   * Opera 11.10+
+   */
+  background: -ms-linear-gradient(top, #4a4a4a 0%, #383838 100%);
+    /*
+   * IE10+
+   */
+  background: linear-gradient(to bottom, #4a4a4a 0%, #383838 100%);
+    /*
+   * W3C
+   */
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#4a4a4a', endColorstr='#383838', GradientType=0 );
+    /*
+   * IE6-9
+   */
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.4);
+  border: 1px solid #333333;
+  border-top: none; }
 
-#nav-panel li.selected {
-  background-color: #222222 !important; }
+  #nav-panel li.selected > a {
+    background: #222222;
+    color: white; }
+  #nav-panel li a {
+    display: block;
+    color: #8c8c8c;
+    padding: 0.6em 1.2em 0.6em 2em;
+    font-size: 0.85em;
+    font-weight: bold;
+    text-shadow: 0 1px 0 #111111;
+    background: #2f2f2f;
+    border-top: 1px solid #262626; }
+    #nav-panel li a:hover {
+      color: white; }
 
-#nav-panel li a {
-  display: block;
-  color: white !important;
-  padding: 0.7em 1em 0.7em 2em; }
-
-.narrow #nav-panel span,
+.narrow #nav-panel div,
 .narrow #nav-panel li a {
   padding: 0.4em 1em; }
 
 #nav-panel span {
-  padding-left: 30px !important;
-  display: block;
-  background: #444444 url(../img/16/arrow-down.png) 6px 11px no-repeat !important; }
-  #nav-panel span.up {
-    background: #444444 url(../img/16/arrow-up.png) 6px 11px no-repeat !important; }
+  width: 24px;
+  height: 14px;
+  display: inline-block;
+  background: url(../img/16/arrow-side.png) center center no-repeat !important; }
+  #nav-panel span.open {
+    background: url(../img/16/darrow.png) center center no-repeat !important; }
 
 .menuIcon {
   padding: 3px;
@@ -256,16 +284,16 @@
   float: left;
   padding: 0px 15px 0px 1px;
   margin: 0 10px;
-  border-radius: 3px;
+  border-radius: 5px;
   cursor: pointer;
   position: relative;
-  border: 1px solid #999999;
+  border: 2px solid #585858;
   z-index: 11;
-  background: #eeeeee url('../img/16/arrow_down2.png') 30px center no-repeat;
+  background: #eeeeee url('../img/16/arrow_down2.png') 26px center no-repeat;
   box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2); }
   .user-options img {
     border-radius: 3px 0 0 3px;
-    height: 28px;
+    height: 26px;
     margin-left: -1px;
     float: left; }
 
@@ -441,10 +469,7 @@ only screen and (max-width: 480px) {
   border: solid 1px #cc3333 !important; }
 
 .notificationsCnt a.noNtf {
-  color: false;
-  background-color: transparent;
-  border: none !important;
-  box-shadow: none; }
+  display: none; }
 
 .narrow .notificationsCnt a.noNtf {
   color: white;

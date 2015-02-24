@@ -68,12 +68,6 @@
     display: block;
 }
 
-.push-body {
-    overflow-x: hidden;
-    position: relative;
-    left: 0;
-}
-
 .transition {
     -webkit-transition: left 0.3s ease, right 0.3s ease, margin-left 0.3s ease, margin-right 0.3s ease;
        -moz-transition: left 0.3s ease, right 0.3s ease, margin-left 0.3s ease, margin-right 0.3s ease;
@@ -205,49 +199,66 @@
 #nav-panel ul , #nav-panel ul li {
 	margin: 0;
 	padding: 0;
-	user-select: none;
 }
-#nav-panel span, #nav-panel li{
-	margin: 0;
-	display: block;
-    font-size: 0.95em;
-    background-color: #333;
-    border-bottom: 1px solid #1f1f1f !important;
-    text-shadow: 0 1px 0 #111;
-    padding: .7em 1em;
-    color: #fff !important;
-    font-weight: bold;
-    cursor: pointer;
-    &:hover{
-       background-color: #444 !important;
+#nav-panel > ul {
+    border-bottom: 1px solid #666;
+}
+
+#nav-panel div{
+	cursor: pointer;
+	font-size: 0.95em;
+	text-shadow: 0 1px 1px #000;
+	font-weight: bold;
+	color: #fff;
+	padding: .7em 0em .7em 0;
+	background: #4a4a4a; /* Old browsers */
+	background: -moz-linear-gradient(top,  #4a4a4a 0%, #383838 100%); /* FF3.6+ */
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#4a4a4a), color-stop(100%,#383838)); /* Chrome,Safari4+ */
+	background: -webkit-linear-gradient(top,  #4a4a4a 0%,#383838 100%); /* Chrome10+,Safari5.1+ */
+	background: -o-linear-gradient(top,  #4a4a4a 0%,#383838 100%); /* Opera 11.10+ */
+	background: -ms-linear-gradient(top,  #4a4a4a 0%,#383838 100%); /* IE10+ */
+	background: linear-gradient(to bottom,  #4a4a4a 0%,#383838 100%); /* W3C */
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#4a4a4a', endColorstr='#383838',GradientType=0 ); /* IE6-9 */
+	box-shadow: inset 0 1px 1px rgba(255,255,255,0.4);
+	border: 1px solid #333333;
+	border-top: none;
+}
+
+
+#nav-panel li {
+	&.selected > a{
+        background:#222;
+        color: #fff;
     }
-    &.btn-disabled{
-        color:#666 !important;
-        background-color: #333 !important;
+    a {
+		display: block;
+		color: #8C8C8C;
+		padding: .6em 1.2em 0.6em 2em;
+	    font-size: 0.85em;
+	    font-weight: bold;
+	    text-shadow: 0 1px 0 #111;
+	    background:#2F2F2F;
+	    border-top: 1px solid #262626;
+	    &:hover {
+	        color: #fff;
+	    }
     }
 }
 
-#nav-panel li.selected {
-	background-color: #222 !important;
-}
-
-#nav-panel li a {
-	display: block;
-	color: #fff !important;
-	padding: .7em 1em .7em 2em;
-}
-
-.narrow #nav-panel span, .narrow #nav-panel li a{
+.narrow #nav-panel div, .narrow #nav-panel li a{
 	padding: .4em 1em;
 }
-#nav-panel span {
-    padding-left: 30px !important;
-    display: block;
-    background: #444 url(../img/16/arrow-down.png) 6px 11px no-repeat !important;
-    &.up {
-       background: #444 url(../img/16/arrow-up.png) 6px 11px no-repeat !important;
+
+#nav-panel span{
+	width: 24px;
+	height: 14px;
+    display: inline-block;
+    background: url(../img/16/arrow-side.png) center center no-repeat !important;
+    &.open {
+       background:url(../img/16/darrow.png) center  center no-repeat !important;
     }
 }
+
 .menuIcon {
     padding: 3px;
     width: 20px;
@@ -266,16 +277,16 @@
     float: left;
     padding: 0px 15px 0px 1px;
     margin: 0 10px;
-    border-radius: 3px;
+    border-radius: 5px;
     cursor: pointer;
     position: relative;
-    border: 1px solid #999;
+    border: 2px solid rgb(88, 88, 88);
     z-index:11;
-    background: #eee url('../img/16/arrow_down2.png') 30px center no-repeat;
+    background: #eee url('../img/16/arrow_down2.png') 26px center no-repeat;
     box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
     img {
       border-radius: 3px 0 0 3px;
-      height: 28px;
+      height: 26px;
       margin-left: -1px;
       float: left;
     }
@@ -472,11 +483,8 @@
     border: solid 1px #c33 !important;
 }
 
-.notificationsCnt a.noNtf { 
-    color: $gray3;
-    background-color: transparent;
-    border: none !important;
-    box-shadow: none;
+.notificationsCnt a.noNtf {
+	display: none;
 }
 
 .narrow .notificationsCnt a.noNtf { 
@@ -673,6 +681,7 @@ div.tab-control.alphabet div.tab-row .tab{
 	   height: 10px !important;
 	}
 }
+
 @media handheld, only screen and (max-width: 800px) {
 	.narrow  .sidemenu-push-toleft #maincontent {
 		margin-left:-200px;
