@@ -54,10 +54,10 @@ class acc_BalanceReportImpl extends frame_BaseDriver
      */
     public function addEmbeddedFields(core_Form &$form)
     {
-    	$form->FLD('accountId', 'acc_type_Account(allowEmpty)', 'caption=Сметка,mandatory,silent', array('attr' => array('onchange' => "addCmdRefresh(this.form);this.form.submit()")));
+    	$form->FLD('accountId', 'acc_type_Account(allowEmpty)', 'caption=Сметка,mandatory,silent,removeAndRefreshForm=action');
     	$form->FLD('from', 'date', 'caption=От,mandatory');
     	$form->FLD('to', 'date', 'caption=До,mandatory');
-    	$form->FLD("action", 'varchar', "caption=Действие,width=330px,silent,input=hidden", array('attr' => array('onchange' => "addCmdRefresh(this.form);this.form.submit()")));
+    	$form->FLD("action", 'varchar', "caption=Действие,width=330px,silent,input=hidden,removeAndRefreshForm=grouping1|grouping2|grouping3|feat1|feat2|feat3");
     	$form->setOptions('action', array('' => '', 'filter' => 'Филтриране по пера', 'group' => 'Групиране по пера'));
     
     	$form->FLD('orderField', "enum(,ent1Id=Перо 1,ent2Id=Перо 2,ent3Id=Перо 3,baseQuantity=К-во»Начално,baseAmount=Сума»Начална,debitQuantity=К-во»Дебит,debitAmount=Сума»Дебит,creditQuantity=К-во»Кредит,creditAmount=Сума»Кредит,blQuantity=К-во»Крайно,blAmount=Сума»Крайна)", 'caption=Подредба->По,formOrder=110000');
