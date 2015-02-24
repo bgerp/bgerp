@@ -65,6 +65,7 @@ class cat_Setup extends core_ProtoSetup
     		'migrate::migrateMetas',
     		'migrate::migrateGroups',
     		'migrate::makeProductsDocuments2',
+    		'migrate::removeOldParams1',
         );
 
         
@@ -335,6 +336,20 @@ class cat_Setup extends core_ProtoSetup
     				$Products->log("Проблем при Заместване на спецификация {$tRec->id}: {$e->getMessage()}");
     			}
     			
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Изтрива стари параметри
+     */
+    public function removeOldParams1()
+    {
+    	foreach (array('vat', 'vatGroup') as $sysId){
+    		if($vRec = cat_Params::fetch("#sysId = '{$sysId}'")){
+    			cat_products_Params::delete("#paramId = '{$vRec->id}'");
+    			cat_Params::delete($vRec->id);
     		}
     	}
     }

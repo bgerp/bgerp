@@ -9,4 +9,3 @@
 Транспортно Тегло,weight,,transportWeight,,
 Транспортен Обем,volume,,transportVolume,,
 title_EN,varchar,,titleEN,,
-Данъчна група,enum,,vatGroup,"А,Б,В,Г","Б",
