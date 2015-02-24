@@ -62,7 +62,7 @@ class sens2_Indicators extends core_Manager
      */
     function description()
     {
-        $this->FLD('controllerId', 'key(mvc=sens2_Controllers, select=name, allowEmpty)', 'caption=Контролер, mandatory, silent', array('attr' => array('onchange' => "addCmdRefresh(this.form);this.form.submit()")));
+        $this->FLD('controllerId', 'key(mvc=sens2_Controllers, select=name, allowEmpty)', 'caption=Контролер, mandatory, silent,refreshForm');
         $this->FLD('port', 'varchar(32)', 'caption=Порт, mandatory');
         $this->FLD('uom', 'varchar(16)', 'caption=Мярка,column=none');
         $this->FLD('value', 'double(minDecimals=0, maxDecimals=4)', 'caption=Стойност,input=none');

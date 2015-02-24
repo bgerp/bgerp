@@ -29,7 +29,7 @@ abstract class deals_ManifactureDetail extends doc_Detail
 	public function setDetailFields($mvc)
 	{
 		$mvc->FLD('classId', 'class(interface=cat_ProductAccRegIntf, select=title)', 'caption=Мениджър,silent,input=hidden');
-		$mvc->FLD('productId', 'int', 'caption=Продукт,notNull,mandatory', 'tdClass=large-field leftCol wrap');
+		$mvc->FLD('productId', 'int', 'caption=Продукт,notNull,mandatory', 'tdClass=large-field leftCol wrap,refreshForm');
 		$mvc->FLD('quantity', 'double(Min=0)', 'caption=К-во,mandatory');
 		$mvc->FLD('measureId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,input=hidden,mandatory');
 	}
@@ -64,7 +64,6 @@ abstract class deals_ManifactureDetail extends doc_Detail
 		expect(count($products));
 			
 		if (empty($form->rec->id)) {
-			$data->form->addAttr('productId', array('onchange' => "addCmdRefresh(this.form);this.form.submit();"));
 			$data->form->setOptions('productId', array('' => ' ') + $products);
 		} else {
 			$data->form->setOptions('productId', array($form->rec->productId => $products[$form->rec->productId]));

@@ -85,7 +85,7 @@ class store_TransfersDetails extends doc_Detail
     public function description()
     {
         $this->FLD('transferId', 'key(mvc=store_Transfers)', 'column=none,notNull,silent,hidden,mandatory');
-        $this->FLD('productId', 'key(mvc=store_Products,select=name)', 'caption=Продукт,notNull,mandatory,silent');
+        $this->FLD('productId', 'key(mvc=store_Products,select=name)', 'caption=Продукт,notNull,mandatory,silent,refreshForm');
         $this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка');
         $this->FLD('uomId', 'key(mvc=cat_UoM, select=shortName)', 'caption=Мярка,input=none');
         $this->FLD('quantity', 'double(Min=0)', 'caption=К-во,input=none');
@@ -169,7 +169,6 @@ class store_TransfersDetails extends doc_Detail
         $fromStore = $mvc->Master->fetchField($rec->transferId, 'fromStore');
         
         if(empty($rec->id)){
-        	$form->addAttr('productId', array('onchange' => "addCmdRefresh(this.form);document.forms['{$data->form->formAttr['id']}'].elements['id'].value ='';this.form.submit();"));
         	$products = store_Products::getProductsInStore($fromStore);
         	expect(count($products));
         	$form->setOptions('productId', array('' => '') + $products);
