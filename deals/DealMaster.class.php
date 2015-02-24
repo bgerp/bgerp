@@ -76,16 +76,20 @@ abstract class deals_DealMaster extends deals_DealBase
 			
 			// Ако разликата е в между -толеранса и +толеранса то състоянието е платено
 			if(($diff >= -1 * $conf->ACC_MONEY_TOLERANCE && $diff <= $conf->ACC_MONEY_TOLERANCE) || $diff < -1 * $conf->ACC_MONEY_TOLERANCE){
-					
+				
 				// Ако е в състояние чакаща отбелязваме я като платена, ако е била просрочена става издължена
 				return ($state != 'overdue') ? 'paid' : 'repaid';
 			}
 		}
+		
+		// Ако крайното салдо е 0
+		if(round($amountBl, 2) == 0){
 			
-		// Ако крайното салдо е 0, я водим за издължена
-		if(round($amountBl, 2) == 0 && (($state == 'overdue' || $state == 'pending') || ($state == 'paid' && round($amountPaid, 2) == 0))){
-			
-			return 'repaid';
+			// издължени стават: платените с нулево платено, просрочените и чакащите по които има плащане или доставяне и крайното салдо е 0
+			if(($state == 'paid' && round($amountPaid, 2) == 0) || $state == 'overdue' || ($state == 'pending' && (!empty($amountPaid) || !empty($amountDelivered)))){
+				
+				return 'repaid';
+			}
 		}
 		
 		return 'pending';
@@ -1323,6 +1327,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	$query->where("#state = 'active'");
     	$query->where("ADDDATE(#modifiedOn, INTERVAL {$overdueDelay} SECOND) <= '{$now}'");
     	$query->show('id,amountDeal,amountPaid,amountDelivered,paymentState');
+    	$query->where("#id = 8405");
     	
     	while($rec = $query->fetch()){
     		try{
@@ -1367,7 +1372,7 @@ abstract class deals_DealMaster extends deals_DealBase
     			// Ако да, то сделката се отбелязва като просрочена
     			$rec->paymentState = 'overdue';
     		} else {
-    			 
+    			
     			// Ако не е просрочена проверяваме дали е платена
     			$rec->paymentState = $Class->getPaymentState($dealInfo, $rec->paymentState);
     		}
