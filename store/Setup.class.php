@@ -75,6 +75,9 @@ class store_Setup extends core_ProtoSetup
     		'store_ReceiptDetails',
     		'store_Transfers',
     		'store_TransfersDetails',
+    		'store_ConsignmentProtocols',
+    		'store_ConsignmentProtocolDetailsSend',
+    		'store_ConsignmentProtocolDetailsReceived',
     		'migrate::updateConfig'
         );
     

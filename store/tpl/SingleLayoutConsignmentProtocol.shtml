@@ -1,0 +1,127 @@
+[#SingleToolbar#]
+<div class='document'>
+    <!--ET_BEGIN blank-->
+    [#blank#]
+    <!--ET_END blank-->
+    <!--ET_BEGIN header-->
+    <div class='header [#STATE_CLASS#]'>
+        <div class='docBgIcon' style='[#iconStyle#];'>[#singleTitle#] <b>[#ident#]</b> ([#state#])</div>
+    </div>
+    <!--ET_END header-->
+    <table class='no-border' style='width:100%;'>
+        <tbody>
+            <tr>
+                <td>
+                    <div class='scrolling-holder'>
+                        <div class='display-table'>
+                            <table class="innerTable border-table paddingCells">
+                                <tbody>
+                                    <tr>
+                                        <td class="cell custom-header-bg" style='width:35%;'><b>|Контрагент|*</b></td>
+                                        <td class="cell centered" rowspan='2' style='width:30%;'>
+                                            <div class="document-title">|ПРОТОКОЛ ЗА ОТГОВОРНО ПАЗЕНЕ|*</div>
+                                            <div style="padding-top:5px;">
+                                                № <span class="bigData">[#id#]</span> / 
+                                                <span class="bigData">[#valior#]</span>
+                                            </div>
+                                            <!--ET_BEGIN state-->
+                                            <br>
+                                            <div class="[#STATE_CLASS#]">[#state#]</div>
+                                            <br>
+                                            <!--ET_END state-->
+                                        </td>
+                                        <td class="cell custom-header-bg" style='width:35%;'><b>|Собственик|*</b></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="cell">
+                                            <b>[#contragentName#]</b>
+                                            <div class='address-block'>
+                                                [#contragentCountryId#]
+                                                <!--ET_BEGIN contragentAddress-->[#contragentAddress#] <!--ET_END contragentAddress-->
+                                            </div>
+                                        </td>
+                                        <td class="cell">
+                                            <b>[#MyCompany#]</b>
+                                            <div class='address-block'>
+                                                [#MyAddress#]
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <div class="lines"></div>
+                            <div class="details">
+                            	<div style='margin:5px 0px'>
+                            		<b>|Дадено|*</b>
+                            		[#store_ConsignmentProtocolDetailsSend#]
+                            	</div>
+                                
+                                
+                                <div style='margin:5px 0px'>
+                                	<b>|Получено|*</b>
+                                	[#store_ConsignmentProtocolDetailsReceived#]
+                                </div>
+                            </div>
+                            <div class="lines"></div>
+                            <table class="innerTable footer-notes paddingCells" style="width:100%">
+                                <tbody>
+                                    <tr>
+                                        <td class="topCell first vtop" style='width:50%;'>
+                                        <table class='shipment-table' style='width:100%;'>
+                                        <tr>
+                                                    <td class='quiet nowrap aright'>|Валута|*:</td>
+                                                    <td>[#currencyId#]</td>
+                                                </tr>
+                                                <!--ET_BEGIN storeId-->
+                                                <tr>
+                                                    <td class='quiet nowrap aright'>|От склад|*:</td>
+                                                    <td>[#storeId#]</td>
+                                                </tr>
+                                                <!--ET_END storeId-->
+                                                 <!--ET_BEGIN note-->
+                                                <tr>
+                                                    <td colspan="2" >
+                                                        <hr>
+                                                        [#note#]
+                                                    </td>
+                                                </tr>
+                                                <!--ET_END note-->
+                                            </table>
+                                        </td>
+                                        <td>
+                                            <hr>
+                                            <table class='centered special-borders' style='width:100%;'>
+                                                <tr>
+                                                    <td class='centered border-right' style='width:50%;'>|Получил|*:</td>
+                                                    <td class='centered'>|Съставил|*:</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class='border-right' style='height:40px;'></td>
+                                                    <td></td>
+                                                </tr>
+                                                <tr>
+                                                    <td class='centered border-right'> <span class="sign_names nowrap">[#responsible#]</span></td>
+                                                    <td class='nowrap centered'><span class="sign_names">[#username#]</span></td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                    <tr class='footerDocInfo'>
+                                        <td colspan="2">
+                                             <div class='aright'>Документът е създаден чрез системата <b><a href='http://bgerp.com'>bgERP</a></b>.</div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <!--ET_BEGIN DETAILS-->
+                    <div class='details'>
+                        [#DETAILS#]
+                    </div>
+                    <!--ET_END DETAILS-->
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
