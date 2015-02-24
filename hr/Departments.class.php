@@ -314,10 +314,8 @@ class hr_Departments extends core_Master
         
         if(!$rec->id) {
         	$rec->state = 'active';
-        	$rec->activities == 'yes';
+        	
         }
-        
-        $rec->activities == 'yes';
     }
     
     
