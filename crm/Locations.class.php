@@ -107,6 +107,12 @@ class crm_Locations extends core_Master {
     
     
     /**
+     * 
+     */
+    protected $updatedRecs = array();
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -233,6 +239,8 @@ class crm_Locations extends core_Master {
     static function on_AfterSave($mvc, &$id, $rec, $fields = NULL)
     {
     	$mvc->routes->changeState($id);
+    	
+    	$mvc->updatedRecs[$id] = $rec;
     }
     
     
@@ -423,5 +431,37 @@ class crm_Locations extends core_Master {
     	$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
     	$data->listFilter->view = 'horizontal';
     	$data->listFilter->showFields = 'search';
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param object $rec
+     */
+    protected static function updateRoutingRules($rec)
+    {
+        if (!$rec || !$rec->email) return ;
+        
+        if (!$rec->contragentCls || !$rec->contragentId) return ;
+        
+        $contragentCls = cls::get($rec->contragentCls);
+        
+        if (!($contragentCls instanceof crm_Persons) && !($contragentCls instanceof crm_Companies)) return ;
+        
+        return $contragentCls->createRoutingRules($rec->email, $rec->contragentId);
+    }
+    
+    
+    /**
+     * Рутинни действия, които трябва да се изпълнят в момента преди терминиране на скрипта
+     */
+    static function on_Shutdown($mvc)
+    {
+        if(!empty($mvc->updatedRecs)) {
+            foreach((array)$mvc->updatedRecs as $id => $rec) {
+                $mvc->updateRoutingRules($rec);
+            }
+        }
     }
 }
