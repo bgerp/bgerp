@@ -165,7 +165,7 @@ class cat_Categories extends core_Master
                                 canConvert=Вложими,
                                 fixedAsset=Дълготрайни активи,
         			canManifacture=Производими,
-        			waste=Отпаден)', 'caption=Свойства ( предават се на артикулите, създадени в папката )->Списък,columns=2');
+        			waste=Отпаден)', 'caption=Свойства ( предават се на артикулите създадени в папката )->Списък,columns=2');
         
         
         $this->setDbUnique("sysId");
