@@ -1327,7 +1327,6 @@ abstract class deals_DealMaster extends deals_DealBase
     	$query->where("#state = 'active'");
     	$query->where("ADDDATE(#modifiedOn, INTERVAL {$overdueDelay} SECOND) <= '{$now}'");
     	$query->show('id,amountDeal,amountPaid,amountDelivered,paymentState');
-    	$query->where("#id = 8405");
     	
     	while($rec = $query->fetch()){
     		try{
