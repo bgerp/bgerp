@@ -524,6 +524,16 @@ class cal_Calendar extends core_Master
         $nextLink['cal_month'] = $nm;
         $nextLink['cal_year'] = $ny;
         $nextLink = toUrl($nextLink);
+        
+        // взимаме текущия месец и го добавяме и него
+        $now = dt::today();
+        $monthToday =  date("m", dt::mysql2timestamp($now));
+        $yearToday  = date("Y", dt::mysql2timestamp($now));
+        $today['cal_month'] = $monthToday;
+        $today['cal_year'] = $yearToday;
+        $today = toUrl($today);
+         
+        $options[$today] = tr(dt::$months[$monthToday -1]) . " " . $yearToday;
                
         // правим масив с 3 месеца назад от текущия месец,
         // които е подготовка за нашия select
