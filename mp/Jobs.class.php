@@ -192,8 +192,7 @@ class mp_Jobs extends core_Master
     
     		$pInfo = $origin->getProductInfo();
     		$row->quantity .= " " . cat_UoM::getShortName($pInfo->productRec->measureId);
-    		
-    		$row->origin = $origin->renderJobView($rec->dueDate);
+    		$row->origin = $origin->renderJobView($rec->modifiedOn);
     	}
     }
     
