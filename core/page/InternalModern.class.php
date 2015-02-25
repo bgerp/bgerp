@@ -118,9 +118,9 @@ class core_page_InternalModern extends core_page_Active {
     			} else {
     				$pinned = ' hidden ';
     			}
-    		} else {
+    		} 
+    	} else {
     			$pinned = ' hidden ';
-    		}
     	}
     	
     	$menuImg = ht::createElement('img', array('src' => sbf('img/menu.png', ''), 'class' => 'menuIcon'));
