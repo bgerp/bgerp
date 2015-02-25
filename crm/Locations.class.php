@@ -454,6 +454,29 @@ class crm_Locations extends core_Master {
     
     
     /**
+     * 
+     * 
+     * @param object $rec
+     */
+    protected static function updateNumbers($rec)
+    {
+        if (!$rec || !$rec->tel) return ;
+        
+        if (!$rec->contragentCls || !$rec->contragentId) return ;
+        
+        $contragentCls = cls::get($rec->contragentCls);
+        
+        if (!($contragentCls instanceof crm_Persons) && !($contragentCls instanceof crm_Companies)) return ;
+        
+        $cRec = new stdClass();
+        $cRec->id = $rec->contragentId;
+        $cRec->tel = $rec->tel;
+        
+        return $contragentCls->updateNumbers($cRec);
+    }
+    
+    
+    /**
      * Рутинни действия, които трябва да се изпълнят в момента преди терминиране на скрипта
      */
     static function on_Shutdown($mvc)
@@ -461,6 +484,7 @@ class crm_Locations extends core_Master {
         if(!empty($mvc->updatedRecs)) {
             foreach((array)$mvc->updatedRecs as $id => $rec) {
                 $mvc->updateRoutingRules($rec);
+                $mvc->updateNumbers($rec);
             }
         }
     }

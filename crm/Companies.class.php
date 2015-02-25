@@ -656,7 +656,7 @@ class crm_Companies extends core_Master
 	/**
      * Обновява номера за фирмата
      */
-    static function updateNumbers($rec)
+    public static function updateNumbers($rec)
     {
         // Ако има телефон
         if ($rec->tel) {

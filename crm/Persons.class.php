@@ -697,7 +697,7 @@ class crm_Persons extends core_Master
     /**
      * Добавя номера за лицето
      */
-    static function updateNumbers($rec)
+    public static function updateNumbers($rec)
     {
         $numbersArr = array();
         
