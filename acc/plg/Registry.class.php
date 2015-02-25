@@ -89,19 +89,37 @@ class acc_plg_Registry extends core_Plugin
     		}
     	}
     	
-    	// Ако обекта е затворен или оттеглен, затваряме перото му
+    	// Ако обекта е затворен или оттеглен, Отбелязваме перото му че е за затваряне
     	if($rec->state == 'rejected' || $rec->state == 'closed'){
-    		if($itemRec = acc_Items::fetchItem($mvc, $rec->id)){
-    			if($itemRec->state == 'active'){
-    				acc_Lists::removeItem($mvc, $rec->id);
-    				 
-    				if(haveRole('ceo,acc')){
-    					core_Statuses::newStatus(tr("|Затворено е перо|*: {$itemRec->title}"));
+    		$mvc->closeItems[$rec->id] = $rec; 
+    	}
+    }
+    	 
+    
+    /**
+     * Изчиства записите, заопашени за запис
+     */
+    public static function on_Shutdown($mvc)
+    {
+    	// Ако има пера отбелязани за затваряне, затваряме ги. Затварянето на перата трябва
+    	// да става на on_Shutdown, поради това че някои пера може да са начало на нишка, 
+    	// а ако те се затворят преди да се е оттеглила цялата нишка това води до не пълно оттегляне
+    	// затова затваряме перото след като са се изпълнили всички други действия на плъгините
+    	if(count($mvc->closeItems)){
+    		foreach ($mvc->closeItems as $rec) {
+    			if($itemRec = acc_Items::fetchItem($mvc, $rec->id)){
+    				if($itemRec->state == 'active'){
+	    				acc_Lists::removeItem($mvc, $rec->id);
+	    				 
+	    				if(haveRole('ceo,acc')){
+	    					core_Statuses::newStatus(tr("|Затворено е перо|*: {$itemRec->title}"));
+	    				}
     				}
     			}
     		}
     	}
     }
+    
     
     
     /**
