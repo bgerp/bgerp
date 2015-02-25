@@ -100,17 +100,17 @@ class core_page_InternalModern extends core_page_Active {
      */
     static function getTemplate()
     {
-    	if (isset($_COOKIE['menuInfo'])) {
-    		$openMenuInfo = $_COOKIE['menuInfo'];
+    	if (isset($_COOKIE['menuInformation'])) {
+    		$openMenuInfo = $_COOKIE['menuInformation'];
     		$mainContainerClass = '';
     		//в зависимост от стойсността на разбираме кои менюта са било отворени
     		if($openMenuInfo){
-    			if($openMenuInfo == 1 || $openMenuInfo == 3) {
+    			if(strrpos($openMenuInfo, "l") !== FALSE) {
     				$openLeftBtn = ' menu-active ';
     				$openLeftMenu = ' sidemenu-open ';
     				$mainContainerClass .= ' sidemenu-push-toright ';
     			}
-    			if($openMenuInfo == 2 || $openMenuInfo == 3) {
+    			if(strrpos($openMenuInfo, "r") !== FALSE) {
     				$openRightBtn = ' menu-active ';
     				$openRightMenu = ' sidemenu-open';
     				$mainContainerClass .= ' sidemenu-push-toleft ';
@@ -215,7 +215,6 @@ class core_page_InternalModern extends core_page_Active {
                 if(!haveRole($rec->accessByRoles)) {
                     continue;
                 }
-             
                 // Определяме дали състоянието на елемента от менюто не е 'активно'
                 $mainClass = $subClass = '';
                 if(($aMainMenu == $rec->menu)) {
@@ -224,10 +223,9 @@ class core_page_InternalModern extends core_page_Active {
                         $subClass = ' class="selected"';
                     } 
                 }
-                
+              	
                 if($lastMenu != $rec->menu) {
-                    $active = 
-                    $html .= ($html ? "\n</ul></li>" : '') . "\n<li {$mainClass}>";
+                    $html .= ($html ? "\n</ul></li>" : '') . "\n<li{$mainClass} data-menuid = '{$rec->id}'>";
                     $html .= "\n    <div><span class='arrow'></span>{$rec->menu}</div>";
                     $html .= "\n<ul>";
                 }
