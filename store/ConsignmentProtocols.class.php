@@ -254,38 +254,43 @@ class store_ConsignmentProtocols extends core_Master
     	// Кое е перото на контрагента ?
     	$contragentItem = acc_Items::fetchItem($rec->contragentClassId, $rec->contragentId);
     	
-    	// За да покажем моментното състояние на сметката на контрагента, взимаме баланса до края на текущия ден
-    	$to = dt::addDays(1, $date);
-    	$Balance = new acc_ActiveShortBalance(array('from' => $to,
-    												'to' => $to,
-									    			'accs' => '333',
-									    			'item1' => $contragentItem->id,
-									    			'strict' => TRUE,
-									    			'cacheBalance' => FALSE));
-    	
-    	// Изчлисляваме в момента, какъв би бил крания баланс по сметката в края на деня
-    	$Balance = $Balance->getBalanceBefore('333');
-    	$Double = cls::get('type_Double');
-    	$Double->params['smartRound'] = TRUE;
-    	$Int = cls::get('type_Int');
-    	
-    	$accId = acc_Accounts::getRecBySystemId('333')->id;
-    	$count = 1;
-    	
-    	// Подготвяме записите за показване
-    	foreach ($Balance as $b){
-    		if($b['accountId'] != $accId) continue;
+    	// Ако контрагента не е перо, не показваме нищо
+    	if($contragentItem){
     		
-    		$row = new stdClass;
-    		$row->count = $Int->toVerbal($count);
-    		$row->productId = acc_Items::getVerbal($b['ent2Id'], 'titleLink');
-    		$row->blQuantity = $Double->toVerbal($b['blQuantity']);
-    		if($b['baseQuantity'] < 0){
-    			$row->blQuantity = "<span class='red'>{$row->blQuantity}</span>";
+    		// За да покажем моментното състояние на сметката на контрагента, взимаме баланса до края на текущия ден
+    		$to = dt::addDays(1, $date);
+    		$Balance = new acc_ActiveShortBalance(array('from' => $to,
+    				'to' => $to,
+    				'accs' => '333',
+    				'item1' => $contragentItem->id,
+    				'strict' => TRUE,
+    				'cacheBalance' => FALSE));
+    		 
+    		// Изчлисляваме в момента, какъв би бил крания баланс по сметката в края на деня
+    		$Balance = $Balance->getBalanceBefore('333');
+    		 
+    		$Double = cls::get('type_Double');
+    		$Double->params['smartRound'] = TRUE;
+    		$Int = cls::get('type_Int');
+    		 
+    		$accId = acc_Accounts::getRecBySystemId('333')->id;
+    		$count = 1;
+    		 
+    		// Подготвяме записите за показване
+    		foreach ($Balance as $b){
+    			if($b['accountId'] != $accId) continue;
+    		
+    			$row = new stdClass;
+    			$row->count = $Int->toVerbal($count);
+    			$row->productId = acc_Items::getVerbal($b['ent2Id'], 'titleLink');
+    			$row->blQuantity = $Double->toVerbal($b['blQuantity']);
+    			if($b['baseQuantity'] < 0){
+    				$row->blQuantity = "<span class='red'>{$row->blQuantity}</span>";
+    			}
+    		
+    			$count++;
+    			$rows[] = $row;
     		}
-    		
-    		$count++;
-    		$rows[] = $row;
     	}
         
     	$Datetime = cls::get('type_DateTime', array('params' => array('format' => 'smartTime')));
