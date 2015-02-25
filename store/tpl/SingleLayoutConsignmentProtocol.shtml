@@ -17,7 +17,7 @@
                             <table class="innerTable border-table paddingCells">
                                 <tbody>
                                     <tr>
-                                        <td class="cell custom-header-bg" style='width:35%;'><b>|Контрагент|*</b></td>
+                                        <td class="cell custom-header-bg" style='width:35%;'><b>|Довереник|*</b></td>
                                         <td class="cell centered" rowspan='2' style='width:30%;'>
                                             <div class="document-title">|ПРОТОКОЛ ЗА ОТГОВОРНО ПАЗЕНЕ|*</div>
                                             <div style="padding-top:5px;">
@@ -30,7 +30,7 @@
                                             <br>
                                             <!--ET_END state-->
                                         </td>
-                                        <td class="cell custom-header-bg" style='width:35%;'><b>|Собственик|*</b></td>
+                                        <td class="cell custom-header-bg" style='width:35%;'><b>|Доверител|*</b></td>
                                     </tr>
                                     <tr>
                                         <td class="cell">
@@ -105,7 +105,7 @@
                                     </tr>
                                     <tr class='footerDocInfo'>
                                         <td colspan="2">
-                                             <div class='aright'>Документът е създаден чрез системата <b><a href='http://bgerp.com'>bgERP</a></b>.</div>
+                                             <div class='aright'>|Документът е създаден чрез системата|* <b><a href='http://bgerp.com'>bgERP</a></b>.</div>
                                         </td>
                                     </tr>
                                 </tbody>
