@@ -207,9 +207,6 @@ class store_ConsignmentProtocols extends core_Master
     	if(empty($rec->snapshot)){
     		$rec->snapshot = $mvc->prepareSnapshot($rec, dt::now());
     		$mvc->save($rec, 'snapshot');
-    		core_Statuses::newStatus('up');
-    	} else {
-    		core_Statuses::newStatus('ne');
     	}
     }
     
