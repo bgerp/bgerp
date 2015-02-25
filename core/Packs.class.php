@@ -471,9 +471,18 @@ class core_Packs extends core_Manager
             }
             
             $row->install = ht::createLink(tr("Инициализиране"), $installUrl, NULL, array('id'=>$rec->name."-install", 'title'=>'Обновяване на пакета'));
+        } elseif ($rec->state == 'draft') {
+            $installUrl['status'] = 'install';
+            $row->install = ht::createLink(tr("Инсталирай"), $installUrl, "Наистина ли искате да инсталирате пакета?", array('id'=>$rec->name."-install", 'title'=>'Начално инсталиране на пакета'));
+        } elseif ($rec->state == 'closed') {
+            $installUrl['status'] = 'activate';
+            $row->install = ht::createLink(tr("Активирай"), $installUrl, "Наистина ли искате да активирате пакета?", array('id'=>$rec->name."-install", 'title'=>'Активиране и инициализиране на пакета'));
+        }
+        
+        if ($rec->state == 'active' || $rec->state == 'hidden') {
             
             if ($conf->getConstCnt()) {
-    
+        
                 $cls = $rec->name . "_Setup";
                 $warn = '';
                 if (cls::load($cls, TRUE)) {
@@ -485,12 +494,6 @@ class core_Packs extends core_Manager
     
                 $row->config = ht::createLink($warn . tr("Настройки"), array($mvc, 'config', 'pack' => $rec->name, 'ret_url' => TRUE), NULL, array('id'=>$rec->name."-config", 'title'=>'Конфигуриране на пакета'));
             }
-        } elseif ($rec->state == 'draft') {
-            $installUrl['status'] = 'install';
-            $row->install = ht::createLink(tr("Инсталирай"), $installUrl, "Наистина ли искате да инсталирате пакета?", array('id'=>$rec->name."-install", 'title'=>'Начално инсталиране на пакета'));
-        } elseif ($rec->state == 'closed') {
-            $installUrl['status'] = 'activate';
-            $row->install = ht::createLink(tr("Активирай"), $installUrl, "Наистина ли искате да активирате пакета?", array('id'=>$rec->name."-install", 'title'=>'Активиране и инициализиране на пакета'));
         }
         
         $row->name .= $row->deinstall;
@@ -499,6 +502,10 @@ class core_Packs extends core_Manager
         if ($conf->haveErrors()) {
 
             $row->ROW_ATTR['style'] = 'background-color:red';
+        }
+        
+        if ($row->config && $row->install) {
+            $row->configInstall = ' ';
         }
     }
     

@@ -11,7 +11,7 @@
 				[#install#]
 			
 				<!--ET_BEGIN config-->						
-			  	| [#config#] 
+			  	<!--ET_BEGIN configInstall-->&#124;[#configInstall#]<!--ET_END configInstall-->[#config#] 
 				<!--ET_END config-->
 			</div>
 		</div>
