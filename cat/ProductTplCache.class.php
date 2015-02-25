@@ -1,36 +1,36 @@
 <?php
 
 /**
- * Кеш на изгледа на спецификациите по дата
+ * Кеш на изгледа на частните артикули
  *
  *
  * @category  bgerp
- * @package   techno
+ * @package   cat
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class techno2_SpecTplCache extends core_Master
+class cat_ProductTplCache extends core_Master
 {
 	
 	
 	/**
 	 * За конвертиране на съществуващи MySQL таблици от предишни версии
 	 */
-	public $oldClassName = 'techno_SpecTplCache';
+	public $oldClassName = 'techno2_SpecTplCache';
 	
 	
 	/**
 	 * Необходими плъгини
 	 */
-	public $loadList = 'plg_RowTools, techno2_Wrapper';
+	public $loadList = 'plg_RowTools, cat_Wrapper';
 	 
 	
 	/**
 	 * Заглавие на мениджъра
 	 */
-	public $title = "Кеш на изгледа на нестандартните артикули";
+	public $title = "Кеш на изгледа на частните артикули";
 	
 	
 	/**
@@ -42,31 +42,37 @@ class techno2_SpecTplCache extends core_Master
 	/**
 	 * Права за запис
 	 */
-	public $canRead = 'ceo, techno';
+	public $canRead = 'ceo, cat';
 	
 	
 	/**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo, techno';
+	public $canList = 'ceo, cat';
 	
 	
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'ceo, techno';
+	public $canSingle = 'ceo, cat';
 	
 	
 	/**
 	 * Полета, които ще се показват в листов изглед
 	 */
-	public $listFields = 'id, specId, time';
+	public $listFields = 'id, productId, time';
 	
 	
 	/**
 	 * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
 	 */
-	public $rowToolsSingleField = 'specId';
+	public $rowToolsSingleField = 'productId';
+	
+	
+	/**
+	 * Файл с шаблон за единичен изглед на статия
+	 */
+	public $singleLayoutFile = 'cat/tpl/SingleLayoutTplCache.shtml';
 	
 	
 	/**
@@ -74,25 +80,9 @@ class techno2_SpecTplCache extends core_Master
 	 */
 	function description()
 	{
-		$this->FLD("specId", "key(mvc=techno2_SpecificationDoc,select=title)", "input=none,caption=Спецификация");
+		$this->FLD("productId", "key(mvc=cat_Products,select=name)", "input=none,caption=Артикул");
 		$this->FLD("cache", "blob(1000000, serialize, compress)", "input=none,caption=Html,column=none");
-		$this->FLD("time", "datetime", "input=none,caption=Дата");
-	}
-	
-	
-	/**
-	 * Връща кеширания изглед на спецификацията за зададената дата
-	 * 
-	 * @param mixed $id - ид/запис на спецификация
-	 * @param datetime $time - време
-	 * @return core_ET - шаблона
-	 */
-	public static function getTpl($id, $time)
-	{
-		$rec = techno2_SpecificationDoc::fetchRec($id);
-		$cache = techno2_SpecTplCache::fetchField("#specId = {$rec->id} AND #time = '{$time}'", 'cache');
-		
-		return $cache;
+		$this->FLD("time", "datetime(format=smartTime)", "input=none,caption=Дата");
 	}
 	
 	
@@ -112,7 +102,7 @@ class techno2_SpecTplCache extends core_Master
 	 */
 	public static function on_AfterPrepareListFilter($mvc, &$data)
 	{
-		$data->listFilter->FLD("docId", "key(mvc=techno2_SpecificationDoc,select=title,allowEmpty)", "input,caption=Спецификация");
+		$data->listFilter->FLD("docId", "key(mvc=cat_Products,select=name,allowEmpty)", "input,caption=Спецификация");
 		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
 		$data->listFilter->view = 'horizontal';
 		$data->listFilter->showFields = 'docId';
@@ -120,7 +110,7 @@ class techno2_SpecTplCache extends core_Master
 		$data->listFilter->input(NULL, 'silent');
 		
 		if(isset($data->listFilter->rec->docId)){
-			$data->query->where("#specId = '{$data->listFilter->rec->docId}'");
+			$data->query->where("#productId = '{$data->listFilter->rec->docId}'");
 		}
 	}
 	
@@ -150,5 +140,37 @@ class techno2_SpecTplCache extends core_Master
 		self::truncate();
 		 
 		Redirect(array($this, 'list'), FALSE, 'Записите са изчистени успешно');
+	}
+	
+	
+	/**
+	 * Кеширане на изгледа на спецификацията
+	 *
+	 * @param mixed $id - ид/запис
+	 * @param datetime $time - време
+	 * @return core_ET - кеширания шаблон
+	 */
+	public static function cacheTpl($productId, $time)
+	{
+		$pRec = cat_Products::fetchRec($productId);
+		$cache = self::fetchField("#productId = {$pRec->id} AND #time = '{$time}'", 'cache');
+		
+		// Ако има кеширан изглед за тази дата връщаме го
+		if(!$cache){
+	
+			// Ако няма генерираме наново и го кешираме
+			$cacheRec = new stdClass();
+			$cacheRec->time = $time;
+			$cacheRec->productId = $productId;
+	
+			$Driver = cls::get('cat_Products')->getDriver($productId);
+			$cacheRec->cache = $Driver->getProductDescription();
+			self::save($cacheRec);
+	
+			$cache = $cacheRec->cache;
+		}
+		 
+		// Връщаме намерения изглед
+		return $cache;
 	}
 }

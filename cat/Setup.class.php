@@ -60,6 +60,7 @@ class cat_Setup extends core_ProtoSetup
     		'cat_Boms',
     		'cat_BomStages',
     		'cat_BomStageDetails',
+    		'cat_ProductTplCache',
     		'migrate::updateProducts',
     		'migrate::updateProducts3',
     		'migrate::migrateMetas',

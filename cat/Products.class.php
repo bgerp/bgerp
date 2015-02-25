@@ -1162,9 +1162,7 @@ class cat_Products extends core_Embedder {
     	
     	if($documentMvc instanceof deals_DealMaster || $documentMvc instanceof mp_Jobs || $documentMvc instanceof sales_Quotations){
     		if($rec->isPublic == 'no'){
-    			$Driver = $this->getDriver($id);
-    			$tpl = $Driver->getProductDescription();
-    			$res = $tpl->getContent();
+    			$res = cat_ProductTplCache::cacheTpl($id, $time);
     		}
     	}
     	
