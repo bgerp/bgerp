@@ -298,7 +298,9 @@ class findeals_Deals extends deals_DealBase
     		if(!$rec->currencyRate){
     			// Изчисляваме курса към основната валута ако не е дефиниран
     			$rec->currencyRate = round(currency_CurrencyRates::getRate(dt::now(), $rec->currencyId, NULL), 4);
-    			
+    			if(!$rec->rate){
+    				$form->setError('rate', "Не може да се изчисли курс");
+    			}
     		} else {
     			if($msg = currency_CurrencyRates::hasDeviation($rec->currencyRate, dt::now(), $rec->currencyId, NULL)){
     				$form->setWarning('currencyRate', $msg);

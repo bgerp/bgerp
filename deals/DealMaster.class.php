@@ -298,6 +298,9 @@ abstract class deals_DealMaster extends deals_DealBase
         // Ако не е въведен валутен курс, използва се курса към датата на документа 
         if (empty($rec->currencyRate)) {
             $rec->currencyRate = currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, NULL);
+            if(!$rec->currencyRate){
+            	$form->setError('currencyRate', "Не може да се изчисли курс");
+            }
         } else {
         	if($msg = currency_CurrencyRates::hasDeviation($rec->currencyRate, $rec->valior, $rec->currencyId, NULL)){
 		    	$form->setWarning('currencyRate', $msg);

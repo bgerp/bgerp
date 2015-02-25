@@ -314,6 +314,9 @@ class cash_Pko extends core_Master
 		    if(!$rec->rate){
 		    	// Изчисляваме курса към основната валута ако не е дефиниран
 		    	$rec->rate = round(currency_CurrencyRates::getRate($rec->valior, $currencyCode, NULL), 4);
+		    	if(!$rec->rate){
+		    		$form->setError('rate', "Не може да се изчисли курс");
+		    	}
 		    } else {
 		    	if($msg = currency_CurrencyRates::hasDeviation($rec->rate, $rec->valior, $currencyCode, NULL)){
 		    		$form->setWarning('rate', $msg);

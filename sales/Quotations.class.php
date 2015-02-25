@@ -293,6 +293,11 @@ class sales_Quotations extends core_Master
 			    $rec->currencyRate = round(currency_CurrencyRates::getRate($rec->date, $rec->currencyId, NULL), 4);
 			}
 		
+			if(!$rec->currencyRate){
+				$form->setError('currencyRate', "Не може да се изчисли курс");
+				return;
+			}
+			
 	    	if($msg = currency_CurrencyRates::hasDeviation($rec->currencyRate, $rec->date, $rec->currencyId, NULL)){
 			    $form->setWarning('rate', $msg);
 			}

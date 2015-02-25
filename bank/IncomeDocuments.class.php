@@ -332,6 +332,9 @@ class bank_IncomeDocuments extends core_Master
             // Ако няма валутен курс, взимаме този от системата
             if(!$rec->rate) {
                 $rec->rate = currency_CurrencyRates::getRate($rec->valior, $currencyCode, acc_Periods::getBaseCurrencyCode($rec->valior));
+                if(!$rec->rate){
+                	$form->setError('rate', "Не може да се изчисли курс");
+                }
             } else {
                 if($msg = currency_CurrencyRates::hasDeviation($rec->rate, $rec->valior, $currencyCode, NULL)){
                     $form->setWarning('rate', $msg);

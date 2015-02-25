@@ -734,10 +734,13 @@ abstract class deals_InvoiceMaster extends core_Master
     		
     		if(!$rec->rate){
     			$rec->rate = round(currency_CurrencyRates::getRate($rec->date, $rec->currencyId, NULL), 4);
-    		}
-    
-    		if($msg = currency_CurrencyRates::hasDeviation($rec->rate, $rec->date, $rec->currencyId, NULL)){
-    			$form->setWarning('rate', $msg);
+    			if(!$rec->rate){
+    				$form->setError('rate', "Не може да се изчисли курс");
+    			}
+    		} else {
+    			if($msg = currency_CurrencyRates::hasDeviation($rec->rate, $rec->date, $rec->currencyId, NULL)){
+    				$form->setWarning('rate', $msg);
+    			}
     		}
     		 
     		$Vats = cls::get('drdata_Vats');
