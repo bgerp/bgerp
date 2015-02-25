@@ -203,7 +203,7 @@
   font-size: 0.95em;
   text-shadow: 0 1px 1px black;
   font-weight: bold;
-  color: white;
+  color: #aaaaaa;
   padding: 0.7em 0em 0.7em 0;
   background: #4a4a4a;
     /*
@@ -241,6 +241,8 @@
   border: 1px solid #333333;
   border-top: none; }
 
+  #nav-panel li.open div {
+    color: white; }
   #nav-panel li.selected > a {
     background: #222222;
     color: white; }
@@ -260,13 +262,14 @@
 .narrow #nav-panel li a {
   padding: 0.4em 1em; }
 
-#nav-panel span {
+#nav-panel .arrow {
   width: 24px;
   height: 14px;
   display: inline-block;
   background: url(../img/16/arrow-side.png) center center no-repeat !important; }
-  #nav-panel span.open {
-    background: url(../img/16/darrow.png) center center no-repeat !important; }
+
+#nav-panel .open .arrow {
+  background: url(../img/16/darrow.png) center center no-repeat !important; }
 
 .menuIcon {
   padding: 3px;
@@ -442,24 +445,17 @@ only screen and (max-width: 480px) {
  */
 .notificationsCnt {
   display: inline-block;
-  margin-top: 2px;
-  margin-right: 5px;
-  float: left; }
+  margin-top: 4px;
+  margin-left: 5px; }
 
 .notificationsCnt a {
   display: block;
   color: white;
-  padding: 4px 4px 5px 4px;
-  font-size: 0.85em;
-  border-radius: 3px;
-  -moz-box-shadow: 2px 2px 3px #666666;
-  -webkit-box-shadow: 2px 2px 3px #666666;
-  box-shadow: 2px 2px 3px #666666; }
+  padding: 3px;
+  font-size: 0.75em;
+  border-radius: 3px; }
 
 .narrow .notificationsCnt a {
-  -moz-box-shadow: 3px 3px 5px #aaaaaa;
-  -webkit-box-shadow: 3px 3px 5px #aaaaaa;
-  box-shadow: 3px 3px 5px #aaaaaa;
   margin-top: -1px;
   padding: 3px 4px 3px 4px;
   font-size: 0.9em; }
@@ -482,6 +478,9 @@ only screen and (max-width: 480px) {
 .tooltip-button img {
   width: 13px !important;
   height: 13px !important; }
+
+.hidden {
+  display: none; }
 
 a.button,
 input[type="button"],

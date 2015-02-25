@@ -100,17 +100,42 @@ class core_page_InternalModern extends core_page_Active {
      */
     static function getTemplate()
     {
+    	if (isset($_COOKIE['menuInfo'])) {
+    		$openMenuInfo = $_COOKIE['menuInfo'];
+    		$mainContainerClass = '';
+    		//в зависимост от стойсността на разбираме кои менюта са било отворени
+    		if($openMenuInfo){
+    			if($openMenuInfo == 1 || $openMenuInfo == 3) {
+    				$openLeftBtn = ' menu-active ';
+    				$openLeftMenu = ' sidemenu-open ';
+    				$mainContainerClass .= ' sidemenu-push-toright ';
+    			}
+    			if($openMenuInfo == 2 || $openMenuInfo == 3) {
+    				$openRightBtn = ' menu-active ';
+    				$openRightMenu = ' sidemenu-open';
+    				$mainContainerClass .= ' sidemenu-push-toleft ';
+    				$pin = ' hidden ';
+    			} else {
+    				$pinned = ' hidden ';
+    			}
+    		} else {
+    			$pinned = ' hidden ';
+    		}
+    	}
+    	
     	$menuImg = ht::createElement('img', array('src' => sbf('img/menu.png', ''), 'class' => 'menuIcon'));
-    	$pinImg = ht::createElement('img', array('src' => sbf('img/pin.png', ''), 'class' => 'menuIcon'));
+    	$pinImg = ht::createElement('img', array('src' => sbf('img/pin.png', ''), 'class' => "menuIcon pin {$pin}"));
+    	$pinnedImg = ht::createElement('img', array('src' => sbf('img/pinned.png', ''), 'class' => "menuIcon pinned {$pinned}"));
     	$img = avatar_Plugin::getImg(core_Users::getCurrent(), NULL, 26);
+    	
     	// Задаваме лейаута на страницата
     	$header = "<div style='position: relative'>
-	    					<a id='nav-panel-btn' href='#nav-panel' class='fleft btn-sidemenu btn-menu-left push-body'>". $menuImg ."</a>
+	    					<a id='nav-panel-btn' href='#nav-panel' class='fleft btn-sidemenu btn-menu-left push-body {$openLeftBtn}'>". $menuImg ."</a>
 	    					<span class='fleft logoText'>[#PORTAL#]</span>
+	    					<span class='notificationsCnt'>[#NOTIFICATIONS_CNT#]</span>
 	    					<span class='headerPath'>[#HEADER_PATH#]</span>
-	    					<a id='fav-panel-btn' href='#fav-panel' class='fright btn-sidemenu btn-menu-right push-body'>". $pinImg ."</a>
+	    					<a id='fav-panel-btn' href='#fav-panel' class='fright btn-sidemenu btn-menu-right push-body {$openRightBtn}'>". $pinImg . $pinnedImg . "</a>
 	    					<span class='fright'>
-	     		   					<span class='notificationsCnt'>[#NOTIFICATIONS_CNT#]</span>
 		    						<span class='user-options'>
 		    							" . $img .
     			    							"<div class='menu-holder'>
@@ -126,7 +151,7 @@ class core_page_InternalModern extends core_page_Active {
 	    				<div class='clearfix21'></div>
 	    				</div>  " ;
     	 
-    	$tpl = new ET("<div id='main-container' class='clearfix21 main-container [#HAS_SCROLL_SUPPORT#]'>" .
+    	$tpl = new ET("<div id='main-container' class='clearfix21 main-container [#HAS_SCROLL_SUPPORT#] {$mainContainerClass}'>" .
     			"<div id=\"framecontentTop\"  class=\"headerBlock\"><div class='inner-framecontentTop'>" . $header . "</div></div>" .
     			"<div id=\"maincontent\">" .
     			"<!--ET_BEGIN NAV_BAR--><div id=\"navBar\">[#NAV_BAR#]</div>\n<!--ET_END NAV_BAR--><div class='clearfix' style='min-height:9px;'></div>" .
@@ -135,8 +160,8 @@ class core_page_InternalModern extends core_page_Active {
     			"<div id=\"framecontentBottom\" class=\"container\">" .
     			"[#PAGE_FOOTER#]" .
     			"</div></div>".
-    			"<div id='nav-panel' class='sidemenu sidemenu-left'>[#core_page_InternalModern::renderMenu#]</div>".
-    			"<div id='fav-panel' class='sidemenu sidemenu-right'><h3><center>Бързи връзки</center></h3></div>" );
+    			"<div id='nav-panel' class='sidemenu sidemenu-left {$openLeftMenu}'>[#core_page_InternalModern::renderMenu#]</div>".
+    			"<div id='fav-panel' class='sidemenu sidemenu-right {$openRightMenu}'><h3><center>Бързи връзки</center></h3></div>" );
     	
     	// Опаковките и главното съдържание заемат екрана до долу
     	
@@ -241,7 +266,9 @@ class core_page_InternalModern extends core_page_Active {
         $tpl->replace($user, 'USERLINK');
         
         // Създава линк за поддръжка
-        $supportUrl = BGERP_SUPPORT_URL;
+        $conf = core_Packs::getConfig('help');
+        
+        $supportUrl = $conf->BGERP_SUPPORT_URL;
         $singal = ht::createLink(tr("Сигнал"), $supportUrl, FALSE, array('title' => "Изпращане на сигнал", 'target' => '_blank', 'ef_icon' => 'img/16/bug-icon.png'));
         
         // Създава линк за изход

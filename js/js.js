@@ -1,20 +1,22 @@
 function slidebars(){
-
-	
 	var viewportWidth = $(window).width();
 	if(viewportWidth > 600){
 		 $('.btn-sidemenu').jPushMenu({closeOnClickOutside: false, closeOnClickInside: false});
 	} else {
 		$('.btn-sidemenu').jPushMenu();
 	}
-	
-    if(viewportWidth > 1264 && !isTouchDevice()){
-    	$('.btn-menu-left ').click();
-		 if(viewportWidth > 1604){
-			 $('.btn-menu-right ').click();
-		 }
-	} 
-  
+
+	// състояние на иконката за пинването
+    $('.btn-menu-right').on('click', function(e){
+    	if ($('.btn-menu-right').hasClass('menu-active')) {
+    		$('.pin').addClass('hidden');
+    		$('.pinned').removeClass('hidden');
+    	} else {
+    		$('.pinned').addClass('hidden');
+    		$('.pin').removeClass('hidden');
+    	}
+	});
+    
     $('.sidemenu,  #main-container,  .narrow #packWrapper , #framecontentTop, .tab-row').addClass('transition');
 
     if($('body').hasClass('narrow') && viewportWidth <= 800){
@@ -32,12 +34,40 @@ function slidebars(){
     	}	
     });
 }
+
+// Записваме информацията за състоянието на менютата в бисквитка
+function setMenuCookie(){
+	var menuState = 0;
+	if($('.sidemenu-left').hasClass('sidemenu-open')){
+		menuState++;
+	}
+	if($('.sidemenu-right').hasClass('sidemenu-open')){
+		menuState +=2;
+	}
+	console.log(menuState);
+	setCookie('menuInfo', menuState);
+}
+
+// Създава бисквитка
+function setCookie(key, value) {
+    var expires = new Date();
+    expires.setTime(expires.getTime() + (1 * 24 * 60 * 60 * 1000));
+    document.cookie = key + '=' + value + ';expires=' + expires.toUTCString() + "; path=/";
+}
+
+// Чете информацията от дадена бисквитка
+function getCookie(key) {
+    var keyValue = document.cookie.match('(^|;) ?' + key + '=([^;]*)(;|$)');
+    return keyValue ? keyValue[2] : null;
+}
+
+// Действия на акордеона
 function sidebarAccordeonActions() {
 	$('#nav-panel li:not(.selected) ul').css('display', 'none');
-	$('#nav-panel li.selected span').addClass('open');
+	$('#nav-panel li.selected').addClass('open');
 	
 	$("#nav-panel li div").click( function() {
-			$(this).parent().find('span').toggleClass('open');
+			$(this).parent().toggleClass('open');
 			$(this).parent().find('ul').slideToggle();
 	});
 }

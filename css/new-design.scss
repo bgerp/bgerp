@@ -209,7 +209,7 @@
 	font-size: 0.95em;
 	text-shadow: 0 1px 1px #000;
 	font-weight: bold;
-	color: #fff;
+	color: #aaa;
 	padding: .7em 0em .7em 0;
 	background: #4a4a4a; /* Old browsers */
 	background: -moz-linear-gradient(top,  #4a4a4a 0%, #383838 100%); /* FF3.6+ */
@@ -226,6 +226,9 @@
 
 
 #nav-panel li {
+	&.open div {
+	 color: #fff;
+	}
 	&.selected > a{
         background:#222;
         color: #fff;
@@ -249,16 +252,15 @@
 	padding: .4em 1em;
 }
 
-#nav-panel span{
+#nav-panel .arrow{
 	width: 24px;
 	height: 14px;
     display: inline-block;
     background: url(../img/16/arrow-side.png) center center no-repeat !important;
-    &.open {
-       background:url(../img/16/darrow.png) center  center no-repeat !important;
-    }
 }
-
+#nav-panel .open .arrow{
+       background:url(../img/16/darrow.png) center  center no-repeat !important;
+}
 .menuIcon {
     padding: 3px;
     width: 20px;
@@ -457,22 +459,19 @@
 /*норификации*/
 .notificationsCnt {
     display: inline-block;
-    margin-top: 2px;
-    margin-right: 5px;
-    float: left; 
+    margin-top: 4px;
+    margin-left: 5px;
 }
 
 .notificationsCnt a {
     display: block;
     color: white;
-    padding: 4px 4px 5px 4px;
-    font-size: 0.85em;
+    padding: 3px;
+    font-size: 0.75em;
     border-radius: 3px;
-    @include shadow(2px,2px,3px,#666);
 }
 
 .narrow .notificationsCnt a {
-    @include shadow(3px,3px,5px,#aaa);
     margin-top: -1px;
     padding: 3px 4px 3px 4px;
     font-size: 0.9em;
@@ -500,6 +499,10 @@
 .tooltip-button img {
 	width: 13px !important;
 	height: 13px !important;
+}
+
+.hidden {
+	display: none;
 }
 
 a.button, input[type="button"], input[type="submit"], button {

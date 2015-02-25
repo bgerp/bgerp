@@ -13,6 +13,7 @@
 		$('#main-container').addClass(o.bodyClass);
 		
 		$(this).click(function() {
+			
 			// кое меню отговаря на бутона
 			var target = '';
 			// кое е другото меню
@@ -56,6 +57,8 @@
 				}
 			}
 			
+			// при промяна на менютата променяме бисквитката
+			setMenuCookie();
 			return false;
 		});
 		
@@ -76,10 +79,10 @@
 				$('.btn-sidemenu, #main-container,.sidemenu').removeClass('disabled, sidemenu-push, menu-active sidemenu-open sidemenu-push-toleft sidemenu-push-toright');
 			} else{
 				if($(el).is('.'+o.showLeftClass)){
-					$('.#main-container, .sidemenu-left').removeClass('sidemenu-open menu-active sidemenu-push-right ');
+					$('#main-container, .sidemenu-left').removeClass('sidemenu-open menu-active sidemenu-push-toright ');
 				}
 				if($(el).is('.'+o.showRightClass)){
-					$('#main-container, .sidemenu-right').removeClass('sidemenu-open menu-active sidemenu-push-toleft');
+					$('#main-container, .sidemenu-right').removeClass('sidemenu-open menu-active sidemenu-push-toleft ');
 				}
 			}
 		}
