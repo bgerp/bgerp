@@ -21,18 +21,6 @@ defIfNot('JQDATEPICKER_VERSION', 'v5.0.0');
 class jqdatepick_Setup extends core_ProtoSetup 
 {
 	
-	
-	/**
-	 * Версия на пакета
-	 */
-	public $version = '0.1';
-	
-	
-	/**
-	 * Описание на модула
-	 */
-	public $info = "Изтрумент за избор на дати - календар";
-	
     
     /**
 	 * Пътища до JS файлове
@@ -50,18 +38,6 @@ class jqdatepick_Setup extends core_ProtoSetup
      * Версия на пакета
      */
     var $version = '0.1';
-    
-    
-    /**
-     * Мениджър - входна точка в пакета
-     */
-    var $startCtr = '';
-    
-    
-    /**
-     * Екшън - входна точка в пакета
-     */
-    var $startAct = '';
     
     
     /**
