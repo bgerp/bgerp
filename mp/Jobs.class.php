@@ -307,4 +307,15 @@ class mp_Jobs extends core_Master
     	$origin = doc_Containers::getDocument($mvc->fetchRec($rec)->originId);
     	$origin->forceItem('catProducts');
     }
+    
+    
+    /**
+     * При нова сделка, се ънсетва threadId-то, ако има
+     */
+    public static function on_AfterPrepareDocumentLocation($mvc, $form)
+    {
+    	if($form->rec->threadId && !$form->rec->id){
+    		unset($form->rec->threadId);
+    	}
+    }
 }
