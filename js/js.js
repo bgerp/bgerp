@@ -53,19 +53,19 @@ function setMenuCookie(){
  */
 function openSubmenus() {
 	var menuInfo = getCookie('menuInformation');
-    if (menuInfo.length > 1) {
+    if (menuInfo!==null && menuInfo.length > 1) {
     	var startPos = menuInfo.indexOf(' ');
     	var endPos = menuInfo.length ;
     	menuInfo = menuInfo.substring(startPos, endPos);
-    	console.log(menuInfo);
+    	
+    	menuArray = menuInfo.split(',');
+        
+        $.each(menuArray, function( index, value ) {
+        	value = parseInt(value);
+        	$("li[data-menuid='" + value + "']").addClass('open');
+        	$("li[data-menuid='" + value + "']").find('ul').css('display', 'block');
+        });
     }
-    menuArray = menuInfo.split(',');
-    
-    $.each(menuArray, function( index, value ) {
-    	value = parseInt(value);
-    	$("li[data-menuid='" + value + "']").addClass('open');
-    	$("li[data-menuid='" + value + "']").find('ul').css('display', 'block');
-    });
 }
 
 
