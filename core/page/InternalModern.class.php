@@ -116,6 +116,7 @@ class core_page_InternalModern extends core_page_Active {
     			    							"<div class='menu-holder'>
 			     		   					[#USERLINK#]
 		    								[#CHANGE_MODE#]
+                                            [#LANG_CHANGE#]
 		    								[#SIGNAL#]
 	    									<div class='divider'></div>
 			     		   					[#SIGN_OUT#]
@@ -249,10 +250,15 @@ class core_page_InternalModern extends core_page_Active {
         
         // Създава линк за превключване между режимите
        	if(Mode::is('screenMode', 'wide')) {
-       		$mode = ht::createLink(tr("Тесен"), array('core_Browser', 'setNarrowScreen', 'ret_url' => TRUE), NULL, array('ef_icon' => 'img/16/mobile-icon.png', 'title' => 'Превключване на системата в мобилен режим'));
+       		$mode = ht::createLink(tr("Мобилен"), array('core_Browser', 'setNarrowScreen', 'ret_url' => TRUE), NULL, array('ef_icon' => 'img/16/mobile-icon.png', 'title' => 'Превключване на системата в мобилен режим'));
        	} else {
-       		$mode = ht::createLink(tr("Широк"), array('core_Browser', 'setWideScreen', 'ret_url' => TRUE), NULL, array('ef_icon' => 'img/16/Monitor-icon.png', 'title' => 'Превключване на системата в десктоп режим'));
+       		$mode = ht::createLink(tr("Десктоп"), array('core_Browser', 'setWideScreen', 'ret_url' => TRUE), NULL, array('ef_icon' => 'img/16/Monitor-icon.png', 'title' => 'Превключване на системата в десктоп режим'));
        	}
+
+        // Смяна на езика
+        $lgChange = self::getLgChange();
+       	$tpl->replace($lgChange, 'LANG_CHANGE');
+
        	
         // Извличаме броя на нотификациите за текущия потребител
         $openNotifications = bgerp_Notifications::getOpenCnt();
@@ -298,7 +304,7 @@ class core_page_InternalModern extends core_page_Active {
                         
             if($isGet) {
                 $tpl->append("&nbsp;<small>|</small>&nbsp;");
-                $tpl->append(ht::createLink(tr("Широк"), array('core_Browser', 'setWideScreen', 'ret_url' => TRUE), FALSE, array('title' => " Превключване на системата в десктоп режим")));
+                $tpl->append(ht::createLink(tr("Десктоп"), array('core_Browser', 'setWideScreen', 'ret_url' => TRUE), FALSE, array('title' => " Превключване на системата в десктоп режим")));
 
                 // Добавяме превключване между езиците
                 $tpl->append(self::getLgChange());
@@ -366,23 +372,21 @@ class core_page_InternalModern extends core_page_Active {
      */
     static function getLgChange()
     {
-        $tpl = new ET();
-
-        $langArr = core_Lg::getLangs();
-        $cl      = core_Lg::getCurrent();
-        unset($langArr[$cl]);
- 
-        if(count($langArr)) {
-            foreach($langArr as $lg => $title) {
-                $url = toUrl(array('core_Lg', 'Set', 'lg' => $lg, 'ret_url' => TRUE));
-                $attr = array('href' => $url, 'title' => $title);
-                $lg{0} = strtoupper($lg{0});
-                $tpl->append('&nbsp;<small>|</small>&nbsp;');
-                $tpl->append(ht::createElement('a', $attr, $lg));
-            }
+        $cl = core_Lg::getCurrent();
+        if($cl == 'bg') {
+            $lg = 'en';
+            $title = "Промяна на езика на английски";
+            $lang = 'English';
+        } else {
+            $lg = 'bg';
+            $title = "Switch language to Bulgarian";
+            $lang = 'Български';
         }
+        $url = toUrl(array('core_Lg', 'Set', 'lg' => $lg, 'ret_url' => TRUE));
+        $attr = array('href' => $url, 'title' => $title, 'ef_icon' => 'img/16/Maps-Globe-Earth-icon.png');
+        $res = ht::createLink($lang, $url, NULL, $attr);
 
-        return $tpl;
+        return $res;
     }
     
     
