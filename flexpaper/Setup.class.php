@@ -28,7 +28,9 @@ class flexpaper_Setup extends core_ProtoSetup
 	/**
 	 * Описание на модула
 	 */
-	public $info = "Пакет за експертизи";
+	public $info = "Пакет за работа с FlexPaper";
+	
+	
 	/**
 	 * Пакет без инсталация
 	 */

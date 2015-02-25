@@ -19,7 +19,7 @@ defIfNot(JQPLOT_VERSION, '1.0.8r1250');
  */
 class jqplot_Setup extends core_ProtoSetup
 {
-    
+		
     
     /**
      * Версия на пакета
@@ -30,7 +30,7 @@ class jqplot_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    public $info = "JQPlot";
+    public $info = "Изтрумент за рендиране на графики, използващ JQPlot";
 	
     
     /**
