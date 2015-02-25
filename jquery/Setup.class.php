@@ -4,7 +4,7 @@
 /**
  * Версията на JQuery, която се използва
  */
-defIfNot(JQUERY_VERSION, '2.1.3');
+defIfNot(JQUERY_VERSION, '1.8.3');
 
 
 
