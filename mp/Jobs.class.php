@@ -67,6 +67,12 @@ class mp_Jobs extends core_Master
     
     
     /**
+     * Кой може да добавя?
+     */
+    public $canClose = 'ceo, mp';
+    
+    
+    /**
      * Кой има право да пише?
      */
     public $canWrite = 'ceo, mp';
@@ -135,7 +141,7 @@ class mp_Jobs extends core_Master
     	$this->FLD('brutoWeight', 'cat_type_Weight', 'caption=Бруто,input=none');
     	$this->FLD('data', 'blob(serialize,compress)', 'input=none');
     	$this->FLD('state',
-    			'enum(draft=Чернова, active=Активирано, rejected=Отказано)',
+    			'enum(draft=Чернова, active=Активирано, rejected=Отказано, closed=Затворено)',
     			'caption=Статус, input=none'
     	);
     }
@@ -317,5 +323,43 @@ class mp_Jobs extends core_Master
     	if($form->rec->threadId && !$form->rec->id){
     		unset($form->rec->threadId);
     	}
+    }
+    
+    
+    /**
+     * След подготовка на тулбара на единичен изглед.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+    	if($mvc->haveRightFor('close', $data->rec)){
+    		if($data->rec->state == 'closed'){
+    			$data->toolbar->addBtn("Активиране", array($mvc, 'changeState', $data->rec->id, 'ret_url' => TRUE), 'ef_icon = img/16/lightbulb.png,title=Активиранe на артикула,warning=Сигурнили сте че искате да активирате артикула, това ще му активира перото');
+    		} elseif($data->rec->state == 'active'){
+    			$data->toolbar->addBtn("Приключване", array($mvc, 'changeState', $data->rec->id, 'ret_url' => TRUE), 'ef_icon = img/16/lightbulb_off.png,title=Затваряне артикула и перото му,warning=Сигурнили сте че искате да приключите артикула, това ще му затвори перото');
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Затваря/отваря артикула и перото му
+     */
+    public function act_changeState()
+    {
+    	$this->requireRightFor('close');
+    	expect($id = Request::get('id', 'int'));
+    	expect($rec = $this->fetch($id));
+    	$this->requireRightFor('close', $rec);
+    	 
+    	$state = ($rec->state == 'closed') ? 'active' : 'closed';
+    	$rec->exState = $rec->state;
+    	$rec->state = $state;
+    	 
+    	$this->save($rec, 'state');
+    	 
+    	return followRetUrl();
     }
 }
