@@ -264,7 +264,7 @@ class acc_ActiveShortBalance {
         
         // Извличаме записите, направени в избрания период на търсене
         $jQuery = acc_JournalDetails::getQuery();
-        acc_JournalDetails::filterQuery($jQuery, $this->from, $this->to, $accs);
+        acc_JournalDetails::filterQuery($jQuery, $this->from, $this->to, $accs, $this->params['itemsAll'], $this->params['item1'], $this->params['item2'], $this->params['item3']);
         $all = $jQuery->fetchAll();
         $this->calcBalance($all, $newBalance);
         
