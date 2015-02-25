@@ -242,7 +242,7 @@ class core_ProtoSetup
      * 
      * @return string
      */
-    private function preparePacksPath($packName, $pathStr)
+    public function preparePacksPath($packName, $pathStr)
     {
         if (!trim($pathStr)) return $pathStr;
         
