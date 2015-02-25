@@ -1141,15 +1141,6 @@ class cat_Products extends core_Embedder {
     
     
     /**
-     * Заглавие на артикула
-     */
-    public function getProductTitle($id)
-    {
-    	return $this->getTitleById($id);
-    }
-    
-    
-    /**
      * Връща описанието на артикула
      *
      * @param mixed $id - ид/запис

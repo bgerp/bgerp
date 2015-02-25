@@ -161,15 +161,6 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     {
     	return $this->class->getPolicy();
     }
-
-
-    /**
-     * Заглавие на артикула
-     */
-    public function getProductTitle($id)
-    {
-    	return $this->class->getProductTitle($id);
-    }
     
     
     /**

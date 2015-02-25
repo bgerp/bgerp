@@ -142,7 +142,7 @@ class cat_products_Params extends core_Manager
     public static function on_AfterPrepareEditForm($mvc, $data)
     { 
         $form = &$data->form;
-        $masterTitle = cls::get($form->rec->classId)->getProductTitle($form->rec->productId);
+        $masterTitle = cls::get($form->rec->classId)->getTitleById($form->rec->productId);
         
     	if(!$form->rec->id){
     		$form->title = "Добавяне на параметър към|* <b>{$masterTitle}</b>";
