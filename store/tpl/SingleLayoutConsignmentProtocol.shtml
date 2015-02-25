@@ -112,6 +112,8 @@
                             </table>
                         </div>
                     </div>
+                    <div>|Към дата|*: [#SNAPSHOT_DATE#]</div>
+                    [#SNAPSHOT#]
                     <!--ET_BEGIN DETAILS-->
                     <div class='details'>
                         [#DETAILS#]

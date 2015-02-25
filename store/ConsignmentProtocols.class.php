@@ -153,6 +153,7 @@ class store_ConsignmentProtocols extends core_Master
     			'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)',
     			'caption=Статус, input=none'
     	);
+    	$this->FLD('snapshot', 'blob(serialize, compress)', 'caption=Данни,input=none');
     }
     
     
@@ -193,6 +194,100 @@ class store_ConsignmentProtocols extends core_Master
     	if(isset($fields['-single'])){
     		store_DocumentMaster::prepareHeaderInfo($row, $rec);
     	}
+    }
+    
+    
+    /**
+     * Функция, която се извиква след активирането на документа
+     */
+    public static function on_AfterActivation($mvc, &$rec)
+    {
+    	$rec = $mvc->fetchRec($rec);
+    	
+    	if(empty($rec->snapshot)){
+    		$rec->snapshot = $mvc->prepareSnapshot($rec, dt::now());
+    		$mvc->save($rec, 'snapshot');
+    		core_Statuses::newStatus('up');
+    	} else {
+    		core_Statuses::newStatus('ne');
+    	}
+    }
+    
+    
+    /**
+     * След подготовка на сингъла
+     */
+    public static function on_AfterPrepareSingle($mvc, &$res, $data)
+    {
+    	// Ако няма 'снимка' на моментното състояние, генерираме го в момента
+    	if(empty($data->rec->snapshot)){
+    		$data->rec->snapshot = $mvc->prepareSnapshot($data->rec, dt::now());
+    	}
+    }
+    
+    
+    /**
+     * След рендиране на еденичния изглед
+     */
+    public static function on_AfterRenderSingle($mvc, &$tpl, $data)
+    {
+    	$snapshot = $data->rec->snapshot;
+    	
+    	$mvcTable = new core_Mvc;
+    	$mvcTable->FLD('blQuantity', 'int', 'tdClass=accCell');
+    	 
+    	$table = cls::get('core_TableView', array('mvc' => $mvcTable));
+    	$details = $table->get($snapshot->rows, 'productId=Артикул,blQuantity=К-во');
+    	
+    	$tpl->replace($details, 'SNAPSHOT');
+    	$tpl->replace($snapshot->date, 'SNAPSHOT_DATE');
+    }
+    
+    
+    /**
+     * Подготвя снапшот на моментното представяне на базата
+     */
+    private function prepareSnapshot($rec, $date)
+    {
+    	$rows = array();
+    	
+    	// Кое е перото на контрагента ?
+    	$contragentItem = acc_Items::fetchItem($rec->contragentClassId, $rec->contragentId);
+    	
+    	// За да покажем моментното състояние на сметката на контрагента, взимаме баланса до края на текущия ден
+    	$to = dt::addDays(1, $date);
+    	$Balance = new acc_ActiveShortBalance(array('from' => $to,
+    												'to' => $to,
+									    			'accs' => '333',
+									    			'item1' => $contragentItem->id,
+									    			'strict' => TRUE,
+									    			'cacheBalance' => FALSE));
+    	
+    	// Изчлисляваме в момента, какъв би бил крания баланс по сметката в края на деня
+    	$Balance = $Balance->getBalanceBefore('333');
+    	$Double = cls::get('type_Double');
+    	$Double->params['smartRound'] = TRUE;
+    	
+    	$accId = acc_Accounts::getRecBySystemId('333')->id;
+    	
+    	// Подготвяме записите за показване
+    	foreach ($Balance as $b){
+    		if($b['accountId'] != $accId) continue;
+    		
+    		$row = new stdClass;
+    		$row->productId = acc_Items::getVerbal($b['ent2Id'], 'titleLink');
+    		$row->blQuantity = $Double->toVerbal($b['blQuantity']);
+    		if($b['baseQuantity'] < 0){
+    			$row->blQuantity = "<span class='red'>{$row->blQuantity}</span>";
+    		}
+    		
+    		$rows[] = $row;
+    	}
+        
+    	$Datetime = cls::get('type_DateTime', array('params' => array('format' => 'smartTime')));
+    	
+    	// Връщаме подготвените записи, и датата към която са подготвени
+        return (object)array('rows' => $rows, 'date' => $Datetime->toVerbal($date));
     }
     
     
