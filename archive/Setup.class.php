@@ -17,6 +17,19 @@
  */
 class archive_Setup extends core_ProtoSetup
 {
+	
+	
+	/**
+	 * Версия на пакета
+	 */
+	public $version = '0.1';
+	
+	
+	/**
+	 * Описание на модула
+	 */
+	public $info = "Инструмент за работа с архиви";
+	
 
 	/**
 	 * Пакет без инсталация
