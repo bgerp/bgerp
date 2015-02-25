@@ -4,7 +4,7 @@
 /**
  * @todo Чака за документация...
  */
-defIfNot('JQDATEPICKER_VERSION', 'v4.0.6');
+defIfNot('JQDATEPICKER_VERSION', 'v5.0.0');
 
 /**
  * Клас 'jqdatepick_Setup' -
@@ -37,7 +37,7 @@ class jqdatepick_Setup extends core_ProtoSetup
     /**
 	 * Пътища до JS файлове
 	 */
-    var $commonJS = "jqdatepick/[#JQDATEPICKER_VERSION#]/jquery.datepick.js, jqdatepick/[#JQDATEPICKER_VERSION#]/jquery.datepick-[#CORE::EF_DEFAULT_LANGUAGE#].js";
+    var $commonJS = "jqdatepick/[#JQDATEPICKER_VERSION#]/jquery.plugin.min.js, jqdatepick/[#JQDATEPICKER_VERSION#]/jquery.datepick.js, jqdatepick/[#JQDATEPICKER_VERSION#]/jquery.datepick-[#CORE::EF_DEFAULT_LANGUAGE#].js";
     
     
     /**
@@ -75,7 +75,7 @@ class jqdatepick_Setup extends core_ProtoSetup
      */
     var $configDescription = array(
         
-           'JQDATEPICKER_VERSION' => array ('enum(1=v4.0.6)', 'mandatory, caption=Версията на програмата->Версия')
+           'JQDATEPICKER_VERSION' => array ('enum(v4.0.6, v5.0.0)', 'mandatory, caption=Версията на програмата->Версия')
     
              );
     
