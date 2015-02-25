@@ -198,17 +198,28 @@ class mp_Jobs extends core_Master
     
     
     /**
+     * Връща разбираемо за човека заглавие, отговарящо на записа
+     */
+    public static function getRecTitle($rec, $escaped = TRUE)
+    {
+    	$self = cls::get(get_called_class());
+    	 
+    	return tr($self->singleTitle) . " №{$rec->id}";
+    }
+    
+    
+    /**
      * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
      */
     function getDocumentRow($id)
     {
     	$rec = $this->fetch($id);
     	$row = new stdClass();
-    	$row->title = "Задание за производство №{$id}";
+    	$row->title = $this->getRecTitle($rec);
     	$row->authorId = $rec->createdBy;
     	$row->author = $this->getVerbal($rec, 'createdBy');
     	$row->state = $rec->state;
-    	$row->recTitle = "Задание за производство №{$id}";
+    	$row->recTitle = $this->getRecTitle($rec);
     
     	return $row;
     }
@@ -273,7 +284,7 @@ class mp_Jobs extends core_Master
     	 
     	if(($action == 'activate' || $action == 'restore' || $action == 'conto' || $action == 'write') && isset($rec->originId) && $res != 'no_one'){
     
-    		// Ако има активна карта, да не може друга да се възстановява,контира,създава или активира
+    		// Ако има активно задание, да не може друга да се възстановява,контира,създава или активира
     		if($mvc->fetch("#originId = {$rec->originId} AND #state = 'active'")){
     			$res = 'no_one';
     		}
