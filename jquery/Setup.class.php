@@ -2,6 +2,13 @@
 
 
 /**
+ * Версията на JQuery, която се използва
+ */
+defIfNot(JQUERY_VERSION, '2.1.3');
+
+
+
+/**
  * Клас 'jquery_Setup'
  *
  * Исталиране/деинсталиране на Apachetika
@@ -17,11 +24,30 @@
  */
 class jquery_Setup extends core_ProtoSetup
 {
-
+    
+    
+    /**
+     * Версия на пакета
+     */
+    public $version = '0.1';
+    
+    
+    /**
+     * Описание на модула
+     */
+    public $info = "JQuery";
+    
+    
+    /**
+     * Описание на конфигурационните константи
+     */
+    public $configDescription = array(
+        'JQUERY_VERSION' => array ('enum(1.7.1, 1.8.3, 2.1.3)', 'caption=Версия на JQuery->Версия'), 
+    );
+    
+    
 	/**
 	 * Пакет без инсталация
 	 */
 	public $noInstall = TRUE;
-	
 }
-

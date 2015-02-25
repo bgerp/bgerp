@@ -43,7 +43,7 @@ class jqueryui_Ui
     {
         $conf = core_Packs::getConfig('jqueryui');
         
-        $jsPath = "jqueryui/" . $conf->JQUERYUI_VERSION . "/js/jquery-ui-1.8.2.custom.min.js";
+        $jsPath = "jqueryui/" . $conf->JQUERYUI_VERSION . "/jquery-ui.min.js";
         
         $tpl->push($jsPath, "JS");
     }
@@ -58,7 +58,7 @@ class jqueryui_Ui
     {
         $conf = core_Packs::getConfig('jqueryui');
         
-        $cssPath = "jqueryui/" . $conf->JQUERYUI_VERSION . "/css/custom-theme/jquery-ui-1.8.2.custom.css";
+        $cssPath = "jqueryui/" . $conf->JQUERYUI_VERSION . "/jquery-ui.min.css";
         
         $tpl->push($cssPath, "CSS");
         

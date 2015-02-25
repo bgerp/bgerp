@@ -1,4 +1,6 @@
 <?php
+
+
 /**
  *
  * Адаптер за пакета jqplot - http://www.jqplot.com/
@@ -12,14 +14,8 @@
  */
 class jqplot_Chart
 {
-    /**
-     * Път до jqplot дистрибуцията
-     *
-     * @var string
-     */
-    protected static $jqplotBasePath = 'jqplot/jquery.jqplot.1.0.0b2_r1012';
-
-
+    
+    
     /**
      * Масив с използваните jqplot-плъгини
      *
@@ -365,7 +361,9 @@ class jqplot_Chart
         if (isDebug() && ($dot = strrpos($name, '.')) !== FALSE) {
             $name = substr($name, 0, $dot) . '.min' . substr($name, $dot);
         }
-
-        return static::$jqplotBasePath . "/{$name}";
+        $conf = core_Packs::getConfig('jqplot');
+        $resource = 'jqplot/' . $conf->JQPLOT_VERSION . '/' . $name;
+        
+        return $resource;
     }
 }

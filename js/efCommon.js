@@ -884,7 +884,7 @@ function toggleDisplay(id) {
 
 // Скрива групите бутони от ричедита при клик някъде
 function hideRichtextEditGroups() {
-    $('body').live('click', function(e) {
+	$(document.body).on("click", this, function(e){
         if (!($(e.target).is('input[type=text]'))) {
         	$('.richtext-holder-group-after').css("display", "none");
         }
