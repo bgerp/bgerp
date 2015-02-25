@@ -345,12 +345,17 @@ class core_Packs extends core_Manager
         $data->listFilter->input(NULL, 'silent');
         
         if($filter = $data->listFilter->rec) {
+            $isAll = FALSE;
             if (($filter->state != 'all') && $filter->state) {
                 $data->query->where(array("#state = '[#1#]'", $filter->state));
+            } else {
+                $isAll = TRUE;
             }
             
             if ($filter->state != 'hidden') {
-                $data->query->where("#state != 'hidden'");
+                if (!$filter->search && $isAll) {
+                    $data->query->where("#state != 'hidden'");
+                }
             }
         }
         
