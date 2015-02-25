@@ -237,7 +237,7 @@ class store_ConsignmentProtocols extends core_Master
     	$mvcTable->FLD('blQuantity', 'int', 'tdClass=accCell');
     	 
     	$table = cls::get('core_TableView', array('mvc' => $mvcTable));
-    	$details = $table->get($snapshot->rows, 'productId=Артикул,blQuantity=К-во');
+    	$details = $table->get($snapshot->rows, 'count=№,productId=Артикул,blQuantity=К-во');
     	
     	$tpl->replace($details, 'SNAPSHOT');
     	$tpl->replace($snapshot->date, 'SNAPSHOT_DATE');
@@ -267,20 +267,24 @@ class store_ConsignmentProtocols extends core_Master
     	$Balance = $Balance->getBalanceBefore('333');
     	$Double = cls::get('type_Double');
     	$Double->params['smartRound'] = TRUE;
+    	$Int = cls::get('type_Int');
     	
     	$accId = acc_Accounts::getRecBySystemId('333')->id;
+    	$count = 1;
     	
     	// Подготвяме записите за показване
     	foreach ($Balance as $b){
     		if($b['accountId'] != $accId) continue;
     		
     		$row = new stdClass;
+    		$row->count = $Int->toVerbal($count);
     		$row->productId = acc_Items::getVerbal($b['ent2Id'], 'titleLink');
     		$row->blQuantity = $Double->toVerbal($b['blQuantity']);
     		if($b['baseQuantity'] < 0){
     			$row->blQuantity = "<span class='red'>{$row->blQuantity}</span>";
     		}
     		
+    		$count++;
     		$rows[] = $row;
     	}
         
