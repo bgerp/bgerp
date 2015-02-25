@@ -17,6 +17,19 @@
  */
 class exif_Setup extends core_ProtoSetup
 {
+	
+	
+	/**
+	 * Версия на пакета
+	 */
+	public $version = '0.1';
+	
+	
+	/**
+	 * Описание на модула
+	 */
+	public $info = "Връщане на exif информация за файл";
+	
 
 	/**
 	 * Пакет без инсталация

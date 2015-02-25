@@ -18,6 +18,19 @@
 class csv_Setup extends core_ProtoSetup
 {
 
+	
+	/**
+	 * Версия на пакета
+	 */
+	public $version = '0.1';
+	
+	
+	/**
+	 * Описание на модула
+	 */
+	public $info = "Пакет за работа с CSV файлове";
+	
+	
 	/**
 	 * Пакет без инсталация
 	 */

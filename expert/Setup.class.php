@@ -17,12 +17,26 @@
  */
 class expert_Setup extends core_ProtoSetup
 {
-    
+
+	
+	/**
+	 * Версия на пакета
+	 */
+	public $version = '0.1';
+	
+	
+	/**
+	 * Описание на модула
+	 */
+	public $info = "Пакет за експертизи";
+	
+	
 	/**
 	 * Път до js файла
 	 */
 //	var $commonJS = 'expert/ajaxExpert.js';
 
+	
 	/**
 	 * Пакет без инсталация
 	 */
