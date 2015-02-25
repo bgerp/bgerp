@@ -962,7 +962,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	
     	$rec->paymentState = $mvc->getPaymentState($aggregateDealInfo, $rec->paymentState);
     	
-    	$mvc->save($rec);
+    	$mvc->save_($rec);
     	
     	$dQuery = $mvc->$Detail->getQuery();
     	$dQuery->where("#{$mvc->$Detail->masterKey} = {$rec->id}");
