@@ -4,7 +4,7 @@
 /**
  * Версията на JQueryUI, която се използва
  */
-defIfNot(JQUERYUI_VERSION, '1.8.2');
+defIfNot(JQUERYUI_VERSION, '1.11.3');
 
 
 /**
@@ -22,15 +22,34 @@ class jqueryui_Setup extends core_ProtoSetup
 {
     
     
+    /**
+     * Версия на пакета
+     */
+    public $version = '0.1';
+    
+    
+    /**
+     * Описание на модула
+     */
+    public $info = "JQueryUI";
+    
+    
+    /**
+     * Описание на конфигурационните константи
+     */
+    public $configDescription = array(
+        'JQUERYUI_VERSION' => array ('enum(1.8.2, 1.11.3', 'caption=Версия на JQueryUI->Версия'), 
+    );
+    
+    
 	/**
 	 * Пътища до JS файлове
 	 */
-	var $commonJS = "jqueryui/[#JQUERYUI_VERSION#]/js/jquery-ui-1.8.2.custom.min.js";
+	var $commonJS = "jqueryui/[#JQUERYUI_VERSION#]/jquery-ui.min.js";
     
     
 	/**
 	 * Пътища до CSS файлове
 	 */
-	var $commonCSS = "jqueryui/[#JQUERYUI_VERSION#]/css/custom-theme/jquery-ui-1.8.2.custom.css";
-
+	var $commonCSS = "jqueryui/[#JQUERYUI_VERSION#]/jquery-ui.min.css";
 }
