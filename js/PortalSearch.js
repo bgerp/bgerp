@@ -8,7 +8,7 @@ function portalSearch() {
 	});
 	
 	// Ако инпута на формата е празен ние я Toggle-ваме
-	$(".SearchBtnPortal").live("click", function(){
+	$(document.body).on("click", ".SearchBtnPortal", function(){
 		var object = $(this).parents('.portal-filter').children(".hFormField");
 		if(object.children('input').val() == ''){
 			object.toggle();
@@ -21,7 +21,7 @@ function portalSearch() {
 	
 	/* Ако формата за търсене е празна скриваме, 
 	отказваме събмитапри натискане на бутона */
-	$('.portal-filter').live("submit", (function(e) {
+	$(document.body).on("submit", '.portal-filter', function(e) {
 		var object = $(this).children('.hFormField').children('input');
 		
 		if(object.val() == '') {
@@ -29,5 +29,5 @@ function portalSearch() {
 				e.preventDefault(); 
 			}
 		}
-	}));
+	});
 }
