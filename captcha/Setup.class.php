@@ -17,6 +17,19 @@
  */
 class captcha_Setup extends core_ProtoSetup
 {
+	
+	
+	/**
+	 * Версия на пакета
+	 */
+	public $version = '0.1';
+	
+	
+	/**
+	 * Описание на модула
+	 */
+	public $info = "Тест за сигурност";
+	
 
 	/**
 	 * Пакет без инсталация
