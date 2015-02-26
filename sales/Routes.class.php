@@ -245,11 +245,11 @@ class sales_Routes extends core_Manager {
     	if ($data->listFilter->rec->date) {
     			
     		// Изчисляваме дните между датата от модела и търсената
-    		$data->query->XPR("dif", 'int', "DATEDIFF (#dateFld , '{$date}')");
-    			
+    		$data->query->XPR("dif", 'int', "DATEDIFF (#dateFld , '{$data->listFilter->rec->date}')");
+    		
     		// Записа отговаря ако разликата е 0 и повторението е 0
-    		$data->query->where("#dif = 0 && #repeatWeeks = 0");
-    			
+    		$data->query->where("#dif = 0 && (#repeatWeeks = 0 || #repeatWeeks IS NULL)");
+    		
     		// Ако разликата се дели без остатък на 7 * броя повторения
     		$data->query->orWhere("MOD(#dif, (7 * #repeatWeeks)) = 0");
     	}
