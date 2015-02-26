@@ -143,7 +143,7 @@ class store_ConsignmentProtocols extends core_Master
     {
     	$this->FLD('valior', 'date', 'caption=Дата, mandatory');
     	$this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Клиент');
-    	$this->FLD('contragentId', 'int', 'input=hidden');
+    	$this->FLD('contragentId', 'int', 'input=hidden,tdClass=leftCol');
     	
     	$this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code,allowEmpty)', 'mandatory,caption=Плащане->Валута');
     	$this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=От склад, mandatory');
