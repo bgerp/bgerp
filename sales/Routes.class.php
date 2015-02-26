@@ -363,7 +363,7 @@ class sales_Routes extends core_Manager {
      */
 	function renderRoutes($data)
     {
-    	$tpl = getTplFromFile("crm/tpl/ContragentDetail.shtml");
+    	$tpl = getTplFromFile("sales/tpl/SingleLayoutRoutes.shtml");
     	$title = $this->title;
     	
     	if ($data->addUrl) {
