@@ -1130,6 +1130,19 @@ td.portal-date {
 		height: 20px;
 	}
 }
+
+.snapshot {
+	margin-top: 10px;
+    padding: 10px;
+    background: rgba(255,255,210,0.3);
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    .snapshat-title {
+        font-weight: bold; 
+        padding-bottom: 7px;
+    }
+}
+
 .stamp{
 	color: #b00;
 	border: 1px dotted #b00;

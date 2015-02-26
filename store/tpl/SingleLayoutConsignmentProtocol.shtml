@@ -51,11 +51,9 @@
                             </table>
                             <div class="lines"></div>
                             <div class="details">
-                            	<div style='margin:5px 0px'>
                             		[#store_ConsignmentProtocolDetailsSend#]
                             	</div>
-                            	
-                                <div style='margin:5px 0px'>
+                                <div class="lines"></div> 	
                                 	[#store_ConsignmentProtocolDetailsReceived#]
                                 </div>
                             </div>
@@ -86,7 +84,6 @@
                                             </table>
                                         </td>
                                         <td>
-                                            <hr>
                                             <table class='centered special-borders' style='width:100%;'>
                                                 <tr>
                                                     <td class='centered border-right' style='width:50%;'>|Получил|*:</td>
@@ -112,8 +109,10 @@
                             </table>
                         </div>
                     </div>
-                    <div>|Към дата|*: [#SNAPSHOT_DATE#]</div>
-                    [#SNAPSHOT#]
+                    <div class="snapshot">
+	                    <div class='snapshot-title'>|Към дата|*: [#SNAPSHOT_DATE#]</div>
+	                    [#SNAPSHOT#]
+                    </div>
                     <!--ET_BEGIN DETAILS-->
                     <div class='details'>
                         [#DETAILS#]
