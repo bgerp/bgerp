@@ -42,13 +42,13 @@ class select2_Plugin extends core_Plugin
     /**
      * Изпълнява се преди рендирането на input
      * 
-     * @param core_Mvc $mvc
+     * @param core_Type $invoker
      * @param core_ET $tpl
      * @param string $name
      * @param string|array|NULL $value
      * @param array $attr
      */
-    function on_BeforeRenderInput(&$mvc, &$tpl, $name, &$value, $attr = array())
+    function on_BeforeRenderInput(&$invoker, &$tpl, $name, &$value, $attr = array())
     {
         // Премамахваме от масива елемента от hidden полето
         if(is_array($value) && isset($value[self::$hiddenName])) {
@@ -67,32 +67,32 @@ class select2_Plugin extends core_Plugin
     /**
      * Изпълнява се след рендирането на input
      * 
-     * @param core_Mvc $mvc
+     * @param core_Type $invoker
      * @param core_ET $tpl
      * @param string $name
      * @param string|array|NULL $value
      * @param array $attr
      */
-    function on_AfterRenderInput(&$mvc, &$tpl, $name, $value, $attr = array())
+    function on_AfterRenderInput(&$invoker, &$tpl, $name, $value, $attr = array())
     {
         $conf = core_Packs::getConfig('select2');
-        if(!$mvc->params['select2MinItems']) {
+        if(!$invoker->params['select2MinItems']) {
             $minItems = $conf->SELECT2_KEYLIST_MIN_ITEMS;
         } else {
-            $minItems = $mvc->params['select2MinItems'];
+            $minItems = $invoker->params['select2MinItems'];
         }
     	
         // Ако нямаме JS или има много малко предложения - не правим нищо
-        if (Mode::is('javascript', 'no') || ((count($mvc->suggestions)) < $minItems)) {
+        if (Mode::is('javascript', 'no') || ((count($invoker->suggestions)) < $minItems)) {
             
             return ;
         }
 
         $options = new ET();
         $mustCloseGroup = FALSE;
-
+        
         // Преобразуваме опциите в селекти
-        foreach ($mvc->suggestions as $key => $val) {
+        foreach ($invoker->suggestions as $key => $val) {
             
             $optionsAttrArr = array();
 
