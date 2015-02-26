@@ -376,7 +376,7 @@ class crm_Locations extends core_Master {
      * @param int $contragentId първичен ключ на контрагента (в мениджъра му)
      * @return array масив от записи crm_Locations
      */
-    public static function getContragentLocations($contragentClassId, $contragentId)
+    private static function getContragentLocations($contragentClassId, $contragentId)
     {
         expect($contragentClassId = core_Classes::getId($contragentClassId));
         
