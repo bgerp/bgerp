@@ -10,7 +10,7 @@
  * @category  bgerp
  * @package   sales
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -95,12 +95,6 @@ class sales_Quotations extends core_Master
      * Заглавие в единствено число
      */
     public $singleTitle = 'Оферта';
-    
-    
-    /**
-     * Шаблон за еденичен изглед
-     */
-    //public $singleLayoutFile = 'sales/tpl/SingleLayoutQuote.shtml';
    
    
     /**
@@ -197,7 +191,7 @@ class sales_Quotations extends core_Master
 	/**
      * Малко манипулации след подготвянето на формата за филтриране
      */
-    static function on_AfterPrepareListFilter($mvc, $data)
+    protected static function on_AfterPrepareListFilter($mvc, $data)
     {
     	 $data->listFilter->showFields = 'search,' . $data->listFilter->showFields;
     	 $data->listFilter->input();
@@ -235,9 +229,9 @@ class sales_Quotations extends core_Master
 	       		
        			// Ако няма цена офертата потребителя е длъжен да я въведе от формата
 	       		if(!$price){
-	       			$data->form->getFieldType('row1')->params['require'] = 'both';
-	       			$data->form->getFieldType('row2')->params['require'] = 'both';
-	       			$data->form->getFieldType('row3')->params['require'] = 'both';
+	       			$data->form->setFieldTypeParams('row1', 'require=both');
+	       			$data->form->setFieldTypeParams('row2', 'require=both');
+	       			$data->form->setFieldTypeParams('row3', 'require=both');
 	       		}
        		}
        }
@@ -253,7 +247,7 @@ class sales_Quotations extends core_Master
 	/** 
 	 * След подготовка на тулбара на единичен изглед
      */
-    static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
 	    if($data->rec->state == 'active'){
 	    	$items = $mvc->getItems($data->rec->id);
@@ -273,7 +267,7 @@ class sales_Quotations extends core_Master
     /** 
 	 * След подготовка на тулбара на единичен изглед
      */
-    static function on_AfterPrepareSingle($mvc, &$res, &$data)
+    protected static function on_AfterPrepareSingle($mvc, &$res, &$data)
     {
     	if($data->sales_QuotationsDetails->summary){
     		$data->row = (object)((array)$data->row + (array)$data->sales_QuotationsDetails->summary);
@@ -427,7 +421,7 @@ class sales_Quotations extends core_Master
     /**
      * Извиква се преди рендирането на 'опаковката'
      */
-    function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
+    protected function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
     {
 	  	if(Mode::is('printing') || Mode::is('text', 'xhtml')){
     		$tpl->removeBlock('header');
@@ -527,13 +521,13 @@ class sales_Quotations extends core_Master
     	if($rec->deliveryPlaceId){
 		    if(!crm_Locations::fetchField(array("#title = '[#1#]'", $rec->deliveryPlaceId), 'id')){
 		    	$newLocation = (object)array(
-		    						'title' => $rec->deliveryPlaceId,
-		    						'countryId' => drdata_Countries::fetchField("#commonNameBg = '{$rec->country}' || #commonName = '{$rec->country}'", 'id'),
-		    						'pCode' => $rec->pcode,
-		    						'place' => $rec->place,
+		    						'title'         => $rec->deliveryPlaceId,
+		    						'countryId'     => drdata_Countries::fetchField("#commonNameBg = '{$rec->country}' || #commonName = '{$rec->country}'", 'id'),
+		    						'pCode'         => $rec->pcode,
+		    						'place'         => $rec->place,
 		    						'contragentCls' => $rec->contragentClassId,
-		    						'contragentId' => $rec->contragentId,
-		    						'type' => 'correspondence');
+		    						'contragentId'  => $rec->contragentId,
+		    						'type'          => 'correspondence');
 		    		
 		    	// Ако локацията я няма в системата я записваме
 		    	crm_Locations::save($newLocation);
@@ -663,7 +657,8 @@ class sales_Quotations extends core_Master
 
      	// заявка към детайлите
      	$query = sales_QuotationsDetails::getQuery();
-     	// точно на тази фактура детайлите търсим
+     	
+     	// точно на тази оферта детайлите търсим
      	$query->where("#quotationId  = '{$rec->id}'");
      	
 	        while ($recDetails = $query->fetch()){
@@ -683,7 +678,7 @@ class sales_Quotations extends core_Master
      */
     static function getRecTitle($rec, $escaped = TRUE)
     {
-        $rec = (is_object($rec)) ? $rec : static::fetch($rec);
+        $rec = static::fetchRec($rec);
     	
     	return tr("|Оферта|* №{$rec->id}");
     }
@@ -708,7 +703,7 @@ class sales_Quotations extends core_Master
     	if(!$sId = Request::get('dealId', 'key(mvc=sales_Sales)')){
     		
     		// Подготвяме данните на мастъра на генерираната продажба
-    		$fields = array('currencyId'         => $rec->currencyId,
+    		$fields = array('currencyId' => $rec->currencyId,
     				'currencyRate'       => $rec->currencyRate,
     				'paymentMethodId'    => $rec->paymentMethodId,
     				'deliveryTermId'     => $rec->deliveryTermId,
