@@ -145,7 +145,7 @@ class crm_Locations extends core_Master {
     /**
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
-    static function on_AfterPrepareEditForm($mvc, &$res, $data)
+    protected static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         $rec = $data->form->rec;
         
@@ -171,7 +171,7 @@ class crm_Locations extends core_Master {
      /**
      * Изпълнява се след въвеждането на данните от заявката във формата
      */
-    static function on_AfterInputEditForm($mvc, $form)
+    protected static function on_AfterInputEditForm($mvc, $form)
     {
         $rec = $form->rec;
         if(!$rec->gpsCoords && $rec->image){
@@ -295,11 +295,11 @@ class crm_Locations extends core_Master {
     		
     		if(sales_Sales::haveRightFor('add')){
     			$folderId = cls::get($rec->contragentCls)->forceCoverAndFolder($rec->contragentId, FALSE);
-    			$data->toolbar->addBtn('Продажба', array('sales_Sales', 'add', 'folderId' => $folderId, 'deliveryLocationId' => $rec->id), 'ef_icon=img/16/view.png,target=_blank,title=Създаване на нова продажба към локацията');
+    			$data->toolbar->addBtn('Продажба', array('sales_Sales', 'add', 'folderId' => $folderId, 'deliveryLocationId' => $rec->id), 'ef_icon=img/16/view.png,target=_blank,title=Създаване на нова продажба');
     		}
     		
     		if(sales_Routes::haveRightFor('list')){
-    			$data->toolbar->addBtn('Маршрути', array('sales_Routes', 'list'), 'title=Към търговските маршрути');
+    			$data->toolbar->addBtn('Маршрути', array('sales_Routes', 'list'), 'ef_icon=img/16/view.png,title=Към търговските маршрути');
     		}
     	}
     }
@@ -492,7 +492,7 @@ class crm_Locations extends core_Master {
     /**
      * Рутинни действия, които трябва да се изпълнят в момента преди терминиране на скрипта
      */
-    static function on_Shutdown($mvc)
+    protected static function on_Shutdown($mvc)
     {
         if(!empty($mvc->updatedRecs)) {
             foreach((array)$mvc->updatedRecs as $id => $rec) {
