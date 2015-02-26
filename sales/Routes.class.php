@@ -31,9 +31,9 @@ class sales_Routes extends core_Manager {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт, locationId, salesmanId, dateFld, repeatWeeks, state, createdOn, createdBy';
+    var $listFields = 'contragent=Клиент,locationId,salesmanId,dateFld=Посещения->Начало,repeatWeeks=Посещения->Период,nextVisit=Посещения->Следващо,tools=Пулт';
     
-	
+    
 	/**
 	 * Брой рецепти на страница
 	 */
@@ -101,11 +101,25 @@ class sales_Routes extends core_Manager {
      */
     function description()
     {
-    	$this->FLD('locationId', 'key(mvc=crm_Locations, select=title)', 'caption=Локация,mandatory,silent');
-    	$this->FLD('salesmanId', 'user(roles=sales)', 'caption=Търговец,mandatory');
+    	$this->FLD('locationId', 'key(mvc=crm_Locations, select=title,allowEmpty)', 'caption=Локация,mandatory,silent');
+    	$this->FLD('salesmanId', 'user(roles=sales,select=nick)', 'caption=Търговец,mandatory');
     	$this->FLD('dateFld', 'date', 'caption=Посещения->Дата,hint=Кога е първото посещение,mandatory');
     	$this->FLD('repeatWeeks', 'int', 'caption=Посещения->Период, unit=седмици, hint=На колко седмици се повтаря посещението');
+    	$this->FNC('nextVisit', 'date(format=d.m.Y D)', 'caption=Посещения->Следващо');
     	$this->FLD('state','enum(active=Активен, rejected=Оттеглен)','caption=Статус,input=none,value=active');
+    }
+    
+    
+    /**
+     * Изчисление на следващото посещение ако може
+     */
+    protected static function on_CalcNextVisit(core_Mvc $mvc, $rec) 
+    {
+    	if (empty($rec->dateFld)) return;
+    	
+    	if($next = $mvc->getNextVisit($rec)){
+    		$rec->nextVisit = $next;
+    	}
     }
     
     
@@ -252,13 +266,26 @@ class sales_Routes extends core_Manager {
 	/**
      * След преобразуване на записа в четим за хора вид.
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {   
     	$locIcon = sbf("img/16/location_pin.png");
     	$row->locationId = ht::createLink($row->locationId, array('crm_Locations', 'single', $rec->locationId, 'ret_url' => TRUE), NULL, array('style' => "background-image:url({$locIcon})", 'class' => 'linkWithIcon'));
     	$locationState = crm_Locations::fetchField($rec->locationId, 'state');
     	if ($locationState == 'rejected' || $rec->state == 'rejected') {
     		$row->ROW_ATTR['class'] .= ' state-rejected';
+    	}
+    	
+    	$locationRec = crm_Locations::fetch($rec->locationId);
+    	$folderId = cls::get($locationRec->contragentCls)->forceCoverAndFolder($locationRec->contragentId, FALSE);
+    	
+    	$row->contragent = cls::get($locationRec->contragentCls)->getHyperLink($locationRec->contragentId); 
+    	if(sales_Sales::haveRightFor('add')){
+    		$row->btn = ht::createBtn('ПР', array('sales_Sales', 'add', 'folderId' => $folderId, 'deliveryLocationId' => $rec->locationId), FALSE, FALSE, 'ef_icon=img/16/view.png,title=Създаване на нова продажба към локацията');
+    		$row->contragent .= " {$row->btn}";
+    	}
+    	
+    	if ($rec->state == 'rejected') {
+    		unset($row->nextVisit);
     	}
     }
     
@@ -284,22 +311,12 @@ class sales_Routes extends core_Manager {
     	
     	$results = array();
      	while ($rec = $query->fetch()) {
-            $data->masterData->row->haveRoutes = TRUE;
-            
-            $row = static::recToVerbal($rec,'id,salesmanId,tools,-list');
-
-    		if ($data->masterData->rec->state != 'rejected') {
-                $nextVisit = $this->calcNextVisit($rec);
-    			if($nextVisit === FALSE) continue;
-                $row->nextVisit = dt::mysql2verbal($nextVisit, "d.m.Y D");
-                $row->ordeDate = $nextVisit;
-     		}
-
-    		$data->rows[$rec->id] = $row;
+            if(!isset($rec->nextVisit)) continue;
+			$data->rows[$rec->id] = static::recToVerbal($rec);
     	}
 
         if(is_array($data->rows) && count($data->rows) > 1) {
-            arr::order($data->rows, 'ordeDate');
+            arr::order($data->rows, 'nextVisit');
         }
     		
     	if ($this->haveRightFor('add', (object)(array('locationId' => $data->masterData->rec->id)))) {
@@ -314,11 +331,11 @@ class sales_Routes extends core_Manager {
      * @param stdClass $rec - запис от модела
      * @return string $date - вербално име на следващата дата
      */
-    public function calcNextVisit($rec)
+    public function getNextVisit($rec)
     {
     	$nowTs = dt::mysql2timestamp(dt::now());
     	$interval = 24 * 60 * 60 * 7;
-
+		
     	if (!$rec->dateFld) return FALSE;
 
     	$startTs = dt::mysql2timestamp($rec->dateFld);
@@ -328,7 +345,7 @@ class sales_Routes extends core_Manager {
     	} else {
     		if (!$rec->repeatWeeks) {
                 if ($rec->dateFld == date('Y-m-d')) {
-                    return dt::mysql2verbal($rec->dateFld, "d.m.Y D");
+                    return $rec->dateFld;
                 } else {
     			    return FALSE;
                 }
