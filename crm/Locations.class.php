@@ -547,7 +547,7 @@ class crm_Locations extends core_Master {
         $form->FLD('address', 'varchar(255)', 'caption=Локация->Адрес,class=contactData');
         
         // Информация за търговския маршрут
-        $form->FLD('salesmanId', 'user(roles=sales,select=nick)', 'caption=Маршрут->Търговец,mandatory');
+        $form->FLD('salesmanId', 'user(roles=sales|ceo,select=nick)', 'caption=Маршрут->Търговец,mandatory');
         $form->FLD('dateFld', 'date', 'caption=Маршрут->Начало,hint=Кога е първото посещение,mandatory');
         $form->FLD('repeatWeeks', 'int', 'caption=Маршрут->Период, unit=седмици, hint=На колко седмици се повтаря посещението');
         
