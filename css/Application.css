@@ -1345,81 +1345,69 @@ table.mc-calendar {
 
 table.mc-header a {
   color: #999999; }
-/*край на стилове за селекта на календара в портала*/ 
-
-  
-/*стилове за селекта на календара в портала*/
-:root .metro-dropdown-portal option,
-:root .metro-dropdown-portal:after,
-:root .metro-dropdown-portal::after,
-:root .metro-dropdown-portal select
-{
-    color: #999;
-    box-shadow: none;
-    &:focus {
-        outline: none;
-        box-shadow: none;
-    }
-}
- 
-:root .metro-dropdown-portal select,
-:root .metro-dropdown-portal:after,
-:root .metro-dropdown-portal::after
-{
-    display: block;
-    background: #f8fff8;
-}
- 
-:root .metro-dropdown-portal select,
-:root .metro-dropdown-portal option
-{
-    padding: 4px;
-    
-}
- 
-:root .metro-dropdown-portal
-{
-    position: relative;
-    display: inline-block;
-    border: 0 none;
-    top: -8px;
-}
- 
-:root .metro-dropdown-portal::after
-{
-    content: "\25bc";
-    position: absolute;
-    top: 0;
-    right: 0px;
-    display: block;
-    width: 20px;
-    font-size: 1em;
-    line-height: 34px;
-    text-align: center;
-     
-    -webkit-pointer-events: none;
-    -moz-pointer-events: none;
-    pointer-events: none;
-}
- 
-:root .metro-dropdown-portal select
-{
-   height: 34px;
-   border: 0;
-   vertical-align: middle;
-   font: normal 1em Helvetica,Arial,Verdana,sans-serif;
-   outline: 0 none;
-}
- 
-:root .metro-dropdown-portal option
-{
-    background: #fff;
-    color: #999;
-}
-
 
 /*
  * край на стиловете за календара в портала
+ */
+/*
+ * стилове за селекта на календара в портала
+ */
+:root .metro-dropdown-portal option,
+:root .metro-dropdown-portal:after,
+:root .metro-dropdown-portal::after,
+:root .metro-dropdown-portal select {
+  color: #999999;
+  box-shadow: none; }
+  :root .metro-dropdown-portal option:focus,
+  :root .metro-dropdown-portal:after:focus,
+  :root .metro-dropdown-portal::after:focus,
+  :root .metro-dropdown-portal select:focus {
+    outline: none;
+    box-shadow: none; }
+
+:root .metro-dropdown-portal select,
+:root .metro-dropdown-portal:after,
+:root .metro-dropdown-portal::after {
+  display: block;
+  background: #f8fff8; }
+
+:root .metro-dropdown-portal select,
+:root .metro-dropdown-portal option {
+  padding: 4px; }
+
+:root .metro-dropdown-portal {
+  position: relative;
+  display: inline-block;
+  border: 0 none;
+  top: -8px; }
+
+:root .metro-dropdown-portal::after {
+  content: "\25bc";
+  position: absolute;
+  top: 0;
+  right: 0px;
+  display: block;
+  width: 20px;
+  font-size: 1em;
+  line-height: 34px;
+  text-align: center;
+  -webkit-pointer-events: none;
+  -moz-pointer-events: none;
+  pointer-events: none; }
+
+:root .metro-dropdown-portal select {
+  height: 34px;
+  border: 0;
+  vertical-align: middle;
+  font: normal 1em Helvetica, Arial, Verdana, sans-serif;
+  outline: 0 none; }
+
+:root .metro-dropdown-portal option {
+  background: white;
+  color: #999999; }
+
+/*
+ * край на стилове за селекта на календара в портала
  */
 /*
  * Стилове за счетоводството
