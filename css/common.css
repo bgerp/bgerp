@@ -1533,6 +1533,10 @@ table.keylist {
       height: 1.6em !important; }
     table.keylist .inner-keylist td {
       padding: 0.2em 0.1em 0.1em 0.1em; }
+  table.keylist.shrinked:not(.keylist-wide) {
+    width: auto !important; }
+    table.keylist.shrinked:not(.keylist-wide) td {
+      padding-right: 20px; }
 
 .narrow table.keylist td {
   font-size: 0.9em;
