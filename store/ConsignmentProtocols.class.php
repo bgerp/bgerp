@@ -36,7 +36,7 @@ class store_ConsignmentProtocols extends core_Master
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf, store_iface_DocumentIntf, bgerp_DealIntf, acc_TransactionSourceIntf=store_transaction_ConsignmentProtocol';
+    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf, store_iface_DocumentIntf, acc_TransactionSourceIntf=store_transaction_ConsignmentProtocol';
     
     
     /**
@@ -143,7 +143,7 @@ class store_ConsignmentProtocols extends core_Master
     {
     	$this->FLD('valior', 'date', 'caption=Дата, mandatory');
     	$this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Клиент');
-    	$this->FLD('contragentId', 'int', 'input=hidden');
+    	$this->FLD('contragentId', 'int', 'input=hidden,tdClass=leftCol');
     	
     	$this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code,allowEmpty)', 'mandatory,caption=Плащане->Валута');
     	$this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=От склад, mandatory');
@@ -228,6 +228,11 @@ class store_ConsignmentProtocols extends core_Master
      */
     public static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
+    	// Ако потребителя няма достъп към визитката на лицето, или не може да види сч. справки то визитката, той не може да види справката
+    	$Contragent = cls::get($data->rec->contragentClassId);
+    	if(!$Contragent->haveRightFor('single', $rec->contragentId)) return;
+    	if(!haveRole($Contragent->canReports)) return;
+    	
     	$snapshot = $data->rec->snapshot;
     	
     	$mvcTable = new core_Mvc;
@@ -235,6 +240,7 @@ class store_ConsignmentProtocols extends core_Master
     	 
     	$table = cls::get('core_TableView', array('mvc' => $mvcTable));
     	$details = $table->get($snapshot->rows, 'count=№,productId=Артикул,blQuantity=К-во');
+    	
     	
     	$tpl->replace($details, 'SNAPSHOT');
     	$tpl->replace($snapshot->date, 'SNAPSHOT_DATE');
@@ -276,7 +282,8 @@ class store_ConsignmentProtocols extends core_Master
     		// Подготвяме записите за показване
     		foreach ($Balance as $b){
     			if($b['accountId'] != $accId) continue;
-    		
+    			if($b['blQuantity'] == 0) continue;
+    			
     			$row = new stdClass;
     			$row->count = $Int->toVerbal($count);
     			$row->productId = acc_Items::getVerbal($b['ent2Id'], 'titleLink');
@@ -289,11 +296,9 @@ class store_ConsignmentProtocols extends core_Master
     			$rows[] = $row;
     		}
     	}
-        
-    	$Datetime = cls::get('type_DateTime', array('params' => array('format' => 'smartTime')));
     	
     	// Връщаме подготвените записи, и датата към която са подготвени
-        return (object)array('rows' => $rows, 'date' => $Datetime->toVerbal($date));
+        return (object)array('rows' => $rows, 'date' => cls::get('type_DateTime')->toVerbal($date));
     }
     
     

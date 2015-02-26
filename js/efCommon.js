@@ -56,6 +56,7 @@ function showTooltip(){
 };
 
 
+
 // Функция за лесно селектиране на елементи
 function get$() {
     var elements = new Array();

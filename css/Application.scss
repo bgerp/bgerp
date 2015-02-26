@@ -1130,6 +1130,19 @@ td.portal-date {
 		height: 20px;
 	}
 }
+
+.snapshot {
+	margin-top: 10px;
+    padding: 10px;
+    background: rgba(255,255,210,0.3);
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    .snapshat-title {
+        font-weight: bold; 
+        padding-bottom: 7px;
+    }
+}
+
 .stamp{
 	color: #b00;
 	border: 1px dotted #b00;
@@ -1533,72 +1546,89 @@ table.mc-header a {
 
 
 /*стилове за селекта на календара в портала*/
-:root .metro-dropdown-portal option,
-:root .metro-dropdown-portal:after,
-:root .metro-dropdown-portal::after,
-:root .metro-dropdown-portal select
+.metro-dropdown-portal option,
+.metro-dropdown-portal:after,
+.metro-dropdown-portal::after,
+.metro-dropdown-portal select
 {
-    color: #999;
+    color: #000;
     box-shadow: none;
+    
     &:focus {
         outline: none;
         box-shadow: none;
     }
 }
  
-:root .metro-dropdown-portal select,
-:root .metro-dropdown-portal:after,
-:root .metro-dropdown-portal::after
+.metro-dropdown-portal select,
+.metro-dropdown-portal:after,
+.metro-dropdown-portal::after
 {
     display: block;
     background: #f8fff8;
+   
 }
  
-:root .metro-dropdown-portal select,
-:root .metro-dropdown-portal option
+.metro-dropdown-portal select,
+.metro-dropdown-portal option
 {
     padding: 4px;
     
 }
- 
-:root .metro-dropdown-portal
+
+.metro-dropdown-portal
 {
     position: relative;
     display: inline-block;
     border: 0 none;
     top: -8px;
+    //text-align: right;
 }
  
-:root .metro-dropdown-portal::after
+.metro-dropdown-portal::after
 {
     content: "\25bc";
     position: absolute;
     top: 0;
     right: 0px;
     display: block;
-    width: 20px;
+    width: 29px;
     font-size: 1em;
     line-height: 34px;
-    text-align: center;
+    left: 100px;
      
     -webkit-pointer-events: none;
     -moz-pointer-events: none;
-    pointer-events: none;
+    
+     pointer-events: none;
+    
 }
+
+@-moz-document url-prefix(){
+	.metro-dropdown-portal::after
+	{
+	   width: 20px;
+	   left: 112px;
+	}
+}
+
+
  
-:root .metro-dropdown-portal select
+.metro-dropdown-portal select
 {
    height: 34px;
    border: 0;
    vertical-align: middle;
    font: normal 1em Helvetica,Arial,Verdana,sans-serif;
    outline: 0 none;
+   text-align: right;
 }
  
-:root .metro-dropdown-portal option
+.metro-dropdown-portal option
 {
     background: #fff;
-    color: #999;
+    color: #000;
+    text-align: left;
 }
 /*край на стилове за селекта на календара в портала*/ 
 

@@ -11,7 +11,7 @@
     [#innerState#]
     <!--ET_BEGIN groups-->
     <fieldset class="detail-info">
-         <legend class="groupTitle">|Категории|*</legend>
+         <legend class="groupTitle">|Маркери|*</legend>
          <div class="groupList">
               [#groups#]
          </div>

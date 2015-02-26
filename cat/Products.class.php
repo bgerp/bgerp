@@ -285,12 +285,6 @@ class cat_Products extends core_Embedder {
 					$Driver = $mvc->getDriver($form->rec);
 					$defMetas = $Driver->getDefaultMetas($defMetas);
 					
-					if($form->rec->meta){
-						$meta = arr::make($form->rec->meta);
-						$defMetas = array_intersect($meta, $defMetas);
-					}
-					
-					$form->getFieldType('meta')->setDisabled($defMetas);
 					$form->setDefault('meta', $form->getFieldType('meta')->fromVerbal($defMetas));
 				}
 				
@@ -477,7 +471,7 @@ class cat_Products extends core_Embedder {
             'caption=Подредба,input,silent,remember');
 
         $data->listFilter->FNC('groupId', 'key(mvc=cat_Groups,select=name,allowEmpty)',
-            'placeholder=Всички групи,caption=Група,input,silent,remember');
+            'placeholder=Всички,caption=Група,input,silent,remember');
 		
         $data->listFilter->FNC('meta1', 'enum(all=Свойства,
         						canSell=Продаваеми,
@@ -510,11 +504,11 @@ class cat_Products extends core_Embedder {
         }
         
         if ($data->listFilter->rec->groupId) {
-            $data->query->where("#groups LIKE '%|{$data->listFilter->rec->groupId}|%'");
+        	$data->query->like("groups", keylist::addKey('', $data->listFilter->rec->groupId));
         }
         
         if ($data->listFilter->rec->meta1 && $data->listFilter->rec->meta1 != 'all') {
-        	$data->query->like('meta', "%{$data->listFilter->rec->meta1}%");
+        	$data->query->like("meta", $data->listFilter->rec->meta1);
         }
     }
 
@@ -593,7 +587,7 @@ class cat_Products extends core_Embedder {
 	 * 	     meta['canConvert']     - дали може да се влага
 	 * 	     meta['canStore']       - дали може да се съхранява
 	 * 	     meta['canManifacture'] - дали може да се прозивежда
-	 * 	     meta['fixedAsset']     - дали е ДМА
+	 * 	     meta['fixedAsset']     - дали е ДА
 	 * 		 meta['waste]			- дали е отпаден
      * 	-> packagingRec - записа на опаковката, ако е зададена
      * 	-> packagings - всички опаковки на продукта, ако не е зададена
@@ -965,34 +959,6 @@ class cat_Products extends core_Embedder {
     	}
     	
     	return $volume;
-    }
-    
-    
-    /**
-     * Предефиниране на метода getTitleById
-     * 
-     * @param int $id - ид на продукт
-     * @param boolean $escaped - дали да е ескейпнато
-     * @param string(2) $lang - език
-     * @return string $title - заглавието на продукта, ако има параметър за име на
-     * зададения език, връща него.
-     */
-    public static function getTitleById($id, $escaped = TRUE, $full = FALSE, $lang = 'bg')
-    {
-     	// Ако езика е различен от българския
-    	if($lang != 'bg'){
-     		
-    		// Проверяваме имали сетнат параметър "title<LG>" за името на продукта
-     		//$paramSysId = "title" . strtoupper($lang);
-     		//$Driver = cls::get(get_called_class())->getDriver($id);
-     		//$title = $Driver->getParamValue($paramSysId);
-     		
-     		// ако има се връща
-     		//if($title) return $title;
-     	}
-     	
-     	// Ако няма зададено заглавие за този език, връща дефолтното
-     	return parent::getTitleById($id, $escaped);
     }
     
     

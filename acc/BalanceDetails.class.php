@@ -799,7 +799,11 @@ class acc_BalanceDetails extends core_Detail
         $query = $this->getQuery();
        
         static::filterQuery($query, $balanceId, $accs, $itemsAll, $items1, $items2, $items3);
-        $query->where('#blQuantity != 0 OR #blAmount != 0');
+        
+        // Да се пропускат записите с нулево крайно салдо, при зареждането на не-междинен баланс
+        if(!$isMiddleBalance){
+        	$query->where('#blQuantity != 0 OR #blAmount != 0');
+        }
         
         while ($rec = $query->fetch()) {
             $accId = $rec->accountId;
