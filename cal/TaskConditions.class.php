@@ -47,7 +47,7 @@ class cal_TaskConditions extends core_Detail
     var $listFields = 'createdOn,createdBy,message,progress,workingTime';
     
     
-    var $rowToolsField = 'condition';
+    var $rowToolsField = 'tool';
     
     
     /**
@@ -197,7 +197,7 @@ class cal_TaskConditions extends core_Detail
     		$row->progress = "";
     	}
 
-        $row->condition = '<span style="margin-right:5px;position:relative;top:3px;">' . $row->condition . '</span>';
+        $row->condition = '<td style="width:1%">' . $row->tool . '<td>'  . $row->condition ;
     	 
     	if ($rec->activationCond == 'onProgress') {
     		$row->condition .= $row->progress . tr(" от изпълнението на ") . ht::createLink($row->dependId, array('cal_Tasks', 'single', $rec->dependId, 'ret_url' => TRUE, ''), NULL, "ef_icon=img/16/task-normal.png");
@@ -206,7 +206,7 @@ class cal_TaskConditions extends core_Detail
     	if ($rec->activationCond == 'afterTime') {
     		$row->condition .= $row->distTime . tr(" след началото на ") . ht::createLink($row->dependId, array('cal_Tasks', 'single', $rec->dependId, 'ret_url' => TRUE, ''), NULL, "ef_icon=img/16/task-normal.png");
     	}
-    	//bp($row->condition);
+    	
     	if ($rec->activationCond == 'beforeTime') {
     		$row->condition .= $row->distTime . tr(" преди началото на ") . ht::createLink($row->dependId, array('cal_Tasks', 'single', $rec->dependId, 'ret_url' => TRUE, ''), NULL, "ef_icon=img/16/task-normal.png");
     	}
