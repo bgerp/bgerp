@@ -551,7 +551,7 @@ class crm_Locations extends core_Master {
         $form->FLD('dateFld', 'date', 'caption=Маршрут->Начало,hint=Кога е първото посещение,mandatory');
         $form->FLD('repeatWeeks', 'int', 'caption=Маршрут->Период, unit=седмици, hint=На колко седмици се повтаря посещението');
         
-        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png, title = Запис на документа');
+        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png, title = Запис на търговския обект');
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
         
         $form->setDefault('country', crm_Companies::fetchOwnCompany()->countryId);
@@ -575,13 +575,13 @@ class crm_Locations extends core_Master {
         			
         			// Създаваме локацията към фирмата
         			$locationId = crm_Locations::save((object)array('title' => $rec->title,
-        					'countryId' => $rec->country, 
-        					'type' => $rec->type,
-        					'place' => $rec->place,
-        					'pCode' => $rec->pCode,
-        					'contragentCls' => crm_Companies::getClassId(),
-        					'contragentId' => $companyId,
-        					'address' => $rec->address));
+        															'countryId' => $rec->country, 
+										        					'type' => $rec->type,
+										        					'place' => $rec->place,
+										        					'pCode' => $rec->pCode,
+										        					'contragentCls' => crm_Companies::getClassId(),
+										        					'contragentId' => $companyId,
+										        					'address' => $rec->address));
         			
         			if($locationId){
         				

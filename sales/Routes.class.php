@@ -48,8 +48,7 @@ class sales_Routes extends core_Manager {
     
     
     /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от 
-     * таблицата.
+     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата.
      */
     public $rowToolsField = 'tools';
 
@@ -105,6 +104,8 @@ class sales_Routes extends core_Manager {
     	$this->FLD('salesmanId', 'user(roles=sales,select=nick)', 'caption=Търговец,mandatory');
     	$this->FLD('dateFld', 'date', 'caption=Посещения->Дата,hint=Кога е първото посещение,mandatory');
     	$this->FLD('repeatWeeks', 'int(Min=0)', 'caption=Посещения->Период, unit=седмици, hint=На колко седмици се повтаря посещението');
+    	
+    	// Изчислимо поле за кога е следващото посещение
     	$this->FNC('nextVisit', 'date(format=d.m.Y D)', 'caption=Посещения->Следващо');
     }
     
@@ -357,8 +358,10 @@ class sales_Routes extends core_Manager {
     	} else {
     		if (!$rec->repeatWeeks) {
                 if ($rec->dateFld == date('Y-m-d')) {
+                	
                     return $rec->dateFld;
                 } else {
+                	
     			    return FALSE;
                 }
     		}
