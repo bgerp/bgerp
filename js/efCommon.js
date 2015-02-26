@@ -1231,11 +1231,6 @@ function setMinHeight() {
             pw.style.minHeight = h;
         }
     }
-    $('select').change(function(){
-	   
-	    $("#width_tmp").html($('.portal-select option:selected').text());	
-	    $(this).width($("#width_tmp").width() + 20); // 30 : the size of the down arrow of the select box
-    });
 }
 
 
