@@ -3,7 +3,7 @@
 
 
 /**
- * Модел  Търговски маршрути
+ * Модел  за търговски маршрути
  *
  *
  * @category  bgerp
@@ -19,81 +19,81 @@ class sales_Routes extends core_Manager {
     /**
      * Заглавие
      */
-    var $title = 'Търговски маршрути';
+    public $title = 'Търговски маршрути';
     
     
     /**
      * Заглавие
      */
-    var $singleTitle = 'Търговски маршрут';
+    public $singleTitle = 'Търговски маршрут';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'contragent=Клиент,locationId,salesmanId,dateFld=Посещения->Начало,repeatWeeks=Посещения->Период,nextVisit=Посещения->Следващо,tools=Пулт,state';
+    public $listFields = 'id,contragent=Клиент,locationId,salesmanId,dateFld=Посещения->Начало,repeatWeeks=Посещения->Период,nextVisit=Посещения->Следващо,tools=Пулт,state';
     
     
 	/**
 	 * Брой рецепти на страница
 	 */
-	var $listItemsPerPage = '30';
+	public $listItemsPerPage = '30';
 	
 	
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, sales_Wrapper, plg_Created,
-    	 plg_Printing, bgerp_plg_Blank, plg_Sorting, plg_State2';
+    public $loadList = 'plg_RowTools, sales_Wrapper, plg_Created,
+    	 plg_Printing, bgerp_plg_Blank, plg_Sorting, plg_State2, plg_Search';
     
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от 
      * таблицата.
      */
-    var $rowToolsField = 'tools';
+    public $rowToolsField = 'tools';
 
     
     /**
      * Кой може да чете
      */
-    var $canRead = 'sales,ceo';
+    public $canRead = 'sales,ceo';
     
     
     /**
      * Кой може да пише
      */
-    var $canWrite = 'sales,ceo';
+    public $canWrite = 'sales,ceo';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'ceo,sales';
+	public $canList = 'ceo,sales';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'ceo,sales';
+	public $canSingle = 'ceo,sales';
     
     
     /**
      * Кой може да пише
      */
-    var $canAdd = 'sales,ceo';
+    public $canAdd = 'sales,ceo';
     
     
     /**
-     * Кой може да изтрива
+     * Кой може да пише
      */
-    var $canDelete = 'no_one';
+    public $canDelete = 'no_one';
     
     
     /**
-     * Кой може да оттегля
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $canReject = 'sales,ceo';
+    public $searchFields = 'locationId,salesmanId';
     
     
     /**
@@ -104,8 +104,19 @@ class sales_Routes extends core_Manager {
     	$this->FLD('locationId', 'key(mvc=crm_Locations, select=title,allowEmpty)', 'caption=Локация,mandatory,silent');
     	$this->FLD('salesmanId', 'user(roles=sales,select=nick)', 'caption=Търговец,mandatory');
     	$this->FLD('dateFld', 'date', 'caption=Посещения->Дата,hint=Кога е първото посещение,mandatory');
-    	$this->FLD('repeatWeeks', 'int', 'caption=Посещения->Период, unit=седмици, hint=На колко седмици се повтаря посещението');
+    	$this->FLD('repeatWeeks', 'int(Min=0)', 'caption=Посещения->Период, unit=седмици, hint=На колко седмици се повтаря посещението');
     	$this->FNC('nextVisit', 'date(format=d.m.Y D)', 'caption=Посещения->Следващо');
+    }
+    
+    
+    /**
+     * Добавя ключови думи за пълнотекстово търсене
+     */
+    protected static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+    {
+    	// Добавяме името на контрагента към ключовите дум
+    	$locRec = crm_Locations::fetch($rec->locationId);
+    	$res .= " " . plg_Search::normalizeText(cls::get($locRec->contragentCls)->getVerbal($locRec->contragentId, 'name'));
     }
     
     
@@ -125,9 +136,11 @@ class sales_Routes extends core_Manager {
     /**
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
-    static function on_AfterPrepareEditForm($mvc, &$res, $data)
+    protected static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         $form = &$data->form;
+        $form->setDefault('dateFld', dt::today());
+        
         $form->setOptions('locationId', $mvc->getLocationOptions($form->rec));
         $form->setDefault('salesmanId', $mvc->getDefaultSalesman($form->rec));
     }
@@ -144,17 +157,19 @@ class sales_Routes extends core_Manager {
     	$options = array();
     	$varchar = cls::get("type_Varchar");
     	$locQuery = crm_Locations::getQuery();
-    	$locQuery->where("#state = 'active'");
+    	$locQuery->where("#state != 'rejected'");
     	if ($locId = Request::get('locationId', 'int')) {
     		$locQuery->where("#id = {$locId}");
     	}	
     	
     	while ($locRec = $locQuery->fetch()) {
         	$locRec = crm_Locations::fetch($locRec->id);
-        	$contragentCls = cls::get($locRec->contragentCls);
-        	$contagentName =  $contragentCls->fetchField($locRec->contragentId, 'name');
-        	$lockName = $varchar->toVerbal($locRec->title) . " « " . $varchar->toVerbal($contagentName);
-        	$options[$locRec->id] = $lockName;
+        	if(cls::load($locRec->contragentCls, TRUE)){
+        		$contragentCls = cls::get($locRec->contragentCls);
+        		$contagentName =  $contragentCls->fetchField($locRec->contragentId, 'name');
+        		$lockName = $varchar->toVerbal($locRec->title) . " « " . $varchar->toVerbal($contagentName);
+        		$options[$locRec->id] = $lockName;
+        	}
         }
         
         return $options;	
@@ -229,14 +244,14 @@ class sales_Routes extends core_Manager {
 	/**
 	 *  Подготовка на филтър формата
 	 */
-	static function on_AfterPrepareListFilter($mvc, $data)
+	protected static function on_AfterPrepareListFilter($mvc, $data)
 	{
 		$data->listFilter->view = 'horizontal';
 		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
 		$data->listFilter->FNC('user', 'user(roles=sales,allowEmpty)', 'input,caption=Търговец,placeholder=Потребител,silent');
         $data->listFilter->FNC('date', 'date', 'input,caption=Дата,silent');
 
-        $data->listFilter->showFields = 'user, date';
+        $data->listFilter->showFields = 'search,user, date';
 		
         $data->listFilter->input();
 		
@@ -279,7 +294,7 @@ class sales_Routes extends core_Manager {
     		if(sales_Sales::haveRightFor('add')){
     			$folderId = cls::get($locationRec->contragentCls)->forceCoverAndFolder($locationRec->contragentId, FALSE);
     			$row->btn = ht::createBtn('ПР', array('sales_Sales', 'add', 'folderId' => $folderId, 'deliveryLocationId' => $rec->locationId), FALSE, FALSE, 'ef_icon=img/16/view.png,title=Създаване на нова продажба към локацията');
-    			$row->contragent .= " {$row->btn}";
+    			$row->contragent = "{$row->btn} " . $row->contragent;
     		}
     	} else {
     		unset($row->nextVisit);
@@ -299,7 +314,7 @@ class sales_Routes extends core_Manager {
     /**
      * Подготовка на маршрутите, показвани в Single-a на локациите
      */
-    function prepareRoutes($data)
+    public function prepareRoutes($data)
     {
     	// Подготвяме маршрутите ако има налични за тази локация
     	$query = $this->getQuery();
@@ -361,7 +376,7 @@ class sales_Routes extends core_Manager {
 	/**
      * Рендираме информацията за маршрутите
      */
-	function renderRoutes($data)
+	public function renderRoutes($data)
     {
     	$tpl = getTplFromFile("sales/tpl/SingleLayoutRoutes.shtml");
     	$title = $this->title;
@@ -384,7 +399,7 @@ class sales_Routes extends core_Manager {
     /**
      * Модификация на ролите
      */
-    static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    protected static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
 	{
 		if ($action == 'edit' && $rec->id) {
 			if ($rec->state != 'active') {
