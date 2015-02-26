@@ -92,14 +92,14 @@ class select2_Setup extends core_ProtoSetup {
         $Plugins = cls::get('core_Plugins');
         
         // Инсталираме
-        $html .= $Plugins->forcePlugin('Select2 за keylist', 'select2_Plugin', 'type_Keylist', 'private');
-        $html .= $Plugins->forcePlugin('Select2 за Accounts', 'select2_Plugin', 'acc_type_Accounts', 'private');
-        $html .= $Plugins->forcePlugin('Select2 за usersList', 'select2_Plugin', 'type_UserList', 'private');
+        $html .= $Plugins->forcePlugin('Select2 за тип Keylist', 'select2_Plugin', 'type_Keylist', 'private');
+        $html .= $Plugins->forcePlugin('Select2 за тип Accounts', 'select2_Plugin', 'acc_type_Accounts', 'private');
+        $html .= $Plugins->forcePlugin('Select2 за тип UsersList', 'select2_Plugin', 'type_UserList', 'private');
         
-        $html .= $Plugins->forcePlugin('Select2 за key', 'select2_PluginSelect', 'type_Key', 'private');
-        $html .= $Plugins->forcePlugin('Select2 за user', 'select2_PluginSelect', 'type_User', 'private');
-        $html .= $Plugins->forcePlugin('Select2 за item', 'select2_PluginSelect', 'acc_type_Item', 'private');
-        $html .= $Plugins->forcePlugin('Select2 за account', 'select2_PluginSelect', 'acc_type_Account', 'private');
+        $html .= $Plugins->forcePlugin('Select2 за тип Key', 'select2_PluginSelect', 'type_Key', 'private');
+        $html .= $Plugins->forcePlugin('Select2 за тип User', 'select2_PluginSelect', 'type_User', 'private');
+        $html .= $Plugins->forcePlugin('Select2 за тип Item', 'select2_PluginSelect', 'acc_type_Item', 'private');
+        $html .= $Plugins->forcePlugin('Select2 за тип Account', 'select2_PluginSelect', 'acc_type_Account', 'private');
         
         return $html;
     }
