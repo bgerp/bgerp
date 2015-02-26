@@ -10,7 +10,7 @@ defIfNot('SELECT2_VERSION', '4.0b3');
 /**
  * Минималния брой елементи, за които няма да сработи SELECT2 - за keylist
  */
-defIfNot('SELECT2_KEYLIST_MIN_ITEMS', 30);
+defIfNot('SELECT2_KEYLIST_MIN_ITEMS', 60);
 
 
 /**
