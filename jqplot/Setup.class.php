@@ -37,7 +37,7 @@ class jqplot_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-        'JQUERY_VERSION' => array ('enum(1.0.0r1012,1.0.8r1250)', 'caption=Версия на JQPlot->Версия'), 
+        'JQPLOT_VERSION' => array ('enum(1.0.0r1012,1.0.8r1250)', 'caption=Версия на JQPlot->Версия'), 
     );
     
 	
