@@ -182,31 +182,34 @@ class crm_Locations extends core_Master {
         		$rec->gpsCoords = $gps['lat'] . ", " . $gps['lon'];
         	}
         }
-        
-        if($form->isSubmitted()){
-        	if(empty($rec->title)){
-        		if(isset($rec->pCode) && isset($rec->place) && isset($rec->countryId)){
-        			$countryName = drdata_Countries::fetchField($rec->countryId, 'commonNameBg');
-        			
-        			$lQuery = crm_Locations::getQuery();
-        			$lQuery->where("#type = '{$rec->type}' AND #contragentCls = '{$rec->contragentCls}' AND #contragentId = '{$rec->contragentId}'");
-        			$lQuery->XPR('count', 'int', 'COUNT(#id)');
-        			$count = $lQuery->fetch()->count + 1;
-        			
-        			$rec->title = $mvc->getVerbal($rec, 'type') . " ({$count})";
-        		} else {
-        			$form->setError('title', 'Не е избрано име за локацията! Изберете име или посочете държава, град и код');
-        			$form->setField('title', 'mandatory');
-        		}
-        	}
-        }
+    }
+    
+    
+    /**
+     * Преди запис на документ, изчислява стойността на полето `isContable`
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $rec
+     */
+    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
+    {
+    	if(empty($rec->title)){
+    		$countryName = drdata_Countries::fetchField($rec->countryId, 'commonNameBg');
+    		 
+    		$lQuery = crm_Locations::getQuery();
+    		$lQuery->where("#type = '{$rec->type}' AND #contragentCls = '{$rec->contragentCls}' AND #contragentId = '{$rec->contragentId}'");
+    		$lQuery->XPR('count', 'int', 'COUNT(#id)');
+    		$count = $lQuery->fetch()->count + 1;
+    		 
+    		$rec->title = $mvc->getVerbal($rec, 'type') . " ({$count})";
+    	}
     }
     
     
     /**
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
-    static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
+    protected static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
         $cMvc = cls::get($rec->contragentCls);
         $field = $cMvc->rowToolsSingleField;
@@ -236,7 +239,7 @@ class crm_Locations extends core_Master {
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
-    static function on_AfterSave($mvc, &$id, $rec, $fields = NULL)
+    protected static function on_AfterSave($mvc, &$id, $rec, $fields = NULL)
     {
     	$mvc->routes->changeState($id);
     	
@@ -247,7 +250,7 @@ class crm_Locations extends core_Master {
     /**
      * Подготвя локациите на контрагента
      */
-    function prepareContragentLocations($data)
+    public function prepareContragentLocations($data)
     {
         expect($data->masterId);
         expect($data->contragentCls = core_Classes::getId($data->masterMvc));
@@ -274,7 +277,7 @@ class crm_Locations extends core_Master {
     /**
    	 * Обработка на ListToolbar-a
    	 */
-   	static function on_AfterPrepareSingleToolbar($mvc, &$data)
+   	protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
     	$rec = &$data->rec;
     	
@@ -305,7 +308,7 @@ class crm_Locations extends core_Master {
     /**
      * Рендира данните
      */
-    function renderContragentLocations($data)
+    public function renderContragentLocations($data)
     {
         $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
         
@@ -338,7 +341,7 @@ class crm_Locations extends core_Master {
     /**
      * След обработка на ролите
      */
-    static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         if($requiredRoles == 'no_one') return;
         
@@ -360,9 +363,8 @@ class crm_Locations extends core_Master {
     /**
      * Връща масив със собствените локации
      */
-    static function getOwnLocations()
+    public static function getOwnLocations()
     {
-        
         return static::getContragentOptions('crm_Companies', crm_Setup::BGERP_OWN_COMPANY_ID);
     }
 
@@ -498,5 +500,106 @@ class crm_Locations extends core_Master {
                 $mvc->updateNumbers($rec);
             }
         }
+    }
+
+
+    /**
+     * Извиква се след подготовката на toolbar-а за табличния изглед
+     */
+    protected static function on_AfterPrepareListToolbar($mvc, &$data)
+    {
+    	// За да може да се създава нов търговски обект, трябва потребителя да има права за нова продажба, локация и маршрут
+    	if(crm_Companies::haveRightFor('add') && crm_Locations::haveRightFor('add') && sales_Routes::haveRightFor('add')){
+    		$data->toolbar->addBtn('Нов търговски обект', array($mvc, 'newSaleObject', 'ret_url' => TRUE), 'ef_icon=img/16/star_2.png,title=Създаване на нов търговски обект');
+    	}
+    }
+    
+    
+    /**
+     * Екшън създаващ нова фирма с локация към нея и търговски маршрут
+     */
+    function act_NewSaleObject()
+    {
+    	crm_Companies::requireRightFor('add');
+    	crm_Locations::requireRightFor('add');
+    	sales_Routes::requireRightFor('add');
+    	
+    	$form = cls::get('core_Form');
+    	$form->title = "Добавяне на нов търговски обект";
+    	
+    	// Информация за фирмата
+    	$form->FLD('name', 'varchar(255,ci)', 'caption=Фирма->Име,class=contactData,mandatory,remember=info,silent');
+        $form->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Фирма->Държава,remember,class=contactData,mandatory');
+        $form->FLD('vatId', 'drdata_VatType', 'caption=Фирма->ДДС (VAT) №,class=contactData');
+        $form->FLD('uicId', 'varchar(26)', 'caption=Фирма->Национален №,class=contactData');
+    	
+        // Информация за локацията
+        $form->FLD('title', 'varchar', 'caption=Локация->Наименование');
+        $form->FLD('type', 'enum(correspondence=За кореспонденция,
+            headquoter=Главна квартира,
+            shipping=За получаване на пратки,
+            office=Офис,shop=Магазин,
+            storage=Склад,
+            factory=Фабрика,
+            other=Друг)', 'caption=Локация->Тип,mandatory');
+        $form->FLD('place', 'varchar(64)', 'caption=Локация->Град,class=contactData');
+        $form->FLD('pCode', 'varchar(16)', 'caption=Локация->П. код,class=contactData');
+        $form->FLD('address', 'varchar(255)', 'caption=Локация->Адрес,class=contactData');
+        
+        // Информация за търговския маршрут
+        $form->FLD('salesmanId', 'user(roles=sales,select=nick)', 'caption=Маршрут->Търговец,mandatory');
+        $form->FLD('dateFld', 'date', 'caption=Маршрут->Начало,hint=Кога е първото посещение,mandatory');
+        $form->FLD('repeatWeeks', 'int', 'caption=Маршрут->Период, unit=седмици, hint=На колко седмици се повтаря посещението');
+        
+        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png, title = Запис на документа');
+        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
+        
+        $form->setDefault('country', crm_Companies::fetchOwnCompany()->countryId);
+        $form->input();
+        
+        // Ако е събмитната формата
+        if($form->isSubmitted()){
+        	$rec = $form->rec;
+        	
+        	// Трябва името да е уникално
+        	if(crm_Companies::fetchField("#name = '{$rec->name}'")){
+        		$form->setError('name', 'Има фирма със същото име');
+        	}
+        	
+        	if(!$form->gotErrors()){
+        		
+        		// Създаваме първо фирмата
+        		$companyId = crm_Companies::save((object)array('name' => $rec->name, 'country' => $rec->country, 'vatId' => $rec->vatId, 'uicId' => $rec->uicId));
+        		
+        		if($companyId){
+        			
+        			// Създаваме локацията към фирмата
+        			$locationId = crm_Locations::save((object)array('title' => $rec->title,
+        					'countryId' => $rec->country, 
+        					'type' => $rec->type,
+        					'place' => $rec->place,
+        					'pCode' => $rec->pCode,
+        					'contragentCls' => crm_Companies::getClassId(),
+        					'contragentId' => $companyId,
+        					'address' => $rec->address));
+        			
+        			if($locationId){
+        				
+        				// Създаваме търговския маршрут към новосъздадената локация
+        				$routeId = sales_Routes::save((object)array('locationId' => $locationId, 'salesmanId' => $rec->salesmanId, 'dateFld' => $rec->dateFld, 'repeatWeeks' => $rec->repeatWeeks));
+        			
+        				return redirect(array('crm_Locations', 'single', $locationId), FALSE, 'Успешно е създаден търговския обект');
+        			} else {
+        				$form->setError('name', 'Има проблем при записа на локация');
+        			}
+        		} else {
+        			$form->setError('name', 'Има проблем при записа на фирма');
+        		}
+        	}
+        }
+        
+    	$tpl = $this->renderWrapping($form->renderHtml());
+    	
+    	return $tpl;
     }
 }
