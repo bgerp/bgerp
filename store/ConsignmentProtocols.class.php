@@ -228,6 +228,11 @@ class store_ConsignmentProtocols extends core_Master
      */
     public static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
+    	// Ако потребителя няма достъп към визитката на лицето, или не може да види сч. справки то визитката, той не може да види справката
+    	$Contragent = cls::get($data->rec->contragentClassId);
+    	if(!$Contragent->haveRightFor('single', $rec->contragentId)) return;
+    	if(!haveRole($Contragent->canReports)) return;
+    	
     	$snapshot = $data->rec->snapshot;
     	
     	$mvcTable = new core_Mvc;
@@ -235,6 +240,7 @@ class store_ConsignmentProtocols extends core_Master
     	 
     	$table = cls::get('core_TableView', array('mvc' => $mvcTable));
     	$details = $table->get($snapshot->rows, 'count=№,productId=Артикул,blQuantity=К-во');
+    	
     	
     	$tpl->replace($details, 'SNAPSHOT');
     	$tpl->replace($snapshot->date, 'SNAPSHOT_DATE');

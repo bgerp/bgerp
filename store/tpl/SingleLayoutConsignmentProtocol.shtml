@@ -109,10 +109,12 @@
                             </table>
                         </div>
                     </div>
+                    <!--ET_BEGIN SNAPSHOT-->
                     <div class="snapshot">
 	                    <div class='snapshot-title'>|Към дата|*: [#SNAPSHOT_DATE#]</div>
 	                    [#SNAPSHOT#]
                     </div>
+                    <!--ET_END SNAPSHOT-->
                     <!--ET_BEGIN DETAILS-->
                     <div class='details'>
                         [#DETAILS#]
