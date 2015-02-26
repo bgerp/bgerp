@@ -8,9 +8,15 @@ defIfNot('SELECT2_VERSION', '4.0b3');
 
 
 /**
- * Минималния брой елементи, за които няма да сработи SELECT2
+ * Минималния брой елементи, за които няма да сработи SELECT2 - за keylist
  */
 defIfNot('SELECT2_KEYLIST_MIN_ITEMS', 30);
+
+
+/**
+ * Минималния брой елементи, за които няма да сработи SELECT2 - за key
+ */
+defIfNot('SELECT2_KEY_MIN_ITEMS', 30);
 
 
 /**
@@ -57,7 +63,8 @@ class select2_Setup extends core_ProtoSetup {
     var $configDescription = array(
     
         // Минималния брой елементи, за които няма да сработи SELECT2
-        'SELECT2_MIN_ITEMS' => array ('int', 'caption=Минимален брой опции за да сработи Select2->Опции, suggestions=20|30|40|50|100'),
+        'SELECT2_KEYLIST_MIN_ITEMS' => array ('int', 'caption=Минимален брой опции за да сработи Select2->За keylist, suggestions=20|30|40|50|100'),
+        'SELECT2_KEY_MIN_ITEMS' => array ('int', 'caption=Минимален брой опции за да сработи Select2->За key, suggestions=20|30|40|50|100'),
         'SELECT2_VERSION' => array ('enum(4.0b3)', 'caption=Версия на Select2->Версия'),
     );
     
@@ -87,11 +94,12 @@ class select2_Setup extends core_ProtoSetup {
         // Инсталираме
         $html .= $Plugins->forcePlugin('Select2 за keylist', 'select2_Plugin', 'type_Keylist', 'private');
         $html .= $Plugins->forcePlugin('Select2 за Accounts', 'select2_Plugin', 'acc_type_Accounts', 'private');
-//        $html .= $Plugins->forcePlugin('Select2 за key', 'select2_PluginSelect', 'type_Key', 'private');
-//        $html .= $Plugins->forcePlugin('Select2 за user', 'select2_PluginSelect', 'type_User', 'private');
-//        $html .= $Plugins->forcePlugin('Select2 за users', 'select2_PluginSelect', 'type_Users', 'private');
-//        $html .= $Plugins->forcePlugin('Select2 за item', 'select2_PluginSelect', 'acc_type_Item', 'private');
-//        $html .= $Plugins->forcePlugin('Select2 за account', 'select2_PluginSelect', 'acc_type_Account', 'private');
+        $html .= $Plugins->forcePlugin('Select2 за users', 'select2_Plugin', 'type_UserList', 'private');
+        
+        $html .= $Plugins->forcePlugin('Select2 за key', 'select2_PluginSelect', 'type_Key', 'private');
+        $html .= $Plugins->forcePlugin('Select2 за user', 'select2_PluginSelect', 'type_User', 'private');
+        $html .= $Plugins->forcePlugin('Select2 за item', 'select2_PluginSelect', 'acc_type_Item', 'private');
+        $html .= $Plugins->forcePlugin('Select2 за account', 'select2_PluginSelect', 'acc_type_Account', 'private');
         
         return $html;
     }
