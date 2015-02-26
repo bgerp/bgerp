@@ -284,9 +284,20 @@ class crm_Locations extends core_Master {
     		$address = $rec->gpsCoords;
     	}
     	
-    	if($address && $rec->state != 'rejected'){
-    		$url = "https://maps.google.com/?daddr={$address}";
-    		$data->toolbar->addBtn('Навигация', $url,  NULL, 'ef_icon=img/16/compass.png,target=_blank');
+    	if($rec->state != 'rejected'){
+    		if($address){
+    			$url = "https://maps.google.com/?daddr={$address}";
+    			$data->toolbar->addBtn('Навигация', $url,  NULL, 'ef_icon=img/16/compass.png,target=_blank');
+    		}
+    		
+    		if(sales_Sales::haveRightFor('add')){
+    			$folderId = cls::get($rec->contragentCls)->forceCoverAndFolder($rec->contragentId, FALSE);
+    			$data->toolbar->addBtn('Продажба', array('sales_Sales', 'add', 'folderId' => $folderId, 'deliveryLocationId' => $rec->id), 'ef_icon=img/16/view.png,target=_blank,title=Създаване на нова продажба към локацията');
+    		}
+    		
+    		if(sales_Routes::haveRightFor('list')){
+    			$data->toolbar->addBtn('Маршрути', array('sales_Routes', 'list'), 'title=Към търговските маршрути');
+    		}
     	}
     }
     
