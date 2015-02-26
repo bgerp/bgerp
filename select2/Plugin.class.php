@@ -59,6 +59,8 @@ class select2_Plugin extends core_Plugin
             }
             $value = $value1;
         }
+        
+        ht::setUniqId($attr);
     }
     
     
@@ -137,9 +139,8 @@ class select2_Plugin extends core_Plugin
             $selectAttrArray['multiple'] = 'multiple';
         }
         
-        $className = core_Os::getUniqId(self::$className);
-        
-        $selectAttrArray['class'] = $className . ' ' . self::$className;
+        $selectAttrArray['class'] = self::$className;
+        $selectAttrArray['id'] = $attr['id'];
         $selectAttrArray['name'] = $name . '[]';
         $selectAttrArray['style'] = 'width:100%';
         $tpl = ht::createElement('select', $selectAttrArray, $options);
@@ -150,7 +151,7 @@ class select2_Plugin extends core_Plugin
         $allowClear = (self::$allowClear) ? (self::$allowClear) : false;
         
         // Добавяме необходимите файлове и стартирам select2
-        select2_Adapter::appendAndRun($tpl, $className, $select, $allowClear);
+        select2_Adapter::appendAndRun($tpl, $attr['id'], $select, $allowClear);
         
         return FALSE;
     }

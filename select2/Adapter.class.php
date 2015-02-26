@@ -19,19 +19,19 @@ class select2_Adapter
      * Добавя необходимите файлове и стартира скирпта
      * 
      * @param core_Et $tpl
-     * @param string $className
+     * @param string $id
      * @param string|NULL $placeHolder
      * @param boolean $allowClear
      * @param string|NULL|FALSE $lg
      */
-    public static function appendAndRun(&$tpl, $className, $placeHolder=NULL, $allowClear=FALSE, $lg=NULL)
+    public static function appendAndRun(&$tpl, $id, $placeHolder=NULL, $allowClear=FALSE, $lg=NULL)
     {
         if (is_null($lg)) {
             $lg = core_Lg::getCurrent();
         }
         
         self::appendFiles($tpl, $lg);
-        self::run($tpl, $className, $placeHolder, $allowClear, $lg);
+        self::run($tpl, $id, $placeHolder, $allowClear, $lg);
     }
     
     
@@ -67,13 +67,13 @@ class select2_Adapter
      * Добавя скрипт, който да се стартира
      * 
      * @param core_Et $tpl
-     * @param string $className
+     * @param string $id
      * @param string|NULL $placeHolder
      * @param boolean $allowClear
      * @param string|NULL|FALSE $lg
      */
-    public static function run(&$tpl, $className, $placeHolder=NULL, $allowClear=FALSE, $lg=NULL)
+    public static function run(&$tpl, $id, $placeHolder=NULL, $allowClear=FALSE, $lg=NULL)
     {
-        jquery_Jquery::run($tpl, "$('." . $className . "').select2({placeholder: '{$placeHolder}', allowClear: '{$allowClear}', language: '{$lg}'});", TRUE);
+        jquery_Jquery::run($tpl, "$('#" . $id . "').select2({placeholder: '{$placeHolder}', allowClear: '{$allowClear}', language: '{$lg}'});", TRUE);
     }
 }
