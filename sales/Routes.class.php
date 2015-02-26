@@ -101,7 +101,7 @@ class sales_Routes extends core_Manager {
     function description()
     {
     	$this->FLD('locationId', 'key(mvc=crm_Locations, select=title,allowEmpty)', 'caption=Локация,mandatory,silent');
-    	$this->FLD('salesmanId', 'user(roles=sales,select=nick)', 'caption=Търговец,mandatory');
+    	$this->FLD('salesmanId', 'user(roles=sales|ceo,select=nick)', 'caption=Търговец,mandatory');
     	$this->FLD('dateFld', 'date', 'caption=Посещения->Дата,hint=Кога е първото посещение,mandatory');
     	$this->FLD('repeatWeeks', 'int(Min=0)', 'caption=Посещения->Период, unit=седмици, hint=На колко седмици се повтаря посещението');
     	
