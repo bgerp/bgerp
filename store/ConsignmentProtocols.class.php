@@ -282,7 +282,8 @@ class store_ConsignmentProtocols extends core_Master
     		// Подготвяме записите за показване
     		foreach ($Balance as $b){
     			if($b['accountId'] != $accId) continue;
-    		
+    			if($b['blQuantity'] == 0) continue;
+    			
     			$row = new stdClass;
     			$row->count = $Int->toVerbal($count);
     			$row->productId = acc_Items::getVerbal($b['ent2Id'], 'titleLink');
