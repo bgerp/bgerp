@@ -313,8 +313,8 @@ class cal_Tasks extends core_Master
         	$row->timeEnd = ht::createLink(dt::mysql2verbal($rec->timeEnd, 'smartTime'), array('cal_Calendar', 'day', 'from' => $row->timeEnd, 'Task' => 'true'), NULL, array('ef_icon'=>'img/16/calendar5.png', 'title'=>'Покажи в календара'));
         }
         
-        if ($rec->timeDuration || $rec->timeEnd) {
-        	$row->expectationTimeEnd =  dt::mysql2verbal($rec->expectationTimeEnd, 'smartTime'); 
+        if (($rec->timeDuration || $rec->timeEnd) && $rec->remainingTime > 0) {
+			$row->expectationTimeEnd =  dt::mysql2verbal($rec->expectationTimeEnd, 'smartTime'); 
         	
         } else {
         	$row->expectationTimeEnd = '';
