@@ -31,7 +31,7 @@ class sales_Routes extends core_Manager {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'contragent=Клиент,locationId,salesmanId,dateFld=Посещения->Начало,repeatWeeks=Посещения->Период,nextVisit=Посещения->Следващо,tools=Пулт';
+    var $listFields = 'contragent=Клиент,locationId,salesmanId,dateFld=Посещения->Начало,repeatWeeks=Посещения->Период,nextVisit=Посещения->Следващо,tools=Пулт,state';
     
     
 	/**
@@ -44,7 +44,7 @@ class sales_Routes extends core_Manager {
      * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools, sales_Wrapper, plg_Created,
-    	 plg_Printing, bgerp_plg_Blank, plg_Sorting, plg_Rejected';
+    	 plg_Printing, bgerp_plg_Blank, plg_Sorting, plg_State2';
     
     
     /**
@@ -106,7 +106,6 @@ class sales_Routes extends core_Manager {
     	$this->FLD('dateFld', 'date', 'caption=Посещения->Дата,hint=Кога е първото посещение,mandatory');
     	$this->FLD('repeatWeeks', 'int', 'caption=Посещения->Период, unit=седмици, hint=На колко седмици се повтаря посещението');
     	$this->FNC('nextVisit', 'date(format=d.m.Y D)', 'caption=Посещения->Следващо');
-    	$this->FLD('state','enum(active=Активен, rejected=Оттеглен)','caption=Статус,input=none,value=active');
     }
     
     
@@ -145,7 +144,7 @@ class sales_Routes extends core_Manager {
     	$options = array();
     	$varchar = cls::get("type_Varchar");
     	$locQuery = crm_Locations::getQuery();
-    	$locQuery->where("#state != 'rejected'");
+    	$locQuery->where("#state = 'active'");
     	if ($locId = Request::get('locationId', 'int')) {
     		$locQuery->where("#id = {$locId}");
     	}	
@@ -271,20 +270,18 @@ class sales_Routes extends core_Manager {
     	$locIcon = sbf("img/16/location_pin.png");
     	$row->locationId = ht::createLink($row->locationId, array('crm_Locations', 'single', $rec->locationId, 'ret_url' => TRUE), NULL, array('style' => "background-image:url({$locIcon})", 'class' => 'linkWithIcon'));
     	$locationState = crm_Locations::fetchField($rec->locationId, 'state');
-    	if ($locationState == 'rejected' || $rec->state == 'rejected') {
-    		$row->ROW_ATTR['class'] .= ' state-rejected';
-    	}
     	
     	$locationRec = crm_Locations::fetch($rec->locationId);
-    	$folderId = cls::get($locationRec->contragentCls)->forceCoverAndFolder($locationRec->contragentId, FALSE);
     	
     	$row->contragent = cls::get($locationRec->contragentCls)->getHyperLink($locationRec->contragentId); 
-    	if(sales_Sales::haveRightFor('add')){
-    		$row->btn = ht::createBtn('ПР', array('sales_Sales', 'add', 'folderId' => $folderId, 'deliveryLocationId' => $rec->locationId), FALSE, FALSE, 'ef_icon=img/16/view.png,title=Създаване на нова продажба към локацията');
-    		$row->contragent .= " {$row->btn}";
-    	}
     	
-    	if ($rec->state == 'rejected') {
+    	if($rec->state == 'active'){
+    		if(sales_Sales::haveRightFor('add')){
+    			$folderId = cls::get($locationRec->contragentCls)->forceCoverAndFolder($locationRec->contragentId, FALSE);
+    			$row->btn = ht::createBtn('ПР', array('sales_Sales', 'add', 'folderId' => $folderId, 'deliveryLocationId' => $rec->locationId), FALSE, FALSE, 'ef_icon=img/16/view.png,title=Създаване на нова продажба към локацията');
+    			$row->contragent .= " {$row->btn}";
+    		}
+    	} else {
     		unset($row->nextVisit);
     	}
     }
@@ -307,7 +304,7 @@ class sales_Routes extends core_Manager {
     	// Подготвяме маршрутите ако има налични за тази локация
     	$query = $this->getQuery();
     	$query->where(array("#locationId = [#1#]", $data->masterData->rec->id));
-    	$query->where("#state != 'rejected'");
+    	$query->where("#state = 'active'");
     	
     	$results = array();
      	while ($rec = $query->fetch()) {
@@ -390,19 +387,12 @@ class sales_Routes extends core_Manager {
     static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
 	{
 		if ($action == 'edit' && $rec->id) {
-			if ($rec->state == 'rejected') {
+			if ($rec->state != 'active') {
 				$res = 'no_one';
 			}
 		}
 		
-		if ($action == 'restore' && $rec->id) {
-			$locationState = crm_Locations::fetchField($rec->locationId, 'state');
-			if ($locationState == 'rejected') {
-				$res = 'no_one';
-			}
-		}
-		
-		if ($action == 'add' && isset($rec->locationId)) {
+		if (($action == 'add' || $action == 'changestate') && isset($rec->locationId)) {
 			if (crm_Locations::fetchField($rec->locationId, 'state') == 'rejected') {
 				$res = 'no_one';
 			}
@@ -421,7 +411,7 @@ class sales_Routes extends core_Manager {
 		$query = $this->getQuery();
 		$query->where("#locationId = {$locationId}");
 		while ($rec = $query->fetch()) {
-			($locationState == 'rejected') ? $state = $locationState : $state = 'active';
+			$state = ($locationState == 'rejected') ? 'closed' : 'active';
 			$rec->state = $state;
 			$this->save($rec);
 		}
