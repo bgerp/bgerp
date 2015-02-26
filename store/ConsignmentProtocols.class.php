@@ -289,11 +289,9 @@ class store_ConsignmentProtocols extends core_Master
     			$rows[] = $row;
     		}
     	}
-        
-    	$Datetime = cls::get('type_DateTime', array('params' => array('format' => 'smartTime')));
     	
     	// Връщаме подготвените записи, и датата към която са подготвени
-        return (object)array('rows' => $rows, 'date' => $Datetime->toVerbal($date));
+        return (object)array('rows' => $rows, 'date' => cls::get('type_DateTime')->toVerbal($date));
     }
     
     
