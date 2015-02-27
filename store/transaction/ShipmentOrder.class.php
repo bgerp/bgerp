@@ -38,7 +38,7 @@ class store_transaction_ShipmentOrder extends acc_DocumentTransactionSource
      *
      *    Dt: 701 - Приходи от продажби на Стоки и Продукти (Клиент, Стоки и Продукти)
      *    
-     *    Ct: 330  - Суровини, материали, продукция, стоки  (Склад, Артикули)
+     *    Ct: 321  - Суровини, материали, продукция, стоки  (Склад, Артикули)
      * 
      *
      * @param int|object $id първичен ключ или запис на продажба
@@ -215,7 +215,7 @@ class store_transaction_ShipmentOrder extends acc_DocumentTransactionSource
      *    Dt: 701 - Приходи от продажби на Стоки и Продукти 	(Клиент, Сделка, Стоки и Продукти) 
      *    	  706 - Приходи от продажба на Суровини и материали (Клиент, Сделка, Суровини и материали)
      *    
-     *    Ct: 330  - Суровини, материали, продукция, стоки      (Склад, Стоки и Продукти)
+     *    Ct: 321  - Суровини, материали, продукция, стоки      (Склад, Стоки и Продукти)
      *    
      * @param stdClass $rec
      * @return array
@@ -232,7 +232,7 @@ class store_transaction_ShipmentOrder extends acc_DocumentTransactionSource
         	
         	// Вложимите кредит 706, другите 701
         	$debitAccId = (isset($pInfo->meta['materials'])) ? '706' : '701';
-        	$creditAccId = '330';
+        	$creditAccId = '321';
         	
         	$selfValue = cls::get($detailRec->classId)->getSelfValue($detailRec->productId, $detailRec->packagingId, $detailRec->quantity, $rec->valior);
         	$entries[] = array(

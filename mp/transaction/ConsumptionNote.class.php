@@ -63,7 +63,7 @@ class mp_transaction_ConsumptionNote extends acc_DocumentTransactionSource
 			
 			$pInfo = cls::get($dRec->classId)->getProductInfo($dRec->productId);
 			
-			$creditAccId = '330';
+			$creditAccId = '321';
 			
 			// Ако е указано да влагаме само в център на дейност и ресурси, иначе влагаме в център на дейност
 			if($rec->useResourceAccounts == 'no'){

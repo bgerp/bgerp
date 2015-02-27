@@ -40,8 +40,8 @@ class store_transaction_Transfer extends acc_DocumentTransactionSource
 		while($dRec = $dQuery->fetch()){
 			$sProd = store_Products::fetch($dRec->productId);
 			 
-			// Ако артикула е вложим сметка 330
-			$accId = '330';
+			// Ако артикула е вложим сметка 321
+			$accId = '321';
 			$result->entries[] = array(
 					'credit'  => array($accId,
 							array('store_Stores', $rec->fromStore), // Перо 1 - Склад

@@ -264,19 +264,19 @@ class store_ConsignmentProtocols extends core_Master
     		$to = dt::addDays(1, $date);
     		$Balance = new acc_ActiveShortBalance(array('from' => $to,
     				'to' => $to,
-    				'accs' => '333',
+    				'accs' => '323',
     				'item1' => $contragentItem->id,
     				'strict' => TRUE,
     				'cacheBalance' => FALSE));
     		 
     		// Изчлисляваме в момента, какъв би бил крания баланс по сметката в края на деня
-    		$Balance = $Balance->getBalanceBefore('333');
+    		$Balance = $Balance->getBalanceBefore('323');
     		 
     		$Double = cls::get('type_Double');
     		$Double->params['smartRound'] = TRUE;
     		$Int = cls::get('type_Int');
     		 
-    		$accId = acc_Accounts::getRecBySystemId('333')->id;
+    		$accId = acc_Accounts::getRecBySystemId('323')->id;
     		$count = 1;
     		 
     		// Подготвяме записите за показване
