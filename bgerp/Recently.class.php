@@ -485,6 +485,59 @@ class bgerp_Recently extends core_Manager
     
     
     /**
+     * Връща id-тата на последно използваните папки
+     *
+     * @param integer $count - Броя папки
+     * @param integer $userId - За потребителя
+     *
+     * @return array
+     */
+    public static function getLastFolderIds($count = 5, $userId = NULL)
+    {
+        // Броя трябва да е положителен
+        expect($count > 0);
+        
+        // Масив с нишките
+        $foldersArr = array();
+        
+        // Ако не е подадено id на потребителя
+        if (!$userId) {
+            
+            // id на текищия потребител
+            $userId = core_Users::getCurrent();
+        }
+        
+        // Вземаме последните документи
+        $query = static::getQuery();
+        $query->where("#userId = '{$userId}'");
+        $query->where("#type = 'folder'");
+        $query->orderBy("last", "DESC");
+        
+        // Брояч
+        $cnt = 0;
+        
+        while ($rec = $query->fetch()) {
+            
+            $folderId = $rec->objectId;
+            
+            // Ако няма id на нишка или нямам права за сингъла на нишката, прескачаме
+            if (!$folderId || !doc_Folders::haveRightFor('single', $folderId)) continue;
+            
+            // Добавяме в масива
+            $foldersArr[$folderId] = $folderId;
+            
+            // Увеличаваме брояча
+            $cnt++;
+            
+            // Ако сме достигнали лимита, прекъсваме
+            if ($cnt == $count) break;
+        }
+        
+        return $foldersArr;
+    }
+    
+    
+    /**
      * Връща id, което ще се използва за обграждащия div на таблицата, който ще се замества по AJAX
      *
      * @return string
