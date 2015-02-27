@@ -40,7 +40,8 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
      * @param int $packagingId - ид на опаковката, по дефолт NULL
      * @return stdClass $res
      * 	-> productRec - записа на продукта
-     * 	-> meta - мета данни за продукта ако има
+     *  ->isPublic - дали е публичен или частен
+     * 	->meta - мета данни за продукта ако има
 	 * 	     meta['canSell'] 		- дали може да се продава
 	 * 	     meta['canBuy']         - дали може да се купува
 	 * 	     meta['canConvert']     - дали може да се влага

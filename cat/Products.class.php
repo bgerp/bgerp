@@ -608,6 +608,7 @@ class cat_Products extends core_Embedder {
     	$res = $Driver->getProductInfo($packagingId);
     	
     	$res->productRec->code = $productRec->code;
+    	$res->isPublic = ($productRec->isPublic == 'yes') ? TRUE : FALSE;
     	
     	if($grRec = cat_products_VatGroups::getCurrentGroup($productId)){
     		$res->productRec->vatGroup = $grRec->title;
