@@ -90,6 +90,12 @@ class sales_Routes extends core_Manager {
     
     
     /**
+     * Кой може да пише
+     */
+    public $canReject = 'sales,ceo';
+    
+    
+    /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'locationId,salesmanId';
@@ -105,7 +111,7 @@ class sales_Routes extends core_Manager {
     	$this->FLD('dateFld', 'date', 'caption=Посещения->Дата,hint=Кога е първото посещение,mandatory');
     	$this->FLD('repeat', 'time(suggestions=|1 седмица|2 седмици|3 седмици|1 месец)', 'caption=Посещения->Период, hint=на какъв период да е повторението на маршрута');
     	$this->FLD('state',
-    			'enum(active=Активен,closed=Затворен)',
+    			'enum(active=Активен,rejected=Оттеглен)',
     			'caption=Видимост,input=none,notSorting,notNull,value=active');
     	
     	// Изчислимо поле за кога е следващото посещение
@@ -398,6 +404,9 @@ class sales_Routes extends core_Manager {
     {
     	$tpl = getTplFromFile("sales/tpl/SingleLayoutRoutes.shtml");
     	$title = $this->title;
+    	if($this->haveRightFor('list')){
+    		$title = ht::createLink($title, array($this, 'list'), FALSE, 'title=Всички търговските маршрути');
+    	}
     	
     	if ($data->addUrl) {
 	    	$img = sbf('img/16/add.png');
@@ -407,7 +416,7 @@ class sales_Routes extends core_Manager {
     	$tpl->replace($title, 'title');
     	
     	$table = cls::get('core_TableView');
-    	$tableTpl = $table->get($data->rows, 'salesmanId=Търговец,nextVisit=Следващо посещение,tools=Пулт');
+    	$tableTpl = $table->get($data->rows, 'salesmanId=Търговец,repeat=Период,nextVisit=Следващо посещение,tools=Пулт');
     	$tpl->append($tableTpl, 'content');
 
     	return $tpl;
@@ -444,7 +453,7 @@ class sales_Routes extends core_Manager {
 		$query = $this->getQuery();
 		$query->where("#locationId = {$locationId}");
 		while ($rec = $query->fetch()) {
-			$state = ($locationState == 'rejected') ? 'closed' : 'active';
+			$state = ($locationState == 'rejected') ? 'rejected' : 'active';
 			$rec->state = $state;
 			$this->save($rec);
 		}

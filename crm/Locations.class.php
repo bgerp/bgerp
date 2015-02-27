@@ -297,10 +297,6 @@ class crm_Locations extends core_Master {
     			$folderId = cls::get($rec->contragentCls)->forceCoverAndFolder($rec->contragentId, FALSE);
     			$data->toolbar->addBtn('Продажба', array('sales_Sales', 'add', 'folderId' => $folderId, 'deliveryLocationId' => $rec->id), 'ef_icon=img/16/view.png,target=_blank,title=Създаване на нова продажба');
     		}
-    		
-    		if(sales_Routes::haveRightFor('list')){
-    			$data->toolbar->addBtn('Маршрути', array('sales_Routes', 'list'), 'ef_icon=img/16/view.png,title=Към търговските маршрути');
-    		}
     	}
     }
     
