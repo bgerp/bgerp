@@ -43,7 +43,7 @@ class store_ConsignmentProtocols extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, store_Wrapper, doc_plg_BusinessDoc,plg_Sorting, acc_plg_Contable, cond_plg_DefaultValues,
-                    doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, plg_Search, bgerp_plg_Blank, doc_plg_HidePrices';
+                    doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, doc_plg_TplManager, plg_Search, bgerp_plg_Blank, doc_plg_HidePrices';
 
     
     /**
@@ -110,12 +110,6 @@ class store_ConsignmentProtocols extends core_Master
      * Заглавие в единствено число
      */
     public $singleTitle = 'Протокол за отговорно пазене';
-    
-    
-    /**
-     * Файл за единичния изглед
-     */
-    public $singleLayoutFile = 'store/tpl/SingleLayoutConsignmentProtocol.shtml';
 
    
     /**
@@ -377,5 +371,20 @@ class store_ConsignmentProtocols extends core_Master
     	$coverClass = doc_Folders::fetchCoverClassName($threadRec->folderId);
     	 
     	return cls::haveInterface('doc_ContragentDataIntf', $coverClass);
+    }
+    
+    
+    /**
+     * Извиква се след SetUp-а на таблицата за модела
+     */
+    function loadSetupData()
+    {
+    	$tplArr = array();
+    	$tplArr[] = array('name' => 'Протокол за отговорно пазене', 'content' => 'store/tpl/SingleLayoutConsignmentProtocol.shtml', 'lang' => 'bg');
+    	
+    	$res = '';
+    	$res .= doc_TplManager::addOnce($this, $tplArr);
+    
+    	return $res;
     }
 }
