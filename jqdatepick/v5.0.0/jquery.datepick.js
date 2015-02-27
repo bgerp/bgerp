@@ -187,7 +187,7 @@
 					return (!minDate || plugin.today().getTime() >= minDate.getTime()) &&
 						(!maxDate || plugin.today().getTime() <= maxDate.getTime()); },
 				date: function(inst) { return plugin.today(); },
-				action: function(inst) { plugin.showMonth(this); }
+				action: function(inst) { plugin.showMonth(this); $('.datepick-today').click(); $(this).blur(); }
 			},
 			clear: {text: 'clearText', status: 'clearStatus', // Clear the datepicker
 				keystroke: {keyCode: 35, ctrlKey: true}, // Ctrl + End
