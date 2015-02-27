@@ -223,7 +223,7 @@ class sales_SalesDetails extends deals_DealDetail
     		
     		// Ако няма задание, добавяме бутон за създаване на ново задание
     		if(mp_Jobs::haveRightFor('add', (object)array('originId' => $pRec->containerId))){
-    			$jobUrl = array('mp_Jobs', 'add', 'originId' => $pRec->containerId, 'quantity' => $rec->quantity, 'deliveryTermId' => $masterRec->deliveryTermId, 'deliveryDate' => $masterRec->deliveryTime, 'deliveryPlace' => $masterRec->deliveryLocationId);
+    			$jobUrl = array('mp_Jobs', 'add', 'originId' => $pRec->containerId, 'quantity' => $rec->quantity, 'deliveryTermId' => $masterRec->deliveryTermId, 'deliveryDate' => $masterRec->deliveryTime, 'deliveryPlace' => $masterRec->deliveryLocationId, 'ret_url' => TRUE);
     			$row->jobId = ht::createBtn('Чернова', $jobUrl, FALSE, TRUE, 'title=Създаване на ново задание за артикула,ef_icon=img/16/clipboard_text.png');
     		}
     	}
