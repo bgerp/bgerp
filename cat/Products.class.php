@@ -301,6 +301,7 @@ class cat_Products extends core_Embedder {
     	}
     	
     	if(!isset($form->rec->innerClass)){
+    		$form->setField('groups', 'input=hidden');
     		$form->setField('meta', 'input=hidden');
     	}
     }
