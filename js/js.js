@@ -146,8 +146,8 @@ function setMinHeight() {
 			 $('#maincontent').css('margin-top', calcMargin - 12);
 		 }
 		 var clientHeight = parseInt(document.documentElement.clientHeight,10);
-		 $('#packWrapper').css('min-height', clientHeight - headerHeight - 61);
-		 $('#maincontent').css('min-height', clientHeight - headerHeight - 30);
+		 $('#packWrapper').css('min-height', clientHeight - headerHeight - 58);
+		 $('#maincontent').css('min-height', clientHeight - headerHeight - 28);
 	 }
 }
 
