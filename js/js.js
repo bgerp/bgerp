@@ -15,9 +15,15 @@ function initSidebars() {
 	} else {
 		$('.btn-sidemenu').jPushMenu();
 	}
+	if(getCookie('menuInformation') == null && viewportWidth > 1264 && !isTouchDevice()) {
+		$('.btn-menu-left ').click();		
+		if(viewportWidth > 1604){		
+			$('.btn-menu-right ').click();
+		} 
+	} 
 	
 	$('.sidemenu,  #main-container,  .narrow #packWrapper , #framecontentTop, .tab-row').addClass('transition');
-
+	
 	if($('body').hasClass('narrow') && viewportWidth <= 800){
 		$('.narrow .sidemenu-push #framecontentTop').css('width', viewportWidth);
 		$('.narrow .sidemenu-push .tab-row').css('width', viewportWidth);
