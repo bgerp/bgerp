@@ -43,15 +43,35 @@ class page_Wrapper extends core_BaseClass {
                 $tplName = $cmsConf->CMS_PAGE_WRAPPER;
             }
         }
-       
-
+        
         // Зареждаме опаковката 
         $wrapperTpl = cls::get($tplName);
         
+        self::replaceSpecialPlaceholders($wrapperTpl);
+        
+        // Изпращаме на изхода опаковано съдържанието
+        $wrapperTpl->replace($content, 'PAGE_CONTENT');
+
+        $wrapperTpl->output();
+    }
+    
+    
+    /**
+     * Замества специалните плейсхолдъри
+     * 
+     * @param core_ET|string $tpl
+     */
+    protected static function replaceSpecialPlaceholders(&$tpl)
+    {
+        if (!($tpl instanceof core_ET)) {
+            
+//            return $tpl;
+            
+            $tpl = new ET($tpl);
+        }
         
         // Вземаме плейсхолдерите
-        $placeHolders = $wrapperTpl->getPlaceHolders();
-
+        $placeHolders = $tpl->getPlaceHolders();
         
         // Заместваме специалните плейсхолдери, със съдържанието към което те сочат
         foreach($placeHolders as $place) {
@@ -60,15 +80,19 @@ class page_Wrapper extends core_BaseClass {
 
             if(count($method) != 2) continue;
 
-
             $html = call_user_func($method);
-
-            $wrapperTpl->replace($html, $place);
+            
+            if ($html instanceof core_ET) {
+                $content = $html->getContent(NULL, "CONTENT", FALSE, FALSE);
+            } else {
+                $content = $html;
+            }
+            
+            if (strpos($content, '::') !== FALSE) {
+                self::replaceSpecialPlaceholders($html);
+            }
+            
+            $tpl->replace($html, $place);
         }
-        
-        // Изпращаме на изхода опаковано съдържанието
-        $wrapperTpl->replace($content, 'PAGE_CONTENT');
-
-        $wrapperTpl->output();
     }
 }
