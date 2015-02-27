@@ -74,17 +74,17 @@ class acc_plg_Registry extends core_Plugin
     	if(!$added){
     		
     		// Ако е активно състоянието и обекта е перо
-    		if($rec->state == 'active'){
+    		if($rec->state != 'closed' && $rec->state != 'rejected'){
     			
-    			// Активираме перото, ако не е било активирано
+    			// Активираме перото
     			if($itemRec = acc_Items::fetchItem($mvc, $rec->id)){
     				if($itemRec->state != 'active'){
-    					acc_Lists::updateItem($mvc, $rec->id, $itemRec->lists);
-    						
     					if(haveRole('ceo,acc')){
     						core_Statuses::newStatus(tr("|Активирано е перо|*: {$itemRec->title}"));
     					}
     				}
+    				
+    				acc_Lists::updateItem($mvc, $rec->id, $itemRec->lists);
     			}
     		}
     	}
@@ -130,7 +130,7 @@ class acc_plg_Registry extends core_Plugin
     	if($rec) return;
     	
     	$rec = $mvc->fetchRec($id);
-    	$lists = FALSE;
+    	$msg = FALSE;
     	
     	$listRec = acc_Lists::fetchBySystemId($listSysId);
     	if($listRec){
@@ -138,22 +138,25 @@ class acc_plg_Registry extends core_Plugin
     		// Ако обекта е перо, но не е в номенклатурата форсираме го
     		if($itemRec = acc_Items::fetchItem($mvc, $rec->id)){
     			if(!keylist::isIn($listRec->id, $itemRec->lists)){
-    				$lists = keylist::addKey($itemRec->lists, $listRec->id);
+    				$itemRec->lists = keylist::addKey($itemRec->lists, $listRec->id);
+    				$msg = TRUE;
     			}
     		} else {
     			$lists = keylist::addKey('', $listRec->id);
+    			$msg = TRUE;
     		}
     		
-    		// Ъпдейтваме информацията за перото, ако е нужно
-    		if($lists !== FALSE){
-    			acc_Lists::updateItem($mvc, $rec->id, $lists);
+    		acc_Lists::updateItem($mvc, $rec->id, $itemRec->lists);
+    		
+    		// Ъпдейтваме информацията за перото
+    		if($msg){
     			if(haveRole('ceo,acc')){
     				$title = $mvc->getTitleById($rec->id);
     				core_Statuses::newStatus("|*'{$title}' |е добавен в номенклатура|* '{$listRec->name}'");
     			}
-    			 
-    			$res = TRUE;
     		}
+    		
+    		$res = TRUE;
     	}
     }
     
