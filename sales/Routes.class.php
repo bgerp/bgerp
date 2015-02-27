@@ -31,7 +31,7 @@ class sales_Routes extends core_Manager {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,contragent=Клиент,locationId,salesmanId,dateFld=Посещения->Начало,repeatWeeks=Посещения->Период,nextVisit=Посещения->Следващо,tools=Пулт,state';
+    public $listFields = 'id,contragent=Клиент,locationId,salesmanId,dateFld=Посещения->Начало,repeat=Посещения->Период,nextVisit=Посещения->Следващо,tools=Пулт';
     
     
 	/**
@@ -44,7 +44,7 @@ class sales_Routes extends core_Manager {
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, sales_Wrapper, plg_Created,
-    	 plg_Printing, bgerp_plg_Blank, plg_Sorting, plg_State2, plg_Search';
+    	 plg_Printing, bgerp_plg_Blank, plg_Sorting, plg_Search, plg_Rejected, plg_State';
     
     
     /**
@@ -103,10 +103,27 @@ class sales_Routes extends core_Manager {
     	$this->FLD('locationId', 'key(mvc=crm_Locations, select=title,allowEmpty)', 'caption=Локация,mandatory,silent');
     	$this->FLD('salesmanId', 'user(roles=sales|ceo,select=nick)', 'caption=Търговец,mandatory');
     	$this->FLD('dateFld', 'date', 'caption=Посещения->Дата,hint=Кога е първото посещение,mandatory');
-    	$this->FLD('repeatWeeks', 'int(Min=0)', 'caption=Посещения->Период, unit=седмици, hint=На колко седмици се повтаря посещението');
+    	$this->FLD('repeat', 'time(suggestions=|1 седмица|2 седмици|3 седмици|1 месец)', 'caption=Посещения->Период, hint=на какъв период да е повторението на маршрута');
+    	$this->FLD('state',
+    			'enum(active=Активен,closed=Затворен)',
+    			'caption=Видимост,input=none,notSorting,notNull,value=active');
     	
     	// Изчислимо поле за кога е следващото посещение
     	$this->FNC('nextVisit', 'date(format=d.m.Y D)', 'caption=Посещения->Следващо');
+    }
+    
+    
+    /**
+     * Преди запис на документ, изчислява стойността на полето `isContable`
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $rec
+     */
+    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
+    {
+    	if($rec->state == 'draft'){
+    		$rec->state = 'active';
+    	}
     }
     
     
@@ -262,12 +279,8 @@ class sales_Routes extends core_Manager {
     			
     		// Изчисляваме дните между датата от модела и търсената
     		$data->query->XPR("dif", 'int', "DATEDIFF (#dateFld , '{$data->listFilter->rec->date}')");
-    		
-    		// Записа отговаря ако разликата е 0 и повторението е 0
-    		$data->query->where("#dif = 0 && (#repeatWeeks = 0 || #repeatWeeks IS NULL)");
-    		
-    		// Ако разликата се дели без остатък на 7 * броя повторения
-    		$data->query->orWhere("MOD(#dif, (7 * #repeatWeeks)) = 0");
+    		$data->query->where("#dateFld = '{$data->listFilter->rec->date}'");
+    		$data->query->orWhere("MOD(#dif, round(#repeat / 86400 )) = 0");
     	}
     	
     	if ($data->listFilter->rec->user) {
@@ -356,7 +369,7 @@ class sales_Routes extends core_Manager {
     	if ($diff < 0) {
     		$nextStartTimeTs = $startTs;
     	} else {
-    		if (!$rec->repeatWeeks) {
+    		if (!$rec->repeat) {
                 if ($rec->dateFld == date('Y-m-d')) {
                 	
                     return $rec->dateFld;
@@ -365,7 +378,9 @@ class sales_Routes extends core_Manager {
     			    return FALSE;
                 }
     		}
-    		$interval = $interval * $rec->repeatWeeks;
+    		
+    		$repeat = $rec->repeat / (60 * 60 * 24 * 7);
+    		$interval = $interval * $repeat;
     		$nextStartTimeTs = (floor(($diff)/$interval) + 1) * $interval;
     		$nextStartTimeTs = $startTs + $nextStartTimeTs;
     	}

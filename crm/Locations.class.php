@@ -552,7 +552,7 @@ class crm_Locations extends core_Master {
         // Информация за търговския маршрут
         $form->FLD('salesmanId', 'user(roles=sales|ceo,select=nick)', 'caption=Маршрут->Търговец,mandatory');
         $form->FLD('dateFld', 'date', 'caption=Маршрут->Начало,hint=Кога е първото посещение,mandatory');
-        $form->FLD('repeatWeeks', 'int', 'caption=Маршрут->Период, unit=седмици, hint=На колко седмици се повтаря посещението');
+        $form->FLD('repeat', 'time(suggestions=|1 седмица|2 седмици|3 седмици|1 месец)', 'caption=Маршрут->Период');
         
         $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png, title = Запис на търговския обект');
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
@@ -592,7 +592,7 @@ class crm_Locations extends core_Master {
         			if($locationId){
         				
         				// Създаваме търговския маршрут към новосъздадената локация
-        				$routeId = sales_Routes::save((object)array('locationId' => $locationId, 'salesmanId' => $rec->salesmanId, 'dateFld' => $rec->dateFld, 'repeatWeeks' => $rec->repeatWeeks));
+        				$routeId = sales_Routes::save((object)array('locationId' => $locationId, 'salesmanId' => $rec->salesmanId, 'dateFld' => $rec->dateFld, 'repeat' => $rec->repeat));
         			
         				return redirect(array('crm_Locations', 'single', $locationId), FALSE, 'Успешно е създаден търговския обект');
         			} else {
