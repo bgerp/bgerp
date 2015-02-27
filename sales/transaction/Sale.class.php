@@ -54,7 +54,7 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
      *
      *    Dt: 701. Приходи от продажби на Стоки и Продукти  (Клиент, Сделка, Стоки и Продукти)
      *    
-     *    Ct: 330. Суровини, материали, продукция, стоки       (Склад, Артикули)
+     *    Ct: 321. Суровини, материали, продукция, стоки       (Склад, Артикули)
      *
      *
      *
@@ -290,7 +290,7 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
      *    Dt: 701. Приходи от продажби на Стоки и Продукти    (Клиент, Сделки, Стоки и Продукти)
      *    	  706 - Приходи от продажба на Суровини и материали (Клиент, Сделки, Суровини и материали)
      *    
-     *    Ct: 330. Суровини, материали, продукция, стоки (Склад, Стоки и Продукти)
+     *    Ct: 321. Суровини, материали, продукция, стоки (Склад, Стоки и Продукти)
      *    
      * @param stdClass $rec
      * @return array
@@ -309,7 +309,7 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
     		
         	// Само складируемите продукти се изписват от склада
         	if(isset($pInfo->meta['canStore'])){
-        		$creditAccId = '330';
+        		$creditAccId = '321';
         		$debitAccId = ($materials) ? '706' : '701';
         		
         		$selfValue = cls::get($detailRec->classId)->getSelfValue($detailRec->productId, $detailRec->packagingId, $detailRec->quantity, $rec->valior);

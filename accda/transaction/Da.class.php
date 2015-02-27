@@ -39,7 +39,7 @@ class accda_transaction_Da extends acc_DocumentTransactionSource
     	if($rec->id){
     		$pInfo = cat_Products::getProductInfo($rec->productId);
     		if(isset($pInfo->meta['canStore'])){
-    			$creditArr = array('330',
+    			$creditArr = array('321',
     					array('store_Stores', $rec->storeId),
     					array('cat_Products', $rec->productId),
     					'quantity' => 1,

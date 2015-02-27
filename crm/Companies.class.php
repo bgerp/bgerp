@@ -171,7 +171,7 @@ class crm_Companies extends core_Master
     /**
      * По кои сметки ще се правят справки
      */
-    public $balanceRefAccounts = '333,401,402,403,404,405,406,409,411,412,413,414,415,419';
+    public $balanceRefAccounts = '323,401,402,403,404,405,406,409,411,412,413,414,415,419';
     
     
     /**

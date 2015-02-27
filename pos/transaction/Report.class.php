@@ -156,7 +156,7 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
      *    Dt: 701. Приходи от продажби на стоки и продукти     (Клиент, Сделки, Стоки и Продукти)
      *    	  706. Приходи от продажба на суровини/материали   (Клиент, Сделки, Суровини и материали)
      *    
-     *    Ct: 330. Суровини, материали, продукция, стоки 	   (Склад, Стоки и Продукти)
+     *    Ct: 321. Суровини, материали, продукция, стоки 	   (Склад, Стоки и Продукти)
      *    
      * @param stdClass $rec        - записа
      * @param array $product       - артикула
@@ -167,7 +167,7 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
     protected function getDeliveryPart($rec, $product, $posRec, $convertable)
     {
         $entries = array();
-        $creditAccId = '330';
+        $creditAccId = '321';
         $debitAccId = ($convertable) ? '706' : '701';
         
         // После се отчита експедиране от склада

@@ -23,9 +23,9 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
     
     /**
      * Генериране на счетоводните транзакции, породени от складова разписка
-     * Заприхождаване на артикул: Dt:330
+     * Заприхождаване на артикул: Dt:321
      *	  
-     *	  Dt: 330. Суровини, материали, продукция, стоки 	  (Склад, Артикули)
+     *	  Dt: 321. Суровини, материали, продукция, стоки 	  (Склад, Артикули)
      *
      *    Ct: 401. Задължения към доставчици (Доставчик, Валути)
      *
@@ -100,7 +100,7 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
      * Помощен метод - генерира доставната част от транзакцията за покупка
      * Вкарване на стоката в склада (в някои случаи)
      * 
-     *	  Dt: 330. Суровини, материали, продукция, стоки   (Склад, Артикули)
+     *	  Dt: 321. Суровини, материали, продукция, стоки   (Склад, Артикули)
      *
      *    Ct: 401. Задължения към доставчици (Доставчик, Сделки, Валути)
      *    
@@ -124,7 +124,7 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
         	$amount = ($detailRec->discount) ?  $amount * (1 - $detailRec->discount) : $amount;
         	$amount = round($amount, 2);
         	
-        	$debitAccId = '330';
+        	$debitAccId = '321';
         		
         	$debit = array(
                   $debitAccId, 

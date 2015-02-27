@@ -48,13 +48,13 @@ class store_transaction_ConsignmentProtocol extends acc_DocumentTransactionSourc
 	 * 
 	 * За предадените артикули:
 	 * 		
-	 * 		Dt: 333. СМЗ на отговорно пазене				    (Контрагенти, Артикули)
-	 *      Ct: 330. Суровини, материали, продукция, стоки	    (Складове, Артикули)
+	 * 		Dt: 323. СМЗ на отговорно пазене				    (Контрагенти, Артикули)
+	 *      Ct: 321. Суровини, материали, продукция, стоки	    (Складове, Артикули)
 	 * 
 	 * За върнатите артикули:
 	 * 		
-	 * 		Dt: 330. Суровини, материали, продукция, стоки		(Складове, Артикули)
-	 *      Ct: 333. СМЗ на отговорно пазене					(Контрагенти, Артикули)
+	 * 		Dt: 321. Суровини, материали, продукция, стоки		(Складове, Артикули)
+	 *      Ct: 323. СМЗ на отговорно пазене					(Контрагенти, Артикули)
 	 */
 	private function getEntries($rec)
 	{
@@ -66,11 +66,11 @@ class store_transaction_ConsignmentProtocol extends acc_DocumentTransactionSourc
 		while($sendRec = $sendQuery->fetch()){
 			$quantity = $sendRec->quantityInPack * $sendRec->packQuantity;
 			$entries[] = array(
-					'debit' => array('333', 
+					'debit' => array('323', 
 										array($rec->contragentClassId, $rec->contragentId), 
 										array('cat_Products', $sendRec->productId), 
 									'quantity' => $quantity),
-					'credit' => array('330', 
+					'credit' => array('321', 
 										array('store_Stores', $rec->storeId),
 										array('cat_Products', $sendRec->productId),
 									'quantity' => $quantity),
@@ -83,11 +83,11 @@ class store_transaction_ConsignmentProtocol extends acc_DocumentTransactionSourc
 		while($recRec = $receivedQuery->fetch()){
 			$quantity = $recRec->quantityInPack * $recRec->packQuantity;
 			$entries[] = array(
-					'debit' => array('330',
+					'debit' => array('321',
 									array('store_Stores', $rec->storeId),
 									array('cat_Products', $recRec->productId),
 								'quantity' => $quantity),
-					'credit' => array('333', 
+					'credit' => array('323', 
 									array($rec->contragentClassId, $rec->contragentId), 
 									array('cat_Products', $recRec->productId), 
 								'quantity' => $quantity),
