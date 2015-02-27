@@ -65,6 +65,7 @@ class cat_Setup extends core_ProtoSetup
     		'migrate::updateProducts3',
     		'migrate::migrateMetas',
     		'migrate::migrateGroups',
+    		'migrate::migrateProformas',
     		'migrate::makeProductsDocuments2',
     		'migrate::removeOldParams1',
         );
@@ -351,6 +352,22 @@ class cat_Setup extends core_ProtoSetup
     		if($vRec = cat_Params::fetch("#sysId = '{$sysId}'")){
     			cat_products_Params::delete("#paramId = '{$vRec->id}'");
     			cat_Params::delete($vRec->id);
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Временна миграция
+     */
+    public function migrateProformas()
+    {
+    	$query = sales_ProformaDetails::getQuery();
+    	$productId = cat_Products::getClassId();
+    	while($rec = $query->fetch()){
+    		if($rec->classId != $productId){
+    			$rec->classId = $productId;
+    			sales_ProformaDetails::save($rec);
     		}
     	}
     }
