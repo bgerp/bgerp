@@ -84,11 +84,11 @@
         <div style = 'margin-top:10px'></div>
     </div>
     
-    <!--ET_BEGIN JOB_INFO-->
-    <div class='sale-job-info'>
+    <!--ET_BEGIN JOB_INFO--> 
+    <div class='sale-job-info snapshot'>
 	    <div>|Информация за наличните задания към частните артикули|*</div>
 	    [#JOB_INFO#]
-    <div>
+    </div>
     <!--ET_END JOB_INFO-->
     
     <!--ET_BEGIN DETAILS-->
