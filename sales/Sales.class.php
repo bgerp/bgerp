@@ -625,4 +625,40 @@ class sales_Sales extends deals_DealMaster
     		}
     	}
     }
+    
+    
+    /**
+     * След подготовка на сингъла
+     */
+    public static function on_AfterPrepareSingle($mvc, &$res, $data)
+    {
+    	$data->jobInfo = array();
+    	if($data->rec->state != 'rejected'){
+    		
+    		// Подготвяме информацията за наличните задания към нестандартните (частните) артикули в продажбата
+    		$dQuery = sales_SalesDetails::getQuery();
+    		$dQuery->where("#saleId = {$data->rec->id}");
+    		$dQuery->show('classId,productId,packagingId,quantity');
+    		
+    		while($dRec = $dQuery->fetch()){
+    			if($dRow = sales_SalesDetails::prepareJobInfo($dRec, $data->rec)){
+    				$data->jobInfo[] = $dRow;
+    			}
+    		}
+    	}
+    }
+    
+    
+    /**
+     * След рендиране на еденичния изглед
+     */
+    public static function on_AfterRenderSingle($mvc, &$tpl, $data)
+    {
+    	// Ако има подготвена информация за наличните задания, рендираме я
+    	if(count($data->jobInfo)){
+    		$table = cls::get('core_TableView');
+    		$jobsInfo = $table->get($data->jobInfo, 'productId=Артикул,jobId=Задание');
+    		$tpl->replace($jobsInfo, 'JOB_INFO');
+    	}
+    }
 }

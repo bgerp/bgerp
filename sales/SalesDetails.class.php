@@ -192,4 +192,42 @@ class sales_SalesDetails extends deals_DealDetail
     		}
     	}
     }
+    
+    
+    /**
+     * Приготвя информация за нестандартните артикули и техните задания
+     * 
+     * @param stdClass $rec
+     * @param stdClass $masterRec
+     * @return void|stdClass
+     */
+    public static function prepareJobInfo($rec, $masterRec)
+    {
+    	$pRec = cls::get($rec->classId)->fetch($rec->productId, 'isPublic,containerId');
+    	if($pRec->isPublic === 'yes') return;
+    	
+    	$row = new stdClass();
+    	
+    	// Кой е артикула
+    	$row->productId = cls::get($rec->classId)->getTitleById($rec->productId);
+    	$row->productId = ht::createLinkRef($row->productId, array($rec->classId, 'single', $rec->productId));
+    	
+    	// Ако има задание, подготвяме линк към него
+    	if($jobRec = cls::get($rec->classId)->getLastActiveJob($rec->productId)){
+    		$row->jobId = mp_Jobs::getHandle($jobRec->id);
+    		if(mp_Jobs::haveRightFor('single', $jobRec)){
+    			$row->jobId = ht::createLink($row->jobId, array('mp_Jobs', 'single', $jobRec->id));
+    		}
+    		$row->jobId .= " ( " . mp_Jobs::getVerbal($jobRec, 'dueDate') . " )";
+    	} else {
+    		
+    		// Ако няма задание, добавяме бутон за създаване на ново задание
+    		if(mp_Jobs::haveRightFor('add', (object)array('originId' => $pRec->containerId))){
+    			$jobUrl = array('mp_Jobs', 'add', 'originId' => $pRec->containerId, 'quantity' => $rec->quantity, 'deliveryTermId' => $masterRec->deliveryTermId, 'deliveryDate' => $masterRec->deliveryTime, 'deliveryPlace' => $masterRec->deliveryLocationId);
+    			$row->jobId = ht::createBtn('Чернова', $jobUrl, FALSE, TRUE, 'title=Създаване на ново задание за артикула,ef_icon=img/16/clipboard_text.png');
+    		}
+    	}
+    	
+    	return $row;
+    }
 }

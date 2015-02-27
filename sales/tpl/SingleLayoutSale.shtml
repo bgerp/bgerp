@@ -83,6 +83,14 @@
         </div>
         <div style = 'margin-top:10px'></div>
     </div>
+    
+    <!--ET_BEGIN JOB_INFO-->
+    <div class='sale-job-info'>
+	    <div>|Информация за наличните задания към частните артикули|*</div>
+	    [#JOB_INFO#]
+    <div>
+    <!--ET_END JOB_INFO-->
+    
     <!--ET_BEGIN DETAILS-->
     <div class='details'>
         [#DETAILS#]
