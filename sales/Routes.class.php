@@ -249,7 +249,7 @@ class sales_Routes extends core_Manager {
 	{
 		$data->listFilter->view = 'horizontal';
 		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-		$data->listFilter->FNC('user', 'user(roles=sales,allowEmpty)', 'input,caption=Търговец,placeholder=Потребител,silent');
+		$data->listFilter->FNC('user', 'user(roles=sales|ceo,allowEmpty)', 'input,caption=Търговец,placeholder=Потребител,silent,refreshForm');
         $data->listFilter->FNC('date', 'date', 'input,caption=Дата,silent');
 
         $data->listFilter->showFields = 'search,user, date';
