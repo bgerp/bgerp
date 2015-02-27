@@ -216,7 +216,7 @@ class sales_SalesDetails extends deals_DealDetail
     	if($jobRec = cls::get($rec->classId)->getLastActiveJob($rec->productId)){
     		$row->jobId = mp_Jobs::getHandle($jobRec->id);
     		if(mp_Jobs::haveRightFor('single', $jobRec)){
-    			$row->jobId = ht::createLink($row->jobId, array('mp_Jobs', 'single', $jobRec->id));
+    			$row->jobId = ht::createLink($row->jobId, array('mp_Jobs', 'single', $jobRec->id), FALSE, 'ef_icon=img/16/clipboard_text.png');
     		}
     		$row->jobId .= " ( " . mp_Jobs::getVerbal($jobRec, 'dueDate') . " )";
     	} else {
