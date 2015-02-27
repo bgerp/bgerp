@@ -545,6 +545,9 @@ class crm_Locations extends core_Master {
         $form->FLD('place', 'varchar(64)', 'caption=Локация->Град,class=contactData');
         $form->FLD('pCode', 'varchar(16)', 'caption=Локация->П. код,class=contactData');
         $form->FLD('address', 'varchar(255)', 'caption=Локация->Адрес,class=contactData');
+        $form->FLD('gpsCoords', 'location_Type', 'caption=Локация->Координати');
+        $form->FLD('image', 'fileman_FileType(bucket=location_Images)', 'caption=Локация->Снимка');
+        $form->FLD('comment', 'richtext(bucket=Notes, rows=4)', 'caption=Локация->Информация');
         
         // Информация за търговския маршрут
         $form->FLD('salesmanId', 'user(roles=sales|ceo,select=nick)', 'caption=Маршрут->Търговец,mandatory');
@@ -574,14 +577,17 @@ class crm_Locations extends core_Master {
         		if($companyId){
         			
         			// Създаваме локацията към фирмата
-        			$locationId = crm_Locations::save((object)array('title' => $rec->title,
-        															'countryId' => $rec->country, 
-										        					'type' => $rec->type,
-										        					'place' => $rec->place,
-										        					'pCode' => $rec->pCode,
+        			$locationId = crm_Locations::save((object)array('title'         => $rec->title,
+        															'countryId'     => $rec->country, 
+										        					'type'          => $rec->type,
+										        					'place'         => $rec->place,
+										        					'pCode'         => $rec->pCode,
 										        					'contragentCls' => crm_Companies::getClassId(),
-										        					'contragentId' => $companyId,
-										        					'address' => $rec->address));
+										        					'contragentId'  => $companyId,
+        															'gpsCoords'     => $rec->gpsCoords,
+        															'image'         => $rec->image,
+        															'comment'       => $rec->comment,
+										        					'address'       => $rec->address));
         			
         			if($locationId){
         				
