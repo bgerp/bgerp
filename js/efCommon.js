@@ -929,7 +929,7 @@ function prepareLangBtn(obj) {
 	
 	// добавяме бутона за смяна на език
 	var elem = "<a class='rtbutton lang " + initialLang + "' title='" + hint +"'>" + initialLang + "</a>" ;
-	$(elem).insertBefore('.richedit-toolbar .clearfix21');
+	$('.richEdit').append(elem);
 
 	// на всеки клик подготряме данните за смяна на езика
 	$(document.body).on('click', ".rtbutton.lang", function(e){

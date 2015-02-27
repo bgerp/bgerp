@@ -2157,6 +2157,7 @@ div.richEdit div.richedit-toolbar {
 
 div.richEdit {
     display:table;
+    position: relative;
 }
 
 .narrow div.richEdit {
@@ -2231,6 +2232,9 @@ a.rtbutton:hover, a.rtbutton:active, a.rtbutton:focus {
 	color:black ;
 }
 a.lang {
+	position: absolute;
+	top: 2px;
+	right: 4px;
     color:#fff;
     border: 1px solid #bbd;
     text-transform: uppercase;

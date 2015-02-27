@@ -2014,7 +2014,8 @@ div.richEdit div.richedit-toolbar {
   margin-top: -4px; }
 
 div.richEdit {
-  display: table; }
+  display: table;
+  position: relative; }
 
 .narrow div.richEdit {
   display: block; }
@@ -2079,6 +2080,9 @@ a.rtbutton:focus {
   color: black; }
 
 a.lang {
+  position: absolute;
+  top: 2px;
+  right: 4px;
   color: white;
   border: 1px solid #bbbbdd;
   text-transform: uppercase;
