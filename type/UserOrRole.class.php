@@ -46,6 +46,10 @@ class type_UserOrRole extends type_User
         
         setIfNot($this->params['rolesForAllRoles'], 'ceo, admin');
         $this->params['rolesForAllRoles'] = str_replace("|", ",", $this->params['rolesForAllRoles']);
+        
+        if ($this->params['rolesType']) {
+            $this->params['rolesType'] = str_replace("|", ",", $this->params['rolesType']);
+        }
     }
     
     
@@ -70,6 +74,12 @@ class type_UserOrRole extends type_User
             
             // Вземаме всички роли
             $rQuery = core_Roles::getQuery();
+            
+            if ($this->params['rolesType']) {
+                $this->params['rolesType'] = arr::make($this->params['rolesType']);
+                $rQuery->orWhereArr('type', $this->params['rolesType']);
+            }
+            
             while($rec = $rQuery->fetch()) {
                 $roleObj = new stdClass();
                 $roleObj->title = $rec->role;
