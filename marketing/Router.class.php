@@ -214,8 +214,11 @@ class marketing_Router
 		} catch(core_exception_Expect $e){
 			$e->logError();
 		}
-				
-		return crm_Persons::forceCoverAndFolder($rec);
+		
+		$folderId = crm_Persons::forceCoverAndFolder($rec);
+		crm_Persons::forceGroup($rec->id, 'customers');
+		
+		return $folderId;
 	}
 	
 	
@@ -245,7 +248,10 @@ class marketing_Router
 			$e->logError();
 		}
 		
-		return crm_Companies::forceCoverAndFolder($rec);
+		$folderId = crm_Companies::forceCoverAndFolder($rec);
+		crm_Companies::forceGroup($rec->id, 'customers');
+		
+		return $folderId;
 	}
 	
 	
