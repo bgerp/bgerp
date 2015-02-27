@@ -71,6 +71,11 @@ class select2_PluginSelect extends core_Plugin
             return;
         }
     	
+        // Ако все още няма id
+        if (!$attr['id']) {
+            $attr['id'] = str::getRand('aaaaaaaa');
+        }
+        
         $conf = core_Packs::getConfig('select2');
         
         // Определяме при колко минимално опции ще правим chosen

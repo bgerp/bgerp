@@ -87,7 +87,12 @@ class select2_Plugin extends core_Plugin
             
             return ;
         }
-
+        
+        // Ако все още няма id
+        if (!$attr['id']) {
+            $attr['id'] = str::getRand('aaaaaaaa');
+        }
+        
         $options = new ET();
         $mustCloseGroup = FALSE;
         
