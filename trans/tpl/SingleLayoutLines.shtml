@@ -29,11 +29,11 @@
         <!--ET_BEGIN ADDITIONAL-->
         [#ADDITIONAL#]
         <div>
-            <div class='line-header'>|Допълнително|*</div>
+            <div class='line-header'>|Превозвач|*</div>
             <table class='styled-table'>
                 <!--ET_BEGIN vehicleId-->
                 <tr>
-                    <td>|Транс. средство|*:</td>
+                    <td>|Превозно средство|*:</td>
                     <td>[#vehicleId#]</td>
                 </tr>
                 <!--ET_END vehicleId-->
@@ -57,12 +57,12 @@
             [#Shipments#]
         </div>
         <div style='margin-bottom:15px' class='line-detail'>
-            <div class='line-header'>|Товари от доставчици|*</div>
+            <div class='line-header'>|Доставки|*</div>
             [#Receipts#]
         </div>
         <!--ET_BEGIN Transfers-->
         <div class='line-detail'>
-            <div class='line-header'>|Доставки|*</div>
+            <div class='line-header'>|Вътрешни трансфери|*</div>
             [#Transfers#]
         </div>
         <!--ET_END Transfers-->

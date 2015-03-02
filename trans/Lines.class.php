@@ -140,9 +140,9 @@ class trans_Lines extends core_Master
     	$this->FLD('repeat', 'time(suggestions=1 ден|1 седмица|1 месец)', 'caption=Повторение');
     	$this->FLD('state', 'enum(draft=Чернова,active=Активен,rejected=Оттеглен,closed=Затворен)', 'caption=Състояние,input=none');
     	$this->FLD('isRepeated', 'enum(yes=Да,no=Не)', 'caption=Генерирано на повторение,input=none');
-    	$this->FLD('vehicleId', 'key(mvc=trans_Vehicles,select=name,allowEmpty)', 'caption=Допълнително->Превозвач');
-    	$this->FLD('forwarderId', 'key(mvc=crm_Companies,select=name,group=suppliers,allowEmpty)', 'caption=Допълнително->Транспортна фирма');
-    	$this->FLD('forwarderPersonId', 'acc_type_Item(lists=accountablePersons,select=titleLink,allowEmpty)', 'caption=Допълнително->МОЛ');
+    	$this->FLD('vehicleId', 'key(mvc=trans_Vehicles,select=name,allowEmpty)', 'caption=Превозвач->Превозно средство');
+    	$this->FLD('forwarderId', 'key(mvc=crm_Companies,select=name,group=suppliers,allowEmpty)', 'caption=Превозвач->Транспортна фирма');
+    	$this->FLD('forwarderPersonId', 'acc_type_Item(lists=accountablePersons,select=titleLink,allowEmpty)', 'caption=Превозвач->МОЛ');
     	
     	$this->setDbUnique('title');
     }
@@ -188,7 +188,7 @@ class trans_Lines extends core_Master
     	expect($id = Request::get('id', 'int'));
     	expect($rec = $this->fetch($id));
     	expect($rec->state == 'active' || $rec->state == 'closed');
-    	expect($rec->start >= dt::today());
+    	expect($rec->start >= dt::today() || $rec->state == 'active');
     	
     	$rec->state = ($rec->state == 'active') ? 'closed' : 'active';
     	$this->save($rec);
