@@ -630,7 +630,7 @@ class sales_Sales extends deals_DealMaster
     /**
      * След подготовка на сингъла
      */
-    public static function on_AfterPrepareSingle($mvc, &$res, $data)
+    public static function on_AfterPrepareSingle($mvc, &$res, &$data)
     {
     	$data->jobInfo = array();
     	if($data->rec->state != 'rejected'){
