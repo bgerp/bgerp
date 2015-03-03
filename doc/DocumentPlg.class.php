@@ -2174,4 +2174,23 @@ class doc_DocumentPlg extends core_Plugin
         $query->EXT("firstContainerId", 'doc_threads', "externalName=firstContainerId");
         $query->where("#firstContainerId = #containerId");
     }
+
+
+    /**
+     *
+     */
+    public static function on_BeforeRenderWrapping($mvc, &$res, &$tpl, $data = NULL)
+    {
+        if(haveRole('powerUser') && (Request::get('Act') == 'edit' || Request::get('Act') == 'add')) {
+            $dc = cls::get('doc_Containers');
+            $dc->currentTab = 'Нишка';
+            $res = $dc->renderWrapping($tpl, $data);
+
+            // Задаваме таба на менюто да сочи към документите
+            Mode::set('pageMenu', 'Документи');
+            Mode::set('pageSubMenu', 'Всички');
+
+            return FALSE;
+        }
+    }
 }
