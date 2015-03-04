@@ -1152,15 +1152,14 @@ class acc_BalanceDetails extends core_Detail
         $itemsAll = arr::make($itemsAll);
         
         if(count($itemsAll)){
-            foreach ($itemsAll as $itemId){
+            foreach ($itemsAll as $indexAll => $itemId){
                 
                 // Трябва да инт число
                 expect(ctype_digit($itemId));
                 
                 // .. и перото да участва на произволна позиция
-                $query->where("#ent1Id = {$itemId}");
-                $query->orWhere("#ent2Id = {$itemId}");
-                $query->orWhere("#ent3Id = {$itemId}");
+                $or = ($indexAll == 0) ? FALSE : TRUE;
+                $query->where("#ent1Id = {$itemId} || #ent2Id = {$itemId} || #ent3Id = {$itemId}", $or);
             }
         }
         
