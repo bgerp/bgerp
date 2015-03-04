@@ -191,8 +191,24 @@ class trans_Lines extends core_Master
     	expect($rec->start >= dt::today() || $rec->state == 'active');
     	
     	$rec->state = ($rec->state == 'active') ? 'closed' : 'active';
+    	
+    	// Освобождаваме всички чернови документи в които е избрана линията която затваряме
+    	if($rec->state == 'closed'){
+    		foreach (array('store_ShipmentOrders', 'store_Receipts', 'store_ConsignmentProtocols') as $Doc){
+    			$query = $Doc::getQuery();
+    			$query->where("#state = 'draft'");
+    			$query->where("#lineId = {$id}");
+    		
+    			while($dRec = $query->fetch()){
+    				$dRec->lineId = NULL;
+    				$Doc::save($dRec);
+    			}
+    		}
+    	}
+    	
     	$this->save($rec);
     	$msg = ($rec->state == 'active') ? tr('Линията е отворена успешно') : tr('Линията е затворена успешно');
+    	
     	
     	return Redirect(array($this, 'single', $rec->id), FALSE, $msg);
     }
