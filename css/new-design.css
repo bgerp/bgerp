@@ -247,7 +247,7 @@
   border: 1px solid #333333;
   border-top: none; }
 
-  #nav-panel li.open div {
+  #nav-panel li.selected div {
     color: white; }
   #nav-panel li.selected > a {
     background: #222222;
