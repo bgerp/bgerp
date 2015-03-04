@@ -52,14 +52,21 @@
             </table>
         </div>
         <!--ET_END ADDITIONAL-->
+        
+        <!--ET_BEGIN Shipments-->
         <div style='margin-bottom:15px' class='line-detail'>
             <div class='line-header'>|Експедиции|*</div>
             [#Shipments#]
         </div>
+        <!--ET_END Shipments-->
+        
+        <!--ET_BEGIN Receipts-->
         <div style='margin-bottom:15px' class='line-detail'>
             <div class='line-header'>|Доставки|*</div>
             [#Receipts#]
         </div>
+        <!--ET_END Receipts-->
+        
         <!--ET_BEGIN Transfers-->
         <div class='line-detail'>
             <div class='line-header'>|Вътрешни трансфери|*</div>

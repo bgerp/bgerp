@@ -386,10 +386,12 @@ class store_Transfers extends core_Master
      */
     public function renderTransfers($data)
     {
-    	$table = cls::get('core_TableView');
-    	$fields = "rowNumb=№,docId=Документ,weight=Тегло,volume=Обем,address=@Адрес";
-    	
-    	return $table->get($data->transfers, $fields);
+    	if(count($data->transfers)){
+    		$table = cls::get('core_TableView');
+    		$fields = "rowNumb=№,docId=Документ,weight=Тегло,volume=Обем,address=@Адрес";
+    		 
+    		return $table->get($data->transfers, $fields);
+    	}
     }
     
     
