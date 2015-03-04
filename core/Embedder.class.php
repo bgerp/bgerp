@@ -153,6 +153,12 @@ class core_Embedder extends core_Master
 			$form->setReadOnly($mvc->innerClassField);
 		} else {
 			$form->setOptions($mvc->innerClassField, $interfaces);
+			
+			// Ако е възможен точно един драйвер, задаваме го по подразбиране да е избран
+			if(count($interfaces) == 1){
+				$form->setDefault($mvc->innerClassField, key($interfaces));
+				$form->setReadOnly($mvc->innerClassField);
+			}
 		}
 	
 		// Ако има запис, не може да се сменя източника и попълваме данните на формата с тези, които са записани
