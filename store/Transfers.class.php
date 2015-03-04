@@ -357,7 +357,8 @@ class store_Transfers extends core_Master
      */
     private function prepareLineRows($rec)
     {
-    	$row = $this->recToVerbal($rec, 'toAdress,weight,volume,-single');
+    	$row = $this->recToVerbal($rec, 'toAdress,fromStore,toStore,weight,volume,-single');
+    	
     	if(!$rec->volume){
     		unset($row->volume);
     	}
@@ -402,7 +403,7 @@ class store_Transfers extends core_Master
     {
     	if(count($data->transfers)){
     		$table = cls::get('core_TableView');
-    		$fields = "rowNumb=№,docId=Документ,weight=Тегло,volume=Обем,address=@Адрес";
+    		$fields = "rowNumb=№,docId=Документ,fromStore=Склад->Изходящ,toStore=Склад->Входящ,weight=Тегло,volume=Обем,address=@Адрес";
     		 
     		return $table->get($data->transfers, $fields);
     	}

@@ -474,6 +474,7 @@ abstract class store_DocumentMaster extends core_Master
     	$row->address .= ", " . (($rec->locationId) ? crm_Locations::getAddress($rec->locationId) : $oldRow->contragentAddress);
     	trim($row->address, ', ');
     	 
+    	$row->storeId = store_Stores::getHyperlink($rec->storeId);
     	$row->ROW_ATTR['class'] = "state-{$rec->state}";
     	$row->docId = $this->getDocLink($rec->id);
     	 
