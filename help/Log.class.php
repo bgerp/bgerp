@@ -118,7 +118,6 @@ class help_Log extends core_Master
                 
                 return 'open';
         }
-
         
         /**
          * Ако и времето и брояча са под определените лимити за показване в затворено състояние, то
@@ -126,38 +125,13 @@ class help_Log extends core_Master
          */
         $untilCloseDate = dt::timestamp2mysql(dt::mysql2timestamp($rec->seeOn) + $conf->HELP_MAX_CLOSE_DISPLAY_TIME);
         if($untilCloseDate > $nowDate || $rec->seeCnt < $conf->HELP_MAX_CLOSE_DISPLAY_CNT) {
-        	
-        	if(BGERP_DEMO_MODE == TRUE) {
-        		
-		        return 'open';
-		    } else {
-		    	
-		    	return 'close';
-		    }
+                
+                return 'close';
         }
         
-        // Ако сме решили, че искаме винаги да се показва, дори и ако е затворено ръчно
-    	if(BGERP_DEMO_MODE == TRUE) {
-        		
-			return 'open';
-		} else {
-        
-	        // Ако не трябва да показваме информацията нито в отворено, нито в затворено състояние
-	        // връщаме 'none'
-	        return 'none';
-		}
-    }
-    
-    
-    
-    static function act_Test()
-    {
-    	$currUserId = core_Users::getCurrent();
-    	
-    	
-    	
-    	bp (self::getDisplayMode('-1', $currUserId, FALSE)) ;
-    	
+        // Ако не трябва да показваме информацията нито в отворено, нито в затворено състояние
+        // връщаме 'none'
+        return 'none';
     }
     
     
