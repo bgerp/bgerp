@@ -236,6 +236,20 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 			$form->setField('measureId', 'display=hidden');
 		}
 		
+		$Cover = doc_Folders::getCover($form->rec->folderId);
+		
+		// Ако корицата е категория и има позволени мерки, оставяме само тях
+		if($Cover->getInstance() instanceof cat_Categories){
+			$arr = keylist::toArray($Cover->fetchField('measures'));
+			if(count($arr)){
+				$options = array();
+				foreach ($arr as $mId){
+					$options[$mId] = cat_UoM::getTitleById($mId);
+				}
+				$form->setOptions('measureId', $options);
+			}
+		}
+		
 		// Викаме метода на бащата
 		parent::prepareEmbeddedForm($form);
 	}
