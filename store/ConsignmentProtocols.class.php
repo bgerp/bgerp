@@ -142,6 +142,7 @@ class store_ConsignmentProtocols extends core_Master
     	$this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code,allowEmpty)', 'mandatory,caption=Плащане->Валута');
     	$this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=От склад, mandatory');
     
+    	$this->FLD('lineId', 'key(mvc=trans_Lines,select=title, allowEmpty)', 'caption=Транспорт');
     	$this->FLD('note', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Бележки');
     	$this->FLD('state',
     			'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)',
@@ -386,5 +387,46 @@ class store_ConsignmentProtocols extends core_Master
     	$res .= doc_TplManager::addOnce($this, $tplArr);
     
     	return $res;
+    }
+    
+    
+    /**
+     * Подготовка на показване като детайл в транспортните линии
+     */
+    public function prepareProtocols($data)
+    {
+    	$data->protocols = array();
+    	
+    	$query = $this->getQuery();
+    	$query->where("#lineId = {$data->masterId}");
+    	
+    	$count = 1;
+    	while($rec = $query->fetch()){
+    		$row = new stdClass();
+    		$row->storeId = store_Stores::getHyperlink($rec->storeId);
+    		$row->docId = "#" . $this->getHandle($rec->id);
+    		if($this->haveRightFor('single', $rec)){
+    			$row->docId = ht::createLink($row->docId, array($this, 'single', $rec->id));
+    		}
+    		
+    		$row->rowNumb = cls::get('type_Int')->toVerbal($count);
+    		$row->ROW_ATTR['class'] = "state-{$rec->state}";
+    		$data->protocols[$rec->id] = $row;
+    		$count++;
+    	}
+    }
+    
+    
+    /**
+     * Подготовка на показване като детайл в транспортните линии
+     */
+    public function renderProtocols($data)
+    {
+    	if(count($data->protocols)){
+    		$table = cls::get('core_TableView');
+    		$fields = "rowNumb=№,docId=Документ,storeId=Склад,weight=Тегло,volume=Обем,address=@Адрес";
+    		 
+    		return $table->get($data->protocols, $fields);
+    	}
     }
 }

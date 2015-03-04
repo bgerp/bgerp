@@ -90,7 +90,7 @@ class trans_Lines extends core_Master
     /**
      * Детайла, на модела
      */
-    public $details = 'Shipments=store_ShipmentOrders,Receipts=store_Receipts,Transfers=store_Transfers';
+    public $details = 'Shipments=store_ShipmentOrders,Receipts=store_Receipts,Transfers=store_Transfers,Protocols=store_ConsignmentProtocols';
     
     
     /**
