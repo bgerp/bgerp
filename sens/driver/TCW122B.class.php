@@ -133,16 +133,18 @@ class sens_driver_TCW122B extends sens_driver_IpDevice
             }
        		 	
             
-            if ($details['details'] == '(ON,OFF)') {
+            if ($details['details'] == '(ON,OFF)' || $details['details'] == '(OPEN,CLOSED)') {
                 $state[$param] = trim(strtoupper($result[$details['xmlPath']]));
                 
                 // Санитизираме цифровите входове и изходи
                 switch ($state[$param]) {
                     case 'ON' :
-                        $state[$param] = 1;
+                    case 'OPEN' :
+                    	$state[$param] = 1;
                         break;
                     case 'OFF' :
-                        $state[$param] = 0;
+                    case 'CLOSED' :
+                    	$state[$param] = 0;
                         break;
                 }
             }
