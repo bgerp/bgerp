@@ -1152,6 +1152,7 @@ class acc_BalanceDetails extends core_Detail
         $itemsAll = arr::make($itemsAll);
         
         if(count($itemsAll)){
+        	$itemsAll = array_values($itemsAll);
             foreach ($itemsAll as $indexAll => $itemId){
                 
                 // Трябва да инт число
