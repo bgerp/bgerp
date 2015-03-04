@@ -1165,6 +1165,7 @@ td.portal-date {
 	font-weight: bold;
 	line-height: 120%;
 	margin-top: 4px;
+	text-transform: uppercase;
 }
 
 .document .listTable th{
@@ -1582,7 +1583,6 @@ table.mc-header a {
     display: inline-block;
     border: 0 none;
     top: -8px;
-    //text-align: right;
 }
  
 .metro-dropdown-portal::after

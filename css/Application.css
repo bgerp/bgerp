@@ -1044,7 +1044,8 @@ td.portal-date {
   font-size: 16pt;
   font-weight: bold;
   line-height: 120%;
-  margin-top: 4px; }
+  margin-top: 4px;
+  text-transform: uppercase; }
 
 .document .listTable th {
   white-space: nowrap; }
