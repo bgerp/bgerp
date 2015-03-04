@@ -27,13 +27,7 @@ class mp_Stages extends core_Manager
 	/**
 	 * Плъгини за зареждане
 	 */
-	public $loadList = 'plg_RowTools, mp_Wrapper, plg_Printing, plg_LastUsedKeys, plg_Sorting';
-	
-	
-	/**
-	 * Кои ключове да се тракват, кога за последно са използвани
-	 */
-	public $lastUsedKeys = 'departmentId';
+	public $loadList = 'plg_RowTools, mp_Wrapper, plg_Printing, plg_Sorting';
 	
 	
 	/**
@@ -78,11 +72,10 @@ class mp_Stages extends core_Manager
 	function description()
 	{
 		$this->FLD('name', 'varchar', 'caption=Заглавие,mandatory');
-		$this->FLD('departmentId', 'key(mvc=hr_Departments,select=name,allowEmpty)', 'caption=Център на дейност,mandatory');
 		$this->FLD('order', 'int', 'caption=Подредба');
 		$this->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none');
 		
-		$this->setDbUnique('name,departmentId');
+		$this->setDbUnique('name');
 		$this->setDbUnique('order');
 	}
 	
@@ -119,19 +112,6 @@ class mp_Stages extends core_Manager
 	 */
 	protected static function on_AfterPrepareListFilter($mvc, &$data)
 	{
-		$data->listFilter->FNC('department', 'key(mvc=hr_Departments,select=name,allowEmpty)', 'caption=Център на дейност,input');
-		$data->listFilter->showFields = 'department';
-		$data->listFilter->view = 'horizontal';
-		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-		
-		$data->listFilter->input();
-		
-		if($rec = $data->listFilter->rec){
-			if($rec->department){
-				$data->query->where("#departmentId = {$rec->department}");
-			}
-		}
-		
 		// Сортиране на записите по order
 		$data->query->orderBy('order');
 	}
@@ -146,7 +126,7 @@ class mp_Stages extends core_Manager
 	 */
 	public static function on_AfterRecToVerbal($mvc, &$row, $rec)
 	{
-		$row->departmentId = hr_Departments::getHyperlink($rec->departmentId, TRUE);
+		
 	}
 	
 	
