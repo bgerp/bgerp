@@ -36,6 +36,8 @@ function initSidebars() {
  * Записваме информацията за състоянието на менютата в бисквитка
  */
 function setMenuCookie(){
+	if ($(window).width() < 600) return;
+	
 	var menuState = "";
 	if($('.sidemenu-left').hasClass('sidemenu-open')){
 		menuState = 'l';
@@ -58,6 +60,8 @@ function setMenuCookie(){
  * кои подменюта трябва да са отворени след зареждане
  */
 function openSubmenus() {
+	if ($(window).width() < 600) return;
+	
 	var menuInfo = getCookie('menuInformation');
     if (menuInfo!==null && menuInfo.length > 1) {
     	var startPos = menuInfo.indexOf(' ');
