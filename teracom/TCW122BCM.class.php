@@ -157,10 +157,12 @@ class teracom_TCW122BCM extends sens2_ProtoDriver
             if($value) {
                 switch (strtoupper($value)) {
                     case 'ON':
-                        $res[$name] = 1;
+                    case 'OPEN':
+                    	$res[$name] = 1;
                         break;
                     case 'OFF':
-                        $res[$name] = 0;
+                    case 'CLOSED':
+                    	$res[$name] = 0;
                         break;
                     default:
                         $res[$name] = (float) $value;
