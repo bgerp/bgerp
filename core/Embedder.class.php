@@ -71,7 +71,7 @@ class core_Embedder extends core_Master
 		// Добавяме задължителните полета само ако не е дефинирано че вече съществуват
 		
 		if(!isset($mvc->fields[$mvc->innerClassField])){
-			$mvc->FLD($mvc->innerClassField, "class(interface={$mvc->innerObjectInterface}, allowEmpty, select=title)", "caption=Драйвър,mandatory,silent", array('attr' => array('onchange' => "addCmdRefresh(this.form);this.form.submit()")));
+			$mvc->FLD($mvc->innerClassField, "class(interface={$mvc->innerObjectInterface}, allowEmpty, select=title)", "caption=Вид,mandatory,silent", array('attr' => array('onchange' => "addCmdRefresh(this.form);this.form.submit()")));
 		}
 		
 		if(!isset($mvc->fields[$mvc->innerFormField])){

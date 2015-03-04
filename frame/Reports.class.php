@@ -131,7 +131,7 @@ class frame_Reports extends core_Embedder
     function description()
     {
         // Singleton клас - източник на данните
-        $this->FLD('source', 'class(interface=frame_ReportSourceIntf, allowEmpty, select=title)', 'caption=Източник,silent,mandatory,notFilter,refreshForm');
+        $this->FLD('source', 'class(interface=frame_ReportSourceIntf, allowEmpty, select=title)', 'caption=Вид,silent,mandatory,notFilter,refreshForm');
 
         // Поле за настройките за филтриране на данните, които потребителят е посочил във формата
         $this->FLD('filter', 'blob(1000000, serialize, compress)', 'caption=Филтър,input=none,single=none,column=none');
