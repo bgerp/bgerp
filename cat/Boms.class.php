@@ -184,6 +184,14 @@ class cat_Boms extends core_Master
     			if($origin->fetchField('state') != 'active'){
     				$res = 'no_one';
     			}
+    			
+    			// Трябва и да е производим
+    			if($res != 'no_one'){
+    				$pInfo = $origin->getProductInfo();
+    				if(!isset($pInfo->meta['canManifacture'])){
+    					$res = 'no_one';
+    				}
+    			}
     		}
     	}
     	
