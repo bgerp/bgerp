@@ -299,11 +299,6 @@ class cat_Products extends core_Embedder {
 				}
     		}
     	}
-    	
-    	if(!isset($form->rec->innerClass)){
-    		$form->setField('groups', 'input=hidden');
-    		$form->setField('meta', 'input=hidden');
-    	}
     }
     
     
@@ -312,6 +307,11 @@ class cat_Products extends core_Embedder {
      */
     public static function on_AfterInputEditForm($mvc, &$form)
     {
+		if(!isset($form->rec->innerClass)){
+    		$form->setField('groups', 'input=hidden');
+    		$form->setField('meta', 'input=hidden');
+    	}
+		
 		//Проверяваме за недопустими символи
         if ($form->isSubmitted()){
         	$rec = &$form->rec;
