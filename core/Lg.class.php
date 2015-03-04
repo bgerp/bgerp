@@ -486,6 +486,10 @@ class core_Lg extends core_Manager
         
         $langArr = $otherParams + $langArr;
         
+        if (isset($langArr[''])) {
+            $langArr[''] = 'От системата';
+        }
+        
         return $langArr;
     }
 }

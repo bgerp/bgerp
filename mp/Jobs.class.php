@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   mp
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Задания за производство
@@ -64,6 +64,12 @@ class mp_Jobs extends core_Master
      * Кой има право да добавя?
      */
     public $canAdd = 'ceo, mp';
+    
+    
+    /**
+     * Кой може да добавя?
+     */
+    public $canClose = 'ceo, mp';
     
     
     /**
@@ -128,14 +134,14 @@ class mp_Jobs extends core_Master
     	$this->FLD('dueDate', 'date(smartTime)', 'caption=Падеж,mandatory');
     	$this->FLD('quantity', 'double(decimals=2)', 'caption=Количество,mandatory,silent');
     	$this->FLD('notes', 'richtext(rows=3)', 'caption=Забележки');
-    	$this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Доставка->Условие');
-    	$this->FLD('deliveryDate', 'date(smartTime)', 'caption=Доставка->Срок');
-    	$this->FLD('deliveryPlace', 'key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Доставка->Място');
+    	$this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Доставка->Условие,silent');
+    	$this->FLD('deliveryDate', 'date(smartTime)', 'caption=Доставка->Срок,silent');
+    	$this->FLD('deliveryPlace', 'key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Доставка->Място,silent');
     	$this->FLD('weight', 'cat_type_Weight', 'caption=Тегло,input=none');
     	$this->FLD('brutoWeight', 'cat_type_Weight', 'caption=Бруто,input=none');
     	$this->FLD('data', 'blob(serialize,compress)', 'input=none');
     	$this->FLD('state',
-    			'enum(draft=Чернова, active=Активирано, rejected=Отказано)',
+    			'enum(draft=Чернова, active=Активирано, rejected=Отказано, closed=Затворено)',
     			'caption=Статус, input=none'
     	);
     }
@@ -183,13 +189,22 @@ class mp_Jobs extends core_Master
     	}
     	 
     	if($fields['-single']){
-    		$row->header = $mvc->singleTitle . " №<b>{$row->id}</b> ({$row->state})" ;
     
     		$pInfo = $origin->getProductInfo();
     		$row->quantity .= " " . cat_UoM::getShortName($pInfo->productRec->measureId);
-    		
-    		$row->origin = $origin->renderJobView($rec->dueDate);
+    		$row->origin = $origin->renderJobView($rec->modifiedOn);
     	}
+    }
+    
+    
+    /**
+     * Връща разбираемо за човека заглавие, отговарящо на записа
+     */
+    public static function getRecTitle($rec, $escaped = TRUE)
+    {
+    	$self = cls::get(get_called_class());
+    	 
+    	return tr($self->singleTitle) . " №{$rec->id}";
     }
     
     
@@ -200,11 +215,11 @@ class mp_Jobs extends core_Master
     {
     	$rec = $this->fetch($id);
     	$row = new stdClass();
-    	$row->title = "Задание за производство №{$id}";
+    	$row->title = $this->getRecTitle($rec);
     	$row->authorId = $rec->createdBy;
     	$row->author = $this->getVerbal($rec, 'createdBy');
     	$row->state = $rec->state;
-    	$row->recTitle = "Задание за производство №{$id}";
+    	$row->recTitle = $this->getRecTitle($rec);
     
     	return $row;
     }
@@ -232,9 +247,8 @@ class mp_Jobs extends core_Master
         // Ако има ориджин в рекуеста
     	if($originId = Request::get('originId', 'int')){
     		
-    		// Очакваме той да е 'techno2_SpecificationDoc' - спецификация
     		$origin = doc_Containers::getDocument($originId);
-    		expect($origin->getInstance() instanceof techno2_SpecificationDoc);
+    		expect($origin->haveInterface('cat_ProductAccRegIntf'));
     		expect($origin->fetchField('state') == 'active');
     		
     		// Ако е спецификация, документа може да се добави към нишката
@@ -257,7 +271,7 @@ class mp_Jobs extends core_Master
     			$res = 'no_one';
     		} else {
     			$origin = doc_Containers::getDocument($rec->originId);
-    			if(!($origin->getInstance() instanceof techno2_SpecificationDoc)){
+    			if(!$origin->haveInterface('cat_ProductAccRegIntf')){
     				$res = 'no_one';
     			}
     			
@@ -270,7 +284,7 @@ class mp_Jobs extends core_Master
     	 
     	if(($action == 'activate' || $action == 'restore' || $action == 'conto' || $action == 'write') && isset($rec->originId) && $res != 'no_one'){
     
-    		// Ако има активна карта, да не може друга да се възстановява,контира,създава или активира
+    		// Ако има активно задание, да не може друга да се възстановява,контира,създава или активира
     		if($mvc->fetch("#originId = {$rec->originId} AND #state = 'active'")){
     			$res = 'no_one';
     		}
@@ -297,5 +311,65 @@ class mp_Jobs extends core_Master
     	$res[] = (object)array('class' => $origin->getInstance(), 'id' => $origin->that);
     
     	return $res;
+    }
+    
+    
+    /**
+     * Функция, която се извиква след активирането на документа
+     */
+    public static function on_AfterActivation($mvc, &$rec)
+    {
+    	// След активиране на заданието, добавяме артикула като перо
+    	$origin = doc_Containers::getDocument($mvc->fetchRec($rec)->originId);
+    	$origin->forceItem('catProducts');
+    }
+    
+    
+    /**
+     * При нова сделка, се ънсетва threadId-то, ако има
+     */
+    public static function on_AfterPrepareDocumentLocation($mvc, $form)
+    {
+    	if($form->rec->threadId && !$form->rec->id){
+    		unset($form->rec->threadId);
+    	}
+    }
+    
+    
+    /**
+     * След подготовка на тулбара на единичен изглед.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+    	if($mvc->haveRightFor('close', $data->rec)){
+    		if($data->rec->state == 'closed'){
+    			$data->toolbar->addBtn("Активиране", array($mvc, 'changeState', $data->rec->id, 'ret_url' => TRUE), 'ef_icon = img/16/lightbulb.png,title=Активиранe на артикула,warning=Сигурнили сте че искате да активирате артикула, това ще му активира перото');
+    		} elseif($data->rec->state == 'active'){
+    			$data->toolbar->addBtn("Приключване", array($mvc, 'changeState', $data->rec->id, 'ret_url' => TRUE), 'ef_icon = img/16/lightbulb_off.png,title=Затваряне артикула и перото му,warning=Сигурнили сте че искате да приключите артикула, това ще му затвори перото');
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Затваря/отваря артикула и перото му
+     */
+    public function act_changeState()
+    {
+    	$this->requireRightFor('close');
+    	expect($id = Request::get('id', 'int'));
+    	expect($rec = $this->fetch($id));
+    	$this->requireRightFor('close', $rec);
+    	 
+    	$state = ($rec->state == 'closed') ? 'active' : 'closed';
+    	$rec->exState = $rec->state;
+    	$rec->state = $state;
+    	 
+    	$this->save($rec, 'state');
+    	 
+    	return followRetUrl();
     }
 }

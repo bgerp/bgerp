@@ -62,7 +62,7 @@ abstract class deals_ClosedDeals extends core_Master
     /**
      * Файл за единичен изглед
      */
-    protected $singleLayoutFile = 'acc/tpl/ClosedDealsSingleLayout.shtml';
+    protected $singleLayoutFile = 'deals/tpl/ClosedDealsSingleLayout.shtml';
     
     
     /**
@@ -303,21 +303,6 @@ abstract class deals_ClosedDeals extends core_Master
             $firstRec->state = 'closed';
             $DocClass->save($firstRec);
             
-            // Ако има перо сделката, затваряме го
-            if($item = acc_Items::fetchItem($DocClass->getClassId(), $firstRec->id)){
-                
-                // Изчистваме заопашените пера, ако ги има за да им се обнови 'lastUsedOn'
-                $Items = cls::get('acc_Items');
-                $Items->flushTouched();
-                
-                acc_Lists::removeItem($DocClass, $firstRec->id, $item->lists);
-                
-                if(haveRole('ceo,acc,debug')){
-                    $title = $DocClass->getTitleById($firstRec->id);
-                    core_Statuses::newStatus(tr("|Перото|* \"{$title}\" |е затворено/изтрито|*"));
-                }
-            }
-            
             if(empty($saveFileds)){
                 $rec->amount = $mvc::getClosedDealAmount($rec->threadId);
                 $mvc->save($rec, 'amount');
@@ -342,16 +327,6 @@ abstract class deals_ClosedDeals extends core_Master
             if($firstRec->state != 'rejected'){
                 $firstRec->state = 'active';
                 $DocClass->save($firstRec);
-            }
-            
-            // Ако има перо сделката, обновяваме му състоянието
-            if($item = acc_Items::fetchItem($DocClass->getClassId(), $firstRec->id)){
-                acc_Lists::updateItem($DocClass, $firstRec->id, $item->lists);
-                
-                if(haveRole('ceo,acc,debug')){
-                    $msg = tr("Активирано е перо|* '") . $DocClass->getTitleById($firstRec->id) . tr("' |в номенклатура 'Сделки'|*");
-                    core_Statuses::newStatus($msg);
-                }
             }
         }
         
@@ -393,21 +368,6 @@ abstract class deals_ClosedDeals extends core_Master
         $row->docId = cls::get($rec->docClassId)->getHyperLink($rec->docId, TRUE);
         
         return $row;
-    }
-    
-    
-    /**
-     * След преобразуване на записа в четим за хора вид.
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $row Това ще се покаже
-     * @param stdClass $rec Това е записа в машинно представяне
-     */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
-    {
-        if($fields['-single']){
-            $row->header = $mvc->singleTitle . " #<b>{$mvc->abbr}{$row->id}</b> ({$row->state})";
-        }
     }
     
     

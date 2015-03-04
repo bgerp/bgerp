@@ -59,7 +59,8 @@ class fastscroll_Setup extends core_ProtoSetup
         $Plugins = cls::get('core_Plugins');
         
         // Инсталираме плъгина към страницата
-        $html .= $Plugins->installPlugin('Бързо скролиране', 'fastscroll_Plugin', 'page_Internal', 'private');
+        $html .= $Plugins->installPlugin('Бързо скролиране', 'fastscroll_Plugin', 'core_page_Internal', 'private');
+        $html .= $Plugins->installPlugin('Бързо скролиране за модерната версия', 'fastscroll_Plugin', 'core_page_InternalModern', 'private');
         
         return $html;
     }

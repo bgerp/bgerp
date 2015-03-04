@@ -104,10 +104,8 @@ class purchase_ServicesDetails extends deals_DeliveryDocumentDetail
     	$property = ($masterRec->isReverse == 'yes') ? 'canSell' : 'canBuy';
     	 
     	// Намираме всички продаваеми продукти, и оттях оставяме само складируемите за избор
-    	$products = $ProductManager->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date, $property);
-    	$products2 = $ProductManager::getByProperty('canStore');
-    	$products = array_diff_key($products, $products2);
-    	 
+    	$products = $ProductManager->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date, $property, 'canStore');
+    	
     	return $products;
     }
 

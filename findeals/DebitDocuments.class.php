@@ -146,6 +146,9 @@ class findeals_DebitDocuments extends deals_Document
     		$currencyCode = currency_Currencies::getCodeById($rec->currencyId);
     		if(!$rec->rate){
     			$rec->rate = round(currency_CurrencyRates::getRate($rec->valior, $currencyCode, NULL), 4);
+    			if(!$rec->rate){
+    				$form->setError('rate', "Не може да се изчисли курс");
+    			}
     		} else {
     			if($msg = currency_CurrencyRates::hasDeviation($rec->rate, $rec->valior, $currencyCode, NULL)){
     				$form->setWarning('rate', $msg);

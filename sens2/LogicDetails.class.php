@@ -77,8 +77,7 @@ class  sens2_LogicDetails extends core_Detail
     function description()
     {
         $this->FLD('logicId', 'key(mvc=sens2_Logics,title=name)', 'caption=Блок,column=none,silent');
-        $this->FLD('action', 'class(interface=sens2_LogicActionIntf, select=title, allowEmpty)', 'caption=Тип,mandatory,silent', 
-            array('attr' => array('onchange' => "addCmdRefresh(this.form);this.form.submit()")));
+        $this->FLD('action', 'class(interface=sens2_LogicActionIntf, select=title, allowEmpty)', 'caption=Тип,mandatory,silent,refreshForm');
         $this->FLD('order', 'int', 'caption=Ред №');
 
         $this->FLD('data', 'blob(serialize)', 'caption=Данни,input=none');

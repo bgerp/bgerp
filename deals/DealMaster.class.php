@@ -38,6 +38,12 @@ abstract class deals_DealMaster extends deals_DealBase
 	
 	
 	/**
+	 * На кой ред в тулбара да се показва бутона за принтиране
+	 */
+	public $printBtnToolbarRow = 1;
+	
+	
+	/**
 	 * Извиква се след описанието на модела
 	 *
 	 * @param core_Mvc $mvc
@@ -70,16 +76,20 @@ abstract class deals_DealMaster extends deals_DealBase
 			
 			// Ако разликата е в между -толеранса и +толеранса то състоянието е платено
 			if(($diff >= -1 * $conf->ACC_MONEY_TOLERANCE && $diff <= $conf->ACC_MONEY_TOLERANCE) || $diff < -1 * $conf->ACC_MONEY_TOLERANCE){
-					
+				
 				// Ако е в състояние чакаща отбелязваме я като платена, ако е била просрочена става издължена
 				return ($state != 'overdue') ? 'paid' : 'repaid';
 			}
 		}
+		
+		// Ако крайното салдо е 0
+		if(round($amountBl, 2) == 0){
 			
-		// Ако крайното салдо е 0, я водим за издължена
-		if(round($amountBl, 2) == 0 && (($state == 'overdue' || $state == 'pending') || ($state == 'paid' && round($amountPaid, 2) == 0))){
-			
-			return 'repaid';
+			// издължени стават: платените с нулево платено, просрочените и чакащите по които има плащане или доставяне и крайното салдо е 0
+			if(($state == 'paid' && round($amountPaid, 2) == 0) || $state == 'overdue' || ($state == 'pending' && (!empty($amountPaid) || !empty($amountDelivered)))){
+				
+				return 'repaid';
+			}
 		}
 		
 		return 'pending';
@@ -288,6 +298,9 @@ abstract class deals_DealMaster extends deals_DealBase
         // Ако не е въведен валутен курс, използва се курса към датата на документа 
         if (empty($rec->currencyRate)) {
             $rec->currencyRate = currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, NULL);
+            if(!$rec->currencyRate){
+            	$form->setError('currencyRate', "Не може да се изчисли курс");
+            }
         } else {
         	if($msg = currency_CurrencyRates::hasDeviation($rec->currencyRate, $rec->valior, $rec->currencyId, NULL)){
 		    	$form->setWarning('currencyRate', $msg);
@@ -533,7 +546,7 @@ abstract class deals_DealMaster extends deals_DealBase
 		$actions = type_Set::toArray($rec->contoActions);
     	
     	// Ако има склад, се нотифицира отговорника му
-    	if(empty($actions['ship']) && $rec->shipmentStoreId){
+    	if($rec->shipmentStoreId){
     		$storeRec = store_Stores::fetch($rec->shipmentStoreId);
     		if($storeRec->autoShare == 'yes'){
     			$rec->sharedUsers = keylist::merge($rec->sharedUsers, $storeRec->chiefs);
@@ -541,7 +554,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	}
     		
     	// Ако има каса се нотифицира касиера
-    	if(empty($actions['pay']) && $rec->caseId){
+    	if($rec->caseId){
     		$caseRec = cash_Cases::fetch($rec->caseId);
     		if($caseRec->autoShare == 'yes'){
     			$rec->sharedUsers = keylist::merge($rec->sharedUsers, $caseRec->cashiers);
@@ -834,8 +847,6 @@ abstract class deals_DealMaster extends deals_DealBase
 	    	
 	    	$row->username = core_Users::getVerbal($rec->createdBy, 'names');
 	    	
-	    	$row->header = $mvc->singleTitle . " #<b>{$mvc->abbr}{$row->id}</b> ({$row->state})";
-	    	
 		    $mvc->prepareHeaderInfo($row, $rec);
 		   
 		    // Ако валутата е основната валута да не се показва
@@ -954,7 +965,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	
     	$rec->paymentState = $mvc->getPaymentState($aggregateDealInfo, $rec->paymentState);
     	
-    	$mvc->save($rec);
+    	$mvc->save_($rec);
     	
     	$dQuery = $mvc->$Detail->getQuery();
     	$dQuery->where("#{$mvc->$Detail->masterKey} = {$rec->id}");
@@ -1087,13 +1098,6 @@ abstract class deals_DealMaster extends deals_DealBase
     public static function on_BeforeRenderSingleToolbar($mvc, &$res, &$data)
     {
     	$rec = &$data->rec;
-    	
-    	// Ако има бутон за принтиране, подменяме го с такъв стоящ на първия ред
-    	if(isset($data->toolbar->buttons['btnPrint'])){
-    		$data->toolbar->removeBtn('btnPrint');
-    		$url = array($mvc, 'single', $rec->id, 'Printing' => 'yes');
-    		$data->toolbar->addBtn('Печат', $url, 'id=btnPrint,target=_blank', 'ef_icon = img/16/printer.png,title=Печат на страницата');
-    	}
     	 
     	// Ако има опции за избор на контирането, подмяна на бутона за контиране
     	if(isset($data->toolbar->buttons['btnConto'])){
@@ -1370,7 +1374,7 @@ abstract class deals_DealMaster extends deals_DealBase
     			// Ако да, то сделката се отбелязва като просрочена
     			$rec->paymentState = 'overdue';
     		} else {
-    			 
+    			
     			// Ако не е просрочена проверяваме дали е платена
     			$rec->paymentState = $Class->getPaymentState($dealInfo, $rec->paymentState);
     		}

@@ -286,7 +286,7 @@ en,Тип,Type
 en,Транспорт,Transport
 en,Търсене,Search
 en,Уникод,Unicode
-en,Управление на _1cd80,Packages management
+en,Управление на _1cd80,Package manager
 en,Факс,Fax
 en,Фактура за про_288aa,Sale invoice
 en,Фамилен,Family
@@ -357,7 +357,7 @@ en,Живот,Lifetime
 en,Изтриване на и_33938,Delete expired records
 en,Изтриване на в_84902,Delete all records
 en,Обект,Object
-en,Срок,Duration
+en,Срок,Deadline 
 en,ISO информация з_9f55,ISO information about countries
 en,Наименование,Name
 en,Формално име,Formal name
@@ -1701,3 +1701,4 @@ en,Поддръжка на,Support of
 en,Технологична рецепта,Bill of materials
 en,Технологични рецепти,Bills of materials
 en,Имате ли някакви въпроси за,Do you have any questions for
+en,чрез,via

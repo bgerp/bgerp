@@ -99,6 +99,8 @@ class acc_type_Item extends type_Key
         $this->handler = md5($this->getSelectFld() . $where . $this->params['mvc']);
         
         $this->options = parent::prepareOptions();
+        
+        return $this->options;
     }
     
     
@@ -134,7 +136,9 @@ class acc_type_Item extends type_Key
     {
         $value = parent::fromVerbal_($value);
         
-        $value = intval($value);
+        if(isset($value)){
+        	$value = intval($value);
+        }
         
         return $value;
     }
@@ -147,7 +151,7 @@ class acc_type_Item extends type_Key
      * 
      * @return object
      */
-    protected function fetchVal($value)
+    protected function fetchVal(&$value)
     {
         $mvc = &cls::get($this->params['mvc']);
         

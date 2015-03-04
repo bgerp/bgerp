@@ -92,7 +92,19 @@ class core_ProtoSetup
      */
     protected $cronSettings;
 
-
+    
+    /**
+     * Дали пакета е системен
+     */
+    public $isSystem = FALSE;
+    
+    
+    /**
+     * 
+     */
+    public $noInstall = FALSE;
+    
+    
     /**
      * Инсталиране на пакета
      */
@@ -230,7 +242,7 @@ class core_ProtoSetup
      * 
      * @return string
      */
-    private function preparePacksPath($packName, $pathStr)
+    public function preparePacksPath($packName, $pathStr)
     {
         if (!trim($pathStr)) return $pathStr;
         

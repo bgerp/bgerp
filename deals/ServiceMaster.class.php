@@ -172,15 +172,6 @@ abstract class deals_ServiceMaster extends core_Master
     }
 
 
-    /**
-     * След подготовка на единичния изглед
-     */
-    public static function on_AfterPrepareSingle($mvc, &$res, &$data)
-    {
-    	$data->row->header = $mvc->singleTitle . " #<b>{$mvc->abbr}{$data->row->id}</b> ({$data->row->state})";
-    }
-
-
 	/**
 	 * Подготвя вербалните данни на моята фирма
 	 */

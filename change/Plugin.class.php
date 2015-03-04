@@ -142,6 +142,11 @@ class change_Plugin extends core_Plugin
         // Ако формата е изпратена без грешки
         if($form->isSubmitted()) {
             
+            if (is_null($rec->version) && is_null($rec->subVersion)) {
+                $rec->version = 0;
+                $rec->subVersion = 1;
+            }
+            
             // Ако не е подадена версия
             if (!$fRec->version) {
                 

@@ -1,0 +1,37 @@
+<div class="singleView">
+    [#SingleToolbar#]
+    <div class="folder-cover">
+        <div class="inner-folder">
+            <div class="block_title state-active special-title">[#SingleIcon#] |Продуктова категория|* <b style="color:green;">[#name#]</b></div>
+            <fieldset class="detail-info">
+                <div class="groupList">
+                    <table>
+                        <tr>
+                            <td class='dt'>System Id:</td>
+                            <td> [#sysId#]</td>
+                        </tr>
+                        <!--ET_BEGIN measures-->
+                        <tr>
+                            <td class='dt'>|Позволени мерки|*</td>
+                            <td> [#measures#]</td>
+                        </tr>
+                        <!--ET_END measures-->
+                    </table>
+                </div>
+            </fieldset>
+            <!--ET_BEGIN meta-->
+			<fieldset class="detail-info">
+				<legend class="groupTitle">|Мета данни|*</legend>
+				<div class="groupList">[#meta#]</div>
+			</fieldset>
+<!--ET_END meta-->
+            <!--ET_BEGIN info-->
+            <fieldset class="detail-info">
+                <legend class="groupTitle">|Бележки|*</legend>
+                <div class="groupList">[#info#]</div>
+            </fieldset>
+            <!--ET_END info-->
+            [#DETAILS#]
+        </div>
+    </div>
+</div>

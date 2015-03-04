@@ -98,4 +98,7 @@ DEFINE('EF_APP_TITLE', 'bgERP');
 // Дефинира пътят до частно репозитори
  # DEFINE('EF_PRIVATE_PATH', 'ABSOLUTE_PATH_TO_PRIVATE_REPOSITORY');
 
+// Игнориране на затварянето на модул "Help"
+DEFINE('BGERP_DEMO_MODE', TRUE);
+
 

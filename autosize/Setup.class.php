@@ -56,7 +56,7 @@ class autosize_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    var $info = "Височина според съдържанието за textarea";
+    var $info = "Автоматична височина на полетата за въвеждане на текст";
     
     
     /**

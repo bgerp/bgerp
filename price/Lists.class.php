@@ -121,14 +121,14 @@ class price_Lists extends core_Master
     {
         $this->FLD('title', 'varchar(128)', 'mandatory,caption=Наименование,hint=Наименование на ценовата политика');
         $this->FLD('parent', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Наследява,noChange');
-        $this->FLD('discountCompared', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Отстъпка към');
         $this->FLD('public', 'enum(no=Не,yes=Да)', 'caption=Публичен');
         $this->FLD('currency', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'notNull,caption=Валута');
-        $this->FLD('vat', 'enum(yes=Включено,no=Без начисляване)', 'caption=ДДС'); 
+        $this->FLD('vat', 'enum(yes=Включено,no=Без ДДС)', 'caption=ДДС'); 
         $this->FNC('customer', 'varchar', 'caption=Прикрепяне->Клиент,input=hidden');
         $this->FNC('validFrom', 'datetime', 'caption=Прикрепяне->В сила от,input=hidden');
         $this->FLD('cId', 'int', 'caption=Клиент->Id,input=hidden,silent');
         $this->FLD('cClass', 'class(select=title)', 'caption=Клиент->Клас,input=hidden,silent');
+        $this->FLD('discountCompared', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Показване на отстъпка в документите спрямо->Ценоразпис');
         $this->FLD('roundingPrecision', 'double(smartRound)', 'caption=Закръгляне->Десетични знаци');
         $this->FLD('roundingOffset', 'double(smartRound)', 'caption=Закръгляне->Отместване');
         

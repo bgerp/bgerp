@@ -47,7 +47,7 @@ class plg_Sorting extends core_Plugin
                 if($mvc->fields[$f]) {
                     if($mvc->fields[$f]->sortingLike) {
                         $dbField = $mvc->fields[$f]->sortingLike;
-                    } elseif($mvc->fields[$f]->kind != 'FNC') {
+                    } elseif($mvc->fields[$f]->kind != 'FNC' && !is_a($mvc->fields[$f]->type, 'type_Keylist') ) {
                         $dbField = $f;
                     } else {
                         continue;

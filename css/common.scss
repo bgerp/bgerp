@@ -825,6 +825,10 @@ table .linkWithIcon {
 	}
 }
 
+.linkWithIconSpan {
+	display: inline-block;
+}
+
 input.more-btn {
 	float: left;
 	margin-bottom: 0;
@@ -993,8 +997,18 @@ a.profile {
     background-color: #bfc;
 }
 
+.state-opened-link > a {
+	background-color: #e0ffe0;
+	padding-right: 4px;
+	box-shadow: inset 0 0 3px #aaf2aa;
+}
+
 .state-pending{
     background-color: #ecf;
+}
+
+.state-pending-link > a {
+	text-shadow: 0px 0px 12px #93a;
 }
 
 .state-closed {
@@ -1620,6 +1634,12 @@ table.keylist {
 			padding: 0.2em 0.1em 0.1em 0.1em;
 		}
 	}
+	&.shrinked:not(.keylist-wide) {
+	   width: auto !important;
+	   td {
+	       padding-right: 20px;
+	   }
+	}
 }
 
 .narrow table.keylist td {
@@ -1730,7 +1750,7 @@ a.pager {
 
 
 /* Стилове за елемента 'tab' */
- .noSelect, div.richedit-toolbar, #mainMenu, #subMenu, div.tab-row {
+ .noSelect, div.richedit-toolbar, #mainMenu, #subMenu, div.tab-row, #nav-panel{
 	-webkit-user-select: none;
 	-khtml-user-select: none;
 	-moz-user-select: none;
@@ -1847,8 +1867,12 @@ div.alphabet div.tab-page {
 	padding-bottom: 5px;
 }
 
+.docStatistic {
+	margin-top: 20px;
+}
+
 /*вътрешни alphabet табовете в документ - изглеждат като основните, но по-малки*/
-.single-thread .document div.alphabet {
+.single-thread .document .docStatistic div.alphabet {
 	padding-bottom: 0;
 	.tab-page {
 		padding: 0 !important;
@@ -1983,8 +2007,47 @@ div.alphabet div.tab-page {
 	font-size: 0.9em;
 }
 
+.tab-top {
+    margin-top: 20px;
+}
+
+.top-tab-content{
+    background: rgba(255,255,220, 0.6);
+    padding: 20px;
+    border-radius: 5px;
+    legend img {
+        margin-left: 5px;
+        vertical-align: middle;
+    }
+    .detail-info {
+        border:none;
+        padding: 0 !important;
+        margin: 0 0 20px 0 !important;
+        &:last-child {
+            margin-bottom: 0px !important;
+        }
+        .summary-group:first-child {
+             margin: 0 !important;
+        }
+        .table-title{
+            margin: 0 1px;
+            background-color: #e1e1e1;
+			display: block;
+			line-height: 150%;
+			font-size: 1em;
+			padding-left: 10px;
+			padding: 4px 10px 2px 10px;
+			font-weight: bold;
+			a img{
+			     vertical-align: middle;
+			}
+        }
+    }	
+}
+
+
 /*табове за поддетайли на документ*/
-div.tab-control.deal-history-tab{
+div.tab-control.deal-history-tab, .single-thread .document .tab-top div.alphabet {
     .tab-page {
        border: none;
        padding: 0;
@@ -1993,6 +2056,7 @@ div.tab-control.deal-history-tab{
         float: left;
         margin-bottom: 10px;
         .tab {
+            display: inline-block;
             line-height: 1.1em;
             padding: 4px;
             font-size: 0.7em;
@@ -2017,15 +2081,32 @@ div.tab-control.deal-history-tab{
     }
 }
 
-.narrow div.tab-control.deal-history-tab{
+
+.wide .single-thread .document .tab-top div.alphabet  .tab-row {
+    margin-bottom: 5px;
+ 	.tab {
+	    font-size: 0.7em;
+	    margin: 0 10px 0 0;
+	    padding: 5px;
+	    &:hover , &.selected {
+	        margin: 0 10px 0 0;
+	        padding: 5px !important;
+	    }
+	    &.selected {
+	        top: -4px;
+	    }
+	 }
+}
+
+.narrow div.tab-control.deal-history-tab, .narrow .single-thread .document .tab-top div.alphabet{
 	.tab-row {
         float: none;
-        margin: 0;
+        margin: 0 0 0 3px;
         clear: both;
     }
     div.tab-row {
         .tab, .tab.selected {
-	         padding: 4px;
+	         padding: 2px !important;
 	    }
     }
     div.tab-page {
@@ -2076,6 +2157,7 @@ div.richEdit div.richedit-toolbar {
 
 div.richEdit {
     display:table;
+    position: relative;
 }
 
 .narrow div.richEdit {
@@ -2150,6 +2232,9 @@ a.rtbutton:hover, a.rtbutton:active, a.rtbutton:focus {
 	color:black ;
 }
 a.lang {
+	position: absolute;
+	top: 2px;
+	right: 4px;
     color:#fff;
     border: 1px solid #bbd;
     text-transform: uppercase;
@@ -2158,7 +2243,7 @@ a.lang {
     margin-top: 3px;
     text-align: center;
     padding: 2px 2px 1px 2px !important;
-    border-radius: 2px;
+    border-radius: 3px !important;
     &.en {
         background-color: #05008e;
         color:#fff;
@@ -2751,8 +2836,22 @@ div.statuses-message h2 {
 	margin-right: 20px;
 	margin-bottom: 20px;
 	float: left;
-	background: #fcfae8;
 	box-shadow: 1px 1px 6px rgba(0,0,0,0.4);
+	&.core-pack-state-active {
+	   background: #fcfae8;
+	}
+	&.core-pack-state-draft {
+	   background:#bbffff;
+	}
+	&.core-pack-state-closed {
+	   background:#ddd;
+	}
+	&.core-pack-missing {
+       background:#feadad;
+    }
+    &.core-pack-state-hidden {
+        background:#ffee77;
+    }
 	.pack-title {
 		display: inline-block;
 		&:hover, &:hover b {
@@ -2934,4 +3033,9 @@ td.leftCol {
 td.centerCol {
 	white-space:nowrap;
 	text-align:center;
+}
+
+td.leftColImportant {
+	white-space:nowrap;
+	text-align:left !important;
 }

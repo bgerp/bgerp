@@ -1,7 +1,7 @@
 <div class='background-holder'>
     <div class='clearfix21' id='all'>
         <div id="cmsTop">
-            [#cms_Page::getHeaderImg#]
+            [#HEADER_IMG#]
             [#PAGE_HEADER#]
             <!--ET_BEGIN CORE_APP_NAME-->
                 <div class='app-name'>[#CORE_APP_NAME#]</div> 

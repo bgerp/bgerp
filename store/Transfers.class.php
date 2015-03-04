@@ -213,8 +213,13 @@ class store_Transfers extends core_Master
     	}
     	
     	if($fields['-single']){
-    		$row->header = $mvc->singleTitle . " #<b>{$mvc->abbr}{$row->id}</b> ({$row->state})";
 	    	
+    		$row->fromStore = store_Stores::getHyperlink($rec->fromStore);
+    		$row->toStore = store_Stores::getHyperlink($rec->toStore);
+    		if(isset($rec->lineId)){
+    			$row->lineId = trans_Lines::getHyperlink($rec->lineId);
+    		}
+    		
 	    	$fromStoreLocation = store_Stores::fetchField($rec->fromStore, 'locationId');
 	    	if($fromStoreLocation){
 	    		$row->fromAdress = crm_Locations::getAddress($fromStoreLocation);
@@ -352,10 +357,19 @@ class store_Transfers extends core_Master
      */
     private function prepareLineRows($rec)
     {
-    	$row = $this->recToVerbal($rec, 'toAdress,weight,volume,-single');
+    	$row = $this->recToVerbal($rec, 'toAdress,fromStore,toStore,weight,volume,-single');
+    	
+    	if(!$rec->volume){
+    		unset($row->volume);
+    	}
+    	
+    	if(!$rec->weight){
+    		unset($row->weight);
+    	}
+    	
     	$row->rowNumb = $rec->rowNumb;
     	$row->address = $row->toAdress;
-    	$row->TR_CLASS = ($rec->rowNumb % 2 == 0) ? 'zebra0' : 'zebra1';
+    	$row->ROW_ATTR['class'] = "state-{$rec->state}";
     	$row->docId = $this->getDocLink($rec->id);
     	
     	return $row;
@@ -370,7 +384,7 @@ class store_Transfers extends core_Master
     	$masterRec = $data->masterData->rec;
     	$query = $this->getQuery();
     	$query->where("#lineId = {$masterRec->id}");
-    	$query->where("#state = 'active'");
+    	$query->where("#state != 'rejected'");
     	$query->orderBy("#createdOn", 'DESC');
     	
     	$i = 1;
@@ -387,10 +401,12 @@ class store_Transfers extends core_Master
      */
     public function renderTransfers($data)
     {
-    	$table = cls::get('core_TableView');
-    	$fields = "rowNumb=№,docId=Документ,weight=Тегло,volume=Обем,address=@Адрес";
-    	
-    	return $table->get($data->transfers, $fields);
+    	if(count($data->transfers)){
+    		$table = cls::get('core_TableView');
+    		$fields = "rowNumb=№,docId=Документ,fromStore=Склад->Изходящ,toStore=Склад->Входящ,weight=Тегло,volume=Обем,address=@Адрес";
+    		 
+    		return $table->get($data->transfers, $fields);
+    	}
     }
     
     

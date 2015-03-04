@@ -147,6 +147,8 @@ class cms_Articles extends core_Master
 
         $form->setOptions('menuId', $opt = self::getMenuOpt());
 
+        $form->setField('menuId', 'refreshForm');
+
         if(!$opt[$form->rec->menuId]) {
             $form->rec->menuId = key($opt);
         }
@@ -229,7 +231,7 @@ class cms_Articles extends core_Master
      */
     function act_Article()
     {   
-        Mode::set('wrapper', 'cms_Page');
+        Mode::set('wrapper', 'cms_page_External');
         
         $conf = core_Packs::getConfig('cms');
 		$ThemeClass = cls::get($conf->CMS_THEME);
@@ -710,5 +712,38 @@ class cms_Articles extends core_Master
         }
 
         return $res;
+    }
+
+
+    /**
+     * Изпълнява се преди запис, за да премести записите, които са в под-дървото на записвания
+     */
+    static protected function on_BeforeSave($mvc, &$res, $rec, $fields = NULL, $mode = NULL)
+    {
+        if($rec->id && $rec->level) { 
+            $exRec = self::fetch($rec->id);
+            
+            $exRec->level = self::trim3zeros($exRec->level);
+            $level = self::trim3zeros($rec->level);
+
+            if(strlen($exRec->level) <= 6 && ($exRec->level != $level)) { 
+                $query = self::getQuery();
+                while($curRec = $query->fetch("#level LIKE '{$exRec->level}%'")) {
+                    $curRec->level = $level . substr($curRec->level, strlen($level));
+                    $mvc->save_($curRec, 'level');
+                }
+            }
+        }
+
+    }
+
+    private static function trim3zeros($level)
+    {
+        if(substr($level, -3) === '000') {
+            $level = substr($level, 0, strlen($level)-3);
+            $level = self::trim3zeros($level);
+        }
+
+        return $level;
     }
 }

@@ -41,8 +41,25 @@ class location_Type extends type_Varchar {
      */
     function renderInput_($name, $value = "", &$attr = array())
     {
-                
-        $attr['class'] .= 'lnglat';
+        $attr['class'] .= ' lnglat';
+        
+        if (!$attr['id']) {
+            if (!$attr['name']) {
+                $attr['name'] = 'lnglat';
+            }
+            ht::setUniqId($attr);
+        }
+        
+        $stopGeolocation = FALSE;
+            
+        if (!$value) {
+            if (!($value = $this->params['default'])) {
+                $conf = core_Packs::getConfig('location');
+                $value = $conf->LOCATION_DEFAULT_REGION;
+            }
+        } else {
+            $stopGeolocation = TRUE;
+        }
         
         $tpl = parent::createInput($name, $value, $attr);
         
@@ -60,6 +77,10 @@ class location_Type extends type_Varchar {
         
         $tpl->prepend("<div class='location-input'>");
 		$tpl->append("</div>");
+		
+		if (!$stopGeolocation && $this->params['geolocation']) {
+		    $tpl->append("\n runOnLoad(function(){getEO().setPosition('{$attr['id']}');});", 'JQRUN');
+		}
 		
         return $tpl;
     }

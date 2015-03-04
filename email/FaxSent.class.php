@@ -403,6 +403,8 @@ class email_FaxSent extends core_Manager
         // Добавяне на предложения на свързаните документи
         $possibleTypeConv = $Email->GetPossibleTypeConvertings($data->form->rec->id);
         
+        $currEmailPdf = array();
+        
         // HTML частта на текущия файл, да се добави като прикачен файл и да е избран по подразбиране
         $currEmailPdf[$Email->getHandle($data->form->rec->id) . '.pdf'] = 'on';
         
@@ -411,6 +413,9 @@ class email_FaxSent extends core_Manager
         
         if(count($docHandlesArr) > 0) {
             $data->form->FNC('documentsSet', 'set', 'input,caption=Документи,columns=4'); 
+            
+            $suggestion = array();
+            $setDef = array();
             
             //Вземаме всички документи
             foreach ($docHandlesArr as $name => $checked) {
@@ -496,6 +501,8 @@ class email_FaxSent extends core_Manager
     {   
         // Преобразуваме стринга в масив с факс номера
         $faxesArr = drdata_PhoneType::toArray($faxTo);
+        
+        $toFaxArr = array();
         
         // Обхождаме масива
         foreach ($faxesArr as $key => $faxArr) {

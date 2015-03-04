@@ -816,6 +816,9 @@ table .linkWithIcon {
   .linkWithIcon.nameday {
     background-image: url('../img/16/orthodox.png'); }
 
+.linkWithIconSpan {
+  display: inline-block; }
+
 input.more-btn {
   float: left;
   margin-bottom: 0;
@@ -961,8 +964,16 @@ a.profile {
 .state-opened {
   background-color: #bbffcc; }
 
+.state-opened-link > a {
+  background-color: #e0ffe0;
+  padding-right: 4px;
+  box-shadow: inset 0 0 3px #aaf2aa; }
+
 .state-pending {
   background-color: #eeccff; }
+
+.state-pending-link > a {
+  text-shadow: 0px 0px 12px #9933aa; }
 
 .state-closed {
   background-color: #dddddd; }
@@ -1522,6 +1533,10 @@ table.keylist {
       height: 1.6em !important; }
     table.keylist .inner-keylist td {
       padding: 0.2em 0.1em 0.1em 0.1em; }
+  table.keylist.shrinked:not(.keylist-wide) {
+    width: auto !important; }
+    table.keylist.shrinked:not(.keylist-wide) td {
+      padding-right: 20px; }
 
 .narrow table.keylist td {
   font-size: 0.9em;
@@ -1621,7 +1636,8 @@ a.pager {
 div.richedit-toolbar,
 #mainMenu,
 #subMenu,
-div.tab-row {
+div.tab-row,
+#nav-panel {
   -webkit-user-select: none;
   -khtml-user-select: none;
   -moz-user-select: none;
@@ -1737,12 +1753,15 @@ div.alphabet div.tab-page {
   float: left;
   padding-bottom: 5px; }
 
+.docStatistic {
+  margin-top: 20px; }
+
 /*
  * вътрешни alphabet табовете в документ - изглеждат като основните, но по-малки
  */
-.single-thread .document div.alphabet {
+.single-thread .document .docStatistic div.alphabet {
   padding-bottom: 0; }
-  .single-thread .document div.alphabet .tab-page {
+  .single-thread .document .docStatistic div.alphabet .tab-page {
     padding: 0 !important;
     clear: both;
     border-top: 1px solid #cccccc;
@@ -1754,34 +1773,34 @@ div.alphabet div.tab-page {
     border-radius: 5px 5px 0px 0px;
     overflow: hidden;
     z-index: 2; }
-    .single-thread .document div.alphabet .tab-page .detail-info {
+    .single-thread .document .docStatistic div.alphabet .tab-page .detail-info {
       padding: 0;
       margin-top: 0;
       font-size: 0.85em; }
-      .single-thread .document div.alphabet .tab-page .detail-info .listTable td {
+      .single-thread .document .docStatistic div.alphabet .tab-page .detail-info .listTable td {
         background-color: #fefec2; }
-    .single-thread .document div.alphabet .tab-page .listTable {
+    .single-thread .document .docStatistic div.alphabet .tab-page .listTable {
       width: 100%; }
-    .single-thread .document div.alphabet .tab-page .listTable td {
+    .single-thread .document .docStatistic div.alphabet .tab-page .listTable td {
       border: 1px dotted #bbbbbb;
       text-align: center;
       padding: 2px; }
-      .single-thread .document div.alphabet .tab-page .listTable td:first-child {
+      .single-thread .document .docStatistic div.alphabet .tab-page .listTable td:first-child {
         white-space: nowrap; }
-      .single-thread .document div.alphabet .tab-page .listTable tr:last-child td:first-child {
+      .single-thread .document .docStatistic div.alphabet .tab-page .listTable tr:last-child td:first-child {
         border-radius: 0 0 0 5px; }
-      .single-thread .document div.alphabet .tab-page .listTable tr:last-child td:last-child {
+      .single-thread .document .docStatistic div.alphabet .tab-page .listTable tr:last-child td:last-child {
         border-radius: 0 0 5px 0; }
-    .single-thread .document div.alphabet .tab-page .stateIndicator,
-    .single-thread .document div.alphabet .tab-page .inline-date {
+    .single-thread .document .docStatistic div.alphabet .tab-page .stateIndicator,
+    .single-thread .document .docStatistic div.alphabet .tab-page .inline-date {
       display: inline-block; }
-      .single-thread .document div.alphabet .tab-page .stateIndicator.state-active {
+      .single-thread .document .docStatistic div.alphabet .tab-page .stateIndicator.state-active {
         background-color: #ffeedd; }
-      .single-thread .document div.alphabet .tab-page .stateIndicator.state-stopped {
+      .single-thread .document .docStatistic div.alphabet .tab-page .stateIndicator.state-stopped {
         background-color: #feadad; }
-      .single-thread .document div.alphabet .tab-page .stateIndicator.state-closed {
+      .single-thread .document .docStatistic div.alphabet .tab-page .stateIndicator.state-closed {
         background-color: #dddddd; }
-    .single-thread .document div.alphabet .tab-page .listTable th {
+    .single-thread .document .docStatistic div.alphabet .tab-page .listTable th {
       background-color: #fefec2;
       border-left: 1px solid transparent;
       border-right: 1px solid transparent;
@@ -1789,13 +1808,13 @@ div.alphabet div.tab-page {
       border-bottom: 1px dotted #bbbbbb;
       color: #333333;
       padding: 5px 0; }
-      .single-thread .document div.alphabet .tab-page .listTable th:first-child {
+      .single-thread .document .docStatistic div.alphabet .tab-page .listTable th:first-child {
         border-left: 1px solid #bbbbbb; }
-      .single-thread .document div.alphabet .tab-page .listTable th:last-child {
+      .single-thread .document .docStatistic div.alphabet .tab-page .listTable th:last-child {
         border-right: 1px solid #bbbbbb; }
-  .single-thread .document div.alphabet .detail-info {
+  .single-thread .document .docStatistic div.alphabet .detail-info {
     border: none !important; }
-  .single-thread .document div.alphabet div.tab-row .tab {
+  .single-thread .document .docStatistic div.alphabet div.tab-row .tab {
     font-size: 0.8em;
     font-family: arial;
     -moz-box-shadow: none;
@@ -1815,22 +1834,22 @@ div.alphabet div.tab-page {
     -moz-border-radius: 5px 5px 0 0;
     -webkit-border-radius: 5px 5px 0 0;
     border-radius: 5px 5px 0 0; }
-    .single-thread .document div.alphabet div.tab-row .tab a {
+    .single-thread .document .docStatistic div.alphabet div.tab-row .tab a {
       display: inline-block;
       color: #004488;
       padding: 4px 5px 4px 5px;
       -moz-border-radius: 5px 5px 0 0;
       -webkit-border-radius: 5px 5px 0 0;
       border-radius: 5px 5px 0 0; }
-    .single-thread .document div.alphabet div.tab-row .tab span {
+    .single-thread .document .docStatistic div.alphabet div.tab-row .tab span {
       display: inline-block;
       padding: 4px 5px 4px 5px; }
-    .single-thread .document div.alphabet div.tab-row .tab:hover a {
+    .single-thread .document .docStatistic div.alphabet div.tab-row .tab:hover a {
       background-color: #ffffcc !important;
       color: #004488 !important; }
-    .single-thread .document div.alphabet div.tab-row .tab:hover span {
+    .single-thread .document .docStatistic div.alphabet div.tab-row .tab:hover span {
       background-color: #dddddd !important; }
-    .single-thread .document div.alphabet div.tab-row .tab.selected {
+    .single-thread .document .docStatistic div.alphabet div.tab-row .tab.selected {
       margin: 1px -8px -3px 10px;
       background: #fefec2 !important;
       border: 1px solid #cccccc;
@@ -1853,16 +1872,50 @@ div.alphabet div.tab-page {
 .narrow .single-thread .document div.alphabet .listTable {
   font-size: 0.9em; }
 
+.tab-top {
+  margin-top: 20px; }
+
+.top-tab-content {
+  background: rgba(255, 255, 220, 0.6);
+  padding: 20px;
+  border-radius: 5px; }
+  .top-tab-content legend img {
+    margin-left: 5px;
+    vertical-align: middle; }
+  .top-tab-content .detail-info {
+    border: none;
+    padding: 0 !important;
+    margin: 0 0 20px 0 !important; }
+    .top-tab-content .detail-info:last-child {
+      margin-bottom: 0px !important; }
+    .top-tab-content .detail-info .summary-group:first-child {
+      margin: 0 !important; }
+    .top-tab-content .detail-info .table-title {
+      margin: 0 1px;
+      background-color: #e1e1e1;
+      display: block;
+      line-height: 150%;
+      font-size: 1em;
+      padding-left: 10px;
+      padding: 4px 10px 2px 10px;
+      font-weight: bold; }
+      .top-tab-content .detail-info .table-title a img {
+        vertical-align: middle; }
+
 /*
  * табове за поддетайли на документ
  */
-  div.tab-control.deal-history-tab .tab-page {
+  div.tab-control.deal-history-tab .tab-page,
+  .single-thread .document .tab-top div.alphabet .tab-page {
     border: none;
     padding: 0; }
-  div.tab-control.deal-history-tab .tab-row {
+  div.tab-control.deal-history-tab .tab-row,
+  .single-thread .document .tab-top div.alphabet .tab-row {
     float: left;
     margin-bottom: 10px; }
-    div.tab-control.deal-history-tab .tab-row .tab {
+    div.tab-control.deal-history-tab .tab-row .tab,
+    .single-thread .document .tab-top div.alphabet .tab-row .tab {
+      display: inline-block;
       line-height: 1.1em;
       padding: 4px;
       font-size: 0.7em;
@@ -1874,26 +1927,48 @@ div.alphabet div.tab-page {
       border-radius: 7px;
       background-color: #cccccc;
       border: 1px solid #aaaaaa; }
-      div.tab-control.deal-history-tab .tab-row .tab a {
+      div.tab-control.deal-history-tab .tab-row .tab a,
+      .single-thread .document .tab-top div.alphabet .tab-row .tab a {
         color: #333333; }
       div.tab-control.deal-history-tab .tab-row .tab:hover,
-      div.tab-control.deal-history-tab .tab-row .tab.selected {
+      .single-thread .document .tab-top div.alphabet .tab-row .tab:hover,
+      div.tab-control.deal-history-tab .tab-row .tab.selected,
+      .single-thread .document .tab-top div.alphabet .tab-row .tab.selected {
         padding: 4px;
         border: 1px solid #bbbbbb;
         margin: 0 3px 0 0;
         background-color: #f1f1f1; }
         div.tab-control.deal-history-tab .tab-row .tab:hover a,
-        div.tab-control.deal-history-tab .tab-row .tab.selected a {
+        .single-thread .document .tab-top div.alphabet .tab-row .tab:hover a,
+        div.tab-control.deal-history-tab .tab-row .tab.selected a,
+        .single-thread .document .tab-top div.alphabet .tab-row .tab.selected a {
           color: #333333; }
 
-  .narrow div.tab-control.deal-history-tab .tab-row {
+.wide .single-thread .document .tab-top div.alphabet  .tab-row {
+  margin-bottom: 5px; }
+  .wide .single-thread .document .tab-top div.alphabet  .tab-row .tab {
+    font-size: 0.7em;
+    margin: 0 10px 0 0;
+    padding: 5px; }
+    .wide .single-thread .document .tab-top div.alphabet  .tab-row .tab:hover,
+    .wide .single-thread .document .tab-top div.alphabet  .tab-row .tab.selected {
+      margin: 0 10px 0 0;
+      padding: 5px !important; }
+    .wide .single-thread .document .tab-top div.alphabet  .tab-row .tab.selected {
+      top: -4px; }
+
+  .narrow div.tab-control.deal-history-tab .tab-row,
+  .narrow .single-thread .document .tab-top div.alphabet .tab-row {
     float: none;
-    margin: 0;
+    margin: 0 0 0 3px;
     clear: both; }
     .narrow div.tab-control.deal-history-tab div.tab-row .tab,
-    .narrow div.tab-control.deal-history-tab div.tab-row .tab.selected {
-      padding: 4px; }
-  .narrow div.tab-control.deal-history-tab div.tab-page {
+    .narrow div.tab-control.deal-history-tab div.tab-row .tab.selected,
+    .narrow .single-thread .document .tab-top div.alphabet div.tab-row .tab,
+    .narrow .single-thread .document .tab-top div.alphabet div.tab-row .tab.selected {
+      padding: 2px !important; }
+  .narrow div.tab-control.deal-history-tab div.tab-page,
+  .narrow .single-thread .document .tab-top div.alphabet div.tab-page {
     background: none;
     padding: 5px; }
 
@@ -1939,7 +2014,8 @@ div.richEdit div.richedit-toolbar {
   margin-top: -4px; }
 
 div.richEdit {
-  display: table; }
+  display: table;
+  position: relative; }
 
 .narrow div.richEdit {
   display: block; }
@@ -2004,6 +2080,9 @@ a.rtbutton:focus {
   color: black; }
 
 a.lang {
+  position: absolute;
+  top: 2px;
+  right: 4px;
   color: white;
   border: 1px solid #bbbbdd;
   text-transform: uppercase;
@@ -2012,7 +2091,7 @@ a.lang {
   margin-top: 3px;
   text-align: center;
   padding: 2px 2px 1px 2px !important;
-  border-radius: 2px; }
+  border-radius: 3px !important; }
   a.lang.en {
     background-color: #05008e;
     color: white; }
@@ -2547,8 +2626,17 @@ div.statuses-message h2 {
   margin-right: 20px;
   margin-bottom: 20px;
   float: left;
-  background: #fcfae8;
   box-shadow: 1px 1px 6px rgba(0, 0, 0, 0.4); }
+  .elem-holder.core-pack-state-active {
+    background: #fcfae8; }
+  .elem-holder.core-pack-state-draft {
+    background: #bbffff; }
+  .elem-holder.core-pack-state-closed {
+    background: #dddddd; }
+  .elem-holder.core-pack-missing {
+    background: #feadad; }
+  .elem-holder.core-pack-state-hidden {
+    background: #ffee77; }
   .elem-holder .pack-title {
     display: inline-block; }
     .elem-holder .pack-title:hover,
@@ -2703,4 +2791,8 @@ td.leftCol {
 td.centerCol {
   white-space: nowrap;
   text-align: center; }
+
+td.leftColImportant {
+  white-space: nowrap;
+  text-align: left !important; }
 

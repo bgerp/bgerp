@@ -254,11 +254,6 @@ class cash_ExchangeDocument extends core_Master
     	}	
     	
     	if($fields['-single']) {
-	    	
-	    	// Показваме заглавието само ако не сме в режим принтиране
-		    if(!Mode::is('printing')){
-		    	$row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " ({$row->state})" ;
-		    }
 		    
 		    $row->peroTo = cash_Cases::getHyperLink($rec->peroTo, TRUE);
 		    $row->peroFrom = cash_Cases::getHyperLink($rec->peroFrom, TRUE);

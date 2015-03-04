@@ -82,7 +82,7 @@ class pos_Favourites extends core_Manager {
      */
     function description()
     {
-    	$this->FLD('productId', 'key(mvc=cat_Products, select=name)', 'caption=Продукт, mandatory, silent', array('attr' => array('onchange' => "addCmdRefresh(this.form);this.form.submit()")));
+    	$this->FLD('productId', 'key(mvc=cat_Products, select=name)', 'caption=Продукт, mandatory, silent,refreshForm');
     	$this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Опаковка');
     	$this->FLD('catId', 'keylist(mvc=pos_FavouritesCategories, select=name)', 'caption=Категория, mandatory');
     	$this->FLD('pointId', 'keylist(mvc=pos_Points, select=name, makeLinks)', 'caption=Точка на продажба');
@@ -224,15 +224,11 @@ class pos_Favourites extends core_Manager {
     	$obj->quantity = ($packRec) ? $packRec->quantity : 1;
     	
     	if(empty($rec->image)){
-    		
-    		// Ако няма иконка, я взима от продукта (ако има)
-    		if(!$rec->image = $info->productRec->photo){
-    			$rec->image = cat_products_Files::getImgFh($rec->productId);
-    		}
+    		$rec->image = cat_Products::getProductImage($rec->productId);
     	}
     	
     	$arr['image'] = $rec->image;
-    		
+    	
     	return (object)$arr;
     }
     

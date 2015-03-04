@@ -200,7 +200,7 @@ class sales_QuotationsDetails extends doc_Detail {
 	    	// Подсигуряваме се че ориджина винаги може да се добави
 	    	if($masterRec->originId){
 	    		$origin = doc_Containers::getDocument($masterRec->originId);
-	    		$products[$origin->that] = $origin->fetchField('title');
+	    		$products[$origin->that] = $origin->getTitleById(FALSE);
 	    	}
 	    	
 	    	$products = array('' => '') + $products;
@@ -311,7 +311,7 @@ class sales_QuotationsDetails extends doc_Detail {
             	// Добавяме ориджина като възможен избор, ако го няма
             	if($masterRec->originId){
             		$origin = doc_Containers::getDocument($masterRec->originId);
-            		$products[$origin->that] = $origin->fetchField('title');
+            		$products[$origin->that] = $origin->getTitleById(FALSE);
             	}
             	
             	if(!count($products)){
@@ -486,14 +486,7 @@ class sales_QuotationsDetails extends doc_Detail {
     		$rec = $recs[$id];
     		
     		$ProductMan = cls::get($rec->classId);
-    		
     		$row->productId = $ProductMan->getProductDesc($rec->productId, $mvc->Master, $modifiedOn);
-    		
-    		if($ProductMan->isProductStandart($rec->productId)){
-    			if(!Mode::is('printing') && !Mode::is('text', 'xhtml')){
-    				$row->productId = ht::createLinkRef($row->productId, array($ProductMan, 'single', $rec->productId));
-    			}
-    		}
     	}
     }
     

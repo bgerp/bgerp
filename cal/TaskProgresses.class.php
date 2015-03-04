@@ -234,7 +234,7 @@ class cal_TaskProgresses extends core_Detail
     static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
     {
         $tRec = cal_Tasks::fetch($rec->taskId, 'workingTime, progress, state, title, expectationTimeEnd, threadId, createdBy');
-
+        $now = dt::now();
         // Определяне на прогреса
         if(isset($rec->progress)) {
             $tRec->progress = $rec->progress;
@@ -246,6 +246,7 @@ class cal_TaskProgresses extends core_Detail
             	$priority = 'normal';
             	bgerp_Notifications::add($message, $url, $tRec->createdBy, $priority, $customUrl);
                 $tRec->state = 'closed';
+                $tRec->timeClosed = $now;
             }
         }
         
@@ -258,8 +259,7 @@ class cal_TaskProgresses extends core_Detail
             $tRec->workingTime = $rec->workingTimeSum;
         }
 
-        $tRec->expectationTimeEnd = $rec->expectationTimeEnd;
-        
+       
         cal_Tasks::save($tRec);
     }
 }

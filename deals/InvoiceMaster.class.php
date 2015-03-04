@@ -54,6 +54,12 @@ abstract class deals_InvoiceMaster extends core_Master
     
     
     /**
+     * На кой ред в тулбара да се показва бутона за принтиране
+     */
+    public $printBtnToolbarRow = 1;
+    
+    
+    /**
      * След описанието на полетата
      */
     protected static function setInvoiceFields(core_Master &$mvc)
@@ -310,13 +316,6 @@ abstract class deals_InvoiceMaster extends core_Master
     public static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
     	$rec = &$data->rec;
-    	
-    	// Ако има бутон за принтиране, слагаме го да е първия бутон
-    	if(!empty($data->toolbar->buttons['btnPrint'])){
-    		$printUrl = array($mvc, 'single', $rec->id, 'Printing' => 'yes');
-    		$data->toolbar->removeBtn('btnPrint');
-    		$data->toolbar->addBtn('Печат', $printUrl, 'id=btnPrint,target=_blank,order=1', 'ef_icon = img/16/printer.png,title=Печат на страницата');
-    	}
     	 
     	if($rec->type == 'invoice' && $rec->state == 'active' && $rec->dealValue){
     		if($mvc->haveRightFor('add', (object)array('type' => 'debit_note','threadId' => $rec->threadId)) && $mvc->canAddToThread($rec->threadId)){
@@ -724,19 +723,24 @@ abstract class deals_InvoiceMaster extends core_Master
     		 
     		// Извлича се платежния план
     		if($form->rec->paymentMethodId){
-    			$plan = cond_PaymentMethods::getPaymentPlan($form->rec->paymentMethodId, $form->aggregateInfo->get('amount'), $form->rec->date);
-    		
-    			if(isset($plan['deadlineForBalancePayment'])){
-    				$rec->dueDate = $plan['deadlineForBalancePayment'];
+    			if(isset($form->aggregateInfo)){
+    				$plan = cond_PaymentMethods::getPaymentPlan($form->rec->paymentMethodId, $form->aggregateInfo->get('amount'), $form->rec->date);
+    				
+    				if(isset($plan['deadlineForBalancePayment'])){
+    					$rec->dueDate = $plan['deadlineForBalancePayment'];
+    				}
     			}
     		}
     		
     		if(!$rec->rate){
     			$rec->rate = round(currency_CurrencyRates::getRate($rec->date, $rec->currencyId, NULL), 4);
-    		}
-    
-    		if($msg = currency_CurrencyRates::hasDeviation($rec->rate, $rec->date, $rec->currencyId, NULL)){
-    			$form->setWarning('rate', $msg);
+    			if(!$rec->rate){
+    				$form->setError('rate', "Не може да се изчисли курс");
+    			}
+    		} else {
+    			if($msg = currency_CurrencyRates::hasDeviation($rec->rate, $rec->date, $rec->currencyId, NULL)){
+    				$form->setWarning('rate', $msg);
+    			}
     		}
     		 
     		$Vats = cls::get('drdata_Vats');
@@ -843,7 +847,6 @@ abstract class deals_InvoiceMaster extends core_Master
     			$row->cNum = tr('|ЕИК|* / <i>UIC</i>');
     		}
     	
-    		$row->header = "{$row->type} #<b>{$mvc->getHandle($rec->id)}</b> ({$row->state})" ;
     		$userRec = core_Users::fetch($rec->createdBy);
     		$row->username = core_Users::recToVerbal($userRec, 'names')->names;
     	

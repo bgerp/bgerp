@@ -320,7 +320,10 @@ class cash_Rko extends core_Master
         	if(!$rec->rate){
         		// Изчисляваме курса към основната валута ако не е дефиниран
 		    	$rec->rate = round(currency_CurrencyRates::getRate($rec->valior, $currencyCode, NULL), 4);
-		    } else {
+		    	if(!$rec->rate){
+		    		$form->setError('rate', "Не може да се изчисли курс");
+		    	}
+        	} else {
 		    	if($msg = currency_CurrencyRates::hasDeviation($rec->rate, $rec->valior, $currencyCode, NULL)){
 		    		$form->setWarning('rate', $msg);
 		    	}
@@ -374,13 +377,7 @@ class cash_Rko extends core_Master
     		$cashierRec = core_Users::fetch($rec->createdBy);
     		$cashierRow = core_Users::recToVerbal($cashierRec);
 	    	$row->cashier = $cashierRow->names;
-	    	
         }
-       
-        // Показваме заглавието само ако не сме в режим принтиране
-    	if(!Mode::is('printing')){
-    		$row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " ({$row->state})" ;
-    	}
     }
     
     

@@ -66,7 +66,7 @@ class tnef_Decode extends core_Manager
     /**
      * Кофата, в която ще се добавят изходните файлове
      */
-    protected static $bucket = 'tnefDecoded';
+    public static $bucket = 'tnefDecoded';
     
     
     /**
@@ -93,6 +93,8 @@ class tnef_Decode extends core_Manager
      * Декодира подадения tnef файл и извлича всички файлове от него
      * 
      * @param string $fileHnd
+     * 
+     * @return array
      */
     public static function decode($fileHnd)
     {

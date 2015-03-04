@@ -228,9 +228,6 @@ class pos_Receipts extends core_Master {
     	$rec->valior = dt::now();
     	$this->requireRightFor('add', $rec);
     	
-    	// Слагане на статус за потребителя
-    	status_Messages::newStatus(tr("Успешно е създадена нова чернова бележка"));
-    	
     	return $this->save($rec);
     }
     
@@ -247,7 +244,6 @@ class pos_Receipts extends core_Master {
     		$row->title = ht::createLink($row->title, array($mvc, 'single', $rec->id), NULL, "ef_icon={$mvc->singleIcon}");
     	} elseif($fields['-single']){
     		$row->iconStyle = 'background-image:url("' . sbf('img/16/view.png', '') . '");';
-    		$row->header = $mvc->singleTitle . " #<b>{$mvc->abbr}{$row->id}</b> ({$row->state})";
     		$row->caseId = cash_Cases::getHyperLink(pos_Points::fetchField($rec->pointId, 'caseId'), TRUE);
     		$row->storeId = store_Stores::getHyperLink(pos_Points::fetchField($rec->pointId, 'storeId'), TRUE);
     		$row->baseCurrency = acc_Periods::getBaseCurrencyCode($rec->createdOn);
@@ -524,8 +520,10 @@ class pos_Receipts extends core_Master {
     			}
     		}
     	}
+
+        $data = (object) array('rec' => $rec);
     	
-    	$this->invoke('AfterRenderSingle', array(&$tpl));
+    	$this->invoke('AfterRenderSingle', array(&$tpl, $data));
     	
     	// Вкарване на css и js файлове
     	$this->pushFiles($tpl);
@@ -541,6 +539,8 @@ class pos_Receipts extends core_Master {
      */
     private function pushFiles(&$tpl)
     {
+    	$tpl->push('css/Application.css', 'CSS');
+    	$tpl->push('css/default-theme.css', 'CSS');
     	$tpl->push('pos/tpl/css/styles.css', 'CSS');
     	if(!Mode::is('printing')){
     		$tpl->push('pos/js/scripts.js', 'JS');
@@ -1219,8 +1219,8 @@ class pos_Receipts extends core_Master {
     		if(Mode::is('screenMode', 'wide')){
     			$resObj = new stdClass();
     			$resObj->func = 'Sound';
-    			$resObj->arg = array('soundOgg' => sbf("sounds/snap.ogg", ''),
-    			'soundMp3' => sbf("sounds/snap.mp3", ''),
+    			$resObj->arg = array('soundOgg' => sbf("sounds/scanner.ogg", ''),
+    			'soundMp3' => sbf("sounds/scanner.mp3", ''),
     			);
     		}
  
@@ -1319,8 +1319,8 @@ class pos_Receipts extends core_Master {
     	$conf = core_Packs::getConfig('pos');
     	$data->showParams = $conf->POS_RESULT_PRODUCT_PARAMS;
     	
-    	// Намираме всички продаваеми продукти
-    	$sellable = cat_Products::getByProperty('canSell');
+    	// Намираме всички продаваеми продукти, за анонимния клиент
+    	$sellable = cls::get('cat_Products')->getProducts($data->rec->contragentClass, $data->rec->contragentObjectId, $data->rec->valior, 'canSell');
     	if(!count($sellable)) return;
     	
     	$Policy = cls::get('price_ListToCustomers');

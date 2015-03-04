@@ -191,7 +191,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     {
     	$row->deliveryTo = $row->pCode . " " . $row->place;
     	foreach(array('address', 'company', 'person', 'tel') as $fld){
-    		if(isset($rec->$fld)){
+    		if(!empty($rec->$fld)){
     			$row->deliveryTo .= ", {$row->$fld}";
     		}
     	}
@@ -241,10 +241,12 @@ class store_ShipmentOrders extends store_DocumentMaster
      */
     public function renderShipments($data)
     {
-    	$table = cls::get('core_TableView');
-    	$fields = "rowNumb=№,docId=Документ,weight=Тегло,volume=Обем,collection=Инкасиране,address=@Адрес";
-    	
-    	return $table->get($data->shipmentOrders, $fields);
+    	if(count($data->shipmentOrders)){
+    		$table = cls::get('core_TableView');
+    		$fields = "rowNumb=№,docId=Документ,storeId=Склад,weight=Тегло,volume=Обем,collection=Инкасиране,address=@Адрес";
+    		 
+    		return $table->get($data->shipmentOrders, $fields);
+    	}
     }
     
     

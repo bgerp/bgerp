@@ -29,11 +29,9 @@ abstract class deals_ManifactureDetail extends doc_Detail
 	public function setDetailFields($mvc)
 	{
 		$mvc->FLD('classId', 'class(interface=cat_ProductAccRegIntf, select=title)', 'caption=Мениджър,silent,input=hidden');
-		$mvc->FLD('productId', 'int', 'caption=Продукт,notNull,mandatory', 'tdClass=large-field leftCol wrap');
+		$mvc->FLD('productId', 'int', 'caption=Продукт,notNull,mandatory', 'tdClass=large-field leftCol wrap,refreshForm');
 		$mvc->FLD('quantity', 'double(Min=0)', 'caption=К-во,mandatory');
 		$mvc->FLD('measureId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,input=hidden,mandatory');
-		
-		setIfNot($mvc->defaultMeta, 'canManifacture');
 	}
 	
 
@@ -61,13 +59,11 @@ abstract class deals_ManifactureDetail extends doc_Detail
 		$form = &$data->form;
 		
 		$ProductManager = ($data->ProductManager) ? $data->ProductManager : cls::get($form->rec->classId);
-		
 		$products = $ProductManager->getByProperty($mvc->defaultMeta);
 		 
 		expect(count($products));
 			
 		if (empty($form->rec->id)) {
-			$data->form->addAttr('productId', array('onchange' => "addCmdRefresh(this.form);this.form.submit();"));
 			$data->form->setOptions('productId', array('' => ' ') + $products);
 		} else {
 			$data->form->setOptions('productId', array($form->rec->productId => $products[$form->rec->productId]));
@@ -112,13 +108,7 @@ abstract class deals_ManifactureDetail extends doc_Detail
 	
 			foreach ($productManagers as $manId => $manName) {
 				$productMan = cls::get($manId);
-				
-				//@TODO да го махна
-				try{
-					$products = $productMan->getByProperty($mvc->defaultMeta, 1);
-				} catch(core_exception_Expect $e){
-					
-				}
+				$products = $productMan->getByProperty($mvc->defaultMeta);
 	
 				if(!count($products)){
 					$error = "error=Няма {$productMan->title}";

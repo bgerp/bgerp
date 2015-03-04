@@ -50,20 +50,24 @@ class cat_Setup extends core_ProtoSetup
     var $managers = array(
             'cat_UoM',
             'cat_Groups',
+    		'cat_Categories',
             'cat_Products',
             'cat_products_Params',
             'cat_products_Packagings',
-            'cat_products_Files',
     		'cat_products_VatGroups',
             'cat_Params',
             'cat_Packagings',
     		'cat_Boms',
     		'cat_BomStages',
     		'cat_BomStageDetails',
+    		'cat_ProductTplCache',
     		'migrate::updateProducts',
     		'migrate::updateProducts3',
     		'migrate::migrateMetas',
     		'migrate::migrateGroups',
+    		'migrate::migrateProformas',
+    		'migrate::makeProductsDocuments2',
+    		'migrate::removeOldParams1',
         );
 
         
@@ -84,7 +88,7 @@ class cat_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    var $defClasses = "cat_GeneralProductDriver, cat_GeneralServiceDriver";
+    var $defClasses = "cat_GeneralProductDriver, cat_BaseImporter";
     
     
     /**
@@ -122,20 +126,14 @@ class cat_Setup extends core_ProtoSetup
     	$cQuery = cat_Products::getQuery();
     	
     	core_Classes::add('cat_GeneralProductDriver');
-    	core_Classes::add('cat_GeneralServiceDriver');
     	
     	$technoDriverId = cat_GeneralProductDriver::getClassId();
-    	$technoDriverServiceId = cat_GeneralServiceDriver::getClassId();
     	
     	while($pRec = $cQuery->fetch()){
     		$meta = cat_Products::getMetaData($pRec->groups);
     		$meta = arr::make($meta, TRUE);
     		
-    		if(isset($meta['canStore'])){
-    			$pRec->innerClass = $technoDriverId;
-    		} else {
-    			$pRec->innerClass = $technoDriverServiceId;
-    		}
+    		$pRec->innerClass = $technoDriverId;
     		
     		$clone = clone $pRec;
     		unset($clone->innerForm, $clone->innerState);
@@ -231,6 +229,146 @@ class cat_Setup extends core_ProtoSetup
     		
     		$rec->meta = $Set->fromVerbal($meta);
     		cat_Groups::save($rec, 'meta');
+    	}
+    }
+    
+    
+    /**
+     * Прави всички артикули документи в папката на първата им група,
+     * ако нямат отиват в папката на 'Услуги'
+     */
+    public function makeProductsDocuments2()
+    {
+    	set_time_limit(900);
+    	
+    	core_Classes::add('cat_Categories');
+    	$Products = cls::get('cat_Products');
+    	$query = cat_Products::getQuery();
+    	$query->where("#threadId IS NULL");
+    	
+    	while($rec = $query->fetch()){
+    		$first = NULL;
+    		try {
+    			if(isset($rec->groups)){
+    				$groups = keylist::toArray($rec->groups);
+    				foreach ($groups as $index => $gr){
+    					if($sysId = cat_Groups::fetchField($gr, 'sysId')){
+    						$first = cat_Categories::fetchField("#sysId = '{$sysId}'", 'id');
+    						break;
+    					}
+    				}
+    				
+    				if(empty($first)){
+    					if($rec->createdBy == -1){
+    						$first = cat_Categories::fetchField("#sysId = 'externalServices'", 'id');
+    					} else {
+    						$first = cat_Categories::fetchField("#sysId = 'goods'", 'id');
+    					}
+    				}
+    			} else {
+    				$first = cat_Categories::fetchField("#sysId = 'services'", 'id');
+    			}
+    			
+    			if(core_Classes::fetchIdByName('cat_GeneralServiceDriver') == $rec->innerClass){
+    				$rec->innerClass = cat_GeneralProductDriver::getClassId();
+    			}
+    			
+    			$rec->folderId = cat_Categories::forceCoverAndFolder($first);
+    			$Products->route($rec);
+    			$Products->save($rec);
+    		} catch(core_exception_Expect $e){
+    			$Products->log("Проблем при прехвърлянето на артикул: {$rec->name}: {$e->getMessage()}");
+    		}
+    	}
+    	
+    	if(core_Packs::fetch("#name = 'techno2'")){
+    		$allProducts = array();
+    		$manId = $Products->getClassId();
+    		$specId = techno2_SpecificationDoc::getClassId();
+    		$tQuery = techno2_SpecificationDoc::getQuery();
+    		$tQuery->where("#state != 'rejected'");
+    		
+    		core_Users::cancelSystemUser();
+    		while($tRec = $tQuery->fetch()){
+    			core_Users::sudo($tRec->createdBy);
+    			
+    			try{
+    				$pId = techno2_SpecificationDoc::createProduct($tRec);
+    				$allProducts[$tRec->id] = $pId;
+    				
+    				$paramQ = cat_products_Params::getQuery();
+    				$paramQ->where("#classId = {$specId} AND #productId = {$tRec->id}");
+    				
+    				while($pRec = $paramQ->fetch()){
+    					$pRec->classId = $manId;
+    					$pRec->productId = $pId;
+    					
+    					cat_products_Params::save($pRec, 'productId,classId');
+    				}
+    			} catch(core_exception_Expect $e){
+    				$Products->log("Проблем при прехвърляне на спецификация {$tRec->id}: {$e->getMessage()}");
+    			}
+    			
+    			core_Users::exitSudo();
+    		}
+    		core_Users::forceSystemUser();
+    	}
+
+    	$docsArr = array('sales_SalesDetails', 'sales_InvoiceDetails', 'store_ShipmentOrderDetails', 'store_ReceiptDetails', 'sales_ServicesDetails', 'purchase_InvoiceDetails', 'purchase_PurchasesDetails', 'purchase_ServicesDetails', 'sales_QuotationsDetails');
+    	if(count($allProducts)){
+    		foreach ($allProducts as $sId => $pId){
+    				
+    			try{
+    				if($itemRec = acc_Items::fetchItem('techno2_SpecificationDoc', $sId)){
+    					$itemRec->classId = $manId;
+    					$itemRec->objectId = $pId;
+    					acc_Items::save($itemRec);
+    				}
+    				
+    				foreach ($docsArr as $manName){
+    					$dQuery = $manName::getQuery();
+    					$dQuery->where("#classId = {$specId} AND #productId = {$sId}");
+    					while($dRec = $dQuery->fetch()){
+    						$dRec->classId = $manId;
+    						$dRec->productId = $pId;
+    						$manName::save($dRec);
+    					}
+    				}
+    			} catch(core_exception_Expect $e){
+    				$Products->log("Проблем при Заместване на спецификация {$tRec->id}: {$e->getMessage()}");
+    			}
+    			
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Изтрива стари параметри
+     */
+    public function removeOldParams1()
+    {
+    	foreach (array('vat', 'vatGroup') as $sysId){
+    		if($vRec = cat_Params::fetch("#sysId = '{$sysId}'")){
+    			cat_products_Params::delete("#paramId = '{$vRec->id}'");
+    			cat_Params::delete($vRec->id);
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Временна миграция
+     */
+    public function migrateProformas()
+    {
+    	$query = sales_ProformaDetails::getQuery();
+    	$productId = cat_Products::getClassId();
+    	while($rec = $query->fetch()){
+    		if($rec->classId != $productId){
+    			$rec->classId = $productId;
+    			sales_ProformaDetails::save($rec);
+    		}
     	}
     }
 }

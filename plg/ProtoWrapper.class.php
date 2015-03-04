@@ -189,7 +189,7 @@ class plg_ProtoWrapper extends core_Plugin
         }
         
         list($currentMainTab, $currentSubTab) = explode('->', $currentTab);
-
+ 
         if($subTabs[$currentMainTab]) {
             $tpl = $subTabs[$currentMainTab]->renderHtml($tpl, $currentSubTab, $hint, $hintBtn);
             $tpl = $tabs->renderHtml($tpl, $currentMainTab);

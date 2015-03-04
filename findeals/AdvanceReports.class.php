@@ -218,6 +218,9 @@ class findeals_AdvanceReports extends core_Master
     		$currencyCode = currency_Currencies::getCodeById($rec->currencyId);
     		if(!$rec->rate){
     			$rec->rate = round(currency_CurrencyRates::getRate($rec->valior, $currencyCode, NULL), 4);
+    			if(!$rec->rate){
+    				$form->setError('rate', "Не може да се изчисли курс");
+    			}
     		} else {
     			if($msg = currency_CurrencyRates::hasDeviation($rec->rate, $rec->valior, $currencyCode, NULL)){
     				$form->setWarning('rate', $msg);
@@ -253,11 +256,6 @@ class findeals_AdvanceReports extends core_Master
     	$row->total = $mvc->getFieldType('total')->toVerbal($rec->total);
     	
     	if($fields['-single']){
-    
-    		// Показваме заглавието само ако не сме в режим принтиране
-    		if(!Mode::is('printing')){
-    			$row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>#{$mvc->abbr}{$row->id}</b>" . " ({$row->state})" ;
-    		}
     		
     		if($rec->currencyId == acc_Periods::getBaseCurrencyId($rec->valior)){
     			unset($row->rate);

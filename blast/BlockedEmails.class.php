@@ -53,7 +53,7 @@ class blast_BlockedEmails extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'blast_Wrapper';
+    public $loadList = 'blast_Wrapper, plg_RowTools';
     
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии

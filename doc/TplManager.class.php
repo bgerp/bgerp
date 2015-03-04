@@ -241,7 +241,7 @@ class doc_TplManager extends core_Master
     		// Ако има временни полета, то данните се обработват
     		$tempFlds = $form->selectFields("#tempFld");
     		if(count($tempFlds)){
-    			$this->prepareDataFld($form, $tempFlds);
+    			$mvc->prepareDataFld($form, $tempFlds);
     		}
     	}
     }

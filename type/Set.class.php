@@ -127,7 +127,9 @@ class type_Set extends core_Type {
                     $cb = ht::createElement('input', $attr);
                     $cb->append("<label {$title} data-colsInRow='" .$col . "' for=\"" . $attr['id'] . "\">{$v}</label>");
                     
-                    if(isset($this->readOnly[$key])){
+                    // След рендиране на полето, махаме атрибутите за да не се принесат на другите опции
+                	if(isset($this->readOnly[$key])){
+                    	unset($attr['onclick']);
                     	unset($attr['readonly']);
                     }
                     

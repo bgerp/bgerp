@@ -333,6 +333,19 @@ class email_Outgoings extends core_Master
         // списъци с изпратени и проблеми получатели
         $success  = $failure = array();
         
+        // Ако е отговор на имейл опитваме се да извлечем In-Reply-To
+        if ($rec->originId) {
+            $originDoc = doc_Containers::getDocument($rec->originId);
+            if ($originDoc->instance instanceof email_Incomings) {
+                $iRec = $originDoc->fetch();
+                $messageIdArr = (array)$iRec->headers['message-id'];
+                $messageId = reset($messageIdArr);
+                if ($messageId) {
+                    $rec->__inReplyTo = trim($messageId, '<>');
+                }
+            }
+        }
+        
         // Обхождаме масива с всички групи имейли
         foreach ($groupEmailsArr['to'] as $key => $emailTo) {
             
@@ -655,6 +668,8 @@ class email_Outgoings extends core_Master
                 
                 // Масив, с информация за документа
                 $documentInfoArr = doc_RichTextPlg::getFileInfo($name);
+                
+                if (!$documentInfoArr['className']) continue;
                 
                 $rec = $documentInfoArr['className']::fetchByHandle($documentInfoArr);
                 
@@ -1453,6 +1468,8 @@ class email_Outgoings extends core_Master
                 // Използваме контрагент данните от ковъра
                 $contrData = $contragentData;
             }
+            
+            core_Lg::pop();
         } else {
             
             // Флаг
@@ -1984,7 +2001,7 @@ class email_Outgoings extends core_Master
         $tpl = new ET(tr('|*' . getFileContent($tpl)));
         
         if (Mode::is('printing')) {
-            core_Lg::pop($data->lg);
+            core_Lg::pop();
         }
         
         return $tpl;

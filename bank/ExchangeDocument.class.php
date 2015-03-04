@@ -257,11 +257,6 @@ class bank_ExchangeDocument extends core_Master
         
         if($fields['-single']) {
             
-            // Показваме заглавието само ако не сме в режим принтиране
-            if(!Mode::is('printing')){
-                $row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " ({$row->state})" ;
-            }
-            
             $row->peroTo = bank_OwnAccounts::getHyperLink($rec->peroTo, TRUE);
             $row->peroFrom = bank_OwnAccounts::getHyperLink($rec->peroFrom, TRUE);
         }

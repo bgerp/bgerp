@@ -70,7 +70,7 @@ class mp_ProductionNotes extends deals_ManifactureMaster
 	/**
 	 * Кой има право да добавя?
 	 */
-	public $canAdd = 'debug';//@TODO временно ceo,mo
+	public $canAdd = 'ceo,mp';
 	
 	
 	/**

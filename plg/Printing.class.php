@@ -87,8 +87,11 @@ class plg_Printing extends core_Plugin
 
         if($mvc->haveRightFor('single', $data->rec)){
         	
+        	// По подразбиране бутона за принтиране се показва на втория ред на тулбара
+        	setIfNot($mvc->printBtnToolbarRow, 2);
+        	
         	// Бутон за отпечатване
-        	$data->toolbar->addBtn('Печат', $url, 'id=btnPrint,target=_blank,row=2', 'ef_icon = img/16/printer.png,title=Печат на страницата');
+        	$data->toolbar->addBtn('Печат', $url, "id=btnPrint,target=_blank,row={$mvc->printBtnToolbarRow}", 'ef_icon = img/16/printer.png,title=Печат на страницата');
         }
     }
     

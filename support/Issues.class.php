@@ -276,7 +276,11 @@ class support_Issues extends core_Master
                 }
             }
         }
-
+        
+        if ($sysRec->defaultType) {
+            $form->setDefault('typeId', $sysRec->defaultType);
+        }
+        
     	// След събмит на формата
     	if($form->isSubmitted()){
 
@@ -316,7 +320,7 @@ class support_Issues extends core_Master
         $tpl = $form->renderHtml();
     	
         // Поставяме шаблона за външен изглед
-		Mode::set('wrapper', 'cms_Page');
+		Mode::set('wrapper', 'cms_page_External');
 		
 		if($lg){
 			core_Lg::pop();
@@ -485,7 +489,9 @@ class support_Issues extends core_Master
             // Добавяме OR
             $query->orWhere("#systemId = '{$allSystemId}'");
         }
-
+        
+        $components = array();
+        
         // Обхождаме всички открити резултати
         while ($rec = $query->fetch()) {
             
@@ -538,6 +544,13 @@ class support_Issues extends core_Master
             
             // Скриваме полето за споделяне
             $data->form->setField('sharedUsers', 'input=none');
+        }
+        
+        if ($systemId) {
+            $sysRec = support_Systems::fetch($systemId);
+            if ($sysRec->defaultType) {
+                $data->form->setDefault('typeId', $sysRec->defaultType);
+            }
         }
     }
     
@@ -709,10 +722,15 @@ class support_Issues extends core_Master
         if ($rec->assign) {
             
             // В заглавието добавяме потребителя
-            $row->subTitle = $this->getVerbal($rec, 'assign') . ", ";   
+            $row->subTitle = $this->getVerbal($rec, 'assign');   
         }
         
-        $row->subTitle .= "{$component}";
+        if ($component) {
+            if ($row->subTitle) {
+                $row->subTitle .= ", ";
+            }
+            $row->subTitle .= "{$component}";
+        }
 
         if($row->authorId = $rec->createdBy) {
             $row->author = $this->getVerbal($rec, 'createdBy');

@@ -30,6 +30,24 @@ class core_Tabs extends core_BaseClass
 	var $maxTabsNarrow = 26;
     
     
+	/**
+	 * Масив с табове
+	 */
+	protected $tabs = array();
+	
+	
+	/**
+	 * Масив с табове
+	 */
+	protected $urlParam = 'Tab';
+	
+	
+	/**
+	 * Дали да се показва винаги първия таб ако няма избран
+	 */
+	public $showFirstIfNotSelected = FALSE;
+	
+	
     /**
      * Инициализиране на обекта
      */
@@ -93,6 +111,10 @@ class core_Tabs extends core_BaseClass
             $selectedTab = Request::get('selectedTab');
         }
         
+        if (!$selectedTab) {
+        	$selectedTab = $this->getSelected();
+        }
+        
         //  ,     
         if (!$selectedTab) {
             $selectedTab = key($this->tabs);
@@ -148,5 +170,55 @@ class core_Tabs extends core_BaseClass
         $tabsTpl = new ET($html, $head, $body);
         
         return $tabsTpl;
+    }
+    
+    
+    /**
+     * Дали в таба има таб с посочено име
+     * 
+     * @param string $name - име на таб, за който проверяваме
+     * @return boolean - дали е в таба или не
+     */
+    public function hasTab($name)
+    {
+    	return array_key_exists($name, $this->tabs);
+    }
+    
+    
+    /**
+     * Кой е избрания таб от урл-то
+     */
+    public function getSelected()
+    {
+    	$selected = Request::get($this->urlParam);
+    	
+    	return $selected;
+    }
+    
+    
+    /**
+     * Кой е първия добавен таб
+     */
+    public function getFirstTab()
+    {
+    	return key($this->tabs);
+    }
+    
+    
+    /**
+     * Кой е урл параметъра
+     */
+    public function getUrlParam()
+    {
+    	return $this->urlParam;
+    }
+    
+    
+    /**
+     * кои са зададените табове в обекта
+     */
+    public function getTabs()
+    {
+    	return $this->tabs;
     }
 }

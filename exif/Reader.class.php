@@ -69,6 +69,7 @@ class exif_Reader
         if (!$exif["GPSLongitude"] || !$exif["GPSLatitude"]) return NULL;
         
         // Вземаме координатите
+        $gps = array();
         $gps['lon'] = static::getGpsCoord($exif["GPSLongitude"], $exif['GPSLongitudeRef']);
         $gps['lat'] = static::getGpsCoord($exif["GPSLatitude"], $exif['GPSLatitudeRef']);
         

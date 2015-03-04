@@ -133,7 +133,7 @@ class mp_ObjectResources extends core_Manager
     		} else {
     			
     			// Създава нов запис и го свързва с обекта 
-    			$resourceId = mp_Resources::save((object)array('title' => $form->rec->newResource, 'type' => $sourceInfo->type, 'measureId' => $sourceInfo->measureId));
+    			$resourceId = mp_Resources::save((object)array('title' => $form->rec->newResource, 'type' => $sourceInfo->type, 'measureId' => $sourceInfo->measureId, 'state' => 'active'));
     			$nRec = (object)array('classId' => $classId, 'objectId' => $objectId, 'resourceId' => $resourceId);
     			
     			$this->save($nRec);
@@ -187,13 +187,18 @@ class mp_ObjectResources extends core_Manager
     	$data->TabCaption = 'Ресурси';
     	$data->rows = array();
     	 
+    	// Таба излиза на горния ред, само ако е в документ
     	$classId = $data->masterMvc->getClassId();
-    	 
+		if(cls::haveInterface('doc_DocumentIntf', $data->masterMvc)){
+			$data->Tab = 'top';
+		}
+    	
     	$query = $this->getQuery();
     	$query->where("#classId = {$classId} AND #objectId = {$data->masterId}");
     	 
     	while($rec = $query->fetch()){
     		$data->rows[$rec->id] = $this->recToVerbal($rec);
+    		$data->rows[$rec->id]->ROW_ATTR['class'] = 'state-active';
     	}
     	 
     	if(!Mode::is('printing')) {

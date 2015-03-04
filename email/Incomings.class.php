@@ -296,6 +296,8 @@ class email_Incomings extends core_Master
         // Генерираме и записваме лог съобщение
         $msg = "{$accRec->email}: ($duration s); Total: {$numMsg}";
         
+        $newStatusArr = array();
+        
         // Обхождаме всички статуси
         foreach((array)$statusSum as $status => $cnt) {
             
@@ -689,6 +691,8 @@ class email_Incomings extends core_Master
             $row->fromIp = type_Ip::decorateIp($rec->fromIp, $rec->createdOn);
         }
         
+        $row->fromName = str_replace(' чрез ', ' ' . tr('чрез') . ' ', $row->fromName);
+        
         if(trim($row->fromName) && (strtolower(trim($rec->fromName)) != strtolower(trim($rec->fromEml)))) {
             $row->fromEml = $row->fromEml . ' (' . trim($row->fromName) . ')';
         }
@@ -883,6 +887,7 @@ class email_Incomings extends core_Master
         $row->title = $subject;
         
         if(trim($rec->fromName)) {
+            $rec->fromName = str_replace(' чрез ', ' ' . tr('чрез') . ' ', $rec->fromName);
             $row->author = $this->getVerbal($rec, 'fromName');
         } else {
             $row->author = "<small>{$rec->fromEml}</small>";
@@ -1307,6 +1312,7 @@ class email_Incomings extends core_Master
         }
 
         // Добавяме всички имейли в масив
+        $allEmailsArr = array();
         $allEmailsArr['email'] = $contragentData->email;
         $allEmailsArr['replyToEmail'] = $contragentData->replyToEmail;
         $allEmailsArr['toEmail'] = $contragentData->toEmail;
@@ -1502,6 +1508,8 @@ class email_Incomings extends core_Master
         
         // Данните за файла
         $data = fileman_Data::fetch($fRec->dataId);
+        
+        $sizeArr = array();
         $sizeArr[$fRec->fileHnd] = $data->fileLen;
         
         // Проверавяме дали размера е в допустимите граници
@@ -1623,17 +1631,21 @@ class email_Incomings extends core_Master
     /**
      * Разширява query-то в doc_DocumentPlg, като добавя и имейла от който е получен
      * 
+     * @param email_Incomings $mvc
+     * @param core_Query $query
      * @param integer $folderId
      * @param array $params
      * 
      * @return core_Query
      */
-    public static function getSameFirstDocumentsQuery_($folderId, $params=array())
+    public static function on_AfterGetSameFirstDocumentsQuery($mvc, &$query, $folderId, $params=array())
     {
-        $query = static::getQuery();
+        if (!$query) {
+            $query = $mvc->getQuery();
+        }
         
         if ($params['fromEml']) {
-            $query->where(array("LOWER(#fromEml) = LOWER('[#1#]')", $params['fromEml']));
+            $query->where(array("LOWER(#fromEml) = '[#1#]'", mb_strtolower($params['fromEml'])));
         }
         
         return $query;

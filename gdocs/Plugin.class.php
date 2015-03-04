@@ -58,15 +58,46 @@ class gdocs_Plugin extends core_Plugin
         // Ако е презентация, трябва да се промени линка
         if (strpos($url, '/presentation/')) {
             $url = str_replace('/pub', '/embed', $url);
+        } elseif (strpos($url, '/file/')) {
+            
+            $urlArr = parse_url($url);
+            
+            $urlPathArr = explode('/', $urlArr['path']);
+            
+            $lastElementOfArray = array_slice($urlPathArr, -1, 1, TRUE);
+            
+            $lastKey = key($lastElementOfArray);
+            
+            if (($lastKey == 4) && (
+                    ($urlPathArr[$lastKey] == 'preview') || 
+                    ($urlPathArr[$lastKey] == 'edit') || 
+                    ($urlPathArr[$lastKey] == 'view') || 
+                    ($urlPathArr[$lastKey] == 'share'))
+                ) {
+                $urlPathArr[$lastKey] = 'preview';
+            } else {
+                $urlPathArr[] = 'preview';
+            }
+            
+            $urlArr['path'] = implode('/', $urlPathArr);
+            
+            $url = $urlArr['scheme'];
+            if ($url) {
+                $url .= '://';
+            }
+            
+            $url .= $urlArr['host'];
+            $url .= $urlArr['path'];
         } else {
             
             // Добавяме необходимите параметри
             $url = core_Url::addParams($url, array('widget' => 'true', 'embedded' => 'true'));
         }
         
+        $conf = core_Packs::getConfig('gdocs');
         
-        setIfNot($width, $params['width'], 480);
-        setIfNot($height, $params['height'], 389);
+        setIfNot($width, $params['width'], $conf->GDOCS_DEFAULT_WIDTH);
+        setIfNot($height, $params['height'], $conf->GDOCS_DEFAULT_HEIGHT);
         
         // Резултатния HTML
         $res['html'] = "<iframe src='{$url}' frameborder='0' width='{$width}' height='{$height}' allowfullscreen='true' mozallowfullscreen='true' webkitallowfullscreen='true'></iframe>";

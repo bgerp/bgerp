@@ -34,18 +34,24 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     
     
     /**
-     * Връща запис, съдържащ информация за продукта
-     *
-     * @param int $productId id на записа на продукта
-     * @param int $packagingId за коя опаковка се иска инфо. NULL - всички възможни опаковки на
-     *                         продукта.
-     *
-     * @return stdClass обект със следните полета:
+     * Метод връщаш информация за продукта и неговите опаковки
      * 
-     *   ->productRec   - запис на продукта в модела му
-     *   ->packagings   - масив от всички възможни опаковки на продукта (ако $packagingId == NULL)
-     *   ->packagingRec - запис на опаковка от модела й (ако $packagingId != NULL)
-     */
+     * @param int $productId - ид на продукта
+     * @param int $packagingId - ид на опаковката, по дефолт NULL
+     * @return stdClass $res
+     * 	-> productRec - записа на продукта
+     *  ->isPublic - дали е публичен или частен
+     * 	->meta - мета данни за продукта ако има
+	 * 	     meta['canSell'] 		- дали може да се продава
+	 * 	     meta['canBuy']         - дали може да се купува
+	 * 	     meta['canConvert']     - дали може да се влага
+	 * 	     meta['canStore']       - дали може да се съхранява
+	 * 	     meta['canManifacture'] - дали може да се прозивежда
+	 * 	     meta['fixedAsset']     - дали е ДМА
+	 * 		 meta['waste]			- дали е отпаден
+     * 	-> packagingRec - записа на опаковката, ако е зададена
+     * 	-> packagings - всички опаковки на продукта, ако не е зададена
+     */			
     function getProductInfo($productId, $packagingId = NULL)
     {
         return $this->class->getProductInfo($productId, $packagingId);
@@ -62,25 +68,28 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     }
     
     
-
     /**
-     * Връща артикули, които могат да се продават на посочения клиент
+     * Връща продуктите опции с продукти:
+     * 	 Ако е зададен клиент се връщат всички публични + частните за него
+     *   Ако не е зададен клиент се връщат всички активни продукти
      * 
      * @param mixed $customerClass - клас/ид на контрагента
      * @param int $customerId - ид на контрагента
-     * @param string $date - дата към която извличаме артикулите
-     * @param string $properties - мета данни, на които да отговарят артикулите
+     * @param string $datetime - дата към която извличаме артикулите
+     * @param mixed $hasProperties - мета данни, на които да отговарят артикулите
+     * @param mixed $hasnotProperties - мета данни, на които да отговарят артикулите
      * @param string $limit - колко опции да върнем
-     * @return array - масив с опции на продуктите, според контрагента, датата и мета данните им 
+     * @return array - масив с достъпните за контрагента артикули 
      */
-    function getProducts($customerClass, $customerId, $date = NULL, $properties = NULL, $limit = NULL)
+    function getProducts($customerClass, $customerId, $datetime = NULL, $hasProperties = NULL, $hasnotProperties = NULL, $limit = NULL)
     {
-        return $this->class->getProducts($customerClass, $customerId, $date, $properties, $limit);
+        return $this->class->getProducts($customerClass, $customerId, $datetime, $hasProperties, $hasnotProperties, $limit);
     }
     
     
 	/**
      * Връща цената по себестойност на продукта
+     * 
      * @return double
      */
     function getSelfValue($productId, $packagingId = NULL, $quantity = NULL, $date = NULL)
@@ -91,27 +100,16 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     
     /**
      * Връща масив от продукти отговарящи на зададени мета данни:
-     * canSell, canBuy, canManifacture, canConvert, fixedAsset, canStore
-     * @param mixed $properties - комбинация на горе посочените мета 
-     * 							  данни или като масив или като стринг
-     * @param int $limit      - лимит на показваните резултати
-     * @return array $products - продукти отговарящи на условието, ако не са
-     * 							 зададени мета данни връща всички продукти
+     * canSell, canBuy, canManifacture, canConvert, fixedAsset, canStore, waste
+     * 
+     * @param mixed $properties       - комбинация на горе посочените мета 
+     * 							        данни, на които трябва да отговарят
+     * @param mixed $hasnotProperties - комбинация на горе посочените мета 
+     * 							        които не трябва да имат
      */
-    function getByProperty($properties, $limit = NULL)
+    function getByProperty($properties, $hasnotProperties = NULL)
     {
-    	return $this->class->getByProperty($properties, $limit);
-    }
-    
-    
-    /**
-     * Връща стойноства на даден параметър на продукта, ако я има
-     * @param int $productId - ид на продукт
-     * @param string $sysId - sysId на параметър
-     */
-    public function getParam($productId, $sysId)
-    {
-    	return $this->class->getParam($productId, $sysId);
+    	return $this->class->getByProperty($properties, $hasnotProperties);
     }
     
     
@@ -164,27 +162,6 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     {
     	return $this->class->getPolicy();
     }
-
-
-    /**
-     * Заглавие на артикула
-     */
-    public function getProductTitle($id)
-    {
-    	return $this->class->getProductTitle($id);
-    }
-    
-    
-    /**
-     * Дали артикула е стандартен
-     *
-     * @param mixed $id - ид/запис
-     * @return boolean - дали е стандартен или не
-     */
-    public function isProductStandart($id)
-    {
-    	return $this->class->isProductStandart($id);
-    }
     
     
     /**
@@ -198,15 +175,6 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     public function getProductDesc($id, $documentMvc, $time = NULL)
     {
     	return $this->getProductDesc($id, $documentMvc, $time);
-    }
-    
-    
-    /**
-     * Променя ключовите думи от мениджъра
-     */
-    public function alterSearchKeywords(&$searchKeywords)
-    {
-    	return $this->alterSearchKeywords($searchKeywords);
     }
     
     

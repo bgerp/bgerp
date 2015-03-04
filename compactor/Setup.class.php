@@ -4,13 +4,13 @@
 /**
  * JS файловете
  */
-defIfNot('COMPACTOR_JS_FILES', 'jquery/1.7.1/jquery.min.js, js/efCommon.js, js/overthrow-detect.js, toast/0.3.0f/javascript/jquery.toastmessage.js');
+defIfNot('COMPACTOR_JS_FILES', 'jquery/[#jquery::JQUERY_VERSION#]/jquery.min.js, js/efCommon.js, js/overthrow-detect.js, toast/[#toast::TOAST_MESSAGE_VERSION#]/javascript/jquery.toastmessage.js');
 
 
 /**
  * CSS файловете
  */
-defIfNot('COMPACTOR_CSS_FILES', 'css/common.css, css/Application.css, toast/0.3.0f/resources/css/jquery.toastmessage.css, css/default-theme.css');
+defIfNot('COMPACTOR_CSS_FILES', 'css/common.css, css/Application.css, toast/[#toast::TOAST_MESSAGE_VERSION#]/resources/css/jquery.toastmessage.css, css/default-theme.css');
 
 
 /**
@@ -69,8 +69,21 @@ class compactor_Setup extends core_ProtoSetup
 //        $cssFilesArr = arr::make($conf->COMPACTOR_CSS_FILES, TRUE);
         
         // JS и CSS файловете от конфигурацията от константите
-        $jsFilesArr = arr::make(COMPACTOR_JS_FILES, TRUE);
-        $cssFilesArr = arr::make(COMPACTOR_CSS_FILES, TRUE);
+        $jsFilesArrB = arr::make(COMPACTOR_JS_FILES);
+        $cssFilesArrB = arr::make(COMPACTOR_CSS_FILES);
+        
+        $jsFilesArr = array();
+        $cssFilesArr = array();
+        
+        foreach ($jsFilesArrB as $jsFile) {
+            $jsFile = $this->preparePacksPath('compactor', $jsFile);
+            $jsFilesArr[$jsFile] = $jsFile;
+        }
+    
+        foreach ($cssFilesArrB as $cssFile) {
+            $cssFile = $this->preparePacksPath('compactor', $cssFile);
+            $cssFilesArr[$cssFile] = $cssFile;
+        }
         
         // Всички записани пакети
         $query = core_Packs::getQuery();

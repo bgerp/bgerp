@@ -180,7 +180,7 @@ class eshop_Products extends core_Master
         }
 
         if($rec->coDriver) {
-            if(marketing_Inquiries::haveRightFor('new')){
+            if(marketing_Inquiries2::haveRightFor('new')){
             	$title = tr('Изпратете запитване за производство');
             	Request::setProtected('drvId,coParams,inqCls,inqId,lg');
             	$lg = cms_Content::getLang();

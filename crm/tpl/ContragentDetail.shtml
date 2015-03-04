@@ -1,6 +1,10 @@
-<fieldset class='detail-info portal'>
-    <legend class='groupTitle'>[#title#]</legend>
-    <div class='groupList clearfix21' style='max-width: 730px;'>
-        [#content#]
-    </div>
-</fieldset>
+<div class='scrolling-holder'>
+	<fieldset class='top-tab-content'>
+	<legend class='groupTitle'>[#title#]</legend>
+		<div class='detail-info portal'>
+		    <div class='groupList clearfix21'>
+		        [#content#]
+		    </div>
+	    </div>
+	</fieldset>
+</div>

@@ -125,13 +125,11 @@ class findeals_AdvanceReportDetails extends doc_Detail
     	$masterRec = $mvc->Master->fetch($form->rec->reportId);
     	$cCode = currency_Currencies::getCodeById($masterRec->currencyId);
     	$form->setField('amount', "unit={$cCode}");
+    	$cover = doc_Folders::getCover($masterRec->folderId);
     	
     	// Взимаме всички продаваеми продукти и махаме складируемите от тях
-    	$products = cat_Products::getByProperty('canBuy');
-        $products2 = cat_Products::getByProperty('canStore');
-        
-        $products = array_diff_key($products, $products2);
-        expect(count($products));
+    	$products = cls::get('cat_Products')->getProducts($cover->getClassId(), $cover->that, $masterRec->valior, 'canBuy', 'canStore');
+    	expect(count($products));
         
     	$form->setOptions('productId', $products);
     	$form->setDefault('quantity', 1);

@@ -103,7 +103,6 @@ class chosen_Plugin extends core_Plugin
         $tpl->append("<input type='hidden' name='{$name}[chosen]' value=1>");
         $tpl->push($conf->CHOSEN_PATH . "/chosen.css", "CSS");
         $tpl->push($conf->CHOSEN_PATH . "/chosen.jquery.js", "JS");
-        
         jquery_Jquery::run($tpl, "$('.keylistChosen').data('placeholder', 'Избери...').chosen();");
         
         return FALSE;

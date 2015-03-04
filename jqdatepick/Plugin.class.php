@@ -32,13 +32,14 @@ class jqdatepick_Plugin extends core_Plugin {
     function on_AfterRenderInput(&$invoker, &$tpl, $name, $value, $attr = array())
     {
     	$conf = core_Packs::getConfig('jqdatepick');
-    	        
+    	
         $tpl->push("jqdatepick/" . $conf->JQDATEPICKER_VERSION . "/jquery.datepick.css", "CSS");
+        $tpl->push("jqdatepick/" . $conf->JQDATEPICKER_VERSION . "/jquery.plugin.min.js", "JS");
         $tpl->push("jqdatepick/" . $conf->JQDATEPICKER_VERSION . "/jquery.datepick.js", "JS");
         $tpl->push("jqdatepick/" . $conf->JQDATEPICKER_VERSION . "/jquery.datepick-" . core_Lg::getCurrent() . ".js", "JS");
         
         $alignment = Mode::is('screenMode', 'narrow') ? 'top' : 'bottom';
-
+        
         jquery_Jquery::run($tpl, "$('#" . $attr['id'] . "').datepick({dateFormat: 'dd.mm.yyyy', alignment: '{$alignment}'});");
     }
 }

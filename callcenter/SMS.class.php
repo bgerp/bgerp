@@ -910,6 +910,8 @@ class callcenter_SMS extends core_Master
                 $inst = cls::get($rec->service);
                 $status = $inst->getStatus($rec->uid);
             } catch (core_exception_Expect $e) {
+                
+                continue;
             }
             
             if (!isset($status)) continue;

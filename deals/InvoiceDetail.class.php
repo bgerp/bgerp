@@ -51,7 +51,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 	 */
 	public static function setInvoiceDetailFields(&$mvc)
 	{
-		$mvc->FLD('productId', 'int', 'caption=Продукт','tdClass=large-field leftCol wrap');
+		$mvc->FLD('productId', 'int', 'caption=Продукт','tdClass=large-field leftCol wrap,removeAndRefreshForm=packPrice|discount');
 		$mvc->FLD('classId', 'class(interface=cat_ProductAccRegIntf, select=title)', 'caption=Мениджър,silent,input=hidden');
 		$mvc->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка','tdClass=small-field');
 		$mvc->FLD('quantity', 'double(Min=0)', 'caption=К-во,mandatory','tdClass=small-field');
@@ -82,7 +82,6 @@ abstract class deals_InvoiceDetail extends doc_Detail
 		$data->form->setSuggestions('discount', array('' => '') + arr::make('5 %,10 %,15 %,20 %,25 %,30 %', TRUE));
 	
 		if (empty($rec->id)) {
-			$data->form->addAttr('productId', array('onchange' => "addCmdRefresh(this.form);document.forms['{$data->form->formAttr['id']}'].elements['id'].value ='';document.forms['{$data->form->formAttr['id']}'].elements['packPrice'].value ='';document.forms['{$data->form->formAttr['id']}'].elements['discount'].value ='';this.form.submit();"));
 			$data->form->setOptions('productId', array('' => ' ') + $products);
 			 
 		} else {
@@ -110,7 +109,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 			foreach ($productManagers as $manId => $manName) {
 				$productMan = cls::get($manId);
 				$error = '';
-				if(!count($productMan->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->valior, $mvc->metaProducts, 1))){
+				if(!count($productMan->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->valior, $mvc->metaProducts, NULL, 1))){
 					$text = ($mvc->metaProducts == 'canSell') ? "продаваеми" : "купуваеми";
 					$error = "error=Няма {$text} {$productMan->title}";
 				}

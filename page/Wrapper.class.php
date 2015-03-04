@@ -21,18 +21,57 @@ class page_Wrapper extends core_BaseClass {
      * Прави стандартна 'обвивка' на изгледа
      */
     function render_($content)
-    {
+    {   
+        // Определяме каква да е темата обвивката на страницата
         if (!($tplName = Mode::get('wrapper'))) {
-            $tplName = Mode::is('printing') ? 'page_Print' : 'page_Internal';
+            if(Mode::is('printing')) {
+                $tplName =  'page_Print';
+            } elseif(haveRole('admin,ceo,manager,officer,executive')) {
+                $tplName = 'core_page_Internal';
+            } else {
+                $tplName = 'cms_page_External';
+            }
+        }
+        
+        // Определяне на темите, в случаите, когато се изисква външната или вътрешната обвивка
+        $coreConf = core_Packs::getConfig('core');
+        if($tplName == 'core_page_Internal' && $coreConf->CORE_PAGE_WRAPPER) {
+            $tplName = $coreConf->CORE_PAGE_WRAPPER;
+        } else {
+            $cmsConf = core_Packs::getConfig('cms');
+            if($tplName == 'cms_page_External' && $cmsConf->CMS_PAGE_WRAPPER) {
+                $tplName = $cmsConf->CMS_PAGE_WRAPPER;
+            }
         }
         
         // Зареждаме опаковката 
         $wrapperTpl = cls::get($tplName);
         
+        self::replaceSpecialPlaceholders($wrapperTpl);
+        
+        // Изпращаме на изхода опаковано съдържанието
+        $wrapperTpl->replace($content, 'PAGE_CONTENT');
+
+        $wrapperTpl->output();
+    }
+    
+    
+    /**
+     * Замества специалните плейсхолдъри
+     * 
+     * @param core_ET|string $tpl
+     */
+    protected static function replaceSpecialPlaceholders(&$tpl)
+    {
+        if (!($tpl instanceof core_ET)) {
+            
+//            return $tpl;
+            
+            $tpl = new ET($tpl);
+        }
         
         // Вземаме плейсхолдерите
-        $placeHolders = $wrapperTpl->getPlaceHolders();
-
+        $placeHolders = $tpl->getPlaceHolders();
         
         // Заместваме специалните плейсхолдери, със съдържанието към което те сочат
         foreach($placeHolders as $place) {
@@ -41,15 +80,19 @@ class page_Wrapper extends core_BaseClass {
 
             if(count($method) != 2) continue;
 
-
             $html = call_user_func($method);
-
-            $wrapperTpl->replace($html, $place);
+            
+            if ($html instanceof core_ET) {
+                $content = $html->getContent(NULL, "CONTENT", FALSE, FALSE);
+            } else {
+                $content = $html;
+            }
+            
+            if (strpos($content, '::') !== FALSE) {
+                self::replaceSpecialPlaceholders($html);
+            }
+            
+            $tpl->replace($html, $place);
         }
-        
-        // Изпращаме на изхода опаковано съдържанието
-        $wrapperTpl->replace($content, 'PAGE_CONTENT');
-
-        $wrapperTpl->output();
     }
 }

@@ -2,37 +2,40 @@
     <div class='scrolling-holder'>
         <br>
         <div class='indent'>
-            Долуподписаният, [#manager#],  <!--ET_BEGIN manager-->
-        </div>
-        <!--ET_END manager-->
-        <div>
-            представляващ доставчика:
-            [#MyCompany#], <!--ET_BEGIN MyCountry-->с адрес [#MyCountry#], <!--ET_END MyCountry--><!--ET_BEGIN MyAddress-->гр. [#MyAddress#],<!--ET_END MyAddress--><!--ET_BEGIN MyCompanyVatNo--> номер по ЗДДС [#MyCompanyVatNo#], <!--ET_END MyCompanyVatNo--><!--ET_BEGIN uicId--> ЕИК [#uicId#],<!--ET_END uicId-->
-        </div>
-        <div>
-            във връзка с продажбата по фактура <b>№ [#invoiceNo#]</b> на продуктите:
-            <!--ET_BEGIN products-->
-            [#products#]
-            <!--ET_END products-->
-            <!--ET_BEGIN material-->
-            <b>произведени от</b> [#material#]
-        </div>
-        <!--ET_END material-->
-        <div>
-            <b>доставени на фирма:</b> [#contragentCompany#], <!--ET_BEGIN contragentCountry-->с адрес [#contragentCountry#], <!--ET_END contragentCountry-->
-            <!--ET_BEGIN contragentAddress-->гр. [#contragentAddress#],<!--ET_END contragentAddress--> 
-            <!--ET_BEGIN contragentCompanyVatNo-->номер по ЗДДС [#contragentCompanyVatNo#],<!--ET_END contragentCompanyVatNo--> <!--ET_BEGIN contragentUicId--> ЕИК [#contragentUicId#]<!--ET_END contragentUicId-->,
+            Долуподписаният, <!--ET_BEGIN manager--><b>[#manager#]</b><!--ET_END manager-->, представляващ доставчика: <b>[#MyCompany#]</b>, 
+            <!--ET_BEGIN MyCountry-->
+            с адрес [#MyCountry#], 
+            <!--ET_BEGIN MyAddress-->гр. [#MyAddress#],<!--ET_END MyAddress-->
+            <!--ET_END MyCountry-->
+            <!--ET_BEGIN MyCompanyVatNo--> ДДС№ [#MyCompanyVatNo#], <!--ET_END MyCompanyVatNo-->
+            <!--ET_BEGIN uicId--> ЕИК [#uicId#],<!--ET_END uicId-->
+            <!--ET_END MyCountry-->
         </div>
         <br>
-        <p class="centered"><b>Д Е К Л А Р И Р А М, Ч Е</b> </p>
-        <!--ET_BEGIN statements-->
-        [#statements#]
-        <!--ET_END statements-->
+        <p><b>ДЕКЛАРИРАМЕ, ЧЕ ПРОДУКТИТЕ:</b></p>
+        <!--ET_BEGIN products-->
+        [#products#]
+        <!--ET_END products-->        
+        <div>продадени с фактура <b>№ [#invoiceNo#]</b> на <b>[#contragentCompany#]</b>, <!--ET_BEGIN contragentCountry-->с адрес [#contragentCountry#], <!--ET_END contragentCountry-->
+            <!--ET_BEGIN contragentAddress-->гр. [#contragentAddress#],<!--ET_END contragentAddress--> 
+            <!--ET_BEGIN contragentCompanyVatNo-->ДДС№ <b>[#contragentCompanyVatNo#]</b>,<!--ET_END contragentCompanyVatNo--> <!--ET_BEGIN contragentUicId--> ЕИК [#contragentUicId#]<!--ET_END contragentUicId-->,
+        </div>
+        <br>
+        <p><b>ОТГОВАРЯТ НА СЛЕДНОТО:</b> </p>
+        <ul>
+        <!--ET_BEGIN material-->
+         <li> Изделията са произведени от [#material#] </li>
+        <!--ET_END material-->
+		<!--ET_BEGIN statements-->
+		 <li> Изделията отговарят на изискванията [#statements#] </li>
+		<!--ET_END statements-->
+        </ul>
         <!--ET_BEGIN note-->
         <div>
-            [#note#]<br>
+            [#note#]
         </div>
         <!--ET_END note-->
+        <br>
         <div class='indent'>Декларирам, че ми е известна отговорността, която нося съгласно чл.313 от НК и другите нормативни актове на Република България и Европейския съюз.</div>
         <br>
         <br>

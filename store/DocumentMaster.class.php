@@ -35,6 +35,12 @@ abstract class store_DocumentMaster extends core_Master
     
     
     /**
+     * На кой ред в тулбара да се показва бутона за принтиране
+     */
+    public $printBtnToolbarRow = 1;
+    
+    
+    /**
      * След описанието на полетата
      */
     protected static function setDocFields(core_Master &$mvc)
@@ -92,19 +98,17 @@ abstract class store_DocumentMaster extends core_Master
     	$form->getField('locationId')->type->options =
     	array('' => '') + crm_Locations::getContragentOptions($rec->contragentClassId, $rec->contragentId);
     
-    	if(empty($rec->id)){
-    		expect($origin = ($form->rec->originId) ? doc_Containers::getDocument($form->rec->originId) : doc_Threads::getFirstDocument($form->rec->threadId));
-    		expect($origin->haveInterface('bgerp_DealAggregatorIntf'));
-    		$dealInfo = $origin->getAggregateDealInfo();
-    		$form->dealInfo = $dealInfo;
+    	expect($origin = ($form->rec->originId) ? doc_Containers::getDocument($form->rec->originId) : doc_Threads::getFirstDocument($form->rec->threadId));
+    	expect($origin->haveInterface('bgerp_DealAggregatorIntf'));
+    	$dealInfo = $origin->getAggregateDealInfo();
+    	$form->dealInfo = $dealInfo;
     		 
-    		$form->setDefault('currencyId', $dealInfo->get('currency'));
-    		$form->setDefault('currencyRate', $dealInfo->get('rate'));
-    		$form->setDefault('locationId', $dealInfo->get('deliveryLocation'));
-    		$form->setDefault('deliveryTime', $dealInfo->get('deliveryTime'));
-    		$form->setDefault('chargeVat', $dealInfo->get('vatType'));
-    		$form->setDefault('storeId', $dealInfo->get('storeId'));
-    	}
+    	$form->setDefault('currencyId', $dealInfo->get('currency'));
+    	$form->setDefault('currencyRate', $dealInfo->get('rate'));
+    	$form->setDefault('locationId', $dealInfo->get('deliveryLocation'));
+    	$form->setDefault('deliveryTime', $dealInfo->get('deliveryTime'));
+    	$form->setDefault('chargeVat', $dealInfo->get('vatType'));
+    	$form->setDefault('storeId', $dealInfo->get('storeId'));
     }
     
     
@@ -240,7 +244,7 @@ abstract class store_DocumentMaster extends core_Master
     /**
      * Подготвя данните на хедъра на документа
      */
-    private function prepareHeaderInfo(&$row, $rec)
+    public function prepareHeaderInfo(&$row, $rec)
     {
     	$ownCompanyData = crm_Companies::fetchOwnCompany();
     	$Companies = cls::get('crm_Companies');
@@ -285,15 +289,6 @@ abstract class store_DocumentMaster extends core_Master
 	   		$data->summary = deals_Helper::prepareSummary($this->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat);
 	   		$data->row = (object)((array)$data->row + (array)$data->summary);
 	   	}
-   }
-
-
-   /**
-    * След подготовка на единичния изглед
-    */
-   public static function on_AfterPrepareSingle($mvc, &$res, &$data)
-   {
-   		$data->row->header = $mvc->singleTitle . " #<b>{$mvc->abbr}{$data->row->id}</b> ({$data->row->state})";
    }
 
 
@@ -343,6 +338,11 @@ abstract class store_DocumentMaster extends core_Master
 	   				$row->deliveryLocationAddress = $gln . ", " . $row->deliveryLocationAddress;
 	   				$row->deliveryLocationAddress = trim($row->deliveryLocationAddress, ", ");
 	   			}
+	   		}
+	   		
+	   		$row->storeId = store_Stores::getHyperlink($rec->storeId);
+	   		if(isset($rec->lineId)){
+	   			$row->lineId = trans_Lines::getHyperlink($rec->lineId);
 	   		}
 	   	}
    }
@@ -455,16 +455,24 @@ abstract class store_DocumentMaster extends core_Master
     	 
     	$amount = currency_Currencies::round($rec->amountDelivered / $rec->currencyRate, $rec->currencyId);
     	 
-    	$row->weight = $oldRow->weight;
-    	$row->volume = $oldRow->volume;
-    	$row->collection = "<span class='cCode'>{$rec->currencyId}</span> " . $this->getFieldType('amountDelivered')->toVerbal($amount);
+    	if($rec->weight){
+    		$row->weight = $oldRow->weight;
+    	}
+    	
+    	if($rec->volume){
+    		$row->volume = $oldRow->volume;
+    	}
+    	
+    	if($amount){
+    		$row->collection = "<span class='cCode'>{$rec->currencyId}</span> " . $this->getFieldType('amountDelivered')->toVerbal($amount);
+    	}
     	$row->rowNumb = $rec->rowNumb;
     	 
-    	$row->address = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
-    	$row->address .= ", " . (($rec->locationId) ? crm_Locations::getAddress($rec->locationId) : $oldRow->contragentAddress);
-    	trim($row->address, ', ');
+    	$row->address = ($rec->locationId) ? crm_Locations::getAddress($rec->locationId) : $oldRow->contragentAddress;
+    	$row->address = "<span style='font-size:0.8em'>{$row->address}</span>";
     	 
-    	$row->TR_CLASS = ($rec->rowNumb % 2 == 0) ? 'zebra0' : 'zebra1';
+    	$row->storeId = store_Stores::getHyperlink($rec->storeId);
+    	$row->ROW_ATTR['class'] = "state-{$rec->state}";
     	$row->docId = $this->getDocLink($rec->id);
     	 
     	return $row;
@@ -479,7 +487,7 @@ abstract class store_DocumentMaster extends core_Master
     	$arr = array();
     	$query = $this->getQuery();
     	$query->where("#lineId = {$masterRec->id}");
-    	$query->where("#state = 'active'");
+    	$query->where("#state != 'rejected'");
     	$query->orderBy("#createdOn", 'DESC');
     	 
     	$i = 1;

@@ -25,7 +25,7 @@ class store_plg_Document extends core_Plugin
 	{
 		if($mvc->haveRightFor('single', $id)){
 	    	$icon = sbf($mvc->getIcon($id), '');
-	    	$handle = $mvc->getHandle($id);
+	    	$handle = "#" . $mvc->getHandle($id);
 	    	$attr = array();
 	    	$attr['class'] = "linkWithIcon";
 	        $attr['style'] = "background-image:url('{$icon}');";

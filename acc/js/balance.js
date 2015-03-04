@@ -1,5 +1,5 @@
 function chosenrefresh() {
-	$(".balance-grouping").live("change", function() {
+	$(document.body).on('change', ".balance-grouping", function(){
 		var id = $(this).attr("id");
 		var name = $(this).attr("name");
 		lastChar = name.substr(name.length - 1);
@@ -9,8 +9,7 @@ function chosenrefresh() {
 		$("form select[name='feat"+lastChar+"']").val('');
 		$("select[name='feat"+lastChar+"']").trigger('liszt:updated');
 	});
-	
-	$(".balance-feat").live("change", function() {
+	$(document.body).on('change', ".balance-feat", function(){
 		var name = $(this).attr("name");
 		lastChar = name.substr(name.length - 1);
 		lastChar = lastChar.toString(); 

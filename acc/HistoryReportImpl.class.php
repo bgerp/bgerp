@@ -65,7 +65,7 @@ class acc_HistoryReportImpl extends frame_BaseDriver
 	 */
 	public function addEmbeddedFields(core_Form &$form)
 	{
-		$form->FLD('accountId', 'acc_type_Account(allowEmpty)', 'input,caption=Сметка,silent,mandatory', array('attr' => array('onchange' => "addCmdRefresh(this.form);this.form.submit()")));
+		$form->FLD('accountId', 'acc_type_Account(allowEmpty)', 'input,caption=Сметка,silent,mandatory,removeAndRefreshForm=ent1Id|ent2Id|ent3Id|orderField|orderBy|');
 		$form->FLD('fromDate', 'date(allowEmpty)', 'caption=От,input,mandatory');
 		$form->FLD('toDate', 'date(allowEmpty)', 'caption=До,input,mandatory');
 		$form->FLD('isGrouped', 'varchar', 'caption=Групиране');
@@ -95,13 +95,6 @@ class acc_HistoryReportImpl extends frame_BaseDriver
 		}
 		 
 		if(isset($form->rec->accountId)){
-			
-			if($form->rec->id){
-				if(frame_Reports::fetchField($form->rec->id, 'filter')->accountId != $form->rec->accountId){
-					unset($form->rec->ent1Id, $form->rec->ent2Id, $form->rec->ent3Id);
-					Request::push(array('ent1Id' => NULL, 'ent2Id' => NULL, 'ent3Id' => NULL, 'orderField' => NULL, 'orderBy' => NULL));
-				}
-			}
 			 
 			$accInfo = acc_Accounts::getAccountInfo($form->rec->accountId);
 			 
@@ -159,7 +152,7 @@ class acc_HistoryReportImpl extends frame_BaseDriver
 		$data->rec->ent2Id = $filter->ent2Id;
 		$data->rec->ent3Id = $filter->ent3Id;
 		$data->rec->accountNum = $accNum;
-		 
+		
 		acc_BalanceDetails::requireRightFor('history', $data->rec);
 		 
 		$balanceRec = $this->History->getBalanceBetween($filter->fromDate, $filter->toDate);

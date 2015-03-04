@@ -22,7 +22,7 @@ class blast_EmailSend extends core_Detail
     /**
      * Кой има право да чете?
      */
-    protected $canRead = 'ceo, blast';
+    protected $canRead = 'ceo, blast, admin';
     
     /**
      * Кой има право да променя?
@@ -37,12 +37,12 @@ class blast_EmailSend extends core_Detail
     /**
      * Кой може да го види?
      */
-    protected $canView = 'ceo, blast';
+    protected $canView = 'ceo, blast, admin';
     
     /**
      * Кой може да го разглежда?
      */
-    protected $canList = 'ceo, blast';
+    protected $canList = 'ceo, blast, admin';
     
     /**
      * Кой може да го изтрие?
@@ -62,12 +62,25 @@ class blast_EmailSend extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'email, sentOn, state';
+    public $listFields = 'email, sentOn, state, stateAct';
     
     /**
      * Брой записи на страница
      */
     public $listItemsPerPage = 20;
+    
+    
+    /**
+     * 
+     */
+    public $canActivate = 'ceo, blast, admin';
+    
+    
+    /**
+     * 
+     */
+    public $canStop = 'ceo, blast, admin';
+    
     
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
@@ -82,7 +95,8 @@ class blast_EmailSend extends core_Detail
     {
         $this->FLD('emailId', 'key(mvc=blast_Emails, select=subject)', 'caption=Списък');
         $this->FLD('data', 'blob(serialize, compress)', 'caption=Данни');
-        $this->FLD('state', 'enum(pending=Чакащо, sended=Изпратено)', 'caption=Състояние, input=none');
+        $this->FLD('state', 'enum(pending=Чакащо, sended=Изпратено)', 'caption=Изпращане->Състояние, input=none');
+        $this->FLD('stateAct', 'enum(active=Активно, stopped=Спряно)', 'caption=Изпращане->Действие, input=none, notNull');
         $this->FLD('sentOn', 'datetime(format=smartTime)', 'caption=Изпратено->На, input=none');
         $this->FLD('email', 'emails', 'caption=Изпратено->До, input=none');
         $this->FLD('hash', 'varchar(32)', 'caption=Хеш, input=none');
@@ -175,6 +189,7 @@ class blast_EmailSend extends core_Detail
         $query = self::getQuery();
         $query->where(array("#emailId = '[#1#]'", $emailId));
         $query->where("#state = 'pending'");
+        $query->where("#stateAct != 'stopped'");
         
         // Ако има ограничение
         if ($count) {
@@ -270,6 +285,7 @@ class blast_EmailSend extends core_Detail
     function on_AfterPrepareListFilter($mvc, &$data)
     {
         // Подреждаме записите, като неизпратените да се по-нагоре
+        $data->query->orderBy("stateAct", 'ASC');
         $data->query->orderBy("state", 'ASC');
         $data->query->orderBy("createdOn", 'DESC');
         $data->query->orderBy("sentOn", 'DESC');
@@ -291,5 +307,109 @@ class blast_EmailSend extends core_Detail
         } else {
             $row->ROW_ATTR['class'] .= ' state-pending';
         }
+        
+        if ($rec->stateAct != 'stopped') {
+            $stopUrl = array();
+            if ($mvc->haveRightFor('stop', $rec)) {
+                $stopUrl = array($mvc, 'stop', $rec->id, 'ret_url' => TRUE);
+            }
+            // Бутон за спиране
+            $row->stateAct = ht::createBtn('Спиране', $stopUrl, FALSE, FALSE,'title=Прекратяване на изпращане към този имейл');
+            
+        } else {
+            $activateUrl = array();
+            if ($mvc->haveRightFor('activate', $rec)) {
+                $activateUrl = array($mvc, 'activate', $rec->id, 'ret_url' => TRUE);
+            }
+            // Бутон за активиране
+            $row->stateAct = ht::createBtn('Активиране', $activateUrl, FALSE, FALSE,'title=Започване на изпращане към този имейл');
+            
+            $row->ROW_ATTR['class'] .= ' state-stopped';
+        }
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass $rec
+     * @param int $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+        if ($rec && ($requiredRoles != 'no_one')) {
+            if ($action == 'stop' || $action == 'activate') {
+                if ($rec->state == 'sended') {
+                    $requiredRoles = 'no_one';
+                }
+            }
+        }
+    }
+    
+    
+    /**
+     * Екшън за спиране
+     */
+    function act_Stop()
+    {
+        // id' то на записа
+        $id = Request::get('id', 'int');
+        
+        expect($id);
+        
+        // Очакваме да има такъв запис
+        $rec = $this->fetch($id);
+        expect($rec, 'Няма такъв запис.');
+        
+        // Очакваме да имаме права за записа
+        $this->requireRightFor('activate', $rec);
+        
+        // Смяняме състоянието на спряно
+        $nRec = new stdClass();
+        $nRec->id = $id;
+        $nRec->stateAct = 'stopped';
+        $this->save($nRec);
+        
+        return new Redirect(getRetUrl(), '|Успешно спряхте изпращането до имейл|* ' . $rec->email);
+    }
+    
+    
+    /**
+     * Екшън за активиране
+     */
+    function act_Activate()
+    {
+        // id' то на записа
+        $id = Request::get('id', 'int');
+        
+        expect($id);
+        
+        // Очакваме да има такъв запис
+        $rec = $this->fetch($id);
+        expect($rec, 'Няма такъв запис.');
+        
+        // Очакваме да имаме права за записа
+        $this->requireRightFor('single', $rec);
+        
+        // Смяняме състоянието на спряно
+        $nRec = new stdClass();
+        $nRec->id = $id;
+        $nRec->stateAct = 'active';
+        $this->save($nRec);
+        
+        $eRec = blast_Emails::fetch($rec->emailId);
+        
+        // Ако състоянието е затворено, активираме имейла
+        if ($eRec->state == 'closed') {
+            $nERec = new stdClass();
+            $nERec->id = $eRec->id;
+            $nERec->state = 'active';
+            blast_Emails::save($nERec);
+        }
+        
+        return new Redirect(getRetUrl(), '|Успешно активирахте изпращането до имейл|* ' . $rec->email);
     }
 }

@@ -131,6 +131,8 @@ class doc_Threads extends core_Manager
         
         // Индекс за по-бързо избиране по папка
         $this->setDbIndex('folderId');
+        
+        $this->setDbIndex('firstContainerId');
     }
     
     
@@ -870,6 +872,8 @@ class doc_Threads extends core_Manager
             $msgRec = $doc->fetch();
             
             $msgQuery = email_Incomings::getSameFirstDocumentsQuery($folderRec->id, array('fromEml' => $msgRec->fromEml));
+            
+            $msgQuery->show('id');
             
             $sameEmailMsgCnt = $msgQuery->count() - 1;
             
@@ -1737,7 +1741,7 @@ class doc_Threads extends core_Manager
      * @param core_Form $form
      * @see core_SettingsIntf
      */
-    function prepareForm(&$form)
+    function prepareSettingsForm(&$form)
     {
         // Задаваме таба на менюто да сочи към документите
         Mode::set('pageMenu', 'Документи');

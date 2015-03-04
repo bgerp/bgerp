@@ -36,8 +36,11 @@ class crm_Companies extends core_Master
         // Интерфейс за корица на папка
         'doc_FolderIntf',
         
-        //Интерфейс за данните на контрагента
-        'doc_ContragentDataIntf'
+        // Интерфейс за данните на контрагента
+        'doc_ContragentDataIntf',
+    		
+    	// Интерфейс за корица на папка в която може да се създава артикул
+    	'cat_ProductFolderCoverIntf',
     );
     
     
@@ -137,7 +140,7 @@ class crm_Companies extends core_Master
     /**
      * Кой  може да групира "С избраните"?
      */
-    var $canGrouping = 'ceo,crm';
+    var $canGrouping = 'powerUser';
 
     
     /**
@@ -168,7 +171,7 @@ class crm_Companies extends core_Master
     /**
      * По кои сметки ще се правят справки
      */
-    public $balanceRefAccounts = '401,402,403,404,405,406,409,411,412,413,414,415,419';
+    public $balanceRefAccounts = '323,401,402,403,404,405,406,409,411,412,413,414,415,419';
     
     
     /**
@@ -653,7 +656,7 @@ class crm_Companies extends core_Master
 	/**
      * Обновява номера за фирмата
      */
-    static function updateNumbers($rec)
+    public static function updateNumbers($rec)
     {
         // Ако има телефон
         if ($rec->tel) {
@@ -1508,9 +1511,9 @@ class crm_Companies extends core_Master
      * @param int $id -ид на продукт
      * @param varchar $groupSysId - sysId на група
      */
-    public function forceGroup($id, $groupSysId)
+    public static function forceGroup($id, $groupSysId)
     {
-    	expect($rec = $this->fetch($id));
+    	expect($rec = static::fetch($id));
     	expect($groupId = crm_Groups::getIdFromSysId($groupSysId));
     	
     	// Ако контрагента не е включен в групата, включваме го
@@ -1518,11 +1521,25 @@ class crm_Companies extends core_Master
     		$groupName = crm_Groups::getTitleById($groupId);
     		$rec->groupList = keylist::addKey($rec->groupList, $groupId);
     		
-    		core_Statuses::newStatus(tr("|Фирмата е включена в група |* '{$groupName}'"));
+    		if(haveRole('powerUser')){
+    			core_Statuses::newStatus(tr("|Фирмата е включена в група |* '{$groupName}'"));
+    		}
     		
-    		return $this->save($rec, 'groupList');
+    		return static::save($rec, 'groupList');
     	}
     	
     	return TRUE;
+    }
+    
+    
+    /**
+     * Връща мета дефолт мета данните на папката
+     *
+     * @param int $id - ид на папка
+     * @return array $meta - масив с дефолт мета данни
+     */
+    public function getDefaultMeta($id)
+    {
+    	return array();
     }
 }

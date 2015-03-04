@@ -56,6 +56,7 @@ function showTooltip(){
 };
 
 
+
 // Функция за лесно селектиране на елементи
 function get$() {
     var elements = new Array();
@@ -884,7 +885,7 @@ function toggleDisplay(id) {
 
 // Скрива групите бутони от ричедита при клик някъде
 function hideRichtextEditGroups() {
-    $('body').live('click', function(e) {
+	$(document.body).on("click", this, function(e){
         if (!($(e.target).is('input[type=text]'))) {
         	$('.richtext-holder-group-after').css("display", "none");
         }
@@ -928,7 +929,7 @@ function prepareLangBtn(obj) {
 	
 	// добавяме бутона за смяна на език
 	var elem = "<a class='rtbutton lang " + initialLang + "' title='" + hint +"'>" + initialLang + "</a>" ;
-	$(elem).insertBefore('.richedit-toolbar .clearfix21');
+	$('.richEdit').append(elem);
 
 	// на всеки клик подготряме данните за смяна на езика
 	$(document.body).on('click', ".rtbutton.lang", function(e){
@@ -963,8 +964,8 @@ function changeLang(data){
 	$('.rtbutton.lang').text(lang);
 	
 	// spellcheck
-	$('input[name=subject]').attr('spellcheck','yes');
-	$('.richEdit textarea').attr('spellcheck','yes');
+	$('input[name=subject]').attr('spellcheck','true');
+	$('.richEdit textarea').attr('spellcheck','true');
 	$('input[name=subject]').attr('lang',lang);
 	$('.richEdit textarea').attr('lang',lang);
 }
@@ -1533,23 +1534,30 @@ function appendQuote(id) {
  * @param form
  */
 function addCmdRefresh(form) {
-    var input = document.createElement("input");
-
-    input.setAttribute("type", "hidden");
-
-    input.setAttribute("name", "Cmd[refresh]");
-
-    input.setAttribute("value", "1");
-
-    form.appendChild(input);
+	
+	if(typeof form.elements["Cmd[refresh]"] != 'undefined') {
+		form.elements["Cmd[refresh]"].value = 1;
+	} else {
+		var input = document.createElement("input");
+		input.setAttribute("type", "hidden");
+		input.setAttribute("name", "Cmd[refresh]");
+		input.setAttribute("value", "1");
+		form.appendChild(input);
+	}
 }
 
 
 /**
- * Рефрешва посочената форма
+ * Рефрешва посочената форма. добавя команда за refresh и маха посочените полета
  */
-function refreshForm(form) {
+function refreshForm(form, removeFields) {
     addCmdRefresh(form);
+	if(typeof removeFields != 'undefined') {
+		var fieldsCnt = removeFields.length;
+		for (var i = 0; i < fieldsCnt; i++) {
+			$("[name='" + removeFields[i] + "']").prop('disabled', true);;
+		}
+	}
     form.submit();
 }
 
@@ -2935,6 +2943,9 @@ function Experta() {
 
     // Времето на бездействие в таба
     Experta.prototype.idleTime;
+    
+    // id на атрибута в който ще се добавя локацията
+    Experta.prototype.geolocationId;
 }
 
 
@@ -3219,6 +3230,63 @@ Experta.prototype.scrollTo = function(id) {
 
 
 /**
+ * Закръгля дробни числа до подадения брой символи след десетичната запетая
+ * 
+ * @param double id
+ * @param integer id
+ * 
+ * @return integer|double|NULL
+ */
+Experta.prototype.round = function(val, decimals) {
+	
+	if (typeof Math == "undefined") return ;
+	
+	var pow = Math.pow(10, parseInt(decimals));
+	
+	val = Math.round(parseFloat(val) * pow) / pow;
+	
+	return val;
+}
+
+
+/**
+ * Задава позицията от geolocation в полето
+ * 
+ * @param string attrId
+ */
+Experta.prototype.setPosition = function(attrId) {
+	this.setGeolocation(attrId);
+}
+
+
+/**
+ * Задава геолокациите
+ * 
+ * @param string attrId
+ */
+Experta.prototype.setGeolocation = function(attrId) {
+	if (navigator.geolocation) {
+		this.geolocationId = attrId;
+        navigator.geolocation.getCurrentPosition(this.setCoords);
+    }
+}
+
+
+/**
+ * Задава координатите
+ * 
+ * @param object
+ */
+Experta.prototype.setCoords = function(position) {
+	
+	var lat = getEO().round(position.coords.latitude, 6);
+	var long = getEO().round(position.coords.longitude, 6);
+	
+	$('#' + getEO().geolocationId).val(lat + ',' + long);
+}
+
+
+/**
  * Показва съобщението в лога
  * 
  * @param string txt - Съобщението, което да се покаже
@@ -3231,6 +3299,7 @@ Experta.prototype.log = function(txt) {
         console.log(txt);
     }
 };
+
 
 /**
  * Намаляващ брояч на време
@@ -3283,6 +3352,7 @@ Experta.prototype.doCountdown = function(l1, l2, l3) {
 	});
 };
 
+
 /**
  * Извиква функцията doCountdown през 1 сек
  */
@@ -3327,7 +3397,7 @@ function getEfae() {
 
 function prepareBugReport(form, user, domain, name)
 {
-	var title = window.location.host + window.location.pathname;
+	var title = document.URL;
 	var width = $(window).width();
 	var height = $(window).height();
 	var browser = getUserAgent();

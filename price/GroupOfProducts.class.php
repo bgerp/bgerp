@@ -191,8 +191,10 @@ class price_GroupOfProducts extends core_Detail
 	        $data->form->title = '|Добавяне на артикул към група|* "' . $groupName . '"';
         }
         
+        
         // За опции се слагат само продаваемите продукти
         $products = cat_Products::getByProperty('canSell');
+        
         expect(count($products), 'Няма продаваеми продукти');
         $now = dt::now();
         foreach ($products as $id => &$product){
@@ -354,9 +356,6 @@ class price_GroupOfProducts extends core_Detail
      */
     public function preparePriceGroup($data)
     { 
-        $data->TabCaption = 'Ценова група';
-        $data->Order = 5;
-
         $query = $this->getQuery();
        	$query->where("#productId = {$data->masterId}");
        	$query->orderBy("#validFrom", "DESC");
@@ -387,7 +386,7 @@ class price_GroupOfProducts extends core_Detail
         $table = cls::get('core_TableView', array('mvc' => $this));
         $data->listFields = $this->listFields;
         
-        $data->listFields = array("groupId" => "Група", 'validFrom' => 'В сила oт', 'createdBy' => 'Създаване->От', 'createdOn' => 'Създаване->На');
+        $data->listFields = array("groupId" => "Група", 'validFrom' => 'В сила oт', 'createdBy' => 'Създаване от', 'createdOn' => 'Създаване на');
         $details = $table->get($data->rows, $data->listFields);
         
         $tpl = getTplFromFile('cat/tpl/ProductDetail.shtml');

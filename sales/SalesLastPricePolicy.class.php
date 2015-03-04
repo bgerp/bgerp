@@ -71,17 +71,4 @@ class sales_SalesLastPricePolicy extends core_Manager
         
         return (object)array('price' => deals_Helper::roundPrice($lastRec->packPrice), 'discount' => $lastRec->discount);
     }
-    
-    
-    /**
-     * Заглавие на ценоразписа за конкретен клиент 
-     * 
-     * @param mixed $customerClass
-     * @param int $customerId
-     * @return string
-     */
-    public function getPolicyTitle($customerClass, $customerId)
-    {
-        return $this->title;
-    }
 }

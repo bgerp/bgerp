@@ -47,7 +47,6 @@ class techno2_Setup extends core_ProtoSetup
     var $managers = array(
     		'techno2_SpecificationFolders',
     		'techno2_SpecificationDoc',
-    		'techno2_SpecTplCache',
     		'migrate::copyOldTechnoDocuments8'
         );
     

@@ -52,13 +52,7 @@ class sales_Invoices extends deals_InvoiceMaster
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт, number, date, place, folderId, dealValue, vatAmount, type, paymentType';
-    
-    
-    /**
-     * Колоната, в която да се появят инструментите на plg_RowTools
-     */
-    public $rowToolsField = 'tools';
+    public $listFields = 'id, number, date, place, folderId, dealValue, vatAmount, type, paymentType';
     
     
     /**
@@ -174,7 +168,7 @@ class sales_Invoices extends deals_InvoiceMaster
     	
     	$this->FLD('numlimit', 'enum(1,2)', 'caption=Номер->Диапазон, export=Csv, after=place,input=hidden,notNull,default=1');
     	
-    	$this->FLD('number', 'int', 'caption=Номер, export=Csv, after=place,input=none');
+    	$this->FLD('number', 'bigint', 'caption=Номер, export=Csv, after=place,input=none');
     	$this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 'caption=Статус, input=none,export=Csv');
         $this->FLD('type', 'enum(invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие)', 'caption=Вид, input=hidden');
         
@@ -367,10 +361,19 @@ class sales_Invoices extends deals_InvoiceMaster
     public static function getHandle($id)
     {
         $self = cls::get(get_called_class());
-        $number = static::fetchField($id, 'number');
-        $number = str_pad($number, '10', '0', STR_PAD_LEFT);
         
-        return $self->abbr . $number;
+        $rec = $self->fetch($id);
+        
+        if (!$rec->number) {
+            
+            $hnd = $self->abbr . $rec->id . doc_RichTextPlg::$identEnd;
+        } else {
+            $number = str_pad($rec->number, '10', '0', STR_PAD_LEFT);
+        
+            $hnd = $self->abbr . $number;
+        }
+        
+        return $hnd;
     } 
     
     
@@ -379,9 +382,16 @@ class sales_Invoices extends deals_InvoiceMaster
     */
     public static function fetchByHandle($parsedHandle)
     {
-    	$number = ltrim($parsedHandle['id'], '0');
+        if ($parsedHandle['endDs'] && (strlen($parsedHandle['id']) != 10)) {
+            $rec = static::fetch($parsedHandle['id']);
+        } else {
+            $number = ltrim($parsedHandle['id'], '0');
+            if ($number) {
+                $rec = static::fetch("#number = '{$number}'");
+            }
+        }
     	
-        return static::fetch("#number = '{$number}'");
+        return $rec;
     }
     
     

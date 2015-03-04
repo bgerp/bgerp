@@ -25,6 +25,13 @@ defIfNot('DOC_NOTIFY_FOR_INCOMPLETE_FROM', '7200');
 defIfNot('DOC_NOTIFY_FOR_INCOMPLETE_TO', '3600');
 
 
+
+/**
+ * Колко папки от последно отворените да се показват при търсене
+ */
+defIfNot('DOC_SEARCH_FOLDER_CNT', 5);
+
+
 /**
  * Време на отклонения за поправка на документ
  */
@@ -82,6 +89,7 @@ class doc_Setup extends core_ProtoSetup
         'DOC_NOTIFY_FOR_INCOMPLETE_FROM' => array ('time', 'caption=Период за откриване на незавършени действия с документи->Начало,unit=преди проверката'),
         'DOC_NOTIFY_FOR_INCOMPLETE_TO' => array ('time', 'caption=Период за откриване на незавършени действия с документи->Край,unit=преди проверката'),
         'DOC_REPAIR_DELAY' => array ('time(suggestions=10 сек.|30 сек.|60 сек.|120 сек.)', 'caption=Отклонение при поправка на документи->Време'),
+        'DOC_SEARCH_FOLDER_CNT' => array ('int(Min=0)', 'caption=Колко папки от последно отворените да се показват при търсене->Брой'),
     );
     
     

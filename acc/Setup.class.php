@@ -97,6 +97,7 @@ class acc_Setup extends core_ProtoSetup
     	'acc_Operations',
     	'acc_BalanceRepairs',
     	'acc_BalanceRepairDetails',
+    	'acc_BalanceTransfers',
         'migrate::removeYearInterfAndItem',
         'migrate::updateItemsNum1',
     );
@@ -107,7 +108,7 @@ class acc_Setup extends core_ProtoSetup
      */
     var $configDescription = array(
         'ACC_MONEY_TOLERANCE' => array("double(decimals=2)", 'caption=Толеранс за допустимо разминаване на суми в основна валута->Сума'),
-        'ACC_DETAILED_BALANCE_ROWS' => array("int", 'caption=Баланс->Редове в детайлния баланс,unit=бр.'),
+        'ACC_DETAILED_BALANCE_ROWS' => array("int", 'caption=Редове в страница от детайлния баланс->Брой редове,unit=бр.'),
     );
     
     
@@ -126,6 +127,14 @@ class acc_Setup extends core_ProtoSetup
     var $menuItems = array(
         array(2.1, 'Счетоводство', 'Книги', 'acc_Balances', 'default', "acc, ceo"),
         array(2.3, 'Счетоводство', 'Настройки', 'acc_Periods', 'default', "acc, ceo"),
+    );
+    
+    
+    /**
+     * Описание на системните действия
+     */
+    var $systemActions = array(
+    		'Реконтиране' => array ('acc_Journal', 'reconto', 'ret_url' => TRUE)
     );
     
     

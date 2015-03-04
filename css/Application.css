@@ -96,10 +96,7 @@ tr.noHover td:hover {
 .bugReport {
   border: none;
   background-color: transparent;
-  vertical-align: top;
-  position: relative;
-  margin-top: -1;
-  border: 1px; }
+  vertical-align: top; }
 
 .narrow .bugReport {
   position: relative;
@@ -366,6 +363,10 @@ div.folder-cover {
   div.folder-cover .tab-page .detail-info {
     margin-bottom: 0 !important;
     margin-top: 0; }
+  div.folder-cover .docStatistic {
+    margin-top: 20px; }
+  div.folder-cover .top-tab-content {
+    padding: 5px 10px 10px 10px; }
 
 .narrow .folder-cover {
   line-height: 1.3em;
@@ -727,6 +728,14 @@ div.acc-detail {
 .portal table.listTable .additionalInfo-holder td {
   border: none !important; }
 
+.acc-footer {
+  text-align: right;
+  margin-top: 20px;
+  font-size: 1.1em;
+  font-weight: bold;
+  background-color: #e1e1e1;
+  padding: 5px; }
+
 /*
  * детайли
  */
@@ -752,7 +761,8 @@ div.acc-detail {
     line-height: 1.2; }
   .detail-info.portal {
     padding-top: 5px;
-    margin-top: 10px; }
+    margin-top: 10px;
+    background-color: transparent; }
     .detail-info.portal p {
       margin: 0; }
     .detail-info.portal table.listTable th {
@@ -1006,6 +1016,16 @@ td.portal-date {
     background-color: #e0e0e0;
     height: 20px; }
 
+.snapshot {
+  margin-top: 10px;
+  padding: 10px;
+  background: rgba(255, 255, 210, 0.3);
+  border: 1px solid #dddddd;
+  border-radius: 3px; }
+  .snapshot .snapshat-title {
+    font-weight: bold;
+    padding-bottom: 7px; }
+
 .stamp {
   color: #bb0000;
   border: 1px dotted #bb0000;
@@ -1024,12 +1044,13 @@ td.portal-date {
   font-size: 16pt;
   font-weight: bold;
   line-height: 120%;
-  margin-top: 4px; }
+  margin-top: 4px;
+  text-transform: uppercase; }
 
 .document .listTable th {
   white-space: nowrap; }
 
-.document .rowtools-column {
+td.rowtools-column {
   width: 1%; }
 
 .small-field {
@@ -1175,7 +1196,8 @@ pre.document {
   border-top: 2px dotted #666666;
   margin-left: 5px;
   padding: 5px 10px;
-  min-width: 110px; }
+  min-width: 110px;
+  min-height: 1.2em; }
 
 .nowrap {
   white-space: nowrap; }
@@ -1199,7 +1221,15 @@ pre.document {
 .dec-document {
   font-size: 0.95em; }
   .dec-document ul {
-    margin: 5px 0; }
+    margin-top: 5px;
+    margin-bottom: 0; }
+  .dec-document .richtext {
+    color: black;
+    line-height: 1em; }
+    .dec-document .richtext ul {
+      margin-left: 10px; }
+  .dec-document .inner-text {
+    padding-left: 30px; }
   .dec-document table.signiture {
     width: 10% !important; }
 
@@ -1329,6 +1359,73 @@ table.mc-header a {
 
 /*
  * край на стиловете за календара в портала
+ */
+/*
+ * стилове за селекта на календара в портала
+ */
+.metro-dropdown-portal option,
+.metro-dropdown-portal:after,
+.metro-dropdown-portal::after,
+.metro-dropdown-portal select {
+  color: black;
+  box-shadow: none; }
+  .metro-dropdown-portal option:focus,
+  .metro-dropdown-portal:after:focus,
+  .metro-dropdown-portal::after:focus,
+  .metro-dropdown-portal select:focus {
+    outline: none;
+    box-shadow: none; }
+
+.metro-dropdown-portal select,
+.metro-dropdown-portal:after,
+.metro-dropdown-portal::after {
+  display: block;
+  background: #f8fff8; }
+
+.metro-dropdown-portal select,
+.metro-dropdown-portal option {
+  padding: 4px; }
+
+.metro-dropdown-portal {
+  position: relative;
+  display: inline-block;
+  border: 0 none;
+  top: -8px; }
+
+.metro-dropdown-portal::after {
+  content: "\25bc";
+  position: absolute;
+  top: 0;
+  right: 0px;
+  display: block;
+  width: 29px;
+  font-size: 1em;
+  line-height: 34px;
+  left: 100px;
+  -webkit-pointer-events: none;
+  -moz-pointer-events: none;
+  pointer-events: none; }
+
+@-moz-document url-prefix() {
+    .metro-dropdown-portal::after {
+    width: 20px;
+    left: 112px; }
+ }
+.metro-dropdown-portal select {
+  height: 34px;
+  border: 0;
+  vertical-align: middle;
+  font: normal 1em Helvetica, Arial, Verdana, sans-serif;
+  outline: 0 none;
+  text-align: right; }
+
+.metro-dropdown-portal option {
+  background: white;
+  color: black;
+  text-align: left; }
+
+/*
+ * край на стилове за селекта на календара в портала
  */
 /*
  * Стилове за счетоводството
@@ -3706,6 +3803,8 @@ only screen and (max-width: 320px) {
     text-align: left; }
   .printing .new-folder-btn {
     display: none; }
+  .printing .staticFormView .formFieldValue {
+    border: 1px solid #cccccc; }
 
 .narrow .printing .document {
   width: 850px; }

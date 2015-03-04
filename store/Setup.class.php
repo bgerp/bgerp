@@ -75,6 +75,10 @@ class store_Setup extends core_ProtoSetup
     		'store_ReceiptDetails',
     		'store_Transfers',
     		'store_TransfersDetails',
+    		'store_ConsignmentProtocols',
+    		'store_ConsignmentProtocolDetailsSend',
+    		'store_ConsignmentProtocolDetailsReceived',
+    		'migrate::updateConfig'
         );
     
 
@@ -150,6 +154,22 @@ class store_Setup extends core_ProtoSetup
         return $res;
     }
 
+    
+    /**
+     * Миграция ъпдейтваща кешираната информация
+     */
+    function updateConfig()
+    {
+    	$config = core_Packs::getConfig('store');
+    	$accArray = array();
+    	foreach (static::$accAccount as $accSysId){
+    		$accId = acc_Accounts::getRecBySystemId($accSysId)->id;
+    		$accArray[$accId] = $accSysId;
+    	}
+    		
+    	core_Packs::setConfig('store', array('STORE_ACC_ACCOUNTS' => keylist::fromArray($accArray)));
+    }
+    
     
     /**
      * Де-инсталиране на пакета

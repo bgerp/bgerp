@@ -788,7 +788,7 @@ class doc_Folders extends core_Master
      * @param $params['Act'] - Действието
      * @param $params['folderId'] - id' то на папката
      * 
-     * @return core_ET - Линк
+     * @return core_ET|FALSE - Линк
      */
     static function getVerbalLink($params)
     {
@@ -1144,8 +1144,11 @@ class doc_Folders extends core_Master
      * Може ли текущия потребител да пороменя сетингите на посочения потребител/роля?
      * 
      * @param string $key
-     * @param integer $userOrRole
+     * @param integer|NULL $userOrRole
+     * 
      * @see core_SettingsIntf
+     * 
+     * @return boolean
      */
     static function canModifySettings($key, $userOrRole=NULL)
     {
@@ -1181,7 +1184,7 @@ class doc_Folders extends core_Master
      * @param core_Form $form
      * @see core_SettingsIntf
      */
-    function prepareForm(&$form)
+    function prepareSettingsForm(&$form)
     {
         // Задаваме таба на менюто да сочи към документите
         Mode::set('pageMenu', 'Документи');
@@ -1200,7 +1203,7 @@ class doc_Folders extends core_Master
         $form->FNC('folOpenings', 'enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Отворени нишки->Известяване, input=input');
         $form->FNC('perPage', 'enum(default=Автоматично, 10=10, 20=20, 40=40, 100=100, 200=200)', 'caption=Теми на една страница->Брой, input=input');
         $form->FNC('ordering', 'enum(default=Автоматично, opened=Първо отворените, recent=По последно, create=По създаване, numdocs=По брой документи)', 'caption=Подредба на нишките->Правило, input=input');
-        $form->FNC('defaultEmail', 'key(mvc=email_Inboxes,select=email,allowEmpty)', 'caption=Изходящ имейл->По подразбиране, input=input');
+        $form->FNC('defaultEmail', 'key(mvc=email_Inboxes,select=email,allowEmpty)', 'caption=Адрес|* `From`->Имейл, input=input');
         
         // Изходящ имейл по-подразбиране за съответната папка
         try {

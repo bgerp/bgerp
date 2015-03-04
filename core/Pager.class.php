@@ -236,32 +236,26 @@ class core_Pager extends core_BaseClass
         
         $start = $this->getPage() - $this->pagesAround;
         
-        if ($start < 3) {
+        if ($start < 5) {
             $start = 1;
         }
         
         $end = $this->getPage() + $this->pagesAround;
         
-        if (($end > $this->getPagesCount()) || ($this->getPagesCount() - $end) < 2) {
+        if (($end > $this->getPagesCount()) || ($this->getPagesCount() - $end) < 5) {
             $end = $this->getPagesCount();
         }
         
         $html = '';
-        
+        $pn = tr('Страница') . ' #';
         if ($start < $end) {
             //Ако имаме страници, които не се показват в посока към началото, показваме <
             if ($this->getPage() > 1) {
                 if ($start > 1) {
-                    $html .= "<a href=\"" . htmlspecialchars(Url::addParams($link, array($this->pageVar => 1)), ENT_QUOTES, "UTF-8") . "\" class=\"pager\">1</a>";
-                    
-                    if ($start > $this->minPagesForMid) {
-                        $mid = round($start / 2);
-                        $html .= " .. ";
-                        $html .= "<a href=\"" . htmlspecialchars(Url::addParams($link, array($this->pageVar => $mid)), ENT_QUOTES, "UTF-8") . "\" class=\"pager\">{$mid}</a>";
-                        $html .= " .. ";
-                    } else {
-                        $html .= " ... ";
-                    }
+                    $html .= "<a href=\"" . htmlspecialchars(Url::addParams($link, array($this->pageVar => 1)), ENT_QUOTES, "UTF-8") . "\" class=\"pager\" title=\"{$pn}1\">1</a>";
+                    $mid = round($start / 2);
+                    $html .= "<a href=\"" . htmlspecialchars(Url::addParams($link, array($this->pageVar => $mid)), ENT_QUOTES, "UTF-8") . "\" class=\"pager\" title='{$pn}{$mid}'>...</a>";
+                   
                 }
             }
             
@@ -271,24 +265,18 @@ class core_Pager extends core_BaseClass
                 if ($start == $this->getPage()) {
                     $sel = "class='pager pagerSelected'";
                 }
-                $html .= "<a href=\"" . htmlspecialchars(Url::AddParams($link, array($this->pageVar => $start)), ENT_QUOTES, "UTF-8") . "\"  $sel>{$start}</a> ";
+                $html .= "<a href=\"" . htmlspecialchars(Url::AddParams($link, array($this->pageVar => $start)), ENT_QUOTES, "UTF-8") . "\"  $sel title='{$pn}{$start}'>{$start}</a> ";
             } while ($start++ < $end);
             
             //Ако имаме страници, които не се показват в посока към края, показваме >
             if ($this->getPage() < $this->getPagesCount()) {
                 if ($end < $this->getPagesCount()) {
                     $mid = $this->getPagesCount() - $end;
-                    
-                    if ($mid > $this->minPagesForMid) {
-                        $mid = round($mid / 2) + $end;
-                        $html .= " .. ";
-                        $html .= "<a href=\"" . htmlspecialchars(Url::addParams($link, array($this->pageVar => $mid)), ENT_QUOTES, "UTF-8") . "\" class=\"pager\">{$mid}</a>";
-                        $html .= " .. ";
-                    } else {
-                        $html .= " ... ";
-                    }
+                    $mid = round($mid / 2) + $end;
+                    $html .= "<a href=\"" . htmlspecialchars(Url::addParams($link, array($this->pageVar => $mid)), ENT_QUOTES, "UTF-8") . "\" class=\"pager\" title='{$pn}{$mid}'>...</a>";
+                    $last = $this->getPagesCount();
                     $html .= "<a href=\"" . htmlspecialchars(Url::addParams($link, array($this->pageVar => $this->getPagesCount())), ENT_QUOTES, "UTF-8") .
-                    "\" class=\"pager\">" . $this->getPagesCount() . "</a>";
+                    "\" class=\"pager\" title='{$pn}{$last}'>{$last}</a>";
                 }
             }
         }

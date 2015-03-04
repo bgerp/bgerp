@@ -2,9 +2,7 @@
     <br>
     <div class='fright'> Приложение №1 към чл.4, ал.3</div>
     <br>
-    <h3>
-        <p class="centered">ДЕКЛАРАЦИЯ ЗА СЪОТВЕТСТВИЕ<br></p>
-    </h3>
+    <h3  class="centered">ДЕКЛАРАЦИЯ ЗА СЪОТВЕТСТВИЕ</h3>
     <p class="centered"><b>с изискванията на чл.4, ал.1 от Наредбата за опаковките и отпадъците от опаковки</b></p>
     <br><br>
     <div class='scrolling-holder'>
@@ -12,7 +10,7 @@
             <tr>
                 <td class='nowrap aright' style='padding-right:20px;width:1%;'>Производител/доставчик:</td>
                 <td>
-                    [#MyCompany#]<!--ET_BEGIN MyCompanyVatNo-->, с ЕИН [#MyCompanyVatNo#]<!--ET_END MyCompanyVatNo--><!--ET_BEGIN uicId-->, ЕИК [#uicId#]<!--ET_END uicId-->
+                    [#MyCompany#]<!--ET_BEGIN MyCompanyVatNo-->, с ДДС№ [#MyCompanyVatNo#]<!--ET_END MyCompanyVatNo--><!--ET_BEGIN uicId-->, ЕИК [#uicId#]<!--ET_END uicId-->
                 </td>
             </tr>
             <tr>
@@ -22,7 +20,7 @@
                 </td>
             </tr>
             <tr>
-                <td class='nowrap aright' style='padding-right:20px;width:1%;'>Седалище на фирмата:  </td>
+                <td class='nowrap aright' style='padding-right:20px;width:1%;'>Адрес:  </td>
                 <td>
                     <!--ET_BEGIN MyCountry-->[#MyCountry#], <!--ET_END MyCountry--><!--ET_BEGIN MyAddress-->гр. [#MyAddress#]<!--ET_END MyAddress-->
                 </td>
@@ -32,23 +30,18 @@
     <br><br>
     <p class="centered"><b>Д Е К Л А Р И Р А М, Ч Е</b> </p>
     <br>
-    <div class='indent'>1. Опаковката/опаковъчният материал </div>
-    <!--ET_BEGIN material-->
-    [#material#]
-    <!--ET_END material-->
-    <div class='indent'>отговаря на изискванията на чл.4, ал.1 от Наредбата за опаковките и отпадъците от опаковки.</div>
-    <br>
-    <div class='indent'> 2. Опаковката/опаковъчният материал е изпитана/изпитан за съответствие в</div>
-    <div>
-        <!--ET_BEGIN statements-->
-        [#statements#]
-        <!--ET_END statements-->
+    <div class='indent'>1. Опаковката/опаковъчният материал  <!--ET_BEGIN material--><b>[#material#]</b><!--ET_END material--> отговаря на изискванията на чл.4, ал.1 от Наредбата за опаковките и отпадъците от опаковки.</div>
+    <div class='indent'>2. Опаковката/опаковъчният материал е изпитана/изпитан за съответствие с:</div>
+    <div class='inner-text'>
+	    <ul>
+	        <!--ET_BEGIN statements-->
+	        <li>изизкванията [#statements#]</li>
+	        <!--ET_END statements-->
+	    </ul>
+	    <!--ET_BEGIN note-->
+	        [#note#]
+	    <!--ET_END note-->
     </div>
-    <!--ET_BEGIN note-->
-    <div>
-        [#note#]
-    </div>
-    <!--ET_END note-->
     <br>
     <div class='indent'>Декларирам, че ми е известна отговорността, която нося съгласно чл.313 от НК и другите нормативни актове на Република България и Европейския съюз.</div>
     <br>

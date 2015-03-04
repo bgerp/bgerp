@@ -43,7 +43,7 @@ class cat_Boms extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "tools=Пулт,originId=Спецификация,createdOn,createdBy,modifiedOn,modifiedBy";
+    var $listFields = "tools=Пулт,originId=Артикул,createdOn,createdBy,modifiedOn,modifiedBy";
     
     
     /**
@@ -115,7 +115,7 @@ class cat_Boms extends core_Master
     /**
      * Файл с шаблон за единичен изглед на статия
      */
-    var $singleLayoutFile = 'cat/tpl/SingleLayoutMap.shtml';
+    var $singleLayoutFile = 'cat/tpl/SingleLayoutBom.shtml';
     
     
     /**
@@ -159,7 +159,7 @@ class cat_Boms extends core_Master
     			$res = 'no_one';
     		} else {
     			$origin = doc_Containers::getDocument($rec->originId);
-    			if(!($origin->getInstance() instanceof techno2_SpecificationDoc)){
+    			if(!$origin->haveInterface('cat_ProductAccRegIntf')){
     				$res = 'no_one';
     			}
     			
@@ -212,9 +212,8 @@ class cat_Boms extends core_Master
     	// Ако има ориджин в рекуеста
     	if($originId = Request::get('originId', 'int')){
     		
-    		// Очакваме той да е 'techno2_SpecificationDoc' - спецификация
     		$origin = doc_Containers::getDocument($originId);
-    		expect($origin->getInstance() instanceof techno2_SpecificationDoc);
+    		expect($origin->haveInterface('cat_ProductAccRegIntf'));
     		expect($origin->fetchField('state') == 'active');
     		
     		// Ако е спецификация, документа може да се добави към нишката
@@ -259,8 +258,6 @@ class cat_Boms extends core_Master
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	$row->header = $mvc->singleTitle . " №<b>{$row->id}</b> ({$row->state})" ;
-    	 
     	$origin = doc_Containers::getDocument($rec->originId);
     	$row->originId = $origin->getHyperLink(TRUE);
     	
@@ -375,7 +372,7 @@ class cat_Boms extends core_Master
     	$exitResources = array();
     	$dQuery = cat_BomStages::getQuery();
     	$dQuery->where("#bomId = {$bomId}");
-    	$dQuery->show('resourceId,exitQuantity');
+    	$dQuery->show('resourceId');
     	while($dRec = $dQuery->fetch()){
     		$exitResources[$dRec->resourceId] = 1;
     	}

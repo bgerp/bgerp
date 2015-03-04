@@ -113,20 +113,7 @@ class phpmailer_Setup extends core_ProtoSetup
     /**
      * Версия на пакета
      */
-    var $version = '0.1';
-    
-    
-    /**
-     * Мениджър - входна точка в пакета
-     */
-    var $startCtr = 'phpmailer_Instance';
-    
-    
-    /**
-     * Екшън - входна точка в пакета
-     */
-    var $startAct = 'default';
-    
+    var $version = '0.1';    
     
     /**
      * Описание на модула

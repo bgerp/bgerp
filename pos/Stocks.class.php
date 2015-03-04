@@ -27,7 +27,7 @@ class pos_Stocks extends core_Manager {
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'pos_Wrapper,plg_Sorting,plg_StyleNumbers';
+    public $loadList = 'pos_Wrapper,plg_Sorting,plg_StyleNumbers,plg_State';
     
 
     /**

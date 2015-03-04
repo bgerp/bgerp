@@ -85,12 +85,11 @@ class store_TransfersDetails extends doc_Detail
     public function description()
     {
         $this->FLD('transferId', 'key(mvc=store_Transfers)', 'column=none,notNull,silent,hidden,mandatory');
-        $this->FLD('productId', 'key(mvc=store_Products,select=name)', 'caption=Продукт,notNull,mandatory,silent');
+        $this->FLD('productId', 'key(mvc=store_Products,select=name)', 'caption=Продукт,notNull,mandatory,silent,refreshForm');
         $this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка');
         $this->FLD('uomId', 'key(mvc=cat_UoM, select=shortName)', 'caption=Мярка,input=none');
         $this->FLD('quantity', 'double(Min=0)', 'caption=К-во,input=none');
         $this->FLD('quantityInPack', 'double(decimals=2)', 'input=none,column=none');
-        $this->FLD('isConvertable', 'enum(no,yes)', 'input=none');
         $this->FNC('packQuantity', 'double(decimals=2)', 'caption=К-во,input,mandatory');
     	$this->FLD('weight', 'cat_type_Weight', 'input=hidden,caption=Тегло');
         $this->FLD('volume', 'cat_type_Volume', 'input=hidden,caption=Обем');
@@ -170,7 +169,6 @@ class store_TransfersDetails extends doc_Detail
         $fromStore = $mvc->Master->fetchField($rec->transferId, 'fromStore');
         
         if(empty($rec->id)){
-        	$form->addAttr('productId', array('onchange' => "addCmdRefresh(this.form);document.forms['{$data->form->formAttr['id']}'].elements['id'].value ='';this.form.submit();"));
         	$products = store_Products::getProductsInStore($fromStore);
         	expect(count($products));
         	$form->setOptions('productId', array('' => '') + $products);
@@ -221,9 +219,6 @@ class store_TransfersDetails extends doc_Detail
             $rec->volume = $ProductMan->getVolume($sProd->productId);
             $rec->quantity = $rec->packQuantity * $rec->quantityInPack;
             $rec->uomId = $productInfo->productRec->measureId;
-            
-            // Дали продукта е вложим
-            $rec->isConvertable = isset($productInfo->meta['materials']) ? 'yes' : 'no';
     	}
     }
     

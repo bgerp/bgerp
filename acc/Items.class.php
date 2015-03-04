@@ -511,23 +511,6 @@ class acc_Items extends core_Manager
     
     
     /**
-     * Подготовка на номенклатурите, в които участва обекта
-     */
-    public static function prepareObjectLists($data)
-    {
-        $data->TabCaption = 'Номенклатури';
-        
-        /* @var $masterMvc core_Mvc */
-        $masterMvc = $data->masterMvc;
-        
-        $classId  = $masterMvc::getClassId();
-        $objectId = $data->masterId;
-        
-        $data->itemRec = static::fetchItem($classId, $objectId);
-    }
-    
-    
-    /**
      * Предефиниране на подготовката на лентата с инструменти за табличния изглед
      */
     function prepareListToolbar_(&$data)
@@ -567,40 +550,13 @@ class acc_Items extends core_Manager
     
     
     /**
-     * Рендиране на номенклатурите на обекта
-     */
-    public static function renderObjectLists($data)
-    {
-        $masterMvc = $data->masterMvc;
-        
-        try {
-            $tpl = $masterMvc::getDetailWrapper();
-        } catch (core_exception_Expect $e) {
-            $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
-        }
-        
-        $tpl->append(tr('Номенклатури'), 'title');
-        
-        if ($data->itemRec->lists) {
-            $content = static::getVerbal($data->itemRec, 'lists');
-            $tpl->append($content, 'content');
-        } else {
-            $tpl->append(tr("Не е включен в номенклатура"), 'content');
-        }
-        
-        return $tpl;
-    }
-    
-    
-    /**
      * Помощен метод за извличане на перо със зададени регистър и ключ в регистъра
      *
      * @param int $class
      * @param int $objectId
-     * @param mixed $fields списък от полета на acc_Items, които да бъдат извлечени
      * @param boolean $useCachedItems - дали да се използва кеширане на информацията за перата
      */
-    public static function fetchItem($class, $objectId, $fields = NULL, $useCachedItems = FALSE)
+    public static function fetchItem($class, $objectId, $useCachedItems = FALSE)
     {
         $Class = cls::get($class);
         $self = cls::get(get_called_class());
@@ -611,7 +567,7 @@ class acc_Items extends core_Manager
         	
         	return $cache['indexedItems'][$index];
         } else {
-        	return static::fetch("#classId = '{$Class->getClassId()}' AND #objectId = '{$objectId}'", $fields);
+        	return static::fetch("#classId = '{$Class->getClassId()}' AND #objectId = '{$objectId}'");
         }
     }
     
@@ -697,7 +653,7 @@ class acc_Items extends core_Manager
      */
     public static function force($classId, $objectId, $listId, $useCachedItems = FALSE)
     {
-        $rec = self::fetchItem($classId, $objectId, NULL, $useCachedItems);
+        $rec = self::fetchItem($classId, $objectId, $useCachedItems);
         
         if (empty($rec)) {
             // Няма такова перо - създаваме ново и го добавяме в номенклатурата $listId

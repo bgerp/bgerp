@@ -69,6 +69,23 @@ class tnef_Setup extends core_ProtoSetup
     
     
     /**
+     * Инсталиране на пакета
+     */
+    function install()
+    {
+        $html = parent::install();
+        
+        $Plugins = cls::get('core_Plugins');
+        
+        $html .= $Plugins->installPlugin('Декодиране на TNEF в имейлите', 'tnef_EmailPlg', 'email_Mime', 'private');
+        
+        $html .= $Plugins->installPlugin('Декодиране на TNEF файлове', 'tnef_FilesPlg', 'fileman_webdrv_Tnef', 'private');
+        
+        return $html;
+    }
+    
+    
+    /**
      * Проверява дали програмата е инсталирана в сървъра
      * 
      * @return boolean
