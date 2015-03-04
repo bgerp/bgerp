@@ -28,6 +28,9 @@ abstract class store_InternalDocumentDetail extends doc_Detail
 		$mvc->FLD('packPrice', 'double(minDecimals=2)', 'caption=Цена,input');
 		$mvc->FNC('amount', 'double(minDecimals=2,maxDecimals=2)', 'caption=Сума,input=none');
 		
+		// Допълнително
+		$mvc->FLD('weight', 'cat_type_Weight', 'input=none,caption=Тегло');
+		$mvc->FLD('volume', 'cat_type_Volume', 'input=none,caption=Обем');
     }
     
     
@@ -107,6 +110,9 @@ abstract class store_InternalDocumentDetail extends doc_Detail
     		if(!isset($rec->packPrice)){
     			$form->setError('packPrice', 'Продукта няма цена в избраната ценова политика');
     		}
+    		
+    		$rec->weight = $ProductMan->getWeight($rec->productId, $rec->packagingId);
+    		$rec->volume = $ProductMan->getVolume($rec->productId, $rec->packagingId);
     	}
     }
     
