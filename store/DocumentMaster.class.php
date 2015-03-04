@@ -470,9 +470,8 @@ abstract class store_DocumentMaster extends core_Master
     	}
     	$row->rowNumb = $rec->rowNumb;
     	 
-    	$row->address = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
-    	$row->address .= ", " . (($rec->locationId) ? crm_Locations::getAddress($rec->locationId) : $oldRow->contragentAddress);
-    	trim($row->address, ', ');
+    	$row->address = ($rec->locationId) ? crm_Locations::getAddress($rec->locationId) : $oldRow->contragentAddress;
+    	$row->address = "<span style='font-size:0.8em'>{$row->address}</span>";
     	 
     	$row->storeId = store_Stores::getHyperlink($rec->storeId);
     	$row->ROW_ATTR['class'] = "state-{$rec->state}";
