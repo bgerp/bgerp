@@ -352,6 +352,14 @@ class store_Transfers extends core_Master
     private function prepareLineRows($rec)
     {
     	$row = $this->recToVerbal($rec, 'toAdress,weight,volume,-single');
+    	if(!$rec->volume){
+    		unset($row->volume);
+    	}
+    	
+    	if(!$rec->weight){
+    		unset($row->weight);
+    	}
+    	
     	$row->rowNumb = $rec->rowNumb;
     	$row->address = $row->toAdress;
     	$row->ROW_ATTR['class'] = "state-{$rec->state}";

@@ -452,9 +452,17 @@ abstract class store_DocumentMaster extends core_Master
     	 
     	$amount = currency_Currencies::round($rec->amountDelivered / $rec->currencyRate, $rec->currencyId);
     	 
-    	$row->weight = $oldRow->weight;
-    	$row->volume = $oldRow->volume;
-    	$row->collection = "<span class='cCode'>{$rec->currencyId}</span> " . $this->getFieldType('amountDelivered')->toVerbal($amount);
+    	if($rec->weight){
+    		$row->weight = $oldRow->weight;
+    	}
+    	
+    	if($rec->volume){
+    		$row->volume = $oldRow->volume;
+    	}
+    	
+    	if($amount){
+    		$row->collection = "<span class='cCode'>{$rec->currencyId}</span> " . $this->getFieldType('amountDelivered')->toVerbal($amount);
+    	}
     	$row->rowNumb = $rec->rowNumb;
     	 
     	$row->address = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
