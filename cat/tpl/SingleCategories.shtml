@@ -10,6 +10,12 @@
                             <td class='dt'>System Id:</td>
                             <td> [#sysId#]</td>
                         </tr>
+                        <!--ET_BEGIN measures-->
+                        <tr>
+                            <td class='dt'>|Позволени мерки|*</td>
+                            <td> [#measures#]</td>
+                        </tr>
+                        <!--ET_END measures-->
                     </table>
                 </div>
             </fieldset>

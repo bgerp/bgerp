@@ -73,6 +73,27 @@
                                                     <td>[#storeId#]</td>
                                                 </tr>
                                                 <!--ET_END storeId-->
+                                                
+                                                <!--ET_BEGIN lineId-->
+                                                <tr>
+                                                    <td class='quiet nowrap aright'>|Транспорт|*:</td>
+                                                    <td>[#lineId#]</td>
+                                                </tr>
+                                                <!--ET_END lineId-->
+                                                
+                                                <!--ET_BEGIN weight-->
+                                                <tr>
+                                                    <td class='quiet nowrap aright'>|Тегло|*:</td>
+                                                    <td>[#weight#]</td>
+                                                </tr>
+                                                <!--ET_END weight-->
+                                                
+                                                <!--ET_BEGIN volume-->
+                                                <tr>
+                                                    <td class='quiet nowrap aright'>|Обем|*:</td>
+                                                    <td>[#volume#]</td>
+                                                </tr>
+                                                <!--ET_END volume-->
                                                  <!--ET_BEGIN note-->
                                                 <tr>
                                                     <td colspan="2" >

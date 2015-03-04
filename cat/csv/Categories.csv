@@ -7,5 +7,4 @@
 "Продукти","Произвеждани стандартни продукти по каталог","products","canManifacture,canSell,canStore,canConvert","public"
 "Заготовки","Полуготови (междинни) продукти за влагане в производството","prefabrications","canManifacture,canStore,canConvert","public"
 "Услуги","Предлагани от фирмата услуги","services","canManifacture,canConvert,canSell","public"
-"Дълготрайни нематериални активи","Дълготрайни нематериални активи","fixedAssets","canBuy,canSell,fixedAsset","public"
-"Дълготрайни материални активи","Машини, съоръжения, оборудване, инструменти ...","fixedMatAssets","canBuy,canSell,fixedAsset,canStore","public"
+"Дълготрайни Активи","Дълготрайни Активи","fixedAssets","canBuy,canSell,fixedAsset","public","брой"

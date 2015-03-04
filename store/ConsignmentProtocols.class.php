@@ -42,7 +42,7 @@ class store_ConsignmentProtocols extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, store_Wrapper, doc_plg_BusinessDoc,plg_Sorting, acc_plg_Contable, cond_plg_DefaultValues,
+    public $loadList = 'plg_RowTools, store_Wrapper, doc_plg_BusinessDoc,store_plg_Document,plg_Sorting, acc_plg_Contable, cond_plg_DefaultValues,
                     doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, doc_plg_TplManager, plg_Search, bgerp_plg_Blank, doc_plg_HidePrices';
 
     
@@ -149,6 +149,9 @@ class store_ConsignmentProtocols extends core_Master
     			'caption=Статус, input=none'
     	);
     	$this->FLD('snapshot', 'blob(serialize, compress)', 'caption=Данни,input=none');
+    	
+    	$this->FLD('weight', 'cat_type_Weight', 'input=none,caption=Тегло');
+    	$this->FLD('volume', 'cat_type_Volume', 'input=none,caption=Обем');
     }
     
     
@@ -170,6 +173,19 @@ class store_ConsignmentProtocols extends core_Master
     	if(count($mvc->updated)){
     		foreach ($mvc->updated as $id) {
     			$rec = $mvc->fetchRec($id);
+    			
+    			$dRec1 = store_ConsignmentProtocolDetailsReceived::getQuery();
+    			$dRec1->where("#protocolId = {$rec->id}");
+    			$measuresSend = $mvc->getMeasures($dRec1->fetchAll());
+    			
+    			$dRec2 = store_ConsignmentProtocolDetailsSend::getQuery();
+    			$dRec2->where("#protocolId = {$rec->id}");
+    			 
+    			$measuresReceived = $mvc->getMeasures($dRec2->fetchAll());
+    			
+    			$rec->weight = $measuresSend->weight + $measuresReceived->weight;
+    			$rec->volume = $measuresSend->volume + $measuresReceived->volume;
+    			
     			$mvc->save($rec);
     		}
     	}
@@ -188,6 +204,10 @@ class store_ConsignmentProtocols extends core_Master
     	
     	if(isset($fields['-single'])){
     		store_DocumentMaster::prepareHeaderInfo($row, $rec);
+    		$row->storeId = store_Stores::getHyperlink($rec->storeId);
+    		if($rec->lineId){
+    			$row->lineId = trans_Lines::getHyperLink($rec->lineId);
+    		}
     	}
     }
     
@@ -404,10 +424,9 @@ class store_ConsignmentProtocols extends core_Master
     	while($rec = $query->fetch()){
     		$row = new stdClass();
     		$row->storeId = store_Stores::getHyperlink($rec->storeId);
-    		$row->docId = "#" . $this->getHandle($rec->id);
-    		if($this->haveRightFor('single', $rec)){
-    			$row->docId = ht::createLink($row->docId, array($this, 'single', $rec->id));
-    		}
+    		$row->docId = $this->getDocLink($rec->id);
+    		$row->weight = $this->getFieldType('weight')->toVerbal($rec->weight);
+    		$row->volume = $this->getFieldType('volume')->toVerbal($rec->volume);
     		
     		$row->rowNumb = cls::get('type_Int')->toVerbal($count);
     		$row->ROW_ATTR['class'] = "state-{$rec->state}";
