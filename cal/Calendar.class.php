@@ -534,7 +534,9 @@ class cal_Calendar extends core_Master
         $today = toUrl($today);
         $thisMonth =  tr(dt::$months[$monthToday -1]) . " " . $yearToday;
         
-        $options[$today] = $thisMonth;
+        $attr['value'] = $today;
+        $attr['style'] .= 'color:#00F;';
+        $options[$today] = (object) array('title' => $thisMonth, 'attr' => $attr);
                
         // правим масив с 3 месеца назад от текущия месец,
         // които е подготовка за нашия select
@@ -560,6 +562,10 @@ class cal_Calendar extends core_Master
         	$options[$prev] = $prevM;
         	
         	if($prevM == $thisMonth) {
+        		$attr['value'] = $prevM;
+        		$attr['style'] .= 'color:#00F;';
+        		$options[$prev] = (object) array('title' => $prevM, 'attr' => $attr);
+        		
         		unset($options[$today]);
         	}
         	
@@ -571,7 +577,11 @@ class cal_Calendar extends core_Master
         $options[$currentMonth] = $currentM;
         
         if($currentM == $thisMonth) {
-        	unset($options[$today]);
+        	$attr['value'] = $currentM;
+        	$attr['style'] .= 'color:#00F;';
+        	$options[$currentM] = (object) array('title' => $currentM, 'attr' => $attr);
+        	
+           	unset($options[$today]);
         }
         
         // правим масив с 9 месеца напред от текущия месец,
@@ -601,12 +611,16 @@ class cal_Calendar extends core_Master
         	$options[$next] = $nextM;
         	
         	if($nextM == $thisMonth) {
+        		$attr['value'] = $nextM;
+        		$attr['style'] .= 'color:#00F;';
+        		$options[$next] = (object) array('title' => $nextM, 'attr' => $attr);
+        		
         		unset($options[$today]);
         	}
 
         }
         
-        
+        //bp($options);
         $select = ht::createSelect('dropdown-cal', $options, $currentMonth, array('onchange' => "javascript:location.href = this.value;", 'class' => 'portal-select'));
        
         // правим заглавието на календара, 
