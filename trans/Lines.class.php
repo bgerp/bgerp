@@ -142,7 +142,7 @@ class trans_Lines extends core_Master
     	$this->FLD('isRepeated', 'enum(yes=Да,no=Не)', 'caption=Генерирано на повторение,input=none');
     	$this->FLD('vehicleId', 'key(mvc=trans_Vehicles,select=name,allowEmpty)', 'caption=Превозвач->Превозно средство');
     	$this->FLD('forwarderId', 'key(mvc=crm_Companies,select=name,group=suppliers,allowEmpty)', 'caption=Превозвач->Транспортна фирма');
-    	$this->FLD('forwarderPersonId', 'acc_type_Item(lists=accountablePersons,select=titleLink,allowEmpty)', 'caption=Превозвач->МОЛ');
+    	$this->FLD('forwarderPersonId', 'key(mvc=crm_Persons,select=name,allowEmpty)', 'caption=Превозвач->МОЛ');
     	
     	$this->setDbUnique('title');
     }
