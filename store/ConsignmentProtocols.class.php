@@ -381,6 +381,20 @@ class store_ConsignmentProtocols extends core_Master
     
     /**
      * Проверка дали нов документ може да бъде добавен в
+     * посочената папка като начало на нишка
+     *
+     * @param $folderId int ид на папката
+     */
+    public static function canAddToFolder($folderId)
+    {
+    	$folderClass = doc_Folders::fetchCoverClassName($folderId);
+    
+    	return cls::haveInterface('doc_ContragentDataIntf', $folderClass);
+    }
+    
+    
+    /**
+     * Проверка дали нов документ може да бъде добавен в
      * посочената нишка
      *
      * @param int $threadId key(mvc=doc_Threads)
