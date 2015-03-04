@@ -214,6 +214,12 @@ class store_Transfers extends core_Master
     	
     	if($fields['-single']){
 	    	
+    		$row->fromStore = store_Stores::getHyperlink($rec->fromStore);
+    		$row->toStore = store_Stores::getHyperlink($rec->toStore);
+    		if(isset($rec->lineId)){
+    			$row->lineId = trans_Lines::getHyperlink($rec->lineId);
+    		}
+    		
 	    	$fromStoreLocation = store_Stores::fetchField($rec->fromStore, 'locationId');
 	    	if($fromStoreLocation){
 	    		$row->fromAdress = crm_Locations::getAddress($fromStoreLocation);

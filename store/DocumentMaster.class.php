@@ -341,6 +341,11 @@ abstract class store_DocumentMaster extends core_Master
 	   				$row->deliveryLocationAddress = trim($row->deliveryLocationAddress, ", ");
 	   			}
 	   		}
+	   		
+	   		$row->storeId = store_Stores::getHyperlink($rec->storeId);
+	   		if(isset($rec->lineId)){
+	   			$row->lineId = trans_Lines::getHyperlink($rec->lineId);
+	   		}
 	   	}
    }
 
