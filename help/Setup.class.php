@@ -37,6 +37,11 @@ defIfNot('HELP_BGERP_INACTIVE_SECS', 15);
 defIfNot('BGERP_SUPPORT_URL', 'https://experta.bg/support_Issues/new/?systemId=1');
 
 
+// Игнориране на затварянето на модул "Help"
+defIfNot('BGERP_DEMO_MODE', FALSE);
+
+
+
 /**
  * class help_Setup
  *

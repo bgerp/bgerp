@@ -125,13 +125,24 @@ class help_Log extends core_Master
          */
         $untilCloseDate = dt::timestamp2mysql(dt::mysql2timestamp($rec->seeOn) + $conf->HELP_MAX_CLOSE_DISPLAY_TIME);
         if($untilCloseDate > $nowDate || $rec->seeCnt < $conf->HELP_MAX_CLOSE_DISPLAY_CNT) {
+        	
+        	if(BGERP_DEMO_MODE === TRUE) {
+        		
+        		return 'open';
+        	} else {
                 
                 return 'close';
+        	}
         }
         
-        // Ако не трябва да показваме информацията нито в отворено, нито в затворено състояние
-        // връщаме 'none'
-        return 'none';
+        // Ако сме решили, че искаме винаги да се показва, дори и ако е затворено ръчно
+        if(BGERP_DEMO_MODE === TRUE) {
+        	return 'open';
+        } else {
+	        // Ако не трябва да показваме информацията нито в отворено, нито в затворено състояние
+	        // връщаме 'none'
+	        return 'none';
+        }
     }
     
     
