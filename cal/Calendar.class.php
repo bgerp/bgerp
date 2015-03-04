@@ -532,8 +532,9 @@ class cal_Calendar extends core_Master
         $today['cal_month'] = $monthToday;
         $today['cal_year'] = $yearToday;
         $today = toUrl($today);
-         
-        $options[$today] = tr(dt::$months[$monthToday -1]) . " " . $yearToday;
+        $thisMonth =  tr(dt::$months[$monthToday -1]) . " " . $yearToday;
+        
+        $options[$today] = $thisMonth;
                
         // правим масив с 3 месеца назад от текущия месец,
         // които е подготовка за нашия select
@@ -555,27 +556,39 @@ class cal_Calendar extends core_Master
         	$prev['cal_month'] = $pm;
         	$prev['cal_year'] = $py;
         	$prev = toUrl($prev);
-        	$options[$prev] = tr(dt::$months[$pm-1]) . " " .$py;
+        	$prevM = tr(dt::$months[$pm-1]) . " " .$py;
+        	$options[$prev] = $prevM;
+        	
+        	if($prevM == $thisMonth) {
+        		unset($options[$today]);
+        	}
         	
         }
         
         // добавяме текущия месец къммасива
         // за него не ни е нужен линк
-        $options[$currentMonth] = tr(dt::$months[$month-1]) . " " . $year;
+        $currentM = tr(dt::$months[$month-1]) . " " . $year;
+        $options[$currentMonth] = $currentM;
+        
+        if($currentM == $thisMonth) {
+        	unset($options[$today]);
+        }
         
         // правим масив с 9 месеца напред от текущия месец,
         // които е подготовка за нашия select
         // за value има линк към съответния месец
         // а за стойност има името на месеца и съответната година
         // генерираме го във възходящ ред, за да са подредени месеците хронологично
+        $k = 1;
         for ($j = 1; $j <= 9; $j ++) {
         	$next = getCurrentUrl();
         	$nm = $month+$j;
+        	
         	if($nm == 13) {
         		$nm = 1;
         		$ny = $year+1;
         	} elseif($nm >= 14) {
-        		$nm = $j - 1;
+        		$nm = 1 + $k++;
         		$ny = $year+1;
         	} else {
         		$ny = $year;
@@ -583,8 +596,16 @@ class cal_Calendar extends core_Master
         	$next['cal_month'] = $nm;
         	$next['cal_year'] = $ny;
         	$next = toUrl($next);
-        	$options[$next] = tr(dt::$months[$nm-1]) . " " .$ny;
+        	$nextM = tr(dt::$months[$nm-1]) . " " .$ny;
+        	
+        	$options[$next] = $nextM;
+        	
+        	if($nextM == $thisMonth) {
+        		unset($options[$today]);
+        	}
+
         }
+        
         
         $select = ht::createSelect('dropdown-cal', $options, $currentMonth, array('onchange' => "javascript:location.href = this.value;", 'class' => 'portal-select'));
        
