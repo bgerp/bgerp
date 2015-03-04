@@ -251,22 +251,18 @@ class trans_Lines extends core_Master
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	$attr = array();
-    	$attr['class'] = "linkWithIcon";
-    	if($rec->vehicleId && trans_Vehicles::haveRightFor('read', $rec->vehicleId)){
-    		$attr['style'] = "background-image:url('" . sbf('img/16/tractor.png', "") . "');";
-    	 	$row->vehicleId = ht::createLink($row->vehicleId, array('trans_Vehicles', 'single', $rec->vehicleId), NULL, $attr);
-    	}
-    	
-    	if($rec->forwarderId && crm_Companies::haveRightFor('read', $rec->forwarderId)){
-    		$attr['style'] = "background-image:url('" . sbf('img/16/office-building.png', "") . "');";
-	        $row->forwarderId = ht::createLink($row->forwarderId, array('crm_Companies', 'single', $rec->forwarderId), NULL, $attr);
-    	}
-    	
-    	if($rec->forwarderPersonId && crm_Persons::haveRightFor('read', $rec->forwarderPersonId)){
-    		$attr['style'] = "background-image:url('" . sbf('img/16/vcard.png', "") . "');";
-    	 	$row->forwarderPersonId = strip_tags($row->forwarderPersonId);
-    		$row->forwarderPersonId = ht::createLink($row->forwarderPersonId, array('crm_Persons', 'single', $rec->forwarderPersonId), NULL, $attr);
+    	if(isset($fields['-single'])){
+	    	
+	    	$attr = array();
+	    	$attr['class'] = "linkWithIcon";
+	    	if($rec->vehicleId && trans_Vehicles::haveRightFor('read', $rec->vehicleId)){
+	    		$attr['style'] = "background-image:url('" . sbf('img/16/tractor.png', "") . "');";
+	    	 	$row->vehicleId = ht::createLink($row->vehicleId, array('trans_Vehicles', 'single', $rec->vehicleId), NULL, $attr);
+	    	}
+	    	
+	    	$ownCompanyData = crm_Companies::fetchOwnCompany();
+	    	$row->myCompany = cls::get('type_Varchar')->toVerbal($ownCompanyData->company);
+	    	$row->logistic = core_Users::getCurrent('names');
     	}
     	
     	$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
