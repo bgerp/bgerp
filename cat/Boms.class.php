@@ -55,7 +55,7 @@ class cat_Boms extends core_Master
     /**
      * Детайла, на модела
      */
-    var $details = 'Stages=cat_BomStages';
+    var $details = 'cat_BomDetails';
     
     
     /**
@@ -73,7 +73,7 @@ class cat_Boms extends core_Master
     /**
      * Абревиатура
      */
-    var $abbr = "Map";
+    var $abbr = "Bom";
     
     
     /**
@@ -131,7 +131,24 @@ class cat_Boms extends core_Master
     {
     	$this->FLD('notes', 'richtext(rows=4)', 'caption=Забележки');
     	$this->FLD('state','enum(draft=Чернова, active=Активиран, rejected=Оттеглен)', 'caption=Статус, input=none');
-    	$this->FLD('quantity', 'double(smartRound)', 'caption=За к-во');
+    	$this->FLD('quantity', 'double(smartRound,Min=0)', 'caption=За');
+    }
+    
+    
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+    	$form = &$data->form;
+    	
+    	$originInfo = doc_Containers::getDocument($form->rec->originId)->getProductInfo();
+    	$shortUom = cat_UoM::getShortName($originInfo->productRec->measureId);
+    	$form->setField('quantity', "unit={$shortUom}");
+    	$form->setDefault('quantity', 1);
     }
     
     
@@ -185,17 +202,8 @@ class cat_Boms extends core_Master
     	
     	// Не може да се активира, ако няма избрани ресурси
     	if($action == 'activate' && isset($rec->id)){
-    		if(!count($mvc->getResourceInfo($rec->id))){
+    		if(!count(cat_BomDetails::fetchField("#bomId = {$rec->id}"))){
     			$res = 'no_one';
-    		} else {
-    			
-    			
-    			return;
-    			$exitResources = static::getExitResources($bomId);
-    			
-    			$query2 = static::getDetailQuery($rec->id);
-    			$r = $query2->fetchAll();
-    			bp($exitResources, $r);
     		}
     	}
     }
@@ -330,6 +338,11 @@ class cat_Boms extends core_Master
     {
     	$resources = array();
     	
+    	//@TODO временно докато се изясни
+    	return $resources;
+    	
+    	
+    	
     	expect($rec = static::fetchRec($id));
     	
     	// Намираме всички етапи в рецептата
@@ -358,91 +371,6 @@ class cat_Boms extends core_Master
     	
     	// Връщаме намерените ресурси
     	return $resources;
-    }
-
-
-    /**
-     * Връща масив с изходните ресурси на етапите
-     * 
-     * @param int $bomId - ид
-     * @return array $exitResources - масив с изходните ресурси
-     */
-    public static function getExitResources($bomId)
-    {
-    	$exitResources = array();
-    	$dQuery = cat_BomStages::getQuery();
-    	$dQuery->where("#bomId = {$bomId}");
-    	$dQuery->show('resourceId');
-    	while($dRec = $dQuery->fetch()){
-    		$exitResources[$dRec->resourceId] = 1;
-    	}
-    	
-    	return $exitResources;
-    }
-    
-    
-    /**
-     * Връща ресурсите които могат да се добавят към дадена рецепта, това са тези, които вече не са добавени
-     *
-     * @param int $bomId - ид
-     * @param boolean $stageId - за кой етап
-     * @return array - свободните за добавяне ресурси
-     */
-    public static function makeResourceOptions($bomId, $stageId = NULL)
-    {
-    	$usedRes = array();
-    	 
-    	// Намираме всички ресурси, които са използвани в рецептата
-    	$query = cat_BomStages::getQuery();
-    	$query->where("#bomId = {$bomId}");
-    	while($qRec = $query->fetch()){
-    		$dQuery = cat_BomStageDetails::getQuery();
-    		$dQuery->where("#bomstageId = {$qRec->id}");
-    		while($dRec = $dQuery->fetch()){
-    			$usedRes[$dRec->resourceId] = mp_Resources::getTitleById($dRec->resourceId, FALSE);
-    		}
-    	}
-    	
-    	// Намираме всички стандартни ресурси
-    	$allResources = cls::get('mp_Resources')->makeArray4Select('title', array("#bomId IS NULL && state NOT IN ('rejected')"));
-    	
-    	// Намираме ресурсите, които са заготовки за тази рецепта
-    	$bomResources = cls::get('mp_Resources')->makeArray4Select('title', array("#bomId IS NOT NULL && state NOT IN ('rejected') && #bomId = {$bomId}"));
-
-    	// Добавяме ги към списъка, ако има
-    	if(count($bomResources)){
-    		
-    		$notAllowed = array();
-    		$needle = cat_BomStages::fetchField("#bomId = {$bomId} AND #stage = '{$stageId}'", 'resourceId');
-    		
-    		if(count($bomResources)){
-    			foreach ($bomResources as $id => $name){
-    				self::traverseTree($id, $needle, $notAllowed);
-    			}
-    		}
-    		
-    		if(count($notAllowed)){
-    			foreach ($notAllowed as $notId){
-    				unset($bomResources[$notId]);
-    			}
-    		}
-    		
-    		if(count($bomResources)){
-    			$allResources['Заготовки'] = (object)array(
-    					'title' => 'Заготовки',
-    					'group' => TRUE,
-    			);
-    			
-    			$allResources = $allResources + $bomResources;
-    		}
-    	}
-    	
-    	// Намираме тези ресурси, които не са използвани в рецептата
-    	$diffArr = array_diff_key($allResources, $usedRes);
-    	
-    	
-    	// Връщаме масива
-    	return $diffArr;
     }
     
     
@@ -491,79 +419,5 @@ class cat_Boms extends core_Master
     			self::traverseTree($sRec->resourceId, $needle, $notAllowed, $path);
     		}
     	}
-    }
-    
-    
-    /**
-     * Връща заявка за извличане на всички ресурси използвани в тази рецепта
-     * 
-     * @param mixed $bomId - ид или запис на рецепта
-     * @return core_Query - готовата заявка
-     */
-    public static function getDetailQuery($id)
-    {
-    	$rec = static::fetchRec($id);
-    	
-    	// Намираме всички етапи в тази рецепта
-    	$dQuery = cat_BomStages::getQuery();
-    	$dQuery->where("#bomId = '{$rec->id}'");
-    	$dQuery->show('id');
-    	
-    	// След това намираме всички детайли на етапите на рецептата
-    	$query2 = cat_BomStageDetails::getQuery();
-    	$query2->in("bomstageId", arr::make(array_keys($dQuery->fetchAll()), TRUE));
-    	
-    	// Връщаме заявката
-    	return $query2;
-    }
-    
-    
-    /**
-     * Извиква се след успешен запис в модела
-     *
-     * @param core_Mvc $mvc
-     * @param int $id първичния ключ на направения запис
-     * @param stdClass $rec всички полета, които току-що са били записани
-     */
-    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
-    {
-    	if($rec->state == 'active'){
-    		if($rejectedCount = $mvc->rejectNotUsedResources($rec->id)){
-    			core_Statuses::newStatus(tr("|Оттеглени са|* {$rejectedCount} |неизползвани ресурси|*"));
-    		}
-    	} elseif($rec->state == 'rejected'){
-    		
-    	}
-    }
-    
-    
-    /**
-     * Оттегля всички ресурси-заготовки за тази рецепта които вече не фигурират в нея
-     * 
-     * @param int $bomId
-     * @return mixed $count/FALSE - Броя на оттеглените ресурси
-     */
-    private function rejectNotUsedResources($bomId)
-    {
-    	// Намираме всички изходни ресурси за тази рецепта
-    	$exitResources = static::getExitResources($bomId);
-    	
-    	// Кои са създадените ресурси за рецептата като цяло
-    	$resQuery = mp_Resources::getQuery();
-    	$resQuery->where("#bomId = {$bomId}");
-    	$resQuery->where("#state = 'active'");
-    	$resQuery->show('id');
-    	 
-    	// Ако има създадени ресурси-заготовки, които не фигурират в рецептата към момента, ги оттегляме
-    	$notUsedResources = array_diff_key($resQuery->fetchAll(), $exitResources);
-    	if(count($notUsedResources)){
-    		foreach ($notUsedResources as $resRec){
-    			mp_Resources::reject($resRec);
-    		}
-    		
-    		return count($notUsedResources);
-    	}
-    	
-    	return FALSE;
     }
 }

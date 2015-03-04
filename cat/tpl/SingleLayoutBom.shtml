@@ -5,11 +5,15 @@
         <div class='docBgIcon' style='[#iconStyle#];'>[#singleTitle#] <b>[#ident#]</b> ([#state#])</div>
     </div>
     <!--ET_END header-->
-    <div>|За|*: [#originId#]</div>
+    <div>|Артикул|*: [#originId#]</div>
     <!--ET_BEGIN quantity-->
     <div>|За количество|*: [#quantity#]</div>
     <!--ET_END quantity-->
-    [#Stages#]
+    
+    <div class = 'fieldset-holder'>
+    [#cat_BomDetails#]
+    </div>
+    
     [#DETAILS#]
     
     <!--ET_BEGIN notes-->
