@@ -446,20 +446,19 @@ class price_ListToCustomers extends core_Detail
     private function getPriceByBom($customerClass, $customerId, $productId, $productManId, $packagingId = NULL, $quantity = NULL, $datetime = NULL, $rate = 1, $chargeVat = 'no')
     {
     	$ProductMan = cls::get($productManId);
-    	$rec = $ProductMan->fetchRec($productId);
     	$price = (object)array('price' => NULL);
     	 
     	// Ако не е зададено количество, взимаме това от последното активно задание, ако има такова
     	if(!isset($quantity)){
     		
-    		$quantityJob = $ProductMan->getLastActiveJob($rec)->quantity;
+    		$quantityJob = $ProductMan->getLastActiveJob($productId)->quantity;
     		if(isset($quantityJob)){
     			$quantity = $quantityJob;
     		}
     	}
     	
     	// Опитваме се да намерим цена според технологичната карта
-    	if($amounts = cat_Boms::getTotalByOrigin($rec->containerId)){
+    	if($amounts = cat_Boms::getPrice($productId)){
     	
     		// Какви са максималната и минималната надценка за контрагента
     		$minCharge = cond_Parameters::getParameter($customerClass, $customerId, 'minSurplusCharge');

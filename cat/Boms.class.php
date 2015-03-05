@@ -274,15 +274,15 @@ class cat_Boms extends core_Master
     /**
      * Връща сумата на спецификацията според подадения ориджин
      * 
-     * @param int $containerId - ид на контейнера, който е генерирал картата
+     * @param int $productId - ид на артикул
      * @return stdClass $total - обект съдържащ сумарната пропорционална и начална цена
      * 		 o $total->base - началната сума (в основната валута за периода)
      * 		 o $total->prop - пропорционалната сума (в основната валута за периода)
      */
-    public static function getTotalByOrigin($productId)
+    public static function getPrice($productId)
     {
     	// Намираме активната карта за обекта
-    	$rec = self::fetch("#productId = {$containerId} AND #state = 'active'");
+    	$rec = self::fetch("#productId = {$productId} AND #state = 'active'");
     	
     	// Ако няма, връщаме нулеви цени
     	if(empty($rec)) return FALSE;
@@ -295,6 +295,8 @@ class cat_Boms extends core_Master
     	// За всеки ресурс
     	if(count($rInfo)){
     		foreach ($rInfo as $dRec){
+    			if(!$dRec->resourceId) continue;
+    			
     			$selfValue = mp_Resources::fetchField($dRec->resourceId, 'selfValue');
     			
     			// Добавяме към началната сума и пропорционалната
@@ -314,7 +316,7 @@ class cat_Boms extends core_Master
      * @param mixed $id - ид или запис
      * @return array $res - масив с записи на участващите ресурси
      * 			o $res->resourceId       - ид на ресурса
-     * 			o $res->activityCenterId - ид на центъра на дейност от производствения етап
+     * 			или o $res->productId        - отпаден артикул
      * 			o $res->baseQuantity     - начално количество на ресурса
      * 			o $res->propQuantity     - пропорционално количество на ресурса
      */
@@ -322,35 +324,28 @@ class cat_Boms extends core_Master
     {
     	$resources = array();
     	
-    	//@TODO временно докато се изясни
-    	return $resources;
-    	
-    	
-    	
     	expect($rec = static::fetchRec($id));
     	
     	// Намираме всички етапи в рецептата
-    	$dQuery = cat_BomStages::getQuery();
+    	$dQuery = cat_BomDetails::getQuery();
     	$dQuery->where("#bomId = {$rec->id}");
     	
     	// За всеки етап
     	while($dRec = $dQuery->fetch()){
     		
-    		// Проверяваме имали вързани ресурси към него
-    		$sQuery = cat_BomStageDetails::getQuery();
-    		$sQuery->where("#bomstageId = {$dRec->id}");
-    		while($sRec = $sQuery->fetch()){
-    			$arr = array();
-    			$arr['resourceId'] = $sRec->resourceId;
-    			if(isset($dRec->stage)){
-    				$arr['activityCenterId'] = mp_Stages::fetchField($dRec->stage, 'departmentId');
-    			}
-    			
-    			$arr['baseQuantity'] = $sRec->baseQuantity;
-    			$arr['propQuantity'] = $sRec->propQuantity;
-    			
-    			$resources[] = (object)$arr;
+    		$arr = array();
+    		if($dRec->resourceId){
+    			$arr['resourceId'] = $dRec->resourceId;
     		}
+    		
+    		if($dRec->productId){
+    			$arr['productId'] = $dRec->productId;
+    		}
+    		 
+    		$arr['baseQuantity'] = $dRec->baseQuantity;
+    		$arr['propQuantity'] = $dRec->propQuantity;
+    		 
+    		$resources[] = (object)$arr;
     	}
     	
     	// Връщаме намерените ресурси
