@@ -3568,7 +3568,7 @@ if (!Array.prototype.indexOf)
 
 
 /**
- * 
+ * Fix за IE7
  * 
  * @see http://www.sitepoint.com/javascript-json-serialization/
  */
@@ -3576,6 +3576,7 @@ var JSON = JSON || {};
 
 
 /**
+ * Fix за IE7
  * implement JSON.stringify serialization
  * 
  * @see http://www.sitepoint.com/javascript-json-serialization/
@@ -3610,6 +3611,7 @@ JSON.stringify = JSON.stringify || function (obj) {
 
 
 /**
+ * Fix за IE7
  * implement JSON.parse de-serialization
  * 
  * @see http://www.sitepoint.com/javascript-json-serialization/
