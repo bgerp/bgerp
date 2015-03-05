@@ -111,7 +111,7 @@ class mp_Jobs extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт, originId=Спецификация, dueDate, quantity, state, createdOn, createdBy';
+    public $listFields = 'tools=Пулт, productId=Артикул, dueDate, quantity, state, createdOn, createdBy';
     
     
     /**
@@ -172,7 +172,7 @@ class mp_Jobs extends core_Master
     {
     	if($fields['-list']){
     		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
-    		$row->originId = cat_Products::getHyperlink($rec->productId, TRUE);
+    		$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
     	}
     	 
     	if($fields['-single']){
