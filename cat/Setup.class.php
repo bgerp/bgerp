@@ -92,6 +92,21 @@ class cat_Setup extends core_ProtoSetup
     
     
     /**
+     * Настройки за Cron
+     */
+    var $cronSettings = array(
+    		array(
+    				'systemId' => "Close Old Private Products",
+    				'description' => "Затваряне на частните артикули, по които няма движения",
+    				'controller' => "cat_Products",
+    				'action' => "closePrivateProducts",
+    				'period' => 21600,
+    				'timeLimit' => 200
+    		),
+    );
+    
+    
+    /**
      * Инсталиране на пакета
      */
     function install()
