@@ -457,7 +457,7 @@ class bgerp_Notifications extends core_Manager
         } else {
             
             // Добавяме поле във формата за търсене
-            $data->listFilter->FNC('usersSearch', 'users(rolesForAll=ceo, rolesForTeams=ceo|manager|admin)', 'caption=Потребител,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
+            $data->listFilter->FNC('usersSearch', 'users(rolesForAll=ceo, rolesForTeams=ceo|manager|admin)', 'caption=Потребител,input,silent,refreshForm');
             
             // Кои полета да се показват
             $data->listFilter->showFields = "{$mvc->searchInputField}, usersSearch";

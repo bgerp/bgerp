@@ -107,7 +107,7 @@ class acc_plg_DocumentSummary extends core_Plugin
         $data->listFilter->showFields .= 'from, to';
         
         if($isDocument = cls::haveInterface('doc_DocumentIntf', $mvc)){
-            $data->listFilter->FNC('users', 'users(rolesForAll=support|ceo|admin)', 'caption=Потребители,silent', array('attr' => array('onchange' => 'this.form.submit();')));
+            $data->listFilter->FNC('users', 'users(rolesForAll=support|ceo|admin)', 'caption=Потребители,silent,refreshForm');
             $data->listFilter->setDefault('users', keylist::addKey('', core_Users::getCurrent()));
             $data->listFilter->showFields .= ',users';
         }
