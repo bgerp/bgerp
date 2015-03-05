@@ -70,7 +70,7 @@ class purchase_transaction_CloseDeal extends acc_DocumentTransactionSource
     	
     	if($rec->closeWith){
     		if($dealItem){
-    			$closeDealItem = acc_Items::fetchItem('purchase_Purchases', $rec->closeWith);
+    			$closeDealItem = array('purchase_Purchases', $rec->closeWith);
     			$closeEntries = $this->class->getTransferEntries($dealItem, $result->totalAmount, $closeDealItem, $rec);
     			$result->entries = array_merge($result->entries, $closeEntries);
     		}

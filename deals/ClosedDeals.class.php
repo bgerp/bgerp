@@ -117,7 +117,7 @@ abstract class deals_ClosedDeals extends core_Master
      * 2. Прави същите операции но подменя перото на първата сделка с това на второто, така всички салда са
      * прихвърлени по втората сделка, а първата е приключена
      */
-    public function getTransferEntries($dealItem, &$total, $closeDealItem, $rec)
+    public function getTransferEntries($dealItem, &$total, $closeDeal, $rec)
     {
         $newEntries = array();
         $docs = array();
@@ -168,7 +168,7 @@ abstract class deals_ClosedDeals extends core_Master
                         
                         $newEntries[] = $entry;
                     }
-                    
+                   
                     // Втори път обхождаме записите
                     foreach ($entries as &$entry2){
                         if(isset($entry2['amount'])){
@@ -178,16 +178,16 @@ abstract class deals_ClosedDeals extends core_Master
                         // Генерираме запис, който прави същите действия но с перо новата сделка
                         foreach (array('debit', 'credit') as $type){
                             foreach ($entry2[$type] as $index => &$item){
-                                
+                               
                                 // Намираме кое перо отговаря на перото на текущата сделка и го заменяме с това на новата сделка
                                 if($index != 0){
                                     if(is_array($item) && $item[0] == $dealItem->docClassName && $item[1] == $dealItem->objectId){
-                                        $item = $closeDealItem->id;
+                                        $item = $closeDeal;
                                     }
                                 }
                             }
                         }
-                        
+                       
                         $newEntries[] = $entry2;
                     }
                 }
