@@ -125,6 +125,7 @@ class cat_BomDetails extends doc_Detail
     protected static function on_AfterPrepareListFields($mvc, $data)
     {
     	$data->listFields['resourceId'] = ' ';
+    	$data->listFields['propQuantity'] = "|За|* " . $data->masterData->row->quantity;
     }
     
     

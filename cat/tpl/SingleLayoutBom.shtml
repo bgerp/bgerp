@@ -7,10 +7,10 @@
     <!--ET_END header-->
     <div>|Артикул|*: [#productId#]</div>
     <!--ET_BEGIN quantity-->
-    <div>|За количество|*: [#quantity#]</div>
+    <div>|За|*: [#quantity#]</div>
     <!--ET_END quantity-->
     
-    <div class = 'fieldset-holder'>
+    <div class = 'fieldset-holder' style='margin-top:10px'>
     [#cat_BomDetails#]
     </div>
     
