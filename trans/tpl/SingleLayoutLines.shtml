@@ -30,9 +30,11 @@
 		    </tr>
 		    <tr>
 		        <td>
-		         <!--ET_BEGIN myCompany--><div style='margin-bottom: 5px;'>[#myCompany#]</div><!--ET_END myCompany-->
-		         <!--ET_BEGIN logistic--><div style='margin-bottom: 5px;'>|Логистик|*: [#logistic#]</div><!--ET_END logistic-->
-		          <table class='signature-table' style='margin-top: 30px'>
+			        <div style='height: 85px;'>
+				         <!--ET_BEGIN myCompany--><div style='margin-bottom: 5px;'>[#myCompany#]</div><!--ET_END myCompany-->
+				         <!--ET_BEGIN logistic--><div style='margin-bottom: 5px;'>|Логистик|*: [#logistic#]</div><!--ET_END logistic-->
+				    </div>
+			        <table class='signature-table'>
 		               <tr>
 		                   <td style='width:1%;'>|Съставил|*:  </td>
 		                   <td></td>
@@ -40,23 +42,25 @@
 		               <tr>
 		                   <td></td>
 		                   <td class='nowrap'>
-		                      <span class="sign_names"><!--ET_BEGIN username-->/ [#username#] / <!--ET_END username--></span>
+		                      <span class="sign_names" style='min-height: 0px;'><!--ET_BEGIN username-->/ [#username#] / <!--ET_END username--></span>
 		                   </td>
 		               </tr>
 		           </table>
 		        </td>
 		        <td>
-		            <!--ET_BEGIN forwarderId--><div style='margin-bottom: 5px;'>[#forwarderId#]</div><!--ET_END forwarderId-->
-		            <!--ET_BEGIN vehicleId--><div style='margin-bottom: 5px;'>|Превозно средство|*: [#vehicleId#]</div><!--ET_END vehicleId-->
-		            <!--ET_BEGIN forwarderPersonId--><div style='margin-bottom: 5px;'>|Превозвач|*: [#forwarderPersonId#]</div><!--ET_END forwarderPersonId-->
-		            <table class='signature-table' style='margin-top: 30px'>
+		            <div style='height: 85px;'>
+			            <!--ET_BEGIN forwarderId--><div style='margin-bottom: 5px;'>[#forwarderId#]</div><!--ET_END forwarderId-->
+			            <!--ET_BEGIN vehicleId--><div style='margin-bottom: 5px;'>|Превозно средство|*: [#vehicleId#]</div><!--ET_END vehicleId-->
+			            <!--ET_BEGIN forwarderPersonId--><div style='margin-bottom: 5px;'>|Превозвач|*: [#forwarderPersonId#]</div><!--ET_END forwarderPersonId-->
+			        </div>
+		            <table class='signature-table'>
 		               <tr>
 		                    <td style='width:1%;'>|Получил|*:  </td>
 		                    <td></td>
 		                </tr>
 		                <tr>
 		                    <td></td>
-		                    <td class='nowrap'><span class="sign_names">[#responsible#]</span></td>
+		                    <td class='nowrap'><span class="sign_names" style='min-height: 0px;'>[#responsible#]</span></td>
 		                </tr>
 		            </table>
 		        </td>
