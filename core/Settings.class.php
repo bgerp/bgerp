@@ -30,8 +30,7 @@ class core_Settings extends core_Manager
     /**
      * Кой има право да добавя?
      */
-//    protected $canAdd = 'no_one';
-    protected $canAdd = 'debug';
+    protected $canAdd = 'no_one';
     
     
     /**
