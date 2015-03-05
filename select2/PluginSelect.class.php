@@ -65,12 +65,6 @@ class select2_PluginSelect extends core_Plugin
      */
     function on_AfterRenderInput(&$invoker, &$tpl, $name, $value, $attr = array())
     {   
-        // За да не влиза в конфликт с комбо-бокса
-        if($attr['ajaxAutoRefreshOptions']) {
-            
-            return;
-        }
-    	
         // Ако все още няма id
         if (!$attr['id']) {
             $attr['id'] = str::getRand('aaaaaaaa');
@@ -85,8 +79,10 @@ class select2_PluginSelect extends core_Plugin
             $minItems = $invoker->params['chosenMinItems'];
         }
     	
+        $optionsCnt = count($invoker->options);
+        
         // Ако опциите са под минималното - нищо не правим
-        if(count($invoker->options) < $minItems) return;
+        if($optionsCnt < $minItems) return;
         
         // Ако имаме комбо - не правим select2
         if(count($invoker->suggestions)) return;
@@ -102,7 +98,104 @@ class select2_PluginSelect extends core_Plugin
             $allowClear = (self::$allowClear) ? (self::$allowClear) : false;
         }
         
+        $maxSuggestions = $invoker->getMaxSuggestions();
+        
+        $ajaxUrl = '';
+        
+        if ($optionsCnt > $maxSuggestions) {
+            $ajaxUrl = toUrl(array($invoker, 'getOptions', 'hnd' => $invoker->handler, 'maxSugg' => $maxSuggestions, 'ajax_mode' => 1), 'absolute');
+        }
+        
         // Добавяме необходимите файлове и стартирам select2
-        select2_Adapter::appendAndRun($tpl, $attr['id'], $select, $allowClear);
+        select2_Adapter::appendAndRun($tpl, $attr['id'], $select, $allowClear, NULL, $ajaxUrl);
+   }
+   
+   
+   /**
+    * Отпечатва резултата от опциите в JSON формат
+    * 
+    * @param core_Type $mvc
+    * @param string|NULL|core_ET $res
+    * @param string $action
+    */
+   function on_BeforeAction($mvc, &$res, $action)
+   {
+        if ($action != 'getoptions') return ;
+       
+        if (!Request::get('ajax_mode')) return ;
+       
+        $q = Request::get('q');
+        $q = plg_Search::normalizeText($q);
+        $q = '/[ \"\'\(\[\-\s]' . str_replace(' ', '.* ', $q) . '/';
+        
+        $hnd = Request::get('hnd');
+        core_Logs::add('type_Key', NULL, "ajaxGetOptions|{$hnd}|{$q}", 1);
+        if (!$hnd || !($options = unserialize(core_Cache::get($mvc->selectOpt, $hnd)))) {
+            
+            core_App::getJson(array(
+                (object)array('name' => 'Липсват допълнителни опции')
+            ));
+            
+            return FALSE;
+        }
+        
+        $resArr = array();
+        
+        $cnt = 0;
+        
+        if (!($maxSuggestions = Request::get('maxSugg', 'int'))) {
+            $maxSuggestions = $mvc->getMaxSuggestions();
+        }
+        $group = FALSE;
+        foreach ($options as $key => $titleArr) {
+            $isGroup=FALSE;
+            
+            $title = $titleArr['title'];
+            $titleNormalized = $titleArr['id'];
+            
+            $attr = array();
+            
+            if ($key == '') continue;
+            
+            if(!isset($title->group) && $q && (!preg_match($q, ' ' . $titleNormalized)) ) continue;
+            
+            $r = new stdClass();
+            $r->id = $key;
+            
+            if (is_object($title)) {
+                $r->name = $title->title;
+                
+                $r->class = $title->attr['class'];
+                
+                if ($title->group) {
+                    
+                    $r->class .= ($r->class) ? ' ' : '';
+                    $r->class .= 'group';
+                    
+                    $r->id = NULL;
+                    $group = $r;
+                    $isGroup = TRUE;
+                }
+            } else {
+                $r->name = $title;
+            }
+            
+            // Предпазва от добавяне на група без елементи в нея
+            if ($isGroup && $group) continue;
+            if (!$isGroup && $group) {
+                $resArr[] = $group;
+                $group = FALSE;
+            }
+            
+            $resArr[] = $r;
+            
+            $cnt++;
+            
+            if ($cnt >= $maxSuggestions) break;
+        }
+        
+        core_App::getJson($resArr);
+        
+        return FALSE;
    }
 }
