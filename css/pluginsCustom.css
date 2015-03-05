@@ -15,7 +15,7 @@ a.datepick-cmd {
     height: 1.4em;
 }
 
-/*select2 custom styles*/
+/*select2 custom styles */
 .select2-container--default .select2-selection--single, .select2-dropdown , .select2-container--default .select2-selection--multiple {
     border: solid 1px #9999ff;
     border-radius: 0;
@@ -30,6 +30,7 @@ a.datepick-cmd {
 	font-size: 1.07em;
 	line-height: 24px;
 	box-shadow: none;
+	max-height: 24px;         /* bugFix при по-дълга опция да не излиза извън селекта */
 }
 
 .select2-results__option {
@@ -57,4 +58,4 @@ a.datepick-cmd {
 
 .select2-container--default .select2-selection--multiple .select2-selection__choice {
 	margin-top: 3px;
-}
+} 
