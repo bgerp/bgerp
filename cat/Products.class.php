@@ -101,7 +101,7 @@ class cat_Products extends core_Embedder {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт,name,code,groups,folderId,createdOn,createdBy';
+    var $listFields = 'tools=Пулт,name,code,groups,folderId,createdOn,createdBy,isPublic';
     
     
     /**
@@ -1332,7 +1332,7 @@ class cat_Products extends core_Embedder {
     	$state = ($rec->state == 'closed') ? 'active' : 'closed';
     	$rec->exState = $rec->state;
     	$rec->state = $state;
-    	
+    	 
     	$this->save($rec, 'state');
     	
     	return followRetUrl();
@@ -1351,5 +1351,76 @@ class cat_Products extends core_Embedder {
     	$Driver = $me->getDriver($id);
     	
     	return $Driver->getProductImage();
+    }
+    
+    
+    /**
+     * Затваряне на перата на частните артикули, по които няма движения
+     * в продължение на няколко затворени периода
+     */
+    function cron_closePrivateProducts()
+    {
+    	// Намираме датата на начало на последния затворен период, Ако няма - операцията пропада
+    	if(!$lastClosedPeriodRec = acc_Periods::getLastClosedPeriod()) return;
+    	
+    	// Намираме всички частни артикули
+    	$productQuery = cat_Products::getQuery();
+    	$productQuery->where("#isPublic = 'no'");
+    	$productQuery->show('id');
+    	$products = array_keys($productQuery->fetchAll());
+    	
+    	// Ако няма, не правим нищо
+    	if(!count($products)) return;
+    	
+    	// Намираме отворените пера, създадени преди посочената дата, които са към частни артикули
+    	$iQuery = acc_Items::getQuery();
+    	$iQuery->where("#createdOn < '{$lastClosedPeriodRec->start}'");
+    	$iQuery->where("#state = 'active'");
+    	$iQuery->where("#classId = {$this->getClassId()}");
+    	$iQuery->in("objectId", $products);
+    	$iQuery->show('id');
+    	$productItems = array();
+    	while($iRec = $iQuery->fetch()){
+    		$productItems[$iRec->id] = $iRec->id;
+    	}
+    	
+    	// Ако няма отворени пера, отговарящи на условията не правим нищо
+    	if(!count($productItems)) return;
+    	
+    	// Намираме баланса преди началото на последно затворения баланс
+    	$balanceBefore = cls::get('acc_Balances')->getBalanceBefore($lastClosedPeriodRec->start);
+    	
+    	// Оставяме само записите където участват перата на частните артикули на произволно място
+    	$bQuery = acc_BalanceDetails::getQuery();
+    	acc_BalanceDetails::filterQuery($bQuery, $balanceBefore->id, '301,302,304,305,306,309,321,323,330,333', $productItems);
+    	$bQuery->where("#ent1Id IS NOT NULL || #ent2Id IS NOT NULL || #ent3Id IS NOT NULL");
+    	
+    	// Групираме всички пера на частни артикули използвани в баланса
+    	$itemsInBalanceBefore = array();
+    	while($bRec = $bQuery->fetch()){
+    		foreach (range(1, 3) as $i){
+    			if(!empty($bRec->{"ent{$i}Id"}) && in_array($bRec->{"ent{$i}Id"}, $productItems)){
+    				$itemsInBalanceBefore[$bRec->{"ent{$i}Id"}] = $bRec->{"ent{$i}Id"};
+    			}
+    		}
+    	}
+    	
+    	// Оставяме само тез пера, които не се срещат в предходния затворен баланс
+    	if($itemsInBalanceBefore){
+    		foreach ($itemsInBalanceBefore as $index => $itemId){
+    			unset($productItems[$index]);
+    		}
+    	}
+    	
+    	// Ако не са останали пера за затваряне
+    	if(!count($productItems)) return;
+    	
+    	// Затваряме останалите пера
+    	foreach ($productItems as $itemId){
+    		$pRec = cat_Products::fetch(acc_Items::fetchField($itemId, 'objectId'));
+    		$pRec->state = 'closed';
+    		$this->save($pRec);
+    		$this->log("Затворено е перо: '{$itemId}'");
+    	}
     }
 }
