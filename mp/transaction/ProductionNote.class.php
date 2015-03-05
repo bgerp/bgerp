@@ -55,13 +55,11 @@ class mp_transaction_ProductionNote extends acc_DocumentTransactionSource
 	 * 		За всеки ресурс от картата:
 	 * 
 	 * 		Dt: 321. Суровини, материали, продукция, стоки     (Складове, Артикули)
-	 * 
 	 * 		Ct: 611. Разходи по Центрове и Ресурси		(Център на дейност, Ресурс)
 	 * 
 	 * В противен случай
 	 * 
 	 * 		Dt: 321. Суровини, материали, продукция, стоки   (Складове, Артикули)
-	 * 
 	 * 		Ct: 6112. Разходи по Центрове на дейност   (Център на дейност)
 	 * 
 	 */
@@ -71,6 +69,7 @@ class mp_transaction_ProductionNote extends acc_DocumentTransactionSource
 		
 		$dQuery = mp_ProductionNoteDetails::getQuery();
 		$dQuery->where("#noteId = {$rec->id}");
+		
 		while($dRec = $dQuery->fetch()){
 	
 			// Референция към артикула
@@ -83,7 +82,6 @@ class mp_transaction_ProductionNote extends acc_DocumentTransactionSource
 			//@TODO да се използва интерфейсен метод а не тази проверка
 	
 			// Взимаме к-то от последното активно задание за артикула, ако има
-			//
 			
 			$usesResources = FALSE;
 	
@@ -101,9 +99,7 @@ class mp_transaction_ProductionNote extends acc_DocumentTransactionSource
 					
 					// За всеки ресурс от картата
 					foreach ($mapArr as $index => $resInfo){
-						
-						// Центъра на дейност е този от картата или по дефолт е избрания център от документа
-						$activityCenterId = (isset($resInfo->activityCenterId)) ? $resInfo->activityCenterId : $rec->activityCenterId;
+						if(empty($resInfo->resourceId)) continue;
 						
 					   /*
 						* За всеки ресурс началното количество се разделя на количеството от заданието и се събира
@@ -123,7 +119,7 @@ class mp_transaction_ProductionNote extends acc_DocumentTransactionSource
 							'debit' => array($creditAccId, array('store_Stores', $rec->storeId), 
 													array($dRec->classId, $dRec->productId),
 											 'quantity' => $pQuantity),
-							'credit' => array('611', array('hr_Departments', $activityCenterId)
+							'credit' => array('611', array('hr_Departments', $rec->activityCenterId)
 												   , array('mp_Resources', $resInfo->resourceId),
 											  'quantity' => $resQuantity),
 						);
