@@ -43,7 +43,7 @@ class cat_Boms extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "tools=Пулт,originId=Артикул,createdOn,createdBy,modifiedOn,modifiedBy";
+    var $listFields = "tools=Пулт,productId=Артикул,createdOn,createdBy,modifiedOn,modifiedBy";
     
     
     /**
@@ -132,6 +132,9 @@ class cat_Boms extends core_Master
     	$this->FLD('notes', 'richtext(rows=4)', 'caption=Забележки');
     	$this->FLD('state','enum(draft=Чернова, active=Активиран, rejected=Оттеглен)', 'caption=Статус, input=none');
     	$this->FLD('quantity', 'double(smartRound,Min=0)', 'caption=За');
+    	$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden,silent');
+    	
+    	$this->setDbIndex('productId');
     }
     
     
@@ -145,8 +148,8 @@ class cat_Boms extends core_Master
     {
     	$form = &$data->form;
     	
-    	$originInfo = doc_Containers::getDocument($form->rec->originId)->getProductInfo();
-    	$shortUom = cat_UoM::getShortName($originInfo->productRec->measureId);
+    	$productInfo = cat_Products::getProductInfo($form->rec->productId);
+    	$shortUom = cat_UoM::getShortName($productInfo->productRec->measureId);
     	$form->setField('quantity', "unit={$shortUom}");
     	$form->setDefault('quantity', 1);
     }
@@ -172,33 +175,30 @@ class cat_Boms extends core_Master
     	if(($action == 'write' || $action == 'add') && isset($rec)){
     		
     		// Може да се добавя само ако има ориджин
-    		if(empty($rec->originId)){
+    		if(empty($rec->productId)){
     			$res = 'no_one';
     		} else {
-    			$origin = doc_Containers::getDocument($rec->originId);
-    			if(!$origin->haveInterface('cat_ProductAccRegIntf')){
-    				$res = 'no_one';
-    			}
+    			$productRec = cat_Products::fetch($rec->productId);
     			
     			// Трябва да е активиран
-    			if($origin->fetchField('state') != 'active'){
+    			if($productRec->state != 'active'){
     				$res = 'no_one';
     			}
     			
     			// Трябва и да е производим
     			if($res != 'no_one'){
-    				$pInfo = $origin->getProductInfo();
-    				if(!isset($pInfo->meta['canManifacture'])){
+    				
+    				if($productRec->canManifacture == 'no'){
     					$res = 'no_one';
     				}
     			}
     		}
     	}
     	
-    	if(($action == 'activate' || $action == 'restore' || $action == 'conto' || $action == 'write') && isset($rec->originId) && $res != 'no_one'){
+    	if(($action == 'activate' || $action == 'restore' || $action == 'conto' || $action == 'write') && isset($rec->productId) && $res != 'no_one'){
     		
     		// Ако има активна карта, да не може друга да се възстановява,контира,създава или активира
-    		if($mvc->fetch("#originId = {$rec->originId} AND #state = 'active'")){
+    		if($mvc->fetch("#productId = {$rec->productId} AND #state = 'active'")){
     			$res = 'no_one';
     		}
     	}
@@ -214,29 +214,6 @@ class cat_Boms extends core_Master
     			$res = 'no_one';
     		}
     	}
-    }
-    
-    
-    /**
-     * Проверка дали нов документ може да бъде добавен в посочената нишка
-     *
-     * @param int $threadId key(mvc=doc_Threads)
-     * @return boolean
-     */
-    public static function canAddToThread($threadId)
-    {
-    	// Ако има ориджин в рекуеста
-    	if($originId = Request::get('originId', 'int')){
-    		
-    		$origin = doc_Containers::getDocument($originId);
-    		expect($origin->haveInterface('cat_ProductAccRegIntf'));
-    		expect($origin->fetchField('state') == 'active');
-    		
-    		// Ако е спецификация, документа може да се добави към нишката
-    		return TRUE;
-    	}
-    	
-    	return FALSE;
     }
     
     
@@ -274,11 +251,10 @@ class cat_Boms extends core_Master
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	$origin = doc_Containers::getDocument($rec->originId);
-    	$row->originId = $origin->getHyperLink(TRUE);
+    	$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
     	
     	if($row->quantity){
-    		$measureId = doc_Containers::getDocument($rec->originId)->getProductInfo()->productRec->measureId;
+    		$measureId =cat_Products::getProductInfo($rec->productId)->productRec->measureId;
     		$row->quantity .= " " . cat_UoM::getShortName($measureId);
     	}
     }
@@ -303,10 +279,10 @@ class cat_Boms extends core_Master
      * 		 o $total->base - началната сума (в основната валута за периода)
      * 		 o $total->prop - пропорционалната сума (в основната валута за периода)
      */
-    public static function getTotalByOrigin($containerId)
+    public static function getTotalByOrigin($productId)
     {
     	// Намираме активната карта за обекта
-    	$rec = self::fetch("#originId = {$containerId} AND #state = 'active'");
+    	$rec = self::fetch("#productId = {$containerId} AND #state = 'active'");
     	
     	// Ако няма, връщаме нулеви цени
     	if(empty($rec)) return FALSE;

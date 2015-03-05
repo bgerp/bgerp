@@ -67,6 +67,7 @@ class cat_Setup extends core_ProtoSetup
     		'migrate::migrateProformas',
     		'migrate::makeProductsDocuments2',
     		'migrate::removeOldParams1',
+    		'migrate::updateDocs',
         );
 
         
@@ -368,6 +369,29 @@ class cat_Setup extends core_ProtoSetup
     			$rec->classId = $productId;
     			sales_ProformaDetails::save($rec);
     		}
+    	}
+    }
+    
+    
+    /**
+     * Ъпдейтване на старите задания и рецепти
+     */
+    public function updateDocs()
+    {
+    	$bomQuery = cat_Boms::getQuery();
+    	$bomQuery->where("#productId IS NULL");
+    	while($bRec = $bomQuery->fetch()){
+    		$origin = doc_Containers::getDocument($bRec->originId);
+    		$bRec->productId = $origin->that;
+    		cat_Boms::save($bRec, 'productId');
+    	}
+    	
+    	$jQuery = mp_Jobs::getQuery();
+    	$jQuery->where("#productId IS NULL");
+    	while($jRec = $jQuery->fetch()){
+    		$origin = doc_Containers::getDocument($jRec->originId);
+    		$jRec->productId = $origin->that;
+    		mp_Jobs::save($jRec, 'productId');
     	}
     }
 }

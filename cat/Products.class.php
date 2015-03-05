@@ -1281,19 +1281,19 @@ class cat_Products extends core_Embedder {
     	}
     	
     	if($data->rec->state == 'active'){
-    		if(cat_Boms::haveRightFor('write', (object)array('originId' => $data->rec->containerId))){
-    			if($qRec = cat_Boms::fetch("#originId = {$data->rec->containerId} AND #state = 'draft'")){
+    		if(cat_Boms::haveRightFor('write', (object)array('productId' => $data->rec->id))){
+    			if($qRec = cat_Boms::fetch("#productId = {$data->rec->id} AND #state = 'draft'")){
     				$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'edit', $qRec->id, 'ret_url' => TRUE), 'ef_icon = img/16/legend.png,title=Редактиране на технологична рецепта');
     			} else {
-    				$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE), 'ef_icon = img/16/legend.png,title=Създаване на нова технологична рецепта');
+    				$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'add', 'productId' => $data->rec->id, 'originId' => $data->rec->containerId, 'ret_url' => TRUE), 'ef_icon = img/16/legend.png,title=Създаване на нова технологична рецепта');
     			}
     		}
     	
-    		if(mp_Jobs::haveRightFor('write', (object)array('originId' => $data->rec->containerId))){
+    		if(mp_Jobs::haveRightFor('write', (object)array('productId' => $data->rec->id))){
     			if($qRec = mp_Jobs::fetch("#originId = {$data->rec->containerId} AND #state = 'draft'")){
     				$data->toolbar->addBtn("Задание", array('mp_Jobs', 'edit', $qRec->id, 'ret_url' => TRUE), 'ef_icon = img/16/clipboard_text.png,title=Редактиране на задание за производство');
     			} else {
-    				$data->toolbar->addBtn("Задание", array('mp_Jobs', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE), 'ef_icon = img/16/clipboard_text.png,title=Създаване на ново задание за производство');
+    				$data->toolbar->addBtn("Задание", array('mp_Jobs', 'add', 'productId' => $data->rec->id, 'ret_url' => TRUE), 'ef_icon = img/16/clipboard_text.png,title=Създаване на ново задание за производство');
     			}
     		}
     	}

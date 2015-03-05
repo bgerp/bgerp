@@ -153,7 +153,7 @@ class cat_BomDetails extends doc_Detail
     		}
     	} else {
     		$quantity = $data->masterRec->quantity;
-    		$originInfo = doc_Containers::getDocument($data->masterRec->originId)->getProductInfo();
+    		$originInfo = cat_Products::getProductInfo($data->masterRec->productId);
     		$shortUom = cat_UoM::getShortName($originInfo->productRec->measureId);
     		
     		$propCaption = "|За|* |{$quantity}|* {$shortUom}";

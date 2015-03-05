@@ -144,6 +144,10 @@ class mp_Jobs extends core_Master
     			'enum(draft=Чернова, active=Активирано, rejected=Отказано, closed=Затворено)',
     			'caption=Статус, input=none'
     	);
+    	
+    	$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden,silent');
+    	 
+    	$this->setDbIndex('productId');
     }
     
     
@@ -162,37 +166,20 @@ class mp_Jobs extends core_Master
     
     
     /**
-     * Добавя ключови думи за пълнотекстово търсене
-     */
-    public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
-    {
-    	if($rec->originId){
-    		// Извличане на ключовите думи от документа
-    		$origin = doc_Containers::getDocument($rec->originId);
-    		$title = $origin->getTitleById();
-    		 
-    		$res = plg_Search::normalizeText($title);
-    		$res = " " . $res;
-    	}
-    }
-    
-    
-    /**
      * След преобразуване на записа в четим за хора вид
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	$origin = doc_Containers::getDocument($rec->originId);
     	if($fields['-list']){
     		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
-    		$row->originId = $origin->getHyperlink(TRUE);
+    		$row->originId = cat_Products::getHyperlink($rec->productId, TRUE);
     	}
     	 
     	if($fields['-single']){
     
-    		$pInfo = $origin->getProductInfo();
+    		$pInfo = cat_Products::getProductInfo($rec->productId);
     		$row->quantity .= " " . cat_UoM::getShortName($pInfo->productRec->measureId);
-    		$row->origin = $origin->renderJobView($rec->modifiedOn);
+    		$row->origin = cls::get('cat_Products')->renderJobView($rec->productId, $rec->modifiedOn);
     	}
     }
     
@@ -237,29 +224,6 @@ class mp_Jobs extends core_Master
     
     
     /**
-     * Проверка дали нов документ може да бъде добавен в посочената нишка
-     *
-     * @param int $threadId key(mvc=doc_Threads)
-     * @return boolean
-     */
-    public static function canAddToThread($threadId)
-    {
-        // Ако има ориджин в рекуеста
-    	if($originId = Request::get('originId', 'int')){
-    		
-    		$origin = doc_Containers::getDocument($originId);
-    		expect($origin->haveInterface('cat_ProductAccRegIntf'));
-    		expect($origin->fetchField('state') == 'active');
-    		
-    		// Ако е спецификация, документа може да се добави към нишката
-    		return TRUE;
-    	}
-    	
-    	return FALSE;
-    }
-    
-    
-    /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
      */
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
@@ -267,25 +231,30 @@ class mp_Jobs extends core_Master
     	if(($action == 'write' || $action == 'add') && isset($rec)){
     	
     		// Може да се добавя само ако има ориджин
-    		if(empty($rec->originId)){
+    		if(empty($rec->productId)){
     			$res = 'no_one';
     		} else {
-    			$origin = doc_Containers::getDocument($rec->originId);
-    			if(!$origin->haveInterface('cat_ProductAccRegIntf')){
+    			$productRec = cat_Products::fetch($rec->productId);
+    			
+    			// Трябва да е активиран
+    			if($productRec->state != 'active'){
     				$res = 'no_one';
     			}
     			
-    			// Трябва да е активиран
-    			if($origin->fetchField('state') != 'active'){
-    				$res = 'no_one';
+    			// Трябва и да е производим
+    			if($res != 'no_one'){
+    			
+    				if($productRec->canManifacture == 'no'){
+    					$res = 'no_one';
+    				}
     			}
     		}
     	}
     	 
-    	if(($action == 'activate' || $action == 'restore' || $action == 'conto' || $action == 'write') && isset($rec->originId) && $res != 'no_one'){
+    	if(($action == 'activate' || $action == 'restore' || $action == 'conto' || $action == 'write') && isset($rec->productId) && $res != 'no_one'){
     
     		// Ако има активно задание, да не може друга да се възстановява,контира,създава или активира
-    		if($mvc->fetch("#originId = {$rec->originId} AND #state = 'active'")){
+    		if($mvc->fetch("#productId = {$rec->productId} AND #state = 'active'")){
     			$res = 'no_one';
     		}
     	}
@@ -307,8 +276,8 @@ class mp_Jobs extends core_Master
      */
     function getUsedDocs_($id)
     {
-    	$origin = doc_Containers::getDocument($this->fetchRec($id)->originId);
-    	$res[] = (object)array('class' => $origin->getInstance(), 'id' => $origin->that);
+    	$rec = $this->fetchRec($id);
+    	$res[] = (object)array('class' => cls::get('cat_Products'), 'id' => $rec->productId);
     
     	return $res;
     }
@@ -320,19 +289,7 @@ class mp_Jobs extends core_Master
     public static function on_AfterActivation($mvc, &$rec)
     {
     	// След активиране на заданието, добавяме артикула като перо
-    	$origin = doc_Containers::getDocument($mvc->fetchRec($rec)->originId);
-    	$origin->forceItem('catProducts');
-    }
-    
-    
-    /**
-     * При нова сделка, се ънсетва threadId-то, ако има
-     */
-    public static function on_AfterPrepareDocumentLocation($mvc, $form)
-    {
-    	if($form->rec->threadId && !$form->rec->id){
-    		unset($form->rec->threadId);
-    	}
+    	cat_Products::forceItem($rec->productId, 'catProducts');
     }
     
     
