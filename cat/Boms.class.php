@@ -254,7 +254,7 @@ class cat_Boms extends core_Master
     	$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
     	
     	if($row->quantity){
-    		$measureId =cat_Products::getProductInfo($rec->productId)->productRec->measureId;
+    		$measureId = cat_Products::getProductInfo($rec->productId)->productRec->measureId;
     		$row->quantity .= " " . cat_UoM::getShortName($measureId);
     	}
     }
