@@ -106,7 +106,7 @@ class cal_TaskConditions extends core_Detail
 
         $data->form->title = "|Зависимости по|* \"" . type_Varchar::escape($masterRec->title) . "\"";
         
-        $data->form->addAttr('activationCond', array('onchange' => "addCmdRefresh(this.form);this.form.submit();"));
+        $data->form->setField('activationCond', array('removeAndRefreshForm' => "progress|distTime"));
         
         if (!$data->form->rec->activationCond) {
         	$data->form->setDefault('activationCond', 'onProgress');

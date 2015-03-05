@@ -662,7 +662,7 @@ class cal_Tasks extends core_Master
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC('from', 'date', 'caption=От,input=none');
         $data->listFilter->FNC('to', 'date', 'caption=До,input=none');
-        $data->listFilter->FNC('selectedUsers', 'users', 'caption=Потребител,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
+        $data->listFilter->FNC('selectedUsers', 'users', 'caption=Потребител,input,silent,refreshForm');
         $data->listFilter->FNC('Chart', 'varchar', 'caption=Таблица,input=hidden,silent', array('attr' => array('onchange' => 'this.form.submit();'), 'value' => Request::get('Chart')));
         $data->listFilter->FNC('View', 'varchar', 'caption=Изглед,input=hidden,silent', array('attr' => array('onchange' => 'this.form.submit();'), 'value' => Request::get('View')));
         $data->listFilter->FNC('stateTask', 'enum(all=Всички,active=Активни,draft=Чернови,pending=Чакащи,actPend=Активни+Чакащи,closed=Приключени)', 'caption=Състояние,input,silent', array('attr' => array('onchange' => 'this.form.submit();'), 'value' => Request::get('stateTask')));
@@ -675,7 +675,7 @@ class cal_Tasks extends core_Master
         
         $orderType->options = $options;
         
-        $data->listFilter->FNC('order', $orderType, 'caption=Подредба,input,silent', array('attr' => array('onchange' => "addCmdRefresh(this.form);this.form.submit();")));
+        $data->listFilter->FNC('order', $orderType, 'caption=Подредба,input,silent', array('removeAndRefreshForm' => "from|to|selectedUsers|Chart|View|stateTask"));
 
         $data->listFilter->view = 'vertical';
         $data->listFilter->title = 'Задачи';

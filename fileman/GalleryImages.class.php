@@ -148,8 +148,8 @@ class fileman_GalleryImages extends core_Manager
     static function on_AfterPrepareListFilter($mvc, $data)
     {
         // Добавяме поле във формата за търсене
-        $data->listFilter->FNC('groupSearch', 'key(mvc=fileman_GalleryGroups,select=title, allowEmpty)', 'caption=Група,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
-        $data->listFilter->FNC('usersSearch', 'users(rolesForAll=user, rolesForTeams=user)', 'caption=Потребител,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
+        $data->listFilter->FNC('groupSearch', 'key(mvc=fileman_GalleryGroups,select=title, allowEmpty)', 'caption=Група,input,silent,refreshForm');
+        $data->listFilter->FNC('usersSearch', 'users(rolesForAll=user, rolesForTeams=user)', 'caption=Потребител,input,silent,refreshForm');
         
         // В хоризонтален вид
         $data->listFilter->view = 'horizontal';
