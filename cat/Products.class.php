@@ -1118,7 +1118,7 @@ class cat_Products extends core_Embedder {
     	$rec = $this->fetchRec($id);
     	
     	if($documentMvc instanceof deals_DealMaster || $documentMvc instanceof mp_Jobs || $documentMvc instanceof sales_Quotations){
-    		if($rec->isPublic == 'no'){
+    		if($rec->isPublic == 'no' || ($documentMvc instanceof mp_Jobs)){
     			$res = cat_ProductTplCache::cacheTpl($id, $time);
     		}
     	}
