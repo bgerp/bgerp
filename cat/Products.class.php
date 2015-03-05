@@ -1148,7 +1148,7 @@ class cat_Products extends core_Embedder {
     	$rec = self::fetchRec($id);
     	
     	// Какво е к-то от последното активно задание
-    	return mp_Jobs::fetch("#originId = {$rec->containerId} AND #state = 'active'");
+    	return mp_Jobs::fetch("#productId = {$rec->id} AND #state = 'active'");
     }
     
     
@@ -1163,7 +1163,7 @@ class cat_Products extends core_Embedder {
     	$rec = self::fetchRec($id);
     	 
     	// Какво е к-то от последното активно задание
-    	return cat_Boms::fetch("#originId = {$rec->containerId} AND #state = 'active'");
+    	return cat_Boms::fetch("#productId = {$rec->id} AND #state = 'active'");
     }
     
     
