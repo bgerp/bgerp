@@ -3566,10 +3566,6 @@ if (!Array.prototype.indexOf)
   };
 }
 
-runOnLoad(showTooltip);
-runOnLoad(removeNarrowScroll);
-runOnLoad(onBeforeUnload);
-
 
 /**
  * 
@@ -3623,3 +3619,8 @@ JSON.parse = JSON.parse || function (str) {
 	eval("var p=" + str + ";");
 	return p;
 };
+
+
+runOnLoad(showTooltip);
+runOnLoad(removeNarrowScroll);
+runOnLoad(onBeforeUnload);
