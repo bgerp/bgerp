@@ -45,7 +45,7 @@ class type_Key extends type_Int
     /**
      * Името на selectOpt
      */
-    protected $selectOpt = 'SelectOpt';
+    public $selectOpt = 'SelectOpt';
     
     
     /**
@@ -315,7 +315,9 @@ class type_Key extends type_Int
             
             // Ако вече е добавено id-то след края на текста, да не се добавя повторвно
             if (!self::haveId($title, $key)) {
-                $title = self::getUniqTitle($title, $key);
+                if (!core_Packs::isInstalled('select2')) {
+                    $title = self::getUniqTitle($title, $key);
+                }
                 
                 if (is_object($v)) {
                     $v->title = $title;
@@ -501,7 +503,7 @@ class type_Key extends type_Int
             
             parent::setFieldWidth($attr);
             
-            if ($optionsCnt > $maxSuggestions) {
+            if (($optionsCnt > $maxSuggestions) && (!core_Packs::isInstalled('select2'))) {
                 
                 if ($this->params['autocomplete']) {
                     $attr['autocomplete'] = $this->params['autocomplete'];
