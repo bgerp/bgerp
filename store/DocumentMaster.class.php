@@ -464,11 +464,12 @@ abstract class store_DocumentMaster extends core_Master
     	}
     	
     	if($amount){
-    		$row->collection = "<span class='cCode'>{$rec->currencyId}</span> " . $this->getFieldType('amountDelivered')->toVerbal($amount);
+    		$row->collection = "<span style='float:right'><span class='cCode'>{$rec->currencyId}</span> " . $this->getFieldType('amountDelivered')->toVerbal($amount) . "</span>";
     	}
     	$row->rowNumb = $rec->rowNumb;
     	 
     	$row->address = ($rec->locationId) ? crm_Locations::getAddress($rec->locationId) : $oldRow->contragentAddress;
+    	$row->address = str_replace('<br>', ',', $row->address);
     	$row->address = "<span style='font-size:0.8em'>{$row->address}</span>";
     	 
     	$row->storeId = store_Stores::getHyperlink($rec->storeId);
