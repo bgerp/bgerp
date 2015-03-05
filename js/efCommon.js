@@ -3569,3 +3569,57 @@ if (!Array.prototype.indexOf)
 runOnLoad(showTooltip);
 runOnLoad(removeNarrowScroll);
 runOnLoad(onBeforeUnload);
+
+
+/**
+ * 
+ * 
+ * @see http://www.sitepoint.com/javascript-json-serialization/
+ */
+var JSON = JSON || {};
+
+
+/**
+ * implement JSON.stringify serialization
+ * 
+ * @see http://www.sitepoint.com/javascript-json-serialization/
+ */
+JSON.stringify = JSON.stringify || function (obj) {
+
+	var t = typeof (obj);
+	if (t != "object" || obj === null) {
+
+		// simple data type
+		if (t == "string") obj = '"'+obj+'"';
+		return String(obj);
+
+	}
+	else {
+
+		// recurse array or object
+		var n, v, json = [], arr = (obj && obj.constructor == Array);
+
+		for (n in obj) {
+			v = obj[n]; t = typeof(v);
+
+			if (t == "string") v = '"'+v+'"';
+			else if (t == "object" && v !== null) v = JSON.stringify(v);
+
+			json.push((arr ? "" : '"' + n + '":') + String(v));
+		}
+
+		return (arr ? "[" : "{") + String(json) + (arr ? "]" : "}");
+	}
+};
+
+
+/**
+ * implement JSON.parse de-serialization
+ * 
+ * @see http://www.sitepoint.com/javascript-json-serialization/
+ */
+JSON.parse = JSON.parse || function (str) {
+	if (str === "") str = '""';
+	eval("var p=" + str + ";");
+	return p;
+};
