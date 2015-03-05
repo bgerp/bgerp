@@ -14,3 +14,47 @@
 a.datepick-cmd {
     height: 1.4em;
 }
+
+/*select2 custom styles*/
+.select2-container--default .select2-selection--single, .select2-dropdown , .select2-container--default .select2-selection--multiple {
+    border: solid 1px #9999ff;
+    border-radius: 0;
+}
+.select2-container .select2-selection--single {
+	height: 26px;
+}
+
+.select2-container .select2-selection--single .select2-selection__rendered {
+	padding-left: 4px;
+	color: #000;
+	font-size: 1.07em;
+	line-height: 24px;
+	box-shadow: none;
+}
+
+.select2-results__option {
+	padding: 4px 6px;
+}
+
+.select2-container:focus {
+	outline: none;
+}
+
+.select2-search__field {
+	margin-top: 0 !important;
+}
+
+.select2-search__field, .select2-selection__rendered {
+	box-shadow: none !important;
+}
+
+.select2-container .select2-selection--multiple {
+	height: 26px;
+	min-height: 26px;
+	line-height: 120%;
+	font-size: 0.8em;
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__choice {
+	margin-top: 3px;
+}
