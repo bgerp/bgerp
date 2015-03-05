@@ -18,7 +18,7 @@
 			            № <span class="bigData">[#id#]</span> /
 			            <span class="bigData">[#start#]</span>
 			        </div>
-			        <div style='margin-top: 5px;'>[#destination#]</div>
+			        <div style='margin-top: 5px;'>[#title#]</div>
 			        <!--ET_BEGIN repeat-->
 			        <div style='margin-top: 5px;'>[#repeat#]</div>
 			        <!--ET_END repeat-->

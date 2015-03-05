@@ -1,4 +1,7 @@
 <?php
+
+
+
 /**
  * Клас 'trans_Lines'
  *
@@ -8,12 +11,13 @@
  * @category  bgerp
  * @package   trans
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
 class trans_Lines extends core_Master
 {
+	
     /**
      * Заглавие
      */
@@ -48,7 +52,7 @@ class trans_Lines extends core_Master
     /**
      * По кои полета ще се търси
      */
-    public $searchFields = 'title, destination, vehicleId, forwarderId, forwarderPersonId, id';
+    public $searchFields = 'title, vehicleId, forwarderId, forwarderPersonId, id';
     
     
     /**
@@ -134,24 +138,35 @@ class trans_Lines extends core_Master
      */
     public function description()
     {
-    	$this->FLD('title', 'varchar', 'caption=Заглавие');
+    	$this->FLD('title', 'varchar', 'caption=Заглавие,mandatory');
     	$this->FLD('start', 'datetime', 'caption=Начало, mandatory');
-    	$this->FLD('destination', 'varchar(255)', 'caption=Дестинация,mandatory');
     	$this->FLD('repeat', 'time(suggestions=1 ден|1 седмица|1 месец)', 'caption=Повторение');
     	$this->FLD('state', 'enum(draft=Чернова,active=Активен,rejected=Оттеглен,closed=Затворен)', 'caption=Състояние,input=none');
     	$this->FLD('isRepeated', 'enum(yes=Да,no=Не)', 'caption=Генерирано на повторение,input=none');
     	$this->FLD('vehicleId', 'key(mvc=trans_Vehicles,select=name,allowEmpty)', 'caption=Превозвач->Превозно средство');
     	$this->FLD('forwarderId', 'key(mvc=crm_Companies,select=name,group=suppliers,allowEmpty)', 'caption=Превозвач->Транспортна фирма');
     	$this->FLD('forwarderPersonId', 'key(mvc=crm_Persons,select=name,allowEmpty)', 'caption=Превозвач->МОЛ');
-    	
-    	$this->setDbUnique('title');
+    }
+    
+    
+    /**
+     * Връща разбираемо за човека заглавие, отговарящо на записа
+     */
+    public static function getRecTitle($rec, $escaped = TRUE)
+    {
+    	$titleArr = explode('/', $rec->title);
+    	if(count($titleArr) == 2){
+    		return "{$rec->start}/{$titleArr[1]}";
+    	} else {
+    		return "{$rec->start}/{$rec->title}";
+    	}
     }
     
     
 	/**
      * Малко манипулации след подготвянето на формата за филтриране
      */
-	static function on_AfterPrepareListFilter($mvc, $data)
+	protected static function on_AfterPrepareListFilter($mvc, $data)
 	{
 		$data->listFilter->showFields = 'search';
 		$data->listFilter->view = 'horizontal';
@@ -232,28 +247,12 @@ class trans_Lines extends core_Master
     {
     	if($form->isSubmitted()){
     		$rec = &$form->rec;
-	    	if(!$rec->title){
-	    		$rec->title = $mvc->getDefaultTitle($rec);
-	    	}
 	    	
 	    	$rec->isRepeated = 'no';
 	    	if($rec->start < dt::now()){
 	    		$form->setError('start', 'Не може да се създаде линия в миналото!');
 	    	}
     	}
-    }
-    
-    
-    /**
-     * Дефолт заглавието на линията
-     * @param stdClass $rec
-     * @return $string
-     */
-    private function getDefaultTitle($rec)
-    {
-    	$vehicle = ($rec->vehicleId) ? trans_Vehicles::getTitleById($rec->vehicleId) : NULL;
-	    
-    	return $rec->start . "/" . $rec->destination . (($vehicle) ? "/" . $vehicle : '');
     }
     
     
@@ -326,7 +325,7 @@ class trans_Lines extends core_Master
     /**
      * Извиква се преди рендирането на 'опаковката'
      */
-    function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
+    protected static function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
     {
     	$tpl->push('trans/tpl/LineStyles.css', 'CSS');
     }
@@ -424,7 +423,6 @@ class trans_Lines extends core_Master
     private function getNewLine($rec)
     {
     	$newRec = new stdClass();
-    	$newRec->destination 	   = $rec->destination;
     	$newRec->repeat            = $rec->repeat;
     	$newRec->_createdBy        = $rec->createdBy;
     	$newRec->folderId          = $rec->folderId;
@@ -433,7 +431,7 @@ class trans_Lines extends core_Master
     	$newRec->forwarderPersonId = $rec->forwarderPersonId;
     	$newRec->isRepeated 	   = 'no';
     	$newRec->start 			   = dt::addSecs($newRec->repeat, $newRec->start);
-    	$newRec->title 			   = $this->getDefaultTitle($newRec);
+    	$newRec->title 			   = $rec->title;
     	$newRec->state 			   = 'active';
     	
     	return $newRec;
@@ -443,7 +441,7 @@ class trans_Lines extends core_Master
 	/**
      * Извиква се след setUp-а на таблицата за модела
      */
-    static function on_AfterSetupMvc($mvc, &$res)
+    protected static function on_AfterSetupMvc($mvc, &$res)
     {
     	$conf = core_Packs::getConfig('trans');
     	$period = $conf->TRANS_LINES_CRON_INTERVAL / 60;
