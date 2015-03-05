@@ -148,7 +148,7 @@ class price_ListToCustomers extends core_Detail
 	    $data->form->setOptions('listId', price_Lists::makeArray4select('title', $cond));
 	    
         if(price_Lists::haveRightFor('add')){
-        	$data->form->toolbar->addBtn('Нови правила', array('price_Lists', 'add', 'cClass' => $rec->cClass , 'cId' => $rec->cId), NULL, 'order=10.00015,ef_icon=img/16/page_white_star.png');
+        	$data->form->toolbar->addBtn('Нови правила', array('price_Lists', 'add', 'cClass' => $rec->cClass , 'cId' => $rec->cId, 'ret_url' => TRUE), NULL, 'order=10.00015,ef_icon=img/16/page_white_star.png');
         }
     }
 
