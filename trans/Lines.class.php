@@ -166,11 +166,22 @@ class trans_Lines extends core_Master
 	/**
      * След подготовка на тулбара на единичен изглед
      */
-    static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
+    	$rec = $data->rec;
+    	
     	$changeUrl = array($mvc, 'changeState', $data->rec->id);
     	if($data->rec->state == 'active'){
-    		$data->toolbar->addBtn('Затваряне', $changeUrl, 'ef_icon=img/16/lock.png,warning=Искате ли да затворите линията?,title=Затваряне на линията');
+    		if(store_ShipmentOrders::fetchField("#lineId = {$rec->id} AND #state = 'draft'") ||
+    		store_Receipts::fetchField("#lineId = {$rec->id} AND #state = 'draft'")||
+    		store_ConsignmentProtocols::fetchField("#lineId = {$rec->id} AND #state = 'draft'")||
+    		store_Transfers::fetchField("#lineId = {$rec->id} AND #state = 'draft'")){
+    			$warning = 'Черновите документи ще бъдат премахнати от тази линия';
+    		} else {
+    			$warning = 'Искате ли да затворите линията?';
+    		}
+    		
+    		$data->toolbar->addBtn('Затваряне', $changeUrl, "ef_icon=img/16/lock.png,warning={$warning},title=Затваряне на линията");
     	}
     	
     	if($data->rec->state == 'closed' && $data->rec->start >= dt::today()){
@@ -194,7 +205,7 @@ class trans_Lines extends core_Master
     	
     	// Освобождаваме всички чернови документи в които е избрана линията която затваряме
     	if($rec->state == 'closed'){
-    		foreach (array('store_ShipmentOrders', 'store_Receipts', 'store_ConsignmentProtocols') as $Doc){
+    		foreach (array('store_ShipmentOrders', 'store_Receipts', 'store_ConsignmentProtocols', 'store_Transfers') as $Doc){
     			$query = $Doc::getQuery();
     			$query->where("#state = 'draft'");
     			$query->where("#lineId = {$id}");
