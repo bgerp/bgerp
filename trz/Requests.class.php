@@ -212,7 +212,7 @@ class trz_Requests extends core_Master
     	$data->listFilter->fields['paid']->caption = 'Вид'; 
     	
         // Добавяме поле във формата за търсене
-        $data->listFilter->FNC('selectedUsers', 'users', 'caption=Потребител,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
+        $data->listFilter->FNC('selectedUsers', 'users', 'caption=Потребител,input,silent,refreshForm');
         $data->listFilter->setDefault('selectedUsers', 'all_users'); 
                  
         // Показваме само това поле. Иначе и другите полета 

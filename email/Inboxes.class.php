@@ -172,7 +172,7 @@ class email_Inboxes extends core_Master
     {
         $form = $data->listFilter;
         
-         $form->FLD('inChargeF' , 'key(mvc=core_Users, select=nick, allowEmpty=TRUE)', 'caption=Отговорник', array('attr' => array('onchange' => 'this.form.submit();')));
+         $form->FLD('inChargeF' , 'key(mvc=core_Users, select=nick, allowEmpty=TRUE)', 'caption=Отговорник,refreshForm');
         // В хоризонтален вид
         $form->view = 'horizontal';
         

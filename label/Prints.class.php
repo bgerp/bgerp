@@ -301,7 +301,7 @@ class label_Prints extends core_Master
         $data->query->orderBy("state", "ASC");
         $data->query->orderBy("modifiedOn", "DESC");
         
-        $data->listFilter->FNC('author', 'users(rolesForAll=labelMaster|ceo|admin, rolesForTeams=label|ceo|admin)', 'caption=От', array('attr' => array('onchange' => "addCmdRefresh(this.form);this.form.submit()")));
+        $data->listFilter->FNC('author', 'users(rolesForAll=labelMaster|ceo|admin, rolesForTeams=label|ceo|admin)', 'caption=От', array('removeAndRefreshForm' => "search"));
         
         $data->listFilter->showFields = 'author, search';
         

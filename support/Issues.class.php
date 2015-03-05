@@ -594,7 +594,7 @@ class support_Issues extends core_Master
         $data->listFilter->getField('componentId')->type->params['allowEmpty'] = TRUE;
          
         // Добавяме функционално поле за отговорници
-        $data->listFilter->FNC('maintainers', 'type_Users(rolesForAll=support|ceo|admin)', 'caption=Отговорник,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
+        $data->listFilter->FNC('maintainers', 'type_Users(rolesForAll=support|ceo|admin)', 'caption=Отговорник,input,silent,refreshForm');
         
         // Кои полета да се показват
         $data->listFilter->showFields = 'systemId, componentId, maintainers';
@@ -612,7 +612,7 @@ class support_Issues extends core_Master
         $data->listFilter->setDefault('maintainers', $default);
 
         // Полетата да не са задължителни и да се субмитва формата при промяната им
-        $data->listFilter->setField('componentId', array('attr' => array('onchange' => 'this.form.submit();')));
+        $data->listFilter->setField('componentId ', array('attr' => array('onchange' => 'this.form.submit();')));
         $data->listFilter->setField('componentId', array('mandatory' => FALSE));
         $data->listFilter->setField('systemId', array('attr' => array('onchange' => 'this.form.submit();')));
         $data->listFilter->setField('systemId', array('mandatory' => FALSE));
