@@ -2292,7 +2292,7 @@ class crm_Persons extends core_Master
     	expect($rec = $this->fetchRec($id));
     	
     	$obj = new stdClass();
-    	$tpl = new ET("[#country#]<br>[#pCode#] [#place#]<br>[#address#]");
+    	$tpl = new ET("[#country#]<br> <!--ET_BEGIN pCode-->[#pCode#] <!--ET_END pCode-->[#place#]<br> [#address#]");
     	if($rec->country){
     		$obj->country = crm_Persons::getVerbal($rec, 'country');
     	}
