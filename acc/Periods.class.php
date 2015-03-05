@@ -570,4 +570,19 @@ class acc_Periods extends core_Manager
     {
         return acc_Periods::fetchByDate($date)->end;
     }
+    
+
+    /**
+     * Връща записа на последния затворен период
+     *
+     * @return stdClass - последния затворен период
+     */
+    public static function getLastClosedPeriod()
+    {
+    	$query = static::getQuery();
+    	$query->where("#state = 'closed'");
+    	$query->orderBy("#id", 'DESC');
+    	 
+    	return $query->fetch();
+    }
 }
