@@ -110,7 +110,7 @@ class core_Logs extends core_Manager
      */
     static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {   
-        $data->listFilter->FNC('user', 'key(mvc=core_Users,select=nick,allowEmpty,where=#state !\\= \\\'rejected\\\')', 'placeholder=Потребител,silent', array('attr' => array('onchange' => 'this.form.submit();')));
+        $data->listFilter->FNC('user', 'key(mvc=core_Users,select=nick,allowEmpty,where=#state !\\= \\\'rejected\\\')', 'placeholder=Потребител,silent,refreshForm');
         $data->listFilter->FNC('date', 'date', 'placeholder=Дата');
         $data->listFilter->FNC('class', 'customKey(mvc=core_Classes,select=name,key=name,allowEmpty)', 'placeholder=Клас');
 

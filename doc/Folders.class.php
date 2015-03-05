@@ -173,8 +173,8 @@ class doc_Folders extends core_Master
     static function on_AfterPrepareListFilter($mvc, $data)
     {
      	// Добавяме поле във формата за търсене
-		$data->listFilter->FNC('users', 'users(rolesForAll = |officer|manager|ceo|)', 'caption=Потребител,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
-		$data->listFilter->FNC('order', 'enum(pending=Първо чакащите,last=Сортиране по "последно")', 'caption=Подредба,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
+		$data->listFilter->FNC('users', 'users(rolesForAll = |officer|manager|ceo|)', 'caption=Потребител,input,silent,refreshForm');
+		$data->listFilter->FNC('order', 'enum(pending=Първо чакащите,last=Сортиране по "последно")', 'caption=Подредба,input,silent,refreshForm');
 		$data->listFilter->view = 'horizontal';
 		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
 		// Показваме само това поле. Иначе и другите полета

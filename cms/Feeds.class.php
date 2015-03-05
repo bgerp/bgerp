@@ -359,7 +359,8 @@ class cms_Feeds extends core_Manager {
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
     	$form = &$data->form;
-    	$form->addAttr('source', array('onchange' => "addCmdRefresh(this.form);this.form.submit();"));
+    	
+    	$form->setField('source', array('removeAndRefreshForm' => "title|description|logo|maxItems|data"));
     	
 	    if($form->rec->source){
 	    	$Source = cls::get($form->rec->source);
