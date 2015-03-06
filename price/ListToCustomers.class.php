@@ -137,16 +137,8 @@ class price_ListToCustomers extends core_Detail
 
         $rec->listId = self::getListForCustomer($rec->cClass, $rec->cId);
   		
-        // Може да се добавят само публичните политики или тези за посочения клиент
-        $cond = "#public = 'yes' OR (#cId = '{$rec->cId}' AND #cClass = '{$rec->cClass}')";
-	    
-        // Кой може да добавя не-публичните политики
-        if(haveRole('price,ceo')) {
-	       	$cond .= " OR ((#public = 'no' OR #public IS NULL) AND !(#cId > 0))";
-	    }
-	    	
-	    $data->form->setOptions('listId', price_Lists::makeArray4select('title', $cond));
-	    
+        $data->form->setOptions('listId', price_Lists::getAccessibleOptions());
+        
         if(price_Lists::haveRightFor('add')){
         	$data->form->toolbar->addBtn('Нови правила', array('price_Lists', 'add', 'cClass' => $rec->cClass , 'cId' => $rec->cId, 'ret_url' => TRUE), NULL, 'order=10.00015,ef_icon=img/16/page_white_star.png');
         }

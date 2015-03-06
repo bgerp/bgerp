@@ -55,12 +55,6 @@ class price_Lists extends core_Master
     
     
     /**
-     * Кой може да го прочете?
-     */
-    var $canRead = 'powerUser';
-    
-    
-    /**
      * Кой може да го промени?
      */
     var $canEdit = 'price,ceo';
@@ -69,25 +63,19 @@ class price_Lists extends core_Master
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'price,ceo';
-    
-    
-    /**
-     * Кой има право да го види?
-     */
-    var $canView = 'powerUser';
+    var $canAdd = 'sales,price,ceo';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'sales,price,ceo';
+    var $canList = 'price,ceo';
     
     
     /**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'sales,price,ceo';
+	var $canSingle = 'price,ceo';
 	
     
     /**
@@ -165,18 +153,12 @@ class price_Lists extends core_Master
         }
         
         if(empty($rec->id)){
-	        if($rec->cId && $rec->cClass){
-	        	$rec->parent =  price_ListToCustomers::getListForCustomer($rec->cClass, $rec->cId);
-	            $cond = "#id = '{$rec->parent}' OR #public = 'yes' OR (#cId = '{$rec->cId}' AND #cClass = '{$rec->cClass}')";
-	        	$cond .= " OR #public = 'no' OR #public IS NULL";
-	        	
-	            $parentOptions = self::makeArray4select('title', $cond);
-	            $form->setOptions('parent', $parentOptions);
-	        } else {
-	            $rec->parent = price_ListRules::PRICE_LIST_CATALOG;
-	        }
-        }
-            
+        	// Бащата може да бъде от достъпните до потребителя политики
+        	$form->setOptions('parent', self::getAccessibleOptions());
+        	
+        	// По дефолт слагаме за частните политики да наследяват дефолт политиката за контрагента, иначе 'Каталог'
+        	$rec->parent = ($rec->cId && $rec->cClass) ? price_ListToCustomers::getListForCustomer($rec->cClass, $rec->cId) : price_ListRules::PRICE_LIST_CATALOG;
+        }  
 
         if(!$rec->currency) {
             $rec->currency = acc_Periods::getBaseCurrencyCode();
@@ -184,6 +166,41 @@ class price_Lists extends core_Master
     }
 
 
+    /**
+     * Намираме ценовите политики, които може да избира потребителя.
+     * Ако няма има права price,ceo - може да избира всички
+     * Ако ги няма може да избира само публичните + частните, до чийто контрагент има достъп
+     * 
+     * @param string $userId
+     * @return multitype:NULL
+     */
+    public static function getAccessibleOptions($userId = NULL)
+    {
+    	// Ако няма права price,ceo може да избира само публичните + частните до чийто сингъл има достъп
+    	if(!core_Users::haveRole('price,ceo', $userId)){
+    		$options = array();
+    		$query = price_Lists::getQuery();
+    		$query->show('cClass,cId,title');
+    		while($lRec = $query->fetch()){
+    			if(!empty($lRec->cClass) && !empty($lRec->cId)){
+    				if(cls::get($lRec->cClass)->haveRightFor('single', $lRec->cId, $userId)){
+    					$options[$lRec->id] = $lRec->title;
+    				}
+    			} else {
+    				$options[$lRec->id] = $lRec->title;
+    			}
+    		}
+    	} else {
+    		
+    		// Ако потребителя има права price и/или ceo, може да избира от всички политики
+    		$options = price_Lists::makeArray4select('title', '');
+    	}
+    	
+    	// Връщаме намерените политики
+    	return $options;
+    }
+    
+    
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      *
@@ -245,6 +262,16 @@ class price_Lists extends core_Master
             if($rec->id && (self::fetch("#parent = {$rec->id}") || price_ListToCustomers::fetch("#listId = {$rec->id}")) ) {
                 $requiredRoles = 'no_one';
             }
+        }
+        
+        if($action == 'add' && isset($rec)){
+        	
+        	// Ако се създава публична политика и потребителя няма роли price или ceo, да не може да създава
+        	if(empty($rec->cClass) || empty($rec->cId)){
+        		if(!haveRole('price,ceo')){
+        			$requiredRoles = 'no_one';
+        		}
+        	}
         }
     }
 
