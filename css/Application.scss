@@ -1129,6 +1129,10 @@ td.portal-date {
 		background-color: $gray2;
 		height: 20px;
 	}
+	.listTable .numericElement {
+	   text-align: right;
+	   display: inline-block;
+	}
 }
 
 .snapshot {

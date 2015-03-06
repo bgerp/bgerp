@@ -277,6 +277,9 @@ class core_TableView extends core_BaseClass
             $tpl->replace($rowAfter, "ROW_AFTER");
         }
         
+        // извикваме функцията за подравняване на числата
+        jquery_Jquery::run($tpl, "centerNumericElements();", TRUE);
+        
         return $tpl;
     }
 }

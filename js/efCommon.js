@@ -1779,23 +1779,27 @@ function preventDoubleClick() {
 	return false;
 }
 
-
-/*
- * Функция за подравняване на числа по десетичния знак
+/**
+ * Подравняване на числата в средата
  */
-function tableElemsFractionsWidth() {
-    $('.alignDecimals > table').each(function() {
+function centerNumericElements() {	
+	$('.document .listTable').each(function() {
         var table = $(this);
-        var fracPartWidth = [];
-        $(this).find('.fracPart').each(function() {
-            var elem = $(this);
-            var parent = $(this).parent();
-            if (!fracPartWidth[parent.attr('data-col')] || fracPartWidth[parent.attr('data-col')] < $(elem).width()) {
-                fracPartWidth[parent.attr('data-col')] = $(elem).width();
-            }
+        var numericWidth = [];
+        $(this).find(' > tbody > tr').each(function() {
+        	var i = 1;
+	        $(this).find('td').each(function() {	        	
+	        	if($(this).find('.numericElement') && (!numericWidth[i] || numericWidth[i] < $(this).find('.numericElement').width())){
+	            	numericWidth[i] = $(this).find('.numericElement').width();
+	            }
+	            i++;
+	        });
         });
-        for (key in fracPartWidth) {
-            $(table).find("span[data-col='" + key + "'] .fracPart").css('width', fracPartWidth[key]);
+        
+        for (key in numericWidth) {
+        	if(numericWidth[key]){
+        		$(table).find("td:nth-child(" + key + ") .numericElement").css('width', numericWidth[key]);
+        	}	
         }
     });
 }

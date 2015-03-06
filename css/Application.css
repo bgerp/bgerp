@@ -1015,6 +1015,9 @@ td.portal-date {
   .document .custom-header-bg {
     background-color: #e0e0e0;
     height: 20px; }
+  .document .listTable .numericElement {
+    text-align: right;
+    display: inline-block; }
 
 .snapshot {
   margin-top: 10px;
