@@ -174,7 +174,12 @@ class cat_BomDetails extends doc_Detail
     	
     	// Проверяваме дали е въведено поне едно количество
     	if($form->isSubmitted()){
-    	
+    		if($rec->type == 'pop'){
+    			if(!mp_Resources::fetchField($rec->resourceId, 'selfValue')){
+    				$form->setError('resourceId', 'Отпадният ресурс няма себестойност');
+    			}
+    		}
+    		
     		// Не може и двете количества да са празни
     		if(empty($rec->baseQuantity) && empty($rec->propQuantity)){
     			$form->setError('baseQuantity,propQuantity', 'Трябва да е въведено поне едно количество');
