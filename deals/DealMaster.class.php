@@ -835,7 +835,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	}
 	    
 	    if($fields['-single']){
-	    	if($rec->deliveryLocationId && !Mode::is('printing')){
+	    	if($rec->deliveryLocationId){
 	    		$row->deliveryLocationId = crm_Locations::getHyperlink($rec->deliveryLocationId);
 	    	}
 	    	
@@ -879,7 +879,7 @@ abstract class deals_DealMaster extends deals_DealBase
 			}
 			$row->$fld = ' ';
 			
-			if(!Mode::is('printing') && !Mode::is('text', 'xhtml')){
+			if(!Mode::is('text', 'xhtml')){
 				if($rec->shipmentStoreId){
 					$row->shipmentStoreId = store_Stores::getHyperlink($rec->shipmentStoreId);
 				}
