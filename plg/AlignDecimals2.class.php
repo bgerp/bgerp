@@ -54,36 +54,8 @@ class plg_AlignDecimals2 extends core_Plugin
                     max($Type->params['minDecimals'], ${"{$fName}FracLen"})
                 );
 				$Type->params['decimals'] = $optDecimals;
-				
-				//$rec->$fName = core_Math::roundNumber($rec->$fName, ${"{$fName}FracLen"});
-				
 				$rows[$id]->$fName = $Type->toVerbal($rec->$fName);
-				$fracRegExp = "/(?'delimiter'\,|\.)(?'frac'[0-9]+)/";
-				$rows[$id]->$fName = preg_replace_callback($fracRegExp, array(get_called_class(), '_m'), $rows[$id]->$fName, 1, $cnt);
-				
-				if (!$cnt) {
-					$rows[$id]->$fName .= "<span class='fracPart'></span>";
-				}
-				
-				$rows[$id]->$fName = "<span data-col='{$col}'>" . $rows[$id]->$fName . "</span>";
 			}
 		}
-		$data->listTableClass = "alignDecimals";
-    }
-    
-    
-    static function on_AfterRenderListTable($mvc, &$tpl, $data)
-    {
-    	$tpl->appendOnce("\n runOnLoad(function(){tableElemsFractionsWidth();});", 'SCRIPTS');
-    }
-    
-    
-    static function _m($matches)
-    {
-    	if (!$matches[0]) return $matches[0];
-    	
-    	$res ="<span class='fracPart'>{$matches['delimiter']}{$matches['frac']}</span>";
-    	
-    	return $res;
     }
 }
