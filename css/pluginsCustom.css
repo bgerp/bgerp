@@ -50,7 +50,6 @@ a.datepick-cmd {
 }
 
 .select2-container .select2-selection--multiple {
-	height: 26px;
 	min-height: 26px;
 	line-height: 120%;
 	font-size: 0.8em;
