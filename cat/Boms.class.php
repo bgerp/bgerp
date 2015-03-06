@@ -43,7 +43,7 @@ class cat_Boms extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "tools=Пулт,productId=Артикул,createdOn,createdBy,modifiedOn,modifiedBy";
+    var $listFields = "tools=Пулт,productId=Артикул,state,createdOn,createdBy,modifiedOn,modifiedBy";
     
     
     /**
