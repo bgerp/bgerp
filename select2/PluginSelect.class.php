@@ -57,7 +57,7 @@ class select2_PluginSelect extends core_Plugin
     /**
      * Изпълнява се след рендирането на input
      * 
-     * @param core_Type $invoker
+     * @param type_Key $invoker
      * @param core_ET $tpl
      * @param string $name
      * @param string|array|NULL $value
