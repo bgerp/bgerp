@@ -32,6 +32,9 @@ a.datepick-cmd {
 	box-shadow: none;
 	max-height: 24px;         /* bugFix при по-дълга опция да не излиза извън селекта */
 }
+.select2-results__group {
+	
+}
  .select2-container *{
 	box-shadow: none !important;
 	outline: none !important;
@@ -61,4 +64,11 @@ a.datepick-cmd {
 
 .select2-container--default .select2-selection--multiple .select2-selection__choice {
 	margin-top: 3px;
-} 
+}
+
+.select2-results__group{
+	cursor: default;
+	color: #fff;
+	background-color: #333;
+	font-weight: bold;
+}
