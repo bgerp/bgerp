@@ -107,14 +107,13 @@ class cat_BomDetails extends doc_Detail
     function description()
     {
     	$this->FLD('bomId', 'key(mvc=cat_Boms)', 'column=none,input=hidden,silent');
+    	$this->FLD("resourceId", 'key(mvc=mp_Resources,select=title,allowEmpty)', 'caption=Ресурс,mandatory,silent,refreshForm');
     	$this->FLD('stageId', 'key(mvc=mp_Stages,allowEmpty,select=name)', 'caption=Етап');
-    	$this->FLD("resourceId", 'key(mvc=mp_Resources,select=title,allowEmpty)', 'caption=Ресурс,mandatory,silent', array('attr' => array('onchange' => 'addCmdRefresh(this.form);this.form.submit();')));
-    	$this->FLD("productId", 'key(mvc=cat_Products, select=name, allowEmpty)', 'caption=Отпадък,input=none');
+    	$this->FLD('type', 'enum(input=Влагане,pop=Отпадък)', 'caption=Действие,silent,removeAndRefreshForm=propQuantity');
     	
     	$this->FLD("baseQuantity", 'double', 'caption=Количество->Начално,hint=Начално количество');
     	$this->FLD("propQuantity", 'double', 'caption=Количество->Пропорционално,hint=Пропорционално количество');
-    	$this->FLD('type', 'enum(input=Добавяне,pop=Изкарване)', 'column=none,input=hidden,silent');
-    	 
+    	
     	$this->setDbUnique('bomId,resourceId');
     }
     
@@ -139,27 +138,13 @@ class cat_BomDetails extends doc_Detail
     {
     	$form = &$data->form;
     	 
-    	// Ако добавяме нов изходен ресурс
-    	if ($form->rec->type == 'pop'){
-    		$form->setField('resourceId', 'input=none');
-    		$form->setField('productId', 'mandatory,input');
-    		$form->setField('baseQuantity', 'mandatory,caption=К-во');
-    		$form->setField('propQuantity', 'input=none');
+    	$form->setDefault('type', 'input');
+    	$quantity = $data->masterRec->quantity;
+    	$originInfo = cat_Products::getProductInfo($data->masterRec->productId);
+    	$shortUom = cat_UoM::getShortName($originInfo->productRec->measureId);
     		
-    		$products = cat_Products::getByProperty('waste');
-    		if(count($products)){
-    			$form->setOptions('productId', $products);
-    		} else {
-    			return Redirect(array('cat_Boms', 'single', $masterRec->bomId), NULL, 'Няма наличини отпадни артикули');
-    		}
-    	} else {
-    		$quantity = $data->masterRec->quantity;
-    		$originInfo = cat_Products::getProductInfo($data->masterRec->productId);
-    		$shortUom = cat_UoM::getShortName($originInfo->productRec->measureId);
-    		
-    		$propCaption = "|За|* |{$quantity}|* {$shortUom}";
-    		$form->setField('propQuantity', "caption={$propCaption}");
-    	}
+    	$propCaption = "|За|* |{$quantity}|* {$shortUom}";
+    	$form->setField('propQuantity', "caption={$propCaption}");
     }
     
     
@@ -172,6 +157,10 @@ class cat_BomDetails extends doc_Detail
     public static function on_AfterInputEditForm($mvc, &$form)
     {
     	$rec = &$form->rec;
+    	
+    	if($rec->type == 'pop'){
+    		$form->setField('propQuantity', 'input=none');
+    	}
     	
     	// Ако има избран ресурс, добавяме му мярката до полетата за количества
     	if(isset($rec->resourceId)){
@@ -199,17 +188,12 @@ class cat_BomDetails extends doc_Detail
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-    	if($rec->productId){
-    		$row->resourceId = cat_Products::getHyperlink($rec->productId, TRUE);
-    		$measureId = cat_Products::getProductInfo($rec->productId)->productRec->measureId;
-    	} else {
-    		$row->resourceId = mp_Resources::getHyperlink($rec->resourceId, TRUE);
-    		$measureId = mp_Resources::fetchField($rec->resourceId, 'measureId');
-    	}
+    	$row->resourceId = mp_Resources::getHyperlink($rec->resourceId, TRUE);
+    	$measureId = mp_Resources::fetchField($rec->resourceId, 'measureId');
     	$row->measureId = cat_UoM::getTitleById($measureId);
     	
     	$row->ROW_ATTR['class'] = ($rec->type != 'input') ? 'row-removed' : 'row-added';
-    	$row->ROW_ATTR['title'] = ($rec->type != 'input') ? tr('Отпадъчен артикул') : NULL;
+    	$row->ROW_ATTR['title'] = ($rec->type != 'input') ? tr('Отпадък') : NULL;
     }
     
     
@@ -220,8 +204,7 @@ class cat_BomDetails extends doc_Detail
     {
     	$data->toolbar->removeBtn('btnAdd');
     	if($mvc->haveRightFor('add', (object)array('bomId' => $data->masterId))){
-    		$data->toolbar->addBtn('Ресурс', array($mvc, 'add', 'bomId' => $data->masterId, 'type' => 'input', 'ret_url' => TRUE), NULL, "title=Добавяне на нов входящ ресурс,ef_icon=img/16/page_white_text.png");
-    		$data->toolbar->addBtn('Отпадък', array($mvc, 'add', 'bomId' => $data->masterId, 'type' => 'pop', 'ret_url' => TRUE), NULL, "title=Добавяне на нов отпаден артикул,ef_icon=img/16/wooden-box.png");
+    		$data->toolbar->addBtn('Ресурс', array($mvc, 'add', 'bomId' => $data->masterId, 'ret_url' => TRUE), NULL, "title=Добавяне на ресурс,ef_icon=img/16/page_white_text.png");
     	}
     }
     
