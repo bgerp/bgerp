@@ -90,7 +90,7 @@ class currency_FinIndexes extends core_Manager {
             // Зарежда, обработва и записва в базата CSV файл
             if (($handle = @fopen($csvFile, "r")) !== FALSE) {
                 while (($csvRow = fgetcsv($handle, 10000, ",")) !== FALSE) {
-                    if (empty($coulmns)) {
+                    if (empty($columns)) {
                         // Колоните са броя на датите във файла + 1 
                         $columns = count($csvRow);
                     }
@@ -316,7 +316,7 @@ class currency_FinIndexes extends core_Manager {
             // Зарежда, обработва и записва в базата CSV файл
             if (($handle = @fopen($csvFile, "r")) !== FALSE) {
                 while (($csvRow = fgetcsv($handle, 10000, ",")) !== FALSE) {
-                    if (empty($coulmns)) {
+                    if (empty($columns)) {
                         // Колоните са броя на датите във файла + 1 
                         $columns = count($csvRow);
                     }
