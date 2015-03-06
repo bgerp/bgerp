@@ -2,6 +2,12 @@
 
 
 /**
+ * Версията на програмата
+ */
+defIfNot("APACHE_TIKA_VERSION", '1.7');
+
+
+/**
  * Клас 'apachetika_Setup'
  *
  * Исталиране/деинсталиране на Apachetika
@@ -35,6 +41,16 @@ class apachetika_Setup extends core_ProtoSetup
 	 * Пакет без инсталация
 	 */
 	public $noInstall = TRUE;
+	
+    
+    /**
+     * Описание на конфигурационните константи
+     */
+    public $configDescription = array(
+           
+       'APACHE_TIKA_VERSION' => array ('enum(1.5, 1.7)', 'caption=Версия на програмата'),
+
+     );
 	
 }
 
