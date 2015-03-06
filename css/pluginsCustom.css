@@ -72,3 +72,12 @@ a.datepick-cmd {
 	background-color: #333;
 	font-weight: bold;
 }
+
+.select2-selection {
+	 -moz-transition: border 0.2s linear 0s, box-shadow 0.2s linear 0s !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) inset !important;
+}
+
+.select2-selection:focus {
+	 box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1) inset, 0 0 7px rgba( 153, 153, 255, 0.7) !important;
+}
