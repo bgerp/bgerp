@@ -81,3 +81,27 @@ a.datepick-cmd {
 .select2-selection:focus {
 	 box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1) inset, 0 0 7px rgba( 153, 153, 255, 0.7) !important;
 }
+
+.inputError + .select2 {
+	border: 1px solid red;
+}
+
+.inputWarning + .select2{
+    border: solid 1px #ff9900; 
+}
+
+.inputError + .select2 .select2-selection , .inputWarning + .select2 .select2-selection {
+    box-shadow: none !important;
+    border: none;
+}
+
+
+/*choosen styles*/
+.inputError +  .chzn-container-single .chzn-single {
+    border: 1px solid red ;
+}
+
+.inputWarning + .chzn-container-single .chzn-single  {
+    border: solid 1px #ff9900; 
+}
+ 
