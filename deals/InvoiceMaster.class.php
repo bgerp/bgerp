@@ -207,25 +207,6 @@ abstract class deals_InvoiceMaster extends core_Master
     	$mvc->singleTitle = $title;
     }
 
-
-    /**
-     * Валидиране на полето 'date' - дата на фактурата
-     * Предупреждение ако има фактура с по-нова дата (само при update!)
-     */
-    public static function on_ValidateDate(core_Mvc $mvc, $rec, core_Form $form)
-    {
-    	$newDate = $mvc->getNewestInvoiceDate();
-    	if($newDate > $rec->date) {
-    		
-    		// Най-новата валидна ф-ра в БД е по-нова от настоящата.
-    		$form->setError('date',
-    				'Не може да се запише фактура с дата по-малка от последната активна фактура (' .
-    				dt::mysql2verbal($newestInvoiceRec->date, 'd.m.y') .
-    				')'
-    		);
-    	}
-    }
-
 	
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
