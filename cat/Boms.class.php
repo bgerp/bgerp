@@ -37,13 +37,19 @@ class cat_Boms extends core_Master
     /**
      * Неща, подлежащи на начално зареждане
      */
-    var $loadList = 'plg_RowTools, cat_Wrapper, plg_Sorting, doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, doc_ActivatePlg';
+    var $loadList = 'plg_RowTools, cat_Wrapper, plg_Sorting, doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, doc_ActivatePlg, plg_Search';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "tools=Пулт,productId=Артикул,createdOn,createdBy,modifiedOn,modifiedBy";
+    var $listFields = "tools=Пулт,productId=Артикул,state,createdOn,createdBy,modifiedOn,modifiedBy";
+    
+    
+    /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    var $searchFields = 'productId,notes';
     
     
     /**
@@ -295,13 +301,12 @@ class cat_Boms extends core_Master
     	// За всеки ресурс
     	if(count($rInfo)){
     		foreach ($rInfo as $dRec){
-    			if(!$dRec->resourceId) continue;
-    			
+    			$sign = ($dRec->type == 'input') ? 1 : -1;
     			$selfValue = mp_Resources::fetchField($dRec->resourceId, 'selfValue');
     			
     			// Добавяме към началната сума и пропорционалната
-    			$amounts->base += $dRec->baseQuantity * $selfValue;
-    			$amounts->prop += $dRec->propQuantity * $selfValue;
+    			$amounts->base += $dRec->baseQuantity * $selfValue * $sign;
+    			$amounts->prop += $dRec->propQuantity * $selfValue * $sign;
     		}
     	}
     	
@@ -334,14 +339,8 @@ class cat_Boms extends core_Master
     	while($dRec = $dQuery->fetch()){
     		
     		$arr = array();
-    		if($dRec->resourceId){
-    			$arr['resourceId'] = $dRec->resourceId;
-    		}
-    		
-    		if($dRec->productId){
-    			$arr['productId'] = $dRec->productId;
-    		}
-    		 
+    		$arr['resourceId']   = $dRec->resourceId;
+    		$arr['type']         = $dRec->type;
     		$arr['baseQuantity'] = $dRec->baseQuantity;
     		$arr['propQuantity'] = $dRec->propQuantity;
     		 

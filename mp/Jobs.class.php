@@ -93,7 +93,7 @@ class mp_Jobs extends core_Master
 	/**
 	 * Полета за търсене
 	 */
-	public $searchFields = 'folderId';
+	public $searchFields = 'folderId, productId, notes';
 	
 	
 	/**
