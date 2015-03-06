@@ -158,7 +158,7 @@ class change_Plugin extends core_Plugin
             if ((string)$fRec->version != (string)$rec->version) {
                 
                 // Нулираме флага
-                $fRec->NoChange = FALSE;
+                $fRec->__noChange = FALSE;
                 
                 // Подверсията
                 $subVersion = 0;
@@ -183,7 +183,7 @@ class change_Plugin extends core_Plugin
             }
             
             // Ако не е зададено да не се променя
-            if (!$fRec->NoChange) {
+            if (!$fRec->__noChange) {
                 
                 // Увеличаваме подверсията
                 $subVersion++;
@@ -525,7 +525,7 @@ class change_Plugin extends core_Plugin
                 if (!$haveChange) {
                     
                     // Вдигаме флага
-                    $form->rec->NoChange = TRUE;
+                    $form->rec->__noChange = TRUE;
                 }
             }
         }
