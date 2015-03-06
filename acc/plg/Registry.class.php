@@ -138,7 +138,7 @@ class acc_plg_Registry extends core_Plugin
     		// Ако обекта е перо, но не е в номенклатурата форсираме го
     		if($itemRec = acc_Items::fetchItem($mvc, $rec->id)){
     			if(!keylist::isIn($listRec->id, $itemRec->lists)){
-    				$itemRec->lists = keylist::addKey($itemRec->lists, $listRec->id);
+    				$lists = keylist::addKey($itemRec->lists, $listRec->id);
     				$msg = TRUE;
     			}
     		} else {
@@ -146,7 +146,7 @@ class acc_plg_Registry extends core_Plugin
     			$msg = TRUE;
     		}
     		
-    		acc_Lists::updateItem($mvc, $rec->id, $itemRec->lists);
+    		acc_Lists::updateItem($mvc, $rec->id, $lists);
     		
     		// Ъпдейтваме информацията за перото
     		if($msg){
