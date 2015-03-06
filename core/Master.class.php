@@ -582,12 +582,14 @@ class core_Master extends core_Manager
     
     	$title = $me->getTitleById($id);
     
+    	$attr = array();
     	if($icon === TRUE) {
-    		$icon = 'ef_icon=' . $me->singleIcon;
+    		$attr['ef_icon'] = $me->singleIcon;
     	} elseif($icon) {
-    		$icon = 'ef_icon=' . $icon;
+    		$attr['ef_icon'] = $icon;
     	}
-    
+    	$attr['class'] = 'specialLink';
+    	
     	if(!$id) {
     		return "<span style='color:red;'>&nbsp;- - -</span>";
     	}
@@ -597,7 +599,7 @@ class core_Master extends core_Manager
     		$title = ht::createLink($title,
     				array($me, 'single', $id),
     				NULL,
-    				$icon
+    				$attr
     		);
     	}
     

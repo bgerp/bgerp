@@ -3743,6 +3743,8 @@ only screen and (max-width: 320px) {
   .footerDocTable {
     display: table !important; } }
 
+  .printing .specialLink {
+    font-weight: bold; }
   .printing a {
     color: black !important; }
   .printing .docBgIcon {
