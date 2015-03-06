@@ -80,7 +80,12 @@ class chosen_Setup extends core_ProtoSetup {
      */
     function install()
     {
-    	$html = parent::install();
+        if (core_Packs::isInstalled('select2')) {
+            $packs = cls::get('core_Packs');
+            $html .= $packs->deinstall('select2');
+        }
+        
+    	$html .= parent::install();
     	
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
