@@ -1,6 +1,10 @@
 <table>
 <!--ET_BEGIN num-->
 <tr>
+<td class='quiet aright'>|Id|*:</td>
+<td>[#id#]</td>
+</tr>
+<tr>
 <td class='quiet aright'>|Номер|*:</td>
 <td>[#num#]</td>
 </tr>
