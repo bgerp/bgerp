@@ -45,7 +45,7 @@ class sales_Invoices extends deals_InvoiceMaster
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, acc_plg_Contable, plg_ExportCsv, doc_DocumentPlg, bgerp_plg_Export,
-					doc_EmailCreatePlg, doc_plg_MultiPrint, bgerp_plg_Blank, plg_Printing, cond_plg_DefaultValues,deals_plg_DpInvoice,
+					doc_EmailCreatePlg, doc_plg_MultiPrint, recently_Plugin, bgerp_plg_Blank, plg_Printing, cond_plg_DefaultValues,deals_plg_DpInvoice,
                     doc_plg_HidePrices, doc_plg_TplManager, acc_plg_DocumentSummary, plg_Search';
     
     
@@ -535,5 +535,24 @@ class sales_Invoices extends deals_InvoiceMaster
    		}
    		
    		return round($amount, 2);
+   	}
+
+   	
+   	/**
+   	 * Валидиране на полето 'date' - дата на фактурата
+   	 * Предупреждение ако има фактура с по-нова дата (само при update!)
+   	 */
+   	public static function on_ValidateDate(core_Mvc $mvc, $rec, core_Form $form)
+   	{
+   		$newDate = $mvc->getNewestInvoiceDate();
+   		if($newDate > $rec->date) {
+   	
+   			// Най-новата валидна ф-ра в БД е по-нова от настоящата.
+   			$form->setError('date',
+   					'Не може да се запише фактура с дата по-малка от последната активна фактура (' .
+   					dt::mysql2verbal($newestInvoiceRec->date, 'd.m.y') .
+   					')'
+   			);
+   		}
    	}
 }

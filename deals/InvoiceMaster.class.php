@@ -87,7 +87,7 @@ abstract class deals_InvoiceMaster extends core_Master
     	$mvc->FLD('deliveryPlaceId', 'key(mvc=crm_Locations, select=title)', 'caption=Доставка->Място');
     	$mvc->FLD('vatDate', 'date(format=d.m.Y)', 'caption=Данъчни параметри->Дата на ДС');
     	$mvc->FLD('vatRate', 'enum(yes=Включено, separate=Отделно, exempt=Oсвободено, no=Без начисляване)', 'caption=Данъчни параметри->ДДС,input=hidden');
-    	$mvc->FLD('vatReason', 'varchar(255)', 'caption=Данъчни параметри->Основание');
+    	$mvc->FLD('vatReason', 'varchar(255)', 'caption=Данъчни параметри->Основание,recently');
     	$mvc->FLD('additionalInfo', 'richtext(bucket=Notes, rows=6)', 'caption=Допълнително->Бележки');
     	$mvc->FLD('dealValue', 'double(decimals=2)', 'caption=Стойност, input=hidden,summary=amount, export=Csv');
     	$mvc->FLD('vatAmount', 'double(decimals=2)', 'caption=ДДС, input=none,summary=amount');
@@ -105,6 +105,9 @@ abstract class deals_InvoiceMaster extends core_Master
     {
     	$fType = $mvc->getFieldType('paymentType');
     	$fType->options = array('' => '') + $fType->options;
+    	if($data->form->rec->vatRate != 'yes' && $data->form->rec->vatRate != 'separate'){
+    		$data->form->setField('vatReason', 'mandatory');
+    	}
     }
     
     
