@@ -140,6 +140,8 @@ class acc_plg_Registry extends core_Plugin
     			if(!keylist::isIn($listRec->id, $itemRec->lists)){
     				$lists = keylist::addKey($itemRec->lists, $listRec->id);
     				$msg = TRUE;
+    			} else {
+    				$lists = $itemRec->lists;
     			}
     		} else {
     			$lists = keylist::addKey('', $listRec->id);
