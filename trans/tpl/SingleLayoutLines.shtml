@@ -31,7 +31,7 @@
 		    <tr>
 		        <td>
 			        <div style='height: 85px;'>
-				         <!--ET_BEGIN myCompany--><div style='margin-bottom: 5px;'>[#myCompany#]</div><!--ET_END myCompany-->
+				         <!--ET_BEGIN myCompany--><div style='margin-bottom: 5px;'><b>[#myCompany#]</b></div><!--ET_END myCompany-->
 				         <!--ET_BEGIN logistic--><div style='margin-bottom: 5px;'>|Логистик|*: [#logistic#]</div><!--ET_END logistic-->
 				    </div>
 			        <table class='signature-table'>
@@ -49,7 +49,7 @@
 		        </td>
 		        <td>
 		            <div style='height: 85px;'>
-			            <!--ET_BEGIN forwarderId--><div style='margin-bottom: 5px;'>[#forwarderId#]</div><!--ET_END forwarderId-->
+			            <!--ET_BEGIN forwarderId--><div style='margin-bottom: 5px;'><b>[#forwarderId#]</b></div><!--ET_END forwarderId-->
 			            <!--ET_BEGIN vehicleId--><div style='margin-bottom: 5px;'>|Превозно средство|*: [#vehicleId#]</div><!--ET_END vehicleId-->
 			            <!--ET_BEGIN forwarderPersonId--><div style='margin-bottom: 5px;'>|Превозвач|*: [#forwarderPersonId#]</div><!--ET_END forwarderPersonId-->
 			        </div>
