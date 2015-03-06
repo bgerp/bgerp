@@ -80,7 +80,6 @@ class currency_FinIndexes extends core_Manager {
     function act_LoadEuriborCsv()
     {
         // Зареждаме файлове за обработка
-        // $csvFiles = array(__DIR__ . "/csv/hist_EURIBOR_2012.csv");
         $csvFiles = array("http://www.euribor-ebf.eu/assets/modules/rateisblue/processed_files/hist_EURIBOR_" . date('Y') . ".csv");
         
         foreach ($csvFiles as $csvFile) {
