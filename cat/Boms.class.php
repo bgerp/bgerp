@@ -295,13 +295,12 @@ class cat_Boms extends core_Master
     	// За всеки ресурс
     	if(count($rInfo)){
     		foreach ($rInfo as $dRec){
-    			if(!$dRec->resourceId) continue;
-    			
+    			$sign = ($dRec->type == 'input') ? 1 : -1;
     			$selfValue = mp_Resources::fetchField($dRec->resourceId, 'selfValue');
     			
     			// Добавяме към началната сума и пропорционалната
-    			$amounts->base += $dRec->baseQuantity * $selfValue;
-    			$amounts->prop += $dRec->propQuantity * $selfValue;
+    			$amounts->base += $dRec->baseQuantity * $selfValue * $sign;
+    			$amounts->prop += $dRec->propQuantity * $selfValue * $sign;
     		}
     	}
     	
@@ -334,14 +333,8 @@ class cat_Boms extends core_Master
     	while($dRec = $dQuery->fetch()){
     		
     		$arr = array();
-    		if($dRec->resourceId){
-    			$arr['resourceId'] = $dRec->resourceId;
-    		}
-    		
-    		if($dRec->productId){
-    			$arr['productId'] = $dRec->productId;
-    		}
-    		 
+    		$arr['resourceId']   = $dRec->resourceId;
+    		$arr['type']         = $dRec->type;
     		$arr['baseQuantity'] = $dRec->baseQuantity;
     		$arr['propQuantity'] = $dRec->propQuantity;
     		 
