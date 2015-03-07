@@ -141,7 +141,7 @@ class eshop_Groups extends core_Master
         $this->FLD('icon', 'fileman_FileType(bucket=eshopImages)', 'caption=Картинка->Малка');
         $this->FLD('image', 'fileman_FileType(bucket=eshopImages)', 'caption=Картинка->Голяма');
         $this->FLD('productCnt', 'int', 'input=none');
-        $this->FLD('menuId', 'key(mvc=cms_Content,select=menu)', 'caption=Меню');
+        $this->FLD('menuId', 'key(mvc=cms_Content,select=menu, allowEmpty)', 'caption=Меню');
     }
     
     
@@ -158,6 +158,10 @@ class eshop_Groups extends core_Master
             $opt[$rec->id] = cms_Content::getVerbal($rec, 'menu');
         }
         
+        if(count($opt) == 1) {  
+            $data->form->setReadOnly('menuId'); 
+        }
+
         $data->form->setOptions('menuId', $opt);
     }
     
