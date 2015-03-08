@@ -34,12 +34,12 @@ class newsbar_Plugin extends core_Plugin
            $convertText = cls::get('type_Richtext');
            $barNews = $convertText->toVerbal($str->news);
            
-           $html = new ET("<div class='newsbar' style='background-color: rgb([#r#], [#g#], [#b#]); 
+           $html = new ET("<div class='newsbar' style=\"background-color: rgb([#r#], [#g#], [#b#]); 
             										   background-color: rgba([#r#], [#g#], [#b#], [#transparency#]);
            											   background:transparent \0; 
                           filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=[#ie#], endColorstr=[#ie#]);
                           -ms-filter: 'progid:DXImageTransform.Microsoft.gradient(startColorstr=[#ie#], endColorstr=[#ie#]) ';
-                          zoom: 1;'>
+                          zoom: 1;\">
             <marquee scrollamount='4'><b>$barNews</b></marquee>
             </div><div class='clearfix21'></div>");
            
