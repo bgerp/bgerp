@@ -68,6 +68,7 @@ class cat_Setup extends core_ProtoSetup
     		'migrate::makeProductsDocuments2',
     		'migrate::removeOldParams1',
     		'migrate::updateDocs',
+    		'migrate::fixStates',
         );
 
         
@@ -407,6 +408,30 @@ class cat_Setup extends core_ProtoSetup
     		$origin = doc_Containers::getDocument($jRec->originId);
     		$jRec->productId = $origin->that;
     		mp_Jobs::save($jRec, 'productId');
+    	}
+    }
+    
+    
+    /**
+     * Поправя грешните състояния
+     */
+    public function fixStates()
+    {
+    	$Products = cls::get('cat_Products');
+    	
+    	$query = $Products->getQuery();
+    	$query->where("#state IS NULL || (#brState IS NULL AND #state = 'rejected')");
+    	$query->show('id,name,state,brState');
+    	while($rec = $query->fetch()){
+    		if(is_null($rec->state)){
+    			$rec->state = 'active';
+    		}
+    		
+    		if($rec->state == 'rejected' && is_null($rec->brState)){
+    			$rec->brState = 'active';
+    		}
+    		
+    		$Products->save_($rec, 'state,brState');
     	}
     }
 }
