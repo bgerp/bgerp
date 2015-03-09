@@ -21,7 +21,7 @@ class mp_ProductionNotes extends deals_ManifactureMaster
 	/**
 	 * Заглавие
 	 */
-	public $title = 'Протоколи от производство';
+	public $title = 'Протоколи за производство';
 	
 	
 	/**
@@ -76,7 +76,7 @@ class mp_ProductionNotes extends deals_ManifactureMaster
 	/**
 	 * Заглавие в единствено число
 	 */
-	public $singleTitle = 'Протокол от производство';
+	public $singleTitle = 'Протокол за производство';
 	
 	
 	/**
