@@ -195,7 +195,10 @@ class store_ShipmentOrders extends store_DocumentMaster
     			$row->deliveryTo .= ", {$row->$fld}";
     		}
     	}
-    	$row->locationId = crm_Locations::getHyperLink($rec->locationId);
+    	
+    	if(isset($rec->locationId)){
+    		$row->locationId = crm_Locations::getHyperLink($rec->locationId);
+    	}
     }
     
     
