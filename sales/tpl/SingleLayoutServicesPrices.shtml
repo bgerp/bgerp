@@ -54,7 +54,7 @@
                                 [#sales_ServicesDetails#]
                             </div>
                             <div class="lines"></div>
-                            <table class="innerTable footer-notes no-border paddingCells" style='width:100%;'>
+                            <table class="innerTable footer-notes paddingCells" style='width:100%;'>
                                 <tbody>
                                     <tr>
                                         <!--ET_BEGIN LEFT_COLUMN-->
@@ -73,14 +73,30 @@
                                                     <td>[#locationId#]</td>
                                                 </tr>
                                                 <!--ET_END locationId-->
-                                                <!--ET_BEGIN note-->
+                                               
                                                 <tr>
-                                                    <td class='quiet' colspan=2>
+                                                    <td colspan=2>
+                                                     <!--ET_BEGIN note-->
                                                         <hr>
                                                         [#note#]
-                                                    </td>
+                                                      <!--ET_END note--> 
+                                                     <hr>
+                                                     <table class='centered' style='width:100%;'>
+		                                                <tr>
+		                                                    <td class='centered' style='border-right:1px solid #999;width:50%;'>|Получил|*:</td>
+		                                                    <td class='centered'>|Доставил|*:</td>
+		                                                </tr>
+		                                                <tr>
+		                                                    <td style='height:40px;border-right:1px solid #999'>&nbsp;</td>
+		                                                    <td></td>
+		                                                </tr>
+		                                                <tr>
+		                                                    <td class='centered' style='border-right:1px solid #999'> <span class="sign_names nowrap">[#received#]</span></td>
+		                                                    <td class='nowrap centered'><span class="sign_names">[#delivered#]</span></td>
+		                                                </tr>
+		                                             </table>
+		                                          </td>
                                                 </tr>
-                                                <!--ET_END note-->   
                                             </table>
                                         </td>
                                         <!--ET_END LEFT_COLUMN-->
@@ -134,21 +150,6 @@
                                                         <hr>
                                                         |Словом|*: [#sayWords#]
                                                     </td>
-                                                </tr>
-                                            </table>
-                                            <hr>
-                                            <table class='centered' style='width:100%;'>
-                                                <tr>
-                                                    <td class='centered' style='border-right:1px solid #999;width:50%;'>|Получил|*:</td>
-                                                    <td class='centered'>|Съставил|*:</td>
-                                                </tr>
-                                                <tr>
-                                                    <td style='height:40px;border-right:1px solid #999'>&nbsp;</td>
-                                                    <td></td>
-                                                </tr>
-                                                <tr>
-                                                    <td class='centered' style='border-right:1px solid #999'> <span class="sign_names nowrap">[#responsible#]</span></td>
-                                                    <td class='nowrap centered'><span class="sign_names">[#username#]</span></td>
                                                 </tr>
                                             </table>
                                         </td>
