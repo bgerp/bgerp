@@ -1208,7 +1208,7 @@ class email_Outgoings extends core_Master
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
     static function on_AfterPrepareEditForm($mvc, &$data)
-    {        
+    {
         $hintStr = tr('Смяна на езика');
         
         $rec = $data->form->rec;
@@ -1439,6 +1439,8 @@ class email_Outgoings extends core_Master
             }
             
             $data->__bodyLgArr = array('hint' => $hintStr, 'lg' => $currLg, 'data' => $bodyLangArr);
+            $data->form->layout = new ET($data->form->renderLayout());
+            $data->form->layout->append("\n runOnLoad(function(){ prepareLangBtn(" . json_encode($data->__bodyLgArr) . ")}); ", 'JQRUN');
             
             //Добавяме новите стойности на $rec
             if($threadId && !$forward) {
@@ -1573,26 +1575,7 @@ class email_Outgoings extends core_Master
             $data->form->addAttr('body', $langAttrArr);
             $data->form->addAttr('subject', $langAttrArr);
         }
-    }
-    
-    
-    /**
-     * Изпълнява се след опаковане на съдаржанието от мениджъра
-     *
-     * @param email_Outgoings $mvc
-     * @param string|core_ET $res
-     * @param string|core_ET $tpl
-     * @param stdClass $data
-     *
-     * @return NULL|boolean
-     */
-    protected static function on_AfterRenderWrapping($mvc, &$res, &$tpl = NULL, $data = NULL)
-    {
-        if (!$data->__bodyLgArr) return ;
-        
-        if (!($res instanceof core_ET)) return ;
-        
-        $res->append("\n runOnLoad(function(){ prepareLangBtn(" . json_encode($data->__bodyLgArr) . ")}); ", 'JQRUN');
+        $data->form->setField('body', array('attr' => array('onload' => 'console.log(\'a\');')));
     }
     
     
