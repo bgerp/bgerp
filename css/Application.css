@@ -1017,7 +1017,8 @@ td.portal-date {
     height: 20px; }
   .document .listTable .numericElement {
     text-align: right;
-    display: inline-block; }
+    display: inline-block;
+    white-space: nowrap; }
 
 .snapshot {
   margin-top: 10px;
