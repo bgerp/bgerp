@@ -157,7 +157,7 @@ class mp_transaction_ProductionNote extends acc_DocumentTransactionSource
 	 * 		Ct: 6111. Разходи по Центрове и Ресурси             (Центрове на дейност, Ресурси)
 	 * 
 	 */
-	private function getDirectEntry($dRec, $rec)
+	public static function getDirectEntry($dRec, $rec)
 	{
 		$entry = array();
 		

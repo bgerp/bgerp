@@ -137,11 +137,15 @@ class mp_ProductionNoteDetails extends deals_ManifactureDetail
     		// Имали активно задание за артикула ?
     		if($jobId = $ProductMan::getLastActiveJob($rec->productId)->id){
     			$rec->jobId = $jobId;
+    		} else {
+    			$rec->jobId = NULL;
     		}
     			
     		// Имали активна рецепта за артикула ?
     		if($bomRec = $ProductMan::getLastActiveBom($rec->productId)){
     			$rec->bomId = $bomRec->id;
+    		} else {
+    			$rec->bomId = NULL;
     		}
     			
     		// Не показваме полето за себестойност ако има активна рецепта и задание
@@ -201,15 +205,12 @@ class mp_ProductionNoteDetails extends deals_ManifactureDetail
      */
     protected static function on_AfterPrepareListRows($mvc, &$res)
     {
-    	$rows = &$res->rows;
     	$recs = &$res->recs;
     
     	$hasBomFld = $hasJobFld = FALSE;
     	
     	if (count($recs)) {
-    		foreach ($recs as $id=>$rec) {
-    			$row = &$rows[$id];
-    
+    		foreach ($recs as $id => $rec) {
     			$hasJobFld = !empty($rec->jobId) ? TRUE : $hasJobFld;
     			$hasBomFld = !empty($rec->bomId) ? TRUE : $hasBomFld;
     		}
@@ -222,5 +223,28 @@ class mp_ProductionNoteDetails extends deals_ManifactureDetail
     			unset($res->listFields['bomId']);
     		}
     	}
+    }
+    
+    
+    /**
+     * Можели артикула да бъде въведен от производство. Може ако:
+     * 
+     * 1. Вложим е, има ресурс и има дебитно салдо този ресурс
+     * 2. Има рецепта и задание
+     */
+    public static function canContoRec($rec, $masterRec)
+    {
+    	$entry = mp_transaction_ProductionNote::getDirectEntry($rec, $masterRec);
+    	
+    	if(!count($entry)){
+    		if(isset($rec->bomId) && isset($rec->jobId)){
+    			
+    			return TRUE;
+    		}
+    		
+    		return FALSE;
+    	}
+    	
+    	return TRUE;
     }
 }
