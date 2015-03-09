@@ -389,16 +389,17 @@ class cat_Products extends core_Embedder {
 		$categorySysId = ($categorySysId) ? $categorySysId : 'goods';
 		$categoryId = (is_numeric($categorySysId)) ? $categorySysId : cat_Categories::fetchField("#sysId = '{$categorySysId}'", 'id');
 		
-		$rec->folderId = cat_Categories::forceCoverAndFolder($categoryId);
-		$this->route($rec);
+		// Ако няма такъв артикул създаваме документа
+		if(!$exRec = $this->fetch("#code = '{$rec->code}'")){
+			$rec->folderId = cat_Categories::forceCoverAndFolder($categoryId);
+			$this->route($rec);
+		}
 		
 		$defMetas = cls::get('cat_Categories')->getDefaultMeta($categoryId);
 		$Driver = $this->getDriver($rec);
 		
 		$defMetas = $Driver->getDefaultMetas($defMetas);
-		if(empty($rec->meta)){
-			$rec->meta = $this->getFieldType('meta')->fromVerbal($defMetas);
-		}
+		$rec->meta = $this->getFieldType('meta')->fromVerbal($defMetas);
 	}
     
 	
@@ -423,10 +424,7 @@ class cat_Products extends core_Embedder {
     	
     	$rec->state = ($rec->state) ? $rec->state : 'active';
     	
-    	// Ако няма такъв артикул създаваме документа
-    	if(!$exRec = $mvc->fetch("#code = '{$rec->code}'")){
-    		$mvc->routePublicProduct($rec->csv_category, $rec);
-    	}
+    	$mvc->routePublicProduct($rec->csv_category, $rec);
     }
     
     
