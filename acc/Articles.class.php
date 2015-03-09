@@ -167,7 +167,7 @@ class acc_Articles extends core_Master
         $this->FLD('useCloseItems', 'enum(no=Не,yes=Да)', 'caption=Използване на приключени пера->Избор,maxRadio=2,notNull,default=no,input=none');
         
         // Ако потребителя има роля 'accMaster', може да контира/оотегля/възстановява МО с приключени права
-        if(haveRole('accMaster')){
+        if(haveRole('accMaster,ceo')){
             $this->canUseClosedItems = TRUE;
         }
     }
