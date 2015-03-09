@@ -690,19 +690,17 @@ class cal_Calendar extends core_Master
                 	}
                 	
                 	list ($d, $t) = explode(" ", $rec->time);
-                	
-                	if ($arr[$d]!= 'active') {
-                		if($rec->state == 'active') {
+                
+                	if ($arr[$d] != 'active') { 
+                		if($rec->state == 'active' || $rec->state == 'pending') { 
                 			$data[$i]->html = "<img style='height10px;width:10px;' src=". sbf('img/16/star_2.png') .">&nbsp;";
                 		} else {
                 			$data[$i]->html = "<img style='height10px;width:10px;' src=". sbf('img/16/star_grey.png') .">&nbsp;";
                 		}
-                	}
-
+                	}  
                 }
             }
         }
-
         
         for($i = 1; $i <= 31; $i++) {
             if(!isset($data[$i])) {
