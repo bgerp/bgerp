@@ -86,14 +86,22 @@ class mp_transaction_ProductionNote extends acc_DocumentTransactionSource
 				
 					if(count($mapArr)){
 						foreach ($mapArr as $index => $res){
-							
-							/*
-							 * За всеки ресурс началното количество се разделя на количеството от заданието и се събира
-							 * с пропорционалното количество. След това се умножава по количеството посочено в протокола за
-							 * от производството и това количество се изписва от ресурсите.
-							 */
-							$resQuantity = $dRec->quantity * ($res->baseQuantity / $quantityJob + $res->propQuantity);
-							$resQuantity = core_Math::roundNumber($resQuantity);
+							if($res->type == 'input'){
+								
+								/*
+								 * За всеки ресурс началното количество се разделя на количеството от заданието и се събира
+								 * с пропорционалното количество. След това се умножава по количеството посочено в протокола за
+								 * от производството и това количество се изписва от ресурсите.
+								 */
+								$resQuantity = $dRec->quantity * ($res->baseQuantity / $quantityJob + $res->propQuantity);
+								$resQuantity = core_Math::roundNumber($resQuantity);
+									
+								$res->finalQuantity = $resQuantity;
+							}
+						}
+						arr::order($mapArr, 'finalQuantity', 'DESC');
+						
+						foreach ($mapArr as $index => $res){
 							$pQuantity = ($index == 0) ? $dRec->quantity : 0;
 							
 							if($res->type == 'input'){
@@ -104,12 +112,14 @@ class mp_transaction_ProductionNote extends acc_DocumentTransactionSource
 												'quantity' => $pQuantity),
 										'credit' => array('611', array('hr_Departments', $rec->activityCenterId)
 												, 				 array('mp_Resources', $res->resourceId),
-												'quantity' => $resQuantity),
+												'quantity' => $res->finalQuantity),
 								);
 							} else {
 								
 								// Сумата на дебита е себестойността на отпадния ресурс
 								$amount = $resQuantity * mp_Resources::fetchField($res->resourceId, "selfValue");
+								$resQuantity = $dRec->quantity * ($res->baseQuantity / $quantityJob + $res->propQuantity);
+								$resQuantity = core_Math::roundNumber($resQuantity);
 								
 								$entry = array(
 										'amount' => $amount,
@@ -118,7 +128,7 @@ class mp_transaction_ProductionNote extends acc_DocumentTransactionSource
 														'quantity' => $resQuantity),
 										'credit' => array('321', array('store_Stores', $rec->storeId),
 																 array($dRec->classId, $dRec->productId),
-															'quantity' => $resQuantity),
+															'quantity' => $pQuantity),
 								);
 								
 								$total += $amount;
