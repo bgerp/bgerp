@@ -46,6 +46,12 @@ class mp_ProductionNotes extends deals_ManifactureMaster
 	/**
 	 * Кой има право да чете?
 	 */
+	public $canConto = 'ceo,mp';
+	
+	
+	/**
+	 * Кой има право да чете?
+	 */
 	public $canRead = 'ceo,mp';
 	
 	

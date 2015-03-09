@@ -50,6 +50,12 @@ class mp_ConsumptionNotes extends deals_ManifactureMaster
 	
 	
 	/**
+	 * Кой има право да чете?
+	 */
+	public $canConto = 'ceo,mp';
+	
+	
+	/**
 	 * Кой може да го разглежда?
 	 */
 	public $canList = 'ceo,mp';
@@ -147,11 +153,11 @@ class mp_ConsumptionNotes extends deals_ManifactureMaster
 	 */
 	public function act_Resave()
 	{
-		$this->requireRightFor('write');
+		$this->requireRightFor('edit');
 		expect($id = Request::get('id', 'int'));
 		expect($rec = $this->fetchRec($id));
 		
-		$this->requireRightFor('write', $rec);
+		$this->requireRightFor('edit', $rec);
 		
 		$this->save($rec);
 		
