@@ -118,6 +118,7 @@ class bank_CashWithdrawOrders extends core_Master
      */
     var $newBtnGroup = "4.92|Финанси";
     
+    
     /**
      * Стратегии за дефолт стойностти
      */
