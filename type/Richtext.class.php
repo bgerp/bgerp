@@ -110,12 +110,19 @@ class type_Richtext extends type_Blob
         // Атрибута 'id' се сетва с уникален такъв, ако не е зададен
         ht::setUniqId($attr);
         
-        $attr['onselect'] = 'sc(this);';
-        $attr['onclick'] = 'sc(this);';
-        $attr['onkeyup'] = 'sc(this);';
-        $attr['onchange'] = 'sc(this);';
-        $attr['onfocus'] = "getEO().textareaFocus('{$attr['id']}');";
-        $attr['onblur'] = "getEO().textareaBlur('{$attr['id']}');";
+        $attr['onselect'] .= ($attr['onselect']) ? ' ' : '';
+        $attr['onclick'] .= ($attr['onclick']) ? ' ' : '';
+        $attr['onkeyup'] .= ($attr['onkeyup']) ? ' ' : '';
+        $attr['onchange'] .= ($attr['onchange']) ? ' ' : '';
+        $attr['onfocus'] .= ($attr['onfocus']) ? ' ' : '';
+        $attr['onblur'] .= ($attr['onblur']) ? ' ' : '';
+        
+        $attr['onselect'] .= 'sc(this);';
+        $attr['onclick'] .= 'sc(this);';
+        $attr['onkeyup'] .= 'sc(this);';
+        $attr['onchange'] .= 'sc(this);';
+        $attr['onfocus'] .= "getEO().textareaFocus('{$attr['id']}');";
+        $attr['onblur'] .= "getEO().textareaBlur('{$attr['id']}');";
         
         // Сигнализиране на потребителя, ако въведе по-дълъг текст от допустимото
         setIfNot($size, $this->params['size'], $this->params[0]);
