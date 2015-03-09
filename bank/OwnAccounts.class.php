@@ -494,15 +494,6 @@ class bank_OwnAccounts extends core_Master {
     
     
     /**
-     * Поставя изискване да се селектират само активните записи
-     */
-    public static function on_BeforeMakeArray4Select($mvc, &$optArr, $fields = NULL, &$where = NULL)
-    {
-        $where .= ($where ? " AND " : "") . " #state != 'rejected'";
-    }
-    
-    
-    /**
      * Преди подготовка на резултатите
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
