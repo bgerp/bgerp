@@ -91,15 +91,15 @@
                                             <table class='centered' style='width:100%'>
                                                 <tr>
                                                     <td class='centered' style='border-right:1px solid #999;width:50%;'>|Получил|*:</td>
-                                                    <td class='centered'>|Съставил|*:</td>
+                                                    <td class='centered'>|Доставил|*:</td>
                                                 </tr>
                                                 <tr>
                                                     <td style='height:40px;border-right:1px solid #999'>&nbsp;</td>
                                                     <td></td>
                                                 </tr>
                                                 <tr>
-                                                    <td class='centered' style='border-right:1px solid #999'> <span class="sign_names nowrap">[#responsible#]</span></td>
-                                                    <td class='nowrap centered'><span class="sign_names">[#username#]</span></td>
+                                                    <td class='centered' style='border-right:1px solid #999'> <span class="sign_names nowrap">[#received#]</span></td>
+                                                    <td class='nowrap centered'><span class="sign_names">[#delivered#]</span></td>
                                                 </tr>
                                             </table>
                                         </td>
