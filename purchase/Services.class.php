@@ -152,8 +152,6 @@ class purchase_Services extends deals_ServiceMaster
     {
         parent::setServiceFields($this);
         $this->FLD('activityCenterId', 'key(mvc=hr_Departments, select=name, allowEmpty)', 'caption=Център на дейност,mandatory,after=locationId');
-    	$this->FLD('received', 'varchar', 'caption=Получил,after=deliveryTime');
-    	$this->FLD('delivered', 'varchar', 'caption=Доставил,after=received');
     }
      
      
