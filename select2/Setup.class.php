@@ -116,6 +116,9 @@ class select2_Setup extends core_ProtoSetup {
         $html .= $Plugins->forcePlugin('Select2 за тип Item', 'select2_PluginSelect', 'acc_type_Item', 'private');
         $html .= $Plugins->forcePlugin('Select2 за тип Account', 'select2_PluginSelect', 'acc_type_Account', 'private');
         
+        // Плъгини за enum
+        $html .= $Plugins->forcePlugin('Select2 за тип Enum', 'select2_PluginEnum', 'type_Enum', 'private');
+        
         return $html;
     }
 }
