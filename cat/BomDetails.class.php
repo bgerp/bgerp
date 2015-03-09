@@ -50,7 +50,7 @@ class cat_BomDetails extends doc_Detail
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    var $rowToolsField = 'id';
+    var $rowToolsField = 'tools';
     
     
     /**
@@ -98,7 +98,7 @@ class cat_BomDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, stageId, resourceId, measureId=Мярка, baseQuantity=Начално,propQuantity=Пропорц.';
+    public $listFields = 'tools=Пулт, stageId, resourceId, measureId=Мярка, baseQuantity=Начално,propQuantity=Пропорц.';
     
     
     /**
@@ -125,6 +125,7 @@ class cat_BomDetails extends doc_Detail
     {
     	$data->listFields['resourceId'] = ' ';
     	$data->listFields['propQuantity'] = "|За|* " . $data->masterData->row->quantity;
+    	$data->query->orderBy("type");
     }
     
     
