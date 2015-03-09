@@ -968,7 +968,8 @@ class cal_Tasks extends core_Master
         
         // Подготвяме запис за началната дата
         if($rec->timeStart && $rec->timeStart >= $fromDate && $rec->timeStart <= $toDate && ($rec->state == 'active' || $rec->state == 'closed' || $rec->state == 'draft'|| $rec->state == 'pending') ||
-           $rec->timeCalc && $rec->timeCalc >= $fromDate && $rec->timeCalc <= $toDate && ($rec->state == 'active' || $rec->state == 'closed' || $rec->state == 'draft'|| $rec->state == 'pending')) {
+           $rec->timeCalc && $rec->timeCalc >= $fromDate && $rec->timeCalc <= $toDate && ($rec->state == 'active' || $rec->state == 'closed' || $rec->state == 'draft'|| $rec->state == 'pending') ||
+           $rec->expectationTimeStart && $rec->expectationTimeStart >= $fromDate && $rec->expectationTimeStart <= $toDate && ($rec->state == 'active' || $rec->state == 'closed' || $rec->state == 'draft'|| $rec->state == 'pending')) {
             
             $calRec = new stdClass();
                 
@@ -1130,12 +1131,10 @@ class cal_Tasks extends core_Master
 	   $now = dt::verbal2mysql();
        
 	   while ($rec = $query->fetch()) { 
- 
-	   	   // изчисляваме очакваните времена
-	   	
-	   		//bp($rec->expectationTimeEnd, $rec);
-	   
+
+   	   	   // изчисляваме очакваните времена
 		   self::calculateExpectationTime($rec);
+		   // обновяваме в календара
 		   self::updateTaskToCalendar($rec->id);
 		   // и проверяваме дали може да я активираме
 		   $canActivate = self::canActivateTask($rec);
@@ -1924,13 +1923,14 @@ class cal_Tasks extends core_Master
 		     	
 		    // задачата не е зависима от други задачи
     		} else { 
+    			$timeStart = self::fetchField($rec->id, "timeStart");
     			$timeEnd = self::fetchField($rec->id, "timeEnd");
     			$timeDuration = self::fetchField($rec->id, "timeDuration");
     			
-    			if ($rec->timeStart != NULL) {
+    			if ($timeStart != NULL) {
     				// времето за стартиране е времето оказано от потребителя
-    				$calcTime = $rec->timeStart;
-    			} elseif (!$rec->timeStart && ($timeEnd && $timeDuration)) {
+    				$calcTime = $timeStart;
+    			} elseif (!$timeStart && ($timeEnd && $timeDuration)) {
     				
     				$calcTime =  dt::timestamp2Mysql(dt::mysql2timestamp($timeEnd) - $timeDuration);
     			} else { 
