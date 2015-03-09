@@ -5,6 +5,19 @@
 }
 
 .gradient-light {
+	background: #4a4a4a;
+	background: -moz-linear-gradient(top, #999999 0%, #888888 100%);
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #999999), color-stop(100%, #888888));
+	background: -webkit-linear-gradient(top, #999999 0%, #888888 100%);
+	background: -o-linear-gradient(top, #999999 0%, #888888 100%);
+	background: -ms-linear-gradient(top, #999999 0%, #888888 100%);
+	background: linear-gradient(to bottom, #999999 0%, #888888 100%);
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#999', endColorstr='#888', GradientType=0 );
+	box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.4);
+	border: 1px solid #777 !important;
+}
+
+.gradient-dark {
 	background: #666666; /* Old browsers */
 	background: -moz-linear-gradient(top,  #999 0%, #555555 100%); /* FF3.6+ */
 	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#666666), color-stop(100%,#555555)); /* Chrome,Safari4+ */
@@ -143,7 +156,7 @@
 
 /*poziciq na tabobete, ako moje da minat kym headyra*/
 #maincontent > .tab-control > .tab-row{
-	@extend .gradient-light;
+	@extend .gradient-dark;
 	border-bottom: 1px solid #bbb;
 	overflow: hidden;
 	position: fixed;
@@ -570,11 +583,14 @@ select, input, textarea , .chzn-container-single .chzn-single, .chzn-container-a
 }
 
 
-.formTitle, .formGroup, .narrow .vertical .formTitle {
+.formTitle, .formGroup, .narrow .vertical .formTitle{
 	@extend .gradient-light;
-    border: 1px solid #ccc !important;
-    padding: 5px;
 }
+
+.wide .vertical .formTable {
+	box-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+}
+
 form[method="post"] input[type="submit"] {
 	background-color: #888;
 	text-shadow: none;
@@ -590,7 +606,6 @@ form[method=post] input[type=button], form[method=post] a.button {
 
 .vertical .formTitle {
     font-size: 1.05em;
-    padding: 5px;
 }
 
 .vertical .formSection {
@@ -662,8 +677,8 @@ table.listTable > tbody > tr > td {
 }
 
 .accordian li.btns-title {
-	@extend .gradient-light;
-	border: 1px solid #555 !important;
+    @extend gradient-light;
+	border: 1px solid #777 !important;
     border-bottom: none;
 }
 
