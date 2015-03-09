@@ -228,7 +228,7 @@
                                                 <td colspan='3' style='text-align:right'>
                                                     <!--ET_BEGIN sayWords-->
                                                     <hr>
-                                                    |С думи|*:
+                                                    |С думи|* / <i>Say words</i>:
                                                     [#sayWords#]
                                                     <!--ET_END sayWords-->
                                                 </td>
