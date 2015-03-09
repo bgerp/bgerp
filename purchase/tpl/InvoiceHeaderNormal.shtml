@@ -73,7 +73,7 @@
                                         </table>
                                     </td>
                                     <td class="cell">
-                                        <table cellspacing="2">
+                                        <table>
                                             <tbody>
                                                 <!--ET_BEGIN contragentVatNo-->
                                                 <tr>
@@ -82,7 +82,7 @@
                                                 </tr>
                                                 <!--ET_END contragentVatNo-->
                                                 <tr>
-                                                    <td class="aright"><small>[#cNum#]</small>:</td>
+                                                    <td class="aright"><small>|ЕИК|*</small>:</td>
                                                     <td><span class="bigData" style='padding-left:5px;'>[#uicNo#]</span></td>
                                                 </tr>
                                             </tbody>
@@ -98,7 +98,7 @@
                         </div>
                         <!--ET_END sales_InvoiceDetails-->
                         <div class="lines"></div>
-                        <table class="innerTable footer-notes" border="1" cellpadding="5" style='width:100%'>
+                        <table class="innerTable footer-notes" style='width:100%'>
                             <tbody>
                                 <tr>
                                     <td style='line-height: 140%;'>
@@ -112,7 +112,7 @@
                                         <span class='quiet'>|Курс|*:</span>  [#rate#]
                                         <!--ET_END rate-->  
                                         <div class='custom-bg-block'><b>|Плащане|*</b></div>
-                                        <div><span class='quiet'>|Начин|* / <i>Type</i>:</span>  [#paymentType#]</div>
+                                        <div><span class='quiet'>|Начин|*:</span>  [#paymentType#]</div>
                                         <!--ET_BEGIN paymentMethodId-->
                                         <div><span class='quiet'>|Метод|* :</span>  [#paymentMethodId#]</div>
                                         <!--ET_END paymentMethodId-->
