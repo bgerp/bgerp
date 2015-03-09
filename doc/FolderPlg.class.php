@@ -175,7 +175,7 @@ class doc_FolderPlg extends core_Plugin
     	
     	$cu = core_Users::getCurrent();
 
-        if(!haveRole('ceo1') && $cu >0) {
+        if(!haveRole('ceo') && $cu >0) {
             $add = "NOT (#access = 'secret' AND #inCharge != $cu AND !(#shared LIKE '%|{$cu}|%')) || (#access IS NULL)";
             if($where) {
                 $where = "($where) AND " . $add;
