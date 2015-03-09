@@ -1830,8 +1830,7 @@ function checkForHiddenGroups() {
 
             //за всеки инпут проверяваме дали е чекнат
             currentInput.each(function() {
-                var checkInput = $(this);
-                if (checkInput.attr('checked') == 'checked') {
+                if (this.checked) {
                     checked = 1;
                 }
             });
@@ -1916,10 +1915,10 @@ function inverseCheckBox(el){
 	
 	//инвертираме
 	$(trItems).find('.checkbox').each(function() {
-		if( $(this).attr('checked') == 'checked') {
-			$(this).removeAttr('checked');
+		if(this.checked) {
+			$(this).prop('checked',false);
 		} else {
-			$(this).attr('checked', 'checked');
+			$(this).prop('checked',true);
 		}
 	});
 }
