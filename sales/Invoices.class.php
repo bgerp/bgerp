@@ -100,7 +100,7 @@ class sales_Invoices extends deals_InvoiceMaster
     /**
      * Кой има право да добавя?
      */
-    public $canExport = 'ceo,salesMaster';
+    public $canExport = 'ceo,sales';
     
     
     /**
