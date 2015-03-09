@@ -1039,9 +1039,9 @@ function toggleAllCheckboxes() {
     $('[id^=cb_]').each(function() {
         var id = $(this).attr('id').replace(/^\D+/g, '');
         if ($(this).is(":checked") == true) {
-            $(this).removeAttr("checked");
+            $(this).prop('checked',false);
         } else {
-            $(this).attr("checked", "checked");
+            $(this).prop('checked',true); 
         }
         chRwCl(id);
     });
