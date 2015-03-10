@@ -114,11 +114,11 @@ class select2_PluginSelect extends core_Plugin
    /**
     * Отпечатва резултата от опциите в JSON формат
     * 
-    * @param core_Type $mvc
+    * @param core_Type $invoker
     * @param string|NULL|core_ET $res
     * @param string $action
     */
-   function on_BeforeAction($mvc, &$res, $action)
+   function on_BeforeAction($invoker, &$res, $action)
    {
         if ($action != 'getoptions') return ;
        
@@ -130,7 +130,7 @@ class select2_PluginSelect extends core_Plugin
         
         $hnd = Request::get('hnd');
         core_Logs::add('type_Key', NULL, "ajaxGetOptions|{$hnd}|{$q}", 1);
-        if (!$hnd || !($options = unserialize(core_Cache::get($mvc->selectOpt, $hnd)))) {
+        if (!$hnd || !($options = unserialize(core_Cache::get($invoker->selectOpt, $hnd)))) {
             
             core_App::getJson(array(
                 (object)array('name' => 'Липсват допълнителни опции')
@@ -144,7 +144,7 @@ class select2_PluginSelect extends core_Plugin
         $cnt = 0;
         
         if (!($maxSuggestions = Request::get('maxSugg', 'int'))) {
-            $maxSuggestions = $mvc->getMaxSuggestions();
+            $maxSuggestions = $invoker->getMaxSuggestions();
         }
         $group = FALSE;
         foreach ($options as $key => $titleArr) {
@@ -197,5 +197,20 @@ class select2_PluginSelect extends core_Plugin
         core_App::getJson($resArr);
         
         return FALSE;
+   }
+   
+   
+   /**
+    * 
+    * 
+    * @param core_Type $invoker
+    * @param integer|NULL $res
+    */
+   function on_AfterGetMaxSuggestions($invoker, &$res)
+   {
+       if (!isset($res)) {
+           
+           $res = 1000000;
+       }
    }
 }

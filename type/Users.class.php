@@ -42,7 +42,6 @@ class type_Users extends type_Keylist
         
         setIfNot($this->params['rolesForAll'], 'ceo');
         $this->params['rolesForAll'] = str_replace("|", ",", $this->params['rolesForAll']);
-        $this->params['select2Multiple'] = FALSE;
     }
     
     
