@@ -10,10 +10,10 @@ defIfNot(JQPLOT_VERSION, '1.0.8r1250');
 /**
  * 
  * 
- * @category  vendors
+ * @category  bgerp
  * @package   jqplot
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -39,6 +39,13 @@ class jqplot_Setup extends core_ProtoSetup
     public $configDescription = array(
         'JQPLOT_VERSION' => array ('enum(1.0.0r1012,1.0.8r1250)', 'caption=Версия на JQPlot->Версия'), 
     );
+    
+    
+    /**
+     * Пакет без инсталация
+     */
+    public $noInstall = TRUE;
+    
     
 	
 	/**

@@ -11,7 +11,7 @@ defIfNot('LOCATION_DEFAULT_REGION', '');
 /**
  * 
  * 
- * @category  vendors
+ * @category  bgerp
  * @package   location
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2012 - 2015 Experta OOD
@@ -25,19 +25,25 @@ class location_Setup extends core_ProtoSetup
     /**
      * Версията на пакета
      */
-    var $version = '0.1';
+    public $version = '0.1';
     
     
     /**
      * Описание на модула
      */
-    var $info = "Локация";
+    public $info = "Локация";
+    
+    
+    /**
+     * Пакет без инсталация
+     */
+    public $noInstall = TRUE;
     
     
     /**
      * Описание на конфигурационните константи
      */
-    var $configDescription = array(
+    public $configDescription = array(
     
         'LOCATION_DEFAULT_REGION' => array ('varchar', 'mandatory, caption=Кой регион да се използва по подрабиране->Регион'),
     );
