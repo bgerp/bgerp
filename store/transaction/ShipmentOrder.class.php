@@ -234,9 +234,7 @@ class store_transaction_ShipmentOrder extends acc_DocumentTransactionSource
         	$debitAccId = (isset($pInfo->meta['materials'])) ? '706' : '701';
         	$creditAccId = '321';
         	
-        	$selfValue = cls::get($detailRec->classId)->getSelfValue($detailRec->productId, $detailRec->packagingId, $detailRec->quantity, $rec->valior);
         	$entries[] = array(
-        		 'amount' => $sign * $selfValue * $detailRec->quantity,
 	             'debit' => array(
 	                    $debitAccId, 
 	                        array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент

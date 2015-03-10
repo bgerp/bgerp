@@ -312,9 +312,7 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
         		$creditAccId = '321';
         		$debitAccId = ($materials) ? '706' : '701';
         		
-        		$selfValue = cls::get($detailRec->classId)->getSelfValue($detailRec->productId, $detailRec->packagingId, $detailRec->quantity, $rec->valior);
         		$entries[] = array(
-        			'amount' => $selfValue * $detailRec->quantity,
 	                'debit' => array(
 	                    $debitAccId,
 	                        array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
