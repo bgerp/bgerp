@@ -70,7 +70,7 @@ class mp_transaction_ProductionNote extends acc_DocumentTransactionSource
 		$dQuery = mp_ProductionNoteDetails::getQuery();
 		$dQuery->where("#noteId = {$rec->id}");
 		
-			
+		$errorArr = array();
 		while($dRec = $dQuery->fetch()){
 	
 			$entry = $this->getDirectEntry($dRec, $rec);
@@ -140,6 +140,18 @@ class mp_transaction_ProductionNote extends acc_DocumentTransactionSource
 				}
 			} else {
 				$entries[] = $entry;
+			}
+			
+			if(!$entry){
+				$errorArr[] = cls::get($dRec->classId)->getVerbal($dRec->productId, 'name');
+			}
+		}
+		
+		// Ако някой от артикулите не може да бдъе произведем сетваме че ще правимр едирект със съобщението
+		if(Mode::get('saveTransaction')){
+			if(count($errorArr)){
+				$errorArr = implode(', ', $errorArr);
+				acc_journal_RejectRedirect::expect($entry, "Артикулите: |{$errorArr}|* не може да бъдат произведени");
 			}
 		}
 		
