@@ -890,4 +890,19 @@ class support_Issues extends core_Master
     	// Показваме бутона само ако корицата на папката поддържа интерфейса 'support_IssueIntf'
     	return ($Cover->haveInterface('support_IssueIntf')) ? TRUE : FALSE;
     }
+    
+
+    /**
+     * Извиква се след успешен запис в модела
+     *
+     * @param support_Issues $mvc
+     * @param int $id първичния ключ на направения запис
+     * @param stdClass $rec всички полета, които току-що са били записани
+     */
+    public static function on_AfterSave($mvc, &$id, $rec)
+    {
+        if ($rec->componentId) {
+            support_Components::markAsUsed($rec->componentId);
+        }
+    }
 }
