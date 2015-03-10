@@ -1,4 +1,4 @@
-<div class='SingleView'>
+<div class='singleView'>
     [#SingleToolbar#]
     <div class='scrolling-holder'>
         <div class="folder-cover [#STATE_CLASS#]">
