@@ -24,6 +24,10 @@ a.datepick-cmd {
 	height: 26px;
 }
 
+.narrow .select2-container .select2-selection--single {
+    height: 29px;
+}
+
 .select2-container .select2-selection--single .select2-selection__rendered {
 	padding-left: 4px;
 	color: #000;
