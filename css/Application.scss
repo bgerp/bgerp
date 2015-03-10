@@ -2714,11 +2714,14 @@ div.no-cover {
 	max-width: 725px;
 	@include border-radius(5px);
 	border: 1px solid #ccc;
-	padding: 10px 20px 20px;
+	padding: 20px 20px 20px;
 	margin-top: 16px;
 	h2 {
 		margin-top: 0;
 		background-color: transparent;
+		&.state-rejected {
+		    background-color: #c66;
+		}
 	}
 	ul {
 		padding: 0;

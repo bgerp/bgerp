@@ -2467,11 +2467,13 @@ div.no-cover {
   -ms-border-radius: 5px;
   border-radius: 5px;
   border: 1px solid #cccccc;
-  padding: 10px 20px 20px;
+  padding: 20px 20px 20px;
   margin-top: 16px; }
   div.no-cover h2 {
     margin-top: 0;
     background-color: transparent; }
+    div.no-cover h2.state-rejected {
+      background-color: #cc6666; }
   div.no-cover ul {
     padding: 0;
     margin: 0;
