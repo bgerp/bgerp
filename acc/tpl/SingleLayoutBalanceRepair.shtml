@@ -1,9 +1,11 @@
 [#SingleToolbar#]
 <div class='document'>
     <!--ET_BEGIN header-->
+    [#header#]
     <div class='header [#STATE_CLASS#]'>
-        <div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
+         <div class='docBgIcon' style='[#iconStyle#];'>[#singleTitle#] <b>[#ident#]</b> ([#state#])</div>
     </div>
+    <!--ET_BEGIN header-->
     <div>|Баланс|*: [#balanceId#]</div>
     <div>|Модифицирано на|*: [#modifiedOn#]</div>
     <div>|Модифцирано от|*: [#modifiedBy#]</div>

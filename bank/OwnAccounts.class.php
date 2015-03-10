@@ -356,7 +356,7 @@ class bank_OwnAccounts extends core_Master {
      * 
      * @return stdClass $acc - записа отговарящ на текущата ни сметка
      */
-    protected static function getOwnAccountInfo($id = NULL)
+    public static function getOwnAccountInfo($id = NULL)
     {
         if($id) {
             $ownAcc = static::fetch($id);
@@ -424,7 +424,7 @@ class bank_OwnAccounts extends core_Master {
             $account = bank_Accounts::fetch($rec->bankAccountId);
             $cCode = currency_Currencies::getCodeById($account->currencyId);
             $result = (object)array(
-                'num'      => "B" . $rec->id,
+                'num'      => $rec->id  . " b",
                 'title'    => $cCode . " - " . $rec->title,
                 'features' => 'foobar' // @todo!
             );
@@ -490,15 +490,6 @@ class bank_OwnAccounts extends core_Master {
                 }
             }
         }
-    }
-    
-    
-    /**
-     * Поставя изискване да се селектират само активните записи
-     */
-    public static function on_BeforeMakeArray4Select($mvc, &$optArr, $fields = NULL, &$where = NULL)
-    {
-        $where .= ($where ? " AND " : "") . " #state != 'rejected'";
     }
     
     

@@ -44,6 +44,8 @@ abstract class deals_ServiceMaster extends core_Master
 		// Доставка
 		$mvc->FLD('locationId', 'key(mvc=crm_Locations, select=title)', 'caption=Обект до,silent');
 		$mvc->FLD('deliveryTime', 'datetime', 'caption=Срок до');
+		$mvc->FLD('received', 'varchar', 'caption=Получил');
+		$mvc->FLD('delivered', 'varchar', 'caption=Доставил');
 		
 		// Допълнително
 		$mvc->FLD('note', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Бележки');
@@ -169,15 +171,6 @@ abstract class deals_ServiceMaster extends core_Master
     		$data->summary = deals_Helper::prepareSummary($this->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat);
     		$data->row = (object)((array)$data->row + (array)$data->summary);
     	}
-    }
-
-
-    /**
-     * След подготовка на единичния изглед
-     */
-    public static function on_AfterPrepareSingle($mvc, &$res, &$data)
-    {
-    	$data->row->header = $mvc->singleTitle . " #<b>{$mvc->abbr}{$data->row->id}</b> ({$data->row->state})";
     }
 
 

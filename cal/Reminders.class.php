@@ -358,7 +358,7 @@ class cal_Reminders extends core_Master
     	
         // Добавяме поле във формата за търсене
        
-        $data->listFilter->FNC('selectedUsers', 'users', 'caption=Потребител,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
+        $data->listFilter->FNC('selectedUsers', 'users', 'caption=Потребител,input,silent,refreshForm');
                 
         $data->listFilter->view = 'horizontal';
         
@@ -513,25 +513,27 @@ class cal_Reminders extends core_Master
     }
     
     
-    static function on_AfterInputChanges($mvc, &$res, $rec) 
+    static function on_AfterInputChanges($mvc, &$oldRec, $newRec) 
     {
     	// Ако не е обект, а е подаден id
-        if (!is_object($rec)) {
+        if (!is_object($newRec)) {
             
             // Опитваме се да извлечем данните
-            $rec = cal_Reminders::fetch($rec);
+            $rec = cal_Reminders::fetch($newRec);
         }
         
         // Очакваме да има такъв запис
-        expect($rec, 'Няма такъв запис');
+        expect($newRec, 'Няма такъв запис');
     	
-    	if ($res->state === 'closed') {
-    		$rec->state = 'active';
+    	if ($newRec->state === 'closed') {
+    		$newRec->state = 'active';
     	}
     	
-    	if ($res->notifySent === 'yes') {
-    		$rec->notifySent = 'no';
+    	if ($newRec->notifySent === 'yes') {
+    		$newRec->notifySent = 'no';
     	}
+    	
+        doc_Containers::changeNotifications($newRec, $oldRec->sharedUsers, $newRec->sharedUsers);
     }
  
     

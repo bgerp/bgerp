@@ -140,13 +140,13 @@ class cat_products_Params extends core_Manager
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
     public static function on_AfterPrepareEditForm($mvc, $data)
-    {
+    { 
         $form = &$data->form;
-        $masterTitle = cls::get($form->rec->classId)->getProductTitle($form->rec->productId);
+        $masterTitle = cls::get($form->rec->classId)->getTitleById($form->rec->productId);
         
     	if(!$form->rec->id){
     		$form->title = "Добавяне на параметър към|* <b>{$masterTitle}</b>";
-    		$form->addAttr('paramId', array('onchange' => "addCmdRefresh(this.form);this.form.submit();"));
+    		$form->setField('paramId', array('removeAndRefreshForm' => "paramValue|paramValue[lP]|paramValue[rP]"));
 	    	expect($productId = $form->rec->productId);
 			$options = self::getRemainingOptions($productId, $form->rec->classId, $form->rec->id);
 			expect(count($options));
@@ -280,10 +280,16 @@ class cat_products_Params extends core_Manager
         if($requiredRoles == 'no_one') return;
     	
         if ($action == 'add' && isset($rec->productId) && isset($rec->classId)) {
-        	$pState = cls::get($rec->classId)->fetchField($rec->productId, 'state');
-        	if (!count($mvc::getRemainingOptions($rec->productId, $rec->classId)) || $pState == 'rejected') {
+        	$pRec = cls::get($rec->classId)->fetch($rec->productId);
+        	
+        	// Ако няма оставащи параметри или състоянието е оттеглено, не може да се добавят параметри
+        	if (!count($mvc::getRemainingOptions($rec->productId, $rec->classId)) || $pRec->state == 'rejected') {
                 $requiredRoles = 'no_one';
-            } 
+            } elseif($pRec->innerClass != cat_GeneralProductDriver::getClassId()) {
+            	
+            	// Добавянето е разрешено само акод райвера на артикула е универсалния артикул
+            	$requiredRoles = 'no_one';
+            }
         }
     }
     

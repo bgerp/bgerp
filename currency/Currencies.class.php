@@ -19,7 +19,7 @@ class currency_Currencies extends core_Master {
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    var $interfaces = 'acc_RegisterIntf, currency_CurrenciesAccRegIntf';
+    var $interfaces = 'acc_RegisterIntf, currency_CurrenciesAccRegIntf, acc_RegistryDefaultCostIntf';
     
     
     /**
@@ -126,14 +126,20 @@ class currency_Currencies extends core_Master {
     
     
     /**
+     * В коя номенклатура да се добави при активиране
+     */
+    var $addToListOnActivation = 'currencies';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
     {
         $this->FLD('name', 'varchar(64)', 'caption=Наименование,width=100%,mandatory');
         $this->FLD('code', 'varchar(3)', 'caption=Код,mandatory,width=60px');
-        $this->FLD('lastUpdate', 'date', 'caption=Последно->обновяване, input=none');
-        $this->FLD('lastRate', 'double', 'caption=Последно->курс, input=none');
+        $this->FLD('lastUpdate', 'date', 'caption=Последно->Обновяване, input=none');
+        $this->FLD('lastRate', 'double(decimals=5)', 'caption=Последно->Курс, input=none');
         
         $this->setDbUnique('code');
     }
@@ -187,6 +193,29 @@ class currency_Currencies extends core_Master {
             
             // Сменяме заглавието
             $data->title = 'Валути в група "|*' . $groupRec->name . "\"";
+        }
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param currency_Currencies $mvc
+     * @param object $data
+     * @param object $data
+     */
+    public static function on_AfterPrepareListRecs($mvc, &$res, $data)
+    {
+        $accConf = core_Packs::getConfig('acc');
+        
+        $bgnRate = $mvc->fetchField(array("#code = '[#1#]'", $accConf->BASE_CURRENCY_CODE), 'lastRate');
+        
+        if (!$bgnRate) return ;
+        
+        foreach ((array)$data->recs as $rec) {
+            if (!$rec->lastRate) continue;
+            
+            $rec->lastRate = $bgnRate / $rec->lastRate;
         }
     }
     
@@ -282,24 +311,6 @@ class currency_Currencies extends core_Master {
     
     
     /**
-     * След промяна на обект от регистър
-     */
-    protected static function on_AfterSave($mvc, &$id, &$rec, $fieldList = NULL)
-    {
-    	if($rec->state == 'active'){
-    		
-    		// Ако валутата е активна, добавя се като перо
-    		$rec->lists = keylist::addKey($rec->lists, acc_Lists::fetchField(array("#systemId = '[#1#]'", 'currencies'), 'id'));
-    		acc_Lists::updateItem($mvc, $rec->id, $rec->lists);
-    	} else {
-			// Ако валутата НЕ е активна, перото се изтрива ("изключва" ако вече е използвано)
-			$rec->lists = keylist::addKey($rec->lists, acc_Lists::fetchField(array("#systemId = '[#1#]'", 'currencies'), 'id'));
-    		acc_Lists::removeItem($mvc, $rec->id, $rec->lists);
-		}
-    }
-    
-    
-    /**
      * Функция за закръгляне на валута, която
      * трябва да се използва във всички бизнес документи за показване на суми
      * @param double $amount - сума
@@ -355,4 +366,16 @@ class currency_Currencies extends core_Master {
      * КРАЙ НА интерфейса @see acc_RegisterIntf
      */
 
+    
+    /**
+     * Връща дефолтната цена отговаряща на количеството
+     *
+     * @param mixed $id - ид/запис на обекта
+     */
+    public function getDefaultCost($id)
+    {
+    	$code = static::getCodeById($id);
+    	
+    	return currency_CurrencyRates::getRate($today, $code);
+    }
 }

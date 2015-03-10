@@ -1,16 +1,13 @@
 <div class="singleView">
 [#SingleToolbar#]
+<div class='scrolling-holder'>
 	<div class="folder-cover [#STATE_CLASS#]">
 		<div class="inner-folder">
-			<div class="block_title state-active special-title">[#SingleIcon#] |Точка на продажба|* <b style="color:green;">[#title#]</b></div>
+			<div class="block_title state-active special-title">[#SingleIcon#] [#name#]</div>
 			<fieldset class="detail-info">
 				<legend class="groupTitle">|Информация|*</legend>
 				<div class="groupList">
 						<table>
-							<tr>
-								<td class='dt'>|Номер|*:</td>
-								<td> [#id#]</td>
-							</tr>
 							<tr>
 								<td class='dt'>|Каса|*:</td>
 								<td> <b>[#caseId#]</b></td>
@@ -26,7 +23,16 @@
 						</table>
 				</div>
 			</fieldset>
+			
+			<!--ET_BEGIN Receipts-->
+			<fieldset class="detail-info">
+				<legend class="groupTitle">|Чакащи бележки|*</legend>
+				[#Receipts#]
+			</fieldset>
+			<!--ET_END Receipts-->
+			
 			[#DETAILS#]
 		</div>
 	</div>
+</div>
 </div>

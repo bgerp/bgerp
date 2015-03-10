@@ -24,14 +24,20 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
     public $class;
     
     
+    /**
+     * Обща сума
+     */
     public $totalAmount = 0;
+    
     
     /**
      * Връща транзакцията на бележката
      */
     public function getTransaction($id)
     {
-        $rec = $this->class->fetchRec($id);
+    	set_time_limit(300);
+    	
+    	$rec = $this->class->fetchRec($id);
         $posRec = pos_Points::fetch($rec->pointId);
     	$entries = array();
         $totalVat = array();
@@ -150,8 +156,7 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
      *    Dt: 701. Приходи от продажби на стоки и продукти     (Клиент, Сделки, Стоки и Продукти)
      *    	  706. Приходи от продажба на суровини/материали   (Клиент, Сделки, Суровини и материали)
      *    
-     *    Ct: 321. Стоки и Продукти 	   (Склад, Стоки и Продукти)
-     *    	  302. Суровини и материали    (Складове, Суровини и материали)
+     *    Ct: 321. Суровини, материали, продукция, стоки 	   (Склад, Стоки и Продукти)
      *    
      * @param stdClass $rec        - записа
      * @param array $product       - артикула
@@ -162,7 +167,7 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
     protected function getDeliveryPart($rec, $product, $posRec, $convertable)
     {
         $entries = array();
-        $creditAccId = ($convertable) ? '302' : '321';
+        $creditAccId = '321';
         $debitAccId = ($convertable) ? '706' : '701';
         
         // После се отчита експедиране от склада

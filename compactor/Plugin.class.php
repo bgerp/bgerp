@@ -71,7 +71,7 @@ class compactor_Plugin extends core_Plugin
             if(!file_exists($sbfFilePath)) {
                 sleep(1);
             }
-            $times .= filemtime($sbfFilePath);
+            $times .= @filemtime($sbfFilePath);
             if(isset($filesArr[$file])) {
                 unset($filesArr[$file]);
             }

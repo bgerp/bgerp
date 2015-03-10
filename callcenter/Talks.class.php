@@ -575,7 +575,16 @@ class callcenter_Talks extends core_Master
             
             // Вземаме другите променливи
             $answerTime = Request::get('answertime');
+            if (strpos($answerTime, '%')) {
+                $errArr[] = 'Време->Отговор е двойно ескейпнат';
+                $answerTime = urldecode($answerTime);
+            }
+            
             $endTime = Request::get('endtime');
+            if (strpos($endTime, '%')) {
+                $errArr[] = 'Време->Край е двойно ескейпнат';
+                $endTime = urldecode($endTime);
+            }
             
             // Вземаме текущото време
             $now = dt::now();
@@ -1059,10 +1068,10 @@ class callcenter_Talks extends core_Master
         $data->listFilter->FNC('number', 'drdata_PhoneType', 'caption=Номер,input,silent, recently');
         
         // Добавяме поле във формата за търсене
-        $data->listFilter->FNC('usersSearch', 'users(rolesForAll=ceo, rolesForTeams=ceo|manager)', 'caption=Потребител,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
+        $data->listFilter->FNC('usersSearch', 'users(rolesForAll=ceo, rolesForTeams=ceo|manager)', 'caption=Потребител,input,silent,refreshForm');
         
         // Функционално поле за търсене по статус и тип на разговора
-        $data->listFilter->FNC('dialStatusType', 'enum()', 'caption=Състояние,input', array('attr' => array('onchange' => 'this.form.submit();')));
+        $data->listFilter->FNC('dialStatusType', 'enum()', 'caption=Състояние,input,refreshForm');
         
         // Полета за търсене по дата
         $data->listFilter->FNC('from', 'date', 'width=6em,caption=От,input');

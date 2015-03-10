@@ -72,6 +72,8 @@ class mejs_Adapter
         // Ако не е масив
         if (!is_array($source)) {
             
+            $sourceArr = array();
+            
             // Добавяме стринга в масив
             $sourceArr[$source] = $source;
             

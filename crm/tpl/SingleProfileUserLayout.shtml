@@ -24,10 +24,16 @@
             <!--ET_END password-->
             <!--ET_BEGIN createdOn-->
             <tr>
-                <td class='dt'>|Създаден на|*</td>
-                <td>[#createdOn#]</td>
+                <td class='dt'>|Създаден|*</td>
+                <td>|на|* [#createdOn#] |от|* [#createdBy#]</td>
             </tr>
             <!--ET_END createdOn-->
+            <!--ET_BEGIN modifiedOn-->
+            <tr>
+                <td class='dt'>|Модифициран|*</td>
+                <td>|на|* [#modifiedOn#] |от|* [#modifiedBy#]</td>
+            </tr>
+            <!--ET_END modifiedOn-->
             <!--ET_BEGIN lastLoginInfo-->
             [#lastLoginInfo#]
             <tr>

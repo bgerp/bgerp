@@ -1,0 +1,8 @@
+<div class='scrolling-holder'>
+	<fieldset class='top-tab-content'>
+		<legend>|Ценова информация|*</legend>
+		[#PriceGroup#]
+		[#PriceList#]
+		[#VatGroups#]
+	</fieldset>
+</div>

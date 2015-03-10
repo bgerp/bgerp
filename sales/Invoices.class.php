@@ -45,20 +45,14 @@ class sales_Invoices extends deals_InvoiceMaster
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, acc_plg_Contable, plg_ExportCsv, doc_DocumentPlg, bgerp_plg_Export,
-					doc_EmailCreatePlg, doc_plg_MultiPrint, bgerp_plg_Blank, plg_Printing, cond_plg_DefaultValues,deals_plg_DpInvoice,
+					doc_EmailCreatePlg, doc_plg_MultiPrint, recently_Plugin, bgerp_plg_Blank, plg_Printing, cond_plg_DefaultValues,deals_plg_DpInvoice,
                     doc_plg_HidePrices, doc_plg_TplManager, acc_plg_DocumentSummary, plg_Search';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт, number, date, place, folderId, dealValue, vatAmount, type, paymentType';
-    
-    
-    /**
-     * Колоната, в която да се появят инструментите на plg_RowTools
-     */
-    public $rowToolsField = 'tools';
+    public $listFields = 'id, number, date, place, folderId, dealValue, vatAmount, type, paymentType';
     
     
     /**
@@ -106,7 +100,7 @@ class sales_Invoices extends deals_InvoiceMaster
     /**
      * Кой има право да добавя?
      */
-    public $canExport = 'ceo,salesMaster';
+    public $canExport = 'ceo,sales';
     
     
     /**
@@ -174,12 +168,9 @@ class sales_Invoices extends deals_InvoiceMaster
     	
     	$this->FLD('numlimit', 'enum(1,2)', 'caption=Номер->Диапазон, export=Csv, after=place,input=hidden,notNull,default=1');
     	
-    	$this->FLD('number', 'int', 'caption=Номер, export=Csv, after=place,input=none');
+    	$this->FLD('number', 'bigint', 'caption=Номер, export=Csv, after=place,input=none');
     	$this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 'caption=Статус, input=none,export=Csv');
         $this->FLD('type', 'enum(invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие)', 'caption=Вид, input=hidden');
-        
-        $this->FLD('docType', 'class(interface=bgerp_DealAggregatorIntf)', 'input=hidden,silent');
-        $this->FLD('docId', 'int', 'input=hidden,silent');
         
         $this->setDbUnique('number');
     }
@@ -255,11 +246,6 @@ class sales_Invoices extends deals_InvoiceMaster
     	
     	if($rec->originId) {
     		return doc_Containers::getDocument($rec->originId);
-    	}
-    	
-    	if($rec->docType && $rec->docId) {
-    		// Ако се генерира от пос продажба
-    		return new core_ObjectReference($rec->docType, $rec->docId);
     	}
     	
     	if($rec->threadId){
@@ -342,10 +328,6 @@ class sales_Invoices extends deals_InvoiceMaster
     	if($fields['-single']){
 			$row->type .= " / <i>" . str_replace('_', " ", $rec->type) . "</i>";
     		
-    		if($rec->docType && $rec->docId){
-    			$row->POS = tr("|към ПОС продажба|* №{$rec->docId}");
-    		}
-    		
     		if($rec->accountId){
     			$Varchar = cls::get('type_Varchar');
     			$ownAcc = bank_OwnAccounts::getOwnAccountInfo($rec->accountId);
@@ -369,11 +351,7 @@ class sales_Invoices extends deals_InvoiceMaster
      */
     public static function canAddToFolder($folderId)
     {
-        if(Request::get('docType', 'int') && Request::get('docId', 'int')){
-        	return TRUE;
-        }
-        
-    	return FALSE;
+        return FALSE;
     }
     
     
@@ -383,10 +361,19 @@ class sales_Invoices extends deals_InvoiceMaster
     public static function getHandle($id)
     {
         $self = cls::get(get_called_class());
-        $number = static::fetchField($id, 'number');
-        $number = str_pad($number, '10', '0', STR_PAD_LEFT);
         
-        return $self->abbr . $number;
+        $rec = $self->fetch($id);
+        
+        if (!$rec->number) {
+            
+            $hnd = $self->abbr . $rec->id . doc_RichTextPlg::$identEnd;
+        } else {
+            $number = str_pad($rec->number, '10', '0', STR_PAD_LEFT);
+        
+            $hnd = $self->abbr . $number;
+        }
+        
+        return $hnd;
     } 
     
     
@@ -395,9 +382,16 @@ class sales_Invoices extends deals_InvoiceMaster
     */
     public static function fetchByHandle($parsedHandle)
     {
-    	$number = ltrim($parsedHandle['id'], '0');
+        if ($parsedHandle['endDs'] && (strlen($parsedHandle['id']) != 10)) {
+            $rec = static::fetch($parsedHandle['id']);
+        } else {
+            $number = ltrim($parsedHandle['id'], '0');
+            if ($number) {
+                $rec = static::fetch("#number = '{$number}'");
+            }
+        }
     	
-        return static::fetch("#number = '{$number}'");
+        return $rec;
     }
     
     
@@ -532,6 +526,7 @@ class sales_Invoices extends deals_InvoiceMaster
    		$amount = 0;
    		$query = static::getQuery();
    		$query->where("#paymentType = 'cash'");
+   		$query->where("#state = 'active'");
    		$query->between("date", $from, $to);
    		
    		while($rec = $query->fetch()){
@@ -540,5 +535,24 @@ class sales_Invoices extends deals_InvoiceMaster
    		}
    		
    		return round($amount, 2);
+   	}
+
+   	
+   	/**
+   	 * Валидиране на полето 'date' - дата на фактурата
+   	 * Предупреждение ако има фактура с по-нова дата (само при update!)
+   	 */
+   	public static function on_ValidateDate(core_Mvc $mvc, $rec, core_Form $form)
+   	{
+   		$newDate = $mvc->getNewestInvoiceDate();
+   		if($newDate > $rec->date) {
+   	
+   			// Най-новата валидна ф-ра в БД е по-нова от настоящата.
+   			$form->setError('date',
+   					'Не може да се запише фактура с дата по-малка от последната активна фактура (' .
+   					dt::mysql2verbal($newestInvoiceRec->date, 'd.m.y') .
+   					')'
+   			);
+   		}
    	}
 }

@@ -9,18 +9,18 @@
  * @category  bgerp
  * @package   cat
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class cat_Groups extends core_Master
+class cat_Groups extends core_Manager
 {
     
     
-    /**
+	/**
      * Заглавие
      */
-    var $title = "Категории на артикулите";
+    var $title = "Маркери на артикулите";
     
     
     /**
@@ -32,20 +32,19 @@ class cat_Groups extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, cat_Wrapper, 
-                     doc_FolderPlg, plg_Search, plg_Translate';
+    var $loadList = 'plg_Created, plg_RowTools, cat_Wrapper, plg_Search, plg_Translate';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id,name';
+    var $listFields = 'id,name,productCnt';
     
     
     /**
      * Полета по които се прави пълнотекстово търсене от плъгина plg_Search
      */
-    var $searchFields = 'sysId, name, productCnt, info, meta';
+    var $searchFields = 'sysId, name, productCnt';
     
     
     /**
@@ -63,13 +62,7 @@ class cat_Groups extends core_Master
     /**
      * Наименование на единичния обект
      */
-    var $singleTitle = "Категория";
-    
-    
-    /**
-     * Икона за единичен изглед
-     */
-    var $singleIcon = 'img/16/category-icon.png';
+    var $singleTitle = "Маркер";
     
     
     /**
@@ -145,19 +138,20 @@ class cat_Groups extends core_Master
     {
         $this->FLD('name', 'varchar(64)', 'caption=Наименование, mandatory,translate');
         $this->FLD('sysId', 'varchar(32)', 'caption=System Id,oldFieldName=systemId,input=none,column=none');
-        $this->FLD('info', 'richtext(bucket=Notes)', 'caption=Бележки');
-        $this->FLD('productCnt', 'int', 'input=none');
+        $this->FLD('productCnt', 'int', 'input=none,caption=Артикули');
         
         // Свойства присъщи на продуктите в групата
         $this->FLD('meta', 'set(canSell=Продаваеми,
                                 canBuy=Купуваеми,
                                 canStore=Складируеми,
                                 canConvert=Вложими,
-                                fixedAsset=ДМА,
-                                canManifacture=Производими,
-                                materials=Материали)', 'caption=Свойства->Списък,columns=2');
+                                fixedAsset=Дълготрайни активи,
+        						canManifacture=Производими,
+        						waste=Отпаден)', 'caption=Свойства->Списък,columns=2,input=none');
+        
         
         $this->setDbUnique("sysId");
+        $this->setDbUnique("name");
     }
     
     
@@ -181,7 +175,7 @@ class cat_Groups extends core_Master
         // на модела ще се появят
         $data->listFilter->showFields = 'search,product';
         
-        $rec = $data->listFilter->input('product,search', 'silent');
+        $rec = $data->listFilter->input(NULL, 'silent');
         
         $data->query->orderBy('#name');
         
@@ -193,27 +187,15 @@ class cat_Groups extends core_Master
     
     
     /**
-     * Изпълнява се след подготовка на Едит Формата
-     */
-    static function on_AfterPrepareEditForm($mvc, $data)
-    {
-        if(!haveRole('ceo')){
-            
-            // Кой може да променя мета пропъртитата на групите
-            $data->form->setField('meta', 'input=none');
-        }
-    }
-    
-    
-    /**
      * След преобразуване на записа в четим за хора вид.
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        $row->productCnt = intval($rec->productCnt);
+        //$row->productCnt = intval($rec->productCnt);
         
         if($fields['-list']){
-            $row->name .= " ({$row->productCnt})";
+            //$row->name .= " ({$row->productCnt})";
+            $row->name = ht::createLink($row->name, array('cat_Products', 'list', 'groupId' => $rec->id));
         }
     }
     
@@ -231,107 +213,43 @@ class cat_Groups extends core_Master
     {
         // Ако групата е системна или в нея има нещо записано - не позволяваме да я изтриваме
         if($action == 'delete' && ($rec->sysId || $rec->productCnt)) {
-            $requiredRoles = 'no_one';
+        	$requiredRoles = 'no_one';
         }
     }
     
     
-    /**
-     * Връща keylist от id-та на групи, съответстващи на даден стрингов
-     * списък от sysId-та, разделени със запетайки
-     */
-    static function getKeylistBySysIds($list, $strict = FALSE)
+    protected static function on_AfterSetupMvc($mvc, &$res)
     {
-        $sysArr = arr::make($list);
-        
-        foreach($sysArr as $sysId) {
-            $id = static::fetchField("#sysId = '{$sysId}'", 'id');
-            
-            if($strict) {
-                expect($id, $sysId, $list);
-            }
-            
-            if($id) {
-                $keylist .= '|' . $id;
-            }
-        }
-        
-        if($keylist) {
-            $keylist .= '|';
-        }
-        
-        return $keylist;
+    	$file = "cat/csv/Groups.csv";
+    	$fields = array(
+    			0 => "name",
+    			1 => "sysId",
+    	);
+    
+    	$cntObj = csv_Lib::importOnce($mvc, $file, $fields);
+    	$res .= $cntObj->html;
+    
+    	return $res;
     }
     
     
     /**
-     * Извиква се след SetUp-а на таблицата за модела
+     * Връща кейлист от систем ид-та на маркерите
+     * 
+     * @param mixed $sysIds - масив със систем ид-та
+     * @return string
      */
-    static function on_AfterSetupMvc($mvc, &$res)
+    public static function getKeylistBySysIds($sysIds)
     {
-        $file = "cat/csv/Groups.csv";
-        $fields = array(
-            0 => "name",
-            1 => "info",
-            2 => "sysId",
-            3 => "meta",
-            4 => "access",
-        );
-        
-        $cntObj = csv_Lib::importOnce($mvc, $file, $fields);
-        $res .= $cntObj->html;
-        
-        return $res;
-    }
-    
-    
-    /**
-     * Преди запис в модела
-     */
-    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
-    {
-        if($rec->id){
-            // Старите мета данни
-            $rec->oldMeta = $mvc->fetchField($rec->id, 'meta');
-        }
-    }
-    
-    
-    /**
-     * След запис в модела
-     */
-    static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
-    {
-        if($rec->oldMeta != $rec->meta) {
-            
-            // Ако има промяна на групите, Инвалидира се кеша
-            core_Cache::remove('cat_Products', "productsMeta");
-        }
-    }
-    
-    
-    /**
-     * Връща групите които отговарят на посочени мета данни
-     * @param mixed $meta - списък от мета данни
-     * @return array $res - масив с опции
-     */
-    public static function getByMeta($meta)
-    {
-        $metaArr = arr::make($meta);
-        $query = static::getQuery();
-        
-        if(count($metaArr)){
-            foreach ($metaArr as $m){
-                $query->like('meta', $m);
-            }
-        }
-        
-        $res = array();
-        
-        while($rec = $query->fetch()){
-            $res[$rec->id] = static::getTitleById($rec->id);
-        }
-        
-        return $res;
+    	$kList = '';
+    	$sysIds = arr::make($sysIds);
+    	
+    	if(!count($sysIds)) return $kList;
+    	
+    	foreach($sysIds as $grId){
+    		$kList = keylist::addKey($kList, self::fetchField("#sysId = '{$grId}'", 'id'));
+    	}
+    	
+    	return $kList;
     }
 }

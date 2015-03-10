@@ -54,104 +54,167 @@ class mp_transaction_ProductionNote extends acc_DocumentTransactionSource
 	 * 		
 	 * 		За всеки ресурс от картата:
 	 * 
-	 * 		Dt: 321. Стоки и продукти                  (Складове, Артикули)
-	 * 			Dt: 302. Суровини и материали          (Складове, Артикули)
-	 * 
+	 * 		Dt: 321. Суровини, материали, продукция, стоки     (Складове, Артикули)
 	 * 		Ct: 611. Разходи по Центрове и Ресурси		(Център на дейност, Ресурс)
 	 * 
 	 * В противен случай
 	 * 
-	 * 		Dt: 321. Стоки и продукти                  (Складове, Артикули)
-	 * 			Dt: 302. Суровини и материали          (Складове, Артикули)
-	 * 
+	 * 		Dt: 321. Суровини, материали, продукция, стоки   (Складове, Артикули)
 	 * 		Ct: 6112. Разходи по Центрове на дейност   (Център на дейност)
 	 * 
 	 */
-	private static function getEntries($rec, &$total)
+	private function getEntries($rec, &$total)
 	{
 		$entries = array();
 		
 		$dQuery = mp_ProductionNoteDetails::getQuery();
 		$dQuery->where("#noteId = {$rec->id}");
+		
+		$errorArr = array();
 		while($dRec = $dQuery->fetch()){
 	
-			// Референция към артикула
-			$productRef = new core_ObjectReference($dRec->classId, $dRec->productId);
-	
-			// Коя сметка от трета група да кредитираме, взависимост от свойствата на артикула
-			$pInfo = $productRef->getProductInfo($dRec->productId);
-			$creditAccId = (isset($pInfo->meta['materials'])) ? '302' : '321';
+			$entry = $this->getDirectEntry($dRec, $rec);
 			
-			//@TODO да се използва интерфейсен метод а не тази проверка
-	
-			// Взимаме к-то от последното активно задание за артикула, ако има
-			//
-			
-			$usesResources = FALSE;
-	
-			// Ако има к-во от задание
-			if(isset($dRec->jobId)){
-				$quantityJob = mp_Jobs::fetchField($dRec->jobId, 'quantity');
+			if(!count($entry)){
 				
-				// Проверяваме имали активна технологична карта, и извличаме ресурсите от нея
 				if(isset($dRec->bomId)){
-					$usesResources = TRUE;
 					
-					$bomId = techno2_Boms::fetchField($dRec->bomId, 'id');
+					if(empty($dRec->jobId)) return FALSE;
 					
-					$mapArr = techno2_Boms::getResourceInfo($bomId);
-					
-					// За всеки ресурс от картата
-					foreach ($mapArr as $index => $resInfo){
+					$quantityJob = mp_Jobs::fetchField($dRec->jobId, 'quantity');
+					$mapArr = cat_Boms::getResourceInfo($dRec->bomId);
+				
+					if(count($mapArr)){
+						foreach ($mapArr as $index => $res){
+							if($res->type == 'input'){
+								
+								/*
+								 * За всеки ресурс началното количество се разделя на количеството от заданието и се събира
+								 * с пропорционалното количество. След това се умножава по количеството посочено в протокола за
+								 * от производството и това количество се изписва от ресурсите.
+								 */
+								$resQuantity = $dRec->quantity * ($res->baseQuantity / $quantityJob + $res->propQuantity);
+								$resQuantity = core_Math::roundNumber($resQuantity);
+									
+								$res->finalQuantity = $resQuantity;
+							}
+						}
+						arr::order($mapArr, 'finalQuantity', 'DESC');
 						
-						// Центъра на дейност е този от картата или по дефолт е избрания център от документа
-						$activityCenterId = (isset($resInfo->activityCenterId)) ? $resInfo->activityCenterId : $rec->activityCenterId;
-						
-					   /*
-						* За всеки ресурс началното количество се разделя на количеството от заданието и се събира
-						* с пропорционалното количество. След това се умножава по количеството посочено в протокола за 
-						* от производството и това количество се изписва от ресурсите.
-						*/
-						$resQuantity = $dRec->quantity * ($resInfo->baseQuantity / $quantityJob + $resInfo->propQuantity);
-						$amount = $resQuantity * mp_Resources::fetchField($resInfo->resourceId, "selfValue");
-						$total += $amount;
-						
-						//@TODO а себестойността, ако е въведена ?
-						
-						// Първото дебитиране на артикула става с цялото к-ва, а последващите с нулево
-						$pQuantity = ($index == 0) ? $dRec->quantity : 0;
-						$entry = array(
-							'amount' => $amount,
-							'debit' => array($creditAccId, array('store_Stores', $rec->storeId), 
-													array($dRec->classId, $dRec->productId),
-											 'quantity' => $pQuantity),
-							'credit' => array('611', array('hr_Departments', $activityCenterId)
-												   , array('mp_Resources', $resInfo->resourceId),
-											  'quantity' => $resQuantity),
-						);
-						
-						$entries[] = $entry;
+						foreach ($mapArr as $index => $res){
+							$pQuantity = ($index == 0) ? $dRec->quantity : 0;
+							
+							if($res->type == 'input'){
+								
+								$entry = array(
+										'debit' => array('321', array('store_Stores', $rec->storeId),
+															  array($dRec->classId, $dRec->productId),
+												'quantity' => $pQuantity),
+										'credit' => array('611', array('hr_Departments', $rec->activityCenterId)
+												, 				 array('mp_Resources', $res->resourceId),
+												'quantity' => $res->finalQuantity),
+								);
+							} else {
+								
+								// Сумата на дебита е себестойността на отпадния ресурс
+								$amount = $resQuantity * mp_Resources::fetchField($res->resourceId, "selfValue");
+								$resQuantity = $dRec->quantity * ($res->baseQuantity / $quantityJob + $res->propQuantity);
+								$resQuantity = core_Math::roundNumber($resQuantity);
+								
+								$entry = array(
+										'amount' => $amount,
+										'debit' => array('611', array('hr_Departments', $rec->activityCenterId),
+																 array('mp_Resources', $res->resourceId),
+														'quantity' => $resQuantity),
+										'credit' => array('321', array('store_Stores', $rec->storeId),
+																 array($dRec->classId, $dRec->productId),
+															'quantity' => $pQuantity),
+								);
+								
+								$total += $amount;
+							}
+							
+							$entries[] = $entry;
+						}
 					}
 				}
+			} else {
+				$entries[] = $entry;
 			}
-	
-			// Ако няма технологична карта и/или количество от заданието
-			if($usesResources === FALSE){
-				
-				// Тогава кредитираме сметка 6112
-				$entries[] = array('amount' => $dRec->selfValue,
-								   'debit' => array($creditAccId, 
-								   				array('store_Stores', $rec->storeId), 
-								   				array($dRec->classId, $dRec->productId),
-												'quantity' => $dRec->quantity),
-								   'credit' => array('6112', array('hr_Departments', $rec->activityCenterId))
-							);
-				
-				$total += $dRec->selfValue;
+			
+			if(!$entry){
+				$errorArr[] = cls::get($dRec->classId)->getVerbal($dRec->productId, 'name');
+			}
+		}
+		
+		// Ако някой от артикулите не може да бдъе произведем сетваме че ще правимр едирект със съобщението
+		if(Mode::get('saveTransaction')){
+			if(count($errorArr)){
+				$errorArr = implode(', ', $errorArr);
+				acc_journal_RejectRedirect::expect($entry, "Артикулите: |{$errorArr}|* не могат да бъдат произведени");
 			}
 		}
 		
 		// Връщаме ентритата
 		return $entries;
+	}
+	
+	
+	/**
+	 * Връща директната контировка ако:
+	 * за артикула има ресурс, който има дебитно салдо в 611 и е вложим
+	 * или ако няма рецепта.
+	 * 
+	 * 		Dt: 321. Суровини, материали, продукция, стоки      (Складове, Артикули)
+	 * 		Ct: 6111. Разходи по Центрове и Ресурси             (Центрове на дейност, Ресурси)
+	 * 
+	 */
+	private static function getDirectEntry($dRec, $rec)
+	{
+		$entry = array();
+		
+		// Референция към артикула
+		$productRef = new core_ObjectReference($dRec->classId, $dRec->productId);
+		$pInfo = $productRef->getProductInfo();
+		
+		// Ако към артикула имаме ресурс
+		if($resourceId = mp_ObjectResources::getResource($dRec->classId, $dRec->productId)->resourceId){
+			$blQuantity = FALSE;
+		
+			// И ресурса е перо
+			$item = acc_Items::fetchItem('mp_Resources', $resourceId);
+			if($item){
+				
+				// Намираме крайното салдо на ресурса по сметка 611 за този център и този ресурс
+				$bQuery = acc_BalanceDetails::getQuery();
+				$centerId = acc_Items::fetchItem('hr_Departments', $rec->activityCenterId)->id;
+		
+				acc_BalanceDetails::filterQuery($bQuery, acc_Balances::getLastBalance()->id, '611', NULL, $centerId, $item->id);
+				$bRec = $bQuery->fetch();
+				
+				// Ако имаме дебитно салдо
+				if($bRec->blQuantity > 0){
+					$blQuantity = $bRec->blQuantity;
+				}
+			}
+		
+			// и е вложим
+			if(isset($pInfo->meta['canConvert'])){
+				
+				// и имаме дебитно салдо или няма рецепта директно го произвеждаме от ресурса
+				if($blQuantity || empty($dRec->bomId)){
+					$entry = array(
+							'debit' => array('321', array('store_Stores', $rec->storeId),
+									array($dRec->classId, $dRec->productId),
+									'quantity' => $dRec->quantity),
+							'credit' => array('611', array('hr_Departments', $rec->activityCenterId)
+									, 				 array('mp_Resources', $resourceId),
+									'quantity' => $dRec->quantity),
+					);
+				}
+			}
+		}
+		
+		return $entry;
 	}
 }

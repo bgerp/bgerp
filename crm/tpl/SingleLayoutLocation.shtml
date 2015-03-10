@@ -1,6 +1,6 @@
 <div class='singleView'>
     [#SingleToolbar#]
-    <div class="location">
+    <div class="no-cover">
         <h2 style='line-height:26px' class='[#headerRejected#]'>|Локация|* <b style="color:green;">[#title#]</b> |на|* [#contragent#]</h2>
         <!--ET_BEGIN image-->
         <div class="crmImage locImage">

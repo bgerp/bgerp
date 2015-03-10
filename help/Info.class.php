@@ -83,6 +83,32 @@ class help_Info extends core_Master
     }
     
     
+    /**
+     * 
+     * 
+     * @param string $cond
+     * @param string $fields
+     * @param boolean $cache
+     * 
+     * @return object
+     */
+    static function fetch($cond, $fields = '*', $cache = TRUE)
+    {
+        if ($cond == '-1') {
+            $rec = new stdClass();
+            $rec->title = 'Помощ за bgERP';
+            $rec->class = '';
+            $rec->action = '';
+            $rec->lg = '';
+            $rec->text = '';
+            
+            return $rec;
+        } else {
+            return parent::fetch($cond, $fields, $cache);
+        }
+    }
+    
+    
  	/**
      * Извиква се след SetUp-а на таблицата за модела
      */

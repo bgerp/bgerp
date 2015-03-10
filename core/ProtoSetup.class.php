@@ -92,7 +92,19 @@ class core_ProtoSetup
      */
     protected $cronSettings;
 
-
+    
+    /**
+     * Дали пакета е системен
+     */
+    public $isSystem = FALSE;
+    
+    
+    /**
+     * 
+     */
+    public $noInstall = FALSE;
+    
+    
     /**
      * Инсталиране на пакета
      */
@@ -111,6 +123,9 @@ class core_ProtoSetup
 
             // Ако менидръжит е миграция - изпълняваме я еднократно
             if (stripos($manager, 'migrate::') === 0) {
+                
+                Mode::push('isMigrate', TRUE);
+                
                 list($migrate, $method) = explode('::', $manager);
                 
                 // Ключ в настойките на пакета `core` под който се пази изпълнението на миграцията
@@ -129,6 +144,8 @@ class core_ProtoSetup
                         $html .= "<li style='color:red;'>Миграцията {$packName}::{$method} не беше успешна</li>";
                     }
                 }
+                
+                Mode::pop('isMigrate');
 
                 continue;
             }
@@ -225,7 +242,7 @@ class core_ProtoSetup
      * 
      * @return string
      */
-    private function preparePacksPath($packName, $pathStr)
+    public function preparePacksPath($packName, $pathStr)
     {
         if (!trim($pathStr)) return $pathStr;
         

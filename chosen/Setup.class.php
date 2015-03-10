@@ -80,7 +80,12 @@ class chosen_Setup extends core_ProtoSetup {
      */
     function install()
     {
-    	$html = parent::install();
+        if (core_Packs::isInstalled('select2')) {
+            $packs = cls::get('core_Packs');
+            $html .= $packs->deinstall('select2');
+        }
+        
+    	$html .= parent::install();
     	
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
@@ -90,6 +95,9 @@ class chosen_Setup extends core_ProtoSetup {
         $html .= $Plugins->forcePlugin('ChosenSelect', 'chosen_PluginSelect', 'type_Key', 'private');
         $html .= $Plugins->forcePlugin('ChosenSelectUser', 'chosen_PluginSelect', 'type_User', 'private');
         $html .= $Plugins->forcePlugin('ChosenSelectUsers', 'chosen_PluginSelect', 'type_Users', 'private');
+        $html .= $Plugins->forcePlugin('ChosenSelectItem', 'chosen_PluginSelect', 'acc_type_Item', 'private');
+        $html .= $Plugins->forcePlugin('ChosenSelectAccount', 'chosen_PluginSelect', 'acc_type_Account', 'private');
+        $html .= $Plugins->forcePlugin('ChosenAccounts', 'chosen_Plugin', 'acc_type_Accounts', 'private');
 
         return $html;
     }

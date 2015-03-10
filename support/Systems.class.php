@@ -149,11 +149,79 @@ class support_Systems extends core_Master
     function description()
     {
         $this->FLD('name', 'varchar', "caption=Наименование,mandatory, width=100%");
-        $this->FLD('allowedTypes', 'keylist(mvc=support_IssueTypes, select=type)', 'caption=Позволени типове, width=100%, maxColumns=3');
         $this->FLD('prototype', 'key(mvc=support_Systems, select=name, allowEmpty)', "caption=Прототип, width=100%");
         $this->FLD('description', 'richtext(rows=10,bucket=Support)', "caption=Описание");
-        
+        $this->FLD('allowedTypes', 'keylist(mvc=support_IssueTypes, select=type)', 'caption=Сигнали->Използвани, width=100%, maxColumns=3');
+        $this->FLD('defaultType', 'key(mvc=support_IssueTypes, select=type, allowEmpty)', 'caption=Сигнали->По подразбиране');
+
         $this->setDbUnique('name');
+    }
+    
+    
+    /**
+     * Връща масив с всички типове на системата и на родителите
+     * 
+     * @param integer $id
+     * 
+     * @return array
+     */
+    public static function getAllowedFieldsArr($id)
+    {
+        $allSystemsArr = support_Systems::getSystems($id);
+        
+        // Запитване за извличане на системите
+        $sQuery = support_Systems::getQuery();
+        
+        $sQuery->where($id);
+        
+        // Обхождаме всики наследени системи
+        foreach ($allSystemsArr as $allSystemId) {
+            
+            // Добавяме OR
+            $sQuery->orWhere($allSystemId);
+        }
+        
+        // Обхождаме всички открити записи
+        while ($sRec = $sQuery->fetch()) {
+            
+            // Обединяваме всички позволени типове
+            $allowedTypes = keylist::merge($sRec->allowedTypes, $allowedTypes);
+        }
+        
+        $allowedTypesArr = keylist::toArray($allowedTypes);
+        
+        return $allowedTypesArr;
+    }
+    
+    
+    /**
+     * Връща всички системи и компоненти, които се използват
+     * 
+     * @param integer $systemId - id на система
+     * 
+     * @return array $arr - Масив с всички системи
+     */
+    static function getSystems($systemId)
+    {
+        // Ако не е зададена система връщаме
+        if (!$systemId) array();
+        
+        $arr = array();
+        
+        // Добавяме в масива
+        $arr[$systemId] = $systemId;
+        
+        // Вземаме записа
+        $sRec = static::fetch($systemId);
+        
+        // Ако има прототип
+        if ($sRec->prototype) {
+            
+            // Вземаме системата
+            $arr += static::getSystems($sRec->prototype);
+        }
+        
+        return $arr;
     }
     
     
@@ -302,26 +370,6 @@ class support_Systems extends core_Master
                 // Вземаме всички прототипи
                 $prototypesArr = static::getSystems($form->rec->prototype);
                 
-                // Запитване
-                $query = static::getQuery();
-                
-                // Обхождаме масива с прототипите
-                foreach ($prototypesArr as $prototype) {
-                    
-                    // Добавяме OR условие
-                    $query->orWhere($prototype);  
-                }
-                
-                // Обхождаме резултататите
-                while ($rec = $query->fetch()) {
-                    
-                    // Към споделените добавяме и inCharge
-                    $shared = keylist::addKey($rec->shared, $rec->inCharge);
-                    
-                    // Споделените от родителите ги добавяме към текущия
-                    $form->rec->shared = keylist::merge($shared, $form->rec->shared);
-                }
-                
                 // Ако сме избрали за прототип някой от наследниците
                 if ($prototypesArr[$form->rec->id]) {
                     
@@ -330,35 +378,22 @@ class support_Systems extends core_Master
                 }
             }
         }
-    }
-    
-    
-    /**
-     * Връща всички системи и компоненти, които се използват
-     * 
-     * @param integer $systemId - id на система
-     * 
-     * @return array $arr - Масив с всички системи
-     */
-    static function getSystems($systemId)
-    {
-        // Ако не е зададена система връщаме
-        if (!$systemId) array();
         
-        // Добавяме в масива
-        $arr[$systemId] = $systemId;
-        
-        // Вземаме записа
-        $sRec = static::fetch($systemId);
-        
-        // Ако има прототип
-        if ($sRec->prototype) {
+        if ($form->isSubmitted()) {
             
-            // Вземаме системата
-            $arr += static::getSystems($sRec->prototype);
+            if ($form->rec->defaultType) {
+                $parentAllowed = '';
+                if ($form->rec->prototype) {
+                    $parentAllowed = $mvc->getAllowedFieldsArr($form->rec->prototype);
+                }
+                
+                $allAllowed = type_Keylist::merge($parentAllowed, $form->rec->allowedTypes);
+                
+                if (!type_Keylist::isIn($form->rec->defaultType, $allAllowed)) {
+                    $form->setError('defaultType', 'Сигналът по подразбиране трябва да е добавен в използвани');
+                }
+            }
         }
-        
-        return $arr;
     }
     
 
@@ -385,6 +420,17 @@ class support_Systems extends core_Master
         }
 
         $data->form->setSuggestions('allowedTypes', $options);
-
+    }
+    
+    
+    /**
+     * След подготовка на тулбара на единичен изглед.
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+        $data->rec->allowedTypes = type_Keylist::fromArray($mvc->getAllowedFieldsArr($data->rec->id));
     }
 }

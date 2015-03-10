@@ -40,16 +40,16 @@ class store_transaction_Transfer extends acc_DocumentTransactionSource
 		while($dRec = $dQuery->fetch()){
 			$sProd = store_Products::fetch($dRec->productId);
 			 
-			// Ако артикула е вложим сметка 302 иначе 321
-			$accId = ($dRec->isConvertable == 'yes') ? '302' : '321';
+			// Ако артикула е вложим сметка 321
+			$accId = '321';
 			$result->entries[] = array(
-					'credit'  => array($accId, // Сметка "302. Суровини и материали" или Сметка "321. Стоки и Продукти"
+					'credit'  => array($accId,
 							array('store_Stores', $rec->fromStore), // Перо 1 - Склад
 							array($sProd->classId, $sProd->productId),  // Перо 2 - Артикул
 							'quantity' => $dRec->quantity, // Количество продукт в основната му мярка,
 					),
 	
-					'debit' => array($accId, // Сметка "302. Суровини и материали" или Сметка "321. Стоки и Продукти"
+					'debit' => array($accId,
 							array('store_Stores', $rec->toStore), // Перо 1 - Склад
 							array($sProd->classId, $sProd->productId),  // Перо 2 - Артикул
 							'quantity' => $dRec->quantity, // Количество продукт в основната му мярка

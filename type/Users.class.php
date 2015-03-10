@@ -212,6 +212,12 @@ class type_Users extends type_Keylist
     {
         $this->prepareOptions('all');
         
+        if (!$this->options[$value]) {
+            $this->error = 'Некоректна стойност';
+            
+            return FALSE;
+        }
+        
         return $this->options[$value]->keylist;
     }
     

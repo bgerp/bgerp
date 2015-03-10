@@ -1,0 +1,57 @@
+.toast-container{
+	position: fixed;
+	bottom: 20px;
+	right: 20px;
+	width: 280px;
+	z-index: 9999;
+}
+
+.needhelp-holder {
+	width: 160px;
+    z-index: 9999;
+	height: 40px;
+	background: #333;
+	opacity: 0.9;
+	border-radius: 10px;
+	-moz-border-radius: 10px;
+	-webkit-border-radius: 10px;
+	color: #eee;
+	padding-top: 22px;
+	padding-bottom: 20px;
+	padding-left: 90px;
+	padding-right: 26px;
+	font-family: lucida Grande;
+	font-size: 13px;
+	border: 2px solid #999;
+	display: block;
+	position: relative;
+	margin: 0 0 25px 0;
+    display:none;
+	background: #333 url('supportmale-64.png') 12px 10px no-repeat;
+}
+
+.needhelp-holder a{
+	color: #fff;
+	font-weight: normal;
+	cursor: pointer;
+	font-size: 1.2em;
+}
+.close {
+	background: url(close.gif);
+	width: 22px;
+	height: 22px;
+	position: absolute;
+	top: 7px;
+	right: 7px;
+}
+
+.close:hover {
+	opacity: 0.8;
+	cursor: pointer;
+}
+
+.logo {
+	background: url(favicon.ico) left center no-repeat;
+	padding-left: 18px;
+	padding-top: 1px;
+}

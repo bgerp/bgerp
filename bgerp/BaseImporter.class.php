@@ -86,6 +86,9 @@ class bgerp_BaseImporter extends core_Manager {
             // Ако записа е уникален, създаваме нов, ако не е обновяваме стария
             $fieldsUn = array();
             
+            // Обработка на записа преди импортиране
+            $this->mvc->invoke('BeforeImportRec', array(&$rec));
+            
             if(!$this->mvc->isUnique($rec, $fieldsUn, $exRec)){
                 $rec->id = $exRec->id;
                 $updated++;

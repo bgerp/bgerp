@@ -26,7 +26,7 @@ class email_Outgoings extends core_Master
     /**
      * Полета, които ще се клонират
      */
-    var $cloneFields = 'subject, body, recipient, attn, email, emailCc, tel, fax, country, pcode, place, address';
+    var $cloneFields = 'subject, body, recipient, attn, email, emailCc, tel, fax, country, pcode, place, address, forward';
     
     
     /**
@@ -174,6 +174,7 @@ class email_Outgoings extends core_Master
         $this->FLD('waiting', 'time', 'input=none, caption=Изчакване');
         $this->FLD('lastSendedOn', 'datetime(format=smartTime)', 'input=none, caption=Изпратено->на');
         $this->FLD('lastSendedBy', 'key(mvc=core_Users)', 'caption=Изпратено->От, notNull, input=none');
+        $this->FLD('forward', 'enum(no=Не, yes=Да)', 'caption=Препращане, input=hidden');
         
         //Данни за адресата
         $this->FLD('email', 'emails', 'caption=Адресат->Имейл, width=100%, silent');
@@ -331,6 +332,19 @@ class email_Outgoings extends core_Master
         
         // списъци с изпратени и проблеми получатели
         $success  = $failure = array();
+        
+        // Ако е отговор на имейл опитваме се да извлечем In-Reply-To
+        if ($rec->originId) {
+            $originDoc = doc_Containers::getDocument($rec->originId);
+            if ($originDoc->instance instanceof email_Incomings) {
+                $iRec = $originDoc->fetch();
+                $messageIdArr = (array)$iRec->headers['message-id'];
+                $messageId = reset($messageIdArr);
+                if ($messageId) {
+                    $rec->__inReplyTo = trim($messageId, '<>');
+                }
+            }
+        }
         
         // Обхождаме масива с всички групи имейли
         foreach ($groupEmailsArr['to'] as $key => $emailTo) {
@@ -655,6 +669,8 @@ class email_Outgoings extends core_Master
                 // Масив, с информация за документа
                 $documentInfoArr = doc_RichTextPlg::getFileInfo($name);
                 
+                if (!$documentInfoArr['className']) continue;
+                
                 $rec = $documentInfoArr['className']::fetchByHandle($documentInfoArr);
                 
                 // Вземаме прикачените файлове от линковете към други документи в имейла
@@ -686,7 +702,7 @@ class email_Outgoings extends core_Master
         }
         
         // Ако има originId
-        if ($data->rec->originId) {
+        if (($data->rec->originId) && ($data->rec->forward != 'yes')) {
             
             // Контрагент данните от контейнера
             $contrData = doc_Containers::getContragentData($data->rec->originId);
@@ -1102,14 +1118,7 @@ class email_Outgoings extends core_Master
         email_Salutations::add($nRec);
         
         // Ако препащме имейла
-        if ($rec->forward && $rec->originId) {
-            
-            // Записваме в лога, че имейла, който е създаден е препратен
-            log_Documents::forward($rec);
-        }
-        
-        // Ако препащме имейла
-        if ($rec->forward && $rec->originId) {
+        if (($rec->forward == 'yes') && $rec->originId) {
             
             // Записваме в лога, че имейла, който е създаден е препратен
             log_Documents::forward($rec);
@@ -1200,6 +1209,8 @@ class email_Outgoings extends core_Master
      */
     static function on_AfterPrepareEditForm($mvc, &$data)
     {
+        $hintStr = tr('Смяна на езика');
+        
         $rec = $data->form->rec;
         $form = $data->form;
         
@@ -1303,14 +1314,14 @@ class email_Outgoings extends core_Master
                 // Заглавието на темата
                 $title = html_entity_decode($oRow->title, ENT_COMPAT | ENT_HTML401, 'UTF-8');
                 
-                $oContragentData = $oDoc->getContragentData();
-                
                 // Ако се препраща
                 if ($forward) {
                     
                     // Полето относно
                     $rec->subject = 'Fw: ' . $title;
                 } else {
+                    
+                    $oContragentData = $oDoc->getContragentData();
                     
                     if ($oDoc->instance instanceof email_Incomings) {
                         $rec->subject = 'Re: ' . $title;
@@ -1323,15 +1334,15 @@ class email_Outgoings extends core_Master
             if ($forward) {
                 
                 // Определяме езика от папката
-                $lg = email_Outgoings::getLanguage(FALSE, FALSE, $folderId);
+                $currLg = email_Outgoings::getLanguage(FALSE, FALSE, $folderId);
             } else {
                 
                 // Определяме езика на който трябва да е имейла
-                $lg = email_Outgoings::getLanguage($originId, $threadId, $folderId);
+                $currLg = email_Outgoings::getLanguage($originId, $threadId, $folderId);
             }
             
             //Сетваме езика, който сме определили за превод на съобщението
-            core_Lg::push($lg);
+            core_Lg::push($currLg);
             
             //Ако сме в треда, вземаме данните на получателя и не препращаме имейла
             if ($threadId && !$forward) {
@@ -1406,33 +1417,30 @@ class email_Outgoings extends core_Master
                 }
             }
             
-            $contragentDataHeader = (array)$contragentData;
-            
-            //Данни необходими за създаване на хедър-а на съобщението
-            $contragentDataHeader['name'] = $contragentData->person;
-            
-            // Ако има обръщение
-            if($contragentData->salutationRec) {
-                if($contragentData->salutationRec == 'mrs' || $contragentData->salutationRec == 'miss') {
-                    $contragentDataHeader['hello'] = tr("Уважаема");
-                } else {
-                    $contragentDataHeader['hello'] = tr("Уважаеми");
-                }
-            }
-            
-            if (!$contragentDataHeader['hello']) {
-                if($contragentData->person) {
-                    $contragentDataHeader['hello'] = tr('Здравейте');
-                } else {
-                    $contragentDataHeader['hello'] = tr('Уважаеми колеги');
-                }
-            }
-            
+            $bodyLangArr = array();
+            $bCnt = 0;
             //Създаваме тялото на постинга
-            $rec->body = $mvc->createDefaultBody($contragentDataHeader, $rec, $forward);
+            $rec->body = $bodyLangArr[$bCnt]['data'] = $mvc->createDefaultBody($contragentData, $rec, $forward);
+            $bodyLangArr[$bCnt]['lg'] = $currLg;
             
-            //След превода връщаме стария език
-            core_Lg::pop();
+            $allLangArr = arr::make(EF_LANGUAGES);
+            
+            if ($allLangArr) {
+                foreach ($allLangArr as $lang => $verbLang) {
+                    
+                    if ($lang == $currLg) continue;
+                    $bCnt++;
+                    // За всеки език подоготвяме текста
+                    core_Lg::push($lang);
+                    $bodyLangArr[$bCnt]['data'] = $mvc->createDefaultBody($contragentData, $rec, $forward);
+                    $bodyLangArr[$bCnt]['lg'] = $lang;
+                    core_Lg::pop();
+                }
+            }
+            
+            $data->__bodyLgArr = array('hint' => $hintStr, 'lg' => $currLg, 'data' => $bodyLangArr);
+            $data->form->layout = new ET($data->form->renderLayout());
+            $data->form->layout->append("\n runOnLoad(function(){ prepareLangBtn(" . json_encode($data->__bodyLgArr) . ")}); ", 'JQRUN');
             
             //Добавяме новите стойности на $rec
             if($threadId && !$forward) {
@@ -1462,6 +1470,8 @@ class email_Outgoings extends core_Master
                 // Използваме контрагент данните от ковъра
                 $contrData = $contragentData;
             }
+            
+            core_Lg::pop();
         } else {
             
             // Флаг
@@ -1551,38 +1561,59 @@ class email_Outgoings extends core_Master
         // Ако препращаме писмото
         if ($forward) {
             
-            // Добавяме функционално поле
-            $data->form->FNC('forward', 'varchar', 'input=hidden');
-            
-            // Задаваме стойност
-            $data->form->setDefault('forward', $forward);
+            $rec->forward = 'yes';
+        } else if (!$rec->forward) {
+            $rec->forward = 'no';
         }
         
         // Ако има открит език
-        if ($lg) {
+        if ($currLg) {
             
-            $langAttrArr = array("lang" => $lg, "spellcheck" => "true");
+            $langAttrArr = array("lang" => $currLg, "spellcheck" => "true");
             
             // Добавяме атрибути към тялото и заглавието
             $data->form->addAttr('body', $langAttrArr);
             $data->form->addAttr('subject', $langAttrArr);
         }
+        $data->form->setField('body', array('attr' => array('onload' => 'console.log(\'a\');')));
     }
     
     
     /**
      * Създава тялото на постинга
      */
-    function createDefaultBody($headerData, $rec, $forward = FALSE)
+    function createDefaultBody($contragentData, $rec, $forward = FALSE)
     {
+        $contragentDataHeader = (array)$contragentData;
+            
+        //Данни необходими за създаване на хедър-а на съобщението
+        $contragentDataHeader['name'] = $contragentData->person;
+        
+        // Ако има обръщение
+        if($contragentData->salutationRec) {
+            if($contragentData->salutationRec == 'mrs' || $contragentData->salutationRec == 'miss') {
+                $contragentDataHeader['hello'] = tr("Уважаема");
+            } else {
+                $contragentDataHeader['hello'] = tr("Уважаеми");
+            }
+        }
+        
+        if (!$contragentDataHeader['hello']) {
+            if($contragentData->person) {
+                $contragentDataHeader['hello'] = tr('Здравейте');
+            } else {
+                $contragentDataHeader['hello'] = tr('Уважаеми колеги');
+            }
+        }
+        
         //Хедър на съобщението
-        $header = $this->getHeader($headerData, $rec);
+        $header = $this->getHeader($contragentDataHeader, $rec);
         
         //Текста между заглавието и подписа
         $body = $this->getBody($rec->originId, $forward);
         
         //Футър на съобщението
-        $footer = $this->getFooter($headerData['countryId']);
+        $footer = $this->getFooter($contragentDataHeader['countryId']);
         
         //Текста по подразбиране в "Съобщение"
         $defaultBody = $header . "\n\n" . $body . "\n\n" . $footer;
@@ -1953,7 +1984,7 @@ class email_Outgoings extends core_Master
         $tpl = new ET(tr('|*' . getFileContent($tpl)));
         
         if (Mode::is('printing')) {
-            core_Lg::pop($data->lg);
+            core_Lg::pop();
         }
         
         return $tpl;
@@ -2158,7 +2189,7 @@ class email_Outgoings extends core_Master
         }
         
         // Ако има originId
-        if ($posting->originId) {
+        if ($posting->originId && $posting->forward != 'yes') {
             
             // Вземаме контрагент данните на оригиналния документ (когато клонираме изходящ имейл)
             $originContr = doc_Containers::getContragentData($posting->originId);

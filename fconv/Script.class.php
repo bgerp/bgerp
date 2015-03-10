@@ -23,6 +23,12 @@ class fconv_Script
     
     
     /**
+     * Масив за папките
+     */
+    protected $folders = array();
+    
+    
+    /**
      * @param array programs - Масив за изпълнимите команди
      */
     var $programs = array();
@@ -50,6 +56,29 @@ class fconv_Script
         $this->id = fconv_Processes::getProcessId();
         setIfNot($tempDir, $this->tempPath . $this->id . "/");
         $this->tempDir = $tempDir;
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param string $folder
+     */
+    public function setFolders($placeHolder, $folder)
+    {
+        $this->folders[$placeHolder] = $folder;
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @return array
+     */
+    public function getFolders()
+    {
+        
+        return $this->folders;
     }
     
     
@@ -230,6 +259,16 @@ class fconv_Script
         }
         
         expect(mkdir($this->tempDir, 0777, TRUE));
+        
+        $foldersArr = $this->getFolders();
+        
+        if ($foldersArr) {
+            foreach ((array)$foldersArr as $placeHolder => $folderName) {
+                $nFolderPath = $this->tempDir . $folderName;
+                @mkdir($nFolderPath, 0777, TRUE);
+                $this->script = str_replace("[#{$placeHolder}#]", escapeshellarg($nFolderPath), $this->script);
+            }
+        }
         
         if (count($this->files)){
             foreach ($this->files as $placeHolder => $file) {

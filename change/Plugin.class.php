@@ -142,6 +142,11 @@ class change_Plugin extends core_Plugin
         // Ако формата е изпратена без грешки
         if($form->isSubmitted()) {
             
+            if (is_null($rec->version) && is_null($rec->subVersion)) {
+                $rec->version = 0;
+                $rec->subVersion = 1;
+            }
+            
             // Ако не е подадена версия
             if (!$fRec->version) {
                 
@@ -153,7 +158,7 @@ class change_Plugin extends core_Plugin
             if ((string)$fRec->version != (string)$rec->version) {
                 
                 // Нулираме флага
-                $fRec->NoChange = FALSE;
+                $fRec->__noChange = FALSE;
                 
                 // Подверсията
                 $subVersion = 0;
@@ -178,7 +183,7 @@ class change_Plugin extends core_Plugin
             }
             
             // Ако не е зададено да не се променя
-            if (!$fRec->NoChange) {
+            if (!$fRec->__noChange) {
                 
                 // Увеличаваме подверсията
                 $subVersion++;
@@ -520,7 +525,7 @@ class change_Plugin extends core_Plugin
                 if (!$haveChange) {
                     
                     // Вдигаме флага
-                    $form->rec->NoChange = TRUE;
+                    $form->rec->__noChange = TRUE;
                 }
             }
         }

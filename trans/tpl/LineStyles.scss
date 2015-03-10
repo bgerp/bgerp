@@ -1,5 +1,7 @@
 .document .line-header{
-	margin-bottom:10px;
+	padding: 5px;
+	color: #fff;
+	background-color: #777;
 	font-weight:bold;
 }
 
@@ -19,4 +21,10 @@
 
 .document .line-detail .listTable td {
 	padding:6px;
+}
+
+.printing .document .line-header {
+	color: #333;
+    background-color: none;
+    padding: 5px 0;
 }

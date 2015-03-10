@@ -179,7 +179,7 @@ class bglocal_Address extends core_MVC
         "svishtov" => "Свищов",
         "svoge" => "Своге",
         "sylistra" => "Силистра",
-        "targovishte" => "Търовище",
+        "targovishte" => "Търговище",
         "tervel" => "Тервел",
         "teteven" => "Тетевен",
         "troian" => "Троян",

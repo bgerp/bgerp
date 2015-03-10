@@ -4,7 +4,7 @@
 /**
  * Път до външния пакет
  */
-defIfNot('FANCYBOX_PATH', 'fancybox/1.3.4');
+defIfNot('FANCYBOX_VERSION', '2.1.5');
 
 
 /**
@@ -25,16 +25,29 @@ defIfNot('FANCYBOX_PATH', 'fancybox/1.3.4');
  */
 class fancybox_Setup extends core_ProtoSetup
 {
+    
+    
+    
+    /**
+     * Описание на конфигурационните константи
+     */
+    public $configDescription = array(
+        
+       'FANCYBOX_VERSION' => array ('enum(1.3.4, 2.1.5)', 'mandatory, caption=Версията на програмата->Версия')
+
+     );
+             
+             
 	/**
 	 * Пътища до CSS файлове
 	 */
-	var $commonCSS = "[#FANCYBOX_PATH#]/jquery.fancybox.css";
+	public $commonCSS = "fancybox/[#FANCYBOX_VERSION#]/jquery.fancybox.css";
 	
 	
 	/**
 	 * Пътища до JS файлове
 	 */
-	var $commonJS = "[#FANCYBOX_PATH#]/jquery.fancybox.js";
+	public $commonJS = "fancybox/[#FANCYBOX_VERSION#]/jquery.fancybox.js";
 	
 }
 

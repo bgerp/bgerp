@@ -38,7 +38,7 @@ class mp_ProductionNoteDetails extends deals_ManifactureDetail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_Created, mp_Wrapper, plg_RowNumbering, plg_AlignDecimals';
+    public $loadList = 'plg_RowTools, plg_SaveAndNew, plg_Created, mp_Wrapper, plg_RowNumbering, plg_AlignDecimals';
     
     
     /**
@@ -68,7 +68,7 @@ class mp_ProductionNoteDetails extends deals_ManifactureDetail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, jobId, bomId, measureId, quantity, selfValue,amount';
+    public $listFields = 'productId, jobId, bomId, measureId, quantity, selfValue, amount';
     
         
     /**
@@ -84,6 +84,14 @@ class mp_ProductionNoteDetails extends deals_ManifactureDetail
     
     
     /**
+     * Какви продукти да могат да се избират в детайла
+     *
+     * @var enum(canManifacture=Производими,canConvert=Вложими)
+     */
+    protected $defaultMeta = 'canManifacture';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -93,7 +101,7 @@ class mp_ProductionNoteDetails extends deals_ManifactureDetail
         parent::setDetailFields($this);
         
         $this->FLD('jobId', 'key(mvc=mp_Jobs)', 'input=none,caption=Задание');
-        $this->FLD('bomId', 'key(mvc=techno2_Boms)', 'input=none,caption=Рецепта');
+        $this->FLD('bomId', 'key(mvc=cat_Boms)', 'input=none,caption=Рецепта');
         
         $this->FLD('selfValue', 'double', 'caption=С-ст,input=hidden');
         $this->FNC('amount', 'double', 'caption=Сума');
@@ -129,18 +137,23 @@ class mp_ProductionNoteDetails extends deals_ManifactureDetail
     		// Имали активно задание за артикула ?
     		if($jobId = $ProductMan::getLastActiveJob($rec->productId)->id){
     			$rec->jobId = $jobId;
+    		} else {
+    			$rec->jobId = NULL;
     		}
     			
     		// Имали активна рецепта за артикула ?
     		if($bomRec = $ProductMan::getLastActiveBom($rec->productId)){
     			$rec->bomId = $bomRec->id;
+    		} else {
+    			$rec->bomId = NULL;
     		}
     			
-    		// Не показваме полето за себестойност ако активна рецепта и задание
+    		// Не показваме полето за себестойност ако има активна рецепта и задание
     		if(isset($rec->jobId) && isset($rec->bomId)){
     			$showSelfvalue = FALSE;
     		}
     		
+    		// Себестойността е във основната валута за периода
     		$masterValior = $mvc->Master->fetchField($form->rec->noteId, 'valior');
     		$form->setField('selfValue', "unit=" . acc_Periods::getBaseCurrencyCode($masterValior));
     		
@@ -179,9 +192,9 @@ class mp_ProductionNoteDetails extends deals_ManifactureDetail
     	}
     	
     	if(isset($rec->bomId)){
-    		$row->bomId = "#" . cls::get('techno2_Boms')->getHandle($rec->bomId);
+    		$row->bomId = "#" . cls::get('cat_Boms')->getHandle($rec->bomId);
     		if(!Mode::is('printing') && !Mode::is('text', 'xhtml')){
-    			$row->bomId = ht::createLink($row->bomId, array('techno2_Boms', 'single', $rec->bomId));
+    			$row->bomId = ht::createLink($row->bomId, array('cat_Boms', 'single', $rec->bomId));
     		}
     	}
     }
@@ -192,15 +205,12 @@ class mp_ProductionNoteDetails extends deals_ManifactureDetail
      */
     protected static function on_AfterPrepareListRows($mvc, &$res)
     {
-    	$rows = &$res->rows;
     	$recs = &$res->recs;
     
     	$hasBomFld = $hasJobFld = FALSE;
     	
     	if (count($recs)) {
-    		foreach ($recs as $id=>$rec) {
-    			$row = &$rows[$id];
-    
+    		foreach ($recs as $id => $rec) {
     			$hasJobFld = !empty($rec->jobId) ? TRUE : $hasJobFld;
     			$hasBomFld = !empty($rec->bomId) ? TRUE : $hasBomFld;
     		}
@@ -213,5 +223,28 @@ class mp_ProductionNoteDetails extends deals_ManifactureDetail
     			unset($res->listFields['bomId']);
     		}
     	}
+    }
+    
+    
+    /**
+     * Можели артикула да бъде въведен от производство. Може ако:
+     * 
+     * 1. Вложим е, има ресурс и има дебитно салдо този ресурс
+     * 2. Има рецепта и задание
+     */
+    public static function canContoRec($rec, $masterRec)
+    {
+    	$entry = mp_transaction_ProductionNote::getDirectEntry($rec, $masterRec);
+    	
+    	if(!count($entry)){
+    		if(isset($rec->bomId) && isset($rec->jobId)){
+    			
+    			return TRUE;
+    		}
+    		
+    		return FALSE;
+    	}
+    	
+    	return TRUE;
     }
 }

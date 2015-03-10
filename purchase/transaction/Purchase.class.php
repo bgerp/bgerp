@@ -55,8 +55,7 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
      * 
      * 2. Засклаждане на стоката в склада (в някой случаи)
      *
-     *    Dt: 302. Суровини и материали 	  (Склад, Суровини и Материали) - за вложимите продукти
-     *	  	  321. Стоки и Продукти 		  (Склад, Стоки и Продукти) - за всички останали складируеми продукти
+     *    Dt: 321. Суровини, материали, продукция, стоки (Склад, Артикули)
      *
      *    Ct: 401. Задължения към доставчици (Доставчик, Сделки, Валути)
      *
@@ -179,8 +178,8 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
 					$costsAccNumber = '613';
 				} else {
 					
-					// Ако е "Материали" дебит 601, иначе 602
-					$costsAccNumber = (isset($pInfo->meta['materials'])) ? '601' : '602';
+					// Ако е "Вложим" 602
+					$costsAccNumber = '602';
 				}
 
     			$entries[] = array(
@@ -297,8 +296,7 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
      * Помощен метод - генерира доставната част от транзакцията за покупка
      * Вкарване на стоката в склада (в някои случаи)
      * 
-     *	  Dt: 302. Суровини и материали 	  (Склад, Суровини и Материали) - за вложимите продукти
-     *	  	  321. Стоки и Продукти 		  (Склад, Стоки и Продукти) - за всички останали складируеми продукти
+     *	  Dt: 321. Суровини, материали, продукция, стоки 	  (Склад, Суровини и Материали)
      *
      *    Ct: 401. Задължения към доставчици (Доставчик, Сделки, Валути)
      *    
@@ -324,8 +322,7 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
         	// Само складируемите продукти се изписват от склада
         	if(isset($pInfo->meta['canStore'])){
         		
-        		// Ако е материал дебит 302 иначе 321
-	        	$debitAccId = (isset($pInfo->meta['materials'])) ? '302' : '321';
+	        	$debitAccId = '321';
 	        		
 	        	$debit = array(
 	                  $debitAccId, 

@@ -160,6 +160,7 @@ class fileman_Get extends core_Manager {
             // Име на временния файл
             $tmpFile = str::getRand('********') . '_' . time();
             
+            $err = array();
 
             $opts = array('http' =>
                 array(
@@ -184,100 +185,104 @@ class fileman_Get extends core_Manager {
             if(!$data) {
                 $data = @file_get_contents($rec->url);
             }
-
-            foreach($http_response_header as $l) {
-                $hArr = explode(':', $l, 2);
-                if(isset($hArr[1])) {
-                    $h = $headers[strtolower(trim($hArr[0]))] = strtolower(trim($hArr[1]));
-                    $hArr = explode(';', $h);
-                    foreach($hArr as $part) {
-                        if(strpos($part, '=')) {
-                            $pair = explode('=', $part, 2);
-                            $headers[trim(strtolower($pair[0]))] = trim($pair[1], "\"\' \t");
+            
+            if($data === FALSE) {
+                $err[] = "Грешка при свалането на файла.";
+            } else {
+                foreach($http_response_header as $l) {
+                    $hArr = explode(':', $l, 2);
+                    if(isset($hArr[1])) {
+                        $h = $headers[strtolower(trim($hArr[0]))] = strtolower(trim($hArr[1]));
+                        $hArr = explode(';', $h);
+                        foreach($hArr as $part) {
+                            if(strpos($part, '=')) {
+                                $pair = explode('=', $part, 2);
+                                $headers[trim(strtolower($pair[0]))] = trim($pair[1], "\"\' \t");
+                            }
                         }
                     }
                 }
-            }
- 
-            // Вземаме миме-типа от хедърите
-            if(isset($headers['content-type'])) {
-                $ct = $headers['content-type'];
-                $ct = explode(';', $ct);
-                $ct = $ct[0];
-                $exts = fileman_Mimes::getExtByMime($ct);
-                if(count($exts)) {
-                    foreach($exts as $e) {
-                        if(stripos($rec->url, '.' . $e)) {
-                            $ext = $e;
-                            break;
+     
+                // Вземаме миме-типа от хедърите
+                if(isset($headers['content-type'])) {
+                    $ct = $headers['content-type'];
+                    $ct = explode(';', $ct);
+                    $ct = $ct[0];
+                    $exts = fileman_Mimes::getExtByMime($ct);
+                    if(count($exts)) {
+                        foreach($exts as $e) {
+                            if(stripos($rec->url, '.' . $e)) {
+                                $ext = $e;
+                                break;
+                            }
+                        }
+
+                        if(!$ext) $ext = $exts[0];
+                    }
+                }
+
+                $fileName = $headers['filename'];
+              
+                if(!$fileName && $ext) {
+
+                    $fPattern = "/[^\\?\\/*:;{}\\\\]+\\.{$ext}/i";
+
+                    preg_match($fPattern, $rec->url, $matches);
+
+                    $fileName = decodeUrl($matches[0]);
+                }
+                
+                // Ако URL-то завършва с нещо като име на файл, го вземаме
+                if(!$fileName) {
+                    $fPattern = "/[=\/]([a-z0-9_\-]{0,40}\.([a-z]{2,4}))$/i";
+                    preg_match($fPattern, $rec->url, $matches);
+                    if(!in_array(strtolower($matches[2]), array('php', 'asp', 'jsp')) ) {
+                        $fileName = $matches[1];
+                    }
+                }
+
+                if(!$fileName) {
+                    $urlArr = parse_url($rec->url);
+                    $fileName = str_replace('.', '_', $urlArr['host']);
+                }
+
+                if(!$fileName) {
+                    $fileName = $tmpFile;
+                }
+                
+                if($ct && $fileName) {
+                    $fileName = fileman_Mimes::addCorrectFileExt($fileName, $ct);
+                }
+
+                // Записваме данните в посочения файл
+                file_put_contents($tmpFile, $data);
+     
+                if($rec->bucketId) {
+                        
+                    // Вземаме инфото на обекта, който ще получи файла
+                    $Buckets = cls::get('fileman_Buckets');
+                        
+                    // Ако файла е валиден по размер и разширение - добавяме го към собственика му
+                    if($Buckets->isValid($err, $rec->bucketId, $fileName, $tmpFile)) {
+                            
+                        // Създаваме файла
+                        $fh = $this->Files->createDraftFile($fileName, $rec->bucketId);
+                        
+                        // Записваме му съдържанието
+                        $this->Files->setContent($fh, $tmpFile);
+                            
+                        $add = $Buckets->getInfoAfterAddingFile($fh);
+                            
+                        if($rec->callback) {
+                            $name = fileman_Files::fetchByFh($fh, 'name');
+                            $add->append("<script>  if(window.opener.{$rec->callback}('{$fh}','{$name}') != true) self.close(); else   self.focus();  </script>");
                         }
                     }
-
-                    if(!$ext) $ext = $exts[0];
                 }
+                
+                
+                @unlink($tmpFile);
             }
-
-            $fileName = $headers['filename'];
-             
-            if(!$fileName && $ext) {
-
-                $fPattern = "/[^\\?\\/*:;{}\\\\]+\\.{$ext}/i";
-
-                preg_match($fPattern, $rec->url, $matches);
-
-                $fileName = decodeUrl($matches[0]);
-            }
-            
-            // Ако URL-то завършва с нещо като име на файл, го вземаме
-            if(!$fileName) {
-                $fPattern = "/[=\/]([a-z0-9_\-]{0,40}\.([a-z]{2,4}))$/i";
-                preg_match($fPattern, $rec->url, $matches);
-                if(fileman_Mimes::getMimeByExt($matches[2])) {
-                    $fileName = $matches[1];
-                }
-            }
-
-            if(!$fileName) {
-                $urlArr = parse_url($rec->url);
-                $fileName = str_replace('.', '_', $urlArr['host']);
-            }
-
-            if(!$fileName) {
-                $fileName = $tmpFile;
-            }
-            
-            if($ct && $fileName) {
-                $fileName = fileman_Mimes::addCorrectFileExt($fileName, $ct);
-            }
-
-            // Записваме данните в посочения файл
-            file_put_contents($tmpFile, $data);
- 
-            if($rec->bucketId) {
-                    
-                // Вземаме инфото на обекта, който ще получи файла
-                $Buckets = cls::get('fileman_Buckets');
-                    
-                // Ако файла е валиден по размер и разширение - добавяме го към собственика му
-                if($Buckets->isValid($err, $rec->bucketId, $fileName, $tmpFile)) {
-                        
-                    // Създаваме файла
-                    $fh = $this->Files->createDraftFile($fileName, $rec->bucketId);
-                    
-                    // Записваме му съдържанието
-                    $this->Files->setContent($fh, $tmpFile);
-                        
-                    $add = $Buckets->getInfoAfterAddingFile($fh);
-                        
-                    if($rec->callback) {
-                        $name = fileman_Files::fetchByFh($fh, 'name');
-                        $add->append("<script>  if(window.opener.{$rec->callback}('{$fh}','{$name}') != true) self.close(); else   self.focus();  </script>");
-                    }
-                }
-            }
-            
-            
-            @unlink($tmpFile);
 
             // Ако има грешки, показваме ги в прозореца за качване
             if(count($err)) {

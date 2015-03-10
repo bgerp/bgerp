@@ -133,7 +133,7 @@ class mp_ObjectResources extends core_Manager
     		} else {
     			
     			// Създава нов запис и го свързва с обекта 
-    			$resourceId = mp_Resources::save((object)array('title' => $form->rec->newResource, 'type' => $sourceInfo->type, 'measureId' => $sourceInfo->measureId));
+    			$resourceId = mp_Resources::save((object)array('title' => $form->rec->newResource, 'type' => $sourceInfo->type, 'measureId' => $sourceInfo->measureId, 'state' => 'active'));
     			$nRec = (object)array('classId' => $classId, 'objectId' => $objectId, 'resourceId' => $resourceId);
     			
     			$this->save($nRec);
@@ -167,7 +167,7 @@ class mp_ObjectResources extends core_Manager
     	$sourceInfo = $Class->getResourceSourceInfo($rec->objectId);
     	
     	// Възможни за избор са всички ресурси от посочения тип, които не са заготовки към технологична рецепта
-    	$options = mp_Resources::makeArray4Select('title', array("#type = '{$sourceInfo->type}' AND #bomId IS NULL"));
+    	$options = mp_Resources::makeArray4Select('title', "#type = '{$sourceInfo->type}' AND #bomId IS NULL");
     	
     	if(count($options)){
     		$form->setOptions('resourceId', $options);
@@ -187,13 +187,18 @@ class mp_ObjectResources extends core_Manager
     	$data->TabCaption = 'Ресурси';
     	$data->rows = array();
     	 
+    	// Таба излиза на горния ред, само ако е в документ
     	$classId = $data->masterMvc->getClassId();
-    	 
+		if(cls::haveInterface('doc_DocumentIntf', $data->masterMvc)){
+			$data->Tab = 'top';
+		}
+    	
     	$query = $this->getQuery();
     	$query->where("#classId = {$classId} AND #objectId = {$data->masterId}");
     	 
     	while($rec = $query->fetch()){
     		$data->rows[$rec->id] = $this->recToVerbal($rec);
+    		$data->rows[$rec->id]->ROW_ATTR['class'] = 'state-active';
     	}
     	 
     	if(!Mode::is('printing')) {
@@ -268,7 +273,12 @@ class mp_ObjectResources extends core_Manager
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-    	$row->objectId = cls::get($rec->classId)->getHyperlink($rec->objectId, TRUE);
+    	$Source = cls::get($rec->classId);
+    	$row->objectId = $Source->getHyperlink($rec->objectId, TRUE);
+    	if($Source->fetchField($rec->objectId, 'state') == 'rejected'){
+    		$row->objectId = "<span class='state-rejected-link'>{$row->objectId}</span>";
+    	}
+    	
     	$row->objectId = "<span style='float:left'>{$row->objectId}</span>";
     	
     	$row->resourceId = mp_Resources::getHyperlink($rec->resourceId);

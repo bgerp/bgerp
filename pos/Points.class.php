@@ -38,7 +38,7 @@ class pos_Points extends core_Master {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт, name, caseId, report=Отчет';
+    var $listFields = 'tools=Пулт, name, caseId, storeId';
     
     
     /**
@@ -107,6 +107,12 @@ class pos_Points extends core_Master {
 	var $canSelectAll = 'ceo, posMaster';
 	
 	
+	/**
+	 * Детайли на бележката
+	 */
+	public $details = 'Receipts=pos_Receipts';
+	
+	
     /**
      * Описание на модела
      */
@@ -166,48 +172,58 @@ class pos_Points extends core_Master {
      */
     public static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-    	if($data->rec->id == $mvc->getCurrent('id', NULL, FALSE)) {
-    		$data->toolbar->addBtn("Отвори", array('pos_Receipts', 'Terminal'), NULL, 'title=Отваряне на точката,ef_icon=img/16/forward16.png,target=_blank');
+    	$rec = $data->rec;
+    	
+    	if($mvc->haveRightFor('select', $rec->id) && pos_Receipts::haveRightFor('terminal')){
+    		$urlArr = array('pos_Points', 'OpenTerminal', $rec->id);
+    		$data->toolbar->addBtn("Отвори", $urlArr, NULL, 'title=Отваряне на терминала за POS продажби,class=pos-open-btn,ef_icon=img/16/forward16.png,target=_blank');
     	}
+    	
+    	if($rec->id == $mvc->getCurrent('id', NULL, FALSE)) {
+    		$data->toolbar->addBtn("Отвори", array('pos_Receipts', 'Terminal'), NULL, 'title=Отваряне на терминала за POS продажби,ef_icon=img/16/forward16.png,target=_blank');
+    	}
+    	
+    	$reportUrl = array();
+    	if(pos_Reports::haveRightFor('add', (object)array('pointId' => $rec->id)) && pos_Reports::canMakeReport($rec->id)){
+    		$reportUrl = array('pos_Reports', 'add', 'pointId' => $rec->id, 'ret_url' => TRUE);
+    	}
+    	
+    	$title = (count($reportUrl)) ? 'Направи отчет' : 'Не може да се генерира отчет. Възможна причина - неприключени бележки.';
+    	
+    	$data->toolbar->addBtn("Отчет", $reportUrl, NULL, "title={$title},ef_icon=img/16/report.png");
+    }
+    
+    
+    /**
+     * Екшън форсиращ избирането на точката и отваряне на терминала
+     */
+    function act_OpenTerminal()
+    {
+    	expect($pointId = Request::get('id', 'int'));
+    	expect($rec = $this->fetch($pointId));
+    	$this->requireRightFor('select', $pointId);
+    	$this->selectSilent($pointId);
+    	
+    	return redirect(array('pos_Receipts', 'terminal'));
     }
     
     
     /**
      * Обработка по вербалното представяне на данните
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    public static function on_AfterRecToVerbal(core_Mvc $mvc, &$row, $rec, $fields = array())
     {
-    	if($rec->id == $mvc->getCurrent('id', NULL, FALSE)) {
-    		$urlArr = toUrl(array('pos_Receipts', 'Terminal'));
-    		$row->currentPlg .= ht::createBtn('Отвори', $urlArr, NULL, TRUE, 'title=Отваряне на точката,class=pos-open-btn,ef_icon=img/16/forward16.png');
+    	unset($row->currentPlg);
+    	if($mvc->haveRightFor('select', $rec->id) && pos_Receipts::haveRightFor('terminal')){
+    		$urlArr = array('pos_Points', 'OpenTerminal', $rec->id);
+    		$row->currentPlg = ht::createBtn('Отвори', $urlArr, NULL, TRUE, 'title=Отваряне на терминала за POS продажби,class=pos-open-btn,ef_icon=img/16/forward16.png');
     	}
     	
     	$row->caseId = cash_Cases::getHyperlink($rec->caseId, TRUE);
+    	$row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
     	
     	if($fields['-single']){
-    		$row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
     		$row->policyId = price_Lists::getHyperlink($rec->policyId, TRUE);
-    	}
-    	
-    	if($fields['-list']){
-    		$cu = core_Users::getCurrent();
-    		$reportUrl = array();
-    		if(pos_Reports::haveRightFor('add')){
-    			
-    			// Ако има чернова репорт за тази точка и този потребител слагаме бутон към сингъла му
-	    		if(static::getCurrent() && pos_Receipts::fetch("#pointId = {$rec->id} AND #createdBy = {$cu} AND #state = 'active'")){
-	    			if($repId = pos_Reports::fetchField("#pointId = {$rec->id} AND #cashier = {$cu} AND #state='draft'")){
-	    				$reportUrl = array('pos_Reports', 'single', $repId);
-	    			} else {
-	    				
-	    				// Ако няма репорт слагаме бутон за създаване на нов
-	    				$reportUrl = array('pos_Reports', 'add', 'pointId' => $rec->id);
-	    			}
-	    		}
-    		}
-    		
-    		$title = (count($reportUrl)) ? 'Направи отчет' : 'Няма бележки за отчитане';
-    		$row->report = ht::createBtn('Отчет', $reportUrl, NULL, TRUE, "title={$title},ef_icon=img/16/report.png");
     	}
     }
     
@@ -223,6 +239,30 @@ class pos_Points extends core_Master {
 			$cu = core_Users::getCurrent();
 			$data->query->EXT('cashier', 'cash_Cases', 'externalKey=caseId,externalName=cashiers');
 			$data->query->like("cashier", "|{$cu}|");
+		}
+
+        $data->listFields['currentPlg'] = "Терминал";
+	}
+	
+	
+	/**
+	 * След връщане на избраната точка
+	 */
+	protected static function on_AfterGetCurrent($mvc, &$res, $part = 'id', $bForce = TRUE)
+	{
+		// Ако сме се логнали в точка
+		if($res && $part == 'id'){
+			$rec = $mvc->fetchRec($res);
+			
+			// .. и имаме право да изберем склада и, логваме се в него
+			if(store_Stores::haveRightFor('select', $rec->storeId)){
+				store_Stores::selectSilent($rec->storeId);
+			}
+			
+			// .. и имаме право да изберем касата и, логваме се в нея
+			if(cash_Cases::haveRightFor('select', $rec->caseId)){
+				cash_Cases::selectSilent($rec->caseId);
+			}
 		}
 	}
 }

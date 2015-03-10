@@ -32,6 +32,8 @@ class type_Class  extends type_Key {
 
     public function prepareOptions()
     {
+        Mode::push('text', 'plain');
+        
         expect($this->params['mvc'], $this);
         
         $mvc = cls::get($this->params['mvc']);
@@ -43,10 +45,14 @@ class type_Class  extends type_Key {
         } else {
             $options = $mvc->getOptionsByInterface($interface, $this->params['select']);
         }
-                
+        
+        Mode::pop('text');
+        
         $this->options = $options;
-
-        parent::prepareOptions();
+        
+        $this->options = parent::prepareOptions();
+        
+        return $this->options;
     }
     
     
@@ -63,49 +69,90 @@ class type_Class  extends type_Key {
             $value = $this->fromVerbal($value);
         }
 
-          
         return parent::renderInput_($name, $value, $attr);
     }
     
     
-    /**
-     * Връща вътрешното представяне на вербалната стойност
-     */
-    function fromVerbal_($value)
-    {
-        if(empty($value)) return NULL;
-        
-        
-        $interface = $this->params['interface'];
-        
-        $mvc = cls::get($this->params['mvc']);
-        
-        $options = $mvc->getOptionsByInterface($interface, $this->params['select']);
-        
-        if(!is_numeric($value)) {
-            $value = array_search($value, $options);
-        }
-        
-        if(!$options[$value]) {
-            $this->error = 'Несъществуващ клас';
-            
-            return FALSE;
-        } else {
-            
-            return $value;
-        }
-    }
-
-
     /**
      * Конвертира текстова или числова (id от core_Classes) стойност
      * за име на клас към вербална (текстова)
      */
     function toVerbal($value)
     {
-        if(is_numeric($value)) {
+        if (is_numeric($value)) {
             $value = parent::toVerbal($value);
+        } else {
+            
+            $valId = core_Classes::fetchIdByName($value);
+            
+            $value = parent::toVerbal($valId);
         }
+        
         return $value;
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param string|integer $value
+     */
+    function fromVerbal($value)
+    {
+        if (!isset($value)) return $value;
+        
+        $error = FALSE;
+        
+        $interface = $this->params['interface'];
+        $mvc = cls::get($this->params['mvc']);
+        $this->options = $mvc->getOptionsByInterface($interface, $this->params['select']);
+        
+        $classNameOptions = $mvc->getOptionsByInterface($interface, 'name');
+
+        $value = parent::fromVerbal($value);
+ 
+        // Възможно е $value да е името на класа
+        if (is_numeric($value)) {
+            if (!$this->options[$value]) {
+                $error = TRUE;
+            }
+        } elseif (isset($value)) {
+            
+            $v = $value;
+
+            if (!(($value = array_search($v, $this->options)) || ($value = array_search($v, $classNameOptions)) )) {
+                $error = TRUE;
+            }
+        }
+        
+        if ($error) {
+            $this->error = 'Несъществуващ клас';
+        }
+        
+        return $value;
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param string $value
+     * 
+     * @return object
+     * 
+     * @see type_Key::fetchVal()
+     */
+    protected function fetchVal(&$value)
+    {
+        if (is_numeric($value)) {
+            $mvc = &cls::get($this->params['mvc']);
+            $rec = $mvc->fetch((int)$value);
+        } else {
+            
+            // Ако е подадено името на класа
+            $rec = core_Classes::fetch(array("#name = '[#1#]'", $value));
+        }
+        
+        return $rec;
     }
 }

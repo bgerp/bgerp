@@ -299,7 +299,7 @@ class cash_Cases extends core_Master {
         
         if ($rec = $self->fetch($objectId)) {
             $result = (object)array(
-                'num' => "Cs" . $rec->id,
+                'num' => $rec->id . " cs",
                 'title' => $rec->name,
                 'features' => 'foobar' // @todo!
             );
@@ -320,15 +320,6 @@ class cash_Cases extends core_Master {
 			$cu = core_Users::getCurrent();
 			$data->query->where("#cashiers LIKE '%|{$cu}|%'");
 		}
-	}
-    
-    
-	/**
-	 * Поставя изискване да се селектират само активните записи
-	 */
-	public static function on_BeforeMakeArray4Select($mvc, &$optArr, $fields = NULL, &$where = NULL)
-	{
-		$where .= ($where ? " AND " : "") . " #state != 'rejected'";
 	}
 	
 	

@@ -4,12 +4,16 @@
 
 /**
  * Плъгин за Регистрите, който им добавя възможност обекти от регистрите да влизат като пера
+ * 
+ * Ако е заден класов параметър 'autoList' след създаване, обекта се вкарва в тази номенклатура
+ * След оттегляне, ако обекта е бил перо, то се затваря. Затворените но неизползвани пера се изтриват по разписание
+ * След възстановяване ако обекта е бил перо, отваряме му перото
  *
  *
  * @category  bgerp
  * @package   acc
- * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @author    Milen Georgiev <milen@download.bg> и Ivelin Dimov <ivelin_pdimov@abv.bg>
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -20,106 +24,153 @@ class acc_plg_Registry extends core_Plugin
     /**
      * Извиква се след описанието на модела
      */
-    function on_AfterDescription(core_Mvc $mvc)
+    public static function on_AfterDescription(core_Mvc $mvc)
     {
         $mvc->declareInterface('acc_RegisterIntf');
-        
-        // Подсигуряваме, че първичния ключ на регистъра-приемник ще се запомни преди изтриване
-        $mvc->fetchFieldsBeforeDelete = arr::make($mvc->fetchFieldsBeforeDelete, TRUE);
-        $mvc->fetchFieldsBeforeDelete['id'] = 'id';
     }
     
     
     /**
-     * Извиква се след подготовката на формата за редактиране/добавяне $data->form
+     * Изпълнява се след създаване на нов запис
      */
-    function on_AfterPrepareEditForm($mvc, $data)
+    public static function on_AfterCreate($mvc, $rec)
     {
-        if (static::supportExtenders($mvc) || static::hasDetail($mvc, 'ObjectLists')) {
-            return;
-        }
-        
-        // Могат да се избират номенклатури от формата само ако не е наследник на core_Master и има номенклатури за избор
-        if (!($mvc instanceof core_Master) && $suggestions = self::getSelectableLists($mvc)) {
-            $data->form->FNC('lists', 'keylist(mvc=acc_Lists,select=name,maxColumns=1)', 'caption=Номенклатури->Избор,input,remember');
-            $data->form->setSuggestions('lists', $suggestions);
-            
-            if ($data->form->rec->id) {
-                $data->form->setDefault('lists',
-                    keylist::fromArray(acc_Lists::getItemLists($mvc, $data->form->rec->id)));
-            }
-        }
-    }
-    
-    
-    /**
-     * След промяна на обект от регистър
-     *
-     * Нотифицира номенклатурите за промяната.
-     *
-     * @param core_Manager $mvc
-     * @param int $id
-     * @param stdClass $rec
-     */
-    function on_AfterSave($mvc, &$id, &$rec, $fieldList = NULL)
-    {
-        if (static::supportExtenders($mvc)) {
-            return;
-        }
-        
-        if (!empty($mvc->autoList)) {
-            // Автоматично добавяне към номенклатурата $autoList
+    	if (!empty($mvc->autoList)) {
+        	
+            // Автоматично добавяне към номенклатурата $autoList, след създаване на обекта
             expect($autoListId = acc_Lists::fetchField(array("#systemId = '[#1#]'", $mvc->autoList), 'id'));
-            $rec->lists = keylist::addKey($rec->lists, $autoListId);
-        }
-        $fieldListArr = arr::make($fieldList, TRUE);
-        
-        // Обединяваме номенклатурите в които се записва обекта, с тези
-        // в които вече е участва или неучаства
-        $objectList = acc_Items::fetchField("#classId = {$mvc->getClassId()} AND #objectId = {$id}", 'lists');
-        $rec->lists = keylist::merge($rec->lists, $objectList);
-        
-        if(empty($fieldList) || $fieldListArr['lists']) {
-            acc_Lists::updateItem($mvc, $rec->id, $rec->lists);
-        }
-    }
-    
-    
-    /**
-     * Допустимите номенклатури минус евентуално $autoList номенклатурата.
-     *
-     * @param core_Mvc $mvc
-     * @return array
-     */
-    private static function getSelectableLists($mvc)
-    {
-        if ($suggestions = acc_Lists::getPossibleLists($mvc)) {
-            if (!empty($mvc->autoList)) {
-                $autoListId = acc_Lists::fetchField(array("#systemId = '[#1#]'", $mvc->autoList), 'id');
-                
-                if (isset($suggestions[$autoListId])) {
-                    unset($suggestions[$autoListId]);
-                }
+            $lists = keylist::addKey('', $autoListId);
+            acc_Lists::updateItem($mvc, $rec->id, $lists);
+            
+            if(haveRole('ceo,acc')){
+            	$list = acc_Lists::fetchField("#systemId = '{$mvc->autoList}'", 'name');
+            	core_Statuses::newStatus(tr("|Обекта е добавен в номенклатура|*: {$list}"));
             }
         }
-        
-        return $suggestions;
     }
     
-    /**
-     * Дали поддържа екстендъри
-     */
-    protected static function supportExtenders($mvc)
-    {
-        return isset($mvc->_plugins['groups_Extendable']);
-    }
     
     /**
-     * Дали има детайл
+     * След запис
      */
-    protected static function hasDetail($mvc, $detailAlias, $detailName = NULL)
+    protected static function on_AfterSave($mvc, &$id, &$rec, $fieldList = NULL)
     {
-        return $mvc instanceof core_Master && $mvc->hasDetail($detailAlias, $detailName);
+    	$added = FALSE;
+    	
+    	// Ако е зададено да се добави в номенклатура при активиране
+    	if(!empty($mvc->addToListOnActivation)){
+    		if($rec->state == 'active'){
+    		
+    			// Ако документа става перо при активиране, добавяме го като перо, ако вече не е
+    			if($mvc->canAddToListOnActivation($rec)){
+    				if($mvc->forceItem($rec, $mvc->addToListOnActivation)){
+    					$added = TRUE;
+    				}
+    			}
+    		} 
+    	}
+    	
+    	// Ако обекта не е бил добавен като ново перо
+    	if(!$added){
+    		
+    		// Ако е активно състоянието и обекта е перо
+    		if($rec->state != 'closed' && $rec->state != 'rejected'){
+    			
+    			// Активираме перото
+    			if($itemRec = acc_Items::fetchItem($mvc, $rec->id)){
+    				if($itemRec->state != 'active'){
+    					if(haveRole('ceo,acc')){
+    						core_Statuses::newStatus(tr("|Активирано е перо|*: {$itemRec->title}"));
+    					}
+    				}
+    				
+    				acc_Lists::updateItem($mvc, $rec->id, $itemRec->lists);
+    			}
+    		}
+    	}
+    	
+    	// Ако обекта е затворен или оттеглен, Отбелязваме перото му че е за затваряне
+    	if($rec->state == 'rejected' || $rec->state == 'closed'){
+    		$mvc->closeItems[$rec->id] = $rec; 
+    	}
+    }
+    	 
+    
+    /**
+     * Изчиства записите, заопашени за запис
+     */
+    public static function on_Shutdown($mvc)
+    {
+    	// Ако има пера отбелязани за затваряне, затваряме ги. Затварянето на перата трябва
+    	// да става на on_Shutdown, поради това че някои пера може да са начало на нишка, 
+    	// а ако те се затворят преди да се е оттеглила цялата нишка това води до не пълно оттегляне
+    	// затова затваряме перото след като са се изпълнили всички други действия на плъгините
+    	if(count($mvc->closeItems)){
+    		foreach ($mvc->closeItems as $rec) {
+    			if($itemRec = acc_Items::fetchItem($mvc, $rec->id)){
+    				if($itemRec->state == 'active'){
+	    				acc_Lists::removeItem($mvc, $rec->id);
+	    				 
+	    				if(haveRole('ceo,acc')){
+	    					core_Statuses::newStatus(tr("|Затворено е перо|*: {$itemRec->title}"));
+	    				}
+    				}
+    			}
+    		}
+    	}
+    }
+    
+    
+    
+    /**
+     * Метод по подразбиране дали обекта може да се добави в номенклатура при активиране
+     */
+    public static function on_AfterForceItem($mvc, &$res, $id, $listSysId)
+    {
+    	if($rec) return;
+    	
+    	$rec = $mvc->fetchRec($id);
+    	$msg = FALSE;
+    	
+    	$listRec = acc_Lists::fetchBySystemId($listSysId);
+    	if($listRec){
+    		
+    		// Ако обекта е перо, но не е в номенклатурата форсираме го
+    		if($itemRec = acc_Items::fetchItem($mvc, $rec->id)){
+    			if(!keylist::isIn($listRec->id, $itemRec->lists)){
+    				$lists = keylist::addKey($itemRec->lists, $listRec->id);
+    				$msg = TRUE;
+    			} else {
+    				$lists = $itemRec->lists;
+    			}
+    		} else {
+    			$lists = keylist::addKey('', $listRec->id);
+    			$msg = TRUE;
+    		}
+    		
+    		acc_Lists::updateItem($mvc, $rec->id, $lists);
+    		
+    		// Ъпдейтваме информацията за перото
+    		if($msg){
+    			if(haveRole('ceo,acc')){
+    				$title = $mvc->getTitleById($rec->id);
+    				core_Statuses::newStatus("|*'{$title}' |е добавен в номенклатура|* '{$listRec->name}'");
+    			}
+    		}
+    		
+    		$res = TRUE;
+    	}
+    }
+    
+    
+    /**
+     * Метод по подразбиране дали обекта може да се добави в номенклатура при активиране
+     */
+    public static function on_AfterCanAddToListOnActivation($mvc, &$res, $rec)
+    {
+    	if(!$res){
+    		$res = TRUE;
+    	}
     }
     
     

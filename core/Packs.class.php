@@ -8,11 +8,10 @@
  *
  * @category  ef
  * @package   core
- * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @author    Milen Georgiev <milen@download.bg> и Yusein Yuseinov <yyuseinov@gmail.com>
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @link
  */
 class core_Packs extends core_Manager
 {
@@ -21,37 +20,55 @@ class core_Packs extends core_Manager
     /**
      * Заглавие на модела
      */
-    var $title = 'Управление на пакети';
+    public $title = 'Управление на пакети';
+    
+    
+    /**
+     * 
+     */
+    public $canAdd = 'no_one';
+    
+    
+    /**
+     * 
+     */
+    public $canEdit = 'no_one';
     
     
     /**
      * Кой може да инсталира?
      */
-    var $canInstall = 'admin';
+    public $canInstall = 'admin';
     
     
     /**
      * Кои може да деинсталира?
      */
-    var $canDeinstall = 'admin';
+    public $canDeinstall = 'admin';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'admin';
+	public $canList = 'admin';
 	
 	
     /**
      * По колко пакета да показва на страница
      */
-    var $listItemsPerPage = 24;
+    public $listItemsPerPage = 24;
     
-
+    
     /**
-     * Полета, които ще се показват в листов изглед
+     * 
      */
-    var $listFields = 'id,name,install=Обновяване,config=Конфигуриране,deinstall=Премахване';
+    public $loadList = 'plg_Created, plg_SystemWrapper, plg_Search, plg_State';
+    
+    
+    /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    var $searchFields = 'name, info, startCtr';
     
     
     /**
@@ -66,11 +83,11 @@ class core_Packs extends core_Manager
         $this->FLD('startAct', 'varchar(64)', 'caption=Стартов->Контролер,input=none,column=none');
         $this->FLD('deinstall', 'enum(no,yes)', 'caption=Деинсталиране,input=none,column=none');
         
+        $this->FLD('state', 'enum(active=Инсталирани, draft=Неинсталирани, closed=Деактивирани, hidden=Без инсталатор)', 'caption=Състояние,refreshForm,column=none,input=none,notNull,hint=Състояние на пакетите');
+        
         // Съхранение на данните за конфигурацията
         $this->FLD('configData', 'text', 'caption=Конфигурация->Данни,input=none,column=none');
 
-        $this->load('plg_Created,plg_SystemWrapper');
-        
         $this->setDbUnique('name');
     }
     
@@ -80,11 +97,11 @@ class core_Packs extends core_Manager
      * 
      * @param string $name
      * 
-     * @return id
+     * @return id|FALSE
      */
     static function isInstalled($name)
     {
-        $rec = static::fetch(array("#name = '[#1#]'", $name));
+        $rec = static::fetch(array("#name = '[#1#]' and #state = 'active'", $name));
         
         if (!$rec) return FALSE;
         
@@ -97,16 +114,28 @@ class core_Packs extends core_Manager
      */
     function act_Install()
     {
-        
         $this->requireRightFor('install');
         
         $pack = Request::get('pack', 'identifier');
         
         if (!$pack) error('@Missing pack name.');
         
-        $res = $this->setupPack($pack, 0, TRUE, TRUE);
+        $haveRoleDebug = haveRole('debug');
         
-        return $this->renderWrapping($res);
+        $res = $this->setupPack($pack, 0, TRUE, TRUE, $haveRoleDebug);
+        
+        if ($haveRoleDebug) {
+            
+            return $this->renderWrapping($res);
+        }
+        
+        $retUrl = getRetUrl();
+        
+        if (!$retUrl) {
+            $retUrl = array($this);
+        }
+        
+        return new Redirect($retUrl, $res);
     }
     
     
@@ -118,30 +147,33 @@ class core_Packs extends core_Manager
      */
     public function deinstall($pack)
     {
+        $delete = FALSE;
+        
     	if (!$pack) error('@Липсващ пакет', $pack);
     	
-    	if (!$this->fetch("#name = '{$pack}'")) {
+    	if (!($rec = $this->fetch(array("#name = '[#1#]'", $pack)))) {
     		error('@Този пакет не е инсталиран', $pack);
     	}
     	
-    	if ($this->fetch("(#name = '{$pack}') AND (#deinstall = 'yes')")) {
-    	
-    		$cls = $pack . "_Setup";
-    	
-    		if (cls::load($cls, TRUE)) {
-    	
-    			$setup = cls::get($cls);
-    	
-    			if (!method_exists($setup, 'deinstall')) {
-    				$res = "<h2>Пакета <span class=\"green\">'{$pack}'</span> няма деинсталатор.</h2>";
-    			} else {
-    				$res = "<h2>Деинсталиране на пакета <span class=\"green\">'{$pack}'</span></h2>";
-    				$res .= (string) "<ul>" . $setup->deinstall() . "</ul>";
-    			}
-    		} else {
-    			$res = "<h2 class='red''>Липсва кода на пакета '{$pack}'</h2>";
-    		}
-    	}
+		$cls = $pack . "_Setup";
+	
+		if (cls::load($cls, TRUE)) {
+	        
+		    if ($rec->deinstall != 'yes') {
+		        error('@Този пакет не може да бъде премахнат', $pack);
+		    }
+		    
+			$setup = cls::get($cls);
+	
+			if (!method_exists($setup, 'deinstall')) {
+				$res = "<div>Пакета '{$pack}' няма деинсталатор.</div>";
+			} else {
+				$res = (string)$setup->deinstall();
+			}
+		} else {
+		    $delete = TRUE;
+			$res = "<div class='red'>Липсва кода на пакета '{$pack}'</div>";
+		}
     	
     	// Общи действия по деинсталирането на пакета
     	
@@ -157,10 +189,16 @@ class core_Packs extends core_Manager
     	// Премахване от core_Plugins
     	core_Plugins::deinstallPack($pack);
     	
-    	// Премахване на информацията за инсталацията
-    	$this->delete("#name = '{$pack}'");
-    	
-    	$res .= "<div>Успешно деинсталиране.</div>";
+    	if ($delete) {
+    	    $this->delete($rec->id);
+    	    
+    	    $res .= "<div>Успешно премахване на пакета '{$pack}'.</div>";
+    	} else {
+    	    $rec->state = 'closed';
+    	    $this->save($rec, 'state');
+    	    
+    	    $res .= "<div>Успешно деактивиране на пакета '{$pack}'.</div>";
+    	}
     	
     	return $res;
     }
@@ -177,16 +215,63 @@ class core_Packs extends core_Manager
         
         $res = $this->deinstall($pack);
         
-        return new Redirect(array($this), $res);
+        $retUrl = getRetUrl();
+        
+        if (!$retUrl) {
+            $retUrl = array($this);
+        }
+        
+        return new Redirect($retUrl, $res);
+    }
+    
+    
+    /**
+     * Вкарва всички неинстлирани пакети
+     */
+    function loadSetupData()
+    {
+        $notInstalled = $this->getNonInstalledPacks();
+        
+        foreach ($notInstalled as $pack => $desc) {
+            
+            $setupName = $pack . '_Setup';
+            
+            if (!cls::load($setupName, TRUE)) continue;
+            
+            $setup = cls::get($setupName);
+            
+            $rec = $this->fetch(array("#name = '[#1#]'", $pack));
+            
+            if (is_object($rec)) continue;
+            
+            $rec = new stdClass();
+            $rec->name = $pack;
+            $rec->version = $setup->version;
+            $rec->info = $setup->info;
+            $rec->startCtr = $setup->startCtr;
+            $rec->startAct = $setup->startAct;
+            
+            if ($setup->noInstall) {
+                $rec->state = 'hidden';
+            } else {
+                $rec->state = 'draft';
+            }
+            
+            $rec->deinstall = 'yes';
+            
+            self::save($rec);
+        }
     }
     
     
     /**
      * Връща всички не-инсталирани пакети
+     * 
+     * @return array
      */
     function getNonInstalledPacks()
     {
-        
+        $opt = array();
         if (!$this->fetch("#name = 'core'")) {
             $path = EF_APP_PATH . "/core/Setup.class.php";
             
@@ -236,30 +321,58 @@ class core_Packs extends core_Manager
     
     /**
      * Изпълнява се преди извличането на редовете за листови изглед
+     * 
+     * @param object $mvc
+     * @param object $data
      */
     static function on_AfterPrepareListFilter($mvc, &$data)
     {
+        $stateField = $data->listFilter->getField('state');
+        $stateField->type->options = array('all' => 'Всички') + $stateField->type->options;
+        
+        $data->listFilter->setDefault('state', 'all');
+        
+        // В хоризонтален вид
+        $data->listFilter->view = 'horizontal';
+        
+        // Добавяме бутон
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+                
+        // Показваме само това поле. Иначе и другите полета 
+        // на модела ще се появят
+        $data->listFilter->showFields = "{$mvc->searchInputField}, state";
+        
+        $data->listFilter->input(NULL, 'silent');
+        
+        if($filter = $data->listFilter->rec) {
+            $isAll = FALSE;
+            if (($filter->state != 'all') && $filter->state) {
+                $data->query->where(array("#state = '[#1#]'", $filter->state));
+            } else {
+                $isAll = TRUE;
+            }
+            
+            if ($filter->state != 'hidden') {
+                if (!$filter->search && $isAll) {
+                    $data->query->where("#state != 'hidden'");
+                }
+            }
+        }
+        
         $data->query->orderBy("#name");
     }
     
     
     /**
-     * Рендира лентата с инструменти за списъчния изглед
+     * 
+     * 
+     * @param core_Packs $mvc
+     * @param object $res
+     * @param object $data
      */
-    function renderListToolbar_($data)
+    function on_AfterPrepareListToolbar($mvc, $res, $data)
     {
-        if (! ($opt = $this->getNonInstalledPacks())) return "";
-        
-        $form = cls::get('core_Form', array('view' => 'horizontal'));
-        $form->FNC('pack', 'varchar', 'caption=Пакет,input');
-        
-        $form->setOptions('pack', $opt);
-        $form->toolbar = cls::get('core_Toolbar');
-        $form->setHidden(array('Act' => 'install'));
-        $form->toolbar->addSbBtn('Инсталирай', 'default', 'ef_icon = img/16/install.png, title=Монтиране на пакета');
-        $form->toolbar->addBtn('Обновяване на системата', array("core_Packs", "systemUpdate"), 'ef_icon = img/16/install.png, title=Настройване на системата');
-        
-        return $form->renderHtml();
+        $data->toolbar->addBtn('Обновяване на системата', array("core_Packs", "systemUpdate"), 'ef_icon = img/16/download.png, title=Свалане на най-новия код и инициализиране на системата, class=system-update-btn');
     }
     
     
@@ -296,10 +409,7 @@ class core_Packs extends core_Manager
      */
     static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-        // Показва пореден, вместо ID номер
-        static $rowNum;
-        $rowNum++;
-        $row->id = $rowNum;
+        $row->STATE_CLASS = trim($row->STATE_CLASS);
         
         $imageUrl = sbf("img/100/default.png","");
         
@@ -311,10 +421,8 @@ class core_Packs extends core_Manager
        	
        	$row->img = ht::createElement("img", array('src' => $imageUrl, 'alt' => 'icon-' . $rec->name));
        	
-        $row->name = "<b>" . $mvc->getVerbal($rec, 'name') . "</b>";
-         
-        $row->name = new ET($row->name);
-        $row->name->append(' ' . str_replace(',', '.', $rec->version));
+        $row->name = new ET("<b>" . $row->name . "</b>");
+        $row->name->append(' ' . str_replace(',', '.', $row->version));
         
     	if ($rec->startCtr) {
     	    try {
@@ -335,53 +443,74 @@ class core_Packs extends core_Manager
             		$makeLink = TRUE;
             	}
             	
-            	if($makeLink){
+            	if ($makeLink && ($rec->state != 'draft') && ($rec->state != 'hidden')) {
             		$row->name = ht::createLink($row->name, array($rec->startCtr, $rec->startAct), NULL, "class=pack-title");
             		$row->img = ht::createLink($row->img, array($rec->startCtr, $rec->startAct));
             	}
     	    } catch (Exception $e) {
     	        // Възможно е да липсва кода на пакета
     	    }
-    		
         }
         
-        
-        if ($rec->deinstall == 'yes') {
-        	$row->deinstall = ht::createLink('', array($mvc, 'deinstall', 'pack' => $rec->name), 'Наистина ли искате да деинсталирате пакета?', array('id'=>$rec->name."-deinstall", 'class'=>'deinstall-pack', 'ef_icon' => 'img/16/cancel.png', 'title'=>'Премахване на пакета'));
-        } else {
-        	$row->deinstall = "";
-        }
-        
-        $row->name .= $row->deinstall;
-        $row->name .= "<div class=\"pack-info\">{$rec->info}</div>";
-       	
-        $row->install = ht::createLink(tr("Инициализиране"), array($mvc, 'install', 'pack' => $rec->name), NULL, array('id'=>$rec->name."-install", 'title'=>'Обновяване на пакета'));
+        $row->deinstall = "";
         
         try {
             $conf = self::getConfig($rec->name);
         } catch (core_exception_Expect $e) {
             $row->install = 'Липсва кода на пакета!';
-            $row->ROW_ATTR['style'] = 'background-color:red';
+            $row->STATE_CLASS = 'missing';
+            
+        	$row->deinstall = ht::createLink('', array($mvc, 'deinstall', 'pack' => $rec->name, 'ret_url' => TRUE), 'Наистина ли искате да изтриете пакета?', array('id'=>$rec->name."-deinstall", 'class'=>'deinstall-pack', 'ef_icon' => 'img/16/reject.png', 'title'=>'Изтриване на пакета'));
+            $row->name .= $row->deinstall;
+        	$row->name .= "<div class=\"pack-info\">{$row->info}</div>";
+        	
             return;
         }
         
-        if ($conf->getConstCnt()) {
-
-            $cls = $rec->name . "_Setup";
-            $warn = '';
-            if (cls::load($cls, TRUE)) {
-                $setup = cls::get($cls);
-                if(method_exists($setup, 'checkConfig') && $setup->checkConfig()) {
-                    $warn = "<span  style='color:yellow; background-color:red; padding-left:3px; padding-right:3px; margin-right:5px;'>!</span>";
-                }
-            } 
-
-            $row->config = ht::createLink($warn . tr("Настройки"), array($mvc, 'config', 'pack' => $rec->name, 'ret_url' => TRUE), NULL, array('id'=>$rec->name."-config", 'title'=>'Конфигуриране на пакета'));
+        $installUrl = array($mvc, 'install', 'pack' => $rec->name, 'status' => 'initialize', 'ret_url' => TRUE);
+        
+        if ($rec->state == 'active') {
+            
+            if ($rec->deinstall == 'yes') {
+            	$row->deinstall = ht::createLink('', array($mvc, 'deinstall', 'pack' => $rec->name, 'ret_url' => TRUE), 'Наистина ли искате да деактивирате пакета?', array('id'=>$rec->name."-deinstall", 'class'=>'deinstall-pack', 'ef_icon' => 'img/16/reject.png', 'title'=>'Деактивиране на пакета'));
+            }
+            
+            $row->install = ht::createLink(tr("Инициализиране"), $installUrl, NULL, array('id'=>$rec->name."-install", 'title'=>'Обновяване на пакета'));
+        } elseif ($rec->state == 'draft') {
+            $installUrl['status'] = 'install';
+            $row->install = ht::createLink(tr("Инсталирай"), $installUrl, "Наистина ли искате да инсталирате пакета?", array('id'=>$rec->name."-install", 'title'=>'Начално инсталиране на пакета'));
+        } elseif ($rec->state == 'closed') {
+            $installUrl['status'] = 'activate';
+            $row->install = ht::createLink(tr("Активирай"), $installUrl, "Наистина ли искате да активирате пакета?", array('id'=>$rec->name."-install", 'title'=>'Активиране и инициализиране на пакета'));
         }
-
+        
+        if ($rec->state == 'active' || $rec->state == 'hidden') {
+            
+            if ($conf->getConstCnt()) {
+        
+                $cls = $rec->name . "_Setup";
+                $warn = '';
+                if (cls::load($cls, TRUE)) {
+                    $setup = cls::get($cls);
+                    if(method_exists($setup, 'checkConfig') && $setup->checkConfig()) {
+                        $warn = "<span  style='color:yellow; background-color:red; padding-left:3px; padding-right:3px; margin-right:5px;'>!</span>";
+                    }
+                } 
+    
+                $row->config = ht::createLink($warn . tr("Настройки"), array($mvc, 'config', 'pack' => $rec->name, 'ret_url' => TRUE), NULL, array('id'=>$rec->name."-config", 'title'=>'Конфигуриране на пакета'));
+            }
+        }
+        
+        $row->name .= $row->deinstall;
+        $row->name .= "<div class=\"pack-info\">{$row->info}</div>";
+        
         if ($conf->haveErrors()) {
 
             $row->ROW_ATTR['style'] = 'background-color:red';
+        }
+        
+        if ($row->config && $row->install) {
+            $row->configInstall = ' ';
         }
     }
     
@@ -473,7 +602,7 @@ class core_Packs extends core_Manager
      * Setup-а на пакета е указано, че той зависи от други пакети
      * (var $depends = ... ), прави се опит и те да се установят
      */
-    function setupPack($pack, $version = 0, $force = TRUE, $loadData = FALSE)
+    function setupPack($pack, $version = 0, $force = TRUE, $loadData = FALSE, $verbose = TRUE)
     {
         // Максиламно време за инсталиране на пакет
         set_time_limit(400);
@@ -500,8 +629,13 @@ class core_Packs extends core_Manager
         
         // Проверка дали Setup класа съществува
         if (!cls::load($pack . "_Setup", TRUE)) {
-            return "<h4>Невъзможност да се инсталира <span class=\"red\">{$pack}</span>. " .
-            "Липсва <span class=\"red\">Setup</span> клас.</h4>";
+            
+            if ($verbose) {
+                return "<h4>Невъзможност да се инсталира <span class=\"red\">{$pack}</span>. " .
+            		"Липсва <span class=\"red\">Setup</span> клас.</h4>";
+            } else {
+                return "<span class='red'>Грешка при инсталиран на пеката '{$pack}'.</span>";
+            }
         }
         
         // Вземаме Setup класа, за дадения пакет
@@ -513,7 +647,7 @@ class core_Packs extends core_Manager
             $depends = arr::make($setup->depends, TRUE);
             
             foreach($depends as $p => $v) {
-                $res .= $this->setupPack($p, $v, FALSE, $loadData);
+                $res .= $this->setupPack($p, $v, FALSE, $loadData, $verbose);
             }
         }
 
@@ -582,7 +716,15 @@ class core_Packs extends core_Manager
             $rec->info = $setup->info;
             $rec->startCtr = $setup->startCtr;
             $rec->startAct = $setup->startAct;
-            $rec->deinstall = method_exists($setup, 'deinstall') ? 'yes' : 'no';
+            
+            if ($setup->isSystem) {
+                $rec->deinstall = 'no';
+            } else {
+                $rec->deinstall = method_exists($setup, 'deinstall') ? 'yes' : 'no';
+            }
+            
+            $rec->state = 'active';
+            
             $this->save($rec);
         } else {
             $res .= "<li>Пропускаме, има налична инсталация</li>";
@@ -607,8 +749,14 @@ class core_Packs extends core_Manager
             // в setup-a очакваме резултат
             return;
         }
-
-        return $res;
+        
+        if ($verbose) {
+            
+            return $res;
+        } else {
+            
+            return "<div>Успешна инсталация на пакета '{$pack}'</div>";
+        }
     }
 
 
@@ -707,8 +855,10 @@ class core_Packs extends core_Manager
                 
                 if (is_null($value) && ($currLg != 'en')) {
                     
+                    $currLgHeader = $key . '_EN';
+                    
                     // Ако няма данни за текущия език използваме на английски
-                    $value = $key . '_EN';
+                    $value = $packConfig->$currLgHeader;
                 }
             } catch (core_exception_Expect $e) {
             }
@@ -946,15 +1096,19 @@ class core_Packs extends core_Manager
      */
     function on_BeforeRenderListTable($mvc, &$res, $data)
     {
-    	$res = new ET(getFileContent("core/tpl/ListPack.shtml"));
-    	$blockTpl = $res->getBlock('ROW');
-    	
-    	foreach ($data->rows as $row) {
-    		$rowTpl = clone($blockTpl);
-    		$rowTpl->placeObject($row);
-    		$rowTpl->removeBlocks();
-    		$rowTpl->append2master();
-    	}
+        if ($data->rows) {
+            $res = new ET(getFileContent("core/tpl/ListPack.shtml"));
+        	$blockTpl = $res->getBlock('ROW');
+        	
+        	foreach ($data->rows as $row) {
+        		$rowTpl = clone($blockTpl);
+        		$rowTpl->placeObject($row);
+        		$rowTpl->removeBlocks();
+        		$rowTpl->append2master();
+        	}
+        } else {
+            $res = new ET('Няма пакети');
+        }
     	
     	return FALSE; 
     }

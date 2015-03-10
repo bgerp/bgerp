@@ -70,7 +70,7 @@ class purchase_transaction_CloseDeal extends acc_DocumentTransactionSource
     	
     	if($rec->closeWith){
     		if($dealItem){
-    			$closeDealItem = acc_Items::fetchItem('purchase_Purchases', $rec->closeWith);
+    			$closeDealItem = array('purchase_Purchases', $rec->closeWith);
     			$closeEntries = $this->class->getTransferEntries($dealItem, $result->totalAmount, $closeDealItem, $rec);
     			$result->entries = array_merge($result->entries, $closeEntries);
     		}
@@ -135,7 +135,7 @@ class purchase_transaction_CloseDeal extends acc_DocumentTransactionSource
     	$jRecs = acc_Journal::getEntries(array($firstDoc->className, $firstDoc->that));
     
     	// Колко е направеното авансовото плащане
-    	$downpaymentAmount = acc_Balances::getBlAmounts($jRecs, '402')->amount;
+    	//$downpaymentAmount = acc_Balances::getBlAmounts($jRecs, '402')->amount;
     	if($downpaymentAmount == 0) return $entryArr;
     	 
     	// Валутата на плащането е тази на сделката
@@ -189,7 +189,7 @@ class purchase_transaction_CloseDeal extends acc_DocumentTransactionSource
     	 
     	$jRecs = acc_Journal::getEntries(array($firstDoc->className, $firstDoc->that));
     	$blAmount = acc_Balances::getBlAmounts($jRecs, '4530')->amount;
-    	 
+    	
     	$total += abs($blAmount);
     	 
     	if($blAmount == 0) return $entries;

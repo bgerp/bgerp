@@ -99,6 +99,8 @@ class acc_type_Item extends type_Key
         $this->handler = md5($this->getSelectFld() . $where . $this->params['mvc']);
         
         $this->options = parent::prepareOptions();
+        
+        return $this->options;
     }
     
     
@@ -115,10 +117,8 @@ class acc_type_Item extends type_Key
         foreach ($this->options as $key => $val) {
             if (!is_object($val) && intval($key) == $value) {
                 
-                // Workaround
-                // Ако опциите са повече от допустимите и се използва Ajax, подаваме инт еквивалента на стойността за да
-                // работи, иначе връща грешни данни, ако не се използва Ajax подаваме дробната стойност
-                $value = (count($this->options) > $maxSuggestions) ? intval($key) : $key;
+                $value = $key;
+                
                 break;
             }
         }
@@ -128,16 +128,35 @@ class acc_type_Item extends type_Key
     
     
     /**
-     * Конвертира стойността от вербална към (int) - ключ към core_Interfaces
+     * 
+     * 
+     * @see type_Key::fromVerbal_()
      */
     function fromVerbal_($value)
     {
-        $this->prepareOptions();
+        $value = parent::fromVerbal_($value);
         
-        if ($result = parent::fromVerbal_($value)) {
-            $result = intval($result);
+        if(isset($value)){
+        	$value = intval($value);
         }
         
-        return $result;
+        return $value;
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param string $value
+     * 
+     * @return object
+     */
+    protected function fetchVal(&$value)
+    {
+        $mvc = &cls::get($this->params['mvc']);
+        
+        $rec = $mvc->fetch(intval($value));
+        
+        return $rec;
     }
 }

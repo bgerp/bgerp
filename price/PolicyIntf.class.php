@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   price
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Интерфейс за ценови политики
@@ -34,23 +34,9 @@ class price_PolicyIntf
      * @return object
      * 			$rec->price  - цена
      * 			$rec->discount - отстъпка
-     * 			$rec->priority - приоритет на цената (0, 1 или 2)
      */
     function getPriceInfo($customerClass, $customerId, $productId, $productManId, $packagingId = NULL, $quantity = NULL, $date = NULL, $rate = 1, $chargeVat = 'no')
     {
         return $this->class->getPriceInfo($customerClass, $customerId, $productId, $productManId, $packagingId, $date, $rate, $chargeVat);
-    }
-    
-    
-    /**
-     * Заглавие на ценоразписа за конкретен клиент 
-     * 
-     * @param mixed $customerClass
-     * @param int $customerId
-     * @return string
-     */
-    public function getPolicyTitle($customerClass, $customerId)
-    {
-        return $this->class->getPolicyTitle($customerClass, $customerId);
     }
 }

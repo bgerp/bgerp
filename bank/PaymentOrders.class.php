@@ -232,12 +232,6 @@ class bank_PaymentOrders extends core_Master
             // Извличаме името на банката и BIC-а на получателя от IBAN-а му
             $row->contragentBank = bglocal_Banks::getBankName($rec->beneficiaryIban);
             $row->contragentBankBic = bglocal_Banks::getBankBic($rec->beneficiaryIban);
-            
-            // При принтирането на 'Чернова' скриваме системните полета и заглавието
-            //if(!Mode::is('printing')){
-            $row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " ({$row->state})" ;
-            
-            //}
         }
     }
     

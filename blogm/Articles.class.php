@@ -232,7 +232,7 @@ class blogm_Articles extends core_Master {
         $data->listFilter->title = 'Търсене';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        $data->listFilter->FNC('category', 'key(mvc=blogm_Categories,select=title,allowEmpty)', 'placeholder=Категория,silent');
+        $data->listFilter->FNC('category', 'key(mvc=blogm_Categories,select=title,allowEmpty)', 'placeholder=Категория,silent,refreshForm');
 		$data->listFilter->setOptions('category', blogm_Categories::getCategoriesByLang());
         $data->listFilter->showFields = 'search,category';
         
@@ -341,7 +341,7 @@ class blogm_Articles extends core_Master {
 
 		// Подготвяме лейаута за статията
         $layout = $this->getArticleLayout($data);
-        
+       
 		// Рендираме статията във вид за публично разглеждане
 		$tpl = $this->renderArticle($data, $layout);
 		$tpl->prepend($data->ogp->siteInfo['Title'] . ' » ', 'PAGE_TITLE');
@@ -470,7 +470,7 @@ class blogm_Articles extends core_Master {
      * Рендиране на статия за публичната част на блога
 	 */
 	function renderArticle_($data, $layout)
-	{
+	{ 
 		// Поставяме данните от реда
 		$layout->placeObject($data->row);
 		$layout = blogm_Comments::renderComments($data, $layout);
@@ -760,7 +760,7 @@ class blogm_Articles extends core_Master {
         $layout->push($data->ThemeClass->getStyles(), 'CSS');
 		
         // Поставяме шаблона за външен изглед
-		Mode::set('wrapper', 'cms_Page');
+		Mode::set('wrapper', 'cms_page_External');
 
         // Добавяме лейаута на страницата
         Mode::set('cmsLayout', $data->ThemeClass->getBlogLayout());

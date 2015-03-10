@@ -1,8 +1,9 @@
 <div class = 'singleView'>
 [#SingleToolbar#]
+<div class='document' style='width: auto'>
 	<!--ET_BEGIN header-->
 	<div class='header [#STATE_CLASS#]'>
-		<div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
+		<div class='docBgIcon' style='[#iconStyle#];'>[#singleTitle#] <b>[#ident#]</b> ([#state#])</div>
 	</div>
 	<!--ET_END header-->
 	
@@ -35,12 +36,6 @@
 				<td><b>[#transferedIn#]</b></td>
 			</tr>
 			<!--ET_END transferedIn-->
-			
-			<tr>
-				<td>|Продукти|*:</td>
-				<td></td>
-				<td class = 'summary-right'><b>[#productCount#]</b></td>
-			</tr>
 			<tr>
 				<td>|Продадено|*:</td>
 				<td><span class='cCode' style='margin:0px 12px'>[#baseCurrency#]</span></td>
@@ -57,11 +52,12 @@
 				<td class = 'summary-right'><b>[#change#]</b></td>
 			</tr>
 		</table>
-	<span>|Създаден на|* <b>[#createdDate#]</b> |от|* <b>[#createdBy#]</b></span>
+	<span>|Създаден|* <!--ET_BEGIN createdDate-->|на|* <b>[#createdDate#]</b><!--ET_END createdDate--> |от|* <b>[#createdBy#]</b></span>
 	<br /><br />
 	<!--ET_BEGIN DETAILS-->
 		<div class='details'>
 			[#DETAILS#]
 		</div>
 	<!--ET_END DETAILS-->
+</div>
 </div>

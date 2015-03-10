@@ -46,7 +46,6 @@ class accda_Setup extends core_ProtoSetup
      */
     var $managers = array(
         'accda_Da',
-        'accda_Groups',
         'accda_Documents',
     );
     

@@ -32,7 +32,7 @@ class zbar_Reader
         // Изпълняваме командата за намиране на баркодове
         exec("zbarimg {$downloadUrl}", $allBarcodesArr, $errorCode);
         
-        if (($errorCode != 0) && ($errorCode != 4)) {
+        if (($errorCode !== 0) && ($errorCode !== 4)) {
             
             throw new fileman_Exception('Възникна грешка при обработка.');
         }
@@ -41,7 +41,7 @@ class zbar_Reader
         $barcodesArr = array();
         
         // Ако има окрит баркод
-        if (count($allBarcodesArr)) {
+        if ((is_array($allBarcodesArr)) && count($allBarcodesArr)) {
             
             // Обикаляме намерените баркодове
             foreach ($allBarcodesArr as $key => $barcode) {

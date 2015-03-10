@@ -39,7 +39,7 @@ class sales_Sales extends deals_DealMaster
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, doc_plg_MultiPrint, doc_plg_TplManager, doc_DocumentPlg, acc_plg_Contable, plg_Printing,
+    public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, acc_plg_Registry, doc_plg_MultiPrint, doc_plg_TplManager, doc_DocumentPlg, acc_plg_Contable, plg_Printing,
                     acc_plg_DocumentSummary, plg_Search, plg_ExportCsv, doc_plg_HidePrices, cond_plg_DefaultValues,
 					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_BusinessDoc, plg_Clone, doc_SharablePlg';
     
@@ -623,6 +623,42 @@ class sales_Sales extends deals_DealMaster
     		if(sales_SalesDetails::fetch("#saleId = {$rec->id}")){
     			$res = 'no_one';
     		}
+    	}
+    }
+    
+    
+    /**
+     * След подготовка на сингъла
+     */
+    public static function on_AfterPrepareSingle($mvc, &$res, &$data)
+    {
+    	$data->jobInfo = array();
+    	if($data->rec->state != 'rejected'){
+    		
+    		// Подготвяме информацията за наличните задания към нестандартните (частните) артикули в продажбата
+    		$dQuery = sales_SalesDetails::getQuery();
+    		$dQuery->where("#saleId = {$data->rec->id}");
+    		$dQuery->show('classId,productId,packagingId,quantity');
+    		
+    		while($dRec = $dQuery->fetch()){
+    			if($dRow = sales_SalesDetails::prepareJobInfo($dRec, $data->rec)){
+    				$data->jobInfo[] = $dRow;
+    			}
+    		}
+    	}
+    }
+    
+    
+    /**
+     * След рендиране на еденичния изглед
+     */
+    public static function on_AfterRenderSingle($mvc, &$tpl, $data)
+    {
+    	// Ако има подготвена информация за наличните задания, рендираме я
+    	if(count($data->jobInfo)){
+    		$table = cls::get('core_TableView');
+    		$jobsInfo = $table->get($data->jobInfo, 'productId=Артикул,jobId=Задание');
+    		$tpl->replace($jobsInfo, 'JOB_INFO');
     	}
     }
 }

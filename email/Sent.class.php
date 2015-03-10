@@ -2,6 +2,12 @@
 
 
 /**
+ * 
+ */
+defIfNot('EMAIL_SENT_DOMAIN_HASH', md5(EF_SALT . '_DOMAIN_' . BGERP_DEFAULT_EMAIL_DOMAIN));
+
+
+/**
  * Изпращане на писма
  * 
  * @category  bgerp
@@ -36,10 +42,14 @@ class email_Sent
             'html'    => $body->html,
             'text'    => $body->text,
             'attachments' => array_merge((array)$body->attachmentsFh, (array)$body->documentsFh),
-            'headers' => array(),
+            'headers' => array('X-Bgerp-Hash' => EMAIL_SENT_DOMAIN_HASH),
             'emailFrom' => email_Inboxes::fetchField($boxFrom, 'email'),
             'charset'   => $options['encoding'],
         );
+        
+        if ($body->__inReplyTo) {
+            $messageBase['headers']['In-Reply-To'] = $body->__inReplyTo;
+        }
         
         // Добавя манипулатора на нишката в събджекта на имейла, ако няма забрана да направи това
         if (empty($options['no_thread_hnd'])) {
@@ -182,8 +192,8 @@ class email_Sent
             }
         }
         
-        if (!empty($message->inReplyTo)) {
-            $PML->AddReplyTo($message->inReplyTo);
+        if (!empty($message->replyTo)) {
+            $PML->AddReplyTo($message->replyTo);
         }
         
         $isSended = $PML->Send();

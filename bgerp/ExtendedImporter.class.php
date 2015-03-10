@@ -51,8 +51,7 @@ class bgerp_ExtendedImporter extends core_Manager {
         $Dfields = $this->mvc->selectFields();
         
         foreach($Dfields as $name => $fld){
-            if($fld->input != 'none' && $fld->input != 'hidden' &&
-                $fld->kind != 'FNC'){
+            if($fld->input != 'hidden' && $fld->kind != 'FNC'){
                 $fields[$name] = array('caption' => $fld->caption, 'mandatory' => $fld->mandatory);
             }
         }

@@ -33,7 +33,7 @@ class cat_Params extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id,typeExt,type,options,default,lastUsedOn';
+    var $listFields = 'id,typeExt,type,options,default,lastUsedOn,sysId';
     
     
     /**

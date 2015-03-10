@@ -131,7 +131,7 @@ class frame_Reports extends core_Embedder
     function description()
     {
         // Singleton клас - източник на данните
-        $this->FLD('source', 'class(interface=frame_ReportSourceIntf, allowEmpty, select=title)', 'caption=Източник,silent,mandatory,notFilter', array('attr' => array('onchange' => "addCmdRefresh(this.form);this.form.submit()")));
+        $this->FLD('source', 'class(interface=frame_ReportSourceIntf, allowEmpty, select=title)', 'caption=Вид,silent,mandatory,notFilter,refreshForm');
 
         // Поле за настройките за филтриране на данните, които потребителят е посочил във формата
         $this->FLD('filter', 'blob(1000000, serialize, compress)', 'caption=Филтър,input=none,single=none,column=none');
@@ -150,11 +150,6 @@ class frame_Reports extends core_Embedder
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
 		if($fields['-single']) {
-	    	
-            // Показваме заглавието само ако не сме в режим принтиране
-            if(!Mode::is('printing')){
-                $row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " (" . $mvc->getVerbal($rec, 'state') . ")" ;
-            }
            
             // Обновяваме данните, ако отчета е в състояние 'draft'
             if($rec->state == 'draft') {
@@ -275,7 +270,9 @@ class frame_Reports extends core_Embedder
     	
     	try{
     		$Driver = $me->getDriver($rec);
-    		$title = $me->singleTitle . " '{$Driver->getReportTitle()}' №{$rec->id}";
+    		if($Driver){
+    			$title = $me->singleTitle . " '{$Driver->getReportTitle()}' №{$rec->id}";
+    		}
     	} catch(core_exception_Expect $e){
     		$title = "<span class='red'>" . tr('Проблем при показването') . "</span>";
     	}

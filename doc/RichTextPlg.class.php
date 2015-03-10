@@ -28,7 +28,19 @@ class doc_RichTextPlg extends core_Plugin
      * @param abbr     - Абревиатурата на шаблона
      * @param id       - id' то на шаблона
      */
-    static $pattern = "/(?'begin'[^a-z0-9а-я]|^){1}(?'dsName'(?'dsSign'\#)(?'name'(?'abbr'[a-z]{1,3})(?'id'[0-9]{1,10}))){1}/iu";
+    static $pattern = "/(?'begin'[^a-z0-9а-я]|^){1}(?'dsName'(?'dsSign'\#)(?'name'(?'abbr'[a-z]{1,3})(?'id'[0-9]{1,10}))(?'endDs'(\!)?)){1}/iu";
+    
+    
+    /**
+     * 
+     */
+    public static $identPattern = "/(?'name'(?'abbr'[a-z]{1,3})(?'id'[0-9]{1,10})(?'endDs'(\!)?))/i";
+    
+    
+    /**
+     * 
+     */
+    public static $identEnd = '!';
     
     
     /**
@@ -38,11 +50,15 @@ class doc_RichTextPlg extends core_Plugin
     {
         $this->mvc = $mvc;
         
-        //Ако намери съвпадение на регулярния израз изпълнява функцията
-        $html = preg_replace_callback(self::$pattern, array($this, '_catchFile'), $html);
+        if ($mvc->params['hndToLink'] != 'no') {
+            //Ако намери съвпадение на регулярния израз изпълнява функцията
+            $html = preg_replace_callback(self::$pattern, array($this, '_catchFile'), $html);
+        }
         
-        // Прихваща всички никове в ричтекста
-        $html = preg_replace_callback(rtac_Plugin::$pattern, array($this, '_catchNick'), $html);
+        if ($mvc->params['nickToLink'] != 'no') {
+            // Прихваща всички никове в ричтекста
+            $html = preg_replace_callback(rtac_Plugin::$pattern, array($this, '_catchNick'), $html);
+        }
     }
     
     
@@ -63,7 +79,7 @@ class doc_RichTextPlg extends core_Plugin
         $abbr = ($doc->abbr) ? $doc->abbr : $match['abbr'];
         
         //Име на файла
-        $docName = $match['dsSign'] . $abbr . $match['id'];
+        $docName = $match['dsSign'] . $abbr . $match['id'] . $match['endDs'];
         
         $mvc    = $doc->instance;
         $docRec = $doc->rec();
@@ -112,8 +128,29 @@ class doc_RichTextPlg extends core_Plugin
 
         return  $res;
     }
-
-
+    
+    
+    /**
+     * Парсира манипулатора
+     * 
+     * @param string $handle
+     * 
+     * @return array|NULL
+     */
+    public static function parseHandle($handle)
+    {
+        preg_match(self::$pattern, $handle, $matches);
+        
+        if (!$matches) return ;
+        
+        $resArr = array();
+        $resArr['abbr'] = $matches['abbr'];
+        $resArr['id'] = $matches['id'];
+        
+        return $resArr;
+    }
+    
+    
     /**
      * Намира всички цитирания на хендъли на документи в текст
      *
@@ -164,7 +201,7 @@ class doc_RichTextPlg extends core_Plugin
         if (!trim($fileName)) return ;
         
         // Регулярен израз за определяне на всички думи, които могат да са линкове към наши документи
-        preg_match("/(?'name'(?'abbr'[a-z]+)(?'id'[0-9]+))/i", $fileName, $matches);
+        preg_match(self::$identPattern, $fileName, $matches);
         
         // Преобразуваме абревиатурата от намерения стринг в главни букви
         $abbr = strtoupper($matches['abbr']);
@@ -188,6 +225,8 @@ class doc_RichTextPlg extends core_Plugin
             
             // id' то на класа
             $handleInfo['id'] = $id;
+            
+            $handleInfo['endDs'] = $matches['endDs'];
             
             $rec = $className::fetchByHandle($handleInfo);
         }
@@ -308,7 +347,8 @@ class doc_RichTextPlg extends core_Plugin
     	$rec = $mvc->fetch($rec->id);
     	$fields = $mvc->selectFields();
     	foreach ($fields as $name => $fld){
-    		if($fld->type instanceof type_Richtext){
+    		if ($fld->type instanceof type_Richtext){
+    		    if ($fld->type->params['hndToLink'] == 'no') continue;
     			$all .= $rec->{$name};
     		}
     	}

@@ -94,7 +94,7 @@ class fileman_Log extends core_Manager
         $this->FLD('fileId', 'key(mvc=fileman_Files, select=fileHnd)', 'caption=Манипулатор,notNull');
         $this->FLD('fileName', 'varchar', 'caption=Файл');
         $this->FLD('fileSize', "fileman_FileSize", 'caption=Размер');
-        $this->FLD('action', 'enum(upload=Качване, preview=Разглеждане)', 'caption=Действие');
+        $this->FLD('action', 'enum(upload=Качване, preview=Разглеждане, rename=Преименуване)', 'caption=Действие');
         $this->FLD('userId', 'user', 'caption=Потребител');
         $this->FLD('lastOn', 'datetime(format=smartTime)', 'caption=Последно');
         

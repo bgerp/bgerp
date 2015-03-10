@@ -47,6 +47,9 @@ class type_Group extends type_Key
     {
         expect($base = $this->params['base']);     // Базов модел
         expect($keylist = $this->params['keylist']);     // Името на keylist полето
+        
+        Mode::push('text', 'plain');
+        
         $mvc = cls::get($this->params['mvc']);
         
         $baseMvc = cls::get($base);
@@ -66,8 +69,12 @@ class type_Group extends type_Key
                 $this->options[$id] = $mvc->getTitleById($id, FALSE) . " ({$cnt})";
             }
         }
-
-        parent::prepareOptions();
+        
+        Mode::pop('text');
+        
+        $this->options = parent::prepareOptions();
+        
+        return $this->options;
     }
     
     

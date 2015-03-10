@@ -1,6 +1,6 @@
-<fieldset class='detail-info portal' style='margin-bottom:10px;' id="[#DetailName#]">
-    <legend class='groupTitle'>[#TITLE#]</legend>
+<div class='detail-info portal ' style='padding-bottom:10px;' id="[#DetailName#]">
+    <div class='table-title'>[#TITLE#]</div>
     <div class='groupList'>
         [#CONTENT#]
     </div>
-</fieldset>
+</div>

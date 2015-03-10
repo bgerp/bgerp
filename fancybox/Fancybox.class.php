@@ -87,9 +87,9 @@ class fancybox_Fancybox extends core_Manager {
         // Когато отпечатваме да не сработва плъгина
         if (!Mode::is('printing')) {
             $conf = core_Packs::getConfig('fancybox');
-        
-            $tpl->push($conf->FANCYBOX_PATH . '/jquery.fancybox.css', 'CSS');
-            $tpl->push($conf->FANCYBOX_PATH . '/jquery.fancybox.js', 'JS');
+            
+            $tpl->push('fancybox/' . $conf->FANCYBOX_VERSION . '/jquery.fancybox.css', 'CSS');
+            $tpl->push('fancybox/' . $conf->FANCYBOX_VERSION . '/jquery.fancybox.js', 'JS');
             
             jquery_Jquery::run($tpl, "$('a.fancybox').fancybox();", TRUE);
         }

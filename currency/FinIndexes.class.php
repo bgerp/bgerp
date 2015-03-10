@@ -80,7 +80,6 @@ class currency_FinIndexes extends core_Manager {
     function act_LoadEuriborCsv()
     {
         // Зареждаме файлове за обработка
-        // $csvFiles = array(__DIR__ . "/csv/hist_EURIBOR_2012.csv");
         $csvFiles = array("http://www.euribor-ebf.eu/assets/modules/rateisblue/processed_files/hist_EURIBOR_" . date('Y') . ".csv");
         
         foreach ($csvFiles as $csvFile) {
@@ -91,7 +90,7 @@ class currency_FinIndexes extends core_Manager {
             // Зарежда, обработва и записва в базата CSV файл
             if (($handle = @fopen($csvFile, "r")) !== FALSE) {
                 while (($csvRow = fgetcsv($handle, 10000, ",")) !== FALSE) {
-                    if (empty($coulmns)) {
+                    if (empty($columns)) {
                         // Колоните са броя на датите във файла + 1 
                         $columns = count($csvRow);
                     }
@@ -317,7 +316,7 @@ class currency_FinIndexes extends core_Manager {
             // Зарежда, обработва и записва в базата CSV файл
             if (($handle = @fopen($csvFile, "r")) !== FALSE) {
                 while (($csvRow = fgetcsv($handle, 10000, ",")) !== FALSE) {
-                    if (empty($coulmns)) {
+                    if (empty($columns)) {
                         // Колоните са броя на датите във файла + 1 
                         $columns = count($csvRow);
                     }

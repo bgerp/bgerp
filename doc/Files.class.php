@@ -118,7 +118,9 @@ class doc_Files extends core_Manager
         
         // Ако няма нишка
         if (!$threadId) $threadId = $cRec->threadId;
-
+        
+        $savedFh = array();
+        
         // Вземаме всички файлове, за съответния контейнер (когато редактираме запис)
         $query = static::getQuery();
         $query->where("#containerId = '{$containerId}'");
@@ -259,6 +261,7 @@ class doc_Files extends core_Manager
         $docRow = $doc->getDocumentRow();
         
         // Атрибутеите на линка
+        $attr = array();
         $attr['title'] = $docRow->title;
         
         // Документа да е линк към single' а на документа

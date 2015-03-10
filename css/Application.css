@@ -88,17 +88,18 @@ tr.noHover td:hover {
   border-top: solid 2px #004488;
   padding-left: 0.2em;
   padding-top: 0.2em; }
+  #framecontentBottom small {
+    color: #999999;
+    vertical-align: middle;
+    font-size: 10px; }
 
 .bugReport {
   border: none;
   background-color: transparent;
-  vertical-align: middle; }
+  vertical-align: top; }
 
 .narrow .bugReport {
   position: relative;
-  top: -2px;
-  width: 16px;
-  height: 16px;
   padding: 0; }
 
 .narrow #framecontentBottom {
@@ -362,6 +363,10 @@ div.folder-cover {
   div.folder-cover .tab-page .detail-info {
     margin-bottom: 0 !important;
     margin-top: 0; }
+  div.folder-cover .docStatistic {
+    margin-top: 20px; }
+  div.folder-cover .top-tab-content {
+    padding: 5px 10px 10px 10px; }
 
 .narrow .folder-cover {
   line-height: 1.3em;
@@ -723,6 +728,14 @@ div.acc-detail {
 .portal table.listTable .additionalInfo-holder td {
   border: none !important; }
 
+.acc-footer {
+  text-align: right;
+  margin-top: 20px;
+  font-size: 1.1em;
+  font-weight: bold;
+  background-color: #e1e1e1;
+  padding: 5px; }
+
 /*
  * детайли
  */
@@ -748,11 +761,12 @@ div.acc-detail {
     line-height: 1.2; }
   .detail-info.portal {
     padding-top: 5px;
-    margin-top: 10px; }
+    margin-top: 10px;
+    background-color: transparent; }
     .detail-info.portal p {
       margin: 0; }
     .detail-info.portal table.listTable th {
-      background: #f1f1f1 !important;
+      background: #e1e1e1 !important;
       border: 1px solid white !important;
       display: table-cell !important;
       visibility: visible !important;
@@ -1001,15 +1015,28 @@ td.portal-date {
   .document .custom-header-bg {
     background-color: #e0e0e0;
     height: 20px; }
+  .document .listTable .numericElement {
+    text-align: right;
+    display: inline-block;
+    white-space: nowrap; }
+
+.snapshot {
+  margin-top: 10px;
+  padding: 10px;
+  background: rgba(255, 255, 210, 0.3);
+  border: 1px solid #dddddd;
+  border-radius: 3px; }
+  .snapshot .snapshat-title {
+    font-weight: bold;
+    padding-bottom: 7px; }
 
 .stamp {
   color: #bb0000;
   border: 1px dotted #bb0000;
   display: inline-block;
-  font-size: 0.85em;
-  padding: 2px 2px 1px 2px;
-  border-radius: 3px;
-  margin-top: 5px; }
+  font-size: 0.8em;
+  padding: 1px 2px 0px 2px !important;
+  border-radius: 3px; }
 
 .centered {
   text-align: center; }
@@ -1021,12 +1048,13 @@ td.portal-date {
   font-size: 16pt;
   font-weight: bold;
   line-height: 120%;
-  margin-top: 4px; }
+  margin-top: 4px;
+  text-transform: uppercase; }
 
 .document .listTable th {
   white-space: nowrap; }
 
-.document .rowtools-column {
+td.rowtools-column {
   width: 1%; }
 
 .small-field {
@@ -1172,7 +1200,8 @@ pre.document {
   border-top: 2px dotted #666666;
   margin-left: 5px;
   padding: 5px 10px;
-  min-width: 110px; }
+  min-width: 110px;
+  min-height: 1.2em; }
 
 .nowrap {
   white-space: nowrap; }
@@ -1196,7 +1225,15 @@ pre.document {
 .dec-document {
   font-size: 0.95em; }
   .dec-document ul {
-    margin: 5px 0; }
+    margin-top: 5px;
+    margin-bottom: 0; }
+  .dec-document .richtext {
+    color: black;
+    line-height: 1em; }
+    .dec-document .richtext ul {
+      margin-left: 10px; }
+  .dec-document .inner-text {
+    padding-left: 30px; }
   .dec-document table.signiture {
     width: 10% !important; }
 
@@ -1326,6 +1363,73 @@ table.mc-header a {
 
 /*
  * край на стиловете за календара в портала
+ */
+/*
+ * стилове за селекта на календара в портала
+ */
+.metro-dropdown-portal option,
+.metro-dropdown-portal:after,
+.metro-dropdown-portal::after,
+.metro-dropdown-portal select {
+  color: black;
+  box-shadow: none; }
+  .metro-dropdown-portal option:focus,
+  .metro-dropdown-portal:after:focus,
+  .metro-dropdown-portal::after:focus,
+  .metro-dropdown-portal select:focus {
+    outline: none;
+    box-shadow: none; }
+
+.metro-dropdown-portal select,
+.metro-dropdown-portal:after,
+.metro-dropdown-portal::after {
+  display: block;
+  background: #f8fff8; }
+
+.metro-dropdown-portal select,
+.metro-dropdown-portal option {
+  padding: 4px; }
+
+.metro-dropdown-portal {
+  position: relative;
+  display: inline-block;
+  border: 0 none;
+  top: -8px; }
+
+.metro-dropdown-portal::after {
+  content: "\25bc";
+  position: absolute;
+  top: 0;
+  right: 0px;
+  display: block;
+  width: 29px;
+  font-size: 1em;
+  line-height: 34px;
+  left: 100px;
+  -webkit-pointer-events: none;
+  -moz-pointer-events: none;
+  pointer-events: none; }
+
+@-moz-document url-prefix() {
+    .metro-dropdown-portal::after {
+    width: 20px;
+    left: 112px; }
+ }
+.metro-dropdown-portal select {
+  height: 34px;
+  border: 0;
+  vertical-align: middle;
+  font: normal 1em Helvetica, Arial, Verdana, sans-serif;
+  outline: 0 none;
+  text-align: right; }
+
+.metro-dropdown-portal option {
+  background: white;
+  color: black;
+  text-align: left; }
+
+/*
+ * край на стилове за селекта на календара в портала
  */
 /*
  * Стилове за счетоводството
@@ -1863,7 +1967,8 @@ span.sharing-history-title {
   z-index: 100; }
 
 .newsbar .richtext {
-  line-height: 1.1em; }
+  line-height: 1.1em;
+  white-space: nowrap; }
 
 .narrow .newsbar {
   padding-bottom: 8px; }
@@ -2356,32 +2461,37 @@ table.styled-table tr:hover td {
 /*
  * стилове за локации
  */
-div.location {
-  max-width: 720px;
+div.no-cover {
+  max-width: 725px;
   -moz-border-radius: 5px;
   -webkit-border-radius: 5px;
   -ms-border-radius: 5px;
   border-radius: 5px;
   border: 1px solid #cccccc;
-  padding: 10px 20px 20px;
+  padding: 20px 20px 20px;
   margin-top: 16px; }
-  div.location h2 {
+  div.no-cover h2 {
     margin-top: 0;
     background-color: transparent; }
-  div.location ul {
+    div.no-cover h2.state-rejected {
+      background-color: #cc6666; }
+  div.no-cover ul {
     padding: 0;
     margin: 0;
     list-style-type: none; }
-    div.location ul li {
+    div.no-cover ul li {
       padding: 0;
       margin: 0;
       list-style-type: none; }
-  div.location div.locImage {
+  div.no-cover div.locImage {
     padding-bottom: 0; }
-  div.location .gray-title {
+  div.no-cover .gray-title {
     color: #666666;
     display: inline;
     vertical-align: baseline; }
+  div.no-cover .groupList {
+    font-size: 0.95em;
+    max-width: 700px; }
 
 div.location.public {
   border: none;
@@ -2718,12 +2828,9 @@ div.location.public {
 /*
  * Стилове за пос
  */
-.narrow .pos-open-btn {
-  display: block;
-  float: none; }
-
-.wide .pos-open-btn {
-  margin-left: 20px !important; }
+.open-note {
+  padding: 2px;
+  border-radius: 3px; }
 
 /*
  * Край на стилове за пос
@@ -3640,6 +3747,10 @@ only screen and (max-width: 320px) {
   .footerDocTable {
     display: table !important; } }
 
+  .printing .specialLink {
+    font-weight: bold; }
+  .printing a {
+    color: black !important; }
   .printing .docBgIcon {
     padding: 0 !important;
     background-image: none !important; }
@@ -3697,6 +3808,12 @@ only screen and (max-width: 320px) {
   .printing .#fancybox-left,
   .printing #fancybox-right {
     background-color: transparent !important; }
+  .printing .selectRows .listTable > tbody > tr > td:first-child {
+    text-align: left; }
+  .printing .new-folder-btn {
+    display: none; }
+  .printing .staticFormView .formFieldValue {
+    border: 1px solid #cccccc; }
 
 .narrow .printing .document {
   width: 850px; }

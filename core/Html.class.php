@@ -253,10 +253,11 @@ class core_Html
     {
         $optionsCnt = self::countOptions($options);
 
-        if($optionsCnt <= 1) {
-            // Когато имаме само една опция, правим readOnly <input>
-
-            expect($optionsCnt>0, "'Липсват опции за '{$name}'");
+        // Очакваме да има поне една опция
+        expect($optionsCnt>0, "'Липсват опции за '{$name}'");
+        
+        // Когато имаме само една опция, правим readOnly <input>
+        if($optionsCnt == 1) {
 
             foreach($options as $id => $opt) {
 
@@ -293,6 +294,9 @@ class core_Html
                         'value' => $id
                     )));
         } elseif($optionsCnt <= $maxRadio) {
+        	if($optionsCnt < 4 ) {
+        		$keyListClass .= 'shrinked';
+        	}
             // Когато броя на опциите са по-малко
 
             // Определяме броя на колоните, ако не са зададени.
@@ -305,7 +309,7 @@ class core_Html
             }
 
             if($col > 1) {
-                $tpl = "<table class='keylist'><tr>";
+                $tpl = "<table class='keylist {$keyListClass}'><tr>";
 
                 for($i = 1; $i <= $col; $i++) {
                     $tpl .= "<td valign=top>[#OPT" . ($i-1) . "#]</td>";
@@ -631,7 +635,15 @@ class core_Html
 
 
     /**
+     * 
      * Създава хипервръзка
+     * 
+     * @param string $title
+     * @param FALSE|array $url
+     * @param FALSE|string $warning
+     * @param array $attr
+     * 
+     * @return core_ET
      */
     static function createLink($title, $url = FALSE, $warning = FALSE, $attr = array())
     {
@@ -677,7 +689,7 @@ class core_Html
             
             if (Mode::is('text', 'xhtml') || Mode::is('printing')) {
                 $icon    = "<img src='$iconSrc' width='16' height='16' style='float:left;margin:3px 2px 4px 0px;' alt=''>";
-                $title   = "<span style='display:inline-block;'>{$icon}{$title}</span>";
+                $title   = "<span class='linkWithIconSpan'>{$icon}{$title}</span>";
             } else {
                 $attr['class'] .= ' linkWithIcon';
                 $attr['style'] .= "background-image:url('{$iconSrc}');";

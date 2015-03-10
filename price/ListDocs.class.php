@@ -703,7 +703,6 @@ class price_ListDocs extends core_Master
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	$row->header = "{$row->title} &nbsp;<b>{$row->ident}</b> ({$row->state})";
     	$row->policyId = ht::createLink($row->policyId, array('price_Lists', 'single', $rec->policyId));
     	
     	if(!$rec->productGroups) {
@@ -717,7 +716,6 @@ class price_ListDocs extends core_Master
     		$row->currency =  $row->currencyId;
     		$row->created =  $row->date;
     		$row->number =  $row->id;
-    		unset($row->header);
     		unset($row->currencyId);
     		unset($row->productGroups);
     		unset($row->packagings);

@@ -37,7 +37,7 @@ class sales_Services extends deals_ServiceMaster
      */
     public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, acc_plg_Contable, doc_DocumentPlg, plg_Printing,
                     plg_ExportCsv, acc_plg_DocumentSummary, plg_Search,
-					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_TplManager, doc_plg_HidePrices, plg_LastUsedKeys';
+					doc_EmailCreatePlg, bgerp_plg_Blank, cond_plg_DefaultValues, doc_plg_TplManager, doc_plg_HidePrices, plg_LastUsedKeys';
 
     
     /**
@@ -137,11 +137,28 @@ class sales_Services extends deals_ServiceMaster
     
     
     /**
+     * Стратегии за дефолт стойностти
+     */
+    public static $defaultStrategies = array(
+    		'received' => 'lastDocUser|lastDoc',
+    );
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
     {
         parent::setServiceFields($this);
+    }
+    
+    
+    /**
+     * Преди показване на форма за добавяне/промяна
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+    	$data->form->setDefault('delivered', core_Users::getCurrent('names'));
     }
     
     

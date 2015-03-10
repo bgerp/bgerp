@@ -208,7 +208,7 @@ class cms_Feeds extends core_Manager {
 		$layout = $this->renderFeeds($data);
 		
 		// Поставяме обвивката за външен достъп
-		Mode::set('wrapper', 'cms_Page');
+		Mode::set('wrapper', 'cms_page_External');
 		
 		return $layout;
 	}
@@ -359,7 +359,8 @@ class cms_Feeds extends core_Manager {
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
     	$form = &$data->form;
-    	$form->addAttr('source', array('onchange' => "addCmdRefresh(this.form);this.form.submit();"));
+    	
+    	$form->setField('source', array('removeAndRefreshForm' => "title|description|logo|maxItems|data"));
     	
 	    if($form->rec->source){
 	    	$Source = cls::get($form->rec->source);

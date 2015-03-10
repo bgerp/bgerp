@@ -6,7 +6,7 @@
     <!--ET_END blank-->
     <!--ET_BEGIN header-->
     <div class='header [#STATE_CLASS#]'>
-        <div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
+        <div class='docBgIcon' style='[#iconStyle#];'>[#singleTitle#] <b>[#ident#]</b> ([#state#])</div>
     </div>
     <!--ET_END header-->
     <table>
@@ -55,7 +55,7 @@
         <!--ET_END printHeader-->
     </table>
     <div style='margin-top:10px;'>|Всички цени са|* [#vat#] |ДДС|* </div>
-    <div class='scrolling-holder'>
+    <div class='overflow-scroll'>
         <table class = 'norm-table' style='width:100%'>
             <tr>
                 <th style='width:380px !important'>|Продукт|*</th>

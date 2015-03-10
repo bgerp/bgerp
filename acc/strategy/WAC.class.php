@@ -10,13 +10,23 @@ cls::load('acc_strategy_Strategy');
  * @category  bgerp
  * @package   acc
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
 class acc_strategy_WAC extends acc_strategy_Strategy
 {
-    protected $quantity = 0;
+    
+	
+	/**
+	 * Текущото количество
+	 */
+	protected $quantity = 0;
+	
+	
+	/**
+	 * Текущата сума
+	 */
     protected $amount = 0;
     
     
@@ -42,7 +52,7 @@ class acc_strategy_WAC extends acc_strategy_Strategy
     function consume($quantity)
     {
         if ($quantity == 0) {
-            return 0;
+            return NULL;
         }
         
         if ($this->quantity == 0) {

@@ -25,6 +25,12 @@ class type_Set extends core_Type {
     
     
     /**
+     * MySQL тип на полето в базата данни
+     */
+    protected $readOnly = array();
+    
+    
+    /**
      * Преобразуване от вътрешно представяне към вербална стойност
      */
     function toVerbal($value)
@@ -53,6 +59,15 @@ class type_Set extends core_Type {
     
     
     /**
+     * Кои стойности да са само за четене
+     */
+    public function setDisabled($values)
+    {
+    	$this->readOnly = arr::make($values, TRUE);
+    }
+    
+    
+    /**
      * Рендира HTML инпут поле
      */
     function renderInput_($name, $value = "", &$attr = array())
@@ -60,7 +75,7 @@ class type_Set extends core_Type {
         $values = type_Set::toArray($value);
         $attr['type']   = 'checkbox';
         $attr['class'] .= ' checkbox';
-
+        
         // Определяме броя на колоните, ако не са зададени.
         $col = $this->params['columns'] ? $this->params['columns'] :
        min(($this->params['maxColumns'] ? $this->params['maxColumns'] : ((Mode::is('screenMode', 'wide')) ? 4 : 2)),
@@ -102,9 +117,21 @@ class type_Set extends core_Type {
                     } else {
                     	$title = "";
                     }
-                   
+                    
+                    // Ако е оказано стойността да е readOnly
+                    if(isset($this->readOnly[$key])){
+                    	$attr['onclick'] = 'return false;';
+                    	$attr['readonly'] = 'readonly';
+                    }
+                    
                     $cb = ht::createElement('input', $attr);
                     $cb->append("<label {$title} data-colsInRow='" .$col . "' for=\"" . $attr['id'] . "\">{$v}</label>");
+                    
+                    // След рендиране на полето, махаме атрибутите за да не се принесат на другите опции
+                	if(isset($this->readOnly[$key])){
+                    	unset($attr['onclick']);
+                    	unset($attr['readonly']);
+                    }
                     
                     if($i == 0) {
                         $html .= "\n<tr>";
@@ -137,7 +164,8 @@ class type_Set extends core_Type {
      */
     function fromVerbal($value)
     {
-        if (is_array($value)) {
+    	if (is_array($value)) {
+        	
             $res = implode(',', array_keys($value));
         }
         

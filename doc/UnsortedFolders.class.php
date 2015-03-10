@@ -225,7 +225,7 @@ class doc_UnsortedFolders extends core_Master
     {
     	$cu = core_Users::getCurrent();
     	
-    	$data->listFilter->FNC('selectedUsers', 'users', 'caption=Потребител,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
+    	$data->listFilter->FNC('selectedUsers', 'users', 'caption=Потребител,input,silent,refreshForm');
     	
     	// Задаваме стойността по подразбиране
     	//$data->listFilter->setDefault('selectedUsers', $cu);

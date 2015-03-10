@@ -181,6 +181,7 @@ class incoming_Documents extends core_Master
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
         // Предложения в полето Заглавие
+        $titleSuggestions = array();
         $titleSuggestions[''] = '';
         $titleSuggestions['Фактура'] = 'Фактура';
         $titleSuggestions['Платежно нареждане'] = 'Платежно нареждане';
@@ -382,6 +383,7 @@ class incoming_Documents extends core_Master
         $fRec = fileman_Files::fetchByFh($fh);
         
         // Масив с манипулатора и името на файла
+        $file = array();
         $file[$fh] = $fRec->name;
         
         return $file;

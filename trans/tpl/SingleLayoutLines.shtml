@@ -5,66 +5,100 @@
     <!--ET_END blank-->
     <!--ET_BEGIN header-->
     <div class='header [#STATE_CLASS#]'>
-        <div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
+        <div class='docBgIcon' style='[#iconStyle#];'>[#singleTitle#] <b>[#ident#]</b> ([#state#])</div>
     </div>
     <!--ET_END header-->
-    <div class='scrolling-holder'>
-        <div>
-            <div class='line-header'>[#title#]</div>
-            <table class='styled-table'>
-                <tr>
-                    <td>|Начало|*:</td>
-                    <td>[#start#]</td>
-                </tr>
-                <tr>
-                    <td>|Дестинация|*:</td>
-                    <td>[#destination#]</td>
-                </tr>
-                <tr>
-                    <td>|Повторение|*:</td>
-                    <td>[#repeat#]</td>
-                </tr>
-            </table>
-        </div>
-        <!--ET_BEGIN ADDITIONAL-->
-        [#ADDITIONAL#]
-        <div>
-            <div class='line-header'>|Допълнително|*</div>
-            <table class='styled-table'>
-                <!--ET_BEGIN vehicleId-->
-                <tr>
-                    <td>|Транс. средство|*:</td>
-                    <td>[#vehicleId#]</td>
-                </tr>
-                <!--ET_END vehicleId-->
-                <!--ET_BEGIN forwarderId-->
-                <tr>
-                    <td>|Транспортна фирма|*:</td>
-                    <td>[#forwarderId#]</td>
-                </tr>
-                <!--ET_END forwarderId-->
-                <!--ET_BEGIN forwarderPersonId-->
-                <tr>
-                    <td>|МОЛ|*:</td>
-                    <td>[#forwarderPersonId#]</td>
-                </tr>
-                <!--ET_END forwarderPersonId-->
-            </table>
-        </div>
-        <!--ET_END ADDITIONAL-->
-        <div style='margin-bottom:15px' class='line-detail'>
-            <div class='line-header'>|Експедиции|*</div>
-            [#Shipments#]
-        </div>
-        <div style='margin-bottom:15px' class='line-detail'>
-            <div class='line-header'>|Товари от доставчици|*</div>
-            [#Receipts#]
-        </div>
-        <!--ET_BEGIN Transfers-->
-        <div class='line-detail'>
-            <div class='line-header'>|Доставки|*</div>
-            [#Transfers#]
-        </div>
-        <!--ET_END Transfers-->
-    </div>
+	<div class='display-table'>
+		<table class="innerTable border-table paddingCells" style='width: 100%'>
+		    <tr>
+		        <td class='custom-header-bg' style='width:36%;'><b>|Възложител|*</b></td>
+		        <td class="cell centered" rowspan = '2'>
+			        <div class="document-title"> |Транспортна линия|*</div>
+			        <div style="padding-top:5px;">
+			            № <span class="bigData">[#id#]</span> /
+			            <span class="bigData">[#start#]</span>
+			        </div>
+			        <div style='margin-top: 5px;'>[#title#]</div>
+			        <!--ET_BEGIN repeat-->
+			        <div style='margin-top: 5px;'>[#repeat#]</div>
+			        <!--ET_END repeat-->
+			        <!--ET_BEGIN state-->
+			        <div class="[#STATE_CLASS#]" style='margin: 10px 0;'>[#state#]</div>
+			        <!--ET_END state-->
+			        </td>
+			        <td class='custom-header-bg' style='width:36%;'><b>|Изпълнител|*</b></td>
+		    </tr>
+		    <tr>
+		        <td>
+			        <div style='height: 85px;'>
+				         <!--ET_BEGIN myCompany--><div style='margin-bottom: 5px;'><b>[#myCompany#]</b></div><!--ET_END myCompany-->
+				         <!--ET_BEGIN logistic--><div style='margin-bottom: 5px;'>|Логистик|*: [#logistic#]</div><!--ET_END logistic-->
+				    </div>
+			        <table class='signature-table'>
+		               <tr>
+		                   <td style='width:1%;'>|Съставил|*:  </td>
+		                   <td></td>
+		               </tr>
+		               <tr>
+		                   <td></td>
+		                   <td class='nowrap'>
+		                      <span class="sign_names" style='min-height: 0px;'><!--ET_BEGIN username-->/ [#username#] / <!--ET_END username--></span>
+		                   </td>
+		               </tr>
+		           </table>
+		        </td>
+		        <td>
+		            <div style='height: 85px;'>
+			            <!--ET_BEGIN forwarderId--><div style='margin-bottom: 5px;'><b>[#forwarderId#]</b></div><!--ET_END forwarderId-->
+			            <!--ET_BEGIN vehicleId--><div style='margin-bottom: 5px;'>|Превозно средство|*: [#vehicleId#]</div><!--ET_END vehicleId-->
+			            <!--ET_BEGIN forwarderPersonId--><div style='margin-bottom: 5px;'>|Превозвач|*: [#forwarderPersonId#]</div><!--ET_END forwarderPersonId-->
+			        </div>
+		            <table class='signature-table'>
+		               <tr>
+		                    <td style='width:1%;'>|Получил|*:  </td>
+		                    <td></td>
+		                </tr>
+		                <tr>
+		                    <td></td>
+		                    <td class='nowrap'><span class="sign_names" style='min-height: 0px;'>[#responsible#]</span></td>
+		                </tr>
+		            </table>
+		        </td>
+		    </tr>
+		</table>
+		<div class="lines"></div>
+		
+		<!--ET_BEGIN Shipments-->
+		<div class='line-detail'>
+		<!--ET_BEGIN Shipments-->
+		    <div class='line-header'>|Експедиции|*</div>
+		     [#Shipments#]
+		</div>
+		<!--ET_END Shipments-->
+		
+		<!--ET_BEGIN Receipts-->
+		<div class='line-detail'>
+		    <div class='line-header'>|Доставки|*</div>
+		    [#Receipts#]
+		</div>
+		<!--ET_END Receipts-->
+		
+		<!--ET_BEGIN Protocols-->
+		<div class='line-detail'>
+		    <div class='line-header'>|Отговорно пазене|*</div>
+		    [#Protocols#]
+		</div>
+		<!--ET_END Protocols-->
+		
+		<!--ET_BEGIN Transfers-->
+		<div class='line-detail'>
+		    <div class='line-header'>|Вътрешни трансфери|*</div>
+		    [#Transfers#]
+		</div>
+		<!--ET_END Transfers-->
+		
+		<div class='footerDocBlock'>
+		    <div class='aright'>|Документът е създаден чрез системата|* <b><a href='http://bgerp.com'>bgERP</a></b>.</div>
+		</div>
+	</div>
 </div>

@@ -91,6 +91,24 @@ class doc_DocumentPlg extends core_Plugin
         
         // Дали могат да се принтират оттеглените документи
         setIfNot($mvc->printRejected, FALSE);
+        
+        $mvc->setDbIndex('folderId');
+        $mvc->setDbIndex('threadId');
+        $mvc->setDbIndex('containerId');
+        $mvc->setDbIndex('originId');
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param core_Mvc $mvc
+     * @param NULL|string $res
+     * @param integer $id
+     */
+    function on_AfterGetLangFromRec($mvc, &$res, $id)
+    {
+        
     }
     
     
@@ -201,13 +219,18 @@ class doc_DocumentPlg extends core_Plugin
         }
 
         if($mvc->haveRightFor('list') && $data->rec->state != 'rejected') { 
+        	
+        	// По подразбиране бутона всички се показва на втория ред на тулбара
+        	setIfNot($mvc->allBtnToolbarRow, 2);
+        	
+        	
             // Бутон за листване на всички обекти от този вид
             $data->toolbar->addBtn('Всички', array(
                     $mvc,
                     'list',
                     'ret_url'=>$retUrl
                 ),
-                'id=btnAll,ef_icon=img/16/application_view_list.png, order=18, row=2, title=' . tr('Всички ' . mb_strtolower($mvc->title)));    
+                "id=btnAll,ef_icon=img/16/application_view_list.png, order=18, row={$mvc->allBtnToolbarRow}, title=" . tr('Всички ' . mb_strtolower($mvc->title)));    
 
         }
     }
@@ -305,7 +328,7 @@ class doc_DocumentPlg extends core_Plugin
     {
         // Ако създаваме нов документ и ...
         if(!$rec->id) {
-            
+        	
             // ... този документ няма ключ към папка и нишка, тогава
             // извикваме метода за рутиране на документа
             if(!isset($rec->folderId) || !isset($rec->threadId)) {
@@ -528,6 +551,14 @@ class doc_DocumentPlg extends core_Plugin
                         $url['#'] = 'detailTabs';
                     }
                     
+                    // Ако има подаден горен таб
+                    if ($tab1 = Request::get('TabTop')) {
+                    	
+                    	// Добавяме таба
+                    	$url['TabTop'] = $tab1;
+                    	$url['#'] = 'detailTabsTop';
+                    }
+                   
                     // Ако има страница на документа
                     if ($P = Request::get('P_log_Documents')) {
                         
@@ -1471,6 +1502,8 @@ class doc_DocumentPlg extends core_Plugin
             //Проверяваме дали е инстанция на type_RIchtext
             if ($field->type instanceof type_Richtext) {
                 
+                if ($field->type->params['hndToLink'] == 'no') continue;
+                
                 //Името на полето
                 $fieldName = $field->name;
                 
@@ -1887,6 +1920,8 @@ class doc_DocumentPlg extends core_Plugin
      */
     public static function on_AfterGetLinkedDocuments($mvc, &$res, $id, $userId=NULL, $data=NULL)
     {
+        if ($mvc->fields['body']->type->params['hndToLink'] == 'no') return ;
+        
         // Ако не е зададено id използваме текущото id на потребите (ако има) и в краен случай id на активиралия потребител
         if (!$userId) {
             $userId = core_Users::getCurrent();
@@ -1980,7 +2015,11 @@ class doc_DocumentPlg extends core_Plugin
         
         // За всеки намерен документ, вкарва се във веригата
         foreach ($chainContainers as $cc) {
-            $chain[] = doc_Containers::getDocument($cc->id);
+        	try{
+        		$chain[] = doc_Containers::getDocument($cc->id);
+        	} catch(core_exception_Expect $e){
+        		
+        	}
         }
     }
     
@@ -2134,5 +2173,24 @@ class doc_DocumentPlg extends core_Plugin
         $query->where("#state != 'rejected'");
         $query->EXT("firstContainerId", 'doc_threads', "externalName=firstContainerId");
         $query->where("#firstContainerId = #containerId");
+    }
+
+
+    /**
+     *
+     */
+    public static function on_BeforeRenderWrapping($mvc, &$res, &$tpl, $data = NULL)
+    {
+        if(haveRole('powerUser') && (Request::get('Act') == 'edit' || Request::get('Act') == 'add')) {
+            $dc = cls::get('doc_Containers');
+            $dc->currentTab = 'Нишка';
+            $res = $dc->renderWrapping($tpl, $data);
+
+            // Задаваме таба на менюто да сочи към документите
+            Mode::set('pageMenu', 'Документи');
+            Mode::set('pageSubMenu', 'Всички');
+
+            return FALSE;
+        }
     }
 }

@@ -38,53 +38,36 @@ class type_Interface extends type_Key
      */
     public function prepareOptions()
     {
+        Mode::push('text', 'plain');
+        
     	$this->invoke('BeforePrepareKeyOptions', array(&$this->options, $this));
     	
-    	if (isset($this->options)) {
-    		return;
-    	}
-    	
-    	$mvc = cls::get($this->params['mvc']);
-        
-        $allInterfaces = $mvc->makeArray4Select('name');
-        
-        $this->options = array();
-        
-        $suffix = $this->params['suffix'];
-        
-        $lenSuffix = strlen($suffix);
-        
-        if(count($allInterfaces)) {
-            foreach ($allInterfaces as $id => $name) {
-                if ((!$suffix) || (strrpos($name, $suffix) == (strlen($name) - $lenSuffix))) {
-                    $mvc->fetchByName($name);
-                    $this->options[$id] = $mvc->fetchField($id, $this->params['select']);
+    	if (!isset($this->options)) {
+    	    
+        	$mvc = cls::get($this->params['mvc']);
+            
+            $allInterfaces = $mvc->makeArray4Select('name');
+            
+            $this->options = array();
+            
+            $suffix = $this->params['suffix'];
+            
+            $lenSuffix = strlen($suffix);
+            
+            if(count($allInterfaces)) {
+                foreach ($allInterfaces as $id => $name) {
+                    if ((!$suffix) || (strrpos($name, $suffix) == (strlen($name) - $lenSuffix))) {
+                        $mvc->fetchByName($name);
+                        $this->options[$id] = $mvc->fetchField($id, $this->params['select']);
+                    }
                 }
             }
-        }
-
-        parent::prepareOptions();
-    }
-    
-    
-    /**
-     * Рендира HTML инпут поле
-     */
-    function renderInput_($name, $value = "", &$attr = array())
-    {
-        $this->prepareOptions();
+    	}
         
-        return parent::renderInput_($name, $value, $attr);
-    }
-    
-    
-    /**
-     * Конвертира стойността от вербална към (int) - ключ към core_Interfaces
-     */
-    function fromVerbal_($value)
-    {
-        $this->prepareOptions();
+        Mode::pop('text');
         
-        return parent::fromVerbal_($value);
+        $this->options = parent::prepareOptions();
+        
+        return $this->options;
     }
 }

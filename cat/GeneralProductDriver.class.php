@@ -25,7 +25,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	/**
 	 * Дефолт мета данни за всички продукти
 	 */
-	protected $defaultMetaData = 'canSell,canBuy,canStore';
+	protected $defaultMetaData = 'canSell,canBuy';
 	
 	
 	/**
@@ -64,8 +64,8 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	 */
 	public function renderEmbeddedData($data)
 	{
-		$tpl = getTplFromFile('cat/tpl/SingleLayoutBaseDriver.shtml');
-		
+		// Ако не е зададен шаблон, взимаме дефолтния
+		$tpl = (empty($data->tpl)) ? getTplFromFile('cat/tpl/SingleLayoutBaseDriver.shtml') : $data->tpl;
 		$tpl->placeObject($data->row);
 		
 		// Ако ембедъра няма интерфейса за артикул, то към него немогат да се променят параметрите
@@ -134,7 +134,6 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		$res->productRec->name = ($innerState->title) ? $innerState->title : $innerState->name;
 		$res->productRec->info = $innerState->info;
 		$res->productRec->measureId = $innerState->measureId;
-		$res->productRec->photo = $innerState->photo;
 		
 		(!$packagingId) ? $res->packagings = array() : $res->packagingRec = new stdClass();
 		
@@ -181,10 +180,11 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	{
 		$data = $this->prepareEmbeddedData();
 		$data->noChange = TRUE;
+		$data->tpl = getTplFromFile('cat/tpl/SingleLayoutBaseDriverShort.shtml');
 		
 		$tpl = $this->renderEmbeddedData($data);
 		
-		$title = ht::createLinkRef($this->EmbedderRec->getProductTitle(), array($this->EmbedderRec->instance, 'single', $this->EmbedderRec->that));
+		$title = ht::createLinkRef($this->EmbedderRec->getTitleById(), array($this->EmbedderRec->instance, 'single', $this->EmbedderRec->that));
 		$tpl->removeBlock('INFORMATION');
 		$tpl->replace($title, "TITLE");
 		
@@ -236,7 +236,50 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 			$form->setField('measureId', 'display=hidden');
 		}
 		
+		if(isset($form->rec->folderId)){
+			$Cover = doc_Folders::getCover($form->rec->folderId);
+			
+			// Ако корицата е категория и има позволени мерки, оставяме само тях
+			if($Cover->getInstance() instanceof cat_Categories){
+				$arr = keylist::toArray($Cover->fetchField('measures'));
+				if(count($arr)){
+					$options = array();
+					foreach ($arr as $mId){
+						$options[$mId] = cat_UoM::getTitleById($mId);
+					}
+					$form->setOptions('measureId', $options);
+				}
+			}
+		}
+		
 		// Викаме метода на бащата
 		parent::prepareEmbeddedForm($form);
+	}
+	
+	
+	/**
+	 * Изображението на артикула
+	 */
+	public function getProductImage()
+	{
+		return $this->innerState->photo;
+	}
+	
+	
+	/**
+	 * Колко е теглото на артикула
+	 */
+	public function getWeight()
+	{
+		return cat_products_Params::fetchParamValue($this->EmbedderRec->rec()->id, $this->EmbedderRec->getClassId(), 'transportWeight');
+	}
+	
+	
+	/**
+	 * Колко е обема му
+	 */
+	public function getVolume()
+	{
+		return cat_products_Params::fetchParamValue($this->EmbedderRec->rec()->id, $this->EmbedderRec->getClassId(), 'transportVolume');
 	}
 }

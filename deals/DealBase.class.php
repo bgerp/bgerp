@@ -36,6 +36,12 @@ abstract class deals_DealBase extends core_Master
 	
 	
 	/**
+	 * В коя номенклатура да се вкара след активиране
+	 */
+	public $addToListOnActivation = 'deals';
+	
+	
+	/**
 	 * Извиква се след описанието на модела
 	 *
 	 * @param core_Mvc $mvc
@@ -56,45 +62,12 @@ abstract class deals_DealBase extends core_Master
 		$rec = $mvc->fetchRec($rec);
 		 
 		if($rec->state == 'active'){
-	
-			// Ако валутата е активна, добавя се като перо
-			$lists = keylist::addKey('', acc_Lists::fetchBySystemId('deals')->id);
-			acc_Lists::updateItem($mvc, $rec->id, $lists);
-	
-			if(haveRole('ceo,acc,debug')){
-				$msg = tr("Активирано е перо|* '") . $mvc->getTitleById($rec->id) . tr("' |в номенклатура 'Сделки'|*");
-				core_Statuses::newStatus($msg);
-			}
-		}
-	}
-	
-	
-	/**
-	 * След оттегляме запомняме записа, чието перо трябва да се затври на shutdown
-	 */
-	public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
-	{
-		// Ако документа се е оттеглил успешно, записваме му ид-то в модела
-		$rec = $mvc->fetchRec($id);
-		$mvc->rejectedQueue[$rec->id] = $rec->id;
-	}
-
-
-	/**
-	 * Изчиства записите, заопашени за запис
-	 */
-	public static function on_Shutdown($mvc)
-	{
-		// Ако има оттеглени записи, затваряме им перата
-		if(count($mvc->rejectedQueue)){
-			foreach ($mvc->rejectedQueue as $id) {
-				$lists = keylist::addKey('', acc_Lists::fetchBySystemId('deals')->id);
-				acc_Lists::removeItem($mvc, $id, $lists);
-				 
-				if(haveRole('ceo,acc,debug')){
-					$title = $mvc->getTitleById($id);
-					core_Statuses::newStatus(tr("|Перото|* \"{$title}\" |е затворено/изтрито|*"));
-				}
+			$Cover = doc_Folders::getCover($rec->folderId);
+			
+			if($Cover->haveInterface('crm_ContragentAccRegIntf')){
+				
+				// Добавяме контрагента като перо, ако не е
+				$Cover->forceItem('contractors');
 			}
 		}
 	}
@@ -193,13 +166,10 @@ abstract class deals_DealBase extends core_Master
     	$dealQuery->where("#state = 'active'");
     	$dealQuery->where("#closedDocuments = ''");
     	
+    	$valiorFld = ($this->valior) ? $this->valior : 'createdOn';
     	while($dealRec = $dealQuery->fetch()){
-    		
-    		// Оставяме само сделките, по чието перо е имало движение
-    		$item = acc_Items::fetchItem($this, $dealRec->id);
-    		if(isset($item->lastUseOn)){
-    			$docs[$dealRec->id] = $this->getRecTitle($dealRec);
-    		}
+    		$title = $this->getRecTitle($dealRec) . " / " . (($this->valiorFld) ? $this->getVerbal($dealRec, $this->valiorFld) : '');
+    		$docs[$dealRec->id] = $title;
     	}
     	 
     	return $docs;

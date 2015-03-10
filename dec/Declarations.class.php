@@ -7,7 +7,7 @@
  * @category  bgerp
  * @package   dec
  * @author    Gabriela Petrova <gab4eto@gmail.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -133,6 +133,9 @@ class dec_Declarations extends core_Master
      */
     function description()
     {
+    	// бланка
+    	$this->FLD('typeId', 'key(mvc=dec_DeclarationTypes,select=name)', "caption=Бланка");
+    	
     	// номера на документа
     	$this->FLD('doc', 'key(mvc=doc_Containers)', 'caption=Към документ, input=none');
     	
@@ -146,19 +149,17 @@ class dec_Declarations extends core_Master
     	$this->FLD('declaratorPosition', 'varchar', 'caption=Представлявана от->Позиция, recently, mandatory');
         
     	// продукти, идват от фактурата
-    	$this->FLD('productId', 'set', 'caption=Продукти->Продукти');
+    	$this->FLD('productId', 'set', 'caption=Продукти->Продукти, maxColumns=2');
     
     	// на какви твърдения отговарят
-		$this->FLD('statements', 'keylist(mvc=dec_Statements,select=title)', 'caption=Твърдения и материали->Отговарят на, mandatory');
+		$this->FLD('statements', 'keylist(mvc=dec_Statements,select=title)', 'caption=Твърдения->Отговарят на, mandatory');
 		
 		// от какви материали е
-		$this->FLD('materials', 'keylist(mvc=dec_Materials,select=title)', 'caption=Твърдения и материали->Материали, mandatory');
+		$this->FLD('materials', 'keylist(mvc=dec_Materials,select=title)', 'caption=Материали->Изработени от, mandatory');
         
 		// допълнителен текст
 		$this->FLD('note', 'richtext(bucket=Notes)', 'caption=Бележки->Допълнения');
-		
-		// бланка
-		$this->FLD('typeId', 'key(mvc=dec_DeclarationTypes,select=name)', "caption=Бланка");
+
 	}
 
     
@@ -251,7 +252,7 @@ class dec_Declarations extends core_Master
         // Адреса на фирмата
         $address = trim($ownCompanyData->place . ' ' . $ownCompanyData->pCode);
         if ($address && !empty($ownCompanyData->address)) {
-            $address .= ' ' . $ownCompanyData->address;
+            $address .= ', ' . $ownCompanyData->address;
         } 
         
         $Varchar = cls::get('type_Varchar');
@@ -285,9 +286,15 @@ class dec_Declarations extends core_Master
 	    	$cTpl->replace($recDec->declaratorPosition, 'declaratorPosition');
 	    	$cTpl->append2master();
     	}
-
+    	
     	if($rec->date == NULL){
     		$row->date = $rec->createdOn;
+    	} else {
+    		if (core_Lg::getCurrent() == 'bg') {
+    			$row->date = dt::mysql2verbal($rec->date, "d.m.Y") . tr("|г.|*");
+    		} else {
+    			$row->date = dt::mysql2verbal($rec->date, "d.m.Y");
+    		}
     	}
     	    	
     	// вземаме избраните продукти
@@ -306,7 +313,7 @@ class dec_Declarations extends core_Master
 		        	$productName = $ProductMan::getTitleById($name[1]);
 		        	$row->products .= "<li>".$productName."</li>";
 			}
-				$row->products .= "</ol>";
+			$row->products .= "</ol>";
     	}
     	
     	// ако декларацията е към документ
@@ -320,7 +327,7 @@ class dec_Declarations extends core_Master
     		// Попълваме данните от контрагента. Идват от фактурата
     		$addressContragent = trim($rec->contragentPlace . ' ' . $rec->contragentPCode);
 	        if ($addressContragent && !empty($rec->contragentAddress)) {
-	            $addressContragent .= ' ' . $rec->contragentAddress;
+	            $addressContragent .= ', ' . $rec->contragentAddress;
 	        }
 	        $row->contragentCompany = cls::get($rec->contragentClassId)->getTitleById($rec->contragentId);
 	        $row->contragentCountry = drdata_Countries::fetchField($rec->contragentCountryId, 'commonNameBg');
@@ -349,6 +356,7 @@ class dec_Declarations extends core_Master
     			$text = "изделията са произведени от";
     			$text2 .= " ". $m->text . ",";
     		}
+    			$text2 = rtrim($text2, ',');
     			$cTpl->replace($text2, 'material');
     			$cTpl->append2master();
     	}
@@ -362,17 +370,18 @@ class dec_Declarations extends core_Master
     		foreach ($statements as $statement) {  
     			
     			$s = dec_Statements::fetch($statement);
-    			$text = "<ul><li>изделията отговарят на изискванията"." ". $s->text ."</li></ul>";
+    			$text = $s->text;
     			$cTpl->replace($text, 'statements');
     			$cTpl->append2master();
     		}
-    		$row->statements = "</ol>";
     	}
     	
     	
     	// ако има допълнителни бележки
     	if($recDec->note) { 
     		$cTpl = $decContent->getBlock("note");
+    		$Richtext = cls::get('type_Richtext');
+    		$recDec->note = $Richtext->toVerbal($recDec->note);
     		$cTpl->replace($recDec->note, 'note');
     	    $cTpl->append2master();
     	}
@@ -413,6 +422,19 @@ class dec_Declarations extends core_Master
                 } 
                 break;
     	}
+    }
+    
+    /**
+     * Добавя след таблицата
+     *
+     * @param core_Mvc $mvc
+     * @param StdClass $res
+     * @param StdClass $data
+     */
+    static function on_AfterRenderListTable($mvc, &$tpl, $data)
+    {
+    	$mvc->currentTab = "Декларации->Списък";
+    	$mvc->menuPage = "Търговия:Продажби";
     }
     
     

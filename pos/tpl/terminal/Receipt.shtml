@@ -1,12 +1,10 @@
-<table id = 'receipt-table' cellpadding='0px' cellspacing='0px'>
+<table id = 'receipt-table'>
 	<tbody>
 		<tr id='receipt-header'>
 			<td colspan='3'>
-				<div id=''><span id='receipt-title'>|Касова бележка|* <span id='receipt-number'> &nbsp;<b>№[#id#]</b></span></span>
-								
-				<span id='receipt-date'>|Дата|*: <b>[#valior#]</b></span>
-				</div> 
-				<div id = 'cashier'>|Касиер|*: &nbsp;[#createdBy#]</div>
+			
+				<div><span id='receipt-title'>|Касова бележка|* <span id='receipt-number'> &nbsp;<b>№[#id#]</b> [#rejectBtn#]</span></span></div> 
+				<div class='secondRow'>[#createdBy#] &#124; [#valior#] <span class='hiddenElem'>&#124; </span>[#LOGO#]<span class='newLine'>[#pointId#]</span>   </div>
 			</td>
 		</tr>
 		<tr id='receipt-details-th'>
@@ -19,7 +17,7 @@
 			[#DETAILS#]
 		<!--ET_END DETAILS-->
 		<tr>
-			<td colspan=3 style='padding: 0;'>
+			<td colspan="3" style='padding: 0;'>
 				<table class='gradient' >
 					<tr>
 						<td id = 'total-label'>|Общо|*:</td>
@@ -36,4 +34,9 @@
 				</table>
 			</td>
 		</tr>
+		<tr class='footerDocInfo'>
+            <td colspan="3">
+                <div class='aright'>|Документът е създаден чрез системата|* <b><a href='http://bgerp.com'>bgERP</a></b>.</div>
+            </td>
+        </tr>
 </table>			

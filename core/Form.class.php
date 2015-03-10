@@ -240,8 +240,10 @@ class core_Form extends core_FieldSet
                 
                 $this->setErrorFromResult($result, $field, $name);
             }
-             
-            $this->rec->{$name} = $value;
+           
+            if($this->cmd != 'refresh' || strlen($value)) {
+                $this->rec->{$name} = $value; 
+            }
         }
    
         return $this->rec;
@@ -621,6 +623,13 @@ class core_Form extends core_FieldSet
                
                 if ($field->height) {
                     $attr['style'] .= "height:{$field->height};";
+                }
+
+                if($field->refreshForm) {
+                    $attr['onchange'] .= "refreshForm(this.form);";
+                } elseif($field->removeAndRefreshForm) {
+                    $rFields = str_replace('|', "', '", trim($field->removeAndRefreshForm, '|'));
+                    $attr['onchange'] .= "refreshForm(this.form, ['{$rFields}']);";
                 }
                 
                 if ($field->placeholder) {

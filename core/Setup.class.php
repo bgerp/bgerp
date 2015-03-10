@@ -129,6 +129,12 @@ defIfNot('CORE_LOGIN_INFO', "|*(|само за администраторите 
 
 
 /**
+ * Опаковка по подразбиране за вътрешната страница
+ */
+defIfNot('CORE_PAGE_WRAPPER', 'core_page_Internal');
+
+
+/**
  * class 'core_Setup' - Начално установяване на пакета 'core'
  *
  *
@@ -205,6 +211,9 @@ class core_Setup extends core_ProtoSetup {
            'CORE_COOKIE_LIFETIME' => array ('time(suggestions=1 месец|2 месеца|3 месеца|1 година)', 'caption=Време на живот на кукитата->Време'),
            
            'CORE_TEMP_PATH_MAX_AGE' => array ('time(suggestions=3 ден|5 дни|10 дни|1 месец)', 'caption=Колко дълго да се пазят файловете в EF_TEMP_PATH директорията->Време'),
+            
+           'CORE_PAGE_WRAPPER' => array ('class(interface=core_page_WrapperIntf,select=title, allowEmpty)', 'caption=Вътрешен изглед->Страница, customizeBy=powerUser, placeholder=Автоматично'),
+
         );
     
     
@@ -245,6 +254,12 @@ class core_Setup extends core_ProtoSetup {
      * Път до css файла
      */
     var $commonCSS = '';
+    
+    
+    /**
+     * Дали пакета е системен
+     */
+    public $isSystem = TRUE;
     
     
     /**
@@ -308,6 +323,9 @@ class core_Setup extends core_ProtoSetup {
         $rec->delay = 0;
         $rec->timeLimit = 200;
         $html .= core_Cron::addOnce($rec);
+        
+        $html .= core_Classes::add('core_page_Internal');        
+        $html .= core_Classes::add('core_page_InternalModern');
 
 
         $html .= core_Classes::rebuild();

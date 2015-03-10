@@ -96,7 +96,7 @@ class support_Issues extends core_Master
     /**
      * Поддържани интерфейси
      */
-    var $interfaces = 'doc_DocumentIntf, doc_AddToFolderIntf';
+    var $interfaces = 'doc_DocumentIntf, doc_AddToFolderIntf, doc_ContragentDataIntf';
     
     
     /**
@@ -191,13 +191,12 @@ class support_Issues extends core_Master
         
         // Споделени потребители
         $this->FLD('sharedUsers', 'userList(roles=support)', 'caption=Споделяне->Потребители');
-
-
+        
         // Контактни данни
         $this->FLD('name', 'varchar(64)', 'caption=Данни за обратна връзка->Име, mandatory, input=none');
         $this->FLD('email', 'email', 'caption=Данни за обратна връзка->Имейл, mandatory, input=none');
+        $this->FLD('url', 'url', 'caption=Данни за обратна връзка->URL, input=none');
         
-
         // Данни за компютъра на изпращача на сигнала
         $this->FLD('ip', 'ip', 'caption=Ип,input=none');
     	$this->FLD('brid', 'varchar(8)', 'caption=Браузър,input=none');
@@ -234,23 +233,26 @@ class support_Issues extends core_Master
             $form->setField('sharedUsers', 'input=none');
         }
         
+        $form->setField('url', 'input=hidden,silent');
         $form->setField('title', 'input=hidden');
-
-    	// Инпут на формата
+        
+        $form->setDefault('title', '*Без заглавие*');
+    	
+        // Инпут на формата
     	$form->input(NULL, 'silent');
     	
         $rec = $form->rec;
         expect($rec->systemId);
         expect($sysRec = support_Systems::fetch($rec->systemId));
-
+        
+        $allowedTypesArr = support_Systems::getAllowedFieldsArr($sysRec->id);
+        
         $systemName = support_Systems::getTitleById($rec->systemId);
 
         $form->title = "Сигнал към екипа за поддръжка на {$systemName}";
         
-        $allowedTypes = keylist::toArray($sysRec->allowedTypes);
-        
         $atOpt = array();
-        foreach($allowedTypes as $tId) {
+        foreach($allowedTypesArr as $tId) {
             $tRec = support_IssueTypes::fetchField($tId);
             $atOpt[$tId] =  support_IssueTypes::getVerbal($tRec, 'type');
         }
@@ -260,7 +262,7 @@ class support_Issues extends core_Master
         $form->input();
         
         $rec = &$form->rec;
-
+        
         if(!haveRole('user')) {
             $brid = core_Browser::getBrid(FALSE);
             if($brid) {
@@ -276,7 +278,11 @@ class support_Issues extends core_Master
                 }
             }
         }
-
+        
+        if ($sysRec->defaultType) {
+            $form->setDefault('typeId', $sysRec->defaultType);
+        }
+        
     	// След събмит на формата
     	if($form->isSubmitted()){
 
@@ -316,7 +322,7 @@ class support_Issues extends core_Master
         $tpl = $form->renderHtml();
     	
         // Поставяме шаблона за външен изглед
-		Mode::set('wrapper', 'cms_Page');
+		Mode::set('wrapper', 'cms_page_External');
 		
 		if($lg){
 			core_Lg::pop();
@@ -485,7 +491,9 @@ class support_Issues extends core_Master
             // Добавяме OR
             $query->orWhere("#systemId = '{$allSystemId}'");
         }
-
+        
+        $components = array();
+        
         // Обхождаме всички открити резултати
         while ($rec = $query->fetch()) {
             
@@ -520,27 +528,8 @@ class support_Issues extends core_Master
         // Променяме съдържанието на полето компоненти с определения от нас масив
         $data->form->setOptions('componentId', $components);
         
-        // Запитване за извличане на системите
-        $sQuery = support_Systems::getQuery();
-        
-        $sQuery->where($systemId);
-        
-        // Обхождаме всики наследени системи
-        foreach ($allSystemsArr as $allSystemId) {
-            
-            // Добавяме OR
-            $sQuery->orWhere($allSystemId);
-        }
-        
-        // Обхождаме всички открити записи
-        while ($sRec = $sQuery->fetch()) {
-            
-            // Обединяваме всички позволени типове
-            $allowedTypes = keylist::merge($sRec->allowedTypes, $allowedTypes);
-        }
-
         // Разрешените типове за съответната система
-        $allowedTypesArr = keylist::toArray($allowedTypes);
+        $allowedTypesArr = support_Systems::getAllowedFieldsArr($systemId);
 
         // Обхождаме масива с всички разрешени типове
         foreach ($allowedTypesArr as $allowedType) {
@@ -557,6 +546,13 @@ class support_Issues extends core_Master
             
             // Скриваме полето за споделяне
             $data->form->setField('sharedUsers', 'input=none');
+        }
+        
+        if ($systemId) {
+            $sysRec = support_Systems::fetch($systemId);
+            if ($sysRec->defaultType) {
+                $data->form->setDefault('typeId', $sysRec->defaultType);
+            }
         }
     }
     
@@ -600,7 +596,7 @@ class support_Issues extends core_Master
         $data->listFilter->getField('componentId')->type->params['allowEmpty'] = TRUE;
          
         // Добавяме функционално поле за отговорници
-        $data->listFilter->FNC('maintainers', 'type_Users(rolesForAll=support|ceo|admin)', 'caption=Отговорник,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
+        $data->listFilter->FNC('maintainers', 'type_Users(rolesForAll=support|ceo|admin)', 'caption=Отговорник,input,silent,refreshForm');
         
         // Кои полета да се показват
         $data->listFilter->showFields = 'systemId, componentId, maintainers';
@@ -618,7 +614,7 @@ class support_Issues extends core_Master
         $data->listFilter->setDefault('maintainers', $default);
 
         // Полетата да не са задължителни и да се субмитва формата при промяната им
-        $data->listFilter->setField('componentId', array('attr' => array('onchange' => 'this.form.submit();')));
+        $data->listFilter->setField('componentId ', array('attr' => array('onchange' => 'this.form.submit();')));
         $data->listFilter->setField('componentId', array('mandatory' => FALSE));
         $data->listFilter->setField('systemId', array('attr' => array('onchange' => 'this.form.submit();')));
         $data->listFilter->setField('systemId', array('mandatory' => FALSE));
@@ -728,10 +724,15 @@ class support_Issues extends core_Master
         if ($rec->assign) {
             
             // В заглавието добавяме потребителя
-            $row->subTitle = $this->getVerbal($rec, 'assign') . ", ";   
+            $row->subTitle = $this->getVerbal($rec, 'assign');   
         }
         
-        $row->subTitle .= "{$component}";
+        if ($component) {
+            if ($row->subTitle) {
+                $row->subTitle .= ", ";
+            }
+            $row->subTitle .= "{$component}";
+        }
 
         if($row->authorId = $rec->createdBy) {
             $row->author = $this->getVerbal($rec, 'createdBy');
@@ -856,6 +857,32 @@ class support_Issues extends core_Master
     
     
     /**
+     * Интерфейсен метод
+     * 
+     * @param integer $id
+     * 
+     * @return object
+     * @see doc_ContragentDataIntf
+     */
+    public static function getContragentData($id)
+    {
+        if (!$id) return ;
+        $rec = self::fetch($id);
+        
+        $contrData = new stdClass();
+        
+        if ($rec->createdBy > 0) {
+            $personId = crm_Profiles::fetchField("#userId = '{$rec->createdBy}'", 'personId');
+            $contrData = crm_Persons::getContragentData($personId);
+        } else {
+            $contrData->email = $rec->email;
+            $contrData->person = $rec->name;
+        }
+        
+        return $contrData;
+    }
+    
+    /**
      * Да се показвали бърз бутон за създаване на документа в папка
      */
     public function mustShowButton($folderRec, $userId = NULL)
@@ -864,5 +891,20 @@ class support_Issues extends core_Master
     	
     	// Показваме бутона само ако корицата на папката поддържа интерфейса 'support_IssueIntf'
     	return ($Cover->haveInterface('support_IssueIntf')) ? TRUE : FALSE;
+    }
+    
+
+    /**
+     * Извиква се след успешен запис в модела
+     *
+     * @param support_Issues $mvc
+     * @param int $id първичния ключ на направения запис
+     * @param stdClass $rec всички полета, които току-що са били записани
+     */
+    public static function on_AfterSave($mvc, &$id, $rec)
+    {
+        if ($rec->componentId) {
+            support_Components::markAsUsed($rec->componentId);
+        }
     }
 }

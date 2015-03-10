@@ -19,7 +19,7 @@ class social_Sharings extends core_Master
     /**
      * Заглавие
      */
-    var $title = "Споделяния";
+    var $title = "Бутони за споделяне в социални мрежи";
     
     
     /**

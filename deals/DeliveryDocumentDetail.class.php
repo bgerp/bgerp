@@ -68,7 +68,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 		expect(count($products));
 			
 		if (empty($rec->id)) {
-			$data->form->addAttr('productId', array('onchange' => "addCmdRefresh(this.form);document.forms['{$data->form->formAttr['id']}'].elements['id'].value ='';document.forms['{$data->form->formAttr['id']}'].elements['packPrice'].value ='';document.forms['{$data->form->formAttr['id']}'].elements['discount'].value ='';this.form.submit();"));
+			$data->form->setField('productId', "removeAndRefreshForm=packPrice|discount");
 			$data->form->setOptions('productId', array('' => ' ') + $products);
 		} else {
 			$data->form->setOptions('productId', array($rec->productId => $products[$rec->productId]));
@@ -152,19 +152,22 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 				
 				// Ако продукта има цена от пораждащия документ, взимаме нея, ако не я изчисляваме наново
 				$origin = $mvc->Master->getOrigin($masterRec);
-				$dealInfo = $origin->getAggregateDealInfo();
-				$products = $dealInfo->get('products');
-				
-				if(count($products)){
-					foreach ($products as $p){
-						if($rec->classId == $p->classId && $rec->productId == $p->productId && $rec->packagingId == $p->packagingId){
-							$policyInfo = new stdClass();
-							$policyInfo->price = deals_Helper::getDisplayPrice($p->price, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
-							$policyInfo->discount = $p->discount;
-							break;
+				if($origin->haveInterface('bgerp_DealAggregatorIntf')){
+					$dealInfo = $origin->getAggregateDealInfo();
+					$products = $dealInfo->get('products');
+					
+					if(count($products)){
+						foreach ($products as $p){
+							if($rec->classId == $p->classId && $rec->productId == $p->productId && $rec->packagingId == $p->packagingId){
+								$policyInfo = new stdClass();
+								$policyInfo->price = deals_Helper::getDisplayPrice($p->price, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
+								$policyInfo->discount = $p->discount;
+								break;
+							}
 						}
 					}
 				}
+				
 				
 				if(!$policyInfo){
 					// Ако има политика в документа и той не прави обратна транзакция, използваме нея, иначе продуктовия мениджър

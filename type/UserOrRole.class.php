@@ -46,6 +46,10 @@ class type_UserOrRole extends type_User
         
         setIfNot($this->params['rolesForAllRoles'], 'ceo, admin');
         $this->params['rolesForAllRoles'] = str_replace("|", ",", $this->params['rolesForAllRoles']);
+        
+        if ($this->params['rolesType']) {
+            $this->params['rolesType'] = str_replace("|", ",", $this->params['rolesType']);
+        }
     }
     
     
@@ -54,7 +58,9 @@ class type_UserOrRole extends type_User
      */
     public function prepareOptions()
     {
-        parent::prepareOptions();
+        $this->prepareSelOpt = FALSE;
+        
+        $this->options = parent::prepareOptions();
         
         // Ако има съответната роля за виждане на ролите
         if (haveRole($this->params['rolesForAllRoles'])) {
@@ -68,6 +74,12 @@ class type_UserOrRole extends type_User
             
             // Вземаме всички роли
             $rQuery = core_Roles::getQuery();
+            
+            if ($this->params['rolesType']) {
+                $this->params['rolesType'] = arr::make($this->params['rolesType']);
+                $rQuery->orWhereArr('type', $this->params['rolesType']);
+            }
+            
             while($rec = $rQuery->fetch()) {
                 $roleObj = new stdClass();
                 $roleObj->title = $rec->role;
@@ -88,6 +100,105 @@ class type_UserOrRole extends type_User
                 $this->options['r_' . 'allSysTeam'] = $roleObj;
             }
         }
+        
+        $this->prepareSelOpt = TRUE;
+        
+        $this->prepareSelectOpt($this->options);
+        
+        return $this->options;
+    }
+    
+    
+    /**
+     * 
+     * @param string $value
+     * 
+     * @see type_User::toVerbal_()
+     * 
+     * @return string
+     */
+    function toVerbal_($value)
+    {
+        if ($value < 0) {
+            $this->params['mvc'] = &cls::get('core_Roles');
+            $this->params['select'] = 'role';
+        }
+        
+        return parent::toVerbal_($value);
+    }
+    
+    
+    /**
+     * 
+     * @param string $value
+     * 
+     * @see type_User::fromVerbal_()
+     * 
+     * @return string
+     */
+    function fromVerbal_($value)
+    {
+        $key = self::getKeyFromTitle($value);
+        
+        if (!$key) {
+            $key = $value;
+        }
+        
+        list($type, $id) = explode('_', $key);
+        
+        if ($type == 'r') {
+            $value = self::getSysRoleId($id);
+        }
+        
+        return parent::fromVerbal_($value);
+    }
+    
+    
+    
+    /**
+     * 
+     * 
+     * @param string $value
+     * 
+     * @see type_User::fetchVal()
+     * 
+     * @return object
+     */
+    protected function fetchVal(&$value)
+    {
+        if ($value < 0) {
+            $roleId = self::getRoleIdFromSys($value);
+            
+            return core_Roles::fetch((int)$roleId);
+        }
+        
+        return parent::fetchVal($value);
+    }
+    
+    
+    /**
+     * @see type_User::renderInput_()
+     * 
+     * @param string $name
+     * @param string $value
+     * @param array $attr
+     * 
+     * @return core_ET
+     */
+    function renderInput_($name, $value = "", &$attr = array())
+    {
+        if ($value < 0) {
+            $value = self::getRoleIdFromSys($value);
+            
+            if ($value === 0) {
+                $value = 'allSysTeam';
+            }
+            
+            $attr['value'] = 'r_' . $value;
+            $value = '';
+        }
+        
+        return parent::renderInput_($name, $value, $attr);
     }
     
     

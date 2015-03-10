@@ -1,6 +1,10 @@
 <?php 
 
 
+// Игнориране на затварянето на модул "Help"
+defIfNot('BGERP_DEMO_MODE', FALSE);
+
+
 /**
  * Подсистема за помощ - Логове
  *
@@ -78,12 +82,12 @@ class help_Log extends core_Master
 
         $this->setDbUnique("userId,infoId");
     }
-
-
+    
+    
     /**
      * Как да вижда текущият потребител тази помощна информация?
      */
-    static function getDisplayMode($infoId, $userId = NULL)
+    static function getDisplayMode($infoId, $userId = NULL, $increasSeeCnt=TRUE)
     {
         // Ако нямаме потребител, вземаме текущия
         if(!$userId) {
@@ -103,7 +107,11 @@ class help_Log extends core_Master
         }
 
         if($rec->seeCnt < max($conf->HELP_MAX_CLOSE_DISPLAY_CNT, $conf->HELP_MAX_OPEN_DISPLAY_CNT)) {
-            $rec->seeCnt++;
+            
+            if ($increasSeeCnt) {
+                $rec->seeCnt++;
+            }
+            
             self::save($rec);
         }
 		
@@ -121,13 +129,24 @@ class help_Log extends core_Master
          */
         $untilCloseDate = dt::timestamp2mysql(dt::mysql2timestamp($rec->seeOn) + $conf->HELP_MAX_CLOSE_DISPLAY_TIME);
         if($untilCloseDate > $nowDate || $rec->seeCnt < $conf->HELP_MAX_CLOSE_DISPLAY_CNT) {
+        	
+        	if(BGERP_DEMO_MODE === TRUE) {
+        		
+        		return 'open';
+        	} else {
                 
                 return 'close';
+        	}
         }
         
-        // Ако не трябва да показваме информацията нито в отворено, нито в затворено състояние
-        // връщаме 'none'
-        return 'none';
+        // Ако сме решили, че искаме винаги да се показва, дори и ако е затворено ръчно
+        if(BGERP_DEMO_MODE === TRUE) {
+        	return 'open';
+        } else {
+	        // Ако не трябва да показваме информацията нито в отворено, нито в затворено състояние
+	        // връщаме 'none'
+	        return 'none';
+        }
     }
     
     
@@ -147,16 +166,49 @@ class help_Log extends core_Master
     	// Намираме  запис
     	$rec = help_Log::fetch("#infoId = {$id} AND #userId = {$cu}"); 
     	
-    	if($rec){
+    	if ($rec) {
     		
 	    	// добавяме дата
 	    	$rec->closedOn = $nowDate;
 	    	
 	    	// и я записваме
 	    	self::save($rec, 'closedOn');
-
     	}
     	
-    	shutdown();
+    	if (Request::get('ajax_mode')) {
+    	    
+    	    return array();
+    	} else {
+    	    shutdown();
+    	}
+    }
+    
+    
+    /**
+     * Увеличава броя на вижданията
+     */
+    static function act_See()
+    {
+    	// За кой клас се отнася
+    	$id = core_Request::get('id', 'int');
+        
+        $cu = core_Users::getCurrent();
+    	
+    	// Намираме  запис
+    	$rec = help_Log::fetch("#infoId = {$id} AND #userId = {$cu}"); 
+    	
+    	if ($rec){
+    		
+	    	$rec->seeCnt++;
+	    	
+	    	self::save($rec, 'seeCnt');
+    	}
+    	
+    	if (Request::get('ajax_mode')) {
+    	    
+    	    return array();
+    	} else {
+    	    shutdown();
+    	}
     }
 }

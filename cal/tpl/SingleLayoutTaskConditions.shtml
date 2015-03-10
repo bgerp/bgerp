@@ -1,4 +1,4 @@
-<div class="clearfix21 portal" style="margin-top:20px;background-color:transparent;">
+<div class="clearfix21 portal" style="margin-top:30px;background-color:transparent;">
     <div class="legend" style="background-color:#ffc;font-size:0.9em;padding:2px;color:black;">|Условия за стартиране|*</div>
     <div class="listRows">
         <table class="listTable progress-table">
@@ -18,5 +18,4 @@
         </table>
     </div>
 </div>
-</div> 
 <div style='clear: both;'></div>

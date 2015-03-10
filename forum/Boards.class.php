@@ -322,7 +322,7 @@ class forum_Boards extends core_Master {
 		if($data->display) {
 		   
 		   // Добавяме външният изглед, само ако екшъна е за външен изглед
-		   Mode::set('wrapper', 'cms_Page');
+		   Mode::set('wrapper', 'cms_page_External');
 		  
 		   // Засветяване на Форум  в менюто
 		   $selfId = core_Classes::fetchIdByName($this);

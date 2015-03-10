@@ -5,7 +5,7 @@
     <!--ET_END blank-->
     <!--ET_BEGIN header-->
     <div class='header [#STATE_CLASS#]'>
-        <div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
+        <div class='docBgIcon' style='[#iconStyle#];'>[#singleTitle#] <b>[#ident#]</b> ([#state#])</div>
     </div>
     <!--ET_END header-->
     <table class='no-border' style='width:100%;'>
@@ -58,67 +58,7 @@
                                 <tbody>
                                     <tr>
                                         <td class="topCell first vtop" style='width:50%;'>
-                                            <table class='shipment-table' style='width:100%;'>
-                                                <!--ET_BEGIN DELIVERY_ADRESS-->
-                                                [#DELIVERY_ADRESS#]
-                                                <tr>
-                                                    <td colspan='2' style='border-bottom:1px solid #999;' class='quiet nowrap'>|Адрес за доставка|*</td>
-                                                </tr>
-                                                <!--ET_BEGIN company-->
-                                                <tr>
-                                                    <td class='quiet aright'>|Фирма|*:</td>
-                                                    <td>[#company#]</td>
-                                                </tr>
-                                                <!--ET_END company-->
-                                                <!--ET_BEGIN person-->
-                                                <tr>
-                                                    <td class='quiet aright'>|Лице|*:</td>
-                                                    <td>[#person#]</td>
-                                                </tr>
-                                                <!--ET_END person-->
-                                                <!--ET_BEGIN country-->
-                                                <tr>
-                                                    <td class='quiet aright'>|Държава|*:</td>
-                                                    <td>[#country#]</td>
-                                                </tr>
-                                                <!--ET_END country-->
-                                                <!--ET_BEGIN tel-->
-                                                <tr>
-                                                    <td class='quiet aright'>|Телефони|*:</td>
-                                                    <td>[#tel#]</td>
-                                                </tr>
-                                                <!--ET_END tel-->
-                                                <!--ET_BEGIN pCode-->
-                                                <tr>
-                                                    <td class='quiet aright'>|П. код|*:</td>
-                                                    <td>[#pCode#]</td>
-                                                </tr>
-                                                <!--ET_END pCode-->
-                                                <!--ET_BEGIN place-->
-                                                <tr>
-                                                    <td class='quiet aright'>|Град|*:</td>
-                                                    <td>[#place#]</td>
-                                                </tr>
-                                                <!--ET_END place-->
-                                                <!--ET_BEGIN address-->
-                                                <tr>
-                                                    <td class='quiet aright'>|Адрес|*:</td>
-                                                    <td>[#address#]</td>
-                                                </tr>
-                                                <!--ET_END address-->
-                                                <!--ET_END DELIVERY_ADRESS-->
-                                                <!--ET_BEGIN note-->
-                                                <tr>
-                                                    <td colspan=2 >
-                                                        <hr>
-                                                        [#note#]
-                                                    </td>
-                                                </tr>
-                                                <!--ET_END note-->
-                                            </table>
-                                        </td>
-                                        <td>
-                                            <table class='shipment-table' style='width:100%;'>
+                                        <table class='shipment-table' style='width:100%;'>
                                                 <!--ET_BEGIN deliveryTime-->
                                                 <tr>
                                                     <td class='quiet nowrap aright' style='width:1%;'>|Срок до|*:</td>
@@ -131,24 +71,38 @@
                                                     <td>[#storeId#]</td>
                                                 </tr>
                                                 <!--ET_END storeId-->
-                                                <!--ET_BEGIN locationId-->
+                                                <!--ET_BEGIN locationData-->
+                                                [#locationData#]
                                                 <tr>
                                                     <td class='quiet nowrap aright'>|До|*:</td>
-                                                    <td><b>[#locationId#]</b>, [#deliveryLocationAddress#]</td>
+                                                    <!--ET_BEGIN locationId-->
+                                                        <td><b>[#locationId#]</b>, [#deliveryLocationAddress#]</td>
+                                                    <!--ET_END locationId-->
+                                                    <!--ET_BEGIN formLocation-->
+	                                                    [#formLocation#]
+	                                                    <td>
+		                                                     [#deliveryTo#]
+	                                                    </td>
+                                                    <!--ET_END formLocation-->
                                                 </tr>
-                                                <!--ET_END locationId-->
+                                                <!--ET_END locationData-->
                                                 <!--ET_BEGIN lineId-->
                                                 <tr>
                                                     <td class='quiet nowrap aright'>|Транспорт|*: </td>
                                                     <td>[#lineId#]</td>
                                                 </tr>
                                                 <!--ET_END lineId-->
+                                                 <!--ET_BEGIN note-->
                                                 <tr>
-                                                    <td colspan="2">
+                                                    <td colspan="2" >
                                                         <hr>
+                                                        [#note#]
                                                     </td>
                                                 </tr>
+                                                <!--ET_END note-->
                                             </table>
+                                        </td>
+                                        <td>
                                             <div>|Общо тегло|*:&nbsp;<b>[#weight#]</b> &nbsp;&nbsp;&nbsp;&nbsp; |Общ обем|*:&nbsp;<b>[#volume#]</b></div>
                                             <hr>
                                             <table class='centered special-borders' style='width:100%;'>

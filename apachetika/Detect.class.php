@@ -1,13 +1,6 @@
 <?php
 
 
-
-/**
- * Версията на програмата
- */
-defIfNot("APACHE_TIKA_VERSION", '1.5');
-
-
 /**
  * Извличана на информация от файлове
  *
@@ -77,8 +70,10 @@ class apachetika_Detect
         $Script->setFile('INPUTF', $fileHnd);
         $Script->setFile('OUTPUTF', $textPath);
         
+        $conf = core_Packs::getConfig('apachetika');
+        
         // Вземаме целия път до apachetika
-        $apacheTikaPath = getFullPath('apachetika/' . APACHE_TIKA_VERSION . '/tika-app.jar');
+        $apacheTikaPath = getFullPath('apachetika/' . $conf->APACHE_TIKA_VERSION . '/tika-app.jar');
         
         // Задаваме пътя, като параметър
         $Script->setParam('APACHETIKA', $apacheTikaPath, TRUE);

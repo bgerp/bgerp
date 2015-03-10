@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   marketing
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -44,7 +44,7 @@ class marketing_Inquiries2 extends core_Embedder
     /**
      * Единично заглавие
      */
-    public $singleTitle = 'Запитване 2';
+    public $singleTitle = 'Запитване';
     
     
     /**
@@ -204,7 +204,7 @@ class marketing_Inquiries2 extends core_Embedder
     /**
      * Проверка и валидиране на формата
      */
-    public static function on_AfterInputEditForm($mvc, $form)
+    public static function on_AfterInputEditForm($mvc, &$form)
     {
     	if ($form->isSubmitted()){
     		$form->rec->ip = core_Users::getRealIpAddr();
@@ -222,10 +222,7 @@ class marketing_Inquiries2 extends core_Embedder
      */
     public static function canAddToFolder($folderId)
     {
-    	// Можем да добавяме или ако корицата е контрагент или сме в папката на текущата каса
-    	$cover = doc_Folders::getCover($folderId);
-  
-    	return $cover->haveInterface('doc_ContragentDataIntf');
+    	return FALSE;
     }
     
     
@@ -254,7 +251,6 @@ class marketing_Inquiries2 extends core_Embedder
     	}
     	 
     	if($fields['-single']){
-    		$row->header = $mvc->singleTitle . "&nbsp;#<b>{$mvc->abbr}{$row->id}</b>" . " ({$row->state})";
     		
     		// До всяко количество се слага unit с мярката на продукта
     		$Driver = $mvc->getDriver($rec);
@@ -481,10 +477,18 @@ class marketing_Inquiries2 extends core_Embedder
     	 
     	if($rec->state == 'active'){
     
-    		if(core_Packs::fetch("#name = 'techno2'")){
-    			if(techno2_SpecificationDoc::haveRightFor('add')){
+    		if($sId = cat_Products::fetchField("#originId = {$rec->containerId} AND #state = 'active'")){
+    			$data->toolbar->addBtn($data->row->innerClass, array('cat_Products', 'single', $sId), "ef_icon=img/16/specification.png,title=Артикул");
+    		} else {
+    			// Създаване на нова спецификация от запитването
+    			if(cat_Products::haveRightFor('add')){
+    				$url = array('cat_Products', 'add', "innerClass" => $rec->innerClass, "sourceId" => $rec->containerId);
+    				if(doc_Folders::getCover($rec->folderId)->haveInterface('doc_ContragentDataIntf')){
+    					$url['folderId'] = $rec->folderId; 
+    					$url['threadId'] = $rec->threadId;
+    				}
     				
-    				$data->toolbar->addBtn($data->row->innerClass, array('techno2_SpecificationDoc', 'add', 'originId' => $rec->containerId, 'innerClass' => $rec->innerClass), "ef_icon=img/16/specification.png,title=Създаване на нов " . mb_strtolower($data->row->innerClass));
+    				$data->toolbar->addBtn($data->row->innerClass, $url, "ef_icon=img/16/specification.png,title=Създаване на нов частен артикул");
     			}
     		}
     
@@ -494,6 +498,7 @@ class marketing_Inquiries2 extends core_Embedder
     			$data->toolbar->addBtn('Визитка на лице', array('crm_Persons', 'add', 'name' => $rec->name, 'buzCompanyId' => $companyId, 'country' => $rec->country), "ef_icon=img/16/vcard.png,title=Създаване на визитка с адресните данни на подателя");
     		}
     		
+    		// Ако е настроено да се изпраща нотифициращ имейл, добавяме бутона за препращане
     		$conf = core_Packs::getConfig('marketing');
     		if($mvc->haveRightFor('add') && $conf->MARKETING_INQUIRE_TO_EMAIL && $conf->MARKETING_INQUIRE_FROM_EMAIL){
     			$data->toolbar->addBtn('Препращане', array($mvc, 'send', $rec->id), "ef_icon=img/16/email_forward.png,warning=Сигурни ли сте че искате да препратите имейла на '{$conf->MARKETING_INQUIRE_TO_EMAIL}',title=Препращане на имейла с запитването на '{$conf->MARKETING_INQUIRE_TO_EMAIL}'");
@@ -670,7 +675,7 @@ class marketing_Inquiries2 extends core_Embedder
     	$tpl = $form->renderHtml();
     	 
     	// Поставяме шаблона за външен изглед
-    	Mode::set('wrapper', 'cms_Page');
+    	Mode::set('wrapper', 'cms_page_External');
     	
     	if($lg){
     		core_Lg::pop();

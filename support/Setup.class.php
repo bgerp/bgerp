@@ -51,6 +51,7 @@ class support_Setup extends core_ProtoSetup
             'support_Preventions',
             'support_Ratings',
             'support_Resolutions',
+            'migrate::markUsedComponents'
         );
     
 
@@ -92,5 +93,19 @@ class support_Setup extends core_ProtoSetup
         $res .= bgerp_Menu::remove($this);
         
         return $res;
+    }
+    
+    
+    /**
+     * Миграция, за маркиране на използваните компоненти
+     */
+    public static function markUsedComponents()
+    {
+        $query = support_Issues::getQuery();
+        $query->where("#componentId IS NOT NULL");
+        $query->where("#componentId != ''");
+        while ($rec = $query->fetch()) {
+            support_Components::markAsUsed($rec->componentId);
+        }
     }
 }

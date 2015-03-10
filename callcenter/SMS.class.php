@@ -740,7 +740,7 @@ class callcenter_SMS extends core_Master
     static function on_AfterPrepareListFilter($mvc, $data)
     {    
         // Добавяме поле във формата за търсене
-        $data->listFilter->FNC('usersSearch', 'users(rolesForAll=ceo, rolesForTeams=ceo|manager)', 'caption=Потребител,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
+        $data->listFilter->FNC('usersSearch', 'users(rolesForAll=ceo, rolesForTeams=ceo|manager)', 'caption=Потребител,input,silent,refreshForm');
         
         // Поле за търсене по номера
         $data->listFilter->FNC('number', 'drdata_PhoneType', 'caption=Номер,input,silent, recently');
@@ -910,6 +910,8 @@ class callcenter_SMS extends core_Master
                 $inst = cls::get($rec->service);
                 $status = $inst->getStatus($rec->uid);
             } catch (core_exception_Expect $e) {
+                
+                continue;
             }
             
             if (!isset($status)) continue;

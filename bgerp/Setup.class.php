@@ -21,6 +21,7 @@ defIfNot(BGERP_COMPANY_LOGO, '');
 defIfNot(BGERP_NON_WORKING_CRON_TIME, 3600);
 
 
+
 /**
  * class 'bgerp_Setup' - Начално установяване на 'bgerp'
  *
@@ -68,7 +69,7 @@ class bgerp_Setup extends core_ProtoSetup {
         'BGERP_COMPANY_LOGO_EN' => array ('fileman_FileType(bucket=pictures)', 'caption=Фирмена бланка->На английски, customizeBy=powerUser'),
         
         'BGERP_NON_WORKING_CRON_TIME' => array ('time(suggestions=30 мин.|1 час| 3 часа)', 'caption=След колко време да дава нотификация за неработещ cron->Време'),
-    );
+     );
     
     
     /**
@@ -85,6 +86,11 @@ class bgerp_Setup extends core_ProtoSetup {
      */
     //    var $commonJS = 'js/PortalSearch.js';
     
+    
+    /**
+     * Дали пакета е системен
+     */
+    public $isSystem = TRUE;
     
     
     /**
@@ -123,7 +129,7 @@ class bgerp_Setup extends core_ProtoSetup {
         $packs = "core,fileman,drdata,bglocal,editwatch,recently,thumb,doc,acc,currency,cms,
                   email,crm, cat, trans, price, blast,rfid,hr,trz,lab,sales,mp,marketing,store,cond,cash,bank,
                   budget,purchase,accda,sens,cams,frame,cal,fconv,log,fconv,cms,blogm,forum,deals,findeals,
-                  vislog,docoffice,incoming,support,survey,pos,change,sass,techno2,
+                  vislog,docoffice,incoming,support,survey,pos,change,sass,
                   callcenter,social,hyphen,distro,dec,status,phpmailer,label";
         
         // Ако има private проект, добавяме и инсталатора на едноименния му модул
@@ -135,10 +141,11 @@ class bgerp_Setup extends core_ProtoSetup {
         $Folders = cls::get('doc_Folders');
         
         if (!$Folders->db->tableExists($Folders->dbTableName) || ($isFirstSetup)) {
-            $packs .= ",avatar,keyboard,statuses,google,catering,gdocs,jqdatepick,imagics,fastscroll,context,autosize,oembed,hclean,chosen,help,toast,compactor,rtac,needhelp";
+            $packs .= ",avatar,keyboard,statuses,google,catering,gdocs,jqdatepick,imagics,fastscroll,context,autosize,oembed,hclean,chosen,help,toast,compactor,rtac";
         } else {
             $packs = arr::make($packs, TRUE);
             $pQuery = $Packs->getQuery();
+            $pQuery->where("#state = 'active'");
             
             while ($pRec = $pQuery->fetch()) {
                 if(!$packs[$pRec->name]) {
@@ -222,7 +229,7 @@ class bgerp_Setup extends core_ProtoSetup {
         
         // Добавяме Импортиращия драйвър в core_Classes
         $html .= core_Classes::add('bgerp_BaseImporter');
-        
+ 
         //TODO в момента се записват само при инсталация на целия пакет
         
         

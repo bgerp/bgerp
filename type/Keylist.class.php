@@ -147,7 +147,12 @@ class type_Keylist extends core_Type {
         $i = 0; $html = ''; $trOpen = FALSE;
         $j = 0; //за конструиране на row-1,row-2 и т.н.
         
+        $keyListClass = 'keylist';
+        
         if(count($this->suggestions)) {
+        	if(count($this->suggestions) < 4 ) {
+        		$keyListClass .= ' shrinked';
+        	}
             foreach($this->suggestions as $key => $v) {
                 
                 // Ако имаме група, правим ред и пишем името на групата
@@ -188,6 +193,7 @@ class type_Keylist extends core_Type {
                         // Добавяме класа за отворена група
                         $class .= ' group-autoOpen';
                     }
+                    $keyListClass .= ' keylist-wide';
                     
                     $html .= "\n<tr id='row-". $j . "' class='{$class}' ><td class='keylist-group'><div>". $plusImg . $minusImg . $v->title . $checkImg  . $uncheckImg."</div></td></tr>" .
                         "<tr><td><table class='inner-keylist'>";
@@ -246,7 +252,7 @@ class type_Keylist extends core_Type {
             $html = '<tr><td></td></tr>';
         }
         
-        $attr['class'] .= ' keylist';
+        $attr['class'] .= $keyListClass ;
         $tpl = HT::createElement('table', $attr, $html);
         jquery_Jquery::run($tpl, "keylistActions();", TRUE);
         jquery_Jquery::run($tpl, "checkForHiddenGroups();", TRUE);

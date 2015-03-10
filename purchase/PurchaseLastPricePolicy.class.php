@@ -30,17 +30,6 @@ class purchase_PurchaseLastPricePolicy extends core_Manager
     public $interfaces = 'price_PolicyIntf';
     
     
-	/**
-     * Връща продуктите, които могат да се купят от посочения клиент
-     * 
-     * @return array - масив с опции, подходящ за setOptions на форма
-     */
-    public function getProducts($customerClass, $customerId, $datetime = NULL, $properties = NULL, $limit = NULL)
-    {
-    	return cat_Products::getByProperty('canBuy', $limit);
-    }
-    
-    
     /**
      * Връща последната цена за посочения продукт направена в покупка от контрагента
      * @return object $rec->price  - цена
@@ -49,7 +38,7 @@ class purchase_PurchaseLastPricePolicy extends core_Manager
     function getPriceInfo($customerClass, $customerId, $productId, $productManId, $packagingId = NULL, $quantity = NULL, $date = NULL, $rate = 1, $chargeVat = 'no')
     {
        if(!$date){
-       	   $date = dt::now();
+       	   $date = dt::today();
         }
         
         // Намира последната цена на която продукта е бил продаден на този контрагент
@@ -76,18 +65,5 @@ class purchase_PurchaseLastPricePolicy extends core_Manager
         $lastRec->price = deals_Helper::getDisplayPrice($lastRec->price, $vat, $rate, $chargeVat);
         
         return (object)array('price' => $lastRec->price, 'discount' => $lastRec->discount);
-    }
-    
-    
-    /**
-     * Заглавие на ценоразписа за конкретен клиент 
-     * 
-     * @param mixed $customerClass
-     * @param int $customerId
-     * @return string
-     */
-    public function getPolicyTitle($customerClass, $customerId)
-    {
-        return $this->title;
     }
 }

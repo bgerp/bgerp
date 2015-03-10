@@ -339,17 +339,21 @@ class acc_Journal extends core_Master
      *
      * Документът ($docClassId, $docId) ТРЯБВА да поддържа интерфейс acc_TransactionSourceIntf
      *
-     * @param int $docClassId
-     * @param int $docId
+     * @param mixed $docClassId - класа на документа
+     * @param int $docId - ид на документа
+     * @param boolean $notifyDocument - да нотифицира ли документа, че транзакцията е приключена
      */
-    public static function saveTransaction($docClassId, $docId)
+    public static function saveTransaction($docClassId, $docId, $notifyDocument = TRUE)
     {
         $mvc      = cls::get($docClassId);
         $docClass = cls::getInterface('acc_TransactionSourceIntf', $mvc);
         $docRec   = $mvc->fetchRec($docId);
         
         try {
+        	
+        	Mode::push("saveTransaction", TRUE);
             $transaction = $mvc->getValidatedTransaction($docRec);
+            Mode::pop("saveTransaction");
         } catch (acc_journal_Exception $ex) {
             $tr = $docClass->getTransaction($docRec->id);
             bp($ex->getMessage(), $tr);
@@ -359,8 +363,11 @@ class acc_Journal extends core_Master
         $transaction->rec->docId   = $docRec->id;
         
         if ($success = $transaction->save()) {
-            // Нотифицира мениджъра на документа за успешно приключилата транзакция
-            $docClass->finalizeTransaction($docRec);
+        	
+        	// Нотифицира мениджъра на документа за успешно приключилата транзакция, ако сме задали
+        	if($notifyDocument === TRUE){
+        		$docClass->finalizeTransaction($docRec);
+        	}
         }
         
         return $success;
@@ -630,5 +637,108 @@ class acc_Journal extends core_Master
         if(!empty($id)){
             $mvc->updated[$id] = $id;
         }
+    }
+    
+    
+    /**
+     * Метод реконтиращ всички документи в посочените дати съдържащи определени сметки
+     * Намира всички документи, които имат записи в журнала. Изтриват им се транзакциите
+     * и се записват на ново
+     * 
+     * @param mixed $accSysIds - списък от систем ид-та на сметки
+     * @param date $from - от коя дата
+     * @param date $to - до коя дата
+     * @return int - колко документа са били реконтирани
+     */
+    private function reconto($accSysIds, $from = NULL, $to = NULL, $types = array())
+    {
+    	// Дигаме времето за изпълнение на скрипта
+    	set_time_limit(900);
+    	
+    	// Филтрираме записите в журнала по подадените параметри
+    	$to = (!$to) ? dt::today() : $to;
+    	$query = acc_JournalDetails::getQuery();
+    	acc_JournalDetails::filterQuery($query, $from, $to);
+    	
+    	$accSysIds = array_values($accSysIds);
+    	foreach ($accSysIds as $index => $sysId){
+    		$or = ($index == 0) ? FALSE : TRUE;
+    		$acc = acc_Accounts::getRecBySystemId($sysId);
+    		$query->where("#debitAccId = {$acc->id} OR #creditAccId = {$acc->id}", $or);
+    	}
+    	
+    	if(count($types)){
+    		$query->in("docType", $types);
+    	}
+    	
+    	// Групираме записите по документи
+    	$query->show('docId,docType,valior');
+    	$query->groupBy('docId,docType');
+    	$count = $query->count();
+    	
+    	// За всеки документ
+    	while($rec = $query->fetch()){
+    		
+    		// Ако е в затворен период, пропускаме го
+    		$periodState = acc_Periods::fetchByDate($rec->valior)->state;
+    		if($periodState == 'closed') continue;
+    		
+    		// Изтриваме транзакцията му и я записваме отново
+    		acc_Journal::deleteTransaction($rec->docType, $rec->docId);
+    		acc_Journal::saveTransaction($rec->docType, $rec->docId, FALSE);
+    	}
+    	
+    	// Засегнатите документи
+    	return $count;
+    }
+    
+    
+    /**
+     * Екшън реконтиращ всички документи където участва дадена сметка
+     * в даден интервал
+     */
+    public function act_Reconto()
+    {
+    	requireRole('admin,ceo');
+    	
+    	$form = cls::get('core_Form');
+    	$form->title = tr("Реконтиране на документи");
+    	$form->FLD('from', 'date', 'caption=От,mandatory');
+    	$form->FLD('to', 'date', 'caption=До,mandatory');
+    	$form->FLD('accounts', 'acc_type_Accounts', 'caption=Сметки');
+    	$form->FLD('types', 'keylist(mvc=core_Classes)', 'caption=Документи');
+    	$form->setSuggestions('types', core_Classes::getOptionsByInterface('acc_TransactionSourceIntf', 'title'));
+    	
+    	$form->input();
+    	
+    	if($form->isSubmitted()){
+    		$rec = &$form->rec;
+    		
+    		if($rec->from > $rec->to){
+    			$form->setError('from', 'Началната дата трябва да е по-малка от крайната');
+    		}
+    		
+    		if(empty($rec->accounts) && empty($rec->types)){
+    			$form->setError('accounts,types', 'Трябва да е избрано, поне едно от двете полета');
+    		}
+    		
+    		if(!$form->gotErrors()){
+    			$accounts = keylist::toArray($rec->accounts);
+    			$types = arr::make($rec->types, TRUE);
+    			foreach ($accounts as $id => $accId){
+    				$accounts[$id] = acc_Accounts::fetchField($accId, 'systemId');
+    			}
+    			$res = $this->reconto($accounts, $rec->from, $rec->to, $types);
+    			
+    			return followRetUrl(NULL, tr("|Реконтирани са|* {$res} |документа|*"));
+    		}
+    	}
+    	
+    	$form->toolbar->addSbBtn('Реконтиране', 'save', 'ef_icon = img/16/arrow_refresh.png, title = Реконтиране');
+    	$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
+    	
+    	$tpl = $this->renderWrapping($form->renderHtml());
+    	
+    	return $tpl;
     }
 }

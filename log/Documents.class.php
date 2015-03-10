@@ -465,7 +465,7 @@ class log_Documents extends core_Manager
             $state = ($rec->data->{$openAction}) ? 'state-closed' : 'state-active';
             
             // Екшъна за отваряне
-            $row->openAction = static::renderOpenActions($rec);
+            $row->openAction = self::renderOpenActions($rec);
             
             // Добавяме индикатор за състоянието
             $time = "<div>";
@@ -692,7 +692,7 @@ class log_Documents extends core_Manager
             $row = static::recToVerbal($row, array_keys(get_object_vars($row)));
             
             // Рендираме екшъна за виждане
-            $row->receivedOn = static::renderOpenActions($rec, $rec->receivedOn);
+            $row->receivedOn = self::renderOpenActions($rec, $rec->receivedOn);
 
             // Полето за върнато и получено
             $row->returnedAndReceived = $row->receivedOn;
@@ -1023,7 +1023,7 @@ class log_Documents extends core_Manager
     /**
      * Връща записа за съответния контейнер със съответния екшъна
      * 
-     * @param integer $cid - containerId
+     * @param integer|NULL $cid - containerId
      * @param mixed $action - Масив или стринг с екшъна
      * 
      * @return array $recsArr - Масив с намерените записи
@@ -1065,6 +1065,8 @@ class log_Documents extends core_Manager
 
         // Записите да се подреждат по дата в обратен ред
         $query->orderBy('createdOn', 'DESC');
+        
+        $recsArr = array();
         
         // Намираме всички записи, които отговарят на критериите ни
         while ($rec = $query->fetch()) {
@@ -1582,7 +1584,7 @@ class log_Documents extends core_Manager
      * @param string $mid
      * @param fileHnd $fh - Манипулатор на файла, който се сваля
      * 
-     * @return object $rec
+     * @return object|TRUE $rec
      */
     public static function downloaded($mid, $fh)
     {
@@ -1774,6 +1776,7 @@ class log_Documents extends core_Manager
         $used = self::ACTION_USED;
         
         $data = array();   // Масив с историите на контейнерите в нишката
+        $changesArr = array();
         while ($rec = $query->fetch()) {
             if (($rec->action != $open) && ($rec->action != $download) && ($rec->action != $change) && ($rec->action != $forward) && ($rec->action != $used)) {
                 $data[$rec->containerId]->summary[$rec->action] += 1;
@@ -1916,7 +1919,7 @@ class log_Documents extends core_Manager
         }
         
         $html = '';
-        
+       
         foreach ($data->summary as $action=>$count) {
             if ($count == 0) {
                 continue;
@@ -1934,6 +1937,7 @@ class log_Documents extends core_Manager
             
             $actionVerbal = tr($actionVerbal);
             $linkArr = static::getLinkToSingle($data->containerId, $actionToTab[$action]);
+            
 	        $link = ht::createLink("<b>{$count}</b><span>{$actionVerbal}</span>", $linkArr, FALSE, array('title' => $actionTitle));
             $html .= "<li class=\"action {$action}\">{$link}</li>";
         }
@@ -1961,7 +1965,11 @@ class log_Documents extends core_Manager
 	                 'Cid' => $cid, 
 	                 'Tab' => $detailTab,
 	                );
-
+        
+		if($topTab = Request::get('TabTop')){
+			$link['TabTop'] = $topTab;
+		}
+        
         return $link;
     }
     
@@ -2028,6 +2036,7 @@ class log_Documents extends core_Manager
         $html = '';
         
         if ($rec->data->receivedOn && $rec->data->seenFromIp) {
+            $firstOpen = array();
             $firstOpen['ip'] = $rec->data->seenFromIp;
             $firstOpen['on'] = $rec->data->receivedOn;
         }
@@ -2184,7 +2193,7 @@ class log_Documents extends core_Manager
      * @param string $mid - Mid' а на действието
      * @param string $action - Действието, което искаме да търсим
      * 
-     * @return object - Обект с данни
+     * @return object|FALSE - Обект с данни
      */
     static function getActionRecForMid($mid, $action=NULL)
     {
@@ -2249,9 +2258,9 @@ class log_Documents extends core_Manager
      * Проверява дали е изпратен имейл от този контейнер към имейлите
      * 
      * @param integer $containerId - id на контейнера
-     * @param integer $resendingSecs - Секунди, преди които ще се счита за изпратено
-     * @param string $emailTo - Имейли в to
-     * @param string $emailCc - Имейли в cc
+     * @param integer|NULL $resendingSecs - Секунди, преди които ще се счита за изпратено
+     * @param string|FALSE $emailTo - Имейли в to
+     * @param string|NULL $emailCc - Имейли в cc
      * 
      * @return boolean
      */

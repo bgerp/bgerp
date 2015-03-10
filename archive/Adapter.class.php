@@ -257,7 +257,7 @@ class archive_Adapter
     function extractEntry($path)
     {
         // Вземаме директорията
-        $outputDir = $this->setOutputDirectory();
+        $this->setOutputDirectory();
         
         // Екстрактваме файла
         $this->inst->extractEntry($path);

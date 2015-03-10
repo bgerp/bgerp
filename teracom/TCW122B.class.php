@@ -12,9 +12,9 @@
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title     Драйвер за IP сензор Teracom TCW-121B
+ * @title     Тераком TCW122B
  */
-class teracom_TCW122B  
+class teracom_TCW122B  extends sens2_ProtoDriver
 {
     
     /**
@@ -24,19 +24,13 @@ class teracom_TCW122B
     
     
     /**
-     * Интерфeйси, поддържани от всички наследници
-     */
-    var $interfaces = 'sens2_DriverIntf';
-
-    
-    /**
      * Описание на входовете на драйвера
      */
     var $inputs = array(
-        'T1'   => array('caption'=>'Температура1', 'uom'=>'ºC', 'xmlPath'=>'/Temperature1[1]'),
-        'T2'   => array('caption'=>'Температура2', 'uom'=>'ºC', 'xmlPath'=>'/Temperature2[1]'),
-        'Hr1'  => array('caption'=>'Влажност1', 'uom'=>'%', 'xmlPath'=>'/Humidity1[1]'),
-        'Hr2'  => array('caption'=>'Влажност2', 'uom'=>'%', 'xmlPath'=>'/Humidity2[1]'),
+        'T1'   => array('caption'=>'Температура 1', 'uom'=>'ºC', 'xmlPath'=>'/Temperature1[1]'),
+        'T2'   => array('caption'=>'Температура 2', 'uom'=>'ºC', 'xmlPath'=>'/Temperature2[1]'),
+        'Hr1'  => array('caption'=>'Влажност 1', 'uom'=>'%', 'xmlPath'=>'/Humidity1[1]'),
+        'Hr2'  => array('caption'=>'Влажност 2', 'uom'=>'%', 'xmlPath'=>'/Humidity2[1]'),
     	'InD1' => array('caption'=>'Цифров вход 1', 'uom' => '', 'xmlPath'=>'/DigitalInput1[1]'),
         'InD2' => array('caption'=>'Цифров вход 2', 'uom' => '', 'xmlPath'=>'/DigitalInput2[1]'),
         'InA1' => array('caption'=>'Аналогов вход 1', 'uom' => 'V', 'xmlPath'=>'/AnalogInput1[1]'),
@@ -100,20 +94,10 @@ class teracom_TCW122B
         $form->FNC('port', 'int(5)', 'caption=Port,hint=Порт, input, mandatory,value=80');
         $form->FNC('user', 'varchar(10)', 'caption=User,hint=Потребител, input, mandatory, value=admin, notNull');
         $form->FNC('password', 'password(allowEmpty)', 'caption=Password,hint=Парола, input, value=admin, notNull,autocomplete=off');
+
+        $form->rec->port = 80;
     }
     
-
-    /**
-     * Проверява след  субмитване формата с настройки на контролера
-     *
-     * @see  sens2_DriverIntf
-     *
-     * @param   core_Form
-     */
-    function checkConfigForm($form)
-    {
-    }
-
 
     /**
      * Прочита стойностите от сензорните входове
@@ -133,8 +117,6 @@ class teracom_TCW122B
         $url->placeArray($config);
         $url = $url->getContent();
         
-        echo "<li> $url";
-
         // Извличаме XML-a
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
@@ -147,14 +129,12 @@ class teracom_TCW122B
         // Ако не сме получили xml - връщаме грешка
         if (empty($xml) || !$xml) {
             
-            return "Грешка при четене от {$config->ip}";
+            return "Грешка при четене от {$config->ip}:{$config->port}";
         }
         
-        echo "<br><pre>$xml</pre>";
-
         // Парсираме XML-а
         $result = array();
-        $this->XMLToArrayFlat(simplexml_load_string($xml), $result);
+        core_XML::toArrayFlat(simplexml_load_string($xml), $result);
         
         // Извличаме състоянията на входовете от парсирания XML
         foreach ($this->inputs as $name => $details) {
@@ -175,9 +155,11 @@ class teracom_TCW122B
             if($value) {
                 switch (strtoupper($value)) {
                     case 'ON':
+					case 'OPEN' :
                         $res[$name] = 1;
                         break;
                     case 'OFF':
+                    case 'CLOSED':
                         $res[$name] = 0;
                         break;
                     default:
@@ -214,38 +196,4 @@ class teracom_TCW122B
         }
     }
     
-    
-    /**
-     * Преобразува SimpleXMLElement в масив
-     */
-    function XMLToArrayFlat($xml, &$return, $path = '', $root = FALSE)
-    {
-        $children = array();
-        
-        if ($xml instanceof SimpleXMLElement) {
-            $children = $xml->children();
-            
-            if ($root){ // we're at root
-                $path .= '/' . $xml->getName();
-            }
-        }
-        
-        if (count($children) == 0){
-            $return[$path] = (string) $xml;
-            
-            return;
-        }
-        
-        $seen = array();
-        
-        foreach ($children as $child => $value) {
-            $childname = ($child instanceof SimpleXMLElement) ? $child->getName() : $child;
-            
-            if (!isset($seen[$childname])){
-                $seen[$childname] = 0;
-            }
-            $seen[$childname]++;
-            $this->XMLToArrayFlat($value, $return, $path . '/' . $child . '[' . $seen[$childname] . ']');
-        }
-    }
 }

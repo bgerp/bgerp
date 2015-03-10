@@ -5,7 +5,7 @@
     <!--ET_END blank-->
     <!--ET_BEGIN header-->
     <div class='header [#STATE_CLASS#]'>
-        <div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
+        <div class='docBgIcon' style='[#iconStyle#];'>[#singleTitle#] <b>[#ident#]</b> ([#state#])</div>
     </div>
     <!--ET_END header-->
     <div class='scrolling-holder'>
@@ -106,10 +106,10 @@
                                 <tr>
                                     <td style='line-height: 140%;'>
                                         <!--ET_BEGIN vatReason-->
-                                        <div><span class='quiet'>|Основание за ДДС|*:</span> [#vatReason#]</div>
+                                        <div><span class='quiet'>|Основание за ДДС|*/ <i>Reason for VAT</i>:</span> [#vatReason#]</div>
                                         <!--ET_END vatReason-->
                                         <!--ET_BEGIN vatDate-->  
-                                        <span class='quiet'>|Данъчно събитие|*:</span> [#vatDate#] &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                        <span class='quiet'>|Данъчно събитие|*/ <i>Taxable event</i>:</span> [#vatDate#] &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                         <!--ET_END vatDate-->  
                                         <!--ET_BEGIN rate--> 
                                         <span class='quiet'>|Курс|* / <i>Rate</i>:</span>  [#rate#]
@@ -135,7 +135,7 @@
                                         <!--ET_BEGIN accountId-->
                                         <hr>
                                         <div>
-                                            <span class='quiet'>|Банкова с-ка|*:</span> [#accountId#]
+                                            <span class='quiet'>|Банкова с-ка|* / <i>Bank account</i>:</span> [#accountId#]
                                             <div class="smallData">
                                                 <!--ET_BEGIN bank-->
                                                 <div>
@@ -166,8 +166,8 @@
                                         <hr>
                                         <table class='centered special-borders' style='width:100%;'>
                                             <tr>
-                                                <td class='centered border-right' style='width:50%;'>|Получил|*:</td>
-                                                <td class='centered'>|Съставил|*:</td>
+                                                <td class='centered border-right' style='width:50%;'>|Получил|* / <i>Received:</i></td>
+                                                <td class='centered'>|Съставил|* / <i>Prepared</i>:</td>
                                             </tr>
                                             <tr>
                                                 <td style='height:40px;' class='border-right'>&nbsp;</td>
@@ -228,7 +228,7 @@
                                                 <td colspan='3' style='text-align:right'>
                                                     <!--ET_BEGIN sayWords-->
                                                     <hr>
-                                                    |С думи|*:
+                                                    |С думи|* / <i>Say words</i>:
                                                     [#sayWords#]
                                                     <!--ET_END sayWords-->
                                                 </td>

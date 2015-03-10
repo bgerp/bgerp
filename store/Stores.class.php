@@ -220,7 +220,7 @@ class store_Stores extends core_Master
         
         if ($rec = $self->fetch($objectId)) {
             $result = (object)array(
-                'num' => "St" . $rec->id,
+                'num' => $rec->id . " st",
                 'title' => $rec->name,
                 'features' => 'foobar' // @todo!
             );
@@ -359,14 +359,5 @@ class store_Stores extends core_Master
     			$row->locationId = crm_Locations::getHyperLink($rec->locationId);
     		}
     	}
-    }
-    
-    
-    /**
-     * Поставя изискване да се селектират само активните записи
-     */
-    public static function on_BeforeMakeArray4Select($mvc, &$optArr, $fields = NULL, &$where = NULL)
-    {
-    	$where .= ($where ? " AND " : "") . " #state != 'rejected'";
     }
 }

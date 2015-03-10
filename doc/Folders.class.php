@@ -104,6 +104,12 @@ class doc_Folders extends core_Master
      * Масив в id-та на папки, които трябва да се обновят на Shutdown
      */
     var $updateByContentOnShutdown = array();
+    
+    
+    /**
+     * Масив с id-та, за които не трябва да се праща нотификация
+     */
+    var $preventNotification = array();
 
 
     /**
@@ -167,8 +173,8 @@ class doc_Folders extends core_Master
     static function on_AfterPrepareListFilter($mvc, $data)
     {
      	// Добавяме поле във формата за търсене
-		$data->listFilter->FNC('users', 'users(rolesForAll = |officer|manager|ceo|)', 'caption=Потребител,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
-		$data->listFilter->FNC('order', 'enum(pending=Първо чакащите,last=Сортиране по "последно")', 'caption=Подредба,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
+		$data->listFilter->FNC('users', 'users(rolesForAll = |officer|manager|ceo|)', 'caption=Потребител,input,silent,refreshForm');
+		$data->listFilter->FNC('order', 'enum(pending=Първо чакащите,last=Сортиране по "последно")', 'caption=Подредба,input,silent,refreshForm');
 		$data->listFilter->view = 'horizontal';
 		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
 		// Показваме само това поле. Иначе и другите полета
@@ -401,56 +407,58 @@ class doc_Folders extends core_Master
                 
                 doc_Folders::save($rec, 'last,allThreadsCnt,openThreadsCnt,state');
                 
-                // Генерираме нотификация за потребителите, споделили папката
-                // ако имаме повече отворени теми от преди
-                if($exOpenThreadsCnt < $rec->openThreadsCnt) {
-                    
-                    $userId = $rec->inCharge;
-                    
-                    $msg = '|Отворени теми в|*' . " \"$rec->title\"";
-                    
-                    $url = array('doc_Threads', 'list', 'folderId' => $id);
+                if (!$mvc->preventNotification[$id]) {
+                    // Генерираме нотификация за потребителите, споделили папката
+                    // ако имаме повече отворени теми от преди
+                    if($exOpenThreadsCnt < $rec->openThreadsCnt) {
                         
-                    $priority = 'normal';
-                    
-                    // По подразбиране ще се нотифицира собствника и споделените в папката
-                    $notifyArr = array();
-                    $notifyArr[$userId] = $userId;
-                    $notifyArr += keylist::toArray($rec->shared);
-                    
-                    $key = doc_Folders::getSettingsKey($rec->id);
-                    $folOpeningNotifications = core_Settings::fetchUsers($key, 'folOpenings');
-                    
-                    // В зависимост от избраната персонална настройка добавяме/премахваме от масива
-                    foreach ((array)$folOpeningNotifications as $userId => $folOpening) {
+                        $userId = $rec->inCharge;
                         
-                        if ($folOpening['folOpenings'] == 'no') {
-                            unset($notifyArr[$userId]);
-                        } else if ($folOpening['folOpenings'] == 'yes') {
-                            $notifyArr[$userId] = $userId;
+                        $msg = '|Отворени теми в|*' . " \"$rec->title\"";
+                        
+                        $url = array('doc_Threads', 'list', 'folderId' => $id);
+                            
+                        $priority = 'normal';
+                        
+                        // По подразбиране ще се нотифицира собствника и споделените в папката
+                        $notifyArr = array();
+                        $notifyArr[$userId] = $userId;
+                        $notifyArr += keylist::toArray($rec->shared);
+                        
+                        $key = doc_Folders::getSettingsKey($rec->id);
+                        $folOpeningNotifications = core_Settings::fetchUsers($key, 'folOpenings');
+                        
+                        // В зависимост от избраната персонална настройка добавяме/премахваме от масива
+                        foreach ((array)$folOpeningNotifications as $userId => $folOpening) {
+                            
+                            if ($folOpening['folOpenings'] == 'no') {
+                                unset($notifyArr[$userId]);
+                            } else if ($folOpening['folOpenings'] == 'yes') {
+                                $notifyArr[$userId] = $userId;
+                            }
                         }
+                        
+                        $currUserId = core_Users::getCurrent();
+                        $haveDebug = haveRole('debug', $currUserId);
+                        
+                        // Нотифицираме всички потребители в масива, които имат достъп до сингъла на папката
+                        foreach((array)$notifyArr as $nUserId) {
+                            
+                            // Ако текущия потребител, е някой от системните, няма да се нотифицира
+                            if ($nUserId < 1) continue; 
+                            
+                            // Ако текущия потребител няма debug роля, да не получава нотификация за своите действия
+                            if (!$haveDebug && ($currUserId == $nUserId)) continue;
+                            
+                            if (!doc_Folders::haveRightFor('single', $id, $nUserId)) continue;
+                            
+                            bgerp_Notifications::add($msg, $url, $nUserId, $priority);
+                        }
+                    } elseif($exOpenThreadsCnt > 0 && $rec->openThreadsCnt == 0) {
+                        // Изчистване на нотификации за отворени теми в тази папка
+                        $url = array('doc_Threads', 'list', 'folderId' => $rec->id);
+                        bgerp_Notifications::clear($url, '*');
                     }
-                    
-                    $currUserId = core_Users::getCurrent();
-                    $haveDebug = haveRole('debug', $currUserId);
-                    
-                    // Нотифицираме всички потребители в масива, които имат достъп до сингъла на папката
-                    foreach((array)$notifyArr as $nUserId) {
-                        
-                        // Ако текущия потребител, е някой от системните, няма да се нотифицира
-                        if ($nUserId < 1) continue; 
-                        
-                        // Ако текущия потребител няма debug роля, да не получава нотификация за своите действия
-                        if (!$haveDebug && ($currUserId == $nUserId)) continue;
-                        
-                        if (!doc_Folders::haveRightFor('single', $id, $nUserId)) continue;
-                        
-                        bgerp_Notifications::add($msg, $url, $nUserId, $priority);
-                    }
-                } elseif($exOpenThreadsCnt > 0 && $rec->openThreadsCnt == 0) {
-                    // Изчистване на нотификации за отворени теми в тази папка
-                    $url = array('doc_Threads', 'list', 'folderId' => $rec->id);
-                    bgerp_Notifications::clear($url, '*');
                 }
             }
         }
@@ -780,7 +788,7 @@ class doc_Folders extends core_Master
      * @param $params['Act'] - Действието
      * @param $params['folderId'] - id' то на папката
      * 
-     * @return core_ET - Линк
+     * @return core_ET|FALSE - Линк
      */
     static function getVerbalLink($params)
     {
@@ -1136,8 +1144,11 @@ class doc_Folders extends core_Master
      * Може ли текущия потребител да пороменя сетингите на посочения потребител/роля?
      * 
      * @param string $key
-     * @param integer $userOrRole
+     * @param integer|NULL $userOrRole
+     * 
      * @see core_SettingsIntf
+     * 
+     * @return boolean
      */
     static function canModifySettings($key, $userOrRole=NULL)
     {
@@ -1173,7 +1184,7 @@ class doc_Folders extends core_Master
      * @param core_Form $form
      * @see core_SettingsIntf
      */
-    function prepareForm(&$form)
+    function prepareSettingsForm(&$form)
     {
         // Задаваме таба на менюто да сочи към документите
         Mode::set('pageMenu', 'Документи');
@@ -1192,7 +1203,7 @@ class doc_Folders extends core_Master
         $form->FNC('folOpenings', 'enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Отворени нишки->Известяване, input=input');
         $form->FNC('perPage', 'enum(default=Автоматично, 10=10, 20=20, 40=40, 100=100, 200=200)', 'caption=Теми на една страница->Брой, input=input');
         $form->FNC('ordering', 'enum(default=Автоматично, opened=Първо отворените, recent=По последно, create=По създаване, numdocs=По брой документи)', 'caption=Подредба на нишките->Правило, input=input');
-        $form->FNC('defaultEmail', 'key(mvc=email_Inboxes,select=email,allowEmpty)', 'caption=Изходящ имейл->По подразбиране, input=input');
+        $form->FNC('defaultEmail', 'key(mvc=email_Inboxes,select=email,allowEmpty)', 'caption=Адрес|* `From`->Имейл, input=input');
         
         // Изходящ имейл по-подразбиране за съответната папка
         try {

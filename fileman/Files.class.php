@@ -32,56 +32,62 @@ class fileman_Files extends core_Master
     /**
      * Детайла, на модела
      */
-    var $details = 'fileman_FileDetails';
+    public $details = 'fileman_FileDetails';
     
     
     /**
      * 
      */
-    var $canEdit = 'no_one';
+    protected $canEdit = 'no_one';
     
     
     /**
      * Всички потребители могат да разглеждат файлове
      */
-    var $canSingle = 'powerUser';
+    protected $canSingle = 'powerUser';
     
     
     /**
      * 
      */
-    var $canDelete = 'no_one';
+    protected $canDelete = 'no_one';
     
     
     /**
 	 * Кой може да го разглежда?
 	 * @todo След като се направи да се показват само файловете на потребителя
 	 */
-	var $canList = 'powerUser';
+	protected $canList = 'powerUser';
     
 	
     /**
      * 
      */
-    var $singleLayoutFile = 'fileman/tpl/SingleLayoutFile.shtml';
+    public $singleLayoutFile = 'fileman/tpl/SingleLayoutFile.shtml';
     
     
     /**
      * 
      */
-    var $canAdd = 'no_one';
+    protected $canAdd = 'no_one';
     
     
     /**
      * Заглавие на модула
      */
-    var $title = 'Файлове';
+    public $title = 'Файлове';
     
     
     /**
      * 
      */
-    var $listFields = 'name, bucketId, createdOn, createdBy';
+    public $listFields = 'name=Файл->Име, fileLen=Файл->Размер, bucketId, createdOn, createdBy';
+    
+    
+    /**
+     * 
+     */
+    public $loadList = 'plg_Sorting';
     
     
     /**
@@ -117,10 +123,13 @@ class fileman_Files extends core_Master
         // 
         $this->FLD('extractedOn', 'datetime(format=smartTime)', 'caption=Екстрактнато->На,input=none,column=none');
         
+        $this->FLD("fileLen", "fileman_FileSize", 'caption=Размер');
+        
         // Индекси
         $this->setDbUnique('fileHnd');
         $this->setDbUnique('name,bucketId', 'uniqName');
         $this->setDbIndex('dataId,bucketId', 'indexDataId');
+        $this->setDbIndex('createdBy');
     }
     
     
@@ -143,6 +152,12 @@ class fileman_Files extends core_Master
 
             
             $rec->id = $existingRec->id;
+        }
+        
+        if ($rec->dataId) {
+            $dRec = fileman_Data::fetch($rec->dataId);
+            $fileLen = $dRec->fileLen;
+            $rec->fileLen = $fileLen;
         }
     }
     
@@ -793,6 +808,8 @@ class fileman_Files extends core_Master
         
         if (!$saveId) return FALSE;
         
+        fileman_Log::updateLogInfo($nRec->fileHnd, 'rename');
+        
         // Ако е форсирано рендирането на драйверите
         if ($forceDriver) {
             
@@ -860,6 +877,9 @@ class fileman_Files extends core_Master
         
         // Добавяме табовете в шаблона
         $tpl->append($fileInfo, 'fileDetail');
+        
+        // Отбелязваме като разгледан
+        fileman_Log::updateLogInfo($fh, 'preview');
     }
     
     
@@ -1081,13 +1101,15 @@ class fileman_Files extends core_Master
      */
     static function on_AfterPrepareListFilter($mvc, $data)
     {
+        $data->listFilter->layout = new ET(tr('|*' . getFileContent('fileman/tpl/FilesFilterForm.shtml')));
+        
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC('fName', 'varchar', 'caption=Име на файл,input,silent');
-        $data->listFilter->FNC('usersSearch', 'users(rolesForAll=ceo, rolesForTeams=ceo|manager)', 'caption=Потребител,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
+        $data->listFilter->FNC('usersSearch', 'users(rolesForAll=ceo, rolesForTeams=ceo|manager)', 'caption=Потребител,input,silent,refreshForm');
         $data->listFilter->FNC('bucket', 'key(mvc=fileman_Buckets, select=name, allowEmpty)', 'caption=Кофа,input,silent');
         
         // В хоризонтален вид
-        $data->listFilter->view = 'horizontal';
+        $data->listFilter->view = 'vertical';
         
         // Добавяме бутон
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
@@ -1144,6 +1166,80 @@ class fileman_Files extends core_Master
     		    $data->query->where(array("#bucketId = '[#1#]'", $filter->bucket));
             }
         }
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param fileman_Files $mvc
+     * @param object $res
+     * @param object $data
+     */
+    static function on_AfterPrepareListSummary($mvc, &$res, &$data)
+    {
+        // Ако няма заявка, да не се изпълнява
+        if (!$data->listSummary->query) return ;
+        
+        // Брой записи
+        $fileCnt = $data->listSummary->query->count();
+        
+        // Размер на всички файлове
+        $data->listSummary->query->XPR('sumLen', 'int', 'SUM(#fileLen)');
+        $rec = $data->listSummary->query->fetch();
+        $fileLen = $rec->sumLen;
+        
+        if (!isset($data->listSummary->statVerb)) {
+            $data->listSummary->statVerb = array();
+        }
+        
+        $Files = cls::get('fileman_FileSize');
+        $Int = cls::get('type_Int');
+        
+        // Размер на всички файлове
+        if ($fileLen) {
+            $data->listSummary->statVerb['fileSize'] = $Files->toVerbal($fileLen);
+        }
+        
+        // Броя на файловете
+        if ($fileCnt) {
+            $data->listSummary->statVerb['fileCnt'] = $Int->toVerbal($fileCnt);
+        }
+        
+        // Статистика за БД
+        if (haveRole('ceo, admin, debug')) {
+            $sqlInfo = core_Db::getDBInfo();
+            
+            if ($sqlInfo) {
+                
+                $data->listSummary->statVerb['sqlSize'] = $Files->toVerbal($sqlInfo['Size']);
+                $data->listSummary->statVerb['rowCnt'] = $Int->toVerbal($sqlInfo['Rows']);
+            }
+        }
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param fileman_Files $mvc
+     * @param core_Et $tpl
+     * @param core_Et $data
+     */
+    static function on_AfterRenderListSummary($mvc, &$tpl, &$data)
+    {
+        // Ако няма данни, няма да се показва нищо
+        if (!$data->listSummary->statVerb) return ;
+        
+    	// Зареждаме и подготвяме шаблона
+    	$tpl = getTplFromFile(("fileman/tpl/FilesSummary.shtml"));
+    	
+    	// Заместваме статусите на обажданията
+    	$tpl->placeArray($data->listSummary->statVerb);
+    	
+    	// Премахваме празните блокове
+		$tpl->removeBlocks();
+		$tpl->append2master();
     }
     
     

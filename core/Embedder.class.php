@@ -71,7 +71,7 @@ class core_Embedder extends core_Master
 		// Добавяме задължителните полета само ако не е дефинирано че вече съществуват
 		
 		if(!isset($mvc->fields[$mvc->innerClassField])){
-			$mvc->FLD($mvc->innerClassField, "class(interface={$mvc->innerObjectInterface}, allowEmpty, select=title)", "caption=Драйвър,mandatory,silent", array('attr' => array('onchange' => "addCmdRefresh(this.form);this.form.submit()")));
+			$mvc->FLD($mvc->innerClassField, "class(interface={$mvc->innerObjectInterface}, allowEmpty, select=title)", "caption=Вид,mandatory,silent", array('attr' => array('onchange' => "addCmdRefresh(this.form);this.form.submit()")));
 		}
 		
 		if(!isset($mvc->fields[$mvc->innerFormField])){
@@ -153,6 +153,12 @@ class core_Embedder extends core_Master
 			$form->setReadOnly($mvc->innerClassField);
 		} else {
 			$form->setOptions($mvc->innerClassField, $interfaces);
+			
+			// Ако е възможен точно един драйвер, задаваме го по подразбиране да е избран
+			if(count($interfaces) == 1){
+				$form->setDefault($mvc->innerClassField, key($interfaces));
+				$form->setReadOnly($mvc->innerClassField);
+			}
 		}
 	
 		// Ако има запис, не може да се сменя източника и попълваме данните на формата с тези, които са записани
@@ -188,15 +194,16 @@ class core_Embedder extends core_Master
 			}
 		}
 		
-		$form->input(NULL, 'silent');
+		$mvc->invoke('AfterPrepareEmbeddedForm', array($form));
 		
+		$form->input(NULL, 'silent');
 	}
 	
 	
 	/**
 	 * Изпълнява се след въвеждането на данните от заявката във формата
 	 */
-	public static function on_AfterInputEditForm($mvc, $form)
+	public static function on_AfterInputEditForm($mvc, &$form)
 	{
 		if($form->rec->{$mvc->innerClassField}){
 			

@@ -18,19 +18,19 @@ class fileman_webdrv_Generic extends core_Manager
     /**
      * Кой таб да е избран по подразбиране
      */
-    static $defaultTab = 'info';
+    public static $defaultTab = 'info';
     
     
     /**
      * Zip инстанции на отворените архиви
      */
-    static $archiveInst = array();
+    public static $archiveInst = array();
     
     
     /**
      * Брой на документи, които да се показват в мета информацията, за "Съдържа се в:"
      */
-    static $metaInfoDocLimit = 20;
+    public static $metaInfoDocLimit = 20;
     
     
     /**
@@ -114,7 +114,9 @@ class fileman_webdrv_Generic extends core_Manager
             
             // Вземаме записа за съответния файл
             $rec = fileman_Files::fetchByFh($fileHnd);
-        
+            
+            $paramsOcr = array();
+            
             // Параметри за OCR
             $paramsOcr['dataId'] = $rec->dataId;
             $paramsOcr['type'] = 'textOcr';    
@@ -374,7 +376,9 @@ class fileman_webdrv_Generic extends core_Manager
 		    
 		    // Опитваме се да вземем, документите, в които се използва файла
 		    $documentWithFile = fileman_Files::getDocumentsWithFile($fRec, static::$metaInfoDocLimit);    
-		} catch (core_exception_Expect $e) {}
+		} catch (core_exception_Expect $e) {
+	        // Няма да се показват документите
+		}
 		
 		// Ако сме намерили някой файлове, където се използва
         if ($documentWithFile) {
@@ -550,11 +554,15 @@ class fileman_webdrv_Generic extends core_Manager
         // Ако е подаден манипулатор, а не масив
         if (!is_array($fileHnd)) {
             
+            $fileHndArr = array();
+            
             // Създаваме масива
             $fileHndArr[$fileHnd] = $fileHnd;  
         } else {
             $fileHndArr = $fileHnd;
         }
+        
+        $barcodesArr = array();
         
         // Обхождаме масива с манупулаторите
         foreach ($fileHndArr as $fh) {
@@ -772,6 +780,8 @@ class fileman_webdrv_Generic extends core_Manager
         
         // Броя на всички документи в архива
         $numFiles = $zip->numFiles;
+        
+        $zipContentArr = array();
         
         // Обхождаме всички документи в архива
         for ($i=0; $i < $numFiles; $i++) {
@@ -1206,7 +1216,7 @@ class fileman_webdrv_Generic extends core_Manager
      * 
      * @param URL $htmlUrl - Линк към HTML файла
      * 
-     * @return $htmlPart - Текста, за създаване на таб
+     * @return core_ET - Текста, за създаване на таб
      */
     static function getHtmlTabTpl($htmlUrl)
     {
@@ -1247,10 +1257,12 @@ class fileman_webdrv_Generic extends core_Manager
      * 
      * @param string $content - Стринга, който ще обработваме
      * 
-     * @return $newContent
+     * @return string
      */
     static function parseInfo($content)
     {
+        $newContent = '';
+        
         // Опитваме се да оправим енкодинга
         $content = i18n_Charset::convertToUtf8($content);
         
@@ -1341,6 +1353,7 @@ class fileman_webdrv_Generic extends core_Manager
         }
         
         // Добавяме в масива
+        $arr = array();
         $arr['width'] = $thumbWidth;
         $arr['height'] = $thumbHeight;
         

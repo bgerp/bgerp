@@ -37,7 +37,7 @@ class purchase_Services extends deals_ServiceMaster
      */
     public $loadList = 'plg_RowTools, purchase_Wrapper, plg_Sorting, acc_plg_Contable, doc_DocumentPlg, plg_Printing,
                     plg_ExportCsv, acc_plg_DocumentSummary,
-					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_TplManager, doc_plg_HidePrices,
+					doc_EmailCreatePlg, bgerp_plg_Blank, cond_plg_DefaultValues, doc_plg_TplManager, doc_plg_HidePrices,
                     plg_LastUsedKeys, plg_Search';
 
     
@@ -138,6 +138,14 @@ class purchase_Services extends deals_ServiceMaster
     
     
     /**
+     * Стратегии за дефолт стойностти
+     */
+    public static $defaultStrategies = array(
+    	'delivered' => 'lastDocUser|lastDoc',
+    );
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -180,6 +188,15 @@ class purchase_Services extends deals_ServiceMaster
     	$dealInfo = static::getOrigin($data->form->rec)->getAggregateDealInfo();
     	$data->form->dealInfo = $dealInfo;
     	$data->form->setDefault('activityCenterId', $dealInfo->get('activityCenterId'));
+    	
+    	// Ако има само един център на дейност, го задаваме по подразбиране и не показваме полето
+    	$departmentOptions = hr_Departments::makeArray4Select(NULL, NULL);
+    	if(count($departmentOptions) == 1){
+    		$data->form->setDefault('activityCenterId', key($departmentOptions));
+    		$data->form->setField('activityCenterId', 'input=none');
+    	}
+    	
+    	$data->form->setDefault('received', core_Users::getCurrent('names'));
     }
     
     

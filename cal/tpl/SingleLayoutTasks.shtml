@@ -31,7 +31,7 @@
                     </td>
                     <!--ET_BEGIN dependsInfo-->
                     [#dependsInfo#]
-                    <td style='padding-left:30px;width:45%;'>
+                    <td style='padding-left:30px;max-width:45%;'>
                         |Прогрес|*: [#progressBar#] [#progress#] <br>
                         <!--ET_BEGIN workingTime-->
                         |Отработено време|*: [#workingTime#] <br>                   
@@ -42,9 +42,12 @@
                         <!--ET_BEGIN afterTaskProgress-->
                         |Прогрес на задачата|*: [#afterTaskProgress#]<br>
                         <!--ET_END afterTaskProgress-->
-                         <!--ET_BEGIN expectationTimeEnd-->
+                        <!--ET_BEGIN expectationTimeEnd-->
                         |Очакван край|*: [#expectationTimeEnd#] <br>                   
                         <!--ET_END expectationTimeEnd-->
+                        <!--ET_BEGIN timeClosed-->
+                        |Приключено на|*: [#timeClosed#] <br>                   
+                        <!--ET_END timeClosed-->
                         <!--ET_END dependsInfo-->
                     </td>
                 </tr>

@@ -30,7 +30,7 @@ class cond_Payments extends core_Manager {
     /**
      * Заглавие
      */
-    public $title = "Безналични методи за плащане";
+    public $title = "Безналични средства за плащане";
     
     
     /**
@@ -79,6 +79,12 @@ class cond_Payments extends core_Manager {
 	 * Кой може да разглежда сингъла на документите?
 	 */
 	public $canSingle = 'ceo,cond';
+	
+	
+	/**
+	 * В коя номенклатура да се добави при активиране
+	 */
+	public $addToListOnActivation = 'nonCash';
 	
 	
     /**
@@ -161,7 +167,7 @@ class cond_Payments extends core_Manager {
     
     	if ($rec = $self->fetch($objectId)) {
     		$result = (object)array(
-    				'num' => $rec->id,
+    				'num' => $rec->id . " pm",
     				'title' => $rec->title,
     		);
     	}
@@ -177,23 +183,5 @@ class cond_Payments extends core_Manager {
     public static function itemInUse($objectId)
     {
     	// @todo!
-    }
-    
-    
-    /**
-     * След промяна на обект от регистър
-     */
-    protected static function on_AfterSave($mvc, &$id, &$rec, $fieldList = NULL)
-    {
-    	if($rec->state == 'active'){
-    
-    		// Ако валутата е активна, добавя се като перо
-    		$rec->lists = keylist::addKey($rec->lists, acc_Lists::fetchField(array("#systemId = '[#1#]'", 'nonCash'), 'id'));
-    		acc_Lists::updateItem($mvc, $rec->id, $rec->lists);
-    	} else {
-    		// Ако валутата НЕ е активна, перото се изтрива ("изключва" ако вече е използвано)
-    		$rec->lists = keylist::addKey($rec->lists, acc_Lists::fetchField(array("#systemId = '[#1#]'", 'nonCash'), 'id'));
-    		acc_Lists::removeItem($mvc, $rec->id, $rec->lists);
-    	}
     }
 }

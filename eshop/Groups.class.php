@@ -367,7 +367,7 @@ class eshop_Groups extends core_Master
      */
     static function getLayout()
     {
-        Mode::set('wrapper', 'cms_Page');
+        Mode::set('wrapper', 'cms_page_External');
         
         if(Mode::is('screenMode', 'narrow')) {
             $layout = "eshop/tpl/ProductGroupsNarrow.shtml";

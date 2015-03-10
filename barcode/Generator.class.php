@@ -110,7 +110,7 @@ class barcode_Generator extends core_Manager
      *
      * @param array $output - Масив, в който се записват данните след генерирането на баркода
      *
-     * @return gd gdRes
+     * @return resource gdRes
      */
     static function getImg($type, $conten, $size = NULL, $params = array(), &$output = array())
     {

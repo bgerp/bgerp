@@ -54,6 +54,12 @@ abstract class deals_InvoiceMaster extends core_Master
     
     
     /**
+     * На кой ред в тулбара да се показва бутона за принтиране
+     */
+    public $printBtnToolbarRow = 1;
+    
+    
+    /**
      * След описанието на полетата
      */
     protected static function setInvoiceFields(core_Master &$mvc)
@@ -79,9 +85,9 @@ abstract class deals_InvoiceMaster extends core_Master
     	$mvc->FLD('rate', 'double(decimals=2)', 'caption=Валута->Курс,input=hidden');
     	$mvc->FLD('deliveryId', 'key(mvc=cond_DeliveryTerms, select=codeName, allowEmpty)', 'caption=Доставка->Условие,input=hidden');
     	$mvc->FLD('deliveryPlaceId', 'key(mvc=crm_Locations, select=title)', 'caption=Доставка->Място');
-    	$mvc->FLD('vatDate', 'date(format=d.m.Y)', 'caption=Данъци->Дата на ДС');
-    	$mvc->FLD('vatRate', 'enum(yes=Включено, separate=Отделно, exempt=Oсвободено, no=Без начисляване)', 'caption=Данъци->ДДС,input=hidden');
-    	$mvc->FLD('vatReason', 'varchar(255)', 'caption=Данъци->Основание');
+    	$mvc->FLD('vatDate', 'date(format=d.m.Y)', 'caption=Данъчни параметри->Дата на ДС');
+    	$mvc->FLD('vatRate', 'enum(yes=Включено, separate=Отделно, exempt=Oсвободено, no=Без начисляване)', 'caption=Данъчни параметри->ДДС,input=hidden');
+    	$mvc->FLD('vatReason', 'varchar(255)', 'caption=Данъчни параметри->Основание,recently');
     	$mvc->FLD('additionalInfo', 'richtext(bucket=Notes, rows=6)', 'caption=Допълнително->Бележки');
     	$mvc->FLD('dealValue', 'double(decimals=2)', 'caption=Стойност, input=hidden,summary=amount, export=Csv');
     	$mvc->FLD('vatAmount', 'double(decimals=2)', 'caption=ДДС, input=none,summary=amount');
@@ -99,6 +105,9 @@ abstract class deals_InvoiceMaster extends core_Master
     {
     	$fType = $mvc->getFieldType('paymentType');
     	$fType->options = array('' => '') + $fType->options;
+    	if($data->form->rec->vatRate != 'yes' && $data->form->rec->vatRate != 'separate'){
+    		$data->form->setField('vatReason', 'mandatory');
+    	}
     }
     
     
@@ -201,25 +210,6 @@ abstract class deals_InvoiceMaster extends core_Master
     	$mvc->singleTitle = $title;
     }
 
-
-    /**
-     * Валидиране на полето 'date' - дата на фактурата
-     * Предупреждение ако има фактура с по-нова дата (само при update!)
-     */
-    public static function on_ValidateDate(core_Mvc $mvc, $rec, core_Form $form)
-    {
-    	$newDate = $mvc->getNewestInvoiceDate();
-    	if($newDate > $rec->date) {
-    		
-    		// Най-новата валидна ф-ра в БД е по-нова от настоящата.
-    		$form->setError('date',
-    				'Не може да се запише фактура с дата по-малка от последната активна фактура (' .
-    				dt::mysql2verbal($newestInvoiceRec->date, 'd.m.y') .
-    				')'
-    		);
-    	}
-    }
-
 	
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
@@ -310,13 +300,6 @@ abstract class deals_InvoiceMaster extends core_Master
     public static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
     	$rec = &$data->rec;
-    	
-    	// Ако има бутон за принтиране, слагаме го да е първия бутон
-    	if(!empty($data->toolbar->buttons['btnPrint'])){
-    		$printUrl = array($mvc, 'single', $rec->id, 'Printing' => 'yes');
-    		$data->toolbar->removeBtn('btnPrint');
-    		$data->toolbar->addBtn('Печат', $printUrl, 'id=btnPrint,target=_blank,order=1', 'ef_icon = img/16/printer.png,title=Печат на страницата');
-    	}
     	 
     	if($rec->type == 'invoice' && $rec->state == 'active' && $rec->dealValue){
     		if($mvc->haveRightFor('add', (object)array('type' => 'debit_note','threadId' => $rec->threadId)) && $mvc->canAddToThread($rec->threadId)){
@@ -692,18 +675,9 @@ abstract class deals_InvoiceMaster extends core_Master
     			$form->setDefault('deliveryPlaceId', $aggregateInfo->get('deliveryLocation'));
     		}
     		
-    		// Извлича се платежния план
-    		if($form->rec->paymentMethodId){
-    			$plan = cond_PaymentMethods::getPaymentPlan($form->rec->paymentMethodId, $aggregateInfo->get('amount'), $form->rec->date);
-    		}
-    		
-    		if(isset($plan) && isset($plan['deadlineForBalancePayment'])){
-				$form->setReadOnly('dueDate', $plan['deadlineForBalancePayment']);
-    		}	else {
-    			$form->setField('dueDate', 'input=none');
-    		}
-    		
+    		$form->setField('dueDate', 'input=none');
     		$data->aggregateInfo = $aggregateInfo;
+    		$form->aggregateInfo = $aggregateInfo;
     	} 
     	 
     	// Ако ориджина също е фактура
@@ -731,12 +705,26 @@ abstract class deals_InvoiceMaster extends core_Master
     	if ($form->isSubmitted()) {
     		$rec = &$form->rec;
     		 
+    		// Извлича се платежния план
+    		if($form->rec->paymentMethodId){
+    			if(isset($form->aggregateInfo)){
+    				$plan = cond_PaymentMethods::getPaymentPlan($form->rec->paymentMethodId, $form->aggregateInfo->get('amount'), $form->rec->date);
+    				
+    				if(isset($plan['deadlineForBalancePayment'])){
+    					$rec->dueDate = $plan['deadlineForBalancePayment'];
+    				}
+    			}
+    		}
+    		
     		if(!$rec->rate){
     			$rec->rate = round(currency_CurrencyRates::getRate($rec->date, $rec->currencyId, NULL), 4);
-    		}
-    
-    		if($msg = currency_CurrencyRates::hasDeviation($rec->rate, $rec->date, $rec->currencyId, NULL)){
-    			$form->setWarning('rate', $msg);
+    			if(!$rec->rate){
+    				$form->setError('rate', "Не може да се изчисли курс");
+    			}
+    		} else {
+    			if($msg = currency_CurrencyRates::hasDeviation($rec->rate, $rec->date, $rec->currencyId, NULL)){
+    				$form->setWarning('rate', $msg);
+    			}
     		}
     		 
     		$Vats = cls::get('drdata_Vats');
@@ -784,10 +772,6 @@ abstract class deals_InvoiceMaster extends core_Master
      */
     protected static function beforeInvoiceSave($rec)
     {
-    	if (empty($rec->vatDate)) {
-    		$rec->vatDate = $rec->date;
-    	}
-    
     	if (!empty($rec->folderId)) {
     		$rec->contragentClassId = doc_Folders::fetchCoverClassId($rec->folderId);
     		$rec->contragentId = doc_Folders::fetchCoverId($rec->folderId);
@@ -847,7 +831,6 @@ abstract class deals_InvoiceMaster extends core_Master
     			$row->cNum = tr('|ЕИК|* / <i>UIC</i>');
     		}
     	
-    		$row->header = "{$row->type} #<b>{$mvc->getHandle($rec->id)}</b> ({$row->state})" ;
     		$userRec = core_Users::fetch($rec->createdBy);
     		$row->username = core_Users::recToVerbal($userRec, 'names')->names;
     	
@@ -873,6 +856,11 @@ abstract class deals_InvoiceMaster extends core_Master
     			if($gln = crm_Locations::fetchField($rec->deliveryPlaceId, 'gln')){
     				$row->deliveryPlaceId .= ', ' . $gln;
     			}
+    		}
+    		
+    		// Ако не е въведена дата на даначно събитие, приема се че е текущата
+    		if(empty($rec->vatDate)){
+    			$row->vatDate = $mvc->getFieldType('vatDate')->toVerbal($rec->date);
     		}
     		
     		$mvc->prepareMyCompanyInfo($row);

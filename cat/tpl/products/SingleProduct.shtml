@@ -1,26 +1,30 @@
-<div class="singleView">
-    [#SingleToolbar#]
-    <div class='scrolling-holder'>
-        <div class="folder-cover [#STATE_CLASS#]">
-            <div class="inner-folder">
-                <div class="block_title [#STATE_CLASS#] special-title">[#SingleIcon#] |Артикул|* <b style="color:green;">[#name#]</b></div>
-                [#innerState#]
-                <!--ET_BEGIN groups-->
-                <fieldset class="detail-info">
-                    <legend class="groupTitle">|Категории|*</legend>
-                    <div class="groupList">
-                        [#groups#]
-                    </div>
-                </fieldset>
-                <!--ET_END groups-->
-                <!--ET_BEGIN meta-->
-                <fieldset class="detail-info">
-                    <legend class="groupTitle">|Свойства|*</legend>
-                    <div class="groupList">[#meta#]</div>
-                </fieldset>
-                <!--ET_END meta-->
-                [#DETAILS#]
-            </div>
-        </div>
+[#SingleToolbar#]
+<div class='document'>
+    <!--ET_BEGIN header-->
+    <div class='header [#STATE_CLASS#]'>
+        <div class='docBgIcon' style='[#iconStyle#];'>[#singleTitle#] <b>[#ident#]</b> ([#state#])</div>
     </div>
+    <div class = 'top-document-tabs'>
+    </div>
+    <!--ET_END header-->
+    <h2 style='line-height:26px'><b style="color:green;">[#name#]<!--ET_BEGIN code--> ([#code#])<!--ET_END code--></b></h2>
+    [#innerState#]
+    <!--ET_BEGIN groups-->
+    <fieldset class="detail-info">
+         <legend class="groupTitle">|Маркери|*</legend>
+         <div class="groupList">
+              [#groups#]
+         </div>
+    </fieldset>
+    <!--ET_END groups-->
+    <!--ET_BEGIN meta-->
+    <fieldset class="detail-info">
+         <legend class="groupTitle">|Свойства|*</legend>
+         <div class="groupList">[#meta#]</div>
+    </fieldset>
+    <!--ET_END meta-->
+    <div class='scrolling-holder'>
+    [#Packagings#]
+    </div>
+    [#DETAILS#]
 </div>

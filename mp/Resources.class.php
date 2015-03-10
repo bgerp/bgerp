@@ -33,7 +33,7 @@ class mp_Resources extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_Created, plg_Rejected, mp_Wrapper, acc_plg_Registry';
+    public $loadList = 'plg_RowTools, plg_Created, plg_Search, plg_Rejected, mp_Wrapper, acc_plg_Registry, plg_State';
     
     
     /**
@@ -57,7 +57,7 @@ class mp_Resources extends core_Master
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'admin,mp';
+    public $canReject = 'ceo,mp';
     
     
     /**
@@ -69,7 +69,7 @@ class mp_Resources extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт,title,type,createdOn,createdBy,lastUsedOn,state';
+    public $listFields = 'tools=Пулт,title,type,state,lastUsedOn,createdOn,createdBy';
     
     
     /**
@@ -91,11 +91,35 @@ class mp_Resources extends core_Master
     
     
     /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    public $searchFields = 'title, systemId';
+    
+    
+    /**
      * Шаблон за еденичен изглед
      */
     public $singleLayoutFile = 'mp/tpl/SingleLayoutResource.shtml';
-    		
-    		
+    
+    
+    /**
+     * Детайли на документа
+     */
+    public $details = 'AccReports=acc_ReportDetails';
+    
+    
+    /**
+     * По кои сметки ще се правят справки
+     */
+    public $balanceRefAccounts = '611';
+    
+    
+    /**
+     * По кой итнерфейс ще се групират сметките
+     */
+    public $balanceRefGroupBy = 'mp_ResourceAccRegIntf';
+    
+    
     /**
      * Описание на модела (таблицата)
      */
@@ -104,10 +128,10 @@ class mp_Resources extends core_Master
     	$this->FLD('title', 'varchar', 'caption=Наименование,mandatory');
     	$this->FLD('type', 'enum(equipment=Оборудване,labor=Труд,material=Материал)', 'caption=Вид,mandatory,silent');
     	$this->FLD('measureId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Мярка,mandatory');
-    	$this->FLD('selfValue', 'double', 'caption=Себестойност');
+    	$this->FLD('selfValue', 'double(decimals=2)', 'caption=Себестойност');
     	$this->FLD('systemId', 'varchar', 'caption=Системен №,input=none');
     	$this->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none');
-    	$this->FLD('bomId', 'key(mvc=techno2_Boms)', 'input=none');
+    	$this->FLD('bomId', 'key(mvc=cat_Boms)', 'input=none');
     	$this->FLD('state', 'enum(active=Активиран,rejected=Оттеглен)', 'caption=Състояние,input=none,notNull,default=active');
     	
     	// Поставяме уникален индекс
@@ -117,25 +141,23 @@ class mp_Resources extends core_Master
     
     
     /**
+     * Можели записа да се добави в номенклатура при активиране
+     */
+    public function canAddToListOnActivation($rec)
+    {
+    	return TRUE;
+    }
+    
+    
+    /**
      * Извиква се след SetUp-а на таблицата за модела
      */
     function loadSetupData()
     {
     	$file = "mp/csv/Resources.csv";
-    	$fields = array(0 => "title", 1 => 'type', '2' => 'systemId', '3' => 'measureId');
+    	$fields = array(0 => "title", 1 => 'type', '2' => 'systemId', '3' => 'measureId', '4' => 'state');
     	
     	$cntObj = csv_Lib::importOnce($this, $file, $fields);
-    	
-    	$query = $this->getQuery();
-    	$query->where("#systemId IS NOT NULL");
-    	
-    	// Добавяме автоматично дефолтните ресурси като пера от номенклатура 'ресурси'
-    	while($rec = $query->fetch()){
-    		if(!acc_Items::fetchItem($this, $rec->id)){
-    			$rec->lists = keylist::addKey($rec->lists, acc_Lists::fetchField(array("#systemId = '[#1#]'", 'resources'), 'id'));
-    			acc_Lists::updateItem($this, $rec->id, $rec->lists);
-    		}
-    	}
     	
     	return $cntObj->html;
     }
@@ -159,7 +181,7 @@ class mp_Resources extends core_Master
     	$data->listFilter->FNC('rType', 'enum(all=Всички,equipment=Оборудване,labor=Труд,material=Материал)', 'caption=Тип,placeholder=aa');
     	$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
     	$data->listFilter->setDefault('rType', 'all');
-    	$data->listFilter->showFields = 'rType';
+    	$data->listFilter->showFields = 'search,rType';
     	$data->listFilter->view = 'horizontal';
     	
     	$data->listFilter->input();
@@ -169,8 +191,6 @@ class mp_Resources extends core_Master
     			$data->query->where("#type = '{$type}'");
     		}
     	}
-    	
-    	//$data->query->where("#bomId IS NULL");
     }
     
     
@@ -185,7 +205,7 @@ class mp_Resources extends core_Master
     
     	if ($rec = $self->fetch($objectId)) {
     		$result = (object)array(
-    				'num' => $rec->id,
+    				'num' => $rec->id . " r",
     				'title' => $rec->title,
     		);
     	}
@@ -211,6 +231,9 @@ class mp_Resources extends core_Master
     {
     	$dQuery = mp_ObjectResources::getQuery();
     	$dQuery->where("#resourceId = {$data->rec->id}");
+    	if(isset($data->rec->selfValue)){
+    		$data->row->currencyId = acc_Periods::getBaseCurrencyCode();
+    	}
     	
     	$data->detailRows = $data->detailRecs = array();
     	while($dRec = $dQuery->fetch()){
@@ -227,7 +250,7 @@ class mp_Resources extends core_Master
     {
     	$table = cls::get('core_TableView');
     	$detailTpl = $table->get($data->detailRows, 'tools=Пулт,objectId=Обект');
-    	$tpl->append($detailTpl, 'DETAILS');
+    	$tpl->append($detailTpl, 'OBJECT_RESOURCES');
     }
     
     
@@ -248,6 +271,7 @@ class mp_Resources extends core_Master
     	
     	$cCode = acc_Periods::getBaseCurrencyCode();
     	$form->setField('selfValue', "unit={$cCode}");
+    	$form->setDefault('state', 'active');
     }
     
     
@@ -325,5 +349,14 @@ class mp_Resources extends core_Master
     			$rec->measureId = cat_UoM::fetchBySinonim('h')->id;
     		}
     	}
+    }
+    
+    
+    /**
+     * Поставя изискване да се селектират само активните записи
+     */
+    public static function on_BeforeMakeArray4Select($mvc, &$optArr, $fields = NULL, &$where = NULL)
+    {
+    	$where .= ($where ? " AND " : "") . " #state != 'rejected'";
     }
 }

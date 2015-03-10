@@ -212,11 +212,6 @@ abstract class deals_Document extends core_Master
 				$row->dealId = ht::createLink($row->dealId, array('findeals_Deals', 'single', $rec->dealId));
 			}
 	
-			// Показваме заглавието само ако не сме в режим принтиране
-			if(!Mode::is('printing')){
-				$row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>#{$mvc->abbr}{$row->id}</b>" . " ({$row->state})" ;
-			}
-	
 			$baseCurrencyId = acc_Periods::getBaseCurrencyId($rec->valior);
 	
 			if($baseCurrencyId != $rec->currencyId) {

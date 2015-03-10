@@ -1,18 +1,17 @@
 <div class="clearfix21"></div><div style="width:100%">
 <!--ET_BEGIN ROW-->	
-	<div class="elem-holder">
-		<div class="">
+	<div class="elem-holder core-pack-[#STATE_CLASS#]">
+		<div>
 			<div class="elem-img">
 				[#img#]
 			</div>
 				[#name#]
-				[#open#] 
 			<div class="btns">
 				
 				[#install#]
 			
 				<!--ET_BEGIN config-->						
-			  	| [#config#] 
+			  	<!--ET_BEGIN configInstall-->&#124;[#configInstall#]<!--ET_END configInstall-->[#config#] 
 				<!--ET_END config-->
 			</div>
 		</div>

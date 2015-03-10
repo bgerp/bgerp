@@ -390,7 +390,7 @@ class lab_Tests extends core_Master
             $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
             $data->listFilter->FNC('dateStartFilter', 'date', 'caption=От,placeholder=От');
             $data->listFilter->FNC('dateEndFilter', 'date', 'caption=До,placeholder=До');
-            $data->listFilter->FNC('paramIdFilter', 'key(mvc=lab_Parameters,select=name, allowEmpty)', 'caption=Параметри', array('attr' => array('onchange' => 'this.form.submit();')));
+            $data->listFilter->FNC('paramIdFilter', 'key(mvc=lab_Parameters,select=name, allowEmpty)', 'caption=Параметри,refreshForm');
             $data->listFilter->FNC('searchString', 'varchar(255)', 'caption=Търсене,placeholder=Търсене');
             $data->listFilter->showFields = 'dateStartFilter, dateEndFilter, paramIdFilter, searchString';
             

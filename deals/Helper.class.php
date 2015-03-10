@@ -310,4 +310,30 @@ abstract class deals_Helper
 	    // Връщаме обработената цена
 	    return $price;
 	}
+	
+	
+	/**
+	 * Връща обект с информацията за наличното в склада к-во
+	 * 
+	 * @return stdClass $obj 
+	 * 				->formInfo - информация за формата
+	 * 				->quantity - к-во
+	 */
+	public static function getProductQuantityInStoreInfo($productId, $productsClassId, $storeId)
+	{
+		$quantity = store_Products::fetchField("#productId = {$productId} AND #classId = {$productsClassId} AND #storeId = {$storeId}", 'quantity');
+		$quantity = ($quantity) ? $quantity : 0;
+			
+		$Double = cls::get('type_Double');
+		$Double->params['smartRound'] = 'smartRound';
+			
+		$pInfo = cls::get($productsClassId)->getProductInfo($productId);
+		$shortUom = cat_UoM::getShortName($pInfo->productRec->measureId);
+		$storeName = store_Stores::getTitleById($storeId);
+		
+		$info = tr("|Количество в|* <b>{$storeName}</b> : {$Double->toVerbal($quantity)} {$shortUom}");
+		$obj = (object)array('formInfo' => $info, 'quantity' => $quantity);
+		
+		return $obj;
+	}
 }

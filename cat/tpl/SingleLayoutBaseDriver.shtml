@@ -1,40 +1,34 @@
 [#TITLE#]
  <!--ET_BEGIN image-->
-                <div class="productImage">
-                    <div>  
-                        [#image#]
-                    </div>
-                </div>
-                <!--ET_END image-->
-                
-                <!--ET_BEGIN INFORMATION-->
-                [#INFORMATION#]
-                <fieldset class="detail-info">
-                    <legend class="groupTitle">|Информация|*</legend>
-                    <div class="groupList">
-                        <table class='no-border'>
-                        	<!--ET_BEGIN code-->
-                            <tr>
-                                <td class='dt'>|Код|*:</td>
-                                <td> [#code#]</td>
-                            </tr>
-                            <!--ET_END code-->
-                            <tr>
-                                <td class='dt'>|Мярка|*:</td>
-                                <td> [#measureId#]</td>
-                            </tr>
-                        </table>
-                    </div>
-                </fieldset>
-                <!--ET_END INFORMATION-->
-                
-                <!--ET_BEGIN info-->
-                <fieldset class="detail-info">
-                    <legend class="groupTitle">|Описание|*</legend>
-                    <div class="groupList">[#info#]</div>
-                </fieldset>
-                <!--ET_END info-->
-                
-                <!--ET_BEGIN PARAMS-->
-                [#PARAMS#]
-                <!--ET_END PARAMS-->
+<div class="productImage">
+    <div>  
+        [#image#]
+    </div>
+</div>
+<!--ET_END image-->
+
+<!--ET_BEGIN INFORMATION-->
+[#INFORMATION#]
+<fieldset class="detail-info">
+    <legend class="groupTitle">|Информация|*</legend>
+    <div class="groupList">
+        <table class='no-border'>
+            <tr>
+                <td class='dt'>|Мярка|*:</td>
+                <td> [#measureId#]</td>
+            </tr>
+        </table>
+    </div>
+</fieldset>
+<!--ET_END INFORMATION-->
+
+<!--ET_BEGIN info-->
+<fieldset class="detail-info">
+    <legend class="groupTitle">|Описание|*</legend>
+    <div class="groupList">[#info#]</div>
+</fieldset>
+<!--ET_END info-->
+
+<!--ET_BEGIN PARAMS-->
+[#PARAMS#]
+<!--ET_END PARAMS-->

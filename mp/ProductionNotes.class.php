@@ -21,7 +21,7 @@ class mp_ProductionNotes extends deals_ManifactureMaster
 	/**
 	 * Заглавие
 	 */
-	public $title = 'Протоколи от производство';
+	public $title = 'Протоколи за производство';
 	
 	
 	/**
@@ -41,6 +41,12 @@ class mp_ProductionNotes extends deals_ManifactureMaster
 	 */
 	public $loadList = 'plg_RowTools, mp_Wrapper, acc_plg_Contable, acc_plg_DocumentSummary,
                     doc_DocumentPlg, plg_Printing, doc_plg_BusinessDoc, plg_Search';
+	
+	
+	/**
+	 * Кой има право да чете?
+	 */
+	public $canConto = 'ceo,mp';
 	
 	
 	/**
@@ -70,13 +76,13 @@ class mp_ProductionNotes extends deals_ManifactureMaster
 	/**
 	 * Кой има право да добавя?
 	 */
-	public $canAdd = 'debug';//@TODO временно ceo,mo
+	public $canAdd = 'ceo,mp';
 	
 	
 	/**
 	 * Заглавие в единствено число
 	 */
-	public $singleTitle = 'Протокол от производство';
+	public $singleTitle = 'Протокол за производство';
 	
 	
 	/**

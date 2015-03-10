@@ -116,7 +116,7 @@ class tremol_FiscPrinterDriver extends core_Manager {
         		$p->price = $p->price * (1 + $p->vat);
         		
         		$p->vatGroupId = $vatGroups[$p->vatGroup];
-        		$p->price = round($p->price, 4);
+        		$p->price = round($p->price, 2);
         		if($p->discount){
         			$p->discountPercent = (round($p->discount, 2) * 100) . "%";
         		}

@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   acc
  * @author    Stefan Stefanov <stefan.bg@gmail.com> и Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -22,7 +22,7 @@ class acc_plg_Contable extends core_Plugin
      *
      * @param core_Mvc $mvc
      */
-    function on_AfterDescription(core_Mvc $mvc)
+    public static function on_AfterDescription(core_Mvc $mvc)
     {
         $mvc->declareInterface('acc_TransactionSourceIntf');
         
@@ -120,12 +120,12 @@ class acc_plg_Contable extends core_Plugin
     /**
      * Добавя бутони за контиране или сторниране към единичния изглед на документа
      */
-    function on_AfterPrepareSingleToolbar($mvc, $data)
+    public static function on_AfterPrepareSingleToolbar($mvc, $data)
     {
         $rec = &$data->rec;
         
         if(haveRole('debug')) {
-            $data->toolbar->addBtn('Транзакция', array($mvc, 'getTransaction', $rec->id), 'ef_icon=img/16/bug.png,title=Дебъг,row=2');
+            $data->toolbar->addBtn('Транзакция', array($mvc, 'getTransaction', $rec->id), 'ef_icon=img/16/bug.png,title=Дебъг информация,row=2');
         }
         
         if ($mvc->haveRightFor('conto', $rec)) {
@@ -148,7 +148,7 @@ class acc_plg_Contable extends core_Plugin
                 'acc_Journal',
                 'revert',
                 'docId' => $rec->id,
-                'docType' => $mvc->className,
+                'docType' => $mvc->getClassId(),
                 'ret_url' => TRUE
             );
             $data->toolbar->addBtn('Сторно', $rejectUrl, 'id=revert,warning=Наистина ли желаете документа да бъде сторниран?', 'ef_icon = img/16/red-back.png,title=Сторниране на документа, row=2');
@@ -172,7 +172,7 @@ class acc_plg_Contable extends core_Plugin
         
         if(($rec->state == 'active' || $rec->state == 'closed') && acc_Journal::haveRightFor('read') && $journalRec) {
             $journalUrl = array('acc_Journal', 'single', $journalRec->id);
-            $data->toolbar->addBtn('Журнал', $journalUrl, 'row=2,ef_icon=img/16/book.png,title=Преглед на транзакцията в журнала');
+            $data->toolbar->addBtn('Журнал', $journalUrl, 'row=2,ef_icon=img/16/book.png,title=Преглед на записа в журнала');
         }
     }
     
@@ -219,7 +219,7 @@ class acc_plg_Contable extends core_Plugin
      * @param mixed $res
      * @param mixed $id
      */
-    static function on_AfterGetLink($mvc, &$res, $id)
+    public static function on_AfterGetLink($mvc, &$res, $id)
     {
         if(!$res) {
             $title = sprintf('%s&nbsp;№%d',
@@ -235,7 +235,7 @@ class acc_plg_Contable extends core_Plugin
     /**
      * Извиква се след изчисляването на необходимите роли за това действие
      */
-    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         if ($action == 'conto') {
             
@@ -286,7 +286,8 @@ class acc_plg_Contable extends core_Plugin
                 
             	// Ако има запис в журнала, вальора е този от него, иначе е полето за вальор от документа
             	$jRec = acc_Journal::fetchByDoc($mvc->getClassId(), $rec->id);
-            	$valior = isset($jRec) ? $jRec->valior : $rec->{$mvc->valiorFld};
+            	$valior = !empty($jRec) ? $jRec->valior : $rec->{$mvc->valiorFld};
+            	
             	$periodRec = acc_Periods::fetchByDate($valior);
                 
             	// Ако периода на вальора е затворен, забраняваме
@@ -373,7 +374,14 @@ class acc_plg_Contable extends core_Plugin
         // Контирането е позволено само в съществуващ активен/чакащ/текущ период;
         $period = acc_Periods::fetchByDate($rec->valior);
         expect($period && ($period->state != 'closed' && $period->state != 'draft'), 'Не може да се контира в несъществуващ, бъдещ или затворен период');
-        $cRes = acc_Journal::saveTransaction($mvc->getClassId(), $rec);
+        
+        try{
+       		$cRes = acc_Journal::saveTransaction($mvc->getClassId(), $rec);
+        } catch (acc_journal_RejectRedirect $e){
+        	
+        	return Redirect(array($mvc, 'single', $rec->id), FALSE, $e->getMessage(), 'warning');
+        }
+        
         $handle = $mvc->getHandle($rec->id);
         
         if(!empty($cRes)){
@@ -541,5 +549,16 @@ class acc_plg_Contable extends core_Plugin
         		}
         	}
         }
+    }
+    
+    
+    /**
+     * Дали могат да се използват затворени пера в контировката на документа
+     */
+    public static function on_AfterCanUseClosedItems($mvc, &$res, $id)
+    {
+    	if(!$res){
+    		$res = ($mvc->canUseClosedItems === TRUE) ? TRUE : FALSE;
+    	}
     }
 }

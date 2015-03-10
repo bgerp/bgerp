@@ -56,6 +56,7 @@ function showTooltip(){
 };
 
 
+
 // Функция за лесно селектиране на елементи
 function get$() {
     var elements = new Array();
@@ -884,7 +885,7 @@ function toggleDisplay(id) {
 
 // Скрива групите бутони от ричедита при клик някъде
 function hideRichtextEditGroups() {
-    $('body').live('click', function(e) {
+	$(document.body).on("click", this, function(e){
         if (!($(e.target).is('input[type=text]'))) {
         	$('.richtext-holder-group-after').css("display", "none");
         }
@@ -916,6 +917,57 @@ function toggleRichtextGroups(id, event) {
     }
 
     return false;
+}
+
+// id на текущия език
+var currentLangId = 0;
+function prepareLangBtn(obj) {
+	
+	var arrayLang= obj.data;
+	var hint = obj.hint;
+	var initialLang = obj.lg;
+	
+	// добавяме бутона за смяна на език
+	var elem = "<a class='rtbutton lang " + initialLang + "' title='" + hint +"'>" + initialLang + "</a>" ;
+	$('.richEdit').append(elem);
+
+	// на всеки клик подготряме данните за смяна на езика
+	$(document.body).on('click', ".rtbutton.lang", function(e){
+		nextLangId = (currentLangId + 1) % arrayLang.length;
+		var langObj = arrayLang[currentLangId];
+		var lang = langObj.lg;
+		var nextLang = arrayLang[nextLangId]['lg'];
+		// смяна на класа, за да се смени цвета на бутона
+		$('.rtbutton.lang').removeClass(lang).addClass(nextLang);
+		currentLangId = nextLangId;
+		// подаваме необходите данни за нов3ия език
+		changeLang(arrayLang[nextLangId]);
+	});
+	
+	// при промяна на текста да скрием бутона
+	$('textarea').bind('input propertychange', function() {
+		 $('.rtbutton.lang').fadeOut(600);
+		 setTimeout(function() {
+			 $('.rtbutton.lang').remove();
+		 }, 1000);
+		
+	});
+}
+
+/**
+ * Действия при смяна на езика
+ */
+function changeLang(data){
+	
+	var lang = data.lg;
+	$('.richEdit textarea').val(data.data);
+	$('.rtbutton.lang').text(lang);
+	
+	// spellcheck
+	$('input[name=subject]').attr('spellcheck','true');
+	$('.richEdit textarea').attr('spellcheck','true');
+	$('input[name=subject]').attr('lang',lang);
+	$('.richEdit textarea').attr('lang',lang);
 }
 
 
@@ -987,9 +1039,9 @@ function toggleAllCheckboxes() {
     $('[id^=cb_]').each(function() {
         var id = $(this).attr('id').replace(/^\D+/g, '');
         if ($(this).is(":checked") == true) {
-            $(this).removeAttr("checked");
+            $(this).prop('checked',false);
         } else {
-            $(this).attr("checked", "checked");
+            $(this).prop('checked',true); 
         }
         chRwCl(id);
     });
@@ -1295,9 +1347,9 @@ function setFormElementsWidth() {
         $('.formTable select').css('maxWidth', formElWidth);
     } else {
     	 $('.formTable label').each(function() {
-             $(this).parent().css('white-space', "nowrap");
-             $(this).parent().css('width', "1%");
-             
+    		 if($(this).parent().is('td')){
+             	$(this).parent().css('white-space', "nowrap");
+             }
              // ако етикета е много широк, режем го и слагаме хинт
              if ($(this).width() > 450){
             	 $(this).css('max-width', "450px");
@@ -1482,23 +1534,30 @@ function appendQuote(id) {
  * @param form
  */
 function addCmdRefresh(form) {
-    var input = document.createElement("input");
-
-    input.setAttribute("type", "hidden");
-
-    input.setAttribute("name", "Cmd[refresh]");
-
-    input.setAttribute("value", "1");
-
-    form.appendChild(input);
+	
+	if(typeof form.elements["Cmd[refresh]"] != 'undefined') {
+		form.elements["Cmd[refresh]"].value = 1;
+	} else {
+		var input = document.createElement("input");
+		input.setAttribute("type", "hidden");
+		input.setAttribute("name", "Cmd[refresh]");
+		input.setAttribute("value", "1");
+		form.appendChild(input);
+	}
 }
 
 
 /**
- * Рефрешва посочената форма
+ * Рефрешва посочената форма. добавя команда за refresh и маха посочените полета
  */
-function refreshForm(form) {
+function refreshForm(form, removeFields) {
     addCmdRefresh(form);
+	if(typeof removeFields != 'undefined') {
+		var fieldsCnt = removeFields.length;
+		for (var i = 0; i < fieldsCnt; i++) {
+			$("[name='" + removeFields[i] + "']").prop('disabled', true);;
+		}
+	}
     form.submit();
 }
 
@@ -1720,23 +1779,27 @@ function preventDoubleClick() {
 	return false;
 }
 
-
-/*
- * Функция за подравняване на числа по десетичния знак
+/**
+ * Подравняване на числата в средата
  */
-function tableElemsFractionsWidth() {
-    $('.alignDecimals > table').each(function() {
+function centerNumericElements() {	
+	$('.document .listTable').each(function() {
         var table = $(this);
-        var fracPartWidth = [];
-        $(this).find('.fracPart').each(function() {
-            var elem = $(this);
-            var parent = $(this).parent();
-            if (!fracPartWidth[parent.attr('data-col')] || fracPartWidth[parent.attr('data-col')] < $(elem).width()) {
-                fracPartWidth[parent.attr('data-col')] = $(elem).width();
-            }
+        var numericWidth = [];
+        $(this).find(' > tbody > tr').each(function() {
+        	var i = 1;
+	        $(this).find('td').each(function() {	        	
+	        	if($(this).find('.numericElement') && (!numericWidth[i] || numericWidth[i] < $(this).find('.numericElement').width())){
+	            	numericWidth[i] = $(this).find('.numericElement').width();
+	            }
+	            i++;
+	        });
         });
-        for (key in fracPartWidth) {
-            $(table).find("span[data-col='" + key + "'] .fracPart").css('width', fracPartWidth[key]);
+        
+        for (key in numericWidth) {
+        	if(numericWidth[key]){
+        		$(table).find("td:nth-child(" + key + ") .numericElement").css('width', numericWidth[key]);
+        	}	
         }
     });
 }
@@ -1767,8 +1830,7 @@ function checkForHiddenGroups() {
 
             //за всеки инпут проверяваме дали е чекнат
             currentInput.each(function() {
-                var checkInput = $(this);
-                if (checkInput.attr('checked') == 'checked') {
+                if (this.checked) {
                     checked = 1;
                 }
             });
@@ -1853,10 +1915,10 @@ function inverseCheckBox(el){
 	
 	//инвертираме
 	$(trItems).find('.checkbox').each(function() {
-		if( $(this).attr('checked') == 'checked') {
-			$(this).removeAttr('checked');
+		if(this.checked) {
+			$(this).prop('checked',false);
 		} else {
-			$(this).attr('checked', 'checked');
+			$(this).prop('checked',true);
 		}
 	});
 }
@@ -2248,12 +2310,22 @@ efae.prototype.process = function(subscribedObj, otherData, async) {
             	getEfae().AJAXErrorRepaired = true;
             }
         }).fail(function(res) {
-        	
+    		
         	// Ако се обновява страницата без AJAX и възникне грешка
         	if (getEO().isReloading) return ;
         	
         	if((res.readyState == 0 || res.status == 0) && res.getAllResponseHeaders()) return;
             
+        	var text = 'Connection error';
+        	
+        	if (res.status == 404) {
+        		text = 'Липсващ ресурс';
+        	} else if (res.status == 500) {
+        		text = 'Грешка в сървъра';
+        	}
+        	
+        	getEO().log('Грешка при извличане на данни по AJAX');
+        	
         	setTimeout(function(){
         		
         		getEfae().AJAXHaveError = true;
@@ -2263,7 +2335,7 @@ efae.prototype.process = function(subscribedObj, otherData, async) {
 	        		if (!$(".toast-type-error").length) {
 	        			showToast({
 		                    timeOut: 1,
-		                    text: 'Connection error',
+		                    text: text,
 		                    isSticky: true,
 		                    stayTime: 4000,
 		                    type: 'error'
@@ -2273,8 +2345,7 @@ efae.prototype.process = function(subscribedObj, otherData, async) {
 	            	// Ако не е добавено съобщение за грешка
 	            	if (!$(".connection-error-status").length) {
 	            		// Ако възникне грешка
-	                    getEO().log('Грешка при извличане на данни по AJAX');
-	                    var errorData = {id: "statuses", html: "<div class='statuses-message statuses-error connection-error-status'>Connection error</div>", replace: false};
+	                    var errorData = {id: "statuses", html: "<div class='statuses-message statuses-error connection-error-status'>" + text +"</div>", replace: false};
 	                    render_html(errorData);
 	            	}
 	            }
@@ -2623,7 +2694,7 @@ var blinkerWorking = false;
 function render_Notify(data) {
 	if(blinkerWorking) return;
 	
-	playSound(data.soundMp3, data.soundOgg);
+	render_Sound(data);
 	blinkerWorking = true;
 	var counter = 1;
 	
@@ -2714,7 +2785,9 @@ function restoreFavIcon(oldIcon) {
  * @param soundMp3 - път до mp3 файла
  * @param soundOgg - път до ogg файла
  */
-function playSound(soundMp3, soundOgg){
+function render_Sound(data){
+	var soundMp3 = data.soundMp3;
+	var soundOgg = data.soundOgg;
 	if(soundMp3 != undefined || soundOgg  != undefined){
 		// добавяме аудио таг и пускаме звука
 		setTimeout(function(){
@@ -2873,6 +2946,9 @@ function Experta() {
 
     // Времето на бездействие в таба
     Experta.prototype.idleTime;
+    
+    // id на атрибута в който ще се добавя локацията
+    Experta.prototype.geolocationId;
 }
 
 
@@ -3157,6 +3233,63 @@ Experta.prototype.scrollTo = function(id) {
 
 
 /**
+ * Закръгля дробни числа до подадения брой символи след десетичната запетая
+ * 
+ * @param double id
+ * @param integer id
+ * 
+ * @return integer|double|NULL
+ */
+Experta.prototype.round = function(val, decimals) {
+	
+	if (typeof Math == "undefined") return ;
+	
+	var pow = Math.pow(10, parseInt(decimals));
+	
+	val = Math.round(parseFloat(val) * pow) / pow;
+	
+	return val;
+}
+
+
+/**
+ * Задава позицията от geolocation в полето
+ * 
+ * @param string attrId
+ */
+Experta.prototype.setPosition = function(attrId) {
+	this.setGeolocation(attrId);
+}
+
+
+/**
+ * Задава геолокациите
+ * 
+ * @param string attrId
+ */
+Experta.prototype.setGeolocation = function(attrId) {
+	if (navigator.geolocation) {
+		this.geolocationId = attrId;
+        navigator.geolocation.getCurrentPosition(this.setCoords);
+    }
+}
+
+
+/**
+ * Задава координатите
+ * 
+ * @param object
+ */
+Experta.prototype.setCoords = function(position) {
+	
+	var lat = getEO().round(position.coords.latitude, 6);
+	var long = getEO().round(position.coords.longitude, 6);
+	
+	$('#' + getEO().geolocationId).val(lat + ',' + long);
+}
+
+
+/**
  * Показва съобщението в лога
  * 
  * @param string txt - Съобщението, което да се покаже
@@ -3169,6 +3302,7 @@ Experta.prototype.log = function(txt) {
         console.log(txt);
     }
 };
+
 
 /**
  * Намаляващ брояч на време
@@ -3221,6 +3355,7 @@ Experta.prototype.doCountdown = function(l1, l2, l3) {
 	});
 };
 
+
 /**
  * Извиква функцията doCountdown през 1 сек
  */
@@ -3263,14 +3398,16 @@ function getEfae() {
 }
 
 
-function prepareBugReport(form, user, domain, name)
+function prepareBugReport(form, user, domain, name, ctr, act, sysDomain)
 {
-	var title = window.location.host + window.location.pathname;
+	var url = document.URL;
 	var width = $(window).width();
 	var height = $(window).height();
 	var browser = getUserAgent();
-
+	var title = sysDomain + '/' + ctr + '/' + act;
+	
 	addBugReportInput(form, 'title', title);
+	addBugReportInput(form, 'url', url);
 	addBugReportInput(form, 'email', user + '@' + domain);
 	addBugReportInput(form, 'name', name);
 	addBugReportInput(form, 'width', width);
@@ -3405,6 +3542,91 @@ function onBeforeUnload()
 		getEO().isReloading = true;
 	}
 }
+
+
+/**
+ * Fix за IE8
+ * @see http://stackoverflow.com/questions/3629183/why-doesnt-indexof-work-on-an-array-ie8
+ */
+if (!Array.prototype.indexOf)
+{
+  Array.prototype.indexOf = function(elt /*, from*/)
+  {
+    var len = this.length >>> 0;
+
+    var from = Number(arguments[1]) || 0;
+    from = (from < 0)
+         ? Math.ceil(from)
+         : Math.floor(from);
+    if (from < 0)
+      from += len;
+
+    for (; from < len; from++)
+    {
+      if (from in this &&
+          this[from] === elt)
+        return from;
+    }
+    return -1;
+  };
+}
+
+
+/**
+ * Fix за IE7
+ * 
+ * @see http://www.sitepoint.com/javascript-json-serialization/
+ */
+var JSON = JSON || {};
+
+
+/**
+ * Fix за IE7
+ * implement JSON.stringify serialization
+ * 
+ * @see http://www.sitepoint.com/javascript-json-serialization/
+ */
+JSON.stringify = JSON.stringify || function (obj) {
+
+	var t = typeof (obj);
+	if (t != "object" || obj === null) {
+
+		// simple data type
+		if (t == "string") obj = '"'+obj+'"';
+		return String(obj);
+
+	}
+	else {
+
+		// recurse array or object
+		var n, v, json = [], arr = (obj && obj.constructor == Array);
+
+		for (n in obj) {
+			v = obj[n]; t = typeof(v);
+
+			if (t == "string") v = '"'+v+'"';
+			else if (t == "object" && v !== null) v = JSON.stringify(v);
+
+			json.push((arr ? "" : '"' + n + '":') + String(v));
+		}
+
+		return (arr ? "[" : "{") + String(json) + (arr ? "]" : "}");
+	}
+};
+
+
+/**
+ * Fix за IE7
+ * implement JSON.parse de-serialization
+ * 
+ * @see http://www.sitepoint.com/javascript-json-serialization/
+ */
+JSON.parse = JSON.parse || function (str) {
+	if (str === "") str = '""';
+	eval("var p=" + str + ";");
+	return p;
+};
+
 
 runOnLoad(showTooltip);
 runOnLoad(removeNarrowScroll);

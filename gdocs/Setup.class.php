@@ -2,6 +2,21 @@
 
 
 /**
+ * Широчина по подразбиране
+ * 480 - старата стойност
+ */
+defIfNot('GDOCS_DEFAULT_WIDTH', 640);
+
+
+/**
+ * Височина по подразбиране
+ * 389 - старата стойност
+ */
+defIfNot('GDOCS_DEFAULT_HEIGHT', 480);
+
+
+
+/**
  * Инсталатор на плъгин за добавяне на бутона за преглед на документи в gdocs.com
  * Разширения: doc,docx,xls,xlsx,ppt,pptx,pdf,pages,ai,tiff,dxf,svg,eps,ps,ttf,xps,zip,rar
  *
@@ -40,6 +55,16 @@ class gdocs_Setup  extends core_ProtoSetup
     var $info = "Преглед на документи с docs.google.com";
     
     
+    
+    /**
+     * Описание на конфигурационните константи
+     */
+    var $configDescription = array(
+		'GDOCS_DEFAULT_WIDTH' => array ('int', 'caption=Широчина по подразбиране->Размер в пиксели'),
+		'GDOCS_DEFAULT_HEIGHT' => array ('int', 'caption=Височина по подразбиране->Размер в пиксели'),
+     );
+             
+             
     /**
      * Инсталиране на пакета
      */

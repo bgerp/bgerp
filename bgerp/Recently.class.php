@@ -156,15 +156,18 @@ class bgerp_Recently extends core_Manager
                 $row->title = tr("Проблемна папка|* № {$rec->objectId}");
             }
         } elseif ($rec->type == 'document') {
-            
             try {
+                
                 $docProxy = doc_Containers::getDocument($rec->objectId);
                 $docRow = $docProxy->getDocumentRow();
                 $docRec = $docProxy->fetch();
                 
                 $attr = array();
-                $attr['class'] .= 'linkWithIcon';
+                $attr['class'] .= "linkWithIcon state-{$state}";
                 $attr['style'] = 'background-image:url(' . sbf($docProxy->getIcon($docRec->id)) . ');';
+                
+                $threadRec = doc_Threads::fetch($docRec->threadId);
+                $state     = $threadRec->state;
                 
                 if(mb_strlen($docRow->title) > self::maxLenTitle) {
                     $attr['title'] = $docRow->title;
@@ -180,16 +183,15 @@ class bgerp_Recently extends core_Manager
                     $linkUrl,
                     NULL, $attr);
                 
-                $threadRec = doc_Threads::fetch($docRec->threadId);
-                $state     = $threadRec->state;
+                
             } catch (core_exception_Expect $ex) {
                 $row->title = tr("Проблемен контейнер|* № {$rec->objectId}");
             }
         }
         
         if($state == 'opened') {
-            $row->title = new ET("<div class='state-{$state}'>[#1#]</div>", $row->title);
-        }
+            $row->title = new ET("<span class='state-opened-link'>[#1#]</div>", $row->title);
+        } 
     }
     
     
@@ -359,7 +361,7 @@ class bgerp_Recently extends core_Manager
         } else {
             
             // Добавяме поле във формата за търсене
-            $data->listFilter->FNC('usersSearch', 'users(rolesForAll=ceo, rolesForTeams=ceo|manager|admin)', 'caption=Потребител,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
+            $data->listFilter->FNC('usersSearch', 'users(rolesForAll=ceo, rolesForTeams=ceo|manager|admin)', 'caption=Потребител,input,silent,refreshForm');
             
             // Кои полета да се показват
             $data->listFilter->showFields = "{$mvc->searchInputField}, usersSearch";
@@ -479,6 +481,59 @@ class bgerp_Recently extends core_Manager
         }
         
         return $threadsArr;
+    }
+    
+    
+    /**
+     * Връща id-тата на последно използваните папки
+     *
+     * @param integer $count - Броя папки
+     * @param integer $userId - За потребителя
+     *
+     * @return array
+     */
+    public static function getLastFolderIds($count = 5, $userId = NULL)
+    {
+        // Броя трябва да е положителен
+        expect($count > 0);
+        
+        // Масив с нишките
+        $foldersArr = array();
+        
+        // Ако не е подадено id на потребителя
+        if (!$userId) {
+            
+            // id на текищия потребител
+            $userId = core_Users::getCurrent();
+        }
+        
+        // Вземаме последните документи
+        $query = static::getQuery();
+        $query->where("#userId = '{$userId}'");
+        $query->where("#type = 'folder'");
+        $query->orderBy("last", "DESC");
+        
+        // Брояч
+        $cnt = 0;
+        
+        while ($rec = $query->fetch()) {
+            
+            $folderId = $rec->objectId;
+            
+            // Ако няма id на нишка или нямам права за сингъла на нишката, прескачаме
+            if (!$folderId || !doc_Folders::haveRightFor('single', $folderId)) continue;
+            
+            // Добавяме в масива
+            $foldersArr[$folderId] = $folderId;
+            
+            // Увеличаваме брояча
+            $cnt++;
+            
+            // Ако сме достигнали лимита, прекъсваме
+            if ($cnt == $count) break;
+        }
+        
+        return $foldersArr;
     }
     
     

@@ -194,7 +194,9 @@ class lab_TestDetails extends core_Detail
             // намираме средното аритметично
             $sum = 0; $totalResults = 0;
             
-            for($i = 0; $i<count($resultsArr); $i++) {
+            $resCnt = count($resultsArr);
+            
+            for($i = 0; $i < $resCnt; $i++) {
                 if (trim($resultsArr[$i])) {
                     $sum += trim($resultsArr[$i]);
                     $totalResults++;
@@ -202,11 +204,11 @@ class lab_TestDetails extends core_Detail
             }
             $rec->value = $sum / $totalResults;
             
-            if(count($resultsArr)>1) {
+            if ($resCnt > 1) {
                 // Намираме грешката
                 $dlt = 0;
                 
-                for($i = 0; $i<count($resultsArr); $i++) {
+                for($i = 0; $resCnt; $i++) {
                     $dlt += ($resultsArr[$i] - $rec->value) * ($resultsArr[$i] - $rec->value);
                 }
                 
@@ -226,6 +228,7 @@ class lab_TestDetails extends core_Detail
         
         // Запис в 'lab_Tests'
         if($rec->testId) {
+            $ltRec = new stdClass();
             $ltRec->lastChangedOn = DT::verbal2mysql();
             $ltRec->id = $rec->testId;
             $mvc->Tests->save($ltRec);

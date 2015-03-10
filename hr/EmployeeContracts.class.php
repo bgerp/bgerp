@@ -139,13 +139,9 @@ class hr_EmployeeContracts extends core_Master
     
     
     /**
-     * Всички записи на този мениджър автоматично стават пера в номенклатурата със системно име
-     * $autoList.
-     *
-     * @see acc_plg_Registry
-     * @var string
+     * В коя номенклатура да се добави при активиране
      */
-    public $autoList = 'workContracts';
+    public $addToListOnActivation = 'workContracts';
     
     
     /**
@@ -401,9 +397,11 @@ class hr_EmployeeContracts extends core_Master
         $nkpd = hr_Professions::fetchField($rec->professionId, 'nkpd');
         
         // Национална класификация на професиите и длъжностите
+        $row->professionsRec = new stdClass();
         $row->professionsRec->nkpd = bglocal_NKPD::getTitleById($nkpd);
         
         // Национална класификация на икономическите дейности 
+        $row->departmentRec = new stdClass();
         $row->departmentRec->nkid = $department->nkid;
         
         // Вид на структурата
@@ -740,7 +738,7 @@ class hr_EmployeeContracts extends core_Master
         if ($rec = self::fetch($objectId)) {
             $result = (object)array(
                 'title' => $this->getVerbal($rec, 'personId') . " [" . $this->getVerbal($rec, 'startFrom') . ']',
-                'num' => "Ec" . $rec->id,
+                'num' => $rec->id . " ec",
                 'features' => 'foobar' // @todo!
             );
         }

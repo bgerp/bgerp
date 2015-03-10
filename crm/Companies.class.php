@@ -36,8 +36,11 @@ class crm_Companies extends core_Master
         // Интерфейс за корица на папка
         'doc_FolderIntf',
         
-        //Интерфейс за данните на контрагента
-        'doc_ContragentDataIntf'
+        // Интерфейс за данните на контрагента
+        'doc_ContragentDataIntf',
+    		
+    	// Интерфейс за корица на папка в която може да се създава артикул
+    	'cat_ProductFolderCoverIntf',
     );
     
     
@@ -137,7 +140,7 @@ class crm_Companies extends core_Master
     /**
      * Кой  може да групира "С избраните"?
      */
-    var $canGrouping = 'ceo,crm';
+    var $canGrouping = 'powerUser';
 
     
     /**
@@ -168,7 +171,7 @@ class crm_Companies extends core_Master
     /**
      * По кои сметки ще се правят справки
      */
-    public $balanceRefAccounts = '401,402,403,404,405,406,409,411,412,413,414,415,419';
+    public $balanceRefAccounts = '323,401,402,403,404,405,406,409,411,412,413,414,415,419';
     
     
     /**
@@ -272,7 +275,7 @@ class crm_Companies extends core_Master
     static function on_AfterPrepareListFilter($mvc, $data)
     {
         // Добавяме поле във формата за търсене
-        $data->listFilter->FNC('users', 'users(rolesForAll = officer|manager|ceo, rolesForTeams = officer|manager|ceo|executive)', 'caption=Потребител,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
+        $data->listFilter->FNC('users', 'users(rolesForAll = officer|manager|ceo, rolesForTeams = officer|manager|ceo|executive)', 'caption=Потребител,input,silent,refreshForm');
         
         // Вземаме стойността по подразбиране, която може да се покаже
         $default = $data->listFilter->getField('users')->type->fitInDomain('all_users');
@@ -286,11 +289,11 @@ class crm_Companies extends core_Master
         }
         $orderType = cls::get('type_Enum');
         $orderType->options = $options;
-        $data->listFilter->FNC('order', $orderType, 'caption=Подредба,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
+        $data->listFilter->FNC('order', $orderType, 'caption=Подредба,input,silent,refreshForm');
         
         // Филтриране по група
         $data->listFilter->FNC('groupId', 'key(mvc=crm_Groups,select=name,allowEmpty)',
-            'placeholder=Всички групи,caption=Група,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
+            'placeholder=Всички групи,caption=Група,input,silent,refreshForm');
         $data->listFilter->FNC('alpha', 'varchar', 'caption=Буква,input=hidden,silent');
         
         $data->listFilter->view = 'horizontal';
@@ -529,7 +532,7 @@ class crm_Companies extends core_Master
      */
     static function on_AfterRecToVerbal($mvc, $row, $rec, $fields=NULL)
     {
-        $row->nameList = new ET('[#1#]', $row->name);
+        $row->nameList = $mvc->getLinkToSingle($rec->id, 'name');
         
         // $row->nameTitle = mb_strtoupper($rec->name);
         // $row->nameLower = mb_strtolower($rec->name);
@@ -579,7 +582,7 @@ class crm_Companies extends core_Master
         } else {
             
             // Добавяме линк към профила на потребителя, който е inCharge на визитката
-            $row->phonesBox = crm_Profiles::createLink($rec->inCharge);
+            $row->phonesBox = tr('Отговорник') . ': ' . crm_Profiles::createLink($rec->inCharge);
         }
      
         $ownCompany = crm_Companies::fetchOurCompany();
@@ -653,7 +656,7 @@ class crm_Companies extends core_Master
 	/**
      * Обновява номера за фирмата
      */
-    static function updateNumbers($rec)
+    public static function updateNumbers($rec)
     {
         // Ако има телефон
         if ($rec->tel) {
@@ -1050,7 +1053,7 @@ class crm_Companies extends core_Master
         
         if ($rec = $self->fetch($objectId)) {
             $result = (object)array(
-                'num' => "F" . $rec->id,
+                'num' => $rec->id . " f",
                 'title' => $rec->name,
                 'features' => array('Държава' => $self->getVerbal($rec, 'country'),
             						'Град' => bglocal_Address::canonizePlace($self->getVerbal($rec, 'place')),)
@@ -1484,7 +1487,7 @@ class crm_Companies extends core_Master
     	expect($rec = $this->fetchRec($id));
     	
     	$obj = new stdClass();
-    	$tpl = new ET("[#country#]<br>[#pCode#] [#place#]<br>[#address#]");
+    	$tpl = new ET("[#country#]<br> <!--ET_BEGIN pCode-->[#pCode#] <!--ET_END pCode-->[#place#]<br> [#address#]");
     	if($rec->country){
     		$obj->country = crm_Persons::getVerbal($rec, 'country');
     	}
@@ -1508,9 +1511,9 @@ class crm_Companies extends core_Master
      * @param int $id -ид на продукт
      * @param varchar $groupSysId - sysId на група
      */
-    public function forceGroup($id, $groupSysId)
+    public static function forceGroup($id, $groupSysId)
     {
-    	expect($rec = $this->fetch($id));
+    	expect($rec = static::fetch($id));
     	expect($groupId = crm_Groups::getIdFromSysId($groupSysId));
     	
     	// Ако контрагента не е включен в групата, включваме го
@@ -1518,11 +1521,25 @@ class crm_Companies extends core_Master
     		$groupName = crm_Groups::getTitleById($groupId);
     		$rec->groupList = keylist::addKey($rec->groupList, $groupId);
     		
-    		core_Statuses::newStatus(tr("|Фирмата е включена в група |* '{$groupName}'"));
+    		if(haveRole('powerUser')){
+    			core_Statuses::newStatus(tr("|Фирмата е включена в група |* '{$groupName}'"));
+    		}
     		
-    		return $this->save($rec, 'groupList');
+    		return static::save($rec, 'groupList');
     	}
     	
     	return TRUE;
+    }
+    
+    
+    /**
+     * Връща мета дефолт мета данните на папката
+     *
+     * @param int $id - ид на папка
+     * @return array $meta - масив с дефолт мета данни
+     */
+    public function getDefaultMeta($id)
+    {
+    	return array();
     }
 }

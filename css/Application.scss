@@ -125,19 +125,21 @@ tr.noHover td:hover {
 	border-top: solid 2px $blue;
 	padding-left: 0.2em;
 	padding-top: 0.2em;
+    small {
+        color:#999;
+        vertical-align:middle;
+        font-size:10px;
+    }
 }
 
 .bugReport{
-	border:none; 
+	border: none; 
 	background-color:transparent; 
-	vertical-align: middle;
+	vertical-align: top;
 }
 
 .narrow .bugReport {
 	position: relative;
-	top: -2px;
-	width: 16px;
-	height: 16px;
 	padding: 0;
 }
 
@@ -419,6 +421,12 @@ div.folder-cover {
 	.tab-page .detail-info {
 		margin-bottom: 0 !important;
 		margin-top: 0;
+	}
+	.docStatistic {
+	    margin-top: 20px;
+	}
+	.top-tab-content {
+	   padding: 5px 10px 10px 10px;
 	}
 }
 
@@ -795,6 +803,15 @@ div.acc-detail {
 	  border: none !important;
 }
 
+.acc-footer {
+	text-align: right; 
+	margin-top: 20px;
+	font-size: 1.1em;
+	font-weight: bold;
+	background-color: #e1e1e1;
+	padding: 5px;
+}
+
 /*детайли*/
 .detail-info {
 	margin: 10px 0 0 0;
@@ -821,11 +838,12 @@ div.acc-detail {
 	&.portal {
 		padding-top: 5px;
 		margin-top: 10px;
+		background-color: transparent;
 		p {
 			margin: 0;
 		}
 		table.listTable th {
-			background: #f1f1f1 !important;
+			background: #e1e1e1 !important;
 			border: 1px solid #fff !important;
 			display: table-cell !important;
 			visibility: visible !important;
@@ -1111,16 +1129,34 @@ td.portal-date {
 		background-color: $gray2;
 		height: 20px;
 	}
+	.listTable .numericElement {
+	   text-align: right;
+	   display: inline-block;
+	   white-space: nowrap;
+	}
 }
+
+.snapshot {
+	margin-top: 10px;
+    padding: 10px;
+    background: rgba(255,255,210,0.3);
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    .snapshat-title {
+        font-weight: bold; 
+        padding-bottom: 7px;
+    }
+}
+
 .stamp{
 	color: #b00;
 	border: 1px dotted #b00;
 	display: inline-block;
-	font-size: 0.85em;
-	padding: 2px 2px 1px 2px;
+	font-size: 0.8em;
+	padding: 1px 2px 0px 2px !important;
 	border-radius: 3px;
-	margin-top: 5px;
 }
+
 .centered {
     text-align: center;
 }
@@ -1134,13 +1170,14 @@ td.portal-date {
 	font-weight: bold;
 	line-height: 120%;
 	margin-top: 4px;
+	text-transform: uppercase;
 }
 
 .document .listTable th{
 	white-space: nowrap;
 }
 
-.document .rowtools-column {
+td.rowtools-column {
     width:1%;
 }
 
@@ -1325,6 +1362,7 @@ pre.document {
     margin-left:5px;
     padding: 5px 10px;
     min-width: 110px;
+    min-height: 1.2em;
 }
 
 .nowrap {
@@ -1354,7 +1392,18 @@ pre.document {
 .dec-document{
 	font-size: 0.95em;
 	ul{
-		margin: 5px 0;
+		margin-top: 5px;
+		margin-bottom: 0;
+	}
+	.richtext {
+	   color: #000;
+	   line-height: 1em;
+	   ul {
+	       margin-left: 10px;
+	   }
+	}
+	.inner-text {
+	   padding-left: 30px;
 	}
     table.signiture{
         width: 10% !important;
@@ -1495,11 +1544,100 @@ table.mc-calendar {
         color: red;
     }
 }
-
+    
 table.mc-header a {
   color: #999;
 }
 /*край на стиловете за календара в портала*/
+
+
+/*стилове за селекта на календара в портала*/
+.metro-dropdown-portal option,
+.metro-dropdown-portal:after,
+.metro-dropdown-portal::after,
+.metro-dropdown-portal select
+{
+    color: #000;
+    box-shadow: none;
+    
+    &:focus {
+        outline: none;
+        box-shadow: none;
+    }
+}
+ 
+.metro-dropdown-portal select,
+.metro-dropdown-portal:after,
+.metro-dropdown-portal::after
+{
+    display: block;
+    background: #f8fff8;
+   
+}
+ 
+.metro-dropdown-portal select,
+.metro-dropdown-portal option
+{
+    padding: 4px;
+    
+}
+
+.metro-dropdown-portal
+{
+    position: relative;
+    display: inline-block;
+    border: 0 none;
+    top: -8px;
+}
+ 
+.metro-dropdown-portal::after
+{
+    content: "\25bc";
+    position: absolute;
+    top: 0;
+    right: 0px;
+    display: block;
+    width: 29px;
+    font-size: 1em;
+    line-height: 34px;
+    left: 100px;
+     
+    -webkit-pointer-events: none;
+    -moz-pointer-events: none;
+    
+     pointer-events: none;
+    
+}
+
+@-moz-document url-prefix(){
+	.metro-dropdown-portal::after
+	{
+	   width: 20px;
+	   left: 112px;
+	}
+}
+
+
+ 
+.metro-dropdown-portal select
+{
+   height: 34px;
+   border: 0;
+   vertical-align: middle;
+   font: normal 1em Helvetica,Arial,Verdana,sans-serif;
+   outline: 0 none;
+   text-align: right;
+}
+ 
+.metro-dropdown-portal option
+{
+    background: #fff;
+    color: #000;
+    text-align: left;
+}
+/*край на стилове за селекта на календара в портала*/ 
+
+
 
 
 /*Стилове за счетоводството*/
@@ -2103,10 +2241,11 @@ fieldset.sharing-history {
 
 .newsbar .richtext{
     line-height:1.1em;
+    white-space: nowrap;
 }
 
 .narrow .newsbar{
-    padding-bottom:8px; 
+    padding-bottom:8px;    
 }
 /*край на newsbar*/
 
@@ -2572,15 +2711,18 @@ table.styled-table tr:hover td {
 
 
 /*стилове за локации*/
-div.location {
-	max-width: 720px;
+div.no-cover {
+	max-width: 725px;
 	@include border-radius(5px);
 	border: 1px solid #ccc;
-	padding: 10px 20px 20px;
+	padding: 20px 20px 20px;
 	margin-top: 16px;
 	h2 {
 		margin-top: 0;
 		background-color: transparent;
+		&.state-rejected {
+		    background-color: #c66;
+		}
 	}
 	ul {
 		padding: 0;
@@ -2599,6 +2741,10 @@ div.location {
 		color: #666;
 		display: inline;
 		vertical-align: baseline;
+	}
+	.groupList {
+		font-size: 0.95em;
+		max-width: 700px;
 	}
 }
 
@@ -2960,13 +3106,9 @@ div.location.public {
 /* Край на стиловете за `sens` */
 
 /*Стилове за пос*/
-.narrow .pos-open-btn {
-	display: block;
-	float: none;
-}
-
-.wide .pos-open-btn {
-	margin-left: 20px !important;
+.open-note {
+	padding: 2px;
+	border-radius: 3px;
 }
 /*Край на стилове за пос*/
 
@@ -3882,6 +4024,12 @@ body.narrow {
 }
 
 .printing {
+	.specialLink {
+	   font-weight: bold;
+	}
+	a {
+	   color: #000 !important;
+	}
 	.docBgIcon {
 		padding: 0 !important;
 		background-image: none !important;
@@ -3954,8 +4102,17 @@ body.narrow {
         display: block !important;
     }
     .#fancybox-left, #fancybox-right{
-    background-color: transparent !important;
-}
+        background-color: transparent !important;
+    }
+    .selectRows .listTable > tbody > tr > td:first-child {
+        text-align: left;
+    }
+    .new-folder-btn {
+        display: none;
+    }
+    .staticFormView .formFieldValue {
+        border: 1px solid #ccc;
+    }
 }
 
 .narrow .printing .document{

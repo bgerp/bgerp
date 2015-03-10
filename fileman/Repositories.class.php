@@ -846,9 +846,15 @@ class fileman_Repositories extends core_Master
         // Обединяваме с подадена поддиректория
         $fullPath = static::getFullPath($fullPath, $subPath);
         
-        // Вземаме итератор
-        // RecursiveIteratorIterator::SELF_FIRST - Служи за вземане и на директориите
-        $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($fullPath), RecursiveIteratorIterator::SELF_FIRST);
+        try {
+            // Вземаме итератор
+            // RecursiveIteratorIterator::SELF_FIRST - Служи за вземане и на директориите
+            $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($fullPath), RecursiveIteratorIterator::SELF_FIRST);
+            
+        } catch (Exception $e) {
+            
+            return $res;
+        }
         
         // Сетваме флаговете
         // NEW_CURRENT_AND_KEY = FilesystemIterator::KEY_AS_FILENAME | FilesystemIterator::CURRENT_AS_FILEINFO
@@ -1779,7 +1785,7 @@ class fileman_Repositories extends core_Master
         
         // Добавяме поле за подредба
         $data->singleFilter->FNC('orderBy', 'enum(nameDown=Наименование|* ↓, nameUp=Наименование|* ↑, createdDown=Създаване|* ↓, createdUp=Създаване|* ↑)',
-        			'placeholder=Подредба,caption=Подредба,input,silent,allowEmpty', array('attr' => array('onchange' => 'this.form.submit();')));
+        			'placeholder=Подредба,caption=Подредба,input,silent,allowEmpty,refreshForm');
         
         // Кои полета да се показват
 		$data->singleFilter->showFields = 'searchName, orderBy';

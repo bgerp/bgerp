@@ -1,0 +1,24 @@
+[#SingleToolbar#]
+<div class='document'>
+    <!--ET_BEGIN header-->
+    <div class='header [#STATE_CLASS#]'>
+        <div class='docBgIcon' style='[#iconStyle#];'>[#singleTitle#] <b>[#ident#]</b> ([#state#])</div>
+    </div>
+    <!--ET_END header-->
+    <div>|Артикул|*: [#productId#]</div>
+    <!--ET_BEGIN quantity-->
+    <div>|За|*: [#quantity#]</div>
+    <!--ET_END quantity-->
+    
+    <div class = 'fieldset-holder' style='margin-top:10px'>
+    [#cat_BomDetails#]
+    </div>
+    
+    [#DETAILS#]
+    
+    <!--ET_BEGIN notes-->
+  
+    <div style='margin-top: 20px;'>|Забележки|*:</div>
+    <div>[#notes#]</div>
+    <!--ET_END notes-->
+</div>

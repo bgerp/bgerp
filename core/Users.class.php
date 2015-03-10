@@ -313,7 +313,7 @@ class core_Users extends core_Manager
     {
         // Филтриране по група
         $data->listFilter->FNC('role', 'key(mvc=core_Roles,select=role,allowEmpty)',
-            'placeholder=Роля,caption=Роля,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
+            'placeholder=Роля,caption=Роля,input,silent,refreshForm');
 
         
         $data->listFilter->view = 'horizontal';
@@ -427,7 +427,7 @@ class core_Users extends core_Manager
                     $form->setError('passNew,passRe', 'При промяна на ника на потребителя трябва да се зададе нова парола');
                 }
             } else {
-                $form->setWarning('passNew,passRe', 'Не е зададена парола за достъп на потребителя');
+                $form->setError('passNew,passRe', 'Не е зададена парола за достъп на потребителя');
             }
         }
 

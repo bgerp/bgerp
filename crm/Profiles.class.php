@@ -116,10 +116,10 @@ class crm_Profiles extends core_Master
     {
         $this->FLD('userId', 'key(mvc=core_Users, select=nick)', 'caption=Потребител,mandatory,notNull');
         $this->FLD('personId', 'key(mvc=crm_Persons, select=name, group=users)', 'input=hidden,silent,caption=Визитка,mandatory,notNull');
-        $this->EXT('lastLoginTime',  'core_Users', 'externalKey=userId');
-        $this->EXT('state',  'core_Users', 'externalKey=userId');
-        $this->EXT('exState',  'core_Users', 'externalKey=userId');
-        $this->EXT('lastUsedOn',  'core_Users', 'externalKey=userId');
+        $this->EXT('lastLoginTime',  'core_Users', 'externalKey=userId,input=none');
+        $this->EXT('state',  'core_Users', 'externalKey=userId,input=none');
+        $this->EXT('exState',  'core_Users', 'externalKey=userId,input=none');
+        $this->EXT('lastUsedOn',  'core_Users', 'externalKey=userId,input=none');
 
         $this->setDbUnique('userId');
         $this->setDbUnique('personId');
@@ -156,6 +156,16 @@ class crm_Profiles extends core_Master
             // Подготвяме сингъла
             crm_Persons::prepareSingle($data->Person);
             
+            // Ако няма служебен имейл - показваме личния
+            if(!isset($data->Person->row->buzEmail) && isset($data->Person->row->email)) {
+                $data->Person->row->buzEmail = $data->Person->row->email;
+            }
+            
+            // Ако няма служебен телефон - показваме личния
+            if(!isset($data->Person->row->buzTel) && isset($data->Person->row->tel)) {
+                $data->Person->row->buzTel = $data->Person->row->tel;
+            }
+
             // Ако има права за сингъл
             if (crm_Persons::haveRightFor('single', $data->Person->rec)) {
                 
@@ -191,21 +201,22 @@ class crm_Profiles extends core_Master
                 $data->User->row->password = str_repeat('*', 7) . " " . $changePasswordLink;
                 
                 // Ако има роля admin
-                if (haveRole('admin')) {
-                    
-                    // Иконата за редактиране
-                    $img = "<img src=" . sbf('img/16/edit.png') . " width='16' height='16'>";
-                    
-                    // URL за промяна
-                    $url = array('core_Users', 'edit', $data->rec->userId, 'ret_url' => TRUE);
-                    
-                    // Създаме линка
-                    $data->User->row->editLink = ht::createLink($img, $url, FALSE, 'title=' . tr('Редактиране на потребителски данни'));  
-                }
             } else {
 
                 // Премахваме информацията, която не трябва да се вижда от другите
                 unset($data->User->row->password);
+            }
+
+            if (haveRole('admin')) {
+                    
+                // Иконата за редактиране
+                $img = "<img src=" . sbf('img/16/edit.png') . " width='16' height='16'>";
+                   
+                // URL за промяна
+                $url = array('core_Users', 'edit', $data->rec->userId, 'ret_url' => TRUE);
+                    
+                // Създаме линка
+                $data->User->row->editLink = ht::createLink($img, $url, FALSE, 'title=' . tr('Редактиране на потребителски данни'));  
             }
             
             if($data->User->rec->state != 'active') {
@@ -250,7 +261,7 @@ class crm_Profiles extends core_Master
                         $attr = array();
                         $attr['class'] = 'linkWithIcon';
         		        $attr['style'] = 'background-image:url(' . sbf('/img/16/page_go.png') . ');';
-        		        $attr['title'] = tr('Логин лог за потребителя');
+        		        $attr['title'] = tr('Логвания на потребителя');
                         
                         // URL за промяна
                         $loginLogUrl = array('core_LoginLog', 'list', 'users' => $userId, 'ret_url' => TRUE);
@@ -492,7 +503,7 @@ class crm_Profiles extends core_Master
         $addUserUrl = array(
             'core_Users', 
             'add', 
-            'personId'=>Request::get('personId', 'int'), 
+            'personId'=>Request::get('personId', 'key(mvc=core_Users)'), 
             'ret_url'=>getRetUrl()
         );
 
@@ -912,7 +923,7 @@ class crm_Profiles extends core_Master
      * @param core_Form $form
      * @see core_SettingsIntf
      */
-    function prepareForm(&$form)
+    function prepareSettingsForm(&$form)
     {
         // Променяме ключа, когато ще се настройва за друг потребител (без ролите)
         if ($form->rec->_userOrRole > 0) {
@@ -1008,11 +1019,14 @@ class crm_Profiles extends core_Master
                 $typeInst = core_Type::getByName($type);
                 
                 $isEnum = FALSE;
+                $isKey = FALSE;
                 
                 // Ако е enum поле, добавя в началото да може да се избира автоматично
                 if ($typeInst instanceof type_Enum) {
                     $typeInst->options = array('default' => 'Автоматично') + (array)$typeInst->options;
                     $isEnum = TRUE;
+                } elseif ($typeInst instanceof type_Key) {
+                    $isKey = TRUE;
                 }
                 
                 // Полето ще се въвежда
@@ -1021,13 +1035,15 @@ class crm_Profiles extends core_Master
                 // Добавяме функционално поле
                 $form->FNC($field, $typeInst, $params);
                 
-                if (isset($form->rec->$field) || $isEnum) {
+                if (isset($form->rec->$field) || $isEnum || $isKey) {
                     // Ако сме в мобилен режим, да не е хинт
                     $paramType = Mode::is('screenMode', 'narrow') ? 'unit' : 'hint';
                     
                     $defVal = $typeInst->toVerbal($fieldVal);
                     
-                    $form->setParams($field, array($paramType => $defaultStr . $defVal));
+                    if ($defVal) {
+                        $form->setParams($field, array($paramType => $defaultStr . $defVal));
+                    }
                 } else {
                     $form->setField($field, array('attr' => array('class' => 'const-default-value')));
                 }
@@ -1035,6 +1051,10 @@ class crm_Profiles extends core_Master
                 if ($isEnum) {
                     
                     $fieldVal = 'default';
+                } elseif ($isKey) {
+                    if ($typeInst->params['allowEmpty']) {
+                        $fieldVal = '';
+                    }
                 }
                 
                 $form->setDefault($field, $fieldVal);

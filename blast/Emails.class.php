@@ -1265,8 +1265,26 @@ class blast_Emails extends core_Master
                 }
             }
             
-            // Очакваме да има поне една останала опция
-            expect($perOptArr, 'Няма източник за персонализация');
+            if (!$perOptArr) {
+                
+                $msg = '|Няма източник, който да може да се използва за персонализация';
+                
+                if (($defPerSrcClassId != $listClassId) && ($cover && $cover->instance)) {
+                    if ($cover->instance->haveRightFor('single', $cover->that)) {
+                        $redirectUrl = array($cover->instance, 'single', $cover->that);
+                    }
+                }
+                
+                if (!$redirectUrl && $perClsInst->haveRightFor('list')) {
+                    $redirectUrl = array($perClsInst, 'list');
+                }
+                
+                if (!$redirectUrl) {
+                    $redirectUrl = getRetUrl();
+                }
+                
+                redirect($redirectUrl, FALSE, $msg);
+            }
             
             // Задаваме опциите
             $form->setOptions('perSrcObjectId', $perOptArr);
@@ -1790,6 +1808,8 @@ class blast_Emails extends core_Master
         } else {
             $rec = $mvc->fetch($id);
         }
+        
+        if ($mvc->fields['body']->type->params['hndToLink'] == 'no') return ;
         
         // Подготвяме записите
         $mvc->prepareRec($rec, $detArr);

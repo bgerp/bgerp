@@ -1,37 +1,35 @@
 <div class='dec-document'>
     <div class='scrolling-holder'>
         <br>
-        <div class='indent'>
-            The undersigned, [#manager#] <!--ET_BEGIN manager-->
+            <div class='indent'>
+            The undersigned, <!--ET_BEGIN manager--><b>[#manager#]</b><!--ET_END manager-->, representing manufacturer/supplier: <b>[#MyCompany#]</b>, 
+            <!--ET_BEGIN MyCountry-->
+            with address [#MyCountry#], 
+            <!--ET_BEGIN MyAddress-->[#MyAddress#],<!--ET_END MyAddress-->
+            <!--ET_END MyCountry-->
+            <!--ET_BEGIN MyCompanyVatNo--> with VAT ID <b>[#MyCompanyVatNo#]</b>, <!--ET_END MyCompanyVatNo-->
+            <!--ET_END MyCountry-->
         </div>
-        <!--ET_END manager-->
+         <br>
+        <p><b>HEREBY DECLARE THAT THE PRODUCTS</b></p>
+        <!--ET_BEGIN products-->
+        [#products#]
+        <!--ET_END products-->        
         <div>
-            representing manufacturer/supplier:
-            [#MyCompany#], <!--ET_BEGIN MyCountry-->with address [#MyCountry#], <!--ET_END MyCountry--><!--ET_BEGIN MyAddress-->city [#MyAddress#],<!--ET_END MyAddress--><!--ET_BEGIN MyCompanyVatNo--> with VAT ID [#MyCompanyVatNo#]<!--ET_END MyCompanyVatNo--><!--ET_BEGIN uicId-->, UIC [#uicId#],<!--ET_END uicId-->
+            <div>sold with invoice <b>№ [#invoiceNo#]</b> to <b>[#contragentCompany#]</b>, <!--ET_BEGIN contragentCountry-->with address [#contragentCountry#], <!--ET_END contragentCountry-->
+            <!--ET_BEGIN contragentAddress-->[#contragentAddress#],<!--ET_END contragentAddress--> 
+            <!--ET_BEGIN contragentCompanyVatNo-->with VAT ID <b>[#contragentCompanyVatNo#]</b>,<!--ET_END contragentCompanyVatNo--> <!--ET_BEGIN contragentUicId--> UIC [#contragentUicId#]<!--ET_END contragentUicId-->,
         </div>
-        <div>
-            the sale invoice <b>№ [#invoiceNo#]</b> products
-            <!--ET_BEGIN products-->
-            [#products#]
-            <!--ET_END products-->
-            <!--ET_BEGIN material-->
-            <b>are made of:</b> [#material#]
-        </div>
-        <!--ET_END material-->
-        <div>
-            <b>delivered to:</b> [#contragentCompany#], <!--ET_BEGIN contragentCountry-->with address [#contragentCountry#], <!--ET_END contragentCountry-->
-            <!--ET_BEGIN contragentAddress-->city [#contragentAddress#], <!--ET_END contragentAddress--> 
-            <!--ET_BEGIN contragentCompanyVatNo--> with VAT ID [#contragentCompanyVatNo#], <!--ET_END contragentCompanyVatNo-->  <!--ET_BEGIN contragentUicId--> UIC [#contragentUicId#],<!--ET_END contragentUicId-->
-        </div>
-        <br><br>
-        <p class="centered"><b>HEREBY DECLARE:</b> </p>
         <br>
-        <div>own responsibility, that </div>
+        <p><b>MEET THE FOLLOWING:</b></p>
+        <ul>
+        <!--ET_BEGIN material-->
+         <li> The manufactures are made of [#material#] </li>
+        <!--ET_END material-->
         <!--ET_BEGIN statements-->
-        <div>
-            [#statements#]
-        </div>
+        <li> The manufactures meet the requirements [#statements#]</li>
         <!--ET_END statements-->
+        </ul>
         <!--ET_BEGIN note-->
         <div>
             [#note#]
@@ -57,8 +55,8 @@
             </tr>
         </table>
         <div class='footerDocBlock'>
-	        <div class='aright'>Документът е създаден чрез системата <b><a href='http://bgerp.com'>bgERP</a></b>.</div>
+	        <div class='aright'>This document is created by <b><a href='http://bgerp.com'>bgERP</a></b>.</div>
 	    </div>
     </div>
-    
+  </div>  
 </div>

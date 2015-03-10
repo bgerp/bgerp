@@ -37,7 +37,7 @@ class acc_BalanceRepairs extends core_Master
     /**
      * Неща, подлежащи на начално зареждане
      */
-    var $loadList = 'plg_RowTools, plg_Clone, plg_Printing,acc_Wrapper, plg_Sorting, acc_plg_Contable,
+    var $loadList = 'plg_RowTools, plg_Printing,acc_Wrapper, plg_Sorting, acc_plg_Contable,
                      doc_DocumentPlg, acc_plg_DocumentSummary';
     
     
@@ -281,8 +281,6 @@ class acc_BalanceRepairs extends core_Master
     	if(acc_Balances::haveRightFor('single', $rec->balanceId)){
     		$row->balanceId = ht::createLink($row->balanceId, array('acc_Balances', 'single', $rec->balanceId), NULL, "ef_icon=img/16/table_sum.png, title=Оборотна ведомост {$row->balanceId}");
     	}
-    	
-    	$row->header = $mvc->singleTitle . " №<b>{$row->id}</b> ({$row->state})";
     }
     
     

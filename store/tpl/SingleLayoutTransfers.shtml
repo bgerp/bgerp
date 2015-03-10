@@ -5,7 +5,7 @@
     <!--ET_END blank-->
     <!--ET_BEGIN header-->
     <div class='header [#STATE_CLASS#]'>
-        <div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
+        <div class='docBgIcon' style='[#iconStyle#];'>[#singleTitle#] <b>[#ident#]</b> ([#state#])</div>
     </div>
     <!--ET_END header-->
     <table class='no-border' style='width:100%;'>
@@ -19,7 +19,7 @@
                                     <tr>
                                         <td class="cell custom-header-bg" style='width:33%;height:20px;'><b>|От склад|*</b></td>
                                         <td class="cell centered" rowspan='2' style='width:34%;'>
-                                            <div class="document-title">|Междускладов Трансфер|*</div>
+                                            <div class="document-title">|МЕЖДУСКЛАДОВ ТРАНСФЕР|*</div>
                                             <div style="padding-top:5px;">
                                                 № <span class="bigData">[#id#]</span> / 
                                                 <span class="bigData">[#valior#]</span>

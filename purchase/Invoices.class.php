@@ -52,13 +52,7 @@ class purchase_Invoices extends deals_InvoiceMaster
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт, number, date, place, folderId, dealValue, vatAmount, type';
-    
-    
-    /**
-     * Колоната, в която да се появят инструментите на plg_RowTools
-     */
-    public $rowToolsField = 'tools';
+    public $listFields = 'id, number, date, place, folderId, dealValue, vatAmount, type';
     
     
     /**
@@ -157,14 +151,12 @@ class purchase_Invoices extends deals_InvoiceMaster
     {
     	parent::setInvoiceFields($this);
     	
-    	$this->FLD('number', 'int(size=15)', 'caption=Номер, export=Csv,mandatory,hint=Номера с който идва фактурата,after=place');
+    	$this->FLD('number', 'bigint', 'caption=Номер, export=Csv,mandatory,hint=Номера с който идва фактурата,after=place');
     	$this->FLD('fileHnd', 'fileman_FileType(bucket=Documents)', 'caption=Документ,after=number');
     	
     	$this->FLD('accountId', 'key(mvc=bank_Accounts,select=iban, allowEmpty)', 'caption=Плащане->Банкова с-ка, export=Csv,after=paymentMethodId');
     	$this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 'caption=Статус, input=none,export=Csv');
     	$this->FLD('type', 'enum(invoice=Входяща фактура, credit_note=Входящо кредитно известие, debit_note=Входящо дебитно известие)', 'caption=Вид, input=hidden');
-    	$this->setField('vatDate', 'input=none');
-    	$this->setField('vatReason', 'input=none');
     	
     	$this->setDbUnique('folderId,number');
     }

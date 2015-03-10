@@ -273,7 +273,6 @@ class core_Master extends core_Manager
                 }
             }
             
-            
             if(count($detailInline)) {
 
                 asort($detailInline);
@@ -296,42 +295,79 @@ class core_Master extends core_Manager
                 }
             }
             
-            
             // Добавяме табове
             if(count($detailTabbed)) {
                 
                 asort($detailTabbed);
-              
-                $tabs = cls::get('core_Tabs', array('htmlClass' => 'alphabet'));
+              	$tabArray = array();
 
+              	// Подготвяме горни и долни табове
+              	$tabTop = cls::get('core_Tabs', array('htmlClass' => 'alphabet', 'urlParam' => 'TabTop'));
+              	$tabBottom = cls::get('core_Tabs', array('htmlClass' => 'alphabet'));
+              	
                 foreach($detailTabbed as $var => $order) {
+                	$url = getCurrentUrl();
+                	
+                	// Ако е зададено детайла да е в горния таб, добавяме го, иначе е в долния
+                	if($data->{$var}->Tab == 'top'){
+                		$tab = &$tabTop;
+                		
+                		// Да се погрижим да се затвори долния таб ако е бил отворен
+                		unset($url[$tabBottom->getUrlParam()]);
+                	} else {
+                		$tab = &$tabBottom;
+                	}
 
-                    $url = getCurrentUrl();
-                    $url['Tab'] = $var;
-                    $url['#'] = 'detailTabs';
-                    
-                    $tabs->TAB($var, $data->{$var}->TabCaption ? $data->{$var}->TabCaption : $var, $data->{$var}->disabled ? array() : toUrl($url));
-
-                    if($var == $data->Tab || (!$data->Tab && !$selected)) {
-                        $selected = $var;
-                    }
-                }
+                    $url[$tab->getUrlParam()] = $var;
+                    $url['#'] = ($data->{$var}->Tab == 'top') ? 'detailTabsTop' : 'detailTabs';
+                    $tab->TAB($var, $data->{$var}->TabCaption ? $data->{$var}->TabCaption : $var, $data->{$var}->disabled ? array() : toUrl($url));
+				}
                 
-                if($selected ==  $this->details[$selected]) {
-                    $method = 'renderDetail';
-                } else {
-                    $method = 'render' . $selected;
-                }
-                
-                if(count($detailTabbed) > 1) {
-                    $tabHtml = $tabs->renderHtml($this->{$selected}->$method($data->{$selected}), $selected);
-                } else {
-                    $tabHtml = $this->{$selected}->$method($data->{$selected});
-                }
-
-                $tabHtml = new ET("<div style='margin-top:20px;' class='clearfix21'></div><div class='docStatistic'><a id='detailTabs'></a>[#1#]</div>", $tabHtml);
-
-                $tpl->append($tabHtml, 'DETAILS');
+				$detailsTpl = new ET('');
+				
+				// Ако има избран детайл от горния таб, показваме го, ако няма винаги рендираме първия
+				$selectedTop = $tabTop->getSelected();
+				if(!$selectedTop){
+					$selectedTop = $tabTop->getFirstTab();
+				}
+				
+				// Ако има избран детайл от горния таб рендираме го
+				if($selectedTop){
+					$method = ($selected ==  $this->details[$selectedTop]) ? 'renderDetail' : 'render' . $selectedTop;
+					
+					$selectedHtml = $this->{$selectedTop}->$method($data->{$selectedTop});
+					$tabHtml = $tabTop->renderHtml($selectedHtml, $selectedTop);
+						
+					$tabHtml = new ET("<div style='margin-top:20px;' class='tab-top'><a id='detailTabsTop'></a>[#1#]</div>", $tabHtml);
+					$detailsTpl->append($tabHtml);
+				}
+				
+				// Проверяваме имали избран детайл от долния таб
+				$selectedBottom = $tabBottom->getSelected();
+				
+				// Ако няма и горния детайл няма табове, показваме първия таб на долния
+				if(!$selectedBottom && !count($tabTop->getTabs())){
+					$selectedBottom = $tabBottom->getFirstTab();
+				}
+				
+				// Ако има избран детайл от долния таб, добавяме го
+				if($selectedBottom){
+					$method = ($selected ==  $this->details[$selectedBottom]) ? 'renderDetail' : 'render' . $selectedBottom;
+					$selectedHtml = $this->{$selectedBottom}->$method($data->{$selectedBottom});
+					
+					// Ако е избран долен таб, и детайла му е само един, и няма горни табове, го рендираме без таб
+					if(count($tabBottom->getTabs()) == 1 && !count($tabTop->getTabs())){
+						$tabHtml = $selectedHtml;
+					} else {
+						$tabHtml = $tabBottom->renderHtml($selectedHtml, $selectedBottom);
+					}
+						
+					$tabHtml = new ET("<div class='clearfix21'></div><div class='docStatistic'><a id='detailTabs'></a>[#1#]</div>", $tabHtml);
+					$detailsTpl->append($tabHtml);
+				}
+               
+				// Добавяме табовете
+                $tpl->append($detailsTpl, 'DETAILS');
             }
         }
         
@@ -517,7 +553,7 @@ class core_Master extends core_Manager
         $url = array();
         
         // Ако има права за сингъла
-        if ($me->haveRightFor('single')) { 
+        if ($me->haveRightFor('single', $id)) { 
             
             // Линка към сингъла
             $url = array($me, 'single', $id);
@@ -546,12 +582,14 @@ class core_Master extends core_Manager
     
     	$title = $me->getTitleById($id);
     
+    	$attr = array();
     	if($icon === TRUE) {
-    		$icon = 'ef_icon=' . $me->singleIcon;
+    		$attr['ef_icon'] = $me->singleIcon;
     	} elseif($icon) {
-    		$icon = 'ef_icon=' . $icon;
+    		$attr['ef_icon'] = $icon;
     	}
-    
+    	$attr['class'] = 'specialLink';
+    	
     	if(!$id) {
     		return "<span style='color:red;'>&nbsp;- - -</span>";
     	}
@@ -561,7 +599,7 @@ class core_Master extends core_Manager
     		$title = ht::createLink($title,
     				array($me, 'single', $id),
     				NULL,
-    				$icon
+    				$attr
     		);
     	}
     

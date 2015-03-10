@@ -30,13 +30,8 @@
 .pos-product-category.active {
   cursor: pointer;
   color: white;
-  background: #3c3c3c;
-  background: rgba(50, 50, 50, 0.8);
-  background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0.1, rgba(0, 0, 0, 0.3)), color-stop(1, rgba(255, 255, 255, 0.2)));
-  background-image: -moz-linear-gradient(center top, rgba(0, 0, 0, 0.3) 1%, rgba(255, 255, 255, 0.2) 100%);
-  background-image: gradient(center top, rgba(0, 0, 0, 0.3) 1%, rgba(255, 255, 255, 0.2) 100%);
   position: relative;
-  top: 3px;
+  top: -5px;
   -webkit-box-shadow: inset 0px -3px 1px white, inset 0 0px 3px rgba(0, 0, 0, 0.9), none;
   -moz-box-shadow: inset 0px -3px 1px white, inset 0 0px 3px rgba(0, 0, 0, 0.9) .none;
   box-shadow: inset 0px -3px 1px #f1f1f1, inset 0 0px 3px rgba(0, 0, 0, 0.9), none; }
@@ -136,4 +131,7 @@
   display: inline-block;
   vertical-align: middle;
   line-height: normal; }
+
+.narrow .pos-span-name {
+  font-size: 0.85em; }
 

@@ -434,6 +434,37 @@ class core_Roles extends core_Manager
 
 
     /**
+     * Виртуално добавяне на двата служебни потребителя
+     */
+    static function fetch($cond, $fields = '*', $cache = TRUE)
+    {
+        if ($cond === 0) {
+            $res = new stdClass();
+            $res->name = 'Цялата система';
+            $res->id = 0;
+        } else {
+            $res = parent::fetch($cond, $fields, $cache);
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * Превръща стойността на посоченото поле във вербална
+     */
+    static function getVerbal($rec, $fieldName)
+    {
+        if ($rec->id === 0) {
+            
+            return tr($rec->name);
+        }
+        
+        return parent::getVerbal_($rec, $fieldName);
+    }
+
+
+    /**
      * При шътдаун на скрипта преизчислява наследените роли и ролите на потребителите
      */
     static function on_Shutdown($mvc)

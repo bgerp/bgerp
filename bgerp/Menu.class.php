@@ -68,28 +68,36 @@ class bgerp_Menu extends core_Manager
     /**
      * Връща обект - меню
      */
-    function getMenuObject()
+    public static function getMenuObject()
     {
         $cacheKey = 'menuObj_' . core_Lg::getCurrent();
         
-        $menuObj = core_Cache::get('Menu', $cacheKey);
+        //$menuObj = core_Cache::get('Menu', $cacheKey);
         
         if(!is_array($menuObj)) {
             
-            $query = $this->getQuery();
+            $query = self::getQuery();
             
             $query->orderBy("#row,#id", "ASC");
-            
+            $pos = array(); $next = 1;
+
             while($rec = $query->fetch()) {
-                $rec->row = (int) $rec->row;
-                $rec->menuTr = tr($rec->menu);
-                $rec->subMenuTr = tr($rec->subMenu);
+                $newRec = clone($rec);
+                if(!($thisMenu = $pos[$rec->menu])) {
+                    $thisMenu = $pos[$rec->menu] = $next++;
+                }
+                list($whole, $decimal) = explode('.', $rec->row);
+                $newRec->order = $thisMenu . '.' . $decimal;
+                
+                $newRec->row =  (int) $rec->row;
+                $newRec->menuTr = tr($rec->menu);
+                $newRec->subMenuTr = tr($rec->subMenu);
                 $ctrArr = explode('_', $rec->ctr);
-                $rec->pack = $ctrArr[0];
-                $rec->act = $rec->act ? $rec->act : 'default';
-                $menuObj[$rec->menu . ':' . $rec->subMenu] = $rec;
+                $newRec->pack = $ctrArr[0];
+                $newRec->act = $rec->act ? $rec->act : 'default';
+                $menuObj[$rec->menu . ':' . $rec->subMenu] = $newRec;  
             }
-            
+        
             core_Cache::set('Menu', $cacheKey, $menuObj, 1400);
         }
         
@@ -98,7 +106,7 @@ class bgerp_Menu extends core_Manager
         if(!count($menuObj) && (strpos(Request::get('Ctr'), 'core_') === FALSE)) {
             redirect(array('core_Packs'));
         }
-        
+ 
         return $menuObj;
     }
     
@@ -126,7 +134,7 @@ class bgerp_Menu extends core_Manager
     /**
      * Намира активния запис
      */
-    function getActiveItem($menuObj)
+    public static function getActiveItem($menuObj)
     {
         // Опит за определяне на активното меню от Mode
         $menu = Mode::get('pageMenu');
@@ -196,21 +204,17 @@ class bgerp_Menu extends core_Manager
         return $bestKey;
     }
     
-    
+
     /**
-     * Поставя елементите на менюто в шаблона
+     * Връща данните за менюто на текущия потребител
      */
-    function place($tpl)
-    {
-        $menuObj = $this->getMenuObject();
-        
-        $active = $this->getActiveItem($menuObj);
-        
+    public static function prepareMenu_($menuObj, $active)
+    {        
         $activeArr = explode(':', $active);
         
         if (($menuObj) && (count($menuObj))) {
-            foreach($menuObj as $key => $rec)
-            {
+            foreach($menuObj as $key => $rec) {
+            
                 // state: 3 - active, 2 - normal, 1 - disabled, 0 - hidden
                 // $mainMenuItems[$pageMenu] = TRUE; Дали това главно меню вече е показано
                 
@@ -264,90 +268,16 @@ class bgerp_Menu extends core_Manager
                 }
             }
         }
-        
-        // До тук имаме определени два списъка $menus (с главните менюта) и $subMenus (с под-менютата);
-        
-        if(Mode::is('screenMode', 'narrow')) {
-            
-            $conf = core_Packs::getConfig('core');
-            
-            $menuLink = ht::createLink($conf->EF_APP_TITLE, array($this, 'Show'));
-            
-            $tpl->append($menuLink , "MENU_ROW");
-            
-            if(count($menus)) {
-                foreach($menus as $key => $rec) {
-                    if($rec->state == 3) {
-                        $tpl->append("&nbsp;»&nbsp;", "MENU_ROW");
-                        $link = ht::createLink($rec->menuTr, array($rec->ctr, $rec->act));
-                        $tpl->append($link, "MENU_ROW");
-                    }
-                }
-            }
-            
-            if(count($subMenus)) {
-                $notFirst = FALSE;
-                
-                foreach($subMenus as $key => $rec) {
-                    if($notFirst) {
-                        $tpl->append("<span style='color:#ccc;font-size:0.8em;vertical-align: 20%;'>&nbsp;|&nbsp;</span>", 'SUB_MENU');
-                    }
-                    $link = $this->createLink($rec->subMenuTr, $rec);
-                    $tpl->append($link, 'SUB_MENU');
-                    $notFirst = TRUE;
-                }
-            }
-        } else {
-            // Ако сме в широк формат
-            // Отпечатваме менютата
-            if(count($menus)) {
-                foreach($menus as $key => $rec) {
-                    $link = $this->createLink($rec->menuTr, $rec, TRUE);
-                    $row = 'MENU_ROW' . $rec->row;
-                    
-                    if($notFirstInFor[$rec->row]) {
-                        $tpl->append("\n . ", $row);
-                    } else {
-                        $tpl->append("\n»&nbsp;", $row);
-                    }
-                    
-                    $tpl->append($link, 'MENU_ROW' . $rec->row);
-                    
-                    $notFirstInFor[$rec->row] = TRUE;
-                }
-            }
-            
-            if(count($subMenus)) {
-                foreach($subMenus as $key => $rec) {
-                    $link = $this->createLink($rec->subMenuTr, $rec);
-                    $tpl->append("&nbsp;", 'SUB_MENU');
-                    $tpl->append($link, 'SUB_MENU');
-                }
-            }
-        }
-        
-        // Извличаме броя на нотификациите за текущия потребител
-        $openNotifications = bgerp_Notifications::getOpenCnt();
-        
-        $url  = toUrl(array('bgerp_Portal', 'Show'));
-        $attr = array('id' => 'nCntLink');
-        
-        // Ако имаме нотификации, добавяме ги към титлата и контейнера до логото
-        if($openNotifications > 0) {
-            $attr['class'] = 'haveNtf';
-            $tpl->append("({$openNotifications}) ", 'PAGE_TITLE');
-        } else {
-            $attr['class'] = 'noNtf';
-        }
-        $nLink = ht::createLink("{$openNotifications}", $url, NULL, $attr);
-        $tpl->replace($nLink, 'NOTIFICATIONS_CNT');
+
+        return array($menus, $subMenus);
     }
+    
     
     
     /**
      * Създава връзка отговаряща на състоянието на посочения ред
      */
-    static function createLink($title, $rec, $menu = FALSE)
+    public static function createLink($title, $rec, $menu = FALSE)
     {
         if($menu) {
             $url = array($rec->menuCtr, $rec->menuAct);
@@ -393,7 +323,7 @@ class bgerp_Menu extends core_Manager
                     </div>
                 ");
         
-        $menuObj = $this->getMenuObject();
+        $menuObj = self::getMenuObject();
         
         foreach($menuObj as $key => $rec)
         {
@@ -578,45 +508,6 @@ class bgerp_Menu extends core_Manager
     }
     
     
-    /**
-     * Рендира основното меню на страницата
-     */
-    static function renderMenu()
-    {
-        if(Mode::is('screenMode', 'narrow')) {
-            $tpl = new ET("
-                <div id='mainMenu'>
-                     <div class='menuRow clearfix21'><img class='favicon' src=" . sbf("img/favicon.ico") . " alt=''>[#MENU_ROW#]<!--ET_BEGIN NOTIFICATIONS_CNT--><div id='notificationsCnt'>[#NOTIFICATIONS_CNT#]</div><!--ET_END NOTIFICATIONS_CNT--></div>
-                </div>
-                <!--ET_BEGIN SUB_MENU--><div id=\"subMenu\">[#SUB_MENU#]</div>\n<!--ET_END SUB_MENU-->");
-        } else {
-            $tpl = new ET("
-                <div id='mainMenu'>
-                    <div style='float:right;'><!--ET_BEGIN NOTIFICATIONS_CNT--><span id='notificationsCnt'>[#NOTIFICATIONS_CNT#]</span><!--ET_END NOTIFICATIONS_CNT-->[#logo#]</div>
-                    <div class=\"menuRow\">[#MENU_ROW1#]</div>
-                    <div class=\"menuRow\" style=\"margin-top:3px; margin-bottom:3px;\">[#MENU_ROW2#]</div>
-                    <div class=\"menuRow\">[#MENU_ROW3#]</div>                   
-
-                </div> <div class='clearfix'></div>
-                <!--ET_BEGIN SUB_MENU--><div id=\"subMenu\">[#SUB_MENU#]</div>\n<!--ET_END SUB_MENU-->");
-            
-            $img = ht::createElement('img', array('src' => sbf('img/bgerp.png', ''), 'alt' => '', 'style' => 'border:0; border-top:5px solid transparent;'));
-            
-            $logo = ht::createLink($img, array('bgerp_Portal', 'Show'));
-            
-            $tpl->replace($logo, 'logo');
-        }
-        
-        $Menu = cls::get('bgerp_Menu');
-        
-        $Menu->place($tpl);
-        
-        $tpl->prepend("\n<meta name=\"robots\" content=\"noindex,nofollow\">", 'HEAD');
-        $tpl->prepend("\n<meta name=\"format-detection\" content=\"telephone=no\">", 'HEAD');
-        $tpl->prepend("\n<meta name=\"google\" content=\"notranslate\">", 'HEAD');
-        
-        return $tpl;
-    }
     
     
     /**

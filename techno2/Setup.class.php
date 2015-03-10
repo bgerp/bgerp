@@ -26,7 +26,7 @@ class techno2_Setup extends core_ProtoSetup
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = 'techno2_SpecificationDoc';
+    var $startCtr = 'techno2_SpecificationFolders';
     
     
     /**
@@ -45,11 +45,8 @@ class techno2_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     var $managers = array(
+    		'techno2_SpecificationFolders',
     		'techno2_SpecificationDoc',
-    		'techno2_SpecTplCache',
-    		'techno2_Boms',
-    		'techno2_BomStages',
-    		'techno2_BomStageDetails',
     		'migrate::copyOldTechnoDocuments8'
         );
     
@@ -64,7 +61,7 @@ class techno2_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     var $menuItems = array(
-            array(3.11, 'Производство', 'Технологии', 'techno2_SpecificationDoc', 'default', "techno, ceo"),
+            array(3.11, 'Производство', 'Технологии', 'techno2_SpecificationFolders', 'default', "techno, ceo"),
         );
     
     

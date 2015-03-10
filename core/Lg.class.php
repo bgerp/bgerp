@@ -450,11 +450,14 @@ class core_Lg extends core_Manager
         // Езика в долен регистър
         $lg = strtolower($lg);
         
-        // Вземаме езика от сесията
-        $currLg = strtolower(core_Lg::getCurrent());
+        $langArr = arr::make(EF_LANGUAGES);
+        
+        foreach ($langArr as $lgKey => $verbLg) {
+            if (strtolower($lgKey) == $lg) return TRUE;
+        }
         
         // Проверяваме дали са еднакви
-        return (boolean)($lg == $currLg);
+        return FALSE;
     }
 
 
@@ -482,6 +485,10 @@ class core_Lg extends core_Manager
         $langArr = static::getLangs();
         
         $langArr = $otherParams + $langArr;
+        
+        if (isset($langArr[''])) {
+            $langArr[''] = 'От системата';
+        }
         
         return $langArr;
     }

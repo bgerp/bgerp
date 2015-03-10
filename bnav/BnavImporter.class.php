@@ -200,13 +200,8 @@ class bnav_BnavImporter extends core_Manager {
     	
     	// Импортиране на мерните единици
     	foreach($params['measures'] as $measure){
-    		$nRec = new stdClass();
-    		$nRec->name = $measure;
-    		$nRec->shortName = $measure;
-    		
-    		$id = cat_UoM::ifExists($measure);
-    		if(!$id){
-    			$id = cat_UoM::save($nRec);
+    		if(!$id = cat_UoM::fetchBySinonim($measure)->id){
+    			$id = cat_UoM::save((object)array('name' => $measure, 'shortName' => $measure));
     			$addedMeasures++;
     		}
     		$measures[$measure] = $id;

@@ -86,8 +86,8 @@ class purchase_transaction_Service extends acc_DocumentTransactionSource
     				$costsAccNumber = '613';
     			} else {
     				
-    				// Ако е Д"Материали" дебит 601, иначе 602
-    				$costsAccNumber = (isset($pInfo->meta['materials'])) ? '601' : '602';
+    				// Ако е Д"Материали" дебит 602
+    				$costsAccNumber = '602';
     			}
     	
     			$amount = $dRec->amount;

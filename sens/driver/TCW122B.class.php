@@ -31,8 +31,8 @@ class sens_driver_TCW122B extends sens_driver_IpDevice
         'T2' => array('unit'=>'T2', 'param'=>'Температура', 'details'=>'C', 'xmlPath'=>'/Temperature2[1]'),
         'Hr1' => array('unit'=>'Hr1', 'param'=>'Влажност', 'details'=>'%', 'xmlPath'=>'/Humidity1[1]'),
         'Hr2' => array('unit'=>'Hr2', 'param'=>'Влажност', 'details'=>'%', 'xmlPath'=>'/Humidity2[1]'),
-    	'InD1' => array('unit'=>'InD1', 'param'=>'Цифров вход 1', 'details'=>'(ON,OFF)', 'xmlPath'=>'/DigitalInput1[1]'),
-        'InD2' => array('unit'=>'InD2', 'param'=>'Цифров вход 2', 'details'=>'(ON,OFF)', 'xmlPath'=>'/DigitalInput2[1]'),
+    	'InD1' => array('unit'=>'InD1', 'param'=>'Цифров вход 1', 'details'=>'(OPEN,CLOSED)', 'xmlPath'=>'/DigitalInput1[1]'),
+        'InD2' => array('unit'=>'InD2', 'param'=>'Цифров вход 2', 'details'=>'(OPEN,CLOSED)', 'xmlPath'=>'/DigitalInput2[1]'),
         'InA1' => array('unit'=>'InA1', 'param'=>'Аналогов вход 1', 'details'=>'V', 'xmlPath'=>'/AnalogInput1[1]'),
         'InA2' => array('unit'=>'InA2', 'param'=>'Аналогов вход 2', 'details'=>'V', 'xmlPath'=>'/AnalogInput2[1]'),
     	// Oписваме и изходите за да можем да ги следим в логовете
@@ -133,16 +133,18 @@ class sens_driver_TCW122B extends sens_driver_IpDevice
             }
        		 	
             
-            if ($details['details'] == '(ON,OFF)') {
+            if ($details['details'] == '(ON,OFF)' || $details['details'] == '(OPEN,CLOSED)') {
                 $state[$param] = trim(strtoupper($result[$details['xmlPath']]));
                 
                 // Санитизираме цифровите входове и изходи
                 switch ($state[$param]) {
                     case 'ON' :
-                        $state[$param] = 1;
+                    case 'OPEN' :
+                    	$state[$param] = 1;
                         break;
                     case 'OFF' :
-                        $state[$param] = 0;
+                    case 'CLOSED' :
+                    	$state[$param] = 0;
                         break;
                 }
             }

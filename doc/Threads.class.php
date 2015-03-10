@@ -131,6 +131,8 @@ class doc_Threads extends core_Manager
         
         // Индекс за по-бързо избиране по папка
         $this->setDbIndex('folderId');
+        
+        $this->setDbIndex('firstContainerId');
     }
     
     
@@ -316,7 +318,7 @@ class doc_Threads extends core_Manager
         // Добавяме поле във формата за търсене
         $data->listFilter->FNC('search', 'varchar', 'caption=Ключови думи,input,silent,recently');
         $data->listFilter->FNC('order', 'enum(open=Първо отворените, recent=По последно, create=По създаване, numdocs=По брой документи)', 
-            'allowEmpty,caption=Подредба,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
+            'allowEmpty,caption=Подредба,input,silent,refreshForm');
         $data->listFilter->setField('folderId', 'input=hidden,silent');
         $data->listFilter->FNC('documentClassId', "class(interface=doc_DocumentIntf,select=title,allowEmpty)", 'caption=Вид документ,input,recently');
         
@@ -871,6 +873,8 @@ class doc_Threads extends core_Manager
             
             $msgQuery = email_Incomings::getSameFirstDocumentsQuery($folderRec->id, array('fromEml' => $msgRec->fromEml));
             
+            $msgQuery->show('id');
+            
             $sameEmailMsgCnt = $msgQuery->count() - 1;
             
             $msgRow = $doc->recToVerbal($msgRec);
@@ -1096,6 +1100,24 @@ class doc_Threads extends core_Manager
         static::save($rec, 'rejectedContainersInThread');
         
         self::invalidateDocumentCache($rec->id);
+    }
+    
+    
+    /**
+     * Извиква се след успешен запис в модела
+     *
+     * @param doc_Threads $mvc
+     * @param int $id - първичния ключ на направения запис
+     * @param stdClass $rec - всички полета, които току-що са били записани
+     */
+    public static function on_AfterSave($mvc, &$id, $rec)
+    {
+        if ($rec->folderId) {
+            $Folders = cls::get('doc_Folders');
+            if (Mode::is('isMigrate')) {
+                $Folders->preventNotification[$rec->folderId] = $rec->folderId;
+            }
+        }
     }
     
     
@@ -1719,7 +1741,7 @@ class doc_Threads extends core_Manager
      * @param core_Form $form
      * @see core_SettingsIntf
      */
-    function prepareForm(&$form)
+    function prepareSettingsForm(&$form)
     {
         // Задаваме таба на менюто да сочи към документите
         Mode::set('pageMenu', 'Документи');

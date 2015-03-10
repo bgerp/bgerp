@@ -39,7 +39,11 @@ class crm_Persons extends core_Master
         // Интерфейс за входящ документ
         'incoming_CreateDocumentIntf',
     		
+    	// Интерфейс за източник на производствен ресурс
     	'mp_ResourceSourceIntf',
+    		
+    	// Интерфейс за корица на папка в която може да се създава артикул
+    	'cat_ProductFolderCoverIntf',
     );
 
 
@@ -127,7 +131,7 @@ class crm_Persons extends core_Master
     /**
      * По кои сметки ще се правят справки
      */
-    public $balanceRefAccounts = '401,402,403,404,405,406,409,411,412,413,414,415,419';
+    public $balanceRefAccounts = '323,401,402,403,404,405,406,409,411,412,413,414,415,419';
     
     
     /**
@@ -157,7 +161,7 @@ class crm_Persons extends core_Master
     /**
      * Кой  може да групира "С избраните"?
      */
-    var $canGrouping = 'ceo,crm';
+    var $canGrouping = 'powerUser';
 
     
     /**
@@ -278,7 +282,7 @@ class crm_Persons extends core_Master
     static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
         // Добавяме поле във формата за търсене
-        $data->listFilter->FNC('users', 'users(rolesForAll = officer|manager|ceo, rolesForTeams = officer|manager|ceo|executive)', 'caption=Потребител,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
+        $data->listFilter->FNC('users', 'users(rolesForAll = officer|manager|ceo, rolesForTeams = officer|manager|ceo|executive)', 'caption=Потребител,input,silent,refreshForm');
         
         // Вземаме стойността по подразбиране, която може да се покаже
         $default = $data->listFilter->getField('users')->type->fitInDomain('all_users');
@@ -293,11 +297,10 @@ class crm_Persons extends core_Master
         $orderType = cls::get('type_Enum');
         $orderType->options = $options;
 
-        $data->listFilter->FNC('order', $orderType,'caption=Подредба,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
+        $data->listFilter->FNC('order', $orderType,'caption=Подредба,input,silent,refreshForm');
                                          
-        $data->listFilter->FNC('groupId', 'key(mvc=crm_Groups,select=name,allowEmpty)', 'placeholder=Всички групи,caption=Група,input,silent', 
-            array('attr' => array('onchange' => 'this.form.submit();')));
-        $data->listFilter->FNC('alpha', 'varchar', 'caption=Буква,input=hidden,silent', array('attr' => array('onchange' => 'this.form.submit();')));
+        $data->listFilter->FNC('groupId', 'key(mvc=crm_Groups,select=name,allowEmpty)', 'placeholder=Всички групи,caption=Група,input,silent,refreshForm');
+        $data->listFilter->FNC('alpha', 'varchar', 'caption=Буква,input=hidden,silent,refreshForm');
 
         $data->listFilter->view = 'horizontal';
 
@@ -532,7 +535,7 @@ class crm_Persons extends core_Master
             // Дали има права single' а на този потребител
             $canSingle = static::haveRightFor('single', $rec);
             
-            $row->nameList = $row->name;
+            $row->nameList = $mvc->getLinkToSingle($rec->id, 'name');
             
             if ($row->country) {
                 $row->addressBox = $row->country;
@@ -568,7 +571,7 @@ class crm_Persons extends core_Master
             } else {
                 
                 // Добавяме линк към профила на потребителя, който е inCharge на визитката
-                $row->phonesBox = crm_Profiles::createLink($rec->inCharge);
+                $row->phonesBox = tr('Отговорник') . ': ' . crm_Profiles::createLink($rec->inCharge);
             }
         }
         $currentId = $mvc->getVerbal($rec, 'id');
@@ -693,8 +696,10 @@ class crm_Persons extends core_Master
     /**
      * Добавя номера за лицето
      */
-    static function updateNumbers($rec)
+    public static function updateNumbers($rec)
     {
+        $numbersArr = array();
+        
         // Ако има телефон
         if ($rec->tel) {
             
@@ -850,7 +855,13 @@ class crm_Persons extends core_Master
                     $calRec->title = "ЧРД: {$rec->name}";
                 }
                 
-                $calRec->users = '';
+                // Само рожденните дни на потребителите и на публично достъпните лица се виждат от всички
+                if(crm_Profiles::fetch("#personId = {$id}") || $rec->access == 'public') {
+                    $calRec->users = '';
+                } else {
+                    $calRec->users =  str_replace('||', '|', "|{$rec->inCharge}|" . $rec->shared);
+                }
+
 
                 $calRec->url = array('crm_Persons', 'Single', $id);
 
@@ -948,7 +959,7 @@ class crm_Persons extends core_Master
 
         if ($rec = $self->fetch($objectId)) {
             $result = (object)array(
-                'num' => "P" . $rec->id,
+                'num' => $rec->id . " p",
                 'title' => $rec->name,
                 'features' => array('Държава' => static::getVerbal($rec, 'country'),
             						'Град' => bglocal_Address::canonizePlace(static::getVerbal($rec, 'place')))
@@ -998,7 +1009,11 @@ class crm_Persons extends core_Master
         while($rec = $query->fetch()) {
             $data->recs[$rec->id] = $rec;
             $row = $data->rows[$rec->id] = $this->recToVerbal($rec, 'name,mobile,tel,email,buzEmail,buzTel,buzLocationId,buzPosition');
-            $row->name = ht::createLink($row->name, array($this, 'Single', $rec->id));
+            
+            if ($this->haveRightFor('single', $rec)) {
+                $row->name = ht::createLink($row->name, array($this, 'Single', $rec->id));
+            }
+            
             if($rec->buzLocationId){
             	$row->name .= " - {$row->buzLocationId}";
             }
@@ -1180,7 +1195,7 @@ class crm_Persons extends core_Master
      * @param mixed $emails един или повече имейли, зададени като стринг или като масив
      * @param int $objectId
      */
-    protected static function createRoutingRules($emails, $objectId)
+    public static function createRoutingRules($emails, $objectId)
     {
         // Приоритетът на всички правила, генериране след запис на визитка е нисък и намаляващ с времето
         $priority = email_Router::dateToPriority(dt::now(), 'low', 'desc');
@@ -1656,7 +1671,7 @@ class crm_Persons extends core_Master
      * Вземаме всики папки на които сме inCharge или са споделени с нас или са публични или 
      * (са екипни и inCharge е някой от нашия екип) и състоянието е активно
      * 
-     * @param crm_Persons $query - Заявката към системата
+     * @param core_Query $query - Заявката към системата
      * @param int $userId - Потребителя, за който ще се отнася
      */
     static function applyAccessQuery(&$query, $userId = NULL)
@@ -1805,15 +1820,15 @@ class crm_Persons extends core_Master
         // Обхождаме всички драйвери
         foreach ($drivers as $driver) {
             
-            // Данните за визитката от съответния драйвер
-            $data = array();
-            
             // Опитваме се да подготвим данните
             try {
                 
                 // Подготвяме данните
                 $data = $driver->prepareData($fRec);
-            } catch (core_exception_Expect $e) { }
+            } catch (core_exception_Expect $e) {
+                // Данните за визитката от съответния драйвер
+                $data = array();
+            }
 
             // Събираме всички данни
             $allVcards = array_merge($allVcards, $data);
@@ -2276,7 +2291,7 @@ class crm_Persons extends core_Master
     	expect($rec = $this->fetchRec($id));
     	
     	$obj = new stdClass();
-    	$tpl = new ET("[#country#]<br>[#pCode#] [#place#]<br>[#address#]");
+    	$tpl = new ET("[#country#]<br> <!--ET_BEGIN pCode-->[#pCode#] <!--ET_END pCode-->[#place#]<br> [#address#]");
     	if($rec->country){
     		$obj->country = crm_Persons::getVerbal($rec, 'country');
     	}
@@ -2325,9 +2340,9 @@ class crm_Persons extends core_Master
      * @param int $id -ид на продукт
      * @param varchar $groupSysId - sysId на група
      */
-    public function forceGroup($id, $groupSysId)
+    public static function forceGroup($id, $groupSysId)
     {
-    	expect($rec = $this->fetch($id));
+    	expect($rec = static::fetch($id));
     	expect($groupId = crm_Groups::getIdFromSysId($groupSysId));
     	
     	// Ако контрагента не е включен в групата, включваме го
@@ -2335,9 +2350,11 @@ class crm_Persons extends core_Master
     		$groupName = crm_Groups::getTitleById($groupId);
     		$rec->groupList = keylist::addKey($rec->groupList, $groupId);
     		
-    		core_Statuses::newStatus(tr("|Лицето е включено в група |* '{$groupName}'"));
+    		if(haveRole('powerUser')){
+    			core_Statuses::newStatus(tr("|Лицето е включено в група |* '{$groupName}'"));
+    		}
     		
-    		return $this->save($rec, 'groupList');
+    		return static::save($rec, 'groupList');
     	}
     	
     	return TRUE;
@@ -2387,5 +2404,17 @@ class crm_Persons extends core_Master
     	$res->type = 'labor'; 
     	
     	return $res;
+    }
+    
+    
+    /**
+     * Връща мета дефолт мета данните на папката
+     *
+     * @param int $id - ид на папка
+     * @return array $meta - масив с дефолт мета данни
+     */
+    public function getDefaultMeta($id)
+    {
+    	return array();
     }
 }

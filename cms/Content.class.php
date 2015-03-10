@@ -304,7 +304,7 @@ class cms_Content extends core_Manager
             $s->append2master();
         }
         
-        Mode::set('wrapper', 'cms_Page');
+        Mode::set('wrapper', 'cms_page_External');
 
         return $res;
     }
@@ -565,7 +565,7 @@ class cms_Content extends core_Manager
             core_Lg::push($lg);
         }
 
-        Mode::set('wrapper', 'cms_Page');
+        Mode::set('wrapper', 'cms_page_External');
         
     }
 

@@ -42,8 +42,12 @@ class plg_PrevAndNext extends core_Plugin
             
             if (isset($Cmd['save_n_prev'])) {
                 $data->retUrl = array($mvc, 'edit', 'id' => $data->buttons->prevId, 'PrevAndNext' => 'on', 'ret_url' => getRetUrl());
+                
+                return FALSE;
             } elseif (isset($Cmd['save_n_next'])) {
                 $data->retUrl = array($mvc, 'edit', 'id' => $data->buttons->nextId, 'PrevAndNext' => 'on', 'ret_url' => getRetUrl());
+                
+                return FALSE;
             }
         }
     }

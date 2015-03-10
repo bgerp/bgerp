@@ -5,42 +5,54 @@
 	<!--ET_END blank-->
 	<!--ET_BEGIN header-->
 	<div class='header [#STATE_CLASS#]'>
-		<div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
+		<div class='docBgIcon' style='[#iconStyle#];'>[#singleTitle#] <b>[#ident#]</b> ([#state#])</div>
 	</div>
 	<!--ET_END header-->
-	
-		<table cellpadding='2px' class='report-info' border='0'>
-			<tr>
-				<td>|Касиер|*: </td>
-				<td></td>
-				<td><b>[#cashier#]</b></td>
-			</tr>
-			<tr>
-				<td>|Точка на продажба|*:</td>
-				<td></td>
-				<td><b>[#pointId#]</b></td>
-			</tr>
-			<tr>
-				<td>|Каса|*:</td>
-				<td></td>
-				<td><b>[#caseId#]</b></td>
-			</tr>
-			<tr>
-				<td>|Склад|*:</td>
-				<td></td>
-				<td><b>[#storeId#]</b></td>
-			</tr>
-			<tr>
-				<td>|Продадено|*:</td>
-				<td><span class='cCode' style='margin:0px 12px'>[#baseCurrency#]</span></td>
-				<td class = 'summary-right'><b>[#total#]</b></td>
-			</tr>
-			<tr>
-				<td>|Платено|*:</td>
-				<td><span class='cCode' style='margin:0px 12px'>[#baseCurrency#]</span></td>
-				<td class = 'summary-right'><b>[#paid#]</b></td>
-			</tr>
-		</table>
+	<table class='report-info'>
+		<tr>
+			<td>|Точка на продажба|*:</td>
+			<td></td>
+			<td><b>[#pointId#]</b></td>
+		</tr>
+		<tr>
+			<td>|Каса|*:</td>
+			<td></td>
+			<td><b>[#caseId#]</b></td>
+		</tr>
+		<tr>
+			<td>|Склад|*:</td>
+			<td></td>
+			<td><b>[#storeId#]</b></td>
+		</tr>
+		<tr>
+			<td>|Продадено|*:</td>
+			<td><span class='cCode' style='margin:0px 12px'>[#baseCurrency#]</span></td>
+			<td class = 'summary-right'><b>[#total#]</b></td>
+		</tr>
+		<tr>
+			<td>|Платено|*:</td>
+			<td><span class='cCode' style='margin:0px 12px'>[#baseCurrency#]</span></td>
+			<td class = 'summary-right'><b>[#paid#]</b></td>
+		</tr>
+		<tr>
+			<td>|Период|*:</td>
+			<td colspan='2'><span>[#period#]</span></td>
+		</tr>
+		<!--ET_BEGIN STATISTIC-->
+		<tr>
+        [#STATISTIC#]
+            <th colspan='3'></th>
+        </tr>
+		<!--ET_BEGIN ROW-->
+		[#ROW#]
+		<tr>
+		  <td>  -  [#receiptBy#]: </td>
+		  <td><span class='cCode' style='margin:0px 12px'>[#baseCurrency#]</span></td>
+		  <td>[#receiptTotal#]</td>
+		</tr>
+		<!--ET_END ROW-->
+	    <!--ET_END STATISTIC-->
+	</table>
 	<span>|Създаден на|* <b>[#createdDate#]</b> |от|* <b>[#createdBy#]</b></span>
 	<div class='overflow-scroll' style='margin: 15px 0;'>
 		[#SALES#]

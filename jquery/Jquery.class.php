@@ -2,13 +2,6 @@
 
 
 /**
- * Версията на JQuery, която се използва
- */
-defIfNot(JQUERY_VERSION, '1.7.1');
-
-
-
-/**
  * Клас 'jquery_Jquery' - Работа с JQuery библиотеката
  *
  *
@@ -30,7 +23,8 @@ class jquery_Jquery
      */
     static function getPath()
     {
-        $jQueryPath = 'jquery/' . JQUERY_VERSION . '/jquery.min.js';
+        $conf = core_Packs::getConfig('jquery');
+        $jQueryPath = 'jquery/' . $conf->JQUERY_VERSION . '/jquery.min.js';
         
         return $jQueryPath;
     }

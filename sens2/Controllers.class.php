@@ -30,6 +30,24 @@ class sens2_Controllers extends core_Master
     
     
     /**
+     * Полето "Наименование" да е хипервръзка към единичния изглед
+     */
+    var $rowToolsSingleField = 'name';
+
+
+    /**
+     * Заглавие в единичния изглед
+     */
+    var $singleTitle = 'Контролер';
+
+
+    /**
+     * Икона за единичния изглед
+     */
+    var $singleIcon = 'img/16/network-ethernet-icon.png';
+
+
+    /**
      * Права за писане
      */
     var $canWrite = 'ceo,sens,admin';
@@ -65,7 +83,7 @@ class sens2_Controllers extends core_Master
     function description()
     {
         $this->FLD('name', 'varchar(255)', 'caption=Наименование, mandatory,notConfig');
-        $this->FLD('driver', 'class(interface=sens2_DriverIntf, allowEmpty)', 'caption=Драйвер,silent,mandatory,notConfig,placeholder=Тип на контролера', array('attr' => array('onchange' => "addCmdRefresh(this.form);this.form.submit()")));
+        $this->FLD('driver', 'class(interface=sens2_DriverIntf, allowEmpty, select=title)', 'caption=Драйвер,silent,mandatory,notConfig,placeholder=Тип на контролера');
         $this->FLD('config', 'blob(serialize, compress)', 'caption=Конфигурация,input=none,single=none,column=none');
         $this->FLD('state', 'enum(active=Активен, closed=Спрян)', 'caption=Състояние,input=none');
         $this->FLD('persistentState', 'blob(serialize)', 'caption=Персистентно състояние,input=none,single=none,column=none');
@@ -84,6 +102,12 @@ class sens2_Controllers extends core_Master
     {
         $form = $data->form;
         $rec =  $form->rec;
+        
+        $exFields = $form->selectFields();
+
+        if($rec->driver) {
+            self::prepareConfigForm($form, $rec->driver);
+        }
  
         if($rec->id) {
             $form->setReadOnly('driver');
@@ -93,11 +117,51 @@ class sens2_Controllers extends core_Master
                     $rec->{$key} = $value;
                 }
             }
+        } else {
+            $fldList = '';
+            $newFields = $form->selectFields();
+            foreach($newFields as $name => $fld) {
+                if(!$exFields[$name]) {
+                    $fldList .= ($fldList ? '|' : '') . $name;
+                }
+            }
+            if($fldList) {
+                $form->setField('driver',  "removeAndRefreshForm={$fldList}");
+            } else {
+                $form->setField('driver',  "refreshForm");
+            }
         }
 
-        if($rec->driver) {
-            self::prepareConfigForm($form, $rec->driver);
+    }
+
+
+    /**
+     * Връща обекта драйвер за посочения контролер
+     */
+    static function getActivePorts($controllerId)
+    {
+        $rec = self::fetch($controllerId);
+        $drv = cls::get($rec->driver);
+ 
+        $ports = $drv->getInputPorts() + $drv->getOutputPorts();
+
+        $config = $rec->config;
+        $res = array('' => ' ');
+        foreach($ports as $port => $params) {
+            $partName = $port . '_name';
+            if($config->{$partName}) {
+                $caption = $port . " (". $config->{$partName} . ")";
+            } else {
+                $caption = new stdClass();
+                $caption->title = $port . " (". $params->caption . ")";
+                $caption->attr = array('style' => 'color:#999;');
+            }
+            
+            $res[$port] = $caption;
+
         }
+  
+        return  $res;
     }
 
 
@@ -119,10 +183,10 @@ class sens2_Controllers extends core_Master
 
         foreach($ports as $port => $params) {
             
-            $prefix = $params->caption . " ({$port})";
+            $prefix = $port . ($params->caption ? " ({$params->caption})" : "");
 
             $form->FLD($port . '_name', 'varchar(32)', "caption={$prefix}->Наименование");
-            $form->FLD($port . '_scale', 'varchar(255,valid=sens2_Controllers::isValidExpr)', "caption={$prefix}->Скалиране,hint=Въведете функция на X с която да се скалира стойността на входа");
+            $form->FLD($port . '_scale', 'varchar(255,valid=sens2_Controllers::isValidExpr)', "caption={$prefix}->Скалиране,hint=Въведете функция на X с която да се скалира стойността на входа. Например: `X*50` или `X/2`");
             $form->FLD($port . '_uom', 'varchar(16)', "caption={$prefix}->Единица");
             $form->FLD($port . '_update', 'time(suggestions=1 min|2 min|5 min|10 min|30 min,uom=minutes)', "caption={$prefix}->Четене през");
             $form->FLD($port . '_log', 'time(suggestions=1 min|2 min|5 min|10 min|30 min,uom=minutes)', "caption={$prefix}->Логване през");
@@ -139,7 +203,7 @@ class sens2_Controllers extends core_Master
         
         foreach($ports as $port => $params) {
 
-            $prefix = $params->caption . " ({$port})";
+            $prefix = $port . ($params->caption ? " ({$params->caption})" : "");
 
             $form->FLD($port . '_name', 'varchar(32)', "caption={$prefix}->Наименование");
             $form->FLD($port . '_uom', 'varchar(16)', "caption={$prefix}->Единица");

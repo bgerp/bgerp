@@ -24,7 +24,7 @@ class cms_DefaultTheme extends core_Manager {
     /**
      * Заглавие
      */
-    var $title = "Базова тема за публичното съдържание";
+    var $title = "Стандартен дизайн";
     
     
     /*

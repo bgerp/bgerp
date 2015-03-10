@@ -1,0 +1,2 @@
+jquery.datepick-bg.js: сменени текстове на линковете за напред и назад
+jquery.datepick.js: работещ бутон днес: добавено '$('.datepick-today').click(); $(this).blur();' в action: function(inst) { plugin.showMonth(this); }

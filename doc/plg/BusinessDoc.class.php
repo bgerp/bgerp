@@ -4,7 +4,7 @@
  *
  * Плъгин за избор на папка в която да се въздава документ.
  * Класа трябва да има метод getAllowedFolders който връща масив от интерфейси
- * на които трябва да отговарят папките които могат да са корици на документи.
+ * на които трябва да отговарят папките които могат да са корици на документи, или име на клас.
  * След това се рендира форма за избор на запис от всеки клас отговарящ на
  * интерфейса. Трябва да се определи точно една папка, не е позволено да се 
  * изберат повече от една. След като папката се уточни се отива в екшъна за
@@ -141,8 +141,15 @@ class doc_plg_BusinessDoc extends core_Plugin
     	
     	// Намират се всички класове отговарящи на тези интерфейси
     	$coversArr = array();
-    	foreach ($interfaces as $int){
-    		$coversArr +=  core_Classes::getOptionsByInterface($int);
+    	foreach ($interfaces as $index => $int){
+    		
+    		// Ако иднекса е число, приемаме че е зададен интерфейс, иначе приемаме че е име на клас
+    		if(is_numeric($index)){
+    			$coversArr +=  core_Classes::getOptionsByInterface($int);
+    		} else {
+    			$clsRec = core_Classes::fetch("#name = '{$int}'", 'id,name');
+    			$coversArr +=  array($clsRec->id => $clsRec->name);
+    		}
     	}
     	
     	// Подготовка на формата за избор на папка
@@ -248,8 +255,19 @@ class doc_plg_BusinessDoc extends core_Plugin
     		return;
     	}
     	
+    	$params = array('folderId' => $selectedField::forceCoverAndFolder($value));
+    	
+    	// Да се подават и другите параметри от урл-то
+    	foreach(getCurrentUrl() as $key => $value){
+    		if($key != 'App' && $key != 'Ctr' && $key != 'Act' && $key != 'Cmd'){
+    			if(!$form->getField($key, FALSE)){
+    				$params[$key] = $value;
+    			}
+    		}
+    	}
+    	
     	// При избран точно един обект се форсира неговата папка и се връща
-    	return array('folderId' => $selectedField::forceCoverAndFolder($value));
+    	return $params;
     }
     
     

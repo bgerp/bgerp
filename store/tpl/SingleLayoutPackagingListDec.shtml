@@ -5,7 +5,7 @@
     <!--ET_END blank-->
     <!--ET_BEGIN header-->
     <div class='header [#STATE_CLASS#]'>
-        <div class='docBgIcon' style='[#iconStyle#];'>[#header#]</div>
+        <div class='docBgIcon' style='[#iconStyle#];'>[#singleTitle#] <b>[#ident#]</b> ([#state#])</div>
     </div>
     <!--ET_END header-->
     <table class='no-border' style='width:100%;'>
@@ -58,67 +58,7 @@
                                 <tbody>
                                     <tr>
                                         <td class="topCell first vtop" style='width:50%'>
-                                            <table class='shipment-table' style='width: 100%'>
-                                                <!--ET_BEGIN DELIVERY_ADRESS-->
-                                                [#DELIVERY_ADRESS#]
-                                                <tr>
-                                                    <td colspan='2' style='border-bottom:1px solid #999;' class='quiet nowrap'>Delivery address</td>
-                                                </tr>
-                                                <!--ET_BEGIN company-->
-                                                <tr>
-                                                    <td class='quiet aright'>Company:</td>
-                                                    <td>[#company#]</td>
-                                                </tr>
-                                                <!--ET_END company-->
-                                                <!--ET_BEGIN person-->
-                                                <tr>
-                                                    <td class='quiet aright'>Person:</td>
-                                                    <td>[#person#]</td>
-                                                </tr>
-                                                <!--ET_END person-->
-                                                <!--ET_BEGIN country-->
-                                                <tr>
-                                                    <td class='quiet aright'>Country:</td>
-                                                    <td>[#country#]</td>
-                                                </tr>
-                                                <!--ET_END country-->
-                                                <!--ET_BEGIN tel-->
-                                                <tr>
-                                                    <td class='quiet aright'>Phones:</td>
-                                                    <td>[#tel#]</td>
-                                                </tr>
-                                                <!--ET_END tel-->
-                                                <!--ET_BEGIN pCode-->
-                                                <tr>
-                                                    <td class='quiet aright'>Post code:</td>
-                                                    <td>[#pCode#]</td>
-                                                </tr>
-                                                <!--ET_END pCode-->
-                                                <!--ET_BEGIN place-->
-                                                <tr>
-                                                    <td class='quiet aright'>City:</td>
-                                                    <td>[#place#]</td>
-                                                </tr>
-                                                <!--ET_END place-->
-                                                <!--ET_BEGIN address-->
-                                                <tr>
-                                                    <td class='quiet aright'>Address:</td>
-                                                    <td>[#address#]</td>
-                                                </tr>
-                                                <!--ET_END address-->
-                                                <!--ET_END DELIVERY_ADRESS-->
-                                                <!--ET_BEGIN note-->
-                                                <tr>
-                                                    <td colspan=2 >
-                                                        <hr>
-                                                        [#note#]
-                                                    </td>
-                                                </tr>
-                                                <!--ET_END note-->
-                                            </table>
-                                        </td>
-                                        <td>
-                                            <table class='shipment-table' style='width: 100%'>
+                                             <table class='shipment-table' style='width: 100%'>
                                                 <!--ET_BEGIN deliveryTime-->
                                                 <tr>
                                                     <td style='width:1%' class='nowrap quiet aright'>Delivery time:</td>
@@ -130,25 +70,39 @@
                                                     <td class='nowrap quiet aright'>From store:</td>
                                                     <td>[#storeId#]</td>
                                                 </tr>
-                                                <!--ET_END storeId-->
-                                                <!--ET_BEGIN locationId-->
+                                                <!--ET_BEGIN locationData-->
+                                                [#locationData#]
                                                 <tr>
                                                     <td class='nowrap quiet aright'>Delivery place:</td>
+                                                    <!--ET_BEGIN locationId-->
                                                     <td><b>[#locationId#]</b>, [#deliveryLocationAddress#]</td>
+                                                    <!--ET_END locationId-->
+                                                    <!--ET_BEGIN formLocation-->
+                                                        [#formLocation#]
+                                                        <td>
+                                                             [#deliveryTo#]
+                                                        </td>
+                                                    <!--ET_END formLocation-->
                                                 </tr>
-                                                <!--ET_END locationId-->
+                                                <!--ET_END locationData-->
                                                 <!--ET_BEGIN lineId-->
                                                 <tr>
                                                     <td class='nowrap quiet aright'>Transport: </td>
                                                     <td>[#lineId#]</td>
                                                 </tr>
                                                 <!--ET_END lineId-->
+                                                <!--ET_BEGIN note-->
                                                 <tr>
                                                     <td colspan="2">
                                                         <hr>
+                                                        [#note#]
                                                     </td>
                                                 </tr>
+                                                <!--ET_END note-->
                                             </table>
+                                        </td>
+                                        <td>
+                                           
                                             <div>Total weight:&nbsp;[#weight#] &nbsp;&nbsp;&nbsp;&nbsp; Total volume:&nbsp;[#volume#] &nbsp;&nbsp;&nbsp;&nbsp;Collets count:&nbsp;[#colletsCount#]</div>
                                             <hr>
                                             <table class='center' style='width:100%;'>

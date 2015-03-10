@@ -341,10 +341,10 @@ class email_Router extends core_Manager
      */
     static function doRuleThread($rec)
     {
-        $rec->threadId = static::extractThreadFromReplyTo($rec);
+        $rec->threadId = email_ThreadHandles::extractThreadFromSubject($rec->subject);
         
         if (!$rec->threadId) {
-            $rec->threadId = email_ThreadHandles::extractThreadFromSubject($rec->subject);
+            $rec->threadId = static::extractThreadFromReplyTo($rec);
         }
         
         if ($rec->threadId) {

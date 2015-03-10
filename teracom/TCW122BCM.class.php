@@ -12,9 +12,9 @@
  * @author    Dimiter Minekov <mitko@extrapack.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
- * @since     v 0.1
+ * @title     Тераком TCW122B-CM
  */
-class teracom_TCW122BCM
+class teracom_TCW122BCM extends sens2_ProtoDriver
 {
     
     /**
@@ -22,12 +22,6 @@ class teracom_TCW122BCM
      */
     var $title = 'TCW122B-CM';
     
-    
-    /**
-     * Интерфeйси, поддържани от всички наследници
-     */
-    var $interfaces = 'sens2_DriverIntf';
-
     
     /**
      * Описание на входовете на драйвера
@@ -104,18 +98,6 @@ class teracom_TCW122BCM
     
 
     /**
-     * Проверява след  субмитване формата с настройки на контролера
-     *
-     * @see  sens2_DriverIntf
-     *
-     * @param   core_Form
-     */
-    function checkConfigForm($form)
-    {
-    }
-
-
-    /**
      * Прочита стойностите от сензорните входове
      *
      * @see  sens2_DriverIntf
@@ -147,14 +129,14 @@ class teracom_TCW122BCM
         // Ако не сме получили xml - връщаме грешка
         if (empty($xml) || !$xml) {
             
-            return "Грешка при четене от {$config->ip}";
+            return "Грешка при четене от {$config->ip}:{$config->ip}";
         }
         
         echo "<br><pre>$xml</pre>";
 
         // Парсираме XML-а
         $result = array();
-        $this->XMLToArrayFlat(simplexml_load_string($xml), $result);
+        core_XML::toArrayFlat(simplexml_load_string($xml), $result);
         
         // Извличаме състоянията на входовете от парсирания XML
         foreach ($this->inputs as $name => $details) {
@@ -175,10 +157,12 @@ class teracom_TCW122BCM
             if($value) {
                 switch (strtoupper($value)) {
                     case 'ON':
-                        $res[$name] = 1;
+                    case 'OPEN':
+                    	$res[$name] = 1;
                         break;
                     case 'OFF':
-                        $res[$name] = 0;
+                    case 'CLOSED':
+                    	$res[$name] = 0;
                         break;
                     default:
                         $res[$name] = (float) $value;
@@ -213,39 +197,5 @@ class teracom_TCW122BCM
             curl_close($ch);
         }
     }
-    
-    
-    /**
-     * Преобразува SimpleXMLElement в масив
-     */
-    function XMLToArrayFlat($xml, &$return, $path = '', $root = FALSE)
-    {
-        $children = array();
-        
-        if ($xml instanceof SimpleXMLElement) {
-            $children = $xml->children();
-            
-            if ($root){ // we're at root
-                $path .= '/' . $xml->getName();
-            }
-        }
-        
-        if (count($children) == 0){
-            $return[$path] = (string) $xml;
-            
-            return;
-        }
-        
-        $seen = array();
-        
-        foreach ($children as $child => $value) {
-            $childname = ($child instanceof SimpleXMLElement) ? $child->getName() : $child;
-            
-            if (!isset($seen[$childname])){
-                $seen[$childname] = 0;
-            }
-            $seen[$childname]++;
-            $this->XMLToArrayFlat($value, $return, $path . '/' . $child . '[' . $seen[$childname] . ']');
-        }
-    }
+
 }

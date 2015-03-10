@@ -1,6 +1,10 @@
 <table>
 <!--ET_BEGIN num-->
 <tr>
+<td class='quiet aright'>|Id|*:</td>
+<td>[#id#]</td>
+</tr>
+<tr>
 <td class='quiet aright'>|Номер|*:</td>
 <td>[#num#]</td>
 </tr>
@@ -25,6 +29,13 @@
 <td> [#createdBy#]</td>
 </tr>
 <!--ET_END createdBy-->
+
+<!--ET_BEGIN state-->
+<tr>
+<td class='quiet aright'>|Състояние|*:</td>
+<td> [#state#]</td>
+</tr>
+<!--ET_END state-->
 
 <tr>
 <td colspan='2' style='text-align:right'>

@@ -35,10 +35,10 @@ class core_SettingsIntf
      * 
      * @param core_Form $form
      */
-    function prepareForm(&$form)
+    function prepareSettingsForm(&$form)
     {
         
-        return $this->class->prepareForm($form);
+        return $this->class->prepareSettingsForm($form);
     }
     
     

@@ -395,7 +395,7 @@ class doc_Containers extends core_Manager
             $flagJustActived = TRUE;
             $mustSave = TRUE;
         }
-
+        
         if($mustSave) {
             doc_Containers::save($rec, $updateField);
 
@@ -435,6 +435,61 @@ class doc_Containers extends core_Manager
                 
                 // Нотифицираме абонираните потребители
                 static::addNotifiactions($subscribedWithoutSharedArr, $docMvc, $rec, 'добави');
+            }
+        }
+    }
+    
+    
+    /**
+     * Добавя/премахва нотификации
+     * 
+     * @param object $dRec
+     * @param string $oldSharedUsers
+     * @param string $newSharedUsers
+     */
+    public static function changeNotifications($dRec, $oldSharedUsers, $newSharedUsers)
+    {
+        if (($oldSharedUsers == $newSharedUsers)) return ;
+        
+        expect($rec = self::fetch($dRec->containerId), $dRec->containerId);
+        
+        $docMvc = cls::get($rec->docClass);
+        
+        // Масис със споделените потребители
+        $sharedKeylist = type_Keylist::diff($newSharedUsers, $oldSharedUsers);
+        
+        $sharedArr = type_Keylist::toArray($sharedKeylist);
+        
+        $keyUrl = array('doc_Containers', 'list', 'threadId' => $dRec->threadId);
+        
+        // Премахваме контейнера от достъпните
+        doc_ThreadUsers::removeContainer($rec->id);
+        
+        if ($sharedArr) {
+            
+            // Нотифицираме споделените
+            self::addNotifiactions($sharedArr, $docMvc, $rec, 'сподели', FALSE, $dRec->priority);
+            
+            foreach ($sharedArr as $userId) {
+                
+                // Добавяме документа в "Последно" за новия потребител
+                bgerp_Recently::setHidden('document', $rec->id, 'no', $userId);
+            }
+        }
+        
+        $removedUsers = type_Keylist::diff($oldSharedUsers, $newSharedUsers);
+        
+        $removedUsersArr = type_Keylist::toArray($removedUsers);
+        
+        if ($removedUsersArr) {
+            
+            foreach ($removedUsersArr as $userId) {
+                
+                // Добавяме документа в нотификациите за новия потреибител
+                bgerp_Notifications::setHidden($keyUrl, 'yes', $userId);
+                
+                // Добавяме документа в "Последно" за новия потребител
+                bgerp_Recently::setHidden('document', $rec->id, 'yes', $userId);
             }
         }
     }
@@ -817,7 +872,7 @@ class doc_Containers extends core_Manager
     {
         $handle = trim($handle);
         
-        if (!preg_match("/(?'abbr'[a-z]{1,3})(?'id'[0-9]{1,10})/i", $handle, $matches)) {
+        if (!preg_match(doc_RichTextPlg::$identPattern, $handle, $matches)) {
             return FALSE;
         }
         
@@ -1112,17 +1167,8 @@ class doc_Containers extends core_Manager
         // Записите на контейнера
         $doc = doc_Containers::getDocument($id);
         
-        // Вземаме записите на класа
-        $docRec = $doc->fetch();
+        $lg = $doc->getLangFromRec();
         
-        if($docRec->textPart) {
-
-            $lg = i18n_Language::detect($docRec->textPart);
-          
-        } else {
-            $lg = $docRec->lg;
-        }
-
         // Връщаме езика
         return $lg;
     }
@@ -1344,6 +1390,14 @@ class doc_Containers extends core_Manager
                         $rec->docId = $docId;
                         if (self::save($rec)) {
                             $resArr['docId']++;
+                        }
+                    } else {
+                        if ($rec->id) {
+                            
+                            // Ако не може да се намери съответен документ, изтриваме го
+                            if (self::delete($rec->id)) {
+                                $resArr['del_cnt']++;
+                            }
                         }
                     }
                 }

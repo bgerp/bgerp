@@ -12,7 +12,7 @@
  * @since     v 0.1
  * @link
  */
-class cat_products_VatGroups extends cat_products_Detail
+class cat_products_VatGroups extends core_Detail
 {
     
     
@@ -152,10 +152,15 @@ class cat_products_VatGroups extends cat_products_Detail
      */
     public static function prepareVatGroups($data)
     {   
-        $data->TabCaption = 'ДДС';
-        $data->Order = 60;
-
-        static::prepareDetail($data);
+        $query = static::getQuery();
+        $query->where("#productId = {$data->masterId}");
+        while($rec = $query->fetch()){
+        	$data->rows[$rec->id] = static::recToVerbal($rec);
+        }
+        
+        if(static::haveRightFor('add', (object)array('productId' => $data->masterId))){
+        	$data->addUrl = array(get_called_class(), 'add', 'productId' => $data->masterId, 'ret_url' => TRUE);
+        }
     }
     
     
@@ -164,7 +169,20 @@ class cat_products_VatGroups extends cat_products_Detail
      */
     public static function renderVatGroups($data)
     {
-        return static::renderDetail($data);
+    	$wrapTpl = getTplFromFile('cat/tpl/ProductDetail.shtml');
+    	$table = cls::get('core_TableView', array('mvc' => $this));
+    	$data->listFields = array("groupId" => "Група", 'vatGroup' => 'ДДС (%)', 'validFrom' => 'В сила oт');
+        $tpl = $table->get($data->rows, $data->listFields);
+    	
+    	$title = 'ДДС групи';
+    	if($data->addUrl){
+    		$title .= ht::createLink("<img src=" . sbf('img/16/add.png') . " valign=bottom style='margin-left:5px;'>", $data->addUrl, FALSE, 'title=Добавяне на нова себестойност');
+    	}
+    	
+    	$wrapTpl->append($title, 'TITLE');
+    	$wrapTpl->append($tpl, 'CONTENT');
+    	
+    	return $wrapTpl;
     }
     
     
@@ -175,6 +193,12 @@ class cat_products_VatGroups extends cat_products_Detail
     {
     	if(($action == 'edit' || $action == 'delete') && isset($rec)){
     		if($rec->validFrom <= dt::now()){
+    			$requiredRoles = 'no_one';
+    		}
+    	}
+    	
+    	if($action == 'add' && isset($rec->productId)){
+    		if(cat_Products::fetchField($rec->productId, 'state') != 'active'){
     			$requiredRoles = 'no_one';
     		}
     	}

@@ -38,7 +38,7 @@ class email_Filters extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_State2, email_Wrapper, plg_RowTools';
+    var $loadList = 'plg_Created, plg_State2, email_Wrapper, plg_RowTools, plg_Clone';
     
     
     /**
@@ -98,15 +98,15 @@ class email_Filters extends core_Manager
      */
     function description()
     {
-    	//$this->FLD('systemId' ,  'varchar(32)', 'caption=Ключ');
+    	$this->FLD('systemId' ,  'varchar(32)', 'caption=Ключ');
         $this->FLD('email' , 'varchar', 'caption=Условие->Изпращач', array('attr'=>array('style'=>'width: 350px;')));
         $this->FLD('subject' , 'varchar', 'caption=Условие->Относно', array('attr'=>array('style'=>'width: 350px;')));
         $this->FLD('body' , 'varchar', 'caption=Условие->Текст', array('attr'=>array('style'=>'width: 350px;')));
         $this->FLD('action' , 'enum(email=Рутиране по първи външен имейл,folder=Преместване в папка,spam=Маркиране като спам)', 'value=email,caption=Действие->Действие,maxRadio=4,columns=1,notNull');
         $this->FLD('folderId' , 'key(mvc=doc_Folders, select=title, allowEmpty, where=#state !\\= \\\'rejected\\\')', 'caption=Действие->Папка');
         $this->FLD('note' , 'text', 'caption=@Забележка', array('attr'=>array('style'=>'width: 100%;', 'rows'=>4)));
-
-       // $this->setDbUnique('systemId');
+        
+        $this->setDbUnique('systemId');
     }
 
     
@@ -200,7 +200,7 @@ class email_Filters extends core_Manager
             }
             
             // Добавяме текста
-            $rec->fromName .= ' ' . tr('чрез') . ' ' . $rec->fromEml;
+            $rec->fromName .= ' чрез ' . $rec->fromEml;
             
             // Задаваме първия имейл
             $rec->fromEml = $emails[0];
@@ -268,12 +268,43 @@ class email_Filters extends core_Manager
             if (empty($filterRec->{$filterField})) {
                 continue;
             }
-            if (mb_stripos($haystack, $filterRec->{$filterField}) === FALSE) {
-                return FALSE;
+            
+            $pattern = self::getPatternForFilter($filterRec->{$filterField});
+            
+            if (preg_match($pattern, $haystack)) {
+                return TRUE;
             }
+            
         }
         
-        return TRUE;
+        return FALSE;
+    }
+    
+    
+    /**
+     * Връща шаблона за търсене с preg
+     * 
+     * @param string $str
+     * 
+     * @return string
+     */
+    protected static function getPatternForFilter($str)
+    {
+        static $filtersArr = array();
+        
+        if ($filtersArr[$str]) return $filtersArr[$str];
+        
+        $pattern = $str;
+        
+        $pattern = preg_quote($pattern, '/');
+        
+        $pattern = str_ireplace('\\*', '.*', $pattern);
+        
+        $pattern = "/" . $pattern . "/iu";
+        
+        $filtersArr[$str] = $pattern;
+        
+        return $filtersArr[$str];
     }
     
     
@@ -310,7 +341,49 @@ class email_Filters extends core_Manager
     {
         return FALSE; // @TODO
     }
-
+    
+    
+    /**
+     * 
+     * 
+     * @param object $rec
+     */
+    public static function getSystemId($rec)
+    {
+        if ($rec->systemId) return $rec->systemId;
+        
+        $str = trim($rec->email) . '|' . trim($rec->subject) . '|' . trim($rec->body) . '|' . trim($rec->action) . '|' . trim((int)$rec->folderId);
+        $systemId = md5($str);
+        
+        return $systemId;
+    }
+    
+	
+	/**
+     * Преди запис на документ, изчислява стойността на полето `isContable`
+     *
+     * @param email_Filters $mvc
+     * @param stdClass $res
+     * @param stdClass $rec
+     */
+    public static function on_BeforeSave($mvc, $res, $rec)
+    {
+        if (!$rec->systemId) {
+            $rec->systemId = $mvc->getSystemId($rec);
+        }
+    }
+    
+    
+	/**
+     * Изпълнява се преди импортирването на данните
+     */
+    public static function on_BeforeImportRec($mvc, $rec)
+    {
+        if (!$rec->systemId) {
+            $rec->systemId = $mvc->getSystemId($rec);
+        }
+    }
+    
     
     /**
      * Извиква се след SetUp-а на таблицата за модела
@@ -318,9 +391,8 @@ class email_Filters extends core_Manager
      * Зареждане на потребителски правила за
      * рутиране на имейли според събджект или тяло
      */
-    static function on_AfterSetupMvc($mvc, &$res) 
+    function loadSetupData() 
     {
-     
     	// Подготвяме пътя до файла с данните 
     	$file = "email/data/Filters.csv";
     	
@@ -333,48 +405,31 @@ class email_Filters extends core_Manager
     		4 => "folderId",
     		5 => "note",
     		6 => "state",
-    		7 => "csv_createdBy",
     	);
-    	    	
+    	
     	// Импортираме данните от CSV файла. 
     	// Ако той не е променян - няма да се импортират повторно 
-    	$cntObj = csv_Lib::importOnce($mvc, $file, $fields, NULL, NULL); 
+    	$cntObj = csv_Lib::importOnce($this, $file, $fields, NULL, NULL); 
      	
     	// Записваме в лога вербалното представяне на резултата от импортирането 
-    	$res .= $cntObj->html;
+    	return $cntObj->html;
     }
     
     
     /**
-     * Изпълнява се преди импортирването на данните
-     */
-    public static function on_BeforeImportRec($mvc, &$rec)
-    {
-    	if (isset($rec->csv_createdBy)) {
-    		
-    		$rec->createdBy = -1;
-    	}
-    }
-    
-
-    /**
-     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
-     *
+     * Преди записване на клонирания запис
+     * 
      * @param core_Mvc $mvc
-     * @param string $requiredRoles
-     * @param string $action
-     * @param stdClass $rec
-     * @param int $userId
+     * @param object $rec
+     * @param object $nRec
+     * 
+     * @see plg_Clone
      */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec, $userId)
+    function on_BeforeSaveCloneRec($mvc, $rec, $nRec)
     {
-    	
-    	// Ако се опитваме да направим заповед за отпуска
-	    if($action == 'edit' || $action == 'delete'){ 
-			if ($rec->id && $rec->createdBy == "-1") {
-				        // то не може да я направим
-						$requiredRoles = 'no_one';
-		    }
-	    }
-     }
+        // Премахваме ненужните полета
+        unset($nRec->createdOn);
+        unset($nRec->createdBy);
+        unset($nRec->state);
+    }
 }

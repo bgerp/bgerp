@@ -180,10 +180,12 @@ class store_Receipts extends store_DocumentMaster
      */
     public function renderReceipts($data)
     {
-    	$table = cls::get('core_TableView');
-    	$fields = "rowNumb=№,docId=Документ,weight=Тегло,volume=Обем,collection=Инкасиране,address=@Адрес";
-    	
-    	return $table->get($data->receipts, $fields);
+    	if(count($data->receipts)){
+    		$table = cls::get('core_TableView');
+    		$fields = "rowNumb=№,docId=Документ,storeId=Склад,weight=Тегло,volume=Обем,collection=Инкасиране,address=@Адрес";
+    		 
+    		return $table->get($data->receipts, $fields);
+    	}
     }
     
     

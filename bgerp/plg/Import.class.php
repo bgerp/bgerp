@@ -107,7 +107,7 @@ class bgerp_plg_Import extends core_Plugin
                 }
                 
                 // Преобразуване на csv-то в масив, по зададените параметри
-                $rows = self::getCsvRows($csvData, $delimiter, $enclosure, $firstRow, $cols);
+                $rows = csv_Lib::getCsvRows($csvData, $delimiter, $enclosure, $firstRow, $cols);
                 
                 if($mvc->haveRightFor('import')){
                     
@@ -141,33 +141,6 @@ class bgerp_plg_Import extends core_Plugin
     
     
     /**
-     * Връща масив с данните от csv-то
-     * @param string $csvData - csv данни
-     * @param char $delimiter - разделител
-     * @param char $enclosure - ограждане
-     * @param string $firstRow - първи ред данни или имена на колони
-     * @return array $rows - масив с парсирани редовете на csv-то
-     */
-    private static function getCsvRows($csvData, $delimiter, $enclosure, $firstRow)
-    {
-        $textArr = explode(PHP_EOL, trim($csvData));
-        
-        foreach($textArr as $line){
-            $arr = str_getcsv($line, $delimiter, $enclosure);
-            array_unshift($arr, "");
-            unset($arr[0]);
-            $rows[] = $arr;
-        }
-        
-        if($firstRow == 'columnNames'){
-            unset($rows[0]);
-        }
-        
-        return $rows;
-    }
-    
-    
-    /**
      * Зарежда данни от посочен CSV файл, като се опитва да ги конвертира в UTF-8
      */
     static function getFileContent($fh)
@@ -195,7 +168,7 @@ class bgerp_plg_Import extends core_Plugin
         // Избиране на драйвър за импортиране
         $exp->DEF('#driver', 'int', 'caption=Драйвър,input,mandatory');
         $exp->OPTIONS("#driver", "getimportdrivers()");
-        $exp->question("#driver", tr("Моля, изберете драйвър") . ":", TRUE, 'title=' . tr('Какъв драйвер ще се използва') . '?');
+        $exp->question("#driver", tr("Моля, изберете драйвър") . ":", TRUE, 'title=' . tr('Какъв драйвър ще се използва') . '?');
         
         // Избор как ще се въведат данните с copy & paste или с ъплоуд
         $exp->DEF('#source=Източник', 'enum(csvFile=Файл със CSV данни,csv=Copy&Paste на CSV данни)', 'maxRadio=5,columns=1,mandatory');
@@ -204,11 +177,11 @@ class bgerp_plg_Import extends core_Plugin
         
         // Поле за ръчно въвеждане на csv данни
         $exp->DEF('#csvData=CSV данни', 'text(1000000)', 'width=100%,mandatory');
-        $exp->question("#csvData,#delimiter,#enclosure,#firstRow", tr("Моля, поставете данните, и посочете формата на данните") . ":", "#source == 'csv'", 'title=' . tr('Въвеждане на CSV данни за контакти, и уточняване на разделителя и ограждането'));
+        $exp->question("#csvData,#delimiter,#enclosure,#firstRow", tr("Моля, поставете данните, и посочете формата на данните") . ":", "#source == 'csv'", 'title=' . tr('Въвеждане на CSV данни за импорт, и уточняване на разделителя и ограждането'));
         
         // Поле за ъплоуд на csv файл
         $exp->DEF('#csvFile=CSV файл', 'fileman_FileType(bucket=bnav_importCsv)', 'mandatory');
-        $exp->question("#csvFile,#delimiter,#enclosure,#firstRow", tr("Въведете файл с контактни данни във CSV формат, и посочете формата на данните") . ":", "#source == 'csvFile'", 'title=' . tr('Въвеждане на данните от файл, и уточняване на разделителя и ограждането'));
+        $exp->question("#csvFile,#delimiter,#enclosure,#firstRow", tr("Въведете файл с във CSV формат, и посочете формата на данните") . ":", "#source == 'csvFile'", 'title=' . tr('Въвеждане на данните от файл, и уточняване на разделителя и ограждането'));
         $exp->rule("#csvData", "getFileContentCsv(#csvFile)");
         
         // Полета за избиране на Разделител, ограждане и вида на първия ред

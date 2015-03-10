@@ -8,7 +8,7 @@
  * @category  bgerp
  * @package   dec
  * @author    Gabriela Petrova <gab4eto@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -247,5 +247,19 @@ class dec_DeclarationTypes extends core_Master
     function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec, $userId = NULL)
     {
     
+    }
+    
+    
+    /**
+     * Добавя след таблицата
+     *
+     * @param core_Mvc $mvc
+     * @param StdClass $res
+     * @param StdClass $data
+     */
+    static function on_AfterRenderListTable($mvc, &$tpl, $data)
+    {
+    	$mvc->currentTab = "Декларации->Бланки";
+    	$mvc->menuPage = "Търговия:Продажби";
     }
 }

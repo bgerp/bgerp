@@ -48,7 +48,7 @@ class acc_type_Account extends type_Key
         $root = $this->params['root'];
         $select = $this->params['select'];
         $regInterfaces = $this->params['regInterfaces'];
-        
+       
         $options = $mvc->makeArray4Select($select, array("#num LIKE '[#1#]%' AND state NOT IN ('closed')", $root));
         
         // Ако има зададени интерфейси на аналитичностите
@@ -65,27 +65,6 @@ class acc_type_Account extends type_Key
     
     
     /**
-     * Рендира HTML инпут поле
-     */
-    function renderInput_($name, $value = "", &$attr = array())
-    {
-        $this->prepareOptions();
-        
-        return parent::renderInput_($name, $value, $attr);
-    }
-    
-    
-    /**
-     * Конвертира стойността от вербална към (int) - ключ към core_Interfaces
-     */
-    function fromVerbal_($value)
-    {
-        $this->prepareOptions();
-        
-        return parent::fromVerbal_($value);
-    }
-    
-    /**
      * Конвертира стойността от вербална към (int) - ключ към core_Interfaces
      */
     function toVerbal_($value)
@@ -99,7 +78,8 @@ class acc_type_Account extends type_Key
     /**
      * Помощна ф-я филтрираща опциите на модела, така че аналитичностите на
      * сметките да отговарят на някакви интерфейси. Подредбата на итнерфейсите
-     * трябва да отговаря на тази на аналитичностите
+     * трябва да отговаря на тази на аналитичностите. Остават само тези сметки които имат всички посочени
+     * интерфейси. Ако за интерфейси е посочено 'none', остават само сметките без разбивки
      *
      * @param string $list - имената на интерфейсите разделени с "|"
      * @param array $suggestions - подадените предложения
@@ -108,37 +88,41 @@ class acc_type_Account extends type_Key
     {
         $arr = explode('|', $list);
         expect(count($arr) <= 3, 'Най-много могат да са зададени 3 интерфейса');
-        
+       
         foreach ($arr as $index => $el){
+        	if($el == 'none') continue;
             expect($arr[$index] = core_Interfaces::fetchField("#name = '{$el}'", 'id'), "Няма интерфейс '{$el}'");
         }
         
         if(count($suggestions)){
-            
+           
             // За всяка сметка
             foreach ($suggestions as $id => $sug){
+
+            	if(is_object($sug)) continue;
                 
                 // Извличане на записа на сметката
                 $rec = acc_Accounts::fetch($id);
                 
-                // За всеки итнерфейс
-                foreach ($arr as $index => $el){
-                    
-                    // Ако съответния запис няма аналитичност се премахва
-                    $fld = "groupId" . ++$index;
-                    
-                    if(!isset($rec->$fld)) {
-                        unset($suggestions[$id]);
-                        break;
-                    }
-                    
-                    // Ако има аналитичност, се извлича интерфейса, който поддържа
-                    $listIntf = acc_Lists::fetchField($rec->$fld, 'regInterfaceId');
-                    
-                    // Ако интерфейса не съвпада с подадения, записа се премахва
-                    if($listIntf != $el){
-                        unset($suggestions[$id]);
-                    }
+                
+                foreach (range(0, 2) as $i){
+                	$fld = "groupId" . ($i + 1);
+                	
+                	if(isset($arr[$i]) && $arr[$i] != 'none' && !isset($rec->$fld)){
+                		unset($suggestions[$id]);
+                		break;
+                	}
+                	
+                	if(empty($rec->$fld)) continue;
+                	
+                	// Ако има аналитичност, се извлича интерфейса, който поддържа
+                	$listIntf = acc_Lists::fetchField($rec->$fld, 'regInterfaceId');
+                	
+                	
+                	if($listIntf != $arr[$i]){
+                		unset($suggestions[$id]);
+                		break;
+                	}
                 }
             }
         }

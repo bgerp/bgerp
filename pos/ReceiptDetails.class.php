@@ -95,13 +95,16 @@ class pos_ReceiptDetails extends core_Detail {
     	if($data->rows) {
 	    	foreach($data->rows as $row) {
 	    		$action = $this->getAction($data->rows[$row->id]->action);
-	    		$rowTpl = clone(${"{$action->type}Tpl"});
-	    		$rowTpl->placeObject($row);
-	    		if($lastRow == $row->id) {
-	    			$rowTpl->replace("pos-hightligted", 'lastRow');
-	    		}
-	    		$rowTpl->removeBlocks();
-	    		$tpl->append($rowTpl);
+                $at = ${"{$action->type}Tpl"};
+                if(is_object($at)) {
+                    $rowTpl = clone(${"{$action->type}Tpl"});
+                    $rowTpl->placeObject($row);
+                    if($lastRow == $row->id) {
+                        $rowTpl->replace("pos-hightligted", 'lastRow');
+                    }
+                    $rowTpl->removeBlocks();
+                    $tpl->append($rowTpl);
+                }
 	    	}
     	} else {
     		$tpl->append(new ET("<tr><td colspan='3' class='receipt-sale'>" . tr('Няма записи') . "</td></tr>"));
@@ -434,7 +437,8 @@ class pos_ReceiptDetails extends core_Detail {
     			break;
     	}
     	
-    	if($mvc->haveRightFor('delete', $rec)){
+    	// Ако може да изтриваме ред и не сме в режим принтиране
+    	if($mvc->haveRightFor('delete', $rec) && !Mode::is('printing')){
     		$delUrl = toUrl(array($mvc->className, 'deleteRec'), 'local');
     		$row->DEL_BTN = ht::createElement('img', array('src' => sbf('img/16/deletered.png', ''), 
     													   'class' => 'pos-del-btn', 'data-recId' => $rec->id, 
@@ -458,6 +462,7 @@ class pos_ReceiptDetails extends core_Detail {
     	$perPack = ($productInfo->packagingRec->quantity) ? $productInfo->packagingRec->quantity : 1;
     	
     	$rec->price = $rec->price * (1 + $rec->param) * (1 - $rec->discountPercent);
+    	$rec->price = round($rec->price, 2);
     	$row->price = $Double->toVerbal($rec->price);
     	$row->amount = $Double->toVerbal($rec->price * $rec->quantity);
     	if($rec->discountPercent < 0){
@@ -526,18 +531,14 @@ class pos_ReceiptDetails extends core_Detail {
      */
     public function getProductInfo(&$rec)
     {
-    	if($rec->ean){
-	    	if(!$product = cat_Products::getByCode($rec->ean)) {
-	    		
-	    		return $rec->productid = NULL;
-	    	}
-    	} else{
-    		if(!$rec->productId) {
-    			return $rec->productid = NULL;
-    		}
+    	if($rec->productId){
     		expect($productId = cat_Products::fetch($rec->productId));
     		$product = (object)array('productId' => $rec->productId);
+    	} elseif($rec->ean){
+    		$product = cat_Products::getByCode($rec->ean);
     	}
+    	
+    	if(!$product) return $rec->productid = NULL;
     	
     	$info = cat_Products::getProductInfo($product->productId, $product->packagingId);
     	if(empty($info->meta['canSell'])){

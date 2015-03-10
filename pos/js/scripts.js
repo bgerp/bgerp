@@ -19,7 +19,7 @@ function posActions() {
 	
 	// Ширина на контейнера на бързите бутони в мобилен
 	var width = (parseInt($('.pos-product').length) + 1) * 45 ;
-	$('.narrow #pos-products > div').css('width',width);
+	$('.narrow #pos-products').css('width',width);
 	
 	
 	// Засветяване на избрания ред и запис в хидън поле
@@ -122,22 +122,6 @@ function posActions() {
 	});
 	
 	
-	// Добавяне на клиентска карта
-	$(document.body).on('click', "#tools-addclient", function(e){
-		var inpVal = $("input[name=ean]").val();
-		var rowVal = $("input[name=receiptId]").val();
-
-		var url = $(this).attr("data-url");
-		var data = {receiptId:rowVal, ean:inpVal};
-		
-		resObj = new Object();
-		resObj['url'] = url;
-		
-		getEfae().process(resObj, data);
-		$("input[name=ean]").val("");
-	});
-	
-	
 	// При натискане на бутон от клавиатурата, ако е 'ENTER'
 	$(document).keypress(function(e) {
 	    if(e.which == 13) {
@@ -219,14 +203,13 @@ function posActions() {
 	// Добавяне на продукти от бързите бутони
 	$(document.body).on('click', ".pos-product", function(e){
 		var url = $(this).attr("data-url");
-		
 		if(!url) return;
 		
 		var productId = $(this).attr("data-id");
 		var receiptId = $("input[name=receiptId]").val();
 		var quant = $("input[name=ean]").val();
 		
-		var data = {receiptId:receiptId,productId:productId,quantity:quant};
+		var data = {receiptId:receiptId,productId:productId,ean:quant};
 		
 		resObj = new Object();
 		resObj['url'] = url;
@@ -373,10 +356,11 @@ function posActions() {
 		var receiptId = $(this).attr("data-recId");
 		var url = $(this).attr("data-url");
 		var productId = $(this).attr("data-productId");
+		var quant = $("input[name=ean]").val();
 		
 		resObj = new Object();
 		resObj['url'] = url;
-		getEfae().process(resObj, {receiptId:receiptId,productId:productId});
+		getEfae().process(resObj, {receiptId:receiptId,productId:productId,quantity:quant});
 		calculateWidth();
 	});
 	
@@ -453,7 +437,12 @@ function calculateWidth(){
 	
 	var usefulWidth = winWidth - totalOffset;
 	
-	var maxColWidth = parseInt(usefulWidth/2) - 10;
+	var maxColWidth;
+	if($('body').hasClass('wide')) {
+		maxColWidth = parseInt(usefulWidth/2) - 10;
+	} else {
+		maxColWidth = usefulWidth;
+	}
 	if(maxColWidth < 285) {
 		maxColWidth = 245;
 	}
@@ -473,6 +462,7 @@ function calculateWidth(){
 
 	$('#result_contragents').css('max-height', 239);
 	$('#result_contragents').css('overflow-y', 'auto');
+	$('#result_contragents').css('width', '100%');
 	
 	var receiptHeight = winHeight -  totalOffset - 410;
 	$('.scrolling-vertical').css('maxHeight',receiptHeight);

@@ -181,6 +181,28 @@ class store_ShipmentOrders extends store_DocumentMaster
     
     
     /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = NULL)
+    {
+    	$row->deliveryTo = $row->pCode . " " . $row->place;
+    	foreach(array('address', 'company', 'person', 'tel') as $fld){
+    		if(!empty($rec->$fld)){
+    			$row->deliveryTo .= ", {$row->$fld}";
+    		}
+    	}
+    	
+    	if(isset($rec->locationId)){
+    		$row->locationId = crm_Locations::getHyperLink($rec->locationId);
+    	}
+    }
+    
+    
+    /**
      * След изпращане на формата
      */
     public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
@@ -223,10 +245,12 @@ class store_ShipmentOrders extends store_DocumentMaster
      */
     public function renderShipments($data)
     {
-    	$table = cls::get('core_TableView');
-    	$fields = "rowNumb=№,docId=Документ,weight=Тегло,volume=Обем,collection=Инкасиране,address=@Адрес";
-    	
-    	return $table->get($data->shipmentOrders, $fields);
+    	if(count($data->shipmentOrders)){
+    		$table = cls::get('core_TableView');
+    		$fields = "rowNumb=№,docId=Документ,storeId=Склад,weight=Тегло,volume=Обем,collection=Инкасиране,address=@Адрес";
+    		 
+    		return $table->get($data->shipmentOrders, $fields);
+    	}
     }
     
     

@@ -1,9 +1,13 @@
-<fieldset class='detail-info portal acc-summary'>
-    <legend class='groupTitle'>|Счетоводни справки|*</legend>
-    [#LISTS#]
-    <div class='groupList clearfix21' style='max-width: 730px;'>
-        <!--ET_BEGIN CONTENT-->
-        [#CONTENT#]
-        <!--ET_END CONTENT-->
-    </div>
-</fieldset>
+<div class='scrolling-holder'>
+	<fieldset class='top-tab-content'>
+	    <legend class='groupTitle'>|Счетоводни справки|*</legend>
+	    <div class='detail-info portal acc-summary'>
+	      [#LISTS#]
+		    <div class='groupList clearfix21'>
+		        <!--ET_BEGIN CONTENT-->
+		        [#CONTENT#]
+		        <!--ET_END CONTENT-->
+		    </div>
+	    </div>
+	</fieldset>
+</div>

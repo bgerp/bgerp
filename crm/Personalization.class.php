@@ -204,7 +204,7 @@ class crm_Personalization extends core_Detail
     /**
      * Връща логото на профила
      * 
-     * @param integer $userId - id' то на съответния потребител
+     * @param integer|FALSE $userId - id' то на съответния потребител
      * @param boolean $en - Дали логото да е на английски
      */
     static function getLogo($userId = FALSE, $en = FALSE)
@@ -286,7 +286,7 @@ class crm_Personalization extends core_Detail
     /**
      * Връща записа за съответния потребител
      * 
-     * @param integer $userId - id' то на съответния потребител
+     * @param integer|NULL $userId - id' то на съответния потребител
      */
     static function getRec($userId=NULL)
     {

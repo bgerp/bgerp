@@ -3,7 +3,7 @@
 
 
 /**
- * Модел  Търговски маршрути
+ * Модел  за търговски маршрути
  *
  *
  * @category  bgerp
@@ -19,81 +19,86 @@ class sales_Routes extends core_Manager {
     /**
      * Заглавие
      */
-    var $title = 'Търговски маршрути';
+    public $title = 'Търговски маршрути';
     
     
     /**
      * Заглавие
      */
-    var $singleTitle = 'Търговски маршрут';
+    public $singleTitle = 'Търговски маршрут';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт, locationId, salesmanId, dateFld, repeatWeeks, state, createdOn, createdBy';
+    public $listFields = 'id,contragent=Клиент,locationId,salesmanId,dateFld=Посещения->Начало,repeat=Посещения->Период,nextVisit=Посещения->Следващо,tools=Пулт';
     
-	
+    
 	/**
 	 * Брой рецепти на страница
 	 */
-	var $listItemsPerPage = '30';
+	public $listItemsPerPage = '30';
 	
 	
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, sales_Wrapper, plg_Created,
-    	 plg_Printing, bgerp_plg_Blank, plg_Sorting, plg_Rejected';
+    public $loadList = 'plg_RowTools, sales_Wrapper, plg_Created,
+    	 plg_Printing, bgerp_plg_Blank, plg_Sorting, plg_Search, plg_Rejected, plg_State';
     
     
     /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от 
-     * таблицата.
+     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата.
      */
-    var $rowToolsField = 'tools';
+    public $rowToolsField = 'tools';
 
     
     /**
      * Кой може да чете
      */
-    var $canRead = 'sales,ceo';
+    public $canRead = 'sales,ceo';
     
     
     /**
      * Кой може да пише
      */
-    var $canWrite = 'sales,ceo';
+    public $canWrite = 'sales,ceo';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'ceo,sales';
+	public $canList = 'ceo,sales';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'ceo,sales';
+	public $canSingle = 'ceo,sales';
     
     
     /**
      * Кой може да пише
      */
-    var $canAdd = 'sales,ceo';
+    public $canAdd = 'sales,ceo';
     
     
     /**
-     * Кой може да изтрива
+     * Кой може да пише
      */
-    var $canDelete = 'no_one';
+    public $canDelete = 'no_one';
     
     
     /**
-     * Кой може да оттегля
+     * Кой може да пише
      */
-    var $canReject = 'sales,ceo';
+    public $canReject = 'sales,ceo';
+    
+    
+    /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    public $searchFields = 'locationId,salesmanId';
     
     
     /**
@@ -101,20 +106,65 @@ class sales_Routes extends core_Manager {
      */
     function description()
     {
-    	$this->FLD('locationId', 'key(mvc=crm_Locations, select=title)', 'caption=Локация,mandatory,silent');
-    	$this->FLD('salesmanId', 'user(roles=sales)', 'caption=Търговец,mandatory');
+    	$this->FLD('locationId', 'key(mvc=crm_Locations, select=title,allowEmpty)', 'caption=Локация,mandatory,silent');
+    	$this->FLD('salesmanId', 'user(roles=sales|ceo,select=nick)', 'caption=Търговец,mandatory');
     	$this->FLD('dateFld', 'date', 'caption=Посещения->Дата,hint=Кога е първото посещение,mandatory');
-    	$this->FLD('repeatWeeks', 'int', 'caption=Посещения->Период, unit=седмици, hint=На колко седмици се повтаря посещението');
-    	$this->FLD('state','enum(active=Активен, rejected=Оттеглен)','caption=Статус,input=none,value=active');
+    	$this->FLD('repeat', 'time(suggestions=|1 седмица|2 седмици|3 седмици|1 месец)', 'caption=Посещения->Период, hint=на какъв период да е повторението на маршрута');
+    	$this->FLD('state',
+    			'enum(active=Активен,rejected=Оттеглен)',
+    			'caption=Видимост,input=none,notSorting,notNull,value=active');
+    	
+    	// Изчислимо поле за кога е следващото посещение
+    	$this->FNC('nextVisit', 'date(format=d.m.Y D)', 'caption=Посещения->Следващо');
+    }
+    
+    
+    /**
+     * Преди запис на документ, изчислява стойността на полето `isContable`
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $rec
+     */
+    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
+    {
+    	if($rec->state == 'draft'){
+    		$rec->state = 'active';
+    	}
+    }
+    
+    
+    /**
+     * Добавя ключови думи за пълнотекстово търсене
+     */
+    protected static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+    {
+    	// Добавяме името на контрагента към ключовите дум
+    	$locRec = crm_Locations::fetch($rec->locationId);
+    	$res .= " " . plg_Search::normalizeText(cls::get($locRec->contragentCls)->getVerbal($locRec->contragentId, 'name'));
+    }
+    
+    
+    /**
+     * Изчисление на следващото посещение ако може
+     */
+    protected static function on_CalcNextVisit(core_Mvc $mvc, $rec) 
+    {
+    	if (empty($rec->dateFld)) return;
+    	
+    	if($next = $mvc->getNextVisit($rec)){
+    		$rec->nextVisit = $next;
+    	}
     }
     
     
     /**
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
-    static function on_AfterPrepareEditForm($mvc, &$res, $data)
+    protected static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         $form = &$data->form;
+        $form->setDefault('dateFld', dt::today());
+        
         $form->setOptions('locationId', $mvc->getLocationOptions($form->rec));
         $form->setDefault('salesmanId', $mvc->getDefaultSalesman($form->rec));
     }
@@ -138,10 +188,12 @@ class sales_Routes extends core_Manager {
     	
     	while ($locRec = $locQuery->fetch()) {
         	$locRec = crm_Locations::fetch($locRec->id);
-        	$contragentCls = cls::get($locRec->contragentCls);
-        	$contagentName =  $contragentCls->fetchField($locRec->contragentId, 'name');
-        	$lockName = $varchar->toVerbal($locRec->title) . " « " . $varchar->toVerbal($contagentName);
-        	$options[$locRec->id] = $lockName;
+        	if(cls::load($locRec->contragentCls, TRUE)){
+        		$contragentCls = cls::get($locRec->contragentCls);
+        		$contagentName =  $contragentCls->fetchField($locRec->contragentId, 'name');
+        		$lockName = $varchar->toVerbal($locRec->title) . " « " . $varchar->toVerbal($contagentName);
+        		$options[$locRec->id] = $lockName;
+        	}
         }
         
         return $options;	
@@ -216,14 +268,14 @@ class sales_Routes extends core_Manager {
 	/**
 	 *  Подготовка на филтър формата
 	 */
-	static function on_AfterPrepareListFilter($mvc, $data)
+	protected static function on_AfterPrepareListFilter($mvc, $data)
 	{
 		$data->listFilter->view = 'horizontal';
 		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-		$data->listFilter->FNC('user', 'user(roles=sales,allowEmpty)', 'input,caption=Търговец,placeholder=Потребител,silent');
+		$data->listFilter->FNC('user', 'user(roles=sales|ceo,allowEmpty)', 'input,caption=Търговец,placeholder=Потребител,silent,refreshForm');
         $data->listFilter->FNC('date', 'date', 'input,caption=Дата,silent');
 
-        $data->listFilter->showFields = 'user, date';
+        $data->listFilter->showFields = 'search,user, date';
 		
         $data->listFilter->input();
 		
@@ -232,13 +284,9 @@ class sales_Routes extends core_Manager {
     	if ($data->listFilter->rec->date) {
     			
     		// Изчисляваме дните между датата от модела и търсената
-    		$data->query->XPR("dif", 'int', "DATEDIFF (#dateFld , '{$date}')");
-    			
-    		// Записа отговаря ако разликата е 0 и повторението е 0
-    		$data->query->where("#dif = 0 && #repeatWeeks = 0");
-    			
-    		// Ако разликата се дели без остатък на 7 * броя повторения
-    		$data->query->orWhere("MOD(#dif, (7 * #repeatWeeks)) = 0");
+    		$data->query->XPR("dif", 'int', "DATEDIFF (#dateFld , '{$data->listFilter->rec->date}')");
+    		$data->query->where("#dateFld = '{$data->listFilter->rec->date}'");
+    		$data->query->orWhere("MOD(#dif, round(#repeat / 86400 )) = 0");
     	}
     	
     	if ($data->listFilter->rec->user) {
@@ -252,13 +300,24 @@ class sales_Routes extends core_Manager {
 	/**
      * След преобразуване на записа в четим за хора вид.
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {   
     	$locIcon = sbf("img/16/location_pin.png");
     	$row->locationId = ht::createLink($row->locationId, array('crm_Locations', 'single', $rec->locationId, 'ret_url' => TRUE), NULL, array('style' => "background-image:url({$locIcon})", 'class' => 'linkWithIcon'));
     	$locationState = crm_Locations::fetchField($rec->locationId, 'state');
-    	if ($locationState == 'rejected' || $rec->state == 'rejected') {
-    		$row->ROW_ATTR['class'] .= ' state-rejected';
+    	
+    	$locationRec = crm_Locations::fetch($rec->locationId);
+    	
+    	$row->contragent = cls::get($locationRec->contragentCls)->getHyperLink($locationRec->contragentId); 
+    	
+    	if($rec->state == 'active'){
+    		if(sales_Sales::haveRightFor('add')){
+    			$folderId = cls::get($locationRec->contragentCls)->forceCoverAndFolder($locationRec->contragentId, FALSE);
+    			$row->btn = ht::createBtn('ПР', array('sales_Sales', 'add', 'folderId' => $folderId, 'deliveryLocationId' => $rec->locationId), FALSE, FALSE, 'ef_icon=img/16/view.png,title=Създаване на нова продажба към локацията');
+    			$row->contragent = "{$row->btn} " . $row->contragent;
+    		}
+    	} else {
+    		unset($row->nextVisit);
     	}
     }
     
@@ -275,31 +334,21 @@ class sales_Routes extends core_Manager {
     /**
      * Подготовка на маршрутите, показвани в Single-a на локациите
      */
-    function prepareRoutes($data)
+    public function prepareRoutes($data)
     {
     	// Подготвяме маршрутите ако има налични за тази локация
     	$query = $this->getQuery();
     	$query->where(array("#locationId = [#1#]", $data->masterData->rec->id));
-    	$query->where("#state != 'rejected'");
+    	$query->where("#state = 'active'");
     	
     	$results = array();
      	while ($rec = $query->fetch()) {
-            $data->masterData->row->haveRoutes = TRUE;
-            
-            $row = static::recToVerbal($rec,'id,salesmanId,tools,-list');
-
-    		if ($data->masterData->rec->state != 'rejected') {
-                $nextVisit = $this->calcNextVisit($rec);
-    			if($nextVisit === FALSE) continue;
-                $row->nextVisit = dt::mysql2verbal($nextVisit, "d.m.Y D");
-                $row->ordeDate = $nextVisit;
-     		}
-
-    		$data->rows[$rec->id] = $row;
+            if(!isset($rec->nextVisit)) continue;
+			$data->rows[$rec->id] = static::recToVerbal($rec);
     	}
 
         if(is_array($data->rows) && count($data->rows) > 1) {
-            arr::order($data->rows, 'ordeDate');
+            arr::order($data->rows, 'nextVisit');
         }
     		
     	if ($this->haveRightFor('add', (object)(array('locationId' => $data->masterData->rec->id)))) {
@@ -314,11 +363,11 @@ class sales_Routes extends core_Manager {
      * @param stdClass $rec - запис от модела
      * @return string $date - вербално име на следващата дата
      */
-    public function calcNextVisit($rec)
+    public function getNextVisit($rec)
     {
     	$nowTs = dt::mysql2timestamp(dt::now());
     	$interval = 24 * 60 * 60 * 7;
-
+		
     	if (!$rec->dateFld) return FALSE;
 
     	$startTs = dt::mysql2timestamp($rec->dateFld);
@@ -326,14 +375,18 @@ class sales_Routes extends core_Manager {
     	if ($diff < 0) {
     		$nextStartTimeTs = $startTs;
     	} else {
-    		if (!$rec->repeatWeeks) {
+    		if (!$rec->repeat) {
                 if ($rec->dateFld == date('Y-m-d')) {
-                    return dt::mysql2verbal($rec->dateFld, "d.m.Y D");
+                	
+                    return $rec->dateFld;
                 } else {
+                	
     			    return FALSE;
                 }
     		}
-    		$interval = $interval * $rec->repeatWeeks;
+    		
+    		$repeat = $rec->repeat / (60 * 60 * 24 * 7);
+    		$interval = $interval * $repeat;
     		$nextStartTimeTs = (floor(($diff)/$interval) + 1) * $interval;
     		$nextStartTimeTs = $startTs + $nextStartTimeTs;
     	}
@@ -347,10 +400,13 @@ class sales_Routes extends core_Manager {
 	/**
      * Рендираме информацията за маршрутите
      */
-	function renderRoutes($data)
+	public function renderRoutes($data)
     {
-    	$tpl = getTplFromFile("crm/tpl/ContragentDetail.shtml");
+    	$tpl = getTplFromFile("sales/tpl/SingleLayoutRoutes.shtml");
     	$title = $this->title;
+    	if($this->haveRightFor('list')){
+    		$title = ht::createLink($title, array($this, 'list'), FALSE, 'title=Всички търговските маршрути');
+    	}
     	
     	if ($data->addUrl) {
 	    	$img = sbf('img/16/add.png');
@@ -360,7 +416,7 @@ class sales_Routes extends core_Manager {
     	$tpl->replace($title, 'title');
     	
     	$table = cls::get('core_TableView');
-    	$tableTpl = $table->get($data->rows, 'salesmanId=Търговец,nextVisit=Следващо посещение,tools=Пулт');
+    	$tableTpl = $table->get($data->rows, 'salesmanId=Търговец,repeat=Период,nextVisit=Следващо посещение,tools=Пулт');
     	$tpl->append($tableTpl, 'content');
 
     	return $tpl;
@@ -370,22 +426,15 @@ class sales_Routes extends core_Manager {
     /**
      * Модификация на ролите
      */
-    static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    protected static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
 	{
 		if ($action == 'edit' && $rec->id) {
-			if ($rec->state == 'rejected') {
+			if ($rec->state != 'active') {
 				$res = 'no_one';
 			}
 		}
 		
-		if ($action == 'restore' && $rec->id) {
-			$locationState = crm_Locations::fetchField($rec->locationId, 'state');
-			if ($locationState == 'rejected') {
-				$res = 'no_one';
-			}
-		}
-		
-		if ($action == 'add' && isset($rec->locationId)) {
+		if (($action == 'add' || $action == 'restore') && isset($rec->locationId)) {
 			if (crm_Locations::fetchField($rec->locationId, 'state') == 'rejected') {
 				$res = 'no_one';
 			}
@@ -404,7 +453,7 @@ class sales_Routes extends core_Manager {
 		$query = $this->getQuery();
 		$query->where("#locationId = {$locationId}");
 		while ($rec = $query->fetch()) {
-			($locationState == 'rejected') ? $state = $locationState : $state = 'active';
+			$state = ($locationState == 'rejected') ? 'rejected' : 'active';
 			$rec->state = $state;
 			$this->save($rec);
 		}

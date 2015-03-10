@@ -38,9 +38,15 @@ class vislog_History extends core_Manager {
     /**
      * Плъгини за зареждане
      */
-    var $loadList = "Countries=drdata_Countries,IpToCountry=drdata_IpToCountry,plg_Created,vislog_Wrapper,HistoryResources=vislog_HistoryResources";
+    var $loadList = "Countries=drdata_Countries,IpToCountry=drdata_IpToCountry,plg_Created,vislog_Wrapper,HistoryResources=vislog_HistoryResources,plg_RefreshRows";
     
     
+    /**
+     * На колко време да обновява списъка на екрана
+     */
+    var $refreshRowsTime = 60000;
+
+
     /**
      * Кой  може да пише?
      */

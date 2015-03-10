@@ -1,32 +1,21 @@
-<div class="singleView">
-	[#SingleToolbar#]
-	<table class='styled-table'>
-		<tr>
-			<td>|Наименование|*</td>
-			<td><b>[#title#]</b></td>
-		</tr>
-		<tr>
-			<td>|Вид|*</td>
-			<td>[#type#]</td>
-		</tr>
-		<tr>
-			<td>|Мярка|*</td>
-			<td>[#measureId#]</td>
-		</tr>
-		
-		<!--ET_BEGIN selfValue-->
-		<tr>
-			<td>|Себестойност|*</td>
-			<td>[#selfValue#]</td>
-		</tr>
-		<!--ET_END selfValue-->
-		
-		<!--ET_BEGIN systemId-->
-		<tr>
-			<td>|Системен №|*</td>
-			<td>[#systemId#]</td>
-		</tr>
-		<!--ET_END systemId-->
-	</table>
-	[#DETAILS#]
+<div class='singleView'>
+    [#SingleToolbar#]
+    <div class="no-cover">
+        <h2 style='line-height:26px' class='[#STATE_CLASS#]'>|Ресурс|* <b style="color:green;">[#title#]</b></h2>
+    	<fieldset class="detail-info" style='margin-bottom:20px'>
+            <legend class="groupTitle">|Информация|*</legend>
+            <div><span class='quiet'>|Вид|*</span>: [#type#]</div>
+            <div><span class='quiet'>|Мярка|*</span>: [#measureId#]</div>
+            
+            <!--ET_BEGIN selfValue-->
+            <div><span class='quiet'>|Себестойност|*</span>: [#selfValue#] <!--ET_BEGIN currencyId--><span class='cCode'>[#currencyId#]</span><!--ET_END currencyId--></div>
+            <!--ET_END selfValue-->
+            
+            <!--ET_BEGIN systemId-->
+            <div><span class='quiet'>|Системен|* №</span>: [#systemId#]</div>
+            <!--ET_END systemId-->
+        </fieldset>
+		[#OBJECT_RESOURCES#]
+		[#DETAILS#]
+    </div>
 </div>

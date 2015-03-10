@@ -234,25 +234,25 @@ class email_Setup extends core_ProtoSetup
             // Максимален размер на прикачените файлове и документи
             'EMAIL_MAX_ATTACHED_FILE_LIMIT' => array ('fileman_FileSize', 'caption=Максимален размер на прикачените файлове/документи в имейла->Размер, suggestions=10 MB|20 MB|30 MB'),
             
-            'EMAIL_DEFAULT_SENT_INBOX' => array ('key(mvc=email_Inboxes,select=email,allowEmpty)', 'caption=Изходящ имейл->По подразбиране, customizeBy=powerUser, optionsFunc=email_Inboxes::getAllowedFromEmailOptions'),
+            'EMAIL_DEFAULT_SENT_INBOX' => array ('key(mvc=email_Inboxes,select=email,allowEmpty)', 'caption=Изпращач на изходящите имейли->From, placeholder=Автоматично,customizeBy=powerUser, optionsFunc=email_Inboxes::getAllowedFromEmailOptions'),
     
-            'EMAIL_OUTGOING_HEADER_TEXT' => array ('richtext(rows=5,bucket=Postings)', 'caption=Изходящ имейл->Привет, customizeBy=powerUser'),
+            'EMAIL_OUTGOING_HEADER_TEXT' => array ('richtext(rows=5,bucket=Postings)', 'caption=Привет в изходящите имейли->На български, customizeBy=powerUser'),
     
-            'EMAIL_OUTGOING_HEADER_TEXT_EN' => array ('richtext(rows=5,bucket=Postings)', 'caption=Изходящ имейл->Привет EN, customizeBy=powerUser'),
+            'EMAIL_OUTGOING_HEADER_TEXT_EN' => array ('richtext(rows=5,bucket=Postings)', 'caption=Привет в изходящите имейли->На английски, customizeBy=powerUser'),
     
-            'EMAIL_OUTGOING_FOOTER_TEXT' => array ('richtext(rows=5,bucket=Postings)', 'caption=Изходящ имейл->Подпис, customizeBy=powerUser'),
+            'EMAIL_OUTGOING_FOOTER_TEXT' => array ('richtext(rows=5,bucket=Postings)', 'caption=Подпис за изходящите имейли->На български, customizeBy=powerUser'),
     
-            'EMAIL_OUTGOING_FOOTER_TEXT_EN' => array ('richtext(rows=5,bucket=Postings)', 'caption=Изходящ имейл->Подпис EN, customizeBy=powerUser'),
+            'EMAIL_OUTGOING_FOOTER_TEXT_EN' => array ('richtext(rows=5,bucket=Postings)', 'caption=Подпис за изходящите имейли->На английски, customizeBy=powerUser'),
     
             'EMAIL_SALUTATION_EMAIL_TIME_LIMIT' => array ('time(suggestions=30 дни|90 дни|180 дни)', 'caption=След колко време да не се използват обръщеният по имейл за нова нишка->Време'),
             
-            'EMAIL_INCOMINGS_DEFAULT_EMAIL_BODY' => array ('varchar', 'caption=Текст по подразбиране при отговор на имейл->Текст, customizeBy=powerUser'),
+            'EMAIL_INCOMINGS_DEFAULT_EMAIL_BODY' => array ('varchar', 'caption=Текст по подразбиране при отговор на имейл->На български, customizeBy=powerUser'),
             
-            'EMAIL_INCOMINGS_DEFAULT_EMAIL_BODY_EN' => array ('varchar', 'caption=Текст по подразбиране при отговор на имейл->Текст EN, customizeBy=powerUser'),
+            'EMAIL_INCOMINGS_DEFAULT_EMAIL_BODY_EN' => array ('varchar', 'caption=Текст по подразбиране при отговор на имейл->На английски, customizeBy=powerUser'),
     
-            'EMAIL_FORWARDING_DEFAULT_EMAIL_BODY_FORWARDING' => array ('varchar', 'caption=Текст по подразбиране при препращане на имейл->Текст, customizeBy=powerUser'),
+            'EMAIL_FORWARDING_DEFAULT_EMAIL_BODY_FORWARDING' => array ('varchar', 'caption=Текст по подразбиране при препращане на имейл->На български, customizeBy=powerUser'),
     
-            'EMAIL_FORWARDING_DEFAULT_EMAIL_BODY_FORWARDING_EN' => array ('varchar', 'caption=Текст по подразбиране при препращане на имейл->Текст EN, customizeBy=powerUser'),
+            'EMAIL_FORWARDING_DEFAULT_EMAIL_BODY_FORWARDING_EN' => array ('varchar', 'caption=Текст по подразбиране при препращане на имейл->На английски, customizeBy=powerUser'),
         );
         
         
@@ -276,7 +276,8 @@ class email_Setup extends core_ProtoSetup
             'email_Salutations',
             'email_ThreadHandles',
             'migrate::transferThreadHandles',
-            'migrate::fixEmailSalutations'
+            'migrate::fixEmailSalutations',
+            'migrate::repairRecsInFilters',
         );
     
 
@@ -386,6 +387,43 @@ class email_Setup extends core_ProtoSetup
                 
                 email_Salutations::save($rec);
             }
+        }
+    }
+    
+    
+    /**
+     * Миграция, за да се изтрият повтарящите се записи и да се изчисли systemId
+     */
+    public static function repairRecsInFilters()
+    {
+        $query = email_Filters::getQuery();
+        
+        $condFieldArr = array();
+        $condFieldArr[] = 'email';
+        $condFieldArr[] = 'subject';
+        $condFieldArr[] = 'body';
+        
+        $systemArr = array();
+        
+        while ($rec = $query->fetch()) {
+            
+            foreach ($condFieldArr as $field) {
+                $rec->$field = str_replace('%', '*', $rec->$field);
+            }
+            
+            $systemId = email_Filters::getSystemId($rec);
+            
+            if ($systemArr[$systemId]) {
+                
+                email_Filters::delete($rec->id);
+                continue;
+            }
+                
+            $systemArr[$systemId] = $systemId;
+        
+            $rec->systemId = $systemId;
+            
+            email_Filters::save($rec);
         }
     }
 }

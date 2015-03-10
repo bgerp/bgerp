@@ -75,9 +75,9 @@ class sens2_DataLogs extends core_Manager
      */
     function description()
     { 
-        $this->FLD('indicatorId', 'key(mvc=sens2_Indicators, select=port)', 'caption=Контролер::Порт');
-        $this->FLD('value', 'double(minDecimals=0, maxDecimals=4)', 'caption=Показания, chart=ay');
-        $this->FLD('time', 'datetime', 'caption=Време ');
+        $this->FLD('indicatorId', 'key(mvc=sens2_Indicators, select=port)', 'caption=Индикатор');
+        $this->FLD('value', 'double(minDecimals=0, maxDecimals=4)', 'caption=Стойност, chart=ay');
+        $this->FLD('time', 'datetime', 'caption=Към момент');
         
         $this->setDbIndex('time');
     }

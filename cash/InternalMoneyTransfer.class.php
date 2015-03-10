@@ -337,11 +337,6 @@ class cash_InternalMoneyTransfer extends core_Master
     			$row->equals = $mvc->getFieldType('amount')->toVerbal($equals);
 	    		$row->baseCurrency = acc_Periods::getBaseCurrencyCode($rec->valior);
     		}
-    		
-    		// Показваме заглавието само ако не сме в режим принтиране
-	    	if(!Mode::is('printing')){
-	    		$row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " ({$row->state})" ;
-	    	}
 	    	
 	    	$row->creditCase = cash_Cases::getHyperLink($rec->creditCase, TRUE);
 	    	

@@ -84,6 +84,7 @@ class email_Salutations extends core_Manager
         $this->FLD('toEmail', 'emails', 'caption=Имейл');
         
         $this->setDbUnique('containerId');
+        $this->setDbIndex('createdBy');
     }
     
 

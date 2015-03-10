@@ -146,7 +146,7 @@ class doc_TplManager extends core_Master
     	
     	// При смяна на документа се рефрешва формата
     	if(empty($form->rec->id)){
-        	$form->addAttr('docClassId', array('onchange' => "addCmdRefresh(this.form);this.form.submit();"));
+        	$form->setField('docClassId' , array('removeAndRefreshForm' => "lang|content|toggleFields|path"));
     	}
     	
     	// Ако има избран документ, се подготвят допълнителните полета
@@ -241,7 +241,7 @@ class doc_TplManager extends core_Master
     		// Ако има временни полета, то данните се обработват
     		$tempFlds = $form->selectFields("#tempFld");
     		if(count($tempFlds)){
-    			$this->prepareDataFld($form, $tempFlds);
+    			$mvc->prepareDataFld($form, $tempFlds);
     		}
     	}
     }

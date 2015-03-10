@@ -242,4 +242,31 @@ abstract class cat_ProductDriver extends core_BaseClass
 		
 		return $params['measureId'];
 	}
+	
+	
+	/**
+	 * Изображението на артикула
+	 */
+	public function getProductImage()
+	{
+		return NULL;
+	}
+	
+	
+	/**
+	 * Колко е теглото на артикула
+	 */
+	public function getWeight()
+	{
+		return NULL;
+	}
+	
+	
+	/**
+	 * Колко е обема му
+	 */
+	public function getVolume()
+	{
+		return NULL;
+	}
 }

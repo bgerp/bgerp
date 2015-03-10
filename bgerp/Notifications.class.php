@@ -457,7 +457,7 @@ class bgerp_Notifications extends core_Manager
         } else {
             
             // Добавяме поле във формата за търсене
-            $data->listFilter->FNC('usersSearch', 'users(rolesForAll=ceo, rolesForTeams=ceo|manager|admin)', 'caption=Потребител,input,silent', array('attr' => array('onchange' => 'this.form.submit();')));
+            $data->listFilter->FNC('usersSearch', 'users(rolesForAll=ceo, rolesForTeams=ceo|manager|admin)', 'caption=Потребител,input,silent,refreshForm');
             
             // Кои полета да се показват
             $data->listFilter->showFields = "{$mvc->searchInputField}, usersSearch";
@@ -529,12 +529,16 @@ class bgerp_Notifications extends core_Manager
     
     /**
      * Абонира функцията за промяна на броя на нотификациите по AJAX
-     *
+     * 
+     * $param core_ET|NULL $tpl
+     * 
      * @return core_ET $tpl
      */
-    static function subscribeCounter()
+    static function subscribeCounter($tpl=NULL)
     {
-        $tpl = new ET();
+        if (!$tpl) {
+            $tpl = new ET();
+        }
         
         core_Ajax::subscribe($tpl, array('bgerp_Notifications', 'notificationsCnt'), 'notificationsCnt', 5000);
         

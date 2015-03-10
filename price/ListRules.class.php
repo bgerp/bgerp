@@ -107,7 +107,7 @@ class price_ListRules extends core_Detail
         $this->FLD('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Продукт,mandatory,silent,remember=info');
         $this->FLD('price', 'double', 'caption=Цена,mandatory');
         $this->FLD('currency', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'notNull,caption=Валута,noChange');
-        $this->FLD('vat', 'enum(yes=Включено,no=Без начисляване)', 'caption=ДДС,noChange'); 
+        $this->FLD('vat', 'enum(yes=Включено,no=Без ДДС)', 'caption=ДДС,noChange'); 
         
         // Марж за група
         $this->FLD('groupId', 'key(mvc=price_Groups,select=title,allowEmpty)', 'caption=Група,mandatory,remember=info');
@@ -520,6 +520,10 @@ class price_ListRules extends core_Detail
         // Област
         if($rec->productId) {
         	$row->domain = cat_Products::getHyperlink($rec->productId, TRUE);
+        	
+        	if(cat_Products::fetchField($rec->productId, 'state') == 'rejected'){
+        		$row->domain = "<span class= 'state-rejected-link'>{$row->domain}</span>";
+        	}
         } elseif($rec->groupId) {
             $row->domain = tr('група') . " <b>\"" . $mvc->getVerbal($rec, 'groupId') . "\"</b>";
             $row->domain = ht::createLink($row->domain, array('price_Groups', 'single', $rec->groupId));
@@ -619,7 +623,6 @@ class price_ListRules extends core_Detail
      */
 	public function preparePriceList($data)
 	{
-		$data->TabCaption = 'Себестойност';
 		$pRec = $data->masterData->rec;
 		$listId = static::PRICE_LIST_COST;
 		$data->priceLists = new stdClass();
@@ -650,7 +653,7 @@ class price_ListRules extends core_Detail
 	{
 		$wrapTpl = getTplFromFile('cat/tpl/ProductDetail.shtml');
 		$table = cls::get('core_TableView', array('mvc' => $this));
-		$tpl = $table->get($data->priceLists->rows, "domain=Обхват,rule=Правило,validFrom=В сила->От,validUntil=В сила->До");
+		$tpl = $table->get($data->priceLists->rows, "domain=Обхват,rule=Правило,validFrom=От,validUntil=До");
 		
 		$title = 'Себестойности';
 		if($data->priceLists->addUrl){

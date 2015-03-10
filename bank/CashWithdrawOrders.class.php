@@ -118,6 +118,7 @@ class bank_CashWithdrawOrders extends core_Master
      */
     var $newBtnGroup = "4.92|Финанси";
     
+    
     /**
      * Стратегии за дефолт стойностти
      */
@@ -217,7 +218,6 @@ class bank_CashWithdrawOrders extends core_Master
             
             $myCompany = crm_Companies::fetchOwnCompany();
             $row->ordererName = $myCompany->company;
-            $row->header = $mvc->singleTitle . "&nbsp;&nbsp;<b>{$row->ident}</b>" . " ({$row->state})" ;
         }
     }
     

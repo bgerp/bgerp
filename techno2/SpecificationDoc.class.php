@@ -32,13 +32,13 @@ class techno2_SpecificationDoc extends core_Embedder
     /**
      * Заглавие
      */
-    public $singleTitle = 'Спецификация на артикул';
+    public $singleTitle = 'Спецификация на артикул 2';
     
 
     /**
      * Какви интерфейси поддържа този мениджър
      */
-    public $interfaces = 'doc_DocumentIntf, price_PolicyIntf, acc_RegisterIntf, cat_ProductAccRegIntf';
+    public $interfaces = 'doc_DocumentIntf, price_PolicyIntf, acc_RegisterIntf, cat_ProductAccRegIntf, doc_AddToFolderIntf';
    
     
     /**
@@ -175,44 +175,73 @@ class techno2_SpecificationDoc extends core_Embedder
     function description()
     {
     	$this->FLD("title", 'varchar', 'caption=Име,mandatory');
-    	$this->FLD('meta', 'set(canSell=Продаваем,canBuy=Купуваем,
-        						canStore=Складируем,canConvert=Вложим,
-        						fixedAsset=Дма,canManifacture=Производим)', 'caption=Свойства->Списък,columns=2,formOrder=100000000,input=none');
-    	$this->FLD("isPublic", 'varchar', 'caption=Показване за избор в документи->Достъп,notNull,default=no,formOrder=100000000');
-    	
-    	$this->setDbUnique('title');
+    	$this->FLD('meta', 'set(canSell=Продаваеми,
+                                canBuy=Купуваеми,
+                                canStore=Складируеми,
+                                canConvert=Вложими,
+                                fixedAsset=Дълготрайни активи,
+        						canManifacture=Производими,
+        						waste=Отпаден)', 'caption=Свойства->Списък,columns=2,formOrder=100000000,input=none');
+    	$this->FLD("isPublic", 'enum(no=Частен,yes=Публичен)', 'input=none,formOrder=100000002,caption=Показване за избор в документи->Достъп');
     }
     
     
     /**
-     * Изпълнява се след въвеждането на данните от заявката във формата
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $data
      */
-    public static function on_AfterInputEditForm($mvc, $form)
+    public static function on_AfterPrepareEditForm($mvc, &$data)
     {
-    	if(isset($form->rec->innerClass)){
-    		if(isset($form->rec->originId)){
-    			$form->setReadOnly('innerClass');
-    			
-    			$origin = doc_Containers::getDocument($form->rec->originId);
-    			expect($origin->instance instanceof marketing_Inquiries2);
-    			
-    			$fields = array('title' => 'title') + $origin->getFieldsFromDriver();
-    			$originRec = $origin->rec()->innerForm;
-    			
-    			foreach ($fields as $fld){
-    				$form->setDefault($fld, $originRec->$fld);
-    			}
-    		}
-    		
-    		$form->setField('isPublic', 'input');
-    		$options = arr::make('no=Частен,yes=Публичен');
-    		$form->setOptions('isPublic', $options);
-    	} else {
-    		$form->setField('isPublic', 'input=none');
+    	$rec = &$data->form->rec;
+    	
+    	// Само при редакция, потребителя може да промени дали специфиакцията е публична или не
+    	if(isset($rec->id)){
+    		$data->form->setField('isPublic', 'input');
+    	}
+    	
+    	if(isset($rec->innerClass)){
+    		$data->form->setField('meta', 'input');
     	}
     }
 
 
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     *
+     * @param core_Mvc $mvc
+     * @param core_Form $form
+     */
+    public static function on_AfterInputEditForm($mvc, &$form)
+    {
+    	$rec = &$form->rec;
+    	
+    	if(isset($rec->innerClass)){
+    	
+    		// При нова спецификация на артикул
+    		if(empty($rec->id)){
+    			$Cover = doc_Folders::getCover($rec->folderId);
+    			
+    			// Ако корицата е 'Спецификация
+    			if($Cover->getInstance() instanceof techno2_SpecificationFolders){
+    				
+    				// Намираме кои са дефолтните мета данни, това са тези от корицата и идващите от драйвера
+    				$defMetas = $Cover->getDefaultMeta();
+    			} else {
+    				$defMetas = self::$defaultMetaData;
+    			}
+    			
+    			$Driver = $mvc->getDriver($rec);
+    			$meta = $Driver->getDefaultMetas($defMetas);
+    			
+    			//@TODO да се направи проверка дали ако е услуга да не е складируем
+    			$form->setDefault('meta', cls::get('type_Set')->fromVerbal($meta));
+    		}
+    	}
+    }
+    
+    
     /**
      * След рендиране на единичния изглед
      */
@@ -230,13 +259,12 @@ class techno2_SpecificationDoc extends core_Embedder
      */
     public static function on_BeforeSave($mvc, &$id, $rec, $fields = NULL, $mode = NUL)
     {
-    	if(isset($rec->innerClass)){
+    	if(isset($rec->folderId)){
+    		$cover = doc_Folders::getCover($rec->folderId);
     		
-    		$Driver = $mvc->getDriver($rec);
-    		$meta = $Driver->getDefaultMetas(self::$defaultMetaData);
-    		
-    		$Set = cls::get('type_Set');
-    		$rec->meta = $Set->fromVerbal($meta);
+    		if(empty($rec->id)){
+    			$rec->isPublic = ($cover->haveInterface('crm_ContragentAccRegIntf')) ? 'no' : 'yes';
+    		}
     	}
     }
     
@@ -247,7 +275,7 @@ class techno2_SpecificationDoc extends core_Embedder
      */
     public static function getAllowedFolders()
     {
-    	return array('doc_ContragentDataIntf');
+    	return array('doc_ContragentDataIntf', 'cat_ProductFolderCoverIntf');
     }
 
     
@@ -261,7 +289,7 @@ class techno2_SpecificationDoc extends core_Embedder
     {
     	$coverClass = doc_Folders::fetchCoverClassName($folderId);
     	
-    	return cls::haveInterface('doc_ContragentDataIntf', $coverClass);
+    	return cls::haveInterface('doc_ContragentDataIntf', $coverClass) || cls::haveInterface('cat_ProductFolderCoverIntf', $coverClass);
     }
     
     
@@ -293,12 +321,10 @@ class techno2_SpecificationDoc extends core_Embedder
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	$row->header = $mvc->singleTitle . " №<b>{$row->id}</b> ({$row->state})" ;
+    	$row->header = $mvc->singleTitle . " №<b>{$row->id}</b> ({$row->state})";
     	
     	if($fields['-list']){
     		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
-    		$options = arr::make('no=Частен,yes=Публичен');
-    		$row->isPublic = $options[$rec->isPublic];
     	}
     }
     
@@ -366,11 +392,11 @@ class techno2_SpecificationDoc extends core_Embedder
     	}
     	
     	if($data->rec->state == 'active'){
-    		if(techno2_Boms::haveRightFor('write', (object)array('originId' => $data->rec->containerId))){
-    			if($qRec = techno2_Boms::fetch("#originId = {$data->rec->containerId} AND #state = 'draft'")){
-    				$data->toolbar->addBtn("Рецепта", array('techno2_Boms', 'edit', $qRec->id, 'ret_url' => TRUE), 'ef_icon = img/16/legend.png,title=Редактиране на технологична рецепта');
+    		if(cat_Boms::haveRightFor('write', (object)array('originId' => $data->rec->containerId))){
+    			if($qRec = cat_Boms::fetch("#originId = {$data->rec->containerId} AND #state = 'draft'")){
+    				$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'edit', $qRec->id, 'ret_url' => TRUE), 'ef_icon = img/16/legend.png,title=Редактиране на технологична рецепта');
     			} else {
-    				$data->toolbar->addBtn("Рецепта", array('techno2_Boms', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE), 'ef_icon = img/16/legend.png,title=Създаване на нова технологична рецепта');
+    				$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE), 'ef_icon = img/16/legend.png,title=Създаване на нова технологична рецепта');
     			}
     		}
     		
@@ -488,15 +514,9 @@ class techno2_SpecificationDoc extends core_Embedder
      */
     public function getParam($id, $sysId)
     {
-    	return;
-    	expect($paramId = cat_Params::fetchIdBySysId($sysId));
-    	 
-    	$value = $this->Params->fetchField("#generalProductId = {$id} AND #paramId = '{$paramId}'", 'value');
-    	 
-    	if($value) return $value;
-    	 
-    	// Връщаме дефолт стойноста за параметъра
-    	return cat_Params::getDefault($paramId);
+    	$Driver = $this->getDriver($id);
+    	
+    	return $Driver->getParamValue($sysId);
     }
     
     
@@ -639,7 +659,7 @@ class techno2_SpecificationDoc extends core_Embedder
     	$info = $this->getProductInfo($objectId);
     	
     	$itemRec = (object)array(
-    			'num' => 'Sp' . $objectId,
+    			'num' => $objectId . " sp",
     			'title' => $info->productRec->name,
     			'uomId' => $info->productRec->measureId,
     			'features' => array("{$self->title}" => $self->title,)
@@ -694,7 +714,7 @@ class techno2_SpecificationDoc extends core_Embedder
     	}
     	
     	// Опитваме се да намерим цена според технологичната карта
-    	if($amounts = techno2_Boms::getTotalByOrigin($rec->containerId)){
+    	if($amounts = cat_Boms::getTotalByOrigin($rec->containerId)){
     		
     		// Какви са максималната и минималната надценка за контрагента
     		$minCharge = cond_Parameters::getParameter($customerClass, $customerId, 'minSurplusCharge');
@@ -846,7 +866,7 @@ class techno2_SpecificationDoc extends core_Embedder
     	$rec = self::fetchRec($id);
     	 
     	// Какво е к-то от последното активно задание
-    	return techno2_Boms::fetch("#originId = {$rec->containerId} AND #state = 'active'");
+    	return cat_Boms::fetch("#originId = {$rec->containerId} AND #state = 'active'");
     }
 
     
@@ -879,5 +899,140 @@ class techno2_SpecificationDoc extends core_Embedder
     		unset($dRec->id);
     		cat_products_Params::save($dRec);
     	}
+    }
+    
+    
+    /**
+     * Екшън за създаване на нов артикул от спецификацията
+     */
+    public function act_CreateProduct()
+    {
+    	cat_Products::requireRightFor('add');
+    	expect($id = Request::get('id', 'int'));
+    	expect(!cat_Products::fetch("#specificationId = {$id}"));
+    	expect($rec = $this->fetch($id));
+    	
+    	$form = cls::get('core_Form');
+    	$form->title = 'Създаване на артикул от спецификация';
+    	$form->FLD('code', 'varchar(64)', 'caption=Код, mandatory,width=15em');
+    	 
+    	$form->input();
+    	if($form->isSubmitted()){
+    		$rec = &$form->rec;
+    		if (preg_match('/[^0-9a-zа-я\- _]/iu', $rec->code)) {
+    			$form->setError('code', 'Полето може да съдържа само букви, цифри, тирета, интервали и долна черта!');
+    		}
+    		
+    		if(cat_Products::getByCode($rec->code)){
+    			$form->setError('code', 'Има артикул с такъв код');
+    		}
+    		
+    		if(!$form->gotErrors()){
+    			$pId = self::createProduct($id, $rec->code);
+    			
+    			return Redirect(array('cat_Products', 'single', $pId), 'Успешно е създаден нов артикул');
+    		}
+    	}
+    	
+    	$form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png, title = Запис на документа');
+    	$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
+    	
+    	// Рендиране на обвивката и формата
+    	return $this->renderWrapping($form->renderHtml());
+    }
+    
+    
+    /**
+     * Създава артикул от спецификацията
+     * 
+     * @param mixed $id - ид или запис
+     * @param string $code - код на продукта
+     * @return number
+     */
+    public static function createProduct($id, $code = NULL)
+    {
+    	$Products = cls::get('cat_Products');
+    	expect($rec = self::fetchRec($id));
+    	
+    	$cover = doc_Folders::getCover($rec->folderId);
+    	if($cover->haveInterface('doc_ContragentDataIntf')){
+    		$folderId = $rec->folderId;
+    	} else {
+    		$folderId = cat_Categories::forceCoverAndFolder(cat_Categories::fetchField("#sysId = 'products'", 'id'));
+    		$code = "SPEC{$rec->id}";
+    	}
+    	
+    	$pRec = (object)array('name'       => $rec->title, 
+    						  'code'	   => $code,
+    						  'innerClass' => $rec->innerClass, 
+    						  'innerForm'  => $rec->innerForm, 
+    						  'innerState' => $rec->innerState, 
+    						  'folderId'   => $folderId,
+    						  'state' 	   => 'active',
+    						  'meta'	   => $rec->meta,
+    	);
+    	$Products->route($pRec);
+    	
+    	return cat_Products::save($pRec);
+    }
+    
+    
+    
+    /**
+     * Създава нова спецификация
+     * 
+     * @param string $title  - име на спецификацията
+     * @param int $innerClass - драйвера на спецификацията
+     * @param stdClass $innerForm - вътрешната форма
+     * @param stdClass $innerState - вътрешното състояние
+     * @param int $folderId - ид на папка
+     * @param int $threadId - ид на нишка
+     * @param enum(draft,active,rejected) $state - в какво състояние да се създаде
+     * @return stdClass $obj - записа на спецификацията
+     */
+    public static function createNew($title, $innerClass, $innerForm, $innerState, $folderId = NULL, $threadId = NULL, $state = 'active')
+    {
+    	expect(cls::haveInterface('cat_ProductDriverIntf', $innerClass));
+    	
+    	// Опитваме се да определим папката ако не е зададена
+    	if(!isset($folderId)){
+    		if(!isset($threadId)){
+    			$folderId = static::getDefaultFolder();
+    		} else {
+    			$folderId = doc_Threads::fetchField($threadId, 'folderId');
+    		}
+    	}
+    	
+    	expect(static::canAddToFolder($folderId));
+    	
+    	$obj = (object)array('title'      => $title,
+    						 'innerClass' => $innerClass,
+    						 'innerForm'  => $innerForm,
+    						 'innerState' => $innerState,
+    						 'folderId'   => $folderId,
+    						 'state'      => $state,
+    						 'threadId'   => $threadId,
+    	);
+    	
+    	static::save($obj);
+    	
+    	return $obj;
+    }
+    
+    
+    /**
+     * Да се показвали бърз бутон за създаване на документа в папка
+     */
+    public function mustShowButton($folderRec, $userId = NULL)
+    {
+    	$Cover = doc_Folders::getCover($folderRec->id);
+    	
+    	// Ако папката е на контрагент
+    	if($Cover->haveInterface('cat_ProductFolderCoverIntf')){
+    		
+    		return TRUE;
+    	}
+    	
+    	return FALSE;
     }
 }
