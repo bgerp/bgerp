@@ -236,7 +236,9 @@ class support_Issues extends core_Master
         $form->setField('url', 'input=hidden,silent');
         $form->setField('title', 'input=hidden');
         
-    	// Инпут на формата
+        $form->setDefault('title', '*Без заглавие*');
+    	
+        // Инпут на формата
     	$form->input(NULL, 'silent');
     	
         $rec = $form->rec;
