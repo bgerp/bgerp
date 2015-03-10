@@ -3398,14 +3398,16 @@ function getEfae() {
 }
 
 
-function prepareBugReport(form, user, domain, name)
+function prepareBugReport(form, user, domain, name, ctr, act, sysDomain)
 {
-	var title = document.URL;
+	var url = document.URL;
 	var width = $(window).width();
 	var height = $(window).height();
 	var browser = getUserAgent();
-
+	var title = sysDomain + '/' + ctr + '/' + act;
+	
 	addBugReportInput(form, 'title', title);
+	addBugReportInput(form, 'url', url);
 	addBugReportInput(form, 'email', user + '@' + domain);
 	addBugReportInput(form, 'name', name);
 	addBugReportInput(form, 'width', width);
