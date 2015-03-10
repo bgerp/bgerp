@@ -370,26 +370,6 @@ class support_Systems extends core_Master
                 // Вземаме всички прототипи
                 $prototypesArr = static::getSystems($form->rec->prototype);
                 
-                // Запитване
-                $query = static::getQuery();
-                
-                // Обхождаме масива с прототипите
-                foreach ($prototypesArr as $prototype) {
-                    
-                    // Добавяме OR условие
-                    $query->orWhere($prototype);  
-                }
-                
-                // Обхождаме резултататите
-                while ($rec = $query->fetch()) {
-                    
-                    // Към споделените добавяме и inCharge
-                    $shared = keylist::addKey($rec->shared, $rec->inCharge);
-                    
-                    // Споделените от родителите ги добавяме към текущия
-                    $form->rec->shared = keylist::merge($shared, $form->rec->shared);
-                }
-                
                 // Ако сме избрали за прототип някой от наследниците
                 if ($prototypesArr[$form->rec->id]) {
                     
