@@ -1967,7 +1967,8 @@ span.sharing-history-title {
   z-index: 100; }
 
 .newsbar .richtext {
-  line-height: 1.1em; }
+  line-height: 1.1em;
+  white-space: nowrap; }
 
 .narrow .newsbar {
   padding-bottom: 8px; }

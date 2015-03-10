@@ -2241,10 +2241,11 @@ fieldset.sharing-history {
 
 .newsbar .richtext{
     line-height:1.1em;
+    white-space: nowrap;
 }
 
 .narrow .newsbar{
-    padding-bottom:8px; 
+    padding-bottom:8px;    
 }
 /*край на newsbar*/
 
