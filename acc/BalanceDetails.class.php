@@ -882,33 +882,37 @@ class acc_BalanceDetails extends core_Detail
                 $this->calcAmount($rec);
                 $this->addEntry($rec, 'debit');
                 $this->addEntry($rec, 'credit');
-                $update = FALSE;
-               
-                // След като се изчисли сумата, презаписваме цените в журнала, само ако сметките са размерни
-                if($rec->debitQuantity){
-                    @$debitPrice = round($rec->amount / $rec->debitQuantity, 4);
-                    
-                    if(trim($rec->debitPrice) != trim($debitPrice)){
-                        $rec->debitPrice = $debitPrice;
-                        $update = TRUE;
-                    }
-                }
-                
-                if($rec->creditQuantity){
-                    @$creditPrice = round($rec->amount / $rec->creditQuantity, 4);
-                    
-                    if(trim($rec->creditPrice) != trim($creditPrice)){
-                        $rec->creditPrice = $creditPrice;
-                        $update = TRUE;
-                    }
-                }
                 
                 // Обновява се записа само ако има промяна с цената
-                if($update){
+                if($this->updateJournal($rec)){
                     $JournalDetails->save($rec);
                 }
             }
         }
+    }
+    
+    
+    /**
+     * Проверява дали сумата на записа се различава от тази по стратегия
+     */
+    private function updateJournal(&$rec)
+    {
+    	$res = FALSE;
+    	 
+    	foreach (array('debit', 'credit') as $type){
+    		$quantityField = "{$type}Quantity";
+    		$priceField = "{$type}Price";
+    
+    		if($rec->{$quantityField}){
+    			@$price = round($rec->amount / $rec->{$quantityField}, 4);
+    			if(trim($rec->{$priceField}) != trim($price)){
+    				$rec->{$priceField} = $price;
+    				$res = TRUE;
+    			}
+    		}
+    	}
+    	 
+    	return $res;
     }
     
     
