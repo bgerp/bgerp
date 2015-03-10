@@ -560,7 +560,8 @@ class doc_FolderPlg extends core_Plugin
                 
                 // Добавяме id-тата на споделените потребители
                 foreach ((array)$sharedUsersArr as $nick) {
-                    $id = core_Users::fetchField(array("#nick = '[#1#]'", $nick), 'id');
+                    $nick = strtolower($nick);
+                    $id = core_Users::fetchField(array("LOWER(#nick) = '[#1#]'", $nick), 'id');
                     $rec->shared = type_Keylist::addKey($rec->shared, $id);
                 }
             }
