@@ -196,8 +196,8 @@ class cal_TaskConditions extends core_Detail
     	if ($rec->progress == '0') {
     		$row->progress = "";
     	}
-
-        $row->condition = '<td style="width:1%">' . $row->tool . '<td>'  . $row->condition ;
+    
+        $row->condition = '<td>' . $row->tool . '</td><td>'  . $row->condition;
     	 
     	if ($rec->activationCond == 'onProgress') {
     		$row->condition .= $row->progress . tr(" от изпълнението на ") . ht::createLink($row->dependId, array('cal_Tasks', 'single', $rec->dependId, 'ret_url' => TRUE, ''), NULL, "ef_icon=img/16/task-normal.png");
