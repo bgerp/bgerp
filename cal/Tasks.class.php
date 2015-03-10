@@ -287,7 +287,9 @@ class cal_Tasks extends core_Master
             if($rec->remainingTime > 0) {
                 $row->remainingTime = ' (' . tr('остават') . ' ' . $typeTime->toVerbal($rec->remainingTime) . ')';
             } else {
-                 $row->remainingTime = ' (' . tr('просрочване с') . ' ' . $typeTime->toVerbal(-$rec->remainingTime) . ')';
+            	
+                $row->remainingTime = ' (' . tr('просрочване с') . ' ' . $typeTime->toVerbal(-$rec->remainingTime) . ')';
+            	
             }
         }
  
@@ -2246,7 +2248,7 @@ class cal_Tasks extends core_Master
     		return $res;
     	}
     	
-    	if ($hours > 0) {
+    	if ($hours > 0 || $minutes > 0) {
     		$res = round($time / 60) * 60;
     		
     		return $res;
