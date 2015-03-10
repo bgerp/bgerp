@@ -13,32 +13,40 @@
 				<!--ET_BEGIN systemId-->
                 <div>|Система|*: [#systemId#]</div>
                 <!--ET_END systemId-->
+                
                 <!--ET_BEGIN componentId-->
                 <div>|Компонент|*: [#componentId#]</div>
                 <!--ET_END componentId-->
+                
                 <div>|Тип|*: [#typeId#]</div>
+                
 				<!--ET_BEGIN priority-->
                 <div>|Приоритет|*: [#priority#]</div>
                 <!--ET_END priority-->
-				<!--ET_BEGIN ip-->
-                <div>|Ip|*: [#ip#]</div>
-                <!--ET_END ip-->
-				<!--ET_BEGIN brid-->
-                <div>|Браузър|*: [#brid#]</div>
-                <!--ET_END brid-->
+				
+                <!--ET_BEGIN assign-->
+                <div>|Възложено на|*: <i>[#assign#]</i> |от|* <i>[#assignedBy#]</i> |на|* [#assignedOn#]</div>
+                <!--ET_END assign-->
 
 				<!--ET_BEGIN name-->
                 <div>|Имена|*: [#name#]</div>
                 <!--ET_END name-->
-
+                
 				<!--ET_BEGIN email-->
                 <div>|Имейл|*: [#email#]</div>
                 <!--ET_END email-->
-
-
-                <!--ET_BEGIN assign-->
-                <div>|Възложено на|*: <i>[#assign#]</i> |от|* <i>[#assignedBy#]</i> |на|* [#assignedOn#]</div>
-                <!--ET_END assign-->
+				
+				<!--ET_BEGIN url-->
+                <div>|URL|*: [#url#]</div>
+                <!--ET_END url-->
+                
+				<!--ET_BEGIN ip-->
+                <div>|Ip|*: [#ip#]</div>
+                <!--ET_END ip-->
+                
+				<!--ET_BEGIN brid-->
+                <div>|Браузър|*: [#brid#]</div>
+                <!--ET_END brid-->
             </div>
         </div>
     </div>

@@ -374,10 +374,14 @@ class core_page_InternalModern extends core_page_Active {
                 $email = core_Users::getCurrent('email');
             }
             list($user, $domain) = explode('@', $email);
+            $currUrl = getCurrentUrl();
+            $ctr = $currUrl['Ctr'];
+            $act = $currUrl['Act'];
+            $sysDomain = $_SERVER['HTTP_HOST'];
             $name = core_Users::getCurrent('names');
             $img = sbf('img/supportmale-20.png', '');
             $btn = "<input title='Сигнал за бъг, въпрос или предложение' class='bugReport' type=image src='{$img}' name='Cmd[refresh]' value=1>";
-            $form = new ET("<form style='display:inline' method='post' target='_blank' onSubmit=\"prepareBugReport(this, '{$user}', '{$domain}', '{$name}');\" action='" . $conf->BGERP_SUPPORT_URL . "'>[#1#]</form>", $btn);
+            $form = new ET("<form style='display:inline' method='post' target='_blank' onSubmit=\"prepareBugReport(this, '{$user}', '{$domain}', '{$name}', '{$ctr}', '{$act}', '{$sysDomain}');\" action='" . $conf->BGERP_SUPPORT_URL . "'>[#1#]</form>", $btn);
             $tpl->append('&nbsp;<small>|</small>&nbsp;');
             $tpl->append($form);
         }
