@@ -1536,7 +1536,7 @@ abstract class deals_DealMaster extends deals_DealBase
     {
     	$me = cls::get(get_called_class());
     	$Detail = cls::get($me->mainDetail);
-    	 
+    	
     	expect($rec = $me->fetch($id));
     	expect($rec->state == 'draft');
     	
@@ -1563,6 +1563,8 @@ abstract class deals_DealMaster extends deals_DealBase
     		$policyInfo = $Policy->getPriceInfo($rec->contragentClassId, $rec->contragentId, $productId, $productManId, $packagingId, $packQuantity);
     		$price = $policyInfo->price;
     	}
+    	
+    	$packQuantity = cls::get('type_Double')->fromVerbal($packQuantity);
     	
     	// Подготвяме детайла
     	$dRec = (object)array($Detail->masterKey => $id, 
