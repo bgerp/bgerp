@@ -25,7 +25,7 @@ class cat_Products extends core_Embedder {
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    var $interfaces = 'acc_RegisterIntf,cat_ProductAccRegIntf,mp_ResourceSourceIntf,doc_AddToFolderIntf';
+    var $interfaces = 'acc_RegisterIntf,cat_ProductAccRegIntf,mp_ResourceSourceIntf,doc_AddToFolderIntf,acc_RegistryDefaultCostIntf';
     
     
     /**
@@ -1420,5 +1420,17 @@ class cat_Products extends core_Embedder {
     		$this->save($pRec);
     		$this->log("Затворено е перо: '{$itemId}'");
     	}
+    }
+    
+    
+    /**
+     * Връща дефолтната цена
+     *
+     * @param mixed $id - ид/запис на обекта
+     */
+    public function getDefaultCost($id)
+    {
+    	// За артикула, това е цената по себестойност
+    	return $this->getSelfValue($id);
     }
 }
