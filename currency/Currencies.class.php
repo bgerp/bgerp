@@ -19,7 +19,7 @@ class currency_Currencies extends core_Master {
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    var $interfaces = 'acc_RegisterIntf, currency_CurrenciesAccRegIntf';
+    var $interfaces = 'acc_RegisterIntf, currency_CurrenciesAccRegIntf, acc_RegistryDefaultCostIntf';
     
     
     /**
@@ -366,4 +366,16 @@ class currency_Currencies extends core_Master {
      * КРАЙ НА интерфейса @see acc_RegisterIntf
      */
 
+    
+    /**
+     * Връща дефолтната цена отговаряща на количеството
+     *
+     * @param mixed $id - ид/запис на обекта
+     */
+    public function getDefaultCost($id)
+    {
+    	$code = static::getCodeById($id);
+    	
+    	return currency_CurrencyRates::getRate($today, $code);
+    }
 }
