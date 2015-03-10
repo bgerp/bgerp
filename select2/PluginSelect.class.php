@@ -92,7 +92,7 @@ class select2_PluginSelect extends core_Plugin
         
         $select = ($attr['placeholder']) ? ($attr['placeholder']) : '';
         
-        if ($invoker->params['allowEmpty']) {
+        if ($invoker->params['allowEmpty'] || $invoker->options[''] || $invoker->options[' ']) {
             $allowClear = TRUE;
         } else {
             $allowClear = (self::$allowClear) ? (self::$allowClear) : false;
