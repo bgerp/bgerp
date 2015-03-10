@@ -167,7 +167,7 @@ class mp_ObjectResources extends core_Manager
     	$sourceInfo = $Class->getResourceSourceInfo($rec->objectId);
     	
     	// Възможни за избор са всички ресурси от посочения тип, които не са заготовки към технологична рецепта
-    	$options = mp_Resources::makeArray4Select('title', array("#type = '{$sourceInfo->type}' AND #bomId IS NULL"));
+    	$options = mp_Resources::makeArray4Select('title', "#type = '{$sourceInfo->type}' AND #bomId IS NULL");
     	
     	if(count($options)){
     		$form->setOptions('resourceId', $options);
