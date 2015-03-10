@@ -82,10 +82,13 @@ class select2_PluginEnum extends core_Plugin
         $optionsCnt = count($invoker->options);
         
         // Ако опциите са под минималното - нищо не правим
-        if($optionsCnt < $minItems) return;
+        if ($optionsCnt < $minItems) return;
         
         // Ако няма JS нищо не правим
         if (Mode::is('javascript', 'no')) return;
+        
+        // Ако ще са радиобутони
+        if ($invoker->params['maxRadio'] && ($invoker->params['maxRadio'] <= $optionsCnt)) return ;
         
         $select = ($attr['placeholder']) ? ($attr['placeholder']) : '';
         
