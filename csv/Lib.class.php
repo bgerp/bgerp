@@ -228,4 +228,29 @@ class csv_Lib
     }
 
     
+    /**
+     * Връща масив с данните от csv-то
+     * @param string $csvData - csv данни
+     * @param char $delimiter - разделител
+     * @param char $enclosure - ограждане
+     * @param string $firstRow - първи ред данни или имена на колони
+     * @return array $rows - масив с парсирани редовете на csv-то
+     */
+    public static function getCsvRows($csvData, $delimiter, $enclosure, $firstRow)
+    {
+    	$textArr = explode(PHP_EOL, trim($csvData));
+    
+    	foreach($textArr as $line){
+    		$arr = str_getcsv($line, $delimiter, $enclosure);
+    		array_unshift($arr, "");
+    		unset($arr[0]);
+    		$rows[] = $arr;
+    	}
+    
+    	if($firstRow == 'columnNames'){
+    		unset($rows[0]);
+    	}
+    
+    	return $rows;
+    }
 }
