@@ -543,4 +543,15 @@ class acc_plg_Contable extends core_Plugin
         	}
         }
     }
+    
+    
+    /**
+     * Дали могат да се използват затворени пера в контировката на документа
+     */
+    public static function on_AfterCanUseClosedItems($mvc, &$res, $id)
+    {
+    	if(!$res){
+    		$res = ($mvc->canUseClosedItems === TRUE) ? TRUE : FALSE;
+    	}
+    }
 }
