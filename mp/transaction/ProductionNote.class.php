@@ -151,7 +151,7 @@ class mp_transaction_ProductionNote extends acc_DocumentTransactionSource
 		if(Mode::get('saveTransaction')){
 			if(count($errorArr)){
 				$errorArr = implode(', ', $errorArr);
-				acc_journal_RejectRedirect::expect($entry, "Артикулите: |{$errorArr}|* не може да бъдат произведени");
+				acc_journal_RejectRedirect::expect($entry, "Артикулите: |{$errorArr}|* не могат да бъдат произведени");
 			}
 		}
 		

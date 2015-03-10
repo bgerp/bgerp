@@ -122,33 +122,6 @@ class mp_ConsumptionNotes extends deals_ManifactureMaster
 	
 	
 	/**
-	 * Дали документа може да се активира
-	 */
-	public static function canActivate($rec)
-	{
-		if(empty($rec->id)) return FALSE;
-		
-		// Намираме му детайлите
-		$dQuery = mp_ConsumptionNoteDetails::getQuery();
-		$dQuery->where("#noteId = {$rec->id}");
-		
-		// Ако няма не може да се активира
-		if(!$dQuery->count()) return FALSE;
-		
-		// Ако поне един артикул не е ресурс не може
-		while($dRec = $dQuery->fetch()){
-			if(!mp_ObjectResources::getResource($dRec->classId, $dRec->productId)){
-				
-				return FALSE;
-			}
-		}
-		
-		// Стигнем ли до тук значи има детайли, и всичките са ресурси
-		return TRUE;
-	}
-	
-	
-	/**
 	 * Обновява записа, за да се преизчисли полето 'isContable' (@see acc_plg_Contable)
 	 */
 	public function act_Resave()
@@ -162,63 +135,5 @@ class mp_ConsumptionNotes extends deals_ManifactureMaster
 		$this->save($rec);
 		
 		redirect(array($this, 'single', $id));
-	}
-	
-	
-	/**
-	 * Екшън стопиращ съответното действие
-	 */
-	private function stopAction($id)
-	{
-		$rec = $this->fetchRec($id);
-		
-		$dQuery = mp_ConsumptionNoteDetails::getQuery();
-		$dQuery->where("#noteId = {$rec->id}");
-		while($dRec = $dQuery->fetch()){
-			if(!mp_ObjectResources::getResource($dRec->classId, $dRec->productId)){
-				return 'Някой от артикулите не е ресурс';
-			}
-		}
-		
-		return FALSE;
-	}
-	
-	
-	/**
-	 * Изпълнява се преди контиране на документа
-	 */
-	public static function on_BeforeConto(core_Mvc $mvc, &$res, $id)
-	{
-		if($msg = $mvc->stopAction($id)){
-			core_Statuses::newStatus(tr($msg), 'error');
-	
-			return FALSE;
-		}
-	}
-	
-	
-	/**
-	 * Изпълнява се преди възстановяването на документа
-	 */
-	public static function on_BeforeRestore(core_Mvc $mvc, &$res, $id)
-	{
-		if($msg = $mvc->stopAction($id)){
-			core_Statuses::newStatus(tr($msg), 'error');
-	
-			return FALSE;
-		}
-	}
-	
-	
-	/**
-	 * Изпълнява се преди оттеглянето на документа
-	 */
-	public static function on_BeforeReject(core_Mvc $mvc, &$res, $id)
-	{
-		if($msg = $mvc->stopAction($id)){
-			core_Statuses::newStatus(tr($msg), 'error');
-	
-			return FALSE;
-		}
 	}
 }
