@@ -129,7 +129,7 @@ class select2_PluginSelect extends core_Plugin
         $q = '/[ \"\'\(\[\-\s]' . str_replace(' ', '.* ', $q) . '/';
         
         $hnd = Request::get('hnd');
-        core_Logs::add('type_Key', NULL, "ajaxGetOptions|{$hnd}|{$q}", 1);
+        core_Logs::add($invoker, NULL, "ajaxGetOptions|{$hnd}|{$q}", 1);
         if (!$hnd || !($options = unserialize(core_Cache::get($invoker->selectOpt, $hnd)))) {
             
             core_App::getJson(array(
