@@ -520,6 +520,10 @@ class price_ListRules extends core_Detail
         // Област
         if($rec->productId) {
         	$row->domain = cat_Products::getHyperlink($rec->productId, TRUE);
+        	
+        	if(cat_Products::fetchField($rec->productId, 'state') == 'rejected'){
+        		$row->domain = "<span class= 'state-rejected-link'>{$row->domain}</span>";
+        	}
         } elseif($rec->groupId) {
             $row->domain = tr('група') . " <b>\"" . $mvc->getVerbal($rec, 'groupId') . "\"</b>";
             $row->domain = ht::createLink($row->domain, array('price_Groups', 'single', $rec->groupId));

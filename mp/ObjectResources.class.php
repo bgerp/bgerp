@@ -273,7 +273,12 @@ class mp_ObjectResources extends core_Manager
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-    	$row->objectId = cls::get($rec->classId)->getHyperlink($rec->objectId, TRUE);
+    	$Source = cls::get($rec->classId);
+    	$row->objectId = $Source->getHyperlink($rec->objectId, TRUE);
+    	if($Source->fetchField($rec->objectId, 'state') == 'rejected'){
+    		$row->objectId = "<span class='state-rejected-link'>{$row->objectId}</span>";
+    	}
+    	
     	$row->objectId = "<span style='float:left'>{$row->objectId}</span>";
     	
     	$row->resourceId = mp_Resources::getHyperlink($rec->resourceId);

@@ -350,4 +350,13 @@ class mp_Resources extends core_Master
     		}
     	}
     }
+    
+    
+    /**
+     * Поставя изискване да се селектират само активните записи
+     */
+    public static function on_BeforeMakeArray4Select($mvc, &$optArr, $fields = NULL, &$where = NULL)
+    {
+    	$where .= ($where ? " AND " : "") . " #state != 'rejected'";
+    }
 }
