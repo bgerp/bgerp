@@ -240,15 +240,13 @@ class cat_Products extends core_Embedder {
         $this->FLD('canConvert', 'enum(yes=Да,no=Не)', 'input=none');
         $this->FLD('fixedAsset', 'enum(yes=Да,no=Не)', 'input=none');
         $this->FLD('canManifacture', 'enum(yes=Да,no=Не)', 'input=none');
-        $this->FLD('waste', 'enum(yes=Да,no=Не)', 'input=none');
         
         $this->FLD('meta', 'set(canSell=Продаваем,
                                 canBuy=Купуваем,
                                 canStore=Складируем,
                                 canConvert=Вложим,
                                 fixedAsset=Дълготраен актив,
-        			canManifacture=Производим,
-        			waste=Отпаден)', 'caption=Свойства->Списък,columns=2,remember,formOrder=100000000,mandatory');
+        			canManifacture=Производим)', 'caption=Свойства->Списък,columns=2,remember,formOrder=100000000,mandatory');
         
         $this->setDbIndex('canSell');
         $this->setDbIndex('canBuy');
@@ -256,7 +254,6 @@ class cat_Products extends core_Embedder {
         $this->setDbIndex('canConvert');
         $this->setDbIndex('fixedAsset');
         $this->setDbIndex('canManifacture');
-        $this->setDbIndex('waste');
         
         $this->setDbUnique('code');
     }
@@ -366,7 +363,7 @@ class cat_Products extends core_Embedder {
     	// Разпределяме свойствата в отделни полета за полесно търсене
     	if($rec->meta){
     		$metas = type_Set::toArray($rec->meta);
-    		foreach (array('canSell', 'canBuy', 'canStore', 'canConvert', 'fixedAsset', 'canManifacture', 'waste') as $fld){
+    		foreach (array('canSell', 'canBuy', 'canStore', 'canConvert', 'fixedAsset', 'canManifacture') as $fld){
     			$rec->$fld = (isset($metas[$fld])) ? 'yes' : 'no';
     		}
     	}
@@ -476,8 +473,7 @@ class cat_Products extends core_Embedder {
                                 canStore=Складируеми,
                                 canConvert=Вложими,
                                 fixedAsset=Дълготрайни активи,
-        						canManifacture=Производими,
-        						waste=Отпаден)', 'input');
+        						canManifacture=Производими)', 'input');
 		
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
@@ -554,7 +550,7 @@ class cat_Products extends core_Embedder {
     
     /**
      * Връща масив от продукти отговарящи на зададени мета данни:
-     * canSell, canBuy, canManifacture, canConvert, fixedAsset, canStore, waste
+     * canSell, canBuy, canManifacture, canConvert, fixedAsset, canStore
      * 
      * @param mixed $properties       - комбинация на горе посочените мета 
      * 							        данни, на които трябва да отговарят
@@ -585,7 +581,6 @@ class cat_Products extends core_Embedder {
 	 * 	     meta['canStore']       - дали може да се съхранява
 	 * 	     meta['canManifacture'] - дали може да се прозивежда
 	 * 	     meta['fixedAsset']     - дали е ДА
-	 * 		 meta['waste]			- дали е отпаден
      * 	-> packagingRec - записа на опаковката, ако е зададена
      * 	-> packagings - всички опаковки на продукта, ако не е зададена
      */					

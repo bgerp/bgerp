@@ -48,7 +48,6 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
 	 * 	     meta['canStore']       - дали може да се съхранява
 	 * 	     meta['canManifacture'] - дали може да се прозивежда
 	 * 	     meta['fixedAsset']     - дали е ДМА
-	 * 		 meta['waste]			- дали е отпаден
      * 	-> packagingRec - записа на опаковката, ако е зададена
      * 	-> packagings - всички опаковки на продукта, ако не е зададена
      */			
@@ -100,7 +99,7 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     
     /**
      * Връща масив от продукти отговарящи на зададени мета данни:
-     * canSell, canBuy, canManifacture, canConvert, fixedAsset, canStore, waste
+     * canSell, canBuy, canManifacture, canConvert, fixedAsset, canStore
      * 
      * @param mixed $properties       - комбинация на горе посочените мета 
      * 							        данни, на които трябва да отговарят
