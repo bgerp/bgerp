@@ -112,8 +112,9 @@ class core_Logs extends core_Manager
     {   
         $data->listFilter->FNC('user', 'key(mvc=core_Users,select=nick,allowEmpty,where=#state !\\= \\\'rejected\\\')', 'placeholder=Потребител,silent,refreshForm');
         $data->listFilter->FNC('date', 'date', 'placeholder=Дата');
-        $data->listFilter->FNC('class', 'customKey(mvc=core_Classes,select=name,key=name,allowEmpty)', 'placeholder=Клас');
+        $data->listFilter->FNC('class', 'varchar', 'placeholder=Клас');
 
+        $data->listFilter->setSuggestions('class', core_Classes::makeArray4Select('name'));
         $data->listFilter->showFields = 'user,date,class';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
