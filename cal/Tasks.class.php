@@ -434,58 +434,60 @@ class cal_Tasks extends core_Master
   
         $rec->allDay = (strlen($rec->timeStart) == 10) ? 'yes' : 'no';
 
-        if($rec->timeStart && $rec->timeEnd && ($rec->timeStart > $rec->timeEnd)) {
-            $form->setError('timeEnd', 'Не може крайния срок да е преди началото на задачата');
-        }
-        
-        // при активиране на задачата
-        if($rec->state == 'active'){
-        	
-        	// проверява дали сме и задали начало и край
-        	// или сме и задали начало и продължителност
-        	if(($rec->timeStart && $rec->timeEnd) || ($rec->timeStart && $rec->timeDuration))
-        	{
-        		// ако имаме зададена продължителност
-        		if($rec->timeDuration){
-        			
-        			// то изчисляваме края на задачата
-        			// като към началото добавяме продължителността
-        			$taskEnd = dt::timestamp2Mysql(dt::mysql2timestamp($rec->timeStart) + $rec->timeDuration);
-        		} else {
-        			$taskEnd = $rec->timeEnd;
-        		}
-        		
-        		// правим заявка към базата
-        		$query = self::getQuery();
-        		
-        		// търсим всички задачи, които са шернати на текущия потребител
-        		// и имат някаква стойност за начало и край
-        		// или за начало и продължителност
-        		$query->likeKeylist('sharedUsers', $rec->sharedUsers);
-        		
-        		if($rec->id) {
-        			$query->where("#id != {$rec->id}");
-        		}
-        		
-        		$query->where("(#timeStart IS NOT NULL AND #timeEnd IS NOT NULL AND #timeStart <= '{$rec->timeStart}' AND #timeEnd >= '{$rec->timeStart}')
-        		              OR
-        		              (#timeStart IS NOT NULL AND #timeDuration IS NOT NULL  AND #timeStart <= '{$rec->timeStart}' AND ADDDATE(#timeStart, INTERVAL #timeDuration SECOND) >= '{$rec->timeStart}')
-        		              OR
-        		              (#timeStart IS NOT NULL AND #timeEnd IS NOT NULL AND #timeStart <= '{$taskEnd}' AND #timeEnd >= '{$taskEnd}')
-        		              OR
-        		              (#timeStart IS NOT NULL AND #timeDuration IS NOT NULL AND #timeStart <= '{$taskEnd}' AND ADDDATE(#timeStart, INTERVAL #timeDuration SECOND) >= '{$taskEnd}')");
-        		
-        		
-        		$query->where("#state = 'active'");
-        		
-        		// за всяка една задача отговаряща на условията проверяваме 
-        		if ($recTask = $query->fetch()){
-        		    
-        			$link = ht::createLink($recTask->title, array('cal_Tasks', 'single', $recTask->id, 'ret_url' => TRUE, ''), NULL, "ef_icon=img/16/task-normal.png");
-        			// и изписваме предупреждение 
-        		 	$form->setWarning('timeStart, timeDuration, timeEnd', "|Засичане по време с |*{$link}");
-        		}
-        	}
+        if ($form->isSubmitted()) {
+	        if($rec->timeStart && $rec->timeEnd && ($rec->timeStart > $rec->timeEnd)) {
+	            $form->setError('timeEnd', 'Не може крайния срок да е преди началото на задачата');
+	        }
+	        
+	        // при активиране на задачата
+	        if($rec->state == 'active'){
+	        	
+	        	// проверява дали сме и задали начало и край
+	        	// или сме и задали начало и продължителност
+	        	if(($rec->timeStart && $rec->timeEnd) || ($rec->timeStart && $rec->timeDuration))
+	        	{
+	        		// ако имаме зададена продължителност
+	        		if($rec->timeDuration){
+	        			
+	        			// то изчисляваме края на задачата
+	        			// като към началото добавяме продължителността
+	        			$taskEnd = dt::timestamp2Mysql(dt::mysql2timestamp($rec->timeStart) + $rec->timeDuration);
+	        		} else {
+	        			$taskEnd = $rec->timeEnd;
+	        		}
+	        		
+	        		// правим заявка към базата
+	        		$query = self::getQuery();
+	        		
+	        		// търсим всички задачи, които са шернати на текущия потребител
+	        		// и имат някаква стойност за начало и край
+	        		// или за начало и продължителност
+	        		$query->likeKeylist('sharedUsers', $rec->sharedUsers);
+	        		
+	        		if($rec->id) {
+	        			$query->where("#id != {$rec->id}");
+	        		}
+	        		
+	        		$query->where("(#timeStart IS NOT NULL AND #timeEnd IS NOT NULL AND #timeStart <= '{$rec->timeStart}' AND #timeEnd >= '{$rec->timeStart}')
+	        		              OR
+	        		              (#timeStart IS NOT NULL AND #timeDuration IS NOT NULL  AND #timeStart <= '{$rec->timeStart}' AND ADDDATE(#timeStart, INTERVAL #timeDuration SECOND) >= '{$rec->timeStart}')
+	        		              OR
+	        		              (#timeStart IS NOT NULL AND #timeEnd IS NOT NULL AND #timeStart <= '{$taskEnd}' AND #timeEnd >= '{$taskEnd}')
+	        		              OR
+	        		              (#timeStart IS NOT NULL AND #timeDuration IS NOT NULL AND #timeStart <= '{$taskEnd}' AND ADDDATE(#timeStart, INTERVAL #timeDuration SECOND) >= '{$taskEnd}')");
+	        		
+	        		
+	        		$query->where("#state = 'active'");
+	        		
+	        		// за всяка една задача отговаряща на условията проверяваме 
+	        		if ($recTask = $query->fetch()){
+	        		    
+	        			$link = ht::createLink($recTask->title, array('cal_Tasks', 'single', $recTask->id, 'ret_url' => TRUE, ''), NULL, "ef_icon=img/16/task-normal.png");
+	        			// и изписваме предупреждение 
+	        		 	$form->setWarning('timeStart, timeDuration, timeEnd', "|Засичане по време с |*{$link}");
+	        		}
+	        	}
+	        }
         }
     }
 
