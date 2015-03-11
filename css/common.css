@@ -837,6 +837,9 @@ a.more-btn {
   padding-left: 17px !important;
   height: 16px; }
 
+.more-btn.linkWithIcon {
+  padding-left: 22px !important; }
+
 .narrow .more-btn {
   float: none; }
 
