@@ -1004,6 +1004,12 @@ class cat_Products extends core_Embedder {
     	if($fields['-list']){
     		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
     	}
+    	
+    	if($fields['-single']){
+    		if($jobRec = $mvc->getLastActiveJob($rec->id)){
+    			$row->jobId = mp_Jobs::getHyperlink($jobRec->id, TRUE);
+    		}
+    	}
     }
     
     
@@ -1291,7 +1297,7 @@ class cat_Products extends core_Embedder {
     			if($qRec = mp_Jobs::fetch("#originId = {$data->rec->containerId} AND #state = 'draft'")){
     				$data->toolbar->addBtn("Задание", array('mp_Jobs', 'edit', $qRec->id, 'ret_url' => TRUE), 'ef_icon = img/16/clipboard_text.png,title=Редактиране на задание за производство');
     			} else {
-    				$data->toolbar->addBtn("Задание", array('mp_Jobs', 'add', 'productId' => $data->rec->id, 'ret_url' => TRUE), 'ef_icon = img/16/clipboard_text.png,title=Създаване на ново задание за производство');
+    				$data->toolbar->addBtn("Задание", array('mp_Jobs', 'add', 'productId' => $data->rec->id, 'folderId' => $data->rec->folderId, 'ret_url' => TRUE), 'ef_icon = img/16/clipboard_text.png,title=Създаване на ново задание за производство');
     			}
     		}
     	}
