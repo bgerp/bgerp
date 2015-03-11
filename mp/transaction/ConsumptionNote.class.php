@@ -89,7 +89,7 @@ class mp_transaction_ConsumptionNote extends acc_DocumentTransactionSource
 		if(Mode::get('saveTransaction')){
 			if(count($errorArr)){
 				$errorArr = implode(', ', $errorArr);
-				acc_journal_RejectRedirect::expect($entry, "Артикулите: |{$errorArr}|* не могат да бъдат вложени, защото не са вързани към ресурс");
+				acc_journal_RejectRedirect::expect($entry, "Артикулите: |{$errorArr}|* не могат да бъдат вложени, защото не са асоциирани с ресурс");
 			}
 		}
 		
