@@ -1798,7 +1798,7 @@ function centerNumericElements() {
         
         for (key in numericWidth) {
         	if(numericWidth[key]){
-        		$(table).find("td:nth-child(" + key + ") .numericElement").css('width', numericWidth[key]);
+        		$(table).find("td:nth-child(" + key + ") .numericElement").css('width', numericWidth[key] + 1);
         	}	
         }
     });
