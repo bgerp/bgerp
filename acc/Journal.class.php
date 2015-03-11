@@ -204,8 +204,10 @@ class acc_Journal extends core_Master
     {
         if ($rec->state != 'draft') {
         	
+        	$fields = arr::make($fields, TRUE);
+        	
         	// Не инвалидираме баланса ако само обновяваме общата сума на журнала
-        	if($fields !== 'totalAmount'){
+        	if(!isset($fields['totalAmount'])){
         		// Инвалидираме балансите, които се променят от този вальор
         		acc_Balances::alternate($rec->valior);
         	}
