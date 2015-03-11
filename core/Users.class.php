@@ -148,7 +148,14 @@ class core_Users extends core_Manager
      */
     var $searchFields = 'nick,names,email';
     
-
+    
+    /**
+     * Дали да се стартира крон-а в shutDown
+     */
+    public $runCron = FALSE;
+    
+    
+    
     /**
      * Описание на полетата на модела
      */
@@ -460,6 +467,7 @@ class core_Users extends core_Manager
     {
     	if(self::count() == 1){
     		$mvc->invoke('AfterCreateFirstUser', array(&$html));
+    		$mvc->runCron = TRUE;
     	}
     }
     
@@ -1811,5 +1819,21 @@ class core_Users extends core_Manager
         $key = 'core_Users::' . $id;
         
         return $key;
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param core_Users $mvc
+     */
+    function on_ShutDown($mvc)
+    {
+        if ($this->runCron) {
+            
+            fopen(toUrl(array('core_Cron', 'cron'), 'absolute'), 'r');
+            
+            $this->runCron = FALSE;
+        }
     }
 }
