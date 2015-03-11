@@ -147,7 +147,6 @@ class type_Double extends core_Type {
         
         if(!Mode::is('text', 'plain')) {
             $value = str_replace(' ', '&nbsp;', $value);
-            $value = "<span class='numericElement'>{$value}</span>";
         }
         
         return $value;
