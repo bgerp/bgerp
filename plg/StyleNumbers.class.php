@@ -18,7 +18,7 @@
  * @category  ef
  * @package   plg
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @link      https://github.com/bgerp/ef/issues/6
@@ -27,31 +27,24 @@ class plg_StyleNumbers extends core_Plugin
 {
     
     
-    /**
-     * След преобразуване на записа в четим за хора вид.
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $row Това ще се покаже
-     * @param stdClass $rec Това е записа в машинно представяне
-     */
-    public static function on_AfterPrepareListRows($mvc, $data)
-    {
-        $recs = &$data->recs;
-        $rows = &$data->rows;
-        
-        // Ако няма никакви записи - нищо не правим
-        if(!count($recs)) return;
-        
-        foreach ($mvc->fields as $name=>$field) {
-            if (is_a($field->type, 'type_Double')) {
-                foreach ($recs as $i => $rec) {
-                	
-                    if(round($rec->{$name}, 4) < 0) {
-                        $rows[$i]->{$name} = "<span class='red'>" . $rows[$i]->{$name} . "</span>";
-                    }
-                }
-            }
-        }
-    }
-    
+	/**
+	 * Преди рендиране на таблицата
+	 */
+	public static function on_BeforeRenderListTable($mvc, &$tpl, $data)
+	{
+		$rows = &$data->rows;
+		
+		if(!count($data->recs)) return;
+		
+		foreach ($mvc->selectFields() as $name => $field) {
+			if (is_a($field->type, 'type_Double')) {
+				foreach ($data->recs as $i => $rec) {
+					 
+					if(round($rec->{$name}, 4) < 0) {
+						$rows[$i]->{$name} = "<span class='red'>" . $rows[$i]->{$name} . "</span>";
+					}
+				}
+			}
+		}
+	}
 }
