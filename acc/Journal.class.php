@@ -200,11 +200,15 @@ class acc_Journal extends core_Master
      * @param int $id
      * @param stdClass $rec
      */
-    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $fields = NULL, $mode = NULL)
     {
         if ($rec->state != 'draft') {
-            // Инвалидираме балансите, които се променят от този вальор
-            acc_Balances::alternate($rec->valior);
+        	
+        	// Не инвалидираме баланса ако само обновяваме общата сума на журнала
+        	if($fields !== 'totalAmount'){
+        		// Инвалидираме балансите, които се променят от този вальор
+        		acc_Balances::alternate($rec->valior);
+        	}
         }
         
         // След активиране, извличаме всички записи от журнала и запомняме кои пера са вкарани
