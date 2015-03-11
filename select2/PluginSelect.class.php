@@ -38,6 +38,12 @@ class select2_PluginSelect extends core_Plugin
      */
     protected static $allowClear = FALSE;
     
+    
+    /**
+     * Минималния брой елементи над които да се стартира select2
+     */
+    protected static $minItems = 1;
+    
 
     /**
      * Изпълнява се преди рендирането на input
@@ -70,19 +76,12 @@ class select2_PluginSelect extends core_Plugin
             $attr['id'] = str::getRand('aaaaaaaa');
         }
         
-        $conf = core_Packs::getConfig('select2');
-        
-        // Определяме при колко минимално опции ще правим chosen
-        if(!$invoker->params['select2MinItems']) {
-            $minItems = $conf->SELECT2_KEY_MIN_ITEMS;
-        } else {
-            $minItems = $invoker->params['chosenMinItems'];
-        }
+        $minItems = $invoker->params['select2MinItems'] ? $invoker->params['select2MinItems'] : self::$minItems;
     	
         $optionsCnt = count($invoker->options);
         
         // Ако опциите са под минималното - нищо не правим
-        if($optionsCnt < $minItems) return;
+        if($optionsCnt <= $minItems) return;
         
         // Ако имаме комбо - не правим select2
         if(count($invoker->suggestions)) return;

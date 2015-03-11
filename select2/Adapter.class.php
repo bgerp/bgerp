@@ -80,9 +80,16 @@ class select2_Adapter
     {
         if (!($tpl instanceof core_ET)) return ;
         
+        if ($ajaxUrl) {
+        	$minimumResultsForSearch = 0;
+    	} else {
+    	    $conf = core_Packs::getConfig('select2');
+    	    $minimumResultsForSearch = mode::is('screenMode', 'narrow') ? $conf->SELECT2_NARROW_MIN_SEARCH_ITEMS_CNT : $conf->SELECT2_WIDE_MIN_SEARCH_ITEMS_CNT;
+    	}
+    	
         $select2Str = "
         
-        $('#" . $id . "').select2({placeholder: '{$placeHolder}', allowClear: '{$allowClear}', language: '{$lg}'";
+        $('#" . $id . "').select2({placeholder: '{$placeHolder}', allowClear: '{$allowClear}', language: '{$lg}', minimumResultsForSearch: {$minimumResultsForSearch}";
         
         if ($ajaxUrl) {
             $select2Str .= ",ajax: {

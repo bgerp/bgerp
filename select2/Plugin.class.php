@@ -40,6 +40,12 @@ class select2_Plugin extends core_Plugin
     
     
     /**
+     * Минималния брой елементи над които да се стартира select2
+     */
+    protected static $minItems = 1;
+    
+    
+    /**
      * Изпълнява се преди рендирането на input
      * 
      * @param core_Type $invoker
@@ -75,12 +81,7 @@ class select2_Plugin extends core_Plugin
      */
     function on_AfterRenderInput(&$invoker, &$tpl, $name, $value, $attr = array())
     {
-        $conf = core_Packs::getConfig('select2');
-        if(!$invoker->params['select2MinItems']) {
-            $minItems = $conf->SELECT2_KEYLIST_MIN_ITEMS;
-        } else {
-            $minItems = $invoker->params['select2MinItems'];
-        }
+        $minItems = $invoker->params['select2MinItems'] ? $invoker->params['select2MinItems'] : self::$minItems;
     	
         if (!is_null($invoker->suggestions)) {
             $cnt = count($invoker->suggestions);
@@ -91,7 +92,7 @@ class select2_Plugin extends core_Plugin
         }
         
         // Ако нямаме JS или има много малко предложения - не правим нищо
-        if (Mode::is('javascript', 'no') || (($cnt) < $minItems)) {
+        if (Mode::is('javascript', 'no') || (($cnt) <= $minItems)) {
             
             return ;
         }

@@ -38,7 +38,13 @@ class select2_PluginEnum extends core_Plugin
      */
     protected static $allowClear = FALSE;
     
-
+    
+    /**
+     * Минималния брой елементи над които да се стартира select2
+     */
+    protected static $minItems = 1;
+    
+    
     /**
      * Изпълнява се преди рендирането на input
      * 
@@ -70,19 +76,12 @@ class select2_PluginEnum extends core_Plugin
             $attr['id'] = str::getRand('aaaaaaaa');
         }
         
-        $conf = core_Packs::getConfig('select2');
+        $minItems = $invoker->params['select2MinItems'] ? $invoker->params['select2MinItems'] : self::$minItems;
         
-        // Определяме при колко минимално опции ще правим chosen
-        if(!$invoker->params['select2MinItems']) {
-            $minItems = $conf->SELECT2_ENUM_MIN_ITEMS;
-        } else {
-            $minItems = $invoker->params['chosenMinItems'];
-        }
-    	
         $optionsCnt = count($invoker->options);
         
         // Ако опциите са под минималното - нищо не правим
-        if ($optionsCnt < $minItems) return;
+        if ($optionsCnt <= $minItems) return;
         
         // Ако няма JS нищо не правим
         if (Mode::is('javascript', 'no')) return;
