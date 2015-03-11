@@ -172,6 +172,24 @@ class mp_Jobs extends core_Master
     
     
     /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     *
+     * @param core_Mvc $mvc
+     * @param core_Form $form
+     */
+    public static function on_AfterInputEditForm($mvc, &$form)
+    {
+    	if($form->isSubmitted()){
+    		$rec = &$form->rec;
+    		
+    		$weight = cls::get('cat_Products')->getWeight($rec->productId);
+    		
+    		$rec->brutoWeight = $weight * $rec->quantity;
+    	}
+    }
+    
+    
+    /**
      *  Подготовка на филтър формата
      */
     protected static function on_AfterPrepareListFilter($mvc, $data)
