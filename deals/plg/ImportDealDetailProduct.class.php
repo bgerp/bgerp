@@ -89,6 +89,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 					// Ако можем да импортираме импортираме
 					if($mvc->haveRightFor('import')){
 						
+						// Обработваме и проверяваме данните
 						if($msg = self::checkRows($rows, $fields)){
 							$form->setError('csvData', $msg);
 						}
