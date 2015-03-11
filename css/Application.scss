@@ -1146,7 +1146,14 @@ td.portal-date {
         padding-bottom: 7px;
     }
 }
-
+.bottom-antetka {
+	border-top: 1px solid #ddd;
+	padding: 5px;
+	font-size: 0.8em;
+	 > div {
+	   margin: 1px 0;
+	 }
+}
 .stamp{
 	color: #b00;
 	border: 1px dotted #b00;

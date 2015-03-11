@@ -1029,6 +1029,13 @@ td.portal-date {
   .snapshot .snapshot-title {
     padding-bottom: 7px; }
 
+.bottom-antetka {
+  border-top: 1px solid #dddddd;
+  padding: 5px;
+  font-size: 0.8em; }
+  .bottom-antetka > div {
+    margin: 1px 0; }
+
 .stamp {
   color: #bb0000;
   border: 1px dotted #bb0000;
