@@ -67,7 +67,7 @@ class core_Logs extends core_Manager
     {
         $this->FLD('className', 'varchar(16)');
         $this->FLD('objectId', 'int');
-        $this->FLD('detail', 'text');
+        $this->FLD('detail', 'text(1000000)');
         $this->FLD('lifeTime', 'int', 'value=120');
     }
     
