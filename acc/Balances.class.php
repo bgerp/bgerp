@@ -259,7 +259,10 @@ class acc_Balances extends core_Master
      */
     public static function alternate($date)
     {
-        static $dateArr = array();
+    	$trace = debug_backtrace(NULL, 4);
+    	acc_Balances::log(core_Debug::getTraceAsHtml($trace));
+    	
+    	static $dateArr = array();
         
         if($dateArr[$date]) {
 
