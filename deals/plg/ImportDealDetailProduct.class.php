@@ -4,13 +4,11 @@
 
 /**
  * Плъгин за импорт на артикули към бизнес документи. Закача се към техен детайл който има интерфейс 'deals_DealImportCsvIntf'
- * За да се импортират csv данни се минава през няколко стъпки с помощна
- * на експерта (@see expert_Expert).
- *
+ * 
  * Целта е да се уточни:
  * 1. Как се въвеждат csv данните с ъплоуд на файл или с copy & paste
  * 2. Какви са разделителят, ограждането и първия ред на данните
- * 3. Кои колони от csv-to на кои полета от мениджъра отговарят.
+ * 3. Кои колони от csv-тo на кои полета от мениджъра отговарят.
  *
  * След определянето на тези данни драйвъра се грижи за правилното импортиране
  *
@@ -86,6 +84,10 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 					$rows = csv_Lib::getCsvRows($data, $rec->delimiter, $rec->enclosure, $rec->firstRow);
 					$fields = array('code' => $rec->codecol, 'quantity' => $rec->quantitycol, 'price' => $rec->pricecol);
 					
+					if(!count($rows)){
+						$form->setError('csvData,csvFile', 'Не са открити данни за импорт');
+					}
+					
 					// Ако можем да импортираме импортираме
 					if($mvc->haveRightFor('import')){
 						
@@ -158,7 +160,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 			$msg = "|Има проблем със следните редове|*:";
 			$msg .= "<ul>";
 			foreach($err as $j => $r){
-				$errMsg = implode(',', $r);
+				$errMsg = implode(', ', $r);
 				$msg .= "<li>|Ред|* '{$j}'- {$errMsg}" . "</li>";
 			}
 			$msg .= "</ul>";
