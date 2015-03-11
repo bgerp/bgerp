@@ -267,7 +267,27 @@ class core_page_InternalModern extends core_page_Active {
         $conf = core_Packs::getConfig('help');
         
         $supportUrl = $conf->BGERP_SUPPORT_URL;
-        $singal = ht::createLink(tr("Сигнал"), $supportUrl, FALSE, array('title' => "Изпращане на сигнал", 'target' => '_blank', 'ef_icon' => 'img/16/bug-icon.png'));
+        
+        
+        
+        if($conf->BGERP_SUPPORT_URL && strpos($conf->BGERP_SUPPORT_URL, '//') !== FALSE) {
+        	
+        	$singal = ht::createLink(tr("Сигнал"), " ", FALSE, array('title' => "Изпращане на сигнал", 'ef_icon' => 'img/16/bug-icon.png', 'onclick' => "$('#bugReportForm').submit();"));
+        	
+        	$email = email_Inboxes::getUserEmail();
+        	if(!$email) {
+        		$email = core_Users::getCurrent('email');
+        	}
+        	
+        	list($user, $domain) = explode('@', $email);
+        	$currUrl = getCurrentUrl();
+        	$ctr = $currUrl['Ctr'];
+        	$act = $currUrl['Act'];
+        	$sysDomain = $_SERVER['HTTP_HOST'];
+        	$name = core_Users::getCurrent('names');
+        	$form = new ET("<form id='bugReportForm' style='display:inline' method='post' target='_blank' onSubmit=\"prepareBugReport(this, '{$user}', '{$domain}', '{$name}', '{$ctr}', '{$act}', '{$sysDomain}');\" action='" . $conf->BGERP_SUPPORT_URL . "'></form>");
+        	$tpl->append($form);
+        }
         
         // Създава линк за изход
         $signOut = ht::createLink(tr("Изход"), array('core_Users', 'logout'), FALSE, array('title' => "Излизане от системата", 'ef_icon' => 'img/16/logout.png'));
@@ -322,37 +342,7 @@ class core_page_InternalModern extends core_page_Active {
 
         $isGet = strtoupper($_SERVER['REQUEST_METHOD']) == 'GET';
 
-        if(Mode::is('screenMode', 'narrow')) {
-            if($nick) {
-                $tpl->append(ht::createLink(tr("Изход"), array('core_Users', 'logout'), FALSE, array('title' => "Изход на " . $nick)));
-            }
-                        
-            if($isGet) {
-                $tpl->append("&nbsp;<small>|</small>&nbsp;");
-                $tpl->append(ht::createLink(tr("Десктоп"), array('core_Browser', 'setWideScreen', 'ret_url' => TRUE), FALSE, array('title' => " Превключване на системата в десктоп режим")));
-
-                // Добавяме превключване между езиците
-                $tpl->append(self::getLgChange());
-            }
-
-            $tpl->append("&nbsp;<small>|</small>&nbsp;");
-            $tpl->append(ht::createLink(dt::mysql2verbal(dt::verbal2mysql(), 'H:i'), array('Index', 'default'), NULL, array('title' => tr('Страницата е заредена на') . ' ' . dt::mysql2verbal(dt::verbal2mysql(), 'd-m H:i:s'))));
-        } else {
-            if($nick) {
-                $tpl->append(ht::createLink("&nbsp;" . tr('изход') . ":" . $nick, array('core_Users', 'logout'), FALSE, array('title' => "Прекъсване на сесията")));
-                $tpl->append('&nbsp;<small>|</small>');
-            }
-            
-            $tpl->append('&nbsp;');
-            $tpl->append(dt::mysql2verbal(dt::verbal2mysql()));
-            
-            if($isGet) {
-                $tpl->append("&nbsp;<small>|</small>&nbsp;");
-                $tpl->append(ht::createLink(tr("Тесен"), array('core_Browser', 'setNarrowScreen', 'ret_url' => TRUE), FALSE, array('title' => "Превключване на системата в мобилен режим")));
-            
-                // Добавяме превключване между езиците
-                $tpl->append(self::getLgChange());
-            }
+        if(Mode::is('screenMode', 'wide')) {
             // Добавяме кода, за определяне параметрите на браузъра
             $Browser = cls::get('core_Browser');
             $tpl->append($Browser->renderBrowserDetectingCode(), 'BROWSER_DETECT');
@@ -364,26 +354,6 @@ class core_page_InternalModern extends core_page_Active {
             if(isDebug()) {
             	$tpl->append('&nbsp;<small>|</small>&nbsp;<a href="#wer" onclick="toggleDisplay(\'debug_info\')">Debug</a>');
             }
-        }
-        
-        $conf = core_Packs::getConfig('help');
-        
-        if($conf->BGERP_SUPPORT_URL && strpos($conf->BGERP_SUPPORT_URL, '//') !== FALSE) {
-            $email = email_Inboxes::getUserEmail();
-            if(!$email) {
-                $email = core_Users::getCurrent('email');
-            }
-            list($user, $domain) = explode('@', $email);
-            $currUrl = getCurrentUrl();
-            $ctr = $currUrl['Ctr'];
-            $act = $currUrl['Act'];
-            $sysDomain = $_SERVER['HTTP_HOST'];
-            $name = core_Users::getCurrent('names');
-            $img = sbf('img/supportmale-20.png', '');
-            $btn = "<input title='Сигнал за бъг, въпрос или предложение' class='bugReport' type=image src='{$img}' name='Cmd[refresh]' value=1>";
-            $form = new ET("<form style='display:inline' method='post' target='_blank' onSubmit=\"prepareBugReport(this, '{$user}', '{$domain}', '{$name}', '{$ctr}', '{$act}', '{$sysDomain}');\" action='" . $conf->BGERP_SUPPORT_URL . "'>[#1#]</form>", $btn);
-            $tpl->append('&nbsp;<small>|</small>&nbsp;');
-            $tpl->append($form);
         }
         
         if(isDebug() && Mode::is('screenMode', 'wide')) {
