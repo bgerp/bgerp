@@ -205,6 +205,8 @@ class sales_SalesDetails extends deals_DealDetail
     {
     	$pRec = cls::get($rec->classId)->fetch($rec->productId, 'isPublic,containerId');
     	if($pRec->isPublic === 'yes') return;
+    	$pInfo = cls::get($rec->classId)->getProductInfo($rec->productId);
+    	if(!isset($pInfo->meta['canManifacture'])) return;
     	
     	$row = new stdClass();
     	
