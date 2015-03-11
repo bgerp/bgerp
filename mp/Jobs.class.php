@@ -134,9 +134,9 @@ class mp_Jobs extends core_Master
     	$this->FLD('dueDate', 'date(smartTime)', 'caption=Падеж,mandatory');
     	$this->FLD('quantity', 'double(decimals=2)', 'caption=Количество,mandatory,silent');
     	$this->FLD('notes', 'richtext(rows=3)', 'caption=Забележки');
-    	$this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Доставка->Условие,silent');
-    	$this->FLD('deliveryDate', 'date(smartTime)', 'caption=Доставка->Срок,silent');
-    	$this->FLD('deliveryPlace', 'key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Доставка->Място,silent');
+    	$this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Доставка->Условие');
+    	$this->FLD('deliveryDate', 'date(smartTime)', 'caption=Доставка->Срок');
+    	$this->FLD('deliveryPlace', 'key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Доставка->Място');
     	$this->FLD('weight', 'cat_type_Weight', 'caption=Тегло,input=none');
     	$this->FLD('brutoWeight', 'cat_type_Weight', 'caption=Бруто,input=none');
     	$this->FLD('data', 'blob(serialize,compress)', 'input=none');
@@ -146,8 +146,28 @@ class mp_Jobs extends core_Master
     	);
     	
     	$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden,silent');
-    	 
+    	$this->FLD('saleId', 'key(mvc=sales_Sales)', 'input=hidden,silent');
+    	
     	$this->setDbIndex('productId');
+    }
+    
+    
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+    	$form = &$data->form;
+    	
+    	if($form->rec->saleId){
+    		$saleRec = sales_Sales::fetch($form->rec->saleId);
+    		$form->setDefault('deliveryTermId', $saleRec->deliveryTermId);
+    		$form->setDefault('deliveryDate', $saleRec->deliveryTime);
+    		$form->setDefault('deliveryPlace', $saleRec->deliveryLocationId);
+    	}
     }
     
     
@@ -180,6 +200,10 @@ class mp_Jobs extends core_Master
     		$pInfo = cat_Products::getProductInfo($rec->productId);
     		$row->quantity .= " " . cat_UoM::getShortName($pInfo->productRec->measureId);
     		$row->origin = cls::get('cat_Products')->renderJobView($rec->productId, $rec->modifiedOn);
+    		
+    		if($rec->saleId){
+    			$row->saleId = sales_Sales::getHyperlink($rec->saleId, TRUE);
+    		}
     	}
     }
     
