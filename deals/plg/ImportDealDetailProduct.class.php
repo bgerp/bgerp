@@ -39,6 +39,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 	}
 	
 	
+	
 	/**
 	 * Преди всеки екшън на мениджъра-домакин
 	 */
@@ -49,11 +50,20 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 	
 			$form = cls::get('core_Form');
 			
+			$cu = core_Users::getCurrent();
+			$cacheRec = core_Cache::get($mvc->className, "importProducts{$cu}");
+			
 			// Подготвяме формата
 			$form->FLD($mvc->masterKey, "key(mvc={$mvc->Master->className})", 'input=hidden,silent');
 			$form->input(NULL, 'silent');
 			$form->title = 'Импортиране на артикули към|*' . " <b>" . $mvc->Master->getRecTitle($form->rec->{$mvc->masterKey}) . "</b>";
 			self::prepareForm($form);
+			
+			if($cacheRec){
+				foreach ($cacheRec as $name => $value){
+					$form->rec->{$name} = $value;
+				}
+			}
 			
 			$form->input();
 			
@@ -79,11 +89,20 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 					// Ако можем да импортираме импортираме
 					if($mvc->haveRightFor('import')){
 						
-						// Импортиране на данните от масива в зададените полета
-						$msg = self::importRows($mvc, $rec->{$mvc->masterKey}, $rows, $fields);
+						if($msg = self::checkRows($rows, $fields)){
+							$form->setError('csvData', $msg);
+						}
 						
-						// Редирект кум мастъра на документа към който ще импортираме
-						return Redirect(array($mvc->Master, 'single', $rec->{$mvc->masterKey}), 'FALSE', $msg);
+						if(!$form->gotErrors()){
+							
+							// Импортиране на данните от масива в зададените полета
+							$msg = self::importRows($mvc, $rec->{$mvc->masterKey}, $rows, $fields);
+							
+							self::cacheImportParams($mvc, $rec);
+							
+							// Редирект кум мастъра на документа към който ще импортираме
+							return Redirect(array($mvc->Master, 'single', $rec->{$mvc->masterKey}), 'FALSE', $msg);
+						}
 					}
 				}
 			}
@@ -97,20 +116,125 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 	
 	
 	/**
+	 * Проверява и обработва записите за грешки
+	 */
+	private static function checkRows(&$rows, $fields)
+	{
+		$err = array();
+		$msg = FALSE;
+		
+		foreach ($rows as $i => &$row){
+			$hasError = FALSE;
+			
+			// Подготвяме данните за реда
+			$obj = (object)array('code'     => $row[$fields['code']],
+								 'quantity' => $row[$fields['quantity']],
+					             'price'    => $row[$fields['price']]
+			);
+		
+			// Подсигуряваме се че подадените данни са във вътрешен вид
+			$obj->code = cls::get('type_Varchar')->fromVerbal($obj->code);
+			$obj->quantity = cls::get('type_Double')->fromVerbal($obj->quantity);
+			if($obj->price){
+				$obj->price = cls::get('type_Varchar')->fromVerbal($obj->price);
+				if(!$obj->price){
+					$err[$i][] = "|Грешна цена|*";
+				}
+			}
+			
+			if(!$obj->code || (isset($obj->code) && !cat_Products::getByCode($obj->code))){
+				$err[$i][] = '|Грешен или липсващ код|*';
+			}
+			
+			if(!$obj->quantity){
+				$err[$i][] = '|Грешно количество|*';
+			}
+			
+			$row = clone $obj;
+		}
+		
+		if(count($err)){
+			$msg = "|Има проблем със следните редове|*:";
+			$msg .= "<ul>";
+			foreach($err as $j => $r){
+				$errMsg = implode(',', $r);
+				$msg .= "<li>|Ред|* '{$j}'- {$errMsg}" . "</li>";
+			}
+			$msg .= "</ul>";
+		}
+		
+		return $msg;
+	}
+	
+
+	/**
+	 * Импортиране на записите ред по ред от мениджъра
+	 */
+	private static function importRows($mvc, $masterId, $rows, $fields)
+	{
+		$added = $failed = 0;
+	
+		foreach ($rows as $row){
+				
+			// Опитваме се да импортираме записа
+			try{
+				if($mvc->import($masterId, $row)){
+					$added++;
+				}
+			} catch(core_exception_Expect $e){
+				$failed++;
+			}
+		}
+	
+		$msg = "Импортирани са |{$added}|* артикула";
+		if($failed != 0){
+			$msg .= ". Не са импортирани |{$failed}|* артикула";
+		}
+	
+		return tr($msg);
+	}
+	
+	
+	/**
+	 * Кешира данните от последното импортиране на потребителя за документа
+	 */
+	private static function cacheImportParams($mvc, $rec)
+	{
+		$cu = core_Users::getCurrent();
+		$key = "importProducts{$cu}";
+		
+		core_Cache::remove($mvc->className, $key);
+		$nRec = (object)array('delimiter'   => $rec->delimiter, 
+						      'enclosure'   => $rec->enclosure, 
+						      'firstRow'    => $rec->firstRow, 
+						      'codecol'     => $rec->codecol, 
+						      'quantitycol' => $rec->quantitycol, 
+						      'pricecol'    => $rec->pricecol);
+		
+		if($nRec->delimiter == "\t"){
+			$nRec->delimiter = '\t';
+		}
+		
+		core_Cache::set($mvc->className, $key, $nRec, 1440);
+	}
+	
+	
+	/**
 	 * Подготовка на формата за импорт на артикули
 	 * @param unknown $form
 	 */
 	private static function prepareForm(&$form)
 	{
 		// Полета за орпеделяне на данните
+		$form->info = tr('Въведете данни или качете csv файл');
 		$form->FLD("csvData", 'text(1000000)', 'width=100%,caption=Данни');
 		$form->FLD("csvFile", 'fileman_FileType(bucket=bnav_importCsv)', 'width=100%,caption=CSV файл');
 		
 		// Настройки на данните
-		$form->FLD("delimiter", 'varchar(1,size=5)', 'width=100%,caption=Настройки->Разделител');
+		$form->FLD("delimiter", 'varchar(1,size=5)', 'width=100%,caption=Настройки->Разделител,maxRadio=5');
 		$form->FLD("enclosure", 'varchar(1,size=3)', 'width=100%,caption=Настройки->Ограждане');
 		$form->FLD("firstRow", 'enum(columnNames=Имена на колони,data=Данни)', 'width=100%,caption=Настройки->Първи ред');
-		$form->setSuggestions("delimiter", array(',' => ',', ';' => ';', ':' => ':', '|' => '|', '\t' => 'Таб'));
+		$form->setOptions("delimiter", array(',' => ',', ';' => ';', ':' => ':', '|' => '|', '\t' => 'Таб'));
 		$form->setSuggestions("enclosure", array('"' => '"', '\'' => '\''));
 		$form->setDefault("delimiter", ',');
 		$form->setDefault("enclosure", '"');
@@ -125,55 +249,8 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 			$form->setDefault($fld, $i + 1);
 		}
 		
-		$form->toolbar->addSbBtn('Import', 'save', 'ef_icon = img/16/импоер16.png, title = Импорт');
+		$form->toolbar->addSbBtn('Импорт', 'save', 'ef_icon = img/16/import16.png, title = Импорт');
 		$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
-	}
-	
-	
-	/**
-	 * Импортиране на записите ред по ред от мениджъра
-	 */
-	private static function importRows($mvc, $masterId, $rows, $fields)
-	{
-		$added = $failed = 0;
-		
-		foreach ($rows as $row){
-			
-			// Подготвяме данните за реда
-			$obj = (object)array('code'     => $row[$fields['code']],
-						         'quantity' => $row[$fields['quantity']],
-					             'price'    => $row[$fields['price']]
-			);
-			
-			// Подсигуряваме се че подадените данни са във вътрешен вид
-			$obj->code = cls::get('type_Varchar')->fromVerbal($obj->code);
-			$obj->quantity = cls::get('type_Double')->fromVerbal($obj->quantity);
-			if($obj->price){
-				$obj->code = cls::get('type_Varchar')->fromVerbal($obj->code);
-			}
-			
-			// Ако не е намерен код или к-во не правим нищо
-			if(is_null($obj->code) || is_null($obj->quantity)) {
-				$failed++;
-				continue;
-			}
-			
-			// Опитваме се да импортираме записа
-			try{
-				if($mvc->import($masterId, $obj)){
-					$added++;
-				}
-			} catch(core_exception_Expect $e){
-				$failed++;
-			}
-		}
-		
-		$msg = "Импортирани са |{$added}|* артикула";
-		if($failed != 0){
-			$msg .= ". Не са импортирани |{$failed}|* артикула";
-		}
-		
-		return tr($msg);
 	}
 	
 	
