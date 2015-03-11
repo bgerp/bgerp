@@ -146,16 +146,18 @@ class sales_SalesDetails extends deals_DealDetail
     	$masterStore = $mvc->Master->fetch($rec->{$mvc->masterKey})->shipmentStoreId;
     	
     	if(isset($rec->productId)){
-    		if(isset($masterStore)){
+    		$pInfo = cls::get($rec->classId)->getProductInfo($rec->productId, $rec->packagingId);
+    		if(isset($masterStore) && isset($pInfo->meta['canStore'])){
+    			
     			$storeInfo = deals_Helper::getProductQuantityInStoreInfo($rec->productId, $rec->classId, $masterStore);
     			$form->info = $storeInfo->formInfo;
     		}
     	}
     	
     	if ($form->isSubmitted()){
-    		$pInfo = cls::get($rec->classId)->getProductInfo($rec->productId, $rec->packagingId);
     		$quantityInPack = ($pInfo->packagingRec) ? $pInfo->packagingRec->quantity : 1;
     		
+    		// Показваме предупреждение ако наличното в склада е по-голямо от експедираното
     		if(isset($storeInfo)){
     			if($rec->packQuantity > ($storeInfo->quantity / $quantityInPack)){
     				$form->setWarning('packQuantity', 'Въведеното количество е по-голямо от наличното в склада');
@@ -176,19 +178,23 @@ class sales_SalesDetails extends deals_DealDetail
     	 
     	if(!count($data->recs)) return;
     	 
-    	if($storeId = $data->masterData->rec->shipmentStoreId){
-    		foreach ($rows as $id => $row){
-    			$rec = $data->recs[$id];
-    			$quantityInStore = store_Products::fetchField("#productId = {$rec->productId} AND #classId = {$rec->classId} AND #storeId = {$storeId}", 'quantity');
-    			$diff = ($data->masterData->rec->state == 'active') ? $quantityInStore : $quantityInStore - $rec->quantity;
+    	foreach ($rows as $id => $row){
+    		$rec = $data->recs[$id];
+    		$pInfo = cls::get($rec->classId)->getProductInfo($rec->productId);
     			
-    			if($diff < 0){
-    				$row->packQuantity = "<span class='row-negative' title = '" . tr('Количеството в скалда е отрицателно') . "'>{$row->packQuantity}</span>";
+    		if($storeId = $data->masterData->rec->shipmentStoreId){
+    			if(isset($pInfo->meta['canStore'])){
+    				$quantityInStore = store_Products::fetchField("#productId = {$rec->productId} AND #classId = {$rec->classId} AND #storeId = {$storeId}", 'quantity');
+    				$diff = ($data->masterData->rec->state == 'active') ? $quantityInStore : $quantityInStore - $rec->quantity;
+    					
+    				if($diff < 0){
+    					$row->packQuantity = "<span class='row-negative' title = '" . tr('Количеството в скалда е отрицателно') . "'>{$row->packQuantity}</span>";
+    				}
     			}
+    		}
     			
-    			if($rec->price < cls::get($rec->classId)->getSelfValue($rec->productId)){
-    				$row->packPrice = "<span class='row-negative' title = '" . tr('Цената е под себестойност') . "'>{$row->packPrice}</span>";
-    			}
+    		if($rec->price < cls::get($rec->classId)->getSelfValue($rec->productId)){
+    			$row->packPrice = "<span class='row-negative' title = '" . tr('Цената е под себестойност') . "'>{$row->packPrice}</span>";
     		}
     	}
     }
