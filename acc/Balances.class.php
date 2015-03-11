@@ -261,7 +261,7 @@ class acc_Balances extends core_Master
     {
     	$trace = debug_backtrace(NULL, 4);
     	acc_Balances::log(core_Debug::getTraceAsHtml($trace));
-    	
+    	acc_Balances::log('test');
     	static $dateArr = array();
         
         if($dateArr[$date]) {
