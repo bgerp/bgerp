@@ -1,10 +1,8 @@
 .document {
   border: none !important;
-  padding: 0px !important;
-  width: 840px; }
-
-.antetka {
-  width: 828px !important; }
+  padding: 10px !important;
+  width: 840px;
+  max-width: auto; }
 
 div.richtextHide {
   display: block !important; }

@@ -315,8 +315,12 @@ class doc_Search extends core_Manager
         }
 		
         foreach ($data->recs as $id => &$rec) {
-        	$DocClass = cls::get($rec->docClass);
-        	$rec->state = doc_Threads::fetchField($rec->threadId, 'state');
+        	if(cls::load($rec->docClass, TRUE)){
+        		$DocClass = cls::get($rec->docClass);
+        		$rec->state = doc_Threads::fetchField($rec->threadId, 'state');
+        	} else {
+        		$rec->state = 'closed';
+        	}
         }
     }
     

@@ -144,7 +144,7 @@ class planning_Jobs extends core_Master
     			'caption=Статус, input=none'
     	);
     	
-    	$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden,silent');
+    	$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden,silent,mandatory');
     	$this->FLD('saleId', 'key(mvc=sales_Sales)', 'input=hidden,silent');
     	
     	$this->FLD('sharedUsers', 'userList(roles=planning|ceo)', 'caption=Споделяне->Потребители,mandatory');
@@ -162,8 +162,10 @@ class planning_Jobs extends core_Master
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
+    	$form->info = tr("Към артикул") . ": <b>" . cat_Products::getHyperLink($form->rec->productId) . "</b><br>";
     	
     	if($form->rec->saleId){
+    		$form->info .= tr("От") . ": <b>" . sales_Sales::getHyperlink($form->rec->saleId) . "</b>";
     		$saleRec = sales_Sales::fetch($form->rec->saleId);
     		$form->setDefault('deliveryTermId', $saleRec->deliveryTermId);
     		$form->setDefault('deliveryDate', $saleRec->deliveryTime);
@@ -407,7 +409,7 @@ class planning_Jobs extends core_Master
     	// Проверяваме можем ли да добавяме нови задания
     	if($this->haveRightFor('add', (object)array('productId' => $data->masterId, 'folderId' => $folderId))){
     		$folderId = $data->masterMvc->fetchField($data->masterId, 'folderId');
-    		$data->addUrl = array($this, 'add', 'productId' => $data->masterId, 'folderId' => $folderId);
+    		$data->addUrl = array($this, 'add', 'productId' => $data->masterId, 'folderId' => $folderId, 'ret_url' => TRUE);
     	}
     }
     
@@ -420,13 +422,12 @@ class planning_Jobs extends core_Master
      */
     public function renderJobs($data)
     {
-    	 $tpl = getTplFromFile('cat/tpl/ProductDetail.shtml');
-    	 $tpl->replace($this->className, DetailName);
-    	 $tpl->append(tr('Задания'), 'TITLE');
+    	 $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
+    	 $tpl->append(tr('Задания'), 'title');
     	 
     	 if(isset($data->addUrl)){
     	 	$addBtn = ht::createLink('', $data->addUrl, FALSE, 'ef_icon=img/16/add.png');
-    	 	$tpl->append($addBtn, 'TITLE');
+    	 	$tpl->append($addBtn, 'title');
     	 }
     	 
     	 $listFields = arr::make('id=Пулт,dueDate=Падеж,saleId=Към продажба,quantity=Количество,createdBy=Oт,createdOn=На');
@@ -436,7 +437,7 @@ class planning_Jobs extends core_Master
     	 
     	 $table = cls::get('core_TableView', array('mvc' => $this));
     	 $details = $table->get($data->rows, $listFields);
-    	 $tpl->replace($details, 'CONTENT');
+    	 $tpl->replace($details, 'content');
     	 
     	 return $tpl;
     }

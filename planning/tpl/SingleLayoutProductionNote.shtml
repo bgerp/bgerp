@@ -50,7 +50,7 @@
                             </table>
                             <div class="lines"></div>
                             <div class="details">
-                                [#mp_ProductionNoteDetails#]
+                                [#planning_ProductionNoteDetails#]
                             </div>
                             <div class="lines"></div>
                             <table class="innerTable footer-notes paddingCells" style="width:100%">
