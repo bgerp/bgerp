@@ -934,7 +934,7 @@ class core_Packs extends core_Manager
  
         $form = cls::get('core_Form');
 
-        $form->title = "Настройки на пакета|* <b style='color:green;'>{$packName}<//b>";
+        $form->title = "Настройки на пакета|* <b style='color:green;'>{$packName}</b>";
  
         foreach ($description as $field => $arguments) {
             $type   = $arguments[0];
