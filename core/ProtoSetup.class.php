@@ -106,6 +106,12 @@ class core_ProtoSetup
     
     
     /**
+     * 
+     */
+    public $deprecated = FALSE;
+    
+    
+    /**
      * Инсталиране на пакета
      */
     public function install()

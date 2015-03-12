@@ -46,4 +46,10 @@ class custom_Setup extends core_ProtoSetup
     var $managers = array(
             'custom_Settings',
         );
+    
+    
+    /**
+     * 
+     */
+    public $deprecated = TRUE;
 }
