@@ -73,7 +73,7 @@ class planning_Jobs extends core_Master
     
     
     /**
-     * Кой може да добавя?
+     * Кой може да затваря?
      */
     public $canClose = 'ceo, planning';
     
@@ -139,7 +139,6 @@ class planning_Jobs extends core_Master
     	$this->FLD('deliveryPlace', 'key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Доставка->Място');
     	$this->FLD('weight', 'cat_type_Weight', 'caption=Тегло,input=none');
     	$this->FLD('brutoWeight', 'cat_type_Weight', 'caption=Бруто,input=none');
-    	$this->FLD('data', 'blob(serialize,compress)', 'input=none');
     	$this->FLD('state',
     			'enum(draft=Чернова, active=Активирано, rejected=Отказано, closed=Затворено)',
     			'caption=Статус, input=none'
