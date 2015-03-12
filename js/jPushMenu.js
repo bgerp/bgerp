@@ -52,7 +52,7 @@
 				$(this).addClass(o.activeClass);
 				
 				// автоматично затваряне на едното меню, ако отворим 2-ро под определена ширина на екрана
-				if($(window).width() < 1600 && $(other).hasClass('menu-active')) {
+				if($(window).width() < 1250 && $(other).hasClass('menu-active')) {
 					other.click();
 				}
 			}
@@ -66,7 +66,7 @@
 		$(window).resize( function() {
 			
 			// автоматично затваряне на дясното меню под определена ширина
-			if($(window).width() < 1600 && $('.sidemenu-right').hasClass('sidemenu-open')) {
+			if($(window).width() < 1250 && $('.sidemenu-right').hasClass('sidemenu-open')) {
 				$('.btn-menu-right').click();
 			}
 		});
