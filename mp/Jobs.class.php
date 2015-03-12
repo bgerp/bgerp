@@ -111,13 +111,7 @@ class mp_Jobs extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт, productId=Артикул, dueDate, quantity, state, createdOn, createdBy';
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    public $rowToolsField = 'tools';
+    public $listFields = 'id=№, productId=Артикул, dueDate, quantity, state, createdOn, createdBy';
     
     
     /**
@@ -213,15 +207,15 @@ class mp_Jobs extends core_Master
     		$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
     	}
     	 
+    	if($rec->saleId){
+    		$row->saleId = sales_Sales::getHyperlink($rec->saleId, TRUE);
+    	}
+    	
     	if($fields['-single']){
     
     		$pInfo = cat_Products::getProductInfo($rec->productId);
     		$row->quantity .= " " . cat_UoM::getShortName($pInfo->productRec->measureId);
     		$row->origin = cls::get('cat_Products')->renderJobView($rec->productId, $rec->modifiedOn);
-    		
-    		if($rec->saleId){
-    			$row->saleId = sales_Sales::getHyperlink($rec->saleId, TRUE);
-    		}
     	}
     }
     
@@ -293,7 +287,7 @@ class mp_Jobs extends core_Master
     		}
     	}
     	 
-    	if(($action == 'activate' || $action == 'restore' || $action == 'conto' || $action == 'write') && isset($rec->productId) && $res != 'no_one'){
+    	if(($action == 'activate' || $action == 'restore' || $action == 'conto' || $action == 'write' || $action == 'add') && isset($rec->productId) && $res != 'no_one'){
     
     		// Ако има активно задание, да не може друга да се възстановява,контира,създава или активира
     		if($mvc->fetch("#productId = {$rec->productId} AND #state = 'active'")){
@@ -370,5 +364,87 @@ class mp_Jobs extends core_Master
     	$this->save($rec, 'state');
     	 
     	return followRetUrl();
+    }
+    
+    
+    /**
+     * Подготовка на заданията за артикула
+     * 
+     * @param stdClass $data
+     */
+    public function prepareJobs($data)
+    {
+    	$data->rows = array();
+    	$data->hideSaleCol = TRUE;
+    	
+    	// Намираме неоттеглените задания
+    	$query = $this->getQuery();
+    	$query->where("#productId = {$data->masterId}");
+    	$query->where("#state != 'rejected'");
+    	$query->orderBy("id", 'DESC');
+    	while($rec = $query->fetch()){
+    		$data->rows[$rec->id] = $this->recToVerbal($rec);
+    		if(isset($rec->saleId)){
+    			$data->hideSaleCol = FALSE;
+    		}
+    	}
+    	
+    	$masterInfo = $data->masterMvc->getProductInfo($data->masterId);
+    	
+    	// Показваме ги ако има записи или е производим артикула
+    	if(count($data->rows) || isset($masterInfo->meta['canManifacture'])){
+    		$data->TabCaption = 'Задания';
+    		$data->Tab = 'top';
+    	}
+    	
+    	// Проверяваме можем ли да добавяме нови задания
+    	if($this->haveRightFor('add', (object)array('productId' => $data->masterId, 'folderId' => $folderId))){
+    		$folderId = $data->masterMvc->fetchField($data->masterId, 'folderId');
+    		$data->addUrl = array($this, 'add', 'productId' => $data->masterId, 'folderId' => $folderId);
+    	}
+    }
+    
+    
+    /**
+     * Рендиране на заданията към артикул
+     * 
+     * @param stdClass $data
+     * @return core_ET $tpl - шаблон на детайла
+     */
+    public function renderJobs($data)
+    {
+    	 $tpl = getTplFromFile('cat/tpl/ProductDetail.shtml');
+    	 $tpl->replace($this->className, DetailName);
+    	 $tpl->append(tr('Задания'), 'TITLE');
+    	 
+    	 if(isset($data->addUrl)){
+    	 	$addBtn = ht::createLink('', $data->addUrl, FALSE, 'ef_icon=img/16/add.png');
+    	 	$tpl->append($addBtn, 'TITLE');
+    	 }
+    	 
+    	 $listFields = arr::make('id=Пулт,dueDate=Падеж,saleId=Към продажба,quantity=Количество,createdBy=Oт,createdOn=На');
+    	 if($data->hideSaleCol){
+    	 	unset($listFields['saleId']);
+    	 }
+    	 
+    	 $table = cls::get('core_TableView', array('mvc' => $this));
+    	 $details = $table->get($data->rows, $listFields);
+    	 $tpl->replace($details, 'CONTENT');
+    	 
+    	 return $tpl;
+    }
+    
+    
+    /**
+     * Може ли документа да се добави в посочената папка?
+     *
+     * @param $folderId int ид на папката
+     * @return boolean
+     */
+    public static function canAddToFolder($folderId)
+    {
+    	$coverClass = doc_Folders::fetchCoverClassName($folderId);
+    
+    	return cls::haveInterface('cat_ProductFolderCoverIntf', $coverClass);
     }
 }
