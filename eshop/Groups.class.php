@@ -20,7 +20,7 @@ class eshop_Groups extends core_Master
     /**
      * Заглавие
      */
-    var $title = "Групи в онлайн магазина";
+    var $title = "Онлайн магазин";
     
     
     /**
@@ -38,7 +38,7 @@ class eshop_Groups extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, eshop_Wrapper, plg_State2, cms_VerbalIdPlg';
+    var $loadList = 'plg_Created, plg_RowTools, eshop_Wrapper, plg_State2, cms_VerbalIdPlg, plg_AutoFilter, plg_Search';
     
     
     /**
@@ -154,7 +154,7 @@ class eshop_Groups extends core_Master
         
         $classId = core_Classes::fetchIdByName($mvc->className);
         
-        while($rec = $cQuery->fetch("#source = {$classId} AND state = 'active'")) {
+        while($rec = $cQuery->fetch("#source = {$classId} AND #state = 'active'")) {
             $opt[$rec->id] = cms_Content::getVerbal($rec, 'menu');
         }
         
@@ -163,6 +163,39 @@ class eshop_Groups extends core_Master
         }
 
         $data->form->setOptions('menuId', $opt);
+    }
+
+
+    /**
+     * Изпълнява се след подготовката на формата за филтриране
+     */
+    function on_AfterPrepareListFilter($mvc, $data)
+    {
+        $form = $data->listFilter;
+        
+        // В хоризонтален вид
+        $form->view = 'horizontal';
+        
+        // Добавяме бутон
+        $form->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        
+        // Показваме само това поле. Иначе и другите полета 
+        // на модела ще се появят
+        $form->showFields = 'search, menuId';
+        
+        $form->input('search, menuId', 'silent');
+
+        $form->setOptions('menuId', $opt = cms_Content::getMenuOpt($mvc));
+
+        $form->setField('menuId', 'refreshForm');
+
+        if(!$opt[$form->rec->menuId]) {
+            $form->rec->menuId = key($opt);
+        }
+        
+        $data->query->where(array("#menuId = '[#1#]'", $form->rec->menuId));
+        
+        $data->query->orderBy('#menuId');
     }
     
     
@@ -316,7 +349,7 @@ class eshop_Groups extends core_Master
         
         $classId = core_Classes::fetchIdByName($mvc->className);
         
-        while($rec = $cQuery->fetch("#source = {$classId} AND state = 'active'")) {
+        while($rec = $cQuery->fetch("#source = {$classId} AND #state = 'active'")) {
             $data->toolbar->addBtn(type_Varchar::escape($rec->menu),
                 array('eshop_Groups', 'ShowAll', 'cMenuId' =>  $rec->id, 'PU' => 1));
         }
