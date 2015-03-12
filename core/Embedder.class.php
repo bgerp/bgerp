@@ -250,7 +250,7 @@ class core_Embedder extends core_Master
 		if($Driver = $mvc->getDriver($data->rec)){
 			
 			// Драйвера рендира подготвените данни
-			$embededDataTpl = $Driver->renderEmbeddedData($data->embeddedData);
+			$embededDataTpl = new ET($Driver->renderEmbeddedData($data->embeddedData));
 			
 			// Мениджъра рендира рендираните данни от драйвера
 			$mvc->renderEmbeddedData($tpl, $embededDataTpl, $data);
