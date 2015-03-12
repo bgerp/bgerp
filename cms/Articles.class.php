@@ -73,7 +73,7 @@ class cms_Articles extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'level,✍,title,state,modifiedOn,modifiedBy';
+    var $listFields = 'level,✍,title,menuId,state,modifiedOn,modifiedBy';
     
     
     /**
@@ -723,4 +723,16 @@ class cms_Articles extends core_Master
 
         return $level;
     }
+
+
+    /**
+     * Титлата за листовия изглед
+     * Съдържа и текущия домейн
+     */
+    static function on_AfterPrepareListTitle($mvc, $res, $data)
+    {
+        
+        $data->title .= cms_Domains::getCurrentDomainInTitle();
+    }
+
 }

@@ -567,8 +567,8 @@ class cms_Content extends core_Manager
         
         if(!$menuId) {
             $query = self::getQuery();
-            $lang = self::getLang();
-            $query->where("#state = 'active' AND #lang = '{$lang}'");
+            $domainId = cms_Domains::getCmsDomain('id');
+            $query->where("#state = 'active' AND #domainId = {$domainId}");
             $query->orderBy("#order");
             $rec = $query->fetch();
         } else {
@@ -585,11 +585,16 @@ class cms_Content extends core_Manager
             return new Redirect(array('bgerp_Portal', 'Show'));
         }
     }
+    
 
+    /**
+     * Титлата за листовия изглед
+     * Съдържа и текущия домейн
+     */
     static function on_AfterPrepareListTitle($mvc, $res, $data)
     {
         
-        $data->title .= '|* [<font color="green">' . cms_Domains::getCurrent('domain') . '</font>, <font color="green">' . cms_Domains::getCurrent('lang') . '</font>]';
+        $data->title .= cms_Domains::getCurrentDomainInTitle();
     }
 
 
@@ -608,8 +613,6 @@ class cms_Content extends core_Manager
 
         return $res;
     }
-   
-
 
 
     /**

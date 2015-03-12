@@ -156,7 +156,7 @@ class cms_Domains extends core_Embedder
     /**
      * Връща id към текущия домейн
      */
-    public static function getCmsDomain()
+    public static function getCmsDomain($part = NULL)
     {
         // Вземаме домейна от текущото URL
         $domain = strtolower($_SERVER['SERVER_NAME']);
@@ -199,7 +199,13 @@ class cms_Domains extends core_Embedder
             Mode::setPermanent(self::CMS_CURRENT_DOMAIN_REC, $domainRec);
         }
 
-        return $domainRec;
+        if($part) {
+ 
+            return $domainRec->{$part};
+        } else {
+
+            return $domainRec;
+        }
     }
 
 
@@ -312,8 +318,6 @@ class cms_Domains extends core_Embedder
     public static function on_AfterChangeCurrent($mvc, $rec)
     {
         cms_content::setLang($rec->lang);
-
-        redirect(array('cms_Content'));
     }
 
 
@@ -413,6 +417,17 @@ class cms_Domains extends core_Embedder
         }
 
         return $title;
+    }
+
+
+    /**
+     * Връща добавка за домейна в листовия изглед на други модели
+     */
+    public static function getCurrentDomainInTitle()
+    {
+        $res = '|* [<font color="green">' . self::getCurrent('domain') . '</font>, <font color="green">' . self::getCurrent('lang') . '</font>]';
+
+        return $res;
     }
 
 

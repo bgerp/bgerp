@@ -573,4 +573,16 @@ class eshop_Groups extends core_Master
         
         return $url;
     }
+
+
+    /**
+     * Титлата за листовия изглед
+     * Съдържа и текущия домейн
+     */
+    static function on_AfterPrepareListTitle($mvc, $res, $data)
+    {
+        
+        $data->title .= cms_Domains::getCurrentDomainInTitle();
+    }
+
 }
