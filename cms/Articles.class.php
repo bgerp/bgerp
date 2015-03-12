@@ -43,7 +43,7 @@ class cms_Articles extends core_Master
     /**
      * Полетата, които могат да се променят с change_Plugin
      */
-    var $changableFields = 'level, title, body, menuId, vid';
+    var $changableFields = 'level, menuId,  title, body, vid';
 
     
     /**
@@ -61,7 +61,7 @@ class cms_Articles extends core_Master
     /**
      * 
      */
-    var $canDelete = 'no_one';
+    var $canDelete = 'admin,ceo,cms';
 
 
     /**
@@ -73,15 +73,15 @@ class cms_Articles extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'level,title,state,modifiedOn,modifiedBy';
+    var $listFields = 'level,✍,title,state,modifiedOn,modifiedBy';
     
     
     /**
-     * В коя колонка да са инструментите за реда
+     * Поле за инструментите на реда
      */
-    var $rowToolsField = 'level';
-    
-    
+    var $rowToolsField = '✍';
+
+
     /**
      * По кои полета да се прави пълнотекстово търсене
      */
@@ -117,7 +117,7 @@ class cms_Articles extends core_Master
      */
     function description()
     {
-        $this->FLD('level', 'order', 'caption=Номер,mandatory');
+        $this->FLD('level', 'order(11)', 'caption=№,tdClass=rowtools-column,mandatory');
         $this->FLD('menuId', 'key(mvc=cms_Content,select=menu)', 'caption=Меню,mandatory,silent');
         $this->FLD('title', 'varchar', 'caption=Заглавие,mandatory,width=100%');
         $this->FLD('body', 'richtext(bucket=Notes)', 'caption=Текст,column=none');
@@ -145,7 +145,7 @@ class cms_Articles extends core_Master
         
         $form->input('search, menuId', 'silent');
 
-        $form->setOptions('menuId', $opt = self::getMenuOpt());
+        $form->setOptions('menuId', $opt = cms_Content::getMenuOpt($mvc));
 
         $form->setField('menuId', 'refreshForm');
 
@@ -159,31 +159,7 @@ class cms_Articles extends core_Master
     }
 
 
-    /**
-     * Връща възможните опции за менюто, в което може да се намира дадената статия, 
-     * в зависимост от езика
-     */
-    static function getMenuOpt($lang = NULL)
-    {
-        if(!$lang) {
-            $lang = cms_Content::getLang();
-        }
-        
-        $cQuery = cms_Content::getQuery();
-     
-        $cQuery->where("#lang = '{$lang}'");
-         
-        $cQuery->orderBy('#menu');
-        
-        $options = array();
-    
-        while($cRec = $cQuery->fetch(array("#source = [#1#]" , self::getClassId()))) {
-        	
-            $options[$cRec->id] = $cRec->menu;
-        }
-
-        return $options;
-    }
+ 
 
 
     /**
@@ -195,7 +171,7 @@ class cms_Articles extends core_Master
             $lang = cms_Content::fetchField($menuId, 'lang');
         }
         
-        $data->form->setOptions('menuId', self::getMenuOpt($lang));
+        $data->form->setOptions('menuId', array('' => '') + cms_Content::getMenuOpt($mvc));
     }
 
 
@@ -234,12 +210,11 @@ class cms_Articles extends core_Master
         Mode::set('wrapper', 'cms_page_External');
         
         $conf = core_Packs::getConfig('cms');
-		$ThemeClass = cls::get($conf->CMS_THEME);
         
 		if(Mode::is('screenMode', 'narrow')) {
-            Mode::set('cmsLayout', $ThemeClass->getNarrowArticleLayout());
+            Mode::set('cmsLayout', 'cms/themes/default/ArticlesNarrow.shtml');
         } else {
-            Mode::set('cmsLayout', $ThemeClass->getArticleLayout());
+            Mode::set('cmsLayout', 'cms/themes/default/Articles.shtml');
         }
 		
         $id = Request::get('id', 'int'); 
@@ -531,6 +506,8 @@ class cms_Articles extends core_Master
     {
         if($rec->state == 'active' && $action == 'delete') {
             $roles = 'no_one';
+        } elseif($rec->createdBy != core_Users::getCurrent() && $action == 'delete') {
+            $roles = 'admin';
         }
  
         if($action == 'show' && is_object($rec) && $rec->state != 'active') {

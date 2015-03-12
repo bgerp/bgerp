@@ -24,13 +24,13 @@ class cms_Content extends core_Manager
     /**
      * Заглавие
      */
-    public $title = "Публично съдържание";
+    public $title = "Основно меню";
     
     
     /**
      * Заглавие в единично число
      */
-    public $singleTitle = "Публично съдържание";
+    public $singleTitle = "Елемент от менюто";
     
     
     /**
@@ -78,7 +78,7 @@ class cms_Content extends core_Manager
     /**
      * Полета за листовия изглед
      */
-    var $listFields = '✍,menu,lang,source,url';
+    var $listFields = 'order,✍,menu,source,state';
 
 
     /**
@@ -98,14 +98,15 @@ class cms_Content extends core_Manager
      */
     function description()
     {   
+        $this->FLD('order', 'int(min=0)', 'caption=№,tdClass=rowtools-column');
         $this->FLD('menu',    'varchar(64)', 'caption=Меню,mandatory');
-        $this->FLD('lang',    'varchar(2)', 'caption=Език,notNull,defValue=bg,mandatory,autoFilter');
+        $this->EXT('lang',    'cms_Domains', 'caption=Език,externalKey=domainId,input=none');
+        $this->FLD('domainId',    'key(mvc=cms_Domains, select=*)', 'caption=Домейн,notNull,defValue=bg,mandatory,autoFilter');
         $this->FLD('source',  'class(interface=cms_SourceIntf, allowEmpty, select=title)', 'caption=Източник');
-        $this->XPR('order', 'double', '0+#menu', 'caption=Подредба,column=none');
         $this->FLD('url',  'varchar(128)', 'caption=URL');
         $this->FLD('layout', 'html', 'caption=Лейаут');
 
-        $this->setDbUnique('menu,lang');
+        $this->setDbUnique('menu,domainId');
     }
 
 
@@ -214,7 +215,7 @@ class cms_Content extends core_Manager
 
         $langs = $langParse[1]; // M1 - First part of language
         $quals = $langParse[4]; // M4 - Quality Factor
-
+ 
         $numLanguages = count($langs);
         $langArr = array();
 
@@ -229,7 +230,7 @@ class cms_Content extends core_Manager
            $langArr[$newLang] = (isset($langArr[$newLang])) ?
               max($langArr[$newLang], $newQual) : $newQual;
         }
-        
+ 
         $countryCode2 = drdata_IpToCountry::get();
 
         $langsInCountry = arr::make(drdata_Countries::fetchField("#letterCode2 = '{$countryCode2}'", 'languages'));
@@ -317,8 +318,6 @@ class cms_Content extends core_Manager
     {
         $form = $data->listFilter;
         
-        $form->setOptions('lang', self::getLangsArr());
-
         // В хоризонтален вид
         $form->view = 'horizontal';
         
@@ -327,19 +326,15 @@ class cms_Content extends core_Manager
         
         // Показваме само това поле. Иначе и другите полета 
         // на модела ще се появят
-        $form->showFields = 'search, lang';
+        $form->showFields = 'search';
         
-        $form->input('search, lang', 'silent');
+        $form->input('search', 'silent');
 
-        if($form->rec->lang) {
-            self::setLang($lang = $form->rec->lang); 
-        } else {
-            $form->setDefault('lang', $lang = self::getLang());
-        }
+        $domainId = cms_Domains::getCurrent();
        
-        $data->query->where(array("#lang = '[#1#]'", $lang));
+        $data->query->where("#domainId = {$domainId}");
         
-        $data->query->orderBy('#order,#lang');
+        $data->query->orderBy('#order');
     }
 
 
@@ -348,19 +343,9 @@ class cms_Content extends core_Manager
      */
     function on_AfterPrepareEditForm($mvc, $res, $data)
     {
-        $langsArr = self::getLangsArr();
-
-        if(($lg = $data->form->rec->lang) && !$langsArr[$lg]) {
-            $langsArr = array($lg => $lg) + $langsArr;
-        }
-
-        $data->form->setOptions('lang', $langsArr);
-
-        if(!$lg) {
-            $lang = cms_Content::getLang();
-            $data->form->setDefault('lang', $lang);
-        }
-    }
+        $data->form->rec->domainId = cms_Domains::getCurrent();
+        $data->form->setReadOnly('domainId');
+     }
 
     
     /**
@@ -372,9 +357,10 @@ class cms_Content extends core_Manager
         
         $query->orderBy('#order');
 
-        $lang = $this->getLang();
+        $domainId = cms_Domains::getCmsDomain()->id;
 
-        $data->items = $query->fetchAll(array("#state = 'active' && #lang = '[#1#]'",  $lang));
+        $data->items = $query->fetchAll("#state = 'active' && #domainId = {$domainId}");
+        
     }
 
     
@@ -386,11 +372,11 @@ class cms_Content extends core_Manager
         $tpl = new ET();
         
         $cMenuId = Mode::get('cMenuId');
-        
         if(!$cMenuId) {
             $cMenuId = Request::get('cMenuId');
             Mode::set('cMenuId', $cMenuId);
         }
+        
 
         if (is_array($data->items)) {
             foreach($data->items as $rec) {
@@ -407,6 +393,8 @@ class cms_Content extends core_Manager
                 } 
                 
                 $url = $this->getContentUrl($rec);
+
+                if(!$url) $url = '#';
                 
                 $tpl->append(ht::createLink($rec->menu, $url, NULL, $attr));
             }    
@@ -498,10 +486,10 @@ class cms_Content extends core_Manager
         if($rec->source) {
             $Source = cls::getInterface('cms_SourceIntf', $rec->source);
             $workUrl = $Source->getWorkshopUrl($rec->id);
-            $row->menu = ht::createLink($row->menu, $workUrl); 
+            $row->source = ht::createLink($row->source, $workUrl); 
         }
-        
         $publicUrl = $mvc->getContentUrl($rec);
+        $row->menu = ht::createLink($row->menu, $publicUrl, FALSE, 'ef_icon=img/16/monitor.png'); 
     }
 
     
@@ -597,5 +585,44 @@ class cms_Content extends core_Manager
             return new Redirect(array('bgerp_Portal', 'Show'));
         }
     }
+
+    static function on_AfterPrepareListTitle($mvc, $res, $data)
+    {
+        
+        $data->title .= '|* [<font color="green">' . cms_Domains::getCurrent('domain') . '</font>, <font color="green">' . cms_Domains::getCurrent('lang') . '</font>]';
+    }
+
+
+    /**
+     * Връща опциите от менюто, които отговарят на текущия домейн и клас
+     */
+    public static function getMenuOpt($class)
+    {   
+        $classId = core_Classes::getId($class);
+        $domainId = cms_Domains::getCurrent();
+        $query = self::getQuery();
+        $query->orderBy('#order');
+        while($rec = $query->fetch("#domainId = {$domainId} && #source = {$classId}")) {
+            $res[$rec->id] = $rec->menu;
+        }
+
+        return $res;
+    }
    
+
+
+
+    /**
+	 * Модификация на ролите, които могат да видят избраната тема
+	 */
+    static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+	{  
+   		//  Кой може да обобщава резултатите
+		if($action == 'delete' && isset($rec->id) ) {
+   			if($rec->state != 'closed') {
+    		    $res = 'no_one';
+            }
+        }
+   	}
+
  }

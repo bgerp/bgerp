@@ -14,24 +14,15 @@
  * @since     v 0.1
  * @title     Източник на публично съдържание
  */
-class cms_ThemeIntf
+class cms_ThemeIntf extends core_InnerObjectIntf
 {
     /**
      * Връща шаблона за статия от cms-а за широк режим
      * @return файла на шаблона
      */
-    function getArticleLayout()
+    function wrapContent($content)
     {
-    	return $this->class->getArticleLayout();
+    	return $this->class->wrapContent($content);
     }
     
-    
-    /**
-     * Връща шаблона за статия от cms-а  за мобилен изглед
-     * @return файла на шаблона
-     */
-	function getNarrowArticleLayout()
-    {
-    	return $this->class->getNarrowArticleLayout();
-    }
 }

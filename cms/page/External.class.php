@@ -49,8 +49,8 @@ class cms_page_External extends core_page_Active {
             }
         }
         
-        $this->push('css/default-theme.css', 'CSS');
         $this->push('cms/css/Wide.css', 'CSS');
+        $this->push('css/default-theme.css', 'CSS');
 
         $this->push('js/overthrow-detect.js', 'JS');
         
@@ -147,11 +147,18 @@ class cms_page_External extends core_page_Active {
      */
     static function getHeaderImg() 
     {
-   		$path = self::getHeaderImagePath();
+
+        $skin = cms_Domains::getCmsSkin();
+        
+        $path = $skin->getHeaderImagePath();
+ 
+        if(!$path) {
+   		    $path = sbf(self::getHeaderImagePath(), '');
+        }
 
         $conf = core_Packs::getConfig('core');
         
-        $img = ht::createElement('img', array('src' => sbf($path, ''), 'alt' => tr($conf->EF_APP_TITLE), 'id' => 'headerImg'));
+        $img = ht::createElement('img', array('src' => $path, 'alt' => tr($conf->EF_APP_TITLE), 'id' => 'headerImg'));
         
         return $img;
     }

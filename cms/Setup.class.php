@@ -1,12 +1,6 @@
 <?php
 
 /**
- * Тема по подразбиране
- */
-defIfNot('CMS_THEME', 'cms_DefaultTheme');
-
-
-/**
  * Основен език на публичната част
  */
 defIfNot('CMS_BASE_LANG', core_Lg::getDefaultLang());
@@ -41,12 +35,6 @@ defIfNot('CMS_COPY_DISABLE_FOR', '');
  */
 
 defIfNot('CMS_OGRAPH_IMAGE', '');
-
-
-/**
- * Опаковка по подразбиране за публична страница
- */
-defIfNot('CMS_PAGE_WRAPPER', 'cms_page_External');
 
 
 /**
@@ -98,8 +86,6 @@ class cms_Setup extends core_ProtoSetup
             'CMS_BASE_LANG' => array ('customKey(mvc=drdata_Languages,select=languageName, key=code)', 'caption=Езици за публичното съдържание->Основен'),
 
             'CMS_LANGS' => array ('keylist(mvc=drdata_Languages,select=languageName)', 'caption=Езици за публичното съдържание->Допълнителни'),
-
-			'CMS_THEME' => array ('class(interface=cms_ThemeIntf,select=title)', 'caption=Външен изглед->Тема'),
 			
             'CMS_PAGE_WRAPPER' => array ('class(interface=cms_page_WrapperIntf,select=title)', 'caption=Външен изглед->Страница'),
 
@@ -117,12 +103,14 @@ class cms_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     var $managers = array(
+            'cms_Domains',
             'cms_Content',
             'cms_Objects',
             'cms_Articles',
         	'cms_Feeds',
             'cms_Includes',
             'cms_VerbalId',
+            'migrate::contentOrder1',
          );
 
          
@@ -136,7 +124,7 @@ class cms_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     var $menuItems = array(
-            array(3.5, 'Сайт', 'CMS', 'cms_Content', 'default', "cms, ceo, admin"),
+            array(3.51, 'Сайт', 'CMS', 'cms_Content', 'default', "cms, ceo, admin"),
         );
     
     
@@ -161,10 +149,11 @@ class cms_Setup extends core_ProtoSetup
         $html .= $Plugins->forcePlugin('Показване на обекти', 'cms_ObjectsInRichtextPlg', 'type_Richtext', 'private');
         $html .= $Plugins->forcePlugin('Копиране с линк към страницата', 'cms_CopyTextPlg', 'cms_page_External', 'private');
         
+        $html .= $Bucket->createBucket('cmsFiles', 'Прикачени файлове в CMS', NULL, '104857600', 'user', 'user');
+
         // Добавяме класа връщащ темата в core_Classes
         $html .= core_Classes::add('cms_DefaultTheme');
-        $html .= core_Classes::add('cms_page_External');
-
+ 
         return $html;
     }
     
@@ -178,5 +167,41 @@ class cms_Setup extends core_ProtoSetup
         $res .= bgerp_Menu::remove($this);
         
         return $res;
+    }
+
+
+    function contentOrder1()
+    {
+        $query = cms_Content::getQuery();
+        $enDomain = cms_Domains::fetch("#domain = 'localhost' AND #lang = 'en'")->id;
+        $bgDomain = cms_Domains::fetch("#domain = 'localhost' AND #lang = 'en'")->id;
+        $max = 1;
+        while($rec = $query->fetch()) {
+            if(!$rec->level) {
+                list($n, $m) = explode(' ', $rec->menu, 2);
+                if(is_numeric($n)) {
+                    $rec->order = $n;
+                    $rec->menu = $m;
+                } else {
+                    $rec->order = $max +1;
+                }
+            }
+            $max = max($rec->level, $max);
+            if(!$rec->domainId) {
+                if(mb_strlen($m) == strlen($m)) {
+                    if(!$enDomain) {
+                        core_Classes::add('cms_DefaultTheme');
+                        $dRec = (object) array('domain' => 'localhost', 'theme' => core_Classes::getId('cms_DefaultTheme'), 'lang' => 'en');
+                        self::save($dRec);
+                        $enDomain = $dRec->id;
+                    }
+                    $rec->domainId = $enDomain;
+                    
+                } else {
+                    $rec->domainId = $bgDomain;
+                }
+            }
+            cms_Content::save($rec);
+        }
     }
 }
