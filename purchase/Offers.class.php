@@ -194,38 +194,13 @@ class purchase_Offers extends core_Master
         $handle = purchase_Offers::getHandle($id);
         
         //Създаваме шаблона
-        $tpl = new ET(tr("Предлагаме на вашето внимание нашата оферта:") . '\n[#handle#]');
+        $tpl = new ET(tr("Предлагаме на вашето внимание нашата оферта: ") . '#[#handle#]');
         
         //Заместваме датата в шаблона
         $tpl->append($handle, 'handle');
         
         return $tpl->getContent();
     }
-    
-    
-    /**
-     * @todo Чака за документация...
-     */
-    /*function getDocumentRow($id)
-    {
-    	$rec = $this->fetch($id);
-        
-        $row = new stdClass();
-        
-        //Заглавие
-        $row->title = "Оферта №{$rec->id}";
-        
-        //Създателя
-        $row->author = $this->getVerbal($rec, 'createdBy');
-        
-        //Състояние
-        $row->state = $rec->state;
-        
-        //id на създателя
-        $row->authorId = $rec->createdBy;
-        
-        return $row;
-    }*/
     
     
     /**
