@@ -149,6 +149,19 @@
                 
                 function findAddress(){
                     var address = $(that).val();
+
+					if(address == ""){
+						if($("select[name=countryId] option:selected").text()){
+							address =  $("select[name=countryId] option:selected").text();
+						} else {
+							address =  $("input[name=countryId]").val();
+						}
+						address +=  ', ' + $("input[name=place]").val();
+						if($("input[name=address]").val()) {
+							address += " , " + $("input[name=address]").val();
+						}
+					}
+
                     if(address == ""){
                         alert("Please enter an address or Lng/Lat position.");
                     }else{
