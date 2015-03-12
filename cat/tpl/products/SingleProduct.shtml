@@ -23,12 +23,6 @@
          <div class="groupList">[#meta#]</div>
     </fieldset>
     <!--ET_END meta-->
-    <!--ET_BEGIN jobId-->
-    <fieldset class="detail-info">
-         <legend class="groupTitle">|Последно активно задание|*</legend>
-         <div class="groupList">[#jobId#]</div>
-    </fieldset>
-    <!--ET_END jobId-->
     <div class='scrolling-holder'>
     [#Packagings#]
     </div>
