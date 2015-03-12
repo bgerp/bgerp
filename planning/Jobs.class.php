@@ -407,7 +407,7 @@ class planning_Jobs extends core_Master
     	// Проверяваме можем ли да добавяме нови задания
     	if($this->haveRightFor('add', (object)array('productId' => $data->masterId, 'folderId' => $folderId))){
     		$folderId = $data->masterMvc->fetchField($data->masterId, 'folderId');
-    		$data->addUrl = array($this, 'add', 'productId' => $data->masterId, 'folderId' => $folderId);
+    		$data->addUrl = array($this, 'add', 'productId' => $data->masterId, 'folderId' => $folderId, 'ret_url' => TRUE);
     	}
     }
     
