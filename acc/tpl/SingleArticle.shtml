@@ -26,6 +26,13 @@
         <div class='fright half_block' style='width:60%'>
             <span class="quiet" style='padding-right: 3px;'>|Основание|*:</span> [#reason#]
         </div>
+        
+        <!--ET_BEGIN originId-->
+        <div class='fright half_block' style='width:60%'>
+            <span class="quiet" style='padding-right: 3px;'>|Сторниран|*:</span> [#originId#]
+        </div>
+        <!--ET_END originId-->
+        
         <div class='clearfix21'></div>
     </div>
     <div class='scrolling-holder'>

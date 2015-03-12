@@ -157,7 +157,7 @@ class cat_Categories extends core_Master
         $this->FLD('name', 'varchar(64)', 'caption=Наименование, mandatory,translate');
         $this->FLD('sysId', 'varchar(32)', 'caption=System Id,oldFieldName=systemId,input=none,column=none');
         $this->FLD('info', 'richtext(bucket=Notes)', 'caption=Бележки');
-        $this->FLD('measures', 'keylist(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Позволени мерки');
+        $this->FLD('measures', 'keylist(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Позволени мерки,columns=2');
         
         // Свойства присъщи на продуктите в групата
         $this->FLD('meta', 'set(canSell=Продаваеми,
@@ -165,8 +165,7 @@ class cat_Categories extends core_Master
                                 canStore=Складируеми,
                                 canConvert=Вложими,
                                 fixedAsset=Дълготрайни активи,
-        			canManifacture=Производими,
-        			waste=Отпаден)', 'caption=Свойства ( предават се на артикулите създадени в папката )->Списък,columns=2');
+        			canManifacture=Производими)', 'caption=Свойства ( предават се на артикулите създадени в папката )->Списък,columns=2');
         
         
         $this->setDbUnique("sysId");

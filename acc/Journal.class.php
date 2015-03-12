@@ -200,11 +200,14 @@ class acc_Journal extends core_Master
      * @param int $id
      * @param stdClass $rec
      */
-    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $fields = NULL, $mode = NULL)
     {
         if ($rec->state != 'draft') {
-            // Инвалидираме балансите, които се променят от този вальор
-            acc_Balances::alternate($rec->valior);
+        	
+        	$fields = arr::make($fields, TRUE);
+        	
+        	// Инвалидираме балансите, които се променят от този вальор
+        	acc_Balances::alternate($rec->valior);
         }
         
         // След активиране, извличаме всички записи от журнала и запомняме кои пера са вкарани
@@ -350,7 +353,10 @@ class acc_Journal extends core_Master
         $docRec   = $mvc->fetchRec($docId);
         
         try {
+        	
+        	Mode::push("saveTransaction", TRUE);
             $transaction = $mvc->getValidatedTransaction($docRec);
+            Mode::pop("saveTransaction");
         } catch (acc_journal_Exception $ex) {
             $tr = $docClass->getTransaction($docRec->id);
             bp($ex->getMessage(), $tr);
@@ -621,7 +627,7 @@ class acc_Journal extends core_Master
             $rec->totalAmount += $dRec->amount;
         }
         
-        $this->save($rec, 'totalAmount');
+        $this->save_($rec, 'totalAmount');
     }
     
     

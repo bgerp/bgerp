@@ -38,6 +38,12 @@ class select2_PluginSelect extends core_Plugin
      */
     protected static $allowClear = FALSE;
     
+    
+    /**
+     * Минималния брой елементи над които да се стартира select2
+     */
+    protected static $minItems = 1;
+    
 
     /**
      * Изпълнява се преди рендирането на input
@@ -70,19 +76,12 @@ class select2_PluginSelect extends core_Plugin
             $attr['id'] = str::getRand('aaaaaaaa');
         }
         
-        $conf = core_Packs::getConfig('select2');
-        
-        // Определяме при колко минимално опции ще правим chosen
-        if(!$invoker->params['select2MinItems']) {
-            $minItems = $conf->SELECT2_KEY_MIN_ITEMS;
-        } else {
-            $minItems = $invoker->params['chosenMinItems'];
-        }
+        $minItems = $invoker->params['select2MinItems'] ? $invoker->params['select2MinItems'] : self::$minItems;
     	
         $optionsCnt = count($invoker->options);
         
         // Ако опциите са под минималното - нищо не правим
-        if($optionsCnt < $minItems) return;
+        if($optionsCnt <= $minItems) return;
         
         // Ако имаме комбо - не правим select2
         if(count($invoker->suggestions)) return;
@@ -92,8 +91,8 @@ class select2_PluginSelect extends core_Plugin
         
         $select = ($attr['placeholder']) ? ($attr['placeholder']) : '';
         
-        if ($invoker->params['allowEmpty']) {
-            $allowClear = TRUE;
+        if ($invoker->params['allowEmpty'] || isset($invoker->options['']) || isset($invoker->options[' '])) {
+            $allowClear = true;
         } else {
             $allowClear = (self::$allowClear) ? (self::$allowClear) : false;
         }
@@ -114,11 +113,11 @@ class select2_PluginSelect extends core_Plugin
    /**
     * Отпечатва резултата от опциите в JSON формат
     * 
-    * @param core_Type $mvc
+    * @param core_Type $invoker
     * @param string|NULL|core_ET $res
     * @param string $action
     */
-   function on_BeforeAction($mvc, &$res, $action)
+   function on_BeforeAction($invoker, &$res, $action)
    {
         if ($action != 'getoptions') return ;
        
@@ -129,8 +128,8 @@ class select2_PluginSelect extends core_Plugin
         $q = '/[ \"\'\(\[\-\s]' . str_replace(' ', '.* ', $q) . '/';
         
         $hnd = Request::get('hnd');
-        core_Logs::add('type_Key', NULL, "ajaxGetOptions|{$hnd}|{$q}", 1);
-        if (!$hnd || !($options = unserialize(core_Cache::get($mvc->selectOpt, $hnd)))) {
+        core_Logs::add($invoker, NULL, "ajaxGetOptions|{$hnd}|{$q}", 1);
+        if (!$hnd || !($options = unserialize(core_Cache::get($invoker->selectOpt, $hnd)))) {
             
             core_App::getJson(array(
                 (object)array('name' => 'Липсват допълнителни опции')
@@ -144,7 +143,7 @@ class select2_PluginSelect extends core_Plugin
         $cnt = 0;
         
         if (!($maxSuggestions = Request::get('maxSugg', 'int'))) {
-            $maxSuggestions = $mvc->getMaxSuggestions();
+            $maxSuggestions = $invoker->getMaxSuggestions();
         }
         $group = FALSE;
         foreach ($options as $key => $titleArr) {
@@ -197,5 +196,20 @@ class select2_PluginSelect extends core_Plugin
         core_App::getJson($resArr);
         
         return FALSE;
+   }
+   
+   
+   /**
+    * 
+    * 
+    * @param core_Type $invoker
+    * @param integer|NULL $res
+    */
+   function on_AfterGetMaxSuggestions($invoker, &$res)
+   {
+       if (!isset($res)) {
+           
+           $res = 1000000;
+       }
    }
 }

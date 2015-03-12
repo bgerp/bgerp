@@ -60,8 +60,12 @@ class help_BgerpPlg extends core_Plugin
     			$email = core_Users::getCurrent('email');
     		}
     		list($user, $domain) = explode('@', $email);
+    		$currUrl = getCurrentUrl();
+            $ctr = $currUrl['Ctr'];
+            $act = $currUrl['Act'];
+            $sysDomain = $_SERVER['HTTP_HOST'];
     		$name = core_Users::getCurrent('names');
-    		$form = new ET("<form class='needHelpForm' style='display:inline' method='post' target='_blank' onSubmit=\"prepareBugReport(this, '{$user}', '{$domain}', '{$name}');\" action='" . $baseUrl . "'></form>");
+    		$form = new ET("<form class='needHelpForm' style='display:inline' method='post' target='_blank' onSubmit=\"prepareBugReport(this, '{$user}', '{$domain}', '{$name}', '{$ctr}', '{$act}', '{$sysDomain}');\"action='" . $baseUrl . "'></form>");
     		$res->append($form);
     	}
     	$res->push('help/lib/style.css', 'CSS');

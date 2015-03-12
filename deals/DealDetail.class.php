@@ -57,7 +57,7 @@ abstract class deals_DealDetail extends doc_Detail
      */
     public static function on_CalcPackQuantity(core_Mvc $mvc, $rec)
     {
-        if (!isset($rec->price) || empty($rec->quantity) || empty($rec->quantityInPack)) {
+        if (empty($rec->quantity) || empty($rec->quantityInPack)) {
             return;
         }
         
@@ -121,7 +121,9 @@ abstract class deals_DealDetail extends doc_Detail
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-        $requiredRoles = $mvc->Master->getRequiredRoles('edit', (object)array('id' => $rec->{$mvc->masterKey}), $userId);
+        if(($action == 'add' || $action == 'edit' || $action == 'import') && isset($rec->{$mvc->masterKey})){
+        	$requiredRoles = $mvc->Master->getRequiredRoles($action, (object)array('id' => $rec->{$mvc->masterKey}), $userId);
+        }
     }
     
     
@@ -132,9 +134,8 @@ abstract class deals_DealDetail extends doc_Detail
     {
         if (empty($data->recs)) return;
     	$recs = &$data->recs;
-        $salesRec = $data->masterData->rec;
         
-        deals_Helper::fillRecs($mvc->Master, $recs, $salesRec);
+        deals_Helper::fillRecs($mvc->Master, $recs, $data->masterData->rec);
     }
     
     
@@ -146,7 +147,7 @@ abstract class deals_DealDetail extends doc_Detail
     	if($classId = Request::get('classId', 'class(interface=cat_ProductAccRegIntf)')){  
     		$data->ProductManager = cls::get($classId);
     		
-    		$mvc->getField('productId')->type = cls::get('type_Key', array('params' => array('mvc' => $data->ProductManager->className, 'select' => 'name', 'maxSuggestions' => 1000000000)));
+    		$mvc->getField('productId')->type = cls::get('type_Key', array('params' => array('mvc' => $data->ProductManager->className, 'select' => 'name')));
     	}
     }
     
@@ -335,20 +336,15 @@ abstract class deals_DealDetail extends doc_Detail
     public static function on_AfterPrepareListToolbar($mvc, $data)
     {
     	if (!empty($data->toolbar->buttons['btnAdd'])) {
-            $productManagers = core_Classes::getOptionsByInterface('cat_ProductAccRegIntf');
-            $masterRec = $data->masterData->rec;
-            
-            foreach ($productManagers as $manId => $manName) {
-            	$productMan = cls::get($manId);
-            	if(!count($productMan->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->valior, $mvc->metaProducts, NULL, 1))){
-                	$error = "error=Няма продаваеми {$productMan->title}";
-                }
-                
-                $title = mb_strtolower($productMan->singleTitle);
-            	$data->toolbar->addBtn($productMan->singleTitle, array($mvc, 'add', "{$mvc->masterKey}" => $masterRec->id, 'classId' => $manId, 'ret_url' => TRUE),
-                    "id=btnAdd-{$manId},{$error},order=10,title=Добавяне на {$title}", 'ef_icon = img/16/shopping.png');
-            	unset($error);
+    		$masterRec = $data->masterData->rec;
+    		
+    		$productMan = cls::get('cat_Products');
+    		if(!count($productMan->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->valior, $mvc->metaProducts, NULL, 1))){
+                $error = "error=Няма продаваеми артикули";
             }
+            
+            $data->toolbar->addBtn('Артикул', array($mvc, 'add', "{$mvc->masterKey}" => $masterRec->id, 'classId' => $productMan->getClassId(), 'ret_url' => TRUE),
+            "id=btnAdd-{$manId},{$error},order=10,title=Добавяне на артикул", 'ef_icon = img/16/shopping.png');
             
             unset($data->toolbar->buttons['btnAdd']);
         }
@@ -394,5 +390,32 @@ abstract class deals_DealDetail extends doc_Detail
         if(!$haveDiscount) {
             unset($data->listFields['discount']);
         }
+    }
+    
+    
+    /**
+	 * Инпортиране на артикул генериран от ред на csv файл 
+	 * @param int $masterId - ид на мастъра на детайла
+	 * @param array $row - Обект представляващ артикула за импортиране
+	 * 					->code - код/баркод на артикула
+	 * 					->quantity - К-во на опаковката или в основна мярка
+	 * 					->price - цената във валутата на мастъра, ако няма се изчислява директно
+	 * @return  mixed - резултата от експорта
+	 */
+    function import($masterId, $row)
+    {
+    	$Master = $this->Master;
+    	
+    	$pRec = cat_Products::getByCode($row->code);
+    	
+    	$price = NULL;
+    	
+    	// Ако има цена я обръщаме в основна валута без ддс, спрямо мастъра на детайла
+    	if($row->price){
+    		$masterRec = $Master->fetch($masterId);
+    		$price = deals_Helper::getPurePrice($row->price, cat_Products::getVat($pRec->productId), $masterRec->currencyRate, $masterRec->chargeVat);
+    	}
+    	
+    	return $Master::addRow($masterId, 'cat_Products', $pRec->productId, $row->quantity, $price, $pRec->packagingId);
     }
 }

@@ -837,6 +837,9 @@ a.more-btn {
   padding-left: 17px !important;
   height: 16px; }
 
+.more-btn.linkWithIcon {
+  padding-left: 22px !important; }
+
 .narrow .more-btn {
   float: none; }
 
@@ -973,7 +976,14 @@ a.profile {
   background-color: #eeccff; }
 
 .state-pending-link > a {
-  text-shadow: 0px 0px 12px #9933aa; }
+  background-color: #f7ebf8;
+  padding-right: 4px;
+  box-shadow: inset 0 0 3px #f4e4f5; }
+
+.state-rejected-link > a {
+  background-color: #f3c9c8;
+  padding-right: 4px;
+  box-shadow: inset 0 0 3px #eca7a6; }
 
 .state-closed {
   background-color: #dddddd; }

@@ -7,21 +7,27 @@
  *
  *
  * @category  bgerp
- * @package   mp
+ * @package   planning
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Ресурси на предприятието
  */
-class mp_Resources extends core_Master
+class planning_Resources extends core_Master
 {
     
     
 	/**
+	 * За конвертиране на съществуващи MySQL таблици от предишни версии
+	 */
+	public $oldClassName = 'mp_Resources';
+	
+	
+	/**
 	 * Интерфейси, поддържани от този мениджър
 	 */
-	public $interfaces = 'mp_ResourceAccRegIntf,acc_RegisterIntf';
+	public $interfaces = 'planning_ResourceAccRegIntf,acc_RegisterIntf';
 	
 	
     /**
@@ -33,37 +39,37 @@ class mp_Resources extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_Created, plg_Search, plg_Rejected, mp_Wrapper, acc_plg_Registry, plg_State';
+    public $loadList = 'plg_RowTools, plg_Created, plg_Search, plg_Rejected, planning_Wrapper, acc_plg_Registry, plg_State';
     
     
     /**
      * Кой има право да чете?
      */
-    public $canRead = 'ceo,mp';
+    public $canRead = 'ceo,planning';
     
     
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo,mp';
+    public $canEdit = 'ceo,planning';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo,mp';
+    public $canAdd = 'ceo,planning';
     
     
     /**
      * Кой може да го изтрие?
      */
-    public $canReject = 'ceo,mp';
+    public $canReject = 'ceo,planning';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,mp';
+	public $canList = 'ceo,planning';
     
     
     /**
@@ -99,7 +105,7 @@ class mp_Resources extends core_Master
     /**
      * Шаблон за еденичен изглед
      */
-    public $singleLayoutFile = 'mp/tpl/SingleLayoutResource.shtml';
+    public $singleLayoutFile = 'planning/tpl/SingleLayoutResource.shtml';
     
     
     /**
@@ -117,7 +123,7 @@ class mp_Resources extends core_Master
     /**
      * По кой итнерфейс ще се групират сметките
      */
-    public $balanceRefGroupBy = 'mp_ResourceAccRegIntf';
+    public $balanceRefGroupBy = 'planning_ResourceAccRegIntf';
     
     
     /**
@@ -154,7 +160,7 @@ class mp_Resources extends core_Master
      */
     function loadSetupData()
     {
-    	$file = "mp/csv/Resources.csv";
+    	$file = "planning/csv/Resources.csv";
     	$fields = array(0 => "title", 1 => 'type', '2' => 'systemId', '3' => 'measureId', '4' => 'state');
     	
     	$cntObj = csv_Lib::importOnce($this, $file, $fields);
@@ -229,7 +235,7 @@ class mp_Resources extends core_Master
      */
     public static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
-    	$dQuery = mp_ObjectResources::getQuery();
+    	$dQuery = planning_ObjectResources::getQuery();
     	$dQuery->where("#resourceId = {$data->rec->id}");
     	if(isset($data->rec->selfValue)){
     		$data->row->currencyId = acc_Periods::getBaseCurrencyCode();
@@ -238,7 +244,7 @@ class mp_Resources extends core_Master
     	$data->detailRows = $data->detailRecs = array();
     	while($dRec = $dQuery->fetch()){
     		$data->detailRecs[$dRec->id] = $dRec;
-    		$data->detailRows[$dRec->id] = mp_ObjectResources::recToVerbal($dRec);
+    		$data->detailRows[$dRec->id] = planning_ObjectResources::recToVerbal($dRec);
     	}
     }
     
@@ -303,7 +309,7 @@ class mp_Resources extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
     	if(($action == 'delete' || $action == 'reject') && isset($rec)){
-    		if(mp_ObjectResources::fetchField("#resourceId = '{$rec->id}'")){
+    		if(planning_ObjectResources::fetchField("#resourceId = '{$rec->id}'")){
     			$res = 'no_one';
     		}
     	}
@@ -349,5 +355,14 @@ class mp_Resources extends core_Master
     			$rec->measureId = cat_UoM::fetchBySinonim('h')->id;
     		}
     	}
+    }
+    
+    
+    /**
+     * Поставя изискване да се селектират само активните записи
+     */
+    public static function on_BeforeMakeArray4Select($mvc, &$optArr, $fields = NULL, &$where = NULL)
+    {
+    	$where .= ($where ? " AND " : "") . " #state != 'rejected'";
     }
 }

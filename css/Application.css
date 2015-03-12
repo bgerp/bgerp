@@ -1017,7 +1017,8 @@ td.portal-date {
     height: 20px; }
   .document .listTable .numericElement {
     text-align: right;
-    display: inline-block; }
+    display: inline-block;
+    white-space: nowrap; }
 
 .snapshot {
   margin-top: 10px;
@@ -1025,9 +1026,15 @@ td.portal-date {
   background: rgba(255, 255, 210, 0.3);
   border: 1px solid #dddddd;
   border-radius: 3px; }
-  .snapshot .snapshat-title {
-    font-weight: bold;
+  .snapshot .snapshot-title {
     padding-bottom: 7px; }
+
+.bottom-antetka {
+  border-top: 1px solid #dddddd;
+  padding: 5px;
+  font-size: 0.8em; }
+  .bottom-antetka > div {
+    margin: 1px 0; }
 
 .stamp {
   color: #bb0000;
@@ -1966,7 +1973,8 @@ span.sharing-history-title {
   z-index: 100; }
 
 .newsbar .richtext {
-  line-height: 1.1em; }
+  line-height: 1.1em;
+  white-space: nowrap; }
 
 .narrow .newsbar {
   padding-bottom: 8px; }
@@ -2466,11 +2474,13 @@ div.no-cover {
   -ms-border-radius: 5px;
   border-radius: 5px;
   border: 1px solid #cccccc;
-  padding: 10px 20px 20px;
+  padding: 20px 20px 20px;
   margin-top: 16px; }
   div.no-cover h2 {
     margin-top: 0;
     background-color: transparent; }
+    div.no-cover h2.state-rejected {
+      background-color: #cc6666; }
   div.no-cover ul {
     padding: 0;
     margin: 0;

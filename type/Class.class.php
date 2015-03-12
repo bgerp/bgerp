@@ -120,7 +120,7 @@ class type_Class  extends type_Key {
             
             $v = $value;
 
-            if (!(($value1 = array_search($v, $this->options)) || ($value = array_search($v, $classNameOptions)) )) {
+            if (!(($value = array_search($v, $this->options)) || ($value = array_search($v, $classNameOptions)) )) {
                 $error = TRUE;
             }
         }

@@ -230,7 +230,7 @@ function posActions() {
 		if(value) {
 			var nValue = "|" + value + "|";
 			
-			$("div.pos-product[data-cat !*= '"+nValue+"']").each(function() {
+			$("div.pos-product[data-cat != '"+nValue+"']").each(function() {
 				$(this).hide();
 			});
 			

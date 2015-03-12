@@ -302,7 +302,7 @@ class cat_Boms extends core_Master
     	if(count($rInfo)){
     		foreach ($rInfo as $dRec){
     			$sign = ($dRec->type == 'input') ? 1 : -1;
-    			$selfValue = mp_Resources::fetchField($dRec->resourceId, 'selfValue');
+    			$selfValue = planning_Resources::fetchField($dRec->resourceId, 'selfValue');
     			
     			// Добавяме към началната сума и пропорционалната
     			$amounts->base += $dRec->baseQuantity * $selfValue * $sign;

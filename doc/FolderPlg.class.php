@@ -11,7 +11,7 @@
  * @category  bgerp
  * @package   doc
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @link
@@ -51,13 +51,14 @@ class doc_FolderPlg extends core_Plugin
     }
     
     
-    function on_AfterPrepareRights($mvc, $res, $data)
+    public static function on_AfterPrepareRights($mvc, $res, $data)
     {
         $data->TabCaption = 'Права';
 
     }
 
-    function on_AfterRenderRights($mvc, &$tpl, $data)
+    
+    public static function on_AfterRenderRights($mvc, &$tpl, $data)
     {
         $tpl = new ET(tr('|*' . getFileContent('doc/tpl/RightsLayout.shtml')));
                 
@@ -92,7 +93,7 @@ class doc_FolderPlg extends core_Plugin
     /**
      * Добавя бутон "Папка" в единичния изглед
      */
-    function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
+    public static function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
     {
         if($mvc->className == 'doc_Folders') return;
         
@@ -117,9 +118,6 @@ class doc_FolderPlg extends core_Plugin
         }
     }
 
-
-
-    
     
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
@@ -132,7 +130,7 @@ class doc_FolderPlg extends core_Plugin
      * @param stdClass|NULL $rec
      * @param int|NULL $userId
      */
-    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         // Ако оттегляме документа
         if ($action == 'reject' && $rec->folderId) {
@@ -170,9 +168,12 @@ class doc_FolderPlg extends core_Plugin
     /**
      * Премахва от резултатите скритите от менютата за избор
      */
-    function on_BeforeMakeArray4Select($mvc, &$res, $fields = NULL, &$where = "", $index = 'id'  )
+    public static function on_BeforeMakeArray4Select($mvc, &$res, $fields = NULL, &$where = "", $index = 'id'  )
     { 
-        $cu = core_Users::getCurrent();
+    	// Могат да се избират само не оттеглените и затворени корици
+    	$where .= ($where ? " AND " : "") . " (#state != 'closed' && #state != 'rejected')";
+    	
+    	$cu = core_Users::getCurrent();
 
         if(!haveRole('ceo') && $cu >0) {
             $add = "NOT (#access = 'secret' AND #inCharge != $cu AND !(#shared LIKE '%|{$cu}|%')) || (#access IS NULL)";
@@ -188,7 +189,7 @@ class doc_FolderPlg extends core_Plugin
     /**
      * Предпазва от листване скритите папки
      */
-    function on_AfterPrepareListFilter($mvc, &$data)
+    public static function on_AfterPrepareListFilter($mvc, &$data)
     { 
         if(!haveRole('ceo') && ($cu = core_Users::getCurrent())) {
             $data->query->where("NOT (#access = 'secret' AND #inCharge != $cu AND !(#shared LIKE '%|{$cu}|%')) || (#access IS NULL)");
@@ -200,7 +201,7 @@ class doc_FolderPlg extends core_Plugin
      * Дефолт имплементация на метод, която форсира създаването на обект - корица
      * на папка и след това форсира създаването на папка към този обект
      */
-    function on_AfterForceCoverAndFolder($mvc, &$folderId, &$rec, $bForce = TRUE)
+    public static function on_AfterForceCoverAndFolder($mvc, &$folderId, &$rec, $bForce = TRUE)
     {
         if (!$folderId) {
             // Понеже този плъгин по съвместителство се ползва и за doc_Folders, а този
@@ -241,7 +242,7 @@ class doc_FolderPlg extends core_Plugin
     /**
      * Функция, която представлява метод за ::getFolderTitle по подразбиране
      */
-    function on_AfterGetFolderTitle($mvc, &$title, $id, $escaped = TRUE)
+    public static function on_AfterGetFolderTitle($mvc, &$title, $id, $escaped = TRUE)
     {
         if(!$title) {
             $title = $mvc->getTitleById($id, $escaped);
@@ -252,7 +253,7 @@ class doc_FolderPlg extends core_Plugin
     /**
      * Реализация на екшън-а 'act_CreateFolder'
      */
-    function on_BeforeAction($mvc, &$res, $action)
+    public static function on_BeforeAction($mvc, &$res, $action)
     {
         if($action != 'createfolder' || $mvc->className == 'doc_Folders') return;
         
@@ -294,7 +295,7 @@ class doc_FolderPlg extends core_Plugin
      * 2) Текущия потребител е отговорник на обекта
      * 3) Обекта има "Екипен" режим за достъп
      */
-    function on_BeforeSave($mvc, $id, $rec, $fields = NULL)
+    public static function on_BeforeSave($mvc, $id, $rec, $fields = NULL)
     {
         // Вземаме текущия потребител
         $cu = core_Users::getCurrent();
@@ -356,7 +357,7 @@ class doc_FolderPlg extends core_Plugin
      * Изпълнява се след запис на обект
      * Прави синхронизацията между данните записани в обекта-корица и папката
      */
-    static function on_AfterSave($mvc, &$id, $rec, $fields = NULL)
+    public static function on_AfterSave($mvc, &$id, $rec, $fields = NULL)
     {
         expect($id);
 
@@ -383,7 +384,7 @@ class doc_FolderPlg extends core_Plugin
     /**
      * Ако отговорника на папката е системата
      */
-    function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         if ($rec->inCharge == -1) {
             $row->inCharge = '@system';
@@ -423,7 +424,7 @@ class doc_FolderPlg extends core_Plugin
      * Вариант на doc_Folders::restrictAccess, който ограничава достъпа до записи, които
      * могат да са корици на папка, но не е задължително да имат създадена папка
      */
-    function on_AfterRestrictAccess($mvc, $res, &$query, $userId = NULL, $fullAccess=TRUE)
+    public static function on_AfterRestrictAccess($mvc, $res, &$query, $userId = NULL, $fullAccess=TRUE)
     {
         if (!isset($userId)) {
             $userId = core_Users::getCurrent();
@@ -463,6 +464,9 @@ class doc_FolderPlg extends core_Plugin
                     $conditions[] = "#inCharge NOT IN ({$ceos})";
                 }
                 
+
+
+    
                 // CEO да може да вижда private папките на друг `ceo`
                 if ($fullAccess) {
                     $conditions[] = "#access != 'secret'";
@@ -484,7 +488,7 @@ class doc_FolderPlg extends core_Plugin
     /**
      * Извиква се след SetUp-а на таблицата за модела
      */
-    static function on_AfterSetupMvc($mvc, &$res) 
+    public static function on_AfterSetupMvc($mvc, &$res) 
     {
     	// Ако има папки с отговорник @system или @anonym, те стават на първия admin или ceo
     	self::transferEmptyOwnership($mvc, $res);
@@ -556,7 +560,8 @@ class doc_FolderPlg extends core_Plugin
                 
                 // Добавяме id-тата на споделените потребители
                 foreach ((array)$sharedUsersArr as $nick) {
-                    $id = core_Users::fetchField(array("#nick = '[#1#]'", $nick), 'id');
+                    $nick = strtolower($nick);
+                    $id = core_Users::fetchField(array("LOWER(#nick) = '[#1#]'", $nick), 'id');
                     $rec->shared = type_Keylist::addKey($rec->shared, $id);
                 }
             }

@@ -1039,9 +1039,9 @@ function toggleAllCheckboxes() {
     $('[id^=cb_]').each(function() {
         var id = $(this).attr('id').replace(/^\D+/g, '');
         if ($(this).is(":checked") == true) {
-            $(this).removeAttr("checked");
+            $(this).prop('checked',false);
         } else {
-            $(this).attr("checked", "checked");
+            $(this).prop('checked',true); 
         }
         chRwCl(id);
     });
@@ -1798,7 +1798,7 @@ function centerNumericElements() {
         
         for (key in numericWidth) {
         	if(numericWidth[key]){
-        		$(table).find("td:nth-child(" + key + ") .numericElement").css('width', numericWidth[key]);
+        		$(table).find("td:nth-child(" + key + ") .numericElement").css('width', numericWidth[key] + 1);
         	}	
         }
     });
@@ -1830,8 +1830,7 @@ function checkForHiddenGroups() {
 
             //за всеки инпут проверяваме дали е чекнат
             currentInput.each(function() {
-                var checkInput = $(this);
-                if (checkInput.attr('checked') == 'checked') {
+                if (this.checked) {
                     checked = 1;
                 }
             });
@@ -1916,10 +1915,10 @@ function inverseCheckBox(el){
 	
 	//инвертираме
 	$(trItems).find('.checkbox').each(function() {
-		if( $(this).attr('checked') == 'checked') {
-			$(this).removeAttr('checked');
+		if(this.checked) {
+			$(this).prop('checked',false);
 		} else {
-			$(this).attr('checked', 'checked');
+			$(this).prop('checked',true);
 		}
 	});
 }
@@ -3399,14 +3398,16 @@ function getEfae() {
 }
 
 
-function prepareBugReport(form, user, domain, name)
+function prepareBugReport(form, user, domain, name, ctr, act, sysDomain)
 {
-	var title = document.URL;
+	var url = document.URL;
 	var width = $(window).width();
 	var height = $(window).height();
 	var browser = getUserAgent();
-
+	var title = sysDomain + '/' + ctr + '/' + act;
+	
 	addBugReportInput(form, 'title', title);
+	addBugReportInput(form, 'url', url);
 	addBugReportInput(form, 'email', user + '@' + domain);
 	addBugReportInput(form, 'name', name);
 	addBugReportInput(form, 'width', width);

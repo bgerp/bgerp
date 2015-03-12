@@ -17,9 +17,9 @@
                             <table class="innerTable border-table paddingCells">
                                 <tbody>
                                     <tr>
-                                        <td class="cell custom-header-bg" style='width:35%;'><b>|В склад|*</b></td>
+                                        <td class="cell custom-header-bg" style='width:35%;'><b>|От склад|*</b></td>
                                         <td class="cell centered" rowspan='2' style='width:30%;'>
-                                            <div class="document-title">|ПРОТОКОЛ ОТ ПРОИЗВОДСТВО|*</div>
+                                            <div class="document-title">|ПРОТОКОЛ ЗА ВЛАГАНЕ|*</div>
                                             <div style="padding-top:5px;">
                                                 № <span class="bigData">[#id#]</span> / 
                                                 <span class="bigData">[#valior#]</span>
@@ -36,13 +36,17 @@
                                         <td class="cell">
                                             <b>[#storeId#]</b>
                                             <!--ET_BEGIN storeLocation-->
-                                            <br>[#storeLocation#]
+                                              <div class='address-block'>
+                                              [#storeLocation#]
+                                              </div>
                                             <!--ET_END storeLocation-->
                                         </td>
                                         <td class="cell">
                                         	<b>[#activityCenterId#]</b>
                                             <!--ET_BEGIN centerLocation-->
-                                            <br>[#centerLocation#]
+                                            <div class='address-block'>
+                                            [#centerLocation#]
+                                            </div>
                                             <!--ET_END centerLocation-->
                                         </td>
                                     </tr>
@@ -50,15 +54,13 @@
                             </table>
                             <div class="lines"></div>
                             <div class="details">
-                                [#mp_ProductionNoteDetails#]
+                                [#mp_ConsumptionNoteDetails#]
                             </div>
                             <div class="lines"></div>
                             <table class="innerTable footer-notes paddingCells" style="width:100%">
                                 <tbody>
                                     <tr>
                                         <td class="topCell first vtop" style='width:50%;'>
-                                        </td>
-                                        <td>
                                             <table class='shipment-table' style='width:100%;'>
                                                 <!--ET_BEGIN deadline-->
                                                 <tr>
@@ -66,18 +68,17 @@
                                                     <td>[#deadline#]</td>
                                                 </tr>
                                                 <!--ET_END deadline-->
-                                                 <!--ET_BEGIN baseCurrencyCode-->
+                                                <!--ET_BEGIN useResourceAccounts-->
                                                 <tr>
-                                                    <td class='quiet nowrap aright' style='width:1%;'>|Валута|*:</td>
-                                                    <td>[#baseCurrencyCode#]</td>
+                                                    <td class='quiet nowrap aright' style='width:1%;'>|Влагане по ресурси|*:</td>
+                                                    <td>[#useResourceAccounts#]</td>
                                                 </tr>
-                                                 <!--ET_END baseCurrencyCode-->
-                                                <tr>
-                                                    <td colspan="2">
-                                                        <hr>
-                                                    </td>
-                                                </tr>
+                                                <!--ET_END useResourceAccounts-->
                                             </table>
+                                            <hr>
+                                            [#note#]
+                                        </td>
+                                        <td>
                                             <table class='centered special-borders' style='width:100%;'>
                                                 <tr>
                                                     <td class='centered border-right' style='width:50%;'>|Получил|*:</td>

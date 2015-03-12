@@ -30,6 +30,13 @@
 </tr>
 <!--ET_END createdBy-->
 
+<!--ET_BEGIN state-->
+<tr>
+<td class='quiet aright'>|Състояние|*:</td>
+<td> [#state#]</td>
+</tr>
+<!--ET_END state-->
+
 <tr>
 <td colspan='2' style='text-align:right'>
 [#link#]

@@ -1132,6 +1132,7 @@ td.portal-date {
 	.listTable .numericElement {
 	   text-align: right;
 	   display: inline-block;
+	   white-space: nowrap;
 	}
 }
 
@@ -1141,12 +1142,18 @@ td.portal-date {
     background: rgba(255,255,210,0.3);
     border: 1px solid #ddd;
     border-radius: 3px;
-    .snapshat-title {
-        font-weight: bold; 
+    .snapshot-title {
         padding-bottom: 7px;
     }
 }
-
+.bottom-antetka {
+	border-top: 1px solid #ddd;
+	padding: 5px;
+	font-size: 0.8em;
+	 > div {
+	   margin: 1px 0;
+	 }
+}
 .stamp{
 	color: #b00;
 	border: 1px dotted #b00;
@@ -2240,10 +2247,11 @@ fieldset.sharing-history {
 
 .newsbar .richtext{
     line-height:1.1em;
+    white-space: nowrap;
 }
 
 .narrow .newsbar{
-    padding-bottom:8px; 
+    padding-bottom:8px;    
 }
 /*край на newsbar*/
 
@@ -2713,11 +2721,14 @@ div.no-cover {
 	max-width: 725px;
 	@include border-radius(5px);
 	border: 1px solid #ccc;
-	padding: 10px 20px 20px;
+	padding: 20px 20px 20px;
 	margin-top: 16px;
 	h2 {
 		margin-top: 0;
 		background-color: transparent;
+		&.state-rejected {
+		    background-color: #c66;
+		}
 	}
 	ul {
 		padding: 0;

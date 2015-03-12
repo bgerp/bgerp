@@ -42,14 +42,20 @@ class jqueryui_Setup extends core_ProtoSetup
     );
     
     
+    /**
+     * Пакет без инсталация
+     */
+    public $noInstall = TRUE;
+    
+    
 	/**
 	 * Пътища до JS файлове
 	 */
-	var $commonJS = "jqueryui/[#JQUERYUI_VERSION#]/jquery-ui.min.js";
+	public $commonJS = "jqueryui/[#JQUERYUI_VERSION#]/jquery-ui.min.js";
     
     
 	/**
 	 * Пътища до CSS файлове
 	 */
-	var $commonCSS = "jqueryui/[#JQUERYUI_VERSION#]/jquery-ui.min.css";
+	public $commonCSS = "jqueryui/[#JQUERYUI_VERSION#]/jquery-ui.min.css";
 }

@@ -66,13 +66,13 @@ class support_Components extends core_Detail
     /**
      * Кой има право да го изтрие?
      */
-    var $canDelete = 'no_one';
+    var $canDelete = 'admin, support';
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'support_Wrapper, plg_RowTools, plg_Sorting';
+    var $loadList = 'support_Wrapper, plg_RowTools, plg_Sorting, plg_State';
     
     
     /**
@@ -108,6 +108,7 @@ class support_Components extends core_Detail
         $this->FLD('name', 'varchar', 'caption=Наименование,mandatory, width=100%');
         $this->FLD('description', 'richtext(bucket=Support)', "caption=Описание");
         $this->FLD('maintainers' , 'userList(roles=support)', 'caption=Отговорници');
+        $this->FLD('state' , 'enum(draft=Чернова, active=Активно)', 'caption=Отговорници, input=none, notNull');
 
         $this->setDbUnique('systemId, name');
     }
@@ -180,5 +181,45 @@ class support_Components extends core_Detail
         }
         
         return $arr;
+    }
+    
+    
+    /**
+     * Маркира компонента като използван
+     * 
+     * @param integer $id
+     */
+    public static function markAsUsed($id)
+    {
+        if (!$id) return ;
+        
+        $rec = self::fetch($id);
+        
+        if ($rec->state == 'active') return ;
+        
+        $rec->state = 'active';
+        
+        self::save($rec, 'state');
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass $rec
+     * @param int $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+        if ($rec) {
+            if ($action == 'delete') {
+                if ($rec->state == 'active') {
+                    $requiredRoles = 'no_one';
+                }
+            }
+        }
     }
 }

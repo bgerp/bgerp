@@ -244,7 +244,7 @@ abstract class store_DocumentMaster extends core_Master
     /**
      * Подготвя данните на хедъра на документа
      */
-    public function prepareHeaderInfo(&$row, $rec)
+    public static function prepareHeaderInfo(&$row, $rec)
     {
     	$ownCompanyData = crm_Companies::fetchOwnCompany();
     	$Companies = cls::get('crm_Companies');
@@ -318,7 +318,7 @@ abstract class store_DocumentMaster extends core_Master
 	   	}
 	   	 
 	   	if(isset($fields['-single'])){
-	   		$mvc->prepareHeaderInfo($row, $rec);
+	   		self::prepareHeaderInfo($row, $rec);
 	   		
 	   		if($rec->locationId){
 	   			if($ourLocation = store_Stores::fetchField($rec->storeId, 'locationId')){

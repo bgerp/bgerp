@@ -191,13 +191,12 @@ class support_Issues extends core_Master
         
         // Споделени потребители
         $this->FLD('sharedUsers', 'userList(roles=support)', 'caption=Споделяне->Потребители');
-
-
+        
         // Контактни данни
         $this->FLD('name', 'varchar(64)', 'caption=Данни за обратна връзка->Име, mandatory, input=none');
         $this->FLD('email', 'email', 'caption=Данни за обратна връзка->Имейл, mandatory, input=none');
+        $this->FLD('url', 'url', 'caption=Данни за обратна връзка->URL, input=none');
         
-
         // Данни за компютъра на изпращача на сигнала
         $this->FLD('ip', 'ip', 'caption=Ип,input=none');
     	$this->FLD('brid', 'varchar(8)', 'caption=Браузър,input=none');
@@ -234,9 +233,12 @@ class support_Issues extends core_Master
             $form->setField('sharedUsers', 'input=none');
         }
         
+        $form->setField('url', 'input=hidden,silent');
         $form->setField('title', 'input=hidden');
-
-    	// Инпут на формата
+        
+        $form->setDefault('title', '*Без заглавие*');
+    	
+        // Инпут на формата
     	$form->input(NULL, 'silent');
     	
         $rec = $form->rec;
@@ -260,7 +262,7 @@ class support_Issues extends core_Master
         $form->input();
         
         $rec = &$form->rec;
-
+        
         if(!haveRole('user')) {
             $brid = core_Browser::getBrid(FALSE);
             if($brid) {
@@ -889,5 +891,20 @@ class support_Issues extends core_Master
     	
     	// Показваме бутона само ако корицата на папката поддържа интерфейса 'support_IssueIntf'
     	return ($Cover->haveInterface('support_IssueIntf')) ? TRUE : FALSE;
+    }
+    
+
+    /**
+     * Извиква се след успешен запис в модела
+     *
+     * @param support_Issues $mvc
+     * @param int $id първичния ключ на направения запис
+     * @param stdClass $rec всички полета, които току-що са били записани
+     */
+    public static function on_AfterSave($mvc, &$id, $rec)
+    {
+        if ($rec->componentId) {
+            support_Components::markAsUsed($rec->componentId);
+        }
     }
 }

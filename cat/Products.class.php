@@ -25,7 +25,7 @@ class cat_Products extends core_Embedder {
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    var $interfaces = 'acc_RegisterIntf,cat_ProductAccRegIntf,mp_ResourceSourceIntf,doc_AddToFolderIntf';
+    var $interfaces = 'acc_RegisterIntf,cat_ProductAccRegIntf,planning_ResourceSourceIntf,doc_AddToFolderIntf,acc_RegistryDefaultCostIntf';
     
     
     /**
@@ -59,7 +59,7 @@ class cat_Products extends core_Embedder {
     /**
      * Детайла, на модела
      */
-    var $details = 'Packagings=cat_products_Packagings,Prices=cat_PriceDetails,AccReports=acc_ReportDetails,Resources=mp_ObjectResources';
+    var $details = 'Packagings=cat_products_Packagings,Prices=cat_PriceDetails,AccReports=acc_ReportDetails,Resources=planning_ObjectResources,Jobs=planning_Jobs';
     
     
     /**
@@ -240,15 +240,13 @@ class cat_Products extends core_Embedder {
         $this->FLD('canConvert', 'enum(yes=Да,no=Не)', 'input=none');
         $this->FLD('fixedAsset', 'enum(yes=Да,no=Не)', 'input=none');
         $this->FLD('canManifacture', 'enum(yes=Да,no=Не)', 'input=none');
-        $this->FLD('waste', 'enum(yes=Да,no=Не)', 'input=none');
         
         $this->FLD('meta', 'set(canSell=Продаваем,
                                 canBuy=Купуваем,
                                 canStore=Складируем,
                                 canConvert=Вложим,
                                 fixedAsset=Дълготраен актив,
-        			canManifacture=Производим,
-        			waste=Отпаден)', 'caption=Свойства->Списък,columns=2,remember,formOrder=100000000,mandatory');
+        			canManifacture=Производим)', 'caption=Свойства->Списък,columns=2,remember,formOrder=100000000,mandatory');
         
         $this->setDbIndex('canSell');
         $this->setDbIndex('canBuy');
@@ -256,7 +254,6 @@ class cat_Products extends core_Embedder {
         $this->setDbIndex('canConvert');
         $this->setDbIndex('fixedAsset');
         $this->setDbIndex('canManifacture');
-        $this->setDbIndex('waste');
         
         $this->setDbUnique('code');
     }
@@ -366,7 +363,7 @@ class cat_Products extends core_Embedder {
     	// Разпределяме свойствата в отделни полета за полесно търсене
     	if($rec->meta){
     		$metas = type_Set::toArray($rec->meta);
-    		foreach (array('canSell', 'canBuy', 'canStore', 'canConvert', 'fixedAsset', 'canManifacture', 'waste') as $fld){
+    		foreach (array('canSell', 'canBuy', 'canStore', 'canConvert', 'fixedAsset', 'canManifacture') as $fld){
     			$rec->$fld = (isset($metas[$fld])) ? 'yes' : 'no';
     		}
     	}
@@ -389,16 +386,17 @@ class cat_Products extends core_Embedder {
 		$categorySysId = ($categorySysId) ? $categorySysId : 'goods';
 		$categoryId = (is_numeric($categorySysId)) ? $categorySysId : cat_Categories::fetchField("#sysId = '{$categorySysId}'", 'id');
 		
-		$rec->folderId = cat_Categories::forceCoverAndFolder($categoryId);
-		$this->route($rec);
+		// Ако няма такъв артикул създаваме документа
+		if(!$exRec = $this->fetch("#code = '{$rec->code}'")){
+			$rec->folderId = cat_Categories::forceCoverAndFolder($categoryId);
+			$this->route($rec);
+		}
 		
 		$defMetas = cls::get('cat_Categories')->getDefaultMeta($categoryId);
 		$Driver = $this->getDriver($rec);
 		
 		$defMetas = $Driver->getDefaultMetas($defMetas);
-		if(empty($rec->meta)){
-			$rec->meta = $this->getFieldType('meta')->fromVerbal($defMetas);
-		}
+		$rec->meta = $this->getFieldType('meta')->fromVerbal($defMetas);
 	}
     
 	
@@ -423,10 +421,7 @@ class cat_Products extends core_Embedder {
     	
     	$rec->state = ($rec->state) ? $rec->state : 'active';
     	
-    	// Ако няма такъв артикул създаваме документа
-    	if(!$exRec = $mvc->fetch("#code = '{$rec->code}'")){
-    		$mvc->routePublicProduct($rec->csv_category, $rec);
-    	}
+    	$mvc->routePublicProduct($rec->csv_category, $rec);
     }
     
     
@@ -478,8 +473,7 @@ class cat_Products extends core_Embedder {
                                 canStore=Складируеми,
                                 canConvert=Вложими,
                                 fixedAsset=Дълготрайни активи,
-        						canManifacture=Производими,
-        						waste=Отпаден)', 'input');
+        						canManifacture=Производими)', 'input');
 		
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
@@ -556,7 +550,7 @@ class cat_Products extends core_Embedder {
     
     /**
      * Връща масив от продукти отговарящи на зададени мета данни:
-     * canSell, canBuy, canManifacture, canConvert, fixedAsset, canStore, waste
+     * canSell, canBuy, canManifacture, canConvert, fixedAsset, canStore
      * 
      * @param mixed $properties       - комбинация на горе посочените мета 
      * 							        данни, на които трябва да отговарят
@@ -587,7 +581,6 @@ class cat_Products extends core_Embedder {
 	 * 	     meta['canStore']       - дали може да се съхранява
 	 * 	     meta['canManifacture'] - дали може да се прозивежда
 	 * 	     meta['fixedAsset']     - дали е ДА
-	 * 		 meta['waste]			- дали е отпаден
      * 	-> packagingRec - записа на опаковката, ако е зададена
      * 	-> packagings - всички опаковки на продукта, ако не е зададена
      */					
@@ -955,7 +948,7 @@ class cat_Products extends core_Embedder {
     	
     	if(!$volume){
     		$Driver = $this->getDriver($productId);
-    		$weight = $Driver->getVolume();
+    		$volume = $Driver->getVolume();
     	}
     	
     	return $volume;
@@ -1005,6 +998,12 @@ class cat_Products extends core_Embedder {
     {
     	if($fields['-list']){
     		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
+    	}
+    	
+    	if($fields['-single']){
+    		if($jobRec = $mvc->getLastActiveJob($rec->id)){
+    			$row->jobId = planning_Jobs::getHyperlink($jobRec->id, TRUE);
+    		}
     	}
     }
     
@@ -1059,7 +1058,7 @@ class cat_Products extends core_Embedder {
     public function canHaveResource($id)
     {
     	// Всеки артикул може да присъства само веднъж като ресурс
-    	if(!mp_ObjectResources::fetch("#classId = '{$this->getClassId()}' AND #objectId = {$id}")){
+    	if(!planning_ObjectResources::fetch("#classId = '{$this->getClassId()}' AND #objectId = {$id}")){
     		$pInfo = $this->getProductInfo($id);
     		
     		// Може да се добавя ресурс само към артикули, които са материали, ДА или вложими
@@ -1117,8 +1116,8 @@ class cat_Products extends core_Embedder {
     {
     	$rec = $this->fetchRec($id);
     	
-    	if($documentMvc instanceof deals_DealMaster || $documentMvc instanceof mp_Jobs || $documentMvc instanceof sales_Quotations){
-    		if($rec->isPublic == 'no' || ($documentMvc instanceof mp_Jobs)){
+    	if($documentMvc instanceof deals_DealMaster || $documentMvc instanceof planning_Jobs || $documentMvc instanceof sales_Quotations){
+    		if($rec->isPublic == 'no' || ($documentMvc instanceof planning_Jobs)){
     			$res = cat_ProductTplCache::cacheTpl($id, $time);
     		}
     	}
@@ -1148,7 +1147,7 @@ class cat_Products extends core_Embedder {
     	$rec = self::fetchRec($id);
     	
     	// Какво е к-то от последното активно задание
-    	return mp_Jobs::fetch("#productId = {$rec->id} AND #state = 'active'");
+    	return planning_Jobs::fetch("#productId = {$rec->id} AND #state = 'active'");
     }
     
     
@@ -1288,14 +1287,6 @@ class cat_Products extends core_Embedder {
     				$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'add', 'productId' => $data->rec->id, 'originId' => $data->rec->containerId, 'ret_url' => TRUE), 'ef_icon = img/16/legend.png,title=Създаване на нова технологична рецепта');
     			}
     		}
-    	
-    		if(mp_Jobs::haveRightFor('write', (object)array('productId' => $data->rec->id))){
-    			if($qRec = mp_Jobs::fetch("#originId = {$data->rec->containerId} AND #state = 'draft'")){
-    				$data->toolbar->addBtn("Задание", array('mp_Jobs', 'edit', $qRec->id, 'ret_url' => TRUE), 'ef_icon = img/16/clipboard_text.png,title=Редактиране на задание за производство');
-    			} else {
-    				$data->toolbar->addBtn("Задание", array('mp_Jobs', 'add', 'productId' => $data->rec->id, 'ret_url' => TRUE), 'ef_icon = img/16/clipboard_text.png,title=Създаване на ново задание за производство');
-    			}
-    		}
     	}
     	
 		if($mvc->haveRightFor('close', $data->rec)){
@@ -1313,7 +1304,7 @@ class cat_Products extends core_Embedder {
      */
     public function renderJobView($id, $time = NULL)
     {
-    	$Jobs = cls::get('mp_Jobs');
+    	$Jobs = cls::get('planning_Jobs');
     	
     	return $this->getProductDesc($id, $Jobs, $time);
     }
@@ -1422,5 +1413,17 @@ class cat_Products extends core_Embedder {
     		$this->save($pRec);
     		$this->log("Затворено е перо: '{$itemId}'");
     	}
+    }
+    
+    
+    /**
+     * Връща дефолтната цена
+     *
+     * @param mixed $id - ид/запис на обекта
+     */
+    public function getDefaultCost($id)
+    {
+    	// За артикула, това е цената по себестойност
+    	return $this->getSelfValue($id);
     }
 }

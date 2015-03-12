@@ -465,6 +465,11 @@ class price_GroupOfProducts extends core_Detail
             foreach($data->recs as $rec) {
                 $data->rows[$rec->id] = self::recToVerbal($rec);  
                 $data->rows[$rec->id]->productId = cat_Products::getHyperLink($rec->productId, TRUE);
+                
+                if(cat_Products::fetchField($rec->productId, 'state') == 'rejected'){
+                	$data->rows[$rec->id]->productId = "<span class= 'state-rejected-link'>{$data->rows[$rec->id]->productId}</span>";
+                }
+                
                 if($rec->validFrom > $now) {
                     $data->rows[$rec->id]->ROW_ATTR['class'] = 'state-draft';
                 }

@@ -27,7 +27,7 @@ class jqcolorpicker_Setup extends core_ProtoSetup
 	/**
 	 * Описание на модула
 	 */
-	public $info = "Изтрумент за работа с цветове";
+	public $info = "Инструмент за работа с цветове";
 	
 	
 	/**

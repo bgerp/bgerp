@@ -702,7 +702,7 @@ class core_Form extends core_FieldSet
                 }
                 
                 // Рендиране на select или input полето
-                if (count($options) > 0 && !is_a($type, 'type_Key')) {
+                if (count($options) > 0 && !is_a($type, 'type_Key') && !is_a($type, 'type_Enum')) {
                     
                     unset($attr['value']);
                     

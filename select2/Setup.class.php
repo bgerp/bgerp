@@ -8,15 +8,15 @@ defIfNot('SELECT2_VERSION', '4.0b3');
 
 
 /**
- * Минималния брой елементи, за които няма да сработи SELECT2 - за keylist
+ * Минимален брой опции за да сработи търсенето в Select2->За широк екран
  */
-defIfNot('SELECT2_KEYLIST_MIN_ITEMS', 60);
+defIfNot('SELECT2_WIDE_MIN_SEARCH_ITEMS_CNT', 10);
 
 
 /**
- * Минималния брой елементи, за които няма да сработи SELECT2 - за key
+ * Минимален брой опции за да сработи търсенето в Select2->За тесен екран
  */
-defIfNot('SELECT2_KEY_MIN_ITEMS', 30);
+defIfNot('SELECT2_NARROW_MIN_SEARCH_ITEMS_CNT', 5);
 
 
 /**
@@ -63,8 +63,8 @@ class select2_Setup extends core_ProtoSetup {
     var $configDescription = array(
     
         // Минималния брой елементи, за които няма да сработи SELECT2
-        'SELECT2_KEYLIST_MIN_ITEMS' => array ('int', 'caption=Минимален брой опции за да сработи Select2->За keylist, suggestions=20|30|40|50|100'),
-        'SELECT2_KEY_MIN_ITEMS' => array ('int', 'caption=Минимален брой опции за да сработи Select2->За key, suggestions=20|30|40|50|100'),
+        'SELECT2_WIDE_MIN_SEARCH_ITEMS_CNT' => array ('int', 'caption=Минимален брой опции за да сработи търсенето в Select2->За широк екран, suggestions=5|10|20|50|100'),
+        'SELECT2_NARROW_MIN_SEARCH_ITEMS_CNT' => array ('int', 'caption=Минимален брой опции за да сработи търсенето в Select2->За тесен екран, suggestions=5|10|20|50|100'),
         'SELECT2_VERSION' => array ('enum(4.0b3)', 'caption=Версия на Select2->Версия'),
     );
     
@@ -101,11 +101,18 @@ class select2_Setup extends core_ProtoSetup {
         $html .= $Plugins->forcePlugin('Select2 за тип Accounts', 'select2_Plugin', 'acc_type_Accounts', 'private');
         $html .= $Plugins->forcePlugin('Select2 за тип UsersList', 'select2_Plugin', 'type_UserList', 'private');
         
+        $html .= $Plugins->forcePlugin('Select2 за тип Users', 'select2_PluginSelect', 'type_Users', 'private');
+        
         // Плъгини за key и наследниците му
         $html .= $Plugins->forcePlugin('Select2 за тип Key', 'select2_PluginSelect', 'type_Key', 'private');
+        $html .= $Plugins->forcePlugin('Select2 за тип CustomKey', 'select2_PluginSelect', 'type_CustomKey', 'private');
+        $html .= $Plugins->forcePlugin('Select2 за тип Class', 'select2_PluginSelect', 'type_Class', 'private');
         $html .= $Plugins->forcePlugin('Select2 за тип User', 'select2_PluginSelect', 'type_User', 'private');
         $html .= $Plugins->forcePlugin('Select2 за тип Item', 'select2_PluginSelect', 'acc_type_Item', 'private');
         $html .= $Plugins->forcePlugin('Select2 за тип Account', 'select2_PluginSelect', 'acc_type_Account', 'private');
+        
+        // Плъгини за enum
+        $html .= $Plugins->forcePlugin('Select2 за тип Enum', 'select2_PluginEnum', 'type_Enum', 'private');
         
         return $html;
     }

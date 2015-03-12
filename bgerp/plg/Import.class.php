@@ -13,7 +13,7 @@
  * 1. Кой драйвър ще се използва (клас имплементиращ bgerp_ImportIntf)
  * 2. Как се въвеждат csv данните с ъплоуд на файл или с copy & paste
  * 3. Какви са разделителят, ограждането и първия ред на данните
- * 4. Кои колони от csv-to на кои полета от мениджъра отговарят.
+ * 4. Кои колони от csv-тo на кои полета от мениджъра отговарят.
  *
  * След определянето на тези данни драйвъра се грижи за правилното импортиране
  *
@@ -107,7 +107,7 @@ class bgerp_plg_Import extends core_Plugin
                 }
                 
                 // Преобразуване на csv-то в масив, по зададените параметри
-                $rows = self::getCsvRows($csvData, $delimiter, $enclosure, $firstRow, $cols);
+                $rows = csv_Lib::getCsvRows($csvData, $delimiter, $enclosure, $firstRow, $cols);
                 
                 if($mvc->haveRightFor('import')){
                     
@@ -137,33 +137,6 @@ class bgerp_plg_Import extends core_Plugin
             
             return FALSE;
         }
-    }
-    
-    
-    /**
-     * Връща масив с данните от csv-то
-     * @param string $csvData - csv данни
-     * @param char $delimiter - разделител
-     * @param char $enclosure - ограждане
-     * @param string $firstRow - първи ред данни или имена на колони
-     * @return array $rows - масив с парсирани редовете на csv-то
-     */
-    private static function getCsvRows($csvData, $delimiter, $enclosure, $firstRow)
-    {
-        $textArr = explode(PHP_EOL, trim($csvData));
-        
-        foreach($textArr as $line){
-            $arr = str_getcsv($line, $delimiter, $enclosure);
-            array_unshift($arr, "");
-            unset($arr[0]);
-            $rows[] = $arr;
-        }
-        
-        if($firstRow == 'columnNames'){
-            unset($rows[0]);
-        }
-        
-        return $rows;
     }
     
     

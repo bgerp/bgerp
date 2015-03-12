@@ -44,6 +44,8 @@ abstract class deals_ServiceMaster extends core_Master
 		// Доставка
 		$mvc->FLD('locationId', 'key(mvc=crm_Locations, select=title)', 'caption=Обект до,silent');
 		$mvc->FLD('deliveryTime', 'datetime', 'caption=Срок до');
+		$mvc->FLD('received', 'varchar', 'caption=Получил');
+		$mvc->FLD('delivered', 'varchar', 'caption=Доставил');
 		
 		// Допълнително
 		$mvc->FLD('note', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Бележки');

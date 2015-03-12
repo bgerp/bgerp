@@ -18,7 +18,7 @@
                                 <div class='invoiceTitle2'><span class='invType'>[#type#]</span></div>
                                 <div class='title-subInfo'>|Номер|* <span class='subtitle-text'>[#number#]</span></div>
                                 <div class='title-subInfo'>|Дата|* <span class='subtitle-text'>[#date#]</span></div>
-                                <div class='title-subInfo'>|Място|* <span class='subtitle-text'>[#dealPlace#]</span></div>
+                                <!--ET_BEGIN dealPlace--><div class='title-subInfo'>|Място|* <span class='subtitle-text'>[#dealPlace#]</span></div><!--ET_END dealPlace-->
                                 <div class='title-subInfo original'>|ОРИГИНАЛ|* </div>
                                 <!--ET_BEGIN originInv-->
                                 <div id='origin-title'>|към Фактура|* <b>[#originInv#]</b> |от|* [#originInvDate#]</div>
@@ -41,7 +41,7 @@
                         </div>
                         <!--ET_END sales_InvoiceDetails-->
                         <div class="lines"></div>
-                        <table class="innerTable footer-notes" border="1" cellpadding="5" style='width:100%'>
+                        <table class="innerTable footer-notes" style='width:100%'>
                             <tbody>
                                 <tr>
                                     <td style='line-height: 140%;'>
@@ -105,7 +105,7 @@
                                         <!--ET_END additionalInfo-->
                                     </td>
                                     <td id='invoice-info' style='width:40%'>
-                                        <table border='0' cellpadding='3' style='margin-bottom: 20px;width:100%;' id='business-doc-summary-table'>
+                                        <table  style='margin-bottom: 20px;width:100%;' id='business-doc-summary-table'>
                                             <tr class='nowrap'>
                                                 <td class='aright'>|Стойност|*:</td>
                                                 <td class='info-right' style='width:1%'><span class='cCode'>[#currencyId#]</span></td>

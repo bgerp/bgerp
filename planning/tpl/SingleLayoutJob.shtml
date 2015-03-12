@@ -32,6 +32,13 @@
         <tr>
             <td class='jobSpec'>[#origin#]</td>
         </tr>
+        
+         <!--ET_BEGIN saleId-->
+        <tr>
+            <td class='job-head'>|Към|*: [#saleId#]</td>
+        </tr>
+         <!--ET_END saleId-->
+        
         <tr>
             <td class='job-head'>|Бележки|*</td>
         </tr>

@@ -575,7 +575,16 @@ class callcenter_Talks extends core_Master
             
             // Вземаме другите променливи
             $answerTime = Request::get('answertime');
+            if (strpos($answerTime, '%')) {
+                $errArr[] = 'Време->Отговор е двойно ескейпнат';
+                $answerTime = urldecode($answerTime);
+            }
+            
             $endTime = Request::get('endtime');
+            if (strpos($endTime, '%')) {
+                $errArr[] = 'Време->Край е двойно ескейпнат';
+                $endTime = urldecode($endTime);
+            }
             
             // Вземаме текущото време
             $now = dt::now();

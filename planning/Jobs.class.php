@@ -7,17 +7,23 @@
  *
  *
  * @category  bgerp
- * @package   mp
+ * @package   planning
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Задания за производство
  */
-class mp_Jobs extends core_Master
+class planning_Jobs extends core_Master
 {
     
     
+	/**
+	 * За конвертиране на съществуващи MySQL таблици от предишни версии
+	 */
+	public $oldClassName = 'mp_Jobs';
+	
+	
 	/**
      * Интерфейси, поддържани от този мениджър
      */
@@ -45,49 +51,49 @@ class mp_Jobs extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, doc_DocumentPlg, mp_Wrapper, doc_ActivatePlg, plg_Search, doc_SharablePlg';
+    public $loadList = 'plg_RowTools, doc_DocumentPlg, planning_Wrapper, doc_ActivatePlg, plg_Search, doc_SharablePlg';
     
     
     /**
      * Кой има право да чете?
      */
-    public $canRead = 'ceo, mp';
+    public $canRead = 'ceo, planning';
     
     
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo, mp';
+    public $canEdit = 'ceo, planning';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo, mp';
+    public $canAdd = 'ceo, planning';
     
     
     /**
-     * Кой може да добавя?
+     * Кой може да затваря?
      */
-    public $canClose = 'ceo, mp';
+    public $canClose = 'ceo, planning';
     
     
     /**
      * Кой има право да пише?
      */
-    public $canWrite = 'ceo, mp';
+    public $canWrite = 'ceo, planning';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo, mp';
-
+	public $canList = 'ceo, planning';
+	
 	
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'ceo, mp';
+	public $canSingle = 'ceo, planning';
     
     
 	/**
@@ -111,19 +117,13 @@ class mp_Jobs extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт, productId=Артикул, dueDate, quantity, state, createdOn, createdBy';
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    public $rowToolsField = 'tools';
+    public $listFields = 'id=№, productId=Артикул, dueDate, quantity, state, createdOn, createdBy';
     
     
     /**
      * Шаблон за единичен изглед
      */
-    public $singleLayoutFile = 'mp/tpl/SingleLayoutJob.shtml';
+    public $singleLayoutFile = 'planning/tpl/SingleLayoutJob.shtml';
     
     
 	/**
@@ -134,20 +134,59 @@ class mp_Jobs extends core_Master
     	$this->FLD('dueDate', 'date(smartTime)', 'caption=Падеж,mandatory');
     	$this->FLD('quantity', 'double(decimals=2)', 'caption=Количество,mandatory,silent');
     	$this->FLD('notes', 'richtext(rows=3)', 'caption=Забележки');
-    	$this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Доставка->Условие,silent');
-    	$this->FLD('deliveryDate', 'date(smartTime)', 'caption=Доставка->Срок,silent');
-    	$this->FLD('deliveryPlace', 'key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Доставка->Място,silent');
+    	$this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Доставка->Условие');
+    	$this->FLD('deliveryDate', 'date(smartTime)', 'caption=Доставка->Срок');
+    	$this->FLD('deliveryPlace', 'key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Доставка->Място');
     	$this->FLD('weight', 'cat_type_Weight', 'caption=Тегло,input=none');
     	$this->FLD('brutoWeight', 'cat_type_Weight', 'caption=Бруто,input=none');
-    	$this->FLD('data', 'blob(serialize,compress)', 'input=none');
     	$this->FLD('state',
     			'enum(draft=Чернова, active=Активирано, rejected=Отказано, closed=Затворено)',
     			'caption=Статус, input=none'
     	);
     	
     	$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden,silent');
-    	 
+    	$this->FLD('saleId', 'key(mvc=sales_Sales)', 'input=hidden,silent');
+    	
+    	$this->FLD('sharedUsers', 'userList(roles=planning|ceo)', 'caption=Споделяне->Потребители,mandatory');
+    	
     	$this->setDbIndex('productId');
+    }
+    
+    
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+    	$form = &$data->form;
+    	
+    	if($form->rec->saleId){
+    		$saleRec = sales_Sales::fetch($form->rec->saleId);
+    		$form->setDefault('deliveryTermId', $saleRec->deliveryTermId);
+    		$form->setDefault('deliveryDate', $saleRec->deliveryTime);
+    		$form->setDefault('deliveryPlace', $saleRec->deliveryLocationId);
+    	}
+    }
+    
+    
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     *
+     * @param core_Mvc $mvc
+     * @param core_Form $form
+     */
+    public static function on_AfterInputEditForm($mvc, &$form)
+    {
+    	if($form->isSubmitted()){
+    		$rec = &$form->rec;
+    		
+    		$weight = cls::get('cat_Products')->getWeight($rec->productId);
+    		
+    		$rec->brutoWeight = $weight * $rec->quantity;
+    	}
     }
     
     
@@ -175,6 +214,10 @@ class mp_Jobs extends core_Master
     		$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
     	}
     	 
+    	if($rec->saleId){
+    		$row->saleId = sales_Sales::getHyperlink($rec->saleId, TRUE);
+    	}
+    	
     	if($fields['-single']){
     
     		$pInfo = cat_Products::getProductInfo($rec->productId);
@@ -251,7 +294,7 @@ class mp_Jobs extends core_Master
     		}
     	}
     	 
-    	if(($action == 'activate' || $action == 'restore' || $action == 'conto' || $action == 'write') && isset($rec->productId) && $res != 'no_one'){
+    	if(($action == 'activate' || $action == 'restore' || $action == 'conto' || $action == 'write' || $action == 'add') && isset($rec->productId) && $res != 'no_one'){
     
     		// Ако има активно задание, да не може друга да се възстановява,контира,създава или активира
     		if($mvc->fetch("#productId = {$rec->productId} AND #state = 'active'")){
@@ -328,5 +371,87 @@ class mp_Jobs extends core_Master
     	$this->save($rec, 'state');
     	 
     	return followRetUrl();
+    }
+    
+    
+    /**
+     * Подготовка на заданията за артикула
+     * 
+     * @param stdClass $data
+     */
+    public function prepareJobs($data)
+    {
+    	$data->rows = array();
+    	$data->hideSaleCol = TRUE;
+    	
+    	// Намираме неоттеглените задания
+    	$query = $this->getQuery();
+    	$query->where("#productId = {$data->masterId}");
+    	$query->where("#state != 'rejected'");
+    	$query->orderBy("id", 'DESC');
+    	while($rec = $query->fetch()){
+    		$data->rows[$rec->id] = $this->recToVerbal($rec);
+    		if(isset($rec->saleId)){
+    			$data->hideSaleCol = FALSE;
+    		}
+    	}
+    	
+    	$masterInfo = $data->masterMvc->getProductInfo($data->masterId);
+    	
+    	// Показваме ги ако има записи или е производим артикула
+    	if(count($data->rows) || isset($masterInfo->meta['canManifacture'])){
+    		$data->TabCaption = 'Задания';
+    		$data->Tab = 'top';
+    	}
+    	
+    	// Проверяваме можем ли да добавяме нови задания
+    	if($this->haveRightFor('add', (object)array('productId' => $data->masterId, 'folderId' => $folderId))){
+    		$folderId = $data->masterMvc->fetchField($data->masterId, 'folderId');
+    		$data->addUrl = array($this, 'add', 'productId' => $data->masterId, 'folderId' => $folderId);
+    	}
+    }
+    
+    
+    /**
+     * Рендиране на заданията към артикул
+     * 
+     * @param stdClass $data
+     * @return core_ET $tpl - шаблон на детайла
+     */
+    public function renderJobs($data)
+    {
+    	 $tpl = getTplFromFile('cat/tpl/ProductDetail.shtml');
+    	 $tpl->replace($this->className, DetailName);
+    	 $tpl->append(tr('Задания'), 'TITLE');
+    	 
+    	 if(isset($data->addUrl)){
+    	 	$addBtn = ht::createLink('', $data->addUrl, FALSE, 'ef_icon=img/16/add.png');
+    	 	$tpl->append($addBtn, 'TITLE');
+    	 }
+    	 
+    	 $listFields = arr::make('id=Пулт,dueDate=Падеж,saleId=Към продажба,quantity=Количество,createdBy=Oт,createdOn=На');
+    	 if($data->hideSaleCol){
+    	 	unset($listFields['saleId']);
+    	 }
+    	 
+    	 $table = cls::get('core_TableView', array('mvc' => $this));
+    	 $details = $table->get($data->rows, $listFields);
+    	 $tpl->replace($details, 'CONTENT');
+    	 
+    	 return $tpl;
+    }
+    
+    
+    /**
+     * Може ли документа да се добави в посочената папка?
+     *
+     * @param $folderId int ид на папката
+     * @return boolean
+     */
+    public static function canAddToFolder($folderId)
+    {
+    	$coverClass = doc_Folders::fetchCoverClassName($folderId);
+    
+    	return cls::haveInterface('cat_ProductFolderCoverIntf', $coverClass);
     }
 }

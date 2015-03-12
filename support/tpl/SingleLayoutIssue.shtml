@@ -13,40 +13,49 @@
 				<!--ET_BEGIN systemId-->
                 <div>|Система|*: [#systemId#]</div>
                 <!--ET_END systemId-->
+                
                 <!--ET_BEGIN componentId-->
                 <div>|Компонент|*: [#componentId#]</div>
                 <!--ET_END componentId-->
+                
                 <div>|Тип|*: [#typeId#]</div>
+                
 				<!--ET_BEGIN priority-->
                 <div>|Приоритет|*: [#priority#]</div>
                 <!--ET_END priority-->
-				<!--ET_BEGIN ip-->
-                <div>|Ip|*: [#ip#]</div>
-                <!--ET_END ip-->
-				<!--ET_BEGIN brid-->
-                <div>|Браузър|*: [#brid#]</div>
-                <!--ET_END brid-->
-
-				<!--ET_BEGIN name-->
-                <div>|Имена|*: [#name#]</div>
-                <!--ET_END name-->
-
-				<!--ET_BEGIN email-->
-                <div>|Имейл|*: [#email#]</div>
-                <!--ET_END email-->
-
-
+				
                 <!--ET_BEGIN assign-->
                 <div>|Възложено на|*: <i>[#assign#]</i> |от|* <i>[#assignedBy#]</i> |на|* [#assignedOn#]</div>
                 <!--ET_END assign-->
             </div>
         </div>
     </div>
-    <!--ET_BEGIN body--> 
+    <!--ET_BEGIN description--> 
     <div style='padding:10px;'>
         <div>[#description#]</div>
     </div>
-    <!--ET_END body--> 
+    <!--ET_END description--> 
+    <div class='bottom-antetka'>
+        <!--ET_BEGIN name-->
+        <div>|Имена|*: [#name#]</div>
+        <!--ET_END name-->
+        
+        <!--ET_BEGIN email-->
+        <div>|Имейл|*: [#email#]</div>
+        <!--ET_END email-->
+        
+        <!--ET_BEGIN url-->
+        <div>|URL|*: [#url#]</div>
+        <!--ET_END url-->
+        
+        <!--ET_BEGIN ip-->
+        <div>|Ip|*: [#ip#]</div>
+        <!--ET_END ip-->
+        
+        <!--ET_BEGIN brid-->
+        <div>|Браузър|*: [#brid#]</div>
+        <!--ET_END brid-->
+    </div>
     <!--ET_BEGIN DETAILS-->
     <div class='details'>
         [#DETAILS#]

@@ -191,17 +191,21 @@ class crm_Locations extends core_Master {
      * @param core_Manager $mvc
      * @param stdClass $rec
      */
-    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
+    public static function on_BeforeSave(core_Manager $mvc, $res, $rec, $fields = NULL)
     {
-    	if(empty($rec->title)){
-    		$countryName = drdata_Countries::fetchField($rec->countryId, 'commonNameBg');
-    		 
-    		$lQuery = crm_Locations::getQuery();
-    		$lQuery->where("#type = '{$rec->type}' AND #contragentCls = '{$rec->contragentCls}' AND #contragentId = '{$rec->contragentId}'");
-    		$lQuery->XPR('count', 'int', 'COUNT(#id)');
-    		$count = $lQuery->fetch()->count + 1;
-    		 
-    		$rec->title = $mvc->getVerbal($rec, 'type') . " ({$count})";
+    	$f = arr::make($fields, TRUE);
+    	
+    	if(!count($f) || isset($f['title']) && isset($f['countryId'])){
+    		if(empty($rec->title)){
+    			$countryName = drdata_Countries::fetchField($rec->countryId, 'commonNameBg');
+    			 
+    			$lQuery = crm_Locations::getQuery();
+    			$lQuery->where("#type = '{$rec->type}' AND #contragentCls = '{$rec->contragentCls}' AND #contragentId = '{$rec->contragentId}'");
+    			$lQuery->XPR('count', 'int', 'COUNT(#id)');
+    			$count = $lQuery->fetch()->count + 1;
+    			 
+    			$rec->title = $mvc->getVerbal($rec, 'type') . " ({$count})";
+    		}
     	}
     }
     

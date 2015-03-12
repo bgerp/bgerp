@@ -43,7 +43,7 @@ class type_Double extends core_Type {
     /**
      * Клас за <td> елемент, който показва данни от този тип
      */
-    var $tdClass = 'centered';
+    var $tdClass = 'rightCol';
 
 
     /**
@@ -148,8 +148,7 @@ class type_Double extends core_Type {
         if(!Mode::is('text', 'plain')) {
             $value = str_replace(' ', '&nbsp;', $value);
         }
-		
-        $value = "<span class='numericElement'>{$value}</span>";
+        
         return $value;
     }
     

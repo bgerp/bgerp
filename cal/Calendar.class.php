@@ -415,7 +415,7 @@ class cal_Calendar extends core_Master
 
         $html = "<table class='mc-calendar'>";        
 
-        $html .= "<tr><td colspan='8' style='padding:0px;'>{$header}</td><tr>";
+        $html .= "<tr><td colspan='8' style='padding:0px;'>{$header}</td></tr>";
 
         // Добавяне на втория хедър
         $html .= "<tr><td>" . tr('Сд') . "</td>";
@@ -423,7 +423,7 @@ class cal_Calendar extends core_Master
             $wdName = tr($wdName);
             $html .= "<td class='mc-wd-name'>{$wdName}</td>";
         }
-        $html .= '<tr>';
+        $html .= '</tr>';
 
         foreach($monthArr as $weekNum => $weekArr) {
             $html .= "<tr>";
@@ -690,19 +690,17 @@ class cal_Calendar extends core_Master
                 	}
                 	
                 	list ($d, $t) = explode(" ", $rec->time);
-                	
-                	if ($arr[$d]!= 'active') {
-                		if($rec->state == 'active') {
+                
+                	if ($arr[$d] != 'active') { 
+                		if($rec->state == 'active' || $rec->state == 'pending') { 
                 			$data[$i]->html = "<img style='height10px;width:10px;' src=". sbf('img/16/star_2.png') .">&nbsp;";
                 		} else {
                 			$data[$i]->html = "<img style='height10px;width:10px;' src=". sbf('img/16/star_grey.png') .">&nbsp;";
                 		}
-                	}
-
+                	}  
                 }
             }
         }
-
         
         for($i = 1; $i <= 31; $i++) {
             if(!isset($data[$i])) {

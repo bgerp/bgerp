@@ -880,35 +880,82 @@ class acc_BalanceDetails extends core_Detail
             
             foreach ($recs as $rec){
                 $this->calcAmount($rec);
+                
+                $update = $this->updateJournal($rec);
+                
                 $this->addEntry($rec, 'debit');
                 $this->addEntry($rec, 'credit');
-                $update = FALSE;
-               
-                // След като се изчисли сумата, презаписваме цените в журнала, само ако сметките са размерни
-                if($rec->debitQuantity){
-                    @$debitPrice = round($rec->amount / $rec->debitQuantity, 4);
-                    
-                    if(trim($rec->debitPrice) != trim($debitPrice)){
-                        $rec->debitPrice = $debitPrice;
-                        $update = TRUE;
-                    }
-                }
-                
-                if($rec->creditQuantity){
-                    @$creditPrice = round($rec->amount / $rec->creditQuantity, 4);
-                    
-                    if(trim($rec->creditPrice) != trim($creditPrice)){
-                        $rec->creditPrice = $creditPrice;
-                        $update = TRUE;
-                    }
-                }
                 
                 // Обновява се записа само ако има промяна с цената
                 if($update){
-                    $JournalDetails->save($rec);
+                    $JournalDetails->save_($rec);
                 }
             }
         }
+    }
+    
+    
+    /**
+     * Проверява дали сумата на записа се различава от тази по стратегия
+     * Ако не участват сметки по стратегия или няма променени цени по стратегия
+     * не се прави промяна на записа
+     */
+    private function updateJournal(&$rec)
+    {
+    	$res = FALSE;
+    	 
+    	// Обхождаме дебита и кредита
+    	foreach (array('debit', 'credit') as $type){
+    		$quantityField = "{$type}Quantity";
+    		$priceField = "{$type}Price";
+    
+    		// Ако има количество
+    		if($rec->{$quantityField}){
+    			
+    			// Изчисляваме цената
+    			@$price = round($rec->amount / $rec->{$quantityField}, 4);
+    			
+    			// Ако изчислената сума е различна от записаната в журнала
+    			if(trim($rec->{$priceField}) != trim($price)){
+    				
+    				// Ако няма цена на записа
+    				if(!$rec->amount){
+    					
+    					// Намираме последното перо от тази страна
+    					$lastItem = NULL;
+    					foreach (array(3, 2, 1) as $i){
+    						if(!empty($rec->{"{$type}Item{$i}"})){
+    							$lastItem = $rec->{"{$type}Item{$i}"};
+    							break;
+    						}
+    					}
+    					
+    					// Ако има такова перо
+    					if(!empty($lastItem)){
+    						$itemRec = acc_Items::fetch($lastItem, 'classId,objectId');
+    						
+    						// И има интерфейс за дефолт цена
+    						if(cls::haveInterface('acc_RegistryDefaultCostIntf', $itemRec->classId)){
+    							
+    							// Извличаме дефолт цената му според записа
+    							$Register = cls::get($itemRec->classId);
+    							$defCost = $Register->getDefaultCost($itemRec->objectId);
+    							
+    							// Присвояваме дефолт сумата за сума на записа, и преизчисляваме цената
+    							$rec->amount = $defCost * $rec->{$quantityField};
+    							@$price = round($rec->amount / $rec->{$quantityField}, 4);
+    						}
+    					}
+    				}
+    				
+    				// Презаписваме цената
+    				$rec->{$priceField} = $price;
+    				$res = TRUE;
+    			}
+    		}
+    	}
+    	 
+    	return $res;
     }
     
     

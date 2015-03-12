@@ -7,15 +7,21 @@
  *
  *
  * @category  bgerp
- * @package   mp
+ * @package   planning
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Интерфейс за източници на ресурси
  */
-class mp_ResourceSourceIntf
+class planning_ResourceSourceIntf
 {
+	
+	
+	/**
+	 * За конвертиране на съществуващи MySQL таблици от предишни версии
+	 */
+	public $oldClassName = 'mp_ResourceSourceIntf';
 	
 	
 	/**

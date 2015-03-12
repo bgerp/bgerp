@@ -19,7 +19,7 @@
                                     <tr>
                                         <td class="cell custom-header-bg" style='width:35%;'><b>|В склад|*</b></td>
                                         <td class="cell centered" rowspan='2' style='width:30%;'>
-                                            <div class="document-title">|ПРОТОКОЛ ЗА ВЛАГАНЕ|*</div>
+                                            <div class="document-title">|ПРОТОКОЛ ЗА ПРОИЗВОДСТВО|*</div>
                                             <div style="padding-top:5px;">
                                                 № <span class="bigData">[#id#]</span> / 
                                                 <span class="bigData">[#valior#]</span>
@@ -50,7 +50,7 @@
                             </table>
                             <div class="lines"></div>
                             <div class="details">
-                                [#mp_ConsumptionNoteDetails#]
+                                [#mp_ProductionNoteDetails#]
                             </div>
                             <div class="lines"></div>
                             <table class="innerTable footer-notes paddingCells" style="width:100%">
@@ -66,6 +66,12 @@
                                                     <td>[#deadline#]</td>
                                                 </tr>
                                                 <!--ET_END deadline-->
+                                                 <!--ET_BEGIN baseCurrencyCode-->
+                                                <tr>
+                                                    <td class='quiet nowrap aright' style='width:1%;'>|Валута|*:</td>
+                                                    <td>[#baseCurrencyCode#]</td>
+                                                </tr>
+                                                 <!--ET_END baseCurrencyCode-->
                                                 <tr>
                                                     <td colspan="2">
                                                         <hr>

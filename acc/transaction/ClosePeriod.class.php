@@ -530,10 +530,10 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
     	 
     	// Подготвяме предварително нужните ни данни
     	$baseDepartment = hr_Departments::fetchField("#systemId = 'myOrganisation'", 'id');
-    	$resource604 = $resource605 = mp_Resources::fetchField("#systemId = 'commonLabor'", 'id');
-    	$resource603    = mp_Resources::fetchField("#systemId = 'commonEquipment'", 'id');
-    	$resource602    = mp_Resources::fetchField("#systemId = 'commonService'", 'id');
-    	$resource601    = mp_Resources::fetchField("#systemId = 'commonMaterial'", 'id');
+    	$resource604 = $resource605 = planning_Resources::fetchField("#systemId = 'commonLabor'", 'id');
+    	$resource603    = planning_Resources::fetchField("#systemId = 'commonEquipment'", 'id');
+    	$resource602    = planning_Resources::fetchField("#systemId = 'commonService'", 'id');
+    	$resource601    = planning_Resources::fetchField("#systemId = 'commonMaterial'", 'id');
     	$reason601 = 'Разходи за материали (неразпределени)';
     	$reason602 = 'Разходи за външни услуги (неразпределени)';
     	$reason603 = 'Разходи за амортизация (неразпределени)';
@@ -552,7 +552,7 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
     		$quantity = &${"quantity{$accs[$dRec->accountId]}"};
     		
     		$entries[] = array('amount'  => abs($dRec->blAmount), 
-    							'debit'  => array('611', array('hr_Departments', $baseDepartment), array('mp_Resources', ${"resource{$accs[$dRec->accountId]}"}), 'quantity' => $dRec->blQuantity), 
+    							'debit'  => array('611', array('hr_Departments', $baseDepartment), array('planning_Resources', ${"resource{$accs[$dRec->accountId]}"}), 'quantity' => $dRec->blQuantity), 
     							'credit' => array($accs[$dRec->accountId], $dRec->ent1Id, 'quantity' => $dRec->blQuantity),
     							'reason' => ${"reason{$accs[$dRec->accountId]}"});
     		$total += abs($dRec->blAmount);
@@ -565,7 +565,7 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
     		
     		$entries[] = array('amount'  => abs(${"amount{$sysId}"}),
     				'debit'  => array('123', $this->date->year),
-    				'credit' => array('611', array('hr_Departments', $baseDepartment), array('mp_Resources', ${"resource{$sysId}"}), 'quantity' => ${"quantity{$sysId}"}),
+    				'credit' => array('611', array('hr_Departments', $baseDepartment), array('planning_Resources', ${"resource{$sysId}"}), 'quantity' => ${"quantity{$sysId}"}),
     				'reason' => ${"reason{$sysId}"});
     		 
     		$total += abs(${"amount{$sysId}"});
@@ -581,14 +581,14 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
     	acc_BalanceDetails::filterQuery($bQuery, $this->balanceId, '605');
     	$rec605 = $bQuery->fetch();
     	
-    	$selfValueLabor = mp_Resources::getSelfValue($resource604);
+    	$selfValueLabor = planning_Resources::getSelfValue($resource604);
     	
     	@$rec604->blQuantity = $rec604->blAmount / $selfValueLabor;
     	@$rec605->blQuantity = $rec605->blAmount / $selfValueLabor;
     	
     	if(round($rec604->blAmount, 2) != 0){
     		$entries[] = array('amount' => abs($rec604->blAmount),
-    				'debit' => array('611', array('hr_Departments', $baseDepartment), array('mp_Resources', $resource604), 'quantity' => $rec604->blQuantity),
+    				'debit' => array('611', array('hr_Departments', $baseDepartment), array('planning_Resources', $resource604), 'quantity' => $rec604->blQuantity),
     				'credit' => array('604'), 'reason' => $reason604);
     		 
     		$total += abs($rec604->blAmount);
@@ -596,7 +596,7 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
     	
     	if(round($rec605->blAmount, 2) != 0){
     		$entries[] = array('amount' => abs($rec605->blAmount),
-    				'debit' => array('611', array('hr_Departments', $baseDepartment), array('mp_Resources', $resource605), 'quantity' => $rec605->blQuantity),
+    				'debit' => array('611', array('hr_Departments', $baseDepartment), array('planning_Resources', $resource605), 'quantity' => $rec605->blQuantity),
     				'credit' => array('605'), 'reason' => $reason605);
     		 
     		 
@@ -609,7 +609,7 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
     	if(round($tAmount, 2) != 0){
     		$entries[] = array('amount' => $tAmount,
     				'debit' => array('123', $this->date->year),
-    				'credit' => array('611', array('hr_Departments', $baseDepartment), array('mp_Resources', $resource604), 'quantity' => ($rec604->blQuantity + $rec605->blQuantity)),
+    				'credit' => array('611', array('hr_Departments', $baseDepartment), array('planning_Resources', $resource604), 'quantity' => ($rec604->blQuantity + $rec605->blQuantity)),
     				'reason' => $reason604);
     		 
     		$total += $tAmount;

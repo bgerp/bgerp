@@ -116,12 +116,14 @@ class pos_Stocks extends core_Manager {
     	$oldRecs = $stockQuery->fetchAll();
     	
     	$arrRes = arr::syncArrays($all, $oldRecs, "productId,classId,storeId", "quantity");
+    	
     	$self = cls::get(get_called_class());
     	$self->saveArray($arrRes['insert']);
     	$self->saveArray($arrRes['update']);
     	
     	if(count($arrRes['delete'])){
     		$closeQuery = pos_Stocks::getQuery();
+    		$closeQuery->where("#state != 'closed'");
     		$closeQuery->in('id', $arrRes['delete']);
     		
     		while($rec = $closeQuery->fetch()){

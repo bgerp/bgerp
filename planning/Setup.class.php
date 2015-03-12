@@ -3,17 +3,17 @@
 
 
 /**
- * Покупки - инсталиране / деинсталиране
+ * Производствено планиране - инсталиране / деинсталиране
  *
  *
  * @category  bgerp
- * @package   sales
+ * @package   planning
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class mp_Setup extends core_ProtoSetup
+class planning_Setup extends core_ProtoSetup
 {
     
     
@@ -26,7 +26,7 @@ class mp_Setup extends core_ProtoSetup
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = 'mp_Resources';
+    var $startCtr = 'planning_Resources';
     
     
     /**
@@ -45,38 +45,36 @@ class mp_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     var $managers = array(
-    		'mp_Jobs',
-            'mp_Tasks',
-    		'mp_Resources',
-    		'mp_Stages',
-    		'mp_ObjectResources',
-    		'mp_ConsumptionNotes',
-    		'mp_ConsumptionNoteDetails',
-    		'mp_ProductionNotes',
-    		'mp_ProductionNoteDetails',
-    		'migrate::removeOldDefResource5',
-    		'migrate::updateResourceState',
+    		'planning_Jobs',
+            'planning_Tasks',
+    		'planning_Resources',
+    		'planning_Stages',
+    		'planning_ObjectResources',
+    		'planning_ConsumptionNotes',
+    		'planning_ConsumptionNoteDetails',
+    		'planning_ProductionNotes',
+    		'planning_ProductionNoteDetails',
         );
 
         
     /**
      * Роли за достъп до модула
      */
-    var $roles = 'mp';
+    var $roles = 'planning';
 
     
     /**
      * Връзки от менюто, сочещи към модула
      */
     var $menuItems = array(
-            array(3.21, 'Производство', 'Планиране', 'mp_Resources', 'default', "mp, ceo"),
+            array(3.21, 'Производство', 'Планиране', 'planning_Resources', 'default', "planning, ceo"),
         );   
    
     
     /**
      * Път до css файла
      */
-//    var $commonCSS = 'mp/tpl/styles.css';
+//    var $commonCSS = 'planning/tpl/styles.css';
     
     
     /**
@@ -96,7 +94,7 @@ class mp_Setup extends core_ProtoSetup
      */
     public function removeOldDefResource5()
     {
-    	mp_Resources::delete("#title = 'Общ'");
+    	planning_Resources::delete("#title = 'Общ'");
     }
     
     
@@ -105,11 +103,11 @@ class mp_Setup extends core_ProtoSetup
      */
     public function updateResourceState()
     {
-    	$query = mp_Resources::getQuery();
+    	$query = planning_Resources::getQuery();
     	$query->where("#state != 'rejected'");
     	while($rec = $query->fetch()){
     		$rec->state = 'active';
-    		cls::get('mp_Resources')->save_($rec);
+    		cls::get('planning_Resources')->save_($rec);
     	}
     }
 }

@@ -40,7 +40,7 @@ class crm_Persons extends core_Master
         'incoming_CreateDocumentIntf',
     		
     	// Интерфейс за източник на производствен ресурс
-    	'mp_ResourceSourceIntf',
+    	'planning_ResourceSourceIntf',
     		
     	// Интерфейс за корица на папка в която може да се създава артикул
     	'cat_ProductFolderCoverIntf',
@@ -200,7 +200,7 @@ class crm_Persons extends core_Master
      * @var string|array
      */
     public $details = 'ContragentLocations=crm_Locations,Pricelists=price_ListToCustomers,
-                    ContragentBankAccounts=bank_Accounts,IdCard=crm_ext_IdCards,CustomerSalecond=cond_ConditionsToCustomers,AccReports=acc_ReportDetails,Cards=pos_Cards,Resources=mp_ObjectResources';
+                    ContragentBankAccounts=bank_Accounts,IdCard=crm_ext_IdCards,CustomerSalecond=cond_ConditionsToCustomers,AccReports=acc_ReportDetails,Cards=pos_Cards,Resources=planning_ObjectResources';
     
     
     /**

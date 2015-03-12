@@ -225,23 +225,39 @@ class newsbar_News extends core_Master
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
+
+    	$row->news = self::generateHTML($rec);
+    }
+    
+    
+    /**
+     * Генериране на HTML код за лентата на нюзбара
+     * ще я използваме както вътре, така и вънка
+     *  
+     * @param stdClass $rec
+     * @return ET
+     */
+    public static function generateHTML ($rec)
+    {
     	$rgb = static::hex2rgb($rec->color);
     	$hexTransparency = dechex($rec->transparency * 255);
-        $forIE = "#". $hexTransparency. str_replace("#", "", $rec->color);
+    	$forIE = "#". $hexTransparency. str_replace("#", "", $rec->color);
     	
-    	$row->news = new ET ("<div style=\"background-color: rgb([#r#], [#g#], [#b#]); 
+    	$html =  new ET ("<div class=\"[#class#]\" style=\"background-color: rgb([#r#], [#g#], [#b#]); 
             										   background-color: rgba([#r#], [#g#], [#b#], [#transparency#]);
-           											   background:transparent\9; 
+           											   background:transparent\0; 
                           filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=[#ie#], endColorstr=[#ie#]);
                           -ms-filter: 'progid:DXImageTransform.Microsoft.gradient(startColorstr=[#ie#], endColorstr=[#ie#])';
                           zoom: 1;\">
-            <b>[#1#]</b>
-            </div><div class='clearfix21'></div>", $row->news);
+            [#marquee#]<b>[#1#]</b>[#marquee2#]
+            </div><div class='clearfix21'></div>", $rec->news);
     	
-    	$row->news->replace($rgb[0], 'r');
-        $row->news->replace($rgb[1], 'g');
-        $row->news->replace($rgb[2], 'b');
-        $row->news->replace($rec->transparency, 'transparency');
-        $row->news->replace($forIE, 'ie');
+    	$html->replace($rgb[0], 'r');
+        $html->replace($rgb[1], 'g');
+        $html->replace($rgb[2], 'b');
+        $html->replace($rec->transparency, 'transparency');
+        $html->replace($forIE, 'ie');
+    
+        return $html;
     }
 }
