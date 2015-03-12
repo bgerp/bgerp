@@ -96,7 +96,7 @@ class cat_products_Params extends core_Manager
     {
     	$this->FLD('classId', 'class(interface=cat_ProductAccRegIntf)', 'input=hidden,silent');
     	$this->FLD('productId', 'int', 'input=hidden,silent');
-        $this->FLD('paramId', 'key(mvc=cat_Params,select=name,maxSuggestions=10000)', 'input,caption=Параметър,mandatory,silent');
+        $this->FLD('paramId', 'key(mvc=cat_Params,select=name)', 'input,caption=Параметър,mandatory,silent');
         $this->FLD('paramValue', 'varchar(255)', 'input,caption=Стойност,mandatory');
         
         $this->setDbUnique('classId,productId,paramId');
