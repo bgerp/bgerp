@@ -222,7 +222,9 @@ class marketing_Inquiries2 extends core_Embedder
      */
     public static function canAddToFolder($folderId)
     {
-    	return FALSE;
+        $folderClass = doc_Folders::fetchCoverClassName($folderId);
+        
+        return cls::haveInterface('doc_ContragentDataIntf', $folderClass);
     }
     
     
