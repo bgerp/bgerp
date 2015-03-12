@@ -136,6 +136,9 @@ class plg_Current extends core_Plugin
             
             Mode::setPermanent('currentPlg_' . $mvc->className, $rec);
             
+            // Извикваме събитие за да сигнализираме, че е сменен текущия елемент
+            $mvc->invoke('afterChangeCurrent', array($rec));
+            
             if(!Request::get('ret_url')) {
                 $res = new Redirect(array($mvc));
             } else {
