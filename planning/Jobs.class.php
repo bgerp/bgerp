@@ -420,13 +420,12 @@ class planning_Jobs extends core_Master
      */
     public function renderJobs($data)
     {
-    	 $tpl = getTplFromFile('cat/tpl/ProductDetail.shtml');
-    	 $tpl->replace($this->className, DetailName);
-    	 $tpl->append(tr('Задания'), 'TITLE');
+    	 $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
+    	 $tpl->append(tr('Задания'), 'title');
     	 
     	 if(isset($data->addUrl)){
     	 	$addBtn = ht::createLink('', $data->addUrl, FALSE, 'ef_icon=img/16/add.png');
-    	 	$tpl->append($addBtn, 'TITLE');
+    	 	$tpl->append($addBtn, 'title');
     	 }
     	 
     	 $listFields = arr::make('id=Пулт,dueDate=Падеж,saleId=Към продажба,quantity=Количество,createdBy=Oт,createdOn=На');
@@ -436,7 +435,7 @@ class planning_Jobs extends core_Master
     	 
     	 $table = cls::get('core_TableView', array('mvc' => $this));
     	 $details = $table->get($data->rows, $listFields);
-    	 $tpl->replace($details, 'CONTENT');
+    	 $tpl->replace($details, 'content');
     	 
     	 return $tpl;
     }

@@ -231,7 +231,7 @@ class planning_ObjectResources extends core_Manager
     	$tpl->append(tr('Ресурси'), 'title');
     	$table = cls::get('core_TableView', array('mvc' => $this));
     
-    	$tpl->append($table->get($data->rows, 'resourceId=Ресурс,createdOn=Създадено->На,createdBy=Създадено->На,tools=Пулт'), 'content');
+    	$tpl->append($table->get($data->rows, 'resourceId=Ресурс,createdOn=Създадено от,createdBy=Създадено на,tools=Пулт'), 'content');
     	
 		if(isset($data->addUrlNew)){
     		$tpl->append(ht::createBtn('Нов', $data->addUrlNew, NULL, NULL, 'ef_icon=img/16/star_2.png, title=Създаване на нов ресурс'), 'content');
