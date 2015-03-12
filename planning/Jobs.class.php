@@ -88,7 +88,7 @@ class planning_Jobs extends core_Master
 	 * Кой може да го разглежда?
 	 */
 	public $canList = 'ceo, planning';
-
+	
 	
 	/**
 	 * Кой може да разглежда сингъла на документите?
@@ -147,6 +147,8 @@ class planning_Jobs extends core_Master
     	
     	$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden,silent');
     	$this->FLD('saleId', 'key(mvc=sales_Sales)', 'input=hidden,silent');
+    	
+    	$this->FLD('sharedUsers', 'userList(roles=planning|ceo)', 'caption=Споделяне->Потребители,mandatory');
     	
     	$this->setDbIndex('productId');
     }
