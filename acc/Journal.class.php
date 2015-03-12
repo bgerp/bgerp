@@ -205,7 +205,7 @@ class acc_Journal extends core_Master
         if ($rec->state != 'draft') {
         	
         	$fields = arr::make($fields, TRUE);
-        	acc_Balances::log("Алтернейт '$rec->id'");
+        	
         	// Инвалидираме балансите, които се променят от този вальор
         	acc_Balances::alternate($rec->valior);
         }
