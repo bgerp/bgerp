@@ -144,7 +144,7 @@ class planning_Jobs extends core_Master
     			'caption=Статус, input=none'
     	);
     	
-    	$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden,silent');
+    	$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden,silent,mandatory');
     	$this->FLD('saleId', 'key(mvc=sales_Sales)', 'input=hidden,silent');
     	
     	$this->FLD('sharedUsers', 'userList(roles=planning|ceo)', 'caption=Споделяне->Потребители,mandatory');
@@ -162,8 +162,10 @@ class planning_Jobs extends core_Master
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
+    	$form->info = tr("Към артикул") . ": <b>" . cat_Products::getHyperLink($form->rec->productId) . "</b><br>";
     	
     	if($form->rec->saleId){
+    		$form->info .= tr("От") . ": <b>" . sales_Sales::getHyperlink($form->rec->saleId) . "</b>";
     		$saleRec = sales_Sales::fetch($form->rec->saleId);
     		$form->setDefault('deliveryTermId', $saleRec->deliveryTermId);
     		$form->setDefault('deliveryDate', $saleRec->deliveryTime);
