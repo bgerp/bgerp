@@ -205,12 +205,9 @@ class acc_Journal extends core_Master
         if ($rec->state != 'draft') {
         	
         	$fields = arr::make($fields, TRUE);
-        	
-        	// Не инвалидираме баланса ако само обновяваме общата сума на журнала
-        	if(!isset($fields['totalAmount'])){
-        		// Инвалидираме балансите, които се променят от този вальор
-        		acc_Balances::alternate($rec->valior);
-        	}
+        	acc_Balances::log("Алтернейт '$rec->id'");
+        	// Инвалидираме балансите, които се променят от този вальор
+        	acc_Balances::alternate($rec->valior);
         }
         
         // След активиране, извличаме всички записи от журнала и запомняме кои пера са вкарани
@@ -630,7 +627,7 @@ class acc_Journal extends core_Master
             $rec->totalAmount += $dRec->amount;
         }
         
-        $this->save($rec, 'totalAmount');
+        $this->save_($rec, 'totalAmount');
     }
     
     
