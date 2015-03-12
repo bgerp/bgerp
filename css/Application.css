@@ -4005,6 +4005,14 @@ only screen and (max-width: 320px) {
     width: auto !important;
     height: auto !important; }
 
+.debug_block {
+  padding: 5px;
+  margin: 10px;
+  border: solid 1px #777777;
+  background-color: #ffff99;
+  display: table;
+  color: black; }
+
 .cd-l1 {
   color: green; }
 

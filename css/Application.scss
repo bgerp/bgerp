@@ -1032,7 +1032,6 @@ td.portal-date {
 }
 /*край на стилове при тредове*/
 
-
 /*стилове за документи*/
 .document {
 	width: 100%;
@@ -4326,6 +4325,14 @@ body.narrow {
 	}
 }
 
+.debug_block {
+    padding:5px; 
+    margin:10px; 
+    border:solid 1px #777; 
+    background-color:#FFFF99; 
+    display:table;
+    color:black;
+}
 .cd-l1{
     color: green;
 }

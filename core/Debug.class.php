@@ -148,7 +148,7 @@ class core_Debug
         if (count(self::$debugTime)) {
             self::log('End');
 
-            $html .= "\n<div style='padding:5px; margin:10px; border:solid 1px #777; background-color:#FFFF99; display:table;color:black;'>" .
+            $html .= "\n<div class='debug_block' style=''>" .
             "\n<div style='background-color:#FFFF33; padding:5px; color:black;'>Debug log</div><ul>";
  
             foreach (self::$debugTime as $rec) {

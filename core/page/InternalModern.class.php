@@ -62,7 +62,6 @@ class core_page_InternalModern extends core_page_Active {
         // Добавяне на титлата на страницата
     	$conf = core_Packs::getConfig('core');
         $this->prepend($conf->EF_APP_TITLE, 'PAGE_TITLE');
-        
 
         // Ако сме в широк изглед извикваме функцията за мащабиране
         if(Mode::is('screenMode', 'wide')){
@@ -143,6 +142,7 @@ class core_page_InternalModern extends core_page_Active {
 		    								[#CHANGE_MODE#]
                                             [#LANG_CHANGE#]
 		    								[#SIGNAL#]
+    			    						[#DEBUG_BTN#]
 	    									<div class='divider'></div>
 			     		   					[#SIGN_OUT#]
 		    							</div>
@@ -157,12 +157,16 @@ class core_page_InternalModern extends core_page_Active {
     			"<!--ET_BEGIN NAV_BAR--><div id=\"navBar\">[#NAV_BAR#]</div>\n<!--ET_END NAV_BAR--><div class='clearfix' style='min-height:9px;'></div>" .
     			"<div id='statuses'>[#STATUSES#]</div>" .
     			"[#PAGE_CONTENT#]</div>" .
-    			"<div id=\"framecontentBottom\" class=\"container\">" .
-    			"[#PAGE_FOOTER#]" .
-    			"</div></div>".
+    			"[#DEBUG#]</div>".
     			"<div id='nav-panel' class='sidemenu sidemenu-left {$openLeftMenu}'>[#core_page_InternalModern::renderMenu#]</div>".
-    			"<div id='fav-panel' class='sidemenu sidemenu-right {$openRightMenu}'><h3><center>Бързи връзки</center></h3></div>" );
-    	
+    			"<div id='fav-panel' class='sidemenu sidemenu-right {$openRightMenu}'><h3><center>Бързи връзки</center></h3></div>"
+
+    	);
+    	if(isDebug() && Mode::is('screenMode', 'wide')) {
+    		$tpl->prepend(new ET("<div id='debug_info' style='margin:5px; display:none;overflow-x: hidden'>
+                                     Време за изпълнение: [#DEBUG::getExecutionTime#]
+                                     [#Debug::getLog#]</div>"), "DEBUG");
+    	}
     	// Опаковките и главното съдържание заемат екрана до долу
     	
     	$tpl->append("runOnLoad( slidebars );", "JQRUN");
@@ -268,7 +272,7 @@ class core_page_InternalModern extends core_page_Active {
         
         if($conf->BGERP_SUPPORT_URL && strpos($conf->BGERP_SUPPORT_URL, '//') !== FALSE) {
         	
-        	$singal = ht::createLink(tr("Сигнал"), $conf->BGERP_SUPPORT_URL , FALSE, array('title' => "Изпращане на сигнал", 'ef_icon' => 'img/16/bug-icon.png', 'onclick' => "event.preventDefault();$('#bugReportForm').submit();"));
+        	$singal = ht::createLink(tr("Сигнал"), $conf->BGERP_SUPPORT_URL , FALSE, array('title' => "Изпращане на сигнал", 'ef_icon' => 'img/16/headset.png', 'onclick' => "event.preventDefault();$('#bugReportForm').submit();"));
         	
         	$email = email_Inboxes::getUserEmail();
         	if(!$email) {
@@ -295,7 +299,9 @@ class core_page_InternalModern extends core_page_Active {
        	} else {
        		$mode = ht::createLink(tr("Десктоп"), array('core_Browser', 'setWideScreen', 'ret_url' => TRUE), NULL, array('ef_icon' => 'img/16/Monitor-icon.png', 'title' => 'Превключване на системата в десктоп режим'));
        	}
-
+       	if(isDebug() && Mode::is('screenMode', 'wide')) {
+       		$debug = ht::createLink("Debug", '#wer', FALSE, array('title' => "Показване на debug информация", 'ef_icon' => 'img/16/bug-icon.png', 'onclick' => 'toggleDisplay(\'debug_info\')'));
+       	}
         // Смяна на езика
         $lgChange = self::getLgChange();
        	$tpl->replace($lgChange, 'LANG_CHANGE');
@@ -317,6 +323,7 @@ class core_page_InternalModern extends core_page_Active {
         $portalLink = ht::createLink("bgERP", $url, NULL, NULL);
         $nLink = ht::createLink("{$openNotifications}", $url, NULL, $attr);
 
+        $tpl->replace($debug, 'DEBUG_BTN');
         $tpl->replace($mode, 'CHANGE_MODE');
         $tpl->replace($singal, 'SIGNAL');
         $tpl->replace($nLink, 'NOTIFICATIONS_CNT');
@@ -324,44 +331,6 @@ class core_page_InternalModern extends core_page_Active {
     }
 
     
-    /**
-     * Конструктор на шаблона
-     */
-    public static function getFooter()
-    {
-        $tpl = new ET();
-
-        $nick = Users::getCurrent('nick');
-        if(EF_USSERS_EMAIL_AS_NICK) {
-            list($nick,) = explode('@', $nick);
-        }
-
-        $isGet = strtoupper($_SERVER['REQUEST_METHOD']) == 'GET';
-
-        if(Mode::is('screenMode', 'wide')) {
-            // Добавяме кода, за определяне параметрите на браузъра
-            $Browser = cls::get('core_Browser');
-            $tpl->append($Browser->renderBrowserDetectingCode(), 'BROWSER_DETECT');
-
-            // Добавя бутон за калкулатора
-            $tpl->append('&nbsp;<small>|</small>&nbsp;');
-            $tpl->append(calculator_View::getBtn());
-            
-            if(isDebug()) {
-            	$tpl->append('&nbsp;<small>|</small>&nbsp;<a href="#wer" onclick="toggleDisplay(\'debug_info\')">Debug</a>');
-            }
-        }
-        
-        if(isDebug() && Mode::is('screenMode', 'wide')) {
-        	$tpl->append(new ET("<div id='debug_info' style='margin:5px; display:none;'>
-                                     Време за изпълнение: [#DEBUG::getExecutionTime#]
-                                     [#Debug::getLog#]</div>"));
-        }
-
-        return $tpl;
-    }
-
-
     /**
      * Добавя хипервръзки за превключване между езиците на интерфейса
      */
