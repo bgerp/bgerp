@@ -74,7 +74,7 @@ class eshop_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     var $menuItems = array(
-            array(3.50, 'Сайт', 'Е-маг', 'eshop_Groups', 'default', "ceo, eshop"),
+            array(3.55, 'Сайт', 'Е-маг', 'eshop_Groups', 'default', "ceo, eshop"),
         );
     
     /**
