@@ -2260,9 +2260,9 @@ class crm_Persons extends core_Master
                 $data->toolbar->addBtn(tr('Профил'), $profileUrl, 'id=btnProfile', 'ef_icon = img/16/user-profile.png');  
             }
         } else {
-            
+         
             // Ако има запис и имаме права admin
-            if ($data->rec->id && haveRole('admin')) {
+            if ($data->rec->id && haveRole('admin') && $data->rec->state != 'rejected') {
                 
                 // sysId на групата
                 $crmId = crm_Groups::getIdFromSysId('users');
