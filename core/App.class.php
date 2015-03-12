@@ -52,7 +52,7 @@ class core_App
             }
             
             // Опакова съдържанието
-            $Wrapper = core_Cls::get('page_Wrapper');
+            $Wrapper = core_Cls::get('core_page_Wrapper');
             $Wrapper->render($content);
         }
     }
