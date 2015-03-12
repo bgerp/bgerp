@@ -7,16 +7,22 @@
  *
  *
  * @category  bgerp
- * @package   mp
+ * @package   planning
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class mp_ObjectResources extends core_Manager
+class planning_ObjectResources extends core_Manager
 {
     
     
+	/**
+	 * За конвертиране на съществуващи MySQL таблици от предишни версии
+	 */
+	public $oldClassName = 'mp_ObjectResources';
+	
+	
     /**
      * Заглавие
      */
@@ -26,31 +32,31 @@ class mp_ObjectResources extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_Created, mp_Wrapper';
+    public $loadList = 'plg_RowTools, plg_Created, planning_Wrapper';
     
     
     /**
      * Кой има право да чете?
      */
-    public $canRead = 'ceo,mp';
+    public $canRead = 'ceo,planning';
     
     
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo,mp';
+    public $canEdit = 'ceo,planning';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo,mp';
+    public $canAdd = 'ceo,planning';
     
     
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'ceo,mp';
+    public $canDelete = 'ceo,planning';
     
     
     /**
@@ -88,9 +94,9 @@ class mp_ObjectResources extends core_Manager
      */
     function description()
     {
-    	$this->FLD('classId', 'class(interface=mp_ResourceSourceIntf)', 'input=hidden,silent');
+    	$this->FLD('classId', 'class(interface=planning_ResourceSourceIntf)', 'input=hidden,silent');
     	$this->FLD('objectId', 'int', 'input=hidden,caption=Обект,silent');
-    	$this->FLD('resourceId', 'key(mvc=mp_Resources,select=title,allowEmpty,makeLink)', 'caption=Ресурс,mandatory');
+    	$this->FLD('resourceId', 'key(mvc=planning_Resources,select=title,allowEmpty,makeLink)', 'caption=Ресурс,mandatory');
     	
     	// Поставяне на уникални индекси
     	$this->setDbUnique('classId,objectId,resourceId');
@@ -102,7 +108,7 @@ class mp_ObjectResources extends core_Manager
      */
     public function act_NewResource()
     {
-    	mp_Resources::requireRightFor('add');
+    	planning_Resources::requireRightFor('add');
     	
     	expect($classId = Request::get('classId', 'int'));
     	expect($objectId = Request::get('objectId', 'int'));
@@ -112,7 +118,7 @@ class mp_ObjectResources extends core_Manager
     	$form = cls::get('core_Form');
     	$form->title = tr("Създаване на ресурс към") . " |*<b>" . cls::get($classId)->getTitleById($objectId) . "</b>";
     	$form->FNC('newResource', 'varchar', 'mandatory,caption=Нов ресурс,input');
-    	$form->FNC('classId', 'class(interface=mp_ResourceSourceIntf)', 'input=hidden');
+    	$form->FNC('classId', 'class(interface=planning_ResourceSourceIntf)', 'input=hidden');
     	$form->FNC('objectId', 'int', 'input=hidden,caption=Обект');
     	
     	$form->setDefault('classId', $classId);
@@ -128,12 +134,12 @@ class mp_ObjectResources extends core_Manager
     	if($form->isSubmitted()){
     		
     		// Трябва ресурса да е уникален
-    		if(mp_Resources::fetch(array("#title = '[#1#]'", $form->rec->newResource))){
+    		if(planning_Resources::fetch(array("#title = '[#1#]'", $form->rec->newResource))){
     			$form->setError("newResource", "Има вече запис със същите данни");
     		} else {
     			
     			// Създава нов запис и го свързва с обекта 
-    			$resourceId = mp_Resources::save((object)array('title' => $form->rec->newResource, 'type' => $sourceInfo->type, 'measureId' => $sourceInfo->measureId, 'state' => 'active'));
+    			$resourceId = planning_Resources::save((object)array('title' => $form->rec->newResource, 'type' => $sourceInfo->type, 'measureId' => $sourceInfo->measureId, 'state' => 'active'));
     			$nRec = (object)array('classId' => $classId, 'objectId' => $objectId, 'resourceId' => $resourceId);
     			
     			$this->save($nRec);
@@ -167,13 +173,13 @@ class mp_ObjectResources extends core_Manager
     	$sourceInfo = $Class->getResourceSourceInfo($rec->objectId);
     	
     	// Възможни за избор са всички ресурси от посочения тип, които не са заготовки към технологична рецепта
-    	$options = mp_Resources::makeArray4Select('title', "#type = '{$sourceInfo->type}' AND #bomId IS NULL");
+    	$options = planning_Resources::makeArray4Select('title', "#type = '{$sourceInfo->type}' AND #bomId IS NULL");
     	
     	if(count($options)){
     		$form->setOptions('resourceId', $options);
     	} else {
     		$form->setReadOnly('resourceId');
-    		$resourceType = cls::get('mp_Resources')->getFieldType('type')->toVerbal($sourceInfo->type);
+    		$resourceType = cls::get('planning_Resources')->getFieldType('type')->toVerbal($sourceInfo->type);
     		$form->info = tr("|Няма ресурси от тип|* <b>'{$sourceInfo->type}'</b>");
     	}
     }
@@ -204,7 +210,7 @@ class mp_ObjectResources extends core_Manager
     	if(!Mode::is('printing')) {
     		if(self::haveRightFor('add', (object)array('classId' => $classId, 'objectId' => $data->masterId))){
     			$type = $data->masterMvc->getResourceSourceInfo($data->masterId)->type;
-    			if(mp_Resources::fetch("#type = '{$type}'")){
+    			if(planning_Resources::fetch("#type = '{$type}'")){
     				$data->addUrl = array($this, 'add', 'classId' => $classId, 'objectId' => $data->masterId, 'ret_url' => TRUE);
     			}
     			
@@ -281,7 +287,7 @@ class mp_ObjectResources extends core_Manager
     	
     	$row->objectId = "<span style='float:left'>{$row->objectId}</span>";
     	
-    	$row->resourceId = mp_Resources::getHyperlink($rec->resourceId);
+    	$row->resourceId = planning_Resources::getHyperlink($rec->resourceId);
     }
     
     

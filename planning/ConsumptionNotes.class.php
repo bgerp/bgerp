@@ -2,20 +2,26 @@
 
 
 /**
- * Клас 'mp_ConsumptionNotes' - Документ за Протокол за влагане
+ * Клас 'planning_ConsumptionNotes' - Документ за Протокол за влагане
  *
  * 
  *
  *
  * @category  bgerp
- * @package   mp
+ * @package   planning
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class mp_ConsumptionNotes extends deals_ManifactureMaster
+class planning_ConsumptionNotes extends deals_ManifactureMaster
 {
+	
+	
+	/**
+	 * За конвертиране на съществуващи MySQL таблици от предишни версии
+	 */
+	public $oldClassName = 'mp_ConsumptionNotes';
 	
 	
 	/**
@@ -33,50 +39,50 @@ class mp_ConsumptionNotes extends deals_ManifactureMaster
 	/**
 	 * Поддържани интерфейси
 	 */
-	public $interfaces = 'acc_TransactionSourceIntf=mp_transaction_ConsumptionNote';
+	public $interfaces = 'acc_TransactionSourceIntf=planning_transaction_ConsumptionNote';
 	
 	
 	/**
 	 * Плъгини за зареждане
 	 */
-	public $loadList = 'plg_RowTools, mp_Wrapper, acc_plg_Contable, acc_plg_DocumentSummary,
+	public $loadList = 'plg_RowTools, planning_Wrapper, acc_plg_Contable, acc_plg_DocumentSummary,
                     doc_DocumentPlg, plg_Printing, doc_plg_BusinessDoc, plg_Search';
 	
 	
 	/**
 	 * Кой има право да чете?
 	 */
-	public $canRead = 'ceo,mp';
+	public $canRead = 'ceo,planning';
 	
 	
 	/**
 	 * Кой има право да чете?
 	 */
-	public $canConto = 'ceo,mp';
+	public $canConto = 'ceo,planning';
 	
 	
 	/**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,mp';
+	public $canList = 'ceo,planning';
 	
 	
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'ceo,mp';
+	public $canSingle = 'ceo,planning';
 	
 	
 	/**
 	 * Кой има право да променя?
 	 */
-	public $canEdit = 'ceo,mp';
+	public $canEdit = 'ceo,planning';
 	
 	
 	/**
 	 * Кой има право да добавя?
 	 */
-	public $canAdd = 'ceo,mp';
+	public $canAdd = 'ceo,planning';
 	
 	
 	/**
@@ -88,7 +94,7 @@ class mp_ConsumptionNotes extends deals_ManifactureMaster
 	/**
 	 * Файл за единичния изглед
 	 */
-	public $singleLayoutFile = 'mp/tpl/SingleLayoutConsumptionNote.shtml';
+	public $singleLayoutFile = 'planning/tpl/SingleLayoutConsumptionNote.shtml';
 	
 	 
 	/**
@@ -100,7 +106,7 @@ class mp_ConsumptionNotes extends deals_ManifactureMaster
 	/**
 	 * Детайл
 	 */
-	public $details = 'mp_ConsumptionNoteDetails';
+	public $details = 'planning_ConsumptionNoteDetails';
 	
 	
 	/**
@@ -108,7 +114,7 @@ class mp_ConsumptionNotes extends deals_ManifactureMaster
 	 * 
 	 * @var string - име на клас
 	 */
-	public $mainDetail = 'mp_ConsumptionNoteDetails';
+	public $mainDetail = 'planning_ConsumptionNoteDetails';
 	
 	
 	/**

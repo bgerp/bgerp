@@ -2,10 +2,10 @@
 
 
 /**
- * Помощен клас-имплементация на интерфейса acc_TransactionSourceIntf за класа mp_ProductionNotes
+ * Помощен клас-имплементация на интерфейса acc_TransactionSourceIntf за класа planning_ProductionNotes
  *
  * @category  bgerp
- * @package   mp
+ * @package   planning
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
@@ -14,7 +14,7 @@
  * @see acc_TransactionSourceIntf
  *
  */
-class mp_transaction_ProductionNote extends acc_DocumentTransactionSource
+class planning_transaction_ProductionNote extends acc_DocumentTransactionSource
 {
 	
 	
@@ -67,7 +67,7 @@ class mp_transaction_ProductionNote extends acc_DocumentTransactionSource
 	{
 		$entries = array();
 		
-		$dQuery = mp_ProductionNoteDetails::getQuery();
+		$dQuery = planning_ProductionNoteDetails::getQuery();
 		$dQuery->where("#noteId = {$rec->id}");
 		
 		$errorArr = array();
@@ -81,7 +81,7 @@ class mp_transaction_ProductionNote extends acc_DocumentTransactionSource
 					
 					if(empty($dRec->jobId)) return FALSE;
 					
-					$quantityJob = mp_Jobs::fetchField($dRec->jobId, 'quantity');
+					$quantityJob = planning_Jobs::fetchField($dRec->jobId, 'quantity');
 					$mapArr = cat_Boms::getResourceInfo($dRec->bomId);
 				
 					if(count($mapArr)){
@@ -111,20 +111,20 @@ class mp_transaction_ProductionNote extends acc_DocumentTransactionSource
 															  array($dRec->classId, $dRec->productId),
 												'quantity' => $pQuantity),
 										'credit' => array('611', array('hr_Departments', $rec->activityCenterId)
-												, 				 array('mp_Resources', $res->resourceId),
+												, 				 array('planning_Resources', $res->resourceId),
 												'quantity' => $res->finalQuantity),
 								);
 							} else {
 								
 								// Сумата на дебита е себестойността на отпадния ресурс
-								$amount = $resQuantity * mp_Resources::fetchField($res->resourceId, "selfValue");
+								$amount = $resQuantity * planning_Resources::fetchField($res->resourceId, "selfValue");
 								$resQuantity = $dRec->quantity * ($res->baseQuantity / $quantityJob + $res->propQuantity);
 								$resQuantity = core_Math::roundNumber($resQuantity);
 								
 								$entry = array(
 										'amount' => $amount,
 										'debit' => array('611', array('hr_Departments', $rec->activityCenterId),
-																 array('mp_Resources', $res->resourceId),
+																 array('planning_Resources', $res->resourceId),
 														'quantity' => $resQuantity),
 										'credit' => array('321', array('store_Stores', $rec->storeId),
 																 array($dRec->classId, $dRec->productId),
@@ -178,11 +178,11 @@ class mp_transaction_ProductionNote extends acc_DocumentTransactionSource
 		$pInfo = $productRef->getProductInfo();
 		
 		// Ако към артикула имаме ресурс
-		if($resourceId = mp_ObjectResources::getResource($dRec->classId, $dRec->productId)->resourceId){
+		if($resourceId = planning_ObjectResources::getResource($dRec->classId, $dRec->productId)->resourceId){
 			$blQuantity = FALSE;
 		
 			// И ресурса е перо
-			$item = acc_Items::fetchItem('mp_Resources', $resourceId);
+			$item = acc_Items::fetchItem('planning_Resources', $resourceId);
 			if($item){
 				
 				// Намираме крайното салдо на ресурса по сметка 611 за този център и този ресурс
@@ -208,7 +208,7 @@ class mp_transaction_ProductionNote extends acc_DocumentTransactionSource
 									array($dRec->classId, $dRec->productId),
 									'quantity' => $dRec->quantity),
 							'credit' => array('611', array('hr_Departments', $rec->activityCenterId)
-									, 				 array('mp_Resources', $resourceId),
+									, 				 array('planning_Resources', $resourceId),
 									'quantity' => $dRec->quantity),
 					);
 				}

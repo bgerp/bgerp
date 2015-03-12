@@ -223,27 +223,27 @@ class sales_SalesDetails extends deals_DealDetail
     	if($masterRec->state == 'active') {
     		
     		// Проверяваме имали задание
-    		if($jobRec = mp_Jobs::fetch("#productId = {$rec->productId} AND (#state = 'active' || #state = 'draft')", 'id,state,dueDate')){
+    		if($jobRec = planning_Jobs::fetch("#productId = {$rec->productId} AND (#state = 'active' || #state = 'draft')", 'id,state,dueDate')){
     		
     			// Ако е чернова, и можем да го редактираме добавяме бутон за редакция
     			if($jobRec->state == 'draft'){
-    				if(mp_Jobs::haveRightFor('activate', $jobRec)){
-    					$row->jobId = ht::createBtn('Редакция', array('mp_Jobs', 'edit', $jobRec->id), FALSE, FALSE, 'title=Създаване на ново задание за артикула,ef_icon=img/16/edit.png');
+    				if(planning_Jobs::haveRightFor('activate', $jobRec)){
+    					$row->jobId = ht::createBtn('Редакция', array('planning_Jobs', 'edit', $jobRec->id), FALSE, FALSE, 'title=Създаване на ново задание за артикула,ef_icon=img/16/edit.png');
     				}
     			}
     		
     			if(!$row->jobId){
     				// Ако има такова, добавяме линк към сингъла му
-    				$row->jobId = "#" . mp_Jobs::getHandle($jobRec->id);
-    				if(mp_Jobs::haveRightFor('single', $jobRec)){
-    					$row->jobId = ht::createLink($row->jobId, array('mp_Jobs', 'single', $jobRec->id), FALSE, 'ef_icon=img/16/clipboard_text.png');
+    				$row->jobId = "#" . planning_Jobs::getHandle($jobRec->id);
+    				if(planning_Jobs::haveRightFor('single', $jobRec)){
+    					$row->jobId = ht::createLink($row->jobId, array('planning_Jobs', 'single', $jobRec->id), FALSE, 'ef_icon=img/16/clipboard_text.png');
     				}
-    				$row->jobId .= " ( " . mp_Jobs::getVerbal($jobRec, 'dueDate') . " )";
+    				$row->jobId .= " ( " . planning_Jobs::getVerbal($jobRec, 'dueDate') . " )";
     			}
     		} else {
     			// Ако няма задание, добавяме бутон за създаване на ново задание
-    			if(mp_Jobs::haveRightFor('add', (object)array('productId' => $pRec->id))){
-    				$jobUrl = array('mp_Jobs', 'add', 'productId' => $pRec->id, 'quantity' => $rec->quantity, 'saleId' => $masterRec->id, 'folderId' => $masterRec->folderId, 'ret_url' => TRUE);
+    			if(planning_Jobs::haveRightFor('add', (object)array('productId' => $pRec->id))){
+    				$jobUrl = array('planning_Jobs', 'add', 'productId' => $pRec->id, 'quantity' => $rec->quantity, 'saleId' => $masterRec->id, 'folderId' => $masterRec->folderId, 'ret_url' => TRUE);
     				$row->jobId = ht::createBtn('Нов', $jobUrl, FALSE, FALSE, 'title=Създаване на ново задание за артикула,ef_icon=img/16/clipboard_text.png');
     			}
     		}

@@ -2,20 +2,26 @@
 
 
 /**
- * Клас 'mp_Stages' - Модел за производствени етапи
+ * Клас 'planning_Stages' - Модел за производствени етапи
  *
  * 
  *
  *
  * @category  bgerp
- * @package   mp
+ * @package   planning
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class mp_Stages extends core_Manager
+class planning_Stages extends core_Manager
 {
+	
+	
+	/**
+	 * За конвертиране на съществуващи MySQL таблици от предишни версии
+	 */
+	public $oldClassName = 'mp_Stages';
 	
 	
 	/**
@@ -27,37 +33,37 @@ class mp_Stages extends core_Manager
 	/**
 	 * Плъгини за зареждане
 	 */
-	public $loadList = 'plg_RowTools, mp_Wrapper, plg_Printing, plg_Sorting';
+	public $loadList = 'plg_RowTools, planning_Wrapper, plg_Printing, plg_Sorting';
 	
 	
 	/**
 	 * Кой има право да чете?
 	 */
-	public $canRead = 'ceo,mp';
+	public $canRead = 'ceo,planning';
 	
 	
 	/**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,mp';
+	public $canList = 'ceo,planning';
 	
 	
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'ceo,mp';
+	public $canSingle = 'ceo,planning';
 	
 	
 	/**
 	 * Кой има право да променя?
 	 */
-	public $canEdit = 'ceo,mp';
+	public $canEdit = 'ceo,planning';
 	
 	
 	/**
 	 * Кой има право да добавя?
 	 */
-	public $canAdd = 'ceo,mp';
+	public $canAdd = 'ceo,planning';
 	
 	
 	/**

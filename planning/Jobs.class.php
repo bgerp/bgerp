@@ -7,17 +7,23 @@
  *
  *
  * @category  bgerp
- * @package   mp
+ * @package   planning
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Задания за производство
  */
-class mp_Jobs extends core_Master
+class planning_Jobs extends core_Master
 {
     
     
+	/**
+	 * За конвертиране на съществуващи MySQL таблици от предишни версии
+	 */
+	public $oldClassName = 'mp_Jobs';
+	
+	
 	/**
      * Интерфейси, поддържани от този мениджър
      */
@@ -45,49 +51,49 @@ class mp_Jobs extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, doc_DocumentPlg, mp_Wrapper, doc_ActivatePlg, plg_Search, doc_SharablePlg';
+    public $loadList = 'plg_RowTools, doc_DocumentPlg, planning_Wrapper, doc_ActivatePlg, plg_Search, doc_SharablePlg';
     
     
     /**
      * Кой има право да чете?
      */
-    public $canRead = 'ceo, mp';
+    public $canRead = 'ceo, planning';
     
     
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo, mp';
+    public $canEdit = 'ceo, planning';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo, mp';
+    public $canAdd = 'ceo, planning';
     
     
     /**
      * Кой може да добавя?
      */
-    public $canClose = 'ceo, mp';
+    public $canClose = 'ceo, planning';
     
     
     /**
      * Кой има право да пише?
      */
-    public $canWrite = 'ceo, mp';
+    public $canWrite = 'ceo, planning';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo, mp';
+	public $canList = 'ceo, planning';
 
 	
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'ceo, mp';
+	public $canSingle = 'ceo, planning';
     
     
 	/**
@@ -117,7 +123,7 @@ class mp_Jobs extends core_Master
     /**
      * Шаблон за единичен изглед
      */
-    public $singleLayoutFile = 'mp/tpl/SingleLayoutJob.shtml';
+    public $singleLayoutFile = 'planning/tpl/SingleLayoutJob.shtml';
     
     
 	/**

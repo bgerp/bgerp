@@ -402,12 +402,12 @@ class cat_Setup extends core_ProtoSetup
     		cat_Boms::save($bRec, 'productId');
     	}
     	
-    	$jQuery = mp_Jobs::getQuery();
+    	$jQuery = planning_Jobs::getQuery();
     	$jQuery->where("#productId IS NULL");
     	while($jRec = $jQuery->fetch()){
     		$origin = doc_Containers::getDocument($jRec->originId);
     		$jRec->productId = $origin->that;
-    		mp_Jobs::save($jRec, 'productId');
+    		planning_Jobs::save($jRec, 'productId');
     	}
     }
     

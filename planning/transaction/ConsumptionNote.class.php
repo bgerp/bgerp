@@ -2,10 +2,10 @@
 
 
 /**
- * Помощен клас-имплементация на интерфейса acc_TransactionSourceIntf за класа mp_ConsumptionNotes
+ * Помощен клас-имплементация на интерфейса acc_TransactionSourceIntf за класа planning_ConsumptionNotes
  *
  * @category  bgerp
- * @package   mp
+ * @package   planning
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
@@ -14,7 +14,7 @@
  * @see acc_TransactionSourceIntf
  *
  */
-class mp_transaction_ConsumptionNote extends acc_DocumentTransactionSource
+class planning_transaction_ConsumptionNote extends acc_DocumentTransactionSource
 {
 	
 	
@@ -55,10 +55,10 @@ class mp_transaction_ConsumptionNote extends acc_DocumentTransactionSource
 		$entries = array();
 		$errorArr = array();
 		
-		$dQuery = mp_ConsumptionNoteDetails::getQuery();
+		$dQuery = planning_ConsumptionNoteDetails::getQuery();
 		$dQuery->where("#noteId = {$rec->id}");
 		while($dRec = $dQuery->fetch()){
-			$resourceRec = mp_ObjectResources::getResource($dRec->classId, $dRec->productId);
+			$resourceRec = planning_ObjectResources::getResource($dRec->classId, $dRec->productId);
 			
 			if($resourceRec){
 
@@ -71,7 +71,7 @@ class mp_transaction_ConsumptionNote extends acc_DocumentTransactionSource
 					$debitArr = array('6112', array('hr_Departments', $rec->activityCenterId),);
 				} else {
 					$debitArr = array('611', array('hr_Departments', $rec->activityCenterId),
-							array('mp_Resources', $resourceRec->resourceId),
+							array('planning_Resources', $resourceRec->resourceId),
 							'quantity' => $dRec->quantity);
 				}
 					

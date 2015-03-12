@@ -25,7 +25,7 @@ class cat_Products extends core_Embedder {
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    var $interfaces = 'acc_RegisterIntf,cat_ProductAccRegIntf,mp_ResourceSourceIntf,doc_AddToFolderIntf,acc_RegistryDefaultCostIntf';
+    var $interfaces = 'acc_RegisterIntf,cat_ProductAccRegIntf,planning_ResourceSourceIntf,doc_AddToFolderIntf,acc_RegistryDefaultCostIntf';
     
     
     /**
@@ -59,7 +59,7 @@ class cat_Products extends core_Embedder {
     /**
      * Детайла, на модела
      */
-    var $details = 'Packagings=cat_products_Packagings,Prices=cat_PriceDetails,AccReports=acc_ReportDetails,Resources=mp_ObjectResources,Jobs=mp_Jobs';
+    var $details = 'Packagings=cat_products_Packagings,Prices=cat_PriceDetails,AccReports=acc_ReportDetails,Resources=planning_ObjectResources,Jobs=planning_Jobs';
     
     
     /**
@@ -1002,7 +1002,7 @@ class cat_Products extends core_Embedder {
     	
     	if($fields['-single']){
     		if($jobRec = $mvc->getLastActiveJob($rec->id)){
-    			$row->jobId = mp_Jobs::getHyperlink($jobRec->id, TRUE);
+    			$row->jobId = planning_Jobs::getHyperlink($jobRec->id, TRUE);
     		}
     	}
     }
@@ -1058,7 +1058,7 @@ class cat_Products extends core_Embedder {
     public function canHaveResource($id)
     {
     	// Всеки артикул може да присъства само веднъж като ресурс
-    	if(!mp_ObjectResources::fetch("#classId = '{$this->getClassId()}' AND #objectId = {$id}")){
+    	if(!planning_ObjectResources::fetch("#classId = '{$this->getClassId()}' AND #objectId = {$id}")){
     		$pInfo = $this->getProductInfo($id);
     		
     		// Може да се добавя ресурс само към артикули, които са материали, ДА или вложими
@@ -1116,8 +1116,8 @@ class cat_Products extends core_Embedder {
     {
     	$rec = $this->fetchRec($id);
     	
-    	if($documentMvc instanceof deals_DealMaster || $documentMvc instanceof mp_Jobs || $documentMvc instanceof sales_Quotations){
-    		if($rec->isPublic == 'no' || ($documentMvc instanceof mp_Jobs)){
+    	if($documentMvc instanceof deals_DealMaster || $documentMvc instanceof planning_Jobs || $documentMvc instanceof sales_Quotations){
+    		if($rec->isPublic == 'no' || ($documentMvc instanceof planning_Jobs)){
     			$res = cat_ProductTplCache::cacheTpl($id, $time);
     		}
     	}
@@ -1147,7 +1147,7 @@ class cat_Products extends core_Embedder {
     	$rec = self::fetchRec($id);
     	
     	// Какво е к-то от последното активно задание
-    	return mp_Jobs::fetch("#productId = {$rec->id} AND #state = 'active'");
+    	return planning_Jobs::fetch("#productId = {$rec->id} AND #state = 'active'");
     }
     
     
@@ -1304,7 +1304,7 @@ class cat_Products extends core_Embedder {
      */
     public function renderJobView($id, $time = NULL)
     {
-    	$Jobs = cls::get('mp_Jobs');
+    	$Jobs = cls::get('planning_Jobs');
     	
     	return $this->getProductDesc($id, $Jobs, $time);
     }

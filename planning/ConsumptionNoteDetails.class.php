@@ -2,21 +2,27 @@
 
 
 /**
- * Клас 'mp_ConsumptionNormDetails'
+ * Клас 'planning_ConsumptionNormDetails'
  *
  * Детайли на мениджър на детайлите на протокола за влагане
  *
  * @category  bgerp
- * @package   mp
+ * @package   planning
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class mp_ConsumptionNoteDetails extends deals_ManifactureDetail
+class planning_ConsumptionNoteDetails extends deals_ManifactureDetail
 {
     
     
+	/**
+	 * За конвертиране на съществуващи MySQL таблици от предишни версии
+	 */
+	public $oldClassName = 'mp_ConsumptionNoteDetails';
+	
+	
     /**
      * Заглавие
      */
@@ -38,31 +44,31 @@ class mp_ConsumptionNoteDetails extends deals_ManifactureDetail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_SaveAndNew, plg_Created, mp_Wrapper, plg_RowNumbering, plg_AlignDecimals';
+    public $loadList = 'plg_RowTools, plg_SaveAndNew, plg_Created, planning_Wrapper, plg_RowNumbering, plg_AlignDecimals';
     
     
     /**
      * Кой има право да чете?
      */
-    public $canRead = 'ceo, mp';
+    public $canRead = 'ceo, planning';
     
     
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo, mp';
+    public $canEdit = 'ceo, planning';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo, mp';
+    public $canAdd = 'ceo, planning';
     
     
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'ceo, mp';
+    public $canDelete = 'ceo, planning';
     
     
     /**
@@ -96,7 +102,7 @@ class mp_ConsumptionNoteDetails extends deals_ManifactureDetail
      */
     public function description()
     {
-        $this->FLD('noteId', 'key(mvc=mp_ConsumptionNotes)', 'column=none,notNull,silent,hidden,mandatory');
+        $this->FLD('noteId', 'key(mvc=planning_ConsumptionNotes)', 'column=none,notNull,silent,hidden,mandatory');
         
         parent::setDetailFields($this);
         
@@ -116,16 +122,16 @@ class mp_ConsumptionNoteDetails extends deals_ManifactureDetail
     		$rec = $data->recs[$id];
     		
     		// Проверка дали артикула не е ресурс
-    		if(!mp_ObjectResources::getResource($rec->classId, $rec->productId)){
+    		if(!planning_ObjectResources::getResource($rec->classId, $rec->productId)){
     			
     			$row->productId = "<span class='red' title = " . tr('Артикула трябва да стане ресурс, за да се контира документа') . ">{$row->productId}</span>";
     			
     			// Ако не е ресурс и имаме права поставямя бутони за добавяне като ресурс
-    			if(cls::haveInterface('mp_ResourceSourceIntf', $rec->classId)){
-    				if(mp_ObjectResources::haveRightFor('add', (object)array('classId' => $rec->classId, 'objectId' => $rec->productId))){
+    			if(cls::haveInterface('planning_ResourceSourceIntf', $rec->classId)){
+    				if(planning_ObjectResources::haveRightFor('add', (object)array('classId' => $rec->classId, 'objectId' => $rec->productId))){
     					$retUrl = array($mvc->Master, 'resave', $rec->noteId);
-    					$row->productId .= " " . ht::createLink('', array('mp_ObjectResources', 'NewResource', 'classId' => $rec->classId, 'objectId' => $rec->productId, 'ret_url' => $retUrl), FALSE, 'ef_icon=img/16/star_1.png,title=Създаване като нов ресурс');
-    					$row->productId .= " " . ht::createLink('', array('mp_ObjectResources', 'add', 'classId' => $rec->classId, 'objectId' => $rec->productId, 'ret_url' => $retUrl), FALSE, 'ef_icon=img/16/find.png,title=Връзване към съществуващ ресурс');
+    					$row->productId .= " " . ht::createLink('', array('planning_ObjectResources', 'NewResource', 'classId' => $rec->classId, 'objectId' => $rec->productId, 'ret_url' => $retUrl), FALSE, 'ef_icon=img/16/star_1.png,title=Създаване като нов ресурс');
+    					$row->productId .= " " . ht::createLink('', array('planning_ObjectResources', 'add', 'classId' => $rec->classId, 'objectId' => $rec->productId, 'ret_url' => $retUrl), FALSE, 'ef_icon=img/16/find.png,title=Връзване към съществуващ ресурс');
     				}
     			}
     		}

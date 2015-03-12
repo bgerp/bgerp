@@ -107,8 +107,8 @@ class cat_BomDetails extends doc_Detail
     function description()
     {
     	$this->FLD('bomId', 'key(mvc=cat_Boms)', 'column=none,input=hidden,silent');
-    	$this->FLD("resourceId", 'key(mvc=mp_Resources,select=title,allowEmpty)', 'caption=Ресурс,mandatory,silent,refreshForm');
-    	$this->FLD('stageId', 'key(mvc=mp_Stages,allowEmpty,select=name)', 'caption=Етап');
+    	$this->FLD("resourceId", 'key(mvc=planning_Resources,select=title,allowEmpty)', 'caption=Ресурс,mandatory,silent,refreshForm');
+    	$this->FLD('stageId', 'key(mvc=planning_Stages,allowEmpty,select=name)', 'caption=Етап');
     	$this->FLD('type', 'enum(input=Влагане,pop=Отпадък)', 'caption=Действие,silent,removeAndRefreshForm=propQuantity');
     	
     	$this->FLD("baseQuantity", 'double', 'caption=Количество->Начално,hint=Начално количество');
@@ -165,7 +165,7 @@ class cat_BomDetails extends doc_Detail
     	
     	// Ако има избран ресурс, добавяме му мярката до полетата за количества
     	if(isset($rec->resourceId)){
-    		if($uomId = mp_Resources::fetchField($rec->resourceId, 'measureId')){
+    		if($uomId = planning_Resources::fetchField($rec->resourceId, 'measureId')){
     			$uomName = cat_UoM::getShortName($uomId);
     	
     			$form->setField('baseQuantity', "unit={$uomName}");
@@ -176,7 +176,7 @@ class cat_BomDetails extends doc_Detail
     	// Проверяваме дали е въведено поне едно количество
     	if($form->isSubmitted()){
     		if($rec->type == 'pop'){
-    			if(!mp_Resources::fetchField($rec->resourceId, 'selfValue')){
+    			if(!planning_Resources::fetchField($rec->resourceId, 'selfValue')){
     				$form->setError('resourceId', 'Отпадният ресурс няма себестойност');
     			}
     		}
@@ -194,8 +194,8 @@ class cat_BomDetails extends doc_Detail
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-    	$row->resourceId = mp_Resources::getHyperlink($rec->resourceId, TRUE);
-    	$measureId = mp_Resources::fetchField($rec->resourceId, 'measureId');
+    	$row->resourceId = planning_Resources::getHyperlink($rec->resourceId, TRUE);
+    	$measureId = planning_Resources::fetchField($rec->resourceId, 'measureId');
     	$row->measureId = cat_UoM::getTitleById($measureId);
     	
     	$row->ROW_ATTR['class'] = ($rec->type != 'input') ? 'row-removed' : 'row-added';
@@ -239,7 +239,7 @@ class cat_BomDetails extends doc_Detail
     	 
     	foreach ($recs as &$rec){
     		if($rec->stageId){
-    			$rec->order = mp_Stages::fetchField($rec->stageId, 'order');
+    			$rec->order = planning_Stages::fetchField($rec->stageId, 'order');
     		} else {
     			$rec->order = 0;
     		}

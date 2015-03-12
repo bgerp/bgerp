@@ -160,27 +160,6 @@ abstract class deals_ManifactureMaster extends core_Master
 	
 	
 	/**
-	 * Проверка дали нов документ може да бъде добавен в посочената нишка
-	 *
-	 * @param int $threadId key(mvc=doc_Threads)
-	 * @return boolean
-	 */
-	public static function canAddToThread($threadId)
-	{
-		$firstDoc = doc_Threads::getFirstDocument($threadId);
-		
-		// Може да се добавя само към нишка с начало документ 'Задание'
-		//@TODO да го откоментирам след мърдж
-		/*if($firstDoc->getInstance() instanceof mp_Jobs){
-			
-			return TRUE;
-		}*/
-		
-		return FALSE;
-	}
-	
-	
-	/**
      * В кои корици може да се вкарва документа
      * @return array - интерфейси, които трябва да имат кориците
      */

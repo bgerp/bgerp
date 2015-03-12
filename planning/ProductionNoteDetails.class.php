@@ -2,21 +2,27 @@
 
 
 /**
- * Клас 'mp_ProductionNormDetails'
+ * Клас 'planning_ProductionNormDetails'
  *
  * Детайли на мениджър на детайлите на протокола за производство
  *
  * @category  bgerp
- * @package   mp
+ * @package   planning
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class mp_ProductionNoteDetails extends deals_ManifactureDetail
+class planning_ProductionNoteDetails extends deals_ManifactureDetail
 {
     
     
+	/**
+	 * За конвертиране на съществуващи MySQL таблици от предишни версии
+	 */
+	public $oldClassName = 'mp_ProductionNoteDetails';
+	
+	
     /**
      * Заглавие
      */
@@ -38,31 +44,31 @@ class mp_ProductionNoteDetails extends deals_ManifactureDetail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_SaveAndNew, plg_Created, mp_Wrapper, plg_RowNumbering, plg_AlignDecimals';
+    public $loadList = 'plg_RowTools, plg_SaveAndNew, plg_Created, planning_Wrapper, plg_RowNumbering, plg_AlignDecimals';
     
     
     /**
      * Кой има право да чете?
      */
-    public $canRead = 'ceo, mp';
+    public $canRead = 'ceo, planning';
     
     
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo, mp';
+    public $canEdit = 'ceo, planning';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo, mp';
+    public $canAdd = 'ceo, planning';
     
     
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'ceo, mp';
+    public $canDelete = 'ceo, planning';
     
     
     /**
@@ -96,11 +102,11 @@ class mp_ProductionNoteDetails extends deals_ManifactureDetail
      */
     public function description()
     {
-        $this->FLD('noteId', 'key(mvc=mp_ProductionNotes)', 'column=none,notNull,silent,hidden,mandatory');
+        $this->FLD('noteId', 'key(mvc=planning_ProductionNotes)', 'column=none,notNull,silent,hidden,mandatory');
         
         parent::setDetailFields($this);
         
-        $this->FLD('jobId', 'key(mvc=mp_Jobs)', 'input=none,caption=Задание');
+        $this->FLD('jobId', 'key(mvc=planning_Jobs)', 'input=none,caption=Задание');
         $this->FLD('bomId', 'key(mvc=cat_Boms)', 'input=none,caption=Рецепта');
         
         $this->FLD('selfValue', 'double', 'caption=С-ст,input=hidden');
@@ -185,9 +191,9 @@ class mp_ProductionNoteDetails extends deals_ManifactureDetail
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
     	if(isset($rec->jobId)){
-    		$row->jobId = "#" . cls::get('mp_Jobs')->getHandle($rec->jobId);
+    		$row->jobId = "#" . cls::get('planning_Jobs')->getHandle($rec->jobId);
     		if(!Mode::is('printing') && !Mode::is('text', 'xhtml')){
-    			$row->jobId = ht::createLink($row->jobId, array('mp_Jobs', 'single', $rec->jobId));
+    			$row->jobId = ht::createLink($row->jobId, array('planning_Jobs', 'single', $rec->jobId));
     		}
     	}
     	
@@ -234,7 +240,7 @@ class mp_ProductionNoteDetails extends deals_ManifactureDetail
      */
     public static function canContoRec($rec, $masterRec)
     {
-    	$entry = mp_transaction_ProductionNote::getDirectEntry($rec, $masterRec);
+    	$entry = planning_transaction_ProductionNote::getDirectEntry($rec, $masterRec);
     	
     	if(!count($entry)){
     		if(isset($rec->bomId) && isset($rec->jobId)){
