@@ -308,7 +308,7 @@ class planning_Jobs extends core_Master
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
      */
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
-    {echo "<li>$action";
+    {//echo "<li>$action";
     	if($action == 'write' || $action == 'add' || $action == 'edit'){
     		
     		// Може да се добавя само ако има ориджин
