@@ -73,7 +73,6 @@
         [#others#]
         <!--ET_END others-->
     </ol>
-    
     <table class="signature-table" style='float:right; width: 30%; margin-top: 20px;'>
         <tr>
             <td>|Съставил|*: </td>
@@ -81,7 +80,9 @@
         </tr>
         <tr>
             <td></td>
-            <td class="centered" style='border-top: 1px dashed #333 !important;'>/ <span style='padding-left: 5px; font-family: Comic Sans, cursive; font-style: italic;'> [#username#]</span><!--ET_BEGIN position-->, [#position#]<!--ET_END position-->/</td>
+            <td class="centered" style='border-top: 1px dashed #333 !important;'>
+                / <span style='padding-left: 5px; font-family: Comic Sans, cursive; font-style: italic;'> [#username#]</span><!--ET_BEGIN position-->, [#position#]<!--ET_END position-->/
+            </td>
         </tr>
     </table>
     <div class='footerDocBlock'>
