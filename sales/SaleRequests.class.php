@@ -217,13 +217,16 @@ class sales_SaleRequests extends core_Master
         $rec->amountDeal = $amountDeal * $rec->currencyRate;
         $rec->amountVat  = $this->_total->vat * $rec->currencyRate;
         $rec->amountDiscount = $this->_total->discount * $rec->currencyRate;
-        $this->save($rec);
         
     	if($cmd == 'active'){
     		$rec->state = 'active';
-        	$this->invoke('AfterActivation', array($rec));
         }
     	
+        $this->save($rec);
+        if($rec->state == 'active'){
+        	$this->invoke('AfterActivation', array($rec));
+        }
+        
     	return $rec->id;
     }
     
