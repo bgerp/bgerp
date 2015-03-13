@@ -51,6 +51,8 @@
            [#origin#]
            </td>
       </tr>
+      
+      <!--ET_BEGIN notes-->
       <tr>
            <th colspan="2" class='job-head'>
            |Забележка|*
@@ -61,6 +63,10 @@
            [#notes#]
            </td>
       </tr>
+      <!--ET_END notes-->
+      
+      <!--ET_BEGIN SALE_INFO-->
+      [#SALE_INFO#]
 	  <tr>
 	  	   <th colspan="2" class='job-head'>
 	  	   |Данни от договора|*
@@ -88,12 +94,12 @@
 	       </td>
 	       <td> 
 		       <table>
-		          <!--ET_BEGIN store-->
+		          <!--ET_BEGIN storeId-->
 	               <tr>
 	                   <td class='quiet' style='text-align: right'>|Склад|*:</td>
-	                   <td>[#store#]</td>
+	                   <td>[#storeId#]</td>
 	               </tr>
-	               <!--ET_END store-->
+	               <!--ET_END storeId-->
 	               <!--ET_BEGIN deliveryDate-->
 	               <tr>
 	                   <td class='quiet' style='text-align: right'>|Срок|*:</td>
@@ -103,6 +109,7 @@
 	           </table>
 	       </td>
         </tr>
+         <!--ET_END SALE_INFO-->
         <tr>
            <th colspan="2" class='job-head'>
            |Производствени задачи|*
@@ -110,7 +117,7 @@
         </tr>
         <tr>
            <td colspan="2">
-           [#tasksTable#]
+           [#TASKS#]
            </td>
     </table>
     <!--ET_BEGIN shareLog-->
