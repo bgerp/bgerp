@@ -1958,11 +1958,11 @@ div.alphabet div.tab-page {
   margin-bottom: 5px; }
   .wide .single-thread .document .tab-top div.alphabet  .tab-row .tab {
     font-size: 0.7em;
-    margin: 0 10px 0 0;
+    margin: 0 4px 0 0;
     padding: 5px; }
     .wide .single-thread .document .tab-top div.alphabet  .tab-row .tab:hover,
     .wide .single-thread .document .tab-top div.alphabet  .tab-row .tab.selected {
-      margin: 0 10px 0 0;
+      margin: 0 4px 0 0;
       padding: 5px !important; }
     .wide .single-thread .document .tab-top div.alphabet  .tab-row .tab.selected {
       top: -4px; }
