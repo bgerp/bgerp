@@ -385,10 +385,6 @@ class techno2_SpecificationDoc extends core_Embedder
     				$data->toolbar->addBtn("Оферта", array('sales_Quotations', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE), 'ef_icon = img/16/document_quote.png,title=Нова оферта за спецификацията');
     			}
     		}
-    		
-    		if(techno2_SpecTplCache::haveRightFor('read')){
-    			$data->toolbar->addBtn("История", array('techno2_SpecTplCache', 'list', 'docId' => $data->rec->id), 'ef_icon = img/16/view.png,title=Минали изгледи на спецификации');
-    		}
     	}
     	
     	if($data->rec->state == 'active'){
