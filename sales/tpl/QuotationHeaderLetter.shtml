@@ -9,36 +9,36 @@
     </div>
     <!--ET_END header-->
     <div id='quot-table'>
-	    <div id='quot-title-td'>
-	        <h4 class='quote_title'>|ОФЕРТА|*</h4>
-	        <p class='title-info'>
-	            №  &nbsp;<b>[#number#]</b> 
-	        </p>
-	        <p class='title-info'>
-	            |Дата|*: &nbsp;<b>[#date#]</b>
-	        </p>
-	        <!--ET_BEGIN reff-->
-	        <p class='title-info'>
-	            |Реф|*. : &nbsp;<b><span id='reff'>[#reff#]</span></b>
-	        </p>
-	        <!--ET_END reff-->
-	    </div>
-	    <div class='receiver-block'>
-	        <p class='title-info receiver'>|Получател|*:</p>
-	        <p class='title-info'>[#company#]</p>
-	        <p class='title-info'>[#person#]</p>
-	        <p class='title-info'>[#contragentAdress#]</p>
-	        <!--ET_BEGIN email-->
-	        <p class='title-info'>|Имейл|*: [#email#]</p>
-	        <!--ET_END email-->
-	        <!--ET_BEGIN tel-->
-	        <p class='title-info'>|Тел|*: [#tel#]</p>
-	        <!--ET_END tel-->
-	        <!--ET_BEGIN fax-->
-	        <p class='title-info'>|Факс|*: [#fax#]</p>
-	        <!--ET_END fax-->
-	    </div>
-	</div>
+        <div id='quot-title-td'>
+            <h4 class='quote_title'>|ОФЕРТА|*</h4>
+            <p class='title-info'>
+                №  &nbsp;<b>[#number#]</b> 
+            </p>
+            <p class='title-info'>
+                |Дата|*: &nbsp;<b>[#date#]</b>
+            </p>
+            <!--ET_BEGIN reff-->
+            <p class='title-info'>
+                |Реф|*. : &nbsp;<b><span id='reff'>[#reff#]</span></b>
+            </p>
+            <!--ET_END reff-->
+        </div>
+        <div class='receiver-block'>
+            <p class='title-info receiver'>|Получател|*:</p>
+            <p class='title-info'>[#company#]</p>
+            <p class='title-info'>[#person#]</p>
+            <p class='title-info'>[#contragentAdress#]</p>
+            <!--ET_BEGIN email-->
+            <p class='title-info'>|Имейл|*: [#email#]</p>
+            <!--ET_END email-->
+            <!--ET_BEGIN tel-->
+            <p class='title-info'>|Тел|*: [#tel#]</p>
+            <!--ET_END tel-->
+            <!--ET_BEGIN fax-->
+            <p class='title-info'>|Факс|*: [#fax#]</p>
+            <!--ET_END fax-->
+        </div>
+    </div>
     <div class="clearfix21"></div>
     <!--ET_BEGIN MANDATORY-->
     <div id='details-holder'>
@@ -52,7 +52,7 @@
     <!--ET_END OPTIONAL-->
     [#ListToolbar#]
     <p id='condition-title'> |Условия на офертата|*</p>
-    <ol id='conditions'>
+    <ol id='conditions' style='float: left; width: 60%'>
         <!--ET_BEGIN currencyRate-->
         <li>|Валутен курс|* [#currencyRate#]</li>
         <!--ET_END currencyRate-->
@@ -74,14 +74,14 @@
         <!--ET_END others-->
     </ol>
     
-    <table class="signature-table" >
+    <table class="signature-table" style='float:right; width: 30%; margin-top: 20px;'>
         <tr>
             <td>|Съставил|*: </td>
-            <td style='padding-left: 5px; font-family: Comic Sans, cursive; font-style: italic;'> [#username#]</td>
+            <td></td>
         </tr>
         <tr>
             <td></td>
-            <td class="centered">/ |търговец|*<!--ET_BEGIN position-->, [#position#]<!--ET_END position--> /</td>
+            <td class="centered" style='border-top: 1px dashed #333 !important;'>/ <span style='padding-left: 5px; font-family: Comic Sans, cursive; font-style: italic;'> [#username#]</span><!--ET_BEGIN position-->, [#position#]<!--ET_END position-->/</td>
         </tr>
     </table>
     <div class='footerDocBlock'>
