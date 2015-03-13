@@ -399,6 +399,7 @@ class sales_SaleRequests extends core_Master
     						'paymentMethodId'    => $rec->paymentMethodId,
     						'deliveryTermId'     => $rec->deliveryTermId,
     						'chargeVat'          => $rec->chargeVat,
+    						'originId'			 => $rec->containerId,
     						'note'				 => $rec->others,
     						'deliveryLocationId' => crm_Locations::fetchField("#title = '{$rec->deliveryPlaceId}'", 'id'),
     		);
@@ -594,5 +595,17 @@ class sales_SaleRequests extends core_Master
     	if($data->rec->state == 'draft') {
 	       	$data->toolbar->addBtn('Редакция', array('sales_SaleRequests', 'CreateFromOffer', $data->rec->id ,'originId' => $data->rec->originId, 'ret_url' => TRUE, 'edit' => TRUE), NULL, 'ef_icon=img/16/edit-icon.png,title=Редактиране на заявката');	
 	   }
+    }
+    
+    
+    /**
+     * Връща разбираемо за човека заглавие, отговарящо на записа
+     */
+    static function getRecTitle($rec, $escaped = TRUE)
+    {
+    	$rec = static::fetchRec($rec);
+    	$me = cls::get(get_called_class());
+    	
+    	return $me->singleTitle . "  №{$rec->id}";
     }
 }
