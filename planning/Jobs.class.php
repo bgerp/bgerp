@@ -134,6 +134,7 @@ class planning_Jobs extends core_Master
     	$this->FLD('dueDate', 'date(smartTime)', 'caption=Падеж,mandatory');
     	$this->FLD('quantity', 'double(decimals=2)', 'caption=Количество,mandatory,silent');
     	$this->FLD('notes', 'richtext(rows=3)', 'caption=Забележки');
+    	$this->FLD('tolerans', 'percent', 'caption=Толеранс');
     	$this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Доставка->Условие');
     	$this->FLD('deliveryDate', 'date(smartTime)', 'caption=Доставка->Срок');
     	$this->FLD('deliveryPlace', 'key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Доставка->Място');
@@ -170,6 +171,10 @@ class planning_Jobs extends core_Master
     		$form->setDefault('deliveryTermId', $saleRec->deliveryTermId);
     		$form->setDefault('deliveryDate', $saleRec->deliveryTime);
     		$form->setDefault('deliveryPlace', $saleRec->deliveryLocationId);
+    	} else {
+    		$form->setField('deliveryTermId', 'input=none');
+    		$form->setField('deliveryDate', 'input=none');
+    		$form->setField('deliveryPlace', 'input=none');
     	}
     }
     
