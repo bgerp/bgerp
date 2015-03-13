@@ -441,6 +441,15 @@ class sales_Invoices extends deals_InvoiceMaster
     			$res = 'no_one';
     		}
     	}
+    	
+    	if($action == 'conto' && isset($rec)){
+    	
+    		// Не може да се контира, ако има ф-ра с по нова дата
+    		$lastDate = $mvc->getNewestInvoiceDate();
+    		if($lastDate > $rec->date) {
+    			$res = 'no_one';
+    		}
+    	}
     }
     
     

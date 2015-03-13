@@ -209,22 +209,6 @@ abstract class deals_InvoiceMaster extends core_Master
     	$title = ($type == 'debit_note') ? 'Дебитно известие' : 'Кредитно известие';
     	$mvc->singleTitle = $title;
     }
-
-	
-    /**
-     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
-     */
-    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
-    {
-    	if($action == 'conto' && isset($rec)){
-    		
-    		// Не може да се контира, ако има ф-ра с по нова дата
-    		$lastDate = $mvc->getNewestInvoiceDate();
-    		if($lastDate > $rec->date) {
-    			$res = 'no_one';
-    		}
-    	}
-    }
     
     
     /**
