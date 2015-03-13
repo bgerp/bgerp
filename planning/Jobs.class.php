@@ -308,33 +308,35 @@ class planning_Jobs extends core_Master
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
      */
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
-    {//echo "<li>$action";
+    {
     	if($action == 'write' || $action == 'add' || $action == 'edit'){
     		
-    		// Може да се добавя само ако има ориджин
-    		if(empty($rec->productId)){
-    			$res = 'no_one';
-    		} else {
-    			$productRec = cat_Products::fetch($rec->productId);
-    			
-    			// Трябва да е активиран
-    			if($productRec->state != 'active'){
+    		if(isset($rec)){
+    			// Може да се добавя само ако има ориджин
+    			if(empty($rec->productId)){
     				$res = 'no_one';
-    			}
-    			
-    			// Трябва и да е производим
-    			if($res != 'no_one'){
-    			
-    				if($productRec->canManifacture == 'no'){
+    			} else {
+    				$productRec = cat_Products::fetch($rec->productId);
+    				 
+    				// Трябва да е активиран
+    				if($productRec->state != 'active'){
     					$res = 'no_one';
     				}
+    				 
+    				// Трябва и да е производим
+    				if($res != 'no_one'){
+    					 
+    					if($productRec->canManifacture == 'no'){
+    						$res = 'no_one';
+    					}
+    				}
     			}
-    		}
-    		
-    		// Ако се създава към оферта, тя трябва да е активна
-    		if(!empty($rec->saleId)){
-    			if(sales_Sales::fetchField($rec->saleId, "state") != 'active'){
-    				$res = 'no_one';
+    			
+    			// Ако се създава към оферта, тя трябва да е активна
+    			if(!empty($rec->saleId)){
+    				if(sales_Sales::fetchField($rec->saleId, "state") != 'active'){
+    					$res = 'no_one';
+    				}
     			}
     		}
     	}
