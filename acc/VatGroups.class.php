@@ -100,7 +100,7 @@ class acc_VatGroups extends core_Manager
     	$this->FLD('title', 'varchar(3)', 'caption=Заглавие,mandatory');
     	//$this->FLD('countryId', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Държава,remember,class=contactData,mandatory');
     	$this->FLD('vat', 'percent', 'caption=ДДС,mandatory');
-    	$this->FLD('sysId', 'varchar(3)', 'mandatory,caption=Систем ID');
+    	$this->FLD('sysId', 'varchar(3)', 'caption=Систем ID, input=hidden');
     	
     	// Уникален индекс
     	$this->setDbUnique('title');
