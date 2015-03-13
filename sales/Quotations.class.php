@@ -709,6 +709,7 @@ class sales_Quotations extends core_Master
     				'deliveryTermId'     => $rec->deliveryTermId,
     				'chargeVat'          => $rec->chargeVat,
     				'note'				 => $rec->others,
+    				'originId'			 => $rec->containerId,
     				'deliveryLocationId' => crm_Locations::fetchField("#title = '{$rec->deliveryPlaceId}'", 'id'),
     		);
     		 
