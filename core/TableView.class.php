@@ -46,26 +46,10 @@ class core_TableView extends core_BaseClass
      * 
      * @return array
      */
-    protected static function getColWithClass($rows)
+    protected function getColWithClass($rows)
     {
-        $res = array();
         
-        if (!$rows) return $res;
-        
-        $rows = (array)$rows;
-        
-        $row = reset($rows);
-        
-        if (!$row) return $res;
-        
-        foreach ((array)$row as $name => $val) {
-            if ($val instanceof core_ET) {
-                if (!$val->places['COL_CLASS']) continue;
-                $res[$name] = 'COL_CLASS';
-            }
-        }
-        
-        return $res;
+        return (array)$this->mvc->rowToolsColumn;
     }
     
     
@@ -118,7 +102,7 @@ class core_TableView extends core_BaseClass
                 $fields[$place] = $colHeaders;
             }
             
-            $colWithClass = self::getColWithClass($rows);
+            $colWithClass = $this->getColWithClass($rows);
             
             foreach ($fieldList as $place => $dummy) {
                 
@@ -138,7 +122,7 @@ class core_TableView extends core_BaseClass
                     }
                     
                     if ($colWithClass[$place]) {
-                        $class .= " [#{$colWithClass[$place]}#]";
+                        $class .= " {$colWithClass[$place]}";
                     }
                     
                     if($class = trim($class)) {
