@@ -59,10 +59,9 @@ class plg_GroupByDate extends core_Plugin
                 
                 $rowAttr = $data->rows[$id]->ROW_ATTR;
                 $rowAttr['class'] .= ' group-by-date-row';
-
                 $rows[$id . ' '] = ht::createElement('tr', 
                     $rowAttr, 
-                    new ET("<td style='padding-top:9px;padding-left:5px;' colspan='{$columns}'><i style='color:#{$res->color};'>" . $res->day . "</i></td>")); 
+                    new ET("<td style='padding-top:9px;padding-left:5px;' colspan='{$columns}'><div style='color:#{$res->color}; font-style: italic;'>" . $res->day . "</div></td>")); 
                     
                 $exDate = $d;
             }
