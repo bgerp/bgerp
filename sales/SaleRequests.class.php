@@ -544,7 +544,7 @@ class sales_SaleRequests extends core_Master
 	    
 	    if($fields['-single']){
 	    	$origin = doc_Containers::getDocument($rec->originId);
-	    	$row->originLink = $origin->getDocumentRow()->title;
+	    	$row->originLink = $origin->getHyperLink();
 	    	
 	    	if($rec->others){
 				$others = explode('<br>', $row->others);
