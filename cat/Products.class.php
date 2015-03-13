@@ -193,7 +193,7 @@ class cat_Products extends core_Embedder {
 	 * 
 	 * @var string
 	 */
-	public $recTitleTpl = '[#name#]<!--ET_BEGIN code--> ( [#code#] )<!--ET_END code-->';
+	public $recTitleTpl = '[#name#]<!--ET_BEGIN code--> ([#code#])<!--ET_END code-->';
     
     
 	/**
@@ -273,18 +273,19 @@ class cat_Products extends core_Embedder {
     	
     	if(isset($form->rec->folderId)){
     		$cover = doc_Folders::getCover($form->rec->folderId);
+    		
+    		// Ако е избран драйвер слагаме задъжителните мета данни според корицата и драйвера
+    		if(isset($form->rec->innerClass)){
+    			$defMetas = $cover->getDefaultMeta();
+    			$Driver = $mvc->getDriver($form->rec);
+    			$defMetas = $Driver->getDefaultMetas($defMetas);
+    				
+    			$form->setDefault('meta', $form->getFieldType('meta')->fromVerbal($defMetas));
+    		}
+    		
     		if(!$cover->haveInterface('doc_ContragentDataIntf')){
     			$form->setField('code', 'mandatory');
     			
-    			// Ако е избран драйвер слагаме задъжителните мета данни според корицата и драйвера
-				if(isset($form->rec->innerClass)){
-					$defMetas = $cover->getDefaultMeta();
-					$Driver = $mvc->getDriver($form->rec);
-					$defMetas = $Driver->getDefaultMetas($defMetas);
-					
-					$form->setDefault('meta', $form->getFieldType('meta')->fromVerbal($defMetas));
-				}
-				
 				if($code = Mode::get('catLastProductCode')) {
 					if ($newCode = str::increment($code)) {
 						 

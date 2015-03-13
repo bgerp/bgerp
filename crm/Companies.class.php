@@ -1540,6 +1540,27 @@ class crm_Companies extends core_Master
      */
     public function getDefaultMeta($id)
     {
-    	return array();
+    	$rec = $this->fetchRec($id);
+    	
+    	$clientGroupId = crm_Groups::getIdFromSysId('customers');
+    	$supplierGroupId = crm_Groups::getIdFromSysId('suppliers');
+    	
+    	$groups = crm_Groups::getQuery();
+    	
+    	$meta = array();
+    	
+    	// Ако контрагента е в група клиенти: дефолт свойствата са 'продаваем и производим'
+    	if(keylist::isIn($clientGroupId, $rec->groupList)){
+    		$meta['canSell'] = TRUE;
+    		$meta['canManifacture'] = TRUE;
+    	}
+    	
+    	// Ако контрагента е в група доставчици: дефолт свойствата са 'купуваем и вложим'
+    	if(keylist::isIn($supplierGroupId, $rec->groupList)){
+    		$meta['canConvert'] = TRUE;
+    		$meta['canBuy'] = TRUE;
+    	}
+    	
+    	return $meta;
     }
 }

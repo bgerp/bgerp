@@ -88,7 +88,7 @@
         </tr>
         <tr>
             <td></td>
-            <td class="centered">/ |търговец|* /</td>
+            <td class="centered">/ |търговец|*<!--ET_BEGIN position-->, [#position#]<!--ET_END position--> /</td>
         </tr>
     </table>
     <div class='footerDocBlock'>

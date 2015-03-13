@@ -76,7 +76,7 @@ class cat_UoM extends core_Manager
         $this->FLD('shortName', 'varchar(12)', 'caption=Съкращение, export');
         $this->FLD('baseUnitId', 'key(mvc=cat_UoM, select=name,allowEmpty)', 'caption=Базова мярка, export');
         $this->FLD('baseUnitRatio', 'double', 'caption=Коефициент, export');
-        $this->FLD('sysId', 'varchar', 'caption=System Id,mandatory');
+        $this->FLD('sysId', 'varchar', 'caption=System Id,input=hidden');
         $this->FLD('sinonims', 'varchar(255)', 'caption=Синоними');
         
         $this->setDbUnique('name');
