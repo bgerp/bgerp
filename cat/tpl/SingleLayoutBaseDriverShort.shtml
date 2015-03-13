@@ -1,9 +1,9 @@
-<div style='margin-bottom: 5px;'>[#TITLE#]</div>
+<div style='margin-bottom: 5px;' class='product-title'>[#TITLE#]</div>
  <!--ET_BEGIN image-->
 
 <!--ET_END image-->
 <div class="productImage">
-        [#image#]
+    [#image#]
 </div>
 [#info#]
 <!--ET_BEGIN INFORMATION-->

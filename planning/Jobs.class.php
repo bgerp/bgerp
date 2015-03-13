@@ -178,6 +178,12 @@ class planning_Jobs extends core_Master
     	}
     }
     
+    /**
+     * След подготовка на сингъла
+     */
+    public static function on_AfterRenderSingle($mvc, &$tpl, &$data){
+    	$tpl->push('planning/tpl/styles.css', "CSS");
+    }
     
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)

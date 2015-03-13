@@ -8,80 +8,110 @@
         <div class='docBgIcon' style='[#iconStyle#];'>[#singleTitle#] <b>[#ident#]</b> ([#state#])</div>
     </div>
     <!--ET_END header-->
-    <table class='jobTable'>
+    <table class='jobTable' style='width: 100%'>
         <tr>
-            <td class='job-head'>|Данни на заданието|*</td>
-        </tr>
-        <tr>
-            <td>
+            <td> 
                 <table>
                     <tr>
-                        <td>|Падеж|*:</td>
-                        <td><b>[#dueDate#]</b></td>
+                        <td class='quiet' style='text-align: right'>№:</td>
+                        <td>[#id#]</td>
                     </tr>
                     <tr>
-                        <td>|Количество|*:</td>
-                        <td class='aright'><b>[#quantity#]</b></td>
+                        <td class='quiet' style='text-align: right'>|Дата|*:</td>
+                        <td>[#createdDate#]</td>
                     </tr>
                 </table>
-            </td>
-        </tr>
-        <tr>
-            <td class='job-head'>|Описание на изделието|*</td>
-        </tr>
-        <tr>
-            <td class='jobSpec'>[#origin#]</td>
-        </tr>
-        
-         <!--ET_BEGIN saleId-->
-        <tr>
-            <td class='job-head'>|Към|*: [#saleId#]</td>
-        </tr>
-         <!--ET_END saleId-->
-        
-        <tr>
-            <td class='job-head'>|Бележки|*</td>
-        </tr>
-        <tr>
-            <td>[#notes#]</td>
-        </tr>
-        <tr>
-            <td class='job-head'>|Логистика|*</td>
-        </tr>
-        <tr>
-            <td>
-                <table>
-                    <!--ET_BEGIN deliveryTermId-->
+	       </td>
+	       <td>
+	           <table>
                     <tr>
-                        <td>|Доставка|*:</td>
-                        <td>[#deliveryTermId#]</td>
+                        <td class='quiet' style='text-align: right'>|Количество|*:</td>
+                        <td>[#quantity#]</td>
                     </tr>
-                    <!--ET_END deliveryTermId-->
-                    <!--ET_BEGIN deliveryDate-->
+                    <!--ET_BEGIN tolerance-->
                     <tr>
-                        <td>|Срок|*:</td>
-                        <td>[#deliveryDate#]</td>
+                        <td class='quiet' style='text-align: right'>|Толеранс|*:</td>
+                        <td>[#tolerance#]</td>
                     </tr>
-                    <!--ET_END deliveryDate-->
-                    <!--ET_BEGIN deliveryPlace-->
+                    <!--ET_END tolerance-->
                     <tr>
-                        <td>|Място|*:</td>
-                        <td>[#deliveryPlace#]</td>
+                        <td class='quiet' style='text-align: right'>|Падеж|*:</td>
+                        <td>[#dueDate#]</td>
                     </tr>
-                    <!--ET_END deliveryPlace-->
                 </table>
-            </td>
+	       </td>
+	  </tr>
+	  <tr>
+           <th colspan="2" class='job-head'>
+           |Описание|*
+           </th>
+      </tr>
+      <tr>
+           <td colspan="2">
+           [#origin#]
+           </td>
+      </tr>
+      <tr>
+           <th colspan="2" class='job-head'>
+           |Забележка|*
+           </th>
+      </tr>
+      <tr>
+           <td colspan="2">
+           [#notes#]
+           </td>
+      </tr>
+	  <tr>
+	  	   <th colspan="2" class='job-head'>
+	  	   |Данни от договора|*
+	  	   </th>
+	 </tr>
+	 <tr>
+	       <td>
+	            <table>
+	                <!--ET_BEGIN saleId-->
+                    <tr>
+                        <td class='quiet' style='text-align: right'>№:</td>
+                        <td>[#saleId#]</td>
+                    </tr>
+                     <!--ET_END saleId-->
+                    <tr>
+                        <td colspan="2"><b>[#deliveryTermId#]</b> [#deliveryPlace#]</td>
+                    </tr>
+                    <!--ET_BEGIN dealer-->
+                    <tr>
+                        <td class='quiet' style='text-align: right'>|Дилър|*</td>
+                        <td>[#dealer#]</td>
+                    </tr>
+                    <!--ET_END dealer-->
+                </table>	          
+	       </td>
+	       <td> 
+		       <table>
+		          <!--ET_BEGIN store-->
+	               <tr>
+	                   <td class='quiet' style='text-align: right'>|Склад|*:</td>
+	                   <td>[#store#]</td>
+	               </tr>
+	               <!--ET_END store-->
+	               <!--ET_BEGIN deliveryDate-->
+	               <tr>
+	                   <td class='quiet' style='text-align: right'>|Срок|*:</td>
+	                   <td>[#deliveryDate#]</td>
+	               </tr>
+	               <!--ET_END deliveryDate-->
+	           </table>
+	       </td>
         </tr>
-        <!--ET_BEGIN ADDITIONAL-->
         <tr>
-            <td class='job-head'>|Допълнително|*</td>
+           <th colspan="2" class='job-head'>
+           |Производствени задачи|*
+           </th>
         </tr>
         <tr>
-            <td>
-                [#ADDITIONAL#]
-            </td>
-        </tr>
-        <!--ET_END ADDITIONAL-->
+           <td colspan="2">
+           [#tasksTable#]
+           </td>
     </table>
     <!--ET_BEGIN shareLog-->
     <div class='sharing-history clearfix21'>
