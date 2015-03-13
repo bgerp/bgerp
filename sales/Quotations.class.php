@@ -120,7 +120,7 @@ class sales_Quotations extends core_Master
      */
     public static $defaultStrategies = array(
     
-    	'validFor'        => 'lastDocUser|lastDoc|',
+    	'validFor'        => 'lastDocUser|lastDoc',
     	'paymentMethodId' => 'clientCondition|lastDocUser|lastDoc',
         'currencyId'      => 'lastDocUser|lastDoc',
         'chargeVat'       => 'lastDocUser|lastDoc|defMethod',
