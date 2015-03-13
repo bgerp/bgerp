@@ -158,7 +158,7 @@ class sales_Quotations extends core_Master
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)','caption=Плащане->Валута,oldFieldName=paymentCurrencyId');
         $this->FLD('currencyRate', 'double(decimals=2)', 'caption=Плащане->Курс,oldFieldName=rate');
         $this->FLD('chargeVat', 'enum(yes=Включено, separate=Отделно, exempt=Oсвободено, no=Без начисляване)','caption=Плащане->ДДС,oldFieldName=vat');
-        $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName)', 'caption=Доставка->Условие,salecondSysId=deliveryTermSale');
+        $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Доставка->Условие,salecondSysId=deliveryTermSale');
         $this->FLD('deliveryPlaceId', 'varchar(126)', 'caption=Доставка->Място,hint=Изберете локация или въведете нова');
         
 		$this->FLD('company', 'varchar', 'caption=Получател->Фирма, changable, class=contactData');
@@ -349,6 +349,10 @@ class sales_Quotations extends core_Master
 			
 	    	$row->number = $mvc->getHandle($rec->id);
 			$row->username = core_Users::recToVerbal(core_Users::fetch($rec->createdBy), 'names')->names;
+			$profRec = crm_Profiles::fetchRec("#userId = {$rec->createdBy}");
+			if($position = crm_Persons::fetchField($profRec->personId, 'buzPosition')){
+				$row->position = cls::get('type_Varchar')->toVerbal($position);
+			}
 			
 			$contragent = new core_ObjectReference($rec->contragentClassId, $rec->contragentId);
 			$row->contragentAddress = $contragent->getFullAdress();
@@ -370,10 +374,6 @@ class sales_Quotations extends core_Master
 					if($placeId = crm_Locations::fetchField("#title = '{$rec->deliveryPlaceId}'", 'id')){
 		    			$row->deliveryPlaceId = ht::createLinkRef($row->deliveryPlaceId, array('crm_Locations', 'single', $placeId), NULL, 'title=Към локацията');
 					}
-				}
-				
-				if(cond_DeliveryTerms::haveRightFor('single', $rec->deliveryTermId)){
-					$row->deliveryTermId = ht::createLinkRef($row->deliveryTermId, array('cond_DeliveryTerms', 'single', $rec->deliveryTermId));
 				}
 			}
 			
