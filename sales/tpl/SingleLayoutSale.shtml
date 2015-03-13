@@ -51,8 +51,11 @@
                             <span style='font-weight:normal'>|Инициатор|*</span>: [#initiatorId#]<br>
                             <!--ET_END initiatorId-->
                             <!--ET_BEGIN dealerId-->
-                            <span style='font-weight:normal'>|Дилър|*</span>: [#dealerId#]
+                            <span style='font-weight:normal'>|Дилър|*</span>: [#dealerId#]<br>
                             <!--ET_END dealerId-->
+                            <!--ET_BEGIN originId-->
+                            <span style='font-weight:normal'>|Източник|*</span>: [#originId#]
+                            <!--ET_END originId-->
                         </td>
                     </tr>
                     <tr>
