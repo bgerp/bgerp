@@ -193,7 +193,7 @@ class cat_Products extends core_Embedder {
 	 * 
 	 * @var string
 	 */
-	public $recTitleTpl = '[#name#]<!--ET_BEGIN code--> ( [#code#] )<!--ET_END code-->';
+	public $recTitleTpl = '[#name#]<!--ET_BEGIN code--> ([#code#])<!--ET_END code-->';
     
     
 	/**
