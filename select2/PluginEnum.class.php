@@ -16,24 +16,6 @@ class select2_PluginEnum extends core_Plugin
     
     
     /**
-     * Името на hidden полето
-     */
-    protected static $hiddenName = 'select2enum';
-    
-    
-    /**
-     * Дали да може да се въвежда повече от 1 елемент
-     */
-    protected static $isMultiple = FALSE;
-    
-    
-    /**
-     * Името на класа на елементите, за които ще се стартира плъгина
-     */
-    protected static $className = 'select2enum';
-    
-    
-    /**
      * Дали може да се изчистват всичките записи едновременно
      */
     protected static $allowClear = FALSE;
@@ -69,7 +51,7 @@ class select2_PluginEnum extends core_Plugin
      * @param string|array|NULL $value
      * @param array $attr
      */
-    function on_AfterRenderInput(&$invoker, &$tpl, $name, $value, $attr = array())
+    function on_AfterRenderInput(&$invoker, &$tpl, $name, $value, &$attr = array())
     {   
         // Ако все още няма id
         if (!$attr['id']) {
