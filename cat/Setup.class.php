@@ -69,6 +69,7 @@ class cat_Setup extends core_ProtoSetup
     		'migrate::removeOldParams1',
     		'migrate::updateDocs',
     		'migrate::fixStates',
+    		'migrate::privateProducts',
         );
 
         
@@ -432,6 +433,23 @@ class cat_Setup extends core_ProtoSetup
     		}
     		
     		$Products->save_($rec, 'state,brState');
+    	}
+    }
+    
+    
+    /**
+     * Мигрира частните артикули
+     */
+    public function privateProducts()
+    {
+    	$Products = cls::get('cat_Products');
+    	$query = $Products->getQuery();
+    	$query->where("#isPublic = 'no' AND #detailedDescriptionIn IS NULL");
+    	$query->show("id,name,isPublic,detailedDescriptionIn");
+    	
+    	while($rec = $query->fetch()){
+    		$rec->detailedDescriptionIn = 'sales_Quotations,sales_Sales';
+    		$Products->save_($rec, 'detailedDescriptionIn');
     	}
     }
 }

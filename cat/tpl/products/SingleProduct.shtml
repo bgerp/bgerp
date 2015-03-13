@@ -23,6 +23,14 @@
          <div class="groupList">[#meta#]</div>
     </fieldset>
     <!--ET_END meta-->
+    
+    <!--ET_BEGIN detailedDescriptionIn-->
+    <fieldset class="detail-info">
+         <legend class="groupTitle">|Показване на детайлите за артикула в документи|*</legend>
+         <div class="groupList">[#detailedDescriptionIn#]</div>
+    </fieldset>
+    <!--ET_END detailedDescriptionIn-->
+    
     <div class='scrolling-holder'>
     [#Packagings#]
     </div>
