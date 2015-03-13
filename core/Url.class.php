@@ -687,26 +687,29 @@ class core_Url
     /**
      * Добавя параметър в стринг представящ URL
      */
-    static function addParams($url, $newParams)
+    static function change($url, $queryParams = array(), $domain = '')
     {
         $purl = parse_url($url);
         
-        if (!$purl)
-        return FALSE;
+        if (!$purl) return FALSE;
         
-        $params = array();
-        
-        if (!empty($purl["query"])) {
-            parse_str($purl["query"], $params);
+        // Добавяме новите параметри в част `Query`
+        if(count($queryParams)) {
+            $params = array();
+            if (!empty($purl["query"])) {
+                parse_str($purl["query"], $params);
+            }
+            foreach ($queryParams as $key => $value) {
+                $params[$key] = $value;
+            }
+            $purl["query"] = http_build_query($params);
         }
-        
-        // Добавяме новите параметри
-        foreach ($newParams as $key => $value) {
-            $params[$key] = $value;
-        }
-        
-        $purl["query"] = http_build_query($params);
 
+        // Промяна на домейн
+        if($domain) {
+            $purl["host"] = $domain;
+        }
+        
         $res = "";
         
         if (isset($purl["scheme"])) {

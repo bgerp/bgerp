@@ -440,7 +440,7 @@ class core_App
             if (is_array($url)) {
                 $url['hit_id'] = $hitId;
             } else if ($url) {
-                $url = core_Url::addParams($url, array('hit_id' => $hitId));
+                $url = core_Url::change($url, array('hit_id' => $hitId));
             }
         }
         
