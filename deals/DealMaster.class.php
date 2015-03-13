@@ -835,6 +835,11 @@ abstract class deals_DealMaster extends deals_DealBase
     	}
 	    
 	    if($fields['-single']){
+	    	if($rec->originId){
+	    		$row->originId = doc_Containers::getDocument($rec->originId)->getHyperLink();
+	    	}
+	    	
+	    	
 	    	if($rec->deliveryLocationId){
 	    		$row->deliveryLocationId = crm_Locations::getHyperlink($rec->deliveryLocationId);
 	    	}
@@ -1430,6 +1435,7 @@ abstract class deals_DealMaster extends deals_DealBase
      * 		o $fields['initiatorId']        -  ид на потребител инициатора (ако няма е отговорника на контрагента)
      * 		o $fields['caseId']             -  ид на каса (@see cash_Cases)
      * 		o $fields['note'] 				-  бележки за сделката
+     * 		o $fields['originId'] 			-  източник на документа
      *
      * @return mixed $id/FALSE - ид на запис или FALSE
      */
@@ -1443,7 +1449,8 @@ abstract class deals_DealMaster extends deals_DealBase
     	$me = cls::get(get_called_class());
     	$fields = arr::make($fields);
     	$allowedFields = $me->selectFields("#input != 'none' AND #input != 'hidden'");
-    	 
+    	$allowedFields['originId'] = TRUE;
+    	
     	// Проверяваме подадените полета дали са позволени
     	if(count($fields)){
     		foreach ($fields as $fld => $value){

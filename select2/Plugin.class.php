@@ -54,7 +54,7 @@ class select2_Plugin extends core_Plugin
      * @param string|array|NULL $value
      * @param array $attr
      */
-    function on_BeforeRenderInput(&$invoker, &$tpl, $name, &$value, $attr = array())
+    function on_BeforeRenderInput(&$invoker, &$tpl, $name, &$value, &$attr = array())
     {
         // Премамахваме от масива елемента от hidden полето
         if(is_array($value) && isset($value[self::$hiddenName])) {
@@ -79,7 +79,7 @@ class select2_Plugin extends core_Plugin
      * @param string|array|NULL $value
      * @param array $attr
      */
-    function on_AfterRenderInput(&$invoker, &$tpl, $name, $value, $attr = array())
+    function on_AfterRenderInput(&$invoker, &$tpl, $name, $value, &$attr = array())
     {
         $minItems = $invoker->params['select2MinItems'] ? $invoker->params['select2MinItems'] : self::$minItems;
     	

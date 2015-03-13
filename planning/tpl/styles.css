@@ -1,6 +1,6 @@
-.document td.job-head {
+.document .job-head {
   background-color: #eeeeee;
-  font-weight: bold; }
+  padding: 0.3em 0.5em; }
 
 .document .jobSpec {
   padding: 5px !important; }
@@ -11,5 +11,11 @@
 
 .document .jobTable > tbody > tr > td {
   border: 1px solid #cccccc;
-  padding: 0.3em; }
+  padding: 0.5em; }
+
+.document .jobTable .quiet {
+  padding-right: 5px; }
+
+.product-title {
+  font-weight: bold; }
 

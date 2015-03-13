@@ -638,10 +638,14 @@ class blast_Emails extends core_Master
                 $docsFhArr = array();
                 
                 foreach ((array)$docsArr as $attachDoc) {
-                    // Използваме интерфейсен метод doc_DocumentIntf::convertTo за да генерираме
-                    // файл със съдържанието на документа в желания формат
-                    $fhArr = $attachDoc['doc']->convertTo($attachDoc['ext'], $attachDoc['fileName']);
-                    
+                    try {
+                        
+                        // Използваме интерфейсен метод doc_DocumentIntf::convertTo за да генерираме
+                        // файл със съдържанието на документа в желания формат
+                        $fhArr = $attachDoc['doc']->convertTo($attachDoc['ext'], $attachDoc['fileName']);
+                    } catch (Exception $e) {
+                        continue;
+                    }
                     $docsFhArr += $fhArr;
                 }
             }

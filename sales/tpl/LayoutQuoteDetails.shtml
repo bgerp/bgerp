@@ -1,10 +1,11 @@
 <p class='table-detail-header'><b>[#TITLE#] |продукти и услуги|*</b>, &nbsp;|всички цени са в|* [#MISC#]</p>
 <div class='scrolling-holder'>
-    <table border='1' class = 'products-table' cellpadding='4px' cellspacing='4px' style='width:100%;'>
+    <table  class = 'products-table' style='width:100%;'>
         <tr>
             <th style='width:4%;'>№</th>
             <th>|Описание|*</th>
-            <th class='quote-col[#OPT#] nowrap'>|Количество|*</th>
+            <th class='quote-col[#OPT#] nowrap'>|Мярка|*</th>
+            <th class='quote-col[#OPT#] nowrap'>|К-во|*</th>
             <th>|Цена|*</th>
             <th class='quote-col[#OPT#] nowrap'>|Стойност|*</th>
         </tr>
@@ -19,7 +20,10 @@
             <td id='[#rowspanpId#]' rowspan = '[#rowspan#]' class='product-id[#OPTP#] vtop'>[#productId#]</td>
             <!--ET_END productId-->
             <td class='misc-info quote-col[#OPT#] nowrap aright vtop'>
-                <b>[#quantity#]</b> [#uomShort#]
+                [#uomShort#]
+            </td>
+             <td class='misc-info quote-col[#OPT#] nowrap aright vtop'>
+               [#quantity#] 
                 <!--ET_BEGIN tolerance-->
                 <div class='quiantity-misc'>&#177; <b>[#tolerance#]</b></div>
                 <!--ET_END tolerance-->
@@ -42,17 +46,10 @@
         <!--ET_BEGIN totalPlace-->
         [#totalPlace#]
         <tr>
-            <td colspan='4' class='total-td-label'>
-                <!--ET_BEGIN sayWords-->
-                <div>
-                    |Словом|*: [#sayWords#] &nbsp;
-                    <!--ET_END sayWords-->
-                    <!--ET_BEGIN currencyTotalId-->
-                    <span class='cCode'>[#currencyTotalId#]</span>
-                    <!--ET_END currencyTotalId-->
-                </div>
+            <td colspan='3' class='total-td-label'>
+                
             </td>
-            <td colspan='2' class='nowrap total-quote-td aright'>
+            <td colspan='3' class='total-quote-td aright'>
                 <!--ET_BEGIN SUMMARY-->
                 <table class='no-border paddingCells' style='float:right;width:100%;' id='business-doc-summary-table'>
                     <tr class='nowrap'>
@@ -94,9 +91,20 @@
                     </tr>
                     <!--ET_END vatAmount-->
                     <tr class='nowrap'>
-                        <td class='aright'>|Общо|* :</td>
-                        <td class='info-right'><span class='cCode'>[#currencyId#]</span></td>
+                        <td class='aright' colspan='2'></td>
                         <td class='aright'><b>[#total#]</b></td>
+                    </tr>
+                    <tr>
+                        <td colspan="3">
+                        <!--ET_BEGIN sayWords-->
+                        <hr>
+	                    |Словом|*: [#sayWords#] &nbsp;
+	                   
+	                    <!--ET_BEGIN currencyTotalId-->
+	                    <span class='cCode'>[#currencyTotalId#]</span>
+	                    <!--ET_END currencyTotalId-->
+	                    <!--ET_END sayWords-->
+                        </td>   
                     </tr>
                 </table>
                 <!--ET_END SUMMARY-->

@@ -175,3 +175,10 @@ function scrollLongListTable() {
         }
     }
 }
+
+
+function scrollToElem(docId) {
+	$('html, body').animate({
+        scrollTop: $("#" + docId).offset().top - $(window).height() + $(this).height() - 75
+    }, 500);
+}

@@ -705,11 +705,12 @@ class core_Form extends core_FieldSet
                 if (count($options) > 0 && !is_a($type, 'type_Key') && !is_a($type, 'type_Enum')) {
                     
                     unset($attr['value']);
-                    
+                    $this->invoke('BeforeCreateSmartSelect', array($input, $type, $options, $name, $value, &$attr));
                     $input = ht::createSmartSelect($options, $name, $value, $attr,
                         $type->params['maxRadio'],
                         $type->params['maxColumns'],
                         $type->params['columns']);
+                    $this->invoke('AfterCreateSmartSelect', array($input, $type, $options, $name, $value, &$attr));
                 } else {
                     $input = $type->renderInput($name, $value, $attr);
                 }

@@ -285,10 +285,13 @@ class email_FaxSent extends core_Manager
             $rec->documentsFh = array();
             
             foreach ($docsArr as $attachDoc) {
-                // Използваме интерфейсен метод doc_DocumentIntf::convertTo за да генерираме
-                // файл със съдържанието на документа в желания формат
-                $fhArr = $attachDoc['doc']->convertTo($attachDoc['ext'], $attachDoc['fileName']);
-                
+                try {
+                    // Използваме интерфейсен метод doc_DocumentIntf::convertTo за да генерираме
+                    // файл със съдържанието на документа в желания формат
+                    $fhArr = $attachDoc['doc']->convertTo($attachDoc['ext'], $attachDoc['fileName']);
+                } catch (core_exception_Expect $e) {
+                    $failure[] = $faxTo;
+                }
                 $rec->documentsFh += $fhArr;
             }
             

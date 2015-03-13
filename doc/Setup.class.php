@@ -10,7 +10,7 @@ defIfNot('BGERP_ROLE_HEADQUARTER', 'Headquarter');
 /**
  * Кой пакет да използваме за генериране на PDF от HTML ?
  */
-defIfNot('BGERP_PDF_GENERATOR', 'dompdf_Converter');
+defIfNot('BGERP_PDF_GENERATOR', 'webkittopdf_Converter');
 
 
 /**

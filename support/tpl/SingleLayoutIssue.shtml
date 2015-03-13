@@ -35,6 +35,8 @@
         <div>[#description#]</div>
     </div>
     <!--ET_END description--> 
+    <!--ET_BEGIN bottomAntetka-->
+    [#bottomAntetka#]
     <div class='bottom-antetka'>
         <!--ET_BEGIN name-->
         <div>|Имена|*: [#name#]</div>
@@ -56,6 +58,7 @@
         <div>|Браузър|*: [#brid#]</div>
         <!--ET_END brid-->
     </div>
+    <!--ET_END bottomAntetka-->
     <!--ET_BEGIN DETAILS-->
     <div class='details'>
         [#DETAILS#]

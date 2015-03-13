@@ -2,7 +2,7 @@
 
 
 /**
- * Плъгин за превръщане на enum полетата в select2
+ * Плъгин за превръщане на SmartSelect полетата в select2
  * 
  * @category  bgerp
  * @package   selec2
@@ -11,7 +11,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class select2_PluginEnum extends core_Plugin
+class select2_PluginSmartSelect extends core_Plugin
 {
     
     
@@ -28,39 +28,43 @@ class select2_PluginEnum extends core_Plugin
     
     
     /**
-     * Изпълнява се преди рендирането на input
      * 
-     * @param core_Type $invoker
-     * @param core_ET $tpl
+     * 
+     * @param core_Form $invoker
+     * @param core_ET $input
+     * @param core_Type $type
+     * @param array $options
      * @param string $name
-     * @param string|array|NULL $value
+     * @param string $value
      * @param array $attr
      */
-    function on_BeforeRenderInput(&$invoker, &$tpl, $name, $value, &$attr = array())
+    function on_BeforeCreateSmartSelect($invoker, $input, $type, $options, $name, $value, &$attr)
     {
         ht::setUniqId($attr);
     }
     
 
     /**
-     * Изпълнява се след рендирането на input
      * 
-     * @param type_Key $invoker
-     * @param core_ET $tpl
+     * 
+     * @param core_Form $invoker
+     * @param core_ET $input
+     * @param core_Type $type
+     * @param array $options
      * @param string $name
-     * @param string|array|NULL $value
+     * @param string $value
      * @param array $attr
      */
-    function on_AfterRenderInput(&$invoker, &$tpl, $name, $value, &$attr = array())
-    {   
+    function on_AfterCreateSmartSelect($invoker, $input, $type, $options, $name, $value, &$attr)
+    {
         // Ако все още няма id
         if (!$attr['id']) {
             $attr['id'] = str::getRand('aaaaaaaa');
         }
         
-        $minItems = $invoker->params['select2MinItems'] ? $invoker->params['select2MinItems'] : self::$minItems;
+        $minItems = $type->params['select2MinItems'] ? $type->params['select2MinItems'] : self::$minItems;
         
-        $optionsCnt = count($invoker->options);
+        $optionsCnt = count($options);
         
         // Ако опциите са под минималното - нищо не правим
         if ($optionsCnt <= $minItems) return;
@@ -69,17 +73,17 @@ class select2_PluginEnum extends core_Plugin
         if (Mode::is('javascript', 'no')) return;
         
         // Ако ще са радиобутони
-        if ($invoker->params['maxRadio'] && ($invoker->params['maxRadio'] >= $optionsCnt)) return ;
+        if ($type->params['maxRadio'] && ($type->params['maxRadio'] >= $optionsCnt)) return ;
         
         $select = ($attr['placeholder']) ? ($attr['placeholder']) : '';
         
-        if ($invoker->params['allowEmpty'] || isset($invoker->options['']) || isset($invoker->options[' '])) {
+        if ($attr['allowEmpty'] || $type->params['allowEmpty'] || isset($options['']) || isset($options[' '])) {
             $allowClear = true;
         } else {
             $allowClear = (self::$allowClear) ? (self::$allowClear) : false;
         }
         
         // Добавяме необходимите файлове и стартирам select2
-        select2_Adapter::appendAndRun($tpl, $attr['id'], $select, $allowClear);
-   }
+        select2_Adapter::appendAndRun($input, $attr['id'], $select, $allowClear);
+    }
 }

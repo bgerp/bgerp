@@ -1,8 +1,0 @@
-Друга възможност: `DOMPDF_LOG_OUTPUT_FILE` е дефиниран в наш клас и няма нужда от другите промени.
-(Всеки път след обновяване на версията на dompdf,
-трябва да се добави `define("DOMPDF_LOG_OUTPUT_FILE", DOMPDF_TEMP_DIR . "/log.htm");` в `dompdf_config.custom.inc.php`,
-или да се промени `def("DOMPDF_LOG_OUTPUT_FILE ...` на `def("DOMPDF_LOG_OUTPUT_FILE", DOMPDF_TEMP_DIR . "/log.htm");` в `dompdf_config.inc.php`,
-за да не се появи грешка: #Sig51 - "Грешка при опит за обновяване".) - Това отпада
-
-
-Проемние в debugger.php: `url: "<?php echo DOMPDF_TEMP_DIR . '/log.html';?>",` вместо `url: '../lib/fonts/log.htm',`

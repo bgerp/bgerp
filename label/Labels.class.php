@@ -362,6 +362,9 @@ class label_Labels extends core_Master
         $previewLabelData->Label->id = $data->rec->id;
         $previewLabelData->updateTempData = FALSE;
         
+        $previewLabelData->pageLayout = new stdClass();
+        $previewLabelData->pageLayout->columnsCnt = 1;
+        
         // Подгогвяме етикетите
         $mvc->prepareLabel($previewLabelData);
         

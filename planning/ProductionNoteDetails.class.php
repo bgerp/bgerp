@@ -109,7 +109,7 @@ class planning_ProductionNoteDetails extends deals_ManifactureDetail
         $this->FLD('jobId', 'key(mvc=planning_Jobs)', 'input=none,caption=Задание');
         $this->FLD('bomId', 'key(mvc=cat_Boms)', 'input=none,caption=Рецепта');
         
-        $this->FLD('selfValue', 'double', 'caption=С-ст,input=hidden');
+        $this->FLD('selfValue', 'double', 'caption=Ед. ст-ст,input=hidden');
         $this->FNC('amount', 'double', 'caption=Сума');
         
         $this->setDbUnique('noteId,productId,classId');
@@ -175,7 +175,7 @@ class planning_ProductionNoteDetails extends deals_ManifactureDetail
     		
     		// Ако трябва да показваме с-та, но не е попълнена сетваме грешка
     		if(empty($rec->selfValue) && $showSelfvalue === TRUE){
-    			$form->setError('selfValue', 'Непопълнено задължително поле|* <b>С-ст</b>');
+    			$form->setError('selfValue', 'Непопълнено задължително поле|* <b>Ед. ст-ст</b>');
     		}
     	}
     }

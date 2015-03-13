@@ -117,7 +117,7 @@ class acc_plg_DocumentSummary extends core_Plugin
         
         // Ако формата за търсене е изпратена
         if($filter = $data->listFilter->rec) {
-            
+        	
             // Филтрираме по потребители
             if($filter->users && $isDocument){
                 
@@ -132,8 +132,12 @@ class acc_plg_DocumentSummary extends core_Plugin
             
             if($filter->search){
                 plg_Search::applySearch($filter->search, $data->query);
+                
+                if(is_numeric($filter->search)){
+                	$data->query->where("#id = {$filter->search}", TRUE);
+                }
             }
-            
+           
             $dateRange = array();
             
             if ($filter->from) {

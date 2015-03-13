@@ -182,8 +182,16 @@ class doc_PdfCreator extends core_Manager
             // Вземаме всеки JQUERY код, който ще се добави
             $jsArr['JQUERY_CODE'] = $htmlET->getArray('JQUERY_CODE', FALSE);
             
-            // Стартираме конвертирането
-            $fileHnd = $PdfCreatorInst->convert($html, $name, self::PDF_BUCKET, $jsArr);
+            try {
+                // Стартираме конвертирането
+                $fileHnd = $PdfCreatorInst->convert($html, $name, self::PDF_BUCKET, $jsArr);
+            } catch (core_exception_Expect $e) {
+                
+                // Връщаме предишната стойност
+                Mode::pop('text');
+                
+                throw new $e($e->getMessage());
+            }
             
             // Връщаме предишната стойност
             Mode::pop('text');
@@ -232,53 +240,6 @@ class doc_PdfCreator extends core_Manager
      */
     static function on_AfterSetupMVC($mvc, &$res)
     {
-        // Вземаме конфига
-    	$conf = core_Packs::getConfig('doc');
-    	
-    	// Пакета, който ще се инсталира
-    	$setupPack = 'dompdf';
-    	
-    	// id на класа webkittopdf
-    	$wkClassId = core_Classes::getId('webkittopdf_Converter');
-    	
-    	// Ако няма запис в модела
-    	if (!$pdfGenerator = core_Packs::getConfigKey($conf, 'BGERP_PDF_GENERATOR')) {
-    	    
-    	    // Вземаме конфига
-    	    $confWebkit = core_Packs::getConfig('webkittopdf');
-    	    
-    	    // Изпълянваме процеса
-    	    exec(escapeshellarg($confWebkit->WEBKIT_TO_PDF_BIN), $dummy, $erroCode);
-    	    
-    	    // Ако я има инсталирана
-            if ($erroCode == 1 || $erroCode == 0) {
-                
-                // Да използваме webkittopdf
-    	        $data['BGERP_PDF_GENERATOR'] = $wkClassId;
-    	        
-    	        // Добавяме в записите
-                core_Packs::setConfig('doc', $data);
-                
-                // Пакета, който ще се инсталира да е webkittopdf
-                $setupPack = 'webkittopdf';
-                
-                // Добавяме съобщение
-                $res .= "<li style='color: green;'>" . "По подразбиране ще се използва 'webkittopdf' за конвертиране в PDF" . "</li>";
-            }
-    	} else {
-    	    
-    	    // Ако е избран webkittopdf
-    	    if ($pdfGenerator == $wkClassId) {
-    	        
-    	        // Да се инсталира webkittopdf
-    	        $setupPack = 'webkittopdf';
-    	    }
-    	}
-    	
-    	// Инсталираме пакета
-        $Packs = cls::get('core_Packs');
-        $res .= $Packs->setupPack($setupPack);
-    	
         //Създаваме, кофа, където ще държим всички генерирани PDF файлове
         $Bucket = cls::get('fileman_Buckets');
         $res .= $Bucket->createBucket(self::PDF_BUCKET, 'PDF-и на документи', NULL, '104857600', 'user', 'user');

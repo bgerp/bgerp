@@ -51,7 +51,7 @@ class planning_Jobs extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, doc_DocumentPlg, planning_Wrapper, doc_ActivatePlg, plg_Search, doc_SharablePlg';
+    public $loadList = 'plg_RowTools, doc_DocumentPlg, planning_Wrapper, doc_ActivatePlg, acc_plg_DocumentSummary, plg_Search, doc_SharablePlg';
     
     
     /**
@@ -99,7 +99,7 @@ class planning_Jobs extends core_Master
 	/**
 	 * Полета за търсене
 	 */
-	public $searchFields = 'folderId, productId, notes';
+	public $searchFields = 'folderId, productId, notes, saleId, deliveryPlace, storeId';
 	
 	
 	/**
@@ -126,25 +126,33 @@ class planning_Jobs extends core_Master
     public $singleLayoutFile = 'planning/tpl/SingleLayoutJob.shtml';
     
     
+    /**
+     * Поле за дата по което ще филтрираме
+     */
+    public $filterDateField = 'dueDate';
+    
+    
 	/**
      * Описание на модела (таблицата)
      */
     function description()
     {
+    	$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'silent,mandatory,caption=Артикул');
     	$this->FLD('dueDate', 'date(smartTime)', 'caption=Падеж,mandatory');
     	$this->FLD('quantity', 'double(decimals=2)', 'caption=Количество,mandatory,silent');
     	$this->FLD('notes', 'richtext(rows=3)', 'caption=Забележки');
-    	$this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Доставка->Условие');
-    	$this->FLD('deliveryDate', 'date(smartTime)', 'caption=Доставка->Срок');
-    	$this->FLD('deliveryPlace', 'key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Доставка->Място');
+    	$this->FLD('tolerance', 'percent', 'caption=Толеранс');
+    	$this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Данни от договора->Условие');
+    	$this->FLD('deliveryDate', 'date(smartTime)', 'caption=Данни от договора->Срок');
+    	$this->FLD('deliveryPlace', 'key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Данни от договора->Място');
+    	$this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Данни от договора->Склад');
+    	
     	$this->FLD('weight', 'cat_type_Weight', 'caption=Тегло,input=none');
     	$this->FLD('brutoWeight', 'cat_type_Weight', 'caption=Бруто,input=none');
     	$this->FLD('state',
     			'enum(draft=Чернова, active=Активирано, rejected=Отказано, closed=Затворено)',
     			'caption=Статус, input=none'
     	);
-    	
-    	$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden,silent,mandatory');
     	$this->FLD('saleId', 'key(mvc=sales_Sales)', 'input=hidden,silent');
     	
     	$this->FLD('sharedUsers', 'userList(roles=planning|ceo)', 'caption=Споделяне->Потребители,mandatory');
@@ -162,15 +170,40 @@ class planning_Jobs extends core_Master
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
-    	$form->info = tr("Към артикул") . ": <b>" . cat_Products::getHyperLink($form->rec->productId) . "</b><br>";
+    	$form->setReadOnly('productId');
+    	$pInfo = cat_Products::getProductInfo($form->rec->productId);
+    	$uomName = cat_UoM::getShortName($pInfo->productRec->measureId);
+    	
+    	$form->setField('quantity', "unit={$uomName}");
     	
     	if($form->rec->saleId){
-    		$form->info .= tr("От") . ": <b>" . sales_Sales::getHyperlink($form->rec->saleId) . "</b>";
     		$saleRec = sales_Sales::fetch($form->rec->saleId);
+    		
     		$form->setDefault('deliveryTermId', $saleRec->deliveryTermId);
     		$form->setDefault('deliveryDate', $saleRec->deliveryTime);
     		$form->setDefault('deliveryPlace', $saleRec->deliveryLocationId);
+    		$form->setDefault('storeId', $saleRec->shipmentStoreId);
+    		$caption = "|Данни от |* <b>" . sales_Sales::getRecTitle($form->rec->saleId) . "</b>";
+    		
+    		$form->setField('deliveryTermId', "caption={$caption}->Условие");
+    		$form->setField('deliveryDate', "caption={$caption}->Срок");
+    		$form->setField('deliveryPlace', "caption={$caption}->Място");
+    		$form->setField('storeId', "caption={$caption}->Склад");
+    	} else {
+    		$form->setField('deliveryTermId', 'input=none');
+    		$form->setField('deliveryDate', 'input=none');
+    		$form->setField('deliveryPlace', 'input=none');
+    		$form->setField('storeId', 'input=none');
     	}
+    }
+    
+    
+    /**
+     * След подготовка на сингъла
+     */
+    public static function on_AfterRenderSingle($mvc, &$tpl, &$data)
+    {
+    	$tpl->push('planning/tpl/styles.css', "CSS");
     }
     
     
@@ -186,7 +219,6 @@ class planning_Jobs extends core_Master
     		$rec = &$form->rec;
     		
     		$weight = cls::get('cat_Products')->getWeight($rec->productId);
-    		
     		$rec->brutoWeight = $weight * $rec->quantity;
     	}
     }
@@ -195,7 +227,7 @@ class planning_Jobs extends core_Master
     /**
      *  Подготовка на филтър формата
      */
-    protected static function on_AfterPrepareListFilter($mvc, $data)
+    protected static function on_AfterPrepareListFilter1($mvc, $data)
     {
     	$data->listFilter->view = 'horizontal';
     	$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
@@ -222,6 +254,10 @@ class planning_Jobs extends core_Master
     	
     	if($fields['-single']){
     
+    		if($rec->storeId){
+    			$row->storeId = store_Stores::getHyperLink($rec->storeId, TRUE);
+    		}
+    		
     		$pInfo = cat_Products::getProductInfo($rec->productId);
     		$row->quantity .= " " . cat_UoM::getShortName($pInfo->productRec->measureId);
     		$row->origin = cls::get('cat_Products')->renderJobView($rec->productId, $rec->modifiedOn);
@@ -273,26 +309,39 @@ class planning_Jobs extends core_Master
      */
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
-    	if(($action == 'write' || $action == 'add') && isset($rec)){
-    	
-    		// Може да се добавя само ако има ориджин
-    		if(empty($rec->productId)){
-    			$res = 'no_one';
-    		} else {
-    			$productRec = cat_Products::fetch($rec->productId);
-    			
-    			// Трябва да е активиран
-    			if($productRec->state != 'active'){
+    	if($action == 'write' || $action == 'add' || $action == 'edit'){
+    		
+    		if(isset($rec)){
+    			// Може да се добавя само ако има ориджин
+    			if(empty($rec->productId)){
     				$res = 'no_one';
+    			} else {
+    				$productRec = cat_Products::fetch($rec->productId);
+    				 
+    				// Трябва да е активиран
+    				if($productRec->state != 'active'){
+    					$res = 'no_one';
+    				}
+    				 
+    				// Трябва и да е производим
+    				if($res != 'no_one'){
+    					 
+    					if($productRec->canManifacture == 'no'){
+    						$res = 'no_one';
+    					}
+    				}
     			}
     			
-    			// Трябва и да е производим
-    			if($res != 'no_one'){
-    			
-    				if($productRec->canManifacture == 'no'){
+    			// Ако се създава към оферта, тя трябва да е активна
+    			if(!empty($rec->saleId)){
+    				if(sales_Sales::fetchField($rec->saleId, "state") != 'active'){
     					$res = 'no_one';
     				}
     			}
+    		}
+    			
+    		if($action == 'add' && empty($rec)){
+	    		$res = 'no_one';
     		}
     	}
     	 

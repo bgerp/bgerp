@@ -1032,7 +1032,6 @@ td.portal-date {
 }
 /*край на стилове при тредове*/
 
-
 /*стилове за документи*/
 .document {
 	width: 100%;
@@ -1295,6 +1294,13 @@ pre.document {
 	font-family: "Courier New";
 	font-size: 1em; 
 	font-weight: bold;
+}
+
+.quiet-small {
+    color: #999;
+    font-size: 0.9em;
+    margin-bottom: -2px;
+    margin-top: 3px;
 }
 
 .cell {
@@ -4326,6 +4332,14 @@ body.narrow {
 	}
 }
 
+.debug_block {
+    padding:5px; 
+    margin:10px; 
+    border:solid 1px #777; 
+    background-color:#FFFF99; 
+    display:table;
+    color:black;
+}
 .cd-l1{
     color: green;
 }

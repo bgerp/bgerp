@@ -193,7 +193,7 @@ class cat_Products extends core_Embedder {
 	 * 
 	 * @var string
 	 */
-	public $recTitleTpl = '[#name#]<!--ET_BEGIN code--> ( [#code#] )<!--ET_END code-->';
+	public $recTitleTpl = '[#name#]<!--ET_BEGIN code--> ([#code#])<!--ET_END code-->';
     
     
 	/**
@@ -231,7 +231,8 @@ class cat_Products extends core_Embedder {
         $this->FLD('measureId', 'key(mvc=cat_UoM, select=name,allowEmpty)', 'caption=Мярка,mandatory,remember,notSorting,input=none,formOrder=4');
         $this->FLD('photo', 'fileman_FileType(bucket=pictures)', 'caption=Фото,input=none,formOrder=4');
         $this->FLD('groups', 'keylist(mvc=cat_Groups, select=name, makeLinks)', 'caption=Маркери,maxColumns=2,remember,formOrder=100');
-        $this->FLD("isPublic", 'enum(no=Частен,yes=Публичен)', 'input=none,formOrder=100000002,caption=Показване за избор в документи->Достъп');
+        $this->FLD("isPublic", 'enum(no=Частен,yes=Публичен)', 'input=none,formOrder=100000002');
+        $this->FLD("detailedDescriptionIn", 'set(sales_Quotations=Оферта,sales_Sales=Продажба,store_ShipmentOrders=Експедиционно нареждания,sales_Services=Предавателен протокол)', 'formOrder=100000002,caption=Показване на детайлите за продукта->Документи');
         
         // Разбивки на свойствата за по-бързо индексиране и търсене
         $this->FLD('canSell', 'enum(yes=Да,no=Не)', 'input=none');
@@ -273,18 +274,19 @@ class cat_Products extends core_Embedder {
     	
     	if(isset($form->rec->folderId)){
     		$cover = doc_Folders::getCover($form->rec->folderId);
+    		
+    		// Ако е избран драйвер слагаме задъжителните мета данни според корицата и драйвера
+    		if(isset($form->rec->innerClass)){
+    			$defMetas = $cover->getDefaultMeta();
+    			$Driver = $mvc->getDriver($form->rec);
+    			$defMetas = $Driver->getDefaultMetas($defMetas);
+    				
+    			$form->setDefault('meta', $form->getFieldType('meta')->fromVerbal($defMetas));
+    		}
+    		
     		if(!$cover->haveInterface('doc_ContragentDataIntf')){
     			$form->setField('code', 'mandatory');
     			
-    			// Ако е избран драйвер слагаме задъжителните мета данни според корицата и драйвера
-				if(isset($form->rec->innerClass)){
-					$defMetas = $cover->getDefaultMeta();
-					$Driver = $mvc->getDriver($form->rec);
-					$defMetas = $Driver->getDefaultMetas($defMetas);
-					
-					$form->setDefault('meta', $form->getFieldType('meta')->fromVerbal($defMetas));
-				}
-				
 				if($code = Mode::get('catLastProductCode')) {
 					if ($newCode = str::increment($code)) {
 						 
@@ -294,6 +296,8 @@ class cat_Products extends core_Embedder {
 						}
 					}
 				}
+    		} else {
+    			$form->setDefault('detailedDescriptionIn', 'sales_Quotations,sales_Sales');
     		}
     	}
     }
@@ -1110,10 +1114,9 @@ class cat_Products extends core_Embedder {
     {
     	$rec = $this->fetchRec($id);
     	
-    	if($documentMvc instanceof deals_DealMaster || $documentMvc instanceof planning_Jobs || $documentMvc instanceof sales_Quotations){
-    		if($rec->isPublic == 'no' || ($documentMvc instanceof planning_Jobs)){
-    			$res = cat_ProductTplCache::cacheTpl($id, $time);
-    		}
+    	$showDetailedIn = type_Set::toArray($rec->detailedDescriptionIn);
+    	if(isset($showDetailedIn[$documentMvc->className]) || $documentMvc instanceof planning_Jobs){
+    		$res = cat_ProductTplCache::cacheTpl($id, $time);
     	}
     	
     	if(!isset($res)){
@@ -1420,4 +1423,30 @@ class cat_Products extends core_Embedder {
     	// За артикула, това е цената по себестойност
     	return $this->getSelfValue($id);
     }
+    
+    
+    /*public static function getRecTitle($rec, $escaped = true)
+    {
+    	if(empty($rec->code)){
+    		$me = cls::get(get_called_class());
+    		if($rec->canSell == 'yes'){
+    			$sQuery = sales_SalesDetails::getQuery();
+    			$sQuery->EXT('accountNum', 'acc_Accounts', 'externalName=num,externalKey=accountId', 'caption=Сметка->№');
+    			$docId = sales_SalesDetails::fetchField("#classId = {$me->getClassId()} AND #productId = {$rec->id}", 'saleId');
+    		}
+    		
+    		if(!$docId){
+    			if($rec->canBuy == 'yes'){
+    				$docId = purchase_PurchasesDetails::fetchField("#classId = {$me::getClassId()} AND #productId = {$rec->id}", 'purchaseId');
+    			}
+    		}
+    		
+    		$rec->code = tr("Дог") . ". #{$docId}";
+    	}
+    	
+    	$tpl = new ET($me->recTitleTpl);
+    	$tpl->placeObject($rec);
+    	
+    	return $tpl->getContent();
+    }*/
 }

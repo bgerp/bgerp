@@ -1153,6 +1153,12 @@ pre.document {
   font-size: 1em;
   font-weight: bold; }
 
+.quiet-small {
+  color: #999999;
+  font-size: 0.9em;
+  margin-bottom: -2px;
+  margin-top: 3px; }
+
 .cell {
   border: 1px solid #999999; }
 
@@ -4004,6 +4010,14 @@ only screen and (max-width: 320px) {
   .preview-label > div {
     width: auto !important;
     height: auto !important; }
+
+.debug_block {
+  padding: 5px;
+  margin: 10px;
+  border: solid 1px #777777;
+  background-color: #ffff99;
+  display: table;
+  color: black; }
 
 .cd-l1 {
   color: green; }

@@ -257,8 +257,6 @@ class sales_QuotationsDetails extends doc_Detail {
     			if($sameProduct->id != $rec->id){
     				$form->setError('quantity', 'Избрания продукт вече фигурира с това количество');
     			}
-    			
-    			return;
     		}
     		
 	    	$ProductMan = cls::get($rec->classId);
@@ -283,7 +281,7 @@ class sales_QuotationsDetails extends doc_Detail {
 	    		$rec->price = $price->price;
 	    		
 	    		if($price->discount){
-	    			$rec->discount = $price->discount;
+	    			$rec->discount = abs($price->discount);
 	    		}
 	    	}
 	    	

@@ -401,25 +401,25 @@ class email_Outgoings extends core_Master
             // Генериране на прикачените документи
             $rec->documentsFh = array();
             
-            foreach ($docsArr as $attachDoc) {
-                // Използваме интерфейсен метод doc_DocumentIntf::convertTo за да генерираме
-                // файл със съдържанието на документа в желания формат
-                $fhArr = $attachDoc['doc']->convertTo($attachDoc['ext'], $attachDoc['fileName']);
-                
-                $rec->documentsFh += $fhArr;
-            }
-            
-            // .. ако имаме прикачени документи ...
-            if (count($rec->documentsFh)) {
-                
-                //Вземаме id'тата на файловете вместо манипулаторите
-                $documents = fileman_Files::getIdFromFh($rec->documentsFh);
-                
-                //Записваме прикачените файлове
-                $rec->documents = keylist::fromArray($documents);
-            }
-            
             try {
+                foreach ($docsArr as $attachDoc) {
+                    // Използваме интерфейсен метод doc_DocumentIntf::convertTo за да генерираме
+                    // файл със съдържанието на документа в желания формат
+                    $fhArr = $attachDoc['doc']->convertTo($attachDoc['ext'], $attachDoc['fileName']);
+                    
+                    $rec->documentsFh += $fhArr;
+                }
+                
+                // .. ако имаме прикачени документи ...
+                if (count($rec->documentsFh)) {
+                    
+                    //Вземаме id'тата на файловете вместо манипулаторите
+                    $documents = fileman_Files::getIdFromFh($rec->documentsFh);
+                    
+                    //Записваме прикачените файлове
+                    $rec->documents = keylist::fromArray($documents);
+                }
+            
                 // ... и накрая - изпращане.
                 $status = email_Sent::sendOne(
                     $options->boxFrom,
