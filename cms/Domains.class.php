@@ -135,7 +135,7 @@ class cms_Domains extends core_Embedder
         $this->FLD('domain', 'varchar(64)', 'caption=Домейн,mandatory');
         
         // Език
-        $this->FLD('lang', 'enum(bg,en)', 'caption=Език');
+        $this->FLD('lang', 'varchar(2)', 'caption=Език');
         
         // Споделяне
         $this->FLD('shared', 'userList(roles=cms|admin|ceo)', 'caption=Споделяне');
@@ -177,18 +177,27 @@ class cms_Domains extends core_Embedder
         }
         
         $domainRec = Mode::get(self::CMS_CURRENT_DOMAIN_REC);
-
-        if(!isset($domainRec) || $domainRec->lg != $lg || $domainRec->realDomain != $domain) {
+ 
+        if(!isset($domainRec) || $domainRec->lg != $lg || $domainRec->realDomain != $domain) { 
             // Намираме $rec-а на текущия домейн
             $domainRec = self::fetch(array("#domain = '[#1#]' AND #lang = '{$lg}'", $domain));
             if(!$domainRec) {
                 $domainRec = self::fetch(array("#domain = '[#1#]' AND #lang = '{$lg}'", $altDomain));
             }
             if(!$domainRec) {
+                $domainRec = self::fetch(array("#domain = '[#1#]'", $domain));
+            }
+            if(!$domainRec) {
+                $domainRec = self::fetch(array("#domain = '[#1#]'", $altDomain));
+            }
+            if(!$domainRec) {
+                $domainRec = self::fetch("#domain = 'localhost' AND #lang = '{$lg}'");
+            }
+            if(!$domainRec) {
                 $domainRec = self::fetch("#domain = 'localhost'");
             }
-            
-            // Подсигуряваме масива с езици за външната част
+         
+           // Подсигуряваме масива с езици за външната част
             if(!isset($cmsLangs)) {
                 $cmsLangs = self::getCmsLangs($domain, $altDomain);
             }
@@ -197,8 +206,9 @@ class cms_Domains extends core_Embedder
             $domainRec->cmsLangs   = $cmsLangs;
 
             Mode::setPermanent(self::CMS_CURRENT_DOMAIN_REC, $domainRec);
+            Mode::setPermanent(self::CMS_CURRENT_LANG, $domainRec->lang);
         }
-
+ 
         if($part) {
  
             return $domainRec->{$part};
@@ -374,6 +384,21 @@ class cms_Domains extends core_Embedder
     
     	$Driver->invoke('AfterRestore', array(&$rec->data, &$rec));
     }
+
+
+    /**
+     * Подготвя формата
+     * - Прави списъка с езиците
+     */
+    public static function on_AfterPrepareeditform($mvc, &$data)
+    {
+        $langQuery = drdata_Languages::getQuery();
+        $langOpt = array();
+        while($lRec = $langQuery->fetch()) {
+            $langOpt[$lRec->code] = $lRec->languageName;
+        }
+        $data->form->setOptions('lang', $langOpt);
+    }
     
     
     /**
@@ -398,6 +423,11 @@ class cms_Domains extends core_Embedder
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
+        if($action == 'delete') {
+            if(isset($rec) && isset($rec->id) && cms_Content::fetch("#domainId = {$rec->id}")) {
+                $requiredRoles = 'no_one';
+            }
+        }
     }
 
 

@@ -592,7 +592,7 @@ class blogm_Articles extends core_Master {
             // Добавка, ако няма избрана категория, резултатите да се филтрират само по категориите, които са от текущия език
             $categories = blogm_Categories::getCategoriesByLang();
             if(!is_array($categories) || !count($categories)) {
-                $categories = array('-1' => 'Няма категории на съответния език');
+                $categories = array('99999999' => 'Няма категории на съответния език');
             }
             $data->query->likeKeylist('categories', keylist::fromArray($categories));
         }
@@ -810,7 +810,7 @@ class blogm_Articles extends core_Master {
         // Филтриране по категориите на съответния език
         $categories = blogm_Categories::getCategoriesByLang();
         if(!is_array($categories) || !count($categories)) {
-            $categories = array('-1' => 'Няма категории на съответния език');
+            $categories = array('99999999' => 'Няма категории на съответния език');
         }
         $query->likeKeylist('categories', keylist::fromArray($categories));
 

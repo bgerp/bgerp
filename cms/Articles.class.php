@@ -171,7 +171,7 @@ class cms_Articles extends core_Master
             $lang = cms_Content::fetchField($menuId, 'lang');
         }
         
-        $data->form->setOptions('menuId', array('' => '') + cms_Content::getMenuOpt($mvc));
+        $data->form->setOptions('menuId', arr::combine( array('' => ''), cms_Content::getMenuOpt($mvc)));
     }
 
 

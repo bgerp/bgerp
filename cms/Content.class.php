@@ -357,9 +357,10 @@ class cms_Content extends core_Manager
         
         $query->orderBy('#order');
 
-        $domainId = cms_Domains::getCmsDomain()->id;
+        $data->domainId = cms_Domains::getCmsDomain('id');
+        $data->domain   = cms_Domains::getCmsDomain('domain');
 
-        $data->items = $query->fetchAll("#state = 'active' && #domainId = {$domainId}");
+        $data->items = $query->fetchAll("#state = 'active' AND #domainId = {$data->domainId}");  
         
     }
 
@@ -377,7 +378,6 @@ class cms_Content extends core_Manager
             Mode::set('cMenuId', $cMenuId);
         }
         
-
         if (is_array($data->items)) {
             foreach($data->items as $rec) {
                 
@@ -401,7 +401,7 @@ class cms_Content extends core_Manager
         }
         
         // Ако имаме действащи менюта на повече от един език, показваме бутон за избор на езика
-        $usedLangsArr = self::getUsedLangsArr();
+        $usedLangsArr = cms_Domains::getCmsDomain('cmsLangs');
         
         if(count($usedLangsArr) == 2) {
 
@@ -440,7 +440,7 @@ class cms_Content extends core_Manager
     /**
      * Връща URL към съдържанието, което отговаря на този запис
      */
-    function getContentUrl($rec) 
+    function getContentUrl($rec, $absolute = FALSE) 
     {
         if($rec->source) {
             $source = cls::get($rec->source);
@@ -449,7 +449,12 @@ class cms_Content extends core_Manager
             $url = arr::make($rec->url);
         } else {
             // expect(FALSE);
-            $url = '';
+            $url = '#';
+        }
+        
+        if($absolute && is_array($url)) {
+            $domain = cms_Domains::fetch($rec->domainId)->domain;
+            $url = Url::change(toUrl($url, 'absolute'), NULL, $domain);
         }
 
         return $url;
@@ -488,7 +493,7 @@ class cms_Content extends core_Manager
             $workUrl = $Source->getWorkshopUrl($rec->id);
             $row->source = ht::createLink($row->source, $workUrl); 
         }
-        $publicUrl = $mvc->getContentUrl($rec);
+        $publicUrl = $mvc->getContentUrl($rec, TRUE);
         $row->menu = ht::createLink($row->menu, $publicUrl, FALSE, 'ef_icon=img/16/monitor.png'); 
     }
 
