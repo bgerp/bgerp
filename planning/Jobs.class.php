@@ -339,6 +339,10 @@ class planning_Jobs extends core_Master
     				}
     			}
     		}
+    			
+    		if($action == 'add' && empty($rec)){
+	    		$res = 'no_one';
+    		}
     	}
     	 
     	if(($action == 'activate' || $action == 'restore' || $action == 'conto' || $action == 'write' || $action == 'add') && isset($rec->productId) && $res != 'no_one'){
