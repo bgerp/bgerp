@@ -226,7 +226,7 @@ class type_Keylist extends core_Type {
                     $cb->append("<label {$title} data-colsInRow='" .$col   . "' for=\"" . $attrCB['id'] . "\">{$v}</label>");
                     
                     if($i == 0 && $j>0) {
-                        $html .= "\n<tr class='row-" .$j . "'>";
+                        $html .= "\n<tr class='row-" . $j . "'>";
                         $trOpen = TRUE;
                     }
                     $html .= "\n    <td>" . $cb->getContent() . "</td>";
@@ -241,11 +241,11 @@ class type_Keylist extends core_Type {
                 }
  
             }  
-            if ($groupOpen){
-                while($i < $col) {
+                while($i && $i < $col) {
                     $html .= "<td></td>";
                     $i++;
                 }
+            if ($groupOpen){  
             	$html .= "</tr></table></td>";
             } 
         } else {
