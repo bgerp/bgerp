@@ -127,6 +127,6 @@ class select2_Adapter
         
         jquery_Jquery::run($tpl, $select2Str, TRUE);
         
-        $tpl->push(('select2/js/js.js'), 'JS');
+        $tpl->push(('select2/adapter/js.js'), 'JS');
     }
 }
