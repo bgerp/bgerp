@@ -148,18 +148,6 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	
 	
 	/**
-	 * Връща стойността на продукта отговаряща на параметъра
-	 * 
-	 * @param string $sysId - систем ид на параметър (@see cat_Params)
-	 * @return mixed - стойността на параметъра за продукта
-	 */
-	public function getParamValue($sysId)
-	{
-		return cat_products_Params::fetchParamValue($this->EmbedderRec->rec()->id, $this->EmbedderRec->getClassId(), $sysId);
-	}
-	
-	
-	/**
 	 * Кои опаковки поддържа продукта
 	 */
 	public function getPacks()
@@ -264,6 +252,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		$embedderClassId = $this->EmbedderRec->getClassId();
 		
 		foreach (array('weight', 'width', 'volume', 'thickness', 'length', 'height', 'tolerance', 'transportWeight', 'transportVolume', 'term') as $p){
+			
 			$res[$p] = cat_products_Params::fetchParamValue($embedderRec, $embedderClassId, $p);
 		}
 		
