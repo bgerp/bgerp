@@ -364,11 +364,12 @@ class doc_Containers extends core_Manager
         
         $fields = 'state,folderId,threadId,containerId,originId';
         
-        $docRec = $docMvc->fetch($rec->docId, $fields);
+        $docRec = $docMvc->fetch($rec->docId);
         
-        if ($docRec->searchKeywords = $docMvc->getSearchKeywords($docRec->id)) {
+        if ($docRec->searchKeywords = $docMvc->getSearchKeywords($docRec)) {
             $fields .= ',searchKeywords';
         }
+        
         $updateField = NULL;
         $fieldsArr = arr::make($fields);
         foreach($fieldsArr as $field) {
@@ -382,7 +383,7 @@ class doc_Containers extends core_Manager
                 $mustSave = TRUE;
             }
         }
-
+        
         // Дали документа се активира в момента, и кой го активира
         if(empty($rec->activatedBy) && $rec->state != 'draft' && $rec->state != 'rejected') {
             
@@ -397,6 +398,7 @@ class doc_Containers extends core_Manager
         }
         
         if($mustSave) {
+            //bp($rec, $updateField);
             doc_Containers::save($rec, $updateField);
 
             // Ако този документ носи споделяния на нишката, добавяме ги в списъка с отношения
