@@ -19,7 +19,7 @@
             </p>
             <!--ET_BEGIN reff-->
             <p class='title-info'>
-                |Реф|*. : &nbsp;<b><span id='reff'>[#reff#]</span></b>
+                |Ваш реф. №|*: &nbsp;<b><span id='reff'>[#reff#]</span></b>
             </p>
             <!--ET_END reff-->
         </div>

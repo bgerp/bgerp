@@ -15,16 +15,13 @@
                     <td class="cell custom-header-bg" style='width:35%;'><b>|Получател|*</b></td>
                     <td class="cellm centered" rowspan="2" style='width:30%;'>
                         <div class='invoiceTitle' style='font-size:1.2em;margin-bottom:5px'><b>|ОФЕРТА|* </b></div>
-                        <div class='quiet-small'>|Номер|*</div>
-                        <div class="bigData">[#number#]</div>
-                        <div class='quiet-small'>|Дата|*</div>
-                        <div class="bigData">[#date#]</div>
+                        <div class="bigData">№[#number#] / [#date#]</div>
                         <!--ET_BEGIN place-->
                         <div class='quiet-small'>|Място|*</div>
                         <div class="bigData">[#place#]</div>
                         <!--ET_END place-->
                         <!--ET_BEGIN reff-->
-                        <div class='quiet-small'>|Ваш реф|*.</div>
+                        <div class='quiet-small'>|Ваш реф. №|*</div>
                         <div class="bigData">[#reff#]</div>
                         <!--ET_END reff-->
                     </td>
