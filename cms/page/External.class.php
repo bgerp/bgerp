@@ -50,6 +50,9 @@ class cms_page_External extends core_page_Active {
         }
         
         $this->push('cms/css/Wide.css', 'CSS');
+
+        $skin = cms_Domains::getCmsSkin();
+
         $this->push('css/default-theme.css', 'CSS');
 
         $this->push('js/overthrow-detect.js', 'JS');
@@ -70,6 +73,7 @@ class cms_page_External extends core_page_Active {
         }
         $this->replace(new ET($pageTpl), 'PAGE_CONTENT');
         
+        $skin->prepareWrapper($this);
         $this->replace($this->getHeaderImg(), 'HEADER_IMG');
 
         // ако нямаме частен пакет или в него няма специфична картинка, показваме името на приложението

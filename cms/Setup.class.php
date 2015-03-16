@@ -174,7 +174,20 @@ class cms_Setup extends core_ProtoSetup
     {
         $query = cms_Content::getQuery();
         $enDomain = cms_Domains::fetch("#domain = 'localhost' AND #lang = 'en'")->id;
-        $bgDomain = cms_Domains::fetch("#domain = 'localhost' AND #lang = 'en'")->id;
+        if(!$enDomain) {
+            core_Classes::add('cms_DefaultTheme');
+            $dRec = (object) array('domain' => 'localhost', 'theme' => core_Classes::getId('cms_DefaultTheme'), 'lang' => 'en');
+            self::save($dRec);
+            $enDomain = $dRec->id;
+        }
+        
+        $bgDomain = cms_Domains::fetch("#domain = 'localhost' AND #lang = 'bg'")->id;
+        if(!$bgDomain) {
+            core_Classes::add('cms_DefaultTheme');
+            $dRec = (object) array('domain' => 'localhost', 'theme' => core_Classes::getId('cms_DefaultTheme'), 'lang' => 'bg');
+            self::save($dRec);
+            $bgDomain = $dRec->id;
+        }
         $max = 1;
         while($rec = $query->fetch()) {
             if(!$rec->level) {
@@ -189,12 +202,6 @@ class cms_Setup extends core_ProtoSetup
             $max = max($rec->level, $max);
             if(!$rec->domainId) {
                 if(mb_strlen($m) == strlen($m)) {
-                    if(!$enDomain) {
-                        core_Classes::add('cms_DefaultTheme');
-                        $dRec = (object) array('domain' => 'localhost', 'theme' => core_Classes::getId('cms_DefaultTheme'), 'lang' => 'en');
-                        self::save($dRec);
-                        $enDomain = $dRec->id;
-                    }
                     $rec->domainId = $enDomain;
                     
                 } else {

@@ -201,10 +201,10 @@ class cms_Feeds extends core_Manager {
 		$data->action = 'feeds';
 		$data->query = $this->getQuery();
 		
-		// Подготвяме хранилките
+		// Подготвяме данните за RSS хранилките
 		$this->prepareFeeds($data);
 		
-		// Рендираме екшъна
+		// Рендираме списък на RSS хранилките
 		$layout = $this->renderFeeds($data);
 		
 		// Поставяме обвивката за външен достъп

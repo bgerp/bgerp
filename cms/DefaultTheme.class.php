@@ -34,11 +34,17 @@ class cms_DefaultTheme extends core_ProtoInner {
         $form->FLD('nImg3', 'fileman_FileType(bucket=gallery_Pictures)', "caption=Малки заглавни картинки (360x104px)->Изображение 3");
         $form->FLD('nImg4', 'fileman_FileType(bucket=gallery_Pictures)', "caption=Малки заглавни картинки (360x104px)->Изображение 4");
         $form->FLD('nImg5', 'fileman_FileType(bucket=gallery_Pictures)', "caption=Малки заглавни картинки (360x104px)->Изображение 5");
+        $form->FLD('title', 'varchar(20)', "caption=Заглавие на сайта->Текст");
+        $form->FLD('titleColor', 'color_Type', "caption=Заглавие на сайта->Цвят");
+
     }
 
     
-    public function renderEmbeddedData($data)
+    public function prepareWrapper($tpl)
     {
+        if($this->formRec->title) {
+            $tpl->replace("<span style='color:{$this->formRec->titleColor}'>" . $this->formRec->title . "</span>", 'CORE_APP_NAME');
+        }
     }
 
     function getHeaderImagePath()

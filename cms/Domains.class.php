@@ -125,7 +125,13 @@ class cms_Domains extends core_Embedder
      */
     public $innerStateField = 'state';
     
+
+    /**
+     * Текущият публичен домейн
+     */
+    static $publicDomainRec;
     
+
     /**
      * Описание на модела
      */
@@ -154,61 +160,67 @@ class cms_Domains extends core_Embedder
 
 
     /**
-     * Връща id към текущия домейн
+     * Вземаме всички публични домейни
      */
-    public static function getCmsDomain($part = NULL)
+    public static function findPublicDomainRecs()
     {
         // Вземаме домейна от текущото URL
-        $domain = strtolower($_SERVER['SERVER_NAME']);
+        $domain = strtolower(trim($_SERVER['SERVER_NAME']));
+
+        // Най-добре е да имаме запис за точно този домейн
+        $query = self::getQuery();
+        $domainRecs = $query->fetchAll(array("#domain = '[#1#]'", $domain));
         
-        // Намираме и алтернативния домейн
-        if(strpos($domain, 'www.') !== 0) {
-            $altDomain = 'www.' . $domain;
-        } else {
-            $altDomain = 'www.' . $domain;
-        }
-    
-        // Определяме езика
-        $lg = Mode::get(self::CMS_CURRENT_LANG);
-        if(!$lg) {
-            $cmsLangs = self::getCmsLangs($domain, $altDomain);
-            $lg = self::detectLang($cmsLangs);
-            Mode::setPermanent(self::CMS_CURRENT_LANG, $lg);
+        if(!$domainRecs || count($domains) == 0) {
+             
+            // Намираме и алтернативния домейн
+            if(strpos($domain, 'www.') === 0) {
+                $altDomain = substr($domain, 4);
+            } else {
+                $altDomain = 'www.' . $domain;
+            }
+
+            $query = self::getQuery();
+            $domainRecs = $query->fetchAll(array("#domain = '[#1#]'", $altDomain));
         }
         
+        if(!$domains || count($domains) == 0) {
+            $query = self::getQuery();
+            $domainRecs = $query->fetchAll(array("#domain = '[#1#]'", 'localhost'));
+        }
+        
+        return $domainRecs;
+    }
+
+
+    /**
+     * Връща id към текущия домейн
+     */
+    public static function getPublicDomain($part = NULL, $lang = NULL)
+    {   
         $domainRec = Mode::get(self::CMS_CURRENT_DOMAIN_REC);
- 
-        if(!isset($domainRec) || $domainRec->lg != $lg || $domainRec->realDomain != $domain) { 
-            // Намираме $rec-а на текущия домейн
-            $domainRec = self::fetch(array("#domain = '[#1#]' AND #lang = '{$lg}'", $domain));
-            if(!$domainRec) {
-                $domainRec = self::fetch(array("#domain = '[#1#]' AND #lang = '{$lg}'", $altDomain));
-            }
-            if(!$domainRec) {
-                $domainRec = self::fetch(array("#domain = '[#1#]'", $domain));
-            }
-            if(!$domainRec) {
-                $domainRec = self::fetch(array("#domain = '[#1#]'", $altDomain));
-            }
-            if(!$domainRec) {
-                $domainRec = self::fetch("#domain = 'localhost' AND #lang = '{$lg}'");
-            }
-            if(!$domainRec) {
-                $domainRec = self::fetch("#domain = 'localhost'");
-            }
-         
-           // Подсигуряваме масива с езици за външната част
-            if(!isset($cmsLangs)) {
-                $cmsLangs = self::getCmsLangs($domain, $altDomain);
+
+        if(!$domainRec || (isset($lang) && $domainRec->lang != $lang)) {
+            
+            $domainRecs = self::findPublicDomainRecs();
+                
+            $cmsLangs = self::getCmsLangs($domainRecs);
+                
+            // Определяме езика, ако не е зададен или е зададен неправилно
+            if(!$lang || !$cmsLangs[$lang]) {
+                $lang = self::detectLang($cmsLangs);
             }
 
-            $domainRec->realDomain = $domain;
-            $domainRec->cmsLangs   = $cmsLangs;
-
+            // Определяме домейна, който отговаря на езика
+            foreach($domainRecs as $dRec) {
+                if($dRec->lang == $lang || !$domainRec) {
+                    $domainRec = $dRec;
+                }
+            }
+       
             Mode::setPermanent(self::CMS_CURRENT_DOMAIN_REC, $domainRec);
-            Mode::setPermanent(self::CMS_CURRENT_LANG, $domainRec->lang);
         }
- 
+      
         if($part) {
  
             return $domainRec->{$part};
@@ -220,36 +232,28 @@ class cms_Domains extends core_Embedder
 
 
     /**
-     *
+     * Задава текущия публичен домейн
      */
-    public static function getCmsSkin()
+    public static function setPublicDomain($id)
     {
-        $dRec = self::getCmsDomain();
-
-        $driver = self::getDriver($dRec->id);
-
-        return $driver;
+       Mode::setPermanent(self::CMS_CURRENT_DOMAIN_REC, self::fetch($id));
     }
 
 
     /**
      * Връща възможните езици за подадените домейни
      */
-    public static function getCmsLangs($domain, $altDomain)
+    public static function getCmsLangs($domainRecs = NULL)
     {
-        $res = array();
-        $query = self::getQuery();
-        while($rec = $query->fetch(array("#domain = '[#1#]' OR #domain = '[#2#]'", $domain, $altDomain))) {
-            $res[$rec->lang] = $rec->lang;
+        if(!$domainRecs) {
+            $domainRecs = self::findPublicDomainRecs();
         }
-        if(!count($res)) {
-            $query = self::getQuery();
-            while($rec = $query->fetch("#domain = 'localhost'")) {
-                $res[$rec->lang] = $rec->lang;
-            }
+                
+        foreach($domainRecs as $rec) {
+            $cmsLangs[$rec->lang] = $rec->lang;
         }
         
-        return $res;
+        return $cmsLangs;
     }
 
 
@@ -291,7 +295,7 @@ class cms_Domains extends core_Embedder
            $langArr[$newLang] = (isset($langArr[$newLang])) ?
               max($langArr[$newLang], $newQual) : $newQual;
         }
-        
+      
         $countryCode2 = drdata_IpToCountry::get();
 
         $langsInCountry = arr::make(drdata_Countries::fetchField("#letterCode2 = '{$countryCode2}'", 'languages'));
@@ -305,11 +309,14 @@ class cms_Domains extends core_Embedder
         if($langArr['en']) {
             $langArr['en'] *= 0.99;
         }
+        if($langArr['bg']) {
+            $langArr['bg'] *= 1.80;
+        }
 
         // sort list based on value
         // langArr will now be an array like: array('EN' => 1, 'ES' => 0.5)
         arsort($langArr, SORT_NUMERIC);
-        
+ 
         foreach($langArr as $lg => $q) {
             if($cmsLangs[$lg]) {               
 
@@ -323,11 +330,15 @@ class cms_Domains extends core_Embedder
 
 
     /**
-     * След смяната на текущия елемент
+     * Връща темата за външния изглед
      */
-    public static function on_AfterChangeCurrent($mvc, $rec)
+    public static function getCmsSkin()
     {
-        cms_content::setLang($rec->lang);
+        $dRec = self::getPublicDomain();
+
+        $driver = self::getDriver($dRec->id);
+
+        return $driver;
     }
 
 
@@ -337,6 +348,7 @@ class cms_Domains extends core_Embedder
     public static function on_AfterInputeditForm($mvc, &$form)
     {
         if($form->isSubmitted()) {
+            $form->rec->domain = trim(strtolower($form->rec->domain));
             if(!core_Url::isValiddomainName($form->rec->domain)) {
                 $form->setError('domain', 'Невалидно име на домейн');
             }

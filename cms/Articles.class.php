@@ -242,8 +242,6 @@ class cms_Articles extends core_Master
 
             $menuId = $rec->menuId;
             
-            cms_Content::setCurrent($menuId);
-
             $lArr = explode('.', self::getVerbal($rec, 'level'));
             
             $content = new ET('[#1#]', $desc = self::getVerbal($rec, 'body'));
@@ -254,8 +252,10 @@ class cms_Articles extends core_Master
             
         	// Подготвяме информаията за ографа на статията
             $ogp = $this->prepareOgraph($rec);
-        } else {
-
+        } 
+        
+        // Задава текущото меню, съответстващо на страницата
+        if($menuId) {
             cms_Content::setCurrent($menuId);
         }
 
