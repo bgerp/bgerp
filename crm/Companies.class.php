@@ -219,7 +219,7 @@ class crm_Companies extends core_Master
      * Предефинирани подредби на листовия изглед
      */
     var $listOrderBy = array(
-        'alphabetic'    => array('Азбучно', '#name=ASC'),
+        'alphabetic'    => array('Азбучно', '#nameT=ASC'),
         'last'          => array('Последно добавени', '#createdOn=DESC', 'createdOn=Създаване->На,createdBy=Създаване->От'),
         'modified'      => array('Последно променени', '#modifiedOn=DESC', 'modifiedOn=Модифициране->На,modifiedBy=Модифициране->От'),
         'vatId'      => array('Данъчен №', '#vatId=DESC', 'vatId=Данъчен №'),
@@ -319,7 +319,10 @@ class crm_Companies extends core_Master
      	// Подредба
         setIfNot($data->listFilter->rec->order, 'alphabetic');
         $orderCond = $mvc->listOrderBy[$data->listFilter->rec->order][1];
-        if($orderCond) {
+        if($orderCond) {  
+            if(strpos($orderCond, '#nameT') !== FALSE) {
+                $data->query->XPR('nameT', 'varchar', "TRIM(LEADING ' ' FROM TRIM(LEADING '''' FROM TRIM(LEADING '\"' FROM #name)))");
+            }
             $data->query->orderBy($orderCond);
         }
 
@@ -926,7 +929,7 @@ class crm_Companies extends core_Master
     static function shouldChargeVat($id)
     {
         $rec = static::fetch($id);
-        
+       
         // Ако не е посочена държава, вингаи начисляваме ДДС
         if(!$rec->country) {
 
@@ -941,12 +944,13 @@ class crm_Companies extends core_Master
  
         $ownCompany = crm_Companies::fetchOurCompany();
         
-        // Ако има валиден ват и не е от държавата на myCompany не начисляваме
-        if(drdata_Vats::isHaveVatPrefix($rec->vatId) && ($ownCompany->country != $rec->country)){
+        // Ако няма VAT номер или има валиден ват и не е от държавата на myCompany не начисляваме
+        if((empty($rec->vatId) || drdata_Vats::isHaveVatPrefix($rec->vatId)) && ($ownCompany->country != $rec->country)){
         	
             return FALSE;
         }
-
+        
+ 
         return TRUE;
 	}
 
