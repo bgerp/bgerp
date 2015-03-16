@@ -219,10 +219,7 @@ class eshop_Groups extends core_Master
         $data->menuId = Request::get('cMenuId', 'int');
         
         if(!$data->menuId) {
-            $lg = cms_Content::getLang();
-            $clsId = core_Classes::getId($this);
-            expect($lg, $clsId);
-            $data->menuId = cms_Content::fetchField("#lang = '{$lg}' AND #source = $clsId");
+            $data->menuId = cms_Content::getDefaultMenuId($this);
         }
         
         cms_Content::setCurrent($data->menuId);
@@ -238,10 +235,11 @@ class eshop_Groups extends core_Master
         $url = toUrl($this->getUrlByMenuId($data->menuId), 'absolute');
         $layout->append("\n<link rel=\"canonical\" href=\"{$url}\"/>", 'HEAD');
         
-        // Страницата да се кешира в браузъра
+        // Колко време страницата да се кешира в браузъра
         $conf = core_Packs::getConfig('eshop');
         Mode::set('BrowserCacheExpires', $conf->ESHOP_BROWSER_CACHE_EXPIRES);
         
+        // Записваме в посетителския лог
         if(core_Packs::fetch("#name = 'vislog'")) {
             if($data->menuId) {
                 $cRec = cms_Content::fetch($data->menuId);

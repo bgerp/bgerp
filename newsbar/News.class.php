@@ -179,7 +179,7 @@ class newsbar_News extends core_Master
         $rec  = &$form->rec;
         
         $form->setDefault('lang', cms_Content::getLang());
-        $form->setOptions('lang', cms_Content::getLangsArr());
+        $form->setOptions('lang', cms_Domains::getCmsLangs($domainRecs));
 
         $progressArr[''] = '';
 
