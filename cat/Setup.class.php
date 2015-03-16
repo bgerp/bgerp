@@ -380,12 +380,14 @@ class cat_Setup extends core_ProtoSetup
      */
     public function migrateProformas()
     {
-    	$query = sales_ProformaDetails::getQuery();
-    	$productId = cat_Products::getClassId();
-    	while($rec = $query->fetch()){
-    		if($rec->classId != $productId){
-    			$rec->classId = $productId;
-    			sales_ProformaDetails::save($rec);
+    	if(sales_ProformaDetails::count()){
+    		$query = sales_ProformaDetails::getQuery();
+    		$productId = cat_Products::getClassId();
+    		while($rec = $query->fetch()){
+    			if($rec->classId != $productId){
+    				$rec->classId = $productId;
+    				sales_ProformaDetails::save($rec);
+    			}
     		}
     	}
     }
