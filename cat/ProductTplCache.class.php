@@ -92,7 +92,8 @@ class cat_ProductTplCache extends core_Master
 	public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
 	{
 		if(isset($fields['-single'])){
-			$row->cache = new ET($rec->cache);
+			$Driver = cat_Products::getDriver($rec->productId);
+			$row->cache = $Driver->renderProductDescription($rec->cache);
 		}
 	}
 
@@ -154,6 +155,7 @@ class cat_ProductTplCache extends core_Master
 	{
 		$pRec = cat_Products::fetchRec($productId);
 		$cache = self::fetchField("#productId = {$pRec->id} AND #time = '{$time}'", 'cache');
+		$Driver = cls::get('cat_Products')->getDriver($productId);
 		
 		// Ако има кеширан изглед за тази дата връщаме го
 		if(!$cache){
@@ -162,15 +164,15 @@ class cat_ProductTplCache extends core_Master
 			$cacheRec = new stdClass();
 			$cacheRec->time = $time;
 			$cacheRec->productId = $productId;
-	
-			$Driver = cls::get('cat_Products')->getDriver($productId);
-			$cacheRec->cache = $Driver->getProductDescription();
+			$cacheRec->cache = $Driver->prepareProductDescription();
 			self::save($cacheRec);
 	
 			$cache = $cacheRec->cache;
 		}
-		 
+		
+		$tpl = $Driver->renderProductDescription($cache);
+		
 		// Връщаме намерения изглед
-		return $cache;
+		return $tpl;
 	}
 }

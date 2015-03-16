@@ -122,7 +122,7 @@ class sales_Quotations extends core_Master
     
     	'validFor'        => 'lastDocUser|lastDoc',
     	'paymentMethodId' => 'clientCondition|lastDocUser|lastDoc',
-        'currencyId'      => 'lastDocUser|lastDoc',
+        'currencyId'      => 'lastDocUser|lastDoc|CoverMethod',
         'chargeVat'       => 'lastDocUser|lastDoc|defMethod',
     	'others'          => 'lastDocUser|lastDoc',
         'deliveryTermId'  => 'clientCondition|lastDocUser|lastDoc',
@@ -154,7 +154,7 @@ class sales_Quotations extends core_Master
     	
         $this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Клиент');
         $this->FLD('contragentId', 'int', 'input=hidden');
-        $this->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=description)','caption=Плащане->Метод,salecondSysId=paymentMethodSale');
+        $this->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=description,allowEmpty)','caption=Плащане->Метод,salecondSysId=paymentMethodSale');
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)','caption=Плащане->Валута,oldFieldName=paymentCurrencyId');
         $this->FLD('currencyRate', 'double(decimals=2)', 'caption=Плащане->Курс,oldFieldName=rate');
         $this->FLD('chargeVat', 'enum(yes=Включено, separate=Отделно, exempt=Oсвободено, no=Без начисляване)','caption=Плащане->ДДС,oldFieldName=vat');
@@ -179,12 +179,12 @@ class sales_Quotations extends core_Master
 	/**
      * Дали да се начислява ДДС
      */
-    public function getDefaultVat($rec)
+    public function getDefaultChargeVat($rec)
     {
         $coverId = doc_Folders::fetchCoverId($rec->folderId);
     	$Class = cls::get(doc_Folders::fetchCoverClassName($rec->folderId));
     	
-    	return ($Class->shouldChargeVat($coverId)) ? 'yes' : 'export';
+    	return ($Class->shouldChargeVat($coverId)) ? 'yes' : 'no';
     }
     
     
@@ -343,6 +343,14 @@ class sales_Quotations extends core_Master
 		if($fields['-single']){
 			$quotDate = dt::mysql2timestamp($rec->date);
 			$timeStamp = dt::mysql2timestamp(dt::verbal2mysql());
+			
+			if(isset($rec->validFor)){
+				
+				// До коя дата е валидна
+				$row->validDate = dt::addSecs($rec->validFor, $rec->date);
+				$row->validDate = $mvc->getFieldType('date')->toVerbal($row->validDate);
+			}
+			
 			if(isset($rec->validFor) && (($quotDate + $rec->validFor) < $timeStamp)){
 				$row->expired = tr("офертата е изтекла");
 			}

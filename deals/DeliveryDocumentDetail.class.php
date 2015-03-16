@@ -99,9 +99,20 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 		expect($ProductMan = cls::get($rec->classId));
 		if($form->rec->productId){
 			$vat = cls::get($rec->classId)->getVat($rec->productId, $masterRec->valior);
+			
+			$productRef = new core_ObjectReference($ProductMan, $rec->productId);
+			expect($productInfo = $productRef->getProductInfo());
+			
 			if($form->getField('packagingId', FALSE)){
-				$form->setOptions('packagingId', $ProductMan->getPacks($rec->productId));
-				unset($form->getFieldType('packagingId')->params['allowEmpty']);
+				
+				$packs = $ProductMan->getPacks($rec->productId);
+				if(count($packs)){
+					$form->setOptions('packagingId', $packs);
+				} else {
+					$form->setReadOnly('packagingId');
+				}
+				$uomName = cat_UoM::getTitleById($productInfo->productRec->measureId);
+				$form->setField('packagingId', "placeholder={$uomName}");
 			}
 	
 			// Само при рефреш слагаме основната опаковка за дефолт
@@ -141,9 +152,6 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 					$update = TRUE;
 				}
 			}
-	
-			$productRef = new core_ObjectReference($ProductMan, $rec->productId);
-			expect($productInfo = $productRef->getProductInfo());
 	
 			$rec->quantityInPack = (empty($rec->packagingId)) ? 1 : $productInfo->packagings[$rec->packagingId]->quantity;
 			$rec->quantity = $rec->packQuantity * $rec->quantityInPack;
@@ -234,9 +242,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 		if(count($data->rows)) {
 			foreach ($data->rows as $i => &$row) {
 				$rec = &$data->recs[$i];
-				$ProductManager = cls::get($rec->classId);
-		
-				$row->productId = $ProductManager->getProductDesc($rec->productId, $mvc->Master, $data->masterData->rec->modifiedOn);
+
 				$haveDiscount = $haveDiscount || !empty($rec->discount);
 					 
 				if (empty($rec->packagingId)) {

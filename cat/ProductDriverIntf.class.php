@@ -95,17 +95,6 @@ class cat_ProductDriverIntf extends core_InnerObjectIntf
 	
 	
 	/**
-	 * Връща описанието на артикула според драйвъра
-	 * 
-	 * @return core_ET
-	 */
-	public function getProductDescription()
-	{
-		return $this->class->getProductDescription();
-	}
-	
-	
-	/**
 	 * Кои документи са използвани в полетата на драйвера
 	 */
 	public function getUsedDocs()
@@ -147,19 +136,19 @@ class cat_ProductDriverIntf extends core_InnerObjectIntf
 	
 	
 	/**
-	 * Колко е теглото на артикула
+	 * Подготвя данните за показване на описанието на драйвера
 	 */
-	public static function getWeight()
+	public function prepareProductDescription()
 	{
-		return $this->class->getWeight($id);
+		return $this->class->prepareProductDescription();
 	}
 	
 	
 	/**
-	 * Колко е обема му
+	 * Рендира данните за показване на артикула
 	 */
-	public static function getVolume()
+	public function renderProductDescription($data)
 	{
-		return $this->class->getVolume();
+		return $this->class->renderProductDescription($data);
 	}
 }

@@ -16,10 +16,20 @@ a.datepick-cmd {
 }
 
 /*select2 custom styles */
+.select2-container {
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -o-user-select: none;
+    user-select: none;
+}
+
 .select2-container--default .select2-selection--single, .select2-dropdown , .select2-container--default .select2-selection--multiple {
     border: solid 1px #9999ff;
     border-radius: 0;
 }
+
 .select2-container .select2-selection--single {
 	height: 26px;
 }
@@ -38,9 +48,12 @@ a.datepick-cmd {
 }
 
 .select2-selection__clear {
-	color: #666;
+	color: #999;
 }
 
+.select2-selection__clear:hover {
+	color: #333;
+}
  .select2-container *{
 	box-shadow: none !important;
 	outline: none !important;
@@ -71,12 +84,22 @@ a.datepick-cmd {
 .select2-container--default .select2-selection--multiple .select2-selection__choice {
 	margin-top: 3px;
 }
+.select2-results__option {
+	padding: 0;
+}
+.select2-results__option span{
+    padding: 4px 6px;
+    display: block;
+}
 
-.select2-results__group{
+.select2-results__group, span.team{
 	cursor: default;
 	color: #fff;
 	background-color: #333;
 	font-weight: bold;
+}
+span.all-users{ 
+	color: #777;
 }
 
 .select2-selection {

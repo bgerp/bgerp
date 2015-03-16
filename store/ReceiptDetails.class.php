@@ -137,4 +137,19 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
     {
     	parent::inputDocForm($mvc, $form);
     }
+    
+    
+    /**
+     * След обработка на записите от базата данни
+     */
+    public static function on_AfterPrepareListRows(core_Mvc $mvc, $data)
+    {
+    	if(count($data->rows)) {
+    		foreach ($data->rows as $i => &$row) {
+    			$rec = &$data->recs[$i];
+    
+    			$row->productId = cls::get($rec->classId)->getProductDescShort($rec->productId);
+    		}
+    	}
+    }
 }

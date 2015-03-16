@@ -2312,25 +2312,32 @@ class crm_Persons extends core_Master
     /**
      * Връща валутата по подразбиране за търговия дадения контрагент
      * в зависимост от дъжавата му
+     * 
      * @param int $id - ид на записа
-     * @return string(3) - BGN или EUR за дефолт валутата
+     * @return string(3) - BGN|EUR|USD за дефолт валутата
      */
-    static function getDefaultCurrencyId($id)
+    public static function getDefaultCurrencyId($id)
     {
-    	$rec = self::fetch($id);
-    	
-    	// Ако контрагента няма държава, то дефолт валутата е BGN
+        $rec = self::fetch($id);
+
+        // Ако контрагента няма държава, то дефолт валутата е BGN
     	if(empty($rec->country)) return 'BGN';
     	
-        $cRec = drdata_Countries::fetch($rec->country);
-
-        if($cRec->letterCode2 == 'BG') {
-
-            return 'BGN';
-        } else {
-
-            return 'EUR';
-        }
+    	// Ако държавата му е България, дефолт валутата е 'BGN'
+    	if(drdata_Countries::fetchField($rec->country, 'letterCode2') == 'BG'){
+    		
+    		return 'BGN';
+    	} else {
+    		
+    		// Ако не е 'България', но е в ЕС, дефолт валутата е 'EUR'
+    		if(drdata_Countries::isEu($rec->country)){
+    			
+    			return 'EUR';
+    		}
+    	}
+    	
+    	// За всички останали е 'USD'
+    	return 'USD';
     }
 
     

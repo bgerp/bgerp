@@ -14,9 +14,9 @@
  * 
  * -------------------------------------------------------------
  * 
- * lastDocUser        - Последния документ в папката от потребителя 
- * lastDoc 		      - Последния документ в папката
- * lastDocSameCuntry  - Последния документ в папка на клиент от същата държава				 
+ * lastDocUser        - Последния активен документ в папката от потребителя 
+ * lastDoc 		      - Последния активен документ в папката
+ * lastDocSameCuntry  - Последния активен документ в папка на клиент от същата държава				 
  * defMethod	      - Дефолт метод с име "getDefault{$name}"		 
  * clientData	      - От контрагент интерфейса					 
  * clientCondition    - От дефолт търговско условие				 
@@ -177,6 +177,7 @@ class cond_plg_DefaultValues extends core_Plugin
     	
     	$cu = core_Users::getCurrent();
     	$query = $mvc->getQuery();
+    	$query->where("#state = 'active'");
     	
     	$query->where("#folderId = {$folderId}");
     	if($fromUser){

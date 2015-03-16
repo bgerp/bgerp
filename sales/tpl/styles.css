@@ -41,20 +41,11 @@
   font-weight: bold;
   text-decoration: underline; }
 
-.wide #condition-title,
-.wide #conditions,
-.wide #quote-username {
-  margin-top: 20px; }
-
 #conditions {
-  margin-top: 5px; }
+  margin: 0px; }
 
-#details-holder,
-#optional-holder {
+#details-holder {
   margin-top: 15px; }
-
-#optional-holder {
-  margin-top: 25px; }
 
 .narrow .products-table {
   font-size: 0.9em;
@@ -72,6 +63,9 @@
 .total-quote-td,
 .total-td-label {
   background-color: transparent; }
+
+.quotation-detail-add-btn {
+  margin: 10px 0 20px; }
 
 .products-table {
   border: 1px solid #cccccc;

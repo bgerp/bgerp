@@ -96,6 +96,7 @@ abstract class deals_DealDetail extends doc_Detail
     	// Цена за опаковка (ако има packagingId) или за единица в основна мярка (ако няма packagingId)
     	$mvc->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input');
     	$mvc->FLD('discount', 'percent(min=-1,max=1)', 'caption=Отстъпка');
+    	$mvc->FLD('showMode', 'enum(auto=Автоматично,detailed=Разширено,short=Кратко)', 'caption=Показване,notNull,default=auto');
     }
     
     
@@ -207,9 +208,18 @@ abstract class deals_DealDetail extends doc_Detail
     	
     	expect($ProductMan = cls::get($rec->classId));
     	if($rec->productId){
+    		$productRef = new core_ObjectReference($ProductMan, $rec->productId);
+    		expect($productInfo = $productRef->getProductInfo());
+    		
     		$vat = cls::get($rec->classId)->getVat($rec->productId, $masterRec->valior);
-    		$form->setOptions('packagingId', $ProductMan->getPacks($rec->productId));
-    		unset($form->getFieldType('packagingId')->params['allowEmpty']);
+    		$packs = $ProductMan->getPacks($rec->productId);
+    		if(count($packs)){
+    			$form->setOptions('packagingId', $packs);
+    		} else {
+    			$form->setReadOnly('packagingId');
+    		}
+    		$uomName = cat_UoM::getTitleById($productInfo->productRec->measureId);
+    		$form->setField('packagingId', "placeholder={$uomName}");
     	
     		// Само при рефреш слагаме основната опаковка за дефолт
     		if($form->cmd == 'refresh'){
@@ -246,9 +256,6 @@ abstract class deals_DealDetail extends doc_Detail
     				$update = TRUE;
     			}
     			}
-    	
-    			$productRef = new core_ObjectReference($ProductMan, $rec->productId);
-    			expect($productInfo = $productRef->getProductInfo());
     	
     			$rec->quantityInPack = (empty($rec->packagingId)) ? 1 : $productInfo->packagings[$rec->packagingId]->quantity;
     			$rec->quantity = $rec->packQuantity * $rec->quantityInPack;
@@ -322,13 +329,10 @@ abstract class deals_DealDetail extends doc_Detail
     	$recs = &$data->recs;
     	$rows = &$data->rows;
     	
-    	$modifiedOn = $data->masterData->rec->modifiedOn;
-    	
     	foreach ($rows as $id => &$row){
     		$rec = $recs[$id];
     		
-    		$ProductManager = cls::get($rec->classId);
-    		$row->productId = $ProductManager->getProductDesc($rec->productId, $mvc->Master, $modifiedOn);
+    		$row->productId = cat_Products::getAutoProductDesc($rec->productId, $data->masterData->rec->modifiedOn, $rec->showMode);
     	}
     }
     

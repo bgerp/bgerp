@@ -15,16 +15,13 @@
                     <td class="cell custom-header-bg" style='width:35%;'><b>|Получател|*</b></td>
                     <td class="cellm centered" rowspan="2" style='width:30%;'>
                         <div class='invoiceTitle' style='font-size:1.2em;margin-bottom:5px'><b>|ОФЕРТА|* </b></div>
-                        <div class='quiet-small'>|Номер|*</div>
-                        <div class="bigData">[#number#]</div>
-                        <div class='quiet-small'>|Дата|*</div>
-                        <div class="bigData">[#date#]</div>
+                        <div class="bigData">№[#number#] / [#date#]</div>
                         <!--ET_BEGIN place-->
                         <div class='quiet-small'>|Място|*</div>
                         <div class="bigData">[#place#]</div>
                         <!--ET_END place-->
                         <!--ET_BEGIN reff-->
-                        <div class='quiet-small'>|Ваш реф|*.</div>
+                        <div class='quiet-small'>|Ваш реф. №|*</div>
                         <div class="bigData">[#reff#]</div>
                         <!--ET_END reff-->
                     </td>
@@ -58,40 +55,33 @@
     </div>
     <!--ET_END OPTIONAL-->
     [#ListToolbar#]
-    <p id='condition-title'> |Условия на офертата|*</p>
-    <ol id='conditions' style='float: left; width: 60%'>
-        <!--ET_BEGIN currencyRate-->
-        <li>|Валутен курс|* [#currencyRate#]</li>
-        <!--ET_END currencyRate-->
-        <!--ET_BEGIN validFor-->
-        <li>
-            |Офертата е валидна до|* [#validFor#] |след датата на издаване|* 
-            <!--ET_BEGIN expired-->
-            <span class='expired-quote'>([#expired#])</span>
-            <!--ET_END expired-->
-        </li>
-        <!--ET_END validFor-->
-        <li>|Начин на плащане|*: [#paymentMethodId#]</li>
-        <li>|Условие на доставка|*: [#deliveryTermId#]</li>
-        <!--ET_BEGIN deliveryPlaceId-->
-        <li>|Място на доставка|*: [#deliveryPlaceId#]</li>
-        <!--ET_END deliveryPlaceId-->
-        <!--ET_BEGIN others-->
-        [#others#]
-        <!--ET_END others-->
-    </ol>
-    <table class="signature-table" style='float:right; width: 30%; margin-top: 20px;'>
+    <table  class = 'products-table' style='width:100%;'>
         <tr>
-            <td>|Съставил|*: </td>
-            <td></td>
+            <th>|Условия на офертата|*</th>
+            <th>|Съставил|*</th>
         </tr>
         <tr>
-            <td></td>
-            <td class="centered" style='border-top: 1px dashed #333 !important;'>
-                / <span style='padding-left: 5px; font-family: Comic Sans, cursive; font-style: italic;'> [#username#]</span><!--ET_BEGIN position-->, [#position#]<!--ET_END position--> /
+            <td> 
+                <ol id='conditions'>
+		            <li> |Валидност на офертата|*: <b>[#validFor#] (|до|* [#validDate#])</b>			            
+		            </li>
+		            <li>|Начин на плащане|*: <b>[#paymentMethodId#]</b></li>
+			        <li>|Условие на доставка|*: <b>[#deliveryTermId#]</b></li>
+			        <!--ET_BEGIN deliveryPlaceId-->
+			        <li>|Място на доставка|*: <b>[#deliveryPlaceId#]</b></li>
+			        <!--ET_END deliveryPlaceId-->
+			        <li><b>|В сила са Oбщите Условия за изрaботка на|* [#MyCompany#]</b></li>
+			        <!--ET_BEGIN others-->
+			        [#others#]
+			        <!--ET_END others-->
+		        </ol>
+            </td>
+            <td class="centered">
+              <span style='border-top: 1px dashed #333 !important; color: #070895;padding-left: 5px; margin-top: 80px; font-family: cursive; font-style: italic;display: block;'>[#username#]</span>
             </td>
         </tr>
     </table>
+
     <div class='footerDocBlock'>
         <div class='aright'>Документът е създаден чрез системата <b><a href='http://bgerp.com'>bgERP</a></b>.</div>
     </div>

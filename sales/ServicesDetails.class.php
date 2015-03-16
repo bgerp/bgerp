@@ -93,6 +93,7 @@ class sales_ServicesDetails extends deals_DeliveryDocumentDetail
     {
         $this->FLD('shipmentId', 'key(mvc=sales_Services)', 'column=none,notNull,silent,hidden,mandatory');
         parent::setDocumentFields($this);
+        $this->FLD('showMode', 'enum(auto=Автоматично,detailed=Разширено,short=Кратко)', 'caption=Показване,notNull,default=auto');
     }
         
     
@@ -119,5 +120,20 @@ class sales_ServicesDetails extends deals_DeliveryDocumentDetail
     public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form &$form)
     {
     	parent::inputDocForm($mvc, $form);
+    }
+    
+    
+    /**
+     * След обработка на записите от базата данни
+     */
+    public static function on_AfterPrepareListRows(core_Mvc $mvc, $data)
+    {
+    	if(count($data->rows)) {
+    		foreach ($data->rows as $i => &$row) {
+    			$rec = &$data->recs[$i];
+    			 
+    			$row->productId = cat_Products::getAutoProductDesc($rec->productId, $data->masterData->rec->modifiedOn, $rec->showMode);
+    		}
+    	}
     }
 }

@@ -70,6 +70,7 @@ class cat_Setup extends core_ProtoSetup
     		'migrate::updateDocs',
     		'migrate::fixStates',
     		'migrate::privateProducts',
+    		'migrate::truncatCache',
         );
 
         
@@ -379,12 +380,14 @@ class cat_Setup extends core_ProtoSetup
      */
     public function migrateProformas()
     {
-    	$query = sales_ProformaDetails::getQuery();
-    	$productId = cat_Products::getClassId();
-    	while($rec = $query->fetch()){
-    		if($rec->classId != $productId){
-    			$rec->classId = $productId;
-    			sales_ProformaDetails::save($rec);
+    	if(sales_ProformaDetails::count()){
+    		$query = sales_ProformaDetails::getQuery();
+    		$productId = cat_Products::getClassId();
+    		while($rec = $query->fetch()){
+    			if($rec->classId != $productId){
+    				$rec->classId = $productId;
+    				sales_ProformaDetails::save($rec);
+    			}
     		}
     	}
     }
@@ -451,5 +454,14 @@ class cat_Setup extends core_ProtoSetup
     		$rec->detailedDescriptionIn = 'sales_Quotations,sales_Sales';
     		$Products->save_($rec, 'detailedDescriptionIn');
     	}
+    }
+    
+    
+    /**
+     * Изтриваме кеша
+     */
+    public function truncatCache()
+    {
+    	cat_ProductTplCache::truncate();
     }
 }

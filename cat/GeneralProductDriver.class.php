@@ -64,6 +64,12 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	 */
 	public function renderEmbeddedData($data)
 	{
+		if($this->innerState->photo){
+			$size = array(280, 150);
+			$Fancybox = cls::get('fancybox_Fancybox');
+			$data->row->image = $Fancybox->getImage($this->innerState->photo, $size, array(550, 550));
+		}
+		
 		// Ако не е зададен шаблон, взимаме дефолтния
 		$tpl = (empty($data->tpl)) ? getTplFromFile('cat/tpl/SingleLayoutBaseDriver.shtml') : $data->tpl;
 		$tpl->placeObject($data->row);
@@ -142,18 +148,6 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	
 	
 	/**
-	 * Връща стойността на продукта отговаряща на параметъра
-	 * 
-	 * @param string $sysId - систем ид на параметър (@see cat_Params)
-	 * @return mixed - стойността на параметъра за продукта
-	 */
-	public function getParamValue($sysId)
-	{
-		return cat_products_Params::fetchParamValue($this->EmbedderRec->rec()->id, $this->EmbedderRec->getClassId(), $sysId);
-	}
-	
-	
-	/**
 	 * Кои опаковки поддържа продукта
 	 */
 	public function getPacks()
@@ -168,37 +162,6 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	public function getFeatures()
 	{
 		return cat_products_Params::getFeatures($this->EmbedderRec->getClassId(), $this->EmbedderRec->rec()->id);
-	}
-	
-	
-	/**
-	 * Връща описанието на артикула според драйвъра
-	 * 
-	 * @return core_ET
-	 */
-	public function getProductDescription()
-	{
-		$data = $this->prepareEmbeddedData();
-		$data->noChange = TRUE;
-		$data->tpl = getTplFromFile('cat/tpl/SingleLayoutBaseDriverShort.shtml');
-		
-		$tpl = $this->renderEmbeddedData($data);
-		
-		$title = ht::createLinkRef($this->EmbedderRec->getTitleById(), array($this->EmbedderRec->instance, 'single', $this->EmbedderRec->that));
-		$tpl->removeBlock('INFORMATION');
-		$tpl->replace($title, "TITLE");
-		
-		// Ако няма параметри, премахваме блока им от шаблона
-		if(!count($data->params)){
-			$tpl->removeBlock('PARAMS');
-		}
-		
-		$tpl->push(('cat/tpl/css/GeneralProductStyles.css'), 'CSS');
-		
-		$wrapTpl = new ET("<div class='general-product-description'>[#paramBody#]</div>");
-		$wrapTpl->append($tpl, 'paramBody');
-		
-		return $wrapTpl;
 	}
 	
 	
@@ -267,19 +230,70 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	
 	
 	/**
-	 * Колко е теглото на артикула
+	 * Връща параметрите на артикула
+	 * @param mixed $id - ид или запис на артикул
+	 *
+	 * @return array $res - параметрите на артикула
+	 * 					['weight']          -  Тегло
+	 * 					['width']           -  Широчина
+	 * 					['volume']          -  Обем
+	 * 					['thickness']       -  Дебелина
+	 * 					['length']          -  Дължина
+	 * 					['height']          -  Височина
+	 * 					['tolerance']       -  Толеранс
+	 * 					['transportWeight'] -  Транспортно тегло
+	 * 					['transportVolume'] -  Транспортен обем
+	 * 					['term']            -  Срок
 	 */
-	public function getWeight()
+	public function getParams()
 	{
-		return cat_products_Params::fetchParamValue($this->EmbedderRec->rec()->id, $this->EmbedderRec->getClassId(), 'transportWeight');
+		$res = array();
+		$embedderRec = $this->EmbedderRec->rec()->id;
+		$embedderClassId = $this->EmbedderRec->getClassId();
+		
+		foreach (array('weight', 'width', 'volume', 'thickness', 'length', 'height', 'tolerance', 'transportWeight', 'transportVolume', 'term') as $p){
+			
+			$res[$p] = cat_products_Params::fetchParamValue($embedderRec, $embedderClassId, $p);
+		}
+		
+		return $res;
 	}
 	
 	
 	/**
-	 * Колко е обема му
+	 * Подготвя данните за показване на описанието на драйвера
 	 */
-	public function getVolume()
+	public function prepareProductDescription()
 	{
-		return cat_products_Params::fetchParamValue($this->EmbedderRec->rec()->id, $this->EmbedderRec->getClassId(), 'transportVolume');
+		$data = $this->prepareEmbeddedData();
+		$data->noChange = TRUE;
+		$data->tpl = getTplFromFile('cat/tpl/SingleLayoutBaseDriverShort.shtml');
+		
+		return $data;
+	}
+	
+	
+	/**
+	 * Рендира данните за показване на артикула
+	 */
+	public function renderProductDescription($data)
+	{
+		$tpl = $this->renderEmbeddedData($data);
+		
+		$title = ht::createLinkRef($this->EmbedderRec->getTitleById(), array($this->EmbedderRec->instance, 'single', $this->EmbedderRec->that));
+		$tpl->removeBlock('INFORMATION');
+		$tpl->replace($title, "TITLE");
+		
+		// Ако няма параметри, премахваме блока им от шаблона
+		if(!count($data->params)){
+			$tpl->removeBlock('PARAMS');
+		}
+		
+		$tpl->push(('cat/tpl/css/GeneralProductStyles.css'), 'CSS');
+		
+		$wrapTpl = new ET("<div class='general-product-description'>[#paramBody#]</div>");
+		$wrapTpl->append($tpl, 'paramBody');
+		
+		return $wrapTpl;
 	}
 }

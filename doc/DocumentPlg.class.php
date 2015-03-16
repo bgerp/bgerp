@@ -1813,22 +1813,24 @@ class doc_DocumentPlg extends core_Plugin
     /**
      * След извличане на ключовите думи
      */
-    function on_AfterGetSearchKeywords($mvc, &$res, $id)
+    function on_AfterGetSearchKeywords($mvc, &$searchKeywords, $rec)
     {
-       	$rec = $mvc->fetchRec($id);
+       	$rec = $mvc->fetchRec($rec);
     	
-    	if ($res) {
+       	if (!isset($searchKeywords)) {
+       	    $searchKeywords = plg_Search::getKeywords($mvc, $rec);
+       	}
+       	
+    	if ($rec->id) {
     		
-    		// Ако има ид, добавяме хендлъра към ключовите думи
-            if($rec->id){
-            	$handle = $mvc->getHandle($rec->id);
-            	$res .= " " . plg_Search::normalizeText($handle);
-            }
-            
-            return;
+        	$handle = $mvc->getHandle($rec->id);
+        	
+        	$handleNormalized = plg_Search::normalizeText($handle);
+        	
+        	if (strpos($searchKeywords, $handleNormalized) === FALSE) {
+        	    $searchKeywords .= " " . plg_Search::normalizeText($handle);
+        	} 
         }
-        
-        $res = plg_Search::getKeywords($mvc, $rec);
     }
     
     

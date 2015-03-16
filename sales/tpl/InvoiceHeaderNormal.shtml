@@ -35,7 +35,7 @@
                                             <!--ET_END originInv-->
                                         </div>
                                         <!--ET_BEGIN state-->
-                                        <div class="[#STATE_CLASS#]" style='margin:10px 0;'>[#state#]</div>
+                                        <div class="[#STATE_CLASS#] header-state" style='margin:10px 0;'>[#state#]</div>
                                         <!--ET_END state-->
                                     </td>
                                     <td class="cell custom-header-bg" style='vertical-align:middle !important;width:35%;'><b>|Доставчик|* / <i>Seller</i></b> </td>

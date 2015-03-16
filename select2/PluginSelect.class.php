@@ -144,21 +144,23 @@ class select2_PluginSelect extends core_Plugin
             $r->id = $key;
             
             if (is_object($title)) {
-                $r->name = $title->title;
+                $r->text = $title->title;
                 
-                $r->class = $title->attr['class'];
+                $r->element = new stdClass();
+                
+                $r->element->className = $title->attr['class'];
                 
                 if ($title->group) {
                     
-                    $r->class .= ($r->class) ? ' ' : '';
-                    $r->class .= 'group';
+                    $r->element->className .= ($r->element->className) ? ' ' : '';
+                    $r->element->className .= 'group';
                     
                     $r->id = NULL;
                     $group = $r;
                     $isGroup = TRUE;
                 }
             } else {
-                $r->name = $title;
+                $r->text = $title;
             }
             
             // Предпазва от добавяне на група без елементи в нея

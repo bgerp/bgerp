@@ -254,19 +254,47 @@ abstract class cat_ProductDriver extends core_BaseClass
 	
 	
 	/**
-	 * Колко е теглото на артикула
+	 * Връща параметрите на артикула
+	 * @param mixed $id - ид или запис на артикул
+	 *
+	 * @return array $res - параметрите на артикула
+	 * 					['weight']          -  Тегло
+	 * 					['width']           -  Широчина
+	 * 					['volume']          -  Обем
+	 * 					['thickness']       -  Дебелина
+	 * 					['length']          -  Дължина
+	 * 					['height']          -  Височина
+	 * 					['tolerance']       -  Толеранс
+	 * 					['transportWeight'] -  Транспортно тегло
+	 * 					['transportVolume'] -  Транспортен обем
+	 * 					['term']            -  Срок
 	 */
-	public function getWeight()
+	public function getParams()
 	{
-		return NULL;
+		$res = array();
+		
+		foreach (array('weight', 'width', 'volume', 'thickness', 'length', 'height', 'tolerance', 'transportWeight', 'transportVolume', 'term') as $p){
+			$res[$p] = NULL;
+		}
+		
+		return $res;
 	}
 	
 	
 	/**
-	 * Колко е обема му
+	 * Подготвя данните за показване на описанието на драйвера
 	 */
-	public function getVolume()
+	public function prepareProductDescription()
 	{
-		return NULL;
+		return (object)array();
+	}
+	
+	
+	/**
+	 * Рендира данните за показване на артикула
+	 */
+	public function renderProductDescription($data)
+	{
+		return new core_ET();
 	}
 }

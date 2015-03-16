@@ -209,7 +209,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 	public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
 	{
 		$ProductMan = cls::get($rec->classId);
-		$row->productId = $ProductMan->getProductDesc($rec->productId, $mvc->Master);
+		$row->productId = $ProductMan->getProductDescShort($rec->productId);
 	
 		if($rec->note){
 			$varchar = cls::get('type_Varchar');
@@ -295,8 +295,18 @@ abstract class deals_InvoiceDetail extends doc_Detail
 		expect($ProductMan = cls::get($rec->classId));
 		if($form->rec->productId){
 			$vat = cls::get($rec->classId)->getVat($rec->productId);
-			$form->setOptions('packagingId', $ProductMan->getPacks($rec->productId));
-			unset($form->getFieldType('packagingId')->params['allowEmpty']);
+			
+			$productRef = new core_ObjectReference($ProductMan, $rec->productId);
+			expect($productInfo = $productRef->getProductInfo());
+			
+			$packs = $ProductMan->getPacks($rec->productId);
+			if(count($packs)){
+				$form->setOptions('packagingId', $packs);
+			} else {
+				$form->setReadOnly('packagingId');
+			}
+			$uomName = cat_UoM::getTitleById($productInfo->productRec->measureId);
+			$form->setField('packagingId', "placeholder={$uomName}");
 			
 			// Само при рефреш слагаме основната опаковка за дефолт
 			if($form->cmd == 'refresh'){
@@ -333,9 +343,6 @@ abstract class deals_InvoiceDetail extends doc_Detail
 					$update = TRUE;
 				}
 			}
-	
-			$productRef = new core_ObjectReference($ProductMan, $rec->productId);
-			expect($productInfo = $productRef->getProductInfo());
 	
 			$rec->quantityInPack = (empty($rec->packagingId)) ? 1 : $productInfo->packagings[$rec->packagingId]->quantity;
 				

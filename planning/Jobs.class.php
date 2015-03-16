@@ -453,12 +453,12 @@ class planning_Jobs extends core_Master
     	if(count($data->rows) || isset($masterInfo->meta['canManifacture'])){
     		$data->TabCaption = 'Задания';
     		$data->Tab = 'top';
-    	}
-    	
-    	// Проверяваме можем ли да добавяме нови задания
-    	if($this->haveRightFor('add', (object)array('productId' => $data->masterId, 'folderId' => $folderId))){
-    		$folderId = $data->masterMvc->fetchField($data->masterId, 'folderId');
-    		$data->addUrl = array($this, 'add', 'productId' => $data->masterId, 'folderId' => $folderId, 'ret_url' => TRUE);
+    		
+    		// Проверяваме можем ли да добавяме нови задания
+    		if($this->haveRightFor('add', (object)array('productId' => $data->masterId, 'folderId' => $folderId))){
+    			$folderId = $data->masterMvc->fetchField($data->masterId, 'folderId');
+    			$data->addUrl = array($this, 'add', 'productId' => $data->masterId, 'folderId' => $folderId, 'ret_url' => TRUE);
+    		}
     	}
     }
     
@@ -471,6 +471,8 @@ class planning_Jobs extends core_Master
      */
     public function renderJobs($data)
     {
+    	 if(!$data->TabCaption) return;
+    	 
     	 $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
     	 $tpl->append(tr('Задания'), 'title');
     	 
