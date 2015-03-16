@@ -1190,14 +1190,14 @@ class cat_Products extends core_Embedder {
     	
     	switch($mode){
     		case 'detailed' :
-    			$res = $me->getProductDesc($rec);
+    			$res = $me->getProductDesc($rec, $time);
     			break;
     		case 'short' :
     			$res = $me->getProductDescShort($rec);
     			break;
     		default :
     			if($rec->isPublic == 'no'){
-    				$res = $me->getProductDesc($rec);
+    				$res = $me->getProductDesc($rec, $time);
     			} else {
     				$res = $me->getProductDescShort($rec);
     			}

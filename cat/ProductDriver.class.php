@@ -279,4 +279,22 @@ abstract class cat_ProductDriver extends core_BaseClass
 		
 		return $res;
 	}
+	
+	
+	/**
+	 * Подготвя данните за показване на описанието на драйвера
+	 */
+	public function prepareProductDescription()
+	{
+		return (object)array();
+	}
+	
+	
+	/**
+	 * Рендира данните за показване на артикула
+	 */
+	public function renderProductDescription($data)
+	{
+		return new core_ET();
+	}
 }

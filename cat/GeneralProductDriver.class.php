@@ -64,6 +64,12 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	 */
 	public function renderEmbeddedData($data)
 	{
+		if($innerState->photo){
+			$size = array(280, 150);
+			$Fancybox = cls::get('fancybox_Fancybox');
+			$data->row->image = $Fancybox->getImage($this->innerState->photo, $size, array(550, 550));
+		}
+		
 		// Ако не е зададен шаблон, взимаме дефолтния
 		$tpl = (empty($data->tpl)) ? getTplFromFile('cat/tpl/SingleLayoutBaseDriver.shtml') : $data->tpl;
 		$tpl->placeObject($data->row);
@@ -172,37 +178,6 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	
 	
 	/**
-	 * Връща описанието на артикула според драйвъра
-	 * 
-	 * @return core_ET
-	 */
-	public function getProductDescription()
-	{
-		$data = $this->prepareEmbeddedData();
-		$data->noChange = TRUE;
-		$data->tpl = getTplFromFile('cat/tpl/SingleLayoutBaseDriverShort.shtml');
-		
-		$tpl = $this->renderEmbeddedData($data);
-		
-		$title = ht::createLinkRef($this->EmbedderRec->getTitleById(), array($this->EmbedderRec->instance, 'single', $this->EmbedderRec->that));
-		$tpl->removeBlock('INFORMATION');
-		$tpl->replace($title, "TITLE");
-		
-		// Ако няма параметри, премахваме блока им от шаблона
-		if(!count($data->params)){
-			$tpl->removeBlock('PARAMS');
-		}
-		
-		$tpl->push(('cat/tpl/css/GeneralProductStyles.css'), 'CSS');
-		
-		$wrapTpl = new ET("<div class='general-product-description'>[#paramBody#]</div>");
-		$wrapTpl->append($tpl, 'paramBody');
-		
-		return $wrapTpl;
-	}
-	
-	
-	/**
 	 * Кои документи са използвани в полетата на драйвера
 	 */
 	public function getUsedDocs()
@@ -293,5 +268,43 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		}
 		
 		return $res;
+	}
+	
+	
+	/**
+	 * Подготвя данните за показване на описанието на драйвера
+	 */
+	public function prepareProductDescription()
+	{
+		$data = $this->prepareEmbeddedData();
+		$data->noChange = TRUE;
+		$data->tpl = getTplFromFile('cat/tpl/SingleLayoutBaseDriverShort.shtml');
+		
+		return $data;
+	}
+	
+	
+	/**
+	 * Рендира данните за показване на артикула
+	 */
+	public function renderProductDescription($data)
+	{
+		$tpl = $this->renderEmbeddedData($data);
+		
+		$title = ht::createLinkRef($this->EmbedderRec->getTitleById(), array($this->EmbedderRec->instance, 'single', $this->EmbedderRec->that));
+		$tpl->removeBlock('INFORMATION');
+		$tpl->replace($title, "TITLE");
+		
+		// Ако няма параметри, премахваме блока им от шаблона
+		if(!count($data->params)){
+			$tpl->removeBlock('PARAMS');
+		}
+		
+		$tpl->push(('cat/tpl/css/GeneralProductStyles.css'), 'CSS');
+		
+		$wrapTpl = new ET("<div class='general-product-description'>[#paramBody#]</div>");
+		$wrapTpl->append($tpl, 'paramBody');
+		
+		return $wrapTpl;
 	}
 }
