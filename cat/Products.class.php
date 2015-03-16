@@ -916,6 +916,30 @@ class cat_Products extends core_Embedder {
     
     
     /**
+     * Връща параметрите на артикула
+     * @param mixed $id - ид или запис на артикул
+     * 
+     * @return array $res - параметрите на артикула
+     * 					['weight']          -  Тегло
+     * 					['volume']          -  Обем 
+     * 					['thickness']       -  Дебелина
+     * 					['length']          -  Дължина
+     * 					['height']          -  Височина
+     * 					['tolerance']       -  Толеранс
+     * 					['transportWeight'] -  Транспортно тегло
+     * 					['transportVolume'] -  Транспортен обем
+     * 					['term']            -  Срок
+     */
+    public function getParams($id)
+    {
+    	$rec = $this->fetchRec($id);
+    	$Driver = $this->getDriver($rec);
+    	
+    	return $Driver->getParams();
+    }
+    
+    
+    /**
      * Връща теглото на еденица от продукта, ако е в опаковка връща нейното тегло
      * 
      * @param int $productId - ид на продукт
@@ -932,7 +956,8 @@ class cat_Products extends core_Embedder {
     	
     	if(!$weight){
     		$Driver = $this->getDriver($productId);
-    		$weight = $Driver->getWeight();
+    		$params = $Driver->getParams();
+    		$weight = $params['transportWeight'];
     	}
     	
     	return $weight;
@@ -956,7 +981,8 @@ class cat_Products extends core_Embedder {
     	
     	if(!$volume){
     		$Driver = $this->getDriver($productId);
-    		$volume = $Driver->getVolume();
+    		$params = $Driver->getParams();
+    		$weight = $params['transportVolume'];
     	}
     	
     	return $volume;
@@ -1352,7 +1378,7 @@ class cat_Products extends core_Embedder {
     {
     	$Jobs = cls::get('planning_Jobs');
     	
-    	return $this->getProductDesc($id, $Jobs, $time);
+    	return $this->getProductDesc($id, $time);
     }
     
     

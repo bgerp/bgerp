@@ -282,4 +282,33 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	{
 		return cat_products_Params::fetchParamValue($this->EmbedderRec->rec()->id, $this->EmbedderRec->getClassId(), 'transportVolume');
 	}
+	
+	
+	/**
+	 * Връща параметрите на артикула
+	 * @param mixed $id - ид или запис на артикул
+	 *
+	 * @return array $res - параметрите на артикула
+	 * 					['weight']          -  Тегло
+	 * 					['volume']          -  Обем
+	 * 					['thickness']       -  Дебелина
+	 * 					['length']          -  Дължина
+	 * 					['height']          -  Височина
+	 * 					['tolerance']       -  Толеранс
+	 * 					['transportWeight'] -  Транспортно тегло
+	 * 					['transportVolume'] -  Транспортен обем
+	 * 					['term']            -  Срок
+	 */
+	public function getParams()
+	{
+		$res = array();
+		$embedderRec = $this->EmbedderRec->rec()->id;
+		$embedderClassId = $this->EmbedderRec->getClassId();
+		
+		foreach (array('weight', 'volume', 'thickness', 'length', 'height', 'tolerance', 'transportWeight', 'transportVolume', 'term') as $p){
+			$res[$p] = cat_products_Params::fetchParamValue($embedderRec, $embedderClassId, $p);
+		}
+		
+		return $res;
+	}
 }

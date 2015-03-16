@@ -126,6 +126,27 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     
     
     /**
+     * Връща параметрите на артикула
+     * @param mixed $id - ид или запис на артикул
+     *
+     * @return array $res - параметрите на артикула
+     * 					['weight']          -  Тегло
+     * 					['volume']          -  Обем
+     * 					['thickness']       -  Дебелина
+     * 					['length']          -  Дължина
+     * 					['height']          -  Височина
+     * 					['tolerance']       -  Толеранс
+     * 					['transportWeight'] -  Транспортно тегло
+     * 					['transportVolume'] -  Транспортен обем
+     * 					['term']            -  Срок
+     */
+    public function getParams()
+    {
+    	return $this->class->getParams();
+    }
+    
+    
+    /**
      * Връща обема на еденица от продукта, ако е в опаковка връща нейния обем
      * 
      * @param int $productId - ид на продукт
