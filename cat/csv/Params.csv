@@ -10,3 +10,4 @@
 Транспортен Обем,volume,,transportVolume,,
 title_EN,varchar,,titleEN,,
 Толеранс,size,,length,,
+Срок,time,,term,,
