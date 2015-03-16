@@ -64,7 +64,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	 */
 	public function renderEmbeddedData($data)
 	{
-		if($innerState->photo){
+		if($this->innerState->photo){
 			$size = array(280, 150);
 			$Fancybox = cls::get('fancybox_Fancybox');
 			$data->row->image = $Fancybox->getImage($this->innerState->photo, $size, array(550, 550));
