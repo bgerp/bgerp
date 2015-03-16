@@ -1191,8 +1191,12 @@ class core_Users extends core_Manager
         if (!$state == 'active') {
             
             // Опитваме да получим адрес за връщане от заявката
-            $retUrl = $retUrl ? $retUrl : getCurrentUrl();
-        
+            $retUrl = $retUrl ? $retUrl :  getCurrentUrl();
+            
+            if(is_array($retUrl) && is_array($retUrl['Cmd'])) {
+                unset($retUrl['Cmd']['save']);
+                $retUrl['Cmd']['refresh'] = 1;
+            }
             // Редиректваме към формата за логване, 
             // като изпращаме и адрес за връщане
             redirect(array(
