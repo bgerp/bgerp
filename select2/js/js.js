@@ -13,12 +13,13 @@ function formatSelect2Data(data)
 	
 	var res = '<span';
 	
-	if (data.class) {
-		res += ' class=\"' + data.class + '\"';
+	if (data.element && data.element.className) {
+		res += ' class=\"' + data.element.className + '\"';
 	}
 	
-	res += '>' + data.name + '</span>';
-				return res;
+	res += '>' + data.text + '</span>';
+	
+	return res;
 }
 
 
@@ -31,11 +32,6 @@ function formatSelect2Data(data)
  */
 function formatSelect2DataSelection(data)
 {
-  	
-	if (data.name) {
-		
-		return data.name;
-	}
 	
 	return data.text;
 }
