@@ -904,8 +904,6 @@ class cat_Products extends core_Embedder {
     	
     	$pInfo = self::getProductInfo($productId);
     	
-    	$options = array('' => cat_UoM::getTitleById($pInfo->productRec->measureId));
-    	
     	$packs = $pInfo->packagings;
     	if(count($packs)){
     		foreach ($packs as $packRec){
