@@ -11,3 +11,4 @@
 title_EN,varchar,,titleEN,,
 Толеранс,size,,length,,
 Срок,time,,term,,
+Широчина,size,,width,,

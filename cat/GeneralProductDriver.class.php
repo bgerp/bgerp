@@ -290,6 +290,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	 *
 	 * @return array $res - параметрите на артикула
 	 * 					['weight']          -  Тегло
+	 * 					['width']           -  Широчина
 	 * 					['volume']          -  Обем
 	 * 					['thickness']       -  Дебелина
 	 * 					['length']          -  Дължина
@@ -305,7 +306,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		$embedderRec = $this->EmbedderRec->rec()->id;
 		$embedderClassId = $this->EmbedderRec->getClassId();
 		
-		foreach (array('weight', 'volume', 'thickness', 'length', 'height', 'tolerance', 'transportWeight', 'transportVolume', 'term') as $p){
+		foreach (array('weight', 'width', 'volume', 'thickness', 'length', 'height', 'tolerance', 'transportWeight', 'transportVolume', 'term') as $p){
 			$res[$p] = cat_products_Params::fetchParamValue($embedderRec, $embedderClassId, $p);
 		}
 		

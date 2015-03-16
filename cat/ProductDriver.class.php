@@ -277,6 +277,7 @@ abstract class cat_ProductDriver extends core_BaseClass
 	 *
 	 * @return array $res - параметрите на артикула
 	 * 					['weight']          -  Тегло
+	 * 					['width']           -  Широчина
 	 * 					['volume']          -  Обем
 	 * 					['thickness']       -  Дебелина
 	 * 					['length']          -  Дължина
@@ -290,7 +291,7 @@ abstract class cat_ProductDriver extends core_BaseClass
 	{
 		$res = array();
 		
-		foreach (array('weight', 'volume', 'thickness', 'length', 'height', 'tolerance', 'transportWeight', 'transportVolume', 'term') as $p){
+		foreach (array('weight', 'width', 'volume', 'thickness', 'length', 'height', 'tolerance', 'transportWeight', 'transportVolume', 'term') as $p){
 			$res[$p] = NULL;
 		}
 		

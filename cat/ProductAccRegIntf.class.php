@@ -131,6 +131,7 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
      *
      * @return array $res - параметрите на артикула
      * 					['weight']          -  Тегло
+     * 					['width']           -  Широчина
      * 					['volume']          -  Обем
      * 					['thickness']       -  Дебелина
      * 					['length']          -  Дължина
