@@ -165,10 +165,6 @@ abstract class deals_DealMaster extends deals_DealBase
 		$form->setDefault('makeInvoice', 'yes');
 		$form->setDefault('currencyId', acc_Periods::getBaseCurrencyCode($form->rec->valior));
 		
-		// Начисляване на ДДС по подразбиране
-		$contragentRef = new core_ObjectReference($form->rec->contragentClassId, $form->rec->contragentId);
-		$form->setDefault('chargeVat', $contragentRef->shouldChargeVat() ? 'yes' : 'export');
-		
 		// Поле за избор на локация - само локациите на контрагента по покупката
 		$locations = array('' => '') + crm_Locations::getContragentOptions($form->rec->contragentClassId, $form->rec->contragentId);
 		$form->setOptions('deliveryLocationId', $locations);
@@ -190,6 +186,18 @@ abstract class deals_DealMaster extends deals_DealBase
         // Търговеца по дефолт е отговорника на контрагента
         $inCharge = doc_Folders::fetchField($form->rec->folderId, 'inCharge');
         $form->setDefault('dealerId', $inCharge);
+	}
+	
+	
+	/**
+	 * Дали да се начислява ДДС
+	 */
+	public function getDefaultChargeVat($rec)
+	{
+		$coverId = doc_Folders::fetchCoverId($rec->folderId);
+		$Class = cls::get(doc_Folders::fetchCoverClassName($rec->folderId));
+		
+		return ($Class->shouldChargeVat($coverId)) ? 'yes' : 'export';
 	}
 	
 	

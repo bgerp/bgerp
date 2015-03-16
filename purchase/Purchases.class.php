@@ -150,7 +150,7 @@ class purchase_Purchases extends deals_DealMaster
     	'dealerId'           => 'lastDocUser',
     	'makeInvoice'        => 'lastDocUser|lastDoc',
     	'deliveryLocationId' => 'lastDocUser|lastDoc',
-    	'chargeVat'			 => 'lastDocUser|lastDoc',
+    	'chargeVat'			 => 'lastDocUser|lastDoc|defMethod',
     	'template' 			 => 'lastDocUser|lastDoc|LastDocSameCuntry',
     	'activityCenterId'   => 'lastDocUser|lastDoc',
     );

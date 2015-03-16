@@ -154,7 +154,7 @@ class sales_Quotations extends core_Master
     	
         $this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Клиент');
         $this->FLD('contragentId', 'int', 'input=hidden');
-        $this->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=description)','caption=Плащане->Метод,salecondSysId=paymentMethodSale');
+        $this->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=description,allowEmpty)','caption=Плащане->Метод,salecondSysId=paymentMethodSale');
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)','caption=Плащане->Валута,oldFieldName=paymentCurrencyId');
         $this->FLD('currencyRate', 'double(decimals=2)', 'caption=Плащане->Курс,oldFieldName=rate');
         $this->FLD('chargeVat', 'enum(yes=Включено, separate=Отделно, exempt=Oсвободено, no=Без начисляване)','caption=Плащане->ДДС,oldFieldName=vat');
@@ -179,7 +179,7 @@ class sales_Quotations extends core_Master
 	/**
      * Дали да се начислява ДДС
      */
-    public function getDefaultVat($rec)
+    public function getDefaultChargeVat($rec)
     {
         $coverId = doc_Folders::fetchCoverId($rec->folderId);
     	$Class = cls::get(doc_Folders::fetchCoverClassName($rec->folderId));
