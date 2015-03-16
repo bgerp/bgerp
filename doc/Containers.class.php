@@ -1406,6 +1406,55 @@ class doc_Containers extends core_Manager
             }
         }
         
+        $conf = core_Packs::getConfig('doc');
+        
+        if ($conf->DOC_REPAIR_STATE == 'yes') {
+            $resArr += self::repairStates($from, $to, $delay);
+        }
+        
+        return $resArr;
+    }
+    
+    
+    
+    /**
+     * Поправка на развалените полета за състояние
+     * 
+     * @param datetime $from
+     * @param datetime $to
+     * @param integer $delay
+     * 
+     * @return array
+     */
+    public static function repairStates($from = NULL, $to = NULL, $delay = 10)
+    {
+        $resArr = array();
+        $query = self::getQuery();
+        
+        doc_Folders::prepareRepairDateQuery($query, $from, $to, $delay);
+        
+        while ($rec = $query->fetch()) {
+            if (!$rec->docClass || !$rec->docId) continue;
+            
+            try {
+                $clsInst = cls::get($rec->docClass);
+                $iRec = $clsInst->fetch($rec->docId, '*', FALSE);
+                
+                if (!isset($iRec->state)) continue;
+                
+                if ($iRec->state == $rec->state) continue;
+                
+                $rec->state = $iRec->state;
+                
+                if (self::save($rec, 'state')) {
+                    $resArr['state']++;
+                }
+            } catch (Exception $e) {
+                
+                continue;
+            }
+        }
+        
         return $resArr;
     }
     
