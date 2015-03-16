@@ -220,6 +220,12 @@ class cat_Products extends core_Embedder {
 	public $addToListOnActivation = 'catProducts';
 	
 	
+	/**
+	 * 
+	 */
+	public $abbr = 'Cpr';
+	
+	
     /**
      * Описание на модела
      */
