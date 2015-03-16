@@ -84,12 +84,22 @@ a.datepick-cmd {
 .select2-container--default .select2-selection--multiple .select2-selection__choice {
 	margin-top: 3px;
 }
+.select2-results__option {
+	padding: 0;
+}
+.select2-results__option span{
+    padding: 4px 6px;
+    display: block;
+}
 
-.select2-results__group{
+.select2-results__group, span.team{
 	cursor: default;
 	color: #fff;
 	background-color: #333;
 	font-weight: bold;
+}
+span.all-users{ 
+	color: #777;
 }
 
 .select2-selection {
