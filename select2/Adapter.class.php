@@ -115,19 +115,18 @@ class select2_Adapter
     			cache: true
     		},
     		
-    		minimumInputLength: 0,
-    		
-    		templateResult: formatSelect2Data,
+    		minimumInputLength: 0";
+        }
+        
+        $select2Str .= "
+        	,templateResult: formatSelect2Data,
     		
     		templateSelection: formatSelect2DataSelection";
-        }
         
         $select2Str .= "});";
         
         jquery_Jquery::run($tpl, $select2Str, TRUE);
         
-        if ($ajaxUrl) {
-            $tpl->push(('select2/js/js.js'), 'JS');
-        }
+        $tpl->push(('select2/js/adapter.js'), 'JS');
     }
 }
