@@ -197,7 +197,7 @@ abstract class deals_DealMaster extends deals_DealBase
 		$coverId = doc_Folders::fetchCoverId($rec->folderId);
 		$Class = cls::get(doc_Folders::fetchCoverClassName($rec->folderId));
 		
-		return ($Class->shouldChargeVat($coverId)) ? 'yes' : 'export';
+		return ($Class->shouldChargeVat($coverId)) ? 'yes' : 'no';
 	}
 	
 	
