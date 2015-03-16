@@ -114,6 +114,7 @@ class sales_QuotationsDetails extends doc_Detail {
     	$this->FLD('term', 'time(uom=days,suggestions=1 ден|5 дни|7 дни|10 дни|15 дни|20 дни|30 дни)', 'caption=Срок');
     	$this->FLD('vatPercent', 'percent(min=0,max=1,decimals=2)', 'caption=ДДС,input=none');
         $this->FLD('optional', 'enum(no=Не,yes=Да)', 'caption=Опционален,maxRadio=2,columns=2,remember');
+        $this->FLD('showMode', 'enum(auto=Автоматично,detailed=Разширено,short=Кратко)', 'caption=Показване,notNull,default=auto');
     }
     
     
@@ -478,13 +479,10 @@ class sales_QuotationsDetails extends doc_Detail {
     	$recs = &$data->recs;
     	$rows = &$data->rows;
     	 
-    	$modifiedOn = $data->masterData->rec->modifiedOn;
-    	 
     	foreach ($rows as $id => &$row){
     		$rec = $recs[$id];
     		
-    		$ProductMan = cls::get($rec->classId);
-    		$row->productId = $ProductMan->getProductDesc($rec->productId, $mvc->Master, $modifiedOn);
+    		$row->productId = cat_Products::getAutoProductDesc($rec->productId, $data->masterData->rec->modifiedOn, $rec->showMode);
     	}
     }
     

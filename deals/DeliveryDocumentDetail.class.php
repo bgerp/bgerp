@@ -234,9 +234,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 		if(count($data->rows)) {
 			foreach ($data->rows as $i => &$row) {
 				$rec = &$data->recs[$i];
-				$ProductManager = cls::get($rec->classId);
-		
-				$row->productId = $ProductManager->getProductDesc($rec->productId, $mvc->Master, $data->masterData->rec->modifiedOn);
+
 				$haveDiscount = $haveDiscount || !empty($rec->discount);
 					 
 				if (empty($rec->packagingId)) {

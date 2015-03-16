@@ -1104,29 +1104,74 @@ class cat_Products extends core_Embedder {
     
     
     /**
-     * Връща описанието на артикула
+     * Връща подробното описанието на артикула
      *
      * @param mixed $id - ид/запис
-     * @param enum $documentMvc - класа на документа
-     * @return mixed - описанието на артикула
+     * @return mixed - подробното описанието на артикула
      */
-    public function getProductDesc($id, $documentMvc, $time = NULL)
+    public function getProductDesc($id, $time = NULL)
     {
     	$rec = $this->fetchRec($id);
     	
-    	$showDetailedIn = type_Set::toArray($rec->detailedDescriptionIn);
-    	if(isset($showDetailedIn[$documentMvc->className]) || $documentMvc instanceof planning_Jobs){
-    		$res = cat_ProductTplCache::cacheTpl($id, $time);
+    	return cat_ProductTplCache::cacheTpl($rec->id, $time);
+    }
+    
+    
+    /**
+     * Връща заглавието на артикула като линк
+     *
+     * @param mixed $id - ид/запис
+     * @return mixed - описанието на артикула
+     */
+    public function getProductDescShort($id)
+    {
+    	$rec = $this->fetchRec($id);
+    	$title = $this->getTitleById($rec->id);
+    	
+    	if(!Mode::is('printing') && !Mode::is('text', 'xhtml')){
+    		$title = ht::createLinkRef($title, array($this, 'single', $rec->id));
     	}
     	
-    	if(!isset($res)){
-    		$tpl = new ET($this->recTitleTpl);
-    		$tpl->placeObject($rec);
-    		$res = $tpl->getContent();
-    		
-    		if(!Mode::is('printing') && !Mode::is('text', 'xhtml')){
-    			$res = ht::createLinkRef($res, array('cat_Products', 'single', $rec->id));
-    		}
+    	return $title;
+    }
+    
+    
+
+
+	/**
+	 * Връща информацията за артикула според зададения режим:
+	 * 		- автоматично : ако артикула е частен се връща детайлното описание, иначе краткото
+	 * 		- детайлно    : винаги връщаме детайлното описание
+	 * 		- кратко      : връщаме краткото описание
+	 * 
+	 * @param mixed $id                       - ид или запис на артикул
+	 * @param datetime $time                  - време
+	 * @param enum(auto,detailed,short) $mode - режим на показване
+	 * 		
+	 * @return mixed $res
+	 * 		ако $mode e 'auto'     - ако артикула е частен се връща детайлното описание, иначе краткото
+	 *      ако $mode e 'detailed' - подробно описание
+	 *      ако $mode e 'short'	   - кратко описание
+	 */
+    public static function getAutoProductDesc($id, $time = NULL, $mode = 'auto')
+    {
+    	$me = cls::get(get_called_class());
+    	$rec = $me->fetchRec($id);
+    	
+    	switch($mode){
+    		case 'detailed' :
+    			$res = $me->getProductDesc($rec);
+    			break;
+    		case 'short' :
+    			$res = $me->getProductDescShort($rec);
+    			break;
+    		default :
+    			if($rec->isPublic == 'no'){
+    				$res = $me->getProductDesc($rec);
+    			} else {
+    				$res = $me->getProductDescShort($rec);
+    			}
+    			break;
     	}
     	
     	return $res;
@@ -1423,30 +1468,4 @@ class cat_Products extends core_Embedder {
     	// За артикула, това е цената по себестойност
     	return $this->getSelfValue($id);
     }
-    
-    
-    /*public static function getRecTitle($rec, $escaped = true)
-    {
-    	if(empty($rec->code)){
-    		$me = cls::get(get_called_class());
-    		if($rec->canSell == 'yes'){
-    			$sQuery = sales_SalesDetails::getQuery();
-    			$sQuery->EXT('accountNum', 'acc_Accounts', 'externalName=num,externalKey=accountId', 'caption=Сметка->№');
-    			$docId = sales_SalesDetails::fetchField("#classId = {$me->getClassId()} AND #productId = {$rec->id}", 'saleId');
-    		}
-    		
-    		if(!$docId){
-    			if($rec->canBuy == 'yes'){
-    				$docId = purchase_PurchasesDetails::fetchField("#classId = {$me::getClassId()} AND #productId = {$rec->id}", 'purchaseId');
-    			}
-    		}
-    		
-    		$rec->code = tr("Дог") . ". #{$docId}";
-    	}
-    	
-    	$tpl = new ET($me->recTitleTpl);
-    	$tpl->placeObject($rec);
-    	
-    	return $tpl->getContent();
-    }*/
 }

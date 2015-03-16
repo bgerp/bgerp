@@ -96,6 +96,7 @@ abstract class deals_DealDetail extends doc_Detail
     	// Цена за опаковка (ако има packagingId) или за единица в основна мярка (ако няма packagingId)
     	$mvc->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input');
     	$mvc->FLD('discount', 'percent(min=-1,max=1)', 'caption=Отстъпка');
+    	$mvc->FLD('showMode', 'enum(auto=Автоматично,detailed=Разширено,short=Кратко)', 'caption=Показване,notNull,default=auto');
     }
     
     
@@ -322,13 +323,10 @@ abstract class deals_DealDetail extends doc_Detail
     	$recs = &$data->recs;
     	$rows = &$data->rows;
     	
-    	$modifiedOn = $data->masterData->rec->modifiedOn;
-    	
     	foreach ($rows as $id => &$row){
     		$rec = $recs[$id];
     		
-    		$ProductManager = cls::get($rec->classId);
-    		$row->productId = $ProductManager->getProductDesc($rec->productId, $mvc->Master, $modifiedOn);
+    		$row->productId = cat_Products::getAutoProductDesc($rec->productId, $data->masterData->rec->modifiedOn, $rec->showMode);
     	}
     }
     

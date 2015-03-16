@@ -13,6 +13,8 @@
  */
 class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
 {
+	
+	
     /**
      * Заглавие
      * 
@@ -128,6 +130,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
         $this->FLD('weight', 'cat_type_Weight', 'input=hidden,caption=Тегло');
         $this->FLD('volume', 'cat_type_Volume', 'input=hidden,caption=Обем');
         $this->FLD('info', "varchar(50)", 'caption=Колети');
+        $this->FLD('showMode', 'enum(auto=Автоматично,detailed=Разширено,short=Кратко)', 'caption=Показване,notNull,default=auto');
     }
 
 
@@ -269,6 +272,21 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     		 
     		if($rec->price < cls::get($rec->classId)->getSelfValue($rec->productId)){
     			$row->packPrice = "<span class='row-negative' title = '" . tr('Цената е под себестойност') . "'>{$row->packPrice}</span>";
+    		}
+    	}
+    }
+    
+    
+    /**
+     * След обработка на записите от базата данни
+     */
+    public static function on_AfterPrepareListRows(core_Mvc $mvc, $data)
+    {
+    	if(count($data->rows)) {
+    		foreach ($data->rows as $i => &$row) {
+    			$rec = &$data->recs[$i];
+    			
+    			$row->productId = cat_Products::getAutoProductDesc($rec->productId, $data->masterData->rec->modifiedOn, $rec->showMode);
     		}
     	}
     }

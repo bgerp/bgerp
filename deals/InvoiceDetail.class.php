@@ -209,7 +209,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 	public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
 	{
 		$ProductMan = cls::get($rec->classId);
-		$row->productId = $ProductMan->getProductDesc($rec->productId, $mvc->Master);
+		$row->productId = $ProductMan->getProductDescShort($rec->productId);
 	
 		if($rec->note){
 			$varchar = cls::get('type_Varchar');
