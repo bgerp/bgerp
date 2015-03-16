@@ -220,11 +220,12 @@ class sales_QuotationsDetails extends doc_Detail {
        	 	
        		$rec->price = $rec->price / $masterRec->currencyRate;
         }
-       
-        // Спецификациите немогат да са опционални
-        if(!$productMan instanceof cat_Products){
-       		$form->setField('optional', 'input=none');
-        }
+        
+        $form->setDefault('discount', $mvc->fetchField("#quotationId = {$masterRec->id} AND #discount IS NOT NULL", 'discount'));
+    
+    	/*if(isset($rec->productId)){
+    		$params = $productMan->getParams($rec->productId);
+    	}*/
     }
     
     
