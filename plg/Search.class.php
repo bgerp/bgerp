@@ -43,7 +43,7 @@ class plg_Search extends core_Plugin
      */
     function on_BeforeSave($mvc, $id, $rec, $fields=NULL)
     {
-        if(!$fields || arr::haveSection($fields, $mvc->getSearchFields())) {
+        if (!$fields || arr::haveSection($fields, $mvc->getSearchFields())) {
 
             $rec->searchKeywords = $mvc->getSearchKeywords($rec);
         }
@@ -54,7 +54,7 @@ class plg_Search extends core_Plugin
      */
     static function on_AfterGetSearchKeywords($mvc, &$searchKeywords, $rec)
     {
-        if($searchKeywords) return;
+        if ($searchKeywords) return;
         
         $searchKeywords = self::getKeywords($mvc, $rec);
     }
@@ -72,6 +72,15 @@ class plg_Search extends core_Plugin
             
             if (is_object($rec)) {
                 $cRec = clone $rec;
+                if ($cRec->id) {
+                    $fullRec = $mvc->fetch($cRec->id);
+                    foreach ($fieldsArr as $fieldName => $dummy) {
+                        if (!isset($cRec->{$fieldName})) {
+                            $cRec->{$fieldName} = $fullRec->{$fieldName};
+                        }
+                    }
+                    
+                }
             } elseif (is_numeric($rec)) {
                 $cRec = $mvc->fetch($rec);
             }
