@@ -122,7 +122,7 @@ class sales_Quotations extends core_Master
     
     	'validFor'        => 'lastDocUser|lastDoc',
     	'paymentMethodId' => 'clientCondition|lastDocUser|lastDoc',
-        'currencyId'      => 'lastDocUser|lastDoc',
+        'currencyId'      => 'lastDocUser|lastDoc|CoverMethod',
         'chargeVat'       => 'lastDocUser|lastDoc|defMethod',
     	'others'          => 'lastDocUser|lastDoc',
         'deliveryTermId'  => 'clientCondition|lastDocUser|lastDoc',
