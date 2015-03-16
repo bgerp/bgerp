@@ -171,7 +171,7 @@ class doc_FolderPlg extends core_Plugin
     public static function on_BeforeMakeArray4Select($mvc, &$res, $fields = NULL, &$where = "", $index = 'id'  )
     { 
     	// Могат да се избират само не оттеглените и затворени корици
-    	$where .= ($where ? " AND " : "") . " (#state != 'closed' && #state != 'rejected')";
+    	$where .= ($where ? " AND " : "") . " (#state != 'closed' AND #state != 'rejected')";
     	
     	$cu = core_Users::getCurrent();
 
