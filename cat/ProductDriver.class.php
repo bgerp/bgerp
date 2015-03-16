@@ -254,24 +254,6 @@ abstract class cat_ProductDriver extends core_BaseClass
 	
 	
 	/**
-	 * Колко е теглото на артикула
-	 */
-	public function getWeight()
-	{
-		return NULL;
-	}
-	
-	
-	/**
-	 * Колко е обема му
-	 */
-	public function getVolume()
-	{
-		return NULL;
-	}
-	
-	
-	/**
 	 * Връща параметрите на артикула
 	 * @param mixed $id - ид или запис на артикул
 	 *
