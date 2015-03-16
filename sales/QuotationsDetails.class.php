@@ -113,7 +113,7 @@ class sales_QuotationsDetails extends doc_Detail {
         $this->FLD('tolerance', 'percent(min=0,max=1,decimals=0)', 'caption=Толеранс');
     	$this->FLD('term', 'time(uom=days,suggestions=1 ден|5 дни|7 дни|10 дни|15 дни|20 дни|30 дни)', 'caption=Срок');
     	$this->FLD('vatPercent', 'percent(min=0,max=1,decimals=2)', 'caption=ДДС,input=none');
-        $this->FLD('optional', 'enum(no=Не,yes=Да)', 'caption=Опционален,maxRadio=2,columns=2,remember');
+        $this->FLD('optional', 'enum(no=Не,yes=Да)', 'caption=Опционален,maxRadio=2,columns=2,input=hidden,silent');
         $this->FLD('showMode', 'enum(auto=Автоматично,detailed=Разширено,short=Кратко)', 'caption=Показване,notNull,default=auto');
     }
     
@@ -298,33 +298,7 @@ class sales_QuotationsDetails extends doc_Detail {
      */
     public static function on_AfterPrepareListToolbar($mvc, $data)
     {
-    	if (!empty($data->toolbar->buttons['btnAdd'])) {
-            $productManagers = core_Classes::getOptionsByInterface('cat_ProductAccRegIntf');
-            $masterRec = $data->masterData->rec;
-            $addUrl = $data->toolbar->buttons['btnAdd']->url;
-            
-            foreach ($productManagers as $manId => $manName) {
-            	$productMan = cls::get($manId);
-            	$products = $productMan->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date, 'canSell');
-            	
-            	// Добавяме ориджина като възможен избор, ако го няма
-            	if($masterRec->originId){
-            		$origin = doc_Containers::getDocument($masterRec->originId);
-            		$products[$origin->that] = $origin->getTitleById(FALSE);
-            	}
-            	
-            	if(!count($products)){
-                	$error = "error=Няма продаваеми {$productMan->title}";
-                }
-                
-                $productKind = mb_strtolower($productMan->singleTitle);
-            	$data->toolbar->addBtn($productMan->singleTitle, $addUrl + array('classId' => $manId),
-                    "id=btnAdd-{$manId},{$error},order=10", "ef_icon = img/16/shopping.png, title=Добавяне на {$productKind} към офертата");
-            	unset($error);
-            }
-            
-            unset($data->toolbar->buttons['btnAdd']);
-        }
+    	unset($data->toolbar->buttons['btnAdd']);
     }
     
     
@@ -347,6 +321,19 @@ class sales_QuotationsDetails extends doc_Detail {
     {
     	$newRows = array();
     	$dZebra = $oZebra = 'zebra0';
+    	
+    	// Подготвяме бутоните за добавяне на нов артикул
+		if($this->haveRightFor('add', (object)array('quotationId' => $data->masterId))){
+    		$productMan = cls::get('cat_Products');
+    		$products = $productMan->getProducts($data->masterData->rec->contragentClassId, $data->masterData->rec->contragentId, $data->masterData->rec->date, 'canSell');
+    		if(!count($products)){
+    			$error = "error=Няма продаваеми артикули";
+    		}
+    	
+    		$data->addNotOptionalBtn = ht::createBtn('Артикул',  array($this, 'add', 'quotationId' => $data->masterId, 'classId' => $productMan->getClassId(), 'optional' => 'no'), FALSE, FALSE, "{$error},ef_icon = img/16/shopping.png, title=Добавяне на артикул към офертата");
+    		$data->addOptionalBtn = ht::createBtn('Артикул',  array($this, 'add', 'quotationId' => $data->masterId, 'classId' => $productMan->getClassId(), 'optional' => 'yes'),  FALSE, FALSE, "{$error},ef_icon = img/16/shopping.png, title=Добавяне на артикул към офертата");
+    	}
+    	
     	if(!$data->rows) return;
     	foreach($data->rows as $i => $row){
     		$pId = $data->recs[$i]->productId;
@@ -444,16 +431,26 @@ class sales_QuotationsDetails extends doc_Detail {
     	$vatRow = ($masterRec->chargeVat == 'yes') ? tr(', |с ДДС|*') : tr(', |без ДДС|*');
     	$misc = $masterRec->currencyId . $vatRow;
     	
-    	$tpl->append($this->renderListToolbar($data), 'ListToolbar');
-    	$dTpl->append(tr('Оферирани'), 'TITLE');
-    	$dTpl->append($misc, "MISC");
-    	$dTpl->removeBlocks();
-    	$tpl->append($dTpl, 'MANDATORY');
+    	// Ако сме чернова или има поне един задължителен артикул, рендираме таблицата му
+    	if($masterRec->state == 'draft' || $dCount > 1){
+    		$tpl->append($this->renderListToolbar($data), 'ListToolbar');
+    		$dTpl->append(tr('Оферирани'), 'TITLE');
+    		$dTpl->append($misc, "MISC");
+    		if(isset($data->addNotOptionalBtn)){
+    			$dTpl->append($data->addNotOptionalBtn, 'ADD_BTN');
+    		}
+    		
+    		$dTpl->removeBlocks();
+    		$tpl->append($dTpl, 'MANDATORY');
+    	}
     	
-    	// Ако няма опционални продукти не рендираме таблицата им
-    	if($oCount > 1){
+    	// Ако сме чернова и има поне един опционален артикул, рендираме таблицата за артикули
+    	if($masterRec->state == 'draft' || $oCount > 1){
     		$oTpl->append(tr('Опционални'), 'TITLE');
     		$oTpl->append($misc, "MISC");
+    		if(isset($data->addOptionalBtn)){
+    			$oTpl->append($data->addOptionalBtn, 'ADD_BTN');
+    		}
     		$tpl->append($oTpl, 'OPTIONAL');
     	}
     	
