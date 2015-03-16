@@ -9,6 +9,6 @@
 Транспортно Тегло,weight,,transportWeight,,
 Транспортен Обем,volume,,transportVolume,,
 title_EN,varchar,,titleEN,,
-Толеранс,size,,tolerance,,
+Толеранс,percent,,tolerance,,
 Срок,time,,term,,
 Широчина,size,,width,,
