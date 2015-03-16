@@ -3826,6 +3826,8 @@ only screen and (max-width: 320px) {
     display: none; }
   .printing .staticFormView .formFieldValue {
     border: 1px solid #cccccc; }
+  .printing .header-state {
+    display: none; }
 
 .narrow .printing .document {
   width: 850px; }
