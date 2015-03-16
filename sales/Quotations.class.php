@@ -343,6 +343,14 @@ class sales_Quotations extends core_Master
 		if($fields['-single']){
 			$quotDate = dt::mysql2timestamp($rec->date);
 			$timeStamp = dt::mysql2timestamp(dt::verbal2mysql());
+			
+			if(isset($rec->validFor)){
+				
+				// До коя дата е валидна
+				$row->validDate = dt::addSecs($rec->validFor, $rec->date);
+				$row->validDate = $mvc->getFieldType('date')->toVerbal($row->validDate);
+			}
+			
 			if(isset($rec->validFor) && (($quotDate + $rec->validFor) < $timeStamp)){
 				$row->expired = tr("офертата е изтекла");
 			}
