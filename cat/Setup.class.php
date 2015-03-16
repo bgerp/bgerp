@@ -70,6 +70,7 @@ class cat_Setup extends core_ProtoSetup
     		'migrate::updateDocs',
     		'migrate::fixStates',
     		'migrate::privateProducts',
+    		'migrate::truncatCache',
         );
 
         
@@ -451,5 +452,14 @@ class cat_Setup extends core_ProtoSetup
     		$rec->detailedDescriptionIn = 'sales_Quotations,sales_Sales';
     		$Products->save_($rec, 'detailedDescriptionIn');
     	}
+    }
+    
+    
+    /**
+     * Изтриваме кеша
+     */
+    public function truncatCache()
+    {
+    	cat_ProductTplCache::truncate();
     }
 }
