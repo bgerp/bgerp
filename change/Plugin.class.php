@@ -123,6 +123,13 @@ class change_Plugin extends core_Plugin
         
         // Изискваме да има права за промяна на записа
         $mvc->requireRightFor('changerec', $fRec);
+        
+        // Проверка дали входните данни са уникални
+        if($fRec) { 
+            if($form->isSubmitted() && !$mvc->isUnique($fRec, $fields)) {
+                $form->setError($fields, "Вече съществува запис със същите данни");
+            }
+        }
 
         // Генерираме събитие в AfterInputEditForm, след въвеждането на формата
         $mvc->invoke('AfterInputEditForm', array($form));
