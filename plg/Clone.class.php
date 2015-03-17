@@ -299,6 +299,8 @@ class plg_Clone extends core_Plugin
     				while($dRec = $query->fetch()){
     					$dRec->{$Detail->masterKey} = $nRec->id;
     					unset($dRec->id);
+    					
+    					$Detail->invoke('BeforeSaveClonedDetail', array($dRec));
     					$Detail->save($dRec);
     				}
     			}
