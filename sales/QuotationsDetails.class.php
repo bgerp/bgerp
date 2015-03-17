@@ -100,7 +100,7 @@ class sales_QuotationsDetails extends doc_Detail {
         $this->FLD('classId', 'class(interface=cat_ProductAccRegIntf, select=title)', 'input=hidden,caption=Политика,silent,oldFieldName=productManId');
         
         $this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка', 'tdClass=small-field');
-        $this->FNC('packQuantity', 'double(Min=0)', 'caption=К-во,input=input,mandatory');
+        $this->FNC('packQuantity', 'double(Min=0)', 'caption=К-во,input=input');
         $this->FLD('quantityInPack', 'double(smartRound)', 'input=none');
         $this->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input');
         
@@ -309,6 +309,9 @@ class sales_QuotationsDetails extends doc_Detail {
     	}
     	
     	if($form->isSubmitted()){
+    		if(empty($form->rec->packQuantity)){
+    			$form->rec->packQuantity = 1;
+    		}
     		
     		$rec->quantityInPack = (empty($rec->packagingId)) ? 1 : $productInfo->packagings[$rec->packagingId]->quantity;
     		$rec->quantity = $rec->packQuantity * $rec->quantityInPack;
@@ -359,14 +362,15 @@ class sales_QuotationsDetails extends doc_Detail {
     			    }
     			}
     			
-    			if($rec->optional == 'no' && !$rec->quantity){
-    				$form->setError('quantity', 'Задължителния продукт не може да е без количество!');
-    			}
-    			
     			if($sameProduct = $mvc->fetch("#quotationId = {$rec->quotationId} AND #classId = {$rec->classId} AND #productId = {$rec->productId}  AND #quantity='{$rec->quantity}'")){
     				if($sameProduct->id != $rec->id){
-    					$form->setError('quantity', 'Избрания продукт вече фигурира с това количество');
+    					$form->setError('packQuantity', 'Избрания продукт вече фигурира с това количество');
     				}
+    			}
+    			
+    			// Ако във формата са открити грешки, занулаваме вече изчислените полета, да не се показват
+    			if($form->gotErrors()){
+    				unset($rec->packPrice, $rec->packQuantity, $rec->quantity, $rec->price, $rec->discount);
     			}
     			
     			$rec->vatPercent = $vat;
