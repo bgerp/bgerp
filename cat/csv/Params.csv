@@ -1,14 +1,14 @@
-Дължина,size,,length,,
-Височина,size,,height,,
-Тегло,weight,,weight,,
-Дебелина,size,,thickness,,
-Обем,volume,,volume,,
-Плътност,density,,density,,
-Цвят,varchar,,color,,
-Н. такси,double,лв,bTax,,
-Транспортно Тегло,weight,,transportWeight,,
-Транспортен Обем,volume,,transportVolume,,
-title_EN,varchar,,titleEN,,
-Толеранс,percent,,tolerance,,
-Срок,time,,term,,
-Широчина,size,,width,,
+Дължина,size,,length,,,no
+Височина,size,,height,,,no
+Тегло,weight,,weight,,,no
+Дебелина,size,,thickness,,,no
+Обем,volume,,volume,,,no
+Плътност,density,,density,,,no
+Цвят,varchar,,color,,,yes
+Н. такси,double,лв,bTax,,,no
+Транспортно Тегло,weight,,transportWeight,,,no
+Транспортен Обем,volume,,transportVolume,,,no
+title_EN,varchar,,titleEN,,,no
+Толеранс,percent,,tolerance,,,yes
+Срок,time,,term,,,yes
+Широчина,size,,width,,,no
