@@ -80,8 +80,6 @@ abstract class deals_DealDetail extends doc_Detail
     	
     	$mvc->FLD('quantityDelivered', 'double', 'caption=К-во->Доставено,input=none'); // Експедирано количество (в основна мярка)
     	
-    	$mvc->FLD('quantityInvoiced', 'double', 'caption=К-во->Фактурирано,input=none'); // Фактурирано количество (в основна мярка)
-    	
     	// Количество (в осн. мярка) в опаковката, зададена от 'packagingId'; Ако 'packagingId'
     	// няма стойност, приема се за единица.
     	$mvc->FLD('quantityInPack', 'double', 'input=none');
