@@ -356,9 +356,9 @@ class sales_QuotationsDetails extends doc_Detail {
     		if(!$form->gotErrors()){
     			if($sameProduct = $mvc->fetch("#quotationId = {$rec->quotationId} AND #classId = {$rec->classId} AND #productId = {$rec->productId}")){
     				if($rec->optional == 'yes' && $sameProduct->optional == 'no' && $rec->id != $sameProduct->id){
-    					$form->setError('optional', "Не може да добавите продукта като опционален, защото фигурира вече като задължителен!");
+    					$form->setError('productId', "Не може да добавите продукта като опционален, защото фигурира вече като задължителен!");
     			    } elseif($rec->optional == 'no' && $sameProduct->optional == 'yes' && $rec->id != $sameProduct->id){
-    					$form->setError('optional', "Не може да добавите продукта като задължителен, защото фигурира вече като опционален!");
+    					$form->setError('productId', "Не може да добавите продукта като задължителен, защото фигурира вече като опционален!");
     			    }
     			}
     			
