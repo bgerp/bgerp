@@ -635,6 +635,9 @@ class sales_Sales extends deals_DealMaster
     	$data->jobInfo = array();
     	if($data->rec->state != 'rejected'){
     		
+    		// Да не се показва блока взависимост в какъв режим сме
+    		if(Mode::is('text', 'xhtml') || Mode::is('text', 'plain') || Mode::is('pdf')) return;
+    		
     		// Подготвяме информацията за наличните задания към нестандартните (частните) артикули в продажбата
     		$dQuery = sales_SalesDetails::getQuery();
     		$dQuery->where("#saleId = {$data->rec->id}");
