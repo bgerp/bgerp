@@ -423,4 +423,13 @@ abstract class deals_DealDetail extends doc_Detail
     	
     	return $Master::addRow($masterId, 'cat_Products', $pRec->productId, $row->quantity, $price, $pRec->packagingId);
     }
+    
+    
+    /**
+     * Изпълнява се преди запис на клониран детайл
+     */
+    public static function on_BeforeSaveClonedDetail($mvc, &$rec)
+    {
+    	unset($rec->quantityDelivered);
+    }
 }
