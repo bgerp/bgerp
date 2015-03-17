@@ -23,7 +23,7 @@
                 [#packagingId#]
             </td>
              <td class='misc-info quote-col[#OPT#] nowrap aright vtop'>
-               [#packQuantity#] 
+               <b>[#packQuantity#] </b>
                 <!--ET_BEGIN tolerance-->
                 <div class='quiantity-misc'>&#177; <b>[#tolerance#]</b></div>
                 <!--ET_END tolerance-->
