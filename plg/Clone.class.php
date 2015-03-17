@@ -270,4 +270,39 @@ class plg_Clone extends core_Plugin
             $data->toolbar->addBtn('Клониране', array($mvc, 'cloneFields', $data->rec->id, 'ret_url' => array($mvc, 'single', $data->rec->id)), "ef_icon=img/16/clone.png,title={$title},row=2, order=40");
         }
     }
+    
+    
+    /**
+     * След клониране на записа
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $rec  - клонирания запис
+     * @param stdClass $nRec - новия запис
+     */
+    public static function on_AfterSaveCloneRec($mvc, $rec, $nRec)
+    {
+    	// Ако има изброени детайли за клониране
+    	if(isset($mvc->cloneDetailes)){
+    		
+    		$details = arr::make($mvc->cloneDetailes, TRUE);
+    		if(count($details)){
+    			
+    			// За всеки от тях
+    			foreach ($details as $det){
+    				$Detail = cls::get($det);
+    				if(!isset($Detail->masterKey)) continue;
+    				
+    				// Клонираме записа и го свързваме към новия запис
+    				$query = $Detail->getQuery();
+    				$query->where("#{$Detail->masterKey} = {$rec->id}");
+    				
+    				while($dRec = $query->fetch()){
+    					$dRec->{$Detail->masterKey} = $nRec->id;
+    					unset($dRec->id);
+    					$Detail->save($dRec);
+    				}
+    			}
+    		}
+    	}
+    }
 }
