@@ -1593,7 +1593,14 @@ abstract class deals_DealMaster extends deals_DealBase
     	);
     	
     	// Проверяваме дали въвдения детайл е уникален
-    	if($exRec = $Detail->fetch("#{$Detail->masterKey} = {$id} AND #classId = {$dRec->classId} AND #productId = {$dRec->productId}")){
+    	$where = "#{$Detail->masterKey} = {$id} AND #classId = {$dRec->classId} AND #productId = {$dRec->productId}";
+    	if($packagingId){
+    		$where .= " AND #packagingId = {$packagingId}";
+    	} else {
+    		$where .= " AND #packagingId IS NULL";
+    	}
+    	
+    	if($exRec = $Detail->fetch($where)){
     		
     		// Смятаме средно притеглената цена и отстъпка
     		$nPrice = ($exRec->quantity * $exRec->price +  $dRec->quantity * $dRec->price) / ($dRec->quantity + $exRec->quantity);
