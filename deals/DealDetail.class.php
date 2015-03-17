@@ -95,6 +95,7 @@ abstract class deals_DealDetail extends doc_Detail
     	$mvc->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input');
     	$mvc->FLD('discount', 'percent(min=-1,max=1)', 'caption=Отстъпка');
     	$mvc->FLD('showMode', 'enum(auto=Автоматично,detailed=Разширено,short=Кратко)', 'caption=Показване,notNull,default=auto');
+    	$mvc->FLD('notes', 'richtext(rows=3)', 'caption=Забележки');
     }
     
     
@@ -331,6 +332,9 @@ abstract class deals_DealDetail extends doc_Detail
     		$rec = $recs[$id];
     		
     		$row->productId = cat_Products::getAutoProductDesc($rec->productId, $data->masterData->rec->modifiedOn, $rec->showMode);
+    		if($rec->notes){
+    			$row->productId .= "<div class='small'>{$mvc->getFieldType('notes')->toVerbal($rec->notes)}</div>";
+    		}
     	}
     }
     

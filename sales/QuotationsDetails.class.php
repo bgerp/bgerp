@@ -112,6 +112,7 @@ class sales_QuotationsDetails extends doc_Detail {
     	$this->FLD('vatPercent', 'percent(min=0,max=1,decimals=2)', 'caption=ДДС,input=none');
         $this->FLD('optional', 'enum(no=Не,yes=Да)', 'caption=Опционален,maxRadio=2,columns=2,input=hidden,silent');
         $this->FLD('showMode', 'enum(auto=Автоматично,detailed=Разширено,short=Кратко)', 'caption=Показване,notNull,default=auto');
+        $this->FLD('notes', 'richtext(rows=3)', 'caption=Забележки,formOrder=110001');
     }
     
     
@@ -571,6 +572,9 @@ class sales_QuotationsDetails extends doc_Detail {
     		}
     		
     		$row->productId = cat_Products::getAutoProductDesc($rec->productId, $data->masterData->rec->modifiedOn, $rec->showMode);
+    		if($rec->notes){
+    			$row->productId .= "<div class='small'>{$mvc->getFieldType('notes')->toVerbal($rec->notes)}</div>";
+    		}
     	}
     }
     

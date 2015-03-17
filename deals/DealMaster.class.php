@@ -1525,9 +1525,10 @@ abstract class deals_DealMaster extends deals_DealBase
      * @param double $price        - цена на единична бройка (ако не е подадена, определя се от политиката)
      * @param int $packagingId     - ид на опаковка (не е задължителна)
      * @param double $discount     - отстъпка между 0(0%) и 1(100%) (не е задължителна)
+     * @param text $notes          - забележки
      * @return mixed $id/FALSE     - ид на запис или FALSE
      */
-    public static function addRow($id, $pMan, $productId, $packQuantity, $price = NULL, $packagingId = NULL, $discount = NULL)
+    public static function addRow($id, $pMan, $productId, $packQuantity, $price = NULL, $packagingId = NULL, $discount = NULL, $notes = NULL)
     {
     	$me = cls::get(get_called_class());
     	$Detail = cls::get($me->mainDetail);
@@ -1545,6 +1546,10 @@ abstract class deals_DealMaster extends deals_DealBase
     	expect($ProductMan->fetchField($productId, 'id'));
     	if(isset($packagingId)){
     		expect(cat_Packagings::fetchField($packagingId, 'id'));
+    	}
+    	
+    	if(isset($notes)){
+    		$notes = cls::get('type_Richtext')->fromVerbal($notes);
     	}
     	
     	// Броя еденици в опаковка, се определя от информацията за продукта
@@ -1570,6 +1575,7 @@ abstract class deals_DealMaster extends deals_DealBase
     						  'discount'         => $discount,
     						  'price'            => $price,
     						  'quantityInPack'   => $quantityInPack,
+    						  'notes'			 => $notes,
     	);
     	
     	// Проверяваме дали въвдения детайл е уникален

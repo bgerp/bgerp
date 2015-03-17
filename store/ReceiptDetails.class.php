@@ -149,6 +149,9 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
     			$rec = &$data->recs[$i];
     
     			$row->productId = cls::get($rec->classId)->getProductDescShort($rec->productId);
+    			if($rec->notes){
+    				$row->productId .= "<div class='small'>{$mvc->getFieldType('notes')->toVerbal($rec->notes)}</div>";
+    			}
     		}
     	}
     }

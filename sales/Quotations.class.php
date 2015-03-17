@@ -753,7 +753,7 @@ class sales_Quotations extends core_Master
     	
     	// За всеки детайл на офертата подаваме го като детайл на продажбата
     	foreach ($items as $item){
-    		sales_Sales::addRow($sId, $item->classId, $item->productId, $item->packQuantity, $item->price, $item->packagingId, $item->discount);
+    		sales_Sales::addRow($sId, $item->classId, $item->productId, $item->packQuantity, $item->price, $item->packagingId, $item->discount, $item->notes);
     	}
     	
     	// Редирект към новата продажба
@@ -785,14 +785,17 @@ class sales_Quotations extends core_Master
     			// При опционален продукт без к-во се продължава
     			if($optional == 'yes' && empty($quantity)) continue;
     			
+    			// Опитваме се да намерим записа съотвестващ на това количество
     			$where = "#quotationId = {$id} AND #productId = {$productId} AND #classId = {$classId} AND #packagingId = {$packagingId} AND #optional = '{$optional}' AND #quantity = {$quantity}";
     			$dRec = sales_QuotationsDetails::fetch($where);
     			if(!$dRec){
+    				
+    				// Ако няма (к-то е друго) се намира първия срещнат
     				$dRec = sales_QuotationsDetails::fetch("#quotationId = {$id} AND #productId = {$productId} AND #classId = {$classId} AND #packagingId = {$packagingId} AND #optional = '{$optional}'");
     			}
     			
     			$dRec->packQuantity = $quantity / $dRec->quantityInPack;
-    			sales_Sales::addRow($sId, $dRec->classId, $dRec->productId, $dRec->packQuantity, $dRec->price, $dRec->packagingId, $dRec->discount);
+    			sales_Sales::addRow($sId, $dRec->classId, $dRec->productId, $dRec->packQuantity, $dRec->price, $dRec->packagingId, $dRec->discount, $dRec->notes);
     		}
     		 
     		return Redirect(array('sales_Sales', 'single', $sId));

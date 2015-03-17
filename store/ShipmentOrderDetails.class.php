@@ -287,6 +287,9 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     			$rec = &$data->recs[$i];
     			
     			$row->productId = cat_Products::getAutoProductDesc($rec->productId, $data->masterData->rec->modifiedOn, $rec->showMode);
+    			if($rec->notes){
+    				$row->productId .= "<div class='small'>{$mvc->getFieldType('notes')->toVerbal($rec->notes)}</div>";
+    			}
     		}
     	}
     }
