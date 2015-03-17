@@ -67,7 +67,13 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		if($this->innerState->photo){
 			$size = array(280, 150);
 			$Fancybox = cls::get('fancybox_Fancybox');
-			$data->row->image = $Fancybox->getImage($this->innerState->photo, $size, array(550, 550));
+			
+			$attr = array();
+			if(Mode::is('text', 'xhtml') || Mode::is('text', 'plain') || Mode::is('pdf')){
+				$attr['isAbsolute'] = TRUE;
+			}
+			
+			$data->row->image = $Fancybox->getImage($this->innerState->photo, $size, array(550, 550), NULL, $attr);
 		}
 		
 		// Ако не е зададен шаблон, взимаме дефолтния
