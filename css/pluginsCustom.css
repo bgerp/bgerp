@@ -88,7 +88,7 @@ a.datepick-cmd {
 .select2-container--default .select2-selection--multiple .select2-selection__choice {
 	margin-top: 3px;
 }
-.select2-results__option {
+.select2-results__option, .select2-container--default .select2-results__group {
 	padding: 0;
 }
 .select2-results__option span{
