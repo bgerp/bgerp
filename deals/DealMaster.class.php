@@ -749,26 +749,6 @@ abstract class deals_DealMaster extends deals_DealBase
     
     
     /**
-     * 
-     * @param unknown $mvc
-     * @param unknown $rec
-     * @param unknown $nRec
-     */
-    public static function on_AfterSaveCloneRec($mvc, $rec, $nRec)
-    {
-    	//@TODO да се премахне след като се добави тази функционалността в плъгина
-    	$Detail = $mvc->mainDetail;
-    	$query = $mvc->$Detail->getQuery();
-    	$query->where("#{$mvc->$Detail->masterKey} = {$rec->id}");
-    	while($dRec = $query->fetch()){
-    		$dRec->{$mvc->$Detail->masterKey} = $nRec->id;
-    		unset($dRec->id, $dRec->quantityDelivered);
-    		$mvc->$Detail->save($dRec);
-    	}
-    }
-    
-    
-    /**
      * Да се показвали бърз бутон за създаване на документа в папка
      */
     public function mustShowButton($folderRec, $userId = NULL)
