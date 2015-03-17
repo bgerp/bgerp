@@ -19,3 +19,13 @@ pre,
 samp {
   font-family: Courier New, serif !important; }
 
+.footerDocBlock {
+  display: block !important;
+  border-top: 1px solid #666666 !important; }
+
+.footerDocInfo {
+  display: table-row !important; }
+
+.footerDocTable {
+  display: table !important; }
+
