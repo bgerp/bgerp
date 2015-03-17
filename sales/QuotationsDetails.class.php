@@ -208,6 +208,18 @@ class sales_QuotationsDetails extends doc_Detail {
     
     
     /**
+     * Преди подготвяне на едит формата
+     */
+    public static function on_BeforePrepareEditForm($mvc, &$res, $data)
+    {
+    	if($optional = Request::get('optional', 'enum(no=Не,yes=Да)')){
+    		$prepend = ($optional == 'no') ? 'задължителен' : 'опционален';
+    		$mvc->singleTitle = "|{$prepend}|* |{$mvc->singleTitle}|*";
+    	}
+    }
+    
+    
+    /**
      * Преди показване на форма за добавяне/промяна.
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
