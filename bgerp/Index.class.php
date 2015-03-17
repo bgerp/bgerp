@@ -22,7 +22,7 @@ class bgerp_Index extends core_Manager
      */
     function act_Default()
     {
-        if(!cms_Content::fetch('1=1')) {
+        if(!cms_Content::fetch("#state = 'active'")) {
             
             requireRole('user');
             
