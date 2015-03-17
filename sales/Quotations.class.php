@@ -261,7 +261,14 @@ class sales_Quotations extends core_Master
 	    		if(sales_QuotationsDetails::fetch("#quotationId = {$data->rec->id} AND #optional = 'yes'") || !$items){
 	    			$data->toolbar->addBtn('Продажба', array($mvc, 'FilterProductsForSale', $data->rec->id, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/star_2.png,title=Създаване на продажба по офертата');
 	    		} else {
-	    			$data->toolbar->addBtn('Продажба', array($mvc, 'CreateSale', $data->rec->id, 'ret_url' => TRUE), 'warning=Сигурнили сте че искате да създадете продажба?', 'target=_blank,ef_icon=img/16/star_2.png,title=Създаване на продажба от офертата');
+	    			$warning = '';
+	    			$title = 'Прехвърляне на артикулите в съществуваща чернова продажба';
+	    			if(!sales_Sales::count("#state = 'draft' AND #contragentId = {$data->rec->contragentId} AND #contragentClassId = {$data->rec->contragentClassId}")){
+	    				$warning = 'warning=Сигурнили сте че искате да създадете продажба?';
+	    				$title = 'Създаване на продажба от офертата';
+	    			}
+	    			
+	    			$data->toolbar->addBtn('Продажба', array($mvc, 'CreateSale', $data->rec->id, 'ret_url' => TRUE), "{$warning}", "ef_icon=img/16/star_2.png,title={$title}");
 	    		}
 	    	}
 	    }
