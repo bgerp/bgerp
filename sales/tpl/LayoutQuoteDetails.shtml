@@ -4,7 +4,7 @@
         <tr>
             <th style='width:4%;'>№</th>
             <th>|Описание|*</th>
-            <th class='quote-col[#OPT#] nowrap'>|Мярка|*</th>
+            <th class='quote-col[#OPT#] nowrap'>[#MEASURE_TH#]</th>
             <th class='quote-col[#OPT#] nowrap'>|К-во|*</th>
             <th>|Цена|*</th>
             <th class='quote-col[#OPT#] nowrap'>|Стойност|*</th>
@@ -20,10 +20,10 @@
             <td id='[#rowspanpId#]' rowspan = '[#rowspan#]' class='product-id[#OPTP#] vtop'>[#productId#]</td>
             <!--ET_END productId-->
             <td class='misc-info quote-col[#OPT#] nowrap aright vtop'>
-                [#uomShort#]
+                [#packagingId#]
             </td>
              <td class='misc-info quote-col[#OPT#] nowrap aright vtop'>
-               [#quantity#] 
+               [#packQuantity#] 
                 <!--ET_BEGIN tolerance-->
                 <div class='quiantity-misc'>&#177; <b>[#tolerance#]</b></div>
                 <!--ET_END tolerance-->
@@ -32,7 +32,7 @@
                 <!--ET_END term-->
             </td>
             <td class='misc-info nowrap aright vtop'>
-                <b>[#price#] </b>
+                <b>[#packPrice#] </b>
                 <!--ET_BEGIN discount-->
                 <div class='discount'>- [#discount#] |ТО|*
                 </div>
