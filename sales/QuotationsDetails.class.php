@@ -694,6 +694,7 @@ class sales_QuotationsDetails extends doc_Detail {
     		$dRec = new stdClass();
     		$dRec->quotationId = $rec->id;
     		$dRec->productId = $productRec->id;
+    		$dRec->quantityInPack = 1;
     		$dRec->quantity = $row['left'];
     		$dRec->classId = $ProductMan->getClassId();
     		$dRec->vatPercent = $ProductMan->getVat($dRec->productId, $rec->date);
