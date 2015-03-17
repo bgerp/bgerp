@@ -46,7 +46,7 @@ class sales_Quotations extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, doc_EmailCreatePlg, acc_plg_DocumentSummary, plg_Search, doc_plg_HidePrices, doc_plg_TplManager,
-                    doc_DocumentPlg, plg_Printing, doc_ActivatePlg, bgerp_plg_Blank, doc_plg_BusinessDoc, cond_plg_DefaultValues';
+                    doc_DocumentPlg, plg_Printing, doc_ActivatePlg, plg_Clone, bgerp_plg_Blank, doc_plg_BusinessDoc, cond_plg_DefaultValues';
        
     
     /**
@@ -116,9 +116,10 @@ class sales_Quotations extends core_Master
     
     
     /**
-     * Работен кеш
+     * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
+     * (@see plg_Clone)
      */
-    protected static $cache = array();
+    public $cloneDetailes = 'sales_QuotationsDetails';
     
     
     /**
