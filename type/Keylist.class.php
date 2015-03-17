@@ -240,7 +240,7 @@ class type_Keylist extends core_Type {
                     $i = $i % $col;
                 }
  
-            }  
+            }
             if ($groupOpen){
                 while($i < $col) {
                     $html .= "<td></td>";
@@ -252,7 +252,7 @@ class type_Keylist extends core_Type {
             $html = '<tr><td></td></tr>';
         }
         
-        $attr['class'] .= $keyListClass ;
+        $attr['class'] .= " " . $keyListClass ;
         $tpl = HT::createElement('table', $attr, $html);
         jquery_Jquery::run($tpl, "keylistActions();", TRUE);
         jquery_Jquery::run($tpl, "checkForHiddenGroups();", TRUE);
