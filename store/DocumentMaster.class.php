@@ -231,6 +231,7 @@ abstract class store_DocumentMaster extends core_Master
     				$shipProduct->uomId       = $product->uomId;
     				$shipProduct->discount    = $product->discount;
     				$shipProduct->weight      = $product->weight;
+    				$shipProduct->notes       = $product->notes;
     				$shipProduct->volume      = $product->volume;
     				$shipProduct->quantityInPack = ($product->packagingId) ? $info->packagingRec->quantity : 1;
     				 

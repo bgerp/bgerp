@@ -43,77 +43,38 @@
             </td>
         </tr>
         <!--ET_END ROW-->
+        </table>
+        <div class='lines'></div>
+        <table class='products-table' style='margin-bottom: 20px;'>
         <!--ET_BEGIN totalPlace-->
         [#totalPlace#]
+        <!--ET_BEGIN SUMMARY-->
+        [#SUMMARY#]
         <tr>
-            <td colspan='3' class='total-td-label'>
-                
-            </td>
-            <td colspan='3' class='total-quote-td aright'>
-                <!--ET_BEGIN SUMMARY-->
-                <table class='no-border paddingCells' style='float:right;width:100%;' id='business-doc-summary-table'>
-                    <tr class='nowrap'>
-                        <td class='aright'>|Стойност|* :</td>
-                        <td class='info-right'><span class='cCode'>[#currencyId#]</span></td>
-                        <td class='aright'> <b>[#value#]</b></td>
-                    </tr>
-                    <!--ET_BEGIN discountValue-->
-                    <tr class='nowrap'>
-                        <td class='aright'>|Отстъпка|* :</td>
-                        <td class='info-right'><span class='cCode'>[#discountCurrencyId#]</span></td>
-                        <td class='aright'><b>[#discountValue#]</b></td>
-                    </tr>
-                    <!--ET_END discountValue-->
-                    <!--ET_BEGIN neto-->
-                    <tr class='nowrap'>
-                        <td class='aright'>|Нето|* :</td>
-                        <td class='info-right'><span class='cCode'>[#netoCurrencyId#]</span></td>
-                        <td class='aright'><b>[#neto#]</b></td>
-                    </tr>
-                    <!--ET_END neto-->
-                    <!--ET_BEGIN baseAmount-->
-                    <tr class='nowrap'>
-                        <td class='aright'>|Данъчна основа|* :</td>
-                        <td class='info-right'><span class='cCode'>[#baseCurrencyId#]</span></td>
-                        <td class='aright'><b>[#baseAmount#]</b></td>
-                    </tr>
-                    <!--ET_END baseAmount-->
-                    <tr>
-                        <td colspan='3' style='padding:0px'>
-                            <hr>
-                        </td>
-                    </tr>
-                    <!--ET_BEGIN vatAmount-->
-                    <tr class='nowrap'>
-                        <td class='aright'>|ДДС|* <b>[#vat#]</b> :</td>
-                        <td class='info-right'><span class='cCode'>[#vatCurrencyId#]</span></td>
-                        <td class='aright'><b>[#vatAmount#]</b></td>
-                    </tr>
-                    <!--ET_END vatAmount-->
-                    <tr class='nowrap'>
-                        <td class='aright' colspan='2'></td>
-                        <td class='aright'><b>[#total#]</b></td>
-                    </tr>
-                    <tr>
-                        <td colspan="3">
-                        <!--ET_BEGIN sayWords-->
-                        <hr>
-	                    |Словом|*: [#sayWords#] &nbsp;
-	                   
-	                    <!--ET_BEGIN currencyTotalId-->
-	                    <span class='cCode'>[#currencyTotalId#]</span>
-	                    <!--ET_END currencyTotalId-->
-	                    <!--ET_END sayWords-->
-                        </td>   
-                    </tr>
-                </table>
-                <!--ET_END SUMMARY-->
+             <th>|Стойност|*</th>
+             <th>|Отстъпка|* [#discountPercent#] </th>
+             <th>|Нето|*</th>
+             <th>|ДДС|* [#vatAmount#]</th>
+             <th>|Общо|*</th>
+        </tr>
+        <tr>
+            <td class='aright'>[#value#]</td>
+            <td class='aright'>[#discountValue#]</td>
+            <td class='aright'>[#neto#]</td>
+            <td class='aright'>[#vatAmount#]</td>
+            <td class='aright'>[#total#]</td>
+        </tr>
+        <!--ET_BEGIN sayWords-->
+        <tr>
+            <td colspan="5" class='aright'>
+                |С думи|*: [#sayWords#]    
             </td>
         </tr>
-
+        <!--ET_END sayWords-->
+        <!--ET_END SUMMARY-->
         <!--ET_END totalPlace-->
-    </table>
+    </table>   
     <div class='quotation-detail-add-btn'>
-    [#ADD_BTN#]
-    </div>
+        [#ADD_BTN#]
+        </div> 
 </div>

@@ -137,10 +137,12 @@ class cat_ProductDriverIntf extends core_InnerObjectIntf
 	
 	/**
 	 * Подготвя данните за показване на описанието на драйвера
+	 * 
+	 * @param enum(public,internal) $documentType - публичен или външен е документа за който ще се кешира изгледа
 	 */
-	public function prepareProductDescription()
+	public function prepareProductDescription($documentType = 'public')
 	{
-		return $this->class->prepareProductDescription();
+		return $this->class->prepareProductDescription($documentType);
 	}
 	
 	

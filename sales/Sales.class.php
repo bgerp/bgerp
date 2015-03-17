@@ -475,6 +475,7 @@ class sales_Sales extends deals_DealMaster
             $p->quantityDelivered = $dRec->quantityDelivered;
             $p->price             = $dRec->price;
             $p->uomId             = $dRec->uomId;
+            $p->notes			  = $dRec->notes;
             
             $ProductMan = cls::get($p->classId);
             $info = $ProductMan->getProductInfo($p->productId, $p->packagingId);

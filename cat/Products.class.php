@@ -238,7 +238,6 @@ class cat_Products extends core_Embedder {
         $this->FLD('photo', 'fileman_FileType(bucket=pictures)', 'caption=Фото,input=none,formOrder=4');
         $this->FLD('groups', 'keylist(mvc=cat_Groups, select=name, makeLinks)', 'caption=Маркери,maxColumns=2,remember,formOrder=100');
         $this->FLD("isPublic", 'enum(no=Частен,yes=Публичен)', 'input=none,formOrder=100000002');
-        $this->FLD("detailedDescriptionIn", 'set(sales_Quotations=Оферта,sales_Sales=Продажба,store_ShipmentOrders=Експедиционно нареждания,sales_Services=Предавателен протокол)', 'formOrder=100000002,caption=Показване на детайлите за продукта->Документи');
         
         // Разбивки на свойствата за по-бързо индексиране и търсене
         $this->FLD('canSell', 'enum(yes=Да,no=Не)', 'input=none');
@@ -302,9 +301,7 @@ class cat_Products extends core_Embedder {
 						}
 					}
 				}
-    		} else {
-    			$form->setDefault('detailedDescriptionIn', 'sales_Quotations,sales_Sales');
-    		}
+    		} 
     	}
     }
     
@@ -1376,9 +1373,9 @@ class cat_Products extends core_Embedder {
      */
     public function renderJobView($id, $time = NULL)
     {
-    	$Jobs = cls::get('planning_Jobs');
+    	$rec = $this->fetchRec($id);
     	
-    	return $this->getProductDesc($id, $time);
+    	return cat_ProductTplCache::cacheTpl($rec->id, $time, 'internal')->getContent();
     }
     
     
