@@ -71,6 +71,7 @@ class cat_Setup extends core_ProtoSetup
     		'migrate::fixStates',
     		'migrate::privateProducts',
     		'migrate::truncatCache',
+            'migrate::fixProductsSearchKeywords'
         );
 
         
@@ -463,5 +464,22 @@ class cat_Setup extends core_ProtoSetup
     public function truncatCache()
     {
     	cat_ProductTplCache::truncate();
+    }
+    
+    
+    /**
+     * Оправя ключовите думи на артикулите
+     */
+    public static function fixProductsSearchKeywords()
+    {
+    	$query = cat_Products::getQuery();
+    	
+    	while($rec = $query->fetch()) {
+    	    try {
+    	        cat_Products::save($rec, 'searchKeywords');
+    	    } catch (core_exception_Expect $e) {
+    	        continue;
+    	    }
+    	}
     }
 }
