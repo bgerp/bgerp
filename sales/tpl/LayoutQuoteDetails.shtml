@@ -59,7 +59,7 @@
                     </tr>
                     <!--ET_BEGIN discountValue-->
                     <tr class='nowrap'>
-                        <td class='aright'>|Отстъпка|* :</td>
+                        <td class='aright'>[#discountPercent#] |Отстъпка|* :</td>
                         <td class='info-right'><span class='cCode'>[#discountCurrencyId#]</span></td>
                         <td class='aright'><b>[#discountValue#]</b></td>
                     </tr>

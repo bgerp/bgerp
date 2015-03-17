@@ -212,7 +212,7 @@ class sales_QuotationsDetails extends doc_Detail {
      */
     public static function on_BeforePrepareEditForm($mvc, &$res, $data)
     {
-    	if($optional = Request::get('optional', 'enum(no=Не,yes=Да)')){
+    	if($optional = Request::get('optional')){
     		$prepend = ($optional == 'no') ? 'задължителен' : 'опционален';
     		$mvc->singleTitle = "|{$prepend}|* |{$mvc->singleTitle}|*";
     	}
@@ -475,6 +475,14 @@ class sales_QuotationsDetails extends doc_Detail {
     	$tpl = new ET("");
     	$masterRec = $data->masterData->rec;
     	
+    	// Ако всички продукти са с еднаква отстъпка и може да се изчисли обобщената информация, няма да показваме отстъпката
+    	$unsetDiscount = FALSE;
+    	if($data->summary && count($data->discounts) == 1){
+    		if(key($data->discounts)){
+    			$unsetDiscount = TRUE;
+    		}
+    	}
+    		
     	// Шаблон за задължителните продукти
     	$dTpl = getTplFromFile('sales/tpl/LayoutQuoteDetails.shtml');
     	
@@ -492,6 +500,12 @@ class sales_QuotationsDetails extends doc_Detail {
 	    			
 	    			// Взависимост дали е опционален продукта го добавяме към определения шаблон
 	    			if($optional == 'no'){
+	    				
+	    				// Ако искаме да не показваме отстъпката, махаме я
+	    				if($unsetDiscount === TRUE){
+	    					unset($row->discount);
+	    				}
+	    				
 	    				$rowTpl = $dTpl->getBlock('ROW');
 	    				$id = &$dCount;
 	    			} else {
@@ -522,6 +536,14 @@ class sales_QuotationsDetails extends doc_Detail {
     	if($summary = $data->summary){
     		$dTpl->placeObject($summary, 'SUMMARY');
     		$dTpl->replace($summary->sayWords, 'sayWords');
+    		
+    		// Ако всички артикули имат валидна отстъпка показваме я в обобщената информация
+    		if(isset($summary) && count($data->discounts) == 1){
+    			if(key($data->discounts)){
+    				$dTpl->replace($data->discounts[key($data->discounts)], 'discountPercent');
+    			}
+    		}
+    		
     	} else {
     		$dTpl->removeBlock("totalPlace");
     	}
@@ -575,16 +597,21 @@ class sales_QuotationsDetails extends doc_Detail {
     	 
     	$recs = &$data->recs;
     	$rows = &$data->rows;
-    	$data->haveOptionalPackaging = $data->haveMandatoryPackaging = FALSE;
+    	$data->discounts = array();
+    	$data->haveOptionalPackaging = $data->haveMandatoryPackaging = TRUE;
     	
     	foreach ($rows as $id => &$row){
     		$rec = $recs[$id];
-    		if(isset($rec->packagingId)){
+    		if(!isset($rec->packagingId)){
     			if($rec->optional == 'no'){
-    				$data->haveMandatoryPackaging = TRUE;
+    				$data->haveMandatoryPackaging = FALSE;
     			} else {
-    				$data->haveOptionalPackaging = TRUE;
+    				$data->haveOptionalPackaging = FALSE;
     			}
+    		}
+    		
+    		if($rec->optional == 'no'){
+    			$data->discounts[$rec->discount] = $row->discount;
     		}
     		
     		$row->productId = cat_Products::getAutoProductDesc($rec->productId, $data->masterData->rec->modifiedOn, $rec->showMode);
