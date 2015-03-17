@@ -1376,9 +1376,9 @@ class cat_Products extends core_Embedder {
      */
     public function renderJobView($id, $time = NULL)
     {
-    	$Jobs = cls::get('planning_Jobs');
+    	$rec = $this->fetchRec($id);
     	
-    	return $this->getProductDesc($id, $time);
+    	return cat_ProductTplCache::cacheTpl($rec->id, $time, 'internal')->getContent();
     }
     
     

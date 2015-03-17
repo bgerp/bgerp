@@ -120,7 +120,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		}
 		
 		$data->row = $row;
-		
+		$data->prepareForPublicDocument = $this->prepareForPublicDocument;
 		$data->masterId = $this->EmbedderRec->rec()->id;
 		$data->masterClassId = $this->EmbedderRec->getClassId();
 		
@@ -268,10 +268,16 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	
 	/**
 	 * Подготвя данните за показване на описанието на драйвера
+	 * 
+	 * @param enum(public,internal) $documentType - публичен или външен е документа за който ще се кешира изгледа
 	 */
-	public function prepareProductDescription()
+	public function prepareProductDescription($documentType = 'public')
 	{
+		if($documentType == 'public'){
+			$this->prepareForPublicDocument = TRUE;
+		}
 		$data = $this->prepareEmbeddedData();
+		unset($this->prepareForPublicDocument);
 		$data->noChange = TRUE;
 		$data->tpl = getTplFromFile('cat/tpl/SingleLayoutBaseDriverShort.shtml');
 		
