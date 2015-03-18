@@ -177,6 +177,26 @@ class sales_QuotationsDetails extends doc_Detail {
     		
     		// Запомня се стойноста и ддс-то само на опционалните продукти
     		$data->summary = deals_Helper::prepareSummary($mvc->_total, $masterRec->date, $masterRec->currencyRate, $masterRec->currencyId, $masterRec->chargeVat);
+    		
+    		// Обработваме сумарните данни
+    		if(!$data->summary->vatAmount){
+    			$data->summary->vatAmount = $mvc->Master->getVerbal($masterRec, 'chargeVat');
+    		}
+    		
+    		if(!$data->summary->discountValue){
+    			$data->summary->discountValue = '-';
+    			$data->summary->discountTitle = '-';
+    		} else {
+    			$data->summary->discountTitle = tr('Отстъпка');
+    			$data->summary->discountValue = "- {$data->summary->discountValue}";
+    		}
+    		
+    		if(!$data->summary->neto){
+    			$data->summary->neto = '-';
+    			$data->summary->netTitle = '-';
+    		} else {
+    			$data->summary->netTitle = tr('Нето');
+    		}
     	}
     	
     	// Подготовка за показване на опционалните продукти

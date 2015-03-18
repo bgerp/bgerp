@@ -51,9 +51,9 @@
         [#SUMMARY#]
         <tr>
              <th>|Стойност|*</th>
-             <th>|Отстъпка|* [#discountPercent#] </th>
-             <th>|Нето|*</th>
-             <th>|ДДС|* [#vatAmount#]</th>
+             <th>[#discountTitle#] [#discountPercent#] </th>
+             <th>[#netTitle#]</th>
+             <th>|ДДС|* [#vat#]</th>
              <th>|Общо|*</th>
         </tr>
         <tr style='font-weight: bold;'>
