@@ -180,7 +180,7 @@ class cms_Setup extends core_ProtoSetup
         if(!$domainIds[$lg]) {
             core_Classes::add('cms_DefaultTheme');
             $dRec = (object) array('domain' => 'localhost', 'theme' => core_Classes::getId('cms_DefaultTheme'), 'lang' => $lg);
-            self::save($dRec);
+            cms_Domains::save($dRec);
             $domainIds[$lg] = $dRec->id;
         }
 
@@ -191,7 +191,7 @@ class cms_Setup extends core_ProtoSetup
     /**
      * Миграция към модела на домейните
      */
-    function contentOrder4()
+    static function contentOrder4()
     {
         // Добавяме domainId към cms_Content
         $max = 1;
