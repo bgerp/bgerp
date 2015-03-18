@@ -263,7 +263,7 @@ class cms_Setup extends core_ProtoSetup
             $query = cms_Feeds::getQuery();
             while($rec = $query->fetch()) {
                 if(!$rec->domainId) {
-                    if(mb_strlen($rec->title) == strlen($rec->title)) {
+                    if (mb_strlen($rec->title) == strlen($rec->title) && (mb_strlen($rec->description) == strlen($rec->description))) {
                         $rec->domainId = self::getLocalhostDomain('en');
                     } else {
                         $rec->domainId = self::getLocalhostDomain('bg');
