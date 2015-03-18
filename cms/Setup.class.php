@@ -226,6 +226,11 @@ class cms_Setup extends core_ProtoSetup
         
         $bCat = cls::get('blogm_Categories');
         if($bCat->db->tableExists($bCat->dbTableName)) {
+            
+            if (!$bCat->db->isFieldExists($bCat->dbTableName, 'domain_id')) {
+                $bCat->setupMVC();
+            }
+            
             $query = blogm_Categories::getQuery();
             while($rec = $query->fetch()) {
                 if(!$rec->domainId) {
