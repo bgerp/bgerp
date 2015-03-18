@@ -537,7 +537,7 @@ class blogm_Articles extends core_Master {
 		
         // Определяме езика от категорията
         if($data->category >0) {
-            $domainId = blogm_Categories::fetchField($firstCatId, 'domainId');
+            $domainId = blogm_Categories::fetchField($data->category, 'domainId');
             if($domainId) {
                 cms_Domains::setPublicDomain($domainId);
             }
