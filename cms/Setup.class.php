@@ -38,6 +38,12 @@ defIfNot('CMS_OGRAPH_IMAGE', '');
 
 
 /**
+ * 
+ */
+defIfNot('CMS_PAGE_WRAPPER', 'cms_page_External');
+
+
+/**
  * class cms_Setup
  *
  * Инсталиране/Деинсталиране на
