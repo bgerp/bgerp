@@ -380,13 +380,15 @@ class cat_Setup extends core_ProtoSetup
      */
     public function migrateProformas()
     {
-    	if(sales_ProformaDetails::count()){
-    		$query = sales_ProformaDetails::getQuery();
-    		$productId = cat_Products::getClassId();
-    		while($rec = $query->fetch()){
-    			if($rec->classId != $productId){
-    				$rec->classId = $productId;
-    				sales_ProformaDetails::save($rec);
+    	if(core_Packs::fetch("#name = 'sales'")){
+    		if(sales_ProformaDetails::count()){
+    			$query = sales_ProformaDetails::getQuery();
+    			$productId = cat_Products::getClassId();
+    			while($rec = $query->fetch()){
+    				if($rec->classId != $productId){
+    					$rec->classId = $productId;
+    					sales_ProformaDetails::save_($rec);
+    				}
     			}
     		}
     	}
@@ -406,12 +408,14 @@ class cat_Setup extends core_ProtoSetup
     		cat_Boms::save($bRec, 'productId');
     	}
     	
-    	$jQuery = planning_Jobs::getQuery();
-    	$jQuery->where("#productId IS NULL");
-    	while($jRec = $jQuery->fetch()){
-    		$origin = doc_Containers::getDocument($jRec->originId);
-    		$jRec->productId = $origin->that;
-    		planning_Jobs::save($jRec, 'productId');
+    	if(core_Packs::fetch("#name = 'planning'")){
+    		$jQuery = planning_Jobs::getQuery();
+    		$jQuery->where("#productId IS NULL");
+    		while($jRec = $jQuery->fetch()){
+    			$origin = doc_Containers::getDocument($jRec->originId);
+    			$jRec->productId = $origin->that;
+    			planning_Jobs::save($jRec, 'productId');
+    		}
     	}
     }
     

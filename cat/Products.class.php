@@ -799,6 +799,9 @@ class cat_Products extends core_Embedder {
      */
     public function loadSetupData()
     {
+    	cls::get('doc_Folders');
+    	cls::get('doc_Threads');
+    	
     	$file = "cat/csv/Products.csv";
     	$fields = array( 
 	    	0 => "csv_name", 
