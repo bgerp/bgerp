@@ -269,15 +269,15 @@ class cms_Setup extends core_ProtoSetup
                         $rec->domainId = self::getLocalhostDomain('bg');
                     }
                 }
-                cms_Feeds ::save($rec);
+                cms_Feeds::save($rec);
             }
         }
 
-        $mvc = cls::get('newsbar_News');
-        if($mvc->db->tableExists($mvc->dbTableName)) {
+        $newsbar = cls::get('newsbar_News');
+        if($newsbar->db->tableExists($newsbar->dbTableName)) {
             
-            if (!$mvc->db->isFieldExists($mvc->dbTableName, 'domain_id')) {
-                $mvc->setupMVC();
+            if (!$newsbar->db->isFieldExists($newsbar->dbTableName, 'domain_id')) {
+                $newsbar->setupMVC();
             }
             
             $query = newsbar_News::getQuery();
@@ -290,7 +290,7 @@ class cms_Setup extends core_ProtoSetup
                         $rec->domainId = self::getLocalhostDomain('bg');
                     }
                 }
-                $mvc->save($rec);
+                $newsbar->save($rec);
             }
         }
         
