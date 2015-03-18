@@ -280,7 +280,7 @@ class cms_Setup extends core_ProtoSetup
                 $mvc->setupMVC();
             }
             
-            $query = cms_Feeds::getQuery();
+            $query = newsbar_News::getQuery();
             $rt = cls::get('type_Richtext');
             while($rec = $query->fetch()) {
                 if(!$rec->domainId) {
