@@ -3,6 +3,9 @@
     <div class="no-cover">
         <h2 style='line-height:26px' class='[#STATE_CLASS#]'>|Артикул|* <b style="color:green;">[#productId#]</b></h2>
     	<div>|Изглед към|* [#time#]</div>
-        [#cache#]
+    	<hr>
+    	<div style='margin-top:10px'>
+    		[#cache#]
+    	</div>
     </div>
 </div>

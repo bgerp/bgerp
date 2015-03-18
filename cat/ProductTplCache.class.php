@@ -30,7 +30,7 @@ class cat_ProductTplCache extends core_Master
 	/**
 	 * Заглавие на мениджъра
 	 */
-	public $title = "Кеш на изгледа на частните артикули";
+	public $title = "Кеш на изгледа на артикулите";
 	
 	
 	/**
@@ -43,6 +43,12 @@ class cat_ProductTplCache extends core_Master
 	 * Права за запис
 	 */
 	public $canRead = 'ceo, cat';
+	
+	
+	/**
+	 * Права за запис
+	 */
+	public $canDelete = 'ceo, cat';
 	
 	
 	/**
@@ -82,7 +88,7 @@ class cat_ProductTplCache extends core_Master
 	{
 		$this->FLD("productId", "key(mvc=cat_Products,select=name)", "input=none,caption=Артикул");
 		$this->FLD("cache", "blob(1000000, serialize, compress)", "input=none,caption=Html,column=none");
-		$this->FLD("time", "datetime(format=smartTime)", "input=none,caption=Дата");
+		$this->FLD("time", "datetime", "input=none,caption=Дата");
 	}
 	
 	
@@ -103,7 +109,7 @@ class cat_ProductTplCache extends core_Master
 	 */
 	public static function on_AfterPrepareListFilter($mvc, &$data)
 	{
-		$data->listFilter->FLD("docId", "key(mvc=cat_Products,select=name,allowEmpty)", "input,caption=Спецификация");
+		$data->listFilter->FLD("docId", "key(mvc=cat_Products,select=name,allowEmpty)", "input,caption=Артикул");
 		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
 		$data->listFilter->view = 'horizontal';
 		$data->listFilter->showFields = 'docId';
@@ -124,7 +130,7 @@ class cat_ProductTplCache extends core_Master
 	 */
 	public static function on_AfterPrepareListToolbar($mvc, &$data)
 	{
-		if(haveRole('admin,debug')){
+		if(haveRole('admin,debug,ceo')){
 			$data->toolbar->addBtn('Изчистване', array($mvc, 'truncate'), 'warning=Искатели да изчистите таблицата,ef_icon=img/16/sport_shuttlecock.png');
 		}
 	}
@@ -135,7 +141,7 @@ class cat_ProductTplCache extends core_Master
 	 */
 	public function act_Truncate()
 	{
-		requireRole('admin,debug');
+		requireRole('admin,debug,ceo');
 		 
 		// Изчистваме записите от моделите
 		self::truncate();
