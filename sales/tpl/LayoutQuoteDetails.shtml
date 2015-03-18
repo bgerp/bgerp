@@ -1,4 +1,4 @@
-<p class='table-detail-header'><b>[#TITLE#] |продукти и услуги|*</b>, &nbsp;|всички цени са в|* [#MISC#]</p>
+<p class='table-detail-header'><b>[#TITLE#] |продукти и услуги|*</b> (|цените са в|* [#MISC#])</p>
 <div class='scrolling-holder'>
     <table  class = 'products-table' style='width:100%;'>
         <tr>
@@ -44,8 +44,7 @@
         </tr>
         <!--ET_END ROW-->
         </table>
-        <div class='lines'></div>
-        <table class='products-table' style='margin-bottom: 20px;'>
+        <table class='products-table' style='margin-bottom: 20px; margin-top:10px;'>
         <!--ET_BEGIN totalPlace-->
         [#totalPlace#]
         <!--ET_BEGIN SUMMARY-->
@@ -57,9 +56,9 @@
              <th>|ДДС|* [#vatAmount#]</th>
              <th>|Общо|*</th>
         </tr>
-        <tr>
+        <tr style='font-weight: bold;'>
             <td class='aright'>[#value#]</td>
-            <td class='aright'>[#discountValue#]</td>
+            <td class='aright'><span class='discount'>[#discountValue#]</span></td>
             <td class='aright'>[#neto#]</td>
             <td class='aright'>[#vatAmount#]</td>
             <td class='aright'>[#total#]</td>

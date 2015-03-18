@@ -63,10 +63,16 @@
         <tr>
             <td> 
                 <ol id='conditions'>
+                    <!--ET_BEGIN validFor-->
 		            <li> |Валидност на офертата|*: <b>[#validFor#] (|до|* [#validDate#])</b>			            
 		            </li>
+		            <!--ET_END validFor-->
+		            <!--ET_BEGIN paymentMethodId-->
 		            <li>|Начин на плащане|*: <b>[#paymentMethodId#]</b></li>
+		            <!--ET_END paymentMethodId-->
+		            <!--ET_BEGIN deliveryTermId-->
 			        <li>|Условие на доставка|*: <b>[#deliveryTermId#]</b></li>
+			        <!--ET_END deliveryTermId-->
 			        <!--ET_BEGIN deliveryPlaceId-->
 			        <li>|Място на доставка|*: <b>[#deliveryPlaceId#]</b></li>
 			        <!--ET_END deliveryPlaceId-->
@@ -77,7 +83,7 @@
 		        </ol>
             </td>
             <td class="centered" style='vertical-align: bottom !important'>
-              <div style='border-top: 1px dashed #333 !important; color: #070895;padding-left: 5px; font-family: cursive; font-style: italic;display: block; margin-bottom: 2px;'>[#username#]</div>
+              <div class='sign_names'>/ [#username#] /</div>
             </td>
         </tr>
     </table>
