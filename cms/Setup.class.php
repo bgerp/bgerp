@@ -189,7 +189,7 @@ class cms_Setup extends core_ProtoSetup
             cms_Domains::save($dRec);
             $domainIds[$lg] = $dRec->id;
         }
-
+        
         return $domainIds[$lg];
     }
     
@@ -199,6 +199,8 @@ class cms_Setup extends core_ProtoSetup
      */
     static function contentOrder4()
     {
+        Mode::push('isMigrate', TRUE);
+        
         // Добавяме domainId към cms_Content
         $max = 1;
         $query = cms_Content::getQuery();
@@ -274,6 +276,8 @@ class cms_Setup extends core_ProtoSetup
                 $mvc->save($rec);
             }
         }
+        
+        Mode::pop('isMigrate');
 
     }
 }
