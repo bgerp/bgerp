@@ -38,7 +38,7 @@ class cat_Products extends core_Embedder {
      * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools, plg_SaveAndNew, plg_Clone, doc_DocumentPlg, plg_PrevAndNext, acc_plg_Registry, plg_State,
-                     cat_Wrapper, plg_Sorting, doc_ActivatePlg, doc_plg_BusinessDoc, bgerp_plg_Groups, plg_Printing, plg_Select, plg_Search, bgerp_plg_Import';
+                     cat_Wrapper, plg_Sorting, doc_ActivatePlg, doc_plg_BusinessDoc, cond_plg_DefaultValues, bgerp_plg_Groups, plg_Printing, plg_Select, plg_Search, bgerp_plg_Import';
     
     
     /**
@@ -224,6 +224,15 @@ class cat_Products extends core_Embedder {
 	 * 
 	 */
 	public $abbr = 'Cpr';
+	
+	
+	/**
+	 * Стратегии за дефолт стойностти
+	 */
+	public static $defaultStrategies = array(
+					'groups'  => 'lastDocUser|lastDoc',
+					'meta'    => 'lastDocUser|lastDoc',
+	);
 	
 	
     /**
