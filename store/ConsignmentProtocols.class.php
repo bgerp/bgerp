@@ -77,12 +77,6 @@ class store_ConsignmentProtocols extends core_Master
     
     
     /**
-     * Кой може да го види?
-     */
-    public $canView = 'ceo,store';
-    
-    
-    /**
      * Кой може да го изтрие?
      */
     public $canConto = 'ceo,store';

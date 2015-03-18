@@ -7,7 +7,7 @@
  * @category  bgerp
  * @package   sales
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -76,14 +76,6 @@ class sales_SalesDetails extends deals_DealDetail
      * @var string|array
      */
     public $canAdd = 'ceo, sales';
-    
-    
-    /**
-     * Кой може да го види?
-     * 
-     * @var string|array
-     */
-    public $canView = 'ceo, sales';
     
     
     /**

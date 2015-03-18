@@ -61,12 +61,6 @@ class store_ConsignmentProtocolDetailsSend extends store_InternalDocumentDetail
     
     
     /**
-     * Кой може да го види?
-     */
-    public $canView = 'ceo, store';
-    
-    
-    /**
      * Кой може да го изтрие?
      */
     public $canDelete = 'ceo, store';

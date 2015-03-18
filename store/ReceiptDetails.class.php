@@ -63,12 +63,6 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
     
     
     /**
-     * Кой може да го види?
-     */
-    public $canView = 'ceo, store';
-    
-    
-    /**
      * Кой може да го изтрие?
      */
     public $canDelete = 'ceo, store';

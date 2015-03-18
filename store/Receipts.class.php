@@ -72,12 +72,6 @@ class store_Receipts extends store_DocumentMaster
     
     
     /**
-     * Кой може да го види?
-     */
-    public $canView = 'ceo,store';
-    
-    
-    /**
      * Кой може да го изтрие?
      */
     public $canConto = 'ceo,store';

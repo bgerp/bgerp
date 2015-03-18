@@ -79,14 +79,6 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     
     
     /**
-     * Кой може да го види?
-     * 
-     * @var string|array
-     */
-    public $canView = 'ceo, store';
-    
-    
-    /**
      * Кой може да го изтрие?
      * 
      * @var string|array
