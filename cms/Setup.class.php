@@ -215,8 +215,8 @@ class cms_Setup extends core_ProtoSetup
                 }
             }
             $max = max($rec->order, $max);
-            if(!$rec->domainId) {
-                if(mb_strlen($m) == strlen($m)) {
+            if (!$rec->domainId) {
+                if (($m) && (mb_strlen($m) == strlen($m))) {
                     $rec->domainId = self::getLocalhostDomain('en');
                     
                 } else {
