@@ -73,9 +73,9 @@ class planning_Jobs extends core_Master
     
     
     /**
-     * Кой може да затваря?
+     * Кой може да променя състоянието?
      */
-    public $canClose = 'ceo, planning';
+    public $canChangestate = 'ceo, planning';
     
     
     /**
@@ -150,7 +150,7 @@ class planning_Jobs extends core_Master
     	$this->FLD('weight', 'cat_type_Weight', 'caption=Тегло,input=none');
     	$this->FLD('brutoWeight', 'cat_type_Weight', 'caption=Бруто,input=none');
     	$this->FLD('state',
-    			'enum(draft=Чернова, active=Активирано, rejected=Отказано, closed=Затворено)',
+    			'enum(draft=Чернова, active=Активирано, rejected=Отказано, closed=Затворено, stopped=Спряно)',
     			'caption=Статус, input=none'
     	);
     	$this->FLD('saleId', 'key(mvc=sales_Sales)', 'input=hidden,silent');
@@ -348,7 +348,7 @@ class planning_Jobs extends core_Master
     	if(($action == 'activate' || $action == 'restore' || $action == 'conto' || $action == 'write' || $action == 'add') && isset($rec->productId) && $res != 'no_one'){
     
     		// Ако има активно задание, да не може друга да се възстановява,контира,създава или активира
-    		if($mvc->fetch("#productId = {$rec->productId} AND #state = 'active'")){
+    		if($mvc->fetch("#productId = {$rec->productId} AND (#state = 'active' || #state = 'stopped')")){
     			$res = 'no_one';
     		}
     	}
@@ -395,27 +395,41 @@ class planning_Jobs extends core_Master
      */
     public static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-    	if($mvc->haveRightFor('close', $data->rec)){
+    	if($mvc->haveRightFor('changestate', $data->rec)){
     		if($data->rec->state == 'closed'){
-    			$data->toolbar->addBtn("Активиране", array($mvc, 'changeState', $data->rec->id, 'ret_url' => TRUE), 'ef_icon = img/16/lightbulb.png,title=Активиранe на артикула,warning=Сигурнили сте че искате да активирате артикула, това ще му активира перото');
+    			$data->toolbar->addBtn("Активиране", array($mvc, 'changeState', $data->rec->id, 'type' => 'close', 'ret_url' => TRUE), 'ef_icon = img/16/lightbulb.png,title=Актириване на заданието,warning=Сигурнили сте че искате да активирате заданието');
     		} elseif($data->rec->state == 'active'){
-    			$data->toolbar->addBtn("Приключване", array($mvc, 'changeState', $data->rec->id, 'ret_url' => TRUE), 'ef_icon = img/16/lightbulb_off.png,title=Затваряне артикула и перото му,warning=Сигурнили сте че искате да приключите артикула, това ще му затвори перото');
+    			$data->toolbar->addBtn("Приключване", array($mvc, 'changeState', $data->rec->id, 'type' => 'close', 'ret_url' => TRUE), 'ef_icon = img/16/lightbulb_off.png,title=Приключване на заданието,warning=Сигурнили сте че искате да приключите заданието');
+    		}
+    		
+    		if($data->rec->state == 'stopped'){
+    			$data->toolbar->addBtn("Пускане", array($mvc, 'changeState', $data->rec->id, 'type' => 'stop', 'ret_url' => TRUE, ), 'ef_icon = img/16/control_play.png,title=Пускане на заданието,warning=Сигурнили сте че искате да пуснете заданието');
+    		} elseif($data->rec->state == 'active'){
+    			$data->toolbar->addBtn("Спиране", array($mvc, 'changeState', $data->rec->id, 'type' => 'stop', 'ret_url' => TRUE), 'ef_icon = img/16/control_pause.png,title=Спиране на заданието,warning=Сигурнили сте че искате да спрете заданието');
     		}
     	}
     }
     
     
     /**
-     * Затваря/отваря артикула и перото му
+     * Затваря/отваря или спира/пуска заданието
      */
     public function act_changeState()
     {
-    	$this->requireRightFor('close');
+    	$this->requireRightFor('changestate');
     	expect($id = Request::get('id', 'int'));
     	expect($rec = $this->fetch($id));
-    	$this->requireRightFor('close', $rec);
+    	expect($type = Request::get('type', 'enum(close,stop)'));
+    	$this->requireRightFor('changestate', $rec);
     	 
-    	$state = ($rec->state == 'closed') ? 'active' : 'closed';
+    	if($type == 'stop'){
+    		expect($rec->state == 'stopped' || 'active');
+    		$state = ($rec->state == 'stopped') ? 'active' : 'stopped';
+    	} else {
+    		expect($rec->state == 'closed' || 'active');
+    		$state = ($rec->state == 'closed') ? 'active' : 'closed';
+    	}
+    	
     	$rec->exState = $rec->state;
     	$rec->state = $state;
     	 

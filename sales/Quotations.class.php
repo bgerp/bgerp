@@ -46,7 +46,7 @@ class sales_Quotations extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, doc_EmailCreatePlg, acc_plg_DocumentSummary, plg_Search, doc_plg_HidePrices, doc_plg_TplManager,
-                    doc_DocumentPlg, plg_Printing, doc_ActivatePlg, bgerp_plg_Blank, doc_plg_BusinessDoc, cond_plg_DefaultValues';
+                    doc_DocumentPlg, plg_Printing, doc_ActivatePlg, plg_Clone, bgerp_plg_Blank, doc_plg_BusinessDoc, cond_plg_DefaultValues';
        
     
     /**
@@ -82,7 +82,7 @@ class sales_Quotations extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, date, folderId, state, createdOn,createdBy';
+    public $listFields = 'id, date, folderId, state, createdOn, createdBy';
     
 
     /**
@@ -113,6 +113,13 @@ class sales_Quotations extends core_Master
       * Групиране на документите
       */ 
     public $newBtnGroup = "3.7|Търговия";
+    
+    
+    /**
+     * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
+     * (@see plg_Clone)
+     */
+    public $cloneDetailes = 'sales_QuotationsDetails';
     
     
     /**
@@ -250,15 +257,24 @@ class sales_Quotations extends core_Master
     protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
 	    if($data->rec->state == 'active'){
-	    	$items = $mvc->getItems($data->rec->id);
-	    	if((sales_QuotationsDetails::fetch("#quotationId = {$data->rec->id} AND #optional = 'yes'") || !$items) AND sales_SaleRequests::haveRightFor('add')){
+	    	if(sales_Sales::haveRightFor('add', (object)array('folderId' => $data->rec->folderId))){
+	    		$items = $mvc->getItems($data->rec->id);
 	    		
-	    		// Ако има поне един опционален продукт, може да се генерира заявка
-	    		$data->toolbar->addBtn('Заявка', array('sales_SaleRequests', 'CreateFromOffer', 'originId' => $data->rec->containerId, 'ret_url' => TRUE), NULL, 'ef_icon=img/16/star_2.png,title=Създаване на нова заявка за продажба');
-	    	} elseif($items && sales_Sales::haveRightFor('add')){
+	    		// Ако има поне един опционален артикул или има варианти на задължителните, бутона сочи към екшън за определяне на количествата
+	    		if(sales_QuotationsDetails::fetch("#quotationId = {$data->rec->id} AND #optional = 'yes'") || !$items){
+	    			$data->toolbar->addBtn('Продажба', array($mvc, 'FilterProductsForSale', $data->rec->id, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/star_2.png,title=Създаване на продажба по офертата');
 	    		
-	    		// Ако има уникални продукти и потребителя има може да създава продажба, се поставя бутон за продажба
-	    		$data->toolbar->addBtn('Продажба', array($mvc, 'CreateSale', $data->rec->id, 'ret_url' => TRUE), 'warning=Сигурнили сте че искате да създадете продажба?', 'target=_blank,ef_icon=img/16/star_2.png,title=Създаване на продажба по офертата');
+	    		// Иначе, към създаването на нова продажба
+	    		} else {
+	    			$warning = '';
+	    			$title = 'Прехвърляне на артикулите в съществуваща чернова продажба';
+	    			if(!sales_Sales::count("#state = 'draft' AND #contragentId = {$data->rec->contragentId} AND #contragentClassId = {$data->rec->contragentClassId}")){
+	    				$warning = 'warning=Сигурнили сте че искате да създадете продажба?';
+	    				$title = 'Създаване на продажба от офертата';
+	    			}
+	    			
+	    			$data->toolbar->addBtn('Продажба', array($mvc, 'CreateSale', $data->rec->id, 'ret_url' => TRUE), "{$warning}", "ef_icon=img/16/star_2.png,title={$title}");
+	    		}
 	    	}
 	    }
     }
@@ -458,10 +474,6 @@ class sales_Quotations extends core_Master
     			}
     		}
     	}
-    	
-    	if($action == 'edit'){
-    		$res = 'ceo,sales';
-    	}
     }
     
     
@@ -573,20 +585,20 @@ class sales_Quotations extends core_Master
      * Помощна ф-я за връщане на всички продукти от офертата.
      * Ако има вариации на даден продукт и не може да се
      * изчисли общата сума ф-ята връща NULL
+     * 
      * @param int $id - ид на оферта
-     * @param double $total - обща сума на продуктите
+     * @return array - продуктите
      */
-    private function getItems($id, &$total = 0)
+    private function getItems($id)
     {
-    	$query = $this->sales_QuotationsDetails->getQuery();
+    	$query = sales_QuotationsDetails::getQuery();
     	$query->where("#quotationId = {$id} AND #optional = 'no'");
-    	$total = 0;
+    	
     	$products = array();
     	while($detail = $query->fetch()){
-    		$uIndex =  "{$detail->productId}|{$detail->policyId}";
-    		if(array_key_exists($uIndex, $products) || !$detail->quantity) return NULL;
-    		$total += $detail->quantity * ($detail->price * (1 + $detail->discount));
-    		$products[$uIndex] = $detail;
+    		$index = "{$detail->productId}|{$detail->packagingId}";
+    		if(array_key_exists($index, $products) || !$detail->quantity) return NULL;
+    		$products[$index] = $detail;
     	}
     	
     	return array_values($products);
@@ -646,6 +658,7 @@ class sales_Quotations extends core_Master
     	$tplArr = array();
     	$tplArr[] = array('name' => 'Оферта нормален изглед', 'content' => 'sales/tpl/QuotationHeaderNormal.shtml', 'lang' => 'bg');
     	$tplArr[] = array('name' => 'Оферта изглед за писмо', 'content' => 'sales/tpl/QuotationHeaderLetter.shtml', 'lang' => 'bg');
+    	$tplArr[] = array('name' => 'Quotation', 'content' => 'sales/tpl/QuotationHeaderNormalEng.shtml', 'lang' => 'en');
     	
     	$res = '';
         $res .= doc_TplManager::addOnce($this, $tplArr);
@@ -693,6 +706,29 @@ class sales_Quotations extends core_Master
     
     
     /**
+     * Създаване на продажба от оферта
+     * @param stdClass $rec
+     * @return mixed
+     */
+    private function createSale($rec)
+    {
+    	// Подготвяме данните на мастъра на генерираната продажба
+    	$fields = array('currencyId'         => $rec->currencyId,
+    					'currencyRate'       => $rec->currencyRate,
+    					'paymentMethodId'    => $rec->paymentMethodId,
+    					'deliveryTermId'     => $rec->deliveryTermId,
+    					'chargeVat'          => $rec->chargeVat,
+    					'note'				 => $rec->others,
+    					'originId'			 => $rec->containerId,
+    					'deliveryLocationId' => crm_Locations::fetchField("#title = '{$rec->deliveryPlaceId}'", 'id'),
+    	);
+    	
+    	// Създаваме нова продажба от офертата
+    	return sales_Sales::createNewDraft($rec->contragentClassId, $rec->contragentId, $fields);
+    }
+    
+    
+    /**
      * Екшън генериращ продажба от оферта
      */
     function act_CreateSale()
@@ -700,6 +736,7 @@ class sales_Quotations extends core_Master
     	sales_Sales::requireRightFor('add');
     	expect($id = Request::get('id', 'int'));
     	expect($rec = $this->fetchRec($id));
+    	expect($rec->state = 'active');
     	expect($items = $this->getItems($id));
     	
     	// Опитваме се да намерим съществуваща чернова продажба
@@ -710,27 +747,142 @@ class sales_Quotations extends core_Master
     	// Ако няма създаваме нова
     	if(!$sId = Request::get('dealId', 'key(mvc=sales_Sales)')){
     		
-    		// Подготвяме данните на мастъра на генерираната продажба
-    		$fields = array('currencyId' => $rec->currencyId,
-    				'currencyRate'       => $rec->currencyRate,
-    				'paymentMethodId'    => $rec->paymentMethodId,
-    				'deliveryTermId'     => $rec->deliveryTermId,
-    				'chargeVat'          => $rec->chargeVat,
-    				'note'				 => $rec->others,
-    				'originId'			 => $rec->containerId,
-    				'deliveryLocationId' => crm_Locations::fetchField("#title = '{$rec->deliveryPlaceId}'", 'id'),
-    		);
-    		 
     		// Създаваме нова продажба от офертата
-    		$sId = sales_Sales::createNewDraft($rec->contragentClassId, $rec->contragentId, $fields);
+    		$sId = $this->createSale($rec);
     	}
     	
     	// За всеки детайл на офертата подаваме го като детайл на продажбата
     	foreach ($items as $item){
-    		sales_Sales::addRow($sId, $item->classId, $item->productId, $item->quantity, $item->price, NULL, $item->discount);
+    		sales_Sales::addRow($sId, $item->classId, $item->productId, $item->packQuantity, $item->price, $item->packagingId, $item->discount, $item->notes);
     	}
     	
     	// Редирект към новата продажба
     	return Redirect(array('sales_Sales', 'single', $sId), tr('Успешно е създадена продажба от офертата'));
+    }
+    
+    
+    /**
+     * Екшън за създаване на заявка от оферта
+     */
+    function act_FilterProductsForSale()
+    {
+    	$this->requireRightFor('add');
+    	expect($id = Request::get('id', 'int'));
+    	expect($rec = $this->fetch($id));
+    	expect($rec->state == 'active');
+    	
+    	// Подготовка на формата за филтриране на данните
+    	$form = $this->getFilterForm($rec->id, $id);
+    	
+    	$fRec = $form->input();
+    	if($form->isSubmitted()){
+    		$sId = $this->createSale($rec);
+    		
+    		$products = (array)$form->rec;
+    		foreach ($products as $index => $quantity){
+    			list($productId, $classId, $optional, $packagingId) = explode("|", $index);
+    			
+    			// При опционален продукт без к-во се продължава
+    			if($optional == 'yes' && empty($quantity)) continue;
+    			
+    			// Опитваме се да намерим записа съотвестващ на това количество
+    			$where = "#quotationId = {$id} AND #productId = {$productId} AND #classId = {$classId} AND #packagingId = {$packagingId} AND #optional = '{$optional}' AND #quantity = {$quantity}";
+    			$dRec = sales_QuotationsDetails::fetch($where);
+    			if(!$dRec){
+    				
+    				// Ако няма (к-то е друго) се намира първия срещнат
+    				$dRec = sales_QuotationsDetails::fetch("#quotationId = {$id} AND #productId = {$productId} AND #classId = {$classId} AND #packagingId = {$packagingId} AND #optional = '{$optional}'");
+    			}
+    			
+    			$dRec->packQuantity = $quantity / $dRec->quantityInPack;
+    			sales_Sales::addRow($sId, $dRec->classId, $dRec->productId, $dRec->packQuantity, $dRec->price, $dRec->packagingId, $dRec->discount, $dRec->notes);
+    		}
+    		 
+    		return Redirect(array('sales_Sales', 'single', $sId));
+    	}
+    
+    	return $this->renderWrapping($form->renderHtml());
+    }
+    
+    
+    /**
+     * Връща форма за уточняване на к-та на продуктите, За всеки
+     * продукт се показва поле с опции посочените к-ва от офертата
+     * Трябва на всеки един продукт да съответства точно едно к-во
+     * 
+     * @param int $id - ид на записа
+     * @return core_Form - готовата форма
+     */
+    private function getFilterForm($id)
+    {
+    	$form = cls::get('core_Form');
+    	$form->title = 'Създаване на продажба от оферта';
+    	$form->info = tr('Моля уточнете точните количества');
+    	$filteredProducts = $this->filterProducts($id);
+    	
+    	foreach ($filteredProducts as $index => $product){
+    		
+    		if($product->optional == 'yes') {
+    			$product->title = "|Опционални|*->|*{$product->title}";
+    			$product->options = array('' => '') + $product->options;
+    			$mandatory = '';
+    		} else {
+    			$product->title = "|Оферирани|*->|*{$product->title}";
+    			if(count($product->options) > 1) {
+    				$product->options = array('' => '') + $product->options;
+    				$mandatory = 'mandatory';
+    			} else {
+    				$mandatory = '';
+    			}
+    		}
+    
+    		$form->FNC($index, "double(decimals=2)", "input,caption={$product->title},{$mandatory}");
+    		if($product->suggestions){
+    			$form->setSuggestions($index, $product->options);
+    		} else {
+    			$form->setOptions($index, $product->options);
+    		}
+    	}
+    	 
+    	$form->toolbar->addSbBtn('Създай', 'save', 'ef_icon = img/16/disk.png, title = Запис на документа');
+    	$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png, title = Прекратяване на действията');
+    	 
+    	return $form;
+    }
+    
+    
+    /**
+     * Групира продуктите от офертата с техните к-ва
+     * 
+     * @param int $id - ид на оферта
+     * @return array $products - филтрираните продукти
+     */
+    private function filterProducts($id)
+    {
+    	$products = array();
+    	$query = sales_QuotationsDetails::getQuery();
+    	$query->where("#quotationId = {$id}");
+    	$query->orderBy('optional', 'ASC');
+    	
+    	while ($rec = $query->fetch()){
+    		$index = "{$rec->productId}|{$rec->classId}|{$rec->optional}|$rec->packagingId";
+    		if(!array_key_exists($index, $products)){
+    			$title = cls::get($rec->classId)->getTitleById($rec->productId);
+    			if($rec->packagingId){
+    				$title .= " / " . cat_Packagings::getTitleById($rec->packagingId);
+    			}
+    			$products[$index] = (object)array('title' => $title, 'options' => array(), 'optional' => $rec->optional, 'suggestions' => FALSE);
+    		}
+    		
+    		if($rec->optional == 'yes'){
+    			$products[$index]->suggestions = TRUE;
+    		}
+    		
+    		if($rec->quantity){
+    			$products[$index]->options[$rec->quantity] = $rec->quantity / $rec->quantityInPack;
+    		}
+    	}
+    	 
+    	return $products;
     }
 }

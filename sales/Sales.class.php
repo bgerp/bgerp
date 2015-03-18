@@ -217,6 +217,13 @@ class sales_Sales extends deals_DealMaster
     
     
     /**
+     * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
+     * (@see plg_Clone)
+     */
+    public $cloneDetailes = 'sales_SalesDetails';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -468,6 +475,7 @@ class sales_Sales extends deals_DealMaster
             $p->quantityDelivered = $dRec->quantityDelivered;
             $p->price             = $dRec->price;
             $p->uomId             = $dRec->uomId;
+            $p->notes			  = $dRec->notes;
             
             $ProductMan = cls::get($p->classId);
             $info = $ProductMan->getProductInfo($p->productId, $p->packagingId);
@@ -634,6 +642,9 @@ class sales_Sales extends deals_DealMaster
     {
     	$data->jobInfo = array();
     	if($data->rec->state != 'rejected'){
+    		
+    		// Да не се показва блока взависимост в какъв режим сме
+    		if(Mode::is('text', 'xhtml') || Mode::is('text', 'plain') || Mode::is('pdf')) return;
     		
     		// Подготвяме информацията за наличните задания към нестандартните (частните) артикули в продажбата
     		$dQuery = sales_SalesDetails::getQuery();

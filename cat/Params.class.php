@@ -33,7 +33,7 @@ class cat_Params extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id,typeExt,type,options,default,lastUsedOn,sysId';
+    var $listFields = 'id,typeExt,type,options,default,lastUsedOn,sysId,showInPublicDocuments';
     
     
     /**
@@ -108,7 +108,8 @@ class cat_Params extends core_Manager
         $this->FLD('lastUsedOn', 'datetime', 'caption=Последно използване,input=hidden');
         $this->FNC('typeExt', 'varchar', 'caption=Име');
         $this->FLD('default', 'varchar(64)', 'caption=Дефолт');
-        $this->FLD('isFeature', 'enum(no=Не,yes=Да)', 'caption=Счетоводен признак за групиране->Използване,notNull,default=no,maxRadio=2,value=no,hint=Използване като признак за групиране в счетоводните справки?');
+        $this->FLD('isFeature', 'enum(no=Не,yes=Да)', 'caption=Счетоводен признак за групиране->Използване,notNull,value=no,maxRadio=2,value=no,hint=Използване като признак за групиране в счетоводните справки?');
+        $this->FLD('showInPublicDocuments', 'enum(no=Не,yes=Да)', 'caption=Показване във външни документи->Показване,notNull,value=yes,maxRadio=2');
         
         $this->setDbUnique('name, suffix');
         $this->setDbUnique("sysId");
@@ -127,7 +128,19 @@ class cat_Params extends core_Manager
         }
     }
     
-
+    
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+    	$data->form->setDefault('showInPublicDocuments', 'yes');
+    }
+    
+    
 	/**
      * След изпращане на формата
      */
@@ -145,7 +158,7 @@ class cat_Params extends core_Manager
         		}
         	} else {
         		if($rec->type == 'enum'){
-        			$form->setError('options', "За изброим тип задължително трябва да се се зададат стойностти");
+        			$form->setError('options', "За изброим тип задължително трябва да се се зададат стойности");
         		}
         	}
         }
@@ -241,7 +254,9 @@ class cat_Params extends core_Manager
     			2 => "suffix",
     			3 => "sysId",
     			4 => "options",
-    			5 => "default");
+    			5 => "default",
+    			6 => "showInPublicDocuments",
+    	);
     	 
     	$cntObj = csv_Lib::importOnce($this, $file, $fields);
     	$res .= $cntObj->html;

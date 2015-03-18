@@ -69,8 +69,8 @@ class cat_Setup extends core_ProtoSetup
     		'migrate::removeOldParams1',
     		'migrate::updateDocs',
     		'migrate::fixStates',
-    		'migrate::privateProducts',
     		'migrate::truncatCache',
+            'migrate::fixProductsSearchKeywords'
         );
 
         
@@ -441,27 +441,27 @@ class cat_Setup extends core_ProtoSetup
     
     
     /**
-     * Мигрира частните артикули
-     */
-    public function privateProducts()
-    {
-    	$Products = cls::get('cat_Products');
-    	$query = $Products->getQuery();
-    	$query->where("#isPublic = 'no' AND #detailedDescriptionIn IS NULL");
-    	$query->show("id,name,isPublic,detailedDescriptionIn");
-    	
-    	while($rec = $query->fetch()){
-    		$rec->detailedDescriptionIn = 'sales_Quotations,sales_Sales';
-    		$Products->save_($rec, 'detailedDescriptionIn');
-    	}
-    }
-    
-    
-    /**
      * Изтриваме кеша
      */
     public function truncatCache()
     {
     	cat_ProductTplCache::truncate();
+    }
+    
+    
+    /**
+     * Оправя ключовите думи на артикулите
+     */
+    public static function fixProductsSearchKeywords()
+    {
+    	$query = cat_Products::getQuery();
+    	
+    	while($rec = $query->fetch()) {
+    	    try {
+    	        cat_Products::save($rec, 'searchKeywords');
+    	    } catch (core_exception_Expect $e) {
+    	        continue;
+    	    }
+    	}
     }
 }

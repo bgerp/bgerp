@@ -1361,7 +1361,7 @@ class type_Richtext extends type_Blob
           	    // Генерираме текста
                 $toolbarTxt = "<a class='rtbutton' title='" . $blockeElement['title'] .  
           	    		"' onclick=\"s('[{$begin}]', '[/{$end}]', document.getElementById('{$formId}'),{$newLine},{$multiline},{$maxOneLine})\">
-          	    		<img src=" . $blockeElement['icon'] . " height='15' width='15' align='top'></a>";
+          	    		<img src=" . $blockeElement['icon'] . " height='15' width='15'></a>";
           	    
                 // Ако трябва да се добави разделител за нов ред
           	    if (!($i % $maxBlockElementInLine)) {

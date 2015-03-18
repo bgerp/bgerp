@@ -38,7 +38,7 @@ class cat_Products extends core_Embedder {
      * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools, plg_SaveAndNew, plg_Clone, doc_DocumentPlg, plg_PrevAndNext, acc_plg_Registry, plg_State,
-                     cat_Wrapper, plg_Sorting, doc_ActivatePlg, doc_plg_BusinessDoc, bgerp_plg_Groups, plg_Printing, plg_Select, plg_Search, bgerp_plg_Import';
+                     cat_Wrapper, plg_Sorting, doc_ActivatePlg, doc_plg_BusinessDoc, cond_plg_DefaultValues, bgerp_plg_Groups, plg_Printing, plg_Select, plg_Search, bgerp_plg_Import';
     
     
     /**
@@ -226,6 +226,15 @@ class cat_Products extends core_Embedder {
 	public $abbr = 'Cpr';
 	
 	
+	/**
+	 * Стратегии за дефолт стойностти
+	 */
+	public static $defaultStrategies = array(
+					'groups'  => 'lastDocUser|lastDoc',
+					'meta'    => 'lastDocUser|lastDoc',
+	);
+	
+	
     /**
      * Описание на модела
      */
@@ -238,7 +247,6 @@ class cat_Products extends core_Embedder {
         $this->FLD('photo', 'fileman_FileType(bucket=pictures)', 'caption=Фото,input=none,formOrder=4');
         $this->FLD('groups', 'keylist(mvc=cat_Groups, select=name, makeLinks)', 'caption=Маркери,maxColumns=2,remember,formOrder=100');
         $this->FLD("isPublic", 'enum(no=Частен,yes=Публичен)', 'input=none,formOrder=100000002');
-        $this->FLD("detailedDescriptionIn", 'set(sales_Quotations=Оферта,sales_Sales=Продажба,store_ShipmentOrders=Експедиционно нареждания,sales_Services=Предавателен протокол)', 'formOrder=100000002,caption=Показване на детайлите за продукта->Документи');
         
         // Разбивки на свойствата за по-бързо индексиране и търсене
         $this->FLD('canSell', 'enum(yes=Да,no=Не)', 'input=none');
@@ -302,9 +310,7 @@ class cat_Products extends core_Embedder {
 						}
 					}
 				}
-    		} else {
-    			$form->setDefault('detailedDescriptionIn', 'sales_Quotations,sales_Sales');
-    		}
+    		} 
     	}
     }
     
@@ -1143,7 +1149,7 @@ class cat_Products extends core_Embedder {
     {
     	$rec = $this->fetchRec($id);
     	
-    	return cat_ProductTplCache::cacheTpl($rec->id, $time);
+    	return cat_ProductTplCache::cacheTpl($rec->id, $time)->getContent();
     }
     
     
@@ -1376,9 +1382,9 @@ class cat_Products extends core_Embedder {
      */
     public function renderJobView($id, $time = NULL)
     {
-    	$Jobs = cls::get('planning_Jobs');
+    	$rec = $this->fetchRec($id);
     	
-    	return $this->getProductDesc($id, $time);
+    	return cat_ProductTplCache::cacheTpl($rec->id, $time, 'internal')->getContent();
     }
     
     

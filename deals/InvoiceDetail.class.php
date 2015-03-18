@@ -60,7 +60,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 		$mvc->FLD('amount', 'double(minDecimals=2,maxDecimals=2)', 'caption=Сума,input=none');
 		$mvc->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input');
 		$mvc->FLD('discount', 'percent', 'caption=Отстъпка');
-		$mvc->FLD('note', 'varchar(64)', 'caption=@Пояснение');
+		$mvc->FLD('notes', 'richtext(rows=3)', 'caption=Забележки,formOrder=110001');
 	}
 	
 	
@@ -210,11 +210,8 @@ abstract class deals_InvoiceDetail extends doc_Detail
 	{
 		$ProductMan = cls::get($rec->classId);
 		$row->productId = $ProductMan->getProductDescShort($rec->productId);
-	
-		if($rec->note){
-			$varchar = cls::get('type_Varchar');
-			$row->note = $varchar->toVerbal($rec->note);
-			$row->productId .= "<br/><small style='color:#555;'>{$row->note}</small>";
+		if($rec->notes){
+			$row->productId .= "<div class='small'>{$mvc->getFieldType('notes')->toVerbal($rec->notes)}</div>";
 		}
 			
 		$pInfo = $ProductMan->getProductInfo($rec->productId);

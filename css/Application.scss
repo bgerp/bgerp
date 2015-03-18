@@ -3843,13 +3843,13 @@ body.narrow {
         max-height: 87px;
     }
     .footerDocInfo{
-        display: table-row;
+        display: table-row !important;
     }
     .footerDocBlock{
-        display: block;
+        display: block  !important;
     }
     .footerDocTable {
-        display: table;
+        display: table !important;
     }
 }
 

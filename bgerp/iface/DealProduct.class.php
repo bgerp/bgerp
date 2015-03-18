@@ -97,6 +97,12 @@ class bgerp_iface_DealProduct
     
     
     /**
+     * Забележки
+     */
+    public $notes;
+    
+    
+    /**
      * Първичния ключ на мениджъра на продукта
      *
      * @return int key(mvc=core_Classes)

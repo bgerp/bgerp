@@ -67,7 +67,13 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		if($this->innerState->photo){
 			$size = array(280, 150);
 			$Fancybox = cls::get('fancybox_Fancybox');
-			$data->row->image = $Fancybox->getImage($this->innerState->photo, $size, array(550, 550));
+			
+			$attr = array();
+			if(Mode::is('text', 'xhtml') || Mode::is('text', 'plain') || Mode::is('pdf')){
+				$attr['isAbsolute'] = TRUE;
+			}
+			
+			$data->row->image = $Fancybox->getImage($this->innerState->photo, $size, array(550, 550), NULL, $attr);
 		}
 		
 		// Ако не е зададен шаблон, взимаме дефолтния
@@ -114,7 +120,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		}
 		
 		$data->row = $row;
-		
+		$data->prepareForPublicDocument = $this->prepareForPublicDocument;
 		$data->masterId = $this->EmbedderRec->rec()->id;
 		$data->masterClassId = $this->EmbedderRec->getClassId();
 		
@@ -262,10 +268,16 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	
 	/**
 	 * Подготвя данните за показване на описанието на драйвера
+	 * 
+	 * @param enum(public,internal) $documentType - публичен или външен е документа за който ще се кешира изгледа
 	 */
-	public function prepareProductDescription()
+	public function prepareProductDescription($documentType = 'public')
 	{
+		if($documentType == 'public'){
+			$this->prepareForPublicDocument = TRUE;
+		}
 		$data = $this->prepareEmbeddedData();
+		unset($this->prepareForPublicDocument);
 		$data->noChange = TRUE;
 		$data->tpl = getTplFromFile('cat/tpl/SingleLayoutBaseDriverShort.shtml');
 		
@@ -281,7 +293,6 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		$tpl = $this->renderEmbeddedData($data);
 		
 		$title = ht::createLinkRef($this->EmbedderRec->getTitleById(), array($this->EmbedderRec->instance, 'single', $this->EmbedderRec->that));
-		$tpl->removeBlock('INFORMATION');
 		$tpl->replace($title, "TITLE");
 		
 		// Ако няма параметри, премахваме блока им от шаблона

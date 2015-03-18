@@ -12,20 +12,20 @@
         <table class="innerTable quote-header paddingCells" style='width:100%;'>
             <tbody>
                 <tr>
-                    <td class="cell custom-header-bg" style='width:35%;'><b>|Получател|*</b></td>
+                    <td class="cell custom-header-bg" style='width:35%;'><b>Receiver</b></td>
                     <td class="cellm centered" rowspan="2" style='width:30%;'>
-                        <div class='invoiceTitle' style='font-size:1.2em;margin-bottom:5px'><b>|ОФЕРТА|* </b></div>
+                        <div class='invoiceTitle' style='font-size:1.2em;margin-bottom:5px'><b>QUOTATION </b></div>
                         <div class="bigData">№[#number#] / [#date#]</div>
                         <!--ET_BEGIN place-->
-                        <div class='quiet-small'>|Място|*</div>
+                        <div class='quiet-small'>Place</div>
                         <div class="bigData">[#place#]</div>
                         <!--ET_END place-->
                         <!--ET_BEGIN reff-->
-                        <div class='quiet-small'>|Ваш реф. №|*</div>
+                        <div class='quiet-small'>Your ref</div>
                         <div class="bigData">[#reff#]</div>
                         <!--ET_END reff-->
                     </td>
-                    <td class="cell custom-header-bg" style='width:35%;'><b>|Доставчик|*</b> </td>
+                    <td class="cell custom-header-bg" style='width:35%;'><b>Supplier</b> </td>
                 </tr>
                 <tr>
                     <td class="cell">
@@ -57,24 +57,18 @@
     [#ListToolbar#]
     <table  class = 'products-table' style='width:100%;'>
         <tr>
-            <th>|Условия на офертата|*</th>
-            <th>|Съставил|*</th>
+            <th>Quotation conditions</th>
+            <th>Prepared</th>
         </tr>
         <tr>
             <td> 
                 <ol id='conditions'>
-                    <!--ET_BEGIN validFor-->
-		            <li> |Валидност на офертата|*: <b>[#validFor#] (|до|* [#validDate#])</b>			            
+		            <li> Valid untill: <b>[#validFor#] (till [#validDate#])</b>			            
 		            </li>
-		            <!--ET_END validFor-->
-		            <!--ET_BEGIN paymentMethodId-->
-		            <li>|Начин на плащане|*: <b>[#paymentMethodId#]</b></li>
-		            <!--ET_END paymentMethodId-->
-		            <!--ET_BEGIN deliveryTermId-->
-			        <li>|Условие на доставка|*: <b>[#deliveryTermId#]</b></li>
-			        <!--ET_END deliveryTermId-->
+		            <li>Payment method: <b>[#paymentMethodId#]</b></li>
+			        <li>Delivery term: <b>[#deliveryTermId#]</b></li>
 			        <!--ET_BEGIN deliveryPlaceId-->
-			        <li>|Място на доставка|*: <b>[#deliveryPlaceId#]</b></li>
+			        <li>Delivery place: <b>[#deliveryPlaceId#]</b></li>
 			        <!--ET_END deliveryPlaceId-->
 			        <li><b>|В сила са Oбщите Условия за изрaботка на|* [#MyCompany#]</b></li>
 			        <!--ET_BEGIN others-->
@@ -83,13 +77,13 @@
 		        </ol>
             </td>
             <td class="centered" style='vertical-align: bottom !important'>
-              <div class='sign_names'>/ [#username#] /</div>
+              <div style='border-top: 1px dashed #333 !important; color: #070895;padding-left: 5px; font-family: cursive; font-style: italic;display: block; margin-bottom: 2px;'>[#username#]</div>
             </td>
         </tr>
     </table>
 
     <div class='footerDocBlock'>
-        <div class='aright'>Документът е създаден чрез системата <b><a href='http://bgerp.com'>bgERP</a></b>.</div>
+        <div class='aright'>This document is created by <b><a href='http://bgerp.com'>bgERP</a></b>.</div>
     </div>
     <div class='details'>
         <!--ET_BEGIN DETAILS-->

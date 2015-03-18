@@ -226,7 +226,7 @@ class type_Keylist extends core_Type {
                     $cb->append("<label {$title} data-colsInRow='" .$col   . "' for=\"" . $attrCB['id'] . "\">{$v}</label>");
                     
                     if($i == 0 && $j>0) {
-                        $html .= "\n<tr class='row-" . $j . "'>";
+                        $html .= "\n<tr class='row-" .$j . "'>";
                         $trOpen = TRUE;
                     }
                     $html .= "\n    <td>" . $cb->getContent() . "</td>";
@@ -240,19 +240,19 @@ class type_Keylist extends core_Type {
                     $i = $i % $col;
                 }
  
-            }  
-                while($i && $i < $col) {
+            }
+            if ($groupOpen){
+                while($i < $col) {
                     $html .= "<td></td>";
                     $i++;
                 }
-            if ($groupOpen){  
             	$html .= "</tr></table></td>";
             } 
         } else {
             $html = '<tr><td></td></tr>';
         }
         
-        $attr['class'] .= $keyListClass ;
+        $attr['class'] .= " " . $keyListClass ;
         $tpl = HT::createElement('table', $attr, $html);
         jquery_Jquery::run($tpl, "keylistActions();", TRUE);
         jquery_Jquery::run($tpl, "checkForHiddenGroups();", TRUE);

@@ -149,9 +149,10 @@ class cat_ProductTplCache extends core_Master
 	 *
 	 * @param mixed $id - ид/запис
 	 * @param datetime $time - време
+	 * @param enum(public,internal) $documentType - публичен или външен е документа за който ще се кешира изгледа
 	 * @return core_ET - кеширания шаблон
 	 */
-	public static function cacheTpl($productId, $time)
+	public static function cacheTpl($productId, $time, $documentType = 'public')
 	{
 		$pRec = cat_Products::fetchRec($productId);
 		$cache = self::fetchField("#productId = {$pRec->id} AND #time = '{$time}'", 'cache');
@@ -164,7 +165,7 @@ class cat_ProductTplCache extends core_Master
 			$cacheRec = new stdClass();
 			$cacheRec->time = $time;
 			$cacheRec->productId = $productId;
-			$cacheRec->cache = $Driver->prepareProductDescription();
+			$cacheRec->cache = $Driver->prepareProductDescription($documentType);
 			self::save($cacheRec);
 	
 			$cache = $cacheRec->cache;

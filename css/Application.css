@@ -3573,11 +3573,11 @@ only screen and (max-width: 320px) {
     max-width: 87px;
     max-height: 87px; }
   .external .footerDocInfo {
-    display: table-row; }
+    display: table-row !important; }
   .external .footerDocBlock {
-    display: block; }
+    display: block !important; }
   .external .footerDocTable {
-    display: table; }
+    display: table !important; }
 
   .narrow .external .scrolling-holder {
     display: block;

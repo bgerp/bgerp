@@ -169,6 +169,13 @@ class purchase_Purchases extends deals_DealMaster
     
     
     /**
+     * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
+     * (@see plg_Clone)
+     */
+    public $cloneDetailes = 'purchase_PurchasesDetails';
+    
+    
+    /**
      * Поле в което се замества шаблона от doc_TplManager
      */
     public $templateFld = 'SINGLE_CONTENT';
@@ -423,7 +430,8 @@ class purchase_Purchases extends deals_DealMaster
             $p->quantityDelivered = $dRec->quantityDelivered;
             $p->price             = $dRec->price;
             $p->uomId             = $dRec->uomId;
-           
+            $p->notes			  = $dRec->notes;
+            
             $ProductMan = cls::get($p->classId);
             $info = $ProductMan->getProductInfo($p->productId, $p->packagingId);
             $p->weight  = $ProductMan->getWeight($p->productId, $p->packagingId);

@@ -283,8 +283,10 @@ abstract class cat_ProductDriver extends core_BaseClass
 	
 	/**
 	 * Подготвя данните за показване на описанието на драйвера
+	 * 
+	 * @param enum(public,internal) $documentType - публичен или външен е документа за който ще се кешира изгледа
 	 */
-	public function prepareProductDescription()
+	public function prepareProductDescription($documentType = 'public')
 	{
 		return (object)array();
 	}

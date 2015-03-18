@@ -256,7 +256,14 @@ class cat_products_Params extends core_Manager
     {
         $query = self::getQuery();
         $query->where("#classId = {$data->masterClassId} AND #productId = {$data->masterId}");
-    	$Cls = cls::get(get_called_class());
+    	
+        // Ако подготвяме за външен документ, да се показват само параметрите за външни документи
+    	if($data->prepareForPublicDocument === TRUE){
+    		$query->EXT('showInPublicDocuments', 'cat_Params', 'externalName=showInPublicDocuments,externalKey=paramId');
+    		$query->where("#showInPublicDocuments = 'yes'");
+    	}
+        
+        $Cls = cls::get(get_called_class());
         
     	while($rec = $query->fetch()){
     		$data->params[$rec->id] = $Cls->recToVerbal($rec);
