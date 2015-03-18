@@ -580,14 +580,22 @@ class sales_QuotationsDetails extends doc_Detail {
     	}
     	
     	$vatRow = ($masterRec->chargeVat == 'yes') ? tr(', |с ДДС|*') : tr(', |без ДДС|*');
-    	$misc = $masterRec->currencyId . $vatRow;
+    	$miscMandatory = $masterRec->currencyId . $vatRow;
+    	$miscOptional = $masterRec->currencyId . $vatRow;
+    	if(count($data->discounts)){
+    		$miscMandatory .= ', ' . tr('без извадени отстъпки');
+    	}
+    	
+    	if(count($data->discountsOptional)){
+    		$miscOptional .= ', ' . tr('без извадени отстъпки');
+    	}
     	
     	// Ако сме чернова или има поне един задължителен артикул, рендираме таблицата му
     	if($masterRec->state == 'draft' || $dCount > 1){
     		$tpl->append($this->renderListToolbar($data), 'ListToolbar');
     		$dTpl->replace(($data->haveMandatoryPackaging) ? tr('Опаковка') : tr('Мярка'), 'MEASURE_TH');
     		$dTpl->append(tr('Оферирани'), 'TITLE');
-    		$dTpl->append($misc, "MISC");
+    		$dTpl->append($miscMandatory, "MISC");
     		if(isset($data->addNotOptionalBtn)){
     			$dTpl->append($data->addNotOptionalBtn, 'ADD_BTN');
     		}
@@ -600,7 +608,7 @@ class sales_QuotationsDetails extends doc_Detail {
     	if($masterRec->state == 'draft' || $oCount > 1){
     		$oTpl->replace(($data->haveOptionalPackaging) ? tr('Опаковка') : tr('Мярка'), 'MEASURE_TH');
     		$oTpl->append(tr('Опционални'), 'TITLE');
-    		$oTpl->append($misc, "MISC");
+    		$oTpl->append($miscOptional, "MISC");
     		if(isset($data->addOptionalBtn)){
     			$oTpl->append($data->addOptionalBtn, 'ADD_BTN');
     		}
@@ -628,7 +636,7 @@ class sales_QuotationsDetails extends doc_Detail {
     	 
     	$recs = &$data->recs;
     	$rows = &$data->rows;
-    	$data->discounts = array();
+    	$data->discountsOptional = $data->discounts = array();
     	$data->haveOptionalPackaging = $data->haveMandatoryPackaging = TRUE;
     	
     	foreach ($rows as $id => &$row){
@@ -641,8 +649,12 @@ class sales_QuotationsDetails extends doc_Detail {
     			}
     		}
     		
-    		if($rec->optional == 'no'){
-    			$data->discounts[$rec->discount] = $row->discount;
+    		if(isset($rec->discount)){
+    			if($rec->optional == 'no'){
+    				$data->discounts[$rec->discount] = $row->discount;
+    			} else {
+    				$data->discountsOptional[$rec->discount] = $row->discount;
+    			}
     		}
     		
     		$row->productId = cat_Products::getAutoProductDesc($rec->productId, $data->masterData->rec->modifiedOn, $rec->showMode);
