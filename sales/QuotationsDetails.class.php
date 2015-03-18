@@ -331,18 +331,19 @@ class sales_QuotationsDetails extends doc_Detail {
     		if (!isset($rec->packPrice)) {
     			$Policy = (isset($mvc->Policy)) ? $mvc->Policy : cls::get($rec->classId)->getPolicy();
     			$policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->classId, $rec->packagingId, $rec->packQuantity, $priceAtDate, $masterRec->currencyRate, $masterRec->chargeVat);
-    				 
-    			if (empty($policyInfo->price) && empty($pRec)) {
+    			
+    			if(empty($policyInfo->price)){
+    				$policyInfo->price = $mvc->tryToCalcPrice($rec);
+    			}
+    			
+    			if (empty($policyInfo->price)) {
+    				
     				$form->setError('packPrice', 'Продукта няма цена в избраната ценова политика');
     			} else {
-    				// Ако се обновява вече съществуващ запис
-    				if($pRec){
-    					$pRec->packPrice = deals_Helper::getDisplayPrice($pRec->packPrice, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
-    				}
     	
     				// Ако се обновява запис се взима цената от него, ако не от политиката
-    				$price = ($pRec->price) ? $pRec->price : $policyInfo->price;
-    				$rec->packPrice = ($pRec->packPrice) ? $pRec->packPrice : $policyInfo->price * $rec->quantityInPack;
+    				$price = $policyInfo->price;
+    				$rec->packPrice = $policyInfo->price * $rec->quantityInPack;
     				if($policyInfo->discount && empty($rec->discount)){
     					$rec->discount = $policyInfo->discount;
     				}
@@ -388,6 +389,36 @@ class sales_QuotationsDetails extends doc_Detail {
     			$rec->vatPercent = $vat;
     		}
 	    }
+    }
+    
+    
+    /**
+     * Опитваме се да намерим цена за записа, ако има два предишни записа със цени
+     */
+    private function tryToCalcPrice($rec)
+    {
+    	// Имали за този запис поне два други записа със различни количества
+    	$checkQuery = $this->getQuery();
+    	$checkQuery->where("#quotationId = {$rec->quotationId} AND #productId = {$rec->productId} AND #classId = {$rec->classId}");
+    	$checkQuery->show('quantity,price');
+    	$checkQuery->orderBy("id", 'DESC');
+    	$checkQuery->limit(2);
+    		
+    	// Ако да изчисляваме третата цена по формула
+    	// (Q1 / Q3) * (P1 - (P1*Q1 - P2*Q2) / (Q1 - Q2)) + (P1*Q1 - P2*Q2) / (Q1 - Q2)
+    	if($checkQuery->count() == 2){
+    		$fRec = $checkQuery->fetch();
+    		$sRec = $checkQuery->fetch();
+    		
+    		$newPrice = ($fRec->quantity / $rec->quantity) * 
+    			($fRec->price - ($fRec->price * $fRec->quantity - $sRec->price * $sRec->quantity) / 
+    			($fRec->quantity - $sRec->quantity)) + ($fRec->price * $fRec->quantity - $sRec->price * $sRec->quantity) /
+    			($fRec->quantity - $sRec->quantity);
+    		
+    		return $newPrice;
+    	}
+    	
+    	return NULL;
     }
     
     

@@ -82,7 +82,7 @@ class sales_Quotations extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, date, folderId, state, createdOn,createdBy';
+    public $listFields = 'id, date, folderId, state, createdOn, createdBy';
     
 
     /**
@@ -259,8 +259,12 @@ class sales_Quotations extends core_Master
 	    if($data->rec->state == 'active'){
 	    	if(sales_Sales::haveRightFor('add', (object)array('folderId' => $data->rec->folderId))){
 	    		$items = $mvc->getItems($data->rec->id);
+	    		
+	    		// Ако има поне един опционален артикул или има варианти на задължителните, бутона сочи към екшън за определяне на количествата
 	    		if(sales_QuotationsDetails::fetch("#quotationId = {$data->rec->id} AND #optional = 'yes'") || !$items){
 	    			$data->toolbar->addBtn('Продажба', array($mvc, 'FilterProductsForSale', $data->rec->id, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/star_2.png,title=Създаване на продажба по офертата');
+	    		
+	    		// Иначе, към създаването на нова продажба
 	    		} else {
 	    			$warning = '';
 	    			$title = 'Прехвърляне на артикулите в съществуваща чернова продажба';
@@ -469,10 +473,6 @@ class sales_Quotations extends core_Master
     				$res = 'no_one';
     			}
     		}
-    	}
-    	
-    	if($action == 'edit'){
-    		$res = 'ceo,sales';
     	}
     }
     
