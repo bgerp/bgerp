@@ -171,7 +171,7 @@ class cms_Domains extends core_Embedder
         $query = self::getQuery();
         $domainRecs = $query->fetchAll(array("#domain = '[#1#]'", $domain));
         
-        if(!$domainRecs || count($domains) == 0) {
+        if(!$domainRecs || count($domainRecs) == 0) {
              
             // Намираме и алтернативния домейн
             if(strpos($domain, 'www.') === 0) {
@@ -184,11 +184,11 @@ class cms_Domains extends core_Embedder
             $domainRecs = $query->fetchAll(array("#domain = '[#1#]'", $altDomain));
         }
         
-        if(!$domains || count($domains) == 0) {
+        if(!$domainRecs || count($domainRecs) == 0) {
             $query = self::getQuery();
             $domainRecs = $query->fetchAll(array("#domain = '[#1#]'", 'localhost'));
         }
-        
+ 
         return $domainRecs;
     }
 
@@ -220,6 +220,13 @@ class cms_Domains extends core_Embedder
        
             Mode::setPermanent(self::CMS_CURRENT_DOMAIN_REC, $domainRec);
         }
+        
+        // Редиректваме, ако не сме на правилния домейн
+        $realDomain = strtolower(trim($_SERVER['SERVER_NAME']));
+        if($realDomain != $domainRec->domain) {
+            // $url = Url::change(toUrl(getCurrentUrl(), 'absolute'), NULL, $domainRec->domain);  
+            // redirect($url);
+        }
       
         if($part) {
  
@@ -248,11 +255,11 @@ class cms_Domains extends core_Embedder
         if(!$domainRecs) {
             $domainRecs = self::findPublicDomainRecs();
         }
-                
+
         foreach($domainRecs as $rec) {
             $cmsLangs[$rec->lang] = $rec->lang;
         }
-        
+  
         return $cmsLangs;
     }
 

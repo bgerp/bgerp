@@ -73,12 +73,23 @@ class newsbar_News extends core_Master
 		$this->FLD('news', 'richtext(rows=2)', 'caption=Новина,mandatory');
 		$this->FLD('startTime', 'datetime', 'caption=Показване на новината->Начало, mandatory');
 		$this->FLD('endTime', 'datetime', 'caption=Показване на новината->Край,mandatory');
-		$this->FLD('lang', 'varchar(4), allowEmpty=true', 'caption=Показване на новината->Език,mandatory');
+        $this->FLD('domainId',    'key(mvc=cms_Domains, select=*)', 'caption=Домейн,notNull,defValue=bg,mandatory,autoFilter');
 		$this->FLD('color', 'color_Type', 'caption=Фон->Цвят,unit=rgb');
 		$this->FLD('transparency', 'percent(min=0,max=1,decimals=0)', 'caption=Фон->Непрозрачност');
-		
     }
     
+
+
+    /**
+     * Изпълнява се след подготовката на формата за филтриране
+     */
+    function on_AfterPrepareListFilter($mvc, $data)
+    {
+        $domainId = cms_Domains::getCurrent();
+        $data->query->where("#domainId = {$domainId}");
+        $data->query->orderBy('#createdOn', 'DESC');
+    }
+
     
     /**
      * Създаване на лентата за новини
@@ -88,21 +99,18 @@ class newsbar_News extends core_Master
     	// Правим заявка към базата
     	$query = static::getQuery();
     	
-    	
     	$nowTime = dt::now();
-    	$lg = cms_Content::getLang();
 
         $query->groupBy('RAND()');
     	$query->limit(1);
-
+        
+        $domainId = cms_Domains::getPublicDomain('id');
     	$query->where("#state = 'active'");
     	$query->where("#startTime <= '{$nowTime}' AND  #endTime >= '{$nowTime}'");
-		$query->where("#lang = '{$lg}'");
+		$query->where("#domainId = '{$domainId}'");
 		
         $news = $query->fetch();
-        
-		//$newLink = substr($news->news, 0, strlen($link)-2);
-		       
+        		       
 		// Връщаме стринг от всички новини
 		return (object) array('news' => $news->news, 'color' => $news->color, 'transparency'=> $news->transparency);
     }
@@ -178,8 +186,9 @@ class newsbar_News extends core_Master
         $form = &$data->form;
         $rec  = &$form->rec;
         
-        $form->setDefault('lang', cms_Content::getLang());
-        $form->setOptions('lang', cms_Domains::getCmsLangs($domainRecs));
+        $form->rec->domainId = cms_Domains::getCurrent();
+        $form->setReadOnly('domainId');
+            
 
         $progressArr[''] = '';
 
@@ -200,21 +209,7 @@ class newsbar_News extends core_Master
     }
     
     
-    /**
-     * След преобразуване на записа в четим за хора вид.
-     */
-    static function on_AfterPrepareListRows($mvc, &$res)
-    {
-        $rows = &$res->rows;
-        $recs = &$res->recs;
         
-        foreach ($recs as $id => $rec) {
-        	if ($rec->lang == 'none') { 
-        		$rows[$id]->lang = " ";
-        	}
-        }
-    }
-       
 
     /**
      * След преобразуване на записа в четим за хора вид.
@@ -242,6 +237,8 @@ class newsbar_News extends core_Master
     	$rgb = static::hex2rgb($rec->color);
     	$hexTransparency = dechex($rec->transparency * 255);
     	$forIE = "#". $hexTransparency. str_replace("#", "", $rec->color);
+
+        $rt = cls::get('type_Richtext');
     	
     	$html =  new ET ("<div class=\"[#class#]\" style=\"background-color: rgb([#r#], [#g#], [#b#]); 
             										   background-color: rgba([#r#], [#g#], [#b#], [#transparency#]);
@@ -250,7 +247,7 @@ class newsbar_News extends core_Master
                           -ms-filter: 'progid:DXImageTransform.Microsoft.gradient(startColorstr=[#ie#], endColorstr=[#ie#])';
                           zoom: 1;\">
             [#marquee#]<b>[#1#]</b>[#marquee2#]
-            </div><div class='clearfix21'></div>", $rec->news);
+            </div><div class='clearfix21'></div>", $rt->toHtml('[color=white]' . $rec->news . '[/color]'));
     	
     	$html->replace($rgb[0], 'r');
         $html->replace($rgb[1], 'g');

@@ -110,7 +110,7 @@ class cms_Setup extends core_ProtoSetup
         	'cms_Feeds',
             'cms_Includes',
             'cms_VerbalId',
-            'migrate::contentOrder1',
+            'migrate::contentOrder4',
          );
 
          
@@ -168,29 +168,36 @@ class cms_Setup extends core_ProtoSetup
         
         return $res;
     }
-
-
-    function contentOrder1()
+    
+    private static function getLocalhostDomain($lg)
     {
-        $query = cms_Content::getQuery();
-        $enDomain = cms_Domains::fetch("#domain = 'localhost' AND #lang = 'en'")->id;
-        if(!$enDomain) {
-            core_Classes::add('cms_DefaultTheme');
-            $dRec = (object) array('domain' => 'localhost', 'theme' => core_Classes::getId('cms_DefaultTheme'), 'lang' => 'en');
-            self::save($dRec);
-            $enDomain = $dRec->id;
+        static $domainIds = array();
+
+        if(!$domainIds[$lg]) {
+            $domainIds[$lg] = cms_Domains::fetch("#domain = 'localhost' AND #lang = '{$lg}'")->id;
         }
-        
-        $bgDomain = cms_Domains::fetch("#domain = 'localhost' AND #lang = 'bg'")->id;
-        if(!$bgDomain) {
+
+        if(!$domainIds[$lg]) {
             core_Classes::add('cms_DefaultTheme');
-            $dRec = (object) array('domain' => 'localhost', 'theme' => core_Classes::getId('cms_DefaultTheme'), 'lang' => 'bg');
+            $dRec = (object) array('domain' => 'localhost', 'theme' => core_Classes::getId('cms_DefaultTheme'), 'lang' => $lg);
             self::save($dRec);
-            $bgDomain = $dRec->id;
+            $domainIds[$lg] = $dRec->id;
         }
+
+        return $domainIds[$lg];
+    }
+    
+    
+    /**
+     * Миграция към модела на домейните
+     */
+    function contentOrder4()
+    {
+        // Добавяме domainId към cms_Content
         $max = 1;
+        $query = cms_Content::getQuery();
         while($rec = $query->fetch()) {
-            if(!$rec->level) {
+            if(!$rec->order) {
                 list($n, $m) = explode(' ', $rec->menu, 2);
                 if(is_numeric($n)) {
                     $rec->order = $n;
@@ -199,16 +206,63 @@ class cms_Setup extends core_ProtoSetup
                     $rec->order = $max +1;
                 }
             }
-            $max = max($rec->level, $max);
+            $max = max($rec->order, $max);
             if(!$rec->domainId) {
                 if(mb_strlen($m) == strlen($m)) {
-                    $rec->domainId = $enDomain;
+                    $rec->domainId = self::getLocalhostDomain('en');
                     
                 } else {
-                    $rec->domainId = $bgDomain;
+                    $rec->domainId = self::getLocalhostDomain('bg');
                 }
             }
             cms_Content::save($rec);
         }
+        
+        $bCat = cls::get('blogm_Categories');
+        if($bCat->db->tableExists($bCat->dbTableName)) {
+            $query = blogm_Categories::getQuery();
+            while($rec = $query->fetch()) {
+                if(!$rec->domainId) {
+                    if(mb_strlen($rec->title) == strlen($rec->title)) {
+                        $rec->domainId = self::getLocalhostDomain('en');
+                    } else {
+                        $rec->domainId = self::getLocalhostDomain('bg');
+                    }
+                }
+                blogm_Categories::save($rec);
+            }
+        }
+
+        $feeds = cls::get('cms_Feeds');
+        if($feeds->db->tableExists($feeds->dbTableName)) {
+            $query = cms_Feeds::getQuery();
+            while($rec = $query->fetch()) {
+                if(!$rec->domainId) {
+                    if(mb_strlen($rec->title) == strlen($rec->title)) {
+                        $rec->domainId = self::getLocalhostDomain('en');
+                    } else {
+                        $rec->domainId = self::getLocalhostDomain('bg');
+                    }
+                }
+                cms_Feeds ::save($rec);
+            }
+        }
+
+        $mvc = cls::get('newsbar_News');
+        if($mvc->db->tableExists($mvc->dbTableName)) {
+            $query = cms_Feeds::getQuery();
+            $rt = cls::get('type_Richtext');
+            while($rec = $query->fetch()) {
+                if(!$rec->domainId) {
+                    if(mb_strlen($rec->news) == strlen($rec->news)) {
+                        $rec->domainId = self::getLocalhostDomain('en');
+                    } else {
+                        $rec->domainId = self::getLocalhostDomain('bg');
+                    }
+                }
+                $mvc->save($rec);
+            }
+        }
+
     }
 }

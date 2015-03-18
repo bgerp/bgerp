@@ -131,7 +131,11 @@ class cms_Content extends core_Manager
         core_Lg::set($lang, !haveRole('user'));
     }
 
-
+    function act_Migrate()
+    {
+        $s = cls::get('cms_Setup');
+        return $s->contentOrder111();
+    }
  
 
     /**
@@ -204,7 +208,7 @@ class cms_Content extends core_Manager
        
         $data->query->where("#domainId = {$domainId}");
         
-        $data->query->orderBy('#order');
+        $data->query->orderBy('#order', 'ASC');
     }
 
 
@@ -269,7 +273,7 @@ class cms_Content extends core_Manager
         
         // Ако имаме действащи менюта на повече от един език, показваме бутон за избор на езика
         $usedLangsArr = cms_Domains::getCmsLangs();
-
+ 
         if(count($usedLangsArr) == 2) {
 
             // Премахваме текущия език
@@ -421,9 +425,10 @@ class cms_Content extends core_Manager
     public static function getDefaultMenuId($class)
     {
         $classId = core_Classes::getId($class);
-        $domainId = cms_Domains::getPublicDomain();
-        $rec = self::fetch("#source = {$classId} AND #domainId = {$domainId}");
-
+        $domainId = cms_Domains::getPublicDomain('id');
+        $query = self::getQuery();
+        $query->orderBy('#order', 'ASC');
+        $rec = $query->fetch("#source = {$classId} AND #domainId = {$domainId}");
         if($rec) {
 
             return $rec->id;
@@ -522,7 +527,7 @@ class cms_Content extends core_Manager
 
     /**
      * Изпълнява се преди запис в модела
-     * - Ако липсва поле за подредба - добавя го от края
+     * - Ако полето за подредба не е попълнено, попълва стойност, която поставя менюто последно
      */
     protected static function on_BeforeSave($mvc, &$id, $rec, $fields = NULL)
     { 

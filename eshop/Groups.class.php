@@ -153,8 +153,8 @@ class eshop_Groups extends core_Master
         $cQuery = cms_Content::getQuery();
         
         $classId = core_Classes::fetchIdByName($mvc->className);
-        
-        while($rec = $cQuery->fetch("#source = {$classId} AND #state = 'active'")) {
+        $domainId = cms_Domains::getCurrent();
+        while($rec = $cQuery->fetch("#source = {$classId} AND #state = 'active' AND #domainId = {$domainId}")) {
             $opt[$rec->id] = cms_Content::getVerbal($rec, 'menu');
         }
         
@@ -188,6 +188,10 @@ class eshop_Groups extends core_Master
         $form->setOptions('menuId', $opt = cms_Content::getMenuOpt($mvc));
 
         $form->setField('menuId', 'refreshForm');
+        
+        if(count($opt) == 0) {
+            redirect(array('cms_Content'), FALSE, 'Моля въведете поне една точка от менюто с източник "Онлайн магазин"');
+        }
 
         if(!$opt[$form->rec->menuId]) {
             $form->rec->menuId = key($opt);
@@ -529,18 +533,9 @@ class eshop_Groups extends core_Master
      */
     function getUrlByMenuId($cMenuId)
     {
-        $cMenuIdEn = cms_Content::fetchField(array("#source = [#1#] AND #lang = 'en' AND #state = 'active'" , eshop_Groups::getClassId()));
-        
-        if($cMenuIdEn == $cMenuId) {
-            $url = array('En', 'Products');
-        }
-        
-        if(!$url) {
-            $cMenuIdBg = cms_Content::fetchField(array("#source = [#1#] AND #lang = 'bg' AND #state = 'active'" , eshop_Groups::getClassId()));
-            
-            if($cMenuIdBg == $cMenuId) {
-                $url = array('Bg', 'Products');
-            }
+        $cDefaultMenuId = cms_Content::getDefaultMenuId($this);
+        if($cDefaultMenuId == $cMenuId) {
+            $url = array(ucfirst(cms_Domains::getPublicDomain('lang')), 'Products');
         }
         
         if(!$url) {

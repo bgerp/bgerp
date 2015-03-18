@@ -148,6 +148,10 @@ class cms_Articles extends core_Master
         $form->setOptions('menuId', $opt = cms_Content::getMenuOpt($mvc));
 
         $form->setField('menuId', 'refreshForm');
+        
+        if(count($opt) == 0) {
+            redirect(array('cms_Content'), FALSE, 'Моля въведете поне един елемент от менюто');
+        }
 
         if(!$opt[$form->rec->menuId]) {
             $form->rec->menuId = key($opt);
@@ -551,11 +555,15 @@ class cms_Articles extends core_Master
     {
         expect($rec->menuId, $rec);
 
-        $lg = cms_Content::fetchField($rec->menuId, 'lang');
-        
-        $lg{0} = strtoupper($lg{0});
+        $domainId = cms_Content::fetch($rec->menuId)->domainId;
+        $lang = cms_Domains::fetch($domainId)->lang;
 
-        $res = array($lg, $rec->vid ? $rec->vid : $rec->id, 'PU' => (haveRole('powerUser') && !$canonical) ? 1 : NULL);
+        if($lang == 'bg' || $lang == 'en') {
+            $lang = ucfirst($lang);
+            $res = array($lang, $rec->vid ? $rec->vid : $rec->id, 'PU' => (haveRole('powerUser') && !$canonical) ? 1 : NULL);
+        } else {
+            $res = array('A', 'a', $rec->vid ? $rec->vid : $rec->id, 'PU' => (haveRole('powerUser') && !$canonical) ? 1 : NULL);
+        }
 
         return $res;
     }
@@ -581,8 +589,8 @@ class cms_Articles extends core_Master
 
             if($id) {
                 $rec = self::fetch($id);
-                $lg = cms_Content::fetchField($rec->menuId, 'lang');
-                if($lg) {
+                $domainId = cms_Content::fetchField($rec->menuId)->domainId;
+                if($domainId && $lg = cms_Domains::fetch($domainId) && ($lg == 'bg' || $lg == 'en')) {
                     $ctr = ucfirst($lg);
                     if(cls::load($ctr)) {
                         $url['Ctr'] = $ctr;

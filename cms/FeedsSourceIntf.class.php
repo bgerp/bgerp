@@ -18,11 +18,11 @@ class cms_FeedsSourceIntf
 	/**
 	 * Интерфейсен метод за извличане на елементите за четене от хранилката
 	 * @param int $itemsCnt
-	 * @param varchar(2) $lg
+	 * @param int $domainId
 	 */
-    function getItems($itemsCnt, $lg)
+    function getItems($itemsCnt, $domainId)
     {
         
-        return $this->class->getItems($itemsCnt, $lg);
+        return $this->class->getItems($itemsCnt, $domainId);
     }
 }

@@ -65,7 +65,7 @@ class cms_Feeds extends core_Manager {
 	/**
 	 * Полета за листов изглед 
 	 */
-	public $listFields = 'tools=Пулт, title, description, type, url, source, logo, lg, maxItems, createdOn, createdBy, modifiedOn, modifiedBy';
+	public $listFields = 'tools=Пулт, title, description, type, url, source, logo, maxItems, createdOn, createdBy, modifiedOn, modifiedBy';
 	
 	
 	/**
@@ -78,7 +78,7 @@ class cms_Feeds extends core_Manager {
 		$this->FLD('logo', 'fileman_FileType(bucket=feedImages)', 'caption=Лого');
 		$this->FLD('source', 'class(interface=cms_FeedsSourceIntf,allowEmpty)', 'caption=Източник, mandatory,silent');
 		$this->FLD('type', 'enum(rss=RSS,rss2=RSS 2.0,atom=ATOM)', 'caption=Тип, notNull, mandatory');
-		$this->FLD('lg', 'enum(bg=Български,en=Английски)', 'caption=Език, notNull, value=bg');
+		$this->FLD('domainId',    'key(mvc=cms_Domains, select=*)', 'caption=Домейн,notNull,defValue=bg,mandatory,autoFilter');
 		$this->FLD('maxItems', 'int', 'caption=Максимално, mandatory, notNull');
 		$this->FLD('data', 'blob(serialize,compress)', 'caption=Информация за продукта,input=none');
 		
@@ -111,7 +111,7 @@ class cms_Feeds extends core_Manager {
 		expect($source = cls::get($rec->source));
 		
 		// Генерираме масив от елементи за хранилката
-		$items = $source->getItems($rec->maxItems, $rec->lg, $rec->data);
+		$items = $source->getItems($rec->maxItems, $rec->domainId, $rec->data);
 		
 		// Вкарваме компонента FeedWriter
 		$path = "cms/feedWriter/FeedTypes.php";
@@ -128,7 +128,8 @@ class cms_Feeds extends core_Manager {
         	case 'rss2' : 
         		 // Инстанцираме нова хранилка от тип RSS 2.0
         		 $feed = new RSS2FeedWriter();
-  				 $feed->setChannelElement('language', $rec->lg);
+                 $lang = cms_Domains::fetch($rec->domainId)->lang;
+  				 $feed->setChannelElement('language', $lang);
   				 $feed->setChannelElement('pubDate', date(DATE_RSS, time()));
   				 if($rec->logo){
   				 	$img = new thumb_Img(array($rec->logo, 120, 120, 'fileman', 'isAbsolute' => TRUE));
@@ -172,6 +173,17 @@ class cms_Feeds extends core_Manager {
         shutdown();
 	}
 	
+
+    /**
+     * Изпълнява се след подготовката на формата за филтриране
+     */
+    function on_AfterPrepareListFilter($mvc, $data)
+    {
+        $domainId = cms_Domains::getCurrent();
+       
+        $data->query->where("#domainId = {$domainId}");
+    }
+
 	
 	/**
 	 * Връща датата на последния елемент във фийда
@@ -227,7 +239,7 @@ class cms_Feeds extends core_Manager {
 		if(static::instance()->db->tableExists($tableName)) {
 			
 			// Попълваме вътрешните и вербалните записи
-			while($rec = $data->query->fetch(array("#lg = '[#1#]'", cms_Content::getLang()))) {
+			while($rec = $data->query->fetch(array("#domainId = '[#1#]'", cms_Domains::getPublicDomain('id')))) {
 				$data->recs[$rec->id] = $rec;
 				$data->rows[$rec->id] = $this->recToVerbal($rec, $fields);
 			}
@@ -292,14 +304,11 @@ class cms_Feeds extends core_Manager {
 	{
 		// Шаблона който ще се връща
 		$tpl = new ET('');
-		
-		// Заявка за работа с модела 
-        $feedQuery = static::getQuery();
-        $curLg = cms_Content::getLang();
         
         $tableName = static::instance()->dbTableName;
         if(static::instance()->db->tableExists($tableName)) {
-	        while($feed = $feedQuery->fetch()) {
+            $feedQuery = static::getQuery();
+	        while($feed = $feedQuery->fetch("#domainId = " . cms_domains::getPublicDomain('id'))) {
 	       		
 	       		// Адрес на хранилката
 	       		$url = toUrl(array('cms_Feeds', 'get', $feed->id), 'absolute');
@@ -311,11 +320,8 @@ class cms_Feeds extends core_Manager {
 	       			$type = 'application/atom+xml';
 	       		}
 	       		
-	       		if($feed->lg == $curLg){
-	       			
-	       			// Натрупваме генерираният хедър в шаблона, ако хранилката е от същия език, като на външната част
-	       			$tpl->append("\n<link rel='alternate' type='{$type}' title='{$feed->title}' href='{$url}' />");
-	       		}
+       			// Натрупваме генерираният хедър в шаблона, ако хранилката е от същия език, като на външната част
+       			$tpl->append("\n<link rel='alternate' type='{$type}' title='{$feed->title}' href='{$url}' />");
 	       	}
         }
 		
@@ -333,7 +339,8 @@ class cms_Feeds extends core_Manager {
 		$tpl = new ET('');
 		
 		$query = static::getQuery();
-		$feeds = $query->fetchAll();
+        $domainId = cms_Domains::getPublicDomain('id');
+		$feeds = $query->fetchAll("#domainId = $domainId");
 		if(!count($feeds)) return NULL;
 		
 		// Подготвяме иконка с линк към публичния лист на хранилката
@@ -373,6 +380,9 @@ class cms_Feeds extends core_Manager {
 		    	}
 	    	}
 	    }
+
+        $form->rec->domainId = cms_Domains::getCurrent();
+        $form->setReadonly('domainId');
     }
     
     
