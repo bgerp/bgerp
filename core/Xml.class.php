@@ -3,7 +3,7 @@
 
 
 /**
- * Клас 'core_XML' - Библиотечни функции за работа с XML
+ * Клас 'core_Xml' - Библиотечни функции за работа с XML
  *
  *
  * @category  bgerp
@@ -13,7 +13,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class core_XML
+class core_Xml
 {
     /**
      * Преобразува SimpleXMLElement в масив
