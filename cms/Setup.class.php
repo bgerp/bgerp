@@ -248,6 +248,11 @@ class cms_Setup extends core_ProtoSetup
 
         $feeds = cls::get('cms_Feeds');
         if($feeds->db->tableExists($feeds->dbTableName)) {
+            
+            if (!$feeds->db->isFieldExists($feeds->dbTableName, 'domain_id')) {
+                $feeds->setupMVC();
+            }
+            
             $query = cms_Feeds::getQuery();
             while($rec = $query->fetch()) {
                 if(!$rec->domainId) {
@@ -263,6 +268,11 @@ class cms_Setup extends core_ProtoSetup
 
         $mvc = cls::get('newsbar_News');
         if($mvc->db->tableExists($mvc->dbTableName)) {
+            
+            if (!$mvc->db->isFieldExists($mvc->dbTableName, 'domain_id')) {
+                $mvc->setupMVC();
+            }
+            
             $query = cms_Feeds::getQuery();
             $rt = cls::get('type_Richtext');
             while($rec = $query->fetch()) {
