@@ -79,12 +79,6 @@ class planning_Jobs extends core_Master
     
     
     /**
-     * Кой има право да пише?
-     */
-    public $canWrite = 'ceo, planning';
-    
-    
-    /**
 	 * Кой може да го разглежда?
 	 */
 	public $canList = 'ceo, planning';
@@ -150,12 +144,13 @@ class planning_Jobs extends core_Master
     	$this->FLD('weight', 'cat_type_Weight', 'caption=Тегло,input=none');
     	$this->FLD('brutoWeight', 'cat_type_Weight', 'caption=Бруто,input=none');
     	$this->FLD('state',
-    			'enum(draft=Чернова, active=Активирано, rejected=Отказано, closed=Затворено, stopped=Спряно)',
-    			'caption=Статус, input=none'
+    			'enum(draft=Чернова, active=Активирано, rejected=Отказано, closed=Приключено, stopped=Спряно)',
+    			'caption=Състояние, input=none'
     	);
     	$this->FLD('saleId', 'key(mvc=sales_Sales)', 'input=hidden,silent');
     	
     	$this->FLD('sharedUsers', 'userList(roles=planning|ceo)', 'caption=Споделяне->Потребители,mandatory');
+    	$this->FLD('history', 'blob(serialize, compress)', 'caption=Данни,input=none');
     	
     	$this->setDbIndex('productId');
     }
@@ -183,7 +178,7 @@ class planning_Jobs extends core_Master
     		$form->setDefault('deliveryDate', $saleRec->deliveryTime);
     		$form->setDefault('deliveryPlace', $saleRec->deliveryLocationId);
     		$form->setDefault('storeId', $saleRec->shipmentStoreId);
-    		$caption = "|Данни от |* <b>" . sales_Sales::getRecTitle($form->rec->saleId) . "</b>";
+    		$caption = "|Данни от|* <b>" . sales_Sales::getRecTitle($form->rec->saleId) . "</b>";
     		
     		$form->setField('deliveryTermId', "caption={$caption}->Условие");
     		$form->setField('deliveryDate', "caption={$caption}->Срок");
@@ -199,11 +194,36 @@ class planning_Jobs extends core_Master
     
     
     /**
+     *  Подготовка на филтър формата
+     */
+    protected static function on_AfterPrepareListFilter($mvc, $data)
+    {
+    	$data->listFilter->setOptions('state', array('' => '') + arr::make('draft=Чернова, active=Активирано, closed=Приключено, stopped=Спряно', TRUE));
+    	$data->listFilter->setField('state', 'placeholder=Всички');
+    	$data->listFilter->showFields .= ',state';
+    	$data->listFilter->input();
+    	
+    	if($state = $data->listFilter->rec->state){
+    		$data->query->where("#state = '{$state}'");
+    	}
+    }
+    
+    
+    /**
      * След подготовка на сингъла
      */
     public static function on_AfterRenderSingle($mvc, &$tpl, &$data)
     {
     	$tpl->push('planning/tpl/styles.css', "CSS");
+    	
+    	if(count($data->row->history)){
+    		foreach ($data->row->history as $hRow){
+    			$clone = clone $tpl->getBlock('HISTORY_ROW');
+    			$clone->placeObject($hRow);
+    			$clone->removeBlocks();
+    			$clone->append2master();
+    		}
+    	}
     }
     
     
@@ -218,23 +238,21 @@ class planning_Jobs extends core_Master
     	if($form->isSubmitted()){
     		$rec = &$form->rec;
     		
-    		$weight = cls::get('cat_Products')->getWeight($rec->productId);
-    		$rec->brutoWeight = $weight * $rec->quantity;
+    		// Колко е транспортното тегло
+    		if($weight = cls::get('cat_Products')->getWeight($rec->productId)){
+    			$rec->brutoWeight = $weight * $rec->quantity;
+    		} else {
+    			$rec->brutoWeight = NULL;
+    		}
+    		
+    		// Колко е еденичното тегло
+    		$params = cls::get('cat_Products')->getParams($rec->productId);
+    		if(isset($params['weight'])){
+    			$rec->weight = $params['weight'] * $rec->quantity;
+    		} else {
+    			$rec->weight = NULL;
+    		}
     	}
-    }
-    
-    
-    /**
-     *  Подготовка на филтър формата
-     */
-    protected static function on_AfterPrepareListFilter1($mvc, $data)
-    {
-    	$data->listFilter->view = 'horizontal';
-    	$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-    	$data->listFilter->showFields = 'search';
-    
-    	// Активиране на филтъра
-    	$data->listFilter->input();
     }
     
     
@@ -253,7 +271,7 @@ class planning_Jobs extends core_Master
     	}
     	
     	if($fields['-single']){
-    
+    		
     		if($rec->storeId){
     			$row->storeId = store_Stores::getHyperLink($rec->storeId, TRUE);
     		}
@@ -261,6 +279,11 @@ class planning_Jobs extends core_Master
     		$pInfo = cat_Products::getProductInfo($rec->productId);
     		$row->quantity .= " " . cat_UoM::getShortName($pInfo->productRec->measureId);
     		$row->origin = cls::get('cat_Products')->renderJobView($rec->productId, $rec->modifiedOn);
+    		
+    		if($rec->state == 'stopped' || $rec->state == 'closed') {
+    			$tpl = new ET(tr(' от [#user#] на [#date#]'));
+    			$row->state .= $tpl->placeArray(array('user' => $row->modifiedBy, 'date' => dt::mysql2Verbal($rec->modifiedOn)));
+    		}
     	}
     }
     
@@ -384,6 +407,35 @@ class planning_Jobs extends core_Master
     {
     	// След активиране на заданието, добавяме артикула като перо
     	cat_Products::forceItem($rec->productId, 'catProducts');
+    	
+    	$rec->history[] = array('action' => 'active', 'date' => $rec->modifiedOn, 'user' => $rec->modifiedBy);
+    	$mvc->save($rec, 'history');
+    }
+    
+    
+    /**
+     * След подготовка на сингъла
+     */
+    public static function on_AfterPrepareSingle($mvc, &$res, $data)
+    {
+    	$rec = $data->rec;
+    	$row = $data->row;
+    	
+    	if(count($rec->history)){
+    		array_unshift($rec->history, array('action' => 'create', 'date' => $rec->createdOn, 'user' => $rec->createdBy));
+    	} else {
+    		$rec->history = array();
+    		$rec->history[] = array('action' => 'create', 'date' => $rec->createdOn, 'user' => $rec->createdBy);
+    	}
+    
+    	$row->history = array();
+    	$actionNames = array('create' => 'Създаване', 'active' => 'Активиране', 'stopped' => 'Спиране', 'closed' => 'Приключване', 'wakeup' => 'Събуждане');
+    	foreach ($rec->history as $historyRec){
+    		$row->history[] = (object)array('date' => cls::get('type_DateTime')->toVerbal($historyRec['date']),
+    										'user' => crm_Profiles::createLink($historyRec['user']),
+    										'action' => $actionNames[$historyRec['action']],
+    		);
+    	}
     }
     
     
@@ -397,13 +449,13 @@ class planning_Jobs extends core_Master
     {
     	if($mvc->haveRightFor('changestate', $data->rec)){
     		if($data->rec->state == 'closed'){
-    			$data->toolbar->addBtn("Активиране", array($mvc, 'changeState', $data->rec->id, 'type' => 'close', 'ret_url' => TRUE), 'ef_icon = img/16/lightbulb.png,title=Актириване на заданието,warning=Сигурнили сте че искате да активирате заданието');
+    			$data->toolbar->addBtn("Събуждане", array($mvc, 'changeState', $data->rec->id, 'type' => 'close', 'ret_url' => TRUE), 'ef_icon = img/16/lightbulb.png,title=Събуждане на заданието,warning=Сигурнили сте че искате да събудите заданието');
     		} elseif($data->rec->state == 'active'){
     			$data->toolbar->addBtn("Приключване", array($mvc, 'changeState', $data->rec->id, 'type' => 'close', 'ret_url' => TRUE), 'ef_icon = img/16/lightbulb_off.png,title=Приключване на заданието,warning=Сигурнили сте че искате да приключите заданието');
     		}
     		
     		if($data->rec->state == 'stopped'){
-    			$data->toolbar->addBtn("Пускане", array($mvc, 'changeState', $data->rec->id, 'type' => 'stop', 'ret_url' => TRUE, ), 'ef_icon = img/16/control_play.png,title=Пускане на заданието,warning=Сигурнили сте че искате да пуснете заданието');
+    			$data->toolbar->addBtn("Актириране", array($mvc, 'changeState', $data->rec->id, 'type' => 'stop', 'ret_url' => TRUE, ), 'ef_icon = img/16/control_play.png,title=Активиране на заданието,warning=Сигурнили сте че искате да активирате заданието');
     		} elseif($data->rec->state == 'active'){
     			$data->toolbar->addBtn("Спиране", array($mvc, 'changeState', $data->rec->id, 'type' => 'stop', 'ret_url' => TRUE), 'ef_icon = img/16/control_pause.png,title=Спиране на заданието,warning=Сигурнили сте че искате да спрете заданието');
     		}
@@ -425,15 +477,20 @@ class planning_Jobs extends core_Master
     	if($type == 'stop'){
     		expect($rec->state == 'stopped' || 'active');
     		$state = ($rec->state == 'stopped') ? 'active' : 'stopped';
+    		$action = $state;
     	} else {
     		expect($rec->state == 'closed' || 'active');
     		$state = ($rec->state == 'closed') ? 'active' : 'closed';
+    		$action = ($state == 'closed') ? 'closed' : 'wakeup';
     	}
     	
     	$rec->exState = $rec->state;
     	$rec->state = $state;
     	 
-    	$this->save($rec, 'state');
+    	// Записваме в историята действието
+    	$rec->history[] = array('action' => $action, 'date' => dt::now(), 'user' => core_Users::getCurrent());
+    	
+    	$this->save($rec, 'state,history');
     	 
     	return followRetUrl();
     }

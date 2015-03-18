@@ -34,32 +34,48 @@
                         <td>[#tolerance#]</td>
                     </tr>
                     <!--ET_END tolerance-->
+                    
+                    <!--ET_BEGIN brutoWeight-->
                     <tr>
-                        <td class='quiet' style='text-align: right'>|Падеж|*:</td>
-                        <td>[#dueDate#]</td>
+                        <td class='quiet' style='text-align: right'>|Бруто|*:</td>
+                        <td>[#brutoWeight#]</td>
                     </tr>
+                    <!--ET_END brutoWeight-->
+                    
+                    <!--ET_BEGIN weight-->
+                    <tr>
+                        <td class='quiet' style='text-align: right'>|Ед. тегло|*:</td>
+                        <td>[#weight#]</td>
+                    </tr>
+                    <!--ET_END weight-->
                 </table>
+	       </td>
+	       <td>
+	       		<!--ET_BEGIN HISTORY_ROW-->
+	       		[#HISTORY_ROW#]
+	       		<div class='small'>[#date#] : [#user#] -> [#action#]</div>
+	       		<!--ET_END HISTORY_ROW-->
 	       </td>
 	  </tr>
 	  <tr>
-           <th colspan="2" class='job-head'>
+           <th colspan="3" class='job-head'>
            |Описание|*
            </th>
       </tr>
       <tr>
-           <td colspan="2">
+           <td colspan="3">
            [#origin#]
            </td>
       </tr>
       
       <!--ET_BEGIN notes-->
       <tr>
-           <th colspan="2" class='job-head'>
+           <th colspan="3" class='job-head'>
            |Забележка|*
            </th>
       </tr>
       <tr>
-           <td colspan="2">
+           <td colspan="3">
            [#notes#]
            </td>
       </tr>
@@ -68,7 +84,7 @@
       <!--ET_BEGIN SALE_INFO-->
       [#SALE_INFO#]
 	  <tr>
-	  	   <th colspan="2" class='job-head'>
+	  	   <th colspan="3" class='job-head'>
 	  	   |Данни от договора|*
 	  	   </th>
 	 </tr>
@@ -111,12 +127,12 @@
         </tr>
          <!--ET_END SALE_INFO-->
         <tr>
-           <th colspan="2" class='job-head'>
+           <th colspan="3" class='job-head'>
            |Производствени задачи|*
            </th>
         </tr>
         <tr>
-           <td colspan="2">
+           <td colspan="3">
            [#TASKS#]
            </td>
     </table>
