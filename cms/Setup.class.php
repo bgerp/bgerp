@@ -205,16 +205,23 @@ class cms_Setup extends core_ProtoSetup
         $max = 1;
         $query = cms_Content::getQuery();
         while($rec = $query->fetch()) {
+            
+            list($n, $m) = explode(' ', $rec->menu, 2);
+            
+            if ($m) {
+                $rec->menu = $m;
+            }
+            
             if(!$rec->order) {
-                list($n, $m) = explode(' ', $rec->menu, 2);
                 if(is_numeric($n)) {
                     $rec->order = $n;
-                    $rec->menu = $m;
                 } else {
                     $rec->order = $max +1;
                 }
             }
+            
             $max = max($rec->order, $max);
+            
             if (!$rec->domainId) {
                 if (($m) && (mb_strlen($m) == strlen($m))) {
                     $rec->domainId = self::getLocalhostDomain('en');
