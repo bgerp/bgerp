@@ -534,6 +534,9 @@ class cat_Products extends core_Embedder {
         
         if ($rec = self::fetch($objectId)) {
         	$Driver = $self->getDriver($rec);
+
+            if(!is_object($Driver)) return NULL;
+
         	$pInfo = $Driver->getProductInfo();
         	
         	$result = (object)array(
