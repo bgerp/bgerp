@@ -97,6 +97,12 @@ class findeals_Deals extends deals_DealBase
     
     
     /**
+     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
+     */
+    public $rowToolsField = 'id';
+    
+    
+    /**
      * Заглавие в единствено число
      */
     public $singleTitle = 'Финансова сделка';
