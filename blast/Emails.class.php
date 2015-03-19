@@ -211,7 +211,12 @@ class blast_Emails extends core_Master
                                     ascii=Латиница|* (ASCII))', 'caption=Знаци, changable,notNull');
         
         $this->FLD('attachments', 'set(files=Файловете,documents=Документите)', 'caption=Прикачи, changable');
-        $this->FLD('lg', 'enum(auto=Автоматично, ' . EF_LANGUAGES . ')', 'caption=Език,changable,notNull');
+        
+        if (defined('EF_LANGUAGES')) {
+            $this->FLD('lg', 'enum(auto=Автоматично, ' . EF_LANGUAGES . ')', 'caption=Език,changable,notNull');
+        } else {
+            $this->FLD('lg', 'enum(auto=Автоматично)', 'caption=Език,changable,notNull');
+        }
         
         $this->FNC('srcLink', 'varchar', 'caption=Списък');
     }
