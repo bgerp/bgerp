@@ -17,6 +17,10 @@ function formatSelect2Data(data)
 		res += ' class=\"' + data.element.className + '\"';
 	}
 	
+	if (!data.element || !data.element.noEscape) {
+		data.text = getEO().escape(data.text);
+	}
+	
 	res += '>' + data.text + '</span>';
 	
 	return res;
