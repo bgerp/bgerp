@@ -3,13 +3,13 @@
 
 
 /**
- * Мениджър на групи с продукти.
+ * Мениджър на  продукти от е-магазина.
  *
  *
  * @category  bgerp
  * @package   eshop
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -148,7 +148,7 @@ class eshop_Products extends core_Master
         $this->FLD('longInfo', 'richtext(bucket=Notes,rows=5)', 'caption=Описание->Разширено');
 
         // Запитване за нестандартен продукт
-        $this->FLD('coDriver', 'class(interface=cat_ProductDriverIntf,allowEmpty,select=title)', 'caption=Запитване->Драйвер');
+        $this->FLD('coDriver', 'class(interface=cat_ProductDriverIntf,allowEmpty,select=title)', 'caption=Запитване->Драйвер,removeAndRefreshForm=coParams,silent');
         $this->FLD('coParams', 'text(rows=5)', 'caption=Запитване->Параметри,width=100%');
         $this->FLD('coMoq', 'varchar', 'caption=Запитване->МКП,hint=Минимално количество за поръчка');
 
@@ -159,7 +159,7 @@ class eshop_Products extends core_Master
     /**
      * $data->rec, $data->row
      */
-    function prepareGroupList_($data)
+    public function prepareGroupList_($data)
     {
         $data->row = $this->recToVerbal($data->rec);
     }
@@ -168,7 +168,7 @@ class eshop_Products extends core_Master
     /**
      * След обработка на вербалните стойностти
      */
-    function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
+    protected static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
         if($rec->code) {
             $row->code = "<span>" . tr('Код') . ": <b>{$row->code}</b></span>";
@@ -191,14 +191,13 @@ class eshop_Products extends core_Master
         if($fields['-list']) {
             $row->name = ht::createLink($row->name, self::getUrl($rec), NULL, 'ef_icon=img/16/monitor.png');
         }
-
     }
 
 
     /**
      *
      */
-    static function prepareGroupList($data)
+    public static function prepareGroupList($data)
     {
         $pQuery = self::getQuery();
         $pQuery->orderBy("#code");
@@ -223,7 +222,7 @@ class eshop_Products extends core_Master
      *
      * @return $tpl
      */
-    function renderGroupList_($data)
+    public function renderGroupList_($data)
     {   
         $layout = new ET();
 
@@ -305,7 +304,7 @@ class eshop_Products extends core_Master
     /**
      * Подготовка на данните за рендиране на единичния изглед на продукт 
      */
-    function prepareProduct($data)
+    public function prepareProduct($data)
     {
         $data->rec->info = trim($data->rec->info);
         $data->rec->longInfo = trim($data->rec->longInfo);
@@ -347,7 +346,7 @@ class eshop_Products extends core_Master
     /**
      *
      */
-    function renderProduct($data)
+    public function renderProduct($data)
     {
         $tpl = new ET(getFileContent("eshop/tpl/ProductShow.shtml"));
         
@@ -365,7 +364,7 @@ class eshop_Products extends core_Master
     /**
      * Връща каноничното URL на продукта за външния изглед
      */
-    static function getUrl($rec, $canonical = FALSE)
+    public static function getUrl($rec, $canonical = FALSE)
     {   
         $gRec = eshop_Groups::fetch($rec->groupId);
 
@@ -454,10 +453,25 @@ class eshop_Products extends core_Master
      * Титлата за листовия изглед
      * Съдържа и текущия домейн
      */
-    static function on_AfterPrepareListTitle($mvc, $res, $data)
+    protected static function on_AfterPrepareListTitle($mvc, $res, $data)
     {
-        
         $data->title .= cms_Domains::getCurrentDomainInTitle();
     }
 
+    
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $data
+     */
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+    	$form = &$data->form;
+    	
+    	if($form->rec->coDriver){
+    		$params = "uom =" . "\n" . "moq =" . "\n" . "quantities =";
+    		$form->setDefault('coParams', $params);
+    	}
+    }
 }
