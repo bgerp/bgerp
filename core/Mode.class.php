@@ -134,7 +134,7 @@ class core_Mode
     
     
     /**
-     * 
+     * Подготвя масива със стойностите на `$mode`
      */
     protected static function prepareMode()
     {
@@ -146,6 +146,7 @@ class core_Mode
             }
         }
     }
+    
     
     /**
      * Сравнява стойността на променлива от обкръжението
