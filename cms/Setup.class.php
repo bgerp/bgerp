@@ -199,11 +199,11 @@ class cms_Setup extends core_ProtoSetup
      */
     static function contentOrder4()
     {
-        Mode::push('isMigrate', TRUE);
-        
         // Добавяме domainId към cms_Content
         $max = 1;
         $query = cms_Content::getQuery();
+        unset($query->fields['lang']);
+        
         while($rec = $query->fetch()) {
             
             list($n, $m) = explode(' ', $rec->menu, 2);
@@ -293,8 +293,5 @@ class cms_Setup extends core_ProtoSetup
                 $newsbar->save($rec);
             }
         }
-        
-        Mode::pop('isMigrate');
-
     }
 }
