@@ -979,6 +979,19 @@ class doc_DocumentPlg extends core_Plugin
                 }
             }
         }
+        
+        if ($data->action == 'clone') {
+            
+            if ($rec->threadId && $rec->containerId) {
+                $tRec = doc_Threads::fetch($rec->threadId);
+                
+                // Ако е първи документ, да се клонира в нова нишка
+                if ($tRec->firstContainerId == $rec->containerId) {
+                    
+                    unset($rec->threadId);
+                }
+            }
+        }
     }
 
     
@@ -1291,17 +1304,20 @@ class doc_DocumentPlg extends core_Plugin
         // Ако ще се клонират данните
         if ($rec && ($action == 'cloneuserdata')) {
             
+            $cRec = clone $rec;
+            
             if ($rec->threadId && $rec->containerId) {
                 $tRec = doc_Threads::fetch($rec->threadId);
                 
                 // Ако е първи документ, да се клонира в нова нишка
                 if ($tRec->firstContainerId == $rec->containerId) {
-                    unset($rec->threadId);
+                    
+                    unset($cRec->threadId);
                 }
             }
             
             // Трябва да има права за добавяне
-            if (!$mvc->haveRightFor('add', $rec, $userId)) {
+            if (!$mvc->haveRightFor('add', $cRec, $userId)) {
                 
                 // Трябва да има права за добавяне за да може да клонира
                 $requiredRoles = 'no_one';
