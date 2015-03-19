@@ -116,18 +116,20 @@ abstract class deals_InvoiceMaster extends core_Master
      */
     public static function on_AfterPrepareListFilter($mvc, $data)
     {
-    	$data->listFilter->FNC('invState', 'enum(all=Всички, draft=Чернова, active=Контиран)', 'caption=Състояние,input,silent');
-    	
-    	$data->listFilter->showFields .= ',invState';
-    	$data->listFilter->input();
-    	$data->listFilter->setDefault('invState', 'all');
-    	
-    	if($rec = $data->listFilter->rec){
+    	if(!Request::get('Rejected', 'int')){
+    		$data->listFilter->FNC('invState', 'enum(all=Всички, draft=Чернова, active=Контиран)', 'caption=Състояние,input,silent');
+    		 
+    		$data->listFilter->showFields .= ',invState';
+    		$data->listFilter->input();
+    		$data->listFilter->setDefault('invState', 'all');
+    		 
+    		if($rec = $data->listFilter->rec){
     		
-    		// Филтър по състояние
-    		if($rec->invState){
-    			if($rec->invState != 'all'){
-    				$data->query->where("#state = '{$rec->invState}'");
+    			// Филтър по състояние
+    			if($rec->invState){
+    				if($rec->invState != 'all'){
+    					$data->query->where("#state = '{$rec->invState}'");
+    				}
     			}
     		}
     	}

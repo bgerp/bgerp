@@ -217,13 +217,15 @@ class planning_Jobs extends core_Master
      */
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
-    	$data->listFilter->setOptions('state', array('' => '') + arr::make('draft=Чернова, active=Активирано, closed=Приключено, stopped=Спряно', TRUE));
-    	$data->listFilter->setField('state', 'placeholder=Всички');
-    	$data->listFilter->showFields .= ',state';
-    	$data->listFilter->input();
-    	
-    	if($state = $data->listFilter->rec->state){
-    		$data->query->where("#state = '{$state}'");
+    	if(!Request::get('Rejected', 'int')){
+    		$data->listFilter->setOptions('state', array('' => '') + arr::make('draft=Чернова, active=Активирано, closed=Приключено, stopped=Спряно', TRUE));
+    		$data->listFilter->setField('state', 'placeholder=Всички');
+    		$data->listFilter->showFields .= ',state';
+    		$data->listFilter->input();
+    		 
+    		if($state = $data->listFilter->rec->state){
+    			$data->query->where("#state = '{$state}'");
+    		}
     	}
     }
     
@@ -543,11 +545,9 @@ class planning_Jobs extends core_Master
     	if($type == 'stop'){
     		expect($rec->state == 'stopped' || $rec->state == 'active' || $rec->state == 'wakeup');
     		$state = ($rec->state == 'stopped') ? (($rec->brState) ? $rec->brState : 'active') : 'stopped';
-    		//$action = $state;
     	} else {
     		expect($rec->state == 'closed' || $rec->state == 'active' || $rec->state == 'wakeup');
     		$state = ($rec->state == 'closed') ? 'wakeup' : 'closed';
-    		//$action = ($state == 'closed') ? 'closed' : 'wakeup';
     	}
     	
     	$rec->brState = $rec->state;

@@ -533,14 +533,16 @@ class findeals_Deals extends deals_DealBase
      */
     protected static function on_AfterPrepareListFilter(core_Mvc $mvc, &$data)
     {
-    	$data->listFilter->setOptions('state', array('' => '') + arr::make('draft=Чернова, active=Активиран, closed=Приключен', TRUE));
-    	$data->listFilter->setField('state', 'placeholder=Всички');
-    	$data->listFilter->showFields .= ',state';
-    	//bp($data->listFilter->showFields);
-    	$data->listFilter->input();
-    	 
-    	if($state = $data->listFilter->rec->state){
-    		$data->query->where("#state = '{$state}'");
+    	if(!Request::get('Rejected', 'int')){
+    		$data->listFilter->setOptions('state', array('' => '') + arr::make('draft=Чернова, active=Активиран, closed=Приключен', TRUE));
+    		$data->listFilter->setField('state', 'placeholder=Всички');
+    		$data->listFilter->showFields .= ',state';
+    		 
+    		$data->listFilter->input();
+    		
+    		if($state = $data->listFilter->rec->state){
+    			$data->query->where("#state = '{$state}'");
+    		}
     	}
     	
     	$data->query->where("#dealManId = {$mvc->getClassId()}");
