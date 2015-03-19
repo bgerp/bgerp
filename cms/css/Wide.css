@@ -60,67 +60,13 @@ body{
     background-color: #ddf;
     padding:5px;
 }
-
-.app-name {
-    display: block;
-    color: #42477f;
-    position: absolute;
-    font-weight: bold;
-    font-family: Times New Roman, Georgia, serif;
-}
-
-
-.wide .app-name{
-    left: 2%;
-    top: 21%;
-    font-size: 8.5em;
-    text-shadow: 1px 1px 4px rgba(0,0,0,0.6);
-    
-}
-
-.narrow .app-name{
-    left: 7px;
-    top: 2px;
-    font-size: 33px;
-    text-shadow: 1px 1px 3px rgba(0,0,0,0.4);
-    
-}
-@media handheld, only screen and (max-width: 1200px) {
-    .wide .app-name {
-         font-size: 7.5em;
-    }
-}
-
-@media handheld, only screen and (max-width: 1024px) {
-    .wide .app-name {
-         font-size: 6.4em;
-    }
-}
-@media handheld, only screen and (max-width: 900px) {
-    .wide .app-name {
-         font-size: 5.7em;
-    }
-}
-@media handheld, only screen and (max-width: 800px) {
-    .wide .app-name {
-         font-size: 5em;
-    }
-}
-@media handheld, only screen and (max-width: 700px) {
-    .wide .app-name {
-         font-size: 4.4em;
-        
-    }
+.wide .app-name{ 
+	top: 21%;
 }
 @media handheld, only screen and (max-width: 600px) {
     .wide .app-name {
          font-size: 3.7em;
          top: 24%;
         
-    }
-}
-@media handheld, only screen and (max-width: 400px) {
-    .wide .app-name {
-         font-size: 3em;
     }
 }
