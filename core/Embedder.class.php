@@ -189,12 +189,12 @@ class core_Embedder extends core_Master
 					
 				// Източника модифицира формата при нужда
 				$Driver->prepareEmbeddedForm($form);
+				
+				$mvc->invoke('AfterPrepareEmbeddedForm', array($form));
 			} else {
 				$form->info = tr("|*<b style='color:red'>|Има проблем при зареждането на драйвера|*</b>");
 			}
 		}
-		
-		$mvc->invoke('AfterPrepareEmbeddedForm', array($form));
 		
 		$form->input(NULL, 'silent');
 	}
