@@ -178,7 +178,7 @@ class cat_Setup extends core_ProtoSetup
     {
     	$pQuery = cat_Products::getQuery();
     	while($rec = $pQuery->fetch()){
-    		if($rec->innerClass){
+    		if(cls::load($rec->innerClass, TRUE)){
     			try{
     				$rec->innerForm->photo = $rec->photo;
     				$rec->innerState->photo = $rec->photo;
@@ -187,7 +187,6 @@ class cat_Setup extends core_ProtoSetup
     			} catch(core_exception_Expect $e){
     				
     			}
-    			
     		}
     	}
     }
@@ -286,6 +285,7 @@ class cat_Setup extends core_ProtoSetup
     			} else {
     				$first = cat_Categories::fetchField("#sysId = 'services'", 'id');
     			}
+    			
     			
     			if(core_Classes::fetchIdByName('cat_GeneralServiceDriver') == $rec->innerClass){
     				$rec->innerClass = cat_GeneralProductDriver::getClassId();
@@ -461,11 +461,13 @@ class cat_Setup extends core_ProtoSetup
     	$query = cat_Products::getQuery();
     	
     	while($rec = $query->fetch()) {
-    	    try {
-    	        cat_Products::save($rec, 'searchKeywords');
-    	    } catch (core_exception_Expect $e) {
-    	        continue;
-    	    }
+    		if(cls::load($rec->innerClass, TRUE)){
+    			try {
+    				cat_Products::save($rec, 'searchKeywords');
+    			} catch (core_exception_Expect $e) {
+    				continue;
+    			}
+    		}
     	}
     }
 }
