@@ -76,7 +76,10 @@ class cms_DefaultTheme extends core_ProtoInner {
                 }
             }
         } else {
-            $imgs[1] = $this->formRec->nImg;
+            if ($this->formRec->nImg) {
+                $imgs[1] = $this->formRec->nImg;
+            }
+            
         }
  
         if(count($imgs)) {
