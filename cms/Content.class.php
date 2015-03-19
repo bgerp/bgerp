@@ -101,9 +101,7 @@ class cms_Content extends core_Manager
         $this->FLD('order', 'order(min=0)', 'caption=№,tdClass=rowtools-column');
         $this->FLD('menu',    'varchar(64)', 'caption=Меню,mandatory');
         
-        if (!Mode::is('isMigrate')) {
-            $this->EXT('lang',    'cms_Domains', 'caption=Език,externalKey=domainId,input=none');
-        }
+        $this->EXT('lang', 'cms_Domains', 'caption=Език,externalKey=domainId,input=none');
         
         $this->FLD('domainId',    'key(mvc=cms_Domains, select=*)', 'caption=Домейн,notNull,defValue=bg,mandatory,autoFilter');
         $this->FLD('source',  'class(interface=cms_SourceIntf, allowEmpty, select=title)', 'caption=Източник');
