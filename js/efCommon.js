@@ -3290,6 +3290,29 @@ Experta.prototype.setCoords = function(position) {
 
 
 /**
+ * Ескейпва подадения стринг
+ * 
+ * @param string str
+ * 
+ * @param return
+ */
+Experta.prototype.escape = function(str) {
+	
+	str = str.replace(/[&<>]/g, function(tag) {
+		var tagsToReplace = {
+			    '&': '&amp;',
+			    '<': '&lt;',
+			    '>': '&gt;'
+			};
+		
+		return tagsToReplace[tag] || tag;
+	});
+	
+	return str;
+}
+
+
+/**
  * Показва съобщението в лога
  * 
  * @param string txt - Съобщението, което да се покаже
