@@ -90,7 +90,7 @@ class store_Transfers extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, valior, fromStore, toStore, volume, weight, folderId, createdOn, createdBy';
+    public $listFields = 'tools=Пулт, valior, title=Документ, fromStore, toStore, volume, weight, folderId, createdOn, createdBy';
 
 
     /**
@@ -121,6 +121,18 @@ class store_Transfers extends core_Master
      * Опашка от записи за записване в on_Shutdown
      */
     protected $updated = array();
+    
+    
+    /**
+     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
+     */
+    public $rowToolsField = 'tools';
+    
+    
+    /**
+     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
+     */
+    public $rowToolsSingleField = 'title';
     
     
     /**
@@ -233,6 +245,7 @@ class store_Transfers extends core_Master
     	
     	if($fields['-list']){
     		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
+    		$row->title = $mvc->getHyperLink($rec->id, TRUE);
     		
     		$attr = array();
     		foreach (array('fromStore', 'toStore') as $storeFld){

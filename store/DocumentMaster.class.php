@@ -41,6 +41,18 @@ abstract class store_DocumentMaster extends core_Master
     
     
     /**
+     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
+     */
+    public $rowToolsField = 'tools';
+    
+    
+    /**
+     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
+     */
+    public $rowToolsSingleField = 'title';
+    
+    
+    /**
      * След описанието на полетата
      */
     protected static function setDocFields(core_Master &$mvc)
@@ -316,6 +328,8 @@ abstract class store_DocumentMaster extends core_Master
     		} else {
     			$row->amountDelivered = "<span class='quiet'>0.00</span>";
     		}
+    		
+    		$row->title = $mvc->getHyperLink($rec->id, TRUE);
 	   	}
 	   	 
 	   	if(isset($fields['-single'])){

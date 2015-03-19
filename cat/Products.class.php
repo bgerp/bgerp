@@ -101,13 +101,7 @@ class cat_Products extends core_Embedder {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт,name,code,groups,folderId,createdOn,createdBy';
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    var $rowToolsField = 'tools';
+    var $listFields = 'id,name,code,groups,folderId,createdOn,createdBy';
     
     
     /**
@@ -1221,17 +1215,17 @@ class cat_Products extends core_Embedder {
     
     
     /**
-     * Връща последното активно задание за спецификацията
+     * Връща последното не оттеглено или чернова задание за спецификацията
      * 
      * @param mixed $id - ид или запис
      * @return mixed $res - записа на заданието или FALSE ако няма
      */
-    public static function getLastActiveJob($id)
+    public static function getLastJob($id)
     {
     	$rec = self::fetchRec($id);
     	
     	// Какво е к-то от последното активно задание
-    	return planning_Jobs::fetch("#productId = {$rec->id} AND #state = 'active'");
+    	return planning_Jobs::fetch("#productId = {$rec->id} AND #state != 'draft' AND #state != 'rejected'");
     }
     
     

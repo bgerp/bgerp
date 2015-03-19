@@ -1,108 +1,126 @@
-body {
-  background-color: #cccccc; }
+body{
+    background-color:#ccc;
+}
 
 #cmsMenu {
-  background-color: #333344; }
+    background-color:#334;
+}
 
 #cmsMenu a {
-  color: #dddddd;
-  border: solid 1px #333344;
-  text-shadow: 2px 2px 2px black; }
+    color:#ddd;
+    border:solid 1px #334;
+    text-shadow:2px 2px 2px #000;
+}
 
 #cmsMenu a:hover {
-  color: white; }
+    color:#fff;
+}
 
 #cmsMenu a.selected {
-  color: white;
-  background-color: #9999ff; }
+    color:#fff;
+    background-color:#99f;
+}
 
-#cmsTop,
-#cmsBottom,
-#cmsTop.a,
-#cmsBottom.a {
-  color: white; }
+#cmsTop, #cmsBottom, #cmsTop.a, #cmsBottom.a {
+    color: white;
+}
 
-#all #cmsTop,
-#cmsTop img {
-  background-color: #6c72b1 !important; }
+#all #cmsTop, #cmsTop img {
+    background-color:#6C72B1 !important;
+}
 
 #cmsBottom {
-  background-color: #333344; }
+    background-color: #334;
+}
 
 #all {
-  border: solid 1px #777777;
-  border-bottom: none; }
+    border: solid 1px #777;
+    border-bottom: none;
+}
 
 #maincontent {
-  background-color: white; }
+    background-color:white;
+}
 
 #cmsNavigation .nav_item a {
-  color: #333366; }
+    color:#336;
+}
 
 #cmsNavigation .sel_page a {
-  color: #333344;
-  background: #ddddff;
-  border: solid 1px #ccccff; }
+    color:#334;
+    background:#ddf;
+    border:solid 1px #ccf;
+}
 
 #cmsNavigation .level1 {
-  color: #333333; }
+    color:#333;
+}
 
-.richtext h2 {
-  background-color: #ddddff;
-  padding: 5px; }
+.richtext h2 { 
+    background-color: #ddf;
+    padding:5px;
+}
 
 .app-name {
-  display: block;
-  color: #42477f;
-  position: absolute;
-  font-weight: bold;
-  font-family: Times New Roman, Georgia, serif; }
+    display: block;
+    color: #42477f;
+    position: absolute;
+    font-weight: bold;
+    font-family: Times New Roman, Georgia, serif;
+}
 
-.wide .app-name {
-  left: 2%;
-  top: 21%;
-  font-size: 8.5em;
-  text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.6); }
 
-.narrow .app-name {
-  left: 7px;
-  top: 2px;
-  font-size: 33px;
-  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4); }
+.wide .app-name{
+    left: 2%;
+    top: 21%;
+    font-size: 8.5em;
+    text-shadow: 1px 1px 4px rgba(0,0,0,0.6);
+    
+}
 
-@media handheld,
-only screen and (max-width: 1200px) {
-  .wide .app-name {
-    font-size: 7.5em; } }
+.narrow .app-name{
+    left: 7px;
+    top: 2px;
+    font-size: 33px;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.4);
+    
+}
+@media handheld, only screen and (max-width: 1200px) {
+    .wide .app-name {
+         font-size: 7.5em;
+    }
+}
 
-@media handheld,
-only screen and (max-width: 1024px) {
-  .wide .app-name {
-    font-size: 6.4em; } }
-
-@media handheld,
-only screen and (max-width: 900px) {
-  .wide .app-name {
-    font-size: 5.7em; } }
-
-@media handheld,
-only screen and (max-width: 800px) {
-  .wide .app-name {
-    font-size: 5em; } }
-
-@media handheld,
-only screen and (max-width: 700px) {
-  .wide .app-name {
-    font-size: 4.4em; } }
-
-@media handheld,
-only screen and (max-width: 600px) {
-  .wide .app-name {
-    font-size: 3.7em;
-    top: 24%; } }
-
-@media handheld,
-only screen and (max-width: 400px) {
-  .wide .app-name {
-    font-size: 3em; } }
-
+@media handheld, only screen and (max-width: 1024px) {
+    .wide .app-name {
+         font-size: 6.4em;
+    }
+}
+@media handheld, only screen and (max-width: 900px) {
+    .wide .app-name {
+         font-size: 5.7em;
+    }
+}
+@media handheld, only screen and (max-width: 800px) {
+    .wide .app-name {
+         font-size: 5em;
+    }
+}
+@media handheld, only screen and (max-width: 700px) {
+    .wide .app-name {
+         font-size: 4.4em;
+        
+    }
+}
+@media handheld, only screen and (max-width: 600px) {
+    .wide .app-name {
+         font-size: 3.7em;
+         top: 24%;
+        
+    }
+}
+@media handheld, only screen and (max-width: 400px) {
+    .wide .app-name {
+         font-size: 3em;
+    }
+}

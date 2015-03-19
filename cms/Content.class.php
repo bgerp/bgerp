@@ -101,7 +101,7 @@ class cms_Content extends core_Manager
         $this->FLD('order', 'order(min=0)', 'caption=№,tdClass=rowtools-column');
         $this->FLD('menu',    'varchar(64)', 'caption=Меню,mandatory');
         
-        if (Mode::is('isMigrate')) {
+        if (!Mode::is('isMigrate')) {
             $this->EXT('lang',    'cms_Domains', 'caption=Език,externalKey=domainId,input=none');
         }
         
@@ -540,9 +540,10 @@ class cms_Content extends core_Manager
             $query = self::getQuery();
             $query->orderBy("#order", 'DESC');
             $cd = cms_domains::getCurrent();
+            
+            $typeOrder = cls::get('type_Order');
             if($lastOrder = $query->fetch("#state = 'active' AND #domainId = {$cd}")->order) {
-                $typeOrder = cls::get('type_Order');
-                list($lastOrder, ) = explode('.', $typeOrder->toVerbal_($lastOrder)); 
+               list($lastOrder, ) = explode('.', $typeOrder->toVerbal_($lastOrder)); 
             } 
             $rec->order = $typeOrder->fromVerbal($lastOrder + 10);
         }
