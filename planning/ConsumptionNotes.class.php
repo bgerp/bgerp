@@ -46,7 +46,7 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
 	 * Плъгини за зареждане
 	 */
 	public $loadList = 'plg_RowTools, planning_Wrapper, acc_plg_Contable, acc_plg_DocumentSummary,
-                    doc_DocumentPlg, plg_Printing, doc_plg_BusinessDoc, plg_Search';
+                    doc_DocumentPlg, plg_Printing, plg_Clone, doc_plg_BusinessDoc, plg_Search';
 	
 	
 	/**
@@ -115,6 +115,14 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
 	 * @var string - име на клас
 	 */
 	public $mainDetail = 'planning_ConsumptionNoteDetails';
+	
+	
+	/**
+	 * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
+	 * (@see plg_Clone)
+	 */
+	public $cloneDetailes = 'planning_ConsumptionNoteDetails';
+	
 	
 	
 	/**
