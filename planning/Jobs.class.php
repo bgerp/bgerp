@@ -138,7 +138,7 @@ class planning_Jobs extends core_Master
     public $filterDateField = 'dueDate';
     
     
-    private static $actionNames = array('create'   => 'Създаване', 
+    private static $actionNames = array('created'   => 'Създаване', 
     								    'active'   => 'Активиране', 
     								    'stopped'  => 'Спиране', 
     								    'closed'   => 'Приключване', 
@@ -463,11 +463,11 @@ class planning_Jobs extends core_Master
     	$row = $data->row;
     	
     	if(count($rec->history)){
-    		array_unshift($rec->history, array('action' => self::$actionNames['create'], 'date' => $rec->createdOn, 'user' => $rec->createdBy, 'engaction' => 'created'));
+    		array_unshift($rec->history, array('action' => self::$actionNames['created'], 'date' => $rec->createdOn, 'user' => $rec->createdBy, 'engaction' => 'created'));
     	} else {
     		self::addToHistory($rec->history, 'created', $rec->createdOn, $rec->createdBy);
     	}
-    
+    	
     	// Подготвяме данните на историята за показване
     	$row->history = array();
     	foreach ($rec->history as $historyRec){
