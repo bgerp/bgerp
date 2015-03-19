@@ -9,6 +9,10 @@
  */
 function formatSelect2Data(data)
 {
+	if (!data.element || !data.element.noEscape) {
+		data.text = getEO().escape(data.text);
+	}
+	
 	if (data.loading) return data.text;
 	
 	var res = '<span';
