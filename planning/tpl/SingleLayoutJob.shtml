@@ -51,10 +51,12 @@
                 </table>
 	       </td>
 	       <td>
-	       		<!--ET_BEGIN HISTORY_ROW-->
-	       		[#HISTORY_ROW#]
-	       		<div class='small'>[#date#] : [#user#] -> [#action#]</div>
-	       		<!--ET_END HISTORY_ROW-->
+	            <div class='vertical-scroll'>
+		       		<!--ET_BEGIN HISTORY_ROW-->
+		       		[#HISTORY_ROW#]
+		       		<div class='small [#stateclass#]'>[#date#] : [#user#] -> [#action#]</div>
+		       		<!--ET_END HISTORY_ROW-->
+	       		</div>
 	       </td>
 	  </tr>
 	  <tr>

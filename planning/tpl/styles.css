@@ -19,3 +19,7 @@
 .product-title {
   font-weight: bold; }
 
+.vertical-scroll {
+  overflow-y: auto;
+  max-height: 57px; }
+

@@ -463,9 +463,9 @@ class planning_Jobs extends core_Master
     	$row = $data->row;
     	
     	if(count($rec->history)){
-    		array_unshift($rec->history, array('action' => self::$actionNames['create'], 'date' => $rec->createdOn, 'user' => $rec->createdBy));
+    		array_unshift($rec->history, array('action' => self::$actionNames['create'], 'date' => $rec->createdOn, 'user' => $rec->createdBy, 'engaction' => 'created'));
     	} else {
-    		self::addToHistory($rec->history, 'create', $rec->createdOn, $rec->createdBy);
+    		self::addToHistory($rec->history, 'created', $rec->createdOn, $rec->createdBy);
     	}
     
     	// Подготвяме данните на историята за показване
@@ -473,7 +473,8 @@ class planning_Jobs extends core_Master
     	foreach ($rec->history as $historyRec){
     		$row->history[] = (object)array('date' => cls::get('type_DateTime')->toVerbal($historyRec['date']),
     										'user' => crm_Profiles::createLink($historyRec['user']),
-    										'action' => "<span class='state-{$historyRec['engaction']}'>{$historyRec['action']}</span>",
+    										'action' => "<span>{$historyRec['action']}</span>",
+    										'stateclass' => "state-{$historyRec['engaction']}"
     		);
     	}
     	$row->history = array_reverse($row->history, TRUE);
