@@ -200,14 +200,14 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     
     
     /**
-     * Намира последното активно задание за артикула
+     * Връща последното не оттеглено или чернова задание за спецификацията
      * 
      * @param mixed $id - ид или запис
      * @return mixed $res - записа на заданието или FALSE ако няма
      */
-    public function getLastActiveJob($id)
+    public function getLastJob($id)
     {
-    	return $this->getLastActiveJob($id);
+    	return $this->getLastJob($id);
     }
     
     

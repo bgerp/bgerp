@@ -443,7 +443,7 @@ class price_ListToCustomers extends core_Detail
     	// Ако не е зададено количество, взимаме това от последното активно задание, ако има такова
     	if(!isset($quantity)){
     		
-    		$quantityJob = $ProductMan->getLastActiveJob($productId)->quantity;
+    		$quantityJob = $ProductMan->getLastJob($productId)->quantity;
     		if(isset($quantityJob)){
     			$quantity = $quantityJob;
     		}

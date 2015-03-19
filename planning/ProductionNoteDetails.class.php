@@ -140,8 +140,8 @@ class planning_ProductionNoteDetails extends deals_ManifactureDetail
     	if($rec->productId){
     		$ProductMan = cls::getClassName($rec->classId);
     		
-    		// Имали активно задание за артикула ?
-    		if($jobId = $ProductMan::getLastActiveJob($rec->productId)->id){
+    		// Имали задание за артикула ?
+    		if($jobId = $ProductMan::getLastJob($rec->productId)->id){
     			$rec->jobId = $jobId;
     		} else {
     			$rec->jobId = NULL;
