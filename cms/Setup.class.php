@@ -202,7 +202,6 @@ class cms_Setup extends core_ProtoSetup
         // Добавяме domainId към cms_Content
         $max = 1;
         $query = cms_Content::getQuery();
-        unset($query->fields['lang']);
         
         while($rec = $query->fetch()) {
             

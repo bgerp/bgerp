@@ -171,10 +171,6 @@ class cms_Articles extends core_Master
      */
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
-        if($menuId = $data->form->rec->menuId) {
-            $lang = cms_Content::fetchField($menuId, 'lang');
-        }
-        
         $data->form->setOptions('menuId', arr::combine( array('' => ''), cms_Content::getMenuOpt($mvc)));
     }
 
