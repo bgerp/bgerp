@@ -126,6 +126,13 @@ class planning_Jobs extends core_Master
     public $filterDateField = 'dueDate';
     
     
+    private static $actionNames = array('create'   => 'Създаване', 
+    								    'active'   => 'Активиране', 
+    								    'stopped'  => 'Спиране', 
+    								    'closed'   => 'Приключване', 
+    									'rejected' => 'Оттегляне',
+    									'restore'  => 'Възстановяване',
+    								    'wakeup'   => 'Събуждане');
 	/**
      * Описание на модела (таблицата)
      */
@@ -144,7 +151,7 @@ class planning_Jobs extends core_Master
     	$this->FLD('weight', 'cat_type_Weight', 'caption=Тегло,input=none');
     	$this->FLD('brutoWeight', 'cat_type_Weight', 'caption=Бруто,input=none');
     	$this->FLD('state',
-    			'enum(draft=Чернова, active=Активирано, rejected=Отказано, closed=Приключено, stopped=Спряно)',
+    			'enum(draft=Чернова, active=Активирано, rejected=Отказано, closed=Приключено, stopped=Спряно, wakeup=Събудено)',
     			'caption=Състояние, input=none'
     	);
     	$this->FLD('saleId', 'key(mvc=sales_Sales)', 'input=hidden,silent');
@@ -371,7 +378,7 @@ class planning_Jobs extends core_Master
     	if(($action == 'activate' || $action == 'restore' || $action == 'conto' || $action == 'write' || $action == 'add') && isset($rec->productId) && $res != 'no_one'){
     
     		// Ако има активно задание, да не може друга да се възстановява,контира,създава или активира
-    		if($mvc->fetch("#productId = {$rec->productId} AND (#state = 'active' || #state = 'stopped')")){
+    		if($mvc->fetch("#productId = {$rec->productId} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup')")){
     			$res = 'no_one';
     		}
     	}
@@ -401,6 +408,25 @@ class planning_Jobs extends core_Master
     
     
     /**
+     * Добавя действие към историята
+     * 
+     * @param array $history - масив с историята
+     * @param enum(closed,active,rejected,restore,wakeup,stopped,create) $action - действие
+     * @param datetime $date - кога
+     * @param int $userId - кой
+     * @return void
+     */
+    private static function addToHistory(&$history, $action, $date, $userId)
+    {
+    	if(!$history){
+    		$history = array();
+    	}
+    	
+    	$history[] = array('action' => self::$actionNames[$action], 'date' => $date, 'user' => $userId, 'engaction' => $action);
+    }
+    
+    
+    /**
      * Функция, която се извиква след активирането на документа
      */
     public static function on_AfterActivation($mvc, &$rec)
@@ -408,7 +434,9 @@ class planning_Jobs extends core_Master
     	// След активиране на заданието, добавяме артикула като перо
     	cat_Products::forceItem($rec->productId, 'catProducts');
     	
-    	$rec->history[] = array('action' => 'active', 'date' => $rec->modifiedOn, 'user' => $rec->modifiedBy);
+    	// Записваме действието във историята
+    	self::addToHistory($rec->history, 'active', $rec->modifiedOn, $rec->modifiedBy);
+    	
     	$mvc->save($rec, 'history');
     }
     
@@ -422,20 +450,44 @@ class planning_Jobs extends core_Master
     	$row = $data->row;
     	
     	if(count($rec->history)){
-    		array_unshift($rec->history, array('action' => 'create', 'date' => $rec->createdOn, 'user' => $rec->createdBy));
+    		array_unshift($rec->history, array('action' => self::$actionNames['create'], 'date' => $rec->createdOn, 'user' => $rec->createdBy));
     	} else {
-    		$rec->history = array();
-    		$rec->history[] = array('action' => 'create', 'date' => $rec->createdOn, 'user' => $rec->createdBy);
+    		self::addToHistory($rec->history, 'create', $rec->createdOn, $rec->createdBy);
     	}
     
+    	// Подготвяме данните на историята за показване
     	$row->history = array();
-    	$actionNames = array('create' => 'Създаване', 'active' => 'Активиране', 'stopped' => 'Спиране', 'closed' => 'Приключване', 'wakeup' => 'Събуждане');
     	foreach ($rec->history as $historyRec){
     		$row->history[] = (object)array('date' => cls::get('type_DateTime')->toVerbal($historyRec['date']),
     										'user' => crm_Profiles::createLink($historyRec['user']),
-    										'action' => $actionNames[$historyRec['action']],
+    										'action' => "<span class='state-{$historyRec['engaction']}'>{$historyRec['action']}</span>",
     		);
     	}
+    	$row->history = array_reverse($row->history, TRUE);
+    }
+    
+    
+    /**
+     * Реакция в счетоводния журнал при оттегляне на счетоводен документ
+     */
+    public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
+    {
+    	// Записваме действието във историята
+    	$rec = $mvc->fetchRec($id);
+    	self::addToHistory($rec->history, 'rejected', $rec->modifiedOn, $rec->modifiedBy);
+    	$mvc->save($rec, 'history');
+    }
+    
+    
+    /**
+     * След възстановяване
+     */
+    public static function on_AfterRestore(core_Mvc $mvc, &$res, $id)
+    {
+    	// Записваме действието във историята
+    	$rec = $mvc->fetchRec($id);
+    	self::addToHistory($rec->history, 'restore', $rec->modifiedOn, $rec->modifiedBy);
+    	$mvc->save($rec, 'history');
     }
     
     
@@ -450,13 +502,13 @@ class planning_Jobs extends core_Master
     	if($mvc->haveRightFor('changestate', $data->rec)){
     		if($data->rec->state == 'closed'){
     			$data->toolbar->addBtn("Събуждане", array($mvc, 'changeState', $data->rec->id, 'type' => 'close', 'ret_url' => TRUE), 'ef_icon = img/16/lightbulb.png,title=Събуждане на заданието,warning=Сигурнили сте че искате да събудите заданието');
-    		} elseif($data->rec->state == 'active'){
+    		} elseif($data->rec->state == 'active' || $data->rec->state == 'wakeup'){
     			$data->toolbar->addBtn("Приключване", array($mvc, 'changeState', $data->rec->id, 'type' => 'close', 'ret_url' => TRUE), 'ef_icon = img/16/lightbulb_off.png,title=Приключване на заданието,warning=Сигурнили сте че искате да приключите заданието');
     		}
     		
     		if($data->rec->state == 'stopped'){
     			$data->toolbar->addBtn("Актириране", array($mvc, 'changeState', $data->rec->id, 'type' => 'stop', 'ret_url' => TRUE, ), 'ef_icon = img/16/control_play.png,title=Активиране на заданието,warning=Сигурнили сте че искате да активирате заданието');
-    		} elseif($data->rec->state == 'active'){
+    		} elseif($data->rec->state == 'active' || $data->rec->state == 'wakeup'){
     			$data->toolbar->addBtn("Спиране", array($mvc, 'changeState', $data->rec->id, 'type' => 'stop', 'ret_url' => TRUE), 'ef_icon = img/16/control_pause.png,title=Спиране на заданието,warning=Сигурнили сте че искате да спрете заданието');
     		}
     	}
@@ -473,24 +525,24 @@ class planning_Jobs extends core_Master
     	expect($rec = $this->fetch($id));
     	expect($type = Request::get('type', 'enum(close,stop)'));
     	$this->requireRightFor('changestate', $rec);
-    	 
+    	
     	if($type == 'stop'){
-    		expect($rec->state == 'stopped' || 'active');
-    		$state = ($rec->state == 'stopped') ? 'active' : 'stopped';
-    		$action = $state;
+    		expect($rec->state == 'stopped' || $rec->state == 'active' || $rec->state == 'wakeup');
+    		$state = ($rec->state == 'stopped') ? (($rec->brState) ? $rec->brState : 'active') : 'stopped';
+    		//$action = $state;
     	} else {
-    		expect($rec->state == 'closed' || 'active');
-    		$state = ($rec->state == 'closed') ? 'active' : 'closed';
-    		$action = ($state == 'closed') ? 'closed' : 'wakeup';
+    		expect($rec->state == 'closed' || $rec->state == 'active' || $rec->state == 'wakeup');
+    		$state = ($rec->state == 'closed') ? 'wakeup' : 'closed';
+    		//$action = ($state == 'closed') ? 'closed' : 'wakeup';
     	}
     	
-    	$rec->exState = $rec->state;
+    	$rec->brState = $rec->state;
     	$rec->state = $state;
-    	 
-    	// Записваме в историята действието
-    	$rec->history[] = array('action' => $action, 'date' => dt::now(), 'user' => core_Users::getCurrent());
     	
-    	$this->save($rec, 'state,history');
+    	// Записваме в историята действието
+    	self::addToHistory($rec->history, $state, dt::now(), core_Users::getCurrent());
+    	
+    	$this->save($rec, 'brState,state,history');
     	 
     	return followRetUrl();
     }
