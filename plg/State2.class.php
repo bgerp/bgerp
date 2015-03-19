@@ -167,34 +167,20 @@ class plg_State2 extends core_Plugin
         return FALSE;
     }
     
+    
     /**
-     * Изпълнява се при инициализиране и подсигурява записите, които имат NULL
-     * за състояние да станат 'активни'
-    
-     function on_AfterSetupMVC($mvc, &$res)
-     {
-     $query = $mvc->getQuery();
-    
-     $cnt = 0;
-    
-     while($rec = $query->fetch()) {
-     if($rec->state == '') {
-     $rec->state = 'active';
-     $mvc->save($rec, 'state');
-     $cnt++;
-     }
-     }
-    
-     if($cnt) {
-     $res .= "<li style='color:green;'>Състоянието на {$cnt} записа е променено на 'активно'";
-     }
-     } */
+     * Поставя изискване да се избират за предложения само активните записи
+     */
+    public static function on_BeforePrepareSuggestions($mvc, &$suggestions, core_Type $type)
+    {
+    	$type->params['where'] .= ($type->params['where'] ? " AND " : "") . " #state = 'active'";
+    }
     
     
     /**
      * Поставя изискване да се селектират само активните записи
      */
-    function on_BeforeMakeArray4Select($mvc, &$optArr, $fields = NULL, &$where = NULL)
+    public static function on_BeforeMakeArray4Select($mvc, &$optArr, $fields = NULL, &$where = NULL)
     {
         $where .= ($where ? " AND " : "") . " #state = 'active'";
     }
