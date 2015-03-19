@@ -430,8 +430,8 @@ class eshop_Products extends core_Master
     			if($str == "") continue;
     			
     			$arr = explode('=', $str);
-    			if($arr[0] && $arr[1]){
-    				if(trim($arr[1]) == '') continue;
+    			if(trim($arr[0]) !== '' && trim($arr[1]) !== ''){
+    				if(trim($arr[1]) === '') continue;
     				$newArr[trim($arr[0])] = trim($arr[1]);
     			}
     		}
@@ -471,7 +471,7 @@ class eshop_Products extends core_Master
     	$form = &$data->form;
     	
     	if($form->rec->coDriver){
-    		$params = "uom =" . PHP_EOL . "moq =" . PHP_EOL . "quantities =";
+    		$params = "measureId =" . PHP_EOL . "moq =" . PHP_EOL . "quantities =";
     		$form->setDefault('coParams', $params);
     	}
     }

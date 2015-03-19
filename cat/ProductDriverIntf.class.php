@@ -117,9 +117,40 @@ class cat_ProductDriverIntf extends core_InnerObjectIntf
 	 *
 	 * @param mixed $params
 	 */
-	public function setParams($params)
+	public function setDriverParams($params)
 	{
-		return $this->class->setParams($params);
+		return $this->class->setDriverParams($params);
+	}
+	
+	
+	/**
+	 * Връща параметрите на артикула
+	 * @param mixed $id - ид или запис на артикул
+	 *
+	 * @return array $res - параметрите на артикула
+	 * 					['weight']          -  Тегло
+	 * 					['width']           -  Широчина
+	 * 					['volume']          -  Обем
+	 * 					['thickness']       -  Дебелина
+	 * 					['length']          -  Дължина
+	 * 					['height']          -  Височина
+	 * 					['tolerance']       -  Толеранс
+	 * 					['transportWeight'] -  Транспортно тегло
+	 * 					['transportVolume'] -  Транспортен обем
+	 * 					['term']            -  Срок
+	 */
+	public function getParams()
+	{
+		return $this->class->getParams();
+	}
+	
+	
+	/**
+	 * Връща параметрите на драйвера
+	 */
+	public function getDriverParams()
+	{
+		return $this->class->getDriverParams();
 	}
 	
 	

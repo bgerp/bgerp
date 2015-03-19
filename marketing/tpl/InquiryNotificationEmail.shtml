@@ -3,17 +3,10 @@
     <!--ET_BEGIN DATA_ROW-->
     [#CAPTION#]: [#VALUE#]<br>
     <!--ET_END DATA_ROW-->
-    <!--ET_BEGIN quantity-->
-    <br>[#quantity#]<b>|Количества|*</b><br>
-    <!--ET_BEGIN quantity1-->
-    |Количество|*: [#quantity1#]<br>
-    <!--ET_END quantity1-->
-    <!--ET_BEGIN quantity2-->
-    |Количество|*: [#quantity2#]<br>
-    <!--ET_END quantity2-->
-    <!--ET_BEGIN quantity3-->
-    |Количество|*: [#quantity3#]<br>
-    <!--ET_END quantity3-->
+    <!--ET_BEGIN quantity-->[#quantity#]|КОЛИЧЕСТВА|*<br>
+    <!--ET_BEGIN QUANTITY_ROW-->
+	|Количество|*: [#QUANTITY_ROW#]<br>
+	<!--ET_END QUANTITY_ROW-->
     <br/><!--ET_END quantity-->
     <b>|Контактни дани|*</b><br>
     <!--ET_BEGIN company-->

@@ -71,12 +71,21 @@ abstract class cat_ProductDriver extends core_BaseClass
 	 *
 	 * @param mixed $innerForm
 	 */
-	public function setParams($params)
+	public function setDriverParams($params)
 	{
 		$params = arr::make($params, TRUE);
 		if(count($params)){
 			$this->driverParams = arr::make($params, TRUE);
 		}
+	}
+	
+	
+	/**
+	 * Връща параметрите на драйвера
+	 */
+	public function getDriverParams()
+	{
+		return $this->driverParams;
 	}
 	
 	

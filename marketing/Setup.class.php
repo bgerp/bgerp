@@ -16,7 +16,7 @@ defIfNot('MARKETING_INQUIRE_TO_EMAIL', '');
 /**
  * Колко количества да се показват по дефолт във запитването
  */
-defIfNot('MARKETING_QUANTITIES', 3);
+defIfNot('MARKETING_INQUIRY_QUANTITIES', 3);
 
 
 /**
@@ -64,7 +64,7 @@ class marketing_Setup extends core_ProtoSetup
 	var $configDescription = array(
 			'MARKETING_INQUIRE_FROM_EMAIL'  => array('key(mvc=email_Inboxes,select=email,allowEmpty)', 'caption=Изпращане на запитването по имейл->Имейл \'От\''),
 			'MARKETING_INQUIRE_TO_EMAIL'    => array('emails', 'caption=Изпращане на запитването по имейл->Имейл \'Към\''),
-			'MARKETING_QUANTITIES'          => array('int', 'caption=Брой количества във запитването'),
+			'MARKETING_INQUIRY_QUANTITIES'          => array('int', 'caption=Брой количества във запитването'),
 			
 	);
 	
