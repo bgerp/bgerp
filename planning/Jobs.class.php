@@ -585,16 +585,17 @@ class planning_Jobs extends core_Master
     	
     	$masterInfo = $data->masterMvc->getProductInfo($data->masterId);
     	
-    	// Показваме ги ако има записи или е производим артикула
-    	if(count($data->rows) || isset($masterInfo->meta['canManifacture'])){
-    		$data->TabCaption = 'Задания';
-    		$data->Tab = 'top';
-    		
-    		// Проверяваме можем ли да добавяме нови задания
-    		if($this->haveRightFor('add', (object)array('productId' => $data->masterId, 'folderId' => $folderId))){
-    			$folderId = $data->masterMvc->fetchField($data->masterId, 'folderId');
-    			$data->addUrl = array($this, 'add', 'productId' => $data->masterId, 'folderId' => $folderId, 'ret_url' => TRUE);
-    		}
+    	$data->TabCaption = 'Задания';
+    	$data->Tab = 'top';
+    	
+    	// Проверяваме можем ли да добавяме нови задания
+    	if($this->haveRightFor('add', (object)array('productId' => $data->masterId, 'folderId' => $folderId))){
+    		$folderId = $data->masterMvc->fetchField($data->masterId, 'folderId');
+    		$data->addUrl = array($this, 'add', 'productId' => $data->masterId, 'folderId' => $folderId, 'ret_url' => TRUE);
+    	}
+    	
+    	if(!isset($masterInfo->meta['canManifacture'])){
+    		$data->notManifacturable = TRUE;
     	}
     }
     
@@ -607,8 +608,6 @@ class planning_Jobs extends core_Master
      */
     public function renderJobs($data)
     {
-    	 if(!$data->TabCaption) return;
-    	 
     	 $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
     	 $tpl->append(tr('Задания'), 'title');
     	 
@@ -624,6 +623,12 @@ class planning_Jobs extends core_Master
     	 
     	 $table = cls::get('core_TableView', array('mvc' => $this));
     	 $details = $table->get($data->rows, $listFields);
+    	 
+    	 // Ако артикула не е производим, показваме в детайла
+    	 if($data->notManifacturable === TRUE){
+    	 	$tpl->append(" <span class='red small'>(" . tr('Артикула не е производим') . ")</span>", 'title');
+    	 }
+    	 
     	 $tpl->replace($details, 'content');
     	 
     	 return $tpl;
