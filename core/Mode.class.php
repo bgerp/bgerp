@@ -121,7 +121,7 @@ class core_Mode
         }
         
         // Инициализираме стойностите с данните от сесията
-        if (!is_array(self::$mode)) {
+        if (!is_array(self::$mode) || !isset(self::$mode[$name])) {
             
             self::$mode = core_Session::get(EF_MODE_SESSION_VAR);
             

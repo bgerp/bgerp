@@ -3348,6 +3348,29 @@ div.location.public {
 	}
 }
 
+.app-name {
+    display: block;
+    color: #42477f;
+    position: absolute;
+    font-weight: bold;
+    font-family: Times New Roman, Georgia, serif;
+}
+
+.wide .app-name{
+    left: 2%;
+    bottom: 1%;
+    font-size: 8.5em;
+    text-shadow: 1px 1px 4px rgba(0,0,0,0.6);
+    
+}
+
+.narrow .app-name{
+    left: 7px;
+    top: 2px;
+    font-size: 33px;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.4);
+}
+
 
 /*queries*/
 
@@ -3401,9 +3424,18 @@ body.narrow {
     }
 }
 
+@media handheld, only screen and (max-width: 1200px) {
+    .wide .app-name {
+         font-size: 7.5em;
+    }
+}
+
 @media handheld , only screen and (max-width: 1024px) {
     .document{
         max-width: 52.5em;
+    }
+    .wide .app-name {
+         font-size: 6.4em;
     }	
 }
 
@@ -3464,6 +3496,9 @@ body.narrow {
     #all h1{
         font-size: 1.88em;
     }
+    .wide .app-name {
+         font-size: 5.7em;
+    }
 }
 @media handheld, only screen and (max-width: 800px) {
 	#cmsMenu a {
@@ -3491,6 +3526,9 @@ body.narrow {
     }
     #all h1{
         font-size: 1.88em;
+    }
+    .wide .app-name {
+         font-size: 5em;
     }
 }
 
@@ -3538,6 +3576,9 @@ body.narrow {
     }
     #all h1{
         font-size: 1.84em;
+    }
+    .wide .app-name {
+        font-size: 4.4em;
     }
 }
 
@@ -3609,6 +3650,9 @@ body.narrow {
     }
     #all h1{
         font-size: 1.8em;
+    }
+    .wide .app-name {
+         font-size: 3.7em;
     }
 }
 
@@ -3740,6 +3784,9 @@ body.narrow {
 	    display: block;
 	    width: 100%;
 	}
+	.wide .app-name {
+         font-size: 3em;
+    }
 }
 
 

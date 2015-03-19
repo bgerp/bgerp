@@ -3068,6 +3068,25 @@ div.location.public {
   .eshop-product-list:hover {
     border: solid 1px #bbbbbb; }
 
+.app-name {
+  display: block;
+  color: #42477f;
+  position: absolute;
+  font-weight: bold;
+  font-family: Times New Roman, Georgia, serif; }
+
+.wide .app-name {
+  left: 2%;
+  bottom: 1%;
+  font-size: 8.5em;
+  text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.6); }
+
+.narrow .app-name {
+  left: 7px;
+  top: 2px;
+  font-size: 33px;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4); }
+
 /*
  * queries
  */
@@ -3119,9 +3138,17 @@ only screen and (min-width: 1750px) {
     font-size: 1.1em; } }
 
 @media handheld,
+only screen and (max-width: 1200px) {
+  .wide .app-name {
+    font-size: 7.5em; } }
+
+@media handheld,
 only screen and (max-width: 1024px) {
   .document {
-    max-width: 52.5em; } }
+    max-width: 52.5em; }
+
+  .wide .app-name {
+    font-size: 6.4em; } }
 
 /*
  * Mobile
@@ -3190,7 +3217,10 @@ only screen and (max-width: 900px) {
     font-size: 1.38em; }
 
   #all h1 {
-    font-size: 1.88em; } }
+    font-size: 1.88em; }
+
+  .wide .app-name {
+    font-size: 5.7em; } }
 
 @media handheld,
 only screen and (max-width: 800px) {
@@ -3217,7 +3247,10 @@ only screen and (max-width: 800px) {
     font-size: 1.38em; }
 
   #all h1 {
-    font-size: 1.88em; } }
+    font-size: 1.88em; }
+
+  .wide .app-name {
+    font-size: 5em; } }
 
 @media handheld,
 only screen and (max-width: 760px) {
@@ -3262,7 +3295,10 @@ only screen and (max-width: 700px) {
     font-size: 1.34em; }
 
   #all h1 {
-    font-size: 1.84em; } }
+    font-size: 1.84em; }
+
+  .wide .app-name {
+    font-size: 4.4em; } }
 
 @media handheld,
 only screen and (max-width: 640px) {
@@ -3334,7 +3370,10 @@ only screen and (max-width: 600px) {
     font-size: 1.3em; }
 
   #all h1 {
-    font-size: 1.8em; } }
+    font-size: 1.8em; }
+
+  .wide .app-name {
+    font-size: 3.7em; } }
 
 @media handheld,
 only screen and (max-width: 533px) {
@@ -3476,7 +3515,10 @@ only screen and (max-width: 360px) {
 
   .narrow .special-table td {
     display: block;
-    width: 100%; } }
+    width: 100%; }
+
+  .wide .app-name {
+    font-size: 3em; } }
 
 @media handheld,
 only screen and (max-width: 320px) {
