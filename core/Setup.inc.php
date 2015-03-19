@@ -936,7 +936,7 @@ if($step == start) {
 
     setupUnlock();
 
-    exit;
+    shutdown();
 }
 
 // Субституираме в лейаута
