@@ -207,16 +207,6 @@ class sales_Quotations extends core_Master
     }
     
     
-	/**
-     * Малко манипулации след подготвянето на формата за филтриране
-     */
-    protected static function on_AfterPrepareListFilter($mvc, $data)
-    {
-    	 $data->listFilter->showFields = 'search,' . $data->listFilter->showFields;
-    	 $data->listFilter->input();
-    }
-    
-    
     /**
      * Преди показване на форма за добавяне/промяна.
      */
@@ -429,18 +419,6 @@ class sales_Quotations extends core_Master
 	/**
      * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
      */
-    static function getHandle($id)
-    {
-    	$rec = static::fetch($id);
-    	$self = cls::get(get_called_class());
-    	
-    	return $self->abbr . $rec->id;
-    }
-    
-    
-	/**
-     * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
-     */
     function getDocumentRow($id)
     {
     	$rec = $this->fetch($id);
@@ -494,7 +472,7 @@ class sales_Quotations extends core_Master
      * Интерфейсен метод на doc_ContragentDataIntf
      * Връща тялото на имейл по подразбиране
      */
-    static function getDefaultEmailBody($id)
+    public static function getDefaultEmailBody($id)
     {
         $handle = static::getHandle($id);
         $tpl = new ET(tr("Моля запознайте се с нашата оферта") . ': #[#handle#]');
@@ -621,7 +599,7 @@ class sales_Quotations extends core_Master
     /**
      * Интерфейсен метод (@see doc_ContragentDataIntf::getContragentData)
      */
-	static function getContragentData($id)
+	public static function getContragentData($id)
     {
         //Вземаме данните от визитката
         $rec = static::fetch($id);
@@ -684,7 +662,7 @@ class sales_Quotations extends core_Master
       * Добавя ключови думи за пълнотекстово търсене, това са името на
       * документа или папката
       */
-     function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+     protected static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
      {
      	// Тук ще генерираме всички ключови думи
      	$detailsKeywords = '';
@@ -710,7 +688,7 @@ class sales_Quotations extends core_Master
 	/**
      * Връща разбираемо за човека заглавие, отговарящо на записа
      */
-    static function getRecTitle($rec, $escaped = TRUE)
+    public static function getRecTitle($rec, $escaped = TRUE)
     {
         $rec = static::fetchRec($rec);
     	
@@ -789,9 +767,12 @@ class sales_Quotations extends core_Master
     	
     	$fRec = $form->input();
     	if($form->isSubmitted()){
+    		
+    		// Създаваме продажба от офертата
     		$sId = $this->createSale($rec);
     		
     		$products = (array)$form->rec;
+    		
     		foreach ($products as $index => $quantity){
     			list($productId, $classId, $optional, $packagingId) = explode("|", $index);
     			
@@ -805,15 +786,24 @@ class sales_Quotations extends core_Master
     				
     				// Ако няма (к-то е друго) се намира първия срещнат
     				$dRec = sales_QuotationsDetails::fetch("#quotationId = {$id} AND #productId = {$productId} AND #classId = {$classId} AND #packagingId = {$packagingId} AND #optional = '{$optional}'");
+    				
+    				// Тогава приемаме че подаденото количество е количество за опаковка
+    				$dRec->packQuantity = $quantity;
+    			} else {
+    				
+    				// Ако има такъв запис, изчисляваме колко е количеството на опаковката
+    				$dRec->packQuantity = $quantity / $dRec->quantityInPack;
     			}
     			
-    			$dRec->packQuantity = $quantity / $dRec->quantityInPack;
+    			// Добавяме детайла към офертата
     			sales_Sales::addRow($sId, $dRec->classId, $dRec->productId, $dRec->packQuantity, $dRec->price, $dRec->packagingId, $dRec->discount, $dRec->notes);
     		}
     		 
+    		// Редирект към сингъла на новосъздадената продажба
     		return Redirect(array('sales_Sales', 'single', $sId));
     	}
     
+    	// Рендираме опаковката
     	return $this->renderWrapping($form->renderHtml());
     }
     
