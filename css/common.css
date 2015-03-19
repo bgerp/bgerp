@@ -990,7 +990,7 @@ a.profile {
 
 .state-stopped,
 .state-blocked {
-  background-color: #ffaa00; }
+  background-color: #ffbb33; }
 
 .state-rejected {
   background-color: #cc6666; }
@@ -1103,7 +1103,7 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
     background-color: #d0d0d0; }
   table.listTable:not(.noHoverTable) > tbody > tr:hover.state-stopped,
   table.listTable:not(.noHoverTable) > tbody > tr:hover.state-blocked {
-    background-color: #cc8800; }
+    background-color: #f5a300; }
   table.listTable:not(.noHoverTable) > tbody > tr:hover.state-rejected {
     background-color: #bf4040; }
   table.listTable:not(.noHoverTable) > tbody > tr:hover.state-free {

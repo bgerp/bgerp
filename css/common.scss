@@ -1028,7 +1028,7 @@ a.profile {
 }
 
 .state-stopped, .state-blocked {
-    background-color: #fa0;
+    background-color: #ffbb33;
 }
 
 .state-rejected { 
@@ -1142,7 +1142,7 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
 	    background-color: darken(#ddd, 5%);
 	}
 	&.state-stopped, &.state-blocked {
-	    background-color: darken(#fa0, 10%);
+	    background-color: darken(#fa0, 2%);
 	}
 	&.state-rejected { 
 	    background-color: darken(#c66, 10%);
