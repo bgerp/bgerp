@@ -70,7 +70,9 @@ class cms_Domains extends core_Embedder
     
     public $canSelect = 'ceo, admin, cms';
     
+    // Админа може да редактира и изтрива създадените от системата записи
     public $canEditsysdata = 'admin';
+    public $canDeletesysdata = 'admin';
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
