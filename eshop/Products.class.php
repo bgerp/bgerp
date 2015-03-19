@@ -432,7 +432,7 @@ class eshop_Products extends core_Master
     			$arr = explode('=', $str);
     			if($arr[0] && $arr[1]){
     				if(trim($arr[1]) == '') continue;
-    				$newArr[$arr[0]] = trim($arr[1]);
+    				$newArr[trim($arr[0])] = trim($arr[1]);
     			}
     		}
     	}
