@@ -79,12 +79,12 @@ class acc_plg_Registry extends core_Plugin
     			// Активираме перото
     			if($itemRec = acc_Items::fetchItem($mvc, $rec->id)){
     				if($itemRec->state != 'active'){
-    					acc_Lists::updateItem($mvc, $rec->id, $itemRec->lists);
-    					
     					if(haveRole('ceo,acc')){
     						core_Statuses::newStatus(tr("|Активирано е перо|*: {$itemRec->title}"));
     					}
     				}
+    				
+    				acc_Lists::updateItem($mvc, $rec->id, $itemRec->lists);
     			}
     		}
     	}
@@ -141,8 +141,7 @@ class acc_plg_Registry extends core_Plugin
     				$lists = keylist::addKey($itemRec->lists, $listRec->id);
     				$msg = TRUE;
     			} else {
-    				// Ако перото е в номенклатурата не правим нищо
-    				return;
+    				$lists = $itemRec->lists;
     			}
     		} else {
     			$lists = keylist::addKey('', $listRec->id);
