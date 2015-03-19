@@ -101,13 +101,7 @@ class cat_Products extends core_Embedder {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт,name,code,groups,folderId,createdOn,createdBy';
-    
-    
-    /**
-     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
-     */
-    var $rowToolsField = 'tools';
+    var $listFields = 'id,name,code,groups,folderId,createdOn,createdBy';
     
     
     /**

@@ -82,7 +82,7 @@ class sales_Quotations extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, date, folderId, state, createdOn, createdBy';
+    public $listFields = 'tools=Пулт, date, title=Документ, folderId, state, createdOn, createdBy';
     
 
     /**
@@ -104,6 +104,12 @@ class sales_Quotations extends core_Master
     
    
     /**
+     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
+     */
+    public $rowToolsField = 'tools';
+    
+    
+    /**
      * Брой оферти на страница
      */
     public $listItemsPerPage = '20';
@@ -120,6 +126,12 @@ class sales_Quotations extends core_Master
      * (@see plg_Clone)
      */
     public $cloneDetailes = 'sales_QuotationsDetails';
+    
+    
+    /**
+     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
+     */
+    public $rowToolsSingleField = 'title';
     
     
     /**
@@ -409,6 +421,7 @@ class sales_Quotations extends core_Master
 		
     	if($fields['-list']){
     		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
+    		$row->title = $mvc->getHyperLink($rec->id, TRUE);
 	    }
     }
     

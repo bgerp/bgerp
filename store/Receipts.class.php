@@ -80,7 +80,7 @@ class store_Receipts extends store_DocumentMaster
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, valior, folderId, amountDelivered, weight, volume, createdOn, createdBy';
+    public $listFields = 'tools=Пулт, valior, title=Документ, folderId, amountDelivered, weight, volume, createdOn, createdBy';
 
 
     /**

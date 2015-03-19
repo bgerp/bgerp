@@ -111,7 +111,19 @@ class planning_Jobs extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id=№, productId=Артикул, dueDate, quantity, state, createdOn, createdBy';
+    public $listFields = 'tools=Пулт,title=Документ, productId=За артикул, dueDate, quantity, state, createdOn, createdBy';
+    
+    
+    /**
+     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
+     */
+    public $rowToolsField = 'tools';
+    
+    
+    /**
+     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
+     */
+    public $rowToolsSingleField = 'title';
     
     
     /**
@@ -271,6 +283,7 @@ class planning_Jobs extends core_Master
     	if($fields['-list']){
     		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
     		$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
+    		$row->title = $mvc->getHyperLink($rec->id, TRUE);
     	}
     	 
     	if($rec->saleId){

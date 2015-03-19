@@ -24,6 +24,18 @@ abstract class deals_ServiceMaster extends core_Master
 	
 	
 	/**
+	 * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
+	 */
+	public $rowToolsField = 'tools';
+	
+	
+	/**
+	 * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
+	 */
+	public $rowToolsSingleField = 'title';
+	
+	
+	/**
 	 * Кои са задължителните полета за модела
 	 */
 	protected static function setServiceFields($mvc)
@@ -248,6 +260,8 @@ abstract class deals_ServiceMaster extends core_Master
     		} else {
     			$row->amountDeliveredVat = "<span class='quiet'>0.00</span>";
     		}
+    		
+    		$row->title = $mvc->getHyperLink($rec->id, TRUE);
     	}
     	
     	if(isset($fields['-single'])){
