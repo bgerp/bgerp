@@ -98,8 +98,6 @@ class cms_DefaultTheme extends core_ProtoInner {
             $tpl->replace($title, 'CORE_APP_NAME');
         }
         
-        // Добавяме дефолт темата за цветове
-        $tpl->push('\n    css/default-theme.css', 'CSS');
 
         // Фон на страницата
         if($this->formRec->bodyB) {
@@ -158,7 +156,7 @@ class cms_DefaultTheme extends core_ProtoInner {
 
         // Фон на разделите във форма
         if($this->formRec->formSectionB) {
-            $css .= "\n    .formGroup {background-color:{$this->formRec->formSectionB};}";
+            $css .= "\n    .formGroup {background-color:{$this->formRec->formSectionB} !important;}";
         }
 
         // Фон на бутоните във форма
@@ -172,8 +170,11 @@ class cms_DefaultTheme extends core_ProtoInner {
         }
  
         if($css) {
-            $tpl->replace($css, 'STYLES');
+            $tpl->append($css, 'STYLES');
         }
+        
+        // Добавяме дефолт темата за цветове
+        $tpl->push('css/default-theme.css', 'CSS');
 
     }
     
