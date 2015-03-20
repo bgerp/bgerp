@@ -308,4 +308,15 @@ abstract class cat_ProductDriver extends core_BaseClass
 	{
 		return new core_ET();
 	}
+	
+	
+	/**
+	 * Как да се казва дефолт папката където ще отиват заданията за артикулите с този драйвер
+	 */
+	public function getJobFolderName()
+	{
+		$title = core_Classes::fetchField($this->getClassId(), 'title');
+		
+		return "Задания за " . mb_strtolower($title);
+	}
 }
