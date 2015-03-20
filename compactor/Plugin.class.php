@@ -88,7 +88,7 @@ class compactor_Plugin extends core_Plugin
 
             // Подготвяме сбора на съдържанието на всички файлове
             foreach($contentFilePathsArr as $filePath) {
-                $content = @file_get_contents($filePath);
+                $content = file_get_contents($filePath);
                 if($callback) {
                     $content = call_user_func($callback, $content, $filePath);
                 }
