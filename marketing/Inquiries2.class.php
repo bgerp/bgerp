@@ -516,10 +516,10 @@ class marketing_Inquiries2 extends core_Embedder
     	 
     	if($rec->state == 'active'){
     
-    		if($sId = cat_Products::fetchField("#originId = {$rec->containerId} AND #state = 'active'")){
-    			$data->toolbar->addBtn($data->row->innerClass, array('cat_Products', 'single', $sId), "ef_icon=img/16/specification.png,title=Артикул");
+    		if(cat_Products::fetchField("#originId = {$rec->containerId} AND #state = 'active'")){
+    			$data->toolbar->addBtn('Артикул', array('cat_Products', 'single', $sId), "ef_icon=img/16/wooden-box.png,title=Преглед на артикул по това запитване");
     		} else {
-    			// Създаване на нова спецификация от запитването
+    			// Създаване на нов артикул от запитването
     			if(cat_Products::haveRightFor('add', (object)array('folderId' => $rec->folderId))){
     				$url = array('cat_Products', 'add', "innerClass" => $rec->innerClass, "originId" => $rec->containerId);
     				if(doc_Folders::getCover($rec->folderId)->haveInterface('doc_ContragentDataIntf')){
@@ -527,7 +527,7 @@ class marketing_Inquiries2 extends core_Embedder
     					$url['threadId'] = $rec->threadId;
     				}
     				
-    				$data->toolbar->addBtn($data->row->innerClass, $url, "ef_icon=img/16/specification.png,title=Създаване на нов частен артикул");
+    				$data->toolbar->addBtn('Артикул', $url, "ef_icon=img/16/wooden-box.png,title=Създаване на артикул по това запитване");
     			}
     		}
     
