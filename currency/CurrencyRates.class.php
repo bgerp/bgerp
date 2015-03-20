@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Валутни курсове
  *
@@ -16,10 +15,12 @@
  */
 class currency_CurrencyRates extends core_Detail
 {
+    
 	/**
      * Име на поле от модела, външен ключ към мастър записа
      */
     var $masterKey = 'currencyId';
+    
     
     /**
      * Плъгини за зареждане
@@ -231,7 +232,62 @@ class currency_CurrencyRates extends core_Detail
      */
     static function on_AfterPrepareListFilter($mvc, &$data)
     {
-        $data->query->orderBy("date", 'DESC');;
+        $chart = Request::get('Chart');
+        $data->listFilter->FNC('currencySearch', 'key(mvc=currency_Currencies, select=code, allowEmpty, where=#code !\\= \\\'EUR\\\')', 'caption=Валута,refreshForm,input=input');
+        
+        $data->listFilter->FNC('from', 'date', 'width=6em,caption=От,silent');
+        $data->listFilter->FNC('to', 'date', 'width=6em,caption=До,silent');
+        
+        $data->listFilter->FNC('Chart', 'varchar(16)', 'silent, input=hidden');
+        
+        $data->listFilter->setDefault('Chart', $chart);
+        
+        $data->listFilter->showFields = 'currencySearch, from, to';
+        
+        $data->listFilter->input($data->listFilter->showFields, 'silent');
+        
+        // В хоризонтален вид
+        $data->listFilter->view = 'horizontal';
+        
+        // Добавяме бутон
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        
+        if($filter = $data->listFilter->rec) {
+            
+            // Филтрираме по валута
+            if ($filter->currencySearch) {
+                $data->query->where(array("#currencyId = '[#1#]'", $filter->currencySearch));
+            }
+            
+            // Филтрираме по От и до
+            $dateRange = array();
+	        if ($filter->from) {
+	            $dateRange[0] = $filter->from; 
+	        }
+	        
+	        if ($filter->to) {
+	            $dateRange[1] = $filter->to; 
+	        }
+	        
+	        if (count($dateRange) == 2) {
+	            sort($dateRange);
+	        }
+	        
+            if($dateRange[0]) {
+    			$data->query->where(array("#date >= '[#1#]'", $dateRange[0]));
+    		}
+            
+			if($dateRange[1]) {
+    			$data->query->where(array("#date <= '[#1#]'", $dateRange[1]));
+    		}
+        }
+        
+        if ($chart) {
+            $data->query->orderBy("date", 'ASC');
+            $mvc->listItemsPerPage = 1000;
+        } else {
+            $data->query->orderBy("date", 'DESC');
+        }
     }
    
     
