@@ -31,4 +31,15 @@ class page_Empty extends page_Html
         jquery_Jquery::enable($this);
         $this->push('js/efCommon.js', 'JS');
     }
+    
+    
+    /**
+     * Интерфейсен метод
+     * 
+     * @see core_page_WrapperIntf
+     */
+    function prepare()
+    {
+        parent::prepare();
+    }
 }
