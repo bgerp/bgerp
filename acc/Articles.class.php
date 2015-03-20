@@ -45,7 +45,7 @@ class acc_Articles extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "id, reason, valior, totalAmount, tools=Пулт";
+    var $listFields = "id, title= Документ, reason, valior, totalAmount, tools=Пулт";
     
     
     /**
@@ -57,7 +57,7 @@ class acc_Articles extends core_Master
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
-    var $rowToolsSingleField = 'reason';
+    var $rowToolsSingleField = 'title';
     
     
     /**
@@ -222,6 +222,7 @@ class acc_Articles extends core_Master
             $row->totalAmount = $mvc->getFieldType('totalAmount')->toVerbal(0);
         }
         
+        $row->title = $mvc->getLink($rec->id, 0);
         $row->totalAmount = '<strong>' . $row->totalAmount . '</strong>';
     }
     

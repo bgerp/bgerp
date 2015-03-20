@@ -206,7 +206,7 @@ class store_ConsignmentProtocols extends core_Master
     	if(isset($fields['-list'])){
     		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
     		$row->contragentId = cls::get($rec->contragentClassId)->getHyperlink($rec->contragentId, TRUE);
-    		$row->title = $mvc->getHyperLink($rec->id, TRUE);
+    		$row->title = $mvc->getLink($rec->id, 0);
     	}
     	
     	if(isset($fields['-single'])){

@@ -411,7 +411,7 @@ class sales_Quotations extends core_Master
 		
     	if($fields['-list']){
     		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
-    		$row->title = $mvc->getHyperLink($rec->id, TRUE);
+    		$row->title = $mvc->getLink($rec->id, 0);
 	    }
     }
     

@@ -261,7 +261,7 @@ abstract class deals_ServiceMaster extends core_Master
     			$row->amountDeliveredVat = "<span class='quiet'>0.00</span>";
     		}
     		
-    		$row->title = $mvc->getHyperLink($rec->id, TRUE);
+    		$row->title = $mvc->getLink($rec->id, 0);
     	}
     	
     	if(isset($fields['-single'])){

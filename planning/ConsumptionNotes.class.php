@@ -124,6 +124,11 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
 	public $cloneDetailes = 'planning_ConsumptionNoteDetails';
 	
 	
+	/**
+	 * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
+	 */
+	public $rowToolsField = 'tools';
+	
 	
 	/**
 	 * Описание на модела

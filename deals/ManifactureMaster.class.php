@@ -32,7 +32,7 @@ abstract class deals_ManifactureMaster extends core_Master
 	/**
 	 * Полета, които ще се показват в листов изглед
 	 */
-	public $listFields = 'id, valior, activityCenterId, storeId, folderId, deadline, createdOn, createdBy';
+	public $listFields = 'tools=Пулт, valior, title=Документ, activityCenterId, storeId, folderId, deadline, createdOn, createdBy';
 	
 	
    /**
@@ -87,6 +87,7 @@ abstract class deals_ManifactureMaster extends core_Master
 			$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
 			$row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
 			$row->activityCenterId = hr_Departments::getHyperlink($rec->activityCenterId, TRUE);
+			$row->title = $mvc->getLink($rec->id, 0);
 		}
 	}
 	
