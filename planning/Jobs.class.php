@@ -111,7 +111,7 @@ class planning_Jobs extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт,title=Документ, productId=За артикул, dueDate, quantity, state, createdOn, createdBy';
+    public $listFields = 'tools=Пулт,title=Документ, productId=За артикул, dueDate, quantity, folderId, state, createdOn, createdBy';
     
     
     /**
@@ -219,7 +219,7 @@ class planning_Jobs extends core_Master
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
     	if(!Request::get('Rejected', 'int')){
-    		$data->listFilter->setOptions('state', array('' => '') + arr::make('draft=Чернова, active=Активирано, closed=Приключено, stopped=Спряно', TRUE));
+    		$data->listFilter->setOptions('state', array('' => '') + arr::make('draft=Чернова, active=Активирано, closed=Приключено, stopped=Спряно, wakeup=Събудено', TRUE));
     		$data->listFilter->setField('state', 'placeholder=Всички');
     		$data->listFilter->showFields .= ',state';
     		$data->listFilter->input();
@@ -590,9 +590,11 @@ class planning_Jobs extends core_Master
     	$data->TabCaption = 'Задания';
     	$data->Tab = 'top';
     	
+    	$Driver = $data->masterMvc->getDriver($data->masterId);
+    	$folderId = doc_UnsortedFolders::forceCoverAndFolder((object)array('name' => $Driver->getJobFolderName()));
+    	
     	// Проверяваме можем ли да добавяме нови задания
     	if($this->haveRightFor('add', (object)array('productId' => $data->masterId, 'folderId' => $folderId))){
-    		$folderId = $data->masterMvc->fetchField($data->masterId, 'folderId');
     		$data->addUrl = array($this, 'add', 'productId' => $data->masterId, 'folderId' => $folderId, 'ret_url' => TRUE);
     	}
     	
@@ -646,7 +648,14 @@ class planning_Jobs extends core_Master
     public static function canAddToFolder($folderId)
     {
     	$coverClass = doc_Folders::fetchCoverClassName($folderId);
+    	
+    	return $coverClass == 'doc_UnsortedFolders';
+    }
     
-    	return cls::haveInterface('cat_ProductFolderCoverIntf', $coverClass);
+    
+    function act_Test()
+    {
+    	$l = cls::get('planning_Setup');
+    	$l->moveJobs();
     }
 }
