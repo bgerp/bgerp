@@ -40,18 +40,10 @@ class jqcolorpicker_Plugin extends core_Plugin {
             $options = $this->getDefaultOpt();
         }
         
-        if(!$value) {
-            $value = each($options);
-            $value = $value[1];
-        }
-
         if($value) {
             $cObj = new color_Object($value);
-            
             $hCol = $cObj->getHex();
-            
             $options[substr($hCol, 1)] = $value;
-            
             $selected = substr($hCol, 1);
         }
  
