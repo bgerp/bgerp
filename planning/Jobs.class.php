@@ -138,13 +138,18 @@ class planning_Jobs extends core_Master
     public $filterDateField = 'dueDate';
     
     
-    private static $actionNames = array('created'   => 'Създаване', 
+    /**
+     * Вербални наименования на състоянията
+     */
+    private static $actionNames = array('created'  => 'Създаване', 
     								    'active'   => 'Активиране', 
     								    'stopped'  => 'Спиране', 
     								    'closed'   => 'Приключване', 
     									'rejected' => 'Оттегляне',
     									'restore'  => 'Възстановяване',
     								    'wakeup'   => 'Събуждане');
+    
+    
 	/**
      * Описание на модела (таблицата)
      */
@@ -650,12 +655,5 @@ class planning_Jobs extends core_Master
     	$coverClass = doc_Folders::fetchCoverClassName($folderId);
     	
     	return $coverClass == 'doc_UnsortedFolders';
-    }
-    
-    
-    function act_Test()
-    {
-    	$l = cls::get('planning_Setup');
-    	$l->moveJobs();
     }
 }
