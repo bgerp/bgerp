@@ -201,8 +201,11 @@ class cms_Domains extends core_Embedder
     public static function getPublicDomain($part = NULL, $lang = NULL)
     {   
         $domainRec = Mode::get(self::CMS_CURRENT_DOMAIN_REC);
+        
+        // Вземаме домейна от текущото URL
+        $domain = strtolower(trim($_SERVER['SERVER_NAME']));
 
-        if(!$domainRec || (isset($lang) && $domainRec->lang != $lang)) {
+        if(!$domainRec || (isset($lang) && $domainRec->lang != $lang) || ($domainRec->actualDomain != $domain)) {
             
             $domainRecs = self::findPublicDomainRecs();
                 
@@ -219,17 +222,13 @@ class cms_Domains extends core_Embedder
                     $domainRec = $dRec;
                 }
             }
-       
+
+            // Задаваме действителния домейн, на който е намерен този
+            $domainRec->actualDomain = $domain;
+
             Mode::setPermanent(self::CMS_CURRENT_DOMAIN_REC, $domainRec);
         }
-        
-        // Редиректваме, ако не сме на правилния домейн
-        $realDomain = strtolower(trim($_SERVER['SERVER_NAME']));
-        if($realDomain != $domainRec->domain) {
-            // $url = Url::change(toUrl(getCurrentUrl(), 'absolute'), NULL, $domainRec->domain);  
-            // redirect($url);
-        }
-      
+              
         if($part) {
  
             return $domainRec->{$part};
@@ -245,7 +244,12 @@ class cms_Domains extends core_Embedder
      */
     public static function setPublicDomain($id)
     {
-       Mode::setPermanent(self::CMS_CURRENT_DOMAIN_REC, self::fetch($id));
+        $rec = self::fetch($id);
+        
+        // Задаваме действителния домейн, на който е намерен този
+        $rec->actualDomain = strtolower(trim($_SERVER['SERVER_NAME']));
+
+        Mode::setPermanent(self::CMS_CURRENT_DOMAIN_REC, $rec);
     }
 
 
