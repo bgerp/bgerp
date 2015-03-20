@@ -57,11 +57,11 @@
              <th>|Общо|*</th>
         </tr>
         <tr style='font-weight: bold;'>
-            <td class='aright'>[#value#]</td>
-            <td class='aright'><span class='discount'>[#discountValue#]</span></td>
-            <td class='aright'>[#neto#]</td>
-            <td class='aright'>[#vatAmount#]</td>
-            <td class='aright'>[#total#]</td>
+            <td class='centered'>[#value#]</td>
+            <td class='centered'><span class='discount'>[#discountValue#]</span></td>
+            <td class='centered'>[#neto#]</td>
+            <td class='centered'>[#vatAmount#]</td>
+            <td class='centered'>[#total#]</td>
         </tr>
         <!--ET_BEGIN sayWords-->
         <tr>
