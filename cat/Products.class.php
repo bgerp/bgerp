@@ -1364,7 +1364,7 @@ class cat_Products extends core_Embedder {
     	
     		if(sales_Quotations::haveRightFor('add', (object)array('threadId' => $tId))){
     			if($qRec = sales_Quotations::fetch("#originId = {$data->rec->containerId} AND #state = 'draft'")){
-    				$data->toolbar->addBtn("Оферта", array('sales_Quotations', 'edit', $qRec->id, 'ret_url' => TRUE), 'ef_icon = img/16/document_quote.png,title=Редактиране на оферта');
+    				$data->toolbar->addBtn("Оферта", array('sales_Quotations', 'edit', $qRec->id, 'ret_url' => TRUE), 'ef_icon = img/16/edit.png,title=Редактиране на оферта');
     			} else {
     				$data->toolbar->addBtn("Оферта", array('sales_Quotations', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE), 'ef_icon = img/16/document_quote.png,title=Нова оферта за спецификацията');
     			}
@@ -1373,10 +1373,16 @@ class cat_Products extends core_Embedder {
     	
     	if($data->rec->state == 'active'){
     		if(cat_Boms::haveRightFor('write', (object)array('productId' => $data->rec->id))){
-    			if($qRec = cat_Boms::fetch("#productId = {$data->rec->id} AND #state = 'draft'")){
-    				$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'edit', $qRec->id, 'ret_url' => TRUE), 'ef_icon = img/16/legend.png,title=Редактиране на технологична рецепта');
+    			if($bRec = cat_Boms::fetch("#productId = {$data->rec->id} AND #state = 'draft'")){
+    				$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'edit', $bRec->id, 'ret_url' => TRUE), 'ef_icon = img/16/edit.png,title=Редактиране на технологична рецепта');
     			} else {
     				$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'add', 'productId' => $data->rec->id, 'originId' => $data->rec->containerId, 'ret_url' => TRUE), 'ef_icon = img/16/legend.png,title=Създаване на нова технологична рецепта');
+    			}
+    		} else {
+    			if($bRec = cat_Boms::fetch("#productId = {$data->rec->id} AND #state = 'active'")){
+    				if(cat_Boms::haveRightFor('single', $bRec)){
+    					$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'single', $bRec->id, 'ret_url' => TRUE), 'ef_icon = img/16/view.png,title=Преглед на технологична рецепта');
+    				}
     			}
     		}
     	}

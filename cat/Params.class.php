@@ -14,7 +14,7 @@
  * @since     v 0.1
  * @title     Продуктови параметри
  */
-class cat_Params extends core_Manager
+class cat_Params extends core_Master
 {
     
     
@@ -33,13 +33,19 @@ class cat_Params extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id,typeExt,type,options,default,lastUsedOn,sysId,showInPublicDocuments';
+    var $listFields = 'tools=Пулт,typeExt,type,lastUsedOn';
     
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    var $rowToolsField = 'id';
+    var $rowToolsField = 'tools';
+    
+    
+    /**
+     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
+     */
+    var $rowToolsSingleField = 'typeExt';
     
     
     /**

@@ -17,14 +17,16 @@ class page_Waiting extends page_Empty
     
     
     /**
-     * Показва съобщения за изчакване
+     * Интерфейсен метод
+     * 
+     * @see core_page_WrapperIntf
      */
-    function output($content = '', $place = "PAGE_CONTENT")
+    function prepare()
     {
         $this->appendOnce('Моля изчакайте...', 'PAGE_CONTENT');
         
         $this->appendOnce("\n" . '<meta http-equiv="refresh" content="3">', "HEAD");
         
-        parent::output($content, $place);
+        parent::prepare();
     }
 }

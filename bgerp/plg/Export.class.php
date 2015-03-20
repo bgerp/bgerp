@@ -88,7 +88,7 @@ class bgerp_plg_Export extends core_Plugin
             if(count($options)){
                 $form->setOptions('driver', $options);
             } else {
-                $form->setreadOnly('driver');
+                $form->setReadOnly('driver');
             }
             
             // Инпутваме тихите полета
@@ -117,12 +117,7 @@ class bgerp_plg_Export extends core_Plugin
                 followRetUrl(array($mvc, 'list'));
             }
             
-            // Добавяне на туулбара
-            if(count($options)){
-                $form->toolbar->addSbBtn('Експорт', 'default', array('class' => 'btn-next'), 'ef_icon = img/16/export.png');
-            } else {
-                $form->toolbar->addBtn('Експорт', array(), 'error=Няма налични драйвъри за експорт');
-            }
+            $form->toolbar->addSbBtn('Експорт', 'default', array('class' => 'btn-next'), 'ef_icon = img/16/export.png');
             
             $form->toolbar->addBtn('Отказ', array($this, 'list'), 'ef_icon = img/16/close16.png');
             $form = $form->renderHtml();
@@ -131,5 +126,20 @@ class bgerp_plg_Export extends core_Plugin
             
             return FALSE;
         }
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+    	if($action == 'export'){
+    		
+    		// Ако няма налични драйвери за експорт за този мениджър не можем да експортираме
+    		if(!self::getExportDrivers($mvc)){
+    			$requiredRoles = 'no_one';
+    		}
+    	}
     }
 }

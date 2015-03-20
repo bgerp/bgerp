@@ -184,4 +184,13 @@ class cat_ProductDriverIntf extends core_InnerObjectIntf
 	{
 		return $this->class->renderProductDescription($data);
 	}
+	
+	
+	/**
+	 * Как да се казва дефолт папката където ще отиват заданията за артикулите с този драйвер
+	 */
+	public function getJobFolderName()
+	{
+		return $this->getJobFolderName();
+	}
 }

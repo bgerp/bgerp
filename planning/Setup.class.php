@@ -54,6 +54,7 @@ class planning_Setup extends core_ProtoSetup
     		'planning_ConsumptionNoteDetails',
     		'planning_ProductionNotes',
     		'planning_ProductionNoteDetails',
+    		'migrate::moveJobs'
         );
 
         
@@ -108,6 +109,29 @@ class planning_Setup extends core_ProtoSetup
     	while($rec = $query->fetch()){
     		$rec->state = 'active';
     		cls::get('planning_Resources')->save_($rec);
+    	}
+    }
+    
+    
+    /**
+     * Преместване на старите задания
+     */
+    public function moveJobs()
+    {
+    	if(planning_Jobs::count()){
+    		core_Classes::add('cat_GeneralProductDriver');
+    		$Driver = cls::get('cat_GeneralProductDriver');
+    		$folderId = doc_UnsortedFolders::forceCoverAndFolder((object)array('name' => $Driver->getJobFolderName()));
+    		
+    		$query = planning_Jobs::getQuery();
+    		$query->where("#folderId != {$folderId}");
+    		while($rec = $query->fetch()){
+    			try{
+    				doc_Threads::move($rec->threadId, $folderId);
+    			} catch(core_exception_Expect $e){
+    				planning_Jobs::log("Проблем при местене на задание {$rec->id}: {$e->getMessage()}");
+    			}
+    		}
     	}
     }
 }
