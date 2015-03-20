@@ -521,17 +521,35 @@ class planning_Jobs extends core_Master
      */
     public static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-    	if($mvc->haveRightFor('changestate', $data->rec)){
-    		if($data->rec->state == 'closed'){
-    			$data->toolbar->addBtn("Събуждане", array($mvc, 'changeState', $data->rec->id, 'type' => 'close', 'ret_url' => TRUE), 'ef_icon = img/16/lightbulb.png,title=Събуждане на заданието,warning=Сигурнили сте че искате да събудите заданието');
-    		} elseif($data->rec->state == 'active' || $data->rec->state == 'wakeup'){
-    			$data->toolbar->addBtn("Приключване", array($mvc, 'changeState', $data->rec->id, 'type' => 'close', 'ret_url' => TRUE), 'ef_icon = img/16/lightbulb_off.png,title=Приключване на заданието,warning=Сигурнили сте че искате да приключите заданието');
+    	$rec = &$data->rec;
+    	
+    	if($mvc->haveRightFor('changestate', $rec)){
+    		if($rec->state == 'closed'){
+    			$data->toolbar->addBtn("Събуждане", array($mvc, 'changeState', $rec->id, 'type' => 'close', 'ret_url' => TRUE), 'ef_icon = img/16/lightbulb.png,title=Събуждане на заданието,warning=Сигурнили сте че искате да събудите заданието');
+    		} elseif($rec->state == 'active' || $rec->state == 'wakeup'){
+    			$data->toolbar->addBtn("Приключване", array($mvc, 'changeState', $rec->id, 'type' => 'close', 'ret_url' => TRUE), 'ef_icon = img/16/lightbulb_off.png,title=Приключване на заданието,warning=Сигурнили сте че искате да приключите заданието');
     		}
     		
-    		if($data->rec->state == 'stopped'){
-    			$data->toolbar->addBtn("Актириране", array($mvc, 'changeState', $data->rec->id, 'type' => 'stop', 'ret_url' => TRUE, ), 'ef_icon = img/16/control_play.png,title=Активиране на заданието,warning=Сигурнили сте че искате да активирате заданието');
-    		} elseif($data->rec->state == 'active' || $data->rec->state == 'wakeup'){
-    			$data->toolbar->addBtn("Спиране", array($mvc, 'changeState', $data->rec->id, 'type' => 'stop', 'ret_url' => TRUE), 'ef_icon = img/16/control_pause.png,title=Спиране на заданието,warning=Сигурнили сте че искате да спрете заданието');
+    		if($rec->state == 'stopped'){
+    			$data->toolbar->addBtn("Актириране", array($mvc, 'changeState', $rec->id, 'type' => 'stop', 'ret_url' => TRUE, ), 'ef_icon = img/16/control_play.png,title=Активиране на заданието,warning=Сигурнили сте че искате да активирате заданието');
+    		} elseif($rec->state == 'active' || $rec->state == 'wakeup'){
+    			$data->toolbar->addBtn("Спиране", array($mvc, 'changeState', $rec->id, 'type' => 'stop', 'ret_url' => TRUE), 'ef_icon = img/16/control_pause.png,title=Спиране на заданието,warning=Сигурнили сте че искате да спрете заданието');
+    		}
+    	}
+    	
+    	if($rec->state == 'active' || $rec->state == 'wakeup'){
+    		if(cat_Boms::haveRightFor('write', (object)array('productId' => $rec->productId))){
+    			if($bRec = cat_Boms::fetch("#productId = {$rec->productId} AND #state = 'draft'")){
+    				$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'edit', $bRec->id, 'ret_url' => TRUE), 'ef_icon = img/16/edit.png,title=Редактиране на технологична рецепта');
+    			} else {
+    				$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'add', 'productId' => $rec->productId, 'originId' => $rec->containerId, 'quantity' => $rec->quantity, 'ret_url' => TRUE), 'ef_icon = img/16/legend.png,title=Създаване на нова технологична рецепта');
+    			}
+    		} else {
+    			if($bId = cat_Boms::fetchField("#productId = {$rec->productId} AND #state = 'active'", 'id')){
+    				if(cat_Boms::haveRightFor('single', $bId)){
+    					$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'single', $bId, 'ret_url' => TRUE), 'ef_icon = img/16/view.png,title=Преглед на технологична рецепта');
+    				}
+    			}
     		}
     	}
     }
