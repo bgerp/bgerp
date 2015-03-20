@@ -17,18 +17,15 @@
  * @title     Модерна вътрешна страница
  */
 class core_page_InternalModern extends core_page_Active {
+     
     
-    public $interfaces = 'core_page_WrapperIntf';
- 
     /**
-     * Конструктор за страницата по подразбиране
+     * Подготовка на шаблона за вътрешна страница
      * Тази страница използва internal layout, header и footer за да 
      * покаже една обща обвивка за съдържанието за вътрешни потребители
      */
-    function core_page_InternalModern()
+    function prepare()
     {
-    	// Конструиране на родителския клас
-        $this->core_page_Active();
         
         bgerp_Notifications::subscribeCounter($this);
         

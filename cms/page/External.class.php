@@ -16,18 +16,15 @@
  */
 class cms_page_External extends core_page_Active {
     
-    public $interfaces = 'cms_page_WrapperIntf';
 
     /**
-     * Конструктор за страницата по подразбиране
+     * Подготовка на външната страница
      * Тази страница използва internal layout, header и footer за да 
      * покаже една обща обвивка за съдържанието за вътрешни потребители
      */
-    function cms_page_External()
+    function prepare()
     {
-        // Конструктора на родителския клас
-        $this->core_page_Active();
-    	
+   	
         // Параметри от конфигурацията
         $conf = core_Packs::getConfig('core');
         $this->prepend(tr($conf->EF_APP_TITLE), 'PAGE_TITLE');
@@ -50,8 +47,6 @@ class cms_page_External extends core_page_Active {
         }
         
         $this->push('cms/css/Wide.css', 'CSS');
-
-
 
         $this->push('js/overthrow-detect.js', 'JS');
         
