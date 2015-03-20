@@ -80,6 +80,12 @@ class planning_ProductionNotes extends deals_ManifactureMaster
 	
 	
 	/**
+	 * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
+	 */
+	public $rowToolsField = 'tools';
+	
+	
+	/**
 	 * Кой има право да добавя?
 	 */
 	public $canAdd = 'ceo,planning';

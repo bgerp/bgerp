@@ -43,7 +43,7 @@ class cat_Boms extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "tools=Пулт,productId=Артикул,state,createdOn,createdBy,modifiedOn,modifiedBy";
+    var $listFields = "tools=Пулт,title=Документ,productId=За артикул,state,createdOn,createdBy,modifiedOn,modifiedBy";
     
     
     /**
@@ -56,6 +56,12 @@ class cat_Boms extends core_Master
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     var $rowToolsField = 'tools';
+    
+    
+    /**
+     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
+     */
+    var $rowToolsSingleField = 'title';
     
     
     /**
@@ -258,6 +264,7 @@ class cat_Boms extends core_Master
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
+    	$row->title = $mvc->getLink($rec->id, 0);
     	
     	if($row->quantity){
     		$measureId = cat_Products::getProductInfo($rec->productId)->productRec->measureId;

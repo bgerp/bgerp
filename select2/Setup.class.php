@@ -4,7 +4,7 @@
 /**
  * Пътя до външния код на SELECT2
  */
-defIfNot('SELECT2_VERSION', '4.0b3');
+defIfNot('SELECT2_VERSION', '4.0rc2');
 
 
 /**
@@ -65,7 +65,7 @@ class select2_Setup extends core_ProtoSetup {
         // Минималния брой елементи, за които няма да сработи SELECT2
         'SELECT2_WIDE_MIN_SEARCH_ITEMS_CNT' => array ('int', 'caption=Минимален брой опции за да сработи търсенето в Select2->За широк екран, suggestions=5|10|20|50|100'),
         'SELECT2_NARROW_MIN_SEARCH_ITEMS_CNT' => array ('int', 'caption=Минимален брой опции за да сработи търсенето в Select2->За тесен екран, suggestions=5|10|20|50|100'),
-        'SELECT2_VERSION' => array ('enum(4.0b3)', 'caption=Версия на Select2->Версия'),
+        'SELECT2_VERSION' => array ('enum(4.0rc2)', 'caption=Версия на Select2->Версия'),
     );
     
     
@@ -79,6 +79,14 @@ class select2_Setup extends core_ProtoSetup {
      * Пътища до JS файлове
      */
     var $commonJS = "select2/[#SELECT2_VERSION#]/select2.min.js, select2/[#SELECT2_VERSION#]/i18n/[#CORE::EF_DEFAULT_LANGUAGE#].js";
+    
+    
+    /**
+     * Списък с мениджърите, които съдържа пакета
+     */
+    var $managers = array(
+        'migrate::removeUserListPlugin',
+    );
     
     
     /**
@@ -118,4 +126,14 @@ class select2_Setup extends core_ProtoSetup {
         
         return $html;
     }
+    
+    
+    /**
+     * Миграция за премахване на закачените плъгини за userList
+     */
+    public static function removeUserListPlugin()
+    {
+        core_Plugins::delete("#name = 'Select2 за тип UsersList'");
+    }
+    
 }

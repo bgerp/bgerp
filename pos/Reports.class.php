@@ -185,7 +185,7 @@ class pos_Reports extends core_Master {
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	$row->title = "Отчет за POS продажба №{$rec->id}";
+    	$row->title = $mvc->getLink($rec->id, 0);
     	$row->pointId = pos_Points::getHyperLink($rec->pointId, TRUE);
     	
     	$row->period = dt::mysql2verbal($rec->details['receipts'][0]->createdOn) . " - " . dt::mysql2verbal($rec->details['receipts'][count($rec->details['receipts']) -1]->createdOn);
@@ -195,10 +195,6 @@ class pos_Reports extends core_Master {
     		$row->storeId = store_Stores::getHyperLink($pointRec->storeId, TRUE);
 	    	$row->caseId = cash_Cases::getHyperLink($pointRec->caseId, TRUE);
 	    	$row->baseCurrency = acc_Periods::getBaseCurrencyCode($rec->createdOn);
-    	}
-    	
-    	if($fields['-list']) {
-    		$row->title = ht::createLink($row->title, array($mvc, 'single', $rec->id), NULL, "ef_icon={$mvc->singleIcon}");
     	}
     }
     

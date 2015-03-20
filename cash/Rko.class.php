@@ -40,7 +40,7 @@ class cash_Rko extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "number, valior, reason, folderId, currencyId=Валута, amount, state, createdOn, createdBy";
+    var $listFields = "tools=Пулт, valior, title=Документ, reason, folderId, currencyId=Валута, amount, state, createdOn, createdBy";
     
     
     /**
@@ -52,7 +52,7 @@ class cash_Rko extends core_Master
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
-    var $rowToolsSingleField = 'reason';
+    var $rowToolsSingleField = 'title';
     
     
     /**
@@ -339,7 +339,7 @@ class cash_Rko extends core_Master
      */
     static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	$row->number = static::getHandle($rec->id);
+    	$row->title = $mvc->getLink($rec->id, 0);
     	if($fields['-list']){
     		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
     	}	

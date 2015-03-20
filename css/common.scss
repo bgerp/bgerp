@@ -2032,8 +2032,9 @@ div.alphabet div.tab-page {
 }
 
 .top-tab-content{
-    background: rgba(255,255,220, 0.6);
-    padding: 20px;
+    background: rgba(255,255,220, 0.4);
+    padding: 15px;
+    font-size: 0.95em;
     border-radius: 5px;
     legend img {
         margin-left: 5px;
@@ -2083,7 +2084,7 @@ div.tab-control.deal-history-tab, .single-thread .document .tab-top div.alphabet
             text-align: center;
             margin: 0 3px 0 0;
             @include border-radius(7px);
-            background-color: #ccc;
+            background-color: #ccc !important;
             border: 1px solid #aaa;
             a {
                 color: #333;
@@ -2092,7 +2093,7 @@ div.tab-control.deal-history-tab, .single-thread .document .tab-top div.alphabet
                 padding: 4px;
                 border: 1px solid #bbb;
                 margin: 0 3px 0 0;
-                background-color: #f1f1f1;
+                background-color: #f1f1f1 !important;
                 a {
                     color: #333;
                 }
