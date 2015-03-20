@@ -351,9 +351,8 @@ class cat_Products extends core_Embedder {
      */
     public static function on_AfterPrepareEmbeddedForm(core_Mvc $mvc, &$form)
     {
-    	if($sourceId = Request::get('sourceId', 'int')){
-    		$document = doc_Containers::getDocument($sourceId);
-    		expect($document->haveInterface('marketing_InquiryEmbedderIntf'));
+    	if(isset($form->rec->originId)){
+    		$document = doc_Containers::getDocument($form->rec->originId);
     		$fieldsFromSource = $document->getFieldsFromDriver();
     		$sourceRec = $document->rec();
     		
@@ -1039,6 +1038,12 @@ class cat_Products extends core_Embedder {
     	if($fields['-list']){
     		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
     	}
+    	
+    	if($fields['-single']){
+    		if(isset($rec->originId)){
+    			$row->originId = doc_Containers::getDocument($rec->originId)->getLink(0);
+    		}
+    	}
     }
     
     
@@ -1315,6 +1320,15 @@ class cat_Products extends core_Embedder {
     	if($action == 'edit' && isset($rec)){
     		if($rec->state == 'active'){
     			$res = $mvc->getRequiredRoles('edit');
+    		}
+    	}
+    	
+    	if($action == 'add' && isset($rec)){
+    		if(isset($rec->originId)){
+    			$document = doc_Containers::getDocument($rec->originId);
+    			if(!$document->haveInterface('marketing_InquiryEmbedderIntf')){
+    				$res = 'no_one';
+    			}
     		}
     	}
     }

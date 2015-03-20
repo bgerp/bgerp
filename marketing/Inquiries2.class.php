@@ -520,8 +520,8 @@ class marketing_Inquiries2 extends core_Embedder
     			$data->toolbar->addBtn($data->row->innerClass, array('cat_Products', 'single', $sId), "ef_icon=img/16/specification.png,title=Артикул");
     		} else {
     			// Създаване на нова спецификация от запитването
-    			if(cat_Products::haveRightFor('add')){
-    				$url = array('cat_Products', 'add', "innerClass" => $rec->innerClass, "sourceId" => $rec->containerId);
+    			if(cat_Products::haveRightFor('add', (object)array('folderId' => $rec->folderId))){
+    				$url = array('cat_Products', 'add', "innerClass" => $rec->innerClass, "originId" => $rec->containerId);
     				if(doc_Folders::getCover($rec->folderId)->haveInterface('doc_ContragentDataIntf')){
     					$url['folderId'] = $rec->folderId; 
     					$url['threadId'] = $rec->threadId;
