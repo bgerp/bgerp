@@ -172,9 +172,9 @@ class marketing_Inquiries2 extends core_Embedder
     {
     	$this->FLD('title', 'varchar', 'caption=Заглавие,formOrder=46');
     	$this->FLD('quantities', 'blob(serialize,compress)', 'input=none,column=none');
-    	$this->FLD('quantity1', 'double(decimals=2)', 'caption=Количество|* 1,hint=Въведете количество,input=none');
-    	$this->FLD('quantity2', 'double(decimals=2)', 'caption=Количество|* 2,hint=Въведете количество,input=none');
-    	$this->FLD('quantity3', 'double(decimals=2)', 'caption=Количество|* 3,hint=Въведете количество,input=none');
+    	$this->FLD('quantity1', 'double(decimals=2)', 'caption=Количества->Количество|* 1,hint=Въведете количество,input=none');
+    	$this->FLD('quantity2', 'double(decimals=2)', 'caption=Количества->Количество|* 2,hint=Въведете количество,input=none');
+    	$this->FLD('quantity3', 'double(decimals=2)', 'caption=Количества->Количество|* 3,hint=Въведете количество,input=none');
     	
     	$this->FLD('name', 'varchar(255)', 'caption=Контактни дани->Лице,class=contactData,mandatory,hint=Лице за връзка,contragentDataField=person,formOrder=50');
     	$this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Контактни дани->Държава,class=contactData,hint=Вашата държава,mandatory,formOrder=51');
@@ -741,7 +741,7 @@ class marketing_Inquiries2 extends core_Embedder
     		if($form->getField("quantity{$i}", FALSE)){
     			$form->setField("quantity{$i}", "input,quantityField,formOrder=4{$i},unit={$uom}");
     		} else {
-    			$form->FNC("quantity{$i}", 'double', "caption=Количество|* {$i},quantityField,input,formOrder=4{$i},unit={$uom}");
+    			$form->FNC("quantity{$i}", 'double', "caption=Количества->Количество|* {$i},quantityField,input,formOrder=4{$i},unit={$uom}");
     		}
     	}
     }
