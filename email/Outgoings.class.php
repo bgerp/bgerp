@@ -1633,6 +1633,27 @@ class email_Outgoings extends core_Master
         // Вземаме обръщението
         $salutation = email_Salutations::get($rec->folderId, $rec->threadId, $rec->email);
         
+        // Ако обръщението не съвпадата с текущия език, да се остави да се определи от системата
+        if ($salutation) {
+            $isCyrillic = FALSE;
+            
+            if (strlen($salutation) != mb_strlen($salutation)) {
+                $isCyrillic = TRUE;
+            }
+            
+            $currLg = core_Lg::getCurrent();
+            
+            if (array_search($currLg, array('bg', 'ru', 'md', 'sr')) === FALSE) {
+                if ($isCyrillic) {
+                    $salutation = '';
+                }
+            } else {
+                if (!$isCyrillic) {
+                    $salutation = '';
+                }
+            }
+        }
+        
         // Ако сме открили обръщение използваме него
         if ($salutation) return $salutation;
         
