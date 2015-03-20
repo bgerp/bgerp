@@ -42,6 +42,8 @@ class core_page_Wrapper extends core_BaseClass {
         // Зареждаме опаковката 
         $wrapperTpl = cls::get($tplName);
         
+        $wrapperTpl->prepare();
+
         self::replaceSpecialPlaceholders($wrapperTpl);
         
         // Изпращаме на изхода опаковано съдържанието

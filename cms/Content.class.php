@@ -320,9 +320,9 @@ class cms_Content extends core_Manager
             $url = arr::make($rec->url);
         } else {
             // expect(FALSE);
-            $url = '#';
+            $url = '';
         }
-        
+ 
         if($absolute && is_array($url)) {
             if(!$domain == 'localhost' || in_array($_SERVER['REMOTE_ADDR'], array('127.0.0.1', '::1'))) {
                 $domain = cms_Domains::fetch($rec->domainId)->domain;
