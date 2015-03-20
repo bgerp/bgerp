@@ -83,10 +83,13 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		// Ако ембедъра няма интерфейса за артикул, то към него немогат да се променят параметрите
 		if(!$this->EmbedderRec->haveInterface('cat_ProductAccRegIntf')){
 			$data->noChange = TRUE;
-		}
+		} 
 		
-		$paramTpl = cat_products_Params::renderParams($data);
-		$tpl->append($paramTpl, 'PARAMS');
+		// Рендираме параметрите винаги ако сме към артикул или ако има записи
+		if($data->noChange !== TRUE || count($data->params)){
+			$paramTpl = cat_products_Params::renderParams($data);
+			$tpl->append($paramTpl, 'PARAMS');
+		}
 		
 		return $tpl;
 	}
@@ -294,11 +297,6 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		
 		$title = ht::createLinkRef($this->EmbedderRec->getTitleById(), array($this->EmbedderRec->instance, 'single', $this->EmbedderRec->that));
 		$tpl->replace($title, "TITLE");
-		
-		// Ако няма параметри, премахваме блока им от шаблона
-		if(!count($data->params)){
-			$tpl->removeBlock('PARAMS');
-		}
 		
 		$tpl->push(('cat/tpl/css/GeneralProductStyles.css'), 'CSS');
 		
