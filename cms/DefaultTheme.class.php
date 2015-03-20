@@ -37,6 +37,46 @@ class cms_DefaultTheme extends core_ProtoInner {
         $form->FLD('nImg', 'fileman_FileType(bucket=gallery_Pictures)', "caption=Заглавна картинка за мобилен (360x104px)->Изображение 1");
         $form->FLD('title', 'varchar(20)', "caption=Заглавие на сайта->Текст");
         $form->FLD('titleColor', 'color_Type', "caption=Заглавие на сайта->Цвят");
+
+
+        // Фон на страницата
+        $form->FLD('bodyB', 'color_Type', "caption=Фон на страницата->Цвят");
+
+        // Фон на менюто 
+        $form->FLD('menuB', 'color_Type', "caption=Фон на менюто->Цвят");
+
+        // Фон на избраното меню
+        $form->FLD('menuSelB', 'color_Type', "caption=Фон на избраното меню->Цвят");
+        
+        // Фон на футъра 
+        $form->FLD('footerB', 'color_Type', "caption=Фон на футъра->Цвят");
+            
+        // Връзки от страничната навигация
+        $form->FLD('navLinkC', 'color_Type', "caption=Връзки от страничната навигация->Цвят");
+        
+        // Връзки от страничната навигация - избран
+        $form->FLD('navLinkSelC', 'color_Type', "caption=Избрана връзка от страни->Цвят");
+
+        // Фон на селектирания линк от страничната навигация
+        $form->FLD('navLinkSelB', 'color_Type', "caption=Избрана връзка от страни->Фон");
+
+        // Фон на заглавие h2 
+        $form->FLD('h2B', 'color_Type', "caption=Фон на заглавие h2->Цвят");
+
+        // Фон на заглавна лента на форма
+        $form->FLD('formTitleB', 'color_Type', "caption=Фон на заглавна лента на форма->Цвят");
+        
+        // Rамка на заглавна лента на форма
+        $form->FLD('formTitleBorderC', 'color_Type', "caption=Rамка на заглавна лента на форма->Цвят");
+
+        // Фон на разделите във форма
+        $form->FLD('formSectionB', 'color_Type', "caption=Фон на разделите във форма->Цвят");
+
+        // Фон на бутоните във форма
+        $form->FLD('formButtonB', 'color_Type', "caption=Фон на бутоните във форма->Цвят");
+ 
+        // Рамка на бутоните във форма
+        $form->FLD('formButtonBorderC', 'color_Type', "caption=Рамка на бутоните във форма->Цвят");
     }
 
     
@@ -59,7 +99,82 @@ class cms_DefaultTheme extends core_ProtoInner {
         }
         
         // Добавяме дефолт темата за цветове
-        $tpl->push('css/default-theme.css', 'CSS');
+        $tpl->push('\n    css/default-theme.css', 'CSS');
+
+        // Фон на страницата
+        if($this->formRec->bodyB) {
+            $css .= "\n    body {background-color:{$this->formRec->bodyB};}";
+        }
+
+        // Фон на менюто 
+        if($this->formRec->menuB) {
+            $css .= "\n    #cmsMenu {background-color:{$this->formRec->menuB};}";
+        }
+
+        // Фон на футъра 
+        if($this->formRec->footerB) {
+            $css .= "\n    #cmsBottom {background-color:{$this->formRec->footerB};}";
+        }
+            
+        // Фон на линка на текущата страница
+        if($this->formRec->menuSelB) {
+            $css .= "\n    #cmsMenu a.selected {background-color:{$this->formRec->menuSelB};}";
+        }
+
+        // Цвят на линковете от страничната навигация
+        if($this->formRec->navLinkC) {
+            $css .= "\n    #cmsNavigation .nav_item a {color:{$this->formRec->navLinkC};}";
+        }
+        
+        // Цвят на селектирания линк от страничната навигация
+        if($this->formRec->navLinkSelC) {
+            $css .= "\n    #cmsNavigation .sel_page a {color:{$this->formRec->navLinkSelC};}";
+        }
+
+        // Фон на селектирания линк от страничната навигация
+        if($this->formRec->navLinkSelB) {
+            $css .= "\n    #cmsNavigation .sel_page a {background-color:{$this->formRec->navLinkSelB};}";
+        }
+
+        // Фон на заглавие h2 
+        if($this->formRec->h2B) {
+            $css .= "\n    .richtext h2 {background-color:{$this->formRec->h2B};}";
+        }
+
+        // Фон и рамка на заглавна лента на форма
+        if($this->formRec->h2B) {
+            $css .= "\n    .richtext h2 {background-color:{$this->formRec->h2B};}";
+        }
+
+        // Фон на заглавна лента на форма
+        if($this->formRec->formTitleB) {
+            $css .= "\n    .vertical .formTitle {background-color:{$this->formRec->formTitleB};}";
+        }
+        
+        // Rамка на заглавна лента на форма
+        if($this->formRec->formTitleBorderC) {
+            $css .= "\n    .vertical .formTitle {border: solid 1px {$this->formRec->formTitleBorderC};}";
+        }
+
+        // Фон на разделите във форма
+        if($this->formRec->formSectionB) {
+            $css .= "\n    .formGroup {background-color:{$this->formRec->formSectionB};}";
+        }
+
+        // Фон на бутоните във форма
+        if($this->formRec->formButtonB) {
+            $css .= "\n    .vertical form[method=post] input[type=submit], form[method=post] input:first-child[type=submit] {background-color:{$this->formRec->formButtonB};}";
+        }
+
+        // Рамка на бутоните във форма
+        if($this->formRec->formButtonBorderC) {
+            $css .= "\n    .vertical form[method=post] input[type=submit], form[method=post] input:first-child[type=submit] {border: solid 1px {$this->formRec->formButtonBorderC};}";
+        }
+ 
+        if($css) {
+            $tpl->replace($css, 'STYLES');
+        }
+
     }
     
 
