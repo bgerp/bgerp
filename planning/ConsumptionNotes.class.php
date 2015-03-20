@@ -131,6 +131,12 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
 	
 	
 	/**
+	 * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
+	 */
+	public $rowToolsSingleField = 'title';
+	
+	
+	/**
 	 * Описание на модела
 	 */
 	function description()
