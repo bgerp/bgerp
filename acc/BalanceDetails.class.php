@@ -888,7 +888,7 @@ class acc_BalanceDetails extends core_Detail
                 
                 // Обновява се записа само ако има промяна с цената
                 if($update){
-                    $JournalDetails->save($rec);
+                    $JournalDetails->save_($rec);
                 }
             }
         }

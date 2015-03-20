@@ -24,6 +24,18 @@ abstract class deals_ServiceMaster extends core_Master
 	
 	
 	/**
+	 * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
+	 */
+	public $rowToolsField = 'tools';
+	
+	
+	/**
+	 * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
+	 */
+	public $rowToolsSingleField = 'title';
+	
+	
+	/**
 	 * Кои са задължителните полета за модела
 	 */
 	protected static function setServiceFields($mvc)
@@ -139,6 +151,7 @@ abstract class deals_ServiceMaster extends core_Master
 				$shipProduct->price       = $product->price;
 				$shipProduct->uomId       = $product->uomId;
 				$shipProduct->discount    = $product->discount;
+				$shipProduct->notes       = $product->notes;
 				$shipProduct->quantityInPack = ($product->packagingId) ? $info->packagingRec->quantity : 1;
 				 
 				$Detail = $mvc->mainDetail;
@@ -247,6 +260,8 @@ abstract class deals_ServiceMaster extends core_Master
     		} else {
     			$row->amountDeliveredVat = "<span class='quiet'>0.00</span>";
     		}
+    		
+    		$row->title = $mvc->getLink($rec->id, 0);
     	}
     	
     	if(isset($fields['-single'])){

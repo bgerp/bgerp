@@ -15,6 +15,13 @@
  */
 class core_page_WrapperIntf
 {
-    
+
+    /**
+     * Подготвя шаблона на опаковката
+     */
+    public function  prepare()
+    {
+        $this->class->prepare();
+    }
 	
 }

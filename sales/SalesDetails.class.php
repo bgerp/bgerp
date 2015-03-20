@@ -7,7 +7,7 @@
  * @category  bgerp
  * @package   sales
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -79,14 +79,6 @@ class sales_SalesDetails extends deals_DealDetail
     
     
     /**
-     * Кой може да го види?
-     * 
-     * @var string|array
-     */
-    public $canView = 'ceo, sales';
-    
-    
-    /**
      * Кой може да го изтрие?
      * 
      * @var string|array
@@ -146,16 +138,18 @@ class sales_SalesDetails extends deals_DealDetail
     	$masterStore = $mvc->Master->fetch($rec->{$mvc->masterKey})->shipmentStoreId;
     	
     	if(isset($rec->productId)){
-    		if(isset($masterStore)){
+    		$pInfo = cls::get($rec->classId)->getProductInfo($rec->productId, $rec->packagingId);
+    		if(isset($masterStore) && isset($pInfo->meta['canStore'])){
+    			
     			$storeInfo = deals_Helper::getProductQuantityInStoreInfo($rec->productId, $rec->classId, $masterStore);
     			$form->info = $storeInfo->formInfo;
     		}
     	}
     	
     	if ($form->isSubmitted()){
-    		$pInfo = cls::get($rec->classId)->getProductInfo($rec->productId, $rec->packagingId);
     		$quantityInPack = ($pInfo->packagingRec) ? $pInfo->packagingRec->quantity : 1;
     		
+    		// Показваме предупреждение ако наличното в склада е по-голямо от експедираното
     		if(isset($storeInfo)){
     			if($rec->packQuantity > ($storeInfo->quantity / $quantityInPack)){
     				$form->setWarning('packQuantity', 'Въведеното количество е по-голямо от наличното в склада');
@@ -176,19 +170,23 @@ class sales_SalesDetails extends deals_DealDetail
     	 
     	if(!count($data->recs)) return;
     	 
-    	if($storeId = $data->masterData->rec->shipmentStoreId){
-    		foreach ($rows as $id => $row){
-    			$rec = $data->recs[$id];
-    			$quantityInStore = store_Products::fetchField("#productId = {$rec->productId} AND #classId = {$rec->classId} AND #storeId = {$storeId}", 'quantity');
-    			$diff = ($data->masterData->rec->state == 'active') ? $quantityInStore : $quantityInStore - $rec->quantity;
+    	foreach ($rows as $id => $row){
+    		$rec = $data->recs[$id];
+    		$pInfo = cls::get($rec->classId)->getProductInfo($rec->productId);
     			
-    			if($diff < 0){
-    				$row->packQuantity = "<span class='row-negative' title = '" . tr('Количеството в скалда е отрицателно') . "'>{$row->packQuantity}</span>";
+    		if($storeId = $data->masterData->rec->shipmentStoreId){
+    			if(isset($pInfo->meta['canStore'])){
+    				$quantityInStore = store_Products::fetchField("#productId = {$rec->productId} AND #classId = {$rec->classId} AND #storeId = {$storeId}", 'quantity');
+    				$diff = ($data->masterData->rec->state == 'active') ? $quantityInStore : $quantityInStore - $rec->quantity;
+    					
+    				if($diff < 0){
+    					$row->packQuantity = "<span class='row-negative' title = '" . tr('Количеството в скалда е отрицателно') . "'>{$row->packQuantity}</span>";
+    				}
     			}
+    		}
     			
-    			if($rec->price < cls::get($rec->classId)->getSelfValue($rec->productId)){
-    				$row->packPrice = "<span class='row-negative' title = '" . tr('Цената е под себестойност') . "'>{$row->packPrice}</span>";
-    			}
+    		if($rec->price < cls::get($rec->classId)->getSelfValue($rec->productId)){
+    			$row->packPrice = "<span class='row-negative' title = '" . tr('Цената е под себестойност') . "'>{$row->packPrice}</span>";
     		}
     	}
     }
@@ -205,6 +203,8 @@ class sales_SalesDetails extends deals_DealDetail
     {
     	$pRec = cls::get($rec->classId)->fetch($rec->productId, 'isPublic,containerId');
     	if($pRec->isPublic === 'yes') return;
+    	$pInfo = cls::get($rec->classId)->getProductInfo($rec->productId);
+    	if(!isset($pInfo->meta['canManifacture'])) return;
     	
     	$row = new stdClass();
     	
@@ -212,29 +212,32 @@ class sales_SalesDetails extends deals_DealDetail
     	$row->productId = cls::get($rec->classId)->getTitleById($rec->productId);
     	$row->productId = ht::createLinkRef($row->productId, array($rec->classId, 'single', $rec->productId));
     	
-    	// Проверяваме имали задание
-    	if($jobRec = mp_Jobs::fetch("#productId = {$rec->productId} AND (#state = 'active' || #state = 'draft')", 'id,state,dueDate')){
+    	if($masterRec->state == 'active') {
     		
-    		// Ако е чернова, и можем да го редактираме добавяме бутон за редакция
-    		if($jobRec->state == 'draft'){
-    			if(mp_Jobs::haveRightFor('activate', $jobRec)){
-    				$row->jobId = ht::createBtn('Редакция', array('mp_Jobs', 'edit', $jobRec->id), FALSE, TRUE, 'title=Създаване на ново задание за артикула,ef_icon=img/16/edit.png');
-    			}
-    		}
+    		// Проверяваме имали задание
+    		if($jobRec = planning_Jobs::fetch("#productId = {$rec->productId} AND (#state = 'active' || #state = 'draft')", 'id,state,dueDate')){
     		
-    		if(!$row->jobId){
-    			// Ако има такова, добавяме линк към сингъла му
-    			$row->jobId = "#" . mp_Jobs::getHandle($jobRec->id);
-    			if(mp_Jobs::haveRightFor('single', $jobRec)){
-    				$row->jobId = ht::createLink($row->jobId, array('mp_Jobs', 'single', $jobRec->id), FALSE, 'ef_icon=img/16/clipboard_text.png');
+    			// Ако е чернова, и можем да го редактираме добавяме бутон за редакция
+    			if($jobRec->state == 'draft'){
+    				if(planning_Jobs::haveRightFor('activate', $jobRec)){
+    					$row->jobId = ht::createBtn('Редакция', array('planning_Jobs', 'edit', $jobRec->id), FALSE, FALSE, 'title=Създаване на ново задание за артикула,ef_icon=img/16/edit.png');
+    				}
     			}
-    			$row->jobId .= " ( " . mp_Jobs::getVerbal($jobRec, 'dueDate') . " )";
-    		}
-    	} else {
-    		// Ако няма задание, добавяме бутон за създаване на ново задание
-    		if(mp_Jobs::haveRightFor('add', (object)array('productId' => $pRec->id))){
-    			$jobUrl = array('mp_Jobs', 'add', 'productId' => $pRec->id, 'quantity' => $rec->quantity, 'deliveryTermId' => $masterRec->deliveryTermId, 'deliveryDate' => $masterRec->deliveryTime, 'deliveryPlace' => $masterRec->deliveryLocationId, 'ret_url' => TRUE);
-    			$row->jobId = ht::createBtn('Нов', $jobUrl, FALSE, TRUE, 'title=Създаване на ново задание за артикула,ef_icon=img/16/clipboard_text.png');
+    		
+    			if(!$row->jobId){
+    				// Ако има такова, добавяме линк към сингъла му
+    				$row->jobId = "#" . planning_Jobs::getHandle($jobRec->id);
+    				if(planning_Jobs::haveRightFor('single', $jobRec)){
+    					$row->jobId = ht::createLink($row->jobId, array('planning_Jobs', 'single', $jobRec->id), FALSE, 'ef_icon=img/16/clipboard_text.png');
+    				}
+    				$row->jobId .= " ( " . planning_Jobs::getVerbal($jobRec, 'dueDate') . " )";
+    			}
+    		} else {
+    			// Ако няма задание, добавяме бутон за създаване на ново задание
+    			if(planning_Jobs::haveRightFor('add', (object)array('productId' => $pRec->id))){
+    				$jobUrl = array('planning_Jobs', 'add', 'productId' => $pRec->id, 'quantity' => $rec->quantity, 'saleId' => $masterRec->id, 'folderId' => $masterRec->folderId, 'ret_url' => TRUE);
+    				$row->jobId = ht::createBtn('Нов', $jobUrl, FALSE, FALSE, 'title=Създаване на ново задание за артикула,ef_icon=img/16/clipboard_text.png');
+    			}
     		}
     	}
     	

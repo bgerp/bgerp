@@ -16,27 +16,15 @@ class select2_PluginSelect extends core_Plugin
     
     
     /**
-     * Името на hidden полето
-     */
-    protected static $hiddenName = 'select2key';
-    
-    
-    /**
-     * Дали да може да се въвежда повече от 1 елемент
-     */
-    protected static $isMultiple = FALSE;
-    
-    
-    /**
-     * Името на класа на елементите, за които ще се стартира плъгина
-     */
-    protected static $className = 'select2key';
-    
-    
-    /**
      * Дали може да се изчистват всичките записи едновременно
      */
     protected static $allowClear = FALSE;
+    
+    
+    /**
+     * Минималния брой елементи над които да се стартира select2
+     */
+    protected static $minItems = 1;
     
 
     /**
@@ -63,26 +51,19 @@ class select2_PluginSelect extends core_Plugin
      * @param string|array|NULL $value
      * @param array $attr
      */
-    function on_AfterRenderInput(&$invoker, &$tpl, $name, $value, $attr = array())
+    function on_AfterRenderInput(&$invoker, &$tpl, $name, $value, &$attr = array())
     {   
         // Ако все още няма id
         if (!$attr['id']) {
             $attr['id'] = str::getRand('aaaaaaaa');
         }
         
-        $conf = core_Packs::getConfig('select2');
-        
-        // Определяме при колко минимално опции ще правим chosen
-        if(!$invoker->params['select2MinItems']) {
-            $minItems = $conf->SELECT2_KEY_MIN_ITEMS;
-        } else {
-            $minItems = $invoker->params['chosenMinItems'];
-        }
+        $minItems = $invoker->params['select2MinItems'] ? $invoker->params['select2MinItems'] : self::$minItems;
     	
         $optionsCnt = count($invoker->options);
         
         // Ако опциите са под минималното - нищо не правим
-        if($optionsCnt < $minItems) return;
+        if($optionsCnt <= $minItems) return;
         
         // Ако имаме комбо - не правим select2
         if(count($invoker->suggestions)) return;
@@ -163,21 +144,23 @@ class select2_PluginSelect extends core_Plugin
             $r->id = $key;
             
             if (is_object($title)) {
-                $r->name = $title->title;
+                $r->text = $title->title;
                 
-                $r->class = $title->attr['class'];
+                $r->element = new stdClass();
+                
+                $r->element->className = $title->attr['class'];
                 
                 if ($title->group) {
                     
-                    $r->class .= ($r->class) ? ' ' : '';
-                    $r->class .= 'group';
+                    $r->element->className .= ($r->element->className) ? ' ' : '';
+                    $r->element->className .= 'group';
                     
                     $r->id = NULL;
                     $group = $r;
                     $isGroup = TRUE;
                 }
             } else {
-                $r->name = $title;
+                $r->text = $title;
             }
             
             // Предпазва от добавяне на група без елементи в нея

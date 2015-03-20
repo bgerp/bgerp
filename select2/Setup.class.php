@@ -4,25 +4,19 @@
 /**
  * Пътя до външния код на SELECT2
  */
-defIfNot('SELECT2_VERSION', '4.0b3');
+defIfNot('SELECT2_VERSION', '4.0rc2');
 
 
 /**
- * Минималния брой елементи, за които няма да сработи SELECT2 - за keylist
+ * Минимален брой опции за да сработи търсенето в Select2->За широк екран
  */
-defIfNot('SELECT2_KEYLIST_MIN_ITEMS', 60);
+defIfNot('SELECT2_WIDE_MIN_SEARCH_ITEMS_CNT', 10);
 
 
 /**
- * Минималния брой елементи, за които няма да сработи SELECT2 - за key
+ * Минимален брой опции за да сработи търсенето в Select2->За тесен екран
  */
-defIfNot('SELECT2_KEY_MIN_ITEMS', 30);
-
-
-/**
- * Минималния брой елементи, за които няма да сработи SELECT2 - за enum
- */
-defIfNot('SELECT2_ENUM_MIN_ITEMS', 3);
+defIfNot('SELECT2_NARROW_MIN_SEARCH_ITEMS_CNT', 5);
 
 
 /**
@@ -69,10 +63,9 @@ class select2_Setup extends core_ProtoSetup {
     var $configDescription = array(
     
         // Минималния брой елементи, за които няма да сработи SELECT2
-        'SELECT2_KEYLIST_MIN_ITEMS' => array ('int', 'caption=Минимален брой опции за да сработи Select2->За keylist, suggestions=20|30|40|50|100'),
-        'SELECT2_KEY_MIN_ITEMS' => array ('int', 'caption=Минимален брой опции за да сработи Select2->За key, suggestions=20|30|40|50|100'),
-        'SELECT2_ENUM_MIN_ITEMS' => array ('int', 'caption=Минимален брой опции за да сработи Select2->За enum, suggestions=3|5|10|20'),
-        'SELECT2_VERSION' => array ('enum(4.0b3)', 'caption=Версия на Select2->Версия'),
+        'SELECT2_WIDE_MIN_SEARCH_ITEMS_CNT' => array ('int', 'caption=Минимален брой опции за да сработи търсенето в Select2->За широк екран, suggestions=5|10|20|50|100'),
+        'SELECT2_NARROW_MIN_SEARCH_ITEMS_CNT' => array ('int', 'caption=Минимален брой опции за да сработи търсенето в Select2->За тесен екран, suggestions=5|10|20|50|100'),
+        'SELECT2_VERSION' => array ('enum(4.0rc2)', 'caption=Версия на Select2->Версия'),
     );
     
     
@@ -86,6 +79,14 @@ class select2_Setup extends core_ProtoSetup {
      * Пътища до JS файлове
      */
     var $commonJS = "select2/[#SELECT2_VERSION#]/select2.min.js, select2/[#SELECT2_VERSION#]/i18n/[#CORE::EF_DEFAULT_LANGUAGE#].js";
+    
+    
+    /**
+     * Списък с мениджърите, които съдържа пакета
+     */
+    var $managers = array(
+        'migrate::removeUserListPlugin',
+    );
     
     
     /**
@@ -106,7 +107,7 @@ class select2_Setup extends core_ProtoSetup {
         // Плъгини за keylist и наследниците му
         $html .= $Plugins->forcePlugin('Select2 за тип Keylist', 'select2_Plugin', 'type_Keylist', 'private');
         $html .= $Plugins->forcePlugin('Select2 за тип Accounts', 'select2_Plugin', 'acc_type_Accounts', 'private');
-        $html .= $Plugins->forcePlugin('Select2 за тип UsersList', 'select2_Plugin', 'type_UserList', 'private');
+//        $html .= $Plugins->forcePlugin('Select2 за тип UsersList', 'select2_Plugin', 'type_UserList', 'private');
         
         $html .= $Plugins->forcePlugin('Select2 за тип Users', 'select2_PluginSelect', 'type_Users', 'private');
         
@@ -121,6 +122,18 @@ class select2_Setup extends core_ProtoSetup {
         // Плъгини за enum
         $html .= $Plugins->forcePlugin('Select2 за тип Enum', 'select2_PluginEnum', 'type_Enum', 'private');
         
+        $html .= $Plugins->forcePlugin('Select2 за тип SmartSelect', 'select2_PluginSmartSelect', 'core_Form', 'private');
+        
         return $html;
     }
+    
+    
+    /**
+     * Миграция за премахване на закачените плъгини за userList
+     */
+    public static function removeUserListPlugin()
+    {
+        core_Plugins::delete("#name = 'Select2 за тип UsersList'");
+    }
+    
 }

@@ -51,7 +51,7 @@
                     <table class="innerTable footer-notes paddingCells" style='width:100%;'>
                         <tbody>
                             <tr>
-                                <td class="topCell vtop" valign="top" style='width:33%;'>
+                                <td class="topCell vtop" style='width:33%;'>
                                     <!--ET_BEGIN paymentMethodId-->
                                     <div class='cellRow'>
                                         <span class='quiet'>|Метод на плащане|*: </span>[#paymentMethodId#]

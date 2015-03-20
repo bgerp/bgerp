@@ -837,6 +837,9 @@ a.more-btn {
   padding-left: 17px !important;
   height: 16px; }
 
+.more-btn.linkWithIcon {
+  padding-left: 22px !important; }
+
 .narrow .more-btn {
   float: none; }
 
@@ -987,7 +990,7 @@ a.profile {
 
 .state-stopped,
 .state-blocked {
-  background-color: #ffaa00; }
+  background-color: #ffbb33; }
 
 .state-rejected {
   background-color: #cc6666; }
@@ -1038,6 +1041,12 @@ a.profile {
 
 .row-negative {
   color: #ff3333; }
+
+.state-created {
+  background-color: #d896c5; }
+
+.state-restore {
+  background-color: #93d0ff; }
 
 .stateIndicator {
   height: 0.6em;
@@ -1094,7 +1103,7 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
     background-color: #d0d0d0; }
   table.listTable:not(.noHoverTable) > tbody > tr:hover.state-stopped,
   table.listTable:not(.noHoverTable) > tbody > tr:hover.state-blocked {
-    background-color: #cc8800; }
+    background-color: #f5a300; }
   table.listTable:not(.noHoverTable) > tbody > tr:hover.state-rejected {
     background-color: #bf4040; }
   table.listTable:not(.noHoverTable) > tbody > tr:hover.state-free {
@@ -1883,8 +1892,9 @@ div.alphabet div.tab-page {
   margin-top: 20px; }
 
 .top-tab-content {
-  background: rgba(255, 255, 220, 0.6);
-  padding: 20px;
+  background: rgba(255, 255, 220, 0.4);
+  padding: 15px;
+  font-size: 0.95em;
   border-radius: 5px; }
   .top-tab-content legend img {
     margin-left: 5px;
@@ -1932,7 +1942,7 @@ div.alphabet div.tab-page {
       -webkit-border-radius: 7px;
       -ms-border-radius: 7px;
       border-radius: 7px;
-      background-color: #cccccc;
+      background-color: #cccccc !important;
       border: 1px solid #aaaaaa; }
       div.tab-control.deal-history-tab .tab-row .tab a,
       .single-thread .document .tab-top div.alphabet .tab-row .tab a {
@@ -1944,7 +1954,7 @@ div.alphabet div.tab-page {
         padding: 4px;
         border: 1px solid #bbbbbb;
         margin: 0 3px 0 0;
-        background-color: #f1f1f1; }
+        background-color: #f1f1f1 !important; }
         div.tab-control.deal-history-tab .tab-row .tab:hover a,
         .single-thread .document .tab-top div.alphabet .tab-row .tab:hover a,
         div.tab-control.deal-history-tab .tab-row .tab.selected a,
@@ -1955,11 +1965,11 @@ div.alphabet div.tab-page {
   margin-bottom: 5px; }
   .wide .single-thread .document .tab-top div.alphabet  .tab-row .tab {
     font-size: 0.7em;
-    margin: 0 10px 0 0;
+    margin: 0 4px 0 0;
     padding: 5px; }
     .wide .single-thread .document .tab-top div.alphabet  .tab-row .tab:hover,
     .wide .single-thread .document .tab-top div.alphabet  .tab-row .tab.selected {
-      margin: 0 10px 0 0;
+      margin: 0 4px 0 0;
       padding: 5px !important; }
     .wide .single-thread .document .tab-top div.alphabet  .tab-row .tab.selected {
       top: -4px; }
@@ -2661,10 +2671,10 @@ div.statuses-message h2 {
       opacity: 1; }
   .elem-holder .pack-info {
     display: block;
-    margin: 0.5em 0;
+    margin: 0.25em 0;
     font-size: 0.9em;
-    line-height: 1.2em;
-    height: 2.4em; }
+    line-height: 1.1em;
+    height: 2.2em; }
   .elem-holder b {
     margin-top: 3px;
     font-size: 1.2em;

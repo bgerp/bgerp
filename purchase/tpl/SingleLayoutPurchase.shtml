@@ -59,6 +59,11 @@
                             <span style='font-weight:normal'>|Център на дейност|*</span>: <b>[#activityCenterId#]</b>
                         </div>
                         <!--ET_END activityCenterId-->
+                        <!--ET_BEGIN originId-->
+                        <div>
+                            <span style='font-weight:normal'>|Източник|*</span>: [#originId#]
+                        </div>
+                          <!--ET_END originId-->
                     </td>
                 </tr>
                 <tr>

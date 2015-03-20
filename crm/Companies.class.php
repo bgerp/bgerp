@@ -219,7 +219,7 @@ class crm_Companies extends core_Master
      * Предефинирани подредби на листовия изглед
      */
     var $listOrderBy = array(
-        'alphabetic'    => array('Азбучно', '#name=ASC'),
+        'alphabetic'    => array('Азбучно', '#nameT=ASC'),
         'last'          => array('Последно добавени', '#createdOn=DESC', 'createdOn=Създаване->На,createdBy=Създаване->От'),
         'modified'      => array('Последно променени', '#modifiedOn=DESC', 'modifiedOn=Модифициране->На,modifiedBy=Модифициране->От'),
         'vatId'      => array('Данъчен №', '#vatId=DESC', 'vatId=Данъчен №'),
@@ -319,7 +319,10 @@ class crm_Companies extends core_Master
      	// Подредба
         setIfNot($data->listFilter->rec->order, 'alphabetic');
         $orderCond = $mvc->listOrderBy[$data->listFilter->rec->order][1];
-        if($orderCond) {
+        if($orderCond) {  
+            if(strpos($orderCond, '#nameT') !== FALSE) {
+                $data->query->XPR('nameT', 'varchar', "TRIM(LEADING ' ' FROM TRIM(LEADING '''' FROM TRIM(LEADING '\"' FROM #name)))");
+            }
             $data->query->orderBy($orderCond);
         }
 
@@ -926,7 +929,7 @@ class crm_Companies extends core_Master
     static function shouldChargeVat($id)
     {
         $rec = static::fetch($id);
-        
+       
         // Ако не е посочена държава, вингаи начисляваме ДДС
         if(!$rec->country) {
 
@@ -941,12 +944,13 @@ class crm_Companies extends core_Master
  
         $ownCompany = crm_Companies::fetchOurCompany();
         
-        // Ако има валиден ват и не е от държавата на myCompany не начисляваме
-        if(drdata_Vats::isHaveVatPrefix($rec->vatId) && ($ownCompany->country != $rec->country)){
+        // Ако няма VAT номер или има валиден ват и не е от държавата на myCompany не начисляваме
+        if((empty($rec->vatId) || drdata_Vats::isHaveVatPrefix($rec->vatId)) && ($ownCompany->country != $rec->country)){
         	
             return FALSE;
         }
-
+        
+ 
         return TRUE;
 	}
 
@@ -954,25 +958,32 @@ class crm_Companies extends core_Master
     /**
      * Връща валутата по подразбиране за търговия дадения контрагент
      * в зависимост от дъжавата му
+     * 
      * @param int $id - ид на записа
-     * @return string(3) - BGN или EUR за дефолт валутата
+     * @return string(3) - BGN|EUR|USD за дефолт валутата
      */
-    static function getDefaultCurrencyId($id)
+    public static function getDefaultCurrencyId($id)
     {
         $rec = self::fetch($id);
 
         // Ако контрагента няма държава, то дефолт валутата е BGN
     	if(empty($rec->country)) return 'BGN';
     	
-        $cRec = drdata_Countries::fetch($rec->country);
-
-        if($cRec->letterCode2 == 'BG') {
-
-            return 'BGN';
-        } else {
-
-            return 'EUR';
-        }
+    	// Ако държавата му е България, дефолт валутата е 'BGN'
+    	if(drdata_Countries::fetchField($rec->country, 'letterCode2') == 'BG'){
+    		
+    		return 'BGN';
+    	} else {
+    		
+    		// Ако не е 'България', но е в ЕС, дефолт валутата е 'EUR'
+    		if(drdata_Countries::isEu($rec->country)){
+    			
+    			return 'EUR';
+    		}
+    	}
+    	
+    	// За всички останали е 'USD'
+    	return 'USD';
     }
     
     
@@ -1540,6 +1551,27 @@ class crm_Companies extends core_Master
      */
     public function getDefaultMeta($id)
     {
-    	return array();
+    	$rec = $this->fetchRec($id);
+    	
+    	$clientGroupId = crm_Groups::getIdFromSysId('customers');
+    	$supplierGroupId = crm_Groups::getIdFromSysId('suppliers');
+    	
+    	$groups = crm_Groups::getQuery();
+    	
+    	$meta = array();
+    	
+    	// Ако контрагента е в група клиенти: дефолт свойствата са 'продаваем и производим'
+    	if(keylist::isIn($clientGroupId, $rec->groupList)){
+    		$meta['canSell'] = TRUE;
+    		$meta['canManifacture'] = TRUE;
+    	}
+    	
+    	// Ако контрагента е в група доставчици: дефолт свойствата са 'купуваем и вложим'
+    	if(keylist::isIn($supplierGroupId, $rec->groupList)){
+    		$meta['canConvert'] = TRUE;
+    		$meta['canBuy'] = TRUE;
+    	}
+    	
+    	return $meta;
     }
 }

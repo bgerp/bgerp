@@ -165,10 +165,6 @@ abstract class deals_DealMaster extends deals_DealBase
 		$form->setDefault('makeInvoice', 'yes');
 		$form->setDefault('currencyId', acc_Periods::getBaseCurrencyCode($form->rec->valior));
 		
-		// Начисляване на ДДС по подразбиране
-		$contragentRef = new core_ObjectReference($form->rec->contragentClassId, $form->rec->contragentId);
-		$form->setDefault('chargeVat', $contragentRef->shouldChargeVat() ? 'yes' : 'export');
-		
 		// Поле за избор на локация - само локациите на контрагента по покупката
 		$locations = array('' => '') + crm_Locations::getContragentOptions($form->rec->contragentClassId, $form->rec->contragentId);
 		$form->setOptions('deliveryLocationId', $locations);
@@ -190,6 +186,18 @@ abstract class deals_DealMaster extends deals_DealBase
         // Търговеца по дефолт е отговорника на контрагента
         $inCharge = doc_Folders::fetchField($form->rec->folderId, 'inCharge');
         $form->setDefault('dealerId', $inCharge);
+	}
+	
+	
+	/**
+	 * Дали да се начислява ДДС
+	 */
+	public function getDefaultChargeVat($rec)
+	{
+		$coverId = doc_Folders::fetchCoverId($rec->folderId);
+		$Class = cls::get(doc_Folders::fetchCoverClassName($rec->folderId));
+		
+		return ($Class->shouldChargeVat($coverId)) ? 'yes' : 'no';
 	}
 	
 	
@@ -741,26 +749,6 @@ abstract class deals_DealMaster extends deals_DealBase
     
     
     /**
-     * 
-     * @param unknown $mvc
-     * @param unknown $rec
-     * @param unknown $nRec
-     */
-    public static function on_AfterSaveCloneRec($mvc, $rec, $nRec)
-    {
-    	//@TODO да се премахне след като се добави тази функционалността в плъгина
-    	$Detail = $mvc->mainDetail;
-    	$query = $mvc->$Detail->getQuery();
-    	$query->where("#{$mvc->$Detail->masterKey} = {$rec->id}");
-    	while($dRec = $query->fetch()){
-    		$dRec->{$mvc->$Detail->masterKey} = $nRec->id;
-    		unset($dRec->id, $dRec->quantityDelivered);
-    		$mvc->$Detail->save($dRec);
-    	}
-    }
-    
-    
-    /**
      * Да се показвали бърз бутон за създаване на документа в папка
      */
     public function mustShowButton($folderRec, $userId = NULL)
@@ -835,6 +823,11 @@ abstract class deals_DealMaster extends deals_DealBase
     	}
 	    
 	    if($fields['-single']){
+	    	if($rec->originId){
+	    		$row->originId = doc_Containers::getDocument($rec->originId)->getHyperLink();
+	    	}
+	    	
+	    	
 	    	if($rec->deliveryLocationId){
 	    		$row->deliveryLocationId = crm_Locations::getHyperlink($rec->deliveryLocationId);
 	    	}
@@ -1430,6 +1423,7 @@ abstract class deals_DealMaster extends deals_DealBase
      * 		o $fields['initiatorId']        -  ид на потребител инициатора (ако няма е отговорника на контрагента)
      * 		o $fields['caseId']             -  ид на каса (@see cash_Cases)
      * 		o $fields['note'] 				-  бележки за сделката
+     * 		o $fields['originId'] 			-  източник на документа
      *
      * @return mixed $id/FALSE - ид на запис или FALSE
      */
@@ -1443,7 +1437,8 @@ abstract class deals_DealMaster extends deals_DealBase
     	$me = cls::get(get_called_class());
     	$fields = arr::make($fields);
     	$allowedFields = $me->selectFields("#input != 'none' AND #input != 'hidden'");
-    	 
+    	$allowedFields['originId'] = TRUE;
+    	
     	// Проверяваме подадените полета дали са позволени
     	if(count($fields)){
     		foreach ($fields as $fld => $value){
@@ -1530,9 +1525,10 @@ abstract class deals_DealMaster extends deals_DealBase
      * @param double $price        - цена на единична бройка (ако не е подадена, определя се от политиката)
      * @param int $packagingId     - ид на опаковка (не е задължителна)
      * @param double $discount     - отстъпка между 0(0%) и 1(100%) (не е задължителна)
+     * @param text $notes          - забележки
      * @return mixed $id/FALSE     - ид на запис или FALSE
      */
-    public static function addRow($id, $pMan, $productId, $packQuantity, $price = NULL, $packagingId = NULL, $discount = NULL)
+    public static function addRow($id, $pMan, $productId, $packQuantity, $price = NULL, $packagingId = NULL, $discount = NULL, $notes = NULL)
     {
     	$me = cls::get(get_called_class());
     	$Detail = cls::get($me->mainDetail);
@@ -1550,6 +1546,10 @@ abstract class deals_DealMaster extends deals_DealBase
     	expect($ProductMan->fetchField($productId, 'id'));
     	if(isset($packagingId)){
     		expect(cat_Packagings::fetchField($packagingId, 'id'));
+    	}
+    	
+    	if(isset($notes)){
+    		$notes = cls::get('type_Richtext')->fromVerbal($notes);
     	}
     	
     	// Броя еденици в опаковка, се определя от информацията за продукта
@@ -1575,10 +1575,18 @@ abstract class deals_DealMaster extends deals_DealBase
     						  'discount'         => $discount,
     						  'price'            => $price,
     						  'quantityInPack'   => $quantityInPack,
+    						  'notes'			 => $notes,
     	);
     	
     	// Проверяваме дали въвдения детайл е уникален
-    	if($exRec = $Detail->fetch("#{$Detail->masterKey} = {$id} AND #classId = {$dRec->classId} AND #productId = {$dRec->productId}")){
+    	$where = "#{$Detail->masterKey} = {$id} AND #classId = {$dRec->classId} AND #productId = {$dRec->productId}";
+    	if($packagingId){
+    		$where .= " AND #packagingId = {$packagingId}";
+    	} else {
+    		$where .= " AND #packagingId IS NULL";
+    	}
+    	
+    	if($exRec = $Detail->fetch($where)){
     		
     		// Смятаме средно притеглената цена и отстъпка
     		$nPrice = ($exRec->quantity * $exRec->price +  $dRec->quantity * $dRec->price) / ($dRec->quantity + $exRec->quantity);

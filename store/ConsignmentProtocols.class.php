@@ -77,12 +77,6 @@ class store_ConsignmentProtocols extends core_Master
     
     
     /**
-     * Кой може да го види?
-     */
-    public $canView = 'ceo,store';
-    
-    
-    /**
      * Кой може да го изтрие?
      */
     public $canConto = 'ceo,store';
@@ -91,7 +85,7 @@ class store_ConsignmentProtocols extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, valior, contragentId=Контрагент, folderId, createdOn, createdBy';
+    public $listFields = 'tools=Пулт, valior, title=Документ, contragentId=Контрагент, folderId, createdOn, createdBy';
     
     
     /**
@@ -128,6 +122,18 @@ class store_ConsignmentProtocols extends core_Master
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     var $searchFields = 'valior,folderId,note';
+    
+    
+    /**
+     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
+     */
+    public $rowToolsField = 'tools';
+    
+    
+    /**
+     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
+     */
+    public $rowToolsSingleField = 'title';
     
     
     /**
@@ -200,6 +206,7 @@ class store_ConsignmentProtocols extends core_Master
     	if(isset($fields['-list'])){
     		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
     		$row->contragentId = cls::get($rec->contragentClassId)->getHyperlink($rec->contragentId, TRUE);
+    		$row->title = $mvc->getLink($rec->id, 0);
     	}
     	
     	if(isset($fields['-single'])){

@@ -31,7 +31,7 @@ class acc_plg_Contable extends core_Plugin
         // Добавяне на кеш-поле за контируемостта на документа. Обновява се при (преди) всеки 
         // запис. Използва се при определяне на правата за контиране.
         if(empty($mvc->fields['isContable'])){
-            $mvc->FLD('isContable', 'enum(yes,no,activate)', 'input=none,notNull,default=no');
+            $mvc->FLD('isContable', 'enum(yes,no,activate)', 'input=none,notNull,value=no');
         }
         
         setIfNot($mvc->canCorrection, 'ceo, accMaster');

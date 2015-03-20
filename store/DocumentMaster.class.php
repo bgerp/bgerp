@@ -41,6 +41,18 @@ abstract class store_DocumentMaster extends core_Master
     
     
     /**
+     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
+     */
+    public $rowToolsField = 'tools';
+    
+    
+    /**
+     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
+     */
+    public $rowToolsSingleField = 'title';
+    
+    
+    /**
      * След описанието на полетата
      */
     protected static function setDocFields(core_Master &$mvc)
@@ -231,6 +243,7 @@ abstract class store_DocumentMaster extends core_Master
     				$shipProduct->uomId       = $product->uomId;
     				$shipProduct->discount    = $product->discount;
     				$shipProduct->weight      = $product->weight;
+    				$shipProduct->notes       = $product->notes;
     				$shipProduct->volume      = $product->volume;
     				$shipProduct->quantityInPack = ($product->packagingId) ? $info->packagingRec->quantity : 1;
     				 
@@ -244,7 +257,7 @@ abstract class store_DocumentMaster extends core_Master
     /**
      * Подготвя данните на хедъра на документа
      */
-    public function prepareHeaderInfo(&$row, $rec)
+    public static function prepareHeaderInfo(&$row, $rec)
     {
     	$ownCompanyData = crm_Companies::fetchOwnCompany();
     	$Companies = cls::get('crm_Companies');
@@ -315,10 +328,12 @@ abstract class store_DocumentMaster extends core_Master
     		} else {
     			$row->amountDelivered = "<span class='quiet'>0.00</span>";
     		}
+    		
+    		$row->title = $mvc->getLink($rec->id, 0);
 	   	}
 	   	 
 	   	if(isset($fields['-single'])){
-	   		$mvc->prepareHeaderInfo($row, $rec);
+	   		self::prepareHeaderInfo($row, $rec);
 	   		
 	   		if($rec->locationId){
 	   			if($ourLocation = store_Stores::fetchField($rec->storeId, 'locationId')){

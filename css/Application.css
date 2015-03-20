@@ -1026,9 +1026,15 @@ td.portal-date {
   background: rgba(255, 255, 210, 0.3);
   border: 1px solid #dddddd;
   border-radius: 3px; }
-  .snapshot .snapshat-title {
-    font-weight: bold;
+  .snapshot .snapshot-title {
     padding-bottom: 7px; }
+
+.bottom-antetka {
+  border-top: 1px solid #dddddd;
+  padding: 5px;
+  font-size: 0.8em; }
+  .bottom-antetka > div {
+    margin: 1px 0; }
 
 .stamp {
   color: #bb0000;
@@ -1146,6 +1152,12 @@ pre.document {
   font-family: "Courier New";
   font-size: 1em;
   font-weight: bold; }
+
+.quiet-small {
+  color: #999999;
+  font-size: 0.9em;
+  margin-bottom: -2px;
+  margin-top: 3px; }
 
 .cell {
   border: 1px solid #999999; }
@@ -3056,6 +3068,25 @@ div.location.public {
   .eshop-product-list:hover {
     border: solid 1px #bbbbbb; }
 
+.app-name {
+  display: block;
+  color: #42477f;
+  position: absolute;
+  font-weight: bold;
+  font-family: Times New Roman, Georgia, serif; }
+
+.wide .app-name {
+  left: 2%;
+  bottom: 1%;
+  font-size: 8.5em;
+  text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.6); }
+
+.narrow .app-name {
+  left: 7px;
+  top: 2px;
+  font-size: 33px;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4); }
+
 /*
  * queries
  */
@@ -3107,9 +3138,17 @@ only screen and (min-width: 1750px) {
     font-size: 1.1em; } }
 
 @media handheld,
+only screen and (max-width: 1200px) {
+  .wide .app-name {
+    font-size: 7.5em; } }
+
+@media handheld,
 only screen and (max-width: 1024px) {
   .document {
-    max-width: 52.5em; } }
+    max-width: 52.5em; }
+
+  .wide .app-name {
+    font-size: 6.4em; } }
 
 /*
  * Mobile
@@ -3178,7 +3217,10 @@ only screen and (max-width: 900px) {
     font-size: 1.38em; }
 
   #all h1 {
-    font-size: 1.88em; } }
+    font-size: 1.88em; }
+
+  .wide .app-name {
+    font-size: 5.7em; } }
 
 @media handheld,
 only screen and (max-width: 800px) {
@@ -3205,7 +3247,10 @@ only screen and (max-width: 800px) {
     font-size: 1.38em; }
 
   #all h1 {
-    font-size: 1.88em; } }
+    font-size: 1.88em; }
+
+  .wide .app-name {
+    font-size: 5em; } }
 
 @media handheld,
 only screen and (max-width: 760px) {
@@ -3250,7 +3295,10 @@ only screen and (max-width: 700px) {
     font-size: 1.34em; }
 
   #all h1 {
-    font-size: 1.84em; } }
+    font-size: 1.84em; }
+
+  .wide .app-name {
+    font-size: 4.4em; } }
 
 @media handheld,
 only screen and (max-width: 640px) {
@@ -3322,7 +3370,10 @@ only screen and (max-width: 600px) {
     font-size: 1.3em; }
 
   #all h1 {
-    font-size: 1.8em; } }
+    font-size: 1.8em; }
+
+  .wide .app-name {
+    font-size: 3.7em; } }
 
 @media handheld,
 only screen and (max-width: 533px) {
@@ -3464,7 +3515,10 @@ only screen and (max-width: 360px) {
 
   .narrow .special-table td {
     display: block;
-    width: 100%; } }
+    width: 100%; }
+
+  .wide .app-name {
+    font-size: 3em; } }
 
 @media handheld,
 only screen and (max-width: 320px) {
@@ -3561,11 +3615,11 @@ only screen and (max-width: 320px) {
     max-width: 87px;
     max-height: 87px; }
   .external .footerDocInfo {
-    display: table-row; }
+    display: table-row !important; }
   .external .footerDocBlock {
-    display: block; }
+    display: block !important; }
   .external .footerDocTable {
-    display: table; }
+    display: table !important; }
 
   .narrow .external .scrolling-holder {
     display: block;
@@ -3814,6 +3868,8 @@ only screen and (max-width: 320px) {
     display: none; }
   .printing .staticFormView .formFieldValue {
     border: 1px solid #cccccc; }
+  .printing .header-state {
+    display: none; }
 
 .narrow .printing .document {
   width: 850px; }
@@ -3998,6 +4054,14 @@ only screen and (max-width: 320px) {
   .preview-label > div {
     width: auto !important;
     height: auto !important; }
+
+.debug_block {
+  padding: 5px;
+  margin: 10px;
+  border: solid 1px #777777;
+  background-color: #ffff99;
+  display: table;
+  color: black; }
 
 .cd-l1 {
   color: green; }

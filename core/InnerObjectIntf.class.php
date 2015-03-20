@@ -22,6 +22,28 @@ class core_InnerObjectIntf
 	
 	
 	/**
+	 * Задава вътрешната форма
+	 *
+	 * @param mixed $innerForm
+	 */
+	public function setInnerForm($innerForm)
+	{
+		return $this->class->addEmbeddedFields($innerForm);
+	}
+	
+	
+	/**
+	 * Задава вътрешното състояние
+	 *
+	 * @param mixed $innerState
+	 */
+	public function setInnerState($innerState)
+	{
+		return $this->class->addEmbeddedFields($innerState);
+	}
+	
+	
+	/**
 	 * Добавя полетата на вътрешния обект
 	 * 
 	 * @param core_Fieldset $fieldset

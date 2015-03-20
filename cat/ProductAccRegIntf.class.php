@@ -48,7 +48,6 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
 	 * 	     meta['canStore']       - дали може да се съхранява
 	 * 	     meta['canManifacture'] - дали може да се прозивежда
 	 * 	     meta['fixedAsset']     - дали е ДМА
-	 * 		 meta['waste]			- дали е отпаден
      * 	-> packagingRec - записа на опаковката, ако е зададена
      * 	-> packagings - всички опаковки на продукта, ако не е зададена
      */			
@@ -100,7 +99,7 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     
     /**
      * Връща масив от продукти отговарящи на зададени мета данни:
-     * canSell, canBuy, canManifacture, canConvert, fixedAsset, canStore, waste
+     * canSell, canBuy, canManifacture, canConvert, fixedAsset, canStore
      * 
      * @param mixed $properties       - комбинация на горе посочените мета 
      * 							        данни, на които трябва да отговарят
@@ -123,6 +122,28 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
 	public function getWeight($productId, $packagingId = NULL)
     {
     	return $this->class->getWeight($productId, $packagingId);
+    }
+    
+    
+    /**
+     * Връща параметрите на артикула
+     * @param mixed $id - ид или запис на артикул
+     *
+     * @return array $res - параметрите на артикула
+     * 					['weight']          -  Тегло
+     * 					['width']           -  Широчина
+     * 					['volume']          -  Обем
+     * 					['thickness']       -  Дебелина
+     * 					['length']          -  Дължина
+     * 					['height']          -  Височина
+     * 					['tolerance']       -  Толеранс
+     * 					['transportWeight'] -  Транспортно тегло
+     * 					['transportVolume'] -  Транспортен обем
+     * 					['term']            -  Срок
+     */
+    public function getParams()
+    {
+    	return $this->class->getParams();
     }
     
     
@@ -179,14 +200,14 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     
     
     /**
-     * Намира последното активно задание за артикула
+     * Връща последното не оттеглено или чернова задание за спецификацията
      * 
      * @param mixed $id - ид или запис
      * @return mixed $res - записа на заданието или FALSE ако няма
      */
-    public function getLastActiveJob($id)
+    public function getLastJob($id)
     {
-    	return $this->getLastActiveJob($id);
+    	return $this->getLastJob($id);
     }
     
     

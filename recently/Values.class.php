@@ -73,17 +73,17 @@ class recently_Values extends core_Manager
         
         $opt = array('' => '');
         
-        $cu = core_Users::getCurrent();
-        
-         while ($rec = $query->fetch(array(
-        					"#name = '[#1#]' AND #createdBy = [#2#]", 
-        					$name, 
-        					$cu
-        				))) {
-            
-            $value = $rec->value;
-            
-            $opt[$value] = $value;
+        if($cu = core_Users::getCurrent()) {
+            while ($rec = $query->fetch(array(
+                                "#name = '[#1#]' AND #createdBy = [#2#]", 
+                                $name, 
+                                $cu
+                            ))) {
+                
+                $value = $rec->value;
+                
+                $opt[$value] = $value;
+            }
         }
         
         return count($opt) > 1 ? $opt : array();

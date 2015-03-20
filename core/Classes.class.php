@@ -229,7 +229,9 @@ class core_Classes extends core_Manager
             $Classes = cls::get('core_Classes');
             $classId = $Classes->fetchField(array("#name = '[#1#]'", $className), 'id');
         }
-        
+
+        expect($classId);
+
         return $classId;
     }
     

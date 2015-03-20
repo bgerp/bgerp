@@ -259,7 +259,7 @@ class acc_Balances extends core_Master
      */
     public static function alternate($date)
     {
-        static $dateArr = array();
+    	static $dateArr = array();
         
         if($dateArr[$date]) {
 

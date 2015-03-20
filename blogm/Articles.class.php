@@ -213,7 +213,7 @@ class blogm_Articles extends core_Master {
             $form->setDefault('commentsMode', 'confirmation');
         }
         
-        $form->setSuggestions('categories', blogm_Categories::getCategoriesByLang());
+        $form->setSuggestions('categories', blogm_Categories::getCategoriesByDomain(cms_Domains::getCurrent()));
         
         // Ако сме в тесен режим
         if (Mode::is('screenMode', 'narrow')) {
@@ -233,20 +233,26 @@ class blogm_Articles extends core_Master {
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->FNC('category', 'key(mvc=blogm_Categories,select=title,allowEmpty)', 'placeholder=Категория,silent,refreshForm');
-		$data->listFilter->setOptions('category', blogm_Categories::getCategoriesByLang());
+
         $data->listFilter->showFields = 'search,category';
+
+        // Подреждаме статиите по датата им на публикуане в низходящ ред	
+		$data->query->orderBy('createdOn', 'DESC');
+		
+        $categories = blogm_Categories::getCategoriesByDomain(cms_Domains::getCurrent());
+ 
+        if(!count($categories)) {
+            redirect(array('blogm_categories'), FALSE, "Моля въведете категории за статиите в блога");
+        }
+        $data->listFilter->setOptions('category', $categories);
         
         // Активиране на филтъра
         $recFilter = $data->listFilter->input(NULL, 'silent');
-
         if(($cat = $recFilter->category) > 0) {
            $data->query->where("#categories LIKE '%|{$cat}|%'");
+        } else {
+		    $data->query->likeKeylist('categories', keylist::fromArray($categories));
         }
-        
-	    // Подреждаме статиите по датата им на публикуане в низходящ ред	
-		$data->query->orderBy('createdOn', 'DESC');
-		$categories = blogm_Categories::getCategoriesByLang();
-		$data->query->likeKeylist('categories', keylist::fromArray($categories));
 	
 		// Ако метода е 'browse' показваме само активните статии
 		if($data->action == 'browse'){
@@ -295,9 +301,10 @@ class blogm_Articles extends core_Master {
         // Определяме езика на статията от първата и категория
         $catArr = keylist::toArray($data->rec->categories);
         $firstCatId = key($catArr);
-        $lang = blogm_Categories::fetchField($firstCatId, 'lang');
-        if($lang) {
-            cms_Content::setLang($lang);
+        
+        $domainId = blogm_Categories::fetchField($firstCatId, 'domainId');
+        if($domainId) {
+            cms_Domains::setPublicDomain($domainId);
         }
 		
         // Трябва да имаме права за да видим точно тази статия
@@ -530,13 +537,13 @@ class blogm_Articles extends core_Master {
 		
         // Определяме езика от категорията
         if($data->category >0) {
-            $lang = blogm_Categories::fetchField($data->category, 'lang');
-            if($lang) {
-                cms_Content::setLang($lang);
+            $domainId = blogm_Categories::fetchField($data->category, 'domainId');
+            if($domainId) {
+                cms_Domains::setPublicDomain($domainId);
             }
         }
 
-		$categories = blogm_Categories::getCategoriesByLang();
+		$categories = blogm_Categories::getCategoriesByDomain();
 		$data->query->likeKeylist('categories', keylist::fromArray($categories));
 
         // По какво заглавие търсим
@@ -590,9 +597,9 @@ class blogm_Articles extends core_Master {
             $data->selectedCategories[$data->category] = TRUE;
         } else {
             // Добавка, ако няма избрана категория, резултатите да се филтрират само по категориите, които са от текущия език
-            $categories = blogm_Categories::getCategoriesByLang();
+            $categories = blogm_Categories::getCategoriesByDomain();
             if(!is_array($categories) || !count($categories)) {
-                $categories = array('-1' => 'Няма категории на съответния език');
+                $categories = array('99999999' => 'Няма категории на съответния език');
             }
             $data->query->likeKeylist('categories', keylist::fromArray($categories));
         }
@@ -715,7 +722,7 @@ class blogm_Articles extends core_Master {
     {
 		$this->prepareSearch($data);
         
-		$data->categories = blogm_Categories::getCategoriesByLang();
+		$data->categories = blogm_Categories::getCategoriesByDomain();
 
         $this->prepareArchive($data);
         
@@ -726,9 +733,7 @@ class blogm_Articles extends core_Master {
 
         $selfId = core_Classes::fetchIdByName($this);
         
-        $lang = cms_Content::getLang();
-
-        Mode::set('cMenuId', cms_Content::fetchField("#source = {$selfId} AND #lang = '{$lang}'", 'id'));
+        Mode::set('cMenuId', cms_Content::getDefaultMenuId('blogm_Articles'));
 	}
 
 
@@ -808,9 +813,9 @@ class blogm_Articles extends core_Master {
         $query->where("#state = 'active'");
         
         // Филтриране по категориите на съответния език
-        $categories = blogm_Categories::getCategoriesByLang();
+        $categories = blogm_Categories::getCategoriesByDomain();
         if(!is_array($categories) || !count($categories)) {
-            $categories = array('-1' => 'Няма категории на съответния език');
+            $categories = array('99999999' => 'Няма категории на съответния език');
         }
         $query->likeKeylist('categories', keylist::fromArray($categories));
 
@@ -876,13 +881,13 @@ class blogm_Articles extends core_Master {
      * @param enum $lg
      * @return array
      */
-    function getItems($itemsCnt, $lg, $like = NULL)
+    function getItems($itemsCnt, $domainId, $like = NULL)
     {
     	// Заявка за работа с модела
     	$query = $this->getQuery();
     	
     	// Филтрираме, подреждаме и ограничаваме броя на резултатите
-    	$categories = blogm_Categories::getCategoriesByLang($lg);
+    	$categories = blogm_Categories::getCategoriesByDomain($domainId);
     	$query->likeKeylist('categories', keylist::fromArray($categories));
     	
     	if($like){

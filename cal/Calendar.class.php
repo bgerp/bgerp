@@ -415,7 +415,7 @@ class cal_Calendar extends core_Master
 
         $html = "<table class='mc-calendar'>";        
 
-        $html .= "<tr><td colspan='8' style='padding:0px;'>{$header}</td><tr>";
+        $html .= "<tr><td colspan='8' style='padding:0px;'>{$header}</td></tr>";
 
         // Добавяне на втория хедър
         $html .= "<tr><td>" . tr('Сд') . "</td>";
@@ -423,7 +423,7 @@ class cal_Calendar extends core_Master
             $wdName = tr($wdName);
             $html .= "<td class='mc-wd-name'>{$wdName}</td>";
         }
-        $html .= '<tr>';
+        $html .= '</tr>';
 
         foreach($monthArr as $weekNum => $weekArr) {
             $html .= "<tr>";

@@ -81,7 +81,16 @@ class page_Html extends core_ET {
         // добавяме стиловете, с които ще пренаписваме стиловете на външните плъгини
         $files->css[] = 'css/pluginsCustom.css';
         $inst->appendFiles($files);
-
+    }
+    
+    
+    /**
+     * Интерфейсен метод
+     * 
+     * @see core_page_WrapperIntf
+     */
+    function prepare()
+    {
         
     }
     

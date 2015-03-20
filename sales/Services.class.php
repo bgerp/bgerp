@@ -79,7 +79,7 @@ class sales_Services extends deals_ServiceMaster
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, valior, folderId, amountDeliveredVat, createdOn, createdBy';
+    public $listFields = 'tools=Пулт, valior,title=Документ, folderId, amountDeliveredVat, createdOn, createdBy';
 
 
     /**

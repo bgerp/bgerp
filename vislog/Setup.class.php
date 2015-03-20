@@ -73,7 +73,7 @@ class vislog_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     var $menuItems = array(
-            array(3.5, 'Сайт', 'Лог', 'vislog_History', 'default', "admin, ceo, cms"),
+            array(3.53, 'Сайт', 'Лог', 'vislog_History', 'default', "admin, ceo, cms"),
         );
     
     

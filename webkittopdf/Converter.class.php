@@ -48,7 +48,14 @@ class webkittopdf_Converter extends core_Manager
     {   
         // Вземаме конфигурационните данни
     	$conf = core_Packs::getConfig('webkittopdf');
-    	
+        
+    	if (!webkittopdf_Setup::isEnabled()) {
+            
+    	    core_Logs::log("Не е инсталирана програмата '{$conf->WEBKIT_TO_PDF_BIN}'");
+    	    
+            throw new core_exception_Expect("Не е инсталирана програмата '{$conf->WEBKIT_TO_PDF_BIN}'");
+        }
+        
         //Генерираме унукално име на папка
         do {
             $randId = str::getRand();

@@ -3,7 +3,7 @@
     <h2>
         <div style="padding:5px;" class=" [#DialStatusClass#] ">|Разговор|* <b style="color:green;">№ [#id#]</b></div>
     </h2>
-    <table class="styled-table" style='width:100%'>
+    <table class="styled-table" style='min-width: 300px;'>
         <tr>
             <th colspan="2">|Външен|*</th>
         </tr>
@@ -14,11 +14,11 @@
         </tr>
         <!--ET_END externalData-->
         <tr>
-            <td class="title-style" style='width:150%'>|Номер|*</td>
+            <td class="title-style">|Номер|*</td>
             <td> [#externalNum#]</td>
         </tr>
     </table>
-    <table class="styled-table" style='width:100%'>
+    <table class="styled-table" style='min-width: 300px;'>
         <tr>
             <th colspan="2">|Вътрешен|*</th>
         </tr>
@@ -27,16 +27,16 @@
             <td>[#internalData#]</td>
         </tr>
         <tr>
-            <td class="title-style" style='width:150%'>|Номер|*</td>
+            <td class="title-style">|Номер|*</td>
             <td> [#internalNum#]</td>
         </tr>
     </table>
-    <table class="styled-table" style='width:100%'>
+    <table class="styled-table" style='min-width: 300px;'>
         <tr>
             <th colspan="2">|Време|*</th>
         </tr>
         <tr>
-            <td class="title-style" style='width:150%'>|Начало|*</td>
+            <td class="title-style">|Начало|*</td>
             <td> [#startTime#]</td>
         </tr>
         <!--ET_BEGIN answerTime-->
@@ -60,25 +60,25 @@
     </table>
     <!--ET_BEGIN TALKS_INFO-->
     [#TALKS_INFO#]
-    <table class="styled-table" style='width:100%'>
+    <table class="styled-table" style='min-width: 300px;'>
         <tr>
             <th colspan="2">|Информация|*</th>
         </tr>
         <!--ET_BEGIN callType-->
         <tr>
-            <td class="title-style" style='width:150%'>|Тип|*</td>
+            <td class="title-style">|Тип|*</td>
             <td> [#callType#]</td>
         </tr>
         <!--ET_END callType-->
         <!--ET_BEGIN dialStatus-->
         <tr>
-            <td class="title-style" style='width:150%'>|Статус|*</td>
+            <td class="title-style">|Статус|*</td>
             <td> [#dialStatus#]</td>
         </tr>
         <!--ET_END dialStatus-->
         <!--ET_BEGIN mp3-->
         <tr>
-            <td class="title-style" style='width:150%'>|Аудио|*</td>
+            <td class="title-style">|Аудио|*</td>
             <td> [#mp3#]</td>
         </tr>
         <!--ET_END mp3-->

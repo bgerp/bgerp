@@ -76,7 +76,7 @@ class color_Object {
             }
         }
         
-        $this->error = "Непознат цвят|*$value";
+        $this->error = "Непознат цвят|* {$value}";
     }
     
     
@@ -96,7 +96,7 @@ class color_Object {
                 $r = hexdec($hexColor{0} . $hexColor{1});
                 $g = hexdec($hexColor{2} . $hexColor{3});
                 $b = hexdec($hexColor{4} . $hexColor{5});
-            } else { bp(1);
+            } else {
                 return FALSE;
             }
         } else {

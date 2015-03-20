@@ -24,13 +24,13 @@ class cms_Content extends core_Manager
     /**
      * Заглавие
      */
-    public $title = "Публично съдържание";
+    public $title = "Основно меню";
     
     
     /**
      * Заглавие в единично число
      */
-    public $singleTitle = "Публично съдържание";
+    public $singleTitle = "Елемент от менюто";
     
     
     /**
@@ -78,7 +78,7 @@ class cms_Content extends core_Manager
     /**
      * Полета за листовия изглед
      */
-    var $listFields = '✍,menu,lang,source,url';
+    var $listFields = 'order,✍,menu,source,state';
 
 
     /**
@@ -98,61 +98,15 @@ class cms_Content extends core_Manager
      */
     function description()
     {   
+        $this->FLD('order', 'order(min=0)', 'caption=№,tdClass=rowtools-column');
         $this->FLD('menu',    'varchar(64)', 'caption=Меню,mandatory');
-        $this->FLD('lang',    'varchar(2)', 'caption=Език,notNull,defValue=bg,mandatory,autoFilter');
+        
+        $this->FLD('domainId',    'key(mvc=cms_Domains, select=*)', 'caption=Домейн,notNull,defValue=bg,mandatory,autoFilter');
         $this->FLD('source',  'class(interface=cms_SourceIntf, allowEmpty, select=title)', 'caption=Източник');
-        $this->XPR('order', 'double', '0+#menu', 'caption=Подредба,column=none');
         $this->FLD('url',  'varchar(128)', 'caption=URL');
         $this->FLD('layout', 'html', 'caption=Лейаут');
 
-        $this->setDbUnique('menu,lang');
-    }
-
-
-    /**
-     * Връща масива с възможните езици за CMS частта
-     */
-    static function getLangsArr()
-    {
-        static $langsArr;
-        
-        if(!$langsArr) {
-            $langsArr = array();
-            $conf = core_Packs::getConfig('cms');
-            $langsArr = array($conf->CMS_BASE_LANG => $conf->CMS_BASE_LANG);
-            foreach(keylist::toArray($conf->CMS_LANGS) as $langId) {
-                $lg = drdata_Languages::fetchField($langId, 'code');
-                
-                if (!$lg) continue;
-                
-                $langsArr[$lg] = $lg;
-            }
-        }
-
-        return $langsArr;
-    }
-
-
-    /**
-     * Връща масив с езиците за които има елементи от менюто
-     */
-    static function getUsedLangsArr()
-    {
-        static $langsArr;
-        
-        if(!$langsArr) {
-            $langsArr = array();
-            $query = self::getQuery();
-            $query->groupBy('lang');
-            while($rec = $query->fetch()) {
-                
-                if (!$rec->lang) continue;
-                
-                $langsArr[$rec->lang] = $rec->lang;
-            }
-        }
-
-        return $langsArr;
+        $this->setDbUnique('menu,domainId');
     }
 
     
@@ -161,17 +115,7 @@ class cms_Content extends core_Manager
      */
     static function getLang()
     {
-        $langsArr = self::getUsedLangsArr();
-        
-        $lang = Mode::get(self::CMS_CURRENT_LANG);
-
-        if(!$langsArr[$lang] && !(haveRole('ceo,cms') && $lang)) {
-            
-            $lang = self::detectLang();
-            
-            // За пазваме езика
-            self::setLang($lang);
-        }
+        $lang = cms_Domains::getPublicDomain('lang');
         
         return $lang;
     }
@@ -182,103 +126,34 @@ class cms_Content extends core_Manager
      */
     static function setLang($lang)
     {
-        Mode::setPermanent(self::CMS_CURRENT_LANG, $lang);
-
-        core_Lg::set($lang, FALSE);
+        cms_Domains::getPublicDomain(NULL, $lang);
+        
+        core_Lg::set($lang, !haveRole('user'));
     }
 
-
-    /**
-     * Определя най-добрия език за този потребител за тази сесия
-     */
-    static function detectLang()
-    {   
-        $conf = core_Packs::getConfig('cms');
-
-        $cmsLangs = self::getUsedLangsArr();
-
-        if(!count($cmsLangs)) {
-
-            return $conf->CMS_BASE_LANG;
-        }
-
-        // Parse the Accept-Language according to:
-        // http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.4
-        preg_match_all(
-           '/([a-z]{1,8})' .       // M1 - First part of language e.g en
-           '(-[a-z]{1,8})*\s*' .   // M2 -other parts of language e.g -us
-           // Optional quality factor M3 ;q=, M4 - Quality Factor
-           '(;\s*q\s*=\s*((1(\.0{0,3}))|(0(\.[0-9]{0,3}))))?/i',
-           $_SERVER['HTTP_ACCEPT_LANGUAGE'],
-           $langParse);
-
-        $langs = $langParse[1]; // M1 - First part of language
-        $quals = $langParse[4]; // M4 - Quality Factor
-
-        $numLanguages = count($langs);
-        $langArr = array();
-
-        for($num = 0; $num < $numLanguages; $num++)
-        {
-           $newLang = strtolower($langs[$num]);
-           $newQual = isset($quals[$num]) ?
-              (empty($quals[$num]) ? 1.0 : floatval($quals[$num])) : 0.0;
-
-           // Choose whether to upgrade or set the quality factor for the
-           // primary language.
-           $langArr[$newLang] = (isset($langArr[$newLang])) ?
-              max($langArr[$newLang], $newQual) : $newQual;
-        }
-        
-        $countryCode2 = drdata_IpToCountry::get();
-
-        $langsInCountry = arr::make(drdata_Countries::fetchField("#letterCode2 = '{$countryCode2}'", 'languages'));
-        
-        if(count($langsInCountry)) {
-            foreach($langsInCountry as $lg) {
-                $langArr[$lg]++;
-            }
-        }
-        
-        if($langArr['en']) {
-            $langArr['en'] *= 0.99;
-        }
-
-        // sort list based on value
-        // langArr will now be an array like: array('EN' => 1, 'ES' => 0.5)
-        arsort($langArr, SORT_NUMERIC);
-        
-        foreach($langArr as $lg => $q) {
-            if($cmsLangs[$lg]) {               
-
-                return $lg;
-            }
-        }
-        
-        // Ако не сме определили езика - връщаме базовия
-        return $conf->CMS_BASE_LANG;
+    function act_Migrate()
+    {
+        $s = cls::get('cms_Setup');
+        return $s->contentOrder111();
     }
-
+ 
 
     /**
      * Екшън за избор на език на интерфейса за CMS часта
      */
     function act_SelectLang()
     {
-        $langsArr = self::getUsedLangsArr();
-
+        $langsArr = cms_Domains::getCmsLangs();
+ 
         $lang = $langsArr[Request::get('lang')];
 
         if($lang) {
             self::setLang($lang);
-            
-            core_Lg::set($lang);
-
-            followRetUrl();
+            redirect(array('cms_Content', 'Show'));
         }
 
         $lang = self::getLang();
- 
+
         $res = new ET(getFileContent('cms/themes/default/LangSelect.shtml'));
         
         $s = $res->getBlock('SELECTOR');
@@ -317,8 +192,6 @@ class cms_Content extends core_Manager
     {
         $form = $data->listFilter;
         
-        $form->setOptions('lang', self::getLangsArr());
-
         // В хоризонтален вид
         $form->view = 'horizontal';
         
@@ -327,19 +200,15 @@ class cms_Content extends core_Manager
         
         // Показваме само това поле. Иначе и другите полета 
         // на модела ще се появят
-        $form->showFields = 'search, lang';
+        $form->showFields = 'search';
         
-        $form->input('search, lang', 'silent');
+        $form->input('search', 'silent');
 
-        if($form->rec->lang) {
-            self::setLang($lang = $form->rec->lang); 
-        } else {
-            $form->setDefault('lang', $lang = self::getLang());
-        }
+        $domainId = cms_Domains::getCurrent();
        
-        $data->query->where(array("#lang = '[#1#]'", $lang));
+        $data->query->where("#domainId = {$domainId}");
         
-        $data->query->orderBy('#order,#lang');
+        $data->query->orderBy('#order', 'ASC');
     }
 
 
@@ -348,19 +217,9 @@ class cms_Content extends core_Manager
      */
     function on_AfterPrepareEditForm($mvc, $res, $data)
     {
-        $langsArr = self::getLangsArr();
-
-        if(($lg = $data->form->rec->lang) && !$langsArr[$lg]) {
-            $langsArr = array($lg => $lg) + $langsArr;
-        }
-
-        $data->form->setOptions('lang', $langsArr);
-
-        if(!$lg) {
-            $lang = cms_Content::getLang();
-            $data->form->setDefault('lang', $lang);
-        }
-    }
+        $data->form->rec->domainId = cms_Domains::getCurrent();
+        $data->form->setReadOnly('domainId');
+     }
 
     
     /**
@@ -369,12 +228,11 @@ class cms_Content extends core_Manager
     function prepareMenu_($data)
     {
         $query = self::getQuery();
-        
         $query->orderBy('#order');
 
-        $lang = $this->getLang();
+        $data->domainId = cms_Domains::getPublicDomain('id');
 
-        $data->items = $query->fetchAll(array("#state = 'active' && #lang = '[#1#]'",  $lang));
+        $data->items = $query->fetchAll("#state = 'active' AND #domainId = {$data->domainId}");  
     }
 
     
@@ -386,12 +244,11 @@ class cms_Content extends core_Manager
         $tpl = new ET();
         
         $cMenuId = Mode::get('cMenuId');
-        
         if(!$cMenuId) {
             $cMenuId = Request::get('cMenuId');
             Mode::set('cMenuId', $cMenuId);
         }
-
+        
         if (is_array($data->items)) {
             foreach($data->items as $rec) {
                 
@@ -407,14 +264,16 @@ class cms_Content extends core_Manager
                 } 
                 
                 $url = $this->getContentUrl($rec);
+
+                if(!$url) $url = '#';
                 
                 $tpl->append(ht::createLink($rec->menu, $url, NULL, $attr));
             }    
         }
         
         // Ако имаме действащи менюта на повече от един език, показваме бутон за избор на езика
-        $usedLangsArr = self::getUsedLangsArr();
-        
+        $usedLangsArr = cms_Domains::getCmsLangs();
+ 
         if(count($usedLangsArr) == 2) {
 
             // Премахваме текущия език
@@ -441,7 +300,7 @@ class cms_Content extends core_Manager
             }
         } elseif(count($usedLangsArr) > 1) {
             $attr['class'] = 'selectLang';
-            $attr['title'] = tr('Смяна на езика');
+            $attr['title'] = implode(', ', $usedLangsArr);
             $tpl->append(ht::createLink(ht::createElement('img', array('src' => sbf('img/24/globe.png', ''))), array($this, 'selectLang'), NULL, $attr));
         }
 
@@ -452,7 +311,7 @@ class cms_Content extends core_Manager
     /**
      * Връща URL към съдържанието, което отговаря на този запис
      */
-    function getContentUrl($rec) 
+    function getContentUrl($rec, $absolute = FALSE) 
     {
         if($rec->source) {
             $source = cls::get($rec->source);
@@ -462,6 +321,13 @@ class cms_Content extends core_Manager
         } else {
             // expect(FALSE);
             $url = '';
+        }
+ 
+        if($absolute && is_array($url)) {
+            $domain = cms_Domains::fetch($rec->domainId)->domain;
+            if($domain != 'localhost' || in_array($_SERVER['REMOTE_ADDR'], array('127.0.0.1', '::1'))) {
+                $url = Url::change(toUrl($url, 'absolute'), NULL, $domain);
+            }
         }
 
         return $url;
@@ -498,10 +364,10 @@ class cms_Content extends core_Manager
         if($rec->source) {
             $Source = cls::getInterface('cms_SourceIntf', $rec->source);
             $workUrl = $Source->getWorkshopUrl($rec->id);
-            $row->menu = ht::createLink($row->menu, $workUrl); 
+            $row->source = ht::createLink($row->source, $workUrl); 
         }
-        
-        $publicUrl = $mvc->getContentUrl($rec);
+        $publicUrl = $mvc->getContentUrl($rec, TRUE);
+        $row->menu = ht::createLink($row->menu, $publicUrl, FALSE, 'ef_icon=img/16/monitor.png'); 
     }
 
     
@@ -517,22 +383,7 @@ class cms_Content extends core_Manager
         return  $self->renderMenu($data);
     }
 
-    
-    /**
-     * Връща футера на страницата
-     */
-    static function getFooter()
-    {
-        if(self::getLang() !== 'bg') {
-            $footer =  new ET(getFileContent("cms/tpl/FooterEn.shtml"));
-        } else {
-            $footer =  new ET(getFileContent("cms/tpl/Footer.shtml"));
-        }
-        $footer->replace(getBoot() . '/' . EF_SBF . '/' . EF_APP_NAME, 'boot');
-
-        return $footer;
-    }
-    
+        
      
     /**
      * Връща футера на страницата
@@ -554,20 +405,54 @@ class cms_Content extends core_Manager
     {
         if($menuId && $rec = cms_Content::fetch($menuId)) {
             Mode::set('cMenuId', $menuId);
-            self::setLang($lg = $rec->lang);
+            cms_Domains::setPublicDomain($rec->domainId);
         } else {
-            $lg = self::getLang();
-        }
-
-        $langsArr = arr::make(core_Lg::getLangs());
-
-        if($langsArr[$lg]) {
-            core_Lg::push($lg);
+            $lg = cms_Domains::getPublicDomain('lang');
+            $langsArr = arr::make(core_Lg::getLangs());
+            if($langsArr[$lg]) {
+                core_Lg::push($lg);
+            }
         }
 
         Mode::set('wrapper', 'cms_page_External');
-        
     }
+
+
+    /**
+     * Връща менюто по подразбиране за съответния тип източник на съдържание
+     *
+     * @param   mixed   $class  Името на класа 
+     * @return  int     $menuId id-то на менюто
+     */
+    public static function getDefaultMenuId($class)
+    {
+        $classId = core_Classes::getId($class);
+        $domainId = cms_Domains::getPublicDomain('id');
+        $query = self::getQuery();
+        $query->orderBy('#order', 'ASC');
+        $rec = $query->fetch("#source = {$classId} AND #domainId = {$domainId}");
+        if($rec) {
+
+            return $rec->id;
+        }
+    }
+
+
+    /**
+     * Връща футера на страницата
+     */
+    static function getFooter()
+    {
+        if(self::getLang() !== 'bg') {
+            $footer =  new ET(getFileContent("cms/tpl/FooterEn.shtml"));
+        } else {
+            $footer =  new ET(getFileContent("cms/tpl/Footer.shtml"));
+        }
+        $footer->replace(getBoot() . '/' . EF_SBF . '/' . EF_APP_NAME, 'boot');
+
+        return $footer;
+    }
+
 
     
     /**
@@ -579,8 +464,8 @@ class cms_Content extends core_Manager
         
         if(!$menuId) {
             $query = self::getQuery();
-            $lang = self::getLang();
-            $query->where("#state = 'active' AND #lang = '{$lang}'");
+            $domainId = cms_Domains::getPublicDomain('id');
+            $query->where("#state = 'active' AND #domainId = {$domainId}");
             $query->orderBy("#order");
             $rec = $query->fetch();
         } else {
@@ -597,5 +482,69 @@ class cms_Content extends core_Manager
             return new Redirect(array('bgerp_Portal', 'Show'));
         }
     }
-   
+    
+
+    /**
+     * Титлата за листовия изглед
+     * Съдържа и текущия домейн
+     */
+    static function on_AfterPrepareListTitle($mvc, $res, $data)
+    {
+        
+        $data->title .= cms_Domains::getCurrentDomainInTitle();
+    }
+
+
+    /**
+     * Връща опциите от менюто, които отговарят на текущия домейн и клас
+     */
+    public static function getMenuOpt($class)
+    {   
+        $classId = core_Classes::getId($class);
+        $domainId = cms_Domains::getCurrent();
+        $query = self::getQuery();
+        $query->orderBy('#order');
+        while($rec = $query->fetch("#domainId = {$domainId} && #source = {$classId}")) {
+            $res[$rec->id] = $rec->menu;
+        }
+
+        return $res;
+    }
+
+
+    /**
+	 * Модификация на ролите, които могат да видят избраната тема
+	 */
+    static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+	{  
+   		//  Кой може да обобщава резултатите
+		if($action == 'delete' && isset($rec->id, $rec->source) ) {
+            $source = cls::get($rec->source);
+   			if($source->getUrlByMenuId($rec->id) != '#') {
+    		    $res = 'no_one';
+            }
+        }
+   	}
+
+
+    /**
+     * Изпълнява се преди запис в модела
+     * - Ако полето за подредба не е попълнено, попълва стойност, която поставя менюто последно
+     */
+    protected static function on_BeforeSave($mvc, &$id, $rec, $fields = NULL)
+    { 
+        if(!$rec->order) {
+            $lastOrder = 0;
+            $query = self::getQuery();
+            $query->orderBy("#order", 'DESC');
+            $cd = cms_domains::getCurrent();
+            
+            $typeOrder = cls::get('type_Order');
+            if($lastOrder = $query->fetch("#state = 'active' AND #domainId = {$cd}")->order) {
+               list($lastOrder, ) = explode('.', $typeOrder->toVerbal_($lastOrder)); 
+            } 
+            $rec->order = $typeOrder->fromVerbal($lastOrder + 10);
+        }
+    }
+
  }

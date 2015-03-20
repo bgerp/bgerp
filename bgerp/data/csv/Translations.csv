@@ -981,8 +981,8 @@ en,Инициатор,Initiator
 en,Разговори,Calls
 en,Все още няма ус_3bd5,There are still no conditions
 en,Условия на про_52100,Terms of sale
-en,Фирми започващ_850b,Companies beginning with the letters
-en,Лица започващи_337a,Persons starting with the letters
+en,Фирми започващ_850b,Company names starting with letters
+en,Лица започващи_337a,Names starting with letters
 en,препратен,forwarded
 en,Съблюдаване на,Compliance
 en,Всички напомня_6e71,All reminders
@@ -1702,3 +1702,48 @@ en,Технологична рецепта,Bill of materials
 en,Технологични рецепти,Bills of materials
 en,Имате ли някакви въпроси за,Do you have any questions for
 en,чрез,via
+en,Ваш реф. №,Your ref. №
+en,Ваш реф.,Your ref.
+en,Бюджет,Budget
+en,Чакащи,Pending
+en,Проформи,Proforma Invoices
+en,Проформа фактура,Proforma Invoices
+en,Приключвания,Closures
+en,Декларация,Declaration
+en,Отговарят на, Meet the requirements
+en,Материали,Materials
+en,Изработени от, Made of
+en,Допълнения,Additions
+en,ПБД,IBT
+en,РБД,OBT
+en,Финансови,Financial
+en,ПОЛ,URP
+en,Аванси,Advance
+en,Прехвърляния,Transfers
+en,Експедици,Shipping orders
+en,Получавания,Arrivals
+en,Трансфери,Store receipts
+en,Моля запознайте се с нашето нареждане разписка,Please see our cash payment order
+en,Моля запознайте се с нашата вносна бележка,Please see our deposit slip
+en,Моля запознайте се с нашия приходен банков документ,Please see our incoming bank transfer
+en,Моля запознайте се с нашето платежно нареждане,Please see payment order
+en,Моля запознайте се с нашия разходен банков документ,Please see our outgoing bank transfer
+en,Моля запознайте се с нашия приходен касов ордер,Please see our credit cash order
+en,Моля запознайте се с нашия разходен касов ордер,Please see our debit cash order
+en,Моля запознайте се с нашата,Please see our 
+en,Моля запознайте се с,Please see
+en,покупка,purchase
+en,продажба,sale
+en,приложената фактура,attached invoice
+en,приложеното дебитно известие,attached debit note
+en,приложеното кредитно известие,attached credit note
+en,приемателен протокол,acceptance protocol
+en,предавателен протокол,emitting protocol
+en,Моля запознайте се с нашата декларация за съответствие,Please see our declaration of compliance
+en,Моля запознайте се с препратения имейл,Please see forwarded email
+en,Моля запознайте се с нашия авансов отчет,Please see advance report
+en,Моля запознайте се с нашия документ,Please see our document
+en,Моля запознайте се с нашия ценоразпис,Please see our price list
+en,Моля запознайте се с нашата оферта,Please see our quotations
+en,Моля запознайте се с нашата складова разписка,Please see our store receipt
+en,Моля запознайте се с нашето експедиционно нареждане,Please see our shipping order

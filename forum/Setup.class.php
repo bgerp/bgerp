@@ -88,7 +88,7 @@ class forum_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     var $menuItems = array(
-            array(3.5, 'Сайт', 'Форум', 'forum_Boards', 'list', "cms,forum, admin, ceo"),
+            array(3.54, 'Сайт', 'Форум', 'forum_Boards', 'list', "cms,forum, admin, ceo"),
         );
     
     

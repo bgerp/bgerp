@@ -36,5 +36,14 @@ class page_Setup extends core_ProtoSetup
 	 */
 	public $noInstall = TRUE;
 	
+    
+    /**
+     * Интерфейсен метод
+     * 
+     * @see core_page_WrapperIntf
+     */
+    function prepare()
+    {
+        
+    }
 }
-

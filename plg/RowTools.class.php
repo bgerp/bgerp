@@ -125,7 +125,10 @@ class plg_RowTools extends core_Plugin
         }
         $row->{$field} = $tpl;
         
-        $row->{$field}->append('rowtools-column', 'COL_CLASS');
+        if (!isset($mvc->rowToolsColumn)) {
+            $mvc->rowToolsColumn = array();
+        }
+        $mvc->rowToolsColumn[$field] = 'rowtools-column';
     }
     
     

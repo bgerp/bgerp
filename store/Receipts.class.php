@@ -72,12 +72,6 @@ class store_Receipts extends store_DocumentMaster
     
     
     /**
-     * Кой може да го види?
-     */
-    public $canView = 'ceo,store';
-    
-    
-    /**
      * Кой може да го изтрие?
      */
     public $canConto = 'ceo,store';
@@ -86,7 +80,7 @@ class store_Receipts extends store_DocumentMaster
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, valior, folderId, amountDelivered, weight, volume, createdOn, createdBy';
+    public $listFields = 'tools=Пулт, valior, title=Документ, folderId, amountDelivered, weight, volume, createdOn, createdBy';
 
 
     /**

@@ -385,10 +385,6 @@ class techno2_SpecificationDoc extends core_Embedder
     				$data->toolbar->addBtn("Оферта", array('sales_Quotations', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE), 'ef_icon = img/16/document_quote.png,title=Нова оферта за спецификацията');
     			}
     		}
-    		
-    		if(techno2_SpecTplCache::haveRightFor('read')){
-    			$data->toolbar->addBtn("История", array('techno2_SpecTplCache', 'list', 'docId' => $data->rec->id), 'ef_icon = img/16/view.png,title=Минали изгледи на спецификации');
-    		}
     	}
     	
     	if($data->rec->state == 'active'){
@@ -400,11 +396,11 @@ class techno2_SpecificationDoc extends core_Embedder
     			}
     		}
     		
-    		if(mp_Jobs::haveRightFor('write', (object)array('originId' => $data->rec->containerId))){
-    			if($qRec = mp_Jobs::fetch("#originId = {$data->rec->containerId} AND #state = 'draft'")){
-    				$data->toolbar->addBtn("Задание", array('mp_Jobs', 'edit', $qRec->id, 'ret_url' => TRUE), 'ef_icon = img/16/clipboard_text.png,title=Редактиране на задание за производство');
+    		if(planning_Jobs::haveRightFor('write', (object)array('originId' => $data->rec->containerId))){
+    			if($qRec = planning_Jobs::fetch("#originId = {$data->rec->containerId} AND #state = 'draft'")){
+    				$data->toolbar->addBtn("Задание", array('planning_Jobs', 'edit', $qRec->id, 'ret_url' => TRUE), 'ef_icon = img/16/clipboard_text.png,title=Редактиране на задание за производство');
     			} else {
-    				$data->toolbar->addBtn("Задание", array('mp_Jobs', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE), 'ef_icon = img/16/clipboard_text.png,title=Създаване на ново задание за производство');
+    				$data->toolbar->addBtn("Задание", array('planning_Jobs', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE), 'ef_icon = img/16/clipboard_text.png,title=Създаване на ново задание за производство');
     			}
     		}
     	}
@@ -802,7 +798,7 @@ class techno2_SpecificationDoc extends core_Embedder
     public function getProductDesc($id, $documentMvc, $time = NULL)
     {
     	// Ако документа където ще се показва е договор, тогава показваме подробното описание
-    	if($documentMvc instanceof deals_DealMaster || $documentMvc instanceof mp_Jobs || $documentMvc instanceof sales_Quotations){
+    	if($documentMvc instanceof deals_DealMaster || $documentMvc instanceof planning_Jobs || $documentMvc instanceof sales_Quotations){
     		$tpl = self::cacheTpl($id, $time);
     		 
     		return $tpl;
@@ -851,7 +847,7 @@ class techno2_SpecificationDoc extends core_Embedder
     	$rec = self::fetchRec($id);
     	
     	// Какво е к-то от последното активно задание
-    	return mp_Jobs::fetch("#originId = {$rec->containerId} AND #state = 'active'");
+    	return planning_Jobs::fetch("#originId = {$rec->containerId} AND #state = 'active'");
     }
     
     
@@ -880,7 +876,7 @@ class techno2_SpecificationDoc extends core_Embedder
     public function renderJobView($id, $time = NULL)
     {
     	//@TODO дали е удачно да се кешира изгледа
-    	$Jobs = cls::get('mp_Jobs');
+    	$Jobs = cls::get('planning_Jobs');
     	return $this->getProductDesc($id, $Jobs, $time);
     }
     

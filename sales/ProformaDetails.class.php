@@ -77,14 +77,6 @@ class sales_ProformaDetails extends deals_InvoiceDetail
     
     
     /**
-     * Кой може да го види?
-     * 
-     * @var string|array
-     */
-    public $canView = 'ceo, sales';
-    
-    
-    /**
      * Кой може да го изтрие?
      * 
      * @var string|array

@@ -14,7 +14,7 @@
  * @since     v 0.1
  * @title     Продуктови параметри
  */
-class cat_Params extends core_Manager
+class cat_Params extends core_Master
 {
     
     
@@ -33,13 +33,19 @@ class cat_Params extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id,typeExt,type,options,default,lastUsedOn,sysId';
+    var $listFields = 'tools=Пулт,typeExt,type,lastUsedOn';
     
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    var $rowToolsField = 'id';
+    var $rowToolsField = 'tools';
+    
+    
+    /**
+     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
+     */
+    var $rowToolsSingleField = 'typeExt';
     
     
     /**
@@ -91,6 +97,7 @@ class cat_Params extends core_Manager
         						   'percent' => 'type_Percent',
         						   'enum'    => 'type_Enum',
         						   'int'     => 'type_Int',
+    							   'time'    => 'type_Time',
     );
     
     
@@ -100,14 +107,15 @@ class cat_Params extends core_Manager
     function description()
     {
         $this->FLD('name', 'varchar(64)', 'caption=Име, mandatory');
-        $this->FLD('type', 'enum(size=Размер,weight=Тегло,volume=Обем,double=Число,int=Цяло число,varchar=Текст,date=Дата,percent=Процент,enum=Изброим,density=Плътност)', 'caption=Тип');
+        $this->FLD('type', 'enum(size=Размер,weight=Тегло,volume=Обем,double=Число,int=Цяло число,varchar=Текст,date=Дата,percent=Процент,enum=Изброим,density=Плътност,time=Време)', 'caption=Тип');
         $this->FLD('options', 'varchar(128)', 'caption=Стойности');
         $this->FLD('suffix', 'varchar(64)', 'caption=Суфикс');
         $this->FLD('sysId', 'varchar(32)', 'input=none');
         $this->FLD('lastUsedOn', 'datetime', 'caption=Последно използване,input=hidden');
         $this->FNC('typeExt', 'varchar', 'caption=Име');
         $this->FLD('default', 'varchar(64)', 'caption=Дефолт');
-        $this->FLD('isFeature', 'enum(no=Не,yes=Да)', 'caption=Счетоводен признак за групиране->Използване,notNull,default=no,maxRadio=2,value=no,hint=Използване като признак за групиране в счетоводните справки?');
+        $this->FLD('isFeature', 'enum(no=Не,yes=Да)', 'caption=Счетоводен признак за групиране->Използване,notNull,value=no,maxRadio=2,value=no,hint=Използване като признак за групиране в счетоводните справки?');
+        $this->FLD('showInPublicDocuments', 'enum(no=Не,yes=Да)', 'caption=Показване във външни документи->Показване,notNull,value=yes,maxRadio=2');
         
         $this->setDbUnique('name, suffix');
         $this->setDbUnique("sysId");
@@ -126,7 +134,19 @@ class cat_Params extends core_Manager
         }
     }
     
-
+    
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+    	$data->form->setDefault('showInPublicDocuments', 'yes');
+    }
+    
+    
 	/**
      * След изпращане на формата
      */
@@ -144,7 +164,7 @@ class cat_Params extends core_Manager
         		}
         	} else {
         		if($rec->type == 'enum'){
-        			$form->setError('options', "За изброим тип задължително трябва да се се зададат стойностти");
+        			$form->setError('options', "За изброим тип задължително трябва да се се зададат стойности");
         		}
         	}
         }
@@ -228,23 +248,25 @@ class cat_Params extends core_Manager
     }
     
     
-	/**
+    /**
      * Извиква се след SetUp-а на таблицата за модела
      */
-    static function on_AfterSetupMvc($mvc, &$res)
+    function loadSetupData()
     {
     	$file = "cat/csv/Params.csv";
-    	$fields = array( 
-	    	0 => "name", 
-	    	1 => "type", 
-	    	2 => "suffix", 
-	    	3 => "sysId",
-    		4 => "options",
-    		5 => "default");
-    	
-    	$cntObj = csv_Lib::importOnce($mvc, $file, $fields);
+    	$fields = array(
+    			0 => "name",
+    			1 => "type",
+    			2 => "suffix",
+    			3 => "sysId",
+    			4 => "options",
+    			5 => "default",
+    			6 => "showInPublicDocuments",
+    	);
+    	 
+    	$cntObj = csv_Lib::importOnce($this, $file, $fields);
     	$res .= $cntObj->html;
-    
+    	
     	return $res;
     }
     

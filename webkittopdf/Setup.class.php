@@ -193,7 +193,7 @@ class webkittopdf_Setup extends core_ProtoSetup
      * 
      * @return boolean
      */
-    static function isEnabled()
+    public static function isEnabled()
     {
         $conf = core_Packs::getConfig('webkittopdf');
         

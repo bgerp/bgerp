@@ -190,7 +190,7 @@ class bgerp_Recently extends core_Manager
         }
         
         if($state == 'opened') {
-            $row->title = new ET("<span class='state-opened-link'>[#1#]</div>", $row->title);
+            $row->title = new ET("<span class='state-opened-link'>[#1#]</span>", $row->title);
         } 
     }
     

@@ -30,7 +30,7 @@ class cat_ProductTplCache extends core_Master
 	/**
 	 * Заглавие на мениджъра
 	 */
-	public $title = "Кеш на изгледа на частните артикули";
+	public $title = "Кеш на изгледа на артикулите";
 	
 	
 	/**
@@ -43,6 +43,12 @@ class cat_ProductTplCache extends core_Master
 	 * Права за запис
 	 */
 	public $canRead = 'ceo, cat';
+	
+	
+	/**
+	 * Права за запис
+	 */
+	public $canDelete = 'ceo, cat';
 	
 	
 	/**
@@ -82,7 +88,7 @@ class cat_ProductTplCache extends core_Master
 	{
 		$this->FLD("productId", "key(mvc=cat_Products,select=name)", "input=none,caption=Артикул");
 		$this->FLD("cache", "blob(1000000, serialize, compress)", "input=none,caption=Html,column=none");
-		$this->FLD("time", "datetime(format=smartTime)", "input=none,caption=Дата");
+		$this->FLD("time", "datetime", "input=none,caption=Дата");
 	}
 	
 	
@@ -92,7 +98,8 @@ class cat_ProductTplCache extends core_Master
 	public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
 	{
 		if(isset($fields['-single'])){
-			$row->cache = new ET($rec->cache);
+			$Driver = cat_Products::getDriver($rec->productId);
+			$row->cache = $Driver->renderProductDescription($rec->cache);
 		}
 	}
 
@@ -102,7 +109,7 @@ class cat_ProductTplCache extends core_Master
 	 */
 	public static function on_AfterPrepareListFilter($mvc, &$data)
 	{
-		$data->listFilter->FLD("docId", "key(mvc=cat_Products,select=name,allowEmpty)", "input,caption=Спецификация");
+		$data->listFilter->FLD("docId", "key(mvc=cat_Products,select=name,allowEmpty)", "input,caption=Артикул");
 		$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
 		$data->listFilter->view = 'horizontal';
 		$data->listFilter->showFields = 'docId';
@@ -123,7 +130,7 @@ class cat_ProductTplCache extends core_Master
 	 */
 	public static function on_AfterPrepareListToolbar($mvc, &$data)
 	{
-		if(haveRole('admin,debug')){
+		if(haveRole('admin,debug,ceo')){
 			$data->toolbar->addBtn('Изчистване', array($mvc, 'truncate'), 'warning=Искатели да изчистите таблицата,ef_icon=img/16/sport_shuttlecock.png');
 		}
 	}
@@ -134,7 +141,7 @@ class cat_ProductTplCache extends core_Master
 	 */
 	public function act_Truncate()
 	{
-		requireRole('admin,debug');
+		requireRole('admin,debug,ceo');
 		 
 		// Изчистваме записите от моделите
 		self::truncate();
@@ -148,12 +155,14 @@ class cat_ProductTplCache extends core_Master
 	 *
 	 * @param mixed $id - ид/запис
 	 * @param datetime $time - време
+	 * @param enum(public,internal) $documentType - публичен или външен е документа за който ще се кешира изгледа
 	 * @return core_ET - кеширания шаблон
 	 */
-	public static function cacheTpl($productId, $time)
+	public static function cacheTpl($productId, $time, $documentType = 'public')
 	{
 		$pRec = cat_Products::fetchRec($productId);
 		$cache = self::fetchField("#productId = {$pRec->id} AND #time = '{$time}'", 'cache');
+		$Driver = cls::get('cat_Products')->getDriver($productId);
 		
 		// Ако има кеширан изглед за тази дата връщаме го
 		if(!$cache){
@@ -162,15 +171,15 @@ class cat_ProductTplCache extends core_Master
 			$cacheRec = new stdClass();
 			$cacheRec->time = $time;
 			$cacheRec->productId = $productId;
-	
-			$Driver = cls::get('cat_Products')->getDriver($productId);
-			$cacheRec->cache = $Driver->getProductDescription();
+			$cacheRec->cache = $Driver->prepareProductDescription($documentType);
 			self::save($cacheRec);
 	
 			$cache = $cacheRec->cache;
 		}
-		 
+		
+		$tpl = $Driver->renderProductDescription($cache);
+		
 		// Връщаме намерения изглед
-		return $cache;
+		return $tpl;
 	}
 }

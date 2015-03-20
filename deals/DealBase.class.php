@@ -42,6 +42,18 @@ abstract class deals_DealBase extends core_Master
 	
 	
 	/**
+	 * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
+	 */
+	public $rowToolsField = 'tools';
+	
+	
+	/**
+	 * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
+	 */
+	public $rowToolsSingleField = 'title';
+	
+	
+	/**
 	 * Извиква се след описанието на модела
 	 *
 	 * @param core_Mvc $mvc
@@ -294,7 +306,7 @@ abstract class deals_DealBase extends core_Master
     /**
      * След преобразуване на записа в четим за хора вид
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	if($rec->closedDocuments){
     		$docs = keylist::toArray($rec->closedDocuments);
@@ -304,6 +316,10 @@ abstract class deals_DealBase extends core_Master
     			$row->closedDocuments .= ht::createLink($mvc->getHandle($docId), array($mvc, 'single', $docId)) . ", ";
     		}
     		$row->closedDocuments = trim($row->closedDocuments, ", ");
+    	}
+    	
+    	if($fields['-list']){
+    		$row->title = $mvc->getLink($rec->id, 0);
     	}
     }
     

@@ -1,0 +1,93 @@
+[#SingleToolbar#]
+<div class='document'>
+    <!--ET_BEGIN blank-->
+    [#blank#]
+    <!--ET_END blank-->
+    <!--ET_BEGIN header-->
+    <div class='header [#STATE_CLASS#]'>
+        <div class='docBgIcon' style='[#iconStyle#];'>[#singleTitle#] <b>[#ident#]</b> ([#state#])</div>
+    </div>
+    <!--ET_END header-->
+    <div class='scrolling-holder'>
+        <table class="innerTable quote-header paddingCells" style='width:100%;'>
+            <tbody>
+                <tr>
+                    <td class="cell custom-header-bg" style='width:35%;'><b>Receiver</b></td>
+                    <td class="cellm centered" rowspan="2" style='width:30%;'>
+                        <div class='invoiceTitle' style='font-size:1.2em;margin-bottom:5px'><b>QUOTATION </b></div>
+                        <div class="bigData">№[#number#] / [#date#]</div>
+                        <!--ET_BEGIN place-->
+                        <div class='quiet-small'>Place</div>
+                        <div class="bigData">[#place#]</div>
+                        <!--ET_END place-->
+                        <!--ET_BEGIN reff-->
+                        <div class='quiet-small'>Your ref</div>
+                        <div class="bigData">[#reff#]</div>
+                        <!--ET_END reff-->
+                    </td>
+                    <td class="cell custom-header-bg" style='width:35%;'><b>Supplier</b> </td>
+                </tr>
+                <tr>
+                    <td class="cell">
+                        <div><b>[#company#]</b></div>
+                        <div><b>[#person#]</b></div>
+                        <div class='address-block'>[#contragentAddress#]</div>
+                    </td>
+                    <td class="cell">
+                        <b>[#MyCompany#]</b>
+                        <div class='address-block'>[#MyAddress#]</div>
+                    </td>
+                </tr>
+                <tr>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="clearfix21"></div>
+    <!--ET_BEGIN MANDATORY-->
+    <div id='details-holder'>
+        [#MANDATORY#]
+    </div>
+    <!--ET_END MANDATORY-->
+    <!--ET_BEGIN OPTIONAL-->
+    <div id='optional-holder'>
+        [#OPTIONAL#]
+    </div>
+    <!--ET_END OPTIONAL-->
+    [#ListToolbar#]
+    <table  class = 'products-table' style='width:100%;'>
+        <tr>
+            <th>Quotation conditions</th>
+            <th>Prepared</th>
+        </tr>
+        <tr>
+            <td> 
+                <ol id='conditions'>
+		            <li> Valid untill: <b>[#validFor#] (till [#validDate#])</b>			            
+		            </li>
+		            <li>Payment method: <b>[#paymentMethodId#]</b></li>
+			        <li>Delivery term: <b>[#deliveryTermId#]</b></li>
+			        <!--ET_BEGIN deliveryPlaceId-->
+			        <li>Delivery place: <b>[#deliveryPlaceId#]</b></li>
+			        <!--ET_END deliveryPlaceId-->
+			        <li><b>|В сила са Oбщите Условия за изрaботка на|* [#MyCompany#]</b></li>
+			        <!--ET_BEGIN others-->
+			        [#others#]
+			        <!--ET_END others-->
+		        </ol>
+            </td>
+            <td class="centered" style='vertical-align: bottom !important'>
+              <div style='border-top: 1px dashed #333 !important; color: #070895;padding-left: 5px; font-family: cursive; font-style: italic;display: block; margin-bottom: 2px;'>[#username#]</div>
+            </td>
+        </tr>
+    </table>
+
+    <div class='footerDocBlock'>
+        <div class='aright'>This document is created by <b><a href='http://bgerp.com'>bgERP</a></b>.</div>
+    </div>
+    <div class='details'>
+        <!--ET_BEGIN DETAILS-->
+        [#DETAILS#]
+        <!--ET_END DETAILS-->
+    </div>
+</div>

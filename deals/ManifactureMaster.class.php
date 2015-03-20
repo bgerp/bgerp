@@ -32,7 +32,7 @@ abstract class deals_ManifactureMaster extends core_Master
 	/**
 	 * Полета, които ще се показват в листов изглед
 	 */
-	public $listFields = 'id, valior, activityCenterId, storeId, folderId, deadline, createdOn, createdBy';
+	public $listFields = 'tools=Пулт, valior, title=Документ, activityCenterId, storeId, folderId, deadline, createdOn, createdBy';
 	
 	
    /**
@@ -87,6 +87,7 @@ abstract class deals_ManifactureMaster extends core_Master
 			$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
 			$row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
 			$row->activityCenterId = hr_Departments::getHyperlink($rec->activityCenterId, TRUE);
+			$row->title = $mvc->getLink($rec->id, 0);
 		}
 	}
 	
@@ -160,27 +161,6 @@ abstract class deals_ManifactureMaster extends core_Master
 	
 	
 	/**
-	 * Проверка дали нов документ може да бъде добавен в посочената нишка
-	 *
-	 * @param int $threadId key(mvc=doc_Threads)
-	 * @return boolean
-	 */
-	public static function canAddToThread($threadId)
-	{
-		$firstDoc = doc_Threads::getFirstDocument($threadId);
-		
-		// Може да се добавя само към нишка с начало документ 'Задание'
-		//@TODO да го откоментирам след мърдж
-		/*if($firstDoc->getInstance() instanceof mp_Jobs){
-			
-			return TRUE;
-		}*/
-		
-		return FALSE;
-	}
-	
-	
-	/**
      * В кои корици може да се вкарва документа
      * @return array - интерфейси, които трябва да имат кориците
      */
@@ -201,6 +181,22 @@ abstract class deals_ManifactureMaster extends core_Master
     	$folderClass = doc_Folders::fetchCoverClassName($folderId);
     
     	return cls::haveInterface('store_AccRegIntf', $folderClass);
+    }
+    
+    
+    /**
+     * Проверка дали нов документ може да бъде добавен в
+     * посочената нишка
+     *
+     * @param int $threadId key(mvc=doc_Threads)
+     * @return boolean
+     */
+    public static function canAddToThread($threadId)
+    {
+    	$threadRec = doc_Threads::fetch($threadId);
+    	$coverClass = doc_Folders::fetchCoverClassName($threadRec->folderId);
+    
+    	return cls::haveInterface('store_AccRegIntf', $coverClass);
     }
     
     

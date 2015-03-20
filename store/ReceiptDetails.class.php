@@ -63,12 +63,6 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
     
     
     /**
-     * Кой може да го види?
-     */
-    public $canView = 'ceo, store';
-    
-    
-    /**
      * Кой може да го изтрие?
      */
     public $canDelete = 'ceo, store';
@@ -136,5 +130,23 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
     public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form &$form)
     {
     	parent::inputDocForm($mvc, $form);
+    }
+    
+    
+    /**
+     * След обработка на записите от базата данни
+     */
+    public static function on_AfterPrepareListRows(core_Mvc $mvc, $data)
+    {
+    	if(count($data->rows)) {
+    		foreach ($data->rows as $i => &$row) {
+    			$rec = &$data->recs[$i];
+    
+    			$row->productId = cls::get($rec->classId)->getProductDescShort($rec->productId);
+    			if($rec->notes){
+    				$row->productId .= "<div class='small'>{$mvc->getFieldType('notes')->toVerbal($rec->notes)}</div>";
+    			}
+    		}
+    	}
     }
 }

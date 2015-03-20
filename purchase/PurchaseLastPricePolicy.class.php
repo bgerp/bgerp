@@ -52,7 +52,7 @@ class purchase_PurchaseLastPricePolicy extends core_Manager
         $detailQuery->where("#valior <= '{$date}'");
         $detailQuery->where("#productId = '{$productId}'");
         $detailQuery->where("#classId = {$productManId}");
-        $detailQuery->where("#state = 'active'");
+        $detailQuery->where("#state = 'active' || #state = 'closed'");
         $detailQuery->orderBy('#valior,#id', 'DESC');
         $lastRec = $detailQuery->fetch();
         

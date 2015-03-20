@@ -45,7 +45,7 @@ class core_Embedder extends core_Master
 	/**
 	 * Кеш на инстанцираните вградени класове
 	 */
-	protected static $Drivers = array();
+	protected $Drivers = array();
 	
 	
 	/**
@@ -103,11 +103,11 @@ class core_Embedder extends core_Master
 			$innerState = (isset($rec->{$this->innerStateField})) ? $rec->{$this->innerStateField} : $this->fetchField($rec->id, $this->innerStateField);
 		}
 		
-		if(empty(self::$Drivers[$rec->id])){
+		if(empty($this->Drivers[$rec->id])){
 			if(cls::load($rec->{$this->innerClassField}, TRUE)){
 				$Driver = cls::get($rec->{$this->innerClassField});
 				$Driver->EmbedderRec = new core_ObjectReference($this, $rec->id);
-				self::$Drivers[$rec->id] = $Driver;
+				$this->Drivers[$rec->id] = $Driver;
 			} else {
 				
 				return FALSE;
@@ -115,10 +115,10 @@ class core_Embedder extends core_Master
 		}
 		
 		// За всеки случай задава наново вътрешното състояние и форма
-		self::$Drivers[$rec->id]->setInnerForm($innerForm);
-		self::$Drivers[$rec->id]->setInnerState($innerState);
+		$this->Drivers[$rec->id]->setInnerForm($innerForm);
+		$this->Drivers[$rec->id]->setInnerState($innerState);
 		
-		return self::$Drivers[$rec->id];
+		return $this->Drivers[$rec->id];
 	}
 	
 	
@@ -189,12 +189,12 @@ class core_Embedder extends core_Master
 					
 				// Източника модифицира формата при нужда
 				$Driver->prepareEmbeddedForm($form);
+				
+				$mvc->invoke('AfterPrepareEmbeddedForm', array($form));
 			} else {
 				$form->info = tr("|*<b style='color:red'>|Има проблем при зареждането на драйвера|*</b>");
 			}
 		}
-		
-		$mvc->invoke('AfterPrepareEmbeddedForm', array($form));
 		
 		$form->input(NULL, 'silent');
 	}
@@ -250,7 +250,7 @@ class core_Embedder extends core_Master
 		if($Driver = $mvc->getDriver($data->rec)){
 			
 			// Драйвера рендира подготвените данни
-			$embededDataTpl = $Driver->renderEmbeddedData($data->embeddedData);
+			$embededDataTpl = new ET($Driver->renderEmbeddedData($data->embeddedData));
 			
 			// Мениджъра рендира рендираните данни от драйвера
 			$mvc->renderEmbeddedData($tpl, $embededDataTpl, $data);

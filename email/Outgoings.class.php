@@ -401,25 +401,25 @@ class email_Outgoings extends core_Master
             // Генериране на прикачените документи
             $rec->documentsFh = array();
             
-            foreach ($docsArr as $attachDoc) {
-                // Използваме интерфейсен метод doc_DocumentIntf::convertTo за да генерираме
-                // файл със съдържанието на документа в желания формат
-                $fhArr = $attachDoc['doc']->convertTo($attachDoc['ext'], $attachDoc['fileName']);
-                
-                $rec->documentsFh += $fhArr;
-            }
-            
-            // .. ако имаме прикачени документи ...
-            if (count($rec->documentsFh)) {
-                
-                //Вземаме id'тата на файловете вместо манипулаторите
-                $documents = fileman_Files::getIdFromFh($rec->documentsFh);
-                
-                //Записваме прикачените файлове
-                $rec->documents = keylist::fromArray($documents);
-            }
-            
             try {
+                foreach ($docsArr as $attachDoc) {
+                    // Използваме интерфейсен метод doc_DocumentIntf::convertTo за да генерираме
+                    // файл със съдържанието на документа в желания формат
+                    $fhArr = $attachDoc['doc']->convertTo($attachDoc['ext'], $attachDoc['fileName']);
+                    
+                    $rec->documentsFh += $fhArr;
+                }
+                
+                // .. ако имаме прикачени документи ...
+                if (count($rec->documentsFh)) {
+                    
+                    //Вземаме id'тата на файловете вместо манипулаторите
+                    $documents = fileman_Files::getIdFromFh($rec->documentsFh);
+                    
+                    //Записваме прикачените файлове
+                    $rec->documents = keylist::fromArray($documents);
+                }
+            
                 // ... и накрая - изпращане.
                 $status = email_Sent::sendOne(
                     $options->boxFrom,
@@ -1632,6 +1632,27 @@ class email_Outgoings extends core_Master
     {
         // Вземаме обръщението
         $salutation = email_Salutations::get($rec->folderId, $rec->threadId, $rec->email);
+        
+        // Ако обръщението не съвпадата с текущия език, да се остави да се определи от системата
+        if ($salutation) {
+            $isCyrillic = FALSE;
+            
+            if (strlen($salutation) != mb_strlen($salutation)) {
+                $isCyrillic = TRUE;
+            }
+            
+            $currLg = core_Lg::getCurrent();
+            
+            if (array_search($currLg, array('bg', 'ru', 'md', 'sr')) === FALSE) {
+                if ($isCyrillic) {
+                    $salutation = '';
+                }
+            } else {
+                if (!$isCyrillic) {
+                    $salutation = '';
+                }
+            }
+        }
         
         // Ако сме открили обръщение използваме него
         if ($salutation) return $salutation;

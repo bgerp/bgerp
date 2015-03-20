@@ -71,12 +71,21 @@ abstract class cat_ProductDriver extends core_BaseClass
 	 *
 	 * @param mixed $innerForm
 	 */
-	public function setParams($params)
+	public function setDriverParams($params)
 	{
 		$params = arr::make($params, TRUE);
 		if(count($params)){
 			$this->driverParams = arr::make($params, TRUE);
 		}
+	}
+	
+	
+	/**
+	 * Връща параметрите на драйвера
+	 */
+	public function getDriverParams()
+	{
+		return $this->driverParams;
 	}
 	
 	
@@ -254,19 +263,60 @@ abstract class cat_ProductDriver extends core_BaseClass
 	
 	
 	/**
-	 * Колко е теглото на артикула
+	 * Връща параметрите на артикула
+	 * @param mixed $id - ид или запис на артикул
+	 *
+	 * @return array $res - параметрите на артикула
+	 * 					['weight']          -  Тегло
+	 * 					['width']           -  Широчина
+	 * 					['volume']          -  Обем
+	 * 					['thickness']       -  Дебелина
+	 * 					['length']          -  Дължина
+	 * 					['height']          -  Височина
+	 * 					['tolerance']       -  Толеранс
+	 * 					['transportWeight'] -  Транспортно тегло
+	 * 					['transportVolume'] -  Транспортен обем
+	 * 					['term']            -  Срок
 	 */
-	public function getWeight()
+	public function getParams()
 	{
-		return NULL;
+		$res = array();
+		
+		foreach (array('weight', 'width', 'volume', 'thickness', 'length', 'height', 'tolerance', 'transportWeight', 'transportVolume', 'term') as $p){
+			$res[$p] = NULL;
+		}
+		
+		return $res;
 	}
 	
 	
 	/**
-	 * Колко е обема му
+	 * Подготвя данните за показване на описанието на драйвера
+	 * 
+	 * @param enum(public,internal) $documentType - публичен или външен е документа за който ще се кешира изгледа
 	 */
-	public function getVolume()
+	public function prepareProductDescription($documentType = 'public')
 	{
-		return NULL;
+		return (object)array();
+	}
+	
+	
+	/**
+	 * Рендира данните за показване на артикула
+	 */
+	public function renderProductDescription($data)
+	{
+		return new core_ET();
+	}
+	
+	
+	/**
+	 * Как да се казва дефолт папката където ще отиват заданията за артикулите с този драйвер
+	 */
+	public function getJobFolderName()
+	{
+		$title = core_Classes::fetchField($this->getClassId(), 'title');
+		
+		return "Задания за " . mb_strtolower($title);
 	}
 }

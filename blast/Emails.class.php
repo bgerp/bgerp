@@ -211,7 +211,12 @@ class blast_Emails extends core_Master
                                     ascii=Латиница|* (ASCII))', 'caption=Знаци, changable,notNull');
         
         $this->FLD('attachments', 'set(files=Файловете,documents=Документите)', 'caption=Прикачи, changable');
-        $this->FLD('lg', 'enum(auto=Автоматично, ' . EF_LANGUAGES . ')', 'caption=Език,changable,notNull');
+        
+        if (defined('EF_LANGUAGES')) {
+            $this->FLD('lg', 'enum(auto=Автоматично, ' . EF_LANGUAGES . ')', 'caption=Език,changable,notNull');
+        } else {
+            $this->FLD('lg', 'enum(auto=Автоматично)', 'caption=Език,changable,notNull');
+        }
         
         $this->FNC('srcLink', 'varchar', 'caption=Списък');
     }
@@ -638,10 +643,14 @@ class blast_Emails extends core_Master
                 $docsFhArr = array();
                 
                 foreach ((array)$docsArr as $attachDoc) {
-                    // Използваме интерфейсен метод doc_DocumentIntf::convertTo за да генерираме
-                    // файл със съдържанието на документа в желания формат
-                    $fhArr = $attachDoc['doc']->convertTo($attachDoc['ext'], $attachDoc['fileName']);
-                    
+                    try {
+                        
+                        // Използваме интерфейсен метод doc_DocumentIntf::convertTo за да генерираме
+                        // файл със съдържанието на документа в желания формат
+                        $fhArr = $attachDoc['doc']->convertTo($attachDoc['ext'], $attachDoc['fileName']);
+                    } catch (Exception $e) {
+                        continue;
+                    }
                     $docsFhArr += $fhArr;
                 }
             }

@@ -92,7 +92,7 @@ class purchase_Purchases extends deals_DealMaster
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, valior, folderId, currencyId=Валута, amountDeal, amountDelivered, amountPaid,amountInvoiced,dealerId,initiatorId,paymentState,createdOn, createdBy, modifiedOn, modifiedBy';
+    public $listFields = 'tools=Пулт, valior, title=Документ, folderId, currencyId=Валута, amountDeal, amountDelivered, amountPaid,amountInvoiced,dealerId,initiatorId,paymentState,createdOn, createdBy';
 
 
     /**
@@ -150,7 +150,7 @@ class purchase_Purchases extends deals_DealMaster
     	'dealerId'           => 'lastDocUser',
     	'makeInvoice'        => 'lastDocUser|lastDoc',
     	'deliveryLocationId' => 'lastDocUser|lastDoc',
-    	'chargeVat'			 => 'lastDocUser|lastDoc',
+    	'chargeVat'			 => 'lastDocUser|lastDoc|defMethod',
     	'template' 			 => 'lastDocUser|lastDoc|LastDocSameCuntry',
     	'activityCenterId'   => 'lastDocUser|lastDoc',
     );
@@ -166,6 +166,13 @@ class purchase_Purchases extends deals_DealMaster
      * Главен детайл на модела
      */
     public $mainDetail = 'purchase_PurchasesDetails';
+    
+    
+    /**
+     * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
+     * (@see plg_Clone)
+     */
+    public $cloneDetailes = 'purchase_PurchasesDetails';
     
     
     /**
@@ -423,7 +430,8 @@ class purchase_Purchases extends deals_DealMaster
             $p->quantityDelivered = $dRec->quantityDelivered;
             $p->price             = $dRec->price;
             $p->uomId             = $dRec->uomId;
-           
+            $p->notes			  = $dRec->notes;
+            
             $ProductMan = cls::get($p->classId);
             $info = $ProductMan->getProductInfo($p->productId, $p->packagingId);
             $p->weight  = $ProductMan->getWeight($p->productId, $p->packagingId);

@@ -26,7 +26,13 @@ class fileman_Versions extends core_Manager {
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'admin';
+	var $canList = 'debug';
+	
+	
+	/**
+	 * 
+	 */
+	var $canAdd = 'no_one';
 	
 	
     /**

@@ -2,10 +2,9 @@
 [#CAPTION#]: [#VALUE#]<!--ET_END DATA_ROW-->
 
 <!--ET_BEGIN quantity-->[#quantity#]|КОЛИЧЕСТВА|*
-<!--ET_BEGIN quantity1-->|Количество|*: [#quantity1#]
-<!--ET_END quantity1--><!--ET_BEGIN quantity2-->|Количество|*: [#quantity2#]
-<!--ET_END quantity2--><!--ET_BEGIN quantity3-->|Количество|*: [#quantity3#]
-<!--ET_END quantity3-->
+<!--ET_BEGIN QUANTITY_ROW-->
+|Количество|*: [#QUANTITY_ROW#]
+<!--ET_END QUANTITY_ROW-->
 <!--ET_END quantity-->|КОНТАКТНИ ДАННИ|*
 <!--ET_BEGIN company-->|Фирма|*: [#company#]
 <!--ET_END company--><!--ET_BEGIN country-->|Държава|*: [#country#]

@@ -1,0 +1,147 @@
+[#SingleToolbar#]
+<div class='document'>
+    <!--ET_BEGIN blank-->
+    [#blank#]
+    <!--ET_END blank-->
+    <!--ET_BEGIN header-->
+    <div class='header [#STATE_CLASS#]'>
+        <div class='docBgIcon' style='[#iconStyle#];'>[#singleTitle#] <b>[#ident#]</b> ([#state#])</div>
+    </div>
+    <!--ET_END header-->
+    <table class='jobTable' style='width: 100%'>
+        <tr>
+            <td> 
+                <table>
+                    <tr>
+                        <td class='quiet' style='text-align: right'>№:</td>
+                        <td>[#id#]</td>
+                    </tr>
+                    <tr>
+                        <td class='quiet' style='text-align: right'>|Дата|*:</td>
+                        <td>[#createdDate#]</td>
+                    </tr>
+                </table>
+	       </td>
+	       <td>
+	           <table>
+                    <tr>
+                        <td class='quiet' style='text-align: right'>|Количество|*:</td>
+                        <td>[#quantity#]</td>
+                    </tr>
+                    <!--ET_BEGIN tolerance-->
+                    <tr>
+                        <td class='quiet' style='text-align: right'>|Толеранс|*:</td>
+                        <td>[#tolerance#]</td>
+                    </tr>
+                    <!--ET_END tolerance-->
+                    
+                    <!--ET_BEGIN brutoWeight-->
+                    <tr>
+                        <td class='quiet' style='text-align: right'>|Бруто|*:</td>
+                        <td>[#brutoWeight#]</td>
+                    </tr>
+                    <!--ET_END brutoWeight-->
+                    
+                    <!--ET_BEGIN weight-->
+                    <tr>
+                        <td class='quiet' style='text-align: right'>|Ед. тегло|*:</td>
+                        <td>[#weight#]</td>
+                    </tr>
+                    <!--ET_END weight-->
+                </table>
+	       </td>
+	       <td>
+	            <div class='vertical-scroll'>
+		       		<!--ET_BEGIN HISTORY_ROW-->
+		       		[#HISTORY_ROW#]
+		       		<div class='smaller [#stateclass#]'>[#date#] : [#user#] -> [#action#]</div>
+		       		<!--ET_END HISTORY_ROW-->
+	       		</div>
+	       </td>
+	  </tr>
+	  <tr>
+           <th colspan="3" class='job-head'>
+           |Описание|*
+           </th>
+      </tr>
+      <tr>
+           <td colspan="3">
+           [#origin#]
+           </td>
+      </tr>
+      
+      <!--ET_BEGIN notes-->
+      <tr>
+           <th colspan="3" class='job-head'>
+           |Забележка|*
+           </th>
+      </tr>
+      <tr>
+           <td colspan="3">
+           [#notes#]
+           </td>
+      </tr>
+      <!--ET_END notes-->
+      
+      <!--ET_BEGIN SALE_INFO-->
+      [#SALE_INFO#]
+	  <tr>
+	  	   <th colspan="3" class='job-head'>
+	  	   |Данни от договора|*
+	  	   </th>
+	 </tr>
+	 <tr>
+	       <td>
+	            <table>
+	                <!--ET_BEGIN saleId-->
+                    <tr>
+                        <td class='quiet' style='text-align: right'>№:</td>
+                        <td>[#saleId#]</td>
+                    </tr>
+                     <!--ET_END saleId-->
+                    <tr>
+                        <td colspan="2"><b>[#deliveryTermId#]</b> [#deliveryPlace#]</td>
+                    </tr>
+                    <!--ET_BEGIN dealer-->
+                    <tr>
+                        <td class='quiet' style='text-align: right'>|Дилър|*</td>
+                        <td>[#dealer#]</td>
+                    </tr>
+                    <!--ET_END dealer-->
+                </table>	          
+	       </td>
+	       <td> 
+		       <table>
+		          <!--ET_BEGIN storeId-->
+	               <tr>
+	                   <td class='quiet' style='text-align: right'>|Склад|*:</td>
+	                   <td>[#storeId#]</td>
+	               </tr>
+	               <!--ET_END storeId-->
+	               <!--ET_BEGIN deliveryDate-->
+	               <tr>
+	                   <td class='quiet' style='text-align: right'>|Срок|*:</td>
+	                   <td>[#deliveryDate#]</td>
+	               </tr>
+	               <!--ET_END deliveryDate-->
+	           </table>
+	       </td>
+        </tr>
+         <!--ET_END SALE_INFO-->
+        <tr>
+           <th colspan="3" class='job-head'>
+           |Производствени задачи|*
+           </th>
+        </tr>
+        <tr>
+           <td colspan="3">
+           [#TASKS#]
+           </td>
+    </table>
+    <!--ET_BEGIN shareLog-->
+    <div class='sharing-history clearfix21'>
+        <span class='sharing-history-title'>|Споделяне|*</span>
+        [#shareLog#]
+    </div>
+    <!--ET_END shareLog-->
+</div>

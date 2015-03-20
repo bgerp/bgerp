@@ -40,7 +40,7 @@ class crm_Persons extends core_Master
         'incoming_CreateDocumentIntf',
     		
     	// Интерфейс за източник на производствен ресурс
-    	'mp_ResourceSourceIntf',
+    	'planning_ResourceSourceIntf',
     		
     	// Интерфейс за корица на папка в която може да се създава артикул
     	'cat_ProductFolderCoverIntf',
@@ -200,7 +200,7 @@ class crm_Persons extends core_Master
      * @var string|array
      */
     public $details = 'ContragentLocations=crm_Locations,Pricelists=price_ListToCustomers,
-                    ContragentBankAccounts=bank_Accounts,IdCard=crm_ext_IdCards,CustomerSalecond=cond_ConditionsToCustomers,AccReports=acc_ReportDetails,Cards=pos_Cards,Resources=mp_ObjectResources';
+                    ContragentBankAccounts=bank_Accounts,IdCard=crm_ext_IdCards,CustomerSalecond=cond_ConditionsToCustomers,AccReports=acc_ReportDetails,Cards=pos_Cards,Resources=planning_ObjectResources';
     
     
     /**
@@ -2260,9 +2260,9 @@ class crm_Persons extends core_Master
                 $data->toolbar->addBtn(tr('Профил'), $profileUrl, 'id=btnProfile', 'ef_icon = img/16/user-profile.png');  
             }
         } else {
-            
+         
             // Ако има запис и имаме права admin
-            if ($data->rec->id && haveRole('admin')) {
+            if ($data->rec->id && haveRole('admin') && $data->rec->state != 'rejected') {
                 
                 // sysId на групата
                 $crmId = crm_Groups::getIdFromSysId('users');
@@ -2312,25 +2312,32 @@ class crm_Persons extends core_Master
     /**
      * Връща валутата по подразбиране за търговия дадения контрагент
      * в зависимост от дъжавата му
+     * 
      * @param int $id - ид на записа
-     * @return string(3) - BGN или EUR за дефолт валутата
+     * @return string(3) - BGN|EUR|USD за дефолт валутата
      */
-    static function getDefaultCurrencyId($id)
+    public static function getDefaultCurrencyId($id)
     {
-    	$rec = self::fetch($id);
-    	
-    	// Ако контрагента няма държава, то дефолт валутата е BGN
+        $rec = self::fetch($id);
+
+        // Ако контрагента няма държава, то дефолт валутата е BGN
     	if(empty($rec->country)) return 'BGN';
     	
-        $cRec = drdata_Countries::fetch($rec->country);
-
-        if($cRec->letterCode2 == 'BG') {
-
-            return 'BGN';
-        } else {
-
-            return 'EUR';
-        }
+    	// Ако държавата му е България, дефолт валутата е 'BGN'
+    	if(drdata_Countries::fetchField($rec->country, 'letterCode2') == 'BG'){
+    		
+    		return 'BGN';
+    	} else {
+    		
+    		// Ако не е 'България', но е в ЕС, дефолт валутата е 'EUR'
+    		if(drdata_Countries::isEu($rec->country)){
+    			
+    			return 'EUR';
+    		}
+    	}
+    	
+    	// За всички останали е 'USD'
+    	return 'USD';
     }
 
     
@@ -2415,6 +2422,27 @@ class crm_Persons extends core_Master
      */
     public function getDefaultMeta($id)
     {
-    	return array();
+    	$rec = $this->fetchRec($id);
+    	
+    	$clientGroupId = crm_Groups::getIdFromSysId('customers');
+    	$supplierGroupId = crm_Groups::getIdFromSysId('suppliers');
+    	
+    	$groups = crm_Groups::getQuery();
+    	
+    	$meta = array();
+    	
+    	// Ако контрагента е в група клиенти: дефолт свойствата са 'продаваем и производим'
+    	if(keylist::isIn($clientGroupId, $rec->groupList)){
+    		$meta['canSell'] = TRUE;
+    		$meta['canManifacture'] = TRUE;
+    	}
+    	
+    	// Ако контрагента е в група доставчици: дефолт свойствата са 'купуваем и вложим'
+    	if(keylist::isIn($supplierGroupId, $rec->groupList)){
+    		$meta['canConvert'] = TRUE;
+    		$meta['canBuy'] = TRUE;
+    	}
+    	
+    	return $meta;
     }
 }

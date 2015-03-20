@@ -95,17 +95,6 @@ class cat_ProductDriverIntf extends core_InnerObjectIntf
 	
 	
 	/**
-	 * Връща описанието на артикула според драйвъра
-	 * 
-	 * @return core_ET
-	 */
-	public function getProductDescription()
-	{
-		return $this->class->getProductDescription();
-	}
-	
-	
-	/**
 	 * Кои документи са използвани в полетата на драйвера
 	 */
 	public function getUsedDocs()
@@ -128,9 +117,40 @@ class cat_ProductDriverIntf extends core_InnerObjectIntf
 	 *
 	 * @param mixed $params
 	 */
-	public function setParams($params)
+	public function setDriverParams($params)
 	{
-		return $this->class->setParams($params);
+		return $this->class->setDriverParams($params);
+	}
+	
+	
+	/**
+	 * Връща параметрите на артикула
+	 * @param mixed $id - ид или запис на артикул
+	 *
+	 * @return array $res - параметрите на артикула
+	 * 					['weight']          -  Тегло
+	 * 					['width']           -  Широчина
+	 * 					['volume']          -  Обем
+	 * 					['thickness']       -  Дебелина
+	 * 					['length']          -  Дължина
+	 * 					['height']          -  Височина
+	 * 					['tolerance']       -  Толеранс
+	 * 					['transportWeight'] -  Транспортно тегло
+	 * 					['transportVolume'] -  Транспортен обем
+	 * 					['term']            -  Срок
+	 */
+	public function getParams()
+	{
+		return $this->class->getParams();
+	}
+	
+	
+	/**
+	 * Връща параметрите на драйвера
+	 */
+	public function getDriverParams()
+	{
+		return $this->class->getDriverParams();
 	}
 	
 	
@@ -147,19 +167,30 @@ class cat_ProductDriverIntf extends core_InnerObjectIntf
 	
 	
 	/**
-	 * Колко е теглото на артикула
+	 * Подготвя данните за показване на описанието на драйвера
+	 * 
+	 * @param enum(public,internal) $documentType - публичен или външен е документа за който ще се кешира изгледа
 	 */
-	public static function getWeight()
+	public function prepareProductDescription($documentType = 'public')
 	{
-		return $this->class->getWeight($id);
+		return $this->class->prepareProductDescription($documentType);
 	}
 	
 	
 	/**
-	 * Колко е обема му
+	 * Рендира данните за показване на артикула
 	 */
-	public static function getVolume()
+	public function renderProductDescription($data)
 	{
-		return $this->class->getVolume();
+		return $this->class->renderProductDescription($data);
+	}
+	
+	
+	/**
+	 * Как да се казва дефолт папката където ще отиват заданията за артикулите с този драйвер
+	 */
+	public function getJobFolderName()
+	{
+		return $this->getJobFolderName();
 	}
 }

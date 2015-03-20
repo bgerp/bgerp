@@ -1029,8 +1029,8 @@ class type_Richtext extends type_Blob
 
         $id = 'hide' . rand(1, 1000000);
         
-        $html = "<a href=\"javascript:toggleDisplay('{$id}')\"  class= 'more-btn' style=\"font-weight:bold; background-image:url(" . sbf('img/16/plus.png', "'") . ");\" 
-                   class=\"linkWithIcon\">{$title}</a><div class='clearfix21 richtextHide' id='{$id}'>";
+        $html = "<a href=\"javascript:toggleDisplay('{$id}')\"  class= 'more-btn linkWithIcon' style=\"font-weight:bold; background-image:url(" . sbf('img/16/plus.png', "'") . ");\" 
+                   >{$title}</a><div class='clearfix21 richtextHide' id='{$id}'>";
         
         $this->_htmlBoard[$place] =  $html;
         
@@ -1361,7 +1361,7 @@ class type_Richtext extends type_Blob
           	    // Генерираме текста
                 $toolbarTxt = "<a class='rtbutton' title='" . $blockeElement['title'] .  
           	    		"' onclick=\"s('[{$begin}]', '[/{$end}]', document.getElementById('{$formId}'),{$newLine},{$multiline},{$maxOneLine})\">
-          	    		<img src=" . $blockeElement['icon'] . " height='15' width='15' align='top'></a>";
+          	    		<img src=" . $blockeElement['icon'] . " height='15' width='15'></a>";
           	    
                 // Ако трябва да се добави разделител за нов ред
           	    if (!($i % $maxBlockElementInLine)) {

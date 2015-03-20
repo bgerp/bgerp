@@ -2,7 +2,7 @@
 
 
 /**
- * Помощен клас-имплементация на интерфейса acc_TransactionSourceIntf за класа mp_ConsumptionNotes
+ * Помощен клас-имплементация на интерфейса acc_TransactionSourceIntf за класа planning_ConsumptionNotes
  *
  * @category  bgerp
  * @package   acc

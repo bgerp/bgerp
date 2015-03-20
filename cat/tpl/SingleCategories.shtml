@@ -6,10 +6,12 @@
             <fieldset class="detail-info">
                 <div class="groupList">
                     <table>
+                    	<!--ET_BEGIN sysId-->
                         <tr>
                             <td class='dt'>System Id:</td>
                             <td> [#sysId#]</td>
                         </tr>
+                        <!--ET_END sysId-->
                         <!--ET_BEGIN measures-->
                         <tr>
                             <td class='dt'>|Позволени мерки|*</td>

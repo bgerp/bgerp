@@ -57,7 +57,7 @@ abstract class deals_DealDetail extends doc_Detail
      */
     public static function on_CalcPackQuantity(core_Mvc $mvc, $rec)
     {
-        if (!isset($rec->price) || empty($rec->quantity) || empty($rec->quantityInPack)) {
+        if (empty($rec->quantity) || empty($rec->quantityInPack)) {
             return;
         }
         
@@ -80,8 +80,6 @@ abstract class deals_DealDetail extends doc_Detail
     	
     	$mvc->FLD('quantityDelivered', 'double', 'caption=К-во->Доставено,input=none'); // Експедирано количество (в основна мярка)
     	
-    	$mvc->FLD('quantityInvoiced', 'double', 'caption=К-во->Фактурирано,input=none'); // Фактурирано количество (в основна мярка)
-    	
     	// Количество (в осн. мярка) в опаковката, зададена от 'packagingId'; Ако 'packagingId'
     	// няма стойност, приема се за единица.
     	$mvc->FLD('quantityInPack', 'double', 'input=none');
@@ -96,6 +94,8 @@ abstract class deals_DealDetail extends doc_Detail
     	// Цена за опаковка (ако има packagingId) или за единица в основна мярка (ако няма packagingId)
     	$mvc->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input');
     	$mvc->FLD('discount', 'percent(min=-1,max=1)', 'caption=Отстъпка');
+    	$mvc->FLD('showMode', 'enum(auto=Автоматично,detailed=Разширено,short=Кратко)', 'caption=Показване,notNull,default=auto');
+    	$mvc->FLD('notes', 'richtext(rows=3)', 'caption=Забележки');
     }
     
     
@@ -121,7 +121,12 @@ abstract class deals_DealDetail extends doc_Detail
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-        $requiredRoles = $mvc->Master->getRequiredRoles('edit', (object)array('id' => $rec->{$mvc->masterKey}), $userId);
+        if(($action == 'delete' || $action == 'add' || $action == 'edit') && isset($rec)){
+        	$state = $mvc->Master->fetchField($rec->{$mvc->masterKey}, 'state');
+        	if($state != 'draft'){
+        		$requiredRoles = 'no_one';
+        	}
+        }
     }
     
     
@@ -132,9 +137,8 @@ abstract class deals_DealDetail extends doc_Detail
     {
         if (empty($data->recs)) return;
     	$recs = &$data->recs;
-        $salesRec = $data->masterData->rec;
         
-        deals_Helper::fillRecs($mvc->Master, $recs, $salesRec);
+        deals_Helper::fillRecs($mvc->Master, $recs, $data->masterData->rec);
     }
     
     
@@ -146,7 +150,7 @@ abstract class deals_DealDetail extends doc_Detail
     	if($classId = Request::get('classId', 'class(interface=cat_ProductAccRegIntf)')){  
     		$data->ProductManager = cls::get($classId);
     		
-    		$mvc->getField('productId')->type = cls::get('type_Key', array('params' => array('mvc' => $data->ProductManager->className, 'select' => 'name', 'maxSuggestions' => 1000000000)));
+    		$mvc->getField('productId')->type = cls::get('type_Key', array('params' => array('mvc' => $data->ProductManager->className, 'select' => 'name')));
     	}
     }
     
@@ -203,9 +207,18 @@ abstract class deals_DealDetail extends doc_Detail
     	
     	expect($ProductMan = cls::get($rec->classId));
     	if($rec->productId){
+    		$productRef = new core_ObjectReference($ProductMan, $rec->productId);
+    		expect($productInfo = $productRef->getProductInfo());
+    		
     		$vat = cls::get($rec->classId)->getVat($rec->productId, $masterRec->valior);
-    		$form->setOptions('packagingId', $ProductMan->getPacks($rec->productId));
-    		unset($form->getFieldType('packagingId')->params['allowEmpty']);
+    		$packs = $ProductMan->getPacks($rec->productId);
+    		if(count($packs)){
+    			$form->setOptions('packagingId', $packs);
+    		} else {
+    			$form->setReadOnly('packagingId');
+    		}
+    		$uomName = cat_UoM::getTitleById($productInfo->productRec->measureId);
+    		$form->setField('packagingId', "placeholder={$uomName}");
     	
     		// Само при рефреш слагаме основната опаковка за дефолт
     		if($form->cmd == 'refresh'){
@@ -242,9 +255,6 @@ abstract class deals_DealDetail extends doc_Detail
     				$update = TRUE;
     			}
     			}
-    	
-    			$productRef = new core_ObjectReference($ProductMan, $rec->productId);
-    			expect($productInfo = $productRef->getProductInfo());
     	
     			$rec->quantityInPack = (empty($rec->packagingId)) ? 1 : $productInfo->packagings[$rec->packagingId]->quantity;
     			$rec->quantity = $rec->packQuantity * $rec->quantityInPack;
@@ -318,13 +328,13 @@ abstract class deals_DealDetail extends doc_Detail
     	$recs = &$data->recs;
     	$rows = &$data->rows;
     	
-    	$modifiedOn = $data->masterData->rec->modifiedOn;
-    	
     	foreach ($rows as $id => &$row){
     		$rec = $recs[$id];
     		
-    		$ProductManager = cls::get($rec->classId);
-    		$row->productId = $ProductManager->getProductDesc($rec->productId, $mvc->Master, $modifiedOn);
+    		$row->productId = cat_Products::getAutoProductDesc($rec->productId, $data->masterData->rec->modifiedOn, $rec->showMode);
+    		if($rec->notes){
+    			$row->productId .= "<div class='small'>{$mvc->getFieldType('notes')->toVerbal($rec->notes)}</div>";
+    		}
     	}
     }
     
@@ -335,20 +345,15 @@ abstract class deals_DealDetail extends doc_Detail
     public static function on_AfterPrepareListToolbar($mvc, $data)
     {
     	if (!empty($data->toolbar->buttons['btnAdd'])) {
-            $productManagers = core_Classes::getOptionsByInterface('cat_ProductAccRegIntf');
-            $masterRec = $data->masterData->rec;
-            
-            foreach ($productManagers as $manId => $manName) {
-            	$productMan = cls::get($manId);
-            	if(!count($productMan->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->valior, $mvc->metaProducts, NULL, 1))){
-                	$error = "error=Няма продаваеми {$productMan->title}";
-                }
-                
-                $title = mb_strtolower($productMan->singleTitle);
-            	$data->toolbar->addBtn($productMan->singleTitle, array($mvc, 'add', "{$mvc->masterKey}" => $masterRec->id, 'classId' => $manId, 'ret_url' => TRUE),
-                    "id=btnAdd-{$manId},{$error},order=10,title=Добавяне на {$title}", 'ef_icon = img/16/shopping.png');
-            	unset($error);
+    		$masterRec = $data->masterData->rec;
+    		
+    		$productMan = cls::get('cat_Products');
+    		if(!count($productMan->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->valior, $mvc->metaProducts, NULL, 1))){
+                $error = "error=Няма продаваеми артикули";
             }
+            
+            $data->toolbar->addBtn('Артикул', array($mvc, 'add', "{$mvc->masterKey}" => $masterRec->id, 'classId' => $productMan->getClassId(), 'ret_url' => TRUE),
+            "id=btnAdd-{$manId},{$error},order=10,title=Добавяне на артикул", 'ef_icon = img/16/shopping.png');
             
             unset($data->toolbar->buttons['btnAdd']);
         }
@@ -394,5 +399,41 @@ abstract class deals_DealDetail extends doc_Detail
         if(!$haveDiscount) {
             unset($data->listFields['discount']);
         }
+    }
+    
+    
+    /**
+	 * Инпортиране на артикул генериран от ред на csv файл 
+	 * @param int $masterId - ид на мастъра на детайла
+	 * @param array $row - Обект представляващ артикула за импортиране
+	 * 					->code - код/баркод на артикула
+	 * 					->quantity - К-во на опаковката или в основна мярка
+	 * 					->price - цената във валутата на мастъра, ако няма се изчислява директно
+	 * @return  mixed - резултата от експорта
+	 */
+    function import($masterId, $row)
+    {
+    	$Master = $this->Master;
+    	
+    	$pRec = cat_Products::getByCode($row->code);
+    	
+    	$price = NULL;
+    	
+    	// Ако има цена я обръщаме в основна валута без ддс, спрямо мастъра на детайла
+    	if($row->price){
+    		$masterRec = $Master->fetch($masterId);
+    		$price = deals_Helper::getPurePrice($row->price, cat_Products::getVat($pRec->productId), $masterRec->currencyRate, $masterRec->chargeVat);
+    	}
+    	
+    	return $Master::addRow($masterId, 'cat_Products', $pRec->productId, $row->quantity, $price, $pRec->packagingId);
+    }
+    
+    
+    /**
+     * Изпълнява се преди запис на клониран детайл
+     */
+    public static function on_BeforeSaveClonedDetail($mvc, &$rec)
+    {
+    	unset($rec->quantityDelivered);
     }
 }

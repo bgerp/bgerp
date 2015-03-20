@@ -17,8 +17,7 @@
     
     <!--ET_BEGIN QUANTITY-->
     [#QUANTITY#]
-    <div class='scrolling-holder'>
-        <table class='styled-table'>
+    <table class='styled-table'>
             <tr>
                 <th colspan='2' style='padding:7px 0px'>|Количества|*</th>
             </tr>
@@ -37,11 +36,16 @@
             <!--ET_BEGIN quantity3-->
             <tr>
                 <td>|Количество|*</td>
-                <td style='text-align:right'>[#quantity3#]</td>
+                <td  style='text-align:right'>[#quantity3#]</td>
             </tr>
             <!--ET_END quantity3-->
-        </table>
-    </div>
+            <!--ET_BEGIN QUANTITY_ROW-->
+            <tr>
+                <td>|Количество|*</td>
+                <td  style='text-align:right'>[#QUANTITY_ROW#]</td>
+            </tr>
+            <!--ET_END QUANTITY_ROW-->
+    </table>
     <!--ET_END QUANTITY-->
     
     <div class='scrolling-holder'>

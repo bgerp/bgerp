@@ -30,7 +30,7 @@ class core_Mode
     /**
      * Масив в който се записват runtime стойностите на параметрите
      */
-    static $mode;
+    static $mode = NULL;
     
     /**
      * Стек за запазване на старите стойности на параметрите от runtime обкръжението
@@ -43,8 +43,9 @@ class core_Mode
      */
     static function set($name, $value = TRUE)
     {
-        
         expect($name, 'Параметъра $name трябва да е непразен стринг', self::$mode);
+        
+        self::prepareMode();
         
         self::$mode[$name] = $value;
         
@@ -121,21 +122,29 @@ class core_Mode
         }
         
         // Инициализираме стойностите с данните от сесията
-        if (!is_array(self::$mode)) {
-            
-            self::$mode = core_Session::get(EF_MODE_SESSION_VAR);
-            
-            if (!is_array(self::$mode)) {
-                self::$mode = array();
-            }
-        }
-
+        self::prepareMode();
+        
         $res = NULL;
         if(isset(self::$mode[$name])) {
             $res = self::$mode[$name];
         }
         
         return $res;
+    }
+    
+    
+    /**
+     * Подготвя масива със стойностите на `$mode`
+     */
+    protected static function prepareMode()
+    {
+        if (is_null(self::$mode)) {
+            self::$mode = core_Session::get(EF_MODE_SESSION_VAR);
+            
+            if (!is_array(self::$mode)) {
+                self::$mode = array();
+            }
+        }
     }
     
     

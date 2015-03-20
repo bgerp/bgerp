@@ -157,8 +157,6 @@ class purchase_Invoices extends deals_InvoiceMaster
     	$this->FLD('accountId', 'key(mvc=bank_Accounts,select=iban, allowEmpty)', 'caption=Плащане->Банкова с-ка, export=Csv,after=paymentMethodId');
     	$this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 'caption=Статус, input=none,export=Csv');
     	$this->FLD('type', 'enum(invoice=Входяща фактура, credit_note=Входящо кредитно известие, debit_note=Входящо дебитно известие)', 'caption=Вид, input=hidden');
-    	
-    	$this->setDbUnique('folderId,number');
     }
     
     
@@ -187,6 +185,19 @@ class purchase_Invoices extends deals_InvoiceMaster
     public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
     {
     	parent::inputInvoiceForm($mvc, $form);
+    	
+    	if($form->isSubmitted()){
+    		$rec = &$form->rec;
+    		
+    		// изискваме за контрагент с този номер да няма фактура със този номер
+    		foreach (array('contragentVatNo', 'uicNo') as $fld){
+    			if(isset($rec->{$fld})){
+    				if($mvc->fetchField("#{$fld}='{$rec->{$fld}}' AND #number='{$rec->number}' AND #id != '{$rec->id}'")){
+    					$form->setError($fld, 'Има вече входяща фактура с този номер, за този');
+    				}
+    			}
+    		}
+    	}
     }
     
     

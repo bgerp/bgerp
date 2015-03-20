@@ -39,7 +39,7 @@ class cash_ExchangeDocument extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = "tools=Пулт, number=Номер, valior, reason, folderId, creditCurrency=Обменени->Валута, creditQuantity=Обменени->Сума, debitCurrency=Получени->Валута, debitQuantity=Получени->Сума, state, createdOn, createdBy";
+    public $listFields = "tools=Пулт, valior, title=Документ, reason, folderId, creditCurrency=Обменени->Валута, creditQuantity=Обменени->Сума, debitCurrency=Получени->Валута, debitQuantity=Получени->Сума, state, createdOn, createdBy";
     
     
     /**
@@ -51,7 +51,7 @@ class cash_ExchangeDocument extends core_Master
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
-    public $rowToolsSingleField = 'reason';
+    public $rowToolsSingleField = 'title';
     
     
     /**
@@ -248,7 +248,7 @@ class cash_ExchangeDocument extends core_Master
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	$row->number = static::getHandle($rec->id);
+    	$row->title = $mvc->getLink($rec->id, 0);
     	if($fields['-list']){
     		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
     	}	

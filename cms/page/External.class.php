@@ -16,18 +16,15 @@
  */
 class cms_page_External extends core_page_Active {
     
-    public $interfaces = 'cms_page_WrapperIntf';
 
     /**
-     * Конструктор за страницата по подразбиране
+     * Подготовка на външната страница
      * Тази страница използва internal layout, header и footer за да 
      * покаже една обща обвивка за съдържанието за вътрешни потребители
      */
-    function cms_page_External()
+    function prepare()
     {
-        // Конструктора на родителския клас
-        $this->core_page_Active();
-    	
+   	
         // Параметри от конфигурацията
         $conf = core_Packs::getConfig('core');
         $this->prepend(tr($conf->EF_APP_TITLE), 'PAGE_TITLE');
@@ -49,7 +46,6 @@ class cms_page_External extends core_page_Active {
             }
         }
         
-        $this->push('css/default-theme.css', 'CSS');
         $this->push('cms/css/Wide.css', 'CSS');
 
         $this->push('js/overthrow-detect.js', 'JS');
@@ -70,12 +66,9 @@ class cms_page_External extends core_page_Active {
         }
         $this->replace(new ET($pageTpl), 'PAGE_CONTENT');
         
-        $this->replace($this->getHeaderImg(), 'HEADER_IMG');
-
-        // ако нямаме частен пакет или в него няма специфична картинка, показваме името на приложението
-        if ($this->haveToShowAppTitle()) {
-        	$this->replace($conf->EF_APP_TITLE, 'CORE_APP_NAME');
-    	}
+        // Обличаме кожата
+        $skin = cms_Domains::getCmsSkin();
+        $skin->prepareWrapper($this);
     	
         // Скрипт за генериране на min-height, според устройството
         $this->append("runOnLoad(setMinHeightExt);", "JQRUN");
@@ -109,72 +102,4 @@ class cms_page_External extends core_page_Active {
         cms_Includes::insert($invoker);
     }
 
-    /**
-     * Връща пътя до картинката за главата на публичната страница
-     */
-    static function getHeaderImagePath()
-    {
-    	if(!Mode::is('screenMode', 'wide')) {
-    		$screen = '-narrow';
-    	} else {
-    		$screen = '';
-    	}
-    	
-    	$lg = '-' . cms_Content::getLang();
-    	
-    	$path = "cms/img/header{$screen}{$lg}.jpg";
-    	
-    	if(!getFullPath($path)) {
-    		$path = "cms/img/header{$screen}.jpg";
-    		if(!getFullPath($path)) {
-    			$path = "cms/img/header.jpg";
-    			if(!getFullPath($path)) {
-    				if(Mode::is('screenMode', 'wide')) {
-    					$path = "cms/img/bgERP.jpg";
-    				} else {
-    					$path = "cms/img/bgERP-small.jpg";
-    				}
-    			}
-    		}
-    	}
-    	 
-    	return $path;
-    }
-
-    
-    /**
-     * Връща картинката за главата на публичната страница
-     */
-    static function getHeaderImg() 
-    {
-   		$path = self::getHeaderImagePath();
-
-        $conf = core_Packs::getConfig('core');
-        
-        $img = ht::createElement('img', array('src' => sbf($path, ''), 'alt' => tr($conf->EF_APP_TITLE), 'id' => 'headerImg'));
-        
-        return $img;
-    }
-
-
-    /**
-     * Дали да показва името на приложението на заглавния имидж?
-     */
-    private function haveToShowAppTitle()
-    {   
-        $path = self::getHeaderImagePath();
-        $conf = core_Packs::getConfig('core');
-        $res = FALSE;
-        if (!$conf->EF_PRIVATE_PATH) {
-        	$res = TRUE;
-        } else {
-        	if (!file_exists($conf->EF_PRIVATE_PATH . "/" . $path)) {
-        		$res = TRUE;
-        	}
-        }
-
-        return $res;
-    }
-
-    
 }

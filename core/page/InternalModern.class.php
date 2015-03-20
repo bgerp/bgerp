@@ -17,18 +17,15 @@
  * @title     Модерна вътрешна страница
  */
 class core_page_InternalModern extends core_page_Active {
+     
     
-    public $interfaces = 'core_page_WrapperIntf';
- 
     /**
-     * Конструктор за страницата по подразбиране
+     * Подготовка на шаблона за вътрешна страница
      * Тази страница използва internal layout, header и footer за да 
      * покаже една обща обвивка за съдържанието за вътрешни потребители
      */
-    function core_page_InternalModern()
+    function prepare()
     {
-    	// Конструиране на родителския клас
-        $this->core_page_Active();
         
         bgerp_Notifications::subscribeCounter($this);
         
@@ -48,7 +45,7 @@ class core_page_InternalModern extends core_page_Active {
         // Добавяне на базовия JS
         $this->push('js/overthrow-detect.js', 'JS');
         $this->push('js/jPushMenu.js', 'JS');
-        $this->push('js/js.js', 'JS');
+        $this->push('js/modernTheme.js', 'JS');
         
         // Хедъри за контрол на кеша
         $this->push('Cache-Control: private, max-age=0', 'HTTP_HEADER');
@@ -62,7 +59,7 @@ class core_page_InternalModern extends core_page_Active {
         // Добавяне на титлата на страницата
     	$conf = core_Packs::getConfig('core');
         $this->prepend($conf->EF_APP_TITLE, 'PAGE_TITLE');
-        
+        $this->prepend(' modern-theme', 'BODY_CLASS_NAME');
 
         // Ако сме в широк изглед извикваме функцията за мащабиране
         if(Mode::is('screenMode', 'wide')){
@@ -143,6 +140,7 @@ class core_page_InternalModern extends core_page_Active {
 		    								[#CHANGE_MODE#]
                                             [#LANG_CHANGE#]
 		    								[#SIGNAL#]
+    			    						[#DEBUG_BTN#]
 	    									<div class='divider'></div>
 			     		   					[#SIGN_OUT#]
 		    							</div>
@@ -157,12 +155,16 @@ class core_page_InternalModern extends core_page_Active {
     			"<!--ET_BEGIN NAV_BAR--><div id=\"navBar\">[#NAV_BAR#]</div>\n<!--ET_END NAV_BAR--><div class='clearfix' style='min-height:9px;'></div>" .
     			"<div id='statuses'>[#STATUSES#]</div>" .
     			"[#PAGE_CONTENT#]</div>" .
-    			"<div id=\"framecontentBottom\" class=\"container\">" .
-    			"[#PAGE_FOOTER#]" .
-    			"</div></div>".
+    			"[#DEBUG#]</div>".
     			"<div id='nav-panel' class='sidemenu sidemenu-left {$openLeftMenu}'>[#core_page_InternalModern::renderMenu#]</div>".
-    			"<div id='fav-panel' class='sidemenu sidemenu-right {$openRightMenu}'><h3><center>Бързи връзки</center></h3></div>" );
-    	
+    			"<div id='fav-panel' class='sidemenu sidemenu-right {$openRightMenu}'><h3><center>Бързи връзки</center></h3></div>"
+
+    	);
+    	if(isDebug() && Mode::is('screenMode', 'wide')) {
+    		$tpl->prepend(new ET("<div id='debug_info' style='margin:5px; display:none;overflow-x: hidden'>
+                                     Време за изпълнение: [#DEBUG::getExecutionTime#]
+                                     [#Debug::getLog#]</div>"), "DEBUG");
+    	}
     	// Опаковките и главното съдържание заемат екрана до долу
     	
     	$tpl->append("runOnLoad( slidebars );", "JQRUN");
@@ -266,8 +268,24 @@ class core_page_InternalModern extends core_page_Active {
         // Създава линк за поддръжка
         $conf = core_Packs::getConfig('help');
         
-        $supportUrl = $conf->BGERP_SUPPORT_URL;
-        $singal = ht::createLink(tr("Сигнал"), $supportUrl, FALSE, array('title' => "Изпращане на сигнал", 'target' => '_blank', 'ef_icon' => 'img/16/bug-icon.png'));
+        if($conf->BGERP_SUPPORT_URL && strpos($conf->BGERP_SUPPORT_URL, '//') !== FALSE) {
+        	
+        	$singal = ht::createLink(tr("Сигнал"), $conf->BGERP_SUPPORT_URL , FALSE, array('title' => "Изпращане на сигнал", 'ef_icon' => 'img/16/headset.png', 'onclick' => "event.preventDefault();$('#bugReportForm').submit();"));
+        	
+        	$email = email_Inboxes::getUserEmail();
+        	if(!$email) {
+        		$email = core_Users::getCurrent('email');
+        	}
+        	
+        	list($user, $domain) = explode('@', $email);
+        	$currUrl = getCurrentUrl();
+        	$ctr = $currUrl['Ctr'];
+        	$act = $currUrl['Act'];
+        	$sysDomain = $_SERVER['HTTP_HOST'];
+        	$name = core_Users::getCurrent('names');
+        	$form = new ET("<form id='bugReportForm' style='display:inline' method='post' target='_blank' onSubmit=\"prepareBugReport(this, '{$user}', '{$domain}', '{$name}', '{$ctr}', '{$act}', '{$sysDomain}');\" action='" . $conf->BGERP_SUPPORT_URL . "'></form>");
+        	$tpl->append($form);
+        }
         
         // Създава линк за изход
         $signOut = ht::createLink(tr("Изход"), array('core_Users', 'logout'), FALSE, array('title' => "Излизане от системата", 'ef_icon' => 'img/16/logout.png'));
@@ -279,7 +297,9 @@ class core_page_InternalModern extends core_page_Active {
        	} else {
        		$mode = ht::createLink(tr("Десктоп"), array('core_Browser', 'setWideScreen', 'ret_url' => TRUE), NULL, array('ef_icon' => 'img/16/Monitor-icon.png', 'title' => 'Превключване на системата в десктоп режим'));
        	}
-
+       	if(isDebug() && Mode::is('screenMode', 'wide')) {
+       		$debug = ht::createLink("Debug", '#wer', FALSE, array('title' => "Показване на debug информация", 'ef_icon' => 'img/16/bug-icon.png', 'onclick' => 'toggleDisplay(\'debug_info\'); scrollToElem(\'debug_info\');'));
+       	}
         // Смяна на езика
         $lgChange = self::getLgChange();
        	$tpl->replace($lgChange, 'LANG_CHANGE');
@@ -301,6 +321,7 @@ class core_page_InternalModern extends core_page_Active {
         $portalLink = ht::createLink("bgERP", $url, NULL, NULL);
         $nLink = ht::createLink("{$openNotifications}", $url, NULL, $attr);
 
+        $tpl->replace($debug, 'DEBUG_BTN');
         $tpl->replace($mode, 'CHANGE_MODE');
         $tpl->replace($singal, 'SIGNAL');
         $tpl->replace($nLink, 'NOTIFICATIONS_CNT');
@@ -308,94 +329,6 @@ class core_page_InternalModern extends core_page_Active {
     }
 
     
-    /**
-     * Конструктор на шаблона
-     */
-    public static function getFooter()
-    {
-        $tpl = new ET();
-
-        $nick = Users::getCurrent('nick');
-        if(EF_USSERS_EMAIL_AS_NICK) {
-            list($nick,) = explode('@', $nick);
-        }
-
-        $isGet = strtoupper($_SERVER['REQUEST_METHOD']) == 'GET';
-
-        if(Mode::is('screenMode', 'narrow')) {
-            if($nick) {
-                $tpl->append(ht::createLink(tr("Изход"), array('core_Users', 'logout'), FALSE, array('title' => "Изход на " . $nick)));
-            }
-                        
-            if($isGet) {
-                $tpl->append("&nbsp;<small>|</small>&nbsp;");
-                $tpl->append(ht::createLink(tr("Десктоп"), array('core_Browser', 'setWideScreen', 'ret_url' => TRUE), FALSE, array('title' => " Превключване на системата в десктоп режим")));
-
-                // Добавяме превключване между езиците
-                $tpl->append(self::getLgChange());
-            }
-
-            $tpl->append("&nbsp;<small>|</small>&nbsp;");
-            $tpl->append(ht::createLink(dt::mysql2verbal(dt::verbal2mysql(), 'H:i'), array('Index', 'default'), NULL, array('title' => tr('Страницата е заредена на') . ' ' . dt::mysql2verbal(dt::verbal2mysql(), 'd-m H:i:s'))));
-        } else {
-            if($nick) {
-                $tpl->append(ht::createLink("&nbsp;" . tr('изход') . ":" . $nick, array('core_Users', 'logout'), FALSE, array('title' => "Прекъсване на сесията")));
-                $tpl->append('&nbsp;<small>|</small>');
-            }
-            
-            $tpl->append('&nbsp;');
-            $tpl->append(dt::mysql2verbal(dt::verbal2mysql()));
-            
-            if($isGet) {
-                $tpl->append("&nbsp;<small>|</small>&nbsp;");
-                $tpl->append(ht::createLink(tr("Тесен"), array('core_Browser', 'setNarrowScreen', 'ret_url' => TRUE), FALSE, array('title' => "Превключване на системата в мобилен режим")));
-            
-                // Добавяме превключване между езиците
-                $tpl->append(self::getLgChange());
-            }
-            // Добавяме кода, за определяне параметрите на браузъра
-            $Browser = cls::get('core_Browser');
-            $tpl->append($Browser->renderBrowserDetectingCode(), 'BROWSER_DETECT');
-
-            // Добавя бутон за калкулатора
-            $tpl->append('&nbsp;<small>|</small>&nbsp;');
-            $tpl->append(calculator_View::getBtn());
-            
-            if(isDebug()) {
-            	$tpl->append('&nbsp;<small>|</small>&nbsp;<a href="#wer" onclick="toggleDisplay(\'debug_info\')">Debug</a>');
-            }
-        }
-        
-        $conf = core_Packs::getConfig('help');
-        
-        if($conf->BGERP_SUPPORT_URL && strpos($conf->BGERP_SUPPORT_URL, '//') !== FALSE) {
-            $email = email_Inboxes::getUserEmail();
-            if(!$email) {
-                $email = core_Users::getCurrent('email');
-            }
-            list($user, $domain) = explode('@', $email);
-            $currUrl = getCurrentUrl();
-            $ctr = $currUrl['Ctr'];
-            $act = $currUrl['Act'];
-            $sysDomain = $_SERVER['HTTP_HOST'];
-            $name = core_Users::getCurrent('names');
-            $img = sbf('img/supportmale-20.png', '');
-            $btn = "<input title='Сигнал за бъг, въпрос или предложение' class='bugReport' type=image src='{$img}' name='Cmd[refresh]' value=1>";
-            $form = new ET("<form style='display:inline' method='post' target='_blank' onSubmit=\"prepareBugReport(this, '{$user}', '{$domain}', '{$name}', '{$ctr}', '{$act}', '{$sysDomain}');\" action='" . $conf->BGERP_SUPPORT_URL . "'>[#1#]</form>", $btn);
-            $tpl->append('&nbsp;<small>|</small>&nbsp;');
-            $tpl->append($form);
-        }
-        
-        if(isDebug() && Mode::is('screenMode', 'wide')) {
-        	$tpl->append(new ET("<div id='debug_info' style='margin:5px; display:none;'>
-                                     Време за изпълнение: [#DEBUG::getExecutionTime#]
-                                     [#Debug::getLog#]</div>"));
-        }
-
-        return $tpl;
-    }
-
-
     /**
      * Добавя хипервръзки за превключване между езиците на интерфейса
      */

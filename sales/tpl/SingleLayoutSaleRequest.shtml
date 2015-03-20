@@ -115,7 +115,7 @@
 									    </ol>
 		                            </td>
                                     <!--ET_END conditions-->
-                                    <td class="topCell nowrap aright vtop" style='width:33%;'>
+                                    <td class="topCell aright vtop" style='width:33%;'>
                                         <table class='no-border' style='float:right;width:100%;' id='business-doc-summary-table'>
                                             <tr class='nowrap'>
                                                 <td class='aright'>|Стойност|* :</td>

@@ -91,7 +91,7 @@ class gdocs_Plugin extends core_Plugin
         } else {
             
             // Добавяме необходимите параметри
-            $url = core_Url::addParams($url, array('widget' => 'true', 'embedded' => 'true'));
+            $url = core_Url::change($url, array('widget' => 'true', 'embedded' => 'true'));
         }
         
         $conf = core_Packs::getConfig('gdocs');

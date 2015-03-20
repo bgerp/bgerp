@@ -22,12 +22,14 @@ class cms_Wrapper extends plg_ProtoWrapper
      * Описание на табовете
      */
     function description()
-    {
-        $this->TAB('cms_Content', 'Съдържание', 'cms,ceo,admin');
+    {   
+        $this->TAB('cms_Domains', 'Домейни', 'cms,ceo,admin');
+        $this->TAB('cms_Content', 'Меню', 'cms,ceo,admin');
         $this->TAB('cms_Articles', 'Статии', 'cms,ceo,admin');
-        $this->TAB('cms_Objects', 'Обекти', 'cms,ceo,admin');
-        $this->TAB('cms_Feeds', 'Хранилки', 'cms,ceo,admin');
-        $this->TAB('cms_VerbalId', 'Url', 'admin,ceo,admin');
-        $this->TAB('cms_Includes', 'Добавки', 'admin');
+
+        $this->TAB('cms_Objects', 'Други->Обекти', 'cms,ceo,admin');
+        $this->TAB('cms_Feeds', 'Други->Хранилки', 'cms,ceo,admin');
+        $this->TAB('cms_VerbalId', 'Други->Url', 'admin,ceo,admin');
+        $this->TAB('cms_Includes', 'Други->Добавки', 'admin');
     }
 }

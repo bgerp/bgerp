@@ -95,9 +95,9 @@ class sales_Sales extends deals_DealMaster
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, valior, folderId, currencyId=Валута, amountDeal, amountDelivered, amountPaid, amountInvoiced,
+    public $listFields = 'tools=Пулт, valior, title=Документ, folderId, currencyId=Валута, amountDeal, amountDelivered, amountPaid, amountInvoiced,
                              dealerId, initiatorId,paymentState,
-                             createdOn, createdBy, modifiedOn, modifiedBy';
+                             createdOn, createdBy';
 
 
     /**
@@ -154,7 +154,7 @@ class sales_Sales extends deals_DealMaster
     	'dealerId'           => 'lastDocUser',
     	'makeInvoice'        => 'lastDocUser|lastDoc',
     	'deliveryLocationId' => 'lastDocUser|lastDoc',
-    	'chargeVat'			 => 'lastDocUser|lastDoc',
+    	'chargeVat'			 => 'lastDocUser|lastDoc|defMethod',
     	'template' 			 => 'lastDocUser|lastDoc|LastDocSameCuntry',
     );
     
@@ -214,6 +214,13 @@ class sales_Sales extends deals_DealMaster
      * Главен детайл на модела
      */
     public $mainDetail = 'sales_SalesDetails';
+    
+    
+    /**
+     * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
+     * (@see plg_Clone)
+     */
+    public $cloneDetailes = 'sales_SalesDetails';
     
     
     /**
@@ -468,6 +475,7 @@ class sales_Sales extends deals_DealMaster
             $p->quantityDelivered = $dRec->quantityDelivered;
             $p->price             = $dRec->price;
             $p->uomId             = $dRec->uomId;
+            $p->notes			  = $dRec->notes;
             
             $ProductMan = cls::get($p->classId);
             $info = $ProductMan->getProductInfo($p->productId, $p->packagingId);
@@ -634,6 +642,9 @@ class sales_Sales extends deals_DealMaster
     {
     	$data->jobInfo = array();
     	if($data->rec->state != 'rejected'){
+    		
+    		// Да не се показва блока взависимост в какъв режим сме
+    		if(Mode::is('text', 'xhtml') || Mode::is('text', 'plain') || Mode::is('pdf')) return;
     		
     		// Подготвяме информацията за наличните задания към нестандартните (частните) артикули в продажбата
     		$dQuery = sales_SalesDetails::getQuery();

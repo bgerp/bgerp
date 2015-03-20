@@ -45,7 +45,7 @@ class findeals_Deals extends deals_DealBase
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, acc_plg_Registry, findeals_Wrapper, acc_plg_RejectContoDocuments, plg_Printing, doc_DocumentPlg, plg_Search, doc_plg_BusinessDoc, doc_ActivatePlg, plg_Sorting';
+    public $loadList = 'plg_RowTools, acc_plg_Registry, findeals_Wrapper, acc_plg_RejectContoDocuments, plg_Printing, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search, doc_plg_BusinessDoc, doc_ActivatePlg, plg_Sorting';
     
     
     /**
@@ -97,6 +97,12 @@ class findeals_Deals extends deals_DealBase
     
     
     /**
+     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
+     */
+    public $rowToolsField = 'id';
+    
+    
+    /**
      * Заглавие в единствено число
      */
     public $singleTitle = 'Финансова сделка';
@@ -144,6 +150,12 @@ class findeals_Deals extends deals_DealBase
     public $closeDealDoc = 'findeals_ClosedDeals';
     
     
+    /**
+     * По кое поле да се филтрира по дата
+     */
+    public $filterDateField = 'createdOn';
+     
+     
     /**
      * Позволени операции на последващите платежни документи
      */
@@ -296,9 +308,10 @@ class findeals_Deals extends deals_DealBase
     		}
     		
     		if(!$rec->currencyRate){
+    			
     			// Изчисляваме курса към основната валута ако не е дефиниран
     			$rec->currencyRate = round(currency_CurrencyRates::getRate(dt::now(), $rec->currencyId, NULL), 4);
-    			if(!$rec->rate){
+    			if(!$rec->currencyRate){
     				$form->setError('rate', "Не може да се изчисли курс");
     			}
     		} else {
@@ -518,11 +531,19 @@ class findeals_Deals extends deals_DealBase
     /**
      * Филтър на продажбите
      */
-    static function on_AfterPrepareListFilter(core_Mvc $mvc, $data)
+    protected static function on_AfterPrepareListFilter(core_Mvc $mvc, &$data)
     {
-    	$data->listFilter->view = 'horizontal';
-    	$data->listFilter->showFields = 'search';
-    	$data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+    	if(!Request::get('Rejected', 'int')){
+    		$data->listFilter->setOptions('state', array('' => '') + arr::make('draft=Чернова, active=Активиран, closed=Приключен', TRUE));
+    		$data->listFilter->setField('state', 'placeholder=Всички');
+    		$data->listFilter->showFields .= ',state';
+    		 
+    		$data->listFilter->input();
+    		
+    		if($state = $data->listFilter->rec->state){
+    			$data->query->where("#state = '{$state}'");
+    		}
+    	}
     	
     	$data->query->where("#dealManId = {$mvc->getClassId()}");
     }

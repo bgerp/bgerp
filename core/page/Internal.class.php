@@ -18,17 +18,14 @@
  */
 class core_page_Internal extends core_page_Active {
     
-    public $interfaces = 'core_page_WrapperIntf';
  
     /**
      * Конструктор за страницата по подразбиране
      * Тази страница използва internal layout, header и footer за да 
      * покаже една обща обвивка за съдържанието за вътрешни потребители
      */
-    function core_page_Internal()
+    function prepare()
     {
-    	// Конструиране на родителския клас
-        $this->core_page_Active();
         
         bgerp_Notifications::subscribeCounter($this);
         
@@ -290,7 +287,7 @@ class core_page_Internal extends core_page_Active {
             $sysDomain = $_SERVER['HTTP_HOST'];
             $name = core_Users::getCurrent('names');
             $img = sbf('img/supportmale-20.png', '');
-            $btn = "<input title='Сигнал за бъг, въпрос или предложение' class='bugReport' type=image src='{$img}' name='Cmd[refresh]' value=1>";
+            $btn = "<input title='Сигнал за бъг, въпрос или предложение' alt='Сигнал за бъг' class='bugReport' type=image src='{$img}' name='Cmd[refresh]'>";
             $form = new ET("<form style='display:inline' method='post' target='_blank' onSubmit=\"prepareBugReport(this, '{$user}', '{$domain}', '{$name}', '{$ctr}', '{$act}', '{$sysDomain}');\" action='" . $conf->BGERP_SUPPORT_URL . "'>[#1#]</form>", $btn);
             $tpl->append('&nbsp;<small>|</small>&nbsp;');
             $tpl->append($form);

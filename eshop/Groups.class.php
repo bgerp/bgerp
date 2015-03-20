@@ -20,7 +20,7 @@ class eshop_Groups extends core_Master
     /**
      * Заглавие
      */
-    var $title = "Групи в онлайн магазина";
+    var $title = "Онлайн магазин";
     
     
     /**
@@ -38,7 +38,7 @@ class eshop_Groups extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, eshop_Wrapper, plg_State2, cms_VerbalIdPlg';
+    var $loadList = 'plg_Created, plg_RowTools, eshop_Wrapper, plg_State2, cms_VerbalIdPlg, plg_AutoFilter, plg_Search';
     
     
     /**
@@ -141,7 +141,7 @@ class eshop_Groups extends core_Master
         $this->FLD('icon', 'fileman_FileType(bucket=eshopImages)', 'caption=Картинка->Малка');
         $this->FLD('image', 'fileman_FileType(bucket=eshopImages)', 'caption=Картинка->Голяма');
         $this->FLD('productCnt', 'int', 'input=none');
-        $this->FLD('menuId', 'key(mvc=cms_Content,select=menu)', 'caption=Меню');
+        $this->FLD('menuId', 'key(mvc=cms_Content,select=menu, allowEmpty)', 'caption=Меню');
     }
     
     
@@ -153,12 +153,53 @@ class eshop_Groups extends core_Master
         $cQuery = cms_Content::getQuery();
         
         $classId = core_Classes::fetchIdByName($mvc->className);
-        
-        while($rec = $cQuery->fetch("#source = {$classId} AND state = 'active'")) {
+        $domainId = cms_Domains::getCurrent();
+        while($rec = $cQuery->fetch("#source = {$classId} AND #state = 'active' AND #domainId = {$domainId}")) {
             $opt[$rec->id] = cms_Content::getVerbal($rec, 'menu');
         }
         
+        if(count($opt) == 1) {  
+            $data->form->setReadOnly('menuId'); 
+        }
+
         $data->form->setOptions('menuId', $opt);
+    }
+
+
+    /**
+     * Изпълнява се след подготовката на формата за филтриране
+     */
+    function on_AfterPrepareListFilter($mvc, $data)
+    {
+        $form = $data->listFilter;
+        
+        // В хоризонтален вид
+        $form->view = 'horizontal';
+        
+        // Добавяме бутон
+        $form->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        
+        // Показваме само това поле. Иначе и другите полета 
+        // на модела ще се появят
+        $form->showFields = 'search, menuId';
+        
+        $form->input('search, menuId', 'silent');
+
+        $form->setOptions('menuId', $opt = cms_Content::getMenuOpt($mvc));
+
+        $form->setField('menuId', 'refreshForm');
+        
+        if(count($opt) == 0) {
+            redirect(array('cms_Content'), FALSE, 'Моля въведете поне една точка от менюто с източник "Онлайн магазин"');
+        }
+
+        if(!$opt[$form->rec->menuId]) {
+            $form->rec->menuId = key($opt);
+        }
+        
+        $data->query->where(array("#menuId = '[#1#]'", $form->rec->menuId));
+        
+        $data->query->orderBy('#menuId');
     }
     
     
@@ -182,10 +223,7 @@ class eshop_Groups extends core_Master
         $data->menuId = Request::get('cMenuId', 'int');
         
         if(!$data->menuId) {
-            $lg = cms_Content::getLang();
-            $clsId = core_Classes::getId($this);
-            expect($lg, $clsId);
-            $data->menuId = cms_Content::fetchField("#lang = '{$lg}' AND #source = $clsId");
+            $data->menuId = cms_Content::getDefaultMenuId($this);
         }
         
         cms_Content::setCurrent($data->menuId);
@@ -201,10 +239,11 @@ class eshop_Groups extends core_Master
         $url = toUrl($this->getUrlByMenuId($data->menuId), 'absolute');
         $layout->append("\n<link rel=\"canonical\" href=\"{$url}\"/>", 'HEAD');
         
-        // Страницата да се кешира в браузъра
+        // Колко време страницата да се кешира в браузъра
         $conf = core_Packs::getConfig('eshop');
         Mode::set('BrowserCacheExpires', $conf->ESHOP_BROWSER_CACHE_EXPIRES);
         
+        // Записваме в посетителския лог
         if(core_Packs::fetch("#name = 'vislog'")) {
             if($data->menuId) {
                 $cRec = cms_Content::fetch($data->menuId);
@@ -312,7 +351,7 @@ class eshop_Groups extends core_Master
         
         $classId = core_Classes::fetchIdByName($mvc->className);
         
-        while($rec = $cQuery->fetch("#source = {$classId} AND state = 'active'")) {
+        while($rec = $cQuery->fetch("#source = {$classId} AND #state = 'active'")) {
             $data->toolbar->addBtn(type_Varchar::escape($rec->menu),
                 array('eshop_Groups', 'ShowAll', 'cMenuId' =>  $rec->id, 'PU' => 1));
         }
@@ -494,18 +533,9 @@ class eshop_Groups extends core_Master
      */
     function getUrlByMenuId($cMenuId)
     {
-        $cMenuIdEn = cms_Content::fetchField(array("#source = [#1#] AND #lang = 'en' AND #state = 'active'" , eshop_Groups::getClassId()));
-        
-        if($cMenuIdEn == $cMenuId) {
-            $url = array('En', 'Products');
-        }
-        
-        if(!$url) {
-            $cMenuIdBg = cms_Content::fetchField(array("#source = [#1#] AND #lang = 'bg' AND #state = 'active'" , eshop_Groups::getClassId()));
-            
-            if($cMenuIdBg == $cMenuId) {
-                $url = array('Bg', 'Products');
-            }
+        $cDefaultMenuId = cms_Content::getDefaultMenuId($this);
+        if($cDefaultMenuId == $cMenuId) {
+            $url = array(ucfirst(cms_Domains::getPublicDomain('lang')), 'Products');
         }
         
         if(!$url) {
@@ -536,4 +566,16 @@ class eshop_Groups extends core_Master
         
         return $url;
     }
+
+
+    /**
+     * Титлата за листовия изглед
+     * Съдържа и текущия домейн
+     */
+    static function on_AfterPrepareListTitle($mvc, $res, $data)
+    {
+        
+        $data->title .= cms_Domains::getCurrentDomainInTitle();
+    }
+
 }

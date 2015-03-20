@@ -69,6 +69,8 @@ class cat_Setup extends core_ProtoSetup
     		'migrate::removeOldParams1',
     		'migrate::updateDocs',
     		'migrate::fixStates',
+    		'migrate::truncatCache',
+            'migrate::fixProductsSearchKeywords'
         );
 
         
@@ -176,7 +178,7 @@ class cat_Setup extends core_ProtoSetup
     {
     	$pQuery = cat_Products::getQuery();
     	while($rec = $pQuery->fetch()){
-    		if($rec->innerClass){
+    		if(cls::load($rec->innerClass, TRUE)){
     			try{
     				$rec->innerForm->photo = $rec->photo;
     				$rec->innerState->photo = $rec->photo;
@@ -185,7 +187,6 @@ class cat_Setup extends core_ProtoSetup
     			} catch(core_exception_Expect $e){
     				
     			}
-    			
     		}
     	}
     }
@@ -285,6 +286,7 @@ class cat_Setup extends core_ProtoSetup
     				$first = cat_Categories::fetchField("#sysId = 'services'", 'id');
     			}
     			
+    			
     			if(core_Classes::fetchIdByName('cat_GeneralServiceDriver') == $rec->innerClass){
     				$rec->innerClass = cat_GeneralProductDriver::getClassId();
     			}
@@ -378,12 +380,16 @@ class cat_Setup extends core_ProtoSetup
      */
     public function migrateProformas()
     {
-    	$query = sales_ProformaDetails::getQuery();
-    	$productId = cat_Products::getClassId();
-    	while($rec = $query->fetch()){
-    		if($rec->classId != $productId){
-    			$rec->classId = $productId;
-    			sales_ProformaDetails::save($rec);
+    	if(core_Packs::fetch("#name = 'sales'")){
+    		if(sales_ProformaDetails::count()){
+    			$query = sales_ProformaDetails::getQuery();
+    			$productId = cat_Products::getClassId();
+    			while($rec = $query->fetch()){
+    				if($rec->classId != $productId){
+    					$rec->classId = $productId;
+    					sales_ProformaDetails::save_($rec);
+    				}
+    			}
     		}
     	}
     }
@@ -402,12 +408,14 @@ class cat_Setup extends core_ProtoSetup
     		cat_Boms::save($bRec, 'productId');
     	}
     	
-    	$jQuery = mp_Jobs::getQuery();
-    	$jQuery->where("#productId IS NULL");
-    	while($jRec = $jQuery->fetch()){
-    		$origin = doc_Containers::getDocument($jRec->originId);
-    		$jRec->productId = $origin->that;
-    		mp_Jobs::save($jRec, 'productId');
+    	if(core_Packs::fetch("#name = 'planning'")){
+    		$jQuery = planning_Jobs::getQuery();
+    		$jQuery->where("#productId IS NULL");
+    		while($jRec = $jQuery->fetch()){
+    			$origin = doc_Containers::getDocument($jRec->originId);
+    			$jRec->productId = $origin->that;
+    			planning_Jobs::save($jRec, 'productId');
+    		}
     	}
     }
     
@@ -432,6 +440,34 @@ class cat_Setup extends core_ProtoSetup
     		}
     		
     		$Products->save_($rec, 'state,brState');
+    	}
+    }
+    
+    
+    /**
+     * Изтриваме кеша
+     */
+    public function truncatCache()
+    {
+    	cat_ProductTplCache::truncate();
+    }
+    
+    
+    /**
+     * Оправя ключовите думи на артикулите
+     */
+    public static function fixProductsSearchKeywords()
+    {
+    	$query = cat_Products::getQuery();
+    	
+    	while($rec = $query->fetch()) {
+    		if(cls::load($rec->innerClass, TRUE)){
+    			try {
+    				cat_Products::save($rec, 'searchKeywords');
+    			} catch (core_exception_Expect $e) {
+    				continue;
+    			}
+    		}
     	}
     }
 }

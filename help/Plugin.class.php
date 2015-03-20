@@ -24,10 +24,11 @@ class help_Plugin extends core_Plugin
         
         $act = Request::get('Act');
         
+        $act = strtolower($act);
         // какъв е метода на показваната страница?
-        if (strtolower($act) == 'edit' || strtolower($act) == 'add') {
+        if ($act == 'edit' || $act == 'add') {
         	$act = 'edit';
-        } elseif ($act == " " || strtolower($act) == 'default' || $act == NULL) {
+        } elseif ($act == " " || $act == 'default' || $act == NULL) {
         	$act = 'list';
         }
        

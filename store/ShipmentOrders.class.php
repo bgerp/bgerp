@@ -71,12 +71,6 @@ class store_ShipmentOrders extends store_DocumentMaster
      * Кой има право да добавя?
      */
     public $canAdd = 'ceo,store';
-    
-    
-    /**
-     * Кой може да го види?
-     */
-    public $canView = 'ceo,store';
 
 
     /**
@@ -94,7 +88,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, valior, folderId, currencyId, amountDelivered, amountDeliveredVat, weight, volume, createdOn, createdBy';
+    public $listFields = 'tools=Пулт, valior, title=Документ, folderId, currencyId, amountDelivered, amountDeliveredVat, weight, volume, createdOn, createdBy';
 
     
     /**

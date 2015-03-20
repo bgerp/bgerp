@@ -37,7 +37,7 @@ class custom_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    var $info = "Пакет за персонализиране";
+    var $info = "Пакет за персонални настройки на потребителите";
     
     
     /**
@@ -46,4 +46,10 @@ class custom_Setup extends core_ProtoSetup
     var $managers = array(
             'custom_Settings',
         );
+    
+    
+    /**
+     * 
+     */
+    public $deprecated = TRUE;
 }

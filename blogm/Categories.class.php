@@ -30,7 +30,7 @@ class blogm_Categories extends core_Manager {
 	/**
 	 * Полета за изглед
 	 */
-	var $listFields='id, title, description, lang';
+	var $listFields='id, title, description';
 	
 	
 	/**
@@ -68,10 +68,10 @@ class blogm_Categories extends core_Manager {
 	 */
 	function description()
 	{
-		$this->FLD('title', 'varchar(40)', 'caption=Заглавие,mandatory');
+		$this->FLD('title', 'varchar(60)', 'caption=Заглавие,mandatory');
 		$this->FLD('description', 'text', 'caption=Описание');
-		$this->FLD('lang', 'varchar(2)', 'caption=Език,notNull,defValue=bg,mandatory,autoFilter,value=bg');
-		
+        $this->FLD('domainId', 'key(mvc=cms_Domains, select=*)', 'caption=Домейн,notNull,defValue=bg,mandatory,autoFilter');
+
 		$this->setDbUnique('title');
 	}
 	
@@ -89,25 +89,39 @@ class blogm_Categories extends core_Manager {
 	 * Филтрира заявката за категориите, така че да показва само тези
 	 * от текущия език
 	 */
-	private static function filterByLang(core_Query &$query, $lang = NULL)
+	private static function filterByDomain(core_Query &$query, $domainId = NULL)
 	{
-		if(empty($lang)){
-			$lang = cms_Content::getLang();
+		if(empty($domainId)){
+			$domainId = cms_Domains::getPublicDomain('id');
 		}
-		$query->where("#lang = '{$lang}'");
+		$query->where("#domainId = '{$domainId}'");
 	}
 	
-	
+    
+    /**
+     * Извиква се след подготовката на формата за редактиране/добавяне $data->form
+     */
+    public static function on_AfterPrepareEditForm($mvc, $data)
+    {
+    	$form = &$data->form;
+
+        $form->rec->domainId = cms_Domains::getCurrent();
+        $form->setReadonly('domainId');
+    }
+
+
+
+
 	/**
 	 * Връща категориите по текущия език
 	 */
-	static function getCategoriesByLang($lang = NULL)
+	static function getCategoriesByDomain($domainId = NULL)
 	{
 		$options = array();
 		
 		// Взимаме заявката към категориите, според избрания език
 		$query = static::getQuery();
-		self::filterByLang($query, $lang);
+		self::filterByDomain($query, $domainId);
 		while($rec = $query->fetch()) {
 			$options[$rec->id] = static::getVerbal($rec, 'title');
 		}
@@ -162,22 +176,8 @@ class blogm_Categories extends core_Manager {
      */
     public static function on_AfterPrepareListFilter($mvc, &$data)
     {
-    	self::filterByLang($data->query);
+    	self::filterByDomain($data->query, cms_Domains::getCurrent());
     }
     
     
-    /**
-     * Извиква се след SetUp-а на таблицата за модела
-     */
-    static function on_AfterSetupMvc($mvc, &$res)
-    {
-    	$conf = core_Packs::getConfig('cms');
-    	$query = $mvc->getQuery();
-    	while($rec = $query->fetch()){
-    		if(!strlen($rec->lang)){
-    			 $rec->lang = $conf->CMS_BASE_LANG;
-    			 $mvc->save($rec);
-    		}
-    	}
-    }
 }

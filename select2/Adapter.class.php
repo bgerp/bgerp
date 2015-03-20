@@ -80,9 +80,16 @@ class select2_Adapter
     {
         if (!($tpl instanceof core_ET)) return ;
         
+        if ($ajaxUrl) {
+        	$minimumResultsForSearch = 0;
+    	} else {
+    	    $conf = core_Packs::getConfig('select2');
+    	    $minimumResultsForSearch = mode::is('screenMode', 'narrow') ? $conf->SELECT2_NARROW_MIN_SEARCH_ITEMS_CNT : $conf->SELECT2_WIDE_MIN_SEARCH_ITEMS_CNT;
+    	}
+    	
         $select2Str = "
         
-        $('#" . $id . "').select2({placeholder: '{$placeHolder}', allowClear: '{$allowClear}', language: '{$lg}'";
+        $('#" . $id . "').select2({placeholder: '{$placeHolder}', allowClear: '{$allowClear}', language: '{$lg}', minimumResultsForSearch: {$minimumResultsForSearch}";
         
         if ($ajaxUrl) {
             $select2Str .= ",ajax: {
@@ -108,19 +115,18 @@ class select2_Adapter
     			cache: true
     		},
     		
-    		minimumInputLength: 0,
-    		
-    		templateResult: formatSelect2Data,
+    		minimumInputLength: 0";
+        }
+        
+        $select2Str .= "
+        	,templateResult: formatSelect2Data,
     		
     		templateSelection: formatSelect2DataSelection";
-        }
         
         $select2Str .= "});";
         
         jquery_Jquery::run($tpl, $select2Str, TRUE);
         
-        if ($ajaxUrl) {
-            $tpl->push(('select2/js/js.js'), 'JS');
-        }
+        $tpl->push(('select2/js/adapter.js'), 'JS');
     }
 }

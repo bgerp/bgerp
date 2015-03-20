@@ -706,6 +706,9 @@ div.richEdit div.richedit-toolbar {
   border: solid 1px #bbbbbb;
   border-top: none; }
 
+.debug_block {
+  display: block; }
+
 @media handheld,
 only screen and (max-width: 800px) {
   .narrow  .sidemenu-push-toleft #maincontent {

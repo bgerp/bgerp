@@ -87,6 +87,7 @@ class crm_Setup extends core_ProtoSetup
             'crm_Locations',
             'crm_Formatter',
             'migrate::movePersonalizationData',
+            'migrate::addCountryToCompaniesAndPersons'
         );
     
 
@@ -214,6 +215,33 @@ class crm_Setup extends core_ProtoSetup
                     core_Users::save($nRec, 'configData');
                 }
             } catch (core_exception_Expect $e) { }
+        }
+    }
+    
+    
+    /**
+     * Миграция, за добавяне на държава към потребителите и лицата
+     */
+    public static function addCountryToCompaniesAndPersons()
+    {
+        try {
+            $conf = core_Packs::getConfig('crm');
+            $coutryId = drdata_Countries::fetchField("#commonName = '" . $conf->BGERP_OWN_COMPANY_COUNTRY . "'", 'id');
+            
+            if (!$coutryId) return ;
+            
+            foreach (array('crm_Persons', 'crm_Companies') as $clsName) {
+                $query = $clsName::getQuery();
+                $query->where("#country IS NULL");
+                $query->orWhere("#country = ''");
+                while ($rec = $query->fetch()) {
+                    $rec->country = $coutryId;
+                    $clsName::save($rec, 'country');
+                }
+            }
+        } catch (core_exception_Expect $e) {
+            
+            return ;
         }
     }
 }

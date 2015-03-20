@@ -1032,7 +1032,6 @@ td.portal-date {
 }
 /*край на стилове при тредове*/
 
-
 /*стилове за документи*/
 .document {
 	width: 100%;
@@ -1142,12 +1141,18 @@ td.portal-date {
     background: rgba(255,255,210,0.3);
     border: 1px solid #ddd;
     border-radius: 3px;
-    .snapshat-title {
-        font-weight: bold; 
+    .snapshot-title {
         padding-bottom: 7px;
     }
 }
-
+.bottom-antetka {
+	border-top: 1px solid #ddd;
+	padding: 5px;
+	font-size: 0.8em;
+	 > div {
+	   margin: 1px 0;
+	 }
+}
 .stamp{
 	color: #b00;
 	border: 1px dotted #b00;
@@ -1289,6 +1294,13 @@ pre.document {
 	font-family: "Courier New";
 	font-size: 1em; 
 	font-weight: bold;
+}
+
+.quiet-small {
+    color: #999;
+    font-size: 0.9em;
+    margin-bottom: -2px;
+    margin-top: 3px;
 }
 
 .cell {
@@ -3336,6 +3348,29 @@ div.location.public {
 	}
 }
 
+.app-name {
+    display: block;
+    color: #42477f;
+    position: absolute;
+    font-weight: bold;
+    font-family: Times New Roman, Georgia, serif;
+}
+
+.wide .app-name{
+    left: 2%;
+    bottom: 1%;
+    font-size: 8.5em;
+    text-shadow: 1px 1px 4px rgba(0,0,0,0.6);
+    
+}
+
+.narrow .app-name{
+    left: 7px;
+    top: 2px;
+    font-size: 33px;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.4);
+}
+
 
 /*queries*/
 
@@ -3389,9 +3424,18 @@ body.narrow {
     }
 }
 
+@media handheld, only screen and (max-width: 1200px) {
+    .wide .app-name {
+         font-size: 7.5em;
+    }
+}
+
 @media handheld , only screen and (max-width: 1024px) {
     .document{
         max-width: 52.5em;
+    }
+    .wide .app-name {
+         font-size: 6.4em;
     }	
 }
 
@@ -3452,6 +3496,9 @@ body.narrow {
     #all h1{
         font-size: 1.88em;
     }
+    .wide .app-name {
+         font-size: 5.7em;
+    }
 }
 @media handheld, only screen and (max-width: 800px) {
 	#cmsMenu a {
@@ -3479,6 +3526,9 @@ body.narrow {
     }
     #all h1{
         font-size: 1.88em;
+    }
+    .wide .app-name {
+         font-size: 5em;
     }
 }
 
@@ -3526,6 +3576,9 @@ body.narrow {
     }
     #all h1{
         font-size: 1.84em;
+    }
+    .wide .app-name {
+        font-size: 4.4em;
     }
 }
 
@@ -3597,6 +3650,9 @@ body.narrow {
     }
     #all h1{
         font-size: 1.8em;
+    }
+    .wide .app-name {
+         font-size: 3.7em;
     }
 }
 
@@ -3728,6 +3784,9 @@ body.narrow {
 	    display: block;
 	    width: 100%;
 	}
+	.wide .app-name {
+         font-size: 3em;
+    }
 }
 
 
@@ -3831,13 +3890,13 @@ body.narrow {
         max-height: 87px;
     }
     .footerDocInfo{
-        display: table-row;
+        display: table-row !important;
     }
     .footerDocBlock{
-        display: block;
+        display: block  !important;
     }
     .footerDocTable {
-        display: table;
+        display: table !important;
     }
 }
 
@@ -4113,6 +4172,9 @@ body.narrow {
     .staticFormView .formFieldValue {
         border: 1px solid #ccc;
     }
+    .header-state {
+        display: none;
+    }
 }
 
 .narrow .printing .document{
@@ -4320,6 +4382,14 @@ body.narrow {
 	}
 }
 
+.debug_block {
+    padding:5px; 
+    margin:10px; 
+    border:solid 1px #777; 
+    background-color:#FFFF99; 
+    display:table;
+    color:black;
+}
 .cd-l1{
     color: green;
 }

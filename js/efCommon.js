@@ -1798,7 +1798,7 @@ function centerNumericElements() {
         
         for (key in numericWidth) {
         	if(numericWidth[key]){
-        		$(table).find("td:nth-child(" + key + ") .numericElement").css('width', numericWidth[key]);
+        		$(table).find("td:nth-child(" + key + ") .numericElement").css('width', numericWidth[key] + 1);
         	}	
         }
     });
@@ -3286,6 +3286,29 @@ Experta.prototype.setCoords = function(position) {
 	var long = getEO().round(position.coords.longitude, 6);
 	
 	$('#' + getEO().geolocationId).val(lat + ',' + long);
+}
+
+
+/**
+ * Ескейпва подадения стринг
+ * 
+ * @param string str
+ * 
+ * @param return
+ */
+Experta.prototype.escape = function(str) {
+	
+	str = str.replace(/[&<>]/g, function(tag) {
+		var tagsToReplace = {
+			    '&': '&amp;',
+			    '<': '&lt;',
+			    '>': '&gt;'
+			};
+		
+		return tagsToReplace[tag] || tag;
+	});
+	
+	return str;
 }
 
 

@@ -979,6 +979,19 @@ class doc_DocumentPlg extends core_Plugin
                 }
             }
         }
+        
+        if ($data->action == 'clone') {
+            
+            if ($rec->threadId && $rec->containerId) {
+                $tRec = doc_Threads::fetch($rec->threadId);
+                
+                // Ако е първи документ, да се клонира в нова нишка
+                if ($tRec->firstContainerId == $rec->containerId) {
+                    
+                    unset($rec->threadId);
+                }
+            }
+        }
     }
 
     
@@ -1291,17 +1304,20 @@ class doc_DocumentPlg extends core_Plugin
         // Ако ще се клонират данните
         if ($rec && ($action == 'cloneuserdata')) {
             
+            $cRec = clone $rec;
+            
             if ($rec->threadId && $rec->containerId) {
                 $tRec = doc_Threads::fetch($rec->threadId);
                 
                 // Ако е първи документ, да се клонира в нова нишка
                 if ($tRec->firstContainerId == $rec->containerId) {
-                    unset($rec->threadId);
+                    
+                    unset($cRec->threadId);
                 }
             }
             
             // Трябва да има права за добавяне
-            if (!$mvc->haveRightFor('add', $rec, $userId)) {
+            if (!$mvc->haveRightFor('add', $cRec, $userId)) {
                 
                 // Трябва да има права за добавяне за да може да клонира
                 $requiredRoles = 'no_one';
@@ -1813,22 +1829,24 @@ class doc_DocumentPlg extends core_Plugin
     /**
      * След извличане на ключовите думи
      */
-    function on_AfterGetSearchKeywords($mvc, &$res, $id)
+    function on_AfterGetSearchKeywords($mvc, &$searchKeywords, $rec)
     {
-       	$rec = $mvc->fetchRec($id);
+       	$rec = $mvc->fetchRec($rec);
     	
-    	if ($res) {
+       	if (!isset($searchKeywords)) {
+       	    $searchKeywords = plg_Search::getKeywords($mvc, $rec);
+       	}
+       	
+    	if ($rec->id) {
     		
-    		// Ако има ид, добавяме хендлъра към ключовите думи
-            if($rec->id){
-            	$handle = $mvc->getHandle($rec->id);
-            	$res .= " " . plg_Search::normalizeText($handle);
-            }
-            
-            return;
+        	$handle = $mvc->getHandle($rec->id);
+        	
+        	$handleNormalized = plg_Search::normalizeText($handle);
+        	
+        	if (strpos($searchKeywords, $handleNormalized) === FALSE) {
+        	    $searchKeywords .= " " . plg_Search::normalizeText($handle);
+        	} 
         }
-        
-        $res = plg_Search::getKeywords($mvc, $rec);
     }
     
     

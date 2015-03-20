@@ -1,22 +1,5 @@
 <?php
 
-/**
- * Тема по подразбиране
- */
-defIfNot('CMS_THEME', 'cms_DefaultTheme');
-
-
-/**
- * Основен език на публичната част
- */
-defIfNot('CMS_BASE_LANG', core_Lg::getDefaultLang());
-
-
-/**
- * Допълнителни езици публичната част
- */
-defIfNot('CMS_LANGS', '');
-
 
 /**
  * Колко секунди да се кешира съдържанието за не PowerUsers
@@ -44,7 +27,7 @@ defIfNot('CMS_OGRAPH_IMAGE', '');
 
 
 /**
- * Опаковка по подразбиране за публична страница
+ * Стандартна "кожа" за външната част
  */
 defIfNot('CMS_PAGE_WRAPPER', 'cms_page_External');
 
@@ -95,12 +78,7 @@ class cms_Setup extends core_ProtoSetup
 	 * Описание на конфигурационните константи
 	 */
 	var $configDescription = array(
-            'CMS_BASE_LANG' => array ('customKey(mvc=drdata_Languages,select=languageName, key=code)', 'caption=Езици за публичното съдържание->Основен'),
 
-            'CMS_LANGS' => array ('keylist(mvc=drdata_Languages,select=languageName)', 'caption=Езици за публичното съдържание->Допълнителни'),
-
-			'CMS_THEME' => array ('class(interface=cms_ThemeIntf,select=title)', 'caption=Външен изглед->Тема'),
-			
             'CMS_PAGE_WRAPPER' => array ('class(interface=cms_page_WrapperIntf,select=title)', 'caption=Външен изглед->Страница'),
 
             'CMS_BROWSER_CACHE_EXPIRES' => array ('time', 'caption=Кеширане в браузъра->Време'),
@@ -117,12 +95,14 @@ class cms_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     var $managers = array(
+            'cms_Domains',
             'cms_Content',
             'cms_Objects',
             'cms_Articles',
         	'cms_Feeds',
             'cms_Includes',
             'cms_VerbalId',
+            'migrate::contentOrder6',
          );
 
          
@@ -136,7 +116,7 @@ class cms_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     var $menuItems = array(
-            array(3.5, 'Сайт', 'CMS', 'cms_Content', 'default', "cms, ceo, admin"),
+            array(3.51, 'Сайт', 'CMS', 'cms_Content', 'default', "cms, ceo, admin"),
         );
     
     
@@ -161,10 +141,11 @@ class cms_Setup extends core_ProtoSetup
         $html .= $Plugins->forcePlugin('Показване на обекти', 'cms_ObjectsInRichtextPlg', 'type_Richtext', 'private');
         $html .= $Plugins->forcePlugin('Копиране с линк към страницата', 'cms_CopyTextPlg', 'cms_page_External', 'private');
         
+        $html .= $Bucket->createBucket('cmsFiles', 'Прикачени файлове в CMS', NULL, '104857600', 'user', 'user');
+
         // Добавяме класа връщащ темата в core_Classes
         $html .= core_Classes::add('cms_DefaultTheme');
-        $html .= core_Classes::add('cms_page_External');
-
+ 
         return $html;
     }
     
@@ -178,5 +159,131 @@ class cms_Setup extends core_ProtoSetup
         $res .= bgerp_Menu::remove($this);
         
         return $res;
+    }
+    
+    private static function getLocalhostDomain($lg)
+    {
+        static $domainIds = array();
+
+        if(!$domainIds[$lg]) {
+            $domainIds[$lg] = cms_Domains::fetch("#domain = 'localhost' AND #lang = '{$lg}'")->id;
+        }
+
+        if(!$domainIds[$lg]) {
+            core_Classes::add('cms_DefaultTheme');
+            $dRec = (object) array('domain' => 'localhost', 'theme' => core_Classes::getId('cms_DefaultTheme'), 'lang' => $lg);
+            cms_Domains::save($dRec);
+            $domainIds[$lg] = $dRec->id;
+        }
+        
+        return $domainIds[$lg];
+    }
+    
+    
+    /**
+     * Миграция към модела на домейните
+     */
+    static function contentOrder6()
+    {
+        // Добавяме domainId към cms_Content
+        $max = 1;
+        $query = cms_Content::getQuery();
+        $typeOrder = cls::get('type_Order');
+
+        while($rec = $query->fetch()) {
+            
+            list($n, $m) = explode(' ', $rec->menu, 2);
+            
+            $n = rtrim($n, '.');
+
+            if ($m) {
+                $rec->menu = $m;
+            }
+            
+            if(!$rec->order) {
+                if(is_numeric($n)) {
+                    $rec->order = $n;
+                } else {
+                    $rec->order = $max +1;
+                }
+                $rec->order = $typeOrder->fromVerbal($rec->order);
+            }
+            
+            $max = max($rec->order, $max);
+            
+            if (!$rec->domainId) {
+                if (($m) && (mb_strlen($m) == strlen($m))) {
+                    $rec->domainId = self::getLocalhostDomain('en');
+                    
+                } else {
+                    $rec->domainId = self::getLocalhostDomain('bg');
+                }
+            }
+            if(!$rec->url && !$rec->source) {
+                $rec->source = core_Classes::getId('cms_Articles');
+            }
+            cms_Content::save($rec);
+        }
+        
+        $bCat = cls::get('blogm_Categories');
+        if($bCat->db->tableExists($bCat->dbTableName)) {
+            
+            if (!$bCat->db->isFieldExists($bCat->dbTableName, 'domain_id')) {
+                $bCat->setupMVC();
+            }
+            
+            $query = blogm_Categories::getQuery();
+            while($rec = $query->fetch()) {
+                if(!$rec->domainId) {
+                    if(mb_strlen($rec->title) == strlen($rec->title)) {
+                        $rec->domainId = self::getLocalhostDomain('en');
+                    } else {
+                        $rec->domainId = self::getLocalhostDomain('bg');
+                    }
+                }
+                blogm_Categories::save($rec);
+            }
+        }
+
+        $feeds = cls::get('cms_Feeds');
+        if($feeds->db->tableExists($feeds->dbTableName)) {
+            
+            if (!$feeds->db->isFieldExists($feeds->dbTableName, 'domain_id')) {
+                $feeds->setupMVC();
+            }
+            
+            $query = cms_Feeds::getQuery();
+            while($rec = $query->fetch()) {
+                if(!$rec->domainId) {
+                    if (mb_strlen($rec->title) == strlen($rec->title) && (mb_strlen($rec->description) == strlen($rec->description))) {
+                        $rec->domainId = self::getLocalhostDomain('en');
+                    } else {
+                        $rec->domainId = self::getLocalhostDomain('bg');
+                    }
+                }
+                cms_Feeds::save($rec);
+            }
+        }
+
+        $newsbar = cls::get('newsbar_News');
+        if($newsbar->db->tableExists($newsbar->dbTableName)) {
+            
+            if (!$newsbar->db->isFieldExists($newsbar->dbTableName, 'domain_id')) {
+                $newsbar->setupMVC();
+            }
+            
+            $query = newsbar_News::getQuery();
+            $rt = cls::get('type_Richtext');
+            while($rec = $query->fetch()) {
+                if(!$rec->domainId) {
+                    if(mb_strlen($rec->news) == strlen($rec->news)) {
+                        $rec->domainId = self::getLocalhostDomain('en');
+                    } else {
+                        $rec->domainId = self::getLocalhostDomain('bg');
+                    }
+                }
+                $newsbar->save($rec);
+            }
+        }
     }
 }

@@ -60,7 +60,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 		$mvc->FLD('amount', 'double(minDecimals=2,maxDecimals=2)', 'caption=Сума,input=none');
 		$mvc->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input');
 		$mvc->FLD('discount', 'percent', 'caption=Отстъпка');
-		$mvc->FLD('note', 'varchar(64)', 'caption=@Пояснение');
+		$mvc->FLD('notes', 'richtext(rows=3)', 'caption=Забележки,formOrder=110001');
 	}
 	
 	
@@ -209,12 +209,9 @@ abstract class deals_InvoiceDetail extends doc_Detail
 	public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
 	{
 		$ProductMan = cls::get($rec->classId);
-		$row->productId = $ProductMan->getProductDesc($rec->productId, $mvc->Master);
-	
-		if($rec->note){
-			$varchar = cls::get('type_Varchar');
-			$row->note = $varchar->toVerbal($rec->note);
-			$row->productId .= "<br/><small style='color:#555;'>{$row->note}</small>";
+		$row->productId = $ProductMan->getProductDescShort($rec->productId);
+		if($rec->notes){
+			$row->productId .= "<div class='small'>{$mvc->getFieldType('notes')->toVerbal($rec->notes)}</div>";
 		}
 			
 		$pInfo = $ProductMan->getProductInfo($rec->productId);
@@ -265,7 +262,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 	{
 		if($classId = Request::get('classId', 'class(interface=cat_ProductAccRegIntf)')){
 			$data->ProductManager = cls::get($classId);
-			$mvc->getField('productId')->type = cls::get('type_Key', array('params' => array('mvc' => $data->ProductManager->className, 'select' => 'name', 'maxSuggestions' => 1000000000)));
+			$mvc->getField('productId')->type = cls::get('type_Key', array('params' => array('mvc' => $data->ProductManager->className, 'select' => 'name')));
 		}
 	}
 	
@@ -295,8 +292,18 @@ abstract class deals_InvoiceDetail extends doc_Detail
 		expect($ProductMan = cls::get($rec->classId));
 		if($form->rec->productId){
 			$vat = cls::get($rec->classId)->getVat($rec->productId);
-			$form->setOptions('packagingId', $ProductMan->getPacks($rec->productId));
-			unset($form->getFieldType('packagingId')->params['allowEmpty']);
+			
+			$productRef = new core_ObjectReference($ProductMan, $rec->productId);
+			expect($productInfo = $productRef->getProductInfo());
+			
+			$packs = $ProductMan->getPacks($rec->productId);
+			if(count($packs)){
+				$form->setOptions('packagingId', $packs);
+			} else {
+				$form->setReadOnly('packagingId');
+			}
+			$uomName = cat_UoM::getTitleById($productInfo->productRec->measureId);
+			$form->setField('packagingId', "placeholder={$uomName}");
 			
 			// Само при рефреш слагаме основната опаковка за дефолт
 			if($form->cmd == 'refresh'){
@@ -333,9 +340,6 @@ abstract class deals_InvoiceDetail extends doc_Detail
 					$update = TRUE;
 				}
 			}
-	
-			$productRef = new core_ObjectReference($ProductMan, $rec->productId);
-			expect($productInfo = $productRef->getProductInfo());
 	
 			$rec->quantityInPack = (empty($rec->packagingId)) ? 1 : $productInfo->packagings[$rec->packagingId]->quantity;
 				
