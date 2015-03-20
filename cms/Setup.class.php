@@ -102,7 +102,7 @@ class cms_Setup extends core_ProtoSetup
         	'cms_Feeds',
             'cms_Includes',
             'cms_VerbalId',
-            'migrate::contentOrder4',
+            'migrate::contentOrder6',
          );
 
          
@@ -183,7 +183,7 @@ class cms_Setup extends core_ProtoSetup
     /**
      * Миграция към модела на домейните
      */
-    static function contentOrder4()
+    static function contentOrder6()
     {
         // Добавяме domainId към cms_Content
         $max = 1;
@@ -194,6 +194,8 @@ class cms_Setup extends core_ProtoSetup
             
             list($n, $m) = explode(' ', $rec->menu, 2);
             
+            $n = rtrim($n, '.');
+
             if ($m) {
                 $rec->menu = $m;
             }
@@ -216,6 +218,9 @@ class cms_Setup extends core_ProtoSetup
                 } else {
                     $rec->domainId = self::getLocalhostDomain('bg');
                 }
+            }
+            if(!$rec->url && !$rec->source) {
+                $rec->source = core_Classes::getId('cms_Articles');
             }
             cms_Content::save($rec);
         }

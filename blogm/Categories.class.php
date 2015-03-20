@@ -70,7 +70,6 @@ class blogm_Categories extends core_Manager {
 	{
 		$this->FLD('title', 'varchar(60)', 'caption=Заглавие,mandatory');
 		$this->FLD('description', 'text', 'caption=Описание');
-		// $this->FLD('lang', 'varchar(2)', 'caption=Език,notNull,defValue=bg,mandatory,autoFilter,value=bg');
         $this->FLD('domainId', 'key(mvc=cms_Domains, select=*)', 'caption=Домейн,notNull,defValue=bg,mandatory,autoFilter');
 
 		$this->setDbUnique('title');
@@ -181,18 +180,4 @@ class blogm_Categories extends core_Manager {
     }
     
     
-    /**
-     * Извиква се след SetUp-а на таблицата за модела
-     */
-    static function on_AfterSetupMvc($mvc, &$res)
-    {
-    	$conf = core_Packs::getConfig('cms');
-    	$query = $mvc->getQuery();
-    	while($rec = $query->fetch()){
-    		if(!strlen($rec->lang)){
-    			 $rec->lang = $conf->CMS_BASE_LANG;
-    			 $mvc->save($rec);
-    		}
-    	}
-    }
 }
