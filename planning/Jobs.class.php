@@ -282,10 +282,10 @@ class planning_Jobs extends core_Master
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
+    	$row->title = $mvc->getLink($rec->id, 0);
     	if($fields['-list']){
     		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
     		$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
-    		$row->title = $mvc->getLink($rec->id, 0);
     	}
     	 
     	if($rec->saleId){
@@ -617,7 +617,7 @@ class planning_Jobs extends core_Master
     	 	$tpl->append($addBtn, 'title');
     	 }
     	 
-    	 $listFields = arr::make('id=Пулт,dueDate=Падеж,saleId=Към продажба,quantity=Количество,createdBy=Oт,createdOn=На');
+    	 $listFields = arr::make('tools=Пулт,title=Документ,dueDate=Падеж,saleId=Към продажба,quantity=Количество,createdBy=Oт,createdOn=На');
     	 if($data->hideSaleCol){
     	 	unset($listFields['saleId']);
     	 }
