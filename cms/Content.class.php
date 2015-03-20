@@ -324,8 +324,10 @@ class cms_Content extends core_Manager
         }
         
         if($absolute && is_array($url)) {
-            $domain = cms_Domains::fetch($rec->domainId)->domain;
-            $url = Url::change(toUrl($url, 'absolute'), NULL, $domain);
+            if(!$domain == 'localhost' || in_array($_SERVER['REMOTE_ADDR'], array('127.0.0.1', '::1'))) {
+                $domain = cms_Domains::fetch($rec->domainId)->domain;
+                $url = Url::change(toUrl($url, 'absolute'), NULL, $domain);
+            }
         }
 
         return $url;

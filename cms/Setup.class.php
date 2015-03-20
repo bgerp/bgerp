@@ -1,16 +1,5 @@
 <?php
 
-/**
- * Основен език на публичната част
- */
-defIfNot('CMS_BASE_LANG', core_Lg::getDefaultLang());
-
-
-/**
- * Допълнителни езици публичната част
- */
-defIfNot('CMS_LANGS', '');
-
 
 /**
  * Колко секунди да се кешира съдържанието за не PowerUsers
@@ -38,7 +27,7 @@ defIfNot('CMS_OGRAPH_IMAGE', '');
 
 
 /**
- * 
+ * Стандартна "кожа" за външната част
  */
 defIfNot('CMS_PAGE_WRAPPER', 'cms_page_External');
 
@@ -89,10 +78,7 @@ class cms_Setup extends core_ProtoSetup
 	 * Описание на конфигурационните константи
 	 */
 	var $configDescription = array(
-            'CMS_BASE_LANG' => array ('customKey(mvc=drdata_Languages,select=languageName, key=code)', 'caption=Езици за публичното съдържание->Основен'),
 
-            'CMS_LANGS' => array ('keylist(mvc=drdata_Languages,select=languageName)', 'caption=Езици за публичното съдържание->Допълнителни'),
-			
             'CMS_PAGE_WRAPPER' => array ('class(interface=cms_page_WrapperIntf,select=title)', 'caption=Външен изглед->Страница'),
 
             'CMS_BROWSER_CACHE_EXPIRES' => array ('time', 'caption=Кеширане в браузъра->Време'),
@@ -202,7 +188,8 @@ class cms_Setup extends core_ProtoSetup
         // Добавяме domainId към cms_Content
         $max = 1;
         $query = cms_Content::getQuery();
-        
+        $typeOrder = cls::get('type_Order');
+
         while($rec = $query->fetch()) {
             
             list($n, $m) = explode(' ', $rec->menu, 2);
@@ -217,6 +204,7 @@ class cms_Setup extends core_ProtoSetup
                 } else {
                     $rec->order = $max +1;
                 }
+                $rec->order = $typeOrder->fromVerbal($rec->order);
             }
             
             $max = max($rec->order, $max);
