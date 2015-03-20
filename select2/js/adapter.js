@@ -23,7 +23,7 @@ function formatSelect2Data(data)
 	
 	res += '>' + data.text + '</span>';
 	
-	return res;
+	return $(res);
 }
 
 

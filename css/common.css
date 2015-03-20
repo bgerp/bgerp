@@ -1892,8 +1892,9 @@ div.alphabet div.tab-page {
   margin-top: 20px; }
 
 .top-tab-content {
-  background: rgba(255, 255, 220, 0.6);
-  padding: 20px;
+  background: rgba(255, 255, 220, 0.4);
+  padding: 15px;
+  font-size: 0.95em;
   border-radius: 5px; }
   .top-tab-content legend img {
     margin-left: 5px;
@@ -1941,7 +1942,7 @@ div.alphabet div.tab-page {
       -webkit-border-radius: 7px;
       -ms-border-radius: 7px;
       border-radius: 7px;
-      background-color: #cccccc;
+      background-color: #cccccc !important;
       border: 1px solid #aaaaaa; }
       div.tab-control.deal-history-tab .tab-row .tab a,
       .single-thread .document .tab-top div.alphabet .tab-row .tab a {
@@ -1953,7 +1954,7 @@ div.alphabet div.tab-page {
         padding: 4px;
         border: 1px solid #bbbbbb;
         margin: 0 3px 0 0;
-        background-color: #f1f1f1; }
+        background-color: #f1f1f1 !important; }
         div.tab-control.deal-history-tab .tab-row .tab:hover a,
         .single-thread .document .tab-top div.alphabet .tab-row .tab:hover a,
         div.tab-control.deal-history-tab .tab-row .tab.selected a,
