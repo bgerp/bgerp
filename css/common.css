@@ -2671,10 +2671,10 @@ div.statuses-message h2 {
       opacity: 1; }
   .elem-holder .pack-info {
     display: block;
-    margin: 0.5em 0;
+    margin: 0.25em 0;
     font-size: 0.9em;
-    line-height: 1.2em;
-    height: 2.4em; }
+    line-height: 1.1em;
+    height: 2.2em; }
   .elem-holder b {
     margin-top: 3px;
     font-size: 1.2em;
