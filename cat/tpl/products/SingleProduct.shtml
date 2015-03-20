@@ -7,7 +7,8 @@
     <div class = 'top-document-tabs'>
     </div>
     <!--ET_END header-->
-    <h2 style='line-height:26px'><b style="color:green;">[#name#]<!--ET_BEGIN code--> ([#code#])<!--ET_END code--></b></h2>
+    <h2 style='line-height:26px; margin-bottom: 10px;'><b style="color:green;">[#name#]<!--ET_BEGIN code--> ([#code#])<!--ET_END code--></b></h2>
+    <!--ET_BEGIN originId--><div style="font-style: italic">|Генериран от|* [#originId#]</div>    <!--ET_END originId-->
     [#innerState#]
     <!--ET_BEGIN groups-->
     <fieldset class="detail-info">
@@ -23,7 +24,7 @@
          <div class="groupList">[#meta#]</div>
     </fieldset>
     <!--ET_END meta-->
-    
+       
     <!--ET_BEGIN detailedDescriptionIn-->
     <fieldset class="detail-info">
          <legend class="groupTitle">|Показване на детайлите за артикула в документи|*</legend>
