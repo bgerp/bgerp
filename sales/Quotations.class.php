@@ -233,6 +233,20 @@ class sales_Quotations extends core_Master
        		$origin = doc_Containers::getDocument($rec->originId);
        		
        		if($origin->haveInterface('cat_ProductAccRegIntf')){
+       			
+       			// Ако продукта има ориджин който е запитване вземаме количествата от него по дефолт
+       			if($productOrigin = $origin->fetchField('originId')){
+       				$productOrigin = doc_Containers::getDocument($productOrigin);
+       				if($productOrigin->haveInterface('marketing_InquiryEmbedderIntf')){
+       					$quantities = $productOrigin->fetchField('quantities');
+       					if(count($quantities)){
+       						foreach (range(1, 3) as $i){
+       							$data->form->setDefault("row{$i}", $quantities[$i-1]);
+       						}
+       					}
+       				}
+       			}
+       			
        			$Policy = $origin->getPolicy();
        			$price = $Policy->getPriceInfo($rec->contragentClassId, $rec->contragentId, $origin->that, $origin->getInstance()->getClassId())->price;
 	       		
