@@ -189,6 +189,7 @@ class planning_Jobs extends core_Master
     	$uomName = cat_UoM::getShortName($pInfo->productRec->measureId);
     	
     	$form->setField('quantity', "unit={$uomName}");
+    	$form->setSuggestions('tolerance', array('' => '') + arr::make('5 %,10 %,15 %,20 %,25 %,30 %', TRUE));
     	
     	if($form->rec->saleId){
     		$saleRec = sales_Sales::fetch($form->rec->saleId);
