@@ -74,7 +74,7 @@ class planning_ProductionNoteDetails extends deals_ManifactureDetail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, jobId, bomId, measureId, quantity, selfValue, amount';
+    public $listFields = 'productId, jobId, bomId, packagingId, packQuantity, selfValue, amount';
     
         
     /**
