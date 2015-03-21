@@ -538,18 +538,12 @@ class planning_Jobs extends core_Master
     	}
     	
     	if($rec->state == 'active' || $rec->state == 'wakeup'){
-    		if(cat_Boms::haveRightFor('write', (object)array('productId' => $rec->productId))){
-    			if($bRec = cat_Boms::fetch("#productId = {$rec->productId} AND #state = 'draft'")){
-    				$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'edit', $bRec->id, 'ret_url' => TRUE), 'ef_icon = img/16/edit.png,title=Редактиране на технологична рецепта');
-    			} else {
-    				$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'add', 'productId' => $rec->productId, 'originId' => $rec->containerId, 'quantity' => $rec->quantity, 'ret_url' => TRUE), 'ef_icon = img/16/legend.png,title=Създаване на нова технологична рецепта');
+    		if($bId = cat_Boms::fetchField("#productId = {$rec->productId} AND #state != 'rejected'", 'id')){
+    			if(cat_Boms::haveRightFor('single', $bId)){
+    				$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'single', $bId, 'ret_url' => TRUE), 'ef_icon = img/16/view.png,title=Към технологичната рецепта на артикула');
     			}
-    		} else {
-    			if($bId = cat_Boms::fetchField("#productId = {$rec->productId} AND #state = 'active'", 'id')){
-    				if(cat_Boms::haveRightFor('single', $bId)){
-    					$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'single', $bId, 'ret_url' => TRUE), 'ef_icon = img/16/view.png,title=Преглед на технологична рецепта');
-    				}
-    			}
+    		} elseif(cat_Boms::haveRightFor('write', (object)array('productId' => $rec->productId))){
+    			$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'add', 'productId' => $rec->productId, 'originId' => $rec->containerId, 'quantity' => $rec->quantity, 'ret_url' => TRUE), 'ef_icon = img/16/legend.png,title=Създаване на нова технологична рецепта');
     		}
     	}
     }
