@@ -245,12 +245,13 @@ class core_Packs extends core_Manager
             if (!is_object($rec)) {
                 $rec = new stdClass();
                 $rec->name = $pack;
-                $rec->version = $setup->version;
-                $rec->info = $setup->info;
-                $rec->startCtr = $setup->startCtr;
-                $rec->startAct = $setup->startAct;
                 $rec->deinstall = 'yes';
             }
+            
+            $rec->info = $setup->info;
+            $rec->version = $setup->version;
+            $rec->startCtr = $setup->startCtr;
+            $rec->startAct = $setup->startAct;
             
             if ($setup->deprecated) {
                 $rec->state = 'deprecated';
