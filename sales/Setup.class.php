@@ -62,6 +62,12 @@ defIfNot('SALE_FISC_PRINTER_DRIVER', '');
 
 
 /**
+ * Кой да е по подразбиране драйвера за фискален принтер
+ */
+defIfNot('SALE_INV_VAT_DISPLAY', 'no');
+
+
+/**
  * Продажби - инсталиране / деинсталиране
  *
  *
@@ -110,6 +116,7 @@ class sales_Setup extends core_ProtoSetup
 			'SALE_CLOSE_OLDER_THAN'    => array("time(uom=days,suggestions=1 ден|2 дена|3 дена)", 'caption=Изчакване преди автоматично приключване на продажбата->Дни'),
 			'SALE_CLOSE_OLDER_NUM'     => array("int", 'caption=По колко продажби да се приключват автоматично на опит->Брой'),
 			'SALE_FISC_PRINTER_DRIVER' => array('class(interface=sales_FiscPrinterIntf,allowEmpty,select=title)', 'caption=Фискален принтер->Драйвър'),
+			'SALE_INV_VAT_DISPLAY'      => array('enum(no=Не,yes=Да)', 'caption=Фактури изчисляване на ддс-то като процент от сумата без ддс->Избор'),
 			'SALE_INV_MIN_NUMBER1'      => array('int', 'caption=Първи диапазон за номериране на фактури->Долна граница'),
 			'SALE_INV_MAX_NUMBER1'      => array('int', 'caption=Първи диапазон за номериране на фактури->Горна граница'),
 			'SALE_INV_MIN_NUMBER2'      => array('int', 'caption=Втори диапазон за номериране на фактури->Долна граница'),
@@ -126,8 +133,6 @@ class sales_Setup extends core_ProtoSetup
         	'sales_Routes',
         	'sales_Quotations',
         	'sales_QuotationsDetails',
-    		//'sales_SaleRequests',
-    		//'sales_SaleRequestDetails',
     		'sales_ClosedDeals',
     		'sales_Services',
     		'sales_ServicesDetails',
@@ -136,6 +141,7 @@ class sales_Setup extends core_ProtoSetup
     		'sales_Proformas',
     		'sales_ProformaDetails',
     		'migrate::transformProformas1',
+    		'migrate::updateQuotations'
         );
 
         
@@ -262,6 +268,26 @@ class sales_Setup extends core_ProtoSetup
     			$dRec->quantity /= $dRec->quantityInPack;
     			
     			sales_ProformaDetails::save($dRec);
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Ъпдейтва старите оферти
+     */
+    public function updateQuotations()
+    {
+    	if(sales_QuotationsDetails::count()){
+    		$query = sales_QuotationsDetails::getQuery();
+    		$query->where("#quantityInPack IS NULL");
+    		while($rec = $query->fetch()){
+    			try{
+    				$rec->quantityInPack = 1;
+    				sales_QuotationsDetails::save($rec, 'quantityInPack');
+    			} catch(core_exception_Expect $e){
+    				 
+    			}
     		}
     	}
     }
