@@ -30,7 +30,7 @@ class catering_Wrapper extends plg_ProtoWrapper
         $this->TAB('catering_Requests', 'Заявки', 'catering, ceo, user');
         $this->TAB('catering_Orders', 'Поръчки', 'catering, ceo');
         
-        $this->title = 'Кетаринг';
+        $this->title = 'Кетъринг';
        
     }
 }
