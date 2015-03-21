@@ -111,4 +111,22 @@ class planning_Tasks extends core_Manager
 
         return $this->renderWrapping($underConstructionImg);
     }
+    
+    
+    /**
+     * Подготвя задачие към заданията
+     */
+    public function prepareTasks($data)
+    {
+    	//@TODO
+    }
+    
+    
+    /**
+     * Рендира задачите на заданията
+     */
+    public function renderTasks($data)
+    {
+    	//@TODO
+    }
 }

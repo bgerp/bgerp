@@ -1372,18 +1372,12 @@ class cat_Products extends core_Embedder {
     	}
     	
     	if($data->rec->state == 'active'){
-    		if(cat_Boms::haveRightFor('write', (object)array('productId' => $data->rec->id))){
-    			if($bRec = cat_Boms::fetch("#productId = {$data->rec->id} AND #state = 'draft'")){
-    				$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'edit', $bRec->id, 'ret_url' => TRUE), 'ef_icon = img/16/edit.png,title=Редактиране на технологична рецепта');
-    			} else {
-    				$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'add', 'productId' => $data->rec->id, 'originId' => $data->rec->containerId, 'ret_url' => TRUE), 'ef_icon = img/16/legend.png,title=Създаване на нова технологична рецепта');
+    		if($bRec = cat_Boms::fetch("#productId = {$data->rec->id} AND #state != 'rejected'")){
+    			if(cat_Boms::haveRightFor('single', $bRec)){
+    				$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'single', $bRec->id, 'ret_url' => TRUE), 'ef_icon = img/16/view.png,title=Към технологичната рецепта на артикула');
     			}
-    		} else {
-    			if($bRec = cat_Boms::fetch("#productId = {$data->rec->id} AND #state = 'active'")){
-    				if(cat_Boms::haveRightFor('single', $bRec)){
-    					$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'single', $bRec->id, 'ret_url' => TRUE), 'ef_icon = img/16/view.png,title=Преглед на технологична рецепта');
-    				}
-    			}
+    		} elseif(cat_Boms::haveRightFor('write', (object)array('productId' => $data->rec->id))){
+    			$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'add', 'productId' => $data->rec->id, 'originId' => $data->rec->containerId, 'ret_url' => TRUE), 'ef_icon = img/16/legend.png,title=Създаване на нова технологична рецепта');
     		}
     	}
     	

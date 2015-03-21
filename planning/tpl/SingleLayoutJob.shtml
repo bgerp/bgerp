@@ -135,7 +135,7 @@
         </tr>
         <tr>
            <td colspan="3">
-           [#TASKS#]
+           [#Tasks#]
            </td>
     </table>
     <!--ET_BEGIN shareLog-->
