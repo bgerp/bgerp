@@ -74,7 +74,7 @@
                     <!--ET_END deliveryPlaceId-->
                     
                     <!--ET_BEGIN commonConditionQuote-->
-			        <li><b>|[#commonConditionQuote#]|*</b></li>
+			        <li><b>[#commonConditionQuote#]</b></li>
 			        <!--ET_END commonConditionQuote-->
 			        
                     <!--ET_BEGIN others-->
