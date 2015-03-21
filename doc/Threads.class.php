@@ -220,6 +220,65 @@ class doc_Threads extends core_Manager
         // Връщаме старото състояние за ловговането в дебъг
         core_Debug::$isLogging = $isLoging;
         
+        $conf = core_Packs::getConfig('doc');
+        
+        if ($conf->DOC_REPAIR_STATE == 'yes') {
+            $resArr += self::repairStates($from, $to, $delay);
+        }
+        
+        return $resArr;
+    }
+    
+    
+    
+    /**
+     * Поправка на развалените полета за състоянието на нишките
+     * 
+     * @param datetime $from
+     * @param datetime $to
+     * @param integer $delay
+     * 
+     * @return array
+     */
+    public static function repairStates($from = NULL, $to = NULL, $delay = 10)
+    {
+        $resArr = array();
+        $query = self::getQuery();
+        
+        doc_Folders::prepareRepairDateQuery($query, $from, $to, $delay);
+        
+        while ($rec = $query->fetch()) {
+            
+            if (!$rec->firstContainerId) continue;
+            
+            try {
+                $cRec = doc_Containers::fetch($rec->firstContainerId);
+            } catch (Exception $e) {
+                continue;
+            }
+            
+            if (!$cRec || !$cRec->docClass || !$cRec->docId) continue;
+            
+            try {
+                $clsInst = cls::get($cRec->docClass);
+                $iRec = $clsInst->fetch($cRec->docId, 'state', FALSE);
+                
+                if (!isset($iRec->state)) continue;
+                
+                // Ако състоянието на документа е оттеглен и на нишката трябва да е оттеглен
+                if ($iRec->state != 'rejected') continue;
+                if ($iRec->state == $rec->state) continue;
+                $rec->state = $iRec->state;
+                
+                if (self::save($rec, 'state')) {
+                    $resArr['firstContainerIdState']++;
+                }
+            } catch (core_exception_Expect $e) {
+                
+                continue;
+            }
+        }
+        
         return $resArr;
     }
     

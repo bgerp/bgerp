@@ -29,12 +29,31 @@ abstract class deals_ManifactureDetail extends doc_Detail
 	public function setDetailFields($mvc)
 	{
 		$mvc->FLD('classId', 'class(interface=cat_ProductAccRegIntf, select=title)', 'caption=Мениджър,silent,input=hidden');
-		$mvc->FLD('productId', 'int', 'caption=Продукт,notNull,mandatory', 'tdClass=large-field leftCol wrap,refreshForm');
-		$mvc->FLD('quantity', 'double(Min=0)', 'caption=К-во,mandatory');
-		$mvc->FLD('measureId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,input=hidden,mandatory');
+		$mvc->FLD('productId', 'int', 'caption=Продукт,notNull,mandatory', 'tdClass=large-field leftCol wrap,silent,removeAndRefreshForm=quantity|measureId');
+		$mvc->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка','tdClass=small-field');
+		$mvc->FNC('packQuantity', 'double(Min=0)', 'caption=К-во,input=input,mandatory');
+		$mvc->FLD('quantityInPack', 'double(smartRound)', 'input=none,notNull,value=1');
+		
+		$mvc->FLD('quantity', 'double(Min=0)', 'caption=К-во,input=none');
+		$mvc->FLD('measureId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,input=hidden');
 	}
 	
 
+	/**
+	 * Изчисляване на количеството на реда в брой опаковки
+	 *
+	 * @param core_Mvc $mvc
+	 * @param stdClass $rec
+	 */
+	public static function on_CalcPackQuantity(core_Mvc $mvc, $rec)
+	{
+		if (empty($rec->quantity) || empty($rec->quantityInPack)) {
+			return;
+		}
+		$rec->packQuantity = $rec->quantity / $rec->quantityInPack;
+	}
+	
+	
 	/**
 	 * Преди подготвяне на едит формата
 	 */
@@ -76,10 +95,28 @@ abstract class deals_ManifactureDetail extends doc_Detail
 	 */
 	public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
 	{
-		if($form->rec->productId){
-			$form->setDefault('measureId', cls::get($form->rec->classId)->getProductInfo($form->rec->productId)->productRec->measureId);
-			$shortName = cat_UoM::getShortName($form->rec->measureId);
+		$rec = &$form->rec;
+		
+		if($rec->productId){
+			$form->setDefault('measureId', cls::get($rec->classId)->getProductInfo($rec->productId)->productRec->measureId);
+			$shortName = cat_UoM::getShortName($rec->measureId);
 			$form->setField('quantity', "unit={$shortName}");
+			
+			$packs = cls::get($rec->classId)->getPacks($rec->productId);
+			if(count($packs)){
+				$form->setOptions('packagingId', $packs);
+			} else {
+				$form->setReadOnly('packagingId');
+			}
+			
+			$form->setField('packagingId', "placeholder=" . cat_UoM::getTitleById($rec->measureId));
+		}
+		
+		if($form->isSubmitted()){
+			$pInfo = cls::get($rec->classId)->getProductInfo($rec->productId, $rec->packagingId);
+			$rec->quantityInPack = ($pInfo->packagingRec) ? $pInfo->packagingRec->quantity : 1;
+			$rec->quantity = $rec->packQuantity * $rec->quantityInPack;
+			$rec->measureId = $pInfo->productRec->measureId;
 		}
 	}
 	
@@ -137,6 +174,17 @@ abstract class deals_ManifactureDetail extends doc_Detail
 		}
 		
 		$row->measureId = cat_UoM::getShortName($rec->measureId);
+		
+		if (empty($rec->packagingId)) {
+			$row->packagingId = ($rec->measureId) ? $row->measureId : '???';
+		} else {
+			if(cat_Packagings::fetchField($rec->packagingId, 'showContents') == 'yes'){
+				$shortUomName = cat_UoM::getShortName($rec->measureId);
+				$row->quantityInPack = $mvc->getFieldType('quantityInPack')->toVerbal($rec->quantityInPack);
+				$row->packagingId .= ' <small class="quiet">' . $row->quantityInPack . ' ' . $shortUomName . '</small>';
+				$row->packagingId = "<span class='nowrap'>{$row->packagingId}</span>";
+			}
+		}
 	}
 }
  	

@@ -74,7 +74,7 @@ class planning_ConsumptionNoteDetails extends deals_ManifactureDetail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, measureId, quantity';
+    public $listFields = 'productId, packagingId, packQuantity';
     
         
     /**
@@ -120,6 +120,7 @@ class planning_ConsumptionNoteDetails extends deals_ManifactureDetail
     	
     	foreach ($data->rows as $id => $row){
     		$rec = $data->recs[$id];
+    		
     		
     		// Проверка дали артикула не е ресурс
     		if(!planning_ObjectResources::getResource($rec->classId, $rec->productId)){
