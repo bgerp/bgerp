@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'color_Setup' - Избор на цвят от палитра
  *
@@ -41,37 +40,8 @@ class color_Setup extends core_ProtoSetup
     var $info = "Избор на цвят от палитра";
     
     
-    /**
-     * Инсталиране на пакета
-     */
-    function install()
-    {
-    	$html = parent::install();
-    	
-        // Зареждаме мениджъра на плъгините
-        $Plugins = cls::get('core_Plugins');
-        
-        // Инсталираме клавиатурата към password полета
-        $html .= $Plugins->installPlugin('Избор на цвят', 'jqcolorpicker_Plugin', 'color_Type', 'private');
-        
-        return $html;
-    }
-    
-    
-    /**
-     * Де-инсталиране на пакета
-     */
-    function deinstall()
-    {
-    	$html = parent::deinstall();
-    	
-        // Зареждаме мениджъра на плъгините
-        $Plugins = cls::get('core_Plugins');
-        
-        // Премахваме от color_Type полета
-        $Plugins->deinstallPlugin('jqcolorpicker_Plugin');
-        $html .= "<li>Премахнати са всички инсталации на 'jqcolorpicker_Plugin'";
-        
-        return $html;
-    }
+	/**
+	 * Пакет без инсталация
+	 */
+	public $noInstall = TRUE;
 }

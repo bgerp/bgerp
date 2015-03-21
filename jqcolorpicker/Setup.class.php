@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Клас 'jqdatepick_Setup' - избор на дата
  *
@@ -40,11 +39,20 @@ class jqcolorpicker_Setup extends core_ProtoSetup
 	 * Път до css файла
 	 */
 	var $commonCSS = 'jqcolorpicker/2.0/jquery.colourPicker.css';
-	
-	
-	/**
-	 * Пакет без инсталация
-	 */
-	public $noInstall = TRUE;
-}
 
+    
+    /**
+     * Инсталиране на пакета
+     */
+    function install()
+    {
+    	$html = parent::install();
+    	
+        // Зареждаме мениджъра на плъгините
+        $Plugins = cls::get('core_Plugins');
+        
+        $html .= $Plugins->installPlugin('Избор на цвят', 'jqcolorpicker_Plugin', 'color_Type', 'private');
+        
+        return $html;
+    }
+}

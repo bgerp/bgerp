@@ -173,7 +173,7 @@ class sales_QuotationsDetails extends doc_Detail {
     	// Подготовка за показване на задължителнтие продукти
     	deals_Helper::fillRecs($mvc, $notOptional, $masterRec);
     	
-    	if(empty($data->noTotal)){
+    	if(empty($data->noTotal) && count($notOptional)){
     		
     		// Запомня се стойноста и ддс-то само на опционалните продукти
     		$data->summary = deals_Helper::prepareSummary($mvc->_total, $masterRec->date, $masterRec->currencyRate, $masterRec->currencyId, $masterRec->chargeVat);

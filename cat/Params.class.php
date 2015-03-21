@@ -98,6 +98,7 @@ class cat_Params extends core_Master
         						   'enum'    => 'type_Enum',
         						   'int'     => 'type_Int',
     							   'time'    => 'type_Time',
+    							   'text'    => 'type_Text',
     );
     
     
@@ -107,7 +108,7 @@ class cat_Params extends core_Master
     function description()
     {
         $this->FLD('name', 'varchar(64)', 'caption=Име, mandatory');
-        $this->FLD('type', 'enum(size=Размер,weight=Тегло,volume=Обем,double=Число,int=Цяло число,varchar=Текст,date=Дата,percent=Процент,enum=Изброим,density=Плътност,time=Време)', 'caption=Тип');
+        $this->FLD('type', 'enum(size=Размер,weight=Тегло,volume=Обем,double=Число,int=Цяло число,varchar=Символи,text=Текст,date=Дата,percent=Процент,enum=Изброим,density=Плътност,time=Време)', 'caption=Тип');
         $this->FLD('options', 'varchar(128)', 'caption=Стойности');
         $this->FLD('suffix', 'varchar(64)', 'caption=Суфикс');
         $this->FLD('sysId', 'varchar(32)', 'input=none');
@@ -244,6 +245,10 @@ class cat_Params extends core_Master
 		
 	    expect($Type = cls::get(static::$typeMap[$rec->type], $os));
     	
+	    if($rec->type == 'text'){
+	    	$Type->params['rows'] = 3;
+	    }
+	    
 	    return $Type;
     }
     

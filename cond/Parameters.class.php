@@ -3,13 +3,13 @@
 
 
 /**
- * Клас 'cond_Parameters' - Търговски параметри
+ * Клас 'cond_Parameters' - Търговски условия
  *
  *
  * @category  bgerp
  * @package   cond
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -38,13 +38,13 @@ class cond_Parameters extends core_Master
     /**
      * Заглавие
      */
-    var $title = 'Бизнес параметри';
+    var $title = 'Търговски условия';
     
     
     /**
      * Заглавие в единствено число
      */
-    var $singleTitle = "Търговски параметри";
+    var $singleTitle = "Търговско условие";
     
     
     /**
@@ -101,7 +101,7 @@ class cond_Parameters extends core_Master
     function description()
     {
     	$this->FLD('name', 'varchar(64)', 'caption=Име, mandatory');
-        $this->FLD('type', 'enum(double=Число, int=Цяло число,varchar=Текст,date=Дата,enum=Изброим,percent=Процент,payMethod=Начин за плащане,delCond=Условие на доставка)', 'caption=Тип');
+        $this->FLD('type', 'enum(double=Число, int=Цяло число,varchar=Символи,text=Текст,date=Дата,enum=Изброим,percent=Процент,payMethod=Начин за плащане,delCond=Условие на доставка)', 'caption=Тип');
         $this->FLD('options', 'varchar(128)', 'caption=Стойности');
         $this->FLD('default', 'varchar(64)', 'caption=Дефолт');
         $this->FLD('sysId', 'varchar(32)', 'caption=Sys Id, input=hidden');
@@ -135,43 +135,20 @@ class cond_Parameters extends core_Master
     }
     
     
-	/**
+    /**
      * Извиква се след SetUp-а на таблицата за модела
      */
-    static function on_AfterSetupMvc($mvc, &$res)
+    function loadSetupData()
     {
     	$file = "cond/csv/Parameters.csv";
-    	$fields = array( 
-	    	0 => "name", 
-	    	1 => "type", 
-	    	2 => "sysId", 
-	    	3 => "default");
-    	
-    	$cntObj = csv_Lib::importOnce($mvc, $file, $fields);
+    	$fields = array(
+    			0 => "name",
+    			1 => "type",
+    			2 => "sysId",
+    			3 => "default");
+    	 
+    	$cntObj = csv_Lib::importOnce($this, $file, $fields);
     	$res .= $cntObj->html;
-    	
-    	// @TODO Миграция да се махне след като се разнесе
-    	$oldDelCond = $mvc->fetchField('#sysId = "deliveryTerm"', 'id');
-    	$oldPayCond = $mvc->fetchField('#sysId = "paymentMethod"', 'id');
-    	
-    	if(empty($oldDelCond) || empty($oldPayCond)) return;
-    	
-    	$newDelCond = $mvc->fetchField('#sysId = "deliveryTermSale"', 'id');
-    	$newPayCond = $mvc->fetchField('#sysId = "paymentMethodSale"', 'id');
-    	
-    	$condQuery = cond_ConditionsToCustomers::getQuery();
-    	$condQuery->where("#conditionId = {$oldDelCond} || #conditionId = {$oldPayCond}");
-    	while($condRec = $condQuery->fetch()){
-    		if($condRec->conditionId == $oldDelCond){
-    			$condRec->conditionId = $newDelCond;
-    		} else {
-    			$condRec->conditionId = $newPayCond;
-    		}
-    		cond_ConditionsToCustomers::save($condRec);
-    	}
-    	
-    	cond_Parameters::delete($oldDelCond);
-    	cond_Parameters::delete($oldPayCond);
     	
     	return $res;
     }

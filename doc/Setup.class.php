@@ -41,7 +41,7 @@ defIfNot('DOC_REPAIR_DELAY', 120);
 /**
  * Дали да се поправят състояниеята на документите
  */
-defIfNot('DOC_REPAIR_STATE', 'yes');
+defIfNot('DOC_REPAIR_STATE', 'no');
 
 
 /**
@@ -246,33 +246,40 @@ class doc_Setup extends core_ProtoSetup
      */
     static function repairAllBrokenRelations()
     {
-        $conf = core_Packs::getConfig('doc');
-        $res .= '';
-        
-        $repArr = array();
-        $repArr['folder'] = doc_Folders::repair(NULL, NULL, $conf->DOC_REPAIR_DELAY);
-        $repArr['thread'] = doc_Threads::repair(NULL, NULL, $conf->DOC_REPAIR_DELAY);
-        $repArr['container'] = doc_Containers::repair(NULL, NULL, $conf->DOC_REPAIR_DELAY);
-        
-        foreach ($repArr as $name => $repairedArr) {
-            if (!empty($repairedArr)) {
-                
-                if ($name == 'folder') {
-                    $res .= "<li class='green'>Поправки в папките: </li>\n";
-                } elseif ($name == 'thread') {
-                    $res .= "<li class='green'>Поправки в нишките: </li>\n";
-                } else {
-                    $res .= "<li class='green'>Поправки в контейнерите: </li>\n";
-                }
-                
-                foreach ((array)$repairedArr as $field => $cnt) {
-                    if ($field == 'del_cnt') {
-                        $res .= "\n<li class='green'>Изтирите са {$cnt} записа</li>";
+        try {
+            
+            $conf = core_Packs::getConfig('doc');
+            $res .= '';
+            
+            $repArr = array();
+            $repArr['folder'] = doc_Folders::repair(NULL, NULL, $conf->DOC_REPAIR_DELAY);
+            $repArr['thread'] = doc_Threads::repair(NULL, NULL, $conf->DOC_REPAIR_DELAY);
+            $repArr['container'] = doc_Containers::repair(NULL, NULL, $conf->DOC_REPAIR_DELAY);
+            
+            foreach ($repArr as $name => $repairedArr) {
+                if (!empty($repairedArr)) {
+                    
+                    if ($name == 'folder') {
+                        $res .= "<li class='green'>Поправки в папките: </li>\n";
+                    } elseif ($name == 'thread') {
+                        $res .= "<li class='green'>Поправки в нишките: </li>\n";
                     } else {
-                        $res .= "\n<li>Поправени развалени полета '{$field}' - {$cnt} записа</li>";
+                        $res .= "<li class='green'>Поправки в контейнерите: </li>\n";
+                    }
+                    
+                    foreach ((array)$repairedArr as $field => $cnt) {
+                        if ($field == 'del_cnt') {
+                            $res .= "\n<li class='green'>Изтирите са {$cnt} записа</li>";
+                        } else {
+                            $res .= "\n<li>Поправени развалени полета '{$field}' - {$cnt} записа</li>";
+                        }
                     }
                 }
             }
+        
+        } catch (Exception $e) {
+            
+            return ;
         }
         
         return $res;

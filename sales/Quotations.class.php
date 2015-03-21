@@ -421,6 +421,18 @@ class sales_Quotations extends core_Master
 	        $Companies = cls::get('crm_Companies');
 	        $row->MyCompany = cls::get('type_Varchar')->toVerbal($ownCompanyData->company);
 	        $row->MyAddress = $Companies->getFullAdress($ownCompanyData->companyId);
+	        
+	        $createdRec = crm_Persons::fetch(crm_Profiles::fetchField($rec->createdBy, 'personId'));
+	        $buzAddress = ($createdRec->buzAddress) ? $createdRec->buzAddress : $ownCompanyData->place;
+	        if($buzAddress){
+	        	$row->buzPlace = cls::get('type_Varchar')->toVerbal($buzAddress);
+	        }
+	       
+	        $commonSysId = ($rec->tplLang == 'bg') ? "commonConditionSale" : "commonConditionSaleEng";
+	        
+	        if($cond = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, $commonSysId)){
+	        	$row->commonConditionQuote = cls::get('type_Varchar')->toVerbal($cond);
+	        }
 		}
 		
     	if($fields['-list']){
