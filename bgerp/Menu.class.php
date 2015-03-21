@@ -521,7 +521,7 @@ class bgerp_Menu extends core_Manager
             if(!cls::load($rec->ctr, TRUE)) {
                 $this->delete($rec->id);
                 
-                $res .= "<li style='color:red;'>Премахнато е {$rec->menu} -> {$rec->menu}</li>";
+                $res .= "<li class='debug-error'>Премахнато е {$rec->menu} -> {$rec->menu}</li>";
             }
         }
     }

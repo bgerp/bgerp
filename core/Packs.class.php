@@ -172,7 +172,7 @@ class core_Packs extends core_Manager
 			}
 		} else {
 		    $delete = TRUE;
-			$res = "<div class='red'>Липсва кода на пакета '{$pack}'</div>";
+			$res = "<div class='debug-error'>Липсва кода на пакета '{$pack}'</div>";
 		}
     	
     	// Общи действия по деинсталирането на пакета
@@ -686,10 +686,10 @@ class core_Packs extends core_Manager
         if (!cls::load($pack . "_Setup", TRUE)) {
             
             if ($verbose) {
-                return "<h4>Невъзможност да се инсталира <span class=\"red\">{$pack}</span>. " .
-            		"Липсва <span class=\"red\">Setup</span> клас.</h4>";
+                return "<h4>Невъзможност да се инсталира <span class=\"debug-error\">{$pack}</span>. " .
+            		"Липсва <span class=\"debug-error\">Setup</span> клас.</h4>";
             } else {
-                return "<span class='red'>Грешка при инсталиран на пеката '{$pack}'.</span>";
+                return "<span class='debug-error'>Грешка при инсталиране на пеката '{$pack}'.</span>";
             }
         }
         
@@ -728,7 +728,7 @@ class core_Packs extends core_Manager
         // Единственото, което правим, когато версията, която инсталираме
         // е по-малка от изискваната, е да сигнализираме за този факт
         if ($version > 0 && $version > $setup->version) {
-            $res .= "<li style='color:red'>За пакета '{$pack}' се изисква версия [{$version}], " .
+            $res .= "<li class='debug-error'>За пакета '{$pack}' се изисква версия [{$version}], " .
             "а наличната е [{$setup->version}]</li>";
         }
         

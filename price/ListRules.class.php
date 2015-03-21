@@ -606,12 +606,12 @@ class price_ListRules extends core_Detail
                     }
             }
             if($inserted) {
-                $res .= "<li style='color:green;'>Записани {$inserted} нови групови наддценки/отстъпки</li>";
+                $res .= "<li class='debug-info'>Записани {$inserted} нови групови наддценки/отстъпки</li>";
             } else {
                 $res .= "<li>Не са добавени нови групови наддценки/отстъпки</li>";
             }
         } else {
-            $res = "<li style='color:red'>Не може да бъде отворен файла '{$csvFile}'";
+            $res = "<li class='debug-error'>Не може да бъде отворен файла '{$csvFile}'";
         }
         
         return $res;

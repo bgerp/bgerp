@@ -272,6 +272,36 @@ a.menu {
 	background-color: rgba(255, 255, 255, 0.3);
 }
 
+
+.debug-info {
+    color:black;
+}
+
+.debug-notice {
+    color:#800;
+}
+
+.debug-new {
+    color:#0a0;
+}
+
+.debug-update {
+	color:#0a0;
+}
+
+.debug-error {
+	color:#d00;
+}
+#setupLog li.debug-error {
+    font-size: 1.5em;
+}
+
+#setupLog li {
+    font-size: 0.5em;
+}
+
+/*край на цветове*/
+
 #success {
     position:absolute;
     top:110px;
