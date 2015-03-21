@@ -991,9 +991,14 @@ class core_Mvc extends core_FieldSet
                         $act = 'Добавен';
                         $cssClass = 'debug-new';
                     }
- 
-                    $this->db->forceIndex($this->dbTableName, $indRec->fields, $indRec->type, $name);
-                    $html .= "<li class=\"{$cssClass}\">{$act} индекс '<b>{$indRec->type}</b>' '<b>{$name}</b>' на полетата '<b>{$indRec->fields}</b>'</li>";
+                    
+                    try{
+                    	if($this->db->forceIndex($this->dbTableName, $indRec->fields, $indRec->type, $name)){
+                    		$html .= "<li class=\"{$cssClass}\">{$act} индекс '<b>{$indRec->type}</b>' '<b>{$name}</b>' на полетата '<b>{$indRec->fields}</b>'</li>";
+                    	}
+                    } catch(core_exception_Expect $e){
+                    	$html .= "<li style='color:red'>Проблем при {$act} индекс '<b>{$indRec->type}</b>' '<b>{$name}</b>' на полетата '<b>{$indRec->fields}</b>', {$e->getMessage()}</li>";
+                    }
                 }
             }
 
