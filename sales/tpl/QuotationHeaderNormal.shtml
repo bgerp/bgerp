@@ -18,7 +18,7 @@
                         <div class="bigData">№[#number#] / [#date#]</div>
                         <!--ET_BEGIN place-->
                         <div class='quiet-small'>|Място|*</div>
-                        <div class="bigData">[#place#]</div>
+                        <div class="bigData">[#buzPlace#]</div>
                         <!--ET_END place-->
                         <!--ET_BEGIN reff-->
                         <div class='quiet-small'>|Ваш реф. №|*</div>
