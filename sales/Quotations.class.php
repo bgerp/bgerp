@@ -422,7 +422,7 @@ class sales_Quotations extends core_Master
 	        $row->MyCompany = cls::get('type_Varchar')->toVerbal($ownCompanyData->company);
 	        $row->MyAddress = $Companies->getFullAdress($ownCompanyData->companyId);
 	        
-	        $createdRec = crm_Persons::fetch(crm_Profiles::fetchField($rec->createdBy, 'personId'));
+	        $createdRec = crm_Persons::fetch(crm_Profiles::fetchField("#userId = {$rec->createdBy}", 'personId'));
 	        $buzAddress = ($createdRec->buzAddress) ? $createdRec->buzAddress : $ownCompanyData->place;
 	        if($buzAddress){
 	        	$row->buzPlace = cls::get('type_Varchar')->toVerbal($buzAddress);
