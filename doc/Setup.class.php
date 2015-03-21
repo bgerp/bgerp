@@ -41,7 +41,7 @@ defIfNot('DOC_REPAIR_DELAY', 120);
 /**
  * Дали да се поправят състояниеята на документите
  */
-defIfNot('DOC_REPAIR_STATE', 'yes');
+defIfNot('DOC_REPAIR_STATE', 'no');
 
 
 /**
