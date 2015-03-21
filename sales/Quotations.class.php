@@ -427,6 +427,10 @@ class sales_Quotations extends core_Master
 	        if($buzAddress){
 	        	$row->buzPlace = cls::get('type_Varchar')->toVerbal($buzAddress);
 	        }
+	        
+	        if($cond = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, 'commonConditionQuote')){
+	        	$row->commonConditionQuote = cls::get('type_Varchar')->toVerbal($cond);
+	        }
 		}
 		
     	if($fields['-list']){
