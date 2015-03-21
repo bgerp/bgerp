@@ -215,9 +215,9 @@ class cat_Products extends core_Embedder {
 	
 	
 	/**
-	 * 
+	 * Абревиатура
 	 */
-	public $abbr = 'Cpr';
+	public $abbr = 'Art';
 	
 	
 	/**
