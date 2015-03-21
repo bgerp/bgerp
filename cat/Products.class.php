@@ -864,11 +864,7 @@ class cat_Products extends core_Embedder {
     	
     	// Подготвяме опциите
     	while($rec = $query->fetch()){
-    		$row = (object)array('code' => $Varchar->toVerbal($rec->code), 'name' => $Varchar->toVerbal($rec->name));
-    		$tpl = new ET($this->recTitleTpl);
-    		$tpl->placeObject($row);
-    		
-    		$products[$rec->id] = $tpl->getContent();
+    		$products[$rec->id] = $this->getRecTitle($rec, FALSE);
     	}
     	
     	return $products;
