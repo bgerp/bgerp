@@ -37,7 +37,7 @@ class acc_BalanceRepairs extends core_Master
     /**
      * Неща, подлежащи на начално зареждане
      */
-    var $loadList = 'plg_RowTools, plg_Printing,acc_Wrapper, plg_Sorting, acc_plg_Contable,
+    var $loadList = 'plg_RowTools, plg_Clone, plg_Printing,acc_Wrapper, plg_Sorting, acc_plg_Contable,
                      doc_DocumentPlg, acc_plg_DocumentSummary';
     
     
