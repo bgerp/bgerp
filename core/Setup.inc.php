@@ -297,8 +297,13 @@ a.menu {
 }
 
 #setupLog li {
-    font-size: 0.5em;
+    font-size: 0.6em;
 }
+
+#setupLog h2 {
+    font-size: 0.8em;
+}
+
 
 /*край на цветове*/
 
@@ -814,10 +819,17 @@ if ($step == 'setup') {
     }
     // Пращаме javascript-a за smooth скрол-а
     contentFlush("<script>
+    var mouseDown = 0;
+    document.body.onmousedown = function() { 
+        mouseDown = 1;
+    }
+    document.body.onmouseup = function() {
+        mouseDown = 0;
+    }
     function scroll()
      {
         var objDiv = document.getElementById('setupLog');
-        if ((objDiv.scrollTop+objDiv.offsetHeight) < objDiv.scrollHeight)
+        if ((objDiv.scrollTop+objDiv.offsetHeight) < objDiv.scrollHeight && mouseDown == 0)
         {
            objDiv.scrollTop+=5;
            
