@@ -215,9 +215,9 @@ class cat_Products extends core_Embedder {
 	
 	
 	/**
-	 * 
+	 * Абревиатура
 	 */
-	public $abbr = 'Cpr';
+	public $abbr = 'Art';
 	
 	
 	/**
@@ -1300,6 +1300,20 @@ class cat_Products extends core_Embedder {
     	$coverClass = doc_Folders::fetchCoverClassName($folderId);
     	 
     	return cls::haveInterface('cat_ProductFolderCoverIntf', $coverClass);
+    }
+    
+    
+    /**
+     * Проверка дали нов документ може да бъде добавен в посочената нишка
+     *
+     * @param int $threadId key(mvc=doc_Threads)
+     * @return boolean
+     */
+    public static function canAddToThread($threadId)
+    {
+    	$threadRec = doc_Threads::fetch($threadId);
+    	
+    	return static::canAddToFolder($threadRec->folderId);
     }
     
     

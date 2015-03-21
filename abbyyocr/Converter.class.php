@@ -291,7 +291,7 @@ class abbyyocr_Converter extends core_Manager
     /**
      * След началното установяване на този мениджър
      */
-    static function on_AfterSetupMVC($mvc, &$res)
+    static function loadSetupData()
     {
         // Вземаме конфига
     	$conf = core_Packs::getConfig('fileman');
