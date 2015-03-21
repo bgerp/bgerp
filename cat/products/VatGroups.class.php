@@ -126,7 +126,7 @@ class cat_products_VatGroups extends core_Detail
     /**
      * След подготовка на записите във вербален вид
      */
-    public static function on_AfterPrepareListRows(core_Detail $mvc, $data)
+    public static function on_AfterPrepareListRows1(core_Detail $mvc, $data)
     {
     	if (!$data->rows) return;
     	
@@ -152,10 +152,29 @@ class cat_products_VatGroups extends core_Detail
      */
     public static function prepareVatGroups($data)
     {   
-        $query = static::getQuery();
+    	$now  = dt::now(TRUE);
+    	$currentGroup = NULL;
+    	$data->recs = array();
+    	
+    	$query = static::getQuery();
         $query->where("#productId = {$data->masterId}");
+        $query->orderBy("#validFrom", 'DESC');
         while($rec = $query->fetch()){
+        	$data->recs[$rec->id] = $rec;
         	$data->rows[$rec->id] = static::recToVerbal($rec);
+        }
+        
+        foreach ($data->rows as $id => &$row) {
+        	$rec = $data->recs[$id];
+        	
+        	if($rec->validFrom > $now){
+        		$data->rows[$id]->ROW_ATTR['class'] = 'state-draft';
+        	}elseif($rec->validFrom <= $now && is_null($currentGroup)){
+        		$currentGroup = $rec->validFrom;
+        		$data->rows[$id]->ROW_ATTR['class'] = 'state-active';
+        	} else {
+        		$data->rows[$id]->ROW_ATTR['class'] = 'state-closed';
+        	}
         }
         
         if(static::haveRightFor('add', (object)array('productId' => $data->masterId))){
@@ -171,7 +190,7 @@ class cat_products_VatGroups extends core_Detail
     {
     	$wrapTpl = getTplFromFile('cat/tpl/ProductDetail.shtml');
     	$table = cls::get('core_TableView', array('mvc' => $this));
-    	$data->listFields = array("groupId" => "Група", 'vatGroup' => 'ДДС (%)', 'validFrom' => 'В сила oт');
+    	$data->listFields = array("vatGroup" => "Група", 'vatPercent' => 'ДДС (%)', 'validFrom' => 'В сила oт');
         $tpl = $table->get($data->rows, $data->listFields);
     	
     	$title = 'ДДС групи';
