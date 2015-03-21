@@ -4,3 +4,6 @@
 Начин на плащане (продажба),payMethod,paymentMethodSale
 Условие на доставка (покупка),delCond,deliveryTermPurchase
 Начин на плащане (покупка),payMethod,paymentMethodPurchase
+Общи условия за оферта,text,commonConditionQuote
+Общи условия за продажба,text,commonConditionSale
+Общи условия за покупка,text,commonConditionPur
