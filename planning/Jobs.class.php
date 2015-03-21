@@ -139,6 +139,12 @@ class planning_Jobs extends core_Master
     
     
     /**
+     * Детайла, на модела
+     */
+    var $details = 'Tasks=planning_Tasks';
+    
+    		
+    /**
      * Вербални наименования на състоянията
      */
     private static $actionNames = array('created'  => 'Създаване', 
