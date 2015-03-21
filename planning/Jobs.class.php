@@ -221,6 +221,11 @@ class planning_Jobs extends core_Master
     		$form->setField('deliveryPlace', 'input=none');
     		$form->setField('storeId', 'input=none');
     	}
+    	
+    	// При ново задание, ако текущия потребител има права го добавяме като споделен
+    	if(haveRole('planning,ceo') && empty($form->rec->id)){
+    		$form->rec->sharedUsers = keylist::addKey($form->rec->sharedUsers, core_Users::getCurrent());
+    	}
     }
     
     
