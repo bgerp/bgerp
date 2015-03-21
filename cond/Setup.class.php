@@ -61,6 +61,7 @@ class cond_Setup  extends core_ProtoSetup
     		'migrate::oldPosPayments',
     		'migrate::removePayment',
     		'migrate::deleteOldPaymentTime1',
+    		'migrate::deleteParams',
         );
 
         
@@ -139,5 +140,15 @@ class cond_Setup  extends core_ProtoSetup
     		cond_Payments::delete("#title = '{$name}'");
     		acc_Items::delete("#classId = '{$paymentClassId}' AND #title='{$name}'");
     	}
+    }
+    
+    
+    /**
+     * Изтрива параметри
+     */
+    function deleteParams()
+    {
+    	cond_Parameters::delete("#sysId = 'commonConditionQuote'");
+    	cond_Parameters::delete("#sysId = 'commonConditionQuoteEng'");
     }
 }
