@@ -1438,7 +1438,7 @@ class doc_Containers extends core_Manager
             
             try {
                 $clsInst = cls::get($rec->docClass);
-                $iRec = $clsInst->fetch($rec->docId, '*', FALSE);
+                $iRec = $clsInst->fetch($rec->docId, 'state', FALSE);
                 
                 if (!isset($iRec->state)) continue;
                 
