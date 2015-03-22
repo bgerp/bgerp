@@ -201,7 +201,7 @@ class cms_DefaultTheme extends core_ProtoInner {
  
                     $hImage = ht::createElement('img', array('src' => $imageURL, 'width' => 1000, 'height' => 288, 'alt' => $conf->EF_APP_TITLE, 'class' => 'headerImg', 'style' => $style));
                     $baner .= "\n{$hImage}";
-                    $$style = 'display:none;';
+                    $style = 'display:none;';
 
                 }
                 $baner .= "</div>";
