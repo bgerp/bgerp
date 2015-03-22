@@ -204,7 +204,7 @@ class cms_DefaultTheme extends core_ProtoInner {
                 }
                 $baner .= "</ul></div>";
                 $baner = new ET($baner);
-                $baner->append("#slider{position:relative;overflow:auto;width:100%;height:100%} #slider ul{padding:0px;margin:0px;width:100%;height:100%} #slider li{list-style:none;} #slider ul li{float:left;width:100%;height:100%} #slider ul li img {}", "STYLES");
+                $baner->append("#slider{position:relative;overflow:auto;width:100%;height:100%;display:hidden} #slider ul{padding:0px;margin:0px;width:100%;height:100%} #slider li{list-style:none;} #slider ul li{float:left;width:100%;}", "STYLES");
                 $baner->appendOnce(self::getSliderJS(), 'SCRIPTS');
                 $baner->appendOnce("\n runOnLoad(function(){\$('#slider').unslider({fluid: true, delay: 5000});});", 'SCRIPTS');
                 
