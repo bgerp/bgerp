@@ -207,6 +207,8 @@ class cms_DefaultTheme extends core_ProtoInner {
                 $baner->append("#slider{position:relative;overflow:auto;} #slider ul{padding:0px;margin:0px;} #slider li{list-style:none;} #slider ul li{float:left;}", "STYLES");
                 $baner->appendOnce(self::getSliderJS(), 'SCRIPTS');
                 $baner->appendOnce("\n runOnLoad(function(){\$('#slider').unslider({fluid: true, delay: 5000});});", 'SCRIPTS');
+                
+                $this->haveOwnHeaderImages = TRUE;
 
                 return $baner;
             }
