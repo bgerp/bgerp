@@ -198,15 +198,19 @@ class cms_DefaultTheme extends core_ProtoInner {
                 foreach($imgs as $iHash) {
                     $img = new thumb_Img(array($iHash, 1000, 288, 'fileman', 'isAbsolute' => TRUE, 'mode' => 'large-no-change'));
                     $imageURL = $img->getUrl('forced');
-                    $hImage = ht::createElement('img', array('src' => $imageURL, 'width' => 1000, 'height' => 288, 'alt' => $conf->EF_APP_TITLE, 'class' => 'headerImg'));
+                    if($hide) {
+                        $style = 'display:none;';
+                    }
+                    $hImage = ht::createElement('img', array('src' => $imageURL, 'width' => 1000, 'height' => 288, 'alt' => $conf->EF_APP_TITLE, 'class' => 'headerImg', 'style' => $style));
                     $baner .= "<li>{$hImage}</li>";
+                    $hide = TRUE;
 
                 }
                 $baner .= "</ul></div>";
                 $baner = new ET($baner);
-                $baner->append("#slider{position:relative;overflow:auto;width:100%;height:100%;display:hidden} #slider ul{padding:0px;margin:0px;width:100%;height:100%} #slider li{list-style:none;} #slider ul li{float:left;width:100%;}", "STYLES");
+                $baner->append("#slider{position:relative;overflow:auto;width:100%;height:100%;} #slider ul{padding:0px;margin:0px;width:100%;height:100%;} #slider li{list-style:none;} #slider ul li{float:left;width:100%;}", "STYLES");
                 $baner->appendOnce(self::getSliderJS(), 'SCRIPTS');
-                $baner->appendOnce("\n runOnLoad(function(){\$('#slider').unslider({fluid: true, delay: 5000});});", 'SCRIPTS');
+                $baner->appendOnce("\n runOnLoad(function(){\$('#slider').unslider({fluid: true, delay: 5000}); \$('.headerImg').css('display', 'inline-block');});", 'SCRIPTS');
                 
                 $this->haveOwnHeaderImages = TRUE;
 
