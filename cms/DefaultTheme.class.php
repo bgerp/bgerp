@@ -194,23 +194,22 @@ class cms_DefaultTheme extends core_ProtoInner {
 
             if(count($imgs) > 1) {
                 $conf = core_Packs::getConfig('core');
-                $baner = "<div id=\"slider\"><ul>"; 
+                $baner = "<div class=\"fadein\">"; 
                 foreach($imgs as $iHash) {
                     $img = new thumb_Img(array($iHash, 1000, 288, 'fileman', 'isAbsolute' => TRUE, 'mode' => 'large-no-change'));
                     $imageURL = $img->getUrl('forced');
-                    if($hide) {
-                        $style = 'display:none;';
-                    }
+ 
                     $hImage = ht::createElement('img', array('src' => $imageURL, 'width' => 1000, 'height' => 288, 'alt' => $conf->EF_APP_TITLE, 'class' => 'headerImg', 'style' => $style));
-                    $baner .= "<li>{$hImage}</li>";
-                    $hide = TRUE;
+                    $baner .= "\n{$hImage}";
+                    $$style = 'display:none;';
 
                 }
-                $baner .= "</ul></div>";
+                $baner .= "</div>";
                 $baner = new ET($baner);
-                $baner->append("#slider{position:relative;overflow:auto;width:100%;height:100%;} #slider ul{padding:0px;margin:0px;width:100%;height:100%;} #slider li{list-style:none;} #slider ul li{float:left;width:100%;}", "STYLES");
+                $baner->append(".fadein { position:relative; display:block; max-height:100%; max-width:100%} .fadein img {position:relative; left:0; top:0;}", "STYLES");
                 $baner->appendOnce(self::getSliderJS(), 'SCRIPTS');
-                $baner->appendOnce("\n runOnLoad(function(){\$('#slider').unslider({fluid: true, delay: 5000}); \$('.headerImg').css('display', 'inline-block');});", 'SCRIPTS');
+                $baner->appendOnce("\n runOnLoad(function(){ $(function(){ $('.fadein img:gt(0)').hide(); setInterval(function(){ $('.fadein :first-child').css({position: 'absolute'})." .
+                    "fadeOut(1500).next('img').css({position: 'absolute'}).fadeIn(1500).end().appendTo('.fadein');$('.fadein :first-child').css({position: 'relative'});}, 5000);});});", 'SCRIPTS');
                 
                 $this->haveOwnHeaderImages = TRUE;
 
