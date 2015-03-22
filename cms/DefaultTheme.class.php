@@ -198,13 +198,13 @@ class cms_DefaultTheme extends core_ProtoInner {
                 foreach($imgs as $iHash) {
                     $img = new thumb_Img(array($iHash, 1000, 288, 'fileman', 'isAbsolute' => TRUE, 'mode' => 'large-no-change'));
                     $imageURL = $img->getUrl('forced');
-                    $hImage = ht::createElement('img', array('src' => $imageURL, 'width' => 1000, 'height' => 288, 'alt' => $conf->EF_APP_TITLE));
+                    $hImage = ht::createElement('img', array('src' => $imageURL, 'width' => 1000, 'height' => 288, 'alt' => $conf->EF_APP_TITLE, 'class' => 'headerImg'));
                     $baner .= "<li>{$hImage}</li>";
 
                 }
                 $baner .= "</ul></div>";
                 $baner = new ET($baner);
-                $baner->append("#slider{position:relative;overflow:auto;} #slider ul{padding:0px;margin:0px;} #slider li{list-style:none;} #slider ul li{float:left;}", "STYLES");
+                $baner->append("#slider{position:relative;overflow:auto;width:100%;height:100%} #slider ul{padding:0px;margin:0px;width:100%;height:100%} #slider li{list-style:none;} #slider ul li{float:left;width:100%;height:100%} #slider ul li img {}", "STYLES");
                 $baner->appendOnce(self::getSliderJS(), 'SCRIPTS');
                 $baner->appendOnce("\n runOnLoad(function(){\$('#slider').unslider({fluid: true, delay: 5000});});", 'SCRIPTS');
                 
@@ -237,7 +237,7 @@ class cms_DefaultTheme extends core_ProtoInner {
         }
 
         $conf = core_Packs::getConfig('core');
-        $hImage = ht::createElement('img', array('src' => $imageURL, 'alt' => $conf->EF_APP_TITLE, 'id' => 'headerImg'));
+        $hImage = ht::createElement('img', array('src' => $imageURL, 'alt' => $conf->EF_APP_TITLE, 'class' => 'headerImg'));
         
         return $hImage;
     }

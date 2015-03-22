@@ -1981,16 +1981,16 @@ fieldset.sharing-history {
 	background-color: white;
 }
 
-#headerImg, #slider img {
+.headerImg {
 	float: left;
 	background-color: white;
 }
 
-.wide #headerImg, .wide #slider  img {
+.wide .headerImg {
 	width: 100%;
 }
 
-.narrow #headerImg {
+.narrow .headerImg {
 	max-width:360px;
     height:auto;
 	float:left;
@@ -2017,7 +2017,7 @@ fieldset.sharing-history {
 	position: relative;
 }
 
-#cmsTop, #headerImg {
+#cmsTop, .headerImg {
 	display: block;
 }
 
@@ -3385,7 +3385,7 @@ body.narrow {
 	#all, #cmsTop {
 	   @include border-radius4(10px, 10px, 0, 0);
 	}
-    .wide #headerImg {
+    .wide .headerImg {
 	   @include border-radius4(10px, 0, 0, 0);
 	}
     
