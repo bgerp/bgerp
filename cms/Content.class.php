@@ -149,7 +149,7 @@ class cms_Content extends core_Manager
 
         if($lang) {
             self::setLang($lang);
-            redirect(array('cms_Content', 'Show'));
+            redirect(array('cms_Content', 'Show', 'lg' => $lang));
         }
 
         $lang = self::getLang();
