@@ -296,7 +296,7 @@ class fileman_Setup extends core_ProtoSetup
             if (($versionArr['version'] == 8) && ($versionArr['subVersion'] == 71)) {
                     
                 // Добавяме съобщение
-                return "<li style='color: red;'>Версията на '" . type_Varchar::escape($conf->FILEMAN_GHOSTSCRIPT_PATH) . "' e 8.71. С тази версия има проблеми. Моля да я обновите.</li>";
+                return "<li class='debug-error'>Версията на '" . type_Varchar::escape($conf->FILEMAN_GHOSTSCRIPT_PATH) . "' e 8.71. С тази версия има проблеми. Моля да я обновите.</li>";
             }
         }
     }

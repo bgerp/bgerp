@@ -154,7 +154,7 @@ class cat_products_VatGroups extends core_Detail
     {   
     	$now  = dt::now(TRUE);
     	$currentGroup = NULL;
-    	$data->recs = array();
+    	$data->recs = $data->rows = array();
     	
     	$query = static::getQuery();
         $query->where("#productId = {$data->masterId}");
@@ -164,17 +164,19 @@ class cat_products_VatGroups extends core_Detail
         	$data->rows[$rec->id] = static::recToVerbal($rec);
         }
         
-        foreach ($data->rows as $id => &$row) {
-        	$rec = $data->recs[$id];
-        	
-        	if($rec->validFrom > $now){
-        		$data->rows[$id]->ROW_ATTR['class'] = 'state-draft';
-        	}elseif($rec->validFrom <= $now && is_null($currentGroup)){
-        		$currentGroup = $rec->validFrom;
-        		$data->rows[$id]->ROW_ATTR['class'] = 'state-active';
-        	} else {
-        		$data->rows[$id]->ROW_ATTR['class'] = 'state-closed';
-        	}
+        if(count($data->rows)) {
+            foreach ($data->rows as $id => &$row) {
+                $rec = $data->recs[$id];
+                
+                if($rec->validFrom > $now){
+                    $data->rows[$id]->ROW_ATTR['class'] = 'state-draft';
+                }elseif($rec->validFrom <= $now && is_null($currentGroup)){
+                    $currentGroup = $rec->validFrom;
+                    $data->rows[$id]->ROW_ATTR['class'] = 'state-active';
+                } else {
+                    $data->rows[$id]->ROW_ATTR['class'] = 'state-closed';
+                }
+            }
         }
         
         if(static::haveRightFor('add', (object)array('productId' => $data->masterId))){

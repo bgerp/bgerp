@@ -278,15 +278,19 @@ class core_Html
                 break;
             }
             
+            $attr['readonly'] = 'readonly';
+            $attr['class'] = 'readonly';
+
             if(empty($value)) {
-                $value = '&nbsp;';
+                if($attr['placeholder']) {
+                    $value = $attr['placeholder'];
+                    $attr['style'] = 'color:#777';
+                } else {
+                    $value = '&nbsp;';
+                }
             }
             
-            $input = self::createElement('select', array(
-                    'readonly' => 'readonly',
-                    'class' => 'readonly ' .
-                    $attr['class']
-                ), "<option>$value</option>", TRUE);
+            $input = self::createElement('select', $attr, "<option>$value</option>", TRUE);
 
             $input->append(self::createElement('input', array(
                         'type' => 'hidden',

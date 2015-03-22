@@ -303,9 +303,9 @@ class core_Plugins extends core_Manager
             }
             
             if ($cnt) {
-                $res = "<li style='color:red;'>Спрян е плъгинът '{$plugin}', защото липсва {$str}</li>";
+                $res = "<li class='debug-error'>Спрян е плъгинът '{$plugin}', защото липсва {$str}</li>";
             } else {
-                $res = "<li style='color:red;'>Не е закачен плъгинът '{$plugin}', защото липсва {$str}</li>";
+                $res = "<li class='debug-error'>Не е закачен плъгинът '{$plugin}', защото липсва {$str}</li>";
             }
             
             return $res;
@@ -327,7 +327,7 @@ class core_Plugins extends core_Manager
             if(!cls::load($rec->plugin, TRUE)) {
                 $this->delete($rec->id);
 
-                $res .= "<li style='color:red;'>Премахнато е {$rec->name} защото липсва плъгина {$rec->plugin}</li>";
+                $res .= "<li class='debug-error'>Премахнато е {$rec->name} защото липсва плъгина {$rec->plugin}</li>";
 
                 continue;
             }
@@ -335,7 +335,7 @@ class core_Plugins extends core_Manager
             if(!cls::load($rec->class, TRUE)) {
                 $this->delete($rec->id);
 
-                $res .= "<li style='color:red;'>Премахнато е {$rec->name} защото липсва класа {$rec->class}</li>";
+                $res .= "<li class='debug-error'>Премахнато е {$rec->name} защото липсва класа {$rec->class}</li>";
 
                 continue;
             }

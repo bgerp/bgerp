@@ -347,9 +347,9 @@ class fileman_Get extends core_Manager {
          
         if(!is_dir(EF_TEMP_PATH)) {
             if(!mkdir(EF_TEMP_PATH, 0777, TRUE)) {
-                $res .= '<li class="red">' . tr('Не може да се създаде директорията') . ': "' . EF_TEMP_PATH . '</li>';
+                $res .= '<li class="debug-error">' . tr('Не може да се създаде директорията') . ': "' . EF_TEMP_PATH . '</li>';
             } else {
-                $res .= '<li class="green">' . tr('Създадена е директорията') . ': "' . EF_TEMP_PATH . '"</li>';
+                $res .= '<li class="debug-new">' . tr('Създадена е директорията') . ': "' . EF_TEMP_PATH . '"</li>';
             }
         }
         

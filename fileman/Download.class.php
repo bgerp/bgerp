@@ -391,10 +391,10 @@ class fileman_Download extends core_Manager {
     {
         if(!is_dir(EF_DOWNLOAD_DIR)) {
             if(!mkdir(EF_DOWNLOAD_DIR, 0777, TRUE)) {
-                $res .= '<li class="red">' . tr('Не може да се създаде директорията') .
+                $res .= '<li class="debug-error">' . tr('Не може да се създаде директорията') .
                 ' "' . EF_DOWNLOAD_DIR . '</li>';
             } else {
-                $res .= '<li class="green">' . tr('Създадена е директорията') . ' "' .
+                $res .= '<li class="debug-new">' . tr('Създадена е директорията') . ' "' .
                 EF_DOWNLOAD_DIR . '"</li>';
             }
         }
@@ -406,9 +406,9 @@ class fileman_Download extends core_Manager {
             
             foreach($filesToCopy as $src => $dest) {
                 if(copy($src, $dest)) {
-                    $res .= "<li class=\"green\">Копиран е файла: <b>{$src}</b> => <b>{$dest}</b></li>";
+                    $res .= "<li class=\"debug-new\">Копиран е файла: <b>{$src}</b> => <b>{$dest}</b></li>";
                 } else {
-                    $res .= "<li class=\"red\">Не може да бъде копиран файла: <b>{$src}</b> => <b>{$dest}</b></li>";
+                    $res .= "<li class=\"debug-error\">Не може да бъде копиран файла: <b>{$src}</b> => <b>{$dest}</b></li>";
                 }
             }
         }

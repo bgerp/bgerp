@@ -144,10 +144,10 @@ class core_ProtoSetup
                         if($res) {
                             $html .= $res;
                         } else {
-                            $html .= "<li style='color:green;'>Миграцията {$packName}::{$method} беше приложена успешно</li>";
+                            $html .= "<li class='debug-new'>Миграцията {$packName}::{$method} беше приложена успешно</li>";
                         }
                     } catch (Exception $е) {
-                        $html .= "<li style='color:red;'>Миграцията {$packName}::{$method} не беше успешна</li>";
+                        $html .= "<li class='debug-error'>Миграцията {$packName}::{$method} не беше успешна</li>";
                     }
                 }
                 

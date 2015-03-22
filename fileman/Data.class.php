@@ -165,9 +165,9 @@ class fileman_Data extends core_Manager {
     {
         if(!is_dir(FILEMAN_UPLOADS_PATH)) {
             if(!mkdir(FILEMAN_UPLOADS_PATH, 0777, TRUE)) {
-                $res .= '<li class="red">' . tr('Не може да се създаде директорията') . ' "' . FILEMAN_UPLOADS_PATH . '"</li>';
+                $res .= '<li class="debug-error">' . tr('Не може да се създаде директорията') . ' "' . FILEMAN_UPLOADS_PATH . '"</li>';
             } else {
-                $res .= '<li class="green">' . tr('Създадена е директорията') . ' "' . FILEMAN_UPLOADS_PATH . '"</li>';
+                $res .= '<li class="debug-new">' . tr('Създадена е директорията') . ' "' . FILEMAN_UPLOADS_PATH . '"</li>';
             }
         }
     }

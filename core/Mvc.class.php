@@ -986,7 +986,7 @@ class core_Mvc extends core_FieldSet
                         }
 
                         $act = 'Обновен';
-                        $cssClass = '#660000';
+                        $cssClass = 'debug-error';
                     } else {
                         $act = 'Добавен';
                         $cssClass = 'debug-new';
@@ -997,7 +997,7 @@ class core_Mvc extends core_FieldSet
                     		$html .= "<li class=\"{$cssClass}\">{$act} индекс '<b>{$indRec->type}</b>' '<b>{$name}</b>' на полетата '<b>{$indRec->fields}</b>'</li>";
                     	}
                     } catch(core_exception_Expect $e){
-                    	$html .= "<li style='color:red'>Проблем при {$act} индекс '<b>{$indRec->type}</b>' '<b>{$name}</b>' на полетата '<b>{$indRec->fields}</b>', {$e->getMessage()}</li>";
+                    	$html .= "<li class='debug-error'>Проблем при {$act} индекс '<b>{$indRec->type}</b>' '<b>{$name}</b>' на полетата '<b>{$indRec->fields}</b>', {$e->getMessage()}</li>";
                     }
                 }
             }

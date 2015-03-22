@@ -110,9 +110,9 @@ class docoffice_Setup extends core_ProtoSetup
       	
         // Проверяваме дали офис пакета е инсталиран и работи коректно
         if (docoffice_Office::startOffice()) {
-            $html .= "<li style='color:green'>Офис пакета работи коректно.";  
+            $html .= "<li>Офис пакета работи коректно.";  
         } else {
-            $html .= "<li style='color:red'>Не може да бъде стартиран офис пакета.";
+            $html .= "<li class='debug-error'>Не може да бъде стартиран офис пакета.";
         }
         
         // Конфигурационните константи
@@ -122,9 +122,9 @@ class docoffice_Setup extends core_ProtoSetup
         
         // Ако програмата не е инсталирана
         if ($errorCode == 127) {
-            $html .= "<li style='color:red'>Програмата '{$unoconv}' не е инсталирана.";  
+            $html .= "<li class='debug-error'>Програмата '{$unoconv}' не е инсталирана.";  
         } else {
-            $html .= "<li style='color:green'>Програмата '{$unoconv}' работи коректно.";
+            $html .= "<li>Програмата '{$unoconv}' работи коректно.";
         }
         
         // Убиваме офис пакета
