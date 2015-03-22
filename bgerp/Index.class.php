@@ -35,7 +35,7 @@ class bgerp_Index extends core_Manager
             }
         } else {
             
-            return new Redirect(array('cms_Content', 'Show'));
+            return Request::forward(array('Ctr' => 'cms_Content', 'Act' => 'Show'));
         }
     }
 }

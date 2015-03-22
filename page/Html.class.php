@@ -189,7 +189,7 @@ class page_Html extends core_ET {
                 if(!preg_match('#^[^/]*//#', $file)) {
                     $file = sbf($file, '', $absolute);
                 }
-                $files->invoker->appendOnce("\n<script type=\"text/javascript\" src=\"{$file}\"></script>", "HEAD", TRUE);
+                $files->invoker->appendOnce("\n<script type=\"text/javascript\" async src=\"{$file}\"></script>", "HEAD", TRUE);
             }
         } 
         

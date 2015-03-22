@@ -312,6 +312,17 @@ class core_Request
      */
     static function forward($vars = array(), $prefix = 'act_')
     {
+        // Преобразуваме от поредни към именовани параметри
+        if(isset($vars[0]) && !isset($vars['Ctr'])) {
+            $vars['Ctr'] = $vars[0];
+        }
+        if(isset($vars[1]) && !isset($vars['Act'])) {
+            $vars['Act'] = $vars[1];
+        }
+        if(isset($vars[2]) && !isset($vars['id'])) {
+            $vars['id'] = $vars[2];
+        }
+
         try {
             // Ако не е бил сетнат
             if (!Mode::get('hitTime')) {

@@ -475,8 +475,8 @@ class cms_Content extends core_Manager
         Mode::set('cMenuId', $menuId);
         
         if ($rec && ($content = $this->getContentUrl($rec))) {
-
-            return new Redirect($content);
+    
+            return Request::forward($content);
         } else {
 
             return new Redirect(array('bgerp_Portal', 'Show'));
