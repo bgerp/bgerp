@@ -192,7 +192,7 @@ class planning_ObjectResources extends core_Manager
     {
     	$data->TabCaption = 'Ресурси';
     	$data->rows = array();
-    	 
+    	
     	// Таба излиза на горния ред, само ако е в документ
     	$classId = $data->masterMvc->getClassId();
 		if(cls::haveInterface('doc_DocumentIntf', $data->masterMvc)){
@@ -201,14 +201,16 @@ class planning_ObjectResources extends core_Manager
     	
     	$query = $this->getQuery();
     	$query->where("#classId = {$classId} AND #objectId = {$data->masterId}");
-    	 
+    	
     	while($rec = $query->fetch()){
     		$data->rows[$rec->id] = $this->recToVerbal($rec);
+    		$data->rows[$rec->id]->type = planning_Resources::getVerbal($rec->resourceId, 'type');
     		$data->rows[$rec->id]->ROW_ATTR['class'] = 'state-active';
     	}
     	 
     	if(!Mode::is('printing')) {
     		if(self::haveRightFor('add', (object)array('classId' => $classId, 'objectId' => $data->masterId))){
+    			
     			$type = $data->masterMvc->getResourceSourceInfo($data->masterId)->type;
     			if(planning_Resources::fetch("#type = '{$type}'")){
     				$data->addUrl = array($this, 'add', 'classId' => $classId, 'objectId' => $data->masterId, 'ret_url' => TRUE);
@@ -230,8 +232,12 @@ class planning_ObjectResources extends core_Manager
     
     	$tpl->append(tr('Ресурси'), 'title');
     	$table = cls::get('core_TableView', array('mvc' => $this));
-    
-    	$tpl->append($table->get($data->rows, 'tools=Пулт,resourceId=Ресурс,createdOn=Създадено от,createdBy=Създадено на'), 'content');
+    	$fields = arr::make('tools=Пулт,resourceId=Ресурс,type=Вид,createdOn=Създадено от,createdBy=Създадено на');
+    	if(!count($data->rows)){
+    		unset($fields['tools']);
+    	}
+    	
+    	$tpl->append($table->get($data->rows, $fields), 'content');
     	
 		if(isset($data->addUrlNew)){
     		$tpl->append(ht::createBtn('Нов', $data->addUrlNew, NULL, NULL, 'ef_icon=img/16/star_2.png, title=Създаване на нов ресурс'), 'content');
