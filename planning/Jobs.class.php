@@ -290,7 +290,20 @@ class planning_Jobs extends core_Master
     		} else {
     			$rec->weight = NULL;
     		}
+    		
+    		$Driver = cat_Products::getDriver($rec->productId);
+    		$rec->folderId = doc_UnsortedFolders::forceCoverAndFolder((object)array('name' => $Driver->getJobFolderName()));
     	}
+    }
+    
+    
+    /**
+     * Изпълнява се след създаване на нов запис
+     */
+    public static function on_AfterCreate($mvc, $rec)
+    {
+    	$cu = core_Users::getCurrent();
+    	doc_ThreadUsers::addShared($rec->threadId, $rec->containerId, $cu);
     }
     
     
@@ -618,12 +631,9 @@ class planning_Jobs extends core_Master
     	$data->TabCaption = 'Задания';
     	$data->Tab = 'top';
     	
-    	$Driver = $data->masterMvc->getDriver($data->masterId);
-    	$folderId = doc_UnsortedFolders::forceCoverAndFolder((object)array('name' => $Driver->getJobFolderName()));
-    	
     	// Проверяваме можем ли да добавяме нови задания
-    	if($this->haveRightFor('add', (object)array('productId' => $data->masterId, 'folderId' => $folderId))){
-    		$data->addUrl = array($this, 'add', 'productId' => $data->masterId, 'folderId' => $folderId, 'ret_url' => TRUE);
+    	if($this->haveRightFor('add', (object)array('productId' => $data->masterId))){
+    		$data->addUrl = array($this, 'add', 'productId' => $data->masterId, 'ret_url' => TRUE);
     	}
     	
     	if(!isset($masterInfo->meta['canManifacture'])){
