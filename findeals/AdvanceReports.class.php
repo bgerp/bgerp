@@ -31,7 +31,7 @@ class findeals_AdvanceReports extends core_Master
     /**
      * Абревиатура
      */
-    public $abbr = 'Ar';
+    public $abbr = 'Adr';
     
     
     /**
@@ -93,7 +93,7 @@ class findeals_AdvanceReports extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'number,valior,currencyId, total,folderId,createdOn,createdBy';
+    public $listFields = 'tools=Пулт,valior,title=Документ,number,currencyId=Валута, total,folderId,createdOn,createdBy';
 
     
    /**
@@ -135,13 +135,13 @@ class findeals_AdvanceReports extends core_Master
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    public $rowToolsField = 'number';
+    public $rowToolsField = 'tools';
     
     
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
-    public $rowToolsSingleField = 'number';
+    public $rowToolsSingleField = 'title';
     
     
     /**
@@ -261,6 +261,8 @@ class findeals_AdvanceReports extends core_Master
     			unset($row->rate);
     		}
     	}
+    	
+    	$row->title = $mvc->getLink($rec->id, 0);
     }
     
     
