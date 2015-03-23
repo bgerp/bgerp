@@ -195,7 +195,7 @@ class cat_products_VatGroups extends core_Detail
     	$data->listFields = array("vatGroup" => "Група", 'vatPercent' => 'ДДС (%)', 'validFrom' => 'В сила oт');
         $tpl = $table->get($data->rows, $data->listFields);
     	
-    	$title = 'ДДС групи';
+    	$title = 'ДДС';
     	if($data->addUrl){
     		$title .= ht::createLink("<img src=" . sbf('img/16/add.png') . " valign=bottom style='margin-left:5px;'>", $data->addUrl, FALSE, 'title=Добавяне на нова себестойност');
     	}

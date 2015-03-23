@@ -431,6 +431,9 @@ div.folder-cover {
     background-color: #e6ffe0; }
   .fieldset-holder tr.row-removed {
     background-color: #cce3fe; }
+  .fieldset-holder tr.group-by-field-row {
+    background-color: #f1f1f1; }
+
 
 /*
  * потребителски профил

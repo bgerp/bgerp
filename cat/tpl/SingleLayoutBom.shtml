@@ -13,12 +13,9 @@
     <div class = 'fieldset-holder' style='margin-top:10px'>
     [#cat_BomDetails#]
     </div>
-    
     [#DETAILS#]
-    
     <!--ET_BEGIN notes-->
-  
-    <div style='margin-top: 20px;'>|Забележки|*:</div>
+    <div>|Забележки|*:</div>
     <div>[#notes#]</div>
     <!--ET_END notes-->
 </div>

@@ -25,7 +25,8 @@ a.datepick-cmd {
     user-select: none;
 }
 
-.select2-container--default .select2-selection--single, .select2-dropdown , .select2-container--default .select2-selection--multiple {
+.select2-container--default .select2-selection--single, .select2-dropdown , .select2-container--default .select2-selection--multiple,
+.select2-container--default.select2-container--focus .select2-selection--multiple {
     border: solid 1px #9999ff;
     border-radius: 0;
 }
@@ -111,7 +112,7 @@ span.all-users{
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) inset !important;
 }
 
-.select2-selection:focus {
+.select2-selection:focus, .select2-container--default.select2-container--focus .select2-selection--multiple {
 	 box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1) inset, 0 0 7px rgba( 153, 153, 255, 0.7) !important;
 }
 

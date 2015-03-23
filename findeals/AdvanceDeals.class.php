@@ -87,7 +87,7 @@ class findeals_AdvanceDeals extends findeals_Deals
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,detailedName,folderId,state,createdOn,createdBy';
+    public $listFields = 'tools=Пулт,detailedName,folderId,state,createdOn,createdBy';
     
     
     /**

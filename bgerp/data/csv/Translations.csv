@@ -1753,3 +1753,56 @@ en,Запитване->Драйвер,Inquiry->Driver
 en,Запитване->МКП,Inquiry->MOQ
 en,Запитване за,Inquiry about
 en,Прикачи,Attach
+en,Соц,Soc
+en,Бутони за споделяне в социални мрежи,Buttons for sharing in social networks
+en,Проследяване,Follower
+en,Бутони за проследяване в социалните мрежи,Buttons for followers in social networks
+en,Новини,News
+en,Интересно,Interesting
+en,Политика,Politics
+en,Наука,Science
+en,Изкуство,Art
+en,Статистика,Statistic
+en,Режим,Regime
+en,Разрешени,Allowed
+en,С потвърждение,Confirmation
+en,Забранени,Prohibited
+en,Спрени,Stopped
+en,Публикувана,Published
+en,Оттеглена,Rejected
+en,Вербално ID,Verbal ID
+en,Блог коментари,Blog comments
+en,Категории в блога,Blog categories
+en,Новостите за нашата фирма,Nows for our firm
+en,Интересни неща за бизнеса и около него,Interesting news for business and around us
+en,Позиция по въпроси касаещи България, Европа и света,Position on issues relating to Bulgaria, Europe and the world
+en,Достиженията на науката в нашия бизнес,Achievements of science in our business
+en,Творческото начало в бизнеса,Creativity in business
+en,Отчети и доклади, за любителите на цифрите,Records and reports for lovers of numbers
+en,Основно меню,Main Menu
+en,Гласувания,Votes
+en,Гласуване за,Votes for
+en,Регистър за вербални id-та,Registers for verbal id
+en,Добавки към публичната страница,Supplements public page
+en,Метод,Method
+en,Максимално,Max
+en,Таг,Tag
+en,Конкатениране,Concatenation
+en,Разделител,Delimiter
+en,Покажи,Show
+en,Записи от сензорите,Records from sensors
+en,Сензор,Sensor
+en,Съобщения от сензорите,Messages from sensors
+en,Важност,Importance
+en,Аларма,Alarm
+en,Широчина,Width
+en,Записи на камера,Records from cam
+en,Маркираните,Marked
+en,Предефинирани позиции на камери,Predefined camera position
+en,Индикатори на входовете и изходите,Exits and Entries indicators
+en,Записи на индикаторите,Indicators records
+en,Логика,Logic
+en,Логически блокове,Logic blocs
+en,Към момент,At the time
+en,Съобщения за грешка,Error Messages
+en,Обекти 002C дост_8dec5,Objects available for publication

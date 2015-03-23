@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   planning
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -121,11 +121,10 @@ class planning_ConsumptionNoteDetails extends deals_ManifactureDetail
     	foreach ($data->rows as $id => $row){
     		$rec = $data->recs[$id];
     		
-    		
     		// Проверка дали артикула не е ресурс
     		if(!planning_ObjectResources::getResource($rec->classId, $rec->productId)){
     			
-    			$row->productId = "<span class='red' title = " . tr('Артикула трябва да стане ресурс, за да се контира документа') . ">{$row->productId}</span>";
+    			$row->productId = "<span style='color:#9A5919' title = '" . tr('Артикула трябва да стане ресурс за да се контира документа') . "'>{$row->productId}</span>";
     			
     			// Ако не е ресурс и имаме права поставямя бутони за добавяне като ресурс
     			if(cls::haveInterface('planning_ResourceSourceIntf', $rec->classId)){

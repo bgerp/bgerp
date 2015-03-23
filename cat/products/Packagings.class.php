@@ -120,7 +120,7 @@ class cat_products_Packagings extends cat_products_Detail
     {
     	if($requiredRoles == 'no_one') return;
     	
-        if ($action == 'add' && isset($rec->productId)) {
+        if($action == 'add' && isset($rec->productId)) {
         	if (!count($mvc::getRemainingOptions($rec->productId))) {
                 $requiredRoles = 'no_one';
             } else {
@@ -129,6 +129,13 @@ class cat_products_Packagings extends cat_products_Detail
             		$requiredRoles = 'no_one';
             	}
             } 
+        }
+        
+        if(($action == 'add' ||  $action == 'delete') && isset($rec->productId)) {
+        	$masterState = $mvc->Master->fetchField($rec->productId, 'state');
+        	if($masterState != 'active' && $masterState != 'draft'){
+        		$requiredRoles = 'no_one';
+        	}
         }
     }
     

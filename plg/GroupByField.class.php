@@ -38,7 +38,7 @@ class plg_GroupByField extends core_Plugin
 		unset($data->listFields[$field]);
 		 
 		// Колко е броя на колоните
-		$columns = count($listFields);
+		$columns = count($data->listFields);
 		 
 		$groups = array();
 		 
@@ -54,7 +54,10 @@ class plg_GroupByField extends core_Plugin
 			$groupVerbal = isset($groupVerbal) ? "<b>{$groupVerbal}</b>" : '<div style = "height:12px"></div>';
 	
 			// Създаваме по един ред с името му, разпънат в цялата таблица
-			$rowAttr['class'] .= ' group-by-field-row';
+			if(strstr($rowAttr['class'], 'group-by-field-row') === FALSE){
+				$rowAttr['class'] .= ' group-by-field-row';
+			}
+			
 			$rows['|' . $groupId] = ht::createElement('tr',
 					$rowAttr,
 					new ET("<td style='padding-top:9px;padding-left:5px;' colspan='{$columns}'>" . $groupVerbal . "</td>"));

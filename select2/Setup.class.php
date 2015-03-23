@@ -116,6 +116,7 @@ class select2_Setup extends core_ProtoSetup {
         $html .= $Plugins->forcePlugin('Select2 за тип CustomKey', 'select2_PluginSelect', 'type_CustomKey', 'private');
         $html .= $Plugins->forcePlugin('Select2 за тип Class', 'select2_PluginSelect', 'type_Class', 'private');
         $html .= $Plugins->forcePlugin('Select2 за тип User', 'select2_PluginSelect', 'type_User', 'private');
+        $html .= $Plugins->forcePlugin('Select2 за тип UserOrRole', 'select2_PluginSelect', 'type_UserOrRole', 'private');
         $html .= $Plugins->forcePlugin('Select2 за тип Item', 'select2_PluginSelect', 'acc_type_Item', 'private');
         $html .= $Plugins->forcePlugin('Select2 за тип Account', 'select2_PluginSelect', 'acc_type_Account', 'private');
         

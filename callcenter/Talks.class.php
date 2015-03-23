@@ -16,6 +16,12 @@ class callcenter_Talks extends core_Master
     
     
     /**
+     * Разделител за края на uniqId, ако разговора е пренасочен
+     */
+    protected static $callUniqIdDelimiter = '|';
+    
+    
+    /**
      * Заглавие на модела
      */
     var $title = 'Телефонни разговори';
@@ -305,18 +311,43 @@ class callcenter_Talks extends core_Master
             // Добавяме, че е скрит номер
             $row->externalNum = tr('Скрит номер');
         }
+        
+        // Номера, от който е редиректнат
+        if ($rec->RedirectFrom = self::getRedirectedFromNum($rec)) {
+            $row->RedirectFrom = type_Varchar::escape($rec->RedirectFrom);
+        }
+        
+        // Номера, към който е редиректнат
+        if ($rec->RedirectTo = self::getRedirectedToNum($rec)) {
+            $row->RedirectTo = type_Varchar::escape($rec->RedirectTo);
+        }
     }
     
     
     /**
      * 
+     * 
+     * @param callcenter_Talks $mvc
+     * @param object $res
+     * @param object $data
      */
-    public static function on_AfterPrepareListRows($mvc, $data)
+    public static function on_AfterPrepareListRows($mvc, &$res, $data)
     {
         $dialStatusType = Request::get('dialStatusType');
         // Изчистваме нотификацията
         $url = array('callcenter_Talks', 'list', 'dialStatusType' => $dialStatusType);
-        bgerp_Notifications::clear($url);  
+        bgerp_Notifications::clear($url);
+        
+        // Добавяме номерата от които са пренасочени обажданията
+        foreach ((array)$data->rows as $row) {
+            if ($row->RedirectFrom) {
+                $row->internalNum = $row->RedirectFrom . ' » ' . $row->internalNum;
+            }
+            
+            if ($row->RedirectTo) {
+                $row->internalNum = $row->internalNum . ' » ' . $row->RedirectTo;
+            }
+        }
     }
     
     
@@ -506,6 +537,23 @@ class callcenter_Talks extends core_Master
         // Записваме
         $savedId = static::save($nRec, NULL, 'IGNORE');
         
+        // Когато uniqId съществува, предполагаме, че разговора е пренасочен
+        if (!$savedId) {
+            
+            // Ако за този вътрешен номер няма запис, генерираме ново уникално ид и записваме
+            if (!self::fetch(array("#internalNum = '[#1#]' AND #uniqId='[#2#]'", $nRec->internalNum, $nRec->uniqId))) {
+                $newUniqId = self::getUniqId($uniqId);
+                
+                if ($newUniqId != $uniqId) {
+                    $nRec->uniqId = $newUniqId;
+                    $savedId = static::save($nRec, NULL, 'IGNORE');
+                }
+            } else {
+                // Добавяме грешката
+                $errArr[] = 'Има запис за този вътрешен номер с това id';
+            }
+        }
+        
         // Ако записът не е успешен
         if (!$savedId) {
             
@@ -557,8 +605,8 @@ class callcenter_Talks extends core_Master
         // Вземаме уникалното id на разговора
         $uniqId = Request::get('uniqueId');
         
-        // Вземаме записа
-        $rec = static::fetch(array("#uniqId = '[#1#]'", $uniqId));
+        // Вземаме последния запис
+        $rec = self::getLastTalksRec($uniqId);
         
         // Ако има такъв запис
         if ($rec->id) {
@@ -707,6 +755,11 @@ class callcenter_Talks extends core_Master
             // Добавяме нотификация
             static::addNotification($rec);
             
+            if (self::isRedirected($rec)) {
+                
+                // Маркираме обаждането от което е пренасочено, като 'REDIRECTED'
+                self::markParentAsRedirected($rec->uniqId);
+            }
         } else {
             // Ако няма такъв запис
             
@@ -720,6 +773,207 @@ class callcenter_Talks extends core_Master
         // Връщаме
         return TRUE;
     }
+    
+    
+    /**
+     * Генерира ново уникално id
+     * 
+     * @param string $uniqId
+     * 
+     * @return string
+     */
+    protected static function getUniqId($uniqId)
+    {
+        $i = 0;
+        do {
+            
+            if ($i++ > 100) error('@Unable to generate uniqId', $uniqId);
+            
+            $newUniqId = self::prepareUniqId($uniqId, $i);
+            
+        } while(self::fetch(array("#uniqId = '[#1#]'", $newUniqId)));
+        
+        return $newUniqId;
+    }
+    
+    
+    /**
+     * Подготва стринг с uniqId
+     * 
+     * @param string $uniqId
+     * @param integer $str
+     * 
+     * @return string
+     */
+    protected static function prepareUniqId($uniqId, $id)
+    {
+        $newUniq = $uniqId;
+        
+        if ($id) {
+            $newUniq .= self::$callUniqIdDelimiter . $id;
+        }
+        
+        return $newUniq;
+    }
+    
+
+    /**
+     * Проверява дали е редиректнато обаждането
+     * 
+     * @param object $rec
+     * 
+     * @return boolean
+     */
+    protected static function isRedirected($rec)
+    {
+        if (strpos($rec->uniqId, self::$callUniqIdDelimiter)) return TRUE;
+        
+        return FALSE;
+    }
+    
+    
+    /**
+     * Маркира обаждането от което е пренасочено, като redirected
+     * 
+     * @param string $uniqId
+     */
+    protected static function markParentAsRedirected($uniqId)
+    {
+        $parentRec = self::getParentRecForUniqId($uniqId);
+        
+        if (!$parentRec) return;
+        
+        $parentRec->dialStatus = 'REDIRECTED';
+        
+        self::save($parentRec, 'dialStatus');
+        
+        // Добавяме нотификация
+        self::addNotification($parentRec);
+    }
+    
+    
+    /**
+     * Връща последния запис в модела за uniqId, като се броят и пренасочените
+     * 
+     * @param string $uniqId
+     * 
+     * @return object
+     */
+    protected static function getLastTalksRec($uniqId)
+    {
+        if (!$uniqId) return FALSE;
+        
+        $query = self::getQuery();
+        $query->where(array("#uniqId LIKE '[#1#]%'", $uniqId . self::$callUniqIdDelimiter));
+        $query->orWhere(array("#uniqId = '[#1#]'", $uniqId));
+        
+        $query->orderBy("id", 'DESC');
+        $query->limit(1);
+        $rec = $query->fetch();
+        
+        return $rec;
+    }
+    
+    
+    /**
+     * Връща номера, от който е пренасочено обаждането
+     * 
+     * @param object $rec
+     * 
+     * @return string
+     */
+    protected static function getRedirectedFromNum($rec)
+    {
+        if (!self::isRedirected($rec)) return ;
+        
+        $parentRec = self::getParentRecForUniqId($rec->uniqId);
+        
+        if (!$parentRec) return ;
+        
+        return $parentRec->internalNum;
+    }
+    
+    
+    /**
+     * Връща родителя от който е генерирано съответното uniqId
+     * 
+     * @param string $uniqId
+     * 
+     * @return object
+     */
+    protected static function getParentRecForUniqId($uniqId)
+    {
+        if (!strpos($uniqId, self::$callUniqIdDelimiter)) return FALSE;
+        
+        $uniqIdArr = explode(self::$callUniqIdDelimiter, $uniqId);
+        
+        $id = 0;
+        $uniqId = '';
+        
+        if (count($uniqIdArr) > 1) {
+            $id = array_pop($uniqIdArr);
+        }
+        
+        $uniqId = implode(self::$callUniqIdDelimiter, $uniqIdArr);
+        
+        if ($id > 1) {
+            $id--;
+            $uniqId = self::prepareUniqId($uniqId, $id);
+        }
+        
+        $rec = self::fetch(array("#uniqId = '[#1#]'", $uniqId));
+        
+        return $rec;
+    }
+    
+    
+    /**
+     * Връща номера към който е пренасочено обаждането
+     * 
+     * @param object $rec
+     * 
+     * @return string
+     */
+    protected static function getRedirectedToNum($rec)
+    {
+        $parentRec = self::getChildRecForUniqId($rec->uniqId);
+        
+        if (!$parentRec) return ;
+        
+        return $parentRec->internalNum;
+    }
+    
+    
+    /**
+     * Връща записа за новото uniqId, генерирано от подадения стринг
+     * 
+     * @param string $uniqId
+     * 
+     * @return object
+     */
+    protected static function getChildRecForUniqId($uniqId)
+    {
+        $uniqIdArr = explode(self::$callUniqIdDelimiter, $uniqId);
+        
+        if (count($uniqIdArr) > 1) {
+            $id = array_pop($uniqIdArr);
+        }
+        
+        $uniqId = implode(self::$callUniqIdDelimiter, $uniqIdArr);
+        
+        if (!$id) {
+            $id = 0;
+        }
+        
+        $id++;
+        
+        $uniqId = self::prepareUniqId($uniqId, $id);
+        
+        $rec = self::fetch(array("#uniqId = '[#1#]'", $uniqId));
+        
+        return $rec;
+    }
+    
     
     
     /**
@@ -936,7 +1190,7 @@ class callcenter_Talks extends core_Master
         $customUrl = array('callcenter_Talks', 'list');
         
         if ($rec->dialStatus == 'REDIRECTED') {
-            // Линка да сочи към всички пропуснати повиквания
+            // Линка да сочи към пренасочените повиквания
             $customUrl['dialStatusType'] = 'incoming_REDIRECTED';
             $isRedirected = TRUE;
         } else {
@@ -1141,6 +1395,7 @@ class callcenter_Talks extends core_Master
         
         // Сортиране на записите по num
         $data->query->orderBy('startTime', 'DESC');
+        $data->query->orderBy('id', 'DESC');
         
         // Ако има филтър
         if($filter = $data->listFilter->rec) {

@@ -191,17 +191,11 @@ class planning_ProductionNoteDetails extends deals_ManifactureDetail
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
     	if(isset($rec->jobId)){
-    		$row->jobId = "#" . cls::get('planning_Jobs')->getHandle($rec->jobId);
-    		if(!Mode::is('printing') && !Mode::is('text', 'xhtml')){
-    			$row->jobId = ht::createLink($row->jobId, array('planning_Jobs', 'single', $rec->jobId));
-    		}
+    		$row->jobId= planning_Jobs::getLink($rec->jobId, 0);
     	}
     	
     	if(isset($rec->bomId)){
-    		$row->bomId = "#" . cls::get('cat_Boms')->getHandle($rec->bomId);
-    		if(!Mode::is('printing') && !Mode::is('text', 'xhtml')){
-    			$row->bomId = ht::createLink($row->bomId, array('cat_Boms', 'single', $rec->bomId));
-    		}
+    		$row->bomId = cat_Boms::getLink($rec->bomId, 0);
     	}
     }
     
@@ -229,28 +223,5 @@ class planning_ProductionNoteDetails extends deals_ManifactureDetail
     			unset($res->listFields['bomId']);
     		}
     	}
-    }
-    
-    
-    /**
-     * Можели артикула да бъде въведен от производство. Може ако:
-     * 
-     * 1. Вложим е, има ресурс и има дебитно салдо този ресурс
-     * 2. Има рецепта и задание
-     */
-    public static function canContoRec($rec, $masterRec)
-    {
-    	$entry = planning_transaction_ProductionNote::getDirectEntry($rec, $masterRec);
-    	
-    	if(!count($entry)){
-    		if(isset($rec->bomId) && isset($rec->jobId)){
-    			
-    			return TRUE;
-    		}
-    		
-    		return FALSE;
-    	}
-    	
-    	return TRUE;
     }
 }

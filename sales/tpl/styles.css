@@ -42,7 +42,8 @@
   text-decoration: underline; }
 
 #conditions {
-  margin: 0px; }
+  margin: 0px;
+  line-height: 1.5em; }
 
 #details-holder {
   margin-top: 15px; }

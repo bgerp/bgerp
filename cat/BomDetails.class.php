@@ -26,7 +26,7 @@ class cat_BomDetails extends doc_Detail
     /**
      * Заглавие
      */
-    var $singleTitle = "Етап";
+    var $singleTitle = "Ресурс";
     
     
     /**
@@ -123,9 +123,8 @@ class cat_BomDetails extends doc_Detail
      */
     protected static function on_AfterPrepareListFields($mvc, $data)
     {
-    	$data->listFields['resourceId'] = ' ';
     	$data->listFields['propQuantity'] = "|За|* " . $data->masterData->row->quantity;
-    	$data->query->orderBy("type");
+    	$data->query->orderBy("type", 'DESC');
     }
     
     
@@ -200,6 +199,10 @@ class cat_BomDetails extends doc_Detail
     	
     	$row->ROW_ATTR['class'] = ($rec->type != 'input') ? 'row-removed' : 'row-added';
     	$row->ROW_ATTR['title'] = ($rec->type != 'input') ? tr('Отпадък') : NULL;
+    	
+    	if(empty($rec->stageId)){
+    		$row->stageId = tr("без етап");
+    	}
     }
     
     
@@ -210,7 +213,7 @@ class cat_BomDetails extends doc_Detail
     {
     	$data->toolbar->removeBtn('btnAdd');
     	if($mvc->haveRightFor('add', (object)array('bomId' => $data->masterId))){
-    		$data->toolbar->addBtn('Ресурс', array($mvc, 'add', 'bomId' => $data->masterId, 'ret_url' => TRUE), NULL, "title=Добавяне на ресурс,ef_icon=img/16/page_white_text.png");
+    		$data->toolbar->addBtn('Ресурс', array($mvc, 'add', 'bomId' => $data->masterId, 'ret_url' => TRUE), NULL, "title=Добавяне на ресурс към рецептата,ef_icon=img/16/star_2.png");
     	}
     }
     
@@ -236,7 +239,7 @@ class cat_BomDetails extends doc_Detail
     	if(!count($data->recs)) return;
     	 
     	$recs = &$data->recs;
-    	 
+    	
     	foreach ($recs as &$rec){
     		if($rec->stageId){
     			$rec->order = planning_Stages::fetchField($rec->stageId, 'order');
@@ -245,6 +248,10 @@ class cat_BomDetails extends doc_Detail
     		}
     	}
     	 
+    	if($data->masterData->rec->state != 'draft'){
+    		unset($data->listFields['tools']);
+    	}
+    	
     	// Сортираме по подредбата на производствения етап
     	usort($recs, function($a, $b) {
     		if($a->order == $b->order)  return 0;

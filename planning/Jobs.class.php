@@ -290,7 +290,23 @@ class planning_Jobs extends core_Master
     		} else {
     			$rec->weight = NULL;
     		}
+    		
+    		$Driver = cat_Products::getDriver($rec->productId);
+    		$rec->folderId = doc_UnsortedFolders::forceCoverAndFolder((object)array('name' => $Driver->getJobFolderName()));
     	}
+    }
+    
+    
+    /**
+     * Изпълнява се след създаване на нов запис
+     */
+    public static function on_AfterCreate($mvc, $rec)
+    {
+    	$cu = core_Users::getCurrent();
+    	doc_ThreadUsers::addShared($rec->threadId, $rec->containerId, $cu);
+    	
+    	self::addToHistory($rec->history, 'created', $rec->createdOn, $rec->createdBy);
+    	$mvc->save($rec, 'history');
     }
     
     
@@ -478,25 +494,17 @@ class planning_Jobs extends core_Master
      */
     public static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
-    	$rec = $data->rec;
-    	$row = $data->row;
-    	
-    	if(count($rec->history)){
-    		array_unshift($rec->history, array('action' => self::$actionNames['created'], 'date' => $rec->createdOn, 'user' => $rec->createdBy, 'engaction' => 'created'));
-    	} else {
-    		self::addToHistory($rec->history, 'created', $rec->createdOn, $rec->createdBy);
-    	}
-    	
     	// Подготвяме данните на историята за показване
-    	$row->history = array();
-    	foreach ($rec->history as $historyRec){
-    		$row->history[] = (object)array('date' => cls::get('type_DateTime')->toVerbal($historyRec['date']),
-    										'user' => crm_Profiles::createLink($historyRec['user']),
-    										'action' => "<span>{$historyRec['action']}</span>",
-    										'stateclass' => "state-{$historyRec['engaction']}"
+    	$data->row->history = array();
+    	foreach($data->rec->history as $historyRec){
+    		$data->row->history[] = (object)array('date'       => cls::get('type_DateTime')->toVerbal($historyRec['date']),
+    										      'user'       => crm_Profiles::createLink($historyRec['user']),
+    										      'action'     => "<span>{$historyRec['action']}</span>",
+    										      'stateclass' => "state-{$historyRec['engaction']}"
     		);
     	}
-    	$row->history = array_reverse($row->history, TRUE);
+    	
+    	$data->row->history = array_reverse($data->row->history, TRUE);
     }
     
     
@@ -599,7 +607,7 @@ class planning_Jobs extends core_Master
     public function prepareJobs($data)
     {
     	$data->rows = array();
-    	$data->hideSaleCol = TRUE;
+    	$data->hideToolsCol = $data->hideSaleCol = TRUE;
     	
     	// Намираме неоттеглените задания
     	$query = $this->getQuery();
@@ -611,6 +619,9 @@ class planning_Jobs extends core_Master
     		if(isset($rec->saleId)){
     			$data->hideSaleCol = FALSE;
     		}
+    		if($rec->state == 'draft'){
+    			$data->hideToolsCol = FALSE;
+    		}
     	}
     	
     	$masterInfo = $data->masterMvc->getProductInfo($data->masterId);
@@ -618,12 +629,9 @@ class planning_Jobs extends core_Master
     	$data->TabCaption = 'Задания';
     	$data->Tab = 'top';
     	
-    	$Driver = $data->masterMvc->getDriver($data->masterId);
-    	$folderId = doc_UnsortedFolders::forceCoverAndFolder((object)array('name' => $Driver->getJobFolderName()));
-    	
     	// Проверяваме можем ли да добавяме нови задания
-    	if($this->haveRightFor('add', (object)array('productId' => $data->masterId, 'folderId' => $folderId))){
-    		$data->addUrl = array($this, 'add', 'productId' => $data->masterId, 'folderId' => $folderId, 'ret_url' => TRUE);
+    	if($this->haveRightFor('add', (object)array('productId' => $data->masterId))){
+    		$data->addUrl = array($this, 'add', 'productId' => $data->masterId, 'ret_url' => TRUE);
     	}
     	
     	if(!isset($masterInfo->meta['canManifacture'])){
@@ -649,8 +657,13 @@ class planning_Jobs extends core_Master
     	 }
     	 
     	 $listFields = arr::make('tools=Пулт,title=Документ,dueDate=Падеж,saleId=Към продажба,quantity=Количество,createdBy=Oт,createdOn=На');
+    	 
     	 if($data->hideSaleCol){
     	 	unset($listFields['saleId']);
+    	 }
+    	 
+    	 if($data->hideToolsCol){
+    	 	unset($listFields['tools']);
     	 }
     	 
     	 $table = cls::get('core_TableView', array('mvc' => $this));

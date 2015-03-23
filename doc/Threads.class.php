@@ -1260,7 +1260,7 @@ class doc_Threads extends core_Manager
             if($managersIds = self::getFastButtons($data->folderId)){
             	foreach ($managersIds as $classId){
             		$Cls = cls::get($classId);
-            		$data->toolbar->addBtn($Cls->singleTitle, array($Cls, 'add', 'folderId' => $data->folderId), "ef_icon = {$Cls->singleIcon},title=Създаване на {$Cls->singleTitle}");
+            		$data->toolbar->addBtn($Cls->singleTitle, array($Cls, 'add', 'folderId' => $data->folderId), "ef_icon = {$Cls->singleIcon},title=Създаване на " . mb_strtolower($Cls->singleTitle));
             	}
             }
         }
