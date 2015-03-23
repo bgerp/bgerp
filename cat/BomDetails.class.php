@@ -240,7 +240,7 @@ class cat_BomDetails extends doc_Detail
     	if(!count($data->recs)) return;
     	 
     	$recs = &$data->recs;
-    	 
+    	
     	foreach ($recs as &$rec){
     		if($rec->stageId){
     			$rec->order = planning_Stages::fetchField($rec->stageId, 'order');
@@ -249,6 +249,10 @@ class cat_BomDetails extends doc_Detail
     		}
     	}
     	 
+    	if($data->masterData->rec->state != 'draft'){
+    		unset($data->listFields['tools']);
+    	}
+    	
     	// Сортираме по подредбата на производствения етап
     	usort($recs, function($a, $b) {
     		if($a->order == $b->order)  return 0;
