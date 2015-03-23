@@ -1013,7 +1013,7 @@ td.portal-date {
     .document.print-letter:last-child {
       page-break-after: auto; }
   .document .custom-header-bg {
-    background-color: #e0e0e0;
+    background-color: #e0e0e0 !important;
     height: 20px; }
   .document .listTable .numericElement {
     text-align: right;
@@ -3584,6 +3584,8 @@ only screen and (max-width: 320px) {
   display: none !important; }
   .footerDocBlock a {
     color: #333333 !important; }
+  .footerDocBlock.no-border-top {
+    border-top: none !important; }
 
 .footerDocTable {
   display: none; }
