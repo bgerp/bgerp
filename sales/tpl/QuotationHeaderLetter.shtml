@@ -82,12 +82,12 @@
                     <!--ET_END others-->
             </td>
             <td class="centered" style='vertical-align: bottom !important'>
-              <div class='sign_names'>/ [#username#] /</div>
+              <div class='sign_names' style='margin-top: 50px;'>/ [#username#] /</div>
             </td>
         </tr>
     </table>
     <div class='footerDocBlock'>
-        <div class='aright'>Документът е създаден чрез системата <b><a href='http://bgerp.com'>bgERP</a></b>.</div>
+        <div class='aright'>Документът е създаден чрез системата <b><a href='http://bgerp.com'>bgERP</a></b></div>
     </div>
     <div class='details'>
         <!--ET_BEGIN DETAILS-->

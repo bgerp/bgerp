@@ -100,7 +100,8 @@ abstract class deals_Helper
 		// Дали трябва винаги да не се показва ддс-то към цената
 		$hasVat = ($map['alwaysHideVat']) ? FALSE : (($masterRec->$map['chargeVat'] == 'yes') ? TRUE : FALSE);
 		$amountJournal = $discount = $amount = $amountVat = $amountTotal = $amountRow = 0;
-	
+		$vats = array();
+		
 		// Обработваме всеки запис
 		foreach($recs as &$rec){
 			$vat = 0;
@@ -108,6 +109,7 @@ abstract class deals_Helper
 				$ProductManager = cls::get($rec->$map['classId']);
 				$vat = $ProductManager->getVat($rec->$map['productId'], $masterRec->$map['valior']);
 			}
+			$vats[$vat] = $vat;
 			
 			// Калкулира се цената с и без ддс и се показва една от тях взависимост трябвали да се показва ддс-то
 			$price = self::calcPrice($rec->$map['priceFld'], $vat, $masterRec->$map['rateFld']);
@@ -146,6 +148,7 @@ abstract class deals_Helper
 		$mvc->_total = new stdClass();
 		$mvc->_total->amount = $amountRow;
 		$mvc->_total->vat = $amountVat;
+		$mvc->_total->vats = $vats;
 		
 		if(!$map['alwaysHideVat']){
 			$mvc->_total->discount = round($amountRow, 2) - round($amountJournal, 2);
@@ -335,5 +338,19 @@ abstract class deals_Helper
 		$obj = (object)array('formInfo' => $info, 'quantity' => $quantity);
 		
 		return $obj;
+	}
+	
+	
+	/**
+	 * Добавя забележки към описанието на артикул
+	 */
+	public static function addNotesToProductRow(&$productRow, $notes)
+	{
+		$RichText = cls::get('type_RichText');
+		if(is_string($productRow)){
+			$productRow .= "<div class='small'>{$RichText->toVerbal($notes)}</div>";
+		} else {
+			$productRow->append("<div class='small'>{$RichText->toVerbal($notes)}</div>");
+		}
 	}
 }
