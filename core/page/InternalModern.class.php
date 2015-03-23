@@ -16,8 +16,15 @@
  * @since     v 0.1
  * @title     Модерна вътрешна страница
  */
-class core_page_InternalModern extends core_page_Active {
-     
+class core_page_InternalModern extends core_page_Active
+{
+    
+    
+    /**
+     * 
+     */
+    public $interfaces = 'core_page_WrapperIntf';
+    
     
     /**
      * Подготовка на шаблона за вътрешна страница
