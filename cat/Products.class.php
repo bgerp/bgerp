@@ -1150,7 +1150,7 @@ class cat_Products extends core_Embedder {
     {
     	$rec = $this->fetchRec($id);
     	
-    	return cat_ProductTplCache::cacheTpl($rec->id, $time)->getContent();
+    	return cat_ProductTplCache::cacheTpl($rec->id, $time);
     }
     
     
