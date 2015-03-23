@@ -34,6 +34,8 @@ class cms_DefaultTheme extends core_ProtoInner {
         $form->FLD('wImg3', 'fileman_FileType(bucket=gallery_Pictures)', "caption=Заглавни картинки за десктоп (1000x288px)->Изображение 3");
         $form->FLD('wImg4', 'fileman_FileType(bucket=gallery_Pictures)', "caption=Заглавни картинки за десктоп (1000x288px)->Изображение 4");
         $form->FLD('wImg5', 'fileman_FileType(bucket=gallery_Pictures)', "caption=Заглавни картинки за десктоп (1000x288px)->Изображение 5");
+        $form->FLD('fadeDelay', 'int', "caption=Превключване на картинките->Задържане,suggestions=3000|5000|7000");
+        $form->FLD('fadeTransition', 'int', "caption=Превключване на картинките->Транзиция,suggestions=500|1000|1500");
         $form->FLD('nImg', 'fileman_FileType(bucket=gallery_Pictures)', "caption=Заглавна картинка за мобилен (360x104px)->Изображение 1");
         $form->FLD('title', 'varchar(20)', "caption=Заглавие на сайта->Текст");
         $form->FLD('titleColor', 'color_Type', "caption=Заглавие на сайта->Цвят");
@@ -191,6 +193,31 @@ class cms_DefaultTheme extends core_ProtoInner {
                     $imgs[$i] = $this->formRec->{$imgName};
                 }
             }
+
+            if(count($imgs) > 1) {
+                $conf = core_Packs::getConfig('core');
+                $baner = "<div class=\"fadein\">"; 
+                foreach($imgs as $iHash) {
+                    $img = new thumb_Img(array($iHash, 1000, 288, 'fileman', 'isAbsolute' => TRUE, 'mode' => 'large-no-change'));
+                    $imageURL = $img->getUrl('forced');
+                    $hImage = ht::createElement('img', array('src' => $imageURL, 'width' => 1000, 'height' => 288, 'alt' => $conf->EF_APP_TITLE, 'class' => 'headerImg', 'style' => $style));
+                    $baner .= "\n{$hImage}";
+                    $style = 'display:none;';
+                }
+                $baner .= "</div>";
+                $baner = new ET($baner);
+                $fadeTransition = $this->formRec->fadeTransition ? $this->formRec->fadeTransition : 1500;
+                $fadeDelay = $this->formRec->fadeDelay ? $this->formRec->fadeDelay : 5000;
+                $baner->append(".fadein { position:relative; display:block; max-height:100%; max-width:100%} .fadein img {position:relative; left:0; top:0;}", "STYLES");
+                $baner->appendOnce(self::getSliderJS(), 'SCRIPTS');
+                $baner->appendOnce("\n runOnLoad(function(){ $(function(){ $('.fadein img:gt(0)').hide(); setInterval(function(){ $('.fadein :first-child').css({position: 'absolute'})." .
+                    "fadeOut({$fadeTransition}).next('img').css({position: 'absolute'}).fadeIn(1500).end().appendTo('.fadein');$('.fadein :first-child').css({position: 'relative'});}, {$fadeDelay});});});", 'SCRIPTS');
+                
+                $this->haveOwnHeaderImages = TRUE;
+
+                return $baner;
+            }
+
         } else {
             if ($this->formRec->nImg) {
                 $imgs[1] = $this->formRec->nImg;
@@ -215,7 +242,7 @@ class cms_DefaultTheme extends core_ProtoInner {
         }
 
         $conf = core_Packs::getConfig('core');
-        $hImage = ht::createElement('img', array('src' => $imageURL, 'alt' => $conf->EF_APP_TITLE, 'id' => 'headerImg'));
+        $hImage = ht::createElement('img', array('src' => $imageURL, 'alt' => $conf->EF_APP_TITLE, 'class' => 'headerImg'));
         
         return $hImage;
     }
@@ -256,6 +283,30 @@ class cms_DefaultTheme extends core_ProtoInner {
         }
 
     	return $path;
+    }
+
+    static function getSliderJS()
+    {
+        $res .= "\n(function(e,t){if(!e)return t;var n=function(){this.el=t;this.items=t;this.sizes=[];this.max=[0,0];this.current=0;this.interval=t;this.opts=" .
+                "{speed:500,delay:3e3,complete:t,keys:!t,dots:t,fluid:t};var n=this;this.init=function(t,n){this.el=t;this.ul=t.children(\"ul\");" .
+                "this.max=[t.outerWidth(),t.outerHeight()];this.items=this.ul.children(\"li\").each(this.calculate);this.opts=e.extend(this.opts,n);this.setup();" . 
+            "return this};this.calculate=function(t){var r=e(this),i=r.outerWidth(),s=r.outerHeight();n.sizes[t]=[i,s];if(i>n.max[0])n.max[0]=i;if(s>n.max[1])" .
+            "n.max[1]=s};this.setup=function(){this.el.css({overflow:\"hidden\",width:n.max[0],height:this.items.first().outerHeight()});this.ul.css(" .
+            "{width:this.items.length*100+\"%\",position:\"relative\"});this.items.css(\"width\",100/this.items.length+\"%\");if(this.opts.delay!==t){this.start();" .
+            "this.el.hover(this.stop,this.start)}this.opts.keys&&e(document).keydown(this.keys);this.opts.dots&&this.dots();if(this.opts.fluid){var r=function()" .
+            "{n.el.css(\"width\",Math.min(Math.round(n.el.outerWidth()/n.el.parent().outerWidth()*100),100)+\"%\")};r();e(window).resize(r)}if(this.opts.arrows)" .
+            "{this.el.parent().append('<p class=\"arrows\"><span class=\"prev\">â†</span><span class=\"next\">â†’</span></p>').find(\".arrows span\").click(function()" .
+            "{e.isFunction(n[this.className])&&n[this.className]()})}if(e.event.swipe){this.el.on(\"swipeleft\",n.prev).on(\"swiperight\",n.next)}};this.move=function(t,r)" .
+            "{if(!this.items.eq(t).length)t=0;if(t<0)t=this.items.length-1;var i=this.items.eq(t);var s={height:i.outerHeight()};var o=r?5:this.opts.speed;if(!this.ul.is(\":" .
+            "animated\")){n.el.find(\".dot:eq(\"+t+\")\").addClass(\"active\").siblings().removeClass(\"active\");this.el.animate(s,o)&&this.ul.animate(e.extend({left:\"-\"+t+\"00%\"},s)" .
+            ",o,function(i){n.current=t;e.isFunction(n.opts.complete)&&!r&&n.opts.complete(n.el)})}};this.start=function(){n.interval=setInterval(function(){n.move(n.current+1)},n.opts.delay)}" .
+            ";this.stop=function(){n.interval=clearInterval(n.interval);return n};this.keys=function(t){var r=t.which;var i={37:n.prev,39:n.next,27:n.stop};if(e.isFunction(i[r])){i[r]()}};" .
+            "this.next=function(){return n.stop().move(n.current+1)};this.prev=function(){return n.stop().move(n.current-1)};this.dots=function(){var t='<ol class=\"dots\">';" .
+            "e.each(this.items,function(e){t+='<li class=\"dot'+(e<1?\" active\":\"\")+'\">'+(e+1)+\"</li>\"});t+=\"</ol>\";this.el.addClass(\"has-dots\").append(t).find(\".dot\")." .
+            "click(function(){n.move(e(this).index())})}};e.fn.unslider=function(t){var r=this.length;return this.each(function(i){var s=e(this);var u=(new n).init(s,t);" .
+            "s.data(\"unslider\"+(r>1?\"-\"+(i+1):\"\"),u)})}})(window.jQuery,false);";
+
+        return $res;
     }
 
 

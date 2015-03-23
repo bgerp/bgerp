@@ -529,10 +529,10 @@ class core_Cron extends core_Manager
                       $rec->timeLimit != $exRec->timeLimit
                     ) {
                     $mustSave = TRUE;
-                    $msg = "<li class=\"debug-update\">Обновено {$description} по разписание</li>";
+                    $msg = "<li class=\"debug-update\">Обновено разписание за {$description}</li>";
                 } else { // ако няма промени го пропускаме
                     $mustSave = FALSE;
-                    $msg = "<li class=\"debug-info\">Съществуващо {$description} по разписание</li>";
+                    $msg = "<li class=\"debug-info\">Съществуващо разписание за {$description}</li>";
                 }
             } elseif ($systemDataChanged) {
                 $mustSave = TRUE;
@@ -540,17 +540,17 @@ class core_Cron extends core_Manager
                 unset($rec->offset);
                 unset($rec->delay);
                 unset($rec->timeLimit);
-                $msg = "<li class=\"debug-update\">Обновено {$description} системни настройки</li>";
+                $msg = "<li class=\"debug-update\">Обновени системни настройки на разписание за {$description} </li>";
             }
         } else {
             $mustSave = TRUE;
-            $msg = "<li class=\"debug-new\">Добавено {$description} по разписание</li>";
+            $msg = "<li class=\"debug-new\">Добавено разписание за {$description}</li>";
         }
  
 
         if($mustSave) {
             if(!self::save($rec)) {
-                $msg = "<li class=\"debug-error\">Грешка при нагласяне на {$description} по разписание</li>";
+                $msg = "<li class=\"debug-error\">Грешка при нагласяне на разписание за {$description}</li>";
             }
         }
 

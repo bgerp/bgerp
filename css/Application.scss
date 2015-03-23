@@ -1125,7 +1125,7 @@ td.portal-date {
 		}
 	}
 	.custom-header-bg {
-		background-color: $gray2;
+		background-color: $gray2 !important;
 		height: 20px;
 	}
 	.listTable .numericElement {
@@ -1981,16 +1981,16 @@ fieldset.sharing-history {
 	background-color: white;
 }
 
-#headerImg {
+.headerImg {
 	float: left;
 	background-color: white;
 }
 
-.wide #headerImg {
+.wide .headerImg { 
 	width: 100%;
 }
 
-.narrow #headerImg {
+.narrow .headerImg {
 	max-width:360px;
     height:auto;
 	float:left;
@@ -2017,7 +2017,7 @@ fieldset.sharing-history {
 	position: relative;
 }
 
-#cmsTop, #headerImg {
+#cmsTop, .headerImg {
 	display: block;
 }
 
@@ -3385,7 +3385,7 @@ body.narrow {
 	#all, #cmsTop {
 	   @include border-radius4(10px, 10px, 0, 0);
 	}
-    .wide #headerImg {
+    .wide .headerImg {
 	   @include border-radius4(10px, 0, 0, 0);
 	}
     
@@ -3855,6 +3855,9 @@ body.narrow {
     display: none !important;
     a {
         color:#333 !important;
+    }
+    &.no-border-top {
+        border-top: none !important;
     }
 }
 

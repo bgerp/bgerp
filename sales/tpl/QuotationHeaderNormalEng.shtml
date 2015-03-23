@@ -80,14 +80,14 @@
 			        <!--ET_END others-->
 		        </ol>
             </td>
-            <td class="centered" style='vertical-align: bottom !important'>
-              <div style='border-top: 1px dashed #333 !important; color: #070895;padding-left: 5px; font-family: cursive; font-style: italic;display: block; margin-bottom: 2px;'>[#username#]</div>
+            <td class="centered" style='vertical-align: bottom !important;'>
+              <div class='sign_names' style='margin-top: 50px;'>/ [#username#] /</div>
             </td>
         </tr>
     </table>
 
-    <div class='footerDocBlock'>
-        <div class='aright'>This document is created by <b><a href='http://bgerp.com'>bgERP</a></b>.</div>
+    <div class='footerDocBlock no-border-top'>
+        <div class='aright'>This document is created by <b><a href='http://bgerp.com'>bgERP</a></b></div>
     </div>
     <div class='details'>
         <!--ET_BEGIN DETAILS-->

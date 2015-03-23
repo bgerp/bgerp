@@ -534,8 +534,9 @@ class eshop_Groups extends core_Master
     function getUrlByMenuId($cMenuId)
     {
         $cDefaultMenuId = cms_Content::getDefaultMenuId($this);
-        if($cDefaultMenuId == $cMenuId) {
-            $url = array(ucfirst(cms_Domains::getPublicDomain('lang')), 'Products');
+        $lang = cms_Domains::getPublicDomain('lang');
+        if($cDefaultMenuId == $cMenuId && ($lang == 'bg' || $lang == 'en')) {
+            $url = array(ucfirst($lang), 'Products');
         }
         
         if(!$url) {

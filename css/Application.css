@@ -1013,7 +1013,7 @@ td.portal-date {
     .document.print-letter:last-child {
       page-break-after: auto; }
   .document .custom-header-bg {
-    background-color: #e0e0e0;
+    background-color: #e0e0e0 !important;
     height: 20px; }
   .document .listTable .numericElement {
     text-align: right;
@@ -1737,14 +1737,14 @@ span.sharing-history-title {
 .narrow  #all #cmsTop {
   background-color: white; }
 
-#headerImg {
+.headerImg {
   float: left;
   background-color: white; }
 
-.wide #headerImg {
+.wide .headerImg {
   width: 100%; }
 
-.narrow #headerImg {
+.narrow .headerImg {
   max-width: 360px;
   height: auto;
   float: left; }
@@ -1769,7 +1769,7 @@ span.sharing-history-title {
   position: relative; }
 
 #cmsTop,
-#headerImg {
+.headerImg {
   display: block; }
 
 #cmsMenu {
@@ -3104,7 +3104,7 @@ only screen and (min-width: 1240px) {
     -webkit-border-radius: 10px 10px 0 0;
     border-radius: 10px 10px 0 0; }
 
-  .wide #headerImg {
+  .wide .headerImg {
     -moz-border-radius: 10px 0 0 0;
     -webkit-border-radius: 10px 0 0 0;
     border-radius: 10px 0 0 0; }
@@ -3584,6 +3584,8 @@ only screen and (max-width: 320px) {
   display: none !important; }
   .footerDocBlock a {
     color: #333333 !important; }
+  .footerDocBlock.no-border-top {
+    border-top: none !important; }
 
 .footerDocTable {
   display: none; }

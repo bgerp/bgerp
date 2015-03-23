@@ -333,7 +333,7 @@ abstract class deals_DealDetail extends doc_Detail
     		
     		$row->productId = cat_Products::getAutoProductDesc($rec->productId, $data->masterData->rec->modifiedOn, $rec->showMode);
     		if($rec->notes){
-    			$row->productId .= "<div class='small'>{$mvc->getFieldType('notes')->toVerbal($rec->notes)}</div>";
+    			deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
     		}
     	}
     }

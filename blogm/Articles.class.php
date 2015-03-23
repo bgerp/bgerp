@@ -957,7 +957,7 @@ class blogm_Articles extends core_Master {
      */
     function getUrlByMenuId($cMenuId)
     {
-        return array('blogm_Articles');
+        return array('blogm_Articles', 'Default');
     }
 
 
