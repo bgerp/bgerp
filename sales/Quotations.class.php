@@ -806,8 +806,10 @@ class sales_Quotations extends core_Master
     			if($optional == 'yes' && empty($quantity)) continue;
     			
     			// Опитваме се да намерим записа съотвестващ на това количество
-    			$where = "#quotationId = {$id} AND #productId = {$productId} AND #classId = {$classId} AND #packagingId = {$packagingId} AND #optional = '{$optional}' AND #quantity = {$quantity}";
+    			$where = "#quotationId = {$id} AND #productId = {$productId} AND #classId = {$classId} AND #optional = '{$optional}' AND #quantity = {$quantity}";
+    			$where .= ($packagingId) ? " AND #packagingId = {$packagingId}" : " AND #packagingId IS NULL";
     			$dRec = sales_QuotationsDetails::fetch($where);
+    			
     			if(!$dRec){
     				
     				// Ако няма (к-то е друго) се намира първия срещнат
