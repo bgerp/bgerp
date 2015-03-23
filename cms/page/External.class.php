@@ -14,7 +14,14 @@
  * @since     v 0.1
  * @title     Стандартна публична страница
  */
-class cms_page_External extends core_page_Active {
+class cms_page_External extends core_page_Active
+{
+    
+    
+    /**
+     * 
+     */
+    public $interfaces = 'cms_page_WrapperIntf';
     
 
     /**

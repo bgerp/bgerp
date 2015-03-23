@@ -16,9 +16,16 @@
  * @since     v 0.1
  * @title     Стандартна вътрешна страница
  */
-class core_page_Internal extends core_page_Active {
+class core_page_Internal extends core_page_Active
+{
     
- 
+    
+    /**
+     * 
+     */
+    public $interfaces = 'core_page_WrapperIntf';
+    
+    
     /**
      * Конструктор за страницата по подразбиране
      * Тази страница използва internal layout, header и footer за да 
