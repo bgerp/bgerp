@@ -164,7 +164,7 @@ class sales_Quotations extends core_Master
      */
     public function description()
     {
-    	$this->FLD('date', 'date', 'caption=Дата, mandatory'); 
+    	$this->FLD('date', 'date', 'caption=Дата'); 
         $this->FLD('reff', 'varchar(255)', 'caption=Ваш реф.,class=contactData');
         
         $this->FNC('row1', 'complexType(left=К-во,right=Цена)', 'caption=Детайли->К-во / Цена');
@@ -213,6 +213,7 @@ class sales_Quotations extends core_Master
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
        $rec = &$data->form->rec;
+       
        if(empty($rec->id)){
        	  $mvc->populateDefaultData($data->form);
        } else {
@@ -358,7 +359,6 @@ class sales_Quotations extends core_Master
      */
     public function populateDefaultData(core_Form &$form)
     {
-    	$form->setDefault('date', dt::now());
     	expect($data = doc_Folders::getContragentData($form->rec->folderId), "Проблем с данните за контрагент по подразбиране");
     	$contragentClassId = doc_Folders::fetchCoverClassId($form->rec->folderId);
     	$contragentId = doc_Folders::fetchCoverId($form->rec->folderId);
@@ -432,6 +432,10 @@ class sales_Quotations extends core_Master
 	        
 	        if($cond = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, $commonSysId)){
 	        	$row->commonConditionQuote = cls::get('type_Varchar')->toVerbal($cond);
+	        }
+	        
+	        if(empty($rec->date)){
+	        	$row->date = $mvc->getFieldType('date')->toVerbal(dt::today());
 	        }
 		}
 		
@@ -569,6 +573,13 @@ class sales_Quotations extends core_Master
 		    	// Ако локацията я няма в системата я записваме
 		    	crm_Locations::save($newLocation);
 		    }
+		}
+		
+		// Ако няма дата попълваме текущата след активиране
+		if(empty($rec->date)){
+			$rec->date = dt::today();
+			core_Statuses::newStatus('DATE');
+			$mvc->save($rec, 'date');
 		}
     }
     
