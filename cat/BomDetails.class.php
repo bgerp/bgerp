@@ -26,7 +26,7 @@ class cat_BomDetails extends doc_Detail
     /**
      * Заглавие
      */
-    var $singleTitle = "Етап";
+    var $singleTitle = "Ресурс";
     
     
     /**
@@ -125,7 +125,7 @@ class cat_BomDetails extends doc_Detail
     {
     	$data->listFields['resourceId'] = ' ';
     	$data->listFields['propQuantity'] = "|За|* " . $data->masterData->row->quantity;
-    	$data->query->orderBy("type");
+    	$data->query->orderBy("type", 'DESC');
     }
     
     
@@ -210,7 +210,7 @@ class cat_BomDetails extends doc_Detail
     {
     	$data->toolbar->removeBtn('btnAdd');
     	if($mvc->haveRightFor('add', (object)array('bomId' => $data->masterId))){
-    		$data->toolbar->addBtn('Ресурс', array($mvc, 'add', 'bomId' => $data->masterId, 'ret_url' => TRUE), NULL, "title=Добавяне на ресурс,ef_icon=img/16/page_white_text.png");
+    		$data->toolbar->addBtn('Ресурс', array($mvc, 'add', 'bomId' => $data->masterId, 'ret_url' => TRUE), NULL, "title=Добавяне на ресурс към рецептата,ef_icon=img/16/star_2.png");
     	}
     }
     
