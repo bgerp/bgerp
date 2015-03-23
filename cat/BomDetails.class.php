@@ -200,6 +200,10 @@ class cat_BomDetails extends doc_Detail
     	
     	$row->ROW_ATTR['class'] = ($rec->type != 'input') ? 'row-removed' : 'row-added';
     	$row->ROW_ATTR['title'] = ($rec->type != 'input') ? tr('Отпадък') : NULL;
+    	
+    	if(empty($rec->stageId)){
+    		$row->stageId = tr("без етап");
+    	}
     }
     
     
