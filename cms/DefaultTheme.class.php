@@ -34,6 +34,8 @@ class cms_DefaultTheme extends core_ProtoInner {
         $form->FLD('wImg3', 'fileman_FileType(bucket=gallery_Pictures)', "caption=Заглавни картинки за десктоп (1000x288px)->Изображение 3");
         $form->FLD('wImg4', 'fileman_FileType(bucket=gallery_Pictures)', "caption=Заглавни картинки за десктоп (1000x288px)->Изображение 4");
         $form->FLD('wImg5', 'fileman_FileType(bucket=gallery_Pictures)', "caption=Заглавни картинки за десктоп (1000x288px)->Изображение 5");
+        $form->FLD('fadeDelay', 'int', "caption=Превключване на картинките->Задържане,suggestions=3000|5000|7000");
+        $form->FLD('fadeTransition', 'int', "caption=Превключване на картинките->Транзиция,suggestions=500|1000|1500");
         $form->FLD('nImg', 'fileman_FileType(bucket=gallery_Pictures)', "caption=Заглавна картинка за мобилен (360x104px)->Изображение 1");
         $form->FLD('title', 'varchar(20)', "caption=Заглавие на сайта->Текст");
         $form->FLD('titleColor', 'color_Type', "caption=Заглавие на сайта->Цвят");
@@ -198,18 +200,18 @@ class cms_DefaultTheme extends core_ProtoInner {
                 foreach($imgs as $iHash) {
                     $img = new thumb_Img(array($iHash, 1000, 288, 'fileman', 'isAbsolute' => TRUE, 'mode' => 'large-no-change'));
                     $imageURL = $img->getUrl('forced');
- 
                     $hImage = ht::createElement('img', array('src' => $imageURL, 'width' => 1000, 'height' => 288, 'alt' => $conf->EF_APP_TITLE, 'class' => 'headerImg', 'style' => $style));
                     $baner .= "\n{$hImage}";
                     $style = 'display:none;';
-
                 }
                 $baner .= "</div>";
                 $baner = new ET($baner);
+                $fadeTransition = $this->formRec->fadeTransition ? $this->formRec->fadeTransition : 1500;
+                $fadeDelay = $this->formRec->fadeDelay ? $this->formRec->fadeDelay : 5000;
                 $baner->append(".fadein { position:relative; display:block; max-height:100%; max-width:100%} .fadein img {position:relative; left:0; top:0;}", "STYLES");
                 $baner->appendOnce(self::getSliderJS(), 'SCRIPTS');
                 $baner->appendOnce("\n runOnLoad(function(){ $(function(){ $('.fadein img:gt(0)').hide(); setInterval(function(){ $('.fadein :first-child').css({position: 'absolute'})." .
-                    "fadeOut(1500).next('img').css({position: 'absolute'}).fadeIn(1500).end().appendTo('.fadein');$('.fadein :first-child').css({position: 'relative'});}, 5000);});});", 'SCRIPTS');
+                    "fadeOut({$fadeTransition}).next('img').css({position: 'absolute'}).fadeIn(1500).end().appendTo('.fadein');$('.fadein :first-child').css({position: 'relative'});}, {$fadeDelay});});});", 'SCRIPTS');
                 
                 $this->haveOwnHeaderImages = TRUE;
 
