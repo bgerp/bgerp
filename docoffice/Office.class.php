@@ -51,7 +51,7 @@ class docoffice_Office
             // Нулираме брояча за конвертиранията
             static::emptyConvertCount();
             
-            core_Logs::log(OFFICE_PACKET_PATH . tr('| е стартиран.|*'));
+            core_Logs::log(OFFICE_PACKET_PATH . tr('| е стартиран на порт|*') . ": {$port}");
             
             // Отключваме процеса
             static::unlockOffice();
