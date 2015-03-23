@@ -607,7 +607,7 @@ class planning_Jobs extends core_Master
     public function prepareJobs($data)
     {
     	$data->rows = array();
-    	$data->hideSaleCol = TRUE;
+    	$data->hideToolsCol = $data->hideSaleCol = TRUE;
     	
     	// Намираме неоттеглените задания
     	$query = $this->getQuery();
@@ -618,6 +618,9 @@ class planning_Jobs extends core_Master
     		$data->rows[$rec->id] = $this->recToVerbal($rec);
     		if(isset($rec->saleId)){
     			$data->hideSaleCol = FALSE;
+    		}
+    		if($rec->state == 'draft'){
+    			$data->hideToolsCol = FALSE;
     		}
     	}
     	
@@ -654,8 +657,13 @@ class planning_Jobs extends core_Master
     	 }
     	 
     	 $listFields = arr::make('tools=Пулт,title=Документ,dueDate=Падеж,saleId=Към продажба,quantity=Количество,createdBy=Oт,createdOn=На');
+    	 
     	 if($data->hideSaleCol){
     	 	unset($listFields['saleId']);
+    	 }
+    	 
+    	 if($data->hideToolsCol){
+    	 	unset($listFields['tools']);
     	 }
     	 
     	 $table = cls::get('core_TableView', array('mvc' => $this));
