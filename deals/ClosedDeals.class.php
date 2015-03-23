@@ -56,7 +56,19 @@ abstract class deals_ClosedDeals extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    protected $listFields = 'id, docId=Документ, modifiedOn, modifiedBy, createdOn, createdBy';
+    protected $listFields = 'tools=Пулт, title, docId=Документ, modifiedOn, modifiedBy, createdOn, createdBy';
+    
+    
+    /**
+     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
+     */
+    public $rowToolsSingleField = 'title';
+    
+    
+    /**
+     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
+     */
+    public $rowToolsField = 'tools';
     
     
     /**
@@ -365,6 +377,7 @@ abstract class deals_ClosedDeals extends core_Master
         $row->incomeAmount = $Double->toVerbal(abs($incomeAmount));
         $row->currencyId = acc_Periods::getBaseCurrencyCode($rec->createdOn);
         
+        $row->title = static::getLink($rec->id, 0);
         $row->docId = cls::get($rec->docClassId)->getHyperLink($rec->docId, TRUE);
         
         return $row;
