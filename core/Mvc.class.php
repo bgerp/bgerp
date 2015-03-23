@@ -932,17 +932,25 @@ class core_Mvc extends core_FieldSet
                 if ($updateName || $updateType || $updateOptions || $updateSize ||
                     $updateNotNull || $updateUnsigned || $updateDefault || $updateCollation) {
 
-                    $this->db->forceField($tableName, $mfAttr);
-
-                    // Преименуване или създаване на полето?
-                    if($dfAttr->field) {
-                        if ($mfAttr->field != $mfAttr->name) {
-                            $title = "<span{$green}>Преименуване <b>{$mfAttr->field}</b> => <b>{$mfAttr->name}</b></span>";
-                        } else {
-                            $title = "<span>Обновяване на поле <b>{$mfAttr->name}</b></span>";
-                        }
-                    } else {
-                        $title = "<span{$green}>Създаване на поле <b>{$mfAttr->name}</b></span>";
+                    try{
+                    	if($this->db->forceField($tableName, $mfAttr)){
+                    		// Преименуване или създаване на полето?
+                    		if($dfAttr->field) {
+                    			if ($mfAttr->field != $mfAttr->name) {
+                    				$title = "<span{$green}>Преименуване <b>{$mfAttr->field}</b> => <b>{$mfAttr->name}</b></span>";
+                    			} else {
+                    				$title = "<span>Обновяване на поле <b>{$mfAttr->name}</b></span>";
+                    			}
+                    		} else {
+                    			$title = "<span{$green}>Създаване на поле <b>{$mfAttr->name}</b></span>";
+                    		}
+                    	}
+                    } catch(core_exception_Expect $e){
+                    	if($mfAttr->field){
+                    		$html .= "<li class='debug-error'>Проблем при обновяване на поле '<b>{$mfAttr->field}</b>', {$e->getMessage()}</li>";
+                    	} else {
+                    		$html .= "<li class='debug-error'>Проблем при добавяне на поле '<b>{$mfAttr->field}</b>', {$e->getMessage()}</li>";
+                    	}
                     }
                 } else {
                     $title = "Съществуващо поле <b>{$mfAttr->name}</b>";

@@ -19,7 +19,7 @@
             <!--ET_BEGIN productId-->
             <td id='[#rowspanpId#]' rowspan = '[#rowspan#]' class='product-id[#OPTP#] vtop'>[#productId#]</td>
             <!--ET_END productId-->
-            <td class='misc-info quote-col[#OPT#] nowrap aright vtop'>
+            <td class='misc-info quote-col[#OPT#] nowrap centered vtop'>
                 [#packagingId#]
             </td>
              <td class='misc-info quote-col[#OPT#] nowrap aright vtop'>
@@ -57,10 +57,10 @@
              <th>|Общо|*</th>
         </tr>
         <tr style='font-weight: bold;'>
-            <td class='centered'>[#value#]</td>
+            <td class='centered dark-gray'>[#value#]</td>
             <td class='centered'><span class='discount'>[#discountValue#]</span></td>
-            <td class='centered'>[#neto#]</td>
-            <td class='centered'>[#vatAmount#]</td>
+            <td class='centered dark-gray'>[#neto#]</td>
+            <td class='centered dark-gray'>[#vatAmount#]</td>
             <td class='centered'>[#total#]</td>
         </tr>
         <!--ET_BEGIN sayWords-->

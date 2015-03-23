@@ -1125,7 +1125,7 @@ td.portal-date {
 		}
 	}
 	.custom-header-bg {
-		background-color: $gray2;
+		background-color: $gray2 !important;
 		height: 20px;
 	}
 	.listTable .numericElement {
@@ -3855,6 +3855,9 @@ body.narrow {
     display: none !important;
     a {
         color:#333 !important;
+    }
+    &.no-border-top {
+        border-top: none !important;
     }
 }
 

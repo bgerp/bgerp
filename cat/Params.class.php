@@ -103,6 +103,12 @@ class cat_Params extends core_Master
     
     
     /**
+     * Кой има право да променя системните данни?
+     */
+    var $canEditsysdata = 'cat,ceo';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -145,6 +151,11 @@ class cat_Params extends core_Master
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$data->form->setDefault('showInPublicDocuments', 'yes');
+    	
+    	if($data->form->rec->sysId){
+    		$data->form->setReadOnly('name');
+    		$data->form->setReadOnly('type');
+    	}
     }
     
     
@@ -155,6 +166,7 @@ class cat_Params extends core_Master
     {
         if ($form->isSubmitted()) {
         	$rec = &$form->rec;
+        	
         	if($rec->options){
         		$vArr = arr::make($rec->options);
         		$Type = cls::get(static::$typeMap[$rec->type]);

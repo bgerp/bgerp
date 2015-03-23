@@ -947,10 +947,11 @@ class email_Mime extends core_BaseClass
                 
                 // Отдаваме предпочитания на плейн-частта, ако идва от bgERP
                 if($p->subType == 'PLAIN') {
-                    $textRate = $textRate * 0.8;
                     
                     if($this->getHeader('X-Bgerp-Hash')) {
-                        $textRate = $textRate * 1.8;
+                        $textRate = $textRate * 4;
+                    } else {
+                        $textRate = $textRate * 0.8;
                     }
 
                     // Ако обаче, текст частта съдържа значително количество HTML елементи,
