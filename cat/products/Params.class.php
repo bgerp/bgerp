@@ -286,15 +286,19 @@ class cat_products_Params extends core_Manager
     {
         if($requiredRoles == 'no_one') return;
     	
-        if ($action == 'add' && isset($rec->productId) && isset($rec->classId)) {
+        if (($action == 'add' || $action == 'delete') && isset($rec->productId) && isset($rec->classId)) {
         	$pRec = cls::get($rec->classId)->fetch($rec->productId);
         	
         	// Ако няма оставащи параметри или състоянието е оттеглено, не може да се добавят параметри
-        	if (!count($mvc::getRemainingOptions($rec->productId, $rec->classId)) || $pRec->state == 'rejected') {
+        	if (!count($mvc::getRemainingOptions($rec->productId, $rec->classId))) {
                 $requiredRoles = 'no_one';
             } elseif($pRec->innerClass != cat_GeneralProductDriver::getClassId()) {
             	
-            	// Добавянето е разрешено само акод райвера на артикула е универсалния артикул
+            	// Добавянето е разрешено само ако драйвера на артикула е универсалния артикул
+            	$requiredRoles = 'no_one';
+            }
+            
+            if($pRec->state != 'active' && $pRec->state != 'draft'){
             	$requiredRoles = 'no_one';
             }
         }
