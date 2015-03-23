@@ -1,7 +1,7 @@
-Дължина,size,,length,,,no
-Височина,size,,height,,,no
+Дължина,size,,length,,,yes
+Височина,size,,height,,,yes
 Тегло,weight,,weight,,,no
-Дебелина,size,,thickness,,,no
+Дебелина,size,,thickness,,,yes
 Обем,volume,,volume,,,no
 Плътност,density,,density,,,no
 Цвят,varchar,,color,,,yes
@@ -11,4 +11,4 @@
 title_EN,varchar,,titleEN,,,no
 Толеранс,percent,,tolerance,,,yes
 Срок,time,,term,,,yes
-Широчина,size,,width,,,no
+Широчина,size,,width,,,yes
