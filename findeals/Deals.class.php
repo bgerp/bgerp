@@ -93,13 +93,13 @@ class findeals_Deals extends deals_DealBase
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,detailedName,folderId,state,createdOn,createdBy';
+    public $listFields = 'tools=Пулт,detailedName,folderId,state,createdOn,createdBy';
     
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    public $rowToolsField = 'id';
+    public $rowToolsField = 'tools';
     
     
     /**
