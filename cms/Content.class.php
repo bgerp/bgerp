@@ -346,8 +346,8 @@ class cms_Content extends core_Manager
             
             return $cUrl;
         }
-        
-        if(cls::existsMethod($cUrl['Ctr'], 'getShortUrl')) {
+
+        if($cUrl['Ctr'] && cls::existsMethod($cUrl['Ctr'], 'getShortUrl')) {
             $man = cls::get($cUrl['Ctr']);
             $cUrl = $man->getShortUrl($cUrl);
         }

@@ -15,14 +15,14 @@
                     <td class="cell custom-header-bg" style='width:35%;'><b>Receiver</b></td>
                     <td class="cellm centered" rowspan="2" style='width:30%;'>
                         <div class='invoiceTitle' style='font-size:1.2em;margin-bottom:5px'><b>QUOTATION </b></div>
-                        <div class="bigData">№[#number#] / [#date#]</div>
+                        <div><b>№[#number#] / [#date#]</b></div>
                         <!--ET_BEGIN place-->
                         <div class='quiet-small'>Place</div>
-                        <div class="bigData">[#place#]</div>
+                        <div><b>[#buzPlace#]</b></div>
                         <!--ET_END place-->
                         <!--ET_BEGIN reff-->
                         <div class='quiet-small'>Your ref</div>
-                        <div class="bigData">[#reff#]</div>
+                        <div><b>[#reff#]</b></div>
                         <!--ET_END reff-->
                     </td>
                     <td class="cell custom-header-bg" style='width:35%;'><b>Supplier</b> </td>
