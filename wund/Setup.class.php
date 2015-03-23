@@ -92,8 +92,8 @@ class wund_Setup extends core_ProtoSetup
         $rec->description = 'Извличане на прогнози за времето';
         $rec->controller = 'wund_Forecasts';
         $rec->action = 'Update';
-        $rec->period = 2*60;
-        $rec->offset = 55;
+        $rec->period = 3*60;
+        $rec->offset = rand(2, 150);
         $rec->delay = 0;
         $rec->timeLimit = 50;
         $res .= core_Cron::addOnce($rec);
