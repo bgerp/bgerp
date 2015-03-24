@@ -52,7 +52,7 @@ class sales_Invoices extends deals_InvoiceMaster
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, number, date, place, folderId, dealValue, vatAmount, type, paymentType';
+    public $listFields = 'id, number, date, place, folderId, dealValue, vatAmount, type, paymentType=Плащане';
     
     
     /**
