@@ -5,7 +5,7 @@
 /**
  * Клас 'store_ConsignmentProtocolDetailsReceived'
  *
- * Детайли на мениджър на детайлите на протоколите за отговорни пазене-получени
+ * Детайли на мениджър на детайлите на протоколите за отговорно пазене-върнати
  *
  * @category  bgerp
  * @package   store
@@ -21,7 +21,7 @@ class store_ConsignmentProtocolDetailsReceived extends store_InternalDocumentDet
     /**
      * Заглавие
      */
-    public $title = 'Детайли на протоколите за отговорни пазене-получени';
+    public $title = 'Детайли на протоколите за отговорно пазене-върнати';
 
 
     /**
@@ -72,7 +72,7 @@ class store_ConsignmentProtocolDetailsReceived extends store_InternalDocumentDet
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId=Получено, packagingId, packQuantity, packPrice, amount';
+    public $listFields = 'productId=Върнато, packagingId, packQuantity, packPrice, amount';
     
         
     /**
