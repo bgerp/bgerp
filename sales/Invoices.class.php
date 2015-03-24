@@ -297,7 +297,11 @@ class sales_Invoices extends deals_InvoiceMaster
      public static function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
     {
     	if(!Mode::is('printing')){
-    		$tpl->replace(tr('ОРИГИНАЛ') . "/<i>ORIGINAL</i>", 'INV_STATUS');
+    		$original = 'ОРИГИНАЛ';
+    		if($data->rec->tplLang != 'bg'){
+    			$original = "<i>ORIGINAL</i>/{$original}";
+    		}
+    		$tpl->replace($original, 'INV_STATUS');
     	}
     	 
     	$tpl->push('sales/tpl/invoiceStyles.css', 'CSS');
@@ -327,7 +331,9 @@ class sales_Invoices extends deals_InvoiceMaster
     	parent::getVerbalInvoice($mvc, $rec, $row, $fields);
     	
     	if($fields['-single']){
-			$row->type .= " / <i>" . str_replace('_', " ", $rec->type) . "</i>";
+    		if($rec->tplLang != 'bg'){
+    			$row->type = "<i>" . str_replace('_', " ", $rec->type) . "</i> / {$row->type}";
+    		}
     		
     		if($rec->accountId){
     			$Varchar = cls::get('type_Varchar');
@@ -462,9 +468,14 @@ class sales_Invoices extends deals_InvoiceMaster
      * @param core_ET $copyTpl - копие за рендиране
      * @param int $copyNum - пореден брой на копието за принтиране
      */
-    public static function on_AfterRenderPrintCopy($mvc, &$copyTpl, $copyNum)
+    public static function on_AfterRenderPrintCopy($mvc, &$copyTpl, $copyNum, $rec)
     {
-    	$inv_status = ($copyNum == '1') ? tr('ОРИГИНАЛ') . "/<i>ORIGINAL</i>" : tr('КОПИЕ') . "/<i>COPY</i>";
+    	if($rec->tplLang == 'bg'){
+    		$inv_status = ($copyNum == '1') ?  tr('ОРИГИНАЛ') : tr('КОПИЕ');
+    	} else {
+    		$inv_status = ($copyNum == '1') ?  "<i>ORIGINAL</i>/" . tr('ОРИГИНАЛ') : "<i>COPY</i>/" . tr('КОПИЕ');
+    	}
+    	
     	$copyTpl->replace($inv_status, 'INV_STATUS');
     }
     

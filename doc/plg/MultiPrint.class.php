@@ -86,7 +86,7 @@ class doc_plg_MultiPrint extends core_Plugin
 		    $container->replace($clone, 'clone');
 		    		
 		    // За всяко копие предизвикваме ивент в документа, ако той иска да добави нещо към шаблона на копието
-		    $mvc->invoke('AfterRenderPrintCopy', array($container, $i));
+		    $mvc->invoke('AfterRenderPrintCopy', array($container, $i, $data->rec));
 		    
 		    $tpl->append($container);
 	    				
