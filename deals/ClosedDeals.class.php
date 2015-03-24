@@ -56,7 +56,7 @@ abstract class deals_ClosedDeals extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    protected $listFields = 'tools=Пулт, title=Документ, docId=Документ, modifiedOn, modifiedBy, createdOn, createdBy';
+    protected $listFields = 'tools=Пулт, title=Документ, docId=Сделка, createdOn, createdBy';
     
     
     /**
@@ -378,7 +378,7 @@ abstract class deals_ClosedDeals extends core_Master
         $row->currencyId = acc_Periods::getBaseCurrencyCode($rec->createdOn);
         
         $row->title = static::getLink($rec->id, 0);
-        $row->docId = cls::get($rec->docClassId)->getHyperLink($rec->docId, TRUE);
+        $row->docId = cls::get($rec->docClassId)->getLink($rec->docId, 0);
         
         return $row;
     }
