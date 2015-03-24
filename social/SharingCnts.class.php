@@ -37,14 +37,14 @@ class social_SharingCnts extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'social_Wrapper, plg_Created, plg_State2, plg_RowTools';
+    var $loadList = 'social_Wrapper, plg_Created';
     
     
    
     /**
      * Полета за листовия изглед
      */
-    var $listFields = '✍,networkId,url,cnt';
+    var $listFields = 'networkId,url,cnt,createdOn=Създаване';
 
 
     /**
@@ -70,7 +70,7 @@ class social_SharingCnts extends core_Master
      */
     function description()
     {
-		$this->FLD('networkId', 'key(mvc=social_Sharings)', 'caption=Услуга, input=none');
+		$this->FLD('networkId', 'key(mvc=social_Sharings)', 'caption=Медия, input=none');
 		$this->FLD('url', 'varchar(128)', 'caption=URL, input=none, hint=URL за споделяне');
 		$this->FLD('cnt', 'int', 'caption=Споделяния, input=none,notNull');
     }
@@ -90,6 +90,23 @@ class social_SharingCnts extends core_Master
         // Уваеличаваме брояча и записваме
         $rec->cnt++;
         self::save($rec);
+    }
+    
+    
+    /**
+     * Вербално оформление на линквете
+     */
+    static function on_AfterRecToVerbal($mvc, $row, $rec) 
+    {
+        $row->url = ht::createLink(type_Varchar::escape($rec->url), $rec->url);
+    }
+    
 
+    /**
+     * Преди извличане на записите за листови изглед - подреждане
+     */
+    static function on_BeforePrepareListRecs($mvc, &$res, $data)
+    {
+        $data->query->orderBy('#createdOn', 'DESC');
     }
 }

@@ -25,7 +25,8 @@ class social_Wrapper extends plg_ProtoWrapper
     {
        
         
-        $this->TAB('social_Sharings', 'Споделяне', 'cms, social, admin, ceo');
+        $this->TAB('social_Sharings', 'Споделяне->Бутони', 'cms, social, admin, ceo');
+        $this->TAB('social_SharingCnts', 'Споделяне->Ресурси', 'cms, social, admin, ceo');
         $this->TAB('social_Followers', 'Проследяване', 'cms, social, admin, ceo');
                 
         $this->title = 'SNM « Сайт';
