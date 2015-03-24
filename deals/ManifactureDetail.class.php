@@ -103,6 +103,9 @@ abstract class deals_ManifactureDetail extends doc_Detail
 			$form->setField('quantity', "unit={$shortName}");
 			
 			$packs = cls::get($rec->classId)->getPacks($rec->productId);
+			if(isset($rec->packagingId) && !isset($packs[$rec->packagingId])){
+				$packs[$rec->packagingId] = cat_Packagings::getTitleById($rec->packagingId, FALSE);
+			}
 			if(count($packs)){
 				$form->setOptions('packagingId', $packs);
 			} else {

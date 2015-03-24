@@ -297,9 +297,10 @@ class pos_Receipts extends core_Master {
      */
 	protected static function on_AfterPrepareListToolbar($mvc, &$data)
     {
-    	if($mvc->haveRightFor('add')){
-    		$addUrl = array($mvc, 'new');
-    		$data->toolbar->buttons['btnAdd']->url = $addUrl;
+    	// Подменяме бутона за добавяне с такъв сочещ към терминала
+    	if(!empty($data->toolbar->buttons['btnAdd'])){
+    		$data->toolbar->removeBtn('btnAdd');
+    		$data->toolbar->addBtn('Нов запис', array($mvc, 'new'), 'id=btnAdd', 'ef_icon = img/16/star_2.png,title=Създаване на нов запис');
     	}
     }
     

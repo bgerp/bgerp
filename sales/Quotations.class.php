@@ -80,6 +80,12 @@ class sales_Quotations extends core_Master
     
     
     /**
+     * Кой има право да добавя?
+     */
+    public $canWrite = 'ceo,sales';
+    
+    
+    /**
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'tools=Пулт, date, title=Документ, folderId, state, createdOn, createdBy';
@@ -482,6 +488,7 @@ class sales_Quotations extends core_Master
     protected static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec, $userId)
     {
     	if($res == 'no_one') return;
+    	
     	if($action == 'activate'){
     		if(!$rec->id) {
     			

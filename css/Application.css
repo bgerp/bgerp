@@ -1017,6 +1017,8 @@ td.portal-date {
   .document .custom-header-bg {
     background-color: #e0e0e0 !important;
     height: 20px; }
+  .document .custom-header-bg b {
+    background-color: #e0e0e0 !important; }
   .document .listTable .numericElement {
     text-align: right;
     display: inline-block;
@@ -1408,26 +1410,28 @@ table.mc-header a {
   position: relative;
   display: inline-block;
   border: 0 none;
+  right: 13px;
   top: -8px; }
 
 .metro-dropdown-portal::after {
   content: "\25bc";
   position: absolute;
-  top: 0;
+  top: 0px;
   right: 0px;
   display: block;
   width: 29px;
   font-size: 1em;
   line-height: 34px;
-  left: 100px;
+  left: 80px;
   -webkit-pointer-events: none;
   -moz-pointer-events: none;
   pointer-events: none; }
 
+
 @-moz-document url-prefix() {
     .metro-dropdown-portal::after {
     width: 20px;
-    left: 112px; }
+    left: 110px; }
  }
 .metro-dropdown-portal select {
   height: 34px;

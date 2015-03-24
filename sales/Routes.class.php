@@ -221,6 +221,7 @@ class sales_Routes extends core_Manager {
     		$query->orderBy('#id', 'DESC');
     		$query->where("#locationId = {$rec->locationId}");
     		$lastRec = $query->fetch();
+    		
     		if ($lastRec) {
     			
     			// Ако има последен запис за тази локация
@@ -233,13 +234,12 @@ class sales_Routes extends core_Manager {
     		// Ако отговорника на папката има права 'sales'
     		$locRec = crm_Locations::fetch($rec->locationId);
     		$contragentCls = cls::get($locRec->contragentCls);
-    		$folderId = $contragentCls->fetchField($locRec->contragentId, 'folderId');
-    		$inChargeUserId = doc_Folders::fetchField($folderId, 'inCharge');
-        	
-    	 	if (self::haveRightFor('add', NULL, $inChargeUserId)) {
-	            // ... има право да създава продажби - той става дилър по подразбиране.
-	            return $inChargeUserId;
-        	}
+    		$inCharge = $contragentCls->fetchField($locRec->contragentId, 'inCharge');
+    		
+    		if (self::haveRightFor('add', NULL, $inCharge)) {
+    			// ... има право да създава продажби - той става дилър по подразбиране.
+    			return $inChargeUserId;
+    		}
     	}
     	
     	$currentUserId = core_Users::getCurrent('id');
@@ -312,7 +312,7 @@ class sales_Routes extends core_Manager {
     	
     	if($rec->state == 'active'){
     		if(sales_Sales::haveRightFor('add')){
-    			$folderId = cls::get($locationRec->contragentCls)->forceCoverAndFolder($locationRec->contragentId, FALSE);
+    			$folderId = cls::get($locationRec->contragentCls)->forceCoverAndFolder($locationRec->contragentId);
     			$row->btn = ht::createBtn('ПР', array('sales_Sales', 'add', 'folderId' => $folderId, 'deliveryLocationId' => $rec->locationId), FALSE, FALSE, 'ef_icon=img/16/view.png,title=Създаване на нова продажба към локацията');
     			$row->contragent = "{$row->btn} " . $row->contragent;
     		}

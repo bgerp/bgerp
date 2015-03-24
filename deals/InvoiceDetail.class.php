@@ -297,6 +297,9 @@ abstract class deals_InvoiceDetail extends doc_Detail
 			expect($productInfo = $productRef->getProductInfo());
 			
 			$packs = $ProductMan->getPacks($rec->productId);
+			if(isset($rec->packagingId) && !isset($packs[$rec->packagingId])){
+				$packs[$rec->packagingId] = cat_Packagings::getTitleById($rec->packagingId, FALSE);
+			}
 			if(count($packs)){
 				$form->setOptions('packagingId', $packs);
 			} else {

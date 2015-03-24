@@ -90,6 +90,12 @@ class sales_QuotationsDetails extends doc_Detail {
     public $priceFields = 'price,discount,amount';
   	
   	
+    /**
+     * Какви мета данни да изискват продуктите, които да се показват
+     */
+    public $metaProducts = 'canSell';
+    
+    
   	/**
      * Описание на модела (таблицата)
      */
@@ -315,6 +321,9 @@ class sales_QuotationsDetails extends doc_Detail {
     	
     		$vat = $ProductMan->getVat($rec->productId, $masterRec->valior);
     		$packs = $ProductMan->getPacks($rec->productId);
+    		if(isset($rec->packagingId) && !isset($packs[$rec->packagingId])){
+    			$packs[$rec->packagingId] = cat_Packagings::getTitleById($rec->packagingId, FALSE);
+    		}
     		if(count($packs)){
     			$form->setOptions('packagingId', $packs);
     		} else {

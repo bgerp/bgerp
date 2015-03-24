@@ -3,7 +3,7 @@
 
 
 /**
- * Мениджър на етапи детайл на технологична рецепта, всеки детайл също може да има детайл
+ * Мениджър на етапи детайл на технологична рецепта
  *
  *
  * @category  bgerp
@@ -38,7 +38,13 @@ class cat_BomDetails extends doc_Detail
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, cat_Wrapper, plg_SaveAndNew, plg_GroupByField, plg_AlignDecimals2';
+    var $loadList = 'plg_Created, plg_RowTools, cat_Wrapper, plg_LastUsedKeys, plg_SaveAndNew, plg_GroupByField, plg_AlignDecimals2';
+    
+    
+    /**
+     * Кои ключове да се тракват, кога за последно са използвани
+     */
+    var $lastUsedKeys = 'resourceId';
     
     
     /**
@@ -98,7 +104,7 @@ class cat_BomDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт, stageId, resourceId, measureId=Мярка, baseQuantity=Начално,propQuantity=Пропорц.';
+    public $listFields = 'tools=Пулт, stageId, resourceId, measureId=Мярка, baseQuantity=Начално,propQuantity';
     
     
     /**

@@ -149,7 +149,7 @@ class acc_Journal extends core_Master
         $data->listFilter->setDefault('dateFrom', date('Y-m-01'));
         $data->listFilter->setDefault('dateTo', date("Y-m-t", strtotime(dt::now())));
         
-        $data->listFilter->showFields = 'dateFrom,dateTo,search';
+        $data->listFilter->showFields = 'search,dateFrom,dateTo';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list', 'show' => Request::get('show')), 'id=filter', 'ef_icon = img/16/funnel.png');
         
         // Активиране на филтъра
