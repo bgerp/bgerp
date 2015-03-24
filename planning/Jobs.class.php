@@ -496,12 +496,14 @@ class planning_Jobs extends core_Master
     {
     	// Подготвяме данните на историята за показване
     	$data->row->history = array();
-    	foreach($data->rec->history as $historyRec){
-    		$data->row->history[] = (object)array('date'       => cls::get('type_DateTime')->toVerbal($historyRec['date']),
-    										      'user'       => crm_Profiles::createLink($historyRec['user']),
-    										      'action'     => "<span>{$historyRec['action']}</span>",
-    										      'stateclass' => "state-{$historyRec['engaction']}"
-    		);
+    	if(count($data->rec->history)){
+    		foreach($data->rec->history as $historyRec){
+    			$data->row->history[] = (object)array('date'       => cls::get('type_DateTime')->toVerbal($historyRec['date']),
+								    				  'user'       => crm_Profiles::createLink($historyRec['user']),
+								    				  'action'     => "<span>{$historyRec['action']}</span>",
+								    				  'stateclass' => "state-{$historyRec['engaction']}"
+    			);
+    		}
     	}
     	
     	$data->row->history = array_reverse($data->row->history, TRUE);
