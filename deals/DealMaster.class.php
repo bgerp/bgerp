@@ -1283,7 +1283,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	$query->where("#amountBl BETWEEN -{$tolerance} AND {$tolerance}");
     	 
     	// Ако трябва да се фактурират и са доставеното - фактурираното е в допустими граници
-    	$query->where("#makeInvoice = 'yes' AND #toInvoice BETWEEN -{$tolerance} AND {$tolerance}");
+    	$query->where("(#makeInvoice = 'yes' || #makeInvoice IS NULL) AND #toInvoice BETWEEN -{$tolerance} AND {$tolerance}");
     	 
     	// Или не трябва да се фактурират
     	$query->orWhere("#makeInvoice = 'no'");
