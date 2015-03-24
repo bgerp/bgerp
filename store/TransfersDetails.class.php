@@ -190,6 +190,9 @@ class store_TransfersDetails extends doc_Detail
     		$ProductMan = cls::get($sProd->classId);
     		
     		$packs = $ProductMan->getPacks($sProd->productId);
+    		if(isset($rec->packagingId) && !isset($packs[$rec->packagingId])){
+    			$packs[$rec->packagingId] = cat_Packagings::getTitleById($rec->packagingId);
+    		}
     		if(count($packs)){
     			$form->setOptions('packagingId', $packs);
     		} else {

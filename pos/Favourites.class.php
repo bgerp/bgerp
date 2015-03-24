@@ -113,6 +113,9 @@ class pos_Favourites extends core_Manager {
     		$ProductMan = cls::get('cat_Products');
     		
     		$packs = $ProductMan->getPacks($form->rec->productId);
+    		if(isset($form->rec->packagingId) && !isset($packs[$form->rec->packagingId])){
+    			$packs[$form->rec->packagingId] = cat_Packagings::getTitleById($form->rec->packagingId);
+    		}
     		if(count($packs)){
     			$form->setOptions('packagingId', $packs);
     		} else {

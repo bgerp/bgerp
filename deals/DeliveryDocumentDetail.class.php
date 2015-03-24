@@ -107,6 +107,9 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 			if($form->getField('packagingId', FALSE)){
 				
 				$packs = $ProductMan->getPacks($rec->productId);
+				if(isset($rec->packagingId) && !isset($packs[$rec->packagingId])){
+					$packs[$rec->packagingId] = cat_Packagings::getTitleById($rec->packagingId);
+				}
 				if(count($packs)){
 					$form->setOptions('packagingId', $packs);
 				} else {

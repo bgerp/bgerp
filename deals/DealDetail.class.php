@@ -212,11 +212,16 @@ abstract class deals_DealDetail extends doc_Detail
     		
     		$vat = cls::get($rec->classId)->getVat($rec->productId, $masterRec->valior);
     		$packs = $ProductMan->getPacks($rec->productId);
+    		if(isset($rec->packagingId) && !isset($packs[$rec->packagingId])){
+    			$packs[$rec->packagingId] = cat_Packagings::getTitleById($rec->packagingId);
+    		}
+    		
     		if(count($packs)){
     			$form->setOptions('packagingId', $packs);
     		} else {
     			$form->setReadOnly('packagingId');
     		}
+    		
     		$uomName = cat_UoM::getTitleById($productInfo->productRec->measureId);
     		$form->setField('packagingId', "placeholder={$uomName}");
     	
