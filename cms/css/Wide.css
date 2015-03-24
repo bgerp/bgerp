@@ -62,6 +62,7 @@ body{
 }
 .wide .app-name{ 
 	top: 21%;
+	left: 2%;
 }
 @media handheld, only screen and (max-width: 600px) {
     .wide .app-name {
