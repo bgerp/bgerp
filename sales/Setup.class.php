@@ -141,7 +141,8 @@ class sales_Setup extends core_ProtoSetup
     		'sales_Proformas',
     		'sales_ProformaDetails',
     		'migrate::transformProformas1',
-    		'migrate::updateQuotations'
+    		'migrate::updateQuotations',
+    		'migrate::updateSales',
         );
 
         
@@ -287,6 +288,29 @@ class sales_Setup extends core_ProtoSetup
     				sales_QuotationsDetails::save($rec, 'quantityInPack');
     			} catch(core_exception_Expect $e){
     				 
+    			}
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Обновяваме продажбите
+     */
+    public function updateSales()
+    {
+    	if(sales_Sales::count()){
+    		$Sales = cls::get('sales_Sales');
+    		
+    		$sQuery = sales_Sales::getQuery();
+    		$sQuery->where("#makeInvoice IS NULL || #makeInvoice = ''");
+    		$sQuery->show('id,makeInvoice');
+    		while($rec = $sQuery->fetch()){
+    			$rec->makeInvoice = 'yes';
+    			try{
+    				$Sales->save_($rec, 'makeInvoice');
+    			} catch(core_exception_Expect $e){
+    				
     			}
     		}
     	}
