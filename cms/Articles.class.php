@@ -572,9 +572,9 @@ class cms_Articles extends core_Master
     { 
         $vid = urldecode($url['id']);
  
-        if($vid) {
+        if($vid) {  
             $id = cms_VerbalId::fetchId($vid, 'cms_Articles'); 
-
+ 
             if(!$id) {
                 $id = self::fetchField(array("#vid = '[#1#]'", $vid), 'id');
             }
@@ -585,12 +585,15 @@ class cms_Articles extends core_Master
 
             if($id) {
                 $rec = self::fetch($id);
-                $domainId = cms_Content::fetchField($rec->menuId)->domainId;
-                if($domainId && $lg = cms_Domains::fetch($domainId) && ($lg == 'bg' || $lg == 'en')) {
+                $domainId = cms_Content::fetch($rec->menuId)->domainId;  
+                if($domainId && ($lg = cms_Domains::fetch($domainId)->lang)) {
                     $ctr = ucfirst($lg);
                     if(cls::load($ctr)) {
                         $url['Ctr'] = $ctr;
                         unset($url['Act']);
+                    } else {
+                        $url['Ctr'] = 'A';
+                        $url['Act'] = 'a';
                     }
                     $url['id'] = $id;
                 }

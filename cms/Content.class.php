@@ -317,7 +317,11 @@ class cms_Content extends core_Manager
             $source = cls::get($rec->source);
             $url = $source->getUrlByMenuId($rec->id);
         } elseif($rec->url) {
-            $url = arr::make($rec->url);
+            if(strpos($rec->url, ',')) {
+                $url = arr::make($rec->url);
+            } else {
+                $url = core_App::parseLocalUrl('/' . ltrim($rec->url, '/'));
+            }
         } else {
             // expect(FALSE);
             $url = '';

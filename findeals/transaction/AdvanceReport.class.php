@@ -47,7 +47,9 @@ class findeals_transaction_AdvanceReport extends acc_DocumentTransactionSource
     		$arr = array();
     
     		$vatAmount += $dRec->amount * $dRec->vat;
-    		$arr['amount'] = $dRec->amount;
+    		$vatAmount = round($vatAmount, 2);
+    		
+    		$arr['amount'] = round($dRec->amount, 2);
     		$pInfo = cat_Products::getProductInfo($dRec->productId);
     
     		$debitArr = array();
