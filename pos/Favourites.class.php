@@ -111,8 +111,13 @@ class pos_Favourites extends core_Manager {
     {
     	if(isset($form->rec->productId)){
     		$ProductMan = cls::get('cat_Products');
-    		$form->setOptions('packagingId', $ProductMan->getPacks($form->rec->productId));
-    		unset($form->getFieldType('packagingId')->params['allowEmpty']);
+    		
+    		$packs = $ProductMan->getPacks($form->rec->productId);
+    		if(count($packs)){
+    			$form->setOptions('packagingId', $packs);
+    		} else {
+    			$form->setReadOnly('packagingId');
+    		}
     	
     		// Само при рефреш слагаме основната опаковка за дефолт
     		if($form->cmd == 'refresh'){
