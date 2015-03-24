@@ -174,6 +174,9 @@ class core_Settings extends core_Manager
             }
         }
         
+        // Добавяме ролята за цялата система
+        $rolesArr[0] = 0;
+        
         // Добавяме всички групи в условието
         if ($rolesArr) {
             $rolesArrSysId = array_map(array('type_UserOrRole', 'getSysRoleId'), $rolesArr);
