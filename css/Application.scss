@@ -1607,6 +1607,7 @@ table.mc-header a {
     position: relative;
     display: inline-block;
     border: 0 none;
+    right: 13px;
     top: -8px;
 }
  
@@ -1620,7 +1621,7 @@ table.mc-header a {
     width: 29px;
     font-size: 1em;
     line-height: 34px;
-    left: 100px;
+    left: 80px;
      
     -webkit-pointer-events: none;
     -moz-pointer-events: none;
@@ -1633,7 +1634,7 @@ table.mc-header a {
 	.metro-dropdown-portal::after
 	{
 	   width: 20px;
-	   left: 112px;
+	   left: 110px;
 	}
 }
 
