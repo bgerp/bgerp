@@ -220,7 +220,7 @@ class sales_SalesDetails extends deals_DealDetail
     			// Ако е чернова, и можем да го редактираме добавяме бутон за редакция
     			if($jobRec->state == 'draft'){
     				if(planning_Jobs::haveRightFor('activate', $jobRec)){
-    					$row->jobId = ht::createBtn('Редакция', array('planning_Jobs', 'edit', $jobRec->id), FALSE, FALSE, 'title=Създаване на ново задание за артикула,ef_icon=img/16/edit.png');
+    					$row->jobId = ht::createBtn('Редакция', array('planning_Jobs', 'edit', $jobRec->id), FALSE, FALSE, 'title=Редактиране на ново задание за артикула,ef_icon=img/16/edit.png');
     				}
     			}
     		
@@ -235,7 +235,7 @@ class sales_SalesDetails extends deals_DealDetail
     		} else {
     			// Ако няма задание, добавяме бутон за създаване на ново задание
     			if(planning_Jobs::haveRightFor('add', (object)array('productId' => $pRec->id))){
-    				$jobUrl = array('planning_Jobs', 'add', 'productId' => $pRec->id, 'quantity' => $rec->quantity, 'saleId' => $masterRec->id, 'folderId' => $masterRec->folderId, 'ret_url' => TRUE);
+    				$jobUrl = array('planning_Jobs', 'add', 'productId' => $pRec->id, 'quantity' => $rec->quantity, 'saleId' => $masterRec->id, 'ret_url' => TRUE);
     				$row->jobId = ht::createBtn('Нов', $jobUrl, FALSE, FALSE, 'title=Създаване на ново задание за артикула,ef_icon=img/16/clipboard_text.png');
     			}
     		}
