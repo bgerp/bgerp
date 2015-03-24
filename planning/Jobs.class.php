@@ -93,7 +93,7 @@ class planning_Jobs extends core_Master
 	/**
 	 * Полета за търсене
 	 */
-	public $searchFields = 'folderId, productId, notes, saleId, deliveryPlace, storeId';
+	public $searchFields = 'folderId, productId, notes, saleId, deliveryPlace, storeId, deliveryTermId';
 	
 	
 	/**
@@ -111,7 +111,7 @@ class planning_Jobs extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт,title=Документ, productId=За артикул, dueDate, quantity, folderId, state, createdOn, createdBy';
+    public $listFields = 'tools=Пулт,dueDate, title=Документ, productId=За артикул, saleId, quantity, folderId, state, createdOn, createdBy';
     
     
     /**
@@ -177,7 +177,7 @@ class planning_Jobs extends core_Master
     			'enum(draft=Чернова, active=Активирано, rejected=Отказано, closed=Приключено, stopped=Спряно, wakeup=Събудено)',
     			'caption=Състояние, input=none'
     	);
-    	$this->FLD('saleId', 'key(mvc=sales_Sales)', 'input=hidden,silent');
+    	$this->FLD('saleId', 'key(mvc=sales_Sales)', 'input=hidden,silent,caption=Продажба');
     	
     	$this->FLD('sharedUsers', 'userList(roles=planning|ceo)', 'caption=Споделяне->Потребители,mandatory');
     	$this->FLD('history', 'blob(serialize, compress)', 'caption=Данни,input=none');
@@ -205,6 +205,7 @@ class planning_Jobs extends core_Master
     	if($form->rec->saleId){
     		$saleRec = sales_Sales::fetch($form->rec->saleId);
     		
+    		// Ако има данни от продажба, попълваме ги
     		$form->setDefault('deliveryTermId', $saleRec->deliveryTermId);
     		$form->setDefault('deliveryDate', $saleRec->deliveryTime);
     		$form->setDefault('deliveryPlace', $saleRec->deliveryLocationId);
@@ -216,6 +217,8 @@ class planning_Jobs extends core_Master
     		$form->setField('deliveryPlace', "caption={$caption}->Място");
     		$form->setField('storeId', "caption={$caption}->Склад");
     	} else {
+    		
+    		// Ако заданието не е към продажба, скриваме полетата от продажбата
     		$form->setField('deliveryTermId', 'input=none');
     		$form->setField('deliveryDate', 'input=none');
     		$form->setField('deliveryPlace', 'input=none');
@@ -254,6 +257,7 @@ class planning_Jobs extends core_Master
     {
     	$tpl->push('planning/tpl/styles.css', "CSS");
     	
+    	// Рендираме историята на действията със заданието
     	if(count($data->row->history)){
     		foreach ($data->row->history as $hRow){
     			$clone = clone $tpl->getBlock('HISTORY_ROW');
@@ -291,6 +295,7 @@ class planning_Jobs extends core_Master
     			$rec->weight = NULL;
     		}
     		
+    		// Форсираме заданието в дефолт папката според драйвера
     		$Driver = cat_Products::getDriver($rec->productId);
     		$rec->folderId = doc_UnsortedFolders::forceCoverAndFolder((object)array('name' => $Driver->getJobFolderName()));
     	}
@@ -302,9 +307,11 @@ class planning_Jobs extends core_Master
      */
     public static function on_AfterCreate($mvc, $rec)
     {
+    	// Споделяме текущия потребител със нишката на заданието
     	$cu = core_Users::getCurrent();
     	doc_ThreadUsers::addShared($rec->threadId, $rec->containerId, $cu);
     	
+    	// Записваме в историята на действията, че кога и от кого е създаден документа
     	self::addToHistory($rec->history, 'created', $rec->createdOn, $rec->createdBy);
     	$mvc->save($rec, 'history');
     }
@@ -322,7 +329,7 @@ class planning_Jobs extends core_Master
     	}
     	 
     	if($rec->saleId){
-    		$row->saleId = sales_Sales::getHyperlink($rec->saleId, TRUE);
+    		$row->saleId = sales_Sales::getlink($rec->saleId, 0);
     	}
     	
     	if($fields['-single']){
@@ -693,5 +700,27 @@ class planning_Jobs extends core_Master
     	$coverClass = doc_Folders::fetchCoverClassName($folderId);
     	
     	return $coverClass == 'doc_UnsortedFolders';
+    }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     */
+    protected static function on_AfterPrepareListRows($mvc, &$data)
+    {
+    	if(!count($data->recs)) return;
+    	$hideSaleCol = TRUE;
+    	
+    	foreach ($data->recs as $rec){
+    		if(isset($rec->saleId)){
+    			$hideSaleCol = FALSE;
+    			break;
+    		}
+    	}
+    	
+    	// Ако няма данни поне за една продажба, скриваме колоната
+    	if($hideSaleCol){
+    		unset($data->listFields['saleId']);
+    	}
     }
 }
