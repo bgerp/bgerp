@@ -3,7 +3,7 @@
 
 
 /**
- * Мениджър на етапи детайл на технологична рецепта, всеки детайл също може да има детайл
+ * Мениджър на етапи детайл на технологична рецепта
  *
  *
  * @category  bgerp
@@ -98,7 +98,7 @@ class cat_BomDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт, stageId, resourceId, measureId=Мярка, baseQuantity=Начално,propQuantity=Пропорц.';
+    public $listFields = 'tools=Пулт, stageId, resourceId, measureId=Мярка, baseQuantity=Начално,propQuantity';
     
     
     /**
