@@ -590,7 +590,7 @@ class planning_Jobs extends core_Master
     	
     	if($type == 'stop'){
     		expect($rec->state == 'stopped' || $rec->state == 'active' || $rec->state == 'wakeup');
-    		$state = ($rec->state == 'stopped') ? (($rec->brState) ? $rec->brState : 'active') : 'stopped';
+    		$state = ($rec->state == 'stopped') ? 'active' : 'stopped';
     	} else {
     		expect($rec->state == 'closed' || $rec->state == 'active' || $rec->state == 'wakeup');
     		$state = ($rec->state == 'closed') ? 'wakeup' : 'closed';
