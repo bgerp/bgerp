@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   sales
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -172,7 +172,7 @@ class sales_Proformas extends deals_InvoiceMaster
     {
     	parent::prepareInvoiceForm($mvc, $data);
     	
-    	foreach (array('place', 'responsible', 'contragentPCode', 'contragentPlace', 'contragentAddress', 'paymentMethodId', 'deliveryPlaceId', 'vatDate', 'vatReason', 'contragentCountryId', 'contragentName') as $fld){
+    	foreach (array('responsible', 'contragentPCode', 'contragentPlace', 'contragentAddress', 'paymentMethodId', 'deliveryPlaceId', 'vatDate', 'vatReason', 'contragentCountryId', 'contragentName') as $fld){
     		$data->form->setField($fld, 'input=hidden');
     	}
     	
