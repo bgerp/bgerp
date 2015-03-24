@@ -162,13 +162,16 @@ class store_Setup extends core_ProtoSetup
     {
     	if(core_Packs::fetch("#name = 'acc'")){
     		$config = core_Packs::getConfig('store');
-    		$accArray = array();
-    		foreach (static::$accAccount as $accSysId){
-    			$accId = acc_Accounts::getRecBySystemId($accSysId)->id;
-    			$accArray[$accId] = $accSysId;
-    		}
     		
-    		core_Packs::setConfig('store', array('STORE_ACC_ACCOUNTS' => keylist::fromArray($accArray)));
+    		if(strlen($config->STORE_ACC_ACCOUNTS) !== 0){
+    			$accArray = array();
+    			foreach (static::$accAccount as $accSysId){
+    				$accId = acc_Accounts::getRecBySystemId($accSysId)->id;
+    				$accArray[$accId] = $accSysId;
+    			}
+    			
+    			core_Packs::setConfig('store', array('STORE_ACC_ACCOUNTS' => keylist::fromArray($accArray)));
+    		}
     	}
     }
     
