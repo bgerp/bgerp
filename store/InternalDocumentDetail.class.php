@@ -80,7 +80,7 @@ abstract class store_InternalDocumentDetail extends doc_Detail
     		
     		$packs = $ProductMan->getPacks($rec->productId);
     		if(isset($rec->packagingId) && !isset($packs[$rec->packagingId])){
-    			$packs[$rec->packagingId] = cat_Packagings::getTitleById($rec->packagingId);
+    			$packs[$rec->packagingId] = cat_Packagings::getTitleById($rec->packagingId, FALSE);
     		}
     		if(count($packs)){
     			$form->setOptions('packagingId', $packs);

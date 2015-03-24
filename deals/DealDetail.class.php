@@ -213,7 +213,7 @@ abstract class deals_DealDetail extends doc_Detail
     		$vat = cls::get($rec->classId)->getVat($rec->productId, $masterRec->valior);
     		$packs = $ProductMan->getPacks($rec->productId);
     		if(isset($rec->packagingId) && !isset($packs[$rec->packagingId])){
-    			$packs[$rec->packagingId] = cat_Packagings::getTitleById($rec->packagingId);
+    			$packs[$rec->packagingId] = cat_Packagings::getTitleById($rec->packagingId, FALSE);
     		}
     		
     		if(count($packs)){
