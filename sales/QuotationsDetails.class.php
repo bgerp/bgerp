@@ -90,6 +90,12 @@ class sales_QuotationsDetails extends doc_Detail {
     public $priceFields = 'price,discount,amount';
   	
   	
+    /**
+     * Какви мета данни да изискват продуктите, които да се показват
+     */
+    public $metaProducts = 'canSell';
+    
+    
   	/**
      * Описание на модела (таблицата)
      */
