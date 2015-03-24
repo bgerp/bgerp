@@ -787,8 +787,8 @@ if ($step == 'setup') {
     set_time_limit(1000);
 
     $calibrate = 1000;
-    $totalRecords = 169700;
-    $totalTables = 308;
+    $totalRecords = 177000;
+    $totalTables = 328;
     $percents = $persentsBase = $persentsLog = 0;
     $total = $totalTables*$calibrate + $totalRecords;
 
