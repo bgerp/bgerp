@@ -215,7 +215,7 @@ class sales_SalesDetails extends deals_DealDetail
     	if($masterRec->state == 'active') {
     		
     		// Проверяваме имали задание
-    		if($jobRec = planning_Jobs::fetch("#productId = {$rec->productId} AND (#state = 'active' || #state = 'draft')", 'id,state,dueDate')){
+    		if($jobRec = planning_Jobs::fetch("#productId = {$rec->productId} AND (#state != 'draft' && #state != 'rejected')", 'id,state,dueDate')){
     		
     			// Ако е чернова, и можем да го редактираме добавяме бутон за редакция
     			if($jobRec->state == 'draft'){
