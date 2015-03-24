@@ -31,6 +31,30 @@
             <td> [#internalNum#]</td>
         </tr>
     </table>
+    
+    <!--ET_BEGIN RedirectedBlock-->
+    	[#RedirectedBlock#]
+	    <table class="styled-table" style='min-width: 300px;'>
+	        <tr>
+	            <th colspan="2">|Пренасочено|*</th>
+	        </tr>
+	        
+	        <!--ET_BEGIN RedirectFrom-->
+	        <tr>
+	            <td class="title-style">|От|*</td>
+	            <td>[#RedirectFrom#]</td>
+	        </tr>
+	        <!--ET_END RedirectFrom-->
+	        
+	        <!--ET_BEGIN RedirectTo-->
+		        <tr>
+		            <td class="title-style">|Към|*</td>
+		            <td> [#RedirectTo#]</td>
+		        </tr>
+	        <!--ET_END RedirectTo-->
+	    </table>
+    <!--ET_END RedirectedBlock-->
+    
     <table class="styled-table" style='min-width: 300px;'>
         <tr>
             <th colspan="2">|Време|*</th>
