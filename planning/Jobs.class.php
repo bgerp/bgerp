@@ -373,7 +373,8 @@ class planning_Jobs extends core_Master
     	$row->author = $this->getVerbal($rec, 'createdBy');
     	$row->state = $rec->state;
     	$row->recTitle = $this->getRecTitle($rec);
-    
+    	$row->subTitle = $this->getVerbal($rec, 'productId');
+    	
     	return $row;
     }
 
