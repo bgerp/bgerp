@@ -38,7 +38,13 @@ class cat_BomDetails extends doc_Detail
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, cat_Wrapper, plg_SaveAndNew, plg_GroupByField, plg_AlignDecimals2';
+    var $loadList = 'plg_Created, plg_RowTools, cat_Wrapper, plg_LastUsedKeys, plg_SaveAndNew, plg_GroupByField, plg_AlignDecimals2';
+    
+    
+    /**
+     * Кои ключове да се тракват, кога за последно са използвани
+     */
+    var $lastUsedKeys = 'resourceId';
     
     
     /**
