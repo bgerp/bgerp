@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   acc
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -26,7 +26,13 @@ class acc_Accounts extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, plg_Created, plg_State2, plg_SaveAndNew, acc_WrapperSettings, Lists=acc_Lists';
+    var $loadList = 'plg_RowTools, plg_Created, plg_State2, plg_SaveAndNew, plg_Search, acc_WrapperSettings';
+    
+    
+    /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    var $searchFields = 'num,title,type,systemId,groupId1,groupId2,groupId3';
     
     
     /**
@@ -108,11 +114,14 @@ class acc_Accounts extends core_Manager
     
     
     /**
-     * @var acc_Lists
+     * 
      */
-    var $Lists;
-    
     private static $idToNumMap;
+    
+    
+    /**
+     *
+     */
     private static $numToIdMap;
     
     
@@ -146,7 +155,8 @@ class acc_Accounts extends core_Manager
     /**
      * Изчисление на "синтетичните" (1 и 2 разрядни) сметки
      */
-    static function on_CalcIsSynthetic($mvc, &$rec) {
+    protected static function on_CalcIsSynthetic($mvc, &$rec)
+    {
         $rec->isSynthetic = (strlen($rec->num) < 3);
     }
     
@@ -162,7 +172,7 @@ class acc_Accounts extends core_Manager
      * @param stdClass|NULL $rec
      * @param int|NULL $userId
      */
-    static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    protected static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
         if ($rec->id && $action == 'delete') {
             $rec = $mvc->fetch($rec->id);
@@ -182,8 +192,12 @@ class acc_Accounts extends core_Manager
      * @param StdClass $res
      * @param StdClass $data
      */
-    static function on_AfterPrepareListFilter($mvc, &$data)
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
+    	$data->listFilter->showFields = 'search';
+    	$data->listFilter->view = 'horizontal';
+    	$data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+        
         // Сортиране на записите по num
         $data->query->orderBy('num');
     }
@@ -195,7 +209,7 @@ class acc_Accounts extends core_Manager
      * @param core_Manager $mvc
      * @param stdClass $data
      */
-    static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = &$data->form;
         
@@ -218,7 +232,7 @@ class acc_Accounts extends core_Manager
     /**
      * Проверка уникално ли е числото
      */
-    function isUniquenum($rec)
+    public function isUniquenum($rec)
     {
         $preCond = '1 = 1';
         
@@ -234,7 +248,7 @@ class acc_Accounts extends core_Manager
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      */
-    static function on_AfterInputEditForm($mvc, &$form)
+    protected static function on_AfterInputEditForm($mvc, &$form)
     {
         if (empty($form->rec->num)) {
             return;
@@ -355,28 +369,28 @@ class acc_Accounts extends core_Manager
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
         if($rec->state == 'active') {
             $row->ROW_ATTR['class'] .= ' level-' . strlen($rec->num);
         }
         
         if($rec->groupId1) {
-            $listRec = $mvc->Lists->fetch($rec->groupId1);
+            $listRec = acc_Lists::fetch($rec->groupId1);
             $row->lists .= "<div class='acc-detail'><a href='" .
             toUrl(array('acc_Items', 'listId' => $rec->groupId1)) .
             "'>{$listRec->caption}</a></div>";
         }
         
         if($rec->groupId2) {
-            $listRec = $mvc->Lists->fetch($rec->groupId2);
+            $listRec = acc_Lists::fetch($rec->groupId2);
             $row->lists .= "<div class='acc-detail'><a href='" .
             toUrl(array('acc_Items', 'listId' => $rec->groupId2)) .
             "'>{$listRec->caption}</a></div>";
         }
         
         if($rec->groupId3) {
-            $listRec = $mvc->Lists->fetch($rec->groupId3);
+            $listRec = acc_Lists::fetch($rec->groupId3);
             $row->lists .= "<div class='acc-detail'><a href='" .
             toUrl(array('acc_Items', 'listId' => $rec->groupId3)) .
             "'>{$listRec->caption}</a></div>";
@@ -448,7 +462,7 @@ class acc_Accounts extends core_Manager
      * @param string стринг от вида `име на номенклатура (код)`
      * @return int ид на номенклатура
      */
-    static private function getListsId($string)
+    private static function getListsId($string)
     {
         $string = strip_tags($string);
         $string = trim($string);
@@ -530,7 +544,7 @@ class acc_Accounts extends core_Manager
     /**
      * Връща разбираемо за човека заглавие, отговарящо на записа
      */
-    static function getRecTitle($rec, $escaped = TRUE)
+    public static function getRecTitle($rec, $escaped = TRUE)
     {
         $title = $rec->num . '. ' . $rec->title;
         
@@ -638,7 +652,7 @@ class acc_Accounts extends core_Manager
      * @param int $accountId ид на аналитична сметка
      * @return string
      */
-    function getType($accountId)
+    public function getType($accountId)
     {
         return $this->fetchField($accountId, 'type');
     }
@@ -647,7 +661,7 @@ class acc_Accounts extends core_Manager
     /**
      * Извиква се преди изпълняването на екшън
      */
-    static function on_BeforeAction($mvc, &$res, $action)
+    protected static function on_BeforeAction($mvc, &$res, $action)
     {
         $mvc->setField('state', 'export');
     }
@@ -656,7 +670,7 @@ class acc_Accounts extends core_Manager
     /**
      * Вземане на запис от базата, чрес системното му ид
      */
-    static function getRecBySystemId($systemId)
+    public static function getRecBySystemId($systemId)
     {
         expect($rec = static::fetch(array("#systemId = '[#1#]'", $systemId)), "Липсва сметка със `systemId`={$systemId}");
         
@@ -667,7 +681,7 @@ class acc_Accounts extends core_Manager
     /**
      * Информация за сч. сметка
      */
-    static function getAccountInfo($accountId)
+    public static function getAccountInfo($accountId)
     {
         $acc = (object)array(
             'rec' => acc_Accounts::fetch($accountId),
