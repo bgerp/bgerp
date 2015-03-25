@@ -166,6 +166,19 @@ class sales_Quotations extends core_Master
     
     
     /**
+     * Кои полета ако не са попълнени във визитката на контрагента да се попълнят след запис
+     */
+    public static $updateContragentdataField = array(
+				    		'email'   => 'email',
+				    		'tel'     => 'tel',
+				    		'fax'     => 'fax',
+				    		'pCode'   => 'pCode',
+				    		'place'   => 'place',
+				    		'address' => 'address',
+    );
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -585,7 +598,6 @@ class sales_Quotations extends core_Master
 		// Ако няма дата попълваме текущата след активиране
 		if(empty($rec->date)){
 			$rec->date = dt::today();
-			core_Statuses::newStatus('DATE');
 			$mvc->save($rec, 'date');
 		}
     }
