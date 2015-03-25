@@ -2,15 +2,22 @@
 
 
 /**
+ * Версията на програмата
+ */
+defIfNot("PHPCOLOR_VERSION", '0.3');
+
+
+
+/**
  * Вкарваме файловете необходими за работа с програмата.
  */
-require_once 'Color.class.php';
+require_once PHPCOLOR_VERSION . '/Color.class.php';
 
 
 /** Библиотека за работа с цветове
  * 
  * @category  bgerp
- * @package   changecolor
+ * @package   phpcolor
  * @author    Nevena Georgieva <nevena.georgieva89@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
