@@ -243,6 +243,7 @@ class pos_Receipts extends core_Master {
     		$row->title = "{$mvc->singleTitle} №{$row->id}";
     		$row->title = ht::createLink($row->title, array($mvc, 'single', $rec->id), NULL, "ef_icon={$mvc->singleIcon}");
     	} elseif($fields['-single']){
+    		$row->title = "{$mvc->singleTitle} <b>№{$row->id}</b>";
     		$row->iconStyle = 'background-image:url("' . sbf('img/16/view.png', '') . '");';
     		$row->caseId = cash_Cases::getHyperLink(pos_Points::fetchField($rec->pointId, 'caseId'), TRUE);
     		$row->storeId = store_Stores::getHyperLink(pos_Points::fetchField($rec->pointId, 'storeId'), TRUE);
