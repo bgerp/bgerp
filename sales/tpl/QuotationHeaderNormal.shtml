@@ -16,10 +16,10 @@
                     <td class="cellm centered" rowspan="2" style='width:30%;'>
                         <div class='invoiceTitle' style='font-size:1.2em;margin-bottom:5px'><b>|ОФЕРТА|* </b></div>
                         <div><b>№[#number#] / [#date#]</b></div>
-                        <!--ET_BEGIN place-->
+                        <!--ET_BEGIN buzPlace-->
                         <div class='quiet-small'>|Място|*</div>
                         <div><b>[#buzPlace#]</b></div>
-                        <!--ET_END place-->
+                        <!--ET_END buzPlace-->
                         <!--ET_BEGIN reff-->
                         <div class='quiet-small'>|Ваш реф. №|*</div>
                         <div><b>[#reff#]</b></div>
