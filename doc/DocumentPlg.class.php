@@ -1012,8 +1012,7 @@ class doc_DocumentPlg extends core_Plugin
             }
         }
         
-        // Преименуване на бутона на чернова (хак)
-        $data->form->toolbar->buttons['save']->title = 'Чернова';
+        $data->form->toolbar->renameBtn('save', 'Чернова');
     }
 
     
