@@ -202,7 +202,7 @@ class cond_plg_DefaultValues extends core_Plugin
     	
     	// Намиране на последната продажба, на контрагент от същата държава
     	$query = $mvc->getQuery();
-        $query->where("#state = 'draft' AND #state = 'rejected'");
+        $query->where("#state != 'draft' AND #state != 'rejected'");
         $query->orderBy("#createdOn", "DESC");
         $query->where("#folderId != {$rec->folderId}");
         $query->show("{$name},folderId");
