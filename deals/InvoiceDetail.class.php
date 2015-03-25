@@ -29,7 +29,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 	/**
 	 * Полета свързани с цени
 	 */
-	public $priceFields = 'price,amount,discount';
+	public $priceFields = 'amount,discount,packPrice';
 	
 
 	/**

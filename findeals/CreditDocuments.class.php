@@ -40,7 +40,7 @@ class findeals_CreditDocuments extends deals_Document
      * Неща, подлежащи на начално зареждане
      */
     public $loadList = 'plg_RowTools, findeals_Wrapper, plg_Sorting, acc_plg_Contable,
-                     doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary,
+                     doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary,doc_plg_HidePrices,
                      plg_Search, bgerp_plg_Blank,bgerp_DealIntf, doc_EmailCreatePlg';
     
     
