@@ -1527,4 +1527,20 @@ class cat_Products extends core_Embedder {
     	// За артикула, това е цената по себестойност
     	return $this->getSelfValue($id);
     }
+    
+    
+    /**
+     * Подготовка на бутоните на формата за добавяне/редактиране.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     */
+    protected static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
+    {
+    	// Документа не може да се създава  в нова нишка, ако е възоснова на друг
+    	if(!empty($data->form->toolbar->buttons['save']) && $data->form->rec->state == 'active'){
+    		$data->form->toolbar->renameBtn('save', 'Запис');
+    	}
+    }
 }
