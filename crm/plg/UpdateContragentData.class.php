@@ -38,6 +38,8 @@ class crm_plg_UpdateContragentData extends core_Plugin
 				if(!$rec->folderId) return;
 				
 				$Cover = doc_Folders::getCover($rec->folderId);
+				if(!$Cover->haveInterface('doc_ContragentDataIntf')) return;
+				
 				$coverRec = $Cover->rec();
 				$update = FALSE;
 				
