@@ -202,6 +202,8 @@ class sales_Invoices extends deals_InvoiceMaster
     {
     	parent::prepareInvoiceForm($mvc, $data);
     	$form = &$data->form;
+    	$form->setField('contragentPlace', 'mandatory');
+    	$form->setField('contragentAddress', 'mandatory');
     	
     	$conf = core_Packs::getConfig('sales');
     	$options = array();
