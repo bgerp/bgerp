@@ -1250,6 +1250,8 @@ class doc_DocumentPlg extends core_Plugin
             } elseif ($action == 'single') {
                 if (!doc_Threads::haveRightFor('single', $oRec->threadId, $userId) && ($rec->createdBy != $userId)) {
                     $requiredRoles = 'no_one';
+                } else {
+                    $requiredRoles = 'powerUser';
                 }
             } elseif ($action == 'clone') {
                 
