@@ -177,7 +177,7 @@ class cond_plg_DefaultValues extends core_Plugin
     	
     	$cu = core_Users::getCurrent();
     	$query = $mvc->getQuery();
-    	$query->where("#state = 'active'");
+    	$query->where("#state != 'draft' AND #state != 'rejected'");
     	
     	$query->where("#folderId = {$folderId}");
     	if($fromUser){
@@ -202,7 +202,7 @@ class cond_plg_DefaultValues extends core_Plugin
     	
     	// Намиране на последната продажба, на контрагент от същата държава
     	$query = $mvc->getQuery();
-        $query->where("#state = 'active'");
+        $query->where("#state = 'draft' AND #state = 'rejected'");
         $query->orderBy("#createdOn", "DESC");
         $query->where("#folderId != {$rec->folderId}");
         $query->show("{$name},folderId");
