@@ -345,7 +345,7 @@ class cat_Products extends core_Embedder {
 		// Ако е избран драйвер слагаме задъжителните мета данни според корицата и драйвера
     	if(isset($form->rec->folderId)){
     		$cover = doc_Folders::getCover($form->rec->folderId);
-    		$defMetas = $cover->getDefaultMeta();
+    		$defMetas = ($cover->haveInterface('cat_ProductFolderCoverIntf')) ? $cover->getDefaultMeta() : array();
     		
     		$Driver = $mvc->getDriver($form->rec);
     		$defMetas = $Driver->getDefaultMetas($defMetas);
