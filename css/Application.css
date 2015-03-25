@@ -1416,7 +1416,7 @@ table.mc-header a {
 .metro-dropdown-portal::after {
   content: "\25bc";
   position: absolute;
-  top: 0px;
+  top: 0;
   right: 0px;
   display: block;
   width: 29px;
@@ -1426,7 +1426,6 @@ table.mc-header a {
   -webkit-pointer-events: none;
   -moz-pointer-events: none;
   pointer-events: none; }
-
 
 @-moz-document url-prefix() {
     .metro-dropdown-portal::after {
@@ -1775,8 +1774,9 @@ span.sharing-history-title {
   position: relative; }
 
 #cmsTop,
-.headerImg {
-  display: block; }
+#cmsTop img {
+  display: block;
+  border-radius: 10px 10px 0 0; }
 
 #cmsMenu {
   float: left;

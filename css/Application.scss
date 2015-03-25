@@ -2026,8 +2026,9 @@ fieldset.sharing-history {
 	position: relative;
 }
 
-#cmsTop, .headerImg {
+#cmsTop,  #cmsTop img{
 	display: block;
+	border-radius: 10px 10px 0 0;
 }
 
 #cmsMenu {
