@@ -41,13 +41,13 @@ class cms_DefaultTheme extends core_ProtoInner {
         $form->FLD('titleColor', 'color_Type', "caption=Заглавие на сайта->Цвят");
 
         // Фон на менюто 
-        $form->FLD('baseColor', 'color_Type', "caption=Базов цвят");
+        $form->FLD('baseColor', 'color_Type', "caption=Цветове за темата->Базов цвят");
 
         // Фон на избраното меню
-        $form->FLD('activeColor', 'color_Type', "caption=Активен цвят");
+        $form->FLD('activeColor', 'color_Type', "caption=Цветове за темата->Активен цвят");
         
         // Фон на избраното меню
-        $form->FLD('bgColor', 'color_Type', "caption=Фон на страницата");
+        $form->FLD('bgColor', 'color_Type', "caption=Цветове за темата->Фон на страницата");
     }
 
     
