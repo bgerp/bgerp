@@ -283,15 +283,6 @@ class cat_Products extends core_Embedder {
     	if(isset($form->rec->folderId)){
     		$cover = doc_Folders::getCover($form->rec->folderId);
     		
-    		// Ако е избран драйвер слагаме задъжителните мета данни според корицата и драйвера
-    		if(isset($form->rec->innerClass)){
-    			$defMetas = $cover->getDefaultMeta();
-    			$Driver = $mvc->getDriver($form->rec);
-    			$defMetas = $Driver->getDefaultMetas($defMetas);
-    				
-    			$form->setDefault('meta', $form->getFieldType('meta')->fromVerbal($defMetas));
-    		}
-    		
     		if(!$cover->haveInterface('doc_ContragentDataIntf')){
     			$form->setField('code', 'mandatory');
     			
@@ -351,6 +342,17 @@ class cat_Products extends core_Embedder {
      */
     public static function on_AfterPrepareEmbeddedForm(core_Mvc $mvc, &$form)
     {
+		// Ако е избран драйвер слагаме задъжителните мета данни според корицата и драйвера
+    	if(isset($form->rec->folderId)){
+    		$cover = doc_Folders::getCover($form->rec->folderId);
+    		$defMetas = $cover->getDefaultMeta();
+    		
+    		$Driver = $mvc->getDriver($form->rec);
+    		$defMetas = $Driver->getDefaultMetas($defMetas);
+    		
+    		$form->setDefault('meta', $form->getFieldType('meta')->fromVerbal($defMetas));
+    	}
+    	
     	if(isset($form->rec->originId)){
     		$document = doc_Containers::getDocument($form->rec->originId);
     		$fieldsFromSource = $document->getFieldsFromDriver();
@@ -795,9 +797,6 @@ class cat_Products extends core_Embedder {
      */
     public function loadSetupData()
     {
-    	cls::get('doc_Folders');
-    	cls::get('doc_Threads');
-    	
     	$file = "cat/csv/Products.csv";
     	$fields = array( 
 	    	0 => "csv_name", 
