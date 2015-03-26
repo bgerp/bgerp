@@ -74,49 +74,43 @@ class cat_Groups extends core_Manager
     /**
      * Кой има право да променя системните данни?
      */
-    var $canEditsysdata = 'cat,ceo';
+    var $canEditsysdata = 'cat,ceo,sales,purchase';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'cat,ceo';
+    var $canEdit = 'cat,ceo,sales,purchase';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'cat,ceo';
+    var $canAdd = 'cat,ceo,sales,purchase';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'powerUser';
+    var $canList = 'cat,ceo,sales,purchase';
     
     
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    var $canSingle = 'powerUser';
+    var $canSingle = 'cat,ceo,sales,purchase';
     
     
     /**
      * Кой може да качва файлове
      */
-    var $canWrite = 'ceo,cat';
-    
-    
-    /**
-     * Кой може да го види?
-     */
-    var $canView = 'powerUser';
+    var $canWrite = 'cat,ceo,sales,purchase';
     
     
     /**
      * Кой има право да го изтрие?
      */
-    var $canDelete = 'cat,ceo';
+    var $canDelete = 'cat,ceo,sales,purchase';
     
     
     /**

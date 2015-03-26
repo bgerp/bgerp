@@ -77,14 +77,14 @@ class cat_Setup extends core_ProtoSetup
     /**
      * Роли за достъп до модула
      */
-    var $roles = 'cat';
+    var $roles = 'cat,sales,purchase';
  
     
     /**
      * Връзки от менюто, сочещи към модула
      */
     var $menuItems = array(
-            array(1.42, 'Артикули', 'Каталог', 'cat_Products', 'default', "powerUser, ceo"),
+            array(1.42, 'Артикули', 'Каталог', 'cat_Products', 'default', "cat,ceo,sales,purchase"),
         );
     
 

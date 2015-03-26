@@ -113,55 +113,55 @@ class cat_Products extends core_Embedder {
     /**
      * Кой може да го прочете?
      */
-    var $canRead = 'powerUser';
+    var $canRead = 'cat,ceo,sales,purchase';
     
     
     /**
      * Кой може да променя?
      */
-    var $canEdit = 'cat,ceo';
+    var $canEdit = 'cat,ceo,sales,purchase';
     
     
     /**
      * Кой може да добавя?
      */
-    var $canAdd = 'cat,ceo';
+    var $canAdd = 'cat,ceo,sales,purchase';
     
     
     /**
      * Кой може да добавя?
      */
-    var $canClose = 'cat,ceo';
+    var $canClose = 'cat,ceo,sales,purchase';
     
     
     /**
      * Кой може да го разгледа?
      */
-    var $canList = 'powerUser';
+    var $canList = 'cat,ceo,sales,purchase';
     
     
     /**
      * Кой може да го отхвърли?
      */
-    var $canReject = 'cat,ceo';
+    var $canReject = 'cat,ceo,sales,purchase';
     
     
     /**
      * Кой може да качва файлове
      */
-    var $canWrite = 'ceo,cat';
+    var $canWrite = 'cat,ceo,sales,purchase';
     
     
     /**  
      * Кой има право да променя системните данни?  
      */  
-    var $canEditsysdata = 'ceo, cat';
+    var $canEditsysdata = 'cat,ceo,sales,purchase';
     
     
     /**
      * Кой  може да групира "С избраните"?
      */
-    var $canGrouping = 'ceo,cat';
+    var $canGrouping = 'cat,ceo,sales,purchase';
 
 	
     /**
@@ -173,7 +173,7 @@ class cat_Products extends core_Embedder {
     /**
      * Кой има достъп до единичния изглед
      */
-    var $canSingle = 'powerUser';
+    var $canSingle = 'cat,ceo,sales,purchase';
     
 	
     /** 
