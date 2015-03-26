@@ -1372,7 +1372,7 @@ class email_Incomings extends core_Master
         $query->show('fromEml, folderId');
         
         $domains = array();
-        $result  = array();
+        $results  = array();
         
         while ($rec = $query->fetch()) {
             $fromDomain = type_Email::domain($rec->fromEml);
@@ -1384,7 +1384,7 @@ class email_Incomings extends core_Master
             }
         }
         
-        return $result;
+        return $results;
     }
     
     
