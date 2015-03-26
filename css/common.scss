@@ -1911,6 +1911,9 @@ div.alphabet div.tab-page {
 			.listTable td {
 				background-color: $history-bg;
 			}
+			.row-state-returned td{
+			    background-color:#fed6d6
+			}
 		}
 		.listTable {
 			width: 100%

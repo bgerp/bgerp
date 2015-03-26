@@ -1795,6 +1795,8 @@ div.alphabet div.tab-page {
       font-size: 0.85em; }
       .single-thread .document .docStatistic div.alphabet .tab-page .detail-info .listTable td {
         background-color: #fefec2; }
+      .single-thread .document .docStatistic div.alphabet .tab-page .detail-info .row-state-returned td {
+        background-color: #fed6d6; }
     .single-thread .document .docStatistic div.alphabet .tab-page .listTable {
       width: 100%; }
     .single-thread .document .docStatistic div.alphabet .tab-page .listTable td {
