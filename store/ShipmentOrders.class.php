@@ -183,7 +183,14 @@ class store_ShipmentOrders extends store_DocumentMaster
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = NULL)
     {
-    	$row->deliveryTo = $row->pCode . " " . $row->place;
+    	if($row->pCode){
+    		$row->deliveryTo .= $row->pCode;
+    	}
+    	
+    	if($row->pCode){
+    		$row->deliveryTo .= " " . $row->place;
+    	}
+    	
     	foreach(array('address', 'company', 'person', 'tel') as $fld){
     		if(!empty($rec->$fld)){
     			$row->deliveryTo .= ", {$row->$fld}";
