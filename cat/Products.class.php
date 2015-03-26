@@ -810,7 +810,10 @@ class cat_Products extends core_Embedder {
     		4 => "csv_category",
     	);
     	
+    	core_Users::forceSystemUser();
     	$cntObj = csv_Lib::importOnce($this, $file, $fields);
+    	core_Users::cancelSystemUser();
+    	
     	$res .= $cntObj->html;
     	
     	return $res;
