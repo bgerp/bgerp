@@ -119,19 +119,19 @@ class cat_Products extends core_Embedder {
     /**
      * Кой може да променя?
      */
-    var $canEdit = 'cat,ceo,sales,purchase';
+    var $canEdit = 'cat,ceo';
     
     
     /**
      * Кой може да добавя?
      */
-    var $canAdd = 'cat,ceo,sales,purchase';
+    var $canAdd = 'cat,ceo';
     
     
     /**
      * Кой може да добавя?
      */
-    var $canClose = 'cat,ceo,sales,purchase';
+    var $canClose = 'cat,ceo';
     
     
     /**
@@ -143,13 +143,13 @@ class cat_Products extends core_Embedder {
     /**
      * Кой може да го отхвърли?
      */
-    var $canReject = 'cat,ceo,sales,purchase';
+    var $canReject = 'cat,ceo';
     
     
     /**
      * Кой може да качва файлове
      */
-    var $canWrite = 'cat,ceo,sales,purchase';
+    var $canWrite = 'cat,ceo';
     
     
     /**  
