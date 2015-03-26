@@ -312,6 +312,10 @@ class core_Request
      */
     static function forward($vars = array(), $prefix = 'act_')
     {
+        static $count = 0;
+        $count++;
+        $varsName = 'forward' . $count;
+
         // Преобразуваме от поредни към именовани параметри
         if(isset($vars[0]) && !isset($vars['Ctr'])) {
             $vars['Ctr'] = $vars[0];
@@ -346,7 +350,7 @@ class core_Request
         $vars = arr::make($vars, TRUE);
         
         if (count($vars)) {
-            $Request->push($vars);
+            $Request->push($vars, $varsName);
             $mustPop = TRUE;
         }
         
@@ -384,7 +388,7 @@ class core_Request
         }
         
         if ($mustPop) {
-            $Request->pop();
+            $Request->pop($varsName);
         }
         
         return $content;

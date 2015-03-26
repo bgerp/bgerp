@@ -67,4 +67,22 @@ class bgerp_En extends core_Mvc
         
         return FALSE;
     }
+
+
+    /**
+     * Връща кратко URL към съдържание на статия
+     */
+    static function getShortUrl($url)
+    {
+        if(strtolower($url['Act']) == 'products') {
+            $url = array('Ctr' => 'eshop_Groups', 'Act' => 'ShowAll');
+            $url = eshop_Groups::getShortUrl($url);
+        } else {
+            $url = array('Ctr' => 'cms_Articles', 'Act' => 'Article', 'id' => $url['Act']);
+            $url = cms_Articles::getShortUrl($url);
+        }
+
+        return $url;
+    }
+
 }

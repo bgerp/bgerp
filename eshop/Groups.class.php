@@ -496,7 +496,7 @@ class eshop_Groups extends core_Master
     /**
      * Връща кратко URL към продуктова група
      */
-    function getShortUrl($url)
+    static function getShortUrl($url)
     {
         $vid = urldecode($url['id']);
         $act = strtolower($url['Act']);

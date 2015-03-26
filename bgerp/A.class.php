@@ -50,4 +50,31 @@ class bgerp_A extends core_Mvc
     {
         return Request::forward(array('Ctr' => 'blogm_Articles', 'Act' => 'Article'));
     }
+
+    /**
+     * Връща кратко URL към съдържание на статия
+     */
+    static function getShortUrl($url)
+    {
+        if($url['Act'] == 'A') {
+            $url['Ctr'] = 'cms_Articles';
+            $url['Act'] = 'Article';
+            $url = cms_Articles::getShortUrl($url);
+        } elseif($url['Act'] == 'G') {
+            $url['Ctr'] = 'eshop_Groups';
+            $url['Act'] = 'Show';
+            $url = eshop_Groups::getShortUrl($url);
+        } elseif($url['Act'] == 'P') {
+            $url['Ctr'] = 'eshop_Products';
+            $url['Act'] = 'Show';
+            $url = eshop_Products::getShortUrl($url);
+        } elseif($url['Act'] == 'B') {
+            $url['Ctr'] = 'blogm_Articles';
+            $url['Act'] = 'Article';
+            $url = blogm_Articles::getShortUrl($url);
+        }
+
+        return $url;
+    }
+
 }

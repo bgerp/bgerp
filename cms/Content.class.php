@@ -311,7 +311,7 @@ class cms_Content extends core_Manager
     /**
      * Връща URL към съдържанието, което отговаря на този запис
      */
-    function getContentUrl($rec, $absolute = FALSE) 
+    static function getContentUrl($rec, $absolute = FALSE) 
     {
         if($rec->source) {
             $source = cls::get($rec->source);
@@ -343,19 +343,43 @@ class cms_Content extends core_Manager
      */
     static function getShortUrl()
     {
-        $cUrl = getCurrentUrl();
-        
+   
+        $cUrl = getCurrentUrl(); 
+    
+   
         // За да не влезе в безкраен цикъл, да не вика себе си
         if (strtolower($cUrl['Ctr']) == 'cms_content') {
-            
+
             return $cUrl;
         }
-
-        if($cUrl['Ctr'] && cls::existsMethod($cUrl['Ctr'], 'getShortUrl')) {
-            $man = cls::get($cUrl['Ctr']);
-            $cUrl = $man->getShortUrl($cUrl);
+        
+        if(!$cUrl['Ctr']) {
+            $query = self::getQuery();
+            $domainId = cms_Domains::getPublicDomain('id');
+            $query->where("#state = 'active' AND #domainId = {$domainId}");
+            $query->orderBy("#order");
+            
+            $rec = $query->fetch();
+            if($rec) {
+                $cUrl = self::getContentUrl($rec); 
+                // Преобразуваме от поредни към именовани параметри
+                if(isset($cUrl[0]) && !isset($cUrl['Ctr'])) {
+                    $cUrl['Ctr'] = $cUrl[0];
+                }
+                if(isset($cUrl[1]) && !isset($cUrl['Act'])) {
+                    $cUrl['Act'] = $cUrl[1];
+                }
+                if(isset($cUrl[2]) && !isset($cUrl['id'])) {
+                    $cUrl['id'] = $cUrl[2];
+                }
+            }
         }
  
+        if($cUrl['Ctr'] && cls::existsMethod($cUrl['Ctr'], 'getShortUrl')) {
+            $man = cls::get($cUrl['Ctr']); 
+            $cUrl = $man->getShortUrl($cUrl);
+        }
+
         return $cUrl;
     }
     
@@ -478,9 +502,9 @@ class cms_Content extends core_Manager
         
         Mode::set('cMenuId', $menuId);
         
-        if ($rec && ($content = $this->getContentUrl($rec))) {
-    
-            return Request::forward($content);
+        if ($rec && ($url = $this->getContentUrl($rec))) {
+ 
+            return Request::forward($url);
         } else {
 
             return new Redirect(array('bgerp_Portal', 'Show'));
