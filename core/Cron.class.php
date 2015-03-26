@@ -477,7 +477,7 @@ class core_Cron extends core_Manager
      * 
      * return boolean
      */
-    static function addOnce($rec)
+    static function addOnce($rec, $force = FALSE)
     {
         
         if(is_array($rec)) {

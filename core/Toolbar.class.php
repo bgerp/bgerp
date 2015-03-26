@@ -114,6 +114,20 @@ class core_Toolbar extends core_BaseClass
     
     
     /**
+     * Преименува заглавието на бутона
+     * 
+     * @param string $id - ид на бутона
+     * @param string $name - новото му име
+     * @return void
+     */
+    function renameBtn($id, $name)
+    {
+    	expect($this->buttons[$id]);
+    	$this->buttons[$id]->title = $name;
+    }
+    
+    
+    /**
      * Премахва посочения бутон/бутони в полето $ids
      * Запазва бутоните посочени в $remains 
      */

@@ -764,6 +764,9 @@ class log_Documents extends core_Manager
                 // Ако е върнато
                 case !empty($row->returnedOn):
                     $stateClass = 'state-stopped';
+                    
+                    // На върнатите имейли целият ред да е оцветен
+                    $row->ROW_ATTR['class'] = "row-state-returned";
                     break;
                 
             }
@@ -2437,34 +2440,40 @@ class log_Documents extends core_Manager
     				'author' => $docRow->author,
     				'lastUsedOn' => dt::now(),);
     	
-    	$rec = static::fetch("#containerId = '{$uRec->containerId}' AND #action = '{$action}'");
-       	if (!$rec) {
-           // Създаваме обект с данни
-           $rec = (object)array(
-                 'action' => $action,
-                 'containerId' => $uRec->containerId,
-                 'threadId' => $uRec->threadId,
-                 'data' => new stdClass(),
-           );    
-        }
-        
-        if($isRejected){
-        	
-        	// При оттегляне се изтрива записа от лога
-        	$msg = static::removeUsed($rec, $inClass);
-        } else {
-        	
-        	// При активация/възстановяване се вкарва запис в лога
-        	$rec->data->{$action}[] = $inClass;
-        	$msg = tr("Използван документ|*: ") . doc_Containers::getDocTitle($rec->containerId);
-        }
-        
-        // Пушваме съответното действие
-        static::pushAction($rec);
-		
-        // Съобщение в лога
-        core_Logs::add('doc_Containers', $rec->containerId, $msg, LOG_DOCUMENTS_DAYS);
-        
+    	$query = static::getQuery();
+    	$query->where("#containerId = '{$uRec->containerId}' AND #action = '{$action}'");
+    	$allRecs = $query->fetchAll();
+    	if(!count($allRecs)){
+    			
+    			// Създаваме обект с данни
+    			$allRecs[] = (object)array(
+    					'action' => $action,
+    					'containerId' => $uRec->containerId,
+    					'threadId' => $uRec->threadId,
+    					'data' => new stdClass(),
+    			);
+    	}
+    	
+    	foreach ($allRecs as $rec){
+    		
+    		if($isRejected){
+    			 
+    			// При оттегляне се изтрива записа от лога
+    			$msg = static::removeUsed($rec, $inClass);
+    		} else {
+    			 
+    			// При активация/възстановяване се вкарва запис в лога
+    			$rec->data->{$action}[] = $inClass;
+    			$msg = tr("Използван документ|*: ") . doc_Containers::getDocTitle($rec->containerId);
+    		}
+    		
+    		// Пушваме съответното действие
+    		static::pushAction($rec);
+    		
+    		// Съобщение в лога
+    		core_Logs::add('doc_Containers', $rec->containerId, $msg, LOG_DOCUMENTS_DAYS);
+    	}
+    	
         return $rec;
     }
     

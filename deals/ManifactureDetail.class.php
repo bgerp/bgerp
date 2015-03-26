@@ -29,7 +29,7 @@ abstract class deals_ManifactureDetail extends doc_Detail
 	public function setDetailFields($mvc)
 	{
 		$mvc->FLD('classId', 'class(interface=cat_ProductAccRegIntf, select=title)', 'caption=Мениджър,silent,input=hidden');
-		$mvc->FLD('productId', 'int', 'caption=Продукт,notNull,mandatory', 'tdClass=large-field leftCol wrap,silent,removeAndRefreshForm=quantity|measureId');
+		$mvc->FLD('productId', 'int', 'caption=Продукт,notNull,mandatory', 'tdClass=large-field leftCol wrap,silent,removeAndRefreshForm=quantity|measureId|packagingId');
 		$mvc->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка','tdClass=small-field');
 		$mvc->FNC('packQuantity', 'double(Min=0)', 'caption=К-во,input=input,mandatory');
 		$mvc->FLD('quantityInPack', 'double(smartRound)', 'input=none,notNull,value=1');
@@ -103,6 +103,9 @@ abstract class deals_ManifactureDetail extends doc_Detail
 			$form->setField('quantity', "unit={$shortName}");
 			
 			$packs = cls::get($rec->classId)->getPacks($rec->productId);
+			if(isset($rec->packagingId) && !isset($packs[$rec->packagingId])){
+				$packs[$rec->packagingId] = cat_Packagings::getTitleById($rec->packagingId, FALSE);
+			}
 			if(count($packs)){
 				$form->setOptions('packagingId', $packs);
 			} else {

@@ -110,7 +110,7 @@
                     <!--ET_END dealer-->
                 </table>	          
 	       </td>
-	       <td> 
+	       <td colspan ='2'> 
 		       <table>
 		          <!--ET_BEGIN storeId-->
 	               <tr>

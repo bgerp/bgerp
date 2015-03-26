@@ -49,27 +49,21 @@ class price_GroupOfProducts extends core_Detail
     
     
     /**
-     * Кой може да го прочете?
-     */
-    var $canRead = 'powerUser';
-    
-    
-    /**
      * Кой може да го промени?
      */
-    var $canEdit = 'powerUser';
+    var $canEdit = 'price,ceo';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'powerUser';
+    var $canAdd = 'price,ceo';
     
         
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'powerUser';
+    var $canDelete = 'price,ceo';
     
     
     /**
@@ -171,6 +165,12 @@ class price_GroupOfProducts extends core_Detail
             if($rec->validFrom <= dt::verbal2mysql()) {
                 $requiredRoles = 'no_one';
             }
+        }
+        
+        if(($action == 'add' || $action == 'add' || $action == 'delete') && isset($rec->productId)){
+        	if(cat_Products::fetchField($rec->productId, 'state') != 'active'){
+        		$requiredRoles = 'no_one';
+        	}
         }
     }
     
@@ -366,7 +366,7 @@ class price_GroupOfProducts extends core_Detail
        	}
        	$this->invoke('AfterPrepareListRows', array($data));
        	
-        if(cat_Products::haveRightFor('edit', $data->masterId)){
+        if($this->haveRightFor('add', (object)array('productId' => $data->masterId))){
         	 $pInfo = cat_Products::getProductInfo($data->masterId);
         	 if(isset($pInfo->meta['canSell'])){
         	 	$data->addUrl = array('price_GroupOfProducts', 'add', 'productId' => $data->masterId, 'ret_url' => TRUE);

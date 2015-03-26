@@ -72,6 +72,18 @@ class type_UserOrRole extends type_User
             $group->group = TRUE;
             $this->options['roles'] = $group;
             
+            // Ако има права за избор на цялата система, добавяме съответния избор
+            if (haveRole($this->params['rolesForAllSysTeam'])) {
+                
+                $allSysTeam = self::getAllSysTeamId();
+                
+                $roleObj = new stdClass();
+                $roleObj->title = tr("За всички потребители");
+                $roleObj->value = $allSysTeam;
+                $roleObj->attr = array('clas' => 'all-sys-team');
+                $this->options['r_' . 'allSysTeam'] = $roleObj;
+            }
+            
             // Вземаме всички роли
             $rQuery = core_Roles::getQuery();
             
@@ -86,18 +98,6 @@ class type_UserOrRole extends type_User
                 $roleObj->id = $rec->id;
                 $roleObj->value = self::getSysRoleId($rec->id);
                 $this->options['r_' . $rec->id] = $roleObj;
-            }
-            
-            // Ако има права за избор на цялата система, добавяме съответния избор
-            if (haveRole($this->params['rolesForAllSysTeam'])) {
-                
-                $allSysTeam = self::getAllSysTeamId();
-                
-                $roleObj = new stdClass();
-                $roleObj->title = tr("Цялата система");
-                $roleObj->value = $allSysTeam;
-                $roleObj->attr = array('clas' => 'all-sys-team');
-                $this->options['r_' . 'allSysTeam'] = $roleObj;
             }
         }
         

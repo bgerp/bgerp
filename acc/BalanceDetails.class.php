@@ -672,10 +672,10 @@ class acc_BalanceDetails extends core_Detail
         	$nOptions = array();
         	$iQuery = acc_Items::getQuery();
         	$iQuery->in('id', $options);
-        	$iQuery->show('id,title');
+        	$iQuery->show('id,titleNum');
         	
         	while($iRec = $iQuery->fetch()){
-        		$nOptions[$iRec->id] = $iRec->title;
+        		$nOptions[$iRec->id] = $iRec->titleNum;
         	}
         	
         	$options = $nOptions;

@@ -313,11 +313,11 @@ class sales_Sales extends deals_DealMaster
 	        }
 	        
     		if(sales_Proformas::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
-	    		$data->toolbar->addBtn("Проформа", array('sales_Proformas', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), 'row=2,ef_icon=img/16/invoice.png,title=Създаване на проформа,order=9.9992');
+	    		$data->toolbar->addBtn("Проформа", array('sales_Proformas', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), 'row=2,ef_icon=img/16/invoice.png,title=Създаване на нова проформа фактура,order=9.9992');
 		    }
 	    	
 	        if(sales_Invoices::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
-	    		$data->toolbar->addBtn("Фактура", array('sales_Invoices', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), 'ef_icon=img/16/invoice.png,title=Създаване на фактура,order=9.9993');
+	    		$data->toolbar->addBtn("Фактура", array('sales_Invoices', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), 'ef_icon=img/16/invoice.png,title=Създаване на нова фактура,order=9.9993');
 		    }
 		    
 		    if(cash_Pko::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
@@ -558,7 +558,7 @@ class sales_Sales extends deals_DealMaster
         $rec->controller = "sales_Sales";
         $rec->action = "CloseOldSales";
         $rec->period = 180;
-        $rec->offset = 0;
+        $rec->offset = mt_rand(0,30);
         $rec->delay = 0;
         $rec->timeLimit = 100;
         $res .= core_Cron::addOnce($rec);
@@ -570,7 +570,7 @@ class sales_Sales extends deals_DealMaster
         $rec2->controller = "sales_Sales";
         $rec2->action = "CheckSalesPayments";
         $rec2->period = 60;
-        $rec2->offset = 0;
+        $rec2->offset = mt_rand(0,30);
         $rec2->delay = 0;
         $rec2->timeLimit = 100;
         $res .= core_Cron::addOnce($rec2);

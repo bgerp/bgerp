@@ -1283,7 +1283,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	$query->where("#amountBl BETWEEN -{$tolerance} AND {$tolerance}");
     	 
     	// Ако трябва да се фактурират и са доставеното - фактурираното е в допустими граници
-    	$query->where("#makeInvoice = 'yes' AND #toInvoice BETWEEN -{$tolerance} AND {$tolerance}");
+    	$query->where("(#makeInvoice = 'yes' || #makeInvoice IS NULL) AND #toInvoice BETWEEN -{$tolerance} AND {$tolerance}");
     	 
     	// Или не трябва да се фактурират
     	$query->orWhere("#makeInvoice = 'no'");
@@ -1424,6 +1424,7 @@ abstract class deals_DealMaster extends deals_DealBase
      * 		o $fields['caseId']             -  ид на каса (@see cash_Cases)
      * 		o $fields['note'] 				-  бележки за сделката
      * 		o $fields['originId'] 			-  източник на документа
+     *		o $fields['makeInvoice'] 		-  изисквали се фактура или не (yes = Да, no = Не), По дефолт 'yes'
      *
      * @return mixed $id/FALSE - ид на запис или FALSE
      */
@@ -1496,6 +1497,11 @@ abstract class deals_DealMaster extends deals_DealBase
     		$fields['chargeVat'] = ($contragentClass::shouldChargeVat($contragentId)) ? 'yes' : 'no';
     	}
     	 
+    	// Ако не е подадено да се начислявали ддс, определяме от контрагента
+    	if(empty($fields['makeInvoice'])){
+    		$fields['makeInvoice'] = 'yes';
+    	}
+    	
     	// Състояние на плащането, чакащо
     	$fields['paymentState'] = 'pending';
     	

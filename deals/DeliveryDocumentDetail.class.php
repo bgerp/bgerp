@@ -69,7 +69,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 		expect(count($products));
 			
 		if (empty($rec->id)) {
-			$data->form->setField('productId', "removeAndRefreshForm=packPrice|discount");
+			$data->form->setField('productId', "removeAndRefreshForm=packPrice|discount|packagingId");
 			$data->form->setOptions('productId', array('' => ' ') + $products);
 		} else {
 			$data->form->setOptions('productId', array($rec->productId => $products[$rec->productId]));
@@ -107,6 +107,9 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 			if($form->getField('packagingId', FALSE)){
 				
 				$packs = $ProductMan->getPacks($rec->productId);
+				if(isset($rec->packagingId) && !isset($packs[$rec->packagingId])){
+					$packs[$rec->packagingId] = cat_Packagings::getTitleById($rec->packagingId, FALSE);
+				}
 				if(count($packs)){
 					$form->setOptions('packagingId', $packs);
 				} else {

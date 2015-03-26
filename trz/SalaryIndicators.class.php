@@ -318,7 +318,7 @@ class trz_SalaryIndicators extends core_Manager
         $rec->controller = "trz_SalaryIndicators";
         $rec->action = "Indicators";
         $rec->period = 3*60;
-        $rec->offset = 0;
+        $rec->offset = mt_rand(0,60);
         $res .= core_Cron::addOnce($rec);
     }
 }

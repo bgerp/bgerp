@@ -71,7 +71,7 @@ abstract class deals_DealDetail extends doc_Detail
     public static function getDealDetailFields(&$mvc)
     {
     	$mvc->FLD('classId', 'class(interface=cat_ProductAccRegIntf, select=title)', 'caption=Мениджър,silent,input=hidden');
-    	$mvc->FLD('productId', 'int', 'caption=Продукт,notNull,mandatory', 'tdClass=large-field leftCol wrap,removeAndRefreshForm=packPrice|discount|uomId');
+    	$mvc->FLD('productId', 'int', 'caption=Продукт,notNull,mandatory', 'tdClass=large-field leftCol wrap,removeAndRefreshForm=packPrice|discount|uomId|packagingId');
     	$mvc->FLD('uomId', 'key(mvc=cat_UoM, select=shortName)', 'caption=Мярка,input=none');
     	$mvc->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка', 'tdClass=small-field');
     	
@@ -212,11 +212,16 @@ abstract class deals_DealDetail extends doc_Detail
     		
     		$vat = cls::get($rec->classId)->getVat($rec->productId, $masterRec->valior);
     		$packs = $ProductMan->getPacks($rec->productId);
+    		if(isset($rec->packagingId) && !isset($packs[$rec->packagingId])){
+    			$packs[$rec->packagingId] = cat_Packagings::getTitleById($rec->packagingId, FALSE);
+    		}
+    		
     		if(count($packs)){
     			$form->setOptions('packagingId', $packs);
     		} else {
     			$form->setReadOnly('packagingId');
     		}
+    		
     		$uomName = cat_UoM::getTitleById($productInfo->productRec->measureId);
     		$form->setField('packagingId', "placeholder={$uomName}");
     	

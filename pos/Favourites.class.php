@@ -32,7 +32,7 @@ class pos_Favourites extends core_Manager {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт, productId, pack=Мярка/Опаковка, pointId, catId, image, createdOn, createdBy, state';
+    var $listFields = 'tools=Пулт, productId, pack=Мярка/Опаковка, pointId, catId, createdOn, createdBy, state';
     
     
     /**
@@ -111,8 +111,16 @@ class pos_Favourites extends core_Manager {
     {
     	if(isset($form->rec->productId)){
     		$ProductMan = cls::get('cat_Products');
-    		$form->setOptions('packagingId', $ProductMan->getPacks($form->rec->productId));
-    		unset($form->getFieldType('packagingId')->params['allowEmpty']);
+    		
+    		$packs = $ProductMan->getPacks($form->rec->productId);
+    		if(isset($form->rec->packagingId) && !isset($packs[$form->rec->packagingId])){
+    			$packs[$form->rec->packagingId] = cat_Packagings::getTitleById($form->rec->packagingId, FALSE);
+    		}
+    		if(count($packs)){
+    			$form->setOptions('packagingId', $packs);
+    		} else {
+    			$form->setReadOnly('packagingId');
+    		}
     	
     		// Само при рефреш слагаме основната опаковка за дефолт
     		if($form->cmd == 'refresh'){

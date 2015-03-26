@@ -45,14 +45,14 @@ class sales_Invoices extends deals_InvoiceMaster
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, acc_plg_Contable, plg_ExportCsv, doc_DocumentPlg, bgerp_plg_Export,
-					doc_EmailCreatePlg, doc_plg_MultiPrint, recently_Plugin, bgerp_plg_Blank, plg_Printing, cond_plg_DefaultValues,deals_plg_DpInvoice,
+					doc_EmailCreatePlg, doc_plg_MultiPrint, crm_plg_UpdateContragentData, recently_Plugin, bgerp_plg_Blank, plg_Printing, cond_plg_DefaultValues,deals_plg_DpInvoice,
                     doc_plg_HidePrices, doc_plg_TplManager, acc_plg_DocumentSummary, plg_Search';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, number, date, place, folderId, dealValue, vatAmount, type, paymentType';
+    public $listFields = 'id, number, date, place, folderId, dealValue, vatAmount, type';
     
     
     /**
@@ -152,8 +152,22 @@ class sales_Invoices extends deals_InvoiceMaster
     		'contragentPlace'     => 'clientData|lastDocUser|lastDoc',
     		'contragentAddress'   => 'clientData|lastDocUser|lastDoc',
     		'accountId'           => 'lastDocUser|lastDoc',
+    		'paymentType' 		  => 'lastDocUser|lastDoc',
     		'template' 		      => 'lastDocUser|lastDoc|LastDocSameCuntry',
     		'numlimit'			  => 'lastDocUser|lastDoc',
+    );
+    
+    
+    /**
+     * Кои полета ако не са попълнени във визитката на контрагента да се попълнят след запис
+     */
+    public static $updateContragentdataField = array(
+    				    'vatId'   => 'contragentVatNo',
+    				    'uicId'   => 'uicNo',
+    					'egn'     => 'uicNo',
+    					'pCode'   => 'contragentPCode',
+		    		    'place'   => 'contragentPlace',
+		    		    'address' => 'contragentAddress',
     );
     
     
@@ -172,6 +186,11 @@ class sales_Invoices extends deals_InvoiceMaster
     	$this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 'caption=Статус, input=none,export=Csv');
         $this->FLD('type', 'enum(invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие)', 'caption=Вид, input=hidden');
         
+        $conf = core_Packs::getConfig('sales');
+        if($conf->SALE_INV_HAS_FISC_PRINTERS == 'yes'){
+        	$this->FLD('paymentType', 'enum(cash=В брой,bank=По банка)', 'mandatory,caption=Плащане->Начин,before=accountId');
+        }
+        
         $this->setDbUnique('number');
     }
 	
@@ -183,10 +202,10 @@ class sales_Invoices extends deals_InvoiceMaster
     {
     	$tplArr = array();
     	$tplArr[] = array('name' => 'Фактура нормален изглед', 'content' => 'sales/tpl/InvoiceHeaderNormal.shtml', 'lang' => 'bg');
-    	$tplArr[] = array('name' => 'Фактура изглед за писмо', 'content' => 'sales/tpl/InvoiceHeaderLetter.shtml', 'lang' => 'bg');
     	$tplArr[] = array('name' => 'Фактура кратък изглед', 'content' => 'sales/tpl/InvoiceHeaderNormalShort.shtml', 'lang' => 'bg');
-        $tplArr[] = array('name' => 'Фактура с цени във евро', 'content' => 'sales/tpl/InvoiceHeaderEuro.shtml', 'lang' => 'bg');
-    	
+        $tplArr[] = array('name' => 'Invoice', 'content' => 'sales/tpl/InvoiceHeaderNormalEN.shtml', 'lang' => 'en' , 'oldName' => 'Фактурa EN');
+        $tplArr[] = array('name' => 'Invoice short', 'content' => 'sales/tpl/InvoiceHeaderShortEN.shtml', 'lang' => 'en');
+       
     	$res = '';
         $res .= doc_TplManager::addOnce($this, $tplArr);
         
@@ -201,6 +220,8 @@ class sales_Invoices extends deals_InvoiceMaster
     {
     	parent::prepareInvoiceForm($mvc, $data);
     	$form = &$data->form;
+    	$form->setField('contragentPlace', 'mandatory');
+    	$form->setField('contragentAddress', 'mandatory');
     	
     	$conf = core_Packs::getConfig('sales');
     	$options = array();
@@ -296,7 +317,11 @@ class sales_Invoices extends deals_InvoiceMaster
      public static function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
     {
     	if(!Mode::is('printing')){
-    		$tpl->replace(tr('ОРИГИНАЛ') . "/<i>ORIGINAL</i>", 'INV_STATUS');
+    		$original = 'ОРИГИНАЛ';
+    		if($data->rec->tplLang != 'bg'){
+    			$original = "<i>ORIGINAL</i>/{$original}";
+    		}
+    		$tpl->replace($original, 'INV_STATUS');
     	}
     	 
     	$tpl->push('sales/tpl/invoiceStyles.css', 'CSS');
@@ -326,7 +351,9 @@ class sales_Invoices extends deals_InvoiceMaster
     	parent::getVerbalInvoice($mvc, $rec, $row, $fields);
     	
     	if($fields['-single']){
-			$row->type .= " / <i>" . str_replace('_', " ", $rec->type) . "</i>";
+    		if($rec->tplLang != 'bg'){
+    			$row->type = "<i>" . str_replace('_', " ", $rec->type) . "</i> / {$row->type}";
+    		}
     		
     		if($rec->accountId){
     			$Varchar = cls::get('type_Varchar');
@@ -461,9 +488,14 @@ class sales_Invoices extends deals_InvoiceMaster
      * @param core_ET $copyTpl - копие за рендиране
      * @param int $copyNum - пореден брой на копието за принтиране
      */
-    public static function on_AfterRenderPrintCopy($mvc, &$copyTpl, $copyNum)
+    public static function on_AfterRenderPrintCopy($mvc, &$copyTpl, $copyNum, $rec)
     {
-    	$inv_status = ($copyNum == '1') ? tr('ОРИГИНАЛ') . "/<i>ORIGINAL</i>" : tr('КОПИЕ') . "/<i>COPY</i>";
+    	if($rec->tplLang == 'bg'){
+    		$inv_status = ($copyNum == '1') ?  tr('ОРИГИНАЛ') : tr('КОПИЕ');
+    	} else {
+    		$inv_status = ($copyNum == '1') ?  "<i>ORIGINAL</i>/" . tr('ОРИГИНАЛ') : "<i>COPY</i>/" . tr('КОПИЕ');
+    	}
+    	
     	$copyTpl->replace($inv_status, 'INV_STATUS');
     }
     
@@ -497,9 +529,14 @@ class sales_Invoices extends deals_InvoiceMaster
    		if(!$data->listFilter->getField('invType', FALSE)){
    			$data->listFilter->FNC('invType', 'enum(all=Всички, invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие)', 'caption=Вид,input,silent');
    		}
-   		$data->listFilter->FNC('payType', 'enum(all=Всички,cash=В брой,bank=По банка)', 'caption=Начин на плащане,input');
    		
-   		$data->listFilter->showFields .= ',payType,invType';
+   		$conf = core_Packs::getConfig('sales');
+   		if($conf->SALE_INV_HAS_FISC_PRINTERS == 'yes'){
+   			$data->listFields['paymentType'] = 'Плащане';
+   			$data->listFilter->FNC('payType', 'enum(all=Всички,cash=В брой,bank=По банка)', 'caption=Начин на плащане,input');
+   			$data->listFilter->showFields .= ",payType";
+   		}
+   		$data->listFilter->showFields .= ',invType';
    		
    		$data->listFilter->input(NULL, 'silent');
    		

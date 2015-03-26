@@ -5,7 +5,7 @@
         <div class='docBgIcon' style='[#iconStyle#];'>[#singleTitle#] <b>[#ident#]</b> ([#state#])</div>
     </div>
     <!--ET_END header-->
-    <div>|Артикул|*: [#productId#]</div>
+    <div>[#productId#]</div>
     <!--ET_BEGIN quantity-->
     <div>|За|*: [#quantity#]</div>
     <!--ET_END quantity-->

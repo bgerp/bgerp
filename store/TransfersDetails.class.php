@@ -188,11 +188,13 @@ class store_TransfersDetails extends doc_Detail
     	if($rec->productId){
     		$sProd = store_Products::fetch($rec->productId);
     		$ProductMan = cls::get($sProd->classId);
-    		$packs = $ProductMan->getPacks($sProd->productId);
     		
+    		$packs = $ProductMan->getPacks($sProd->productId);
+    		if(isset($rec->packagingId) && !isset($packs[$rec->packagingId])){
+    			$packs[$rec->packagingId] = cat_Packagings::getTitleById($rec->packagingId, FALSE);
+    		}
     		if(count($packs)){
     			$form->setOptions('packagingId', $packs);
-    			unset($form->getFieldType('packagingId')->params['allowEmpty']);
     		} else {
     			$form->setReadOnly('packagingId');
     		}

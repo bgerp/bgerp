@@ -99,7 +99,7 @@ class acc_BalanceRepairDetails extends doc_Detail
      * Сметките от кои групи да могат да се показват за избор от сметкоплана
      * @var unknown
      */
-    public $selectAccountsFromByNum = '4,5,6,7';
+    public $selectAccountsFromByNum = '3,4,5,6,7';
     
     
     /**

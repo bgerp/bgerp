@@ -160,16 +160,32 @@ class hr_Positions extends core_Detail
     function preparePositions($data)
     {
         $data->TabCaption = tr('Позиции');
+        
+        if($this->haveRightFor('add', (object)array('departmentId' => $data->masterId))){
+        	$data->addUrl = array($this, 'add', 'departmentId' => $data->masterId, 'ret_url' => TRUE);
+        }
+        
         self::prepareDetail($data);
     }
+    
     
     /**
      * @todo Чака за документация...
      */
     function renderPositions($data)
     {
-        $tpl = getTplFromFile('hr/tpl/SingleLayoutPositions.shtml');
+    	$tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
+    	
+    	$tpl->append(tr('Позиции'), 'title');
+    	
+    	if ($data->addUrl) {
+    		$addBtn = ht::createLink("<img src=" . sbf('img/16/add.png') . " valign=bottom style='margin-left:5px;'>", $data->addUrl, FALSE, 'title=Добавяне на нова опаковка');
+    		$tpl->append($addBtn, 'title');
+    	}
+    	
+    	$table = cls::get('core_TableView', array('mvc' => $this));
+    	$tpl->append($table->get($data->rows, $data->listFields), 'content');
         
-        return self::renderDetail($data);
+    	return $tpl;
     }
 }

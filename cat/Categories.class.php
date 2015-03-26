@@ -80,7 +80,7 @@ class cat_Categories extends core_Master
     /**
      * Кой може да чете
      */
-    var $canRead = 'powerUser';
+    var $canRead = 'cat,ceo,sales,purchase';
     
     
     /**
@@ -104,25 +104,19 @@ class cat_Categories extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'powerUser';
+    var $canList = 'cat,ceo,sales,purchase';
     
     
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    var $canSingle = 'powerUser';
+    var $canSingle = 'cat,ceo,sales,purchase';
     
     
     /**
      * Кой може да качва файлове
      */
-    var $canWrite = 'ceo,cat';
-    
-    
-    /**
-     * Кой може да го види?
-     */
-    var $canView = 'powerUser';
+    var $canWrite = 'cat,ceo';
     
     
     /**

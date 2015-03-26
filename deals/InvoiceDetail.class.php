@@ -29,7 +29,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 	/**
 	 * Полета свързани с цени
 	 */
-	public $priceFields = 'price,amount,discount';
+	public $priceFields = 'amount,discount,packPrice';
 	
 
 	/**
@@ -51,7 +51,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 	 */
 	public static function setInvoiceDetailFields(&$mvc)
 	{
-		$mvc->FLD('productId', 'int', 'caption=Продукт','tdClass=large-field leftCol wrap,removeAndRefreshForm=packPrice|discount');
+		$mvc->FLD('productId', 'int', 'caption=Продукт','tdClass=large-field leftCol wrap,removeAndRefreshForm=packPrice|discount|packagingId');
 		$mvc->FLD('classId', 'class(interface=cat_ProductAccRegIntf, select=title)', 'caption=Мениджър,silent,input=hidden');
 		$mvc->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка','tdClass=small-field');
 		$mvc->FLD('quantity', 'double(Min=0)', 'caption=К-во,mandatory','tdClass=small-field');
@@ -297,6 +297,9 @@ abstract class deals_InvoiceDetail extends doc_Detail
 			expect($productInfo = $productRef->getProductInfo());
 			
 			$packs = $ProductMan->getPacks($rec->productId);
+			if(isset($rec->packagingId) && !isset($packs[$rec->packagingId])){
+				$packs[$rec->packagingId] = cat_Packagings::getTitleById($rec->packagingId, FALSE);
+			}
 			if(count($packs)){
 				$form->setOptions('packagingId', $packs);
 			} else {

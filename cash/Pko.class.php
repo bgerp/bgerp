@@ -34,8 +34,14 @@ class cash_Pko extends core_Master
      */
     var $loadList = 'plg_RowTools, cash_Wrapper, plg_Sorting, acc_plg_Contable,
                      doc_DocumentPlg, plg_Printing, doc_SequencerPlg,acc_plg_DocumentSummary,
-                     plg_Search,doc_plg_MultiPrint, bgerp_plg_Blank,
+                     plg_Search,doc_plg_MultiPrint, bgerp_plg_Blank, doc_plg_HidePrices,
                      bgerp_DealIntf, doc_EmailCreatePlg, cond_plg_DefaultValues';
+    
+    
+    /**
+     * Полета свързани с цени
+     */
+    public $priceFields = 'amount';
     
     
     /**

@@ -148,6 +148,7 @@ class acc_Setup extends core_ProtoSetup
             'controller' => "acc_Items",
             'action' => "DeleteUnusedItems",
             'period' => 1440,
+        	'offset' => 60,
             'timeLimit' => 100
         ),
         array(

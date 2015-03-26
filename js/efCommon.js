@@ -1926,7 +1926,7 @@ function inverseCheckBox(el){
 
 // проверява дали могат да се съберат 2 документа на една страница
 function checkForPrintBreak(maxHeightPerDoc) {
-    if ($(".print-break").height() < maxHeightPerDoc) {
+    if ($(".print-break").height() <= maxHeightPerDoc) {
         $(".print-break").addClass("print-nobreak");
     }
 }
@@ -3496,8 +3496,8 @@ function mailServerSettings() {
 			    smtpServer.value = "smtp.abv.bg:465";
 			    smtpSecure.value = "tls";
 			    smtpAuth.value = "LOGIN";
-			    user.value = userAccountt;
-			    smtpUser.value = userAccountt;
+			    user.value = email.value;
+			    smtpUser.value = email.value;
 		    	break;
 		    case "gmail.com":
 		    	server.value = "imap.gmail.com:993";
@@ -3507,8 +3507,8 @@ function mailServerSettings() {
 		    	smtpServer.value = "smtp.gmail.com:587";
 		    	smtpSecure.value = "tls";
 		    	smtpAuth.value = "LOGIN";
-		    	user.value = userAccountt;
-		    	smtpUser.value = userAccountt;
+		    	user.value = email.value;
+		    	smtpUser.value = email.value;
 		        break;
 		    case "yahoo.com":
 		    	server.value = "imap.mail.yahoo.com:993";
@@ -3518,8 +3518,8 @@ function mailServerSettings() {
 		    	smtpServer.value = "smtp.mail.yahoo.com:465";
 		    	smtpSecure.value = "ssl";
 		    	smtpAuth.value = "LOGIN";
-		    	user.value = userAccountt;
-		    	smtpUser.value = userAccountt;
+		    	user.value = email.value;
+		    	smtpUser.value = email.value;
 		        break;
 		    case "outlook.com":
 		    	server.value = "imap-mail.outlook.com:993";
@@ -3529,8 +3529,8 @@ function mailServerSettings() {
 		    	smtpServer.value = "smtp-mail.outlook.com:587";
 		    	smtpSecure.value = "tls";
 		    	smtpAuth.value = "LOGIN";
-		    	user.value = userAccountt;
-		    	smtpUser.value = userAccountt;;
+		    	user.value = email.value;
+		    	smtpUser.value = email.value;
 		        break;
 		    case "mail.bg":
 		    	server.value = " imap.mail.bg:143";
@@ -3540,8 +3540,8 @@ function mailServerSettings() {
 		    	smtpServer.value = "smtp.mail.bg:25";
 		    	smtpSecure.value = "tls";
 		    	smtpAuth.value = "LOGIN";
-		    	user.value = userAccountt;
-		    	smtpUser.value = userAccountt;
+		    	user.value = email.value;
+		    	smtpUser.value = email.value;
 		        break;
 	
 		    default:

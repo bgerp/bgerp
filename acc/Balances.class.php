@@ -198,35 +198,6 @@ class acc_Balances extends core_Master
     
     
     /**
-     * След подготовка на туклбара на списъчния изглед
-     * 
-     * @param core_Mvc $mvc
-     * @param stdClass $data
-     */
-    public static function on_AfterPrepareListToolbar($mvc, &$data)
-    {
-    	if(haveRole('admin,debug')){
-    		$data->toolbar->addBtn('Изчистване', array($mvc, 'truncate'), 'warning=Искате ли да изчистите таблицата, ef_icon=img/16/sport_shuttlecock.png, title = Изтриване на таблицата с оборотни ведомости');
-    	}
-    }
-    
-    
-    /**
-     * Изчиства записите в балансите
-     */
-    public function act_Truncate()
-    {
-    	requireRole('admin,debug');
-    	
-    	// Изчистваме записите от моделите
-    	acc_Balances::truncate();
-    	acc_BalanceDetails::truncate();
-    	
-    	Redirect(array($this, 'list'), FALSE, 'Балансите са изчистени успешно');
-    }
-    
-    
-    /**
      * Изпълнява се след подготовката на формата за филтриране
      */
     function on_AfterPrepareListFilter($mvc, $data)

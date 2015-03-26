@@ -8,7 +8,6 @@ body{
 
 #cmsMenu a {
     color:#ddd;
-    border:solid 1px #334;
     text-shadow:2px 2px 2px #000;
 }
 
@@ -62,6 +61,7 @@ body{
 }
 .wide .app-name{ 
 	top: 21%;
+	left: 2%;
 }
 @media handheld, only screen and (max-width: 600px) {
     .wide .app-name {

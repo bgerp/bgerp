@@ -77,8 +77,19 @@ abstract class store_InternalDocumentDetail extends doc_Detail
     	$currencyRate = $rec->currencyRate = currency_CurrencyRates::getRate($masterRec->valior, $masterRec->currencyId, acc_Periods::getBaseCurrencyCode($masterRec->valior));
     	
     	if($form->rec->productId){
-    		$form->setOptions('packagingId', $ProductMan->getPacks($rec->productId));
-    		unset($form->getFieldType('packagingId')->params['allowEmpty']);
+    		
+    		$packs = $ProductMan->getPacks($rec->productId);
+    		if(isset($rec->packagingId) && !isset($packs[$rec->packagingId])){
+    			$packs[$rec->packagingId] = cat_Packagings::getTitleById($rec->packagingId, FALSE);
+    		}
+    		if(count($packs)){
+    			$form->setOptions('packagingId', $packs);
+    		} else {
+    			$form->setReadOnly('packagingId');
+    		}
+    		
+    		$uomName = cat_UoM::getTitleById($ProductMan->getProductInfo($rec->productId)->productRec->measureId);
+    		$form->setField('packagingId', "placeholder={$uomName}");
     		
     		// Само при рефреш слагаме основната опаковка за дефолт
     		if($form->cmd == 'refresh'){

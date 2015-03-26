@@ -289,7 +289,7 @@ abstract class deals_ServiceMaster extends core_Master
     public function getDocumentRow($id)
     {
         expect($rec = $this->fetch($id));
-        $title = "Протокол за покупка на услуги №{$rec->id} / " . $this->getVerbal($rec, 'valior');
+        $title = "{$this->singleTitle} №{$rec->id} / " . $this->getVerbal($rec, 'valior');
         $row = (object)array(
             'title'    => $title,
             'authorId' => $rec->createdBy,

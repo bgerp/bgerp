@@ -1132,6 +1132,9 @@ td.portal-date {
 		background-color: $gray2 !important;
 		height: 20px;
 	}
+	.custom-header-bg b {
+	   background-color: $gray2 !important;
+	}
 	.listTable .numericElement {
 	   text-align: right;
 	   display: inline-block;
@@ -1604,6 +1607,7 @@ table.mc-header a {
     position: relative;
     display: inline-block;
     border: 0 none;
+    right: 13px;
     top: -8px;
 }
  
@@ -1617,7 +1621,7 @@ table.mc-header a {
     width: 29px;
     font-size: 1em;
     line-height: 34px;
-    left: 100px;
+    left: 80px;
      
     -webkit-pointer-events: none;
     -moz-pointer-events: none;
@@ -1630,7 +1634,7 @@ table.mc-header a {
 	.metro-dropdown-portal::after
 	{
 	   width: 20px;
-	   left: 112px;
+	   left: 110px;
 	}
 }
 
@@ -2022,8 +2026,9 @@ fieldset.sharing-history {
 	position: relative;
 }
 
-#cmsTop, .headerImg {
+#cmsTop,  #cmsTop img{
 	display: block;
+	border-radius: 10px 10px 0 0;
 }
 
 #cmsMenu {
@@ -3362,8 +3367,8 @@ div.location.public {
 }
 
 .wide .app-name{
-    left: 2%;
-    bottom: 1%;
+    left: 3%;
+    bottom: 3%;
     font-size: 8.5em;
     text-shadow: 1px 1px 4px rgba(0,0,0,0.6);
     

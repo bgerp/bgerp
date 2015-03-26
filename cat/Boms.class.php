@@ -2,7 +2,7 @@
 
 
 /**
- * Мениджър за технологични карти (Рецепти)
+ * Мениджър за технологични рецепти на артикули
  *
  *
  * @category  bgerp
@@ -37,7 +37,7 @@ class cat_Boms extends core_Master
     /**
      * Неща, подлежащи на начално зареждане
      */
-    var $loadList = 'plg_RowTools, cat_Wrapper, plg_Sorting, doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, doc_ActivatePlg, plg_Search';
+    var $loadList = 'plg_RowTools, cat_Wrapper, doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, doc_ActivatePlg, plg_Search';
     
     
     /**
@@ -79,7 +79,7 @@ class cat_Boms extends core_Master
     /**
      * Икона на единичния изглед
      */
-    var $singleIcon = 'img/16/legend.png';
+    var $singleIcon = 'img/16/article.png';
     
     
     /**
@@ -98,12 +98,6 @@ class cat_Boms extends core_Master
      * Кой може да пише?
      */
     var $canWrite = 'cat,ceo';
-    
-    
-    /**
-     * Кой може да го контира?
-     */
-    var $canConto = 'cat,ceo';
     
     
     /**
@@ -137,6 +131,12 @@ class cat_Boms extends core_Master
     
     
     /**
+     * Записи за обновяване
+     */
+    protected $updated = array();
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -147,6 +147,55 @@ class cat_Boms extends core_Master
     	$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden,silent');
     	
     	$this->setDbIndex('productId');
+    }
+    
+    
+    /**
+     * Добавя ключови думи за пълнотекстово търсене
+     */
+    public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+    {
+    	if($rec->id){
+    		$detailsKeywords = '';
+    		
+    		// Добавяме данни от детайла към ключовите думи на документа
+    		$dQuery = cat_BomDetails::getQuery();
+    		$dQuery->where("#bomId = '{$rec->id}'");
+    		while($dRec = $dQuery->fetch()){
+    			$detailsKeywords .= " " . plg_Search::normalizeText(planning_Resources::getTitleById($dRec->resourceId));
+    			if($dRec->stageId){
+    				$detailsKeywords .= " " . plg_Search::normalizeText(planning_Stages::getTitleById($dRec->stageId));
+    			}
+    		}
+    		
+    		$res = " " . $res . " " . $detailsKeywords;
+    	}
+    }
+    
+    
+    /**
+     * След промяна в детайлите на обект от този клас
+     */
+    public static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
+    {
+    	// Запомняне кои документи трябва да се обновят
+    	if(!empty($id)){
+    		$mvc->updated[$id] = $id;
+    	}
+    }
+    
+    
+    /**
+     * След изпълнение на скрипта, обновява записите, които са за ъпдейт
+     */
+    public static function on_Shutdown($mvc)
+    {
+    	if(count($mvc->updated)){
+    		foreach ($mvc->updated as $id) {
+    			$rec = $mvc->fetchRec($id);
+    			$mvc->save($rec);
+    		}
+    	}
     }
     
     

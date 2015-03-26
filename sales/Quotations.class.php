@@ -46,7 +46,7 @@ class sales_Quotations extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, doc_EmailCreatePlg, acc_plg_DocumentSummary, plg_Search, doc_plg_HidePrices, doc_plg_TplManager,
-                    doc_DocumentPlg, plg_Printing, doc_ActivatePlg, plg_Clone, bgerp_plg_Blank, doc_plg_BusinessDoc, cond_plg_DefaultValues';
+                    doc_DocumentPlg, plg_Printing, doc_ActivatePlg, crm_plg_UpdateContragentData, plg_Clone, bgerp_plg_Blank, doc_plg_BusinessDoc, cond_plg_DefaultValues';
        
     
     /**
@@ -77,6 +77,12 @@ class sales_Quotations extends core_Master
      * Кой има право да добавя?
      */
     public $canAdd = 'ceo,sales';
+    
+    
+    /**
+     * Кой има право да добавя?
+     */
+    public $canWrite = 'ceo,sales';
     
     
     /**
@@ -156,6 +162,19 @@ class sales_Quotations extends core_Master
     	'place' 		  => 'lastDocUser|lastDoc|clientData',
     	'address' 		  => 'lastDocUser|lastDoc|clientData',
     	'template' 		  => 'lastDocUser|lastDoc|LastDocSameCuntry',
+    );
+    
+    
+    /**
+     * Кои полета ако не са попълнени във визитката на контрагента да се попълнят след запис
+     */
+    public static $updateContragentdataField = array(
+				    		    'email'   => 'email',
+				    			'tel'     => 'tel',
+				    			'fax'     => 'fax',
+				    			'pCode'   => 'pCode',
+				    			'place'   => 'place',
+				    			'address' => 'address',
     );
     
     
@@ -482,6 +501,7 @@ class sales_Quotations extends core_Master
     protected static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec, $userId)
     {
     	if($res == 'no_one') return;
+    	
     	if($action == 'activate'){
     		if(!$rec->id) {
     			
@@ -578,7 +598,6 @@ class sales_Quotations extends core_Master
 		// Ако няма дата попълваме текущата след активиране
 		if(empty($rec->date)){
 			$rec->date = dt::today();
-			core_Statuses::newStatus('DATE');
 			$mvc->save($rec, 'date');
 		}
     }

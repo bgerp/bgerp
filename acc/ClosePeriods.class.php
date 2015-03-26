@@ -146,6 +146,7 @@ class acc_ClosePeriods extends core_Master
     function description()
     {
     	$this->FLD("periodId", 'key(mvc=acc_Periods, select=title, allowEmpty)', 'caption=Период,mandatory,silent');
+    	
     	$this->FLD("amountFromInvoices", 'double(decimals=2)', 'input=none,caption=ДДС от фактури с касови бележки');
     	$this->FLD("amountVatGroup1", 'double(decimals=2,min=0)', 'caption=ДДС от касов апарат->Група A,notNull,default=0');
     	$this->FLD("amountVatGroup2", 'double(decimals=2,min=0)', 'caption=ДДС от касов апарат->Група Б,notNull,default=0');
@@ -182,10 +183,18 @@ class acc_ClosePeriods extends core_Master
     	$data->form->setDefault('valior', dt::today());
     	
     	if(isset($data->form->rec->periodId)){
-    		$pTo = acc_Periods::fetchField($data->form->rec->periodId, 'end');
-    		$baseCurrencyCode = acc_Periods::getBaseCurrencyCode($pTo);
-    		foreach (range(1, 4) as $i){
-    			$data->form->setField("amountVatGroup{$i}", "unit={$baseCurrencyCode}");
+    		$conf = core_Packs::getConfig('sales');
+    		if($conf->SALE_INV_HAS_FISC_PRINTERS == 'yes'){
+    			$pTo = acc_Periods::fetchField($data->form->rec->periodId, 'end');
+    			$baseCurrencyCode = acc_Periods::getBaseCurrencyCode($pTo);
+    			foreach (range(1, 4) as $i){
+    				$data->form->setField("amountVatGroup{$i}", "unit={$baseCurrencyCode}");
+    			}
+    		} else {
+    			$data->form->setField("amountVatGroup1", 'input=none');
+    			$data->form->setField("amountVatGroup2", 'input=none');
+    			$data->form->setField("amountVatGroup3", 'input=none');
+    			$data->form->setField("amountVatGroup4", 'input=none');
     		}
     	}
     }
@@ -205,13 +214,17 @@ class acc_ClosePeriods extends core_Master
     			$form->setError("periodId", "Има вече активиран/чернова документ за избрания период");
     		}
     		
-    		// От избрания период извличаме сумата на фактурите с касова бележка
-    		$periodRec = acc_Periods::fetch($rec->periodId);
-    		$rec->amountFromInvoices = sales_Invoices::getVatAmountInCash($periodRec->start, $periodRec->end);
-    		
-    		$total = $rec->amountVatGroup1 + $rec->amountVatGroup2 + $rec->amountVatGroup3 + $rec->amountVatGroup4;
-    		if($total < $rec->amountFromInvoices){
-    			$form->setWarning('amountVatGroup1,amountVatGroup2,amountVatGroup3,amountVatGroup4', "|ДДС по ф-ри в брой|* '{$rec->amountFromInvoices}', |е по-голямо от ДДС по касов апарат|*");
+    		$conf = core_Packs::getConfig('sales');
+    		if($conf->SALE_INV_HAS_FISC_PRINTERS == 'yes'){
+    			
+    			// От избрания период извличаме сумата на фактурите с касова бележка
+    			$periodRec = acc_Periods::fetch($rec->periodId);
+    			$rec->amountFromInvoices = sales_Invoices::getVatAmountInCash($periodRec->start, $periodRec->end);
+    			
+    			$total = $rec->amountVatGroup1 + $rec->amountVatGroup2 + $rec->amountVatGroup3 + $rec->amountVatGroup4;
+    			if($total < $rec->amountFromInvoices){
+    				$form->setWarning('amountVatGroup1,amountVatGroup2,amountVatGroup3,amountVatGroup4', "|ДДС по ф-ри в брой|* '{$rec->amountFromInvoices}', |е по-голямо от ДДС по касов апарат|*");
+    			}
     		}
     	}
     }

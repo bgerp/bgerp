@@ -440,7 +440,7 @@ class core_Roles extends core_Manager
     {
         if ($cond === 0) {
             $res = new stdClass();
-            $res->name = 'Цялата система';
+            $res->name = 'За всички потребители';
             $res->id = 0;
         } else {
             $res = parent::fetch($cond, $fields, $cache);

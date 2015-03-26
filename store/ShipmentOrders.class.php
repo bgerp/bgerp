@@ -183,7 +183,14 @@ class store_ShipmentOrders extends store_DocumentMaster
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = NULL)
     {
-    	$row->deliveryTo = $row->pCode . " " . $row->place;
+    	if($row->pCode){
+    		$row->deliveryTo .= $row->pCode;
+    	}
+    	
+    	if($row->pCode){
+    		$row->deliveryTo .= " " . $row->place;
+    	}
+    	
     	foreach(array('address', 'company', 'person', 'tel') as $fld){
     		if(!empty($rec->$fld)){
     			$row->deliveryTo .= ", {$row->$fld}";
@@ -283,11 +290,8 @@ class store_ShipmentOrders extends store_DocumentMaster
     	$tplArr[] = array('name' => 'Packing list with Declaration',
     					  'content' => 'store/tpl/SingleLayoutPackagingListDec.shtml', 'lang' => 'en', 'oldName' => 'Packaging list',
     					  'toggleFields' => array('masterFld' => NULL, 'store_ShipmentOrderDetails' => 'info,packagingId,packQuantity,weight,volume'));
-    	$tplArr[] = array('name' => 'Експедиционно нареждане с цени в евро', 
-    					  'content' => 'store/tpl/SingleLayoutShipmentOrderEuro.shtml', 'lang' => 'bg',
-    					  'toggleFields' => array('masterFld' => NULL, 'store_ShipmentOrderDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
     	
-        $res .= doc_TplManager::addOnce($this, $tplArr);
+    	$res .= doc_TplManager::addOnce($this, $tplArr);
     }
      
      

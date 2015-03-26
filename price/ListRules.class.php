@@ -68,19 +68,19 @@ class price_ListRules extends core_Detail
     /**
      * Кой може да го прочете?
      */
-    var $canRead = 'powerUser';
+    var $canRead = 'ceo,price';
     
     
     /**
      * Кой може да го промени?
      */
-    var $canEdit = 'powerUser';
+    var $canEdit = 'ceo,price';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'powerUser';
+    var $canAdd = 'ceo,price';
     
     
     /**
@@ -460,6 +460,12 @@ class price_ListRules extends core_Detail
                 $requiredRoles = 'no_one';
             }
         }
+        
+        if(($action == 'add' || $action == 'add' || $action == 'delete') && isset($rec->productId)){
+        	if(cat_Products::fetchField($rec->productId, 'state') != 'active'){
+        		$requiredRoles = 'no_one';
+        	}
+        }
     }
 
 
@@ -629,7 +635,7 @@ class price_ListRules extends core_Detail
 		
 		// Може да се добавя нова себестойност, ако продукта е в група и може да се променя
 		if(price_GroupOfProducts::getGroup($pRec->id, dt::now())){
-			if(cat_Products::haveRightFor('edit', $pRec)){
+			if($this->haveRightFor('add', (object)array('productId' => $pRec->id))){
 				$data->priceLists->addUrl = array('price_ListRules', 'add', 'type' => 'value', 
 												  'listId' => $listId, 'productId' => $pRec->id, 'ret_url' => TRUE);
 			}
@@ -653,7 +659,7 @@ class price_ListRules extends core_Detail
 	{
 		$wrapTpl = getTplFromFile('cat/tpl/ProductDetail.shtml');
 		$table = cls::get('core_TableView', array('mvc' => $this));
-		$tpl = $table->get($data->priceLists->rows, "domain=Обхват,rule=Правило,validFrom=От,validUntil=До");
+		$tpl = $table->get($data->priceLists->rows, "rule=Правило,validFrom=От,validUntil=До");
 		
 		$title = 'Себестойности';
 		if($data->priceLists->addUrl){

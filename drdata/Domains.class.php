@@ -165,7 +165,7 @@ class drdata_Domains extends core_Manager
                     'domain'       => $domain,
                     'isPublicMail' => 'cron'
                 )
-            );
+            , NULL, 'IGNORE');
             
             $stats[$success ? 'added' : 'addErros']++;
         }

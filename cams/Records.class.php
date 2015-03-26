@@ -945,7 +945,7 @@ class cams_Records extends core_Master
         $rec->controller = "cams_Records";
         $rec->action = "DeleteOldRecords";
         $rec->period = (int) 2 * $conf->CAMS_CLIP_DURATION / 60;
-        $rec->offset = 0;
+        $rec->offset = mt_rand(0,8);
         $res .= core_Cron::addOnce($rec);
     }
     

@@ -87,6 +87,7 @@ class doc_plg_HidePrices extends core_Plugin
     static function on_AfterPrepareDetail($mvc, $res, &$data)
     {
     	if(haveRole('manager,ceo,officer,sales,store,purchase,acc')) return;
+    	
     	$mvc->hidePriceFields($data);
     	
     	// Флаг да не се подготвя общата сума

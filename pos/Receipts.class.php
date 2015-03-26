@@ -243,6 +243,7 @@ class pos_Receipts extends core_Master {
     		$row->title = "{$mvc->singleTitle} №{$row->id}";
     		$row->title = ht::createLink($row->title, array($mvc, 'single', $rec->id), NULL, "ef_icon={$mvc->singleIcon}");
     	} elseif($fields['-single']){
+    		$row->title = "{$mvc->singleTitle} <b>№{$row->id}</b>";
     		$row->iconStyle = 'background-image:url("' . sbf('img/16/view.png', '') . '");';
     		$row->caseId = cash_Cases::getHyperLink(pos_Points::fetchField($rec->pointId, 'caseId'), TRUE);
     		$row->storeId = store_Stores::getHyperLink(pos_Points::fetchField($rec->pointId, 'storeId'), TRUE);
@@ -297,9 +298,10 @@ class pos_Receipts extends core_Master {
      */
 	protected static function on_AfterPrepareListToolbar($mvc, &$data)
     {
-    	if($mvc->haveRightFor('add')){
-    		$addUrl = array($mvc, 'new');
-    		$data->toolbar->buttons['btnAdd']->url = $addUrl;
+    	// Подменяме бутона за добавяне с такъв сочещ към терминала
+    	if(!empty($data->toolbar->buttons['btnAdd'])){
+    		$data->toolbar->removeBtn('btnAdd');
+    		$data->toolbar->addBtn('Нов запис', array($mvc, 'new'), 'id=btnAdd', 'ef_icon = img/16/star_2.png,title=Създаване на нов запис');
     	}
     }
     
@@ -1465,13 +1467,16 @@ class pos_Receipts extends core_Master {
     			$nRec->id = $rec->productId;
     			$nRec->managerId = cat_Products::getClassId();
     			$nRec->quantity = $rec->quantity;
-    			if($rec->discountPercent){
-    				$nRec->discount = $rec->discountPercent;
-    			}
     			$pInfo = cls::get('cat_Products')->getProductInfo($rec->productId);
     			$nRec->measure = ($rec->value) ? cat_Packagings::getTitleById($rec->value) : cat_UoM::getShortName($pInfo->productRec->measureId);
     			$nRec->vat = $rec->param;
     			$nRec->price = $rec->price;
+    			
+    			// Подаваме цената с приспадната отстъпка ако има, за да няма проблем при закръглянията
+    			if($rec->discountPercent){
+    				$nRec->price -= $nRec->price * $rec->discountPercent;
+    			}
+    			
     			$nRec->name = $pInfo->productRec->name;
     			if($pInfo->productRec){
     				$nRec->vatGroup = $pInfo->productRec->vatGroup;

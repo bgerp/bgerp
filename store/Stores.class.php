@@ -91,6 +91,12 @@ class store_Stores extends core_Master
     
     
     /**
+     * Да се показват ли в репортите нулевите редове
+     */
+    public $balanceRefShowZeroRows = TRUE;
+    
+    
+    /**
      * По кои сметки ще се правят справки
      */
     public $balanceRefAccounts = '302, 304, 305, 306, 309, 321';

@@ -93,7 +93,7 @@ class planning_Jobs extends core_Master
 	/**
 	 * Полета за търсене
 	 */
-	public $searchFields = 'folderId, productId, notes, saleId, deliveryPlace, storeId';
+	public $searchFields = 'folderId, productId, notes, saleId, deliveryPlace, storeId, deliveryTermId';
 	
 	
 	/**
@@ -111,7 +111,7 @@ class planning_Jobs extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт,title=Документ, productId=За артикул, dueDate, quantity, folderId, state, createdOn, createdBy';
+    public $listFields = 'tools=Пулт,dueDate, title=Документ, productId=За артикул, saleId, quantity, folderId, state, createdOn, createdBy, modifiedOn,modifiedBy';
     
     
     /**
@@ -177,7 +177,7 @@ class planning_Jobs extends core_Master
     			'enum(draft=Чернова, active=Активирано, rejected=Отказано, closed=Приключено, stopped=Спряно, wakeup=Събудено)',
     			'caption=Състояние, input=none'
     	);
-    	$this->FLD('saleId', 'key(mvc=sales_Sales)', 'input=hidden,silent');
+    	$this->FLD('saleId', 'key(mvc=sales_Sales)', 'input=hidden,silent,caption=Продажба');
     	
     	$this->FLD('sharedUsers', 'userList(roles=planning|ceo)', 'caption=Споделяне->Потребители,mandatory');
     	$this->FLD('history', 'blob(serialize, compress)', 'caption=Данни,input=none');
@@ -205,6 +205,7 @@ class planning_Jobs extends core_Master
     	if($form->rec->saleId){
     		$saleRec = sales_Sales::fetch($form->rec->saleId);
     		
+    		// Ако има данни от продажба, попълваме ги
     		$form->setDefault('deliveryTermId', $saleRec->deliveryTermId);
     		$form->setDefault('deliveryDate', $saleRec->deliveryTime);
     		$form->setDefault('deliveryPlace', $saleRec->deliveryLocationId);
@@ -216,6 +217,8 @@ class planning_Jobs extends core_Master
     		$form->setField('deliveryPlace', "caption={$caption}->Място");
     		$form->setField('storeId', "caption={$caption}->Склад");
     	} else {
+    		
+    		// Ако заданието не е към продажба, скриваме полетата от продажбата
     		$form->setField('deliveryTermId', 'input=none');
     		$form->setField('deliveryDate', 'input=none');
     		$form->setField('deliveryPlace', 'input=none');
@@ -254,6 +257,7 @@ class planning_Jobs extends core_Master
     {
     	$tpl->push('planning/tpl/styles.css', "CSS");
     	
+    	// Рендираме историята на действията със заданието
     	if(count($data->row->history)){
     		foreach ($data->row->history as $hRow){
     			$clone = clone $tpl->getBlock('HISTORY_ROW');
@@ -291,6 +295,7 @@ class planning_Jobs extends core_Master
     			$rec->weight = NULL;
     		}
     		
+    		// Форсираме заданието в дефолт папката според драйвера
     		$Driver = cat_Products::getDriver($rec->productId);
     		$rec->folderId = doc_UnsortedFolders::forceCoverAndFolder((object)array('name' => $Driver->getJobFolderName()));
     	}
@@ -302,9 +307,11 @@ class planning_Jobs extends core_Master
      */
     public static function on_AfterCreate($mvc, $rec)
     {
+    	// Споделяме текущия потребител със нишката на заданието
     	$cu = core_Users::getCurrent();
     	doc_ThreadUsers::addShared($rec->threadId, $rec->containerId, $cu);
     	
+    	// Записваме в историята на действията, че кога и от кого е създаден документа
     	self::addToHistory($rec->history, 'created', $rec->createdOn, $rec->createdBy);
     	$mvc->save($rec, 'history');
     }
@@ -316,13 +323,16 @@ class planning_Jobs extends core_Master
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	$row->title = $mvc->getLink($rec->id, 0);
+    	$pInfo = cat_Products::getProductInfo($rec->productId);
+    	$row->quantity .= " " . cat_UoM::getShortName($pInfo->productRec->measureId);
+    	
     	if($fields['-list']){
     		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
     		$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
     	}
     	 
     	if($rec->saleId){
-    		$row->saleId = sales_Sales::getHyperlink($rec->saleId, TRUE);
+    		$row->saleId = sales_Sales::getlink($rec->saleId, 0);
     	}
     	
     	if($fields['-single']){
@@ -331,8 +341,6 @@ class planning_Jobs extends core_Master
     			$row->storeId = store_Stores::getHyperLink($rec->storeId, TRUE);
     		}
     		
-    		$pInfo = cat_Products::getProductInfo($rec->productId);
-    		$row->quantity .= " " . cat_UoM::getShortName($pInfo->productRec->measureId);
     		$row->origin = cls::get('cat_Products')->renderJobView($rec->productId, $rec->modifiedOn);
     		
     		if($rec->state == 'stopped' || $rec->state == 'closed') {
@@ -366,7 +374,8 @@ class planning_Jobs extends core_Master
     	$row->author = $this->getVerbal($rec, 'createdBy');
     	$row->state = $rec->state;
     	$row->recTitle = $this->getRecTitle($rec);
-    
+    	$row->subTitle = $this->getVerbal($rec, 'productId');
+    	
     	return $row;
     }
 
@@ -496,12 +505,14 @@ class planning_Jobs extends core_Master
     {
     	// Подготвяме данните на историята за показване
     	$data->row->history = array();
-    	foreach($data->rec->history as $historyRec){
-    		$data->row->history[] = (object)array('date'       => cls::get('type_DateTime')->toVerbal($historyRec['date']),
-    										      'user'       => crm_Profiles::createLink($historyRec['user']),
-    										      'action'     => "<span>{$historyRec['action']}</span>",
-    										      'stateclass' => "state-{$historyRec['engaction']}"
-    		);
+    	if(count($data->rec->history)){
+    		foreach($data->rec->history as $historyRec){
+    			$data->row->history[] = (object)array('date'       => cls::get('type_DateTime')->toVerbal($historyRec['date']),
+								    				  'user'       => crm_Profiles::createLink($historyRec['user']),
+								    				  'action'     => "<span>{$historyRec['action']}</span>",
+								    				  'stateclass' => "state-{$historyRec['engaction']}"
+    			);
+    		}
     	}
     	
     	$data->row->history = array_reverse($data->row->history, TRUE);
@@ -550,7 +561,7 @@ class planning_Jobs extends core_Master
     		}
     		
     		if($rec->state == 'stopped'){
-    			$data->toolbar->addBtn("Актириране", array($mvc, 'changeState', $rec->id, 'type' => 'stop', 'ret_url' => TRUE, ), 'ef_icon = img/16/control_play.png,title=Активиране на заданието,warning=Сигурнили сте че искате да активирате заданието');
+    			$data->toolbar->addBtn("Активиране", array($mvc, 'changeState', $rec->id, 'type' => 'stop', 'ret_url' => TRUE, ), 'ef_icon = img/16/control_play.png,title=Активиране на заданието,warning=Сигурнили сте че искате да активирате заданието');
     		} elseif($rec->state == 'active' || $rec->state == 'wakeup'){
     			$data->toolbar->addBtn("Спиране", array($mvc, 'changeState', $rec->id, 'type' => 'stop', 'ret_url' => TRUE), 'ef_icon = img/16/control_pause.png,title=Спиране на заданието,warning=Сигурнили сте че искате да спрете заданието');
     		}
@@ -562,7 +573,7 @@ class planning_Jobs extends core_Master
     				$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'single', $bId, 'ret_url' => TRUE), 'ef_icon = img/16/view.png,title=Към технологичната рецепта на артикула');
     			}
     		} elseif(cat_Boms::haveRightFor('write', (object)array('productId' => $rec->productId))){
-    			$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'add', 'productId' => $rec->productId, 'originId' => $rec->containerId, 'quantity' => $rec->quantity, 'ret_url' => TRUE), 'ef_icon = img/16/legend.png,title=Създаване на нова технологична рецепта');
+    			$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'add', 'productId' => $rec->productId, 'originId' => $rec->containerId, 'quantity' => $rec->quantity, 'ret_url' => TRUE), 'ef_icon = img/16/article.png,title=Създаване на нова технологична рецепта');
     		}
     	}
     }
@@ -581,7 +592,7 @@ class planning_Jobs extends core_Master
     	
     	if($type == 'stop'){
     		expect($rec->state == 'stopped' || $rec->state == 'active' || $rec->state == 'wakeup');
-    		$state = ($rec->state == 'stopped') ? (($rec->brState) ? $rec->brState : 'active') : 'stopped';
+    		$state = ($rec->state == 'stopped') ? 'active' : 'stopped';
     	} else {
     		expect($rec->state == 'closed' || $rec->state == 'active' || $rec->state == 'wakeup');
     		$state = ($rec->state == 'closed') ? 'wakeup' : 'closed';
@@ -691,5 +702,27 @@ class planning_Jobs extends core_Master
     	$coverClass = doc_Folders::fetchCoverClassName($folderId);
     	
     	return $coverClass == 'doc_UnsortedFolders';
+    }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     */
+    protected static function on_AfterPrepareListRows($mvc, &$data)
+    {
+    	if(!count($data->recs)) return;
+    	$hideSaleCol = TRUE;
+    	
+    	foreach ($data->recs as $rec){
+    		if(isset($rec->saleId)){
+    			$hideSaleCol = FALSE;
+    			break;
+    		}
+    	}
+    	
+    	// Ако няма данни поне за една продажба, скриваме колоната
+    	if($hideSaleCol){
+    		unset($data->listFields['saleId']);
+    	}
     }
 }
