@@ -764,6 +764,9 @@ class log_Documents extends core_Manager
                 // Ако е върнато
                 case !empty($row->returnedOn):
                     $stateClass = 'state-stopped';
+                    
+                    // На върнатите имейли целият ред да е оцветен
+                    $row->ROW_ATTR['class'] = "row-state-returned";
                     break;
                 
             }
