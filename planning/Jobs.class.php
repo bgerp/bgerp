@@ -111,7 +111,7 @@ class planning_Jobs extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт,dueDate, title=Документ, productId=За артикул, saleId, quantity, folderId, state, createdOn, createdBy';
+    public $listFields = 'tools=Пулт,dueDate, title=Документ, productId=За артикул, saleId, quantity, folderId, state, createdOn, createdBy, modifiedOn,modifiedBy';
     
     
     /**
@@ -323,6 +323,9 @@ class planning_Jobs extends core_Master
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	$row->title = $mvc->getLink($rec->id, 0);
+    	$pInfo = cat_Products::getProductInfo($rec->productId);
+    	$row->quantity .= " " . cat_UoM::getShortName($pInfo->productRec->measureId);
+    	
     	if($fields['-list']){
     		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
     		$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
@@ -338,8 +341,6 @@ class planning_Jobs extends core_Master
     			$row->storeId = store_Stores::getHyperLink($rec->storeId, TRUE);
     		}
     		
-    		$pInfo = cat_Products::getProductInfo($rec->productId);
-    		$row->quantity .= " " . cat_UoM::getShortName($pInfo->productRec->measureId);
     		$row->origin = cls::get('cat_Products')->renderJobView($rec->productId, $rec->modifiedOn);
     		
     		if($rec->state == 'stopped' || $rec->state == 'closed') {
@@ -572,7 +573,7 @@ class planning_Jobs extends core_Master
     				$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'single', $bId, 'ret_url' => TRUE), 'ef_icon = img/16/view.png,title=Към технологичната рецепта на артикула');
     			}
     		} elseif(cat_Boms::haveRightFor('write', (object)array('productId' => $rec->productId))){
-    			$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'add', 'productId' => $rec->productId, 'originId' => $rec->containerId, 'quantity' => $rec->quantity, 'ret_url' => TRUE), 'ef_icon = img/16/legend.png,title=Създаване на нова технологична рецепта');
+    			$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'add', 'productId' => $rec->productId, 'originId' => $rec->containerId, 'quantity' => $rec->quantity, 'ret_url' => TRUE), 'ef_icon = img/16/article.png,title=Създаване на нова технологична рецепта');
     		}
     	}
     }

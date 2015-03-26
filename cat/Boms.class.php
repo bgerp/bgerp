@@ -79,7 +79,7 @@ class cat_Boms extends core_Master
     /**
      * Икона на единичния изглед
      */
-    var $singleIcon = 'img/16/legend.png';
+    var $singleIcon = 'img/16/article.png';
     
     
     /**
