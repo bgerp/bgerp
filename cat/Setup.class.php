@@ -104,6 +104,7 @@ class cat_Setup extends core_ProtoSetup
     				'controller' => "cat_Products",
     				'action' => "closePrivateProducts",
     				'period' => 21600,
+    				'offset' => 80,
     				'timeLimit' => 200
     		),
     );
