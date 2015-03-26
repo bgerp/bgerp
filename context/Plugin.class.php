@@ -45,7 +45,7 @@ class context_Plugin extends core_Plugin {
     		"<!--ET_BEGIN ROW2--><div class='modal-toolbar' id='Row2_{$rowId}'>[#ROW2#]</div><!--ET_END ROW2--></div></div>");
     	}
     	else{
-    		$layout = new ET("<div class='clearfix21 toolbar'><div>[#ROW1#][#ROW2#]</div></div>");
+    		$layout = new ET("<div class='clearfix21 toolbar' style='margin-bottom: 8px;'>[#ROW1#][#ROW2#]</div>");
     	}
    
         return FALSE;
