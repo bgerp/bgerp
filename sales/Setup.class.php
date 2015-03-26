@@ -70,7 +70,7 @@ defIfNot('SALE_INV_VAT_DISPLAY', 'no');
 /**
  * Системата върана ли е с касови апарати или не
  */
-defIfNot('SALE_INV_HAS_FISC_PRINTERS', 'no');
+defIfNot('SALE_INV_HAS_FISC_PRINTERS', 'yes');
 
 
 /**
