@@ -125,7 +125,8 @@ class cond_plg_DefaultValues extends core_Plugin
     		foreach ($strat as $str){
     			$methodName = "getFrom{$str}";
     			expect(cls::existsMethod('cond_plg_DefaultValues', $methodName), "Няма метод {$methodName}");
-    			expect(isset($mvc->fields[$name]), "{$name} не е поле от модела");
+    			
+    			if(!isset($mvc->fields[$name])) continue;
     			
     			if($value = static::$methodName($mvc, $rec, $name)){
     				
