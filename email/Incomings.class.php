@@ -1378,7 +1378,7 @@ class email_Incomings extends core_Master
             $fromDomain = type_Email::domain($rec->fromEml);
             $domains[$fromDomain][$rec->folderId] = TRUE;
             
-            if (count($domains[$fromDomain]) > 2) {
+            if (count($domains[$fromDomain]) > 1) {
                 // От $fromDomain има поне 2 писма, които са в различни фирмени папки
                 $results[$fromDomain] = TRUE;
             }
