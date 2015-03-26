@@ -52,7 +52,7 @@ class sales_Invoices extends deals_InvoiceMaster
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, number, date, place, folderId, dealValue, vatAmount, type, paymentType=Плащане';
+    public $listFields = 'id, number, date, place, folderId, dealValue, vatAmount, type';
     
     
     /**
@@ -152,6 +152,7 @@ class sales_Invoices extends deals_InvoiceMaster
     		'contragentPlace'     => 'clientData|lastDocUser|lastDoc',
     		'contragentAddress'   => 'clientData|lastDocUser|lastDoc',
     		'accountId'           => 'lastDocUser|lastDoc',
+    		'paymentType' 		  => 'lastDocUser|lastDoc',
     		'template' 		      => 'lastDocUser|lastDoc|LastDocSameCuntry',
     		'numlimit'			  => 'lastDocUser|lastDoc',
     );
@@ -171,6 +172,11 @@ class sales_Invoices extends deals_InvoiceMaster
     	$this->FLD('number', 'bigint', 'caption=Номер, export=Csv, after=place,input=none');
     	$this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 'caption=Статус, input=none,export=Csv');
         $this->FLD('type', 'enum(invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие)', 'caption=Вид, input=hidden');
+        
+        $conf = core_Packs::getConfig('sales');
+        if($conf->SALE_INV_HAS_FISC_PRINTERS == 'yes'){
+        	$this->FLD('paymentType', 'enum(cash=В брой,bank=По банка)', 'mandatory,caption=Плащане->Начин,before=accountId');
+        }
         
         $this->setDbUnique('number');
     }
@@ -511,9 +517,14 @@ class sales_Invoices extends deals_InvoiceMaster
    		if(!$data->listFilter->getField('invType', FALSE)){
    			$data->listFilter->FNC('invType', 'enum(all=Всички, invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие)', 'caption=Вид,input,silent');
    		}
-   		$data->listFilter->FNC('payType', 'enum(all=Всички,cash=В брой,bank=По банка)', 'caption=Начин на плащане,input');
    		
-   		$data->listFilter->showFields .= ',payType,invType';
+   		$conf = core_Packs::getConfig('sales');
+   		if($conf->SALE_INV_HAS_FISC_PRINTERS == 'yes'){
+   			$data->listFields['paymentType'] = 'Плащане';
+   			$data->listFilter->FNC('payType', 'enum(all=Всички,cash=В брой,bank=По банка)', 'caption=Начин на плащане,input');
+   			$data->listFilter->showFields .= ",payType";
+   		}
+   		$data->listFilter->showFields .= ',invType';
    		
    		$data->listFilter->input(NULL, 'silent');
    		
