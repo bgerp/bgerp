@@ -541,8 +541,10 @@ class callcenter_Numbers extends core_Manager
      */
     static function on_AfterPrepareListToolbar($mvc, &$data)
     {
-        // Променяме името на бутоно
-        $data->toolbar->buttons['btnAdd']->title = 'Нов вътрешен';
+        if ($mvc->haveRightFor('add')) {
+            // Променяме името на бутоно
+            $data->toolbar->buttons['btnAdd']->title = 'Нов вътрешен';
+        }
     }
     
     
