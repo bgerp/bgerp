@@ -20,7 +20,7 @@ class core_Html
     /**
      * Композира xHTML елемент
      */
-    static function createElement($name, $attributes, $body = "", $closeTag = FALSE)
+    static function createElement($name, $attributes, $body = NULL, $closeTag = FALSE)
     {   
         $attrStr = '';
 
@@ -47,7 +47,7 @@ class core_Html
                 }
             }
 
-            if ( ($body === '' || $body === NULL || $body === FALSE)  && !$closeTag) {
+            if ( ( $body === NULL || $body === FALSE)  && !$closeTag) {
                 $element = "<{$name}{$attrStr}>";
             } else {
                 if(in_array(strtolower($name), array('textarea', 'option'))) {
@@ -195,11 +195,8 @@ class core_Html
                     $title = $selAttr['placeholder'];
                     $attr['style'] .= 'color:#777;';
                 }
- 
-                //$title = strip_tags($title); 
-                
-                $option = self::createElement($element, $attr, $title);
 
+                $option = self::createElement($element, $attr, $title);
 
                 $select->append("\n", 'OPTIONS');
                 $select->append($option, 'OPTIONS');
@@ -211,12 +208,7 @@ class core_Html
             }
 
         }
-
-        if($openGroup) {
-            // затваряме групата
-            // $select->append("</optgroup>", 'OPTIONS');
-        }
-
+       
         return $select;
     }
 
