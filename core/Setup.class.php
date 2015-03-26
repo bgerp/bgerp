@@ -319,7 +319,7 @@ class core_Setup extends core_ProtoSetup {
         $rec->controller = 'core_Forwards';
         $rec->action = 'DeleteExpiredLinks';
         $rec->period = 60;
-        $rec->offset = 3;
+        $rec->offset = mt_rand(0,40);
         $rec->delay = 0;
         $rec->timeLimit = 200;
         $html .= core_Cron::addOnce($rec);
@@ -352,7 +352,7 @@ class core_Setup extends core_ProtoSetup {
         $rec->controller = 'core_Os';
         $rec->action = 'clearOldFiles';
         $rec->period = 60;
-        $rec->offset = 0;
+        $rec->offset = mt_rand(0,40);
         $rec->delay = 0;
         $rec->timeLimit = 120;
         $res .= core_Cron::addOnce($rec);

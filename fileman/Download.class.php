@@ -420,7 +420,7 @@ class fileman_Download extends core_Manager {
         $rec->controller = $mvc->className;
         $rec->action = 'ClearOldLinks';
         $rec->period = 100;
-        $rec->offset = 0;
+        $rec->offset = mt_rand(0,80);
         $rec->delay = 0;
         $res .= core_Cron::addOnce($rec);
     }
