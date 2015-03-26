@@ -169,12 +169,12 @@ class sales_Quotations extends core_Master
      * Кои полета ако не са попълнени във визитката на контрагента да се попълнят след запис
      */
     public static $updateContragentdataField = array(
-				    		'email'   => 'email',
-				    		'tel'     => 'tel',
-				    		'fax'     => 'fax',
-				    		'pCode'   => 'pCode',
-				    		'place'   => 'place',
-				    		'address' => 'address',
+				    		    'email'   => 'email',
+				    			'tel'     => 'tel',
+				    			'fax'     => 'fax',
+				    			'pCode'   => 'pCode',
+				    			'place'   => 'place',
+				    			'address' => 'address',
     );
     
     

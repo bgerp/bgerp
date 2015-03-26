@@ -44,7 +44,7 @@ class crm_plg_UpdateContragentData extends core_Plugin
 				$update = FALSE;
 				
 				// За всяка стойност
-				foreach ($map as $fld => $dataFld){
+				foreach ($map as  $dataFld => $fld){
 					
 					// Ако в записа е попълнено полето, във визитката не е и във визитката има такова поле, обновяваме го
 					if($rec->{$fld} && !$coverRec->{$dataFld} && $Cover->getInstance()->getField($dataFld, FALSE)){
