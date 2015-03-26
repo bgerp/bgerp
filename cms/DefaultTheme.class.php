@@ -140,7 +140,8 @@ class cms_DefaultTheme extends core_ProtoInner {
     		}
     		
     		// Цвятове за линковете и h2 заглавията
-    		$css .= "\n    #cmsNavigation .nav_item a {background-color: #{$bgcolorActive}; border: 1px solid #{$bordercolor}; color: #{$fontcolor};}";
+    		$css .= "\n    #cmsNavigation .nav_item a { color: #{$fontcolor};}";
+    		$css .= "\n    #cmsNavigation .nav_item a.sel_page {background-color: #{$bgcolorActive}; border: 1px solid #{$bordercolor}; color: #{$fontcolor};}";
     		$css .= "\n    a:hover, .eshop-group-button:hover .eshop-group-button-title a {color: #{$fontcolor};}";
     		$css .= "\n    .richtext h2 {background-color:#{$bgcolorActive} !important; padding: 5px 10px; border: 1px solid #{$bordercolor};}";
     	}
