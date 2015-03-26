@@ -198,16 +198,25 @@ class cms_DefaultTheme extends core_ProtoInner {
             }
             
         }
- 
-        if(count($imgs)) {
+        
+        $imgsCnt = count($imgs);
+        
+        if($imgsCnt) {
+            
+            // Ключа да започава от 1 до броя
+            $imgs = array_combine(range(1, $imgsCnt), array_values($imgs));
+            
             $img = $imgs[rand(1, count($imgs))];
-            if(!Mode::is('screenMode', 'narrow')) {
-                $img = new thumb_Img(array($img, 1000, 288, 'fileman', 'isAbsolute' => TRUE, 'mode' => 'large-no-change'));
-            } else {
-                $img = new thumb_Img(array($img, 360, 104, 'fileman', 'isAbsolute' => TRUE, 'mode' => 'large-no-change'));
+            
+            if ($img) {
+                if(!Mode::is('screenMode', 'narrow')) {
+                    $img = new thumb_Img(array($img, 1000, 288, 'fileman', 'isAbsolute' => TRUE, 'mode' => 'large-no-change'));
+                } else {
+                    $img = new thumb_Img(array($img, 360, 104, 'fileman', 'isAbsolute' => TRUE, 'mode' => 'large-no-change'));
+                }
+                $imageURL = $img->getUrl('forced');
+                $this->haveOwnHeaderImages = TRUE;
             }
-            $imageURL = $img->getUrl('forced');
-            $this->haveOwnHeaderImages = TRUE;
         }
          
         // Да покаже дефолт картинките, ако няма зададени
