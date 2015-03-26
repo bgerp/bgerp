@@ -386,6 +386,10 @@ class cat_Products extends core_Embedder {
     			$rec->code = NULL;
     		}
     	}
+    	
+    	if($rec->state == 'draft'){
+    		$rec->state = 'active';
+    	}
     }
 
     
@@ -1538,9 +1542,10 @@ class cat_Products extends core_Embedder {
      */
     protected static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
     {
-    	// Документа не може да се създава  в нова нишка, ако е възоснова на друг
-    	if(!empty($data->form->toolbar->buttons['save']) && $data->form->rec->state == 'active'){
-    		$data->form->toolbar->renameBtn('save', 'Запис');
+    	$data->form->toolbar->renameBtn('save', 'Запис');
+    	
+    	if (!empty($data->form->toolbar->buttons['activate'])) {
+    		$data->form->toolbar->removeBtn('activate');
     	}
     }
 }
