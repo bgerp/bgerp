@@ -72,7 +72,7 @@ class bgerp_Menu extends core_Manager
     {
         $cacheKey = 'menuObj_' . core_Lg::getCurrent();
         
-        //$menuObj = core_Cache::get('Menu', $cacheKey);
+        $menuObj = core_Cache::get('Menu', $cacheKey);
         
         if(!is_array($menuObj)) {
             
