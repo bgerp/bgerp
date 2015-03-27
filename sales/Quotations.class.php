@@ -161,7 +161,7 @@ class sales_Quotations extends core_Master
         'pCode' 		  => 'lastDocUser|lastDoc|clientData',
     	'place' 		  => 'lastDocUser|lastDoc|clientData',
     	'address' 		  => 'lastDocUser|lastDoc|clientData',
-    	'template' 		  => 'lastDocUser|lastDoc|LastDocSameCuntry',
+    	'template' 		  => 'lastDocUser|lastDoc|LastDocSameCuntry|defMethod',
     );
     
     
@@ -211,6 +211,26 @@ class sales_Quotations extends core_Master
     	
     	$this->FLD('validFor', 'time(uom=days,suggestions=10 дни|15 дни|30 дни|45 дни|60 дни|90 дни)', 'caption=Допълнително->Валидност');
     	$this->FLD('others', 'text(rows=4)', 'caption=Допълнително->Условия');
+    }
+    
+    
+    /**
+     * Намира дефолтния шаблон за контрагента, ако е от БГ първия шаблон на български,
+     * иначе първия шаблон на английски
+     */
+    public function getDefaultTemplate($rec)
+    {
+    	$cData = doc_Folders::getContragentData($rec->folderId);
+    	$bgId = drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id');
+    	if(empty($cData->countryId) || $bgId === $cData->countryId){
+    		$defLang = 'bg';
+    	} else {
+    		$defLang = 'en';
+    	}
+    	
+    	$tplId = doc_TplManager::fetchField("#lang = '{$defLang}' AND #docClassId = '{$this->getClassId()}'", 'id');
+    	
+    	return $tplId;
     }
     
     
