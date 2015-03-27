@@ -812,9 +812,9 @@ class email_Incomings extends core_Master
     {
         $domains = static::scanForPublicDomains();
         
-        $out .= "<li>Сканирани " . count($domains) . " домейн(а) ... </li>";
+        $out .= "<li>Открити " . count($domains) . " домейн(а) ... </li>";
         
-        $stats   = drdata_Domains::resetPublicDomains($domains);
+        $stats = drdata_Domains::resetPublicDomains($domains);
         
         $out .= "<li>Добавени {$stats['added']}, изтрити {$stats['removed']} домейн(а)</li>";
         
@@ -841,6 +841,8 @@ class email_Incomings extends core_Master
      */
     function act_UpdatePublicDomains()
     {
+        requireRole('admin');
+        
         return static::cron_UpdatePublicDomains();
     }
     
@@ -1363,18 +1365,20 @@ class email_Incomings extends core_Master
     {
         // Извличаме ид на корица на фирмените папки
         $crmCompaniesClassId = core_Classes::fetchIdByName('crm_Companies');
+        $crmPersonsClassId = core_Classes::fetchIdByName('crm_Persons');
         
         // Построяваме заявка, извличаща всички писма, които са във фирмена папка.
         /* @var $query core_Query */
         $query = static::getQuery();
         $query->EXT('coverClass', 'doc_Folders', 'externalKey=folderId');
-        $query->where("#coverClass = {$crmCompaniesClassId}");
+        $query->where("#coverClass = {$crmCompaniesClassId} || #coverClass = {$crmPersonsClassId}");
         $query->show('fromEml, folderId');
         
         $domains = array();
         $results  = array();
         
         while ($rec = $query->fetch()) {
+            
             $fromDomain = type_Email::domain($rec->fromEml);
             $domains[$fromDomain][$rec->folderId] = TRUE;
             
@@ -1402,6 +1406,8 @@ class email_Incomings extends core_Master
      */
     function act_Update()
     {
+        requireRole('admin');
+        
         set_time_limit(3600);
         $query = self::getQuery();
         
