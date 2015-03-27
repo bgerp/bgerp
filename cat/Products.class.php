@@ -892,8 +892,7 @@ class cat_Products extends core_Embedder {
     	// Ако няма се мъчим да намерим себестойността по рецепта, ако има такава
     	if(!$price){
     		if($amounts = cat_Boms::getPrice($this->fetchField($productId, 'containerId'))){
-    			$price = new stdClass();
-    			$price->price = ($amounts->base + $quantity * $amounts->prop) / $quantity;
+    			$price = ($amounts->base + $quantity * $amounts->prop) / $quantity;
     		}
     	}
     	
