@@ -1371,7 +1371,8 @@ class email_Incomings extends core_Master
         /* @var $query core_Query */
         $query = static::getQuery();
         $query->EXT('coverClass', 'doc_Folders', 'externalKey=folderId');
-        $query->where("#coverClass = {$crmCompaniesClassId} || #coverClass = {$crmPersonsClassId}");
+        $query->where("#coverClass = {$crmCompaniesClassId}");
+        $query->orWhere("#coverClass = {$crmPersonsClassId}");
         $query->show('fromEml, folderId');
         
         $domains = array();
