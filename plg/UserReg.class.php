@@ -86,16 +86,45 @@ class plg_UserReg extends core_Plugin
     {
         if (strtolower($act) == 'login' && !Request::get('popup')) {
             
-            // TODO: стила да отиде в CSS
             $className = "class=login-links";
             
-            $tpl->append("<p>&nbsp;<A HREF='" .
-                toUrl(array($invoker, 'resetPassForm')) .
-                "' {$className}>»&nbsp;" . tr('Забравена парола') . "?</A>", 'FORM');
+            if ($invoker->haveRightFor('resetpassout')) {
+                
+                $tpl->append("<p>&nbsp;<A HREF='" .
+                    toUrl(array($invoker, 'resetPassForm')) .
+                    "' {$className}>»&nbsp;" . tr('Забравена парола') . "?</A>", 'FORM');
+            }
             
-            $tpl->append("<p>&nbsp;<A HREF='" .
+            if ($invoker->haveRightFor('registernewuserout')) {
+                $tpl->append("<p>&nbsp;<A HREF='" .
                 toUrl(array($invoker, 'registerNewUser')) .
                 "'  {$className}>»&nbsp;" . tr('Нова регистрация') . "</A>", 'FORM');
+            }
+        }
+    }
+    
+    
+    /**
+     * Изпълнява се след получаването на необходимите роли
+     */
+    static function on_AfterGetRequiredRoles(&$invoker, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+        $conf = core_Packs::getConfig('core');
+        
+        if ($action == 'resetpassout') {
+            if ($conf->CORE_RESET_PASSWORD_FROM_LOGIN_FORM == 'yes') {
+                $requiredRoles = 'every_one';
+            } else {
+                $requiredRoles = 'no_one';
+            }
+        }
+        
+        if ($action == 'registernewuserout') {
+            if ($conf->CORE_REGISTER_NEW_USER_FROM_LOGIN_FORM == 'yes') {
+                $requiredRoles = 'every_one';
+            } else {
+                $requiredRoles = 'no_one';
+            }
         }
     }
     
@@ -108,6 +137,9 @@ class plg_UserReg extends core_Plugin
     	$conf = core_Packs::getConfig('core');
     	
         if ($act == 'registernewuser') {
+            
+            $mvc->requireRightFor('registernewuserout');
+            
             $form = $mvc->getForm();
             
             $form->setField('email', "valid=drdata_Emails->validate");
@@ -319,6 +351,8 @@ class plg_UserReg extends core_Plugin
             return FALSE;
 
         } elseif ($act == 'resetpassform') {
+            
+            $mvc->requireRightFor('resetpassout');
             
             $form = $mvc->getForm();
             
