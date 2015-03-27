@@ -184,8 +184,8 @@ class sales_SalesDetails extends deals_DealDetail
     				}
     			}
     		}
-    			
-    		if($rec->price < cls::get($rec->classId)->getSelfValue($rec->productId)){
+    		
+    		if($rec->price < cls::get($rec->classId)->getSelfValue($rec->productId, NULL, $rec->quantity)){
     			$row->packPrice = "<span class='row-negative' title = '" . tr('Цената е под себестойност') . "'>{$row->packPrice}</span>";
     		}
     	}
