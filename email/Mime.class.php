@@ -1176,6 +1176,10 @@ class email_Mime extends core_BaseClass
                         $address = $inst->toVerbal($address);
                     } else {
                         $address = type_Email::escape($address);
+                        
+                        if ($item['isWrong']) {
+                            $address = "<span style='border-bottom: 1px solid red;'>" . $address . "</span>";
+                        }
                     }
                     
                     $res .= "<span>" . $address;
