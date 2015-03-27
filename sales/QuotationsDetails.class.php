@@ -182,7 +182,7 @@ class sales_QuotationsDetails extends doc_Detail {
     	if(empty($data->noTotal) && count($notOptional)){
     		
     		// Запомня се стойноста и ддс-то само на опционалните продукти
-    		$data->summary = deals_Helper::prepareSummary($mvc->_total, $masterRec->date, $masterRec->currencyRate, $masterRec->currencyId, $masterRec->chargeVat);
+    		$data->summary = deals_Helper::prepareSummary($mvc->_total, $masterRec->date, $masterRec->currencyRate, $masterRec->currencyId, $masterRec->chargeVat, FALSE, $masterRec->tplLang);
     		
     		// Обработваме сумарните данни
     		if(!$data->summary->vatAmount){
@@ -193,7 +193,7 @@ class sales_QuotationsDetails extends doc_Detail {
     			$data->summary->discountValue = '-';
     			$data->summary->discountTitle = '-';
     		} else {
-    			$data->summary->discountTitle = tr('Отстъпка');
+    			$data->summary->discountTitle = 'Отстъпка';
     			$data->summary->discountValue = "- {$data->summary->discountValue}";
     		}
     		
@@ -201,7 +201,7 @@ class sales_QuotationsDetails extends doc_Detail {
     			$data->summary->neto = '-';
     			$data->summary->netTitle = '-';
     		} else {
-    			$data->summary->netTitle = tr('Нето');
+    			$data->summary->netTitle = 'Нето';
     		}
     	}
     	
@@ -590,10 +590,19 @@ class sales_QuotationsDetails extends doc_Detail {
 	    		}
 	    	}
     	} else {
-    		$dTpl->replace('<tr><td colspan="5">' . tr("Няма записи") . '</td></tr>', 'ROWS');
+    		$dTpl->replace('<tr><td colspan="6">' . tr("Няма записи") . '</td></tr>', 'ROWS');
     	}
 
     	if($summary = $data->summary){
+    		if($summary->discountTitle != '-'){
+    			$summary->discountTitle = tr($summary->discountTitle);
+    		}
+    		
+    		if($summary->netTitle != '-'){
+    			$summary->netTitle = tr($summary->netTitle);
+    		}
+    		$summary->vatAmount = tr($summary->vatAmount);
+    		
     		$dTpl->placeObject($summary, 'SUMMARY');
     		$dTpl->replace($summary->sayWords, 'sayWords');
     		
