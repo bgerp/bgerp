@@ -181,12 +181,16 @@ class cat_UoM extends core_Manager
     
     /**
      * Връща краткото име на мярката
+     * 
      * @param int $id - ид на мярка
      * @return string - краткото име на мярката
      */
     public static function getShortName($id)
     {
+    	if(!$id) return '???';
+    	
     	expect($rec = static::fetch($id));
+    	
     	return static::recToVerbal($rec, 'shortName')->shortName;
     }
     
