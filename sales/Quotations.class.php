@@ -222,13 +222,23 @@ class sales_Quotations extends core_Master
     {
     	$cData = doc_Folders::getContragentData($rec->folderId);
     	$bgId = drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id');
+    	$languages = array();
+    	
     	if(empty($cData->countryId) || $bgId === $cData->countryId){
-    		$defLang = 'bg';
+    		$languages['bg'] = 'bg';
     	} else {
+    		$cLanguages = drdata_Countries::fetchField($cData->countryId, 'languages');
+    		$languages = array_merge(arr::make($cLanguages, TRUE), $languages);
+    		
     		$defLang = 'en';
     	}
+    	$languages['en'] = 'en';
     	
-    	$tplId = doc_TplManager::fetchField("#lang = '{$defLang}' AND #docClassId = '{$this->getClassId()}'", 'id');
+    	// Намираме първия шаблон на езика който се говори в държавата
+    	foreach ($languages as $lang){
+    		$tplId = doc_TplManager::fetchField("#lang = '{$lang}' AND #docClassId = '{$this->getClassId()}'", 'id');
+    		if($tplId) break;
+    	}
     	
     	return $tplId;
     }
