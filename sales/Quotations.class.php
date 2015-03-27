@@ -246,7 +246,7 @@ class sales_Quotations extends core_Master
        $locations = crm_Locations::getContragentOptions($rec->contragentClassId, $rec->contragentId, FALSE);
        $data->form->setSuggestions('deliveryPlaceId',  array('' => '') + $locations);
       
-       if($rec->originId){
+       if($rec->originId && empty($rec->id)){
        	
        		// Ако офертата има ориджин
        		$data->form->setField('row1,row2,row3', 'input');
