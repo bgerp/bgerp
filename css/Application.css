@@ -1775,7 +1775,11 @@ span.sharing-history-title {
 
 #cmsTop,
 #cmsTop img {
-  display: block;
+  display: block; }
+
+.wide #all,
+.wide #cmsTop,
+.wide #cmsTop img {
   border-radius: 10px 10px 0 0; }
 
 #cmsMenu {
@@ -3104,17 +3108,6 @@ only screen and (min-width: 1240px) {
   .background-holder {
     padding: 10px 0; }
 
-  #all,
-  #cmsTop {
-    -moz-border-radius: 10px 10px 0 0;
-    -webkit-border-radius: 10px 10px 0 0;
-    border-radius: 10px 10px 0 0; }
-
-  .wide .headerImg {
-    -moz-border-radius: 10px 0 0 0;
-    -webkit-border-radius: 10px 0 0 0;
-    border-radius: 10px 0 0 0; }
-
   .wide .listBlock .listRows > table.listTable {
     min-width: 760px; } }
 
@@ -3146,7 +3139,12 @@ only screen and (min-width: 1750px) {
 @media handheld,
 only screen and (max-width: 1200px) {
   .wide .app-name {
-    font-size: 7.5em; } }
+    font-size: 7.5em; }
+
+  .wide #all,
+  .wide #cmsTop,
+  .wide #cmsTop img {
+    border-radius: 0; } }
 
 @media handheld,
 only screen and (max-width: 1024px) {
