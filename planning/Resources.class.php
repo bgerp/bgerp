@@ -75,7 +75,7 @@ class planning_Resources extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт,title,type,state,lastUsedOn,createdOn,createdBy';
+    public $listFields = 'tools=Пулт,title,type,lastUsedOn,state,createdOn,createdBy';
     
     
     /**
@@ -278,6 +278,12 @@ class planning_Resources extends core_Master
     	$cCode = acc_Periods::getBaseCurrencyCode();
     	$form->setField('selfValue', "unit={$cCode}");
     	$form->setDefault('state', 'active');
+    	
+    	if(isset($form->rec->id)){
+    		if(planning_ObjectResources::fetch("#resourceId = {$form->rec->id}")){
+    			$form->setReadOnly('type');
+    		}
+    	}
     }
     
     
@@ -321,7 +327,9 @@ class planning_Resources extends core_Master
     	}
     	
     	if(($action == 'edit') && isset($rec)){
-    		$res = $mvc->getRequiredRoles('edit');
+    		if($rec->state == 'rejected'){
+    			$res = 'no_one';
+    		}
     	}
     }
     
