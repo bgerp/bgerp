@@ -55,6 +55,12 @@ class planning_Resources extends core_Master
     
     
     /**
+     * Кой има право да променя системните данни?
+     */
+    var $canEditsysdata = 'ceo,planning';
+    
+    
+    /**
      * Кой има право да добавя?
      */
     public $canAdd = 'ceo,planning';
