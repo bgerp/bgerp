@@ -1384,7 +1384,7 @@ class email_Incomings extends core_Master
         $query->EXT('coverClass', 'doc_Folders', 'externalKey=folderId');
         $query->where("#coverClass = {$crmCompaniesClassId}");
         $query->orWhere("#coverClass = {$crmPersonsClassId}");
-        $query->show('fromEml, folderId');
+        $query->show('fromEml, folderId, coverClass');
         
         $domains = array();
         $results  = array();
@@ -1392,9 +1392,9 @@ class email_Incomings extends core_Master
         while ($rec = $query->fetch()) {
             
             $fromDomain = type_Email::domain($rec->fromEml);
-            $domains[$fromDomain][$rec->folderId] = TRUE;
+            $domains[$rec->coverClass][$fromDomain][$rec->folderId] = TRUE;
             
-            if (count($domains[$fromDomain]) > 1) {
+            if (count($domains[$rec->coverClass][$fromDomain]) > 1) {
                 // От $fromDomain има поне 2 писма, които са в различни фирмени папки
                 $results[$fromDomain] = TRUE;
             }
