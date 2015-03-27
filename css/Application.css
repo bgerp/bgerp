@@ -1416,7 +1416,7 @@ table.mc-header a {
 .metro-dropdown-portal::after {
   content: "\25bc";
   position: absolute;
-  top: 0px;
+  top: 0;
   right: 0px;
   display: block;
   width: 29px;
@@ -1426,7 +1426,6 @@ table.mc-header a {
   -webkit-pointer-events: none;
   -moz-pointer-events: none;
   pointer-events: none; }
-
 
 @-moz-document url-prefix() {
     .metro-dropdown-portal::after {
@@ -1775,8 +1774,13 @@ span.sharing-history-title {
   position: relative; }
 
 #cmsTop,
-.headerImg {
+#cmsTop img {
   display: block; }
+
+.wide #all,
+.wide #cmsTop,
+.wide #cmsTop img {
+  border-radius: 10px 10px 0 0; }
 
 #cmsMenu {
   float: left;
@@ -3104,17 +3108,6 @@ only screen and (min-width: 1240px) {
   .background-holder {
     padding: 10px 0; }
 
-  #all,
-  #cmsTop {
-    -moz-border-radius: 10px 10px 0 0;
-    -webkit-border-radius: 10px 10px 0 0;
-    border-radius: 10px 10px 0 0; }
-
-  .wide .headerImg {
-    -moz-border-radius: 10px 0 0 0;
-    -webkit-border-radius: 10px 0 0 0;
-    border-radius: 10px 0 0 0; }
-
   .wide .listBlock .listRows > table.listTable {
     min-width: 760px; } }
 
@@ -3146,7 +3139,12 @@ only screen and (min-width: 1750px) {
 @media handheld,
 only screen and (max-width: 1200px) {
   .wide .app-name {
-    font-size: 7.5em; } }
+    font-size: 7.5em; }
+
+  .wide #all,
+  .wide #cmsTop,
+  .wide #cmsTop img {
+    border-radius: 0; } }
 
 @media handheld,
 only screen and (max-width: 1024px) {

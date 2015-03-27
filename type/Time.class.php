@@ -197,9 +197,7 @@ class type_Time extends type_Varchar {
             
             $this->suggestions = array();
             
-            if ($this->params['allowEmpty']) {
-                $this->suggestions[''] = '';
-            }
+            $this->suggestions[''] = '';
             
             if($this->params['suggestions']) {
                 $suggestions = explode('|', $this->params['suggestions']);

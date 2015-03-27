@@ -1012,8 +1012,7 @@ class doc_DocumentPlg extends core_Plugin
             }
         }
         
-        // Преименуване на бутона на чернова (хак)
-        $data->form->toolbar->buttons['save']->title = 'Чернова';
+        $data->form->toolbar->renameBtn('save', 'Чернова');
     }
 
     
@@ -1250,6 +1249,10 @@ class doc_DocumentPlg extends core_Plugin
             } elseif ($action == 'single') {
                 if (!doc_Threads::haveRightFor('single', $oRec->threadId, $userId) && ($rec->createdBy != $userId)) {
                     $requiredRoles = 'no_one';
+                } else {
+                    if (($requiredRoles != 'every_one') || ($requiredRoles != 'user')) {
+                        $requiredRoles = 'powerUser';
+                    }
                 }
             } elseif ($action == 'clone') {
                 

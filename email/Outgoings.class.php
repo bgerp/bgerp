@@ -2061,7 +2061,7 @@ class email_Outgoings extends core_Master
         $rec->controller = $mvc->className;
         $rec->action = 'processWaitingEmails';
         $rec->period = 60;
-        $rec->offset = 0;
+        $rec->offset = mt_rand(0,40);
         $rec->delay = 0;
         $rec->timeLimit = 250;
         $res .= core_Cron::addOnce($rec);

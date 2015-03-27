@@ -452,7 +452,7 @@ class trans_Lines extends core_Master
         $rec->controller  = "trans_Lines";
         $rec->action      = "CreateNewLines";
         $rec->period      = $period;
-        $rec->offset 	  = 0;
+        $rec->offset 	  = mt_rand(0,60);
         $rec->delay 	  = 0;
         $rec->timeLimit   = 100;
         $res .= core_Cron::addOnce($rec);

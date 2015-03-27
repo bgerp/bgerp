@@ -125,7 +125,8 @@ class cond_plg_DefaultValues extends core_Plugin
     		foreach ($strat as $str){
     			$methodName = "getFrom{$str}";
     			expect(cls::existsMethod('cond_plg_DefaultValues', $methodName), "Няма метод {$methodName}");
-    			expect(isset($mvc->fields[$name]), "{$name} не е поле от модела");
+    			
+    			if(!isset($mvc->fields[$name])) continue;
     			
     			if($value = static::$methodName($mvc, $rec, $name)){
     				
@@ -177,7 +178,7 @@ class cond_plg_DefaultValues extends core_Plugin
     	
     	$cu = core_Users::getCurrent();
     	$query = $mvc->getQuery();
-    	$query->where("#state = 'active'");
+    	$query->where("#state != 'draft' AND #state != 'rejected'");
     	
     	$query->where("#folderId = {$folderId}");
     	if($fromUser){
@@ -202,7 +203,7 @@ class cond_plg_DefaultValues extends core_Plugin
     	
     	// Намиране на последната продажба, на контрагент от същата държава
     	$query = $mvc->getQuery();
-        $query->where("#state = 'active'");
+        $query->where("#state != 'draft' AND #state != 'rejected'");
         $query->orderBy("#createdOn", "DESC");
         $query->where("#folderId != {$rec->folderId}");
         $query->show("{$name},folderId");

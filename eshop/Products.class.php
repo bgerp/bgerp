@@ -383,7 +383,7 @@ class eshop_Products extends core_Master
     /**
      * Връща кратко URL към продукт
      */
-    function getShortUrl($url)
+    static function getShortUrl($url)
     { 
         $vid = urldecode($url['id']);
         $act = strtolower($url['Act']);

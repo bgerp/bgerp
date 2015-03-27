@@ -102,7 +102,7 @@ class sales_QuotationsDetails extends doc_Detail {
     function description()
     {
     	$this->FLD('quotationId', 'key(mvc=sales_Quotations)', 'column=none,notNull,silent,hidden,mandatory');
-    	$this->FLD('productId', 'int', 'caption=Продукт,notNull,mandatory,silent,removeAndRefreshForm=packPrice|discount');
+    	$this->FLD('productId', 'int', 'caption=Продукт,notNull,mandatory,silent,removeAndRefreshForm=packPrice|discount|packagingId');
         $this->FLD('classId', 'class(interface=cat_ProductAccRegIntf, select=title)', 'input=hidden,caption=Политика,silent,oldFieldName=productManId');
         
         $this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка', 'tdClass=small-field');

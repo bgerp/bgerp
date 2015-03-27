@@ -153,21 +153,28 @@ class drdata_Domains extends core_Manager
             } else {
                 // $rec->domain е бил, но вече не е публичен - изтриваме го от БД
                 $success = static::delete($rec->id);
-                $stats[$success ? 'removed' : 'removeErros']++;
+                $stats[$success ? 'removed' : 'removeErrors']++;
             }
         }
         
         // Тъй като от масива $domains махнахме домейните, които вече са в БД, в него сега 
         // останаха само публични домейни, които все още не са в БД. Добавяме ги.
-        foreach (array_keys($domains) as $domain) {
+        $domaninKeys = array_keys($domains);
+        foreach ($domaninKeys as $domain) {
             $success = static::save(
                 (object)array(
                     'domain'       => $domain,
                     'isPublicMail' => 'cron'
                 )
-            );
+            , NULL, 'IGNORE');
             
-            $stats[$success ? 'added' : 'addErros']++;
+            if (!$success) {
+                
+                // Дублираните да не се броят за грешка
+                if (self::fetch(array("#domain = '[#1#]'", $domain))) continue;
+            }
+            
+            $stats[$success ? 'added' : 'addErrors']++;
         }
         
         return $stats;

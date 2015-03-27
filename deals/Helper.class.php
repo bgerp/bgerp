@@ -221,8 +221,10 @@ abstract class deals_Helper
 		}
 		
 		$SpellNumber = cls::get('core_SpellNumber');
-    	$arr['sayWords'] = $SpellNumber->asCurrency($arr['total'], $lang, FALSE, $currencyId);
-		$arr['sayWords'] = str::mbUcfirst($arr['sayWords']);
+		if($arr['total'] != 0){
+			$arr['sayWords'] = $SpellNumber->asCurrency($arr['total'], $lang, FALSE, $currencyId);
+			$arr['sayWords'] = str::mbUcfirst($arr['sayWords']);
+		}
 		
 		$arr['value'] = ($arr['value']) ? $arr['value'] : "<span class='quiet'>0" . $pointSign . "00</span>";
 		$arr['total'] = ($arr['total']) ? $arr['total'] : "<span class='quiet'>0" . $pointSign . "00</span>";

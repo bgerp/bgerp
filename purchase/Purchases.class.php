@@ -498,7 +498,7 @@ class purchase_Purchases extends deals_DealMaster
         $rec->controller = "purchase_Purchases";
         $rec->action = "CloseOldPurchases";
         $rec->period = 180;
-        $rec->offset = 0;
+        $rec->offset = mt_rand(0,30);
         $rec->delay = 0;
         $rec->timeLimit = 100;
         $res .= core_Cron::addOnce($rec);
@@ -510,7 +510,7 @@ class purchase_Purchases extends deals_DealMaster
         $rec2->controller = "purchase_Purchases";
         $rec2->action = "CheckPurchasePayments";
         $rec2->period = 60;
-        $rec2->offset = 0;
+        $rec2->offset = mt_rand(0,30);
         $rec2->delay = 0;
         $rec2->timeLimit = 100;
         $res .= core_Cron::addOnce($rec2);

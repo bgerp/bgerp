@@ -2026,8 +2026,12 @@ fieldset.sharing-history {
 	position: relative;
 }
 
-#cmsTop, .headerImg {
+#cmsTop,  #cmsTop img{
 	display: block;
+}
+
+.wide #all, .wide #cmsTop, .wide #cmsTop img{
+	border-radius: 10px 10px 0 0;
 }
 
 #cmsMenu {
@@ -3380,7 +3384,6 @@ div.location.public {
     text-shadow: 1px 1px 3px rgba(0,0,0,0.4);
 }
 
-
 /*queries*/
 
 body.narrow {
@@ -3390,14 +3393,8 @@ body.narrow {
 @media handheld , only screen and (min-width: 1240px) {
 	.background-holder {
 	    padding: 10px 0;
-	}
-	#all, #cmsTop {
-	   @include border-radius4(10px, 10px, 0, 0);
-	}
-    .wide .headerImg {
-	   @include border-radius4(10px, 0, 0, 0);
-	}
-    
+	}	
+
     .wide .listBlock .listRows > table.listTable{
         min-width:760px;
     }
@@ -3436,6 +3433,9 @@ body.narrow {
 @media handheld, only screen and (max-width: 1200px) {
     .wide .app-name {
          font-size: 7.5em;
+    } 	
+    .wide #all, .wide #cmsTop, .wide #cmsTop img{
+       border-radius: 0;
     }
 }
 
@@ -3445,7 +3445,7 @@ body.narrow {
     }
     .wide .app-name {
          font-size: 6.4em;
-    }	
+    }
 }
 
 /* Mobile */

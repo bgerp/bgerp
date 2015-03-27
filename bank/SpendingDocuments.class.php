@@ -37,8 +37,14 @@ class bank_SpendingDocuments extends core_Master
      * Неща, подлежащи на начално зареждане
      */
     var $loadList = 'plg_RowTools, bank_Wrapper, acc_plg_RejectContoDocuments, acc_plg_Contable,
-         plg_Sorting,doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary,
+         plg_Sorting,doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary,doc_plg_HidePrices,
          plg_Search,doc_plg_MultiPrint, bgerp_plg_Blank, doc_EmailCreatePlg';
+    
+    
+    /**
+     * Полета свързани с цени
+     */
+    public $priceFields = 'amount';
     
     
     /**

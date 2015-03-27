@@ -558,7 +558,7 @@ class sales_Sales extends deals_DealMaster
         $rec->controller = "sales_Sales";
         $rec->action = "CloseOldSales";
         $rec->period = 180;
-        $rec->offset = 0;
+        $rec->offset = mt_rand(0,30);
         $rec->delay = 0;
         $rec->timeLimit = 100;
         $res .= core_Cron::addOnce($rec);
@@ -570,7 +570,7 @@ class sales_Sales extends deals_DealMaster
         $rec2->controller = "sales_Sales";
         $rec2->action = "CheckSalesPayments";
         $rec2->period = 60;
-        $rec2->offset = 0;
+        $rec2->offset = mt_rand(0,30);
         $rec2->delay = 0;
         $rec2->timeLimit = 100;
         $res .= core_Cron::addOnce($rec2);

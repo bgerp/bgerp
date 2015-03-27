@@ -986,7 +986,7 @@ class blogm_Articles extends core_Master {
     /**
      * Връща кратко URL към статия от блога
      */
-    function getShortUrl($url)
+    static function getShortUrl($url)
     {
         $vid = urldecode($url['id']);
         $act = strtolower($url['Act']);

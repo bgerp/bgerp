@@ -146,12 +146,14 @@
                                                     <td class='info-right'><span class='cCode'>[#currencyId#]</span></td>
                                                     <td class='aright'><b>[#total#]</b></td>
                                                 </tr>
+                                                <!--ET_BEGIN sayWords-->
                                                 <tr>
                                                     <td colspan = '3' >
                                                         <hr>
                                                         |Словом|*: [#sayWords#]
                                                     </td>
                                                 </tr>
+                                                <!--ET_END sayWords-->
                                             </table>
                                         </td>
                                     </tr>

@@ -32,7 +32,7 @@ class pos_Favourites extends core_Manager {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт, productId, pack=Мярка/Опаковка, pointId, catId, image, createdOn, createdBy, state';
+    var $listFields = 'tools=Пулт, productId, pack=Мярка/Опаковка, pointId, catId, createdOn, createdBy, state';
     
     
     /**

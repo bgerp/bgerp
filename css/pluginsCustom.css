@@ -172,3 +172,7 @@ span.all-users{
     border: solid 1px #ff9900; 
 }
  
+ 
+ #jquery-colour-picker {
+    width: 360px;
+ }

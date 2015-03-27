@@ -69,7 +69,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 		expect(count($products));
 			
 		if (empty($rec->id)) {
-			$data->form->setField('productId', "removeAndRefreshForm=packPrice|discount");
+			$data->form->setField('productId', "removeAndRefreshForm=packPrice|discount|packagingId");
 			$data->form->setOptions('productId', array('' => ' ') + $products);
 		} else {
 			$data->form->setOptions('productId', array($rec->productId => $products[$rec->productId]));

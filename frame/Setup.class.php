@@ -81,6 +81,7 @@ class frame_Setup extends core_ProtoSetup
     				'controller' => "frame_Reports",
     				'action' => "ActivateEarlyOn",
     				'period' => 1440,
+    				'offset' => 60,
     				'timeLimit' => 50
     		),
     );

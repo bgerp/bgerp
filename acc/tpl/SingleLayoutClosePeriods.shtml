@@ -21,11 +21,16 @@
             <td>[#periodId#]</td>
         </tr>
     </table>
+    
+    <!--ET_BEGIN VAT_TABLE-->
+    [#VAT_TABLE#]
     <table class='styled-table fright'>
+     	<!--ET_BEGIN amountFromInvoices-->
         <tr>
         	<td>|ДДС от фактури с касови бележки|*</td>
         	<td class='aright'>[#amountFromInvoices#]</td>
         </tr>
+        <!--ET_END amountFromInvoices-->
         <tr>
         	<td colspan='2'>|Сума на ДДС от касов апарат|*</td>
         </tr>
@@ -56,11 +61,15 @@
             <td class='aright'>[#amountVatGroup4#]</td>
         </tr>
         <!--ET_END amountVatGroup4-->
+        
+        <!--ET_BEGIN amountWithoutInvoice-->
         <tr>
         	<td>|ДДС на продажбите без фактури|*</td>
         	<td class='aright'>[#amountWithoutInvoice#]</td>
         </tr>
+        <!--ET_END amountWithoutInvoice-->
     </table>
+    <!--ET_END VAT_TABLE-->
     
     <div class='overflow-scroll'>
     [#INFO#]

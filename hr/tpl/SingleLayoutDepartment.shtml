@@ -5,7 +5,7 @@
 	        <!--ET_BEGIN blank-->
 	        [#blank#]
 	        <!--ET_END blank-->
-	        <div class='block_title  state-active special-title'>
+	        <div class='block_title [#STATE_CLASS#] special-title'>
 	            <div>|Структурно звено|* <b>[#name#]</b></div>
 	        </div>
 	        <fieldset class="detail-info">

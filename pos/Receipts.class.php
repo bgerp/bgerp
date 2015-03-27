@@ -243,6 +243,7 @@ class pos_Receipts extends core_Master {
     		$row->title = "{$mvc->singleTitle} №{$row->id}";
     		$row->title = ht::createLink($row->title, array($mvc, 'single', $rec->id), NULL, "ef_icon={$mvc->singleIcon}");
     	} elseif($fields['-single']){
+    		$row->title = "{$mvc->singleTitle} <b>№{$row->id}</b>";
     		$row->iconStyle = 'background-image:url("' . sbf('img/16/view.png', '') . '");';
     		$row->caseId = cash_Cases::getHyperLink(pos_Points::fetchField($rec->pointId, 'caseId'), TRUE);
     		$row->storeId = store_Stores::getHyperLink(pos_Points::fetchField($rec->pointId, 'storeId'), TRUE);
@@ -1466,13 +1467,16 @@ class pos_Receipts extends core_Master {
     			$nRec->id = $rec->productId;
     			$nRec->managerId = cat_Products::getClassId();
     			$nRec->quantity = $rec->quantity;
-    			if($rec->discountPercent){
-    				$nRec->discount = $rec->discountPercent;
-    			}
     			$pInfo = cls::get('cat_Products')->getProductInfo($rec->productId);
     			$nRec->measure = ($rec->value) ? cat_Packagings::getTitleById($rec->value) : cat_UoM::getShortName($pInfo->productRec->measureId);
     			$nRec->vat = $rec->param;
     			$nRec->price = $rec->price;
+    			
+    			// Подаваме цената с приспадната отстъпка ако има, за да няма проблем при закръглянията
+    			if($rec->discountPercent){
+    				$nRec->price -= $nRec->price * $rec->discountPercent;
+    			}
+    			
     			$nRec->name = $pInfo->productRec->name;
     			if($pInfo->productRec){
     				$nRec->vatGroup = $pInfo->productRec->vatGroup;

@@ -3,7 +3,7 @@
 <div class='document' style='width: auto'>
 	<!--ET_BEGIN header-->
 	<div class='header [#STATE_CLASS#]'>
-		<div class='docBgIcon' style='[#iconStyle#];'>[#singleTitle#] <b>[#ident#]</b> ([#state#])</div>
+		<div class='docBgIcon' style='[#iconStyle#];'>[#title#] ([#state#])</div>
 	</div>
 	<!--ET_END header-->
 	

@@ -113,7 +113,7 @@ class cat_Products extends core_Embedder {
     /**
      * Кой може да го прочете?
      */
-    var $canRead = 'powerUser';
+    var $canRead = 'cat,ceo,sales,purchase';
     
     
     /**
@@ -137,7 +137,7 @@ class cat_Products extends core_Embedder {
     /**
      * Кой може да го разгледа?
      */
-    var $canList = 'powerUser';
+    var $canList = 'cat,ceo,sales,purchase';
     
     
     /**
@@ -149,19 +149,19 @@ class cat_Products extends core_Embedder {
     /**
      * Кой може да качва файлове
      */
-    var $canWrite = 'ceo,cat';
+    var $canWrite = 'cat,ceo';
     
     
     /**  
      * Кой има право да променя системните данни?  
      */  
-    var $canEditsysdata = 'ceo, cat';
+    var $canEditsysdata = 'cat,ceo,sales,purchase';
     
     
     /**
      * Кой  може да групира "С избраните"?
      */
-    var $canGrouping = 'ceo,cat';
+    var $canGrouping = 'cat,ceo,sales,purchase';
 
 	
     /**
@@ -173,7 +173,7 @@ class cat_Products extends core_Embedder {
     /**
      * Кой има достъп до единичния изглед
      */
-    var $canSingle = 'powerUser';
+    var $canSingle = 'cat,ceo,sales,purchase';
     
 	
     /** 
@@ -283,15 +283,6 @@ class cat_Products extends core_Embedder {
     	if(isset($form->rec->folderId)){
     		$cover = doc_Folders::getCover($form->rec->folderId);
     		
-    		// Ако е избран драйвер слагаме задъжителните мета данни според корицата и драйвера
-    		if(isset($form->rec->innerClass)){
-    			$defMetas = $cover->getDefaultMeta();
-    			$Driver = $mvc->getDriver($form->rec);
-    			$defMetas = $Driver->getDefaultMetas($defMetas);
-    				
-    			$form->setDefault('meta', $form->getFieldType('meta')->fromVerbal($defMetas));
-    		}
-    		
     		if(!$cover->haveInterface('doc_ContragentDataIntf')){
     			$form->setField('code', 'mandatory');
     			
@@ -351,6 +342,17 @@ class cat_Products extends core_Embedder {
      */
     public static function on_AfterPrepareEmbeddedForm(core_Mvc $mvc, &$form)
     {
+		// Ако е избран драйвер слагаме задъжителните мета данни според корицата и драйвера
+    	if(isset($form->rec->folderId)){
+    		$cover = doc_Folders::getCover($form->rec->folderId);
+    		$defMetas = ($cover->haveInterface('cat_ProductFolderCoverIntf')) ? $cover->getDefaultMeta() : array();
+    		
+    		$Driver = $mvc->getDriver($form->rec);
+    		$defMetas = $Driver->getDefaultMetas($defMetas);
+    		
+    		$form->setDefault('meta', $form->getFieldType('meta')->fromVerbal($defMetas));
+    	}
+    	
     	if(isset($form->rec->originId)){
     		$document = doc_Containers::getDocument($form->rec->originId);
     		$fieldsFromSource = $document->getFieldsFromDriver();
@@ -383,6 +385,10 @@ class cat_Products extends core_Embedder {
     		if($rec->code == ''){
     			$rec->code = NULL;
     		}
+    	}
+    	
+    	if($rec->state == 'draft'){
+    		$rec->state = 'active';
     	}
     }
 
@@ -795,9 +801,6 @@ class cat_Products extends core_Embedder {
      */
     public function loadSetupData()
     {
-    	cls::get('doc_Folders');
-    	cls::get('doc_Threads');
-    	
     	$file = "cat/csv/Products.csv";
     	$fields = array( 
 	    	0 => "csv_name", 
@@ -807,7 +810,10 @@ class cat_Products extends core_Embedder {
     		4 => "csv_category",
     	);
     	
+    	core_Users::forceSystemUser();
     	$cntObj = csv_Lib::importOnce($this, $file, $fields);
+    	core_Users::cancelSystemUser();
+    	
     	$res .= $cntObj->html;
     	
     	return $res;
@@ -1527,5 +1533,22 @@ class cat_Products extends core_Embedder {
     {
     	// За артикула, това е цената по себестойност
     	return $this->getSelfValue($id);
+    }
+    
+    
+    /**
+     * Подготовка на бутоните на формата за добавяне/редактиране.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     */
+    protected static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
+    {
+    	$data->form->toolbar->renameBtn('save', 'Запис');
+    	
+    	if (!empty($data->form->toolbar->buttons['activate'])) {
+    		$data->form->toolbar->removeBtn('activate');
+    	}
     }
 }

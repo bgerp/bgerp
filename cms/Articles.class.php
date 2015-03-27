@@ -568,7 +568,7 @@ class cms_Articles extends core_Master
     /**
      * Връща кратко URL към съдържание на статия
      */
-    function getShortUrl($url)
+    static function getShortUrl($url)
     { 
         $vid = urldecode($url['id']);
  
@@ -599,7 +599,7 @@ class cms_Articles extends core_Master
                 }
             }
         }
-
+ 
         unset($url['PU']);
 
         return $url;
