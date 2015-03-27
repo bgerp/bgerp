@@ -589,10 +589,16 @@ class sales_QuotationsDetails extends doc_Detail {
 	    			$rowTpl->append2master();
 	    		}
 	    	}
-    	} else {
-    		$dTpl->replace('<tr><td colspan="6">' . tr("Няма записи") . '</td></tr>', 'ROWS');
     	}
 
+    	if($dCount  <= 1){
+    		$dTpl->replace('<tr><td colspan="6">' . tr("Няма записи") . '</td></tr>', 'ROWS');
+    	}
+    	
+    	if($oCount <= 1){
+    		$oTpl->replace('<tr><td colspan="6">' . tr("Няма записи") . '</td></tr>', 'ROWS');
+    	}
+    	
     	if($summary = $data->summary){
     		if($summary->discountTitle != '-'){
     			$summary->discountTitle = tr($summary->discountTitle);
