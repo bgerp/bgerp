@@ -862,6 +862,17 @@ class email_Incomings extends core_Master
         $rec->delay = 0;
         $rec->timeLimit = 100;
         $res .= core_Cron::addOnce($rec);
+        
+        $rec = new stdClass();
+        $rec->systemId = 'UpdatePublicDomains';
+        $rec->description = 'Обновяване на публичните домейни';
+        $rec->controller = $mvc->className;
+        $rec->action = 'UpdatePublicDomains';
+        $rec->period = 1440; // 24h
+        $rec->offset = rand(120, 180); // от 2 до 3h
+        $rec->delay = 0;
+        $rec->timeLimit = 100;
+        $res .= core_Cron::addOnce($rec);
     }
     
     
