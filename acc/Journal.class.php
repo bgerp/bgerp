@@ -101,10 +101,18 @@ class acc_Journal extends core_Master
      */
     var $searchFields = 'reason';
     
+    
+    /**
+     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
+     */
+    var $rowToolsSingleField = 'docType';
+    
+    
     /**
      * Кеш на афектираните пера
      */
     public $affectedItems = array();
+    
     
     /**
      * Кеш на афектираните пера
