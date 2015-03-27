@@ -663,7 +663,7 @@ class planning_Jobs extends core_Master
     	 $tpl->append(tr('Задания'), 'title');
     	 
     	 if(isset($data->addUrl)){
-    	 	$addBtn = ht::createLink('', $data->addUrl, FALSE, 'ef_icon=img/16/add.png');
+    	 	$addBtn = ht::createLink('', $data->addUrl, FALSE, 'ef_icon=img/16/add.png,title=Добавяне на ново задание за производство');
     	 	$tpl->append($addBtn, 'title');
     	 }
     	 
