@@ -359,7 +359,7 @@ class acc_plg_Contable extends core_Plugin
        		$cRes = acc_Journal::saveTransaction($mvc->getClassId(), $rec);
         } catch (acc_journal_RejectRedirect $e){
         	
-        	return Redirect(array($mvc, 'single', $rec->id), FALSE, $e->getMessage(), 'warning');
+        	return Redirect(array($mvc, 'single', $rec->id), FALSE, $e->getMessage(), 'error');
         }
         
         $handle = $mvc->getHandle($rec->id);
