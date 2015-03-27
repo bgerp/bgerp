@@ -95,7 +95,7 @@ class crm_ext_CourtReg extends core_Detail
             }
             
             if($data->masterMvc->haveRightFor('edit', $data->masterId)){
-            	$img = "<img src=" . sbf('img/16/edit.png') . " width='16' height='16'>";
+            	$img = "<img src=" . sbf('img/16/add.png') . " width='16' height='16'>";
 	            $tpl->append(
 	                ht::createLink(
 	                    $img, $url, FALSE,
