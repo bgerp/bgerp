@@ -791,6 +791,7 @@ class doc_DocumentPlg extends core_Plugin
         
         $attr['class'] .= ' linkWithIcon';
         $attr['style'] .= $iconStyle;
+        $attr['title'] .= "{$mvc->singleTitle} №{$rec->id}";
         
         if ($rec->state == 'rejected') {
             $attr['class'] .= ' state-rejected';

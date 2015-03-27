@@ -134,6 +134,21 @@ defIfNot('CORE_LOGIN_INFO', "|*(|само за администраторите 
 defIfNot('CORE_PAGE_WRAPPER', 'core_page_Internal');
 
 
+
+/**
+ * Дали да може да се регистрират нови потребители от логин формата
+ */
+defIfNot('CORE_REGISTER_NEW_USER_FROM_LOGIN_FORM', 'no');
+
+
+
+/**
+ * Дали да може да се ресетват пароли от логин формата
+ */
+defIfNot('CORE_RESET_PASSWORD_FROM_LOGIN_FORM', 'no');
+
+
+
 /**
  * class 'core_Setup' - Начално установяване на пакета 'core'
  *
@@ -213,7 +228,10 @@ class core_Setup extends core_ProtoSetup {
            'CORE_TEMP_PATH_MAX_AGE' => array ('time(suggestions=3 ден|5 дни|10 дни|1 месец)', 'caption=Колко дълго да се пазят файловете в EF_TEMP_PATH директорията->Време'),
             
            'CORE_PAGE_WRAPPER' => array ('class(interface=core_page_WrapperIntf,select=title, allowEmpty)', 'caption=Вътрешен изглед->Страница, customizeBy=powerUser, placeholder=Автоматично'),
-
+           
+           'CORE_REGISTER_NEW_USER_FROM_LOGIN_FORM' => array ('enum(yes=Да, no=Не)', 'caption=Дали да може да се регистрират нови потребители от логин формата->Избор'),
+           
+           'CORE_RESET_PASSWORD_FROM_LOGIN_FORM' => array ('enum(yes=Да, no=Не)', 'caption=Дали да може да се ресетват пароли от логин формата->Избор'),
         );
     
     
