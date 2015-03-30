@@ -1500,7 +1500,7 @@ class crm_Companies extends core_Master
     	$obj = new stdClass();
     	$tpl = new ET("[#country#]<br> <!--ET_BEGIN pCode-->[#pCode#] <!--ET_END pCode-->[#place#]<br> [#address#]");
     	if($rec->country){
-    		$obj->country = crm_Persons::getVerbal($rec, 'country');
+    		$obj->country = $this->getVerbal($rec, 'country');
     	}
     
     	$Varchar = cls::get('type_Varchar');
