@@ -101,7 +101,7 @@
                                         </td>
                                         <!--ET_END LEFT_COLUMN-->
                                         <td class="topCell aright vtop" style='width:50%;'>
-                                            <table class='no-border' style='margin-bottom: 20px;width:100%;' id='business-doc-summary-table'>
+                                            <table class='no-border business-doc-summary-table' style='margin-bottom: 20px;width:100%;'>
                                                 <tr class='nowrap'>
                                                     <td class='aright'>|Стойност|* :</td>
                                                     <td class='info-right' style='width:1%;'><span class='cCode'>[#currencyId#]</span></td>
