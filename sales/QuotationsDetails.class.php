@@ -724,6 +724,7 @@ class sales_QuotationsDetails extends doc_Detail {
         $uomShort = cat_UoM::getShortName($uomId);
         
     	if($rec->packagingId){
+    		$rec->packagingId = tr($rec->packagingId);
     		$row->packagingId .= " <small class='quiet'>{$row->quantityInPack} {$uomShort}</small>";
     	} else {
     		$row->packagingId = $uomShort;
