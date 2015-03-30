@@ -218,13 +218,7 @@ class type_Richtext extends type_Blob
         if(!$textMode) {
             $textMode = 'html';
         }
-        
-//        $md5 = md5($html) . $textMode;
-
-        // if($ret = core_Cache::get(RICHTEXT_CACHE_TYPE, $md5, 1000)) {
-        //     return $ret;
-        // }
-        
+                
         // Място, където съхраняваме нещата за субституция
         $this->_htmlBoard = array();
         
@@ -366,7 +360,7 @@ class type_Richtext extends type_Blob
             
             $html = str_replace('<nbsp>', '&nbsp;', $html);
         }
-    
+
         if(!Mode::is('text', 'plain')) {
             $html =  new ET("<div class=\"richtext\">{$html}</div>");
         } else {
@@ -405,9 +399,7 @@ class type_Richtext extends type_Blob
         } else {
             $html = $cHtml;
         }
-        
-        // core_Cache::set(RICHTEXT_CACHE_TYPE, $md5, $html, 1000);
-        
+                
         return $html;
     }
     
