@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   planning
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Ресурси на предприятието
@@ -57,7 +57,7 @@ class planning_Resources extends core_Master
     /**
      * Кой има право да променя системните данни?
      */
-    var $canEditsysdata = 'ceo,planning';
+    public $canEditsysdata = 'ceo,planning';
     
     
     /**
@@ -77,7 +77,13 @@ class planning_Resources extends core_Master
 	 */
 	public $canList = 'ceo,planning';
     
-    
+	
+	/**
+	 * Икона на единичния изглед
+	 */
+	public $singleIcon = 'img/16/package.png';
+	
+	
     /**
      * Полета, които ще се показват в листов изглед
      */
