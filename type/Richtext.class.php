@@ -1323,7 +1323,7 @@ class type_Richtext extends type_Blob
         	$toolbarArr->add("<span class='richtext-relative-group'>", 'TBL_GROUP2');
             $toolbarArr->add("<a class='open-popup-link rtbutton'  title='" . tr('Таблица') .  "' onclick=\"toggleRichtextGroups('{$attr['id']}-group7', event); \"><img src=" . sbf('img/16/table3.png') . " height='15' width='15'></a>", 'TBL_GROUP2');
             $toolbarArr->add("<span id='{$attr['id']}-group7' class='richtext-emoticons7 richtext-holder-group {$emot7}'>", 'TBL_GROUP2');
-            $toolbarArr->add("<div class='popup-table-info'><div class='popupBlock'>" . tr('Колони') . ": <br><input type = 'text' value='5' id='colTable'></div><div class='popupBlock'>" . tr('Редове') .":<br> <input type = 'text' value='3' id='rowTable'/></div><input type='button' id='getTableInfo' onclick=\"crateRicheditTable(document.getElementById('{$formId}'), 1, document.getElementById('colTable').value, document.getElementById('rowTable').value );\" value='OK' /> </div>", 'TBL_GROUP2');
+            $toolbarArr->add("<span class='popup-table-info'><span class='popupBlock'>" . tr('Колони') . ": <br><input type = 'text' value='5' id='colTable'></span><span class='popupBlock'>" . tr('Редове') .":<br> <input type = 'text' value='3' id='rowTable'/></span><input type='button' id='getTableInfo' onclick=\"crateRicheditTable(document.getElementById('{$formId}'), 1, document.getElementById('colTable').value, document.getElementById('rowTable').value );\" value='OK' /> </span>", 'TBL_GROUP2');
             $toolbarArr->add("</span>", 'TBL_GROUP2');
             $toolbarArr->add("</span>", 'TBL_GROUP2');
             
