@@ -29,7 +29,7 @@ class crm_PersonalConfigPlg extends core_Plugin
         
         if (!$currUserId || ($currUserId <= 0)) return ;
         
-        $key = crm_Profiles::getSettingsKey($currUserId);
+        $key = crm_Profiles::getSettingsKey();
         
         $valsArr = core_Settings::fetchKey($key, $currUserId);
         

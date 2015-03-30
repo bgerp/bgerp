@@ -87,7 +87,8 @@ class crm_Setup extends core_ProtoSetup
             'crm_Locations',
             'crm_Formatter',
             'migrate::movePersonalizationData',
-            'migrate::addCountryToCompaniesAndPersons'
+            'migrate::addCountryToCompaniesAndPersons',
+            'migrate::updateSettingsKey'
         );
     
 
@@ -242,6 +243,31 @@ class crm_Setup extends core_ProtoSetup
         } catch (core_exception_Expect $e) {
             
             return ;
+        }
+    }
+    
+    
+    /**
+     * Обновява ключовете
+     */
+    public static function updateSettingsKey()
+    {
+        $newKey = crm_Profiles::getSettingsKey();
+        $query = core_Settings::getQuery();
+        $query->where("#key LIKE 'core_Users::%'");
+        while ($rec = $query->fetch()) {
+            
+            try {
+                $cRec = clone $rec;
+                
+                core_Settings::delete($cRec->id);
+                
+                $cRec->key = $newKey;
+                core_Settings::save($cRec, NULL, 'IGNORE');
+            } catch (Exception $e) {
+                
+                continue;
+            }
         }
     }
 }
