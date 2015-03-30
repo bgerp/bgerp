@@ -230,7 +230,7 @@ class doc_DocumentPlg extends core_Plugin
                     'list',
                     'ret_url'=>$retUrl
                 ),
-                "id=btnAll,ef_icon=img/16/application_view_list.png, order=18, row={$mvc->allBtnToolbarRow}, title=" . tr('Всички ' . mb_strtolower($mvc->title)));    
+                "class=btnAll,ef_icon=img/16/application_view_list.png, order=18, row={$mvc->allBtnToolbarRow}, title=" . tr('Всички ' . mb_strtolower($mvc->title)));    
 
         }
     }
