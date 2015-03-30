@@ -480,7 +480,7 @@ class cms_Domains extends core_Embedder
      */
     public static function getCurrentDomainInTitle()
     {
-        $res = '|* [<span color="green">' . self::getCurrent('domain') . '</span>, <span color="green">' . self::getCurrent('lang') . '</span>]';
+        $res = '|* [<span style="color:green">' . self::getCurrent('domain') . '</span>, <span style="color:green">' . self::getCurrent('lang') . '</span>]';
 
         return $res;
     }
