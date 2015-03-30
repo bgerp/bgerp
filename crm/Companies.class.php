@@ -1186,20 +1186,6 @@ class crm_Companies extends core_Master
          
         return $folderId;
     }
-    
-    
-    /**
-     * Пренасочва URL за връщане след запис към сингъл изгледа
-     */
-    function on_AfterPrepareRetUrl($mvc, $res, $data)
-    {
-        // Ако е субмитната формата и не сме натиснали бутона "Запис и нов"
-        if ($data->form && $data->form->isSubmitted() && $data->form->cmd == 'save') {
-
-            // Променяма да сочи към single'a
-            $data->retUrl = toUrl(array($mvc, 'single', $data->form->rec->id));
-        }
-    }
 
     
     /**
