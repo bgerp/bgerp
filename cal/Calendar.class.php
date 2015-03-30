@@ -822,10 +822,6 @@ class cal_Calendar extends core_Master
  
     }
 
-    public function act_Test()
-    {
-        bp(self::getDayStatus("2014-05-02", 'bg'));
-    }
     
     /**
      * Функция показваща събитията за даден ден
