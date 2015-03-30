@@ -190,8 +190,8 @@ class cat_products_Packagings extends cat_products_Detail
      */
     static function getRemainingOptions($productId, $id = NULL)
     {
-        $options = cat_Packagings::makeArray4Select();
-        
+        $options = cat_Packagings::makeArray4Select('name');
+       
         if(count($options)) {
             $query = self::getQuery();
             

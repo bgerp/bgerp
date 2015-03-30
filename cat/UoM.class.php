@@ -22,7 +22,7 @@ class cat_UoM extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, cat_Wrapper, plg_State2, plg_AlignDecimals, plg_Sorting';
+    var $loadList = 'plg_Created, plg_RowTools, cat_Wrapper, plg_State2, plg_AlignDecimals, plg_Sorting, plg_Translate';
     
     
     /**
@@ -73,7 +73,7 @@ class cat_UoM extends core_Manager
     function description()
     {
         $this->FLD('name', 'varchar(36)', 'caption=Мярка, export');
-        $this->FLD('shortName', 'varchar(12)', 'caption=Съкращение, export');
+        $this->FLD('shortName', 'varchar(12)', 'caption=Съкращение, export,translate');
         $this->FLD('baseUnitId', 'key(mvc=cat_UoM, select=name,allowEmpty)', 'caption=Базова мярка, export');
         $this->FLD('baseUnitRatio', 'double', 'caption=Коефициент, export');
         $this->FLD('sysId', 'varchar', 'caption=System Id,input=hidden');
