@@ -212,6 +212,8 @@ class cams_Records extends core_Master
      */
     function act_Single()
     {
+        requireRole('cams, admin');
+        
     	$conf = core_Packs::getConfig('cams');
     	
         $id = Request::get('id', 'int');
