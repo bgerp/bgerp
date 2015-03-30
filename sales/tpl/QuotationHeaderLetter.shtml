@@ -27,7 +27,9 @@
             <p class='title-info receiver'>|Получател|*:</p>
             <p class='title-info'>[#company#]</p>
             <p class='title-info'>[#person#]</p>
-            <p class='title-info'>[#contragentAdress#]</p>
+            <p class='title-info'>
+            [#contragentCountryId#]<br> <!--ET_BEGIN contragentpCode-->[#contragentpCode#] <!--ET_END contragentpCode-->[#contragentplace#]<br> [#contragentaddress#]
+            </p>
             <!--ET_BEGIN email-->
             <p class='title-info'>|Имейл|*: [#email#]</p>
             <!--ET_END email-->

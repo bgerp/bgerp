@@ -443,8 +443,34 @@ class sales_Quotations extends core_Master
 				$row->position = cls::get('type_Varchar')->toVerbal($position);
 			}
 			
+			$ownCompanyData = crm_Companies::fetchOwnCompany();
+			
+			$Varchar = cls::get('type_Varchar');
+			$row->MyCompany = $Varchar->toVerbal($ownCompanyData->company);
+			
 			$contragent = new core_ObjectReference($rec->contragentClassId, $rec->contragentId);
-			$row->contragentAddress = $contragent->getFullAdress();
+			$cData = $contragent->getContragentData();
+			
+			$fld = ($rec->tplLang == 'bg') ? 'commonNameBg' : 'commonName';
+			if($cData->countryId){
+				$row->contragentCountryId = drdata_Countries::getVerbal($cData->countryId, $fld);
+			}
+			$row->mycompanyCountryId = drdata_Countries::getVerbal($ownCompanyData->countryId, $fld);
+			
+			foreach (array('pCode', 'place', 'address') as $fld){
+				if($cData->$fld){
+					$row->{"contragent{$fld}"} = $Varchar->toVerbal($cData->$fld);
+				}
+				
+				if($ownCompanyData->$fld){
+					$row->{"mycompany{$fld}"} = $Varchar->toVerbal($ownCompanyData->$fld);
+				}
+			}
+			
+			
+			
+			
+			
 			
 			if($rec->currencyRate == 1){
 				unset($row->currencyRate);
@@ -465,11 +491,6 @@ class sales_Quotations extends core_Master
 					}
 				}
 			}
-			
-			$ownCompanyData = crm_Companies::fetchOwnCompany();
-	        $Companies = cls::get('crm_Companies');
-	        $row->MyCompany = cls::get('type_Varchar')->toVerbal($ownCompanyData->company);
-	        $row->MyAddress = $Companies->getFullAdress($ownCompanyData->companyId);
 	        
 	        $createdRec = crm_Persons::fetch(crm_Profiles::fetchField("#userId = {$rec->createdBy}", 'personId'));
 	        $buzAddress = ($createdRec->buzAddress) ? $createdRec->buzAddress : $ownCompanyData->place;

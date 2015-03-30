@@ -31,11 +31,15 @@
                     <td class="cell">
                         <div><b>[#company#]</b></div>
                         <div><b>[#person#]</b></div>
-                        <div class='address-block'>[#contragentAddress#]</div>
+                        <div class='address-block'>
+                         [#contragentCountryId#]<br> <!--ET_BEGIN contragentpCode-->[#contragentpCode#] <!--ET_END contragentpCode-->[#contragentplace#]<br> [#contragentaddress#]
+                        </div>
                     </td>
                     <td class="cell">
                         <b>[#MyCompany#]</b>
-                        <div class='address-block'>[#MyAddress#]</div>
+                        <div class='address-block'>
+                         [#mycompanyCountryId#]<br> <!--ET_BEGIN mycompanypCode-->[#mycompanypCode#] <!--ET_END mycompanypCode-->[#mycompanyplace#]<br> [#mycompanyaddress#]
+                        </div>
                     </td>
                 </tr>
                 <tr>
