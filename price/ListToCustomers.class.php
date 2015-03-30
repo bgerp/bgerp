@@ -222,7 +222,7 @@ class price_ListToCustomers extends core_Detail
         $tpl = $wrapTpl;
         
         if ($data->addUrl) {
-            $tpl->append(ht::createLink("<img src=" . sbf('img/16/add.png') . " valign=bottom style='margin-left:5px;'>", $data->addUrl, FALSE, 'title=' . tr('Избор на Ценова политика')), 'title');
+            $tpl->append(ht::createLink("<img src=" . sbf('img/16/add.png') . " style='vertical-align: bottom; margin-left:5px;'>", $data->addUrl, FALSE, 'title=' . tr('Избор на Ценова политика')), 'title');
         }
     }
 

@@ -308,7 +308,7 @@ class core_Html
                 $tpl = "<table class='keylist {$keyListClass}'><tr>";
 
                 for($i = 1; $i <= $col; $i++) {
-                    $tpl .= "<td valign=top>[#OPT" . ($i-1) . "#]</td>";
+                    $tpl .= "<td style='vertical-align: top;'>[#OPT" . ($i-1) . "#]</td>";
                 }
 
                 $tpl = new ET($tpl . "</tr></table>");

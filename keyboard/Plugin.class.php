@@ -46,7 +46,7 @@ class keyboard_Plugin extends core_Plugin {
         $tpl->push("keyboard/{$conf->VKI_version}/keyboard.css", 'CSS');
         
         if(cls::isSubclass($invoker, 'type_Richtext')) {
-            $tpl->append("<a class=rtbutton1 title='Клавиатура' onclick=\"showKeyboard( document.getElementById('{$attr[id]}'))\"><img src=" . sbf('keyboard/keyboard.png') . " height=15 width=28 alt=\"\" align=top></a>", 'LEFT_TOOLBAR');
+            $tpl->append("<a class=rtbutton1 title='Клавиатура' onclick=\"showKeyboard( document.getElementById('{$attr[id]}'))\"><img src=" . sbf('keyboard/keyboard.png') . " height=15 width=28 alt=\"\"></a>", 'LEFT_TOOLBAR');
         }
     }
     

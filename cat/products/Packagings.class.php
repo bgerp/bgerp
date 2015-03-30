@@ -292,7 +292,7 @@ class cat_products_Packagings extends cat_products_Detail
         $wrapTpl->append($mvc->title, 'TITLE');
         
         if ($data->addUrl) {
-        	$addBtn = ht::createLink("<img src=" . sbf('img/16/add.png') . " valign=bottom style='margin-left:5px;'>", $data->addUrl, FALSE, 'title=Добавяне на нова опаковка');
+        	$addBtn = ht::createLink("<img src=" . sbf('img/16/add.png') . " style='vertical-align: bottom; margin-left:5px;'>", $data->addUrl, FALSE, 'title=Добавяне на нова опаковка');
         	$tpl->append($addBtn, 'TITLE');
         }
         
