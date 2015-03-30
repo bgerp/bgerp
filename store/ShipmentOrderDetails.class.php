@@ -219,12 +219,6 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     				$form->setWarning('packQuantity', 'Въведеното количество е по-голямо от наличното в склада');
     			}
     		}
-    		
-    		if(isset($rec->packPrice)){
-    			if($rec->packPrice < (cls::get($rec->classId)->getSelfValue($rec->productId) * $quantityInPack)){
-    				$form->setWarning('packPrice', 'Цената е под себестойност');
-    			}
-    		}
     	}
     	
     	parent::inputDocForm($mvc, $form);
@@ -262,7 +256,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     			$row->packQuantity = "<span class='row-negative' title = '" . tr('Количеството в скалда е отрицателно') . "'>{$row->packQuantity}</span>";
     		}
     		 
-    		if($rec->price < cls::get($rec->classId)->getSelfValue($rec->productId)){
+    		if($rec->price < cls::get($rec->classId)->getSelfValue($rec->productId, NULL, $rec->quantity)){
     			$row->packPrice = "<span class='row-negative' title = '" . tr('Цената е под себестойност') . "'>{$row->packPrice}</span>";
     		}
     	}

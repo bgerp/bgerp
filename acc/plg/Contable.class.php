@@ -213,26 +213,6 @@ class acc_plg_Contable extends core_Plugin
     
     
     /**
-     * Реализация по подразбиране на acc_TransactionSourceIntf::getLink()
-     *
-     * @param core_Manager $mvc
-     * @param mixed $res
-     * @param mixed $id
-     */
-    public static function on_AfterGetLink($mvc, &$res, $id)
-    {
-        if(!$res) {
-            $title = sprintf('%s&nbsp;№%d',
-                empty($mvc->singleTitle) ? $mvc->title : $mvc->singleTitle,
-                $id
-            );
-            
-            $res = ht::createLink($title, array($mvc, 'single', $id));
-        }
-    }
-    
-    
-    /**
      * Извиква се след изчисляването на необходимите роли за това действие
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
@@ -379,7 +359,7 @@ class acc_plg_Contable extends core_Plugin
        		$cRes = acc_Journal::saveTransaction($mvc->getClassId(), $rec);
         } catch (acc_journal_RejectRedirect $e){
         	
-        	return Redirect(array($mvc, 'single', $rec->id), FALSE, $e->getMessage(), 'warning');
+        	return Redirect(array($mvc, 'single', $rec->id), FALSE, $e->getMessage(), 'error');
         }
         
         $handle = $mvc->getHandle($rec->id);

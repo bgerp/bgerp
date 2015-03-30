@@ -57,16 +57,23 @@
     [#ListToolbar#]
     <table  class = 'products-table' style='width:100%;'>
         <tr>
-            <th>Quotation conditions</th>
+            <th>Conditions</th>
             <th>Prepared</th>
         </tr>
         <tr>
             <td> 
                 <ol id='conditions'>
-		            <li> Valid untill: <b>[#validFor#] (till [#validDate#])</b>			            
-		            </li>
+                	<!--ET_BEGIN validFor-->
+		            <li> Valid untill: <b>[#validFor#] (till [#validDate#])</b></li>
+		             <!--ET_END validFor-->
+		             
+		             <!--ET_BEGIN paymentMethodId-->
 		            <li>Payment method: <b>[#paymentMethodId#]</b></li>
+			         <!--ET_END paymentMethodId-->
+			        <!--ET_BEGIN deliveryTermId-->
 			        <li>Delivery term: <b>[#deliveryTermId#]</b></li>
+			        <!--ET_END deliveryTermId-->
+			        
 			        <!--ET_BEGIN deliveryPlaceId-->
 			        <li>Delivery place: <b>[#deliveryPlaceId#]</b></li>
 			        <!--ET_END deliveryPlaceId-->

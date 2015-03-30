@@ -126,10 +126,11 @@ class core_Settings extends core_Manager
      * @param string $key - Ключа
      * @param integer|NULL $userOrRole - Роля или потребител
      * @param boolean $fetchForUser - Дали да се фечва и за потребителия
+     * @param string|NULL $type - Име на роля
      * 
      * @return array
      */
-    public static function fetchKey($key, $userOrRole = NULL, $fetchForUser = TRUE)
+    public static function fetchKey($key, $userOrRole = NULL, $fetchForUser = TRUE, $type = NULL)
     {
         // Подготвяме ключа и потребителя/групата
         $userOrRole = self::prepareUserOrRole($userOrRole);
@@ -138,7 +139,7 @@ class core_Settings extends core_Manager
         static $allResArr = array();
         
         // Ако стойността е извличана преди, връщаме я
-        $keyHash = md5($key . '|' . $userOrRole . '|' . $fetchForUser);
+        $keyHash = md5($key . '|' . $userOrRole . '|' . $fetchForUser . '|' . $type);
         if (isset($allResArr[$keyHash])) return $allResArr[$keyHash];
         
         $allResArr[$keyHash] = array();
@@ -155,7 +156,12 @@ class core_Settings extends core_Manager
         if ($userOrRole > 0) {
             
             // Всички групи, в които участва текущия потребител
-            $rolesList = core_Users::getRoles($userOrRole);
+            if ($type) {
+                $rolesList = core_Users::getUserRolesByType($userOrRole, $type);
+            } else {
+                $rolesList = core_Users::getRoles($userOrRole);
+            }
+            
             $rolesArr = type_Keylist::toArray($rolesList);
             
             if ($fetchForUser) {
@@ -180,7 +186,8 @@ class core_Settings extends core_Manager
         // Добавяме всички групи в условието
         if ($rolesArr) {
             $rolesArrSysId = array_map(array('type_UserOrRole', 'getSysRoleId'), $rolesArr);
-            $query->orWhereArr('userOrRole', $rolesArrSysId, $orToPrevious);
+            
+            $query->orWhere("#userOrRole IN (" . implode(',', $rolesArrSysId) . ")");
         }
         
         // С по-голям приоритет са данните въведени от потребителя
@@ -363,7 +370,7 @@ class core_Settings extends core_Manager
         if ($form->rec->_userOrRole > 0) {
         
             // Настройките по-подразбиране за потребителя, без неговите промени
-            $mergeValsArr = self::fetchKey($key, $form->rec->_userOrRole, FALSE);
+            $mergeValsArr = self::fetchKey($key, $form->rec->_userOrRole, FALSE, 'team');
             
             if ($mergeValsArr) {
                 
@@ -373,6 +380,8 @@ class core_Settings extends core_Manager
                 $paramType = Mode::is('screenMode', 'narrow') ? 'unit' : 'hint';
                 
                 foreach ((array)$mergeValsArr as $valKey => $val) {
+                    
+                    if (!$form->fields[$valKey]->type) continue;
                     
                     $defVal = $form->fields[$valKey]->type->toVerbal($val);
                     

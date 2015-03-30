@@ -721,6 +721,12 @@ class email_Incomings extends core_Master
         // Премахваме нашите имейлите
         $otherAllEmailToArr = email_Inboxes::removeOurEmails($allEmailToArr);
         
+        $cRec = email_Accounts::getCorporateAcc();
+        $allCorpEmails = array();
+        if ($cRec) {
+            $allCorpEmails = email_Inboxes::getAllInboxes($cRec->id);
+        }
+        
         // Отбелязваме, кои имейли са външни
         if ($otherAllEmailToArr) {
             foreach ((array)$emailsArr as $key => $emailArr) {
@@ -728,6 +734,13 @@ class email_Incomings extends core_Master
                 
                 if (array_search($emailArr['address'], $otherAllEmailToArr) !== FALSE) {
                     $emailsArr[$key]['isExternal'] = TRUE;
+                } else {
+                    $fromDomain = type_Email::domain($emailArr['address']);
+                    
+                    // Ако няма такъв корпоративен имейл
+                    if ($allCorpEmails && !$allCorpEmails[trim($emailArr['address'])]) {
+                        $emailsArr[$key]['isWrong'] = TRUE;
+                    }
                 }
             }
         }
