@@ -609,7 +609,7 @@ class sales_QuotationsDetails extends doc_Detail {
     			$summary->netTitle = tr($summary->netTitle);
     		}
     		
-    		if(!is_numeric($summary->vatAmount)){
+    		if(!cls::get('type_Double')->fromVerbal($summary->vatAmount)){
     			$summary->vatAmount = tr($summary->vatAmount);
     		}
     		
@@ -622,7 +622,6 @@ class sales_QuotationsDetails extends doc_Detail {
     				$dTpl->replace($data->discounts[key($data->discounts)], 'discountPercent');
     			}
     		}
-    		
     	} else {
     		$dTpl->removeBlock("totalPlace");
     	}
