@@ -1,4 +1,4 @@
-<fieldset class='detail-info portal'">
+<fieldset class='detail-info portal'>
     <legend class='groupTitle'>[#title#]</legend>
     <div class='groupList'>
         [#content#]
