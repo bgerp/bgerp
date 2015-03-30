@@ -186,7 +186,8 @@ class core_Settings extends core_Manager
         // Добавяме всички групи в условието
         if ($rolesArr) {
             $rolesArrSysId = array_map(array('type_UserOrRole', 'getSysRoleId'), $rolesArr);
-            $query->orWhere("#userOrRole IN (" . implode(',', $rolesArr) . ")");
+            
+            $query->orWhere("#userOrRole IN (" . implode(',', $rolesArrSysId) . ")");
         }
         
         // С по-голям приоритет са данните въведени от потребителя
