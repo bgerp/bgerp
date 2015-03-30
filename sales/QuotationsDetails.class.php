@@ -186,7 +186,7 @@ class sales_QuotationsDetails extends doc_Detail {
     		
     		// Обработваме сумарните данни
     		if(!$data->summary->vatAmount){
-    			$data->summary->vatAmount = $mvc->Master->getVerbal($masterRec, 'chargeVat');
+    			$data->summary->vatAmount = $data->masterData->row->chargeVat;
     		}
     		
     		if(!$data->summary->discountValue){
@@ -600,6 +600,7 @@ class sales_QuotationsDetails extends doc_Detail {
     	}
     	
     	if($summary = $data->summary){
+    		
     		if($summary->discountTitle != '-'){
     			$summary->discountTitle = tr($summary->discountTitle);
     		}
@@ -607,7 +608,10 @@ class sales_QuotationsDetails extends doc_Detail {
     		if($summary->netTitle != '-'){
     			$summary->netTitle = tr($summary->netTitle);
     		}
-    		$summary->vatAmount = tr($summary->vatAmount);
+    		
+    		if(!is_numeric($summary->vatAmount)){
+    			$summary->vatAmount = tr($summary->vatAmount);
+    		}
     		
     		$dTpl->placeObject($summary, 'SUMMARY');
     		$dTpl->replace($summary->sayWords, 'sayWords');
@@ -724,7 +728,7 @@ class sales_QuotationsDetails extends doc_Detail {
         $uomShort = cat_UoM::getShortName($uomId);
         
     	if($rec->packagingId){
-    		$rec->packagingId = tr($rec->packagingId);
+    		$row->packagingId = tr($row->packagingId);
     		$row->packagingId .= " <small class='quiet'>{$row->quantityInPack} {$uomShort}</small>";
     	} else {
     		$row->packagingId = $uomShort;
