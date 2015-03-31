@@ -469,7 +469,7 @@ class currency_CurrencyRates extends core_Detail
     	$percent = $conf->EXCHANGE_DEVIATION * 100;
     	$knownRate = static::getRate($date, $from, $to);
     	
-    	$difference = round(abs($givenRate - $knownRate) / min($givenRate, $knownRate) * 100);
+    	@$difference = round(abs($givenRate - $knownRate) / min($givenRate, $knownRate) * 100);
     	if($difference > $percent) {
 		    return "Въведения курс е много различен от очаквания '{$knownRate}'";
 		}
