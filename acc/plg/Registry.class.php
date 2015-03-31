@@ -80,7 +80,11 @@ class acc_plg_Registry extends core_Plugin
     			if($itemRec = acc_Items::fetchItem($mvc, $rec->id)){
     				if($itemRec->state != 'active'){
     					if(haveRole('ceo,acc')){
-    						core_Statuses::newStatus(tr("|Активирано е перо|*: {$itemRec->title}"));
+    						if($itemRec->lists){
+    							core_Statuses::newStatus(tr("|Активирано е перо|*: {$itemRec->title}"));
+    						} else {
+    							core_Statuses::newStatus(tr("|Перо|*: {$itemRec->title} е без номенклатури"));
+    						}
     					}
     				}
     				

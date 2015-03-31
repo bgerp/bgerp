@@ -109,4 +109,24 @@ class social_SharingCnts extends core_Master
     {
         $data->query->orderBy('#createdOn', 'DESC');
     }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass $rec
+     * @param int $userId
+     */
+    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec, $userId)
+    {
+    	
+    	if ($action == 'edit' || $action == 'add') {
+    		
+    		$requiredRoles = 'no_one';
+
+    	}
+    }
 }

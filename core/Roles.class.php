@@ -527,5 +527,48 @@ class core_Roles extends core_Manager
         }
         
     }
-
- }
+    
+    
+    /**
+     * 
+     */
+    public function loadSetupData()
+    {
+        // Подготвяме пътя до файла с данните 
+        $file = "core/csv/Roles.csv";
+        
+        // Кои колонки ще вкарваме
+        $fields = array(
+            0 => "role",
+            1 => "inheritInput",
+            2 => "type"
+        );
+        
+        // Импортираме данните от CSV файла. 
+        // Ако той не е променян - няма да се импортират повторно 
+        $cntObj = csv_Lib::importOnce($this, $file, $fields, array(), array('delimiter' => '|'));
+        
+        // Записваме в лога вербалното представяне на резултата от импортирането 
+        $res .= $cntObj->html;
+        
+        return $res;
+    }
+    
+    
+    /**
+     * Изпълнява се преди импортирването на данните
+     * 
+     * @param core_Roles $mvc
+     * @param object $rec
+     */
+    public static function on_BeforeImportRec($mvc, &$rec)
+    {
+        $rolesArr = explode(',', $rec->inheritInput);
+        
+        foreach ($rolesArr as &$name) {
+            $name = trim($name);
+        }
+        
+        $rec->inheritInput = self::getRolesAsKeylist($rolesArr);
+    }
+}

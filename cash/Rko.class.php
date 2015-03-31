@@ -383,6 +383,8 @@ class cash_Rko extends core_Master
     		$cashierRec = core_Users::fetch($rec->createdBy);
     		$cashierRow = core_Users::recToVerbal($cashierRec);
 	    	$row->cashier = $cashierRow->names;
+	    	
+	    	$row->peroCase = cash_Cases::getHyperlink($rec->peroCase);
         }
     }
     

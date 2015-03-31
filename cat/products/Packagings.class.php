@@ -73,7 +73,7 @@ class cat_products_Packagings extends cat_products_Detail
     {
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden, silent');
         $this->FLD('packagingId', 'key(mvc=cat_Packagings,select=name,allowEmpty)', 'input,caption=Опаковка,mandatory,width=7em');
-        $this->FLD('quantity', 'double', 'input,caption=Количество,mandatory');
+        $this->FLD('quantity', 'double(Min=0)', 'input,caption=Количество,mandatory');
         $this->FLD('isBase', 'enum(yes=Да,no=Не)', 'caption=Основна,mandatory,maxRadio=2');
         $this->FLD('netWeight', 'cat_type_Weight', 'caption=Тегло->Нето');
         $this->FLD('tareWeight', 'cat_type_Weight', 'caption=Тегло->Тара');
@@ -292,7 +292,7 @@ class cat_products_Packagings extends cat_products_Detail
         $wrapTpl->append($mvc->title, 'TITLE');
         
         if ($data->addUrl) {
-        	$addBtn = ht::createLink("<img src=" . sbf('img/16/add.png') . " style='vertical-align: bottom; margin-left:5px;'>", $data->addUrl, FALSE, 'title=Добавяне на нова опаковка');
+        	$addBtn = ht::createLink("<img src=" . sbf('img/16/add.png') . " style='vertical-align: middle; margin-left:5px;'>", $data->addUrl, FALSE, 'title=Добавяне на нова опаковка');
         	$tpl->append($addBtn, 'TITLE');
         }
         

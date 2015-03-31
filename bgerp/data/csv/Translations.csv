@@ -1826,7 +1826,6 @@ en,палет,pallet
 en,Изходящи оферти,Outgoing Quotations
 en,оферта,quotation
 en,Отделно,Separately
-en,Освободено,Released
 en,Без начисление,Without charge
 en,Показване,Display
 en,Забележки,Notice
@@ -1850,7 +1849,7 @@ en,куб.м,cub.m
 en,л,l
 en,мл,ml
 en,бр.,pcs
-en,хил. бр.,tcount  
+en,хил. бр.,K pcs  
 en,сек.,s
 en,мин.,min
 en,kWh,kWh
@@ -1883,3 +1882,16 @@ en,До 15 дни след фактуриране,Until 15 days after invoicing
 en,До 21 дни след фактуриране,Until 21 days after invoicing
 en,До 30 дни след фактуриране,Until 30 days after invoicing
 en,Маркери,Markers
+en,Дилър,Dealer
+en,За доставяне,For delivery
+en,За плащане,For payment
+en,За фактуриране,For invoice
+en,без фактуриране,without invoice
+en,Освободено,Without VAT 
+en,Без начисляване,Without taxes
+en,Не може да добавите продукта като опционален, защото фигурира вече като задължителен!,Unable to add product as optional because already included as mandatory!
+en,Българско,Bulgarian
+en,Международно,International
+en,Маркери,Мarkers
+en,Бутони,Buttons
+en,Броене на споделянията,Count share

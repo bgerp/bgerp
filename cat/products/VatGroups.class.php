@@ -197,8 +197,8 @@ class cat_products_VatGroups extends core_Detail
     	
     	$title = 'ДДС';
     	if($data->addUrl){
-    		$title .= ht::createLink("<img src=" . sbf('img/16/add.png') . " style='vertical-align: bottom; margin-left:5px;'>", $data->addUrl, FALSE, 'title=Добавяне на ДДС група');
-    	}
+			$title .= ht::createLink("<img src=" . sbf('img/16/add.png') . " style='vertical-align: middle; margin-left:5px;'>", $data->addUrl, FALSE, 'title=Избор на ДДС група');
+		}
     	
     	$wrapTpl->append($title, 'TITLE');
     	$wrapTpl->append($tpl, 'CONTENT');
