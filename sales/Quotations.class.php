@@ -417,99 +417,106 @@ class sales_Quotations extends core_Master
     
     
     /**
-     * След преобразуване на записа в четим за хора вид.
+     * Конвертира един запис в разбираем за човека вид
+     * Входният параметър $rec е оригиналният запис от модела
+     * резултата е вербалният еквивалент, получен до тук
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    public static function recToVerbal_($rec, &$fields = '*')
     {
-		if($fields['-single']){
-			$quotDate = dt::mysql2timestamp($rec->date);
-			$timeStamp = dt::mysql2timestamp(dt::verbal2mysql());
-			
-			if(isset($rec->validFor)){
-				
-				// До коя дата е валидна
-				$row->validDate = dt::addSecs($rec->validFor, $rec->date);
-				$row->validDate = $mvc->getFieldType('date')->toVerbal($row->validDate);
-			}
-			
-			if(isset($rec->validFor) && (($quotDate + $rec->validFor) < $timeStamp)){
-				$row->expired = tr("офертата е изтекла");
-			}
-			
-	    	$row->number = $mvc->getHandle($rec->id);
-			$row->username = core_Users::recToVerbal(core_Users::fetch($rec->createdBy), 'names')->names;
-			$profRec = crm_Profiles::fetchRec("#userId = {$rec->createdBy}");
-			if($position = crm_Persons::fetchField($profRec->personId, 'buzPosition')){
-				$row->position = cls::get('type_Varchar')->toVerbal($position);
-			}
-			
-			$ownCompanyData = crm_Companies::fetchOwnCompany();
-			
-			$Varchar = cls::get('type_Varchar');
-			$row->MyCompany = $Varchar->toVerbal($ownCompanyData->company);
-			
-			$contragent = new core_ObjectReference($rec->contragentClassId, $rec->contragentId);
-			$cData = $contragent->getContragentData();
-			
-			$fld = ($rec->tplLang == 'bg') ? 'commonNameBg' : 'commonName';
-			if($cData->countryId){
-				$row->contragentCountryId = drdata_Countries::getVerbal($cData->countryId, $fld);
-			}
-			$row->mycompanyCountryId = drdata_Countries::getVerbal($ownCompanyData->countryId, $fld);
-			
-			foreach (array('pCode', 'place', 'address') as $fld){
-				if($cData->$fld){
-					$row->{"contragent{$fld}"} = $Varchar->toVerbal($cData->$fld);
-				}
-				
-				if($ownCompanyData->$fld){
-					$row->{"mycompany{$fld}"} = $Varchar->toVerbal($ownCompanyData->$fld);
-					$row->{"mycompany{$fld}"} = core_Lg::transliterate($row->{"mycompany{$fld}"});
-				}
-			}
-			
-			if($rec->currencyRate == 1){
-				unset($row->currencyRate);
-			}
-			
-			if($rec->others){
-				$others = explode('<br>', $row->others);
-				$row->others = '';
-				foreach ($others as $other){
-					$row->others .= "<li>{$other}</li>";
-				}
-			}
-			
-			if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
-				if($rec->deliveryPlaceId){
-					if($placeId = crm_Locations::fetchField("#title = '{$rec->deliveryPlaceId}'", 'id')){
-		    			$row->deliveryPlaceId = ht::createLinkRef($row->deliveryPlaceId, array('crm_Locations', 'single', $placeId), NULL, 'title=Към локацията');
-					}
-				}
-			}
-	        
-	        $createdRec = crm_Persons::fetch(crm_Profiles::fetchField("#userId = {$rec->createdBy}", 'personId'));
-	        $buzAddress = ($createdRec->buzAddress) ? $createdRec->buzAddress : $ownCompanyData->place;
-	        if($buzAddress){
-	        	$row->buzPlace = cls::get('type_Varchar')->toVerbal($buzAddress);
-	        	$row->buzPlace = core_Lg::transliterate($row->buzPlace);
-	        }
-	       
-	        $commonSysId = ($rec->tplLang == 'bg') ? "commonConditionSale" : "commonConditionSaleEng";
-	        
-	        if($cond = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, $commonSysId)){
-	        	$row->commonConditionQuote = cls::get('type_Varchar')->toVerbal($cond);
-	        }
-	        
-	        if(empty($rec->date)){
-	        	$row->date = $mvc->getFieldType('date')->toVerbal(dt::today());
-	        }
-		}
-		
+    	$row = parent::recToVerbal_($rec, $fields);
+    	$mvc = cls::get(get_called_class());
+    	
+    	if($fields['-single']){
+    		$quotDate = dt::mysql2timestamp($rec->date);
+    		$timeStamp = dt::mysql2timestamp(dt::verbal2mysql());
+    			
+    		if(isset($rec->validFor)){
+    	
+    			// До коя дата е валидна
+    			$row->validDate = dt::addSecs($rec->validFor, $rec->date);
+    			$row->validDate = $mvc->getFieldType('date')->toVerbal($row->validDate);
+    		}
+    			
+    		if(isset($rec->validFor) && (($quotDate + $rec->validFor) < $timeStamp)){
+    			$row->expired = tr("офертата е изтекла");
+    		}
+    			
+    		$row->number = $mvc->getHandle($rec->id);
+    		$row->username = core_Users::recToVerbal(core_Users::fetch($rec->createdBy), 'names')->names;
+    		$profRec = crm_Profiles::fetchRec("#userId = {$rec->createdBy}");
+    		if($position = crm_Persons::fetchField($profRec->personId, 'buzPosition')){
+    			$row->position = cls::get('type_Varchar')->toVerbal($position);
+    		}
+    			
+    		$ownCompanyData = crm_Companies::fetchOwnCompany();
+    			
+    		$Varchar = cls::get('type_Varchar');
+    		$row->MyCompany = $Varchar->toVerbal($ownCompanyData->company);
+    			
+    		$contragent = new core_ObjectReference($rec->contragentClassId, $rec->contragentId);
+    		$cData = $contragent->getContragentData();
+    			
+    		$fld = ($rec->tplLang == 'bg') ? 'commonNameBg' : 'commonName';
+    		if($cData->countryId){
+    			$row->contragentCountryId = drdata_Countries::getVerbal($cData->countryId, $fld);
+    		}
+    		$row->mycompanyCountryId = drdata_Countries::getVerbal($ownCompanyData->countryId, $fld);
+    			
+    		foreach (array('pCode', 'place', 'address') as $fld){
+    			if($cData->$fld){
+    				$row->{"contragent{$fld}"} = $Varchar->toVerbal($cData->$fld);
+    			}
+    	
+    			if($ownCompanyData->$fld){
+    				$row->{"mycompany{$fld}"} = $Varchar->toVerbal($ownCompanyData->$fld);
+    				$row->{"mycompany{$fld}"} = core_Lg::transliterate($row->{"mycompany{$fld}"});
+    			}
+    		}
+    			
+    		if($rec->currencyRate == 1){
+    			unset($row->currencyRate);
+    		}
+    			
+    		if($rec->others){
+    			$others = explode('<br>', $row->others);
+    			$row->others = '';
+    			foreach ($others as $other){
+    				$row->others .= "<li>{$other}</li>";
+    			}
+    		}
+    			
+    		if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
+    			if($rec->deliveryPlaceId){
+    				if($placeId = crm_Locations::fetchField("#title = '{$rec->deliveryPlaceId}'", 'id')){
+    					$row->deliveryPlaceId = ht::createLinkRef($row->deliveryPlaceId, array('crm_Locations', 'single', $placeId), NULL, 'title=Към локацията');
+    				}
+    			}
+    		}
+    		 
+    		$createdRec = crm_Persons::fetch(crm_Profiles::fetchField("#userId = {$rec->createdBy}", 'personId'));
+    		$buzAddress = ($createdRec->buzAddress) ? $createdRec->buzAddress : $ownCompanyData->place;
+    		if($buzAddress){
+    			$row->buzPlace = cls::get('type_Varchar')->toVerbal($buzAddress);
+    			$row->buzPlace = core_Lg::transliterate($row->buzPlace);
+    		}
+    	
+    		$commonSysId = ($rec->tplLang == 'bg') ? "commonConditionSale" : "commonConditionSaleEng";
+    		 
+    		if($cond = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, $commonSysId)){
+    			$row->commonConditionQuote = cls::get('type_Varchar')->toVerbal($cond);
+    		}
+    		 
+    		if(empty($rec->date)){
+    			$row->date = $mvc->getFieldType('date')->toVerbal(dt::today());
+    		}
+    	}
+    	
     	if($fields['-list']){
     		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
     		$row->title = $mvc->getLink($rec->id, 0);
-	    }
+    	}
+    	
+    	return $row;
     }
     
     
