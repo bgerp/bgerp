@@ -464,13 +464,9 @@ class sales_Quotations extends core_Master
 				
 				if($ownCompanyData->$fld){
 					$row->{"mycompany{$fld}"} = $Varchar->toVerbal($ownCompanyData->$fld);
+					$row->{"mycompany{$fld}"} = core_Lg::transliterate($row->{"mycompany{$fld}"});
 				}
 			}
-			
-			
-			
-			
-			
 			
 			if($rec->currencyRate == 1){
 				unset($row->currencyRate);
@@ -496,6 +492,7 @@ class sales_Quotations extends core_Master
 	        $buzAddress = ($createdRec->buzAddress) ? $createdRec->buzAddress : $ownCompanyData->place;
 	        if($buzAddress){
 	        	$row->buzPlace = cls::get('type_Varchar')->toVerbal($buzAddress);
+	        	$row->buzPlace = core_Lg::transliterate($row->buzPlace);
 	        }
 	       
 	        $commonSysId = ($rec->tplLang == 'bg') ? "commonConditionSale" : "commonConditionSaleEng";
