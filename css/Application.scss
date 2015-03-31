@@ -1574,11 +1574,15 @@ table.mc-header a {
 .portal-select {
     border: none;
     position: relative;
-    top: -3px;
+    top: 0px;
     color: #333333;
     border: none;
     background: none;
+    top: -1px;
     box-shadow: none;
+    font-size: 0.95em;
+	line-height: 1em;
+	height: 1.4em;
     &:focus, &:hover {
         outline: none;
         box-shadow: none; 
