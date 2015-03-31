@@ -123,7 +123,7 @@ class doc_plg_TplManager extends core_Plugin
     			// Ако няма шаблон, за шаблон се приема първия такъв за модела
     			$rec->template = $mvc->getTemplate($rec->id);
     			$rec->tplLang = doc_TplManager::fetchField($rec->template, 'lang');
-    			core_Lg::push($rec->tplLang);
+    			//core_Lg::push($rec->tplLang);
     		}
     	}
     }
@@ -230,9 +230,35 @@ class doc_plg_TplManager extends core_Plugin
     /**
      * След като е готово вербалното представяне
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    /*public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-   		if(isset($rec->tplLang)){
+    	if(isset($rec->tplLang)){
+    		core_Lg::pop();
+    	}
+    }*/
+    
+    
+    /**
+     * След като е готово вербалното представяне
+     */
+    public static function on_BeforeGetVerbal($mvc, &$num, $rec, $part)
+    {
+    	if($part == 'state') return;
+    	
+    	if(isset($rec->tplLang)){
+    		core_Lg::push($rec->tplLang);
+    	}
+    }
+    
+    
+    /**
+     * След като е готово вербалното представяне
+     */
+    public static function on_AfterGetVerbal($mvc, &$num, $rec, $part)
+    {
+    	if($part == 'state') return;
+    	
+    	if(isset($rec->tplLang)){
     		core_Lg::pop();
     	}
     }
