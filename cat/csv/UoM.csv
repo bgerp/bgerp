@@ -7,7 +7,7 @@
 "литър","л","кубичен метър",0.001,"active","l","|l|litar|litri|"
 "милилитър","мл","кубичен метър",0.000001,"active","ml","|ml|mililitar|"
 "брой","бр.",,1,"active","pcs","|br|broj|broq|brojki|pcs|"
-"хиляди бройки","хил. бр.","брой",1000,"active","tcount","|hilqdi brojki|hilqda brojki|"
+"хиляди бройки","хил. бр.","брой",1000,"active","K pcs","|hilqdi brojki|hilqda brojki|"
 "секунда","сек.","секунда",1,"active","s",'|sec|secunda|seconds|second|secundi|'
 "минута","мин.","секунда",60,"active","min","|min|minuta|minuti|minutes|minute|"
 "час","час","секунда",3600,"active","h","|h|hour|hr|chas|chasa|"
