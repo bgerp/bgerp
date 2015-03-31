@@ -154,7 +154,7 @@ class acc_plg_DocumentSummary extends core_Plugin
             
             if($dateRange[0]) {
                 $fromField = ($mvc->filterFieldDateTo) ? $mvc->filterFieldDateTo : $mvc->filterDateField;
-                $data->query->where(array("#{$fromField} >= '[#1#]'", $dateRange[0]));
+                $data->query->where(array("#{$fromField} >= '[#1#]' OR #{$fromField} IS NULL", $dateRange[0]));
                 
                 if($mvc->filterFieldDateTo){
                     $data->query->orWhere(array("#{$fromField} IS NULL", $dateRange[0]));
@@ -163,7 +163,7 @@ class acc_plg_DocumentSummary extends core_Plugin
             
             if($dateRange[1]) {
                 $toField = ($mvc->filterFieldDateFrom) ? $mvc->filterFieldDateFrom : $mvc->filterDateField;
-                $data->query->where(array("#{$toField} <= '[#1#] 23:59:59'", $dateRange[1]));
+                $data->query->where(array("#{$toField} <= '[#1#] 23:59:59' OR #{$toField} IS NULL", $dateRange[1]));
                 
                 if($mvc->filterFieldDateFrom){
                     $data->query->orWhere(array("#{$toField} IS NULL", $dateRange[1]));
