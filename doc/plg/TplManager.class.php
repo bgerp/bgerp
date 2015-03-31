@@ -123,7 +123,7 @@ class doc_plg_TplManager extends core_Plugin
     			// Ако няма шаблон, за шаблон се приема първия такъв за модела
     			$rec->template = $mvc->getTemplate($rec->id);
     			$rec->tplLang = doc_TplManager::fetchField($rec->template, 'lang');
-//    			core_Lg::push($rec->tplLang);
+    			core_Lg::push($rec->tplLang);
     		}
     	}
     }
@@ -228,18 +228,22 @@ class doc_plg_TplManager extends core_Plugin
     
     
     /**
-     * Изпълнява се след подготовката на титлата в единичния изглед
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
      */
-    public static function on_BeforePrepareSingleTitle($mvc, &$res, $data)
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-    	if($data->rec->tplLang){
-//    		core_Lg::pop();
-    		
+    	if($rec->tplLang){
+    		core_Lg::pop();
+    	
     		// Заместваме вербалното състояние и име с тези според езика на текущата сесия
     		if($mvc->getFieldType('state', FALSE)){
-    			$data->row->state = $mvc->getFieldType('state')->toVerbal($data->rec->state);
+    			$row->state = $mvc->getFieldType('state')->toVerbal($rec->state);
     		}
-    		$data->row->singleTitle = tr($mvc->singleTitle);
+    		$row->singleTitle = tr($mvc->singleTitle);
     	}
     }
 }
