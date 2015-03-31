@@ -89,6 +89,11 @@ class cams_Records extends core_Master
      */
     var $canRead = 'ceo,cams, admin';
     
+    /**
+     * Права за добавяне
+     */
+    var $canAdd = 'no_one';
+    
     
     /**
      * Права за маркиране
