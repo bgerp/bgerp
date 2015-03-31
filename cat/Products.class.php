@@ -286,9 +286,9 @@ class cat_Products extends core_Embedder {
     		if(!$cover->haveInterface('doc_ContragentDataIntf')){
     			$form->setField('code', 'mandatory');
     			
-				if($code = Mode::get('catLastProductCode')) {
+				if($code = Mode::get('cat_Products_code')) {
 					if ($newCode = str::increment($code)) {
-						 
+						
 						// Проверяваме дали има такъв запис в системата
 						if (!$mvc->fetch("#code = '$newCode'")) {
 							$form->setDefault('code', $newCode);
