@@ -237,7 +237,7 @@ class doc_plg_TplManager extends core_Plugin
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	if($rec->tplLang){
     		if(isset($fields['-single'])){
