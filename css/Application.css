@@ -1380,71 +1380,28 @@ table.mc-header a {
 /*
  * край на стиловете за календара в портала
  */
-/*
- * стилове за селекта на календара в портала
- */
-.metro-dropdown-portal option,
-.metro-dropdown-portal:after,
-.metro-dropdown-portal::after,
-.metro-dropdown-portal select {
-  color: black;
-  box-shadow: none; }
-  .metro-dropdown-portal option:focus,
-  .metro-dropdown-portal:after:focus,
-  .metro-dropdown-portal::after:focus,
-  .metro-dropdown-portal select:focus {
-    outline: none;
-    box-shadow: none; }
-
-.metro-dropdown-portal select,
-.metro-dropdown-portal:after,
-.metro-dropdown-portal::after {
-  display: block;
-  background: #f8fff8; }
-
-.metro-dropdown-portal select,
-.metro-dropdown-portal option {
-  padding: 4px; }
-
-.metro-dropdown-portal {
+.portal-select {
+  border: none;
   position: relative;
-  display: inline-block;
-  border: 0 none;
-  right: 13px;
-  top: -8px; }
-
-.metro-dropdown-portal::after {
-  content: "\25bc";
-  position: absolute;
-  top: 0;
-  right: 0px;
-  display: block;
-  width: 29px;
-  font-size: 1em;
-  line-height: 34px;
-  left: 80px;
-  -webkit-pointer-events: none;
-  -moz-pointer-events: none;
-  pointer-events: none; }
+  top: -3px;
+  color: #333333;
+  border: none;
+  background: none;
+  box-shadow: none; }
+  .portal-select:focus,
+  .portal-select:hover {
+    outline: none;
+    box-shadow: none;
+    background: none; }
 
 @-moz-document url-prefix() {
-    .metro-dropdown-portal::after {
-    width: 20px;
-    left: 110px; }
+    .portal-select {
+    color: transparent;
+    text-shadow: 0 0 0 black; }
  }
-.metro-dropdown-portal select {
-  height: 34px;
-  border: 0;
-  vertical-align: middle;
-  font: normal 1em Helvetica, Arial, Verdana, sans-serif;
-  outline: 0 none;
-  text-align: right; }
-
-.metro-dropdown-portal option {
-  background: white;
-  color: black;
-  text-align: left; }
-
+/*
+ * край на стилове за селекта на календара в портала
+ */
 /*
  * край на стилове за селекта на календара в портала
  */
