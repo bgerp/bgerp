@@ -380,6 +380,12 @@ class core_Users extends core_Manager
                 $stateType = &$mvc->fields['state']->type;
                 unset($stateType->options['draft']);
             }
+        } else {
+            $teamsList = core_Roles::getRolesByType('team');
+            $teamsArr = type_Keylist::toArray($teamsList);
+            if (count($teamsArr) == 1) {
+                $data->form->setDefault('rolesInput', $teamsArr);
+            }
         }
     }
     
