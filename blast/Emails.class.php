@@ -1827,8 +1827,13 @@ class blast_Emails extends core_Master
         
         core_Users::sudo($userId);
         
-        // Вземаме прикачените документи за този детайл с правата на активиралия потребител
-        $attachedDocs = (array)doc_RichTextPlg::getAttachedDocs($rec->body);
+        try {
+            // Вземаме прикачените документи за този детайл с правата на активиралия потребител
+            $attachedDocs = (array)doc_RichTextPlg::getAttachedDocs($rec->body);
+        } catch (core_exception_Expect $e) {
+            core_Users::exitSudo();
+            return ;
+        }
         
         core_Users::exitSudo();
         
