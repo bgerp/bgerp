@@ -373,11 +373,11 @@ abstract class deals_DealDetail extends doc_Detail
     	$recs = &$data->recs;
     	$rows = &$data->rows;
     	
+    	// Скриване на полето "мярка"
+    	$data->listFields = array_diff_key($data->listFields, arr::make('uomId,quantityInPack', TRUE));
+    	
     	if(!count($recs)) return;
     	
-    	// Скриване на полето "мярка" 
-        $data->listFields = array_diff_key($data->listFields, arr::make('uomId,quantityInPack', TRUE));
-        
         // Флаг дали има отстъпка
         $haveDiscount = FALSE;
         $haveQuantityDelivered = FALSE;
