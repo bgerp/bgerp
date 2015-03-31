@@ -297,7 +297,6 @@ class cat_products_Packagings extends cat_products_Detail
         }
         
         $wrapTpl->append($tpl, 'CONTENT');
-        $wrapTpl->replace(get_class($mvc), 'DetailName');
         
         $tpl = $wrapTpl;
     }
