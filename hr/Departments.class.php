@@ -275,8 +275,12 @@ class hr_Departments extends core_Master
         if ($form->isSubmitted() && ($rec->id)) {
             
             if($rec->staff || $rec->dependent) {
-                
+            	
                 $expandedDepartment = self::expandRec($form->rec->dependent);
+               
+                if ($expandedDepartment == NULL) {
+                	$form->setError('dependent', "|Не може отдела да е подчинен на себе си");
+                }
                 
                 // Ако има грешки
                 if ($expandedDepartment[$rec->id]) {
