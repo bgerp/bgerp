@@ -50,11 +50,11 @@
         <!--ET_BEGIN SUMMARY-->
         [#SUMMARY#]
         <tr>
-             <th>|Стойност|*</th>
-             <th>[#discountTitle#] [#discountPercent#] </th>
-             <th>[#netTitle#]</th>
-             <th>|ДДС|* [#vat#]</th>
-             <th>|Общо|*</th>
+             <th style='width: 20%;'>|Стойност|*</th>
+             <th style='width: 20%;'>[#discountTitle#] [#discountPercent#] </th>
+             <th style='width: 20%;'>[#netTitle#]</th>
+             <th style='width: 20%;'>|ДДС|* [#vat#]</th>
+             <th style='width: 20%;'>|Общо|*</th>
         </tr>
         <tr style='font-weight: bold;'>
             <td class='centered dark-gray'>[#value#]</td>
