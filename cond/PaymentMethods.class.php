@@ -103,10 +103,10 @@ class cond_PaymentMethods extends core_Master
         $this->FLD('sysId', 'varchar(16)', 'caption=Системно ID, input=none');
 
         // Съкратено име на плащането
-        $this->FLD('name', 'varchar(32)', 'caption=Име,  mandatory,translate');
+        $this->FLD('name', 'varchar(32)', 'caption=Име,  mandatory');
 
         // Текстово описание
-        $this->FLD('description', 'text(rows=5)', 'caption=Описание, mandatory, ');
+        $this->FLD('description', 'text(rows=5)', 'caption=Описание, mandatory, translate');
         
         // Процент на авансовото плащане
         $this->FLD('downpayment', 'percent(min=0,max=1)', 'caption=Авансово плащане->Дял,hint=Процент,oldFieldName=payAdvanceShare');
