@@ -1812,21 +1812,6 @@ class core_Users extends core_Manager
     
     
     /**
-     * Връща ключа за персонална настройка
-     * 
-     * @param integer $id
-     * 
-     * @return string
-     */
-    static function getSettingsKey($id)
-    {
-        $key = 'core_Users::' . $id;
-        
-        return $key;
-    }
-    
-    
-    /**
      * 
      * 
      * @param core_Users $mvc

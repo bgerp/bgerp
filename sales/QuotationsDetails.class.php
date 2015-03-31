@@ -186,7 +186,7 @@ class sales_QuotationsDetails extends doc_Detail {
     		
     		// Обработваме сумарните данни
     		if(!$data->summary->vatAmount){
-    			$data->summary->vatAmount = $mvc->Master->getVerbal($masterRec, 'chargeVat');
+    			$data->summary->vatAmount = $data->masterData->row->chargeVat;
     		}
     		
     		if(!$data->summary->discountValue){
@@ -485,11 +485,11 @@ class sales_QuotationsDetails extends doc_Detail {
     		$productMan = cls::get('cat_Products');
     		$products = $productMan->getProducts($data->masterData->rec->contragentClassId, $data->masterData->rec->contragentId, $data->masterData->rec->date, 'canSell');
     		if(!count($products)){
-    			$error = "error=Няма продаваеми артикули";
+    			$error = "error=Няма продаваеми артикули,";
     		}
     	
-    		$data->addNotOptionalBtn = ht::createBtn('Артикул',  array($this, 'add', 'quotationId' => $data->masterId, 'classId' => $productMan->getClassId(), 'optional' => 'no', 'ret_url' => TRUE), FALSE, FALSE, "{$error},ef_icon = img/16/shopping.png, title=Добавяне на артикул към офертата");
-    		$data->addOptionalBtn = ht::createBtn('Артикул',  array($this, 'add', 'quotationId' => $data->masterId, 'classId' => $productMan->getClassId(), 'optional' => 'yes', 'ret_url' => TRUE),  FALSE, FALSE, "{$error},ef_icon = img/16/shopping.png, title=Добавяне на артикул към офертата");
+    		$data->addNotOptionalBtn = ht::createBtn('Артикул',  array($this, 'add', 'quotationId' => $data->masterId, 'classId' => $productMan->getClassId(), 'optional' => 'no', 'ret_url' => TRUE), FALSE, FALSE, "{$error} ef_icon = img/16/shopping.png, title=Добавяне на артикул към офертата");
+    		$data->addOptionalBtn = ht::createBtn('Артикул',  array($this, 'add', 'quotationId' => $data->masterId, 'classId' => $productMan->getClassId(), 'optional' => 'yes', 'ret_url' => TRUE),  FALSE, FALSE, "{$error} ef_icon = img/16/shopping.png, title=Добавяне на артикул към офертата");
     	}
     	
     	if(!$data->rows) return;
@@ -600,6 +600,7 @@ class sales_QuotationsDetails extends doc_Detail {
     	}
     	
     	if($summary = $data->summary){
+    		
     		if($summary->discountTitle != '-'){
     			$summary->discountTitle = tr($summary->discountTitle);
     		}
@@ -607,7 +608,10 @@ class sales_QuotationsDetails extends doc_Detail {
     		if($summary->netTitle != '-'){
     			$summary->netTitle = tr($summary->netTitle);
     		}
-    		$summary->vatAmount = tr($summary->vatAmount);
+    		
+    		if(!cls::get('type_Double')->fromVerbal($summary->vatAmount)){
+    			$summary->vatAmount = tr($summary->vatAmount);
+    		}
     		
     		$dTpl->placeObject($summary, 'SUMMARY');
     		$dTpl->replace($summary->sayWords, 'sayWords');
@@ -618,7 +622,6 @@ class sales_QuotationsDetails extends doc_Detail {
     				$dTpl->replace($data->discounts[key($data->discounts)], 'discountPercent');
     			}
     		}
-    		
     	} else {
     		$dTpl->removeBlock("totalPlace");
     	}
@@ -724,6 +727,7 @@ class sales_QuotationsDetails extends doc_Detail {
         $uomShort = cat_UoM::getShortName($uomId);
         
     	if($rec->packagingId){
+    		$row->packagingId = tr($row->packagingId);
     		$row->packagingId .= " <small class='quiet'>{$row->quantityInPack} {$uomShort}</small>";
     	} else {
     		$row->packagingId = $uomShort;

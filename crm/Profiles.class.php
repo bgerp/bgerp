@@ -278,7 +278,7 @@ class crm_Profiles extends core_Master
         }
         
         // Бутон за персонализиране
-        $key = self::getSettingsKey($data->rec->userId);
+        $key = self::getSettingsKey();
         $currUser = core_Users::getCurrent();
         if (self::canModifySettings($key, $data->rec->userId)) {
             core_Settings::addBtn($data->toolbar, $key, 'crm_Profiles', $data->rec->userId, 'Персонализиране');
@@ -887,9 +887,9 @@ class crm_Profiles extends core_Master
      * 
      * @return string
      */
-    static function getSettingsKey($userId)
+    static function getSettingsKey($userId=NULL)
     {
-        $key = core_Users::getSettingsKey($userId);
+        $key = 'crm_Profiles';
         
         return $key;
     }
@@ -925,25 +925,6 @@ class crm_Profiles extends core_Master
      */
     function prepareSettingsForm(&$form)
     {
-        // Променяме ключа, когато ще се настройва за друг потребител (без ролите)
-        if ($form->rec->_userOrRole > 0) {
-            
-            $newKey = self::getSettingsKey($form->rec->_userOrRole);
-            
-            // Ако ключа е променен, добавяме новите стойности за него
-            if ($newKey != $form->rec->_key) {
-                
-                $form->rec->_key = $newKey;
-                
-                expect(crm_Profiles::canModifySettings($newKey, $form->rec->_userOrRole));
-                
-                $valsArr = core_Settings::fetchKeyNoMerge($newKey, $form->rec->_userOrRole);
-                foreach ($valsArr as $valKey => $val) {
-                    $form->rec->$valKey = $val;
-                }
-            }
-        }
-        
         // Задаваме таба на менюто да сочи към документите
         Mode::set('pageMenu', 'Указател');
         Mode::set('pageSubMenu', 'Визитник');

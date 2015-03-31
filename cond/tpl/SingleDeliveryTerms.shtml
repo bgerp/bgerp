@@ -1,8 +1,6 @@
 <div class="singleView" >
     [#SingleToolbar#]
-    <h2>
-        <div style="padding:5px 2px;" class=" [#STATE_CLASS#]"> |Условие на доставка|* <b style="color:green;">[#codeName#]</b></div>
-    </h2>
+    <h2 style="padding:5px 2px;" class=" [#STATE_CLASS#]"> |Условие на доставка|* <span style="color:green;">[#codeName#]</span></h2>
     <p>[#term#]</p>
     <p><b>|Транспорт|*:</b> [#transport#]</p>
     <p><b>|За продавача|*:</b> [#forSeller#]</p>

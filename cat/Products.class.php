@@ -286,9 +286,9 @@ class cat_Products extends core_Embedder {
     		if(!$cover->haveInterface('doc_ContragentDataIntf')){
     			$form->setField('code', 'mandatory');
     			
-				if($code = Mode::get('catLastProductCode')) {
+				if($code = Mode::get('cat_Products_code')) {
 					if ($newCode = str::increment($code)) {
-						 
+						
 						// Проверяваме дали има такъв запис в системата
 						if (!$mvc->fetch("#code = '$newCode'")) {
 							$form->setDefault('code', $newCode);
@@ -1392,7 +1392,7 @@ class cat_Products extends core_Embedder {
     				$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'single', $bRec->id, 'ret_url' => TRUE), 'ef_icon = img/16/view.png,title=Към технологичната рецепта на артикула');
     			}
     		} elseif(cat_Boms::haveRightFor('write', (object)array('productId' => $data->rec->id))){
-    			$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'add', 'productId' => $data->rec->id, 'originId' => $data->rec->containerId, 'ret_url' => TRUE), 'ef_icon = img/16/legend.png,title=Създаване на нова технологична рецепта');
+    			$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'add', 'productId' => $data->rec->id, 'originId' => $data->rec->containerId, 'ret_url' => TRUE), 'ef_icon = img/16/article.png,title=Създаване на нова технологична рецепта');
     		}
     	}
     	
@@ -1400,7 +1400,7 @@ class cat_Products extends core_Embedder {
 			if($data->rec->state == 'closed'){
 				$data->toolbar->addBtn("Активиране", array($mvc, 'changeState', $data->rec->id, 'ret_url' => TRUE), 'ef_icon = img/16/lightbulb.png,title=Активиранe на артикула,warning=Сигурнили сте че искате да активирате артикула, това ще му активира перото');
 			} elseif($data->rec->state == 'active'){
-				$data->toolbar->addBtn("Приключване", array($mvc, 'changeState', $data->rec->id, 'ret_url' => TRUE), 'ef_icon = img/16/lightbulb_off.png,title=Затваряне артикула и перото му,warning=Сигурнили сте че искате да приключите артикула, това ще му затвори перото');
+				$data->toolbar->addBtn("Приключване", array($mvc, 'changeState', $data->rec->id, 'ret_url' => TRUE), 'ef_icon = img/16/lightbulb_off.png,title=Приключване на артикула,warning=Сигурнили сте че искате да приключите артикула, това ще му затвори перото');
 			}
 		}
     }

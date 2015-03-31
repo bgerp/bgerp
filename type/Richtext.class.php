@@ -218,13 +218,7 @@ class type_Richtext extends type_Blob
         if(!$textMode) {
             $textMode = 'html';
         }
-        
-//        $md5 = md5($html) . $textMode;
-
-        // if($ret = core_Cache::get(RICHTEXT_CACHE_TYPE, $md5, 1000)) {
-        //     return $ret;
-        // }
-        
+                
         // Място, където съхраняваме нещата за субституция
         $this->_htmlBoard = array();
         
@@ -366,7 +360,7 @@ class type_Richtext extends type_Blob
             
             $html = str_replace('<nbsp>', '&nbsp;', $html);
         }
-    
+
         if(!Mode::is('text', 'plain')) {
             $html =  new ET("<div class=\"richtext\">{$html}</div>");
         } else {
@@ -405,9 +399,7 @@ class type_Richtext extends type_Blob
         } else {
             $html = $cHtml;
         }
-        
-        // core_Cache::set(RICHTEXT_CACHE_TYPE, $md5, $html, 1000);
-        
+                
         return $html;
     }
     
@@ -1275,7 +1267,7 @@ class type_Richtext extends type_Blob
            	$toolbarArr->add("<a class='rtbutton' title='" . tr('Усмивка') .  "' onclick=\"rp('[em=smile]', document.getElementById('{$formId}'),0)\"><img src=" . sbf('img/em15/em.icon.smile.gif') . " height='15' width='15'  alt='smile'></a>", 'TBL_GROUP1');
     	    $toolbarArr->add("<a class='rtbutton' title='" . tr('Широка усмивка') .  "' onclick=\"rp('[em=bigsmile]', document.getElementById('{$formId}'),0)\"><img src=" . sbf('img/em15/em.icon.bigsmile.gif') . " height='15' width='15' alt='bigsmile'></a>", 'TBL_GROUP1');
     	    $toolbarArr->add("<a class='rtbutton' title='" . tr('Супер!') .  "' onclick=\"rp('[em=cool]', document.getElementById('{$formId}'),0)\"><img src=" . sbf('img/em15/em.icon.cool.gif') . " height='15' width='15' alt='cool'></a>", 'TBL_GROUP1');
-    	    $toolbarArr->add("<a class='rtbutton' title='" . tr('Бира') .  "' onclick=\"rp('[em=beer]', document.getElementById('{$formId}'),0)\"><img alt='Бира' src=" . sbf('img/em15/em.icon.beer.gif') . " height='15' width='15'></a><div class='clearfix21'></div>", 'TBL_GROUP1');
+    	    $toolbarArr->add("<a class='rtbutton' title='" . tr('Бира') .  "' onclick=\"rp('[em=beer]', document.getElementById('{$formId}'),0)\"><img alt='Бира' src=" . sbf('img/em15/em.icon.beer.gif') . " height='15' width='15'></a><span class='clearfix21'></span>", 'TBL_GROUP1');
     	   	$toolbarArr->add("<a class='rtbutton' title='" . tr('Въпрос?') .  "' onclick=\"rp('[em=question]', document.getElementById('{$formId}'),0)\"><img alt='Въпрос?' src=" . sbf('img/em15/em.icon.question.gif') . " height='15' width='15' ></a>", 'TBL_GROUP1');
     	    $toolbarArr->add("<a class='rtbutton' title='" . tr('Сърце') .  "' onclick=\"rp('[em=heart]', document.getElementById('{$formId}'),0)\"><img alt='Сърце' src=" . sbf('img/em15/em.icon.heart.gif') . " height='15' width='15'></a>", 'TBL_GROUP1');
     	   	$toolbarArr->add("<a class='rtbutton' title='" . tr('OK') .  "' onclick=\"rp('[em=ok]', document.getElementById('{$formId}'),0)\"><img alt='OK' src=" . sbf('img/em15/em.icon.ok.gif') . " height='15' width='15'></a>", 'TBL_GROUP1');
@@ -1318,7 +1310,7 @@ class type_Richtext extends type_Blob
             $toolbarArr->add("<span id='{$attr['id']}-group4' class='richtext-emoticons4 richtext-holder-group {$emot4}'>", 'TBL_GROUP2');
     	    $toolbarArr->add("<a class=rtbutton title='" . tr('Заглавие') . " 1" .  "' onclick=\"s('[h1]', '[/h1]', document.getElementById('{$formId}'),1)\">H1</a>", 'TBL_GROUP2');
     	    $toolbarArr->add("<a class=rtbutton title='" . tr('Заглавие') . " 2" .  "' onclick=\"s('[h2]', '[/h2]', document.getElementById('{$formId}'),1)\">H2</a>", 'TBL_GROUP2');
-    	    $toolbarArr->add("<a class=rtbutton title='" . tr('Заглавие') . " 3" .  "' onclick=\"s('[h3]', '[/h3]', document.getElementById('{$formId}'),1)\">H3</a><div class='clearfix21'></div>", 'TBL_GROUP2');
+    	    $toolbarArr->add("<a class=rtbutton title='" . tr('Заглавие') . " 3" .  "' onclick=\"s('[h3]', '[/h3]', document.getElementById('{$formId}'),1)\">H3</a><span class='clearfix21'></span>", 'TBL_GROUP2');
     	    $toolbarArr->add("<a class=rtbutton title='" . tr('Заглавие') . " 4" .  "' onclick=\"s('[h4]', '[/h4]', document.getElementById('{$formId}'),1)\">H4</a>", 'TBL_GROUP2');
     	    $toolbarArr->add("<a class=rtbutton title='" . tr('Заглавие') . " 5" .  "' onclick=\"s('[h5]', '[/h5]', document.getElementById('{$formId}'),1)\">H5</a>", 'TBL_GROUP2');
     	    $toolbarArr->add("<a class=rtbutton title='" . tr('Заглавие') . " 6" .  "' onclick=\"s('[h6]', '[/h6]', document.getElementById('{$formId}'),1)\">H6</a>", 'TBL_GROUP2');
@@ -1331,7 +1323,7 @@ class type_Richtext extends type_Blob
         	$toolbarArr->add("<span class='richtext-relative-group'>", 'TBL_GROUP2');
             $toolbarArr->add("<a class='open-popup-link rtbutton'  title='" . tr('Таблица') .  "' onclick=\"toggleRichtextGroups('{$attr['id']}-group7', event); \"><img src=" . sbf('img/16/table3.png') . " height='15' width='15'></a>", 'TBL_GROUP2');
             $toolbarArr->add("<span id='{$attr['id']}-group7' class='richtext-emoticons7 richtext-holder-group {$emot7}'>", 'TBL_GROUP2');
-            $toolbarArr->add("<div class='popup-table-info'><div class='popupBlock'>" . tr('Колони') . ": <br><input type = 'text' value='5' id='colTable'></div><div class='popupBlock'>" . tr('Редове') .":<br> <input type = 'text' value='3' id='rowTable'/></div><input type='button' id='getTableInfo' onclick=\"crateRicheditTable(document.getElementById('{$formId}'), 1, document.getElementById('colTable').value, document.getElementById('rowTable').value );\" value='OK' /> </div>", 'TBL_GROUP2');
+            $toolbarArr->add("<span class='popup-table-info'><span class='popupBlock'>" . tr('Колони') . ": <br><input type = 'text' value='5' id='colTable'></span><span class='popupBlock'>" . tr('Редове') .":<br> <input type = 'text' value='3' id='rowTable'/></span><input type='button' id='getTableInfo' onclick=\"crateRicheditTable(document.getElementById('{$formId}'), 1, document.getElementById('colTable').value, document.getElementById('rowTable').value );\" value='OK' /> </span>", 'TBL_GROUP2');
             $toolbarArr->add("</span>", 'TBL_GROUP2');
             $toolbarArr->add("</span>", 'TBL_GROUP2');
             
@@ -1365,7 +1357,7 @@ class type_Richtext extends type_Blob
           	    
                 // Ако трябва да се добави разделител за нов ред
           	    if (!($i % $maxBlockElementInLine)) {
-          	         $toolbarTxt .= "<div class='clearfix21'></div>";
+          	         $toolbarTxt .= "<span class='clearfix21'></span>";
           	    }
           	    $toolbarArr->add($toolbarTxt, 'TBL_GROUP2');
           	}

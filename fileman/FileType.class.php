@@ -50,7 +50,6 @@ class fileman_FileType extends type_Varchar {
         unset($attr['ondblclick']);
         
         $attrInp = $attr;
-        $attrInp['name'] = $name . "_file_name";
         $attrInp['id'] = $name . "_file_name_id";
         $attrInp['style'] = 'padding:5px;font-weight:bold;';
         

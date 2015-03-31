@@ -38,7 +38,7 @@ class cat_Packagings extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_Rejected, plg_RowTools, cat_Wrapper';
+    var $loadList = 'plg_Created, plg_Rejected, plg_RowTools, cat_Wrapper, plg_Translate';
     
     
     /**
@@ -106,7 +106,7 @@ class cat_Packagings extends core_Manager
      */
     function description()
     {
-        $this->FLD('name', 'varchar(32)', 'caption=Име, mandatory');
+        $this->FLD('name', 'varchar(32)', 'caption=Име, mandatory, translate');
         $this->FLD('contentPlastic', 'percent', 'caption=Полимер');
         $this->FLD('contentPaper', 'percent', 'caption=Хартия');
         $this->FLD('contentGlass', 'percent', 'caption=Стъкло');

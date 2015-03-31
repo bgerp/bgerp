@@ -12,12 +12,14 @@
  * @category  bgerp
  * @package   doc
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
 class doc_plg_TplManager extends core_Plugin
 {
+	
+	
 	/**
      * След инициализирането на модела
      * 
@@ -110,15 +112,19 @@ class doc_plg_TplManager extends core_Plugin
     }
     
     
-	/**
-     * След преобразуване на записа в четим за хора вид
+    /**
+     * Изпълнява се преди преобразуването към вербални стойности на полетата на записа
      */
-    public static function on_AfterRecToVerbal(core_Mvc $mvc, &$row, &$rec)
+    protected static function on_BeforeRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	// Ако няма шаблон, за шаблон се приема първия такъв за модела
-    	if($rec->id){
-    		$rec->template = $mvc->getTemplate($rec->id);
-    		$rec->tplLang = doc_TplManager::fetchField($rec->template, 'lang');
+    	if(is_object($rec)){
+    		if($rec->id){
+    			
+    			// Ако няма шаблон, за шаблон се приема първия такъв за модела
+    			$rec->template = $mvc->getTemplate($rec->id);
+    			$rec->tplLang = doc_TplManager::fetchField($rec->template, 'lang');
+    			core_Lg::push($rec->tplLang);
+    		}
     	}
     }
     
@@ -126,7 +132,7 @@ class doc_plg_TplManager extends core_Plugin
     /**
      * Извиква се преди рендирането на 'опаковката'
      */
-    function on_BeforeRenderSingleLayout(core_Mvc $mvc, &$res, $data)
+    public static function on_BeforeRenderSingleLayout(core_Mvc $mvc, &$res, $data)
     {
     	// За текущ език се избира този на шаблона
 		$lang = doc_TplManager::fetchField($data->rec->template, 'lang');
@@ -142,7 +148,7 @@ class doc_plg_TplManager extends core_Plugin
     /**
      * Извиква се преди рендирането на 'опаковката'
      */
-    function on_BeforeRenderSingleToolbar(core_Mvc $mvc, &$res, $data)
+    public static function on_BeforeRenderSingleToolbar(core_Mvc $mvc, &$res, $data)
     {
     	// Маха се пушнатия език, за да може да се рендира тулбара нормално
     	core_Lg::pop();
@@ -152,7 +158,7 @@ class doc_plg_TplManager extends core_Plugin
 	/**
      * Извиква се преди рендирането на 'опаковката'
      */
-    function on_AfterRenderSingleToolbar(core_Mvc $mvc, &$res, $data)
+    public static function on_AfterRenderSingleToolbar(core_Mvc $mvc, &$res, $data)
     {
     	// След рендиране на тулбара отново се пушва езика на шаблона
     	$lang = doc_TplManager::fetchField($data->rec->template, 'lang');
@@ -163,7 +169,7 @@ class doc_plg_TplManager extends core_Plugin
 	/**
      * Извиква се преди рендирането на 'опаковката'
      */
-    function on_AfterRenderSingleLayout(core_Mvc $mvc, &$tpl, $data)
+    public static function on_AfterRenderSingleLayout(core_Mvc $mvc, &$tpl, $data)
     {
     	// Ако има посочен плейсхолдър където да отива шаблона, то той се използва
     	if($mvc->templateFld){
@@ -186,7 +192,7 @@ class doc_plg_TplManager extends core_Plugin
 	/**
      * След подготовка на на единичния изглед
      */
-    static function on_AfterPrepareSingle(core_Mvc $mvc, &$res, &$data)
+    public static function on_AfterPrepareSingle(core_Mvc $mvc, &$res, &$data)
     {
     	// Ако има избран шаблон
     	if($data->rec->template){
@@ -217,6 +223,23 @@ class doc_plg_TplManager extends core_Plugin
     		if($Script = doc_TplManager::getTplScriptClass($data->rec->template)){
     			$Script->modifyMasterData($mvc, $data);
     		}
+    	}
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на титлата в единичния изглед
+     */
+    public static function on_BeforePrepareSingleTitle($mvc, &$res, $data)
+    {
+    	if($data->rec->tplLang){
+    		core_Lg::pop();
+    		
+    		// Заместваме вербалното състояние и име с тези според езика на текущата сесия
+    		if($mvc->getFieldType('state', FALSE)){
+    			$data->row->state = $mvc->getFieldType('state')->toVerbal($data->rec->state);
+    		}
+    		$data->row->singleTitle = tr($mvc->singleTitle);
     	}
     }
 }

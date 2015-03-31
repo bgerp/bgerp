@@ -149,9 +149,9 @@ class hr_Shifts extends core_Master
         
         $header = "<table class='mc-header' width='100%' cellpadding='0'>
                 <tr>
-                    <td align='left'><a href='{$prevtLink}'>{$prevMonth}</a></td>
-                    <td align='center'><b>{$currentMonth}</b></td>
-                    <td align='right'><a href='{$nextLink}'>{$nextMonth}</a></td>
+                    <td style='text-align: left'><a href='{$prevtLink}'>{$prevMonth}</a></td>
+                    <td style='text-align: center'><b>{$currentMonth}</b></td>
+                    <td style='text-align: right'><a href='{$nextLink}'>{$nextMonth}</a></td>
                 </tr>
             </table>";
         

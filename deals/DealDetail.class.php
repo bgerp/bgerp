@@ -354,11 +354,11 @@ abstract class deals_DealDetail extends doc_Detail
     		
     		$productMan = cls::get('cat_Products');
     		if(!count($productMan->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->valior, $mvc->metaProducts, NULL, 1))){
-                $error = "error=Няма продаваеми артикули";
+                $error = "error=Няма продаваеми артикули, ";
             }
             
             $data->toolbar->addBtn('Артикул', array($mvc, 'add', "{$mvc->masterKey}" => $masterRec->id, 'classId' => $productMan->getClassId(), 'ret_url' => TRUE),
-            "id=btnAdd-{$manId},{$error},order=10,title=Добавяне на артикул", 'ef_icon = img/16/shopping.png');
+            "id=btnAdd-{$manId},{$error} order=10,title=Добавяне на артикул", 'ef_icon = img/16/shopping.png');
             
             unset($data->toolbar->buttons['btnAdd']);
         }

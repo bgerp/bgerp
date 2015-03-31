@@ -292,7 +292,7 @@ class bank_Accounts extends core_Master {
         if(!Mode::is('printing')) {
             if($data->masterMvc->haveRightFor('edit', $data->masterId) && $this->haveRightFor('add')) {
                 $url = array($this, 'add', 'contragentCls' => $data->contragentCls, 'contragentId' => $data->masterId, 'ret_url' => TRUE);
-                $img = "<img src=" . sbf('img/16/add.png') . " width='16' valign=absmiddle  height='16'>";
+                $img = "<img src=" . sbf('img/16/add.png') . " width='16'  height='16'>";
                 $tpl->append(ht::createLink($img, $url, FALSE, 'title=' . tr('Добавяне на нова банкова сметка')), 'title');
             }
         }

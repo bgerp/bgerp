@@ -2371,6 +2371,7 @@ a.lang {
 }
 
 .popup-table-info{
+	display: block;
 	width: 80px;
 	padding: 5px;
 	background: #DDD;
@@ -2379,6 +2380,7 @@ a.lang {
 	   max-width: 80px !important;
 	}
 	.popupBlock{
+	   display: block;
 	   margin-bottom: 5px;
 	}
 } 

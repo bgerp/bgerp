@@ -306,9 +306,9 @@ class hr_WorkingCycles extends core_Master
                 
                 $header = "<table class='mc-header' width='100%' cellpadding='0'>
                             <tr>
-                                <td align='left'><a href='{$prepareRecs->prevtLink}'>{$prepareRecs->prevMonth}</a></td>
-                                <td align='center'><b>{$prepareRecs->currentMonth}</b></td>
-                                <td align='right'><a href='{$prepareRecs->nextLink}'>{$prepareRecs->nextMonth}</a></td>
+                                <td style='text-align: left'><a href='{$prepareRecs->prevtLink}'>{$prepareRecs->prevMonth}</a></td>
+                                <td style='text-align: center'><b>{$prepareRecs->currentMonth}</b></td>
+                                <td style='text-align: right'><a href='{$prepareRecs->nextLink}'>{$prepareRecs->nextMonth}</a></td>
                             </tr>
                         </table>";
                 

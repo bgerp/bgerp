@@ -133,7 +133,7 @@
                                 </td>
                                 <!--ET_END purchaseConditions-->
                                 <td class="topCell vtop aright" style='width:33%'>
-                                    <table style='float:right;width:100%;' id='business-doc-summary-table'>
+                                    <table style='float:right;width:100%;' class='business-doc-summary-table'>
                                         <tr class='nowrap'>
                                             <td class='aright'>|Стойност|* :</td>
                                             <td class='info-right' style='width:1%'><span class='cCode'>[#currencyId#]</span></td>

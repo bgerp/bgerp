@@ -1649,20 +1649,6 @@ class crm_Persons extends core_Master
            $vcard->addEmail($email, $params);
        }
    }
-   
-   
-    /**
-     * Пренасочва URL за връщане след запис към сингъл изгледа
-     */
-    protected static function on_AfterPrepareRetUrl($mvc, $res, $data)
-    {
-        // Ако е субмитната формата и не сме натиснали бутона "Запис и нов"
-        if ($data->form && $data->form->isSubmitted() && $data->form->cmd == 'save') {
-
-            // Променяма да сочи към single'a
-            $data->retUrl = toUrl(array($mvc, 'single', $data->form->rec->id));
-        }
-    }
     
     
     /**
@@ -2293,7 +2279,7 @@ class crm_Persons extends core_Master
     	$obj = new stdClass();
     	$tpl = new ET("[#country#]<br> <!--ET_BEGIN pCode-->[#pCode#] <!--ET_END pCode-->[#place#]<br> [#address#]");
     	if($rec->country){
-    		$obj->country = crm_Persons::getVerbal($rec, 'country');
+    		$obj->country = $this->getVerbal($rec, 'country');
     	}
     
     	$Varchar = cls::get('type_Varchar');

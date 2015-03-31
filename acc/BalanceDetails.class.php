@@ -553,7 +553,7 @@ class acc_BalanceDetails extends core_Detail
     public static function on_AfterRenderDetailLayout($mvc, &$res, $data)
     {
         $res = new ET("
-            [#ListToolbar#]</div>
+            <div>[#ListToolbar#]</div>
             [#ListSummary#]
             <div class='clearfix21'></div>
             [#ListTable#]

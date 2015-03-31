@@ -1751,6 +1751,7 @@ en,Запитване,Inquiry
 en,Запитване->Параметри,Inquiry->Parameters
 en,Запитване->Драйвер,Inquiry->Driver
 en,Запитване->МКП,Inquiry->MOQ
+en,МКП,MOQ
 en,Запитване за,Inquiry about
 en,Прикачи,Attach
 en,Соц,Soc
@@ -1811,3 +1812,74 @@ en,без извадени отстъпки,without discounts
 en,Опционални,Optional
 en,Оферирани,Quoted
 en,продукти и услуги,products and services
+en,Включено,Included
+en,год.,years
+en,пакет,package
+en,стек,stack
+en,кашон,carton
+en,ролка,roll
+en,чувал,sack
+en,бака,pail
+en,варел,barrel
+en,клетка,cage
+en,палет,pallet
+en,Изходящи оферти,Outgoing Quotations
+en,оферта,quotation
+en,Отделно,Separately
+en,Освободено,Released
+en,Без начисление,Without charge
+en,Показване,Display
+en,Забележки,Notice
+en,Автоматично,Аutomatically
+en,Разширено,Еxtensively
+en,Кратко,Short
+en,брой,piece
+en,Мерни единици,Measures
+en,Продаваем,Marketable
+en,Купуваем,Purchase
+en,Складируем,Storage,
+en,Вложим,Invest
+en,Дълготраен актив,Fix asset
+en,Производим,Produce
+en,кг,kg
+en,т,t
+en,м,m
+en,км,km
+en,кв.м,sq.m
+en,куб.м,cub.m
+en,л,l
+en,мл,ml
+en,бр.,pcs
+en,хил. бр.,tcount  
+en,сек.,s
+en,мин.,min
+en,kWh,kWh
+en,kg/m3,kg/m3
+en,г,g
+en,мг,mg
+en,см,cm
+en,мм,mm
+en,μ,μ
+en,w,w
+en,A,A
+en,мил.амп,mA
+en,Ω,Ω
+en,K,K
+en,мол,mol
+en,cd,cd
+en,J,J
+en,g/cm3,g/cm3
+en,kg/L,kg/l
+en,На момента,Cash on Delivery
+en,50% авансово и 50% преди експедиция,50%DP + 50%BS
+en,30% авансово и 70% преди експедиция,30%DP + 70%BS
+en,20% авансово и 80% преди експедиция,20%DP + 80%BS
+en,100% авансово,100% DP
+en,100% преди експедиция,100% BS
+en,До 3 дни след фактуриране,Until 3 days after invoicing
+en,До 7 дни след фактуриране,Until 7 days after invoicing
+en,До 10 дни след фактуриране,Until 10 days after invoicing
+en,До 15 дни след фактуриране,Until 15 days after invoicing
+en,До 21 дни след фактуриране,Until 21 days after invoicing
+en,До 30 дни след фактуриране,Until 30 days after invoicing
+en,Маркери,Markers

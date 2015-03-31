@@ -177,7 +177,7 @@ class plg_Current extends core_Plugin
         if ($rec->id == $currentId) {
         	
         	// Ако записа е текущия обект, маркираме го като избран
-            $row->currentPlg = ht::createElement('img', array('src' => sbf('img/16/accept.png', ''), 'width' => '16px', 'height' => '16px'));
+            $row->currentPlg = ht::createElement('img', array('src' => sbf('img/16/accept.png', ''), 'width' => '16', 'height' => '16'));
             $row->ROW_ATTR['class'] .= ' state-active';
         } elseif($mvc->haveRightFor('select', $rec)) {
         	

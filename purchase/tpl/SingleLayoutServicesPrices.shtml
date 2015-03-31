@@ -102,7 +102,7 @@
                                         </td>
                                         <!--ET_END deliveryInfo-->
                                         <td class="topCell aright vtop">
-                                            <table border='0' cellpadding='3' style='margin-bottom:20px;width:100%;' id='business-doc-summary-table' width='100%'>
+                                            <table style='margin-bottom:20px;width:100%;' class='business-doc-summary-table'>
                                                 <tr class='nowrap'>
                                                     <td class='aright'>|Стойност|* :</td>
                                                     <td class='info-right' style='width:1%'><span class='cCode'>[#currencyId#]</span></td>

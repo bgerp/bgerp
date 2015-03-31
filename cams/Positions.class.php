@@ -60,7 +60,7 @@ class cams_Positions extends core_Manager
     function description()
     {
         $this->FLD('title', 'varchar(255)', 'caption=Заглавие, mandatory');
-        $this->FLD('cameraId', 'key(mvc=cams_Cameras,select=name)', 'caption=Камера, mandatory');
+        $this->FLD('cameraId', 'key(mvc=cams_Cameras,select=title)', 'caption=Камера, mandatory');
         $this->FLD('pan', 'double', 'caption=Pan');
         $this->FLD('tilt', 'double', 'caption=Tilt');
         $this->FLD('zoom', 'double', 'caption=Zoom');

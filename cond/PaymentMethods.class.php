@@ -25,7 +25,7 @@ class cond_PaymentMethods extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, cond_Wrapper, plg_State2';
+    var $loadList = 'plg_Created, plg_RowTools, cond_Wrapper, plg_State2,plg_Translate';
     
     
     /**
@@ -103,7 +103,7 @@ class cond_PaymentMethods extends core_Master
         $this->FLD('sysId', 'varchar(16)', 'caption=Системно ID, input=none');
 
         // Съкратено име на плащането
-        $this->FLD('name', 'varchar(32)', 'caption=Име,  mandatory');
+        $this->FLD('name', 'varchar(32)', 'caption=Име,  mandatory,translate');
 
         // Текстово описание
         $this->FLD('description', 'text(rows=5)', 'caption=Описание, mandatory, ');

@@ -2202,6 +2202,7 @@ a.lang {
   line-height: 1; }
 
 .popup-table-info {
+  display: block;
   width: 80px;
   padding: 5px;
   background: #dddddd;
@@ -2209,6 +2210,7 @@ a.lang {
   .popup-table-info input {
     max-width: 80px !important; }
   .popup-table-info .popupBlock {
+    display: block;
     margin-bottom: 5px; }
 
 /*

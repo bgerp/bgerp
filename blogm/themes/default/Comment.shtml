@@ -1,6 +1,6 @@
 <table class='blogm-comment clearfix21 [#stateClass#]' style='background-color:[#stateColor#]' cellpadding='10px'>
     <tr>
-        <td class='blogm-comment-who' align="center">
+        <td class='blogm-comment-who' style="text-align:center">
             <div style='text-align:left;'>
                 <div class='blog-avatar'>
                     [#avatar#]
