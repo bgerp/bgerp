@@ -70,7 +70,7 @@ class purchase_ServicesDetails extends deals_DeliveryDocumentDetail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, packagingId=Мярка, uomId, packQuantity, packPrice, discount, amount';
+    public $listFields = 'productId, packagingId=Мярка, uomId, packQuantity, packPrice, discount, amount, quantityInPack';
     
         
     /**

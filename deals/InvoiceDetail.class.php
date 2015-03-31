@@ -204,10 +204,16 @@ abstract class deals_InvoiceDetail extends doc_Detail
 	
 	
 	/**
-	 * След преобразуване на записа в четим за хора вид.
+	 * Конвертира един запис в разбираем за човека вид
+	 * Входният параметър $rec е оригиналният запис от модела
+	 * резултата е вербалният еквивалент, получен до тук
 	 */
-	public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+	public static function recToVerbal_($rec, &$fields = '*')
 	{
+		$row = parent::recToVerbal_($rec, $fields);
+		
+		$mvc = cls::get(get_called_class());
+		
 		$ProductMan = cls::get($rec->classId);
 		$row->productId = $ProductMan->getProductDescShort($rec->productId);
 		if($rec->notes){
@@ -216,7 +222,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 			
 		$pInfo = $ProductMan->getProductInfo($rec->productId);
 		$measureShort = cat_UoM::getShortName($pInfo->productRec->measureId);
-	
+		
 		if($rec->packagingId){
 			if(cat_Packagings::fetchField($rec->packagingId, 'showContents') == 'yes'){
 				$row->quantityInPack = $mvc->getFieldType('quantityInPack')->toVerbal($rec->quantityInPack);
@@ -226,6 +232,8 @@ abstract class deals_InvoiceDetail extends doc_Detail
 		} else {
 			$row->packagingId = $measureShort;
 		}
+		
+		return $row;
 	}
 	
 	
