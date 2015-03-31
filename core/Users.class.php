@@ -897,6 +897,7 @@ class core_Users extends core_Manager
         if (is_object($userRec)) {
             core_Mode::push('currentUserRec', $userRec);
             $bValid = TRUE;
+            $userRec->_isSudo = TRUE;
         }
         
         return $bValid;
@@ -1223,6 +1224,8 @@ class core_Users extends core_Manager
         $currentUserRec = Mode::get('currentUserRec');
         
         if (!$currentUserRec) return;
+        
+        if ($currentUserRec->_isSudo) return ;
         
         $refreshTime = dt::mysql2timestamp($currentUserRec->refreshTime);
         
