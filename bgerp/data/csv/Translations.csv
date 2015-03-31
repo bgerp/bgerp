@@ -1870,3 +1870,16 @@ en,cd,cd
 en,J,J
 en,g/cm3,g/cm3
 en,kg/L,kg/l
+en,На момента,Cash on Delivery
+en,50% авансово и 50% преди експедиция,50%DP + 50%BS
+en,30% авансово и 70% преди експедиция,30%DP + 70%BS
+en,20% авансово и 80% преди експедиция,20%DP + 80%BS
+en,100% авансово,100% DP
+en,100% преди експедиция,100% BS
+en,До 3 дни след фактуриране,Until 3 days after invoicing
+en,До 7 дни след фактуриране,Until 7 days after invoicing
+en,До 10 дни след фактуриране,Until 10 days after invoicing
+en,До 15 дни след фактуриране,Until 15 days after invoicing
+en,До 21 дни след фактуриране,Until 21 days after invoicing
+en,До 30 дни след фактуриране,Until 30 days after invoicing
+en,Маркери,Markers
