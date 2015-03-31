@@ -376,7 +376,7 @@ abstract class deals_DealDetail extends doc_Detail
     	if(!count($recs)) return;
     	
     	// Скриване на полето "мярка" 
-        $data->listFields = array_diff_key($data->listFields, arr::make('uomId', TRUE));
+        $data->listFields = array_diff_key($data->listFields, arr::make('uomId,quantityInPack', TRUE));
         
         // Флаг дали има отстъпка
         $haveDiscount = FALSE;
@@ -388,7 +388,7 @@ abstract class deals_DealDetail extends doc_Detail
                 
                 $haveDiscount = $haveDiscount || !empty($rec->discount);
                 $haveQuantityDelivered = $haveQuantityDelivered || !empty($rec->quantityDelivered);
-                
+              
                 if (empty($rec->packagingId)) {
                 	$row->packagingId = ($rec->uomId) ? $row->uomId : $row->packagingId;
                 } else {
