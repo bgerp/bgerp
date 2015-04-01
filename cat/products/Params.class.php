@@ -238,6 +238,7 @@ class cat_products_Params extends core_Manager
         	
             $block = clone $tpl->getBlock('param');
             $block->placeObject($row);
+            $block->removeBlocks();
             $block->append2Master();
         }
       
