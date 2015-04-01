@@ -1434,7 +1434,7 @@ class cat_Products extends core_Embedder {
     	 
     	$this->save($rec, 'state');
     	
-    	return followRetUrl();
+    	return Redirect(array($this, 'single', $rec->id));
     }
     
     
