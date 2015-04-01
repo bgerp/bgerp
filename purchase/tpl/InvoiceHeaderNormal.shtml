@@ -98,7 +98,7 @@
                         </div>
                         <!--ET_END sales_InvoiceDetails-->
                         <div class="lines"></div>
-                        <table class="innerTable footer-notes" style='width:100%'>
+                        <table class="innerTable footer-notes paddingCells" style='width:100%'>
                             <tbody>
                                 <tr>
                                     <td style='line-height: 140%;'>
