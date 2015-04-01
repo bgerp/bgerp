@@ -195,7 +195,7 @@
                                         <tr>
                                             <td colspan = '3' style='text-align:right'>
                                                 <hr>
-                                                With words: [#sayWords#]
+                                                Say words: [#sayWords#]
                                             </td>
                                         </tr>
                                     </table>
