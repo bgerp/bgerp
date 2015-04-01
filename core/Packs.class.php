@@ -101,11 +101,19 @@ class core_Packs extends core_Manager
      */
     static function isInstalled($name)
     {
-        $rec = static::fetch(array("#name = '[#1#]' and #state = 'active'", $name));
+        static $isInstalled = array();
         
-        if (!$rec) return FALSE;
+        if (!isset($isInstalled[$name])) {
+            $rec = static::fetch(array("#name = '[#1#]' and #state = 'active'", $name));
+            
+            if ($rec) {
+                $isInstalled[$name] = $rec->id;
+            } else {
+                $isInstalled[$name] = FALSE;
+            }
+        }
         
-        return $rec->id;
+        return $isInstalled[$name];
     }
     
     
