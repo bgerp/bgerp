@@ -1,6 +1,6 @@
 <?php
 
-class cat_products_Detail extends core_Detail
+class cat_products_Detail extends doc_Detail
 {
     /**
      * Име на поле от модела, външен ключ към мастър записа
