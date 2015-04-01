@@ -22,14 +22,14 @@ class doc_plg_TplManagerDetail extends core_Plugin
 	/**
 	 * Изпълнява се преди преобразуването към вербални стойности на полетата на записа
 	 */
-	public static function on_BeforeRecToVerbal($mvc, &$row, $rec, $fields = array())
+	public static function on_BeforeRecToVerbal($mvc, &$row, &$rec)
 	{
 		if($rec->id){
 				 
 			// Ако няма шаблон, за шаблон се приема първия такъв за модела
 			$template = $mvc->Master->getTemplate($rec->{$mvc->masterKey});
 			$rec->tplLang = doc_TplManager::fetchField($template, 'lang');
-			
+			core_Lg::push($rec->tplLang);
 		}
 	}
 	
@@ -37,12 +37,10 @@ class doc_plg_TplManagerDetail extends core_Plugin
 	/**
      * След преобразуване на записа в четим за хора вид
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, &$rec, $fields = array())
+    public static function on_AfterRecToVerbal($mvc, &$row, &$rec)
     {
     	if($rec->tplLang){
-    	    core_Lg::push($rec->tplLang);
-		    $row = $mvc->recToVerbal_($rec, $fields);
-		    core_Lg::pop();
+    		core_Lg::pop();
     	}
     }
     
