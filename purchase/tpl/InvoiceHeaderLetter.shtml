@@ -55,9 +55,6 @@
                                         <span class='quiet'>|Курс|*:</span>  [#rate#]
                                         <!--ET_END rate-->  
                                         <div class='custom-bg-block'><b>|Плащане|*</b></div>
-                                        <!--ET_BEGIN paymentType-->
-                                        <div><span class='quiet'>|Начин|*:</span>  [#paymentType#]</div>
-                                        <!--ET_END paymentType-->
                                         <!--ET_BEGIN paymentMethodId-->
                                         <div><span class='quiet'>|Метод|* :</span>  [#paymentMethodId#]</div>
                                         <!--ET_END paymentMethodId-->
