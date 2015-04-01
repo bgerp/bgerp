@@ -309,13 +309,15 @@ class type_Key extends type_Int
         
         $titles = array();
         
+        $isInstalled = core_Packs::isInstalled('select2');
+        
         foreach($options as $key => $v) {
             
             $title = self::getOptionTitle($v);
             
             // Ако вече е добавено id-то след края на текста, да не се добавя повторвно
             if (!self::haveId($title, $key)) {
-                if (!core_Packs::isInstalled('select2')) {
+                if (!$isInstalled) {
                     $title = self::getUniqTitle($title, $key);
                 }
                 
