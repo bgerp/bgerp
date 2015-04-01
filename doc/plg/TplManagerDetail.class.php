@@ -30,7 +30,6 @@ class doc_plg_TplManagerDetail extends core_Plugin
 			$template = $mvc->Master->getTemplate($rec->{$mvc->masterKey});
 			$rec->tplLang = doc_TplManager::fetchField($template, 'lang');
 			
-			core_Lg::push($rec->tplLang);
 		}
 	}
 	
@@ -41,7 +40,9 @@ class doc_plg_TplManagerDetail extends core_Plugin
     public static function on_AfterRecToVerbal($mvc, &$row, &$rec, $fields = array())
     {
     	if($rec->tplLang){
-    		core_Lg::pop();
+    	    core_Lg::push($rec->tplLang);
+		    $row = $mvc->recToVerbal_($rec, $fields);
+		    core_Lg::pop();
     	}
     }
     

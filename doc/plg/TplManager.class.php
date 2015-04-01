@@ -124,9 +124,6 @@ class doc_plg_TplManager extends core_Plugin
     			$rec->template = $mvc->getTemplate($rec->id);
     			$rec->tplLang = doc_TplManager::fetchField($rec->template, 'lang');
     			
-    			if(isset($fields['-single'])){
-    				core_Lg::push($rec->tplLang);
-    			}
     		}
     	}
     }
@@ -241,7 +238,10 @@ class doc_plg_TplManager extends core_Plugin
     {
     	if($rec->tplLang){
     		if(isset($fields['-single'])){
-    			core_Lg::pop();
+    		    
+    		    core_Lg::push($rec->tplLang);
+    		    $row = $mvc->recToVerbal_($rec, $fields);
+    		    core_Lg::pop();
     			 
     			// Заместваме вербалното състояние и име с тези според езика на текущата сесия
     			if($mvc->getFieldType('state', FALSE)){
