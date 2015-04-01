@@ -72,7 +72,7 @@ class cat_UoM extends core_Manager
      */
     function description()
     {
-        $this->FLD('name', 'varchar(36)', 'caption=Мярка, export');
+        $this->FLD('name', 'varchar(36)', 'caption=Мярка, export,translate');
         $this->FLD('shortName', 'varchar(12)', 'caption=Съкращение, export,translate');
         $this->FLD('baseUnitId', 'key(mvc=cat_UoM, select=name,allowEmpty)', 'caption=Базова мярка, export');
         $this->FLD('baseUnitRatio', 'double', 'caption=Коефициент, export');
