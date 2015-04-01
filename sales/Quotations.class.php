@@ -885,10 +885,11 @@ class sales_Quotations extends core_Master
     		$products = (array)$form->rec;
     		
     		foreach ($products as $index => $quantity){
-    			list($productId, $classId, $optional, $packagingId) = explode("|", $index);
+    			list($productId, $classId, $optional, $packagingId, $quantityInPack) = explode("|", $index);
     			
     			// При опционален продукт без к-во се продължава
     			if($optional == 'yes' && empty($quantity)) continue;
+    			$quantity = $quantity * $quantityInPack;
     			
     			// Опитваме се да намерим записа съотвестващ на това количество
     			$where = "#quotationId = {$id} AND #productId = {$productId} AND #classId = {$classId} AND #optional = '{$optional}' AND #quantity = {$quantity}";
@@ -981,7 +982,7 @@ class sales_Quotations extends core_Master
     	$query->orderBy('optional', 'ASC');
     	
     	while ($rec = $query->fetch()){
-    		$index = "{$rec->productId}|{$rec->classId}|{$rec->optional}|$rec->packagingId";
+    		$index = "{$rec->productId}|{$rec->classId}|{$rec->optional}|{$rec->packagingId}|{$rec->quantityInPack}";
     		if(!array_key_exists($index, $products)){
     			$title = cls::get($rec->classId)->getTitleById($rec->productId);
     			if($rec->packagingId){
@@ -995,7 +996,8 @@ class sales_Quotations extends core_Master
     		}
     		
     		if($rec->quantity){
-    			$products[$index]->options[$rec->quantity] = $rec->quantity / $rec->quantityInPack;
+    			$pQuantity = $rec->quantity / $rec->quantityInPack;
+    			$products[$index]->options[$pQuantity] = $pQuantity;
     		}
     	}
     	 
