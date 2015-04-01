@@ -455,7 +455,10 @@ class price_ListToCustomers extends core_Detail
     		// Какви са максималната и минималната надценка за контрагента
     		$minCharge = cond_Parameters::getParameter($customerClass, $customerId, 'minSurplusCharge');
     		$maxCharge = cond_Parameters::getParameter($customerClass, $customerId, 'maxSurplusCharge');
-    	
+    		if(!$quantity){
+    			$quantity = 1;
+    		}
+    		
     		// Връщаме цената спрямо минималната и максималната отстъпка, началното и пропорционалното количество
     		$price->price = ($amounts->base * (1 + $maxCharge) + $quantity * $amounts->prop * (1 + $minCharge)) / $quantity;
     	
