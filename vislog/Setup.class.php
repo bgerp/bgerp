@@ -77,6 +77,12 @@ class vislog_Setup extends core_ProtoSetup
         );
     
     
+    /**
+     * Дефинирани класове, които имат интерфейси
+     */
+    var $defClasses = "vislog_IpReports";
+    
+    
 	/**
      * Инсталиране на пакета
      */
