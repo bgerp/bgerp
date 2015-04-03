@@ -50,6 +50,11 @@ class purchase_PurchasesDetails extends deals_DealDetail
      */
     public $canRead = 'ceo, purchase';
     
+    /**
+     * Кой може да го изтрие?
+     */
+    public $canDelete = 'ceo, purchase';
+    
     
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии

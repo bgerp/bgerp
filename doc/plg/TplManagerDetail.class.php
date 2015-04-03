@@ -22,7 +22,7 @@ class doc_plg_TplManagerDetail extends core_Plugin
 	/**
 	 * Изпълнява се преди преобразуването към вербални стойности на полетата на записа
 	 */
-	public static function on_BeforeRecToVerbal($mvc, &$row, $rec, $fields = array())
+	public static function on_BeforeRecToVerbal($mvc, &$row, &$rec)
 	{
 		if($rec->id){
 				 
@@ -37,7 +37,7 @@ class doc_plg_TplManagerDetail extends core_Plugin
 	/**
      * След преобразуване на записа в четим за хора вид
      */
-    public static function on_AfterRecToVerbal(core_Mvc $mvc, &$row, &$rec)
+    public static function on_AfterRecToVerbal($mvc, &$row, &$rec)
     {
     	if($rec->tplLang){
     		core_Lg::pop();

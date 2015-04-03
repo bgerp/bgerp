@@ -13,7 +13,7 @@
  * @link
  */
 
-class cat_products_Params extends core_Manager
+class cat_products_Params extends doc_Detail
 {
     
     
@@ -106,9 +106,9 @@ class cat_products_Params extends core_Manager
     /**
      * Кой е мастър класа
      */
-    public function getMasterMvc_($rec)
+    public function getMasterMvc($rec)
     {
-    	$masterMvc = cls::get($rec->classId);
+    	$masterMvc = cls::get('cat_Products');
     		
     	return $masterMvc;
     }
@@ -238,6 +238,7 @@ class cat_products_Params extends core_Manager
         	
             $block = clone $tpl->getBlock('param');
             $block->placeObject($row);
+            $block->removeBlocks();
             $block->append2Master();
         }
       

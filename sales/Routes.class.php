@@ -306,6 +306,10 @@ class sales_Routes extends core_Manager {
     	$row->locationId = ht::createLink($row->locationId, array('crm_Locations', 'single', $rec->locationId, 'ret_url' => TRUE), NULL, array('style' => "background-image:url({$locIcon})", 'class' => 'linkWithIcon'));
     	$locationState = crm_Locations::fetchField($rec->locationId, 'state');
     	
+    	if(!$rec->repeat){
+    		$row->repeat = tr('еднократно');
+    	}
+    	
     	$locationRec = crm_Locations::fetch($rec->locationId);
     	
     	$row->contragent = cls::get($locationRec->contragentCls)->getHyperLink($locationRec->contragentId); 

@@ -391,7 +391,7 @@ class acc_Items extends core_Manager
     static function on_AfterPrepareListFilter($mvc, $data)
     {
         // Добавяме поле във формата за търсене
-        $data->listFilter->FNC('listId', 'varchar', 'input,caption=Номенклатура,refreshForm');
+        $data->listFilter->FNC('listId', 'varchar', 'input,caption=Номенклатура,refreshForm,placeholder=Номенклатура');
         $listOptions = acc_Lists::makeArray4Select('name', "");
         if(haveRole('admin,ceo,debug')){
         	$listOptions+= array('-1' => '[Без номенклатури]');
@@ -503,7 +503,10 @@ class acc_Items extends core_Manager
         if(!$listId) {
             $listId = Mode::get('currentListId');
         }
-        expect(acc_Lists::fetch($listId));
+        
+        if($listId){
+        	expect(acc_Lists::fetch($listId));
+        }
         
         if(!$listId) {
             $listQuery = $this->Lists->getQuery();

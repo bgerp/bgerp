@@ -26,7 +26,13 @@ class select2_PluginSelect extends core_Plugin
      */
     protected static $minItems = 1;
     
-
+    
+    /**
+     * 
+     */
+    protected $optCnt = NULL;
+    
+    
     /**
      * Изпълнява се преди рендирането на input
      * 
@@ -39,6 +45,27 @@ class select2_PluginSelect extends core_Plugin
     function on_BeforeRenderInput(&$invoker, &$tpl, $name, $value, &$attr = array())
     {
         ht::setUniqId($attr);
+        
+        $invoker->options = $invoker->prepareOptions();
+        $this->optCnt = count($invoker->options);
+        
+        $maxSuggestions = $invoker->getMaxSuggestions();
+        
+        if ($this->optCnt > $maxSuggestions) {
+            if (!$value) {
+                $value = $attr['value'];
+            }
+            
+            // Избраната стойност да е на първо мяасто
+            if ($value) {
+                $valOptArr = array();
+                $valOptArr[$value] = $invoker->options[$value];
+                unset($invoker->options[$value]);
+                $invoker->options = $valOptArr + $invoker->options;
+            }
+            
+            $invoker->options = array_slice($invoker->options, 0, $maxSuggestions, TRUE);
+        }
     }
     
 
@@ -60,7 +87,7 @@ class select2_PluginSelect extends core_Plugin
         
         $minItems = $invoker->params['select2MinItems'] ? $invoker->params['select2MinItems'] : self::$minItems;
     	
-        $optionsCnt = count($invoker->options);
+        $optionsCnt = isset($this->optCnt) ? $this->optCnt : count($invoker->options);
         
         // Ако опциите са под минималното - нищо не правим
         if($optionsCnt <= $minItems) return;

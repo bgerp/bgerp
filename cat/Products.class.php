@@ -1125,8 +1125,9 @@ class cat_Products extends core_Embedder {
     {
     	$res = new stdClass();
     	$pInfo = $this->getProductInfo($id);
+    	$rec = $this->fetchRec($id);
     	
-    	$res->name = $pInfo->productRec->name;
+    	$res->name = $rec->name;
     	$res->measureId = $pInfo->productRec->measureId;
     	
     	// Ако артикула е ДМА, ще може да се избират само ресурси - оборудване
@@ -1433,7 +1434,7 @@ class cat_Products extends core_Embedder {
     	 
     	$this->save($rec, 'state');
     	
-    	return followRetUrl();
+    	return Redirect(array($this, 'single', $rec->id));
     }
     
     
