@@ -167,7 +167,7 @@ class core_page_InternalModern extends core_page_Active
     			"<div id='fav-panel' class='sidemenu sidemenu-right {$openRightMenu}'><h3 class='centered'>Бързи връзки</h3></div>"
 
     	);
-    	if(isDebug() && Mode::is('screenMode', 'wide')) {
+    	if(isDebug()) {
     		$tpl->prepend(new ET("<div id='debug_info' style='margin:5px; display:none;overflow-x: hidden'>
                                      Време за изпълнение: [#DEBUG::getExecutionTime#]
                                      [#Debug::getLog#]</div>"), "DEBUG");
@@ -304,7 +304,7 @@ class core_page_InternalModern extends core_page_Active
        	} else {
        		$mode = ht::createLink(tr("Десктоп"), array('core_Browser', 'setWideScreen', 'ret_url' => TRUE), NULL, array('ef_icon' => 'img/16/Monitor-icon.png', 'title' => 'Превключване на системата в десктоп режим'));
        	}
-       	if(isDebug() && Mode::is('screenMode', 'wide')) {
+       	if(isDebug()) {
        		$debug = ht::createLink("Debug", '#wer', FALSE, array('title' => "Показване на debug информация", 'ef_icon' => 'img/16/bug-icon.png', 'onclick' => 'toggleDisplay(\'debug_info\'); scrollToElem(\'debug_info\');'));
        	}
         // Смяна на езика
