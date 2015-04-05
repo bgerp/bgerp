@@ -10,10 +10,6 @@
         <div style='margin-top:10px;'>
             <div class='fleft'>
                 <table class='default-table'>
-                    <tr>
-                        <td class="quiet aright" style='width:130px'>|Номер|*:</td>
-                        <td>[#number#]</td>
-                    </tr>
                     <!--ET_BEGIN createdBy-->
                     <tr>
                         <td class="quiet aright">|Създаден|*:</td>

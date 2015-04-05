@@ -299,7 +299,7 @@ class planning_ObjectResources extends core_Manager
     	
     	$row->objectId = "<span style='float:left'>{$row->objectId}</span>";
     	
-    	$row->resourceId = planning_Resources::getHyperlink($rec->resourceId);
+    	$row->resourceId = planning_Resources::getHyperlink($rec->resourceId, TRUE);
     }
     
     

@@ -1,4 +1,4 @@
-<form method="[#ACTION#]" class='portal-filter'>
+<form class='portal-filter'>
     <div class='hFormField'>
         <input value="[#VALUE#]" name="[#FLD_NAME#]"  placeholder="Търсене" list="[#LIST#]" autocomplete="off"/>
         <div style = 'display:none'>

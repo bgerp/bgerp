@@ -187,7 +187,13 @@ class core_Settings extends core_Manager
         if ($rolesArr) {
             $rolesArrSysId = array_map(array('type_UserOrRole', 'getSysRoleId'), $rolesArr);
             
-            $query->orWhere("#userOrRole IN (" . implode(',', $rolesArrSysId) . ")");
+            $uWhere = "#userOrRole IN (" . implode(',', $rolesArrSysId) . ")";
+            
+            if ($orToPrevious) {
+                $query->orWhere($uWhere);
+            } else {
+                $query->where($uWhere);
+            }
         }
         
         // С по-голям приоритет са данните въведени от потребителя
@@ -415,8 +421,16 @@ class core_Settings extends core_Manager
             $sudo = core_Users::sudo($form->rec->_userOrRole);
         }
         
-        // Инпутваме формата
-        $form->input();
+        try {
+            // Инпутваме формата
+            $form->input();
+        } catch (core_exception_Expect $e) {
+            
+            if ($sudo) {
+                core_Users::exitSudo();
+                $sudo = FALSE;
+            }
+        }
         
         if ($sudo) {
             core_Users::exitSudo();

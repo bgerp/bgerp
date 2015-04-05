@@ -8,7 +8,7 @@
  * @category  bgerp
  * @package   social
  * @author    Gabriela Petrova <gab4eto@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -108,5 +108,25 @@ class social_SharingCnts extends core_Master
     static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
         $data->query->orderBy('#createdOn', 'DESC');
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass $rec
+     * @param int $userId
+     */
+    function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec, $userId)
+    {
+    	
+    	if ($action == 'edit' || $action == 'add') {
+    		
+    		$requiredRoles = 'no_one';
+
+    	}
     }
 }

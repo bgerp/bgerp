@@ -485,11 +485,11 @@ class sales_QuotationsDetails extends doc_Detail {
     		$productMan = cls::get('cat_Products');
     		$products = $productMan->getProducts($data->masterData->rec->contragentClassId, $data->masterData->rec->contragentId, $data->masterData->rec->date, 'canSell');
     		if(!count($products)){
-    			$error = "error=Няма продаваеми артикули";
+    			$error = "error=Няма продаваеми артикули,";
     		}
     	
-    		$data->addNotOptionalBtn = ht::createBtn('Артикул',  array($this, 'add', 'quotationId' => $data->masterId, 'classId' => $productMan->getClassId(), 'optional' => 'no', 'ret_url' => TRUE), FALSE, FALSE, "{$error},ef_icon = img/16/shopping.png, title=Добавяне на артикул към офертата");
-    		$data->addOptionalBtn = ht::createBtn('Артикул',  array($this, 'add', 'quotationId' => $data->masterId, 'classId' => $productMan->getClassId(), 'optional' => 'yes', 'ret_url' => TRUE),  FALSE, FALSE, "{$error},ef_icon = img/16/shopping.png, title=Добавяне на артикул към офертата");
+    		$data->addNotOptionalBtn = ht::createBtn('Артикул',  array($this, 'add', 'quotationId' => $data->masterId, 'classId' => $productMan->getClassId(), 'optional' => 'no', 'ret_url' => TRUE), FALSE, FALSE, "{$error} ef_icon = img/16/shopping.png, title=Добавяне на артикул към офертата");
+    		$data->addOptionalBtn = ht::createBtn('Артикул',  array($this, 'add', 'quotationId' => $data->masterId, 'classId' => $productMan->getClassId(), 'optional' => 'yes', 'ret_url' => TRUE),  FALSE, FALSE, "{$error} ef_icon = img/16/shopping.png, title=Добавяне на артикул към офертата");
     	}
     	
     	if(!$data->rows) return;
@@ -609,7 +609,7 @@ class sales_QuotationsDetails extends doc_Detail {
     			$summary->netTitle = tr($summary->netTitle);
     		}
     		
-    		if(!is_numeric($summary->vatAmount)){
+    		if(!cls::get('type_Double')->fromVerbal($summary->vatAmount)){
     			$summary->vatAmount = tr($summary->vatAmount);
     		}
     		
@@ -622,7 +622,6 @@ class sales_QuotationsDetails extends doc_Detail {
     				$dTpl->replace($data->discounts[key($data->discounts)], 'discountPercent');
     			}
     		}
-    		
     	} else {
     		$dTpl->removeBlock("totalPlace");
     	}
@@ -714,36 +713,43 @@ class sales_QuotationsDetails extends doc_Detail {
     
     
     /**
-     * След преобразуване на записа в четим за хора вид.
+     * Конвертира един запис в разбираем за човека вид
+     * Входният параметър $rec е оригиналният запис от модела
+     * резултата е вербалният еквивалент, получен до тук
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    public static function recToVerbal_($rec, &$fields = '*')
     {
-    	$ProductMan = cls::get($rec->classId);
-        $pInfo = $ProductMan->getProductInfo($rec->productId);
+    	$row = parent::recToVerbal_($rec, $fields);
+    	$mvc = cls::get(get_called_class());
     	
-        $double = cls::get('type_Double');
-        $double->params['decimals'] = 2;
-        
-        $uomId = $pInfo->productRec->measureId;
-        $uomShort = cat_UoM::getShortName($uomId);
-        
+    	$ProductMan = cls::get($rec->classId);
+    	$pInfo = $ProductMan->getProductInfo($rec->productId);
+    	 
+    	$double = cls::get('type_Double');
+    	$double->params['decimals'] = 2;
+    	
+    	$uomId = $pInfo->productRec->measureId;
+    	$uomShort = cat_UoM::getShortName($uomId);
+    	
     	if($rec->packagingId){
     		$row->packagingId = tr($row->packagingId);
     		$row->packagingId .= " <small class='quiet'>{$row->quantityInPack} {$uomShort}</small>";
     	} else {
-    		$row->packagingId = $uomShort;
+    		$row->packagingId = tr($uomShort);
     	}
-    	
+    	 
     	if($rec->amount){
     		$row->amount = $double->toVerbal($rec->amount);
     	}
-    	
+    	 
     	if($rec->discount){
     		$Percent = cls::get('type_Percent');
-		    $parts = explode(".", $rec->discount * 100);
-		    $percent->params['decimals'] = count($parts[1]);
-		    $row->discount = $Percent->toVerbal($rec->discount);
+    		$parts = explode(".", $rec->discount * 100);
+    		$percent->params['decimals'] = count($parts[1]);
+    		$row->discount = $Percent->toVerbal($rec->discount);
     	}
+    	
+    	return $row;
     }
     
     

@@ -13,7 +13,7 @@
  * @link
  */
 
-class cat_products_Params extends core_Manager
+class cat_products_Params extends doc_Detail
 {
     
     
@@ -106,9 +106,9 @@ class cat_products_Params extends core_Manager
     /**
      * Кой е мастър класа
      */
-    public function getMasterMvc_($rec)
+    public function getMasterMvc($rec)
     {
-    	$masterMvc = cls::get($rec->classId);
+    	$masterMvc = cls::get('cat_Products');
     		
     	return $masterMvc;
     }
@@ -238,6 +238,7 @@ class cat_products_Params extends core_Manager
         	
             $block = clone $tpl->getBlock('param');
             $block->placeObject($row);
+            $block->removeBlocks();
             $block->append2Master();
         }
       
@@ -311,7 +312,7 @@ class cat_products_Params extends core_Manager
     public static function renderParams($data)
     {
         if($data->addUrl) {
-            $data->changeBtn = ht::createLink("<img src=" . sbf('img/16/add.png') . " valign=bottom style='margin-left:5px;'>", $data->addUrl, FALSE, 'title=Добавяне на нов параметър');
+            $data->changeBtn = ht::createLink("<img src=" . sbf('img/16/add.png') . " style='vertical-align: middle; margin-left:5px;'>", $data->addUrl, FALSE, 'title=Добавяне на нов параметър');
         }
 
         return self::renderDetail($data);

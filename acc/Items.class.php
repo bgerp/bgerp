@@ -199,8 +199,8 @@ class acc_Items extends core_Manager
             $id = (is_object($rec)) ? $rec->id : $rec;
             $tooltipUrl = toUrl(array('acc_Items', 'showItemInfo', $id, 'unique' => $unique), 'local');
             
-            $arrow = ht::createElement("span", array('class' => 'anchor-arrow tooltip-arrow-link', 'data-url' => $tooltipUrl));
-            $arrow = "<span class='additionalInfo-holder'><div class='additionalInfo' id='info{$unique}'></div>{$arrow}</span>";
+            $arrow = ht::createElement("span", array('class' => 'anchor-arrow tooltip-arrow-link', 'data-url' => $tooltipUrl), "", TRUE);
+            $arrow = "<span class='additionalInfo-holder'><span class='additionalInfo' id='info{$unique}'></span>{$arrow}</span>";
             $num .= "&nbsp;{$arrow}";
         }
     }
@@ -391,7 +391,13 @@ class acc_Items extends core_Manager
     static function on_AfterPrepareListFilter($mvc, $data)
     {
         // Добавяме поле във формата за търсене
-        $data->listFilter->FNC('listId', 'key(mvc=acc_Lists,select=name)', 'input,caption=Номенклатура,refreshForm');
+        $data->listFilter->FNC('listId', 'varchar', 'input,caption=Номенклатура,refreshForm,placeholder=Номенклатура');
+        $listOptions = acc_Lists::makeArray4Select('name', "");
+        if(haveRole('admin,ceo,debug')){
+        	$listOptions+= array('-1' => '[Без номенклатури]');
+        }
+        
+        $data->listFilter->setOptions('listId', $listOptions);
         
         $data->listFilter->view = 'horizontal';
         
@@ -407,7 +413,11 @@ class acc_Items extends core_Manager
         
         expect($filter->listId);
         
-        $data->query->where("#lists LIKE '%|{$filter->listId}|%'");
+        if($filter->listId == -1){
+        	$data->query->where("#lists IS NULL OR #lists = ''");
+        } else {
+        	$data->query->where("#lists LIKE '%|{$filter->listId}|%'");
+        }
         
         $data->query->orderBy('#num');
     }
@@ -487,10 +497,15 @@ class acc_Items extends core_Manager
      */
     function getCurrentListId()
     {
-        $listId = Request::get('listId', 'key(mvc=acc_Lists,select=name)');
+        $listId = Request::get('listId', 'int');
+        if($listId == -1) return $listId;
         
         if(!$listId) {
             $listId = Mode::get('currentListId');
+        }
+        
+        if($listId){
+        	expect(acc_Lists::fetch($listId));
         }
         
         if(!$listId) {

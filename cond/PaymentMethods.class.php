@@ -25,7 +25,7 @@ class cond_PaymentMethods extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, cond_Wrapper, plg_State2';
+    var $loadList = 'plg_Created, plg_RowTools, cond_Wrapper, plg_State2,plg_Translate';
     
     
     /**
@@ -106,7 +106,7 @@ class cond_PaymentMethods extends core_Master
         $this->FLD('name', 'varchar(32)', 'caption=Име,  mandatory');
 
         // Текстово описание
-        $this->FLD('description', 'text(rows=5)', 'caption=Описание, mandatory, ');
+        $this->FLD('description', 'text(rows=5)', 'caption=Описание, mandatory, translate');
         
         // Процент на авансовото плащане
         $this->FLD('downpayment', 'percent(min=0,max=1)', 'caption=Авансово плащане->Дял,hint=Процент,oldFieldName=payAdvanceShare');

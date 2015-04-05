@@ -98,7 +98,7 @@
                         </div>
                         <!--ET_END sales_InvoiceDetails-->
                         <div class="lines"></div>
-                        <table class="innerTable footer-notes" style='width:100%'>
+                        <table class="innerTable footer-notes paddingCells" style='width:100%'>
                             <tbody>
                                 <tr>
                                     <td style='line-height: 140%;'>
@@ -112,7 +112,6 @@
                                         <span class='quiet'>|Курс|*:</span>  [#rate#]
                                         <!--ET_END rate-->  
                                         <div class='custom-bg-block'><b>|Плащане|*</b></div>
-                                        <div><span class='quiet'>|Начин|*:</span>  [#paymentType#]</div>
                                         <!--ET_BEGIN paymentMethodId-->
                                         <div><span class='quiet'>|Метод|* :</span>  [#paymentMethodId#]</div>
                                         <!--ET_END paymentMethodId-->
@@ -162,7 +161,7 @@
                                         <!--ET_END additionalInfo-->
                                     </td>
                                     <td id='invoice-info' style='width:40%'>
-                                        <table border='0' cellpadding='3' style='margin-bottom: 20px;width:100%;' id='business-doc-summary-table'>
+                                        <table style='margin-bottom: 20px;width:100%;' class='business-doc-summary-table'>
                                             <tr class='nowrap'>
                                                 <td class='aright'>|Стойност|*:</td>
                                                 <td class='info-right' style='width:1%'><span class='cCode'>[#currencyId#]</span></td>

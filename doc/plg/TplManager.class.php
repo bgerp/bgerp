@@ -115,7 +115,7 @@ class doc_plg_TplManager extends core_Plugin
     /**
      * Изпълнява се преди преобразуването към вербални стойности на полетата на записа
      */
-    protected static function on_BeforeRecToVerbal($mvc, &$row, $rec, $fields = array())
+    protected static function on_BeforeRecToVerbal($mvc, &$row, $rec)
     {
     	if(is_object($rec)){
     		if($rec->id){
@@ -123,7 +123,8 @@ class doc_plg_TplManager extends core_Plugin
     			// Ако няма шаблон, за шаблон се приема първия такъв за модела
     			$rec->template = $mvc->getTemplate($rec->id);
     			$rec->tplLang = doc_TplManager::fetchField($rec->template, 'lang');
-    			core_Lg::push($rec->tplLang);
+    			
+				core_Lg::push($rec->tplLang);
     		}
     	}
     }
@@ -228,12 +229,22 @@ class doc_plg_TplManager extends core_Plugin
     
     
     /**
-     * След като е готово вербалното представяне
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-   		if(isset($rec->tplLang)){
-    		core_Lg::pop();
+    	if($rec->tplLang){
+			core_Lg::pop();
+			 
+			// Заместваме вербалното състояние и име с тези според езика на текущата сесия
+			if($mvc->getFieldType('state', FALSE)){
+				$row->state = $mvc->getFieldType('state')->toVerbal($rec->state);
+			}
+			$row->singleTitle = tr($mvc->singleTitle);
     	}
     }
 }

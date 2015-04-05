@@ -65,7 +65,7 @@ class tracking_Log extends core_Master {
         
         $data->listFilter->showFields = 'vehicleId,driverId,dateFrom,dateTo';
         
-        $data->listFilter->toolbar->addSbBtn('Филтър');
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
         $data->listFilter->view = 'horizontal';
         

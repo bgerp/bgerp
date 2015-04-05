@@ -389,6 +389,8 @@ class bank_IncomeDocuments extends core_Master
             
             $contragent = new core_ObjectReference($rec->contragentClassId, $rec->contragentId);
             $row->contragentAddress = $contragent->getFullAdress();
+            
+            $row->ownAccount = bank_OwnAccounts::getHyperlink($rec->ownAccount);
         }
     }
     

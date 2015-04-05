@@ -380,6 +380,12 @@ class core_Users extends core_Manager
                 $stateType = &$mvc->fields['state']->type;
                 unset($stateType->options['draft']);
             }
+        } else {
+            $teamsList = core_Roles::getRolesByType('team');
+            $teamsArr = type_Keylist::toArray($teamsList);
+            if (count($teamsArr) == 1) {
+                $data->form->setDefault('rolesInput', $teamsArr);
+            }
         }
     }
     
@@ -891,6 +897,7 @@ class core_Users extends core_Manager
         if (is_object($userRec)) {
             core_Mode::push('currentUserRec', $userRec);
             $bValid = TRUE;
+            $userRec->_isSudo = TRUE;
         }
         
         return $bValid;
@@ -1217,6 +1224,8 @@ class core_Users extends core_Manager
         $currentUserRec = Mode::get('currentUserRec');
         
         if (!$currentUserRec) return;
+        
+        if ($currentUserRec->_isSudo) return ;
         
         $refreshTime = dt::mysql2timestamp($currentUserRec->refreshTime);
         
@@ -1808,21 +1817,6 @@ class core_Users extends core_Manager
         }
         
         return $nick;
-    }
-    
-    
-    /**
-     * Връща ключа за персонална настройка
-     * 
-     * @param integer $id
-     * 
-     * @return string
-     */
-    static function getSettingsKey($id)
-    {
-        $key = 'core_Users::' . $id;
-        
-        return $key;
     }
     
     

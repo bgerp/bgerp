@@ -195,7 +195,7 @@ class sales_Quotations extends core_Master
         $this->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=description,allowEmpty)','caption=Плащане->Метод,salecondSysId=paymentMethodSale');
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)','caption=Плащане->Валута,oldFieldName=paymentCurrencyId');
         $this->FLD('currencyRate', 'double(decimals=2)', 'caption=Плащане->Курс,oldFieldName=rate');
-        $this->FLD('chargeVat', 'enum(yes=Включено, separate=Отделно, exempt=Oсвободено, no=Без начисляване)','caption=Плащане->ДДС,oldFieldName=vat');
+        $this->FLD('chargeVat', 'enum(yes=Включено, separate=Отделно, exempt=Освободено, no=Без начисляване)','caption=Плащане->ДДС,oldFieldName=vat');
         $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Доставка->Условие,salecondSysId=deliveryTermSale');
         $this->FLD('deliveryPlaceId', 'varchar(126)', 'caption=Доставка->Място,hint=Изберете локация или въведете нова');
         
@@ -417,81 +417,106 @@ class sales_Quotations extends core_Master
     
     
     /**
-     * След преобразуване на записа в четим за хора вид.
+     * Конвертира един запис в разбираем за човека вид
+     * Входният параметър $rec е оригиналният запис от модела
+     * резултата е вербалният еквивалент, получен до тук
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    public static function recToVerbal_($rec, &$fields = '*')
     {
-		if($fields['-single']){
-			$quotDate = dt::mysql2timestamp($rec->date);
-			$timeStamp = dt::mysql2timestamp(dt::verbal2mysql());
-			
-			if(isset($rec->validFor)){
-				
-				// До коя дата е валидна
-				$row->validDate = dt::addSecs($rec->validFor, $rec->date);
-				$row->validDate = $mvc->getFieldType('date')->toVerbal($row->validDate);
-			}
-			
-			if(isset($rec->validFor) && (($quotDate + $rec->validFor) < $timeStamp)){
-				$row->expired = tr("офертата е изтекла");
-			}
-			
-	    	$row->number = $mvc->getHandle($rec->id);
-			$row->username = core_Users::recToVerbal(core_Users::fetch($rec->createdBy), 'names')->names;
-			$profRec = crm_Profiles::fetchRec("#userId = {$rec->createdBy}");
-			if($position = crm_Persons::fetchField($profRec->personId, 'buzPosition')){
-				$row->position = cls::get('type_Varchar')->toVerbal($position);
-			}
-			
-			$contragent = new core_ObjectReference($rec->contragentClassId, $rec->contragentId);
-			$row->contragentAddress = $contragent->getFullAdress();
-			
-			if($rec->currencyRate == 1){
-				unset($row->currencyRate);
-			}
-			
-			if($rec->others){
-				$others = explode('<br>', $row->others);
-				$row->others = '';
-				foreach ($others as $other){
-					$row->others .= "<li>{$other}</li>";
-				}
-			}
-			
-			if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
-				if($rec->deliveryPlaceId){
-					if($placeId = crm_Locations::fetchField("#title = '{$rec->deliveryPlaceId}'", 'id')){
-		    			$row->deliveryPlaceId = ht::createLinkRef($row->deliveryPlaceId, array('crm_Locations', 'single', $placeId), NULL, 'title=Към локацията');
-					}
-				}
-			}
-			
-			$ownCompanyData = crm_Companies::fetchOwnCompany();
-	        $Companies = cls::get('crm_Companies');
-	        $row->MyCompany = cls::get('type_Varchar')->toVerbal($ownCompanyData->company);
-	        $row->MyAddress = $Companies->getFullAdress($ownCompanyData->companyId);
-	        
-	        $createdRec = crm_Persons::fetch(crm_Profiles::fetchField("#userId = {$rec->createdBy}", 'personId'));
-	        $buzAddress = ($createdRec->buzAddress) ? $createdRec->buzAddress : $ownCompanyData->place;
-	        if($buzAddress){
-	        	$row->buzPlace = cls::get('type_Varchar')->toVerbal($buzAddress);
-	        }
-	       
-	        $commonSysId = ($rec->tplLang == 'bg') ? "commonConditionSale" : "commonConditionSaleEng";
-	        
-	        if($cond = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, $commonSysId)){
-	        	$row->commonConditionQuote = cls::get('type_Varchar')->toVerbal($cond);
-	        }
-	        
-	        if(empty($rec->date)){
-	        	$row->date = $mvc->getFieldType('date')->toVerbal(dt::today());
-	        }
-		}
-		
+    	$row = parent::recToVerbal_($rec, $fields);
+    	$mvc = cls::get(get_called_class());
+    	
+    	if($fields['-single']){
+    		$quotDate = dt::mysql2timestamp($rec->date);
+    		$timeStamp = dt::mysql2timestamp(dt::verbal2mysql());
+    			
+    		if(isset($rec->validFor)){
+    	
+    			// До коя дата е валидна
+    			$row->validDate = dt::addSecs($rec->validFor, $rec->date);
+    			$row->validDate = $mvc->getFieldType('date')->toVerbal($row->validDate);
+    		}
+    			
+    		if(isset($rec->validFor) && (($quotDate + $rec->validFor) < $timeStamp)){
+    			$row->expired = tr("офертата е изтекла");
+    		}
+    			
+    		$row->number = $mvc->getHandle($rec->id);
+    		$row->username = core_Users::recToVerbal(core_Users::fetch($rec->createdBy), 'names')->names;
+    		$profRec = crm_Profiles::fetchRec("#userId = {$rec->createdBy}");
+    		if($position = crm_Persons::fetchField($profRec->personId, 'buzPosition')){
+    			$row->position = cls::get('type_Varchar')->toVerbal($position);
+    		}
+    			
+    		$ownCompanyData = crm_Companies::fetchOwnCompany();
+    			
+    		$Varchar = cls::get('type_Varchar');
+    		$row->MyCompany = $Varchar->toVerbal($ownCompanyData->company);
+    			
+    		$contragent = new core_ObjectReference($rec->contragentClassId, $rec->contragentId);
+    		$cData = $contragent->getContragentData();
+    			
+    		$fld = ($rec->tplLang == 'bg') ? 'commonNameBg' : 'commonName';
+    		if($cData->countryId){
+    			$row->contragentCountryId = drdata_Countries::getVerbal($cData->countryId, $fld);
+    		}
+    		$row->mycompanyCountryId = drdata_Countries::getVerbal($ownCompanyData->countryId, $fld);
+    			
+    		foreach (array('pCode', 'place', 'address') as $fld){
+    			if($cData->$fld){
+    				$row->{"contragent{$fld}"} = $Varchar->toVerbal($cData->$fld);
+    			}
+    	
+    			if($ownCompanyData->$fld){
+    				$row->{"mycompany{$fld}"} = $Varchar->toVerbal($ownCompanyData->$fld);
+    				$row->{"mycompany{$fld}"} = core_Lg::transliterate($row->{"mycompany{$fld}"});
+    			}
+    		}
+    			
+    		if($rec->currencyRate == 1){
+    			unset($row->currencyRate);
+    		}
+    			
+    		if($rec->others){
+    			$others = explode('<br>', $row->others);
+    			$row->others = '';
+    			foreach ($others as $other){
+    				$row->others .= "<li>{$other}</li>";
+    			}
+    		}
+    			
+    		if(!Mode::is('text', 'xhtml') && !Mode::is('printing')){
+    			if($rec->deliveryPlaceId){
+    				if($placeId = crm_Locations::fetchField("#title = '{$rec->deliveryPlaceId}'", 'id')){
+    					$row->deliveryPlaceId = ht::createLinkRef($row->deliveryPlaceId, array('crm_Locations', 'single', $placeId), NULL, 'title=Към локацията');
+    				}
+    			}
+    		}
+    		 
+    		$createdRec = crm_Persons::fetch(crm_Profiles::fetchField("#userId = {$rec->createdBy}", 'personId'));
+    		$buzAddress = ($createdRec->buzAddress) ? $createdRec->buzAddress : $ownCompanyData->place;
+    		if($buzAddress){
+    			$row->buzPlace = cls::get('type_Varchar')->toVerbal($buzAddress);
+    			$row->buzPlace = core_Lg::transliterate($row->buzPlace);
+    		}
+    	
+    		$commonSysId = ($rec->tplLang == 'bg') ? "commonConditionSale" : "commonConditionSaleEng";
+    		 
+    		if($cond = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, $commonSysId)){
+    			$row->commonConditionQuote = cls::get('type_Varchar')->toVerbal($cond);
+    		}
+    		 
+    		if(empty($rec->date)){
+    			$row->date = $mvc->getFieldType('date')->toVerbal(dt::today());
+    		}
+    	}
+    	
     	if($fields['-list']){
     		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
     		$row->title = $mvc->getLink($rec->id, 0);
-	    }
+    	}
+    	
+    	return $row;
     }
     
     
@@ -860,10 +885,11 @@ class sales_Quotations extends core_Master
     		$products = (array)$form->rec;
     		
     		foreach ($products as $index => $quantity){
-    			list($productId, $classId, $optional, $packagingId) = explode("|", $index);
+    			list($productId, $classId, $optional, $packagingId, $quantityInPack) = explode("|", $index);
     			
     			// При опционален продукт без к-во се продължава
     			if($optional == 'yes' && empty($quantity)) continue;
+    			$quantity = $quantity * $quantityInPack;
     			
     			// Опитваме се да намерим записа съотвестващ на това количество
     			$where = "#quotationId = {$id} AND #productId = {$productId} AND #classId = {$classId} AND #optional = '{$optional}' AND #quantity = {$quantity}";
@@ -956,7 +982,7 @@ class sales_Quotations extends core_Master
     	$query->orderBy('optional', 'ASC');
     	
     	while ($rec = $query->fetch()){
-    		$index = "{$rec->productId}|{$rec->classId}|{$rec->optional}|$rec->packagingId";
+    		$index = "{$rec->productId}|{$rec->classId}|{$rec->optional}|{$rec->packagingId}|{$rec->quantityInPack}";
     		if(!array_key_exists($index, $products)){
     			$title = cls::get($rec->classId)->getTitleById($rec->productId);
     			if($rec->packagingId){
@@ -970,7 +996,8 @@ class sales_Quotations extends core_Master
     		}
     		
     		if($rec->quantity){
-    			$products[$index]->options[$rec->quantity] = $rec->quantity / $rec->quantityInPack;
+    			$pQuantity = $rec->quantity / $rec->quantityInPack;
+    			$products[$index]->options[$pQuantity] = $pQuantity;
     		}
     	}
     	 

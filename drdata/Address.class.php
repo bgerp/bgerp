@@ -897,7 +897,7 @@ class drdata_Address extends core_MVC
         // Отпечатваме заглавията
         $res .= "\n<tr>";
         foreach($headers as $h) {
-            $res .= "<th align=left>{$h}</th>";
+            $res .= "<th style='text-align:left'>{$h}</th>";
         }
         $res .= "</tr>";
         

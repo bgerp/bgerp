@@ -232,12 +232,17 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 		
 
 	/**
-	 * След обработка на записите от базата данни
+	 * Преди рендиране на таблицата
 	 */
-	public static function on_AfterPrepareListRows(core_Mvc $mvc, $data)
+	public static function on_BeforeRenderListTable($mvc, &$tpl, $data)
 	{
+		$recs = &$data->recs;
+		$rows = &$data->rows;
+		 
 		// Скриваме полето "мярка"
-		$data->listFields = array_diff_key($data->listFields, arr::make('uomId', TRUE));
+		$data->listFields = array_diff_key($data->listFields, arr::make('uomId,quantityInPack', TRUE));
+		
+		if(!count($recs)) return;
 		
 		// Флаг дали има отстъпка
 		$haveDiscount = FALSE;
@@ -245,15 +250,15 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 		if(count($data->rows)) {
 			foreach ($data->rows as $i => &$row) {
 				$rec = &$data->recs[$i];
-
+		
 				$haveDiscount = $haveDiscount || !empty($rec->discount);
-					 
+		
 				if (empty($rec->packagingId)) {
 					$row->packagingId = ($rec->uomId) ? $row->uomId : '???';
 				} else {
 					if(cat_Packagings::fetchField($rec->packagingId, 'showContents') == 'yes'){
 						$shortUomName = cat_UoM::getShortName($rec->uomId);
-						$row->quantityInPack = $mvc->getFieldType('quantityInPack')->toVerbal($rec->quantityInPack);
+						
 						$row->packagingId .= ' <small class="quiet">' . $row->quantityInPack . ' ' . $shortUomName . '</small>';
 						$row->packagingId = "<span class='nowrap'>{$row->packagingId}</span>";
 					}
@@ -309,12 +314,12 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 				$products = $mvc->getProducts($productMan, $masterRec);
 				 
 				if(!count($products)){
-					$error = "error=Няма {$productMan->title}";
+					$error = "error=Няма {$productMan->title}, ";
 				}
 	
 				$title = mb_strtolower($productMan->singleTitle);
 				$data->toolbar->addBtn($productMan->singleTitle, array($mvc, 'add', $mvc->masterKey => $masterRec->id, 'classId' => $manId, 'ret_url' => TRUE),
-						"id=btnAdd-{$manId},{$error},order=10,title=Добавяне на {$title}", 'ef_icon = img/16/shopping.png');
+						"id=btnAdd-{$manId},{$error} order=10,title=Добавяне на {$title}", 'ef_icon = img/16/shopping.png');
 				unset($error);
 			}
 	

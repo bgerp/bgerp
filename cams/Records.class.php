@@ -89,6 +89,11 @@ class cams_Records extends core_Master
      */
     var $canRead = 'ceo,cams, admin';
     
+    /**
+     * Права за добавяне
+     */
+    var $canAdd = 'no_one';
+    
     
     /**
      * Права за маркиране
@@ -212,6 +217,8 @@ class cams_Records extends core_Master
      */
     function act_Single()
     {
+        requireRole('cams, admin');
+        
     	$conf = core_Packs::getConfig('cams');
     	
         $id = Request::get('id', 'int');
@@ -811,7 +818,7 @@ class cams_Records extends core_Master
                 
                 $date = "<div class='{$class}' style='border-bottom:solid 1px #ccc;'>" . $startVerbalTime . "</div>";
                 
-                $html .= "<td width=240 height=211 align=center valign=top bgcolor='#e8e8e8'>{$date}{$content}</td>";
+                $html .= "<td style='width:240px; height:211px; text-align:center; vertical-align:top;background-color:#e8e8e8'>{$date}{$content}</td>";
             }
             
             $html .= "</tr>";

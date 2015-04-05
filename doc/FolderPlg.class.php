@@ -565,6 +565,31 @@ class doc_FolderPlg extends core_Plugin
                     $rec->shared = type_Keylist::addKey($rec->shared, $id);
                 }
             }
+            
+            // Ако след записа няма да имаме достъп до корицата слагаме предупреждение
+            if(!doc_Folders::haveRightToObject($rec)){
+            	$form->setWarning('inCharge,access', 'След запис няма да имате достъп до корицата');
+            }
         }
+    }
+    
+    
+    /**
+     * Пренасочва URL за връщане след запис към сингъл изгледа
+     */
+    public static function on_AfterPrepareRetUrl($mvc, $res, $data)
+    {
+    	// Ако има форма, и тя е събмитната и действието е 'запис'
+    	if ($data->form && $data->form->isSubmitted() && $data->form->cmd == 'save') {
+    		
+    		// Ако имаме достъп до корицата и тя наследява core_Master пренасочваме към сингъла
+    		if(doc_Folders::haveRightToObject($data->form->rec) && $mvc instanceof core_Master){
+    			$data->retUrl = toUrl(array($mvc, 'single', $data->form->rec->id));
+    		} else {
+    			
+    			// Ако нямаме достъп, пренасочваме към списъчния изглед
+    			$data->retUrl = toUrl(array($mvc, 'list'));
+    		}
+    	}
     }
 }

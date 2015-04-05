@@ -354,11 +354,11 @@ abstract class deals_DealDetail extends doc_Detail
     		
     		$productMan = cls::get('cat_Products');
     		if(!count($productMan->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->valior, $mvc->metaProducts, NULL, 1))){
-                $error = "error=Няма продаваеми артикули";
+                $error = "error=Няма продаваеми артикули, ";
             }
             
             $data->toolbar->addBtn('Артикул', array($mvc, 'add', "{$mvc->masterKey}" => $masterRec->id, 'classId' => $productMan->getClassId(), 'ret_url' => TRUE),
-            "id=btnAdd-{$manId},{$error},order=10,title=Добавяне на артикул", 'ef_icon = img/16/shopping.png');
+            "id=btnAdd-{$manId},{$error} order=10,title=Добавяне на артикул", 'ef_icon = img/16/shopping.png');
             
             unset($data->toolbar->buttons['btnAdd']);
         }
@@ -373,11 +373,11 @@ abstract class deals_DealDetail extends doc_Detail
     	$recs = &$data->recs;
     	$rows = &$data->rows;
     	
+    	// Скриване на полето "мярка"
+    	$data->listFields = array_diff_key($data->listFields, arr::make('uomId,quantityInPack', TRUE));
+    	
     	if(!count($recs)) return;
     	
-    	// Скриване на полето "мярка" 
-        $data->listFields = array_diff_key($data->listFields, arr::make('uomId', TRUE));
-        
         // Флаг дали има отстъпка
         $haveDiscount = FALSE;
         $haveQuantityDelivered = FALSE;
@@ -388,7 +388,7 @@ abstract class deals_DealDetail extends doc_Detail
                 
                 $haveDiscount = $haveDiscount || !empty($rec->discount);
                 $haveQuantityDelivered = $haveQuantityDelivered || !empty($rec->quantityDelivered);
-                
+              
                 if (empty($rec->packagingId)) {
                 	$row->packagingId = ($rec->uomId) ? $row->uomId : $row->packagingId;
                 } else {

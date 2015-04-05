@@ -230,7 +230,7 @@ class doc_DocumentPlg extends core_Plugin
                     'list',
                     'ret_url'=>$retUrl
                 ),
-                "id=btnAll,ef_icon=img/16/application_view_list.png, order=18, row={$mvc->allBtnToolbarRow}, title=" . tr('Всички ' . mb_strtolower($mvc->title)));    
+                "class=btnAll,ef_icon=img/16/application_view_list.png, order=18, row={$mvc->allBtnToolbarRow}, title=" . tr('Всички ' . mb_strtolower($mvc->title)));    
 
         }
     }
@@ -1954,21 +1954,27 @@ class doc_DocumentPlg extends core_Plugin
         
         core_Users::sudo($userId);
         
-        $rec = $mvc->fetch($id);
-        
-        // Намираме прикачените документи
-        $attachedDocs = doc_RichTextPlg::getAttachedDocs($rec->body);
-        if (count($attachedDocs)) {
-            $attachedDocs = array_keys($attachedDocs);
-            $attachedDocs = array_combine($attachedDocs, $attachedDocs);    
+        try {
+            $rec = $mvc->fetch($id);
+            
+            // Намираме прикачените документи
+            $attachedDocs = doc_RichTextPlg::getAttachedDocs($rec->body);
+            if (count($attachedDocs)) {
+                $attachedDocs = array_keys($attachedDocs);
+                $attachedDocs = array_combine($attachedDocs, $attachedDocs);    
+            }
+            
+            if (!is_array($attachedDocs)) {
+            	
+            	$attachedDocs = array(); 
+            }
+            
+            $res = array_merge($attachedDocs, (array)$res);
+        } catch (core_exception_Expect $e) {
+            core_Users::exitSudo();
+            
+            return ;
         }
-        
-        if (!is_array($attachedDocs)) {
-        	
-        	$attachedDocs = array(); 
-        }
-        
-        $res = array_merge($attachedDocs, (array)$res);
         
         core_Users::exitSudo();
     }

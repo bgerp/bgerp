@@ -1056,7 +1056,6 @@ class pos_Receipts extends core_Master {
 	    $disClass = ($recUrl) ? '' : 'disabledBtn';
 	    $block->append(ht::createBtn('Касов бон', $recUrl, NULL, NULL, array('class' => "{$disClass} actionBtn", 'target' => 'iframe_a', 'title' => tr('Издай касова бележка'))), 'CLOSE_BTNS');
 	    
-	    // Търсим бутон "Контиране" в тулбара на мастъра, добавен от acc_plg_Contable
 	    if ($this->haveRightFor('close', $rec)) {
 	    	$contoUrl = array('pos_Receipts', 'close', $rec->id);
 	    	$hint = tr("Приключи продажбата");

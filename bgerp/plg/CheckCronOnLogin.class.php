@@ -49,7 +49,14 @@ class bgerp_plg_CheckCronOnLogin extends core_Plugin
                 
                 // Форсираме системния потребител за да може да се нотифицира текущия потребител
                 core_Users::sudo(core_Users::SYSTEM_USER);
-                bgerp_Notifications::add($msg, $urlArr, $adminId, 'warning');
+                try {
+                    bgerp_Notifications::add($msg, $urlArr, $adminId, 'warning');
+                } catch (core_exception_Expect $e) {
+                    core_Users::exitSudo();
+                    
+                    return ;
+                }
+                
                 core_Users::exitSudo();
             }
         }

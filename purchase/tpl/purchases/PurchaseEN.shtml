@@ -138,7 +138,7 @@
                                 </td>
                                 <!--ET_END purchaseConditions-->
                                 <td class="topCell aright vtop" style='width:33%'>
-                                    <table border='0' cellpadding='3' style='float:right' id='business-doc-summary-table' style='width:100%'>
+                                    <table style='float:right; width:100%' class='business-doc-summary-table'>
                                         <tr class='nowrap'>
                                             <td class='aright'>Value :</td>
                                             <td class='info-right' style='width:1%'><span class='cCode'>[#currencyId#]</span></td>
@@ -185,7 +185,7 @@
                                         <tr>
                                             <td colspan = '3' style='text-align:right'>
                                                 <hr>
-                                                With words: [#sayWords#]
+                                                Say words: [#sayWords#]
                                             </td>
                                         </tr>
                                     </table>

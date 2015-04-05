@@ -286,9 +286,9 @@ class cat_Products extends core_Embedder {
     		if(!$cover->haveInterface('doc_ContragentDataIntf')){
     			$form->setField('code', 'mandatory');
     			
-				if($code = Mode::get('catLastProductCode')) {
+				if($code = Mode::get('cat_Products_code')) {
 					if ($newCode = str::increment($code)) {
-						 
+						
 						// Проверяваме дали има такъв запис в системата
 						if (!$mvc->fetch("#code = '$newCode'")) {
 							$form->setDefault('code', $newCode);
@@ -1125,8 +1125,9 @@ class cat_Products extends core_Embedder {
     {
     	$res = new stdClass();
     	$pInfo = $this->getProductInfo($id);
+    	$rec = $this->fetchRec($id);
     	
-    	$res->name = $pInfo->productRec->name;
+    	$res->name = $rec->name;
     	$res->measureId = $pInfo->productRec->measureId;
     	
     	// Ако артикула е ДМА, ще може да се избират само ресурси - оборудване
@@ -1433,7 +1434,7 @@ class cat_Products extends core_Embedder {
     	 
     	$this->save($rec, 'state');
     	
-    	return followRetUrl();
+    	return Redirect(array($this, 'single', $rec->id));
     }
     
     

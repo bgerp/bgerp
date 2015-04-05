@@ -175,7 +175,7 @@ class survey_Alternatives extends core_Detail {
 			}
 			
 			$imgLink = sbf('survey/img/question.png', '');
-			$row->icon = ht::createElement('img', array('src' => $imgLink, 'valign' =>"middle", 'width' => 16));
+			$row->icon = ht::createElement('img', array('src' => $imgLink, 'style' =>"vertical-align:middle", 'width' => 16));
 				
 			if($rec->image) {
 				$Fancybox = cls::get('fancybox_Fancybox');

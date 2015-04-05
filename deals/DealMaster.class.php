@@ -887,8 +887,11 @@ abstract class deals_DealMaster extends deals_DealBase
 			}
 			
 			$actions = type_Set::toArray($rec->contoActions);
+			
+			core_Lg::push($rec->tplLang);
+			
 			if(isset($actions['ship'])){
-				$row->isDelivered .= tr('ДОСТАВЕНО');
+				$row->isDelivered .= mb_strtoupper(tr('доставено'));
 				if($rec->state == 'rejected') {
 					$row->isDelivered = "<span class='quet'>{$row->isDelivered}</span>";
 				}
@@ -915,7 +918,7 @@ abstract class deals_DealMaster extends deals_DealBase
 			}
 			
 			if(isset($actions['pay'])){
-				$row->isPaid .= tr('ПЛАТЕНО');
+				$row->isPaid .= mb_strtoupper(tr('платено'));
 				if($rec->state == 'rejected') {
 					$row->isPaid = "<span class='quet'>{$row->isPaid}</span>";
 				}
@@ -924,6 +927,8 @@ abstract class deals_DealMaster extends deals_DealBase
 			if($rec->makeInvoice == 'no'){
 				$row->amountToInvoice = "<span style='font-size:0.7em'>" . tr('без фактуриране') . "</span>";
 			}
+			
+			core_Lg::pop();
 	    }
     }
     

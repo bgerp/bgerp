@@ -57,7 +57,7 @@ class store_Stores extends core_Master
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'ceo,store';
+    var $canAdd = 'ceo,storeMaster';
     
     
     /**
@@ -129,7 +129,7 @@ class store_Stores extends core_Master
     /**
      * Кой може да пише
      */
-    var $canWrite = 'ceo,storeMaster';
+    var $canWrite = 'ceo,store';
     
     
     /**

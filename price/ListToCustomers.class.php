@@ -222,7 +222,7 @@ class price_ListToCustomers extends core_Detail
         $tpl = $wrapTpl;
         
         if ($data->addUrl) {
-            $tpl->append(ht::createLink("<img src=" . sbf('img/16/add.png') . " valign=bottom style='margin-left:5px;'>", $data->addUrl, FALSE, 'title=' . tr('Избор на Ценова политика')), 'title');
+            $tpl->append(ht::createLink("<img src=" . sbf('img/16/add.png') . " style='vertical-align: middle; margin-left:5px;'>", $data->addUrl, FALSE, 'title=' . tr('Избор на Ценова политика')), 'title');
         }
     }
 
@@ -455,7 +455,10 @@ class price_ListToCustomers extends core_Detail
     		// Какви са максималната и минималната надценка за контрагента
     		$minCharge = cond_Parameters::getParameter($customerClass, $customerId, 'minSurplusCharge');
     		$maxCharge = cond_Parameters::getParameter($customerClass, $customerId, 'maxSurplusCharge');
-    	
+    		if(!$quantity){
+    			$quantity = 1;
+    		}
+    		
     		// Връщаме цената спрямо минималната и максималната отстъпка, началното и пропорционалното количество
     		$price->price = ($amounts->base * (1 + $maxCharge) + $quantity * $amounts->prop * (1 + $minCharge)) / $quantity;
     	

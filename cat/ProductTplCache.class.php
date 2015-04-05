@@ -178,6 +178,7 @@ class cat_ProductTplCache extends core_Master
 		}
 		
 		$tpl = $Driver->renderProductDescription($cache);
+		$tpl->removeBlocks();
 		
 		// Връщаме намерения изглед
 		return $tpl;

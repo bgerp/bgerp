@@ -204,7 +204,7 @@ class bank_OwnAccounts extends core_Master {
             // Обръщаме го във четим за хората вид
             $Double = cls::get('type_Double');
             $Double->params['decimals'] = 2;
-            $row->blAmount = "<span style='float:right'>" . $Double->toVerbal($rec->blAmount) . "<span>";
+            $row->blAmount = "<span style='float:right'>" . $Double->toVerbal($rec->blAmount) . "</span>";
             
             if($rec->blAmount < 0){
                 $row->blAmount = "<span style='color:red'>{$row->blAmount}</span>";

@@ -58,7 +58,7 @@ class pos_Stocks extends core_Manager {
 	/**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,productId,classId,storeId,quantity,lastUpdated,state';
+    public $listFields = 'id,productId,storeId,quantity,lastUpdated,state';
     
 	
     /**
@@ -231,7 +231,7 @@ class pos_Stocks extends core_Manager {
     
     static function on_AfterPrepareListFields($mvc, $data)
     {
-    	$data->query->orderBy('id', 'DESC');
+    	$data->query->orderBy('state', 'ASC');
     }
     
     

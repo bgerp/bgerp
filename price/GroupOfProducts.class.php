@@ -395,7 +395,7 @@ class price_GroupOfProducts extends core_Detail
         $tpl->replace(get_class($this), 'DetailName');
         
         if ($data->addUrl) {
-        	$addBtn = ht::createLink("<img src=" . sbf('img/16/add.png') . " valign=bottom style='margin-left:5px;'>", $data->addUrl, NULL, 'title=Задаване на ценова група');
+        	$addBtn = ht::createLink("<img src=" . sbf('img/16/add.png') . " style='vertical-align: middle; margin-left:5px;'>", $data->addUrl, NULL, 'title=Задаване на ценова група');
         	$tpl->append($addBtn, 'TITLE');
         }
         
