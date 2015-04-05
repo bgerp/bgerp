@@ -85,7 +85,11 @@ class type_Class  extends type_Key {
             
             $valId = core_Classes::getId($value);
             
-            $value = parent::toVerbal($valId);
+            if($valId) {
+                $value = parent::toVerbal($valId);
+            } else {
+                $value = '??????????';
+            }
         }
         
         return $value;
