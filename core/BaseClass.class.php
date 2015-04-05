@@ -180,13 +180,6 @@ class core_BaseClass
     {
         $method = 'on_' . $event;
         
-        
-        $args1 = array(&$this);
-        
-        for ($i = 0; $i < count($args); $i++) {
-            $args1[] = & $args[$i];
-        }
-
         // Ако нямаме - генерираме кеша с обработвачите
         if(!isset($this->_listenerCache[$method])) {
             
@@ -220,6 +213,13 @@ class core_BaseClass
         
         // Използваме кеша за извикаване на обработвачите
         if(count($this->_listenerCache[$method])) {
+            
+            $args1 = array(&$this);
+            $cntArgs = count($args);
+            for ($i = 0; $i < $cntArgs; $i++) {
+                $args1[] = & $args[$i];
+            }
+
             foreach($this->_listenerCache[$method] as $subject) {
                 if(call_user_func_array(array($subject, $method),  $args1) === FALSE) return FALSE;
             }
@@ -246,7 +246,8 @@ class core_BaseClass
         $argsHnd = array(&$res);
         $argsMtd = array();
         
-        for ($i = 0; $i < count($args); $i++) {
+        $cntArgs = count($args);
+        for ($i = 0; $i < $cntArgs; $i++) {
             $argsHnd[] = & $args[$i];
             $argsMtd[] = & $args[$i];
         }

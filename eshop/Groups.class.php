@@ -152,7 +152,7 @@ class eshop_Groups extends core_Master
     {
         $cQuery = cms_Content::getQuery();
         
-        $classId = core_Classes::fetchIdByName($mvc->className);
+        $classId = core_Classes::getId($mvc->className);
         $domainId = cms_Domains::getCurrent();
         while($rec = $cQuery->fetch("#source = {$classId} AND #state = 'active' AND #domainId = {$domainId}")) {
             $opt[$rec->id] = cms_Content::getVerbal($rec, 'menu');
@@ -349,7 +349,7 @@ class eshop_Groups extends core_Master
     {
         $cQuery = cms_Content::getQuery();
         
-        $classId = core_Classes::fetchIdByName($mvc->className);
+        $classId = core_Classes::getId($mvc->className);
         
         while($rec = $cQuery->fetch("#source = {$classId} AND #state = 'active'")) {
             $data->toolbar->addBtn(type_Varchar::escape($rec->menu),

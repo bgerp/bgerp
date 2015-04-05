@@ -47,7 +47,13 @@ class core_Classes extends core_Manager
      */
     static $interfaceMehods = array();
     
+
+    /**
+     * Работен кеш за имената и id-тата na klasowete
+     */
+    static $classes = array();
     
+
     /**
      * Описание на модела
      */
@@ -134,25 +140,6 @@ class core_Classes extends core_Manager
     
     
     /**
-     * Връща $rec на устройството според името му
-     */
-    static function fetchIdByName($name)
-    {
-        if(is_object($name)) {
-            $name = cls::getClassName($name);
-        }
-        
-        $query = self::getQuery();
-        
-        $query->show('id');
-        
-        $rec = $query->fetch(array("#name = '[#1#]'", $name));
-        
-        return $rec->id;
-    }
-    
-    
-    /**
      * Връща опции за селект с устройствата, имащи определения интерфейс
      */
     static function getOptionsByInterface($interface, $title = 'name')
@@ -225,14 +212,57 @@ class core_Classes extends core_Manager
             } else {
                 $className = $class;
             }
+
+            if(!count(self::$classes)) {
+                self::loadClasses();
+            }
             
-            $Classes = cls::get('core_Classes');
-            $classId = $Classes->fetchField(array("#name = '[#1#]'", $className), 'id');
+            $classId = self::$classes[$className];
         }
 
         expect($classId);
 
         return $classId;
+    }
+
+
+    /**
+     * Връща името на класа, според неговото id
+     */
+    public static function getName($classId)
+    {
+        expect(is_numeric($classId));
+        
+        // Зареждаме кеша на класовете
+        if(!count(self::$classes)) {
+            self::loadClasses();
+        }
+
+        $className = self::$classes[$classId];
+        
+        return $className;
+    }
+
+
+    /**
+     * Зарежда кеша на класовете
+     */
+    private static function loadClasses()
+    {
+        $query = self::getQuery();
+        while($rec = $query->fetch("#state = 'active'")) {
+            self::$classes[$rec->id] = $rec->name;
+            self::$classes[$rec->name] = $rec->id;
+        }
+    }
+
+
+    /**
+     * Инвалидира кеша при обновяване на таблицата
+     */
+    static function on_AfterDbTableUpdated($mvc)
+    {
+        self::$classes = array();
     }
     
     

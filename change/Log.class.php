@@ -105,7 +105,7 @@ class change_Log extends core_Manager
         } else {
             
             // Вземаме id' то на класа
-            $docClassId = core_Classes::fetchIdByName($docClass);
+            $docClassId = core_Classes::getId($docClass);
         }
         
         // Обхождаме масива с полетата
@@ -209,7 +209,7 @@ class change_Log extends core_Manager
         } else {
             
             // Вземаме id' то на класа
-            $docClassId = core_Classes::fetchIdByName($docClass);
+            $docClassId = core_Classes::getId($docClass);
         }
         
         // Масив с данните
@@ -657,7 +657,7 @@ class change_Log extends core_Manager
         } else {
             
             // Вземаме id' то на класа
-            $docClassId = core_Classes::fetchIdByName($docClass);
+            $docClassId = core_Classes::getId($docClass);
         }
         
         // Събираме id-то на записа и ключа на версията

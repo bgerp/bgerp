@@ -325,7 +325,7 @@ class forum_Boards extends core_Master {
 		   Mode::set('wrapper', 'cms_page_External');
 		  
 		   // Засветяване на Форум  в менюто
-		   $selfId = core_Classes::fetchIdByName($this);
+		   $selfId = core_Classes::getId($this);
 		   Mode::set('cMenuId', cms_Content::fetchField("#source = {$selfId}", 'id'));
 		}
 		

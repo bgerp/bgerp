@@ -2088,7 +2088,7 @@ class email_Outgoings extends core_Master
         $cnt = 0;
         
         // Класа на входящите документи
-        $incomingClassId = core_Classes::fetchIdByName('email_Incomings');
+        $incomingClassId = core_Classes::getId('email_Incomings');
         
         // Вземаме всички чакащи или събудени имейли
         $query = static::getQuery();

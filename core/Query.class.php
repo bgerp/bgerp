@@ -1021,7 +1021,8 @@ class core_Query extends core_FieldSet
         
         $exp = $arr[0];
         
-        for ($i = 1; $i < count($arr); $i++) {
+        $cntArr = count($arr);
+        for ($i = 1; $i < $cntArr; $i++) {
             $a[] = "[#{$i}#]";
             $b[] = "[#{$i}{$key}#]";
             $c[] = $this->mvc->db->escape($arr[$i]);

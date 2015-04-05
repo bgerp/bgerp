@@ -142,7 +142,7 @@ class cond_ConditionsToCustomers extends core_Manager
      */
     public static function prepareCustomerSalecond(&$data)
     {
-        expect($data->cClass = core_Classes::fetchIdByName($data->masterMvc));
+        expect($data->cClass = core_Classes::getId($data->masterMvc));
         expect($data->masterId);
         $query = static::getQuery();
         $query->where("#cClass = {$data->cClass} AND #cId = {$data->masterId}");

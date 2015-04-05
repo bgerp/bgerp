@@ -154,7 +154,7 @@ class doc_Threads extends core_Manager
         $resArr = array();
         
         // id на папката за несортирани
-        $unsortedCoverClassId = core_Classes::fetchIdByName('doc_UnsortedFolders');
+        $unsortedCoverClassId = core_Classes::getId('doc_UnsortedFolders');
         
         // id на папката за несортирани
         $currUser = core_Users::getCurrent();
