@@ -255,7 +255,7 @@ class doc_FilesPlg extends core_Plugin
                 $attr['title'] = tr('Нишка') . ': ' . $docProxyRow->title;
                 
                 // Темата да е линк към single' а на първиа документ документа
-                $threadLink = ht::createLink(str::limitLen($docProxyRow->title, 70), array($docProxy, 'single', $docProxy->that), NULL, $attr); 
+                $threadLink = ht::createLink(str::limitLen($docProxyRow->title, 70), array($docProxy->className, 'single', $docProxy->that), NULL, $attr); 
 
                 // Добавяме в масива линка и id' то
                 $res['firstContainer']['content'] = $threadLink;
