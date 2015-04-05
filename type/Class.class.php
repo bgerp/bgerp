@@ -89,8 +89,6 @@ class type_Class  extends type_Key {
             
             if($valId) {
                 $value = parent::toVerbal($valId);
-            } else {
-                $value = '??????????';
             }
         }
         
