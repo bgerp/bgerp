@@ -118,6 +118,9 @@ class acc_ReportDetails extends core_Manager
         // и ид-то на перото е на произволна позиция
         $dRecs = acc_Balances::fetchCurrent($accounts, $items->id);
         
+        $balanceRec = acc_Balances::getLastBalance();
+        $data->balanceRec = $balanceRec;
+        
         // Ако няма записи, не се прави нищо
         if(empty($dRecs) || !count($dRecs)) return;
         
@@ -129,8 +132,6 @@ class acc_ReportDetails extends core_Manager
         
         // Извикване на евент в мастъра за след извличане на записите от БД
         $data->masterMvc->invoke('AfterPrepareAccReportRecs', array($data));
-        $balanceRec = acc_Balances::getLastBalance();
-        $data->balanceRec = $balanceRec;
         
         $attr = array();
         $attr['class'] = 'linkWithIcon';
@@ -219,7 +220,6 @@ class acc_ReportDetails extends core_Manager
         }
         
         $data->listFields['tools'] = ' ';
-        $periodRec = acc_Periods::fetch($data->balanceRec->periodId);
         
         // Ако има какво да се показва
         if($data->balanceRows){
