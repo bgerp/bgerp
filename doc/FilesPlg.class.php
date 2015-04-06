@@ -230,7 +230,7 @@ class doc_FilesPlg extends core_Plugin
             $attr['title'] = tr('Документ') . ': ' . $docRow->title;
             
             // Документа да е линк към single' а на документа
-            $documentLink = ht::createLink(str::limitLen($docRow->title, 70), array($doc, 'single', $doc->that), NULL, $attr);
+            $documentLink = ht::createLink(str::limitLen($docRow->title, 70), array($doc->className, 'single', $doc->that), NULL, $attr);
             
             // Добавяме в масива линка и id' то
             $res['container']['content'] = $documentLink;

@@ -362,7 +362,7 @@ class log_Documents extends core_Manager
                     $docRow = $doc->getDocumentRow();
                     
                     // Създаваме линк към документа
-                    $row->document = ht::createLink($docRow->title, array($doc, 'single', $doc->that));    
+                    $row->document = ht::createLink($docRow->title, array($doc->className, 'single', $doc->that));    
                 }
                 
                 // Добавяме в главния масив
@@ -1962,7 +1962,7 @@ class log_Documents extends core_Manager
         $detailTab = ucfirst(strtolower($action));
         
         $link = array(
-	                 $document, 
+	                 $document->className, 
 	                 'single', 
 	                 $document->that,
 	                 'Cid' => $cid, 
