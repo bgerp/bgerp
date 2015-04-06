@@ -964,7 +964,7 @@ class i18n_Charset extends core_MVC {
     /**
      * Проверява дали аргумента е 7 битов стринг
      *
-     * @param string $str - Стринга, който ще се проверява
+     * @param string $text - Стринга, който ще се проверява
      *
      * @return boolean
      */
