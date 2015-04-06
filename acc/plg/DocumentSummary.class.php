@@ -130,14 +130,6 @@ class acc_plg_DocumentSummary extends core_Plugin
             	}
             }
             
-            if($filter->search){
-                plg_Search::applySearch($filter->search, $data->query);
-                
-                if(is_numeric($filter->search)){
-                	$data->query->where("#id = {$filter->search}", TRUE);
-                }
-            }
-           
             $dateRange = array();
             
             if ($filter->from) {
