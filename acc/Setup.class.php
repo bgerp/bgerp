@@ -247,7 +247,7 @@ class acc_Setup extends core_ProtoSetup
         }
         
         // Изтриваме и перата за години със стария меджър 'години'
-        if($oldYearManId = core_Classes::fetchIdByName('acc_Years')){
+        if($oldYearManId = core_Classes::getId('acc_Years')){
             if(acc_Items::fetch("#classId = '{$oldYearManId}'")){
                 acc_Items::delete("#classId = '{$oldYearManId}'");
             }

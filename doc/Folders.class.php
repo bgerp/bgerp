@@ -549,7 +549,7 @@ class doc_Folders extends core_Master
     static function createNew($coverMvc)
     {
         $rec = new stdClass();
-        $rec->coverClass = core_Classes::fetchIdByName($coverMvc);
+        $rec->coverClass = core_Classes::getId($coverMvc);
         
         expect($rec->coverClass);
         
@@ -932,7 +932,7 @@ class doc_Folders extends core_Master
         $resArr = array();
         
         $unsortedFolders = 'doc_UnsortedFolders';
-        $unsortedFolderId = core_Classes::fetchIdByName($unsortedFolders);
+        $unsortedFolderId = core_Classes::getId($unsortedFolders);
         
         $currUser = core_Users::getCurrent();
         if ($currUser <= 0) {

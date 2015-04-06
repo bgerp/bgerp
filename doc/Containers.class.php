@@ -327,7 +327,7 @@ class doc_Containers extends core_Manager
         $className = cls::getClassName($class);
         
         $rec = new stdClass();
-        $rec->docClass  = core_Classes::fetchIdByName($className);
+        $rec->docClass  = core_Classes::getId($className);
         $rec->threadId  = $threadId;
         $rec->folderId  = $folderId;
         $rec->createdOn = $createdOn;
@@ -1294,7 +1294,7 @@ class doc_Containers extends core_Manager
     public static function repair($from = NULL, $to = NULL, $delay = 10)
     {
         // Данни за папката за несортирани
-        $unsortedCoverClassId = core_Classes::fetchIdByName('doc_UnsortedFolders');
+        $unsortedCoverClassId = core_Classes::getId('doc_UnsortedFolders');
         $defaultFolderId = doc_Folders::fetchField("#coverClass = '{$unsortedCoverClassId}'", 'id');
         
         // id' то на интерфейса

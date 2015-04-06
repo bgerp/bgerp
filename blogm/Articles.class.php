@@ -731,7 +731,7 @@ class blogm_Articles extends core_Master {
         // Тема за блога
         $data->ThemeClass = $this->getThemeClass();
 
-        $selfId = core_Classes::fetchIdByName($this);
+        $selfId = core_Classes::getId($this);
         
         Mode::set('cMenuId', cms_Content::getDefaultMenuId('blogm_Articles'));
 	}

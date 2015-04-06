@@ -43,40 +43,43 @@ class core_Cls
     static function getClassName($className)
     {
         if(is_object($className)) {
-            if($className->className) {
-                
-                return $className->className;
-            } else {
-                
-                return get_class($className);
-            }
+    
+            return get_class($className);
         }
+
+        static $classNames = array();
+
+        $cln = $className;
+
+        if(!isset($classNames[$cln])) {
         
-        // Ако името е число, тогава го вземаме от coreClass
-        if(is_numeric($className)) {
-            $Classes = cls::get('core_Classes');
-            $className = $Classes->fetchField($className, 'name');
+            // Ако името е число, тогава го вземаме от coreClass
+            if(is_numeric($className)) {
+                $className = core_Classes::getName($className);
+                
+                if(!$className) return FALSE;
+            }
             
-            if(!$className) return FALSE;
-        }
-        
-        // Ако се използва съкратено име, то името на приложението
-        // се прибавя като приставка и долна черта отпред
-        if (strpos($className, '_') === FALSE) {
-            $className = EF_APP_CODE_NAME . '_' . $className;
-        }
-        
-        // Капитализираме буквата след последната черта
-        if(($last = strrpos($className, '_')) > 0) {
-            if ($last !== FALSE && $last < strlen($className)) {
-                $className{$last + 1} = strtoupper($className{$last + 1});
-            } else {
-                // Некоректно има на клас
-                bp($className);
+            // Ако се използва съкратено име, то името на приложението
+            // се прибавя като приставка и долна черта отпред
+            if (strpos($className, '_') === FALSE) {
+                $className = EF_APP_CODE_NAME . '_' . $className;
             }
+            
+            // Капитализираме буквата след последната черта
+            if(($last = strrpos($className, '_')) > 0) {
+                if ($last < strlen($className)) {
+                    $className{$last + 1} = strtoupper($className{$last + 1});
+                } else {
+                    // Некоректно има на клас
+                    error("@Некоректно има на клас", $className);
+                }
+            }
+
+            $classNames[$cln] = $className;
         }
         
-        return $className;
+        return $classNames[$cln];
     }
     
     

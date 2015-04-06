@@ -1388,8 +1388,8 @@ class email_Incomings extends core_Master
     static function scanForPublicDomains()
     {
         // Извличаме ид на корица на фирмените папки
-        $crmCompaniesClassId = core_Classes::fetchIdByName('crm_Companies');
-        $crmPersonsClassId = core_Classes::fetchIdByName('crm_Persons');
+        $crmCompaniesClassId = core_Classes::getId('crm_Companies');
+        $crmPersonsClassId = core_Classes::getId('crm_Persons');
         
         // Построяваме заявка, извличаща всички писма, които са във фирмена папка.
         /* @var $query core_Query */

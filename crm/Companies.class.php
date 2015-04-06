@@ -830,7 +830,7 @@ class crm_Companies extends core_Master
     static function fetchOurCompany()
     {
         $rec = self::fetch(crm_Setup::BGERP_OWN_COMPANY_ID);
-        $rec->classId = core_Classes::fetchIdByName('crm_Companies');
+        $rec->classId = core_Classes::getId('crm_Companies');
         
         return $rec;
     }

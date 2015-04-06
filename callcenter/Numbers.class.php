@@ -609,7 +609,7 @@ class callcenter_Numbers extends core_Manager
                 $rec->type = 'internal';
                 
                 // Класа да е на профилите
-                $rec->classId = core_Classes::fetchIdByName('crm_Profiles');
+                $rec->classId = core_Classes::getId('crm_Profiles');
             }
         }
         

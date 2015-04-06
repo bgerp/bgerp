@@ -159,7 +159,7 @@ class trz_Bonuses extends core_Master
     		$result[] = (object)array(
 	    		'personId' => $rec->personId, 
 	    		'docId'  => $rec->id, 
-	    	    'docClass' => core_Classes::fetchIdByName('trz_Bonuses'),
+	    	    'docClass' => core_Classes::getId('trz_Bonuses'),
 	    		'indicator' => 'bonuses', 
 	    		'value' => $rec->sum
 	    	);

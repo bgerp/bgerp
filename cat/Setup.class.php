@@ -288,7 +288,7 @@ class cat_Setup extends core_ProtoSetup
     			}
     			
     			
-    			if(core_Classes::fetchIdByName('cat_GeneralServiceDriver') == $rec->innerClass){
+    			if(core_Classes::getId('cat_GeneralServiceDriver') == $rec->innerClass){
     				$rec->innerClass = cat_GeneralProductDriver::getClassId();
     			}
     			

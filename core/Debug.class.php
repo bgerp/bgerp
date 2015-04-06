@@ -149,8 +149,10 @@ class core_Debug
             self::log('End');
 
             $html .= "\n<div class='debug_block' style=''>" .
-            "\n<div style='background-color:#FFFF33; padding:5px; color:black;'>Debug log</div><ul>";
- 
+            "\n<div style='background-color:#FFFF33; padding:5px; color:black;'>Debug log</div><ul><li style='padding:15px 0px 15px 0px;'>";
+            
+            $html .= core_Html::mixedToHtml($_COOKIE) . "</li>";
+                        
             foreach (self::$debugTime as $rec) {
                 $html .= "\n<li style='padding:15px 0px 15px 0px;border-top:solid 1px #cc3;'>" .  number_format(($rec->start ), 5) . ": " . htmlentities($rec->name, ENT_QUOTES, 'UTF-8');
             }

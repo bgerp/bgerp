@@ -237,7 +237,7 @@ class bank_Accounts extends core_Master {
      */
     function prepareContragentBankAccounts($data)
     {
-        expect($data->contragentCls = core_Classes::fetchIdByName($data->masterMvc));
+        expect($data->contragentCls = core_Classes::getId($data->masterMvc));
         expect($data->masterId);
         $query = $this->getQuery();
         $query->where("#contragentCls = {$data->contragentCls} AND #contragentId = {$data->masterId}");
