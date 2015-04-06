@@ -29,6 +29,11 @@ class vislog_ResourcesReport extends frame_BaseDriver
     public $interfaces = 'frame_ReportSourceIntf';
     
 
+	/**
+	 * За конвертиране на съществуващи MySQL таблици от предишни версии
+	 */
+	public $oldClassName = 'vislog_IpResources';
+
 
     /**
      * Брой записи на страница
@@ -140,6 +145,9 @@ class vislog_ResourcesReport extends frame_BaseDriver
 
         }
         
+        // Сортиране на данните
+        arsort($data->resourceCnt);
+
         return $data;
     }
     
