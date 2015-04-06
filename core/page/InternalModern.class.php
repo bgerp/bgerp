@@ -175,6 +175,8 @@ class core_page_InternalModern extends core_page_Active
     	// Опаковките и главното съдържание заемат екрана до долу
     	
     	$tpl->append("runOnLoad( slidebars );", "JQRUN");
+    	$tpl->append("runOnLoad( scrollToHash );", "JQRUN");
+    	
     	
         return $tpl;
     }

@@ -182,3 +182,12 @@ function scrollToElem(docId) {
         scrollTop: $("#" + docId).offset().top - $(window).height() + $(this).height() - 75
     }, 500);
 }
+
+function scrollToHash(){
+	var hash = window.location.hash;
+	if(hash) {
+		setTimeout(function() {
+			$('html, body').scrollTop($(hash).offset().top - 70, 0);
+		}, 1);	  
+	}
+}
