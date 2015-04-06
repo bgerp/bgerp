@@ -241,10 +241,6 @@ class cat_products_Params extends doc_Detail
             $block->removeBlocks();
             $block->append2Master();
         }
-      
-        if(!count($data->params)){
-        	$tpl->replace(tr('Няма записи'), 'NO_ROWS');
-        }
         
         return $tpl;
     }
