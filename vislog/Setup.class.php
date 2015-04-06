@@ -72,7 +72,7 @@ class vislog_Setup extends core_ProtoSetup
     /**
      * Дефиниции на класове с интерфейси
      */
-    var $classes = 'vislog_IpReports';
+    var $classes = 'vislog_IpReports,vislog_IpResources';
 
 
     /**
@@ -86,7 +86,7 @@ class vislog_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    var $defClasses = "vislog_IpReports";
+    var $defClasses = "vislog_IpReports,vislog_IpResources";
     
     
 	/**
