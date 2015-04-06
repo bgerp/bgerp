@@ -10,8 +10,6 @@
         <span class='quiet'>|Период|* :</span> [#periodId#]. 
         <span class='quiet'>|Изчислена|*:</span> [#lastCalculate#]
     </div>
-    <div class='fleft' style='margin-right: 20px;'>
-        [#DETAILS#]
-        [#ListPagerTop#]
-    </div>
+    [#DETAILS#]  
+    [#ListPagerTop#]
 </div>
