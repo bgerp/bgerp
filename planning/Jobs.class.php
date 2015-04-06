@@ -631,7 +631,8 @@ class planning_Jobs extends core_Master
     		if(isset($rec->saleId)){
     			$data->hideSaleCol = FALSE;
     		}
-    		if($rec->state == 'draft'){
+    		
+    		if($this->haveRightFor('edit', $rec)){
     			$data->hideToolsCol = FALSE;
     		}
     	}
