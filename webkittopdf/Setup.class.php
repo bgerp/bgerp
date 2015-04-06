@@ -191,7 +191,7 @@ class webkittopdf_Setup extends core_ProtoSetup
     /**
      * Проверява дали програмата е инсталирана в сървъра
      * 
-     * @return boolean
+     * @return boolean|NULL
      */
     public static function isEnabled()
     {
