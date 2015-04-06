@@ -193,7 +193,7 @@ class vislog_IpReports extends frame_BaseDriver
     
     	$html = "<h3>Посещения по IP</h3>";
     
-    	$pager = cls::get('core_Pager',  array('itemsPerPage' => $this->listItemsPerPage));
+    	$pager = cls::get('core_Pager',  array('pageVar' => 'P_' .  $this->EmbedderRec->that,'itemsPerPage' => $this->listItemsPerPage));
     	$pager->itemsCount = count($data->ipCnt);
 
     	$ip = cls::get('type_Ip');
