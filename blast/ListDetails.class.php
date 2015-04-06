@@ -186,6 +186,8 @@ class blast_ListDetails extends doc_Detail
         
         $fieldsArr = $mvc->getFncFieldsArr($masterRec->allFields);
         
+        $data = array();
+        
         foreach($fieldsArr as $name => $caption) {
             $data[$name] = $form->rec->{$name};
         }
