@@ -161,7 +161,7 @@ class cat_Products extends core_Embedder {
     /**
      * Кой  може да групира "С избраните"?
      */
-    var $canGrouping = 'cat,ceo,sales,purchase';
+    var $canGrouping = 'no_one';
 
 	
     /**
