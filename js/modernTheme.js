@@ -183,14 +183,18 @@ function scrollToElem(docId) {
     }, 500);
 }
 
+/**
+ * Скролиране до елемента
+ * */
 function scrollToHash(){
 	var hash = window.location.hash;
 	if(hash) {
 		setTimeout(function() {
 			var scrollTo = $(hash).offset().top - 70;
-			if (scrollTo > 300) {
-				$('html, body').scrollTop($(hash).offset().top - 70, 0);
+			if (scrollTo < 400) {
+				scrollTo = 0;
 			}
+			$('html, body').scrollTop(scrollTo, 0);
 		}, 1);	  
 	}
 }
