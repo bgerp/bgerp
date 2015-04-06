@@ -226,23 +226,6 @@ class pos_Points extends core_Master {
     		$row->policyId = price_Lists::getHyperlink($rec->policyId, TRUE);
     	}
     }
-    
-    
-	/**
-	 * Преди подготовка на резултатите
-	 */
-	public static function on_AfterPrepareListFilter($mvc, &$data)
-	{
-		if(!haveRole($mvc->canSelectAll)){
-			
-			// Показват се само точките на която каса е касиер потребителя
-			$cu = core_Users::getCurrent();
-			$data->query->EXT('cashier', 'cash_Cases', 'externalKey=caseId,externalName=cashiers');
-			$data->query->like("cashier", "|{$cu}|");
-		}
-
-        $data->listFields['currentPlg'] = "Терминал";
-	}
 	
 	
 	/**
