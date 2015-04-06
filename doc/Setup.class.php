@@ -98,19 +98,7 @@ class doc_Setup extends core_ProtoSetup
         'DOC_REPAIR_STATE' => array ('enum(yes=Да, no=Не)', 'caption=Дали да се поправят състоянията на документите->Избор'),
         'DOC_SEARCH_FOLDER_CNT' => array ('int(Min=0)', 'caption=Колко папки от последно отворените да се показват при търсене->Брой'),
     );
-    
-    
-    /**
-     * Път до js файла
-     */
-//    var $commonJS = 'doc/js/accordion.js';
-        
-    
-    /**
-     * Път до css файла
-     */
-//    var $commonCSS = 'doc/tpl/style.css, doc/css/dialogDoc.css';
-    
+
     
     // Инсталиране на мениджърите
     var $managers = array(
@@ -129,7 +117,19 @@ class doc_Setup extends core_ProtoSetup
         'migrate::repairAllBrokenRelations'
     );
     
+    
+    /**
+     * Дефиниции на класове с интерфейси
+     */
+    var $classes = 'doc_DocsReport';
+
+    
+    /**
+     * Дефинирани класове, които имат интерфейси
+    */
+    var $defClasses = 'doc_DocsReport';
         
+    
     /**
      * Инсталиране на пакета
      */

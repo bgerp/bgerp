@@ -1,0 +1,256 @@
+<?php
+
+
+
+/**
+ * Мениджър на отчети от документи
+ * 
+ * По посочен тип на документа със статус различен от 
+ * чернова и оттеглено се брои за посочения период,
+ * колко документа е създал конкретният потребител
+ *
+ *
+ * @category  bgerp
+ * @package   doc
+ * @author    Gabriela Petrova <gab4eto@gmail.com>
+ * @copyright 2006 - 2015 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ */
+class doc_DocsReport extends frame_BaseDriver
+{                  
+    
+	
+    /**
+     * Заглавие
+     */
+    public $title = 'Отчет за създадените документи';
+
+    
+    /**
+     * Кои интерфейси имплементира
+     */
+    public $interfaces = 'frame_ReportSourceIntf';
+    
+
+
+    /**
+     * Брой записи на страница
+     */
+    public $listItemsPerPage = 50;
+    
+    
+    /**
+     * Работен кеш
+     */
+    protected $cache = array();
+    
+    
+    /**
+     * Кой може да избира драйвъра
+     */
+    public $canSelectSource = 'powerUser';
+    
+    
+    /**
+     * Права за писане
+     */
+    public $canWrite = 'no_one';
+    
+    
+    /**
+     * Права за писане
+     */
+    public $canEdit = 'powerUser';
+    
+    
+    /**
+     * Права за запис
+     */
+    public $canRead = 'powerUser';
+    
+    
+    /**
+	 * Кой може да го разглежда?
+	 */
+	public $canList = 'powerUser';
+
+    
+    
+    /**
+     * Добавя полетата на вътрешния обект
+     *
+     * @param core_Fieldset $fieldset
+     */
+    public function addEmbeddedFields(core_Form &$form)
+    {
+    	$form->FLD('from', 'date', 'caption=Начало');
+    	$form->FLD('to', 'date', 'caption=Край');
+    	$form->FLD('docClass', 'class(interface=doc_DocumentIntf,select=title,allowEmpty)', 'caption=Документ,mandatory');
+    }
+      
+
+    /**
+     * Подготвя формата за въвеждане на данни за вътрешния обект
+     *
+     * @param core_Form $form
+     */
+    public function prepareEmbeddedForm(core_Form &$form)
+    {
+    
+    }
+    
+    
+    /**
+     * Проверява въведените данни
+     *
+     * @param core_Form $form
+     */
+    public function checkEmbeddedForm(core_Form &$form)
+    {
+    	    	 
+    	// Размяна, ако периодите са объркани
+    	if(isset($form->rec->from) && isset($form->rec->to) && ($form->rec->from > $form->rec->to)) {
+    		$mid = $form->rec->from;
+    		$form->rec->from = $form->rec->to;
+    		$form->rec->to = $mid;
+    	}
+
+    }  
+    
+    
+    /**
+     * Подготвя вътрешното състояние, на база въведените данни
+     *
+     * @param core_Form $innerForm
+     */
+    public function prepareInnerState()
+    {
+    	$data = new stdClass();
+        $data->docCnt = array();
+        $fRec = $data->fRec = $this->innerForm;
+      
+        $query = doc_Containers::getQuery();
+        
+        if($fRec->from) {  
+            $query->where("#createdOn >= '{$fRec->from} 00:00:00' AND #docClass = '{$fRec->docClass}'");
+        }
+
+        if($fRec->to) {
+            $query->where("#createdOn <= '{$fRec->to} 23:59:59' AND #docClass = '{$fRec->docClass}'");
+        }
+       
+
+        while($rec = $query->fetch()) {
+        	
+        	$data->docCnt[$rec->createdBy]++;
+
+        }
+ 
+        // Сортиране на данните
+        arsort($data->docCnt);
+        
+        return $data;
+    }
+    
+    
+    /**
+     * След подготовката на показването на информацията
+     */
+    public function on_AfterPrepareEmbeddedData($mvc, &$res)
+    {
+
+    }
+    
+    
+    /**
+     * Рендира вградения обект
+     *
+     * @param stdClass $data
+     */
+    public function renderEmbeddedData($data)
+    {
+    	$tpl = new ET("
+            <h1>Създадени документи тип \"[#DOCTYPE#]\"</h1>
+            [#FORM#]
+            
+    		[#PAGER#]
+            [#DOCS#]
+        "
+    	);
+    
+    	$docClass = cls::get($data->fRec->docClass);
+    	$tpl->replace($docClass->singleTitle,'DOCTYPE');
+    	
+    	$form = cls::get('core_Form');
+    
+    	$this->addEmbeddedFields($form);
+    
+    	$form->rec = $data->fRec;
+    	$form->class = 'simpleForm';
+    	
+    	$tpl->prepend($form->renderStaticHtml(), 'FORM');
+    
+    	$tpl->placeObject($data->rec);
+    
+    	$pager = cls::get('core_Pager',  array('pageVar' => 'P_' .  $this->EmbedderRec->that,'itemsPerPage' => $this->listItemsPerPage));
+    	$pager->itemsCount = count($data->docCnt);
+    	
+    	$f = cls::get('core_FieldSet');
+    
+    	$f->FLD('createdBy', 'key(mvc=core_Users,select=names)', 'caption=Създадени документи->Автор');
+    	$f->FLD('cnt', 'int', 'caption=Създадени документи->Брой');
+    	
+    	$rows = array();
+
+    	$ft = $f->fields;
+        $userType = $ft['createdBy']->type;
+        $cntType = $ft['cnt']->type;
+        
+    	foreach($data->docCnt as $user => $cnt) {
+    		
+    		if(!$pager->isOnPage()) continue;
+    		
+    		$row = new stdClass();
+    		
+    		if(!$user) {
+    			$row->createdBy = "Анонимен";
+    		} elseif($user == -1) {
+    			$row->createdBy = "Система";
+    		} else {
+    			$row->createdBy = $userType->toVerbal($user) . ' ' . crm_Profiles::createLink($user);
+    		}
+    		
+    		$row->cnt = $cntType->toVerbal($cnt);
+    		
+    		$rows[] = $row;
+    	}
+
+    	$table = cls::get('core_TableView', array('mvc' => $f));
+    	$html = $table->get($rows, 'createdBy=Създадени документи->Автор,cnt=Създадени документи->Брой');
+    
+    	$tpl->append($html, 'DOCS');
+        $tpl->append($pager->getHtml(), 'PAGER');
+    
+    	return  $tpl;
+    }  
+     
+    
+    /**
+     * Скрива полетата, които потребител с ниски права не може да вижда
+     *
+     * @param stdClass $data
+     */
+    public function hidePriceFields()
+    {
+    }
+    
+    
+    /**
+     * Коя е най-ранната дата на която може да се активира документа
+     */
+    public function getEarlyActivation()
+    {
+    	return $this->innerForm->to;
+    }
+}
