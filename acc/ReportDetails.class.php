@@ -130,6 +130,8 @@ class acc_ReportDetails extends core_Manager
         // Извикване на евент в мастъра за след извличане на записите от БД
         $data->masterMvc->invoke('AfterPrepareAccReportRecs', array($data));
         $balanceRec = acc_Balances::getLastBalance();
+        $data->balanceRec = $balanceRec;
+        
         $attr = array();
         $attr['class'] = 'linkWithIcon';
         $attr['style'] = 'background-image:url(' . sbf('img/16/clock_history.png', '') . ');';
@@ -212,7 +214,12 @@ class acc_ReportDetails extends core_Manager
     private function renderBalanceReports(&$data)
     {
         $tpl = getTplFromFile('acc/tpl/BalanceRefDetail.shtml');
+        if(isset($data->balanceRec->periodId)){
+        	$tpl->replace(acc_Periods::getVerbal($data->balanceRec->periodId, 'title'), 'periodId');
+        }
+        
         $data->listFields['tools'] = ' ';
+        $periodRec = acc_Periods::fetch($data->balanceRec->periodId);
         
         // Ако има какво да се показва
         if($data->balanceRows){
