@@ -191,7 +191,7 @@ class vislog_ResourcesReport extends frame_BaseDriver
     
     	$html = "<h3>Посещения по ресурс</h3>";
         
-        $pager = cls::get('core_Pager', array('pageVar' => 'P_' .  $this->EmbedderRec->that));
+        $pager = cls::get('core_Pager', array('pageVar' => 'P_' .  $this->EmbedderRec->that,'itemsPerPage' => $this->listItemsPerPage));
         $pager->itemsCount = count($data->resourceCnt);
 
     	$key = cls::get('type_Key');
@@ -225,7 +225,7 @@ class vislog_ResourcesReport extends frame_BaseDriver
     	$html = $table->get($rows, 'resource=Посещения->Ресусрс,cnt=Посещения->Брой');
     
     	$tpl->append($html, 'RESOURCES');
-        $tpl->append($pager->getHtml(), 'RESOURCES');
+        $tpl->append($pager->getHtml(), 'PAGER');
 
     	return  $tpl;
     }
