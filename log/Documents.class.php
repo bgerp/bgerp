@@ -1962,7 +1962,7 @@ class log_Documents extends core_Manager
         $detailTab = ucfirst(strtolower($action));
         
         $link = array(
-	                 $document, 
+	                 $document->className, 
 	                 'single', 
 	                 $document->that,
 	                 'Cid' => $cid, 
