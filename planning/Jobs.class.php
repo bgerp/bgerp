@@ -419,7 +419,7 @@ class planning_Jobs extends core_Master
     				}
     			}
     			
-    			// Ако се създава към оферта, тя трябва да е активна
+    			// Ако се създава към продажба, тя трябва да е активна
     			if(!empty($rec->saleId)){
     				if(sales_Sales::fetchField($rec->saleId, "state") != 'active'){
     					$res = 'no_one';
@@ -507,6 +507,7 @@ class planning_Jobs extends core_Master
     	$data->row->history = array();
     	if(count($data->rec->history)){
     		foreach($data->rec->history as $historyRec){
+    			$historyRec['action'] = tr($historyRec['action']);
     			$data->row->history[] = (object)array('date'       => cls::get('type_DateTime')->toVerbal($historyRec['date']),
 								    				  'user'       => crm_Profiles::createLink($historyRec['user']),
 								    				  'action'     => "<span>{$historyRec['action']}</span>",
