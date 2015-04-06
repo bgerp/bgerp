@@ -727,7 +727,9 @@ class core_Packs extends core_Manager
             if($conf->getConstCnt() && !$setupFlag) {  
                $res .= ht::createBtn("Конфигуриране", array('core_Packs', 'config', 'pack' => $pack), NULL, NULL, 'class=btn-settings,title=Настройки на пакета');
             }
-        } catch (core_exception_Expect $e) {}
+        } catch (core_exception_Expect $e) {
+            // Не показваме буотона
+        }
 
         $res .= '</h2>';
         
@@ -1135,6 +1137,8 @@ class core_Packs extends core_Manager
         
         // Масив с всички стойности
         $cArr = explode(',', $conf);
+        
+        $resArr = array();
         
         // Обхождаме масива
         foreach ($cArr as $conf) {
