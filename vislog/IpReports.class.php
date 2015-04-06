@@ -137,7 +137,7 @@ class vislog_IpReports extends frame_BaseDriver
         }
 
         if($fRec->to) {
-            $query->where("#createdOn <= '{$fRec->to}' 23:59:59");
+            $query->where("#createdOn <= '{$fRec->to} 23:59:59'");
         }
 
 
@@ -146,7 +146,7 @@ class vislog_IpReports extends frame_BaseDriver
         	$data->ipCnt[$rec->ip]++;
 
         }
-
+ 
         
         return $data;
     }
@@ -199,22 +199,23 @@ class vislog_IpReports extends frame_BaseDriver
     	$f->FLD('to', 'date', 'caption=Дата->Край');
     	$f->FLD('ip', 'ip(15)', 'caption=Посещения->Ip');
     	$f->FLD('cnt', 'int', 'caption=Посещения->Брой');
-    	$ft = $f->fields;
     	
     	$rows = array();
 
-    
+    	$ft = $f->fields;
+        $ipType = $ft['ip']->type;
+        $cntType = $ft['cnt']->type;
+
     	foreach($data->ipCnt as $ip => $cnt) {
     		$row = new stdClass();
-    		$row->ip = $ip->toVerbal($ip);
-    		$row->cnt = $int->toVerbal($cnt);
+    		$row->ip = $ipType->toVerbal($ip);
+    		$row->cnt = $cntType->toVerbal($cnt);
     		
-    		$rows[$ip] = $row;
-    		
+    		$rows[] = $row;
     	}
 
     	$table = cls::get('core_TableView', array('mvc' => $f));
-    	$html = $table->get($orderedSpRows, 'from=Дата->Начало,to=Дата->Край,ip=Посещения->Ip,cnt=Посещения->Брой');
+    	$html = $table->get($rows, 'ip=Посещения->Ip,cnt=Посещения->Брой');
     
     	$tpl->append($html, 'VISITS');
     
