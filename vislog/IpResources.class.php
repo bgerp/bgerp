@@ -163,7 +163,7 @@ class vislog_IpResources extends frame_BaseDriver
     	$tpl = new ET("
             <h1>Отчет за посещенията по ресурс</h1>
             [#FORM#]
-            
+            [#PAGER#]
             [#RESOURCES#]
         "
     	);
@@ -182,7 +182,9 @@ class vislog_IpResources extends frame_BaseDriver
     	$tpl->placeObject($data->rec);
     
     	$html = "<h3>Посещения по ресурс</h3>";
-    
+        
+        $pager = cls::get('core_Pager', array('pageVar' => 'P_' .  $this->EmbedderRec->that));
+        $pager->itemsCount = count($data->resourceCnt);
 
     	$key = cls::get('type_Key');
     	$int = cls::get('type_Int');
@@ -198,8 +200,12 @@ class vislog_IpResources extends frame_BaseDriver
     	$ft = $f->fields;
         $resourceType = $ft['resource']->type;
         $cntType = $ft['cnt']->type;
-
+        $i = 0;
+   
     	foreach($data->resourceCnt as $resource => $cnt) {
+ 
+            if(!$pager->isOnPage()) continue;
+            
     		$row = new stdClass();
     		$row->resource = $resourceType->toVerbal($resource);
     		$row->cnt = $cntType->toVerbal($cnt);
@@ -211,7 +217,8 @@ class vislog_IpResources extends frame_BaseDriver
     	$html = $table->get($rows, 'resource=Посещения->Ресусрс,cnt=Посещения->Брой');
     
     	$tpl->append($html, 'RESOURCES');
-    
+        $tpl->append($pager->getHtml(), 'RESOURCES');
+
     	return  $tpl;
     }
     
