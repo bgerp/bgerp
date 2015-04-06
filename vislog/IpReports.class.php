@@ -147,6 +147,8 @@ class vislog_IpReports extends frame_BaseDriver
 
         }
  
+        // Сортиране на данните
+        arsort($data->ipCnt);
         
         return $data;
     }
@@ -171,6 +173,7 @@ class vislog_IpReports extends frame_BaseDriver
             <h1>Отчет за посещенията по IP</h1>
             [#FORM#]
             
+    		[#PAGER#]
             [#VISITS#]
         "
     	);
@@ -190,6 +193,8 @@ class vislog_IpReports extends frame_BaseDriver
     
     	$html = "<h3>Посещения по IP</h3>";
     
+    	$pager = cls::get('core_Pager',  array('itemsPerPage' => $this->listItemsPerPage));
+    	$pager->itemsCount = count($data->ipCnt);
 
     	$ip = cls::get('type_Ip');
     	$int = cls::get('type_Int');
@@ -206,7 +211,12 @@ class vislog_IpReports extends frame_BaseDriver
         $ipType = $ft['ip']->type;
         $cntType = $ft['cnt']->type;
 
+        $i = 0;
+        
     	foreach($data->ipCnt as $ip => $cnt) {
+    		
+    		if(!$pager->isOnPage()) continue;
+    		
     		$row = new stdClass();
     		$row->ip = $ipType->toVerbal($ip);
     		$row->cnt = $cntType->toVerbal($cnt);
@@ -218,6 +228,8 @@ class vislog_IpReports extends frame_BaseDriver
     	$html = $table->get($rows, 'ip=Посещения->Ip,cnt=Посещения->Брой');
     
     	$tpl->append($html, 'VISITS');
+    	//bp($pager->getHtml());
+        $tpl->append($pager->getHtml(), 'PAGER');
     
     	return  $tpl;
     }
