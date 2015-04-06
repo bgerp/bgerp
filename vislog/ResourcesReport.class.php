@@ -183,9 +183,7 @@ class vislog_ResourcesReport extends frame_BaseDriver
     	$form->rec = $data->fRec;
     	$form->class = 'simpleForm';
     
-    	Mode::push('staticFormView', TRUE);
-    	$tpl->prepend($form->renderHtml(), 'FORM');
-    	Mode::pop();
+    	$tpl->prepend($form->renderStaticHtml(), 'FORM');
     
     	$tpl->placeObject($data->rec);
     
@@ -194,12 +192,9 @@ class vislog_ResourcesReport extends frame_BaseDriver
         $pager = cls::get('core_Pager', array('pageVar' => 'P_' .  $this->EmbedderRec->that,'itemsPerPage' => $this->listItemsPerPage));
         $pager->itemsCount = count($data->resourceCnt);
 
-    	$key = cls::get('type_Key');
-    	$int = cls::get('type_Int');
     	
     	$f = cls::get('core_FieldSet');
-    	$f->FLD('from', 'date', 'caption=Дата->Начало');
-    	$f->FLD('to', 'date', 'caption=Дата->Край');
+
     	$f->FLD('resource', 'key(mvc=vislog_HistoryResources,select=query)', 'caption=Посещения->Ресурс');
     	$f->FLD('cnt', 'int', 'caption=Посещения->Брой');
     	
@@ -229,8 +224,6 @@ class vislog_ResourcesReport extends frame_BaseDriver
 
     	return  $tpl;
     }
-    
-    
      
     
     /**

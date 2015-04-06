@@ -21,12 +21,6 @@ class vislog_IpReports extends frame_BaseDriver
      * Заглавие
      */
     public $title = 'Отчет на посещенията по IP';
-    
-    
-    /**
-     * Заглавие в единствено число
-     */
-    //public $singleTitle = "Брой посещения";
 
     
     /**
@@ -185,9 +179,7 @@ class vislog_IpReports extends frame_BaseDriver
     	$form->rec = $data->fRec;
     	$form->class = 'simpleForm';
     
-    	Mode::push('staticFormView', TRUE);
-    	$tpl->prepend($form->renderHtml(), 'FORM');
-    	Mode::pop();
+    	$tpl->prepend($form->renderStaticHtml(), 'FORM');
     
     	$tpl->placeObject($data->rec);
     
@@ -196,12 +188,8 @@ class vislog_IpReports extends frame_BaseDriver
     	$pager = cls::get('core_Pager',  array('pageVar' => 'P_' .  $this->EmbedderRec->that,'itemsPerPage' => $this->listItemsPerPage));
     	$pager->itemsCount = count($data->ipCnt);
 
-    	$ip = cls::get('type_Ip');
-    	$int = cls::get('type_Int');
-    	
     	$f = cls::get('core_FieldSet');
-    	$f->FLD('from', 'date', 'caption=Дата->Начало');
-    	$f->FLD('to', 'date', 'caption=Дата->Край');
+
     	$f->FLD('ip', 'ip(15)', 'caption=Посещения->Ip');
     	$f->FLD('cnt', 'int', 'caption=Посещения->Брой');
     	
@@ -228,13 +216,10 @@ class vislog_IpReports extends frame_BaseDriver
     	$html = $table->get($rows, 'ip=Посещения->Ip,cnt=Посещения->Брой');
     
     	$tpl->append($html, 'VISITS');
-    	//bp($pager->getHtml());
         $tpl->append($pager->getHtml(), 'PAGER');
     
     	return  $tpl;
     }
-    
-    
      
     
     /**
