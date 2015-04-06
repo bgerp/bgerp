@@ -187,7 +187,10 @@ function scrollToHash(){
 	var hash = window.location.hash;
 	if(hash) {
 		setTimeout(function() {
-			$('html, body').scrollTop($(hash).offset().top - 70, 0);
+			var scrollTo = $(hash).offset().top - 70;
+			if (scrollTo > 300) {
+				$('html, body').scrollTop($(hash).offset().top - 70, 0);
+			}
 		}, 1);	  
 	}
 }
