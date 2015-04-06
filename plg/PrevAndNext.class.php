@@ -220,15 +220,15 @@ class plg_PrevAndNext extends core_Plugin
         
         if(Mode::is($selKey)  ) {
             if (isset($data->buttons->nextId)) {
-                $data->form->toolbar->addSbBtn('»»»', 'save_n_next', 'class=noicon fright,order=30');
+                $data->form->toolbar->addSbBtn('»»»', 'save_n_next', 'class=noicon fright,order=30, title = Следващ');
             } else {
-                $data->form->toolbar->addSbBtn('»»»', 'save_n_next', 'class=btn-disabled noicon fright,disabled,order=30');
+                $data->form->toolbar->addSbBtn('»»»', 'save_n_next', 'class=btn-disabled noicon fright,disabled,order=30, title = Следващ');
             }
             
             if (isset($data->buttons->prevId)) {
-                $data->form->toolbar->addSbBtn('«««', 'save_n_prev', 'class=noicon fright,order=30');
+                $data->form->toolbar->addSbBtn('«««', 'save_n_prev', 'class=noicon fright,order=30, title = Предишен');
             } else {
-                $data->form->toolbar->addSbBtn('«««', 'save_n_prev', 'class=btn-disabled noicon fright,disabled,order=30');
+                $data->form->toolbar->addSbBtn('«««', 'save_n_prev', 'class=btn-disabled noicon fright,disabled,order=30, title = Предишен');
             }
 
             $data->form->setHidden('ret_url', Request::get('ret_url'));
@@ -248,15 +248,15 @@ class plg_PrevAndNext extends core_Plugin
         
         if(Mode::is($selKey) ) {
             if (isset($data->buttons->nextId)) {
-                $data->toolbar->addBtn('»»»', array($mvc, 'browse', $data->buttons->nextId), 'class=noicon fright');
+                $data->toolbar->addBtn('»»»', array($mvc, 'browse', $data->buttons->nextId), 'class=noicon fright,title = Следващ');
             } else {
-                $data->toolbar->addBtn('»»»', array(), 'class=btn-disabled noicon fright,disabled');
+                $data->toolbar->addBtn('»»»', array(), 'class=btn-disabled noicon fright,disabled,title = Следващ');
             }
             
             if (isset($data->buttons->prevId)) {
-                $data->toolbar->addBtn('«««', array($mvc, 'browse', $data->buttons->prevId), 'class=noicon fright', array('style' => 'margin-left:5px;'));
+                $data->toolbar->addBtn('«««', array($mvc, 'browse', $data->buttons->prevId), 'class=noicon fright', array('style' => 'margin-left:5px;', 'title' => 'Предишен'));
             } else {
-                $data->toolbar->addBtn('«««', array(), 'class=btn-disabled noicon fright,disabled', array('style' => 'margin-left:5px;'));
+                $data->toolbar->addBtn('«««', array(), 'class=btn-disabled noicon fright,disabled', array('style' => 'margin-left:5px;', 'title' => 'Предишен'));
             }
         }
     }
