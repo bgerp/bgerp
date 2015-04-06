@@ -233,7 +233,7 @@ class planning_ObjectResources extends core_Manager
      */
     public function renderResources(&$data)
     {
-    	$tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
+    	$tpl = getTplFromFile('planning/tpl/ResourceObjectDetail.shtml');
     	$classId = $data->masterMvc->getClassId();
     
     	$tpl->append(tr('Ресурси'), 'title');
@@ -246,11 +246,11 @@ class planning_ObjectResources extends core_Manager
     	$tpl->append($table->get($data->rows, $fields), 'content');
     	
 		if(isset($data->addUrlNew)){
-    		$tpl->append(ht::createBtn('Нов', $data->addUrlNew, NULL, NULL, 'ef_icon=img/16/star_2.png, title=Създаване на нов ресурс'), 'content');
+    		$tpl->append(ht::createBtn('Нов', $data->addUrlNew, NULL, NULL, 'ef_icon=img/16/star_2.png, title=Създаване на нов ресурс'), 'BTNS');
     	}
     	
     	if(isset($data->addUrl)){
-    		$tpl->append(ht::createBtn('Избор', $data->addUrl, NULL, NULL, 'ef_icon=img/16/find.png, title=Свързване със съществуващ ресурс'), 'content');
+    		$tpl->append(ht::createBtn('Избор', $data->addUrl, NULL, NULL, 'ef_icon=img/16/find.png, title=Свързване със съществуващ ресурс'), 'BTNS');
     	}
     	
     	return $tpl;
