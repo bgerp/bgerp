@@ -62,8 +62,9 @@ class  email_ThreadHandles extends core_Manager
      * EMAIL_THREAD_HANDLE_POS със стойности BEFORE_SUBJECT и AFTER_SUBJECT
      * определя позицията, където ще бъде добавен маниполатора
      *
-     * @param string $str
-     * @param string $containerId Номер на контейнер съдържащ изходящото писмо
+     * @param string $subject
+     * @param integer $threadId
+     * 
      * @return string
      */
     static function decorateSubject($subject, $threadId)
@@ -144,7 +145,8 @@ class  email_ThreadHandles extends core_Manager
     /**
      * Извлича всички кандидат-манипулатори на нишка
      *
-     * @param string $str обикновено това е събждект на писмо
+     * @param string $subject обикновено това е събждект на писмо
+     * 
      * @return array масив от стрингове, които е възможно (от синтактична гледна точка) да са
      * манипулатори на нишка.
      */
