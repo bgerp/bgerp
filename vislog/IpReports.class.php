@@ -20,7 +20,7 @@ class vislog_IpReports extends frame_BaseDriver
     /**
      * Заглавие
      */
-    public $title = 'Сайт->Отчет на посещенията по IP';
+    public $title = 'Сайт->Посещенията по IP';
 
     
     /**
@@ -80,8 +80,10 @@ class vislog_IpReports extends frame_BaseDriver
      */
     public function addEmbeddedFields(core_Form &$form)
     {
+    	
     	$form->FLD('from', 'date', 'caption=Начало');
     	$form->FLD('to', 'date', 'caption=Край');
+    	$form->FLD('user', 'users(rolesForAll = officer|manager|ceo, rolesForTeams = officer|manager|ceo|executive)', 'caption=Потребител');
     }
       
 
@@ -133,17 +135,21 @@ class vislog_IpReports extends frame_BaseDriver
         if($fRec->to) {
             $query->where("#createdOn <= '{$fRec->to} 23:59:59'");
         }
+        
+        if(($fRec->user != 'all_users') && (strpos($fRec->user, '|-1|') === FALSE)) { 
+        	$query->where("'{$fRec->user}' LIKE CONCAT('%|', #createdBy, '|%')");
+        }
 
 
         while($rec = $query->fetch()) {
         	
-        	$data->ipCnt[$rec->ip]++;
+        	$data->ipCnt[$rec->ip][$rec->createdBy]++;
 
         }
  
         // Сортиране на данните
         arsort($data->ipCnt);
-        
+     
         return $data;
     }
     
@@ -183,8 +189,6 @@ class vislog_IpReports extends frame_BaseDriver
     
     	$tpl->placeObject($data->rec);
     
-    	$html = "<h3>Посещения по IP</h3>";
-    
     	$pager = cls::get('core_Pager',  array('pageVar' => 'P_' .  $this->EmbedderRec->that,'itemsPerPage' => $this->listItemsPerPage));
     	$pager->itemsCount = count($data->ipCnt);
 
@@ -192,28 +196,37 @@ class vislog_IpReports extends frame_BaseDriver
 
     	$f->FLD('ip', 'ip(15)', 'caption=Посещения->Ip');
     	$f->FLD('cnt', 'int', 'caption=Посещения->Брой');
+    	$f->FLD('createdBy', 'key(mvc=core_Users,select=names)', 'caption=Потребител');
     	
     	$rows = array();
 
     	$ft = $f->fields;
         $ipType = $ft['ip']->type;
         $cntType = $ft['cnt']->type;
-
-        $i = 0;
+        $userType = $ft['createdBy']->type;
         
-    	foreach($data->ipCnt as $ip => $cnt) {
-    		
-    		if(!$pager->isOnPage()) continue;
-    		
-    		$row = new stdClass();
-    		$row->ip = $ipType->toVerbal($ip);
-    		$row->cnt = $cntType->toVerbal($cnt);
-    		
-    		$rows[] = $row;
+    	foreach ($data->ipCnt as $ip => $userCnt) {
+    		foreach ($userCnt as $user => $cnt) {
+	    		if(!$pager->isOnPage()) continue;
+	    		
+	    		$row = new stdClass();
+	    		$row->ip = $ipType->toVerbal($ip);
+	    		$row->cnt = $cntType->toVerbal($cnt);
+	    		
+	    		if(!$user) {
+	    			$row->createdBy = "Анонимен";
+	    		} elseif($user == -1) {
+	    			$row->createdBy = "Система";
+	    		} else {
+	    			$row->createdBy = $userType->toVerbal($user) . ' ' . crm_Profiles::createLink($user);
+	    		}
+	    		
+	    		$rows[] = $row;
+    		}
     	}
 
     	$table = cls::get('core_TableView', array('mvc' => $f));
-    	$html = $table->get($rows, 'ip=Посещения->Ip,cnt=Посещения->Брой');
+    	$html = $table->get($rows, 'ip=Посещения->Ip,cnt=Посещения->Брой,createdBy=Посещения->Потребител');
     
     	$tpl->append($html, 'VISITS');
         $tpl->append($pager->getHtml(), 'PAGER');
