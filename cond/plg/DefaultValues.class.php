@@ -206,8 +206,9 @@ class cond_plg_DefaultValues extends core_Plugin
         $query->where("#state != 'draft' AND #state != 'rejected'");
         $query->orderBy("#createdOn", "DESC");
         $query->where("#folderId != {$rec->folderId}");
+        $query->groupBy('folderId');
         $query->show("{$name},folderId");
-        
+       
         while($oRec = $query->fetch()){
             try {
                 $cData2 = doc_Folders::getContragentData($oRec->folderId);
