@@ -158,7 +158,7 @@ class email_FaxSent extends core_Manager
         // Дали имаме права за това действие към този запис?
         $this->requireRightFor('send', $data->rec, NULL, $retUrl);
         
-        $lg = email_Outgoings::getLanguage($data->rec->originId, $data->rec->threadId, $data->rec->folderId);
+        $lg = email_Outgoings::getLanguage($data->rec->originId, $data->rec->threadId, $data->rec->folderId, $data->rec->body);
         
         // Полето имейл да не се показва при изпращане на факс
         unset($data->rec->email);
