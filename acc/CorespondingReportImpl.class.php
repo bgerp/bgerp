@@ -51,8 +51,8 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     	// Добавяме полетата за филтър
     	$form->FLD('from', 'date', 'caption=От,mandatory');
     	$form->FLD('to', 'date', 'caption=До,mandatory');
-    	$form->FLD('baseAccountId', 'acc_type_Account(allowEmpty)', 'caption=Основна с-ка,mandatory');
-    	$form->FLD('corespondentAccountId', 'acc_type_Account(allowEmpty)', 'caption=Кореспондент с-ка,mandatory');
+    	$form->FLD('baseAccountId', 'acc_type_Account(allowEmpty)', 'caption=Сметки->Основна,mandatory');
+    	$form->FLD('corespondentAccountId', 'acc_type_Account(allowEmpty)', 'caption=Сметки->Кореспондент,mandatory');
     }
     
     
@@ -290,6 +290,8 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     	// Показваме данните от формата
     	$form = cls::get('core_Form');
     	$this->addEmbeddedFields($form);
+    	$form->setField('baseAccountId', 'caption=Основна с-ка');
+    	$form->setField('corespondentAccountId', 'caption=Кореспондент с-ка');
     	$form->rec = $this->innerForm;
     	$form->class = 'simpleForm';
     		
