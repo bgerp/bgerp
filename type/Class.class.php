@@ -50,7 +50,7 @@ class type_Class  extends type_Key {
         
         $this->options = $options;
         
-        if(count($this->options)){
+        if(count($this->options) > 1){
         	$optionsWithoutGroup = $newOptions = array();
         	
         	// За всяка опция
