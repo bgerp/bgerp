@@ -481,6 +481,8 @@ class acc_BalanceReportImpl extends frame_BaseDriver
        */
       public function getEarlyActivation()
       {
-      	  return $this->innerForm->to;
+      	  $activateOn = "{$this->innerForm->to} 23:59:59";
+      	  	
+      	  return $activateOn;
       }
 }

@@ -239,6 +239,8 @@ class acc_HistoryReportImpl extends frame_BaseDriver
 	 */
 	public function getEarlyActivation()
 	{
-		return $this->innerForm->toDate;
+		$activateOn = "{$this->innerForm->toDate} 23:59:59";
+		 
+		return $activateOn;
 	}
 }
