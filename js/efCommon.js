@@ -3650,7 +3650,7 @@ JSON.parse = JSON.parse || function (str) {
 	return p;
 };
 
-
+runOnLoad(editCopiedTextBeforePaste);
 runOnLoad(showTooltip);
 runOnLoad(removeNarrowScroll);
 runOnLoad(onBeforeUnload);
