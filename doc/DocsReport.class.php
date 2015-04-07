@@ -87,6 +87,7 @@ class doc_DocsReport extends frame_BaseDriver
     	$form->FLD('from', 'date', 'caption=Начало');
     	$form->FLD('to', 'date', 'caption=Край');
     	$form->FLD('docClass', 'class(interface=doc_DocumentIntf,select=title,allowEmpty)', 'caption=Документ,mandatory');
+    	$form->FLD('user', 'users(rolesForAll = officer|manager|ceo, rolesForTeams = officer|manager|ceo|executive)', 'caption=Потребител');
     }
       
 
@@ -132,24 +133,32 @@ class doc_DocsReport extends frame_BaseDriver
       
         $query = doc_Containers::getQuery();
         
-        if($fRec->from) {  
-            $query->where("#createdOn >= '{$fRec->from} 00:00:00' AND #docClass = '{$fRec->docClass}'");
+        if ($fRec->from) {  
+            $query->where("#createdOn >= '{$fRec->from} 00:00:00'");
         }
 
-        if($fRec->to) {
-            $query->where("#createdOn <= '{$fRec->to} 23:59:59' AND #docClass = '{$fRec->docClass}'");
+        if ($fRec->to) {
+            $query->where("#createdOn <= '{$fRec->to} 23:59:59'");
+        }
+        
+        if ($fRec->docClass) {
+        	$query->where("#docClass = '{$fRec->docClass}'");
+        }
+        
+        if(($fRec->user != 'all_users') && (strpos($fRec->user, '|-1|') === FALSE)) {
+        	$query->where("'{$fRec->user}' LIKE CONCAT('%|', #createdBy, '|%')");
         }
        
 
         while($rec = $query->fetch()) {
         	
-        	$data->docCnt[$rec->createdBy]++;
+        	$data->docCnt[$rec->docClass][$rec->createdBy]++;
 
         }
  
         // Сортиране на данните
         arsort($data->docCnt);
-        
+
         return $data;
     }
     
@@ -194,40 +203,43 @@ class doc_DocsReport extends frame_BaseDriver
     	$tpl->placeObject($data->rec);
     
     	$pager = cls::get('core_Pager',  array('pageVar' => 'P_' .  $this->EmbedderRec->that,'itemsPerPage' => $this->listItemsPerPage));
-    	$pager->itemsCount = count($data->docCnt);
+    	$pager->itemsCount = count($data->docCnt, COUNT_RECURSIVE);
     	
     	$f = cls::get('core_FieldSet');
     
+    	$f->FLD('docClass', 'class(interface=doc_DocumentIntf,select=title,allowEmpty)', 'caption=Създадени документи->Тип');
     	$f->FLD('createdBy', 'key(mvc=core_Users,select=names)', 'caption=Създадени документи->Автор');
     	$f->FLD('cnt', 'int', 'caption=Създадени документи->Брой');
     	
     	$rows = array();
 
     	$ft = $f->fields;
+    	$docClassType = $ft['docClass']->type;
         $userType = $ft['createdBy']->type;
         $cntType = $ft['cnt']->type;
         
-    	foreach($data->docCnt as $user => $cnt) {
-    		
-    		if(!$pager->isOnPage()) continue;
-    		
-    		$row = new stdClass();
-    		
-    		if(!$user) {
-    			$row->createdBy = "Анонимен";
-    		} elseif($user == -1) {
-    			$row->createdBy = "Система";
-    		} else {
-    			$row->createdBy = $userType->toVerbal($user) . ' ' . crm_Profiles::createLink($user);
+    	foreach ($data->docCnt as $docClass => $userCnt) {
+    		foreach ($userCnt as $user => $cnt) {
+	    		if(!$pager->isOnPage()) continue;
+	    		
+	    		$row = new stdClass();
+	    		$row->docClass = $docClassType->toVerbal($docClass);
+	    		$row->cnt = $cntType->toVerbal($cnt);
+	    		
+	    		if(!$user) {
+	    			$row->createdBy = "Анонимен";
+	    		} elseif($user == -1) {
+	    			$row->createdBy = "Система";
+	    		} else {
+	    			$row->createdBy = $userType->toVerbal($user) . ' ' . crm_Profiles::createLink($user);
+	    		}
+
+	    		$rows[] = $row;
     		}
-    		
-    		$row->cnt = $cntType->toVerbal($cnt);
-    		
-    		$rows[] = $row;
     	}
 
     	$table = cls::get('core_TableView', array('mvc' => $f));
-    	$html = $table->get($rows, 'createdBy=Създадени документи->Автор,cnt=Създадени документи->Брой');
+    	$html = $table->get($rows, 'docClass=Създадени документи->Тип,createdBy=Създадени документи->Автор,cnt=Създадени документи->Брой');
     
     	$tpl->append($html, 'DOCS');
         $tpl->append($pager->getHtml(), 'PAGER');
