@@ -20,7 +20,7 @@ class vislog_IpReports extends frame_BaseDriver
     /**
      * Заглавие
      */
-    public $title = 'Отчет на посещенията по IP';
+    public $title = 'Сайт->Отчет на посещенията по IP';
 
     
     /**
