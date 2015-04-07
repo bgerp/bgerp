@@ -98,7 +98,18 @@ class doc_DocsReport extends frame_BaseDriver
      */
     public function prepareEmbeddedForm(core_Form &$form)
     {
-    
+    	$cu = core_Users::getCurrent();
+    	
+    	if (core_Users::haveRole('ceo', $cu)) {
+    		$form->setDefault('user', 'all_users');
+    	} elseif (core_Users::haveRole('manager', $cu) && !core_Users::haveRole('ceo', $cu)) {
+    		$teamCu = type_Users::getUserWithFirstTeam($cu);
+    		$team = strstr($teamCu, '_', TRUE);
+    		$form->setDefault('user', "{$team} team");
+    		
+    	} else {
+    		$form->setDefault('user', $cu);
+    	}
     }
     
     
