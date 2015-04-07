@@ -214,36 +214,6 @@ class sales_Quotations extends core_Master
     }
     
     
-    /**
-     * Намира дефолтния шаблон за контрагента, ако е от БГ първия шаблон на български,
-     * иначе първия шаблон на английски
-     */
-    public function getDefaultTemplate($rec)
-    {
-    	$cData = doc_Folders::getContragentData($rec->folderId);
-    	$bgId = drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id');
-    	$languages = array();
-    	
-    	if(empty($cData->countryId) || $bgId === $cData->countryId){
-    		$languages['bg'] = 'bg';
-    	} else {
-    		$cLanguages = drdata_Countries::fetchField($cData->countryId, 'languages');
-    		$languages = array_merge(arr::make($cLanguages, TRUE), $languages);
-    		
-    		$defLang = 'en';
-    	}
-    	$languages['en'] = 'en';
-    	
-    	// Намираме първия шаблон на езика който се говори в държавата
-    	foreach ($languages as $lang){
-    		$tplId = doc_TplManager::fetchField("#lang = '{$lang}' AND #docClassId = '{$this->getClassId()}'", 'id');
-    		if($tplId) break;
-    	}
-    	
-    	return $tplId;
-    }
-    
-    
 	/**
      * Дали да се начислява ДДС
      */
