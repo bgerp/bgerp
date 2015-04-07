@@ -26,7 +26,7 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     /**
      * Заглавие
      */
-    public $title = 'Справка за кореспонденция по сметки';
+    public $title = 'Счетоводство->Справка за кореспонденция по сметки';
     
     
     /**
