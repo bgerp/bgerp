@@ -142,7 +142,7 @@ class fileman_Mimes extends core_Mvc {
         if(!$mime) return $fileName;
 
         $extArr = self::getExtByMime($mime);
-
+        
         if(count($extArr)) {
             
             $oFileName = $fileName;
@@ -160,7 +160,7 @@ class fileman_Mimes extends core_Mvc {
                 $trustExtArr = array('pdf', 'png', 'jpg', 'jpeg', 'doc', 'rar', 'zip', 'docx', 'txt');
                 
                 // Масив с mime типове
-                $noTrustMimeArr = array('application/octet-stream', 'application/x-httpd-php', 'text/x-c', 'text/x-c++', 'text/plain');
+                $noTrustMimeArr = array('application/octet-stream', 'application/x-httpd-php', 'text/x-c', 'text/x-c++', 'text/plain', 'application/zip');
                 
                 if (!$ext || (!in_array($mime, $noTrustMimeArr)) && (!in_array($ext, $trustExtArr)) ) {
                     
