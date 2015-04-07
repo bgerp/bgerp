@@ -211,8 +211,8 @@ class type_Users extends type_Keylist
     function fromVerbal_($value)
     {
         $this->prepareOptions('all');
-        
-        if (!$this->options[$value]) {
+       
+        if (isset($value) && !$this->options[$value]) {
             $this->error = 'Некоректна стойност';
             
             return FALSE;
