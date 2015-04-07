@@ -155,7 +155,7 @@ class sales_Sales extends deals_DealMaster
     	'makeInvoice'        => 'lastDocUser|lastDoc',
     	'deliveryLocationId' => 'lastDocUser|lastDoc',
     	'chargeVat'			 => 'lastDocUser|lastDoc|defMethod',
-    	'template' 			 => 'lastDocUser|lastDoc|LastDocSameCuntry',
+    	'template' 			 => 'lastDocUser|lastDoc|defMethod',
     );
     
     

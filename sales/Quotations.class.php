@@ -161,7 +161,7 @@ class sales_Quotations extends core_Master
         'pCode' 		  => 'lastDocUser|lastDoc|clientData',
     	'place' 		  => 'lastDocUser|lastDoc|clientData',
     	'address' 		  => 'lastDocUser|lastDoc|clientData',
-    	'template' 		  => 'lastDocUser|lastDoc|LastDocSameCuntry|defMethod',
+    	'template' 		  => 'lastDocUser|lastDoc|defMethod',
     );
     
     
