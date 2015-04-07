@@ -247,4 +247,33 @@ class doc_plg_TplManager extends core_Plugin
 			$row->singleTitle = tr($mvc->singleTitle);
     	}
     }
+    
+    
+    /**
+     * Метод по подразбиране за намиране на дефолт шаблона
+     */
+    public static function on_AfterGetDefaultTemplate($mvc, &$res, $rec)
+    {
+    	$cData = doc_Folders::getContragentData($rec->folderId);
+    	$bgId = drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id');
+    	$languages = array();
+    	
+    	if(empty($cData->countryId) || $bgId === $cData->countryId){
+    		$languages['bg'] = 'bg';
+    	} else {
+    		$cLanguages = drdata_Countries::fetchField($cData->countryId, 'languages');
+    		$languages = array_merge(arr::make($cLanguages, TRUE), $languages);
+    		
+    		$defLang = 'en';
+    	}
+    	$languages['en'] = 'en';
+    	
+    	// Намираме първия шаблон на езика който се говори в държавата
+    	foreach ($languages as $lang){
+    		$tplId = doc_TplManager::fetchField("#lang = '{$lang}' AND #docClassId = '{$mvc->getClassId()}'", 'id');
+    		if($tplId) break;
+    	}
+    	
+    	$res = $tplId;
+    }
 }
