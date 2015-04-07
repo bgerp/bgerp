@@ -93,6 +93,7 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     public function prepareInnerState()
     {
     	$data = new stdClass();
+    	$data->summary = (object)array('debitQuantity' => 0, 'debitAmount' => 0, 'creditQuantity' => 0, 'creditAmount' => 0, 'blQuantity' => 0, 'blAmount' => 0);
     	$data->hasSameAmounts = TRUE;
     	$data->rows = $data->recs = array();
     	$form = $this->innerForm;
@@ -125,6 +126,10 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     			$rec->blQuantity = $rec->debitQuantity - $rec->creditQuantity;
     			$rec->blAmount = $rec->debitAmount - $rec->creditAmount;
     			
+    			foreach (array('debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount') as $fld){
+    				$data->summary->{$fld} += $rec->{$fld};
+    			}
+    			
     			// Проверка дали сумата и к-то са еднакви
     			if($rec->blQuantity != $rec->blAmount){
     				$data->hasSameAmounts = FALSE;
@@ -134,6 +139,9 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     			$data->rows[] = $this->getVerbalRec($rec);
     		}
     	}
+    	
+		// Обработваме обобщената информация
+    	$this->prepareSummary($data);
     	
     	return $data;
     }
@@ -211,12 +219,34 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     
     
     /**
+     * Подготвя обобщената информация
+     * 
+     * @param stdClass $data
+     */
+    private function prepareSummary(&$data)
+    {
+    	$Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
+    	
+    	foreach ((array)$data->summary as $index => $fld){
+    		$f = $data->summary->{$index};
+    		$data->summary->{$index} = $Double->toVerbal($f);
+    		if($f < 0){
+    			$data->summary->{$index} = "<span class='red'>{$data->summary->{$index}}</span>";
+    		}
+    	}
+    }
+    
+    
+    /**
      * Рендира вградения обект
      */
     public function renderEmbeddedData($data)
     {
     	// Взимаме шаблона
     	$tpl = getTplFromFile('acc/tpl/CorespondingReportLayout.shtml');
+    	
+    	$tpl->placeObject($data->summary);
+    	$tpl->replace(acc_Periods::getBaseCurrencyCode(), 'baseCurrencyCode');
     	
     	// Кои полета ще се показват
     	$fields = arr::make("item1,item2,item3,debitQuantity=Дебит->К-во,debitAmount=Дебит->Сума,creditQuantity=Кредит->К-во,creditAmount=Кредит->Сума,blQuantity=Остатък->К-во,blAmount=Остатък->Сума", TRUE);

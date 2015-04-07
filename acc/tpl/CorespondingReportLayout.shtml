@@ -1,4 +1,33 @@
 [#FORM#]
+<div class='summary-block'>
+    <table style='min-width:200px;'>
+            <tr>
+                <th></th>
+                <th>|К-во|*</th>
+                <th>|Сума|*</th>
+                <th></th>
+            </tr>
+            <tr>
+                <td class='aright'>|Дебит|*</td>
+                <td class='summary-cell aright'><b>[#debitQuantity#]</b></td>
+                <td class='summary-cell aright'><b>[#debitAmount#]</b></td>
+                <td class='summary-cell aright'><span class='cCode'>[#baseCurrencyCode#]</span></td>
+            </tr>
+            <tr>
+                <td class='aright'>|Кредит|*</td>
+                <td class='summary-cell aright'><b>[#creditQuantity#]</b></td>
+                <td class='summary-cell aright'><b>[#creditAmount#]</b></td>
+                <td class='summary-cell aright'><span class='cCode'>[#baseCurrencyCode#]</span></td>
+            </tr>
+            <tr>
+                <td class='aright'>|Остатък|*</td>
+                <td class='summary-cell aright'><b>[#blQuantity#]</b></td>
+                <td class='summary-cell aright'><b>[#blAmount#]</b></td>
+                <td class='summary-cell aright'><span class='cCode'>[#baseCurrencyCode#]</span></td>
+            </tr>
+        </table>
+</div>
+
 <div class='overflow-scroll'>
     [#CONTENT#]
 </div>
