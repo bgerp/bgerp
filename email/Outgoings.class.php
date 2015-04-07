@@ -233,7 +233,7 @@ class email_Outgoings extends core_Master
         // Дали имаме права за това действие към този запис?
         $this->requireRightFor('send', $data->rec, NULL, $retUrl);
         
-        $lg = email_Outgoings::getLanguage($data->rec->originId, $data->rec->threadId, $data->rec->folderId);
+        $lg = email_Outgoings::getLanguage($data->rec->originId, $data->rec->threadId, $data->rec->folderId, $data->rec->body);
         
         // Ако формата е успешно изпратена - изпращане, лог, редирект
         if ($data->form->isSubmitted()) {
@@ -1066,7 +1066,7 @@ class email_Outgoings extends core_Master
                 $options['documentsSet'] = $docsSet;
             }
             
-            $lg = email_Outgoings::getLanguage($rec->originId, $rec->threadId, $rec->folderId);
+            $lg = email_Outgoings::getLanguage($rec->originId, $rec->threadId, $rec->folderId, $rec->body);
             
             $boxFromId = static::getDefaultInboxId($rec->folderId);
             
@@ -1139,6 +1139,36 @@ class email_Outgoings extends core_Master
         core_Lg::pop();
         
         return $text;
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param email_Outgoings $mvc
+     * @param core_Et $tpl
+     * @param object $data
+     */
+    function on_BeforeRenderSingle($mvc, &$tpl, $data)
+    {
+        if ($data->lg && (Mode::is('printing') || Mode::is('text', 'xhtml'))) {
+            core_Lg::push($data->lg);
+        }
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param email_Outgoings $mvc
+     * @param core_Et $tpl
+     * @param object $data
+     */
+    function on_AfterRenderSingle($mvc, &$tpl, $data)
+    {
+        if ($data->lg && (Mode::is('printing') || Mode::is('text', 'xhtml'))) {
+            core_Lg::pop($data->lg);
+        }
     }
     
     
@@ -1931,7 +1961,7 @@ class email_Outgoings extends core_Master
             }
         }
         
-        $data->lg = email_Outgoings::getLanguage($data->rec->originId, $data->rec->threadId, $data->rec->folderId);
+        $data->lg = email_Outgoings::getLanguage($data->rec->originId, $data->rec->threadId, $data->rec->folderId, $data->rec->body);
     }
     
     
@@ -1941,7 +1971,7 @@ class email_Outgoings extends core_Master
      */
     function renderSingleLayout_(&$data)
     {
-        if (Mode::is('printing')) {
+        if ($data->lg && (Mode::is('printing') || Mode::is('text', 'xhtml'))) {
             core_Lg::push($data->lg);
         }
         
@@ -2004,7 +2034,7 @@ class email_Outgoings extends core_Master
         
         $tpl = new ET(tr('|*' . getFileContent($tpl)));
         
-        if (Mode::is('printing')) {
+        if ($data->lg && (Mode::is('printing') || Mode::is('text', 'xhtml'))) {
             core_Lg::pop();
         }
         
@@ -2421,11 +2451,12 @@ class email_Outgoings extends core_Master
      *
      * @param int $originId - id' то на контейнера
      * @param int $threadId - id' то на нишката
-     * @param int $folderId  -id' то на папката
+     * @param int $folderId - id' то на папката
+     * @param string $body - текста на писмото
      *
      * @return string $lg - Двубуквеното означение на предполагаемия език на имейла
      */
-    static function getLanguage($originId, $threadId, $folderId)
+    static function getLanguage($originId, $threadId, $folderId, $body=NULL)
     {
         // Търсим езика в контейнера
         $lg = doc_Containers::getLanguage($originId);
@@ -2456,6 +2487,14 @@ class email_Outgoings extends core_Master
                 
                 // Използваме английски
                 $lg = 'en';
+            }
+        }
+        
+        if ($body) {
+            if (in_array($lg, array('bg', 'ru', 'md', 'sr'))) {
+                if (strlen($body) == mb_strlen($body)) {
+                    $lg = 'en';
+                }
             }
         }
         
