@@ -112,15 +112,8 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     	// Ако има намерени записи
     	if(count($data->recs)){
     		
-    		// Подготвяме страницирането
-    		$data->Pager = cls::get('core_Pager',  array('itemsPerPage' => $this->listItemsPerPage));
-    		$data->Pager->itemsCount = count($data->recs);
-    		
     		// За всеки запис
     		foreach ($data->recs as &$rec){
-    			
-    			// Ако не е за текущата страница не го показваме
-    			if(!$data->Pager->isOnPage()) continue;
     			
     			// Изчисляваме окончателния остатък (дебит - кредит)
     			$rec->blQuantity = $rec->debitQuantity - $rec->creditQuantity;
@@ -134,9 +127,6 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     			if($rec->blQuantity != $rec->blAmount){
     				$data->hasSameAmounts = FALSE;
     			}
-    			
-    			// Вербално представяне на записа
-    			$data->rows[] = $this->getVerbalRec($rec);
     		}
     	}
     	
@@ -144,6 +134,31 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     	$this->prepareSummary($data);
     	
     	return $data;
+    }
+    
+    
+    /**
+     * След подготовката на показването на информацията
+     */
+    public function on_AfterPrepareEmbeddedData($mvc, &$data)
+    {
+    	// Ако има намерени записи
+    	if(count($data->recs)){
+    		
+    		// Подготвяме страницирането
+    		$data->Pager = cls::get('core_Pager',  array('itemsPerPage' => $this->listItemsPerPage));
+    		$data->Pager->itemsCount = count($data->recs);
+    		
+    		// За всеки запис
+    		foreach ($data->recs as &$rec){
+    			
+    			// Ако не е за текущата страница не го показваме
+    			if(!$data->Pager->isOnPage()) continue;
+    			
+    			// Вербално представяне на записа
+    			$data->rows[] = $this->getVerbalRec($rec);
+    		}
+    	}
     }
     
     
