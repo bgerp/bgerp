@@ -234,7 +234,7 @@ class marketing_Inquiries2 extends core_Embedder
      * Проверка дали нов документ може да бъде добавен в
      * посочената папка като начало на нишка
      *
-     * @param $folderId int ид на папката
+     * @param int $folderId - ид на папката
      */
     public static function canAddToFolder($folderId)
     {
@@ -421,7 +421,7 @@ class marketing_Inquiries2 extends core_Embedder
     		$files = $this->getAttachedFiles($rec);
     		 
     		// Ако има прикачени файлове, добавяме ги
-    		if($files){
+    		if(count($files)){
 	    		foreach ($files as $fh => $name){
 		    		$name = fileman_Files::fetchByFh($fh, 'name');
 		    		$path = fileman_Files::fetchByFh($fh, 'path');

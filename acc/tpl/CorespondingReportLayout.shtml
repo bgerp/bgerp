@@ -1,0 +1,5 @@
+[#FORM#]
+<div class='overflow-scroll'>
+    [#CONTENT#]
+</div>
+[#PAGER#]

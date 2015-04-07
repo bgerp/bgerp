@@ -1,0 +1,300 @@
+<?php
+
+
+
+/**
+ * Имплементация на 'frame_ReportSourceIntf' за направата на справка на кореспонденция по сметки
+ *
+ *
+ * @category  bgerp
+ * @package   acc
+ * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
+ * @copyright 2006 - 2015 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ */
+class acc_CorespondingReportImpl extends frame_BaseDriver
+{
+    
+	
+    /**
+     * Кой може да избира драйвъра
+     */
+    public $canSelectSource = 'ceo, acc';
+    
+    
+    /**
+     * Заглавие
+     */
+    public $title = 'Справка за кореспонденция по сметки';
+    
+    
+    /**
+     * Кои интерфейси имплементира
+     */
+    public $interfaces = 'frame_ReportSourceIntf';
+    
+    
+    /**
+     * Брой записи на страница
+     */
+    public $listItemsPerPage = 30;
+    
+    
+    /**
+     * Добавя полетата на вътрешния обект
+     *
+     * @param core_Fieldset $fieldset
+     */
+    public function addEmbeddedFields(core_Form &$form)
+    {
+    	// Добавяме полетата за филтър
+    	$form->FLD('from', 'date', 'caption=От,mandatory');
+    	$form->FLD('to', 'date', 'caption=До,mandatory');
+    	$form->FLD('baseAccountId', 'acc_type_Account(allowEmpty)', 'caption=Основна с-ка,mandatory');
+    	$form->FLD('corespondentAccountId', 'acc_type_Account(allowEmpty)', 'caption=Кореспондент с-ка,mandatory');
+    }
+    
+    
+    /**
+     * Проверява въведените данни
+     *
+     * @param core_Form $form
+     */
+    public function checkEmbeddedForm(core_Form &$form)
+    {
+    	// Проверяваме дали началната и крайната дата са валидни
+    	if($form->isSubmitted()){
+    		if($form->rec->to < $form->rec->from){
+    			$form->setError('to, from', 'Началната дата трябва да е по малка от крайната');
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Подготвя формата за въвеждане на данни за вътрешния обект
+     *
+     * @param core_Form $form
+     */
+    public function prepareEmbeddedForm(core_Form &$form)
+    {
+    	// Поставяме удобни опции за избор на период
+    	$op = acc_Periods::getPeriodOptions();
+    		
+    	$form->setSuggestions('from', array('' => '') + $op->fromOptions);
+    	$form->setSuggestions('to', array('' => '') + $op->toOptions);
+    }
+    
+    
+    /**
+     * Подготвя вътрешното състояние, на база въведените данни
+     */
+    public function prepareInnerState()
+    {
+    	$data = new stdClass();
+    	$data->hasSameAmounts = TRUE;
+    	$data->rows = $data->recs = array();
+    	$form = $this->innerForm;
+    	
+    	// Извличаме записите от журнала за периода, където участват основната и кореспондиращата сметка
+    	$jQuery = acc_JournalDetails::getQuery();
+    	acc_JournalDetails::filterQuery($jQuery, $form->from, $form->to);
+    	$jQuery->where("#debitAccId = {$form->baseAccountId} AND #creditAccId = {$form->corespondentAccountId}");
+    	$jQuery->orWhere("#debitAccId = {$form->corespondentAccountId} AND #creditAccId = {$form->baseAccountId}");
+    	
+    	// За всеки запис добавяме го към намерените резултати
+    	while($jRec = $jQuery->fetch()){
+    		$this->addEntry($form->baseAccountId, $jRec, $data->recs);
+    	}
+    	
+    	// Ако има намерени записи
+    	if(count($data->recs)){
+    		
+    		// Подготвяме страницирането
+    		$data->Pager = cls::get('core_Pager',  array('itemsPerPage' => $this->listItemsPerPage));
+    		$data->Pager->itemsCount = count($data->recs);
+    		
+    		// За всеки запис
+    		foreach ($data->recs as &$rec){
+    			
+    			// Ако не е за текущата страница не го показваме
+    			if(!$data->Pager->isOnPage()) continue;
+    			
+    			// Изчисляваме окончателния остатък (дебит - кредит)
+    			$rec->blQuantity = $rec->debitQuantity - $rec->creditQuantity;
+    			$rec->blAmount = $rec->debitAmount - $rec->creditAmount;
+    			
+    			// Проверка дали сумата и к-то са еднакви
+    			if($rec->blQuantity != $rec->blAmount){
+    				$data->hasSameAmounts = FALSE;
+    			}
+    			
+    			// Вербално представяне на записа
+    			$data->rows[] = $this->getVerbalRec($rec);
+    		}
+    	}
+    	
+    	return $data;
+    }
+    
+    
+    /**
+     * Групира записите от журнала по пера
+     * 
+     * @param int      $baseAccountId - Ид на основната сметка
+     * @param stdClass $jRec          - запис от журнала
+     * @param array    $recs          - групираните записи
+     * @return void
+     */
+    private function addEntry($baseAccountId, $jRec, &$recs)
+    {
+    	// Обхождаме дебитната и кредитната част
+    	foreach (array('debit', 'credit') as $type){
+    		
+    		// Ако сметката на дебита/кредита не е основната сметка не натрупваме оборотите
+    		if($jRec->{"{$type}AccId"} != $baseAccountId) continue;
+    		
+    		// Индекса за групиране са аналитичностите
+    		$index = "{$jRec->{"{$type}Item1"}}|{$jRec->{"{$type}Item2"}}|{$jRec->{"{$type}Item3"}}";
+    	
+    		// Ако записите няма обект с такъв индекс, създаваме го
+    		if(!array_key_exists($index, $recs)){
+    			$recs[$index] = new stdClass();
+    			foreach (range(1, 3) as $i){
+    				if(!empty($jRec->{"{$type}Item{$i}"})){
+    					$recs[$index]->{"item{$i}"} = $jRec->{"{$type}Item{$i}"};
+    				}
+    			}
+    		}
+    		 
+    		// Сумираме дебитния или кредитния оборот
+    		$quantityFld = "{$type}Quantity";
+    		$amountFld = "{$type}Amount";
+    		$recs[$index]->{$quantityFld} += $jRec->{"{$type}Quantity"};
+    		$recs[$index]->{$amountFld} += $jRec->amount;
+    	}
+    }
+    
+    
+    /**
+     * Вербално представяне на групираните записи
+     * 
+     * @param stdClass $rec - групиран запис
+     * @return stdClass $row - вербален запис
+     */
+    private function getVerbalRec($rec)
+    {
+    	$row = new stdClass();
+    	$Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
+    	
+    	// Вербалното представяне на перата
+    	foreach (range(1, 3) as $i){
+    		if(!empty($rec->{"item{$i}"})){
+    			$row->{"item{$i}"} = acc_Items::getVerbal($rec->{"item{$i}"}, 'titleLink');
+    		}
+    	}
+    	
+    	// Вербално представяне на сумите и к-та
+    	foreach (array('debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount') as $fld){
+    		if(isset($rec->{$fld})){
+    			$row->{$fld} = $Double->toVerbal($rec->{$fld});
+    			if($rec->{$fld} < 0){
+    				$row->{$fld} = "<span class='red'>{$row->{$fld}}</span>";
+    			}
+    		}
+    	}
+    	
+    	// Връщаме подготвеното вербално рпедставяне
+    	return $row;
+    }
+    
+    
+    /**
+     * Рендира вградения обект
+     */
+    public function renderEmbeddedData($data)
+    {
+    	// Взимаме шаблона
+    	$tpl = getTplFromFile('acc/tpl/CorespondingReportLayout.shtml');
+    	
+    	// Кои полета ще се показват
+    	$fields = arr::make("item1,item2,item3,debitQuantity=Дебит->К-во,debitAmount=Дебит->Сума,creditQuantity=Кредит->К-во,creditAmount=Кредит->Сума,blQuantity=Остатък->К-во,blAmount=Остатък->Сума", TRUE);
+   		$accInfo = acc_Accounts::getAccountInfo($this->innerForm->baseAccountId);
+   		
+   		// Добавяме имената на номенклатурите
+   		foreach (range(1, 3) as $i){
+   			if(isset($accInfo->groups[$i])){
+   				$fields["item{$i}"] = $accInfo->groups[$i]->rec->name;
+   			} else {
+   				unset($fields["item{$i}"]);	
+   			}
+   		}
+    	
+    	// Ако к-та и сумите са еднакви, не показваме количествата
+   		if($data->hasSameAmounts === TRUE){
+   			unset($fields['debitQuantity']);
+   			unset($fields['creditQuantity']);
+   			unset($fields['blQuantity']);
+   		}
+    	
+   		$f = cls::get('core_FieldSet');
+   		$f->FLD('item1', 'varchar', 'tdClass=itemClass');
+   		$f->FLD('item2', 'varchar', 'tdClass=itemClass');
+   		$f->FLD('item3', 'varchar', 'tdClass=itemClass');
+   		foreach (array('debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount') as $fld){
+   			$f->FLD($fld, 'int', 'tdClass=accCell');
+   		}
+   		
+   		// Рендираме таблицата
+    	$table = cls::get('core_TableView', array('mvc' => $f));
+    	$tableHtml = $table->get($data->rows, $fields);
+    	
+    	$tpl->replace($tableHtml, 'CONTENT');
+    	
+    	// Рендираме пейджъра, ако го има
+    	if(isset($data->Pager)){
+    		$tpl->replace($data->Pager->getHtml(), 'PAGER');
+    	}
+    	
+    	// Показваме данните от формата
+    	$form = cls::get('core_Form');
+    	$this->addEmbeddedFields($form);
+    	$form->rec = $this->innerForm;
+    	$form->class = 'simpleForm';
+    		
+    	$tpl->append($form->renderStaticHtml(), 'FORM');
+    	
+    	// Връщаме шаблона
+    	return $tpl;
+    }
+    
+    
+    /**
+     * Скрива полетата, които потребител с ниски права не може да вижда
+     *
+     * @param stdClass $data
+     */
+    public function hidePriceFields()
+    {
+    	$innerState = &$this->innerState;
+    	if(count($innerState->rows)){
+    		foreach ($innerState->rows as $row){
+    			foreach (array('debitAmount', 'debitQuantity','creditAmount', 'creditQuantity', 'blQuantity', 'blAmount') as $fld){
+    				unset($row->$fld);
+    			}
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Коя е най-ранната дата на която може да се активира документа
+     */
+    public function getEarlyActivation()
+    {
+    	$activateOn = "{$this->innerForm->to} 23:59:59";
+    	
+    	return $activateOn;
+    }
+}
