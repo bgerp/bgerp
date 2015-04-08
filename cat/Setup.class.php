@@ -68,7 +68,7 @@ class cat_Setup extends core_ProtoSetup
             'migrate::fixProductsSearchKeywords'
         );
 
-        
+
     /**
      * Роли за достъп до модула
      */
@@ -81,14 +81,22 @@ class cat_Setup extends core_ProtoSetup
     var $menuItems = array(
             array(1.42, 'Артикули', 'Каталог', 'cat_Products', 'default', "cat,ceo,sales,purchase"),
         );
-    
+
+
+    /**
+     * Дефиниции на класове с интерфейси
+     */
+    var $classes = 'cat_SalesArticleReport';
+
 
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    var $defClasses = "cat_GeneralProductDriver, cat_BaseImporter";
-    
-    
+    var $defClasses = "cat_GeneralProductDriver, cat_BaseImporter,cat_SalesArticleReport";
+
+
+
+
     /**
      * Настройки за Cron
      */
