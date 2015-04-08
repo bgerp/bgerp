@@ -322,7 +322,7 @@ class doc_Containers extends core_Manager
      * Създава нов контейнер за документ от посочения клас
      * Връща $id на новосъздадения контейнер
      */
-    static function create($class, $threadId, $folderId, $createdOn)
+    static function create($class, $threadId, $folderId, $createdOn, $createdBy)
     {
         $className = cls::getClassName($class);
         
@@ -331,6 +331,7 @@ class doc_Containers extends core_Manager
         $rec->threadId  = $threadId;
         $rec->folderId  = $folderId;
         $rec->createdOn = $createdOn;
+        $rec->createdBy = $createdBy;
         
         self::save($rec);
         
@@ -1343,7 +1344,7 @@ class doc_Containers extends core_Manager
                 
                 // Ако не може създаваме нова нишка
                 if (!isset($rec->threadId)) {
-                    $rec->threadId = doc_Threads::create($rec->folderId, $rec->createdOn);
+                    $rec->threadId = doc_Threads::create($rec->folderId, $rec->createdOn, $rec->createdBy);
                 }
             
                 if (self::save($rec)) {
