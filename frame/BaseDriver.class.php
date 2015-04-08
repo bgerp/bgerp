@@ -170,4 +170,15 @@ abstract class frame_BaseDriver extends core_BaseClass
 		 
 		$tpl->prepend($form->renderStaticHtml(), $placeholder);
 	}
+
+
+	/**
+	 * Подготвя формата за въвеждане на данни за вътрешния обект
+	 *
+	 * @param core_Form $form
+	 */
+	public function prepareEmbeddedForm(core_Form &$form)
+	{
+		
+	}
 }

@@ -3,7 +3,7 @@
 
 
 /**
- * Мениджър на отчети от посещения по IP
+ * Мениджър на отчети от посещения по ресурс
  *
  *
  * @category  bgerp
@@ -13,14 +13,14 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class vislog_IpReports extends frame_BaseDriver
+class vislog_ResourcesReport extends frame_BaseDriver
 {                  
     
 	
     /**
      * Заглавие
      */
-    public $title = 'Отчет на посещенията по IP';
+    public $title = 'Отчет на посещенията по ресурс';
 
     
     /**
@@ -28,6 +28,11 @@ class vislog_IpReports extends frame_BaseDriver
      */
     public $interfaces = 'frame_ReportSourceIntf';
     
+
+	/**
+	 * За конвертиране на съществуващи MySQL таблици от предишни версии
+	 */
+	public $oldClassName = 'vislog_IpResources';
 
 
     /**
@@ -71,7 +76,6 @@ class vislog_IpReports extends frame_BaseDriver
 	 */
 	public $canList = 'ceo, admin, cms';
 
-    
     
     /**
      * Добавя полетата на вътрешния обект
@@ -121,7 +125,7 @@ class vislog_IpReports extends frame_BaseDriver
     public function prepareInnerState()
     {
     	$data = new stdClass();
-        $data->ipCnt = array();
+        $data->resourceCnt = array();
         $fRec = $data->fRec = $this->innerForm;
         
         $query = vislog_History::getQuery();
@@ -137,13 +141,13 @@ class vislog_IpReports extends frame_BaseDriver
 
         while($rec = $query->fetch()) {
         	
-        	$data->ipCnt[$rec->ip]++;
+        	$data->resourceCnt[$rec->HistoryResourceId]++;
 
         }
- 
-        // Сортиране на данните
-        arsort($data->ipCnt);
         
+        // Сортиране на данните
+        arsort($data->resourceCnt);
+
         return $data;
     }
     
@@ -156,6 +160,7 @@ class vislog_IpReports extends frame_BaseDriver
 
     }
     
+    
     /**
      * Рендира вградения обект
      *
@@ -164,11 +169,10 @@ class vislog_IpReports extends frame_BaseDriver
     public function renderEmbeddedData($data)
     {
     	$tpl = new ET("
-            <h1>Отчет за посещенията по IP</h1>
+            <h1>Отчет за посещенията по ресурс</h1>
             [#FORM#]
-            
-    		[#PAGER#]
-            [#VISITS#]
+            [#PAGER#]
+            [#RESOURCES#]
         "
     	);
     
@@ -183,41 +187,41 @@ class vislog_IpReports extends frame_BaseDriver
     
     	$tpl->placeObject($data->rec);
     
-    	$html = "<h3>Посещения по IP</h3>";
-    
-    	$pager = cls::get('core_Pager',  array('pageVar' => 'P_' .  $this->EmbedderRec->that,'itemsPerPage' => $this->listItemsPerPage));
-    	$pager->itemsCount = count($data->ipCnt);
+    	$html = "<h3>Посещения по ресурс</h3>";
+        
+        $pager = cls::get('core_Pager', array('pageVar' => 'P_' .  $this->EmbedderRec->that,'itemsPerPage' => $this->listItemsPerPage));
+        $pager->itemsCount = count($data->resourceCnt);
 
+    	
     	$f = cls::get('core_FieldSet');
 
-    	$f->FLD('ip', 'ip(15)', 'caption=Посещения->Ip');
+    	$f->FLD('resource', 'key(mvc=vislog_HistoryResources,select=query)', 'caption=Посещения->Ресурс');
     	$f->FLD('cnt', 'int', 'caption=Посещения->Брой');
     	
     	$rows = array();
 
     	$ft = $f->fields;
-        $ipType = $ft['ip']->type;
+        $resourceType = $ft['resource']->type;
         $cntType = $ft['cnt']->type;
-
         $i = 0;
-        
-    	foreach($data->ipCnt as $ip => $cnt) {
-    		
-    		if(!$pager->isOnPage()) continue;
-    		
+   
+    	foreach($data->resourceCnt as $resource => $cnt) {
+ 
+            if(!$pager->isOnPage()) continue;
+            
     		$row = new stdClass();
-    		$row->ip = $ipType->toVerbal($ip);
+    		$row->resource = $resourceType->toVerbal($resource);
     		$row->cnt = $cntType->toVerbal($cnt);
     		
     		$rows[] = $row;
     	}
 
     	$table = cls::get('core_TableView', array('mvc' => $f));
-    	$html = $table->get($rows, 'ip=Посещения->Ip,cnt=Посещения->Брой');
+    	$html = $table->get($rows, 'resource=Посещения->Ресурс,cnt=Посещения->Брой');
     
-    	$tpl->append($html, 'VISITS');
+    	$tpl->append($html, 'RESOURCES');
         $tpl->append($pager->getHtml(), 'PAGER');
-    
+
     	return  $tpl;
     }
      

@@ -118,6 +118,9 @@ class acc_ReportDetails extends core_Manager
         // и ид-то на перото е на произволна позиция
         $dRecs = acc_Balances::fetchCurrent($accounts, $items->id);
         
+        $balanceRec = acc_Balances::getLastBalance();
+        $data->balanceRec = $balanceRec;
+        
         // Ако няма записи, не се прави нищо
         if(empty($dRecs) || !count($dRecs)) return;
         
@@ -129,7 +132,7 @@ class acc_ReportDetails extends core_Manager
         
         // Извикване на евент в мастъра за след извличане на записите от БД
         $data->masterMvc->invoke('AfterPrepareAccReportRecs', array($data));
-        $balanceRec = acc_Balances::getLastBalance();
+        
         $attr = array();
         $attr['class'] = 'linkWithIcon';
         $attr['style'] = 'background-image:url(' . sbf('img/16/clock_history.png', '') . ');';
@@ -212,6 +215,10 @@ class acc_ReportDetails extends core_Manager
     private function renderBalanceReports(&$data)
     {
         $tpl = getTplFromFile('acc/tpl/BalanceRefDetail.shtml');
+        if(isset($data->balanceRec->periodId)){
+        	$tpl->replace(acc_Periods::getVerbal($data->balanceRec->periodId, 'title'), 'periodId');
+        }
+        
         $data->listFields['tools'] = ' ';
         
         // Ако има какво да се показва

@@ -131,6 +131,14 @@
        margin-bottom: 20px;
     }
 }
+.document .portal {
+	box-shadow: none;
+	background: transparent !important;
+	.legend {
+	   margin-bottom: 10px;
+	   padding: 7px 15px !important;
+	}
+}
 
 .narrow .portal {
     margin-top: 20px;

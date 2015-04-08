@@ -217,21 +217,13 @@ class sales_SalesDetails extends deals_DealDetail
     		// Проверяваме имали задание
     		if($jobRec = planning_Jobs::fetch("#productId = {$rec->productId} AND (#state != 'draft' && #state != 'rejected')", 'id,state,dueDate')){
     		
-    			// Ако е чернова, и можем да го редактираме добавяме бутон за редакция
-    			if($jobRec->state == 'draft'){
-    				if(planning_Jobs::haveRightFor('activate', $jobRec)){
-    					$row->jobId = ht::createBtn('Редакция', array('planning_Jobs', 'edit', $jobRec->id), FALSE, FALSE, 'title=Редактиране на ново задание за артикула,ef_icon=img/16/edit.png');
-    				}
+    			// Ако има такова, добавяме линк към сингъла му
+    			$row->jobId = "#" . planning_Jobs::getHandle($jobRec->id);
+    			if(planning_Jobs::haveRightFor('single', $jobRec)){
+    				$row->jobId = ht::createLink($row->jobId, array('planning_Jobs', 'single', $jobRec->id), FALSE, 'ef_icon=img/16/clipboard_text.png');
     			}
+    			$row->jobId .= " ( " . planning_Jobs::getVerbal($jobRec, 'dueDate') . " )";
     		
-    			if(!$row->jobId){
-    				// Ако има такова, добавяме линк към сингъла му
-    				$row->jobId = "#" . planning_Jobs::getHandle($jobRec->id);
-    				if(planning_Jobs::haveRightFor('single', $jobRec)){
-    					$row->jobId = ht::createLink($row->jobId, array('planning_Jobs', 'single', $jobRec->id), FALSE, 'ef_icon=img/16/clipboard_text.png');
-    				}
-    				$row->jobId .= " ( " . planning_Jobs::getVerbal($jobRec, 'dueDate') . " )";
-    			}
     		} else {
     			// Ако няма задание, добавяме бутон за създаване на ново задание
     			if(planning_Jobs::haveRightFor('add', (object)array('productId' => $pRec->id))){

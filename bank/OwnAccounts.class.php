@@ -491,18 +491,4 @@ class bank_OwnAccounts extends core_Master {
             }
         }
     }
-    
-    
-    /**
-     * Преди подготовка на резултатите
-     */
-    protected static function on_AfterPrepareListFilter($mvc, &$data)
-    {
-        if(!haveRole($mvc->canSelectAll)){
-            
-            // Показват се само записите за които отговаря потребителя
-            $cu = core_Users::getCurrent();
-            $data->query->where("#operators LIKE '%|{$cu}|%'");
-        }
-    }
 }

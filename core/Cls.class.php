@@ -43,8 +43,13 @@ class core_Cls
     static function getClassName($className)
     {
         if(is_object($className)) {
-    
-            return get_class($className);
+            if(isset($className->className)) {
+
+                return $className->className;
+            } else {
+
+                return get_class($className);
+            }
         }
 
         static $classNames = array();

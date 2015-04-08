@@ -1,6 +1,7 @@
 <div class='scrolling-holder'>
 	<fieldset class='top-tab-content'>
-	    <legend class='groupTitle'>|Счетоводни справки|*</legend>
+	    <legend class='groupTitle'>|Счетоводни справки|* (<span class='small' style='color:darkgreen;font-weight:bold'>|салда и обороти|*: [#periodId#]</span>)</legend>
+	   
 	    <div class='detail-info portal acc-summary'>
 	      [#LISTS#]
 		    <div class='groupList clearfix21'>

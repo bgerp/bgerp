@@ -67,6 +67,12 @@ abstract class cat_ProductDriver extends core_BaseClass
 	
 	
 	/**
+	 * Записа на ембедера
+	 */
+	public $EmbedderRec;
+	
+	
+	/**
 	 * Задава параметрите на обекта
 	 *
 	 * @param mixed $innerForm

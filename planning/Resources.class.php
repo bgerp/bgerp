@@ -39,7 +39,7 @@ class planning_Resources extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_Created, plg_Search, plg_Rejected, planning_Wrapper, acc_plg_Registry, plg_State';
+    public $loadList = 'plg_RowTools, plg_Created, plg_Sorting, plg_Search, plg_Rejected, planning_Wrapper, acc_plg_Registry, plg_State';
     
     
     /**
@@ -87,7 +87,7 @@ class planning_Resources extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт,title,type,lastUsedOn,state,createdOn,createdBy';
+    public $listFields = 'tools=Пулт,title,type,lastUsedOn,createdOn,createdBy';
     
     
     /**

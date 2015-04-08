@@ -13,10 +13,6 @@
             <td> 
                 <table>
                     <tr>
-                        <td class='quiet' style='text-align: right'>№:</td>
-                        <td>[#id#]</td>
-                    </tr>
-                    <tr>
                         <td class='quiet' style='text-align: right'>|Дата|*:</td>
                         <td>[#createdDate#]</td>
                     </tr>

@@ -249,21 +249,6 @@ class store_Stores extends core_Master
     /**
      * КРАЙ НА интерфейса @see acc_RegisterIntf
      */
-	
-    
-	/**
-	 * Преди подготовка на резултатите
-	 */
-	protected static function on_AfterPrepareListFilter($mvc, &$data)
-	{
-		if(!haveRole($mvc->canSelectAll)){
-			
-			// Показват се само записите за които отговаря потребителя
-			$cu = core_Users::getCurrent();
-			$data->query->like('chiefs', "|$cu|");
-			$data->query->orLike('workersIds', "|$cu|");
-		}
-	}
 
 
 	protected static function on_AfterPrepareEditForm($mvc, &$res, $data)

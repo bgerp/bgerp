@@ -3,24 +3,28 @@
 
 
 /**
- * Мениджър на отчети от посещения по IP
+ * Мениджър на отчети от документи
+ * 
+ * По посочен тип на документа със статус различен от 
+ * чернова и оттеглено се брои за посочения период,
+ * колко документа е създал конкретният потребител
  *
  *
  * @category  bgerp
- * @package   vislog
+ * @package   doc
  * @author    Gabriela Petrova <gab4eto@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class vislog_IpReports extends frame_BaseDriver
+class doc_DocsReport extends frame_BaseDriver
 {                  
     
 	
     /**
      * Заглавие
      */
-    public $title = 'Отчет на посещенията по IP';
+    public $title = 'Отчет за създадените документи';
 
     
     /**
@@ -45,7 +49,7 @@ class vislog_IpReports extends frame_BaseDriver
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectSource = 'ceo, admin, cms';
+    public $canSelectSource = 'powerUser';
     
     
     /**
@@ -57,19 +61,19 @@ class vislog_IpReports extends frame_BaseDriver
     /**
      * Права за писане
      */
-    public $canEdit = 'ceo, admin, cms';
+    public $canEdit = 'powerUser';
     
     
     /**
      * Права за запис
      */
-    public $canRead = 'ceo, admin, cms';
+    public $canRead = 'powerUser';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo, admin, cms';
+	public $canList = 'powerUser';
 
     
     
@@ -82,6 +86,7 @@ class vislog_IpReports extends frame_BaseDriver
     {
     	$form->FLD('from', 'date', 'caption=Начало');
     	$form->FLD('to', 'date', 'caption=Край');
+    	$form->FLD('docClass', 'class(interface=doc_DocumentIntf,select=title,allowEmpty)', 'caption=Документ,mandatory');
     }
       
 
@@ -110,6 +115,7 @@ class vislog_IpReports extends frame_BaseDriver
     		$form->rec->from = $form->rec->to;
     		$form->rec->to = $mid;
     	}
+
     }  
     
     
@@ -121,28 +127,28 @@ class vislog_IpReports extends frame_BaseDriver
     public function prepareInnerState()
     {
     	$data = new stdClass();
-        $data->ipCnt = array();
+        $data->docCnt = array();
         $fRec = $data->fRec = $this->innerForm;
+      
+        $query = doc_Containers::getQuery();
         
-        $query = vislog_History::getQuery();
-
         if($fRec->from) {  
-            $query->where("#createdOn >= '{$fRec->from} 00:00:00'");
+            $query->where("#createdOn >= '{$fRec->from} 00:00:00' AND #docClass = '{$fRec->docClass}'");
         }
 
         if($fRec->to) {
-            $query->where("#createdOn <= '{$fRec->to} 23:59:59'");
+            $query->where("#createdOn <= '{$fRec->to} 23:59:59' AND #docClass = '{$fRec->docClass}'");
         }
-
+       
 
         while($rec = $query->fetch()) {
         	
-        	$data->ipCnt[$rec->ip]++;
+        	$data->docCnt[$rec->createdBy]++;
 
         }
  
         // Сортиране на данните
-        arsort($data->ipCnt);
+        arsort($data->docCnt);
         
         return $data;
     }
@@ -156,6 +162,7 @@ class vislog_IpReports extends frame_BaseDriver
 
     }
     
+    
     /**
      * Рендира вградения обект
      *
@@ -164,62 +171,69 @@ class vislog_IpReports extends frame_BaseDriver
     public function renderEmbeddedData($data)
     {
     	$tpl = new ET("
-            <h1>Отчет за посещенията по IP</h1>
+            <h1>Създадени документи тип \"[#DOCTYPE#]\"</h1>
             [#FORM#]
             
     		[#PAGER#]
-            [#VISITS#]
+            [#DOCS#]
         "
     	);
     
+    	$docClass = cls::get($data->fRec->docClass);
+    	$tpl->replace($docClass->singleTitle,'DOCTYPE');
+    	
     	$form = cls::get('core_Form');
     
     	$this->addEmbeddedFields($form);
     
     	$form->rec = $data->fRec;
     	$form->class = 'simpleForm';
-    
+    	
     	$tpl->prepend($form->renderStaticHtml(), 'FORM');
     
     	$tpl->placeObject($data->rec);
     
-    	$html = "<h3>Посещения по IP</h3>";
-    
     	$pager = cls::get('core_Pager',  array('pageVar' => 'P_' .  $this->EmbedderRec->that,'itemsPerPage' => $this->listItemsPerPage));
-    	$pager->itemsCount = count($data->ipCnt);
-
+    	$pager->itemsCount = count($data->docCnt);
+    	
     	$f = cls::get('core_FieldSet');
-
-    	$f->FLD('ip', 'ip(15)', 'caption=Посещения->Ip');
-    	$f->FLD('cnt', 'int', 'caption=Посещения->Брой');
+    
+    	$f->FLD('createdBy', 'key(mvc=core_Users,select=names)', 'caption=Създадени документи->Автор');
+    	$f->FLD('cnt', 'int', 'caption=Създадени документи->Брой');
     	
     	$rows = array();
 
     	$ft = $f->fields;
-        $ipType = $ft['ip']->type;
+        $userType = $ft['createdBy']->type;
         $cntType = $ft['cnt']->type;
-
-        $i = 0;
         
-    	foreach($data->ipCnt as $ip => $cnt) {
+    	foreach($data->docCnt as $user => $cnt) {
     		
     		if(!$pager->isOnPage()) continue;
     		
     		$row = new stdClass();
-    		$row->ip = $ipType->toVerbal($ip);
+    		
+    		if(!$user) {
+    			$row->createdBy = "Анонимен";
+    		} elseif($user == -1) {
+    			$row->createdBy = "Система";
+    		} else {
+    			$row->createdBy = $userType->toVerbal($user) . ' ' . crm_Profiles::createLink($user);
+    		}
+    		
     		$row->cnt = $cntType->toVerbal($cnt);
     		
     		$rows[] = $row;
     	}
 
     	$table = cls::get('core_TableView', array('mvc' => $f));
-    	$html = $table->get($rows, 'ip=Посещения->Ip,cnt=Посещения->Брой');
+    	$html = $table->get($rows, 'createdBy=Създадени документи->Автор,cnt=Създадени документи->Брой');
     
-    	$tpl->append($html, 'VISITS');
+    	$tpl->append($html, 'DOCS');
         $tpl->append($pager->getHtml(), 'PAGER');
     
     	return  $tpl;
-    }
+    }  
      
     
     /**

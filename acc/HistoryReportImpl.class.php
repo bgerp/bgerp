@@ -85,7 +85,7 @@ class acc_HistoryReportImpl extends frame_BaseDriver
 	 */
 	public function prepareEmbeddedForm(core_Form &$form)
 	{
-		$op = $this->History->getBalancePeriods();
+		$op = acc_Periods::getPeriodOptions();
 		 
 		$form->setSuggestions('fromDate', array('' => '') + $op->fromOptions);
 		$form->setSuggestions('toDate', array('' => '') + $op->toOptions);

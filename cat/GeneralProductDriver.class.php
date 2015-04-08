@@ -31,7 +31,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	/**
 	 * Добавя полетата на вътрешния обект
 	 *
-	 * @param core_Fieldset $fieldset
+	 * @param core_Fieldset $form
 	 */
 	public function addEmbeddedFields(core_Fieldset &$form)
 	{

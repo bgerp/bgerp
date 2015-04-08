@@ -71,7 +71,13 @@ class core_Pager extends core_BaseClass
      */
     var $pagesAround;
     
-    
+
+    /**
+     * Брояч за текущия резултат
+     */
+    var $currentResult;
+
+
     /**
      * Инициализиране на обекта
      */
@@ -284,5 +290,29 @@ class core_Pager extends core_BaseClass
         $tpl = new ET($html ? "<div class='pages'>$html</div>" : "");
         
         return $tpl;
+    }
+
+
+    /**
+     * Проверява дали текущия резултат трябва да се показва
+     */
+    public function isOnPage()
+    {
+        if(!$this->rangeStart) {
+            $this->calc();
+        }
+
+        if(!$this->currentResult) {
+            $this->currentResult = 1;
+        } else {
+            $this->currentResult++;
+        }
+ 
+        if($this->currentResult <= $this->rangeStart || $this->currentResult > $this->rangeEnd) {
+ 
+            return FALSE;
+        }
+
+        return TRUE;
     }
 }

@@ -61,6 +61,12 @@ class marketing_Inquiries2 extends core_Embedder
     
     
     /**
+     * @see marketin
+     */
+    public $Router;
+    
+    
+    /**
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'id,title=Заглавие, name, company, email, folderId, createdOn, createdBy';
@@ -516,8 +522,8 @@ class marketing_Inquiries2 extends core_Embedder
     	 
     	if($rec->state == 'active'){
     
-    		if(cat_Products::fetchField("#originId = {$rec->containerId} AND #state = 'active'")){
-    			$data->toolbar->addBtn('Артикул', array('cat_Products', 'single', $sId), "ef_icon=img/16/wooden-box.png,title=Преглед на артикул по това запитване");
+    		if($pId = cat_Products::fetchField("#originId = {$rec->containerId} AND #state = 'active'")){
+    			$data->toolbar->addBtn('Артикул', array('cat_Products', 'single', $pId), "ef_icon=img/16/wooden-box.png,title=Преглед на артикул по това запитване");
     		} else {
     			// Създаване на нов артикул от запитването
     			if(cat_Products::haveRightFor('add', (object)array('folderId' => $rec->folderId))){
@@ -607,8 +613,8 @@ class marketing_Inquiries2 extends core_Embedder
     	$rec = static::fetch($id);
     	$date = dt::mysql2verbal($rec->createdOn, 'd-M');
     	$time = dt::mysql2verbal($rec->createdOn, 'H:i');
-    
-    	$tpl = new ET(tr("Благодарим за Вашето запитване, получено на [#1#] в [#2#] чрез нашия уеб сайт."), $date, $time);
+    	
+    	$tpl = new ET(tr("|Благодарим за Вашето запитване|*, |получено на|* {$date} |в|* {$time} |чрез нашия уеб сайт|*"));
     
     	return $tpl->getContent();
     }

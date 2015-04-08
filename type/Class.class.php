@@ -81,15 +81,6 @@ class type_Class  extends type_Key {
     {
         if (is_numeric($value)) {
             $value = parent::toVerbal($value);
-        } else {
-            
-            if(is_string($value)) {
-                $valId = core_Classes::getId($value);
-            }
-            
-            if($valId) {
-                $value = parent::toVerbal($valId);
-            }
         }
         
         return $value;

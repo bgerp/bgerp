@@ -38,7 +38,7 @@ class cat_Products extends core_Embedder {
      * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools, plg_SaveAndNew, plg_Clone, doc_DocumentPlg, plg_PrevAndNext, acc_plg_Registry, plg_State,
-                     cat_Wrapper, plg_Sorting, doc_ActivatePlg, doc_plg_BusinessDoc, cond_plg_DefaultValues, bgerp_plg_Groups, plg_Printing, plg_Select, plg_Search, bgerp_plg_Import';
+                     cat_Wrapper, plg_Sorting, doc_ActivatePlg, doc_plg_BusinessDoc, cond_plg_DefaultValues, plg_Printing, plg_Select, plg_Search, bgerp_plg_Import';
     
     
     /**
@@ -161,7 +161,7 @@ class cat_Products extends core_Embedder {
     /**
      * Кой  може да групира "С избраните"?
      */
-    var $canGrouping = 'cat,ceo,sales,purchase';
+    var $canGrouping = 'no_one';
 
 	
     /**
@@ -227,6 +227,12 @@ class cat_Products extends core_Embedder {
 					'groups'  => 'lastDocUser|lastDoc',
 					'meta'    => 'lastDocUser|lastDoc',
 	);
+	
+	
+	/**
+	 * Групи за обновяване
+	 */
+	protected $updateGroupsCnt = FALSE;
 	
 	
     /**
@@ -327,12 +333,6 @@ class cat_Products extends core_Embedder {
 	    			$form->setError('code', 'Има вече артикул с такъв код!');
 			    }
     		}
-        }
-        
-        if (!$form->gotErrors()) {
-            if(!$form->rec->id && ($rec->code)) {
-                Mode::setPermanent('catLastProductCode', $code);
-            }    
         }
     }
     
@@ -672,7 +672,7 @@ class cat_Products extends core_Embedder {
      * Връща ид на продукта и неговата опаковка по зададен Код/Баркод
      * 
      * @param mixed $code - Код/Баркод на търсения продукт
-     * @return stdClass $res - Информация за намерения продукт
+     * @return mixed $res - Информация за намерения продукт
      * и неговата опаковка
      */
     public static function getByCode($code)
@@ -1189,7 +1189,7 @@ class cat_Products extends core_Embedder {
 	 * 
 	 * @param mixed $id                       - ид или запис на артикул
 	 * @param datetime $time                  - време
-	 * @param enum(auto,detailed,short) $mode - режим на показване
+	 * @param auto|detailed|short $mode - режим на показване
 	 * 		
 	 * @return mixed $res
 	 * 		ако $mode e 'auto'     - ако артикула е частен се връща детайлното описание, иначе краткото
@@ -1505,7 +1505,7 @@ class cat_Products extends core_Embedder {
     	}
     	
     	// Оставяме само тез пера, които не се срещат в предходния затворен баланс
-    	if($itemsInBalanceBefore){
+    	if(!empty($itemsInBalanceBefore)){
     		foreach ($itemsInBalanceBefore as $index => $itemId){
     			unset($productItems[$index]);
     		}

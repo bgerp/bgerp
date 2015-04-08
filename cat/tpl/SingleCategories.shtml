@@ -3,6 +3,9 @@
     <div class="folder-cover">
         <div class="inner-folder">
             <div class="block_title state-active special-title">[#SingleIcon#] |Продуктова категория|* <b style="color:green;">[#name#]</b></div>
+            
+            <!--ET_BEGIN INFO-->
+            [#INFO#]
             <fieldset class="detail-info">
                 <div class="groupList">
                     <table>
@@ -21,12 +24,14 @@
                     </table>
                 </div>
             </fieldset>
+            <!--ET_END INFO-->
+            
             <!--ET_BEGIN meta-->
 			<fieldset class="detail-info">
 				<legend class="groupTitle">|Мета данни|*</legend>
 				<div class="groupList">[#meta#]</div>
 			</fieldset>
-<!--ET_END meta-->
+			<!--ET_END meta-->
             <!--ET_BEGIN info-->
             <fieldset class="detail-info">
                 <legend class="groupTitle">|Бележки|*</legend>

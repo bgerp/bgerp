@@ -223,7 +223,7 @@ class blast_EmailSend extends core_Detail
     /**
      * Маркира като изпратени
      *
-     * @param array $idsArr
+     * @param array $dataArr
      */
     public static function markAsSent($dataArr)
     {

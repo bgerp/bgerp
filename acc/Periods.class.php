@@ -585,4 +585,40 @@ class acc_Periods extends core_Manager
     	 
     	return $query->fetch();
     }
+    
+    
+    /**
+     * Помощна функция подготвяща опции за начало и край на период със всички периоди в системата
+     * както и вербални опции като : Днес, Вчера, Завчера
+     * 
+     * @return stdClass $res
+     * 					$res->fromOptions - опции за начало
+     * 					$res->toOptions - опции за край на период
+     */
+    public static function getPeriodOptions()
+    {
+    	// За начална и крайна дата, слагаме по подразбиране, датите на периодите
+    	// за които има изчислени оборотни ведомости
+    	$balanceQuery = acc_Balances::getQuery();
+    	$balanceQuery->where("#periodId IS NOT NULL");
+    	$balanceQuery->orderBy("#fromDate", "DESC");
+    
+    	$yesterday = dt::verbal2mysql(dt::addDays(-1, dt::today()), FALSE);
+    	$daybefore = dt::verbal2mysql(dt::addDays(-2, dt::today()), FALSE);
+    	$optionsFrom = $optionsTo = array();
+    	$optionsFrom[dt::today()] = 'Днес';
+    	$optionsFrom[$yesterday] = 'Вчера';
+    	$optionsFrom[$daybefore] = 'Завчера';
+    	$optionsTo[dt::today()] = 'Днес';
+    	$optionsTo[$yesterday] = 'Вчера';
+    	$optionsTo[$daybefore] = 'Завчера';
+    
+    	while($bRec = $balanceQuery->fetch()){
+    		$bRow = acc_Balances::recToVerbal($bRec, 'periodId,id,fromDate,toDate,-single');
+    		$optionsFrom[$bRec->fromDate] = $bRow->periodId . " ({$bRow->fromDate})";
+    		$optionsTo[$bRec->toDate] = $bRow->periodId . " ({$bRow->toDate})";
+    	}
+    
+    	return (object)array('fromOptions' => $optionsFrom, 'toOptions' => $optionsTo);
+    }
 }
