@@ -1,0 +1,51 @@
+[#SingleToolbar#]
+<div class='document'>
+    <!--ET_BEGIN blank-->
+    	[#blank#]
+    <!--ET_END blank-->
+    
+    <div class='header [#STATE_CLASS#]'>
+        <div class='docBgIcon' style='[#iconStyle#];'>|Документ|* <b>[#ident#]</b> ([#state#]) </div>
+    </div>
+    
+	<div class="small antetka">
+		<table class="top-table">
+			
+			<!--ET_BEGIN subject-->
+			    <tr>
+	                <td class="aright vtop">Заглавие: </td>
+	                <td>[#subject#]</td>
+	            </tr>
+            <!--ET_END subject-->
+			
+			<!--ET_BEGIN email-->
+			    <tr>
+	                <td class="aright vtop">Имейл: </td>
+	                <td>[#email#]</td>
+	            </tr>
+            <!--ET_END email-->
+			
+			<!--ET_BEGIN type-->
+			    <tr>
+	                <td class="aright vtop">Тип: </td>
+	                <td>[#type#]</td>
+	            </tr>
+            <!--ET_END type-->
+		    
+		</table>
+	</div>
+    
+    <!--ET_BEGIN content-->
+	    <div style='padding:10px;'>
+	    	<div>[#content#]</div>
+	    </div>
+    <!--ET_END content-->
+    
+    <!--ET_BEGIN DETAILS-->
+	    <div class='details'>
+	        [#DETAILS#]
+	    </div>
+    <!--ET_END DETAILS--> 
+</div>
+
+<div style='clear: both;'></div>
