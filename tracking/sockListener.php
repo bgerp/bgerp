@@ -1,14 +1,14 @@
 <?php
 
 if ($argc < 5) {
-    die("Usage: <Protocol TCP/UDP> <IP> <Port> <Domain>\n");
+    die("Usage: <Protocol TCP/UDP> <IP> <Port> <LogUrl>\n");
 }
 
 // $argv[0]; Url=udp://11.0.0.64:8500
 $protocol = $argv[1];
 $ip = $argv[2];
 $port = $argv[3];
-$domain = $argv[4];
+$logUrl = $argv[4];
 
 $url = $protocol . "://" . $ip . ":" . $port;
 
@@ -26,7 +26,7 @@ do {
     $string = stream_socket_recvfrom($socket, 149, 0, $peer);
 
     // Ако са данни различни от команда ги пращаме към bgERP-a
-    $url = "http://{$domain}/tracking_Log/Log/?";
+    $url = $logUrl; // "http://{$domain}/tracking_Log/Log/?";
     $trackerData = splitData($string);
     
     if ($trackerData['CRC'] != crc16($trackerData['allData'])) {
