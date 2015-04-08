@@ -24,7 +24,7 @@ defIfNot('DATA_SENDER', '127.0.0.1');
 /**
  * Домейн на системата
  */
-defIfNot('LOG_URL', 'bgerp.local');
+defIfNot('LOG_URL', 'http://bgerp.local/tracking_Log/Log/?');
 
 /**
  * Период на рестартиране на сървиса
