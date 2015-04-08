@@ -170,19 +170,19 @@ class cat_SalesArticleReport extends frame_BaseDriver
 
         while($rec = $querySales->fetch()) {
         	
-        	$data->articleCnt['sales'][$rec->classId][$rec->createdBy][$rec->productId]++;
+        	$data->articleCnt['sales'][$rec->classId][$rec->productId]++;
 
         }
 
         while($recShipment = $queryShipment->fetch()) {
 
-            $data->articleCnt['shipment'][$recShipment->classId][$rec->createdBy][$recShipment->productId]++;
+            $data->articleCnt['shipment'][$recShipment->classId][$recShipment->productId]++;
 
         }
 
         while($recServices = $queryServices->fetch()) {
 
-            $data->articleCnt['services'][$recServices->classId][$rec->createdBy][$recServices->productId]++;
+            $data->articleCnt['services'][$recServices->classId][$recServices->productId]++;
 
         }
  
@@ -236,9 +236,7 @@ class cat_SalesArticleReport extends frame_BaseDriver
     
     	$f->FLD('article', 'class(interface=doc_DocumentIntf,select=title,allowEmpty)', 'caption=Продукт->Тип');
     	$f->FLD('salesCnt', 'int', 'caption=Брой срещания->Продажба');
-    	$f->FLD('shipmentCnt', 'int', 'caption=Брой срещания->Експедиционно нареждане');
-        $f->FLD('servicesCnt', 'int', 'caption=Брой срещания->Предавателен протокол');
-        $f->FLD('createdBy', 'key(mvc=core_Users,select=names)', 'caption=Продукт->Автор');
+    	$f->FLD('shipmentCnt', 'int', 'caption=Брой срещания->Доставка');
 
     	
     	$rows = array();
@@ -250,8 +248,7 @@ class cat_SalesArticleReport extends frame_BaseDriver
 
     	foreach ($data->articleCnt as $doc => $artCnt) {
     		foreach ($artCnt as $artClassId => $productCnt) {
-                foreach ($productCnt as $user => $productCnt) {
-                    foreach ($productCnt as $product => $cnt) {
+                foreach ($productCnt as $product => $cnt) {
                         if (!$pager->isOnPage()) continue;
 
                         $row = new stdClass();
@@ -260,12 +257,8 @@ class cat_SalesArticleReport extends frame_BaseDriver
                         if ($doc == 'sales') {
                             $row->salesCnt = $cntType->toVerbal($cnt);
                         }
-                        if ($doc == 'shipment') {
+                        if ($doc == 'shipment' || $doc == 'services') {
                             $row->shipmentCnt = $cntType->toVerbal($cnt);
-                        }
-
-                        if ($doc == 'services') {
-                            $row->servicesCnt = $cntType->toVerbal($cnt);
                         }
 
 
@@ -278,14 +271,12 @@ class cat_SalesArticleReport extends frame_BaseDriver
                         }
 
                         $rows[] = $row;
-                    }
                 }
     		}
     	}
 
     	$table = cls::get('core_TableView', array('mvc' => $f));
-    	$html = $table->get($rows, 'article=Продукт->Тип,createdBy=Продукт->Автор,salesCnt=Брой срещания->Продажба,shipmentCnt=Брой срещания->Експедиционно нареждане,
-    	                             servicesCnt=Брой срещания->Предавателен протокол');
+    	$html = $table->get($rows, 'article=Продукт->Тип,salesCnt=Брой срещания->Продажба,shipmentCnt=Брой срещания->Доставка');
     
     	$tpl->append($html, 'ARTICLE');
         $tpl->append($pager->getHtml(), 'PAGER');
