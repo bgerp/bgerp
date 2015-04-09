@@ -184,7 +184,7 @@ class sales_Invoices extends deals_InvoiceMaster
     	
     	$this->FLD('number', 'bigint', 'caption=Номер, export=Csv, after=place,input=none');
     	$this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 'caption=Статус, input=none,export=Csv');
-        $this->FLD('type', 'enum(invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие)', 'caption=Вид, input=hidden');
+        $this->FLD('type', 'enum(invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие,dc_note=Известие)', 'caption=Вид, input=hidden');
         
         $conf = core_Packs::getConfig('sales');
         if($conf->SALE_INV_HAS_FISC_PRINTERS == 'yes'){
@@ -351,8 +351,15 @@ class sales_Invoices extends deals_InvoiceMaster
     	parent::getVerbalInvoice($mvc, $rec, $row, $fields);
     	
     	if($fields['-single']){
+    		if($rec->type == 'dc_note'){
+    			$row->type = ($rec->dealValue <= 0) ? 'Кредитно известие' : 'Дебитно известие';
+    			$type = ($rec->dealValue <= 0) ? 'Credit note' : 'Debit note';
+    		} else {
+    			$type = $rec->type;
+    		}
+    		
     		if($rec->tplLang != 'bg'){
-    			$row->type = "<i>" . str_replace('_', " ", $rec->type) . "</i> / {$row->type}";
+    			$row->type = "<i>" . str_replace('_', " ", $type) . "</i> / {$row->type}";
     		}
     		
     		if($rec->accountId){
@@ -549,6 +556,9 @@ class sales_Invoices extends deals_InvoiceMaster
    			if($rec->invType){
    				if($rec->invType != 'all'){
    					$data->query->where("#type = '{$rec->invType}'");
+   					
+   					$sign = ($rec->invType == 'credit_note') ? "<=" : ">";
+   					$data->query->orWhere("#type = 'dc_note' AND #dealValue {$sign} 0");
    				}
    			}
    			

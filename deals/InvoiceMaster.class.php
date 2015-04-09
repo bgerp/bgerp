@@ -54,6 +54,12 @@ abstract class deals_InvoiceMaster extends core_Master
     
     
     /**
+     * Работен кеш
+     */
+    protected $cache = array();
+    
+    
+    /**
      * На кой ред в тулбара да се показва бутона за принтиране
      */
     public $printBtnToolbarRow = 1;
@@ -154,6 +160,24 @@ abstract class deals_InvoiceMaster extends core_Master
     
     
     /**
+     * Изпълнява се след обновяване на информацията за потребител
+     */
+    public static function on_AfterUpdate($mvc, $rec, $fields = NULL)
+    {
+    	if($rec->type === 'dc_note'){
+    		
+    		// Ако е известие и има поне един детайл обновяваме мастъра
+    		$Detail = $mvc->mainDetail;
+    		$query = $mvc->$Detail->getQuery();
+    		$query->where("#{$mvc->$Detail->masterKey} = '{$rec->id}'");
+    		if($query->fetch()){
+    			$mvc->updated[$rec->id] = $rec->id;
+    		}
+    	}
+    }
+    
+    
+    /**
      * След изпълнение на скрипта, обновява записите, които са за ъпдейт
      */
     public static function on_Shutdown($mvc)
@@ -204,7 +228,7 @@ abstract class deals_InvoiceMaster extends core_Master
     {
     	$type = Request::get('type');
     	if(!$type || $type == 'invoice') return;
-    	 
+    	
     	$title = ($type == 'debit_note') ? 'Дебитно известие' : 'Кредитно известие';
     	$mvc->singleTitle = $title;
     }
@@ -284,14 +308,9 @@ abstract class deals_InvoiceMaster extends core_Master
     {
     	$rec = &$data->rec;
     	 
-    	if($rec->type == 'invoice' && $rec->state == 'active' && $rec->dealValue){
-    		if($mvc->haveRightFor('add', (object)array('type' => 'debit_note','threadId' => $rec->threadId)) && $mvc->canAddToThread($rec->threadId)){
-    			$data->toolbar->addBtn('ДИ', array($mvc, 'add', 'originId' => $rec->containerId, 'type' => 'debit_note', 'ret_url' => TRUE), 'ef_icon=img/16/layout_join_vertical.png,title=Дебитно известие');
-    			
-    		}
-    		
-    		if($mvc->haveRightFor('add', (object)array('type' => 'credit_note','threadId' => $rec->threadId)) && $mvc->canAddToThread($rec->threadId)){
-    			$data->toolbar->addBtn('КИ', array($mvc, 'add','originId' => $rec->containerId, 'type' => 'credit_note', 'ret_url' => TRUE), 'ef_icon=img/16/layout_split_vertical.png,title=Кредитно известие');
+    	if($rec->type == 'invoice' && $rec->state == 'active'){
+    		if($mvc->haveRightFor('add', (object)array('type' => 'dc_note','threadId' => $rec->threadId)) && $mvc->canAddToThread($rec->threadId)){
+    			$data->toolbar->addBtn('Известие', array($mvc, 'add', 'originId' => $rec->containerId, 'type' => 'dc_note', 'ret_url' => TRUE), 'ef_icon=img/16/layout_join_vertical.png,title=Дебитно или кредитно известие към документа,rows=2');
     		}
     	}
     }
@@ -312,9 +331,28 @@ abstract class deals_InvoiceMaster extends core_Master
     	$number = $origin->getInstance()->recToVerbal((object)$invArr)->number;
     	 
     	$invDate = dt::mysql2verbal($invArr['date'], 'd.m.Y');
-    	$invArr['reason'] = tr("|{$caption} към фактура|* №{$number} |издадена на|* {$invDate}");
+    	
+    	if($invArr['type'] != 'dc_note'){
+    		$form->setField('changeAmount', "unit={$invArr['currencyId']} без ДДС");
+    		$form->setField('changeAmount', "input,caption=Задаване на нова стойност на фактура->Нова стойност");
+    		
+    		if($invArr['dpOperation'] == 'accrued'){
+    			
+    			// Ако е известие към авансова ф-ра поставяме за дефолт сумата на фактурата
+    			$caption = '|Промяна на авансово плащане|*';
+    			$form->setField('changeAmount', "caption={$caption}->|Аванс|*,mandatory");
+    			$dpAmount = $invArr['dpAmount'] / $invArr['rate'];
+    			$form->setDefault('changeAmount', $dpAmount);
+    			$form->rec->originalNoteAmount = $dpAmount;
+    		} else {
+    			$old = round($invArr['dealValue'] / $invArr['rate'], 2);
+    			$form->FNC('oldAmount', 'double', "input,caption=Стара цена,after=changeAmount,unit={$invArr['currencyId']} без ДДС");
+    			$form->setDefault('oldAmount', $old);
+    			$form->setReadOnly('oldAmount');
+    		}
+    	}
     
-    	foreach(array('id', 'number', 'date', 'containerId', 'additionalInfo', 'dealValue', 'vatAmount', 'state', 'discountAmount', 'createdOn', 'createdBy', 'modifiedOn', 'modifiedBy', 'vatDate') as $key){
+    	foreach(array('id', 'number', 'date', 'containerId', 'additionalInfo', 'dealValue', 'vatAmount', 'state', 'discountAmount', 'createdOn', 'createdBy', 'modifiedOn', 'modifiedBy', 'vatDate', 'dpAmount') as $key){
     		unset($invArr[$key]);
     	}
     
@@ -329,11 +367,8 @@ abstract class deals_InvoiceMaster extends core_Master
     	}
     	 
     	$form->setDefault('date', dt::today());
-    	$form->setField('reason', 'input');
-    	$form->setField('changeAmount', 'input');
-    	$form->setField('changeAmount', "unit={$form->rec->currencyId} без ДДС");
+    	
     	$form->setField('vatRate', 'input=hidden');
-    	$form->setField('reason', 'input,mandatory');
     	$form->setField('deliveryId', 'input=none');
     	$form->setField('deliveryPlaceId', 'input=none');
     
@@ -342,8 +377,6 @@ abstract class deals_InvoiceMaster extends core_Master
     			$form->setReadOnly($name);
     		}
     	}
-    
-    	$form->setField('changeAmount', "caption=Плащане->{$caption},mandatory");
     }
     
 
@@ -441,14 +474,15 @@ abstract class deals_InvoiceMaster extends core_Master
     */
    public static function on_AfterCanActivate($mvc, &$res, $rec)
    {
-	   	// ДИ и КИ могат да се активират винаги
-	   	if($rec->type != 'invoice' && isset($rec->changeAmount)){
-	   		$res = ($rec->changeAmount >= 0) ? TRUE : FALSE;
-	   		return;
+	   	if($rec->type == 'dc_note' && isset($rec->changeAmount)){
+	   		return $res = TRUE;
 	   	}
-	   	 
+	   	
 	   	// Ако няма ид, не може да се активира документа
-	   	if(empty($rec->id) && !isset($rec->dpAmount)) return $res = FALSE;
+	   	if(empty($rec->id) && !isset($rec->dpAmount)) {
+	   		
+	   		return $res = FALSE;
+	   	}
 	   	 
 	   	// Ако има Авансово плащане може да се активира
 	   	if(isset($rec->dpAmount)){
@@ -460,6 +494,30 @@ abstract class deals_InvoiceMaster extends core_Master
 	   	$Detail = $mvc->mainDetail;
 	   	$dQuery = $mvc->$Detail->getQuery();
 	   	$dQuery->where("#{$mvc->$Detail->masterKey} = {$rec->id}");
+	   	
+	   	if($rec->type == 'dc_note'){
+	   		$cached = $mvc->getInvoiceDetailedInfo($rec->originId);
+	   		
+	   		$cloneQuery = clone $dQuery;
+	   		while($dRec = $cloneQuery->fetch()){
+	   			$difQuantity = $dRec->quantity - $cached[$dRec->productId][$dRec->packagingId]['quantity'];
+	   			$difPrice = $dRec->packPrice - $cached[$dRec->productId][$dRec->packagingId]['price'];
+	   			
+	   			if(round($difQuantity, 5) != 0 || round($difPrice, 5) != 0){
+	   				$res = TRUE;
+	   				return;
+	   			}
+	   		}
+	   		
+	   		// Ако няма детайли и има сума за промяна може да се активира
+	   		if(!$dRec && isset($rec->changeAmount)){
+	   			$res = TRUE;
+	   			return;
+	   		}
+	   		
+	   		$res = FALSE;
+	   	}
+	   	
 	   	$dQuery->where("#quantity = 0");
 	   	 
 	   	// Ако има поне едно 0-во к-во документа, не може да се активира
@@ -467,8 +525,8 @@ abstract class deals_InvoiceMaster extends core_Master
 	   		$res = FALSE;
 	   	}
    }
-
-
+   
+   
    /**
     * Генерира фактура от пораждащ документ: може да се породи от:
     * 
@@ -487,6 +545,22 @@ abstract class deals_InvoiceMaster extends core_Master
 	   		$packs = $info->get('shippedPacks');
 	   		
 	   		$mvc::prepareProductFromOrigin($mvc, $rec, $agreed, $products, $invoiced, $packs);
+	   	} elseif($origin->getInstance() instanceof $mvc){
+	   		$dpOperation = $origin->fetchField('dpOperation');
+	   		
+	   		// Ако начисляваме аванс или има въведена нова стойност не се копират детайлите
+	   		if($dpOperation == 'accrued' || isset($rec->changeAmount)) return;
+	   		
+	   		$Detail = $mvc->mainDetail;
+	   		$query = $mvc->$Detail->getQuery();
+	   		$query->where("#{$mvc->$Detail->masterKey} = '{$origin->that}'");
+	   		
+	   		while($dRec = $query->fetch()){
+	   			$dRec->{$mvc->$Detail->masterKey} = $rec->id;
+	   			unset($dRec->id);
+	   			
+	   			$Detail::save($dRec);
+	   		}
 	   	}
    }
    
@@ -556,7 +630,7 @@ abstract class deals_InvoiceMaster extends core_Master
    {
 	   	parent::prepareSingle_($data);
 	   	$rec = &$data->rec;
-	   	 
+	   	
 	   	if(empty($data->noTotal)){
 	   		if(isset($rec->type) && $rec->type != 'invoice'){
 	   			$this->_total = new stdClass();
@@ -688,6 +762,12 @@ abstract class deals_InvoiceMaster extends core_Master
     	if ($form->isSubmitted()) {
     		$rec = &$form->rec;
     		 
+    		if(isset($rec->originalNoteAmount) && isset($rec->changeAmount)){
+    			if(round($rec->originalNoteAmount, 5) == round($rec->changeAmount, 5)){
+    				$form->setError('changeAmount', "Няма промяна в аванса");
+    			}
+    		}
+    		
     		// Извлича се платежния план
     		if($form->rec->paymentMethodId){
     			if(isset($form->aggregateInfo)){
@@ -734,12 +814,18 @@ abstract class deals_InvoiceMaster extends core_Master
     				$vat = 0;
     			}
     			
-    			$rec->vatAmount = $rec->changeAmount * $vat;
-    			$rec->vatAmount *= $rec->rate;
-    
-    			// Стойността е променената сума
-    			$rec->dealValue = $rec->changeAmount;
-    			$rec->dealValue *= $rec->rate;
+    			$origin = doc_Containers::getDocument($rec->originId);
+    			$originRec = $origin->fetch('dpAmount,dpOperation,dealValue');
+    			
+    			if($originRec->dpOperation == 'accrued' || isset($rec->changeAmount)){
+    				$originAmount = ($originRec->dpAmount && $originRec->dpOperation == 'accrued') ? $originRec->dpAmount : $originRec->dealValue;
+    				
+    				$diff = ($rec->changeAmount * $rec->rate)- $originAmount;
+    				$rec->vatAmount = $diff * $vat;
+    				
+    				// Стойността е променената сума
+    				$rec->dealValue = $diff;
+    			}
     		}
     	}
     
@@ -944,5 +1030,28 @@ abstract class deals_InvoiceMaster extends core_Master
     public static function on_AfterInputDpInvoice($mvc, &$res, &$form)
     {
     	
+    }
+    
+    
+    /**
+     * Кешира информация за оригиналните стойностти на детайлите на известието
+     */
+    public function getInvoiceDetailedInfo($containerId)
+    {
+    	expect($document = doc_Containers::getDocument($containerId));
+    	expect($document->getInstance() instanceof $this);
+    	
+    	if(!isset($this->cache[$containerId])){
+    		$cache = array();
+    		$Detail = $this->mainDetail;
+    		$query = $Detail::getQuery();
+    		$query->where("#{$this->$Detail->masterKey} = '{$document->that}'");
+    		while($dRec = $query->fetch()){
+    			$cache[$dRec->productId][$dRec->packagingId] = array('quantity' => $dRec->quantity, 'price' => $dRec->packPrice);
+    		}
+    		$this->cache[$containerId] = $cache;
+    	}
+    	
+    	return $this->cache[$containerId];
     }
 }
