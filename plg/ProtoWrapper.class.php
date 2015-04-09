@@ -28,8 +28,14 @@ class plg_ProtoWrapper extends core_Plugin
      * Страница от менюто
      */
     var $pageMenu;
-
-
+    
+    
+    /**
+     * 
+     */
+    public $tabs = array();
+    
+    
     /**
      * Добавяне на таб. Изпълянва се в ->description()
      */
