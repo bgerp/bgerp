@@ -753,13 +753,13 @@ class blast_Letters extends core_Master
                 }
             }
             
+            $cntAllNewId = count($allNewId);
+            
             // Ако имаме поне един нов запис
-            if (count($allNewId)) {
+            if ($cntAllNewId) {
                 
                 // Сортираме масива, като най - отгоре са записити с най - малко id
                 asort($allNewId);
-                
-                $cntAllNewId = count($allNewId);
                 
                 // Групираме записите по максималния брой, който ще се печатат заедно
                 for ($i = 0; $i < $cntAllNewId; $i = $i + $numLetters) {
