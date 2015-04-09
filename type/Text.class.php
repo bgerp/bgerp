@@ -117,10 +117,12 @@ class type_Text extends core_Type {
             $splitLines = array_merge($splitLines, static::splitToLines(trim($line), $width));
         }
         
-        if (count($splitLines) > 1) {
+        $splitLinesCnt = count($splitLines);
+        
+        if ($splitLinesCnt > 1) {
             $padStr = str_repeat(' ', $firstLine);
             
-            for ($i = 1; $i < count($splitLines); $i++) {
+            for ($i = 1; $i < $splitLinesCnt; $i++) {
                 $splitLines[$i] = $padStr . $splitLines[$i];
             }
         }
