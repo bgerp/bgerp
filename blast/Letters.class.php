@@ -497,7 +497,7 @@ class blast_Letters extends core_Master
     function on_AfterGetDocumentBody($mvc, &$res, $id, $mode = 'html', $options = NULL)
     {
         // Връщаме стария език
-        core_Lg::pop('lg');
+        core_Lg::pop();
     }
     
     
@@ -759,8 +759,10 @@ class blast_Letters extends core_Master
                 // Сортираме масива, като най - отгоре са записити с най - малко id
                 asort($allNewId);
                 
+                $cntAllNewId = count($allNewId);
+                
                 // Групираме записите по максималния брой, който ще се печатат заедно
-                for ($i = 0; $i < count($allNewId); $i = $i + $numLetters) {
+                for ($i = 0; $i < $cntAllNewId; $i = $i + $numLetters) {
                     $slicedNewId = array_slice($allNewId, $i, $numLetters, TRUE);
                     $keylist = keylist::fromArray($slicedNewId);
                     
@@ -1080,6 +1082,8 @@ class blast_Letters extends core_Master
             
             // Вземаме всички шаблони, които се използват
             $bodyAndSubPlaceHolder = $bodyAndSubTpl->getPlaceHolders();
+            
+            $fieldsArr = array();
             
             // Обхождаме масива с плейсхолдерите
             foreach ((array)$onlyAllFieldsArr as $field) {
