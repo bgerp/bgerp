@@ -13,14 +13,18 @@
  */
 class chartjs_Adapter extends  core_Mvc
 {
-	static function render_($data, $chartType)
+    /**
+     * @param $data - данните, които ще изчератаваме
+     * @param $chartType - тип на диаграмата:  'line', 'bar', 'pie'
+     * @return $tpl
+     */
+    public static function render_($data, $chartType)
     {
         $tpl = new ET();
         static $chartCnt;
         if(!$chartCnt) $orgChartCnt = 0;
         $chartCnt++;
         $idChart = 'myChart' . $chartCnt;
-
 
         $chart = ht::createElement('canvas',  array('id' => $idChart, "width" => "300", 'height' => '300'), $tpl);
         $tpl->append("<div class='chartHolder chart-$chartType'>" . $chart . "</div>");
