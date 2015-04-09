@@ -192,17 +192,8 @@ abstract class deals_Helper
 	 * 		->sayWords        - крайната сума изписана с думи
 	 * 
 	 */
-	
-	static $v = 0;
-	
-	
 	public static function prepareSummary($values, $date, $currencyRate, $currencyId, $chargeVat, $invoice = FALSE, $lang = 'bg')
 	{
-		static::$v++;
-		if(static::$v == 5){
-			//bp($values);
-		}
-		
 		// Стойностите на сумата на всеки ред, ддс-то и отстъпката са във валутата на документа
 		$arr = array();
 		
