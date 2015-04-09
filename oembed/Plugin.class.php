@@ -124,7 +124,7 @@ class oembed_Plugin extends core_Plugin
             
             $place = $hostObj->getPlace();
             
-            $hostObj->_htmlBoard[$place] = core_Html::createElement('div', array('class'=>'embedded-holder'), '<div class="embedded">'.$html.'</div>' . "<small>{$link}</small>", TRUE);
+            $hostObj->_htmlBoard[$place] = core_Html::createElement('div', array('class'=>'embedded-holder'), '<div class="embedded">'.$html.'</div>', TRUE);
             
             $htmlString = "[#{$place}#]";
         }
