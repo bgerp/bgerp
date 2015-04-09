@@ -491,7 +491,9 @@ class doc_UnsortedFolders extends core_Master
 		$params = $others->otherParams;
 		$header = $others->headerInfo;
         
-    	for ($i = 0; $i <= (count($resTask)); $i++){
+		$cntResTask = count($resTask);
+		
+    	for ($i = 0; $i <= ($cntResTask); $i++){
         	// Проверка дали ще има URL
         	if ($resTask[$i]['url'] == 'yes') {
         		// Слагаме линк
