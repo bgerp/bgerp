@@ -221,7 +221,7 @@ class archive_Adapter
      *
      * @param string $path - Вътрешния път в архива
      *
-     * @param fileHandler $fh - Манипулатора на файла
+     * @param string - Манипулатора на файла
      */
     protected function absorbFile($path)
     {
