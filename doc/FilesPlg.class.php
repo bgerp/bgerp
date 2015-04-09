@@ -181,13 +181,13 @@ class doc_FilesPlg extends core_Plugin
     /**
      * Връща масив с линковете на папката и документа, където се среща за първи път файла
      * 
-     * @param core_Mvc $mvc - 
+     * @param core_Mvc $mvc
      * @param array $res - Двумерен масив, който съдържа линка и id' то на папкта и документите
-     * @param array $res['folder'] - Масив с id' то и линка на папката
-     * @param array $res['firstContainer'] - Масив с id' то и линка към първия документ на нишката
-     * @param array $res['container'] - Масив с id' то и линка към контейнера
-     * @param string $res[X]['id'] - id' то
-     * @param core_Et $res[X]['content'] - Линка
+     * array $res['folder'] - Масив с id' то и линка на папката
+     * array $res['firstContainer'] - Масив с id' то и линка към първия документ на нишката
+     * array $res['container'] - Масив с id' то и линка към контейнера
+     * string $res[X]['id'] - id' то
+     * core_Et $res[X]['content'] - Линка
      * @param fileman_Files $rec - Записите за файла
      */
     function on_AfterGetFirstContainerLinks($mvc, &$res, $rec)
