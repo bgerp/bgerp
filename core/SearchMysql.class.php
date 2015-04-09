@@ -316,7 +316,9 @@ class core_SearchMysql extends core_BaseClass
         
         $offset = 0;
         
-        for ($i = 0; $i < count($textChunks); $i++) {
+        $textChunksCnt = count($textChunks);
+        
+        for ($i = 0; $i < $textChunksCnt; $i++) {
             $origLength = strlen($textChunks[$i][0]);
             $textChunks[$i][0] = $this->hiliteText($textChunks[$i][0], $prefix, $suffix);
             $newLength = strlen($textChunks[$i][0]);
