@@ -375,17 +375,20 @@ class cat_Boms extends core_Master
      * Връща информация с ресурсите използвани в технологичната рецепта
      *
      * @param mixed $id - ид или запис
-     * @return array $res - масив с записи на участващите ресурси
-     * 			o $res->resourceId       - ид на ресурса
-     * 			или o $res->productId        - отпаден артикул
-     * 			o $res->baseQuantity     - начално количество на ресурса
-     * 			o $res->propQuantity     - пропорционално количество на ресурса
+     * @return array $res - Информация за рецептата
+     * 				->quantity - к-во
+     * 				->resources
+     * 			        o $res->resourceId       - ид на ресурса
+     * 					o $res->type             - вложим или отпаден ресурс
+	 * 			        o $res->baseQuantity     - начално количество на ресурса
+	 * 			        o $res->propQuantity     - пропорционално количество на ресурса
      */
     public static function getResourceInfo($id)
     {
     	$resources = array();
     	
     	expect($rec = static::fetchRec($id));
+    	$resources['quantity'] = ($rec->quantity) ? $rec->quantity : 1;
     	
     	// Намираме всички етапи в рецептата
     	$dQuery = cat_BomDetails::getQuery();
@@ -400,7 +403,7 @@ class cat_Boms extends core_Master
     		$arr['baseQuantity'] = $dRec->baseQuantity;
     		$arr['propQuantity'] = $dRec->propQuantity;
     		 
-    		$resources[] = (object)$arr;
+    		$resources['resources'][] = (object)$arr;
     	}
     	
     	// Връщаме намерените ресурси
