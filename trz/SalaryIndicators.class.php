@@ -233,9 +233,11 @@ class trz_SalaryIndicators extends core_Manager
     		// Взимаме връщания масив от интерфейсния метод
     	    $data = $Class->getSalaryIndicators($date);
 
+    	    $dataCnt = count($data);
+    	    
     	    // По id-то на служителя, намираме от договора му
     	    // в кой отдел и на каква позиция работи
-    	    for($i = 0; $i < count($data); $i ++){
+    	    for($i = 0; $i < $dataCnt; $i ++){
     	    	$data[$i]->departmentId = hr_EmployeeContracts::fetchField("#personId = '{$data[$i]->personId}'", 'departmentId');
     	    	$data[$i]->positionId = hr_EmployeeContracts::fetchField("#personId = '{$data[$i]->personId}'", 'positionId');
     	    	
