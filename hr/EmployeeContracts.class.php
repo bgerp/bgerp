@@ -453,12 +453,12 @@ class hr_EmployeeContracts extends core_Master
                 "descriptions", "sharedUsers", "sharedViews", "searchKeywords", "professionId",
                 "folderId", "threadId", "containerId", "originId", "state", "brState",
                 "lastUsedOn", "createdOn", "createdBy", "modifiedOn", "modifiedBy", "lists");
-            
+            $sysArrayCnt = count($sysArray);
             // От всички полета на модела
             foreach($rec as $name=>$value){
                 $formField[$name] = $name;
                 
-                for($i = 0; $i <= count($sysArray); $i++){
+                for($i = 0; $i <= $sysArrayCnt; $i++){
                     // махаме тези от помощния масив
                     unset($formField[$sysArray[$i]]);
                 }
