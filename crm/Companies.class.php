@@ -658,9 +658,15 @@ class crm_Companies extends core_Master
     
 	/**
      * Обновява номера за фирмата
+     * 
+     * @param object $rec
+     * 
+     * @return array
      */
     public static function updateNumbers($rec)
     {
+        $numbersArr = array();
+        
         // Ако има телефон
         if ($rec->tel) {
             
@@ -677,6 +683,8 @@ class crm_Companies extends core_Master
         
         // Вземаме id на класа
         $classId = static::getClassId();
+        
+        $numArr = array();
         
         // Ако е инсталиран пакета
         if (core_Packs::isInstalled('callcenter')) {
@@ -1194,7 +1202,7 @@ class crm_Companies extends core_Master
      * Вземаме всики папки на които сме inCharge или са споделени с нас или са публични или 
      * (са екипни и inCharge е някой от нашия екип) и състоянието е активно
      * 
-     * @param crm_Persons $query - Заявката към системата
+     * @param core_Query $query - Заявката към системата
      * @param int $userId - Потребителя, за който ще се отнася
      */
     static function applyAccessQuery(&$query, $userId = NULL)
@@ -1247,7 +1255,7 @@ class crm_Companies extends core_Master
      * 
      * @param email $email - Имейл, за който търсим
      * 
-     * @return integet $fodlerId - id на папката
+     * @return integet|boolean $fodlerId - id на папката
      */
     static function getFolderFromEmail($email)
     {
