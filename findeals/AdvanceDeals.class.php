@@ -155,13 +155,14 @@ class findeals_AdvanceDeals extends findeals_Deals
     
     
     /**
-     * Преди показване на форма за добавяне/промяна
+     * След дефиниране на полетата на модела
+     *
+     * @param core_Mvc $mvc
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    public static function on_AfterDescription(core_Master &$mvc)
     {
-    	$options = cls::get('acc_Accounts')->makeArray4Select($select, array("#num LIKE '[#1#]%' AND state NOT IN ('closed')", $root));
-    	acc_type_Account::filterSuggestions('crm_PersonAccRegIntf|deals_DealsAccRegIntf|currency_CurrenciesAccRegIntf', $options);
-    	$data->form->setOptions('accountId', $options);
+    	// Ограничаваме избора на възможните сметки
+    	$mvc->setFieldTypeParams('accountId', array('regInterfaces' => 'crm_PersonAccRegIntf|deals_DealsAccRegIntf|currency_CurrenciesAccRegIntf'));
     }
     
     
