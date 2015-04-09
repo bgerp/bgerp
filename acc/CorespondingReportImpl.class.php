@@ -26,7 +26,7 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     /**
      * Заглавие
      */
-    public $title = 'Счетоводство->Справка за кореспонденция по сметки';
+    public $title = 'Счетоводство->Кореспонденция по сметка';
     
     
     /**
@@ -39,6 +39,12 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
      * Брой записи на страница
      */
     public $listItemsPerPage = 30;
+    
+    
+    /**
+     * Работен кеш
+     */
+    public $cache = array();
     
     
     /**
@@ -149,6 +155,40 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     		$data->Pager = cls::get('core_Pager',  array('itemsPerPage' => $this->listItemsPerPage));
     		$data->Pager->itemsCount = count($data->recs);
     		
+    		foreach ($data->recs as $rec1){
+    			foreach (range(1, 3) as $i){
+    				if(isset($rec1->{"item{$i}"})){
+    					$this->cache[$rec1->{"item{$i}"}] = $rec1->{"item{$i}"};
+    				}
+    			}
+    		}
+    		
+    		// Кешираме номерата на перата в отчета
+    		if(count($this->cache)){
+    			$iQuery = acc_Items::getQuery();
+    			$iQuery->show("num");
+    			$iQuery->in('id', $this->cache);
+    			 
+    			while($iRec = $iQuery->fetch()){
+    				$this->cache[$iRec->id] = $iRec->num;
+    			}
+    		}
+    		
+    		// Подготвяме поле за сортиране по номерата на перата
+    		foreach ($data->recs as &$rec){
+    			$rec->sortField = '';
+    			foreach (range(1, 3) as $j){
+    				if(isset($rec->{"item{$j}"})){
+    					$rec->sortField .= $this->cache[$rec->{"item{$j}"}];
+    				}
+    			}
+    			
+    			$rec->sortField = strtolower(str::utf2ascii($rec->sortField));
+    		}
+    		
+    		// Сортираме записите според полето за сравнение
+    		usort($data->recs, array($this, "sortRecs"));
+    		
     		// За всеки запис
     		foreach ($data->recs as &$rec){
     			
@@ -159,6 +199,19 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     			$data->rows[] = $this->getVerbalRec($rec);
     		}
     	}
+    }
+    
+    
+    /**
+     * Филтриране на записите по код
+     * Подрежда кодовете или свойствата във възходящ ред.
+     * Ако първата аналитичност са еднакви, сравнява по кодовете на втората ако и те по тези на третата
+     */
+    private function sortRecs($a, $b)
+    {
+    	if($a->sortField == $b->sortField) return 0;
+    
+    	return (strnatcasecmp($a->sortField, $b->sortField) < 0) ? -1 : 1;
     }
     
     

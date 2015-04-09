@@ -441,33 +441,6 @@ class cat_Products extends core_Embedder {
     
     
     /**
-     * Извлича мета данните на продукт според групите в които участва
-     * 
-     * @param mixed $groups - групи в които участва
-     */
-    public static function getMetaData($groups)
-    {
-    	if($groups){
-    		$meta = array();
-    		if(!is_array($groups)){
-    			 $groups = keylist::toArray($groups);
-    		}
-		    foreach($groups as $grId){
-		    	$grRec = cat_Groups::fetch($grId);
-		    	if($grRec->meta){
-		    		$arr = explode(",", $grRec->meta);
-		    		$meta = array_merge($meta, array_combine($arr, $arr));
-		    	}
-		    }
-		    
-		    return implode(',', $meta);
-    	}
-    	
-    	return '';
-    }
-    
-    
-    /**
      * Филтър на on_AfterPrepareListFilter()
      * Малко манипулации след подготвянето на формата за филтриране
      *

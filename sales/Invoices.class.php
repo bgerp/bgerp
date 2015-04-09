@@ -358,7 +358,12 @@ class sales_Invoices extends deals_InvoiceMaster
     		if($rec->accountId){
     			$Varchar = cls::get('type_Varchar');
     			$ownAcc = bank_OwnAccounts::getOwnAccountInfo($rec->accountId);
+    			
     			$row->bank = $Varchar->toVerbal($ownAcc->bank);
+    			if($rec->tplLang != 'bg'){
+    				$row->bank = str::utf2ascii($row->bank);
+    				$row->place = str::utf2ascii($row->place);
+    			}
     			$row->bic = $Varchar->toVerbal($ownAcc->bic);
     		}
     	}

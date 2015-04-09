@@ -38,7 +38,7 @@ class acc_HistoryReportImpl extends frame_BaseDriver
 	/**
 	 * Заглавие
 	 */
-	public $title = 'Счетоводство->Хронологична справка на аналитична сметка';
+	public $title = 'Счетоводство->Хронология на аналитична сметка';
 	
 	
 	/**

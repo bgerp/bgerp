@@ -9,11 +9,13 @@
  */
 function formatSelect2Data(data)
 {
+	var text = data.text;
+	
 	if (!data.element || !data.element.noEscape) {
-		data.text = getEO().escape(data.text);
+		text = getEO().escape(text);
 	}
 	
-	if (data.loading) return data.text;
+	if (data.loading) return text;
 	
 	var res = '<span';
 	
@@ -21,7 +23,7 @@ function formatSelect2Data(data)
 		res += ' class=\"' + data.element.className + '\"';
 	}
 	
-	res += '>' + data.text + '</span>';
+	res += '>' + text + '</span>';
 	
 	return $(res);
 }

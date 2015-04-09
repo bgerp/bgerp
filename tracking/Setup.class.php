@@ -24,7 +24,7 @@ defIfNot('DATA_SENDER', '127.0.0.1');
 /**
  * Домейн на системата
  */
-defIfNot('DOMAIN', 'bgerp.local');
+defIfNot('LOG_URL', 'http://bgerp.local/tracking_Log/Log/?');
 
 /**
  * Период на рестартиране на сървиса
@@ -87,7 +87,7 @@ class tracking_Setup extends core_ProtoSetup
             'PORT' => array ('int', 'mandatory, caption=Порт'),
             'PROTOCOL' => array ('enum(udp=udp, tcp=tcp)', 'mandatory, caption=Протокол'),
             'DATA_SENDER' => array ('ip', 'mandatory, caption=Адрес на изпращач'),
-            'DOMAIN' => array ('varchar(255)', 'mandatory, caption=Домейн'),
+            'LOG_URL' => array ('varchar(255)', 'mandatory, caption=Url за логване'),
             'RESTART_PERIOD' => array ('int()', 'mandatory, caption=Период за рестарт'),
             'PID' => array ('varchar(readonly)', 'caption=PID на процеса за слушане,input=readonly,readonly'),
            // 'CMD' => array ('varchar(255)', 'input=hidden, caption=Команда на процеса'),
@@ -172,9 +172,9 @@ class tracking_Setup extends core_ProtoSetup
         if (!self::isStarted()) {
     
             $cmd = "php " . realpath(dirname(__FILE__)) . "/sockListener.php"
-                    . " " . $conf->PROTOCOL . " " . getHostByName($conf->DOMAIN)
+                    . " " . $conf->PROTOCOL . " " . $conf->LOCAL_IP
                     . " " . $conf->PORT
-                    . " " . $conf->DOMAIN;
+                    . " " . $conf->LOG_URL;
     
             $pid = exec(sprintf("%s > /dev/null 2>&1 & echo $!", $cmd));
 

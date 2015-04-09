@@ -100,7 +100,7 @@ a.datepick-cmd {
 .select2-results__group, span.team{
 	cursor: default;
 	color: #fff;
-	background-color: #333;
+	background-color: #777;
 	font-weight: bold;
 }
 span.all-users{ 

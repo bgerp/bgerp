@@ -339,7 +339,7 @@ class doc_DocumentPlg extends core_Plugin
             // създаваме нов контейнер за документите от този клас 
             // и записваме връзка към новия контейнер в този документ
             if(!isset($rec->containerId)) {
-                $rec->containerId = doc_Containers::create($mvc, $rec->threadId, $rec->folderId, $rec->createdOn);
+                $rec->containerId = doc_Containers::create($mvc, $rec->threadId, $rec->folderId, $rec->createdOn, $rec->createdBy);
             }
             
             // Задаваме началното състояние по подразбиране
@@ -348,8 +348,13 @@ class doc_DocumentPlg extends core_Plugin
             }
             
             // Задаваме стойностите на created полетата
-            $rec->createdBy = Users::getCurrent() ? Users::getCurrent() : 0;
-            $rec->createdOn = dt::verbal2Mysql();
+            if (!isset($rec->createdBy)) {
+                $rec->createdBy = Users::getCurrent() ? Users::getCurrent() : 0;
+            }
+            
+            if (!isset($rec->createdOn)) {
+                $rec->createdOn = dt::verbal2Mysql();
+            }
         }
         
         // Задаваме стойностите на полетата за последно модифициране
@@ -442,13 +447,13 @@ class doc_DocumentPlg extends core_Plugin
         
         // Ако нямаме тред - създаваме нов тред в тази папка
         if(!$rec->threadId) {
-            $rec->threadId = doc_Threads::create($rec->folderId, $rec->createdOn);
+            $rec->threadId = doc_Threads::create($rec->folderId, $rec->createdOn, $rec->createdBy);
         }
         
         // Ако нямаме контейнер - създаваме нов контейнер за 
         // този клас документи в определения тред
         if(!$rec->containerId) {
-            $rec->containerId = doc_Containers::create($mvc, $rec->threadId, $rec->folderId, $rec->createdOn);
+            $rec->containerId = doc_Containers::create($mvc, $rec->threadId, $rec->folderId, $rec->createdOn, $rec->createdBy);
         }
     }
     
