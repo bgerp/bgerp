@@ -295,10 +295,10 @@ class barcode_Generator extends core_Manager
      *
      * Показва изображението и спира изпълнението на скрипта
      */
-    static function printImg($type, $conten, $size, $params = array())
+    static function printImg($type, $content, $size, $params = array())
     {
         // Вземаме изображението
-        $im = self::getImg($type, $conten, $size, $params);
+        $im = self::getImg($type, $content, $size, $params);
         
         // Ако е ресурс
         if (is_resource($im)) {
