@@ -540,13 +540,7 @@ class acc_BalanceHistory extends core_Manager
         
         try{
         	$Class = cls::get($rec['docType']);
-            $title = $Class->getTitleById($rec['docId']);
-            
-            if($Class->haveRightFor('single', $rec['docId'])){
-                $title = ht::createLinkRef($title, array($Class, 'single', $rec['docId']));
-            }
-            
-            $arr['docId'] = $title;
+            $arr['docId'] = $Class->getShortHyperLink($rec['docId']);
             $arr['reason'] = $Class->getContoReason($rec['docId'], $rec['reasonCode']);
         } catch(core_exception_Expect $e){
             if(is_numeric($rec['docId'])){

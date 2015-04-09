@@ -209,8 +209,7 @@ class sales_SalesDetails extends deals_DealDetail
     	$row = new stdClass();
     	
     	// Кой е артикула
-    	$row->productId = cls::get($rec->classId)->getTitleById($rec->productId);
-    	$row->productId = ht::createLinkRef($row->productId, array($rec->classId, 'single', $rec->productId));
+    	$row->productId = cls::get($rec->classId)->getShortHyperLink($rec->productId);
     	
     	if($masterRec->state == 'active') {
     		
