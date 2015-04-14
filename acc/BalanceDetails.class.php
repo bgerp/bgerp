@@ -939,13 +939,17 @@ class acc_BalanceDetails extends core_Detail
     						// И има интерфейс за дефолт цена
     						if(cls::haveInterface('acc_RegistryDefaultCostIntf', $itemRec->classId)){
     							
-    							// Извличаме дефолт цената му според записа
-    							$Register = cls::get($itemRec->classId);
-    							$defCost = $Register->getDefaultCost($itemRec->objectId);
-    							
-    							// Присвояваме дефолт сумата за сума на записа, и преизчисляваме цената
-    							$rec->amount = $defCost * $rec->{$quantityField};
-    							@$price = round($rec->amount / $rec->{$quantityField}, 4);
+    							// Ако сметката има стратегия сметката
+    							if(acc_Accounts::hasStrategy($rec->{"{$type}AccId"})){
+    								
+    								// Извличаме дефолт цената му според записа
+    								$Register = cls::get($itemRec->classId);
+    								$defCost = $Register->getDefaultCost($itemRec->objectId);
+    									
+    								// Присвояваме дефолт сумата за сума на записа, и преизчисляваме цената
+    								$rec->amount = $defCost * $rec->{$quantityField};
+    								@$price = round($rec->amount / $rec->{$quantityField}, 4);
+    							}
     						}
     					}
     				}
