@@ -114,6 +114,12 @@ class acc_Accounts extends core_Manager
     
     
     /**
+     * Работен кеш
+     */
+    private static $cache = array();
+    
+    
+    /**
      * 
      */
     private static $idToNumMap;
@@ -701,5 +707,23 @@ class acc_Accounts extends core_Manager
         }
         
         return $acc;
+    }
+    
+    
+    /**
+     * Връща дали сметката има стратегия
+     * Кешира резултатите за бързодействие
+     * 
+     * @param int $id - ид  на сметка
+     */
+    public static function hasStrategy($id)
+    {
+    	expect(is_numeric($id));
+    	
+    	if(!isset(self::$cache[$id])){
+    		self::$cache[$id] = !empty(self::fetchField($id, 'strategy'));
+    	}
+    	
+    	return self::$cache[$id];
     }
 }
