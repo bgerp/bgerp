@@ -112,6 +112,7 @@ class type_ComplexType extends type_Varchar {
         			if(empty($vLeft) || empty($vRight)){
         				$this->error = "Двете полета трябва да са попълнени";
         			}
+        		case 'one':
         			break;
         	}
 	        
