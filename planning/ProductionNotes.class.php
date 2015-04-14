@@ -143,4 +143,81 @@ class planning_ProductionNotes extends deals_ManifactureMaster
 	{
 		parent::setDocumentFields($this);
 	}
+	
+	
+	/**
+	 * Преди показване на форма за добавяне/промяна.
+	 *
+	 * @param core_Manager $mvc
+	 * @param stdClass $data
+	 */
+	public static function on_AfterPrepareEditForm($mvc, &$data)
+	{
+		$form = &$data->form;
+		
+		if($form->rec->originId){
+			
+			// Ако се създава към задание
+			$originRec = doc_Containers::getDocument($form->rec->originId)->rec();
+			$bomRec = cat_Products::getLastActiveBom($originRec->productId);
+			if(!$bomRec){
+				$title = cat_Products::getTitleById($originRec->productId);
+				$caption = str_replace(',', '.', $title);
+				
+				// И няма рецепта, показваме полето за себестойност
+				$form->FNC('selfValue', 'double', "input,after=note,mandatory,caption=|Производство на|* {$caption}->|Ед. ст-ст|*");
+			} else {
+				$form->rec->bomId = $bomRec->id;
+			}
+		}
+	}
+	
+	
+	/**
+	 * Изпълнява се след създаване на нов запис
+	 */
+	public static function on_AfterCreate($mvc, $rec)
+	{
+		// Ако е към задания
+		if($rec->originId){
+			
+			// Добавяме информацията за артикула от заданието
+			$originRec = doc_Containers::getDocument($rec->originId)->rec();
+			$Products = cls::get('cat_Products');
+			
+			$dRec = (object)array('noteId'    => $rec->id, 
+								  'productId' => $originRec->productId, 
+								  'quantity'  => $originRec->quantity, 
+								  'jobId'     => $originRec->id,
+								  'measureId' => $Products->fetchField($originRec->productId, 'measureId'),
+								  'classId'   => $Products->getClassId(),
+								  'selfValue' => $rec->selfValue,
+								  'bomId'     => $rec->bomId,
+								);
+			
+			// Запис на детайла
+			planning_ProductionNoteDetails::save($dRec);
+		}
+	}
+	
+	
+	/**
+	 * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+	 */
+	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+	{
+		if($action == 'add' && isset($rec->originId)){
+			
+			// Ако добавяме към източник, трябва да е не оттеглено и чернова задание
+			$origin = doc_Containers::getDocument($rec->originId);
+			if(!($origin->instance() instanceof planning_Jobs)){
+				$requiredRoles = 'no_one';
+			}
+			
+			$state = $origin->fetchField('state');
+			if($state == 'rejected' || $state == 'draft'){
+				$requiredRoles = 'no_one';
+			}
+		}
+	}
 }
