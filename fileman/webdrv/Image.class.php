@@ -38,14 +38,16 @@ class fileman_webdrv_Image extends fileman_webdrv_Generic
         // Вземаме табовете от родителя
         $tabsArr = parent::getTabs($fRec);
         
-        // Вземаме превюто на файла
-        $preview = static::getThumbPrev($fRec);
+        // URL за показване на преглед на файловете
+        $previewUrl = toUrl(array(get_called_class(), 'preview', $fRec->fileHnd), TRUE);
         
         // Таб за преглед
-		$tabsArr['preview'] = new stdClass();
-        $tabsArr['preview']->title = 'Преглед';
-        $tabsArr['preview']->html = "<div class='webdrvTabBody'><div class='webdrvFieldset'> {$preview} </div></div>";
-        $tabsArr['preview']->order = 2;
+		$tabsArr['preview'] = (object) 
+			array(
+				'title'   => 'Преглед',
+				'html'    => "<div class='webdrvTabBody'><div class='webdrvFieldset'><div class='legend'>" . tr("Преглед") . "</div> <iframe src='{$previewUrl}' frameBorder='0' ALLOWTRANSPARENCY='true' class='webdrvIframe'> </iframe></div></div>",
+				'order' => 2,
+			);
         
         // URL за показване на текстовата част на файловете
         $textPart = toUrl(array('fileman_webdrv_Pdf', 'text', $fRec->fileHnd), TRUE);
@@ -199,7 +201,7 @@ class fileman_webdrv_Image extends fileman_webdrv_Generic
         $name = fileman_Files::getFileNameWithoutExt($fRec->fileHnd);
 
         // Задаваме пътя до изходния файла
-        $outFilePath = $Script->tempDir . $name . '.jpg';
+        $outFilePath = $Script->tempDir . $name . '-%d.jpg';
         
         // Задаваме placeHolder' ите за входния и изходния файл
         $Script->setFile('INPUTF', $fRec->fileHnd);
@@ -235,51 +237,61 @@ class fileman_webdrv_Image extends fileman_webdrv_Generic
      */
     static function afterConvertToJpg($script, &$fileHndArr=array())
     {
-        // Десериализираме нужните помощни данни
-        $params = unserialize($script->params);
+        // Вземаме всички файлове във временната директория
+        $allFilesArr = scandir($script->tempDir);
         
-        // Проверяваме дали е имало грешка при предишното конвертиране
-        if (fileman_Indexes::haveErrors($script->outFilePath, $params['type'], $params)) {
+        // Шаблон за намиране на името на файла
+        $pattern = "/" . preg_quote($script->fName, "/") . "\-(?'num'[0-9]+)\.jpg" . "/i";
+        
+        $matchedFilesArr = array();
+        
+        // От всички открити файлове вземаме само тези, които съвпадат с търсенето
+        foreach ((array)$allFilesArr as $file) {
             
-            // Отключваме процеса
-            core_Locks::release($params['lockId']);
-            
-            return FALSE;
+            if (!preg_match($pattern, $file, $matches)) continue;
+            $matchedFilesArr[$matches['num']] = $file;
         }
         
-        // Инстанция на класа
+        ksort($matchedFilesArr);
+        
         $Fileman = cls::get('fileman_Files');
         
-        // Ако възникне грешка при качването на файла (липса на права)
-        try {
+        foreach ($matchedFilesArr as $file) {
             
-            // Качваме файла в кофата и му вземаме манипулатора
-            $fileHnd = $Fileman->addNewFile($script->outFilePath, 'fileIndex');
-        } catch (core_exception_Expect $e) {
+            try {
+                // Качваме файла в кофата и му вземаме манипулатора
+                $fileHnd = $Fileman->addNewFile($script->tempDir . $file, 'fileIndex'); 
+            } catch (core_exception_Expect $e) {
+                continue;
+            }
             
-            // Създаваме запис в модела за грешка
-            fileman_Indexes::createError($params);
-    
-            // Записваме грешката в лога
-            fileman_Indexes::createErrorLog($params['dataId'], $params['type']);
-        
+            if ($fileHnd) {
+                $fileHndArr[$fileHnd] = $fileHnd;    
+            }
         }
         
-        // Ако се качи успешно записваме манипулатора в масив
-        if ($fileHnd) {
+        $params = unserialize($script->params);
+        
+        if (count($fileHndArr)) {
             
-            // Масив с манипулатора на файла
-            $fileHndArr[$fileHnd] = $fileHnd;
-            
-            // Текстовата част
             $params['content'] = $fileHndArr;
     
             // Обновяваме данните за запис във fileman_Indexes
             $savedId = fileman_Indexes::saveContent($params);
+        } else {
+        
+            // Проверяваме дали е имало грешка при предишното конвертиране
+            $error = fileman_Indexes::haveErrors($script->outFilePath, $params['type'], $params);
         }
-            
+        
         // Отключваме процеса
         core_Locks::release($params['lockId']);
+        
+        // Ако има грешка кода не се изпълнява
+        if ($error) {
+            
+            return FALSE;
+        }
         
         if ($savedId) {
 
@@ -288,52 +300,19 @@ class fileman_webdrv_Image extends fileman_webdrv_Generic
             return TRUE;
         }
     }
-
+    
     
     /**
-     * Връща шаблон с превюто на файла
+     * Връща информация за съдържанието на файла
+     * Вика се от fileman_Indexes, за файлове, които нямат запис в модела за съответния тип
      * 
-     * @param object $fRec - Записите за файла
-     * 
-     * @return string|core_ET - Шаблон с превюто на файла
+     * @param string $fileHnd
+     * @param string $type
      */
-    static function getThumbPrev($fRec)
+    public static function getInfoContentByFh($fileHnd, $type)
     {
-        //Вземема конфигурационните константи
-        $conf = core_Packs::getConfig('fileman');
+        if ($type != 'jpg') return FALSE;
         
-        // В зависимост от широчината на екрана вземаме размерите на thumbnail изображението
-        if (mode::is('screenMode', 'narrow')) {
-            $thumbWidth = $conf->FILEMAN_PREVIEW_WIDTH_NARROW;
-            $thumbHeight = $conf->FILEMAN_PREVIEW_HEIGHT_NARROW;
-        } else {
-            $thumbWidth = $conf->FILEMAN_PREVIEW_WIDTH;
-            $thumbHeight = $conf->FILEMAN_PREVIEW_HEIGHT;
-        }
-        
-        // Атрибути на thumbnail изображението
-        $attr = array('style' => 'margin: 5px auto; display: block;');
-        
-        // Background' а на preview' то
-        $bgImg = sbf('fileman/img/Preview_background.jpg');
-        
-        // Създаваме шаблон за preview на изображението
-        $preview = new core_ET("<div style='background-image:url(" . $bgImg . "); padding: 5px 0; min-height: 590px;'><div style='margin: 0 auto;'>[#THUMB_IMAGE#]</div></div>");
-        
-        $imgInst = new thumb_Img(array($fRec->fileHnd, $thumbWidth, $thumbHeight, 'fileman', 'verbalName' => 'Preview'));
-        
-        // Вземаме файла
-        $thumbnailImg = $imgInst->createImg($attr);
-        
-        // Ако е обект и има съобщение за грешка
-        if (!$thumbnailImg) {
-            
-            $thumbnailImg = 'Не може да се генерира изображението.';      
-        }
-        
-        // Добавяме към preview' то генерираното изображение
-        $preview->append($thumbnailImg, 'THUMB_IMAGE');
-        
-        return $preview;
+        return array($fileHnd);
     }
 }
