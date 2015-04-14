@@ -115,6 +115,15 @@ class doc_FolderPlg extends core_Plugin
         				'warning' => "Наистина ли желаете да създадетe папка за документи към|* \"{$title}\"?",
         		), array('ef_icon' => 'img/16/folder_new.png', 'title' => "Създаване на папка за документи към {$title}"));
         	}
+        	
+        	$currUrl = getCurrentUrl();
+        	
+        	if($mvc->haveRightFor('single', $data->rec) && $currUrl['Act'] == 'single'){
+        		$title = $mvc->getFolderTitle($data->rec->id);
+        		$data->toolbar->addBtn('Папка', array($mvc, 'createFolder', $data->rec->id), array(
+        				'warning' => "Наистина ли желаете да създадетe папка за документи към|* \"{$title}\"?",
+        		), array('ef_icon' => 'img/16/folder_new.png', 'title' => "Създаване на папка за документи към {$title}"));
+        	}
         }
     }
 
@@ -399,18 +408,19 @@ class doc_FolderPlg extends core_Plugin
                 $row->SingleIcon = ht::createElement("img", array('src' => $imageUrl, 'alt' => ''));
             }
         }
+        $currUrl = getCurrentUrl();
         
         // Подготовка на линк към папката (или създаване на нова) на корицата
         if($fField = $mvc->listFieldForFolderLink) {
             $folderTitle = $mvc->getFolderTitle($rec->id);
             if($rec->folderId && ($fRec = doc_Folders::fetch($rec->folderId))) {
-                if (doc_Folders::haveRightFor('single', $rec->folderId)) {
+                if (doc_Folders::haveRightFor('single', $rec->folderId) && !$currUrl['Rejected']) {
                     $row->folder = ht::createLink('',
                             array('doc_Threads', 'list', 'folderId' => $rec->folderId),
                             NULL, array('ef_icon' => $fRec->openThreadsCnt ? 'img/16/folder.png' : 'img/16/folder-y.png', 'title' => "Папка към {$folderTitle}", 'class' => 'new-folder-btn'));
                 }
             } else {
-                if($mvc->haveRightFor('single', $rec->id)) {
+                if($mvc->haveRightFor('single', $rec->id) && !$currUrl['Rejected']) {
                     $row->{$fField} = ht::createLink('', array($mvc, 'createFolder', $rec->id),  "Наистина ли желаете да създадетe папка за документи към  \"{$folderTitle}\"?",
                     array('ef_icon' => 'img/16/folder_new.png', 'title' => "Създаване на папка за документи към {$folderTitle}", 'class' => 'new-folder-btn'));
                 }
