@@ -168,7 +168,7 @@ class doc_DocumentPlg extends core_Plugin
                     'restore',
                     $data->rec->id
                 ),
-                'id=btnRestore,warning=Наистина ли желаете да възстановите документа?,order=32', 'ef_icon = img/16/restore.png');
+                'id=btnRestore,warning=Наистина ли желаете да възстановите документа?,order=32,title=Възстановяване на документа', 'ef_icon = img/16/restore.png');
         }
         
         //Бутон за добавяне на коментар 
