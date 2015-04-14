@@ -87,7 +87,7 @@ class doc_DocsReport extends frame_BaseDriver
     	$form->FLD('from', 'date', 'caption=Начало');
     	$form->FLD('to', 'date', 'caption=Край');
     	$form->FLD('docClass', 'class(interface=doc_DocumentIntf,select=title,allowEmpty)', 'caption=Документ,mandatory');
-    	$form->FLD('user', 'users(rolesForAll = officer|manager|ceo, rolesForTeams = officer|manager|ceo|executive)', 'caption=Потребител');
+    	$form->FLD('user', 'users(rolesForAll = ceo|report, rolesForTeams = manager|ceo|report)', 'caption=Потребител');
     }
       
 
@@ -102,13 +102,13 @@ class doc_DocsReport extends frame_BaseDriver
     	
     	if (core_Users::haveRole('ceo', $cu)) {
     		$form->setDefault('user', 'all_users');
-    	} elseif (core_Users::haveRole('manager', $cu) && !core_Users::haveRole('ceo', $cu)) {
+    	} elseif (core_Users::haveRole('manager', $cu)) {
     		$teamCu = type_Users::getUserWithFirstTeam($cu);
     		$team = strstr($teamCu, '_', TRUE);
     		$form->setDefault('user', "{$team} team");
-    		
     	} else {
-    		$form->setDefault('user', $cu);
+    	    $userFromTeamsArr = type_Users::getUserFromTeams($cu);
+    		$form->setDefault('user', key($userFromTeamsArr));
     	}
     }
     
