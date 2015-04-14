@@ -103,7 +103,10 @@ class fileman_webdrv_Cdr extends fileman_webdrv_Image
                 // Показваме thumbnail'а
                 return $bmpInst->act_Preview();
             } catch (fileman_Exception $e) {
-                   
+                
+                // Сменяме мода
+                Mode::set('wrapper', 'page_PreText');
+                
                 // Връщаме грешката
                 return $e->getMessage();    
             }
