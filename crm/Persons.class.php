@@ -2388,7 +2388,6 @@ class crm_Persons extends core_Master
     	$rec = $this->fetchRec($id);
     	
     	$res = new stdClass();
-    	$res->name = $rec->name;
     	
     	// Основната мярка на ресурса е 'час'
     	$res->measureId = cat_UoM::fetchBySinonim('h')->id; 
