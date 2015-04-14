@@ -382,8 +382,8 @@ abstract class deals_InvoiceMaster extends core_Master
     	$me = cls::get(get_called_class());
     	
     	if($me->getField('type', FALSE)){
-    		$type = static::fetchField($id, 'type');
-    		switch($type){
+    		$rec = static::fetch($id);
+    		switch($rec->type){
     			case 'invoice':
     				$type = "приложената фактура";
     				break;
@@ -391,13 +391,15 @@ abstract class deals_InvoiceMaster extends core_Master
     				$type = "приложеното дебитно известие";
     				break;
     			case 'credit_note':
-    				$type = "приложеното кредитно известие";
+    				$type = "";
+    			case 'dc_note':
+    				$type = ($rec->dealValue <= 0) ? "приложеното кредитно известие" : "приложеното дебитно известие";
     				break;
     		}
     	} else {
     		$type = 'приложената проформа фактура';
     	}
-    
+    	
     	// Създаване на шаблона
     	$tpl = new ET(tr("Моля запознайте се с") . " [#type#]:\n#[#handle#]");
     	$tpl->append($handle, 'handle');
@@ -865,6 +867,10 @@ abstract class deals_InvoiceMaster extends core_Master
     		$row->number = str_pad($rec->number, '10', '0', STR_PAD_LEFT);
     	}
     	 
+    	if($rec->type == 'dc_note'){
+    		$row->type = ($rec->dealValue <= 0) ? 'Кредитно известие' : 'Дебитно известие';
+    	}
+    	
     	if($fields['-list']){
     		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
     		if($rec->number){
