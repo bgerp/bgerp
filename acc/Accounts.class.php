@@ -721,7 +721,10 @@ class acc_Accounts extends core_Manager
     	expect(is_numeric($id));
     	
     	if(!isset(self::$cache[$id])){
-    		self::$cache[$id] = !empty(self::fetchField($id, 'strategy'));
+    	    
+    	    $strategy = self::fetchField($id, 'strategy');
+    	    
+    		self::$cache[$id] = !empty($strategy);
     	}
     	
     	return self::$cache[$id];
