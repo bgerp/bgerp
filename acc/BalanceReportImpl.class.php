@@ -309,13 +309,12 @@ class acc_BalanceReportImpl extends frame_BaseDriver
     /**
      * Подготвя хедърите на заглавията на таблицата
      */
-    private function prepareListFields(&$data)
+    protected function prepareListFields_(&$data)
     {
          $data->accInfo = acc_Accounts::getAccountInfo($data->rec->accountId);
     
          $bShowQuantities = ($data->accInfo->isDimensional === TRUE) ? TRUE : FALSE;
         
-         
     	 $data->bShowQuantities = $bShowQuantities;
          
          $data->listFields = array();
