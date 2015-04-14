@@ -715,6 +715,7 @@ class acc_Accounts extends core_Manager
      * Кешира резултатите за бързодействие
      * 
      * @param int $id - ид  на сметка
+     * @return boolean
      */
     public static function hasStrategy($id)
     {
