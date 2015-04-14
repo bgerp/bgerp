@@ -141,9 +141,9 @@ class cat_Boms extends core_Master
      */
     function description()
     {
+    	$this->FLD('quantity', 'double(smartRound,Min=0)', 'caption=За,silent,refreshForm,mandatory');
     	$this->FLD('notes', 'richtext(rows=4)', 'caption=Забележки');
     	$this->FLD('state','enum(draft=Чернова, active=Активиран, rejected=Оттеглен)', 'caption=Статус, input=none');
-    	$this->FLD('quantity', 'double(smartRound,Min=0)', 'caption=За,silent,refreshForm');
     	$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden,silent');
     	
     	$this->setDbIndex('productId');

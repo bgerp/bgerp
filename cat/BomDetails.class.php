@@ -252,6 +252,7 @@ class cat_BomDetails extends doc_Detail
     		} else {
     			$rec->order = 0;
     		}
+    		$rec->order .= $rec->id;
     	}
     	 
     	if($data->masterData->rec->state != 'draft'){
