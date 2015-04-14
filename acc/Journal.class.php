@@ -664,7 +664,7 @@ class acc_Journal extends core_Master
     private function reconto($accSysIds, $from = NULL, $to = NULL, $types = array())
     {
     	// Дигаме времето за изпълнение на скрипта
-    	set_time_limit(900);
+    	set_time_limit(1100);
     	
     	// Филтрираме записите в журнала по подадените параметри
     	$to = (!$to) ? dt::today() : $to;
@@ -685,22 +685,37 @@ class acc_Journal extends core_Master
     	// Групираме записите по документи
     	$query->show('docId,docType,valior');
     	$query->groupBy('docId,docType');
-    	$count = $query->count();
     	
-    	// За всеки документ
-    	while($rec = $query->fetch()){
+    	$recs = $query->fetchAll();
+    	
+    	// За всеки запис ако има
+    	if(count($recs)){
+    		foreach ($recs as $rec){
+    			
+    			// Ако е в затворен период, пропускаме го
+    			$periodState = acc_Periods::fetchByDate($rec->valior)->state;
+    			if($periodState == 'closed') continue;
+    			
+    			// Изтриваме му транзакцията
+    			acc_Journal::deleteTransaction($rec->docType, $rec->docId);
+    		}
     		
-    		// Ако е в затворен период, пропускаме го
-    		$periodState = acc_Periods::fetchByDate($rec->valior)->state;
-    		if($periodState == 'closed') continue;
+    		// Преизчисляваме баланса
+    		cls::get('acc_Balances')->recalc();
     		
-    		// Изтриваме транзакцията му и я записваме отново
-    		acc_Journal::deleteTransaction($rec->docType, $rec->docId);
-    		acc_Journal::saveTransaction($rec->docType, $rec->docId, FALSE);
+    		foreach ($recs as $rec){
+    			 
+    			// Ако е в затворен период, пропускаме го
+    			$periodState = acc_Periods::fetchByDate($rec->valior)->state;
+    			if($periodState == 'closed') continue;
+    			 
+    			// Преконтираме документа
+    			acc_Journal::saveTransaction($rec->docType, $rec->docId, FALSE);
+    		}
     	}
     	
     	// Засегнатите документи
-    	return $count;
+    	return count($recs);
     }
     
     
@@ -724,6 +739,12 @@ class acc_Journal extends core_Master
     	
     	if($form->isSubmitted()){
     		$rec = &$form->rec;
+    		
+    		// Трябва баланса да е преизчислен за да продължим
+    		if(core_Locks::isLocked('RecalcBalances')){
+    			
+    			return followRetUrl(NULL, tr("Баланса се преизчислява в момента, моля изчакайте"));
+    		}
     		
     		if($rec->from > $rec->to){
     			$form->setError('from', 'Началната дата трябва да е по-малка от крайната');
