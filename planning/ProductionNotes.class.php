@@ -190,6 +190,10 @@ class planning_ProductionNotes extends deals_ManifactureMaster
 			// Добавяме информацията за артикула от заданието
 			$originRec = doc_Containers::getDocument($rec->originId)->rec();
 			$Products = cls::get('cat_Products');
+			$pInfo = $Products->getProductInfo($originRec->productId);
+			
+			// Ако артикула не е производим, не го добавяме
+			if(empty($pInfo->meta['canManifacture'])) return;
 			
 			$dRec = (object)array('noteId'    => $rec->id, 
 								  'productId' => $originRec->productId, 
