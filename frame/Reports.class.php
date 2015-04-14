@@ -50,7 +50,7 @@ class frame_Reports extends core_Embedder
     /**
      * Права за писане
      */
-    public $canEdit = 'ceo, report, admin';
+    public $canEdit = 'powerUser';
     
     
     /**
@@ -74,7 +74,7 @@ class frame_Reports extends core_Embedder
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canChangestate = 'ceo, report, admin';
+	public $canChangestate = 'powerUser';
     
     
 	/**
@@ -434,6 +434,14 @@ class frame_Reports extends core_Embedder
 			if (!$canAdd) {
 			    $requiredRoles = 'no_one';
 			}
+    	}
+    	
+    	if ($rec && (($action == 'changestate') || ($action == 'edit'))) {
+    	    if (!haveRole('ceo, report, admin', $userId)) {
+    	        if ($rec->createdBy != $userId) {
+    	            $requiredRoles = 'no_one';
+    	        }
+    	    }
     	}
     }
 }
