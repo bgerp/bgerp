@@ -581,7 +581,7 @@ class planning_Jobs extends core_Master
     	if($rec->state != 'draft' && $rec->state != 'rejected'){
     		if(planning_ProductionNotes::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
     			$pUrl = array('planning_ProductionNotes', 'add', 'originId' => $rec->containerId);
-    			$data->toolbar->addBtn("Производство", $pUrl, 'ef_icon = img/16/article.png,title=Създаване на протокол за производство по заданието');
+    			$data->toolbar->addBtn("Производство", $pUrl, 'ef_icon = img/16/page_paste.png,title=Създаване на протокол за производство от заданието');
     		}
     	}
     }

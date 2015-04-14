@@ -137,6 +137,12 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
 	
 	
 	/**
+	 * Икона на единичния изглед
+	 */
+	public $singleIcon = 'img/16/page_paste.png';
+	
+	
+	/**
 	 * Описание на модела
 	 */
 	function description()
