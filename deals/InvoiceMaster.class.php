@@ -334,25 +334,17 @@ abstract class deals_InvoiceMaster extends core_Master
     	
     	if($invArr['type'] != 'dc_note'){
     		$form->setField('changeAmount', "unit={$invArr['currencyId']} без ДДС");
-    		$form->setField('changeAmount', "input,caption=Задаване на нова стойност на фактура->Нова стойност");
+    		$form->setField('changeAmount', "input,caption=Задаване на увеличение/намаление на фактура->Стойност");
     		
     		if($invArr['dpOperation'] == 'accrued'){
     			
     			// Ако е известие към авансова ф-ра поставяме за дефолт сумата на фактурата
     			$caption = '|Промяна на авансово плащане|*';
     			$form->setField('changeAmount', "caption={$caption}->|Аванс|*,mandatory");
-    			$dpAmount = $invArr['dpAmount'] / $invArr['rate'];
-    			$form->setDefault('changeAmount', $dpAmount);
-    			$form->rec->originalNoteAmount = $dpAmount;
-    		} else {
-    			$old = round($invArr['dealValue'] / $invArr['rate'], 2);
-    			$form->FNC('oldAmount', 'double', "input,caption=Стара цена,after=changeAmount,unit={$invArr['currencyId']} без ДДС");
-    			$form->setDefault('oldAmount', $old);
-    			$form->setReadOnly('oldAmount');
     		}
     	}
     
-    	foreach(array('id', 'number', 'date', 'containerId', 'additionalInfo', 'dealValue', 'vatAmount', 'state', 'discountAmount', 'createdOn', 'createdBy', 'modifiedOn', 'modifiedBy', 'vatDate', 'dpAmount') as $key){
+    	foreach(array('id', 'number', 'date', 'containerId', 'additionalInfo', 'dealValue', 'vatAmount', 'state', 'discountAmount', 'createdOn', 'createdBy', 'modifiedOn', 'modifiedBy', 'vatDate', 'dpAmount', 'dpOperation') as $key){
     		unset($invArr[$key]);
     	}
     
@@ -761,12 +753,6 @@ abstract class deals_InvoiceMaster extends core_Master
     {
     	if ($form->isSubmitted()) {
     		$rec = &$form->rec;
-    		 
-    		if(isset($rec->originalNoteAmount) && isset($rec->changeAmount)){
-    			if(round($rec->originalNoteAmount, 5) == round($rec->changeAmount, 5)){
-    				$form->setError('changeAmount', "Няма промяна в аванса");
-    			}
-    		}
     		
     		// Извлича се платежния план
     		if($form->rec->paymentMethodId){
@@ -818,9 +804,7 @@ abstract class deals_InvoiceMaster extends core_Master
     			$originRec = $origin->fetch('dpAmount,dpOperation,dealValue');
     			
     			if($originRec->dpOperation == 'accrued' || isset($rec->changeAmount)){
-    				$originAmount = ($originRec->dpAmount && $originRec->dpOperation == 'accrued') ? $originRec->dpAmount : $originRec->dealValue;
-    				
-    				$diff = ($rec->changeAmount * $rec->rate)- $originAmount;
+    				$diff = ($rec->changeAmount * $rec->rate);
     				$rec->vatAmount = $diff * $vat;
     				
     				// Стойността е променената сума

@@ -243,8 +243,9 @@ abstract class deals_InvoiceDetail extends doc_Detail
 				
 				// Показване на сумата за промяна на известието
 				$amount = $mvc->getFieldType('amount')->toVerbal($masterRec->dealValue / $masterRec->rate);
+				$originRec = doc_Containers::getDocument($masterRec->originId)->rec();
 				
-				if(isset($masterRec->dpAmount)){
+				if($originRec->dpOperation == 'accrued'){
 					$reason = ($amount > 0) ? 'Увеличаване на авансово плащане' : 'Намаляване на авансово плащане';
 				} else {
 					$reason = ($amount > 0) ? 'Увеличаване на стойност на фактура' : 'Намаляване на стойност на фактура';
