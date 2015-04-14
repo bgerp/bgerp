@@ -1051,4 +1051,17 @@ abstract class deals_InvoiceMaster extends core_Master
     	
     	return $this->cache[$containerId];
     }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+    {
+    	if($action == 'reject' && isset($rec)){
+    		if($mvc->fetch("#originId = {$rec->containerId} AND #state = 'active'")){
+    			$res = 'no_one';
+    		}
+    	}
+    }
 }
