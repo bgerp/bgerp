@@ -112,6 +112,9 @@ class fileman_webdrv_Cdr extends fileman_webdrv_Image
             }
         } catch (core_exception_Expect $e) {
             
+            // Сменяме мода
+            Mode::set('wrapper', 'page_PreText');
+            
             return "Не може да се покаже прегледа на файла.";
         }
     }
