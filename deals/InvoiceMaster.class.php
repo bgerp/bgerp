@@ -791,7 +791,14 @@ abstract class deals_InvoiceMaster extends core_Master
     		 
     		// Ако е ДИ или КИ
     		if($rec->type != 'invoice'){
-    	   
+    			if(isset($rec->changeAmount)){
+    				if($rec->changeAmount == 0){
+    					$form->setError('changeAmount', 'не може да се създаде известие с нулева стойност');
+    					
+    					return;
+    				}
+    			}
+    			
     			// Изчисляване на стойността на ддс-то
     			$vat = acc_Periods::fetchByDate()->vatRate;
     			
