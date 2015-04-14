@@ -137,8 +137,13 @@ class archive_Adapter
      */
     public function getEntries($entry = FALSE)
     {
-        // Вземаме информация за всички файлове/папки
-        $entriesArr = $this->inst->getEntries();
+        try {
+            // Вземаме информация за всички файлове/папки
+            $entriesArr = $this->inst->getEntries();
+        } catch (Archive_7z_Exception $e) {
+            
+            throw new core_exception_Expect($e->getMessage());
+        }
         
         // Ако е подаден номер на файл
         if ($entry !== FALSE) {
