@@ -67,7 +67,9 @@ class php_BeautifierM
         
         expect(is_array($tokens));
         
-        for($i = 0; $i< $count = count($tokens); $i++) {
+        $count = count($tokens);
+        
+        for($i = 0; $i < $count; $i++) {
             
             $token = $tokens[$i];
             
