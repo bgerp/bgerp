@@ -175,6 +175,8 @@ class core_Html
                         $select->append($option, 'OPTIONS');
                         $openGroup = TRUE;
                         continue;
+                    } elseif($title instanceof core_ET){
+                    	$title = $title->getContent();
                     } else {
                         $attr = $title->attr;
                         $title = $title->title;
@@ -246,7 +248,7 @@ class core_Html
         $optionsCnt = self::countOptions($options);
 
         // Очакваме да има поне една опция
-        expect($optionsCnt>0, "'Липсват опции за '{$name}'");
+        expect($optionsCnt > 0, "'Липсват опции за '{$name}'");
         
         // Когато имаме само една опция, правим readOnly <input>
         if($optionsCnt == 1) {
@@ -255,8 +257,16 @@ class core_Html
 
                 if(is_object($opt) && $opt->group) continue;
 
-                $value = is_object($opt) ? $opt->title : $opt;
-
+                if(is_object($opt)){
+                	if($opt instanceof core_ET){
+                		$value = $opt->getContent();
+                	} else {
+                		$value = $opt->title;
+                	}
+                } else {
+                	$value = $opt;
+                }
+				
                 // Запазваме класа и стила на опцията
                 if(is_object($opt) && is_array($opt->attr)) {
                     if($opt->attr['class']) {
