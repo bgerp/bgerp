@@ -86,11 +86,12 @@ class plg_CryptStore extends core_Plugin
         
         $str  = base64_decode(substr($str, 6));
         
-        if(strlen($str) == 0) return FALSE;
+        $len = strlen($str);
+        
+        if ($len == 0) return FALSE;
 
         $key = '';
-
-        for($i = 0; $i < strlen($str); $i++) {
+        for($i = 0; $i < $len; $i++) {
 
             if($key{$i} === '') {
                 $key .= md5($rnd . EF_SALT . 'code' . $key, TRUE);
