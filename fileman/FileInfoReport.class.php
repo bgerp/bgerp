@@ -96,14 +96,16 @@ class fileman_FileInfoReport extends frame_BaseDriver
         if (isset($fRec->from) && isset($fRec->to) && ($fRec->from > $fRec->to)) {
             $mid = $fRec->from; 
             $fRec->from = $fRec->to;
-            $fRec->to = $fRec;
+            $fRec->to = $mid;
         }
-
-        if ($fRec->from) {  
+        
+        if ($fRec->from) {
+            $fRec->from .= ' 00:00:00';
             $query->where("#createdOn >= '{$fRec->from}'");
         }
 
         if ($fRec->to) {
+            $fRec->to .= ' 23:59:59';
             $query->where("#createdOn <= '{$fRec->to}'");
         }
 
@@ -248,6 +250,6 @@ class fileman_FileInfoReport extends frame_BaseDriver
     public function getEarlyActivation()
     {
         
-        return $this->innerForm->to;
+        return $this->innerForm->to . ' 23:59:59';
     }
 }
