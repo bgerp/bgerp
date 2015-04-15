@@ -157,7 +157,7 @@ class bank_SpendingDocuments extends core_Master
         $this->FLD('contragentName', 'varchar(255)', 'caption=Към->Контрагент,mandatory');
         $this->FLD('contragentIban', 'iban_Type(64)', 'caption=Към->Сметка');
         $this->FLD('contragentId', 'int', 'input=hidden,notNull');
-        $this->FLD('contragentClassId', 'key(mvc=core_Classes,select=name)', 'input=hidden,notNull');
+        $this->FLD('contragentClassId', 'key(mvc=core_Classes,select=title)', 'input=hidden,notNull');
         $this->FLD('debitAccId', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)', 'caption=debit,input=none');
         $this->FLD('creditAccId', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)', 'caption=Кредит,input=none');
         $this->FLD('state',
