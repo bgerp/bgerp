@@ -182,7 +182,8 @@ class acc_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    var $defClasses = "acc_ReportDetails, acc_BalanceReportImpl, acc_BalanceHistory, acc_HistoryReportImpl, acc_CorespondingReportImpl";
+    var $defClasses = "acc_ReportDetails, acc_BalanceReportImpl, acc_BalanceHistory, acc_HistoryReportImpl, 
+    					acc_CorespondingReportImpl,acc_SaleArticlesReport,acc_SaleContractorsReport";
     
     
     /**
