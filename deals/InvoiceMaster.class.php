@@ -334,7 +334,7 @@ abstract class deals_InvoiceMaster extends core_Master
     	
     	if($invArr['type'] != 'dc_note'){
     		$form->setField('changeAmount', "unit={$invArr['currencyId']} без ДДС");
-    		$form->setField('changeAmount', "input,caption=Задаване на увеличение/намаление на фактура->Стойност");
+    		$form->setField('changeAmount', "input,caption=Задаване на увеличение/намаление на фактура->Промяна");
     		
     		if($invArr['dpOperation'] == 'accrued'){
     			
