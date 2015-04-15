@@ -216,6 +216,7 @@ class cat_Boms extends core_Master
     	
     	// При създаване на нова рецепта
     	if(empty($form->rec->id)){
+    		$limit = core_Packs::getConfig('cat')->CAT_BOM_REMEMBERED_RESOURCES;
     		
     		$alreadyUsedResources = array();
     		 
@@ -225,7 +226,7 @@ class cat_Boms extends core_Master
     		$dQuery->where("#productId = {$form->rec->productId} AND #type = 'input'");
     		$dQuery->groupBy('resourceId');
     		$dQuery->show('resourceId');
-    		$dQuery->limit(20);
+    		$dQuery->limit($limit);
     		while($dRec = $dQuery->fetch()){
     			$alreadyUsedResources[] = $dRec->resourceId;
     		}
@@ -254,8 +255,11 @@ class cat_Boms extends core_Master
      */
     public static function on_AfterCreate($mvc, $rec)
     {
+    	$count = core_Packs::getConfig('cat')->CAT_BOM_REMEMBERED_RESOURCES;
+    	$count = count($count) -1;
+    	
     	// Проверяваме имали избрани ресурси още от формата
-    	foreach (range(0, 19) as $i){
+    	foreach (range(0, $count) as $i){
     		if(isset($rec->{"resourceId{$i}"})){
     			if(!empty($rec->{"quantities{$i}"})){
     				$parts = type_ComplexType::getParts($rec->{"quantities{$i}"});
