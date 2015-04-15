@@ -634,7 +634,6 @@ class core_Form extends core_FieldSet
 
                 if($field->removeAndRefreshForm) {
                     $rFields = str_replace('|', "', '", trim($field->removeAndRefreshForm, '|'));
-                    core_Statuses::newStatus($rFields, 'warning');
                     $attr['onchange'] .= "refreshForm(this.form, ['{$rFields}']);";
                 } elseif($field->refreshForm) {
                     $attr['onchange'] .= "refreshForm(this.form);";
