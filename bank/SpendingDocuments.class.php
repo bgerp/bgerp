@@ -210,7 +210,7 @@ class bank_SpendingDocuments extends core_Master
             $mvc->setDefaultsFromOrigin($origin, $form, $options);
         }
         
-        $form->setOptions('ownAccount', bank_OwnAccounts::getOwnAccounts());
+        $form->setOptions('ownAccount', bank_OwnAccounts::getOwnAccounts(FALSE));
         $form->setSuggestions('contragentIban', bank_Accounts::getContragentIbans($form->rec->contragentId, $form->rec->contragentClassId));
         $form->setDefault('valior', $today);
         $form->setDefault('currencyId', acc_Periods::getBaseCurrencyId($today));
