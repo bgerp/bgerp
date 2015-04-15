@@ -340,7 +340,7 @@ class core_Html
 
                     $indent = '&nbsp;&nbsp;&nbsp;';
                 } else {
-                    $title = is_object($opt) ? $opt->title : $opt;
+                    $title = is_object($opt) ? (($opt instanceof core_ET) ? type_Varchar::escape($opt->getContent()) : $opt->title) : $opt;
                     $attrLabel = is_object($opt) ? $opt->attr : array();
                     $radioAttr = array('type' => 'radio', 'name' => $name, 'value' => $id);
 
