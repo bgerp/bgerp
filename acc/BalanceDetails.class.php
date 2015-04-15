@@ -905,7 +905,7 @@ class acc_BalanceDetails extends core_Detail
     	$res = FALSE;
     	 
     	// Обхождаме дебита и кредита
-    	foreach (array('debit', 'credit') as $type){
+    	foreach (array('credit', 'debit') as $type){
     		$quantityField = "{$type}Quantity";
     		$priceField = "{$type}Price";
     
