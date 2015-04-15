@@ -963,7 +963,7 @@ abstract class deals_InvoiceMaster extends core_Master
     	$aggregator->sum('invoicedAmount', $total);
     	$aggregator->setIfNot('invoicedValior', $rec->date);
     	$aggregator->setIfNot('paymentMethodId', $rec->paymentMethodId);
-    
+    	
     	if(isset($rec->dpAmount)){
     		if($rec->dpOperation == 'accrued'){
     			$aggregator->sum('downpaymentInvoiced', $total);
@@ -974,6 +974,15 @@ abstract class deals_InvoiceMaster extends core_Master
     			$deducted = abs($rec->dpAmount);
     			$vatAmount = ($rec->vatRate == 'yes' || $rec->vatRate == 'separate') ? ($deducted) * $vat : 0;
     			$aggregator->sum('downpaymentDeducted', $deducted + $vatAmount);
+    		}
+    	} else {
+    		
+    		// Ако е ДИ и КИ към ф-ра за начисляване на авансово плащане, променяме платения аванс по сделката
+    		if($rec->type == 'dc_note'){
+    			$originOperation = doc_Containers::getDocument($rec->originId)->fetchField('dpOperation');
+    			if($originOperation == 'accrued'){
+    				$aggregator->sum('downpaymentInvoiced', $total);
+    			}
     		}
     	}
     
