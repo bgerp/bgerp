@@ -905,6 +905,7 @@ class acc_BalanceDetails extends core_Detail
     	$res = FALSE;
     	 
     	// Обхождаме дебита и кредита
+    	//@TODO трябва да се раздели на две обхождания за в случая когато дебтната сметка има стратегия
     	foreach (array('credit', 'debit') as $type){
     		$quantityField = "{$type}Quantity";
     		$priceField = "{$type}Price";
