@@ -114,7 +114,7 @@ class acc_BalanceReportImpl extends frame_BaseDriver
     					}
     						
     					$features = acc_Features::getFeatureOptions(array_keys($items));
-    					$features = array('' => '') + $features + array('*' => '[По пера]');
+    					$features = array('' => '') + $features + array('*' => $accInfo->groups[$i]->rec->name);
     					$form->FLD("feat{$i}", 'varchar', "caption={$accInfo->groups[$i]->rec->name}->Свойство,width=330px,input");
     					$form->setOptions("feat{$i}", $features);
     				}
@@ -374,8 +374,7 @@ class acc_BalanceReportImpl extends frame_BaseDriver
         		if(!empty($data->rec->{"grouping{$i}"})){
         			$data->row->groupBy .= acc_Items::getVerbal($data->rec->{"grouping{$i}"}, 'title') . ", ";
         		} elseif(!empty($data->rec->{"feat{$i}"})){
-        			
-        			$data->rec->{"feat{$i}"} = ($data->rec->{"feat{$i}"} == '*') ? "[По пера]" : $data->rec->{"feat{$i}"};
+        			$data->rec->{"feat{$i}"} = ($data->rec->{"feat{$i}"} == '*') ? $data->accInfo->groups[$i]->rec->name : $data->rec->{"feat{$i}"};
         			$data->row->groupBy .= $Varchar->toVerbal($data->rec->{"feat{$i}"}) . ", ";
         		}
         	}
