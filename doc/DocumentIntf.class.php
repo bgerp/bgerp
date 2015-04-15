@@ -213,4 +213,15 @@ class doc_DocumentIntf
     {
     	return $this->class->getCoverOptions($coverClass);
     }
+    
+    
+    /**
+     * Записва подадения обект
+     * 
+     * @param object $rec - Обект, който ще се записва
+     */
+    function createNew($rec)
+    {
+    	return $this->class->createNew($rec);
+    }
 }

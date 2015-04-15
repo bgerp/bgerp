@@ -2226,4 +2226,24 @@ class doc_DocumentPlg extends core_Plugin
             return FALSE;
         }
     }
+    
+    
+    /**
+     * Създава нов документ със съответните стойности
+     * 
+     * @param core_Mvc $mvc
+     * @param NULL|integer $id
+     * @param object $rec
+     */
+    public static function on_AfterCreateNew($mvc, &$id, $rec)
+    {
+        // Очакваме да има такива полета в модела
+        $allFldArr = $mvc->selectFields("#kind == 'FLD'");
+        $recArr = (array)$rec;
+        foreach ($recArr as $field => $dummy) {
+            expect($allFldArr[$field], "Полето '{$field}' липсва в модела");
+        }
+        
+        $id = $mvc->save($rec);
+    }
 }
