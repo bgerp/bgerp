@@ -74,7 +74,7 @@ class planning_ObjectResources extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт,resourceId,objectId, createdOn,createdBy';
+    public $listFields = 'tools=Пулт,resourceId,objectId,conversionRate,createdOn,createdBy';
     
     
     /**
@@ -102,7 +102,8 @@ class planning_ObjectResources extends core_Manager
     {
     	$this->FLD('classId', 'class(interface=planning_ResourceSourceIntf)', 'input=hidden,silent');
     	$this->FLD('objectId', 'int', 'input=hidden,caption=Обект,silent');
-    	$this->FLD('resourceId', 'key(mvc=planning_Resources,select=title,allowEmpty,makeLink)', 'caption=Ресурс,mandatory');
+    	$this->FLD('resourceId', 'key(mvc=planning_Resources,select=title,allowEmpty,makeLink)', 'caption=Ресурс,mandatory,removeAndRefreshForm=conversionRate,silent');
+    	$this->FLD('conversionRate', 'double(smartRound)', 'caption=Конверсия,silent,notNull,value=1,mandatory');
     	
     	// Поставяне на уникални индекси
     	$this->setDbUnique('classId,objectId,resourceId');
@@ -188,6 +189,31 @@ class planning_ObjectResources extends core_Manager
     		$resourceType = cls::get('planning_Resources')->getFieldType('type')->toVerbal($sourceInfo->type);
     		$form->info = tr("|Няма ресурси от тип|* <b>'{$sourceInfo->type}'</b>");
     	}
+    	
+    	$form->setDefault('conversionRate', 1);
+    	
+    	if(isset($rec->resourceId)){
+    		$unit = $mvc->getConversionUnit($sourceInfo->measureId, $rec->resourceId);
+    		$form->setField('conversionRate', "unit={$unit}");
+    	}
+    }
+    
+    
+    /**
+     *  Помощна ф-я за показване на конверсията от коя мярка към коя се отнася
+     * 
+     * @param int $measureSourceId - ид на мярката на обекта
+     * @param int $resourceId - ид на мярката на ресурса
+     * @return string - във формат [object_measure_name] за 1 [resource_measure_name]
+     */
+    private function getConversionUnit($measureSourceId, $resourceId)
+    {
+    	$sMeasureShort = cat_UoM::getShortName($measureSourceId);
+    	
+    	$resourseMeasureId = planning_Resources::fetchField($resourceId, 'measureId');
+    	$rMeasureShort = cat_UoM::getShortName($resourseMeasureId);
+    	
+    	return "|*{$sMeasureShort} |за|* 1 {$rMeasureShort}";
     }
     
     
@@ -238,7 +264,7 @@ class planning_ObjectResources extends core_Manager
     
     	$tpl->append(tr('Ресурси'), 'title');
     	$table = cls::get('core_TableView', array('mvc' => $this));
-    	$fields = arr::make('tools=Пулт,resourceId=Ресурс,type=Вид,createdOn=Създадено от,createdBy=Създадено на');
+    	$fields = arr::make('tools=Пулт,resourceId=Ресурс,type=Вид,conversionRate=Конверсия,createdOn=Създадено от,createdBy=Създадено на');
     	if(!count($data->rows)){
     		unset($fields['tools']);
     	}
@@ -300,6 +326,10 @@ class planning_ObjectResources extends core_Manager
     	$row->objectId = "<span style='float:left'>{$row->objectId}</span>";
     	
     	$row->resourceId = planning_Resources::getHyperlink($rec->resourceId, TRUE);
+    	
+    	$sourceInfo = $Source->getResourceSourceInfo($rec->objectId);
+    	$row->conversionRate .= " " . tr($mvc->getConversionUnit($sourceInfo->measureId, $rec->resourceId));
+    	$row->conversionRate = "<span style='float:right'>{$row->conversionRate}</span>";
     }
     
     
