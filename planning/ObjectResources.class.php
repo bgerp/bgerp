@@ -299,9 +299,19 @@ class planning_ObjectResources extends core_Manager
     		}
     	}
     	 
+    	// За да се добави ресурс към обект, трябва самия обект да може да има ресурси
     	if($action == 'add' && isset($rec)){
-    		
     		if(!$Class->canHaveResource($rec->objectId)){
+    			$res = 'no_one';
+    		}
+    	}
+    	
+    	if($action == 'delete' && isset($rec)){
+    		
+    		// Ако обекта е използван вече в протокол за влагане, да не може да се изтрива докато протокола е активен
+    		$consumptionQuery = planning_ConsumptionNoteDetails::getQuery();
+    		$consumptionQuery->EXT('state', 'planning_ConsumptionNotes', 'externalName=state,externalKey=noteId');
+    		if($consumptionQuery->fetch("#classId = {$rec->classId} AND #productId = {$rec->objectId} AND #state = 'active'")){
     			$res = 'no_one';
     		}
     	}
