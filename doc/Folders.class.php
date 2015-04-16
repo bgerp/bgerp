@@ -764,7 +764,12 @@ class doc_Folders extends core_Master
             $folderId = email_Inboxes::forceCoverAndFolder($rec);
         } else {
             
-            $corpAccRec = email_Accounts::getCorporateAcc();
+            // Контракторите да нямат корпоративна кутия
+            if (core_Users::isContractor($userId)) {
+                $corpAccRec = '';
+            } else {
+                $corpAccRec = email_Accounts::getCorporateAcc();
+            }
             
             if($corpAccRec) {
                 $rec->email = "{$nick}@{$corpAccRec->domain}";
