@@ -16,10 +16,6 @@
         <div>|Активиране|*: [#earlyActivationOn#]</div>
     </div>
      <!--ET_END earlyActivationOn-->
-    
-    <div class='clear_l f_left'>
-        <div>[#data#]</div>
-    </div>
-    <div style='clear: both;'></div>
+
+    <div>[#data#]</div>
 </div>
-<div style='clear: both;'></div>
