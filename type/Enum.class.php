@@ -47,7 +47,7 @@ class type_Enum extends core_Type {
      */
     function fromVerbal($value)
     {
-        if(!isset($this->options[$value])) {
+        if (isset($value) && !isset($this->options[$value])) {
             $this->error = "Недопустима стойност за изброим тип";
             
             return FALSE;
