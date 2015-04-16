@@ -40,12 +40,13 @@ class fileman_FileInfoReport extends frame_BaseDriver
      */
     public function addEmbeddedFields(core_Form &$form)
     {
-    	$form->FLD('usersSearch', 'users(rolesForAll=ceo|report|admin, rolesForTeams=ceo|report|admin|manager)', 'caption=Потребители');
+    	$form->FLD('usersSearch', 'users(rolesForAll=ceo|report|admin, rolesForTeams=ceo|report|admin|manager)', 'caption=Потребители,mandatory');
+    	$form->FLD('groupBy', 'enum(users=Потребители, buckets=Кофи, files=Файлове)', 'caption=Групиране по');
+        $form->FLD('sorting', 'enum(,group_a=Група (възходящо),group_z=Група (низходящо),cnt_a=Брой (възходящо),cnt_z=Брой (низходящо),
+    								len_a=Размер (възходящо),len_z=Размер (низходящо))', 'caption=Подреждане по');
+    	$form->FLD('bucketId', 'key(mvc=fileman_Buckets, select=name, allowEmpty)', 'caption=Кофа, placeholder=Всички');
     	$form->FLD('from', 'date', 'caption=Начало');
     	$form->FLD('to', 'date', 'caption=Край');
-    	$form->FLD('bucketId', 'key(mvc=fileman_Buckets, select=name, allowEmpty)', 'caption=Кофа, placeholder=Всички');
-        $form->FLD('sorting', 'enum(,cnt_a=Брой (възходящо),cnt_z=Брой (низходящо),len_a=Размер (възходящо),len_z=Размер (низходящо),
-        							bucket_a=Кофа (възходящо),bucket_z=Кофа (низходящо))', 'caption=Подреждане по');
     }
 
     
@@ -113,12 +114,27 @@ class fileman_FileInfoReport extends frame_BaseDriver
             $query->where("#bucketId = '{$fRec->bucketId}'");
         }
         
+        // Ако се групира по файлове, показваме само избраните файлове
+        if ($fRec->groupBy == 'files') {
+            $query->limit(50);
+            $query->orderBy('fileLen', 'DESC');
+        }
+        
         while($rec = $query->fetch()) {
             $data->filesCnt++;
             $data->filesLen += $rec->fileLen;
             
-            $data->files[$rec->bucketId]['cnt']++;
-            $data->files[$rec->bucketId]['len'] += $rec->fileLen;
+            // В зависимост от избраната група определяме ключа за масива
+            if ($fRec->groupBy == 'users') {
+                $key = $rec->createdBy;
+            } elseif ($fRec->groupBy == 'files') {
+                $key = $rec->id;
+            } else {
+                $key = $rec->bucketId;
+            }
+            
+            $data->files[$key]['cnt']++;
+            $data->files[$key]['len'] += $rec->fileLen;
         }
         
         return $data;
@@ -162,12 +178,24 @@ class fileman_FileInfoReport extends frame_BaseDriver
         
         $f = cls::get('core_FieldSet');
         
-    	$f->FLD('bucketId', 'key(mvc=fileman_Buckets, select=name)', 'caption=Кофа');
+        // В зависимост от избраната група определяме типа на полето
+        if ($data->fRec->groupBy == 'users') {
+            $type = 'key(mvc=core_Users,select=names)';
+            $groupTypeName = 'Потребител';
+        } elseif ($data->fRec->groupBy == 'files') {
+            $type = 'key(mvc=fileman_Files, select=name)';
+            $groupTypeName = 'Файл';
+        } else {
+            $type = 'key(mvc=fileman_Buckets, select=name)';
+            $groupTypeName = 'Кофа';
+        }
+        
+    	$f->FLD('groupType', $type, 'caption=Кофа');
     	$f->FLD('cnt', 'int', 'caption=Брой');
     	$f->FLD('len', 'fileman_FileSize', 'caption=Размер');
         
     	$ft = $f->fields;
-    	$bucketType = $ft['bucketId']->type;
+    	$groupType = $ft['groupType']->type;
         $cntType = $ft['cnt']->type;
         $lenType = $ft['len']->type;
     	
@@ -179,14 +207,25 @@ class fileman_FileInfoReport extends frame_BaseDriver
         
         $order = array();
         
-        foreach((array)$data->files as $bucketId => $fArr) {
+        foreach((array)$data->files as $keyId => $fArr) {
             
     		$row = new stdClass();
-    		$row->bucketId = $bucketType->toVerbal($bucketId);
+    		$row->groupId = $groupType->toVerbal($keyId);
+    		$varRowGroupId = $row->groupId;
+    		
+    		if ($data->fRec->groupBy == 'files') {
+    		    $fileRec = fileman_Files::fetch($keyId);
+    		    $row->groupId = fileman::getLinkToSingle($fileRec->fileHnd);
+    		    $row->createdBy = crm_Profiles::createLink($fileRec->createdBy);
+    		    $row->createdOn = dt::mysql2verbal($fileRec->createdOn, 'smartTime');
+    		} elseif ($data->fRec->groupBy == 'users') {
+    		    $row->groupId .= ' ' . crm_Profiles::createLink($keyId);
+    		}
+    		
     		$row->cnt = $cntType->toVerbal($fArr['cnt']);
     		$row->len = $lenType->toVerbal($fArr['len']);
             
-    		$rows[$bucketId] = $row;
+    		$rows[$keyId] = $row;
     		
             if($data->fRec->sorting) {
                 switch ($column) {
@@ -198,12 +237,12 @@ class fileman_FileInfoReport extends frame_BaseDriver
                         $val = $fArr['len'];
                     break;
                     
-                    case 'bucket':
-                        $val = mb_strtolower($row->bucketId);
+                    case 'group':
+                        $val = mb_strtolower($varRowGroupId);
                     break;
                 }
                 
-                $order[$bucketId] = $val;
+                $order[$keyId] = $val;
             }
         }
         
@@ -214,15 +253,19 @@ class fileman_FileInfoReport extends frame_BaseDriver
                 arsort($order);
             }
             
-            foreach((array)$order as $bucketId => $dummy) {
-                $orderArr[$bucketId] = $rows[$bucketId];
+            foreach((array)$order as $keyId => $dummy) {
+                $orderArr[$keyId] = $rows[$keyId];
             }
         } else {
             $orderArr = $rows;
         }
         
     	$table = cls::get('core_TableView', array('mvc' => $f));
-    	$tableTpl = $table->get($orderArr, 'bucketId=Кофа, cnt=Брой, len=Размер');
+    	$tabFields = "groupId={$groupTypeName}, cnt=Брой, len=Размер";
+    	if ($data->fRec->groupBy == 'files') {
+    	    $tabFields = "groupId={$groupTypeName}, len=Размер, createdBy=Създадено->От, createdOn=Създадено->На";
+    	}
+    	$tableTpl = $table->get($orderArr, $tabFields);
         
     	$tpl->append($tableTpl, 'FILES');
     	$tpl->append($cntType->toVerbal($data->filesCnt), 'CNT');
