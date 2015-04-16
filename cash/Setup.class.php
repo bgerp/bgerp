@@ -75,6 +75,12 @@ class cash_Setup extends core_ProtoSetup
     
     
     /**
+     * Дефинирани класове, които имат интерфейси
+     */
+    var $defClasses = "cash_CashReportImpl";
+    
+    
+    /**
      * Път до css файла
      */
 //    var $commonCSS = 'cash/tpl/styles.css';
