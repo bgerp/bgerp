@@ -186,7 +186,9 @@ class type_UserList extends type_Keylist
         $this->prepareSuggestions();
         
         $suggestions = $this->suggestions;
-
+        
+        $retTypeArr = array();
+        
         // Ако е зададен всички потребители
         if ($key == 'all_users') {
             

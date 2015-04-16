@@ -1,6 +1,11 @@
 <?php
 
 
+/**
+ * Колко от последно вложените ресурси да се показват в мастъра на рецептите
+ */
+defIfNot('CAT_BOM_REMEMBERED_RESOURCES', 20);
+
 
 /**
  * class cat_Setup
@@ -95,8 +100,14 @@ class cat_Setup extends core_ProtoSetup
     var $defClasses = "cat_GeneralProductDriver, cat_BaseImporter,cat_SalesArticleReport";
 
 
+    /**
+     * Описание на конфигурационните константи
+     */
+    var $configDescription = array(
+    		'CAT_BOM_REMEMBERED_RESOURCES' => array("int", 'caption=Колко от последно изпозлваните ресурси да се показват в рецептите->Брой'),
+    );
 
-
+    
     /**
      * Настройки за Cron
      */

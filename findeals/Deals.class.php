@@ -188,7 +188,7 @@ class findeals_Deals extends deals_DealBase
     {
     	$this->FLD('dealName', 'varchar(255)', 'caption=Наименование');
     	$this->FLD('amountDeal', 'double(decimals=2)', 'input=none,notNull,oldFieldName=blAmount');
-    	$this->FLD('accountId', 'acc_type_Account', 'caption=Сметка,mandatory,silent');
+    	$this->FLD('accountId', 'acc_type_Account(regInterfaces=crm_ContragentAccRegIntf|deals_DealsAccRegIntf|currency_CurrenciesAccRegIntf)', 'caption=Сметка,mandatory,silent');
     	$this->FLD('contragentName', 'varchar(255)', 'caption=Контрагент');
     	
     	$this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)','caption=Валута->Код');

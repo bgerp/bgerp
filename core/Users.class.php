@@ -310,6 +310,52 @@ class core_Users extends core_Manager
     
     
     /**
+     * Проверява дали подадения потребител е контрактор
+     * 
+     * @param object|NULL|integer $rec
+     * 
+     * @return boolean
+     */
+    public static function isContractor($rec)
+    {
+        if (is_null($rec)) {
+            $rec = core_Users::getCurrent();
+        }
+        
+        if (!is_object($rec)) {
+            $rec = self::fetch($rec);
+        }
+        
+        return (boolean)!self::isPowerUser($rec);
+    }
+    
+    
+    /**
+     * Проверява дали потребителя има роля powerUser
+     * 
+     * @param object|NULL|integer $rec
+     * 
+     * @return boolean
+     */
+    public static function isPowerUser($rec)
+    {
+        if (is_null($rec)) {
+            $rec = core_Users::getCurrent();
+        }
+        
+        if (!is_object($rec)) {
+            $rec = self::fetch($rec);
+        }
+        
+        $powerUserId = core_Roles::fetchByName('powerUser');
+            
+        $isPowerUser = type_Keylist::isIn($powerUserId, $rec->roles);
+        
+        return (boolean)$isPowerUser;
+    }
+    
+    
+    /**
      * Филтър на on_AfterPrepareListFilter()
      * Малко манипулации след подготвянето на формата за филтриране
      *

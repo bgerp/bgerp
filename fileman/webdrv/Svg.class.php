@@ -10,23 +10,8 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class fileman_webdrv_Svg extends fileman_webdrv_Image
+class fileman_webdrv_Svg extends fileman_webdrv_ImageT
 {
-    
-    
-	/**
-     * Стартира извличането на информациите за файла
-     * 
-     * @param object $fRec - Записите за файла
-     * 
-     * @Override
-     * @see fileman_webdrv_Image::startProcessing
-     */
-    static function startProcessing($fRec) 
-    {
-        parent::startProcessing($fRec);
-        static::convertToJpg($fRec);
-    }
     
     
     /**
@@ -113,49 +98,73 @@ class fileman_webdrv_Svg extends fileman_webdrv_Image
      */
     static function afterConvertToPng($script, &$fileHndArr = array())
     {
-        // Извикваме родутелския метод
-        if (static::afterConvertToJpg($script, $fileHndArr)) {
+        // Десериализираме нужните помощни данни
+        $params = unserialize($script->params);
+        
+        // Проверяваме дали е имало грешка при предишното конвертиране
+        if (fileman_Indexes::haveErrors($script->outFilePath, $params['type'], $params)) {
+            
+            // Отключваме процеса
+            core_Locks::release($params['lockId']);
+            
+            return FALSE;
+        }
+        
+        // Инстанция на класа
+        $Fileman = cls::get('fileman_Files');
+        
+        // Ако възникне грешка при качването на файла (липса на права)
+        try {
+            
+            // Качваме файла в кофата и му вземаме манипулатора
+            $fileHnd = $Fileman->addNewFile($script->outFilePath, 'fileIndex');
+        } catch (core_exception_Expect $e) {
+            
+            // Създаваме запис в модела за грешка
+            fileman_Indexes::createError($params);
+    
+            // Записваме грешката в лога
+            fileman_Indexes::createErrorLog($params['dataId'], $params['type']);
+        
+        }
+        
+        // Ако се качи успешно записваме манипулатора в масив
+        if ($fileHnd) {
+            
+            // Масив с манипулатора на файла
+            $fileHndArr[$fileHnd] = $fileHnd;
+            
+            // Текстовата част
+            $params['content'] = $fileHndArr;
+    
+            // Обновяваме данните за запис във fileman_Indexes
+            $savedId = fileman_Indexes::saveContent($params);
+        }
+        
+        // Отключваме процеса
+        core_Locks::release($params['lockId']);
+        
+        if ($savedId) {
 
             // Връща TRUE, за да укаже на стартиралия го скрипт да изтрие всики временни файлове 
             // и записа от таблицата fconv_Process
             return TRUE;
         }
+    
     }
-     
+    
     
     /**
-     * Връща шаблон с превюто на файла
+     * Връща информация за съдържанието на файла
+     * Вика се от fileman_Indexes, за файлове, които нямат запис в модела за съответния тип
      * 
-     * @param object $fRec - Записите за файла
-     * 
-     * @return string|core_ET - Шаблон с превюто на файла
-     * 
-     * @Override
-     * @see fileman_webdrv_Image::getThumbPrev
+     * @param string $fileHnd
+     * @param string $type
      */
-    static function getThumbPrev($fRec) 
+    public static function getInfoContentByFh($fileHnd, $type)
     {
-        // Вземаме масива с изображенията
-        $jpgArr = fileman_Indexes::getInfoContentByFh($fRec->fileHnd, 'png');
-
-        // Ако няма такъв запис
-        if ($jpgArr === FALSE) {
-            
-            // Ако файла все още не е готов
-            return 'Моля презаредете...'; // TODO с AJAX - автоматично
-        }
+        if ($type != 'jpg') return FALSE;
         
-        // Ако е обект и има съобщение за грешка
-        if (is_object($jpgArr) && $jpgArr->errorProc) {
-            
-            // Връщаме съобщението за грешка
-            return tr($jpgArr->errorProc);
-        }
-        
-        // Вземаме записа на JPG изображението
-        $fRecJpg = fileman_Files::fetchByFh(key($jpgArr));
-        
-        // Генерираме съдържание от JPG файла
-        return parent::getThumbPrev($fRecJpg);
+        return fileman_Indexes::getInfoContentByFh($fileHnd, 'png');
     }
 }

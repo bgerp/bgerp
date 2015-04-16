@@ -230,11 +230,8 @@ class deals_plg_DpInvoice extends core_Plugin
     		$Double->params['decimals'] = 2;
     		$dpAmount = $Double->toVerbal($dpAmount);
     		
-    		// Взависимост от операцията, показваме подходящо съобщение
-    		$dpOperation = ($masterRec->dpOperation == 'accrued') ? tr("Авансово плащане") : tr("Приспадане на авансово плащане");
-    		
     		// Записване в $data
-    		$data->dpInfo = (object)array('dpAmount' => $dpAmount, 'dpOperation' => $dpOperation);
+    		$data->dpInfo = (object)array('dpAmount' => $dpAmount, 'dpOperation' => $masterRec->dpOperation);
     	}
     }
     
@@ -255,9 +252,14 @@ class deals_plg_DpInvoice extends core_Plugin
     		$tpl->removeBlock('NO_ROWS');
     	}
     	
-    	$colspan = count($data->listFields) - 2;
+    	if($data->dpInfo->dpOperation == 'accrued'){
+    		$colspan = count($data->listFields) - 1;
+    		$lastRow = new ET("<tr><td colspan='{$colspan}' style='text-indent:20px'>" . tr('Авансово плащане') . "<td style='text-align:right'>[#dpAmount#]</td></td></tr>");
+    	} else {
+    		$colspan = count($data->listFields) - 2;
+    		$lastRow = new ET("<tr><td></td><td colspan='{$colspan}'>" . tr("Приспадане на авансово плащане") . "<td style='text-align:right'>[#dpAmount#]</td></td></tr>");
+    	}
     	
-    	$lastRow = new ET("<tr><td></td><td colspan='{$colspan}'>[#dpOperation#]<td style='text-align:right'>[#dpAmount#]</td></td></tr>");
     	$lastRow->placeObject($data->dpInfo);
     	
     	$tpl->append($lastRow, 'ROW_AFTER');

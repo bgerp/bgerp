@@ -1326,8 +1326,10 @@ class cal_Tasks extends core_Master
 	        	}
         	}
         	
+        	$cntResTask = count($resTask);
+        	
         	// правим помощен масив = на "rowId" от "resTasks"
-        	for($i = 0; $i < count($resTask); $i++) { $j = 0;
+        	for($i = 0; $i < $cntResTask; $i++) { $j = 0;
         		$rowArr[] = $resTask[$i]['rowId'];
         		
         		// Проверка дали ще има URL

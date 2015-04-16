@@ -114,7 +114,7 @@ class acc_BalanceReportImpl extends frame_BaseDriver
     					}
     						
     					$features = acc_Features::getFeatureOptions(array_keys($items));
-    					$features = array('' => '') + $features + array('*' => '[По пера]');
+    					$features = array('' => '') + $features + array('*' => $accInfo->groups[$i]->rec->name);
     					$form->FLD("feat{$i}", 'varchar', "caption={$accInfo->groups[$i]->rec->name}->Свойство,width=330px,input");
     					$form->setOptions("feat{$i}", $features);
     				}
@@ -288,14 +288,20 @@ class acc_BalanceReportImpl extends frame_BaseDriver
     	
     	if(!$data->bShowQuantities || $data->rec->action === 'group'){
     	     $data->summary->colspan -= 4;
-    	     $beforeRow = new core_ET("<tr style = 'background-color: #eee'><td colspan=[#colspan#]><b>" . tr('ОБЩО') . "</b></td><td style='text-align:right'><b>[#baseAmount#]</b></td><td style='text-align:right'><b>[#debitAmount#]</b></td><td style='text-align:right'><b>[#creditAmount#]</b></td><td style='text-align:right'><b>[#blAmount#]</b></td></tr>");
+    	     if($data->summary->colspan != 0 && count($data->rows)){
+    	     	$beforeRow = new core_ET("<tr style = 'background-color: #eee'><td colspan=[#colspan#]><b>" . tr('ОБЩО') . "</b></td><td style='text-align:right'><b>[#baseAmount#]</b></td><td style='text-align:right'><b>[#debitAmount#]</b></td><td style='text-align:right'><b>[#creditAmount#]</b></td><td style='text-align:right'><b>[#blAmount#]</b></td></tr>");
+    	     }
     	} else{
-    	    $data->summary->colspan -= 8;
-    	    $beforeRow = new core_ET("<tr  style = 'background-color: #eee'><td colspan=[#colspan#]><b>" . tr('ОБЩО') . "</b></td><td style='text-align:right'><b>[#baseQuantity#]</b></td><td style='text-align:right'><b>[#baseAmount#]</b></td><td style='text-align:right'><b>[#debitQuantity#]</b></td><td style='text-align:right'><b>[#debitAmount#]</b></td><td style='text-align:right'><b>[#creditQuantity#]</b></td><td style='text-align:right'><b>[#creditAmount#]</b></td><td style='text-align:right'><b>[#blQuantity#]</b></td><td style='text-align:right'><b>[#blAmount#]</b></td></tr>");
+    		if(count($data->rows)){
+    			$data->summary->colspan -= 8;
+    			$beforeRow = new core_ET("<tr  style = 'background-color: #eee'><td colspan=[#colspan#]><b>" . tr('ОБЩО') . "</b></td><td style='text-align:right'><b>[#baseQuantity#]</b></td><td style='text-align:right'><b>[#baseAmount#]</b></td><td style='text-align:right'><b>[#debitQuantity#]</b></td><td style='text-align:right'><b>[#debitAmount#]</b></td><td style='text-align:right'><b>[#creditQuantity#]</b></td><td style='text-align:right'><b>[#creditAmount#]</b></td><td style='text-align:right'><b>[#blQuantity#]</b></td><td style='text-align:right'><b>[#blAmount#]</b></td></tr>");
+    		}
     	}
     	
-    	$beforeRow->placeObject($data->summary);
-    	$tpl->append($beforeRow, 'ROW_BEFORE');
+    	if($beforeRow){
+    		$beforeRow->placeObject($data->summary);
+    		$tpl->append($beforeRow, 'ROW_BEFORE');
+    	}
     	
     	if($data->pager){
     	     $tpl->append($data->pager->getHtml(), 'PAGER_BOTTOM');
@@ -309,13 +315,12 @@ class acc_BalanceReportImpl extends frame_BaseDriver
     /**
      * Подготвя хедърите на заглавията на таблицата
      */
-    private function prepareListFields(&$data)
+    protected function prepareListFields_(&$data)
     {
          $data->accInfo = acc_Accounts::getAccountInfo($data->rec->accountId);
     
          $bShowQuantities = ($data->accInfo->isDimensional === TRUE) ? TRUE : FALSE;
         
-         
     	 $data->bShowQuantities = $bShowQuantities;
          
          $data->listFields = array();
@@ -369,8 +374,7 @@ class acc_BalanceReportImpl extends frame_BaseDriver
         		if(!empty($data->rec->{"grouping{$i}"})){
         			$data->row->groupBy .= acc_Items::getVerbal($data->rec->{"grouping{$i}"}, 'title') . ", ";
         		} elseif(!empty($data->rec->{"feat{$i}"})){
-        			
-        			$data->rec->{"feat{$i}"} = ($data->rec->{"feat{$i}"} == '*') ? "[По пера]" : $data->rec->{"feat{$i}"};
+        			$data->rec->{"feat{$i}"} = ($data->rec->{"feat{$i}"} == '*') ? $data->accInfo->groups[$i]->rec->name : $data->rec->{"feat{$i}"};
         			$data->row->groupBy .= $Varchar->toVerbal($data->rec->{"feat{$i}"}) . ", ";
         		}
         	}

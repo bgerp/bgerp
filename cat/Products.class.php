@@ -1100,7 +1100,6 @@ class cat_Products extends core_Embedder {
     	$pInfo = $this->getProductInfo($id);
     	$rec = $this->fetchRec($id);
     	
-    	$res->name = $rec->name;
     	$res->measureId = $pInfo->productRec->measureId;
     	
     	// Ако артикула е ДМА, ще може да се избират само ресурси - оборудване
@@ -1110,6 +1109,7 @@ class cat_Products extends core_Embedder {
     	 
     	// Ако артикула е материал, ще може да се избират само ресурси - материали
     	if(isset($pInfo->meta['canConvert'])){
+    		$res->name = $rec->name;
     		$res->type = 'material';
     	}
     	

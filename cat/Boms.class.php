@@ -141,9 +141,9 @@ class cat_Boms extends core_Master
      */
     function description()
     {
+    	$this->FLD('quantity', 'double(smartRound,Min=0)', 'caption=За,silent,refreshForm,mandatory');
     	$this->FLD('notes', 'richtext(rows=4)', 'caption=Забележки');
     	$this->FLD('state','enum(draft=Чернова, active=Активиран, rejected=Оттеглен)', 'caption=Статус, input=none');
-    	$this->FLD('quantity', 'double(smartRound,Min=0)', 'caption=За,silent');
     	$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden,silent');
     	
     	$this->setDbIndex('productId');
@@ -213,6 +213,69 @@ class cat_Boms extends core_Master
     	$shortUom = cat_UoM::getShortName($productInfo->productRec->measureId);
     	$form->setField('quantity', "unit={$shortUom}");
     	$form->setDefault('quantity', 1);
+    	
+    	// При създаване на нова рецепта
+    	if(empty($form->rec->id)){
+    		$limit = core_Packs::getConfig('cat')->CAT_BOM_REMEMBERED_RESOURCES;
+    		
+    		$alreadyUsedResources = array();
+    		 
+    		// Опитваме се да намерим последно използваните ресурси в рецепти към този артикул
+    		$dQuery = cat_BomDetails::getQuery();
+    		$dQuery->EXT('productId', 'cat_Boms', 'externalName=productId,externalKey=bomId');
+    		$dQuery->where("#productId = {$form->rec->productId} AND #type = 'input'");
+    		$dQuery->groupBy('resourceId');
+    		$dQuery->show('resourceId');
+    		$dQuery->limit($limit);
+    		while($dRec = $dQuery->fetch()){
+    			$alreadyUsedResources[] = $dRec->resourceId;
+    		}
+    		 
+    		// Ако има такива, добавяме ги като полета във формата
+    		if(count($alreadyUsedResources)){
+    			foreach ($alreadyUsedResources as $i => $resId){
+    				$form->FNC("resourceId{$i}", 'key(mvc=planning_Resources,select=title,allowEmpty)', 'input=hidden');
+    				$form->setDefault("resourceId{$i}", $resId);
+    				$caption = planning_Resources::getTitleById($resId);
+    				$caption = str_replace(',', '.', $caption);
+    				 
+    				if(isset($form->rec->quantity)){
+    					$right = "за {$form->rec->quantity} {$shortUom}";
+    				}
+    				 
+    				$form->FNC("quantities{$i}", "complexType(left=Начално,right={$right},require=one)", "input,caption=|*{$caption}->|К-ва|*");
+    			}
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Изпълнява се след създаване на нов запис
+     */
+    public static function on_AfterCreate($mvc, $rec)
+    {
+    	$count = core_Packs::getConfig('cat')->CAT_BOM_REMEMBERED_RESOURCES;
+    	$count = count($count) -1;
+    	
+    	// Проверяваме имали избрани ресурси още от формата
+    	foreach (range(0, $count) as $i){
+    		if(isset($rec->{"resourceId{$i}"})){
+    			if(!empty($rec->{"quantities{$i}"})){
+    				$parts = type_ComplexType::getParts($rec->{"quantities{$i}"});
+    	
+    				// Ако някой от ресурсите в формата има количество добавяме го като детайл, автоматично
+    				$dRec = (object)array('bomId' => $rec->id,
+				    					  'type' => 'input',
+				    					  'resourceId' => $rec->{"resourceId{$i}"},
+				    					  'baseQuantity' => ($parts['left']) ? $parts['left'] : NULL,
+				    					  'propQuantity' => ($parts['right']) ? $parts['right'] : NULL);
+    	
+    				// Запис на детайла
+    				cat_BomDetails::save($dRec);
+    			}
+    		}
+    	}
     }
     
     
@@ -375,17 +438,20 @@ class cat_Boms extends core_Master
      * Връща информация с ресурсите използвани в технологичната рецепта
      *
      * @param mixed $id - ид или запис
-     * @return array $res - масив с записи на участващите ресурси
-     * 			o $res->resourceId       - ид на ресурса
-     * 			или o $res->productId        - отпаден артикул
-     * 			o $res->baseQuantity     - начално количество на ресурса
-     * 			o $res->propQuantity     - пропорционално количество на ресурса
+     * @return array $res - Информация за рецептата
+     * 				->quantity - к-во
+     * 				->resources
+     * 			        o $res->resourceId       - ид на ресурса
+     * 					o $res->type             - вложим или отпаден ресурс
+	 * 			        o $res->baseQuantity     - начално количество на ресурса
+	 * 			        o $res->propQuantity     - пропорционално количество на ресурса
      */
     public static function getResourceInfo($id)
     {
     	$resources = array();
     	
     	expect($rec = static::fetchRec($id));
+    	$resources['quantity'] = ($rec->quantity) ? $rec->quantity : 1;
     	
     	// Намираме всички етапи в рецептата
     	$dQuery = cat_BomDetails::getQuery();
@@ -400,7 +466,7 @@ class cat_Boms extends core_Master
     		$arr['baseQuantity'] = $dRec->baseQuantity;
     		$arr['propQuantity'] = $dRec->propQuantity;
     		 
-    		$resources[] = (object)$arr;
+    		$resources['resources'][] = (object)$arr;
     	}
     	
     	// Връщаме намерените ресурси

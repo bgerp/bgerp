@@ -188,7 +188,7 @@ class google_Translate1
     /**
      * Превръщаме HTML текста в JS текст, който да може да се използва в променлива
      * 
-     * @param boolean $escaped - Дали да се ескейпва
+     * @param string $html
      * 
      * @return string $initJs
      */

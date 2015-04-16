@@ -150,7 +150,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
     /**
      * Връща текстовата част от файла
      * 
-     * @param object $emlRec - Данните за имейла
+     * @param email_Mime $mime
      * @param boolean $escape - Дали да се ескейпва текстовата част
      * 
      * return string - Текстовата част
@@ -181,7 +181,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
     /**
      * Връща HTML частта от файла
      * 
-     * @param object $emlRec - Данните за имейла
+     * @param email_Mime $mime
      * 
      * return string - HTML частта на файла
      */
@@ -203,7 +203,6 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
      * Връща хедърите на имейла
      * 
      * @param email_Mime $mimeInst - Инстанция към класа
-     * @param object $emlRec - Данните за имейла
      * @param object $parseHeaders - Дали да се парсират хедърите
      * 
      * return array $headersArr - Масив с хедърите
@@ -219,7 +218,7 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
     /**
      * Връща html стринг с прикачените файлове
      * 
-     * @param object $emlRec - Данните за имейла
+     * @param email_Mime $mime
      * 
      * return string - html стринг с прикачените файлове
      */
@@ -268,7 +267,6 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
                 
                 // Ако типа не съществува, връщаме FALSE
                 return FALSE;
-            break;
         }
         
         return $content;

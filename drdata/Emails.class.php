@@ -90,11 +90,13 @@ class drdata_Emails extends core_BaseClass
         // Заобикаляне на останалите проверки
         return;
         
-        if (count($mxhosts)) {
+        $mxhostsCnt = count($mxhosts);
+        
+        if ($mxhostsCnt) {
             $notOpen = 0;
             $timeOutsCnt = 0;
             
-            for ($i = 0; $i < count($mxhosts); $i++) {
+            for ($i = 0; $i < $mxhostsCnt; $i++) {
                 $sock = @fsockopen($mxhosts[$i], 25, $errno, $errstr, 7);
                 
                 if (is_resource($sock)) { // Проверява се последният MX хост и ако не може да се свърже с него на 25 порт добавя предупреждение
@@ -136,7 +138,7 @@ class drdata_Emails extends core_BaseClass
                 }
             }
             
-            if ($notOpen == count($mxhosts)) {
+            if ($notOpen == $mxhostsCnt) {
                 $result['warning'] = "Сървъра на|* '<b>{$domain}</b>' |не отговаря. Проверете имейл-а!";
             } else {
                 // До тук се стига само ако всички MX записи връщат 4

@@ -246,6 +246,8 @@ class purchase_Purchases extends deals_DealMaster
         $form->setDefault('contragentId', doc_Folders::fetchCoverId($form->rec->folderId));
         $form->setSuggestions('bankAccountId', bank_Accounts::getContragentIbans($form->rec->contragentId, $form->rec->contragentClassId));
         $form->setDefault('makeInvoice', 'yes');
+        $form->setField('deliveryLocationId', 'caption=Доставка->Обект от');
+        $form->setField('shipmentStoreId', 'caption=Доставка->До склад');
         
         $form->setDefault('activityCenterId', hr_Departments::fetchField("#systemId = 'myOrganisation'", 'id'));
     }

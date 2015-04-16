@@ -82,8 +82,9 @@ class planning_transaction_ProductionNote extends acc_DocumentTransactionSource
 					if(empty($dRec->jobId)) return FALSE;
 					
 					$quantityJob = planning_Jobs::fetchField($dRec->jobId, 'quantity');
-					$mapArr = cat_Boms::getResourceInfo($dRec->bomId);
-				
+					$resourceInfo = cat_Boms::getResourceInfo($dRec->bomId);
+					
+					$mapArr = $resourceInfo['resources'];
 					if(count($mapArr)){
 						foreach ($mapArr as $index => $res){
 							if($res->type == 'input'){
@@ -93,12 +94,13 @@ class planning_transaction_ProductionNote extends acc_DocumentTransactionSource
 								 * с пропорционалното количество. След това се умножава по количеството посочено в протокола за
 								 * от производството и това количество се изписва от ресурсите.
 								 */
-								$resQuantity = $dRec->quantity * ($res->baseQuantity / $quantityJob + $res->propQuantity);
+								$resQuantity = $dRec->quantity * ($res->baseQuantity / $quantityJob + ($res->propQuantity / $resourceInfo['quantity']));
 								$resQuantity = core_Math::roundNumber($resQuantity);
-									
+								
 								$res->finalQuantity = $resQuantity;
 							}
 						}
+						
 						arr::order($mapArr, 'finalQuantity', 'DESC');
 						
 						foreach ($mapArr as $index => $res){
@@ -118,7 +120,7 @@ class planning_transaction_ProductionNote extends acc_DocumentTransactionSource
 								
 								// Сумата на дебита е себестойността на отпадния ресурс
 								$amount = $resQuantity * planning_Resources::fetchField($res->resourceId, "selfValue");
-								$resQuantity = $dRec->quantity * ($res->baseQuantity / $quantityJob + $res->propQuantity);
+								$resQuantity = $dRec->quantity * ($res->baseQuantity / $quantityJob + ($res->propQuantity / $resourceInfo['quantity']));
 								$resQuantity = core_Math::roundNumber($resQuantity);
 								
 								$entry = array(

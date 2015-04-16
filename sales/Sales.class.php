@@ -259,7 +259,16 @@ class sales_Sales extends deals_DealMaster
         
         $myCompany = crm_Companies::fetchOwnCompany();
         
-        $form->setOptions('bankAccountId',  bank_Accounts::getContragentIbans($myCompany->companyId, 'crm_Companies', TRUE));
+        $options = bank_Accounts::getContragentIbans($myCompany->companyId, 'crm_Companies', TRUE);
+        if(count($options)){
+        	foreach ($options as $id => &$name){
+        		if(is_numeric($id)){
+        			$name = bank_OwnAccounts::fetchField("#bankAccountId = {$id}", 'title');
+        		}
+        	}
+        }
+       
+        $form->setOptions('bankAccountId', $options);
         $form->setDefault('bankAccountId', bank_OwnAccounts::getCurrent('bankAccountId', FALSE));
        
         $form->setDefault('contragentClassId', doc_Folders::fetchCoverClassId($form->rec->folderId));

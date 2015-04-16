@@ -211,6 +211,8 @@ class type_Richtext extends type_Blob
      */
     function toHtml($html)
     {
+        Debug::startTimer('RichtextToHtml');
+        
         if (!strlen($html)) return "";
         
         $textMode = Mode::get('text');
@@ -335,7 +337,7 @@ class type_Richtext extends type_Blob
         $html = preg_replace_callback("/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}\b/i", array($this, '_catchEmails'), $html);
 
         if(!Mode::is('text', 'plain')) {
-            
+            Debug::startTimer('RichtextReplaceIntervals');
             // Заменяме обикновените интервали в началото на всеки ред, с непрекъсваеми такива
             $newLine = TRUE;
             $sp = "";
@@ -359,6 +361,7 @@ class type_Richtext extends type_Blob
             $html = str_replace(array('<b></b>', '<i></i>', '<u></u>'), array('', '', ''), $out);
             
             $html = str_replace('<nbsp>', '&nbsp;', $html);
+            Debug::stopTimer('RichtextReplaceIntervals');
         }
 
         if(!Mode::is('text', 'plain')) {
@@ -399,7 +402,9 @@ class type_Richtext extends type_Blob
         } else {
             $html = $cHtml;
         }
-                
+        
+        Debug::stopTimer('RichtextToHtml');
+        
         return $html;
     }
     
@@ -463,6 +468,7 @@ class type_Richtext extends type_Blob
      */
     static function replaceList($text)
     {
+        Debug::startTimer('RichtextReplaceList');
         $lines = explode("\n", $text);
         $lines[] = '';
         
@@ -534,6 +540,8 @@ class type_Richtext extends type_Blob
 
             $debug[] = array($l, $state, $level, $oldLevel);
         }
+        
+        Debug::stopTimer('RichtextReplaceList');
         
         return $res;
     }

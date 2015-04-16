@@ -59,6 +59,7 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     	$form->FLD('to', 'date', 'caption=До,mandatory');
     	$form->FLD('baseAccountId', 'acc_type_Account(allowEmpty)', 'caption=Сметки->Основна,mandatory');
     	$form->FLD('corespondentAccountId', 'acc_type_Account(allowEmpty)', 'caption=Сметки->Кореспондент,mandatory');
+    	$form->FLD('side', 'enum(all=Всички,debit=Дебит,credit=Кредит)', 'caption=Обороти');
     }
     
     
@@ -336,6 +337,14 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
    			unset($fields['blQuantity']);
    		}
     	
+   		if($this->innerForm->side){
+   			if($this->innerForm->side == 'debit'){
+   				unset($fields['creditQuantity'], $fields['creditAmount'], $fields['blQuantity'], $fields['blAmount']);
+	   		}elseif($this->innerForm->side == 'credit'){
+	   			unset($fields['debitQuantity'], $fields['debitAmount'], $fields['blQuantity'], $fields['blAmount']);
+   			}
+   		}
+   		
    		$f = cls::get('core_FieldSet');
    		$f->FLD('item1', 'varchar', 'tdClass=itemClass');
    		$f->FLD('item2', 'varchar', 'tdClass=itemClass');

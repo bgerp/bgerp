@@ -452,7 +452,7 @@ class bank_OwnAccounts extends core_Master {
     /**
      * Връща Валутата и iban-a на всивки наши сметки разделени с "-"
      */
-    public static function getOwnAccounts()
+    public static function getOwnAccounts($selectIban = TRUE)
     {
         $Iban = cls::get('iban_Type');
         $accounts = array();
@@ -461,7 +461,12 @@ class bank_OwnAccounts extends core_Master {
         while($rec = $query->fetch()) {
             $account = bank_Accounts::fetch($rec->bankAccountId);
             $cCode = currency_Currencies::getCodeById($account->currencyId);
-            $verbal = $Iban->toVerbal($account->iban);
+            if($selectIban === TRUE){
+            	$verbal = $Iban->toVerbal($account->iban);
+            } else {
+            	$verbal = $rec->title;
+            }
+            
             $accounts[$rec->id] = "{$cCode} - {$verbal}";
         }
         

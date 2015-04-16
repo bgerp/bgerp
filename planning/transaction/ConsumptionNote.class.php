@@ -72,14 +72,14 @@ class planning_transaction_ConsumptionNote extends acc_DocumentTransactionSource
 				} else {
 					$debitArr = array('611', array('hr_Departments', $rec->activityCenterId),
 							array('planning_Resources', $resourceRec->resourceId),
-							'quantity' => $dRec->quantity);
+							'quantity' => $dRec->quantity / $resourceRec->conversionRate);
 				}
 					
 				$entries[] = array('debit' => $debitArr,
-						'credit' => array($creditAccId,
-								array('store_Stores', $rec->storeId),
-								array($dRec->classId, $dRec->productId),
-								'quantity' => $dRec->quantity));
+								   'credit' => array($creditAccId,
+										array('store_Stores', $rec->storeId),
+										array($dRec->classId, $dRec->productId),
+											'quantity' => $dRec->quantity));
 			} else {
 				$errorArr[] = cls::get($dRec->classId)->getVerbal($dRec->productId, 'name');
 			}

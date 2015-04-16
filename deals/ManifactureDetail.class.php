@@ -171,10 +171,7 @@ abstract class deals_ManifactureDetail extends doc_Detail
 	public static function on_AfterRecToVerbal($mvc, &$row, $rec)
 	{
 		$ProductMan = cls::get($rec->classId);
-		$row->productId = $ProductMan->getTitleById($rec->productId);
-		if(!Mode::is('printing') && !Mode::is('text', 'xhtml')){
-			$row->productId = ht::createLinkRef($row->productId, array($ProductMan, 'single', $rec->productId));
-		}
+		$row->productId = $ProductMan->getShortHyperLink($rec->productId);
 		
 		$row->measureId = cat_UoM::getShortName($rec->measureId);
 		

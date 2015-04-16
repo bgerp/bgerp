@@ -104,13 +104,15 @@ class cat_SalesArticleReport extends frame_BaseDriver
     	
     	if (core_Users::haveRole('ceo', $cu)) {
     		$form->setDefault('user', 'all_users');
-    	} elseif (core_Users::haveRole('manager', $cu) && !core_Users::haveRole('ceo', $cu)) {
+    	} elseif (core_Users::haveRole('manager', $cu)) {
     		$teamCu = type_Users::getUserWithFirstTeam($cu);
     		$team = strstr($teamCu, '_', TRUE);
     		$form->setDefault('user', "{$team} team");
     		
     	} else {
-    		$form->setDefault('user', $cu);
+    	    $userFromTeamsArr = type_Users::getUserFromTeams($cu);
+    	    
+    		$form->setDefault('user', key($userFromTeamsArr));
     	}
     }
     

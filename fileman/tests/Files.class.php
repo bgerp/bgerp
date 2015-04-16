@@ -61,11 +61,7 @@ class fileman_tests_Files extends unit_Class
     /**
      * Създаване на файл от файл в ОС. Връща fh на новосъздания файл.
      * 
-     * @param string $path - Пътя до файла в ОС
-     * @param string $bucket - Името на кофата
-     * @param string $name - Името на файла 
-     * 
-     * @return fileHnd $fh - Манипулатора на файла
+     * @param fileman $mvc
      */
     public static function test_absorb($mvc)
     {
@@ -117,11 +113,7 @@ class fileman_tests_Files extends unit_Class
     /**
      * Създаване на файл от стринг. Връща fh на новосъздания файл.
      * 
-     * @param string $data - Данните от които ще се създаде файла
-     * @param string $bucket - Името на кофата
-     * @param string $name - Името на файла 
-     * 
-     * @return fileHnd $fh - Манипулатора на файла
+     * @param fileman $mvc
      */
     public static function test_absorbStr($mvc)
     {
@@ -187,10 +179,7 @@ class fileman_tests_Files extends unit_Class
     /**
      * Нова версия от файл в ОС
      * 
-     * @param string $fh - Манипулатор на файла, за който ще се създаде нова версия
-     * @param string $path - Пътя до новата версия на файла
-     * 
-     * @return fileman_Versions $versionId - id от запис
+     * @param fileman $mvc
      */
     public static function test_addVersion($mvc)
     {
@@ -226,10 +215,7 @@ class fileman_tests_Files extends unit_Class
     /**
      * Нова версия от стринг
      * 
-     * @param string $fh - Манипулатор на файла, за който ще се създаде нова версия
-     * @param string $data - Данните от които ще се създаде весия на файла
-     * 
-     * @return fileman_Versions $versionId - id от запис
+     * @param fileman $mvc
      */
     public static function test_addVersionStr($mvc)
     {
@@ -272,9 +258,7 @@ class fileman_tests_Files extends unit_Class
     /**
      * Екстрактване на файл в ОС. Връща пълния път до новия файл
      * 
-     * @param string $fh - Манипулатор на файла, за който ще се създаде нова версия
-     * 
-     * @return string $copyPath - Пътя до файла
+     * @param fileman $mvc
      */
     public static function test_extract($mvc)
     {
@@ -305,9 +289,7 @@ class fileman_tests_Files extends unit_Class
     /**
      * Екстрактване на файл в string. Връща стринга.
      * 
-     * @param string $fh - Манипулатор на файла, за който ще се създаде нова версия
-     * 
-     * @return string $content - Данните на файла
+     * @param fileman $mvc
      */
     public static function test_extractStr($mvc)
     {
@@ -335,10 +317,7 @@ class fileman_tests_Files extends unit_Class
     /**
      * Преименуване на файл
      * 
-     * @param string $fh - Манипулатор на файла
-     * @param string $newName - Новото име на файла
-     * 
-     * @param string $rec->name -Новото име на файла
+     * @param fileman $mvc
      */
     public static function test_rename($mvc)
     {
@@ -366,11 +345,7 @@ class fileman_tests_Files extends unit_Class
     /**
      * Копиране на файл
      * 
-     * @param string $fh - Манипулатора на файла
-     * @param string $newBucket - Името на новата кофа
-     * @param string $newName - Новото име на файла
-     * 
-     * @return string $newRec->fileHnd - Манипулатора на файла
+     * @param fileman $mvc
      */
     public static function test_copy($mvc)
     {
@@ -395,9 +370,7 @@ class fileman_tests_Files extends unit_Class
     /**
      * Връща id на посочения fileHnd
      * 
-     * @param string $fh - Манипулатора на файла
-     * 
-     * @return fileman_Files $id - id на файла
+     * @param fileman $mvc
      */
     public static function test_fhToId($mvc)
     {
@@ -428,9 +401,7 @@ class fileman_tests_Files extends unit_Class
     /**
      * Връща масив от id-та  на файлове. Като аргумент получава масив или keylist от fileHandles.
      * 
-     * @param array $fhKeylist - масив или keylist от манипулатора на файлове
-     * 
-     * @return array $idsArr - Масив с id' то във fileman_Files
+     * @param fileman $mvc
      */
     public static function test_fhKeylistToIds($mvc)
     {
@@ -478,9 +449,7 @@ class fileman_tests_Files extends unit_Class
     /**
      * Връща fileHnd на посоченото id
      * 
-     * @param fileman_Files $id - id на файла
-     * 
-     * @return string $fh - Манипулатора на файла
+     * @param fileman $mvc
      */
     public static function test_idToFh($mvc)
     {
@@ -511,9 +480,7 @@ class fileman_tests_Files extends unit_Class
     /**
      * Връща масив от fh-ри  на файлове. Като аргумент получава масив или keylist от id-та на файлове
      * 
-     * @param array $idKeylist - масив или keylist от id (от fileman_Files) на файлове
-     * 
-     * @return array $idsArr - Масив с манипулатор
+     * @param fileman $mvc
      */
     public static function test_idKeylistToFhs($mvc)
     {
@@ -547,16 +514,7 @@ class fileman_tests_Files extends unit_Class
     /**
      * Връща всички мета-характеристики на файла
      * 
-     * @param strign $fh - Манипулатор на файла
-     * 
-     * @param return array(
-     *      'name' => '...',
-     *      'bucket' => '...',
-     *      'size' => ...,
-     *      'creationDate' => '...',
-     *      'modificationDate' => '...',
-     *      'extractDate' => '...',
-     *   )
+     * @param fileman $mvc
      */
     public static function test_getMeta($mvc)
     {
@@ -608,13 +566,7 @@ class fileman_tests_Files extends unit_Class
 	/**
      * Създава нов файл
      * 
-     * @param string $name - Името на файла
-     * @param fileman_Buckets $bucketId - Кофата, в която ще създадем
-     * @param fileman_Data $dataId - Данните за файла
-     * 
-     * @access protected
-     * 
-     * @return string $rec->fileHnd - Манипуалатор на файла
+     * @param fileman $mvc
      */
     static function test_createFile($mvc)
     {
@@ -625,7 +577,7 @@ class fileman_tests_Files extends unit_Class
     /**
      * Създава нова директория, където ще се записват файловете
      * 
-     * @return string $tempPath - Пътя до новата директория
+     * @param fileman $mvc
      */
     public static function test_getTempPath($mvc)
     {
@@ -651,6 +603,8 @@ class fileman_tests_Files extends unit_Class
     
     /**
      * Връща директорията с временните файлове
+     * 
+     * @param fileman $mvc
      */
     public static function test_getTempDir($mvc)
     {
@@ -661,9 +615,7 @@ class fileman_tests_Files extends unit_Class
     /**
      * Изтрива временната директория
      * 
-     * @param string $tempFile - Файла, който ще бъде изтрит с директорията
-     * 
-     * @return boolean $deleted - Връща TRUE, ако изтриването протече коректно
+     * @param fileman $mvc
      */
     public static function test_deleteTempPath($mvc)
     {
@@ -674,11 +626,7 @@ class fileman_tests_Files extends unit_Class
     /**
      * Проверява дали файла със съответните данни съществува
      * 
-     * @param fileman_Data $dataId - id на данните на файла
-     * @param fileman_Buckets $bucketId - id на кофата
-     * @param string $inputFileName - Името на файла
-     * 
-     * @return string - Ако открие съвпадение връща манипулатора на файла
+     * @param fileman $mvc
      */
     static function test_checkFileNameExist($mvc)
     {

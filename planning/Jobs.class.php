@@ -577,6 +577,13 @@ class planning_Jobs extends core_Master
     			$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'add', 'productId' => $rec->productId, 'originId' => $rec->containerId, 'quantity' => $rec->quantity, 'ret_url' => TRUE), 'ef_icon = img/16/article.png,title=Създаване на нова технологична рецепта');
     		}
     	}
+    	
+    	if($rec->state != 'draft' && $rec->state != 'rejected'){
+    		if(planning_ProductionNotes::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
+    			$pUrl = array('planning_ProductionNotes', 'add', 'originId' => $rec->containerId);
+    			$data->toolbar->addBtn("Производство", $pUrl, 'ef_icon = img/16/page_paste.png,title=Създаване на протокол за производство от заданието');
+    		}
+    	}
     }
     
     

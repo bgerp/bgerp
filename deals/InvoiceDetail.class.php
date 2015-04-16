@@ -19,7 +19,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 	/**
 	 * Помощен масив за мапиране на полета изпозлвани в deals_Helper
 	 */
-	public static $map = array( 'rateFld'     => 'rate',
+	public $map = array( 'rateFld'     => 'rate',
 								'chargeVat'   => 'vatRate',
 								'quantityFld' => 'quantity',
 								'valior'      => 'date',
@@ -94,6 +94,12 @@ abstract class deals_InvoiceDetail extends doc_Detail
 		if (!empty($rec->packPrice)) {
 			$rec->packPrice = deals_Helper::getDisplayPrice($rec->packPrice, 0, $masterRec->rate, 'no');
 		}
+		
+		if($masterRec->type === 'dc_note'){
+			foreach (array('packagingId', 'notes', 'discount') as $fld){
+				$data->form->setField($fld, 'input=hidden');
+			}
+		}
 	}
 
 
@@ -146,7 +152,72 @@ abstract class deals_InvoiceDetail extends doc_Detail
 	 */
 	public function calculateAmount_(&$recs, &$rec)
 	{	
-		deals_Helper::fillRecs($this->Master, $recs, $rec, static::$map);
+		// Ако документа е известие
+		if($rec->type === 'dc_note'){
+			if(count($recs)){
+				// Намираме оригиналните к-ва и цени 
+				$cached = $this->Master->getInvoiceDetailedInfo($rec->originId);
+				
+				// За всеки запис ако е променен от оригиналния показваме промяната
+				foreach($recs as &$dRec){
+					$originRef = $cached[$dRec->productId][$dRec->packagingId];
+					
+					$diffQuantity = $dRec->quantity - $originRef['quantity'];
+					$diffPrice = $dRec->packPrice - $originRef['price'];
+					
+					if(round($diffQuantity, 5) != 0){
+						$dRec->quantity = $diffQuantity;
+						$dRec->changedQuantity = TRUE;
+					}
+					
+					if(round($diffPrice, 5) != 0){
+						$dRec->packPrice = $diffPrice;
+						$dRec->changedPrice = TRUE;
+					}
+				}
+			} 
+		}
+		
+		deals_Helper::fillRecs($this->Master, $recs, $rec, $this->map);
+	}
+	
+	
+	public static function on_BeforeRenderListTable($mvc, &$res, $data)
+	{
+		if(!count($data->rows)) return;
+		
+		$masterRec = $data->masterData->rec;
+		if($masterRec->type != 'dc_note') return;
+		
+		foreach ($data->rows as $id => &$row){
+			$rec = $data->recs[$id];
+			
+			$changed = FALSE;
+			
+			foreach (array('Quantity' => 'quantity', 'Price' => 'packPrice', 'Amount' => 'amount') as $key => $fld){
+				if($rec->{"changed{$key}"} === TRUE){
+					$changed = TRUE;
+					if($rec->$fld < 0){
+						$row->$fld = "<span style='color:red'>{$row->$fld}</span>";
+					} elseif($rec->$fld > 0){
+						$row->$fld = "<span style='color:green'>+{$row->$fld}</span>";
+					}
+				}
+			}
+			
+			// Ако няма промяна реда
+			if($changed === FALSE){
+				
+				// При активна ф-ра не го показваме
+				if($masterRec->state == 'active'){
+					unset($data->rows[$id]);
+				} else {
+					
+					// Иначе го показваме в сив ред
+					$row->ROW_ATTR['style'] = " background-color:#f1f1f1;color:#777";
+				}
+			}
+		}
 	}
 	
 	
@@ -161,21 +232,30 @@ abstract class deals_InvoiceDetail extends doc_Detail
 	{
 		$masterRec = $data->masterData->rec;
 		
-		if(isset($masterRec->type) && $masterRec->type != 'invoice'){
-	
-			// При дебитни и кредитни известия показваме основанието
-			$data->listFields = array();
-			$data->listFields['number'] = '№';
-			$data->listFields['reason'] = 'Основание';
-			$data->listFields['amount'] = 'Сума';
-			$data->rows = array();
-	
-			// Показване на сумата за промяна на известието
-			$amount = $mvc->getFieldType('amount')->toVerbal($masterRec->dealValue / $masterRec->rate);
-	
-			$data->rows[] = (object) array('number' => 1,
-					'reason' => $masterRec->reason,
-					'amount' => $amount);
+		if(isset($masterRec->type)){
+			if($masterRec->type == 'debit_note' || $masterRec->type == 'credit_note' || ($masterRec->type == 'dc_note' && isset($masterRec->changeAmount) && !count($data->rows))){
+				// При дебитни и кредитни известия показваме основанието
+				$data->listFields = array();
+				$data->listFields['number'] = '№';
+				$data->listFields['reason'] = 'Основание';
+				$data->listFields['amount'] = 'Сума';
+				$data->rows = array();
+				
+				// Показване на сумата за промяна на известието
+				$amount = $mvc->getFieldType('amount')->toVerbal($masterRec->dealValue / $masterRec->rate);
+				$originRec = doc_Containers::getDocument($masterRec->originId)->rec();
+				
+				if($originRec->dpOperation == 'accrued'){
+					$reason = ($amount > 0) ? 'Увеличаване на авансово плащане' : 'Намаляване на авансово плащане';
+				} else {
+					$reason = ($amount > 0) ? 'Увеличаване на стойност на фактура' : 'Намаляване на стойност на фактура';
+				}
+				
+				$data->recs['advance'] = (object) array('amount' => $masterRec->dealValue / $masterRec->rate, 'changedAmount' => TRUE);
+				$data->rows['advance'] = (object) array('number' => 1,
+						'reason' => $reason,
+						'amount' => $amount);
+			} 
 		}
 	}
 	
@@ -255,9 +335,12 @@ abstract class deals_InvoiceDetail extends doc_Detail
 						$res = 'no_one';
 					}
 				}
-			} else {
-				// Към ДИ и КИ немогат да се добавят детайли
-				$res = 'no_one';
+			} elseif(isset($hasType) && $mvc->Master->fetchField($rec->{$mvc->masterKey}, 'type') == 'dc_note') {
+				
+				// На ДИ и КИ не можем да изтривсме и добавяме
+				if($action == 'add' || $action == 'delete'){
+					$res = 'no_one';
+				}
 			}
 		}
 	}
@@ -420,6 +503,18 @@ abstract class deals_InvoiceDetail extends doc_Detail
 					$form->setWarning('packPrice,packagingId', 'Опаковката е променена без да е променена цената.|*<br />| Сигурнили сте че зададената цена отговаря на  новата опаковка!');
 				}
 			}
+			
+			if($masterRec->type === 'dc_note'){
+				$cache = $mvc->Master->getInvoiceDetailedInfo($masterRec->originId);
+				$cache = $cache[$rec->productId][$rec->packagingId];
+				
+				if(round($cache['quantity'], 5) != round($rec->quantity, 5) && round($cache['price'], 5) != round($rec->packPrice, 5)){
+					$form->setError('quantity,packPrice', 'Не може да е променена и цената и количеството');
+				}
+			}
+			
+			
+			$originRef = $cached[$dRec->productId][$dRec->packagingId];
 		}
 	}
 }

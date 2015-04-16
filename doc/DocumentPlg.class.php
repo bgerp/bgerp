@@ -168,7 +168,7 @@ class doc_DocumentPlg extends core_Plugin
                     'restore',
                     $data->rec->id
                 ),
-                'id=btnRestore,warning=Наистина ли желаете да възстановите документа?,order=32', 'ef_icon = img/16/restore.png');
+                'id=btnRestore,warning=Наистина ли желаете да възстановите документа?,order=32,title=Възстановяване на документа', 'ef_icon = img/16/restore.png');
         }
         
         //Бутон за добавяне на коментар 
@@ -2225,5 +2225,25 @@ class doc_DocumentPlg extends core_Plugin
 
             return FALSE;
         }
+    }
+    
+    
+    /**
+     * Създава нов документ със съответните стойности
+     * 
+     * @param core_Mvc $mvc
+     * @param NULL|integer $id
+     * @param object $rec
+     */
+    public static function on_AfterCreateNew($mvc, &$id, $rec)
+    {
+        // Очакваме да има такива полета в модела
+        $allFldArr = $mvc->selectFields("#kind == 'FLD'");
+        $recArr = (array)$rec;
+        foreach ($recArr as $field => $dummy) {
+            expect($allFldArr[$field], "Полето '{$field}' липсва в модела");
+        }
+        
+        $id = $mvc->save($rec);
     }
 }

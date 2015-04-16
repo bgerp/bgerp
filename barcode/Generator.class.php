@@ -112,7 +112,7 @@ class barcode_Generator extends core_Manager
      *
      * @return resource gdRes
      */
-    static function getImg($type, $conten, $size = NULL, $params = array(), &$output = array())
+    static function getImg($type, $content, $size = NULL, $params = array(), &$output = array())
     {
         $type = strtolower($type);
         
@@ -133,16 +133,16 @@ class barcode_Generator extends core_Manager
             $params['saveAndPrint'] = $outFileName ? $params['saveAndPrint'] : FALSE;
             
             // Генерира QR изображение
-            $im = QRcode::png($conten, $outFileName, $quality, $pixelPerPoint, $outerFrame, $params['saveAndPrint']);
+            $im = QRcode::png($content, $outFileName, $quality, $pixelPerPoint, $outerFrame, $params['saveAndPrint']);
             
             return $im;
         }
         
         // Проверяваме дали подадени данни са коректни
-        self::checkContent($type, $conten);
+        self::checkContent($type, $content);
         
         // Минималната дължина и широчина на баркода
-        $minWidthAndHeightArr = self::getMinWidthAndHeight($type, $conten);
+        $minWidthAndHeightArr = self::getMinWidthAndHeight($type, $content);
         
         // Ако размера не е масив
         if (!is_array($size)) {
@@ -178,7 +178,7 @@ class barcode_Generator extends core_Manager
         imagefilledrectangle($im, 0, 0, $width, $height, $white);
         
         // Генерираме баркода
-        $output = Barcode::gd($im, $black, $width / 2, $height / 2, 0, $type, $conten, $ratioArr['width'], $ratioArr['height']);
+        $output = Barcode::gd($im, $black, $width / 2, $height / 2, 0, $type, $content, $ratioArr['width'], $ratioArr['height']);
         
         // Съобщение за грешка, ако не може да се генерира баркода
         expect($output, 'Не може да се генерира баркода.');
@@ -295,10 +295,10 @@ class barcode_Generator extends core_Manager
      *
      * Показва изображението и спира изпълнението на скрипта
      */
-    static function printImg($type, $conten, $size, $params = array())
+    static function printImg($type, $content, $size, $params = array())
     {
         // Вземаме изображението
-        $im = self::getImg($type, $conten, $size, $params);
+        $im = self::getImg($type, $content, $size, $params);
         
         // Ако е ресурс
         if (is_resource($im)) {

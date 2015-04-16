@@ -63,11 +63,15 @@ class bgerp_data_Translations extends core_MVC
         $query = core_Lg::getQuery();
         $query->where("#lg = 'en'");
         
+        $enLangRecArr = array();
+        
         while ($enLangRec = $query->fetch()) {
             
             // Добавяме ги в масив
             $enLangRecArr[$enLangRec->id] = $enLangRec;
         }
+        
+        $nArr = array();
         
         // Обхождаме езиците
         foreach ($langArr as $lang => $dummy) {

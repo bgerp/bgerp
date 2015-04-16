@@ -514,7 +514,9 @@ class email_Inboxes extends core_Master
         if ($folderId) {
             try {
                 $options = $mvc->getFromEmailOptions($folderId);
-            } catch (Exception $e) {}
+            } catch (Exception $e) {
+                // Не се прави нищо
+            }
             
             // Ако може да има празен запис
             if ($type->params['allowEmpty']) {
@@ -719,7 +721,7 @@ class email_Inboxes extends core_Master
         foreach ($allEmailsArr as $key => $email) {
             
             // Вземаме домейна на имейла
-            list($user, $domain) = explode('@', $email);
+            list(, $domain) = explode('@', $email);
             
             // Домейна в долен регистър
             $domain = mb_strtolower($domain);

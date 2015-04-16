@@ -203,6 +203,12 @@ class fileman_Setup extends core_ProtoSetup
     
     
     /**
+     * Дефинирани класове, които имат интерфейси
+     */
+    var $defClasses = "fileman_FileInfoReport";
+         
+    
+    /**
      * Инсталиране на пакета
      */
     function install()

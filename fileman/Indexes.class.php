@@ -297,8 +297,8 @@ class fileman_Indexes extends core_Manager
     /**
      * Проверява дали файла е заключен или записан в БД
      * 
-     * @param object $fRec - Данните за файла
      * @param array $params - Масив с допълнителни променливи
+     * @param boolean $trim
      * 
      * @return boolean - Връща TRUE ако файла е заключен или има запис в БД
      * 

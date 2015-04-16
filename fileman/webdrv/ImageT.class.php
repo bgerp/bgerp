@@ -31,38 +31,19 @@ class fileman_webdrv_ImageT extends fileman_webdrv_Image
     
     
     /**
-     * Връща шаблон с превюто на файла
+     * Връща информация за съдържанието на файла
+     * Вика се от fileman_Indexes, за файлове, които нямат запис в модела за съответния тип
      * 
-     * @param object $fRec - Записите за файла
      * 
-     * @return string|core_ET - Шаблон с превюто на файла
+     * @param string $fileHnd
+     * @param string $type
      * 
      * @Override
-     * @see fileman_webdrv_Image::getThumbPrev
+     * @see fileman_webdrv_Image::getInfoContentByFh
      */
-    static function getThumbPrev($fRec) 
+    public static function getInfoContentByFh($fileHnd, $type)
     {
-        // Вземаме масива с изображенията
-        $jpgArr = fileman_Indexes::getInfoContentByFh($fRec->fileHnd, 'jpg');
-
-        // Ако няма такъв запис
-        if ($jpgArr === FALSE) {
-            
-            // Ако файла все още не е готов
-            return 'Моля презаредете...'; // TODO с AJAX - автоматично
-        }
         
-        // Ако е обект и има съобщение за грешка
-        if (is_object($jpgArr) && $jpgArr->errorProc) {
-            
-            // Връщаме съобщението за грешка
-            return tr($jpgArr->errorProc);
-        }
-        
-        // Вземаме записа на JPG изображението
-        $fRecJpg = fileman_Files::fetchByFh(key($jpgArr));
-        
-        // Генерираме съдържание от JPG файла
-        return parent::getThumbPrev($fRecJpg);
+        return FALSE;
     }
 }

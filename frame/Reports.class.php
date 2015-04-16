@@ -50,7 +50,7 @@ class frame_Reports extends core_Embedder
     /**
      * Права за писане
      */
-    public $canEdit = 'ceo, report, admin';
+    public $canEdit = 'powerUser';
     
     
     /**
@@ -74,7 +74,13 @@ class frame_Reports extends core_Embedder
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canChangestate = 'ceo, report, admin';
+	public $canChangestate = 'powerUser';
+    
+    
+	/**
+	 * Кой може да добавя?
+	 */
+	public $canAdd = 'powerUser';
 	
 	
     /**
@@ -404,6 +410,38 @@ class frame_Reports extends core_Embedder
     		if($state == 'pending'){
     			$requiredRoles = $mvc->getRequiredRoles('edit');
     		}
+    	}
+    	
+    	if ($action == 'add') {
+    	    
+    	    $canAdd = FALSE;
+    	    
+    		// Извличаме класовете с посочения интерфейс
+    		$interfaces = core_Classes::getOptionsByInterface($mvc->innerObjectInterface, 'title');
+			foreach ((array)$interfaces as $id => $int){
+				if(!cls::load($id, TRUE)) continue;
+				
+				$Driver = cls::get($id);
+				
+				// Ако има права за добавяне на поне 1 отчет
+				if($Driver->canSelectInnerObject()){
+				    
+				    $canAdd = TRUE;
+				    break;
+				}
+			}
+			
+			if (!$canAdd) {
+			    $requiredRoles = 'no_one';
+			}
+    	}
+    	
+    	if ($rec && (($action == 'changestate') || ($action == 'edit'))) {
+    	    if (!haveRole('ceo, report, admin', $userId)) {
+    	        if ($rec->createdBy != $userId) {
+    	            $requiredRoles = 'no_one';
+    	        }
+    	    }
     	}
     }
 }

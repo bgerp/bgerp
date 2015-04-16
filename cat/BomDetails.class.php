@@ -199,7 +199,7 @@ class cat_BomDetails extends doc_Detail
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-    	$row->resourceId = planning_Resources::getHyperlink($rec->resourceId, TRUE);
+    	$row->resourceId = planning_Resources::getShortHyperlink($rec->resourceId);
     	$measureId = planning_Resources::fetchField($rec->resourceId, 'measureId');
     	$row->measureId = cat_UoM::getTitleById($measureId);
     	
@@ -252,6 +252,7 @@ class cat_BomDetails extends doc_Detail
     		} else {
     			$rec->order = 0;
     		}
+    		$rec->order .= $rec->id;
     	}
     	 
     	if($data->masterData->rec->state != 'draft'){
