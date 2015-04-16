@@ -62,6 +62,8 @@ class acc_BalanceReportImpl extends frame_BaseDriver
     
     	$form->FLD('orderField', "enum(,ent1Id=Перо 1,ent2Id=Перо 2,ent3Id=Перо 3,baseQuantity=К-во»Начално,baseAmount=Сума»Начална,debitQuantity=К-во»Дебит,debitAmount=Сума»Дебит,creditQuantity=К-во»Кредит,creditAmount=Сума»Кредит,blQuantity=К-во»Крайно,blAmount=Сума»Крайна)", 'caption=Подредба->По,formOrder=110000');
     	$form->FLD('orderBy', 'enum(,asc=Въздходящ,desc=Низходящ)', 'caption=Подредба->Тип,formOrder=110001');
+    
+    	$this->invoke('AfterAddEmbeddedFields', array($form));
     }
     
     
@@ -121,6 +123,8 @@ class acc_BalanceReportImpl extends frame_BaseDriver
     			}
     		}
     	}
+    	
+    	$this->invoke('AfterPrepareEmbeddedForm', array($form));
     }
     
     
@@ -198,11 +202,11 @@ class acc_BalanceReportImpl extends frame_BaseDriver
     /**
      * След подготовката на показването на информацията
      */
-    public function on_AfterPrepareEmbeddedData($mvc, &$res)
+    public static function on_AfterPrepareEmbeddedData($mvc, &$res)
     {
     	// Подготвяме страницирането
     	$data = $res;
-    	$Pager = cls::get('core_Pager', array('itemsPerPage' => $this->listItemsPerPage));
+    	$Pager = cls::get('core_Pager', array('itemsPerPage' => $mvc->listItemsPerPage));
         $Pager->itemsCount = count($data->recs);
         $Pager->calc();
         $data->pager = $Pager;
@@ -220,7 +224,7 @@ class acc_BalanceReportImpl extends frame_BaseDriver
                 // Показваме само тези редове, които са в диапазона на страницата
                 if($count >= $start && $count <= $end){
                     $rec->id = $count + 1;
-                    $row = $this->getVerbalDetail($rec);
+                    $row = $mvc->getVerbalDetail($rec);
                     $data->rows[$id] = $row;
                 }
                 
@@ -245,9 +249,22 @@ class acc_BalanceReportImpl extends frame_BaseDriver
             }
         }
         
-        $this->recToVerbal($data);
+        $mvc->recToVerbal($data);
         
         $res = $data;
+    }
+    
+    
+    /**
+     * Връща шаблона на репорта
+     * 
+     * @return core_ET $tpl - шаблона
+     */
+    public function getReportLayout_()
+    {
+    	$tpl = getTplFromFile('acc/tpl/ReportDetailedBalance.shtml');
+    	
+    	return $tpl;
     }
     
     
@@ -260,7 +277,7 @@ class acc_BalanceReportImpl extends frame_BaseDriver
     {
     	if(empty($data)) return;
     	
-    	$tpl = getTplFromFile('acc/tpl/ReportDetailedBalance.shtml');
+    	$tpl = $this->getReportLayout();
     	$tpl->replace($this->title, 'TITLE');
     	
     	$this->prependStaticForm($tpl, 'FORM');
