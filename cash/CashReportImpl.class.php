@@ -174,15 +174,18 @@ class cash_CashReportImpl extends frame_BaseDriver
     	// Ако има намерени записи
     	if(count($data->recs)){
     		
-    		// Подготвяме страницирането
-    		$data->Pager = cls::get('core_Pager',  array('itemsPerPage' => $mvc->listItemsPerPage));
-    		$data->Pager->itemsCount = count($data->recs);
+    		if(!Mode::is('printing')){
+    			
+    			// Подготвяме страницирането
+    			$data->Pager = cls::get('core_Pager',  array('itemsPerPage' => $mvc->listItemsPerPage));
+    			$data->Pager->itemsCount = count($data->recs);
+    		}
     		
     		// За всеки запис
     		foreach ($data->recs as &$rec){
     			 
     			// Ако не е за текущата страница не го показваме
-    			if(!$data->Pager->isOnPage()) continue;
+    			if(isset($data->Pager) && !$data->Pager->isOnPage()) continue;
     			 
     			// Вербално представяне на записа
     			$data->rows[] = $mvc->getVerbalRec($rec);
