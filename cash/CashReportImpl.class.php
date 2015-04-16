@@ -56,7 +56,7 @@ class cash_CashReportImpl extends frame_BaseDriver
     {
     	$form->FLD('accountId', 'acc_type_Account(allowEmpty)', 'input=hidden,mandatory');
     	$form->FLD('from', 'date', 'caption=От,mandatory');
-    	$form->FLD('to', 'date', 'caption=До,mandatory');
+    	$form->FLD('to', 'date', 'caption=До');
     	
     	// Дефолтната сметка да е избрана по дефолт
     	$accId = acc_Accounts::getRecBySystemId($this->defaultAccount)->id;
@@ -71,9 +71,11 @@ class cash_CashReportImpl extends frame_BaseDriver
     	$form->FLD('currencyItem', "acc_type_Item(lists={$curListRec}, allowEmpty)", 'caption=Валута,mandatory');
     
     	// Дефолтния период е в рамките на 1 седмица назаде
-    	$today = dt::today();
-    	$form->setDefault('from', dt::addDays(-7, $today));
-    	$form->setDefault('to', $today);
+    	if(empty($form->rec->id)){
+    		$today = dt::today();
+    		$form->setDefault('from', dt::addDays(-7, $today));
+    		$form->setDefault('to', $today);
+    	}
     	
     	// Слагаме избраната каса, ако има такава
     	if($curCase = cash_Cases::getCurrent('id', FALSE)){
@@ -91,8 +93,10 @@ class cash_CashReportImpl extends frame_BaseDriver
     public function checkEmbeddedForm(core_Form &$form)
     {
     	if($form->isSubmitted()){
-    		if($form->rec->to < $form->rec->from){
-    			$form->setError('to, from', 'Началната дата трябва да е по малка от крайната');
+    		if(isset($form->rec->to) && isset($form->rec->from)){
+    			if($form->rec->to < $form->rec->from){
+    				$form->setError('to, from', 'Началната дата трябва да е по малка от крайната');
+    			}
     		}
     	}
     }
@@ -108,6 +112,9 @@ class cash_CashReportImpl extends frame_BaseDriver
     	$data = new stdClass();
     	$data->rec = $this->innerForm;
     	$data->recs = array();
+    	if(empty($data->rec->to)){
+    		$data->rec->to = $data->rec->from;
+    	}
     	
     	// На коя позиция са валутата и касата в сметката
     	$cItemPosition = acc_Lists::getPosition($this->defaultAccount, 'cash_CaseAccRegIntf');
@@ -132,7 +139,7 @@ class cash_CashReportImpl extends frame_BaseDriver
     				if(!($b->{"ent{$cItemPosition}Id"} == $data->rec->caseItem && $b->{"ent{$currencyPosition}Id"} == $data->rec->currencyItem)) continue;
     				
     				// Сабираме салдата и оборотите
-    				foreach (array('baseQuantity', 'baseAmount', 'debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount') as $fld){
+    				foreach (array('baseQuantity', 'debitQuantity', 'creditQuantity', 'blQuantity') as $fld){
     					if(isset($b->$fld)){
     						$newRec->$fld += $b->$fld;
     					}
@@ -160,7 +167,7 @@ class cash_CashReportImpl extends frame_BaseDriver
     */
     public static function on_AfterPrepareEmbeddedData($mvc, &$data)
     {
-    	$data->listFields = arr::make("date=Дата,baseQuantity=Начално салдо->К-во,baseAmount=Начално салдо->Сума, debitQuantity=Приход->К-во,debitAmount=Приход->Сума,creditQuantity=Разход->К-во,creditAmount=Разход->Сума,blQuantity=Остатък->К-во,blAmount=Остатък->Сума", TRUE);
+    	$data->listFields = arr::make("date=Дата,baseQuantity=Начално, debitQuantity=Приход,creditQuantity=Разход,blQuantity=Остатък", TRUE);
     	$data->hideQuantities = TRUE;
     	$data->recs = array_reverse($data->recs, TRUE);
     	
@@ -211,7 +218,7 @@ class cash_CashReportImpl extends frame_BaseDriver
     	$row->date = dt::mysql2verbal($rec->date, "d.m.Y");
     	
     	// Вербално представяне на сумите и к-та
-    	foreach (array('baseQuantity', 'baseAmount', 'debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount') as $fld){
+    	foreach (array('baseQuantity', 'debitQuantity', 'creditQuantity', 'blQuantity') as $fld){
     		if(isset($rec->{$fld})){
     			$row->{$fld} = $Double->toVerbal($rec->{$fld});
     			if($rec->{$fld} < 0){
@@ -256,13 +263,9 @@ class cash_CashReportImpl extends frame_BaseDriver
     	// Рендираме таблицата с намерените записи
     	$tableMvc = new core_Mvc;
     	$tableMvc->FLD('baseQuantity', 'int', 'tdClass=accCell');
-    	$tableMvc->FLD('baseAmount', 'int', 'tdClass=accCell');
     	$tableMvc->FLD('debitQuantity', 'int', 'tdClass=accCell');
-    	$tableMvc->FLD('debitAmount', 'int', 'tdClass=accCell');
     	$tableMvc->FLD('creditQuantity', 'int', 'tdClass=accCell');
-    	$tableMvc->FLD('creditAmount', 'int', 'tdClass=accCell');
     	$tableMvc->FLD('blQuantity', 'int', 'tdClass=accCell');
-    	$tableMvc->FLD('blAmount', 'int', 'tdClass=accCell');
     	
     	$table = cls::get('core_TableView', array('mvc' => $tableMvc));
     	
