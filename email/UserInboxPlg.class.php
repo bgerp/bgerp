@@ -146,13 +146,11 @@ class email_UserInboxPlg extends core_Plugin
                         // Контракторите не са длъжни да имат екип
                         if ($form->rec->rolesInput) {
                             $cRec = clone($form->rec);
-                            $rolesArr = keylist::toArray($form->rec->rolesInput);
+                            $rolesArr = keylist::toArray($cRec->rolesInput);
                             $rolesArr = core_Roles::expand($rolesArr);
                             $cRec->roles = keylist::fromArray($rolesArr);
                             
-                            if (core_Users::isContractor($cRec)) {
-                                $isContractor = TRUE;
-                            }
+                            $isContractor = core_Users::isContractor($cRec);
                         }
                         
                         if (!$isContractor) {
