@@ -275,4 +275,28 @@ class cash_CashReportImpl extends frame_BaseDriver
     	
     	return $tpl;
     }
+    
+    
+    /**
+     * Скрива полетата, които потребител с ниски права не може да вижда
+     *
+     * @param stdClass $data
+     */
+    public function hidePriceFields()
+    {
+    	$innerState = &$this->innerState;
+    
+    	unset($innerState->recs);
+    }
+    
+    
+    /**
+     * Коя е най-ранната дата на която може да се активира документа
+     */
+    public function getEarlyActivation()
+    {
+    	$activateOn = "{$this->innerForm->to} 23:59:59";
+    
+    	return $activateOn;
+    }
 }
