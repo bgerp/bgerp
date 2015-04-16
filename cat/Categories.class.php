@@ -250,7 +250,7 @@ class cat_Categories extends core_Master
             1 => "info",
             2 => "sysId",
             3 => "meta",
-        	5 => "csv_measures",
+        	4 => "csv_measures",
         );
         
         $cntObj = csv_Lib::importOnce($mvc, $file, $fields);
