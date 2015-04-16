@@ -168,7 +168,6 @@ class cash_CashReportImpl extends frame_BaseDriver
     public static function on_AfterPrepareEmbeddedData($mvc, &$data)
     {
     	$data->listFields = arr::make("date=Дата,baseQuantity=Начално, debitQuantity=Приход,creditQuantity=Разход,blQuantity=Остатък", TRUE);
-    	$data->hideQuantities = TRUE;
     	$data->recs = array_reverse($data->recs, TRUE);
     	
     	// Ако има намерени записи
@@ -189,20 +188,7 @@ class cash_CashReportImpl extends frame_BaseDriver
     			 
     			// Вербално представяне на записа
     			$data->rows[] = $mvc->getVerbalRec($rec);
-    			
-    			// Проверяваме дали има к-ва различни от сумите
-    			foreach (array('base', 'debit', 'credit', 'bl') as $type){
-    				if($rec->{"{$type}Quantity"} != $rec->{"{$type}Amount"}){
-    					$data->hideQuantities = FALSE;
-    					break;
-    				}
-    			}
     		}
-    	}
-    	
-    	// Скриваме количествата ако трябва
-    	if($data->hideQuantities === TRUE){
-    		unset($data->listFields['baseQuantity'], $data->listFields['debitQuantity'], $data->listFields['creditQuantity'], $data->listFields['blQuantity']);
     	}
     }
     
