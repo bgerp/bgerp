@@ -12,57 +12,63 @@ function prepareChart( idElem, chartData, charType) {
     // ако чертаем торта
     if (charType == "pie") {
         var data = [];
+        console.log(chartData);
         // от получените данни генериране необходимата структура
-        jQuery.each(chartData, function (i, val) {
+        var title = chartData.legendTitle;
+        var i = 0;
+        jQuery.each(chartData.info, function (key, val) {
             var temp = {};
-            temp.value = val.val;
-            temp.label = val.string;
+            temp.value = val;
+            temp.label = key;
             temp.color = colors[i];
             data.push(temp);
+            i++;
         });
 
         // чертаем тортата с легенда към нея
         var pie = $('#' + idElem).get(0).getContext('2d');
         var myNewChart = new Chart(pie).Pie(data, {
             responsive: true, animation: false,
-            legendTemplate: "<ul class=\"<%=name.toLowerCase()%>-legend\">" +
+            legendTemplate: "<ul class=\"chart-legend <%=name.toLowerCase()%>-legend\"><li class=\"legend-title\">" + title + "</li>" +
             "<% for (var i=0; i<segments.length; i++){%><li>" +
             "<span style=\"background-color:<%=segments[i].fillColor%> !important\"></span>" +
             "<%if(segments[i].label){%><%=segments[i].label%><%}%>: <%if(segments[i].value){%><%=segments[i].value%><%}%></li><%}%></ul>"
         });
-
         // добавяме легендата
         $('#' + idElem).parent().append(myNewChart.generateLegend());
 
     } else if(charType == "bar" || charType == "line") {
         var res = {};
-        res.labels = [];
+        res.labels = chartData.labels;
         res.datasets = [];
+        var title = chartData.legendTitle;
+        var len = Object.keys(chartData.values).length;
 
+        for(var i=0; i < len; i++) {
+            if(!res.datasets[i])
+                res.datasets[i]= {};
+
+            if(!res.datasets[i].label)
+                res.datasets[i].label = [];
+
+            if(!res.datasets[i].pointColor)
+                res.datasets[i].pointColor = [];
+
+            if(!res.datasets[i].strokeColor)
+                res.datasets[i].strokeColor = [];
+
+            if(!res.datasets[i].fillColor)
+                res.datasets[i].fillColor = [];
+
+            if(!res.datasets[i].data)
+                res.datasets[i].data = [];
+        }
+
+        i = 0;
         // от получените данни генериране необходимата структура
-        jQuery.each(chartData, function (i, val) {
-            res.labels.push(i);
-            var len = val.length;
-
-            for(var i=0; i < len; i++) {
-                if(!res.datasets[i])
-                    res.datasets[i]= {};
-
-                if(!res.datasets[i].data)
-                    res.datasets[i].data = [];
-
-                if(!res.datasets[i].pointColor)
-                    res.datasets[i].pointColor = [];
-
-                if(!res.datasets[i].strokeColor)
-                    res.datasets[i].strokeColor = [];
-
-                if(!res.datasets[i].fillColor)
-                    res.datasets[i].fillColor = [];
-            }
-
-            for(i=0; i < len; i++){
-                res.datasets[i].data.push(val[i]);
+        jQuery.each(chartData.values, function (key, value) {
+                res.datasets[i].label = key;
+                res.datasets[i].data = value;
                 res.datasets[i].pointColor = colors[i];
                 res.datasets[i].strokeColor = colors[i];
 
@@ -70,20 +76,37 @@ function prepareChart( idElem, chartData, charType) {
                 if(charType == 'bar'){
                     res.datasets[i].fillColor = fillColor[i];
                 }
-            }
+            i++;
         });
 
         // чертаем графиката, в зависимост от типа
         var chart = $('#' + idElem).get(0).getContext('2d');
         if(charType == "bar" ){
             var myNewChart = new Chart(chart).Bar(res, {
-                responsive: true, animation: false
+                responsive: true, animation: false,
+                tooltipTemplate: "<%if (label){%><%=label%>: <%}%><%= value %>",
+                multiTooltipTemplate: "<%= datasetLabel %> - <%= value %>",
+                legendTemplate: "<ul class=\" chart-legend <%=name.toLowerCase()%>-legend\"><li class=\"legend-title\">" + title + "</li>" +
+                "<% for (var i=0; i<datasets.length; i++){%><li>" +
+                "<span style=\"background-color:<%=datasets[i].fillColor%> !important; border: 2px solid <%=datasets[i].strokeColor%> !important\"></span>" +
+                "<%if(datasets[i].label){%><%=datasets[i].label%><%}%></li><%}%></ul>"
+
             });
 
         } else {
             var myNewChart = new Chart(chart).Line(res, {
-                responsive: true, animation: false, datasetFill : false
+                responsive: true, animation: false, datasetFill : false,
+                tooltipTemplate: "<%if (label){%><%=label%>: <%}%><%= value %>",
+                multiTooltipTemplate: "<%= datasetLabel %> - <%= value %>",
+                legendTemplate: "<ul class=\" chart-legend <%=name.toLowerCase()%>-legend\"><li class=\"legend-title\">" + title + "</li>"  +
+                "<% for (var i=0; i<datasets.length; i++){%><li>" +
+                "<span style=\"background-color:<%=datasets[i].strokeColor%> !important;\"></span>" +
+                "<%if(datasets[i].label){%><%=datasets[i].label%><%}%></li><%}%></ul>"
             });
+
+
+
         }
+        $('#' + idElem).parent().append(myNewChart.generateLegend());
     }
 }

@@ -1,9 +1,8 @@
 .chartHolder {
     margin-bottom: 20px;
 }
-.wide .chart-pie {
+.wide .chartHolder {
     position: relative;
-    margin-right: 120px;
 }
 .chart-pie {
     max-width: 400px;
@@ -11,32 +10,44 @@
 .chart-bar, .chart-line {
     max-width: 600px;
 }
-.pie-legend {
+.chart-legend {
     padding: 5px;
     margin: 0;
     background-color: #f3f3f3;
+    height: auto;
 }
 
-.narrow .pie-legend {
+.narrow .chart-legend {
     display: inline-block;
+}
+
+.wide .chart-legend {
+    position: absolute;
+    left: 102%;
+    top: 10px;
 }
 
 .wide .pie-legend {
-    position: absolute;
-    right: -300px;
     bottom: 0;
+    top: auto;
 }
-
-.pie-legend li {
+.chart-legend li {
     list-style: none;
     padding: 2px 8px;
-    margin-bottom: 3px;
+    margin-top: 2px;
     font-size: 0.9em;
+    white-space: nowrap;
 }
 
-.pie-legend li span {
-    width: 13px;
-    height: 13px;
+.chart-legend li span {
+    width: 10px;
+    height: 10px;
+    border: 2px solid transparent;
     margin-right: 5px;
+    top: 1px;
+    position: relative;
     display: inline-block;
+}
+.legend-title {
+    font-weight: bold;
 }
