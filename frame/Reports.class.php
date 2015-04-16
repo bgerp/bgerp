@@ -159,6 +159,7 @@ class frame_Reports extends core_Embedder
            
             // Обновяваме данните, ако отчета е в състояние 'draft'
             if($rec->state == 'draft') {
+               //bp($rec, $mvc->getDriver($rec));
             	$Source = $mvc->getDriver($rec);
             	$rec->data = $Source->prepareInnerState();
             }
