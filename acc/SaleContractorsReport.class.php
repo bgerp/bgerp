@@ -108,7 +108,7 @@ class acc_SaleContractorsReport extends acc_BalanceReportImpl
     /**
      * Коя е най-ранната дата на която може да се активира документа
      */
-    public function on_AfterGetEarlyActivation()
+    public function getEarlyActivation()
     {
         $activateOn = "{$this->innerForm->to} 23:59:59";
 
