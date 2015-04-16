@@ -13,13 +13,18 @@
  */
 class chartjs_Adapter extends  core_Mvc
 {
+
+    public $interfaces = 'doc_chartAdapterIntf';
+
+    public $title = 'chartjs';
     /**
      * @param $data - данните, които ще изчератаваме
      * @param $chartType - тип на диаграмата:  'line', 'bar', 'pie'
      * @return $tpl
      */
-    public static function render_($data, $chartType)
+    function prepare($data, $chartType)
     {
+
         $tpl = new ET();
         static $chartCnt;
         if(!$chartCnt) $orgChartCnt = 0;

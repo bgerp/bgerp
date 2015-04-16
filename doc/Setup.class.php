@@ -8,6 +8,12 @@ defIfNot('BGERP_ROLE_HEADQUARTER', 'Headquarter');
 
 
 /**
+ * Кой пакет да използваме за генериране на графики ?
+ */
+defIfNot('DOC_CHART_ADAPTER', 'chartjs_Adapter');
+
+
+/**
  * Кой пакет да използваме за генериране на PDF от HTML ?
  */
 defIfNot('BGERP_PDF_GENERATOR', 'webkittopdf_Converter');
@@ -92,6 +98,7 @@ class doc_Setup extends core_ProtoSetup
     
         // Кой пакет да използваме за генериране на PDF от HTML ?
         'BGERP_PDF_GENERATOR' => array ('class(interface=doc_ConvertToPdfIntf,select=title)', 'mandatory, caption=Кой пакет да се използва за генериране на PDF?->Пакет'),
+        'DOC_CHART_ADAPTER' => array ('class(interface=doc_chartAdapterIntf,select=title, allowEmpty)', 'caption=Кой пакет да се използва за показване на графики?->Пакет, placeholder=Автоматично'),
         'DOC_NOTIFY_FOR_INCOMPLETE_FROM' => array ('time', 'caption=Период за откриване на незавършени действия с документи->Начало,unit=преди проверката'),
         'DOC_NOTIFY_FOR_INCOMPLETE_TO' => array ('time', 'caption=Период за откриване на незавършени действия с документи->Край,unit=преди проверката'),
         'DOC_REPAIR_DELAY' => array ('time(suggestions=10 сек.|30 сек.|60 сек.|120 сек.)', 'caption=Отклонение при поправка на документи->Време'),
