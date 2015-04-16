@@ -67,12 +67,10 @@ class core_Cls
             
             // Ако се използва съкратено име, то името на приложението
             // се прибавя като приставка и долна черта отпред
-            if (strpos($className, '_') === FALSE) {
+            if (($last = strrpos($className, '_')) === FALSE) {
                 $className = EF_APP_CODE_NAME . '_' . $className;
-            }
-            
-            // Капитализираме буквата след последната черта
-            if(($last = strrpos($className, '_')) > 0) {
+            } elseif($last > 0) {
+                // Капитализираме буквата след последната черта
                 if ($last < strlen($className)) {
                     $className{$last + 1} = strtoupper($className{$last + 1});
                 } else {

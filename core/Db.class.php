@@ -138,9 +138,12 @@ class core_Db extends core_BaseClass
             
             // Задаваме настройките за символното кодиране на връзката
             mysql_query('set character_set_results=' . $this->dbCharset, $link);
-            mysql_query('set collation_connection=' . $this->dbCollation, $link);
-            mysql_query('set character_set_client=' . $this->dbCharsetClient, $link);
-            
+            mysql_query('set collation_connection='  .  $this->dbCollation, $link);
+            mysql_query('set character_set_client='  .  $this->dbCharsetClient, $link);
+ 
+ 		   // mysql_query('set character_set_database=' . 'utf8_bin', $link);
+	       // mysql_query('set character_set_server=' . 'utf8_bin', $link);
+
             // Избираме указаната база от данни на сървъра
             if (!mysql_select_db("{$this->dbName}", $this->link)) {
                 // Грешка при избиране на база
@@ -346,7 +349,8 @@ class core_Db extends core_BaseClass
      * Има ли таблицата такова поле?
      */
     function isFieldExists($tableName, $fieldName)
-    {
+    {   
+        $this->connect();
         $dbRes = mysql_list_fields($this->dbName, $tableName, $this->link);
         $numFields = mysql_num_fields($dbRes);
         $res = FALSE;

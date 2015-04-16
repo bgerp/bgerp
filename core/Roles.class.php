@@ -405,15 +405,6 @@ class core_Roles extends core_Manager
         return "<li> Преизчислени са $ind индиректни роли</li>";
     }
     
-    function act_Test()
-    {   
-        self::rebuildRoles();
-        core_Users::rebuildRoles();
-
-        return self::on_Shutdown($this);
-
-    }
-
 
     /**
      * Получава управлението, когато в модела има промени

@@ -239,9 +239,6 @@ class core_BaseClass
      */
     function __call($method, $args)
     {
-        if (method_exists($this, $method . '_')) {
-            $mtd = $method . '_';
-        }
         
         $argsHnd = array(&$res);
         $argsMtd = array();
@@ -261,7 +258,8 @@ class core_BaseClass
         $beforeStatus = $this->invoke('Before' . $method,  $argsHnd);
         
         if ($beforeStatus !== FALSE) {
-            if ($mtd) {
+            if (method_exists($this, $mtd = $method . '_')) {
+                $flag = TRUE;
                 $res = call_user_func_array(array(&$this, $mtd),  $argsMtd);
             }
             
@@ -269,8 +267,9 @@ class core_BaseClass
         }
         
         // Очакваме поне един обработвач или самия извикван метод да е сработил
-        expect(($beforeStatus !== -1) || ($afterStatus !== -1) || $mtd,
-            "Missing method " . cls::getClassName($this) . "::{$method}");
+        if($beforeStatus === -1 && $afterStatus === -1 && !$flag) {
+            expect(FALSE, "Missing method " . cls::getClassName($this) . "::{$method}", $beforeStatus, $afterStatus, $mtd);
+        }
         
         return $res;
     }
