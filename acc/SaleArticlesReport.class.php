@@ -67,7 +67,7 @@ class acc_SaleArticlesReport extends acc_BalanceReportImpl
     {
         $form->setHidden('action');
 
-        foreach (range(1, 3) as $i){
+        foreach (range(1, 3) as $i) {
 
             $form->setHidden("feat{$i}");
             $form->setHidden("grouping{$i}");
@@ -76,7 +76,8 @@ class acc_SaleArticlesReport extends acc_BalanceReportImpl
 
         $articlePositionId = acc_Lists::getPosition($mvc->accountSysId, 'cat_ProductAccRegIntf');
 
-        $form->setDefault("feat{$articlePositionId}","*");
+        $form->setDefault("feat{$articlePositionId}", "*");
+    }
 
 
     public static function on_AfterGetReportLayout($mvc, &$tpl)
