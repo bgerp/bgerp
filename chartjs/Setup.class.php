@@ -42,7 +42,7 @@ class chartjs_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-        'JQUERY_VERSION' => array ('enum(1.0.2)', 'caption=Версия на chartjs->Версия')
+        'CHARTJS_VERSION' => array ('enum(1.0.2)', 'caption=Версия на chartjs->Версия')
     );
 
 
