@@ -28,8 +28,9 @@ class email_UserInboxPlg extends core_Plugin
         //Ако се добавя или редактира потребител
         //При вход в системата не се задейства
         if($rec->nick) {
- 
-            if($corpAccRec = email_Accounts::getCorporateAcc()) {
+            
+            // На контрактори да не се създава корпоративен имейл
+            if ((!core_Users::isContractor($rec)) && ($corpAccRec = email_Accounts::getCorporateAcc())) {
                 
                 //Данни необходими за създаване на папка
                 $eRec = new stdClass();
