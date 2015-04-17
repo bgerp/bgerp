@@ -216,7 +216,7 @@ class bgerp_L extends core_Manager
                 foreach ($emailsArr as $email) {
                     if (!core_Users::fetch(array("#email = '[#1#]' AND #state = 'active'", $email))) continue;
                     
-                    $html->append(ht::createLink(tr('Логнете се за да видите нишката') . '.', array('core_Users', 'login', 'ret_url' => TRUE)));
+                    $html->append(ht::createLink(tr('Логнете се, за да видите нишката') . '.', array('core_Users', 'login', 'ret_url' => TRUE), NULL, array('style' => 'margin-left: 10px; font-size: 0.9em; margin-bottom: 10px; display: block; margin-top: -6px;')));
                     
                     break;
                 }
