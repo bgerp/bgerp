@@ -67,7 +67,7 @@ class type_Users extends type_Keylist
             if(haveRole($this->params['roles'])) {
                 $key = static::getUserWithFirstTeam(core_Users::getCurrent());
                 $this->options[$key] = new stdClass();
-                $this->options[$key]->title = core_Users::getCurrent('names');
+                $this->options[$key]->title = core_Users::getCurrent('names') . ' (' . core_Users::prepareNick(core_Users::getCurrent('nick')) . ')';
                 $this->options[$key]->keylist = '|' . core_Users::getCurrent() . '|';
             } else {
                 $this->options = array();
@@ -135,7 +135,7 @@ class type_Users extends type_Keylist
                 while($uRec = $uQueryCopy->fetch()) {
                     $key = $t . '_' . $uRec->id;
                     $this->options[$key] = new stdClass();
-                    $this->options[$key]->title = $uRec->names;
+                    $this->options[$key]->title = $uRec->names . " (" . core_Users::prepareNick($uRec->nick) . ")";
                     $this->options[$key]->keylist = '|' . $uRec->id . '|';
                     
                     $teamMembers .= $teamMembers ? '|' . $uRec->id : $uRec->id;
