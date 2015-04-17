@@ -43,7 +43,8 @@ class acc_type_Accounts extends type_Keylist
     public function prepareOptions()
     {
         if (isset($this->options)) {
-            return;
+            
+            return $this->options;
         }
         $mvc = cls::get($this->params['mvc']);
         $root = $this->params['root'];
@@ -58,6 +59,8 @@ class acc_type_Accounts extends type_Keylist
         }
         
         $this->suggestions = $suggestions;
+        
+        return $this->options;
     }
     
     

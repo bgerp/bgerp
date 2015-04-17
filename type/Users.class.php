@@ -58,7 +58,7 @@ class type_Users extends type_Keylist
         
         if (isset($this->options)) {
             
-            return;
+            return $this->options;
         }
         
         // Вариант 1: Потребителя няма права да вижда екипите
@@ -155,6 +155,8 @@ class type_Users extends type_Keylist
         }
         
         $mvc->invoke('AfterPrepareKeyOptions', array(&$this->options, $this));
+        
+        return $this->options;
     }
     
     

@@ -42,7 +42,8 @@ class acc_type_Account extends type_Key
     public function prepareOptions()
     {
         if (isset($this->options)) {
-            return;
+            
+            return $this->options;
         }
         $mvc = cls::get($this->params['mvc']);
         $root = $this->params['root'];
@@ -61,6 +62,8 @@ class acc_type_Account extends type_Key
         $this->handler = md5($this->getSelectFld() . $this->params['mvc']);
         
         $this->options = parent::prepareOptions();
+        
+        return $this->options;
     }
     
     
