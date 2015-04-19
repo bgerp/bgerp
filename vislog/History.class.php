@@ -90,7 +90,9 @@ class vislog_History extends core_Manager {
      * @param boolean $returnCnt
      */
     static function add($query, $returnCnt = FALSE)
-    {
+    {   
+        vislog_Adwords::add();
+
         $rec = new stdClass();
         
         $rec->query = $query;

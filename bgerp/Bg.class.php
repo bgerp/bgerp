@@ -43,6 +43,8 @@ class bgerp_Bg extends core_Mvc
     function on_BeforeAction($mvc, &$res, $act)
     {
         $vid = urldecode(Request::get('Act'));
+        
+        vislog_Adwords::add();
 
         // Сменяме езика на външната част на английски
         cms_Content::setLang('bg');

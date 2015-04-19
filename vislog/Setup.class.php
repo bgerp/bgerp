@@ -55,6 +55,7 @@ class vislog_Setup extends core_ProtoSetup
             'vislog_History',
             'vislog_Referer',
             'vislog_IpNames',
+            'vislog_Adwords',
         );
     
 
