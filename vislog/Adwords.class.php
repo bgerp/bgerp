@@ -71,7 +71,7 @@ class vislog_Adwords extends core_Manager
 
         $this->FLD('match', 'enum(b=broad,p=phrase,e=exact)', 'caption=Тип, mandatory');
         $this->FLD('keywords', 'varchar', 'caption=Ключови думи');
-        $this->FLD('ad', 'int', 'caption=Реклама');
+        $this->FLD('ad', 'varchar(20)', 'caption=Реклама');
          
         $this->setDbUnique('ip, match, keywords, ad');
     }
