@@ -41,7 +41,7 @@ class social_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    var $info = "Социални мрежи";
+    var $info = "Бутони за споделяне и проследяване в социални мрежи";
 
     
     /**

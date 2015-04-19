@@ -40,7 +40,7 @@ class survey_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    var $info = "Анкети и Гласувания";
+    var $info = "Анкети и гласувания";
     
     
     /**

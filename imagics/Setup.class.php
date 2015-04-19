@@ -42,7 +42,7 @@ class imagics_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    var $info = "Работа с imageMagic";
+    var $info = "Адаптер за ImageMagick: конвертиране на графични формати";
     
     
     /**

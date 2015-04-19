@@ -51,7 +51,7 @@ class eshop_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    var $info = "Web каталог";
+    var $info = "Уеб каталог с продукти и услуги за сайта";
     
     
     /**

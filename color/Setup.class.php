@@ -37,7 +37,7 @@ class color_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    var $info = "Избор на цвят от палитра";
+    var $info = "Поддръжка на цветове: въвеждане и конвертиране";
     
     
 	/**

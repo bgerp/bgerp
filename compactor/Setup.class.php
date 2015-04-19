@@ -36,7 +36,7 @@ class compactor_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    var $info = "";
+    var $info = "Компактиране на CSS и JS. Ускорява зареждането в браузъра";
     
     
     /**

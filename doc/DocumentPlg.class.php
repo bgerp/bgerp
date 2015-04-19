@@ -293,8 +293,8 @@ class doc_DocumentPlg extends core_Plugin
             }
 
             if($rec->state == 'rejected') {
-                $tpl = new ET(tr(' от [#user#] на [#date#]'));
-                $row->state .= $tpl->placeArray(array('user' => $row->modifiedBy, 'date' => dt::mysql2Verbal($rec->modifiedOn)));
+                $tpl = new ET(tr(' от [#user#] на [#date#]')); 
+                $row->state .= $tpl->placeArray(array('user' => crm_Profiles::createLink($rec->modifiedBy), 'date' => dt::mysql2Verbal($rec->modifiedOn)));
             }
         }
     }

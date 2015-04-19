@@ -122,7 +122,7 @@ class core_Plugins extends core_Manager
         }
 
         // Изтриваме съществуващите прикачания на този плъгин към посочения клас
-        static::delete("#plugin = '{$plugin}' AND #class = '{$class}' AND #cover = '{$cover}'");
+        static::delete("#plugin = '{$plugin}' AND #class = '{$class}'");
         
         // Ако има друг плъгин със същото име и не се изисква форсиране на този - излизаме
         if(!$force && static::fetch(array("#name = '[#1#]' AND #state = 'active'", $name))) {

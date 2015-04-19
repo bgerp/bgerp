@@ -41,7 +41,7 @@ class newsbar_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    var $info = "Новини";
+    var $info = "Лента с новини за сайта";
 
     
     /**

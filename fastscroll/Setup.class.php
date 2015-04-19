@@ -25,7 +25,7 @@ defIfNot('FASTSCROLL_ACTIVE_RATIO', '2');
  */
 class fastscroll_Setup extends core_ProtoSetup 
 {
-	var $info = "Бързо скрoлиране на страниците";
+	var $info = "Бързо скрoлиране в дълги страници";
     
 	
 	/**
@@ -45,7 +45,7 @@ class fastscroll_Setup extends core_ProtoSetup
 	 */
 	var $configDescription = array(
 			'FASTSCROLL_HIDE_AFTER_SEC' => array ('time(suggestions=1сек|2сек|3сек|4сек|5сек)', 'caption=Скриване на стрелките за бързо скролиране след->Време за изчакване'),
-			'FASTSCROLL_ACTIVE_RATIO' => array ('double', 'caption=Съотношение между височините на страницата и прозореца->Съотношение'),
+			'FASTSCROLL_ACTIVE_RATIO' => array ('double', 'caption=Показване при скрита/видима част->Съотношение'),
 	);
 	
     /**
@@ -59,8 +59,7 @@ class fastscroll_Setup extends core_ProtoSetup
         $Plugins = cls::get('core_Plugins');
         
         // Инсталираме плъгина към страницата
-        $html .= $Plugins->installPlugin('Бързо скролиране', 'fastscroll_Plugin', 'core_page_Internal', 'private');
-        $html .= $Plugins->installPlugin('Бързо скролиране за модерната версия', 'fastscroll_Plugin', 'core_page_InternalModern', 'private');
+        $html .= $Plugins->installPlugin('Бързо скролиране', 'fastscroll_Plugin', 'core_page_Active', 'family');
         
         return $html;
     }

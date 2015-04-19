@@ -72,7 +72,7 @@ class rtac_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    var $info = "Autocomplete за ричтекст";
+    var $info = "Споделяне чрез тагване на @потребител в ричтекст";
     
     
     /**

@@ -46,7 +46,7 @@ class cat_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    var $info = "Каталог на стандартни продукти";
+    var $info = "Каталог на стандартните артикули";
     
     
     /**

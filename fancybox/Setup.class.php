@@ -25,8 +25,12 @@ defIfNot('FANCYBOX_VERSION', '2.1.5');
  */
 class fancybox_Setup extends core_ProtoSetup
 {
-    
-    
+        
+    /**
+	 * Описание на модула
+	 */
+	public $info = "Адаптер за fancybox - разглеждане на картинки и галерии";
+
     
     /**
      * Описание на конфигурационните константи

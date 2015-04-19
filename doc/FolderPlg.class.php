@@ -239,8 +239,10 @@ class doc_FolderPlg extends core_Plugin
             	// Очакваме да не е подаден празен stdClass
             	// Така се подсигуряваме да не се създаде празна корица
             	expect(count((array)$rec), 'Опит за създаване на празна корица');
-            	$rec->folderId = doc_Folders::createNew($mvc);
+            	
                 $mvc->save($rec);
+                $rec->folderId = doc_Folders::createNew($mvc);
+                $mvc->save($rec, 'folderId');
             }
 
             $folderId = $rec->folderId;

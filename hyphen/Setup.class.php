@@ -24,7 +24,7 @@ class hyphen_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    var $info = "Хифенация";
+    var $info = "Хифенация за пренасяне на дъгли думи";
     
     
     /**

@@ -29,7 +29,7 @@ class toast_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    var $info = "Статус съобщения";
+    var $info = "Показване статус съобщенията в тост стил";
     
 
     /**

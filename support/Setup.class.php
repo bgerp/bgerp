@@ -36,7 +36,7 @@ class support_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    var $info = "Сигнали";
+    var $info = "Поддръжка на системи: сигнали и проследяването им";
     
         
     /**

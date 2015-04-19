@@ -52,7 +52,7 @@ class currency_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    var $info = "Валути и техните курсове";
+    var $info = "Валути и хронология на техните курсове";
     
 
     /**

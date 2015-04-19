@@ -485,7 +485,7 @@ class core_Packs extends core_Manager
        	$row->img = ht::createElement("img", array('src' => $imageUrl, 'alt' => 'icon-' . $rec->name));
        	
         $row->name = new ET("<b>" . $row->name . "</b>");
-        $row->name->append(' ' . str_replace(',', '.', $row->version));
+        // $row->name->append(' ' . str_replace(',', '.', $row->version));
         
     	if ($rec->startCtr) {
     	    try {

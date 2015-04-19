@@ -55,7 +55,7 @@ class status_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    var $info = "Статуси";
+    var $info = "Извличане и показване на статус съобщенията";
     
     
     /**

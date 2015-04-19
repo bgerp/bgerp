@@ -54,8 +54,7 @@ class pos_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    var $info = "Точки на продажба";
-    
+    var $info = "Управление на точки за продажба в магазин";
     
     
     /**

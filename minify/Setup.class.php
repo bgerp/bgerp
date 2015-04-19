@@ -37,7 +37,7 @@ class minify_Setup extends core_ProtoSetup {
     /**
      * Описание на модула
      */
-    var $info = "Минифициране на CSS и JS файлове";
+    var $info = "Минифициране на CSS и JS файловете за ускорено зареждане";
     
         
     /**

@@ -37,7 +37,7 @@ class log_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    var $info = "История";
+    var $info = "Хронология на действията с документите";
 
     
     /**

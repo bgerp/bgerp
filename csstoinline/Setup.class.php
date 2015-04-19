@@ -41,7 +41,7 @@ class csstoinline_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    var $info = "Превръщане на CSS в inline";
+    var $info = "Конвертиране на CSS стилове в inline";
     
     
     /**

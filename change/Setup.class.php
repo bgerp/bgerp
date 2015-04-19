@@ -36,7 +36,7 @@ class change_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    var $info = "Промени";
+    var $info = "Поддръжка на хронология с версии на обектите";
     
     
     /**

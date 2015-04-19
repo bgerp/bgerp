@@ -38,7 +38,7 @@ class oembed_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    var $info = "Вграждане на външни ресурси";
+    var $info = "Вграждане на външни обекти в текст чрез линкове";
     
 
     /**
