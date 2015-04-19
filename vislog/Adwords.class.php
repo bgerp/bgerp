@@ -20,15 +20,15 @@ class vislog_Adwords extends core_Manager
     
     
     /**
-     * @see bgerp_RefreshRowsPlg
+     * Време за опресняване информацията при лист на събитията
      */
-    var $bgerpRefreshRowsTime = 15000;
+    var $refreshRowsTime = 15000;
     
     
     /**
      * Необходими мениджъри
      */
-    var $loadList = 'vislog_Wrapper, plg_RowTools, plg_Search, bgerp_RefreshRowsPlg, plg_Created';
+    var $loadList = 'vislog_Wrapper, plg_RowTools, plg_Search, plg_RefreshRows, plg_Created';
     
     
     /**
@@ -56,6 +56,12 @@ class vislog_Adwords extends core_Manager
     
     public $listFields = 'id,ip,match,keywords,ad,createdOn,createdBy';
      
+
+    /**
+     * По кои полета ще се търси
+     */
+    public $searchFields = 'ip, keywords, ad';
+
     /**
      * Описание на модела
      */
@@ -81,12 +87,26 @@ class vislog_Adwords extends core_Manager
         $rec->match = Request::get('awMatch');
         $rec->keywords = Request::get('awKeywords');
         $rec->ad = Request::get('awAd');
-
+ 
         if($rec->match ||  $rec->keywords || $rec->ad) {
             self::save($rec, NULL, 'IGNORE');
         }
-
     }
+
     
+    /**
+     * Извиква се след подготовката на toolbar-а за табличния изглед
+     * Форма за търсене по дадена ключова дума
+     */
+    static function on_AfterPrepareListFilter($mvc, &$res, $data)
+    {
+        $data->listFilter->showFields = 'search';  //, HistoryResourceId';
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        $data->listFilter->input();
+        
+        $data->query->orderBy("#createdOn=DESC");
+    }
+
  
 }
