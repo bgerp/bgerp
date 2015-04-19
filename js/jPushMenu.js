@@ -1,7 +1,6 @@
 /*!
  * jPushMenu-custom.js
  * 1.1.1
- * @author: takien
  * based on jPushMenu.js Mary Lou http://tympanus.net/
  */
 
@@ -89,8 +88,10 @@
 	};
 	
     if(o.closeOnClickInside) {
-       $(document).click(function() {
-    	   jPushMenu.close('all');
+       $(document).click(function(e) {
+           if(!$(e.target).is('.toast-item-close')){
+               jPushMenu.close('all');
+           }
         });
 
        $('.sidemenu,.btn-sidemenu').click(function(e){
@@ -99,8 +100,10 @@
     }
 		
 	if(o.closeOnClickOutside) {
-		 $(document).click(function() { 
-			 jPushMenu.close('all');
+		 $(document).click(function(e) {
+             if(!$(e.target).is('.toast-item-close')){
+                 jPushMenu.close('all');
+             }
 		 }); 
 
 		 $('.sidemenu,.btn-sidemenu').click(function(e){ 

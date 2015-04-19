@@ -3,7 +3,7 @@
 
 
 /**
- * Мениджър на отчети от Приходи от продажби по продукти
+ * Мениджър на отчети от Задължения към доставчици
  * Имплементация на 'frame_ReportSourceIntf' за направата на справка на баланса
  *
  *
@@ -14,7 +14,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class acc_SaleContractorsReport extends acc_BalanceReportImpl
+class acc_OweRrovidersReport extends acc_BalanceReportImpl
 {
 
 
@@ -27,13 +27,13 @@ class acc_SaleContractorsReport extends acc_BalanceReportImpl
     /**
      * Заглавие
      */
-    public $title = 'Счетоводство->Приходи от продажби по клиенти';
+    public $title = 'Счетоводство->Задължения към доставчици';
 
 
     /**
      * Дефолт сметка
      */
-    public $accountSysId = '701';
+    public $accountSysId = '401';
 
 
     /**

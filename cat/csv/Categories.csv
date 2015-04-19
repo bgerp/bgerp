@@ -1,10 +1,10 @@
-"Суровини и материали","Суровини и материали влагани в производството","materials","canBuy,canStore,canConvert","public"
-"Труд","Вложен труд в производството, услугите и администрацията","labor","canBuy,canConvert","public"
-"Външни услуги","Ползвани от фирмата услуги от външни доставчици","externalServices","canBuy,canConvert","public"
-"Консумативи","Стоки и продукти за употреба / консумация","consumables","canBuy,canConvert","public"
-"Резервни части","Резервни части за поддръжка и ремонт","replacements","canBuy,canConvert,canStore","public"
-"Стоки","Стоки за препродажба","goods","canBuy,canStore,canSell","public"
-"Продукти","Произвеждани стандартни продукти по каталог","products","canManifacture,canSell,canStore,canConvert","public"
-"Заготовки","Полуготови (междинни) продукти за влагане в производството","prefabrications","canManifacture,canStore,canConvert","public"
-"Услуги","Предлагани от фирмата услуги","services","canManifacture,canConvert,canSell","public"
-"Дълготрайни Активи","Дълготрайни Активи","fixedAssets","canBuy,canSell,fixedAsset,canStore","public","брой"
+"Суровини и материали","Суровини и материали влагани в производството","materials","canBuy,canStore,canConvert",
+"Труд","Вложен труд в производството, услугите и администрацията","labor","canBuy,canConvert",
+"Външни услуги","Ползвани от фирмата услуги от външни доставчици","externalServices","canBuy,canConvert",
+"Консумативи","Стоки и продукти за употреба / консумация","consumables","canBuy,canConvert",
+"Резервни части","Резервни части за поддръжка и ремонт","replacements","canBuy,canConvert,canStore",
+"Стоки","Стоки за препродажба","goods","canBuy,canStore,canSell",
+"Продукти","Произвеждани стандартни продукти по каталог","products","canManifacture,canSell,canStore,canConvert",
+"Заготовки","Полуготови (междинни) продукти за влагане в производството","prefabrications","canManifacture,canStore,canConvert",
+"Услуги","Предлагани от фирмата услуги","services","canManifacture,canConvert,canSell",
+"Дълготрайни Активи","Дълготрайни Активи","fixedAssets","canBuy,canSell,fixedAsset,canStore","брой"

@@ -75,6 +75,8 @@ class acc_HistoryReportImpl extends frame_BaseDriver
 		
 		$form->FLD('orderField', "enum({$orderFields})", 'caption=Подредба->По,formOrder=110000');
 		$form->FLD('orderBy', 'enum(,asc=Въздходящ,desc=Низходящ)', 'caption=Подредба->Тип,formOrder=110001');
+		
+		$this->invoke('AfterAddEmbeddedFields', array($form));
 	}
 	
 	
@@ -107,6 +109,8 @@ class acc_HistoryReportImpl extends frame_BaseDriver
 				}
 			}
 		}
+		
+		$this->invoke('AfterPrepareEmbeddedForm', array($form));
 	}
 
 
@@ -174,9 +178,9 @@ class acc_HistoryReportImpl extends frame_BaseDriver
 	/**
 	 * След подготовката на показването на информацията
 	 */
-	public function on_AfterPrepareEmbeddedData($mvc, &$res)
+	public static function on_AfterPrepareEmbeddedData($mvc, &$res)
 	{
-		$this->History->prepareRows($res);
+		$mvc->History->prepareRows($res);
 	}
 	
 	

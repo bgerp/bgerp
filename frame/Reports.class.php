@@ -20,7 +20,7 @@ class frame_Reports extends core_Embedder
     /**
      * Необходими плъгини
      */
-    public $loadList = 'plg_RowTools, frame_Wrapper, doc_DocumentPlg, plg_Search, plg_Printing, doc_plg_HidePrices';
+    public $loadList = 'plg_RowTools, frame_Wrapper, doc_DocumentPlg, plg_Search, plg_Printing, doc_plg_HidePrices, bgerp_plg_Blank';
                       
     
     /**
@@ -159,6 +159,7 @@ class frame_Reports extends core_Embedder
            
             // Обновяваме данните, ако отчета е в състояние 'draft'
             if($rec->state == 'draft') {
+               //bp($rec, $mvc->getDriver($rec));
             	$Source = $mvc->getDriver($rec);
             	$rec->data = $Source->prepareInnerState();
             }
