@@ -27,7 +27,7 @@ class acc_OweProvidersReport extends acc_BalanceReportImpl
     /**
      * Заглавие
      */
-    public $title = 'Счетоводство->Задължения към доставчици';
+    public $title = 'Счетоводство»Задължения към доставчици';
 
 
     /**

@@ -27,7 +27,7 @@ class acc_SaleContractorsReport extends acc_BalanceReportImpl
     /**
      * Заглавие
      */
-    public $title = 'Счетоводство->Приходи от продажби по клиенти';
+    public $title = 'Счетоводство»Приходи от продажби по клиенти';
 
 
     /**
