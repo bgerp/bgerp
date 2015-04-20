@@ -95,7 +95,7 @@ class acc_HistoryReportImpl extends frame_BaseDriver
 		if($form instanceof core_Form){
 			$form->input();
 		}
-		 
+		
 		if(isset($form->rec->accountId)){
 			 
 			$accInfo = acc_Accounts::getAccountInfo($form->rec->accountId);
@@ -103,7 +103,7 @@ class acc_HistoryReportImpl extends frame_BaseDriver
 			foreach (range(1, 3) as $i){
 				if(isset($accInfo->groups[$i])){
 					$gr = $accInfo->groups[$i];
-					$form->FNC("ent{$i}Id", "acc_type_Item(lists={$gr->rec->num}, allowEmpty)", "caption=Избор на пера->{$gr->rec->name},input,mandatory");
+					$form->FNC("ent{$i}Id", "acc_type_Item(lists={$gr->rec->num}, allowEmpty)", "caption=Пера->{$gr->rec->name},input,mandatory");
 				} else {
 					$form->FNC("ent{$i}Id", "int", "");
 				}
@@ -180,7 +180,9 @@ class acc_HistoryReportImpl extends frame_BaseDriver
 	 */
 	public static function on_AfterPrepareEmbeddedData($mvc, &$res)
 	{
-		$mvc->History->prepareRows($res);
+		if(!is_subclass_of($mvc, __CLASS__)){
+			$mvc->History->prepareRows($res);
+		}
 	}
 	
 	
