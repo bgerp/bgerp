@@ -706,7 +706,7 @@ class email_Incomings extends core_Master
     /**
      * Връща вербалното предствяна на имейла
      * 
-     * @param array $emailArr
+     * @param array $emailsArr
      * 
      * @return string
      */
@@ -825,7 +825,7 @@ class email_Incomings extends core_Master
     {
         $domains = static::scanForPublicDomains();
         
-        $out .= "<li>Открити " . count($domains) . " домейн(а) ... </li>";
+        $out = "<li>Открити " . count($domains) . " домейн(а) ... </li>";
         
         $stats = drdata_Domains::resetPublicDomains($domains);
         
@@ -839,7 +839,7 @@ class email_Incomings extends core_Master
             $out .= "<li class=\"error\">Проблем при изтриването на {$stats['removeErrors']} домейн(а)!</li>";
         }
         
-        $out = ""
+        $out .= ""
         . "<h4>Опресняване на публичните домейни<h4>"
         . "<ul>"
         .    $out
