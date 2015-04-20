@@ -24,7 +24,7 @@ class doc_DocsReport extends frame_BaseDriver
     /**
      * Заглавие
      */
-    public $title = 'Документи->Създадени документи';
+    public $title = 'Документи»Създадени документи';
 
     
     /**

@@ -27,7 +27,7 @@ class acc_SaleContractorsReport extends acc_BalanceReportImpl
     /**
      * Заглавие
      */
-    public $title = 'Счетоводство->Приходи от продажби по клиенти';
+    public $title = 'Счетоводство»Приходи от продажби по клиенти';
 
 
     /**
@@ -89,6 +89,57 @@ class acc_SaleContractorsReport extends acc_BalanceReportImpl
     public static function on_AfterPrepareListFields($mvc, &$res, &$data)
     {
 
+        unset($data->listFields['baseQuantity']);
+        unset($data->listFields['baseAmount']);
+        unset($data->listFields['debitQuantity']);
+        unset($data->listFields['debitAmount']);
+        unset($data->listFields['blQuantity']);
+        unset($data->listFields['blAmount']);
+
+        $data->listFields['creditQuantity'] = "Кредит->К-во";
+        $data->listFields['creditAmount'] = "Кредит->Сума";
+    }
+
+
+    /**
+     * Рендира вградения обект
+     *
+     * @param stdClass $data
+     */
+    public function renderEmbeddedData($data)
+    {
+        if(empty($data)) return;
+
+        $tpl = $this->getReportLayout();
+
+        $tpl->placeObject($data->row);
+
+        $tableMvc = new core_Mvc;
+
+        //$tableMvc->FLD('creditQuantity', 'int', 'tdClass=accCell');
+        $tableMvc->FLD('creditAmount', 'int', 'tdClass=accCell');
+
+
+        $table = cls::get('core_TableView', array('mvc' => $tableMvc));
+
+        $tpl->append($table->get($data->rows, $data->listFields), 'DETAILS');
+
+        $data->summary->colspan = count($data->listFields);
+
+        if($data->bShowQuantities ){
+            $data->summary->colspan -= 4;
+            if($data->summary->colspan != 0 && count($data->rows)){
+                $beforeRow = new core_ET("<tr style = 'background-color: #eee'><td colspan=[#colspan#]><b>" . tr('ОБЩО') . "</b></td><td style='text-align:right'><b>[#creditAmount#]</b></td></tr>");
+            }
+        }
+
+        if($beforeRow){
+            $beforeRow->placeObject($data->summary);
+            $tpl->append($beforeRow, 'ROW_BEFORE');
+        }
+
+
+        return $tpl;
     }
 
 
