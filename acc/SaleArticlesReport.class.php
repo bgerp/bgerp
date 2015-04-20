@@ -116,6 +116,9 @@ class acc_SaleArticlesReport extends acc_BalanceReportImpl
 
         $tpl = $this->getReportLayout();
 
+        $tpl->replace($this->title, 'TITLE');
+        $this->prependStaticForm($tpl, 'FORM');
+
         $tpl->placeObject($data->row);
 
         $tableMvc = new core_Mvc;
