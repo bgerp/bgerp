@@ -47,7 +47,10 @@ class fileman_webdrv_Gvdot extends fileman_webdrv_ImageT
             try {
                 // Това е направено с цел да се запази логиката на работа на системата и възможност за раширение в бъдеще
                 static::afterExtractText($script);   
-            } catch (core_exception_Expect $e) {}
+            } catch (core_exception_Expect $e) {
+                
+                return ;
+            }
         }
     }
     
