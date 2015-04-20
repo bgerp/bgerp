@@ -186,17 +186,17 @@ class core_Embedder extends core_Master
 				// Източника добавя полета към формата
 				$Driver->addEmbeddedFields($form);
 				
-				// Намираме всички полета за показване, и ги маркираме за изтриване след смяна на драйвер
-				$removeFields = $form->selectFields("#input != 'none' AND #input != 'hidden' AND #name != '{$mvc->innerClassField}'");
-				$removeFields = implode('|', array_keys($removeFields));
-				$form->setField($mvc->innerClassField, "removeAndRefreshForm={$removeFields}");
-				
 				$form->input(NULL, 'silent');
 					
 				// Източника модифицира формата при нужда
 				$Driver->prepareEmbeddedForm($form);
 				
 				$mvc->invoke('AfterPrepareEmbeddedForm', array($form));
+				
+				// Намираме всички полета за показване, и ги маркираме за изтриване след смяна на драйвер
+				$removeFields = $form->selectFields("#input != 'none' AND #input != 'hidden' AND #name != '{$mvc->innerClassField}'");
+				$removeFields = implode('|', array_keys($removeFields));
+				$form->setField($mvc->innerClassField, "removeAndRefreshForm={$removeFields}");
 			} else {
 				$form->info = tr("|*<b style='color:red'>|Има проблем при зареждането на драйвера|*</b>");
 			}
