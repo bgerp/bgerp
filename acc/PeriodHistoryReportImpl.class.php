@@ -32,7 +32,7 @@ class acc_PeriodHistoryReportImpl extends acc_HistoryReportImpl
 	/**
 	 * Заглавие
 	 */
-	public $title = 'Счетоводство->Дневни обороти';
+	public $title = 'Счетоводство»Дневни обороти';
 	
 	
 	/**

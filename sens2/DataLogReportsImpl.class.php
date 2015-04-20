@@ -32,7 +32,7 @@ class sens2_DataLogReportsImpl extends frame_BaseDriver
 	/**
      * Заглавие
      */
-    public  $title = 'Мониторинг->Записи на индикаторите';
+    public  $title = 'Мониторинг»Записи на индикаторите';
     
     
     /**

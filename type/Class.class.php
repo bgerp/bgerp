@@ -58,7 +58,7 @@ class type_Class  extends type_Key {
         		if(!is_object($opt)){
         			
         			// Ако в името на класа има '->' то приемаме че стринга преди знака е името на групата
-        			$optArr = explode('->', $opt);
+        			$optArr = explode('»', $opt);
         			
         			// Ако стринга е разделен на точно две части (име на група и име на клас)
         			if(count($optArr) == 2){
