@@ -46,6 +46,14 @@ class acc_PeriodHistoryReportImpl extends acc_HistoryReportImpl
 	 */
 	public static function on_AfterAddEmbeddedFields($mvc, core_Form &$form)
 	{
+		if(isset($mvc->defaultAccount)){
+			$accId = acc_Accounts::getRecBySystemId($mvc->defaultAccount)->id;
+			$form->setDefault('accountId', $accId);
+			$form->setHidden('accountId');
+			
+			core_Statuses::newStatus("Дефолт сметка {$mvc->defaultAccount}");
+		}
+		
 		$form->setDefault('isGrouped', 'yes');
 		$form->setHidden('isGrouped');
 		

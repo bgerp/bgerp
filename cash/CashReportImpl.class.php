@@ -44,17 +44,6 @@ class cash_CashReportImpl extends acc_PeriodHistoryReportImpl
     /**
      * След подготовката на ембеднатата форма
      */
-    public static function on_AfterAddEmbeddedFields($mvc, core_Form &$form)
-    {
-    	$accId = acc_Accounts::getRecBySystemId($mvc->defaultAccount)->id;
-    	$form->setDefault('accountId', $accId);
-    	$form->setHidden('accountId');
-    }
-    
-    
-    /**
-     * След подготовката на ембеднатата форма
-     */
     public static function on_AfterPrepareEmbeddedForm($mvc, core_Form &$form)
     {
     	$cItemPosition = acc_Lists::getPosition($mvc->defaultAccount, 'cash_CaseAccRegIntf');
