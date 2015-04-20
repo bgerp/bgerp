@@ -50,8 +50,6 @@ class acc_PeriodHistoryReportImpl extends acc_HistoryReportImpl
 			$accId = acc_Accounts::getRecBySystemId($mvc->defaultAccount)->id;
 			$form->setDefault('accountId', $accId);
 			$form->setHidden('accountId');
-			
-			core_Statuses::newStatus("Дефолт сметка {$mvc->defaultAccount}");
 		}
 		
 		$form->setDefault('isGrouped', 'yes');

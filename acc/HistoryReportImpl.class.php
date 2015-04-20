@@ -103,7 +103,7 @@ class acc_HistoryReportImpl extends frame_BaseDriver
 			foreach (range(1, 3) as $i){
 				if(isset($accInfo->groups[$i])){
 					$gr = $accInfo->groups[$i];
-					$form->FNC("ent{$i}Id", "acc_type_Item(lists={$gr->rec->num}, allowEmpty)", "caption=Пера->{$gr->rec->name},input,mandatory");
+					$form->FNC("ent{$i}Id", "acc_type_Item(lists={$gr->rec->num}, allowEmpty, select=titleNum)", "caption=Пера->{$gr->rec->name},input,mandatory");
 				} else {
 					$form->FNC("ent{$i}Id", "int", "");
 				}

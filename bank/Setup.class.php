@@ -84,6 +84,11 @@ class bank_Setup extends core_ProtoSetup
     //    var $commonCSS = 'bank/tpl/css/belejka.css, bank/tpl/css/styles.css';
     
     
+    /**
+     * Дефинирани класове, които имат интерфейси
+     */
+    var $defClasses = "bank_AccountReportImpl";
+    
     
     /**
      * Инсталиране на пакета
