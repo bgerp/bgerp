@@ -112,6 +112,7 @@ class cash_CashReportImpl extends frame_BaseDriver
     	$data = new stdClass();
     	$data->rec = $this->innerForm;
     	$data->recs = array();
+    	$data->isHistory = FALSE;
     	if(empty($data->rec->to)){
     		$data->rec->to = $data->rec->from;
     	}
@@ -123,39 +124,60 @@ class cash_CashReportImpl extends frame_BaseDriver
     	// Започваме да извличаме баланса от началната дата
     	// За всеки ден от периода намираме какви са салдата и движенията по касата и валутата
     	$curDate = $data->rec->from;
-    	do{
-    		$newRec = (object)array('date' => $curDate);
+    	
+    	if($data->rec->from == $data->rec->to){
+    		$data->isHistory = TRUE;
+    		$balHistory = acc_ActiveShortBalance::getBalanceHystory($this->defaultAccount, $data->rec->from, $data->rec->to, $item1 = $data->rec->caseItem, $item2 = $data->rec->currencyItem);
     		
-    		// Намираме движенията по сметката за тези пера за тази дата
-    		$accSysId = acc_Accounts::fetchField($data->rec->accountId, 'systemId');
-    		$Balance = new acc_ActiveShortBalance(array('from' => $curDate, 'to' => $curDate, 'accs' => $accSysId, 'cacheBalance' => FALSE, "item{$cItemPosition}" => $data->rec->caseItem, "item{$currencyPosition}" => $data->rec->currencyItem));
-    		$balance = $Balance->getBalance($accSysId);
+    		$baseBalanceRec = array('docId' => "Начален баланс", 
+    							    'debitQuantity' => 0, 'creditQuantity' => 0, 
+    								'blQuantity'    => $balHistory['summary']['baseQuantity'], 
+    								'ROW_ATTR'      => array('style' => 'background-color:#eee;font-weight:bold'));
+    		$blBalanceRec = array('docId' => "Краен баланс", 
+    							  'debitQuantity'  => $balHistory['summary']['debitQuantity'], 
+    							  'creditQuantity' => $balHistory['summary']['creditQuantity'], 
+    							  'blQuantity'     => $balHistory['summary']['blQuantity'], 
+    							  'ROW_ATTR'       => array('style' => 'background-color:#eee;font-weight:bold'));
     		
-    		// Ако има баланс
-    		if(count($balance)){
-    			foreach ($balance as $b){
-    				
-    				// И в него участват касата и валутата
-    				if(!($b->{"ent{$cItemPosition}Id"} == $data->rec->caseItem && $b->{"ent{$currencyPosition}Id"} == $data->rec->currencyItem)) continue;
-    				
-    				// Сабираме салдата и оборотите
-    				foreach (array('baseQuantity', 'debitQuantity', 'creditQuantity', 'blQuantity') as $fld){
-    					if(isset($b->$fld)){
-    						$newRec->$fld += $b->$fld;
+    		array_unshift($balHistory['history'], $baseBalanceRec);
+    		$balHistory['history'][] = $blBalanceRec;
+    		$data->recs = array_merge($data->recs, $balHistory['history']);
+    		
+    	} else {
+    		do{
+    			$newRec = (object)array('date' => $curDate);
+    		
+    			// Намираме движенията по сметката за тези пера за тази дата
+    			$accSysId = acc_Accounts::fetchField($data->rec->accountId, 'systemId');
+    			$Balance = new acc_ActiveShortBalance(array('from' => $curDate, 'to' => $curDate, 'accs' => $accSysId, 'cacheBalance' => FALSE, "item{$cItemPosition}" => $data->rec->caseItem, "item{$currencyPosition}" => $data->rec->currencyItem));
+    			$balance = $Balance->getBalance($accSysId);
+    		
+    			// Ако има баланс
+    			if(count($balance)){
+    				foreach ($balance as $b){
+    		
+    					// И в него участват касата и валутата
+    					if(!($b->{"ent{$cItemPosition}Id"} == $data->rec->caseItem && $b->{"ent{$currencyPosition}Id"} == $data->rec->currencyItem)) continue;
+    		
+    					// Сабираме салдата и оборотите
+    					foreach (array('baseQuantity', 'debitQuantity', 'creditQuantity', 'blQuantity') as $fld){
+    						if(isset($b->$fld)){
+    							$newRec->$fld += $b->$fld;
+    						}
     					}
     				}
     			}
-    		}
     		
-    		// Добавяме към записите
-    		$data->recs[] = $newRec;
+    			// Добавяме към записите
+    			$data->recs[] = $newRec;
     		
-    		// Новата дата е един ден след текущата
-    		$curDate = dt::addDays(1, $curDate);
-    		$curDate = dt::verbal2mysql($curDate, FALSE);
-    	
-    		// Продължаваме докато текущата дата се изравни с крайната
-    	} while($curDate <= $data->rec->to);
+    			// Новата дата е един ден след текущата
+    			$curDate = dt::addDays(1, $curDate);
+    			$curDate = dt::verbal2mysql($curDate, FALSE);
+    			 
+    			// Продължаваме докато текущата дата се изравни с крайната
+    		} while($curDate <= $data->rec->to);
+    	}
     	
     	// Връщаме данните
     	return $data;
@@ -167,7 +189,8 @@ class cash_CashReportImpl extends frame_BaseDriver
     */
     public static function on_AfterPrepareEmbeddedData($mvc, &$data)
     {
-    	$data->listFields = arr::make("date=Дата,baseQuantity=Начално, debitQuantity=Приход,creditQuantity=Разход,blQuantity=Остатък", TRUE);
+    	$firstColumn = ($data->isHistory == FALSE) ? "date=Дата" : "docId=Документ";
+    	$data->listFields = arr::make("{$firstColumn},baseQuantity=Начално, debitQuantity=Приход,creditQuantity=Разход,blQuantity=Остатък", TRUE);
     	$data->recs = array_reverse($data->recs, TRUE);
     	
     	// Ако има намерени записи
@@ -201,8 +224,22 @@ class cash_CashReportImpl extends frame_BaseDriver
      */
     private function getVerbalRec($rec)
     {
+    	$rec = (object)$rec;
     	$row = new stdClass();
     	$Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
+    	
+    	if(isset($rec->docId)){
+    		try{
+    			$Class = cls::get($rec->docType);
+    			$row->docId = $Class->getShortHyperLink($rec->docId);
+    		} catch(core_exception_Expect $e){
+    			if(is_numeric($rec->docId)){
+    				$row->docId = "<span style='color:red'>" . tr("Проблем при показването") . "</span>";
+    			} else {
+    				$row->docId = $rec->docId;
+    			}
+    		}
+    	}
     	
     	$row->date = dt::mysql2verbal($rec->date, "d.m.Y");
     	
@@ -215,7 +252,11 @@ class cash_CashReportImpl extends frame_BaseDriver
     			}
     		}
     	}
-    		 
+    	
+    	if($rec->ROW_ATTR){
+    		$row->ROW_ATTR = $rec->ROW_ATTR;
+    	}
+    	
     	// Връщаме подготвеното вербално рпедставяне
     	return $row;
     }
