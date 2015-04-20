@@ -15,7 +15,10 @@
  */
 class acc_type_Item extends type_Key
 {
-    
+    /**
+     * Параметър определящ максималната широчина на полето
+     */
+    var $maxFieldSize = 30;
     
     /**
      * Инициализиране на обекта
@@ -123,7 +126,7 @@ class acc_type_Item extends type_Key
                 break;
             }
         }
-        
+
         return parent::renderInput_($name, $value, $attr);
     }
     
