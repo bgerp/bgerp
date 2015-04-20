@@ -52,6 +52,9 @@ class bank_AccountReportImpl extends acc_PeriodHistoryReportImpl
     	$form->setField("ent{$bItemPosition}Id", 'caption=Б. сметка');
     	$form->setField("ent{$currencyPosition}Id", 'caption=Валута');
     	
+    	$form->setFieldTypeParams("ent{$bItemPosition}Id", array('select' => 'title'));
+    	$form->setFieldTypeParams("ent{$currencyPosition}Id", array('select' => 'title'));
+    	
     	// Слагаме избраната каса, ако има такава
     	if($bankAccount = bank_OwnAccounts::getCurrent('id', FALSE)){
     		$bankItemId = acc_Items::fetchItem('bank_OwnAccounts', $bankAccount)->id;

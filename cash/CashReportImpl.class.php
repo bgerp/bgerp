@@ -52,6 +52,9 @@ class cash_CashReportImpl extends acc_PeriodHistoryReportImpl
     	$form->setField("ent{$cItemPosition}Id", 'caption=Каса');
     	$form->setField("ent{$currencyPosition}Id", 'caption=Валута');
     	
+    	$form->setFieldTypeParams("ent{$cItemPosition}Id", array('select' => 'title'));
+    	$form->setFieldTypeParams("ent{$currencyPosition}Id", array('select' => 'title'));
+    	
     	// Слагаме избраната каса, ако има такава
     	if($curCase = cash_Cases::getCurrent('id', FALSE)){
     		$caseItemId = acc_Items::fetchItem('cash_Cases', $curCase)->id;
