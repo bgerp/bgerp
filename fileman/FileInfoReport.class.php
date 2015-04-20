@@ -36,7 +36,7 @@ class fileman_FileInfoReport extends frame_BaseDriver
     /**
      * Добавя полетата на вътрешния обект
      *
-     * @param core_Fieldset $fieldset
+     * @param core_Form $form
      */
     public function addEmbeddedFields(core_Form &$form)
     {
@@ -77,8 +77,8 @@ class fileman_FileInfoReport extends frame_BaseDriver
     
     /**
      * Подготвя вътрешното състояние, на база въведените данни
-     *
-     * @param core_Form $innerForm
+     * 
+     * @return object
      */
     public function prepareInnerState()
     {
@@ -153,6 +153,8 @@ class fileman_FileInfoReport extends frame_BaseDriver
      * Рендира вградения обект
      *
      * @param stdClass $data
+     * 
+     * @return core_ET
      */
     public function renderEmbeddedData($data)
     {
@@ -206,6 +208,7 @@ class fileman_FileInfoReport extends frame_BaseDriver
         }
         
         $order = array();
+        $rows = array();
         
         foreach((array)$data->files as $keyId => $fArr) {
             
@@ -246,6 +249,8 @@ class fileman_FileInfoReport extends frame_BaseDriver
             }
         }
         
+        $orderArr = array();
+        
         if (!empty($order)) {
             if($direction == 'a') {
                 asort($order);
@@ -279,8 +284,6 @@ class fileman_FileInfoReport extends frame_BaseDriver
       
     /**
      * Скрива полетата, които потребител с ниски права не може да вижда
-     *
-     * @param stdClass $data
      */
     public function hidePriceFields()
     {
