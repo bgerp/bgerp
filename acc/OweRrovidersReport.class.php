@@ -47,16 +47,23 @@ class acc_OweRrovidersReport extends acc_BalanceReportImpl
         $form->setDefault('accountId', $accId);
         $form->setHidden('accountId');
 
-        // Дефолт периода е текущия ден
-        $today = dt::today();
-
-        $form->setDefault('from',date('Y-m-01', strtotime("-1 months", dt::mysql2timestamp(dt::now()))));
-        $form->setDefault('to', $today);
-
         // Задаваме че ще филтрираме по перо
         $form->setDefault('action', 'group');
+        $form->setField('to', 'input=none');
+
         $form->setHidden('orderField');
         $form->setHidden('orderBy');
+    }
+
+
+    /**
+     * Проверява въведените данни
+     *
+     * @param core_Form $form
+     */
+    public function checkEmbeddedForm(core_Form &$form)
+    {
+
     }
 
 
@@ -65,7 +72,9 @@ class acc_OweRrovidersReport extends acc_BalanceReportImpl
      */
     public static function on_AfterPrepareEmbeddedForm($mvc, core_Form &$form)
     {
+
         $form->setHidden('action');
+
 
         foreach (range(1, 3) as $i) {
 
@@ -75,7 +84,6 @@ class acc_OweRrovidersReport extends acc_BalanceReportImpl
         }
 
         $articlePositionId = acc_Lists::getPosition($mvc->accountSysId, 'crm_ContragentAccRegIntf');
-
         $form->setDefault("feat{$articlePositionId}", "*");
     }
 
@@ -110,7 +118,7 @@ class acc_OweRrovidersReport extends acc_BalanceReportImpl
      */
     public function getEarlyActivation()
     {
-        $activateOn = "{$this->innerForm->to} 23:59:59";
+        $activateOn = "{$this->innerForm->from} 23:59:59";
 
         return $activateOn;
     }
