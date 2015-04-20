@@ -256,7 +256,7 @@ class doc_Setup extends core_ProtoSetup
         try {
             
             $conf = core_Packs::getConfig('doc');
-            $res .= '';
+            $res = '';
             
             $repArr = array();
             $repArr['folder'] = doc_Folders::repair(NULL, NULL, $conf->DOC_REPAIR_DELAY);
