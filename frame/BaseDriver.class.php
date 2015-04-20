@@ -172,6 +172,8 @@ abstract class frame_BaseDriver extends core_BaseClass
 		
 		$this->addEmbeddedFields($form);
 		$form->rec = $this->innerForm;
+		$this->prepareEmbeddedForm($form);
+		
 		$form->class = 'simpleForm';
 		 
 		$tpl->prepend($form->renderStaticHtml(), $placeholder);
