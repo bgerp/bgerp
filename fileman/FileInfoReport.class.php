@@ -24,7 +24,7 @@ class fileman_FileInfoReport extends frame_BaseDriver
     /**
      * Заглавие
      */
-    public $title = 'Файлове->Статистика';
+    public $title = 'Файлове»Статистика';
     
     
     /**
