@@ -2416,16 +2416,19 @@ class crm_Persons extends core_Master
     	
     	$meta = array();
     	
-    	// Ако контрагента е в група клиенти: дефолт свойствата са 'продаваем и производим'
-    	if(keylist::isIn($clientGroupId, $rec->groupList)){
-    		$meta['canSell'] = TRUE;
-    		$meta['canManifacture'] = TRUE;
+    	$catConf = core_Packs::getConfig('cat');
+    	
+    	// Ако контрагента е в група доставчици'
+    	if(keylist::isIn($supplierGroupId, $rec->groupList)){
+    		$meta = type_Set::toArray($catConf->CAT_DEFAULT_META_IN_SUPPLIER_FOLDER);
+    	} else {
+    		$meta = type_Set::toArray($catConf->CAT_DEFAULT_META_IN_CONTRAGENT_FOLDER);
     	}
     	
-    	// Ако контрагента е в група доставчици: дефолт свойствата са 'купуваем и вложим'
-    	if(keylist::isIn($supplierGroupId, $rec->groupList)){
-    		$meta['canConvert'] = TRUE;
-    		$meta['canBuy'] = TRUE;
+    	if(count($meta)){
+    		foreach ($meta as &$m){
+    			$m = TRUE;
+    		}
     	}
     	
     	return $meta;

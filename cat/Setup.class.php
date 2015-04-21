@@ -8,6 +8,18 @@ defIfNot('CAT_BOM_REMEMBERED_RESOURCES', 20);
 
 
 /**
+ * Дефолт свойства на нови артикули в папките на клиенти
+ */
+defIfNot('CAT_DEFAULT_META_IN_CONTRAGENT_FOLDER', 'canSell,canManifacture,canStore');
+
+
+/**
+ * Дефолт свойства на нови артикули в папките на доставчици
+ */
+defIfNot('CAT_DEFAULT_META_IN_SUPPLIER_FOLDER', 'canBuy,canConvert,canStore');
+
+
+/**
  * class cat_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -105,6 +117,8 @@ class cat_Setup extends core_ProtoSetup
      */
     var $configDescription = array(
     		'CAT_BOM_REMEMBERED_RESOURCES' => array("int", 'caption=Колко от последно изпозлваните ресурси да се показват в рецептите->Брой'),
+    		'CAT_DEFAULT_META_IN_CONTRAGENT_FOLDER' => array("set(canSell=Продаваем,canBuy=Купуваем,canStore=Складируем,canConvert=Вложим,fixedAsset=Дълготраен актив,canManifacture=Производим)", 'caption=Свойства по подразбиране в папка->На клиент,columns=2'),
+    		'CAT_DEFAULT_META_IN_SUPPLIER_FOLDER' => array("set(canSell=Продаваем,canBuy=Купуваем,canStore=Складируем,canConvert=Вложим,fixedAsset=Дълготраен актив,canManifacture=Производим)", 'caption=Свойства по подразбиране в папка->На доставчик,columns=2'),
     );
 
     
