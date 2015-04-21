@@ -60,6 +60,10 @@ class bank_AccountReportImpl extends acc_PeriodHistoryReportImpl
     		$bankItemId = acc_Items::fetchItem('bank_OwnAccounts', $bankAccount)->id;
     		$form->setDefault("ent{$bItemPosition}Id", $bankItemId);
     	}
+    	
+    	$curCurrecy = acc_Periods::getBaseCurrencyId();
+    	$curItemId = acc_Items::fetchItem('currency_Currencies', $curCurrecy)->id;
+    	$form->setDefault("ent{$currencyPosition}Id", $curItemId);
     }
     
     

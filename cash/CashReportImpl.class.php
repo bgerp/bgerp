@@ -60,6 +60,10 @@ class cash_CashReportImpl extends acc_PeriodHistoryReportImpl
     		$caseItemId = acc_Items::fetchItem('cash_Cases', $curCase)->id;
     		$form->setDefault("ent{$cItemPosition}Id", $caseItemId);
     	}
+    	
+    	$curCurrecy = acc_Periods::getBaseCurrencyId();
+    	$curItemId = acc_Items::fetchItem('currency_Currencies', $curCurrecy)->id;
+    	$form->setDefault("ent{$currencyPosition}Id", $curItemId);
     }
     
     
