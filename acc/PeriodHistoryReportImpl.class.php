@@ -51,7 +51,7 @@ class acc_PeriodHistoryReportImpl extends acc_HistoryReportImpl
 		if(isset($mvc->defaultAccount)){
 			$accId = acc_Accounts::getRecBySystemId($mvc->defaultAccount)->id;
 			$form->setDefault('accountId', $accId);
-			$form->setReadOnly('accountId');
+			$form->setHidden('accountId');
 		}
 		
 		$form->setDefault('isGrouped', 'yes');
