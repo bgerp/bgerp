@@ -234,11 +234,38 @@ class core_Packs extends core_Manager
     
     
     /**
+     * Връща масив с имената на всички инсталирани пакети
+     * 
+     * @return array
+     */
+    public static function getInstalledPacksNamesArr()
+    {
+        $resArr = array();
+        
+        $query = self::getQuery();
+        while ($rec = $query->fetch()) {
+            
+            $resArr[$rec->name] = $rec->name;
+        }
+        
+        return $resArr;
+    }
+    
+    
+    /**
      * Вкарва всички неинстлирани пакети
      */
     function loadSetupData()
     {
         $packsName = $this->getAllPacksNamesArr();
+        
+        $installedPacksName = self::getInstalledPacksNamesArr();
+        
+        // Изтриваме премахнатите пакети
+        $removedPacksArr = array_diff($installedPacksName, $packsName);
+        foreach ((array)$removedPacksArr as $packName) {
+            $this->deinstall($packName);
+        }
         
         foreach ($packsName as $pack => $desc) {
             
