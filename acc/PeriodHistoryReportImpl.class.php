@@ -85,112 +85,140 @@ class acc_PeriodHistoryReportImpl extends acc_HistoryReportImpl
     	// Започваме да извличаме баланса от началната дата
     	// За всеки ден от периода намираме какви са салдата и движенията по аналитичната сметка
     	$curDate = $data->rec->fromDate;
-    	$step = 'week';
     	
-    	switch($data->rec->step){
-    		case 'day':
-    			$toDate = $curDate;
-    			break;
-    		case 'week':
-    			$year = dt::mysql2verbal($curDate, 'Y');
-    			$week = dt::mysql2verbal($curDate, 'W');
-    			$toDate = dt::verbal2mysql(dt::timestamp2Mysql(strtotime("{$year}-W{$week}-7")), FALSE);
-    			break;
-    		case 'month':
-    			$toDate = dt::getLastDayOfMonth($curDate);
-    			break;
-    	}
+    	$periods = self::getDatesByPeriod($data->rec->fromDate, $data->rec->toDate, $data->rec->step);
     	
-    	if($data->rec->fromDate == $data->rec->toDate){
+    	if(count($periods) == 1){
     		$data->isHistory = TRUE;
     		
     		$balHistory = acc_ActiveShortBalance::getBalanceHystory($accSysId, $data->rec->fromDate, $data->rec->toDate, $data->rec->ent1Id, $data->rec->ent2Id, $data->rec->ent3Id);
     		
-    		$baseBalanceRec = array('docId' => "Начален баланс", 
-    							    'debitQuantity' => 0, 'creditQuantity' => 0, 'debitAmount' => 0, 'creditAmount' => 0,
-    								'blQuantity'    => $balHistory['summary']['baseQuantity'], 
-    								'blAmount'      => $balHistory['summary']['blAmount'],
-    								'ROW_ATTR'      => array('style' => 'background-color:#eee;font-weight:bold'));
-    		$blBalanceRec = array('docId' => "Краен баланс", 
-    							  'debitQuantity'  => $balHistory['summary']['debitQuantity'],
-    							  'debitAmount'    => $balHistory['summary']['debitAmount'],
-    							  'creditQuantity' => $balHistory['summary']['creditQuantity'], 
-    							  'credittAmount'  => $balHistory['summary']['creditAmount'],
-    							  'blQuantity'     => $balHistory['summary']['blQuantity'], 
-    							  'blAmount'       => $balHistory['summary']['blAmount'],
-    							  'ROW_ATTR'       => array('style' => 'background-color:#eee;font-weight:bold'));
+    		$baseBalanceRec = array('docId' => "Начален баланс",
+    				'debitQuantity' => 0, 'creditQuantity' => 0, 'debitAmount' => 0, 'creditAmount' => 0,
+    				'blQuantity'    => $balHistory['summary']['baseQuantity'],
+    				'blAmount'      => $balHistory['summary']['blAmount'],
+    				'ROW_ATTR'      => array('style' => 'background-color:#eee;font-weight:bold'));
+    		$blBalanceRec = array('docId' => "Краен баланс",
+    				'debitQuantity'  => $balHistory['summary']['debitQuantity'],
+    				'debitAmount'    => $balHistory['summary']['debitAmount'],
+    				'creditQuantity' => $balHistory['summary']['creditQuantity'],
+    				'credittAmount'  => $balHistory['summary']['creditAmount'],
+    				'blQuantity'     => $balHistory['summary']['blQuantity'],
+    				'blAmount'       => $balHistory['summary']['blAmount'],
+    				'ROW_ATTR'       => array('style' => 'background-color:#eee;font-weight:bold'));
     		
     		array_unshift($balHistory['history'], $baseBalanceRec);
     		$balHistory['history'][] = $blBalanceRec;
     		$data->recs = array_merge($data->recs, $balHistory['history']);
     		
     	} else {
-    		do{
-    			$newRec = (object)array('date' => $curDate);
-    			$newRec->from = $curDate;
-    			$newRec->to = $toDate;
-    			
-    			$verb = dt::mysql2verbal($curDate, 'W');
-    			echo "<li>{$curDate} - {$toDate} | {$verb}";
-    			
+    		
+    		// За всеки намерен период
+    		foreach ($periods as $period){
+    			$newRec = (object)array('date' => $period['from']);
+    			$newRec->from = $period['from'];
+    			$newRec->to = $period['to'];
+    			 
     			// Намираме движенията по сметката за тези пера за тази дата
-    			$Balance = new acc_ActiveShortBalance(array('from' => $curDate, 'to' => $toDate, 'accs' => $accSysId, 'cacheBalance' => FALSE, "item1" => $data->rec->ent1Id, "item2" => $data->rec->ent2Id, "item3" => $data->rec->ent3Id));
+    			$Balance = new acc_ActiveShortBalance(array('from' => $period['from'], 'to' => $period['to'], 'accs' => $accSysId, 'cacheBalance' => FALSE, "item1" => $data->rec->ent1Id, "item2" => $data->rec->ent2Id, "item3" => $data->rec->ent3Id));
     			$balance = $Balance->getBalance($accSysId);
-    			
+    					 
     			// Ако има баланс
     			if(count($balance)){
     				foreach ($balance as $b){
-    		
-    					// И в нея да участват перата
-    					if(!($b->ent1Id == $data->rec->ent1Id && $b->ent2Id == $data->rec->ent2Id && $b->ent3Id == $data->rec->ent3Id)) continue;
     			
-    					// Сабираме салдата и оборотите
-    					foreach (array('baseQuantity', 'debitQuantity', 'creditQuantity', 'blQuantity', 'baseAmount', 'debitAmount', 'creditAmount', 'blAmount') as $fld){
-    						if(isset($b->$fld)){
-    							$newRec->$fld += $b->$fld;
-    						}
-    					}
+	    				// И в нея да участват перата
+	    				if(!($b->ent1Id == $data->rec->ent1Id && $b->ent2Id == $data->rec->ent2Id && $b->ent3Id == $data->rec->ent3Id)) continue;
+	    					 
+	    				// Сабираме салдата и оборотите
+	    				foreach (array('baseQuantity', 'debitQuantity', 'creditQuantity', 'blQuantity', 'baseAmount', 'debitAmount', 'creditAmount', 'blAmount') as $fld){
+	    					if(isset($b->$fld)){
+	    						$newRec->$fld += $b->$fld;
+	    					}
+	    				}
     				}
     			}
-    		
+    			
     			// Добавяме към записите
     			$data->recs[] = $newRec;
-    			
-    			// Интересувани чустата дата без часът
-    			$curDate = dt::verbal2mysql($curDate, FALSE);
-    			
-    			// Ако групираме по седмици
-    			if($data->rec->step == 'week'){
-    				$curDate = dt::addSecs(60 * 60 * 26 , $toDate);
-    				$curDate = dt::verbal2mysql($curDate, FALSE);
-    				
-    				$toDate = dt::addSecs(60 * 60 * 26 * 7, $toDate);
-    				$toDate = dt::verbal2mysql($toDate, FALSE);
-    				
-    			// Ако групираме по месеци
-    			} elseif($data->rec->step == 'month'){
-    				$curDate = dt::addSecs(60 * 60 * 26 , $toDate);
-    				$curDate = dt::verbal2mysql($curDate, FALSE);
-    				$toDate = dt::getLastDayOfMonth($curDate);
-    			
-    			// Ако групираме по дни
-    			} else {
-    				$curDate = dt::addSecs(60 * 60 * 26 , $curDate);
-    				$curDate = dt::verbal2mysql($curDate, FALSE);
-    				$toDate = $curDate;
-
-    			}
-    			
-    			if($toDate > $data->rec->toDate){
-    				$toDate = $data->rec->toDate;
-    			}
-    			
-    			// Продължаваме докато текущата дата се изравни с крайната
-    		} while($curDate <= $data->rec->toDate);
+    		}
     	}
     	
     	// Връщаме данните
     	return $data;
+	}
+	
+	
+	/**
+	 * Връща масив с периоди от две дати
+	 * 
+	 * @param date $from   - От дата
+	 * @param date $to - До дата
+	 * @param day|week|month $period - тип на периода: ден, месец, година
+	 * @return array $periods - масив с началната и крайната дата на периодите
+	 * 					['from'] - Начална дата
+	 * 					['to']   - Крайна дата
+	 */
+	public static function getDatesByPeriod($from, $to, $period)
+	{
+		if($from > $to){
+			$buf = $to;
+			$to = $from;
+			$from = $buf;
+		}
+		
+		$periods = array();
+		$curDate = $from;
+		 
+		switch($period){
+			case 'day':
+				$toDate = $curDate;
+				break;
+			case 'week':
+				$year = dt::mysql2verbal($curDate, 'Y');
+				$week = dt::mysql2verbal($curDate, 'W');
+				$toDate = dt::verbal2mysql(dt::timestamp2Mysql(strtotime("{$year}-W{$week}-7")), FALSE);
+				break;
+			case 'month':
+				$toDate = dt::getLastDayOfMonth($curDate);
+				break;
+		}
+		
+		do{
+			$periods[] = array('from' => $curDate, 'to' => $toDate);
+			
+			// Интересувани чустата дата без часът
+			$curDate = dt::verbal2mysql($curDate, FALSE);
+			 
+			// Ако групираме по седмици
+			if($period == 'week'){
+				$curDate = dt::addSecs(60 * 60 * 26 , $toDate);
+				$curDate = dt::verbal2mysql($curDate, FALSE);
+			
+				$toDate = dt::addSecs(60 * 60 * 26 * 7, $toDate);
+				$toDate = dt::verbal2mysql($toDate, FALSE);
+			
+				// Ако групираме по месеци
+			} elseif($period == 'month'){
+				$curDate = dt::addSecs(60 * 60 * 26 , $toDate);
+				$curDate = dt::verbal2mysql($curDate, FALSE);
+				$toDate = dt::getLastDayOfMonth($curDate);
+				 
+				// Ако групираме по дни
+			} else {
+				$curDate = dt::addSecs(60 * 60 * 26 , $curDate);
+				$curDate = dt::verbal2mysql($curDate, FALSE);
+				$toDate = $curDate;
+			
+			}
+			 
+			if($toDate > $to){
+				$toDate = $to;
+			}
+			
+		} while($curDate <= $to);
+		
+		return $periods;
 	}
 	
 	
@@ -382,16 +410,20 @@ class acc_PeriodHistoryReportImpl extends acc_HistoryReportImpl
 		 
 		switch($this->innerForm->step){
 			case 'week':
-				$verb = dt::mysql2verbal($rec->date, 'W');
 				$row->from = dt::mysql2verbal($rec->from, "d.m.Y");
 				$row->to = dt::mysql2verbal($rec->to, "d.m.Y");
+				$verb = dt::mysql2verbal($rec->date, 'W');
 				$row->date = "{$verb} <span class='small'>($row->from - $row->to)</span>";
 				break;
 			case 'day':
 				$row->date = dt::mysql2verbal($rec->date, "d.m.Y");
 				break;
 			case 'month':
+				$row->from = dt::mysql2verbal($rec->from, "d D");
+				$row->to = dt::mysql2verbal($rec->to, "d D");
 				$row->date = dt::mysql2verbal($rec->to, "M Y");
+				$row->date = "{$row->date} <span class='small'>($row->from - $row->to)</span>";
+				
 				break;
 		}
 		
