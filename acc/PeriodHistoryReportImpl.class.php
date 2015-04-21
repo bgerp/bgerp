@@ -46,7 +46,7 @@ class acc_PeriodHistoryReportImpl extends acc_HistoryReportImpl
 	 */
 	public static function on_AfterAddEmbeddedFields($mvc, core_Form &$form)
 	{
-		$form->FLD('step', "enum(day=Дни,week=Седмици,month=Месеци)", "caption=Групиране по");
+		$form->FLD('step', "enum(day=Дни,week=Седмици,month=Месеци,year=Години)", "caption=Групиране по");
 		
 		if(isset($mvc->defaultAccount)){
 			$accId = acc_Accounts::getRecBySystemId($mvc->defaultAccount)->id;
@@ -78,6 +78,9 @@ class acc_PeriodHistoryReportImpl extends acc_HistoryReportImpl
     	$data->isHistory = FALSE;
     	if(empty($data->rec->toDate)){
     		$data->rec->toDate = $data->rec->fromDate;
+    	}
+    	if(empty($data->rec->step)){
+    		$data->rec->step = 'day';
     	}
     	
     	$accSysId = acc_Accounts::fetchField($data->rec->accountId, 'systemId');
@@ -182,6 +185,10 @@ class acc_PeriodHistoryReportImpl extends acc_HistoryReportImpl
 			case 'month':
 				$toDate = dt::getLastDayOfMonth($curDate);
 				break;
+			case 'year':
+				$toDate = dt::mysql2verbal($curDate, 'Y-12-31');
+				$toDate = dt::verbal2mysql($toDate, FALSE);
+				break;
 		}
 		
 		do{
@@ -204,7 +211,13 @@ class acc_PeriodHistoryReportImpl extends acc_HistoryReportImpl
 				$curDate = dt::verbal2mysql($curDate, FALSE);
 				$toDate = dt::getLastDayOfMonth($curDate);
 				 
-				// Ако групираме по дни
+				// Ако групираме по години
+			} elseif($period == 'year'){
+				$curDate = dt::addSecs(60 * 60 * 26 , $toDate);
+				$curDate = dt::verbal2mysql($curDate, FALSE);
+				
+				$toDate = dt::mysql2verbal($curDate, 'Y-12-31');
+				$toDate = dt::verbal2mysql($toDate, FALSE);
 			} else {
 				$curDate = dt::addSecs(60 * 60 * 26 , $curDate);
 				$curDate = dt::verbal2mysql($curDate, FALSE);
@@ -298,6 +311,8 @@ class acc_PeriodHistoryReportImpl extends acc_HistoryReportImpl
 				break;
 			case 'month':
 				$dateCaption = 'Месец';
+			case 'year':
+				$dateCaption = 'Години';
 				break;
 		}
 		
@@ -417,6 +432,20 @@ class acc_PeriodHistoryReportImpl extends acc_HistoryReportImpl
 				break;
 			case 'day':
 				$row->date = dt::mysql2verbal($rec->date, "d.m.Y");
+				break;
+			case 'year':
+				$row->date = dt::mysql2verbal($rec->date, "Y");
+				$lastDate = dt::verbal2mysql(dt::mysql2verbal($rec->date, 'Y-12-31'), FALSE);
+				$firstDate = dt::verbal2mysql(dt::mysql2verbal($rec->date, 'Y-01-01'), FALSE);
+				
+				if($rec->to != $lastDate){
+					$row->date .= " <span class='small'>(" . tr('до') . " " . dt::mysql2verbal($rec->to, "d.m") . ")</span>";
+				}
+				
+				if($rec->from != $firstDate){
+					$row->date .= " <span class='small'>(" . tr('от') . " " . dt::mysql2verbal($rec->from, "d.m") . ")</span>";
+				}
+				
 				break;
 			case 'month':
 				$row->from = dt::mysql2verbal($rec->from, "d D");
