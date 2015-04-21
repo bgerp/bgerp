@@ -32,7 +32,7 @@ class acc_PeriodHistoryReportImpl extends acc_HistoryReportImpl
 	/**
 	 * Заглавие
 	 */
-	public $title = 'Счетоводство»Дневни обороти';
+	public $title = 'Счетоводство»Обороти по период';
 	
 	
 	/**
@@ -46,6 +46,8 @@ class acc_PeriodHistoryReportImpl extends acc_HistoryReportImpl
 	 */
 	public static function on_AfterAddEmbeddedFields($mvc, core_Form &$form)
 	{
+		$form->FLD('step', "enum(day=Дни,week=Седмици,month=Месеци)", "caption=Групиране по");
+		
 		if(isset($mvc->defaultAccount)){
 			$accId = acc_Accounts::getRecBySystemId($mvc->defaultAccount)->id;
 			$form->setDefault('accountId', $accId);
@@ -74,8 +76,8 @@ class acc_PeriodHistoryReportImpl extends acc_HistoryReportImpl
     	$data->rec = $this->innerForm;
     	$data->recs = array();
     	$data->isHistory = FALSE;
-    	if(empty($data->rec->to)){
-    		$data->rec->to = $data->rec->from;
+    	if(empty($data->rec->toDate)){
+    		$data->rec->toDate = $data->rec->fromDate;
     	}
     	
     	$accSysId = acc_Accounts::fetchField($data->rec->accountId, 'systemId');
@@ -83,6 +85,21 @@ class acc_PeriodHistoryReportImpl extends acc_HistoryReportImpl
     	// Започваме да извличаме баланса от началната дата
     	// За всеки ден от периода намираме какви са салдата и движенията по аналитичната сметка
     	$curDate = $data->rec->fromDate;
+    	$step = 'week';
+    	
+    	switch($data->rec->step){
+    		case 'day':
+    			$toDate = $curDate;
+    			break;
+    		case 'week':
+    			$year = dt::mysql2verbal($curDate, 'Y');
+    			$week = dt::mysql2verbal($curDate, 'W');
+    			$toDate = dt::verbal2mysql(dt::timestamp2Mysql(strtotime("{$year}-W{$week}-7")), FALSE);
+    			break;
+    		case 'month':
+    			$toDate = dt::getLastDayOfMonth($curDate);
+    			break;
+    	}
     	
     	if($data->rec->fromDate == $data->rec->toDate){
     		$data->isHistory = TRUE;
@@ -110,9 +127,14 @@ class acc_PeriodHistoryReportImpl extends acc_HistoryReportImpl
     	} else {
     		do{
     			$newRec = (object)array('date' => $curDate);
-    		
+    			$newRec->from = $curDate;
+    			$newRec->to = $toDate;
+    			
+    			$verb = dt::mysql2verbal($curDate, 'W');
+    			echo "<li>{$curDate} - {$toDate} | {$verb}";
+    			
     			// Намираме движенията по сметката за тези пера за тази дата
-    			$Balance = new acc_ActiveShortBalance(array('from' => $curDate, 'to' => $curDate, 'accs' => $accSysId, 'cacheBalance' => FALSE, "item1" => $data->rec->ent1Id, "item2" => $data->rec->ent2Id, "item3" => $data->rec->ent3Id));
+    			$Balance = new acc_ActiveShortBalance(array('from' => $curDate, 'to' => $toDate, 'accs' => $accSysId, 'cacheBalance' => FALSE, "item1" => $data->rec->ent1Id, "item2" => $data->rec->ent2Id, "item3" => $data->rec->ent3Id));
     			$balance = $Balance->getBalance($accSysId);
     			
     			// Ако има баланс
@@ -134,11 +156,34 @@ class acc_PeriodHistoryReportImpl extends acc_HistoryReportImpl
     			// Добавяме към записите
     			$data->recs[] = $newRec;
     			
-    			// Новата дата е един ден след текущата ( датата + 26 часа за да сме сигурни че няма да се обърка заради връщането на часовниците)
-    			$curDate = dt::addSecs(60 * 60 * 26, $curDate);
-    			
     			// Интересувани чустата дата без часът
     			$curDate = dt::verbal2mysql($curDate, FALSE);
+    			
+    			// Ако групираме по седмици
+    			if($data->rec->step == 'week'){
+    				$curDate = dt::addSecs(60 * 60 * 26 , $toDate);
+    				$curDate = dt::verbal2mysql($curDate, FALSE);
+    				
+    				$toDate = dt::addSecs(60 * 60 * 26 * 7, $toDate);
+    				$toDate = dt::verbal2mysql($toDate, FALSE);
+    				
+    			// Ако групираме по месеци
+    			} elseif($data->rec->step == 'month'){
+    				$curDate = dt::addSecs(60 * 60 * 26 , $toDate);
+    				$curDate = dt::verbal2mysql($curDate, FALSE);
+    				$toDate = dt::getLastDayOfMonth($curDate);
+    			
+    			// Ако групираме по дни
+    			} else {
+    				$curDate = dt::addSecs(60 * 60 * 26 , $curDate);
+    				$curDate = dt::verbal2mysql($curDate, FALSE);
+    				$toDate = $curDate;
+
+    			}
+    			
+    			if($toDate > $data->rec->toDate){
+    				$toDate = $data->rec->toDate;
+    			}
     			
     			// Продължаваме докато текущата дата се изравни с крайната
     		} while($curDate <= $data->rec->toDate);
@@ -216,7 +261,19 @@ class acc_PeriodHistoryReportImpl extends acc_HistoryReportImpl
 							'blQuantity'     => 'Остатък->К-во',
 							'blAmount'       => 'Остатък->Сума',);
 		
-		$firstColumn = ($data->isHistory == FALSE) ? array('date' => 'Дата') : array('docId' => 'Документ');
+		switch ($data->rec->step){
+			case 'day':
+				$dateCaption = 'Ден';
+				break;
+			case 'week':
+				$dateCaption = 'Седмица';
+				break;
+			case 'month':
+				$dateCaption = 'Месец';
+				break;
+		}
+		
+		$firstColumn = ($data->isHistory == FALSE) ? array('date' => $dateCaption) : array('docId' => 'Документ');
 		
 		// Ако к-та са равни на сумите, оставяме само едните
 		if($data->hasSameValues === TRUE){
@@ -244,6 +301,22 @@ class acc_PeriodHistoryReportImpl extends acc_HistoryReportImpl
 		$data->recs = array_reverse($data->recs, TRUE);
 		$data->hasSameValues = TRUE;
 		
+		// Можели потребителя да вижда хронологията на сметката
+		$attr = array();
+		$attr['class'] = 'linkWithIcon';
+		$attr['style'] = 'background-image:url(' . sbf('img/16/clock_history.png', '') . ');';
+		$attr['title'] = tr("Хронологична справка");
+		
+		$canSeeHistory = acc_BalanceDetails::haveRightFor('history', (object)array('ent1Id' => $data->rec->ent1Id, 'ent2Id' => $data->rec->ent2Id, 'ent3Id' => $data->rec->ent3Id));
+		if($canSeeHistory){
+			$histUrl = array('acc_BalanceHistory', 'History', 'accNum' => acc_Accounts::fetchField($data->rec->accountId, 'num'));
+			$histUrl['ent1Id'] = $data->rec->ent1Id;
+			$histUrl['ent2Id'] = $data->rec->ent2Id;
+			$histUrl['ent3Id'] = $data->rec->ent3Id;
+		} 
+		
+		
+		//, 'fromDate' => $balanceRec->fromDate, 'toDate' => $balanceRec->toDate
 		// Ако има намерени записи
 		if(count($data->recs)){
 			
@@ -267,7 +340,14 @@ class acc_PeriodHistoryReportImpl extends acc_HistoryReportImpl
 				if(isset($data->Pager) && !$data->Pager->isOnPage()) continue;
 	
 				// Вербално представяне на записа
-				$data->rows[] = $mvc->getVerbalRec($rec);
+				$row = $mvc->getVerbalRec($rec);
+				if($canSeeHistory){
+					$histUrl['fromDate'] = $rec->from;
+					$histUrl['toDate'] = $rec->to;
+					$row->date = ht::createLink('', $histUrl, NULL, $attr) . " {$row->date}";
+				}
+				
+				$data->rows[] = $row;
 			}
 		}
 		
@@ -300,8 +380,21 @@ class acc_PeriodHistoryReportImpl extends acc_HistoryReportImpl
 			}
 		}
 		 
-		$row->date = dt::mysql2verbal($rec->date, "d.m.Y");
-		 
+		switch($this->innerForm->step){
+			case 'week':
+				$verb = dt::mysql2verbal($rec->date, 'W');
+				$row->from = dt::mysql2verbal($rec->from, "d.m.Y");
+				$row->to = dt::mysql2verbal($rec->to, "d.m.Y");
+				$row->date = "{$verb} <span class='small'>($row->from - $row->to)</span>";
+				break;
+			case 'day':
+				$row->date = dt::mysql2verbal($rec->date, "d.m.Y");
+				break;
+			case 'month':
+				$row->date = dt::mysql2verbal($rec->to, "M Y");
+				break;
+		}
+		
 		// Вербално представяне на сумите и к-та
 		foreach (array('baseQuantity', 'debitQuantity', 'creditQuantity', 'blQuantity', 'baseAmount', 'creditAmount', 'debitAmount', 'blAmount') as $fld){
 			if(isset($rec->{$fld})){

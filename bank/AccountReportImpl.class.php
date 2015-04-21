@@ -26,7 +26,7 @@ class bank_AccountReportImpl extends acc_PeriodHistoryReportImpl
     /**
      * Заглавие
      */
-    public $title = 'Финанси»Дневни обороти - б. сметка';
+    public $title = 'Финанси»Обороти банка';
     
     
     /**
