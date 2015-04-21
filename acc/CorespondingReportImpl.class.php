@@ -313,6 +313,7 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     {
     	// Взимаме шаблона
     	$tpl = getTplFromFile('acc/tpl/CorespondingReportLayout.shtml');
+    	$tpl->replace($this->title, 'TITLE');
     	
     	$tpl->placeObject($data->summary);
     	$tpl->replace(acc_Periods::getBaseCurrencyCode(), 'baseCurrencyCode');
