@@ -182,6 +182,7 @@ class core_Embedder extends core_Master
 		if($rec->{$mvc->innerClassField}) {
 			
 			if($Driver = $mvc->getDriver($rec)){
+				$fieldsBefore = arr::make(array_keys($form->selectFields()), TRUE);
 				
 				// Източника добавя полета към формата
 				$Driver->addEmbeddedFields($form);
@@ -194,7 +195,8 @@ class core_Embedder extends core_Master
 				$mvc->invoke('AfterPrepareEmbeddedForm', array($form));
 				
 				// Намираме всички полета за показване, и ги маркираме за изтриване след смяна на драйвер
-				$removeFields = $form->selectFields("#input != 'none' AND #input != 'hidden' AND #name != '{$mvc->innerClassField}'");
+				$fieldsAfter = arr::make(array_keys($form->selectFields()), TRUE);
+				$removeFields = array_diff_assoc($fieldsAfter, $fieldsBefore);
 				$removeFields = implode('|', array_keys($removeFields));
 				$form->setField($mvc->innerClassField, "removeAndRefreshForm={$removeFields}");
 			} else {
