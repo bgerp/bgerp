@@ -316,9 +316,6 @@ class doc_FolderPlg extends core_Plugin
             $rec->inCharge = $cu;
         }
         
-        if((!$fields || $fArr['access']) && !$rec->access) {
-            $rec->access = 'team';
-        }
         if((!$fields || $fArr['state']) && !$rec->state) {
             $rec->state = 'active';
         }
