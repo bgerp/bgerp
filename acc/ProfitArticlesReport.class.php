@@ -115,6 +115,15 @@ class acc_ProfitArticlesReport extends acc_BalanceReportImpl
     {
         if(empty($data)) return;
 
+        // Името на перото да се показва като линк
+        if(count($data->rows)){
+        	$articlePositionId = acc_Lists::getPosition($this->accountSysId, 'cat_ProductAccRegIntf');
+        	foreach ($data->rows as $id => &$row){
+        		$articleItem = acc_Items::fetch($data->recs[$id]->{"ent{$articlePositionId}Id"}, 'classId,objectId');
+        		$row->{"ent{$articlePositionId}Id"} = cls::get($articleItem->classId)->getShortHyperLink($articleItem->objectId);
+        	}
+        }
+        
         $tpl = $this->getReportLayout();
 
         $tpl->replace($this->title, 'TITLE');
@@ -124,10 +133,7 @@ class acc_ProfitArticlesReport extends acc_BalanceReportImpl
 
         $tableMvc = new core_Mvc;
 
-        //$tableMvc->FLD('creditQuantity', 'int', 'tdClass=accCell');
         $tableMvc->FLD('blAmount', 'int', 'tdClass=accCell');
-
-
         $table = cls::get('core_TableView', array('mvc' => $tableMvc));
 
         $tpl->append($table->get($data->rows, $data->listFields), 'DETAILS');
