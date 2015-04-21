@@ -1295,6 +1295,13 @@ class crm_Persons extends core_Master
                 $contrData->groupEmails = static::getGroupEmails($person->buzCompanyId);    
             }
             
+            $clsId = core_Classes::getId(get_called_class());
+            $locationEmails = crm_Locations::getEmails($clsId, $id);
+            
+            if ($locationEmails) {
+                $contrData->groupEmails .= ($contrData->groupEmails) ? ', ' . $locationEmails : $locationEmails;
+            }
+            
             // Ако има личен имейл
             if ($person->email) {
                 
@@ -1339,6 +1346,14 @@ class crm_Persons extends core_Master
             
             // Добавяме към резултата
             $res .= ($res) ? ', ' . $rec->buzEmail : $rec->buzEmail;
+        }
+        
+        // Добавяме и имейлите от локациите
+        $clsId = core_Classes::getId(crm_Companies);
+        $locationEmails = crm_Locations::getEmails($clsId, $companyId);
+        
+        if ($locationEmails) {
+            $res .= ($res) ? ', ' . $locationEmails : $locationEmails;
         }
         
         return $res;
