@@ -38,7 +38,7 @@ class acc_PeriodHistoryReportImpl extends acc_HistoryReportImpl
 	/**
 	 * Брой записи на страница
 	 */
-	public $listItemsPerPage = 31;
+	public $listItemsPerPage = 40;
 	
 	
 	/**
@@ -358,15 +358,15 @@ class acc_PeriodHistoryReportImpl extends acc_HistoryReportImpl
 			$histUrl['ent3Id'] = $data->rec->ent3Id;
 		} 
 		
-		
-		//, 'fromDate' => $balanceRec->fromDate, 'toDate' => $balanceRec->toDate
 		// Ако има намерени записи
 		if(count($data->recs)){
 			
 			if(!Mode::is('printing')){
+				// За променливата на пейджъра добавяме уникално име
+				$pageVar = str::addHash("P", 5, "{$mvc->className}{$mvc->EmbedderRec->that}");
 				
 				// Подготвяме страницирането
-				$data->Pager = cls::get('core_Pager',  array('itemsPerPage' => $mvc->listItemsPerPage));
+				$data->Pager = cls::get('core_Pager',  array('pageVar' => $pageVar, 'itemsPerPage' => $mvc->listItemsPerPage));
 				$data->Pager->itemsCount = count($data->recs);
 			}
 	
