@@ -292,7 +292,7 @@ class cat_Products extends core_Embedder {
     		if(!$cover->haveInterface('doc_ContragentDataIntf')){
     			$form->setField('code', 'mandatory');
     			
-				if($code = Mode::get('cat_Products_code')) {
+				if($code = Mode::get('cat_LastProductCode')) {
 					if ($newCode = str::increment($code)) {
 						
 						// Проверяваме дали има такъв запис в системата
@@ -720,6 +720,8 @@ class cat_Products extends core_Embedder {
         if($rec->groups) {
             $mvc->updateGroupsCnt = TRUE;
         }
+        
+        Mode::setPermanent('cat_LastProductCode' , $rec->code);
     }
     
     
