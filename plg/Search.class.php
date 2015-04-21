@@ -94,7 +94,9 @@ class plg_Search extends core_Plugin
                     $searchKeywords .= ' ' . static::normalizeText($cRec->{$field});
                 } else {
                     Mode::push('text', 'plain');
+                    Mode::push('htmlEntity', 'none');
                     $searchKeywords .= ' ' . static::normalizeText(strip_tags($mvc->getVerbal($cRec, $field)));
+                    Mode::pop('htmlEntity');
                     Mode::pop('text');
                 }
             }
