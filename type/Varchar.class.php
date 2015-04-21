@@ -88,4 +88,20 @@ class type_Varchar extends core_Type {
 
         return $value;
     }
+          
+    
+	/**
+     * Този метод трябва да конвертира от вътрешно към вербално
+     * представяне дадената стойност
+     */
+    function toVerbal_($value)
+    {
+        $res = parent::toVerbal_($value);
+        
+        if (Mode::is('text', 'plain')) {
+            $res = html_entity_decode($res, ENT_QUOTES, 'UTF-8');
+        }
+        
+        return $res;
+    }
 }
