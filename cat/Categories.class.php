@@ -140,7 +140,7 @@ class cat_Categories extends core_Master
     /**
      * Дефолт достъп до новите корици
      */
-    public $defaultAccess = 'private';
+    public $defaultAccess = 'team';
     
     
     /**
