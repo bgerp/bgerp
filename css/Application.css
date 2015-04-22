@@ -3925,6 +3925,15 @@ only screen and (max-width: 320px) {
         color: #cccccc;
         font-weight: normal; }
 
+.narrow .sale-summary td .quiet {
+  font-size: 0.8em; }
+
+.display-table .scrolling-holder {
+  margin-bottom: 0; }
+
+.document .display-table .details .listToolbar {
+  border-bottom: none; }
+
 .feather-icon {
   background-image: url('../img/16/feather.png');
   padding-left: 22px;
