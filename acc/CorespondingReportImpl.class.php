@@ -48,6 +48,12 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     
     
     /**
+     * Работен кеш
+     */
+    public $cache2 = array();
+    
+    
+    /**
      * Добавя полетата на вътрешния обект
      *
      * @param core_Fieldset $fieldset
@@ -57,8 +63,8 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     	// Добавяме полетата за филтър
     	$form->FLD('from', 'date', 'caption=От,mandatory');
     	$form->FLD('to', 'date', 'caption=До,mandatory');
-    	$form->FLD('baseAccountId', 'acc_type_Account(allowEmpty)', 'caption=Сметки->Основна,mandatory');
-    	$form->FLD('corespondentAccountId', 'acc_type_Account(allowEmpty)', 'caption=Сметки->Кореспондент,mandatory');
+    	$form->FLD('baseAccountId', 'acc_type_Account(allowEmpty)', 'caption=Сметки->Основна,mandatory,silent,removeAndRefreshForm=groupBy');
+    	$form->FLD('corespondentAccountId', 'acc_type_Account(allowEmpty)', 'caption=Сметки->Кореспондент,mandatory,silent,removeAndRefreshForm=groupBy');
     	$form->FLD('side', 'enum(all=Всички,debit=Дебит,credit=Кредит)', 'caption=Обороти');
     }
     
@@ -91,6 +97,33 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     		
     	$form->setSuggestions('from', array('' => '') + $op->fromOptions);
     	$form->setSuggestions('to', array('' => '') + $op->toOptions);
+    	
+    	if(isset($form->rec->baseAccountId) && isset($form->rec->corespondentAccountId)){
+    		$baseAccInfo = acc_Accounts::fetch($form->rec->baseAccountId);
+    		$corespAccInfo = acc_Accounts::fetch($form->rec->corespondentAccountId);
+    		
+    		$baseGroups = $sets = array();
+    		
+    		foreach (range(1, 3) as $i){
+    			if(isset($baseAccInfo->{"groupId{$i}"})){
+    				if(!isset($sets[$baseAccInfo->{"groupId{$i}"}])){
+    					$sets[$baseAccInfo->{"groupId{$i}"}] = acc_Lists::getVerbal($baseAccInfo->{"groupId{$i}"}, 'name');
+    				}
+    				$baseGroups[$baseAccInfo->{"groupId{$i}"}] = $baseAccInfo->{"groupId{$i}"};
+    			}
+    			
+    			if(isset($corespAccInfo->{"groupId{$i}"})){
+    				if(!isset($sets[$corespAccInfo->{"groupId{$i}"}])){
+    					$sets[$corespAccInfo->{"groupId{$i}"}] = acc_Lists::getVerbal($corespAccInfo->{"groupId{$i}"}, 'name');
+    				}
+    			}
+    		}
+    		
+    		$sets = arr::fromArray($sets);
+    		$defaults = implode(',', $baseGroups);
+    		$form->FLD('groupBy', "set({$sets})", 'caption=Групиране по'); 
+    		$form->setDefault('groupBy', $defaults);
+    	}
     }
     
     
@@ -113,7 +146,7 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     	
     	// За всеки запис добавяме го към намерените резултати
     	while($jRec = $jQuery->fetch()){
-    		$this->addEntry($form->baseAccountId, $jRec, $data->recs);
+    		$this->addEntry($form->baseAccountId, $jRec, $data->recs, $form->groupBy);
     	}
     	
     	// Ако има намерени записи
@@ -157,8 +190,8 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     		$data->Pager->itemsCount = count($data->recs);
     		
     		foreach ($data->recs as $rec1){
-    			foreach (range(1, 3) as $i){
-    				if(isset($rec1->{"item{$i}"})){
+    			foreach (range(1, 6) as $i){
+    				if(!empty($rec1->{"item{$i}"})){
     					$this->cache[$rec1->{"item{$i}"}] = $rec1->{"item{$i}"};
     				}
     			}
@@ -224,27 +257,38 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
      * @param array    $recs          - групираните записи
      * @return void
      */
-    private function addEntry($baseAccountId, $jRec, &$recs)
+    private function addEntry($baseAccountId, $jRec, &$recs, $groupBy)
     {
     	// Обхождаме дебитната и кредитната част
     	foreach (array('debit', 'credit') as $type){
-    		
-    		// Ако сметката на дебита/кредита не е основната сметка не натрупваме оборотите
-    		if($jRec->{"{$type}AccId"} != $baseAccountId) continue;
-    		
-    		// Индекса за групиране са аналитичностите
-    		$index = "{$jRec->{"{$type}Item1"}}|{$jRec->{"{$type}Item2"}}|{$jRec->{"{$type}Item3"}}";
+    		if(!isset($this->cache2[$jRec->{"{$type}AccId"}])){
+    			$this->cache2[$jRec->{"{$type}AccId"}] = acc_Accounts::fetch($jRec->{"{$type}AccId"}, 'groupId1,groupId2,groupId3');
+    		}
+    	}
     	
-    		// Ако записите няма обект с такъв индекс, създаваме го
-    		if(!array_key_exists($index, $recs)){
-    			$recs[$index] = new stdClass();
-    			foreach (range(1, 3) as $i){
-    				if(!empty($jRec->{"{$type}Item{$i}"})){
-    					$recs[$index]->{"item{$i}"} = $jRec->{"{$type}Item{$i}"};
-    				}
+    	$debitGroups = $this->cache2[$jRec->debitAccId];
+    	$creditGroups = $this->cache2[$jRec->creditAccId];
+    	$groupBy = arr::make($groupBy, TRUE);
+    	
+    	$index = array();
+    	foreach (array('debit', 'credit') as $type){
+    		foreach (range(1, 3) as $i){
+    			$groups = ${"{$type}Groups"};
+    			if(isset($groupBy[$groups->{"groupId{$i}"}])){
+    				$index[$jRec->{"{$type}Item{$i}"}] = $jRec->{"{$type}Item{$i}"};
     			}
     		}
-    		 
+    	}
+    	
+    	$index = implode('|', $index);
+    	
+    	// Ако записите няма обект с такъв индекс, създаваме го
+    	if(!array_key_exists($index, $recs)){
+    		$recs[$index] = new stdClass();
+    		list($recs[$index]->item1, $recs[$index]->item2, $recs[$index]->item3,$recs[$index]->item4,$recs[$index]->item5,$recs[$index]->item6) = explode('|', $index);
+    	}
+    	
+    	foreach (array('debit', 'credit') as $type){
     		// Сумираме дебитния или кредитния оборот
     		$quantityFld = "{$type}Quantity";
     		$amountFld = "{$type}Amount";
@@ -266,7 +310,7 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     	$Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
     	
     	// Вербалното представяне на перата
-    	foreach (range(1, 3) as $i){
+    	foreach (range(1, 6) as $i){
     		if(!empty($rec->{"item{$i}"})){
     			$row->{"item{$i}"} = acc_Items::getVerbal($rec->{"item{$i}"}, 'titleLink');
     		}
@@ -319,16 +363,17 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     	$tpl->replace(acc_Periods::getBaseCurrencyCode(), 'baseCurrencyCode');
     	
     	// Кои полета ще се показват
-    	$fields = arr::make("item1,item2,item3,debitQuantity=Дебит->К-во,debitAmount=Дебит->Сума,creditQuantity=Кредит->К-во,creditAmount=Кредит->Сума,blQuantity=Остатък->К-во,blAmount=Остатък->Сума", TRUE);
-   		$accInfo = acc_Accounts::getAccountInfo($this->innerForm->baseAccountId);
+    	$fields = arr::make("debitQuantity=Дебит->К-во,debitAmount=Дебит->Сума,creditQuantity=Кредит->К-во,creditAmount=Кредит->Сума,blQuantity=Остатък->К-во,blAmount=Остатък->Сума", TRUE);
+   		$groupByArr = type_Set::toArray($this->innerForm->groupBy);
+    	$groupBy = count($groupByArr);
+   		$newFields = array();
+
+   		for($i = 1; $i <= $groupBy; $i++){
+   			$newFields["item{$i}"] = "Перо {$i}";
+   		}
    		
-   		// Добавяме имената на номенклатурите
-   		foreach (range(1, 3) as $i){
-   			if(isset($accInfo->groups[$i])){
-   				$fields["item{$i}"] = $accInfo->groups[$i]->rec->name;
-   			} else {
-   				unset($fields["item{$i}"]);	
-   			}
+   		if(count($newFields)){
+   			$fields = $newFields + $fields;
    		}
     	
     	// Ако к-та и сумите са еднакви, не показваме количествата
@@ -350,6 +395,9 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
    		$f->FLD('item1', 'varchar', 'tdClass=itemClass');
    		$f->FLD('item2', 'varchar', 'tdClass=itemClass');
    		$f->FLD('item3', 'varchar', 'tdClass=itemClass');
+   		$f->FLD('item4', 'varchar', 'tdClass=itemClass');
+   		$f->FLD('item5', 'varchar', 'tdClass=itemClass');
+   		$f->FLD('item6', 'varchar', 'tdClass=itemClass');
    		foreach (array('debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount') as $fld){
    			$f->FLD($fld, 'int', 'tdClass=accCell');
    		}
