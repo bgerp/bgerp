@@ -13,16 +13,30 @@
  */
 class chartjs_Adapter extends  core_Mvc
 {
-
+	
+	
+	/**
+	 * Поддържани интерфейси
+	 *
+	 * var string|array
+	 */
     public $interfaces = 'doc_chartAdapterIntf';
 
-    public $title = 'chartjs';
+    
     /**
-     * @param $data - данните, които ще изчератаваме
-     * @param $chartType - тип на диаграмата:  'line', 'bar', 'pie'
-     * @return $tpl
+     * Заглавие в множествено число
+     *
+     * @var string
      */
-    function prepare($data, $chartType)
+    public $title = 'chartjs';
+    
+    
+    /**
+     * @param array $data - данните, които ще изчератаваме
+     * @param string $chartType - тип на диаграмата:  'line', 'bar', 'pie'
+     * @return core_ET $tpl
+     */
+    static function prepare_($data, $chartType)
     {
 
         $tpl = new ET();
