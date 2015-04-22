@@ -598,6 +598,7 @@ class sales_Sales extends deals_DealMaster
     	$tplArr[] = array('name' => 'Sales contract',         'content' => 'sales/tpl/sales/SaleEN.shtml', 'lang' => 'en');
     	$tplArr[] = array('name' => 'Manufacturing contract', 'content' => 'sales/tpl/sales/ManufacturingEN.shtml', 'lang' => 'en');
     	$tplArr[] = array('name' => 'Service contract',       'content' => 'sales/tpl/sales/ServiceEN.shtml', 'lang' => 'en');
+        $tplArr[] = array('name' => 'Мобилна продажба',       'content' => 'sales/tpl/sales/SaleNarrow.shtml', 'lang' => 'bg');
         
         $res .= doc_TplManager::addOnce($this, $tplArr);
     }
