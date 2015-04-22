@@ -146,7 +146,7 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     	
     	// За всеки запис добавяме го към намерените резултати
     	while($jRec = $jQuery->fetch()){
-    		$this->addEntry($form->baseAccountId, $jRec, $data->recs, $form->groupBy);
+    		$this->addEntry($form->baseAccountId, $jRec, $data, $form->groupBy);
     	}
     	
     	// Ако има намерени записи
@@ -257,8 +257,10 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
      * @param array    $recs          - групираните записи
      * @return void
      */
-    private function addEntry($baseAccountId, $jRec, &$recs, $groupBy)
+    private function addEntry($baseAccountId, $jRec, &$data, $groupBy)
     {
+    	$recs = &$data->recs;
+    	
     	// Обхождаме дебитната и кредитната част
     	foreach (array('debit', 'credit') as $type){
     		if(!isset($this->cache2[$jRec->{"{$type}AccId"}])){
@@ -270,12 +272,13 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     	$creditGroups = $this->cache2[$jRec->creditAccId];
     	$groupBy = arr::make($groupBy, TRUE);
     	
-    	$index = array();
+    	$data->groupByOrder = $index = array();
     	foreach (array('debit', 'credit') as $type){
     		foreach (range(1, 3) as $i){
     			$groups = ${"{$type}Groups"};
     			if(isset($groupBy[$groups->{"groupId{$i}"}])){
     				$index[$jRec->{"{$type}Item{$i}"}] = $jRec->{"{$type}Item{$i}"};
+    				$data->groupByOrder[$groupBy[$groups->{"groupId{$i}"}]] = $groupBy[$groups->{"groupId{$i}"}];
     			}
     		}
     	}
@@ -289,9 +292,12 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     	}
     	
     	foreach (array('debit', 'credit') as $type){
+    		if($jRec->{"{$type}AccId"} != $baseAccountId) continue;
+    		
     		// Сумираме дебитния или кредитния оборот
     		$quantityFld = "{$type}Quantity";
     		$amountFld = "{$type}Amount";
+    		
     		$recs[$index]->{$quantityFld} += $jRec->{"{$type}Quantity"};
     		$recs[$index]->{$amountFld} += $jRec->amount;
     	}
@@ -367,9 +373,11 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
    		$groupByArr = type_Set::toArray($this->innerForm->groupBy);
     	$groupBy = count($groupByArr);
    		$newFields = array();
-
-   		for($i = 1; $i <= $groupBy; $i++){
-   			$newFields["item{$i}"] = "Перо {$i}";
+		
+   		$data->groupByOrder = array_values($data->groupByOrder);
+   		
+   		for($i = 1; $i <= count($data->groupByOrder); $i++){
+   			$newFields["item{$i}"] = acc_Lists::fetchField($data->groupByOrder[$i - 1], 'name');
    		}
    		
    		if(count($newFields)){
