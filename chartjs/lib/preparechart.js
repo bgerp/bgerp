@@ -12,7 +12,6 @@ function prepareChart( idElem, chartData, charType) {
     // ако чертаем торта
     if (charType == "pie") {
         var data = [];
-        console.log(chartData);
         // от получените данни генериране необходимата структура
         var title = chartData.legendTitle;
         var i = 0;
@@ -63,7 +62,6 @@ function prepareChart( idElem, chartData, charType) {
             if(!res.datasets[i].data)
                 res.datasets[i].data = [];
         }
-
         i = 0;
         // от получените данни генериране необходимата структура
         jQuery.each(chartData.values, function (key, value) {
@@ -102,10 +100,6 @@ function prepareChart( idElem, chartData, charType) {
                 "<% for (var i=0; i<datasets.length; i++){%><li>" +
                 "<span style=\"background-color:<%=datasets[i].strokeColor%> !important;\"></span>" +
                 "<%if(datasets[i].label){%><%=datasets[i].label%><%}%></li><%}%></ul>"
-            });
-
-
-
         }
         $('#' + idElem).parent().append(myNewChart.generateLegend());
     }
