@@ -54,6 +54,12 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     
     
     /**
+     * Работен кеш
+     */
+    public $cache3 = array();
+    
+    
+    /**
      * Добавя полетата на вътрешния обект
      *
      * @param core_Fieldset $fieldset
@@ -138,6 +144,11 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     	$data->rows = $data->recs = array();
     	$form = $this->innerForm;
     	
+    	$data->groupBy = arr::make($this->innerForm->groupBy, TRUE);
+    	$data->groupBy = array_values($data->groupBy);
+    	array_unshift($data->groupBy, null);
+    	unset($data->groupBy[0]);
+    	
     	// Извличаме записите от журнала за периода, където участват основната и кореспондиращата сметка
     	$jQuery = acc_JournalDetails::getQuery();
     	acc_JournalDetails::filterQuery($jQuery, $form->from, $form->to);
@@ -186,7 +197,8 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     	if(count($data->recs)){
     		
     		// Подготвяме страницирането
-    		$data->Pager = cls::get('core_Pager',  array('itemsPerPage' => $this->listItemsPerPage));
+    		$pageVar = str::addHash("P", 5, "{$mvc->className}{$mvc->EmbedderRec->that}");
+    		$data->Pager = cls::get('core_Pager',  array('pageVar' => $pageVar, 'itemsPerPage' => $this->listItemsPerPage));
     		$data->Pager->itemsCount = count($data->recs);
     		
     		foreach ($data->recs as $rec1){
@@ -261,7 +273,7 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     {
     	$recs = &$data->recs;
     	
-    	// Обхождаме дебитната и кредитната част
+    	// Обхождаме дебитната и кредитната част, И намираме в какви номенклатури имат сметките
     	foreach (array('debit', 'credit') as $type){
     		if(!isset($this->cache2[$jRec->{"{$type}AccId"}])){
     			$this->cache2[$jRec->{"{$type}AccId"}] = acc_Accounts::fetch($jRec->{"{$type}AccId"}, 'groupId1,groupId2,groupId3');
@@ -270,15 +282,15 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     	
     	$debitGroups = $this->cache2[$jRec->debitAccId];
     	$creditGroups = $this->cache2[$jRec->creditAccId];
-    	$groupBy = arr::make($groupBy, TRUE);
     	
-    	$data->groupByOrder = $index = array();
+    	// Кешираме всяко перо на коя позиция трябва да се показва
+    	$index = array();
     	foreach (array('debit', 'credit') as $type){
     		foreach (range(1, 3) as $i){
     			$groups = ${"{$type}Groups"};
-    			if(isset($groupBy[$groups->{"groupId{$i}"}])){
+    			if(in_array($groups->{"groupId{$i}"}, $data->groupBy)){
     				$index[$jRec->{"{$type}Item{$i}"}] = $jRec->{"{$type}Item{$i}"};
-    				$data->groupByOrder[$groupBy[$groups->{"groupId{$i}"}]] = $groupBy[$groups->{"groupId{$i}"}];
+    				$this->cache3[$jRec->{"{$type}Item{$i}"}] = array_search($groups->{"groupId{$i}"}, $data->groupBy);
     			}
     		}
     	}
@@ -288,10 +300,21 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     	// Ако записите няма обект с такъв индекс, създаваме го
     	if(!array_key_exists($index, $recs)){
     		$recs[$index] = new stdClass();
-    		list($recs[$index]->item1, $recs[$index]->item2, $recs[$index]->item3,$recs[$index]->item4,$recs[$index]->item5,$recs[$index]->item6) = explode('|', $index);
+    		$indexArr = explode('|', $index);
+    		
+    		// Проверяваме на коя позиция перата от индекса трябва да се показват
+    		if(count($indexArr)){
+    			foreach ($indexArr as $itemId){
+    				$key = $this->cache3[$itemId];
+    				$recs[$index]->{"item{$key}"} = $itemId;
+    			}
+    		}
     	}
     	
+    	// Сумираме записите
     	foreach (array('debit', 'credit') as $type){
+    		
+    		// Пропускаме движенията от сметката кореспондент
     		if($jRec->{"{$type}AccId"} != $baseAccountId) continue;
     		
     		// Сумираме дебитния или кредитния оборот
@@ -370,14 +393,12 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     	
     	// Кои полета ще се показват
     	$fields = arr::make("debitQuantity=Дебит->К-во,debitAmount=Дебит->Сума,creditQuantity=Кредит->К-во,creditAmount=Кредит->Сума,blQuantity=Остатък->К-во,blAmount=Остатък->Сума", TRUE);
-   		$groupByArr = type_Set::toArray($this->innerForm->groupBy);
-    	$groupBy = count($groupByArr);
    		$newFields = array();
 		
-   		$data->groupByOrder = array_values($data->groupByOrder);
-   		
-   		for($i = 1; $i <= count($data->groupByOrder); $i++){
-   			$newFields["item{$i}"] = acc_Lists::fetchField($data->groupByOrder[$i - 1], 'name');
+   		if(count($data->groupBy)){
+   			foreach ($data->groupBy as $id => $grId){
+   				$newFields["item{$id}"] = acc_Lists::fetchField($grId, 'name');
+   			}
    		}
    		
    		if(count($newFields)){
