@@ -176,3 +176,19 @@ span.all-users{
  #jquery-colour-picker {
     width: 360px;
  }
+
+
+.wide .google-chart {
+    width: 600px;
+    height: 400px;
+}
+
+.wide .google-chart.pieChart {
+    height: 600px;
+    width: 700px;
+ }
+
+.narrow .googleChartsHolder {
+    width: 100px;
+    height: auto;
+}
