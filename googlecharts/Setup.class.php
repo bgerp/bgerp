@@ -33,6 +33,4 @@ class googlecharts_Setup extends core_ProtoSetup
         'googlecharts_Adapter'
     );
 
-
-
 }
