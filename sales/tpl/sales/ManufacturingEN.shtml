@@ -6,7 +6,11 @@
                     <table class="innerTable border-table paddingCells">
                         <tbody>
                             <tr>
-                                <td class='custom-header-bg' style='width:38%;'><b>Receiver</b></td>
+                                <td class='custom-header-bg' style='width:38%;'><b>Receiver</b>
+                                    <!--ET_BEGIN isPaid-->
+                                    <div class='stamp fright'>[#isPaid#]</div>
+                                    <!--ET_END isPaid-->
+                                </td>
                                 <td class="cell centered" rowspan = '2'>
                                     <div class="document-title">MANUFACTURING CONTRACT</div>
                                     <div style="padding-top:5px;">
@@ -17,7 +21,11 @@
                                     <div class="[#STATE_CLASS#]" style='margin:10px 0;'>[#state#]</div>
                                     <!--ET_END state-->
                                 </td>
-                                <td class='custom-header-bg' style='width:38%;'><b>Supplier</b></td>
+                                <td class='custom-header-bg' style='width:38%;'><b>Supplier</b>
+                                    <!--ET_BEGIN isDelivered-->
+                                    <div class='stamp fright'>[#isDelivered#]</div>
+                                    <!--ET_END isDelivered-->
+                                </td>
                             </tr>
                             <tr>
                                 <td>
@@ -29,6 +37,12 @@
                                     </div>
                                     <!--ET_END contragentAddress-->
                                     <!--ET_END contragentName-->
+                                    <!--ET_BEGIN deliveryLocationId-->
+                                    <hr style="margin: 3px 0 1px;">
+                                    <div>
+                                        Location: [#deliveryLocationId#]
+                                    </div>
+                                    <!--ET_END deliveryLocationId-->
                                 </td>
                                 <td>
                                     <!--ET_BEGIN MyCompany-->
@@ -39,6 +53,12 @@
                                     </div>
                                     <!--ET_END MyAddress-->
                                     <!--ET_END MyCompany-->
+                                    <!--ET_BEGIN shipmentStoreId-->
+                                    <hr style="margin: 3px 0 1px;">
+                                    <div>
+                                        From store: [#shipmentStoreId#]
+                                    </div>
+                                    <!--ET_END shipmentStoreId-->
                                 </td>
                             </tr>
                         </tbody>
@@ -89,54 +109,20 @@
                                     <hr>
                                     <div class='cellRow'>
                                         <span class='quiet'>Case: </span>[#caseId#]
-                                        <!--ET_BEGIN isPaid-->
-                                        <div class='stamp'>[#isPaid#]</div>
-                                        <!--ET_END isPaid-->
                                     </div>
                                     <!--ET_END caseId-->
                                 </td>
                                 <!--ET_BEGIN conditions-->
                                 [#conditions#]
                                 <td class="topCell first vtop" rowspan="2">
-                                    <!--ET_BEGIN deliveryInfo-->
-                                    [#deliveryInfo#]
-                                    <div>
-                                        <!--ET_BEGIN deliveryROW-->
-                                        [#deliveryROW#]
-                                        <div class='cellRow'><span class='quiet'>Delivery:</span> <b>[#deliveryTermId#]</b> [#deliveryLocationId#]</div>
-                                        <!--ET_END deliveryROW-->
-                                        <!--ET_BEGIN deliveryTime-->
-                                        <div class='cellRow'><span class='quiet'>Delivery time:</span> <b>[#deliveryTime#]</b></div>
-                                        <!--ET_END deliveryTime-->
-                                        <!--ET_BEGIN shipmentStoreId-->
-                                        <div class='cellRow'>
-                                            <span class='quiet'>Store: </span> [#shipmentStoreId#]
-                                            <!--ET_BEGIN isDelivered-->
-                                            <div class='stamp'>[#isDelivered#]</div>
-                                            <!--ET_END isDelivered-->
-                                        </div>
-                                        <!--ET_END shipmentStoreId-->
-                                    </div>
-                                    <hr>
-                                    <!--ET_END deliveryInfo-->
                                     <div>
                                         <b>Conditions</b>
                                         <ol style = 'margin-top:1px'>
-                                            <!--ET_BEGIN deliveryTermId-->
-                                            <li>
-                                                Delivery: <b>[#deliveryTermId#]</b>
-                                            </li>
-                                            <!--ET_END deliveryTermId-->
                                             <!--ET_BEGIN pricesAtDate-->
                                             <li>
                                                 Prices at: <b>[#pricesAtDate#]</b><br>
                                             </li>
                                             <!--ET_END pricesAtDate-->
-                                            <!--ET_BEGIN deliveryTime-->
-                                            <li>
-                                                Del. time: <b>[#deliveryTime#]</b>
-                                            </li>
-                                            <!--ET_END deliveryTime-->
                                             <!--ET_BEGIN withVat-->
                                             <li>Prices are with apllied VAT[#withVat#]</li>
                                             <!--ET_END withVat-->
@@ -152,6 +138,11 @@
                                             <!--ET_BEGIN notes-->
                                             [#notes#]
                                             <!--ET_END notes-->
+
+                                            <!--ET_BEGIN deliveryBlock-->
+                                            [#deliveryBlock#]
+                                            <li>Delivery: [#deliveryTermId#]<!--ET_BEGIN deliveryTime--> till [#deliveryTime#]<!--ET_END deliveryTime--></li>
+                                            <!--ET_END deliveryBlock-->
                                         </ol>
                                     </div>
                                 </td>
