@@ -632,8 +632,10 @@ abstract class deals_InvoiceMaster extends core_Master
 	   			$this->_total->vat = $rec->vatAmount / $rec->rate;
 	   		}
 	   		
+	   		$this->invoke('BeforePrepareSummary', array($this->_total));
 	   		$data->summary = deals_Helper::prepareSummary($this->_total, $rec->date, $rec->rate, $rec->currencyId, $rec->vatRate, TRUE, $rec->tplLang);
 	   		$data->row = (object)((array)$data->row + (array)$data->summary);
+	   		$data->row->vatAmount = $data->summary->vatAmount;
 	   	}
    }
     
