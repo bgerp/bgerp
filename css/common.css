@@ -2702,6 +2702,7 @@ div.statuses-message h2 {
       width: 85px;
       height: 85px; }
   .elem-holder .btns {
+    min-height: 15px;
     display: block;
     float: right;
     color: #999999;
