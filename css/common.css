@@ -1015,8 +1015,12 @@ a.profile {
   color: #999999 !important;
   text-decoration: line-through !important; }
 
+.state-rejected .document .profile {
+  text-decoration: none !important; }
+
 .state-rejected .docBgIcon,
-.state-rejected .document .docBgIcon b {
+.state-rejected .document .docBgIcon b,
+.state-rejected .document .docBgIcon a {
   color: #444444 !important; }
 
 .state-rejected .document img,
