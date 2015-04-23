@@ -93,14 +93,16 @@ function prepareChart( idElem, chartData, charType) {
 
         } else {
             var myNewChart = new Chart(chart).Line(res, {
-                responsive: true, animation: false, datasetFill : false,
+                responsive: true, animation: false, datasetFill: false,
                 tooltipTemplate: "<%if (label){%><%=label%>: <%}%><%= value %>",
                 multiTooltipTemplate: "<%= datasetLabel %> - <%= value %>",
-                legendTemplate: "<ul class=\" chart-legend <%=name.toLowerCase()%>-legend\"><li class=\"legend-title\">" + title + "</li>"  +
+                legendTemplate: "<ul class=\" chart-legend <%=name.toLowerCase()%>-legend\"><li class=\"legend-title\">" + title + "</li>" +
                 "<% for (var i=0; i<datasets.length; i++){%><li>" +
                 "<span style=\"background-color:<%=datasets[i].strokeColor%> !important;\"></span>" +
                 "<%if(datasets[i].label){%><%=datasets[i].label%><%}%></li><%}%></ul>"
+            });
         }
+
         $('#' + idElem).parent().append(myNewChart.generateLegend());
     }
 }
