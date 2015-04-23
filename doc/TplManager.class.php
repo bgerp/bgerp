@@ -366,11 +366,11 @@ class doc_TplManager extends core_Master
             	expect($object->hashNarrow = md5_file(getFullPath($object->narrowContent)));
             }
             
-            if($exRec && ($exRec->name == $object->name) && ($exRec->hashNarrow == $object->hashNarrow) && ($exRec->narrowContent == $object->narrowContent) && ($exRec->hash == $object->hash) && ($exRec->lang == $object->lang) && ($exRec->toggleFields == $object->toggleFields) && ($exRec->path == $object->content)){
+            if($exRec && ($exRec->name == $object->name) && ($exRec->hashNarrow == $object->hashNarrow)  && ($exRec->hash == $object->hash) && ($exRec->lang == $object->lang) && ($exRec->toggleFields == $object->toggleFields) && ($exRec->path == $object->content)){
                 $skipped++;
                 continue;
             }
-
+			
             $object->path = $object->content;
             $object->content = getFileContent($object->content);
             if($object->narrowContent){
