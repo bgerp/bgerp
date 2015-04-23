@@ -3,6 +3,11 @@
 <!--ET_BEGIN action-->
 <div><span class='quiet'>[#action#]</span>: [#groupBy#]</div><br>
 <!--ET_END action-->
+<div>
+    <!--ET_BEGIN buttonList-->[#buttonList#]<!--ET_END buttonList-->
+    <!--ET_BEGIN buttonChart-->[#buttonChart#]<!--ET_END buttonChart-->
+</div>
+<br><br>
 <div class='overflow-scroll'>
     [#DETAILS#]
 </div>

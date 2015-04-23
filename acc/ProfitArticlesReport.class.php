@@ -27,7 +27,7 @@ class acc_ProfitArticlesReport extends acc_BalanceReportImpl
     /**
      * Заглавие
      */
-    public $title = 'Счетоводство»Печалба от продажби на Стоки и Продукти ';
+    public $title = 'Счетоводство»Печалба от продажби на Стоки и Продукти';
 
 
     /**
@@ -123,39 +123,146 @@ class acc_ProfitArticlesReport extends acc_BalanceReportImpl
         		$row->{"ent{$articlePositionId}Id"} = cls::get($articleItem->classId)->getShortHyperLink($articleItem->objectId);
         	}
         }
-        
+
+
+        $chart = Request::get('Chart');
+
+        foreach ($data->recs as $id => $rec) {
+            $balance += abs($rec->blAmount);
+
+            $dArr[$rec->grouping3] = abs($rec->blAmount);
+        }
+
+        $arr = self::preparePie($dArr, 9, 'Others');
+
+        foreach ($arr as $id => $recSort) {
+            $info[$recSort->key] = round(($recSort->value/$balance) * 100,2);
+        }
+
+        $pie = array (
+                        'legendTitle' => "Печалбата от продажбите в проценти (%)",
+                        'info' => $info
+        );
         $tpl = $this->getReportLayout();
 
         $tpl->replace($this->title, 'TITLE');
         $this->prependStaticForm($tpl, 'FORM');
+        //bp($data);
+        // слагаме бутони на къстам тулбара
+        $btnList = ht::createBtn('Таблица', array(
+                $mvc,
+                'list',
+                $data->threadId,
+            ), NULL, NULL,
+            'ef_icon = img/16/table.png');
 
-        $tpl->placeObject($data->row);
+        $tpl->replace($btnList, 'buttonList');
 
-        $tableMvc = new core_Mvc;
+        $btnChart = ht::createBtn('Графика', array(
+                $mvc,
+                'list',
+                $data->trheadId,
+            ), NULL, NULL,
+            'ef_icon = img/16/chart16.png');
 
-        $tableMvc->FLD('blAmount', 'int', 'tdClass=accCell');
-        $table = cls::get('core_TableView', array('mvc' => $tableMvc));
+        $tpl->replace($btnChart, 'buttonChart');
 
-        $tpl->append($table->get($data->rows, $data->listFields), 'DETAILS');
+        if ($chart == 'pie') {
+            $coreConf = core_Packs::getConfig('doc');
+            $chartAdapter = $coreConf->DOC_CHART_ADAPTER;
+            $chartHtml = cls::get($chartAdapter);
+            $chart =  $chartHtml::prepare($pie,'pie');
+            $tpl->append($chart, 'DETAILS');
 
-        $data->summary->colspan = count($data->listFields);
+            //bp($tpl ,$this->getReportLayout());
 
-        if($data->bShowQuantities ){
-            $data->summary->colspan -= 4;
-            if($data->summary->colspan != 0 && count($data->rows)){
-                $beforeRow = new core_ET("<tr style = 'background-color: #eee'><td colspan=[#colspan#]><b>" . tr('ОБЩО') . "</b></td><td style='text-align:right'><b>[#blAmount#]</b></td></tr>");
+           return  $tpl;
+        } else {
+
+
+
+
+            $tpl->placeObject($data->row);
+
+            $tableMvc = new core_Mvc;
+
+            $tableMvc->FLD('blAmount', 'int', 'tdClass=accCell');
+            $table = cls::get('core_TableView', array('mvc' => $tableMvc));
+
+            $tpl->append($table->get($data->rows, $data->listFields), 'DETAILS');
+
+            $data->summary->colspan = count($data->listFields);
+
+            if ($data->bShowQuantities) {
+                $data->summary->colspan -= 4;
+                if ($data->summary->colspan != 0 && count($data->rows)) {
+                    $beforeRow = new core_ET("<tr style = 'background-color: #eee'><td colspan=[#colspan#]><b>" . tr('ОБЩО') . "</b></td><td style='text-align:right'><b>[#blAmount#]</b></td></tr>");
+                }
             }
+
+            if ($beforeRow) {
+                $beforeRow->placeObject($data->summary);
+                $tpl->append($beforeRow, 'ROW_BEFORE');
+            }
+
         }
-
-        if($beforeRow){
-            $beforeRow->placeObject($data->summary);
-            $tpl->append($beforeRow, 'ROW_BEFORE');
-        }
-
-
         return $tpl;
     }
 
+
+    /**
+     * По даден масив, правим подготовка за
+     * графика тип "торта"
+     *
+     * @param array $data
+     * @param int $n
+     * @param string $otherName
+     */
+    public static function preparePie ($data, $n, $otherName = 'Други')
+    {
+        // сортирваме масива от възходящ към низходящ
+        arsort($data);
+
+        foreach ($data as $key => $value) {
+            $newArr [] = (object) array ('key' => $key, 'value' => $value);
+        }
+
+        // броя на елементите в получения масив
+        $cntData = count($data);
+
+        // ако, числото което сме определили за новия масив
+        // е по-малко от общия брой елементи
+        // на подадения масив
+        if ($cntData <= $n) {
+
+            // връщаме направо масива
+            return $data;
+
+        //в противен случай
+        } else {
+            // взимаме първите n елемента от сортирания масив
+            for($k = 0; $k <= $n; $k++) {
+                $res[] = $newArr[$k];
+            }
+
+            // останалите елементи ги събираме
+            for ($i = $n; $i <= $cntData; $i++){
+                $sum += $newArr[$i]->value;
+            }
+
+            // ако имаме изрично зададено име за обобщения елемент
+            if ($otherName) {
+                // използваме него и го добавяме към получения нов масив с
+                // n еленета и сумата на останалите елементи
+                $res[] = (object) array ('key' => $otherName, 'value' => $sum);
+                // ако няма, използваме default
+            } else {
+                $res[] = (object) array ('key' => "Други", 'value' => $sum);
+            }
+        }
+
+        return $res;
+    }
 
     /**
      * Скрива полетата, които потребител с ниски права не може да вижда
@@ -179,4 +286,5 @@ class acc_ProfitArticlesReport extends acc_BalanceReportImpl
 
         return $activateOn;
     }
+
 }
