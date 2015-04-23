@@ -281,7 +281,7 @@ class acc_PeriodHistoryReportImpl extends acc_HistoryReportImpl
 	 */
 	public function getReportLayout_()
 	{
-		$tpl = getTplFromFile('cash/tpl/CaseReportDays.shtml');
+		$tpl = getTplFromFile('acc/tpl/PeriodBalanceReportLayout.shtml');
 	
 		return $tpl;
 	}
