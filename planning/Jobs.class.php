@@ -568,7 +568,7 @@ class planning_Jobs extends core_Master
     		}
     	}
     	
-    	if($rec->state == 'active' || $rec->state == 'wakeup'){
+    	if($rec->state == 'active' || $rec->state == 'wakeup' || $rec->state == 'stopped'){
     		if($bId = cat_Boms::fetchField("#productId = {$rec->productId} AND #state != 'rejected'", 'id')){
     			if(cat_Boms::haveRightFor('single', $bId)){
     				$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'single', $bId, 'ret_url' => TRUE), 'ef_icon = img/16/view.png,title=Към технологичната рецепта на артикула');
