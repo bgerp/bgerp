@@ -964,7 +964,8 @@ class acc_Items extends core_Manager
         $unique = Request::get('unique', 'int');
         
         $rec = $this->fetchRec($id);
-        $row = $this->recToVerbal_($rec);
+        $row = $this->recToVerbal($rec);
+        $row->state = $this->getVerbal($rec, 'state');
         
         $cantShow = FALSE;
         
