@@ -7,7 +7,7 @@
                         <table class="innerTable border-table paddingCells">
                             <tbody>
                                 <tr>
-                                    <td class='custom-header-bg' style='width:38%;'><b>Receiver</b></td>
+                                    <td class='custom-header-bg' style='width:38%;'><b>Recipient</b></td>
                                     <td class="cell centered" rowspan = '2'>
                                         <div class="document-title">SERVICE CONTRACT</div>
                                         <div style="padding-top:5px;">
@@ -201,7 +201,7 @@
                                     <td>
                                         <table class='signature-table' style='width:1%;'>
                                             <tr>
-                                                <td style='width:1%;'>Receiver:  </td>
+                                                <td class="nowrap" style='width:1%;'>For the Recipient:  </td>
                                                 <td></td>
                                             </tr>
                                             <tr>
@@ -213,7 +213,7 @@
                                     <td>
                                         <table style='width:1%'  class='fright signature-table'>
                                             <tr>
-                                                <td class='nowrap' style='width:1%;'>Created by:  </td>
+                                                <td class='nowrap' style='width:1%;'>For the Supplier:  </td>
                                                 <td></td>
                                             </tr>
                                             <tr>

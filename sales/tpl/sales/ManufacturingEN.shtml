@@ -7,7 +7,7 @@
                         <table class="innerTable border-table paddingCells">
                             <tbody>
                                 <tr>
-                                    <td class='custom-header-bg' style='width:38%;'><b>Receiver</b>
+                                    <td class='custom-header-bg' style='width:38%;'><b>Assignor</b>
                                         <!--ET_BEGIN isPaid-->
                                         <div class='stamp fright'>[#isPaid#]</div>
                                         <!--ET_END isPaid-->
@@ -22,7 +22,7 @@
                                         <div class="[#STATE_CLASS#]" style='margin:10px 0;'>[#state#]</div>
                                         <!--ET_END state-->
                                     </td>
-                                    <td class='custom-header-bg' style='width:38%;'><b>Supplier</b>
+                                    <td class='custom-header-bg' style='width:38%;'><b>Manufacturer</b>
                                         <!--ET_BEGIN isDelivered-->
                                         <div class='stamp fright'>[#isDelivered#]</div>
                                         <!--ET_END isDelivered-->
@@ -210,7 +210,7 @@
                                     <td>
                                         <table style='width:1%'  class='signature-table'>
                                             <tr>
-                                                <td style='width:1%'>Receiver:  </td>
+                                                <td class="nowrap" style='width:1%'>For the Assignor:  </td>
                                                 <td></td>
                                             </tr>
                                             <tr>
@@ -222,7 +222,7 @@
                                     <td>
                                         <table class='fright signature-table' style='width:1%'>
                                             <tr>
-                                                <td class='nowrap' style='width:1%'>Created by:  </td>
+                                                <td class='nowrap' style='width:1%'>For the Manufacturer:  </td>
                                                 <td></td>
                                             </tr>
                                             <tr>

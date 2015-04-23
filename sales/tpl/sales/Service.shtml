@@ -209,7 +209,7 @@
                                     <td>
                                         <table class='signature-table' style='width:1%;'>
                                             <tr>
-                                                <td style='width:1%;'>|Получил|*:  </td>
+                                                <td style='width:1%;'>|За получателя|*:  </td>
                                                 <td></td>
                                             </tr>
                                             <tr>
@@ -221,7 +221,7 @@
                                     <td>
                                         <table style='width:1%'  class='fright signature-table'>
                                             <tr>
-                                                <td style='width:1%;'>|Съставил|*:  </td>
+                                                <td style='width:1%;'>|За доставчика|*:  </td>
                                                 <td></td>
                                             </tr>
                                             <tr>

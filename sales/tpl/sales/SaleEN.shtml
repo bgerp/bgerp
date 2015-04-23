@@ -7,7 +7,7 @@
                         <table class="innerTable border-table paddingCells">
                             <tbody>
                                 <tr>
-                                    <td class='custom-header-bg' style='width:38%;'><b>Receiver</b>
+                                    <td class='custom-header-bg' style='width:38%;'><b>Recipient</b>
                                         <!--ET_BEGIN isPaid-->
                                         <div class='stamp fright'>[#isPaid#]</div>
                                         <!--ET_END isPaid-->
@@ -209,7 +209,7 @@
                                     <td>
                                         <table class='signature-table' style='width:1%;'>
                                             <tr>
-                                                <td style='width:1%;'>Receiver:  </td>
+                                                <td class="nowrap" style='width:1%;'>For the Recipient:  </td>
                                                 <td></td>
                                             </tr>
                                             <tr>
@@ -221,7 +221,7 @@
                                     <td>
                                         <table style='width:1%'  class='fright signature-table'>
                                             <tr>
-                                                <td class='nowrap' style='width:1%;'>Created by:  </td>
+                                                <td class='nowrap' style='width:1%;'>For the supplier:  </td>
                                                 <td></td>
                                             </tr>
                                             <tr>
