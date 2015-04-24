@@ -143,6 +143,7 @@ class cat_Boms extends core_Master
     {
     	$this->FLD('quantity', 'double(smartRound,Min=0)', 'caption=За,silent,refreshForm,mandatory');
     	$this->FLD('notes', 'richtext(rows=4)', 'caption=Забележки');
+    	$this->FLD('expenses', 'percent', 'caption=Режийни разходи');
     	$this->FLD('state','enum(draft=Чернова, active=Активиран, rejected=Оттеглен)', 'caption=Статус, input=none');
     	$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden,silent');
     	
@@ -404,22 +405,25 @@ class cat_Boms extends core_Master
      * 		 o $total->base - началната сума (в основната валута за периода)
      * 		 o $total->prop - пропорционалната сума (в основната валута за периода)
      */
-    public static function getPrice($productId)
+    public static function getPrice($productId, $bomId = NULL)
     {
     	// Намираме активната карта за обекта
-    	$rec = self::fetch("#productId = {$productId} AND #state = 'active'");
+    	$where = "#productId = {$productId} AND #state = 'active'";
+    	if($bomId){
+    		$where .= " AND #id = {$bomId}";
+    	}
+    	$rec = self::fetch($where);
     	
     	// Ако няма, връщаме нулеви цени
     	if(empty($rec)) return FALSE;
     	
     	// Кои ресурси участват в спецификацията
     	$rInfo = static::getResourceInfo($rec);
-    	
     	$amounts = (object)array('base' => 0, 'prop' => 0);
     	
     	// За всеки ресурс
-    	if(count($rInfo)){
-    		foreach ($rInfo as $dRec){
+    	if(count($rInfo['resources'])){
+    		foreach ($rInfo['resources'] as $dRec){
     			$sign = ($dRec->type == 'input') ? 1 : -1;
     			$selfValue = planning_Resources::fetchField($dRec->resourceId, 'selfValue');
     			
@@ -452,6 +456,7 @@ class cat_Boms extends core_Master
     	
     	expect($rec = static::fetchRec($id));
     	$resources['quantity'] = ($rec->quantity) ? $rec->quantity : 1;
+    	$resources['expenses'] = ($rec->expenses) ? $rec->expenses : NULL;
     	
     	// Намираме всички етапи в рецептата
     	$dQuery = cat_BomDetails::getQuery();
