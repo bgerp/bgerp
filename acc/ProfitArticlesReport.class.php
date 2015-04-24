@@ -128,7 +128,6 @@ class acc_ProfitArticlesReport extends acc_BalanceReportImpl
             $btnList = ht::createBtn('Таблица', array(
                     'doc_Containers',
                     'list',
-                    'Chart' => 'list',
                     'threadId' => Request::get('threadId', 'int')
 
                 ), NULL, NULL,
@@ -139,7 +138,7 @@ class acc_ProfitArticlesReport extends acc_BalanceReportImpl
             $btnChart = ht::createBtn('Графика', array(
                     'doc_Containers',
                     'list',
-                    'Chart' => 'pie',
+                    'Chart' => 'pie'. $data->rec->containerId,
                     'threadId' => Request::get('threadId', 'int')
 
                 ), NULL, NULL,
@@ -148,7 +147,7 @@ class acc_ProfitArticlesReport extends acc_BalanceReportImpl
             $tpl->replace($btnChart, 'buttonChart');
         }
 
-        if ($chart == 'pie' && $data->recs) {
+        if ($chart == 'pie'.$data->rec->containerId && $data->recs) {
 
             foreach ($data->recs as $id => $rec) {
                 $balance += abs($rec->blAmount);
@@ -164,7 +163,8 @@ class acc_ProfitArticlesReport extends acc_BalanceReportImpl
             }
 
             $pie = array (
-                'legendTitle' => "Печалбата от продажбите в проценти (%)",
+                'legendTitle' => "Печалбата от продажбите в проценти",
+                'suffix' => "лв.",
                 'info' => $info,
             );
 
