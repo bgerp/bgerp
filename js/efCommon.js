@@ -47,7 +47,7 @@ function showTooltip(){
             element = $(e.target).parent().find('.additionalInfo');
 
             // Ако тултипа е в скролиращ елемент и няма достатъчно място нагоре, го показваме надолу от срелката, за да не се отреже
-            if($(element).closest('.overflow-scroll') && $(element).parent().offset().top - 150 < $(element).closest('.overflow-scroll').offset().top){
+            if($(element).closest('.overflow-scroll').length && $(element).parent().offset().top - 150 < $(element).closest('.overflow-scroll').offset().top){
                 $(element).addClass('bottom');
             }
 
