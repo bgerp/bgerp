@@ -27,30 +27,16 @@ abstract class core_TreeObject extends core_Manager
 	
 	
 	/**
-	 * Име на поле за баща
-	 */
-	var $parentFieldName = 'parentId';
-	
-	
-	/**
-	 * Име на поле за наименование
-	 */
-	var $nameField = 'name';
-	
-	
-	/**
-	 * Име на поле за системно ид
-	 */
-	var $systemIdFieldName = 'sysId';
-	
-	
-	/**
 	 * След дефиниране на полетата на модела
 	 *
 	 * @param core_Mvc $mvc
 	 */
 	public static function on_AfterDescription(core_Mvc $mvc)
 	{
+		setIfNot($mvc->parentFieldName, 'parentId');
+		setIfNot($mvc->nameField, 'name');
+		setIfNot($mvc->systemIdFieldName, 'sysId');
+		
 		// Създаваме поле за име, ако няма такова
 		if(!$mvc->getField($mvc->nameField, FALSE)){
 			$mvc->FLD($mvc->nameField, "varchar(64)", 'caption=Наименование, mandatory');
@@ -62,7 +48,7 @@ abstract class core_TreeObject extends core_Manager
 		}
 		
 		// Дали наследниците на обекта да са счетоводни пера
-		$mvc->FLD('makeDescendantsFeatures', "enum(no=Не,yes=Да)", 'caption=Наследниците дали да бъдат сч. признаци->Избор,notNull,value=no');
+		$mvc->FLD('makeDescendantsFeatures', "enum(no=Не,yes=Да)", 'caption=Наследниците дали да бъдат сч. признаци->Избор,notNull,value=yes');
 		
 		if(!$mvc->getField($mvc->systemIdFieldName, FALSE)){
 			$mvc->FLD($mvc->systemIdFieldName, 'varchar', 'input=none');
