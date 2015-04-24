@@ -28,10 +28,11 @@ function prepareChart( idElem, chartData, charType) {
         var pie = $('#' + idElem).get(0).getContext('2d');
         var myNewChart = new Chart(pie).Pie(data, {
             responsive: true, animation: false,
+            tooltipTemplate: "<%if (label){%><%=label%>: <%}%><%= value %>%",
             legendTemplate: "<ul class=\"chart-legend <%=name.toLowerCase()%>-legend\"><li class=\"legend-title\">" + title + "</li>" +
             "<% for (var i=0; i<segments.length; i++){%><li>" +
             "<span style=\"background-color:<%=segments[i].fillColor%> !important\"></span>" +
-            "<%if(segments[i].label){%><%=segments[i].label%><%}%>: <%if(segments[i].value){%><%=segments[i].value%><%}%></li><%}%></ul>"
+            "<%if(segments[i].label){%><%=segments[i].label%><%}%>: <%if(segments[i].value){%><%=segments[i].value%>%<%}%></li><%}%></ul>"
         });
         // добавяме легендата
         $('#' + idElem).parent().append(myNewChart.generateLegend());
