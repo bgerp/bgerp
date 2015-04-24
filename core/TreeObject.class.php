@@ -35,7 +35,6 @@ abstract class core_TreeObject extends core_Manager
 	{
 		setIfNot($mvc->parentFieldName, 'parentId');
 		setIfNot($mvc->nameField, 'name');
-		setIfNot($mvc->systemIdFieldName, 'sysId');
 		
 		// Създаваме поле за име, ако няма такова
 		if(!$mvc->getField($mvc->nameField, FALSE)){
@@ -50,61 +49,8 @@ abstract class core_TreeObject extends core_Manager
 		// Дали наследниците на обекта да са счетоводни пера
 		$mvc->FLD('makeDescendantsFeatures', "enum(no=Не,yes=Да)", 'caption=Наследниците дали да бъдат сч. признаци->Избор,notNull,value=yes');
 		
-		if(!$mvc->getField($mvc->systemIdFieldName, FALSE)){
-			$mvc->FLD($mvc->systemIdFieldName, 'varchar', 'input=none');
-		}
-		
 		// Поставяне на уникален индекс
 		$mvc->setDbUnique($mvc->nameField);
-		$mvc->setDbUnique($mvc->systemIdFieldName);
-	}
-	
-	
-	/**
-	 * Какво правим след сетъпа на модела?
-	 */
-	protected static function on_AfterSetupMVC($mvc, &$res)
-	{
-		// Ако има данни за дефолт параметър
-		if($mvc->defaultParent){
-			$arr = arr::make($mvc->defaultParent, TRUE);
-			expect(array_key_exists('title', $arr));
-			expect(array_key_exists('systemId', $arr));
-			$new = FALSE;
-			
-			// Ако има дефолт параметър с това систем ид, и името му е различно обновяваме го
-			if($rec = $mvc->fetch("#{$mvc->systemIdFieldName} = '{$arr['systemId']}'")){
-				if($rec->{$mvc->nameField} != $arr['title']){
-					$rec->{$mvc->nameField} = $arr['title'];
-				} else {
-					$rec = NULL;
-				}
-				
-			// Иначе създаваме нов
-			} else {
-				$rec = new stdClass();
-				$rec->{$mvc->systemIdFieldName} = $arr['systemId'];
-				$rec->{$mvc->nameField} = $arr['title'];
-				$new = TRUE;
-			}
-			
-			if(isset($rec)){
-				
-				// Записваме дефолтния запис
-				$defaultId = $mvc->save($rec, NULL, 'REPLACE');
-				
-				// Ако сме добавили нов, правим всички записи които нямат бащи да наследяват този
-				if($new === TRUE){
-					$query = $mvc->getQuery();
-					$query->where("#{$mvc->parentFieldName} IS NULL AND #id != {$defaultId}");
-				
-					while($dRec = $query->fetch()){
-						$dRec->{$mvc->parentFieldName} = $defaultId;
-						$mvc->save($dRec, $mvc->parentFieldName);
-					}
-				}
-			}
-		}
 	}
 	
 	
@@ -226,33 +172,6 @@ abstract class core_TreeObject extends core_Manager
 		}
 		
 		return $options;
-	}
-	
-	
-	/**
-	 * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
-	 */
-	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
-	{
-		if(($action == 'edit' || $action == 'delete') && isset($rec->{$mvc->systemIdFieldName})){
-			$requiredRoles = 'no_one';
-		}
-	}
-	
-	
-	/**
-	 * Кой е дефолтния баща на всички обекти модела
-	 */
-	public function getDefaultParentId()
-	{
-		// Ако има данни за дефолт параметър
-		if($this->defaultParent){
-			$arr = arr::make($this->defaultParent, TRUE);
-			
-			return $this->fetchField("#{$this->systemIdFieldName} = '{$arr['systemId']}'", 'id');
-		}
-		
-		return FALSE;
 	}
 	
 	
