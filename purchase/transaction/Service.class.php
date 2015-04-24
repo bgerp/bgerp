@@ -79,6 +79,7 @@ class purchase_transaction_Service extends acc_DocumentTransactionSource
 			
     		foreach ($rec->details as $dRec) {
     			$pInfo = cls::get($dRec->classId)->getProductInfo($dRec->productId);
+    			$transferTo6113 = FALSE;
     			
     			if(isset($pInfo->meta['fixedAsset'])){
     				
@@ -94,6 +95,7 @@ class purchase_transaction_Service extends acc_DocumentTransactionSource
 						$debitArr = array('611', array('planning_Resources', $resourceRec->resourceId),
 											'quantity' => $sign * $dRec->quantity / $resourceRec->conversionRate);
     				} else {
+    					$transferTo6113 = TRUE;
     					// Ако няма ресурс го отчитаме като разход по центрове на дейности
 						$debitArr = array('6112', array('hr_Departments', $rec->activityCenterId),
 										 array($dRec->classId, $dRec->productId),
@@ -118,6 +120,13 @@ class purchase_transaction_Service extends acc_DocumentTransactionSource
     							'quantity' => $sign * $amount, // "брой пари" във валутата на покупката
     					),
     			);
+    			
+    			if($transferTo6113){
+    				$entries[] = array('debit' => array('6113'),
+    						'credit' => array('6112', array('hr_Departments', $rec->activityCenterId),
+    								array($dRec->classId, $dRec->productId),
+    								'quantity' => $sign * $dRec->quantity));
+    			}
     		}
     		
     		if($this->class->_total){
