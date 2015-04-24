@@ -118,6 +118,8 @@ class planning_ConsumptionNoteDetails extends deals_ManifactureDetail
     {
     	if(!count($data->recs)) return;
     	
+    	if($data->masterData->rec->state != 'draft') return;
+    	
     	foreach ($data->rows as $id => $row){
     		$rec = $data->recs[$id];
     		
