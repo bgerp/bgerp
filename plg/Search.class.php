@@ -95,7 +95,14 @@ class plg_Search extends core_Plugin
                 } else {
                     Mode::push('text', 'plain');
                     Mode::push('htmlEntity', 'none');
-                    $searchKeywords .= ' ' . static::normalizeText(strip_tags($mvc->getVerbal($cRec, $field)));
+                    
+                    $verbalVal = $mvc->getVerbal($cRec, $field);
+                    
+                    if (!($fieldObj->type instanceof type_Varchar)) {
+                        $verbalVal = strip_tags($verbalVal);
+                    }
+                    
+                    $searchKeywords .= ' ' . static::normalizeText($verbalVal);
                     Mode::pop('htmlEntity');
                     Mode::pop('text');
                 }
