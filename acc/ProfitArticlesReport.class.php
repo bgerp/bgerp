@@ -113,57 +113,61 @@ class acc_ProfitArticlesReport extends acc_BalanceReportImpl
      */
     public function renderEmbeddedData($data)
     {
-        if(empty($data)) return;
 
         $chart = Request::get('Chart');
-
-        foreach ($data->recs as $id => $rec) {
-            $balance += abs($rec->blAmount);
-
-            $dArr[$rec->grouping3] = abs($rec->blAmount);
-        }
-
-        $arr = self::preparePie($dArr, 9, 'Others');
-
-        foreach ($arr as $id => $recSort) {
-            $info[$recSort->key] = $recSort->value;
-            //$info[$recSort->key] = round(($recSort->value/$balance) * 100,2);
-        }
-
-        $pie = array (
-                        'legendTitle' => "Печалбата от продажбите в проценти (%)",
-                        'info' => $info,
-        );
 
         $tpl = $this->getReportLayout();
 
         $tpl->replace($this->title, 'TITLE');
         $this->prependStaticForm($tpl, 'FORM');
 
-        // слагаме бутони на къстам тулбара
-        $btnList = ht::createBtn('Таблица', array(
-                'doc_Containers',
-                'list',
-        		'Chart' => 'list',
-                'threadId' => Request::get('threadId', 'int')
+        // ако имаме записи има и смисъл да
+        // слагаме табове
+        if($data->recs) {
+            // слагаме бутони на къстам тулбара
+            $btnList = ht::createBtn('Таблица', array(
+                    'doc_Containers',
+                    'list',
+                    'Chart' => 'list',
+                    'threadId' => Request::get('threadId', 'int')
 
-            ), NULL, NULL,
-            'ef_icon = img/16/table.png');
+                ), NULL, NULL,
+                'ef_icon = img/16/table.png');
 
-        $tpl->replace($btnList, 'buttonList');
+            $tpl->replace($btnList, 'buttonList');
 
-        $btnChart = ht::createBtn('Графика', array(
-                'doc_Containers',
-                'list',
-        		'Chart' => 'pie',
-                'threadId' => Request::get('threadId', 'int')
+            $btnChart = ht::createBtn('Графика', array(
+                    'doc_Containers',
+                    'list',
+                    'Chart' => 'pie',
+                    'threadId' => Request::get('threadId', 'int')
 
-            ), NULL, NULL,
-            'ef_icon = img/16/chart16.png');
+                ), NULL, NULL,
+                'ef_icon = img/16/chart16.png');
 
-        $tpl->replace($btnChart, 'buttonChart');
+            $tpl->replace($btnChart, 'buttonChart');
+        }
 
-        if ($chart == 'pie') {
+        if ($chart == 'pie' && $data->recs) {
+
+            foreach ($data->recs as $id => $rec) {
+                $balance += abs($rec->blAmount);
+
+                $dArr[$rec->grouping3] = abs($rec->blAmount);
+            }
+
+            $arr = self::preparePie($dArr, 9, 'Others');
+
+            foreach ($arr as $id => $recSort) {
+                $info[$recSort->key] = $recSort->value;
+                //$info[$recSort->key] = round(($recSort->value/$balance) * 100,2);
+            }
+
+            $pie = array (
+                'legendTitle' => "Печалбата от продажбите в проценти (%)",
+                'info' => $info,
+            );
+
             $coreConf = core_Packs::getConfig('doc');
             $chartAdapter = $coreConf->DOC_CHART_ADAPTER;
             $chartHtml = cls::get($chartAdapter);
