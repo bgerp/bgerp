@@ -240,6 +240,9 @@ abstract class core_TreeObject extends core_Manager
 	}
 	
 	
+	/**
+	 * Кой е дефолтния баща на всички обекти модела
+	 */
 	public function getDefaultParentId()
 	{
 		// Ако има данни за дефолт параметър
@@ -247,6 +250,32 @@ abstract class core_TreeObject extends core_Manager
 			$arr = arr::make($this->defaultParent, TRUE);
 			
 			return $this->fetchField("#{$this->systemIdFieldName} = '{$arr['systemId']}'", 'id');
+		}
+		
+		return FALSE;
+	}
+	
+	
+	/**
+	 * Връща бащата на обекта като свойство а подадения обект стойност
+	 * 
+	 * @param int $id
+	 * @return array |boolean
+	 */
+	public static function getFeature($id)
+	{
+		$me = cls::get(get_called_class());
+		
+		if($rec = static::fetch($id)){
+			if($rec->parentId){
+				if(static::fetchField($rec->parentId, 'makeDescendantsFeatures') == 'yes'){
+					
+					$feature = static::getVerbal($rec->parentId, $me->nameField);
+					$featureValue = static::getVerbal($rec->id, $me->nameField);
+					
+					return array($feature => $featureValue);
+				}
+			}
 		}
 		
 		return FALSE;
