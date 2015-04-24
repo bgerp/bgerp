@@ -713,6 +713,9 @@ div.acc-detail {
     width: auto;
     border-radius: 5px;
     font-size: 15px; }
+    .additionalInfo-holder .additionalInfo.bottom {
+      bottom: auto;
+      top: 0; }
     .additionalInfo-holder .additionalInfo .aright {
       padding-right: 5px; }
     .additionalInfo-holder .additionalInfo td {
@@ -3983,7 +3986,6 @@ only screen and (max-width: 320px) {
   padding: 5px 10px;
   background-color: #eeeeee;
   border: solid 1px #cccccc;
-  max-width: 600px;
   color: #333333 !important; }
 
 .langSelect .langLink a:hover {

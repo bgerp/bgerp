@@ -45,6 +45,12 @@ function showTooltip(){
 
             // намираме този, който ще покажем сега
             element = $(e.target).parent().find('.additionalInfo');
+
+            // Ако тултипа е в скролиращ елемент и няма достатъчно място нагоре, го показваме надолу от срелката, за да не се отреже
+            if($(element).parent().offset().top - 150 < $(element).closest('.overflow-scroll').offset().top){
+                $(element).addClass('bottom');
+            }
+
             $(element).css('display', 'block');
         } else {
             // при кликане в бодито затвавяме отворения тултип, ако има такъв
