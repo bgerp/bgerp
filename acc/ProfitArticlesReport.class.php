@@ -142,11 +142,10 @@ class acc_ProfitArticlesReport extends acc_BalanceReportImpl
 
         // слагаме бутони на къстам тулбара
         $btnList = ht::createBtn('Таблица', array(
-                $mvc,
+                'doc_Containers',
                 'list',
         		'Chart' => 'list',
-                'threadId' => $data->rec->threadId,
-                'ret_url' => TRUE
+                'threadId' => Request::get('threadId', 'int')
 
             ), NULL, NULL,
             'ef_icon = img/16/table.png');
@@ -154,11 +153,10 @@ class acc_ProfitArticlesReport extends acc_BalanceReportImpl
         $tpl->replace($btnList, 'buttonList');
 
         $btnChart = ht::createBtn('Графика', array(
-                $mvc,
+                'doc_Containers',
                 'list',
         		'Chart' => 'pie',
-                'threadId' => $data->rec->threadId,
-                'ret_url' => TRUE
+                'threadId' => Request::get('threadId', 'int')
 
             ), NULL, NULL,
             'ef_icon = img/16/chart16.png');
@@ -177,7 +175,9 @@ class acc_ProfitArticlesReport extends acc_BalanceReportImpl
             if(count($data->rows)){
                 $articlePositionId = acc_Lists::getPosition($this->accountSysId, 'cat_ProductAccRegIntf');
                 foreach ($data->rows as $id => &$row){
+                    if (!$data->recs[$id]->{"ent{$articlePositionId}Id"}) continue;
                     $articleItem = acc_Items::fetch($data->recs[$id]->{"ent{$articlePositionId}Id"}, 'classId,objectId');
+                    if (!cls::load($articleItem->classId, TRUE)) continue;
                     $row->{"ent{$articlePositionId}Id"} = cls::get($articleItem->classId)->getShortHyperLink($articleItem->objectId);
                 }
             }
