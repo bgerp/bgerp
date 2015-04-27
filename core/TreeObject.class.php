@@ -227,7 +227,7 @@ class core_TreeObject extends core_Manager
 	{
 		$query = $this->getQuery();
 		$query->where("#{$this->parentFieldName} = {$id}");
-		$query->show("id,{$mvc->nameField}");
+		$query->show("id,{$this->nameField}");
 		
 		return $query->fetchAll();
 	}
