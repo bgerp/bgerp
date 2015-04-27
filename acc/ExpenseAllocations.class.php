@@ -234,12 +234,24 @@ class acc_ExpenseAllocations extends core_Master
     	if($firstDocument->getInstance() instanceof purchase_Purchases){
     		$dealInfo = $firstDocument->getAggregateDealInfo();
     		
+    		$totalAmount = 0;
     		if(count($dealInfo->shippedProducts)){
+    			
+    			// Изичсляваме колко е общата сума на експедираните артикули
+    			foreach ($dealInfo->shippedProducts as $prod1){
+    				$totalAmount += $prod1->amount;
+    			}
+    			
+    			// За всеки експедиран артикул, добавяме го към детайла
     			foreach ($dealInfo->shippedProducts as $prod){
     				$dRec = new stdClass();
     				$dRec->masterId = $rec->id;
     				$dRec->itemId = acc_Items::fetchItem($prod->classId, $prod->productId)->id;
     				$dRec->quantity = $prod->quantity;
+    				
+    				// Изчисляване на теглото
+    				// @TODO възоснова на кое се определя теглото да се избира от мастъра
+    				$dRec->weight = round($prod->amount / $totalAmount, 2);
     				
     				acc_ExpenseAllocationProducts::save($dRec);
     			}
