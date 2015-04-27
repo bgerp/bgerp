@@ -1,0 +1,35 @@
+[#SingleToolbar#]
+<div class='document'>
+    <!--ET_BEGIN blank-->
+    [#blank#]
+    <!--ET_END blank-->
+    <!--ET_BEGIN header-->
+    <div class='header [#STATE_CLASS#]'>
+        <div class='docBgIcon' style='[#iconStyle#];'>[#singleTitle#] <b>[#ident#]</b> ([#state#])</div>
+    </div>
+    <!--ET_END header-->
+    <table class='border-table'>
+        <tr>
+            <td style='padding-left:10px;width:60%;padding-top:10px;padding-bottom:10px'>
+                <div class='document-title'>|Разпределяне на разходи|*</div>
+                <div> |Вальор|*: [#valior#] / №[#id#]</div>
+            </td>
+        </tr>
+    </table>
+    
+    <!--ET_BEGIN acc_ExpenseAllocationProducts-->
+    <div  style='padding-top:10px'>
+    	[#acc_ExpenseAllocationProducts#]
+    </div>
+    <!--ET_END acc_ExpenseAllocationProducts-->
+    
+    <!--ET_BEGIN acc_ExpenseAllocationExpenses-->
+    <div style='padding-top:10px'>
+    	[#acc_ExpenseAllocationExpenses#]
+    </div>
+    <!--ET_END acc_ExpenseAllocationExpenses-->
+   
+    <!--ET_BEGIN DETAILS-->
+    [#DETAILS#]
+    <!--ET_END DETAILS-->
+</div>
