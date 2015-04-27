@@ -163,7 +163,6 @@ class core_TreeObject extends core_Manager
 		$query = $this->getQuery();
 		$query->where("#parentId IS NULL");
 		$query->show('id');
-		$query->where("#id = 1");
 		$tpl = new core_ET("<table class='listTable treeView'>[#LISTS_BODY#]</table>");
 		while($rec = $query->fetch()){
 			$round = -1;
