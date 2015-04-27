@@ -79,13 +79,19 @@ class acc_ExpenseAllocationExpenses extends doc_Detail
     
     
     /**
+     * Полета свързани с цени
+     */
+    var $priceFields = 'amount';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
     {
     	$this->FLD('masterId', 'key(mvc=acc_ExpenseAllocations)', 'column=none,input=hidden,silent');
     	$this->FLD('itemId', 'key(mvc=acc_Items,select=title)', 'caption=Разход,mandatory,silent');
-    	$this->FLD('amount', 'double', 'caption=Сума,mandatory');
+    	$this->FLD('amount', 'double(decimals=2)', 'caption=Сума,mandatory');
     	
     	$this->setDbUnique('masterId,itemId');
     }
@@ -160,10 +166,14 @@ class acc_ExpenseAllocationExpenses extends doc_Detail
     		$total += $rec->amount;
     	}
     	
-    	// Показваме под таблицата ред с обобщената сума
-    	$totalRow = $mvc->getFieldType('amount')->toVerbal($total);
-    	$colspan = count($data->listFields) - 1;
-    	$totalRow = "<tr style='background-color:#F0F0F0'><td colspan={$colspan}> <div style='float:right'><b>" . tr('Общо') . "</b>:</div></td><td style='text-align:right'><b>{$totalRow}</b></td></tr>";
-    	$tpl->append($totalRow, 'ROW_AFTER');
+    	// Ако е указано да се се показва обобщената информация не я показваме
+    	if($data->noTotal !== TRUE){
+    		
+    		// Показваме под таблицата ред с обобщената сума
+    		$totalRow = $mvc->getFieldType('amount')->toVerbal($total);
+    		$colspan = count($data->listFields) - 1;
+    		$totalRow = "<tr style='background-color:#F0F0F0'><td colspan={$colspan}> <div style='float:right'><b>" . tr('Общо') . "</b>:</div></td><td style='text-align:right'><b>{$totalRow}</b></td></tr>";
+    		$tpl->append($totalRow, 'ROW_AFTER');
+    	}
     }
 }

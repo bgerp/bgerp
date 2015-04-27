@@ -11,8 +11,8 @@
     <table class='border-table'>
         <tr>
             <td style='padding-left:10px;width:60%;padding-top:10px;padding-bottom:10px'>
-                <div class='document-title'>|Разпределяне на разходи|*</div>
-                <div> |Вальор|*: [#valior#] / №[#id#]</div>
+                <div class='document-title'>|Разпределяне на разходи|* №[#id#]</div>
+                <div style='margin-top:5px'> |Вальор|*: [#valior#]</div>
             </td>
         </tr>
     </table>
@@ -28,6 +28,12 @@
     	[#acc_ExpenseAllocationExpenses#]
     </div>
     <!--ET_END acc_ExpenseAllocationExpenses-->
+   <!--ET_BEGIN notes-->
+   <div style='margin-top:10px'>
+   <b>|Забележки|*</b>:
+   [#notes#]
+   </div>
+   <!--ET_END notes-->
    
     <!--ET_BEGIN DETAILS-->
     [#DETAILS#]

@@ -26,7 +26,7 @@ class acc_ExpenseAllocations extends core_Master
     /**
      * Заглавие на мениджъра
      */
-    var $title = "Приходни касови ордери";
+    var $title = "Разпределения на разходи";
     
     
     /**
@@ -38,44 +38,44 @@ class acc_ExpenseAllocations extends core_Master
     /**
      * Неща, подлежащи на начално зареждане
      */
-    var $loadList = 'plg_RowTools, acc_Wrapper,plg_Search,acc_plg_Contable, plg_Sorting,
-                     doc_DocumentPlg, plg_Printing,acc_plg_DocumentSummary, doc_plg_HidePrices';
+    public $loadList = 'plg_RowTools, acc_Wrapper,acc_plg_Contable, plg_Sorting,
+                     doc_DocumentPlg, plg_Printing,acc_plg_DocumentSummary,plg_Search, doc_plg_HidePrices';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = "tools=Пулт, valior, title=Документ, state, createdOn, createdBy";
+    public $listFields = "tools=Пулт, valior, title=Документ, state, createdOn, createdBy";
     
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    var $rowToolsField = 'tools';
+    public $rowToolsField = 'tools';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'ceo, acc';
+	public $canList = 'ceo, acc';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'ceo, acc';
+	public $canSingle = 'ceo, acc';
     
     
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
-    var $rowToolsSingleField = 'title';
+    public $rowToolsSingleField = 'title';
     
     
     /**
      * Заглавие на единичен документ
      */
-    var $singleTitle = 'Разпределяне на разходи';
+    public $singleTitle = 'Разпределяне на разходи';
     
     
     /**
@@ -87,31 +87,31 @@ class acc_ExpenseAllocations extends core_Master
     /**
      * Абревиатура
      */
-    var $abbr = "Eal";
+    public $abbr = "Eal";
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'acc, ceo';
+    public $canRead = 'acc, ceo';
     
     
     /**
      * Кой може да пише?
      */
-    var $canWrite = 'acc, ceo';
+    public $canWrite = 'acc, ceo';
     
     
     /**
      * Кой може да го контира?
      */
-    var $canConto = 'acc, ceo';
+    public $canConto = 'acc, ceo';
     
     
     /**
      * Кой може да го оттегля
      */
-    var $canRevert = 'acc, ceo';
+    public $canRevert = 'acc, ceo';
     
     
     /**
@@ -123,19 +123,19 @@ class acc_ExpenseAllocations extends core_Master
     /**
      * Файл с шаблон за единичен изглед на статия
      */
-    var $singleLayoutFile = 'acc/tpl/SingleExpenseAllocationLayout.shtml';
+    public $singleLayoutFile = 'acc/tpl/SingleExpenseAllocationLayout.shtml';
     
     
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'notes';
+    public $searchFields = 'notes';
 
     
     /**
      * Групиране на документите
      */
-    var $newBtnGroup = "6.7|Счетоводни";
+    public $newBtnGroup = "6.7|Счетоводни";
     
     
     /**
@@ -151,6 +151,19 @@ class acc_ExpenseAllocations extends core_Master
     			'caption=Статус, input=none'
     	);
     }
+    
+    
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+    	$data->form->setDefault('valior', dt::today());
+    }
+    
     
     /**
      * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
@@ -197,9 +210,7 @@ class acc_ExpenseAllocations extends core_Master
      */
     public static function canAddToFolder($folderId)
     {
-    	$folderClass = doc_Folders::fetchCoverClassName($folderId);
-    
-    	return $folderClass == 'doc_UnsortedFolders';
+    	return FALSE;
     }
     
     
@@ -279,7 +290,6 @@ class acc_ExpenseAllocations extends core_Master
     {
     	if(count($mvc->updated)){
     		foreach ($mvc->updated as $rec) {
-    			
     			$mvc->save($rec);
     		}
     	}
@@ -294,7 +304,9 @@ class acc_ExpenseAllocations extends core_Master
     	if($rec->id){
     		$weight = 0;
     		$dQuery = acc_ExpenseAllocationProducts::getQuery();
+    		$dQuery->where("#masterId = {$rec->id}");
     		$dQuery->show('weight');
+    		
     		while($dRec = $dQuery->fetch()){
     			$weight += $dRec->weight;
     		}
@@ -328,23 +340,29 @@ class acc_ExpenseAllocations extends core_Master
     	// Допълваме ключовите думи с тези на използваните пера
     	$detailsKeywords = '';
     	
-    	$dQuery = acc_ExpenseAllocationProducts::getQuery();
-    	$dQuery->where("#masterId = {$rec->id}");
-    	$dQuery->show('itemId');
-    	while($dRec = $dQuery->fetch()){
-    		$itemTitle = acc_Items::getVerbal($dRec->itemId, 'title');
-    		$detailsKeywords .= " " . plg_Search::normalizeText($itemTitle);
-    	}
-    	
-    	$dQuery = acc_ExpenseAllocationExpenses::getQuery();
-    	$dQuery->where("#masterId = {$rec->id}");
-    	$dQuery->show('itemId');
-    	while($dRec = $dQuery->fetch()){
-    		$itemTitle = acc_Items::getVerbal($dRec->itemId, 'title');
-    		$detailsKeywords .= " " . plg_Search::normalizeText($itemTitle);
+    	// Към ключовите думи добавяме и имената на избраните пера в детайлите на документа
+    	foreach (array('acc_ExpenseAllocationProducts', 'acc_ExpenseAllocationExpenses') as $Detail){
+    		$dQuery = $Detail::getQuery();
+    		$dQuery->where("#masterId = {$rec->id}");
+    		$dQuery->show('itemId');
+    		while($dRec = $dQuery->fetch()){
+    			$itemTitle = acc_Items::getVerbal($dRec->itemId, 'title');
+    			$detailsKeywords .= " " . plg_Search::normalizeText($itemTitle);
+    		}
     	}
     	
     	// добавяме новите ключови думи към основните
     	$res = " " . $res . " " . $detailsKeywords;
+    }
+    
+    
+    /**
+     * Извиква се след подготовката на toolbar-а за табличния изглед
+     */
+    protected static function on_AfterPrepareListToolbar($mvc, &$data)
+    {
+    	if($data->toolbar->hasBtn('btnAdd')){
+    		$data->toolbar->removeBtn('btnAdd');
+    	}
     }
 }
