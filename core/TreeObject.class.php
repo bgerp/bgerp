@@ -164,12 +164,15 @@ class core_TreeObject extends core_Manager
 		$query->where("#parentId IS NULL");
 		$query->show('id');
 		
-		$tpl = new core_ET("<ul>[#LISTS_BODY#]</ul>");
+		$tpl = new core_ET("<table border=1>[#LISTS_BODY#]</table>");
 		while($rec = $query->fetch()){
-			$tpl->append($this->getListTpl($rec->id), 'LISTS_BODY');
+			$round = 0;
+			$tpl->append($this->getListTpl($rec->id, $round, $rec->id), 'LISTS_BODY');
 		}
 		
 		$this->renderWrapping($tpl);
+		
+		$tpl->append(".level2 {padding-left:20px !important} .level3 {padding-left:40px !important} .level4 {padding-left:60px !important} .level5 {padding-left:80px !important} .level6 {padding-left:100px !important}", "STYLES");
 		
 		return $tpl;
 	}
@@ -181,20 +184,28 @@ class core_TreeObject extends core_Manager
 	 * @param int $id - ид на корен
 	 * @return core_ET $tpl - шаблона
 	 */
-	protected function getListTpl($id)
+	protected function getListTpl($id, &$round, $parentId)
 	{
+		$round++;
+		
+		if($id == $parentId){
+			$parentId = NULL;
+		}
+		
 		$desc = $this->getDescendents($id);
 		
 		if(count($desc)){
-			$tpl = new core_ET("<!--ET_BEGIN DESC--><li>[#title#]<ul>[#DESC#]</ul></li><!--ET_END DESC-->");
-			
+			$tpl = new core_ET("<tr><td data-parent='{$parentId}' class='level{$round}'>[#title#]</td></tr>");
+			$tpl->replace($this->getVerbal($id, $this->nameField), 'title');
+			//$tpl = new core_ET("<li>[#title#]<ul>[#DESC#]</ul></li><!--ET_END DESC-->");
+			//bp($desc, $tpl);
 			foreach ($desc as $d){
-				$nTpl = $this->getListTpl($d->id);
-				$tpl->replace($this->getVerbal($id, $this->nameField), 'title');
-				$tpl->append($nTpl, 'DESC');
+				
+				$nTpl = $this->getListTpl($d->id, $round, $id);
+				$tpl->append($nTpl);
 			}
 		} else {
-			$tpl = new core_ET("<li>[#LISTS#]</li>");
+			$tpl = new core_ET("<tr><td class='level{$round}' data-parentId = {$parentId}>[#LISTS#]</td></tr>");
 			$title = $this->getVerbal($id, $this->nameField);
 			$tpl->replace($title, 'LISTS');
 		}
@@ -216,7 +227,7 @@ class core_TreeObject extends core_Manager
 	{
 		$query = $this->getQuery();
 		$query->where("#{$this->parentFieldName} = {$id}");
-		$query->show('id,title');
+		$query->show("id,{$mvc->nameField}");
 		
 		return $query->fetchAll();
 	}
