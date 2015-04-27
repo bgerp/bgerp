@@ -1035,4 +1035,41 @@ class acc_Items extends core_Manager
     	
     	return $this->cache;
     }
+    
+    
+    /**
+     * Помощна фунцкция: връщаща перата които участват в баланса на някоя сметка за дадена дата
+     * 
+     * @param string $accSysId     - систем ид на сметка
+     * @param unknown $interfaceId - интерфейс на перато
+     * @param string $date - дата, NULL ако е текущата
+     * @return array - масив с опции
+     */
+    public static function getItemOptionsInAccount($accSysId, $interfaceId, $date = NULL)
+    {
+    	$itemsArr = array();
+    	
+    	if(!$date){
+    		$date = dt::today();
+    	}
+    	
+    	// Намираме на коя позиция е интерфейса в сметката
+    	$posId = acc_Lists::getPosition($accSysId, $interfaceId);
+    	if(!$posId) return $itemsArr;
+    	
+    	// За кой баланс ще извличаме перата
+    	$bId = acc_Balances::fetchField("#fromDate <= '{$date}' && #toDate >= '{$date}'", 'id');
+    	
+    	// Филтрираме записите така че да намерим само тези пера
+    	$bQuery = acc_BalanceDetails::getQuery();
+    	acc_BalanceDetails::filterQuery($bQuery, $bId, $accSysId);
+    	$bQuery->show("ent{$posId}Id");
+    	while($bRec = $bQuery->fetch()){
+    		if(isset($bRec->{"ent{$posId}Id"})){
+    			$itemsArr[$bRec->{"ent{$posId}Id"}] = acc_Items::getTitleById($bRec->{"ent{$posId}Id"}, FALSE);
+    		}
+    	}
+    	
+    	return $itemsArr;
+    }
 }
