@@ -62,7 +62,26 @@ function showTooltip(){
 };
 
 
+function treeViewAction() {
+    $( ".treeView td" ).on( "click", function(event) {
+        var id = $(this).attr('data-id');
+        toggleChildren(id);
+    });
+}
 
+function toggleChildren(id){
+    // скриваме децата на елемента
+    var elem= $('td[data-parentid="'+ id + '"]');
+    elem.parent().toggle();
+
+    // за всяко дете, скриваме неговите деца
+    $(elem).each(function() {
+        var elemId = $(this).attr('data-id');
+        if ($('td[data-parentid="' + elemId + '"]').length) {
+            toggleChildren(elemId);
+        }
+    });
+}
 // Функция за лесно селектиране на елементи
 function get$() {
     var elements = new Array();

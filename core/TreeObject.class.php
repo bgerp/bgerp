@@ -163,17 +163,16 @@ class core_TreeObject extends core_Manager
 		$query = $this->getQuery();
 		$query->where("#parentId IS NULL");
 		$query->show('id');
-		
-		$tpl = new core_ET("<table border=1>[#LISTS_BODY#]</table>");
+		$query->where("#id = 1");
+		$tpl = new core_ET("<table class='listTable treeView'>[#LISTS_BODY#]</table>");
 		while($rec = $query->fetch()){
-			$round = 0;
+			$round = -1;
 			$tpl->append($this->getListTpl($rec->id, $round, $rec->id), 'LISTS_BODY');
 		}
 		
 		$this->renderWrapping($tpl);
-		
-		$tpl->append(".level2 {padding-left:20px !important} .level3 {padding-left:40px !important} .level4 {padding-left:60px !important} .level5 {padding-left:80px !important} .level6 {padding-left:100px !important}", "STYLES");
-		
+        jquery_Jquery::run($tpl, "treeViewAction();");
+
 		return $tpl;
 	}
 	
@@ -186,26 +185,29 @@ class core_TreeObject extends core_Manager
 	 */
 	protected function getListTpl($id, &$round, $parentId)
 	{
-		$round++;
-		
+        $round++;
+
 		if($id == $parentId){
 			$parentId = NULL;
 		}
 		
 		$desc = $this->getDescendents($id);
-		
+        $indent = 20 * $round;
 		if(count($desc)){
-			$tpl = new core_ET("<tr><td data-parent='{$parentId}' class='level{$round}'>[#title#]</td></tr>");
+
+			$tpl = new core_ET("<tr><td  data-id='{$id}' data-parentid='{$parentId}' style='padding-left: {$indent}px'>[#title#]</td></tr>");
 			$tpl->replace($this->getVerbal($id, $this->nameField), 'title');
 			//$tpl = new core_ET("<li>[#title#]<ul>[#DESC#]</ul></li><!--ET_END DESC-->");
 			//bp($desc, $tpl);
+
 			foreach ($desc as $d){
-				
-				$nTpl = $this->getListTpl($d->id, $round, $id);
+				$round2 = $round;
+				$nTpl = $this->getListTpl($d->id, $round2, $id);
 				$tpl->append($nTpl);
 			}
+            //bp($round);
 		} else {
-			$tpl = new core_ET("<tr><td class='level{$round}' data-parentId = {$parentId}>[#LISTS#]</td></tr>");
+			$tpl = new core_ET("<tr><td data-id='{$id}' data-parentid = {$parentId} style='padding-left: {$indent}px'>[#LISTS#]</td></tr>");
 			$title = $this->getVerbal($id, $this->nameField);
 			$tpl->replace($title, 'LISTS');
 		}
