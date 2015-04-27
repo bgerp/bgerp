@@ -108,7 +108,6 @@ class acc_SaleContractorsReport extends acc_BalanceReportImpl
      */
     public function renderEmbeddedData($data)
     {
-        if(empty($data)) return;
 
         $tpl = $this->getReportLayout();
 

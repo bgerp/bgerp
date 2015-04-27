@@ -13,7 +13,11 @@ function prepareChart( idElem, chartData, charType) {
     if (charType == "pie") {
         var data = [];
         // от получените данни генериране необходимата структура
+
         var title = chartData.legendTitle;
+        var suffix = chartData.suffix;
+        if(!title) title = "";
+        if(!suffix) suffix = "";
         var i = 0;
         jQuery.each(chartData.info, function (key, val) {
             var temp = {};
@@ -28,10 +32,11 @@ function prepareChart( idElem, chartData, charType) {
         var pie = $('#' + idElem).get(0).getContext('2d');
         var myNewChart = new Chart(pie).Pie(data, {
             responsive: true, animation: false,
+            tooltipTemplate:  "<%=label%>: <%= numeral(value).format('(00[.]00)') %>" + suffix + " (<%= numeral(circumference / 6.283).format('(0[.][00]%)') %>)"  ,
             legendTemplate: "<ul class=\"chart-legend <%=name.toLowerCase()%>-legend\"><li class=\"legend-title\">" + title + "</li>" +
             "<% for (var i=0; i<segments.length; i++){%><li>" +
             "<span style=\"background-color:<%=segments[i].fillColor%> !important\"></span>" +
-            "<%if(segments[i].label){%><%=segments[i].label%><%}%>: <%if(segments[i].value){%><%=segments[i].value%><%}%></li><%}%></ul>"
+            "<%if(segments[i].label){%><%=segments[i].label%><%}%>: <%if(segments[i].value){%><%= numeral(segments[i].value).format('(00[.]00)') %>"+ suffix + " (<%= numeral(segments[i].circumference / 6.283).format('(0[.][00]%)') %>)<%}%></li><%}%></ul>"
         });
         // добавяме легендата
         $('#' + idElem).parent().append(myNewChart.generateLegend());

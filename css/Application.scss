@@ -782,6 +782,11 @@ div.acc-detail {
        width: auto;
 	   border-radius: 5px;
 	   font-size: 15px;
+        &.bottom{
+            bottom: auto;
+            top: 0;
+
+        }
 	   .aright{
 	       padding-right: 5px;
 	   }
@@ -4295,8 +4300,7 @@ body.narrow {
 	padding:5px 10px;
 	background-color:#eee;
 	border:solid 1px #ccc;
-	max-width:600px;
-	color:#333 !important;
+    color:#333 !important;
 }
 
 .langSelect .langLink a:hover{

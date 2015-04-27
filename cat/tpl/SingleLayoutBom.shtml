@@ -6,7 +6,7 @@
     </div>
     <!--ET_END header-->
     <div>[#productId#]</div>
-    
+    <div>|Режийни разходи|*: [#expenses#]</div>
     <div class = 'fieldset-holder' style='margin-top:10px'>
     [#cat_BomDetails#]
     </div>

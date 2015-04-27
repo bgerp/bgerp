@@ -545,7 +545,7 @@ class acc_Lists extends core_Manager {
             expect($iface = core_Interfaces::fetch($iface), 'Няма такъв интерфейс');
         } else {
             
-            expect($iface = core_Interfaces::fetch(array("#name='[#1#]'", $iface)), 'Няма такъв интерфейс2');
+            expect($iface = core_Interfaces::fetch(array("#name='[#1#]'", $iface)), 'Няма такъв интерфейс');
         }
         $ifaceId = $iface->id;
         
