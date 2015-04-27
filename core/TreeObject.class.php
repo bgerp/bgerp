@@ -14,7 +14,7 @@
  * @since     v 0.1
  * @link
  */
-abstract class core_TreeObject extends core_Manager
+class core_TreeObject extends core_Manager
 {
 	
 	
@@ -47,10 +47,12 @@ abstract class core_TreeObject extends core_Manager
 		}
 		
 		// Дали наследниците на обекта да са счетоводни пера
-		$mvc->FLD('makeDescendantsFeatures', "enum(no=Не,yes=Да)", 'caption=Наследниците дали да бъдат сч. признаци->Избор,notNull,value=yes');
+		if(!$mvc->getField('makeDescendantsFeatures', FALSE)){
+			$mvc->FLD('makeDescendantsFeatures', "enum(no=Не,yes=Да)", 'caption=Наследниците дали да бъдат сч. признаци->Избор,notNull,value=yes');
+		}
 		
 		// Поставяне на уникален индекс
-		$mvc->setDbUnique($mvc->nameField);
+		//$mvc->setDbUnique($mvc->nameField);
 	}
 	
 	
@@ -64,12 +66,6 @@ abstract class core_TreeObject extends core_Manager
 			$data->form->setOptions($mvc->parentFieldName, $options);
 		} else {
 			$data->form->setReadOnly($mvc->parentFieldName);
-		}
-		
-		// Ако имаме дефолтно име за баща, то полето за баща трябва да е задължително
-		if($defaultParent = $mvc->getDefaultParentId()){
-			$data->form->setField($mvc->parentFieldName, 'mandatory');
-			$data->form->setDefault($mvc->parentFieldName, $defaultParent);
 		}
 	}
 	
@@ -158,6 +154,75 @@ abstract class core_TreeObject extends core_Manager
 	
 	
 	/**
+	 * Екшън за дървовидно разглеждане на обекта
+	 */
+	public function act_ListTree()
+	{
+		$this->requireRightFor('list');
+		
+		$query = $this->getQuery();
+		$query->where("#parentId IS NULL");
+		$query->show('id');
+		
+		$tpl = new core_ET("<ul>[#LISTS_BODY#]</ul>");
+		while($rec = $query->fetch()){
+			$tpl->append($this->getListTpl($rec->id), 'LISTS_BODY');
+		}
+		
+		$this->renderWrapping($tpl);
+		
+		return $tpl;
+	}
+	
+	
+	/**
+	 * Връща вложен списък от наследниците на даден обект
+	 * 
+	 * @param int $id - ид на корен
+	 * @return core_ET $tpl - шаблона
+	 */
+	protected function getListTpl($id)
+	{
+		$desc = $this->getDescendents($id);
+		
+		if(count($desc)){
+			$tpl = new core_ET("<!--ET_BEGIN DESC--><li>[#title#]<ul>[#DESC#]</ul></li><!--ET_END DESC-->");
+			
+			foreach ($desc as $d){
+				$nTpl = $this->getListTpl($d->id);
+				$tpl->replace($this->getVerbal($id, $this->nameField), 'title');
+				$tpl->append($nTpl, 'DESC');
+			}
+		} else {
+			$tpl = new core_ET("<li>[#LISTS#]</li>");
+			$title = $this->getVerbal($id, $this->nameField);
+			$tpl->replace($title, 'LISTS');
+		}
+		
+		$tpl->removeBlocks();
+		$tpl->removePlaces();
+		
+		return $tpl;
+	}
+	
+	
+	/**
+	 * Връща наследниците на корена
+	 * 
+	 * @param int $id - ид на запис
+	 * @return array $res - масив със записите на наследниците
+	 */
+	protected function getDescendents($id)
+	{
+		$query = $this->getQuery();
+		$query->where("#{$this->parentFieldName} = {$id}");
+		$query->show('id,title');
+		
+		return $query->fetchAll();
+	}
+	
+	
+	/**
 	 * Функция, която връща подготвен масив за СЕЛЕКТ от елементи (ид, поле)
 	 * на $class отговарящи на условието where
 	 */
@@ -198,5 +263,14 @@ abstract class core_TreeObject extends core_Manager
 		}
 		
 		return FALSE;
+	}
+	
+	
+	/**
+	 * След подготовката на туулбара на списъчния изглед
+	 */
+	protected static function on_AfterPrepareListToolbar($mvc, &$data)
+	{
+		$data->toolbar->addBtn('Дърво', array($mvc, 'listTree'));
 	}
 }
