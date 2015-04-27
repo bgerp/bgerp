@@ -161,14 +161,22 @@ class marketing_Bulletin extends core_Manager
         }
         $jsTpl->replace($waitBeforeStart, 'waitBeforeStart');
         
-        // След колко време на бездействие да се покаже
+        // Заглавие на формата
         $formTitle = Request::get('formTitle');
         if (!$formTitle) {
-            $formTitle = $conf->MARKETING_BULLETIN_FORM_TITLE;
+            $formTitle = tr($conf->MARKETING_BULLETIN_FORM_TITLE);
         }
-        $formTitle = tr($formTitle);
         $formTitle = addslashes($formTitle);
         $jsTpl->replace($formTitle, 'formTitle');
+        
+        
+        // Съобщение при абониране
+        $successText = Request::get('successText');
+        if (!$successText) {
+            $successText = tr($conf->MARKETING_BULLETIN_FORM_SUCCESS);
+        }
+        $successText = addslashes($successText);
+        $jsTpl->replace($successText, 'successText');
         
         // Дали да се показва цялата форма или само имейла
         $showAllForm = Request::get('showAllForm');
@@ -199,10 +207,6 @@ class marketing_Bulletin extends core_Manager
         $cancelBtnVal = tr('Не, благодаря');
         $cancelBtnVal = addslashes($cancelBtnVal);
         $jsTpl->replace($cancelBtnVal, 'cancelBtnVal');
-        
-        $successText = tr('Благодарим за записването!');
-        $successText = addslashes($successText);
-        $jsTpl->replace($successText, 'successText');
         
         $formActionUrl = toUrl(array('marketing_Bulletin', 'getImg'), TRUE);
         $formActionUrl = addslashes($formActionUrl);

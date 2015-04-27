@@ -26,9 +26,9 @@ defIfNot('MARKETING_USE_BULLETIN', 'yes');
 
 /**
  * След колко време формата да може да се показва повторно
- * 5 дни
+ * 3 часа
  */
-defIfNot('MARKETING_SHOW_AGAIN_AFTER', 432000);
+defIfNot('MARKETING_SHOW_AGAIN_AFTER', 10800);
 
 
 /**
@@ -47,6 +47,12 @@ defIfNot('MARKETING_WAIT_BEFORE_START', 5);
  * Заглавие на формата
  */
 defIfNot('MARKETING_BULLETIN_FORM_TITLE', 'Искате ли да научавате всички новости за нас?');
+
+
+/**
+ * Съобщение при абониране
+ */
+defIfNot('MARKETING_BULLETIN_FORM_SUCCESS', 'Благодарим за абонамента за нашите новости');
 
 
 /**
@@ -112,8 +118,9 @@ class marketing_Setup extends core_ProtoSetup
 	        'MARKETING_SHOW_ALL_FORM' => array('enum(yes=Да, no=Не)', 'caption=Дали да се показва цялата форма или само имейла->Избор'),
 	        'MARKETING_BULLETIN_URL' => array('url', 'caption=От къде да се взема JS файла->URL'),
 	        'MARKETING_BULLETIN_FORM_TITLE' => array('varchar(128)', 'caption=Заглавие на формата на бюлетината->Текст'),
-	        'MARKETING_SHOW_AGAIN_AFTER' => array('int', 'caption=След колко време бюлетината да може да се показва повторно->Секунди'),
-	        'MARKETING_IDLE_TIME_FOR_SHOW' => array('int', 'caption=След колко време на бездействие да се покаже бюлетината->Секунди'),
+	        'MARKETING_BULLETIN_FORM_SUCCESS' => array('varchar(128)', 'caption=Съобщение при абониране->Текст'),
+	        'MARKETING_SHOW_AGAIN_AFTER' => array('int', 'caption=Изчакване преди ново отваряне->Секунди'),
+	        'MARKETING_IDLE_TIME_FOR_SHOW' => array('int', 'caption=Период за бездействие преди активиране->Секунди'),
 	        'MARKETING_WAIT_BEFORE_START' => array('int', 'caption=След колко време да може да стартира бюлетината->Секунди'),
 	);
 	
