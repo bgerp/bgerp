@@ -183,6 +183,12 @@ class cat_Products extends core_Embedder {
 	
 	
 	/**
+	 * Кой има достъп до часния изглед на артикула
+	 */
+	var $canPrivatesingle = 'powerUser';
+	
+	
+	/**
 	 * Шаблон (ET) за заглавие на продукт
 	 * 
 	 * @var string
@@ -1013,12 +1019,18 @@ class cat_Products extends core_Embedder {
     {
     	if($fields['-list']){
     		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
+    		
     	}
     	
     	if($fields['-single']){
     		if(isset($rec->originId)){
     			$row->originId = doc_Containers::getDocument($rec->originId)->getLink(0);
     		}
+    	}
+    	
+    	// Ако потребителя има достъп до орязания сингъл(тоест да няма достъп до обикновения сингъл), подменяме линка да води към него
+    	if($mvc->haveRightFor('privateSingle', $rec)){
+    		$row->name = ht::createLink($mvc->getVerbal($rec, 'name'), array($mvc, 'privateSingle', $rec->id, 'ret_url' => TRUE), FALSE, "ef_icon={$mvc->singleIcon}");
     	}
     }
     
@@ -1144,10 +1156,10 @@ class cat_Products extends core_Embedder {
     public function getProductDescShort($id)
     {
     	$rec = $this->fetchRec($id);
-    	$title = $this->getTitleById($rec->id);
+    	$title = $this->getShortHyperlink($rec->id);
     	
-    	if(!Mode::is('printing') && !Mode::is('text', 'xhtml')){
-    		$title = ht::createLinkRef($title, array($this, 'single', $rec->id));
+    	if(Mode::is('printing') || Mode::is('text', 'xhtml')){
+    		$title = $this->getTitleById($rec->id);
     	}
     	
     	return $title;
@@ -1320,6 +1332,21 @@ class cat_Products extends core_Embedder {
     			if(!$document->haveInterface('marketing_InquiryEmbedderIntf')){
     				$res = 'no_one';
     			}
+    		}
+    	}
+    	
+    	// За да има достъп до орязания сингъл, трябва да не може да отвори обикновения
+    	if($action == 'privatesingle' && isset($rec)){
+    		if($mvc->haveRightFor('single', $rec)){
+    			$res = 'no_one';
+    		}
+    	}
+    	
+    	// Ако потребителя няма достъп до папката, той няма достъп и до сингъла
+    	// така дори създателя на артикула няма достъп до сингъла му, ако няма достъп до папката
+    	if($action == 'single' && isset($rec->folderId)){
+    		if(!doc_Folders::haveRightToFolder($rec->folderId)){
+    			$res = 'no_one';
     		}
     	}
     }
@@ -1525,5 +1552,62 @@ class cat_Products extends core_Embedder {
     	if (!empty($data->form->toolbar->buttons['activate'])) {
     		$data->form->toolbar->removeBtn('activate');
     	}
+    }
+    
+    
+    function act_PrivateSingle()
+    {
+    	$this->requireRightFor('privateSingle');
+    	expect($id = Request::get('id', 'int'));
+    	
+    	expect($rec = $this->fetchRec($id));
+    	$this->requireRightFor('privateSingle', $rec);
+    	
+    	$tpl = $this->getInlineDocumentBody($id, 'xhtml');
+    	
+    	$tpl = $this->renderWrapping($tpl);
+    	
+    	return $tpl;
+    }
+    
+    
+	/**
+     * Създава хиперлинк към единичния изглед
+     * 
+     * @param int $id - ид на запис
+     * @param boolean $icon - дали линка да е с икона
+     * @param boolean $short - дали линка да е само стрелкичка
+     * @return string|core_ET - линк към единичния изглед или името ако потребителя няма права
+     */
+    public static function getHyperlink($id, $icon = FALSE, $short = FALSE)
+    {
+    	$me = cls::get(get_called_class());
+    
+    	$title = $me->getTitleById($id);
+    	
+    	$attr = array();
+    	if($icon === TRUE) {
+    		$attr['ef_icon'] = $me->singleIcon;
+    	} elseif($icon) {
+    		$attr['ef_icon'] = $icon;
+    	}
+    	$attr['class'] = 'specialLink';
+    	
+    	if(!$id) {
+    		return "<span style='color:red;'>&nbsp;- - -</span>";
+    	}
+    
+    	$functionName = ($short == TRUE) ? 'createLinkRef' : 'createLink';
+    	
+    	// Ако потребителя има достъп до единичния изглед, правим заглавието линк
+    	if ($me->haveRightFor('single', $id)) {
+    		$title = ht::$functionName($title, array($me, 'single', $id), NULL, $attr);
+    	} elseif($me->haveRightFor('privateSingle', $id)){
+    		
+    		// Ако нямаме достъп до сингъла, правим линк към ограничения
+    		$title = ht::$functionName($title, array($me, 'privateSingle', $id), NULL, $attr);
+    	}
+   
+    	return $title;
     }
 }
