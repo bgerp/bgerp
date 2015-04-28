@@ -30,7 +30,7 @@ class purchase_Purchases extends deals_DealMaster
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf, bgerp_DealAggregatorIntf, bgerp_DealIntf, acc_TransactionSourceIntf=purchase_transaction_Purchase, deals_DealsAccRegIntf, acc_RegisterIntf';
+    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, acc_ExpenseAllocationSourceIntf, doc_ContragentDataIntf, bgerp_DealAggregatorIntf, bgerp_DealIntf, acc_TransactionSourceIntf=purchase_transaction_Purchase, deals_DealsAccRegIntf, acc_RegisterIntf';
     
     
     /**
@@ -301,6 +301,10 @@ class purchase_Purchases extends deals_DealMaster
 	        if(purchase_Invoices::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
 	    		$data->toolbar->addBtn("Вх. фактура", array('purchase_Invoices', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), 'ef_icon=img/16/invoice.png,title=Създаване на входяща фактура,order=9.9993');
 		    }
+		    
+		    if(acc_ExpenseAllocations::haveRightFor('add', (object)array('threadId' => $rec->threadId, 'originId' => $rec->containerId))){
+		    	$data->toolbar->addBtn("Разходи", array('acc_ExpenseAllocations', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), 'ef_icon=img/16/view.png,title=Създаване на документ за разпределяне на разходи,row=2');
+		    }
 		}
     }
     
@@ -556,5 +560,53 @@ class purchase_Purchases extends deals_DealMaster
     	$tplArr[] = array('name' => 'Purchase of service contract', 'content' => 'purchase/tpl/purchases/ServiceEN.shtml', 'lang' => 'en', 'oldName' => 'Purchase of Service contract');
         
         $res .= doc_TplManager::addOnce($this, $tplArr);
+    }
+    
+    
+    /**
+     * Връща масив със складируемите артикули, върху които ще се разпределят разходи
+     *
+     * @param int $id - ид на документа
+     * @param int $limit - ограничение
+     * @return array $products - намерените артикули
+     */
+    public function getStorableProducts($id, $limit = NULL)
+    {
+    	$products = array();
+    	$rec = $this->fetchRec($id);
+    	$options = type_Set::toArray($rec->contoActions);
+    	
+    	// Ако документа не е активен или не е експедирано с него не продължаваме
+    	if(!$rec->state == 'active' || empty($options['ship'])) return $products;
+    	
+    	// Кои артикули са експедирани
+    	$dQuery = purchase_PurchasesDetails::getQuery();
+    	$dQuery->where("#requestId = {$id}");
+    	if($limit){
+    		$dQuery->limit($limit);
+    	}
+    	
+    	while($dRec = $dQuery->fetch()){
+    		// От тях добавяме само складируемите 
+    		$pInfo = cls::get($dRec->classId)->getProductInfo($dRec->productId);
+    		if(isset($pInfo->meta['canStore'])){
+    			$products[] = $dRec;
+    		}
+    	}
+    	
+    	// Връщаме намерените артикули
+    	return $products;
+    }
+    
+    
+    /**
+	 * Връща ид-то на склада към артикулите в него, на които ще се разпределят разходите
+	 * 
+	 * @param int $id
+	 * @return int $storeId - ид на скалда
+	 */
+    function getStoreId($id)
+    {
+    	return $this->fetchField($id, 'shipmentStoreId');
     }
 }

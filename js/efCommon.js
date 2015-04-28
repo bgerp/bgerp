@@ -66,6 +66,7 @@ function treeViewAction() {
     $( ".treeView td" ).on( "click", function(event) {
         var id = $(this).attr('data-id');
         toggleChildren(id);
+        $(this).find('img').toggleClass('hidden');
     });
 }
 
@@ -79,6 +80,7 @@ function toggleChildren(id){
         var elemId = $(this).attr('data-id');
         if ($('td[data-parentid="' + elemId + '"]').length) {
             toggleChildren(elemId);
+            $(this).find('img').toggleClass('hidden');
         }
     });
 }

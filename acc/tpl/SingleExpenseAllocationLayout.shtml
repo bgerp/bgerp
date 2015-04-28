@@ -13,6 +13,7 @@
             <td style='padding-left:10px;width:60%;padding-top:10px;padding-bottom:10px'>
                 <div class='document-title'>|Разпределяне на разходи|* №[#id#]</div>
                 <div style='margin-top:5px'> |Вальор|*: [#valior#]</div>
+                <div style='margin-top:5px'> |В склад|*: [#storeId#]</div>
             </td>
         </tr>
     </table>

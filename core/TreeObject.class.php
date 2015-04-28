@@ -191,22 +191,24 @@ class core_TreeObject extends core_Manager
 		}
 		
 		$desc = $this->getDescendents($id);
-        $indent = 20 * $round;
+        $indent = 18 * $round;
 		if(count($desc)){
+            $plusIcon = sbf('img/16/toggle-expand.png', '');
+            $minusIcon = sbf('img/16/toggle2.png', '');
+            $plus = "<span><img class = 'hidden' src='{$plusIcon}' width='13' height='13'/></span>";
+            $minus = "<span><img  src='{$minusIcon}' width='13' height='13'/></span>";
 
-			$tpl = new core_ET("<tr><td  data-id='{$id}' data-parentid='{$parentId}' style='padding-left: {$indent}px'>[#title#]</td></tr>");
+
+            $tpl = new core_ET("<tr><td  data-id='{$id}' data-parentid='{$parentId}' style='text-indent: {$indent}px'> {$plus}{$minus} [#title#]</td></tr>");
 			$tpl->replace($this->getVerbal($id, $this->nameField), 'title');
-			//$tpl = new core_ET("<li>[#title#]<ul>[#DESC#]</ul></li><!--ET_END DESC-->");
-			//bp($desc, $tpl);
 
 			foreach ($desc as $d){
 				$round2 = $round;
 				$nTpl = $this->getListTpl($d->id, $round2, $id);
 				$tpl->append($nTpl);
 			}
-            //bp($round);
 		} else {
-			$tpl = new core_ET("<tr><td data-id='{$id}' data-parentid = {$parentId} style='padding-left: {$indent}px'>[#LISTS#]</td></tr>");
+			$tpl = new core_ET("<tr><td data-id='{$id}' data-parentid = {$parentId} style='text-indent: {$indent}px'>[#LISTS#]</td></tr>");
 			$title = $this->getVerbal($id, $this->nameField);
 			$tpl->replace($title, 'LISTS');
 		}
