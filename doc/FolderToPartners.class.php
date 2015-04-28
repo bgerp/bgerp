@@ -72,14 +72,16 @@ class doc_FolderToPartners extends core_Manager
 
     static function preparePartners($data)
     {
+        $data->partners = array();
         if(cls::getClassName($data->masterMvc) == 'crm_Companies') {
             $folderId = $data->masterData->rec->folderId;
-            $query = self::getQuery();
-            $data->partners = array();
-            while($rec = $query->fetch("#folderId = {$folderId}")) {
-                $uRec = core_Users::fetch($rec->contractorId);
-                if($uRec->state != 'rejected') {
-                    $data->partners[$rec->contractorId] = $rec->contractorId;
+            if ($folderId) {
+                $query = self::getQuery();
+                while($rec = $query->fetch("#folderId = {$folderId}")) {
+                    $uRec = core_Users::fetch($rec->contractorId);
+                    if($uRec->state != 'rejected') {
+                        $data->partners[$rec->contractorId] = $rec->contractorId;
+                    }
                 }
             }
         }
