@@ -91,7 +91,7 @@ class acc_transaction_ExpenseAllocation extends acc_DocumentTransactionSource
     						   'debit' => array('321', array('store_Stores', $rec->storeId), 
     						   						   array($itemRec->classId, $itemRec->objectId),
     						   					'quantity' => 0), 
-    						   'credit' => array('6113'));
+    						   'credit' => array('6112'));
     		
     		$total += $thisAmount;
     	}
