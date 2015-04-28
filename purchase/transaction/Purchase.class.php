@@ -171,7 +171,6 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
         	
         	// Ако не е "Складируем" - значи е разход
 			if(empty($pInfo->meta['canStore'])){
-				$transferTo6113 = FALSE;
 				
 				if(isset($pInfo->meta['fixedAsset'])){
 					
@@ -189,7 +188,6 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
 											'quantity' => $detailRec->quantity / $resourceRec->conversionRate);
 						
 					} else {
-						$transferTo6113 = TRUE;
 						// Ако няма ресурс го отчитаме като разход по центрове на дейности
 						$debitArr = array('6112', array('hr_Departments', $rec->activityCenterId),
 								array($detailRec->classId, $detailRec->productId),
@@ -210,13 +208,6 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
 	                
 	                'debit' => $debitArr,
             	);
-    			
-    			if($transferTo6113){
-    				$entries[] = array('debit' => array('6113'),
-    						'credit' => array('6112', array('hr_Departments', $rec->activityCenterId),
-    								array($detailRec->classId, $detailRec->productId),
-    								'quantity' => $sign * $detailRec->quantity));
-    			}
     		}
         }
         

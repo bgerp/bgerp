@@ -59,7 +59,6 @@ class planning_transaction_ConsumptionNote extends acc_DocumentTransactionSource
 		$dQuery->where("#noteId = {$rec->id}");
 		while($dRec = $dQuery->fetch()){
 			$pInfo = cls::get($dRec->classId)->getProductInfo($dRec->productId);
-			$transferTo6113 = FALSE;
 			
 			if($rec->useResourceAccounts == 'yes'){
 				$resourceRec = planning_ObjectResources::getResource($dRec->classId, $dRec->productId);
@@ -68,7 +67,6 @@ class planning_transaction_ConsumptionNote extends acc_DocumentTransactionSource
 					$debitArr = array('611', array('planning_Resources', $resourceRec->resourceId),
 							'quantity' => $dRec->quantity / $resourceRec->conversionRate);
 				} else {
-					$transferTo6113 = TRUE;
 					// Ако е указано да влагаме само в център на дейност и ресурси, иначе влагаме в център на дейност
 					$debitArr = array('6112', array('hr_Departments', $rec->activityCenterId),
 							array($dRec->classId, $dRec->productId),
@@ -84,13 +82,6 @@ class planning_transaction_ConsumptionNote extends acc_DocumentTransactionSource
 									array('store_Stores', $rec->storeId),
 									array($dRec->classId, $dRec->productId),
 									'quantity' => $dRec->quantity));
-			
-			if($transferTo6113){
-				$entries[] = array('debit' => array('6113'),
-								   'credit' => array('6112', array('hr_Departments', $rec->activityCenterId),
-											array($dRec->classId, $dRec->productId),
-											'quantity' => $dRec->quantity));
-			}
 		}
 		
 		// Връщаме ентритата
