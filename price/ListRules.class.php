@@ -461,8 +461,10 @@ class price_ListRules extends core_Detail
             }
         }
         
-        if(($action == 'add' || $action == 'add' || $action == 'delete') && isset($rec->productId)){
+        if(($action == 'add' || $action == 'delete') && isset($rec->productId)){
         	if(cat_Products::fetchField($rec->productId, 'state') != 'active'){
+        		$requiredRoles = 'no_one';
+        	} elseif(!cat_Products::haveRightFor('single', $rec->productId)){
         		$requiredRoles = 'no_one';
         	}
         }
