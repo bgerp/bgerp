@@ -259,6 +259,7 @@ class marketing_Bulletin extends core_Manager
                 '&idleTimeForShow=' . urlencode($conf->MARKETING_IDLE_TIME_FOR_SHOW) . 
                 '&waitBeforeStart=' . urlencode($conf->MARKETING_WAIT_BEFORE_START) . 
                 '&formTitle=' . urlencode($conf->MARKETING_BULLETIN_FORM_TITLE) . 
+                '&successText=' . urlencode($conf->MARKETING_BULLETIN_FORM_SUCCESS) . 
                 '&showAllForm=' . urlencode($conf->MARKETING_SHOW_ALL_FORM);
         
         return $url;
