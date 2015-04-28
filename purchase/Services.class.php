@@ -191,10 +191,10 @@ class purchase_Services extends deals_ServiceMaster
     	
     	// Ако имаме само един център не показваме полето за избор на център
     	if(hr_Departments::count() == 1){
-    		$form->setField('activityCenterId', 'input=none');
+    		$data->form->setField('activityCenterId', 'input=none');
     	} else {
     		$defCenter = hr_Departments::fetchField("#systemId = 'emptyCenter'", 'id');
-    		$form->setDefault('activityCenterId', $defCenter);
+    		$data->form->setDefault('activityCenterId', $defCenter);
     	}
     	
     	$data->form->setDefault('received', core_Users::getCurrent('names'));
