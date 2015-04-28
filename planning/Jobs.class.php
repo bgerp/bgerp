@@ -446,7 +446,7 @@ class planning_Jobs extends core_Master
     	}
     	
     	// Ако потрбителя няма достъп до сингъла на артикула, не може да модифицира заданията към артикула
-    	if(($action == 'add' || $action == 'edit' || $action == 'delete') && isset($rec) && $requiredRoles != 'no_one'){
+    	if(($action == 'add' || $action == 'delete') && isset($rec) && $requiredRoles != 'no_one'){
     		if(!cat_Products::haveRightFor('single', $rec->productId)){
     			$res = 'no_one';
     		}
