@@ -1326,7 +1326,7 @@ class doc_DocumentPlg extends core_Plugin
             }
             
             // Трябва да има права за добавяне
-            if (!$mvc->haveRightFor('add', $cRec, $userId)) {
+            if (!$mvc->haveRightFor('add', $cRec, $userId) || !doc_Threads::haveRightFor('single', $tRec)) {
                 
                 // Трябва да има права за добавяне за да може да клонира
                 $requiredRoles = 'no_one';
