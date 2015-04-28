@@ -4351,7 +4351,15 @@ body.narrow {
 	   height: auto !important;
 	}
 }
-
+.treeView {
+    min-width: 280px;
+    tr:nth-child(odd){
+        background: #fff;
+    }
+    .hidden{
+        display: none;
+    }
+}
 .debug_block {
     padding:5px; 
     margin:10px; 
