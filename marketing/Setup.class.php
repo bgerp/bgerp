@@ -119,9 +119,9 @@ class marketing_Setup extends core_ProtoSetup
 	        'MARKETING_BULLETIN_URL' => array('url', 'caption=От къде да се взема JS файла->URL'),
 	        'MARKETING_BULLETIN_FORM_TITLE' => array('varchar(128)', 'caption=Заглавие на формата на бюлетината->Текст'),
 	        'MARKETING_BULLETIN_FORM_SUCCESS' => array('varchar(128)', 'caption=Съобщение при абониране->Текст'),
-	        'MARKETING_SHOW_AGAIN_AFTER' => array('time(suggestions=3 часа|12 часа|1 ден)', 'caption=Изчакване преди ново отваряне->Секунди'),
-	        'MARKETING_IDLE_TIME_FOR_SHOW' => array('time(suggestions=5 секунди|20 секунди|1 мин)', 'caption=Период за бездействие преди активиране->Секунди'),
-	        'MARKETING_WAIT_BEFORE_START' => array('time(suggestions=3 секунди|5 секунди|10 секунди)', 'caption=След колко време да може да стартира бюлетината->Секунди'),
+	        'MARKETING_SHOW_AGAIN_AFTER' => array('time(suggestions=3 часа|12 часа|1 ден)', 'caption=Изчакване преди ново отваряне->Време'),
+	        'MARKETING_IDLE_TIME_FOR_SHOW' => array('time(suggestions=5 секунди|20 секунди|1 мин)', 'caption=Период за бездействие преди активиране->Време'),
+	        'MARKETING_WAIT_BEFORE_START' => array('time(suggestions=3 секунди|5 секунди|10 секунди)', 'caption=След колко време да може да стартира бюлетината->Време'),
 	);
 	
 	
