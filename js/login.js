@@ -90,8 +90,13 @@ function userFormSubmit(form, passSalt, hashFactor, nickType, minPassLen, lg)
 function encodePwd(password, nick, salt, hashFactor)
 {
 	var res = '';
- 
+	
+	// Нормализираме ника
+	nick = nick.replace(/\s+/g, "_");
+	nick = nick.replace(/\._/g, ".");
+
 	nick = nick.toLowerCase();
+
 	hashFactor = Math.min(10, password.length) * hashFactor;
 		
 	for(var i = 0; i <= hashFactor; i++) {

@@ -450,7 +450,7 @@ class core_Users extends core_Manager
         $recId = $rec->id;
         
         //Проверяваме дали има такъв имейл
-        if ($newRecId = $mvc->fetchField("LOWER(#email)=LOWER('{$form->rec->email}')")) {
+        if ($newRecId = $mvc->fetchField("LOWER(#email) = LOWER('{$form->rec->email}')")) {
             //Проверяваме дали редактираме текущия запис или създаваме нов
             if ($newRecId != $recId) {
                 //Съобщение за грешка, ако имейл-а е зает
@@ -463,8 +463,9 @@ class core_Users extends core_Manager
             $rec->nick = $rec->email;
         }
 
+        $rec->nick = type_Nick::normalize($rec->nick);
+ 
         self::calcUserForm($form);  
-        
        
         // Ако имаме въведена нова парола
         if($rec->passNewHash) {
@@ -482,7 +483,7 @@ class core_Users extends core_Manager
         } else {
             if($recId) {
                 $exRec  = self::fetch($recId);
-                if($rec->nick != $exRec->nick) {
+                if(strtolower($rec->nick) != strtolower($exRec->nick)) {
                     $form->setError('passNew,passRe', 'При промяна на ника на потребителя трябва да се зададе нова парола');
                 }
             } else {
@@ -598,11 +599,13 @@ class core_Users extends core_Manager
                 $inputs = $form->input('nick,pass,ret_url,time,hash');
             }
 
-            // Изчислява хешовете
            
-
+            // Ако логин формата е субмитната
             if (($inputs->nick || $inputs->email) && $form->isSubmitted()) {
-
+                
+                // Изчислява хешовете
+                $inputs->nick = type_Nick::normalize($inputs->nick);
+ 
                 self::calcLoginForm($form);
  
                 if (EF_USSERS_EMAIL_AS_NICK) {
@@ -1645,6 +1648,8 @@ class core_Users extends core_Manager
         if(!$nick) {
             $nick = core_Users::getCurrent('nick');
         }
+        
+        $nick = strtolower($nick);
 
         if ($rec->pass) {
             $rec->passHash = self::encodePwd($rec->pass, $nick);
@@ -1793,44 +1798,6 @@ class core_Users extends core_Manager
     
     
     /**
-     * Подготвяме ника
-     * Всички точки и долни черти ги правим на празен символ
-     * 
-     * @param string $nick
-     * 
-     * @return string
-     */
-    static function prepareNick($nick)
-    {
-        // Преобразуваме в показване като име
-        $nick = static::stringToNickCase($nick);
-        
-        return $nick;
-    }
-
-	
-	
-	/**
-	 * Преобразува подадения стринг да се показва като ник
-	 * 
-	 * @param string $str
-	 * 
-	 * @return string
-	 */
-	static function stringToNickCase($str)
-	{
-	    // Всички букви в долния регистър
-	    // След долна черта и интервал първата буква да е главна
-	    $str = mb_strtolower($str);
-	    $str = str::toUpperAfter($str);
-	    $str = str::toUpperAfter($str, '.');
-	    $str = str::toUpperAfter($str, '_');
-	    
-	    return $str;
-	}
-    
-    
-    /**
      * Връща ника, който съответсва на зададаното id
      * 
      * @param mixed $userId - id на ника или запис от модела
@@ -1841,17 +1808,22 @@ class core_Users extends core_Manager
     {
         // Ако е обект
         if (is_object($userId)) {
+
+            if($userId->nick) {
+
+                return $userId->nick;
+            }
             
             // Вземаме id-то от записа
             $userId = $userId->id;
-            
         }
         
         // Ако е id на потребител от модела
         if ($userId > 0) {
             
             // Вземаме ника от записа
-            $nick = static::fetchField($userId, 'nick');
+            $nick = self::fetch($userId)->nick;
+
         } elseif($userId == -1) {
             
             // Ако е сустемния потребител

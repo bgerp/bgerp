@@ -550,7 +550,7 @@ class doc_Containers extends core_Manager
         $currUserNick = core_Users::getCurrent('nick');
         
         // Подготвяме ника
-        $currUserNick = core_Users::prepareNick($currUserNick);
+        $currUserNick = type_Nick::normalize($currUserNick);
         
         // id на текущия потребител
         $currUserId = core_Users::getCurrent();
@@ -720,7 +720,7 @@ class doc_Containers extends core_Manager
         $nick = core_Users::getNick($userId);
         
         // Обработваме ника
-        $nick = core_Users::prepareNick($nick);
+        $nick = type_Nick::normalize($nick);
         
         return $nick;
     }
