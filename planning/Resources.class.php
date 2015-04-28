@@ -386,7 +386,18 @@ class planning_Resources extends core_Master
     	$selfValue = planning_Resources::fetchField($id, 'selfValue');
     	
     	if(!$selfValue){
-    		//@TODO
+    		$lastBalance = acc_Balances::getLastBalance();
+    		$itemRec = acc_Items::fetchItem(__CLASS__, $id);
+    		if($itemRec && $lastBalance){
+    			$bQuery = acc_BalanceDetails::getQuery();
+    			acc_BalanceDetails::filterQuery($bQuery, $lastBalance->id, '611');
+    			$resourcePositionId = acc_Lists::getPosition('611', 'planning_ResourceAccRegIntf');
+    			$bQuery->where("#ent{$resourcePositionId}Id = {$itemRec->id}");
+    			$bQuery->show("ent{$resourcePositionId}Id,blAmount,blQuantity");
+    			$bRec = $bQuery->fetch();
+    			
+    			$selfValue = $bRec->blAmount / $bRec->blQuantity;
+    		}
     	}
     	
     	return $selfValue;
