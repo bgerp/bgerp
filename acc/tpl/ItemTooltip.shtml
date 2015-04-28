@@ -36,10 +36,8 @@
 <td> [#state#]</td>
 </tr>
 <!--ET_END state-->
-
 <tr>
-<td colspan='2' style='text-align:right'>
-[#link#]
-</td>
+<td class='quiet aright'>|Обект|*:</td>
+<td>[#link#]</td>
 </tr>
 </table>
