@@ -1028,9 +1028,11 @@ class cat_Products extends core_Embedder {
     		}
     	}
     	
-    	// Ако потребителя има достъп до орязания сингъл(тоест да няма достъп до обикновения сингъл), подменяме линка да води към него
-    	if($mvc->haveRightFor('privateSingle', $rec)){
-    		$row->name = ht::createLink($mvc->getVerbal($rec, 'name'), array($mvc, 'privateSingle', $rec->id, 'ret_url' => TRUE), FALSE, "ef_icon={$mvc->singleIcon}");
+    	if(empty($fields['-single'])){
+    		// Ако потребителя има достъп до орязания сингъл(тоест да няма достъп до обикновения сингъл), подменяме линка да води към него
+    		if($mvc->haveRightFor('privateSingle', $rec)){
+    			$row->name = ht::createLink($mvc->getVerbal($rec, 'name'), array($mvc, 'privateSingle', $rec->id, 'ret_url' => TRUE), FALSE, "ef_icon={$mvc->singleIcon}");
+    		}
     	}
     }
     
