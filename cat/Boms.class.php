@@ -426,7 +426,9 @@ class cat_Boms extends core_Master
     	if(count($rInfo['resources'])){
     		foreach ($rInfo['resources'] as $dRec){
     			$sign = ($dRec->type == 'input') ? 1 : -1;
-    			$selfValue = planning_Resources::fetchField($dRec->resourceId, 'selfValue');
+    			
+    			// Опитваме се да намерим себестойност за артикула
+    			$selfValue = planning_Resources::getSelfValue($dRec->resourceId, $date = NULL);
     			
     			// Ако не може да се определи себестойност на ресурса, не може и по рецептата
     			if(!$selfValue) return FALSE;
