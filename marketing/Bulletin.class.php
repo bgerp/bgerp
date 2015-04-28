@@ -301,7 +301,7 @@ class marketing_Bulletin extends core_Manager
      */
     function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
-        if (blast_Emails::haveRightFor('add')) {
+        if (blast_Emails::haveRightFor('add') && $mvc->fetch("1=1")) {
             $data->toolbar->addBtn('Циркулярен имейл', array('blast_Emails', 'add', 'perSrcClassId' => core_Classes::getId($mvc)),
             'id=btnEmails','ef_icon = img/16/emails.png,title=Създаване на циркулярен имейл');
         }
