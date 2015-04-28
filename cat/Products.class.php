@@ -1345,8 +1345,8 @@ class cat_Products extends core_Embedder {
     	
     	// Ако потребителя няма достъп до папката, той няма достъп и до сингъла
     	// така дори създателя на артикула няма достъп до сингъла му, ако няма достъп до папката
-    	if($action == 'single' && isset($rec->folderId)){
-    		if(!doc_Folders::haveRightToFolder($rec->folderId)){
+    	if(($action == 'single' || $action == 'close') && isset($rec->threadId)){
+    		if(!doc_Threads::haveRightFor('single', $rec->threadId)){
     			$res = 'no_one';
     		}
     	}
