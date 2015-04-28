@@ -81,6 +81,7 @@
                     </table>
                 </div>
             </div>
+            <!--ET_END STATISTIC_BAR-->
             [#SINGLE_CONTENT#]
         </div>
         <div style = 'margin-top:10px'></div>
