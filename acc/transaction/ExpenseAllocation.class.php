@@ -41,10 +41,13 @@ class acc_transaction_ExpenseAllocation extends acc_DocumentTransactionSource
     			'entries'     => NULL
     	);
     	
-    	// Намираме записите
-    	$entries = $this->getEntries($rec, $result->totalAmount);
-    	if(count($entries)){
-    		$result->entries = $entries;
+    	if($rec->id){
+    		
+    		// Намираме записите
+    		$entries = $this->getEntries($rec, $result->totalAmount);
+    		if(count($entries)){
+    			$result->entries = $entries;
+    		}
     	}
     	
     	return $result;
@@ -84,9 +87,8 @@ class acc_transaction_ExpenseAllocation extends acc_DocumentTransactionSource
     		$thisAmount = round($dRec->weight * $amount, 2);
     		$itemRec = acc_Items::fetch($dRec->itemId, 'objectId,classId');
     		
-    		//@TODO склада да не е забит !!
     		$entries[] = array('amount' => $thisAmount, 
-    						   'debit' => array('321', array('store_Stores', 1), 
+    						   'debit' => array('321', array('store_Stores', $rec->storeId), 
     						   						   array($itemRec->classId, $itemRec->objectId),
     						   					'quantity' => 0), 
     						   'credit' => array('6113'));

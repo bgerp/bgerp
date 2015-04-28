@@ -45,7 +45,7 @@ class acc_ExpenseAllocations extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = "tools=Пулт, valior, title=Документ, state, createdOn, createdBy";
+    public $listFields = "tools=Пулт, valior, title=Документ, storeId, state, createdOn, createdBy";
     
     
     /**
@@ -129,13 +129,7 @@ class acc_ExpenseAllocations extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'notes';
-
-    
-    /**
-     * Групиране на документите
-     */
-    public $newBtnGroup = "6.7|Счетоводни";
+    public $searchFields = 'notes, storeId';
     
     
     /**
@@ -145,6 +139,7 @@ class acc_ExpenseAllocations extends core_Master
     {
     	$this->FLD('valior', 'date', 'caption=Вальор,mandatory');
     	$this->FLD('notes', 'richtext(rows=3)', 'caption=Забележки');
+    	$this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад,mandatory,input=hidden');
     	
     	$this->FLD('state',
     			'enum(draft=Чернова, active=Контиран, rejected=Сторнирана, closed=Контиран)',
@@ -161,7 +156,16 @@ class acc_ExpenseAllocations extends core_Master
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
-    	$data->form->setDefault('valior', dt::today());
+    	$form = &$data->form;
+    	$form->setDefault('valior', dt::today());
+    	
+    	if($form->rec->originId){
+    		$origin = doc_Containers::getDocument($form->rec->originId);
+    		$handler = $origin->getHandle();
+    		$notes = "Към #{$handler}";
+    		$form->setDefault('notes', $notes);
+    		$form->setDefault('storeId', $origin->getStoreId());
+    	}
     }
     
     
@@ -188,6 +192,7 @@ class acc_ExpenseAllocations extends core_Master
     public static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
     	$row->title = $mvc->getLink($rec->id, 0);
+    	$row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
     }
     
     
@@ -239,22 +244,21 @@ class acc_ExpenseAllocations extends core_Master
      */
     public static function on_AfterCreate($mvc, $rec)
     {
-    	$firstDocument = doc_Threads::getFirstDocument($rec->threadId);
-    	if(!$firstDocument) return;
+    	expect($rec->originId);
+    	expect($origin = doc_Containers::getDocument($rec->originId));
     	
-    	if($firstDocument->getInstance() instanceof purchase_Purchases){
-    		$dealInfo = $firstDocument->getAggregateDealInfo();
+    	if($origin->instance('acc_ExpenseAllocationSourceIntf')){
+    		$shippedProducts = $origin->getStorableProducts();
     		
     		$totalAmount = 0;
-    		if(count($dealInfo->shippedProducts)){
-    			
-    			// Изичсляваме колко е общата сума на експедираните артикули
-    			foreach ($dealInfo->shippedProducts as $prod1){
+    		if(count($shippedProducts)){
+    			// Изчсляваме колко е общата сума на експедираните артикули
+    			foreach ($shippedProducts as $prod1){
     				$totalAmount += $prod1->amount;
     			}
     			
     			// За всеки експедиран артикул, добавяме го към детайла
-    			foreach ($dealInfo->shippedProducts as $prod){
+    			foreach ($shippedProducts as $prod){
     				$dRec = new stdClass();
     				$dRec->masterId = $rec->id;
     				$dRec->itemId = acc_Items::fetchItem($prod->classId, $prod->productId)->id;
@@ -363,6 +367,37 @@ class acc_ExpenseAllocations extends core_Master
     {
     	if($data->toolbar->hasBtn('btnAdd')){
     		$data->toolbar->removeBtn('btnAdd');
+    	}
+    }
+    
+    
+
+
+
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+    	if($action == 'add' && isset($rec)){
+	    	if(empty($rec->originId)){
+	    		
+	    		// Без ориджин не може да се добавя
+	    		$requiredRoles = 'no_one';
+	    	} else {
+	    		// Ориджина трябва да е Pокупка или Складова разписка
+	    		$origin = doc_Containers::getDocument($rec->originId);
+	    		if(!$origin->haveInterface('acc_ExpenseAllocationSourceIntf')){
+	    			$requiredRoles = 'no_one';
+	    		} else {
+	    			
+	    			// Ако в ориджина няма посочени скалдируеми артикули, не може да създаваме документа
+	    			$productsToShip = $origin->getStorableProducts(1);
+	    			if(!count($productsToShip)){
+	    				$requiredRoles = 'no_one';
+	    			}
+	    		}
+	    	}
     	}
     }
 }

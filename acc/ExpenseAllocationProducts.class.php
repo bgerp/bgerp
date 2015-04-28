@@ -2,13 +2,14 @@
 
 
 /**
- * Детайли на фактурите
+ * Детайл на разпределение на разходи за избор на
+ * скалдируеми артикули, към които да се начисляват разходи
  *
  *
  * @category  bgerp
- * @package   sales
+ * @package   acc
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -84,7 +85,7 @@ class acc_ExpenseAllocationProducts extends doc_Detail
     function description()
     {
     	$this->FLD('masterId', 'key(mvc=acc_ExpenseAllocations)', 'column=none,input=hidden,silent');
-    	$this->FLD('itemId', 'key(mvc=acc_Items,select=title)', 'caption=Артикул,mandatory,silent,refreshForm');
+    	$this->FLD('itemId', 'key(mvc=acc_Items,select=title)', 'caption=Артикул,mandatory,silent');
     	$this->FLD('quantity', 'double', 'caption=К-во,mandatory');
     	$this->FLD('weight', 'percent(max=1,min=0)', 'caption=Коефициент,mandatory');
     	
@@ -101,8 +102,7 @@ class acc_ExpenseAllocationProducts extends doc_Detail
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
-    	$options = acc_Items::getItemOptionsInAccount('321', 'cat_ProductAccRegIntf');
-    	$form->setOptions('itemId', array('' => '') + $options);
+    	$data->form->setSuggestions('weight', array('' => '') + arr::make('5 %,10 %,15 %,20 %,25 %,30 %, 40 %, 50 %, 100%', TRUE));
     	
     	if($data->form->rec->id){
     		$data->form->setReadOnly('itemId');
