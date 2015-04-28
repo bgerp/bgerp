@@ -66,7 +66,7 @@ class purchase_transaction_Service extends acc_DocumentTransactionSource
     
     
     /**
-     * Записите на транзакцията 
+     * Записите на транзакцията
      */
     public function getEntries($rec, $origin, $reverse = FALSE)
     {
@@ -82,23 +82,12 @@ class purchase_transaction_Service extends acc_DocumentTransactionSource
     			
     			if(isset($pInfo->meta['fixedAsset'])){
     				
-    				// Ако артикула е ДМА отчитаме го като разход за ДМА-та
-    				$debitArr = array(613, array($dRec->classId, $dRec->productId),
-    										'quantity' => $sign * $dRec->quantity);
+    				// Ако е ДМА дебит 613
+    				$costsAccNumber = '613';
     			} else {
     				
-    				// Дали артикула има ресурс
-    				$resourceRec = planning_ObjectResources::getResource($dRec->classId, $dRec->productId);
-    				if($resourceRec){
-    					// Ако има го отчитаме като разход за ресурси
-						$debitArr = array('611', array('planning_Resources', $resourceRec->resourceId),
-											'quantity' => $sign * $dRec->quantity / $resourceRec->conversionRate);
-    				} else {
-    					// Ако няма ресурс го отчитаме като разход по центрове на дейности
-						$debitArr = array('6112', array('hr_Departments', $rec->activityCenterId),
-										 array($dRec->classId, $dRec->productId),
-										'quantity' => $sign * $dRec->quantity);
-    				}
+    				// Ако е Д"Материали" дебит 602
+    				$costsAccNumber = '602';
     			}
     	
     			$amount = $dRec->amount;
@@ -108,7 +97,11 @@ class purchase_transaction_Service extends acc_DocumentTransactionSource
     			$entries[] = array(
     					'amount' => $sign * $amount * $rec->currencyRate, // В основна валута
     	
-    					'debit' => $debitArr,
+    					'debit' => array(
+    							$costsAccNumber, // Сметка "602. Разходи за външни услуги" или "601. Разходи за материали"
+    							array($dRec->classId, $dRec->productId), // Перо 1 - Артикул
+    							'quantity' => $sign * $dRec->quantity, // Количество продукт в основната му мярка
+    					),
     	
     					'credit' => array(
     							$rec->accountId, 

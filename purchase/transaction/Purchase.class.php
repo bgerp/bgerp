@@ -171,28 +171,15 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
         	
         	// Ако не е "Складируем" - значи е разход
 			if(empty($pInfo->meta['canStore'])){
-				
+
 				if(isset($pInfo->meta['fixedAsset'])){
 					
-					$debitArr = array('613',
-										array($detailRec->classId, $detailRec->productId),
-										'quantity' => $detailRec->quantity,);
-					
+					// Ако е 'ДМА' дебит 613
+					$costsAccNumber = '613';
 				} else {
 					
-					// Дали артикула има ресурс
-					$resourceRec = planning_ObjectResources::getResource($detailRec->classId, $detailRec->productId);
-					if($resourceRec){
-						// Ако има го отчитаме като разход за ресурси
-						$debitArr = array('611', array('planning_Resources', $resourceRec->resourceId),
-											'quantity' => $detailRec->quantity / $resourceRec->conversionRate);
-						
-					} else {
-						// Ако няма ресурс го отчитаме като разход по центрове на дейности
-						$debitArr = array('6112', array('hr_Departments', $rec->activityCenterId),
-								array($detailRec->classId, $detailRec->productId),
-								'quantity' => $sign * $detailRec->quantity);
-					}
+					// Ако е "Вложим" 602
+					$costsAccNumber = '602';
 				}
 
     			$entries[] = array(
@@ -206,7 +193,11 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
 	                    'quantity' => $amount,
 	                ),
 	                
-	                'debit' => $debitArr,
+	                'debit' => array(
+	                    $costsAccNumber, 
+	                        array($detailRec->classId, $detailRec->productId),
+	                    'quantity' => $detailRec->quantity,
+	                ),
             	);
     		}
         }
