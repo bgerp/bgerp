@@ -438,6 +438,10 @@ class doc_FolderPlg extends core_Plugin
     {
         if (!isset($userId)) {
             $userId = core_Users::getCurrent();
+            
+            if (!isset($userId)) {
+                $userId = 0;
+            }
         }
         
         $teammates = keylist::toArray(core_Users::getTeammates($userId));
