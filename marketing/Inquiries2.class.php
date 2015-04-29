@@ -696,6 +696,15 @@ class marketing_Inquiries2 extends core_Embedder
     		    
     		    vislog_History::add('Ново запитване');
     		    
+    		    $email = trim($form->rec->email);
+    		    $names = trim($form->rec->name);
+    		    $company = trim($form->rec->company);
+    		    $userData = array('email' => $email, 'names' => $names);
+        		if ($company) {
+                    $userData['company'] = $company;
+                }
+                core_Browser::setVars($userData);
+    		    
     			$id = $this->save($rec);
     			$cu = core_Users::getCurrent('id', FALSE);
     			 
