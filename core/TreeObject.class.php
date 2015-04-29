@@ -19,12 +19,6 @@ class core_TreeObject extends core_Manager
 	
 	
 	/**
-	 * До кое ниво сме стигнали
-	 */
-	protected $levels = array();
-	
-	
-	/**
 	 * След дефиниране на полетата на модела
 	 *
 	 * @param core_Mvc $mvc
@@ -369,6 +363,16 @@ class core_TreeObject extends core_Manager
 				$row->{$mvc->nameField} .= " {$plus}{$minus}";
 			}
 		}
+	}
+	
+	
+	/**
+	 * Извиква се след подготовката на toolbar-а за табличния изглед
+	 */
+	protected static function on_AfterPrepareListToolbar($mvc, &$data)
+	{
+		$data->toolbar->addFnBtn('Затвори всички', NULL, 'class=closeTreeBtn');
+		$data->toolbar->addFnBtn('Отвори всички', NULL, 'class=openTreeBtn');
 	}
 	
 	
