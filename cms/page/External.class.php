@@ -93,6 +93,7 @@ class cms_page_External extends core_page_Active
         $bulletinJsUrl = marketing_Bulletin::getJsLink();
         if (trim($bulletinJsUrl)) {
             $this->push($bulletinJsUrl, 'JS');
+            $this->push('marketing/css/styles.css', 'CSS');
         }
     }
 

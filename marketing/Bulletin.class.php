@@ -100,7 +100,7 @@ class marketing_Bulletin extends core_Manager
             $haveError = TRUE;
         }
         
-        $img = 'img/32/info.png';
+        $img = 'img/thanks.png';
         
         if (!$haveError) {
             
