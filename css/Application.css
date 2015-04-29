@@ -4037,14 +4037,16 @@ only screen and (max-width: 320px) {
     background: white; }
   .treeView .hidden {
     display: none; }
-  .treeView .treeLevel1 {
+  .treeView .treeLevel1 .leafName {
     text-indent: 20px; }
-  .treeView .treeLevel2 {
+  .treeView .treeLevel2 .leafName {
     text-indent: 40px; }
-  .treeView .treeLevel3 {
+  .treeView .treeLevel3 .leafName {
     text-indent: 60px; }
-  .treeView .treeLevel4 {
+  .treeView .treeLevel4 .leafName {
     text-indent: 80px; }
+  .treeView .leafName {
+    min-width: 250px; }
   .treeView .toggleBtn {
     margin-right: 6px; }
 

@@ -4358,17 +4358,20 @@ body.narrow {
     .hidden{
         display: none;
     }
-    .treeLevel1 {
+    .treeLevel1 .leafName {
         text-indent: 20px;
     }
-    .treeLevel2 {
+    .treeLevel2 .leafName {
         text-indent: 40px;
     }
-    .treeLevel3 {
+    .treeLevel3 .leafName {
         text-indent: 60px;
     }
-    .treeLevel4 {
+    .treeLevel4 .leafName {
         text-indent: 80px;
+    }
+    .leafName {
+        min-width: 250px;
     }
     .toggleBtn {
         margin-right: 6px;
