@@ -19,11 +19,9 @@ class core_TreeObject extends core_Manager
 	
 	
 	/**
-	 * След сетъп кой да е първия създаден обект, от който ще тръгне наследяването
-	 * 
-	 * @param mixed - име или NULL ако не искаме да има такъв обект
+	 * До кое ниво сме стигнали
 	 */
-	public $defaultParent;
+	protected $levels = array();
 	
 	
 	/**
@@ -281,10 +279,93 @@ class core_TreeObject extends core_Manager
 	
 	
 	/**
-	 * След подготовката на туулбара на списъчния изглед
+	 * След извличане на записите от базата данни
 	 */
-	protected static function on_AfterPrepareListToolbar($mvc, &$data)
+	public static function on_AfterPrepareListRecs(core_Mvc $mvc, $data)
 	{
-		$data->toolbar->addBtn('Дърво', array($mvc, 'listTree'));
+		if(!count($data->recs)) return;
+		
+		$tree = array();
+		foreach ($data->recs as $br){
+			$tree[$br->parentId][] = $br;
+		}
+		
+		$tree = $mvc->createTree($tree, $tree[NULL]);
+		$data->recs = $mvc->flattenTree($tree);
+	}
+	
+	
+	/**
+	 * Създава дърво от записите
+	 * 
+	 * @param array $list - масив
+	 * @param int $parent - ид на бащата бащата (NULL ако няма)
+	 * @return array $tree - записите в дървовидна структура
+	 */
+	private function createTree(&$list, $parent, $round = -1)
+	{
+		$round++;
+		$tree = array();
+	    
+	    foreach ($parent as $k => $l){
+	    	if(is_null($l->parentId)){
+	    		$round = 0;
+	    	}
+	        if(isset($list[$l->id])){
+	            $l->children = $this->createTree($list, $list[$l->id], $round);
+	        }
+	        $l->level = $round;
+	        $tree[] = $l;
+	    } 
+	    
+	    return $tree;
+	}
+	
+	
+	/**
+	 * Дървовидния масив
+	 * 
+	 * @param array $array
+	 * @return array - сортираните записи
+	 */
+	private function flattenTree($array)
+	{
+		$return = array();
+		
+		foreach ($array as $key => $value) {
+			$return[$value->id] = $value;
+			if(count($value->children)){
+				$return = $return + $this->flattenTree($value->children);
+			}
+			unset($value->children);
+		}
+		
+		return $return;
+	}
+
+	
+	/**
+	 * След преобразуване на записа в четим за хора вид.
+	 *
+	 * @param core_Mvc $mvc
+	 * @param stdClass $row Това ще се покаже
+	 * @param stdClass $rec Това е записа в машинно представяне
+	 */
+	public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+	{
+		if(isset($fields['-list'])){
+			$row->ROW_ATTR['data-parentid'] .= $rec->parentId;
+			$row->ROW_ATTR['data-id']       .= $rec->id;
+			$row->ROW_ATTR['data-level']    .= $rec->level;
+		}
+	}
+	
+	
+	/**
+	 * След рендиране на лист таблицата
+	 */
+	public static function on_AfterRenderListTable($mvc, &$tpl, &$data)
+	{
+		jquery_Jquery::run($tpl, "treeViewAction();");
 	}
 }
