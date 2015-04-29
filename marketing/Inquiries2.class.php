@@ -714,7 +714,23 @@ class marketing_Inquiries2 extends core_Embedder
     			return followRetUrl();
     		}
     	}
-    	 
+    	
+    	// Попълваме данните, които потребителя е въвел преди
+    	$vars = core_Browser::getVars(array('email', 'names', 'company'));
+    	if ($vars) {
+        	if ($vars['email']) {
+        	    $form->setDefault('email', $vars['email']);
+        	}
+        	
+    	    if ($vars['names']) {
+        	    $form->setDefault('name', $vars['names']);
+        	}
+    	    
+        	if ($vars['company']) {
+        	    $form->setDefault('company', $vars['company']);
+        	}
+    	}
+    	
     	$form->toolbar->addSbBtn('Изпрати', 'save', 'id=save, ef_icon = img/16/disk.png,title=Изпращане на запитването');
     	$form->toolbar->addBtn('Отказ', getRetUrl(),  'id=cancel, ef_icon = img/16/close16.png,title=Oтказ');
     	$tpl = $form->renderHtml();
