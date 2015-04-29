@@ -853,6 +853,16 @@ class support_Issues extends core_Master
     			$data->toolbar->addBtn('Резолюция', $url, "ef_icon={$Resolution->singleIcon}, row=2 , title = Създаване на документ Резолюция на сигнал");
     		}
     	}
+    	
+        if ($data->rec->brid && email_Outgoings::haveRightFor('add')) {
+            $data->toolbar->addBtn('Отговор', array(
+                    'email_Outgoings',
+                    'add',
+                    'threadId' => $data->rec->threadId,
+                    'originId' => $data->rec->containerId,
+                    'ret_url'=> TRUE
+                ),'ef_icon = img/16/email_edit.png,title=Отговор на сигнал чрез имейл', 'onmouseup=saveSelectedTextToSession();');
+        }
     }
     
     
