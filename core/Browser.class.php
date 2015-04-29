@@ -102,6 +102,7 @@ class core_Browser extends core_Manager
     {
         $this->FLD('brid', 'varchar(8)', 'caption=BRID');
         $this->FLD('userAgent', 'text', 'caption=User agent');
+        $this->FLD('userData', 'blob(serialize, compress)', 'caption=Данни');
         
         $this->setDbUnique('brid');
     }
@@ -188,6 +189,81 @@ class core_Browser extends core_Manager
             
             return $brid;
         }
+    }
+    
+    
+    /**
+     * Записва подадените стойности в userData
+     * 
+     * @param array $varsArr
+     * 
+     * @return integer
+     */
+    public static function setVars($varsArr)
+    {
+        $brid = self::getBrid();
+        
+        $rec = self::fetch(array("#brid = '[#1#]'", $brid), 'userData');
+        
+        $nRec = new stdClass();
+        
+        $nRec->brid = $brid;
+        
+        if ($rec) {
+            $nRec->id = $rec->id;
+        }
+        
+        $now = dt::now();
+        
+        // Добавяме подадените данни в началото на масива
+        if ($rec->userData) {
+            $userData = $rec->userData;
+            $userData = array($now => $varsArr) + $userData;
+        } else {
+            $userData = array($now => $varsArr);
+            
+        }
+        $nRec->userData = $userData;
+        
+        $id = self::save($nRec);
+        
+        return $id;
+    }
+    
+    
+    /**
+     * Връща най-новите стойности за параметрите от userData
+     * 
+     * @param array $pArr
+     * 
+     * @return array
+     */
+    public static function getVars($pArr)
+    {
+        $brid = self::getBrid();
+        
+        $userData = self::fetchField(array("#brid = '[#1#]'", $brid), 'userData');
+        
+        $resArr = array();
+        
+        foreach ((array)$userData as $dataArr) {
+            $break = TRUE;
+            foreach ((array)$pArr as $param) {
+                
+                if (isset($resArr[$param])) continue;
+                
+                if (isset($dataArr[$param])) {
+                    $resArr[$param] = $dataArr[$param];
+                }
+                
+                $break = FALSE;
+            }
+            
+            // Ако сме открили всички данни, които търсим прекъсваме функцията
+            if ($break) break;
+        }
+        
+        return $resArr;
     }
     
     
