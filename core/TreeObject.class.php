@@ -314,7 +314,7 @@ class core_TreeObject extends core_Manager
 	        if(isset($list[$l->id])){
 	            $l->children = $this->createTree($list, $list[$l->id], $round);
 	        }
-	        $l->level = $round;
+	        $l->_level = $round;
 	        $tree[] = $l;
 	    } 
 	    
@@ -337,6 +337,7 @@ class core_TreeObject extends core_Manager
 			if(count($value->children)){
 				$return = $return + $this->flattenTree($value->children);
 			}
+			$value->_childrenCount = count($value->children);
 			unset($value->children);
 		}
 		
@@ -356,7 +357,17 @@ class core_TreeObject extends core_Manager
 		if(isset($fields['-list'])){
 			$row->ROW_ATTR['data-parentid'] .= $rec->parentId;
 			$row->ROW_ATTR['data-id']       .= $rec->id;
-			$row->ROW_ATTR['data-level']    .= $rec->level;
+			$row->ROW_ATTR['data-level']    .= $rec->_level;
+			
+			if($rec->_childrenCount > 0){
+				
+				$plusIcon = sbf('img/16/toggle-expand.png', '');
+				$minusIcon = sbf('img/16/toggle2.png', '');
+				$plus = "<span><img class = 'hidden' src='{$plusIcon}' width='13' height='13'/></span>";
+				$minus = "<span><img  src='{$minusIcon}' width='13' height='13'/></span>";
+				
+				$row->{$mvc->nameField} .= " {$plus}{$minus}";
+			}
 		}
 	}
 	
