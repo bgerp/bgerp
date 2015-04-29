@@ -383,23 +383,33 @@ class planning_Resources extends core_Master
      */
     public static function getSelfValue($id, $date = NULL)
     {
+    	// Първо проверяваме имали себестойност в модела
     	$selfValue = planning_Resources::fetchField($id, 'selfValue');
     	
     	if(!$selfValue){
+    		
+    		// Намираме последния баланс, и перото на ресурса
     		$lastBalance = acc_Balances::getLastBalance();
     		$itemRec = acc_Items::fetchItem(__CLASS__, $id);
+    		
+    		// Ако има перо и баланс намираме записа за ресурса от сметка 611 (6111)
     		if($itemRec && $lastBalance){
     			$bQuery = acc_BalanceDetails::getQuery();
     			acc_BalanceDetails::filterQuery($bQuery, $lastBalance->id, '611');
     			$resourcePositionId = acc_Lists::getPosition('611', 'planning_ResourceAccRegIntf');
     			$bQuery->where("#ent{$resourcePositionId}Id = {$itemRec->id}");
     			$bQuery->show("ent{$resourcePositionId}Id,blAmount,blQuantity");
+    			
     			$bRec = $bQuery->fetch();
     			
-    			$selfValue = $bRec->blAmount / $bRec->blQuantity;
+    			// Изчисляваме колко е счетоводната средно притеглена цена
+    			if(!is_null($bRec->blAmount) && !is_null($bRec->blQuantity)){
+    				$selfValue = $bRec->blAmount / $bRec->blQuantity;
+    			}
     		}
     	}
     	
+    	// Връщаме цената, ако сме я намерили
     	return $selfValue;
     }
 }
