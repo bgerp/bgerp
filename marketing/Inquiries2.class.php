@@ -693,6 +693,9 @@ class marketing_Inquiries2 extends core_Embedder
     		
     		// Запис и редирект
     		if($this->haveRightFor('new')){
+    		    
+    		    vislog_History::add('Ново запитване');
+    		    
     			$id = $this->save($rec);
     			$cu = core_Users::getCurrent('id', FALSE);
     			 
@@ -700,7 +703,7 @@ class marketing_Inquiries2 extends core_Embedder
     			if(!$cu){
     				setcookie("inquiryCookie[inquiryId]", str::addHash($id, 10), time() + 2592000);
     			}
-    			 
+    			
     			status_Messages::newStatus(tr('Благодарим ви за запитването'), 'success');
     			 
     			// Ако има грешка при изпращане, тя се показва само на powerUser-и

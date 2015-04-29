@@ -89,6 +89,8 @@ class marketing_Bulletin extends core_Manager
      */
     function act_getImg()
     {
+        vislog_History::add('Нов абонамент за бюлетина');
+        
         $email = trim(Request::get('email'));
         $names = trim(Request::get('names'));
         $company = trim(Request::get('company'));
