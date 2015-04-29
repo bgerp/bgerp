@@ -379,10 +379,10 @@ function onClickCatcher()
         	
 		    $(this).html(getSuccessText(url));
 		    $('.bulletinInner').fadeIn("slow");
-		   // hideAfterTimeout(7000, 800);
+		    hideAfterTimeout(7000, 800);
 		});
         
-    	//setCookie('bulletinHaveReg', true, 1000);
+    	setCookie('bulletinHaveReg', true, 1000);
 	});
 	
 	// Скриваме формата при натискане на отказ или X
