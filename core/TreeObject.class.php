@@ -187,8 +187,8 @@ class core_TreeObject extends core_Manager
 		if(count($desc)){
             $plusIcon = sbf('img/16/toggle-expand.png', '');
             $minusIcon = sbf('img/16/toggle2.png', '');
-            $plus = "<span><img class = 'hidden' src='{$plusIcon}' width='13' height='13'/></span>";
-            $minus = "<span><img  src='{$minusIcon}' width='13' height='13'/></span>";
+            $plus = "<img class = 'hidden' src='{$plusIcon}' width='13' height='13'/>";
+            $minus = "<img  src='{$minusIcon}' width='13' height='13'/>";
 
 
             $tpl = new core_ET("<tr><td  data-id='{$id}' data-parentid='{$parentId}' style='text-indent: {$indent}px'> {$plus}{$minus} [#title#]</td></tr>");
@@ -286,6 +286,8 @@ class core_TreeObject extends core_Manager
 		
 		$tree = $mvc->createTree($tree, $tree[NULL]);
 		$data->recs = $mvc->flattenTree($tree);
+
+        $data->listTableClass = 'treeView';
 	}
 	
 	
@@ -351,16 +353,16 @@ class core_TreeObject extends core_Manager
 		if(isset($fields['-list'])){
 			$row->ROW_ATTR['data-parentid'] .= $rec->parentId;
 			$row->ROW_ATTR['data-id']       .= $rec->id;
-			$row->ROW_ATTR['data-level']    .= $rec->_level;
+			$row->ROW_ATTR['class']    .= ' treeLevel' . $rec->_level;
 			
 			if($rec->_childrenCount > 0){
 				
 				$plusIcon = sbf('img/16/toggle-expand.png', '');
 				$minusIcon = sbf('img/16/toggle2.png', '');
-				$plus = "<span><img class = 'hidden' src='{$plusIcon}' width='13' height='13'/></span>";
-				$minus = "<span><img  src='{$minusIcon}' width='13' height='13'/></span>";
+				$plus = "<img class = 'toggleBtn hidden' src='{$plusIcon}' width='13' height='13'/>";
+				$minus = "<img class = 'toggleBtn' src='{$minusIcon}' width='13' height='13'/>";
 				
-				$row->{$mvc->nameField} .= " {$plus}{$minus}";
+				$row->{$mvc->nameField} = " {$plus}{$minus}" . $row->{$mvc->nameField};
 			}
 		}
 	}

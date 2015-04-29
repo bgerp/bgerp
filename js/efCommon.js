@@ -63,24 +63,24 @@ function showTooltip(){
 
 
 function treeViewAction() {
-    $( ".treeView td" ).on( "click", function(event) {
-        var id = $(this).attr('data-id');
+    $( ".treeView .toggleBtn" ).on( "click", function(event) {
+        var id = $(this).closest('tr').attr('data-id');
         toggleChildren(id);
-        $(this).find('img').toggleClass('hidden');
+        $(this).parent().find('.toggleBtn').toggleClass('hidden');
     });
 }
 
 function toggleChildren(id){
     // скриваме децата на елемента
-    var elem= $('td[data-parentid="'+ id + '"]');
-    elem.parent().toggle();
+    var elem = $('tr[data-parentid="'+ id + '"]');
+    elem.toggle();
 
     // за всяко дете, скриваме неговите деца
     $(elem).each(function() {
         var elemId = $(this).attr('data-id');
-        if ($('td[data-parentid="' + elemId + '"]').length) {
+        if ($('tr[data-parentid="' + elemId + '"]').length) {
             toggleChildren(elemId);
-            $(this).find('img').toggleClass('hidden');
+            $(this).parent().find('.toggleBtn').toggleClass('hidden');
         }
     });
 }
