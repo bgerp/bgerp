@@ -164,37 +164,28 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
         
         foreach ($rec->details as $detailRec) {
         	$pInfo = cls::get($detailRec->classId)->getProductInfo($detailRec->productId);
-         	
+        	$transfer = FALSE;
+        	
         	$amount = $detailRec->amount;
         	$amount = ($detailRec->discount) ?  $amount * (1 - $detailRec->discount) : $amount;
         	$amount = round($amount, 2);
         	
         	// Ако не е "Складируем" - значи е разход
 			if(empty($pInfo->meta['canStore'])){
-				$transferTo6113 = FALSE;
-				
+
 				if(isset($pInfo->meta['fixedAsset'])){
-					
-					$debitArr = array('613',
-										array($detailRec->classId, $detailRec->productId),
-										'quantity' => $detailRec->quantity,);
-					
+					$debitArr = array('613', array($detailRec->classId, $detailRec->productId),
+											'quantity' => $detailRec->quantity,);
 				} else {
+					$transfer = TRUE;
+					$centerId = ($rec->activityCenterId) ? $rec->activityCenterId : hr_Departments::fetchField("#systemId = 'emptyCenter'", 'id');
 					
-					// Дали артикула има ресурс
-					$resourceRec = planning_ObjectResources::getResource($detailRec->classId, $detailRec->productId);
-					if($resourceRec){
-						// Ако има го отчитаме като разход за ресурси
-						$debitArr = array('611', array('planning_Resources', $resourceRec->resourceId),
-											'quantity' => $detailRec->quantity / $resourceRec->conversionRate);
-						
-					} else {
-						$transferTo6113 = TRUE;
-						// Ако няма ресурс го отчитаме като разход по центрове на дейности
-						$debitArr = array('6112', array('hr_Departments', $rec->activityCenterId),
-								array($detailRec->classId, $detailRec->productId),
-								'quantity' => $sign * $detailRec->quantity);
-					}
+					$debitArr = array(
+							'602', // Сметка "602. Разходи за външни услуги" или "601. Разходи за материали"
+							array('hr_Departments', $centerId),
+							array($detailRec->classId, $detailRec->productId), // Перо 1 - Артикул
+							'quantity' => $detailRec->quantity, // Количество продукт в основната му мярка
+					);
 				}
 
     			$entries[] = array(
@@ -211,15 +202,26 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
 	                'debit' => $debitArr,
             	);
     			
-    			if($transferTo6113){
-    				$entries[] = array('debit' => array('6113'),
-    						'credit' => array('6112', array('hr_Departments', $rec->activityCenterId),
-    								array($detailRec->classId, $detailRec->productId),
-    								'quantity' => $sign * $detailRec->quantity));
+    			// Ако сме дебитирали 602, превхвърляме сумата в 6111 или 6112
+    			if($transfer === TRUE){
+    				$resourceRec = planning_ObjectResources::getResource($detailRec->classId, $detailRec->productId);
+    				if($resourceRec){
+    					$newArr = array('611', array('planning_Resources' , $resourceRec->resourceId),
+    							'quantity' => $detailRec->quantity / $resourceRec->conversionRate);
+    				} else {
+    					$newArr = array('6112');
+    				}
+    			
+    				$entries[] = array(
+    						'amount' => $amount * $rec->currencyRate, // В основна валута
+    						'debit' => $newArr,
+    						'credit' => $debitArr, 
+    				);
     			}
     		}
         }
         
+        // Отчитаме ддс-то
     	if($this->class->_total->vat){
 	        $vatAmount = $this->class->_total->vat * $rec->currencyRate;
 	        $entries[] = array(

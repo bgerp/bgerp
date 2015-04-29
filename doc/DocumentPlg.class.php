@@ -1326,7 +1326,7 @@ class doc_DocumentPlg extends core_Plugin
             }
             
             // Трябва да има права за добавяне
-            if (!$mvc->haveRightFor('add', $cRec, $userId)) {
+            if (!$mvc->haveRightFor('add', $cRec, $userId) || !doc_Threads::haveRightFor('single', $tRec)) {
                 
                 // Трябва да има права за добавяне за да може да клонира
                 $requiredRoles = 'no_one';
@@ -2214,7 +2214,8 @@ class doc_DocumentPlg extends core_Plugin
      */
     public static function on_BeforeRenderWrapping($mvc, &$res, &$tpl, $data = NULL)
     {
-        if(haveRole('powerUser') && (Request::get('Act') == 'edit' || Request::get('Act') == 'add')) {
+        if (haveRole('powerUser') && ((Request::get('Act') == 'edit' || Request::get('Act') == 'add')
+            || ($data->rec->threadId && !doc_Threads::haveRightFor('single', $data->rec->threadId)))) {
             $dc = cls::get('doc_Containers');
             $dc->currentTab = 'Нишка';
             $res = $dc->renderWrapping($tpl, $data);
@@ -2245,5 +2246,27 @@ class doc_DocumentPlg extends core_Plugin
         }
         
         $id = $mvc->save($rec);
+    }
+    
+    
+    /**
+     * Преди подготовка на тулбара на единичен изглед.
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     */
+    static function on_BeforePrepareSingleToolbar($mvc, &$res, $data)
+    {
+        // Ако няма права за сингъла на нишката да не се показва тулбар
+        if ($data->rec->threadId && !doc_Threads::haveRightFor('single', $data->rec->threadId)) {
+            
+            if (is_object($data)) {
+                $data->toolbar = cls::get('core_Toolbar');
+            }
+            
+            return FALSE;
+        }
+        
     }
 }

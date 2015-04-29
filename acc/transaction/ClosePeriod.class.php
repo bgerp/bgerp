@@ -529,7 +529,7 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
     	$entries = array();
     	 
     	// Подготвяме предварително нужните ни данни
-    	$baseDepartment = hr_Departments::fetchField("#systemId = 'myOrganisation'", 'id');
+    	$baseDepartment = hr_Departments::fetchField("#systemId = 'emptyCenter'", 'id');
     	$resource604 = $resource605 = planning_Resources::fetchField("#systemId = 'commonLabor'", 'id');
     	$resource603    = planning_Resources::fetchField("#systemId = 'commonEquipment'", 'id');
     	$resource602    = planning_Resources::fetchField("#systemId = 'commonService'", 'id');

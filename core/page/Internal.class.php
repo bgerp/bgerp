@@ -235,7 +235,9 @@ class core_page_Internal extends core_page_Active
         }
 
         $isGet = strtoupper($_SERVER['REQUEST_METHOD']) == 'GET';
-
+        
+        $nick = type_Nick::normalize($nick);
+        
         if(Mode::is('screenMode', 'narrow')) {
             if($nick) {
                 $tpl->append(ht::createLink(tr("Изход"), array('core_Users', 'logout'), FALSE, array('title' => "Изход на " . $nick)));

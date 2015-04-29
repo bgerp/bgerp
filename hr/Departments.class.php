@@ -192,11 +192,12 @@ class hr_Departments extends core_Master
      */
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
-    	//bp($data->form->setDefault('locationId',crm_Locations::getOwnLocations()));
-        
-        // Да не може да се слага в звена, които са в неговия състав
+    	// Да не може да се слага в звена, които са в неговия състав
         if($id = $data->form->rec->id) {
             $notAllowedCond = "#id NOT IN (" . implode(',', self::getInheritors($id, 'staff')) . ")";
+            $notAllowedCond = " AND #systemId IS NULL";
+        } else {
+        	$notAllowedCond = "#systemId IS NULL";
         }
         
         $query = self::getQuery();
@@ -470,6 +471,8 @@ class hr_Departments extends core_Master
         $arrData = (array)$data->recs;
         
         foreach($arrData as $rec){ 
+        	if($rec->systemId === 'emptyCenter') continue;
+        	
             // Ако имаме родител 
              if($rec->staff == NULL && $rec->systemId !== 'myOrganisation') {
                  $parent = '0';
@@ -497,7 +500,11 @@ class hr_Departments extends core_Master
              'parent_id' => $parent,
              );
         }
-       
+        
+        if(!static::fetchField("#systemId = 'myOrganisation'")){
+        	array_unshift($res, array('id' => '0', 'title' => tr('Моята организация'), 'parent_id' => 'NULL'));
+        }
+        
         $chart = orgchart_Adapter::render_($res);
         
         return $chart;

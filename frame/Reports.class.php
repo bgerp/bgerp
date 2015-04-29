@@ -349,12 +349,12 @@ class frame_Reports extends core_Embedder
     	expect($rec = $this->fetch($id));
     	 
     	// Проверка за права
-    	$this->requireRightFor('export', $data->rec);
+    	$this->requireRightFor('export', $rec);
     	 
     	$Driver = $this->getDriver($rec);
-    	
-    	$csv = $Driver->exportCsv($mvc, $rec);
-    	
+
+    	$csv = $Driver->exportCsv();
+
     	$fileName = str_replace(' ', '_', Str::utf2ascii($Driver->title));
     	
     	header("Content-type: application/csv");
@@ -363,7 +363,7 @@ class frame_Reports extends core_Embedder
     	header("Expires: 0");
     	
     	echo $csv;
-    	
+
     	shutdown();
 
     }
@@ -445,12 +445,12 @@ class frame_Reports extends core_Embedder
     			$requiredRoles = $mvc->getRequiredRoles('edit');
     		}
     	}
-    	
-    	// Ако отчета е чакащ, може да се експортва
+
+    	// Ако отчета е активен, може да се експортва
     	if($action == 'export' && isset($rec)){
     		$state = (!isset($rec->state)) ? $mvc->fetchField($rec->id, 'state') : $rec->state;
-    		if($state == 'pending'){
-    			$requiredRoles = $mvc->getRequiredRoles('export');
+    		if($state != 'active'){
+    			$requiredRoles = 'no_one';
     		}
     	}
     	

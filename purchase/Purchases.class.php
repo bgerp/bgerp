@@ -249,7 +249,13 @@ class purchase_Purchases extends deals_DealMaster
         $form->setField('deliveryLocationId', 'caption=Доставка->Обект от');
         $form->setField('shipmentStoreId', 'caption=Доставка->До склад');
         
-        $form->setDefault('activityCenterId', hr_Departments::fetchField("#systemId = 'myOrganisation'", 'id'));
+        // Ако имаме само един център не показваме полето за избор на център
+        if(hr_Departments::count() == 1){
+        	$form->setField('activityCenterId', 'input=none');
+        } else {
+        	$defCenter = hr_Departments::fetchField("#systemId = 'emptyCenter'", 'id');
+        	$form->setDefault('activityCenterId', $defCenter);
+        }
     }
     
     

@@ -4352,12 +4352,29 @@ body.narrow {
 	}
 }
 .treeView {
-    min-width: 280px;
     tr:nth-child(odd){
         background: #fff;
     }
     .hidden{
         display: none;
+    }
+    .treeLevel1 .leafName {
+        text-indent: 20px;
+    }
+    .treeLevel2 .leafName {
+        text-indent: 40px;
+    }
+    .treeLevel3 .leafName {
+        text-indent: 60px;
+    }
+    .treeLevel4 .leafName {
+        text-indent: 80px;
+    }
+    .leafName {
+        min-width: 250px;
+    }
+    .toggleBtn {
+        margin-right: 6px;
     }
 }
 .debug_block {

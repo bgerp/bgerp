@@ -122,8 +122,13 @@ class acc_ExpenseAllocationProducts extends doc_Detail
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-    	$pItemUomId = acc_Items::fetchField($rec->itemId, 'uomId');
-    	$row->measureId = cat_UoM::getShortName($pItemUomId);
+    	if($rec->itemId){
+    		$pItemUomId = acc_Items::fetchField($rec->itemId, 'uomId');
+    		$row->measureId = cat_UoM::getShortName($pItemUomId);
+    	} else {
+    		$row->measureId = "<span class='red'>???</span>";
+    	}
+    	
     	$row->itemId = acc_Items::getVerbal($rec->itemId, 'titleLink');
     	
     	if($rec->weight == '0'){

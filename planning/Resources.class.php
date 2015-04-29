@@ -347,20 +347,6 @@ class planning_Resources extends core_Master
     
     
     /**
-     * Връща себестойността на ресурса
-     * 
-     * @param int $id - ид на ресурса
-     * @return double - себестойността му
-     */
-    public static function getSelfValue($id)
-    {
-    	expect($rec = static::fetch($id));
-    	
-    	return $rec->selfValue;
-    }
-    
-    
-    /**
      * Преди запис на документ, изчислява стойността на полето `isContable`
      *
      * @param core_Manager $mvc
@@ -384,5 +370,46 @@ class planning_Resources extends core_Master
     public static function on_BeforeMakeArray4Select($mvc, &$optArr, $fields = NULL, &$where = NULL)
     {
     	$where .= ($where ? " AND " : "") . " #state != 'rejected'";
+    }
+    
+    
+    /**
+     * Връща себестойността на ресурса, ако има забита себестойност връща нея
+     * иначе намира средно претеглената цена за текущия период от сметка 6111
+     * 
+     * @param int $id - ид на ресурса
+     * @param string|NULL $date - към коя дата, NULL за текущата
+     * @return double $selfValue - себестойността (цената в основна валута без ддс)
+     */
+    public static function getSelfValue($id, $date = NULL)
+    {
+    	// Първо проверяваме имали себестойност в модела
+    	$selfValue = planning_Resources::fetchField($id, 'selfValue');
+    	
+    	if(!$selfValue){
+    		
+    		// Намираме последния баланс, и перото на ресурса
+    		$lastBalance = acc_Balances::getLastBalance();
+    		$itemRec = acc_Items::fetchItem(__CLASS__, $id);
+    		
+    		// Ако има перо и баланс намираме записа за ресурса от сметка 611 (6111)
+    		if($itemRec && $lastBalance){
+    			$bQuery = acc_BalanceDetails::getQuery();
+    			acc_BalanceDetails::filterQuery($bQuery, $lastBalance->id, '611');
+    			$resourcePositionId = acc_Lists::getPosition('611', 'planning_ResourceAccRegIntf');
+    			$bQuery->where("#ent{$resourcePositionId}Id = {$itemRec->id}");
+    			$bQuery->show("ent{$resourcePositionId}Id,blAmount,blQuantity");
+    			
+    			$bRec = $bQuery->fetch();
+    			
+    			// Изчисляваме колко е счетоводната средно притеглена цена
+    			if(!is_null($bRec->blAmount) && !is_null($bRec->blQuantity)){
+    				$selfValue = $bRec->blAmount / $bRec->blQuantity;
+    			}
+    		}
+    	}
+    	
+    	// Връщаме цената, ако сме я намерили
+    	return $selfValue;
     }
 }

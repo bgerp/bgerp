@@ -1556,7 +1556,7 @@ class blast_Emails extends core_Master
         $row->handle = $mvc->getHandle($rec->id);
         
         // Линка към обекта, който се използва за персонализация
-        if ($rec->perSrcClassId && $rec->perSrcObjectId) {
+        if ($rec->perSrcClassId && isset($rec->perSrcObjectId)) {
             $inst = cls::get($rec->perSrcClassId);
             
             if ($inst->canUsePersonalization($rec->perSrcObjectId)) {

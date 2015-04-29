@@ -3,7 +3,7 @@
 
 
 /**
- * Регистър на продуктите
+ * Регистър на артикулите в каталога
  *
  *
  * @category  bgerp
@@ -25,19 +25,19 @@ class cat_Products extends core_Embedder {
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    var $interfaces = 'acc_RegisterIntf,cat_ProductAccRegIntf,planning_ResourceSourceIntf,doc_AddToFolderIntf,acc_RegistryDefaultCostIntf';
+    public $interfaces = 'acc_RegisterIntf,cat_ProductAccRegIntf,planning_ResourceSourceIntf,doc_AddToFolderIntf,acc_RegistryDefaultCostIntf';
     
     
     /**
      * Заглавие
      */
-    var $title = "Артикули в каталога";
+    public $title = "Артикули в каталога";
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, plg_SaveAndNew, plg_Clone, doc_DocumentPlg, plg_PrevAndNext, acc_plg_Registry, plg_State,
+    public $loadList = 'plg_RowTools, plg_SaveAndNew, plg_Clone, doc_DocumentPlg, plg_PrevAndNext, acc_plg_Registry, plg_State,
                      cat_Wrapper, plg_Sorting, doc_ActivatePlg, doc_plg_BusinessDoc, cond_plg_DefaultValues, plg_Printing, plg_Select, plg_Search, bgerp_plg_Import';
     
     
@@ -45,7 +45,7 @@ class cat_Products extends core_Embedder {
      * Име на полето за групите на продуктите.
      * Използва се за целите на bgerp_plg_Groups
      */
-    var $groupField = 'groups';
+    public $groupField = 'groups';
 
 
     /**
@@ -53,7 +53,7 @@ class cat_Products extends core_Embedder {
      * 
      * @var string
      */
-    var $groupsField = 'groups';
+    public $groupsField = 'groups';
 
     
     /**
@@ -89,97 +89,103 @@ class cat_Products extends core_Embedder {
     /**
      * Наименование на единичния обект
      */
-    var $singleTitle = "Артикул";
+    public $singleTitle = "Артикул";
     
     
     /**
      * Икона за единичния изглед
      */
-    var $singleIcon = 'img/16/wooden-box.png';
+    public $singleIcon = 'img/16/wooden-box.png';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id,name,code,groups,folderId,createdOn,createdBy';
+    public $listFields = 'id,name,code,groups,folderId,createdOn,createdBy';
     
     
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
-    var $rowToolsSingleField = 'name';
+    public $rowToolsSingleField = 'name';
     
     
     /**
      * Кой може да го прочете?
      */
-    var $canRead = 'cat,ceo,sales,purchase';
+    public $canRead = 'cat,ceo,sales,purchase';
     
     
     /**
      * Кой може да променя?
      */
-    var $canEdit = 'cat,ceo';
+    public $canEdit = 'cat,ceo';
     
     
     /**
      * Кой може да добавя?
      */
-    var $canAdd = 'cat,ceo';
+    public $canAdd = 'cat,ceo';
     
     
     /**
      * Кой може да добавя?
      */
-    var $canClose = 'cat,ceo';
+    public $canClose = 'cat,ceo';
     
     
     /**
      * Кой може да го разгледа?
      */
-    var $canList = 'cat,ceo,sales,purchase';
+    public $canList = 'cat,ceo,sales,purchase';
     
     
     /**
      * Кой може да го отхвърли?
      */
-    var $canReject = 'cat,ceo';
+    public $canReject = 'cat,ceo';
     
     
     /**
      * Кой може да качва файлове
      */
-    var $canWrite = 'cat,ceo';
+    public $canWrite = 'cat,ceo';
     
     
     /**  
      * Кой има право да променя системните данни?  
      */  
-    var $canEditsysdata = 'cat,ceo,sales,purchase';
+    public $canEditsysdata = 'cat,ceo,sales,purchase';
     
     
     /**
      * Кой  може да групира "С избраните"?
      */
-    var $canGrouping = 'no_one';
+    public $canGrouping = 'no_one';
 
 	
     /**
      * Нов темплейт за показване
      */
-    var $singleLayoutFile = 'cat/tpl/products/SingleProduct.shtml';
+    public $singleLayoutFile = 'cat/tpl/products/SingleProduct.shtml';
     
     
     /**
      * Кой има достъп до единичния изглед
      */
-    var $canSingle = 'cat,ceo,sales,purchase';
+    public $canSingle = 'cat,ceo,sales,purchase';
     
 	
     /** 
 	 *  Полета по които ще се търси
 	 */
-	var $searchFields = 'name, code';
+	public $searchFields = 'name, code';
+	
+	
+	/**
+	 * Кой има достъп до часния изглед на артикула
+	 */
+	public $canPrivatesingle = 'powerUser';
 	
 	
 	/**
@@ -1013,11 +1019,19 @@ class cat_Products extends core_Embedder {
     {
     	if($fields['-list']){
     		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
+    		
     	}
     	
     	if($fields['-single']){
     		if(isset($rec->originId)){
     			$row->originId = doc_Containers::getDocument($rec->originId)->getLink(0);
+    		}
+    	}
+    	
+    	if(empty($fields['-single'])){
+    		// Ако потребителя има достъп до орязания сингъл(тоест да няма достъп до обикновения сингъл), подменяме линка да води към него
+    		if($mvc->haveRightFor('privateSingle', $rec)){
+    			$row->name = ht::createLink($mvc->getVerbal($rec, 'name'), array($mvc, 'privateSingle', $rec->id, 'ret_url' => TRUE), FALSE, "ef_icon={$mvc->singleIcon}");
     		}
     	}
     }
@@ -1094,7 +1108,7 @@ class cat_Products extends core_Embedder {
      * @return stdClass $res  - обект с информация
      * 		o $res->name      - име
      * 		o $res->measureId - име мярка на ресурса (@see cat_UoM)
-     * 		o $res->type      -  тип на ресурса (material,labor,equipment)
+     * 		o $res->type      - тип на ресурса (material,labor,equipment)
      */
     public function getResourceSourceInfo($id)
     {
@@ -1144,18 +1158,16 @@ class cat_Products extends core_Embedder {
     public function getProductDescShort($id)
     {
     	$rec = $this->fetchRec($id);
-    	$title = $this->getTitleById($rec->id);
+    	$title = $this->getShortHyperlink($rec->id);
     	
-    	if(!Mode::is('printing') && !Mode::is('text', 'xhtml')){
-    		$title = ht::createLinkRef($title, array($this, 'single', $rec->id));
+    	if(Mode::is('printing') || Mode::is('text', 'xhtml')){
+    		$title = $this->getTitleById($rec->id);
     	}
     	
     	return $title;
     }
     
     
-
-
 	/**
 	 * Връща информацията за артикула според зададения режим:
 	 * 		- автоматично : ако артикула е частен се връща детайлното описание, иначе краткото
@@ -1309,7 +1321,10 @@ class cat_Products extends core_Embedder {
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
     	if($action == 'edit' && isset($rec)){
-    		if($rec->state == 'active'){
+    		if($rec->state == 'active' && doc_Threads::haveRightFor('single', $rec->threadId)){
+    			
+    			// Можем да активираме активни артикули
+    			//@TODO ХАК!
     			$res = $mvc->getRequiredRoles('edit');
     		}
     	}
@@ -1320,6 +1335,21 @@ class cat_Products extends core_Embedder {
     			if(!$document->haveInterface('marketing_InquiryEmbedderIntf')){
     				$res = 'no_one';
     			}
+    		}
+    	}
+    	
+    	// За да има достъп до орязания сингъл, трябва да не може да отвори обикновения
+    	if($action == 'privatesingle' && isset($rec)){
+    		if($mvc->haveRightFor('single', $rec)){
+    			$res = 'no_one';
+    		}
+    	}
+    	
+    	// Ако потребителя няма достъп до папката, той няма достъп и до сингъла
+    	// така дори създателя на артикула няма достъп до сингъла му, ако няма достъп до папката
+    	if(($action == 'single' || $action == 'close') && isset($rec->threadId)){
+    		if(!doc_Threads::haveRightFor('single', $rec->threadId)){
+    			$res = 'no_one';
     		}
     	}
     }
@@ -1525,5 +1555,66 @@ class cat_Products extends core_Embedder {
     	if (!empty($data->form->toolbar->buttons['activate'])) {
     		$data->form->toolbar->removeBtn('activate');
     	}
+    }
+    
+    
+    /**
+     * Орязан екшън за единичен изглед на артикула, ако потребителя няма достъп до папката му
+     */
+    function act_PrivateSingle()
+    {
+    	$this->requireRightFor('privateSingle');
+    	expect($id = Request::get('id', 'int'));
+    	
+    	expect($rec = $this->fetchRec($id));
+    	$this->requireRightFor('privateSingle', $rec);
+    	
+    	// Показваме съдържанието на документа
+    	$tpl = $this->getInlineDocumentBody($id, 'xhtml');
+    	
+    	$tpl = $this->renderWrapping($tpl);
+    	
+    	return $tpl;
+    }
+    
+    
+	/**
+     * Създава хиперлинк към единичния изглед
+     * 
+     * @param int $id - ид на запис
+     * @param boolean $icon - дали линка да е с икона
+     * @param boolean $short - дали линка да е само стрелкичка
+     * @return string|core_ET - линк към единичния изглед или името ако потребителя няма права
+     */
+    public static function getHyperlink($id, $icon = FALSE, $short = FALSE)
+    {
+    	$me = cls::get(get_called_class());
+    
+    	$title = $me->getTitleById($id);
+    	
+    	$attr = array();
+    	if($icon === TRUE) {
+    		$attr['ef_icon'] = $me->singleIcon;
+    	} elseif($icon) {
+    		$attr['ef_icon'] = $icon;
+    	}
+    	$attr['class'] = 'specialLink';
+    	
+    	if(!$id) {
+    		return "<span style='color:red;'>&nbsp;- - -</span>";
+    	}
+    
+    	$functionName = ($short == TRUE) ? 'createLinkRef' : 'createLink';
+    	
+    	// Ако потребителя има достъп до единичния изглед, правим заглавието линк
+    	if ($me->haveRightFor('single', $id)) {
+    		$title = ht::$functionName($title, array($me, 'single', $id), NULL, $attr);
+    	} elseif($me->haveRightFor('privateSingle', $id)){
+    		
+    		// Ако нямаме достъп до сингъла, правим линк към ограничения
+    		$title = ht::$functionName($title, array($me, 'privateSingle', $id), NULL, $attr);
+    	}
+   
+    	return $title;
     }
 }

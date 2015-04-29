@@ -164,14 +164,14 @@ class core_Users extends core_Manager
         //Ако е активирано да се използват имейлите, като никове тогава полето имейл го правим от тип имейл, в противен случай от тип ник
         if (EF_USSERS_EMAIL_AS_NICK) {
             //Ако използваме имейлите вместо никове, скриваме полето ник
-            $this->FLD('nick', 'email(link=no)', 'caption=Ник,notNull, input=none');
+            $this->FLD('nick', 'email(link=no, ci)', 'caption=Ник,notNull, input=none');
         } else {
             //Ако не използвам никовете, тогава полето трябва да е задължително
-            $this->FLD('nick', 'nick(64)', 'caption=Ник,notNull,mandatory,width=100%');
+            $this->FLD('nick', 'nick(64, ci)', 'caption=Ник,notNull,mandatory,width=100%');
         }
         
         $this->FLD('names', 'varchar', 'caption=Имена,mandatory,width=100%');
-        $this->FLD('email', 'email(64)', 'caption=Имейл,mandatory,width=100%');
+        $this->FLD('email', 'email(64, ci)', 'caption=Имейл,mandatory,width=100%');
         
         // Поле за съхраняване на хеша на паролата
         $this->FLD('ps5Enc', 'varchar(128)', 'caption=Парола хеш,column=none,input=none,crypt');

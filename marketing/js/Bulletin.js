@@ -276,6 +276,8 @@ function showForm()
 	
 	$("body").append(this.getForm());
 	
+	$(".bulletinHolder").fadeIn(600);
+	
 	onClickCatcher();
 	
 	this.formIsShowed = true;
@@ -289,22 +291,24 @@ function showForm()
  */
 function getForm()
 {
-	var form = "<div class='bulletinHolder'>" +
+	var form = "<div class='bulletinHolder' style='display:none'>" +
 				"<div class='bulletinReg'>" +
 				"<a href='#' class='bulletinClose'>X</a>"+
 				"<div class='bulletinInner'>"+
-				"<div>[#formTitle#]</div>"+
-				"<div class='bulletinError' style='display:none; color: red;'>[#wrongMailText#]</div>"+
-				"<form class='bulletinForm' action='[#formAction#]'>" + 
-				"<div class='bulletinEmailHolder'>[#emailName#]: <input type='email' id='bulletinEmail' name='email' required></div>";
+				"<h2>[#formTitle#]</h2>"+
+				"<div class='bulletinError' style='visibility: hidden; color: red;'>[#wrongMailText#]</div>"+
+				"<form class='bulletinForm' action='[#formAction#]'>" +
+                "<div class='bulletinFilelds'>" +
+				"<div class='row bulletinEmailHolder'><span>[#emailName#]: </span><input type='text' id='bulletinEmail' name='email'></div>" ;
 	
 				if ('[#showAllForm#]' == 'yes') {
-					form += "<div class='bulletinNamesHolder'>[#namesName#]: <input type='text' id='bulletinNames' name='names'></div>"+
-					"<div class='bulletinCompanyHolder'>[#companyName#]: <input type='text' id='bulletinCompany' name='company'></div>";
+					form += "<div class='row bulletinNamesHolder'><span>[#namesName#]:</span> <input type='text' id='bulletinNames' name='names'></div>" +
+					"<div class='row bulletinCompanyHolder'><span>[#companyName#]: </span><input type='text' id='bulletinCompany' name='company'></div>"
 				}
-				
-				form += "<input type='submit' name='submit' value='[#submitBtnVal#]'>"+
-				"<div><a href='#' class='bulletinCancel'>[#cancelBtnVal#]</a></div>"+
+                form += "</div><div class='clearfix21'></div> " ;
+
+				form += "<div class='centered'><input type='submit' name='submit' value='[#submitBtnVal#]' class='push_button blue'></div>"+
+				"<div style='text-align: center;'><a href='#' class='bulletinCancel'>[#cancelBtnVal#]</a></div>"+
 				"</form>" +
 				"</div>" +
 				"</div>" +
@@ -351,8 +355,8 @@ function onClickCatcher()
         
         // Трябва да е валиден имейл и да има стойност
         if (!validateEmail(email)) {
-        	$('.bulletinError').show();
-        	$('.bulletinEmailHolder').css('border', '1px solid red');
+        	$('.bulletinError').css('visibility', 'visible');
+        	$('#bulletinEmail').css('border', '1px solid red');
         	return;
         }
         
@@ -400,8 +404,8 @@ function onClickCatcher()
  */
 function getSuccessText(url)
 {
-	var res = '<img src="' + url + '" alt="Img">' + 
-	"<div>[#successText#]</div>";
+	var res = '<div class="thanksText"><img src="' + url + '" alt="Img">' +
+	"<div class='successText'>[#successText#]</div></div>";
 	
 	return res;
 }

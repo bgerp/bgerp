@@ -976,17 +976,7 @@ class acc_Items extends core_Manager
             if(method_exists($AccRegister, 'getLinkToObj')) {
                 $row->link = $AccRegister->getLinkToObj($rec->objectId);
             } elseif(method_exists($AccRegister, 'act_Single')) {
-                
-                // По дефолт е линк към сингъла, ако имаме права
-                if($AccRegister->haveRightFor('single', $rec->objectId)) {
-                    if($AccRegister->fetchField($rec->objectId)){
-                        $row->link = ht::createLink(tr('Връзка'), array($AccRegister, 'Single', $rec->objectId));
-                    } else {
-                        $cantShow = TRUE;
-                    }
-                } else {
-                    $row->link = "<span style='color:red'>" . tr('Нямате права') . "</span>";
-                }
+                $row->link = $AccRegister->getHyperLink($rec->objectId, TRUE);
             }
         } else {
             $cantShow = TRUE;

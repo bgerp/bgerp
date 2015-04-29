@@ -37,6 +37,12 @@ class acc_ProfitArticlesReport extends acc_BalanceReportImpl
 
 
     /**
+     * Плъгини за зареждане
+     */
+    public $loadList = 'plg_ExportCsv';
+
+
+    /**
      * След подготовката на ембеднатата форма
      */
     public static function on_AfterAddEmbeddedFields($mvc, core_Form &$form)
@@ -57,6 +63,10 @@ class acc_ProfitArticlesReport extends acc_BalanceReportImpl
         $form->setDefault('action', 'group');
         $form->setHidden('orderField');
         $form->setHidden('orderBy');
+
+        $form->setField('from', 'export=Csv');
+
+       // bp($form);
     }
 
 
@@ -77,12 +87,58 @@ class acc_ProfitArticlesReport extends acc_BalanceReportImpl
         $articlePositionId = acc_Lists::getPosition($mvc->accountSysId, 'cat_ProductAccRegIntf');
 
         $form->setDefault("feat{$articlePositionId}", "*");
+        $form->setField("feat{$articlePositionId}",'export=Csv');
+        $form->setField('blQuantity', 'export=Csv');
+        $form->setField('blAmount', 'export=Csv');
+
+       // bp($form);
     }
 
 
     public static function on_AfterGetReportLayout($mvc, &$tpl)
     {
         $tpl->removeBlock('action');
+    }
+
+
+    /**
+     * Преди експортиране като CSV
+     */
+    public static function on_BeforeExportCsv($mvc, &$rec)
+    {
+        //bp();
+
+    }
+
+
+    /**
+     * След подготвяне на заявката за експорт
+     */
+    public static function on_AfterPrepareExportQuery($mvc, &$query)
+    {
+        //bp();
+        //$query->orWhere("#state = 'rejected' AND #brState = 'active'");
+        //$query->where("#state = 'draft'");
+    }
+
+
+
+
+    /**
+     * След подготовка на тулбара на единичен изглед.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareSingleToolbar($mvc, $data)
+    {
+        bp();
+        // Ако нямаме права за писане в треда
+        if(doc_Threads::haveRightFor('single', $data->rec->threadId) == FALSE){
+
+            // Премахваме бутона за коментар
+            $data->toolbar->removeBtn('Коментар');
+        }
     }
 
 
@@ -102,6 +158,9 @@ class acc_ProfitArticlesReport extends acc_BalanceReportImpl
 
         $data->listFields['blQuantity'] = "Крайно салдо (ДК)->К-во";
         $data->listFields['blAmount'] = "Крайно салдо (ДК)->Сума";
+        //$data->setField('blQuantity', 'export=Csv');
+
+        //bp($data);
 
     }
 
@@ -115,12 +174,13 @@ class acc_ProfitArticlesReport extends acc_BalanceReportImpl
     {
 
         $chart = Request::get('Chart');
+        $id = Request::get('id', 'int');
 
         $tpl = $this->getReportLayout();
 
         $tpl->replace($this->title, 'TITLE');
         $this->prependStaticForm($tpl, 'FORM');
-
+//bp($data);
         // ако имаме записи има и смисъл да
         // слагаме табове
         if($data->recs) {
@@ -128,7 +188,7 @@ class acc_ProfitArticlesReport extends acc_BalanceReportImpl
             $btnList = ht::createBtn('Таблица', array(
                     'doc_Containers',
                     'list',
-                    'threadId' => Request::get('threadId', 'int')
+                    'threadId' => Request::get('threadId', 'int'),
 
                 ), NULL, NULL,
                 'ef_icon = img/16/table.png');
@@ -139,7 +199,7 @@ class acc_ProfitArticlesReport extends acc_BalanceReportImpl
                     'doc_Containers',
                     'list',
                     'Chart' => 'pie'. $data->rec->containerId,
-                    'threadId' => Request::get('threadId', 'int')
+                    'threadId' => Request::get('threadId', 'int'),
 
                 ), NULL, NULL,
                 'ef_icon = img/16/chart16.png');
@@ -158,7 +218,8 @@ class acc_ProfitArticlesReport extends acc_BalanceReportImpl
             $arr = self::preparePie($dArr, 9, 'Others');
 
             foreach ($arr as $id => $recSort) {
-                $info[$recSort->key] = $recSort->value;
+
+                $info[substr($recSort->key,0,19)] = $recSort->value;
                 //$info[$recSort->key] = round(($recSort->value/$balance) * 100,2);
             }
 
@@ -214,6 +275,7 @@ class acc_ProfitArticlesReport extends acc_BalanceReportImpl
         return $tpl;
 
     }
+
 
 
     /**
@@ -291,6 +353,21 @@ class acc_ProfitArticlesReport extends acc_BalanceReportImpl
         $activateOn = "{$this->innerForm->to} 23:59:59";
 
         return $activateOn;
+    }
+
+    /**
+     * Ще се експортирват полетата, които се
+     * показват в табличния изглед
+     *
+     * @return array
+     */
+    public function getExportFields ()
+    {
+
+        $exportFields['ent3Id']  = "Артикули";
+        $exportFields['blAmount']  = "Крайно салдо";
+
+        return $exportFields;
     }
 
 }

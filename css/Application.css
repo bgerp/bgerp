@@ -4033,12 +4033,22 @@ only screen and (max-width: 320px) {
     width: auto !important;
     height: auto !important; }
 
-.treeView {
-  min-width: 280px; }
   .treeView tr:nth-child(odd) {
     background: white; }
   .treeView .hidden {
     display: none; }
+  .treeView .treeLevel1 .leafName {
+    text-indent: 20px; }
+  .treeView .treeLevel2 .leafName {
+    text-indent: 40px; }
+  .treeView .treeLevel3 .leafName {
+    text-indent: 60px; }
+  .treeView .treeLevel4 .leafName {
+    text-indent: 80px; }
+  .treeView .leafName {
+    min-width: 250px; }
+  .treeView .toggleBtn {
+    margin-right: 6px; }
 
 .debug_block {
   padding: 5px;
