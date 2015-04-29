@@ -197,50 +197,9 @@ abstract class frame_BaseDriver extends core_BaseClass
 	 * @param core_Mvc $mvc
 	 * @param stdClass $rec
 	 */
-	public function exportCsv($mvc, &$rec)
+	public function exportCsv()
     {
 
-        $conf = core_Packs::getConfig('core');
-
-        if (count($rec->data->recs) > $conf->EF_MAX_EXPORT_CNT) {
-            redirect(array($mvc), FALSE, "Броят на заявените записи за експорт надвишава максимално разрешения|* - " . $conf->EF_MAX_EXPORT_CNT, 'error');
-        }
-
-        // Масива с избраните полета за export
-        //$exportFields = $mvc->selectFields("#export");
-        //bp($exportFields);
-
-        /* за всеки ред */
-        foreach ($rec->data->recs as $rec) {
-
-
-            // Всеки нов ред ва началото е празен
-            $rCsv = '';
-
-            /* за всяка колона */
-            foreach ($rec as $field => $caption) {
-                $type = $mvc->fields[$field]->type;
-
-                if ($type instanceof type_Key) {
-                    $value = $mvc->getVerbal($rec, $field);
-                } else {
-                    $value = $rec->{$field};
-
-
-                    // escape
-                    if (preg_match('/\\r|\\n|,|"/', $value)) {
-                        $value = '"' . str_replace('"', '""', $value) . '"';
-                    }
-
-                    $rCsv .= "," . $value;
-                }
-
-                /* END за всяка колона */
-
-                $csv .= $rCsv . "\n";
-            }
-
-            echo $csv;
-        }
     }
+
 }

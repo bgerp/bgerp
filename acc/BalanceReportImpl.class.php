@@ -525,4 +525,78 @@ class acc_BalanceReportImpl extends frame_BaseDriver
       	  	
       	  return $activateOn;
       }
+
+     /**
+      * Ако имаме в url-то export създаваме csv файл с данните
+      *
+      * @param core_Mvc $mvc
+      * @param stdClass $rec
+      */
+     public function exportCsv()
+     {
+
+         $Driver = core_Cls::getClassName($this);
+
+         $exportFields = $Driver::getExportFields();
+
+         $conf = core_Packs::getConfig('core');
+
+         if (count($this->innerState->recs) > $conf->EF_MAX_EXPORT_CNT) {
+             redirect(array($this), FALSE, "Броят на заявените записи за експорт надвишава максимално разрешения|* - " . $conf->EF_MAX_EXPORT_CNT, 'error');
+         }
+
+         $csv = "";
+
+         foreach ($exportFields as $caption) {
+             $header .= "," . $caption;
+         }
+
+         foreach ($this->innerState->recs as $id => $rec) {
+             $rCsv = '';
+             foreach ($exportFields as $field => $caption) {
+
+
+                 if ($rec->{$field}) {
+
+                     $value = $rec->{$field};
+
+                     // escape
+                     if (preg_match('/\\r|\\n|,|"/', $value)) {
+                         $value = '"' . str_replace('"', '""', $value) . '"';
+                     }
+                     $rCsv .= "," . $value;
+
+                 }
+
+
+             }
+             $csv .= $rCsv;
+             $csv .=  "\n";
+
+         }
+
+         $csv = $header . "\n" . $csv;
+
+         return $csv;
+    }
+
+
+    /**
+     * Ще се експортирват полетата, които се
+     * показват в табличния изглед
+     *
+     * @return array
+     */
+    public function getExportFields ()
+    {
+
+        $exportFields['ent1Id']  = "Контрагенти";
+        $exportFields['baseAmount']  = "Начално салдо";
+        $exportFields['debitAmount']  = "Обороти Дебит";
+        $exportFields['creditAmount']  = "Обороти Кредит";
+        $exportFields['blAmount']  = "Крайно салдо";
+
+        return $exportFields;
+    }
+
 }
