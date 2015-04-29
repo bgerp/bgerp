@@ -69,6 +69,8 @@ class vislog_Referer extends core_Manager {
         $this->FLD("query", 'varchar(255)', 'caption=Query');
         $this->FLD('searchLogResourceId', 'key(mvc=vislog_HistoryResources,title=query)', 'caption=Ресурс');
         $this->FLD('ip', 'ip(15,showNames)', 'caption=Ip');
+
+        $this->setDbIndex('ip'); 
     }
     
     
