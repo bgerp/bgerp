@@ -80,7 +80,7 @@ function toggleChildren(id){
         var elemId = $(this).attr('data-id');
         if ($('tr[data-parentid="' + elemId + '"]').length) {
             toggleChildren(elemId);
-            $(this).parent().find('.toggleBtn').toggleClass('hidden');
+            $(this).find('.toggleBtn').toggleClass('hidden');
         }
     });
 }
