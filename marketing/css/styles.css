@@ -59,6 +59,7 @@
     margin: 10px 30px 10px;
     line-height: 1.3em;
     color:#333;
+    background: none !important;
 }
 
 .narrow .bulletinHolder h2 {
