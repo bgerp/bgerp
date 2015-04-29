@@ -104,6 +104,16 @@ class marketing_Bulletin extends core_Manager
         
         if (!$haveError) {
             
+            // Добавяме данните към `brid` в модела
+            $userData = array('email' => $email);
+            if ($company) {
+                $userData['company'] = $company;
+            }
+            if ($names) {
+                $userData['names'] = $names;
+            }
+            core_Browser::setVars($userData);
+            
             if (!self::fetch(array("#email='[#1#]'", $email))) {
                 $rec = new stdClass();
                 $rec->email = $email;
