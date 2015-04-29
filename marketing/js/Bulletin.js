@@ -276,6 +276,8 @@ function showForm()
 	
 	$("body").append(this.getForm());
 	
+	$(".bulletinHolder").fadeIn(600);
+	
 	onClickCatcher();
 	
 	this.formIsShowed = true;
@@ -289,7 +291,7 @@ function showForm()
  */
 function getForm()
 {
-	var form = "<div class='bulletinHolder'>" +
+	var form = "<div class='bulletinHolder' style='display:none'>" +
 				"<div class='bulletinReg'>" +
 				"<a href='#' class='bulletinClose'>X</a>"+
 				"<div class='bulletinInner'>"+
