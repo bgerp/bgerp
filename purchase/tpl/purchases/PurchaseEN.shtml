@@ -34,12 +34,12 @@
                                         <div class='address-block'>
                                             [#MyAddress#]
                                         </div>
-                                        <!--ET_BEGIN deliveryLocationId-->
+                                        <!--ET_BEGIN shipmentStoreId-->
                                         <hr style="margin: 3px 0 1px;">
                                         <div>
-                                            From location: [#deliveryLocationId#]
+                                            To store: [#shipmentStoreId#]
                                         </div>
-                                        <!--ET_END deliveryLocationId-->
+                                        <!--ET_END shipmentStoreId-->
                                     </td>
                                     <td class="cell">
                                         <b>[#contragentName#]</b>
@@ -47,12 +47,12 @@
                                             [#contragentCountryId#]
                                             <!--ET_BEGIN contragentAddress-->[#contragentAddress#] <!--ET_END contragentAddress-->
                                         </div>
-                                        <!--ET_BEGIN shipmentStoreId-->
+                                        <!--ET_BEGIN deliveryLocationId-->
                                         <hr style="margin: 3px 0 1px;">
                                         <div>
-                                            To store: [#shipmentStoreId#]
+                                            From location: [#deliveryLocationId#]
                                         </div>
-                                        <!--ET_END shipmentStoreId-->
+                                        <!--ET_END deliveryLocationId-->
                                     </td>
                                 </tr>
                             </tbody>
