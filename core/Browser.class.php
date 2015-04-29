@@ -2,6 +2,12 @@
 
 
 /**
+ * "Подправка" за кодиране на BRID
+ */
+defIfNot('BRID_SALT', md5(EF_SALT . '_BRID'));
+
+
+/**
  * Клас 'core_Browser' - Определя параметрите на потребителския браузър
  *
  *
@@ -271,7 +277,9 @@ class core_Browser extends core_Manager
      */
     static function generateBrid_()
     {
-        $brid = str::getRand();
+        $str = md5($_SERVER['HTTP_USER_AGENT'] . '|' . core_Users::getRealIpAddr() . '|' . dt::today() . '|' . BRID_SALT);
+        
+        $brid = substr($str, 0, 8);
         
         return $brid;
     }
