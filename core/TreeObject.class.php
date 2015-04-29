@@ -43,8 +43,7 @@ class core_TreeObject extends core_Manager
 			$mvc->FLD('makeDescendantsFeatures', "enum(no=Не,yes=Да)", 'caption=Наследниците дали да бъдат сч. признаци->Избор,notNull,value=yes');
 		}
 		
-		// Поставяне на уникален индекс
-		//$mvc->setDbUnique($mvc->nameField);
+		$mvc->setField($mvc->nameField, 'tdClass=leafName');
 	}
 	
 	
