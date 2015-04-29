@@ -37,6 +37,7 @@ class core_TreeObject extends core_Manager
 		if(!$mvc->getField($mvc->parentFieldName, FALSE)){
 			$mvc->FLD($mvc->parentFieldName, "key(mvc={$mvc->className},allowEmpty,select={$mvc->nameField})", 'caption=В състава на');
 		}
+		$mvc->setField($mvc->parentFieldName, 'silent');
 		
 		// Дали наследниците на обекта да са счетоводни пера
 		if(!$mvc->getField('makeDescendantsFeatures', FALSE)){
@@ -141,73 +142,6 @@ class core_TreeObject extends core_Manager
 		}
 		
 		return $title;
-	}
-	
-	
-	/**
-	 * Екшън за дървовидно разглеждане на обекта
-	 */
-	public function act_ListTree()
-	{
-		$this->requireRightFor('list');
-		
-		$query = $this->getQuery();
-		$query->where("#parentId IS NULL");
-		$query->show('id');
-		$tpl = new core_ET("<table class='listTable treeView'>[#LISTS_BODY#]</table>");
-		while($rec = $query->fetch()){
-			$round = -1;
-			$tpl->append($this->getListTpl($rec->id, $round, $rec->id), 'LISTS_BODY');
-		}
-		
-		$this->renderWrapping($tpl);
-        jquery_Jquery::run($tpl, "treeViewAction();");
-
-		return $tpl;
-	}
-	
-	
-	/**
-	 * Връща вложен списък от наследниците на даден обект
-	 * 
-	 * @param int $id - ид на корен
-	 * @return core_ET $tpl - шаблона
-	 */
-	protected function getListTpl($id, &$round, $parentId)
-	{
-        $round++;
-
-		if($id == $parentId){
-			$parentId = NULL;
-		}
-		
-		$desc = $this->getDescendents($id);
-        $indent = 18 * $round;
-		if(count($desc)){
-            $plusIcon = sbf('img/16/toggle-expand.png', '');
-            $minusIcon = sbf('img/16/toggle2.png', '');
-            $plus = "<img class = 'hidden' src='{$plusIcon}' width='13' height='13'/>";
-            $minus = "<img  src='{$minusIcon}' width='13' height='13'/>";
-
-
-            $tpl = new core_ET("<tr><td  data-id='{$id}' data-parentid='{$parentId}' style='text-indent: {$indent}px'> {$plus}{$minus} [#title#]</td></tr>");
-			$tpl->replace($this->getVerbal($id, $this->nameField), 'title');
-
-			foreach ($desc as $d){
-				$round2 = $round;
-				$nTpl = $this->getListTpl($d->id, $round2, $id);
-				$tpl->append($nTpl);
-			}
-		} else {
-			$tpl = new core_ET("<tr><td data-id='{$id}' data-parentid = {$parentId} style='text-indent: {$indent}px'>[#LISTS#]</td></tr>");
-			$title = $this->getVerbal($id, $this->nameField);
-			$tpl->replace($title, 'LISTS');
-		}
-		
-		$tpl->removeBlocks();
-		$tpl->removePlaces();
-		
-		return $tpl;
 	}
 	
 	
@@ -363,7 +297,21 @@ class core_TreeObject extends core_Manager
 				
 				$row->{$mvc->nameField} = " {$plus}{$minus}" . $row->{$mvc->nameField};
 			}
+			
+			if($mvc->haveRightFor('add')){
+				$url = array($mvc, 'add', 'parentId' => $rec->id, 'ret_url' => TRUE);
+				$row->love = ht::createLink('', $url, FALSE, 'ef_icon=img/16/add.png,title=Добавяне на нов поделемент');
+			}
 		}
+	}
+	
+	
+	/**
+	 * Извиква се след подготовката на колоните ($data->listFields)
+	 */
+	protected static function on_AfterPrepareListFields($mvc, $data)
+	{
+		arr::placeInAssocArray($data->listFields, array('love' => ' '), NULL, $mvc->nameField);
 	}
 	
 	
