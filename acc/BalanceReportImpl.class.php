@@ -457,7 +457,7 @@ class acc_BalanceReportImpl extends frame_BaseDriver
            $Double = cls::get('type_Double');
            $Double->params['decimals'] = 2;
            $Int = cls::get('type_Int');
-       
+
            $row = new stdClass();
            $row->id = $Int->toVerbal($rec->id);
        
@@ -525,6 +525,7 @@ class acc_BalanceReportImpl extends frame_BaseDriver
       	  	
       	  return $activateOn;
       }
+
 
      /**
       * Ако имаме в url-то export създаваме csv файл с данните
