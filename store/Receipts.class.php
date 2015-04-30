@@ -29,7 +29,7 @@ class store_Receipts extends store_DocumentMaster
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf, acc_ExpenseAllocationSourceIntf, store_iface_DocumentIntf,
+    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf, store_iface_DocumentIntf,
                           acc_TransactionSourceIntf=store_transaction_Receipt, bgerp_DealIntf';
     
     
