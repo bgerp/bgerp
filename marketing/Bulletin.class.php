@@ -18,7 +18,7 @@ class marketing_Bulletin extends core_Manager
     /**
      * Заглавие
      */
-    var $title = "Абонамент за бюлетина";
+    var $title = "Абонати за бюлетина";
     
     
     /**
