@@ -22,7 +22,7 @@ defIfNot('MARKETING_INQUIRY_QUANTITIES', 3);
 /**
  * Дали да се показва бюлетина
  */
-defIfNot('MARKETING_USE_BULLETIN', 'yes');
+defIfNot('MARKETING_USE_BULLETIN', 'no');
 
 /**
  * След колко време формата да може да се показва повторно

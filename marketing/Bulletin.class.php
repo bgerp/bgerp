@@ -2,7 +2,7 @@
 
 
 /**
- * Абониране за бюлетини
+ * Абониране за бюлетина
  *
  * @category  bgerp
  * @package   marketing
