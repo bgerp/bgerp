@@ -75,7 +75,7 @@ class marketing_Bulletin extends core_Manager
     function description()
     {
         $this->FLD('email', 'email', 'caption=Имейл, mandatory');
-        $this->FLD('names', 'varchar(128)', 'caption=Имена');
+        $this->FLD('name', 'varchar(128)', 'caption=Имена, oldFieldName=names');
         $this->FLD('company', 'varchar(128)', 'caption=Фирма');
         $this->FLD('ip', 'ip', 'caption=IP, input=none');
         $this->FLD('brid', 'varchar(8)', 'caption=BRID, input=none');
@@ -92,7 +92,7 @@ class marketing_Bulletin extends core_Manager
         vislog_History::add('Нов абонамент за бюлетина');
         
         $email = trim(Request::get('email'));
-        $names = trim(Request::get('names'));
+        $name = trim(Request::get('name'));
         $company = trim(Request::get('company'));
         
         // Проверява дали имейла е валиден, за да може да се запише
@@ -109,15 +109,15 @@ class marketing_Bulletin extends core_Manager
             if ($company) {
                 $userData['company'] = $company;
             }
-            if ($names) {
-                $userData['names'] = $names;
+            if ($name) {
+                $userData['name'] = $name;
             }
             core_Browser::setVars($userData);
             
             if (!self::fetch(array("#email='[#1#]'", $email))) {
                 $rec = new stdClass();
                 $rec->email = $email;
-                $rec->names = $names;
+                $rec->name = $name;
                 $rec->company = $company;
                 $rec->ip = core_Users::getRealIpAddr();
                 $rec->brid = core_Browser::getBrid();
@@ -431,7 +431,7 @@ class marketing_Bulletin extends core_Manager
         $resArr = array();
         
         while ($rec = $query->fetch()) {
-            $resArr[$rec->id] = array('email' => $rec->email, 'person' => $rec->names, 'company' => $rec->company);
+            $resArr[$rec->id] = array('email' => $rec->email, 'person' => $rec->name, 'company' => $rec->company);
         }
         
         return $resArr;

@@ -302,7 +302,7 @@ function getForm()
 				"<div class='row bulletinEmailHolder'><span>[#emailName#]: </span><input type='text' id='bulletinEmail' name='email'></div>" ;
 	
 				if ('[#showAllForm#]' == 'yes') {
-					form += "<div class='row bulletinNamesHolder'><span>[#namesName#]:</span> <input type='text' id='bulletinNames' name='names'></div>" +
+					form += "<div class='row bulletinNamesHolder'><span>[#namesName#]:</span> <input type='text' id='bulletinNames' name='name'></div>" +
 					"<div class='row bulletinCompanyHolder'><span>[#companyName#]: </span><input type='text' id='bulletinCompany' name='company'></div>"
 				}
                 form += "</div><div class='clearfix21'></div> " ;
@@ -363,18 +363,18 @@ function onClickCatcher()
         email = encodeURIComponent(email);
         var namesElem = document.getElementById('bulletinNames');
         var companyElem = document.getElementById('bulletinCompany');
-        var names = '';
+        var name = '';
         var company = '';
         
         if (namesElem) {
-        	names = encodeURIComponent(namesElem.value);
+        	name = encodeURIComponent(namesElem.value);
         }
         
         if (companyElem) {
         	company = encodeURIComponent(companyElem.value);
         }
         
-        url += '?email=' + email + '&names=' + names + '&company=' + company + '&r=' + Math.random();
+        url += '?email=' + email + '&name=' + name + '&company=' + company + '&r=' + Math.random();
         
         // Скриваме част от формата и показваме текст за успешна регистрация
         $('.bulletinInner').fadeOut('slow', function() {
