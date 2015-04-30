@@ -19,7 +19,7 @@ defIfNot('BRID_SALT', md5(EF_SALT . '_BRID'));
  * @since     v 0.1
  * @link
  */
-class core_Browser extends core_Manager
+class core_Browser extends core_Master
 {
     
     
@@ -69,6 +69,12 @@ class core_Browser extends core_Manager
      * Кой може да го разглежда?
      */
     var $canList = 'admin';
+    
+    
+    /**
+     * Кой може да разглежда сингъла?
+     */
+    var $canSingle = 'admin';
     
     
     /**
