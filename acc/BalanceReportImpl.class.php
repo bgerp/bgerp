@@ -535,9 +535,7 @@ class acc_BalanceReportImpl extends frame_BaseDriver
      public function exportCsv()
      {
 
-         $Driver = core_Cls::getClassName($this);
-
-         $exportFields = $Driver::getExportFields();
+         $exportFields = $this->getExportFields();
 
          $conf = core_Packs::getConfig('core');
 
@@ -552,6 +550,8 @@ class acc_BalanceReportImpl extends frame_BaseDriver
          }
 
          foreach ($this->innerState->recs as $id => $rec) {
+             $rec = $this->getVerbalDetail($rec);
+
              $rCsv = '';
              foreach ($exportFields as $field => $caption) {
 
@@ -559,7 +559,7 @@ class acc_BalanceReportImpl extends frame_BaseDriver
                  if ($rec->{$field}) {
 
                      $value = $rec->{$field};
-
+                     $value = html2text_Converter::toRichText($value);
                      // escape
                      if (preg_match('/\\r|\\n|,|"/', $value)) {
                          $value = '"' . str_replace('"', '""', $value) . '"';
