@@ -4048,7 +4048,8 @@ only screen and (max-width: 320px) {
   .treeView .leafName {
     min-width: 250px; }
   .treeView .toggleBtn {
-    margin-right: 6px; }
+    margin-right: 6px;
+    cursor: pointer; }
 
 .debug_block {
   padding: 5px;
