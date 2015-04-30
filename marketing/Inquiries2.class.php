@@ -696,22 +696,21 @@ class marketing_Inquiries2 extends core_Embedder
     		    
     		    vislog_History::add('Ново запитване');
     		    
-    		    $email = trim($form->rec->email);
-    		    $names = trim($form->rec->name);
-    		    $company = trim($form->rec->company);
-    		    $userData = array('email' => $email, 'names' => $names);
-        		if ($company) {
-                    $userData['company'] = $company;
-                }
-                core_Browser::setVars($userData);
+    			$cu = core_Users::getCurrent('id', FALSE);
+    		    
+    			// Ако няма потребител
+    			if(!$cu){
+        		    $contactFields = $this->selectFields("#class == 'contactData'");
+                    $fieldNamesArr = array_keys($contactFields);
+                    $userData = array();
+                    foreach ((array)$fieldNamesArr as $fName) {
+                        if (!trim($form->rec->$fName)) continue;
+                        $userData[$fName] = $form->rec->$fName;
+                    }
+                    core_Browser::setVars($userData);
+    			}
     		    
     			$id = $this->save($rec);
-    			$cu = core_Users::getCurrent('id', FALSE);
-    			 
-    			// Ако няма потребител, записваме в бисквитка ид-то на последното запитване
-    			if(!$cu){
-    				setcookie("inquiryCookie[inquiryId]", str::addHash($id, 10), time() + 2592000);
-    			}
     			
     			status_Messages::newStatus(tr('Благодарим ви за запитването'), 'success');
     			 
@@ -722,22 +721,6 @@ class marketing_Inquiries2 extends core_Embedder
     			 
     			return followRetUrl();
     		}
-    	}
-    	
-    	// Попълваме данните, които потребителя е въвел преди
-    	$vars = core_Browser::getVars(array('email', 'names', 'company'));
-    	if ($vars) {
-        	if ($vars['email']) {
-        	    $form->setDefault('email', $vars['email']);
-        	}
-        	
-    	    if ($vars['names']) {
-        	    $form->setDefault('name', $vars['names']);
-        	}
-    	    
-        	if ($vars['company']) {
-        	    $form->setDefault('company', $vars['company']);
-        	}
     	}
     	
     	$form->toolbar->addSbBtn('Изпрати', 'save', 'id=save, ef_icon = img/16/disk.png,title=Изпращане на запитването');
@@ -820,7 +803,7 @@ class marketing_Inquiries2 extends core_Embedder
     	}
     	 
     	// Ако няма потребител, но има бискйвитка зареждаме данни от нея
-    	if(!$cu && isset($_COOKIE['inquiryCookie']['inquiryId'])){
+    	if(!$cu){
     		$this->setFormDefaultFromCookie($form);
     	}
     	 
@@ -833,11 +816,13 @@ class marketing_Inquiries2 extends core_Embedder
      */
     private function setFormDefaultFromCookie(&$form)
     {
-    	$inquiryId = str::checkHash($_COOKIE['inquiryCookie']['inquiryId'], 10);
-    	$lastInquiry = $this->fetch($inquiryId);
-    	$contactFields = $this->selectFields("#class == 'contactData'");
-    	foreach ($contactFields as $name => $fld){
-    		$form->rec->{$name} = $lastInquiry->{$name};
+        $contactFields = $this->selectFields("#class == 'contactData'");
+        $fieldNamesArr = array_keys($contactFields);
+        
+        $vars = core_Browser::getVars($fieldNamesArr);
+        
+    	foreach ((array)$vars as $name => $val){
+    		$form->setDefault($name, $val);
     	}
     }
     
