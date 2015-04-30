@@ -277,10 +277,13 @@ class core_Browser extends core_Manager
         // Ако е бот, да не се добавя
         if (static::detectBot()) return ;
         
-        $rec = new stdClass();
-        $rec->brid = $brid;
+        if (!$rec = self::fetch(array("#brid = '[#1#]'", $brid))) {
+            $rec = new stdClass();
+            $rec->brid = $brid;
+        }
+        
         $rec->userAgent = static::getUserAgent();
-         
+        
         static::save($rec, NULL, REPLACE);
     }
     
