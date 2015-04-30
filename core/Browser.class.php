@@ -308,9 +308,6 @@ class core_Browser extends core_Master
      */
     static function add($brid)
     {
-        // Ако е бот, да не се добавя
-        if (static::detectBot()) return ;
-        
         if (!$rec = self::fetch(array("#brid = '[#1#]'", $brid))) {
             $rec = new stdClass();
             $rec->brid = $brid;
@@ -389,8 +386,12 @@ class core_Browser extends core_Master
      * @return string
      */
     static function generateBrid_()
-    {
-        $str = md5($_SERVER['HTTP_USER_AGENT'] . '|' . core_Users::getRealIpAddr() . '|' . dt::today() . '|' . BRID_SALT);
+    {   
+        if($bot = static::detectBot()) {
+            $str = md5($bot . BRID_SALT);
+        } else {
+            $str = md5($_SERVER['HTTP_USER_AGENT'] . '|' . core_Users::getRealIpAddr() . '|' . dt::today() . '|' . BRID_SALT);
+        }
         
         $brid = substr($str, 0, 8);
         
@@ -681,7 +682,7 @@ class core_Browser extends core_Master
     {
         setIfNot($userAgent, $_SERVER['HTTP_USER_AGENT']);
 
-        $bots = 'Google|GoogleBot|Googlebot|msnbot|Bingbot|Teoma|80legs|xenon|baidu|Charlotte|DotBot|Sosospider|Rambler|Yahoo|' .
+        $bots = 'GoogleBot|Google|msnbot|Bingbot|Teoma|80legs|xenon|baidu|Charlotte|DotBot|Sosospider|Rambler|Yahoo|' .
             'AbachoBOT|Acoon|appie|Fluffy|ia_archiver|MantraAgent|Openbot|accoona|AcioRobot|ASPSeek|CocoCrawler|Dumbot|' . 
             'FAST-WebCrawler|GeonaBot|Gigabot|Lycos|MSRBOT|Scooter|AltaVista|IDBot|eStyle|Scrubby';
 
