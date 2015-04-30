@@ -42,7 +42,7 @@ class blogm_Comments extends core_Detail {
 	/**
 	 * Полета за изглед
 	 */
-	var $listFields = 'name, email, web, ip, articleId, comment=@, createdOn=Създаване';
+	var $listFields = 'name, email, web, ip, brid, articleId, comment=@, createdOn=Създаване';
 	
 		
 	/**
@@ -262,4 +262,51 @@ class blogm_Comments extends core_Detail {
             $res = 'no_one'; 
         }
 	}
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    {
+    	$row->ip = type_Ip::decorateIp($rec->ip, $rec->createdOn, TRUE);
+    	
+    	if ($rec->brid) {
+    	    $row->brid = str::coloring($row->brid);
+    	    $bridRec = core_Browser::getRecFromBrid($rec->brid);
+        	if ($bridRec) {
+        	    if (core_Browser::haveRightFor('single', $bridRec)) {
+        	        $row->brid = ht::createLink($row->brid, array('core_Browser', 'single', $bridRec->id));
+        	    }
+        	}
+    	}
+    }
+    
+    
+    /**
+     * Извиква се след подготовката на toolbar-а за табличния изглед
+     * Форма за търсене по дадена ключова дума
+     */
+    static function on_AfterPrepareListFilter($mvc, &$res, $data)
+    {
+        $data->listFilter->showFields = 'ip, brid';
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        $data->listFilter->input($data->listFilter->showFields, 'silent');
+        
+        if($ip = $data->listFilter->rec->ip){
+            $ip = str_replace('*', '%', $ip);
+            $data->query->where(array("#ip LIKE '[#1#]'", $ip));
+        }
+        
+        if($brid = $data->listFilter->rec->brid){
+            $data->query->where(array("#brid LIKE '[#1#]'", $brid));
+        }
+        
+        $data->query->orderBy("#createdOn=DESC");
+    }
 }
