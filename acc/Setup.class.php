@@ -98,9 +98,6 @@ class acc_Setup extends core_ProtoSetup
     	'acc_BalanceRepairs',
     	'acc_BalanceRepairDetails',
     	'acc_BalanceTransfers',
-    	'acc_ExpenseAllocations',
-    	'acc_ExpenseAllocationProducts',
-    	'acc_ExpenseAllocationExpenses',
         'migrate::removeYearInterfAndItem',
         'migrate::updateItemsNum1',
     );
