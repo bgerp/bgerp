@@ -136,6 +136,11 @@ class core_Browser extends core_Master
         }
 
         $row->brid = str::coloring($row->brid);
+        
+        $userDataType = $mvc->fields['userData']->type;
+        
+        $row->userData = $userDataType->mixedToString($rec->userData);
+        $row->userData = $userDataType->escape($row->userData);
     }
     
 
