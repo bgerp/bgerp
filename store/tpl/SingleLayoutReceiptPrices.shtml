@@ -36,12 +36,12 @@
                                             <div class='address-block'>
                                                 [#MyAddress#]
                                             </div>
-                                            <!--ET_BEGIN ourLocation-->
-					                           <div style='font-size: 0.9em;'>
-					                               <div class='custom-bg-block'>|Локация|*: <b>[#ourLocation#]</b></div>
-					                                   [#ourLocationAddress#]
-					                           </div>
-					                        <!--ET_END ourLocation-->
+                                            <!--ET_BEGIN storeId-->
+                                            <hr style="margin: 3px 0 1px;">
+                                            <div>
+                                                |До склад|*: [#storeId#]
+                                            </div>
+                                            <!--ET_END storeId-->
                                         </td>
                                         <td class="cell">
                                             <b>[#contragentName#]</b>
@@ -49,12 +49,12 @@
                                                 [#contragentCountryId#]
                                                 <!--ET_BEGIN contragentAddress-->[#contragentAddress#] <!--ET_END contragentAddress-->
                                             </div>
-                                            <!--ET_BEGIN deliveryLocationId-->
-					                            <div style='font-size: 0.9em;'>
-					                                <div class='custom-bg-block'>|Локация|*: <b>[#locationId#]</b></div>
-					                                    [#deliveryLocationAddress#]
-					                            </div>
-					                        <!--ET_END deliveryLocationId-->
+                                            <!--ET_BEGIN locationId-->
+                                            <hr style="margin: 3px 0 1px;">
+                                            <div>
+                                                |От обект|*: [#locationId#]
+                                            </div>
+                                            <!--ET_END locationId-->
                                         </td>
                                     </tr>
                                 </tbody>
@@ -75,12 +75,6 @@
                                                     <td>[#deliveryTime#]</td>
                                                 </tr>
                                                 <!--ET_END deliveryTime-->
-                                                <!--ET_BEGIN storeId-->
-                                                <tr>
-                                                    <td class='quiet nowrap aright' style='width:1%;'>|В склад|*:</td>
-                                                    <td>[#storeId#]</td>
-                                                </tr>
-                                                <!--ET_END storeId-->
                                                 <!--ET_BEGIN lineId-->
                                                 <tr>
                                                     <td class='quiet nowrap aright' style='width:1%;'>|Транспорт|*: </td>
