@@ -92,7 +92,7 @@ class blogm_Comments extends core_Detail {
    		$this->FLD('web', 'url(72)', 'caption=Сайт, width=65%,placeholder=Вашият сайт или блог');
 		$this->FLD('comment', 'richtext(bucket=Notes)', 'caption=Коментар,mandatory,placeholder=Въведете вашия коментар тук');
   		$this->FLD('state', 'enum(pending=Чакащ,active=Публикуван,rejected=Оттеглен)', 'caption=Състояние,mandatory');
-  		$this->FLD('browserId', 'varchar(16)', 'caption=ID на браузър,input=none');
+  		$this->FLD('brid', 'varchar(8)', 'caption=ID на браузър,input=none, oldFieldName=browserId');
         $this->FLD('ip', 'ip', 'caption=IP,input=none');
 	}
 
@@ -109,10 +109,10 @@ class blogm_Comments extends core_Detail {
         $fields = $me->selectFields("");
         $fields['-article'] = TRUE;
         
-        // Търсим browserId в сесията
-        $data->browserId = core_Browser::getBrid();
+        // Търсим brid в сесията
+        $data->brid = core_Browser::getBrid();
         
-        $query->where(array("#articleId = {$data->articleId} AND (#state = 'active' OR #browserId = '[#1#]')", $data->browserId));
+        $query->where(array("#articleId = {$data->articleId} AND (#state = 'active' OR #brid = '[#1#]')", $data->brid));
         
         while($rec = $query->fetch()) {
             $data->commentsRecs[$rec->id] = $rec;
@@ -197,7 +197,7 @@ class blogm_Comments extends core_Detail {
 
             $rec->ip = core_Users::getRealIpAddr();
 
-            $rec->browserId = core_Browser::getBrid();
+            $rec->brid = core_Browser::getBrid();
         }
     }
 	
