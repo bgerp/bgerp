@@ -428,7 +428,11 @@ class forum_Postings extends core_Detail {
             
             // Ако формата е успешно изпратена - запис, лог, редирек
             if ($data->form->isSubmitted() && Request::get('body')) {
-                vislog_History::add('Нова тема във форума');
+                
+                if (!core_Users::isPowerUser(core_Users::getCurrent())) {
+                    vislog_History::add('Нова тема във форума');
+                }
+                
             	$id = $this->save($rec);
                 $this->log('add', $id);
                 
