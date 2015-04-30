@@ -308,7 +308,8 @@ class support_Issues extends core_Master
     			
     			// Ако няма потребител, записваме в бисквитка ид-то на последното запитване
     			if(!$cu){
-    				setcookie("inquiryCookie[inquiryId]", str::addHash($id, 10), time() + 2592000);
+    				$userData = array('name' => $rec->name, 'email' => $rec->email);
+    				core_Browser::setVars($userData);
     			}
     			
     			status_Messages::newStatus(tr('Благодарим ви за сигнала'), 'success');
