@@ -302,6 +302,8 @@ class support_Issues extends core_Master
     		if($this->haveRightFor('new')){
     			$id = $this->save($rec);
     			
+    			vislog_History::add('Изпращане на сигнал');
+    			
     			$cu = core_Users::getCurrent('id', FALSE);
     			
     			// Ако няма потребител, записваме в бисквитка ид-то на последното запитване
