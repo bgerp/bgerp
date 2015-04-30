@@ -300,7 +300,8 @@ class core_TreeObject extends core_Manager
 			
 			if($mvc->haveRightFor('add')){
 				$url = array($mvc, 'add', 'parentId' => $rec->id, 'ret_url' => TRUE);
-				$row->love = ht::createLink('', $url, FALSE, 'ef_icon=img/16/add.png,title=Добавяне на нов поделемент');
+				$img = ht::createElement('img', array('src' => sbf('img/16/add.png', '')));
+				$row->_addBtn = ht::createLink($img, $url, FALSE, 'title=Добавяне на нов поделемент');
 			}
 		}
 	}
@@ -311,7 +312,7 @@ class core_TreeObject extends core_Manager
 	 */
 	protected static function on_AfterPrepareListFields($mvc, $data)
 	{
-		arr::placeInAssocArray($data->listFields, array('love' => ' '), NULL, $mvc->nameField);
+		arr::placeInAssocArray($data->listFields, array('_addBtn' => ' '), NULL, $mvc->nameField);
 	}
 	
 	
