@@ -204,8 +204,15 @@ class vislog_History extends core_Manager {
             $row->HistoryResourceId .= "<br><span style='font-size:0.6em;'>{$ref}</span>";
         }
         
-    	// Оцветяваме BRID
-    	$row->brid = str::coloring($row->brid);
+        if ($rec->brid) {
+    	    $row->brid = str::coloring($row->brid);
+    	    $bridRec = core_Browser::getRecFromBrid($rec->brid);
+        	if ($bridRec) {
+        	    if (core_Browser::haveRightFor('single', $bridRec)) {
+        	        $row->brid = ht::createLink($row->brid, array('core_Browser', 'single', $bridRec->id));
+        	    }
+        	}
+    	}
     }
 }
 
