@@ -110,18 +110,9 @@ class blogm_Comments extends core_Detail {
         $fields['-article'] = TRUE;
         
         // Търсим browserId в сесията
-        $data->browserId = Mode::get('browserId');
+        $data->browserId = core_Browser::getBrid();
         
-        // Ако няма в сесията - търсим в Cookie
-        if(!$data->browserId) {
-            $data->browserId = str::checkHash($_COOKIE['userCookie']['browserId'], 8);
-        }
-
-        if($data->browserId){
-        	$browserSelect = " OR #browserId = '{$data->browserId}'";
-        }
-
-        $query->where("#articleId = {$data->articleId} AND (#state = 'active'{$browserSelect})");
+        $query->where(array("#articleId = {$data->articleId} AND (#state = 'active' OR #browserId = '[#1#]')", $data->browserId));
         
         while($rec = $query->fetch()) {
             $data->commentsRecs[$rec->id] = $rec;
@@ -155,20 +146,12 @@ class blogm_Comments extends core_Detail {
             $data->commentForm->setField('state', 'input=none');
             $data->commentForm->setHidden('articleId', $data->articleId);
             
-            // Ако $browserId е правилно, и имаме бисквитка да се помни потребителя то ние
-            // извличаме информацията на потребителя, който последно е добавил коментара
-            // от това $browserId
-            if($data->browserId){  
-            	$query = static::getQuery();
-	        	$query->where("#browserId = '{$data->browserId}'");
-	        	$query->orderBy('#createdOn', 'DESC');
-                $query->limit(1);
-	        	$lastComment = $query->fetch();
-	        	
-	        	$data->commentForm->setDefault('name', $lastComment->name);
-	            $data->commentForm->setDefault('email', $lastComment->email);
-	            $data->commentForm->setDefault('web', $lastComment->web);
+            $valsArr = core_Browser::getVars(array('name', 'email', 'web'));
+            
+            foreach ($valsArr as $vName => $val) {
+                $data->commentForm->setDefault($vName, $val);
             }
+            
             $data->commentForm->toolbar->addSbBtn('Изпращане');
         }
     }
@@ -214,26 +197,18 @@ class blogm_Comments extends core_Detail {
 
             $rec->ip = core_Users::getRealIpAddr();
 
-            // Търсим browserId в сесията
-            $rec->browserId = Mode::get('browserId');
-        
-            // Ако няма в сесията - търсим в Cookie
-            if(!$rec->browserId) {
-                $rec->browserId = str::checkHash($_COOKIE['userCookie']['browserId'], 8);
-            }
-            
-            // Ако няма - генерираме ново, и го записваме в сесията и Cookie
-            if(!$rec->browserId) {
-                $rec->browserId =str::getRand();
-            }
-            
-            // Сетваме сесията
-            Mode::setPermanent('browserId', $rec->browserId);
-
-            // Сетваме Бисквитка с добавен хеш към browserId
-            $conf = core_Packs::getConfig('blogm');
-            setcookie("userCookie[browserId]", str::addHash($rec->browserId, 8), time() + $conf->BLOGM_COOKIE_LIFETIME);
+            $rec->browserId = core_Browser::getBrid();
         }
+    }
+	
+	
+    /**
+     * Всички нови коментари, направени през формата в единичния 
+     * изглед на статията се създават в състояние "чакъщ"
+     */
+    public static function on_AfterSave($mvc, &$id, &$rec, $fields =  NULL)
+    {
+        core_Browser::setVars(array('name' => $rec->name, 'email' => $rec->email, 'web' => $rec->web));
     }
 
 
