@@ -119,7 +119,7 @@ class core_Browser extends core_Master
         $this->setDbUnique('brid');
     }
     
-
+    
     /**
      * След преобразуването към вербални стойности, проказваме OS и Browser, като
      * скриваме USER_AGENT стринга зад отварящ се блок
@@ -201,6 +201,23 @@ class core_Browser extends core_Master
             
             return $brid;
         }
+    }
+    
+    
+    /**
+     * Връща записа за съответния `brid`
+     * 
+     * @param string $brid
+     * 
+     * @return FALSE|object
+     */
+    public static function getRecFromBrid($brid)
+    {
+        if (!$brid) return FALSE;
+        
+        $rec = self::fetch(array("#brid = '[#1#]'", $brid));
+        
+        return $rec;
     }
     
     
