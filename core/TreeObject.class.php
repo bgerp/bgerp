@@ -300,7 +300,7 @@ class core_TreeObject extends core_Manager
 			
 			if($mvc->haveRightFor('add')){
 				$url = array($mvc, 'add', 'parentId' => $rec->id, 'ret_url' => TRUE);
-				$img = ht::createElement('img', array('src' => sbf('img/16/add.png', '')));
+				$img = ht::createElement('img', array('src' => sbf('img/16/add.png', ''), 'style' => 'width: 13px; padding: 0px 2px;'));
 				$row->_addBtn = ht::createLink($img, $url, FALSE, 'title=Добавяне на нов поделемент');
 			}
 		}
