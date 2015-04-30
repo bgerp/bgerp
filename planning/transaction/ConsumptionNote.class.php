@@ -59,22 +59,20 @@ class planning_transaction_ConsumptionNote extends acc_DocumentTransactionSource
 		$dQuery->where("#noteId = {$rec->id}");
 		while($dRec = $dQuery->fetch()){
 			$pInfo = cls::get($dRec->classId)->getProductInfo($dRec->productId);
+			$debitArr = NULL;
 			
 			if($rec->useResourceAccounts == 'yes'){
 				$resourceRec = planning_ObjectResources::getResource($dRec->classId, $dRec->productId);
 				if($resourceRec){
 					// Ако е указано да влагаме само в център на дейност и ресурси, иначе влагаме в център на дейност
-					$debitArr = array('611', array('planning_Resources', $resourceRec->resourceId),
+					$debitArr = array('61101', array('planning_Resources', $resourceRec->resourceId),
 							'quantity' => $dRec->quantity / $resourceRec->conversionRate);
-				} else {
-					// Ако е указано да влагаме само в център на дейност и ресурси, иначе влагаме в център на дейност
-					$debitArr = array('6112', array('hr_Departments', $rec->activityCenterId),
-							array($dRec->classId, $dRec->productId),
-							'quantity' => $dRec->quantity);
 				}
-			} else {
-				// Ако е указано да влагаме само в център на дейност и ресурси, иначе влагаме в център на дейност
-				$debitArr = array('6113');
+			} 
+			
+			// Ако не е ресурс, дебитираме общата сметка за разходи '61102. Други разходи (общо)'
+			if(empty($debitArr)){
+				$debitArr = array('61102');
 			}
 			
 			$entries[] = array('debit' => $debitArr,

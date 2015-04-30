@@ -129,7 +129,7 @@ class planning_Resources extends core_Master
     /**
      * По кои сметки ще се правят справки
      */
-    public $balanceRefAccounts = '611';
+    public $balanceRefAccounts = '61101';
     
     
     /**
@@ -392,11 +392,11 @@ class planning_Resources extends core_Master
     		$lastBalance = acc_Balances::getLastBalance();
     		$itemRec = acc_Items::fetchItem(__CLASS__, $id);
     		
-    		// Ако има перо и баланс намираме записа за ресурса от сметка 611 (6111)
+    		// Ако има перо и баланс намираме записа за ресурса от сметка 61101
     		if($itemRec && $lastBalance){
     			$bQuery = acc_BalanceDetails::getQuery();
-    			acc_BalanceDetails::filterQuery($bQuery, $lastBalance->id, '611');
-    			$resourcePositionId = acc_Lists::getPosition('611', 'planning_ResourceAccRegIntf');
+    			acc_BalanceDetails::filterQuery($bQuery, $lastBalance->id, '61101');
+    			$resourcePositionId = acc_Lists::getPosition('61101', 'planning_ResourceAccRegIntf');
     			$bQuery->where("#ent{$resourcePositionId}Id = {$itemRec->id}");
     			$bQuery->show("ent{$resourcePositionId}Id,blAmount,blQuantity");
     			

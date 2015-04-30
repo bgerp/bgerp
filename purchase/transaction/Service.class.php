@@ -89,7 +89,7 @@ class purchase_transaction_Service extends acc_DocumentTransactionSource
     				$centerId = ($rec->activityCenterId) ? $rec->activityCenterId : hr_Departments::fetchField("#systemId = 'emptyCenter'", 'id');
     				
     				$debitArr = array(
-    							'602', // Сметка "602. Разходи за външни услуги" или "601. Разходи за материали"
+    							'60020', // Сметка "60020. Разходи за (нескладируеми) услуги и консумативи"
     							array('hr_Departments', $centerId),
     							array($dRec->classId, $dRec->productId), // Перо 1 - Артикул
     							'quantity' => $sign * $dRec->quantity, // Количество продукт в основната му мярка
@@ -112,14 +112,14 @@ class purchase_transaction_Service extends acc_DocumentTransactionSource
     					),
     			);
     			
-    			// Ако сме дебитирали 602 сметка, прехвърляме го в 6111 или 6112
+    			// Ако сме дебитирали 60020 сметка, прехвърляме го в 61101 или 61102
     			if($transfer === TRUE){
     				$resourceRec = planning_ObjectResources::getResource($dRec->classId, $dRec->productId);
     				if($resourceRec){
-    					$newArr = array('611', array('planning_Resources' , $resourceRec->resourceId), 
+    					$newArr = array('61101', array('planning_Resources' , $resourceRec->resourceId), 
     										 'quantity' => $dRec->quantity / $resourceRec->conversionRate);
     				} else {
-    					$newArr = array('6112');
+    					$newArr = array('61102');
     				}
     				
     				$entries[] = array(

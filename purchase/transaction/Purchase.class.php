@@ -147,7 +147,7 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
     /**
      * Генериране на записите от тип за изпълнение на услуги (ако има)
      * 
-     *    Dt: 602. Разходи за външни услуги    (Услуга)
+     *    Dt: 60020. Разходи за (нескладируеми) услуги и консумативи    (Центрове на дейност, Артикули)
      *    
      *    Ct: 401. Задължения към доставчици   (Доставчик, Сделки, Валута)
      *    	  
@@ -181,7 +181,7 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
 					$centerId = ($rec->activityCenterId) ? $rec->activityCenterId : hr_Departments::fetchField("#systemId = 'emptyCenter'", 'id');
 					
 					$debitArr = array(
-							'602', // Сметка "602. Разходи за външни услуги" или "601. Разходи за материали"
+							'60020', // Сметка "60020. Разходи за (нескладируеми) услуги и консумативи"
 							array('hr_Departments', $centerId),
 							array($detailRec->classId, $detailRec->productId), // Перо 1 - Артикул
 							'quantity' => $detailRec->quantity, // Количество продукт в основната му мярка
@@ -202,14 +202,14 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
 	                'debit' => $debitArr,
             	);
     			
-    			// Ако сме дебитирали 602, превхвърляме сумата в 6111 или 6112
+    			// Ако сме дебитирали 60020, превхвърляме сумата в 61101 или 61102
     			if($transfer === TRUE){
     				$resourceRec = planning_ObjectResources::getResource($detailRec->classId, $detailRec->productId);
     				if($resourceRec){
-    					$newArr = array('611', array('planning_Resources' , $resourceRec->resourceId),
+    					$newArr = array('61101', array('planning_Resources' , $resourceRec->resourceId),
     							'quantity' => $detailRec->quantity / $resourceRec->conversionRate);
     				} else {
-    					$newArr = array('6112');
+    					$newArr = array('61102');
     				}
     			
     				$entries[] = array(
@@ -470,7 +470,7 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
     	$jRecs = self::getEntries($id);
     
     	// Извличаме тези, отнасящи се за експедиране
-    	$dInfo = acc_Balances::getBlAmounts($jRecs, '321,302,601,602', 'debit');
+    	$dInfo = acc_Balances::getBlAmounts($jRecs, '321,302,601,602,60010,60020', 'debit');
     	
     	if(!count($dInfo->recs)) return $res;
     
