@@ -176,4 +176,20 @@ class acc_SaleArticlesReport extends acc_BalanceReportImpl
 
         return $activateOn;
     }
+
+
+    /**
+     * Ще се експортирват полетата, които се
+     * показват в табличния изглед
+     *
+     * @return array
+     */
+    public function getExportFields ()
+    {
+
+        $exportFields['ent1Id']  = "Артикули";
+        $exportFields['blAmount']  = "Кредит";
+
+        return $exportFields;
+    }
 }

@@ -355,6 +355,7 @@ class acc_ProfitArticlesReport extends acc_BalanceReportImpl
         return $activateOn;
     }
 
+
     /**
      * Ще се експортирват полетата, които се
      * показват в табличния изглед
