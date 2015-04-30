@@ -326,7 +326,9 @@ class core_Users extends core_Manager
             $rec = self::fetch($rec);
         }
         
-        return (boolean)!self::isPowerUser($rec);
+        if (!$rec || ($rec->id < 1)) return FALSE;
+        
+        return (boolean)(!self::isPowerUser($rec));
     }
     
     
