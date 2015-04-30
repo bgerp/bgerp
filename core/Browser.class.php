@@ -96,6 +96,12 @@ class core_Browser extends core_Manager
     
     
     /**
+     * Полетата, които ще се показват в лист изгледа
+     */
+    public $listFields = 'id, brid, userAgent, createdOn, createdBy';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
