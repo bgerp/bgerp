@@ -77,6 +77,7 @@ class vislog_History extends core_Manager {
     function description()
     {
         $this->FLD('ip', 'varchar(15)', 'caption=Ip,tdClass=aright');
+        $this->FLD('brid', 'varchar(8)', 'caption=BRID');
         
         $this->FLD('HistoryResourceId', 'key(mvc=vislog_HistoryResources,select=query,allowEmpty)', 'caption=Ресурс');
         
@@ -123,14 +124,18 @@ class vislog_History extends core_Manager {
      */
     static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
-        $data->listFilter->showFields = 'ip';  //, HistoryResourceId';
+        $data->listFilter->showFields = 'ip, brid';  //, HistoryResourceId';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        $data->listFilter->input('ip', 'silent');
+        $data->listFilter->input($data->listFilter->showFields, 'silent');
         
         if($ip = $data->listFilter->rec->ip){
             $ip = str_replace('*', '%', $ip);
             $data->query->where(array("#ip LIKE '[#1#]'", $ip));
+        }
+        
+        if($brid = $data->listFilter->rec->brid){
+            $data->query->where(array("#brid LIKE '[#1#]'", $brid));
         }
         
         if($HistoryResourceId = $data->listFilter->rec->HistoryResourceId){
@@ -148,6 +153,10 @@ class vislog_History extends core_Manager {
     {
         // Поставяме IP ако липсва
         if(!$rec->ip) $rec->ip = $_SERVER['REMOTE_ADDR'];
+        
+        if(!$rec->brid) {
+            $rec->brid = core_Browser::getBrid();
+        }
         
         // Съкращаваме заявката, ако е необходимо
         if(strlen($rec->query) > 255) {
@@ -194,5 +203,9 @@ class vislog_History extends core_Manager {
         if($ref) {
             $row->HistoryResourceId .= "<br><span style='font-size:0.6em;'>{$ref}</span>";
         }
+        
+    	// Оцветяваме BRID
+    	$row->brid = str::coloring($row->brid);
     }
 }
+
