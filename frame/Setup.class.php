@@ -47,7 +47,15 @@ class frame_Setup extends core_ProtoSetup
      * Описание на модула
      */
     var $info = "Отчети и табла";
-    
+
+
+    /**
+     * Описание на конфигурационните константи
+     */
+    var $configDescription = array(
+
+        'FRAME_TYPE_DECIMALS_SEP'   => array ('enum(dot=точка,comma=запетая)', 'caption=Десетичен разделител на числата при експорт в csv, customizeBy=powerUser'));
+
     
     /**
      * Списък с мениджърите, които съдържа пакета
