@@ -1380,28 +1380,35 @@ class doc_Containers extends core_Manager
             // Ако няма id на документа
             if (!isset($rec->docId) && isset($rec->docClass)) {
                 
-                $docClass = cls::get($rec->docClass);
-                
-                // Ако класа може да се използва за документ
-                if (($docClass instanceof core_Mvc) && cls::haveInterface('doc_DocumentIntf', $docClass)) {
+                if (cls::load($rec->docClass, TRUE)) {
                     
-                    if (!$docId) {
-                        $docId = $docClass->fetchField("#containerId = '{$rec->id}'", 'id', FALSE);
-                    }
+                    $docClass = cls::get($rec->docClass);
                     
-                    if ($docId) {
-                        $rec->docId = $docId;
-                        if (self::save($rec)) {
-                            $resArr['docId']++;
+                    // Ако класа може да се използва за документ
+                    if (($docClass instanceof core_Mvc) && cls::haveInterface('doc_DocumentIntf', $docClass)) {
+                        
+                        if (!$docId) {
+                            $docId = $docClass->fetchField("#containerId = '{$rec->id}'", 'id', FALSE);
                         }
-                    } else {
-                        if ($rec->id) {
-                            
-                            // Ако не може да се намери съответен документ, изтриваме го
-                            if (self::delete($rec->id)) {
-                                $resArr['del_cnt']++;
+                        
+                        if ($docId) {
+                            $rec->docId = $docId;
+                            if (self::save($rec)) {
+                                $resArr['docId']++;
+                            }
+                        } else {
+                            if ($rec->id) {
+                                
+                                // Ако не може да се намери съответен документ, изтриваме го
+                                if (self::delete($rec->id)) {
+                                    $resArr['del_cnt']++;
+                                }
                             }
                         }
+                    }
+                } else {
+                    if (self::delete($rec->id)) {
+                        $resArr['del_cnt']++;
                     }
                 }
             }
