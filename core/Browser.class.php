@@ -417,15 +417,18 @@ class core_Browser extends core_Master
      * 
      * @return string
      */
-    static function generateBrid_()
+    static function generateBrid()
     {   
+        $s = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
         if($bot = static::detectBot()) {
             $str = md5($bot . BRID_SALT);
         } else {
             $str = md5($_SERVER['HTTP_USER_AGENT'] . '|' . core_Users::getRealIpAddr() . '|' . dt::today() . '|' . BRID_SALT);
         }
-        
-        $brid = substr($str, 0, 8);
+
+        $brid = $s[hexdec(substr($str, 0, 2)) % 62] . $s[hexdec(substr($str, 2, 2)) % 62] . $s[hexdec(substr($str, 4, 2)) % 62] .  $s[hexdec(substr($str, 6, 2)) % 62] .
+               $s[hexdec(substr($str, 8, 2)) % 62] . $s[hexdec(substr($str, 10, 2)) % 62] . $s[hexdec(substr($str, 12, 2)) % 62] .  $s[hexdec(substr($str, 14, 2)) % 62];
         
         return $brid;
     }
@@ -451,6 +454,7 @@ class core_Browser extends core_Master
                                 '/opera mobi/i' => 'Opera Mobi',
                                 '/opera mini/i' => 'Opera Mini',
                                 '/opera/i' => 'Opera',
+                                '/OPR/' => 'Opera',
                                 '/msie|trident/i' => 'Internet Explorer',
                                 '/firefox/i' => 'Firefox',
                                 '/chrome/i' => 'Chrome',
@@ -572,12 +576,20 @@ class core_Browser extends core_Master
     }
 
 
+    /**
+     * Тестваме какъв е UA
+     */
     function act_Test()
     {
+        $res = self::getBrowserType(Request::get('ua'));
+        if($res == 'Unknown Browser / Unknown OS') {
+            $res = self::detectBot(Request::get('ua'));
+        }
 
-        return self::detectBot(Request::get('ua'));
+        return $res;
     }
     
+
     /**
      * Връща $_SERVER['HTTP_USER_AGENT']
      */
