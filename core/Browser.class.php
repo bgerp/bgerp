@@ -224,6 +224,36 @@ class core_Browser extends core_Master
         
         return $rec;
     }
+
+
+    /**
+     * Връща заглавието на User Agent, по възможност като линк
+     */
+    public static function getLink($brid)
+    {
+        if(!$brid) return "";
+
+        $rec = self::fetch(array("#brid = '[#1#]'", $brid));
+
+        $title = substr(self::getUserAgentBrowserName($rec->userAgent), 0, 3);
+
+        if($title == 'Unk') {
+            $title = self::detectBot($rec->userAgent);
+            if(!$title) {
+                $title = 'Unknown';
+            }
+        } else {
+            $title .= '/' . substr(self::getUserAgentOsName($rec->userAgent), 0, 3);
+        }
+        
+        $title = str::coloring($title, $brid);
+
+        if (core_Browser::haveRightFor('single', $bridRec)) {
+            $title = ht::createLink($title, array('core_Browser', 'single', $rec->id));
+        }
+
+        return $title;
+    }
     
     
     /**
@@ -413,7 +443,9 @@ class core_Browser extends core_Master
 
         $browser = "Unknown Browser";
     
-        $browserArray = array(  '/mobile/i' => 'Mobile Browser',
+        $browserArray = array(
+                                '/edge/i' => 'Edge',
+                                '/mobile/i' => 'Mobile Browser',
                                 '/opera mobi/i' => 'Opera Mobi',
                                 '/opera mini/i' => 'Opera Mini',
                                 '/opera/i' => 'Opera',
@@ -424,7 +456,7 @@ class core_Browser extends core_Master
                                 '/netscape/i' => 'Netscape',
                                 '/maxthon/i' => 'Maxthon',
                                 '/konqueror/i' => 'Konqueror',
-                                
+               
                             );
     
         foreach ($browserArray as $regex => $value) { 
@@ -492,10 +524,56 @@ class core_Browser extends core_Master
     }
     
 
+    /**
+     * Намира името на бота, ако той е клиента
+     */
+    static function detectBot($userAgent = NULL)
+    {
+        if(!$userAgent) {
+            $userAgent = $_SERVER['HTTP_USER_AGENT'];
+        }
+        
+        if(self::getUserAgentBrowserName($userAgent) != 'Unknown Browser') {
+
+            return FALSE;
+        }
+
+        $bots = 'GoogleBot|msnbot|Bingbot|Teoma|80legs|xenon|baidu|Charlotte|DotBot|Sosospider|Rambler|Yahoo|' .
+            'AbachoBOT|Acoon|appie|Fluffy|ia_archiver|MantraAgent|Openbot|accoona|AcioRobot|ASPSeek|CocoCrawler|Dumbot|' . 
+            'FAST-WebCrawler|GeonaBot|Gigabot|Lycos|MSRBOT|Scooter|AltaVista|IDBot|eStyle|Scrubby|majestic12|augurfind|Java';
+
+        $crawlers = explode("|", $bots);
+ 
+        foreach ($crawlers as $botName)
+        {
+            if (stristr($userAgent, $botName) !== FALSE) {
+            
+                return $botName;
+            }
+        }
+
+        if(preg_match("/\b([\w\-]+bot[\w\-]*)\b/i", $userAgent, $matches)) {
+
+            $botName = $matches[1];
+
+            return $botName;
+        }
+
+        if(preg_match("/https?\:\/\/([a-z0-9\-\.]+)[^a-z0-9\-\.]*/i", $userAgent, $matches)) {
+        
+            $botName = str_ireplace('www.', '', $matches[1]);
+
+            return $botName;
+        }
+     
+        return FALSE;
+    }
+
+
     function act_Test()
     {
 
-        return self::getUserAgentOsName();
+        return self::detectBot(Request::get('ua'));
     }
     
     /**
@@ -674,30 +752,6 @@ class core_Browser extends core_Master
         }
     }
  
-
-    /**
-     * Намира името на бота, ако той е клиента
-     */
-    static function detectBot($userAgent = NULL)
-    {
-        setIfNot($userAgent, $_SERVER['HTTP_USER_AGENT']);
-
-        $bots = 'GoogleBot|Google|msnbot|Bingbot|Teoma|80legs|xenon|baidu|Charlotte|DotBot|Sosospider|Rambler|Yahoo|' .
-            'AbachoBOT|Acoon|appie|Fluffy|ia_archiver|MantraAgent|Openbot|accoona|AcioRobot|ASPSeek|CocoCrawler|Dumbot|' . 
-            'FAST-WebCrawler|GeonaBot|Gigabot|Lycos|MSRBOT|Scooter|AltaVista|IDBot|eStyle|Scrubby|majestic12|augurfind';
-
-        $crawlers = explode("|", $bots);
- 
-        foreach ($crawlers as $botName)
-        {
-            if (stristr($userAgent, $botName) !== FALSE) {
-            
-                return $botName;
-            }
-        }
-     
-        return FALSE;
-    }
     
     
     /**
