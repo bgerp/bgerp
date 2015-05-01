@@ -100,7 +100,7 @@ class core_LoginLog extends core_Manager
     {
         $this->FLD('userId', 'user(select=nick, allowEmpty)', 'caption=Потребител, silent');
         $this->FLD('ip', 'ip', 'caption=IP');
-        $this->FLD('brid', 'varchar(8)', 'caption=BRID');
+        $this->FLD('brid', 'varchar(8)', 'caption=Браузър');
         $this->FLD('status', 'enum( all=,
         							success=Успешно логване,
 									first_login=Първо логване,
@@ -509,7 +509,7 @@ class core_LoginLog extends core_Manager
     	}
     	
     	// Оцветяваме BRID
-    	$row->brid = str::coloring($row->brid);
+    	$row->brid = core_Browser::getLink($rec->brid);
     	
         if ($rec->ip) {
         	// Декорираме IP-то

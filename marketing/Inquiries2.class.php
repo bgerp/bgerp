@@ -193,7 +193,8 @@ class marketing_Inquiries2 extends core_Embedder
     
         $this->FLD('params', 'blob(serialize,compress)', 'input=none,silent');
     	$this->FLD('ip', 'varchar', 'caption=Ип,input=none');
-    	$this->FLD('browser', 'varchar(80)', 'caption=Браузър,input=none');
+    	$this->FLD('browser', 'varchar(80)', 'caption=UA String,input=none');
+      	$this->FLD('brid', 'varchar(8)', 'caption=Браузър,input=none');
     }
 
 
@@ -215,7 +216,7 @@ class marketing_Inquiries2 extends core_Embedder
     {
     	if ($form->isSubmitted()){
     		$form->rec->ip = core_Users::getRealIpAddr();
-    		$form->rec->browser = Mode::get('getUserAgent');
+    		$form->rec->brid = core_Browser::getBrid();
     		$form->rec->state = 'active';
     		
     		$form->rec->quantities = array();
@@ -257,6 +258,8 @@ class marketing_Inquiries2 extends core_Embedder
     		$row->email = "<div class='email'>{$row->email}</div>";
     		$row->ip = type_Ip::decorateIp($rec->ip, $rec->createdOn);
     	}
+
+        $row->brid = core_Browser::getLink($rec->brid);
     	 
     	if($fields['-list']){
     		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
@@ -683,7 +686,7 @@ class marketing_Inquiries2 extends core_Embedder
     		$rec = &$form->rec;
     		$rec->state = 'active';
     		$rec->ip = core_Users::getRealIpAddr();
-    		$rec->browser = Mode::get('getUserAgent');
+    		$rec->brid = core_Browser::getBrid();
     	
     		if(empty($rec->folderId)){
     			$rec->folderId = $this->Router->route($rec);
@@ -694,7 +697,7 @@ class marketing_Inquiries2 extends core_Embedder
     		// Запис и редирект
     		if($this->haveRightFor('new')){
     		    
-    		    vislog_History::add('Ново запитване');
+    		    vislog_History::add('Ново маркетингово запитване');
     		    
     			$cu = core_Users::getCurrent('id', FALSE);
     		    

@@ -243,13 +243,15 @@ class core_Browser extends core_Master
                 $title = 'Unknown';
             }
         } else {
-            $title .= '/' . substr(self::getUserAgentOsName($rec->userAgent), 0, 3);
+            $title .= '|' . substr(self::getUserAgentOsName($rec->userAgent), 0, 3);
         }
         
-        $title = str::coloring($title, $brid);
+        if (!Mode::is('text', 'plain')) {
+            $title = str::coloring($title, $brid);
 
-        if (core_Browser::haveRightFor('single', $bridRec)) {
-            $title = ht::createLink($title, array('core_Browser', 'single', $rec->id));
+            if (core_Browser::haveRightFor('single', $bridRec)) {
+                $title = ht::createLink($title, array('core_Browser', 'single', $rec->id));
+            }
         }
 
         return $title;

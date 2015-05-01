@@ -78,7 +78,7 @@ class marketing_Bulletin extends core_Manager
         $this->FLD('name', 'varchar(128)', 'caption=Имена, oldFieldName=names');
         $this->FLD('company', 'varchar(128)', 'caption=Фирма');
         $this->FLD('ip', 'ip', 'caption=IP, input=none');
-        $this->FLD('brid', 'varchar(8)', 'caption=BRID, input=none');
+        $this->FLD('brid', 'varchar(8)', 'caption=Браузър, input=none');
         
         $this->setDbUnique('email');
     }
@@ -266,7 +266,7 @@ class marketing_Bulletin extends core_Manager
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	// Оцветяваме BRID
-    	$row->brid = str::coloring($row->brid);
+    	$row->brid = core_Browser::getLink($rec->brid);
     	
         if ($rec->ip) {
         	// Декорираме IP-то
