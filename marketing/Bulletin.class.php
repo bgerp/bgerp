@@ -146,12 +146,6 @@ class marketing_Bulletin extends core_Manager
      */
     public function act_getJs()
     {
-        $lg = Request::get('lg');
-        
-        if ($lg) {
-            core_Lg::push($lg);
-        }
-        
         $js = file_get_contents(getFullPath('/marketing/js/Bulletin.js'));
         
         $jsTpl = new ET($js);
@@ -159,48 +153,36 @@ class marketing_Bulletin extends core_Manager
         $conf = core_Packs::getConfig('marketing');
         
         // След колко време да се покаже повторно
-        $showAgainAfter = Request::get('showAgainAfter', 'int');
-        if (!$showAgainAfter) {
-            $showAgainAfter = $conf->MARKETING_SHOW_AGAIN_AFTER;
-        }
+        $showAgainAfter = $conf->MARKETING_SHOW_AGAIN_AFTER;
         $jsTpl->replace($showAgainAfter, 'showAgainAfter');
         
         // След колко време на бездействие да се покаже
-        $idleTimeForShow = Request::get('idleTimeForShow', 'int');
-        if (!$idleTimeForShow) {
-            $idleTimeForShow = $conf->MARKETING_IDLE_TIME_FOR_SHOW;
-        }
+        $idleTimeForShow = $conf->MARKETING_IDLE_TIME_FOR_SHOW;
+
         $jsTpl->replace($idleTimeForShow, 'idleTimeForShow');
         
         // След колко секунди да може да се стартира
-        $waitBeforeStart = Request::get('waitBeforeStart', 'int');
-        if (!$waitBeforeStart) {
-            $waitBeforeStart = $conf->MARKETING_WAIT_BEFORE_START;
-        }
+        $waitBeforeStart = $conf->MARKETING_WAIT_BEFORE_START;
+
         $jsTpl->replace($waitBeforeStart, 'waitBeforeStart');
         
         // Заглавие на формата
-        $formTitle = Request::get('formTitle');
-        if (!$formTitle) {
-            $formTitle = tr($conf->MARKETING_BULLETIN_FORM_TITLE);
-        }
+        $formTitle = tr($conf->MARKETING_BULLETIN_FORM_TITLE);
+
+
         $formTitle = addslashes($formTitle);
         $jsTpl->replace($formTitle, 'formTitle');
         
         
         // Съобщение при абониране
-        $successText = Request::get('successText');
-        if (!$successText) {
-            $successText = tr($conf->MARKETING_BULLETIN_FORM_SUCCESS);
-        }
+        $successText = tr($conf->MARKETING_BULLETIN_FORM_SUCCESS);
+
         $successText = addslashes($successText);
         $jsTpl->replace($successText, 'successText');
         
         // Дали да се показва цялата форма или само имейла
-        $showAllForm = Request::get('showAllForm');
-        if (!$showAllForm) {
-            $showAllForm = $conf->MARKETING_SHOW_ALL_FORM;
-        }
+        $showAllForm = $conf->MARKETING_SHOW_ALL_FORM;
+    
         $jsTpl->replace($showAllForm, 'showAllForm');
         
         $wrongMail = tr('Невалиден имейл!');
@@ -239,9 +221,6 @@ class marketing_Bulletin extends core_Manager
         $cookieKey = substr(md5($urlArr['host']), 0, 6);
         $jsTpl->replace($cookieKey, 'cookieKey');
         
-        if ($lg) {
-            core_Lg::pop();
-        }
         
         $js = $jsTpl->getContent();
         
@@ -271,15 +250,7 @@ class marketing_Bulletin extends core_Manager
         if (!$url) {
             $url = toUrl(array('marketing_Bulletin', 'getJs'), true);
         }
-        
-        $url = rtrim($url, '/') . '/?';
-        $url .= 'showAgainAfter=' . urlencode($conf->MARKETING_SHOW_AGAIN_AFTER) . 
-                '&idleTimeForShow=' . urlencode($conf->MARKETING_IDLE_TIME_FOR_SHOW) . 
-                '&waitBeforeStart=' . urlencode($conf->MARKETING_WAIT_BEFORE_START) . 
-                '&formTitle=' . urlencode($conf->MARKETING_BULLETIN_FORM_TITLE) . 
-                '&successText=' . urlencode($conf->MARKETING_BULLETIN_FORM_SUCCESS) . 
-                '&showAllForm=' . urlencode($conf->MARKETING_SHOW_ALL_FORM);
-        
+                
         return $url;
     }
     
