@@ -150,7 +150,7 @@ class email_UserInboxPlg extends core_Plugin
                             $rolesArr = core_Roles::expand($rolesArr);
                             $cRec->roles = keylist::fromArray($rolesArr);
                             
-                            $isContractor = core_Users::isContractor($cRec);
+                            $isContractor = core_Users::isContractor($cRec, TRUE);
                         }
                         
                         if (!$isContractor) {
