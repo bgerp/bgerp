@@ -16,6 +16,12 @@ class support_Issues extends core_Master
     
     
     /**
+     * Флаг, който указва, че документа е партньорски
+     */
+    public $visableForPartners = TRUE;
+    
+    
+    /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
     var $oldClassName = 'issue_Document';
