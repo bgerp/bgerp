@@ -100,8 +100,6 @@ class marketing_Bulletin extends core_Manager
             $haveError = TRUE;
         }
         
-        $img = 'img/thanks.png';
-        
         if (!$haveError) {
             
             // Добавяме данните към `brid` в модела
@@ -126,16 +124,45 @@ class marketing_Bulletin extends core_Manager
             }
         }
         
-        $im = imagecreatefrompng(getFullPath($img));
         
-        header('Content-Type: image/png');
+        
+        $conf = core_Packs::getConfig('marketing');
+        
+        if ($conf->MARKETING_BULLETIN_IMG) {
+            
+            $fRec = fileman_Files::fetchByFh($conf->MARKETING_BULLETIN_IMG);
+        	$ext = fileman_Files::getExt($fRec->name);
+        	
+        	$path = fileman::extract($conf->MARKETING_BULLETIN_IMG);
+        	
+        	switch ($ext) {
+        		case 'jpg':
+        		case 'jpeg':
+        				$imgSource = imagecreatefromjpeg($path);
+        				$contentType = 'image/jpg';
+        			break;
+        		case 'gif':
+        				$imgSource = imagecreatefromgif($path);
+        				$contentType = 'image/gif';
+        			break;
+        		case 'png':
+        				$imgSource = imagecreatefrompng($path);
+        				$contentType = 'image/png';
+        			break;
+        	}
+        } else {
+            $imgSource = imagecreatefrompng(getFullPath('img/thanks.png'));
+			$contentType = 'image/png';
+        }
+        
+        header('Content-Type: ' . $contentType);
         
         // Запазваме прозрачността
-        imagealphablending($im, false);
-        imagesavealpha($im, true);
+        imagealphablending($imgSource, false);
+        imagesavealpha($imgSource, true);
         
-        imagepng($im);
-        imagedestroy($im);
+        imagepng($imgSource);
+        imagedestroy($imgSource);
         
         shutdown();
     }

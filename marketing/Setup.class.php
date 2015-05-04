@@ -68,6 +68,12 @@ defIfNot('MARKETING_SHOW_ALL_FORM', 'no');
 
 
 /**
+ * Дали да се показва цялата форма или само имейла
+ */
+defIfNot('MARKETING_BULLETIN_IMG', '');
+
+
+/**
  * Маркетинг - инсталиране / деинсталиране
  *
  *
@@ -122,6 +128,7 @@ class marketing_Setup extends core_ProtoSetup
 	        'MARKETING_SHOW_AGAIN_AFTER' => array('time(suggestions=3 часа|12 часа|1 ден)', 'caption=Изчакване преди ново отваряне->Време'),
 	        'MARKETING_IDLE_TIME_FOR_SHOW' => array('time(suggestions=5 секунди|20 секунди|1 мин)', 'caption=Период за бездействие преди активиране->Време'),
 	        'MARKETING_WAIT_BEFORE_START' => array('time(suggestions=3 секунди|5 секунди|10 секунди)', 'caption=След колко време да може да стартира бюлетина->Време'),
+	        'MARKETING_BULLETIN_IMG' => array('fileman_FileType(bucket=pictures)', 'caption=Картинка за успешна регистрация->Изображение'),
 	);
 	
 	
