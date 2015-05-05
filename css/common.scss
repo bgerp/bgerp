@@ -1570,7 +1570,7 @@ td.formElement {
 	@include border-radius4(0, 0, 5px, 5px);
 	border: solid 1px $gray4;
 	border-top: none;
-	background-image: url('../img/formToolbarBg.jpg');
+	background: #ccc url('../img/formToolbarBg.jpg');
 }
 
 .wide .vertical .formToolbar .toolbar div{
