@@ -439,9 +439,6 @@ class core_Lg extends core_Manager
  	
 	public static function on_BeforeImportRec($mvc, $rec)
     {
-        $rec->kstring = html_entity_decode($rec->kstring);
-        $rec->translated = html_entity_decode($rec->translated);
-        
     	$rec->kstring = static::prepareKey($rec->kstring);
 		
 		if (isset($rec->csv_createdBy)) {
