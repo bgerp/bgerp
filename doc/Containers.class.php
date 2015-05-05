@@ -359,7 +359,7 @@ class doc_Containers extends core_Manager
             $mustSave = TRUE;
         }
         
-        if ($rec->docClass && $rec->docId && (!isset($rec->visibleForPartners) || ($rec->visibleForPartners != $docMvc->visibleForPartners))) {
+        if ($rec->docClass && $rec->docId && !isset($rec->visibleForPartners)) {
             if ($docMvc->visibleForPartners) {
                 $rec->visibleForPartners = 'yes';
             } else {
