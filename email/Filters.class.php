@@ -271,13 +271,14 @@ class email_Filters extends core_Manager
             
             $pattern = self::getPatternForFilter($filterRec->{$filterField});
             
-            if (preg_match($pattern, $haystack)) {
-                return TRUE;
+            // Трябва всички зададени филтри да съвпадат - &
+            if (!preg_match($pattern, $haystack)) {
+                return FALSE;
             }
             
         }
         
-        return FALSE;
+        return TRUE;
     }
     
     
