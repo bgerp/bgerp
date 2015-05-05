@@ -1058,8 +1058,7 @@ class doc_Threads extends core_Manager
             if($dcRec->state != 'rejected') {
                 $lastDcRec = $dcRec;
                 
-                // @todo: това трябва да се промени на проверка дали типа на документа е вътрешен
-                if($dcRec->state != 'hidden') {
+                if($dcRec->visibleForPartners == 'yes') {
                     $rec->partnerDocCnt++;
                 }
                 
