@@ -359,7 +359,7 @@ class core_Roles extends core_Manager
         foreach($rolesArr as $roleId) {
 
             if(!$rolesInputArr[$roleId]) {
-                $addRoles .= ($addRoles ? ', ' : '') . core_Roles::fetchByName($roleId);
+                $addRoles .= ($addRoles ? ', ' : '') . $mvc->getVerbal($roleId, 'role');
             }
         }
 

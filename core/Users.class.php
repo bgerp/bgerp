@@ -764,7 +764,7 @@ class core_Users extends core_Manager
         foreach($rolesArr as $roleId) {
 
             if(!$rolesInputArr[$roleId]) {
-                $addRoles .= ($addRoles ? ', ' : '') . core_Roles::fetchByName($roleId);
+                $addRoles .= ($addRoles ? ', ' : '') . core_Roles::getVerbal($roleId, 'role');
             }
         }
 
