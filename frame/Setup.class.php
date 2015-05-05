@@ -4,7 +4,7 @@
 /**
  * Колко цифри след запетаята да показваме по подразбиране?
  */
-defIfNot('FRAME_TYPE_DECIMALS_SEP', 'dot');
+defIfNot('FRAME_TYPE_DECIMALS_SEP', 'comma');
 
 
 
