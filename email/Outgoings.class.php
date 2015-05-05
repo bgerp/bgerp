@@ -19,7 +19,7 @@ class email_Outgoings extends core_Master
     /**
      * Флаг, който указва, че документа е партньорски
      */
-    public $visableForPartners = TRUE;
+    public $visibleForPartners = TRUE;
     
     
     /**
