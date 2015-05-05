@@ -192,6 +192,9 @@ class bgerp_Setup extends core_ProtoSetup {
                 }
             }
             
+            // Форсираме системния потребител
+            core_Users::forceSystemUser();
+            
             // Извършваме инициализирането на всички включени в списъка пакети
             foreach (arr::make($packs) as $p) {
                 if (cls::load($p . '_Setup', TRUE) && !$isLoad[$p]) {
@@ -218,6 +221,10 @@ class bgerp_Setup extends core_ProtoSetup {
                     }
                 }
             }
+            
+            // Де-форсираме системния потребител
+            core_Users::cancelSystemUser();
+            
         } while (!empty($haveError) && ($loop<5));
         
         $html .= implode("\n", $haveError);
