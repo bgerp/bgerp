@@ -212,10 +212,9 @@ class acc_ProfitArticlesReport extends acc_BalanceReportImpl
 
             $arr = self::preparePie($dArr, 9, 'Others');
 
-            foreach ($arr as $id => $recSort) {
 
-                $info[substr($recSort->key,0,19)] = $recSort->value;
-                //$info[$recSort->key] = round(($recSort->value/$balance) * 100,2);
+            foreach ($arr as $id => $recSort) {
+                $info[mb_substr($recSort->key,0,19)] = $recSort->value;
             }
 
             $pie = array (
