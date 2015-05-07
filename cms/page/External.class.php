@@ -90,61 +90,14 @@ class cms_page_External extends core_page_Active
         // Добавяме лейаута
         $this->replace(cms_Content::getLayout(), 'CMS_LAYOUT');
         
+        // TODO - да се премести в плъгин
         $bulletinJsUrl = marketing_Bulletin::getJsLink();
         if (trim($bulletinJsUrl)) {
             $this->push($bulletinJsUrl, 'JS');
-            $this->push('marketing/css/styles.css', 'CSS');
-
-            $confBull = core_Packs::getConfig('marketing');
-            $bg = $confBull->MARKETING_BULLETIN_BACKGROUND;
-
-            if ($bg) {
-                $css .= ".bulletinReg{ background-color: {$bg}; }";
-            }
-
-            $textColor = $confBull->MARKETING_BULLETIN_TEXTCOLOR;
-            if($textColor) {
-                $css .= ".bulletinReg, .bulletinHolder h2, .successText { color: {$textColor};  }";
-            }
-
-            $btnColor =  ltrim($confBull->MARKETING_BULLETIN_BUTTONCOLOR, "#");
-
-            if($btnColor) {
-                $darkBtnColor = phpcolor_Adapter::changeColor($btnColor, 'lighten', 15);
-                $shadowBtnColor = phpcolor_Adapter::changeColor($darkBtnColor, 'mix', 1, '#444');
-
-                $css .= ".push_button {
-                    text-shadow:-1px -1px 0 #{$shadowBtnColor};
-                    background: #{$btnColor} !important;
-                    border:1px solid #{$shadowBtnColor} !important;
-                    background-image:-webkit-linear-gradient(top, #{$darkBtnColor}, #{$btnColor}) !important;
-                    background-image:-moz-linear-gradient(top, #{$darkBtnColor}, #{$btnColor}) !important;
-                    background-image:-ms-linear-gradient(top, #{$darkBtnColor}, #{$btnColor}) !important;
-                    background-image:-o-linear-gradient(top, #{$darkBtnColor}, #{$btnColor}) !important;
-                    background-image:linear-gradient(top, #{$darkBtnColor}, #{$btnColor}) !important;
-                    -webkit-border-radius:5px;
-                    -moz-border-radius:5px;
-                    border-radius:5px;
-                    -webkit-box-shadow:0 1px 0 rgba(255, 255, 255, .5) inset, 0 -1px 0 rgba(255, 255, 255, .1) inset, 0 4px 0 #{$shadowBtnColor}, 0 4px 2px rgba(0, 0, 0, .5) !important;
-                    -moz-box-shadow:0 1px 0 rgba(255, 255, 255, .5) inset, 0 -1px 0 rgba(255, 255, 255, .1) inset, 0 4px 0 #{$shadowBtnColor}, 0 4px 2px rgba(0, 0, 0, .5) !important;
-                    box-shadow:0 1px 0 rgba(255, 255, 255, .5) inset, 0 -1px 0 rgba(255, 255, 255, .1) inset, 0 4px 0 #{$shadowBtnColor}, 0 4px 2px rgba(0, 0, 0, .5) !important;
-                }
-                .push_button:hover {
-                    background: #48C6D4 !important;
-                    background-image:-webkit-linear-gradient(top, #{$btnColor}, #{$darkBtnColor}) !important;
-                    background-image:-moz-linear-gradient(top, #{$btnColor}, #{$darkBtnColor}) !important;
-                    background-image:-ms-linear-gradient(top,  #{$btnColor}, #{$darkBtnColor}) !important;
-                    background-image:-o-linear-gradient(top,  #{$btnColor}, #{$darkBtnColor}) !important;
-                    background-image:linear-gradient(top,  #{$btnColor}, #{$darkBtnColor}) !important;
-                }";
-
-                if(phpcolor_Adapter::checkColor( $btnColor, 'light'))  {
-                    $css .= ".push_button { color: #111 !important; text-shadow: none }" ;
-                }
-            }
-
-            if($css) {
-                $this->append($css, 'STYLES');
+            
+            $bulletinCssUrl = marketing_Bulletin::getCssLink();
+            if ($bulletinCssUrl) {
+                $this->push($bulletinCssUrl, 'CSS');
             }
         }
     }

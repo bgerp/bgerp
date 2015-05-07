@@ -179,7 +179,17 @@ class marketing_Bulletin extends core_Manager
      */
     public function act_getJs()
     {
-        $js = file_get_contents(getFullPath('/marketing/js/Bulletin.js'));
+        $autoShowBulletin = TRUE;
+        
+        if (core_Browser::getVars(array('email'))
+            || self::fetch(array("#ip = '[#1#]'", core_Users::getRealIpAddr()))
+            || core_LoginLog::isLoggedBefore()) {
+            $autoShowBulletin = FALSE;
+        }
+        
+//        if (!$autoShowBulletin) return shutdown();
+        
+        $js = file_get_contents(getFullPath('/marketing/tpl/BulletinJsTpl.txt'));
         
         $jsTpl = new ET($js);
         
@@ -268,6 +278,61 @@ class marketing_Bulletin extends core_Manager
     
     
     /**
+     * Подготвя и принтира съдържанието на .css файла
+     */
+    public function act_getCss()
+    {
+        $css = file_get_contents(getFullPath('/marketing/tpl/BulletinCssTpl.txt'));
+        
+        $cssTpl = new ET($css);
+        
+        $confBull = core_Packs::getConfig('marketing');
+        
+        $bg = $confBull->MARKETING_BULLETIN_BACKGROUND;
+        
+        $cssS = '';
+        
+        if ($bg) {
+            $cssS .= "\n.bulletinReg{ background-color: {$bg}; }";
+        }
+        
+        $textColor = $confBull->MARKETING_BULLETIN_TEXTCOLOR;
+        
+        if($textColor) {
+            $cssS .= "\n.bulletinReg, .bulletinHolder h2, .successText { color: {$textColor};  }";
+        }
+        
+        $btnColor =  ltrim($confBull->MARKETING_BULLETIN_BUTTONCOLOR, "#");
+        
+        if ($btnColor) {
+            $darkBtnColor = phpcolor_Adapter::changeColor($btnColor, 'lighten', 15);
+            $shadowBtnColor = phpcolor_Adapter::changeColor($darkBtnColor, 'mix', 1, '#444');
+
+
+            if(phpcolor_Adapter::checkColor($btnColor, 'light'))  {
+                $cssS .= "\n.push_button { color: #111 !important; text-shadow: none }" ;
+            }
+        }
+        
+        $cssTpl->replace($btnColor, 'btnColor');
+        $cssTpl->replace($darkBtnColor, 'darkBtnColor');
+        $cssTpl->replace($shadowBtnColor, 'shadowBtnColor');
+        
+        $cssTpl->append($cssS);
+        
+        $css = $cssTpl->getContent();
+        
+        $css = minify_Css::process($css);
+        
+        header('Content-Type: text/css');
+        
+        echo $css;
+        
+        shutdown();
+    }
+    
+    
+    /**
      * Връща URL към JS файла за показване на бюлетина
      * 
      * @return string|boolean
@@ -282,6 +347,30 @@ class marketing_Bulletin extends core_Manager
         
         if (!$url) {
             $url = toUrl(array('marketing_Bulletin', 'getJs'), true);
+        }
+                
+        return $url;
+    }
+    
+    
+    /**
+     * Връща URL към CSS файла за показване на бюлетина
+     * 
+     * @return string|boolean
+     */
+    public static function getCssLink()
+    {
+        $conf = core_Packs::getConfig('marketing');
+        
+        if ($conf->MARKETING_USE_BULLETIN != 'yes') return FALSE;
+        
+        $url = $conf->MARKETING_BULLETIN_URL;
+        
+        if (!$url) {
+            $url = toUrl(array('marketing_Bulletin', 'getCss'), true);
+        } else {
+            // TODO ще се оправи
+            $url = str_replace('/getJs', '/getCss', $url);
         }
                 
         return $url;
