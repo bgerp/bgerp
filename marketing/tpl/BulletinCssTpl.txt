@@ -289,3 +289,16 @@
     background-image:linear-gradient(top,  #[#btnColor#], #[#darkBtnColor#]) !important;
 }
 <!--ET_END btnColorHolder-->
+
+<!--ET_BEGIN bulletinRegBg-->
+.bulletinReg{ background-color: [#bulletinRegBg#]; }
+<!--ET_END bulletinRegBg-->
+
+<!--ET_BEGIN textColor-->
+.bulletinReg, .bulletinHolder h2, .successText { color: [#textColor#];  }
+<!--ET_END textColor-->
+
+<!--ET_BEGIN btnColorShadow-->
+[#btnColorShadow#]
+.push_button { color: #111 !important; text-shadow: none }
+<!--ET_END btnColorShadow-->

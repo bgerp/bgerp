@@ -290,16 +290,14 @@ class marketing_Bulletin extends core_Manager
         
         $bg = $confBull->MARKETING_BULLETIN_BACKGROUND;
         
-        $cssS = '';
-        
         if ($bg) {
-            $cssS .= "\n.bulletinReg{ background-color: {$bg}; }";
+            $cssTpl->replace($bg, 'bulletinRegBg');
         }
         
         $textColor = $confBull->MARKETING_BULLETIN_TEXTCOLOR;
         
         if($textColor) {
-            $cssS .= "\n.bulletinReg, .bulletinHolder h2, .successText { color: {$textColor};  }";
+            $cssTpl->replace($textColor, 'textColor');
         }
         
         $btnColor =  ltrim($confBull->MARKETING_BULLETIN_BUTTONCOLOR, "#");
@@ -310,15 +308,14 @@ class marketing_Bulletin extends core_Manager
 
 
             if(phpcolor_Adapter::checkColor($btnColor, 'light'))  {
-                $cssS .= "\n.push_button { color: #111 !important; text-shadow: none }" ;
+                $btnColorShadow = ' ';
+                $cssTpl->replace($btnColorShadow, 'btnColorShadow');
             }
         }
         
         $cssTpl->replace($btnColor, 'btnColor');
         $cssTpl->replace($darkBtnColor, 'darkBtnColor');
         $cssTpl->replace($shadowBtnColor, 'shadowBtnColor');
-        
-        $cssTpl->append($cssS);
         
         $css = $cssTpl->getContent();
         
