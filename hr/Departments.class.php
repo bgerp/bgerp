@@ -195,7 +195,7 @@ class hr_Departments extends core_Master
     	// Да не може да се слага в звена, които са в неговия състав
         if($id = $data->form->rec->id) {
             $notAllowedCond = "#id NOT IN (" . implode(',', self::getInheritors($id, 'staff')) . ")";
-            $notAllowedCond = " AND #systemId IS NULL";
+            $notAllowedCond .= " AND #systemId IS NULL";
         } else {
         	$notAllowedCond = "#systemId IS NULL";
         }

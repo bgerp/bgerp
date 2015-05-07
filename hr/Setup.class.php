@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Начален номер на фактурите
+ */
+defIfNot('HR_EC_MIN', '1');
+
+
+/**
+ * Краен номер на фактурите
+*/
+defIfNot('HR_EC_MAX', '10000');
+
 
 
 /**
@@ -45,6 +56,17 @@ class hr_Setup extends core_ProtoSetup
 
     
     /**
+     * Описание на конфигурационните константи
+     */
+    var $configDescription = array(
+    
+    		'HR_EC_MIN'        => array('int(min=0)', 'caption=Диапазон за номериране на трудовите договори->Долна граница'),
+    		'HR_EC_MAX'        => array('int(min=0)', 'caption=Диапазон за номериране на трудовите договори->Горна граница'),
+    
+    );
+    
+    
+    /**
      * Списък с мениджърите, които съдържа пакета
      */
    var $managers = array(
@@ -74,10 +96,7 @@ class hr_Setup extends core_ProtoSetup
         );
     
     
-    /**
-     * Път до css файла
-     */
-//    var $commonCSS = 'hr/tpl/style.css';
+    
     
     
     /**
