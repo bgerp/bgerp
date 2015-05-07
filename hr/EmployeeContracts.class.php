@@ -329,6 +329,17 @@ class hr_EmployeeContracts extends core_Master
      */
     public static function on_AfterPrepareSingle($mvc, &$res, &$data)
     {
+    	// трудовият договор, не може да се създаде без да е обявено работното време в него
+    	// в системата, работното време се определя от различните графици
+    	// те от своя страна се добавят към отделите (структура)
+    	$queryWorkingCycle = hr_Departments::getQuery();
+    	
+    	if($queryWorkingCycle->fetch("#schedule") == FALSE){
+    	
+    		// Ако няма, изискваме от потребителя да въведе
+    		return  Redirect(array('hr_Departments', 'list'), NULL,  "Не сте въвели работни графици");
+    	}
+    	
         $row = $data->row;
         
         $rec = $data->rec;
@@ -592,6 +603,17 @@ class hr_EmployeeContracts extends core_Master
         		$rec->numId = self::getNexNumber();
         		$rec->searchKeywords .= " " . plg_Search::normalizeText($rec->numId);
         	}
+        }
+        
+        // трудовият договор, не може да се създаде без да е обявено работното време в него
+        // в системата, работното време се определя от различните графици
+        // те от своя страна се добавят към отделите (структура)
+        $queryWorkingCycle = hr_Departments::getQuery();
+    
+        if($queryWorkingCycle->fetch("#schedule") == FALSE){
+
+        	// Ако няма, изискваме от потребителя да въведе
+        	return  Redirect(array('hr_Departments', 'list'), NULL,  "Не сте въвели работни графици");
         }
     }
     
