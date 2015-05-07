@@ -28,8 +28,7 @@
 }
 
 .wide .pie-legend {
-    bottom: 0;
-    top: auto;
+    top: 0;
 }
 .chart-legend li {
     list-style: none;
