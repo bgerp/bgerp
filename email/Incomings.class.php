@@ -17,6 +17,12 @@ class email_Incomings extends core_Master
     
     
     /**
+     * Флаг, който указва, че документа е партньорски
+     */
+    public $visibleForPartners = TRUE;
+    
+    
+    /**
      * Текста бутона за създаване на имейли
      */
     var $emailButtonText = 'Отговор';

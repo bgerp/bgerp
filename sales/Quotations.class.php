@@ -910,11 +910,11 @@ class sales_Quotations extends core_Master
     	foreach ($filteredProducts as $index => $product){
     		
     		if($product->optional == 'yes') {
-    			$product->title = "|Опционални|*->|*{$product->title}";
+    			$product->title = "Опционални->{$product->title}";
     			$product->options = array('' => '') + $product->options;
     			$mandatory = '';
     		} else {
-    			$product->title = "|Оферирани|*->|*{$product->title}";
+    			$product->title = "Оферирани->{$product->title}";
     			if(count($product->options) > 1) {
     				$product->options = array('' => '') + $product->options;
     				$mandatory = 'mandatory';

@@ -4051,6 +4051,14 @@ only screen and (max-width: 320px) {
   .treeView .toggleBtn {
     margin-right: 6px;
     cursor: pointer; }
+  .treeView .plus {
+    display: none; }
+    .treeView .closedChildren .minus {
+      display: none; }
+    .treeView .closedChildren .plus {
+      display: inline-block; }
+  .treeView .hiddenRow {
+    display: none; }
 
 .debug_block {
   padding: 5px;

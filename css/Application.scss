@@ -4378,6 +4378,20 @@ body.narrow {
         margin-right: 6px;
         cursor: pointer;
     }
+    .plus {
+        display: none;
+    }
+    .closedChildren {
+        .minus {
+            display: none;
+        }
+        .plus {
+            display: inline-block;
+        }
+    }
+    .hiddenRow {
+        display: none;
+    }
 }
 .debug_block {
     padding:5px; 

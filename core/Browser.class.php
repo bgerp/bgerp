@@ -139,6 +139,12 @@ class core_Browser extends core_Master
             $row->userAgent = $rt->toVerbal("[hide={$browser} / {$os}]{$row->userAgent}[/hide]");
         }
         
+        $row->brid = str::coloring($row->brid);
+        
+        if (vislog_History::haveRightFor('list')) {
+            $row->brid = ht::createLink($row->brid, array('vislog_History', 'list', 'brid' => $rec->brid));
+        }
+        
         $userDataType = $mvc->fields['userData']->type;
         
         $row->userData = $userDataType->mixedToString($rec->userData);

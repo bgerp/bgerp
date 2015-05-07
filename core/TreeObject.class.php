@@ -17,7 +17,7 @@
 class core_TreeObject extends core_Manager
 {
 	
-	
+
 	/**
 	 * След дефиниране на полетата на модела
 	 *
@@ -292,8 +292,8 @@ class core_TreeObject extends core_Manager
 				
 				$plusIcon = sbf('img/16/toggle-expand.png', '');
 				$minusIcon = sbf('img/16/toggle2.png', '');
-				$plus = "<img class = 'toggleBtn hidden' src='{$plusIcon}' width='13' height='13'/>";
-				$minus = "<img class = 'toggleBtn' src='{$minusIcon}' width='13' height='13'/>";
+				$plus = "<img class = 'toggleBtn plus' src='{$plusIcon}' width='13' height='13'/>";
+				$minus = "<img class = 'toggleBtn minus' src='{$minusIcon}' width='13' height='13'/>";
 				
 				$row->{$mvc->nameField} = " {$plus}{$minus}" . $row->{$mvc->nameField};
 			}

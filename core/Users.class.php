@@ -313,10 +313,11 @@ class core_Users extends core_Manager
      * Проверява дали подадения потребител е контрактор
      * 
      * @param object|NULL|integer $rec
+     * @param boolean $force
      * 
      * @return boolean
      */
-    public static function isContractor($rec)
+    public static function isContractor($rec, $force=FALSE)
     {
         if (is_null($rec)) {
             $rec = core_Users::getCurrent();
@@ -326,7 +327,8 @@ class core_Users extends core_Manager
             $rec = self::fetch($rec);
         }
         
-        if (!$rec || ($rec->id < 1)) return FALSE;
+        
+        if (!$force && (!$rec || ($rec->id < 1))) return FALSE;
         
         return (boolean)(!self::isPowerUser($rec));
     }
@@ -762,7 +764,7 @@ class core_Users extends core_Manager
         foreach($rolesArr as $roleId) {
 
             if(!$rolesInputArr[$roleId]) {
-                $addRoles .= ($addRoles ? ', ' : '') . core_Roles::fetchByName($roleId);
+                $addRoles .= ($addRoles ? ', ' : '') . core_Roles::getVerbal($roleId, 'role');
             }
         }
 

@@ -16,6 +16,12 @@ class support_Issues extends core_Master
     
     
     /**
+     * Флаг, който указва, че документа е партньорски
+     */
+    public $visibleForPartners = TRUE;
+    
+    
+    /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
     var $oldClassName = 'issue_Document';
@@ -333,15 +339,20 @@ class support_Issues extends core_Master
 		
     	return $tpl;
     }
-
-
+    
+    
+    /**
+     * 
+     * 
+     * @param support_Issues $mvc
+     * @param object $row
+     * @param object $rec
+     * @param array $fields
+     */
     static function on_AfterrecToVerbal($mvc, $row, $rec, $fields = array()) 
     {
-        //$row->browser = core_Browser::getBrowserType($rec->browser);
+        $row->brid = core_Browser::getLink($rec->brid);
     }
-
-
-
     
     
     /**

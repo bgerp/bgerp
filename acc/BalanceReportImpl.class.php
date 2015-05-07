@@ -456,6 +456,18 @@ class acc_BalanceReportImpl extends frame_BaseDriver
            $Varchar = cls::get('type_Varchar');
            $Double = cls::get('type_Double');
            $Double->params['decimals'] = 2;
+
+           $cUrl = getCurrentUrl();
+           if ($cUrl['Act'] == 'export') {
+               $conf = core_Packs::getConfig('frame');
+               $symbol = $conf->FRAME_TYPE_DECIMALS_SEP;
+               if ($symbol == 'comma') {
+                   $Double->params['decPoint'] = ',';
+               } else {
+                   $Double->params['decPoint'] = '.';
+               }
+           }
+
            $Int = cls::get('type_Int');
 
            $row = new stdClass();

@@ -64,8 +64,6 @@ class acc_ProfitArticlesReport extends acc_BalanceReportImpl
         $form->setHidden('orderField');
         $form->setHidden('orderBy');
 
-        $form->setField('from', 'export=Csv');
-
        // bp($form);
     }
 
@@ -87,9 +85,6 @@ class acc_ProfitArticlesReport extends acc_BalanceReportImpl
         $articlePositionId = acc_Lists::getPosition($mvc->accountSysId, 'cat_ProductAccRegIntf');
 
         $form->setDefault("feat{$articlePositionId}", "*");
-        $form->setField("feat{$articlePositionId}",'export=Csv');
-        $form->setField('blQuantity', 'export=Csv');
-        $form->setField('blAmount', 'export=Csv');
 
        // bp($form);
     }
@@ -132,7 +127,7 @@ class acc_ProfitArticlesReport extends acc_BalanceReportImpl
      */
     public static function on_AfterPrepareSingleToolbar($mvc, $data)
     {
-        bp();
+
         // Ако нямаме права за писане в треда
         if(doc_Threads::haveRightFor('single', $data->rec->threadId) == FALSE){
 

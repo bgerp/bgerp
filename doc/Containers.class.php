@@ -101,6 +101,8 @@ class doc_Containers extends core_Manager
         
         $this->FLD('activatedBy', 'key(mvc=core_Users)', 'caption=Активирано от, input=none');
         
+        $this->FLD('visibleForPartners', 'enum(no=Не, yes=Да)', 'caption=Видим за партньори');
+        
         // Индекси за бързодействие
         $this->setDbIndex('folderId');
         $this->setDbIndex('threadId');
@@ -356,7 +358,16 @@ class doc_Containers extends core_Manager
             expect($rec->docId = $docMvc->fetchField("#containerId = {$id}", 'id'));
             $mustSave = TRUE;
         }
-
+        
+        if ($rec->docClass && $rec->docId && !isset($rec->visibleForPartners)) {
+            if ($docMvc->visibleForPartners) {
+                $rec->visibleForPartners = 'yes';
+            } else {
+                $rec->visibleForPartners = 'no';
+            }
+            
+            $mustSave = TRUE;
+        }
 
         // Обновяването е възможно при следните случаи
         // 1. Създаване на документа, след запис на документа
