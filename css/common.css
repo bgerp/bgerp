@@ -1475,7 +1475,7 @@ input:focus[type=button] {
   border-radius: 0 0 5px 5px;
   border: solid 1px #bbbbbb;
   border-top: none;
-  background: #cccccc url('../img/formToolbarBg1.jpg'); }
+  background: #cccccc url('../img/formToolbarBg.jpg'); }
 
 .wide .vertical .formToolbar .toolbar div {
   margin: 2px 0; }
