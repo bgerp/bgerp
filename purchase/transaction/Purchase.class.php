@@ -459,7 +459,7 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
     /**
      * Връща всички експедирани продукти и техните количества по сделката
      */
-    public static function getShippedProducts($id)
+    public static function getShippedProducts($id, $accs = '321,302,601,602,60010,60020')
     {
     	$res = array();
     	$query = purchase_PurchasesDetails::getQuery();
@@ -470,7 +470,7 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
     	$jRecs = self::getEntries($id);
     
     	// Извличаме тези, отнасящи се за експедиране
-    	$dInfo = acc_Balances::getBlAmounts($jRecs, '321,302,601,602,60010,60020', 'debit');
+    	$dInfo = acc_Balances::getBlAmounts($jRecs, $accs, 'debit');
     	
     	if(!count($dInfo->recs)) return $res;
     
