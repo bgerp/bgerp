@@ -30,7 +30,7 @@ class store_Receipts extends store_DocumentMaster
      * Поддържани интерфейси
      */
     public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf, store_iface_DocumentIntf,
-                          acc_TransactionSourceIntf=store_transaction_Receipt, bgerp_DealIntf';
+                          acc_TransactionSourceIntf=store_transaction_Receipt, bgerp_DealIntf, findeals_AllocatedExpensesSourceIntf';
     
     
     /**
@@ -229,60 +229,5 @@ class store_Receipts extends store_DocumentMaster
     					  'toggleFields' => array('masterFld' => NULL, 'store_ReceiptDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
     	
         $res .= doc_TplManager::addOnce($this, $tplArr);
-    }
-    
-    
-    /**
-     * След подготовка на тулбара на единичен изглед
-     */
-    public static function on_AfterPrepareSingleToolbar($mvc, &$data)
-    {
-    	$rec = &$data->rec;
-    	 
-    	if($rec->state == 'active'){
-    		if(acc_ExpenseAllocations::haveRightFor('add', (object)array('threadId' => $rec->threadId, 'originId' => $rec->containerId))){
-    			$data->toolbar->addBtn("Разходи", array('acc_ExpenseAllocations', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), 'ef_icon=img/16/view.png,title=Създаване на документ за разпределяне на разходи,row=2');
-    		}
-    	}
-    }
-    
-    
-    /**
-     * Връща масив със складируемите артикули, върху които ще се разпределят разходи
-     *
-     * @param int $id - ид на документа
-     * @param int $limit - ограничение
-     * @return array $products - намерените артикули
-     */
-    public function getStorableProducts($id, $limit = NULL)
-    {
-    	$products = array();
-    	$rec = $this->fetchRec($id);
-    	if($rec->state != 'active') return $products;
-    	
-    	// Кои артикули са експедирани
-    	$dQuery = store_ReceiptDetails::getQuery();
-    	$dQuery->where("#receiptId = {$id}");
-    	if($limit){
-    		$dQuery->limit($limit);
-    	}
-    	
-    	while($dRec = $dQuery->fetch()){
-    		$products[] = $dRec;
-    	}
-    	
-    	return $products;
-    }
-    
-    
-    /**
-     * Връща ид-то на склада към артикулите в него, на които ще се разпределят разходите
-     *
-     * @param int $id
-     * @return int $storeId - ид на скалда
-     */
-    function getStoreId($id)
-    {
-    	return $this->fetchField($id, 'storeId');
     }
 }
