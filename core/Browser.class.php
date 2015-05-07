@@ -106,7 +106,11 @@ class core_Browser extends core_Master
      */
     public $listFields = 'id, brid, userAgent, createdOn, createdBy';
     
-    
+    /**
+     * Поле в което да се показва иконата за единичен изглед
+     */
+    public $rowToolsSingleField = 'brid';
+
     /**
      * Описание на модела
      */
@@ -127,15 +131,13 @@ class core_Browser extends core_Master
     function on_AfterRecToVerbal($mvc, $row, $rec, $fields)
     {
         if($row->userAgent) {
-            $os = static::getUserAgentOsName($rec->userAgent);
-            $browser = static::getUserAgentBrowserName($rec->userAgent);
+            $os = self::getUserAgentOsName($rec->userAgent);
+            $browser = self::getUserAgentBrowserName($rec->userAgent);
             $row->userAgent = str_replace('[', '&#91;', $row->userAgent);
 
             $rt = core_Type::getByName('richtext');
             $row->userAgent = $rt->toVerbal("[hide={$browser} / {$os}]{$row->userAgent}[/hide]");
         }
-
-        $row->brid = str::coloring($row->brid);
         
         $userDataType = $mvc->fields['userData']->type;
         
@@ -157,33 +159,33 @@ class core_Browser extends core_Master
     static function getBrid($generate = TRUE)
     {   
         // brid от сесията
-        $brid = Mode::get(static::BRID_NAME);
+        $brid = Mode::get(self::BRID_NAME);
         
         if ($brid) return $brid;
         
         // brid от кукитата
-        if ($bridC = $_COOKIE[static::BRID_NAME]) {
+        if ($bridC = $_COOKIE[self::BRID_NAME]) {
             
             // Допълнителна сол за brid
-            $bridSalt = static::getBridSalt();
+            $bridSalt = self::getBridSalt();
             
             // Проверяваме хеша дали е верене
-            $brid = str::checkHash($bridC, static::HASH_LENGTH, $bridSalt);
+            $brid = str::checkHash($bridC, self::HASH_LENGTH, $bridSalt);
             
             if ($brid) {
                 
                 // Записваме в сесията
-                Mode::setPermanent(static::BRID_NAME, $brid);
+                Mode::setPermanent(self::BRID_NAME, $brid);
                 
                 // Добавяме в модела
-                static::add($brid);
+                self::add($brid);
                 
                 return $brid;
             } else {
                 
                 // Ако не отговаря на хеша
                 
-                static::log('Грешен хеш за BRID: ' . $bridC);
+                self::log('Грешен хеш за BRID: ' . $bridC);
                 
 //                return FALSE;
             }
@@ -193,16 +195,16 @@ class core_Browser extends core_Master
         if ($generate) {
             
             // Генерира brid
-            $brid = static::generateBrid();
+            $brid = self::generateBrid();
             
             // Записваме в сесията
-            Mode::setPermanent(static::BRID_NAME, $brid);
+            Mode::setPermanent(self::BRID_NAME, $brid);
             
             // Записваме кукито
-            static::setBridCookie($brid);
+            self::setBridCookie($brid);
             
             // Добавяме в модела
-            static::add($brid);
+            self::add($brid);
             
             return $brid;
         }
@@ -234,6 +236,8 @@ class core_Browser extends core_Master
         if(!$brid) return "";
 
         $rec = self::fetch(array("#brid = '[#1#]'", $brid));
+        
+        if(!$rec->userAgent) return "";
 
         $title = substr(self::getUserAgentBrowserName($rec->userAgent), 0, 3);
 
@@ -247,7 +251,6 @@ class core_Browser extends core_Master
         }
         
         if (!Mode::is('text', 'plain')) {
-            $title = str::coloring($title, $brid);
 
             if (core_Browser::haveRightFor('single', $bridRec)) {
                 $title = ht::createLink($title, array('core_Browser', 'single', $rec->id));
@@ -345,9 +348,9 @@ class core_Browser extends core_Master
             $rec->brid = $brid;
         }
         
-        $rec->userAgent = static::getUserAgent();
+        $rec->userAgent = self::getUserAgent();
         
-        static::save($rec, NULL, REPLACE);
+        self::save($rec, NULL, REPLACE);
     }
     
     
@@ -362,11 +365,11 @@ class core_Browser extends core_Master
         $conf = core_Packs::getConfig('core');
         
         // Допълнителна сол за brid
-        $bridSalt = static::getBridSalt();
+        $bridSalt = self::getBridSalt();
         
         // Добавяме хеш към brid и записваме в кукитата
-        $bridHash = str::addHash($brid, static::HASH_LENGTH, $bridSalt);
-        setcookie(static::BRID_NAME, $bridHash, time() + $conf->CORE_COOKIE_LIFETIME);
+        $bridHash = str::addHash($brid, self::HASH_LENGTH, $bridSalt);
+        setcookie(self::BRID_NAME, $bridHash, time() + $conf->CORE_COOKIE_LIFETIME);
     }
     
     
@@ -375,11 +378,11 @@ class core_Browser extends core_Master
      */
     static function updateBridCookieLifetime()
     {
-        $brid = static::getBrid(FALSE);
+        $brid = self::getBrid(FALSE);
         
         if (!$brid) return FALSE;
         
-        static::setBridCookie($brid);
+        self::setBridCookie($brid);
     }
     
     
@@ -390,8 +393,8 @@ class core_Browser extends core_Master
      */
     static function getBridSalt_()
     {
-        $os = static::getUserAgentOsName();
-        $browser = static::getUserAgentBrowserName();
+        $os = self::getUserAgentOsName();
+        $browser = self::getUserAgentBrowserName();
         $bridSalt = $os . '_' . $browser;
         
         return $bridSalt;
@@ -421,7 +424,7 @@ class core_Browser extends core_Master
     {   
         $s = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-        if($bot = static::detectBot()) {
+        if($bot = self::detectBot()) {
             $str = md5($bot . BRID_SALT);
         } else {
             $str = md5($_SERVER['HTTP_USER_AGENT'] . '|' . core_Users::getRealIpAddr() . '|' . dt::today() . '|' . BRID_SALT);
@@ -443,7 +446,7 @@ class core_Browser extends core_Master
     {
         if(!$userAgent) {
             // Вземаме ОС от HTTP_USER_AGENT
-            $userAgent = static::getUserAgent();
+            $userAgent = self::getUserAgent();
         }
 
         $browser = "Unknown Browser";
@@ -486,7 +489,7 @@ class core_Browser extends core_Master
     {
         if(!$userAgent) {
             // Вземаме ОС от HTTP_USER_AGENT
-            $userAgent = static::getUserAgent();
+            $userAgent = self::getUserAgent();
         }
         
         $osPlatform = "Unknown OS";
@@ -575,7 +578,6 @@ class core_Browser extends core_Master
         return FALSE;
     }
 
-
     /**
      * Тестваме какъв е UA
      */
@@ -589,7 +591,6 @@ class core_Browser extends core_Master
         return $res;
     }
     
-
     /**
      * Връща $_SERVER['HTTP_USER_AGENT']
      */
