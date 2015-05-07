@@ -307,7 +307,7 @@ function getForm()
 				}
                 form += "</div><div class='clearfix21'></div> " ;
 
-				form += "<div class='centered'><input type='submit' name='submit' value='[#submitBtnVal#]' class='push_button blue'></div>"+
+				form += "<div class='centered'><input type='submit' name='submit' value='[#submitBtnVal#]' class='push_button'></div>"+
 				"<div style='text-align: center;'><a href='#' class='bulletinCancel'>[#cancelBtnVal#]</a></div>"+
 				"</form>" +
 				"</div>" +
@@ -381,10 +381,10 @@ function onClickCatcher()
         	
 		    $(this).html(getSuccessText(url));
 		    $('.bulletinInner').fadeIn("slow");
-		    hideAfterTimeout(7000, 800);
+		    //hideAfterTimeout(7000, 800);
 		});
         
-    	setCookie('bulletinHaveReg', true, 1000);
+    	//setCookie('bulletinHaveReg', true, 1000);
 	});
 	
 	// Скриваме формата при натискане на отказ или X

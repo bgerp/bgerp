@@ -74,6 +74,23 @@ defIfNot('MARKETING_BULLETIN_IMG', '');
 
 
 /**
+ * Фон на прозореца на бюлетина
+ */
+defIfNot('MARKETING_BULLETIN_BACKGROUND', '');
+
+
+/**
+ * Цвят на текста от бюлетина
+ */
+defIfNot('MARKETING_BULLETIN_TEXTCOLOR', '');
+
+
+/**
+ * Основен цвят за бутона на бюлетина
+ */
+defIfNot('MARKETING_BULLETIN_BUTTONCOLOR', '');
+
+/**
  * Маркетинг - инсталиране / деинсталиране
  *
  *
@@ -129,6 +146,9 @@ class marketing_Setup extends core_ProtoSetup
 	        'MARKETING_IDLE_TIME_FOR_SHOW' => array('time(suggestions=5 секунди|20 секунди|1 мин)', 'caption=Период за бездействие преди активиране->Време'),
 	        'MARKETING_WAIT_BEFORE_START' => array('time(suggestions=3 секунди|5 секунди|10 секунди)', 'caption=След колко време да може да стартира бюлетина->Време'),
 	        'MARKETING_BULLETIN_IMG' => array('fileman_FileType(bucket=pictures)', 'caption=Картинка за успешна регистрация->Изображение'),
+            'MARKETING_BULLETIN_BACKGROUND' => array('color_Type', 'caption=Цветове за бюлетина->Цвят на фона'),
+            'MARKETING_BULLETIN_TEXTCOLOR' => array('color_Type', 'caption=Цветове за бюлетина->Цвят на текста'),
+            'MARKETING_BULLETIN_BUTTONCOLOR' => array('color_Type', 'caption=Цветове за бюлетина->Цвят на бутона')
 	);
 	
 	
