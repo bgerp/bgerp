@@ -36,7 +36,7 @@ class marketing_Bulletin extends core_Manager
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'no_one';
+    var $canAdd = 'ceo, marketing';
     
     
     /**
@@ -60,13 +60,19 @@ class marketing_Bulletin extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'marketing_Wrapper,  plg_RowTools, plg_Created';
+    var $loadList = 'marketing_Wrapper,  plg_RowTools, plg_Created, plg_Sorting, plg_Search';
     
     
     /**
      * Какви интерфейси поддържа този мениджър
      */
     public $interfaces = 'bgerp_PersonalizationSourceIntf';
+    
+    
+    /**
+     * 
+     */
+    public $searchFields = 'email, name, company';
     
     
     /**
@@ -451,5 +457,22 @@ class marketing_Bulletin extends core_Manager
         $link = ht::createLink($title, array($this, 'list'));
         
         return $link;
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param marketing_Bulletin $mvc
+     * @param object $data
+     * @param object $res
+     */
+    static function on_AfterPrepareListFilter($mvc, $data)
+    {
+        $data->listFilter->showFields = 'search';
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        
+        $data->query->orderBy('createdOn', 'DESC');
     }
 }
