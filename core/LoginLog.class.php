@@ -216,6 +216,33 @@ class core_LoginLog extends core_Manager
     
     
     /**
+     * Проверява дали от този `brid` е осъществено логване
+     * 
+     * @param IP $ip
+     * 
+     * @return boolean
+     */
+    public static function isLoggedBefore($ip = NULL)
+    {
+        $brid = core_Browser::getBrid();
+        
+        $query = self::getQuery();
+        $query->where(array("#brid = '[#1#]'", $brid));
+        
+        if ($ip) {
+            $query->where(array("#ip = '[#1#]'", $ip));
+        }
+        
+        $query->where("#status = 'success'");
+        $query->orWhere("#status = 'first_login'");
+        
+        $query->limit(1);
+        
+        return (boolean)$query->count();
+    }
+    
+    
+    /**
      * Връща id на потребителя, който се е логва от този браузър
      * 
      * @return mixed
