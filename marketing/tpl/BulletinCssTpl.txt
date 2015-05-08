@@ -217,6 +217,11 @@
     margin-top: 10px;
 }
 
+.thanksText img {
+    max-height: 150px;
+    width: auto;
+}
+
 @media handheld, only screen and (max-width: 640px) and (orientation:landscape) {
     .narrow .bulletinHolder h2 {
         font-size: 1.1em;
