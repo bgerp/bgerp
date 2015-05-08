@@ -173,6 +173,10 @@ class acc_AllocatedExpenses extends core_Master
     	$row->dealOriginId = $firstDoc->getLink(0);
     	$row->correspondingDealOriginId = doc_Containers::getDocument($rec->correspondingDealOriginId)->getLink(0);
     	$row->baseCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->valior);
+    	
+    	if($rec->action == 'decrease'){
+    		$row->amount = "<span class='red'>-{$row->amount}</span>";
+    	}
     }
     
     
@@ -251,7 +255,7 @@ class acc_AllocatedExpenses extends core_Master
     	
     	// Показваме под таблицата обобщената информация
     	$colspan = count($listFields) - 1;
-    	$lastRowTpl = new core_ET(tr("|*<tr style='background-color: #eee'><td colspan='[#colspan#]' style='text-align:right'>|Общо|*</td><td style='text-align:right'>[#amount#]</td></tr>"));
+    	$lastRowTpl = new core_ET(tr("|*<tr style='background-color: #eee'><td colspan='[#colspan#]' style='text-align:right'>|Общо|*</td><td style='text-align:right'><b>[#amount#]</b></td></tr>"));
     	$lastRowTpl->replace($colspan, 'colspan');
     	$lastRowTpl->replace($data->row->amount, 'amount');
     	$details->append($lastRowTpl, 'ROW_AFTER');
