@@ -179,7 +179,7 @@ class acc_AllocatedExpenses extends core_Master
     /**
      * Връща вербалното представяне за артикула с коригирана стойност
      */
-    private function getVerbalDetail($pRec)
+    private function getVerbalDetail($pRec, $rec)
     {
     	$row = new stdClass();
     	$row->name = cat_Products::getShortHyperlink($pRec->productId);
@@ -199,6 +199,10 @@ class acc_AllocatedExpenses extends core_Master
     		$row->transportVolume = cls::get('cat_type_Volume')->toVerbal($pRec->transportVolume);
     	}
     	
+    	$row->allocated = ($rec->action == 'increase') ? "<span style='color:green'>+{$row->allocated}</span>" : "<span style='color:red'>-{$row->allocated}</span>";
+    	$measureShort = cat_UoM::getShortName(cat_Products::fetchField($pRec->productId, 'measureId'));
+    	$row->quantity = "{$row->quantity} {$measureShort}";
+    	
     	return $row;
     }
     
@@ -210,17 +214,19 @@ class acc_AllocatedExpenses extends core_Master
     {
     	if(!count($data->rec->productsData)) return;
     	
+    	// Подговяме кешираната информация за артикулите във вербален вид
     	$productRows = array();
     	$count = 1;
     	foreach ($data->rec->productsData as $pRec){
-    		$row = $mvc->getVerbalDetail($pRec);
+    		$row = $mvc->getVerbalDetail($pRec, $data->rec);
     		$row->count = cls::get('type_Int')->toVerbal($count);
     		$productRows[] = $row;
     		$count++;
     	}
     	
-    	$listFields = arr::make('count=№,name=Артикул,amount=Сума,allocated=Разпределено', TRUE);
+    	$listFields = arr::make("count=№,name=Артикул,amount=Сума,allocated=Разпределено ({$data->row->baseCurrencyCode})", TRUE);
     	
+    	// Взависимост от признака на разпределяне, показваме колоната възоснова на която е разпределено
     	switch($data->rec->allocateBy){
     		case 'weight':
     			arr::placeInAssocArray($listFields, array('transportWeight' => 'Тегло'), 'allocated');
@@ -242,6 +248,14 @@ class acc_AllocatedExpenses extends core_Master
     	$fs->FNC('quantity', 'double');
     	$table = cls::get('core_TableView', array('mvc' => $fs));
     	$details = $table->get($productRows, $listFields);
+    	
+    	// Показваме под таблицата обобщената информация
+    	$colspan = count($listFields) - 1;
+    	$lastRowTpl = new core_ET(tr("|*<tr style='background-color: #eee'><td colspan='[#colspan#]' style='text-align:right'>|Общо|*</td><td style='text-align:right'>[#amount#]</td></tr>"));
+    	$lastRowTpl->replace($colspan, 'colspan');
+    	$lastRowTpl->replace($data->row->amount, 'amount');
+    	$details->append($lastRowTpl, 'ROW_AFTER');
+    	
     	$tpl->append($details, 'PRODUCTS_TABLE');
     }
     
@@ -332,6 +346,7 @@ class acc_AllocatedExpenses extends core_Master
     	if(count($shipped)){
     		foreach ($shipped as $p){
     			$params = cls::get($p->classId)->getParams($p->productId);
+    			if($p->amount == 0) continue;
     			
     			$products[$p->productId] = (object)array('productId'    => $p->productId, 
     												     'name'         => cls::get($p->classId)->getTitleById($p->productId), 
@@ -498,8 +513,6 @@ class acc_AllocatedExpenses extends core_Master
     			foreach ($products as $p){
     				$denominator += $p->amount;
     			}
-    			if($denominator == 0) return 'Не може да се разпредели по стойност, когато общата стойност на артикулите е нула';
-    			
     			break;
     		case 'quantity':
     			foreach ($products as $p){
@@ -679,5 +692,21 @@ class acc_AllocatedExpenses extends core_Master
     	$row->state    = $rec->state;
     
     	return $row;
+    }
+    
+    
+    /**
+     * Добавя ключови думи за пълнотекстово търсене
+     */
+    protected static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+    {
+    	if(count($rec->productsData)){
+    		$detailsKeywords = '';
+    		foreach ($rec->productsData as $product){
+    			$detailsKeywords .= " " . plg_Search::normalizeText($product->name);
+    		}
+    		
+    		$res = " " . $res . " " . $detailsKeywords;
+    	}
     }
 }
