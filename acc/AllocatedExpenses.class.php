@@ -139,7 +139,7 @@ class acc_AllocatedExpenses extends core_Master
     {
     	$this->FLD('valior', 'date', 'caption=Вальор,mandatory');
     	$this->FLD('amount', 'double(decimals=2,Min=0)', 'caption=Сума');
-    	$this->FLD('action', 'enum(increase=Увеличаване,decrease=Намаляване)', 'caption=Корекция,notNull,value=increase');
+    	$this->FLD('action', 'enum(increase=Увеличаване,decrease=Намаляване)', 'caption=Корекция,notNull,value=increase,maxRadio=2');
     	$this->FLD('allocateBy', 'enum(value=Стойност,quantity=Количество,weight=Тегло,volume=Обем)', 'caption=Разпределяне по,notNull,value=value');
     	$this->FNC('contragentFolderId', 'key(mvc=doc_Folders,select=title)', 'caption=Кореспондираща сделка->Контрагент,refreshForm,silent,input');
     	$this->FNC('dealHandler', 'varchar', 'caption=Кореспондираща сделка->Номер,silent,input');
@@ -177,17 +177,71 @@ class acc_AllocatedExpenses extends core_Master
     
     
     /**
+     * Връща вербалното представяне за артикула с коригирана стойност
+     */
+    private function getVerbalDetail($pRec)
+    {
+    	$row = new stdClass();
+    	$row->name = cat_Products::getShortHyperlink($pRec->productId);
+    	$Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
+    	
+    	foreach (array('amount', 'allocated', 'quantity') as $fld){
+    		if(isset($pRec->$fld)){
+    			$row->$fld = $Double->toVerbal($pRec->$fld);
+    		}
+    	}
+    	
+    	if(isset($pRec->transportWeight)){
+    		$row->transportWeight = cls::get('cat_type_Weight')->toVerbal($pRec->transportWeight);
+    	}
+    	
+    	if(isset($pRec->transportVolume)){
+    		$row->transportVolume = cls::get('cat_type_Volume')->toVerbal($pRec->transportVolume);
+    	}
+    	
+    	return $row;
+    }
+    
+    
+    /**
      * След рендиране на еденичния изглед
      */
     public static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
-    	foreach ($data->rec->productsData as &$pRec){
-    		$pRec->name = cat_Products::getShortHyperlink($pRec->productId);
+    	if(!count($data->rec->productsData)) return;
+    	
+    	$productRows = array();
+    	$count = 1;
+    	foreach ($data->rec->productsData as $pRec){
+    		$row = $mvc->getVerbalDetail($pRec);
+    		$row->count = cls::get('type_Int')->toVerbal($count);
+    		$productRows[] = $row;
+    		$count++;
+    	}
+    	
+    	$listFields = arr::make('count=№,name=Артикул,amount=Сума,allocated=Разпределено', TRUE);
+    	
+    	switch($data->rec->allocateBy){
+    		case 'weight':
+    			arr::placeInAssocArray($listFields, array('transportWeight' => 'Тегло'), 'allocated');
+    			break;
+    		case 'volume':
+    			arr::placeInAssocArray($listFields, array('transportVolume' => 'Обем'), 'allocated');
+    			break;
+    		case 'quantity':
+    			arr::placeInAssocArray($listFields, array('quantity' => 'К-во'), 'allocated');
+    			break;
     	}
     	
     	// Показваме таблица със артикулите и разпределените им суми
-    	$table = cls::get('core_TableView');
-    	$details = $table->get($data->rec->productsData, 'name=Артикул,aAmount=Сума');
+    	$fs = new core_FieldSet();
+    	$fs->FNC('amount', 'double');
+    	$fs->FNC('allocated', 'double');
+    	$fs->FNC('transportWeight', 'double');
+    	$fs->FNC('transportVolume', 'double');
+    	$fs->FNC('quantity', 'double');
+    	$table = cls::get('core_TableView', array('mvc' => $fs));
+    	$details = $table->get($productRows, $listFields);
     	$tpl->append($details, 'PRODUCTS_TABLE');
     }
     
@@ -213,7 +267,7 @@ class acc_AllocatedExpenses extends core_Master
     	
     	// Намираме ориджина и подготвяме опциите за избор на папки на контрагенти
     	$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
-    	$form->setOptions('contragentFolderId', $mvc->getContragentOptions());
+    	$form->setOptions('contragentFolderId', array('' => '') + doc_Folders::getOptionsByCoverInterface('crm_ContragentAccRegIntf'));
 
     	// Ако има избрана папка на контрагент, зареждаме всички достъпни сделки като предложение
     	if(isset($rec->contragentFolderId)){
@@ -236,7 +290,7 @@ class acc_AllocatedExpenses extends core_Master
     		$form->setField('chosenProducts', 'columns=1');
     		
     		// Ако имаме запис оставяме само тези, които са в кешираното блоб поле
-    		if($rec->id){
+    		if($rec->id && $rec->productsData){
     			$products = array_intersect_key($products, $rec->productsData);
     		}
     		
@@ -277,7 +331,21 @@ class acc_AllocatedExpenses extends core_Master
     	$products = array();
     	if(count($shipped)){
     		foreach ($shipped as $p){
-    			$products[$p->productId] = (object)array('productId' => $p->productId, 'name' => cls::get($p->classId)->getTitleById($p->productId), 'quantity' => $p->quantity);
+    			$params = cls::get($p->classId)->getParams($p->productId);
+    			
+    			$products[$p->productId] = (object)array('productId'    => $p->productId, 
+    												     'name'         => cls::get($p->classId)->getTitleById($p->productId), 
+    													 'quantity'     => $p->quantity,
+    													 'amount' => $p->amount,
+    			);
+    			
+    			if(isset($params['transportWeight'])){
+    				$products[$p->productId]->transportWeight = $params['transportWeight'];
+    			}
+    			
+    			if(isset($params['transportVolume'])){
+    				$products[$p->productId]->transportVolume = $params['transportVolume'];
+    			}
     		}
     	}
     	
@@ -382,10 +450,97 @@ class acc_AllocatedExpenses extends core_Master
     					$form->setError('amount', 'Не може автоматично да се определи сумата, Моля задайте');
     				}
     			}
+    			
+    			// Kешираме от всички възможни продукти, тези които са били избрани във функционалното поле
+    			$rec->productsData = array_intersect_key($form->allProducts, type_Set::toArray($rec->chosenProducts));
+    			$msg = $mvc->allocateAmount($rec->productsData, $rec->amount, $rec->allocateBy);
+    			if(isset($msg)){
+    				$form->setError('allocateBy', $msg);
+    			}
     		}
-    		
-    		// Kешираме от всички възможни продукти, тези които са били избрани във функционалното поле
-    		$rec->productsData = array_intersect_key($form->allProducts, type_Set::toArray($rec->chosenProducts));
+    	}
+    }
+    
+    
+    /**
+     * Разпределяне на разходите според посочения метод
+     * 
+     * Цените на продуктите: P1, P2, ..., Pn
+     * Количествата на продуктите: Q1, Q2, ..., Qn
+     * Единичния транспортен обем: V1, V2, ..., Vn
+     * Единичните транспортни тегла: M1, M2, ...., Mn
+     * 
+     * Тогава коефициентите за разпределение на разходите/излишъците са:
+     * 1. По стойност:
+     * 		K(i) = P(i)*Q(i) / SUM(P*Q);
+     * 		Ако общата сума е 0, не може да се разпредели разхода
+     * 2. По количество:
+     * 		K(i) = Q(i) / SUM(Q);
+     * 3. По обем:
+     * 		K(i) = V(i)*Q(i) / SUM(V*Q);
+     * 		Ако някой артикул няма Транспортен обем не може да се разпредели
+     * 4. По тегло:
+     * 		K(i) = М(i)*Q(i) / SUM(М*Q); 
+     * 		Ако някой артикул няма тегло не може да се разпредели
+     * 
+     * @param array $products - масив с информация за артикули
+     * @param double $amount - сумата за разпределяне
+     * @param value|quantity|volume|weight - режим на разпределяне
+     * @return mixed
+     */
+    private function allocateAmount(&$products, $amount, $allocateBy)
+    {
+    	$denominator = 0;
+    	
+    	// Първо обхождаме записите и изчисляваме знаменателя чрез който ще изчислим коефициента
+    	switch ($allocateBy){
+    		case 'value':
+    			foreach ($products as $p){
+    				$denominator += $p->amount;
+    			}
+    			if($denominator == 0) return 'Не може да се разпредели по стойност, когато общата стойност на артикулите е нула';
+    			
+    			break;
+    		case 'quantity':
+    			foreach ($products as $p){
+    				$denominator += $p->quantity;
+    			}
+    			break;
+    		case 'weight':
+    			foreach ($products as $p){
+    				if(!isset($p->transportWeight)) return 'Не може да се разпредели по тегло, докато има артикул без транспортно тегло';
+    				
+    				$denominator += $p->transportWeight * $p->quantity;
+    			}
+    			break;
+    		case 'volume':
+    			foreach ($products as $p){
+    				if(!isset($p->transportVolume)) return 'Не може да се разпредели по обем, докато има артикул без транспортен обем';
+    				$denominator += $p->transportVolume * $p->quantity;
+    			}
+    			break;
+    	}
+    	
+    	// Изчисляваме коефициента, според указания начин за разпределяне
+    	foreach ($products as &$p){
+	    	switch ($allocateBy){
+	    		case 'value':
+	    			$coefficient = $p->amount / $denominator;
+	    			break;
+	    		case 'quantity':
+	    			$coefficient = $p->quantity / $denominator;
+	    			break;
+	    		case 'weight':
+	    			$coefficient = ($p->transportWeight * $p->quantity) / $denominator;
+	    			
+	    			break;
+	    		case 'volume':
+	    			$coefficient = ($p->transportVolume * $p->quantity) / $denominator;
+	    			break;
+	    	}
+	    	
+	    	// Изчисляваме сумата за разпределяне (коефициент * сума за разпределение)
+	    	$p->allocated = round($coefficient * $amount, 2);
     	}
     }
     
@@ -452,25 +607,6 @@ class acc_AllocatedExpenses extends core_Master
     	}
     	
     	return FALSE;
-    }
-    
-    
-    // Връщаме опциите за папки на контрагенти
-    private function getContragentOptions()
-    {
-    	$options = array();
-    	
-    	$folderQuery = doc_Folders::getQuery();
-    	$contragents = core_Classes::getOptionsByInterface('crm_ContragentAccRegIntf', 'title');
-    	$contragents = array_keys($contragents);
-    	$folderQuery->in('coverClass', $contragents);
-    	$folderQuery->where("#state != 'rejected'");
-    	$folderQuery->show('title');
-    	while($rec = $folderQuery->fetch()){
-    		$options[$rec->id] = doc_Folders::getVerbal($rec, 'title');
-    	}
-    	
-    	return array('' => '') + $options;
     }
     
     
