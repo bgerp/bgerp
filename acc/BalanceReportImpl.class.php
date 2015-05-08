@@ -457,17 +457,6 @@ class acc_BalanceReportImpl extends frame_BaseDriver
            $Double = cls::get('type_Double');
            $Double->params['decimals'] = 2;
 
-           $cUrl = getCurrentUrl();
-           if ($cUrl['Act'] == 'export') {
-               $conf = core_Packs::getConfig('frame');
-               $symbol = $conf->FRAME_TYPE_DECIMALS_SEP;
-               if ($symbol == 'comma') {
-                   $Double->params['decPoint'] = ',';
-               } else {
-                   $Double->params['decPoint'] = '.';
-               }
-           }
-
            $Int = cls::get('type_Int');
 
            $row = new stdClass();
@@ -563,7 +552,7 @@ class acc_BalanceReportImpl extends frame_BaseDriver
          }
 
          foreach ($this->innerState->recs as $id => $rec) {
-             $rec = $this->getVerbalDetail($rec);
+             $rec = $this->csvRows($rec);
 
              $rCsv = '';
              foreach ($exportFields as $field => $caption) {
@@ -610,6 +599,66 @@ class acc_BalanceReportImpl extends frame_BaseDriver
         $exportFields['blAmount']  = "Крайно салдо";
 
         return $exportFields;
+    }
+    
+    
+    /**
+     * Ще направим нови row-ове за експорта.
+     * Ще се обработват променливи от тип
+     * double, key, keylist, date
+     *
+     * @return std Class $rows
+     */
+    public function csvRows ($rec)
+    {
+    	
+    	// новите ни ролове
+    	$rows = new stdClass();
+    	
+    	// за всеки един запис
+    	foreach ($rec as $field => $value) { 
+    		// проверяваме типа му
+	    	$type = gettype($value);
+
+	    	// ако е doubele
+	    	if ($tupe == 'double') {
+	    		
+	    		//ще го закръгляме до 2 знака, след запетаята
+	    		$decimals = 2;
+	    		// няма да имаме разделител за хилядите
+	    		$thousandsSep = '';
+	    		// ще вземем конфигурурания символ за разделител на стотинките
+	    		$conf = core_Packs::getConfig('frame');
+	    		$symbol = $conf->FRAME_TYPE_DECIMALS_SEP;
+	    			
+	    		if ($symbol == 'comma') {
+	    			$decPoint = ',';
+	    		} else {
+	    			$decPoint = '.';
+	    		}	
+	
+	    		// Закръгляме числото преди да го обърнем в нормален вид
+	    		$value = round($value, $decimals);
+	    			
+	    		$value = number_format($value, $decimals, $decPoint, $thousandsSep);
+	    			
+	    		if(!Mode::is('text', 'plain')) {
+	    			$value = str_replace(' ', '&nbsp;', $value);
+	    		}	
+	    	}
+	    	
+	    	$rows->{$field} = $value;
+    	}
+    		
+    	// ако имаме попълнено поле за контрагент или продукт
+    	// искаме то да илезе с вербалното си име
+    	foreach (range(1, 3) as $i) {
+    		if(!empty($rows->{"ent{$i}Id"})){
+    			$rows->{"ent{$i}Id"} = acc_Items::getVerbal($rec->{"ent{$i}Id"}, 'title');
+    		}
+    	}
+
+    	return $rows;
     }
 
 }
