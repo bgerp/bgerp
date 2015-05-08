@@ -317,16 +317,6 @@ class core_TreeObject extends core_Manager
 	
 	
 	/**
-	 * Извиква се след подготовката на toolbar-а за табличния изглед
-	 */
-	protected static function on_AfterPrepareListToolbar($mvc, &$data)
-	{
-		$data->toolbar->addFnBtn('Затвори всички', NULL, 'class=closeTreeBtn');
-		$data->toolbar->addFnBtn('Отвори всички', NULL, 'class=openTreeBtn');
-	}
-	
-	
-	/**
 	 * След рендиране на лист таблицата
 	 */
 	public static function on_AfterRenderListTable($mvc, &$tpl, &$data)
