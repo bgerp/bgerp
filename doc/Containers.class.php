@@ -1899,6 +1899,12 @@ class doc_Containers extends core_Manager
     	$userQuery = core_Users::getQuery();
     	$userQuery->show('id');
     	
+    	$conf = core_Packs::getConfig('doc');
+    	$now = dt::now();
+    	$offset = -1 * $conf->DOC_NOTIFY_FOR_INCOMPLETE_BUSINESS_DOC;
+    	$from = dt::addSecs($offset, $now);
+    	$from = dt::verbal2mysql($from, FALSE);
+    
     	$authorTemasArr = array();
     	
     	// За всеки потребител
@@ -1915,6 +1921,8 @@ class doc_Containers extends core_Manager
     			$docQuery = $name::getQuery();
     			$docQuery->where("#state = 'draft'");
     			$docQuery->where("#createdBy = {$uRec->id}");
+    			$docQuery->where("#modifiedOn >= '{$from}'");
+    			
     			$count = $docQuery->count();
     			
     			// Ако бройката е по-голяма от 0, записваме в масива
@@ -1926,7 +1934,7 @@ class doc_Containers extends core_Manager
     		// Ако има неактивирани бизнес документи
     		if(count($notArr)){
     			foreach ($notArr as $clsId => $count){
-    				$customUrl = $url = array('doc_Search', 'docClass' =>  $clsId, 'state' => 'draft', 'author' => $firstTeamAuthor);
+    				$customUrl = $url = array('doc_Search', 'docClass' =>  $clsId, 'state' => 'draft', 'author' => $firstTeamAuthor, 'fromDate' => $from);
     				 
     				if($count == 1){
     					$name = cls::get($clsId)->singleTitle;
