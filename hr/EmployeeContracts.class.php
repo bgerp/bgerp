@@ -724,14 +724,14 @@ class hr_EmployeeContracts extends core_Master
         // Кой е графика
         $scheduleId = static::getWorkingSchedule($id);
         
-        $query = hr_WorkingCycles::getQuery();
+         // Каква продължителност има
+        $duration = hr_WorkingCycles::fetchField($scheduleId, 'cycleDuration');
         
-        if ($query->fetch("#cycleDuration")) {
+        if (!$duration) {
         	return Redirect(array('hr_WorkingCycles', 'list'), NULL, 'Не сте въвели продължителност на графика!');
         }
         
-        // Каква продължителност има
-        $duration = hr_WorkingCycles::fetchField($scheduleId, 'cycleDuration');
+       
         
         // Извличане на данните за циклите
         $stateDetails = hr_WorkingCycleDetails::getQuery();
