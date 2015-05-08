@@ -592,11 +592,18 @@ class acc_BalanceReportImpl extends frame_BaseDriver
     public function getExportFields ()
     {
 
+
         $exportFields['ent1Id']  = "Контрагенти";
-        $exportFields['baseAmount']  = "Начално салдо";
-        $exportFields['debitAmount']  = "Обороти Дебит";
-        $exportFields['creditAmount']  = "Обороти Кредит";
-        $exportFields['blAmount']  = "Крайно салдо";
+        $exportFields['ent2Id']  = "Сделка";
+        $exportFields['ent3Id']  = "Валута";
+        $exportFields['baseQuantity']  = "Начално салдо - количество";
+        $exportFields['baseAmount']  = "Начално салдо -  сума";
+        $exportFields['debitQuantity']  = "Обороти Дебит - количество";
+        $exportFields['debitAmount']  = "Обороти Дебит - сума";
+        $exportFields['creditQuantity']  = "Обороти Кредит - количество";
+        $exportFields['creditAmount']  = "Обороти Кредит - сума";
+        $exportFields['blQuantity']  = "Крайно салдо - количество";
+        $exportFields['blAmount']  = "Крайно салдо - сума";
 
         return $exportFields;
     }
@@ -637,6 +644,9 @@ class acc_BalanceReportImpl extends frame_BaseDriver
 	    			$decPoint = '.';
 	    		}	
 	
+	    		// Закръгляме до минимума от символи от десетичния знак или зададения брой десетични знака
+	    		$decimals = min(strlen(substr(strrchr($value, '.'), 1)), $decimals);
+	    		
 	    		// Закръгляме числото преди да го обърнем в нормален вид
 	    		$value = round($value, $decimals);
 	    			
@@ -657,7 +667,7 @@ class acc_BalanceReportImpl extends frame_BaseDriver
     			$rows->{"ent{$i}Id"} = acc_Items::getVerbal($rec->{"ent{$i}Id"}, 'title');
     		}
     	}
-
+//bp($rows);
     	return $rows;
     }
 
