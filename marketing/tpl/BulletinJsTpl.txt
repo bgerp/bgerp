@@ -8,6 +8,7 @@
  */
 $(document).ready(function() {
 	startProcessing();
+	checkForButton();
 });
 
 
@@ -381,10 +382,10 @@ function onClickCatcher()
         	
 		    $(this).html(getSuccessText(url));
 		    $('.bulletinInner').fadeIn("slow");
-		    hideAfterTimeout(7000, 800);
+		    //hideAfterTimeout(7000, 800);
 		});
         
-    	setCookie('bulletinHaveReg', true, 1000);
+    	//setCookie('bulletinHaveReg', true, 1000);
 	});
 	
 	// Скриваме формата при натискане на отказ или X
@@ -509,3 +510,10 @@ function validateEmail(email)
     
     return re.test(email);
 }
+
+function checkForButton(){
+    if($('.bulletin-link').length) {
+        $('.bulletin-link').append('<input type="submit" name="submit" value="Абонирай се за информация" class="push_button small" onclick="showForm()"/>')
+    }
+}
+
