@@ -557,7 +557,6 @@ class acc_BalanceReportImpl extends frame_BaseDriver
              $rCsv = '';
              foreach ($exportFields as $field => $caption) {
 
-
                  if ($rec->{$field}) {
 
                      $value = $rec->{$field};
@@ -568,6 +567,8 @@ class acc_BalanceReportImpl extends frame_BaseDriver
                      }
                      $rCsv .= "," . $value;
 
+                 } else {
+                 	$rCsv .= "," . '';
                  }
 
 
@@ -628,7 +629,7 @@ class acc_BalanceReportImpl extends frame_BaseDriver
 	    	$type = gettype($value);
 
 	    	// ако е doubele
-	    	if ($tupe == 'double') {
+	    	if ($type == 'double') {
 	    		
 	    		//ще го закръгляме до 2 знака, след запетаята
 	    		$decimals = 2;
@@ -643,15 +644,15 @@ class acc_BalanceReportImpl extends frame_BaseDriver
 	    		} else {
 	    			$decPoint = '.';
 	    		}	
-	
+	       
 	    		// Закръгляме до минимума от символи от десетичния знак или зададения брой десетични знака
-	    		$decimals = min(strlen(substr(strrchr($value, $decPoint), 1)), $decimals);
+	    		//$decimals = min(strlen(substr(strrchr($value, $decPoint), 1)), $decimals);
 	    		
 	    		// Закръгляме числото преди да го обърнем в нормален вид
 	    		$value = round($value, $decimals);
 	    			
 	    		$value = number_format($value, $decimals, $decPoint, $thousandsSep);
-	    			
+	    		
 	    		if(!Mode::is('text', 'plain')) {
 	    			$value = str_replace(' ', '&nbsp;', $value);
 	    		}	
@@ -670,13 +671,13 @@ class acc_BalanceReportImpl extends frame_BaseDriver
     	
     	
     	$exportFields = $this->getExportFields();
-    	foreach ($exportFields as $caption) {
-    		if (!$rows->{$caption}) {
-    			$rows->{$caption} = '';
+    	foreach ($exportFields as $field => $caption) {
+    		if (!$rows->{$field}) { 
+    			$rows->{$field} = '';
     		}
     	}
     	
-//bp($rows);
+
     	return $rows;
     }
 
