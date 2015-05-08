@@ -55,7 +55,7 @@ class acc_Lists extends core_Manager {
     /**
      * Кой има право да променя системните данни?
      */
-    var $canEditsysdata = 'accMaster';
+    var $canEditsysdata = 'accMaster, ceo';
     
     
     /**
