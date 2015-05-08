@@ -552,7 +552,7 @@ class acc_BalanceReportImpl extends frame_BaseDriver
          }
 
          foreach ($this->innerState->recs as $id => $rec) {
-             $rec = $this->csvRows($rec);
+             $rec = $this->prepareCsvRows($rec);
 
              $rCsv = '';
              foreach ($exportFields as $field => $caption) {
@@ -617,7 +617,7 @@ class acc_BalanceReportImpl extends frame_BaseDriver
      *
      * @return std Class $rows
      */
-    public function csvRows ($rec)
+    public function prepareCsvRows ($rec)
     {
     	
     	// новите ни ролове
@@ -626,10 +626,10 @@ class acc_BalanceReportImpl extends frame_BaseDriver
     	// за всеки един запис
     	foreach ($rec as $field => $value) { 
     		// проверяваме типа му
-	    	$type = gettype($value);
+	    	//$type = gettype($value);
 
 	    	// ако е doubele
-	    	if ($type == 'double') {
+	    	if (in_array($field ,array('baseAmount', 'debitAmount', 'creditAmount', 'blAmount', 'baseQuantity', 'debitQuantity', 'creditQuantity', 'blQuantity'))) {
 	    		
 	    		//ще го закръгляме до 2 знака, след запетаята
 	    		$decimals = 2;
