@@ -645,7 +645,7 @@ class acc_BalanceReportImpl extends frame_BaseDriver
 	    		}	
 	
 	    		// Закръгляме до минимума от символи от десетичния знак или зададения брой десетични знака
-	    		$decimals = min(strlen(substr(strrchr($value, '.'), 1)), $decimals);
+	    		$decimals = min(strlen(substr(strrchr($value, $decPoint), 1)), $decimals);
 	    		
 	    		// Закръгляме числото преди да го обърнем в нормален вид
 	    		$value = round($value, $decimals);
@@ -667,6 +667,15 @@ class acc_BalanceReportImpl extends frame_BaseDriver
     			$rows->{"ent{$i}Id"} = acc_Items::getVerbal($rec->{"ent{$i}Id"}, 'title');
     		}
     	}
+    	
+    	
+    	$exportFields = $this->getExportFields();
+    	foreach ($exportFields as $caption) {
+    		if (!$rows->{$caption}) {
+    			$rows->{$caption} = '';
+    		}
+    	}
+    	
 //bp($rows);
     	return $rows;
     }
