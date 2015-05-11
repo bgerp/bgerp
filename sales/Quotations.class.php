@@ -413,7 +413,7 @@ class sales_Quotations extends core_Master
     			
     		$row->number = $mvc->getHandle($rec->id);
     		$row->username = core_Users::recToVerbal(core_Users::fetch($rec->createdBy), 'names')->names;
-    		$row->username = core_Lg::transliterate($row->username);
+			$row->username = tr(core_Lg::transliterate($row->username));
     		
     		$profRec = crm_Profiles::fetchRec("#userId = {$rec->createdBy}");
     		if($position = crm_Persons::fetchField($profRec->personId, 'buzPosition')){
@@ -424,7 +424,7 @@ class sales_Quotations extends core_Master
     			
     		$Varchar = cls::get('type_Varchar');
     		$row->MyCompany = $Varchar->toVerbal($ownCompanyData->company);
-    		$row->MyCompany = core_Lg::transliterate($row->MyCompany);
+    		$row->MyCompany = tr(core_Lg::transliterate($row->MyCompany));
     		
     		$contragent = new core_ObjectReference($rec->contragentClassId, $rec->contragentId);
     		$cData = $contragent->getContragentData();
