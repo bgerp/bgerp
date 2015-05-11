@@ -646,16 +646,18 @@ class acc_AllocatedExpenses extends core_Master
     {
     	if($action == 'add' && isset($rec)){
     		$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
-    		if($firstDoc->fetchField('state') != 'active'){
-    			
-    			// Ако ориджина не е активен, не може да се създава документ към него
-    			$requiredRoles = 'no_one';
-    		} else {
-    			
-    			// Ако няма артикули за разпределяне, не може да се създава документа
-    			$products = $mvc->getChosenProducts($firstDoc);
-    			if(!count($products)){
+    		if($firstDoc){
+    			if($firstDoc->fetchField('state') != 'active'){
+    				 
+    				// Ако ориджина не е активен, не може да се създава документ към него
     				$requiredRoles = 'no_one';
+    			} else {
+    				 
+    				// Ако няма артикули за разпределяне, не може да се създава документа
+    				$products = $mvc->getChosenProducts($firstDoc);
+    				if(!count($products)){
+    					$requiredRoles = 'no_one';
+    				}
     			}
     		}
     	}
