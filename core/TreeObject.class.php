@@ -366,4 +366,41 @@ class core_TreeObject extends core_Manager
 		
 		return $features;
 	}
+	
+	
+	/**
+	 * Подготвя навигацията по страници
+	 */
+	function prepareListPager_(&$data)
+	{
+		// Предефинираме метода, за да не заработи страницирането на данните
+		// В $data->recs ни трябват всички записи, за да можем да подготвим дървовидната структура
+		// При зареждане ще се показват само записите без бащи (корените) а децата 
+		// им ще се показват с JavaScript.
+	}
+	
+	
+	/**
+	 * След преобразуване на записа в четим за хора вид.
+	 */
+	protected static function on_AfterPrepareListRows($mvc, &$data)
+	{
+		if(!count($data->rows)) return;
+		
+		parent::prepareListPager($data);
+		
+		// Подготвяме страницирането
+    	$data->pager = cls::get('core_Pager',  array('itemsPerPage' => $mvc->listItemsPerPage));
+    	$data->pager->itemsCount = count($data->recs);
+    	
+    	// Страницираме само записите, които нямат бащи, другите са скрити по дефолт,
+    	// тях не искаме да участват в страницирането
+    	foreach ($data->rows as $id => $row){
+    		if(!$data->recs[$id]->{$mvc->parentFieldName}){
+    			if(!$data->pager->isOnPage()){
+    				unset($data->rows[$id]);
+    			}
+    		}
+    	}
+	}
 }
