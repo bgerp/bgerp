@@ -392,7 +392,7 @@ class acc_HistoryReportImpl extends frame_BaseDriver
 				$format = $conf->FRAME_FORMAT_DATE;
 				
 				if ($format == 'dot') {
-					$value = dt::mysql2verbal($rec['valior'], 'd/m/Y');
+					$value = dt::mysql2verbal($rec['valior'], 'd.m.Y');
 				} else {
 					$value = dt::mysql2verbal($rec['valior'], 'm/d/y');
 				}
