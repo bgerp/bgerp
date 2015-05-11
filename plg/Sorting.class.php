@@ -112,6 +112,14 @@ class plg_Sorting extends core_Plugin
                 $currUrl = getCurrentUrl();
                 $currUrl["Sort"] = $sort;
                 
+                // Ако мениджъра е детайл на документ, добавяме и хендлъра на мастъра му в урл-то
+                // за да може да отидем директно на самия документ в нишката
+                if($mvc instanceof core_Detail){
+                	if(cls::haveInterface('doc_DocumentIntf', $mvc->Master)){
+                		$currUrl["#"] = $mvc->Master->getHandle($data->masterId);
+                	}
+                }
+               
                 $lastF = $startChar . "|*<div class='rowtools'><div class='l'>|" . $lastF . "|*</div><a class='r' href='" .
                 ht::escapeAttr(toUrl($currUrl)) .
                 "' ><img  src=" . sbf($img) .
