@@ -92,6 +92,9 @@ class doc_DocumentPlg extends core_Plugin
         // Дали могат да се принтират оттеглените документи
         setIfNot($mvc->printRejected, FALSE);
         
+        // Дали мжое да се редактират активирани документи
+        setIfNot($mvc->canEditActivated, FALSE);
+        
         $mvc->setDbIndex('folderId');
         $mvc->setDbIndex('threadId');
         $mvc->setDbIndex('containerId');
@@ -1236,7 +1239,9 @@ class doc_DocumentPlg extends core_Plugin
             if ($action == 'delete') {
                 $requiredRoles = 'no_one';
             } elseif(($action == 'edit') && ($oRec->state != 'draft')) {
-                $requiredRoles = 'no_one';
+            	if(!($oRec->state == 'active' && $mvc->canEditActivated === TRUE)){
+            		$requiredRoles = 'no_one';
+            	}
             } elseif(($action == 'edit')) {
             	
             	// Ако потребителя няма достъп до сингъла, той не може и да редактира записа
