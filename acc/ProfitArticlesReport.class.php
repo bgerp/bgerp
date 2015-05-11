@@ -37,6 +37,12 @@ class acc_ProfitArticlesReport extends acc_BalanceReportImpl
 
 
     /**
+     * Плъгини за зареждане
+     */
+    public $loadList = 'plg_ExportCsv';
+
+
+    /**
      * След подготовката на ембеднатата форма
      */
     public static function on_AfterAddEmbeddedFields($mvc, core_Form &$form)
@@ -57,6 +63,8 @@ class acc_ProfitArticlesReport extends acc_BalanceReportImpl
         $form->setDefault('action', 'group');
         $form->setHidden('orderField');
         $form->setHidden('orderBy');
+
+       // bp($form);
     }
 
 
@@ -77,12 +85,55 @@ class acc_ProfitArticlesReport extends acc_BalanceReportImpl
         $articlePositionId = acc_Lists::getPosition($mvc->accountSysId, 'cat_ProductAccRegIntf');
 
         $form->setDefault("feat{$articlePositionId}", "*");
+
+       // bp($form);
     }
 
 
     public static function on_AfterGetReportLayout($mvc, &$tpl)
     {
         $tpl->removeBlock('action');
+    }
+
+
+    /**
+     * Преди експортиране като CSV
+     */
+    public static function on_BeforeExportCsv($mvc, &$rec)
+    {
+        //bp();
+
+    }
+
+
+    /**
+     * След подготвяне на заявката за експорт
+     */
+    public static function on_AfterPrepareExportQuery($mvc, &$query)
+    {
+        //bp();
+        //$query->orWhere("#state = 'rejected' AND #brState = 'active'");
+        //$query->where("#state = 'draft'");
+    }
+
+
+
+
+    /**
+     * След подготовка на тулбара на единичен изглед.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareSingleToolbar($mvc, $data)
+    {
+
+        // Ако нямаме права за писане в треда
+        if(doc_Threads::haveRightFor('single', $data->rec->threadId) == FALSE){
+
+            // Премахваме бутона за коментар
+            $data->toolbar->removeBtn('Коментар');
+        }
     }
 
 
@@ -102,6 +153,9 @@ class acc_ProfitArticlesReport extends acc_BalanceReportImpl
 
         $data->listFields['blQuantity'] = "Крайно салдо (ДК)->К-во";
         $data->listFields['blAmount'] = "Крайно салдо (ДК)->Сума";
+        //$data->setField('blQuantity', 'export=Csv');
+
+        //bp($data);
 
     }
 
@@ -113,74 +167,79 @@ class acc_ProfitArticlesReport extends acc_BalanceReportImpl
      */
     public function renderEmbeddedData($data)
     {
-        if(empty($data)) return;
-
-        // Името на перото да се показва като линк
-        if(count($data->rows)){
-        	$articlePositionId = acc_Lists::getPosition($this->accountSysId, 'cat_ProductAccRegIntf');
-        	foreach ($data->rows as $id => &$row){
-        		$articleItem = acc_Items::fetch($data->recs[$id]->{"ent{$articlePositionId}Id"}, 'classId,objectId');
-        		$row->{"ent{$articlePositionId}Id"} = cls::get($articleItem->classId)->getShortHyperLink($articleItem->objectId);
-        	}
-        }
-
 
         $chart = Request::get('Chart');
+        $id = Request::get('id', 'int');
 
-        foreach ($data->recs as $id => $rec) {
-            $balance += abs($rec->blAmount);
-
-            $dArr[$rec->grouping3] = abs($rec->blAmount);
-        }
-
-        $arr = self::preparePie($dArr, 9, 'Others');
-
-        foreach ($arr as $id => $recSort) {
-            $info[$recSort->key] = round(($recSort->value/$balance) * 100,2);
-        }
-
-        $pie = array (
-                        'legendTitle' => "Печалбата от продажбите в проценти (%)",
-                        'info' => $info
-        );
         $tpl = $this->getReportLayout();
 
         $tpl->replace($this->title, 'TITLE');
         $this->prependStaticForm($tpl, 'FORM');
-        //bp($data);
-        // слагаме бутони на къстам тулбара
-        $btnList = ht::createBtn('Таблица', array(
-                $mvc,
-                'list',
-                $data->threadId,
-            ), NULL, NULL,
-            'ef_icon = img/16/table.png');
+//bp($data);
+        // ако имаме записи има и смисъл да
+        // слагаме табове
+        if($data->recs) {
+            // слагаме бутони на къстам тулбара
+            $btnList = ht::createBtn('Таблица', array(
+                    'doc_Containers',
+                    'list',
+                    'threadId' => Request::get('threadId', 'int'),
 
-        $tpl->replace($btnList, 'buttonList');
+                ), NULL, NULL,
+                'ef_icon = img/16/table.png');
 
-        $btnChart = ht::createBtn('Графика', array(
-                $mvc,
-                'list',
-                $data->trheadId,
-            ), NULL, NULL,
-            'ef_icon = img/16/chart16.png');
+            $tpl->replace($btnList, 'buttonList');
 
-        $tpl->replace($btnChart, 'buttonChart');
+            $btnChart = ht::createBtn('Графика', array(
+                    'doc_Containers',
+                    'list',
+                    'Chart' => 'pie'. $data->rec->containerId,
+                    'threadId' => Request::get('threadId', 'int'),
 
-        if ($chart == 'pie') {
+                ), NULL, NULL,
+                'ef_icon = img/16/chart16.png');
+
+            $tpl->replace($btnChart, 'buttonChart');
+        }
+
+        if ($chart == 'pie'.$data->rec->containerId && $data->recs) {
+
+            foreach ($data->recs as $id => $rec) {
+                $balance += abs($rec->blAmount);
+
+                $dArr[$rec->grouping3] = abs($rec->blAmount);
+            }
+
+            $arr = self::preparePie($dArr, 9, 'Others');
+
+
+            foreach ($arr as $id => $recSort) {
+                $info[mb_substr($recSort->key,0,19)] = $recSort->value;
+            }
+
+            $pie = array (
+                'legendTitle' => "Печалбата от продажбите в проценти",
+                'suffix' => "лв.",
+                'info' => $info,
+            );
+
             $coreConf = core_Packs::getConfig('doc');
             $chartAdapter = $coreConf->DOC_CHART_ADAPTER;
             $chartHtml = cls::get($chartAdapter);
             $chart =  $chartHtml::prepare($pie,'pie');
             $tpl->append($chart, 'DETAILS');
 
-            //bp($tpl ,$this->getReportLayout());
-
-           return  $tpl;
         } else {
-
-
-
+            // Името на перото да се показва като линк
+            if(count($data->rows)){
+                $articlePositionId = acc_Lists::getPosition($this->accountSysId, 'cat_ProductAccRegIntf');
+                foreach ($data->rows as $id => &$row){
+                    if (!$data->recs[$id]->{"ent{$articlePositionId}Id"}) continue;
+                    $articleItem = acc_Items::fetch($data->recs[$id]->{"ent{$articlePositionId}Id"}, 'classId,objectId');
+                    if (!cls::load($articleItem->classId, TRUE)) continue;
+                    $row->{"ent{$articlePositionId}Id"} = cls::get($articleItem->classId)->getShortHyperLink($articleItem->objectId);
+                }
+            }
 
             $tpl->placeObject($data->row);
 
@@ -206,8 +265,11 @@ class acc_ProfitArticlesReport extends acc_BalanceReportImpl
             }
 
         }
+
         return $tpl;
+
     }
+
 
 
     /**
@@ -241,7 +303,7 @@ class acc_ProfitArticlesReport extends acc_BalanceReportImpl
         //в противен случай
         } else {
             // взимаме първите n елемента от сортирания масив
-            for($k = 0; $k <= $n; $k++) {
+            for($k = 0; $k <= $n -1; $k++) {
                 $res[] = $newArr[$k];
             }
 
@@ -285,6 +347,22 @@ class acc_ProfitArticlesReport extends acc_BalanceReportImpl
         $activateOn = "{$this->innerForm->to} 23:59:59";
 
         return $activateOn;
+    }
+
+
+    /**
+     * Ще се експортирват полетата, които се
+     * показват в табличния изглед
+     *
+     * @return array
+     */
+    public function getExportFields ()
+    {
+
+        $exportFields['ent3Id']  = "Артикули";
+        $exportFields['blAmount']  = "Крайно салдо";
+
+        return $exportFields;
     }
 
 }

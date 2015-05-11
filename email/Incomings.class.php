@@ -17,6 +17,12 @@ class email_Incomings extends core_Master
     
     
     /**
+     * Флаг, който указва, че документа е партньорски
+     */
+    public $visibleForPartners = TRUE;
+    
+    
+    /**
      * Текста бутона за създаване на имейли
      */
     var $emailButtonText = 'Отговор';
@@ -973,11 +979,13 @@ class email_Incomings extends core_Master
             return;
         }
         
-        // Извличаме записа на сметката, от която е изтеглено това писмо
-        $accRec = email_Accounts::fetch($rec->accId);
+        if ($rec->accId) {
+            // Извличаме записа на сметката, от която е изтеглено това писмо
+            $accRec = email_Accounts::fetch($rec->accId);
+        }
 
         // Ако сметката е с рутиране
-        if($accRec->applyRouting == 'yes') {
+        if($accRec && ($accRec->applyRouting == 'yes')) {
         
             // Ако `boxTo` е обща кутия, прилагаме последователно `From`, `Domain`, `Country`
             if($accRec->email == $rec->toBox && $accRec->type != 'single') {

@@ -112,16 +112,6 @@ class acc_SaleArticlesReport extends acc_BalanceReportImpl
      */
     public function renderEmbeddedData($data)
     {
-        if(empty($data)) return;
-		
-        // Името на перото да се показва като линк
-        if(count($data->rows)){
-        	$articlePositionId = acc_Lists::getPosition($this->accountSysId, 'cat_ProductAccRegIntf');
-        	foreach ($data->rows as $id => &$row){
-        		$articleItem = acc_Items::fetch($data->recs[$id]->{"ent{$articlePositionId}Id"}, 'classId,objectId');
-        		$row->{"ent{$articlePositionId}Id"} = cls::get($articleItem->classId)->getShortHyperLink($articleItem->objectId);
-        	}
-        }
         
         $tpl = $this->getReportLayout();
 
@@ -129,6 +119,15 @@ class acc_SaleArticlesReport extends acc_BalanceReportImpl
         $this->prependStaticForm($tpl, 'FORM');
 
         $tpl->placeObject($data->row);
+
+        // Името на перото да се показва като линк
+        if(count($data->rows)){
+            $articlePositionId = acc_Lists::getPosition($this->accountSysId, 'cat_ProductAccRegIntf');
+            foreach ($data->rows as $id => &$row){
+                $articleItem = acc_Items::fetch($data->recs[$id]->{"ent{$articlePositionId}Id"}, 'classId,objectId');
+                $row->{"ent{$articlePositionId}Id"} = cls::get($articleItem->classId)->getShortHyperLink($articleItem->objectId);
+            }
+        }
 
         $tableMvc = new core_Mvc;
         $tableMvc->FLD('creditAmount', 'int', 'tdClass=accCell');
@@ -176,5 +175,21 @@ class acc_SaleArticlesReport extends acc_BalanceReportImpl
         $activateOn = "{$this->innerForm->to} 23:59:59";
 
         return $activateOn;
+    }
+
+
+    /**
+     * Ще се експортирват полетата, които се
+     * показват в табличния изглед
+     *
+     * @return array
+     */
+    public function getExportFields ()
+    {
+
+        $exportFields['ent1Id']  = "Артикули";
+        $exportFields['blAmount']  = "Кредит";
+
+        return $exportFields;
     }
 }

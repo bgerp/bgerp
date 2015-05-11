@@ -249,7 +249,13 @@ class purchase_Purchases extends deals_DealMaster
         $form->setField('deliveryLocationId', 'caption=Доставка->Обект от');
         $form->setField('shipmentStoreId', 'caption=Доставка->До склад');
         
-        $form->setDefault('activityCenterId', hr_Departments::fetchField("#systemId = 'myOrganisation'", 'id'));
+        // Ако имаме само един център не показваме полето за избор на център
+        if(hr_Departments::count() == 1){
+        	$form->setField('activityCenterId', 'input=none');
+        } else {
+        	$defCenter = hr_Departments::fetchField("#systemId = 'emptyCenter'", 'id');
+        	$form->setDefault('activityCenterId', $defCenter);
+        }
     }
     
     
@@ -550,7 +556,7 @@ class purchase_Purchases extends deals_DealMaster
      */
     protected function setTemplates(&$res)
     {
-    	$tplArr[] = array('name' => 'Договор за покупка', 'content' => 'purchase/tpl/purchases/Purchase.shtml', 'lang' => 'bg');
+    	$tplArr[] = array('name' => 'Договор за покупка', 'content' => 'purchase/tpl/purchases/Purchase.shtml', 'lang' => 'bg', 'narrowContent' => 'purchase/tpl/purchases/PurchaseNarrow.shtml');
     	$tplArr[] = array('name' => 'Договор за покупка на услуга', 'content' => 'purchase/tpl/purchases/Service.shtml', 'lang' => 'bg');
     	$tplArr[] = array('name' => 'Purchase contract', 'content' => 'purchase/tpl/purchases/PurchaseEN.shtml', 'lang' => 'en');
     	$tplArr[] = array('name' => 'Purchase of service contract', 'content' => 'purchase/tpl/purchases/ServiceEN.shtml', 'lang' => 'en', 'oldName' => 'Purchase of Service contract');

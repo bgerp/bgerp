@@ -341,7 +341,10 @@ class acc_PeriodHistoryReportImpl extends acc_HistoryReportImpl
 	 */
 	public static function on_AfterPrepareEmbeddedData($mvc, &$data)
 	{
-		$data->recs = array_reverse($data->recs, TRUE);
+		if(count($data->recs)){
+			$data->recs = array_reverse($data->recs, TRUE);
+		}
+		
 		$data->hasSameValues = TRUE;
 		
 		// Можели потребителя да вижда хронологията на сметката

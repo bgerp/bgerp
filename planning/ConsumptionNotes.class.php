@@ -167,23 +167,4 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
 		
 		redirect(array($this, 'single', $id));
 	}
-	
-	
-	/**
-	 * Метод по подразбиране на canActivate
-	 */
-	public static function on_AfterCanActivate($mvc, &$res, $rec)
-	{
-		if($res === TRUE){
-			$dQuery = planning_ConsumptionNoteDetails::getQuery();
-			$dQuery->where("#noteId = {$rec->id}");
-			
-			while($dRec = $dQuery->fetch()){
-				if(!planning_ObjectResources::getResource($dRec->classId, $dRec->productId)){
-					$res = FALSE;
-					break;
-				}
-			}
-		}
-	}
 }

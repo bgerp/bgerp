@@ -28,5 +28,6 @@
                 <td><b>[#createdBy#]</b>, <b>[#createdOn#]</b></td>
             </tr>
         </table>
+        [#PARTNERS#]
     </div>
 </fieldset>

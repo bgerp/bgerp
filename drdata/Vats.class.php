@@ -256,7 +256,7 @@ class drdata_Vats extends core_Manager
                 $client = @new SoapClient("http://ec.europa.eu/taxation_customs/vies/checkVatService.wsdl");
                 
                 $params = array('countryCode' => $countryCode, 'vatNumber' => $vatNumber);
-                $result = $client->checkVat($params);
+                @$result = $client->checkVat($params);
             } catch (Exception $e) {
                 $result = new stdClass();
             }
@@ -295,7 +295,7 @@ class drdata_Vats extends core_Manager
     {
         $vatPrefixes = arr::make("BE,BG,CY,CZ,DK,EE,EL,DE,PT,FR,FI,HR,HU,LU,MT,SI,IE,IT,LV,LT,NL,PL,SK,RO,SE,ES,GB,AT", TRUE);
         
-        if($vatPrefixes[substr($value, 0, 2)]) {
+        if($vatPrefixes[substr(strtoupper(trim($value)), 0, 2)]) {
  
             return TRUE;
         } else {

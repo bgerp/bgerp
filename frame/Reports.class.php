@@ -2,6 +2,9 @@
 
 
 
+
+
+
 /**
  * Мениджър на отчети от различни източници
  *
@@ -341,6 +344,35 @@ class frame_Reports extends core_Embedder
     
     
     /**
+     * Екшън който експортира данните
+     */
+    public function act_Export()
+    {
+    	expect($id = Request::get('id', 'int'));
+    	expect($rec = $this->fetch($id));
+    	 
+    	// Проверка за права
+    	$this->requireRightFor('export', $rec);
+    	 
+    	$Driver = $this->getDriver($rec);
+
+    	$csv = $Driver->exportCsv();
+
+    	$fileName = str_replace(' ', '_', Str::utf2ascii($Driver->title));
+    	
+    	header("Content-type: application/csv");
+    	header("Content-Disposition: attachment; filename={$fileName}.csv");
+    	header("Pragma: no-cache");
+    	header("Expires: 0");
+    	
+    	echo $csv;
+
+    	shutdown();
+
+    }
+    
+    
+    /**
      * Метод активиращ документа или го прави чакащ
      * 
      * @param stdClass $rec
@@ -380,6 +412,10 @@ class frame_Reports extends core_Embedder
     	if($mvc->haveRightFor('changestate', $data->rec)){
     		$data->toolbar->addBtn('Активиране', array($mvc, 'activate', $data->rec->id), "id=btnActivate,warning=Наистина ли желаете документа да бъде активиран?", 'ef_icon = img/16/lightning.png,title=Активиране на отчета');
     	}
+    	
+    	if($mvc->haveRightFor('export', $data->rec)){
+    		$data->toolbar->addBtn('Експорт в CSV', array($mvc, 'export', $data->rec->id), NULL, 'ef_icon = img/16/file_extension_xls.png, title = Сваляне на записите в CSV формат');
+    	}
     }
     
     
@@ -412,6 +448,14 @@ class frame_Reports extends core_Embedder
     			$requiredRoles = $mvc->getRequiredRoles('edit');
     		}
     	}
+
+    	// Ако отчета е активен, може да се експортва
+    	if($action == 'export' && isset($rec)){
+    		$state = (!isset($rec->state)) ? $mvc->fetchField($rec->id, 'state') : $rec->state;
+    		if($state != 'active'){
+    			$requiredRoles = 'no_one';
+    		}
+    	}
     	
     	if ($action == 'add') {
     	    
@@ -437,7 +481,7 @@ class frame_Reports extends core_Embedder
 			}
     	}
     	
-    	if ($rec && (($action == 'changestate') || ($action == 'edit'))) {
+    	if ($rec && (($action == 'changestate') || ($action == 'edit') || ($action == 'export'))) {
     	    if (!haveRole('ceo, report, admin', $userId)) {
     	        if ($rec->createdBy != $userId) {
     	            $requiredRoles = 'no_one';

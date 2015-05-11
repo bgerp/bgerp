@@ -122,12 +122,7 @@ class acc_plg_DocumentSummary extends core_Plugin
             if($filter->users && $isDocument){
                 
             	$userIds = keylist::toArray($filter->users);
-            	$userIds = array_values($userIds);
-            	 
-            	foreach ($userIds as $index => $userId){
-            		$or = ($index == 0) ? FALSE : TRUE;
-            		$data->query->where("#{$mvc->filterFieldUsers} = {$userId}", $or);
-            	}
+            	$data->query->where("#{$mvc->filterFieldUsers} IN (" . implode(',',  $userIds) . ")", $or);
             }
             
             $dateRange = array();
@@ -177,7 +172,7 @@ class acc_plg_DocumentSummary extends core_Plugin
         if (Mode::is('printing')) return ;
         
         // Ще се преброяват всички неоттеглени документи
-        $data->listSummary->query->where("#state != 'rejected' || #state IS NULL");
+        $data->listSummary->query->where("#state != 'rejected' OR #state IS NULL");
         $data->listSummary->summary = array();
         
         // Кои полета трябва да се обобщят
@@ -198,7 +193,7 @@ class acc_plg_DocumentSummary extends core_Plugin
         $draftCount = $data->listSummary->query->count();
         
         // Преброяване на активираните/затворени документи
-        $activeQuery->where("#state = 'active' || #state = 'closed'");
+        $activeQuery->where("#state = 'active' OR #state = 'closed'");
         $activeCount = $activeQuery->count();
         
         // Изчистване на клонираната заявка

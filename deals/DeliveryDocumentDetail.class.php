@@ -23,7 +23,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 	public static function setDocumentFields($mvc)
 	{
 		$mvc->FLD('classId', 'class(select=title)', 'caption=Мениджър,silent,input=hidden');
-		$mvc->FLD('productId', 'int', 'caption=Продукт,notNull,mandatory', 'tdClass=large-field leftCol wrap');
+		$mvc->FLD('productId', 'int', 'caption=Продукт,notNull,mandatory', 'tdClass=leftCol wrap');
 		$mvc->FLD('uomId', 'key(mvc=cat_UoM, select=shortName)', 'caption=Мярка,input=none');
 		$mvc->FLD('quantity', 'double', 'caption=К-во,input=none');
 		$mvc->FLD('quantityInPack', 'double(decimals=2)', 'input=none,column=none');

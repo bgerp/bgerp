@@ -34,7 +34,7 @@ class doc_FolderPlg extends core_Plugin
             }
             
             // Определя достъпа по подразбиране за новите папки
-            setIfNot($defaultAccess, $mvc->defaultAccess, 'public');
+            setIfNot($defaultAccess, $mvc->defaultAccess, 'team');
             
             $mvc->FLD('inCharge' , 'key(mvc=core_Users, select=nick)', 'caption=Права->Отговорник,formOrder=10000');
             $mvc->FLD('access', 'enum(team=Екипен,private=Личен,public=Общ,secret=Секретен)', 'caption=Права->Достъп,formOrder=10001,notNull,value=' . $defaultAccess);
@@ -54,6 +54,7 @@ class doc_FolderPlg extends core_Plugin
     public static function on_AfterPrepareRights($mvc, $res, $data)
     {
         $data->TabCaption = 'Права';
+        doc_FolderToPartners::preparePartners($data);
 
     }
 
@@ -63,6 +64,7 @@ class doc_FolderPlg extends core_Plugin
         $tpl = new ET(tr('|*' . getFileContent('doc/tpl/RightsLayout.shtml')));
                 
         $tpl->placeObject($data->masterData->row);
+        doc_FolderToPartners::renderPartners($data, $tpl);
     }
 
     
@@ -436,6 +438,10 @@ class doc_FolderPlg extends core_Plugin
     {
         if (!isset($userId)) {
             $userId = core_Users::getCurrent();
+            
+            if (!isset($userId)) {
+                $userId = 0;
+            }
         }
         
         $teammates = keylist::toArray(core_Users::getTeammates($userId));
@@ -472,9 +478,6 @@ class doc_FolderPlg extends core_Plugin
                     $conditions[] = "#inCharge NOT IN ({$ceos})";
                 }
                 
-
-
-    
                 // CEO да може да вижда private папките на друг `ceo`
                 if ($fullAccess) {
                     $conditions[] = "#access != 'secret'";

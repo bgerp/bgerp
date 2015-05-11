@@ -8,166 +8,160 @@
        <div class='docBgIcon' style='[#iconStyle#];'>[#singleTitle#] <b>[#ident#]</b> ([#state#])</div>
     </div>
     <!--ET_END header-->
-    <table style='width:100%'>
-        <tbody>
-            <tr>
-                <td>
-                    <div class='scrolling-holder'>
-                        <div class='display-table'>
-                            <table class="innerTable"  cellpadding="5" style='width:100%'>
-                                <tbody>
-                                    <tr>
-                                        <td class="cell custom-header-bg" style='width:35%'><b>|Получател|*</b></td>
-                                        <td class="cell centered" style='width:30%' rowspan='2'>
-                                            <div class="document-title">|ПРИЕМАТЕЛЕН ПРОТОКОЛ|*</div>
-                                            <div style="padding-top:5px;">
-                                                № <span class="bigData">[#id#]</span> / 
-                                                <span class="bigData">[#valior#]</span>
-                                            </div>
-                                            <!--ET_BEGIN state-->
-                                            <br>
-                                            <div class="[#STATE_CLASS#]">[#state#]</div>
-                                            <br>
-                                            <!--ET_END state-->
-                                        </td>
-                                        <td class="cell custom-header-bg" style='width:35%'><b>|Доставчик|*</b></td>
-                                    </tr>
-                                    <tr>
-                                        <td class="cell">
-                                            <b>[#MyCompany#]</b>
-                                            <div class='address-block'>
-                                                [#MyAddress#]
-                                            </div>
-                                        </td>
-                                        <td class="cell">
-                                            <b>[#contragentName#]</b>
-                                            <div class='address-block'>
-                                                [#contragentCountryId#]
-                                                <!--ET_BEGIN contragentAddress-->[#contragentAddress#] <!--ET_END contragentAddress-->
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                            <div class="lines"></div>
-                            <div class="details">
-                                [#purchase_ServicesDetails#]
-                            </div>
-                            <div class="lines"></div>
-                            <table class="innerTable footer-notes" border="0" cellpadding="5" style='width:100%'>
-                                <tbody>
-                                    <tr>
-                                        <!--ET_BEGIN deliveryInfo-->
-                                        [#deliveryInfo#]
-                                        <td class="topCell first vtop" style='width:50%'>
-                                            <table class='shipment-table'>
-                                                <!--ET_BEGIN deliveryTime-->
-                                                <tr>
-                                                    <td class='quiet nowrap aright' style='width:1%'>|Срок до|*:</td>
-                                                    <td>[#deliveryTime#]</td>
-                                                </tr>
-                                                <!--ET_END deliveryTime-->
-                                                <!--ET_BEGIN locationId-->
-                                                <tr>
-                                                    <td class='quiet nowrap aright' style='width:1%'>|До|*:</td>
-                                                    <td>[#locationId#]</td>
-                                                </tr>
-                                                <!--ET_END locationId-->
-                                                <!--ET_BEGIN currencyId-->
-                                                <tr>
-                                                    <td class='quiet nowrap aright' style='width:1%'>|Валута|*: </td>
-                                                    <td><span class='cCode'>[#currencyId#]</span></td>
-                                                </tr>
-                                                <!--ET_END currencyId--> 
-                                            </table>
-                                            <!--ET_BEGIN note-->      
-                                            <hr>
-                                            [#note#]
-                                            <!--ET_END note--> 
-                                            <hr>
-                                             <table class='centered' style='width:100%'>
-                                                <tr>
-                                                    <td class='centered' style='border-right:1px solid #999;width:50%;'>|Получил|*:</td>
-                                                    <td class='centered'>|Доставил|*:</td>
-                                                </tr>
-                                                <tr>
-                                                    <td style='height:40px;border-right:1px solid #999'>&nbsp;</td>
-                                                    <td></td>
-                                                </tr>
-                                                <tr>
-                                                    <td class='centered' style='border-right:1px solid #999'> <span class="sign_names nowrap">[#received#]</span></td>
-                                                    <td class='nowrap centered'><span class="sign_names">[#delivered#]</span></td>
-                                                </tr>
-                                            </table>    
-                                        </td>
-                                        <!--ET_END deliveryInfo-->
-                                        <td class="topCell aright vtop">
-                                            <table style='margin-bottom:20px;width:100%;' class='business-doc-summary-table'>
-                                                <tr class='nowrap'>
-                                                    <td class='aright'>|Стойност|* :</td>
-                                                    <td class='info-right' style='width:1%'><span class='cCode'>[#currencyId#]</span></td>
-                                                    <td class='aright' style='width:1%'> <b>[#value#]</b></td>
-                                                </tr>
-                                                <!--ET_BEGIN discountValue-->
-                                                <tr class='nowrap'>
-                                                    <td class='aright'>|Отстъпка|* :</td>
-                                                    <td class='info-right'><span class='cCode'>[#discountCurrencyId#]</span></td>
-                                                    <td class='aright'><b>[#discountValue#]</b></td>
-                                                </tr>
-                                                <!--ET_END discountValue-->
-                                                <!--ET_BEGIN neto-->
-                                                <tr class='nowrap'>
-                                                    <td class='aright'>|Нето|* :</td>
-                                                    <td class='info-right'><span class='cCode'>[#netoCurrencyId#]</span></td>
-                                                    <td class='aright'><b>[#neto#]</b></td>
-                                                </tr>
-                                                <!--ET_END neto-->
-                                                <!--ET_BEGIN baseAmount-->
-                                                <tr class='nowrap'>
-                                                    <td class='aright'>|Данъчна основа|* :</td>
-                                                    <td class='info-right'><span class='cCode'>[#baseCurrencyId#]</span></td>
-                                                    <td class='aright'><b>[#baseAmount#]</b></td>
-                                                </tr>
-                                                <!--ET_END baseAmount-->
-                                                <tr>
-                                                    <td colspan='3' style='padding:0px'>
-                                                        <hr />
-                                                    </td>
-                                                </tr>
-                                                <!--ET_BEGIN vatAmount-->
-                                                <tr class='nowrap'>
-                                                    <td class='aright'>|ДДС|* <b>[#vat#]</b> :</td>
-                                                    <td class='info-right'><span class='cCode'>[#vatCurrencyId#]</span></td>
-                                                    <td class='aright'><b>[#vatAmount#]</b></td>
-                                                </tr>
-                                                <!--ET_END vatAmount-->
-                                                <tr class='nowrap'>
-                                                    <td class='aright'>|Общо|* :</td>
-                                                    <td class='info-right'><span class='cCode'>[#currencyId#]</span></td>
-                                                    <td class='aright'><b>[#total#]</b></td>
-                                                </tr>
-                                                <!--ET_BEGIN sayWords-->
-                                                <tr>
-                                                    <td colspan = '3' >
-                                                        <hr>
-                                                        |Словом|*: [#sayWords#]
-                                                    </td>
-                                                </tr>
-                                                <!--ET_END sayWords-->
-                                            </table>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
+    <div class='scrolling-holder'>
+        <table class="innerTable"  cellpadding="5" style='width:100%'>
+            <tbody>
+                <tr>
+                    <td class="cell custom-header-bg" style='width:35%'><b>|Получател|*</b></td>
+                    <td class="cell centered" style='width:30%' rowspan='2'>
+                        <div class="document-title">|ПРИЕМАТЕЛЕН ПРОТОКОЛ|*</div>
+                        <div style="padding-top:5px;">
+                            № <span class="bigData">[#id#]</span> /
+                            <span class="bigData">[#valior#]</span>
                         </div>
-                    </div>
-                    <!--ET_BEGIN DETAILS-->
-                    <div class='details'>
-                        [#DETAILS#]
-                    </div>
-                    <!--ET_END DETAILS-->
-                </td>
-            </tr>
-        </tbody>
-    </table>
+                        <!--ET_BEGIN state-->
+                        <br>
+                        <div class="[#STATE_CLASS#]">[#state#]</div>
+                        <br>
+                        <!--ET_END state-->
+                    </td>
+                    <td class="cell custom-header-bg" style='width:35%'><b>|Доставчик|*</b></td>
+                </tr>
+                <tr>
+                    <td class="cell">
+                        <b>[#MyCompany#]</b>
+                        <div class='address-block'>
+                            [#MyAddress#]
+                        </div>
+                    </td>
+                    <td class="cell">
+                        <b>[#contragentName#]</b>
+                        <div class='address-block'>
+                            [#contragentCountryId#]
+                            <!--ET_BEGIN contragentAddress-->[#contragentAddress#] <!--ET_END contragentAddress-->
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="lines"></div>
+    <div class="scrolling-holder">
+        <div class="details">
+            [#purchase_ServicesDetails#]
+        </div>
+    </div>
+    <div class="lines"></div>
+    <div class="scrolling-holder">
+        <table class="innerTable footer-notes" border="0" cellpadding="5" style='width:100%'>
+            <tbody>
+                <tr>
+                    <!--ET_BEGIN deliveryInfo-->
+                    [#deliveryInfo#]
+                    <td class="topCell first vtop" style='width:50%'>
+                        <table class='shipment-table'>
+                            <!--ET_BEGIN deliveryTime-->
+                            <tr>
+                                <td class='quiet nowrap aright' style='width:1%'>|Срок до|*:</td>
+                                <td>[#deliveryTime#]</td>
+                            </tr>
+                            <!--ET_END deliveryTime-->
+                            <!--ET_BEGIN locationId-->
+                            <tr>
+                                <td class='quiet nowrap aright' style='width:1%'>|До|*:</td>
+                                <td>[#locationId#]</td>
+                            </tr>
+                            <!--ET_END locationId-->
+                            <!--ET_BEGIN currencyId-->
+                            <tr>
+                                <td class='quiet nowrap aright' style='width:1%'>|Валута|*: </td>
+                                <td><span class='cCode'>[#currencyId#]</span></td>
+                            </tr>
+                            <!--ET_END currencyId-->
+                        </table>
+                        <!--ET_BEGIN note-->
+                        <hr>
+                        [#note#]
+                        <!--ET_END note-->
+                        <hr>
+                         <table class='centered' style='width:100%'>
+                            <tr>
+                                <td class='centered' style='border-right:1px solid #999;width:50%;'>|Получил|*:</td>
+                                <td class='centered'>|Доставил|*:</td>
+                            </tr>
+                            <tr>
+                                <td style='height:40px;border-right:1px solid #999'>&nbsp;</td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td class='centered' style='border-right:1px solid #999'> <span class="sign_names nowrap">[#received#]</span></td>
+                                <td class='nowrap centered'><span class="sign_names">[#delivered#]</span></td>
+                            </tr>
+                        </table>
+                    </td>
+                    <!--ET_END deliveryInfo-->
+                    <td class="topCell aright vtop">
+                        <table style='margin-bottom:20px;width:100%;' class='business-doc-summary-table'>
+                            <tr class='nowrap'>
+                                <td class='aright'>|Стойност|* :</td>
+                                <td class='info-right' style='width:1%'><span class='cCode'>[#currencyId#]</span></td>
+                                <td class='aright' style='width:1%'> <b>[#value#]</b></td>
+                            </tr>
+                            <!--ET_BEGIN discountValue-->
+                            <tr class='nowrap'>
+                                <td class='aright'>|Отстъпка|* :</td>
+                                <td class='info-right'><span class='cCode'>[#discountCurrencyId#]</span></td>
+                                <td class='aright'><b>[#discountValue#]</b></td>
+                            </tr>
+                            <!--ET_END discountValue-->
+                            <!--ET_BEGIN neto-->
+                            <tr class='nowrap'>
+                                <td class='aright'>|Нето|* :</td>
+                                <td class='info-right'><span class='cCode'>[#netoCurrencyId#]</span></td>
+                                <td class='aright'><b>[#neto#]</b></td>
+                            </tr>
+                            <!--ET_END neto-->
+                            <!--ET_BEGIN baseAmount-->
+                            <tr class='nowrap'>
+                                <td class='aright'>|Данъчна основа|* :</td>
+                                <td class='info-right'><span class='cCode'>[#baseCurrencyId#]</span></td>
+                                <td class='aright'><b>[#baseAmount#]</b></td>
+                            </tr>
+                            <!--ET_END baseAmount-->
+                            <tr>
+                                <td colspan='3' style='padding:0px'>
+                                    <hr />
+                                </td>
+                            </tr>
+                            <!--ET_BEGIN vatAmount-->
+                            <tr class='nowrap'>
+                                <td class='aright'>|ДДС|* <b>[#vat#]</b> :</td>
+                                <td class='info-right'><span class='cCode'>[#vatCurrencyId#]</span></td>
+                                <td class='aright'><b>[#vatAmount#]</b></td>
+                            </tr>
+                            <!--ET_END vatAmount-->
+                            <tr class='nowrap'>
+                                <td class='aright'>|Общо|* :</td>
+                                <td class='info-right'><span class='cCode'>[#currencyId#]</span></td>
+                                <td class='aright'><b>[#total#]</b></td>
+                            </tr>
+                            <!--ET_BEGIN sayWords-->
+                            <tr>
+                                <td colspan = '3' >
+                                    <hr>
+                                    |Словом|*: [#sayWords#]
+                                </td>
+                            </tr>
+                            <!--ET_END sayWords-->
+                        </table>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <!--ET_BEGIN DETAILS-->
+    <div class='details'>
+        [#DETAILS#]
+    </div>
+    <!--ET_END DETAILS-->
 </div>

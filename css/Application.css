@@ -713,6 +713,9 @@ div.acc-detail {
     width: auto;
     border-radius: 5px;
     font-size: 15px; }
+    .additionalInfo-holder .additionalInfo.bottom {
+      bottom: auto;
+      top: 0; }
     .additionalInfo-holder .additionalInfo .aright {
       padding-right: 5px; }
     .additionalInfo-holder .additionalInfo td {
@@ -1708,7 +1711,8 @@ span.sharing-history-title {
   background-color: white; }
 
 .wide .headerImg {
-  width: 100%; }
+  width: 100%;
+  max-height: 350px; }
 
 .narrow .headerImg {
   max-width: 360px;
@@ -3983,7 +3987,6 @@ only screen and (max-width: 320px) {
   padding: 5px 10px;
   background-color: #eeeeee;
   border: solid 1px #cccccc;
-  max-width: 600px;
   color: #333333 !important; }
 
 .langSelect .langLink a:hover {
@@ -4030,6 +4033,32 @@ only screen and (max-width: 320px) {
   .preview-label > div {
     width: auto !important;
     height: auto !important; }
+
+  .treeView tr:nth-child(odd) {
+    background: white; }
+  .treeView .hidden {
+    display: none; }
+  .treeView .treeLevel1 .leafName {
+    text-indent: 20px; }
+  .treeView .treeLevel2 .leafName {
+    text-indent: 40px; }
+  .treeView .treeLevel3 .leafName {
+    text-indent: 60px; }
+  .treeView .treeLevel4 .leafName {
+    text-indent: 80px; }
+  .treeView .leafName {
+    min-width: 250px; }
+  .treeView .toggleBtn {
+    margin-right: 6px;
+    cursor: pointer; }
+  .treeView .plus {
+    display: none; }
+    .treeView .closedChildren .minus {
+      display: none; }
+    .treeView .closedChildren .plus {
+      display: inline-block; }
+  .treeView .hiddenRow {
+    display: none; }
 
 .debug_block {
   padding: 5px;

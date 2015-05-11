@@ -456,8 +456,9 @@ class acc_BalanceReportImpl extends frame_BaseDriver
            $Varchar = cls::get('type_Varchar');
            $Double = cls::get('type_Double');
            $Double->params['decimals'] = 2;
+
            $Int = cls::get('type_Int');
-       
+
            $row = new stdClass();
            $row->id = $Int->toVerbal($rec->id);
        
@@ -525,4 +526,159 @@ class acc_BalanceReportImpl extends frame_BaseDriver
       	  	
       	  return $activateOn;
       }
+
+
+     /**
+      * Ако имаме в url-то export създаваме csv файл с данните
+      *
+      * @param core_Mvc $mvc
+      * @param stdClass $rec
+      */
+     public function exportCsv()
+     {
+
+         $exportFields = $this->getExportFields();
+
+         $conf = core_Packs::getConfig('core');
+
+         if (count($this->innerState->recs) > $conf->EF_MAX_EXPORT_CNT) {
+             redirect(array($this), FALSE, "Броят на заявените записи за експорт надвишава максимално разрешения|* - " . $conf->EF_MAX_EXPORT_CNT, 'error');
+         }
+
+         $csv = "";
+
+         foreach ($exportFields as $caption) {
+             $header .= "," . $caption;
+         }
+
+         foreach ($this->innerState->recs as $id => $rec) {
+             $rec = $this->prepareCsvRows($rec);
+
+             $rCsv = '';
+             foreach ($exportFields as $field => $caption) {
+
+                 if ($rec->{$field}) {
+
+                     $value = $rec->{$field};
+                     $value = html2text_Converter::toRichText($value);
+                     // escape
+                     if (preg_match('/\\r|\\n|,|"/', $value)) {
+                         $value = '"' . str_replace('"', '""', $value) . '"';
+                     }
+                     $rCsv .= "," . $value;
+
+                 } else {
+                 	$rCsv .= "," . '';
+                 }
+
+
+             }
+             $csv .= $rCsv;
+             $csv .=  "\n";
+
+         }
+
+         $csv = $header . "\n" . $csv;
+
+         return $csv;
+    }
+
+
+    /**
+     * Ще се експортирват полетата, които се
+     * показват в табличния изглед
+     *
+     * @return array
+     */
+    public function getExportFields ()
+    {
+
+
+        $exportFields['ent1Id']  = "Контрагенти";
+        $exportFields['ent2Id']  = "Сделка";
+        $exportFields['ent3Id']  = "Валута";
+        $exportFields['baseQuantity']  = "Начално салдо - количество";
+        $exportFields['baseAmount']  = "Начално салдо -  сума";
+        $exportFields['debitQuantity']  = "Обороти Дебит - количество";
+        $exportFields['debitAmount']  = "Обороти Дебит - сума";
+        $exportFields['creditQuantity']  = "Обороти Кредит - количество";
+        $exportFields['creditAmount']  = "Обороти Кредит - сума";
+        $exportFields['blQuantity']  = "Крайно салдо - количество";
+        $exportFields['blAmount']  = "Крайно салдо - сума";
+
+        return $exportFields;
+    }
+    
+    
+    /**
+     * Ще направим нови row-ове за експорта.
+     * Ще се обработват променливи от тип
+     * double, key, keylist, date
+     *
+     * @return std Class $rows
+     */
+    public function prepareCsvRows ($rec)
+    {
+    	
+    	// новите ни ролове
+    	$rows = new stdClass();
+    	
+    	// за всеки един запис
+    	foreach ($rec as $field => $value) { 
+    		// проверяваме типа му
+	    	//$type = gettype($value);
+
+	    	// ако е doubele
+	    	if (in_array($field ,array('baseAmount', 'debitAmount', 'creditAmount', 'blAmount', 'baseQuantity', 'debitQuantity', 'creditQuantity', 'blQuantity'))) {
+	    		
+	    		//ще го закръгляме до 2 знака, след запетаята
+	    		$decimals = 2;
+	    		// няма да имаме разделител за хилядите
+	    		$thousandsSep = '';
+	    		// ще вземем конфигурурания символ за разделител на стотинките
+	    		$conf = core_Packs::getConfig('frame');
+	    		$symbol = $conf->FRAME_TYPE_DECIMALS_SEP;
+	    			
+	    		if ($symbol == 'comma') {
+	    			$decPoint = ',';
+	    		} else {
+	    			$decPoint = '.';
+	    		}	
+	       
+	    		// Закръгляме до минимума от символи от десетичния знак или зададения брой десетични знака
+	    		//$decimals = min(strlen(substr(strrchr($value, $decPoint), 1)), $decimals);
+	    		
+	    		// Закръгляме числото преди да го обърнем в нормален вид
+	    		$value = round($value, $decimals);
+	    			
+	    		$value = number_format($value, $decimals, $decPoint, $thousandsSep);
+	    		
+	    		if(!Mode::is('text', 'plain')) {
+	    			$value = str_replace(' ', '&nbsp;', $value);
+	    		}	
+	    	}
+	    	
+	    	$rows->{$field} = $value;
+    	}
+    		
+    	// ако имаме попълнено поле за контрагент или продукт
+    	// искаме то да илезе с вербалното си име
+    	foreach (range(1, 3) as $i) {
+    		if(!empty($rows->{"ent{$i}Id"})){
+    			$rows->{"ent{$i}Id"} = acc_Items::getVerbal($rec->{"ent{$i}Id"}, 'title');
+    		}
+    	}
+    	
+    	
+    	$exportFields = $this->getExportFields();
+    	foreach ($exportFields as $field => $caption) {
+    		if (!$rows->{$field}) { 
+    			$rows->{$field} = '';
+    		}
+    	}
+    	
+
+    	return $rows;
+    }
+
 }

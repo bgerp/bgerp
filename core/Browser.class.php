@@ -2,6 +2,12 @@
 
 
 /**
+ * "Подправка" за кодиране на BRID
+ */
+defIfNot('BRID_SALT', md5(EF_SALT . '_BRID'));
+
+
+/**
  * Клас 'core_Browser' - Определя параметрите на потребителския браузър
  *
  *
@@ -13,7 +19,7 @@
  * @since     v 0.1
  * @link
  */
-class core_Browser extends core_Manager
+class core_Browser extends core_Master
 {
     
     
@@ -66,6 +72,12 @@ class core_Browser extends core_Manager
     
     
     /**
+     * Кой може да разглежда сингъла?
+     */
+    var $canSingle = 'admin';
+    
+    
+    /**
      * Необходими роли за оттегляне на документа
      */
     var $canReject = 'no_one';
@@ -90,17 +102,28 @@ class core_Browser extends core_Manager
     
     
     /**
+     * Полетата, които ще се показват в лист изгледа
+     */
+    public $listFields = 'id, brid, userAgent, createdOn, createdBy';
+    
+    /**
+     * Поле в което да се показва иконата за единичен изглед
+     */
+    public $rowToolsSingleField = 'brid';
+
+    /**
      * Описание на модела
      */
     function description()
     {
         $this->FLD('brid', 'varchar(8)', 'caption=BRID');
         $this->FLD('userAgent', 'text', 'caption=User agent');
+        $this->FLD('userData', 'blob(serialize, compress)', 'caption=Данни');
         
         $this->setDbUnique('brid');
     }
     
-
+    
     /**
      * След преобразуването към вербални стойности, проказваме OS и Browser, като
      * скриваме USER_AGENT стринга зад отварящ се блок
@@ -108,15 +131,24 @@ class core_Browser extends core_Manager
     function on_AfterRecToVerbal($mvc, $row, $rec, $fields)
     {
         if($row->userAgent) {
-            $os = static::getUserAgentOsName($rec->userAgent);
-            $browser = static::getUserAgentBrowserName($rec->userAgent);
+            $os = self::getUserAgentOsName($rec->userAgent);
+            $browser = self::getUserAgentBrowserName($rec->userAgent);
             $row->userAgent = str_replace('[', '&#91;', $row->userAgent);
 
             $rt = core_Type::getByName('richtext');
             $row->userAgent = $rt->toVerbal("[hide={$browser} / {$os}]{$row->userAgent}[/hide]");
         }
-
+        
         $row->brid = str::coloring($row->brid);
+        
+        if (vislog_History::haveRightFor('list')) {
+            $row->brid = ht::createLink($row->brid, array('vislog_History', 'list', 'brid' => $rec->brid));
+        }
+        
+        $userDataType = $mvc->fields['userData']->type;
+        
+        $row->userData = $userDataType->mixedToString($rec->userData);
+        $row->userData = $userDataType->escape($row->userData);
     }
     
 
@@ -133,33 +165,33 @@ class core_Browser extends core_Manager
     static function getBrid($generate = TRUE)
     {   
         // brid от сесията
-        $brid = Mode::get(static::BRID_NAME);
+        $brid = Mode::get(self::BRID_NAME);
         
         if ($brid) return $brid;
         
         // brid от кукитата
-        if ($bridC = $_COOKIE[static::BRID_NAME]) {
+        if ($bridC = $_COOKIE[self::BRID_NAME]) {
             
             // Допълнителна сол за brid
-            $bridSalt = static::getBridSalt();
+            $bridSalt = self::getBridSalt();
             
             // Проверяваме хеша дали е верене
-            $brid = str::checkHash($bridC, static::HASH_LENGTH, $bridSalt);
+            $brid = str::checkHash($bridC, self::HASH_LENGTH, $bridSalt);
             
             if ($brid) {
                 
                 // Записваме в сесията
-                Mode::setPermanent(static::BRID_NAME, $brid);
+                Mode::setPermanent(self::BRID_NAME, $brid);
                 
                 // Добавяме в модела
-                static::add($brid);
+                self::add($brid);
                 
                 return $brid;
             } else {
                 
                 // Ако не отговаря на хеша
                 
-                static::log('Грешен хеш за BRID: ' . $bridC);
+                self::log('Грешен хеш за BRID: ' . $bridC);
                 
 //                return FALSE;
             }
@@ -169,19 +201,144 @@ class core_Browser extends core_Manager
         if ($generate) {
             
             // Генерира brid
-            $brid = static::generateBrid();
+            $brid = self::generateBrid();
             
             // Записваме в сесията
-            Mode::setPermanent(static::BRID_NAME, $brid);
+            Mode::setPermanent(self::BRID_NAME, $brid);
             
             // Записваме кукито
-            static::setBridCookie($brid);
+            self::setBridCookie($brid);
             
             // Добавяме в модела
-            static::add($brid);
+            self::add($brid);
             
             return $brid;
         }
+    }
+    
+    
+    /**
+     * Връща записа за съответния `brid`
+     * 
+     * @param string $brid
+     * 
+     * @return FALSE|object
+     */
+    public static function getRecFromBrid($brid)
+    {
+        if (!$brid) return FALSE;
+        
+        $rec = self::fetch(array("#brid = '[#1#]'", $brid));
+        
+        return $rec;
+    }
+
+
+    /**
+     * Връща заглавието на User Agent, по възможност като линк
+     */
+    public static function getLink($brid)
+    {
+        if(!$brid) return "";
+
+        $rec = self::fetch(array("#brid = '[#1#]'", $brid));
+        
+        if(!$rec->userAgent) return "";
+
+        $title = substr(self::getUserAgentBrowserName($rec->userAgent), 0, 3);
+
+        if($title == 'Unk') {
+            $title = self::detectBot($rec->userAgent);
+            if(!$title) {
+                $title = 'Unknown';
+            }
+        } else {
+            $title .= '|' . substr(self::getUserAgentOsName($rec->userAgent), 0, 3);
+        }
+        
+        if (!Mode::is('text', 'plain')) {
+
+            if (core_Browser::haveRightFor('single', $bridRec)) {
+                $title = ht::createLink($title, array('core_Browser', 'single', $rec->id));
+            }
+        }
+
+        return $title;
+    }
+    
+    
+    /**
+     * Записва подадените стойности в userData
+     * 
+     * @param array $varsArr
+     * 
+     * @return integer
+     */
+    public static function setVars($varsArr)
+    {
+        $brid = self::getBrid();
+        
+        $rec = self::fetch(array("#brid = '[#1#]'", $brid), 'userData');
+        
+        $nRec = new stdClass();
+        
+        $nRec->brid = $brid;
+        
+        if ($rec) {
+            $nRec->id = $rec->id;
+        }
+        
+        $now = dt::now();
+        
+        // Добавяме подадените данни в началото на масива
+        if ($rec->userData) {
+            $userData = $rec->userData;
+            $userData = array($now => $varsArr) + $userData;
+        } else {
+            $userData = array($now => $varsArr);
+            
+        }
+        $nRec->userData = $userData;
+        
+        $id = self::save($nRec);
+        
+        return $id;
+    }
+    
+    
+    /**
+     * Връща най-новите стойности за параметрите от userData
+     * 
+     * @param array $pArr
+     * 
+     * @return array
+     */
+    public static function getVars($pArr)
+    {
+        $brid = self::getBrid();
+        
+        $userData = self::fetchField(array("#brid = '[#1#]'", $brid), 'userData');
+        
+        $resArr = array();
+        
+        foreach ((array)$userData as $dataArr) {
+            $break = TRUE;
+            foreach ((array)$pArr as $param) {
+                
+                if (isset($resArr[$param])) continue;
+                
+                if (isset($dataArr[$param])) {
+                    $resArr[$param] = $dataArr[$param];
+                }
+                
+                $break = FALSE;
+            }
+            
+            // Ако сме открили всички данни, които търсим прекъсваме функцията
+            if ($break) break;
+        }
+        
+        return $resArr;
     }
     
     
@@ -192,14 +349,14 @@ class core_Browser extends core_Manager
      */
     static function add($brid)
     {
-        // Ако е бот, да не се добавя
-        if (static::detectBot()) return ;
+        if (!$rec = self::fetch(array("#brid = '[#1#]'", $brid))) {
+            $rec = new stdClass();
+            $rec->brid = $brid;
+        }
         
-        $rec = new stdClass();
-        $rec->brid = $brid;
-        $rec->userAgent = static::getUserAgent();
-         
-        static::save($rec, NULL, REPLACE);
+        $rec->userAgent = self::getUserAgent();
+        
+        self::save($rec, NULL, REPLACE);
     }
     
     
@@ -214,11 +371,11 @@ class core_Browser extends core_Manager
         $conf = core_Packs::getConfig('core');
         
         // Допълнителна сол за brid
-        $bridSalt = static::getBridSalt();
+        $bridSalt = self::getBridSalt();
         
         // Добавяме хеш към brid и записваме в кукитата
-        $bridHash = str::addHash($brid, static::HASH_LENGTH, $bridSalt);
-        setcookie(static::BRID_NAME, $bridHash, time() + $conf->CORE_COOKIE_LIFETIME);
+        $bridHash = str::addHash($brid, self::HASH_LENGTH, $bridSalt);
+        setcookie(self::BRID_NAME, $bridHash, time() + $conf->CORE_COOKIE_LIFETIME);
     }
     
     
@@ -227,11 +384,11 @@ class core_Browser extends core_Manager
      */
     static function updateBridCookieLifetime()
     {
-        $brid = static::getBrid(FALSE);
+        $brid = self::getBrid(FALSE);
         
         if (!$brid) return FALSE;
         
-        static::setBridCookie($brid);
+        self::setBridCookie($brid);
     }
     
     
@@ -242,8 +399,8 @@ class core_Browser extends core_Manager
      */
     static function getBridSalt_()
     {
-        $os = static::getUserAgentOsName();
-        $browser = static::getUserAgentBrowserName();
+        $os = self::getUserAgentOsName();
+        $browser = self::getUserAgentBrowserName();
         $bridSalt = $os . '_' . $browser;
         
         return $bridSalt;
@@ -269,9 +426,18 @@ class core_Browser extends core_Manager
      * 
      * @return string
      */
-    static function generateBrid_()
-    {
-        $brid = str::getRand();
+    static function generateBrid()
+    {   
+        $s = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+        if($bot = self::detectBot()) {
+            $str = md5($bot . BRID_SALT);
+        } else {
+            $str = md5($_SERVER['HTTP_USER_AGENT'] . '|' . core_Users::getRealIpAddr() . '|' . dt::today() . '|' . BRID_SALT);
+        }
+
+        $brid = $s[hexdec(substr($str, 0, 2)) % 62] . $s[hexdec(substr($str, 2, 2)) % 62] . $s[hexdec(substr($str, 4, 2)) % 62] .  $s[hexdec(substr($str, 6, 2)) % 62] .
+               $s[hexdec(substr($str, 8, 2)) % 62] . $s[hexdec(substr($str, 10, 2)) % 62] . $s[hexdec(substr($str, 12, 2)) % 62] .  $s[hexdec(substr($str, 14, 2)) % 62];
         
         return $brid;
     }
@@ -286,15 +452,18 @@ class core_Browser extends core_Manager
     {
         if(!$userAgent) {
             // Вземаме ОС от HTTP_USER_AGENT
-            $userAgent = static::getUserAgent();
+            $userAgent = self::getUserAgent();
         }
 
         $browser = "Unknown Browser";
     
-        $browserArray = array(  '/mobile/i' => 'Mobile Browser',
+        $browserArray = array(
+                                '/edge/i' => 'Edge',
+                                '/mobile/i' => 'Mobile Browser',
                                 '/opera mobi/i' => 'Opera Mobi',
                                 '/opera mini/i' => 'Opera Mini',
                                 '/opera/i' => 'Opera',
+                                '/OPR/' => 'Opera',
                                 '/msie|trident/i' => 'Internet Explorer',
                                 '/firefox/i' => 'Firefox',
                                 '/chrome/i' => 'Chrome',
@@ -302,7 +471,7 @@ class core_Browser extends core_Manager
                                 '/netscape/i' => 'Netscape',
                                 '/maxthon/i' => 'Maxthon',
                                 '/konqueror/i' => 'Konqueror',
-                                
+               
                             );
     
         foreach ($browserArray as $regex => $value) { 
@@ -326,7 +495,7 @@ class core_Browser extends core_Manager
     {
         if(!$userAgent) {
             // Вземаме ОС от HTTP_USER_AGENT
-            $userAgent = static::getUserAgent();
+            $userAgent = self::getUserAgent();
         }
         
         $osPlatform = "Unknown OS";
@@ -370,10 +539,62 @@ class core_Browser extends core_Manager
     }
     
 
+    /**
+     * Намира името на бота, ако той е клиента
+     */
+    static function detectBot($userAgent = NULL)
+    {
+        if(!$userAgent) {
+            $userAgent = $_SERVER['HTTP_USER_AGENT'];
+        }
+        
+        if(self::getUserAgentBrowserName($userAgent) != 'Unknown Browser') {
+
+            return FALSE;
+        }
+
+        $bots = 'GoogleBot|msnbot|Bingbot|Teoma|80legs|xenon|baidu|Charlotte|DotBot|Sosospider|Rambler|Yahoo|' .
+            'AbachoBOT|Acoon|appie|Fluffy|ia_archiver|MantraAgent|Openbot|accoona|AcioRobot|ASPSeek|CocoCrawler|Dumbot|' . 
+            'FAST-WebCrawler|GeonaBot|Gigabot|Lycos|MSRBOT|Scooter|AltaVista|IDBot|eStyle|Scrubby|majestic12|augurfind|Java';
+
+        $crawlers = explode("|", $bots);
+ 
+        foreach ($crawlers as $botName)
+        {
+            if (stristr($userAgent, $botName) !== FALSE) {
+            
+                return $botName;
+            }
+        }
+
+        if(preg_match("/\b([\w\-]+bot[\w\-]*)\b/i", $userAgent, $matches)) {
+
+            $botName = $matches[1];
+
+            return $botName;
+        }
+
+        if(preg_match("/https?\:\/\/([a-z0-9\-\.]+)[^a-z0-9\-\.]*/i", $userAgent, $matches)) {
+        
+            $botName = str_ireplace('www.', '', $matches[1]);
+
+            return $botName;
+        }
+     
+        return FALSE;
+    }
+
+    /**
+     * Тестваме какъв е UA
+     */
     function act_Test()
     {
+        $res = self::getBrowserType(Request::get('ua'));
+        if($res == 'Unknown Browser / Unknown OS') {
+            $res = self::detectBot(Request::get('ua'));
+        }
 
-        return self::getUserAgentOsName();
+        return $res;
     }
     
     /**
@@ -552,30 +773,6 @@ class core_Browser extends core_Manager
         }
     }
  
-
-    /**
-     * Намира името на бота, ако той е клиента
-     */
-    static function detectBot($userAgent = NULL)
-    {
-        setIfNot($userAgent, $_SERVER['HTTP_USER_AGENT']);
-
-        $bots = 'Google|GoogleBot|Googlebot|msnbot|Bingbot|Teoma|80legs|xenon|baidu|Charlotte|DotBot|Sosospider|Rambler|Yahoo|' .
-            'AbachoBOT|Acoon|appie|Fluffy|ia_archiver|MantraAgent|Openbot|accoona|AcioRobot|ASPSeek|CocoCrawler|Dumbot|' . 
-            'FAST-WebCrawler|GeonaBot|Gigabot|Lycos|MSRBOT|Scooter|AltaVista|IDBot|eStyle|Scrubby';
-
-        $crawlers = explode("|", $bots);
- 
-        foreach ($crawlers as $botName)
-        {
-            if (stristr($userAgent, $botName) !== FALSE) {
-            
-                return $botName;
-            }
-        }
-     
-        return FALSE;
-    }
     
     
     /**

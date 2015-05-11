@@ -38,7 +38,7 @@ class type_Nick extends type_Varchar {
         
         if($value === '') return NULL;
         
-        $value = mb_strtolower($value);
+        $value = self::normalize($value);
         
         if (!$this->isValid($value)) {
             $this->error = 'Въвели сте недопустима стойност:|* ' . parent::escape($value);
@@ -47,6 +47,20 @@ class type_Nick extends type_Varchar {
         }
         
         return $value;
+    }
+
+    
+    /**
+     * Нормализира кейса и спец. символи в nika
+     */
+    public static function normalize($nick)
+    {
+        $nick = trim(str_replace(array('  ', '. ', ' ', '__'), array(' ', '.', '_', '_'), $nick));
+	    $nick = str::toUpperAfter($nick);
+	    $nick = str::toUpperAfter($nick, '.');
+	    $nick = str::toUpperAfter($nick, '_');
+
+        return $nick;
     }
     
     

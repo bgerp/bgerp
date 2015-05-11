@@ -124,7 +124,6 @@ class dec_Declarations extends core_Master
     
     	'statements' => 'lastDocUser|lastDoc|LastDocSameCuntry',
         'materials' => 'lastDocUser|lastDoc|LastDocSameCuntry',
-    	'note'       => 'lastDocUser|lastDoc|LastDocSameCuntry',
     );
     
     
@@ -378,7 +377,7 @@ class dec_Declarations extends core_Master
     	
     	
     	// ако има допълнителни бележки
-    	if($recDec->note) { 
+    	if($recDec->note) {
     		$cTpl = $decContent->getBlock("note");
     		$Richtext = cls::get('type_Richtext');
     		$recDec->note = $Richtext->toVerbal($recDec->note);

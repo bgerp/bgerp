@@ -100,7 +100,7 @@ class core_LoginLog extends core_Manager
     {
         $this->FLD('userId', 'user(select=nick, allowEmpty)', 'caption=Потребител, silent');
         $this->FLD('ip', 'ip', 'caption=IP');
-        $this->FLD('brid', 'varchar(8)', 'caption=BRID');
+        $this->FLD('brid', 'varchar(8)', 'caption=Браузър');
         $this->FLD('status', 'enum( all=,
         							success=Успешно логване,
 									first_login=Първо логване,
@@ -212,6 +212,33 @@ class core_LoginLog extends core_Manager
         if ($rec) return TRUE;
         
         return FALSE;
+    }
+    
+    
+    /**
+     * Проверява дали от този `brid` е осъществено логване
+     * 
+     * @param IP $ip
+     * 
+     * @return boolean
+     */
+    public static function isLoggedBefore($ip = NULL)
+    {
+        $brid = core_Browser::getBrid();
+        
+        $query = self::getQuery();
+        $query->where(array("#brid = '[#1#]'", $brid));
+        
+        if ($ip) {
+            $query->where(array("#ip = '[#1#]'", $ip));
+        }
+        
+        $query->where("#status = 'success'");
+        $query->orWhere("#status = 'first_login'");
+        
+        $query->limit(1);
+        
+        return (boolean)$query->count();
     }
     
     
@@ -509,7 +536,7 @@ class core_LoginLog extends core_Manager
     	}
     	
     	// Оцветяваме BRID
-    	$row->brid = str::coloring($row->brid);
+    	$row->brid = core_Browser::getLink($rec->brid);
     	
         if ($rec->ip) {
         	// Декорираме IP-то

@@ -85,14 +85,14 @@
             [#SINGLE_CONTENT#]
         </div>
         <div style = 'margin-top:10px'></div>
-    
-    <!--ET_BEGIN JOB_INFO--> 
+
+    <!--ET_BEGIN JOB_INFO-->
     <div class='sale-job-info snapshot'>
 	    <div>|Информация за наличните задания към частните артикули|*</div>
 	    [#JOB_INFO#]
     </div>
     <!--ET_END JOB_INFO-->
-    
+
     <!--ET_BEGIN DETAILS-->
     <div class="scrolling-holder">
         <div class='details'>

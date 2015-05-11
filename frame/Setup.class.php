@@ -1,6 +1,12 @@
 <?php
 
 
+/**
+ * Колко цифри след запетаята да показваме по подразбиране?
+ */
+defIfNot('FRAME_TYPE_DECIMALS_SEP', 'comma');
+
+
 
 /**
  * class frame_Setup
@@ -47,7 +53,16 @@ class frame_Setup extends core_ProtoSetup
      * Описание на модула
      */
     var $info = "Отчети и табла";
-    
+
+
+    /**
+     * Описание на конфигурационните константи
+     */
+    var $configDescription = array(
+
+        'FRAME_TYPE_DECIMALS_SEP'   => array ('enum(dot=точка,comma=запетая)', 'caption=Десетичен разделител на числата при експорт в csv->Символ'),
+    );
+
     
     /**
      * Списък с мениджърите, които съдържа пакета

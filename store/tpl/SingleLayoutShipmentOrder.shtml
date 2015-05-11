@@ -8,135 +8,136 @@
         <div class='docBgIcon' style='[#iconStyle#];'>[#singleTitle#] <b>[#ident#]</b> ([#state#])</div>
     </div>
     <!--ET_END header-->
-    <table class='no-border' style='width:100%;'>
-        <tbody>
-            <tr>
-                <td>
-                    <div class='scrolling-holder'>
-                        <div class='display-table'>
-                            <table class="innerTable border-table paddingCells">
-                                <tbody>
-                                    <tr>
-                                        <td class="cell custom-header-bg" style='width:35%;'><b>|Получател|*</b></td>
-                                        <td class="cell centered" rowspan='2' style='width:30%;'>
-                                            <div class="document-title">|ЕКСПЕДИЦИОННО НАРЕЖДАНЕ|*</div>
-                                            <div style="padding-top:5px;">
-                                                № <span class="bigData">[#id#]</span> / 
-                                                <span class="bigData">[#valior#]</span>
-                                            </div>
-                                            <!--ET_BEGIN state-->
-                                            <br>
-                                            <div class="[#STATE_CLASS#]">[#state#]</div>
-                                            <br>
-                                            <!--ET_END state-->
-                                        </td>
-                                        <td class="cell custom-header-bg" style='width:35%;'><b>|Доставчик|*</b></td>
-                                    </tr>
-                                    <tr>
-                                        <td class="cell">
-                                            <b>[#contragentName#]</b>
-                                            <div class='address-block'>
-                                                [#contragentCountryId#]
-                                                <!--ET_BEGIN contragentAddress-->[#contragentAddress#] <!--ET_END contragentAddress-->
-                                            </div>
-                                        </td>
-                                        <td class="cell">
-                                            <b>[#MyCompany#]</b>
-                                            <div class='address-block'>
-                                                [#MyAddress#]
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                            <div class="lines"></div>
-                            <div class="details">
-                                [#store_ShipmentOrderDetails#]
+        <div class='scrolling-holder'>
+            <table class="innerTable border-table paddingCells">
+                <tbody>
+                    <tr>
+                        <td class="cell custom-header-bg" style='width:35%;'><b>|Получател|*</b></td>
+                        <td class="cell centered" rowspan='2' style='width:30%;'>
+                            <div class="document-title">|ЕКСПЕДИЦИОННО НАРЕЖДАНЕ|*</div>
+                            <div style="padding-top:5px;">
+                                № <span class="bigData">[#id#]</span> /
+                                <span class="bigData">[#valior#]</span>
                             </div>
-                            <div class="lines"></div>
-                            <table class="innerTable footer-notes paddingCells" style="width:100%">
-                                <tbody>
+                            <!--ET_BEGIN state-->
+                            <br>
+                            <div class="[#STATE_CLASS#]">[#state#]</div>
+                            <br>
+                            <!--ET_END state-->
+                        </td>
+                        <td class="cell custom-header-bg" style='width:35%;'><b>|Доставчик|*</b></td>
+                    </tr>
+                    <tr>
+                        <td class="cell">
+                            <b>[#contragentName#]</b>
+                            <div class='address-block'>
+                                [#contragentCountryId#]
+                                <!--ET_BEGIN contragentAddress-->[#contragentAddress#] <!--ET_END contragentAddress-->
+                            </div>
+                            <!--ET_BEGIN locationId-->
+                            <hr style="margin: 3px 0 1px;">
+                            <div>
+                                |До обект|*: [#locationId#], [#deliveryLocationAddress#]
+                            </div>
+                            <!--ET_END locationId-->
+                        </td>
+                        <td class="cell">
+                            <b>[#MyCompany#]</b>
+                            <div class='address-block'>
+                                [#MyAddress#]
+                            </div>
+                            <!--ET_BEGIN storeId-->
+                            <hr style="margin: 3px 0 1px;">
+                            <div>
+                                |От склад|*: [#storeId#]
+                            </div>
+                            <!--ET_END storeId-->
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            </div>
+            <div class="lines"></div>
+            <div class="scrolling-holder">
+                <div class="details">
+                    [#store_ShipmentOrderDetails#]
+                </div>
+            </div>
+            <div class="lines"></div>
+            <div class="scrolling-holder">
+                <table class="innerTable footer-notes paddingCells" style="width:100%">
+                    <tbody>
+                        <tr>
+                            <td class="topCell first vtop" style='width:50%;'>
+                            <table class='shipment-table' style='width:100%;'>
+                                    <!--ET_BEGIN deliveryTime-->
                                     <tr>
-                                        <td class="topCell first vtop" style='width:50%;'>
-                                        <table class='shipment-table' style='width:100%;'>
-                                                <!--ET_BEGIN deliveryTime-->
-                                                <tr>
-                                                    <td class='quiet nowrap aright' style='width:1%;'>|Срок до|*:</td>
-                                                    <td>[#deliveryTime#]</td>
-                                                </tr>
-                                                <!--ET_END deliveryTime-->
-                                                <!--ET_BEGIN storeId-->
-                                                <tr>
-                                                    <td class='quiet nowrap aright'>|От склад|*:</td>
-                                                    <td>[#storeId#]</td>
-                                                </tr>
-                                                <!--ET_END storeId-->
-                                                <!--ET_BEGIN locationData-->
-                                                [#locationData#]
-                                                <tr>
-                                                    <td class='quiet nowrap aright'>|До|*:</td>
-                                                    <!--ET_BEGIN locationId-->
-                                                        <td><b>[#locationId#]</b>, [#deliveryLocationAddress#]</td>
-                                                    <!--ET_END locationId-->
-                                                    <!--ET_BEGIN formLocation-->
-	                                                    [#formLocation#]
-	                                                    <td>
-		                                                     [#deliveryTo#]
-	                                                    </td>
-                                                    <!--ET_END formLocation-->
-                                                </tr>
-                                                <!--ET_END locationData-->
-                                                <!--ET_BEGIN lineId-->
-                                                <tr>
-                                                    <td class='quiet nowrap aright'>|Транспорт|*: </td>
-                                                    <td>[#lineId#]</td>
-                                                </tr>
-                                                <!--ET_END lineId-->
-                                                 <!--ET_BEGIN note-->
-                                                <tr>
-                                                    <td colspan="2" >
-                                                        <hr>
-                                                        [#note#]
-                                                    </td>
-                                                </tr>
-                                                <!--ET_END note-->
-                                            </table>
-                                        </td>
-                                        <td>
-                                            <div>|Общо тегло|*:&nbsp;<b>[#weight#]</b> &nbsp;&nbsp;&nbsp;&nbsp; |Общ обем|*:&nbsp;<b>[#volume#]</b></div>
+                                        <td class='quiet nowrap aright' style='width:1%;'>|Срок до|*:</td>
+                                        <td>[#deliveryTime#]</td>
+                                    </tr>
+                                    <!--ET_END deliveryTime-->
+                                    <!--ET_BEGIN locationData-->
+                                    [#locationData#]
+                                    <tr>
+                                        <td class='quiet nowrap aright'>|До|*:</td>
+                                        <!--ET_BEGIN formLocation-->
+                                            [#formLocation#]
+                                            <td>
+                                                 [#deliveryTo#]
+                                            </td>
+                                        <!--ET_END formLocation-->
+                                    </tr>
+                                    <!--ET_END locationData-->
+                                    <!--ET_BEGIN lineId-->
+                                    <tr>
+                                        <td class='quiet nowrap aright'>|Транспорт|*: </td>
+                                        <td>[#lineId#]</td>
+                                    </tr>
+                                    <!--ET_END lineId-->
+                                     <!--ET_BEGIN note-->
+                                    <tr>
+                                        <td colspan="2" >
                                             <hr>
-                                            <table class='centered special-borders' style='width:100%;'>
-                                                <tr>
-                                                    <td class='centered border-right' style='width:50%;'>|Получил|*:</td>
-                                                    <td class='centered'>|Съставил|*:</td>
-                                                </tr>
-                                                <tr>
-                                                    <td class='border-right' style='height:40px;'></td>
-                                                    <td></td>
-                                                </tr>
-                                                <tr>
-                                                    <td class='centered border-right'> <span class="sign_names nowrap">[#responsible#]</span></td>
-                                                    <td class='nowrap centered'><span class="sign_names">[#username#]</span></td>
-                                                </tr>
-                                            </table>
+                                            [#note#]
                                         </td>
                                     </tr>
-                                    <tr class='footerDocInfo'>
-                                        <td colspan="2">
-                                             <div class='aright'>Документът е създаден чрез системата <b><a href='http://bgerp.com'>bgERP</a></b></div>
+                                    <!--ET_END note-->
+                                    <tr>
+                                        <td colspan="2" >
+                                            <hr>
+                                            <div>|Общо тегло|*:&nbsp;<b>[#weight#]</b> &nbsp;&nbsp;&nbsp;&nbsp; |Общ обем|*:&nbsp;<b>[#volume#]</b></div>
                                         </td>
                                     </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                    <!--ET_BEGIN DETAILS-->
-                    <div class='details'>
-                        [#DETAILS#]
-                    </div>
-                    <!--ET_END DETAILS-->
-                </td>
-            </tr>
-        </tbody>
-    </table>
+                                </table>
+                            </td>
+                            <td>
+                                <table class='centered special-borders' style='width:100%;'>
+                                    <tr>
+                                        <td class='centered border-right' style='width:50%;'>|Получил|*:</td>
+                                        <td class='centered'>|Съставил|*:</td>
+                                    </tr>
+                                    <tr>
+                                        <td class='border-right' style='height:40px;'></td>
+                                        <td></td>
+                                    </tr>
+                                    <tr>
+                                        <td class='centered border-right'> <span class="sign_names nowrap">[#responsible#]</span></td>
+                                        <td class='nowrap centered'><span class="sign_names">[#username#]</span></td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                        <tr class='footerDocInfo'>
+                            <td colspan="2">
+                                 <div class='aright'>Документът е създаден чрез системата <b><a href='http://bgerp.com'>bgERP</a></b></div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        <!--ET_BEGIN DETAILS-->
+        <div class='details'>
+            [#DETAILS#]
+        </div>
+        <!--ET_END DETAILS-->
 </div>

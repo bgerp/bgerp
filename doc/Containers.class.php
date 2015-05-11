@@ -101,6 +101,8 @@ class doc_Containers extends core_Manager
         
         $this->FLD('activatedBy', 'key(mvc=core_Users)', 'caption=Активирано от, input=none');
         
+        $this->FLD('visibleForPartners', 'enum(no=Не, yes=Да)', 'caption=Видим за партньори');
+        
         // Индекси за бързодействие
         $this->setDbIndex('folderId');
         $this->setDbIndex('threadId');
@@ -356,7 +358,16 @@ class doc_Containers extends core_Manager
             expect($rec->docId = $docMvc->fetchField("#containerId = {$id}", 'id'));
             $mustSave = TRUE;
         }
-
+        
+        if ($rec->docClass && $rec->docId && !isset($rec->visibleForPartners)) {
+            if ($docMvc->visibleForPartners) {
+                $rec->visibleForPartners = 'yes';
+            } else {
+                $rec->visibleForPartners = 'no';
+            }
+            
+            $mustSave = TRUE;
+        }
 
         // Обновяването е възможно при следните случаи
         // 1. Създаване на документа, след запис на документа
@@ -550,7 +561,7 @@ class doc_Containers extends core_Manager
         $currUserNick = core_Users::getCurrent('nick');
         
         // Подготвяме ника
-        $currUserNick = core_Users::prepareNick($currUserNick);
+        $currUserNick = type_Nick::normalize($currUserNick);
         
         // id на текущия потребител
         $currUserId = core_Users::getCurrent();
@@ -720,7 +731,7 @@ class doc_Containers extends core_Manager
         $nick = core_Users::getNick($userId);
         
         // Обработваме ника
-        $nick = core_Users::prepareNick($nick);
+        $nick = type_Nick::normalize($nick);
         
         return $nick;
     }
@@ -1380,28 +1391,35 @@ class doc_Containers extends core_Manager
             // Ако няма id на документа
             if (!isset($rec->docId) && isset($rec->docClass)) {
                 
-                $docClass = cls::get($rec->docClass);
-                
-                // Ако класа може да се използва за документ
-                if (($docClass instanceof core_Mvc) && cls::haveInterface('doc_DocumentIntf', $docClass)) {
+                if (cls::load($rec->docClass, TRUE)) {
                     
-                    if (!$docId) {
-                        $docId = $docClass->fetchField("#containerId = '{$rec->id}'", 'id', FALSE);
-                    }
+                    $docClass = cls::get($rec->docClass);
                     
-                    if ($docId) {
-                        $rec->docId = $docId;
-                        if (self::save($rec)) {
-                            $resArr['docId']++;
+                    // Ако класа може да се използва за документ
+                    if (($docClass instanceof core_Mvc) && cls::haveInterface('doc_DocumentIntf', $docClass)) {
+                        
+                        if (!$docId) {
+                            $docId = $docClass->fetchField("#containerId = '{$rec->id}'", 'id', FALSE);
                         }
-                    } else {
-                        if ($rec->id) {
-                            
-                            // Ако не може да се намери съответен документ, изтриваме го
-                            if (self::delete($rec->id)) {
-                                $resArr['del_cnt']++;
+                        
+                        if ($docId) {
+                            $rec->docId = $docId;
+                            if (self::save($rec)) {
+                                $resArr['docId']++;
+                            }
+                        } else {
+                            if ($rec->id) {
+                                
+                                // Ако не може да се намери съответен документ, изтриваме го
+                                if (self::delete($rec->id)) {
+                                    $resArr['del_cnt']++;
+                                }
                             }
                         }
+                    }
+                } else {
+                    if (self::delete($rec->id)) {
+                        $resArr['del_cnt']++;
                     }
                 }
             }
@@ -1881,6 +1899,12 @@ class doc_Containers extends core_Manager
     	$userQuery = core_Users::getQuery();
     	$userQuery->show('id');
     	
+    	$conf = core_Packs::getConfig('doc');
+    	$now = dt::now();
+    	$offset = -1 * $conf->DOC_NOTIFY_FOR_INCOMPLETE_BUSINESS_DOC;
+    	$from = dt::addSecs($offset, $now);
+    	$from = dt::verbal2mysql($from, FALSE);
+    
     	$authorTemasArr = array();
     	
     	// За всеки потребител
@@ -1897,6 +1921,8 @@ class doc_Containers extends core_Manager
     			$docQuery = $name::getQuery();
     			$docQuery->where("#state = 'draft'");
     			$docQuery->where("#createdBy = {$uRec->id}");
+    			$docQuery->where("#modifiedOn >= '{$from}'");
+    			
     			$count = $docQuery->count();
     			
     			// Ако бройката е по-голяма от 0, записваме в масива
@@ -1908,7 +1934,7 @@ class doc_Containers extends core_Manager
     		// Ако има неактивирани бизнес документи
     		if(count($notArr)){
     			foreach ($notArr as $clsId => $count){
-    				$customUrl = $url = array('doc_Search', 'docClass' =>  $clsId, 'state' => 'draft', 'author' => $firstTeamAuthor);
+    				$customUrl = $url = array('doc_Search', 'docClass' =>  $clsId, 'state' => 'draft', 'author' => $firstTeamAuthor, 'fromDate' => $from);
     				 
     				if($count == 1){
     					$name = cls::get($clsId)->singleTitle;

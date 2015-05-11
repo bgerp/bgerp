@@ -2,6 +2,8 @@
 
 
 
+
+
 /**
  * Базов клас за наследяване от другите драйвери
  *
@@ -189,4 +191,17 @@ abstract class frame_BaseDriver extends core_BaseClass
 	{
 		
 	}
+
+
+	/**
+	 * Ако имаме в url-то export създаваме csv файл с данните
+	 * 
+	 * @param core_Mvc $mvc
+	 * @param stdClass $rec
+	 */
+	public function exportCsv()
+    {
+
+    }
+
 }

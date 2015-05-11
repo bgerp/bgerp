@@ -109,7 +109,6 @@ class acc_ProfitContractorsReport extends acc_BalanceReportImpl
      */
     public function renderEmbeddedData($data)
     {
-        if(empty($data)) return;
 
         $tpl = $this->getReportLayout();
 
@@ -168,6 +167,22 @@ class acc_ProfitContractorsReport extends acc_BalanceReportImpl
         $activateOn = "{$this->innerForm->to} 23:59:59";
 
         return $activateOn;
+    }
+
+
+    /**
+     * Ще се експортирват полетата, които се
+     * показват в табличния изглед
+     *
+     * @return array
+     */
+    public function getExportFields ()
+    {
+
+        $exportFields['ent1Id']  = "Контрагенти";
+        $exportFields['blAmount']  = "Кредит";
+
+        return $exportFields;
     }
 
 }
