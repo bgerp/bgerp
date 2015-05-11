@@ -67,7 +67,7 @@ class frame_Setup extends core_ProtoSetup
     var $configDescription = array(
 
         'FRAME_TYPE_DECIMALS_SEP'   => array ('enum(dot=точка,comma=запетая)', 'caption=Десетичен разделител на числата при експорт в csv->Символ'),
-    	'FRAME_FORMAT_DATE'   => array ('enum(dot=точка (дд.мм.гггг),slash=наклонена черта (дд/мм/гггг))', 'caption=Формат на датата->Формат с'),
+    	'FRAME_FORMAT_DATE'   => array ('enum(dot=точка (дд.мм.гггг),slash=наклонена черта (мм/дд/гг))', 'caption=Формат на датата->Формат с'),
     );
 
     
