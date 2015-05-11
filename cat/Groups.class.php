@@ -13,7 +13,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class cat_Groups extends core_Manager
+class cat_Groups extends core_TreeObject
 {
     
     
