@@ -41,7 +41,7 @@ class core_TreeObject extends core_Manager
 		
 		// Дали наследниците на обекта да са счетоводни пера
 		if(!$mvc->getField('makeDescendantsFeatures', FALSE)){
-			$mvc->FLD('makeDescendantsFeatures', "enum(yes=Да,no=Не)", 'caption=Наследниците дали да бъдат сч. признаци->Избор,notNull,value=yes');
+			$mvc->FLD('makeDescendantsFeatures', "enum(yes=Да,no=Не)", 'caption=Наследниците да бъдат ли счетоводни признаци?->Избор,notNull,value=yes');
 		}
 		
 		$mvc->setField($mvc->nameField, 'tdClass=leafName');
