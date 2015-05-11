@@ -725,7 +725,7 @@ class sales_Sales extends deals_DealMaster
     			$Detail = cls::get($Detail);
     			$dQuery = $Detail->getQuery();
     			$dQuery->where("#state = 'active' || #state = 'closed'");
-    			$dQuery->show("productId,price,$Detail->masterKey");
+    			$dQuery->show("productId,price,{$Detail->masterKey}");
     			
     			$dQuery->EXT('state', $Detail->Master->className, "externalName=state,externalKey={$Detail->masterKey}");
     			$dQuery->EXT('contragentClassId', $Detail->Master->className, "externalName=contragentClassId,externalKey={$Detail->masterKey}");

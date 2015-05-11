@@ -125,7 +125,7 @@ class cat_Products extends core_Embedder {
     /**
      * Кой може да добавя?
      */
-    public $canAdd = 'cat,ceo';
+    public $canAdd = 'cat,ceo,sales';
     
     
     /**
@@ -1245,7 +1245,11 @@ class cat_Products extends core_Embedder {
     {
     	$data->toolbar->removeBtn('btnAdd');
     	if($mvc->haveRightFor('add')){
-    		 $data->toolbar->addBtn('Нов запис', array($mvc, 'add', 'innerClass' => cat_GeneralProductDriver::getClassId()), 'order=1', 'ef_icon = img/16/shopping.png,title=Създаване на нова стока');
+    		 $data->toolbar->addBtn('Нов запис', array($mvc, 'add', 'innerClass' => cat_GeneralProductDriver::getClassId()), 'order=1,id=btnAdd', 'ef_icon = img/16/shopping.png,title=Създаване на нова стока');
+    	}
+    	
+    	if(!haveRole('ceo,cat')){
+    		$data->toolbar->removeBtn('btnAdd');
     	}
     }
     
@@ -1329,11 +1333,22 @@ class cat_Products extends core_Embedder {
     		}
     	}
     	
-    	if($action == 'add' && isset($rec)){
-    		if(isset($rec->originId)){
-    			$document = doc_Containers::getDocument($rec->originId);
-    			if(!$document->haveInterface('marketing_InquiryEmbedderIntf')){
-    				$res = 'no_one';
+    	if($action == 'add'){
+    		if(isset($rec)){
+    			if(isset($rec->originId)){
+    				$document = doc_Containers::getDocument($rec->originId);
+    				if(!$document->haveInterface('marketing_InquiryEmbedderIntf')){
+    					$res = 'no_one';
+    				}
+    			}
+    			
+    			if(isset($rec->folderId)){
+    				$Cover = doc_Folders::getCover($rec->folderId);
+    				if(!$Cover->haveInterface('doc_ContragentDataIntf')){
+    					if(!haveRole('ceo,cat')){
+    						$res = 'no_one';
+    					}
+    				}
     			}
     		}
     	}
