@@ -325,4 +325,45 @@ class core_TreeObject extends core_Manager
 	{
 		jquery_Jquery::run($tpl, "treeViewAction();");
 	}
+	
+	
+	/**
+	 * Връща масив от вида `< име на баща > => < име на наследник >`, ако бащата на обекта
+	 * има чекнато децата му да са свойства. За да е един обект свойство трябва или да има баща
+	 * и децата му да са свойства или да няма баща
+	 *
+	 * @param array $ids - масив с ид-та на обекти от този клас
+	 * @return array - масив със свойства и стойностти
+	 */
+	public static function getFeaturesArray($ids)
+	{
+		$self = cls::get(get_called_class());
+		$features = array();
+	
+		if(!count($ids)) return $features;
+	
+		foreach ($ids as $id){
+			$rec = $self->fetch($id);
+			
+			// Намираме името на обекта
+			$nameVerbal = $self->getVerbal($rec->id, $self->nameField);
+			$keyVerbal = $nameVerbal;
+			
+			// Ако има баща и е указано децата му да са свойства
+			if(!empty($rec->parentId)){
+				if($self->fetchField($rec->parentId, 'makeDescendantsFeatures') == 'yes'){
+					$keyVerbal = $self->getVerbal($rec->parentId, $self->nameField);
+				} else {
+					
+					// Ако не трябва да са наследници пропускаме
+					continue;
+				}
+			}
+			
+			// задаваме свойството
+			$features[$keyVerbal] = $nameVerbal;
+		}
+		
+		return $features;
+	}
 }
