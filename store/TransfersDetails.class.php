@@ -34,7 +34,7 @@ class store_TransfersDetails extends doc_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_Created, store_Wrapper, plg_RowNumbering, plg_AlignDecimals';
+    public $loadList = 'plg_RowTools, plg_Created, plg_Sorting, store_Wrapper, plg_RowNumbering, plg_AlignDecimals';
     
     
     /**

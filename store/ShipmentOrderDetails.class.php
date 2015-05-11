@@ -43,7 +43,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
      * var string|array
      */
     public $loadList = 'plg_RowTools, plg_Created, store_Wrapper, plg_RowNumbering, plg_SaveAndNew, doc_plg_HidePrices,
-                        plg_AlignDecimals2 , doc_plg_TplManagerDetail, LastPricePolicy=sales_SalesLastPricePolicy, ReversePolicy=purchase_PurchaseLastPricePolicy';
+                        plg_AlignDecimals2, plg_Sorting, doc_plg_TplManagerDetail, LastPricePolicy=sales_SalesLastPricePolicy, ReversePolicy=purchase_PurchaseLastPricePolicy';
     
     
     /**
