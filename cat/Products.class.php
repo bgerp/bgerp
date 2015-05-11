@@ -135,6 +135,12 @@ class cat_Products extends core_Embedder {
     
     
     /**
+     * Можели да се редактират активирани документи
+     */
+    public $canEditActivated = TRUE;
+    
+    
+    /**
      * Кой може да го разгледа?
      */
     public $canList = 'cat,ceo,sales,purchase';
@@ -1324,15 +1330,6 @@ class cat_Products extends core_Embedder {
      */
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
-    	if($action == 'edit' && isset($rec)){
-    		if($rec->state == 'active' && doc_Threads::haveRightFor('single', $rec->threadId)){
-    			
-    			// Можем да активираме активни артикули
-    			//@TODO ХАК!
-    			$res = $mvc->getRequiredRoles('edit');
-    		}
-    	}
-    	
     	if($action == 'add'){
     		if(isset($rec)){
     			if(isset($rec->originId)){
