@@ -138,6 +138,18 @@ class core_Cache extends core_Manager
     
     
     /**
+     * Изтрива всички обекти от указания тип
+     */
+    static function removeByType($type)
+    {
+    	$Cache = cls::get('core_Cache');
+    	$handler = NULL;
+    	$key = $Cache->getKey($type, $handler);
+    	$Cache->delete(array("#key LIKE '%[#1#]'", "{$key}"));
+    }
+    
+    
+    /**
      * Изтрива обектите от указания тип(ове) (и манипулатор)
      */
     static function remove($type, $handler = NULL)
