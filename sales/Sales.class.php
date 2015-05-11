@@ -681,4 +681,67 @@ class sales_Sales extends deals_DealMaster
     		$tpl->replace($jobsInfo, 'JOB_INFO');
     	}
     }
+    
+    function act_Test()
+    {
+    	static::getLastProductPrices(14, 53);
+    }
+    
+    
+    /**
+     *  Намира последната покупна цена на артикулите
+     */
+    public static function getLastProductPrices($contragentClass, $contragentId)
+    {
+    	$Contragent = cls::get($contragentClass);
+    	$ids = array();
+    	
+    	// Намираме ид-та на всички продажби, ЕН и протоколи за този контрагент
+    	foreach (array('sales_Sales', 'store_ShipmentOrders', 'sales_Services') as $Cls){
+    		$query = $Cls::getQuery();
+    		$query->where("#contragentClassId = {$Contragent->getClassId()} AND #contragentId = {$contragentId}");
+    		$query->where("#state = 'active' || #state = 'closed'");
+    		$query->show('id');
+    		$query->orderBy("id", 'DESC');
+    		while($rec = $query->fetch()){
+    			$ids[] = $rec->id;
+    		}
+    		$key = md5(implode('', $ids));
+    	}
+    	
+    	if(!count($ids)) return array();
+    	
+    	$cacheArr = core_Cache::get('sales_Sales', $key);
+    	
+    	// Имаме ли кеширани данни
+    	if(!$cacheArr){
+    		
+    		// Ако няма инвалидираме досегашните кешове за продажбите
+    		core_Cache::removeByType('sales_Sales');
+    		$cacheArr = array();
+    		
+    		// Проверяваме на какви цени сме продавали в детайлите на продажбите, ЕН и протоколите
+    		foreach (array('sales_SalesDetails', 'store_ShipmentOrderDetails', 'sales_ServicesDetails') as $Detail){
+    			$Detail = cls::get($Detail);
+    			$dQuery = $Detail->getQuery();
+    			$dQuery->where("#state = 'active' || #state = 'closed'");
+    			$dQuery->show("productId,price,$Detail->masterKey");
+    			
+    			$dQuery->EXT('state', $Detail->Master->className, "externalName=state,externalKey={$Detail->masterKey}");
+    			$dQuery->EXT('contragentClassId', $Detail->Master->className, "externalName=contragentClassId,externalKey={$Detail->masterKey}");
+    			$dQuery->EXT('contragentId', $Detail->Master->className, "externalName=contragentId,externalKey={$Detail->masterKey}");
+    			$dQuery->where("#contragentClassId = {$Contragent->getClassId()} AND #contragentId = {$contragentId}");
+    			
+    			// Кешираме артикулите с цените
+    			while($dRec = $dQuery->fetch()){
+    				$cacheArr[$dRec->productId] = $dRec->price;
+    			}
+    		}
+    		
+    		// Кешираме новите данни
+    		core_Cache::set('sales_Sales', $key, $cacheArr, 1440);
+    	}
+    	
+    	return $cacheArr;
+    }
 }

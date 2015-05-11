@@ -40,35 +40,16 @@ class sales_SalesLastPricePolicy extends core_Manager
      */
     function getPriceInfo($customerClass, $customerId, $productId, $productManId, $packagingId = NULL, $quantity = NULL, $date = NULL, $rate = 1, $chargeVat = 'no')
     {
-       if(!$date){
-       	   $date = dt::now();
-        }
+    	$lastPrices = sales_Sales::getLastProductPrices($customerClass, $customerId);
+        if(!isset($lastPrices[$productId])) return NULL;
         
-        // Намира последната цена на която продукта е бил 
-        // продаден на този контрагент
-        $detailQuery = sales_SalesDetails::getQuery();
-        $detailQuery->EXT('contragentClassId', 'sales_Sales', 'externalName=contragentClassId,externalKey=saleId');
-        $detailQuery->EXT('contragentId', 'sales_Sales', 'externalName=contragentId,externalKey=saleId');
-        $detailQuery->EXT('currencyId', 'sales_Sales', 'externalName=currencyId,externalKey=saleId');
-        $detailQuery->EXT('valior', 'sales_Sales', 'externalName=valior,externalKey=saleId');
-        $detailQuery->EXT('state', 'sales_Sales', 'externalName=state,externalKey=saleId');
-        $detailQuery->where("#contragentClassId = {$customerClass}");
-        $detailQuery->where("#contragentId = {$customerId}");
-        $detailQuery->where("#valior <= '{$date}'");
-        $detailQuery->where("#productId = '{$productId}'");
-        $detailQuery->where("#classId = {$productManId}");
-        $detailQuery->where("#state = 'active' || #state = 'closed'");
-        $detailQuery->orderBy('#valior,#id', 'DESC');
-        $lastRec = $detailQuery->fetch();
-        
-        if(!$lastRec){
-        	
-        	return NULL;
-        }
-        
-        $vat = cls::get($lastRec->classId)->getVat($lastRec->productId);
-        $lastRec->packPrice = deals_Helper::getDisplayPrice($lastRec->packPrice, $vat, $rate, $chargeVat);
-        
-        return (object)array('price' => deals_Helper::roundPrice($lastRec->packPrice), 'discount' => $lastRec->discount);
+        $pInfo = cls::get($productManId)->getProductInfo($productId, $packagingId);
+		$quantityInPack = isset($pInfo->packagingRec) ? $pInfo->packagingRec->quantity : 1;
+        $packPrice = $lastPrices[$productId] * $quantityInPack;
+    	
+        $vat = cls::get($productManId)->getVat($productId);
+        $packPrice = deals_Helper::getDisplayPrice($packPrice, $vat, $rate, $chargeVat);
+       
+        return (object)array('price' => deals_Helper::roundPrice($packPrice));
     }
 }
