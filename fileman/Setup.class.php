@@ -203,6 +203,12 @@ class fileman_Setup extends core_ProtoSetup
     
     
     /**
+     * Дефинирани класове, които имат интерфейси
+     */
+    var $defClasses = "fileman_FileInfoReport";
+         
+    
+    /**
      * Инсталиране на пакета
      */
     function install()
@@ -284,7 +290,7 @@ class fileman_Setup extends core_ProtoSetup
         // Ако не е инсталиране
         if (!static::isEnabled()) {
             
-            return type_Varchar::escape($conf->FILEMAN_GHOSTSCRIPT_PATH) . " не е инсталиран";
+            return "GhostScript не се стартира с \"" . type_Varchar::escape($conf->FILEMAN_GHOSTSCRIPT_PATH) . "\"";
         }
         
         // Версиите на пакета
@@ -296,7 +302,7 @@ class fileman_Setup extends core_ProtoSetup
             if (($versionArr['version'] == 8) && ($versionArr['subVersion'] == 71)) {
                     
                 // Добавяме съобщение
-                return "<li class='debug-error'>Версията на '" . type_Varchar::escape($conf->FILEMAN_GHOSTSCRIPT_PATH) . "' e 8.71. С тази версия има проблеми. Моля да я обновите.</li>";
+                return "<li class='debug-error'>Версията на GhostScript \"" . type_Varchar::escape($conf->FILEMAN_GHOSTSCRIPT_PATH) . "\" e 8.71. С тази версия има проблеми. Моля да я обновите.</li>";
             }
         }
     }

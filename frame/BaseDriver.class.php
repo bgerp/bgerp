@@ -2,6 +2,8 @@
 
 
 
+
+
 /**
  * Базов клас за наследяване от другите драйвери
  *
@@ -119,6 +121,12 @@ abstract class frame_BaseDriver extends core_BaseClass
 	 */
 	public function getReportTitle()
 	{
+		$titleArr = explode('»', $this->title);
+		if(count($titleArr) == 2){
+			
+			return $titleArr[1];
+		}
+		
 		return $this->title;
 	}
 	
@@ -166,6 +174,8 @@ abstract class frame_BaseDriver extends core_BaseClass
 		
 		$this->addEmbeddedFields($form);
 		$form->rec = $this->innerForm;
+		$this->prepareEmbeddedForm($form);
+		
 		$form->class = 'simpleForm';
 		 
 		$tpl->prepend($form->renderStaticHtml(), $placeholder);
@@ -181,4 +191,17 @@ abstract class frame_BaseDriver extends core_BaseClass
 	{
 		
 	}
+
+
+	/**
+	 * Ако имаме в url-то export създаваме csv файл с данните
+	 * 
+	 * @param core_Mvc $mvc
+	 * @param stdClass $rec
+	 */
+	public function exportCsv()
+    {
+
+    }
+
 }

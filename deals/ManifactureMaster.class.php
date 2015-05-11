@@ -42,7 +42,7 @@ abstract class deals_ManifactureMaster extends core_Master
 	{
 		$mvc->FLD('valior', 'date', 'caption=Вальор, mandatory');
 		$mvc->FLD('activityCenterId', 'key(mvc=hr_Departments,select=name)', 'caption=Център, mandatory');
-		$mvc->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад, mandatory');
+		$mvc->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад, mandatory');
 		$mvc->FLD('deadline', 'datetime', 'caption=Срок до');
 		$mvc->FLD('note', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Бележки');
 		$mvc->FLD('state',
@@ -98,7 +98,14 @@ abstract class deals_ManifactureMaster extends core_Master
 	public static function on_AfterPrepareEditForm($mvc, &$data)
 	{
 		$data->form->setDefault('valior', dt::now());
-		$data->form->setReadOnly('storeId', doc_Folders::getCover($data->form->rec->folderId)->that);
+		$folderCover = doc_Folders::getCover($data->form->rec->folderId);
+		if($folderCover->haveInterface('store_AccRegIntf')){
+			$data->form->setReadOnly('storeId', $folderCover->that);
+		} else {
+			$curStore = store_Stores::getCurrent('id', FALSE);
+			$data->form->setDefault('storeId', $curStore);
+		}
+		
 		$data->form->setDefault('activityCenterId', hr_Departments::fetchField("#systemId = 'myOrganisation'", 'id'));
 	}
 	
@@ -178,6 +185,7 @@ abstract class deals_ManifactureMaster extends core_Master
      */
     public static function canAddToFolder($folderId)
     {
+		// Може да добавяме като начало на тред само в папка на склад
     	$folderClass = doc_Folders::fetchCoverClassName($folderId);
     
     	return cls::haveInterface('store_AccRegIntf', $folderClass);
@@ -193,10 +201,18 @@ abstract class deals_ManifactureMaster extends core_Master
      */
     public static function canAddToThread($threadId)
     {
-    	$threadRec = doc_Threads::fetch($threadId);
-    	$coverClass = doc_Folders::fetchCoverClassName($threadRec->folderId);
+    	// Може да добавяме или към нишка с начало задание
+    	$firstDoc = doc_Threads::getFirstDocument($threadId);
+    	if($firstDoc->getInstance() instanceof planning_Jobs){
+    		
+    		return TRUE;
+    	} 
+    	
+    	$folderId = doc_Threads::fetchField($threadId, 'folderId');
+    	$folderClass = doc_Folders::fetchCoverClassName($folderId);
     
-    	return cls::haveInterface('store_AccRegIntf', $coverClass);
+    	// или към нишка в папка на склад
+    	return cls::haveInterface('store_AccRegIntf', $folderClass);
     }
     
     

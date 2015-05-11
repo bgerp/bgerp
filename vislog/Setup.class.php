@@ -44,7 +44,7 @@ class vislog_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    var $info = "Какво правят не-регистрираните потребители на сайта";
+    var $info = "Хролнология за действията на посетителите на сайта";
     
     
     /**
@@ -55,6 +55,7 @@ class vislog_Setup extends core_ProtoSetup
             'vislog_History',
             'vislog_Referer',
             'vislog_IpNames',
+            'vislog_Adwords',
         );
     
 

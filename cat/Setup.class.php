@@ -1,6 +1,23 @@
 <?php
 
 
+/**
+ * Колко от последно вложените ресурси да се показват в мастъра на рецептите
+ */
+defIfNot('CAT_BOM_REMEMBERED_RESOURCES', 20);
+
+
+/**
+ * Дефолт свойства на нови артикули в папките на клиенти
+ */
+defIfNot('CAT_DEFAULT_META_IN_CONTRAGENT_FOLDER', 'canSell,canManifacture,canStore');
+
+
+/**
+ * Дефолт свойства на нови артикули в папките на доставчици
+ */
+defIfNot('CAT_DEFAULT_META_IN_SUPPLIER_FOLDER', 'canBuy,canConvert,canStore');
+
 
 /**
  * class cat_Setup
@@ -41,7 +58,7 @@ class cat_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    var $info = "Каталог на стандартни продукти";
+    var $info = "Каталог на стандартните артикули";
     
     
     /**
@@ -60,20 +77,15 @@ class cat_Setup extends core_ProtoSetup
     		'cat_Boms',
     		'cat_BomDetails',
     		'cat_ProductTplCache',
-    		'migrate::updateProducts',
-    		'migrate::updateProducts3',
-    		'migrate::migrateMetas',
     		'migrate::migrateGroups',
     		'migrate::migrateProformas',
-    		'migrate::makeProductsDocuments2',
     		'migrate::removeOldParams1',
     		'migrate::updateDocs',
-    		'migrate::fixStates',
     		'migrate::truncatCache',
             'migrate::fixProductsSearchKeywords'
         );
 
-        
+
     /**
      * Роли за достъп до модула
      */
@@ -86,13 +98,29 @@ class cat_Setup extends core_ProtoSetup
     var $menuItems = array(
             array(1.42, 'Артикули', 'Каталог', 'cat_Products', 'default', "cat,ceo,sales,purchase"),
         );
-    
+
+
+    /**
+     * Дефиниции на класове с интерфейси
+     */
+    var $classes = 'cat_SalesArticleReport';
+
 
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    var $defClasses = "cat_GeneralProductDriver, cat_BaseImporter";
-    
+    var $defClasses = "cat_GeneralProductDriver, cat_BaseImporter,cat_SalesArticleReport";
+
+
+    /**
+     * Описание на конфигурационните константи
+     */
+    var $configDescription = array(
+    		'CAT_BOM_REMEMBERED_RESOURCES' => array("int", 'caption=Колко от последно изпозлваните ресурси да се показват в рецептите->Брой'),
+    		'CAT_DEFAULT_META_IN_CONTRAGENT_FOLDER' => array("set(canSell=Продаваем,canBuy=Купуваем,canStore=Складируем,canConvert=Вложим,fixedAsset=Дълготраен актив,canManifacture=Производим)", 'caption=Свойства по подразбиране в папка->На клиент,columns=2'),
+    		'CAT_DEFAULT_META_IN_SUPPLIER_FOLDER' => array("set(canSell=Продаваем,canBuy=Купуваем,canStore=Складируем,canConvert=Вложим,fixedAsset=Дълготраен актив,canManifacture=Производим)", 'caption=Свойства по подразбиране в папка->На доставчик,columns=2'),
+    );
+
     
     /**
      * Настройки за Cron
@@ -138,98 +166,6 @@ class cat_Setup extends core_ProtoSetup
     
     
     /**
-     * Миграция за продуктовите драйвъри
-     */
-    function updateProducts()
-    {
-    	$cQuery = cat_Products::getQuery();
-    	
-    	core_Classes::add('cat_GeneralProductDriver');
-    	
-    	$technoDriverId = cat_GeneralProductDriver::getClassId();
-    	
-    	while($pRec = $cQuery->fetch()){
-    		$meta = cat_Products::getMetaData($pRec->groups);
-    		$meta = arr::make($meta, TRUE);
-    		
-    		$pRec->innerClass = $technoDriverId;
-    		
-    		$clone = clone $pRec;
-    		unset($clone->innerForm, $clone->innerState);
-    		
-    		$pRec->innerForm = $clone;
-    		$pRec->innerState = $clone;
-    		
-    		cat_Products::save($pRec, 'innerClass,innerForm,innerState');
-    	}
-    	
-    	$pQuery = cat_products_Params::getQuery();
-    	$cId = cat_Products::getClassId();
-    	while($pRec = $pQuery->fetch()){
-    		$pRec->classId = $cId;
-    		cat_products_Params::save($pRec);
-    	}
-    }
-    
-    
-    /**
-     * Миграция за продуктовите драйвъри
-     */
-    function updateProducts3()
-    {
-    	$pQuery = cat_Products::getQuery();
-    	while($rec = $pQuery->fetch()){
-    		if(cls::load($rec->innerClass, TRUE)){
-    			try{
-    				$rec->innerForm->photo = $rec->photo;
-    				$rec->innerState->photo = $rec->photo;
-    				 
-    				cat_Products::save($rec);
-    			} catch(core_exception_Expect $e){
-    				
-    			}
-    		}
-    	}
-    }
-    
-    
-    /**
-     * Миграция от старите мета данни към новите
-     */
-    public function migrateMetas()
-    {
-    	if(!cat_Products::count()) return;
-    	
-    	set_time_limit(600);
-    	
-    	$Products = cls::get('cat_Products');
-    	$query = $Products->getQuery();
-    	$query->where("#groups IS NOT NULL");
-    	
-    	$Set = cls::get('type_Set');
-    	
-    	while($rec = $query->fetch()){
-    		$meta = cat_Products::getMetaData($rec->groups);
-    		$metaArr = type_Set::toArray($meta);
-    		
-    		if(isset($metaArr['materials'])){
-    			unset($metaArr['materials']);
-    			$metaArr['canStore'] = 'canStore';
-    			$metaArr['canConvert'] = 'canConvert';
-    		}
-    		
-    		foreach ($metaArr as $metaName){
-    			$rec->$metaName = 'yes';
-    		}
-    		
-    		$rec->meta = $Set->fromVerbal($metaArr);
-    		
-    		$Products->save_($rec);
-    	}
-    }
-    
-    
-    /**
      * Миграция на мета данните на групите
      */
     public function migrateGroups()
@@ -247,117 +183,6 @@ class cat_Setup extends core_ProtoSetup
     		
     		$rec->meta = $Set->fromVerbal($meta);
     		cat_Groups::save($rec, 'meta');
-    	}
-    }
-    
-    
-    /**
-     * Прави всички артикули документи в папката на първата им група,
-     * ако нямат отиват в папката на 'Услуги'
-     */
-    public function makeProductsDocuments2()
-    {
-    	set_time_limit(900);
-    	
-    	core_Classes::add('cat_Categories');
-    	$Products = cls::get('cat_Products');
-    	$query = cat_Products::getQuery();
-    	$query->where("#threadId IS NULL");
-    	
-    	while($rec = $query->fetch()){
-    		$first = NULL;
-    		try {
-    			if(isset($rec->groups)){
-    				$groups = keylist::toArray($rec->groups);
-    				foreach ($groups as $index => $gr){
-    					if($sysId = cat_Groups::fetchField($gr, 'sysId')){
-    						$first = cat_Categories::fetchField("#sysId = '{$sysId}'", 'id');
-    						break;
-    					}
-    				}
-    				
-    				if(empty($first)){
-    					if($rec->createdBy == -1){
-    						$first = cat_Categories::fetchField("#sysId = 'externalServices'", 'id');
-    					} else {
-    						$first = cat_Categories::fetchField("#sysId = 'goods'", 'id');
-    					}
-    				}
-    			} else {
-    				$first = cat_Categories::fetchField("#sysId = 'services'", 'id');
-    			}
-    			
-    			
-    			if(core_Classes::getId('cat_GeneralServiceDriver') == $rec->innerClass){
-    				$rec->innerClass = cat_GeneralProductDriver::getClassId();
-    			}
-    			
-    			$rec->folderId = cat_Categories::forceCoverAndFolder($first);
-    			$Products->route($rec);
-    			$Products->save($rec);
-    		} catch(core_exception_Expect $e){
-    			$Products->log("Проблем при прехвърлянето на артикул: {$rec->name}: {$e->getMessage()}");
-    		}
-    	}
-    	
-    	if(core_Packs::fetch("#name = 'techno2'")){
-    		$allProducts = array();
-    		$manId = $Products->getClassId();
-    		$specId = techno2_SpecificationDoc::getClassId();
-    		$tQuery = techno2_SpecificationDoc::getQuery();
-    		$tQuery->where("#state != 'rejected'");
-    		
-    		core_Users::cancelSystemUser();
-    		while($tRec = $tQuery->fetch()){
-    			core_Users::sudo($tRec->createdBy);
-    			
-    			try{
-    				$pId = techno2_SpecificationDoc::createProduct($tRec);
-    				$allProducts[$tRec->id] = $pId;
-    				
-    				$paramQ = cat_products_Params::getQuery();
-    				$paramQ->where("#classId = {$specId} AND #productId = {$tRec->id}");
-    				
-    				while($pRec = $paramQ->fetch()){
-    					$pRec->classId = $manId;
-    					$pRec->productId = $pId;
-    					
-    					cat_products_Params::save($pRec, 'productId,classId');
-    				}
-    			} catch(core_exception_Expect $e){
-    				$Products->log("Проблем при прехвърляне на спецификация {$tRec->id}: {$e->getMessage()}");
-    			}
-    			
-    			core_Users::exitSudo();
-    		}
-    		core_Users::forceSystemUser();
-    	}
-
-    	$docsArr = array('sales_SalesDetails', 'sales_InvoiceDetails', 'store_ShipmentOrderDetails', 'store_ReceiptDetails', 'sales_ServicesDetails', 'purchase_InvoiceDetails', 'purchase_PurchasesDetails', 'purchase_ServicesDetails', 'sales_QuotationsDetails');
-    	if(count($allProducts)){
-    		foreach ($allProducts as $sId => $pId){
-    				
-    			try{
-    				if($itemRec = acc_Items::fetchItem('techno2_SpecificationDoc', $sId)){
-    					$itemRec->classId = $manId;
-    					$itemRec->objectId = $pId;
-    					acc_Items::save($itemRec);
-    				}
-    				
-    				foreach ($docsArr as $manName){
-    					$dQuery = $manName::getQuery();
-    					$dQuery->where("#classId = {$specId} AND #productId = {$sId}");
-    					while($dRec = $dQuery->fetch()){
-    						$dRec->classId = $manId;
-    						$dRec->productId = $pId;
-    						$manName::save($dRec);
-    					}
-    				}
-    			} catch(core_exception_Expect $e){
-    				$Products->log("Проблем при Заместване на спецификация {$tRec->id}: {$e->getMessage()}");
-    			}
-    			
-    		}
     	}
     }
     
@@ -417,30 +242,6 @@ class cat_Setup extends core_ProtoSetup
     			$jRec->productId = $origin->that;
     			planning_Jobs::save($jRec, 'productId');
     		}
-    	}
-    }
-    
-    
-    /**
-     * Поправя грешните състояния
-     */
-    public function fixStates()
-    {
-    	$Products = cls::get('cat_Products');
-    	
-    	$query = $Products->getQuery();
-    	$query->where("#state IS NULL || (#brState IS NULL AND #state = 'rejected')");
-    	$query->show('id,name,state,brState');
-    	while($rec = $query->fetch()){
-    		if(is_null($rec->state)){
-    			$rec->state = 'active';
-    		}
-    		
-    		if($rec->state == 'rejected' && is_null($rec->brState)){
-    			$rec->brState = 'active';
-    		}
-    		
-    		$Products->save_($rec, 'state,brState');
     	}
     }
     

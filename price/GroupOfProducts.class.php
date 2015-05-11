@@ -171,6 +171,10 @@ class price_GroupOfProducts extends core_Detail
         	if(cat_Products::fetchField($rec->productId, 'state') != 'active'){
         		$requiredRoles = 'no_one';
         	}
+        	
+        	if($requiredRoles != 'no_one' && !cat_Products::haveRightFor('single', $rec->productId)){
+        		$requiredRoles = 'no_one';
+        	}
         }
     }
     

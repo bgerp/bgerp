@@ -156,7 +156,7 @@ class purchase_Invoices extends deals_InvoiceMaster
     	
     	$this->FLD('accountId', 'key(mvc=bank_Accounts,select=iban, allowEmpty)', 'caption=Плащане->Банкова с-ка, export=Csv,after=paymentMethodId');
     	$this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 'caption=Статус, input=none,export=Csv');
-    	$this->FLD('type', 'enum(invoice=Входяща фактура, credit_note=Входящо кредитно известие, debit_note=Входящо дебитно известие)', 'caption=Вид, input=hidden');
+    	$this->FLD('type', 'enum(invoice=Входяща фактура, credit_note=Входящо кредитно известие, debit_note=Входящо дебитно известие, dc_note=Известие)', 'caption=Вид, input=hidden');
     }
     
     
@@ -227,6 +227,14 @@ class purchase_Invoices extends deals_InvoiceMaster
     	parent::getVerbalInvoice($mvc, $rec, $row, $fields);
     	
     	if($fields['-single']){
+    		if($fields['-single']){
+    			if($rec->type == 'dc_note'){
+    				$row->type = ($rec->dealValue <= 0) ? 'Кредитно известие' : 'Дебитно известие';
+    				$type = ($rec->dealValue <= 0) ? 'Credit note' : 'Debit note';
+    			} else {
+    				$type = $rec->type;
+    			}
+    		}
     		
     		if($rec->accountId){
     			$Varchar = cls::get('type_Varchar');
@@ -325,9 +333,12 @@ class purchase_Invoices extends deals_InvoiceMaster
     	 
     	if($rec = $data->listFilter->rec){
     		if($rec->invType){
-    			if($rec->invType == 'invoice' || $rec->invType == 'credit_note' || $rec->invType == 'debit_note'){
-    				$data->query->where("#type = '{$rec->invType}'");
-    			}
+    			if($rec->invType != 'all'){
+   					$data->query->where("#type = '{$rec->invType}'");
+   					
+   					$sign = ($rec->invType == 'credit_note') ? "<=" : ">";
+   					$data->query->orWhere("#type = 'dc_note' AND #dealValue {$sign} 0");
+   				}
     		}
     	}
     }

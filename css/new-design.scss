@@ -476,9 +476,13 @@
 .narrow #maincontent > div.tab-control > div.tab-row > .tab {
 	border: none;
 	margin: 5px 2px 3px;
-    padding: 2px !important;
+    padding: 0 !important;
     border-radius: 3px;
     font-size: 0.8em;
+    a, span {
+        margin: 2px;
+        display: block;
+    }
 }
 
 .headerInfo{
@@ -530,8 +534,8 @@
 
 .narrow .notificationsCnt a {
     margin-top: -1px;
-    padding: 3px 4px 3px 4px;
-    font-size: 0.9em;
+    padding: 2px 4px 2px 4px;
+    font-size: 0.85em;
 }
 
 .notificationsCnt a.haveNtf {
@@ -758,6 +762,16 @@ div.richEdit div.richedit-toolbar {
 
 .debug_block {
 	display: block;
+}
+
+select.tab-control, select.tab-control option {
+    font-size: 0.9em;
+    padding-top: 0;
+}
+
+.tab-row > .tooltip-button {
+    top: 5px !important;
+    margin-left: 10px !important;
 }
 
 @media handheld, only screen and (max-width: 800px) {

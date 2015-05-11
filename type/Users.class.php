@@ -58,7 +58,7 @@ class type_Users extends type_Keylist
         
         if (isset($this->options)) {
             
-            return;
+            return $this->options;
         }
         
         // Вариант 1: Потребителя няма права да вижда екипите
@@ -67,7 +67,7 @@ class type_Users extends type_Keylist
             if(haveRole($this->params['roles'])) {
                 $key = static::getUserWithFirstTeam(core_Users::getCurrent());
                 $this->options[$key] = new stdClass();
-                $this->options[$key]->title = core_Users::getCurrent('names');
+                $this->options[$key]->title = core_Users::getCurrent('names') . ' (' . type_Nick::normalize(core_Users::getCurrent('nick')) . ')';
                 $this->options[$key]->keylist = '|' . core_Users::getCurrent() . '|';
             } else {
                 $this->options = array();
@@ -135,7 +135,7 @@ class type_Users extends type_Keylist
                 while($uRec = $uQueryCopy->fetch()) {
                     $key = $t . '_' . $uRec->id;
                     $this->options[$key] = new stdClass();
-                    $this->options[$key]->title = $uRec->names;
+                    $this->options[$key]->title = $uRec->names . " (" . type_Nick::normalize($uRec->nick) . ")";
                     $this->options[$key]->keylist = '|' . $uRec->id . '|';
                     
                     $teamMembers .= $teamMembers ? '|' . $uRec->id : $uRec->id;
@@ -155,6 +155,8 @@ class type_Users extends type_Keylist
         }
         
         $mvc->invoke('AfterPrepareKeyOptions', array(&$this->options, $this));
+        
+        return $this->options;
     }
     
     
@@ -211,8 +213,8 @@ class type_Users extends type_Keylist
     function fromVerbal_($value)
     {
         $this->prepareOptions('all');
-        
-        if (!$this->options[$value]) {
+       
+        if (isset($value) && !$this->options[$value]) {
             $this->error = 'Некоректна стойност';
             
             return FALSE;

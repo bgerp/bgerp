@@ -73,7 +73,7 @@ class fileman_webdrv_Vcard extends fileman_webdrv_Generic
 	/**
 	 * Връща текстовата част
      * 
-     * @param fileman_Files $frec - Запис на визитката
+     * @param object $fRec - Запис на визитката
      * @param boolean $escape - Дали да се ескейпва текстовата част
      * 
      * @return string $content - Текстовата част
@@ -97,7 +97,7 @@ class fileman_webdrv_Vcard extends fileman_webdrv_Generic
     /**
      * Връща вербалния вид на визитките
      * 
-     * @param fileman_Files $frec - Запис на визитката
+     * @param object $fRec - Запис на визитката
      * 
      * @return string
      */
@@ -117,7 +117,7 @@ class fileman_webdrv_Vcard extends fileman_webdrv_Generic
     /**
      * Подготвяме данните за мисава
      * 
-     * @param fileman_Files $frec - Запис на визитката
+     * @param object $fRec - Запис на визитката
      * 
      * @return array - Масив с всики визитки и техните стойности
      */

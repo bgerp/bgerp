@@ -43,7 +43,7 @@ class jqdatepick_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    var $info = "Самопоказващ се календар в полетата за дата";
+    var $info = "Адаптер за JQDatepicker: Показва календар в полетата за избор на дата";
     
     
     /**

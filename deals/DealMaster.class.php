@@ -742,6 +742,7 @@ abstract class deals_DealMaster extends deals_DealBase
     		  $nRec->amountBl,  
     		  $nRec->amountPaid,
     		  $nRec->amountInvoiced,
+    		  $nRec->sharedViews,
     		  $nRec->closedDocuments);
     	
     	$nRec->paymentState = 'pending';

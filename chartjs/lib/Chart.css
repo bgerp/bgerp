@@ -1,0 +1,52 @@
+.chartHolder {
+    margin-bottom: 20px;
+}
+.wide .chartHolder {
+    position: relative;
+}
+.chart-pie {
+    max-width: 400px;
+}
+.chart-bar, .chart-line {
+    max-width: 600px;
+}
+.chart-legend {
+    padding: 5px;
+    margin: 0;
+    background-color: #f3f3f3;
+    height: auto;
+}
+
+.narrow .chart-legend {
+    display: inline-block;
+}
+
+.wide .chart-legend {
+    position: absolute;
+    left: 102%;
+    top: 10px;
+}
+
+.wide .pie-legend {
+    top: 0;
+}
+.chart-legend li {
+    list-style: none;
+    padding: 2px 8px;
+    margin-top: 2px;
+    font-size: 0.9em;
+    white-space: nowrap;
+}
+
+.chart-legend li span {
+    width: 10px;
+    height: 10px;
+    border: 2px solid transparent;
+    margin-right: 5px;
+    top: 1px;
+    position: relative;
+    display: inline-block;
+}
+.legend-title {
+    font-weight: bold;
+}

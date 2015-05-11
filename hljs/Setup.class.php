@@ -30,7 +30,7 @@ class hljs_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    var $info = "Оцветяване на код";
+    var $info = "Адаптер за highlightjs: Оцветяване на програмен код";
     
 
     /**

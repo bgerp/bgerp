@@ -380,7 +380,7 @@ class doc_Files extends core_Manager
     /**
      * Променяме folderId на папката
      * 
-     * @param doc_Containers $cRec - Запис от doc_Containers
+     * @param object $cRec - Запис от doc_Containers
      */
     static function updateRec($cRec)
     {

@@ -1,221 +1,218 @@
-<div class='display-table'>
-    <table style='width:100%'>
+<div class="scrolling-holder">
+    <table class="innerTable paddingCells" style='width:100%'>
         <tbody>
             <tr>
-                <td>
-                    <table class="innerTable paddingCells" style='width:100%'>
-                        <tbody>
-                            <tr>
-                                <td class="cell custom-header-bg vtop" style='width:38%'><b>|Supplier|*</b></td>
-                                <td class="cell centered" rowspan='2'>
-                                    <div class="document-title">|PURCHASE OF SERVICE CONTRACT|*</div>
-                                    <div style="padding-top:5px;">
-                                        № <span class="bigData">[#id#]</span> / 
-                                        <span class="bigData">[#valior#]</span>
-                                    </div>
-                                    <!--ET_BEGIN state-->
-                                    <div class="[#STATE_CLASS#]" style='margin:10px 0;'>[#state#]</div>
-                                    <!--ET_END state-->
-                                </td>
-                                <td class="cell custom-header-bg vtop" style='width:38%'><b>|Receiver|*</b></td>
-                            </tr>
-                            <tr>
-                                <td class="cell">
-                                    <b>[#MyCompany#]</b>
-                                    <div class='address-block'>
-                                        [#MyAddress#]
-                                    </div>
-                                </td>
-                                <td class="cell">
-                                    <b>[#contragentName#]</b>
-                                    <div class='address-block'>
-                                        [#contragentCountryId#]
-                                        <!--ET_BEGIN contragentAddress-->[#contragentAddress#] <!--ET_END contragentAddress-->
-                                    </div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <div class="lines"></div>
-                    <div class="details">
-                        [#purchase_PurchasesDetails#]
+                <td class="cell custom-header-bg vtop" style='width:38%'><b>|Supplier|*</b>
+                    <!--ET_BEGIN isPaid-->
+                    <div class='stamp fright'>[#isPaid#]</div>
+                    <!--ET_END isPaid-->
+                </td>
+                <td class="cell centered" rowspan='2'>
+                    <div class="document-title">|PURCHASE OF SERVICE CONTRACT|*</div>
+                    <div style="padding-top:5px;">
+                        № <span class="bigData">[#id#]</span> /
+                        <span class="bigData">[#valior#]</span>
                     </div>
-                    <div class="lines"></div>
-                    <table class="innerTable footer-notes paddingCells" style='width:100%'>
-                        <tbody>
-                            <tr>
-                                <td class="topCell vtop" style='width:33%'>
-                                    <!--ET_BEGIN paymentMethodId-->
-                                    <div class='cellRow'>
-                                        <span class='quiet'>Payment: </span>
-                                        [#paymentMethodId#]
-                                    </div>
-                                    <!--ET_END paymentMethodId-->
-                                    <!--ET_BEGIN downpayment-->
-                                    <div class='cellRow'>
-                                        <span class='quiet'>Downpayment:</span> [#downpayment#]
-                                    </div>
-                                    <!--ET_END downpayment-->
-                                    <!--ET_BEGIN paymentBeforeShipping-->
-                                    <div class='cellRow'>
-                                        <span class='quiet'>Before shipping:</span> [#paymentBeforeShipping#]
-                                    </div>
-                                    <!--ET_END paymentBeforeShipping-->
-                                    <!--ET_BEGIN paymentOnDelivery-->
-                                    <div class='cellRow'>
-                                        <span class='quiet'>On delivery:</span> [#paymentOnDelivery#]
-                                    </div>
-                                    <!--ET_END paymentOnDelivery-->
-                                    <!--ET_BEGIN currencyCode-->
-                                    <div class='cellRow'>
-                                        <span class='quiet'>Currency: </span>
-                                        [#currencyCode#] [#currencyRateText#]
-                                    </div>
-                                    <!--ET_END currencyCode-->
-                                    <!--ET_BEGIN bankAccountId-->
-                                    <hr>
-                                    <div class='cellRow'>
-                                        <span class='quiet'>Bank account: </span>[#bankAccountId#]
-                                    </div>
-                                    <!--ET_END bankAccountId-->
-                                    <!--ET_BEGIN caseId-->
-                                    <hr>
-                                    <div class='cellRow'>
-                                        <span class='quiet'>Case: </span>[#caseId#]
-                                        <!--ET_BEGIN isPaid-->
-                                        <div class='stamp'>[#isPaid#]</div>
-                                        <!--ET_END isPaid-->
-                                    </div>
-                                    <!--ET_END caseId-->
-                                </td>
-                                <!--ET_BEGIN purchaseConditions-->
-                                [#purchaseConditions#]
-                                <td class="topCell first vtop" rowspan='2'>
-                                    <!--ET_BEGIN deliveryInfo-->
-                                    [#deliveryInfo#]
-                                    <div>
-                                        <!--ET_BEGIN deliveryROW-->
-                                        [#deliveryROW#]
-                                        <div class='cellRow'><span class='quiet'>Delivery:</span> <b>[#deliveryTermId#]</b> [#ourLocation#]</div>
-                                        <!--ET_END deliveryROW-->
-                                        <!--ET_BEGIN deliveryTime-->
-                                        <div class='cellRow'><span class='quiet'>Delivery time:</span> <b>[#deliveryTime#]</b></div>
-                                        <!--ET_END deliveryTime-->
-                                        <!--ET_BEGIN shipmentStoreId-->
-                                        <div class='cellRow'>
-                                            <span class='quiet'>Store:</span> [#shipmentStoreId#]
-                                            <!--ET_BEGIN isDelivered-->
-                                            <div class='stamp'>[#isDelivered#]</div>
-                                            <!--ET_END isDelivered-->
-                                        </div>
-                                        <!--ET_END shipmentStoreId-->
-                                    </div>
-                                    <hr>
-                                    <!--ET_END deliveryInfo-->
-                                    <div>
-                                        <b>|Conditions|*</b>
-                                        <ol style = 'margin-top:1px'>
-                                            <!--ET_END deliveryTime-->
-                                            <!--ET_BEGIN withVat-->
-                                            <li>Prices are with apllied VAT[#withVat#]</li>
-                                            <!--ET_END withVat-->
-                                            <!--ET_BEGIN sepVat-->
-                                            <li>Prices are with separate VAT[#sepVat#]</li>
-                                            <!--ET_END sepVat-->
-                                            <!--ET_BEGIN noVat-->
-                                            <li>Prices are without VAT[#noVat#]</li>
-                                            <!--ET_END noVat-->
-                                            <!--ET_BEGIN closedDocuments-->
-                                            <li>Combines: [#closedDocuments#]</li>
-                                            <!--ET_END closedDocuments-->
-                                            <!--ET_BEGIN notes-->
-                                            [#notes#]
-                                            <!--ET_END notes-->
-                                        </ol>
-                                    </div>
-                                </td>
-                                <!--ET_END purchaseConditions-->
-                                <td class="topCell vtop aright" style='width:33%'>
-                                    <table style='float:right; width:100%;' class='business-doc-summary-table'>
-                                        <tr class='nowrap'>
-                                            <td class='aright'>Value :</td>
-                                            <td class='info-right' style='width:1%'><span class='cCode'>[#currencyId#]</span></td>
-                                            <td class='aright' style='width:1%'> <b>[#value#]</b></td>
-                                        </tr>
-                                        <!--ET_BEGIN discountValue-->
-                                        <tr class='nowrap'>
-                                            <td class='aright'>Discount :</td>
-                                            <td class='info-right'><span class='cCode'>[#discountCurrencyId#]</span></td>
-                                            <td class='aright'><b>[#discountValue#]</b></td>
-                                        </tr>
-                                        <!--ET_END discountValue-->
-                                        <!--ET_BEGIN neto-->
-                                        <tr class='nowrap'>
-                                            <td class='aright'>Neto :</td>
-                                            <td class='info-right'><span class='cCode'>[#netoCurrencyId#]</span></td>
-                                            <td class='aright'><b>[#neto#]</b></td>
-                                        </tr>
-                                        <!--ET_END neto-->
-                                        <!--ET_BEGIN baseAmount-->
-                                        <tr class='nowrap'>
-                                            <td class='aright'>Tax base :</td>
-                                            <td class='info-right'><span class='cCode'>[#baseCurrencyId#]</span></td>
-                                            <td class='aright'><b>[#baseAmount#]</b></td>
-                                        </tr>
-                                        <!--ET_END baseAmount-->
-                                        <tr>
-                                            <td colspan='3' style='padding:0px'>
-                                                <hr>
-                                            </td>
-                                        </tr>
-                                        <!--ET_BEGIN vatAmount-->
-                                        <tr class='nowrap'>
-                                            <td class='aright'>VAT <b>[#vat#]</b> :</td>
-                                            <td class='info-right'><span class='cCode'>[#vatCurrencyId#]</span></td>
-                                            <td class='aright'><b>[#vatAmount#]</b></td>
-                                        </tr>
-                                        <!--ET_END vatAmount-->
-                                        <tr class='nowrap'>
-                                            <td class='aright'>Total :</td>
-                                            <td class='info-right'><span class='cCode'>[#currencyId#]</span></td>
-                                            <td class='aright'><b>[#total#]</b></td>
-                                        </tr>
-                                        <tr>
-                                            <td colspan = '3' style='text-align:right'>
-                                                <hr>
-                                                Say words: [#sayWords#]
-                                            </td>
-                                        </tr>
-                                    </table>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <table class='signature-table' style='width:1%'>
-                                        <tr>
-                                            <td style='width:1%'>Receiver:  </td>
-                                            <td></td>
-                                        </tr>
-                                        <tr>
-                                            <td></td>
-                                            <td class='nowrap'><span class="sign_names">[#responsible#]</span></td>
-                                        </tr>
-                                    </table>
-                                </td>
-                                <td>
-                                    <table class='fright signature-table' style='width:1%'>
-                                        <tr>
-                                            <td class='nowrap' style='width:1%'>Created by:  </td>
-                                            <td></td>
-                                        </tr>
-                                        <tr>
-                                            <td></td>
-                                            <td class='nowrap'><span class="sign_names">/ [#username#] /</span></td>
-                                        </tr>
-                                    </table>
-                                </td>
-                            </tr>
-                        </tbody>
+                    <!--ET_BEGIN state-->
+                    <div class="[#STATE_CLASS#]" style='margin:10px 0;'>[#state#]</div>
+                    <!--ET_END state-->
+                </td>
+                <td class="cell custom-header-bg vtop" style='width:38%'><b>|Receiver|*</b>
+                    <!--ET_BEGIN isDelivered-->
+                    <div class='stamp fright'>[#isDelivered#]</div>
+                    <!--ET_END isDelivered-->
+                </td>
+            </tr>
+            <tr>
+                <td class="cell">
+                    <b>[#MyCompany#]</b>
+                    <div class='address-block'>
+                        [#MyAddress#]
+                    </div>
+                    <!--ET_BEGIN shipmentStoreId-->
+                    <hr style="margin: 3px 0 1px;">
+                    <div>
+                        To store: [#shipmentStoreId#]
+                    </div>
+                    <!--ET_END shipmentStoreId-->
+
+                </td>
+                <td class="cell">
+                    <b>[#contragentName#]</b>
+                    <div class='address-block'>
+                        [#contragentCountryId#]
+                        <!--ET_BEGIN contragentAddress-->[#contragentAddress#] <!--ET_END contragentAddress-->
+                    </div>
+                    <!--ET_BEGIN deliveryLocationId-->
+                    <hr style="margin: 3px 0 1px;">
+                    <div>
+                        From location: [#deliveryLocationId#]
+                    </div>
+                    <!--ET_END deliveryLocationId-->
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+<div class="lines"></div>
+<div class="scrolling-holder">
+    <div class="details">
+        [#purchase_PurchasesDetails#]
+    </div>
+</div>
+<div class="lines"></div>
+<div class="scrolling-holder">
+    <table class="innerTable footer-notes paddingCells" style='width:100%'>
+        <tbody>
+            <tr>
+                <td class="topCell vtop" style='width:33%'>
+                    <!--ET_BEGIN paymentMethodId-->
+                    <div class='cellRow'>
+                        <span class='quiet'>Payment: </span>
+                        [#paymentMethodId#]
+                    </div>
+                    <!--ET_END paymentMethodId-->
+                    <!--ET_BEGIN downpayment-->
+                    <div class='cellRow'>
+                        <span class='quiet'>Downpayment:</span> [#downpayment#]
+                    </div>
+                    <!--ET_END downpayment-->
+                    <!--ET_BEGIN paymentBeforeShipping-->
+                    <div class='cellRow'>
+                        <span class='quiet'>Before shipping:</span> [#paymentBeforeShipping#]
+                    </div>
+                    <!--ET_END paymentBeforeShipping-->
+                    <!--ET_BEGIN paymentOnDelivery-->
+                    <div class='cellRow'>
+                        <span class='quiet'>On delivery:</span> [#paymentOnDelivery#]
+                    </div>
+                    <!--ET_END paymentOnDelivery-->
+                    <!--ET_BEGIN currencyCode-->
+                    <div class='cellRow'>
+                        <span class='quiet'>Currency: </span>
+                        [#currencyCode#] [#currencyRateText#]
+                    </div>
+                    <!--ET_END currencyCode-->
+                    <!--ET_BEGIN bankAccountId-->
+                    <hr>
+                    <div class='cellRow'>
+                        <span class='quiet'>Bank account: </span>[#bankAccountId#]
+                    </div>
+                    <!--ET_END bankAccountId-->
+                    <!--ET_BEGIN caseId-->
+                    <hr>
+                    <div class='cellRow'>
+                        <span class='quiet'>Case: </span>[#caseId#]
+                    </div>
+                    <!--ET_END caseId-->
+                </td>
+                <!--ET_BEGIN purchaseConditions-->
+                [#purchaseConditions#]
+                <td class="topCell first vtop" rowspan='2'>
+                    <div>
+                        <b>|Conditions|*</b>
+                        <ol style = 'margin-top:1px'>
+                            <!--ET_END deliveryTime-->
+                            <!--ET_BEGIN withVat-->
+                            <li>Prices are with apllied VAT[#withVat#]</li>
+                            <!--ET_END withVat-->
+                            <!--ET_BEGIN sepVat-->
+                            <li>Prices are with separate VAT[#sepVat#]</li>
+                            <!--ET_END sepVat-->
+                            <!--ET_BEGIN noVat-->
+                            <li>Prices are without VAT[#noVat#]</li>
+                            <!--ET_END noVat-->
+                            <!--ET_BEGIN closedDocuments-->
+                            <li>Combines: [#closedDocuments#]</li>
+                            <!--ET_END closedDocuments-->
+                            <!--ET_BEGIN notes-->
+                            [#notes#]
+                            <!--ET_END notes-->
+                            <!--ET_BEGIN deliveryBlock-->
+                            [#deliveryBlock#]
+                            <li>Delivery: [#deliveryTermId#]<!--ET_BEGIN deliveryTime--> till [#deliveryTime#]<!--ET_END deliveryTime--></li>
+                            <!--ET_END deliveryBlock-->
+                        </ol>
+                    </div>
+                </td>
+                <!--ET_END purchaseConditions-->
+                <td class="topCell vtop aright" style='width:33%'>
+                    <table style='float:right; width:100%;' class='business-doc-summary-table'>
+                        <tr class='nowrap'>
+                            <td class='aright'>Value :</td>
+                            <td class='info-right' style='width:1%'><span class='cCode'>[#currencyId#]</span></td>
+                            <td class='aright' style='width:1%'> <b>[#value#]</b></td>
+                        </tr>
+                        <!--ET_BEGIN discountValue-->
+                        <tr class='nowrap'>
+                            <td class='aright'>Discount :</td>
+                            <td class='info-right'><span class='cCode'>[#discountCurrencyId#]</span></td>
+                            <td class='aright'><b>[#discountValue#]</b></td>
+                        </tr>
+                        <!--ET_END discountValue-->
+                        <!--ET_BEGIN neto-->
+                        <tr class='nowrap'>
+                            <td class='aright'>Neto :</td>
+                            <td class='info-right'><span class='cCode'>[#netoCurrencyId#]</span></td>
+                            <td class='aright'><b>[#neto#]</b></td>
+                        </tr>
+                        <!--ET_END neto-->
+                        <!--ET_BEGIN baseAmount-->
+                        <tr class='nowrap'>
+                            <td class='aright'>Tax base :</td>
+                            <td class='info-right'><span class='cCode'>[#baseCurrencyId#]</span></td>
+                            <td class='aright'><b>[#baseAmount#]</b></td>
+                        </tr>
+                        <!--ET_END baseAmount-->
+                        <tr>
+                            <td colspan='3' style='padding:0px'>
+                                <hr>
+                            </td>
+                        </tr>
+                        <!--ET_BEGIN vatAmount-->
+                        <tr class='nowrap'>
+                            <td class='aright'>VAT <b>[#vat#]</b> :</td>
+                            <td class='info-right'><span class='cCode'>[#vatCurrencyId#]</span></td>
+                            <td class='aright'><b>[#vatAmount#]</b></td>
+                        </tr>
+                        <!--ET_END vatAmount-->
+                        <tr class='nowrap'>
+                            <td class='aright'>Total :</td>
+                            <td class='info-right'><span class='cCode'>[#currencyId#]</span></td>
+                            <td class='aright'><b>[#total#]</b></td>
+                        </tr>
+                        <tr>
+                            <td colspan = '3' style='text-align:right'>
+                                <hr>
+                                Say words: [#sayWords#]
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <table class='signature-table' style='width:1%'>
+                        <tr>
+                            <td style='width:1%'>Receiver:  </td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td></td>
+                            <td class='nowrap'><span class="sign_names">[#responsible#]</span></td>
+                        </tr>
+                    </table>
+                </td>
+                <td>
+                    <table class='fright signature-table' style='width:1%'>
+                        <tr>
+                            <td class='nowrap' style='width:1%'>Created by:  </td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td></td>
+                            <td class='nowrap'><span class="sign_names">/ [#username#] /</span></td>
+                        </tr>
                     </table>
                 </td>
             </tr>

@@ -457,6 +457,7 @@ class acc_Balances extends core_Master
         $query = static::getQuery();
         
         // Подреждаме ги по последно калкулиране и по начална дата в обратен ред
+        $query->where("#periodId IS NOT NULL");
         $query->orderBy('#lastCalculate,#fromDate', 'DESC');
         
         return $query->fetch();

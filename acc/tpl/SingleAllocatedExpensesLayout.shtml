@@ -1,0 +1,35 @@
+[#SingleToolbar#]
+<div class='document'>
+    <!--ET_BEGIN blank-->
+    [#blank#]
+    <!--ET_END blank-->
+    <!--ET_BEGIN header-->
+    <div class='header [#STATE_CLASS#]'>
+        <div class='docBgIcon' style='[#iconStyle#];'>[#singleTitle#] <b>[#ident#]</b> ([#state#])</div>
+    </div>
+    <!--ET_END header-->
+    <table>
+        <tr>
+            <td style='padding-left:10px;width:60%;padding-top:10px;padding-bottom:10px'>
+                <div class='document-title'>|Корекция на стойности|* №[#id#]</div>
+                <div style='margin-top:5px'>|Вальор|*: [#valior#]</div>
+                <div style='margin-top:5px'>|Корекция|*: [#action#]</div>
+                <div style='margin-top:5px'>|Разпределяне по|*: [#allocateBy#]</div>
+                <div style='margin-top:5px'>|Основна сделка|*: [#dealOriginId#]</div>
+                <div style='margin-top:5px'>|Кореспондираща сделка|*: [#correspondingDealOriginId#]</div>
+                <div style='margin-top:5px'>|Сума|*: [#amount#] <span class='cCode'>[#baseCurrencyCode#]</span></div>
+                <div style='margin-top:5px'>[#PRODUCTS_TABLE#]</div>
+            </td>
+        </tr>
+    </table>
+   <!--ET_BEGIN notes-->
+   <div style='margin-top:10px'>
+   <b>|Забележки|*</b>:
+   [#notes#]
+   </div>
+   <!--ET_END notes-->
+   
+    <!--ET_BEGIN DETAILS-->
+    [#DETAILS#]
+    <!--ET_END DETAILS-->
+</div>

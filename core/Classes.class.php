@@ -21,7 +21,7 @@ class core_Classes extends core_Manager
     /**
      * Списък за начално
      */
-    var $loadList = 'plg_Created, plg_SystemWrapper, plg_State2, plg_RowTools';
+    var $loadList = 'plg_Created, plg_SystemWrapper, plg_State2, plg_RowTools, plg_Search';
     
     
     /**
@@ -55,6 +55,12 @@ class core_Classes extends core_Manager
     
 
     /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    var $searchFields = 'name, title';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -69,6 +75,24 @@ class core_Classes extends core_Manager
         if(!isDebug()) {
             $this->canWrite = 'no_one';
         }
+    }
+    
+    
+    /**
+     * Подготовка на филтър формата
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+    	$data->listFilter->FLD('interface', 'key(mvc=core_Interfaces,select=name, allowEmpty)', 'placeholder=Интерфейс');
+    	$data->listFilter->showFields = 'search,interface';
+    	$data->listFilter->view = 'horizontal';
+    	$data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+    
+    	$data->listFilter->input();
+    	
+    	if($interfaceId = $data->listFilter->rec->interface){
+    		$data->query->like('interfaces', "|{$interfaceId}|");
+    	}
     }
     
     

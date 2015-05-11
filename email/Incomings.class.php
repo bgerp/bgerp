@@ -17,6 +17,12 @@ class email_Incomings extends core_Master
     
     
     /**
+     * Флаг, който указва, че документа е партньорски
+     */
+    public $visibleForPartners = TRUE;
+    
+    
+    /**
      * Текста бутона за създаване на имейли
      */
     var $emailButtonText = 'Отговор';
@@ -706,7 +712,7 @@ class email_Incomings extends core_Master
     /**
      * Връща вербалното предствяна на имейла
      * 
-     * @param array $emailArr
+     * @param array $emailsArr
      * 
      * @return string
      */
@@ -825,7 +831,7 @@ class email_Incomings extends core_Master
     {
         $domains = static::scanForPublicDomains();
         
-        $out .= "<li>Открити " . count($domains) . " домейн(а) ... </li>";
+        $out = "<li>Открити " . count($domains) . " домейн(а) ... </li>";
         
         $stats = drdata_Domains::resetPublicDomains($domains);
         
@@ -839,7 +845,7 @@ class email_Incomings extends core_Master
             $out .= "<li class=\"error\">Проблем при изтриването на {$stats['removeErrors']} домейн(а)!</li>";
         }
         
-        $out = ""
+        $out .= ""
         . "<h4>Опресняване на публичните домейни<h4>"
         . "<ul>"
         .    $out
@@ -973,11 +979,13 @@ class email_Incomings extends core_Master
             return;
         }
         
-        // Извличаме записа на сметката, от която е изтеглено това писмо
-        $accRec = email_Accounts::fetch($rec->accId);
+        if ($rec->accId) {
+            // Извличаме записа на сметката, от която е изтеглено това писмо
+            $accRec = email_Accounts::fetch($rec->accId);
+        }
 
         // Ако сметката е с рутиране
-        if($accRec->applyRouting == 'yes') {
+        if($accRec && ($accRec->applyRouting == 'yes')) {
         
             // Ако `boxTo` е обща кутия, прилагаме последователно `From`, `Domain`, `Country`
             if($accRec->email == $rec->toBox && $accRec->type != 'single') {

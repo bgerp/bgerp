@@ -227,38 +227,38 @@ class crm_Persons extends core_Master
     function description()
     {
         // Име на лицето
-        $this->FLD('salutation', 'enum(,mr=Г-н,mrs=Г-жа,miss=Г-ца)', 'caption=Обръщение');
-        $this->FLD('name', 'varchar(255,ci)', 'caption=Имена,class=contactData,mandatory,remember=info,silent');
+        $this->FLD('salutation', 'enum(,mr=Г-н,mrs=Г-жа,miss=Г-ца)', 'caption=Обръщение,export=Csv');
+        $this->FLD('name', 'varchar(255,ci)', 'caption=Имена,class=contactData,mandatory,remember=info,silent,export=Csv');
         $this->FNC('nameList', 'varchar', 'sortingLike=name');
 
         // Единен Граждански Номер
-        $this->FLD('egn', 'bglocal_EgnType', 'caption=ЕГН');
+        $this->FLD('egn', 'bglocal_EgnType', 'caption=ЕГН,export=Csv');
 
         // Дата на раждане
-        $this->FLD('birthday', 'combodate(minYear=1850,maxYear=' . date('Y') . ')', 'caption=Рожден ден');
+        $this->FLD('birthday', 'combodate(minYear=1850,maxYear=' . date('Y') . ')', 'caption=Рожден ден,export=Csv');
 
         // Адресни данни
-        $this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Държава,remember,class=contactData,mandatory,silent');
-        $this->FLD('pCode', 'varchar(16)', 'caption=П. код,recently,class=pCode');
-        $this->FLD('place', 'varchar(64)', 'caption=Град,class=contactData,hint=Населено място: град или село и община');
-        $this->FLD('address', 'varchar(255)', 'caption=Адрес,class=contactData');
+        $this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Държава,remember,class=contactData,mandatory,silent,export=Csv');
+        $this->FLD('pCode', 'varchar(16)', 'caption=П. код,recently,class=pCode,export=Csv');
+        $this->FLD('place', 'varchar(64)', 'caption=Град,class=contactData,hint=Населено място: град или село и община,export=Csv');
+        $this->FLD('address', 'varchar(255)', 'caption=Адрес,class=contactData,export=Csv');
 
         // Служебни комуникации
         $this->FLD('buzCompanyId', 'key(mvc=crm_Companies,select=name,allowEmpty, where=#state !\\= \\\'rejected\\\')', 
             'caption=Служебни комуникации->Фирма,oldFieldName=buzCumpanyId,class=contactData,silent');
         $this->FLD('buzLocationId', 'key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Служебни комуникации->Локация,class=contactData');
-        $this->FLD('buzPosition', 'varchar(64)', 'caption=Служебни комуникации->Длъжност,class=contactData');
-        $this->FLD('buzEmail', 'emails', 'caption=Служебни комуникации->Имейли,class=contactData');
-        $this->FLD('buzTel', 'drdata_PhoneType(type=tel)', 'caption=Служебни комуникации->Телефони,class=contactData');
-        $this->FLD('buzFax', 'drdata_PhoneType(type=fax)', 'caption=Служебни комуникации->Факс,class=contactData');
-        $this->FLD('buzAddress', 'varchar(255)', 'caption=Служебни комуникации->Адрес,class=contactData');
+        $this->FLD('buzPosition', 'varchar(64)', 'caption=Служебни комуникации->Длъжност,class=contactData,export=Csv');
+        $this->FLD('buzEmail', 'emails', 'caption=Служебни комуникации->Имейли,class=contactData,export=Csv');
+        $this->FLD('buzTel', 'drdata_PhoneType(type=tel)', 'caption=Служебни комуникации->Телефони,class=contactData,export=Csv');
+        $this->FLD('buzFax', 'drdata_PhoneType(type=fax)', 'caption=Служебни комуникации->Факс,class=contactData,export=Csv');
+        $this->FLD('buzAddress', 'varchar(255)', 'caption=Служебни комуникации->Адрес,class=contactData,export=Csv');
 
         // Лични комуникации
-        $this->FLD('email', 'emails', 'caption=Лични комуникации->Имейли,class=contactData');
-        $this->FLD('tel', 'drdata_PhoneType(type=tel)', 'caption=Лични комуникации->Телефони,class=contactData,silent');
-        $this->FLD('mobile', 'drdata_PhoneType(type=tel)', 'caption=Лични комуникации->Мобилен,class=contactData,silent');
-        $this->FLD('fax', 'drdata_PhoneType(type=fax)', 'caption=Лични комуникации->Факс,class=contactData,silent');
-        $this->FLD('website', 'url', 'caption=Лични комуникации->Сайт/Блог,class=contactData');
+        $this->FLD('email', 'emails', 'caption=Лични комуникации->Имейли,class=contactData,export=Csv');
+        $this->FLD('tel', 'drdata_PhoneType(type=tel)', 'caption=Лични комуникации->Телефони,class=contactData,silent,export=Csv');
+        $this->FLD('mobile', 'drdata_PhoneType(type=tel)', 'caption=Лични комуникации->Мобилен,class=contactData,silent,export=Csv');
+        $this->FLD('fax', 'drdata_PhoneType(type=fax)', 'caption=Лични комуникации->Факс,class=contactData,silent,export=Csv');
+        $this->FLD('website', 'url', 'caption=Лични комуникации->Сайт/Блог,class=contactData,export=Csv');
 
         // Допълнителна информация
         $this->FLD('info', 'richtext(bucket=crmFiles)', 'caption=Информация->Бележки,height=150px,class=contactData');
@@ -1295,6 +1295,13 @@ class crm_Persons extends core_Master
                 $contrData->groupEmails = static::getGroupEmails($person->buzCompanyId);    
             }
             
+            $clsId = core_Classes::getId(get_called_class());
+            $locationEmails = crm_Locations::getEmails($clsId, $id);
+            
+            if ($locationEmails) {
+                $contrData->groupEmails .= ($contrData->groupEmails) ? ', ' . $locationEmails : $locationEmails;
+            }
+            
             // Ако има личен имейл
             if ($person->email) {
                 
@@ -1339,6 +1346,14 @@ class crm_Persons extends core_Master
             
             // Добавяме към резултата
             $res .= ($res) ? ', ' . $rec->buzEmail : $rec->buzEmail;
+        }
+        
+        // Добавяме и имейлите от локациите
+        $clsId = core_Classes::getId(crm_Companies);
+        $locationEmails = crm_Locations::getEmails($clsId, $companyId);
+        
+        if ($locationEmails) {
+            $res .= ($res) ? ', ' . $locationEmails : $locationEmails;
         }
         
         return $res;
@@ -2388,7 +2403,6 @@ class crm_Persons extends core_Master
     	$rec = $this->fetchRec($id);
     	
     	$res = new stdClass();
-    	$res->name = $rec->name;
     	
     	// Основната мярка на ресурса е 'час'
     	$res->measureId = cat_UoM::fetchBySinonim('h')->id; 
@@ -2417,16 +2431,19 @@ class crm_Persons extends core_Master
     	
     	$meta = array();
     	
-    	// Ако контрагента е в група клиенти: дефолт свойствата са 'продаваем и производим'
-    	if(keylist::isIn($clientGroupId, $rec->groupList)){
-    		$meta['canSell'] = TRUE;
-    		$meta['canManifacture'] = TRUE;
+    	$catConf = core_Packs::getConfig('cat');
+    	
+    	// Ако контрагента е в група доставчици'
+    	if(keylist::isIn($supplierGroupId, $rec->groupList)){
+    		$meta = type_Set::toArray($catConf->CAT_DEFAULT_META_IN_SUPPLIER_FOLDER);
+    	} else {
+    		$meta = type_Set::toArray($catConf->CAT_DEFAULT_META_IN_CONTRAGENT_FOLDER);
     	}
     	
-    	// Ако контрагента е в група доставчици: дефолт свойствата са 'купуваем и вложим'
-    	if(keylist::isIn($supplierGroupId, $rec->groupList)){
-    		$meta['canConvert'] = TRUE;
-    		$meta['canBuy'] = TRUE;
+    	if(count($meta)){
+    		foreach ($meta as &$m){
+    			$m = TRUE;
+    		}
     	}
     	
     	return $meta;

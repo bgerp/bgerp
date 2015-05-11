@@ -71,7 +71,7 @@ class core_Embedder extends core_Master
 		// Добавяме задължителните полета само ако не е дефинирано че вече съществуват
 		
 		if(!isset($mvc->fields[$mvc->innerClassField])){
-			$mvc->FLD($mvc->innerClassField, "class(interface={$mvc->innerObjectInterface}, allowEmpty, select=title)", "caption=Вид,mandatory,silent", array('attr' => array('onchange' => "addCmdRefresh(this.form);this.form.submit()")));
+			$mvc->FLD($mvc->innerClassField, "class(interface={$mvc->innerObjectInterface}, allowEmpty, select=title)", "caption=Вид,mandatory,silent,refreshForm");
 		}
 		
 		if(!isset($mvc->fields[$mvc->innerFormField])){
@@ -180,17 +180,25 @@ class core_Embedder extends core_Master
 		
 		// Ако има източник инстанцираме го
 		if($rec->{$mvc->innerClassField}) {
+			
 			if($Driver = $mvc->getDriver($rec)){
+				$fieldsBefore = arr::make(array_keys($form->selectFields()), TRUE);
 				
 				// Източника добавя полета към формата
 				$Driver->addEmbeddedFields($form);
-					
+				
 				$form->input(NULL, 'silent');
 					
 				// Източника модифицира формата при нужда
 				$Driver->prepareEmbeddedForm($form);
 				
 				$mvc->invoke('AfterPrepareEmbeddedForm', array($form));
+				
+				// Намираме всички полета за показване, и ги маркираме за изтриване след смяна на драйвер
+				$fieldsAfter = arr::make(array_keys($form->selectFields()), TRUE);
+				$removeFields = array_diff_assoc($fieldsAfter, $fieldsBefore);
+				$removeFields = implode('|', array_keys($removeFields));
+				$form->setField($mvc->innerClassField, "removeAndRefreshForm={$removeFields}");
 			} else {
 				$form->info = tr("|*<b style='color:red'>|Има проблем при зареждането на драйвера|*</b>");
 			}

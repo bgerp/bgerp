@@ -72,9 +72,9 @@ class crm_Companies extends core_Master
      * Класове за автоматично зареждане
      */
     var $loadList = 'plg_Created, plg_Modified, plg_RowTools, plg_State, 
-                     Groups=crm_Groups, crm_Wrapper, crm_AlphabetWrapper, plg_SaveAndNew, plg_PrevAndNext,
+                     Groups=crm_Groups, crm_Wrapper, crm_AlphabetWrapper, plg_SaveAndNew, plg_PrevAndNext,doc_FolderPlg,
                      plg_Sorting, fileman_Files, recently_Plugin, plg_Search, plg_Rejected, bgerp_plg_Groups, plg_Printing,
-                     acc_plg_Registry,doc_FolderPlg, plg_LastUsedKeys,plg_Select,bgerp_plg_Import, drdata_PhonePlg';
+                     acc_plg_Registry, plg_LastUsedKeys,plg_Select,bgerp_plg_Import, drdata_PhonePlg';
     
     
     /**
@@ -234,24 +234,24 @@ class crm_Companies extends core_Master
     function description()
     {
         // Име на фирмата
-        $this->FLD('name', 'varchar(255,ci)', 'caption=Фирма,class=contactData,mandatory,remember=info,silent');
+        $this->FLD('name', 'varchar(255,ci)', 'caption=Фирма,class=contactData,mandatory,remember=info,silent,export=Csv');
         $this->FNC('nameList', 'varchar', 'sortingLike=name');
         
         // Адресни данни
-        $this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Държава,remember,class=contactData,mandatory');
-        $this->FLD('pCode', 'varchar(16)', 'caption=П. код,recently,class=pCode');
-        $this->FLD('place', 'varchar(64)', 'caption=Град,class=contactData,hint=Населено място: град или село и община');
-        $this->FLD('address', 'varchar(255)', 'caption=Адрес,class=contactData');
+        $this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Държава,remember,class=contactData,mandatory,export=Csv');
+        $this->FLD('pCode', 'varchar(16)', 'caption=П. код,recently,class=pCode,export=Csv');
+        $this->FLD('place', 'varchar(64)', 'caption=Град,class=contactData,hint=Населено място: град или село и община,export=Csv');
+        $this->FLD('address', 'varchar(255)', 'caption=Адрес,class=contactData,export=Csv');
         
         // Комуникации
-        $this->FLD('email', 'emails', 'caption=Имейли,class=contactData');
-        $this->FLD('tel', 'drdata_PhoneType(type=tel)', 'caption=Телефони,class=contactData,silent');
-        $this->FLD('fax', 'drdata_PhoneType(type=fax)', 'caption=Факс,class=contactData,silent');
-        $this->FLD('website', 'url', 'caption=Web сайт,class=contactData');
+        $this->FLD('email', 'emails', 'caption=Имейли,class=contactData,export=Csv');
+        $this->FLD('tel', 'drdata_PhoneType(type=tel)', 'caption=Телефони,class=contactData,silent,export=Csv');
+        $this->FLD('fax', 'drdata_PhoneType(type=fax)', 'caption=Факс,class=contactData,silent,export=Csv');
+        $this->FLD('website', 'url', 'caption=Web сайт,class=contactData,export=Csv');
         
         // Данъчен номер на фирмата
-        $this->FLD('vatId', 'drdata_VatType', 'caption=ДДС (VAT) №,remember=info,class=contactData');
-        $this->FLD('uicId', 'varchar(26)', 'caption=Национален №,remember=info,class=contactData');
+        $this->FLD('vatId', 'drdata_VatType', 'caption=ДДС (VAT) №,remember=info,class=contactData,export=Csv');
+        $this->FLD('uicId', 'varchar(26)', 'caption=Национален №,remember=info,class=contactData,export=Csv');
         
         // Допълнителна информация
         $this->FLD('info', 'richtext(bucket=crmFiles)', 'caption=Бележки,height=150px,class=contactData');
@@ -658,9 +658,15 @@ class crm_Companies extends core_Master
     
 	/**
      * Обновява номера за фирмата
+     * 
+     * @param object $rec
+     * 
+     * @return array
      */
     public static function updateNumbers($rec)
     {
+        $numbersArr = array();
+        
         // Ако има телефон
         if ($rec->tel) {
             
@@ -677,6 +683,8 @@ class crm_Companies extends core_Master
         
         // Вземаме id на класа
         $classId = static::getClassId();
+        
+        $numArr = array();
         
         // Ако е инсталиран пакета
         if (core_Packs::isInstalled('callcenter')) {
@@ -1194,7 +1202,7 @@ class crm_Companies extends core_Master
      * Вземаме всики папки на които сме inCharge или са споделени с нас или са публични или 
      * (са екипни и inCharge е някой от нашия екип) и състоянието е активно
      * 
-     * @param crm_Persons $query - Заявката към системата
+     * @param core_Query $query - Заявката към системата
      * @param int $userId - Потребителя, за който ще се отнася
      */
     static function applyAccessQuery(&$query, $userId = NULL)
@@ -1247,7 +1255,7 @@ class crm_Companies extends core_Master
      * 
      * @param email $email - Имейл, за който търсим
      * 
-     * @return integet $fodlerId - id на папката
+     * @return integet|boolean $fodlerId - id на папката
      */
     static function getFolderFromEmail($email)
     {
@@ -1546,16 +1554,19 @@ class crm_Companies extends core_Master
     	
     	$meta = array();
     	
-    	// Ако контрагента е в група клиенти: дефолт свойствата са 'продаваем и производим'
-    	if(keylist::isIn($clientGroupId, $rec->groupList)){
-    		$meta['canSell'] = TRUE;
-    		$meta['canManifacture'] = TRUE;
+    	$catConf = core_Packs::getConfig('cat');
+    	
+    	// Ако контрагента е в група доставчици'
+    	if(keylist::isIn($supplierGroupId, $rec->groupList)){
+    		$meta = type_Set::toArray($catConf->CAT_DEFAULT_META_IN_SUPPLIER_FOLDER);
+    	} else {
+    		$meta = type_Set::toArray($catConf->CAT_DEFAULT_META_IN_CONTRAGENT_FOLDER);
     	}
     	
-    	// Ако контрагента е в група доставчици: дефолт свойствата са 'купуваем и вложим'
-    	if(keylist::isIn($supplierGroupId, $rec->groupList)){
-    		$meta['canConvert'] = TRUE;
-    		$meta['canBuy'] = TRUE;
+    	if(count($meta)){
+    		foreach ($meta as &$m){
+    			$m = TRUE;
+    		}
     	}
     	
     	return $meta;

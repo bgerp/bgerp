@@ -336,6 +336,7 @@ abstract class store_DocumentMaster extends core_Master
 	   		self::prepareHeaderInfo($row, $rec);
 	   		
 	   		if($rec->locationId){
+                $row->locationId = crm_Locations::getHyperlink($rec->locationId);
 	   			if($ourLocation = store_Stores::fetchField($rec->storeId, 'locationId')){
 	   				$row->ourLocation = crm_Locations::getTitleById($ourLocation);
 	   				$ourLocationAddress = crm_Locations::getAddress($ourLocation);

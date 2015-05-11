@@ -50,7 +50,7 @@ class forum_Setup extends core_ProtoSetup
 	/**
 	 * Описание на модула
 	 */
-	var $info = "Форум";
+	var $info = "Форум за сайта";
 
 	
 	/**

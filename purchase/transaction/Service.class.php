@@ -79,15 +79,21 @@ class purchase_transaction_Service extends acc_DocumentTransactionSource
 			
     		foreach ($rec->details as $dRec) {
     			$pInfo = cls::get($dRec->classId)->getProductInfo($dRec->productId);
+    			$transfer = FALSE;
     			
     			if(isset($pInfo->meta['fixedAsset'])){
-    				
-    				// Ако е ДМА дебит 613
-    				$costsAccNumber = '613';
+    				$debitArr = array('613', array($dRec->classId, $dRec->productId),
+    									'quantity' => $dRec->quantity,);
     			} else {
+    				$transfer = TRUE;
+    				$centerId = ($rec->activityCenterId) ? $rec->activityCenterId : hr_Departments::fetchField("#systemId = 'emptyCenter'", 'id');
     				
-    				// Ако е Д"Материали" дебит 602
-    				$costsAccNumber = '602';
+    				$debitArr = array(
+    							'60020', // Сметка "60020. Разходи за (нескладируеми) услуги и консумативи"
+    							array('hr_Departments', $centerId),
+    							array($dRec->classId, $dRec->productId), // Перо 1 - Артикул
+    							'quantity' => $sign * $dRec->quantity, // Количество продукт в основната му мярка
+    					);
     			}
     	
     			$amount = $dRec->amount;
@@ -96,13 +102,7 @@ class purchase_transaction_Service extends acc_DocumentTransactionSource
     			
     			$entries[] = array(
     					'amount' => $sign * $amount * $rec->currencyRate, // В основна валута
-    	
-    					'debit' => array(
-    							$costsAccNumber, // Сметка "602. Разходи за външни услуги" или "601. Разходи за материали"
-    							array($dRec->classId, $dRec->productId), // Перо 1 - Артикул
-    							'quantity' => $sign * $dRec->quantity, // Количество продукт в основната му мярка
-    					),
-    	
+    					'debit' => $debitArr,
     					'credit' => array(
     							$rec->accountId, 
     							array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Доставчик
@@ -111,8 +111,26 @@ class purchase_transaction_Service extends acc_DocumentTransactionSource
     							'quantity' => $sign * $amount, // "брой пари" във валутата на покупката
     					),
     			);
+    			
+    			// Ако сме дебитирали 60020 сметка, прехвърляме го в 61101 или 61102
+    			if($transfer === TRUE){
+    				$resourceRec = planning_ObjectResources::getResource($dRec->classId, $dRec->productId);
+    				if($resourceRec){
+    					$newArr = array('61101', array('planning_Resources' , $resourceRec->resourceId), 
+    										 'quantity' => $dRec->quantity / $resourceRec->conversionRate);
+    				} else {
+    					$newArr = array('61102');
+    				}
+    				
+    				$entries[] = array(
+    						'amount' => $sign * $amount * $rec->currencyRate,
+    						'debit' => $newArr,
+    						'credit' => $debitArr,
+    						);
+    			}
     		}
     		
+    		// Отчитаме ддс-то
     		if($this->class->_total){
     			$vatAmount = $this->class->_total->vat * $rec->currencyRate;
     			$entries[] = array(

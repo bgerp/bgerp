@@ -331,6 +331,8 @@ class blogm_Articles extends core_Master {
             // Ако формата е успешно изпратена - запис, лог, редирект
             if ($cForm->isSubmitted() && !Request::get('Comment')) {
                 
+                vislog_History::add('Нов коментар в блога');
+                
                 // Записваме данните
                 $id = $Comments->save($rec);
                 

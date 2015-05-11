@@ -154,9 +154,14 @@ class bulmar_InvoiceExport extends core_Manager {
     	$nRec->invNumber = str_pad($rec->number, '10', '0', STR_PAD_LEFT);
     	$nRec->date = dt::mysql2verbal($rec->date, 'd.m.Y');
     	$nRec->num = $count;
-    	$nRec->type = self::$invTypes[$rec->type];
-    	$sign = ($rec->type == 'credit_note') ? -1 : 1;
+    	if($rec->type == 'dc_note'){
+    		$rec->type = ($rec->dealValue <= 0) ? 'credit_note' : 'debit_note';
+    		$sign = 1;
+    	} else {
+    		$sign = ($rec->type == 'credit_note') ? -1 : 1;
+    	}
     	
+    	$nRec->type = self::$invTypes[$rec->type];
     	$baseAmount = round($rec->dealValue - $rec->discountAmount, 6);
     	if($rec->dpOperation == 'deducted'){
     		$baseAmount += abs($rec->dpAmount);
@@ -213,7 +218,6 @@ class bulmar_InvoiceExport extends core_Manager {
     	
     	$Vats = cls::get('drdata_Vats');
     	$nRec->contragentEik = $Vats->canonize($nRec->contragentEik);
-    	
     	
     	if($rec->paymentType == 'cash'){
     		$nRec->amountPaid = $nRec->amount;

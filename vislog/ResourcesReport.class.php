@@ -20,7 +20,7 @@ class vislog_ResourcesReport extends frame_BaseDriver
     /**
      * Заглавие
      */
-    public $title = 'Отчет на посещенията по ресурс';
+    public $title = 'Сайт»Посещения по ресурс';
 
     
     /**

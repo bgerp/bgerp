@@ -48,18 +48,23 @@ class fileman_webdrv_Cdr extends fileman_webdrv_Image
     }
     
     
-    /**
-     * Връща шаблон с превюто на файла
-     * 
-     * @param object $fRec - Записите за файла
-     * 
-     * @return string|core_ET - Шаблон с превюто на файла
-     * 
-     * @Override
-     * @see fileman_webdrv_Image::getThumbPrev
+	/**
+     * Екшън за показване превю
      */
-    static function getThumbPrev($fRec) 
+    function act_Preview()
     {
+        // Очакваме да има права за виждане
+        $this->requireRightFor('view');
+        
+        // Манипулатора на файла
+        $fileHnd = Request::get('id');
+        
+        // Вземаме записа за файла
+        $fRec = fileman_Files::fetchByFh($fileHnd);
+        
+        // Очакваме да има права за разглеждане на записа
+        $this->requireRightFor('view', $fRec);
+        
         try {
             
             // Опитваме се да вземем thumbnail на файла
@@ -84,22 +89,31 @@ class fileman_webdrv_Cdr extends fileman_webdrv_Image
                 
                 // Добавяме файла в кофата
                 $fh = $filesInst->addNewFileFromString($fileContent, 'archive', $name);
-                    
+                
                 // Вземаме записа за новосъздадения файл
                 $nRec = fileman_Files::fetchByFh($fh);
                 
+                $bmpInst = cls::get('fileman_webdrv_Bmp');
+                
                 // Стартираме процеса на конвертиране към JPG формат
-                fileman_webdrv_Bmp::convertToJpg($nRec);
+                $bmpInst->convertToJpg($nRec);
+                
+                Request::push(array('id' => $nRec->fileHnd));
                 
                 // Показваме thumbnail'а
-                return fileman_webdrv_Bmp::getThumbPrev($nRec);
+                return $bmpInst->act_Preview();
             } catch (fileman_Exception $e) {
-                   
+                
+                // Сменяме мода
+                Mode::set('wrapper', 'page_PreText');
+                
                 // Връщаме грешката
                 return $e->getMessage();    
-                
             }
         } catch (core_exception_Expect $e) {
+            
+            // Сменяме мода
+            Mode::set('wrapper', 'page_PreText');
             
             return "Не може да се покаже прегледа на файла.";
         }

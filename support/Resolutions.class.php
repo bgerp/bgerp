@@ -17,6 +17,12 @@ class support_Resolutions extends core_Master
     
     
     /**
+     * Флаг, който указва, че документа е партньорски
+     */
+    public $visibleForPartners = TRUE;
+    
+    
+    /**
      * Поддържани интерфейси
      */
     var $interfaces = 'doc_DocumentIntf';

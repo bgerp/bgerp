@@ -91,7 +91,7 @@ abstract class deals_Helper
 			unset($mvc->_total);
 			return;
 		}
-	
+		
 		expect(is_object($masterRec));
 	
 		// Комбиниране на дефолт стойнсотите с тези подадени от потребителя
@@ -134,14 +134,30 @@ abstract class deals_Helper
         		$discount += $rec->$map['amountFld'] * $rec->$map['discount'];
         	}
         	
-        	
-        	$amountRow += $rec->$map['amountFld'];
-        	$amount += $noVatAmount;
-        	$amountVat += $vatRow;
-        	
-        	$amountJournal += $withoutVatAndDisc;
-        	if($masterRec->$map['chargeVat'] == 'yes') {
-        		$amountJournal += $vatRow;
+        	// Ако документа е кредитно/дебитно известие сабираме само редовете с промяна
+        	if($masterRec->type === 'dc_note'){
+        		if($rec->changedQuantity === TRUE || $rec->changedPrice === TRUE){
+        			
+        			$amountRow += $rec->$map['amountFld'];
+        			$amount += $noVatAmount;
+        			$amountVat += $vatRow;
+        			 
+        			$amountJournal += $withoutVatAndDisc;
+        			if($masterRec->$map['chargeVat'] == 'yes') {
+        				$amountJournal += $vatRow;
+        			}
+        		}
+        	} else {
+        		
+        		// За всички останали събираме нормално
+        		$amountRow += $rec->$map['amountFld'];
+        		$amount += $noVatAmount;
+        		$amountVat += $vatRow;
+        		 
+        		$amountJournal += $withoutVatAndDisc;
+        		if($masterRec->$map['chargeVat'] == 'yes') {
+        			$amountJournal += $vatRow;
+        		}
         	}
 		}
 		

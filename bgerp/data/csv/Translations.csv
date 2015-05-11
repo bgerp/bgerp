@@ -1776,10 +1776,10 @@ en,Блог коментари,Blog comments
 en,Категории в блога,Blog categories
 en,Новостите за нашата фирма,Nows for our firm
 en,Интересни неща за бизнеса и около него,Interesting news for business and around us
-en,Позиция по въпроси касаещи България, Европа и света,Position on issues relating to Bulgaria, Europe and the world
+en,"Позиция по въпроси касаещи България, Европа и света","Position on issues relating to Bulgaria, Europe and the world"
 en,Достиженията на науката в нашия бизнес,Achievements of science in our business
 en,Творческото начало в бизнеса,Creativity in business
-en,Отчети и доклади, за любителите на цифрите,Records and reports for lovers of numbers
+en,"Отчети и доклади, за любителите на цифрите",Records and reports for lovers of numbers
 en,Основно меню,Main Menu
 en,Гласувания,Votes
 en,Гласуване за,Votes for
@@ -1836,7 +1836,7 @@ en,брой,piece
 en,Мерни единици,Measures
 en,Продаваем,Marketable
 en,Купуваем,Purchase
-en,Складируем,Storage,
+en,Складируем,Storage
 en,Вложим,Invest
 en,Дълготраен актив,Fix asset
 en,Производим,Produce
@@ -1889,7 +1889,7 @@ en,За фактуриране,For invoice
 en,без фактуриране,without invoice
 en,Освободено,Without VAT 
 en,Без начисляване,Without taxes
-en,Не може да добавите продукта като опционален, защото фигурира вече като задължителен!,Unable to add product as optional because already included as mandatory!
+en,"Не може да добавите продукта като опционален, защото фигурира вече като задължителен!","Unable to add product as optional because already included as mandatory!"
 en,Българско,Bulgarian
 en,Международно,International
 en,Маркери,Мarkers
@@ -1940,3 +1940,20 @@ en,Групиране,Grouping
 en,Назад,Back
 en,Контрагенти,Partners
 en,Вграждане,Embed
+en,Акаунти,Accounts
+en,Манипулатори,Manipulator
+en,"Имейли, които не могат да се парсират",Emails that are unparsable
+en,Манипулатори на нишки,Thread Manipulator
+en,Потребителски правила за рутиране,Rules by user for routing
+en,"Неполучени, върнати писма","Not received, returned mails"
+en,Обратни разписки за получаване на имейл,Receipt for received  email
+en,Твърд спам,Spam
+en,Отпечатъци на свалени писма,Fingerprints of downloaded emails
+en,Копие до,Copy to
+en,"Логнете се, за да видите нишката",Login to see the thread
+bg,Headquarter,Главен офис
+bg,ceo,собственик
+bg,manager,управител
+bg,officer,служител
+bg,executive,изпълнител
+bg,contractor,партньор

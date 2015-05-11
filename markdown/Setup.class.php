@@ -26,7 +26,7 @@ class markdown_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    var $info = "Конвертиране от markdown стандарта към HTML";
+    var $info = "Конвертиране от markdown текст към HTML";
     
 
     /**

@@ -147,7 +147,7 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
     /**
      * Генериране на записите от тип за изпълнение на услуги (ако има)
      * 
-     *    Dt: 602. Разходи за външни услуги    (Услуга)
+     *    Dt: 60020. Разходи за (нескладируеми) услуги и консумативи    (Центрове на дейност, Артикули)
      *    
      *    Ct: 401. Задължения към доставчици   (Доставчик, Сделки, Валута)
      *    	  
@@ -164,7 +164,8 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
         
         foreach ($rec->details as $detailRec) {
         	$pInfo = cls::get($detailRec->classId)->getProductInfo($detailRec->productId);
-         	
+        	$transfer = FALSE;
+        	
         	$amount = $detailRec->amount;
         	$amount = ($detailRec->discount) ?  $amount * (1 - $detailRec->discount) : $amount;
         	$amount = round($amount, 2);
@@ -173,13 +174,18 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
 			if(empty($pInfo->meta['canStore'])){
 
 				if(isset($pInfo->meta['fixedAsset'])){
-					
-					// Ако е 'ДМА' дебит 613
-					$costsAccNumber = '613';
+					$debitArr = array('613', array($detailRec->classId, $detailRec->productId),
+											'quantity' => $detailRec->quantity,);
 				} else {
+					$transfer = TRUE;
+					$centerId = ($rec->activityCenterId) ? $rec->activityCenterId : hr_Departments::fetchField("#systemId = 'emptyCenter'", 'id');
 					
-					// Ако е "Вложим" 602
-					$costsAccNumber = '602';
+					$debitArr = array(
+							'60020', // Сметка "60020. Разходи за (нескладируеми) услуги и консумативи"
+							array('hr_Departments', $centerId),
+							array($detailRec->classId, $detailRec->productId), // Перо 1 - Артикул
+							'quantity' => $detailRec->quantity, // Количество продукт в основната му мярка
+					);
 				}
 
     			$entries[] = array(
@@ -193,15 +199,29 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
 	                    'quantity' => $amount,
 	                ),
 	                
-	                'debit' => array(
-	                    $costsAccNumber, 
-	                        array($detailRec->classId, $detailRec->productId),
-	                    'quantity' => $detailRec->quantity,
-	                ),
+	                'debit' => $debitArr,
             	);
+    			
+    			// Ако сме дебитирали 60020, превхвърляме сумата в 61101 или 61102
+    			if($transfer === TRUE){
+    				$resourceRec = planning_ObjectResources::getResource($detailRec->classId, $detailRec->productId);
+    				if($resourceRec){
+    					$newArr = array('61101', array('planning_Resources' , $resourceRec->resourceId),
+    							'quantity' => $detailRec->quantity / $resourceRec->conversionRate);
+    				} else {
+    					$newArr = array('61102');
+    				}
+    			
+    				$entries[] = array(
+    						'amount' => $amount * $rec->currencyRate, // В основна валута
+    						'debit' => $newArr,
+    						'credit' => $debitArr, 
+    				);
+    			}
     		}
         }
         
+        // Отчитаме ддс-то
     	if($this->class->_total->vat){
 	        $vatAmount = $this->class->_total->vat * $rec->currencyRate;
 	        $entries[] = array(
@@ -439,7 +459,7 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
     /**
      * Връща всички експедирани продукти и техните количества по сделката
      */
-    public static function getShippedProducts($id)
+    public static function getShippedProducts($id, $accs = '321,302,601,602,60010,60020')
     {
     	$res = array();
     	$query = purchase_PurchasesDetails::getQuery();
@@ -450,7 +470,7 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
     	$jRecs = self::getEntries($id);
     
     	// Извличаме тези, отнасящи се за експедиране
-    	$dInfo = acc_Balances::getBlAmounts($jRecs, '321,302,601,602', 'debit');
+    	$dInfo = acc_Balances::getBlAmounts($jRecs, $accs, 'debit');
     	
     	if(!count($dInfo->recs)) return $res;
     

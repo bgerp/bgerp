@@ -295,7 +295,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	{
 		$tpl = $this->renderEmbeddedData($data);
 		
-		$title = ht::createLinkRef($this->EmbedderRec->getTitleById(), array($this->EmbedderRec->instance, 'single', $this->EmbedderRec->that));
+		$title = $this->EmbedderRec->getShortHyperlink();
 		$tpl->replace($title, "TITLE");
 		
 		$tpl->push(('cat/tpl/css/GeneralProductStyles.css'), 'CSS');

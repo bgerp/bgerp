@@ -139,7 +139,7 @@ class store_Receipts extends store_DocumentMaster
     public function description()
     {
         parent::setDocFields($this);
-        $this->setField('storeId', 'caption=В склад');
+        $this->setField('storeId', 'caption=От склад');
     }
     
     
@@ -157,6 +157,15 @@ class store_Receipts extends store_DocumentMaster
         	$rec->accountId = $operation['credit'];
         	$rec->isReverse = (isset($operation['reverse'])) ? 'yes' : 'no';
         }
+    }
+    
+    
+    /**
+     * Преди показване на форма за добавяне/промяна
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+    	$data->form->setField('locationId', 'caption=Обект от');
     }
     
     

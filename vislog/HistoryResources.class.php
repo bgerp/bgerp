@@ -71,7 +71,7 @@ class vislog_HistoryResources extends core_Manager {
     function description()
     {
         
-        $this->FLD('query', 'varchar(255)', 'caption=Query');
+        $this->FLD('query', 'varchar(255)', 'caption=Ресурс');
         
         $this->setDbUnique('query');
     }

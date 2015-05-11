@@ -286,7 +286,7 @@ class crm_Personalization extends core_Detail
     /**
      * Връща записа за съответния потребител
      * 
-     * @param integer|NULL $userId - id' то на съответния потребител
+     * @param integer|NULL|FALSE $userId - id' то на съответния потребител
      */
     static function getRec($userId=NULL)
     {

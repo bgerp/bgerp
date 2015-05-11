@@ -184,7 +184,7 @@ class email_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    var $info = "Електронна поща";
+    var $info = "Управление на входящи имайл сметки и вътрешни кутии";
     
     
     /**

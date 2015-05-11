@@ -101,8 +101,7 @@ class select2_Adapter
     			
     			data: function (params) {
     				return {
-    					q: params.term,
-    					ysn: 'aaa'
+    					q: params.term
 					};
     			},
     			

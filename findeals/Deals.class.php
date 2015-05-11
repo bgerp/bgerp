@@ -45,7 +45,7 @@ class findeals_Deals extends deals_DealBase
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, acc_plg_Registry, findeals_Wrapper, acc_plg_RejectContoDocuments, plg_Printing, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search, doc_plg_BusinessDoc, doc_ActivatePlg, plg_Sorting';
+    public $loadList = 'plg_RowTools, acc_plg_Registry, findeals_Wrapper, plg_Printing, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search, doc_plg_BusinessDoc, doc_ActivatePlg, plg_Sorting';
     
     
     /**
@@ -188,7 +188,7 @@ class findeals_Deals extends deals_DealBase
     {
     	$this->FLD('dealName', 'varchar(255)', 'caption=Наименование');
     	$this->FLD('amountDeal', 'double(decimals=2)', 'input=none,notNull,oldFieldName=blAmount');
-    	$this->FLD('accountId', 'acc_type_Account', 'caption=Сметка,mandatory,silent');
+    	$this->FLD('accountId', 'acc_type_Account(regInterfaces=crm_ContragentAccRegIntf|deals_DealsAccRegIntf|currency_CurrenciesAccRegIntf)', 'caption=Сметка,mandatory,silent');
     	$this->FLD('contragentName', 'varchar(255)', 'caption=Контрагент');
     	
     	$this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)','caption=Валута->Код');

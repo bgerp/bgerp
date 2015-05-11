@@ -41,7 +41,7 @@ class sms_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    var $info = "SMS известяване";
+    var $info = "Регистър на SMS-ите";
 
 
     /**

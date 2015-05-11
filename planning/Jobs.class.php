@@ -444,6 +444,13 @@ class planning_Jobs extends core_Master
     	if($action == 'activate' && empty($rec->id)){
     		$res = 'no_one';
     	}
+    	
+    	// Ако потрбителя няма достъп до сингъла на артикула, не може да модифицира заданията към артикула
+    	if(($action == 'add' || $action == 'delete') && isset($rec) && $requiredRoles != 'no_one'){
+    		if(!cat_Products::haveRightFor('single', $rec->productId)){
+    			$res = 'no_one';
+    		}
+    	}
     }
     
     
@@ -568,13 +575,20 @@ class planning_Jobs extends core_Master
     		}
     	}
     	
-    	if($rec->state == 'active' || $rec->state == 'wakeup'){
+    	if($rec->state == 'active' || $rec->state == 'wakeup' || $rec->state == 'stopped'){
     		if($bId = cat_Boms::fetchField("#productId = {$rec->productId} AND #state != 'rejected'", 'id')){
     			if(cat_Boms::haveRightFor('single', $bId)){
     				$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'single', $bId, 'ret_url' => TRUE), 'ef_icon = img/16/view.png,title=Към технологичната рецепта на артикула');
     			}
     		} elseif(cat_Boms::haveRightFor('write', (object)array('productId' => $rec->productId))){
     			$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'add', 'productId' => $rec->productId, 'originId' => $rec->containerId, 'quantity' => $rec->quantity, 'ret_url' => TRUE), 'ef_icon = img/16/article.png,title=Създаване на нова технологична рецепта');
+    		}
+    	}
+    	
+    	if($rec->state != 'draft' && $rec->state != 'rejected'){
+    		if(planning_ProductionNotes::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
+    			$pUrl = array('planning_ProductionNotes', 'add', 'originId' => $rec->containerId);
+    			$data->toolbar->addBtn("Производство", $pUrl, 'ef_icon = img/16/page_paste.png,title=Създаване на протокол за производство от заданието');
     		}
     	}
     }

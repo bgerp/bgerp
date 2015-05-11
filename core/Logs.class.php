@@ -121,7 +121,6 @@ class core_Logs extends core_Manager
         $data->listFilter->input('user,date,class', 'silent'); 
 
     	$query = $data->query;
-        $query->orderBy('#createdOn=DESC');
         $query->orderBy('#id=DESC');
         
         // Заявка за филтриране

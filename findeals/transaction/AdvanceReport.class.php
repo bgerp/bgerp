@@ -53,7 +53,7 @@ class findeals_transaction_AdvanceReport extends acc_DocumentTransactionSource
     		$pInfo = cat_Products::getProductInfo($dRec->productId);
     
     		$debitArr = array();
-    		$debitArr[] = ($pInfo->meta['materials']) ? '601' : '602';
+    		$debitArr[] = '60020';
     		$debitArr[] = array('cat_Products', $dRec->productId);
     		$debitArr['quantity'] = $dRec->quantity;
     		$arr['debit'] = $debitArr;

@@ -57,10 +57,9 @@ class fileman_webdrv_Code extends fileman_webdrv_Generic
     /**
      * Връща съдържанието на файла
      * 
-     * @param fileman_Files $frec - Запис на архива
-     * @param string $type - Ако е задеден типа на кода
+     * @param object $fRec - Запис на архива
      * 
-     * @return string $content - Съдържанието на файла, като код
+     * @return string - Съдържанието на файла, като код
      */
     static function getContent($fRec) 
     {

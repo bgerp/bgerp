@@ -43,6 +43,8 @@ class bgerp_En extends core_Mvc
     {
         $vid = urldecode(Request::get('Act'));
         
+        vislog_Adwords::add();
+
         // Сменяме езика на външната част на английски
         cms_Content::setLang('en');
 

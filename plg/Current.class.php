@@ -50,21 +50,23 @@ class plg_Current extends core_Plugin
             // Ако форсираме
             if($bForce){
             	
+            	// Извличаме обектите, на които е отговорник потребителя
+            	$query = $mvc->getQuery();
+            	$cu = core_Users::getCurrent('id', FALSE);
+            	
             	// И има поле за отговорник
             	if(isset($mvc->inChargeField)){
-            	
-            		// Извличаме обектите, на които е отговорник потребителя
-            		$query = $mvc->getQuery();
-            		$cu = core_Users::getCurrent('id', FALSE);
             		$query->where("#{$mvc->inChargeField} = {$cu} || #{$mvc->inChargeField} LIKE '%|{$cu}|%'");
-            		
-            		// Ако е точно един обект и все още потребителя има права да му бъде отговорник, го връщаме
-            		if($query->count() == 1 && haveRole($mvc->getFieldType($mvc->inChargeField)->getRoles())){
-            			$rec = $query->fetch();
+            	}
+            	
+            	// Ако е точно един обект и все още потребителя може да го избере, го задаваме в сесията като избран
+            	if($query->count() == 1){
+            		$rec = $query->fetch();
+            		if($mvc->haveRightFor('select', $rec)){
             			Mode::setPermanent('currentPlg_' . $mvc->className, $rec);
-            			
+            			 
             			$res = $rec->id;
-            			
+            			 
             			return;
             		}
             	}

@@ -619,6 +619,10 @@ class doc_Folders extends core_Master
     {
         if (!isset($userId)) {
             $userId = core_Users::getCurrent();
+            
+            if (!isset($userId)) {
+                $userId = 0;
+            }
         }
         
         $teammates = keylist::toArray(core_Users::getTeammates($userId));
@@ -764,7 +768,12 @@ class doc_Folders extends core_Master
             $folderId = email_Inboxes::forceCoverAndFolder($rec);
         } else {
             
-            $corpAccRec = email_Accounts::getCorporateAcc();
+            // Контракторите да нямат корпоративна кутия
+            if (core_Users::isContractor($userId)) {
+                $corpAccRec = '';
+            } else {
+                $corpAccRec = email_Accounts::getCorporateAcc();
+            }
             
             if($corpAccRec) {
                 $rec->email = "{$nick}@{$corpAccRec->domain}";
@@ -1244,7 +1253,30 @@ class doc_Folders extends core_Master
      */
     function checkSettingsForm(&$form)
     {
-        
         return ;
+    }
+    
+    
+    /**
+     * Връща опции за избор на папки, чиито корици имат определен интерфейс
+     *
+     * @param string $interface - име на интерфейс
+     * @return array $options - масив с опции
+     */
+    public static function getOptionsByCoverInterface($interface)
+    {
+    	$options = array();
+    
+    	$query = doc_Folders::getQuery();
+    	$contragents = core_Classes::getOptionsByInterface($interface, 'title');
+    	$contragents = array_keys($contragents);
+    	$query->in('coverClass', $contragents);
+    	$query->where("#state != 'rejected'");
+    	$query->show('title');
+    	while($rec = $query->fetch()){
+    		$options[$rec->id] = doc_Folders::getVerbal($rec, 'title');
+    	}
+    
+    	return $options;
     }
 }

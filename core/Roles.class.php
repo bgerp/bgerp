@@ -66,13 +66,19 @@ class core_Roles extends core_Manager
      */
     var $listFields = 'id,role, inheritInput, type';
     
-
+    
+    /**
+     * 
+     */
+    public $loadList = 'plg_Translate';
+    
+    
     /**
      * Описание на модела (таблицата)
      */
     function description()
     {
-        $this->FLD('role', 'varchar(64)', 'caption=Роля,mandatory');
+        $this->FLD('role', 'varchar(64)', 'caption=Роля,mandatory,translate');
         $this->FLD('inheritInput', 'keylist(mvc=core_Roles,select=role,groupBy=type,where=#type !\\= \\\'rang\\\')', 'caption=Наследяване,notNull');
         $this->FLD('inherit', 'keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Калкулирано наследяване,input=none,notNull');
         $this->FLD('type', 'enum(job=Модул,team=Екип,rang=Ранг,system=Системна,position=Длъжност)', 'caption=Тип,notNull');
@@ -353,7 +359,7 @@ class core_Roles extends core_Manager
         foreach($rolesArr as $roleId) {
 
             if(!$rolesInputArr[$roleId]) {
-                $addRoles .= ($addRoles ? ', ' : '') . core_Roles::fetchByName($roleId);
+                $addRoles .= ($addRoles ? ', ' : '') . $mvc->getVerbal($roleId, 'role');
             }
         }
 
@@ -405,15 +411,6 @@ class core_Roles extends core_Manager
         return "<li> Преизчислени са $ind индиректни роли</li>";
     }
     
-    function act_Test()
-    {   
-        self::rebuildRoles();
-        core_Users::rebuildRoles();
-
-        return self::on_Shutdown($this);
-
-    }
-
 
     /**
      * Получава управлението, когато в модела има промени
@@ -460,7 +457,7 @@ class core_Roles extends core_Manager
             return tr($rec->name);
         }
         
-        return parent::getVerbal_($rec, $fieldName);
+        return parent::getVerbal($rec, $fieldName);
     }
 
 

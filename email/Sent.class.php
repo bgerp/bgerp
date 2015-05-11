@@ -225,41 +225,44 @@ class email_Sent
         $efSbf = preg_quote(EF_SBF, '/');
         
         //Шаблон за намиране на всички статични изображения в img таг
-        $patternImg = "/<img[^>]+src=\"([^\">]+[\\\\\/]+" .  $efSbf . "[\\\\\/]+[^\">]+)\"/im";
+        $patternImg = "/<img[^>]+src=(\"|\')([^(\"|\')>]+[\\\\\/]+" .  $efSbf . "[\\\\\/]+[^(\"|\')>]+)(\"|\')/im";
         
         //Намираме всички статични изображения в img таг
         preg_match_all($patternImg, $PML->Body, $matchesImg);
         
         //Шаблон за намиране на всички статични изображения в background
-        $patternBg = "/background[-image]*:[\s]*url[\s]*\(\"([^\)\"]+[\\\\\/]+" .  $efSbf . "[\\\\\/]+[^\)\"]+)\"/im";
+        $patternBg = "/background[-image]*:[\s]*url[\s]*\((\"|\')([^\)(\"|\')]+[\\\\\/]+" .  $efSbf . "[\\\\\/]+[^\)(\"|\')]+)(\"|\')/im";
         
         //Намираме всички статични изображения в background
         preg_match_all($patternBg, $PML->Body, $matchesBg);
         
+        $imgCnt = count($matchesImg[2]);
+        $bgCnt = count($matchesBg[2]);
+        
         //Ако и двета масива съществуват, обединяваме ги
-        if ((count($matchesImg[1])) && (count($matchesBg[1]))) {
-            foreach ($matchesBg[1] as $key => $value) {
+        if (($imgCnt) && ($bgCnt)) {
+            foreach ($matchesBg[2] as $key => $value) {
                 $matchesImg[0][] = $matchesBg[0][$key];
-                $matchesImg[1][] = $matchesBg[1][$key];
+                $matchesImg[2][] = $matchesBg[2][$key];
             }
             $matches = $matchesImg;
         }
         
         //Ако не сме открили съвпадения за background използваме img
-        if ((count($matchesImg[1])) && (!count($matchesBg[1]))) {
+        if (($imgCnt) && (!$bgCnt)) {
             $matches = $matchesImg;
         }
         
         //Ако не сме открили съвпадения за img използваме background
-        if ((!count($matchesImg[1])) && (count($matchesBg[1]))) {
+        if ((!$imgCnt) && ($bgCnt)) {
             $matches = $matchesBg;
         }
         
         //Ако сме открили съвпадение
-        if (count($matches[1])) {
-                        
+        if (count($matches[2])) {
+            $i = 0;
             //Обхождаме всички открите изображения
-            foreach ($matches[1] as $imgPath) {
+            foreach ($matches[2] as $imgPath) {
                                 
                 //Превръщаме абсолютния линк в реален, за да може да работи phpmailer' а
                 $imgFile = self::absoluteUrlToReal($imgPath);
@@ -285,8 +288,10 @@ class email_Sent
                 //Шаблона, за намиране на URL' то на файла
                 $pattern = "/" . preg_quote($imgPath, '/') . "/im";
                 
+                $patternQuote = "/" . preg_quote('"' . $imgPath . '"', '/') . "/im";
+                
                 //Заместваме URL' то на файла със съответния cid
-                $PML->Body = preg_replace($pattern, $cidPath, $PML->Body, 1);
+                $PML->Body = preg_replace(array($patternQuote, $pattern), array("'{$cidPath}'", $cidPath), $PML->Body, 1);
                 
                 //Ембедваме изображението
                 $PML->AddEmbeddedImage($imgFile, $cidName, $filename, $encoding, $mimeType);

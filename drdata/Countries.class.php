@@ -317,8 +317,10 @@ class drdata_Countries extends core_Manager {
                 $commonNamesArr[$w] = $id;
             }
         }
-        $country = mb_strtolower(trim(str::utf2ascii($country)));
-        
+
+        $country = strtolower(trim(str::utf2ascii($country)));
+        $country = preg_replace("/[^a-z0-9]+/u", " ", $country);
+
         // Добавка за този начин на изписване на формалното име на страната
         if($i = strpos($country, ', republic of')) {
             $country = 'republic of ' . trim(substr($country, 0, $i));

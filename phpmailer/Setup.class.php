@@ -115,10 +115,11 @@ class phpmailer_Setup extends core_ProtoSetup
      */
     var $version = '0.1';    
     
+
     /**
      * Описание на модула
      */
-    var $info = "Aгрегиране на PHP Mailer Lite";
+    var $info = "Адаптер за PHP Mailer Lite";
     
     
     /**

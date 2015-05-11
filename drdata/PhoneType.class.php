@@ -102,7 +102,9 @@ class drdata_PhoneType extends type_Varchar
      * Оправя телефонните номера
      */
     function toVerbal_($telNumber)
-    {
+    {   
+        $telNumber = trim($telNumber);
+
         if(!$telNumber) return NULL;
         
         if (Mode::is('text', 'plain') || Mode::is('text', 'pdf') || Mode::is('text', 'xhtml')) {
@@ -203,8 +205,8 @@ class drdata_PhoneType extends type_Varchar
     	if ($mobile == 'none' && Mode::is('screenMode', 'narrow')) {
     		return $str;
     	}
-        
-        $result = $Phones->parseTel($str, $code);
+
+        $result = $Phones->parseTel($str, $code, $params['areaPhoneCode']);
 
         return $result;
     }

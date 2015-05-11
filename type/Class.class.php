@@ -50,6 +50,46 @@ class type_Class  extends type_Key {
         
         $this->options = $options;
         
+        if(count($this->options) > 1){
+        	$optionsWithoutGroup = $newOptions = array();
+        	
+        	// За всяка опция
+        	foreach ($this->options as $index => $opt){
+        		if(!is_object($opt)){
+        			
+        			// Ако в името на класа има '->' то приемаме че стринга преди знака е името на групата
+        			$optArr = explode('»', $opt);
+        			
+        			// Ако стринга е разделен на точно две части (име на група и име на клас)
+        			if(count($optArr) == 2){
+        				
+        				// Добавяме името като OPTGROUP
+        				$newOptions[$optArr[0]] = (object)array(
+        						'title' => $optArr[0],
+        						'group' => TRUE,
+        				);
+        				$newOptions[$index] = $optArr[1];
+        			} else {
+        				
+        				// Ако няма група запомняме го като такъв
+        				$optionsWithoutGroup[$index] = $opt;
+        			}
+        		}
+        	}
+        	
+        	// Ако има поне една намерена OPTGROUP на класовете, Иначе не правим нищо
+        	if(count($newOptions)){
+        		
+        		// Ако все пак има класове без група, добавяме ги в началото на опциите
+        		if(count($optionsWithoutGroup)){
+        			$newOptions = $optionsWithoutGroup + $newOptions;
+        		}
+        		
+        		// Заместваме старите опции със новите, ако има поне една OPTGROUP
+        		$this->options = $newOptions;
+        	}
+        }
+        
         $this->options = parent::prepareOptions();
         
         return $this->options;

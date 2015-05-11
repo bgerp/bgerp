@@ -155,7 +155,7 @@ class sales_Sales extends deals_DealMaster
     	'makeInvoice'        => 'lastDocUser|lastDoc',
     	'deliveryLocationId' => 'lastDocUser|lastDoc',
     	'chargeVat'			 => 'lastDocUser|lastDoc|defMethod',
-    	'template' 			 => 'lastDocUser|lastDoc|LastDocSameCuntry',
+    	'template' 			 => 'lastDocUser|lastDoc|defMethod',
     );
     
     
@@ -259,7 +259,16 @@ class sales_Sales extends deals_DealMaster
         
         $myCompany = crm_Companies::fetchOwnCompany();
         
-        $form->setOptions('bankAccountId',  bank_Accounts::getContragentIbans($myCompany->companyId, 'crm_Companies', TRUE));
+        $options = bank_Accounts::getContragentIbans($myCompany->companyId, 'crm_Companies', TRUE);
+        if(count($options)){
+        	foreach ($options as $id => &$name){
+        		if(is_numeric($id)){
+        			$name = bank_OwnAccounts::fetchField("#bankAccountId = {$id}", 'title');
+        		}
+        	}
+        }
+       
+        $form->setOptions('bankAccountId', $options);
         $form->setDefault('bankAccountId', bank_OwnAccounts::getCurrent('bankAccountId', FALSE));
        
         $form->setDefault('contragentClassId', doc_Folders::fetchCoverClassId($form->rec->folderId));
@@ -583,13 +592,13 @@ class sales_Sales extends deals_DealMaster
     protected function setTemplates(&$res)
     {
     	$tplArr = array();
-    	$tplArr[] = array('name' => 'Договор за продажба',    'content' => 'sales/tpl/sales/Sale.shtml', 'lang' => 'bg');
+    	$tplArr[] = array('name' => 'Договор за продажба',    'content' => 'sales/tpl/sales/Sale.shtml', 'lang' => 'bg' , 'narrowContent' => 'sales/tpl/sales/SaleNarrow.shtml');
     	$tplArr[] = array('name' => 'Договор за изработка',   'content' => 'sales/tpl/sales/Manufacturing.shtml', 'lang' => 'bg');
     	$tplArr[] = array('name' => 'Договор за услуга',      'content' => 'sales/tpl/sales/Service.shtml', 'lang' => 'bg');
     	$tplArr[] = array('name' => 'Sales contract',         'content' => 'sales/tpl/sales/SaleEN.shtml', 'lang' => 'en');
     	$tplArr[] = array('name' => 'Manufacturing contract', 'content' => 'sales/tpl/sales/ManufacturingEN.shtml', 'lang' => 'en');
     	$tplArr[] = array('name' => 'Service contract',       'content' => 'sales/tpl/sales/ServiceEN.shtml', 'lang' => 'en');
-        
+       
         $res .= doc_TplManager::addOnce($this, $tplArr);
     }
     

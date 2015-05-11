@@ -111,9 +111,11 @@ class doc_TplManager extends core_Master
         $this->FLD('docClassId', 'class(interface=doc_DocumentIntf,select=title,allowEmpty)', "caption=Документ, width=100%,mandatory,silent");
         $this->FLD('lang', 'varchar(2)', 'caption=Език,notNull,defValue=bg,value=bg,mandatory,width=2em');
         $this->FLD('content', 'text', "caption=Текст,column=none, width=100%,mandatory");
+        $this->FLD('narrowContent', 'text', "caption=Текст за мобилен,column=none, width=100%");
         $this->FLD('path', 'varchar', "caption=Файл,column=none, width=100%");
         $this->FLD('originId', 'key(mvc=doc_TplManager)', "input=hidden,silent");
         $this->FLD('hash', 'varchar', "input=none");
+        $this->FLD('hashNarrow', 'varchar', "input=none");
         
         // Полета които ще се показват в съответния мениджър и неговите детайли
         $this->FLD('toggleFields', 'blob(serialize,compress)', 'caption=Полета за скриване,input=none');
@@ -138,6 +140,7 @@ class doc_TplManager extends core_Master
     		$form->setDefault('docClassId', $origin->docClassId);
     		$form->setDefault('lang', $origin->lang);
     		$form->setDefault('content', $origin->content);
+    		$form->setDefault('narrowContent', $origin->narrowContent);
     		$form->setDefault('toggleFields', $origin->toggleFields);
     		$form->setReadOnly('path', $origin->path);
     	} else {
@@ -276,7 +279,21 @@ class doc_TplManager extends core_Master
      */
     public static function getTemplate($id)
     {
-    	expect($content = static::fetchField($id, 'content'));
+    	$rec = static::fetch($id, 'content,narrowContent');
+    	
+    	// Ако сме в режим тесен
+    	if(Mode::is('screenMode', 'narrow')){
+    		
+    		// И има шаблон за мобилен изглед вземаме него
+    		if(!empty($rec->narrowContent)){
+    			$content = $rec->narrowContent;
+    		}
+    	} 
+    	
+    	// Взимаме обикновения шаблон ако няма мобилен шаблон
+    	if(empty($content)){
+    		$content = $rec->content;
+    	}
     	
     	return new ET(tr("|*" . $content));
     }
@@ -345,13 +362,20 @@ class doc_TplManager extends core_Master
             // Ако файла на шаблона не е променян, то записа не се обновява
             expect($object->hash = md5_file(getFullPath($object->content)));
             
-            if($exRec && ($exRec->name == $object->name) && ($exRec->hash == $object->hash) && ($exRec->lang == $object->lang) && ($exRec->toggleFields == $object->toggleFields) && ($exRec->path == $object->content)){
+            if($object->narrowContent){
+            	expect($object->hashNarrow = md5_file(getFullPath($object->narrowContent)));
+            }
+            
+            if($exRec && ($exRec->name == $object->name) && ($exRec->hashNarrow == $object->hashNarrow)  && ($exRec->hash == $object->hash) && ($exRec->lang == $object->lang) && ($exRec->toggleFields == $object->toggleFields) && ($exRec->path == $object->content)){
                 $skipped++;
                 continue;
             }
-
+			
             $object->path = $object->content;
             $object->content = getFileContent($object->content);
+            if($object->narrowContent){
+            	$object->narrowContent = getFileContent($object->narrowContent);
+            }
             $object->createdBy = -1;
             $object->state = 'active';
             

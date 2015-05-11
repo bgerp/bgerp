@@ -34,7 +34,7 @@ class doc_FolderPlg extends core_Plugin
             }
             
             // Определя достъпа по подразбиране за новите папки
-            setIfNot($defaultAccess, $mvc->defaultAccess, 'public');
+            setIfNot($defaultAccess, $mvc->defaultAccess, 'team');
             
             $mvc->FLD('inCharge' , 'key(mvc=core_Users, select=nick)', 'caption=Права->Отговорник,formOrder=10000');
             $mvc->FLD('access', 'enum(team=Екипен,private=Личен,public=Общ,secret=Секретен)', 'caption=Права->Достъп,formOrder=10001,notNull,value=' . $defaultAccess);
@@ -54,6 +54,7 @@ class doc_FolderPlg extends core_Plugin
     public static function on_AfterPrepareRights($mvc, $res, $data)
     {
         $data->TabCaption = 'Права';
+        doc_FolderToPartners::preparePartners($data);
 
     }
 
@@ -63,6 +64,7 @@ class doc_FolderPlg extends core_Plugin
         $tpl = new ET(tr('|*' . getFileContent('doc/tpl/RightsLayout.shtml')));
                 
         $tpl->placeObject($data->masterData->row);
+        doc_FolderToPartners::renderPartners($data, $tpl);
     }
 
     
@@ -110,6 +112,15 @@ class doc_FolderPlg extends core_Plugin
             
         } else {
         	if($mvc->haveRightFor('single', $data->rec) && $mvc->haveRightFor('write', $data->rec)){
+        		$title = $mvc->getFolderTitle($data->rec->id);
+        		$data->toolbar->addBtn('Папка', array($mvc, 'createFolder', $data->rec->id), array(
+        				'warning' => "Наистина ли желаете да създадетe папка за документи към|* \"{$title}\"?",
+        		), array('ef_icon' => 'img/16/folder_new.png', 'title' => "Създаване на папка за документи към {$title}"));
+        	}
+        	
+        	$currUrl = getCurrentUrl();
+        	
+        	if($mvc->haveRightFor('single', $data->rec) && $currUrl['Act'] == 'single'){
         		$title = $mvc->getFolderTitle($data->rec->id);
         		$data->toolbar->addBtn('Папка', array($mvc, 'createFolder', $data->rec->id), array(
         				'warning' => "Наистина ли желаете да създадетe папка за документи към|* \"{$title}\"?",
@@ -230,7 +241,8 @@ class doc_FolderPlg extends core_Plugin
             	// Очакваме да не е подаден празен stdClass
             	// Така се подсигуряваме да не се създаде празна корица
             	expect(count((array)$rec), 'Опит за създаване на празна корица');
-            	$rec->folderId = doc_Folders::createNew($mvc);
+            	
+                $rec->folderId = doc_Folders::createNew($mvc);
                 $mvc->save($rec);
             }
 
@@ -306,9 +318,6 @@ class doc_FolderPlg extends core_Plugin
             $rec->inCharge = $cu;
         }
         
-        if((!$fields || $fArr['access']) && !$rec->access) {
-            $rec->access = 'team';
-        }
         if((!$fields || $fArr['state']) && !$rec->state) {
             $rec->state = 'active';
         }
@@ -399,18 +408,19 @@ class doc_FolderPlg extends core_Plugin
                 $row->SingleIcon = ht::createElement("img", array('src' => $imageUrl, 'alt' => ''));
             }
         }
+        $currUrl = getCurrentUrl();
         
         // Подготовка на линк към папката (или създаване на нова) на корицата
         if($fField = $mvc->listFieldForFolderLink) {
             $folderTitle = $mvc->getFolderTitle($rec->id);
             if($rec->folderId && ($fRec = doc_Folders::fetch($rec->folderId))) {
-                if (doc_Folders::haveRightFor('single', $rec->folderId)) {
+                if (doc_Folders::haveRightFor('single', $rec->folderId) && !$currUrl['Rejected']) {
                     $row->folder = ht::createLink('',
                             array('doc_Threads', 'list', 'folderId' => $rec->folderId),
                             NULL, array('ef_icon' => $fRec->openThreadsCnt ? 'img/16/folder.png' : 'img/16/folder-y.png', 'title' => "Папка към {$folderTitle}", 'class' => 'new-folder-btn'));
                 }
             } else {
-                if($mvc->haveRightFor('single', $rec->id)) {
+                if($mvc->haveRightFor('single', $rec->id) && !$currUrl['Rejected']) {
                     $row->{$fField} = ht::createLink('', array($mvc, 'createFolder', $rec->id),  "Наистина ли желаете да създадетe папка за документи към  \"{$folderTitle}\"?",
                     array('ef_icon' => 'img/16/folder_new.png', 'title' => "Създаване на папка за документи към {$folderTitle}", 'class' => 'new-folder-btn'));
                 }
@@ -428,6 +438,10 @@ class doc_FolderPlg extends core_Plugin
     {
         if (!isset($userId)) {
             $userId = core_Users::getCurrent();
+            
+            if (!isset($userId)) {
+                $userId = 0;
+            }
         }
         
         $teammates = keylist::toArray(core_Users::getTeammates($userId));
@@ -464,9 +478,6 @@ class doc_FolderPlg extends core_Plugin
                     $conditions[] = "#inCharge NOT IN ({$ceos})";
                 }
                 
-
-
-    
                 // CEO да може да вижда private папките на друг `ceo`
                 if ($fullAccess) {
                     $conditions[] = "#access != 'secret'";

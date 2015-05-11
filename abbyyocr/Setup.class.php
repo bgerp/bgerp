@@ -48,7 +48,7 @@ class abbyyocr_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    var $info = "Разпознаване на текст с abbyyocr";
+    var $info = "Адаптер за ABBYY FineReader CLI for Linux - разпознаване на текст в сканирани документи";
     
     
     /**

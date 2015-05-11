@@ -175,7 +175,7 @@ class planning_ProductionNoteDetails extends deals_ManifactureDetail
     		
     		// Ако трябва да показваме с-та, но не е попълнена сетваме грешка
     		if(empty($rec->selfValue) && $showSelfvalue === TRUE){
-    			$form->setError('selfValue', 'Непопълнено задължително поле|* <b>Ед. ст-ст</b>');
+    			$form->setError('selfValue', 'Непопълнено задължително поле|* <b>|Ед. ст-ст|</b>');
     		}
     	}
     }

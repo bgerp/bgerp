@@ -1012,7 +1012,7 @@ class log_Documents extends core_Manager
     /**
      * Връща шаблона на детайла
      * 
-     * @param string $title - Заглавието на детайла
+     * @return core_ET
      */
     static function getLogDetailTpl()
     {
@@ -1587,7 +1587,7 @@ class log_Documents extends core_Manager
      * @param string $mid
      * @param fileHnd $fh - Манипулатор на файла, който се сваля
      * 
-     * @return object|TRUE $rec
+     * @return object|boolean $rec
      */
     public static function downloaded($mid, $fh)
     {
@@ -1980,8 +1980,9 @@ class log_Documents extends core_Manager
     /**
      * Шаблон (ET) съдържащ обобщената историята на документа в този контейнер.
      *
-     * @param int $container key(mvc=doc_Containers)
+     * @param int $containerId key(mvc=doc_Containers)
      * @param int $threadId key(mvc=doc_Thread) нишката,в която е контейнера
+     * 
      * @return core_ET
      */
     public static function getSummary($containerId, $threadId)
@@ -2156,7 +2157,7 @@ class log_Documents extends core_Manager
     /**
      * Връща cid' а и mid' а от подаденото URL
      * 
-     * @param URL $URL - Линка, в който ще се търси
+     * @param string $url - Линка, в който ще се търси
      * 
      * @return array $res - Масив с ['cid'] и ['mid']
      */

@@ -110,7 +110,7 @@ class bulmar_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    var $info = "Драйвъри за експорт и импорт към Bulmar Office";
+    var $info = "Драйвъри за експорт и импорт към \"Bulmar Office\"";
     
     
     /**

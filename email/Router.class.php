@@ -96,6 +96,9 @@ class email_Router extends core_Manager
         $this->FLD('objectType' , 'enum(person, company, document)');
         $this->FLD('objectId' , 'int', 'caption=Обект');
         $this->FLD('priority' , 'varchar(21)', 'caption=Приоритет');
+
+        $this->setDbIndex('objectType,objectId');
+        $this->setdbIndex('type,key');
     }
     
     

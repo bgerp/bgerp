@@ -105,7 +105,7 @@ class price_ListRules extends core_Detail
         
         // Цена за продукт 
         $this->FLD('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Продукт,mandatory,silent,remember=info');
-        $this->FLD('price', 'double', 'caption=Цена,mandatory');
+        $this->FLD('price', 'double(Min=0)', 'caption=Цена,mandatory');
         $this->FLD('currency', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'notNull,caption=Валута,noChange');
         $this->FLD('vat', 'enum(yes=Включено,no=Без ДДС)', 'caption=ДДС,noChange'); 
         
@@ -461,8 +461,10 @@ class price_ListRules extends core_Detail
             }
         }
         
-        if(($action == 'add' || $action == 'add' || $action == 'delete') && isset($rec->productId)){
+        if(($action == 'add' || $action == 'delete') && isset($rec->productId)){
         	if(cat_Products::fetchField($rec->productId, 'state') != 'active'){
+        		$requiredRoles = 'no_one';
+        	} elseif(!cat_Products::haveRightFor('single', $rec->productId)){
         		$requiredRoles = 'no_one';
         	}
         }

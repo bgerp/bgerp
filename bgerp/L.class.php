@@ -209,6 +209,19 @@ class bgerp_L extends core_Manager
             // на тези по същество вътрешни, но достъпни без парола страници.
             $html->append("\n" . '<meta name="robots" content="noindex, nofollow">', 'HEAD');
             
+            // Ако има потребител с такъв имейл и не е логнат, показваме линк за логване
+            if ($options['to'] && !haveRole('user')) {
+                
+                $emailsArr = type_Emails::toArray($options['to']);
+                foreach ($emailsArr as $email) {
+                    if (!core_Users::fetch(array("#email = '[#1#]' AND #state = 'active'", $email))) continue;
+                    
+                    $html->append(ht::createLink(tr('Логнете се, за да видите нишката') . '.', array('core_Users', 'login', 'ret_url' => TRUE), NULL, array('style' => 'margin-left: 10px; font-size: 0.9em; margin-bottom: 10px; display: block; margin-top: -6px;')));
+                    
+                    break;
+                }
+            }
+            
             return $html;
         } catch (core_exception_Expect $ex) {
             // Опит за зареждане на несъществуващ документ или документ с невалиден MID.

@@ -279,7 +279,7 @@ class fileman_Files2 extends core_Master
      * @param string $fh - Манипулатор на файла
      * @param string $newName - Новото име на файла
      * 
-     * @param string $rec->name -Новото име на файла
+     * @return string - Новото име на файла
      */
     public static function rename($fh, $newName)
     {

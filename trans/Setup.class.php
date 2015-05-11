@@ -42,7 +42,7 @@ class trans_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    var $info = "Транспорт";
+    var $info = "Организация на вътрешния транспорт";
     
     
     /**

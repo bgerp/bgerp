@@ -124,7 +124,8 @@ class acc_BalanceHistory extends core_Manager
     	
     	// Преизчисляваме пейджъра с новия брой на записите
         $conf = core_Packs::getConfig('acc');
-        $Pager = cls::get('core_Pager', array('itemsPerPage' => $this->listHistoryItemsPerPage));
+        $pageVar = str::addHash("P", 5, rand());
+        $Pager = cls::get('core_Pager', array('pageVar' => $pageVar, 'itemsPerPage' => $this->listHistoryItemsPerPage));
         $Pager->itemsCount = count($data->recs);
         $Pager->calc();
         $data->pager = $Pager;
@@ -354,29 +355,16 @@ class acc_BalanceHistory extends core_Manager
         // Извличане на всички записи към избрания период за посочените пера
         $accSysId = acc_Accounts::fetchField($rec->accountId, 'systemId');
         
-        // Изчисляваме крайното салдо за аналитичната сметка в периода преди избраните дати
-        $Balance = new acc_ActiveShortBalance(array('from' => $data->fromDate, 'to' => $data->toDate, 'accs' => $accSysId, 'item1' => $rec->ent1Id, 'item2' => $rec->ent2Id, 'item3' => $rec->ent3Id, 'strict' => TRUE, 'cacheBalance' => FALSE));
-        $calcedBalance = $Balance->getBalanceBefore(acc_Accounts::fetchField($rec->accountId, 'systemId'));
-        $indexArr = $rec->accountId . "|" . $rec->ent1Id . "|" . $rec->ent2Id . "|" . $rec->ent3Id;
+        // Извличаме хронологията за перата
+        $isGrouped = ($data->isGrouped !== 'yes') ? FALSE : TRUE;
+        $balHistory = acc_ActiveShortBalance::getBalanceHystory($accSysId, $data->fromDate, $data->toDate, $rec->ent1Id, $rec->ent2Id, $rec->ent3Id, $isGrouped);
+        $data->recs = $balHistory['history'];
         
-        // Ако няма данни досега, започваме с нулеви крайни салда
-        if(!isset($calcedBalance[$indexArr])){
-            $calcedBalance[$indexArr] = array('blAmount' => 0, 'blQuantity' => 0);
-        }
-        
-        // Извличаме записите точно в периода на филтъра
-        $jQuery = acc_JournalDetails::getQuery();
-        acc_JournalDetails::filterQuery($jQuery, $data->fromDate, $data->toDate, $accSysId, NULL, $rec->ent1Id, $rec->ent2Id, $rec->ent3Id, TRUE);
-        $jQuery->orderBy('valior', 'ASC');
-        $jQuery->orderBy('id', 'ASC');
-        
-        $entriesInPeriod = $jQuery->fetchAll();
-        $rec->baseAmount = $calcedBalance[$indexArr]['blAmount'];
-        $rec->baseQuantity = $calcedBalance[$indexArr]['blQuantity'];
-        
+        $rec->baseAmount = $balHistory['summary']['baseAmount'];
+        $rec->baseQuantity = $balHistory['summary']['baseQuantity'];
         $row->baseAmount = $Double->toVerbal($rec->baseAmount);
         $row->baseQuantity = $Double->toVerbal($rec->baseQuantity);
-        
+       
         if(round($rec->baseAmount, 4) < 0){
             $row->baseAmount = "<span style='color:red'>{$row->baseAmount}</span>";
         }
@@ -395,107 +383,14 @@ class acc_BalanceHistory extends core_Manager
             'blAmount'   => $rec->baseAmount,
             'blQuantity' => $rec->baseQuantity,
             'ROW_ATTR'   => array('style' => 'background-color:#eee;font-weight:bold'));
-        
-        $debitQuantity = $debitAmount = $creditQuantity = $creditAmount = 0;
-      
-        // Обхождаме всички записи и натрупваме сумите им към крайното салдо
-        if(count($entriesInPeriod)){
-            foreach ($entriesInPeriod as $jRec){
-                $entry = array('id' => $jRec->id,
-			                   'docType'    => $jRec->docType,
-			                   'docId'      => $jRec->docId,
-			                   'reason'     => $jRec->reason,
-			                   'valior'     => $jRec->valior,
-                			   'reasonCode' => $jRec->reasonCode);
-                
-                $add = FALSE;
-                
-                foreach (array('debit', 'credit') as $type){
-                    $sign = ($type == 'debit') ? 1 : -1;
-                    $quantityField = "{$type}Quantity";
-                    $accId = $jRec->{"{$type}AccId"};
-                    
-                    $ent1Id = !empty($jRec->{"{$type}Item1"}) ? $jRec->{"{$type}Item1"} : NULL;
-                    $ent2Id = !empty($jRec->{"{$type}Item2"}) ? $jRec->{"{$type}Item2"} : NULL;
-                    $ent3Id = !empty($jRec->{"{$type}Item3"}) ? $jRec->{"{$type}Item3"} : NULL;
-                    $index = $accId . "|" . $ent1Id . "|" . $ent2Id . "|" . $ent3Id;
-                    
-                    if($indexArr != $index) continue;
-                    
-                    // Оставяме само записите за тази аналитична сметка
-                    if(isset($calcedBalance[$index])){
-                        if (!is_null($jRec->{$quantityField})) {
-                            $add = TRUE;
-                            $entry[$quantityField] = $jRec->{$quantityField};
-                            ${"{$type}Quantity"} += $entry[$quantityField];
-                            
-                            if($data->isGrouped !== 'yes'){
-                            	$calcedBalance[$index]['blQuantity'] += $jRec->{$quantityField} * $sign;
-                            	$entry['blQuantity'] = $calcedBalance[$index]['blQuantity'];
-                            }
-                        }
-                        
-                        if (!is_null($jRec->amount)) {
-                            $add = TRUE;
-                            $entry["{$type}Amount"] = $jRec->amount;
-                            ${"{$type}Amount"} += $entry["{$type}Amount"];
-                            
-                            if($data->isGrouped !== 'yes'){
-                            	$calcedBalance[$index]['blAmount'] += $jRec->amount * $sign;
-                            	$entry['blAmount'] = $calcedBalance[$index]['blAmount'];
-                            }
-                        }
-                    }
-                }
-                
-                if($add){
-                    $data->recs[$jRec->id] = $entry;
-                }
-            }
-           
-            // Правим групиране на записите
-            if(count($data->recs) && $data->isGrouped === 'yes'){
-            	$groupedRecs = array();
-            	
-            	// Групираме всички записи от журнала по документи
-            	foreach ($data->recs as $dRec){
-            		$index = $dRec['docType'] . "|" . $dRec['docId'] . "|" . $dRec['reasonCode'];
-            		
-            		if(!isset($groupedRecs[$index])){
-            			$groupedRecs[$index] = $dRec;
-            		} else {
-            			foreach (array('debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount') as $key){
-            				if (!empty($dRec[$key])) {
-            					$groupedRecs[$index][$key] += $dRec[$key];
-            				}
-        				}
-            		}
-            	}
-            	
-            	// За всеки от групираните записи, изчисляваме му крайното салдо
-            	foreach ($groupedRecs as &$dRec2){
-            		
-            		$blAmount = $dRec2['debitAmount'] - $dRec2['creditAmount'];
-            		$blQuantity = $dRec2['debitQuantity'] - $dRec2['creditQuantity'];
-            		
-            		$calcedBalance[$indexArr]['blAmount'] += $blAmount;
-            		$calcedBalance[$indexArr]['blQuantity'] += $blQuantity;
-            		
-            		$dRec2['blAmount'] = $calcedBalance[$indexArr]['blAmount'];
-            		$dRec2['blQuantity'] = $calcedBalance[$indexArr]['blQuantity'];
-            	}
-            	
-            	$data->recs = $groupedRecs;
-            }
-        }
-        
+       
         if($data->orderField){
         	arr::order($data->recs, $data->orderField, strtoupper($data->orderBy));
         }
-       
+        
         // Крайното салдо е изчисленото крайно салдо на сметката
-        $rec->blAmount = $calcedBalance[$indexArr]['blAmount'];
-        $rec->blQuantity = $calcedBalance[$indexArr]['blQuantity'];
+        $rec->blAmount = $balHistory['summary']['blAmount'];
+        $rec->blQuantity = $balHistory['summary']['blQuantity'];
         $row->blAmount = $Double->toVerbal($rec->blAmount);
         $row->blQuantity = $Double->toVerbal($rec->blQuantity);
         
@@ -504,10 +399,10 @@ class acc_BalanceHistory extends core_Manager
 			             'valior'         => $data->toDate,
 			             'blAmount'       => $rec->blAmount,
 			             'blQuantity'     => $rec->blQuantity,
-			             'debitAmount'    => $debitAmount,
-			             'debitQuantity'  => $debitQuantity,
-			             'creditQuantity' => $creditQuantity,
-			             'creditAmount'   => $creditAmount,
+			             'debitAmount'    => $balHistory['summary']['debitAmount'],
+			             'debitQuantity'  => $balHistory['summary']['debitQuantity'],
+			             'creditQuantity' => $balHistory['summary']['creditQuantity'],
+			             'creditAmount'   => $balHistory['summary']['creditAmount'],
 			             'ROW_ATTR'       => array('style' => 'background-color:#eee;font-weight:bold'));
         
         $data->zeroRec = $zeroRec;
@@ -540,13 +435,7 @@ class acc_BalanceHistory extends core_Manager
         
         try{
         	$Class = cls::get($rec['docType']);
-            $title = $Class->getTitleById($rec['docId']);
-            
-            if($Class->haveRightFor('single', $rec['docId'])){
-                $title = ht::createLinkRef($title, array($Class, 'single', $rec['docId']));
-            }
-            
-            $arr['docId'] = $title;
+            $arr['docId'] = $Class->getShortHyperLink($rec['docId']);
             $arr['reason'] = $Class->getContoReason($rec['docId'], $rec['reasonCode']);
         } catch(core_exception_Expect $e){
             if(is_numeric($rec['docId'])){

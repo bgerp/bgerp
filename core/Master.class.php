@@ -574,9 +574,10 @@ class core_Master extends core_Manager
      * 
      * @param int $id - ид на запис
      * @param boolean $icon - дали линка да е с икона
+     * @param boolean $short - дали линка да е само стрелкичка
      * @return string|core_ET - линк към единичния изглед или името ако потребителя няма права
      */
-    public static function getHyperlink($id, $icon = FALSE)
+    public static function getHyperlink($id, $icon = FALSE, $short = FALSE)
     {
     	$me = cls::get(get_called_class());
     
@@ -596,13 +597,26 @@ class core_Master extends core_Manager
     
     	// Ако потребителя има достъп до единичния изглед, правим заглавието линк
     	if ($me->haveRightFor('single', $id)) {
-    		$title = ht::createLink($title,
-    				array($me, 'single', $id),
-    				NULL,
-    				$attr
-    		);
+    		if($short === TRUE){
+    			$title = ht::createLinkRef($title, array($me, 'single', $id), NULL, $attr);
+    		} else {
+    			$title = ht::createLink($title, array($me, 'single', $id), NULL, $attr);
+    		}
     	}
     
     	return $title;
+    }
+    
+    
+    /**
+     * Създава хиперлинк към единичния изглед който е стрелка след името
+     *
+     * @param int $id - ид на запис
+     * @param boolean $icon - дали линка да е с икона
+     * @return string|core_ET - линк към единичния изглед или името ако потребителя няма права
+     */
+    public static function getShortHyperlink($id, $icon = FALSE)
+    {
+    	return static::getHyperlink($id, $icon, TRUE);
     }
 }

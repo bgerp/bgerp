@@ -102,7 +102,7 @@ class doc_Threads extends core_Manager
        // $this->FLD('title', 'varchar(255)', 'caption=Заглавие');
         $this->FLD('state', 'enum(opened,pending,closed,rejected)', 'caption=Състояние,notNull');
         $this->FLD('allDocCnt', 'int', 'caption=Брой документи->Всички');
-        $this->FLD('pubDocCnt', 'int', 'caption=Брой документи->Публични');
+        $this->FLD('partnerDocCnt', 'int', 'caption=Брой документи->Публични, oldFieldName=pubDocCnt');
         $this->FLD('last', 'datetime(format=smartTime)', 'caption=Последно');
         
         // Ключ към първия контейнер за документ от нишката
@@ -176,7 +176,7 @@ class doc_Threads extends core_Manager
         // Не им се правят обработвки
         // За да предизвикат стартиране за съответния запис в on_Shutdown
         $query->orWhere("#allDocCnt IS NULL");
-        $query->orWhere("#pubDocCnt IS NULL");
+        $query->orWhere("#partnerDocCnt IS NULL");
         $query->orWhere("#lastAuthor IS NULL");
         $query->orWhere("#lastState IS NULL");
         
@@ -587,11 +587,12 @@ class doc_Threads extends core_Manager
     /**
      * Създава нов тред
      */
-    static function create($folderId, $createdOn)
+    static function create($folderId, $createdOn, $createdBy)
     {
         $rec = new stdClass();
         $rec->folderId = $folderId;
         $rec->createdOn = $createdOn;
+        $rec->createdBy = $createdBy;
         
         self::save($rec);
         
@@ -1043,7 +1044,7 @@ class doc_Threads extends core_Manager
         $dcQuery->orderBy('#createdOn');
         
         // Публични документи в треда
-        $rec->pubDocCnt = $rec->allDocCnt = 0;
+        $rec->partnerDocCnt = $rec->allDocCnt = 0;
 
         $firstDcRec = NULL;
         
@@ -1057,9 +1058,8 @@ class doc_Threads extends core_Manager
             if($dcRec->state != 'rejected') {
                 $lastDcRec = $dcRec;
                 
-                // @todo: това трябва да се промени на проверка дали типа на документа е вътрешен
-                if($dcRec->state != 'hidden') {
-                    $rec->pubDocCnt++;
+                if($dcRec->visibleForPartners == 'yes') {
+                    $rec->partnerDocCnt++;
                 }
                 
                 $rec->allDocCnt++;
@@ -1116,7 +1116,7 @@ class doc_Threads extends core_Manager
                 $rec->state = 'closed';
             }
             
-            doc_Threads::save($rec, 'last, allDocCnt, pubDocCnt, firstContainerId, state, shared, modifiedOn, modifiedBy, lastState, lastAuthor');
+            doc_Threads::save($rec, 'last, allDocCnt, partnerDocCnt, firstContainerId, state, shared, modifiedOn, modifiedBy, lastState, lastAuthor');
          } else {
             // Ако липсват каквито и да е документи в нишката - изтриваме я
             self::delete($id);

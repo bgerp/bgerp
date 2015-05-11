@@ -16,6 +16,12 @@ class support_Issues extends core_Master
     
     
     /**
+     * Флаг, който указва, че документа е партньорски
+     */
+    public $visibleForPartners = TRUE;
+    
+    
+    /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
     var $oldClassName = 'issue_Document';
@@ -302,11 +308,14 @@ class support_Issues extends core_Master
     		if($this->haveRightFor('new')){
     			$id = $this->save($rec);
     			
+    			vislog_History::add('Изпращане на сигнал');
+    			
     			$cu = core_Users::getCurrent('id', FALSE);
     			
     			// Ако няма потребител, записваме в бисквитка ид-то на последното запитване
     			if(!$cu){
-    				setcookie("inquiryCookie[inquiryId]", str::addHash($id, 10), time() + 2592000);
+    				$userData = array('name' => $rec->name, 'email' => $rec->email);
+    				core_Browser::setVars($userData);
     			}
     			
     			status_Messages::newStatus(tr('Благодарим ви за сигнала'), 'success');
@@ -330,15 +339,20 @@ class support_Issues extends core_Master
 		
     	return $tpl;
     }
-
-
+    
+    
+    /**
+     * 
+     * 
+     * @param support_Issues $mvc
+     * @param object $row
+     * @param object $rec
+     * @param array $fields
+     */
     static function on_AfterrecToVerbal($mvc, $row, $rec, $fields = array()) 
     {
-        //$row->browser = core_Browser::getBrowserType($rec->browser);
+        $row->brid = core_Browser::getLink($rec->brid);
     }
-
-
-
     
     
     /**
@@ -853,6 +867,16 @@ class support_Issues extends core_Master
     			$data->toolbar->addBtn('Резолюция', $url, "ef_icon={$Resolution->singleIcon}, row=2 , title = Създаване на документ Резолюция на сигнал");
     		}
     	}
+    	
+        if ($data->rec->brid && email_Outgoings::haveRightFor('add')) {
+            $data->toolbar->addBtn('Отговор', array(
+                    'email_Outgoings',
+                    'add',
+                    'threadId' => $data->rec->threadId,
+                    'originId' => $data->rec->containerId,
+                    'ret_url'=> TRUE
+                ),'ef_icon = img/16/email_edit.png,title=Отговор на сигнал чрез имейл', 'onmouseup=saveSelectedTextToSession();');
+        }
     }
     
     

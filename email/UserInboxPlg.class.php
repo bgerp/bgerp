@@ -28,8 +28,9 @@ class email_UserInboxPlg extends core_Plugin
         //Ако се добавя или редактира потребител
         //При вход в системата не се задейства
         if($rec->nick) {
- 
-            if($corpAccRec = email_Accounts::getCorporateAcc()) {
+            
+            // На контрактори да не се създава корпоративен имейл
+            if ((!core_Users::isContractor($rec)) && ($corpAccRec = email_Accounts::getCorporateAcc())) {
                 
                 //Данни необходими за създаване на папка
                 $eRec = new stdClass();
@@ -128,18 +129,33 @@ class email_UserInboxPlg extends core_Plugin
         //Ако формата е субмитната
         if ($form->isSubmitted()) {
 
-            if(core_Users::fetch('1=1')) {
+            if (core_Users::fetch('1=1')) {
 
                 //Вземаме броя на срещанията на всички типове роли
                 $expandedRoles  = core_Roles::expand($form->rec->rolesInput);
                 $rolesByTypeArr = core_Roles::countRolesByType($expandedRoles);
 
-                if($rolesByTypeArr['rang'] < 1 && $form->rec->state == 'active') {
+                if ($rolesByTypeArr['rang'] < 1 && $form->rec->state == 'active') {
                     $form->setError('roles', "Потребителя трябва да има поне една роля за ранг!");
                 }
                 
-                if($rolesByTypeArr['team'] < 1 && $form->rec->state == 'active') {
-                    $form->setError('roles1', "Потребителя трябва да има поне една роля за екип!");
+                if ($rolesByTypeArr['team'] < 1 && $form->rec->state == 'active') {
+                        
+                        $isContractor = FALSE;
+                        
+                        // Контракторите не са длъжни да имат екип
+                        if ($form->rec->rolesInput) {
+                            $cRec = clone($form->rec);
+                            $rolesArr = keylist::toArray($cRec->rolesInput);
+                            $rolesArr = core_Roles::expand($rolesArr);
+                            $cRec->roles = keylist::fromArray($rolesArr);
+                            
+                            $isContractor = core_Users::isContractor($cRec, TRUE);
+                        }
+                        
+                        if (!$isContractor) {
+                            $form->setError('roles1', "Потребителя трябва да има поне една роля за екип!");
+                        }
                 }
             }
             

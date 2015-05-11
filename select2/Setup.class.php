@@ -94,6 +94,8 @@ class select2_Setup extends core_ProtoSetup {
      */
     function install()
     {
+        $html = '';
+        
         if (core_Packs::isInstalled('chosen')) {
             $packs = cls::get('core_Packs');
             $html .= $packs->deinstall('chosen');

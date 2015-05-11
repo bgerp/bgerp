@@ -234,11 +234,38 @@ class core_Packs extends core_Manager
     
     
     /**
+     * Връща масив с имената на всички инсталирани пакети
+     * 
+     * @return array
+     */
+    public static function getInstalledPacksNamesArr()
+    {
+        $resArr = array();
+        
+        $query = self::getQuery();
+        while ($rec = $query->fetch()) {
+            
+            $resArr[$rec->name] = $rec->name;
+        }
+        
+        return $resArr;
+    }
+    
+    
+    /**
      * Вкарва всички неинстлирани пакети
      */
     function loadSetupData()
     {
         $packsName = $this->getAllPacksNamesArr();
+        
+        $installedPacksName = self::getInstalledPacksNamesArr();
+        
+        // Изтриваме премахнатите пакети
+        $removedPacksArr = array_diff($installedPacksName, $packsName);
+        foreach ((array)$removedPacksArr as $packName) {
+            $this->deinstall($packName);
+        }
         
         foreach ($packsName as $pack => $desc) {
             
@@ -485,7 +512,7 @@ class core_Packs extends core_Manager
        	$row->img = ht::createElement("img", array('src' => $imageUrl, 'alt' => 'icon-' . $rec->name));
        	
         $row->name = new ET("<b>" . $row->name . "</b>");
-        $row->name->append(' ' . str_replace(',', '.', $row->version));
+        // $row->name->append(' ' . str_replace(',', '.', $row->version));
         
     	if ($rec->startCtr) {
     	    try {

@@ -30,11 +30,11 @@ class crm_ProfilesPlg extends core_Plugin
                 $type = $field->type;
 
                 // Ако е от type_Key
-                if(cls::isSubclass($type, 'type_Key')) {
+                if(cls::isSubclass($type, 'type_Key')) { 
                     if(cls::isSubclass($type->params['mvc'], 'core_Users')) {
                         if($type->params['select'] == 'nick' || !$type->params['select']) { 
                             if(($rec->{$name} > 0) && !strpos($row->{$name}, '<')) {
-                                $row->{$name} = crm_Profiles::createLink($rec->{$name});
+                                $row->{$name} = crm_Profiles::createLink($rec->{$name}); 
                             }
                         }
                     }

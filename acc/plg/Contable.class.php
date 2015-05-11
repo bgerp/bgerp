@@ -512,13 +512,8 @@ class acc_plg_Contable extends core_Plugin
         		if(cls::haveInterface('doc_ContragentDataIntf', $mvc)){
         			 $rec = $mvc->fetchRec($id);
         			 $Cover = doc_Folders::getCover($rec->folderId);
-        			 $title = $Cover->getTitleById();
-        			
-        			 if($Cover->haveRightFor('single')){
-        				 $title = ht::createLinkRef($title, array($Cover->className, 'single', $Cover->that));
-        			 }
         				
-        			 $res = $title;
+        			 $res = $Cover->getShortHyperLink();
         		} else {
         			
         			// Aко няма основание, но журнала на документа има връщаме него

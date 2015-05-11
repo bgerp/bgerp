@@ -789,7 +789,7 @@ class core_App
         if ($preParamsArr) {
             
             // В пътя допускаме само букви, цифри , тере, долна черта и точка
-            $regExp = "[A-Za-z0-9_\-\.]";
+            $pattern = "/^[A-Za-z0-9_\-\.]*$/";
             
             // Обхождаме всички параметри
             foreach ($preParamsArr as $param) {
@@ -798,7 +798,7 @@ class core_App
                 if (isset($params[$param])) {
                     
                     // Ако не отоговаря на регулярния израз, да се остави за GET
-                    if (preg_match($regExp, $param) && preg_match($regExp, $params[$param])) {
+                    if (preg_match($pattern, $param) && preg_match($pattern, $params[$param])) {
 
                         // Добавяме към стринга
                         $pre .= urlencode($param) . '/' . urlencode($params[$param]) . '/';

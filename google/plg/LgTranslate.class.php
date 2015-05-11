@@ -55,7 +55,7 @@ class google_plg_LgTranslate extends core_Plugin
         
         // Добавяме скрипта
         jquery_Jquery::run($tpl, "
-        	$('.formFields table tbody').append('<tr><td style='text-align:right'>Google:</td><td>$markup</td>');
+        	$('.formFields table tbody').append('<tr><td style=\'text-align:right\'>Google:</td><td>$markup</td>');
         	
         	$('.goog-trans-text').text($('.translated').val());
         ");

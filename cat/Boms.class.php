@@ -141,9 +141,10 @@ class cat_Boms extends core_Master
      */
     function description()
     {
+    	$this->FLD('quantity', 'double(smartRound,Min=0)', 'caption=За,silent,refreshForm,mandatory');
     	$this->FLD('notes', 'richtext(rows=4)', 'caption=Забележки');
+    	$this->FLD('expenses', 'percent', 'caption=Режийни разходи');
     	$this->FLD('state','enum(draft=Чернова, active=Активиран, rejected=Оттеглен)', 'caption=Статус, input=none');
-    	$this->FLD('quantity', 'double(smartRound,Min=0)', 'caption=За,silent');
     	$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden,silent');
     	
     	$this->setDbIndex('productId');
@@ -213,6 +214,69 @@ class cat_Boms extends core_Master
     	$shortUom = cat_UoM::getShortName($productInfo->productRec->measureId);
     	$form->setField('quantity', "unit={$shortUom}");
     	$form->setDefault('quantity', 1);
+    	
+    	// При създаване на нова рецепта
+    	if(empty($form->rec->id)){
+    		$limit = core_Packs::getConfig('cat')->CAT_BOM_REMEMBERED_RESOURCES;
+    		
+    		$alreadyUsedResources = array();
+    		 
+    		// Опитваме се да намерим последно използваните ресурси в рецепти към този артикул
+    		$dQuery = cat_BomDetails::getQuery();
+    		$dQuery->EXT('productId', 'cat_Boms', 'externalName=productId,externalKey=bomId');
+    		$dQuery->where("#productId = {$form->rec->productId} AND #type = 'input'");
+    		$dQuery->groupBy('resourceId');
+    		$dQuery->show('resourceId');
+    		$dQuery->limit($limit);
+    		while($dRec = $dQuery->fetch()){
+    			$alreadyUsedResources[] = $dRec->resourceId;
+    		}
+    		 
+    		// Ако има такива, добавяме ги като полета във формата
+    		if(count($alreadyUsedResources)){
+    			foreach ($alreadyUsedResources as $i => $resId){
+    				$form->FNC("resourceId{$i}", 'key(mvc=planning_Resources,select=title,allowEmpty)', 'input=hidden');
+    				$form->setDefault("resourceId{$i}", $resId);
+    				$caption = planning_Resources::getTitleById($resId);
+    				$caption = str_replace(',', '.', $caption);
+    				 
+    				if(isset($form->rec->quantity)){
+    					$right = "за {$form->rec->quantity} {$shortUom}";
+    				}
+    				 
+    				$form->FNC("quantities{$i}", "complexType(left=Начално,right={$right},require=one)", "input,caption=|*{$caption}->|К-ва|*");
+    			}
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Изпълнява се след създаване на нов запис
+     */
+    public static function on_AfterCreate($mvc, $rec)
+    {
+    	$count = core_Packs::getConfig('cat')->CAT_BOM_REMEMBERED_RESOURCES;
+    	$count = count($count) -1;
+    	
+    	// Проверяваме имали избрани ресурси още от формата
+    	foreach (range(0, $count) as $i){
+    		if(isset($rec->{"resourceId{$i}"})){
+    			if(!empty($rec->{"quantities{$i}"})){
+    				$parts = type_ComplexType::getParts($rec->{"quantities{$i}"});
+    	
+    				// Ако някой от ресурсите в формата има количество добавяме го като детайл, автоматично
+    				$dRec = (object)array('bomId' => $rec->id,
+				    					  'type' => 'input',
+				    					  'resourceId' => $rec->{"resourceId{$i}"},
+				    					  'baseQuantity' => ($parts['left']) ? $parts['left'] : NULL,
+				    					  'propQuantity' => ($parts['right']) ? $parts['right'] : NULL);
+    	
+    				// Запис на детайла
+    				cat_BomDetails::save($dRec);
+    			}
+    		}
+    	}
     }
     
     
@@ -335,30 +399,39 @@ class cat_Boms extends core_Master
     
     /**
      * Връща сумата на спецификацията според подадения ориджин
+     * Ако някой от ресурсите няма себестойност не може да се пресметне сумата
      * 
      * @param int $productId - ид на артикул
-     * @return stdClass $total - обект съдържащ сумарната пропорционална и начална цена
+     * @return mixed $total - обект съдържащ сумарната пропорционална и начална цена
      * 		 o $total->base - началната сума (в основната валута за периода)
      * 		 o $total->prop - пропорционалната сума (в основната валута за периода)
      */
-    public static function getPrice($productId)
+    public static function getPrice($productId, $bomId = NULL)
     {
     	// Намираме активната карта за обекта
-    	$rec = self::fetch("#productId = {$productId} AND #state = 'active'");
+    	$where = "#productId = {$productId} AND #state = 'active'";
+    	if($bomId){
+    		$where .= " AND #id = {$bomId}";
+    	}
+    	$rec = self::fetch($where);
     	
     	// Ако няма, връщаме нулеви цени
     	if(empty($rec)) return FALSE;
     	
     	// Кои ресурси участват в спецификацията
     	$rInfo = static::getResourceInfo($rec);
-    	
     	$amounts = (object)array('base' => 0, 'prop' => 0);
     	
     	// За всеки ресурс
-    	if(count($rInfo)){
-    		foreach ($rInfo as $dRec){
+    	if(count($rInfo['resources'])){
+    		foreach ($rInfo['resources'] as $dRec){
     			$sign = ($dRec->type == 'input') ? 1 : -1;
-    			$selfValue = planning_Resources::fetchField($dRec->resourceId, 'selfValue');
+    			
+    			// Опитваме се да намерим себестойност за артикула
+    			$selfValue = planning_Resources::getSelfValue($dRec->resourceId, $date = NULL);
+    			
+    			// Ако не може да се определи себестойност на ресурса, не може и по рецептата
+    			if(!$selfValue) return FALSE;
     			
     			// Добавяме към началната сума и пропорционалната
     			$amounts->base += $dRec->baseQuantity * $selfValue * $sign;
@@ -375,17 +448,21 @@ class cat_Boms extends core_Master
      * Връща информация с ресурсите използвани в технологичната рецепта
      *
      * @param mixed $id - ид или запис
-     * @return array $res - масив с записи на участващите ресурси
-     * 			o $res->resourceId       - ид на ресурса
-     * 			или o $res->productId        - отпаден артикул
-     * 			o $res->baseQuantity     - начално количество на ресурса
-     * 			o $res->propQuantity     - пропорционално количество на ресурса
+     * @return array $res - Информация за рецептата
+     * 				->quantity - к-во
+     * 				->resources
+     * 			        o $res->resourceId       - ид на ресурса
+     * 					o $res->type             - вложим или отпаден ресурс
+	 * 			        o $res->baseQuantity     - начално количество на ресурса
+	 * 			        o $res->propQuantity     - пропорционално количество на ресурса
      */
     public static function getResourceInfo($id)
     {
     	$resources = array();
     	
     	expect($rec = static::fetchRec($id));
+    	$resources['quantity'] = ($rec->quantity) ? $rec->quantity : 1;
+    	$resources['expenses'] = ($rec->expenses) ? $rec->expenses : NULL;
     	
     	// Намираме всички етапи в рецептата
     	$dQuery = cat_BomDetails::getQuery();
@@ -400,58 +477,10 @@ class cat_Boms extends core_Master
     		$arr['baseQuantity'] = $dRec->baseQuantity;
     		$arr['propQuantity'] = $dRec->propQuantity;
     		 
-    		$resources[] = (object)$arr;
+    		$resources['resources'][] = (object)$arr;
     	}
     	
     	// Връщаме намерените ресурси
     	return $resources;
-    }
-    
-    
-    /**
-     * Рекурсивно обхождаме дървото на рецептата и търсим дали
-     * тя съдържа някъде определен ресурс, ако да то добавяме
-     * всички ресурси които са част от дървото към масив.
-     * 
-     * @param int $resourceId - ид на ресурса
-     * @param array $notAllowed - масив където се добавят
-     * забранените ресурси
-     * @param int $needle - ресурс, който търсим
-     * @param array $path - пътя до ресурса в дървото
-     */
-    private static function traverseTree($resourceId, $needle, &$notAllowed, $path = array())
-    {
-    	// Добавяме текущия продукт
-    	$path[] = $resourceId;
-    	
-    	// Ако стигнем до началния, прекратяваме рекурсията
-    	if($resourceId == $needle){
-    		foreach($path as $p){
-    			 
-    			// За всеки продукт в пътя до намерения ние го
-    			// добавяме в масива notAllowed, ако той, вече не е там
-    			if(!array_key_exists($p, $path)){
-    				$notAllowed[$p] = $p;
-    			}
-    		}
-    		return;
-    	}
-    	
-    	// Взимаме вложените ресурси в етапа
-    	$query = cat_BomStageDetails::getQuery();
-    	$stageRec = cat_BomStages::fetch("#resourceId = {$resourceId}");
-    	
-    	$query->where("#bomstageId = {$stageRec->id} AND #type = 'input'");
-    	
-    	// За всеки
-    	while($rec = $query->fetch()){
-    		
-    		// Ако някой от вложимите е изходен за друг етап от рецептата
-    		if($sRec = cat_BomStages::fetch("#bomId = {$stageRec->bomId} AND #resourceId = {$rec->resourceId}")){
-    			
-    			// Извикваме рекурсивно
-    			self::traverseTree($sRec->resourceId, $needle, $notAllowed, $path);
-    		}
-    	}
     }
 }

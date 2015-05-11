@@ -277,7 +277,7 @@ class cal_Tasks extends core_Master
 
         $progressPx = min(100, round(100 * $rec->progress));
         $progressRemainPx = 100 - $progressPx;
-        $row->progressBar = "<div style='display:inline-block;top:-5px;border-bottom:solid 10px {$blue}; width:{$progressPx}px;'> </div><div style='display:inline-block;top:-5px;border-bottom:solid 10px {$grey};width:{$progressRemainPx}px;'> </div>";
+        $row->progressBar = "<div style='white-space: nowrap; display: inline-block;'><div style='display:inline-block;top:-5px;border-bottom:solid 10px {$blue}; width:{$progressPx}px;'> </div><div style='display:inline-block;top:-5px;border-bottom:solid 10px {$grey};width:{$progressRemainPx}px;'></div></div>";
         
         if($rec->timeEnd && ($rec->state != 'closed' && $rec->state != 'rejected')) {
         	$remainingTime = dt::mysql2timestamp($rec->timeEnd) - time();
@@ -1326,8 +1326,10 @@ class cal_Tasks extends core_Master
 	        	}
         	}
         	
+        	$cntResTask = count($resTask);
+        	
         	// правим помощен масив = на "rowId" от "resTasks"
-        	for($i = 0; $i < count($resTask); $i++) { $j = 0;
+        	for($i = 0; $i < $cntResTask; $i++) { $j = 0;
         		$rowArr[] = $resTask[$i]['rowId'];
         		
         		// Проверка дали ще има URL

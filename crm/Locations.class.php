@@ -143,6 +143,32 @@ class crm_Locations extends core_Master {
     
     
     /**
+     * Връща стринг с всички имейли за съответния обект
+     * 
+     * @param integer $clsId
+     * @param integer $contragentId
+     * 
+     * @return string
+     */
+    public static function getEmails($clsId, $contragentId)
+    {
+        $resStr = '';
+        
+        $query = self::getQuery();
+        $query->where(array("#contragentCls = '[#1#]'", $clsId));
+        $query->where(array("#contragentId = '[#1#]'", $contragentId));
+        
+        while ($rec = $query->fetch()) {
+            if (!trim($rec->email)) continue;
+            
+            $resStr .= ($resStr) ? ', ' . $rec->email : $rec->email;
+        }
+        
+        return $resStr;
+    }
+    
+    
+    /**
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
     protected static function on_AfterPrepareEditForm($mvc, &$res, $data)

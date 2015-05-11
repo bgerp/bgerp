@@ -168,7 +168,7 @@ class doc_DocumentPlg extends core_Plugin
                     'restore',
                     $data->rec->id
                 ),
-                'id=btnRestore,warning=Наистина ли желаете да възстановите документа?,order=32', 'ef_icon = img/16/restore.png');
+                'id=btnRestore,warning=Наистина ли желаете да възстановите документа?,order=32,title=Възстановяване на документа', 'ef_icon = img/16/restore.png');
         }
         
         //Бутон за добавяне на коментар 
@@ -293,8 +293,8 @@ class doc_DocumentPlg extends core_Plugin
             }
 
             if($rec->state == 'rejected') {
-                $tpl = new ET(tr(' от [#user#] на [#date#]'));
-                $row->state .= $tpl->placeArray(array('user' => $row->modifiedBy, 'date' => dt::mysql2Verbal($rec->modifiedOn)));
+                $tpl = new ET(tr(' от [#user#] на [#date#]')); 
+                $row->state .= $tpl->placeArray(array('user' => crm_Profiles::createLink($rec->modifiedBy), 'date' => dt::mysql2Verbal($rec->modifiedOn)));
             }
         }
     }
@@ -339,7 +339,7 @@ class doc_DocumentPlg extends core_Plugin
             // създаваме нов контейнер за документите от този клас 
             // и записваме връзка към новия контейнер в този документ
             if(!isset($rec->containerId)) {
-                $rec->containerId = doc_Containers::create($mvc, $rec->threadId, $rec->folderId, $rec->createdOn);
+                $rec->containerId = doc_Containers::create($mvc, $rec->threadId, $rec->folderId, $rec->createdOn, $rec->createdBy);
             }
             
             // Задаваме началното състояние по подразбиране
@@ -348,8 +348,13 @@ class doc_DocumentPlg extends core_Plugin
             }
             
             // Задаваме стойностите на created полетата
-            $rec->createdBy = Users::getCurrent() ? Users::getCurrent() : 0;
-            $rec->createdOn = dt::verbal2Mysql();
+            if (!isset($rec->createdBy)) {
+                $rec->createdBy = Users::getCurrent() ? Users::getCurrent() : 0;
+            }
+            
+            if (!isset($rec->createdOn)) {
+                $rec->createdOn = dt::verbal2Mysql();
+            }
         }
         
         // Задаваме стойностите на полетата за последно модифициране
@@ -442,13 +447,13 @@ class doc_DocumentPlg extends core_Plugin
         
         // Ако нямаме тред - създаваме нов тред в тази папка
         if(!$rec->threadId) {
-            $rec->threadId = doc_Threads::create($rec->folderId, $rec->createdOn);
+            $rec->threadId = doc_Threads::create($rec->folderId, $rec->createdOn, $rec->createdBy);
         }
         
         // Ако нямаме контейнер - създаваме нов контейнер за 
         // този клас документи в определения тред
         if(!$rec->containerId) {
-            $rec->containerId = doc_Containers::create($mvc, $rec->threadId, $rec->folderId, $rec->createdOn);
+            $rec->containerId = doc_Containers::create($mvc, $rec->threadId, $rec->folderId, $rec->createdOn, $rec->createdBy);
         }
     }
     
@@ -1321,7 +1326,7 @@ class doc_DocumentPlg extends core_Plugin
             }
             
             // Трябва да има права за добавяне
-            if (!$mvc->haveRightFor('add', $cRec, $userId)) {
+            if (!$mvc->haveRightFor('add', $cRec, $userId) || !doc_Threads::haveRightFor('single', $tRec)) {
                 
                 // Трябва да има права за добавяне за да може да клонира
                 $requiredRoles = 'no_one';
@@ -2209,7 +2214,8 @@ class doc_DocumentPlg extends core_Plugin
      */
     public static function on_BeforeRenderWrapping($mvc, &$res, &$tpl, $data = NULL)
     {
-        if(haveRole('powerUser') && (Request::get('Act') == 'edit' || Request::get('Act') == 'add')) {
+        if (haveRole('powerUser') && ((Request::get('Act') == 'edit' || Request::get('Act') == 'add')
+            || ($data->rec->threadId && !doc_Threads::haveRightFor('single', $data->rec->threadId)))) {
             $dc = cls::get('doc_Containers');
             $dc->currentTab = 'Нишка';
             $res = $dc->renderWrapping($tpl, $data);
@@ -2220,5 +2226,47 @@ class doc_DocumentPlg extends core_Plugin
 
             return FALSE;
         }
+    }
+    
+    
+    /**
+     * Създава нов документ със съответните стойности
+     * 
+     * @param core_Mvc $mvc
+     * @param NULL|integer $id
+     * @param object $rec
+     */
+    public static function on_AfterCreateNew($mvc, &$id, $rec)
+    {
+        // Очакваме да има такива полета в модела
+        $allFldArr = $mvc->selectFields("#kind == 'FLD'");
+        $recArr = (array)$rec;
+        foreach ($recArr as $field => $dummy) {
+            expect($allFldArr[$field], "Полето '{$field}' липсва в модела");
+        }
+        
+        $id = $mvc->save($rec);
+    }
+    
+    
+    /**
+     * Преди подготовка на тулбара на единичен изглед.
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     */
+    static function on_BeforePrepareSingleToolbar($mvc, &$res, $data)
+    {
+        // Ако няма права за сингъла на нишката да не се показва тулбар
+        if ($data->rec->threadId && !doc_Threads::haveRightFor('single', $data->rec->threadId)) {
+            
+            if (is_object($data)) {
+                $data->toolbar = cls::get('core_Toolbar');
+            }
+            
+            return FALSE;
+        }
+        
     }
 }

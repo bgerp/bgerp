@@ -2,6 +2,9 @@
 
 
 
+
+
+
 /**
  * Мениджър на отчети от различни източници
  *
@@ -20,7 +23,7 @@ class frame_Reports extends core_Embedder
     /**
      * Необходими плъгини
      */
-    public $loadList = 'plg_RowTools, frame_Wrapper, doc_DocumentPlg, plg_Search, plg_Printing, doc_plg_HidePrices';
+    public $loadList = 'plg_RowTools, frame_Wrapper, doc_DocumentPlg, plg_Search, plg_Printing, doc_plg_HidePrices, bgerp_plg_Blank';
                       
     
     /**
@@ -50,7 +53,7 @@ class frame_Reports extends core_Embedder
     /**
      * Права за писане
      */
-    public $canEdit = 'ceo, report, admin';
+    public $canEdit = 'powerUser';
     
     
     /**
@@ -74,7 +77,13 @@ class frame_Reports extends core_Embedder
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canChangestate = 'ceo, report, admin';
+	public $canChangestate = 'powerUser';
+    
+    
+	/**
+	 * Кой може да добавя?
+	 */
+	public $canAdd = 'powerUser';
 	
 	
     /**
@@ -153,6 +162,7 @@ class frame_Reports extends core_Embedder
            
             // Обновяваме данните, ако отчета е в състояние 'draft'
             if($rec->state == 'draft') {
+               //bp($rec, $mvc->getDriver($rec));
             	$Source = $mvc->getDriver($rec);
             	$rec->data = $Source->prepareInnerState();
             }
@@ -334,6 +344,35 @@ class frame_Reports extends core_Embedder
     
     
     /**
+     * Екшън който експортира данните
+     */
+    public function act_Export()
+    {
+    	expect($id = Request::get('id', 'int'));
+    	expect($rec = $this->fetch($id));
+    	 
+    	// Проверка за права
+    	$this->requireRightFor('export', $rec);
+    	 
+    	$Driver = $this->getDriver($rec);
+
+    	$csv = $Driver->exportCsv();
+
+    	$fileName = str_replace(' ', '_', Str::utf2ascii($Driver->title));
+    	
+    	header("Content-type: application/csv");
+    	header("Content-Disposition: attachment; filename={$fileName}.csv");
+    	header("Pragma: no-cache");
+    	header("Expires: 0");
+    	
+    	echo $csv;
+
+    	shutdown();
+
+    }
+    
+    
+    /**
      * Метод активиращ документа или го прави чакащ
      * 
      * @param stdClass $rec
@@ -373,6 +412,10 @@ class frame_Reports extends core_Embedder
     	if($mvc->haveRightFor('changestate', $data->rec)){
     		$data->toolbar->addBtn('Активиране', array($mvc, 'activate', $data->rec->id), "id=btnActivate,warning=Наистина ли желаете документа да бъде активиран?", 'ef_icon = img/16/lightning.png,title=Активиране на отчета');
     	}
+    	
+    	if($mvc->haveRightFor('export', $data->rec)){
+    		$data->toolbar->addBtn('Експорт в CSV', array($mvc, 'export', $data->rec->id), NULL, 'ef_icon = img/16/file_extension_xls.png, title = Сваляне на записите в CSV формат');
+    	}
     }
     
     
@@ -404,6 +447,46 @@ class frame_Reports extends core_Embedder
     		if($state == 'pending'){
     			$requiredRoles = $mvc->getRequiredRoles('edit');
     		}
+    	}
+
+    	// Ако отчета е активен, може да се експортва
+    	if($action == 'export' && isset($rec)){
+    		$state = (!isset($rec->state)) ? $mvc->fetchField($rec->id, 'state') : $rec->state;
+    		if($state != 'active'){
+    			$requiredRoles = 'no_one';
+    		}
+    	}
+    	
+    	if ($action == 'add') {
+    	    
+    	    $canAdd = FALSE;
+    	    
+    		// Извличаме класовете с посочения интерфейс
+    		$interfaces = core_Classes::getOptionsByInterface($mvc->innerObjectInterface, 'title');
+			foreach ((array)$interfaces as $id => $int){
+				if(!cls::load($id, TRUE)) continue;
+				
+				$Driver = cls::get($id);
+				
+				// Ако има права за добавяне на поне 1 отчет
+				if($Driver->canSelectInnerObject()){
+				    
+				    $canAdd = TRUE;
+				    break;
+				}
+			}
+			
+			if (!$canAdd) {
+			    $requiredRoles = 'no_one';
+			}
+    	}
+    	
+    	if ($rec && (($action == 'changestate') || ($action == 'edit') || ($action == 'export'))) {
+    	    if (!haveRole('ceo, report, admin', $userId)) {
+    	        if ($rec->createdBy != $userId) {
+    	            $requiredRoles = 'no_one';
+    	        }
+    	    }
     	}
     }
 }

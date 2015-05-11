@@ -1015,8 +1015,12 @@ a.profile {
   color: #999999 !important;
   text-decoration: line-through !important; }
 
+.state-rejected .document .profile {
+  text-decoration: none !important; }
+
 .state-rejected .docBgIcon,
-.state-rejected .document .docBgIcon b {
+.state-rejected .document .docBgIcon b,
+.state-rejected .document .docBgIcon a {
   color: #444444 !important; }
 
 .state-rejected .document img,
@@ -1075,7 +1079,7 @@ table.listTable {
     line-height: normal; }
   table.listTable > tbody > tr > td {
     border: 1px solid #bbbbbb;
-    padding: 4px 3px 2px;
+    padding: 4px 3px 3px;
     line-height: normal;
     font-family: Arial, Verdana;
     vertical-align: middle;
@@ -1471,7 +1475,7 @@ input:focus[type=button] {
   border-radius: 0 0 5px 5px;
   border: solid 1px #bbbbbb;
   border-top: none;
-  background-image: url('../img/formToolbarBg.jpg'); }
+  background: #cccccc url('../img/formToolbarBg.jpg'); }
 
 .wide .vertical .formToolbar .toolbar div {
   margin: 2px 0; }
@@ -2646,8 +2650,8 @@ div.statuses-message h2 {
 .elem-holder {
   position: relative;
   display: block;
-  width: 360px;
-  padding: 9px;
+  width: 370px;
+  padding: 8px;
   margin-right: 20px;
   margin-bottom: 20px;
   float: left;
@@ -2682,7 +2686,7 @@ div.statuses-message h2 {
     margin: 0.25em 0;
     font-size: 0.9em;
     line-height: 1.1em;
-    height: 2.2em; }
+    height: 3.3em; }
   .elem-holder b {
     margin-top: 3px;
     font-size: 1.2em;
@@ -2691,33 +2695,35 @@ div.statuses-message h2 {
     width: 84px;
     height: 85px;
     float: left;
-    margin-right: 7px; }
+    margin-right: 10px;
+    margin-top: 5px;
+    margin-left: 3px; }
     .elem-holder .elem-img img {
-      width: 84px;
+      width: 85px;
       height: 85px; }
   .elem-holder .btns {
+    min-height: 15px;
     display: block;
     float: right;
     color: #999999;
-    margin-right: -0.5em;
     font-size: 0.8em; }
     .elem-holder .btns a {
       display: inline-block;
-      margin: 0 0.5em; }
+      margin: 0 3px; }
       .elem-holder .btns a:hover {
         text-decoration: underline; }
 
 .narrow .elem-holder {
-  width: 265px; }
+  width: 275px; }
   .narrow .elem-holder .pack-info {
     font-size: 0.8em;
-    line-height: 1.15em;
+    line-height: 1.1em;
     margin: 0em 0.1em 0.3em 0;
-    height: 3em; }
+    height: 4em; }
   .narrow .elem-holder b {
-    font-size: 1.1em; }
+    font-size: 1em; }
     .narrow .elem-holder .btns a {
-      font-size: 0.9em;
+      font-size: 0.85em;
       display: inline-block;
       padding: 0 0.5em 0.2em;
       margin: 0; }
@@ -2727,7 +2733,8 @@ div.statuses-message h2 {
     width: 64px;
     height: 65px;
     float: left;
-    margin-right: 7px; }
+    margin-right: 7px;
+    margin-top: 20px; }
     .narrow .elem-holder .elem-img img {
       width: 64px;
       height: 65px; }

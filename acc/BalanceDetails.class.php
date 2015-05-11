@@ -318,9 +318,7 @@ class acc_BalanceDetails extends core_Detail
             
             if($by["feat{$i}"]){
                 $groupedBy[$i] = $by["feat{$i}"];
-                if($by["feat{$i}"] == '*'){
-                	$data->listFields["ent{$i}Id"] = tr("[По пера]");
-                } else {
+                if($by["feat{$i}"] != '*'){
                 	$data->listFields["ent{$i}Id"] = $Varchar->toVerbal($groupedBy[$i]);
                 }
             }
@@ -688,7 +686,7 @@ class acc_BalanceDetails extends core_Detail
         }
         
         $features = acc_Features::getFeatureOptions(array_keys($options));
-        $features = array('' => '') + $features + array('*' => '[По пера]');
+        $features = array('' => '') + $features + array('*' => $listRec->name);
         
         $listName = acc_Lists::getVerbal($listRec, 'name');
         $form->fieldsLayout->replace($listName, "caption{$i}");
@@ -907,7 +905,8 @@ class acc_BalanceDetails extends core_Detail
     	$res = FALSE;
     	 
     	// Обхождаме дебита и кредита
-    	foreach (array('debit', 'credit') as $type){
+    	//@TODO трябва да се раздели на две обхождания за в случая когато дебтната сметка има стратегия
+    	foreach (array('credit', 'debit') as $type){
     		$quantityField = "{$type}Quantity";
     		$priceField = "{$type}Price";
     
@@ -939,13 +938,17 @@ class acc_BalanceDetails extends core_Detail
     						// И има интерфейс за дефолт цена
     						if(cls::haveInterface('acc_RegistryDefaultCostIntf', $itemRec->classId)){
     							
-    							// Извличаме дефолт цената му според записа
-    							$Register = cls::get($itemRec->classId);
-    							$defCost = $Register->getDefaultCost($itemRec->objectId);
-    							
-    							// Присвояваме дефолт сумата за сума на записа, и преизчисляваме цената
-    							$rec->amount = $defCost * $rec->{$quantityField};
-    							@$price = round($rec->amount / $rec->{$quantityField}, 4);
+    							// Ако сметката има стратегия сметката
+    							if(acc_Accounts::hasStrategy($rec->{"{$type}AccId"})){
+    								
+    								// Извличаме дефолт цената му според записа
+    								$Register = cls::get($itemRec->classId);
+    								$defCost = $Register->getDefaultCost($itemRec->objectId);
+    									
+    								// Присвояваме дефолт сумата за сума на записа, и преизчисляваме цената
+    								$rec->amount = $defCost * $rec->{$quantityField};
+    								@$price = round($rec->amount / $rec->{$quantityField}, 4);
+    							}
     						}
     					}
     				}

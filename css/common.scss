@@ -4,7 +4,7 @@
  *   клиенти с обичайно големи дисплеи и малки дисплеи          *
  *                                                              *
  ****************************************************************/
- 
+
  /*общи функции и параметри*/
 $blue: #048;
 $dark-blue: #036;
@@ -1042,7 +1042,11 @@ a.profile {
     text-decoration: line-through !important;
 }
 
-.state-rejected .docBgIcon, .state-rejected .document .docBgIcon b {
+.state-rejected .document .profile{
+    text-decoration: none !important;
+}
+
+.state-rejected .docBgIcon, .state-rejected .document .docBgIcon b, .state-rejected .document .docBgIcon a {
     color: #444 !important;
 }
 
@@ -1106,7 +1110,7 @@ table.listTable {
 	}
 	> tbody > tr > td {
 	    border: 1px solid $gray4;
-	    padding: 4px 3px 2px;
+	    padding: 4px 3px 3px;
 	    line-height: normal; 
 	    font-family: Arial,Verdana;
 		vertical-align: middle;
@@ -1566,7 +1570,7 @@ td.formElement {
 	@include border-radius4(0, 0, 5px, 5px);
 	border: solid 1px $gray4;
 	border-top: none;
-	background-image: url('../img/formToolbarBg.jpg');
+	background: #ccc url('../img/formToolbarBg.jpg');
 }
 
 .wide .vertical .formToolbar .toolbar div{
@@ -2860,8 +2864,8 @@ div.statuses-message h2 {
 .elem-holder {
 	position: relative;
 	display: block;
-	width: 360px;
-	padding: 9px;
+	width: 370px;
+	padding: 8px;
 	margin-right: 20px;
 	margin-bottom: 20px;
 	float: left;
@@ -2905,7 +2909,7 @@ div.statuses-message h2 {
 		margin: 0.25em 0;
 		font-size: 0.9em;
 		line-height: 1.1em;
-		height: 2.2em;
+		height: 3.3em;
 	}
 
 	b {
@@ -2917,21 +2921,23 @@ div.statuses-message h2 {
 		width: 84px;
 		height: 85px;
 		float: left;
-		margin-right: 7px;
+		margin-right: 10px;
+        margin-top: 5px;
+        margin-left: 3px;
 		img {
-			width: 84px;
+			width: 85px;
 			height: 85px;
 		}
 	}
 	.btns {
+        min-height: 15px;
 		display: block;
 		float: right;
 		color: #999;
-		margin-right: -0.5em;
 		font-size: 0.8em;
 		a {
 			display: inline-block;
-			margin: 0 0.5em;
+			margin: 0 3px;
 			&:hover {
 				text-decoration: underline;
 			}
@@ -2940,19 +2946,19 @@ div.statuses-message h2 {
 }
 
 .narrow .elem-holder {
-	width: 265px;
+	width: 275px;
 	.pack-info {
 		font-size: 0.8em;
-		line-height: 1.15em;
+		line-height: 1.1em;
 		margin: 0em 0.1em 0.3em 0;
-		height: 3em;
+		height: 4em;
 	}
 	b {
-		font-size: 1.1em;
+		font-size: 1em;
 	}
 	.btns {
 		a {
-			font-size: 0.9em;
+			font-size: 0.85em;
 			display: inline-block;
 			padding: 0 0.5em 0.2em;
 			margin: 0;
@@ -2966,6 +2972,7 @@ div.statuses-message h2 {
 		height: 65px;
 		float: left;
 		margin-right: 7px;
+        margin-top: 20px;
 		img {
 			width: 64px;
 			height: 65px;

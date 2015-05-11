@@ -193,7 +193,8 @@ class marketing_Inquiries2 extends core_Embedder
     
         $this->FLD('params', 'blob(serialize,compress)', 'input=none,silent');
     	$this->FLD('ip', 'varchar', 'caption=Ип,input=none');
-    	$this->FLD('browser', 'varchar(80)', 'caption=Браузър,input=none');
+    	$this->FLD('browser', 'varchar(80)', 'caption=UA String,input=none');
+      	$this->FLD('brid', 'varchar(8)', 'caption=Браузър,input=none');
     }
 
 
@@ -215,7 +216,7 @@ class marketing_Inquiries2 extends core_Embedder
     {
     	if ($form->isSubmitted()){
     		$form->rec->ip = core_Users::getRealIpAddr();
-    		$form->rec->browser = Mode::get('getUserAgent');
+    		$form->rec->brid = core_Browser::getBrid();
     		$form->rec->state = 'active';
     		
     		$form->rec->quantities = array();
@@ -234,7 +235,7 @@ class marketing_Inquiries2 extends core_Embedder
      * Проверка дали нов документ може да бъде добавен в
      * посочената папка като начало на нишка
      *
-     * @param $folderId int ид на папката
+     * @param int $folderId - ид на папката
      */
     public static function canAddToFolder($folderId)
     {
@@ -257,6 +258,8 @@ class marketing_Inquiries2 extends core_Embedder
     		$row->email = "<div class='email'>{$row->email}</div>";
     		$row->ip = type_Ip::decorateIp($rec->ip, $rec->createdOn);
     	}
+
+        $row->brid = core_Browser::getLink($rec->brid);
     	 
     	if($fields['-list']){
     		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
@@ -421,7 +424,7 @@ class marketing_Inquiries2 extends core_Embedder
     		$files = $this->getAttachedFiles($rec);
     		 
     		// Ако има прикачени файлове, добавяме ги
-    		if($files){
+    		if(count($files)){
 	    		foreach ($files as $fh => $name){
 		    		$name = fileman_Files::fetchByFh($fh, 'name');
 		    		$path = fileman_Files::fetchByFh($fh, 'path');
@@ -683,7 +686,7 @@ class marketing_Inquiries2 extends core_Embedder
     		$rec = &$form->rec;
     		$rec->state = 'active';
     		$rec->ip = core_Users::getRealIpAddr();
-    		$rec->browser = Mode::get('getUserAgent');
+    		$rec->brid = core_Browser::getBrid();
     	
     		if(empty($rec->folderId)){
     			$rec->folderId = $this->Router->route($rec);
@@ -693,14 +696,25 @@ class marketing_Inquiries2 extends core_Embedder
     		
     		// Запис и редирект
     		if($this->haveRightFor('new')){
-    			$id = $this->save($rec);
+    		    
+    		    vislog_History::add('Ново маркетингово запитване');
+    		    
     			$cu = core_Users::getCurrent('id', FALSE);
-    			 
-    			// Ако няма потребител, записваме в бисквитка ид-то на последното запитване
+    		    
+    			// Ако няма потребител
     			if(!$cu){
-    				setcookie("inquiryCookie[inquiryId]", str::addHash($id, 10), time() + 2592000);
+        		    $contactFields = $this->selectFields("#class == 'contactData'");
+                    $fieldNamesArr = array_keys($contactFields);
+                    $userData = array();
+                    foreach ((array)$fieldNamesArr as $fName) {
+                        if (!trim($form->rec->$fName)) continue;
+                        $userData[$fName] = $form->rec->$fName;
+                    }
+                    core_Browser::setVars($userData);
     			}
-    			 
+    		    
+    			$id = $this->save($rec);
+    			
     			status_Messages::newStatus(tr('Благодарим ви за запитването'), 'success');
     			 
     			// Ако има грешка при изпращане, тя се показва само на powerUser-и
@@ -711,7 +725,7 @@ class marketing_Inquiries2 extends core_Embedder
     			return followRetUrl();
     		}
     	}
-    	 
+    	
     	$form->toolbar->addSbBtn('Изпрати', 'save', 'id=save, ef_icon = img/16/disk.png,title=Изпращане на запитването');
     	$form->toolbar->addBtn('Отказ', getRetUrl(),  'id=cancel, ef_icon = img/16/close16.png,title=Oтказ');
     	$tpl = $form->renderHtml();
@@ -792,7 +806,7 @@ class marketing_Inquiries2 extends core_Embedder
     	}
     	 
     	// Ако няма потребител, но има бискйвитка зареждаме данни от нея
-    	if(!$cu && isset($_COOKIE['inquiryCookie']['inquiryId'])){
+    	if(!$cu){
     		$this->setFormDefaultFromCookie($form);
     	}
     	 
@@ -805,11 +819,13 @@ class marketing_Inquiries2 extends core_Embedder
      */
     private function setFormDefaultFromCookie(&$form)
     {
-    	$inquiryId = str::checkHash($_COOKIE['inquiryCookie']['inquiryId'], 10);
-    	$lastInquiry = $this->fetch($inquiryId);
-    	$contactFields = $this->selectFields("#class == 'contactData'");
-    	foreach ($contactFields as $name => $fld){
-    		$form->rec->{$name} = $lastInquiry->{$name};
+        $contactFields = $this->selectFields("#class == 'contactData'");
+        $fieldNamesArr = array_keys($contactFields);
+        
+        $vars = core_Browser::getVars($fieldNamesArr);
+        
+    	foreach ((array)$vars as $name => $val){
+    		$form->setDefault($name, $val);
     	}
     }
     

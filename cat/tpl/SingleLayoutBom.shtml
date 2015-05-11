@@ -6,10 +6,7 @@
     </div>
     <!--ET_END header-->
     <div>[#productId#]</div>
-    <!--ET_BEGIN quantity-->
-    <div>|За|*: [#quantity#]</div>
-    <!--ET_END quantity-->
-    
+    <div>|Режийни разходи|*: [#expenses#]</div>
     <div class = 'fieldset-holder' style='margin-top:10px'>
     [#cat_BomDetails#]
     </div>

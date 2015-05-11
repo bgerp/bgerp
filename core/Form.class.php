@@ -136,9 +136,12 @@ class core_Form extends core_FieldSet
         // Ако има функции за викане за генериране на опции
         $optionsFunc = $this->selectFields("#optionsFunc");
         if ($optionsFunc) {
-            
             foreach ($optionsFunc as $name => $field) {
-                $field->type->options = cls::callFunctArr($field->optionsFunc, array($field->type, $field->type->options));
+                if ($field->type instanceof type_Varchar) {
+                    $field->type->suggestions = cls::callFunctArr($field->optionsFunc, array($field->type, $field->type->suggestions));
+                } else {
+                    $field->type->options = cls::callFunctArr($field->optionsFunc, array($field->type, $field->type->options));
+                }
             }
         }
         
@@ -275,7 +278,11 @@ class core_Form extends core_FieldSet
         if ($optionsFunc) {
             
             foreach ($optionsFunc as $name => $field) {
-                $field->type->options = cls::callFunctArr($field->optionsFunc, array($field->type, $field->type->options));
+                if ($field->type instanceof type_Varchar) {
+                    $field->type->suggestions = cls::callFunctArr($field->optionsFunc, array($field->type, $field->type->suggestions));
+                } else {
+                    $field->type->options = cls::callFunctArr($field->optionsFunc, array($field->type, $field->type->options));
+                }
             }
         }
         
@@ -625,11 +632,11 @@ class core_Form extends core_FieldSet
                     $attr['style'] .= "height:{$field->height};";
                 }
 
-                if($field->refreshForm) {
-                    $attr['onchange'] .= "refreshForm(this.form);";
-                } elseif($field->removeAndRefreshForm) {
+                if($field->removeAndRefreshForm) {
                     $rFields = str_replace('|', "', '", trim($field->removeAndRefreshForm, '|'));
                     $attr['onchange'] .= "refreshForm(this.form, ['{$rFields}']);";
+                } elseif($field->refreshForm) {
+                    $attr['onchange'] .= "refreshForm(this.form);";
                 }
                 
                 if ($field->placeholder) {

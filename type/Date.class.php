@@ -63,7 +63,11 @@ class type_Date extends core_Type {
      * Конвертира от вербална стойност
      */
     function fromVerbal($value)
-    {
+    { 
+        if(is_array($value) && isset($value['d'])) {
+            $value = $value['d'];
+        }
+
         $value = trim($value);
         
         if(empty($value)) return NULL;

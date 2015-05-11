@@ -1,14 +1,14 @@
 <?php
-abstract class Request extends core_Request {}
-abstract class cls extends core_Cls {}
-abstract class dt extends core_DateTime {}
-abstract class ET extends core_ET {}
-abstract class Ht extends core_Html {}
-abstract class Mode extends core_Mode {}
-abstract class arr extends core_Array {}
-abstract class Redirect extends core_Redirect {}
-abstract class str extends core_String {}
-abstract class Debug extends core_Debug {}
-abstract class Fileman extends fileman_Files2 {}
-abstract class Users extends core_Users {}
-abstract class keylist extends type_Keylist {}
+class Request extends core_Request {}
+class cls extends core_Cls {}
+class dt extends core_DateTime {}
+class ET extends core_ET {}
+class Ht extends core_Html {}
+class Mode extends core_Mode {}
+class arr extends core_Array {}
+class Redirect extends core_Redirect {}
+class str extends core_String {}
+class Debug extends core_Debug {}
+class Fileman extends fileman_Files2 {}
+class Users extends core_Users {}
+class keylist extends type_Keylist {}

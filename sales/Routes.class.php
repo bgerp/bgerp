@@ -409,7 +409,7 @@ class sales_Routes extends core_Manager {
     	$tpl = getTplFromFile("sales/tpl/SingleLayoutRoutes.shtml");
     	$title = $this->title;
     	if($this->haveRightFor('list')){
-    		$title = ht::createLink($title, array($this, 'list'), FALSE, 'title=Всички търговските маршрути');
+    		$title = ht::createLink($title, array($this, 'list'), FALSE, 'title=Всички търговски маршрути');
     	}
     	
     	if ($data->addUrl) {

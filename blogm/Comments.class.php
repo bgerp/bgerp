@@ -42,7 +42,7 @@ class blogm_Comments extends core_Detail {
 	/**
 	 * Полета за изглед
 	 */
-	var $listFields = 'name, email, web, ip, articleId, comment=@, createdOn=Създаване';
+	var $listFields = 'name, email, web, ip, brid, articleId, comment=@, createdOn=Създаване';
 	
 		
 	/**
@@ -79,7 +79,14 @@ class blogm_Comments extends core_Detail {
 	 * Мастър ключ към статиите
 	 */
 	var $masterKey = 'articleId';
-	
+    
+    
+    /**
+     * По колко реда от резултата да показва на страница в детайла на документа
+     * Стойност '0' означава, че детайла няма да се странира
+     */
+    var $listItemsPerPage = 200;
+
 	
 	/**
 	 * Описание на модела
@@ -92,7 +99,7 @@ class blogm_Comments extends core_Detail {
    		$this->FLD('web', 'url(72)', 'caption=Сайт, width=65%,placeholder=Вашият сайт или блог');
 		$this->FLD('comment', 'richtext(bucket=Notes)', 'caption=Коментар,mandatory,placeholder=Въведете вашия коментар тук');
   		$this->FLD('state', 'enum(pending=Чакащ,active=Публикуван,rejected=Оттеглен)', 'caption=Състояние,mandatory');
-  		$this->FLD('browserId', 'varchar(16)', 'caption=ID на браузър,input=none');
+  		$this->FLD('brid', 'varchar(8)', 'caption=Браузър,input=none, oldFieldName=browserId');
         $this->FLD('ip', 'ip', 'caption=IP,input=none');
 	}
 
@@ -109,19 +116,10 @@ class blogm_Comments extends core_Detail {
         $fields = $me->selectFields("");
         $fields['-article'] = TRUE;
         
-        // Търсим browserId в сесията
-        $data->browserId = Mode::get('browserId');
+        // Търсим brid в сесията
+        $data->brid = core_Browser::getBrid();
         
-        // Ако няма в сесията - търсим в Cookie
-        if(!$data->browserId) {
-            $data->browserId = str::checkHash($_COOKIE['userCookie']['browserId'], 8);
-        }
-
-        if($data->browserId){
-        	$browserSelect = " OR #browserId = '{$data->browserId}'";
-        }
-
-        $query->where("#articleId = {$data->articleId} AND (#state = 'active'{$browserSelect})");
+        $query->where(array("#articleId = {$data->articleId} AND (#state = 'active' OR #brid = '[#1#]')", $data->brid));
         
         while($rec = $query->fetch()) {
             $data->commentsRecs[$rec->id] = $rec;
@@ -155,20 +153,12 @@ class blogm_Comments extends core_Detail {
             $data->commentForm->setField('state', 'input=none');
             $data->commentForm->setHidden('articleId', $data->articleId);
             
-            // Ако $browserId е правилно, и имаме бисквитка да се помни потребителя то ние
-            // извличаме информацията на потребителя, който последно е добавил коментара
-            // от това $browserId
-            if($data->browserId){  
-            	$query = static::getQuery();
-	        	$query->where("#browserId = '{$data->browserId}'");
-	        	$query->orderBy('#createdOn', 'DESC');
-                $query->limit(1);
-	        	$lastComment = $query->fetch();
-	        	
-	        	$data->commentForm->setDefault('name', $lastComment->name);
-	            $data->commentForm->setDefault('email', $lastComment->email);
-	            $data->commentForm->setDefault('web', $lastComment->web);
+            $valsArr = core_Browser::getVars(array('name', 'email', 'web'));
+            
+            foreach ($valsArr as $vName => $val) {
+                $data->commentForm->setDefault($vName, $val);
             }
+            
             $data->commentForm->toolbar->addSbBtn('Изпращане');
         }
     }
@@ -214,26 +204,18 @@ class blogm_Comments extends core_Detail {
 
             $rec->ip = core_Users::getRealIpAddr();
 
-            // Търсим browserId в сесията
-            $rec->browserId = Mode::get('browserId');
-        
-            // Ако няма в сесията - търсим в Cookie
-            if(!$rec->browserId) {
-                $rec->browserId = str::checkHash($_COOKIE['userCookie']['browserId'], 8);
-            }
-            
-            // Ако няма - генерираме ново, и го записваме в сесията и Cookie
-            if(!$rec->browserId) {
-                $rec->browserId =str::getRand();
-            }
-            
-            // Сетваме сесията
-            Mode::setPermanent('browserId', $rec->browserId);
-
-            // Сетваме Бисквитка с добавен хеш към browserId
-            $conf = core_Packs::getConfig('blogm');
-            setcookie("userCookie[browserId]", str::addHash($rec->browserId, 8), time() + $conf->BLOGM_COOKIE_LIFETIME);
+            $rec->brid = core_Browser::getBrid();
         }
+    }
+	
+	
+    /**
+     * Всички нови коментари, направени през формата в единичния 
+     * изглед на статията се създават в състояние "чакъщ"
+     */
+    public static function on_AfterSave($mvc, &$id, &$rec, $fields =  NULL)
+    {
+        core_Browser::setVars(array('name' => $rec->name, 'email' => $rec->email, 'web' => $rec->web));
     }
 
 
@@ -287,4 +269,43 @@ class blogm_Comments extends core_Detail {
             $res = 'no_one'; 
         }
 	}
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    {
+    	$row->ip = type_Ip::decorateIp($rec->ip, $rec->createdOn, TRUE);
+    	
+        $row->brid = core_Browser::getLink($rec->brid);
+    }
+    
+    
+    /**
+     * Извиква се след подготовката на toolbar-а за табличния изглед
+     * Форма за търсене по дадена ключова дума
+     */
+    static function on_AfterPrepareListFilter($mvc, &$res, $data)
+    {
+        $data->listFilter->showFields = 'ip, brid';
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        $data->listFilter->input($data->listFilter->showFields, 'silent');
+        
+        if($ip = $data->listFilter->rec->ip){
+            $ip = str_replace('*', '%', $ip);
+            $data->query->where(array("#ip LIKE '[#1#]'", $ip));
+        }
+        
+        if($brid = $data->listFilter->rec->brid){
+            $data->query->where(array("#brid LIKE '[#1#]'", $brid));
+        }
+        
+        $data->query->orderBy("#createdOn=DESC");
+    }
 }

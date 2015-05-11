@@ -1,5 +1,16 @@
 <?php
 
+/**
+ * Начален номер на фактурите
+ */
+defIfNot('HR_EC_MIN', '1');
+
+
+/**
+ * Краен номер на фактурите
+*/
+defIfNot('HR_EC_MAX', '10000');
+
 
 
 /**
@@ -45,6 +56,17 @@ class hr_Setup extends core_ProtoSetup
 
     
     /**
+     * Описание на конфигурационните константи
+     */
+    var $configDescription = array(
+    
+    		'HR_EC_MIN'        => array('int(min=0)', 'caption=Диапазон за номериране на трудовите договори->Долна граница'),
+    		'HR_EC_MAX'        => array('int(min=0)', 'caption=Диапазон за номериране на трудовите договори->Горна граница'),
+    
+    );
+    
+    
+    /**
      * Списък с мениджърите, които съдържа пакета
      */
    var $managers = array(
@@ -57,7 +79,6 @@ class hr_Setup extends core_ProtoSetup
 			'hr_Positions',
             'hr_ContractTypes',
             'hr_EmployeeContracts',
-   			'migrate::updateMyOrganisation3'
         );
 
         
@@ -75,10 +96,7 @@ class hr_Setup extends core_ProtoSetup
         );
     
     
-    /**
-     * Път до css файла
-     */
-//    var $commonCSS = 'hr/tpl/style.css';
+    
     
     
     /**
@@ -104,23 +122,5 @@ class hr_Setup extends core_ProtoSetup
         $res .= bgerp_Menu::remove($this);
         
         return $res;
-    }
-
-    
-    /**
-     * Добавяме систем ид на департамента моята организация
-     */
-    protected function updateMyOrganisation3()
-    {
-    	$rec = hr_Departments::fetch("#name = 'Моята Организация ООД'");
-    	if($rec){
-    		$rec->name = 'Моята Организация';
-    		hr_Departments::save($rec, 'name');
-    	}
-    	
-    	if($rec2 = hr_Departments::fetch("#name = 'Моята Организация' || #name = 'Моята Организация ООД'")){
-    		$rec2->systemId = 'myOrganisation';
-    		hr_Departments::save($rec2, 'systemId');
-    	}
     }
 }

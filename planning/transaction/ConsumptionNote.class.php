@@ -58,39 +58,28 @@ class planning_transaction_ConsumptionNote extends acc_DocumentTransactionSource
 		$dQuery = planning_ConsumptionNoteDetails::getQuery();
 		$dQuery->where("#noteId = {$rec->id}");
 		while($dRec = $dQuery->fetch()){
-			$resourceRec = planning_ObjectResources::getResource($dRec->classId, $dRec->productId);
+			$pInfo = cls::get($dRec->classId)->getProductInfo($dRec->productId);
+			$debitArr = NULL;
 			
-			if($resourceRec){
-
-				$pInfo = cls::get($dRec->classId)->getProductInfo($dRec->productId);
-					
-				$creditAccId = '321';
-					
-				// Ако е указано да влагаме само в център на дейност и ресурси, иначе влагаме в център на дейност
-				if($rec->useResourceAccounts == 'no'){
-					$debitArr = array('6112', array('hr_Departments', $rec->activityCenterId),);
-				} else {
-					$debitArr = array('611', array('hr_Departments', $rec->activityCenterId),
-							array('planning_Resources', $resourceRec->resourceId),
-							'quantity' => $dRec->quantity);
+			if($rec->useResourceAccounts == 'yes'){
+				$resourceRec = planning_ObjectResources::getResource($dRec->classId, $dRec->productId);
+				if($resourceRec){
+					// Ако е указано да влагаме само в център на дейност и ресурси, иначе влагаме в център на дейност
+					$debitArr = array('61101', array('planning_Resources', $resourceRec->resourceId),
+							'quantity' => $dRec->quantity / $resourceRec->conversionRate);
 				}
-					
-				$entries[] = array('debit' => $debitArr,
-						'credit' => array($creditAccId,
-								array('store_Stores', $rec->storeId),
-								array($dRec->classId, $dRec->productId),
-								'quantity' => $dRec->quantity));
-			} else {
-				$errorArr[] = cls::get($dRec->classId)->getVerbal($dRec->productId, 'name');
+			} 
+			
+			// Ако не е ресурс, дебитираме общата сметка за разходи '61102. Други разходи (общо)'
+			if(empty($debitArr)){
+				$debitArr = array('61102');
 			}
-		}
-		
-		// Ако някой от артикулите не може да бдъе произведем сетваме че ще правимр едирект със съобщението
-		if(Mode::get('saveTransaction')){
-			if(count($errorArr)){
-				$errorArr = implode(', ', $errorArr);
-				acc_journal_RejectRedirect::expect($entry, "Артикулите: |{$errorArr}|* не могат да бъдат вложени, защото не са асоциирани с ресурс");
-			}
+			
+			$entries[] = array('debit' => $debitArr,
+							   'credit' => array(321,
+									array('store_Stores', $rec->storeId),
+									array($dRec->classId, $dRec->productId),
+									'quantity' => $dRec->quantity));
 		}
 		
 		// Връщаме ентритата

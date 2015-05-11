@@ -72,7 +72,7 @@ class fileman_webdrv_Webpage extends fileman_webdrv_Generic
     /**
      * Връща HTML частта от файла
      * 
-     * @param object $emlRec - Данните за имейла
+     * @param object $fRec - Данните за файла
      * 
      * return url - Връща URL, което да се визуализра
      */
@@ -86,7 +86,7 @@ class fileman_webdrv_Webpage extends fileman_webdrv_Generic
      /**
      * Връща текстовата част (richEdit) на файла
      * 
-     * @param object $emlRec - Данните за имейла
+     * @param object $fRec - Данните за файла
      * 
      * return string - Текстовата част
      */
@@ -108,7 +108,7 @@ class fileman_webdrv_Webpage extends fileman_webdrv_Generic
      /**
      * Връща текстовата част на файла
      * 
-     * @param object $emlRec - Данните за имейла
+     * @param object $fRec - Данните за файла
      * 
      * return string - Текстовата част
      */
@@ -155,7 +155,6 @@ class fileman_webdrv_Webpage extends fileman_webdrv_Generic
                 
                 // Ако типа не съществува, връщаме FALSE
                 return FALSE;
-            break;
         }
         
         return $content;

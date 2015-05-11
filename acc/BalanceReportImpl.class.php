@@ -26,7 +26,7 @@ class acc_BalanceReportImpl extends frame_BaseDriver
     /**
      * Заглавие
      */
-    public $title = 'Справка за оборотните ведомости';
+    public $title = 'Счетоводство»Оборотни ведомости';
     
     
     /**
@@ -62,6 +62,8 @@ class acc_BalanceReportImpl extends frame_BaseDriver
     
     	$form->FLD('orderField', "enum(,ent1Id=Перо 1,ent2Id=Перо 2,ent3Id=Перо 3,baseQuantity=К-во»Начално,baseAmount=Сума»Начална,debitQuantity=К-во»Дебит,debitAmount=Сума»Дебит,creditQuantity=К-во»Кредит,creditAmount=Сума»Кредит,blQuantity=К-во»Крайно,blAmount=Сума»Крайна)", 'caption=Подредба->По,formOrder=110000');
     	$form->FLD('orderBy', 'enum(,asc=Въздходящ,desc=Низходящ)', 'caption=Подредба->Тип,formOrder=110001');
+    
+    	$this->invoke('AfterAddEmbeddedFields', array($form));
     }
     
     
@@ -114,13 +116,33 @@ class acc_BalanceReportImpl extends frame_BaseDriver
     					}
     						
     					$features = acc_Features::getFeatureOptions(array_keys($items));
-    					$features = array('' => '') + $features + array('*' => '[По пера]');
+    					$features = array('' => '') + $features + array('*' => $accInfo->groups[$i]->rec->name);
     					$form->FLD("feat{$i}", 'varchar', "caption={$accInfo->groups[$i]->rec->name}->Свойство,width=330px,input");
     					$form->setOptions("feat{$i}", $features);
     				}
     			}
     		}
     	}
+    	
+    	$this->invoke('AfterPrepareEmbeddedForm', array($form));
+    }
+    
+    
+    /**
+     * Рендира вътрешната форма като статична форма в подадения шаблон
+     *
+     * @param core_ET $tpl - шаблон
+     * @param string $placeholder - плейсхолдър
+     */
+    protected function prependStaticForm(core_ET &$tpl, $placeholder = NULL)
+    {
+    	$form = cls::get('core_Form');
+    
+    	$this->addEmbeddedFields($form);
+    	$form->rec = $this->innerForm;
+    	$form->class = 'simpleForm';
+    		
+    	$tpl->prepend($form->renderStaticHtml(), $placeholder);
     }
     
     
@@ -198,11 +220,12 @@ class acc_BalanceReportImpl extends frame_BaseDriver
     /**
      * След подготовката на показването на информацията
      */
-    public function on_AfterPrepareEmbeddedData($mvc, &$res)
+    public static function on_AfterPrepareEmbeddedData($mvc, &$res)
     {
     	// Подготвяме страницирането
     	$data = $res;
-    	$Pager = cls::get('core_Pager', array('itemsPerPage' => $this->listItemsPerPage));
+    	$pageVar = str::addHash("P", 5, "{$mvc->className}{$mvc->EmbedderRec->that}");
+    	$Pager = cls::get('core_Pager', array('pageVar' => $pageVar, 'itemsPerPage' => $mvc->listItemsPerPage));
         $Pager->itemsCount = count($data->recs);
         $Pager->calc();
         $data->pager = $Pager;
@@ -220,7 +243,7 @@ class acc_BalanceReportImpl extends frame_BaseDriver
                 // Показваме само тези редове, които са в диапазона на страницата
                 if($count >= $start && $count <= $end){
                     $rec->id = $count + 1;
-                    $row = $this->getVerbalDetail($rec);
+                    $row = $mvc->getVerbalDetail($rec);
                     $data->rows[$id] = $row;
                 }
                 
@@ -245,9 +268,22 @@ class acc_BalanceReportImpl extends frame_BaseDriver
             }
         }
         
-        $this->recToVerbal($data);
+        $mvc->recToVerbal($data);
         
         $res = $data;
+    }
+    
+    
+    /**
+     * Връща шаблона на репорта
+     * 
+     * @return core_ET $tpl - шаблона
+     */
+    public function getReportLayout_()
+    {
+    	$tpl = getTplFromFile('acc/tpl/ReportDetailedBalance.shtml');
+    	
+    	return $tpl;
     }
     
     
@@ -260,7 +296,7 @@ class acc_BalanceReportImpl extends frame_BaseDriver
     {
     	if(empty($data)) return;
     	
-    	$tpl = getTplFromFile('acc/tpl/ReportDetailedBalance.shtml');
+    	$tpl = $this->getReportLayout();
     	$tpl->replace($this->title, 'TITLE');
     	
     	$this->prependStaticForm($tpl, 'FORM');
@@ -288,14 +324,20 @@ class acc_BalanceReportImpl extends frame_BaseDriver
     	
     	if(!$data->bShowQuantities || $data->rec->action === 'group'){
     	     $data->summary->colspan -= 4;
-    	     $beforeRow = new core_ET("<tr style = 'background-color: #eee'><td colspan=[#colspan#]><b>" . tr('ОБЩО') . "</b></td><td style='text-align:right'><b>[#baseAmount#]</b></td><td style='text-align:right'><b>[#debitAmount#]</b></td><td style='text-align:right'><b>[#creditAmount#]</b></td><td style='text-align:right'><b>[#blAmount#]</b></td></tr>");
+    	     if($data->summary->colspan != 0 && count($data->rows)){
+    	     	$beforeRow = new core_ET("<tr style = 'background-color: #eee'><td colspan=[#colspan#]><b>" . tr('ОБЩО') . "</b></td><td style='text-align:right'><b>[#baseAmount#]</b></td><td style='text-align:right'><b>[#debitAmount#]</b></td><td style='text-align:right'><b>[#creditAmount#]</b></td><td style='text-align:right'><b>[#blAmount#]</b></td></tr>");
+    	     }
     	} else{
-    	    $data->summary->colspan -= 8;
-    	    $beforeRow = new core_ET("<tr  style = 'background-color: #eee'><td colspan=[#colspan#]><b>" . tr('ОБЩО') . "</b></td><td style='text-align:right'><b>[#baseQuantity#]</b></td><td style='text-align:right'><b>[#baseAmount#]</b></td><td style='text-align:right'><b>[#debitQuantity#]</b></td><td style='text-align:right'><b>[#debitAmount#]</b></td><td style='text-align:right'><b>[#creditQuantity#]</b></td><td style='text-align:right'><b>[#creditAmount#]</b></td><td style='text-align:right'><b>[#blQuantity#]</b></td><td style='text-align:right'><b>[#blAmount#]</b></td></tr>");
+    		if(count($data->rows)){
+    			$data->summary->colspan -= 8;
+    			$beforeRow = new core_ET("<tr  style = 'background-color: #eee'><td colspan=[#colspan#]><b>" . tr('ОБЩО') . "</b></td><td style='text-align:right'><b>[#baseQuantity#]</b></td><td style='text-align:right'><b>[#baseAmount#]</b></td><td style='text-align:right'><b>[#debitQuantity#]</b></td><td style='text-align:right'><b>[#debitAmount#]</b></td><td style='text-align:right'><b>[#creditQuantity#]</b></td><td style='text-align:right'><b>[#creditAmount#]</b></td><td style='text-align:right'><b>[#blQuantity#]</b></td><td style='text-align:right'><b>[#blAmount#]</b></td></tr>");
+    		}
     	}
     	
-    	$beforeRow->placeObject($data->summary);
-    	$tpl->append($beforeRow, 'ROW_BEFORE');
+    	if($beforeRow){
+    		$beforeRow->placeObject($data->summary);
+    		$tpl->append($beforeRow, 'ROW_BEFORE');
+    	}
     	
     	if($data->pager){
     	     $tpl->append($data->pager->getHtml(), 'PAGER_BOTTOM');
@@ -309,13 +351,12 @@ class acc_BalanceReportImpl extends frame_BaseDriver
     /**
      * Подготвя хедърите на заглавията на таблицата
      */
-    private function prepareListFields(&$data)
+    protected function prepareListFields_(&$data)
     {
          $data->accInfo = acc_Accounts::getAccountInfo($data->rec->accountId);
     
          $bShowQuantities = ($data->accInfo->isDimensional === TRUE) ? TRUE : FALSE;
         
-         
     	 $data->bShowQuantities = $bShowQuantities;
          
          $data->listFields = array();
@@ -369,8 +410,7 @@ class acc_BalanceReportImpl extends frame_BaseDriver
         		if(!empty($data->rec->{"grouping{$i}"})){
         			$data->row->groupBy .= acc_Items::getVerbal($data->rec->{"grouping{$i}"}, 'title') . ", ";
         		} elseif(!empty($data->rec->{"feat{$i}"})){
-        			
-        			$data->rec->{"feat{$i}"} = ($data->rec->{"feat{$i}"} == '*') ? "[По пера]" : $data->rec->{"feat{$i}"};
+        			$data->rec->{"feat{$i}"} = ($data->rec->{"feat{$i}"} == '*') ? $data->accInfo->groups[$i]->rec->name : $data->rec->{"feat{$i}"};
         			$data->row->groupBy .= $Varchar->toVerbal($data->rec->{"feat{$i}"}) . ", ";
         		}
         	}
@@ -416,8 +456,9 @@ class acc_BalanceReportImpl extends frame_BaseDriver
            $Varchar = cls::get('type_Varchar');
            $Double = cls::get('type_Double');
            $Double->params['decimals'] = 2;
+
            $Int = cls::get('type_Int');
-       
+
            $row = new stdClass();
            $row->id = $Int->toVerbal($rec->id);
        
@@ -481,6 +522,163 @@ class acc_BalanceReportImpl extends frame_BaseDriver
        */
       public function getEarlyActivation()
       {
-      	  return $this->innerForm->to;
+      	  $activateOn = "{$this->innerForm->to} 23:59:59";
+      	  	
+      	  return $activateOn;
       }
+
+
+     /**
+      * Ако имаме в url-то export създаваме csv файл с данните
+      *
+      * @param core_Mvc $mvc
+      * @param stdClass $rec
+      */
+     public function exportCsv()
+     {
+
+         $exportFields = $this->getExportFields();
+
+         $conf = core_Packs::getConfig('core');
+
+         if (count($this->innerState->recs) > $conf->EF_MAX_EXPORT_CNT) {
+             redirect(array($this), FALSE, "Броят на заявените записи за експорт надвишава максимално разрешения|* - " . $conf->EF_MAX_EXPORT_CNT, 'error');
+         }
+
+         $csv = "";
+
+         foreach ($exportFields as $caption) {
+             $header .= "," . $caption;
+         }
+
+         foreach ($this->innerState->recs as $id => $rec) {
+             $rec = $this->prepareCsvRows($rec);
+
+             $rCsv = '';
+             foreach ($exportFields as $field => $caption) {
+
+                 if ($rec->{$field}) {
+
+                     $value = $rec->{$field};
+                     $value = html2text_Converter::toRichText($value);
+                     // escape
+                     if (preg_match('/\\r|\\n|,|"/', $value)) {
+                         $value = '"' . str_replace('"', '""', $value) . '"';
+                     }
+                     $rCsv .= "," . $value;
+
+                 } else {
+                 	$rCsv .= "," . '';
+                 }
+
+
+             }
+             $csv .= $rCsv;
+             $csv .=  "\n";
+
+         }
+
+         $csv = $header . "\n" . $csv;
+
+         return $csv;
+    }
+
+
+    /**
+     * Ще се експортирват полетата, които се
+     * показват в табличния изглед
+     *
+     * @return array
+     */
+    public function getExportFields ()
+    {
+
+
+        $exportFields['ent1Id']  = "Контрагенти";
+        $exportFields['ent2Id']  = "Сделка";
+        $exportFields['ent3Id']  = "Валута";
+        $exportFields['baseQuantity']  = "Начално салдо - количество";
+        $exportFields['baseAmount']  = "Начално салдо -  сума";
+        $exportFields['debitQuantity']  = "Обороти Дебит - количество";
+        $exportFields['debitAmount']  = "Обороти Дебит - сума";
+        $exportFields['creditQuantity']  = "Обороти Кредит - количество";
+        $exportFields['creditAmount']  = "Обороти Кредит - сума";
+        $exportFields['blQuantity']  = "Крайно салдо - количество";
+        $exportFields['blAmount']  = "Крайно салдо - сума";
+
+        return $exportFields;
+    }
+    
+    
+    /**
+     * Ще направим нови row-ове за експорта.
+     * Ще се обработват променливи от тип
+     * double, key, keylist, date
+     *
+     * @return std Class $rows
+     */
+    public function prepareCsvRows ($rec)
+    {
+    	
+    	// новите ни ролове
+    	$rows = new stdClass();
+    	
+    	// за всеки един запис
+    	foreach ($rec as $field => $value) { 
+    		// проверяваме типа му
+	    	//$type = gettype($value);
+
+	    	// ако е doubele
+	    	if (in_array($field ,array('baseAmount', 'debitAmount', 'creditAmount', 'blAmount', 'baseQuantity', 'debitQuantity', 'creditQuantity', 'blQuantity'))) {
+	    		
+	    		//ще го закръгляме до 2 знака, след запетаята
+	    		$decimals = 2;
+	    		// няма да имаме разделител за хилядите
+	    		$thousandsSep = '';
+	    		// ще вземем конфигурурания символ за разделител на стотинките
+	    		$conf = core_Packs::getConfig('frame');
+	    		$symbol = $conf->FRAME_TYPE_DECIMALS_SEP;
+	    			
+	    		if ($symbol == 'comma') {
+	    			$decPoint = ',';
+	    		} else {
+	    			$decPoint = '.';
+	    		}	
+	       
+	    		// Закръгляме до минимума от символи от десетичния знак или зададения брой десетични знака
+	    		//$decimals = min(strlen(substr(strrchr($value, $decPoint), 1)), $decimals);
+	    		
+	    		// Закръгляме числото преди да го обърнем в нормален вид
+	    		$value = round($value, $decimals);
+	    			
+	    		$value = number_format($value, $decimals, $decPoint, $thousandsSep);
+	    		
+	    		if(!Mode::is('text', 'plain')) {
+	    			$value = str_replace(' ', '&nbsp;', $value);
+	    		}	
+	    	}
+	    	
+	    	$rows->{$field} = $value;
+    	}
+    		
+    	// ако имаме попълнено поле за контрагент или продукт
+    	// искаме то да илезе с вербалното си име
+    	foreach (range(1, 3) as $i) {
+    		if(!empty($rows->{"ent{$i}Id"})){
+    			$rows->{"ent{$i}Id"} = acc_Items::getVerbal($rec->{"ent{$i}Id"}, 'title');
+    		}
+    	}
+    	
+    	
+    	$exportFields = $this->getExportFields();
+    	foreach ($exportFields as $field => $caption) {
+    		if (!$rows->{$field}) { 
+    			$rows->{$field} = '';
+    		}
+    	}
+    	
+
+    	return $rows;
+    }
+
 }

@@ -76,7 +76,7 @@ class core_Lg extends core_Manager
      */
     function description()
     {
-        $this->FLD('lg', 'enum(' . EF_LANGUAGES . ')', 'caption=Език,export,mandatory,autoFilter');
+        $this->FLD('lg', 'varchar(2)', 'caption=Език,export,mandatory,autoFilter,optionsFunc=core_Lg::getLangOptions, suggestions=');
         $this->FLD('kstring', 'varchar', 'caption=Стринг,export, width=100%, mandatory');
         $this->FLD('translated', 'text',  'caption=Превод,export, width=100%, class=translated, mandatory');
 
@@ -288,7 +288,17 @@ class core_Lg extends core_Manager
         foreach($langArr as $lg => &$lgName) {
             $lgName = tr($lgName);
         }
-            
+        
+        // Добавяме всички езици за които има запис в масива
+        $cQuery = core_Lg::getQuery();
+        $cQuery->groupBy('lg');
+        $cQuery->orderBy('createdOn');
+        while ($rec = $cQuery->fetch()) {
+            if (isset($langArr[$rec->lg])) continue;
+            if (!$rec->lg) continue;
+            $langArr[$rec->lg] = $rec->lg;
+        }
+        
   		$data->listFilter->view = 'horizontal';
   		$data->listFilter->FNC('filter', 'varchar', 'caption=Филтър,input');          
         $data->listFilter->setOptions('lg', $langArr);
@@ -486,7 +496,13 @@ class core_Lg extends core_Manager
         
         $langArr = $otherParams + $langArr;
         
-        if (isset($langArr[''])) {
+        if ($type instanceof type_Varchar) {
+            // Да е в началото на стринга
+            if (isset($langArr[''])) {
+                unset($langArr['']);
+                $langArr = array('' => '') + (array)$langArr;
+            }
+        } elseif (isset($langArr[''])) {
             $langArr[''] = 'От системата';
         }
         

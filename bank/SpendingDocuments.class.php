@@ -157,7 +157,7 @@ class bank_SpendingDocuments extends core_Master
         $this->FLD('contragentName', 'varchar(255)', 'caption=Към->Контрагент,mandatory');
         $this->FLD('contragentIban', 'iban_Type(64)', 'caption=Към->Сметка');
         $this->FLD('contragentId', 'int', 'input=hidden,notNull');
-        $this->FLD('contragentClassId', 'key(mvc=core_Classes,select=name)', 'input=hidden,notNull');
+        $this->FLD('contragentClassId', 'key(mvc=core_Classes,select=title)', 'input=hidden,notNull');
         $this->FLD('debitAccId', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)', 'caption=debit,input=none');
         $this->FLD('creditAccId', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)', 'caption=Кредит,input=none');
         $this->FLD('state',
@@ -210,7 +210,7 @@ class bank_SpendingDocuments extends core_Master
             $mvc->setDefaultsFromOrigin($origin, $form, $options);
         }
         
-        $form->setOptions('ownAccount', bank_OwnAccounts::getOwnAccounts());
+        $form->setOptions('ownAccount', bank_OwnAccounts::getOwnAccounts(FALSE));
         $form->setSuggestions('contragentIban', bank_Accounts::getContragentIbans($form->rec->contragentId, $form->rec->contragentClassId));
         $form->setDefault('valior', $today);
         $form->setDefault('currencyId', acc_Periods::getBaseCurrencyId($today));

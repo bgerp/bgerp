@@ -38,7 +38,7 @@ class acc_HistoryReportImpl extends frame_BaseDriver
 	/**
 	 * Заглавие
 	 */
-	public $title = 'Хронологична справка на аналитична сметка';
+	public $title = 'Счетоводство»Хронология на аналитична сметка';
 	
 	
 	/**
@@ -75,6 +75,8 @@ class acc_HistoryReportImpl extends frame_BaseDriver
 		
 		$form->FLD('orderField', "enum({$orderFields})", 'caption=Подредба->По,formOrder=110000');
 		$form->FLD('orderBy', 'enum(,asc=Въздходящ,desc=Низходящ)', 'caption=Подредба->Тип,formOrder=110001');
+		
+		$this->invoke('AfterAddEmbeddedFields', array($form));
 	}
 	
 	
@@ -93,7 +95,7 @@ class acc_HistoryReportImpl extends frame_BaseDriver
 		if($form instanceof core_Form){
 			$form->input();
 		}
-		 
+		
 		if(isset($form->rec->accountId)){
 			 
 			$accInfo = acc_Accounts::getAccountInfo($form->rec->accountId);
@@ -101,12 +103,14 @@ class acc_HistoryReportImpl extends frame_BaseDriver
 			foreach (range(1, 3) as $i){
 				if(isset($accInfo->groups[$i])){
 					$gr = $accInfo->groups[$i];
-					$form->FNC("ent{$i}Id", "acc_type_Item(lists={$gr->rec->num}, allowEmpty)", "caption=Избор на пера->{$gr->rec->name},input,mandatory");
+					$form->FNC("ent{$i}Id", "acc_type_Item(lists={$gr->rec->num}, allowEmpty, select=titleNum)", "caption=Пера->{$gr->rec->name},input,mandatory");
 				} else {
 					$form->FNC("ent{$i}Id", "int", "");
 				}
 			}
 		}
+		
+		$this->invoke('AfterPrepareEmbeddedForm', array($form));
 	}
 
 
@@ -174,9 +178,11 @@ class acc_HistoryReportImpl extends frame_BaseDriver
 	/**
 	 * След подготовката на показването на информацията
 	 */
-	public function on_AfterPrepareEmbeddedData($mvc, &$res)
+	public static function on_AfterPrepareEmbeddedData($mvc, &$res)
 	{
-		$this->History->prepareRows($res);
+		if(!is_subclass_of($mvc, __CLASS__)){
+			$mvc->History->prepareRows($res);
+		}
 	}
 	
 	
@@ -239,6 +245,8 @@ class acc_HistoryReportImpl extends frame_BaseDriver
 	 */
 	public function getEarlyActivation()
 	{
-		return $this->innerForm->toDate;
+		$activateOn = "{$this->innerForm->toDate} 23:59:59";
+		 
+		return $activateOn;
 	}
 }

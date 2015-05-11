@@ -133,15 +133,15 @@ class purchase_transaction_CloseDeal extends acc_DocumentTransactionSource
     	$docRec = $firstDoc->rec();
     
     	$jRecs = acc_Journal::getEntries(array($firstDoc->className, $firstDoc->that));
-    
+    	
     	// Колко е направеното авансовото плащане
-    	//$downpaymentAmount = acc_Balances::getBlAmounts($jRecs, '402')->amount;
+    	$downpaymentAmount = acc_Balances::getBlAmounts($jRecs, '402')->amount;
     	if($downpaymentAmount == 0) return $entryArr;
-    	 
+    	
     	// Валутата на плащането е тази на сделката
     	$currencyId = currency_Currencies::getIdByCode($dealInfo->get('currency'));
     	$amount = $downpaymentAmount / $dealInfo->get('rate');
-    	 
+    	
     	$entry = array();
     	$entry['amount'] = $downpaymentAmount;
     	$entry['debit'] = array('401',

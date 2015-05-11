@@ -97,6 +97,11 @@ class drdata_PhonePlg extends core_Plugin
         // Задаваме новата сойност
         $PhoneTypeInst->params['countryPhoneCode'] = $countryRec->telCode;
         
+        // За България приемаме, че по-подразбиране телефоните са в София
+        if($PhoneTypeInst->params['countryPhoneCode'] == '359') {
+            $PhoneTypeInst->params['areaPhoneCode'] = '2';
+        }
+
         // Вземаме вербалната стойност на телефона
         $phone = $PhoneTypeInst->toVerbal($rec->{$field});
         

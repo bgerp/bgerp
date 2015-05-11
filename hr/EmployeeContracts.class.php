@@ -329,6 +329,17 @@ class hr_EmployeeContracts extends core_Master
      */
     public static function on_AfterPrepareSingle($mvc, &$res, &$data)
     {
+    	// трудовият договор, не може да се създаде без да е обявено работното време в него
+    	// в системата, работното време се определя от различните графици
+    	// те от своя страна се добавят към отделите (структура)
+    	$queryWorkingCycle = hr_Departments::getQuery();
+    	
+    	if($queryWorkingCycle->fetch("#schedule") == FALSE){
+    	
+    		// Ако няма, изискваме от потребителя да въведе
+    		return  Redirect(array('hr_Departments', 'list'), NULL,  "Не сте въвели работни графици");
+    	}
+    	
         $row = $data->row;
         
         $rec = $data->rec;
@@ -447,18 +458,18 @@ class hr_EmployeeContracts extends core_Master
             
             // и намираме всички плейсхолдери в него
             preg_match_all('/\[#([a-zA-Z0-9_:]{1,})#\]/', $tpl, $matches);
-            
+      
             // помощен масив, тези полете от формата на модела не са от значение за шаблона
             $sysArray = array("id", "ret_url", "typeId", "managerId", "personId", "departmentId",
                 "descriptions", "sharedUsers", "sharedViews", "searchKeywords", "professionId",
                 "folderId", "threadId", "containerId", "originId", "state", "brState",
                 "lastUsedOn", "createdOn", "createdBy", "modifiedOn", "modifiedBy", "lists");
-            
+            $sysArrayCnt = count($sysArray);
             // От всички полета на модела
             foreach($rec as $name=>$value){
                 $formField[$name] = $name;
                 
-                for($i = 0; $i <= count($sysArray); $i++){
+                for($i = 0; $i <= $sysArrayCnt; $i++){
                     // махаме тези от помощния масив
                     unset($formField[$sysArray[$i]]);
                 }
@@ -568,6 +579,17 @@ class hr_EmployeeContracts extends core_Master
             // Ако няма, изискваме от потребителя да въведе
             return  Redirect(array('hr_Departments', 'list'), NULL,  "Не сте въвели позиция");
         }
+        
+        // трудовият договор, не може да се създаде без да е обявено работното време в него
+        // в системата, работното време се определя от различните графици
+        // те от своя страна се добавят към отделите (структура)
+        $queryWorkingCycle = hr_WorkingCycles::getQuery();
+        
+        if($query->fetchAll() == FALSE){
+        
+        	// Ако няма, изискваме от потребителя да въведе
+        	return  Redirect(array('hr_WorkingCycles', 'list'), NULL,  "Не сте въвели работни графици");
+        }
     }
     
     
@@ -577,10 +599,21 @@ class hr_EmployeeContracts extends core_Master
     public static function on_BeforeSave($mvc, $id, $rec)
     {
         if($rec->state == 'draft'){
-        	if(empty($rec->numId)){
+        	if(empty($rec->numId) && $rec->numId == NULL){
         		$rec->numId = self::getNexNumber();
         		$rec->searchKeywords .= " " . plg_Search::normalizeText($rec->numId);
         	}
+        }
+        
+        // трудовият договор, не може да се създаде без да е обявено работното време в него
+        // в системата, работното време се определя от различните графици
+        // те от своя страна се добавят към отделите (структура)
+        $queryWorkingCycle = hr_Departments::getQuery();
+    
+        if($queryWorkingCycle->fetch("#schedule") == FALSE){
+
+        	// Ако няма, изискваме от потребителя да въведе
+        	return  Redirect(array('hr_Departments', 'list'), NULL,  "Не сте въвели работни графици");
         }
     }
     
@@ -691,8 +724,14 @@ class hr_EmployeeContracts extends core_Master
         // Кой е графика
         $scheduleId = static::getWorkingSchedule($id);
         
-        // Каква продължителност има
+         // Каква продължителност има
         $duration = hr_WorkingCycles::fetchField($scheduleId, 'cycleDuration');
+        
+        if (!$duration) {
+        	return Redirect(array('hr_WorkingCycles', 'list'), NULL, 'Не сте въвели продължителност на графика!');
+        }
+        
+       
         
         // Извличане на данните за циклите
         $stateDetails = hr_WorkingCycleDetails::getQuery();
@@ -830,7 +869,7 @@ class hr_EmployeeContracts extends core_Master
     	expect($numId);
     	$conf = core_Packs::getConfig('sales');
     	
-    	return ($conf->SALE_INV_MIN_NUMBER <= $numId && $numId <= $conf->SALE_INV_MAX_NUMBER);
+    	return ($conf->HR_EC_MIN <= $numId && $numId <= $conf->HR_EC_MAX);
     }
     
     
@@ -840,16 +879,16 @@ class hr_EmployeeContracts extends core_Master
      */
     protected static function getNexNumber()
     {
-    	$conf = core_Packs::getConfig('sales');
+    	$conf = core_Packs::getConfig('hr');
     	
     	$query = static::getQuery();
     	$query->XPR('maxNum', 'int', 'MAX(#numId)');
     	if(!$maxNum = $query->fetch()->maxNum){
-    		$maxNum = $conf->SALE_INV_MIN_NUMBER;
+    		$maxNum = $conf->HR_EC_MIN;
     	}
     	$nextNum = $maxNum + 1;
     	
-    	if($nextNum > $conf->SALE_INV_MAX_NUMBER) return NULL;
+    	if($nextNum > $conf->HR_EC_MAX) return NULL;
     	
     	return $nextNum;
     }

@@ -122,7 +122,7 @@ class core_Plugins extends core_Manager
         }
 
         // Изтриваме съществуващите прикачания на този плъгин към посочения клас
-        static::delete("#plugin = '{$plugin}' AND #class = '{$class}' AND #cover = '{$cover}'");
+        static::delete("#plugin = '{$plugin}' AND #class = '{$class}'");
         
         // Ако има друг плъгин със същото име и не се изисква форсиране на този - излизаме
         if(!$force && static::fetch(array("#name = '[#1#]' AND #state = 'active'", $name))) {
@@ -144,8 +144,8 @@ class core_Plugins extends core_Manager
         $rec->state = $state;
         $rec->cover = $cover;
         
-        $self = cls::get('core_Plugins');
-        $self->setPlugin($rec->class, $rec->plugin, $rec->cover, $rec->name);;
+        $self = cls::get('core_Plugins');  
+        $self->setPlugin($rec->class, $rec->plugin, $rec->cover, $rec->name); 
 
         return static::save($rec);
     }
@@ -231,6 +231,11 @@ class core_Plugins extends core_Manager
         	// Ако класа вече е зареден в паметта, закачаме плъгина с `load`
         	$Cls = cls::get($class);
         	$Cls->load($plugin);
+
+            // Извикваме on_AfterDescription, защото това викане вече е минало
+            if(method_exists($plugin, 'on_AfterDescription')) {
+                $Cls->_plugins[$plugin]->on_AfterDescription($Cls);
+            }
         } else {
         	
         	// Ако не е закачен запомняме че този плъгин трябва да се закачи при инстанцирането на класа
