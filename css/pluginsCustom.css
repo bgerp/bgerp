@@ -150,6 +150,7 @@ span.all-users{
 .select2-container--default .select2-results__option--highlighted[aria-selected],
 .select2-container--default .select2-results__option--highlighted[aria-selected] span {
     background-color: #5897fb !important;
+    color: #fff;
 }
 
 .modern-theme .select2-container--default .select2-selection--single, .modern-theme .select2-dropdown, .modern-theme  .select2-container--default .select2-selection--multiple {
