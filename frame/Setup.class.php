@@ -2,9 +2,15 @@
 
 
 /**
- * Колко цифри след запетаята да показваме по подразбиране?
+ * Какъв да е десетичният разделител на числата при експорт в csv
  */
 defIfNot('FRAME_TYPE_DECIMALS_SEP', 'comma');
+
+
+/**
+ * Как да е форматирана датата
+ */
+defIfNot('FRAME_FORMAT_DATE', 'dot');
 
 
 
@@ -61,6 +67,7 @@ class frame_Setup extends core_ProtoSetup
     var $configDescription = array(
 
         'FRAME_TYPE_DECIMALS_SEP'   => array ('enum(dot=точка,comma=запетая)', 'caption=Десетичен разделител на числата при експорт в csv->Символ'),
+    	'FRAME_FORMAT_DATE'   => array ('enum(dot=точка (дд.мм.гггг),slash=наклонена черта (дд/мм/гггг))', 'caption=Формат на датата->Формат с'),
     );
 
     
