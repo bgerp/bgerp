@@ -82,6 +82,12 @@ class marketing_Bulletins extends core_Master
     
     
     /**
+     * Полета, които ще се показват в листов изглед
+     */
+    public $listFields = 'id, domain, showAllForm, formTitle, formSuccessText, showFormBtn, showAgainAfter, idleTimeForShow, waitBeforeStart, img, bgColor, textColor, buttonColor';
+    
+    
+    /**
      * Полета на модела
      */
     public function description()
