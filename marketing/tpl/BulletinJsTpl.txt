@@ -7,6 +7,7 @@
  * След зареждане на JQuery стартираме функцията
  */
 $(document).ready(function() {
+	loadCSS();
 	startProcessing();
 	checkForButton();
 });
@@ -54,6 +55,8 @@ function startProcessing()
 	// Ако е показана скоро
 	var lastShow = getCookie('bulletinLastShowTime');
 	if (this.isShowed(lastShow)) return ;
+	
+	if ('__autoShowBulletin__' == 'no') return;
 	
 	// Гледа за позицията на мишката
 	this.startWatchingPos();
@@ -275,49 +278,32 @@ function showForm()
 {
 	setCookie('bulletinLastShowTime', getNowTimetamp(), 1000);
 	
-	$("body").append(this.getForm());
+	loadShowFormWindow();
 	
-	$(".bulletinHolder").fadeIn(600);
-
-	$("body").addClass('noscroll');
-	
-	onClickCatcher();
-	
-	this.formIsShowed = true;
+	this.showFormDiv();
 }
 
 
 /**
  * Връща формата, която ще се показва
- * 
- * @return string
  */
-function getForm()
+function showFormDiv()
 {
-	var form = "<div class='bulletinHolder' style='display:none'>" +
-				"<div class='bulletinReg'>" +
-				"<a href='#' class='bulletinClose'>X</a>"+
-				"<div class='bulletinInner'>"+
-				"<h2>[#formTitle#]</h2>"+
-				"<div class='bulletinError' style='visibility: hidden; color: red;'>[#wrongMailText#]</div>"+
-				"<form class='bulletinForm' action='[#formAction#]'>" +
-                "<div class='bulletinFilelds'>" +
-				"<div class='row bulletinEmailHolder'><span>[#emailName#]: </span><input type='text' id='bulletinEmail' name='email'></div>" ;
-	
-				if ('[#showAllForm#]' == 'yes') {
-					form += "<div class='row bulletinNamesHolder'><span>[#namesName#]:</span> <input type='text' id='bulletinNames' name='name'></div>" +
-					"<div class='row bulletinCompanyHolder'><span>[#companyName#]: </span><input type='text' id='bulletinCompany' name='company'></div>"
-				}
-                form += "</div><div class='clearfix21'></div> " ;
-
-				form += "<div class='centered'><input type='submit' name='submit' value='[#submitBtnVal#]' class='push_button'></div>"+
-				"<div style='text-align: center;'><a href='#' class='bulletinCancel'>[#cancelBtnVal#]</a></div>"+
-				"</form>" +
-				"</div>" +
-				"</div>" +
-				"</div>";
-	
-	return form;
+	if (!this.getForm) {
+		setTimeout(function(){
+			showFormDiv();
+		}, 10);
+	} else {
+		$("body").append(this.getForm());
+		
+		$(".bulletinHolder").fadeIn(600);
+		
+		$("body").addClass('noscroll');
+		
+		onClickCatcher();
+		
+		this.formIsShowed = true;
+	}
 }
 
 
@@ -500,6 +486,7 @@ function escapeRegExp(str)
 	return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
 }
 
+
 /**
  * Проверява имейла далие е коректен
  * 
@@ -514,9 +501,47 @@ function validateEmail(email)
     return re.test(email);
 }
 
-function checkForButton(){
+
+/**
+ * Замества div'a със съответния бутон
+ */
+function checkForButton()
+{
     if($('.bulletin-link').length) {
-        $('.bulletin-link').append('<input type="submit" name="submit" value="Абонирай се за информация" class="push_button small" onclick="showForm()"/>')
+        $('.bulletin-link').append('<input type="submit" name="submit" value="[#showFormBtn#]" class="push_button small" onclick="showForm()"/>')
     }
 }
 
+
+/**
+ * Зарежда CSS-а на формата
+ */
+function loadCSS() {
+	var cssId = 'bulletinCss';
+	if (!document.getElementById(cssId)) {
+	    var head  = document.getElementsByTagName('head')[0];
+	    var link  = document.createElement('link');
+	    link.id   = cssId;
+	    link.rel  = 'stylesheet';
+	    link.type = 'text/css';
+	    link.href = '[#CSS_URL#]';
+	    link.media = 'all';
+	    head.appendChild(link);
+	}
+}
+
+
+/**
+ *
+ */
+function loadShowFormWindow()
+{
+	var formId = 'showFormWindow';
+	if (!document.getElementById(formId)) {
+	    var head  = document.getElementsByTagName('head')[0];
+	    var scriptTag = document.createElement('script');
+		scriptTag.setAttribute('src','[#showFormUrl#]');
+		
+	    head.appendChild(scriptTag);
+	}
+}
