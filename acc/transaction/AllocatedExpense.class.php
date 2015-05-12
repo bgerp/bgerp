@@ -35,11 +35,9 @@ class acc_transaction_AllocatedExpense extends acc_DocumentTransactionSource
 				'entries' => array()
 		);
 	
-		if(isset($rec->id)) {
-			$entries = $this->getEntries($rec, $result->totalAmount);
-			if(count($entries)){
-				$result->entries = $entries;
-			}
+		$entries = $this->getEntries($rec, $result->totalAmount);
+		if(count($entries)){
+			$result->entries = $entries;
 		}
 		
 		return $result;
