@@ -975,7 +975,7 @@ class cat_Products extends core_Embedder {
     	if(!$volume){
     		$Driver = $this->getDriver($productId);
     		$params = $Driver->getParams();
-    		$weight = $params['transportVolume'];
+    		$volume = $params['transportVolume'];
     	}
     	
     	return $volume;
