@@ -172,7 +172,7 @@ class core_TreeObject extends core_Manager
 		$options = array();
 		
 		$query = $this->getQuery();
-		$query->show("parentId, {$this->nameField}");
+		$query->show("{$this->parentFieldName}, {$this->nameField}");
 		while($rec = $query->fetch()){
 			$options[$rec->id] = static::getFullTitle($rec->id, $title);
 		}
@@ -192,8 +192,8 @@ class core_TreeObject extends core_Manager
 		$me = cls::get(get_called_class());
 		
 		if($rec = static::fetch($id)){
-			if($rec->parentId){
-				if(static::fetchField($rec->parentId, 'makeDescendantsFeatures') == 'yes'){
+			if($rec->{$me->parentFieldName}){
+				if(static::fetchField($rec->{$me->parentFieldName}, 'makeDescendantsFeatures') == 'yes'){
 					
 					$feature = static::getVerbal($rec->parentId, $me->nameField);
 					$featureValue = static::getVerbal($rec->id, $me->nameField);
@@ -213,6 +213,29 @@ class core_TreeObject extends core_Manager
 	public static function on_AfterPrepareListRecs(core_Mvc $mvc, $data)
 	{
 		if(!count($data->recs)) return;
+		
+		// За всички записи
+		foreach ($data->recs as &$rec){
+			
+			// Взимаме баща им
+			$parentId = $rec->{$mvc->parentFieldName};
+			
+			// Проверяваме дали е сетнат в $data->recs, ако не е го извличаме, продължаваме докато
+			// всички бащи присъстват в $data->recs. Правим това за да се подсигурим че при
+			// вече филтрирани записи по някакъв признак, да не се показват само намерените 
+			// редове, а и техните бащи
+			while($parentId){
+				if(!isset($data->recs[$parentId])){
+					$parentRec = $mvc->fetch($parentId);
+					$parentRec->show = TRUE;
+					$rec->show = TRUE;
+					$data->recs[$parentId] = $parentRec;
+					$parentId = $parentRec->{$mvc->parentFieldName};
+				} else {
+					$parentId = NULL;
+				}
+			}
+		}
 		
 		$tree = array();
 		foreach ($data->recs as $br){
@@ -304,6 +327,10 @@ class core_TreeObject extends core_Manager
 				$url = array($mvc, 'add', 'parentId' => $rec->id, 'ret_url' => TRUE);
 				$img = ht::createElement('img', array('src' => sbf('img/16/add.png', ''), 'style' => 'width: 13px; padding: 0px 2px;'));
 				$row->_addBtn = ht::createLink($img, $url, FALSE, 'title=Добавяне на нов поделемент');
+			}
+			
+			if($rec->show === TRUE){
+				$row->ROW_ATTR['class'] .= " searchResult";
 			}
 		}
 	}
