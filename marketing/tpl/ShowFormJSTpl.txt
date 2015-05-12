@@ -1,0 +1,29 @@
+function getForm()
+{
+	var form = "<div class='bulletinHolder' style='display:none'>" +
+				"<div class='bulletinReg'>" +
+				"<a href='#' class='bulletinClose'>X</a>"+
+				"<div class='bulletinInner'>"+
+				"<h2>[#formTitle#]</h2>"+
+				"<div class='bulletinError' style='visibility: hidden; color: red;'>[#wrongMailText#]</div>"+
+				"<form class='bulletinForm' action='[#formAction#]'>" +
+                "<div class='bulletinFilelds'>" +
+				"<div class='row bulletinEmailHolder'><span>[#emailName#]: </span><input type='text' id='bulletinEmail' name='email'></div>" ;
+	
+				if ('[#showAllForm#]' == 'yes') {
+					form += "<div class='row bulletinNamesHolder'><span>[#namesName#]:</span> <input type='text' id='bulletinNames' name='name'></div>" +
+					"<div class='row bulletinCompanyHolder'><span>[#companyName#]: </span><input type='text' id='bulletinCompany' name='company'></div>"
+				}
+                form += "</div><div class='clearfix21'></div> " ;
+
+				form += "<div class='centered'><input type='submit' name='submit' value='[#submitBtnVal#]' class='push_button'></div>"+
+				"<div style='text-align: center;'><a href='#' class='bulletinCancel'>[#cancelBtnVal#]</a></div>"+
+				"</form>" +
+				"</div>" +
+				"</div>" +
+				"</div>";
+	
+	return form;
+}
+
+console.log('loaded getForm');
