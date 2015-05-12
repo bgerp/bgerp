@@ -109,6 +109,12 @@ class blogm_DefaultTheme extends core_Manager {
      */
     public function getBlogLayout()
     {
-    	return 'blogm/themes/default/BlogLayout.shtml';
+        if(Mode::is('screenMode', 'wide')) {
+            $template = 'blogm/themes/default/BlogLayout.shtml';
+        } else {
+            $template = 'blogm/themes/default/BlogLayoutNarrow.shtml';
+        }
+
+    	return $template;
     }
 }
