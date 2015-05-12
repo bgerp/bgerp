@@ -339,7 +339,7 @@ class acc_AllocatedExpenses extends core_Master
     	} elseif($firstDoc->getInstance() instanceof purchase_Purchases){
     		
     		// Вземаме всички заскладени артикули
-    		$shipped = purchase_transaction_Purchase::getShippedProducts($firstDoc->that, '321');
+    		$shipped = purchase_transaction_Purchase::getShippedProducts($firstDoc->that, '321', TRUE);
     	} else {
     		
     		// Иначе няма
@@ -357,6 +357,10 @@ class acc_AllocatedExpenses extends core_Master
     													 'quantity'     => $p->quantity,
     													 'amount' => $p->amount,
     			);
+    			
+    			if(isset($p->inStores)){
+    				$products[$p->productId]->inStores = $p->inStores;
+    			}
     			
     			if(isset($params['transportWeight'])){
     				$products[$p->productId]->transportWeight = $params['transportWeight'];
