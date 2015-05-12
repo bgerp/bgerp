@@ -19,74 +19,90 @@ defIfNot('MARKETING_INQUIRE_TO_EMAIL', '');
 defIfNot('MARKETING_INQUIRY_QUANTITIES', 3);
 
 
+
+
+
 /**
  * Дали да се показва бюлетина
+ * @deprecated
  */
 defIfNot('MARKETING_USE_BULLETIN', 'no');
+
 
 /**
  * След колко време формата да може да се показва повторно
  * 3 часа
+ * @deprecated
  */
 defIfNot('MARKETING_SHOW_AGAIN_AFTER', 10800);
 
 
 /**
  * След колко време на бездействие да се покаже формата
+ * @deprecated
  */
 defIfNot('MARKETING_IDLE_TIME_FOR_SHOW', 20);
 
 
 /**
  * След колко секунди да може да се стартира
+ * @deprecated
  */
 defIfNot('MARKETING_WAIT_BEFORE_START', 5);
 
 
 /**
  * Заглавие на формата
+ * @deprecated
  */
 defIfNot('MARKETING_BULLETIN_FORM_TITLE', 'Искате ли да научавате всички новости за нас?');
 
 
 /**
  * Съобщение при абониране
+ * @deprecated
  */
 defIfNot('MARKETING_BULLETIN_FORM_SUCCESS', 'Благодарим за абонамента за нашите новости');
 
 
 /**
  * URL от където ще се взема JS файла
+ * @deprecated
  */
 defIfNot('MARKETING_BULLETIN_URL', '');
 
 
 /**
  * Дали да се показва цялата форма или само имейла
+ * @deprecated
  */
 defIfNot('MARKETING_SHOW_ALL_FORM', 'no');
 
 
 /**
  * Дали да се показва цялата форма или само имейла
+ * @deprecated
  */
 defIfNot('MARKETING_BULLETIN_IMG', '');
 
 
 /**
  * Фон на прозореца на бюлетина
+ * @deprecated
  */
 defIfNot('MARKETING_BULLETIN_BACKGROUND', '');
 
 
 /**
  * Цвят на текста от бюлетина
+ * @deprecated
  */
 defIfNot('MARKETING_BULLETIN_TEXTCOLOR', '');
 
 
 /**
  * Основен цвят за бутона на бюлетина
+ * @deprecated
  */
 defIfNot('MARKETING_BULLETIN_BUTTONCOLOR', '');
 
@@ -137,6 +153,7 @@ class marketing_Setup extends core_ProtoSetup
 			'MARKETING_INQUIRE_TO_EMAIL'    => array('emails', 'caption=Изпращане на запитването по имейл->Имейл \'Към\''),
 			'MARKETING_INQUIRY_QUANTITIES'          => array('int', 'caption=Брой количества във запитването'),
 	        
+	        //@deprecated
 	        'MARKETING_USE_BULLETIN' => array('enum(yes=Да, no=Не)', 'caption=Дали да се показва бюлетина->Избор'),
 	        'MARKETING_SHOW_ALL_FORM' => array('enum(yes=Да, no=Не)', 'caption=Дали да се показва цялата форма или само имейла->Избор'),
 	        'MARKETING_BULLETIN_URL' => array('url', 'caption=От къде да се взема JS файла->URL'),
@@ -157,7 +174,8 @@ class marketing_Setup extends core_ProtoSetup
      */
     var $managers = array(
     		'marketing_Inquiries2',
-            'marketing_Bulletin'
+            'marketing_Bulletins',
+            'marketing_BulletinSubscribers'
         );
 
         
@@ -185,6 +203,9 @@ class marketing_Setup extends core_ProtoSetup
     	// Добавяне на кофа за файлове свързани със задаията
         $Bucket = cls::get('fileman_Buckets');
         $html .= $Bucket->createBucket('InquiryBucket', 'Снимки', 'jpg,jpeg,image/jpeg,gif,png', '10MB', 'user', 'every_one');
+        
+        $Plugins = cls::get('core_Plugins');
+        $html .= $Plugins->forcePlugin('Бюлетин за външната част', 'marketing_BulletinPlg', 'cms_page_External', 'private');
         
         return $html;
     }
