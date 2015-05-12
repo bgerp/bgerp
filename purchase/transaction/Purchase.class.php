@@ -497,7 +497,8 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
     					
     					if($groupByStore === TRUE){
     						$storePositionId = acc_Lists::getPosition(acc_Accounts::fetchField($p->debitAccId, 'systemId'), 'store_AccRegIntf');
-    						$res[$index]->inStores[$p->{"debitItem{$storePositionId}"}] += $p->debitQuantity;
+    						$storeItem = acc_Items::fetch($p->{"debitItem{$storePositionId}"});
+    						$res[$index]->inStores[$storeItem->objectId] += $p->debitQuantity;
     					}
     				}
     			}
