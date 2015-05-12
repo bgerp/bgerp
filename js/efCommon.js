@@ -63,8 +63,10 @@ function showTooltip(){
 
 
 function treeViewAction() {
-    $('.treeView tbody tr').not('.treeLevel0').addClass('hiddenRow closedChildren');
-    $('.treeView tr.treeLevel0').addClass('closedChildren');
+    if(!$('.searchResult').length) {
+        $('.treeView tbody tr').not('.treeLevel0').addClass('hiddenRow closedChildren');
+        $('.treeView tr.treeLevel0').addClass('closedChildren');
+    }
 
     $( ".treeView .toggleBtn" ).on( "click", function(event) {
         var id = $(this).closest('tr').attr('data-id');
