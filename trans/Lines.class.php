@@ -40,7 +40,7 @@ class trans_Lines extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, trans_Wrapper, plg_Sorting, plg_Printing,
-                    doc_DocumentPlg, bgerp_plg_Blank, plg_Search, doc_ActivatePlg';
+                    doc_DocumentPlg, bgerp_plg_Blank, plg_Search, change_Plugin, doc_ActivatePlg';
 
     
     /**
@@ -103,6 +103,12 @@ class trans_Lines extends core_Master
     public $listFields = 'id, title, start, folderId, createdOn, createdBy';
     
 
+    /**
+     * Кои полета да могат да се променят след активацията на документа
+     */
+    public $changableFields = 'title, repeat, vehicleId, forwarderId, forwarderPersonId';
+    
+    
     /**
      * Заглавие в единствено число
      */
