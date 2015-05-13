@@ -178,9 +178,20 @@ class core_TreeObject extends core_Manager
 			$options[$rec->id] = static::getFullTitle($rec->id, $title);
 		}
 		
-		sort($options, SORT_NATURAL);
+		usort($options, array($this, "sortOptions"));
 	
 		return $options;
+	}
+	
+	
+	/**
+	 * Подреждане на опциите
+	 */
+	private function sortOptions($a, $b)
+	{
+		if($a == $b) return 0;
+	
+		return (strnatcasecmp($a, $b) < 0) ? -1 : 1;
 	}
 	
 	
