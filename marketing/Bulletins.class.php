@@ -72,7 +72,7 @@ class marketing_Bulletins extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'marketing_Wrapper,  plg_RowTools, plg_Created, plg_State2';
+    var $loadList = 'marketing_Wrapper,  plg_RowTools, plg_Created, plg_State2, plg_Sorting';
     
     
     /**
@@ -84,7 +84,7 @@ class marketing_Bulletins extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, state, domain, showAllForm, formTitle, formSuccessText, showFormBtn';
+    public $listFields = 'id, state, domain, showAllForm, subscribersCnt, subscribersLast, formTitle, formSuccessText, showFormBtn';
     
     
     /**
@@ -104,6 +104,8 @@ class marketing_Bulletins extends core_Master
         $this->FLD('bgColor', 'color_Type', 'caption=Цветове за бюлетина->Цвят на фона');
         $this->FLD('textColor', 'color_Type', 'caption=Цветове за бюлетина->Цвят на текста');
         $this->FLD('buttonColor', 'color_Type', 'caption=Цветове за бюлетина->Цвят на бутона');
+        $this->FLD('subscribersCnt', 'int', 'caption=Брой абонирани');
+        $this->FLD('subscribersLast', 'datetime(format=smartTime)', 'caption=Последно абониране');
         
         $this->FLD('data', 'blob(serialize,compress)', 'Данни, input=none');
         
@@ -567,7 +569,11 @@ class marketing_Bulletins extends core_Master
             $name = trim(Request::get('name'));
             $company = trim(Request::get('company'));
             
-            marketing_BulletinSubscribers::addData($id, $email, $name, $company);
+            try {
+                marketing_BulletinSubscribers::addData($id, $email, $name, $company);
+            } catch (core_exception_Expect $e) {
+                // Да не се прави нищо
+            }
             
             if ($bRec->img) {
                 
@@ -623,10 +629,37 @@ class marketing_Bulletins extends core_Master
      */
     public static function on_AfterSave($mvc, &$id, $rec, $fields=array())
     {
-        $rec->data['js'] = self::prepareJS($id);
-        $rec->data['showWindowJS'] = self::prepareShowWindowJS();
-        $rec->data['css'] = self::prepareCSS($id);
+        // При обновяване на всички полета или само на посочните да се променя `data`
+        if (!$fields || $fields['js'] || $fields['showWindowJS'] || $fields['css']) {
+            $rec->data['js'] = self::prepareJS($id);
+            $rec->data['showWindowJS'] = self::prepareShowWindowJS();
+            $rec->data['css'] = self::prepareCSS($id);
+            
+            $mvc->save_($rec, 'data');
+        }
+    }
+    
+    
+    /**
+     * След промяна в детайлите на обект от този клас
+     * 
+     * @param marketing_Bulletins $mvc
+     * @param integer $id
+     * @param marketing_BulletinSubcribers $detailMvc
+     */
+    public static function on_AfterUpdateDetail($mvc, $id, $detailMvc)
+    {
+        $query = $detailMvc->getQuery();
+        $query->where("#bulletinId = $id");
+        $cnt = $query->count();
+        $query->orderBy('createdOn', 'DESC');
+        $lastRec = $query->fetch();
         
-        $mvc->save_($rec, 'data');
+        $rec = new stdClass();
+        $rec->id = $id;
+        $rec->subscribersCnt = $cnt;
+        $rec->subscribersLast = $lastRec->createdOn;
+        
+        $mvc->save($rec, 'subscribersCnt, subscribersLast');
     }
 }
