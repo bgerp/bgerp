@@ -205,19 +205,14 @@ class blogm_Comments extends core_Detail {
             $rec->ip = core_Users::getRealIpAddr();
 
             $rec->brid = core_Browser::getBrid();
+            
+            // Да се записва само при нов запис и и когато няма регистриран потребител
+            if (core_Users::getCurrent() < 1) {
+                core_Browser::setVars(array('name' => $rec->name, 'email' => $rec->email, 'web' => $rec->web));
+            }
         }
     }
-	
-	
-    /**
-     * Всички нови коментари, направени през формата в единичния 
-     * изглед на статията се създават в състояние "чакъщ"
-     */
-    public static function on_AfterSave($mvc, &$id, &$rec, $fields =  NULL)
-    {
-        core_Browser::setVars(array('name' => $rec->name, 'email' => $rec->email, 'web' => $rec->web));
-    }
-
+    
 
     /**
      * Махаме articleId когато показваме списък коментари към конкретна статия
