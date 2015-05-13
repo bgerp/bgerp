@@ -69,6 +69,12 @@ class store_Transfers extends core_Master
 
 
 	/**
+	 * Кой има право да променя?
+	 */
+	public $canChangeline = 'ceo,store';
+	
+	
+	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
 	public $canSingle = 'ceo,store';
