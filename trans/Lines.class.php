@@ -161,10 +161,13 @@ class trans_Lines extends core_Master
     public static function getRecTitle($rec, $escaped = TRUE)
     {
     	$titleArr = explode('/', $rec->title);
+    	$start = dt::mysql2verbal($rec->start, "d.m.Y H:i");
+    	$start = str_replace(' 00:00', '', $start);
+    	
     	if(count($titleArr) == 2){
-    		return "{$rec->start}/{$titleArr[1]}";
+    		return "{$start}/{$titleArr[1]}";
     	} else {
-    		return "{$rec->start}/{$rec->title}";
+    		return "{$start}/{$rec->title}";
     	}
     }
     
