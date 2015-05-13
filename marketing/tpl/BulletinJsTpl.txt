@@ -7,6 +7,7 @@
  * След зареждане на JQuery стартираме функцията
  */
 $(document).ready(function() {
+    $('head').append('<meta name="viewport" content="width=device-width, initial-scale=1">');
 	loadCSS();
 	startProcessing();
 	checkForButton();
@@ -297,9 +298,9 @@ function showFormDiv()
 		$("body").append(this.getForm());
 		
 		$(".bulletinHolder").fadeIn(600);
-		
+
 		$("body").addClass('noscroll');
-		
+
 		onClickCatcher();
 		
 		this.formIsShowed = true;

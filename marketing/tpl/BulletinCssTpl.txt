@@ -1,3 +1,8 @@
+body {
+    font-family: Helvetica, Arial, Verdana, Sans-serif;
+    font-size: 16px;
+}
+
 .bulletinHolder {
     position: fixed;
     top: 0;
@@ -10,29 +15,7 @@
     background: rgba(0,0,0,0.5);
 }
 
-.narrow .bulletinHolder {
-    overflow: hidden;
-    -webkit-overflow-scrolling: touch;
-    position: fixed;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    z-index: 1050;
-    overflow-x: hidden;
-    overflow-y: auto;
-}
-
-.narrow.noscroll {
-    overflow: hidden;
-    position: fixed;
-    top:0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-}
-
-.wide .bulletinReg {
+.bulletinReg {
     left: 50%;
     margin-left: -240px;
     top: 50%;
@@ -40,24 +23,11 @@
     padding: 20px 40px;
     width: 400px;
     min-height: 240px;
-}
-
-.bulletinReg {
     background: #f5f5f5;
     position: absolute;
     height: auto;
     z-index: 101;
     box-shadow:0 4px 30px rgba(32,32,32,1);
-}
-
-.narrow .bulletinReg {
-    top:10%;
-    right: 20px;
-    left: 20px;
-    height: auto;
-    padding-bottom: 10px;
-    margin: 0 auto;
-    max-width: 340px;
 }
 
 .bulletinClose {
@@ -67,6 +37,7 @@
     color: #999 !important;
     font-size: 18px;
     text-shadow: rgb(255,255,255) 0px 2px 0px;
+    text-decoration: none;
 }
 
 .bulletinClose:hover{
@@ -79,11 +50,6 @@
     line-height: 1.3em;
     color:#333;
     background: none !important;
-}
-
-.narrow .bulletinHolder h2 {
-    font-size: 1.1em;
-    margin-bottom: 0px;
 }
 
 .bulletinFilelds .row {
@@ -99,44 +65,45 @@
     height: 2.2em;
     line-height: 2.2em;
     -webkit-font-smoothing: antialiased;
-    display: block;
-    float: left;
     padding: 0 10px;
     text-align: left;
-
-}
-
-.wide  .bulletinFilelds .row input {
+    font-size: 1.07em;
     display: block;
     float: left;
-    width: 275px;
+    width: 260px;
 }
 
-.narrow .bulletinHolder .row input {
-    height: 1.7em;
-    line-height: 1.7em;
-    width: 90%;
-}
-
-.wide .bulletinFilelds .row span {
+.bulletinFilelds .row span {
     width: 80px;
     display: block;
     float: left;
     line-height: 2.2em;
 }
 
-.narrow .bulletinFilelds .row span {
-    padding-left: 15px;
+.clearfix21:after {
+    content: " ";
     display: block;
-    float: left;
-    font-size: 0.9em;
+    height: 0;
+    clear: both;
+    visibility: hidden;
 }
 
-.wide .push_button {
+.centered {
+    text-align: center;
+}
+
+.push_button {
     width:300px;
 }
 
 .push_button {
+    cursor: pointer;
+    font-weight: bold;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    -ms-border-radius: 3px;
+    border-radius: 3px;
+    -webkit-appearance: none;
     position: relative;
     font-size: 1em !important;
     height:40px;
@@ -146,8 +113,6 @@
     line-height:34px !important;
     display: block;
     padding: 5px;
-    margin-top: 20px !important;
-    margin-bottom: 20px !important;
     position: relative;
     text-shadow:-1px -1px 0 #2C7982;
     background: #3EACBA !important;
@@ -157,12 +122,13 @@
     background-image:-ms-linear-gradient(top, #48C6D4, #3EACBA) !important;
     background-image:-o-linear-gradient(top, #48C6D4, #3EACBA) !important;
     background-image:linear-gradient(top, #48C6D4, #3EACBA) !important;
-    -webkit-border-radius:5px;
-    -moz-border-radius:5px;
-    border-radius:5px;
     -webkit-box-shadow:0 1px 0 rgba(255, 255, 255, .5) inset, 0 -1px 0 rgba(255, 255, 255, .1) inset, 0 4px 0 #338A94, 0 4px 2px rgba(0, 0, 0, .5) !important;
     -moz-box-shadow:0 1px 0 rgba(255, 255, 255, .5) inset, 0 -1px 0 rgba(255, 255, 255, .1) inset, 0 4px 0 #338A94, 0 4px 2px rgba(0, 0, 0, .5) !important;
     box-shadow:0 1px 0 rgba(255, 255, 255, .5) inset, 0 -1px 0 rgba(255, 255, 255, .1) inset, 0 4px 0 #338A94, 0 4px 2px rgba(0, 0, 0, .5) !important;
+}
+
+.bulletinReg .push_button {
+    margin: 20px auto!important;
 }
 
 .push_button.small {
@@ -171,11 +137,6 @@
     font-size: 0.8em !important;
     padding: 3px;
     width: 220px;
-}
-
-.narrow .push_button{
-    font-size: 0.9em !important;
-    margin: 5px !important;
 }
 
 .push_button:before {
@@ -218,14 +179,11 @@
     padding: 0 10px;
 }
 
-.narrow .row {
-    margin-bottom: 5px;
-}
-
 .bulletinCancel {
     text-align: center;
     font-size: 0.85em;
     color: #666 !important;
+    text-decoration: none;
 }
 
 .bulletinError{
@@ -234,19 +192,11 @@
     font-size: 0.9em;
 }
 
-.narrow .bulletinError{
-    text-indent: 0px;
-    text-align: center;
-    top: 5px;
-    margin-top: -5px;
-    position: relative;
-}
 .successText {
     font-size: 1.8em;
     color: #333;
     margin-top: 20px;
 }
-
 
 .thanksText {
     text-align: center;
@@ -259,49 +209,152 @@
     width: auto;
 }
 
+@media handheld, only screen and (max-width: 640px) {
+    .bulletinHolder {
+        overflow: hidden;
+        -webkit-overflow-scrolling: touch;
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 1050;
+        overflow-x: hidden;
+        overflow-y: auto;
+    }
+    .bulletinReg {
+        top:10%;
+        right: 20px;
+        left: 20px;
+        height: auto;
+        padding: 0 0 20px 0;
+        margin: 0 auto;
+        max-width: 400px;
+    }
+    .bulletinError{
+        text-indent: 0px;
+        text-align: center;
+        top: 5px;
+        margin-top: -5px;
+        position: relative;
+    }
+    .row {
+        margin-bottom: 5px;
+        width: 400px;
+        margin: 0 auto;
+    }
+    .push_button{
+        font-size: 0.9em !important;
+        margin: 5px !important;
+        max-width: 240px;
+    }
+    .bulletinFilelds .row span {
+        padding-left: 15px;
+        display: block;
+        float: left;
+        font-size: 0.9em;
+    }
+    .bulletinHolder .row input {
+        height: 1.7em;
+        line-height: 1.7em;
+        width: 90%;
+    }
+    .bulletinHolder h2 {
+        font-size: 1.1em;
+        margin-bottom: 0px;
+    }
+    body.noscroll {
+        overflow: hidden;
+        position: fixed;
+        top:0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+    }
+}
+
 @media handheld, only screen and (max-width: 640px) and (orientation:landscape) {
-    .narrow .bulletinHolder h2 {
+    .bulletinHolder h2 {
         font-size: 1.1em;
         margin-bottom: 10px;
     }
-    .narrow .push_button {
+    .push_button {
         margin: 10px auto !important;
     }
-    .narrow .bulletinFilelds .row {
+    .bulletinFilelds .row {
         width: 100%;
         margin-bottom: 10px;
     }
-    .narrow .bulletinFilelds .row input{
+    .bulletinFilelds .row input{
         width: 60%;
     }
-    .narrow .bulletinFilelds .row span {
+    .bulletinFilelds .row span {
         width: 20%;
     }
 }
 
 @media handheld, only screen and (max-width: 480px) and (orientation:landscape) {
-    .narrow .bulletinFilelds .row input{
+    .bulletinFilelds .row input{
         width: 60%;
         height: 1.6em;
         line-height: 1.6em;
     }
-    .narrow .bulletinFilelds .row {
+    .bulletinFilelds .row {
         width: 100%;
         margin-bottom: 5px;
     }
-    .narrow .bulletinFilelds .row span {
+    .bulletinFilelds .row span {
         width: 20%;
         line-height: 1.6em;
     }
-    .narrow .bulletinHolder h2 {
+    .bulletinHolder h2 {
         font-size: 0.96em;
         margin-bottom: 0;
     }
 }
 
+@media handheld, only screen and (max-width: 360px) {
+    .bulletinReg {
+        width: 300px;
+    }
+    .bulletinFilelds .row input, .bulletinFilelds .row span{
+        width: 230px;
+    }
+    .narrow .bulletinFilelds .row input{
+        width: 245px;
+    }
+    .bulletinFilelds .row {
+        margin-bottom: 0px;
+        float: none;
+        width: auto;
+    }
+}
+
 @media handheld, only screen and (max-width: 320px) {
-    .narrow .bulletinFilelds .row {
-        margin-bottom: 5px;
+    .bulletinFilelds .row {
+        margin-bottom: 0px;
+        float: none;
+        width: auto;
+    }
+    .bulletinFilelds .row input{
+        width: 210px;
+    }
+    .narrow .bulletinFilelds .row input{
+        width: 225px;
+    }
+    .bulletinReg {
+        width: 280px;
+        padding: 0 0 10px 0 !important;
+    }
+    .push_button {
+        max-width: 230px;
+        font-size:14px !important;
+        height: 36px;
+        line-height: 36px;
+        padding: 2px !important;
+    }
+    .bulletinFilelds .row span {
+        line-height: 1.8em;
     }
 }
 <!--ET_BEGIN btnColorHolder-->
