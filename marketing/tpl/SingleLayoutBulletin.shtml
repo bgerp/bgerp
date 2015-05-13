@@ -94,6 +94,6 @@
         </fieldset>
     </div>
 </div>
-<div style="width: 1%">
+<div class="shortTable">
     [#DETAILS#]
 </div>
