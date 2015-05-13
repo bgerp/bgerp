@@ -639,7 +639,7 @@ class marketing_Bulletins extends core_Master
     public static function on_AfterSave($mvc, &$id, $rec, $fields=array())
     {
         // При обновяване на всички полета или само на посочните да се променя `data`
-        if (!$fields || $fields['js'] || $fields['showWindowJS'] || $fields['css']) {
+        if (!$fields || isset($fields['js']) || isset($fields['showWindowJS']) || isset($fields['css'])) {
             $rec->data['js'] = self::prepareJS($id);
             $rec->data['showWindowJS'] = self::prepareShowWindowJS();
             $rec->data['css'] = self::prepareCSS($id);
