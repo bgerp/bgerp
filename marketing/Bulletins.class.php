@@ -84,13 +84,19 @@ class marketing_Bulletins extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, state, domain, subscribersCnt, subscribersLast';
+    public $listFields = 'id, domain, state, subscribersCnt, subscribersLast';
 
 
     /**
      * Файл с шаблон за единичен изглед на бюлетин
      */
     public $singleLayoutFile = 'marketing/tpl/SingleLayoutBulletin.shtml';
+    
+    
+    /**
+     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
+     */
+    public $rowToolsSingleField = 'domain';
 
 
     /**
@@ -98,7 +104,7 @@ class marketing_Bulletins extends core_Master
      */
     public function description()
     {
-        $this->FLD('domain', 'varchar', 'caption=Домейн, mandatory');
+        $this->FLD('domain', 'varchar', 'caption=Бюлетин, mandatory');
         $this->FLD('showAllForm', 'enum(yes=Да, no=Не)', 'caption=Показване на цялата форма, title=Дали да се показва цялата форма или само имейла');
         $this->FLD('formTitle', 'varchar(128)', 'caption=Заглавие на формата');
         $this->FLD('formSuccessText', 'varchar(128)', 'caption=Текст при абониране');
@@ -110,8 +116,8 @@ class marketing_Bulletins extends core_Master
         $this->FLD('bgColor', 'color_Type', 'caption=Цветове за бюлетина->Цвят на фона');
         $this->FLD('textColor', 'color_Type', 'caption=Цветове за бюлетина->Цвят на текста');
         $this->FLD('buttonColor', 'color_Type', 'caption=Цветове за бюлетина->Цвят на бутона');
-        $this->FLD('subscribersCnt', 'int', 'caption=Брой абонирани, input=none, notNull');
-        $this->FLD('subscribersLast', 'datetime(format=smartTime)', 'caption=Последно абониране, input=none, notNull');
+        $this->FLD('subscribersCnt', 'int', 'caption=Абонаменти->Общо, input=none, notNull');
+        $this->FLD('subscribersLast', 'datetime(format=smartTime)', 'caption=Абонаменти->Последен, input=none, notNull');
         
         $this->FLD('data', 'blob(serialize,compress)', 'Данни, input=none');
         
