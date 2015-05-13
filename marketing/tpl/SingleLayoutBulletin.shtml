@@ -37,7 +37,7 @@
                     <!--ET_END formSuccessText-->
                     <!--ET_BEGIN showFormBtn-->
                     <li class="info">
-                        <span class="gray-title">|Съобщение на бутона за показване на формата|*:</span> [#showFormBtn#]
+                        <span class="gray-title">|Текст на бутона за показване на формата|*:</span> [#showFormBtn#]
                     </li>
                     <!--ET_END showFormBtn-->
                 </ul>
