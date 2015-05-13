@@ -7,7 +7,7 @@
  * След зареждане на JQuery стартираме функцията
  */
 $(document).ready(function() {
-    $('head').append('<meta name="viewport" content="width=device-width, initial-scale=1">');
+	$('head').append('<meta name="viewport" content="width=device-width, initial-scale=1">');
 	loadCSS();
 	startProcessing();
 	checkForButton();
@@ -56,8 +56,6 @@ function startProcessing()
 	// Ако е показана скоро
 	var lastShow = getCookie('bulletinLastShowTime');
 	if (this.isShowed(lastShow)) return ;
-	
-	if ('__autoShowBulletin__' == 'no') return;
 	
 	// Гледа за позицията на мишката
 	this.startWatchingPos();
@@ -109,7 +107,7 @@ function processIdleTimer()
     }, 1000);
     
     if (this.idleTime >= idleTimeForShow) {
-    	this.showForm();
+    	this.loadShowFormWindow();
     }
     
     // Увеличаваме брояча
@@ -222,7 +220,7 @@ function startWatchingPos()
 		
 		// Ако се направи движение от долната част към горната част и се напуснат очертанията
 		if (isBeginExit && (prevPos > pos) && (pos <= minPos)) {
-			thisInst.showForm();
+			thisInst.loadShowFormWindow();
 		}
 		
 		prevPos = pos;
@@ -275,36 +273,53 @@ function getNowTimetamp()
 /**
  * Показва формата
  */
-function showForm()
+function bulletinFormOpen()
 {
 	setCookie('bulletinLastShowTime', getNowTimetamp(), 1000);
 	
-	loadShowFormWindow();
+	$("body").append(this.getForm());
+		
+	$(".bulletinHolder").fadeIn(600);
 	
-	this.showFormDiv();
+	$("body").addClass('noscroll');
+	
+	onClickCatcher();
+	
+	this.formIsShowed = true;
 }
 
 
 /**
- * Връща формата, която ще се показва
+ * Връща формата за бюлетин
+ * 
+ * @return string
  */
-function showFormDiv()
+ function getForm()
 {
-	if (!this.getForm) {
-		setTimeout(function(){
-			showFormDiv();
-		}, 10);
-	} else {
-		$("body").append(this.getForm());
-		
-		$(".bulletinHolder").fadeIn(600);
+	var form = "<div class='bulletinHolder' style='display:none'>" +
+				"<div class='bulletinReg'>" +
+				"<a href='#' class='bulletinClose'>X</a>"+
+				"<div class='bulletinInner'>"+
+				"<h2>[#formTitle#]</h2>"+
+				"<div class='bulletinError' style='visibility: hidden; color: red;'>[#wrongMailText#]</div>"+
+				"<form class='bulletinForm' action='[#formAction#]'>" +
+                "<div class='bulletinFilelds'>" +
+				"<div class='row bulletinEmailHolder'><span>[#emailName#]: </span><input type='text' id='bulletinEmail' name='email'></div>" ;
+	
+				if ('[#showAllForm#]' == 'yes') {
+					form += "<div class='row bulletinNamesHolder'><span>[#namesName#]:</span> <input type='text' id='bulletinNames' name='name'></div>" +
+					"<div class='row bulletinCompanyHolder'><span>[#companyName#]: </span><input type='text' id='bulletinCompany' name='company'></div>"
+				}
+                form += "</div><div class='clearfix21'></div> " ;
 
-		$("body").addClass('noscroll');
-
-		onClickCatcher();
-		
-		this.formIsShowed = true;
-	}
+				form += "<div class='centered'><input type='submit' name='submit' value='[#submitBtnVal#]' class='push_button'></div>"+
+				"<div style='text-align: center;'><a href='#' class='bulletinCancel'>[#cancelBtnVal#]</a></div>"+
+				"</form>" +
+				"</div>" +
+				"</div>" +
+				"</div>";
+	
+	return form;
 }
 
 
@@ -509,7 +524,7 @@ function validateEmail(email)
 function checkForButton()
 {
     if($('.bulletin-link').length) {
-        $('.bulletin-link').append('<input type="submit" name="submit" value="[#showFormBtn#]" class="push_button small" onclick="showForm()"/>')
+        $('.bulletin-link').append('<input type="submit" name="submit" value="[#showFormBtn#]" class="push_button small" onclick="bulletinFormOpen()"/>')
     }
 }
 
@@ -541,7 +556,8 @@ function loadShowFormWindow()
 	if (!document.getElementById(formId)) {
 	    var head  = document.getElementsByTagName('head')[0];
 	    var scriptTag = document.createElement('script');
-		scriptTag.setAttribute('src','[#showFormUrl#]');
+		scriptTag.setAttribute('id', formId);
+		scriptTag.setAttribute('src', '[#showFormUrl#]');
 		
 	    head.appendChild(scriptTag);
 	}
