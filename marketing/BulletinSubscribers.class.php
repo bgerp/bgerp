@@ -125,7 +125,11 @@ class marketing_BulletinSubscribers extends core_Detail
         }
         core_Browser::setVars($userData);
         
+        $domain = marketing_Bulletins::fetchField((int) $bId, 'domain');
+        
         if (!self::fetch(array("#bulletinId = '[#1#]' AND #email='[#2#]'", $bId, $email))) {
+            vislog_History::add('Нов абонамент за бюлетин ' . $domain);
+            
             $rec = new stdClass();
             $rec->bulletinId = $bId;
             $rec->email = $email;
@@ -135,6 +139,8 @@ class marketing_BulletinSubscribers extends core_Detail
             $rec->brid = core_Browser::getBrid();
             
             self::save($rec);
+        } else {
+            vislog_History::add('Дублиран абонамент за бюлетин ' . $domain);
         }
     }
 

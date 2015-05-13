@@ -84,7 +84,7 @@ class marketing_Bulletins extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, domain, showAllForm, formTitle, formSuccessText, showFormBtn, showAgainAfter, idleTimeForShow, waitBeforeStart, img, bgColor, textColor, buttonColor';
+    public $listFields = 'id, state, domain, showAllForm, formTitle, formSuccessText, showFormBtn';
     
     
     /**
@@ -93,10 +93,10 @@ class marketing_Bulletins extends core_Master
     public function description()
     {
         $this->FLD('domain', 'varchar', 'caption=Домейн, mandatory');
-        $this->FLD('showAllForm', 'enum(yes=Да, no=Не)', 'caption=Дали да се показва цялата форма или само имейла->Избор');
+        $this->FLD('showAllForm', 'enum(yes=Да, no=Не)', 'caption=Показване на цялата форма, title=Дали да се показва цялата форма или само имейла');
         $this->FLD('formTitle', 'varchar(128)', 'caption=Заглавие на формата');
-        $this->FLD('formSuccessText', 'varchar(128)', 'caption=Съобщение при абониране');
-        $this->FLD('showFormBtn', 'varchar(128)', 'caption=Съобщение на бутона за показване на формата');
+        $this->FLD('formSuccessText', 'varchar(128)', 'caption=Текст при абониране');
+        $this->FLD('showFormBtn', 'varchar(128)', 'caption=Текст на бутона за показване на формата, title=Тест на бутона за форсирано показване на формата');
         $this->FLD('showAgainAfter', 'time(suggestions=3 часа|12 часа|1 ден)', 'caption=Изчакване преди ново отваряне');
         $this->FLD('idleTimeForShow', 'time(suggestions=5 секунди|20 секунди|1 мин)', 'caption=Период за бездействие преди активиране->Време');
         $this->FLD('waitBeforeStart', 'time(suggestions=3 секунди|5 секунди|10 секунди)', 'caption=След колко време да може да стартира бюлетина->Време');
@@ -468,13 +468,11 @@ class marketing_Bulletins extends core_Master
     {
         $bid = Request::get('id');
         
-        if (!self::checkHashId($bid)) return ;
+        if (!($id = self::checkHashId($bid))) shutdown();
         
-        list($id) = explode('_', $bid);
+        $bRec = self::fetch((int) $id);
         
-        $bRec = self::fetch($id);
-        
-        expect($bRec && ($bRec->state == 'active'));
+        if (!$bRec || ($bRec->state != 'active')) shutdown();
         
         $autoShowBulletin = 'yes';
         
@@ -503,13 +501,11 @@ class marketing_Bulletins extends core_Master
     {
         $bid = Request::get('id');
         
-        if (!self::checkHashId($bid)) return ;
+        if (!($id = self::checkHashId($bid))) shutdown();
         
-        list($id) = explode('_', $bid);
+        $bRec = self::fetch((int) $id);
         
-        $bRec = self::fetch($id);
-        
-        expect($bRec && ($bRec->state == 'active'));
+        if (!$bRec || ($bRec->state != 'active')) shutdown();
         
         header('Content-Type: text/css');
         
@@ -526,13 +522,11 @@ class marketing_Bulletins extends core_Master
     {
         $bid = Request::get('id');
         
-        if (!self::checkHashId($bid)) return ;
+        if (!($id = self::checkHashId($bid))) shutdown();
         
-        list($id) = explode('_', $bid);
+        $bRec = self::fetch((int) $id);
         
-        $bRec = self::fetch($id);
-        
-        expect($bRec && ($bRec->state == 'active'));
+        if (!$bRec || ($bRec->state != 'active')) shutdown();
         
         $js = self::prepareShowWindowJS($id);
         
@@ -551,47 +545,47 @@ class marketing_Bulletins extends core_Master
     {
         $bid = Request::get('id');
         
-        if (!self::checkHashId($bid)) return ;
+        if (!($id = self::checkHashId($bid))) shutdown();
         
-        list($id) = explode('_', $bid);
+        $bRec = self::fetch((int) $id);
         
-        $bRec = self::fetch($id);
+        if ($bRec && ($bRec->state == 'active')) {
         
-        expect($bRec && ($bRec->state == 'active'));
-        
-        vislog_History::add('Нов абонамент за бюлетина');
-        
-        $email = trim(Request::get('email'));
-        $name = trim(Request::get('name'));
-        $company = trim(Request::get('company'));
-        
-        marketing_BulletinSubscribers::addData($id, $email, $name, $company);
-        
-        if ($bRec->img) {
+            $email = trim(Request::get('email'));
+            $name = trim(Request::get('name'));
+            $company = trim(Request::get('company'));
             
-            $fRec = fileman_Files::fetchByFh($bRec->img);
-        	$ext = fileman_Files::getExt($fRec->name);
-        	
-        	$path = fileman::extract($bRec->img);
-        	
-        	switch ($ext) {
-        		case 'jpg':
-        		case 'jpeg':
-        				$imgSource = imagecreatefromjpeg($path);
-        				$contentType = 'image/jpg';
-        			break;
-        		case 'gif':
-        				$imgSource = imagecreatefromgif($path);
-        				$contentType = 'image/gif';
-        			break;
-        		case 'png':
-        				$imgSource = imagecreatefrompng($path);
-        				$contentType = 'image/png';
-        			break;
-        	}
+            marketing_BulletinSubscribers::addData($id, $email, $name, $company);
+            
+            if ($bRec->img) {
+                
+                $fRec = fileman_Files::fetchByFh($bRec->img);
+            	$ext = fileman_Files::getExt($fRec->name);
+            	
+            	$path = fileman::extract($bRec->img);
+            	
+            	switch ($ext) {
+            		case 'jpg':
+            		case 'jpeg':
+            				$imgSource = imagecreatefromjpeg($path);
+            				$contentType = 'image/jpg';
+            			break;
+            		case 'gif':
+            				$imgSource = imagecreatefromgif($path);
+            				$contentType = 'image/gif';
+            			break;
+            		case 'png':
+            				$imgSource = imagecreatefrompng($path);
+            				$contentType = 'image/png';
+            			break;
+            	}
+            } else {
+                $imgSource = imagecreatefrompng(getFullPath('img/thanks.png'));
+    			$contentType = 'image/png';
+            }
         } else {
-            $imgSource = imagecreatefrompng(getFullPath('img/thanks.png'));
-			$contentType = 'image/png';
+            $imgSource = imagecreatefromgif(getFullPath('img/error.gif'));
+            $contentType = 'image/gif';
         }
         
         header('Content-Type: ' . $contentType);
