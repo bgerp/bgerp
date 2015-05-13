@@ -405,4 +405,17 @@ class core_TreeObject extends core_Manager
 		// При зареждане ще се показват само записите без бащи (корените) а децата 
 		// им ще се показват с JavaScript.
 	}
+	
+	
+	/**
+	 * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+	 */
+	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+	{
+		if($action == 'delete' && isset($rec)){
+			if($mvc->fetch("#{$mvc->parentFieldName} = {$rec->id}")){
+				$requiredRoles = 'no_one';
+			}
+		}
+	}
 }
