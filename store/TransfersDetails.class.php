@@ -64,7 +64,7 @@ class store_TransfersDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, packagingId, uomId, packQuantity';
+    public $listFields = 'productId, packagingId, uomId, packQuantity,weight,volume';
     
         
     /**
@@ -145,9 +145,13 @@ class store_TransfersDetails extends doc_Detail
         if(count($data->rows)) {
             foreach ($data->rows as $i => &$row) {
                 $rec = &$data->recs[$i];
+                $pId = store_Products::fetchField($rec->productId, 'productId');
+                $row->productId = cat_Products::getShortHyperlink($pId);
+                
                 if (empty($rec->packagingId)) {
                     $row->packagingId = ($rec->uomId) ? $row->uomId : '???';
                 } else {
+                	
                 	if(cat_Packagings::fetchField($rec->packagingId, 'showContents') == 'yes'){
                 		$shortUomName = cat_UoM::getShortName($rec->uomId);
                 		$row->quantityInPack = $mvc->getFieldType('quantityInPack')->toVerbal($rec->quantityInPack);

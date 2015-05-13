@@ -39,7 +39,7 @@ class trans_plg_LinesPlugin extends core_Plugin
 		
 		// Създаваме поле за брой пакети ако няма
 		if(!$mvc->getField($mvc->palletCountFieldName, FALSE)){
-			$mvc->FLD($mvc->palletCountFieldName, 'double', 'input=none');
+			$mvc->FLD($mvc->palletCountFieldName, 'int', 'input=none');
 		} else {
 			$mvc->setField($mvc->palletCountFieldName, 'input=none');
 		}
@@ -110,12 +110,13 @@ class trans_plg_LinesPlugin extends core_Plugin
 			$formRec = $form->rec;
 			
 			// Обновяваме в мастъра информацията за общото тегло/обем и избраната линия
-			foreach (array('weight' => $mvc->totalWeightFieldName, 'volume' => $mvc->totalVolumeFieldName, 'palletsCount' => $mvc->palletCountFieldName) as $fld => $mvcField){
+			foreach (array('weight' => $mvc->totalWeightFieldName, 'volume' => $mvc->totalVolumeFieldName) as $fld => $mvcField){
 				if(isset($formRec->{$fld})){
 					$rec->{$mvcField} = $formRec->{$fld};
 				}
 			}
 			
+			$rec->{$mvc->palletCountFieldName} = $formRec->palletsCount;
 			$rec->{$mvc->lineFieldName} = $formRec->lineId;
 			$mvc->save($rec);
 			
