@@ -174,6 +174,16 @@ class acc_AllocatedExpenses extends core_Master
     	$row->correspondingDealOriginId = doc_Containers::getDocument($rec->correspondingDealOriginId)->getLink(0);
     	$row->baseCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->valior);
     	
+    	$chargeVat = $firstDoc->fetchField('chargeVat');
+    	$row->realAmount = $row->amount;
+    	if($chargeVat == 'yes' || $chargeVat == 'separate'){
+    		$amount = $rec->amount * (1 + acc_Periods::fetchByDate($rec->valior)->vatRate);
+    		$row->amount = $mvc->getFieldType('amount')->toVerbal($amount);
+    		$row->vatType = tr('с ДДС');
+    	} else {
+    		$row->vatType = tr('без ДДС');
+    	}
+    	
     	if($rec->action == 'decrease'){
     		$row->amount = "<span class='red'>-{$row->amount}</span>";
     	}
@@ -228,7 +238,7 @@ class acc_AllocatedExpenses extends core_Master
     		$count++;
     	}
     	
-    	$listFields = arr::make("count=№,name=Артикул,amount=Сума,allocated=Разпределено ({$data->row->baseCurrencyCode})", TRUE);
+    	$listFields = arr::make("count=№,name=Артикул,amount=Сума,allocated=|Разпределено|* ({$data->row->baseCurrencyCode}) |без ДДС|*", TRUE);
     	
     	// Взависимост от признака на разпределяне, показваме колоната възоснова на която е разпределено
     	switch($data->rec->allocateBy){
@@ -257,7 +267,7 @@ class acc_AllocatedExpenses extends core_Master
     	$colspan = count($listFields) - 1;
     	$lastRowTpl = new core_ET(tr("|*<tr style='background-color: #eee'><td colspan='[#colspan#]' style='text-align:right'>|Общо|*</td><td style='text-align:right'><b>[#amount#]</b></td></tr>"));
     	$lastRowTpl->replace($colspan, 'colspan');
-    	$lastRowTpl->replace($data->row->amount, 'amount');
+    	$lastRowTpl->replace($data->row->realAmount, 'amount');
     	$details->append($lastRowTpl, 'ROW_AFTER');
     	
     	$tpl->append($details, 'PRODUCTS_TABLE');
@@ -320,12 +330,17 @@ class acc_AllocatedExpenses extends core_Master
     	$chargeVat = $firstDoc->fetchField('chargeVat');
     	$baseCurrencyCode = acc_Periods::getBaseCurrencyCode();
     	if($chargeVat == 'yes' || $chargeVat == 'separate'){
+    		if($form->rec->amount){
+    			$form->rec->amount = $form->rec->amount * (1 + acc_Periods::fetchByDate($rec->valior)->vatRate);
+    			$form->rec->amount = round($form->rec->amount, 2);
+    		}
     		$form->setField('amount', "unit=|*{$baseCurrencyCode} |с ДДС|*");
     	} else {
     		$form->setField('amount', "unit=|*{$baseCurrencyCode} |без ДДС|*");
     	}
     	
     	$data->form->origin = $firstDoc;
+    	$data->form->chargeVat =  $chargeVat;
     }
     
     
@@ -491,6 +506,11 @@ class acc_AllocatedExpenses extends core_Master
     				if(empty($rec->amount)){
     					$form->setError('amount', 'Не може автоматично да се определи сумата, Моля задайте');
     				}
+    			}
+    			
+    			if($form->chargeVat == 'yes' || $form->chargeVat == 'separate'){
+    				$rec->amount /= 1 + acc_Periods::fetchByDate($rec->valior)->vatRate;
+    				$rec->amount = round($rec->amount, 2);
     			}
     			
     			// Kешираме от всички възможни продукти, тези които са били избрани във функционалното поле
