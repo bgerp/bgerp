@@ -1,4 +1,7 @@
 <?php
+
+
+
 /**
  * Клас 'store_Transfers' - Документ за междускладови трансфери
  *
@@ -8,12 +11,14 @@
  * @category  bgerp
  * @package   store
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
 class store_Transfers extends core_Master
 {
+	
+	
     /**
      * Заглавие
      */
@@ -193,9 +198,14 @@ class store_Transfers extends core_Master
     	$dQuery->where("#transferId = {$id}");
     	$measures = $this->getMeasures($dQuery->fetchAll());
     	
-    	$rec->weight = $measures->weight;
-    	$rec->volume = $measures->volume;
-    	//bp($rec);
+    	if($measures->weight){
+    		$rec->weight = $measures->weight;
+    	}
+    	
+    	if($measures->volume){
+    		$rec->volume = $measures->volume;
+    	}
+    	
     	$this->save($rec);
     }
     
@@ -203,7 +213,7 @@ class store_Transfers extends core_Master
     /**
      * След рендиране на сингъла
      */
-    function on_AfterRenderSingle($mvc, $tpl, $data)
+    protected static function on_AfterRenderSingle($mvc, $tpl, $data)
     {
     	if(Mode::is('printing') || Mode::is('text', 'xhtml')){
     		$tpl->removeBlock('header');
@@ -429,7 +439,7 @@ class store_Transfers extends core_Master
 	/**
      * Връща разбираемо за човека заглавие, отговарящо на записа
      */
-    static function getRecTitle($rec, $escaped = TRUE)
+    public static function getRecTitle($rec, $escaped = TRUE)
     {
         return tr("|Междускладов трансфер|* №") . $rec->id;
     }

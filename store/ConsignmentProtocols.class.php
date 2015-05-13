@@ -188,9 +188,16 @@ class store_ConsignmentProtocols extends core_Master
     			$dRec2->where("#protocolId = {$rec->id}");
     			 
     			$measuresReceived = $mvc->getMeasures($dRec2->fetchAll());
+    			$weight =  $measuresSend->weight + $measuresReceived->weight;
+    			$volume =  $measuresSend->volume + $measuresReceived->volume;
     			
-    			$rec->weight = $measuresSend->weight + $measuresReceived->weight;
-    			$rec->volume = $measuresSend->volume + $measuresReceived->volume;
+    			if($weight){
+    				$rec->weight = $weight;
+    			}
+    			
+    			if($volume){
+    				$rec->volume = $volume;
+    			}
     			
     			$mvc->save($rec);
     		}
