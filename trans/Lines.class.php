@@ -197,12 +197,12 @@ class trans_Lines extends core_Master
     		store_Receipts::fetchField("#lineId = {$rec->id} AND #state = 'draft'")||
     		store_ConsignmentProtocols::fetchField("#lineId = {$rec->id} AND #state = 'draft'")||
     		store_Transfers::fetchField("#lineId = {$rec->id} AND #state = 'draft'")){
-    			$warning = 'Черновите документи ще бъдат премахнати от тази линия';
+    			$error = ',error=Линията не може да бъде затворена докато има чернови документи към нея';
     		} else {
-    			$warning = 'Искате ли да затворите линията?';
+    			$warning= ',warning=Наистина ли искате да затворите линията?';
     		}
     		
-    		$data->toolbar->addBtn('Затваряне', $changeUrl, "ef_icon=img/16/lock.png,warning={$warning},title=Затваряне на линията");
+    		$data->toolbar->addBtn('Затваряне', $changeUrl, "ef_icon=img/16/lock.png{$error}{$warning},title=Затваряне на линията");
     	}
     	
     	if($data->rec->state == 'closed' && $data->rec->start >= dt::today()){
@@ -230,11 +230,7 @@ class trans_Lines extends core_Master
     			$query = $Doc::getQuery();
     			$query->where("#state = 'draft'");
     			$query->where("#lineId = {$id}");
-    		
-    			while($dRec = $query->fetch()){
-    				$dRec->lineId = NULL;
-    				$Doc::save($dRec);
-    			}
+    			expect(!$query->count());
     		}
     	}
     	
