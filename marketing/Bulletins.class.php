@@ -84,7 +84,7 @@ class marketing_Bulletins extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, state, domain, showAllForm, subscribersCnt, subscribersLast';
+    public $listFields = 'id, state, domain, subscribersCnt, subscribersLast';
 
 
     /**
