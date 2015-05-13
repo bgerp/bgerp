@@ -527,6 +527,11 @@ class marketing_Bulletins extends core_Master
         
         header('Content-Type: text/javascript');
         
+        // Да не се кешира
+        header('Cache-Control: no-cache, must-revalidate'); // HTTP 1.1.
+		header('Pragma: no-cache'); // HTTP 1.0.
+		header('Expires: 0'); // Proxies.
+        
         // Ако има имейл регистриран от този браузър
         // Ако име абонамент за бюлетина
         // Или ако има логване от този браузър
