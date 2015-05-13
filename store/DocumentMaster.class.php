@@ -495,7 +495,7 @@ abstract class store_DocumentMaster extends core_Master
     	 
     	$row->storeId = store_Stores::getHyperlink($rec->storeId);
     	$row->ROW_ATTR['class'] = "state-{$rec->state}";
-    	$row->docId = $this->getDocLink($rec->id);
+    	$row->docId = $this->getLink($rec->id, 0);
     	 
     	return $row;
     }

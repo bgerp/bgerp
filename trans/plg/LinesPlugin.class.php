@@ -149,4 +149,38 @@ class trans_plg_LinesPlugin extends core_Plugin
 			}
 		}
 	}
+
+
+	/**
+	 * Изчислява обема и теглото на продуктите в документа
+	 * @param core_Mvc $mvc
+	 * @param stdClass $res
+	 * @param array $products - масив от продуктите
+	 * 					[productId]    - ид на продукта
+	 * 					[packQuantity] - количество на опаковките
+	 * 					[weight]       - еденичното тегло
+	 * 					[volume]       - еденичния обем
+	 */
+	public static function on_AfterGetMeasures($mvc, &$res, $products)
+	{
+		$obj = new stdClass();
+		$obj->volume = 0;
+		$obj->weight = 0;
+		
+		foreach ($products as $p){
+				
+			// Ако има изчислен обем
+			if($obj->volume !== NULL){
+				$volume = $p->volume;
+				(!$volume) ? $obj->volume = NULL : $obj->volume += $p->packQuantity * $volume;
+			}
+				
+			if($obj->weight !== NULL){
+				$weight = $p->weight;
+				(!$weight) ? $obj->weight = NULL : $obj->weight += $p->packQuantity * $weight;
+			}
+		}
+	
+		$res = $obj;
+	}
 }

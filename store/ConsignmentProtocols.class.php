@@ -42,7 +42,7 @@ class store_ConsignmentProtocols extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, store_Wrapper, doc_plg_BusinessDoc,store_plg_Document,plg_Sorting, acc_plg_Contable, cond_plg_DefaultValues,
+    public $loadList = 'plg_RowTools, store_Wrapper, doc_plg_BusinessDoc,plg_Sorting, acc_plg_Contable, cond_plg_DefaultValues,
                     doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, doc_plg_TplManager, plg_Search, bgerp_plg_Blank, doc_plg_HidePrices';
 
     
