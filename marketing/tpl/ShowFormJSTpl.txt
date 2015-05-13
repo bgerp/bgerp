@@ -25,5 +25,3 @@ function getForm()
 	
 	return form;
 }
-
-console.log('loaded getForm');
