@@ -291,7 +291,7 @@ class acc_HistoryReportImpl extends frame_BaseDriver
 	    } else {
 	    	$csv = $header . "\n" . $lastRow . "\n" . $zeroRow;
 	    }
-	
+
 		return $csv;
 	}
 	
@@ -410,7 +410,8 @@ class acc_HistoryReportImpl extends frame_BaseDriver
 	{
 
 		$exportFields = $this->generateHeader($this->innerState->rec)->exportFields;
-		$rec = $this->prepareCsvRows($rec);
+		$rec = frame_CsvLib::prepareCsvRows($rec);
+		
 		$rCsv = '';
 
 		foreach ($rec as $field => $value) {
@@ -433,68 +434,8 @@ class acc_HistoryReportImpl extends frame_BaseDriver
 				}
 			}
 		}
-
+		//bp($rCsv);
 		return $rCsv;
 	}
-	
-	
-	/**
-	 * Форматиране на double за CSV 
-	 *
-	 * @return double $rows
-	 */
-	public function toCsvFormatDouble($value)
-	{
-		// ще вземем конфигурурания символ за разделител на стотинките
-		$conf = core_Packs::getConfig('frame');
-		
-		//ще го закръгляме до 2 знака, след запетаята
-		$decimals = 2;
-		// няма да имаме разделител за хилядите
-		$thousandsSep = '';
-		
-		$symbol = $conf->FRAME_TYPE_DECIMALS_SEP;
-		
-		if ($symbol == 'comma') {
-			$decPoint = ',';
-		} else {
-			$decPoint = '.';
-		}
-		
-		// Закръгляме до минимума от символи от десетичния знак или зададения брой десетични знака
-		//$decimals = min(strlen(substr(strrchr($value, $decPoint), 1)), $decimals);
-		 
-		// Закръгляме числото преди да го обърнем в нормален вид
-		$value = round($value, $decimals);
-		
-		$value = number_format($value, $decimals, $decPoint, $thousandsSep);
-		 
-		if(!Mode::is('text', 'plain')) {
-			$value = str_replace(' ', '&nbsp;', $value);
-		}
-		
-		return $value;
-	}
-	
-	
-	/**
-	 * Форматиране на дата за CSV-то
-	 *
-	 * @return string $value
-	 */
-	public function toCsvFormatData($value)
-	{
-		// ще вземем конфигурурания символ за разделител на стотинките
-		$conf = core_Packs::getConfig('frame');
-		
-		$format = $conf->FRAME_FORMAT_DATE;
-		
-		if ($format == 'dot') {
-			$value = dt::mysql2verbal($value, 'd.m.Y');
-		} else {
-			$value = dt::mysql2verbal($value, 'm/d/y');
-		}
-		
-		return $value;
-	}	
+
 }
