@@ -91,6 +91,14 @@
                                     <td>[#volume#]</td>
                                 </tr>
                                 <!--ET_END volume-->
+                                
+                                <!--ET_BEGIN palletCount-->
+                                <tr>
+                                    <td class='quiet nowrap aright'>|Брой палети|*:</td>
+                                    <td>[#palletCount#]</td>
+                                </tr>
+                                <!--ET_END palletCount-->
+                               
                                  <!--ET_BEGIN note-->
                                 <tr>
                                     <td colspan="2" >
