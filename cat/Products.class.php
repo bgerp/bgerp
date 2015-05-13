@@ -38,7 +38,7 @@ class cat_Products extends core_Embedder {
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, plg_SaveAndNew, plg_Clone, doc_DocumentPlg, plg_PrevAndNext, acc_plg_Registry, plg_State,
-                     cat_Wrapper, plg_Sorting, doc_ActivatePlg, doc_plg_BusinessDoc, cond_plg_DefaultValues, plg_Printing, plg_Select, plg_Search, bgerp_plg_Import';
+                     cat_Wrapper, plg_Sorting, doc_ActivatePlg, doc_plg_Close, doc_plg_BusinessDoc, cond_plg_DefaultValues, plg_Printing, plg_Select, plg_Search, bgerp_plg_Import';
     
     
     /**
@@ -1359,7 +1359,7 @@ class cat_Products extends core_Embedder {
     	
     	// Ако потребителя няма достъп до папката, той няма достъп и до сингъла
     	// така дори създателя на артикула няма достъп до сингъла му, ако няма достъп до папката
-    	if(($action == 'single' || $action == 'close') && isset($rec->threadId)){
+    	if($action == 'single' && isset($rec->threadId)){
     		if(!doc_Threads::haveRightFor('single', $rec->threadId)){
     			$res = 'no_one';
     		}
@@ -1413,14 +1413,6 @@ class cat_Products extends core_Embedder {
     			$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'add', 'productId' => $data->rec->id, 'originId' => $data->rec->containerId, 'ret_url' => TRUE), 'ef_icon = img/16/article.png,title=Създаване на нова технологична рецепта');
     		}
     	}
-    	
-		if($mvc->haveRightFor('close', $data->rec)){
-			if($data->rec->state == 'closed'){
-				$data->toolbar->addBtn("Активиране", array($mvc, 'changeState', $data->rec->id, 'ret_url' => TRUE), 'ef_icon = img/16/lightbulb.png,title=Активиранe на артикула,warning=Сигурнили сте че искате да активирате артикула, това ще му активира перото');
-			} elseif($data->rec->state == 'active'){
-				$data->toolbar->addBtn("Приключване", array($mvc, 'changeState', $data->rec->id, 'ret_url' => TRUE), 'ef_icon = img/16/lightbulb_off.png,title=Приключване на артикула,warning=Сигурнили сте че искате да приключите артикула, това ще му затвори перото');
-			}
-		}
     }
     
     
@@ -1432,26 +1424,6 @@ class cat_Products extends core_Embedder {
     	$rec = $this->fetchRec($id);
     	
     	return cat_ProductTplCache::cacheTpl($rec->id, $time, 'internal')->getContent();
-    }
-    
-    
-    /**
-     * Затваря/отваря артикула и перото му
-     */
-    public function act_changeState()
-    {
-    	$this->requireRightFor('close');
-    	expect($id = Request::get('id', 'int'));
-    	expect($rec = $this->fetch($id));
-    	$this->requireRightFor('close', $rec);
-    	
-    	$state = ($rec->state == 'closed') ? 'active' : 'closed';
-    	$rec->exState = $rec->state;
-    	$rec->state = $state;
-    	 
-    	$this->save($rec, 'state');
-    	
-    	return Redirect(array($this, 'single', $rec->id));
     }
     
     
