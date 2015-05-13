@@ -844,6 +844,12 @@ div.acc-detail {
         color:#000;
         line-height: 1.2;
 	}
+    .inline {
+        display: inline-block;
+        div {
+            display: inline-block;
+        }
+    }
 	&.portal {
 		padding-top: 5px;
 		margin-top: 10px;

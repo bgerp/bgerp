@@ -764,6 +764,10 @@ div.acc-detail {
   .detail-info .richtext {
     color: black;
     line-height: 1.2; }
+  .detail-info .inline {
+    display: inline-block; }
+    .detail-info .inline div {
+      display: inline-block; }
   .detail-info.portal {
     padding-top: 5px;
     margin-top: 10px;
