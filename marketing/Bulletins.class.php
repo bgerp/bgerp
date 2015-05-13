@@ -99,7 +99,7 @@ class marketing_Bulletins extends core_Master
     public function description()
     {
         $this->FLD('domain', 'varchar', 'caption=Домейн, mandatory');
-        $this->FLD('showAllForm', 'enum(yes=Да, no=Не)', 'caption=Показване на цялата форма');
+        $this->FLD('showAllForm', 'enum(yes=Да, no=Не)', 'caption=Показване на цялата форма, title=Дали да се показва цялата форма или само имейла');
         $this->FLD('formTitle', 'varchar(128)', 'caption=Заглавие на формата');
         $this->FLD('formSuccessText', 'varchar(128)', 'caption=Текст при абониране');
         $this->FLD('showFormBtn', 'varchar(128)', 'caption=Текст на бутона за показване на формата, title=Тест на бутона за форсирано показване на формата');
@@ -110,8 +110,8 @@ class marketing_Bulletins extends core_Master
         $this->FLD('bgColor', 'color_Type', 'caption=Цветове за бюлетина->Цвят на фона');
         $this->FLD('textColor', 'color_Type', 'caption=Цветове за бюлетина->Цвят на текста');
         $this->FLD('buttonColor', 'color_Type', 'caption=Цветове за бюлетина->Цвят на бутона');
-        $this->FLD('subscribersCnt', 'int', 'caption=Брой абонирани');
-        $this->FLD('subscribersLast', 'datetime(format=smartTime)', 'caption=Последно абониране');
+        $this->FLD('subscribersCnt', 'int', 'caption=Брой абонирани, input=none, notNull');
+        $this->FLD('subscribersLast', 'datetime(format=smartTime)', 'caption=Последно абониране, input=none, notNull');
         
         $this->FLD('data', 'blob(serialize,compress)', 'Данни, input=none');
         
@@ -429,6 +429,9 @@ class marketing_Bulletins extends core_Master
     {
         if (!$rec->domain || !$rec->id) return ;
         
+        // За локалхост няма нужда да се показва
+        if (strpos($rec->domain, 'localhost/') === 0) return ;
+        
         $rec->scriptTag = '<script src="' . self::getJsLink($rec->id) . '"></script>';
     }
     
@@ -482,7 +485,7 @@ class marketing_Bulletins extends core_Master
         if (!$bRec || ($bRec->state != 'active')) shutdown();
         
         $js = $bRec->data['js'];
-
+        
         header('Content-Type: text/javascript');
         
         // Хедъри за управлението на кеша в браузъра
