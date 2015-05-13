@@ -259,7 +259,7 @@ class acc_HistoryReportImpl extends frame_BaseDriver
 	 */
 	public function exportCsv()
 	{
-	//bp($this);
+
 		$exportFields = $this->getExportFields();
 	
 		$conf = core_Packs::getConfig('core');
@@ -270,38 +270,28 @@ class acc_HistoryReportImpl extends frame_BaseDriver
 	
 		$csv = "";
 	
-		foreach ($exportFields as $caption) {
-			$header .= "," . $caption;
-		}
-	
-		foreach ($this->innerState->recs as $id => $rec) {
-			$rec = $this->prepareCsvRows($rec);
-	
-			$rCsv = '';
-			foreach ($exportFields as $field => $caption) {
-	
-				if ($rec->{$field}) {
-	
-					$value = $rec->{$field};
-					$value = html2text_Converter::toRichText($value);
-					// escape
-					if (preg_match('/\\r|\\n|,|"/', $value)) {
-						$value = '"' . str_replace('"', '""', $value) . '"';
-					}
-					$rCsv .= "," . $value;
-	
-				} else {
-					$rCsv .= "," . '';
-				}
-	
-	
+		// генериран хедър
+		$header = $this->generateHeader($this->innerState->rec)->header;
+		// генериран нулев ред
+		$zeroRow = $this->generateCsvRows($this->innerState->zeroRec);
+		// генериран първи ред
+		$lastRow = $this->generateCsvRows($this->innerState->lastRec);
+		
+		if(count($this->innerState->recs)) {
+			arsort($this->innerState->recs);
+			foreach ($this->innerState->recs as $id => $rec) {
+
+				$rCsv = $this->generateCsvRows($rec);
+
+				$csv .= $rCsv;
+				$csv .=  "\n";
+		
 			}
-			$csv .= $rCsv;
-			$csv .=  "\n";
-	
-		}
-	
-		$csv = $header . "\n" . $csv;
+			
+			$csv = $header . "\n" . $lastRow .  "\n" . $csv . $zeroRow;
+	    } else {
+	    	$csv = $header . "\n" . $lastRow . "\n" . $zeroRow;
+	    }
 	
 		return $csv;
 	}
@@ -319,8 +309,11 @@ class acc_HistoryReportImpl extends frame_BaseDriver
 		$exportFields['valior']  = "Вальор";
 		$exportFields['docId']  = "Документ";
 		$exportFields['reason']  = "Забележки";
+		$exportFields['debitQuantity']  = "Дебит - количество";
 		$exportFields['debitAmount']  = "Дебит";
+		$exportFields['creditQuantity']  = "Кредит - количество";
 		$exportFields['creditAmount']  = "Кредит";
+		$exportFields['blQuantity']  = "Остатък - количество";
 		$exportFields['blAmount']  = "Остатък";
 		
 		return $exportFields;
@@ -336,42 +329,20 @@ class acc_HistoryReportImpl extends frame_BaseDriver
 	 */
 	public function prepareCsvRows ($rec)
 	{
-		 
+
+		
 		// новите ни ролове
 		$rows = new stdClass();
-		// ще вземем конфигурурания символ за разделител на стотинките
-		$conf = core_Packs::getConfig('frame');
 		
+
 		// за всеки един запис
-		foreach ($rec as $field => $value) {
+		foreach ($rec as $field => $value) { 
 
 			// ако е doubele
-			if (in_array($field ,array('baseAmount', 'debitAmount', 'creditAmount', 'blAmount', 'baseQuantity', 'debitQuantity', 'creditQuantity', 'blQuantity'))) {
+			if (in_array($field ,array('baseQuantity', 'baseAmount', 'debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount'))) {
 		   
-				//ще го закръгляме до 2 знака, след запетаята
-				$decimals = 2;
-				// няма да имаме разделител за хилядите
-				$thousandsSep = '';
-				
-				$symbol = $conf->FRAME_TYPE_DECIMALS_SEP;
-	
-				if ($symbol == 'comma') {
-					$decPoint = ',';
-				} else {
-					$decPoint = '.';
-				}
-	
-				// Закръгляме до минимума от символи от десетичния знак или зададения брой десетични знака
-				//$decimals = min(strlen(substr(strrchr($value, $decPoint), 1)), $decimals);
-		   
-				// Закръгляме числото преди да го обърнем в нормален вид
-				$value = round($value, $decimals);
-	
-				$value = number_format($value, $decimals, $decPoint, $thousandsSep);
-		   
-				if(!Mode::is('text', 'plain')) {
-					$value = str_replace(' ', '&nbsp;', $value);
-				}
+				$value = $this->toCsvFormatDouble($value);
+
 			}
 			
 			// ако е class
@@ -389,13 +360,7 @@ class acc_HistoryReportImpl extends frame_BaseDriver
 			
 			// ако е date
 			if ($field == 'valior') {
-				$format = $conf->FRAME_FORMAT_DATE;
-				
-				if ($format == 'dot') {
-					$value = dt::mysql2verbal($rec['valior'], 'd.m.Y');
-				} else {
-					$value = dt::mysql2verbal($rec['valior'], 'm/d/y');
-				}
+				$value = $this->toCsvFormatData($rec['valior']);
 			}
 	
 			$rows->{$field} = $value;
@@ -408,16 +373,129 @@ class acc_HistoryReportImpl extends frame_BaseDriver
 				$rows->{"ent{$i}Id"} = acc_Items::getVerbal($rec->{"ent{$i}Id"}, 'title');
 			}
 		}
-		 
-		// всички останали, които ги няма в масива
-		// са празна клетка
-		$exportFields = $this->getExportFields();
-		foreach ($exportFields as $field => $caption) { 
-			if (!$rows->{$field}) {
-				$rows->{$field} = '';
-			}
-		}
 
 		return $rows;
 	}
+
+	
+	/**
+	 * Ще направим заглавито на колонките
+	 * според това дали ще има скрити полета
+	 *
+	 * @return stdClass
+	 */
+	public function generateHeader($rec)
+	{
+		$exportFields = $this->getExportFields();
+	
+		if ($rec->baseAmount == $rec->baseQuantity && $rec->debitQuantity == $rec->debitAmount && $rec->creditQuantity == $rec->creditAmount && $rec->blQuantity == $rec->blAmount) { //bp();
+			unset ($exportFields['debitQuantity']);
+			unset ($exportFields['creditQuantity']);
+			unset ($exportFields['blQuantity']);			
+		}
+		
+		foreach ($exportFields as $caption) {
+			$header .= "," . $caption;
+		}
+			
+		return (object) array('header' => $header, 'exportFields' => $exportFields);
+	}
+	
+	
+	/**
+	 * Ще направим row-овете в CSV формат 
+	 *
+	 * @return string $rCsv
+	 */
+	public function generateCsvRows($rec)
+	{
+
+		$exportFields = $this->generateHeader($this->innerState->rec)->exportFields;
+		$rec = $this->prepareCsvRows($rec);
+		$rCsv = '';
+
+		foreach ($rec as $field => $value) {
+			$rCsv = '';
+			
+			foreach ($exportFields as $field => $caption) {
+			
+				if ($rec->{$field}) {
+			
+					$value = $rec->{$field};
+					$value = html2text_Converter::toRichText($value);
+					// escape
+					if (preg_match('/\\r|\\n|,|"/', $value)) {
+						$value = '"' . str_replace('"', '""', $value) . '"';
+					}
+					$rCsv .= "," . $value;
+			
+				} else {
+					$rCsv .= "," . '';
+				}
+			}
+		}
+
+		return $rCsv;
+	}
+	
+	
+	/**
+	 * Форматиране на double за CSV 
+	 *
+	 * @return double $rows
+	 */
+	public function toCsvFormatDouble($value)
+	{
+		// ще вземем конфигурурания символ за разделител на стотинките
+		$conf = core_Packs::getConfig('frame');
+		
+		//ще го закръгляме до 2 знака, след запетаята
+		$decimals = 2;
+		// няма да имаме разделител за хилядите
+		$thousandsSep = '';
+		
+		$symbol = $conf->FRAME_TYPE_DECIMALS_SEP;
+		
+		if ($symbol == 'comma') {
+			$decPoint = ',';
+		} else {
+			$decPoint = '.';
+		}
+		
+		// Закръгляме до минимума от символи от десетичния знак или зададения брой десетични знака
+		//$decimals = min(strlen(substr(strrchr($value, $decPoint), 1)), $decimals);
+		 
+		// Закръгляме числото преди да го обърнем в нормален вид
+		$value = round($value, $decimals);
+		
+		$value = number_format($value, $decimals, $decPoint, $thousandsSep);
+		 
+		if(!Mode::is('text', 'plain')) {
+			$value = str_replace(' ', '&nbsp;', $value);
+		}
+		
+		return $value;
+	}
+	
+	
+	/**
+	 * Форматиране на дата за CSV-то
+	 *
+	 * @return string $value
+	 */
+	public function toCsvFormatData($value)
+	{
+		// ще вземем конфигурурания символ за разделител на стотинките
+		$conf = core_Packs::getConfig('frame');
+		
+		$format = $conf->FRAME_FORMAT_DATE;
+		
+		if ($format == 'dot') {
+			$value = dt::mysql2verbal($value, 'd.m.Y');
+		} else {
+			$value = dt::mysql2verbal($value, 'm/d/y');
+		}
+		
+		return $value;
+	}	
 }
