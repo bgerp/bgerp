@@ -86,6 +86,11 @@
                         <span class="gray-title">|Видимост|*:</span> <span class="inline">[#state#]</span>
                     </li>
                     <!--ET_END showAllForm-->
+                    <!--ET_BEGIN img-->
+                    <li class="info">
+                        <span class="gray-title">|Картинка за успешна регистрация|*:</span> <span class="inline">[#img#]</span>
+                    </li>
+                    <!--ET_END img-->
                     <!--ET_BEGIN showAllForm-->
                     <li class="info">
                         <span class="gray-title">|Показване на цялата форма|*:</span> [#showAllForm#]
