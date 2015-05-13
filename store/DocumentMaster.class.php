@@ -475,7 +475,10 @@ abstract class store_DocumentMaster extends core_Master
     	$oldRow = $this->recToVerbal($rec, $fields);
     	 
     	$amount = currency_Currencies::round($rec->amountDelivered / $rec->currencyRate, $rec->currencyId);
-    	 
+    	if($rec->palletCount){
+    		$row->palletCount = $this->getFieldType('palletCount')->toVerbal($rec->palletCount);
+    	}
+    	
     	if($rec->weight){
     		$row->weight = $oldRow->weight;
     	}

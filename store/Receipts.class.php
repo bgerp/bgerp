@@ -190,7 +190,7 @@ class store_Receipts extends store_DocumentMaster
     {
     	if(count($data->receipts)){
     		$table = cls::get('core_TableView');
-    		$fields = "rowNumb=№,docId=Документ,storeId=Склад,weight=Тегло,volume=Обем,collection=Инкасиране,address=@Адрес";
+    		$fields = "rowNumb=№,docId=Документ,storeId=Склад,weight=Тегло,volume=Обем,palletCount=Палети,collection=Инкасиране,address=@Адрес";
     		 
     		return $table->get($data->receipts, $fields);
     	}

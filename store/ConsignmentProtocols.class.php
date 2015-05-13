@@ -448,6 +448,7 @@ class store_ConsignmentProtocols extends core_Master
     		$row->docId = $this->getLink($rec->id, 0);
     		$row->weight = $this->getFieldType('weight')->toVerbal($rec->weight);
     		$row->volume = $this->getFieldType('volume')->toVerbal($rec->volume);
+    		$row->palletCount = $this->getFieldType('palletCount')->toVerbal($rec->palletCount);
     		
     		$row->rowNumb = cls::get('type_Int')->toVerbal($count);
     		$row->ROW_ATTR['class'] = "state-{$rec->state}";
@@ -464,7 +465,7 @@ class store_ConsignmentProtocols extends core_Master
     {
     	if(count($data->protocols)){
     		$table = cls::get('core_TableView');
-    		$fields = "rowNumb=№,docId=Документ,storeId=Склад,weight=Тегло,volume=Обем,address=@Адрес";
+    		$fields = "rowNumb=№,docId=Документ,storeId=Склад,weight=Тегло,volume=Обем,palletCount=Палети,address=@Адрес";
     		 
     		return $table->get($data->protocols, $fields);
     	}
