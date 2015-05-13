@@ -173,10 +173,13 @@ class core_TreeObject extends core_Manager
 		
 		$query = $this->getQuery();
 		$query->show("{$this->parentFieldName}, {$this->nameField}");
+		
 		while($rec = $query->fetch()){
 			$options[$rec->id] = static::getFullTitle($rec->id, $title);
 		}
 		
+		sort($options, SORT_NATURAL);
+	
 		return $options;
 	}
 	
