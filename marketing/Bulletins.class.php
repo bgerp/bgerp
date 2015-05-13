@@ -137,8 +137,13 @@ class marketing_Bulletins extends core_Master
      */
     public static function getJsLink($id)
     {
+        $data = self::fetchField($id, 'data');
         
-        return self::prepareLinkFor($id, 'getJS', FALSE);
+        $hash = md5(serialize($data));
+        
+        $hash = substr($hash, 0, 6);
+        
+        return self::prepareLinkFor($id, 'getJS', $hash);
     }
     
     
@@ -191,15 +196,22 @@ class marketing_Bulletins extends core_Master
      * 
      * @param integer $id
      * @param string $act
+     * @param boolean|string $rand
      * 
      * @return string
      */
     protected static function prepareLinkFor($id, $act, $rand = TRUE)
     {
-        if ($rand) {
-            $domain = toUrl(array('marketing_Bulletins', $act, self::getHashId($id), 'r' => rand()), TRUE, TRUE, array('r'));
-        } else {
+        if ($rand === FALSE) {
             $domain = toUrl(array('marketing_Bulletins', $act, self::getHashId($id)), TRUE);
+        } else {
+            if ($rand === TRUE) {
+                $randStr = rand();
+            } else {
+                $randStr = $rand;
+            }
+            
+            $domain = toUrl(array('marketing_Bulletins', $act, self::getHashId($id), 'r' => $randStr), TRUE, TRUE, array('r'));
         }
         
         return $domain;
@@ -230,7 +242,7 @@ class marketing_Bulletins extends core_Master
     protected static function getLinkForShowForm($id)
     {
         
-        return self::prepareLinkFor($id, 'ShowWindowJS');
+        return self::prepareLinkFor($id, 'ShowWindowJS', FALSE);
     }
     
     
@@ -288,7 +300,43 @@ class marketing_Bulletins extends core_Master
         $showFormUrl = addslashes($showFormUrl);
         $jsTpl->replace($showFormUrl, 'showFormUrl');
         
-        $bid = self::getHashId($id);
+        $formTitle = $bRec->formTitle;
+        $formTitle = addslashes($formTitle);
+        $jsTpl->replace($formTitle, 'formTitle');
+        
+        $wrongMail = tr('Невалиден имейл!');
+        $jsTpl->replace($wrongMail, 'wrongMailText');
+        
+        $emailName = tr('Имейл');
+        $emailName = addslashes($emailName);
+        $jsTpl->replace($emailName, 'emailName');
+        
+        $submitBtnVal = tr('Абонирам се за информация');
+        $submitBtnVal = addslashes($submitBtnVal);
+        $jsTpl->replace($submitBtnVal, 'submitBtnVal');
+        
+        $cancelBtnVal = tr('Не, благодаря');
+        $cancelBtnVal = addslashes($cancelBtnVal);
+        $jsTpl->replace($cancelBtnVal, 'cancelBtnVal');
+        
+        $formActionUrl = self::getLinkForShowImg($id);
+        $formActionUrl = addslashes($formActionUrl);
+        $jsTpl->replace($formActionUrl, 'formAction');
+        
+        $jsTpl->replace($bRec->showAllForm, 'showAllForm');
+        
+        if ($bRec->showAllForm == 'yes') {
+            
+            $namesName = tr('Имена');
+            $namesName = addslashes($namesName);
+            $jsTpl->replace($namesName, 'namesName');
+            
+            $companyName = tr('Фирма');
+            $companyName = addslashes($companyName);
+            $jsTpl->replace($companyName, 'companyName');
+            
+            $jsTpl->replace(' ', 'namesAndCompanyFields');
+        }
         
         $cookieKey = substr(md5($_SERVER['SERVER_NAME']), 0, 6);
         $jsTpl->replace($cookieKey, 'cookieKey');
@@ -353,60 +401,11 @@ class marketing_Bulletins extends core_Master
     /**
      * Подготвя JS функцията за показване на формата
      * 
-     * @param integer $id
-     * 
      * @return string
      */
-    protected static function prepareShowWindowJS($id)
+    protected static function prepareShowWindowJS()
     {
-        $bRec = self::fetch($id);
-        
-        $formText = file_get_contents(getFullPath('/marketing/tpl/ShowFormJSTpl.txt'));
-        
-        $formTextTpl = new ET($formText);
-        
-        // Заглавие на формата
-        $formTitle = $bRec->formTitle;
-        $formTitle = addslashes($formTitle);
-        $formTextTpl->replace($formTitle, 'formTitle');
-        
-        $wrongMail = tr('Невалиден имейл!');
-        $formTextTpl->replace($wrongMail, 'wrongMailText');
-        
-        $emailName = tr('Имейл');
-        $emailName = addslashes($emailName);
-        $formTextTpl->replace($emailName, 'emailName');
-        
-        $submitBtnVal = tr('Абонирам се за информация');
-        $submitBtnVal = addslashes($submitBtnVal);
-        $formTextTpl->replace($submitBtnVal, 'submitBtnVal');
-        
-        $cancelBtnVal = tr('Не, благодаря');
-        $cancelBtnVal = addslashes($cancelBtnVal);
-        $formTextTpl->replace($cancelBtnVal, 'cancelBtnVal');
-        
-        $formActionUrl = self::getLinkForShowImg($id);
-        $formActionUrl = addslashes($formActionUrl);
-        $formTextTpl->replace($formActionUrl, 'formAction');
-        
-        $formTextTpl->replace($bRec->showAllForm, 'showAllForm');
-        
-        if ($bRec->showAllForm == 'yes') {
-            
-            $namesName = tr('Имена');
-            $namesName = addslashes($namesName);
-            $formTextTpl->replace($namesName, 'namesName');
-            
-            $companyName = tr('Фирма');
-            $companyName = addslashes($companyName);
-            $formTextTpl->replace($companyName, 'companyName');
-            
-            $formTextTpl->replace(' ', 'namesAndCompanyFields');
-        }
-        
-        $js = $formTextTpl->getContent();
-        
-        $js = minify_Js::process($js);
+        $js = 'bulletinFormOpen();';
         
         return $js;
     }
@@ -474,19 +473,13 @@ class marketing_Bulletins extends core_Master
         
         if (!$bRec || ($bRec->state != 'active')) shutdown();
         
-        $autoShowBulletin = 'yes';
-        
-        if (core_Browser::getVars(array('email'))
-            || marketing_BulletinSubscribers::haveRecForIp($id)
-            || core_LoginLog::isLoggedBefore()) {
-            $autoShowBulletin = 'no';
-        }
-        
-        $js = $bRec->data['js'];
-        
-        $js = str_replace('__autoShowBulletin__', $autoShowBulletin, $js);
+        $js = self::prepareJS($id);
         
         header('Content-Type: text/javascript');
+        
+        // Хедъри за управлението на кеша в браузъра
+        header("Expires: " . gmdate("D, d M Y H:i:s", time() + 31536000) . " GMT");
+        header("Cache-Control: public, max-age=31536000");
         
         echo $js;
         
@@ -509,7 +502,11 @@ class marketing_Bulletins extends core_Master
         
         header('Content-Type: text/css');
         
-        echo $bRec->data['css'];
+        // Хедъри за управлението на кеша в браузъра
+        header("Expires: " . gmdate("D, d M Y H:i:s", time() + 31536000) . " GMT");
+        header("Cache-Control: public, max-age=31536000");
+        
+        echo self::prepareCSS($id);
         
         shutdown();
     }
@@ -528,9 +525,19 @@ class marketing_Bulletins extends core_Master
         
         if (!$bRec || ($bRec->state != 'active')) shutdown();
         
-        $js = self::prepareShowWindowJS($id);
-        
         header('Content-Type: text/javascript');
+        
+        // Ако има имейл регистриран от този браузър
+        // Ако име абонамент за бюлетина
+        // Или ако има логване от този браузър
+        if (core_Browser::getVars(array('email'))
+            || marketing_BulletinSubscribers::haveRecForIp($id)
+            || core_LoginLog::isLoggedBefore()) {
+            
+            shutdown();
+        }
+        
+        $js = self::prepareShowWindowJS($id);
         
         echo $js;
         
@@ -612,6 +619,7 @@ class marketing_Bulletins extends core_Master
     public static function on_AfterSave($mvc, &$id, $rec, $fields=array())
     {
         $rec->data['js'] = self::prepareJS($id);
+        $rec->data['showWindowJS'] = self::prepareShowWindowJS();
         $rec->data['css'] = self::prepareCSS($id);
         
         $mvc->save_($rec, 'data');
