@@ -191,9 +191,14 @@ abstract class store_DocumentMaster extends core_Master
     	deals_Helper::fillRecs($this, $recs, $rec);
     	$measures = $this->getMeasures($recs);
     	 
-    	$rec->weight = $measures->weight;
-    	$rec->volume = $measures->volume;
-    
+    	if($measures->weight){
+    		$rec->weight = $measures->weight;
+    	}
+    	
+    	if($measures->volume){
+    		$rec->volume = $measures->volume;
+    	}
+    	
     	// ДДС-т е отделно amountDeal  е сумата без ддс + ддс-то, иначе самата сума си е с включено ддс
     	$amount = ($rec->chargeVat == 'separate') ? $this->_total->amount + $this->_total->vat : $this->_total->amount;
     	$amount -= $this->_total->discount;

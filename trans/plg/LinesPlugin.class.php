@@ -1,0 +1,151 @@
+<?php
+
+
+
+/**
+ * Клас 'trans_plg_LinesPlugin'
+ * Плъгин даващ възможност на даден документ лесно да му се избира транспортна линия
+ *
+ *
+ * @category  bgerp
+ * @package   trans
+ * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
+ * @copyright 2006 - 2015 Experta OOD
+ * @license   GPL 3
+ * @since     v 0.1
+ */
+class trans_plg_LinesPlugin extends core_Plugin
+{
+	
+	
+	/**
+	 * След дефиниране на полетата на модела
+	 *
+	 * @param core_Mvc $mvc
+	 */
+	public static function on_AfterDescription(core_Mvc $mvc)
+	{
+		setIfNot($mvc->totalWeightFieldName, 'weight');
+		setIfNot($mvc->totalVolumeFieldName, 'volume');
+		setIfNot($mvc->lineFieldName, 'lineId');
+		setIfNot($mvc->palletCountFieldName, 'palletCount');
+		
+		// Създаваме поле за избор на линия, ако няма такова
+		if(!$mvc->getField($mvc->lineFieldName, FALSE)){
+			$mvc->FLD($mvc->lineFieldName, 'key(mvc=trans_Lines,select=title,allowEmpty)', 'input=none');
+		} else {
+			$mvc->setField($mvc->lineFieldName, 'input=none');
+		}
+		
+		// Създаваме поле за брой пакети ако няма
+		if(!$mvc->getField($mvc->palletCountFieldName, FALSE)){
+			$mvc->FLD($mvc->palletCountFieldName, 'double', 'input=none');
+		} else {
+			$mvc->setField($mvc->palletCountFieldName, 'input=none');
+		}
+		
+		// Създаваме поле за общ обем
+		if(!$mvc->getField($mvc->totalVolumeFieldName, FALSE)){
+			$mvc->FLD($mvc->totalVolumeFieldName, 'cat_type_Volume', 'input=none');
+		} else {
+			$mvc->setField($mvc->totalVolumeFieldName, 'input=none');
+		}
+		
+		// Създаваме поле за общо тегло
+		if(!$mvc->getField($mvc->totalWeightFieldName, FALSE)){
+			$mvc->FLD($mvc->totalWeightFieldName, 'cat_type_Weight', 'input=none');
+		} else {
+			$mvc->setField($mvc->totalWeightFieldName, 'input=none');
+		}
+	}
+	
+	
+	/**
+	 * След подготовка на тулбара на единичен изглед
+	 */
+	public static function on_AfterPrepareSingleToolbar($mvc, &$data)
+	{
+		$rec = $data->rec;
+		
+		if($rec->state != 'rejected'){
+			$url = array($mvc, 'changeLine', $rec->id, 'ret_url' => TRUE);
+			
+			$title = (isset($rec->lineId)) ? 'Редакция на транспортна линия' : 'Добавяне на нова транспортна линия';
+			$data->toolbar->addBtn('Транспорт', $url, "ef_icon=img/16/lorry_go.png, title = {$title}");
+		}
+	}
+	
+	
+	/**
+	 * Извиква се преди изпълняването на екшън
+	 *
+	 * @param core_Mvc $mvc
+	 * @param mixed $res
+	 * @param string $action
+	 */
+	public static function on_BeforeAction($mvc, &$res, $action)
+	{
+		if($action != 'changeline') return;
+		
+		$mvc->requireRightFor('changeline');
+		expect($id = Request::get('id', 'int'));
+		expect($rec = $mvc->fetch($id));
+		$mvc->requireRightFor('changeline', $rec);
+		
+		$form = cls::get('core_Form');
+		$form->title = 'Промяна на транспорт за |*<b>' . $mvc->getRecTitle($rec) . "</b>";
+		$form->FLD('lineId', 'key(mvc=trans_Lines,select=title,allowEmpty)', 'caption=Транспорт');
+		$form->FLD('weight', 'cat_type_Weight', 'caption=Тегло');
+		$form->FLD('volume', 'cat_type_Volume', 'caption=Обем');
+		$form->FLD('palletsCount', 'int', 'caption=Брой колети/палети');
+		$form->setDefault('lineId', $rec->{$mvc->lineFieldName});
+		$form->setDefault('weight', $rec->{$mvc->totalWeightFieldName});
+		$form->setDefault('volume', $rec->{$mvc->totalVolumeFieldName});
+		$form->setDefault('palletsCount', $rec->{$mvc->palletCountFieldName});
+		
+		$form->input(NULL, 'silent');
+		$form->input();
+		
+		if($form->isSubmitted()){
+			$formRec = $form->rec;
+			
+			// Обновяваме в мастъра информацията за общото тегло/обем и избраната линия
+			foreach (array('weight' => $mvc->totalWeightFieldName, 'volume' => $mvc->totalVolumeFieldName, 'palletsCount' => $mvc->palletCountFieldName) as $fld => $mvcField){
+				if(isset($formRec->{$fld})){
+					$rec->{$mvcField} = $formRec->{$fld};
+				}
+			}
+			
+			$rec->{$mvc->lineFieldName} = $formRec->lineId;
+			$mvc->save($rec);
+			
+			// Редирект след успешния запис
+			return Redirect(array($mvc, 'single', $id), NULL, 'Промените са записани успешно');
+		}
+		
+		$form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
+    	$form->toolbar->addBtn('Отказ', array($this, 'single', $id),  'ef_icon = img/16/close16.png');
+    		 
+    	// Рендиране на формата
+    	$res = $form->renderHtml();
+    	$res = $mvc->renderWrapping($res);
+    	
+    	// ВАЖНО: спираме изпълнението на евентуални други плъгини
+    	return FALSE;
+	}
+	
+	
+	/**
+	 * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+	 */
+	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+	{
+		if($action == 'changeline' && isset($rec)){
+			
+			// На оттеглените не могат да се променят линиите
+			if($rec->state == 'rejected'){
+				$requiredRoles = 'no_one';
+			}
+		}
+	}
+}

@@ -39,7 +39,7 @@ class store_ShipmentOrders extends store_DocumentMaster
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, store_Wrapper, plg_Sorting, acc_plg_Contable, cond_plg_DefaultValues,
-                    doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, plg_Search, doc_plg_TplManager,
+                    doc_DocumentPlg, plg_Printing, trans_plg_LinesPlugin, acc_plg_DocumentSummary, plg_Search, doc_plg_TplManager,
 					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_HidePrices, store_plg_Document';
 
     
@@ -65,6 +65,12 @@ class store_ShipmentOrders extends store_DocumentMaster
      * Кой има право да променя?
      */
     public $canEdit = 'ceo,store';
+    
+    
+    /**
+     * Кой има право да променя?
+     */
+    public $canChangeline = 'ceo,store';
     
     
     /**

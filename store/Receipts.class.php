@@ -1,4 +1,7 @@
 <?php
+
+
+
 /**
  * Клас 'store_Receipts'
  *
@@ -8,12 +11,14 @@
  * @category  bgerp
  * @package   store
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
 class store_Receipts extends store_DocumentMaster
 {
+    
+    
     /**
      * Заглавие
      */
@@ -38,7 +43,7 @@ class store_Receipts extends store_DocumentMaster
      */
     public $loadList = 'plg_RowTools, store_Wrapper, plg_Sorting, acc_plg_Contable, cond_plg_DefaultValues,
                     doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, plg_Search, doc_plg_TplManager,
-					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_HidePrices, store_plg_Document';
+					doc_EmailCreatePlg, bgerp_plg_Blank, trans_plg_LinesPlugin, doc_plg_HidePrices, store_plg_Document';
 
     
     /**
