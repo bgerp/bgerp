@@ -278,8 +278,7 @@ class acc_HistoryReportImpl extends frame_BaseDriver
 		$lastRow = $this->generateCsvRows($this->innerState->lastRec);
 		
 		if(count($this->innerState->recs)) {
-			array_reverse($this->innerState->recs, TRUE);
-			foreach ($this->innerState->recs as $id => $rec) {
+			foreach (array_reverse($this->innerState->recs, TRUE) as $id => $rec) {
 
 				$rCsv = $this->generateCsvRows($rec);
 
