@@ -96,6 +96,12 @@ class crm_Companies extends core_Master
     
     
     /**
+     * Кой може да добавя?
+     */
+    public $canClose = 'crm,ceo';
+    
+    
+    /**
      * Полета по които се прави пълнотекстово търсене от плъгина plg_Search
      */
     var $searchFields = 'name,pCode,place,country,email,tel,fax,website,vatId,info,uicId,id';
