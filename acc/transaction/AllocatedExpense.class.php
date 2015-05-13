@@ -180,6 +180,13 @@ class acc_transaction_AllocatedExpense extends acc_DocumentTransactionSource
 		$creditAccId = $correspondingDoc->fetchField('accountId');
 		$creditSysId = acc_Accounts::fetchField($creditAccId, 'systemId');
 		
+		$vatType = $firstDoc->fetchField('chargeVat');
+		if($vatType == 'yes' || $vatType == 'separate'){
+			$vatPercent = 1 + acc_Periods::fetchByDate($rec->valior)->vatRate;
+		} else {
+			$vatPercent = 1;
+		}
+		
 		$creditArr = array($creditSysId,
 				array($contragentClassId, $contragentId),
 				array($correspondingDoc->getInstance()->getClassId(), $correspondingDoc->that),
@@ -195,6 +202,7 @@ class acc_transaction_AllocatedExpense extends acc_DocumentTransactionSource
 				$debitContragentClassId = $firstDoc->fetchField('contragentClassId');
 				$debitContragentId = $firstDoc->fetchField('contragentId');
 				
+				$prod->allocated = round($prod->allocated / $vatPercent, 2);
 				$entries[] = array('amount' => $sign * $prod->allocated,
 								   'debit' => array($debitAcc, 
 													array($debitContragentClassId, $debitContragentId),
@@ -211,6 +219,7 @@ class acc_transaction_AllocatedExpense extends acc_DocumentTransactionSource
 			// Ако е към покупка
 		} elseif($firstDoc->getInstance() instanceof purchase_Purchases){
 			foreach ($rec->productsData as $prod){
+				$prod->allocated /= $vatPercent;
 				foreach ($prod->inStores as $storeId => $storeQuantity){
 					$amount = round($prod->allocated * ($storeQuantity / $prod->quantity), 2);
 						
