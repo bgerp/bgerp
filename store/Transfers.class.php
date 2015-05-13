@@ -383,7 +383,7 @@ class store_Transfers extends core_Master
     	$row->rowNumb = $rec->rowNumb;
     	$row->address = $row->toAdress;
     	$row->ROW_ATTR['class'] = "state-{$rec->state}";
-    	$row->docId = $this->getDocLink($rec->id);
+    	$row->docId = $this->getLink($rec->id, 0);
     	
     	return $row;
     }

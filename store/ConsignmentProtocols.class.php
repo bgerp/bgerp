@@ -445,7 +445,7 @@ class store_ConsignmentProtocols extends core_Master
     	while($rec = $query->fetch()){
     		$row = new stdClass();
     		$row->storeId = store_Stores::getHyperlink($rec->storeId);
-    		$row->docId = $this->getDocLink($rec->id);
+    		$row->docId = $this->getLink($rec->id, 0);
     		$row->weight = $this->getFieldType('weight')->toVerbal($rec->weight);
     		$row->volume = $this->getFieldType('volume')->toVerbal($rec->volume);
     		
