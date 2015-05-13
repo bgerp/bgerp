@@ -317,6 +317,14 @@ class acc_AllocatedExpenses extends core_Master
     		$form->setDefault('chosenProducts', $defaults);
     	}
     	
+    	$chargeVat = $firstDoc->fetchField('chargeVat');
+    	$baseCurrencyCode = acc_Periods::getBaseCurrencyCode();
+    	if($chargeVat == 'yes' || $chargeVat == 'separate'){
+    		$form->setField('amount', "unit=|*{$baseCurrencyCode} |с ДДС|*");
+    	} else {
+    		$form->setField('amount', "unit=|*{$baseCurrencyCode} |без ДДС|*");
+    	}
+    	
     	$data->form->origin = $firstDoc;
     }
     

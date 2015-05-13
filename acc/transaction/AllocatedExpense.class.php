@@ -79,6 +79,11 @@ class acc_transaction_AllocatedExpense extends acc_DocumentTransactionSource
 		$contragentId = $correspondingDoc->fetchField('contragentId');
 		$currencyId = currency_Currencies::getIdByCode($correspondingDoc->fetchField('currencyId'));
 		$vatType = $firstDoc->fetchField('chargeVat');
+		if($vatType == 'yes' || $vatType == 'separate'){
+			$vatPercent = 1 + acc_Periods::fetchByDate($rec->valior)->vatRate;
+		} else {
+			$vatPercent = 1;
+		}
 		
 		// Ако е към продажба
 		if($firstDoc->getInstance() instanceof sales_Sales){
@@ -91,8 +96,9 @@ class acc_transaction_AllocatedExpense extends acc_DocumentTransactionSource
 			foreach ($rec->productsData as $prod){
 				$pInfo = cat_Products::getProductInfo($prod->productId);
 				$creditAcc = (isset($pInfo->meta['canStore'])) ? '701' : '703';
+				$allocated = round($prod->allocated / $vatPercent, 2);
 				
-				$entries[] = array('amount' => $sign * $prod->allocated,
+				$entries[] = array('amount' => $sign * $allocated,
 								   'debit' => $debitArr,
 								   'credit' => array($creditAcc, 
 													array($contragentClassId, $contragentId),
@@ -102,8 +108,8 @@ class acc_transaction_AllocatedExpense extends acc_DocumentTransactionSource
 								   
 				);
 					
-				$total += $sign * $prod->allocated;
-				$vatAmount += $prod->allocated * cat_Products::getVat($prod->productId, $rec->valior);
+				$total += $sign * $allocated;
+				$vatAmount += $allocated * cat_Products::getVat($prod->productId, $rec->valior);
 			}
 			
 			if($vatType == 'yes' || $vatType == 'separate'){
@@ -125,7 +131,9 @@ class acc_transaction_AllocatedExpense extends acc_DocumentTransactionSource
 			$vatAmount = 0;
 			
 			foreach ($rec->productsData as $prod){
+				$prod->allocated = round($prod->allocated / $vatPercent, 2);
 				foreach ($prod->inStores as $storeId => $storeQuantity){
+					
 					$amount = round($prod->allocated * ($storeQuantity / $prod->quantity), 2);
 					
 					$entries[] = array('amount' => $sign * $amount,
