@@ -473,7 +473,7 @@ class marketing_Bulletins extends core_Master
         
         if (!$bRec || ($bRec->state != 'active')) shutdown();
         
-        $js = self::prepareJS($id);
+        $js = $bRec->data['js'];
         
         header('Content-Type: text/javascript');
         
@@ -506,7 +506,7 @@ class marketing_Bulletins extends core_Master
         header("Expires: " . gmdate("D, d M Y H:i:s", time() + 31536000) . " GMT");
         header("Cache-Control: public, max-age=31536000");
         
-        echo self::prepareCSS($id);
+        echo $bRec->data['css'];
         
         shutdown();
     }
@@ -542,7 +542,7 @@ class marketing_Bulletins extends core_Master
             shutdown();
         }
         
-        $js = self::prepareShowWindowJS($id);
+        $js = $bRec->data['showWindowJS'];
         
         echo $js;
         
