@@ -84,16 +84,22 @@ class marketing_Bulletins extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, state, domain, showAllForm, subscribersCnt, subscribersLast, formTitle, formSuccessText, showFormBtn';
-    
-    
+    public $listFields = 'id, state, domain, showAllForm, subscribersCnt, subscribersLast';
+
+
+    /**
+     * Файл с шаблон за единичен изглед на бюлетин
+     */
+    public $singleLayoutFile = 'marketing/tpl/SingleLayoutBulletin.shtml';
+
+
     /**
      * Полета на модела
      */
     public function description()
     {
         $this->FLD('domain', 'varchar', 'caption=Домейн, mandatory');
-        $this->FLD('showAllForm', 'enum(yes=Да, no=Не)', 'caption=Показване на цялата форма, title=Дали да се показва цялата форма или само имейла');
+        $this->FLD('showAllForm', 'enum(yes=Да, no=Не)', 'caption=Показване на цялата форма');
         $this->FLD('formTitle', 'varchar(128)', 'caption=Заглавие на формата');
         $this->FLD('formSuccessText', 'varchar(128)', 'caption=Текст при абониране');
         $this->FLD('showFormBtn', 'varchar(128)', 'caption=Текст на бутона за показване на формата, title=Тест на бутона за форсирано показване на формата');
@@ -476,7 +482,7 @@ class marketing_Bulletins extends core_Master
         if (!$bRec || ($bRec->state != 'active')) shutdown();
         
         $js = $bRec->data['js'];
-        
+
         header('Content-Type: text/javascript');
         
         // Хедъри за управлението на кеша в браузъра

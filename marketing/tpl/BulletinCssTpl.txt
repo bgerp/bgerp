@@ -137,6 +137,7 @@ body {
     font-size: 0.8em !important;
     padding: 3px;
     width: 220px;
+    margin-top: 20px;
 }
 
 .push_button:before {

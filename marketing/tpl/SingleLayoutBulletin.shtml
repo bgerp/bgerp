@@ -1,0 +1,99 @@
+<div class="singleView">
+    [#SingleToolbar#]
+    <div class="no-cover" style="margin-bottom: 20px">
+        <h2 style='line-height:26px' class='[#headerRejected#]'>|Бюлетин за домейн|* <b style="color:green;">[#domain#]</b></h2>
+        <fieldset class="detail-info">
+            <legend class="groupTitle">|Текст|*</legend>
+            <div class="groupList">
+                <ul>
+                    <!--ET_BEGIN formTitle-->
+                    <li class="info">
+                        <span class="gray-title">|Заглавие на формата|*:</span> [#formTitle#]
+                    </li>
+                    <!--ET_END formTitle-->
+                    <!--ET_BEGIN formSuccessText-->
+                    <li class="info">
+                        <span class="gray-title">|Съобщение при абониране|*:</span> [#formSuccessText#]
+                    </li>
+                    <!--ET_END formSuccessText-->
+                    <!--ET_BEGIN showFormBtn-->
+                    <li class="info">
+                        <span class="gray-title">|Съобщение на бутона за показване на формата|*:</span> [#showFormBtn#]
+                    </li>
+                    <!--ET_END showFormBtn-->
+                </ul>
+            </div>
+            </fieldset>
+            <fieldset class="detail-info">
+            <legend class="groupTitle">|Скрипт таг|*</legend>
+            <div class="groupList">
+                [#scriptTag#]
+            </div>
+        </fieldset>
+        <!--ET_BEGIN colorBlock-->
+        [#colorBlock#]
+        <fieldset class="detail-info">
+            <legend class="groupTitle">|Цветове|*</legend>
+            <div class="groupList">
+                <ul>
+                    <!--ET_BEGIN bgColor-->
+                    <li class="info">
+                        <span class="gray-title">|Цвят на фона|*:</span> [#bgColor#]
+                    </li>
+                    <!--ET_END bgColor-->
+                    <!--ET_BEGIN textColor-->
+                    <li class="info">
+                        <span class="gray-title">|Цвят на текст|*:</span> [#textColor#]
+                    </li>
+                    <!--ET_END textColor-->
+                    <!--ET_BEGIN buttonColor-->
+                    <li class="info">
+                        <span class="gray-title">|Цвят на бутона|*:</span> [#buttonColor#]
+                    </li>
+                    <!--ET_END buttonColor-->
+                </ul>
+            </div>
+        </fieldset>
+        <!--ET_END colorBlock-->
+        <fieldset class="detail-info">
+            <legend class="groupTitle">|Друга информация|*</legend>
+            <div class="groupList">
+                <ul>
+                    <!--ET_BEGIN showAllForm-->
+                    <li class="info">
+                        <span class="gray-title">|Видимост|*:</span> <span class="inline">[#state#]</span>
+                    </li>
+                    <!--ET_END showAllForm-->
+                    <!--ET_BEGIN showAllForm-->
+                    <li class="info">
+                        <span class="gray-title">|Показване на цялата форма|*:</span> [#showAllForm#]
+                    </li>
+                    <!--ET_END showAllForm-->
+                    <!--ET_BEGIN showAgainAfter-->
+                    <li class="info">
+                        <span class="gray-title">|Изчакване преди ново отваряне|*:</span> [#showAgainAfter#]
+                    </li>
+                    <!--ET_END showAgainAfter-->
+                    <!--ET_BEGIN idleTimeForShow-->
+                    <li class="info">
+                        <span class="gray-title">|Период за бездействие преди активиране|*:</span> [#idleTimeForShow#]
+                    </li>
+                    <!--ET_END idleTimeForShow-->
+                    <!--ET_BEGIN waitBeforeStart-->
+                    <li class="info">
+                        <span class="gray-title">|След колко време да може да стартира бюлетина|*:</span> [#waitBeforeStart#]
+                    </li>
+                    <!--ET_END waitBeforeStart-->
+                    <!--ET_BEGIN waitBeforeStart-->
+                    <li class="info">
+                        <span class="gray-title">|Създаване|*: |от|* [#createdBy#] |на|* [#createdOn#]</span>
+                    </li>
+                    <!--ET_END waitBeforeStart-->
+                </ul>
+            </div>
+        </fieldset>
+    </div>
+</div>
+<div style="width: 1%">
+    [#DETAILS#]
+</div>
