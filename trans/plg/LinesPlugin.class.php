@@ -57,6 +57,10 @@ class trans_plg_LinesPlugin extends core_Plugin
 		} else {
 			$mvc->setField($mvc->totalWeightFieldName, 'input=none');
 		}
+		
+		$mvc->FLD('weightInput', 'cat_type_Weight', 'input=none');
+		$mvc->FLD('volumeInput', 'cat_type_Weight', 'input=none');
+		$mvc->FLD('palletCountInput', 'int', 'input=none');
 	}
 	
 	
@@ -99,9 +103,9 @@ class trans_plg_LinesPlugin extends core_Plugin
 		$form->FLD('volume', 'cat_type_Volume', 'caption=Обем');
 		$form->FLD('palletsCount', 'int', 'caption=Брой колети/палети');
 		$form->setDefault('lineId', $rec->{$mvc->lineFieldName});
-		$form->setDefault('weight', $rec->{$mvc->totalWeightFieldName});
-		$form->setDefault('volume', $rec->{$mvc->totalVolumeFieldName});
-		$form->setDefault('palletsCount', $rec->{$mvc->palletCountFieldName});
+		$form->setDefault('weight', $rec->weightInput);
+		$form->setDefault('volume', $rec->volumeInput);
+		$form->setDefault('palletsCount', $rec->palletCountInput);
 		
 		$form->input(NULL, 'silent');
 		$form->input();
@@ -110,13 +114,10 @@ class trans_plg_LinesPlugin extends core_Plugin
 			$formRec = $form->rec;
 			
 			// Обновяваме в мастъра информацията за общото тегло/обем и избраната линия
-			foreach (array('weight' => $mvc->totalWeightFieldName, 'volume' => $mvc->totalVolumeFieldName) as $fld => $mvcField){
-				if(isset($formRec->{$fld})){
-					$rec->{$mvcField} = $formRec->{$fld};
-				}
-			}
+			$rec->weightInput = $formRec->weight;
+			$rec->volumeInput = $formRec->volume;
+			$rec->palletCountInput = $formRec->palletsCount;
 			
-			$rec->{$mvc->palletCountFieldName} = $formRec->palletsCount;
 			$rec->{$mvc->lineFieldName} = $formRec->lineId;
 			$mvc->save($rec);
 			

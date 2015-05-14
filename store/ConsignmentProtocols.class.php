@@ -197,13 +197,8 @@ class store_ConsignmentProtocols extends core_Master
     			$weight =  $measuresSend->weight + $measuresReceived->weight;
     			$volume =  $measuresSend->volume + $measuresReceived->volume;
     			
-    			if($weight){
-    				$rec->weight = $weight;
-    			}
-    			
-    			if($volume){
-    				$rec->volume = $volume;
-    			}
+    			$rec->weight = $weight;
+    			$rec->volume = $volume;
     			
     			$mvc->save($rec);
     		}
@@ -228,6 +223,9 @@ class store_ConsignmentProtocols extends core_Master
     		if($rec->lineId){
     			$row->lineId = trans_Lines::getHyperLink($rec->lineId);
     		}
+    		
+    		$row->weight = ($row->weightInput) ? $row->weightInput : $row->weight;
+    		$row->volume = ($row->volumeInput) ? $row->volumeInput : $row->volume;
     	}
     }
     
