@@ -448,11 +448,13 @@ class marketing_Bulletins extends core_Master
             $dArr = self::parseDomain($bRec->domain);
             $dRec = cms_Domains::fetch(array("#domain = '[#1#]' AND #lang = '[#2#]'", $dArr['domain'], $dArr['lang']));
             
-            $resArr['bgColor'] = $dRec->form->bgColor;
+            if ($dRec) {
+                $resArr['bgColor'] = $dRec->form->bgColor;
         
-            $resArr['textColor'] = $dRec->form->activeColor;
-        
-            $resArr['buttonColor'] = $dRec->form->baseColor;
+                $resArr['textColor'] = $dRec->form->activeColor;
+            
+                $resArr['buttonColor'] = $dRec->form->baseColor;
+            }
         }
         
         if (!$resArr['bgColor']) {
