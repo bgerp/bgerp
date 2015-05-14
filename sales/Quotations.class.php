@@ -802,6 +802,7 @@ class sales_Quotations extends core_Master
     	// Подготвяме данните на мастъра на генерираната продажба
     	$fields = array('currencyId'         => $rec->currencyId,
     					'currencyRate'       => $rec->currencyRate,
+    					'reff'       		 => ($rec->reff) ? $rec->reff : $this->getHandle($rec->id),
     					'paymentMethodId'    => $rec->paymentMethodId,
     					'deliveryTermId'     => $rec->deliveryTermId,
     					'chargeVat'          => $rec->chargeVat,
