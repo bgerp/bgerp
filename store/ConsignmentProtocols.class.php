@@ -197,13 +197,8 @@ class store_ConsignmentProtocols extends core_Master
     			$weight =  $measuresSend->weight + $measuresReceived->weight;
     			$volume =  $measuresSend->volume + $measuresReceived->volume;
     			
-    			if($weight){
-    				$rec->weight = $weight;
-    			}
-    			
-    			if($volume){
-    				$rec->volume = $volume;
-    			}
+    			$rec->weight = $weight;
+    			$rec->volume = $volume;
     			
     			$mvc->save($rec);
     		}
@@ -228,6 +223,9 @@ class store_ConsignmentProtocols extends core_Master
     		if($rec->lineId){
     			$row->lineId = trans_Lines::getHyperLink($rec->lineId);
     		}
+    		
+    		$row->weight = ($row->weightInput) ? $row->weightInput : $row->weight;
+    		$row->volume = ($row->volumeInput) ? $row->volumeInput : $row->volume;
     	}
     }
     
@@ -456,12 +454,17 @@ class store_ConsignmentProtocols extends core_Master
     	
     	$count = 1;
     	while($rec = $query->fetch()){
-    		$row = new stdClass();
-    		$row->storeId = store_Stores::getHyperlink($rec->storeId);
+    		
+    		$rec->weight = ($rec->weightInput) ? $rec->weightInput : $rec->weight;
+    		$rec->volume = ($rec->volumeInput) ? $rec->volumeInput : $rec->volume;
+    		
+    		$data->masterData->weight += $rec->weight;
+    		$data->masterData->volume += $rec->volume;
+    		$data->masterData->palletCount += $rec->palletCountInput;
+    		
+    		$row = $this->recToVerbal($rec, 'storeId,weight,volume,palletCountInput');
+    		
     		$row->docId = $this->getLink($rec->id, 0);
-    		$row->weight = $this->getFieldType('weight')->toVerbal($rec->weight);
-    		$row->volume = $this->getFieldType('volume')->toVerbal($rec->volume);
-    		$row->palletCount = $this->getFieldType('palletCount')->toVerbal($rec->palletCount);
     		
     		$row->rowNumb = cls::get('type_Int')->toVerbal($count);
     		$row->ROW_ATTR['class'] = "state-{$rec->state}";
@@ -478,7 +481,7 @@ class store_ConsignmentProtocols extends core_Master
     {
     	if(count($data->protocols)){
     		$table = cls::get('core_TableView');
-    		$fields = "rowNumb=№,docId=Документ,storeId=Склад,weight=Тегло,volume=Обем,palletCount=Палети,address=@Адрес";
+    		$fields = "rowNumb=№,docId=Документ,storeId=Склад,weight=Тегло,volume=Обем,palletCountInput=Палети,address=@Адрес";
     		 
     		return $table->get($data->protocols, $fields);
     	}

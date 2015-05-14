@@ -78,8 +78,11 @@ class doc_RichTextPlg extends core_Plugin
         // Абревиатурарата
         $abbr = ($doc->abbr) ? $doc->abbr : $match['abbr'];
         
-        //Име на файла
+        // Име на файла
         $docName = $match['dsSign'] . $abbr . $match['id'] . $match['endDs'];
+        
+        // Подаваме името на файла на документа, ако иска да го промени
+        $doc->invoke('AfterGetDocNameInRichtext', array(&$docName, $match['id']));
         
         $mvc    = $doc->instance;
         $docRec = $doc->rec();

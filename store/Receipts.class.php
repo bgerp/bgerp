@@ -185,7 +185,7 @@ class store_Receipts extends store_DocumentMaster
      */
     public function prepareReceipts($data)
     {
-    	$data->receipts = parent::prepareLineDetail($data->masterData->rec);
+    	$data->receipts = parent::prepareLineDetail($data->masterData);
     }
     
     

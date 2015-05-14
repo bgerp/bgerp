@@ -23,11 +23,11 @@ body {
     padding: 20px 40px;
     width: 400px;
     min-height: 240px;
-    background: #f5f5f5;
     position: absolute;
     height: auto;
     z-index: 101;
     box-shadow:0 4px 30px rgba(32,32,32,1);
+    box-sizing: content-box;
 }
 
 .bulletinClose {
@@ -48,14 +48,14 @@ body {
     text-align: center;
     margin: 10px 20px 10px;
     line-height: 1.3em;
-    color:#333;
     background: none !important;
 }
 
 .bulletinFilelds .row {
     clear: both;
     float: left;
-    margin-bottom: 5px;
+    box-sizing: content-box;
+    margin: 0 10px 10px;
 }
 
 .bulletinFilelds .row input{
@@ -114,17 +114,6 @@ body {
     display: block;
     padding: 5px;
     position: relative;
-    text-shadow:-1px -1px 0 #2C7982;
-    background: #3EACBA !important;
-    border:1px solid #379AA4 !important;
-    background-image:-webkit-linear-gradient(top, #48C6D4, #3EACBA) !important;
-    background-image:-moz-linear-gradient(top, #48C6D4, #3EACBA) !important;
-    background-image:-ms-linear-gradient(top, #48C6D4, #3EACBA) !important;
-    background-image:-o-linear-gradient(top, #48C6D4, #3EACBA) !important;
-    background-image:linear-gradient(top, #48C6D4, #3EACBA) !important;
-    -webkit-box-shadow:0 1px 0 rgba(255, 255, 255, .5) inset, 0 -1px 0 rgba(255, 255, 255, .1) inset, 0 4px 0 #338A94, 0 4px 2px rgba(0, 0, 0, .5) !important;
-    -moz-box-shadow:0 1px 0 rgba(255, 255, 255, .5) inset, 0 -1px 0 rgba(255, 255, 255, .1) inset, 0 4px 0 #338A94, 0 4px 2px rgba(0, 0, 0, .5) !important;
-    box-shadow:0 1px 0 rgba(255, 255, 255, .5) inset, 0 -1px 0 rgba(255, 255, 255, .1) inset, 0 4px 0 #338A94, 0 4px 2px rgba(0, 0, 0, .5) !important;
 }
 
 .bulletinReg .push_button {
@@ -137,7 +126,7 @@ body {
     font-size: 0.8em !important;
     padding: 3px;
     width: 220px;
-    margin-top: 20px;
+    margin: 20px 0;
 }
 
 .push_button:before {
@@ -164,20 +153,6 @@ body {
     top: -11px;
     bottom: -5px;
     content: "";
-}
-
-.push_button:hover {
-    background: #48C6D4 !important;
-    background-image:-webkit-linear-gradient(top, #3EACBA, #48C6D4) !important;
-    background-image:-moz-linear-gradient(top, #3EACBA, #48C6D4) !important;
-    background-image:-ms-linear-gradient(top, #3EACBA, #48C6D4) !important;
-    background-image:-o-linear-gradient(top, #3EACBA, #48C6D4) !important;
-    background-image:linear-gradient(top, #3EACBA, #48C6D4) !important;
-}
-
-.row {
-    margin-bottom: 10px;
-    padding: 0 10px;
 }
 
 .bulletinCancel {
@@ -361,28 +336,28 @@ body {
 <!--ET_BEGIN btnColorHolder-->
 [#btnColorHolder#]
 .push_button {
-    text-shadow:-1px -1px 0 #[#shadowBtnColor#];
-    background: #[#btnColor#] !important;
-    border:1px solid #[#shadowBtnColor#] !important;
-    background-image:-webkit-linear-gradient(top, #[#darkBtnColor#], #[#btnColor#]) !important;
-    background-image:-moz-linear-gradient(top, #[#darkBtnColor#], #[#btnColor#]) !important;
-    background-image:-ms-linear-gradient(top, #[#darkBtnColor#], #[#btnColor#]) !important;
-    background-image:-o-linear-gradient(top, #[#darkBtnColor#], #[#btnColor#]) !important;
-    background-image:linear-gradient(top, #[#darkBtnColor#], #[#btnColor#]) !important;
+    text-shadow:-1px -1px 0 [#shadowBtnColor#];
+    background: [#btnColor#] !important;
+    border:1px solid [#shadowBtnColor#] !important;
+    background-image:-webkit-linear-gradient(top, [#darkBtnColor#], [#btnColor#]) !important;
+    background-image:-moz-linear-gradient(top, [#darkBtnColor#], [#btnColor#]) !important;
+    background-image:-ms-linear-gradient(top, [#darkBtnColor#], [#btnColor#]) !important;
+    background-image:-o-linear-gradient(top, [#darkBtnColor#], [#btnColor#]) !important;
+    background-image:linear-gradient(top, [#darkBtnColor#], [#btnColor#]) !important;
     -webkit-border-radius:5px;
     -moz-border-radius:5px;
     border-radius:5px;
-    -webkit-box-shadow:0 1px 0 rgba(255, 255, 255, .5) inset, 0 -1px 0 rgba(255, 255, 255, .1) inset, 0 4px 0 #[#shadowBtnColor#], 0 4px 2px rgba(0, 0, 0, .5) !important;
-    -moz-box-shadow:0 1px 0 rgba(255, 255, 255, .5) inset, 0 -1px 0 rgba(255, 255, 255, .1) inset, 0 4px 0 #[#shadowBtnColor#], 0 4px 2px rgba(0, 0, 0, .5) !important;
-    box-shadow:0 1px 0 rgba(255, 255, 255, .5) inset, 0 -1px 0 rgba(255, 255, 255, .1) inset, 0 4px 0 #[#shadowBtnColor#], 0 4px 2px rgba(0, 0, 0, .5) !important;
+    -webkit-box-shadow:0 1px 0 rgba(255, 255, 255, .5) inset, 0 -1px 0 rgba(255, 255, 255, .1) inset, 0 4px 0 [#shadowBtnColor#], 0 4px 2px rgba(0, 0, 0, .5) !important;
+    -moz-box-shadow:0 1px 0 rgba(255, 255, 255, .5) inset, 0 -1px 0 rgba(255, 255, 255, .1) inset, 0 4px 0 [#shadowBtnColor#], 0 4px 2px rgba(0, 0, 0, .5) !important;
+    box-shadow:0 1px 0 rgba(255, 255, 255, .5) inset, 0 -1px 0 rgba(255, 255, 255, .1) inset, 0 4px 0 [#shadowBtnColor#], 0 4px 2px rgba(0, 0, 0, .5) !important;
 }
 .push_button:hover {
     background: #48C6D4 !important;
-    background-image:-webkit-linear-gradient(top, #[#btnColor#], #[#darkBtnColor#]) !important;
-    background-image:-moz-linear-gradient(top, #[#btnColor#], #[#darkBtnColor#]) !important;
-    background-image:-ms-linear-gradient(top,  #[#btnColor#], #[#darkBtnColor#]) !important;
-    background-image:-o-linear-gradient(top,  #[#btnColor#], #[#darkBtnColor#]) !important;
-    background-image:linear-gradient(top,  #[#btnColor#], #[#darkBtnColor#]) !important;
+    background-image:-webkit-linear-gradient(top, [#btnColor#], [#darkBtnColor#]) !important;
+    background-image:-moz-linear-gradient(top, [#btnColor#], [#darkBtnColor#]) !important;
+    background-image:-ms-linear-gradient(top,  [#btnColor#], [#darkBtnColor#]) !important;
+    background-image:-o-linear-gradient(top,  [#btnColor#], [#darkBtnColor#]) !important;
+    background-image:linear-gradient(top,  [#btnColor#], [#darkBtnColor#]) !important;
 }
 <!--ET_END btnColorHolder-->
 

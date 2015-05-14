@@ -97,8 +97,14 @@ class marketing_Bulletins extends core_Master
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     public $rowToolsSingleField = 'domain';
-
-
+    
+    
+    /**
+     * "Лепило" за слепване на език и домейн
+     */
+    protected static $domainLgGlue = '/lang/';
+    
+    
     /**
      * Полета на модела
      */
@@ -106,16 +112,28 @@ class marketing_Bulletins extends core_Master
     {
         $this->FLD('domain', 'varchar', 'caption=Бюлетин, mandatory');
         $this->FLD('showAllForm', 'enum(yes=Да, no=Не)', 'caption=Показване на цялата форма, title=Дали да се показва цялата форма или само имейла');
-        $this->FLD('formTitle', 'varchar(128)', 'caption=Заглавие на формата');
-        $this->FLD('formSuccessText', 'varchar(128)', 'caption=Текст при абониране');
-        $this->FLD('showFormBtn', 'varchar(128)', 'caption=Текст на бутона за показване на формата, title=Тест на бутона за форсирано показване на формата');
+        
+        $this->FLD('formTitle', 'varchar(128)', 'caption=Съдържание на формата->Покана за абонамент');
+        $this->FLD('formSuccessText', 'varchar(128)', 'caption=Съдържание на формата->Благодарност при абониране');
+        $this->FLD('img', 'fileman_FileType(bucket=pictures)', 'caption=Съдържание на формата->Картинка при абониране');
+        $this->FLD('wrongMailText', 'varchar(128)', 'caption=Съдържание на формата->Съобщени за грешен имейл');
+        
+        $this->FLD('showFormBtn', 'varchar(128)', 'caption=Текстове на бутони->За показване');
+        $this->FLD('submitBtnVal', 'varchar(128)', 'caption=Текстове на бутони->За абониране');
+        $this->FLD('cancelBtnVal', 'varchar(128)', 'caption=Текстове на бутони->За отказ');
+        
+        $this->FLD('emailName', 'varchar(128)', 'caption=Имена на полетата->Имейл');
+        $this->FLD('namesName', 'varchar(128)', 'caption=Имена на полетата->Имена');
+        $this->FLD('companyName', 'varchar(128)', 'caption=Имена на полетата->Фирма');
+        
         $this->FLD('showAgainAfter', 'time(suggestions=3 часа|12 часа|1 ден)', 'caption=Изчакване преди ново отваряне');
         $this->FLD('idleTimeForShow', 'time(suggestions=5 секунди|20 секунди|1 мин)', 'caption=Период за бездействие преди активиране->Време');
         $this->FLD('waitBeforeStart', 'time(suggestions=3 секунди|5 секунди|10 секунди)', 'caption=След колко време да може да стартира бюлетина->Време');
-        $this->FLD('img', 'fileman_FileType(bucket=pictures)', 'caption=Картинка за успешна регистрация');
+        
         $this->FLD('bgColor', 'color_Type', 'caption=Цветове за бюлетина->Цвят на фона');
         $this->FLD('textColor', 'color_Type', 'caption=Цветове за бюлетина->Цвят на текста');
         $this->FLD('buttonColor', 'color_Type', 'caption=Цветове за бюлетина->Цвят на бутона');
+        
         $this->FLD('subscribersCnt', 'int', 'caption=Абонаменти->Общо, input=none, notNull');
         $this->FLD('subscribersLast', 'datetime(format=smartTime)', 'caption=Абонаменти->Последен, input=none, notNull');
         
@@ -171,7 +189,7 @@ class marketing_Bulletins extends core_Master
      */
     public static function getDomain($domain, $lg)
     {
-        $domain = $domain . '/lang/'  . $lg;
+        $domain = $domain . self::$domainLgGlue  . $lg;
         
         return $domain;
     }
@@ -300,57 +318,54 @@ class marketing_Bulletins extends core_Master
         $jsTpl->replace($bRec->waitBeforeStart, 'waitBeforeStart');
         
         // Съобщение при абониране
-        $successText = $bRec->formSuccessText;
-        $successText = addslashes($successText);
+        $successText = addslashes($bRec->formSuccessText);
         $jsTpl->replace($successText, 'successText');
         
         // Съобщение на бутона за показване на формата за абониране
-        $showFormBtn = $bRec->showFormBtn;
-        $successText = addslashes($showFormBtn);
+        $showFormBtn = addslashes($bRec->showFormBtn);
         $jsTpl->replace($showFormBtn, 'showFormBtn');
+        
+        // Заглавие на формата
+        $formTitle = addslashes($bRec->formTitle);
+        $jsTpl->replace($formTitle, 'formTitle');
+        
+        // Текст на бутона за субмитване
+        $submitBtnVal = addslashes($bRec->submitBtnVal);
+        $jsTpl->replace($submitBtnVal, 'submitBtnVal');
+        
+        // Текст на бутона за отказ
+        $cancelBtnVal = addslashes($bRec->cancelBtnVal);
+        $jsTpl->replace($cancelBtnVal, 'cancelBtnVal');
+        
+        // Съобщение за невалиден имейл
+        $wrongMail = addslashes($bRec->wrongMailText);
+        $jsTpl->replace($wrongMail, 'wrongMailText');
+        
+        // Име на полето за имейл
+        $emailName = addslashes($bRec->emailName);
+        $jsTpl->replace($emailName, 'emailName');
+        
+        $jsTpl->replace($bRec->showAllForm, 'showAllForm');
+        if ($bRec->showAllForm == 'yes') {
+            
+            // Име на полето за имена
+            $namesName = addslashes($bRec->namesName);
+            $jsTpl->replace($namesName, 'namesName');
+            
+            // Име на полето за фирма
+            $companyName = addslashes($bRec->companyName);
+            $jsTpl->replace($companyName, 'companyName');
+        }
         
         // Линк за показване на формата
         $showFormUrl = self::getLinkForShowForm($id);
         $showFormUrl = addslashes($showFormUrl);
         $jsTpl->replace($showFormUrl, 'showFormUrl');
         
-        $formTitle = $bRec->formTitle;
-        $formTitle = addslashes($formTitle);
-        $jsTpl->replace($formTitle, 'formTitle');
-        
-        $wrongMail = tr('Невалиден имейл!');
-        $jsTpl->replace($wrongMail, 'wrongMailText');
-        
-        $emailName = tr('Имейл');
-        $emailName = addslashes($emailName);
-        $jsTpl->replace($emailName, 'emailName');
-        
-        $submitBtnVal = tr('Абонирам се за информация');
-        $submitBtnVal = addslashes($submitBtnVal);
-        $jsTpl->replace($submitBtnVal, 'submitBtnVal');
-        
-        $cancelBtnVal = tr('Не, благодаря');
-        $cancelBtnVal = addslashes($cancelBtnVal);
-        $jsTpl->replace($cancelBtnVal, 'cancelBtnVal');
-        
+        // Линк за img за регистрация
         $formActionUrl = self::getLinkForShowImg($id);
         $formActionUrl = addslashes($formActionUrl);
         $jsTpl->replace($formActionUrl, 'formAction');
-        
-        $jsTpl->replace($bRec->showAllForm, 'showAllForm');
-        
-        if ($bRec->showAllForm == 'yes') {
-            
-            $namesName = tr('Имена');
-            $namesName = addslashes($namesName);
-            $jsTpl->replace($namesName, 'namesName');
-            
-            $companyName = tr('Фирма');
-            $companyName = addslashes($companyName);
-            $jsTpl->replace($companyName, 'companyName');
-            
-            $jsTpl->replace(' ', 'namesAndCompanyFields');
-        }
         
         $cookieKey = substr(md5($_SERVER['SERVER_NAME']), 0, 6);
         $jsTpl->replace($cookieKey, 'cookieKey');
@@ -374,41 +389,98 @@ class marketing_Bulletins extends core_Master
      */
     protected static function prepareCSS($id)
     {
-        $bRec = self::fetch($id);
+        $colorsArr = self::prepareColors($id);
         
         $css = file_get_contents(getFullPath('/marketing/tpl/BulletinCssTpl.txt'));
         
         $cssTpl = new ET($css);
         
-        if ($bRec->bgColor) {
-            $cssTpl->replace($bRec->bgColor, 'bulletinRegBg');
-        }
-        
-        if($bRec->textColor) {
-            $cssTpl->replace($bRec->textColor, 'textColor');
-        }
-        
-        $btnColor =  ltrim($bRec->buttonColor, "#");
-        
-        if ($btnColor) {
-            $darkBtnColor = phpcolor_Adapter::changeColor($btnColor, 'lighten', 15);
-            $shadowBtnColor = phpcolor_Adapter::changeColor($darkBtnColor, 'mix', 1, '#444');
-            
-            if(phpcolor_Adapter::checkColor($btnColor, 'light'))  {
-                $btnColorShadow = ' ';
-                $cssTpl->replace($btnColorShadow, 'btnColorShadow');
-            }
-        }
-        
-        $cssTpl->replace($btnColor, 'btnColor');
-        $cssTpl->replace($darkBtnColor, 'darkBtnColor');
-        $cssTpl->replace($shadowBtnColor, 'shadowBtnColor');
+        $cssTpl->replace($colorsArr['bgColor'], 'bulletinRegBg');
+        $cssTpl->replace($colorsArr['textColor'], 'textColor');
+        $cssTpl->replace($colorsArr['buttonColor'], 'btnColor');
+        $cssTpl->replace($colorsArr['darkBtnColor'], 'darkBtnColor');
+        $cssTpl->replace($colorsArr['shadowBtnColor'], 'shadowBtnColor');
+        $cssTpl->replace($colorsArr['btnColorShadow'], 'btnColorShadow');
         
         $css = $cssTpl->getContent();
         
         $css = minify_Css::process($css);
         
         return $css;
+    }
+    
+    
+    /**
+     * Разделя езика и домейна
+     * 
+     * @param string $domain
+     * 
+     * @return array
+     */
+    protected static function parseDomain($domain)
+    {
+        $resArr = array();
+        
+        list($resArr['domain'], $resArr['lang']) = explode(self::$domainLgGlue, $domain);
+        
+        return $resArr;
+    }
+    
+    
+    /**
+     * Връща масив с всички цветове, които ще се използват в CSS за формата, текста и бутоните
+     * 
+     * @param integer $id
+     * 
+     * @return array
+     */
+    protected static function prepareColors($id)
+    {
+        $resArr = array();
+        
+        $bRec = self::fetch($id);
+        
+        $resArr['bgColor'] = $bRec->bgColor;
+        $resArr['textColor'] = $bRec->textColor;
+        $resArr['buttonColor'] = $bRec->buttonColor;
+        
+        if (!$resArr['bgColor'] && !$resArr['textColor'] && !$resArr['buttonColor']) {
+            $dArr = self::parseDomain($bRec->domain);
+            $dRec = cms_Domains::fetch(array("#domain = '[#1#]' AND #lang = '[#2#]'", $dArr['domain'], $dArr['lang']));
+            
+            if ($dRec) {
+                $resArr['bgColor'] = $dRec->form->bgColor;
+        
+                $resArr['textColor'] = $dRec->form->activeColor;
+            
+                $resArr['buttonColor'] = $dRec->form->baseColor;
+            }
+        }
+        
+        if (!$resArr['bgColor']) {
+            $resArr['bgColor'] = '#F5F5F5';
+        }
+        
+        if (!$resArr['textColor']) {
+            $resArr['textColor'] = '#333333';
+        }
+        
+        if (!$resArr['buttonColor']) {
+            $resArr['buttonColor'] = '#3EACBA';
+        }
+        
+        $btnColor = ltrim($resArr['buttonColor'], '#');
+        
+        $darkBtnColor = phpcolor_Adapter::changeColor($btnColor, 'lighten', 15);
+        $resArr['shadowBtnColor'] = '#' . phpcolor_Adapter::changeColor($darkBtnColor, 'mix', 1, '#444');
+        
+        $resArr['darkBtnColor'] = '#' . $darkBtnColor;
+        
+        if(phpcolor_Adapter::checkColor($btnColor, 'light'))  {
+            $resArr['btnColorShadow'] = ' ';
+        }
+        
+        return $resArr;
     }
     
     
@@ -469,7 +541,13 @@ class marketing_Bulletins extends core_Master
         
         $form->setDefault('formTitle', 'Искате ли да научавате всички новости за нас?');
         $form->setDefault('formSuccessText', 'Благодарим за абонамента за нашите новости');
-        $form->setDefault('showFormBtn', 'Абонирай се за информация');
+        $form->setDefault('showFormBtn', 'Абонамент за новости');
+        $form->setDefault('wrongMailText', 'Невалиден имейл!');
+        $form->setDefault('submitBtnVal', 'Абонирам се за бюлетина');
+        $form->setDefault('cancelBtnVal', 'Не, благодаря');
+        $form->setDefault('emailName', 'Имейл');
+        $form->setDefault('namesName', 'Имена');
+        $form->setDefault('companyName', 'Фирма');
         $form->setDefault('showAgainAfter', '10800'); //3 часа
         $form->setDefault('idleTimeForShow', '20');
         $form->setDefault('waitBeforeStart', '5');
@@ -492,11 +570,25 @@ class marketing_Bulletins extends core_Master
         
         $js = $bRec->data['js'];
         
-        header('Content-Type: text/javascript');
+        header('Content-Type: application/javascript');
         
         // Хедъри за управлението на кеша в браузъра
         header("Expires: " . gmdate("D, d M Y H:i:s", time() + 31536000) . " GMT");
         header("Cache-Control: public, max-age=31536000");
+        
+        // Поддържа ли се gzip компресиране на съдържанието?
+        $isGzipSupported = in_array('gzip', array_map('trim', explode(',', @$_SERVER['HTTP_ACCEPT_ENCODING'])));
+
+        if ($isGzipSupported) {
+            // Компресираме в движение и подаваме правилния хедър
+            $js = gzencode($js);
+            header("Content-Encoding: gzip");
+        } 
+        
+        // Отпечатваме съдържанието и го изпращаме към браузъра
+        header("Content-Length: " . strlen($js));
+        
+        header_remove("Pragma");
         
         echo $js;
         
@@ -523,7 +615,23 @@ class marketing_Bulletins extends core_Master
         header("Expires: " . gmdate("D, d M Y H:i:s", time() + 31536000) . " GMT");
         header("Cache-Control: public, max-age=31536000");
         
-        echo $bRec->data['css'];
+        // Поддържа ли се gzip компресиране на съдържанието?
+        $isGzipSupported = in_array('gzip', array_map('trim', explode(',', @$_SERVER['HTTP_ACCEPT_ENCODING'])));
+        
+        $css = $bRec->data['css'];
+        
+        if ($isGzipSupported) {
+            // Компресираме в движение и подаваме правилния хедър
+            $css = gzencode($css);
+            header("Content-Encoding: gzip");
+        } 
+        
+        // Отпечатваме съдържанието и го изпращаме към браузъра
+        header("Content-Length: " . strlen($css));
+        
+        header_remove("Pragma");
+        
+        echo $css;
         
         shutdown();
     }
@@ -552,12 +660,26 @@ class marketing_Bulletins extends core_Master
         // Ако има имейл регистриран от този браузър
         // Ако име абонамент за бюлетина
         // Или ако има логване от този браузър
-        if (core_Browser::getVars(array('email'))
-            || marketing_BulletinSubscribers::haveRecForIp($id)
-            || core_LoginLog::isLoggedBefore()) {
+        if (($haveEmail = core_Browser::getVars(array('email')))
+            || ($haveRec = marketing_BulletinSubscribers::haveRecForIp($id))
+            || ($isLogged = core_LoginLog::isLoggedBefore())) {
+            
+            if ($haveEmail) {
+                vislog_History::add('Не показана форма за бюлетина (има имейл за brid)');
+            }
+            
+            if ($haveRec) {
+                vislog_History::add('Не показана форма за бюлетина (абониране от това IP)');
+            }
+            
+            if ($isLogged) {
+                vislog_History::add('Не показана форма за бюлетина (има логване)');
+            }
             
             shutdown();
         }
+        
+        vislog_History::add('Автоматично показване на формата за бюлетина');
         
         $js = $bRec->data['showWindowJS'];
         
@@ -676,5 +798,187 @@ class marketing_Bulletins extends core_Master
         $rec->subscribersLast = $lastRec->createdOn;
         
         $mvc->save($rec, 'subscribersCnt, subscribersLast');
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass $rec
+     * @param int $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+        if ($rec && $action == 'delete') {
+            if ($rec->subscribersCnt > 0) {
+                $requiredRoles = 'no_one';
+            }
+        }
+    }
+    
+    
+    /**
+     * След подготовка на тулбара на единичен изглед.
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    static function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
+    {
+        if (blast_Emails::haveRightFor('add') && $data->rec->subscribersCnt) {
+            
+            Request::setProtected(array('perSrcObjectId', 'perSrcClassId'));
+            
+            $data->toolbar->addBtn('Циркулярен имейл', array('blast_Emails', 'add', 'perSrcClassId' => core_Classes::getId($mvc), 'perSrcObjectId' => $data->rec->id),
+            'id=btnEmails','ef_icon = img/16/emails.png,title=Създаване на циркулярен имейл');
+        }
+    }
+    
+    
+    /**
+     * Връща масив за SELECT с всички възможни източници за персонализация от даден клас,
+     * за съответния запис,
+     * които са достъпни за посочения потребител
+     * @see bgerp_PersonalizationSourceIntf
+     * 
+     * @param integer $id
+     * 
+     * @return array
+     */
+    public function getPersonalizationOptionsForId($id)
+    {
+        $resArr = $this->getPersonalizationOptions();
+        
+        return $resArr;
+    }
+    
+    
+    /**
+     * Връща масив за SELECT с всички възможни източници за персонализация от даден клас, които са достъпни за посочения потребител
+     * @see bgerp_PersonalizationSourceIntf
+     *
+     * @param integer $userId
+     *
+     * @return array
+     */
+    public function getPersonalizationOptions($userId = NULL)
+    {
+        $resArr = array();
+        $query = $this->getQuery();
+        $query->where("#state='active'");
+        $query->where("#subscribersCnt > 0");
+        
+        while ($rec = $query->fetch()) {
+            $resArr[$rec->id] = $rec->domain;
+        }
+        
+        return $resArr;
+    }
+    
+    
+    /**
+     * Дали потребителя може да използва дадения източник на персонализация
+     * @see bgerp_PersonalizationSourceIntf
+     *
+     * @param string $id
+     * @param integer $userId
+     *
+     * @return boolean
+     */
+    public function canUsePersonalization($id, $userId = NULL)
+    {
+        // Всеки който има права до листване на модела
+        if ($this->haveRightFor('single', $id, $userId)) {
+            
+            return TRUE;
+        }
+        
+        return FALSE;
+    }
+    
+    
+    /**
+     * Връща вербално представяне на заглавието на дадения източник за персонализирани данни
+     * @see bgerp_PersonalizationSourceIntf
+     *
+     * @param string|object $id
+     * @param boolean $verbal
+     *
+     * @return string
+     */
+    public function getPersonalizationTitle($id, $verbal = TRUE)
+    {
+        $rec = $this->fetch((int) $id);
+        
+        return $rec->domain;
+    }
+
+    
+    /**
+     * Връща масив с ключове имената на плейсхолдърите и съдържание - типовете им
+     * @see bgerp_PersonalizationSourceIntf
+     *
+     * @param string $id
+     *
+     * @return array
+     */
+    public function getPersonalizationDescr($id)
+    {
+        $resArr = array();
+        $resArr['email'] = cls::get('type_Email');
+        $resArr['person'] = cls::get('type_Varchar');
+        $resArr['company'] = cls::get('type_Varchar');
+        
+        return $resArr;
+    }
+    
+    
+    /**
+     * Връща линк, който сочи към източника за персонализация
+     * @see bgerp_PersonalizationSourceIntf
+     *
+     * @param string $id
+     *
+     * @return core_ET
+     */
+    public function getPersonalizationSrcLink($id)
+    {
+        // Създаваме линк към сингъла листа
+        $title = $this->getPersonalizationTitle($id, TRUE);
+        $link = ht::createLink($title, array($this, 'single', $id));
+        
+        return $link;
+    }
+    
+    
+    /**
+     * Връща масив с ключове - уникални id-та и ключове - масиви с данни от типа place => value
+     * @see bgerp_PersonalizationSourceIntf
+     *
+     * @param string $id
+     * @param integer $limit
+     *
+     * @return array
+     */
+    public function getPresonalizationArr($id, $limit = 0)
+    {
+        $query = marketing_BulletinSubscribers::getQuery();
+        
+        $query->where("#bulletinId = $id");
+        
+        if ($limit) {
+            $query->limit($limit);
+        }
+        
+        $resArr = array();
+        
+        while ($rec = $query->fetch()) {
+            $resArr[$rec->id] = array('email' => $rec->email, 'person' => $rec->name, 'company' => $rec->company);
+        }
+        
+        return $resArr;
     }
 }

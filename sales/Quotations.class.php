@@ -233,6 +233,18 @@ class sales_Quotations extends core_Master
     {
        $rec = &$data->form->rec;
        
+       // При клониране
+       if($data->action == 'clone'){
+       	
+       		// Ако няма reff взимаме хендлъра на оригиналния документ
+	       	if(empty($rec->reff)){
+	       		$rec->reff = $mvc->getHandle($rec->id);
+	       	}
+	       	
+	       	// Инкрементираме reff-а на оригинална
+	       	$rec->reff = str::addIncrementSuffix($rec->reff, 'v', 2);
+       }
+       
        if(empty($rec->id)){
        	  $mvc->populateDefaultData($data->form);
        } else {
@@ -790,6 +802,7 @@ class sales_Quotations extends core_Master
     	// Подготвяме данните на мастъра на генерираната продажба
     	$fields = array('currencyId'         => $rec->currencyId,
     					'currencyRate'       => $rec->currencyRate,
+    					'reff'       		 => ($rec->reff) ? $rec->reff : $this->getHandle($rec->id),
     					'paymentMethodId'    => $rec->paymentMethodId,
     					'deliveryTermId'     => $rec->deliveryTermId,
     					'chargeVat'          => $rec->chargeVat,
@@ -975,5 +988,32 @@ class sales_Quotations extends core_Master
     	}
     	 
     	return $products;
+    }
+    
+    
+    /**
+     * След извличане на името на документа за показване в RichText-а
+     */
+    public static function on_AfterGetDocNameInRichtext($mvc, &$docName, $id)
+    {
+    	// Ако има реф да се показва към името му
+    	$reff = $mvc->getVerbal($id, 'reff');
+    	if(strlen($reff) != 0){
+    		$docName .= "({$reff})";
+    	}
+    }
+    
+    
+    /**
+     * Преди запис на документ, изчислява стойността на полето `isContable`
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $rec
+     */
+    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
+    {
+    	if($rec->reff === ''){
+    		$rec->reff = NULL;
+    	}
     }
 }

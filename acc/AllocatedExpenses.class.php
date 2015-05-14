@@ -138,11 +138,11 @@ class acc_AllocatedExpenses extends core_Master
     function description()
     {
     	$this->FLD('valior', 'date', 'caption=Вальор,mandatory');
-    	$this->FLD('amount', 'double(decimals=2,Min=0)', 'caption=Сума');
+    	$this->FLD('amount', 'double(decimals=2)', 'caption=Сума');
     	$this->FLD('action', 'enum(increase=Увеличаване,decrease=Намаляване)', 'caption=Корекция,notNull,value=increase,maxRadio=2');
     	$this->FLD('allocateBy', 'enum(value=Стойност,quantity=Количество,weight=Тегло,volume=Обем)', 'caption=Разпределяне по,notNull,value=value');
     	$this->FNC('contragentFolderId', 'key(mvc=doc_Folders,select=title)', 'caption=Кореспондираща сделка->Контрагент,refreshForm,silent,input');
-    	$this->FNC('dealHandler', 'varchar', 'caption=Кореспондираща сделка->Номер,silent,input');
+    	$this->FNC('dealHandler', 'varchar', 'caption=Кореспондираща сделка->Номер,silent,input,hint=Въведете хендлър на документ');
     	$this->FLD('correspondingDealOriginId', 'int', 'input=none,tdClass=leftColImportant');
     	
     	// Функционално поле за избор на артикули
@@ -184,7 +184,9 @@ class acc_AllocatedExpenses extends core_Master
     		$row->vatType = tr('без ДДС');
     	}
     	
-    	if($rec->action == 'decrease'){
+    	if($rec->amount < 0){
+    		$row->amount = "<span class='red'>{$row->amount}</span>";
+    	} elseif($rec->action == 'decrease'){
     		$row->amount = "<span class='red'>-{$row->amount}</span>";
     	}
     }
@@ -199,7 +201,7 @@ class acc_AllocatedExpenses extends core_Master
     	$row->name = cat_Products::getShortHyperlink($pRec->productId);
     	$Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
     	
-    	foreach (array('amount', 'allocated', 'quantity') as $fld){
+    	foreach (array('amount', 'allocated', 'quantity', 'allocated') as $fld){
     		if(isset($pRec->$fld)){
     			$row->$fld = $Double->toVerbal($pRec->$fld);
     		}
@@ -213,7 +215,15 @@ class acc_AllocatedExpenses extends core_Master
     		$row->transportVolume = cls::get('cat_type_Volume')->toVerbal($pRec->transportVolume);
     	}
     	
-    	$row->allocated = ($rec->action == 'increase') ? "<span style='color:green'>+{$row->allocated}</span>" : "<span style='color:red'>-{$row->allocated}</span>";
+    	if($pRec->allocated < 0){
+    		$row->allocated = "<span class='red'>{$row->allocated}</span>";
+    		
+    	} elseif($rec->action == 'decrease'){
+    		$row->allocated = "<span class='red'>-{$row->allocated}</span>";
+    	} else {
+    		$row->allocated = "<span class='green'>+{$row->allocated}</span>";
+    	}
+    	
     	$measureShort = cat_UoM::getShortName(cat_Products::fetchField($pRec->productId, 'measureId'));
     	$row->quantity = "{$row->quantity} {$measureShort}";
     	
@@ -267,6 +277,13 @@ class acc_AllocatedExpenses extends core_Master
     	$colspan = count($listFields) - 1;
     	$lastRowTpl = new core_ET(tr("|*<tr style='background-color: #eee'><td colspan='[#colspan#]' style='text-align:right'>|Общо|*</td><td style='text-align:right'><b>[#amount#]</b></td></tr>"));
     	$lastRowTpl->replace($colspan, 'colspan');
+    	
+    	if($data->rec->amount < 0){
+    		$data->row->realAmount = "<span class='red'>{$data->row->realAmount}</span>";
+    	} elseif($data->rec->action == 'decrease'){
+    		$data->row->realAmount = "<span class='red'>-{$data->row->realAmount}</span>";
+    	}
+    	
     	$lastRowTpl->replace($data->row->realAmount, 'amount');
     	$details->append($lastRowTpl, 'ROW_AFTER');
     	
@@ -375,10 +392,10 @@ class acc_AllocatedExpenses extends core_Master
     			$params = cls::get($p->classId)->getParams($p->productId);
     			if($p->amount == 0) continue;
     			
-    			$products[$p->productId] = (object)array('productId'    => $p->productId, 
-    												     'name'         => cls::get($p->classId)->getTitleById($p->productId), 
-    													 'quantity'     => $p->quantity,
-    													 'amount' => $p->amount,
+    			$products[$p->productId] = (object)array('productId' => $p->productId, 
+    												     'name'      => cls::get($p->classId)->getTitleById($p->productId), 
+    													 'quantity'  => $p->quantity,
+    													 'amount'    => $p->amount,
     			);
     			
     			if(isset($p->inStores)){
@@ -489,6 +506,7 @@ class acc_AllocatedExpenses extends core_Master
     			 	
     			 	// Не може да е въведена невалидна сделка
     			 	$form->setError('dealHandler', 'Няма сделка с такъв номер');
+    			 	return;
     			 }
     		}
     		
@@ -501,10 +519,10 @@ class acc_AllocatedExpenses extends core_Master
     		
     		if(!$form->gotErrors()){
     			$rec->correspondingDealOriginId = $correpspondingContainerId;
-    			if(empty($rec->amount)){
+    			if(!isset($rec->amount)){
     				$rec->amount = $mvc->getDefaultAmountToAllocate($rec->correspondingDealOriginId);
     				if(empty($rec->amount)){
-    					$form->setError('amount', 'Не може автоматично да се определи сумата, Моля задайте');
+    					$form->setError('amount', 'Не може автоматично да се определи сумата, Моля задайте ръчно');
     				}
     			}
     			
@@ -519,6 +537,10 @@ class acc_AllocatedExpenses extends core_Master
     			if(isset($msg)){
     				$form->setError('allocateBy', $msg);
     			}
+    		}
+    		
+    		if($rec->amount == 0){
+    			$form->setError('amount', 'Сумата не може да е 0');
     		}
     	}
     }

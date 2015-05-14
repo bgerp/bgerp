@@ -27,7 +27,7 @@ class acc_MovementContractorsReport extends acc_PeriodHistoryReportImpl
     /**
      * Заглавие
      */
-    public $title = 'Счетоводство»Движения по сметки на доставчици';
+    public $title = 'Счетоводство » Движения по сметки на доставчици';
 
 
     /**

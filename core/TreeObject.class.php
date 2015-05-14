@@ -178,8 +178,8 @@ class core_TreeObject extends core_Manager
 			$options[$rec->id] = static::getFullTitle($rec->id, $title);
 		}
 		
-		usort($options, array($this, "sortOptions"));
-	
+		uasort($options, array($this, "sortOptions"));
+		
 		return $options;
 	}
 	
@@ -192,32 +192,6 @@ class core_TreeObject extends core_Manager
 		if($a == $b) return 0;
 	
 		return (strnatcasecmp($a, $b) < 0) ? -1 : 1;
-	}
-	
-	
-	/**
-	 * Връща бащата на обекта като свойство а подадения обект стойност
-	 * 
-	 * @param int $id
-	 * @return array |boolean
-	 */
-	public static function getFeature($id)
-	{
-		$me = cls::get(get_called_class());
-		
-		if($rec = static::fetch($id)){
-			if($rec->{$me->parentFieldName}){
-				if(static::fetchField($rec->{$me->parentFieldName}, 'makeDescendantsFeatures') == 'yes'){
-					
-					$feature = static::getVerbal($rec->parentId, $me->nameField);
-					$featureValue = static::getVerbal($rec->id, $me->nameField);
-					
-					return array($feature => $featureValue);
-				}
-			}
-		}
-		
-		return FALSE;
 	}
 	
 	
@@ -323,7 +297,7 @@ class core_TreeObject extends core_Manager
 	public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
 	{
 		if(isset($fields['-list'])){
-			$row->ROW_ATTR['data-parentid'] .= $rec->parentId;
+			$row->ROW_ATTR['data-parentid'] .= $rec->{$mvc->parentFieldName};
 			$row->ROW_ATTR['data-id']       .= $rec->id;
 			$row->ROW_ATTR['class']    .= ' treeLevel' . $rec->_level;
 			
@@ -331,18 +305,21 @@ class core_TreeObject extends core_Manager
 				
 				$plusIcon = sbf('img/16/toggle-expand.png', '');
 				$minusIcon = sbf('img/16/toggle2.png', '');
-				$plus = "<img class = 'toggleBtn plus' src='{$plusIcon}' width='13' height='13'/>";
-				$minus = "<img class = 'toggleBtn minus' src='{$minusIcon}' width='13' height='13'/>";
+				$plus = "<img class = 'toggleBtn plus' src='{$plusIcon}' width='13' height='13' title = 'Показване на наследниците'/>";
+				$minus = "<img class = 'toggleBtn minus' src='{$minusIcon}' width='13' height='13' title = 'Скриване на наследниците'/>";
 				
 				$row->{$mvc->nameField} = " {$plus}{$minus}" . $row->{$mvc->nameField};
 			}
 			
+			// Ако може да се добавя поделемент, показваме бутон за добавяне
 			if($mvc->haveRightFor('add')){
-				$url = array($mvc, 'add', 'parentId' => $rec->id, 'ret_url' => TRUE);
+				$url = array($mvc, 'add', $mvc->parentFieldName => $rec->id, 'ret_url' => TRUE);
 				$img = ht::createElement('img', array('src' => sbf('img/16/add.png', ''), 'style' => 'width: 13px; padding: 0px 2px;'));
-				$row->_addBtn = ht::createLink($img, $url, FALSE, 'title=Добавяне на нов поделемент');
+				$parentTitle = $mvc->getVerbal($rec, $mvc->nameField);
+				$row->_addBtn = ht::createLink($img, $url, FALSE, "title=Добави поделемент на '{$parentTitle}'");
 			}
 			
+			// Ако записа е намерен при търсене добавяме му клас
 			if($rec->show === TRUE){
 				$row->ROW_ATTR['class'] .= " searchResult";
 			}
@@ -369,31 +346,34 @@ class core_TreeObject extends core_Manager
 	
 	
 	/**
-	 * Връща масив от вида `< име на баща > => < име на наследник >`, ако бащата на обекта
+	 * Връща масив от вида `< име на баща > => < име на наследник >`, ако няма баща е
+	 * `< име на наследник >` => `< име на наследник >`, ако бащата на обекта
 	 * има чекнато децата му да са свойства. За да е един обект свойство трябва или да има баща
 	 * и децата му да са свойства или да няма баща
 	 *
-	 * @param array $ids - масив с ид-та на обекти от този клас
+	 * @param string $ids - кейлист на обекти
 	 * @return array - масив със свойства и стойностти
 	 */
-	public static function getFeaturesArray($ids)
+	public static function getFeaturesArray($keylist)
 	{
-		$self = cls::get(get_called_class());
+		$ids = keylist::toArray($keylist);
+		
+		$me = cls::get(get_called_class());
 		$features = array();
 	
 		if(!count($ids)) return $features;
 	
 		foreach ($ids as $id){
-			$rec = $self->fetch($id);
+			$rec = $me->fetch($id, "{$me->nameField},{$me->parentFieldName}");
 			
 			// Намираме името на обекта
-			$nameVerbal = $self->getVerbal($rec->id, $self->nameField);
+			$nameVerbal = $me->getVerbal($rec, $me->nameField);
 			$keyVerbal = $nameVerbal;
 			
 			// Ако има баща и е указано децата му да са свойства
-			if(!empty($rec->parentId)){
-				if($self->fetchField($rec->parentId, 'makeDescendantsFeatures') == 'yes'){
-					$keyVerbal = $self->getVerbal($rec->parentId, $self->nameField);
+			if(!empty($rec->{$me->parentFieldName})){
+				if($me->fetchField($rec->{$me->parentFieldName}, 'makeDescendantsFeatures') == 'yes'){
+					$keyVerbal = $me->getVerbal($rec->{$me->parentFieldName}, $me->nameField);
 				} else {
 					
 					// Ако не трябва да са наследници пропускаме
@@ -405,6 +385,7 @@ class core_TreeObject extends core_Manager
 			$features[$keyVerbal] = $nameVerbal;
 		}
 		
+		// Връщаме намерените свойства
 		return $features;
 	}
 	
@@ -416,8 +397,6 @@ class core_TreeObject extends core_Manager
 	{
 		// Предефинираме метода, за да не заработи страницирането на данните
 		// В $data->recs ни трябват всички записи, за да можем да подготвим дървовидната структура
-		// При зареждане ще се показват само записите без бащи (корените) а децата 
-		// им ще се показват с JavaScript.
 	}
 	
 	

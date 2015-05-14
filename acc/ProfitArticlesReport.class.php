@@ -27,7 +27,7 @@ class acc_ProfitArticlesReport extends acc_BalanceReportImpl
     /**
      * Заглавие
      */
-    public $title = 'Счетоводство»Печалба от продажби на Стоки и Продукти';
+    public $title = 'Счетоводство » Печалба от продажби на Стоки и Продукти';
 
 
     /**

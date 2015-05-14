@@ -1417,6 +1417,7 @@ abstract class deals_DealMaster extends deals_DealBase
      * @param array $fields - стойности на полетата на сделката
      *
      * 		o $fields['valior']             -  вальор (ако няма е текущата дата)
+     * 		o $fields['reff']               -  вашия реф на продажбата
      * 		o $fields['currencyId']         -  код на валута (ако няма е основната за периода)
      * 		o $fields['currencyRate']       -  курс към валутата (ако няма е този към основната валута)
      * 		o $fields['paymentMethodId']    -  ид на платежен метод (Ако няма е плащане в брой, @see cond_PaymentMethods)
@@ -1513,7 +1514,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	
     	// Опиваме се да запишем мастъра на сделката
     	if($id = $me->save((object)$fields)){
-    
+    		
     		// Ако е успешно, споделяме текущия потребител към новосъздадената нишка
     		$rec = $me->fetchField($id);
     		doc_ThreadUsers::addShared($rec->threadId, $rec->containerId, core_Users::getCurrent());

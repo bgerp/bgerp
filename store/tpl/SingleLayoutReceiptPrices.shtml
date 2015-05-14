@@ -93,6 +93,13 @@
                                     <td class='quiet nowrap aright' style='width:1%;'>|Общ обем|*:</td>
                                     <td>[#volume#]</td>
                                 </tr>
+                                
+                                <!--ET_BEGIN palletCountInput-->
+                                <tr>
+                                    <td class='quiet nowrap aright' style='width:1%;'>|Брой палети|*:</td>
+                                    <td>[#palletCountInput#]</td>
+                                </tr>
+                                <!--ET_END palletCountInput-->
                             </table>
                             <!--ET_BEGIN note-->
                             <hr>

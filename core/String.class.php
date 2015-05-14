@@ -491,6 +491,38 @@ class core_String
 	
     
     /**
+     * Проверява даден стринг и ако има в името му '< suffix >< number >' инкрементираме
+     * < number >, ако не е намерено се добавя към края на стринга: '< suffix > < startNum >'
+     * 
+     * @param string $string - стринга който ще се мъчим да инкрментираме
+     * @param string $suffix - за каква наставка ще проверяваме
+     * @param string $startNum - от кой кое число да започваме
+     * @return string - увеличения стринг
+     */
+    public static function addIncrementSuffix($string, $suffix = '' , $startNum = 1)
+    {
+    	preg_match("/{$suffix}(\d+)$/", $string, $matches);
+    	if(count($matches) == 2){
+    		
+    		$number = $matches[1];
+    		$number = self::increment($number);
+    		
+    		$offset = strlen($suffix);
+    		$startTagPos = strrpos($string, "{$suffix}") + $offset;
+    		
+    		// Инкрементираме числото
+    		$string = substr_replace($string, $number, $startTagPos);
+    	} else {
+    		
+    		// Ако не е открит стринга добавяме `{$suffix}{$startNum}` в края му
+    		$string .= "{$suffix}{$startNum}";
+    	}
+    	
+    	return $string;
+    }
+    
+    
+    /**
      *  Инкрементиране с еденица на стринг, чиято последна част е число
      *  Ако стринга не завършва на числова част връща се FALSE
      *  @param str $string - стринга който се подава
@@ -511,6 +543,13 @@ class core_String
 	        	
 	            // Съединяване на текста с инкрементирана с единица стойност на последното число
 	            return $other . str_pad(++$match['1'], $numLen, "0", STR_PAD_LEFT);
+	        } else {
+	        	
+	        	// Ако целия стринг е число, инкрементираме го
+	        	if(is_numeric($str)){
+	        		$str += 1;
+	        		return (string)$str;
+	        	}
 	        }
     	}
     	

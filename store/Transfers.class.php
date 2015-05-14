@@ -204,13 +204,8 @@ class store_Transfers extends core_Master
     	$dQuery->where("#transferId = {$id}");
     	$measures = $this->getMeasures($dQuery->fetchAll());
     	
-    	if($measures->weight){
-    		$rec->weight = $measures->weight;
-    	}
-    	
-    	if($measures->volume){
-    		$rec->volume = $measures->volume;
-    	}
+    	$rec->weight = $measures->weight;
+    	$rec->volume = $measures->volume;
     	
     	$this->save($rec);
     }
@@ -257,6 +252,9 @@ class store_Transfers extends core_Master
     		if($toStoreLocation){
 	    		$row->toAdress = crm_Locations::getAddress($toStoreLocation);
 	    	}
+	    	
+	    	$row->weight = ($row->weightInput) ? $row->weightInput : $row->weight;
+	    	$row->volume = ($row->volumeInput) ? $row->volumeInput : $row->volume;
     	}
     	
     	if($fields['-list']){
@@ -386,18 +384,10 @@ class store_Transfers extends core_Master
      */
     private function prepareLineRows($rec)
     {
-    	$row = $this->recToVerbal($rec, 'toAdress,fromStore,toStore,weight,volume,-single');
-    	if($rec->palletCount){
-    		$row->palletCount = $this->getFieldType('palletCount')->toVerbal($rec->palletCount);
-    	}
+    	$rec->weight = ($rec->weightInput) ? $rec->weightInput : $rec->weight;
+    	$rec->volume = ($rec->volumeInput) ? $rec->volumeInput : $rec->volume;
     	
-    	if(!$rec->volume){
-    		unset($row->volume);
-    	}
-    	
-    	if(!$rec->weight){
-    		unset($row->weight);
-    	}
+    	$row = $this->recToVerbal($rec, 'toAdress,fromStore,toStore,weight,volume,palletCountInput,-single');
     	
     	$row->rowNumb = $rec->rowNumb;
     	$row->address = $row->toAdress;
@@ -424,6 +414,10 @@ class store_Transfers extends core_Master
     		$dRec->rowNumb = $i;
     		$data->transfers[$dRec->id] = $this->prepareLineRows($dRec);
     		$i++;
+    		
+    		$data->masterData->weight += $dRec->weight;
+    		$data->masterData->volume += $dRec->volume;
+    		$data->masterData->palletCount += $dRec->palletCountInput;
     	}
     }
     
@@ -435,7 +429,7 @@ class store_Transfers extends core_Master
     {
     	if(count($data->transfers)){
     		$table = cls::get('core_TableView');
-    		$fields = "rowNumb=№,docId=Документ,fromStore=Склад->Изходящ,toStore=Склад->Входящ,weight=Тегло,volume=Обем,palletCount=Палети,address=@Адрес";
+    		$fields = "rowNumb=№,docId=Документ,fromStore=Склад->Изходящ,toStore=Склад->Входящ,weight=Тегло,volume=Обем,palletCountInput=Палети,address=@Адрес";
     		 
     		return $table->get($data->transfers, $fields);
     	}

@@ -3,6 +3,9 @@
     <div   style="margin:5px 0;">
         <span class="[#STATE_CLASS#]">№ <span class="bigData">[#id#]</span> /
         <span class="bigData">[#valior#]</span></span>
+        <!--ET_BEGIN reff-->
+        |Ваш реф|*: <span class="bigData">[#reff#]</span>
+        <!--ET_END reff-->
     </div>
     <div>|Получател|*:  <b>[#contragentName#]</b></div>
     <div style="margin-bottom: 5px">|Доставчик|*:  <b>[#MyCompany#]</b></div>

@@ -3,7 +3,7 @@
 
 
 /**
- * Мениджър на отчети от Произведени продукти
+ * Мениджър на отчети от Закупени продукти
  * Имплементация на 'frame_ReportSourceIntf' за направата на справка на баланса
  *
  *
@@ -14,7 +14,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class acc_ManufacturedProductsReport extends acc_CorespondingReportImpl
+class acc_PurchasedProductsReport extends acc_CorespondingReportImpl
 {
 
 
@@ -27,13 +27,13 @@ class acc_ManufacturedProductsReport extends acc_CorespondingReportImpl
     /**
      * Заглавие
      */
-    public $title = 'Счетоводство » Произведени продукти';
+    public $title = 'Счетоводство » Закупени продукти';
 
 
     /**
      * Дефолт сметка
      */
-    public $baseAccountId = '321';
+    public $baseAccountId = '401';
 
 
     /**

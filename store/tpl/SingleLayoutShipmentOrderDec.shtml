@@ -103,7 +103,7 @@
                         </td>
                         <td>
                             <div>
-                                <div>|Общо тегло|*:&nbsp;<b>[#weight#]</b> &nbsp;&nbsp;&nbsp;&nbsp; |Общ обем|*:&nbsp;<b>[#volume#]</b></div>
+                                <div>|Общо тегло|*:&nbsp;<b>[#weight#]</b> &nbsp;&nbsp;&nbsp;&nbsp; |Общ обем|*:&nbsp;<b>[#volume#]</b><!--ET_BEGIN palletCountInput--> &nbsp;&nbsp;&nbsp;&nbsp; |Брой палети|*: <b>[#palletCountInput#]</b><!--ET_END palletCountInput--></div>
                             </div>
                             <hr>
                             <table class='centered special-borders' style='width:100%;'>
