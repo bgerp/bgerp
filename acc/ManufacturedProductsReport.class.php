@@ -27,7 +27,7 @@ class acc_ManufacturedProductsReport extends acc_CorespondingReportImpl
     /**
      * Заглавие
      */
-    public $title = 'Счетоводство»Произведени продукти';
+    public $title = 'Счетоводство » Произведени продукти';
 
 
     /**
