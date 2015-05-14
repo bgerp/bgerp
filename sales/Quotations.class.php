@@ -989,4 +989,17 @@ class sales_Quotations extends core_Master
     	 
     	return $products;
     }
+    
+    
+    /**
+     * След извличане на името на документа за показване в RichText-а
+     */
+    public static function on_AfterGetDocNameInRichtext($mvc, &$docName, $id)
+    {
+    	// Ако има реф да се показва към името му
+    	$reff = $mvc->getVerbal($id, 'reff');
+    	if(strlen($reff) != 0){
+    		$docName .= "({$reff})";
+    	}
+    }
 }
