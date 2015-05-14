@@ -110,7 +110,7 @@ class marketing_Bulletins extends core_Master
         $this->FLD('formTitle', 'varchar(128)', 'caption=Съдържание на формата->Покана за абонамент');
         $this->FLD('formSuccessText', 'varchar(128)', 'caption=Съдържание на формата->Благодарност при абониране');
         $this->FLD('img', 'fileman_FileType(bucket=pictures)', 'caption=Съдържание на формата->Картинка при абониране');
-        $this->FLD('wrongMailText', 'fileman_FileType(bucket=pictures)', 'caption=Съдържание на формата->Съобщени за грешен имейл');
+        $this->FLD('wrongMailText', 'varchar(128)', 'caption=Съдържание на формата->Съобщени за грешен имейл');
         
         $this->FLD('showFormBtn', 'varchar(128)', 'caption=Текстове на бутони->За показване');
         $this->FLD('submitBtnVal', 'varchar(128)', 'caption=Текстове на бутони->За абониране');
