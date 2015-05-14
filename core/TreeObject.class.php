@@ -59,8 +59,10 @@ class core_TreeObject extends core_Manager
 		} else {
 			$data->form->setReadOnly($mvc->parentFieldName);
 		}
-		
+		$rec = &$data->form->rec;
+		//bp($rec, $mvc->fetch($rec->parentId));
 		$data->form->setDefault('makeDescendantsFeatures', 'yes');
+		//bp($rec);
 	}
 	
 	
@@ -178,8 +180,8 @@ class core_TreeObject extends core_Manager
 			$options[$rec->id] = static::getFullTitle($rec->id, $title);
 		}
 		
-		usort($options, array($this, "sortOptions"));
-	
+		uasort($options, array($this, "sortOptions"));
+		
 		return $options;
 	}
 	
