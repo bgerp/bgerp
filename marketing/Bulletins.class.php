@@ -97,8 +97,14 @@ class marketing_Bulletins extends core_Master
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     public $rowToolsSingleField = 'domain';
-
-
+    
+    
+    /**
+     * "Лепило" за слепване на език и домейн
+     */
+    protected static $domainLgGlue = '/lang/';
+    
+    
     /**
      * Полета на модела
      */
@@ -183,7 +189,7 @@ class marketing_Bulletins extends core_Master
      */
     public static function getDomain($domain, $lg)
     {
-        $domain = $domain . '/lang/'  . $lg;
+        $domain = $domain . self::$domainLgGlue  . $lg;
         
         return $domain;
     }
@@ -383,41 +389,96 @@ class marketing_Bulletins extends core_Master
      */
     protected static function prepareCSS($id)
     {
-        $bRec = self::fetch($id);
+        $colorsArr = self::prepareColors($id);
         
         $css = file_get_contents(getFullPath('/marketing/tpl/BulletinCssTpl.txt'));
         
         $cssTpl = new ET($css);
         
-        if ($bRec->bgColor) {
-            $cssTpl->replace($bRec->bgColor, 'bulletinRegBg');
-        }
-        
-        if($bRec->textColor) {
-            $cssTpl->replace($bRec->textColor, 'textColor');
-        }
-        
-        $btnColor =  ltrim($bRec->buttonColor, "#");
-        
-        if ($btnColor) {
-            $darkBtnColor = phpcolor_Adapter::changeColor($btnColor, 'lighten', 15);
-            $shadowBtnColor = phpcolor_Adapter::changeColor($darkBtnColor, 'mix', 1, '#444');
-            
-            if(phpcolor_Adapter::checkColor($btnColor, 'light'))  {
-                $btnColorShadow = ' ';
-                $cssTpl->replace($btnColorShadow, 'btnColorShadow');
-            }
-        }
-        
-        $cssTpl->replace($btnColor, 'btnColor');
-        $cssTpl->replace($darkBtnColor, 'darkBtnColor');
-        $cssTpl->replace($shadowBtnColor, 'shadowBtnColor');
+        $cssTpl->replace($colorsArr['bgColor'], 'bulletinRegBg');
+        $cssTpl->replace($colorsArr['textColor'], 'textColor');
+        $cssTpl->replace($colorsArr['buttonColor'], 'btnColor');
+        $cssTpl->replace($colorsArr['darkBtnColor'], 'darkBtnColor');
+        $cssTpl->replace($colorsArr['shadowBtnColor'], 'shadowBtnColor');
+        $cssTpl->replace($colorsArr['btnColorShadow'], 'btnColorShadow');
         
         $css = $cssTpl->getContent();
         
         $css = minify_Css::process($css);
         
         return $css;
+    }
+    
+    
+    /**
+     * Разделя езика и домейна
+     * 
+     * @param string $domain
+     * 
+     * @return array
+     */
+    protected static function parseDomain($domain)
+    {
+        $resArr = array();
+        
+        list($resArr['domain'], $resArr['lang']) = explode(self::$domainLgGlue, $domain);
+        
+        return $resArr;
+    }
+    
+    
+    /**
+     * Връща масив с всички цветове, които ще се използват в CSS за формата, текста и бутоните
+     * 
+     * @param integer $id
+     * 
+     * @return array
+     */
+    protected static function prepareColors($id)
+    {
+        $resArr = array();
+        
+        $bRec = self::fetch($id);
+        
+        $resArr['bgColor'] = $bRec->bgColor;
+        $resArr['textColor'] = $bRec->textColor;
+        $resArr['buttonColor'] = $bRec->buttonColor;
+        
+        if (!$resArr['bgColor'] && !$resArr['textColor'] && !$resArr['buttonColor']) {
+            $dArr = self::parseDomain($bRec->domain);
+            $dRec = cms_Domains::fetch(array("#domain = '[#1#]' AND #lang = '[#2#]'", $dArr['domain'], $dArr['lang']));
+            
+            $resArr['bgColor'] = $dRec->form->bgColor;
+        
+            $resArr['textColor'] = $dRec->form->activeColor;
+        
+            $resArr['buttonColor'] = $dRec->form->baseColor;
+        }
+        
+        if (!$resArr['bgColor']) {
+            $resArr['bgColor'] = '#F5F5F5';
+        }
+        
+        if (!$resArr['textColor']) {
+            $resArr['textColor'] = '#333333';
+        }
+        
+        if (!$resArr['buttonColor']) {
+            $resArr['buttonColor'] = '#3EACBA';
+        }
+        
+        $btnColor = ltrim($resArr['buttonColor'], '#');
+        
+        $darkBtnColor = phpcolor_Adapter::changeColor($btnColor, 'lighten', 15);
+        $resArr['shadowBtnColor'] = '#' . phpcolor_Adapter::changeColor($darkBtnColor, 'mix', 1, '#444');
+        
+        $resArr['darkBtnColor'] = '#' . $darkBtnColor;
+        
+        if(phpcolor_Adapter::checkColor($btnColor, 'light'))  {
+            $resArr['btnColorShadow'] = ' ';
+        }
+        
+        return $resArr;
     }
     
     
