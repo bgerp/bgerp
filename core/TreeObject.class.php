@@ -196,32 +196,6 @@ class core_TreeObject extends core_Manager
 	
 	
 	/**
-	 * Връща бащата на обекта като свойство а подадения обект стойност
-	 * 
-	 * @param int $id
-	 * @return array |boolean
-	 */
-	public static function getFeature($id)
-	{
-		$me = cls::get(get_called_class());
-		
-		if($rec = static::fetch($id)){
-			if($rec->{$me->parentFieldName}){
-				if(static::fetchField($rec->{$me->parentFieldName}, 'makeDescendantsFeatures') == 'yes'){
-					
-					$feature = static::getVerbal($rec->{$me->parentFieldName}, $me->nameField);
-					$featureValue = static::getVerbal($rec->id, $me->nameField);
-					
-					return array($feature => $featureValue);
-				}
-			}
-		}
-		
-		return FALSE;
-	}
-	
-	
-	/**
 	 * След извличане на записите от базата данни
 	 */
 	public static function on_AfterPrepareListRecs(core_Mvc $mvc, $data)
@@ -372,25 +346,28 @@ class core_TreeObject extends core_Manager
 	
 	
 	/**
-	 * Връща масив от вида `< име на баща > => < име на наследник >`, ако бащата на обекта
+	 * Връща масив от вида `< име на баща > => < име на наследник >`, ако няма баща е
+	 * `< име на наследник >` => `< име на наследник >`, ако бащата на обекта
 	 * има чекнато децата му да са свойства. За да е един обект свойство трябва или да има баща
 	 * и децата му да са свойства или да няма баща
 	 *
-	 * @param array $ids - масив с ид-та на обекти от този клас
+	 * @param string $ids - кейлист на обекти
 	 * @return array - масив със свойства и стойностти
 	 */
-	public static function getFeaturesArray($ids)
+	public static function getFeaturesArray($keylist)
 	{
+		$ids = keylist::toArray($keylist);
+		
 		$me = cls::get(get_called_class());
 		$features = array();
 	
 		if(!count($ids)) return $features;
 	
 		foreach ($ids as $id){
-			$rec = $me->fetch($id);
+			$rec = $me->fetch($id, "{$me->nameField},{$me->parentFieldName}");
 			
 			// Намираме името на обекта
-			$nameVerbal = $me->getVerbal($rec->id, $me->nameField);
+			$nameVerbal = $me->getVerbal($rec, $me->nameField);
 			$keyVerbal = $nameVerbal;
 			
 			// Ако има баща и е указано децата му да са свойства
@@ -408,6 +385,7 @@ class core_TreeObject extends core_Manager
 			$features[$keyVerbal] = $nameVerbal;
 		}
 		
+		// Връщаме намерените свойства
 		return $features;
 	}
 	
