@@ -106,13 +106,13 @@ class marketing_Bulletins extends core_Master
     {
         $this->FLD('domain', 'varchar', 'caption=Бюлетин, mandatory');
         $this->FLD('showAllForm', 'enum(yes=Да, no=Не)', 'caption=Показване на цялата форма, title=Дали да се показва цялата форма или само имейла');
-        $this->FLD('formTitle', 'varchar(128)', 'caption=Заглавие на формата');
-        $this->FLD('formSuccessText', 'varchar(128)', 'caption=Текст при абониране');
+        $this->FLD('formTitle', 'varchar(128)', 'caption=Съдържание на формата->Покана за абонамент');
+        $this->FLD('formSuccessText', 'varchar(128)', 'caption=Съдържание на формата->Благодарност при абониране');
         $this->FLD('showFormBtn', 'varchar(128)', 'caption=Текст на бутона за показване на формата, title=Тест на бутона за форсирано показване на формата');
         $this->FLD('showAgainAfter', 'time(suggestions=3 часа|12 часа|1 ден)', 'caption=Изчакване преди ново отваряне');
         $this->FLD('idleTimeForShow', 'time(suggestions=5 секунди|20 секунди|1 мин)', 'caption=Период за бездействие преди активиране->Време');
         $this->FLD('waitBeforeStart', 'time(suggestions=3 секунди|5 секунди|10 секунди)', 'caption=След колко време да може да стартира бюлетина->Време');
-        $this->FLD('img', 'fileman_FileType(bucket=pictures)', 'caption=Картинка за успешна регистрация');
+        $this->FLD('img', 'fileman_FileType(bucket=pictures)', 'caption=Съдържание на формата->Картинка при абониране');
         $this->FLD('bgColor', 'color_Type', 'caption=Цветове за бюлетина->Цвят на фона');
         $this->FLD('textColor', 'color_Type', 'caption=Цветове за бюлетина->Цвят на текста');
         $this->FLD('buttonColor', 'color_Type', 'caption=Цветове за бюлетина->Цвят на бутона');
