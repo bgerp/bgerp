@@ -142,7 +142,7 @@ class acc_AllocatedExpenses extends core_Master
     	$this->FLD('action', 'enum(increase=Увеличаване,decrease=Намаляване)', 'caption=Корекция,notNull,value=increase,maxRadio=2');
     	$this->FLD('allocateBy', 'enum(value=Стойност,quantity=Количество,weight=Тегло,volume=Обем)', 'caption=Разпределяне по,notNull,value=value');
     	$this->FNC('contragentFolderId', 'key(mvc=doc_Folders,select=title)', 'caption=Кореспондираща сделка->Контрагент,refreshForm,silent,input');
-    	$this->FNC('dealHandler', 'varchar', 'caption=Кореспондираща сделка->Номер,silent,input');
+    	$this->FNC('dealHandler', 'varchar', 'caption=Кореспондираща сделка->Номер,silent,input,hint=Въведете хендлър на документ');
     	$this->FLD('correspondingDealOriginId', 'int', 'input=none,tdClass=leftColImportant');
     	
     	// Функционално поле за избор на артикули
@@ -392,10 +392,10 @@ class acc_AllocatedExpenses extends core_Master
     			$params = cls::get($p->classId)->getParams($p->productId);
     			if($p->amount == 0) continue;
     			
-    			$products[$p->productId] = (object)array('productId'    => $p->productId, 
-    												     'name'         => cls::get($p->classId)->getTitleById($p->productId), 
-    													 'quantity'     => $p->quantity,
-    													 'amount' => $p->amount,
+    			$products[$p->productId] = (object)array('productId' => $p->productId, 
+    												     'name'      => cls::get($p->classId)->getTitleById($p->productId), 
+    													 'quantity'  => $p->quantity,
+    													 'amount'    => $p->amount,
     			);
     			
     			if(isset($p->inStores)){
@@ -506,6 +506,7 @@ class acc_AllocatedExpenses extends core_Master
     			 	
     			 	// Не може да е въведена невалидна сделка
     			 	$form->setError('dealHandler', 'Няма сделка с такъв номер');
+    			 	return;
     			 }
     		}
     		
