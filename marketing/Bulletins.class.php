@@ -597,12 +597,26 @@ class marketing_Bulletins extends core_Master
         // Ако има имейл регистриран от този браузър
         // Ако име абонамент за бюлетина
         // Или ако има логване от този браузър
-        if (core_Browser::getVars(array('email'))
-            || marketing_BulletinSubscribers::haveRecForIp($id)
-            || core_LoginLog::isLoggedBefore()) {
+        if (($haveEmail = core_Browser::getVars(array('email')))
+            || ($haveRec = marketing_BulletinSubscribers::haveRecForIp($id))
+            || ($isLogged = core_LoginLog::isLoggedBefore())) {
+            
+            if ($haveEmail) {
+                vislog_History::add('Не показана форма за бюлетина (има имейл за brid)');
+            }
+            
+            if ($haveRec) {
+                vislog_History::add('Не показана форма за бюлетина (абониране от това IP)');
+            }
+            
+            if ($isLogged) {
+                vislog_History::add('Не показана форма за бюлетина (има логване)');
+            }
             
             shutdown();
         }
+        
+        vislog_History::add('Автоматично показване на формата за бюлетина');
         
         $js = $bRec->data['showWindowJS'];
         
