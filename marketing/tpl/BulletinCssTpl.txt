@@ -358,28 +358,28 @@ body {
 <!--ET_BEGIN btnColorHolder-->
 [#btnColorHolder#]
 .push_button {
-    text-shadow:-1px -1px 0 #[#shadowBtnColor#];
-    background: #[#btnColor#] !important;
-    border:1px solid #[#shadowBtnColor#] !important;
-    background-image:-webkit-linear-gradient(top, #[#darkBtnColor#], #[#btnColor#]) !important;
-    background-image:-moz-linear-gradient(top, #[#darkBtnColor#], #[#btnColor#]) !important;
-    background-image:-ms-linear-gradient(top, #[#darkBtnColor#], #[#btnColor#]) !important;
-    background-image:-o-linear-gradient(top, #[#darkBtnColor#], #[#btnColor#]) !important;
-    background-image:linear-gradient(top, #[#darkBtnColor#], #[#btnColor#]) !important;
+    text-shadow:-1px -1px 0 [#shadowBtnColor#];
+    background: [#btnColor#] !important;
+    border:1px solid [#shadowBtnColor#] !important;
+    background-image:-webkit-linear-gradient(top, [#darkBtnColor#], [#btnColor#]) !important;
+    background-image:-moz-linear-gradient(top, [#darkBtnColor#], [#btnColor#]) !important;
+    background-image:-ms-linear-gradient(top, [#darkBtnColor#], [#btnColor#]) !important;
+    background-image:-o-linear-gradient(top, [#darkBtnColor#], [#btnColor#]) !important;
+    background-image:linear-gradient(top, [#darkBtnColor#], [#btnColor#]) !important;
     -webkit-border-radius:5px;
     -moz-border-radius:5px;
     border-radius:5px;
-    -webkit-box-shadow:0 1px 0 rgba(255, 255, 255, .5) inset, 0 -1px 0 rgba(255, 255, 255, .1) inset, 0 4px 0 #[#shadowBtnColor#], 0 4px 2px rgba(0, 0, 0, .5) !important;
-    -moz-box-shadow:0 1px 0 rgba(255, 255, 255, .5) inset, 0 -1px 0 rgba(255, 255, 255, .1) inset, 0 4px 0 #[#shadowBtnColor#], 0 4px 2px rgba(0, 0, 0, .5) !important;
-    box-shadow:0 1px 0 rgba(255, 255, 255, .5) inset, 0 -1px 0 rgba(255, 255, 255, .1) inset, 0 4px 0 #[#shadowBtnColor#], 0 4px 2px rgba(0, 0, 0, .5) !important;
+    -webkit-box-shadow:0 1px 0 rgba(255, 255, 255, .5) inset, 0 -1px 0 rgba(255, 255, 255, .1) inset, 0 4px 0 [#shadowBtnColor#], 0 4px 2px rgba(0, 0, 0, .5) !important;
+    -moz-box-shadow:0 1px 0 rgba(255, 255, 255, .5) inset, 0 -1px 0 rgba(255, 255, 255, .1) inset, 0 4px 0 [#shadowBtnColor#], 0 4px 2px rgba(0, 0, 0, .5) !important;
+    box-shadow:0 1px 0 rgba(255, 255, 255, .5) inset, 0 -1px 0 rgba(255, 255, 255, .1) inset, 0 4px 0 [#shadowBtnColor#], 0 4px 2px rgba(0, 0, 0, .5) !important;
 }
 .push_button:hover {
     background: #48C6D4 !important;
-    background-image:-webkit-linear-gradient(top, #[#btnColor#], #[#darkBtnColor#]) !important;
-    background-image:-moz-linear-gradient(top, #[#btnColor#], #[#darkBtnColor#]) !important;
-    background-image:-ms-linear-gradient(top,  #[#btnColor#], #[#darkBtnColor#]) !important;
-    background-image:-o-linear-gradient(top,  #[#btnColor#], #[#darkBtnColor#]) !important;
-    background-image:linear-gradient(top,  #[#btnColor#], #[#darkBtnColor#]) !important;
+    background-image:-webkit-linear-gradient(top, [#btnColor#], [#darkBtnColor#]) !important;
+    background-image:-moz-linear-gradient(top, [#btnColor#], [#darkBtnColor#]) !important;
+    background-image:-ms-linear-gradient(top,  [#btnColor#], [#darkBtnColor#]) !important;
+    background-image:-o-linear-gradient(top,  [#btnColor#], [#darkBtnColor#]) !important;
+    background-image:linear-gradient(top,  [#btnColor#], [#darkBtnColor#]) !important;
 }
 <!--ET_END btnColorHolder-->
 
