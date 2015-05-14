@@ -755,4 +755,167 @@ class marketing_Bulletins extends core_Master
             }
         }
     }
+    
+    
+    /**
+     * След подготовка на тулбара на единичен изглед.
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    static function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
+    {
+        if (blast_Emails::haveRightFor('add') && $data->rec->subscribersCnt) {
+            
+            Request::setProtected(array('perSrcObjectId', 'perSrcClassId'));
+            
+            $data->toolbar->addBtn('Циркулярен имейл', array('blast_Emails', 'add', 'perSrcClassId' => core_Classes::getId($mvc), 'perSrcObjectId' => $data->rec->id),
+            'id=btnEmails','ef_icon = img/16/emails.png,title=Създаване на циркулярен имейл');
+        }
+    }
+    
+    
+    /**
+     * Връща масив за SELECT с всички възможни източници за персонализация от даден клас,
+     * за съответния запис,
+     * които са достъпни за посочения потребител
+     * @see bgerp_PersonalizationSourceIntf
+     * 
+     * @param integer $id
+     * 
+     * @return array
+     */
+    public function getPersonalizationOptionsForId($id)
+    {
+        $resArr = $this->getPersonalizationOptions();
+        
+        return $resArr;
+    }
+    
+    
+    /**
+     * Връща масив за SELECT с всички възможни източници за персонализация от даден клас, които са достъпни за посочения потребител
+     * @see bgerp_PersonalizationSourceIntf
+     *
+     * @param integer $userId
+     *
+     * @return array
+     */
+    public function getPersonalizationOptions($userId = NULL)
+    {
+        $resArr = array();
+        $query = $this->getQuery();
+        $query->where("#state='active'");
+        $query->where("#subscribersCnt > 0");
+        
+        while ($rec = $query->fetch()) {
+            $resArr[$rec->id] = $rec->domain;
+        }
+        
+        return $resArr;
+    }
+    
+    
+    /**
+     * Дали потребителя може да използва дадения източник на персонализация
+     * @see bgerp_PersonalizationSourceIntf
+     *
+     * @param string $id
+     * @param integer $userId
+     *
+     * @return boolean
+     */
+    public function canUsePersonalization($id, $userId = NULL)
+    {
+        // Всеки който има права до листване на модела
+        if ($this->haveRightFor('single', $id, $userId)) {
+            
+            return TRUE;
+        }
+        
+        return FALSE;
+    }
+    
+    
+    /**
+     * Връща вербално представяне на заглавието на дадения източник за персонализирани данни
+     * @see bgerp_PersonalizationSourceIntf
+     *
+     * @param string|object $id
+     * @param boolean $verbal
+     *
+     * @return string
+     */
+    public function getPersonalizationTitle($id, $verbal = TRUE)
+    {
+        $rec = $this->fetch((int) $id);
+        
+        return $rec->domain;
+    }
+
+    
+    /**
+     * Връща масив с ключове имената на плейсхолдърите и съдържание - типовете им
+     * @see bgerp_PersonalizationSourceIntf
+     *
+     * @param string $id
+     *
+     * @return array
+     */
+    public function getPersonalizationDescr($id)
+    {
+        $resArr = array();
+        $resArr['email'] = cls::get('type_Email');
+        $resArr['person'] = cls::get('type_Varchar');
+        $resArr['company'] = cls::get('type_Varchar');
+        
+        return $resArr;
+    }
+    
+    
+    /**
+     * Връща линк, който сочи към източника за персонализация
+     * @see bgerp_PersonalizationSourceIntf
+     *
+     * @param string $id
+     *
+     * @return core_ET
+     */
+    public function getPersonalizationSrcLink($id)
+    {
+        // Създаваме линк към сингъла листа
+        $title = $this->getPersonalizationTitle($id, TRUE);
+        $link = ht::createLink($title, array($this, 'single', $id));
+        
+        return $link;
+    }
+    
+    
+    /**
+     * Връща масив с ключове - уникални id-та и ключове - масиви с данни от типа place => value
+     * @see bgerp_PersonalizationSourceIntf
+     *
+     * @param string $id
+     * @param integer $limit
+     *
+     * @return array
+     */
+    public function getPresonalizationArr($id, $limit = 0)
+    {
+        $query = marketing_BulletinSubscribers::getQuery();
+        
+        $query->where("#bulletinId = $id");
+        
+        if ($limit) {
+            $query->limit($limit);
+        }
+        
+        $resArr = array();
+        
+        while ($rec = $query->fetch()) {
+            $resArr[$rec->id] = array('email' => $rec->email, 'person' => $rec->name, 'company' => $rec->company);
+        }
+        
+        return $resArr;
+    }
 }
