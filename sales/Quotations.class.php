@@ -233,6 +233,18 @@ class sales_Quotations extends core_Master
     {
        $rec = &$data->form->rec;
        
+       // При клониране
+       if($data->action == 'clone'){
+       	
+       		// Ако няма reff взимаме хендлъра на оригиналния документ
+	       	if(empty($rec->reff)){
+	       		$rec->reff = $mvc->getHandle($rec->id);
+	       	}
+	       	
+	       	// Инкрементираме reff-а на оригинална
+	       	$rec->reff = str::addIncrementSuffix($rec->reff, 'v', 2);
+       }
+       
        if(empty($rec->id)){
        	  $mvc->populateDefaultData($data->form);
        } else {
