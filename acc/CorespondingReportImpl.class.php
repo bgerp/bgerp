@@ -220,25 +220,25 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     		
     		// Подготвяме страницирането
     		$pageVar = str::addHash("P", 5, "{$mvc->className}{$mvc->EmbedderRec->that}");
-    		$data->Pager = cls::get('core_Pager',  array('pageVar' => $pageVar, 'itemsPerPage' => $this->listItemsPerPage));
+    		$data->Pager = cls::get('core_Pager',  array('pageVar' => $pageVar, 'itemsPerPage' => $mvc->listItemsPerPage));
     		$data->Pager->itemsCount = count($data->recs);
     		
     		foreach ($data->recs as $rec1){
     			foreach (range(1, 6) as $i){
     				if(!empty($rec1->{"item{$i}"})){
-    					$this->cache[$rec1->{"item{$i}"}] = $rec1->{"item{$i}"};
+    					$mvc->cache[$rec1->{"item{$i}"}] = $rec1->{"item{$i}"};
     				}
     			}
     		}
     		
     		// Кешираме номерата на перата в отчета
-    		if(count($this->cache)){
+    		if(count($mvc->cache)){
     			$iQuery = acc_Items::getQuery();
     			$iQuery->show("num");
-    			$iQuery->in('id', $this->cache);
+    			$iQuery->in('id', $mvc->cache);
     			 
     			while($iRec = $iQuery->fetch()){
-    				$this->cache[$iRec->id] = $iRec->num;
+    				$mvc->cache[$iRec->id] = $iRec->num;
     			}
     		}
     		
@@ -247,7 +247,7 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     			$rec->sortField = '';
     			foreach (range(1, 3) as $j){
     				if(isset($rec->{"item{$j}"})){
-    					$rec->sortField .= $this->cache[$rec->{"item{$j}"}];
+    					$rec->sortField .= $mvc->cache[$rec->{"item{$j}"}];
     				}
     			}
     			
@@ -255,7 +255,7 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     		}
     		
     		// Сортираме записите според полето за сравнение
-    		usort($data->recs, array($this, "sortRecs"));
+    		usort($data->recs, array($mvc, "sortRecs"));
     		
     		// За всеки запис
     		foreach ($data->recs as &$rec){
@@ -264,7 +264,7 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     			if(!$data->Pager->isOnPage()) continue;
     			
     			// Вербално представяне на записа
-    			$data->rows[] = $this->getVerbalRec($rec);
+    			$data->rows[] = $mvc->getVerbalRec($rec);
     		}
     	}
     }
