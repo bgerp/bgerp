@@ -23,7 +23,6 @@ body {
     padding: 20px 40px;
     width: 400px;
     min-height: 240px;
-    background: #f5f5f5;
     position: absolute;
     height: auto;
     z-index: 101;
@@ -49,7 +48,6 @@ body {
     text-align: center;
     margin: 10px 20px 10px;
     line-height: 1.3em;
-    color:#333;
     background: none !important;
 }
 
@@ -116,17 +114,6 @@ body {
     display: block;
     padding: 5px;
     position: relative;
-    text-shadow:-1px -1px 0 #2C7982;
-    background: #3EACBA !important;
-    border:1px solid #379AA4 !important;
-    background-image:-webkit-linear-gradient(top, #48C6D4, #3EACBA) !important;
-    background-image:-moz-linear-gradient(top, #48C6D4, #3EACBA) !important;
-    background-image:-ms-linear-gradient(top, #48C6D4, #3EACBA) !important;
-    background-image:-o-linear-gradient(top, #48C6D4, #3EACBA) !important;
-    background-image:linear-gradient(top, #48C6D4, #3EACBA) !important;
-    -webkit-box-shadow:0 1px 0 rgba(255, 255, 255, .5) inset, 0 -1px 0 rgba(255, 255, 255, .1) inset, 0 4px 0 #338A94, 0 4px 2px rgba(0, 0, 0, .5) !important;
-    -moz-box-shadow:0 1px 0 rgba(255, 255, 255, .5) inset, 0 -1px 0 rgba(255, 255, 255, .1) inset, 0 4px 0 #338A94, 0 4px 2px rgba(0, 0, 0, .5) !important;
-    box-shadow:0 1px 0 rgba(255, 255, 255, .5) inset, 0 -1px 0 rgba(255, 255, 255, .1) inset, 0 4px 0 #338A94, 0 4px 2px rgba(0, 0, 0, .5) !important;
 }
 
 .bulletinReg .push_button {
@@ -166,15 +153,6 @@ body {
     top: -11px;
     bottom: -5px;
     content: "";
-}
-
-.push_button:hover {
-    background: #48C6D4 !important;
-    background-image:-webkit-linear-gradient(top, #3EACBA, #48C6D4) !important;
-    background-image:-moz-linear-gradient(top, #3EACBA, #48C6D4) !important;
-    background-image:-ms-linear-gradient(top, #3EACBA, #48C6D4) !important;
-    background-image:-o-linear-gradient(top, #3EACBA, #48C6D4) !important;
-    background-image:linear-gradient(top, #3EACBA, #48C6D4) !important;
 }
 
 .bulletinCancel {
