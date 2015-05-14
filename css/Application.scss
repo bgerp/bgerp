@@ -4363,23 +4363,20 @@ body.narrow {
 	}
 }
 .treeView {
-    tr:nth-child(odd){
-        background: #fff;
-    }
     .hidden{
         display: none;
     }
     .treeLevel1 .leafName {
-        text-indent: 20px;
+        text-indent: 50px;
     }
     .treeLevel2 .leafName {
-        text-indent: 40px;
+        text-indent: 80px;
     }
     .treeLevel3 .leafName {
-        text-indent: 60px;
+        text-indent: 110px;
     }
     .treeLevel4 .leafName {
-        text-indent: 80px;
+        text-indent: 140px;
     }
     .leafName {
         min-width: 250px;
@@ -4387,6 +4384,10 @@ body.narrow {
     .toggleBtn {
         margin-right: 6px;
         cursor: pointer;
+        margin-left: -19px;
+    }
+    .treeLevel0 .toggleBtn {
+        margin-left: 0;
     }
     .plus {
         display: none;
