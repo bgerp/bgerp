@@ -518,10 +518,10 @@ class acc_AllocatedExpenses extends core_Master
     		
     		if(!$form->gotErrors()){
     			$rec->correspondingDealOriginId = $correpspondingContainerId;
-    			if(empty($rec->amount)){
+    			if(!isset($rec->amount)){
     				$rec->amount = $mvc->getDefaultAmountToAllocate($rec->correspondingDealOriginId);
     				if(empty($rec->amount)){
-    					$form->setError('amount', 'Не може автоматично да се определи сумата, Моля задайте');
+    					$form->setError('amount', 'Не може автоматично да се определи сумата, Моля задайте ръчно');
     				}
     			}
     			
@@ -536,6 +536,10 @@ class acc_AllocatedExpenses extends core_Master
     			if(isset($msg)){
     				$form->setError('allocateBy', $msg);
     			}
+    		}
+    		
+    		if($rec->amount == 0){
+    			$form->setError('amount', 'Сумата не може да е 0');
     		}
     	}
     }
