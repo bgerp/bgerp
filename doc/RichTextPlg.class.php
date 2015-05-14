@@ -82,7 +82,7 @@ class doc_RichTextPlg extends core_Plugin
         $docName = $match['dsSign'] . $abbr . $match['id'] . $match['endDs'];
         
         // Подаваме името на файла на документа, ако иска да го промени
-        $doc->invoke('AfterGetDocNameInRichtext', array(&$docName));
+        $doc->invoke('AfterGetDocNameInRichtext', array(&$docName, $match['id']));
         
         $mvc    = $doc->instance;
         $docRec = $doc->rec();
