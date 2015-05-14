@@ -677,4 +677,23 @@ class marketing_Bulletins extends core_Master
         
         $mvc->save($rec, 'subscribersCnt, subscribersLast');
     }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass $rec
+     * @param int $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+        if ($rec && $action == 'delete') {
+            if ($rec->subscribersCnt > 0) {
+                $requiredRoles = 'no_one';
+            }
+        }
+    }
 }
