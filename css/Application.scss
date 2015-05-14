@@ -2587,6 +2587,10 @@ fieldset.sharing-history {
 	}
 }
 
+.document .scrolling-holder {
+    margin-bottom: 0;
+}
+
 .narrow-scroll .scrolling-holder::-webkit-scrollbar, .overflow-scroll::-webkit-scrollbar, .narrow .details .groupList::-webkit-scrollbar {
     -webkit-appearance: none;
     width: 10px;
