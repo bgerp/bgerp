@@ -47,16 +47,20 @@ class acc_ManufacturedProductsReport extends acc_CorespondingReportImpl
      */
     public static function on_AfterAddEmbeddedFields ($mvc, core_Form &$form)
     {
-      bp();
+      //bp($mvc, $form);
         // Искаме да покажим оборотната ведомост за сметката на касите
-       /* $accId = acc_Accounts::getRecBySystemId($mvc->accountSysId)->id;
-        $form->setDefault('accountId', $accId);
-        $form->setHidden('accountId');
+        $baseAccId = acc_Accounts::getRecBySystemId($mvc->baseAccountId)->id;
+        $form->setDefault('baseAccountId', $baseAccountId);
+        //$form->setHidden('baseAccountId');
+        
+        $corespondentAccId = acc_Accounts::getRecBySystemId($mvc->corespondentAccountId)->id;
+        $form->setDefault('corespondentAccountId', $corespondentAccountId);
+        //$form->setHidden('corespondentAccountId');
 
         // Дефолт периода е текущия ден
-        $today = dt::today();
+        //$today = dt::today();
 
-        $form->setDefault('from',date('Y-m-01', strtotime("-1 months", dt::mysql2timestamp(dt::now()))));
+        /*$form->setDefault('from',date('Y-m-01', strtotime("-1 months", dt::mysql2timestamp(dt::now()))));
         $form->setDefault('to', $today);
 
         // Задаваме че ще филтрираме по перо
