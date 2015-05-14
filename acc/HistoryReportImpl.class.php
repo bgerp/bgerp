@@ -260,8 +260,6 @@ class acc_HistoryReportImpl extends frame_BaseDriver
 	public function exportCsv()
 	{
 
-		$exportFields = $this->getExportFields();
-	
 		$conf = core_Packs::getConfig('core');
 	
 		if (count($this->innerState->recs) > $conf->EF_MAX_EXPORT_CNT) {
@@ -302,7 +300,7 @@ class acc_HistoryReportImpl extends frame_BaseDriver
 	 *
 	 * @return array
 	 */
-	public function getExportFields ()
+	protected function getExportFields_()
 	{
 
 		$exportFields['valior']  = "Вальор";
@@ -318,81 +316,24 @@ class acc_HistoryReportImpl extends frame_BaseDriver
 		return $exportFields;
 	}
 	
-	
-	/**
-	 * Ще направим нови row-ове за експорта.
-	 * Ще се обработват променливи от тип
-	 * double, key, keylist, date
-	 *
-	 * @return std Class $rows
-	 */
-	public function prepareCsvRows ($rec)
-	{
 
-		
-		// новите ни ролове
-		$rows = new stdClass();
-		
-
-		// за всеки един запис
-		foreach ($rec as $field => $value) { 
-
-			// ако е doubele
-			if (in_array($field ,array('baseQuantity', 'baseAmount', 'debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount'))) {
-		   
-				$value = $this->toCsvFormatDouble($value);
-
-			}
-			
-			// ако е class
-			try{
-				$Class = cls::get($rec['docType']);
-				$rows->docId = html2text_Converter::toRichText($Class->getShortHyperLink($rec['docId']));
-				$rows->reason = html2text_Converter::toRichText($Class->getContoReason($rec['docId'], $rec['reasonCode']));
-			} catch(core_exception_Expect $e){
-				if(is_numeric($rec['docId'])){
-					$rows->docId = "<span style='color:red'>" . tr("Проблем при показването") . "</span>";
-				} else {
-					$rows->docId = $rec['docId'];
-				}
-			}
-			
-			// ако е date
-			if ($field == 'valior') {
-				$value = $this->toCsvFormatData($rec['valior']);
-			}
-	
-			$rows->{$field} = $value;
-		}
-	
-		// ако имаме попълнено поле за контрагент или продукт
-		// искаме то да илезе с вербалното си име
-		foreach (range(1, 3) as $i) {
-			if(!empty($rows->{"ent{$i}Id"})){
-				$rows->{"ent{$i}Id"} = acc_Items::getVerbal($rec->{"ent{$i}Id"}, 'title');
-			}
-		}
-
-		return $rows;
-	}
-
-	
 	/**
 	 * Ще направим заглавито на колонките
 	 * според това дали ще има скрити полета
 	 *
 	 * @return stdClass
 	 */
-	public function generateHeader($rec)
+	protected function generateHeader_($rec)
 	{
+		
 		$exportFields = $this->getExportFields();
 	
 		if ($rec->baseAmount == $rec->baseQuantity && $rec->debitQuantity == $rec->debitAmount && $rec->creditQuantity == $rec->creditAmount && $rec->blQuantity == $rec->blAmount) { //bp();
 			unset ($exportFields['debitQuantity']);
 			unset ($exportFields['creditQuantity']);
-			unset ($exportFields['blQuantity']);			
+			unset ($exportFields['blQuantity']);
 		}
-		
+	
 		foreach ($exportFields as $caption) {
 			$header .= "," . $caption;
 		}
@@ -402,25 +343,25 @@ class acc_HistoryReportImpl extends frame_BaseDriver
 	
 	
 	/**
-	 * Ще направим row-овете в CSV формат 
+	 * Ще направим row-овете в CSV формат
 	 *
 	 * @return string $rCsv
 	 */
-	public function generateCsvRows($rec)
+	protected function generateCsvRows_($rec)
 	{
-
+	
 		$exportFields = $this->generateHeader($this->innerState->rec)->exportFields;
 		$rec = frame_CsvLib::prepareCsvRows($rec);
-		
+	
 		$rCsv = '';
-
+	
 		foreach ($rec as $field => $value) {
 			$rCsv = '';
-			
+	
 			foreach ($exportFields as $field => $caption) {
-			
+					
 				if ($rec->{$field}) {
-			
+	
 					$value = $rec->{$field};
 					$value = html2text_Converter::toRichText($value);
 					// escape
@@ -428,14 +369,13 @@ class acc_HistoryReportImpl extends frame_BaseDriver
 						$value = '"' . str_replace('"', '""', $value) . '"';
 					}
 					$rCsv .= "," . $value;
-			
+	
 				} else {
 					$rCsv .= "," . '';
 				}
 			}
 		}
-		//bp($rCsv);
+		
 		return $rCsv;
 	}
-
 }

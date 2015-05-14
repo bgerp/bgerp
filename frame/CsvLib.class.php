@@ -15,8 +15,7 @@
  */
 class frame_CsvLib
 {
-	
-	
+
 	/**
 	 * Ще направим нови row-ове за експорта.
 	 * Ще се обработват променливи от тип
@@ -24,7 +23,7 @@ class frame_CsvLib
 	 *
 	 * @return std Class $rows
 	 */
-	public static function prepareCsvRows ($rec)
+	public static function prepareCsvRows($rec)
 	{
 	
 	
@@ -38,7 +37,7 @@ class frame_CsvLib
 			// ако е doubele
 			if (in_array($field ,array('baseQuantity', 'baseAmount', 'debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount'))) {
 				 
-				$value = frame_CsvLib::toCsvFormatDouble($value);
+				$value = self::toCsvFormatDouble($value);
 	
 			}
 				
@@ -57,12 +56,12 @@ class frame_CsvLib
 				
 			// ако е date
 			if ($field == 'valior') {
-				$value = frame_CsvLib::toCsvFormatData($rec['valior']);
+				$value = self::toCsvFormatData($rec['valior']);
 			}
-			
+	
 			$rows->{$field} = $value;
 		}
-		
+	
 		// ако имаме попълнено поле за контрагент или продукт
 		// искаме то да илезе с вербалното си име
 		foreach (range(1, 3) as $i) {
@@ -70,7 +69,7 @@ class frame_CsvLib
 				$rows->{"ent{$i}Id"} = acc_Items::getVerbal($rec->{"ent{$i}Id"}, 'title');
 			}
 		}
-		
+	
 		return $rows;
 	}
 	
