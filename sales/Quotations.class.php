@@ -1002,4 +1002,18 @@ class sales_Quotations extends core_Master
     		$docName .= "({$reff})";
     	}
     }
+    
+    
+    /**
+     * Преди запис на документ, изчислява стойността на полето `isContable`
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $rec
+     */
+    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
+    {
+    	if($rec->reff === ''){
+    		$rec->reff = NULL;
+    	}
+    }
 }
