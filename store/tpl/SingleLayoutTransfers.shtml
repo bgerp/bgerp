@@ -84,7 +84,7 @@
                                         </td>
                                         <!--ET_END leftColum-->
                                         <td>
-                                            <div>|Общо тегло|*:&nbsp;<b>[#weight#]</b> &nbsp;&nbsp;&nbsp;&nbsp; |Общ обем|*:&nbsp;<b>[#volume#]</b>  <!--ET_BEGIN palletCount--><br> |Брой палети|*: <b>[#palletCount#]</b>  <!--ET_END palletCount--></div>
+                                            <div>|Общо тегло|*:&nbsp;<b>[#weight#]</b> &nbsp;&nbsp;&nbsp;&nbsp; |Общ обем|*:&nbsp;<b>[#volume#]</b>  <!--ET_BEGIN palletCountInput-->|Брой палети|*: <b>[#palletCountInput#]</b><!--ET_END palletCountInput--></div>
                                         </td>
                                     </tr>
                                 </tbody>
