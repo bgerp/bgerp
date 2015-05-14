@@ -28,6 +28,7 @@ body {
     height: auto;
     z-index: 101;
     box-shadow:0 4px 30px rgba(32,32,32,1);
+    box-sizing: content-box;
 }
 
 .bulletinClose {
@@ -55,7 +56,8 @@ body {
 .bulletinFilelds .row {
     clear: both;
     float: left;
-    margin-bottom: 5px;
+    box-sizing: content-box;
+    margin: 0 10px 10px;
 }
 
 .bulletinFilelds .row input{
@@ -137,7 +139,7 @@ body {
     font-size: 0.8em !important;
     padding: 3px;
     width: 220px;
-    margin-top: 20px;
+    margin: 20px 0;
 }
 
 .push_button:before {
@@ -173,11 +175,6 @@ body {
     background-image:-ms-linear-gradient(top, #3EACBA, #48C6D4) !important;
     background-image:-o-linear-gradient(top, #3EACBA, #48C6D4) !important;
     background-image:linear-gradient(top, #3EACBA, #48C6D4) !important;
-}
-
-.row {
-    margin-bottom: 10px;
-    padding: 0 10px;
 }
 
 .bulletinCancel {
