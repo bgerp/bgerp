@@ -97,6 +97,16 @@
 		</div>
 		<!--ET_END Transfers-->
 		
+		<!--ET_BEGIN TOTAL-->
+		<div class='line-detail'>
+			[#TOTAL333#]
+		    <div>|Общо тегло|*: <b>[#weight#]</b></div>
+		    <div>|Общ обем|*: <b>[#volume#]</b></div>
+		    <div>|Общ брой палети|*: <b>[#palletCount#]</b></div>
+		    <div>|Общa сума|*: <b>[#totalAmount#]</b></div>
+		</div>
+		<!--ET_END TOTAL-->
+		
 		<div class='footerDocBlock'>
 		    <div class='aright'>|Документът е създаден чрез системата|* <b><a href='http://bgerp.com'>bgERP</a></b></div>
 		</div>

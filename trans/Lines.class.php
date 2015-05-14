@@ -328,6 +328,27 @@ class trans_Lines extends core_Master
     
     
     /**
+     * След подготовка на сингъла
+     */
+    public static function on_AfterPrepareSingle($mvc, &$res, $data)
+    {
+    	$weight = ($data->weight) ? $data->weight : 0;
+    	$data->row->weight = cls::get('cat_type_Weight')->toVerbal($weight);
+    	
+    	$volume = ($data->volume) ? $data->volume : 0;
+    	$data->row->volume = cls::get('cat_type_Volume')->toVerbal($volume);
+    	
+    	$count = ($data->palletCount) ? $data->palletCount : 0;
+    	$data->row->palletCount = cls::get('type_Int')->toVerbal($count);
+    	
+    	$amount = ($data->totalAmount) ? $data->totalAmount : 0;
+    	$data->row->totalAmount = cls::get('type_Double', array('params' => array('decimals' => 2)))->toVerbal($amount);
+    	$bCurrency = acc_Periods::getBaseCurrencyCode();
+    	$data->row->totalAmount .= " <span class='cCode'>{$bCurrency}</span>";
+    }
+    
+    
+    /**
      * Извиква се преди рендирането на 'опаковката'
      */
     protected static function on_AfterRenderSingleLayout($mvc, &$tpl, $data)

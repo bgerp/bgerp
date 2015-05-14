@@ -243,7 +243,7 @@ class store_ShipmentOrders extends store_DocumentMaster
      */
     public function prepareShipments($data)
     {
-    	$data->shipmentOrders = parent::prepareLineDetail($data->masterData->rec);
+    	$data->shipmentOrders = parent::prepareLineDetail($data->masterData);
     }
     
     
