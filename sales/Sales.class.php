@@ -229,6 +229,7 @@ class sales_Sales extends deals_DealMaster
     public function description()
     {
         parent::setDealFields($this);
+        $this->FLD('reff', 'varchar(255)', 'caption=Ваш реф.,class=contactData,after=valior');
         $this->FLD('bankAccountId', 'key(mvc=bank_Accounts,select=iban,allowEmpty)', 'caption=Плащане->Банкова с-ка,after=currencyRate');
         $this->FLD('pricesAtDate', 'date', 'caption=Допълнително->Цени към,after=makeInvoice');
     }
@@ -239,6 +240,10 @@ class sales_Sales extends deals_DealMaster
      */
     public static function on_BeforeSave($mvc, $res, $rec)
     {
+    	if($rec->reff === ''){
+    		$rec->reff = NULL;
+    	}
+    	
 		// Ако има б. сметка се нотифицират операторите и
     	if($rec->bankAccountId){
     		$operators = bank_OwnAccounts::fetchField("#bankAccountId = '{$rec->bankAccountId}'",'operators');
@@ -256,6 +261,18 @@ class sales_Sales extends deals_DealMaster
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = &$data->form;
+        
+        // При клониране
+        if($data->action == 'clone'){
+        	
+        	// Ако няма reff взимаме хендлъра на оригиналния документ
+        	if(empty($form->rec->reff)){
+        		$form->rec->reff = $mvc->getHandle($form->rec->id);
+        	}
+        	
+        	// Инкрементираме reff-а на оригинална
+        	$form->rec->reff = str::addIncrementSuffix($form->rec->reff, 'v', 2);
+        }
         
         $myCompany = crm_Companies::fetchOwnCompany();
         
