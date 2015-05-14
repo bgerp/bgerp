@@ -76,6 +76,7 @@ class frame_Setup extends core_ProtoSetup
      */
     var $managers = array(
             'frame_Reports',
+    		'frame_CsvLib',
         );
     
 

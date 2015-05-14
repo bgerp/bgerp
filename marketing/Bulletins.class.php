@@ -84,13 +84,19 @@ class marketing_Bulletins extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, state, domain, showAllForm, subscribersCnt, subscribersLast';
+    public $listFields = 'id, domain, state, subscribersCnt, subscribersLast';
 
 
     /**
      * Файл с шаблон за единичен изглед на бюлетин
      */
     public $singleLayoutFile = 'marketing/tpl/SingleLayoutBulletin.shtml';
+    
+    
+    /**
+     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
+     */
+    public $rowToolsSingleField = 'domain';
 
 
     /**
@@ -98,7 +104,7 @@ class marketing_Bulletins extends core_Master
      */
     public function description()
     {
-        $this->FLD('domain', 'varchar', 'caption=Домейн, mandatory');
+        $this->FLD('domain', 'varchar', 'caption=Бюлетин, mandatory');
         $this->FLD('showAllForm', 'enum(yes=Да, no=Не)', 'caption=Показване на цялата форма, title=Дали да се показва цялата форма или само имейла');
         $this->FLD('formTitle', 'varchar(128)', 'caption=Заглавие на формата');
         $this->FLD('formSuccessText', 'varchar(128)', 'caption=Текст при абониране');
@@ -110,8 +116,8 @@ class marketing_Bulletins extends core_Master
         $this->FLD('bgColor', 'color_Type', 'caption=Цветове за бюлетина->Цвят на фона');
         $this->FLD('textColor', 'color_Type', 'caption=Цветове за бюлетина->Цвят на текста');
         $this->FLD('buttonColor', 'color_Type', 'caption=Цветове за бюлетина->Цвят на бутона');
-        $this->FLD('subscribersCnt', 'int', 'caption=Брой абонирани, input=none, notNull');
-        $this->FLD('subscribersLast', 'datetime(format=smartTime)', 'caption=Последно абониране, input=none, notNull');
+        $this->FLD('subscribersCnt', 'int', 'caption=Абонаменти->Общо, input=none, notNull');
+        $this->FLD('subscribersLast', 'datetime(format=smartTime)', 'caption=Абонаменти->Последен, input=none, notNull');
         
         $this->FLD('data', 'blob(serialize,compress)', 'Данни, input=none');
         
@@ -639,7 +645,7 @@ class marketing_Bulletins extends core_Master
     public static function on_AfterSave($mvc, &$id, $rec, $fields=array())
     {
         // При обновяване на всички полета или само на посочните да се променя `data`
-        if (!$fields || $fields['js'] || $fields['showWindowJS'] || $fields['css']) {
+        if (!$fields || isset($fields['js']) || isset($fields['showWindowJS']) || isset($fields['css'])) {
             $rec->data['js'] = self::prepareJS($id);
             $rec->data['showWindowJS'] = self::prepareShowWindowJS();
             $rec->data['css'] = self::prepareCSS($id);
@@ -670,5 +676,24 @@ class marketing_Bulletins extends core_Master
         $rec->subscribersLast = $lastRec->createdOn;
         
         $mvc->save($rec, 'subscribersCnt, subscribersLast');
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass $rec
+     * @param int $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+        if ($rec && $action == 'delete') {
+            if ($rec->subscribersCnt > 0) {
+                $requiredRoles = 'no_one';
+            }
+        }
     }
 }
