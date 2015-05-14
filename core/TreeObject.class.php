@@ -59,10 +59,8 @@ class core_TreeObject extends core_Manager
 		} else {
 			$data->form->setReadOnly($mvc->parentFieldName);
 		}
-		$rec = &$data->form->rec;
-		//bp($rec, $mvc->fetch($rec->parentId));
+		
 		$data->form->setDefault('makeDescendantsFeatures', 'yes');
-		//bp($rec);
 	}
 	
 	
@@ -211,7 +209,7 @@ class core_TreeObject extends core_Manager
 			if($rec->{$me->parentFieldName}){
 				if(static::fetchField($rec->{$me->parentFieldName}, 'makeDescendantsFeatures') == 'yes'){
 					
-					$feature = static::getVerbal($rec->parentId, $me->nameField);
+					$feature = static::getVerbal($rec->{$me->parentFieldName}, $me->nameField);
 					$featureValue = static::getVerbal($rec->id, $me->nameField);
 					
 					return array($feature => $featureValue);
@@ -325,7 +323,7 @@ class core_TreeObject extends core_Manager
 	public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
 	{
 		if(isset($fields['-list'])){
-			$row->ROW_ATTR['data-parentid'] .= $rec->parentId;
+			$row->ROW_ATTR['data-parentid'] .= $rec->{$mvc->parentFieldName};
 			$row->ROW_ATTR['data-id']       .= $rec->id;
 			$row->ROW_ATTR['class']    .= ' treeLevel' . $rec->_level;
 			
@@ -333,18 +331,21 @@ class core_TreeObject extends core_Manager
 				
 				$plusIcon = sbf('img/16/toggle-expand.png', '');
 				$minusIcon = sbf('img/16/toggle2.png', '');
-				$plus = "<img class = 'toggleBtn plus' src='{$plusIcon}' width='13' height='13'/>";
-				$minus = "<img class = 'toggleBtn minus' src='{$minusIcon}' width='13' height='13'/>";
+				$plus = "<img class = 'toggleBtn plus' src='{$plusIcon}' width='13' height='13' title = 'Показване на наследниците'/>";
+				$minus = "<img class = 'toggleBtn minus' src='{$minusIcon}' width='13' height='13' title = 'Скриване на наследниците'/>";
 				
 				$row->{$mvc->nameField} = " {$plus}{$minus}" . $row->{$mvc->nameField};
 			}
 			
+			// Ако може да се добавя поделемент, показваме бутон за добавяне
 			if($mvc->haveRightFor('add')){
-				$url = array($mvc, 'add', 'parentId' => $rec->id, 'ret_url' => TRUE);
+				$url = array($mvc, 'add', $mvc->parentFieldName => $rec->id, 'ret_url' => TRUE);
 				$img = ht::createElement('img', array('src' => sbf('img/16/add.png', ''), 'style' => 'width: 13px; padding: 0px 2px;'));
-				$row->_addBtn = ht::createLink($img, $url, FALSE, 'title=Добавяне на нов поделемент');
+				$parentTitle = $mvc->getVerbal($rec, $mvc->nameField);
+				$row->_addBtn = ht::createLink($img, $url, FALSE, "title=Добави поделемент на '{$parentTitle}'");
 			}
 			
+			// Ако записа е намерен при търсене добавяме му клас
 			if($rec->show === TRUE){
 				$row->ROW_ATTR['class'] .= " searchResult";
 			}
@@ -380,22 +381,22 @@ class core_TreeObject extends core_Manager
 	 */
 	public static function getFeaturesArray($ids)
 	{
-		$self = cls::get(get_called_class());
+		$me = cls::get(get_called_class());
 		$features = array();
 	
 		if(!count($ids)) return $features;
 	
 		foreach ($ids as $id){
-			$rec = $self->fetch($id);
+			$rec = $me->fetch($id);
 			
 			// Намираме името на обекта
-			$nameVerbal = $self->getVerbal($rec->id, $self->nameField);
+			$nameVerbal = $me->getVerbal($rec->id, $me->nameField);
 			$keyVerbal = $nameVerbal;
 			
 			// Ако има баща и е указано децата му да са свойства
-			if(!empty($rec->parentId)){
-				if($self->fetchField($rec->parentId, 'makeDescendantsFeatures') == 'yes'){
-					$keyVerbal = $self->getVerbal($rec->parentId, $self->nameField);
+			if(!empty($rec->{$me->parentFieldName})){
+				if($me->fetchField($rec->{$me->parentFieldName}, 'makeDescendantsFeatures') == 'yes'){
+					$keyVerbal = $me->getVerbal($rec->{$me->parentFieldName}, $me->nameField);
 				} else {
 					
 					// Ако не трябва да са наследници пропускаме
@@ -418,8 +419,6 @@ class core_TreeObject extends core_Manager
 	{
 		// Предефинираме метода, за да не заработи страницирането на данните
 		// В $data->recs ни трябват всички записи, за да можем да подготвим дървовидната структура
-		// При зареждане ще се показват само записите без бащи (корените) а децата 
-		// им ще се показват с JavaScript.
 	}
 	
 	
