@@ -108,11 +108,17 @@ class marketing_Bulletins extends core_Master
         $this->FLD('showAllForm', 'enum(yes=Да, no=Не)', 'caption=Показване на цялата форма, title=Дали да се показва цялата форма или само имейла');
         $this->FLD('formTitle', 'varchar(128)', 'caption=Съдържание на формата->Покана за абонамент');
         $this->FLD('formSuccessText', 'varchar(128)', 'caption=Съдържание на формата->Благодарност при абониране');
+        $this->FLD('img', 'fileman_FileType(bucket=pictures)', 'caption=Съдържание на формата->Картинка при абониране');
         $this->FLD('showFormBtn', 'varchar(128)', 'caption=Текст на бутона за показване на формата, title=Тест на бутона за форсирано показване на формата');
+        
+//        $this->FLD('showFormBtn', 'varchar(128)', 'caption=Текстове на бутони->За показване');//Абонамент за новости
+//        $this->FLD('showFormBtn', 'varchar(128)', 'caption=Текстове на бутони->За абониране');//Абонирам се за бюлетина
+//        $this->FLD('showFormBtn', 'varchar(128)', 'caption=Текстове на бутони->За отказ');//Не, благодаря
+        
+        
         $this->FLD('showAgainAfter', 'time(suggestions=3 часа|12 часа|1 ден)', 'caption=Изчакване преди ново отваряне');
         $this->FLD('idleTimeForShow', 'time(suggestions=5 секунди|20 секунди|1 мин)', 'caption=Период за бездействие преди активиране->Време');
         $this->FLD('waitBeforeStart', 'time(suggestions=3 секунди|5 секунди|10 секунди)', 'caption=След колко време да може да стартира бюлетина->Време');
-        $this->FLD('img', 'fileman_FileType(bucket=pictures)', 'caption=Съдържание на формата->Картинка при абониране');
         $this->FLD('bgColor', 'color_Type', 'caption=Цветове за бюлетина->Цвят на фона');
         $this->FLD('textColor', 'color_Type', 'caption=Цветове за бюлетина->Цвят на текста');
         $this->FLD('buttonColor', 'color_Type', 'caption=Цветове за бюлетина->Цвят на бутона');
@@ -492,11 +498,25 @@ class marketing_Bulletins extends core_Master
         
         $js = $bRec->data['js'];
         
-        header('Content-Type: text/javascript');
+        header('Content-Type: application/javascript');
         
         // Хедъри за управлението на кеша в браузъра
         header("Expires: " . gmdate("D, d M Y H:i:s", time() + 31536000) . " GMT");
         header("Cache-Control: public, max-age=31536000");
+        
+        // Поддържа ли се gzip компресиране на съдържанието?
+        $isGzipSupported = in_array('gzip', array_map('trim', explode(',', @$_SERVER['HTTP_ACCEPT_ENCODING'])));
+
+        if ($isGzipSupported) {
+            // Компресираме в движение и подаваме правилния хедър
+            $js = gzencode($js);
+            header("Content-Encoding: gzip");
+        } 
+        
+        // Отпечатваме съдържанието и го изпращаме към браузъра
+        header("Content-Length: " . strlen($js));
+        
+        header_remove("Pragma");
         
         echo $js;
         
@@ -523,7 +543,23 @@ class marketing_Bulletins extends core_Master
         header("Expires: " . gmdate("D, d M Y H:i:s", time() + 31536000) . " GMT");
         header("Cache-Control: public, max-age=31536000");
         
-        echo $bRec->data['css'];
+        // Поддържа ли се gzip компресиране на съдържанието?
+        $isGzipSupported = in_array('gzip', array_map('trim', explode(',', @$_SERVER['HTTP_ACCEPT_ENCODING'])));
+        
+        $css = $bRec->data['css'];
+        
+        if ($isGzipSupported) {
+            // Компресираме в движение и подаваме правилния хедър
+            $css = gzencode($css);
+            header("Content-Encoding: gzip");
+        } 
+        
+        // Отпечатваме съдържанието и го изпращаме към браузъра
+        header("Content-Length: " . strlen($css));
+        
+        header_remove("Pragma");
+        
+        echo $css;
         
         shutdown();
     }
