@@ -4041,23 +4041,24 @@ only screen and (max-width: 320px) {
     width: auto !important;
     height: auto !important; }
 
-  .treeView tr:nth-child(odd) {
-    background: white; }
   .treeView .hidden {
     display: none; }
   .treeView .treeLevel1 .leafName {
-    text-indent: 20px; }
+    text-indent: 50px; }
   .treeView .treeLevel2 .leafName {
-    text-indent: 40px; }
-  .treeView .treeLevel3 .leafName {
-    text-indent: 60px; }
-  .treeView .treeLevel4 .leafName {
     text-indent: 80px; }
+  .treeView .treeLevel3 .leafName {
+    text-indent: 110px; }
+  .treeView .treeLevel4 .leafName {
+    text-indent: 140px; }
   .treeView .leafName {
     min-width: 250px; }
   .treeView .toggleBtn {
     margin-right: 6px;
-    cursor: pointer; }
+    cursor: pointer;
+    margin-left: -19px; }
+  .treeView .treeLevel0 .toggleBtn {
+    margin-left: 0; }
   .treeView .plus {
     display: none; }
     .treeView .closedChildren .minus {
