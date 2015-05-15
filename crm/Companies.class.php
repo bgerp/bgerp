@@ -1084,9 +1084,10 @@ class crm_Companies extends core_Master
             						'Град' => bglocal_Address::canonizePlace($self->getVerbal($rec, 'place')),)
             );
             
-            if($rec->groupList){
-            	$groups = strip_tags($self->getVerbal($rec, 'groupList'));
-            	$result->features = $result->features + arr::make($groups, TRUE);
+            // Добавяме свойствата от групите, ако има такива
+            $groupFeatures = crm_Groups::getFeaturesArray($rec->groupList);
+            if(count($groupFeatures)){
+            	$result->features += $groupFeatures;
             }
             
             $result->features = $self->CustomerSalecond->getFeatures($self, $objectId, $result->features);
