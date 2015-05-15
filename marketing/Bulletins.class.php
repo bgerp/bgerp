@@ -113,7 +113,7 @@ class marketing_Bulletins extends core_Master
         $this->FLD('domain', 'varchar', 'caption=Бюлетин, mandatory');
         $this->FLD('showAllForm', 'enum(yes=Да, no=Не)', 'caption=Показване на цялата форма, title=Дали да се показва цялата форма или само имейла');
         
-        $this->FLD('formTitle', 'varchar(128)', 'caption=Съдържание на формата->Покана за абонамент');
+        $this->FLD('formTitle', 'richtext(rows=3)', 'caption=Съдържание на формата->Покана за абонамент');
         $this->FLD('formSuccessText', 'varchar(128)', 'caption=Съдържание на формата->Благодарност при абониране');
         $this->FLD('img', 'fileman_FileType(bucket=pictures)', 'caption=Съдържание на формата->Картинка при абониране');
         $this->FLD('wrongMailText', 'varchar(128)', 'caption=Съдържание на формата->Съобщени за грешен имейл');
@@ -326,7 +326,16 @@ class marketing_Bulletins extends core_Master
         $jsTpl->replace($showFormBtn, 'showFormBtn');
         
         // Заглавие на формата
-        $formTitle = addslashes($bRec->formTitle);
+        // Пушваме `xhtml` за да направим линковете абсолютни
+        Mode::push('text', 'xhtml');
+        $formTitle = self::getVerbal($bRec, 'formTitle');
+        Mode::pop('text');
+        
+        // Вкарваме стиловете, за да може да се стилнат текствете от ричтекста, когато са извън `bgERP`
+        $formTitle = self::addInlineCSS($formTitle);
+        
+        $formTitle = str_replace(array("\r\n", "\n", "\r"), ' ', $formTitle);
+        $formTitle = addslashes($formTitle);
         $jsTpl->replace($formTitle, 'formTitle');
         
         // Текст на бутона за субмитване
@@ -377,6 +386,40 @@ class marketing_Bulletins extends core_Master
         $js = minify_Js::process($js);
         
         return $js;
+    }
+    
+    
+    /**
+     * Вкарва CSS-a, като инлай в подадения стринг
+     * 
+     * @param string $content
+     * 
+     * @return string
+     */
+    protected static function addInlineCSS($str)
+    {
+        $css = file_get_contents(sbf('css/common.css', "", TRUE)) .
+        	"\n" . file_get_contents(sbf('css/Application.css', "", TRUE));
+        
+        $str = '<div id="begin">' . $str . '<div id="end">';
+        
+        // Вземаме пакета
+        $conf = core_Packs::getConfig('csstoinline');
+        
+        // Класа
+        $CssToInline = $conf->CSSTOINLINE_CONVERTER_CLASS;
+        
+        if (!$CssToInline) return $str;
+        
+        // Инстанция на класа
+        $inst = cls::get($CssToInline);
+        
+        // Стартираме процеса
+        $str =  $inst->convert($str, $css);
+        
+        $str = str::cut($str, '<div id="begin">', '<div id="end">');
+        
+        return $str;
     }
     
     
