@@ -353,7 +353,7 @@ class acc_BalanceReportImpl extends frame_BaseDriver
      */
     protected function prepareListFields_(&$data)
     {
-    	bp($data);
+    
          $data->accInfo = acc_Accounts::getAccountInfo($data->rec->accountId);
     
          $bShowQuantities = ($data->accInfo->isDimensional === TRUE) ? TRUE : FALSE;
