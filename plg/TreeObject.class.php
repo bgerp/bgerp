@@ -146,13 +146,9 @@ class plg_TreeObject extends core_Plugin
 	}
 	
 	
-	/**
-	 * Премахва от резултатите скритите от менютата за избор
-	 */
-	public static function on_BeforeMakeArray4Select($mvc, &$res, $fields = NULL, &$where = "", $index = 'id'  )
+	private static function getSelectOptions($mvc)
 	{
 		$options = array();
-		
 		$query = $mvc->getQuery();
 		$query->show("{$mvc->parentFieldName}, {$mvc->nameField}");
 		
@@ -164,10 +160,30 @@ class plg_TreeObject extends core_Plugin
 		uasort($options, function($a, $b)
 		{
 			if($a == $b) return 0;
+			
 			return (strnatcasecmp($a, $b) < 0) ? -1 : 1;
 		});
 		
-		$res = $options;
+		return $options;
+	}
+	
+	
+	/**
+	 * След подготовка на предложенията за избор в type_Keylist
+	 */
+	public static function on_AfterPrepareSuggestions($mvc, &$res, $keylist)
+	{
+		// Подменяме предложенията с подробните
+		$res = self::getSelectOptions($mvc);
+	}
+	
+	
+	/**
+	 * Премахва от резултатите скритите от менютата за избор
+	 */
+	public static function on_BeforeMakeArray4Select($mvc, &$res, $fields = NULL, &$where = "", $index = 'id'  )
+	{
+		$res = self::getSelectOptions($mvc);
 		
 		// Връщаме FALSE за да не се заместят опциите
 		return FALSE;
