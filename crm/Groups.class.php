@@ -33,7 +33,7 @@ class crm_Groups extends core_Master
      * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_RowTools, crm_Wrapper,
-                     plg_Rejected, doc_FolderPlg, plg_Search, plg_Translate';
+                     plg_Rejected, plg_Search, plg_TreeObject, plg_Translate';
     
     
     /**

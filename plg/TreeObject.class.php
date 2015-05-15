@@ -290,7 +290,7 @@ class plg_TreeObject extends core_Plugin
 				$url = array($mvc, 'add', $mvc->parentFieldName => $rec->id, 'ret_url' => TRUE);
 				$img = ht::createElement('img', array('src' => sbf('img/16/add.png', ''), 'style' => 'width: 13px; padding: 0px 2px;'));
 				$parentTitle = $mvc->getVerbal($rec, $mvc->nameField);
-				$row->_addBtn = ht::createLink($img, $url, FALSE, "title=Добави поделемент на '{$parentTitle}'");
+				$row->_addBtn = ht::createLink($img, $url, FALSE, "title=Добави нов поделемент на '{$parentTitle}'");
 			}
 			
 			// Ако записа е намерен при търсене добавяме му клас
