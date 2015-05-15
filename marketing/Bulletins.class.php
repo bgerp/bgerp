@@ -127,7 +127,7 @@ class marketing_Bulletins extends core_Master
         $this->FLD('companyName', 'varchar(128)', 'caption=Имена на полетата->Фирма');
         
         $this->FLD('waitBeforeStart', 'time(suggestions=3 секунди|5 секунди|10 секунди)', 'caption=Времена за изчакване->След начално зареждане');
-        $this->FLD('idleTimeForShow', 'time(suggestions=5 секунди|20 секунди|1 мин)', 'caption=Времена за изчакване->Активиране при бездействие');
+        $this->FLD('idleTimeForShow', 'time(suggestions=1 секунди|2 секунди|5 секунди)', 'caption=Времена за изчакване->Активиране при бездействие, title=Активиране след скролиране');
         $this->FLD('showAgainAfter', 'time(suggestions=3 часа|12 часа|1 ден)', 'caption=Времена за изчакване->Преди ре-активиране');
         
         $this->FLD('bgColor', 'color_Type', 'caption=Цветове за бюлетина->Цвят на фона');
@@ -549,7 +549,7 @@ class marketing_Bulletins extends core_Master
         $form->setDefault('namesName', 'Имена');
         $form->setDefault('companyName', 'Фирма');
         $form->setDefault('showAgainAfter', '10800'); //3 часа
-        $form->setDefault('idleTimeForShow', '20');
+        $form->setDefault('idleTimeForShow', '2');
         $form->setDefault('waitBeforeStart', '5');
         $form->setDefault('showAllForm', 'no');
     }
@@ -650,7 +650,7 @@ class marketing_Bulletins extends core_Master
         
         if (!$bRec || ($bRec->state != 'active')) shutdown();
         
-        header('Content-Type: text/javascript');
+        header('Content-Type: application/javascript');
         
         // Да не се кешира
         header('Cache-Control: no-cache, must-revalidate'); // HTTP 1.1.
