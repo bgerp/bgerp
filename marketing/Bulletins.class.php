@@ -20,6 +20,18 @@ class marketing_Bulletins extends core_Master
      */
     var $title = "Бюлетини";
     
+
+    /**
+     * Заглавие на единичния обект
+     */
+    public $singleTitle = 'Бюлетин';
+    
+    
+    /**
+     * 
+     */
+    public $recTitleTpl = '[#domain#]';
+    
     
     /**
      * Детайли

@@ -25,7 +25,13 @@ class marketing_BulletinSubscribers extends core_Detail
      * 
      */
     var $title = 'Абонати за бюлетин';
+    
 
+    /**
+     * Заглавие на единичния обект
+     */
+    public $singleTitle = 'Абонамент за бюлетин';
+    
     
     /**
      * Плъгини и MVC класове, които се зареждат при инициализация
@@ -88,7 +94,7 @@ class marketing_BulletinSubscribers extends core_Detail
      */
     public function description()
     {
-        $this->FLD('bulletinId', 'key(mvc=marketing_Bulletins)', 'input=hidden,silent');
+        $this->FLD('bulletinId', 'key(mvc=marketing_Bulletins, select=domain)', 'input=hidden,silent');
         $this->FLD('email', 'email', 'caption=Имейл, mandatory');
         $this->FLD('ip', 'ip', 'caption=IP, input=none');
         $this->FLD('brid', 'varchar(8)', 'caption=Браузър, input=none');
