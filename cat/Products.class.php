@@ -1035,13 +1035,6 @@ class cat_Products extends core_Embedder {
     			$row->originId = doc_Containers::getDocument($rec->originId)->getLink(0);
     		}
     	}
-    	
-    	if(empty($fields['-single'])){
-    		// Ако потребителя има достъп до орязания сингъл(тоест да няма достъп до обикновения сингъл), подменяме линка да води към него
-    		if($mvc->haveRightFor('privateSingle', $rec)){
-    			$row->name = ht::createLink($mvc->getVerbal($rec, 'name'), array($mvc, 'privateSingle', $rec->id, 'ret_url' => TRUE), FALSE, "ef_icon={$mvc->singleIcon}");
-    		}
-    	}
     }
     
     
@@ -1564,43 +1557,26 @@ class cat_Products extends core_Embedder {
     }
     
     
-	/**
-     * Създава хиперлинк към единичния изглед
-     * 
+    /**
+     * Връща урл-то към еденичния изглед на обекта, ако потребителя има
+     * права за сингъла. Ако няма права връща празен масив
+     *
      * @param int $id - ид на запис
-     * @param boolean $icon - дали линка да е с икона
-     * @param boolean $short - дали линка да е само стрелкичка
-     * @return string|core_ET - линк към единичния изглед или името ако потребителя няма права
+     * @return array $url - масив с урл-то на еденичния изглед
      */
-    public static function getHyperlink($id, $icon = FALSE, $short = FALSE)
+    public static function getSingleUrlArray($id)
     {
     	$me = cls::get(get_called_class());
-    
-    	$title = $me->getTitleById($id);
-    	
-    	$attr = array();
-    	if($icon === TRUE) {
-    		$attr['ef_icon'] = $me->singleIcon;
-    	} elseif($icon) {
-    		$attr['ef_icon'] = $icon;
-    	}
-    	$attr['class'] = 'specialLink';
-    	
-    	if(!$id) {
-    		return "<span style='color:red;'>&nbsp;- - -</span>";
-    	}
-    
-    	$functionName = ($short == TRUE) ? 'createLinkRef' : 'createLink';
-    	
-    	// Ако потребителя има достъп до единичния изглед, правим заглавието линк
+    	 
+    	$url = array();
+    	 
+    	// Ако потребителя има права за еденичния изглед, подготвяме линка
     	if ($me->haveRightFor('single', $id)) {
-    		$title = ht::$functionName($title, array($me, 'single', $id), NULL, $attr);
+    		$url = array($me, 'single', $id, 'ret_url' => TRUE);
     	} elseif($me->haveRightFor('privateSingle', $id)){
-    		
-    		// Ако нямаме достъп до сингъла, правим линк към ограничения
-    		$title = ht::$functionName($title, array($me, 'privateSingle', $id), NULL, $attr);
+    		$url = array($me, 'privateSingle', $id, 'ret_url' => TRUE);
     	}
-   
-    	return $title;
+    	 
+    	return $url;
     }
 }
