@@ -14,7 +14,7 @@
  * @since     v 0.1
  * @link
  */
-class core_TreeObject extends core_Manager
+abstract class core_TreeObject extends core_Manager
 {
 	
 
