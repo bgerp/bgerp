@@ -91,11 +91,6 @@
                         <span class="gray-title">|Картинка за успешна регистрация|*:</span> <span class="inline">[#img#]</span>
                     </li>
                     <!--ET_END img-->
-                    <!--ET_BEGIN showAllForm-->
-                    <li class="info">
-                        <span class="gray-title">|Показване на цялата форма|*:</span> [#showAllForm#]
-                    </li>
-                    <!--ET_END showAllForm-->
                     <!--ET_BEGIN showAgainAfter-->
                     <li class="info">
                         <span class="gray-title">|Изчакване преди ново отваряне|*:</span> [#showAgainAfter#]
