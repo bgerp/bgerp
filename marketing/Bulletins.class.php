@@ -111,7 +111,6 @@ class marketing_Bulletins extends core_Master
     public function description()
     {
         $this->FLD('domain', 'varchar', 'caption=Бюлетин, mandatory');
-        
         $this->FLD('lg', 'enum(' . EF_LANGUAGES . ')', 'caption=Език,notNull');
         
         $this->FLD('formTitle', 'richtext(rows=3)', 'caption=Съдържание на формата->Покана за абонамент');

@@ -74,7 +74,9 @@ class marketing_Setup extends core_ProtoSetup
     var $managers = array(
     		'marketing_Inquiries2',
             'marketing_Bulletins',
-            'marketing_BulletinSubscribers'
+            'marketing_BulletinSubscribers',
+            'migrate::updateBulletinsRecs',
+            'migrate::updateBulletinsBrid'
         );
 
         
@@ -107,5 +109,57 @@ class marketing_Setup extends core_ProtoSetup
         $html .= $Plugins->forcePlugin('Бюлетин за външната част', 'marketing_BulletinPlg', 'cms_page_External', 'private');
         
         return $html;
+    }
+    
+    
+    /**
+     * Миграция за обновява всички записи, за да се обнови кеша
+     */
+    static function updateBulletinsRecs()
+    {
+        $query = marketing_Bulletins::getQuery();
+        while ($rec = $query->fetch()) {
+            marketing_Bulletins::save($rec);
+        }
+    }
+    
+    
+    /**
+     * Миграция за вземане на brid и ip от стария модел
+     */
+    static function updateBulletinsBrid()
+    {
+        if (!cls::load('marketing_Bulletin', TRUE)) continue;
+        $mBulletin = cls::get('marketing_Bulletin');
+        if($mBulletin->db->tableExists($mBulletin->dbTableName)) {
+            $query = $mBulletin->getQuery();
+            while ($rec = $query->fetch()) {
+                if (!$rec->brid && !$rec->ip) continue;
+                
+                $sQuery = marketing_BulletinSubscribers::getQuery();
+                $sQuery->where(array("#email = '[#1#]'", $rec->email));
+                $sQuery->where("#ip IS NULL");
+                $sQuery->orWhere("#brid IS NULL");
+                
+                while ($nRec = $sQuery->fetch()) {
+                    
+                    $mustSave = FALSE;
+                    
+                    if (!$nRec->brid) {
+                        $nRec->brid = $rec->brid;
+                        $mustSave = TRUE;
+                    }
+                    
+                    if (!$nRec->ip) {
+                        $nRec->ip = $rec->ip;
+                        $mustSave = TRUE;
+                    }
+                    
+                    if ($mustSave) {
+                        marketing_BulletinSubscribers::save($nRec, 'ip, brid');
+                    }
+                }
+            }
+        }
     }
 }
