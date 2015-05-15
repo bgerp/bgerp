@@ -354,6 +354,10 @@ class marketing_Bulletins extends core_Master
         $emailName = addslashes(tr('Имейл'));
         $jsTpl->replace($emailName, 'emailName');
         
+        // Име на полето за имейл
+        $emailName = addslashes(tr('ще го пазим поверително'));
+        $jsTpl->replace($emailName, 'weSaveIt');
+        
         // Линк за показване на формата
         $showFormUrl = self::getLinkForShowForm($id);
         $showFormUrl = addslashes($showFormUrl);

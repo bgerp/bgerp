@@ -361,6 +361,7 @@ function bulletinFormOpen()
 				"<form class='bulletinForm' action='[#formAction#]'>" +
                 "<div class='bulletinFilelds'>" +
 				"<div class='row bulletinEmailHolder'><span>[#emailName#]: </span><input type='text' id='bulletinEmail' name='email' placeholder='example@domain.com'></div>" +
+				"<div class='centered'>([#weSaveIt#])</div>" +
                 "</div><div class='clearfix21'></div> " +
 				"<div class='centered'><input type='submit' name='submit' value='[#submitBtnVal#]' class='push_button'></div>"+
 				"<div style='text-align: center;'><a href='#' class='bulletinCancel'>[#cancelBtnVal#]</a></div>"+
