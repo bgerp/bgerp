@@ -353,6 +353,7 @@ class acc_BalanceReportImpl extends frame_BaseDriver
      */
     protected function prepareListFields_(&$data)
     {
+    	bp($data);
          $data->accInfo = acc_Accounts::getAccountInfo($data->rec->accountId);
     
          $bShowQuantities = ($data->accInfo->isDimensional === TRUE) ? TRUE : FALSE;
@@ -551,36 +552,56 @@ class acc_BalanceReportImpl extends frame_BaseDriver
              $header .= "," . $caption;
          }
 
-         foreach ($this->innerState->recs as $id => $rec) {
-             $rec = $this->prepareCsvRows($rec);
+         
+         if(count($this->innerState->recs)) {
+			foreach ($this->innerState->recs as $id => $rec) {
 
-             $rCsv = '';
-             foreach ($exportFields as $field => $caption) {
+				if($this->innerState->bShowQuantities || $this->innerState->rec->groupBy){
+					
+					
+					$baseQuantity += $rec->baseQuantity;
+					$baseAmount += $rec->baseAmount;
+					$debitQuantity += $rec->debitQuantity;
+					$debitAmount += $rec->debitAmount;
+					$creditQuantity += $rec->creditQuantity;
+					$creditAmount += $rec->creditAmount;
+					$blQuantity += $rec->blQuantity;
+					$blAmount += $rec->blAmount;
 
-                 if ($rec->{$field}) {
+				} 
+				
+				$rCsv = $this->generateCsvRows($rec);
 
-                     $value = $rec->{$field};
-                     $value = html2text_Converter::toRichText($value);
-                     // escape
-                     if (preg_match('/\\r|\\n|,|"/', $value)) {
-                         $value = '"' . str_replace('"', '""', $value) . '"';
-                     }
-                     $rCsv .= "," . $value;
+				
+				$csv .= $rCsv;
+				$csv .=  "\n";
+		
+			}
 
-                 } else {
-                 	$rCsv .= "," . '';
-                 }
+			$row = new stdClass();
+			
+			$row->flag = TRUE;
+			$row->baseQuantity = $baseQuantity;
+			$row->baseAmount = $baseAmount;
+			$row->debitQuantity = $debitQuantity;
+			$row->debitAmount = $debitAmount;
+			$row->creditQuantity = $creditQuantity;
+			$row->creditAmount = $creditAmount;
+			$row->blQuantity = $blQuantity;
+			$row->blAmount = $blAmount;
+			
+			foreach ($row as $fld => $value) {
+				$value = frame_CsvLib::toCsvFormatDouble($value);
+				$row->{$fld} = $value;
+			}
+		
+		
+			$beforeRow = $this->generateCsvRows($row);
 
+			$csv = $header . "\n" . $beforeRow. "\n" . $csv;
+	    } 
 
-             }
-             $csv .= $rCsv;
-             $csv .=  "\n";
-
-         }
-
-         $csv = $header . "\n" . $csv;
-
-         return $csv;
+        return $csv;
     }
 
 
@@ -590,95 +611,75 @@ class acc_BalanceReportImpl extends frame_BaseDriver
      *
      * @return array
      */
-    public function getExportFields ()
+    protected function getExportFields_()
     {
 
-
-        $exportFields['ent1Id']  = "Контрагенти";
-        $exportFields['ent2Id']  = "Сделка";
-        $exportFields['ent3Id']  = "Валута";
-        $exportFields['baseQuantity']  = "Начално салдо - количество";
-        $exportFields['baseAmount']  = "Начално салдо -  сума";
-        $exportFields['debitQuantity']  = "Обороти Дебит - количество";
-        $exportFields['debitAmount']  = "Обороти Дебит - сума";
-        $exportFields['creditQuantity']  = "Обороти Кредит - количество";
-        $exportFields['creditAmount']  = "Обороти Кредит - сума";
-        $exportFields['blQuantity']  = "Крайно салдо - количество";
-        $exportFields['blAmount']  = "Крайно салдо - сума";
-
+        $exportFields = $this->innerState->listFields;
+        
+        foreach ($exportFields as $field => $caption) {
+        	$caption = str_replace('|*', '', $caption);
+        	$caption = str_replace('->', ' - ', $caption);
+        	
+        	$exportFields[$field] = $caption;
+        }
+        
         return $exportFields;
     }
     
     
     /**
-     * Ще направим нови row-ове за експорта.
-     * Ще се обработват променливи от тип
-     * double, key, keylist, date
-     *
-     * @return std Class $rows
-     */
-    public function prepareCsvRows ($rec)
-    {
-    	
-    	// новите ни ролове
-    	$rows = new stdClass();
-    	
-    	// за всеки един запис
-    	foreach ($rec as $field => $value) { 
-    		// проверяваме типа му
-	    	//$type = gettype($value);
+	 * Ще направим row-овете в CSV формат
+	 *
+	 * @return string $rCsv
+	 */
+	protected function generateCsvRows_($rec)
+	{
+	
+		$exportFields = $this->getExportFields();
 
-	    	// ако е doubele
-	    	if (in_array($field ,array('baseAmount', 'debitAmount', 'creditAmount', 'blAmount', 'baseQuantity', 'debitQuantity', 'creditQuantity', 'blQuantity'))) {
-	    		
-	    		//ще го закръгляме до 2 знака, след запетаята
-	    		$decimals = 2;
-	    		// няма да имаме разделител за хилядите
-	    		$thousandsSep = '';
-	    		// ще вземем конфигурурания символ за разделител на стотинките
-	    		$conf = core_Packs::getConfig('frame');
-	    		$symbol = $conf->FRAME_TYPE_DECIMALS_SEP;
-	    			
-	    		if ($symbol == 'comma') {
-	    			$decPoint = ',';
-	    		} else {
-	    			$decPoint = '.';
-	    		}	
-	       
-	    		// Закръгляме до минимума от символи от десетичния знак или зададения брой десетични знака
-	    		//$decimals = min(strlen(substr(strrchr($value, $decPoint), 1)), $decimals);
-	    		
-	    		// Закръгляме числото преди да го обърнем в нормален вид
-	    		$value = round($value, $decimals);
-	    			
-	    		$value = number_format($value, $decimals, $decPoint, $thousandsSep);
-	    		
-	    		if(!Mode::is('text', 'plain')) {
-	    			$value = str_replace(' ', '&nbsp;', $value);
-	    		}	
-	    	}
-	    	
-	    	$rows->{$field} = $value;
-    	}
-    		
-    	// ако имаме попълнено поле за контрагент или продукт
-    	// искаме то да илезе с вербалното си име
-    	foreach (range(1, 3) as $i) {
-    		if(!empty($rows->{"ent{$i}Id"})){
-    			$rows->{"ent{$i}Id"} = acc_Items::getVerbal($rec->{"ent{$i}Id"}, 'title');
-    		}
-    	}
-    	
-    	
-    	$exportFields = $this->getExportFields();
-    	foreach ($exportFields as $field => $caption) {
-    		if (!$rows->{$field}) { 
-    			$rows->{$field} = '';
-    		}
-    	}
-    	
-
-    	return $rows;
-    }
+		$rec = frame_CsvLib::prepareCsvRows($rec);
+	
+		$rCsv = '';
+		
+		$res = count($exportFields); 
+		
+		foreach ($rec as $field => $value) {
+			$rCsv = '';
+			
+			if ($res == 11) {
+				$zeroRow = "," . 'ОБЩО' . "," .'' . "," .'';
+			} elseif ($res == 10) {
+				$zeroRow = "," . 'ОБЩО' . "," .'';
+			} elseif ($res == 9) {
+				$zeroRow = "," . 'ОБЩО';
+			}
+			
+			foreach ($exportFields as $field => $caption) {
+					
+				if ($rec->{$field}) {
+	
+					$value = $rec->{$field};
+					$value = html2text_Converter::toRichText($value);
+					// escape
+					if (preg_match('/\\r|\\n|,|"/', $value)) {
+						$value = '"' . str_replace('"', '""', $value) . '"';
+					}
+					$rCsv .= "," . $value;
+					
+					if($rec->flag == TRUE) {
+						
+						$zeroRow .= "," . $value;
+						$rCsv = $zeroRow;
+					}
+	
+				} else {
+					
+					$rCsv .= "," . '';
+				}
+			}
+		}
+		
+		return $rCsv;
+	}
 
 }
