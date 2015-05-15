@@ -126,6 +126,7 @@ class marketing_Bulletins extends core_Master
         $this->FLD('lg', 'enum(' . EF_LANGUAGES . ')', 'caption=Език,notNull');
         
         $this->FLD('formTitle', 'richtext(rows=3)', 'caption=Съдържание на формата->Покана за абонамент');
+        $this->FLD('logo', 'fileman_FileType(bucket=pictures)', 'caption=Съдържание на формата->Лого');
         $this->FLD('formSuccessText', 'varchar(128)', 'caption=Съдържание на формата->Благодарност при абониране');
         $this->FLD('img', 'fileman_FileType(bucket=pictures)', 'caption=Съдържание на формата->Картинка при абониране');
         
@@ -327,6 +328,11 @@ class marketing_Bulletins extends core_Master
         
         // След колко секунди да може да се стартира
         $jsTpl->replace($bRec->waitBeforeStart, 'waitBeforeStart');
+        
+        if ($bRec->logo) {
+            // 8760 часа - 365 дни
+            $jsTpl->replace(fileman_Download::getDownloadUrl($bRec->logo, 8760), 'logo');
+        }
         
         // Съобщение при абониране
         $successText = addslashes($bRec->formSuccessText);

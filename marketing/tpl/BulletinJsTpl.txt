@@ -356,6 +356,7 @@ function bulletinFormOpen()
 				"<div class='bulletinReg'>" +
 				"<a href='#' class='bulletinClose'>X</a>"+
 				"<div class='bulletinInner'>"+
+				"<!--ET_BEGIN logo--><div class = 'centered'><img class='logImg' src='[#logo#]' alt='Logo'></div><!--ET_END logo-->" +
 				"<h2>[#formTitle#]</h2>"+
 				"<div class='bulletinError' style='visibility: hidden; color: red;'>[#wrongMailText#]</div>"+
 				"<form class='bulletinForm' action='[#formAction#]'>" +

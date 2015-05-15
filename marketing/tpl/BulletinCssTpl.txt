@@ -180,7 +180,7 @@ body {
     margin-top: 10px;
 }
 
-.thanksText img {
+.thanksText img, .logImg {
     max-height: 150px;
     width: auto;
 }
