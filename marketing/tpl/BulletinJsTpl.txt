@@ -360,7 +360,7 @@ function bulletinFormOpen()
 				"<div class='bulletinError' style='visibility: hidden; color: red;'>[#wrongMailText#]</div>"+
 				"<form class='bulletinForm' action='[#formAction#]'>" +
                 "<div class='bulletinFilelds'>" +
-				"<div class='row bulletinEmailHolder'><span>[#emailName#]: </span><input type='text' id='bulletinEmail' name='email'></div>" ;
+				"<div class='row bulletinEmailHolder'><span>[#emailName#]: </span><input type='text' id='bulletinEmail' name='email' placeholder='example@domain.com'></div>" ;
 	
 				if ('[#showAllForm#]' == 'yes') {
 					form += "<div class='row bulletinNamesHolder'><span>[#namesName#]:</span> <input type='text' id='bulletinNames' name='name'></div>" +
