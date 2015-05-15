@@ -3,18 +3,18 @@
 
 
 /**
- * Клас 'core_TreeObject' - клас за наследяване на обект с дървовидна структура
+ * Клас 'plg_TreeObject' - плъгин за обекти със дървовидна структура
  *
  *
  * @category  bgerp
- * @package   core
+ * @package   plg
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @link
  */
-abstract class core_TreeObject extends core_Manager
+class plg_TreeObject extends core_Plugin
 {
 	
 
@@ -53,7 +53,7 @@ abstract class core_TreeObject extends core_Manager
 	 */
 	public static function on_AfterPrepareEditForm($mvc, &$data)
 	{
-		$options = $mvc->getParentOptions($data->form->rec);
+		$options = self::getParentOptions($mvc, $data->form->rec);
 		if(count($options)){
 			$data->form->setOptions($mvc->parentFieldName, $options);
 		} else {
@@ -70,22 +70,22 @@ abstract class core_TreeObject extends core_Manager
 	 * @param stdClass $rec
 	 * @return $options
 	 */
-	protected function getParentOptions($rec)
+	private static function getParentOptions($mvc, $rec)
 	{
 		$where = '';
 		if($rec->id){
 			$where = "#id != {$rec->id}";
 		}
 		
-		if($this->getField('state', FALSE)){
+		if($mvc->getField('state', FALSE)){
 			$where .= "#state != 'rejected'";
 		}
 		
 		// При редакция оставяме само тези опции, в чиите бащи не участва текущия обект
-		$options = $this->makeArray4Select($this->nameField, $where);
+		$options = $mvc->makeArray4Select($mvc->nameField, $where);
 		if(count($options) && isset($rec->id)){
 			foreach ($options as $id => $title){
-				$this->traverseTree($id, $rec->id, $notAllowed);
+				self::traverseTree($mvc, $id, $rec->id, $notAllowed);
 				if(count($notAllowed) && in_array($id, $notAllowed)){
 					unset($options[$id]);
 				}
@@ -105,7 +105,7 @@ abstract class core_TreeObject extends core_Manager
 	 * @param array $path
 	 * @return void
 	 */
-	private function traverseTree($objectId, $needle, &$notAllowed, $path = array())
+	private static function traverseTree($mvc, $objectId, $needle, &$notAllowed, $path = array())
 	{
 		// Добавяме текущия продукт
 		$path[$objectId] = $objectId;
@@ -123,8 +123,8 @@ abstract class core_TreeObject extends core_Manager
 		}
 		
 		// Намираме бащата на този обект и за него продължаваме рекурсивно
-		if($parentId = static::fetchField($objectId, $this->parentFieldName)){
-			self::traverseTree($parentId, $needle, $notAllowed, $path);
+		if($parentId = $mvc->fetchField($objectId, $mvc->parentFieldName)){
+			self::traverseTree($mvc, $parentId, $needle, $notAllowed, $path);
 		}
 	}
 	
@@ -132,13 +132,12 @@ abstract class core_TreeObject extends core_Manager
 	/**
 	 * Връща Пълното заглавие на обекта с бащите му преди името му
 	 */
-	public static function getFullTitle($id)
+	private static function getFullTitle($me, $id)
 	{
-		$me = cls::get(get_called_class());
 		$parent = $me->fetchField($id, $me->parentFieldName);
 		$title = $me->getVerbal($id, $me->nameField);
 		
-		while($parent && ($pRec = self::fetch($parent, "{$me->parentFieldName},{$me->nameField}"))) {
+		while($parent && ($pRec = $me->fetch($parent, "{$me->parentFieldName},{$me->nameField}"))) {
 			$title = $pRec->{$me->nameField} . ' » ' . $title;
 			$parent = $pRec->{$me->parentFieldName};
 		}
@@ -148,50 +147,30 @@ abstract class core_TreeObject extends core_Manager
 	
 	
 	/**
-	 * Връща наследниците на корена
-	 * 
-	 * @param int $id - ид на запис
-	 * @return array $res - масив със записите на наследниците
+	 * Премахва от резултатите скритите от менютата за избор
 	 */
-	protected function getDescendents($id)
-	{
-		$query = $this->getQuery();
-		$query->where("#{$this->parentFieldName} = {$id}");
-		$query->show("id,{$this->nameField}");
-		
-		return $query->fetchAll();
-	}
-	
-	
-	/**
-	 * Функция, която връща подготвен масив за СЕЛЕКТ от елементи (ид, поле)
-	 * на $class отговарящи на условието where
-	 */
-	public function makeArray4Select_($fields = NULL, $where = "", $index = 'id')
+	public static function on_BeforeMakeArray4Select($mvc, &$res, $fields = NULL, &$where = "", $index = 'id'  )
 	{
 		$options = array();
 		
-		$query = $this->getQuery();
-		$query->show("{$this->parentFieldName}, {$this->nameField}");
+		$query = $mvc->getQuery();
+		$query->show("{$mvc->parentFieldName}, {$mvc->nameField}");
 		
 		while($rec = $query->fetch()){
-			$options[$rec->id] = static::getFullTitle($rec->id, $title);
+			$options[$rec->id] = self::getFullTitle($mvc, $rec->id);
 		}
 		
-		uasort($options, array($this, "sortOptions"));
+		// Сортираме опциите
+		uasort($options, function($a, $b)
+		{
+			if($a == $b) return 0;
+			return (strnatcasecmp($a, $b) < 0) ? -1 : 1;
+		});
 		
-		return $options;
-	}
-	
-	
-	/**
-	 * Подреждане на опциите
-	 */
-	private function sortOptions($a, $b)
-	{
-		if($a == $b) return 0;
-	
-		return (strnatcasecmp($a, $b) < 0) ? -1 : 1;
+		$res = $options;
+		
+		// Връщаме FALSE за да не се заместят опциите
+		return FALSE;
 	}
 	
 	
@@ -225,14 +204,19 @@ abstract class core_TreeObject extends core_Manager
 			}
 		}
 		
+		// Групираме записите по бащи
 		$tree = array();
 		foreach ($data->recs as $br){
 			$tree[$br->parentId][] = $br;
 		}
 		
-		$tree = $mvc->createTree($tree, $tree[NULL]);
-		$data->recs = $mvc->flattenTree($tree);
+		// Подготвяме дървото започвайки от обектите без бащи (корените)
+		$tree = self::createTree($tree, $tree[NULL]);
+		
+		// Обръщаме дървото в обикновен масив за показване
+		$data->recs = self::flattenTree($tree);
 
+		// Клас за таблицата
         $data->listTableClass = 'treeView';
 	}
 	
@@ -244,7 +228,7 @@ abstract class core_TreeObject extends core_Manager
 	 * @param int $parent - ид на бащата бащата (NULL ако няма)
 	 * @return array $tree - записите в дървовидна структура
 	 */
-	private function createTree(&$list, $parent, $round = -1)
+	private static function createTree(&$list, $parent, $round = -1)
 	{
 		$round++;
 		$tree = array();
@@ -254,7 +238,7 @@ abstract class core_TreeObject extends core_Manager
 	    		$round = 0;
 	    	}
 	        if(isset($list[$l->id])){
-	            $l->children = $this->createTree($list, $list[$l->id], $round);
+	            $l->children = self::createTree($list, $list[$l->id], $round);
 	        }
 	        $l->_level = $round;
 	        $tree[] = $l;
@@ -270,14 +254,14 @@ abstract class core_TreeObject extends core_Manager
 	 * @param array $array
 	 * @return array - сортираните записи
 	 */
-	private function flattenTree($array)
+	private static function flattenTree($array)
 	{
 		$return = array();
 		
 		foreach ($array as $key => $value) {
 			$return[$value->id] = $value;
 			if(count($value->children)){
-				$return = $return + $this->flattenTree($value->children);
+				$return = $return + self::flattenTree($value->children);
 			}
 			$value->_childrenCount = count($value->children);
 			unset($value->children);
@@ -301,16 +285,6 @@ abstract class core_TreeObject extends core_Manager
 			$row->ROW_ATTR['data-id']       .= $rec->id;
 			$row->ROW_ATTR['class']    .= ' treeLevel' . $rec->_level;
 			
-			if($rec->_childrenCount > 0){
-				
-				$plusIcon = sbf('img/16/toggle-expand.png', '');
-				$minusIcon = sbf('img/16/toggle2.png', '');
-				$plus = "<img class = 'toggleBtn plus' src='{$plusIcon}' width='13' height='13' title = 'Показване на наследниците'/>";
-				$minus = "<img class = 'toggleBtn minus' src='{$minusIcon}' width='13' height='13' title = 'Скриване на наследниците'/>";
-				
-				$row->{$mvc->nameField} = " {$plus}{$minus}" . $row->{$mvc->nameField};
-			}
-			
 			// Ако може да се добавя поделемент, показваме бутон за добавяне
 			if($mvc->haveRightFor('add')){
 				$url = array($mvc, 'add', $mvc->parentFieldName => $rec->id, 'ret_url' => TRUE);
@@ -328,9 +302,33 @@ abstract class core_TreeObject extends core_Manager
 	
 	
 	/**
+	 * След преобразуване на записа в четим за хора вид.
+	 */
+	public static function on_AfterPrepareListRows($mvc, &$data)
+	{
+		if(!count($data->recs)) return;
+		
+		// За всеки обект
+		foreach($data->rows as $id => &$row){
+			$rec = $data->recs[$id];
+			
+			// Ако обекта има деца, добавяме бутоните за скриване/показване
+			if($rec->_childrenCount > 0){
+				$plusIcon = sbf('img/16/toggle-expand.png', '');
+				$minusIcon = sbf('img/16/toggle2.png', '');
+				$plus = "<img class = 'toggleBtn plus' src='{$plusIcon}' width='13' height='13' title = 'Показване на наследниците'/>";
+				$minus = "<img class = 'toggleBtn minus' src='{$minusIcon}' width='13' height='13' title = 'Скриване на наследниците'/>";
+					
+				$row->{$mvc->nameField} = " {$plus}{$minus}" . $row->{$mvc->nameField};
+			}
+		}
+	}
+	
+	
+	/**
 	 * Извиква се след подготовката на колоните ($data->listFields)
 	 */
-	protected static function on_AfterPrepareListFields($mvc, $data)
+	public static function on_AfterPrepareListFields($mvc, $data)
 	{
 		arr::placeInAssocArray($data->listFields, array('_addBtn' => ' '), NULL, $mvc->nameField);
 	}
@@ -354,49 +352,52 @@ abstract class core_TreeObject extends core_Manager
 	 * @param string $ids - кейлист на обекти
 	 * @return array - масив със свойства и стойностти
 	 */
-	public static function getFeaturesArray($keylist)
+	public static function on_AfterGetFeaturesArray($mvc, &$res, $keylist)
 	{
-		$ids = keylist::toArray($keylist);
-		
-		$me = cls::get(get_called_class());
-		$features = array();
-	
-		if(!count($ids)) return $features;
-	
-		foreach ($ids as $id){
-			$rec = $me->fetch($id, "{$me->nameField},{$me->parentFieldName}");
+		// Ако няма подготвен масив със свойства
+		if(!$res){
+			$ids = keylist::toArray($keylist);
 			
-			// Намираме името на обекта
-			$nameVerbal = $me->getVerbal($rec, $me->nameField);
-			$keyVerbal = $nameVerbal;
+			$features = array();
 			
-			// Ако има баща и е указано децата му да са свойства
-			if(!empty($rec->{$me->parentFieldName})){
-				if($me->fetchField($rec->{$me->parentFieldName}, 'makeDescendantsFeatures') == 'yes'){
-					$keyVerbal = $me->getVerbal($rec->{$me->parentFieldName}, $me->nameField);
-				} else {
+			if(!count($ids)) return $features;
+			
+			foreach ($ids as $id){
+				$rec = $mvc->fetch($id, "{$mvc->nameField},{$mvc->parentFieldName}");
 					
-					// Ако не трябва да са наследници пропускаме
-					continue;
+				// Намираме името на обекта
+				$nameVerbal = $mvc->getVerbal($rec, $mvc->nameField);
+				$keyVerbal = $nameVerbal;
+					
+				// Ако има баща и е указано децата му да са свойства
+				if(!empty($rec->{$mvc->parentFieldName})){
+					if($mvc->fetchField($rec->{$mvc->parentFieldName}, 'makeDescendantsFeatures') == 'yes'){
+						$keyVerbal = $mvc->getVerbal($rec->{$mvc->parentFieldName}, $mvc->nameField);
+					} else {
+							
+						// Ако не трябва да са наследници пропускаме
+						continue;
+					}
 				}
+					
+				// задаваме свойството
+				$features[$keyVerbal] = $nameVerbal;
 			}
 			
-			// задаваме свойството
-			$features[$keyVerbal] = $nameVerbal;
+			// Връщаме намерените свойства
+			$res = $features;
 		}
-		
-		// Връщаме намерените свойства
-		return $features;
 	}
 	
 	
 	/**
-	 * Подготвя навигацията по страници
+	 * След подготовката на навигацията по сраници
 	 */
-	function prepareListPager_(&$data)
+	public static function on_AfterPrepareListPager($mvc, &$data)
 	{
 		// Предефинираме метода, за да не заработи страницирането на данните
 		// В $data->recs ни трябват всички записи, за да можем да подготвим дървовидната структура
+		unset($data->pager);
 	}
 	
 	
