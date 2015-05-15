@@ -126,9 +126,9 @@ class marketing_Bulletins extends core_Master
         $this->FLD('namesName', 'varchar(128)', 'caption=Имена на полетата->Имена');
         $this->FLD('companyName', 'varchar(128)', 'caption=Имена на полетата->Фирма');
         
-        $this->FLD('showAgainAfter', 'time(suggestions=3 часа|12 часа|1 ден)', 'caption=Изчакване преди ново отваряне');
-        $this->FLD('idleTimeForShow', 'time(suggestions=5 секунди|20 секунди|1 мин)', 'caption=Период за бездействие преди активиране->Време');
-        $this->FLD('waitBeforeStart', 'time(suggestions=3 секунди|5 секунди|10 секунди)', 'caption=След колко време да може да стартира бюлетина->Време');
+        $this->FLD('waitBeforeStart', 'time(suggestions=3 секунди|5 секунди|10 секунди)', 'caption=Времена за изчакване->След начално зареждане');
+        $this->FLD('idleTimeForShow', 'time(suggestions=5 секунди|20 секунди|1 мин)', 'caption=Времена за изчакване->Активиране при бездействие');
+        $this->FLD('showAgainAfter', 'time(suggestions=3 часа|12 часа|1 ден)', 'caption=Времена за изчакване->Преди ре-активиране');
         
         $this->FLD('bgColor', 'color_Type', 'caption=Цветове за бюлетина->Цвят на фона');
         $this->FLD('textColor', 'color_Type', 'caption=Цветове за бюлетина->Цвят на текста');
