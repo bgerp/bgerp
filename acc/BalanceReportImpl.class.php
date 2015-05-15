@@ -650,7 +650,7 @@ class acc_BalanceReportImpl extends frame_BaseDriver
 				$zeroRow = "," . 'ОБЩО' . "," .'' . "," .'';
 			} elseif ($res == 10) {
 				$zeroRow = "," . 'ОБЩО' . "," .'';
-			} elseif ($res == 9) {
+			} elseif ($res <= 9) {
 				$zeroRow = "," . 'ОБЩО';
 			}
 			
