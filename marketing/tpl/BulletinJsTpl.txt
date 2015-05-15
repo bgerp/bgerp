@@ -37,6 +37,10 @@ var formIsShowed = false;
 var showAgainAfter = [#showAgainAfter#];
 
 
+// След колко секунди да може да се стартира
+var waitBeforeStart = [#waitBeforeStart#];
+
+
 /**
  * След колко време на бездействие да се покаже формата
  */
@@ -56,11 +60,14 @@ function startProcessing()
 	var lastShow = getCookie('bulletinLastShowTime');
 	if (this.isShowed(lastShow)) return ;
 	
+	// Стартира брояча за време на отворения таб
+	this.increaseTimer();
+	
 	// Гледа за позицията на мишката
 	this.startWatchingPos();
 	
-	// Следи за времето на бездействие
-	this.startWatchingTime();
+	// Стартира следенето на скролирането
+	this.startWatchingScroll();
 }
 
 
@@ -125,14 +132,25 @@ function increaseIdleTime()
     } else {
         this.idleTime++;
     }
-    
+};
+
+
+/**
+ * Увеличава времето след зареждане на страницата
+ */
+function increaseTimer()
+{
+	// Няма нужда да се стартира брояча, ако формата вече е показана
+	if (this.formIsShowed) return;
+	
     if (typeof this.timer == 'undefined') {
         this.timer = 0;
     } else {
         this.timer++;
     }
-};
-
+    
+    setTimeout(increaseTimer, 1000);
+}
 
 /**
  * Нулира времето на бездействие
@@ -188,9 +206,6 @@ function startWatchingPos()
 	var maxPos = 10;
 	var minPos = 1;
 	
-	// След колко секунди да може да се стартира
-	var waitBeforeStart = [#waitBeforeStart#];
-	
 	var thisInst = this;
 	
 	$("body").mousemove(function(e) {
@@ -199,7 +214,7 @@ function startWatchingPos()
 		if (thisInst.formIsShowed) return;
 		
 		// Ако не е дошло времето за показване
-		if (thisInst.timer < waitBeforeStart) return;
+		if (thisInst.timer < thisInst.waitBeforeStart) return;
 		
 		// Определяме очертанията на body и положението на мишката спрямо него
 		bodyTop = document.documentElement.scrollTop + document.body.scrollTop;
@@ -224,6 +239,48 @@ function startWatchingPos()
 		
 		prevPos = pos;
 	});
+}
+
+
+/**
+ * Стартира следенето за скролиране
+ */
+function startWatchingScroll()
+{
+	var bottom = false;
+	var top = false;
+	var middle = false;
+	var isStarted = false;
+	var thisInst = this;
+    window.onscroll = function(e) {
+    	
+    	// Ако не е дошло времето за показване
+		if (thisInst.timer < thisInst.waitBeforeStart) return;
+    	
+    	if (isStarted) return;
+    	
+    	var height =  $(document).height() - $(window).height();
+    	var scrollPos = $(window).scrollTop();
+    	var tollerance = parseInt(height / 20); // 5% от размера
+    	
+    	// Дали е била в най-долната част или в границата на толеранса
+    	if ((height - tollerance) <= scrollPos) {
+    		bottom = true;
+    	}
+    	
+    	if (tollerance > scrollPos) {
+    		top = true;
+		}
+		
+		if (!top && !bottom) {
+			middle = true;
+		}
+    	
+    	if ((middle && (bottom || top)) || (bottom && top)) {
+    		isStarted = true;
+    		this.startWatchingTime();
+    	}
+    };
 }
 
 
