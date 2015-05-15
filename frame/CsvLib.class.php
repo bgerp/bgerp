@@ -30,37 +30,40 @@ class frame_CsvLib
 		// новите ни ролове
 		$rows = new stdClass();
 	
-	
-		// за всеки един запис
-		foreach ($rec as $field => $value) {
-	
-			// ако е doubele
-			if (in_array($field ,array('baseQuantity', 'baseAmount', 'debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount'))) {
-				 
-				$value = self::toCsvFormatDouble($value);
-	
-			}
-				
-			// ако е class
-			try{
-				$Class = cls::get($rec['docType']);
-				$rows->docId = html2text_Converter::toRichText($Class->getShortHyperLink($rec['docId']));
-				$rows->reason = html2text_Converter::toRichText($Class->getContoReason($rec['docId'], $rec['reasonCode']));
-			} catch(core_exception_Expect $e){
-				if(is_numeric($rec['docId'])){
-					$rows->docId = "<span style='color:red'>" . tr("Проблем при показването") . "</span>";
-				} else {
-					$rows->docId = $rec['docId'];
+	    if ($rec) {
+			// за всеки един запис
+			foreach ($rec as $field => $value) { //bp($rec,$field,$value);
+		
+				// ако е doubele
+				if (in_array($field ,array('baseQuantity', 'baseAmount', 'debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount'))) {
+					 
+					$value = self::toCsvFormatDouble($value);
+		
 				}
-			}
-				
-			// ако е date
-			if ($field == 'valior') {
-				$value = self::toCsvFormatData($rec['valior']);
-			}
 	
-			$rows->{$field} = $value;
-		}
+				if (is_array($rec)) {
+					// ако е class
+					try{
+						$Class = cls::get($rec['docType']);
+						$rows->docId = html2text_Converter::toRichText($Class->getShortHyperLink($rec['docId']));
+						$rows->reason = html2text_Converter::toRichText($Class->getContoReason($rec['docId'], $rec['reasonCode']));
+					} catch(core_exception_Expect $e){
+						if(is_numeric($rec['docId'])){
+							$rows->docId = "<span style='color:red'>" . tr("Проблем при показването") . "</span>";
+						} else {
+							$rows->docId = $rec['docId'];
+						}
+					}
+				}
+					
+				// ако е date
+				if ($field == 'valior') {
+					$value = self::toCsvFormatData($rec['valior']);
+				}
+		
+				$rows->{$field} = $value;
+			}
+	    }
 	
 		// ако имаме попълнено поле за контрагент или продукт
 		// искаме то да илезе с вербалното си име
