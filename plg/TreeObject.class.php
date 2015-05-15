@@ -146,6 +146,12 @@ class plg_TreeObject extends core_Plugin
 	}
 	
 	
+	/**
+	 * Подготвя подробното наименование на опциите,съдържащо целия път в името им
+	 * 
+	 * @param core_Mvc $mvc
+	 * @return array $options
+	 */
 	private static function getSelectOptions($mvc)
 	{
 		$options = array();
@@ -265,7 +271,7 @@ class plg_TreeObject extends core_Plugin
 	
 	
 	/**
-	 * Дървовидния масив
+	 * Обръщане на дървовидния масив в нормален (децата стават редове след баща им)
 	 * 
 	 * @param array $array
 	 * @return array - сортираните записи
