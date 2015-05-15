@@ -728,11 +728,9 @@ class marketing_Bulletins extends core_Master
         if ($bRec && ($bRec->state == 'active')) {
         
             $email = trim(Request::get('email'));
-            $name = trim(Request::get('name'));
-            $company = trim(Request::get('company'));
             
             try {
-                marketing_BulletinSubscribers::addData($id, $email, $name, $company);
+                marketing_BulletinSubscribers::addData($id, $email);
             } catch (core_exception_Expect $e) {
                 // Да не се прави нищо
             }

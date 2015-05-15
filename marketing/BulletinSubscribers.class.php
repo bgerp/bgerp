@@ -80,7 +80,7 @@ class marketing_BulletinSubscribers extends core_Detail
     /**
      * 
      */
-    public $listFields = 'id, email, name, company, ip, brid, createdOn, createdBy';
+    public $listFields = 'id, email, ip, brid, createdOn, createdBy';
     
     
     /**
@@ -90,8 +90,6 @@ class marketing_BulletinSubscribers extends core_Detail
     {
         $this->FLD('bulletinId', 'key(mvc=marketing_Bulletins)', 'input=hidden,silent');
         $this->FLD('email', 'email', 'caption=Имейл, mandatory');
-        $this->FLD('name', 'varchar(128)', 'caption=Имена, oldFieldName=names');
-        $this->FLD('company', 'varchar(128)', 'caption=Фирма');
         $this->FLD('ip', 'ip', 'caption=IP, input=none');
         $this->FLD('brid', 'varchar(8)', 'caption=Браузър, input=none');
         
@@ -104,10 +102,8 @@ class marketing_BulletinSubscribers extends core_Detail
      * 
      * @param integer $bId
      * @param string $email
-     * @param string $name
-     * @param string $company
      */
-    public static function addData($bId, $email, $name = '', $company = '')
+    public static function addData($bId, $email)
     {
         // Проверява дали имейла е валиден, за да може да се запише
         if (!$email || !type_Email::isValidEmail($email)) {
@@ -117,12 +113,6 @@ class marketing_BulletinSubscribers extends core_Detail
         
         // Добавяме данните към `brid` в модела
         $userData = array('email' => $email);
-        if ($company) {
-            $userData['company'] = $company;
-        }
-        if ($name) {
-            $userData['name'] = $name;
-        }
         core_Browser::setVars($userData);
         
         $domain = marketing_Bulletins::fetchField((int) $bId, 'domain');
@@ -133,8 +123,6 @@ class marketing_BulletinSubscribers extends core_Detail
             $rec = new stdClass();
             $rec->bulletinId = $bId;
             $rec->email = $email;
-            $rec->name = $name;
-            $rec->company = $company;
             $rec->ip = core_Users::getRealIpAddr();
             $rec->brid = core_Browser::getBrid();
             
