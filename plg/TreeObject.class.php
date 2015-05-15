@@ -367,12 +367,14 @@ class plg_TreeObject extends core_Plugin
 					
 				// Намираме името на обекта
 				$nameVerbal = $mvc->getVerbal($rec, $mvc->nameField);
+				$nameVerbal = strip_tags($nameVerbal);
 				$keyVerbal = $nameVerbal;
 					
 				// Ако има баща и е указано децата му да са свойства
 				if(!empty($rec->{$mvc->parentFieldName})){
 					if($mvc->fetchField($rec->{$mvc->parentFieldName}, 'makeDescendantsFeatures') == 'yes'){
 						$keyVerbal = $mvc->getVerbal($rec->{$mvc->parentFieldName}, $mvc->nameField);
+						$keyVerbal = strip_tags($keyVerbal);
 					} else {
 							
 						// Ако не трябва да са наследници пропускаме
