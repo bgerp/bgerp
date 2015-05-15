@@ -36,7 +36,7 @@ class marketing_BulletinSubscribers extends core_Detail
     /**
      * Плъгини и MVC класове, които се зареждат при инициализация
      */
-    var $loadList = 'plg_RowTools, plg_Created';
+    var $loadList = 'plg_RowTools, plg_Created, marketing_Wrapper';
     
     
     /**
@@ -96,8 +96,8 @@ class marketing_BulletinSubscribers extends core_Detail
     {
         $this->FLD('bulletinId', 'key(mvc=marketing_Bulletins, select=domain)', 'input=hidden,silent');
         $this->FLD('email', 'email', 'caption=Имейл, mandatory');
-        $this->FLD('ip', 'ip', 'caption=IP, input=none');
-        $this->FLD('brid', 'varchar(8)', 'caption=Браузър, input=none');
+        $this->FLD('ip', 'ip', 'caption=IP');
+        $this->FLD('brid', 'varchar(8)', 'caption=Браузър');
         
         $this->setDbUnique('bulletinId, email');
     }
