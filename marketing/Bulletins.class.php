@@ -112,16 +112,15 @@ class marketing_Bulletins extends core_Master
     {
         $this->FLD('domain', 'varchar', 'caption=Бюлетин, mandatory');
         
+        $this->FLD('lg', 'enum(' . EF_LANGUAGES . ')', 'caption=Език,notNull');
+        
         $this->FLD('formTitle', 'richtext(rows=3)', 'caption=Съдържание на формата->Покана за абонамент');
         $this->FLD('formSuccessText', 'varchar(128)', 'caption=Съдържание на формата->Благодарност при абониране');
         $this->FLD('img', 'fileman_FileType(bucket=pictures)', 'caption=Съдържание на формата->Картинка при абониране');
-        $this->FLD('wrongMailText', 'varchar(128)', 'caption=Съдържание на формата->Съобщени за грешен имейл');
         
         $this->FLD('showFormBtn', 'varchar(128)', 'caption=Текстове на бутони->За показване');
         $this->FLD('submitBtnVal', 'varchar(128)', 'caption=Текстове на бутони->За абониране');
         $this->FLD('cancelBtnVal', 'varchar(128)', 'caption=Текстове на бутони->За отказ');
-        
-        $this->FLD('emailName', 'varchar(128)', 'caption=Имена на полетата->Имейл');
         
         $this->FLD('waitBeforeStart', 'time(suggestions=3 секунди|5 секунди|10 секунди)', 'caption=Времена за изчакване->След начално зареждане');
         $this->FLD('idleTimeForShow', 'time(suggestions=1 секунди|2 секунди|5 секунди)', 'caption=Времена за изчакване->Активиране при бездействие, title=Активиране след скролиране');
@@ -301,6 +300,10 @@ class marketing_Bulletins extends core_Master
     {
         $bRec = self::fetch($id);
         
+        if ($bRec->lg) {
+            core_Lg::push($bRec->lg);
+        }
+        
         $js = file_get_contents(getFullPath('/marketing/tpl/BulletinJsTpl.txt'));
         
         $jsTpl = new ET($js);
@@ -344,11 +347,11 @@ class marketing_Bulletins extends core_Master
         $jsTpl->replace($cancelBtnVal, 'cancelBtnVal');
         
         // Съобщение за невалиден имейл
-        $wrongMail = addslashes($bRec->wrongMailText);
+        $wrongMail = addslashes(tr('Невалиден имейл!'));
         $jsTpl->replace($wrongMail, 'wrongMailText');
         
         // Име на полето за имейл
-        $emailName = addslashes($bRec->emailName);
+        $emailName = addslashes(tr('Имейл'));
         $jsTpl->replace($emailName, 'emailName');
         
         // Линк за показване на формата
@@ -367,6 +370,10 @@ class marketing_Bulletins extends core_Master
         $jsTpl->replace(self::getCssLink($id), 'CSS_URL');
         
         $js = $jsTpl->getContent();
+        
+        if ($bRec->lg) {
+            core_Lg::pop();
+        }
         
         $js = minify_Js::process($js);
         
@@ -567,16 +574,15 @@ class marketing_Bulletins extends core_Master
         
         $form->setSuggestions('domain', $domainsArr);
         
-        $form->setDefault('formTitle', 'Искате ли да научавате всички новости за нас?');
-        $form->setDefault('formSuccessText', 'Благодарим за абонамента за нашите новости');
-        $form->setDefault('showFormBtn', 'Абонамент за новости');
-        $form->setDefault('wrongMailText', 'Невалиден имейл!');
-        $form->setDefault('submitBtnVal', 'Абонирам се за бюлетина');
-        $form->setDefault('cancelBtnVal', 'Не, благодаря');
-        $form->setDefault('emailName', 'Имейл');
+        $form->setDefault('formTitle', tr('Искате ли да научавате всички новости за нас?'));
+        $form->setDefault('formSuccessText', tr('Благодарим за абонамента за нашите новости'));
+        $form->setDefault('showFormBtn', tr('Абонамент за новости'));
+        $form->setDefault('submitBtnVal', tr('Абонирам се за бюлетина'));
+        $form->setDefault('cancelBtnVal', tr('Не, благодаря'));
         $form->setDefault('showAgainAfter', '10800'); //3 часа
         $form->setDefault('idleTimeForShow', '2');
         $form->setDefault('waitBeforeStart', '5');
+        $form->setDefault('lg', core_Lg::getCurrent());
     }
     
     
