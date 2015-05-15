@@ -111,7 +111,6 @@ class marketing_Bulletins extends core_Master
     public function description()
     {
         $this->FLD('domain', 'varchar', 'caption=Бюлетин, mandatory');
-        $this->FLD('showAllForm', 'enum(yes=Да, no=Не)', 'caption=Показване на цялата форма, title=Дали да се показва цялата форма или само имейла');
         
         $this->FLD('formTitle', 'richtext(rows=3)', 'caption=Съдържание на формата->Покана за абонамент');
         $this->FLD('formSuccessText', 'varchar(128)', 'caption=Съдържание на формата->Благодарност при абониране');
@@ -123,8 +122,6 @@ class marketing_Bulletins extends core_Master
         $this->FLD('cancelBtnVal', 'varchar(128)', 'caption=Текстове на бутони->За отказ');
         
         $this->FLD('emailName', 'varchar(128)', 'caption=Имена на полетата->Имейл');
-        $this->FLD('namesName', 'varchar(128)', 'caption=Имена на полетата->Имена');
-        $this->FLD('companyName', 'varchar(128)', 'caption=Имена на полетата->Фирма');
         
         $this->FLD('waitBeforeStart', 'time(suggestions=3 секунди|5 секунди|10 секунди)', 'caption=Времена за изчакване->След начално зареждане');
         $this->FLD('idleTimeForShow', 'time(suggestions=1 секунди|2 секунди|5 секунди)', 'caption=Времена за изчакване->Активиране при бездействие, title=Активиране след скролиране');
@@ -354,18 +351,6 @@ class marketing_Bulletins extends core_Master
         $emailName = addslashes($bRec->emailName);
         $jsTpl->replace($emailName, 'emailName');
         
-        $jsTpl->replace($bRec->showAllForm, 'showAllForm');
-        if ($bRec->showAllForm == 'yes') {
-            
-            // Име на полето за имена
-            $namesName = addslashes($bRec->namesName);
-            $jsTpl->replace($namesName, 'namesName');
-            
-            // Име на полето за фирма
-            $companyName = addslashes($bRec->companyName);
-            $jsTpl->replace($companyName, 'companyName');
-        }
-        
         // Линк за показване на формата
         $showFormUrl = self::getLinkForShowForm($id);
         $showFormUrl = addslashes($showFormUrl);
@@ -589,12 +574,9 @@ class marketing_Bulletins extends core_Master
         $form->setDefault('submitBtnVal', 'Абонирам се за бюлетина');
         $form->setDefault('cancelBtnVal', 'Не, благодаря');
         $form->setDefault('emailName', 'Имейл');
-        $form->setDefault('namesName', 'Имена');
-        $form->setDefault('companyName', 'Фирма');
         $form->setDefault('showAgainAfter', '10800'); //3 часа
         $form->setDefault('idleTimeForShow', '2');
         $form->setDefault('waitBeforeStart', '5');
-        $form->setDefault('showAllForm', 'no');
     }
     
     
