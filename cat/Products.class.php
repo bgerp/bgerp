@@ -530,11 +530,13 @@ class cat_Products extends core_Embedder {
                 'features' => array()
             );
             
-            if($rec->groups){
-            	$groups = strip_tags($self->getVerbal($rec, 'groups'));
-            	$result->features = $result->features + arr::make($groups, TRUE);
-            }
+        	// Добавяме свойствата от групите, ако има такива
+        	$groupFeatures = cat_Groups::getFeaturesArray($rec->groups);
+        	if(count($groupFeatures)){
+        		$result->features += $groupFeatures;
+        	}
            
+        	// Добавяме и свойствата от драйвера, ако има такива
             $result->features = array_merge($Driver->getFeatures(), $result->features);
         }
         
