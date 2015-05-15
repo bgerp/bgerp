@@ -81,11 +81,11 @@
             <legend class="groupTitle">|Друга информация|*</legend>
             <div class="groupList">
                 <ul>
-                    <!--ET_BEGIN showAllForm-->
+                    <!--ET_BEGIN state-->
                     <li class="info">
                         <span class="gray-title">|Видимост|*:</span> <span class="inline">[#state#]</span>
                     </li>
-                    <!--ET_END showAllForm-->
+                    <!--ET_END state-->
                     <!--ET_BEGIN img-->
                     <li class="info">
                         <span class="gray-title">|Картинка за успешна регистрация|*:</span> <span class="inline">[#img#]</span>
