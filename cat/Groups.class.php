@@ -13,7 +13,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class cat_Groups extends core_TreeObject
+class cat_Groups extends core_Manager
 {
     
     
@@ -32,7 +32,7 @@ class cat_Groups extends core_TreeObject
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, cat_Wrapper, plg_Search, plg_Translate';
+    var $loadList = 'plg_Created, plg_RowTools, cat_Wrapper, plg_Search, plg_TreeObject, plg_Translate';
     
     
     /**
