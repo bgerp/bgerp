@@ -55,12 +55,12 @@ class planning_transaction_ProductionNote extends acc_DocumentTransactionSource
 	 * 		За всеки ресурс от картата:
 	 * 
 	 * 		Dt: 321. Суровини, материали, продукция, стоки     (Складове, Артикули)
-	 * 		Ct: 611. Разходи по Центрове и Ресурси		(Център на дейност, Ресурс)
+	 * 		Ct: 61101. Разходи за Ресурси		(Ресурси)
 	 * 
 	 * В противен случай
 	 * 
 	 * 		Dt: 321. Суровини, материали, продукция, стоки   (Складове, Артикули)
-	 * 		Ct: 6112. Разходи по Центрове на дейност   (Център на дейност)
+	 * 		Ct: 61102. Други разходи (общо)
 	 * 
 	 */
 	private function getEntries($rec, &$total)
@@ -112,7 +112,7 @@ class planning_transaction_ProductionNote extends acc_DocumentTransactionSource
 										'debit' => array('321', array('store_Stores', $rec->storeId),
 															  array($dRec->classId, $dRec->productId),
 												'quantity' => $pQuantity),
-										'credit' => array('611', array('hr_Departments', $rec->activityCenterId)
+										'credit' => array('61101', array('hr_Departments', $rec->activityCenterId)
 												, 				 array('planning_Resources', $res->resourceId),
 												'quantity' => $res->finalQuantity),
 								);
@@ -125,7 +125,7 @@ class planning_transaction_ProductionNote extends acc_DocumentTransactionSource
 								
 								$entry = array(
 										'amount' => $amount,
-										'debit' => array('611', array('hr_Departments', $rec->activityCenterId),
+										'debit' => array('61101', array('hr_Departments', $rec->activityCenterId),
 																 array('planning_Resources', $res->resourceId),
 														'quantity' => $resQuantity),
 										'credit' => array('321', array('store_Stores', $rec->storeId),
@@ -164,11 +164,11 @@ class planning_transaction_ProductionNote extends acc_DocumentTransactionSource
 	
 	/**
 	 * Връща директната контировка ако:
-	 * за артикула има ресурс, който има дебитно салдо в 611 и е вложим
+	 * за артикула има ресурс, който има дебитно салдо в 61101 и е вложим
 	 * или ако няма рецепта.
 	 * 
 	 * 		Dt: 321. Суровини, материали, продукция, стоки      (Складове, Артикули)
-	 * 		Ct: 6111. Разходи по Центрове и Ресурси             (Центрове на дейност, Ресурси)
+	 * 		Ct: 61101. Разходи за Ресурси             (Ресурси)
 	 * 
 	 */
 	private static function getDirectEntry($dRec, $rec)
@@ -187,11 +187,11 @@ class planning_transaction_ProductionNote extends acc_DocumentTransactionSource
 			$item = acc_Items::fetchItem('planning_Resources', $resourceId);
 			if($item){
 				
-				// Намираме крайното салдо на ресурса по сметка 611 за този център и този ресурс
+				// Намираме крайното салдо на ресурса по сметка 61101 за този център и този ресурс
 				$bQuery = acc_BalanceDetails::getQuery();
 				$centerId = acc_Items::fetchItem('hr_Departments', $rec->activityCenterId)->id;
 		
-				acc_BalanceDetails::filterQuery($bQuery, acc_Balances::getLastBalance()->id, '611', NULL, $centerId, $item->id);
+				acc_BalanceDetails::filterQuery($bQuery, acc_Balances::getLastBalance()->id, '61101', NULL, $centerId, $item->id);
 				$bRec = $bQuery->fetch();
 				
 				// Ако имаме дебитно салдо
@@ -209,7 +209,7 @@ class planning_transaction_ProductionNote extends acc_DocumentTransactionSource
 							'debit' => array('321', array('store_Stores', $rec->storeId),
 									array($dRec->classId, $dRec->productId),
 									'quantity' => $dRec->quantity),
-							'credit' => array('611', array('hr_Departments', $rec->activityCenterId)
+							'credit' => array('61101', array('hr_Departments', $rec->activityCenterId)
 									, 				 array('planning_Resources', $resourceId),
 									'quantity' => $dRec->quantity),
 					);
