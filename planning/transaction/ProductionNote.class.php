@@ -112,8 +112,7 @@ class planning_transaction_ProductionNote extends acc_DocumentTransactionSource
 										'debit' => array('321', array('store_Stores', $rec->storeId),
 															  array($dRec->classId, $dRec->productId),
 												'quantity' => $pQuantity),
-										'credit' => array('61101', array('hr_Departments', $rec->activityCenterId)
-												, 				 array('planning_Resources', $res->resourceId),
+										'credit' => array('61101', array('planning_Resources', $res->resourceId),
 												'quantity' => $res->finalQuantity),
 								);
 							} else {
@@ -125,8 +124,7 @@ class planning_transaction_ProductionNote extends acc_DocumentTransactionSource
 								
 								$entry = array(
 										'amount' => $amount,
-										'debit' => array('61101', array('hr_Departments', $rec->activityCenterId),
-																 array('planning_Resources', $res->resourceId),
+										'debit' => array('61101', array('planning_Resources', $res->resourceId),
 														'quantity' => $resQuantity),
 										'credit' => array('321', array('store_Stores', $rec->storeId),
 																 array($dRec->classId, $dRec->productId),
@@ -189,9 +187,8 @@ class planning_transaction_ProductionNote extends acc_DocumentTransactionSource
 				
 				// Намираме крайното салдо на ресурса по сметка 61101 за този център и този ресурс
 				$bQuery = acc_BalanceDetails::getQuery();
-				$centerId = acc_Items::fetchItem('hr_Departments', $rec->activityCenterId)->id;
-		
-				acc_BalanceDetails::filterQuery($bQuery, acc_Balances::getLastBalance()->id, '61101', NULL, $centerId, $item->id);
+
+				acc_BalanceDetails::filterQuery($bQuery, acc_Balances::getLastBalance()->id, '61101', NULL, $item->id);
 				$bRec = $bQuery->fetch();
 				
 				// Ако имаме дебитно салдо
@@ -209,8 +206,7 @@ class planning_transaction_ProductionNote extends acc_DocumentTransactionSource
 							'debit' => array('321', array('store_Stores', $rec->storeId),
 									array($dRec->classId, $dRec->productId),
 									'quantity' => $dRec->quantity),
-							'credit' => array('61101', array('hr_Departments', $rec->activityCenterId)
-									, 				 array('planning_Resources', $resourceId),
+							'credit' => array('61101', array('planning_Resources', $resourceId),
 									'quantity' => $dRec->quantity),
 					);
 				}
