@@ -180,9 +180,13 @@ body {
     margin-top: 10px;
 }
 
-.thanksText img, .logImg {
+.thanksText img{
     max-height: 150px;
     width: auto;
+}
+
+.logImg {
+    width: 100%;
 }
 
 @media handheld, only screen and (max-width: 640px) {
