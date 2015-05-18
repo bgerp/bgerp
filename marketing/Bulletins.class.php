@@ -330,8 +330,20 @@ class marketing_Bulletins extends core_Master
         $jsTpl->replace($bRec->waitBeforeStart, 'waitBeforeStart');
         
         if ($bRec->logo) {
-            // 8760 часа - 365 дни
-            $jsTpl->replace(fileman_Download::getDownloadUrl($bRec->logo, 8760), 'logo');
+            
+            $thmb = new thumb_Img(array($bRec->logo, 400, 400, 'isAbsolute' => TRUE));
+            
+            $logoUrl = $thmb->getUrl();
+            
+            list($logoWidth, $logoHeight) = $thmb->getSize();
+            
+            if ($logoHeight > ($logoWidth * 3)) {
+                $jsTpl->replace($logoUrl, 'logoUp');
+            } elseif ($logoWidth > ($logoHeight *3 )) {
+                $jsTpl->replace($logoUrl, 'logoLeft');
+            } else {
+                $jsTpl->replace($logoUrl, 'logo');
+            }
         }
         
         // Съобщение при абониране
