@@ -47,7 +47,7 @@ body {
 
 .bulletinHolder .richtext {
     text-align: center;
-    margin: 10px 0px 10px;
+    margin: 0px 0px 10px;
     line-height: 1.3em;
     background: none !important;
     font-size: 1.4em;
