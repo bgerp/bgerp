@@ -25,7 +25,7 @@ class frame_CsvLib
 	 */
 	public static function prepareCsvRows($rec)
 	{
-	
+
 	
 		// новите ни ролове
 		$rows = new stdClass();
@@ -68,11 +68,20 @@ class frame_CsvLib
 		// ако имаме попълнено поле за контрагент или продукт
 		// искаме то да илезе с вербалното си име
 		foreach (range(1, 3) as $i) {
-			if(!empty($rows->{"ent{$i}Id"})){
-				$rows->{"ent{$i}Id"} = acc_Items::getVerbal($rec->{"ent{$i}Id"}, 'title');
+			if(isset($rec->{"grouping{$i}"})){
+				$rows->{"ent{$i}Id"} = $rec->{"grouping{$i}"};
+				 
+				if($rows->{"ent{$i}Id"} == 'others'){
+					$rows->{"ent{$i}Id"} = 'Други';
+				}
+			} else {
+				if(!empty($rec->{"ent{$i}Id"})){
+					$rows->{"ent{$i}Id"} = acc_Items::getVerbal($rec->{"ent{$i}Id"}, 'title');
+				}
 			}
 		}
-	
+		
+		
 		return $rows;
 	}
 	

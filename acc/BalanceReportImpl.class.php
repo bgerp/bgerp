@@ -346,7 +346,7 @@ class acc_BalanceReportImpl extends frame_BaseDriver
     	
     	return $tpl;
     }
-    
+
     
     /**
      * Подготвя хедърите на заглавията на таблицата
@@ -394,7 +394,7 @@ class acc_BalanceReportImpl extends frame_BaseDriver
    private function recToVerbal($data)
    {
    		$data->row = new stdClass();
-    	
+    	//bp($data);
         foreach (range(1, 3) as $i){
        		if(!empty($data->rec->{"ent{$i}Id"})){
        			$data->row->{"ent{$i}Id"} = "<b>" . acc_Lists::getVerbal($data->accInfo->groups[$i]->rec, 'name') . "</b>: ";
@@ -422,6 +422,8 @@ class acc_BalanceReportImpl extends frame_BaseDriver
         		unset($data->row->action);
         	}
         }
+        
+        //bp($data);
    }
      
      
@@ -648,9 +650,9 @@ class acc_BalanceReportImpl extends frame_BaseDriver
 			
 			if ($res == 11) {
 				$zeroRow = "," . 'ОБЩО' . "," .'' . "," .'';
-			} elseif ($res == 10) {
+			} elseif ($res == 10 || $res == 9 || $res == 8 || $res == 7) {
 				$zeroRow = "," . 'ОБЩО' . "," .'';
-			} elseif ($res <= 9) {
+			} elseif ($res <= 6) {
 				$zeroRow = "," . 'ОБЩО';
 			}
 			
