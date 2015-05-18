@@ -22,27 +22,56 @@
         </fieldset>
 
         <fieldset class="detail-info">
-            <legend class="groupTitle">|Текст|*</legend>
+            <legend class="groupTitle">|Съдържание на формата|*</legend>
             <div class="groupList">
                 <ul>
                     <!--ET_BEGIN formTitle-->
                     <li class="info">
-                        <span class="gray-title">|Заглавие на формата|*:</span> [#formTitle#]
+                        <span class="gray-title">|Покана за абонамент|*:</span> [#formTitle#]
                     </li>
                     <!--ET_END formTitle-->
+                    <!--ET_BEGIN logo-->
+                    <li class="info">
+                        <span class="gray-title">|Лого|*:</span> [#logo#]
+                    </li>
+                    <!--ET_END logo-->
                     <!--ET_BEGIN formSuccessText-->
                     <li class="info">
-                        <span class="gray-title">|Съобщение при абониране|*:</span> [#formSuccessText#]
+                        <span class="gray-title">|Благодарност при абониране|*:</span> [#formSuccessText#]
                     </li>
                     <!--ET_END formSuccessText-->
-                    <!--ET_BEGIN showFormBtn-->
+                    <!--ET_BEGIN img-->
                     <li class="info">
-                        <span class="gray-title">|Текст на бутона за показване на формата|*:</span> [#showFormBtn#]
+                        <span class="gray-title">|Картинка за успешна регистрация|*:</span> <span class="inline">[#img#]</span>
                     </li>
-                    <!--ET_END showFormBtn-->
+                    <!--ET_END img-->
                 </ul>
             </div>
         </fieldset>
+
+        <fieldset class="detail-info">
+            <legend class="groupTitle">|Текстове на бутони|*</legend>
+            <div class="groupList">
+                <ul>
+                    <!--ET_BEGIN showFormBtn-->
+                    <li class="info">
+                        <span class="gray-title">|За показване|*:</span> [#showFormBtn#]
+                    </li>
+                    <!--ET_END showFormBtn-->
+                    <!--ET_BEGIN submitBtnVal-->
+                    <li class="info">
+                        <span class="gray-title">|За абониране|*:</span> [#submitBtnVal#]
+                    </li>
+                    <!--ET_END submitBtnVal-->
+                    <!--ET_BEGIN cancelBtnVal-->
+                    <li class="info">
+                        <span class="gray-title">|За отказ|*:</span> [#cancelBtnVal#]
+                    </li>
+                    <!--ET_END cancelBtnVal-->
+                </ul>
+            </div>
+        </fieldset>
+
         <!--ET_BEGIN scriptTag-->
         <fieldset class="detail-info">
             <legend class="groupTitle">|Скрипт таг|*</legend>
@@ -51,6 +80,30 @@
             </div>
         </fieldset>
         <!--ET_END scriptTag-->
+
+        <fieldset class="detail-info">
+            <legend class="groupTitle">|Времена за изчакване|*</legend>
+            <div class="groupList">
+                <ul>
+                    <!--ET_BEGIN waitBeforeStart-->
+                    <li class="info">
+                        <span class="gray-title">|След начално зареждане|*:</span> [#waitBeforeStart#]
+                    </li>
+                    <!--ET_END waitBeforeStart-->
+                    <!--ET_BEGIN idleTimeForShow-->
+                    <li class="info">
+                        <span class="gray-title">|Активиране при бездействие|*:</span> [#idleTimeForShow#]
+                    </li>
+                    <!--ET_END idleTimeForShow-->
+                    <!--ET_BEGIN showAgainAfter-->
+                    <li class="info">
+                        <span class="gray-title">|Преди ре-активиране|*:</span> [#showAgainAfter#]
+                    </li>
+                    <!--ET_END showAgainAfter-->
+                </ul>
+            </div>
+        </fieldset>
+
         <!--ET_BEGIN colorBlock-->
         [#colorBlock#]
         <fieldset class="detail-info">
@@ -86,26 +139,6 @@
                         <span class="gray-title">|Видимост|*:</span> <span class="inline">[#state#]</span>
                     </li>
                     <!--ET_END state-->
-                    <!--ET_BEGIN img-->
-                    <li class="info">
-                        <span class="gray-title">|Картинка за успешна регистрация|*:</span> <span class="inline">[#img#]</span>
-                    </li>
-                    <!--ET_END img-->
-                    <!--ET_BEGIN showAgainAfter-->
-                    <li class="info">
-                        <span class="gray-title">|Изчакване преди ново отваряне|*:</span> [#showAgainAfter#]
-                    </li>
-                    <!--ET_END showAgainAfter-->
-                    <!--ET_BEGIN idleTimeForShow-->
-                    <li class="info">
-                        <span class="gray-title">|Период за бездействие преди активиране|*:</span> [#idleTimeForShow#]
-                    </li>
-                    <!--ET_END idleTimeForShow-->
-                    <!--ET_BEGIN waitBeforeStart-->
-                    <li class="info">
-                        <span class="gray-title">|След колко време да може да стартира бюлетина|*:</span> [#waitBeforeStart#]
-                    </li>
-                    <!--ET_END waitBeforeStart-->
                     <!--ET_BEGIN waitBeforeStart-->
                     <li class="info">
                         <span class="gray-title">|Създаване|*: |от|* [#createdBy#] |на|* [#createdOn#]</span>
