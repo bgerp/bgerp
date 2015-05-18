@@ -28,6 +28,7 @@ body {
     z-index: 101;
     box-shadow:0 4px 30px rgba(32,32,32,1);
     box-sizing: content-box;
+    border-radius: 5px;
 }
 
 .bulletinClose {
@@ -44,11 +45,13 @@ body {
     color: #666 !important;
 }
 
-.bulletinHolder h2 {
+.bulletinHolder .richtext {
     text-align: center;
-    margin: 10px 20px 10px;
+    margin: 10px 0px 10px;
     line-height: 1.3em;
     background: none !important;
+    font-size: 1.4em;
+    font-weight: bold;
 }
 
 .bulletinFilelds .row {
@@ -239,7 +242,7 @@ body {
         line-height: 1.7em;
         width: 90%;
     }
-    .bulletinHolder h2 {
+    .bulletinHolder .richtext {
         font-size: 1.1em;
         margin-bottom: 0px;
     }
@@ -254,7 +257,7 @@ body {
 }
 
 @media handheld, only screen and (max-width: 640px) and (orientation:landscape) {
-    .bulletinHolder h2 {
+    .bulletinHolder .richtext {
         font-size: 1.1em;
         margin-bottom: 10px;
     }
@@ -287,7 +290,7 @@ body {
         width: 20%;
         line-height: 1.6em;
     }
-    .bulletinHolder h2 {
+    .bulletinHolder .richtext {
         font-size: 0.96em;
         margin-bottom: 0;
     }
@@ -370,7 +373,7 @@ body {
 <!--ET_END bulletinRegBg-->
 
 <!--ET_BEGIN textColor-->
-.bulletinReg, .bulletinHolder h2, .successText { color: [#textColor#];  }
+.bulletinReg, .bulletinHolder .richtext, .successText { color: [#textColor#] !important;  }
 <!--ET_END textColor-->
 
 <!--ET_BEGIN btnColorShadow-->
