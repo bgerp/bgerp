@@ -189,9 +189,16 @@ body {
 }
 
 .logImg {
-    width: 100%;
+    max-width: 100%;
+    max-height: 300px;
 }
 
+.logImgLeft {
+    max-height: 200px;
+    width: auto;
+    float: left;
+    margin: 0 20px 20px 0;
+}
 @media handheld, only screen and (max-width: 640px) {
     .bulletinHolder {
         overflow: hidden;
@@ -243,8 +250,9 @@ body {
         width: 90%;
     }
     .bulletinHolder .richtext {
-        font-size: 1.1em;
+        font-size: 1.2em;
         margin-bottom: 0px;
+        padding: 0 15px;
     }
     body.noscroll {
         overflow: hidden;
@@ -253,6 +261,14 @@ body {
         bottom: 0;
         left: 0;
         right: 0;
+    }
+    .logImgLeft {
+        margin: 7px 7px 7px 17px;
+        max-height: 140px;
+    }
+    .logImg {
+        margin: 5% 5% 0 5% ;
+        max-width: 90%
     }
 }
 
@@ -274,6 +290,9 @@ body {
     .bulletinFilelds .row span {
         width: 20%;
     }
+    .logImgLeft {
+        max-height: 100px;
+    }
 }
 
 @media handheld, only screen and (max-width: 480px) and (orientation:landscape) {
@@ -291,9 +310,13 @@ body {
         line-height: 1.6em;
     }
     .bulletinHolder .richtext {
-        font-size: 0.96em;
+        font-size: 1.1em;
         margin-bottom: 0;
+        padding: 0 15px;
     }
+    .logImgLeft {
+            max-height: 100px;
+        }
 }
 
 @media handheld, only screen and (max-width: 360px) {
@@ -338,6 +361,12 @@ body {
     }
     .bulletinFilelds .row span {
         line-height: 1.8em;
+    }
+    .bulletinHolder .richtext {
+        padding: 0 15px;
+    }
+    .bulletinHolder .richtext {
+        font-size: 1.05em;
     }
 }
 <!--ET_BEGIN btnColorHolder-->

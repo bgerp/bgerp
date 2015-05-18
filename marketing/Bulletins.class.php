@@ -328,7 +328,19 @@ class marketing_Bulletins extends core_Master
         
         // След колко секунди да може да се стартира
         $jsTpl->replace($bRec->waitBeforeStart, 'waitBeforeStart');
-        
+
+        // Заглавие на формата
+        // Пушваме `xhtml` за да направим линковете абсолютни
+        Mode::push('text', 'xhtml');
+        $formTitle = self::getVerbal($bRec, 'formTitle');
+        Mode::pop('text');
+
+        // Вкарваме стиловете, за да може да се стилнат текствете от ричтекста, когато са извън `bgERP`
+        $formTitle = self::addInlineCSS($formTitle);
+
+        $formTitle = str_replace(array("\r\n", "\n", "\r"), ' ', $formTitle);
+        $formTitle = addslashes($formTitle);
+
         if ($bRec->logo) {
             
             $thmb = new thumb_Img(array($bRec->logo, 400, 400, 'isAbsolute' => TRUE));
@@ -337,12 +349,12 @@ class marketing_Bulletins extends core_Master
             
             list($logoWidth, $logoHeight) = $thmb->getSize();
             
-            if ($logoHeight > ($logoWidth * 3)) {
-                $jsTpl->replace($logoUrl, 'logoUp');
-            } elseif ($logoWidth > ($logoHeight *3 )) {
+            if ($logoHeight > $logoWidth) {
                 $jsTpl->replace($logoUrl, 'logoLeft');
+                $jsTpl->replace($formTitle, 'formTitleRight');
             } else {
-                $jsTpl->replace($logoUrl, 'logo');
+                $jsTpl->replace($logoUrl, 'logoUp');
+                $jsTpl->replace($formTitle, 'formTitle');
             }
         }
         
@@ -353,20 +365,7 @@ class marketing_Bulletins extends core_Master
         // Съобщение на бутона за показване на формата за абониране
         $showFormBtn = addslashes($bRec->showFormBtn);
         $jsTpl->replace($showFormBtn, 'showFormBtn');
-        
-        // Заглавие на формата
-        // Пушваме `xhtml` за да направим линковете абсолютни
-        Mode::push('text', 'xhtml');
-        $formTitle = self::getVerbal($bRec, 'formTitle');
-        Mode::pop('text');
-        
-        // Вкарваме стиловете, за да може да се стилнат текствете от ричтекста, когато са извън `bgERP`
-        $formTitle = self::addInlineCSS($formTitle);
-        
-        $formTitle = str_replace(array("\r\n", "\n", "\r"), ' ', $formTitle);
-        $formTitle = addslashes($formTitle);
-        $jsTpl->replace($formTitle, 'formTitle');
-        
+
         // Текст на бутона за субмитване
         $submitBtnVal = addslashes($bRec->submitBtnVal);
         $jsTpl->replace($submitBtnVal, 'submitBtnVal');
