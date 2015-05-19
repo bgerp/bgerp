@@ -240,10 +240,8 @@ function bulletinFormOpen()
 				"<div class='bulletinReg'>" +
 				"<a href='#' class='bulletinClose'>X</a>"+
 				"<div class='bulletinInner'>"+
-				
-				"<!--ET_BEGIN logoUp--><div class = 'centered'><img class='logImg' src='[#logoUp#]' alt='Logo'></div>[#formTitle#]<!--ET_END logoUp-->" +
-				"<!--ET_BEGIN logoLeft--><div><img class='logImgLeft' src='[#logoLeft#]' alt='Logo'>[#formTitleRight#]</div><!--ET_END logoLeft-->" +
-				
+				"<!--ET_BEGIN logoUp--><div class = 'centered'><img class='logImg' src='[#logoUp#]' alt='Logo'></div><!--ET_END logoUp-->[#formTitle#]" +
+                "<!--ET_BEGIN formTitleRight--><div><!--ET_BEGIN logoLeft--><img class='logImgLeft' src='[#logoLeft#]' alt='Logo'><!--ET_END logoLeft-->[#formTitleRight#]</div><!--ET_END formTitleRight-->" +
 				"<div class='bulletinError' style='visibility: hidden; color: red;'>[#wrongMailText#]</div>"+
 				"<form class='bulletinForm' action='[#formAction#]'>" +
                 "<div class='bulletinFilelds'>" +

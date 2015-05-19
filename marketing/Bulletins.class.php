@@ -355,6 +355,8 @@ class marketing_Bulletins extends core_Master
                 $jsTpl->replace($logoUrl, 'logoUp');
                 $jsTpl->replace($formTitle, 'formTitle');
             }
+        } else {
+            $jsTpl->replace($formTitle, 'formTitle');
         }
         
         // Съобщение при абониране
