@@ -123,7 +123,13 @@ class marketing_Bulletins extends core_Master
     public function description()
     {
         $this->FLD('domain', 'varchar', 'caption=Бюлетин, mandatory');
-        $this->FLD('lg', 'enum(' . EF_LANGUAGES . ')', 'caption=Език,notNull');
+        if (defined('EF_LANGUAGES')) {
+            $lang = EF_LANGUAGES;
+        } else {
+            $lang = 'bg=Български';
+        }
+        
+        $this->FLD('lg', 'enum(' . $lang . ')', 'caption=Език,notNull');
         
         $this->FLD('formTitle', 'richtext(rows=3)', 'caption=Съдържание на формата->Покана за абонамент');
         $this->FLD('logo', 'fileman_FileType(bucket=pictures)', 'caption=Съдържание на формата->Лого');
@@ -134,9 +140,8 @@ class marketing_Bulletins extends core_Master
         $this->FLD('submitBtnVal', 'varchar(128)', 'caption=Текстове на бутони->За абониране');
         $this->FLD('cancelBtnVal', 'varchar(128)', 'caption=Текстове на бутони->За отказ');
         
-        $this->FLD('waitBeforeStart', 'time(suggestions=3 секунди|5 секунди|10 секунди)', 'caption=Времена за изчакване->След начално зареждане');
-        $this->FLD('idleTimeForShow', 'time(suggestions=1 секунди|2 секунди|5 секунди)', 'caption=Времена за изчакване->Активиране при бездействие, title=Активиране след скролиране');
-        $this->FLD('showAgainAfter', 'time(suggestions=3 часа|12 часа|1 ден)', 'caption=Времена за изчакване->Преди ре-активиране');
+        $this->FLD('delayBeforeOpen', 'time(suggestions=1 мин.|2 мин.|5 мин.)', 'caption=Времена за изчакване->Преди показване, oldFieldName=waitBeforeStart, notNull');
+        $this->FLD('delayAfterClose', 'time(suggestions=30 мин.|1 часа|3 часа)', 'caption=Времена за изчакване->След затваряне, oldFieldName=showAgainAfter, notNull');
         
         $this->FLD('bgColor', 'color_Type', 'caption=Цветове за бюлетина->Цвят на фона');
         $this->FLD('textColor', 'color_Type', 'caption=Цветове за бюлетина->Цвят на текста');
@@ -320,15 +325,9 @@ class marketing_Bulletins extends core_Master
         
         $jsTpl = new ET($js);
         
-        // След колко време да се покаже повторно
-        $jsTpl->replace($bRec->showAgainAfter, 'showAgainAfter');
+        $jsTpl->replace($bRec->delayAfterClose, 'delayAfterClose');        
+        $jsTpl->replace($bRec->delayBeforeOpen, 'delayBeforeOpen');        
         
-        // След колко време на бездействие да се покаже
-        $jsTpl->replace($bRec->idleTimeForShow , 'idleTimeForShow');
-        
-        // След колко секунди да може да се стартира
-        $jsTpl->replace($bRec->waitBeforeStart, 'waitBeforeStart');
-
         // Заглавие на формата
         // Пушваме `xhtml` за да направим линковете абсолютни
         Mode::push('text', 'xhtml');
@@ -396,7 +395,8 @@ class marketing_Bulletins extends core_Master
         $formActionUrl = addslashes($formActionUrl);
         $jsTpl->replace($formActionUrl, 'formAction');
         
-        $cookieKey = substr(md5($_SERVER['SERVER_NAME']), 0, 6);
+        $cookieKey = self::getCookieName($id);
+        $cookieKey = addslashes($cookieKey);
         $jsTpl->replace($cookieKey, 'cookieKey');
         
         $jsTpl->replace(self::getCssLink($id), 'CSS_URL');
@@ -410,6 +410,36 @@ class marketing_Bulletins extends core_Master
         $js = minify_Js::process($js);
         
         return $js;
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param integer $id
+     * 
+     * @return string
+     */
+    protected static function getCookieName($id)
+    {
+        
+        return self::prepareCookieKey('nlst', $id);
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param string $name
+     * @param integer $id
+     */
+    protected static function prepareCookieKey($name, $id)
+    {
+        $hash = substr(md5(EF_APP_TITLE . '|' . $id), 0, 6);
+        
+        $cookieName = $name . '_' . $hash;
+        
+        return $cookieName;
     }
     
     
@@ -611,9 +641,8 @@ class marketing_Bulletins extends core_Master
         $form->setDefault('showFormBtn', tr('Абонамент за новости'));
         $form->setDefault('submitBtnVal', tr('Абонирам се за бюлетина'));
         $form->setDefault('cancelBtnVal', tr('Не, благодаря'));
-        $form->setDefault('showAgainAfter', '10800'); //3 часа
-        $form->setDefault('idleTimeForShow', '2');
-        $form->setDefault('waitBeforeStart', '5');
+        $form->setDefault('delayAfterClose', '3600'); // 1 часа
+        $form->setDefault('delayBeforeOpen', '60'); // 1 мин
         $form->setDefault('lg', core_Lg::getCurrent());
     }
     
@@ -739,18 +768,37 @@ class marketing_Bulletins extends core_Master
                 vislog_History::add('Не показана форма за бюлетина (има логване)');
             }
             
+            self::setCookieToNo($id);
+            
             shutdown();
         }
         
-        vislog_History::add('Автоматично показване на формата за бюлетина');
+        $cookieName = self::getCookieName($id);
+        if ($_COOKIE[$cookieName] == 'no') {
+            vislog_History::add('Не показана форма за бюлетина (nlst=no)');
+            shutdown();
+        }
         
-        $js = $bRec->data['showWindowJS'];
+        $cnt = (int) vislog_History::add('Автоматично показване на формата за бюлетина', TRUE);
+        
+        $js = $bRec->data['showWindowJS'] . " var showedTime = {$cnt};";
         
         echo $js;
         
         shutdown();
     }
     
+    
+    /**
+     * Задава стойност на кукито да е `no`
+     * 
+     * @param integer $id
+     */
+    protected static function setCookieToNo($id)
+    {
+        // 10 години от сега
+        setcookie(self::getCookieName($id), 'no', time() + (315360000), '/');
+    }
     
     /**
      * Записва подадените данни и показва .png файл
@@ -769,6 +817,7 @@ class marketing_Bulletins extends core_Master
             
             try {
                 marketing_BulletinSubscribers::addData($id, $email);
+                self::setCookieToNo($id);
             } catch (core_exception_Expect $e) {
                 // Да не се прави нищо
             }
