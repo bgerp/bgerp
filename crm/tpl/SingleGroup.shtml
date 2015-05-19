@@ -1,42 +1,40 @@
 <div class="singleView">
     [#SingleToolbar#]
-    <div class="folder-cover">
-        <div class="inner-folder">
-            <div class="block_title state-active special-title">[#SingleIcon#] |Група|* <b style="color:green;">[#name#]</b></div>
-            <!--ET_BEGIN specialTable-->
-            [#specialTable#]
-            <table class='special-table' style='width: 100%;'>
-                <tr>
-                    <!--ET_BEGIN companiesCnt-->
-                    <td>
-                        <fieldset class="detail-info half-detail " >
-                            <legend  class="centered">|Фирми|*</legend>
-                            <div class="groupList ">
-                                <div class='counter-link'> [#companiesCnt#]</div>
-                            </div>
-                        </fieldset>
-                    </td>
-                    <!--ET_END companiesCnt-->
-                    <!--ET_BEGIN personsCnt-->
-                    <td>
-                        <fieldset class="detail-info half-detail">
-                            <legend  class="centered">|Лица|*</legend>
-                            <div class="groupList">
-                                <div class='counter-link'> [#personsCnt#]</div>
-                            </div>
-                        </fieldset>
-                    </td>
-                    <!--ET_END personsCnt-->
-                </tr>
-            </table>
-            <!--ET_END specialTable--> 
-            <!--ET_BEGIN info-->
-            <fieldset class="detail-info">
-                <legend class="groupTitle">|Бележки|*</legend>
-                <div class="groupList">[#info#]</div>
-            </fieldset>
-            <!--ET_END info-->
-            [#DETAILS#]
-        </div>
+    <div class="no-cover">
+        <h2>[#SingleIcon#] |Група|* <b style="color:green;">[#name#]</b></h2>
+        <!--ET_BEGIN specialTable-->
+        [#specialTable#]
+        <table class='special-table' style='width: 100%;'>
+            <tr>
+                <!--ET_BEGIN companiesCnt-->
+                <td>
+                    <fieldset class="detail-info half-detail " >
+                        <legend  class="centered">|Фирми|*</legend>
+                        <div class="groupList ">
+                            <div class='counter-link'> [#companiesCnt#]</div>
+                        </div>
+                    </fieldset>
+                </td>
+                <!--ET_END companiesCnt-->
+                <!--ET_BEGIN personsCnt-->
+                <td>
+                    <fieldset class="detail-info half-detail">
+                        <legend  class="centered">|Лица|*</legend>
+                        <div class="groupList">
+                            <div class='counter-link'> [#personsCnt#]</div>
+                        </div>
+                    </fieldset>
+                </td>
+                <!--ET_END personsCnt-->
+            </tr>
+        </table>
+        <!--ET_END specialTable-->
+        <!--ET_BEGIN info-->
+        <fieldset class="detail-info">
+            <legend class="groupTitle">|Бележки|*</legend>
+            <div class="groupList">[#info#]</div>
+        </fieldset>
+        <!--ET_END info-->
+        [#DETAILS#]
     </div>
 </div>
