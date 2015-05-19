@@ -81,6 +81,13 @@ class frame_CsvLib
 			}
 		}
 		
+		// Вербалното представяне на перата
+		foreach (range(1, 6) as $i){
+			if(!empty($rec->{"item{$i}"})){
+				$rows->{"item{$i}"} = acc_Items::getVerbal($rec->{"item{$i}"}, 'title');
+			}
+		}
+		
 		
 		return $rows;
 	}

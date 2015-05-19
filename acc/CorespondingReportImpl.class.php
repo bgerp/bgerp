@@ -289,7 +289,7 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     public function renderEmbeddedData($data)
     {
     	if(empty($data)) return;
-    	
+    	//bp($data);
     	$tpl = $this->getReportLayout();
     	$tpl->replace($this->title, 'TITLE');
     	
@@ -521,5 +521,167 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     	$activateOn = "{$this->innerForm->to} 23:59:59";
     	
     	return $activateOn;
+    }
+    
+    
+    /**
+     * Ако имаме в url-то export създаваме csv файл с данните
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $rec
+     */
+    public function exportCsv()
+    {
+    
+    	$conf = core_Packs::getConfig('core');
+    
+    	if (count($this->innerState->recs) > $conf->EF_MAX_EXPORT_CNT) {
+    		redirect(array($this), FALSE, "Броят на заявените записи за експорт надвишава максимално разрешения|* - " . $conf->EF_MAX_EXPORT_CNT, 'error');
+    	}
+    
+    	$csv = "";
+    
+    	// генериран хедър
+    	$header = $this->generateHeader($this->innerState->rec)->header;
+    	// генериран нулев ред
+    	//$zeroRow = $this->generateCsvRows($this->innerState->zeroRec);
+    	// генериран първи ред
+    	//$lastRow = $this->generateCsvRows($this->innerState->lastRec);
+    	
+    	// Подготвяме поле за сортиране по номерата на перата
+    	/*foreach ($this->innerState->recs as &$rec){
+    		$rec->sortField = '';
+    		foreach (range(1, 3) as $j){
+    			if(isset($rec->{"item{$j}"})){
+    				$rec->sortField .= $this->cache[$rec->{"item{$j}"}];
+    			}
+    		}
+    		 
+    		$rec->sortField = strtolower(str::utf2ascii($rec->sortField));
+    	}*/
+    	
+    	// Сортираме записите според полето за сравнение
+    	//bp(usort($this->innerState->recs, array($this, "sortRecs")),$this->innerState->recs);
+  
+    	if(count($this->innerState->recs)) { //bp(array($this, "sortRecs"));
+    		//bp(usort($this->innerState->recs, array($this, "sortRecs")));
+    		foreach ($this->innerState->recs as $id => $rec) {
+    
+    			$rCsv = $this->generateCsvRows($rec);
+    
+    			$csv .= $rCsv;
+    			$csv .=  "\n";
+    
+    		}
+    			
+    		//$csv = $header . "\n" . $lastRow .  "\n" . $csv . $zeroRow;
+    		$csv = $header . "\n" . $csv;
+    	} /*else {
+    		$csv = $header . "\n" . $lastRow . "\n" . $zeroRow;
+    	}*/
+    
+    	return $csv;
+    }
+    
+    
+    /**
+     * Ще се експортирват полетата, които се
+     * показват в табличния изглед
+     *
+     * @return array
+     */
+    protected function getExportFields_()
+    {
+    
+    	$exportFields['item1']  = "1";
+    	$exportFields['item2']  = "2";
+    	$exportFields['item3']  = "3";
+    	$exportFields['item4']  = "4";
+    	$exportFields['item5']  = "5";
+    	$exportFields['item6']  = "6";
+    	$exportFields['debitQuantity']  = "Дебит - количество";
+    	$exportFields['debitAmount']  = "Дебит";
+    	$exportFields['creditQuantity']  = "Кредит - количество";
+    	$exportFields['creditAmount']  = "Кредит";
+    	$exportFields['blQuantity']  = "Остатък - количество";
+    	$exportFields['blAmount']  = "Остатък";
+    
+    	return $exportFields;
+    }
+    
+    
+    /**
+     * Ще направим заглавито на колонките
+     * според това дали ще има скрити полета
+     *
+     * @return stdClass
+     */
+    protected function generateHeader_($rec)
+    {
+    
+    	$exportFields = $this->getExportFields();
+    	
+    	// Ако к-та и сумите са еднакви, не показваме количествата
+    	if($this->innerForm->hasSameAmounts === TRUE){
+    		unset ($exportFields['debitQuantity']);
+    		unset ($exportFields['creditQuantity']);
+    		unset ($exportFields['blQuantity']);
+    	}
+    	
+    	if($this->innerForm->side){
+    		if($this->innerForm->side == 'debit'){
+    			unset($exportFields['creditQuantity'], $exportFields['creditAmount'], $exportFields['blQuantity'], $exportFields['blAmount']);
+    		}elseif($this->innerForm->side == 'credit'){
+    			unset($exportFields['debitQuantity'], $exportFields['debitAmount'], $exportFields['blQuantity'], $exportFields['blAmount']);
+    		}
+    	}
+    
+    	/*if ($rec->baseAmount == $rec->baseQuantity && $rec->debitQuantity == $rec->debitAmount && $rec->creditQuantity == $rec->creditAmount && $rec->blQuantity == $rec->blAmount) { //bp();
+    		
+    	}*/
+    
+    	foreach ($exportFields as $caption) {
+    		$header .= "," . $caption;
+    	}
+    		
+    	return (object) array('header' => $header);
+    }
+    
+    
+    /**
+     * Ще направим row-овете в CSV формат
+     *
+     * @return string $rCsv
+     */
+    protected function generateCsvRows_($rec)
+    {
+    
+    	$exportFields = $this->getExportFields();
+    	$rec = frame_CsvLib::prepareCsvRows($rec);
+    
+    	$rCsv = '';
+    
+    	foreach ($rec as $field => $value) {
+    		$rCsv = '';
+    
+    		foreach ($exportFields as $field => $caption) {
+    				
+    			if ($rec->{$field}) {
+    
+    				$value = $rec->{$field};
+    				$value = html2text_Converter::toRichText($value);
+    				// escape
+    				if (preg_match('/\\r|\\n|,|"/', $value)) {
+    					$value = '"' . str_replace('"', '""', $value) . '"';
+    				}
+    				$rCsv .= "," . $value;
+    
+    			} else {
+    				$rCsv .= "," . '';
+    			}
+    		}
+    	}
+    
+    	return $rCsv;
     }
 }
