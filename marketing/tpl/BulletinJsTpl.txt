@@ -328,7 +328,9 @@ function onClickCatcher()
 		var currentTime = getNowTimetamp();
 		var nlst = currentTime + (delayAfterClose * showedTime);
 		
-		setCookie(nlst, 365)
+		if (getCookie() != 'no') {
+			setCookie(nlst, 365);
+		}
 	});
 }
 
