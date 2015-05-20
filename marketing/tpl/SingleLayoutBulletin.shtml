@@ -85,21 +85,16 @@
             <legend class="groupTitle">|Времена за изчакване|*</legend>
             <div class="groupList">
                 <ul>
-                    <!--ET_BEGIN waitBeforeStart-->
+                    <!--ET_BEGIN delayBeforeOpen-->
                     <li class="info">
-                        <span class="gray-title">|След начално зареждане|*:</span> [#waitBeforeStart#]
+                        <span class="gray-title">|Преди показване|*:</span> [#delayBeforeOpen#]
                     </li>
-                    <!--ET_END waitBeforeStart-->
-                    <!--ET_BEGIN idleTimeForShow-->
+                    <!--ET_END delayBeforeOpen-->
+                    <!--ET_BEGIN delayAfterClose-->
                     <li class="info">
-                        <span class="gray-title">|Активиране при бездействие|*:</span> [#idleTimeForShow#]
+                        <span class="gray-title">|След затваряне|*:</span> [#delayAfterClose#]
                     </li>
-                    <!--ET_END idleTimeForShow-->
-                    <!--ET_BEGIN showAgainAfter-->
-                    <li class="info">
-                        <span class="gray-title">|Преди ре-активиране|*:</span> [#showAgainAfter#]
-                    </li>
-                    <!--ET_END showAgainAfter-->
+                    <!--ET_END delayAfterClose-->
                 </ul>
             </div>
         </fieldset>
