@@ -256,7 +256,7 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     		
     		// Сортираме записите според полето за сравнение
     		usort($data->recs, array($mvc, "sortRecs"));
-    		
+    		//bp($data->recs);
     		// За всеки запис
     		foreach ($data->recs as &$rec){
     			
@@ -529,6 +529,7 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
      *
      * @param core_Mvc $mvc
      * @param stdClass $rec
+     * $todo да се замени в кода
      */
     public function exportCsv()
     {
@@ -544,11 +545,34 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     	// генериран хедър
     	$header = $this->generateHeader()->header;
     	
+    	// Кешираме номерата на перата в отчета
+    	//if(count($this->cache)){
+    		$iQuery = acc_Items::getQuery();
+    		$iQuery->show("num");
+    		//$iQuery->in('id', $mvc->cache);
+    	
+    		while($iRec = $iQuery->fetch()){
+    			$mvc->cache[$iRec->id] = $iRec->num;
+    		}
+    	//}
+    	
+    	
+    	// Подготвяме поле за сортиране по номерата на перата
+    	foreach ($this->innerState->recs as &$rec){ 
+    		$rec->sortField = '';
+    		foreach (range(1, 3) as $j){
+    			if(isset($rec->{"item{$j}"})){
+    				$rec->sortField .= $mvc->cache[$rec->{"item{$j}"}];
+    			}
+    		}
+    		 
+    		$rec->sortField = strtolower(str::utf2ascii($rec->sortField));
+    	}
+    	
     	// Сортираме записите според полето за сравнение
-    	//bp(usort($this->innerState->recs, array($this, "sortRecs")),$this->innerState->recs);
-  
-    	if(count($this->innerState->recs)) { //bp(array($this, "sortRecs"));
-    		//bp(usort($this->innerState->recs, array($this, "sortRecs")));
+    	usort($this->innerState->recs, array($this, "sortRecs"));
+
+    	if(count($this->innerState->recs)) { 
     		foreach ($this->innerState->recs as $id => $rec) {
     
     			$rCsv = $this->generateCsvRows($rec);
