@@ -1,7 +1,7 @@
 <div class="singleView">
     [#SingleToolbar#]
     <div class="no-cover">
-        <h2>[#SingleIcon#] |Група|* <b style="color:green;">[#name#]</b></h2>
+        <h2 style="margin-bottom: 10px">[#SingleIcon#] |Група|* <b style="color:green;">[#name#]</b></h2>
         <!--ET_BEGIN specialTable-->
         [#specialTable#]
         <table class='special-table' style='width: 100%;'>
@@ -36,5 +36,6 @@
         </fieldset>
         <!--ET_END info-->
         [#DETAILS#]
+        <div style="margin-top: 15px"><span class="quiet">|Създаване|*: </span> [#createdBy#], [#createdOn#]</div>
     </div>
 </div>
