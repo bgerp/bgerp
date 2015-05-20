@@ -542,23 +542,7 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     	$csv = "";
     
     	// генериран хедър
-    	$header = $this->generateHeader($this->innerState->rec)->header;
-    	// генериран нулев ред
-    	//$zeroRow = $this->generateCsvRows($this->innerState->zeroRec);
-    	// генериран първи ред
-    	//$lastRow = $this->generateCsvRows($this->innerState->lastRec);
-    	
-    	// Подготвяме поле за сортиране по номерата на перата
-    	/*foreach ($this->innerState->recs as &$rec){
-    		$rec->sortField = '';
-    		foreach (range(1, 3) as $j){
-    			if(isset($rec->{"item{$j}"})){
-    				$rec->sortField .= $this->cache[$rec->{"item{$j}"}];
-    			}
-    		}
-    		 
-    		$rec->sortField = strtolower(str::utf2ascii($rec->sortField));
-    	}*/
+    	$header = $this->generateHeader()->header;
     	
     	// Сортираме записите според полето за сравнение
     	//bp(usort($this->innerState->recs, array($this, "sortRecs")),$this->innerState->recs);
@@ -574,7 +558,6 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     
     		}
     			
-    		//$csv = $header . "\n" . $lastRow .  "\n" . $csv . $zeroRow;
     		$csv = $header . "\n" . $csv;
     	} /*else {
     		$csv = $header . "\n" . $lastRow . "\n" . $zeroRow;
@@ -589,24 +572,26 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
      * показват в табличния изглед
      *
      * @return array
+     * @todo да се замести в кода по-горе
      */
     protected function getExportFields_()
     {
+
+    	// Кои полета ще се показват
+    	$fields = arr::make("debitQuantity=Дебит - количество,debitAmount=Дебит - cума,creditQuantity=Кредит - количество,creditAmount=Кредит - сума,blQuantity=Остатък - количество,blAmount=Остатък - сума", TRUE);
+    	$newFields = array();
+    	
+    	if(count($this->innerState->groupBy)){
+    		foreach ($this->innerState->groupBy as $id => $grId){
+    			$newFields["item{$id}"] = acc_Lists::fetchField($grId, 'name');
+    		}
+    	}
+    	
+    	if(count($newFields)){
+    		$fields = $newFields + $fields;
+    	}
     
-    	$exportFields['item1']  = "1";
-    	$exportFields['item2']  = "2";
-    	$exportFields['item3']  = "3";
-    	$exportFields['item4']  = "4";
-    	$exportFields['item5']  = "5";
-    	$exportFields['item6']  = "6";
-    	$exportFields['debitQuantity']  = "Дебит - количество";
-    	$exportFields['debitAmount']  = "Дебит";
-    	$exportFields['creditQuantity']  = "Кредит - количество";
-    	$exportFields['creditAmount']  = "Кредит";
-    	$exportFields['blQuantity']  = "Остатък - количество";
-    	$exportFields['blAmount']  = "Остатък";
-    
-    	return $exportFields;
+    	return $fields;
     }
     
     
@@ -615,17 +600,18 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
      * според това дали ще има скрити полета
      *
      * @return stdClass
+     * @todo да се замени в кода по-горе
      */
-    protected function generateHeader_($rec)
+    protected function generateHeader_()
     {
     
     	$exportFields = $this->getExportFields();
     	
     	// Ако к-та и сумите са еднакви, не показваме количествата
-    	if($this->innerForm->hasSameAmounts === TRUE){
-    		unset ($exportFields['debitQuantity']);
-    		unset ($exportFields['creditQuantity']);
-    		unset ($exportFields['blQuantity']);
+    	if($this->innerState->hasSameAmounts === TRUE){
+    		unset($exportFields['debitQuantity']);
+    		unset($exportFields['creditQuantity']);
+    		unset($exportFields['blQuantity']);
     	}
     	
     	if($this->innerForm->side){
@@ -635,10 +621,7 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     			unset($exportFields['debitQuantity'], $exportFields['debitAmount'], $exportFields['blQuantity'], $exportFields['blAmount']);
     		}
     	}
-    
-    	/*if ($rec->baseAmount == $rec->baseQuantity && $rec->debitQuantity == $rec->debitAmount && $rec->creditQuantity == $rec->creditAmount && $rec->blQuantity == $rec->blAmount) { //bp();
-    		
-    	}*/
+    	
     
     	foreach ($exportFields as $caption) {
     		$header .= "," . $caption;
