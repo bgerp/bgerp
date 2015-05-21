@@ -259,6 +259,8 @@ class marketing_Bulletins extends core_Master
             $domain = toUrl(array('marketing_Bulletins', $act, self::getHashId($id), 'r' => $randStr), TRUE, TRUE, array('r'));
         }
         
+        $domain = preg_replace("/^https?\:\/\//", "//", $domain, 1);
+        
         return $domain;
     }
     
