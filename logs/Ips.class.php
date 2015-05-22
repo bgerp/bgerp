@@ -92,12 +92,11 @@ class logs_Ips extends core_Manager
         if (!$ip) {
             $ip = core_Users::getRealIpAddr();
         }
-        $ip = '11.0.0.110';
+        
         if (!self::$ipsArr) {
             self::$ipsArr = (array) Mode::get('ipsArr');
         }
-//        Mode::setPermanent('test', 'test');
-//        bp(Mode::get('test'));
+        
         if (!isset(self::$ipsArr[$ip])) {
             if (!($id = self::fetchField(array("#ip = '[#1#]'", $ip), 'id'))) {
                 
@@ -114,7 +113,7 @@ class logs_Ips extends core_Manager
             
             Mode::setPermanent('ipsArr', self::$ipsArr);
         } else {
-            bp(self::$ipsArr[$ip]);
+            bp(self::$ipsArr[$ip]);// TODO
         }
         
         return self::$ipsArr[$ip];
