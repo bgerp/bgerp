@@ -127,8 +127,6 @@ class logs_Data extends core_Manager
         }
         
         self::$toAdd[] = $toAdd;
-        
-//        self::flush();
     }
     
     
