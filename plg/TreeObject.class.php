@@ -147,19 +147,17 @@ class plg_TreeObject extends core_Plugin
 	
 	
 	/**
-	 * Подготвя подробното наименование на опциите,съдържащо целия път в името им
+	 * Подготвя вербалното име на опциите по нов по азбучен ред и с подробното им име
 	 * 
 	 * @param core_Mvc $mvc
-	 * @return array $options
+	 * @return void
 	 */
-	private static function getSelectOptions($mvc)
+	private static function modifySelectOptions($mvc, &$options)
 	{
-		$options = array();
-		$query = $mvc->getQuery();
-		$query->show("{$mvc->parentFieldName}, {$mvc->nameField}");
-		
-		while($rec = $query->fetch()){
-			$options[$rec->id] = self::getFullTitle($mvc, $rec->id);
+		if(count($options)){
+			foreach ($options as $id => &$title){
+				$title = self::getFullTitle($mvc, $id);
+			}
 		}
 		
 		// Сортираме опциите
@@ -169,8 +167,6 @@ class plg_TreeObject extends core_Plugin
 			
 			return (strnatcasecmp($a, $b) < 0) ? -1 : 1;
 		});
-		
-		return $options;
 	}
 	
 	
@@ -180,19 +176,17 @@ class plg_TreeObject extends core_Plugin
 	public static function on_AfterPrepareSuggestions($mvc, &$res, $keylist)
 	{
 		// Подменяме предложенията с подробните
-		$res = self::getSelectOptions($mvc);
+		self::modifySelectOptions($mvc, $res);
 	}
 	
 	
 	/**
 	 * Премахва от резултатите скритите от менютата за избор
 	 */
-	public static function on_BeforeMakeArray4Select($mvc, &$res, $fields = NULL, &$where = "", $index = 'id'  )
+	public static function on_AfterMakeArray4Select($mvc, &$res, $fields = NULL, &$where = "", $index = 'id'  )
 	{
-		$res = self::getSelectOptions($mvc);
-		
-		// Връщаме FALSE за да не се заместят опциите
-		return FALSE;
+		// Подменяме предложенията с подробните
+		self::modifySelectOptions($mvc, $res);
 	}
 	
 	
