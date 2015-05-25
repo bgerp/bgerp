@@ -124,8 +124,8 @@ class acc_BalanceHistory extends core_Manager
     	
     	// Преизчисляваме пейджъра с новия брой на записите
         $conf = core_Packs::getConfig('acc');
-        $pageVar = str::addHash("P", 5, rand());
-        $Pager = cls::get('core_Pager', array('pageVar' => $pageVar, 'itemsPerPage' => $this->listHistoryItemsPerPage));
+        
+        $Pager = cls::get('core_Pager', array('itemsPerPage' => $this->listHistoryItemsPerPage));
         $Pager->itemsCount = count($data->recs);
         $Pager->calc();
         $data->pager = $Pager;
