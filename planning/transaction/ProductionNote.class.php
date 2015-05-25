@@ -73,13 +73,9 @@ class planning_transaction_ProductionNote extends acc_DocumentTransactionSource
 		$errorArr = array();
 		while($dRec = $dQuery->fetch()){
 	
-			$entry = $this->getDirectEntry($dRec, $rec);
-			
-			if(!count($entry)){
-				
-				if(isset($dRec->bomId)){
+			if(isset($dRec->bomId)){
 					
-					if(empty($dRec->jobId)) return FALSE;
+			if(empty($dRec->jobId)) return FALSE;
 					
 					$quantityJob = planning_Jobs::fetchField($dRec->jobId, 'quantity');
 					$resourceInfo = cat_Boms::getResourceInfo($dRec->bomId);
@@ -138,9 +134,6 @@ class planning_transaction_ProductionNote extends acc_DocumentTransactionSource
 						}
 					}
 				}
-			} else {
-				$entries[] = $entry;
-			}
 			
 			if(!$entry){
 				$errorArr[] = cls::get($dRec->classId)->getVerbal($dRec->productId, 'name');
