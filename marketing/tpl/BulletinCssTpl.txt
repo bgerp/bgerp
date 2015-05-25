@@ -47,16 +47,15 @@ body {
 
 .bulletinHolder .richtext {
     text-align: center;
-    margin: 0px 0px 10px;
+    margin: 0px 0px 20px;
     line-height: 1.3em;
     background: none !important;
     font-size: 1.4em;
     font-weight: bold;
 }
-
-.bulletinFilelds .row {
-    box-sizing: content-box;
-    margin: 0 10px 10px;
+.bulletinFilelds {
+    width: 300px;
+    margin: 0 auto;
 }
 
 .bulletinFilelds .row input{
@@ -75,7 +74,6 @@ body {
 .bulletinFilelds .row span {
     display: block;
     line-height: 2.2em;
-    text-align: center;
 }
 
 .clearfix21:after {
@@ -88,10 +86,6 @@ body {
 
 .centered {
     text-align: center;
-}
-
-.push_button {
-    width:300px;
 }
 
 .push_button {
@@ -112,10 +106,11 @@ body {
     display: block;
     padding: 5px;
     position: relative;
+    width: 100%;
 }
 
 .bulletinReg .push_button {
-    margin: 20px auto!important;
+    margin: 5px auto 20px !important;
 }
 
 .push_button.small {
@@ -161,9 +156,9 @@ body {
 }
 
 .bulletinError{
-    margin-bottom: 3px;
-    text-indent: 105px;
+    margin-top: 2px;
     font-size: 0.9em;
+    text-align: center;
 }
 
 .successText {
@@ -192,7 +187,7 @@ body {
     max-height: 200px;
     width: auto;
     float: left;
-    margin: 0 20px 20px 0;
+    margin: 0 20px 5px 0;
 }
 @media handheld, only screen and (max-width: 640px) {
     .bulletinHolder {
@@ -216,21 +211,19 @@ body {
         margin: 0 auto;
         max-width: 400px;
     }
-    .bulletinError{
-        text-indent: 0px;
-        text-align: center;
-        top: 5px;
-        margin-top: -5px;
-        position: relative;
+    .bulletinFilelds {
+        max-width: 380px;
+        padding: 0 15px;
+        margin: 0 auto;
+        box-sizing: border-box;
     }
     .push_button{
         font-size: 0.9em !important;
         margin: 5px !important;
-        max-width: 240px;
     }
     .bulletinHolder .richtext {
         font-size: 1.2em;
-        margin-bottom: 0px;
+        margin-bottom: 10px;
         padding: 0 25px;
         margin-top: 5px;
 
@@ -258,7 +251,6 @@ body {
         font-size: 0.9em;
         line-height: 1.3em;
         margin-bottom: 5px;
-        display: block;
     }
     .bulletinClose {
         right: 5px;
@@ -269,59 +261,62 @@ body {
 @media handheld, only screen and (max-width: 640px) and (orientation:landscape) {
     .bulletinHolder .richtext {
         font-size: 1.1em;
-        margin-bottom: 10px;
+        margin-bottom: 15px;
     }
     .push_button {
-        margin: 10px auto !important;
+        margin: 0px auto !important;
     }
     .logImgLeft {
         max-height: 100px;
+    }
+    .bulletinFilelds span {
+        font-size: 0.85em;
     }
 }
 
 @media handheld, only screen and (max-width: 480px) and (orientation:landscape) {
     .bulletinHolder .richtext {
         font-size: 1.1em;
-        margin-bottom: 0;
         padding: 0 15px;
+        margin-bottom: 15px;
     }
     .logImgLeft {
-            max-height: 100px;
-        }
+        max-height: 100px;
+    }
 }
 
 @media handheld, only screen and (max-width: 360px) {
     .bulletinReg {
         width: 300px;
     }
-    .bulletinFilelds .row {
-        margin-bottom: 0px;
-        float: none;
-        width: auto;
+    .bulletinFilelds {
+        clear: both;
+        max-width: 300px;
+    }
+    .bulletinError{
+        margin-top: 5px;
+    }
+    .push_button {
+        margin-top: 0 !important;
     }
 }
 
 @media handheld, only screen and (max-width: 320px) {
-    .bulletinFilelds .row {
-        margin-bottom: 0px;
-        float: none;
-        width: auto;
-    }
     .bulletinReg {
         width: 280px;
         padding: 0 0 10px 0 !important;
     }
+    .bulletinFilelds {
+        max-width: 260px;
+    }
     .push_button {
-        max-width: 230px;
         font-size:14px !important;
         height: 36px;
         line-height: 36px;
         padding: 2px !important;
     }
     .bulletinHolder .richtext {
-        padding: 0 15px;
-    }
-    .bulletinHolder .richtext {
+        padding: 0 15px 15px;
         font-size: 1.05em;
     }
 }

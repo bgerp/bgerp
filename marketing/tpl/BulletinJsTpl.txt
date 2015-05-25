@@ -236,19 +236,19 @@ function bulletinFormOpen()
  */
  function getForm()
 {
-	var form = "<div class='bulletinHolder' style='display:none'>" +
+	var form =  "<div class='bulletinHolder' style='display:none'>" +
 				"<div class='bulletinReg'>" +
 				"<a href='#' class='bulletinClose'>X</a>"+
 				"<div class='bulletinInner'>"+
 				"<!--ET_BEGIN logoUp--><div class = 'centered'><img class='logImg' src='[#logoUp#]' alt='Logo'></div><!--ET_END logoUp-->[#formTitle#]" +
                 "<!--ET_BEGIN formTitleRight--><div><!--ET_BEGIN logoLeft--><img class='logImgLeft' src='[#logoLeft#]' alt='Logo'><!--ET_END logoLeft-->[#formTitleRight#]</div><!--ET_END formTitleRight-->" +
-				"<div class='bulletinError' style='visibility: hidden; color: red;'>[#wrongMailText#]</div>"+
+				"<div class='clearfix21'></div>" +
 				"<form class='bulletinForm' action='[#formAction#]'>" +
                 "<div class='bulletinFilelds'>" +
 				"<div class='row bulletinEmailHolder'><span>[#emailName#] ([#weSaveIt#]): </span><input type='text' id='bulletinEmail' name='email' placeholder='example@domain.com'></div>" +
-				
+				"<div class='bulletinError' style='visibility: hidden; color: red;'>[#wrongMailText#]</div>"+
+				"<input type='submit' name='submit' value='[#submitBtnVal#]' class='push_button'>" +
                 "</div><div class='clearfix21'></div> " +
-				"<div class='centered'><input type='submit' name='submit' value='[#submitBtnVal#]' class='push_button'></div>"+
 				"<div style='text-align: center;'><a href='#' class='bulletinCancel'>[#cancelBtnVal#]</a></div>"+
 				"</form>" +
 				"</div>" +
