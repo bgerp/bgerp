@@ -47,7 +47,7 @@ class googlecharts_Adapter extends  core_Mvc
         $idChart = 'myChart' . $chartCnt;
 
         $chart = ht::createElement('div',  array('id' => $idChart, 'class' => "google-chart {$chartType}Chart"), $tpl);
-        $tpl->append("<div class='googleChartsHolder' style=' width: 100%; height: auto'>" . $chart . "</div>");
+        $tpl->append("<div class='googleChartsHolder' style=' width: 100%; height: auto; overflow: hidden;'>" . $chart . "</div>");
 
         if($chartType == 'bar') {
             $tpl->push("https://www.google.com/jsapi?autoload={'modules':[{'name':'visualization','version':'1.1','packages':['bar']}]}", 'JS');
