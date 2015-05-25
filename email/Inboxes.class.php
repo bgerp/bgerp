@@ -439,7 +439,7 @@ class email_Inboxes extends core_Master
     {   
         // Ако потребителите се регистрират с никове == имейлите им, 
         // то не можем да генерираме корпоративен имейл адрес
-        if(EF_USSERS_EMAIL_AS_NICK) {
+        if(defined('EF_USSERS_EMAIL_AS_NICK')) {
 
             return FALSE;
         }
