@@ -58,7 +58,7 @@ body {
     margin: 0 auto;
 }
 
-.bulletinFilelds .row input{
+.bulletinFilelds .rowBulletin input{
     border: 1px solid #ccc;
     border-radius: 4px;
     height: 2.2em;
@@ -71,7 +71,7 @@ body {
     width: 100%;
 }
 
-.bulletinFilelds .row span {
+.bulletinFilelds .rowBulletin span {
     display: block;
     line-height: 2.2em;
 }
@@ -244,10 +244,10 @@ body {
         margin: 5% 5% 0 5% ;
         max-width: 90%
     }
-    .bulletinFilelds .row input {
+    .bulletinFilelds .rowBulletin input {
         font-size: 0.9em;
     }
-    .bulletinFilelds .row span {
+    .bulletinFilelds .rowBulletin span {
         font-size: 0.9em;
         line-height: 1.3em;
         margin-bottom: 5px;

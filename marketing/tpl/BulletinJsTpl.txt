@@ -245,7 +245,7 @@ function bulletinFormOpen()
 				"<div class='clearfix21'></div>" +
 				"<form class='bulletinForm' action='[#formAction#]'>" +
                 "<div class='bulletinFilelds'>" +
-				"<div class='row bulletinEmailHolder'><span>[#emailName#] ([#weSaveIt#]): </span><input type='text' id='bulletinEmail' name='email' placeholder='example@domain.com'></div>" +
+				"<div class='rowBulletin'><span>[#emailName#] ([#weSaveIt#]): </span><input type='text' id='bulletinEmail' name='email' placeholder='example@domain.com'></div>" +
 				"<div class='bulletinError' style='visibility: hidden; color: red;'>[#wrongMailText#]</div>"+
 				"<input type='submit' name='submit' value='[#submitBtnVal#]' class='push_button'>" +
                 "</div><div class='clearfix21'></div> " +
