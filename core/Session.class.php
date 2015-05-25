@@ -179,6 +179,17 @@ class core_Session {
     
     
     /**
+     * 
+     */
+    public static function forcedStart()
+    {
+        $Session = cls::get('core_Session');
+        
+        $Session->_start(TRUE);
+    }
+    
+    
+    /**
      * Задава стойност на променлива в сесията. Създава нова сесия ако няма вече стартирана.
      *
      * @param string $varName
@@ -233,9 +244,9 @@ class core_Session {
     /**
      * @access private
      */
-    function _start()
+    function _start($forced=FALSE)
     {
-        if(!$this->_started) {
+        if(!$this->_started || $forced) {
             @session_cache_limiter('nocache');
             @session_set_cookie_params(0);
             // ini_set('session.cookie_secure', 1);
