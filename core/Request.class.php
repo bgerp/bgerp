@@ -207,6 +207,11 @@ class core_Request
      */
     static function get($name, $type = NULL)
     {
+        if (self::$protected[$name]) {
+            
+            return self::$vars['protected'][$name];
+        }
+        
         if ($type) {
             $inputType = core_Type::getByName($type);
             $value = self::get($name);
