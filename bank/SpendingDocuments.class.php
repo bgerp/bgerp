@@ -19,6 +19,12 @@ class bank_SpendingDocuments extends core_Master
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
     public $oldClassName = 'bank_CostDocument';
+
+
+    /**
+     * Флаг, който указва, че документа е партньорски
+     */
+    public $visibleForPartners = TRUE;
     
     
     /**

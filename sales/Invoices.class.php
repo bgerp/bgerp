@@ -27,6 +27,12 @@ class sales_Invoices extends deals_InvoiceMaster
      * Абревиатура
      */
     public $abbr = 'Inv';
+
+
+    /**
+     * Флаг, който указва, че документа е партньорски
+     */
+    public $visibleForPartners = TRUE;
     
     
     /**

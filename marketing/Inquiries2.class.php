@@ -22,6 +22,12 @@ class marketing_Inquiries2 extends core_Embedder
 	 */
 	public $innerObjectInterface = 'cat_ProductDriverIntf';
 	
+
+	/**
+	 * Флаг, който указва, че документа е партньорски
+	 */
+	public $visibleForPartners = TRUE;
+	
 	
     /**
      * Поддържани интерфейси

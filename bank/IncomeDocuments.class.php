@@ -20,6 +20,12 @@ class bank_IncomeDocuments extends core_Master
      * Какви интерфейси поддържа този мениджър
      */
     var $interfaces = 'doc_DocumentIntf, acc_TransactionSourceIntf=bank_transaction_IncomeDocument, sales_PaymentIntf, bgerp_DealIntf, email_DocumentIntf, doc_ContragentDataIntf';
+
+
+    /**
+     * Флаг, който указва, че документа е партньорски
+     */
+    public $visibleForPartners = TRUE;
     
     
     /**

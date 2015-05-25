@@ -21,6 +21,12 @@ class price_ListDocs extends core_Master
      * Интерфейси, поддържани от този мениджър
      */
     var $interfaces = 'doc_DocumentIntf, doc_ContragentDataIntf, email_DocumentIntf';
+
+
+    /**
+     * Флаг, който указва, че документа е партньорски
+     */
+    public $visibleForPartners = TRUE;
     
     
     /**

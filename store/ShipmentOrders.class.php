@@ -14,6 +14,8 @@
  */
 class store_ShipmentOrders extends store_DocumentMaster
 {
+    
+    
     /**
      * Заглавие
      * 
@@ -21,6 +23,12 @@ class store_ShipmentOrders extends store_DocumentMaster
      */
     public $title = 'Експедиционни нареждания';
 
+
+    /**
+     * Флаг, който указва, че документа е партньорски
+     */
+    public $visibleForPartners = TRUE;
+    
 
     /**
      * Абревиатура

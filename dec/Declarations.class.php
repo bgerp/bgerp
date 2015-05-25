@@ -21,6 +21,12 @@ class dec_Declarations extends core_Master
     
     
     /**
+     * Флаг, който указва, че документа е партньорски
+     */
+    public $visibleForPartners = TRUE;
+    
+    
+    /**
      * Заглавие
      */
     var $title = "Декларации за съответствие";

@@ -24,6 +24,12 @@ class sales_Proformas extends deals_InvoiceMaster
     
     
     /**
+     * Флаг, който указва, че документа е партньорски
+     */
+    public $visibleForPartners = TRUE;
+    
+    
+    /**
      * Абревиатура
      */
     public $abbr = 'Prf';

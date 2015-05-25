@@ -28,6 +28,12 @@ class store_ConsignmentProtocols extends core_Master
 
 
     /**
+     * Флаг, който указва, че документа е партньорски
+     */
+    public $visibleForPartners = TRUE;
+    
+    
+    /**
      * Абревиатура
      */
     public $abbr = 'Cpt';

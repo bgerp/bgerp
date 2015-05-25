@@ -22,6 +22,12 @@ class cat_Products extends core_Embedder {
 	public $innerObjectInterface = 'cat_ProductDriverIntf';
 	
 	
+	/**
+	 * Флаг, който указва, че документа е партньорски
+	 */
+	public $visibleForPartners = TRUE;
+	
+	
     /**
      * Интерфейси, поддържани от този мениджър
      */

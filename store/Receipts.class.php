@@ -26,6 +26,12 @@ class store_Receipts extends store_DocumentMaster
 
 
     /**
+     * Флаг, който указва, че документа е партньорски
+     */
+    public $visibleForPartners = TRUE;
+    
+    
+    /**
      * Абревиатура
      */
     public $abbr = 'Sr';

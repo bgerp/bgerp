@@ -23,6 +23,12 @@ class sales_Sales extends deals_DealMaster
 
 
     /**
+     * Флаг, който указва, че документа е партньорски
+     */
+    public $visibleForPartners = TRUE;
+    
+    
+    /**
      * Абревиатура
      */
     public $abbr = 'Sal';
