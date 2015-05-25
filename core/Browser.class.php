@@ -258,7 +258,7 @@ class core_Browser extends core_Master
         
         if (!Mode::is('text', 'plain')) {
 
-            if (core_Browser::haveRightFor('single', $bridRec)) {
+            if (core_Browser::haveRightFor('single', $rec)) {
                 $title = ht::createLink($title, array('core_Browser', 'single', $rec->id));
             }
         }
