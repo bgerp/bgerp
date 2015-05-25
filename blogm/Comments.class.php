@@ -94,8 +94,8 @@ class blogm_Comments extends core_Detail {
 	function description()
 	{
 		$this->FLD('articleId', 'key(mvc=blogm_Articles, select=title)', 'caption=Тема, input=hidden, silent');
-		$this->FLD('name', 'varchar(64)', 'caption=Име, mandatory, placeholder=Името ви (задължително)');
-		$this->FLD('email', 'email(64)', 'caption=Имейл, mandatory, placeholder=Имейлът ви (задължително)');
+		$this->FLD('name', 'varchar(64)', 'caption=Име, mandatory, width=65%,placeholder=Името ви (задължително)');
+		$this->FLD('email', 'email(64)', 'caption=Имейл, mandatory, width=65%,placeholder=Имейлът ви (задължително)');
    		$this->FLD('web', 'url(72)', 'caption=Сайт, width=65%,placeholder=Вашият сайт или блог');
 		$this->FLD('comment', 'richtext(bucket=Notes)', 'caption=Коментар,mandatory,placeholder=Въведете вашия коментар тук');
   		$this->FLD('state', 'enum(pending=Чакащ,active=Публикуван,rejected=Оттеглен)', 'caption=Състояние,mandatory');
@@ -161,12 +161,6 @@ class blogm_Comments extends core_Detail {
             
             $data->commentForm->toolbar->addSbBtn('Изпращане');
         }
-
-        if(Mode::is('screenMode', 'wide')) {
-
-            $data->commentForm->Test = 'Test';
-
-        }
     }
 	
     
@@ -188,10 +182,8 @@ class blogm_Comments extends core_Detail {
             $data->commentForm->layout = $data->ThemeClass->getCommentFormLayout();
             $data->commentForm->fieldsLayout = $data->ThemeClass->getCommentFormFieldsLayout();
             $layout->replace($data->commentForm->renderHtml(), 'COMMENT_FORM');
-
-
         }
-
+	
 		// Връщаме шаблона
 		return $layout;
 	}

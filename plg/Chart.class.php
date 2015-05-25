@@ -6,7 +6,7 @@
  * Клас 'plg_Chart' - Показва графики, вместо таблични данни
  *
  *
- * @category  bgerp
+ * @category  ef
  * @package   plg
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2012 Experta OOD
@@ -16,8 +16,8 @@
  */
 class plg_Chart extends core_Plugin
 {
-
-
+    
+    
     /**
      * Манипулации със заглавието
      *
