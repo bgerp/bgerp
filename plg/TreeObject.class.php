@@ -78,7 +78,7 @@ class plg_TreeObject extends core_Plugin
 		}
 		
 		if($mvc->getField('state', FALSE)){
-			$where .= "#state != 'rejected'";
+			$where .= (($where != '') ? " AND " : "") . " #state != 'rejected'";
 		}
 		
 		// При редакция оставяме само тези опции, в чиите бащи не участва текущия обект
