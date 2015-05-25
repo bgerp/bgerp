@@ -55,15 +55,12 @@ body {
 }
 
 .bulletinFilelds .row {
-    clear: both;
-    float: left;
     box-sizing: content-box;
     margin: 0 10px 10px;
 }
 
 .bulletinFilelds .row input{
     border: 1px solid #ccc;
-    margin-left: 15px;
     border-radius: 4px;
     height: 2.2em;
     line-height: 2.2em;
@@ -72,15 +69,13 @@ body {
     text-align: left;
     font-size: 1.07em;
     display: block;
-    float: left;
-    width: 260px;
+    width: 100%;
 }
 
 .bulletinFilelds .row span {
-    width: 80px;
     display: block;
-    float: left;
     line-height: 2.2em;
+    text-align: center;
 }
 
 .clearfix21:after {
@@ -228,31 +223,17 @@ body {
         margin-top: -5px;
         position: relative;
     }
-    .row {
-        margin-bottom: 5px;
-        width: 400px;
-        margin: 0 auto;
-    }
     .push_button{
         font-size: 0.9em !important;
         margin: 5px !important;
         max-width: 240px;
     }
-    .bulletinFilelds .row span {
-        padding-left: 15px;
-        display: block;
-        float: left;
-        font-size: 0.9em;
-    }
-    .bulletinHolder .row input {
-        height: 1.7em;
-        line-height: 1.7em;
-        width: 90%;
-    }
     .bulletinHolder .richtext {
         font-size: 1.2em;
         margin-bottom: 0px;
-        padding: 0 15px;
+        padding: 0 25px;
+        margin-top: 5px;
+
     }
     body.noscroll {
         overflow: hidden;
@@ -270,6 +251,19 @@ body {
         margin: 5% 5% 0 5% ;
         max-width: 90%
     }
+    .bulletinFilelds .row input {
+        font-size: 0.9em;
+    }
+    .bulletinFilelds .row span {
+        font-size: 0.9em;
+        line-height: 1.3em;
+        margin-bottom: 5px;
+        display: block;
+    }
+    .bulletinClose {
+        right: 5px;
+        top: 5px;
+    }
 }
 
 @media handheld, only screen and (max-width: 640px) and (orientation:landscape) {
@@ -280,35 +274,12 @@ body {
     .push_button {
         margin: 10px auto !important;
     }
-    .bulletinFilelds .row {
-        width: 100%;
-        margin-bottom: 10px;
-    }
-    .bulletinFilelds .row input{
-        width: 60%;
-    }
-    .bulletinFilelds .row span {
-        width: 20%;
-    }
     .logImgLeft {
         max-height: 100px;
     }
 }
 
 @media handheld, only screen and (max-width: 480px) and (orientation:landscape) {
-    .bulletinFilelds .row input{
-        width: 60%;
-        height: 1.6em;
-        line-height: 1.6em;
-    }
-    .bulletinFilelds .row {
-        width: 100%;
-        margin-bottom: 5px;
-    }
-    .bulletinFilelds .row span {
-        width: 20%;
-        line-height: 1.6em;
-    }
     .bulletinHolder .richtext {
         font-size: 1.1em;
         margin-bottom: 0;
@@ -323,12 +294,6 @@ body {
     .bulletinReg {
         width: 300px;
     }
-    .bulletinFilelds .row input, .bulletinFilelds .row span{
-        width: 230px;
-    }
-    .narrow .bulletinFilelds .row input{
-        width: 245px;
-    }
     .bulletinFilelds .row {
         margin-bottom: 0px;
         float: none;
@@ -342,12 +307,6 @@ body {
         float: none;
         width: auto;
     }
-    .bulletinFilelds .row input{
-        width: 210px;
-    }
-    .narrow .bulletinFilelds .row input{
-        width: 225px;
-    }
     .bulletinReg {
         width: 280px;
         padding: 0 0 10px 0 !important;
@@ -358,9 +317,6 @@ body {
         height: 36px;
         line-height: 36px;
         padding: 2px !important;
-    }
-    .bulletinFilelds .row span {
-        line-height: 1.8em;
     }
     .bulletinHolder .richtext {
         padding: 0 15px;
