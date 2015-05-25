@@ -36,8 +36,7 @@ class logs_Ips extends core_Manager
     /**
      * Кой има право да добавя?
      */
-//    public $canAdd = 'no_one';
-    public $canAdd = 'admin';
+    public $canAdd = 'no_one';
     
     
     /**
@@ -77,15 +76,17 @@ class logs_Ips extends core_Manager
     {
          $this->FLD('ip', 'ip', 'caption=IP');
          $this->FLD('country2', 'varchar(2)', 'caption=Код на държавата');
+         
+         $this->setDbUnique('ip');
     }
     
     
     /**
-     * 
+     * Връща id за съответния запис на IP
      * 
      * @param IP $ip
      * 
-     * return integer
+     * @return integer
      */
     public static function getIpId($ip = NULL)
     {
@@ -97,6 +98,7 @@ class logs_Ips extends core_Manager
             self::$ipsArr = (array) Mode::get('ipsArr');
         }
         
+        // Ако в сесията нямада id-то на IP-то, определяме го, записваме в модела и в сесията
         if (!isset(self::$ipsArr[$ip])) {
             if (!($id = self::fetchField(array("#ip = '[#1#]'", $ip), 'id'))) {
                 
@@ -112,11 +114,8 @@ class logs_Ips extends core_Manager
             }
             
             Mode::setPermanent('ipsArr', self::$ipsArr);
-        } else {
-            bp(self::$ipsArr[$ip]);// TODO
         }
         
         return self::$ipsArr[$ip];
     }
-    
 }

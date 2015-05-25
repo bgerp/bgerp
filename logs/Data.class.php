@@ -36,8 +36,7 @@ class logs_Data extends core_Manager
     /**
      * Кой има право да добавя?
      */
-//    public $canAdd = 'no_one';
-    public $canAdd = 'admin';
+    public $canAdd = 'no_one';
     
     
     /**
@@ -77,7 +76,7 @@ class logs_Data extends core_Manager
     public function description()
     {    
          $this->FLD('ipId', 'key(mvc=logs_Ips, select=ip)', 'caption=Идентификация->IP адрес на потребителя');
-         $this->FLD('brId', 'key(mvc=logs_Browsers, select=ip)', 'caption=Идентификация->Идентификатор на браузъра на потребителя');
+         $this->FLD('brId', 'key(mvc=core_Browser, select=brid)', 'caption=Идентификация->Идентификатор на браузъра на потребителя');
          $this->FLD('userId', 'key(mvc=core_Users)', 'caption=Идентификация->Потребител');
          $this->FLD('time', 'int', 'caption=Време на записа');
          $this->FLD('type', 'enum(emerg,alert,crit,err,warning,notice,info,debug)', 'caption=Данни->Тип на събитието');
@@ -135,6 +134,9 @@ class logs_Data extends core_Manager
      */
     public static function on_Shutdown($mvc)
     {
+        // Форсираме стартирането на сесията
+        core_Session::forcedStart();
+        
         // Записва в БД всички действия от стека
         self::flush();
     }
@@ -145,12 +147,29 @@ class logs_Data extends core_Manager
      */
     public static function flush()
     {
-        $count = 0;
+        // Ако няма данни за добавяне, няма нужда да се изпълнява
+        if (!self::$toAdd) return ;
         
         $ipId = logs_Ips::getIpId();
+        $bridId = logs_Browsers::getBridId();
         
         foreach (self::$toAdd as $toAdd) {
-//            bp($toAdd);
+            
+            $rec = new stdClass();
+            $rec->ipId = $ipId;
+            $rec->brId = $bridId;
+            $rec->userId = core_Users::getCurrent();
+            $rec->actionCrc = logs_Actions::getActionCrc($toAdd['message']);
+            $rec->classCrc = logs_Classes::getClassCrc($toAdd['className']);
+            $rec->objectId = $toAdd['objectId'];
+            $rec->time = $toAdd['time'];
+            $rec->type = $toAdd['type'];
+            
+            self::save($rec);
         }
+        
+        // Записваме crc32 стойностите на стринговете
+        logs_Actions::saveActions();
+        logs_Classes::saveActions();
     }
 }

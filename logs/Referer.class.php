@@ -36,8 +36,7 @@ class logs_Referer extends core_Manager
     /**
      * Кой има право да добавя?
      */
-//    public $canAdd = 'no_one';
-    public $canAdd = 'admin';
+    public $canAdd = 'no_one';
     
     
     /**

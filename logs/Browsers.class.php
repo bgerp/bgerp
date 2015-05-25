@@ -36,8 +36,7 @@ class logs_Browsers extends core_Manager
     /**
      * Кой има право да добавя?
      */
-//    public $canAdd = 'no_one';
-    public $canAdd = 'admin';
+    public $canAdd = 'no_one';
     
     
     /**
@@ -74,5 +73,28 @@ class logs_Browsers extends core_Manager
         $this->FLD('userData', 'blob(serialize, compress)', 'caption=Данни');
         
         $this->setDbUnique('brid');
+    }
+    
+    
+    /**
+     * Връща bridId на brid
+     * 
+     * @return integer
+     */
+    public static function getBridId()
+    {
+        if (!($bridId = Mode::get('bridId'))) {
+            $brid = core_Browser::getBrid(TRUE);
+            
+            $bridRec = core_Browser::getRecFromBrid($brid);
+            
+            if ($bridRec) {
+                $bridId = $bridRec->id;
+                
+                Mode::setPermanent('bridId', $bridId);
+            }
+        }
+        
+        return $bridId;
     }
 }

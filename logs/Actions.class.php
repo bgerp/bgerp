@@ -36,8 +36,7 @@ class logs_Actions extends core_Manager
     /**
      * Кой има право да добавя?
      */
-//    public $canAdd = 'no_one';
-    public $canAdd = 'admin';
+    public $canAdd = 'no_one';
     
     
     /**
@@ -65,11 +64,55 @@ class logs_Actions extends core_Manager
     
     
     /**
+     * 
+     */
+    public static $actionsArr = array();
+    
+    
+    /**
      * Полета на модела
      */
     public function description()
     {
         $this->FLD('crc', 'int', 'caption=crc32 на действието');
         $this->FLD('action', 'varchar', 'caption=Действие');
+        
+        $this->setDbUnique('crc');
+    }
+    
+    
+    /**
+     * Връща crc32 стойността на стринга
+     * 
+     * @param string $action
+     * 
+     * @return integer
+     */
+    public static function getActionCrc($action)
+    {
+        if (!$action) return ;
+        
+        $actionCrc = crc32($action);
+        
+        if (!self::$actionsArr[$actionCrc]) {
+            self::$actionsArr[$actionCrc] = $action;
+        }
+        
+        return $actionCrc;
+    }
+    
+    
+    /**
+     * Записва масива със crc32 и екшъна
+     */
+    public static function saveActions()
+    {
+       foreach (self::$actionsArr as $crc => $action) {
+           $rec = new stdClass();
+           $rec->crc = $crc;
+           $rec->action = $action;
+           
+           self::save($rec, NULL, 'IGNORE');
+       }
     }
 }

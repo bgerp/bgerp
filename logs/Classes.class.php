@@ -36,8 +36,7 @@ class logs_Classes extends core_Manager
     /**
      * Кой има право да добавя?
      */
-//    public $canAdd = 'no_one';
-    public $canAdd = 'admin';
+    public $canAdd = 'no_one';
     
     
     /**
@@ -65,11 +64,55 @@ class logs_Classes extends core_Manager
     
     
     /**
+     * 
+     */
+    public static $classArr = array();
+    
+    
+    /**
      * Полета на модела
      */
     public function description()
     {
         $this->FLD('crc', 'int', 'caption=crc32 на класа');
         $this->FLD('class', 'varchar', 'caption=Име на класа');
+        
+        $this->setDbUnique('crc');
+    }
+    
+    
+    /**
+     * Връща crc32 стойността на стринга
+     * 
+     * @param string $action
+     * 
+     * @return integer
+     */
+    public static function getClassCrc($className)
+    {
+        if (!$className) return ;
+        
+        $classCrc = crc32($className);
+        
+        if (!self::$classArr[$classCrc]) {
+            self::$classArr[$classCrc] = $className;
+        }
+        
+        return $classCrc;
+    }
+    
+    
+    /**
+     * Записва масива със crc32 и екшуъна
+     */
+    public static function saveActions()
+    {
+       foreach (self::$classArr as $crc => $class) {
+           $rec = new stdClass();
+           $rec->crc = $crc;
+           $rec->class = $class;
+           
+           self::save($rec, NULL, 'IGNORE');
+       }
     }
 }
