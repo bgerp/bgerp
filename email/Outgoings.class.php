@@ -2285,7 +2285,7 @@ class email_Outgoings extends core_Master
     {
         $sendedTo = '';
         if (!$containerId && !$threadId) return $sendedTo;
-        $lRecsArr = doclog_Documents::getRecs($containerId, log_Documents::ACTION_SEND, $threadId);
+        $lRecsArr = doclog_Documents::getRecs($containerId, doclog_Documents::ACTION_SEND, $threadId);
         
         if ($lRecsArr) {
             
