@@ -31,7 +31,7 @@ class bgerp_plg_File extends core_Plugin
         $action = doclog_Documents::getAction();
         
         // Ако не изпращаме имейла, да не сработва
-        //        if ((!$action) || in_array($action->action, array(doclog_Documents::ACTION_DISPLAY, log_Documents::ACTION_RECEIVE, log_Documents::ACTION_RETURN))) return ;
+        //        if ((!$action) || in_array($action->action, array(doclog_Documents::ACTION_DISPLAY, doclog_Documents::ACTION_RECEIVE, doclog_Documents::ACTION_RETURN))) return ;
         if (!$action) return ;
         
         // Името на файла
