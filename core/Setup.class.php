@@ -253,7 +253,6 @@ class core_Setup extends core_ProtoSetup {
         'core_Locks',
         'core_LoginLog',
         'migrate::loginLogTruncate',
-        'core_Browser',
         'migrate::clearBrowserInfo',
         'core_Settings',
         'core_Forwards',
@@ -394,7 +393,7 @@ class core_Setup extends core_ProtoSetup {
      */
     function clearBrowserInfo()
     {
-        $Browser = cls::get('core_Browser');
+        $Browser = cls::get('logs_Browsers');
 
         $Browser->db->query("TRUNCATE TABLE `{$Browser->dbTableName}`");
     }
