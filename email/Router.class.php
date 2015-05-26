@@ -380,7 +380,7 @@ class email_Router extends core_Manager
             return NULL;
         }
         
-        if (!($sentRec = log_Documents::fetchByMid($mid))) {
+        if (!($sentRec = doclog_Documents::fetchByMid($mid))) {
             return NULL;
         }
         
