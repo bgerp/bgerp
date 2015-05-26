@@ -81,8 +81,8 @@ class doc_FolderToPartners extends core_Manager
         $this->FLD('folderId', 'key(mvc=doc_Folders,select=title)', 'caption=Папка,silent');
         $this->FLD('contractorId', 'key(mvc=core_Users,select=names)', 'caption=Потребител,notNull');
          
-        // Един партньор може да е само в една папка
-        $this->setDbUnique('contractorId');
+        // Поставяне на уникални индекси
+        $this->setDbUnique('folderId,contractorId');
     }
 
     
@@ -91,7 +91,7 @@ class doc_FolderToPartners extends core_Manager
      * 
      * @return array
      */
-	public static function getContractorOptions()
+	public static function getContractorOptions($folderId)
 	{
 		$uQuery = core_Users::getQuery();
 		$uQuery->where("#state = 'active'");
@@ -104,7 +104,7 @@ class doc_FolderToPartners extends core_Manager
 		$options = array();
 		
 		while ($uRec = $uQuery->fetch()){
-			if(!static::fetch("#contractorId = {$uRec->id}")){
+			if(!static::fetch("#folderId = {$folderId} && #contractorId = {$uRec->id}")){
 				$options[$uRec->id] = $uRec->names;
 			}
 		}
@@ -122,7 +122,7 @@ class doc_FolderToPartners extends core_Manager
         $form->title = "Добавяне на нов партньор в папка";
         $form->setReadOnly('folderId');
         
-        $form->setOptions('contractorId', self::getContractorOptions());
+        $form->setOptions('contractorId', self::getContractorOptions($form->rec->folderId));
     }
 
 
@@ -161,7 +161,7 @@ class doc_FolderToPartners extends core_Manager
     		}
     		
     		// Ако не могат да бъдат избрани контрактори, не може да се добави запис
-    		$contractors = self::getContractorOptions();
+    		$contractors = self::getContractorOptions($rec->folderId);
     		if(!count($contractors)){
     			$requiredRoles = 'no_one';
     		}
