@@ -253,7 +253,6 @@ class core_Setup extends core_ProtoSetup {
         'core_Locks',
         'core_LoginLog',
         'migrate::loginLogTruncate',
-        'migrate::clearBrowserInfo',
         'core_Settings',
         'core_Forwards',
         'migrate::settigsDataFromCustomToCore',
@@ -385,17 +384,6 @@ class core_Setup extends core_ProtoSetup {
     {
         $loginLog = cls::get('core_LoginLog');
         $loginLog->db->query("TRUNCATE TABLE `{$loginLog->dbTableName}`");
-    }
-
-
-    /**
-     * Миграция - почистване на модела core_Browser
-     */
-    function clearBrowserInfo()
-    {
-        $Browser = cls::get('logs_Browsers');
-
-        $Browser->db->query("TRUNCATE TABLE `{$Browser->dbTableName}`");
     }
     
     
