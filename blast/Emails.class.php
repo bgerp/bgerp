@@ -437,11 +437,11 @@ class blast_Emails extends core_Master
                 core_Users::sudo($cRec->activatedBy);
                 
                 // Задаваме екшъна за изпращането
-                log_Documents::pushAction(
+                doclog_Documents::pushAction(
                     array(
                         'containerId' => $cRec->containerId,
                         'threadId' => $cRec->threadId,
-                        'action' => log_Documents::ACTION_SEND,
+                        'action' => doclog_Documents::ACTION_SEND,
                         'data' => (object)array(
                             'sendedBy' => core_Users::getCurrent(),
                             'from' => $cRec->from,
@@ -475,7 +475,7 @@ class blast_Emails extends core_Master
                 }
                 
                 // Флушваме екшъна
-                log_Documents::flushActions();
+                doclog_Documents::flushActions();
                 
                 // Връщаме стария потребител
                 core_Users::exitSudo();
@@ -494,7 +494,7 @@ class blast_Emails extends core_Master
                     blast_EmailSend::setTimeAndEmail(array($detId => $toEmail));
                 } else {
                     // Ако възникне грешка при изпращане, записваме имейла, като върнат
-                    log_Documents::returned($body->__mid);
+                    doclog_Documents::returned($body->__mid);
                 }
             }
         }
