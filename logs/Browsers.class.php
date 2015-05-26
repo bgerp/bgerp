@@ -269,8 +269,12 @@ class logs_Browsers extends core_Master
     public static function getLink($brid)
     {
         if(!$brid) return "";
-
-        $rec = self::fetch(array("#brid = '[#1#]'", $brid));
+        
+        if (is_object($brid)) {
+            $rec = $brid;
+        } else {
+            $rec = self::fetch(array("#brid = '[#1#]'", $brid));
+        }
         
         if(!$rec->userAgent) return "";
 
@@ -293,6 +297,23 @@ class logs_Browsers extends core_Master
         }
 
         return $title;
+    }
+    
+    
+    /**
+     * Връща заглавието на User Agent, по възможност като линк
+     */
+    public static function getLinkFromId($id)
+    {
+        if (!$id) return ;
+        
+        if (is_object($id)) {
+            $rec = $id;
+        } else {
+            $rec = self::fetch((int) $id);
+        }
+        
+        return self::getLink($rec);
     }
     
     
