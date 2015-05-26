@@ -38,39 +38,13 @@ class log_Setup extends core_ProtoSetup
      * Описание на модула
      */
     var $info = "Хронология на действията с документите";
-
+    
     
     /**
-     * Инсталиране на пакета
+     * 
      */
-    function install()
-    {
-        
-        // Инсталиране на мениджърите
-        $managers = array(
+    public $managers = array(
             'log_Documents',
             'log_Files',
         );
-        
-        $instances = array();
-        
-        foreach ($managers as $manager) {
-            $instances[$manager] = &cls::get($manager);
-            $html .= $instances[$manager]->setupMVC();
-        }
-        
-        return $html;
-    }
-    
-    
-    /**
-     * Де-инсталиране на пакета
-     */
-    function deinstall()
-    {
-        // Изтриване на пакета от менюто
-        $res .= bgerp_Menu::remove($this);
-        
-        return $res;
-    }
 }
