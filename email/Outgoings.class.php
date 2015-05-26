@@ -362,7 +362,7 @@ class email_Outgoings extends core_Master
             $conf = core_Packs::getConfig('email');
             
             // Проверяваме дали същия имейл е изпращан преди
-            $isSendedBefore = log_Documents::isSended($rec->containerId, $conf->EMAIL_RESENDING_TIME, $emailTo, $emailsCc);
+            $isSendedBefore = doclog_Documents::isSended($rec->containerId, $conf->EMAIL_RESENDING_TIME, $emailTo, $emailsCc);
             
             // Ако е изпращан преди
             if ($isSendedBefore) {
@@ -378,7 +378,7 @@ class email_Outgoings extends core_Master
             // Данни за съответния екшън
             $action = array(
                 'containerId' => $rec->containerId,
-                'action'      => log_Documents::ACTION_SEND,
+                'action'      => doclog_Documents::ACTION_SEND,
                 'data'        => (object)array(
                     'from' => $options->boxFrom,
                     'to'   => $emailTo,
@@ -396,7 +396,7 @@ class email_Outgoings extends core_Master
             $action['data']->sendedBy = core_Users::getCurrent();
             
             // Пушваме екшъна
-            log_Documents::pushAction($action);
+            doclog_Documents::pushAction($action);
             
             // Подготовка на текста на писмото (HTML & plain text)
             $rec->__mid = NULL;
@@ -443,13 +443,13 @@ class email_Outgoings extends core_Master
             }
             
             // Записваме историята
-            log_Documents::flushActions();
+            doclog_Documents::flushActions();
             
             // Ако възникне грешка при изпращане
             if (!$status) {
                 
                 // Записваме имейла, като върнат
-                log_Documents::returned($rec->__mid);
+                doclog_Documents::returned($rec->__mid);
             }
             
             // Стринга с имейлите, до които е изпратено
@@ -1127,7 +1127,7 @@ class email_Outgoings extends core_Master
         if (($rec->forward == 'yes') && $rec->originId) {
             
             // Записваме в лога, че имейла, който е създаден е препратен
-            log_Documents::forward($rec);
+            doclog_Documents::forward($rec);
         }
     }
     
@@ -2285,7 +2285,7 @@ class email_Outgoings extends core_Master
     {
         $sendedTo = '';
         if (!$containerId && !$threadId) return $sendedTo;
-        $lRecsArr = log_Documents::getRecs($containerId, log_Documents::ACTION_SEND, $threadId);
+        $lRecsArr = doclog_Documents::getRecs($containerId, log_Documents::ACTION_SEND, $threadId);
         
         if ($lRecsArr) {
             
