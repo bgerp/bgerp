@@ -16,7 +16,6 @@
 class doc_FolderToPartners extends core_Manager
 {   
 
-
      
     /**
      * Плъгини за зареждане
@@ -46,6 +45,12 @@ class doc_FolderToPartners extends core_Manager
      * Кой може да добавя
      */
     var $canAdd = 'officer';
+    
+    
+    /**
+     * Кой може да добавя
+     */
+    var $canSendemail = 'officer';
     
     
     /**
@@ -172,6 +177,22 @@ class doc_FolderToPartners extends core_Manager
     			$requiredRoles = 'no_one';
     		}
     	}
+    	
+    	// Можем ли да изпратим автоматичен имейл до обекта
+    	if($action == 'sendemail' && isset($rec)){
+    		if(!$rec->email){
+    			$requiredRoles = 'no_one';
+    		} else {
+    			if(!doc_Folders::haveRightToObject($rec)){
+    				$requiredRoles = 'no_one';
+    			} else {
+    				$emailsFrom = email_Inboxes::getAllowedFromEmailOptions(NULL);
+    				if(!count($emailsFrom)){
+    					$requiredRoles = 'no_one';
+    				}
+    			}
+    		}
+    	}
     }
     
     
@@ -228,7 +249,7 @@ class doc_FolderToPartners extends core_Manager
 		
 		// Добавяме бутон за свързване на папка с партньор, ако имаме права
 		if($me->haveRightFor('add', (object)array('folderId' => $folderId))){
-			$ht = ht::createBtn('Свързване', array($me, 'add', 'folderId' => $folderId, 'ret_url' => TRUE), FALSE, FALSE, 'ef_icon=img/16/disk.png,title=Свързване на контрактор към папката');
+			$ht = ht::createBtn('Свързване', array($me, 'add', 'folderId' => $folderId, 'ret_url' => TRUE), FALSE, FALSE, 'ef_icon=img/16/disk.png,title=Свързване на партньор към папката');
 			$btns->append($ht);
 		}
 		
@@ -237,13 +258,16 @@ class doc_FolderToPartners extends core_Manager
 			Request::setProtected(array('companyId'));
 			
 			// Добавяме бутон за създаването на нов партньор, визитка и профил
-			$ht = ht::createBtn('Нов', array($me, 'createNewContractor', 'companyId' => $data->masterId, 'ret_url' => TRUE), FALSE, FALSE, 'ef_icon=img/16/star_2.png,title=Създаване на нов контрактор');
+			$ht = ht::createBtn('Нов партньор', array($me, 'createNewContractor', 'companyId' => $data->masterId, 'ret_url' => TRUE), FALSE, FALSE, 'ef_icon=img/16/star_2.png,title=Създаване на нов контрактор');
 			$btns->append($ht);
 			
 			// Ако фирмата има имейли и имаме имейл кутия, слагаме бутон за изпращане на имейл за регистрация
-			if($data->masterData->rec->email && email_Inboxes::count()){
+			if($me->haveRightFor('sendemail', $data->masterData->rec)){
 				Request::setProtected(array('companyId'));
-				$ht = ht::createBtn('Имейл', array($me, 'sendRegisteredEmail', 'companyId' => $data->masterId, 'ret_url' => TRUE), FALSE, FALSE, 'ef_icon=img/16/star_2.png,title=Изпращане на имейл за регистрация на контрактори към фирмата');
+				$ht = ht::createBtn('Имейл', array($me, 'sendRegisteredEmail', 'companyId' => $data->masterId, 'ret_url' => TRUE), FALSE, FALSE, 'ef_icon=img/16/email_edit.png,title=Изпращане на имейл за регистрация на контрактори към фирмата');
+				$btns->append($ht);
+			} else {
+				$ht = ht::createErrBtn('Имейл', 'Фирмата няма имейли, или нямате имейл кутия');
 				$btns->append($ht);
 			}
 		}
@@ -262,7 +286,7 @@ class doc_FolderToPartners extends core_Manager
     {
     	Request::setProtected(array('companyId, fromEmail'));
     	
-    	redirect(array('doc_FolderToPartners', 'Createnewcontractor', 'companyId' => $data['companyId'], 'fromEmail' => TRUE, 'ret_url' => TRUE));
+    	redirect(array('doc_FolderToPartners', 'Createnewcontractor', 'companyId' => $data['companyId'], 'fromEmail' => TRUE));
     }
     
     
@@ -275,10 +299,12 @@ class doc_FolderToPartners extends core_Manager
     {
     	Request::setProtected(array('companyId, fromEmail'));
     	
+    	$this->requireRightFor('sendemail');
     	expect($companyId = Request::get('companyId', 'key(mvc=crm_Companies)'));
     	expect($companyRec = crm_Companies::fetch($companyId));
-    	expect($companyRec->email);
     	$companyName = crm_Companies::getVerbal($companyId, 'name');
+    	
+    	$this->requireRightFor('sendemail', $companyRec);
     	
     	$form = cls::get('core_Form');
     	$form->title = "Изпращане на имейл за регистрация на партньори в|* <b>{$companyName}</b>";
@@ -295,7 +321,7 @@ class doc_FolderToPartners extends core_Manager
     	$url = core_Forwards::getUrl($this, 'Createnewcontractor', array('companyId' => $companyId), 604800);
     	
     	$body = new ET('Уважаеми потребителю. За да се регистрираш като служител на фирма [#company#] моля последвай този линк:
-		[#link#] (линка изтича след 7 дни)');
+		[#link#] (линка изтича след 7 дена)');
 		$body->replace($companyName, 'company');
 		$body->replace($url, 'link');
 		
@@ -408,10 +434,18 @@ class doc_FolderToPartners extends core_Manager
     	
     	$form->input();
     	$form->rec->rolesInput = keylist::fromArray($defRoles);
+    	
+    	if($form->isSubmitted()){
+    		if(!$Users->isUnique($form->rec, $fields)){
+    			$form->setError($fields, "Вече съществува запис със същите данни");
+    		}
+    	}
+    	
     	$Users->invoke('AfterInputEditForm', array(&$form));
     	
     	// След събмит ако всичко е наред създаваме потребител, лице и профил
     	if($form->isSubmitted()){
+    		
     		$uId = $Users->save($form->rec);
     		$personId = crm_Profiles::fetchField("#userId = {$uId}", 'personId');
     		$personRec = crm_Persons::fetch($personId);
@@ -425,13 +459,17 @@ class doc_FolderToPartners extends core_Manager
     		$folderId = crm_Companies::forceCoverAndFolder($companyId);
     		static::save((object)array('contractorId' => $uId, 'folderId' => $folderId));
     		
-    		return followRetUrl(NULL, 'Успешно са създадени потребител и визитка на нов партньор');
+    		return followRetUrl(array('core_Users', 'login'), 'Успешно са създадени потребител и визитка на нов партньор');
     	}
     	
     	$form->toolbar->addSbBtn('Запис', 'save', 'id=save, ef_icon = img/16/disk.png', 'title=Запис');
     	$form->toolbar->addBtn('Отказ', getRetUrl(),  'id=cancel, ef_icon = img/16/close16.png', 'title=Прекратяване на действията');
     	
-    	$tpl = $this->renderWrapping($form->renderHtml());
+    	if($cu = core_Users::getCurrent('id', FALSE) && core_Users::haveRole('powerUser', $cu)){
+    		$tpl = $this->renderWrapping($form->renderHtml());
+    	} else {
+    		$tpl = $form->renderHtml();
+    	}
     	
     	return $tpl;
     }
