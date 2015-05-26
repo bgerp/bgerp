@@ -245,7 +245,7 @@ class core_page_Internal extends core_page_Active
                         
             if($isGet) {
                 $tpl->append("&nbsp;<small>|</small>&nbsp;");
-                $tpl->append(ht::createLink(tr("Широк"), array('core_Browser', 'setWideScreen', 'ret_url' => TRUE), FALSE, array('title' => " Превключване на системата в десктоп режим")));
+                $tpl->append(ht::createLink(tr("Широк"), array('logs_Browsers', 'setWideScreen', 'ret_url' => TRUE), FALSE, array('title' => " Превключване на системата в десктоп режим")));
 
                 // Добавяме превключване между езиците
                 $tpl->append(self::getLgChange());
@@ -264,13 +264,13 @@ class core_page_Internal extends core_page_Active
             
             if($isGet) {
                 $tpl->append("&nbsp;<small>|</small>&nbsp;");
-                $tpl->append(ht::createLink(tr("Тесен"), array('core_Browser', 'setNarrowScreen', 'ret_url' => TRUE), FALSE, array('title' => "Превключване на системата в мобилен режим")));
+                $tpl->append(ht::createLink(tr("Тесен"), array('logs_Browsers', 'setNarrowScreen', 'ret_url' => TRUE), FALSE, array('title' => "Превключване на системата в мобилен режим")));
             
                 // Добавяме превключване между езиците
                 $tpl->append(self::getLgChange());
             }
             // Добавяме кода, за определяне параметрите на браузъра
-            $Browser = cls::get('core_Browser');
+            $Browser = cls::get('logs_Browsers');
             $tpl->append($Browser->renderBrowserDetectingCode(), 'BROWSER_DETECT');
 
             // Добавя бутон за калкулатора
