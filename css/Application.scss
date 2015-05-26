@@ -430,6 +430,21 @@ div.folder-cover {
 	}
 }
 
+.noheader .listTable {
+    th {
+        display: none;
+    }
+    tbody tr:first-child td {
+        border-top: none;
+    }
+    tr:nth-child(odd) {
+        background: transparent;
+    }
+    tr:nth-child(even) {
+        background: rgba(238, 238, 238, 0.5);
+    }
+}
+
 .narrow .folder-cover {
 	line-height: 1.3em;
 	margin-left: 0;

@@ -368,6 +368,15 @@ div.folder-cover {
   div.folder-cover .top-tab-content {
     padding: 5px 10px 10px 10px; }
 
+  .noheader .listTable th {
+    display: none; }
+  .noheader .listTable tbody tr:first-child td {
+    border-top: none; }
+  .noheader .listTable tr:nth-child(odd) {
+    background: transparent; }
+  .noheader .listTable tr:nth-child(even) {
+    background: rgba(238, 238, 238, 0.5); }
+
 .narrow .folder-cover {
   line-height: 1.3em;
   margin-left: 0;
