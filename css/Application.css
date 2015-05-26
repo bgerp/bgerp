@@ -3891,9 +3891,10 @@ only screen and (max-width: 320px) {
   color: #333333; }
 
 .narrow .summary-block {
+  clear: both;
   margin-top: 10px;
   float: left;
-  clear: both; }
+  font-size: 0.9em; }
 
 .summary-block table {
   border-collapse: separate; }

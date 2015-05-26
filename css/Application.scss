@@ -4184,10 +4184,11 @@ body.narrow {
     color: #333;
 }
 
-.narrow .summary-block{
+.narrow .summary-block {
+    clear: both;
 	margin-top: 10px;
 	float: left;
-	clear: both;
+    font-size: 0.9em;
 }
 
 .summary-block table{

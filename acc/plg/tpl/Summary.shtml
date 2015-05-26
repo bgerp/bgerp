@@ -1,20 +1,18 @@
-<div class='scrolling-holder'>
-    <div class='summary-block'>
-        <table>
-            <!--ET_BEGIN ROW-->
-            <tr>
-                <td class='quiet'>|[#caption#]|*</td>
-                <td class='quiet'>[#measure#]</td>
-                <td style='text-align:right'>
-                    <!--ET_BEGIN amount-->
-                    <b>[#amount#]</b>
-                    <!--ET_END amount-->
-                    <!--ET_BEGIN quantity-->
-                    <b>[#quantity#]</b>
-                    <!--ET_END quantity-->
-                </td>
-            </tr>
-            <!--ET_END ROW-->
-        </table>
-    </div>
+<div class='summary-block'>
+    <table>
+        <!--ET_BEGIN ROW-->
+        <tr>
+            <td class='quiet'>|[#caption#]|*</td>
+            <td class='quiet'>[#measure#]</td>
+            <td style='text-align:right'>
+                <!--ET_BEGIN amount-->
+                <b>[#amount#]</b>
+                <!--ET_END amount-->
+                <!--ET_BEGIN quantity-->
+                <b>[#quantity#]</b>
+                <!--ET_END quantity-->
+            </td>
+        </tr>
+        <!--ET_END ROW-->
+    </table>
 </div>
