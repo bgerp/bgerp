@@ -138,9 +138,9 @@ class logs_Browsers extends core_Master
     public static function getBridId()
     {
         if (!($bridId = Mode::get('bridId'))) {
-            $brid = core_Browser::getBrid(TRUE);
+            $brid = self::getBrid(TRUE);
             
-            $bridRec = core_Browser::getRecFromBrid($brid);
+            $bridRec = self::getRecFromBrid($brid);
             
             if ($bridRec) {
                 $bridId = $bridRec->id;
@@ -287,8 +287,8 @@ class logs_Browsers extends core_Master
         
         if (!Mode::is('text', 'plain')) {
 
-            if (core_Browser::haveRightFor('single', $rec)) {
-                $title = ht::createLink($title, array('core_Browser', 'single', $rec->id));
+            if (self::haveRightFor('single', $rec)) {
+                $title = ht::createLink($title, array('logs_Browsers', 'single', $rec->id));
             }
         }
 
