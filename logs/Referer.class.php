@@ -73,4 +73,41 @@ class logs_Referer extends core_Manager
          $this->FLD('time', 'int', 'caption=Време');
          $this->FLD('ref', 'varchar', 'caption=Реферер');
     }
+    
+    
+    /**
+     * Добавя запис за реферер
+     * 
+     * @param integer $ipId
+     * @param integer $bridId
+     * @param integer $time
+     * 
+     * @return NULL|integer
+     */
+    public static function addReferer($ipId = NULL, $bridId = NULL, $time = NULL)
+    {
+        $referer = $_SERVER['HTTP_REFERER'];
+        
+        if (!$referer) return ;
+        
+        if (!isset($ipId)) {
+            $ipId = logs_Ips::getIpId();
+        }
+        
+        if (!isset($bridId)) {
+            $bridId = logs_Browsers::getBridId();
+        }
+        
+        if (!isset($time)) {
+            $time = dt::mysql2timestamp();
+        }
+        
+        $rec = new stdClass();
+        $rec->ipId = $ipId;
+        $rec->brId = $bridId;
+        $rec->time = $time;
+        $rec->ref = $referer;
+        
+        return self::save($rec);
+    }
 }

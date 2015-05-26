@@ -166,6 +166,8 @@ class logs_Data extends core_Manager
             $rec->type = $toAdd['type'];
             
             self::save($rec);
+            
+            logs_Referer::addReferer($ipId, $bridId, $toAdd['time']);
         }
         
         // Записваме crc32 стойностите на стринговете
