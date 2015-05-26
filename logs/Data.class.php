@@ -174,4 +174,17 @@ class logs_Data extends core_Manager
         logs_Actions::saveActions();
         logs_Classes::saveActions();
     }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    {
+        $row->brId = logs_Browsers::getLinkFromId($rec->brId);
+    }
 }

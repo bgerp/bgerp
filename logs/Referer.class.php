@@ -110,4 +110,17 @@ class logs_Referer extends core_Manager
         
         return self::save($rec);
     }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    {
+        $row->brId = logs_Browsers::getLinkFromId($rec->brId);
+    }
 }
