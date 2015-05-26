@@ -69,7 +69,7 @@ class logs_Referer extends core_Manager
     public function description()
     {
          $this->FLD('ipId', 'key(mvc=logs_Ips, select=ip)', 'caption=IP');
-         $this->FLD('brId', 'key(mvc=logs_Browsers, select=ip)', 'caption=Браузър');
+         $this->FLD('brId', 'key(mvc=logs_Browsers, select=brid)', 'caption=Браузър');
          $this->FLD('time', 'int', 'caption=Време');
          $this->FLD('ref', 'varchar', 'caption=Реферер');
     }
