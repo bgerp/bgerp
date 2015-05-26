@@ -143,6 +143,12 @@ class planning_ProductionNotes extends deals_ManifactureMaster
 	
 	
 	/**
+	 * Опашка със заданията на които ще инвалидираме, кешираната информация
+	 */
+	protected $invalidateJobsCache = array();
+	
+	
+	/**
 	 * Описание на модела
 	 */
 	function description()
@@ -227,6 +233,47 @@ class planning_ProductionNotes extends deals_ManifactureMaster
 			$state = $origin->fetchField('state');
 			if($state == 'rejected' || $state == 'draft'){
 				$requiredRoles = 'no_one';
+			}
+		}
+	}
+	
+	
+	/**
+	 * Извиква се след успешен запис в модела
+	 *
+	 * @param core_Mvc $mvc
+	 * @param int $id първичния ключ на направения запис
+	 * @param stdClass $rec всички полета, които току-що са били записани
+	 */
+	public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+	{
+		// При активиране/оттегляне
+		if($rec->state == 'active' || $rec->state == 'rejected'){
+			
+			// Обикаляме детайла на произведените артикули
+			$dQuery = planning_ProductionNoteDetails::getQuery();
+			$dQuery->where("#noteId = {$rec->id}");
+			
+			// Запомняме заданията по които са произведени, че трябва кешираните им данни да се инвалидират
+			while($dRec = $dQuery->fetch()){
+				if($dRec->jobId){
+					$mvc->invalidateJobsCache[$dRec->jobId] = $dRec->jobId;
+				}
+			}
+		}
+	}
+	
+	
+	/**
+	 * Изчиства записите, заопашени за запис
+	 */
+	public static function on_Shutdown($mvc)
+	{
+		if(count($mvc->invalidateJobsCache)){
+			foreach ($mvc->invalidateJobsCache as $jobId){
+				
+				// Във заопашените задания обновяваме произведените артикули
+				planning_Jobs::updateProducedQuantity($jobId);
 			}
 		}
 	}

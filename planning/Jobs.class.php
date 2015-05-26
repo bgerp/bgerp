@@ -164,7 +164,7 @@ class planning_Jobs extends core_Master
     	$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'silent,mandatory,caption=Артикул');
     	$this->FLD('dueDate', 'date(smartTime)', 'caption=Падеж,mandatory');
     	$this->FLD('quantity', 'double(decimals=2)', 'caption=Количество,mandatory,silent');
-    	$this->FLD('quantityProduced', 'double', 'input=none,caption=Произведено');
+    	$this->FLD('quantityProduced', 'double(decimals=2)', 'input=none,caption=Произведено,notNull,value=0');
     	$this->FLD('notes', 'richtext(rows=3)', 'caption=Забележки');
     	$this->FLD('tolerance', 'percent', 'caption=Толеранс');
     	$this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Данни от договора->Условие');
@@ -325,7 +325,15 @@ class planning_Jobs extends core_Master
     {
     	$row->title = $mvc->getLink($rec->id, 0);
     	$pInfo = cat_Products::getProductInfo($rec->productId);
-    	$row->quantity .= " " . cat_UoM::getShortName($pInfo->productRec->measureId);
+    	$shortUom = cat_UoM::getShortName($pInfo->productRec->measureId);
+    	
+    	$row->quantity .= " {$shortUom}";
+    	$row->quantityProduced .=  " {$shortUom}";
+    	$quantityToProduce = $rec->quantity - $rec->quantityProduced;
+    	
+    	$row->quantityToProduce = $mvc->getFieldType('quantity')->toVerbal($quantityToProduce);
+    	$row->quantityToProduce .=  " {$shortUom}";
+    	
     	
     	if($fields['-list']){
     		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
@@ -741,5 +749,31 @@ class planning_Jobs extends core_Master
     	if($hideSaleCol){
     		unset($data->listFields['saleId']);
     	}
+    }
+    
+    
+    /**
+     * Преизчисляваме какво количество е произведено по заданието
+     * 
+     * @param int $id - ид на запис
+     * @return void
+     */
+    public static function updateProducedQuantity($id)
+    {
+    	$producedQuantity = 0;
+    	
+    	$prodQuery = planning_ProductionNoteDetails::getQuery();
+    	$prodQuery->EXT('state', 'planning_ProductionNotes', 'externalName=state,externalKey=noteId');
+    	$prodQuery->XPR('totalQuantity', 'double', 'SUM(#quantity)');
+    	$prodQuery->where("#jobId = {$id}");
+    	
+    	$prodQuery->where("#state = 'active'");
+    	$prodQuery->show('totalQuantity');
+    	
+    	$producedQuantity += $prodQuery->fetch()->totalQuantity;
+    	
+    	$jRec = self::fetch($id);
+    	$jRec->quantityProduced = $producedQuantity;
+    	self::save($jRec, quantityProduced);
     }
 }
