@@ -375,17 +375,21 @@ class doc_FolderToPartners extends core_Manager
     	Request::setProtected(array('companyId,fromEmail'));
     	expect($companyId = Request::get('companyId', 'key(mvc=crm_Companies)'));
     	$Users = cls::get('core_Users');
+    	$companyRec = crm_Companies::fetch($companyId);
     	
     	// Ако не сме дошли от имейл, трябва потребителя да има достъп до обекта
     	$fromEmail = Request::get('fromEmail');
     	if(!$fromEmail){
-    		$companyRec = crm_Companies::fetch($companyId);
     		expect(doc_Folders::haveRightToObject($companyRec));
     	}
     	
     	$form = $Users->getForm();
+    	$form->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Държава,mandatory,after=names');
     	$companyName = crm_Companies::getVerbal($companyId, 'name');
     	$form->title = "Създаване на служител на|* <b>{$companyName}</b>";
+    	
+    	$form->setDefault('country', $companyRec->country);
+    	$form->setDefault('country', crm_Companies::fetchOwnCompany()->countryId);
     	
     	// Задаваме дефолтните роли
     	$defRoles = array();
@@ -414,6 +418,7 @@ class doc_FolderToPartners extends core_Manager
     		
     		// Свързваме лицето към фирмата
     		$personRec->buzCompanyId = $companyId;
+    		$personRec->country = $form->rec->country;
     		crm_Persons::save($personRec);
     		
     		$folderId = crm_Companies::forceCoverAndFolder($companyId);
