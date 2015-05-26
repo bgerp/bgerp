@@ -600,7 +600,7 @@ a.button, input[type="button"], input[type="submit"], button {
 	box-shadow: none;
 }
 
-select, input, textarea , .chzn-container-single .chzn-single, .chzn-container-active .chzn-single, .chzn-container-active .chzn-single-with-drop{
+select, input, textarea , .chzn-container-single .chzn-single, .chzn-container-active .chzn-single, .chzn-container-active .chzn-single-with-drop, .staticFormView .formFieldValue{
     border: solid 1px #bbb;
     -moz-border-radius: 2px !important;
 	-webkit-border-radius: 2px !important;
