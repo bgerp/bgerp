@@ -76,7 +76,7 @@ class logs_Data extends core_Manager
     public function description()
     {    
          $this->FLD('ipId', 'key(mvc=logs_Ips, select=ip)', 'caption=Идентификация->IP адрес на потребителя');
-         $this->FLD('brId', 'key(mvc=core_Browser, select=brid)', 'caption=Идентификация->Идентификатор на браузъра на потребителя');
+         $this->FLD('brId', 'key(mvc=logs_Browsers, select=brid)', 'caption=Идентификация->Идентификатор на браузъра на потребителя');
          $this->FLD('userId', 'key(mvc=core_Users)', 'caption=Идентификация->Потребител');
          $this->FLD('time', 'int', 'caption=Време на записа');
          $this->FLD('type', 'enum(emerg,alert,crit,err,warning,notice,info,debug)', 'caption=Данни->Тип на събитието');
