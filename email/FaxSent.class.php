@@ -247,8 +247,8 @@ class email_FaxSent extends core_Manager
         // Списъци с изпратени и проблемни получатели
         $success  = $failure = array();
         
-        // Инстанция на log_Documents за да работи on_Shutdown
-        cls::get('log_Documents');
+        // Инстанция на doclog_Documents за да работи on_Shutdown
+        cls::get('doclog_Documents');
         
         // Обхождаме масива
         foreach ($faxToArr as $faxToA) {
@@ -260,11 +260,11 @@ class email_FaxSent extends core_Manager
             $originalFaxTo = $faxToA['original'];
             
             // Пушваме екшъна
-            log_Documents::pushAction(
+            doclog_Documents::pushAction(
                 array(
                     'containerId' => $rec->containerId,
                     'threadId'    => $rec->threadId,
-                    'action'      => log_Documents::ACTION_FAX, 
+                    'action'      => doclog_Documents::ACTION_FAX, 
                     'data'        => (object)array(
                         'service' => $service,
                         'faxTo'   => $originalFaxTo,
