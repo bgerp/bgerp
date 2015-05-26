@@ -130,23 +130,6 @@ class plg_TreeObject extends core_Plugin
 	
 	
 	/**
-	 * Връща Пълното заглавие на обекта с бащите му преди името му
-	 */
-	private static function getFullTitle($me, $id)
-	{
-		$parent = $me->fetchField($id, $me->parentFieldName);
-		$title = $me->getVerbal($id, $me->nameField);
-		
-		while($parent && ($pRec = $me->fetch($parent, "{$me->parentFieldName},{$me->nameField}"))) {
-			$title = $pRec->{$me->nameField} . ' » ' . $title;
-			$parent = $pRec->{$me->parentFieldName};
-		}
-		
-		return $title;
-	}
-	
-	
-	/**
 	 * Подготвя вербалното име на опциите по нов по азбучен ред и с подробното им име
 	 * 
 	 * @param core_Mvc $mvc
@@ -156,7 +139,7 @@ class plg_TreeObject extends core_Plugin
 	{
 		if(count($options)){
 			foreach ($options as $id => &$title){
-				$title = self::getFullTitle($mvc, $id);
+				$title = $mvc->getVerbal($id, $mvc->nameField);
 			}
 		}
 		
@@ -428,6 +411,26 @@ class plg_TreeObject extends core_Plugin
 			if($mvc->fetch("#{$mvc->parentFieldName} = {$rec->id}")){
 				$requiredRoles = 'no_one';
 			}
+		}
+	}
+	
+	
+	/**
+	 * След като е готово вербалното представяне
+	 */
+	public static function on_AfterGetVerbal($mvc, &$num, $rec, $part)
+	{
+		if($part == $mvc->nameField){
+			
+			$parent = $mvc->fetchField($rec->id, $mvc->parentFieldName);
+			$title = $num;
+			
+			while($parent && ($pRec = $mvc->fetch($parent, "{$mvc->parentFieldName},{$mvc->nameField}"))) {
+				$title = $pRec->{$mvc->nameField} . ' » ' . $title;
+				$parent = $pRec->{$mvc->parentFieldName};
+			}
+			
+			$num = $title;
 		}
 	}
 }
