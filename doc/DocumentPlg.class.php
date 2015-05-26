@@ -80,13 +80,13 @@ class doc_DocumentPlg extends core_Plugin
             $mvc->details = arr::make($mvc->details);
             
             // Детайлите
-            $mvc->details['Send'] = 'log_Documents';
-            $mvc->details['Open'] = 'log_Documents';
-            $mvc->details['Download'] = 'log_Documents';
-            $mvc->details['Forward'] = 'log_Documents';
-            $mvc->details['Print'] = 'log_Documents';
-            $mvc->details['Changed'] = 'log_Documents';
-            $mvc->details['Used'] = 'log_Documents';
+            $mvc->details['Send'] = 'doclog_Documents';
+            $mvc->details['Open'] = 'doclog_Documents';
+            $mvc->details['Download'] = 'doclog_Documents';
+            $mvc->details['Forward'] = 'doclog_Documents';
+            $mvc->details['Print'] = 'doclog_Documents';
+            $mvc->details['Changed'] = 'doclog_Documents';
+            $mvc->details['Used'] = 'doclog_Documents';
         }
         
         // Дали могат да се принтират оттеглените документи
@@ -140,9 +140,9 @@ class doc_DocumentPlg extends core_Plugin
     function on_BeforePrepareSingle($mvc, &$res, $data)
     {
         if (Request::get('Printing') && empty($data->__MID__)) {
-            $data->__MID__ = log_Documents::saveAction(
+            $data->__MID__ = doclog_Documents::saveAction(
                 array(
-                    'action'      => log_Documents::ACTION_PRINT, 
+                    'action'      => doclog_Documents::ACTION_PRINT, 
                     'containerId' => $data->rec->containerId,
                 )
             );
@@ -412,7 +412,7 @@ class doc_DocumentPlg extends core_Plugin
         if($rec->state == 'active' || $rec->state == 'rejected'){
         	$usedDocuments = $mvc->getUsedDocs($rec->id);
 	    	if(count($usedDocuments)){
-	    		$Log = cls::get('log_Documents');
+	    		$Log = cls::get('doclog_Documents');
 	    		foreach($usedDocuments as $used){
 	    			if($rec->state == 'rejected'){
 	    				$Log::cancelUsed($used->class, $used->id, $mvc, $rec->id);
@@ -568,10 +568,10 @@ class doc_DocumentPlg extends core_Plugin
                     }
                    
                     // Ако има страница на документа
-                    if ($P = Request::get('P_log_Documents')) {
+                    if ($P = Request::get('P_doclog_Documents')) {
                         
                         // Добавяме страницата
-                        $url['P_log_Documents'] = $P;
+                        $url['P_doclog_Documents'] = $P;
                     }
                     
                     if($nid = Request::get('Nid', 'int')) {
@@ -1375,15 +1375,15 @@ class doc_DocumentPlg extends core_Plugin
         
         // MID се генерира само ако :
         //     o подготвяме документа за изпращане навън - !Mode::is('text', 'html')
-        //     o има зададен екшън - log_Documents::hasAction()
-        if (!Mode::is('text', 'html') && log_Documents::hasAction()) {
+        //     o има зададен екшън - doclog_Documents::hasAction()
+        if (!Mode::is('text', 'html') && doclog_Documents::hasAction()) {
             if (!isset($options->rec->__mid)) {
                 
                 // Ако няма стойност
                 if (!isset($data->__MID__)) {
                     
                     // Тогава да се запише нов екшън
-                    $data->__MID__ = log_Documents::saveAction(
+                    $data->__MID__ = doclog_Documents::saveAction(
                         array('containerId' => $data->rec->containerId)
                     );    
                 }
@@ -1751,9 +1751,9 @@ class doc_DocumentPlg extends core_Plugin
         
         switch (strtolower($type)) {
             case 'pdf':
-                log_Documents::pushAction(
+                doclog_Documents::pushAction(
                     array(
-                        'action' => log_Documents::ACTION_PDF,
+                        'action' => doclog_Documents::ACTION_PDF,
                         'containerId' => $mvc->getContainer($id)->id,
                         'data'        => (object)array(
                             'sendedBy'   => core_Users::getCurrent(),
@@ -1767,7 +1767,7 @@ class doc_DocumentPlg extends core_Plugin
                 
                 Mode::pop('pdf');
 
-                log_Documents::popAction();
+                doclog_Documents::popAction();
                 
                 //Манипулатора на новосъздадения pdf файл
                 $fileHnd = doc_PdfCreator::convert($html, $fileName);
@@ -1999,7 +1999,7 @@ class doc_DocumentPlg extends core_Plugin
     function on_AfterSaveLogChange($mvc, $recsArr)
     {
         // Отбелязване в лога
-        log_Documents::changed($recsArr);
+        doclog_Documents::changed($recsArr);
     }
     
     
