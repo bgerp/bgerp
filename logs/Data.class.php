@@ -186,5 +186,10 @@ class logs_Data extends core_Manager
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
         $row->brId = logs_Browsers::getLinkFromId($rec->brId);
+        
+        if ($rec->time) {
+            $time = dt::timestamp2Mysql($rec->time);
+            $row->time = dt::mysql2verbal($time, 'smartTime');
+        }
     }
 }
