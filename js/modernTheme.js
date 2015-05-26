@@ -188,13 +188,13 @@ function scrollToElem(docId) {
  * */
 function scrollToHash(){
 	var hash = window.location.hash;
-	if(hash) {
-		setTimeout(function() {
+	if($(hash).length) {
+        setTimeout(function() {
 			var scrollTo = $(hash).offset().top - 70;
 			if (scrollTo < 400) {
 				scrollTo = 0;
 			}
 			$('html, body').scrollTop(scrollTo, 0);
-		}, 1);	  
+		}, 1);
 	}
 }
