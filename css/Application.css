@@ -369,6 +369,7 @@ div.folder-cover {
     padding: 5px 10px 10px 10px; }
 
 .noheader .listTable {
+  width: 100%;
   border-top: none; }
   .noheader .listTable th {
     display: none; }
