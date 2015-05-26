@@ -270,7 +270,7 @@ class support_Issues extends core_Master
         $rec = &$form->rec;
         
         if(!haveRole('user')) {
-            $brid = core_Browser::getBrid(FALSE);
+            $brid = logs_Browsers::getBrid(FALSE);
             if($brid) {
                 $query = $this->getQuery();
                 $query->limit = 1;
@@ -296,7 +296,7 @@ class support_Issues extends core_Master
             
             if(!haveRole('powerUser')) {
                 $rec->ip   = core_Users::getRealIpAddr();
-                $rec->brid = core_Browser::getBrid();
+                $rec->brid = logs_Browsers::getBrid();
             }
     		
     		if(empty($rec->folderId)){
@@ -315,7 +315,7 @@ class support_Issues extends core_Master
     			// Ако няма потребител, записваме в бисквитка ид-то на последното запитване
     			if(!$cu){
     				$userData = array('name' => $rec->name, 'email' => $rec->email);
-    				core_Browser::setVars($userData);
+    				logs_Browsers::setVars($userData);
     			}
     			
     			status_Messages::newStatus(tr('Благодарим ви за сигнала'), 'success');
@@ -351,7 +351,7 @@ class support_Issues extends core_Master
      */
     static function on_AfterrecToVerbal($mvc, $row, $rec, $fields = array()) 
     {
-        $row->brid = core_Browser::getLink($rec->brid);
+        $row->brid = logs_Browsers::getLink($rec->brid);
     }
     
     
