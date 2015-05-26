@@ -155,7 +155,7 @@ class vislog_History extends core_Manager {
         if(!$rec->ip) $rec->ip = $_SERVER['REMOTE_ADDR'];
         
         if(!$rec->brid) {
-            $rec->brid = core_Browser::getBrid();
+            $rec->brid = logs_Browsers::getBrid();
         }
         
         // Съкращаваме заявката, ако е необходимо
@@ -204,7 +204,7 @@ class vislog_History extends core_Manager {
             $row->HistoryResourceId .= "<br><span style='font-size:0.6em;'>{$ref}</span>";
         }
 
-        $row->brid = core_Browser::getLink($rec->brid);
+        $row->brid = logs_Browsers::getLink($rec->brid);
     }
 }
 
