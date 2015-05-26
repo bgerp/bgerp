@@ -275,7 +275,7 @@ class doc_Containers extends core_Manager
             // визуализиране на обобщена информация от лога
         }
         
-        $row->created->append(log_Documents::getSummary($rec->id, $rec->threadId), 'HISTORY');
+        $row->created->append(doclog_Documents::getSummary($rec->id, $rec->threadId), 'HISTORY');
 
         if(Mode::is('screenMode', 'narrow')) {
             $row->document = new ET($row->document); 
