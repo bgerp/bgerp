@@ -145,7 +145,7 @@ class core_LoginLog extends core_Manager
         $rec->userId = $userId;
         $rec->ip = core_Users::getRealIpAddr();
         $rec->status = $status;
-        $rec->brid = core_Browser::getBrid();
+        $rec->brid = logs_Browsers::getBrid();
         $rec->timestamp = $time;
         
         static::save($rec);
@@ -224,7 +224,7 @@ class core_LoginLog extends core_Manager
      */
     public static function isLoggedBefore($ip = NULL)
     {
-        $brid = core_Browser::getBrid();
+        $brid = logs_Browsers::getBrid();
         
         $query = self::getQuery();
         $query->where(array("#brid = '[#1#]'", $brid));
@@ -250,7 +250,7 @@ class core_LoginLog extends core_Manager
     static function getUserIdForAutocomplete()
     {
         // id на браузъра
-        $brid = core_Browser::getBrid(FALSE);
+        $brid = logs_Browsers::getBrid(FALSE);
         
         // Ако няма записано
         if (!$brid) return FALSE;
@@ -314,7 +314,7 @@ class core_LoginLog extends core_Manager
         }
         
         // Идентификатор на браузъра
-        $brid = core_Browser::getBrid();
+        $brid = logs_Browsers::getBrid();
         
         $conf = core_Packs::getConfig('core');
         
@@ -360,7 +360,7 @@ class core_LoginLog extends core_Manager
         }
         
         // Идентификатор на браузъра
-        $brid = core_Browser::getBrid();
+        $brid = logs_Browsers::getBrid();
         
         $conf = core_Packs::getConfig('core');
         
@@ -411,7 +411,7 @@ class core_LoginLog extends core_Manager
         $resArr = array();
         
         // Идентификатор на браузъра
-        $brid = core_Browser::getBrid();
+        $brid = logs_Browsers::getBrid();
         
         $conf = core_Packs::getConfig('core');
         
@@ -536,7 +536,7 @@ class core_LoginLog extends core_Manager
     	}
     	
     	// Оцветяваме BRID
-    	$row->brid = core_Browser::getLink($rec->brid);
+    	$row->brid = logs_Browsers::getLink($rec->brid);
     	
         if ($rec->ip) {
         	// Декорираме IP-то
