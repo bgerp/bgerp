@@ -7,12 +7,12 @@
  *
  * @category  bgerp
  * @package   log
- * @author    Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @author    Yusein Yuseinov <yyuseinov@gmail.com>
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class log_Setup extends core_ProtoSetup
+class doclog_Setup extends core_ProtoSetup
 {
     
     
@@ -25,7 +25,7 @@ class log_Setup extends core_ProtoSetup
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = 'log_Documents';
+    var $startCtr = 'doclog_Documents';
     
     
     /**
@@ -44,7 +44,7 @@ class log_Setup extends core_ProtoSetup
      * 
      */
     public $managers = array(
-            'log_Documents',
-            'log_Files',
+            'doclog_Documents',
+            'doclog_Files',
         );
 }
