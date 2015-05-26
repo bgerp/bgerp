@@ -419,6 +419,7 @@ class doc_FolderToPartners extends core_Manager
     		// Свързваме лицето към фирмата
     		$personRec->buzCompanyId = $companyId;
     		$personRec->country = $form->rec->country;
+    		$personRec->inCharge = $companyRec->inCharge;
     		crm_Persons::save($personRec);
     		
     		$folderId = crm_Companies::forceCoverAndFolder($companyId);
