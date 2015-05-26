@@ -104,7 +104,11 @@ class doc_FolderToPartners extends core_Manager
 		$options = array();
 		
 		while ($uRec = $uQuery->fetch()){
-			if(!static::fetch("#folderId = {$folderId} && #contractorId = {$uRec->id}")){
+			if($folderId){
+				if(!static::fetch("#folderId = {$folderId} && #contractorId = {$uRec->id}")){
+					$options[$uRec->id] = $uRec->names;
+				} 
+			} else {
 				$options[$uRec->id] = $uRec->names;
 			}
 		}
@@ -157,12 +161,14 @@ class doc_FolderToPartners extends core_Manager
     			$cover = doc_Folders::getCover($rec->folderId);
     			if(!$cover->haveInterface('crm_ContragentAccRegIntf')){
     				$requiredRoles = 'no_one';
+    			} else {
+    				// Ако не могат да бъдат избрани контрактори, не може да се добави запис
+    				$contractors = self::getContractorOptions($rec->folderId);
+    				if(!count($contractors)){
+    					$requiredRoles = 'no_one';
+    				}
     			}
-    		}
-    		
-    		// Ако не могат да бъдат избрани контрактори, не може да се добави запис
-    		$contractors = self::getContractorOptions($rec->folderId);
-    		if(!count($contractors)){
+    		} else {
     			$requiredRoles = 'no_one';
     		}
     	}
@@ -222,7 +228,7 @@ class doc_FolderToPartners extends core_Manager
 		
 		// Добавяме бутон за свързване на папка с партньор, ако имаме права
 		if($me->haveRightFor('add', (object)array('folderId' => $folderId))){
-			$ht = ht::createBtn('Свързване', array($me, 'add', 'folderId' => $folderId, 'ret_url' => TRUE), FALSE, FALSE, 'ef_icon=img/16/disk.png');
+			$ht = ht::createBtn('Свързване', array($me, 'add', 'folderId' => $folderId, 'ret_url' => TRUE), FALSE, FALSE, 'ef_icon=img/16/disk.png,title=Свързване на контрактор към папката');
 			$btns->append($ht);
 		}
 		
@@ -231,13 +237,13 @@ class doc_FolderToPartners extends core_Manager
 			Request::setProtected(array('companyId'));
 			
 			// Добавяме бутон за създаването на нов партньор, визитка и профил
-			$ht = ht::createBtn('Нов', array($me, 'createNewContractor', 'companyId' => $data->masterId, 'ret_url' => TRUE), FALSE, FALSE, 'ef_icon=img/16/star_2.png');
+			$ht = ht::createBtn('Нов', array($me, 'createNewContractor', 'companyId' => $data->masterId, 'ret_url' => TRUE), FALSE, FALSE, 'ef_icon=img/16/star_2.png,title=Създаване на нов контрактор');
 			$btns->append($ht);
 			
 			// Ако фирмата има имейли и имаме имейл кутия, слагаме бутон за изпращане на имейл за регистрация
 			if($data->masterData->rec->email && email_Inboxes::count()){
 				Request::setProtected(array('companyId'));
-				$ht = ht::createBtn('Имейл', array($me, 'sendRegisteredEmail', 'companyId' => $data->masterId, 'ret_url' => TRUE), FALSE, FALSE, 'ef_icon=img/16/star_2.png');
+				$ht = ht::createBtn('Имейл', array($me, 'sendRegisteredEmail', 'companyId' => $data->masterId, 'ret_url' => TRUE), FALSE, FALSE, 'ef_icon=img/16/star_2.png,title=Изпращане на имейл за регистрация на контрактори към фирмата');
 				$btns->append($ht);
 			}
 		}
@@ -278,7 +284,7 @@ class doc_FolderToPartners extends core_Manager
     	$form->title = "Изпращане на имейл за регистрация на партньори в|* <b>{$companyName}</b>";
     	
     	$form->FLD('to', 'emails', 'caption=До имейл, width=100%, silent,mandatory');
-    	$form->FLD('from', 'key(mvc=email_Inboxes,select=email,allowEmpty)', 'caption=От имейл, width=100%, silent,mandatory');
+    	$form->FLD('from', 'key(mvc=email_Inboxes,select=email,allowEmpty)', 'caption=От имейл, width=100%, silent,mandatory, optionsFunc=email_Inboxes::getAllowedFromEmailOptions');
     	$form->FLD('subject', 'varchar', 'caption=Относно,mandatory,width=100%');
     	$form->FLD('body', 'richtext(rows=15,bucket=Postings, appendQuote)', 'caption=Съобщение,mandatory');
     	$form->setDefault('to', $companyRec->email);
@@ -409,7 +415,9 @@ class doc_FolderToPartners extends core_Manager
     		// Свързваме лицето към фирмата
     		$personRec->buzCompanyId = $companyId;
     		crm_Persons::save($personRec);
-    		static::save((object)array('contractorId' => $uId, 'folderId' => crm_Companies::fetchField($companyId, 'folderId')));
+    		
+    		$folderId = crm_Companies::forceCoverAndFolder($companyId);
+    		static::save((object)array('contractorId' => $uId, 'folderId' => $folderId));
     		
     		return followRetUrl(NULL, 'Успешно са създадени потребител и визитка на нов партньор');
     	}
