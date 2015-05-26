@@ -459,9 +459,8 @@ class acc_ActiveShortBalance {
     	$blQuantity = (count($history)) ? $lastArr['blQuantity'] : $calcedBalance[$indexArr]['blQuantity'];
     	$blAmount = (count($history)) ? $lastArr['blAmount'] : $calcedBalance[$indexArr]['blAmount'];
     	
-    	
     	$summary = array('baseQuantity'   => $calcedBalance[$indexArr]['baseQuantity'], 
-    					 'baseAmount'     => $calcedBalance[$indexArr]['baseQuantity'], 
+    					 'baseAmount'     => $calcedBalance[$indexArr]['baseAmount'], 
     					 'creditQuantity' => $creditQuantity, 
     					 'creditAmount'   => $creditAmount, 
     					 'debitQuantity'  => $debitQuantity, 
