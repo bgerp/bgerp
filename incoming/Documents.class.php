@@ -171,7 +171,7 @@ class incoming_Documents extends core_Master
      */
     static function on_AfterRenderSingleLayout($mvc, &$tpl, &$data)
     {
-        // $tpl->replace(log_Documents::getSharingHistory($data->rec->containerId, $data->rec->threadId), 'shareLog');
+        // $tpl->replace(doclog_Documents::getSharingHistory($data->rec->containerId, $data->rec->threadId), 'shareLog');
     }
     
     
@@ -218,7 +218,7 @@ class incoming_Documents extends core_Master
                     foreach ($barcodesArrPage as $barcodeObj) {
                         
                         // Вземаме cid'a на баркода
-                        $cid = log_Documents::getDocumentCidFromURL($barcodeObj->code);
+                        $cid = doclog_Documents::getDocumentCidFromURL($barcodeObj->code);
                         
                         // Ако не може да се намери cid, прескачаме
                         if (!$cid) continue;
