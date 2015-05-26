@@ -138,12 +138,12 @@ class bgerp_L extends core_Manager
             
             // Вземаме манипулатора на записа от този модел (bgerp_L)
             expect($mid = Request::get('m'));
-            expect(log_Documents::opened($cid, $mid));
+            expect(doclog_Documents::opened($cid, $mid));
             
             // Трасираме стека с действията докато намерим SEND екшън
             $i = 0;
             
-            while ($action = log_Documents::getAction($i--)) {
+            while ($action = doclog_Documents::getAction($i--)) {
                 
                 $options = (array)$action->data;
                 
@@ -154,7 +154,7 @@ class bgerp_L extends core_Manager
                 
                 // Ако е принтиран
                 // TODO ще се оправи
-                if ($action->action == log_Documents::ACTION_PRINT) {
+                if ($action->action == doclog_Documents::ACTION_PRINT) {
                     $options['__toListId'] = $action->data->toListId;
                     
                     if ($action->createdBy > 0 && !$options['__userId']) {
@@ -163,7 +163,7 @@ class bgerp_L extends core_Manager
                 }
                 
                 // Ако е изпратен
-                if ($action->action == log_Documents::ACTION_SEND) {
+                if ($action->action == doclog_Documents::ACTION_SEND) {
                     
                     $activatedBy = $action->createdBy;
                     
@@ -272,7 +272,7 @@ class bgerp_L extends core_Manager
         $ip = core_Users::getRealIpAddr();
         
         // При отваряне на имейла от получателя, отбелязваме като видян.
-        if ($mid) log_Documents::received($mid, NULL, $ip);
+        if ($mid) doclog_Documents::received($mid, NULL, $ip);
         
         $docUrl = static::getDocLink($cid, $mid);
         
