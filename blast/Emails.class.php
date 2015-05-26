@@ -1145,7 +1145,7 @@ class blast_Emails extends core_Master
         $tpl = new ET("<div class='unsubscribe'> [#text#] </div>");
         
         //Проверяваме дали има такъв имейл
-        if (!($hRec = log_Documents::fetchHistoryFor($cid, $mid))) {
+        if (!($hRec = doclog_Documents::fetchHistoryFor($cid, $mid))) {
             
             //Съобщение за грешка, ако няма такъв имейл
             $tpl->append("<p>" . tr($conf->BGERP_BLAST_NO_MAIL) . "</p>", 'text');
