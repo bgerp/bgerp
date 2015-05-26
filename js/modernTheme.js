@@ -26,7 +26,7 @@ function initSidebars() {
 	
 	if($('body').hasClass('narrow') && viewportWidth <= 800){
 		$('.narrow .sidemenu-push #framecontentTop').css('width', viewportWidth);
-		$('.narrow .sidemenu-push .tab-row').css('width', viewportWidth);
+		$('.narrow .sidemenu-push #maincontent > .tab-control > .tab-row').css('width', viewportWidth);
 		$('.narrow .sidemenu-push #maincontent').css('width', viewportWidth -1);
 	}
 }
