@@ -71,8 +71,10 @@ class planning_transaction_ProductionNote extends acc_DocumentTransactionSource
 		$dQuery->where("#noteId = {$rec->id}");
 		
 		$errorArr = array();
+		
 		while($dRec = $dQuery->fetch()){
-	
+			unset($entry);
+			
 			if(isset($dRec->bomId)){
 					
 			if(empty($dRec->jobId)) return FALSE;
