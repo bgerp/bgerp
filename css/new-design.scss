@@ -726,7 +726,7 @@ input[type="button"].more-btn {
 div.tab-control.alphabet div.tab-row .tab{
 	float: left;
 	background: #F5F5F5;
-	padding: 4px 5px;
+    padding: 4px 5px;
 	-moz-border-radius: 10px;
 	-webkit-border-radius: 10px;
 	border-radius: 4px;
@@ -748,6 +748,13 @@ div.tab-control.alphabet div.tab-row .tab{
 	   width: 10px !important;
 	   height: 10px !important;
 	}
+}
+
+.narrow div.tab-control.alphabet div.tab-row .tab {
+    padding: 4px 5px !important;
+    &.selected {
+        top: 0;
+    }
 }
 
 td.keylist-group > div {

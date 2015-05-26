@@ -709,6 +709,11 @@ div.tab-control.alphabet div.tab-row .tab {
     width: 10px !important;
     height: 10px !important; }
 
+.narrow div.tab-control.alphabet div.tab-row .tab {
+  padding: 4px 5px !important; }
+  .narrow div.tab-control.alphabet div.tab-row .tab.selected {
+    top: 0; }
+
 td.keylist-group > div {
   background-color: #dddddd;
   border: 1px solid #cccccc; }
