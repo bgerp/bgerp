@@ -368,6 +368,8 @@ div.folder-cover {
   div.folder-cover .top-tab-content {
     padding: 5px 10px 10px 10px; }
 
+.noheader .listTable {
+  border-top: none; }
   .noheader .listTable th {
     display: none; }
   .noheader .listTable tbody tr:first-child td {

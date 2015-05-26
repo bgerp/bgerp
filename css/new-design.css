@@ -584,7 +584,8 @@ input,
 textarea,
 .chzn-container-single .chzn-single,
 .chzn-container-active .chzn-single,
-.chzn-container-active .chzn-single-with-drop {
+.chzn-container-active .chzn-single-with-drop,
+.staticFormView .formFieldValue {
   border: solid 1px #bbbbbb;
   -moz-border-radius: 2px !important;
   -webkit-border-radius: 2px !important;
