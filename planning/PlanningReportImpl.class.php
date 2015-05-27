@@ -288,7 +288,9 @@ class planning_PlanningReportImpl extends frame_BaseDriver
             [#FORM#]
             
     		[#PAGER#]
+    		<div class='overflow-scroll'>
             [#PRODUCTS#]
+    	    </div>
     		[#PAGER#]
         "
     	);
