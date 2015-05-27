@@ -270,13 +270,13 @@ class core_DateTime
         $time = strtotime($mysqlDate);
         
         $conf = core_Packs::getConfig('core');
-        //
+        $timeZoneDiff = 0;
         if ($conf->EF_DATE_USE_TIMEOFFSET == 'yes') {
             $timeZoneDiff = self::getTimezoneDiff();
             
             $time -= $timeZoneDiff;
         }
-        $timeZoneDiff = 3600;
+        
         $year = date('y', $time);
         $yearNow = date('y', time());
         
