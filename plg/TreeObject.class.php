@@ -422,6 +422,8 @@ class plg_TreeObject extends core_Plugin
 	{
 		if($part == $mvc->nameField){
 			
+		    if (!$rec->id) return ;
+		    
 			$parent = $mvc->fetchField($rec->id, $mvc->parentFieldName);
 			$title = $num;
 			
