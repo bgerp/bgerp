@@ -106,12 +106,12 @@ class planning_PlanningReportImpl extends frame_BaseDriver
     	$data->catCnt = array();
     	$data->jobCnt = array();
         $data->rec = $this->innerForm;
-       
+       //bp($this->innerForm->from );
         $query = sales_Sales::getQuery();
         $queryJob = planning_Jobs::getQuery();
         
-        $query->where("#state = 'active'");
-        $queryJob->where("#state = 'active'");
+        $query->where("#state = 'active' AND (#createdOn >= '{$this->innerForm->from}' AND #createdOn <= '{$this->innerForm->to}')");
+        $queryJob->where("#state = 'active' AND (#createdOn >= '{$this->innerForm->from}' AND #createdOn <= '{$this->innerForm->to}')");
         
         // за всеки един активен договор за продажба
         while($rec = $query->fetch()) {
