@@ -32,6 +32,12 @@ var formIsShowed = false;
 
 
 /**
+ * Изчакване преди стартиране за показване в съответния хит, sec
+ */
+var delayBeforeOpenInHit = [#delayBeforeOpenInHit#];
+
+
+/**
  * Изчакване преди показване, sec
  */
 var delayBeforeOpen = [#delayBeforeOpen#];
@@ -59,11 +65,13 @@ function startProcessing()
 		setCookie(nlst, 365);
 	}
 	
-	// Гледа за позицията на мишката
-	this.startWatchingPos();
-	
-	// Стартира следенето на скролирането
-	this.startWatchingScroll();
+	setTimeout(function() {
+		// Гледа за позицията на мишката
+		this.startWatchingPos();
+		
+		// Стартира следенето на скролирането
+		this.startWatchingScroll();
+	}, delayBeforeOpenInHit * 1000);
 }
 
 

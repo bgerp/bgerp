@@ -140,6 +140,7 @@ class marketing_Bulletins extends core_Master
         $this->FLD('submitBtnVal', 'varchar(128)', 'caption=Текстове на бутони->За абониране');
         $this->FLD('cancelBtnVal', 'varchar(128)', 'caption=Текстове на бутони->За отказ');
         
+        $this->FLD('delayBeforeOpenInHit', 'time(suggestions=3 сек.|5 сек.|10 сек.)', 'caption=Времена за изчакване->Преди показване в хита, notNull');
         $this->FLD('delayBeforeOpen', 'time(suggestions=1 мин.|2 мин.|5 мин.)', 'caption=Времена за изчакване->Преди показване, oldFieldName=waitBeforeStart, notNull');
         $this->FLD('delayAfterClose', 'time(suggestions=30 мин.|1 часа|3 часа)', 'caption=Времена за изчакване->След затваряне, oldFieldName=showAgainAfter, notNull');
         
@@ -329,6 +330,7 @@ class marketing_Bulletins extends core_Master
         
         $jsTpl->replace($bRec->delayAfterClose, 'delayAfterClose');        
         $jsTpl->replace($bRec->delayBeforeOpen, 'delayBeforeOpen');        
+        $jsTpl->replace($bRec->delayBeforeOpenInHit, 'delayBeforeOpenInHit');        
         
         // Заглавие на формата
         // Пушваме `xhtml` за да направим линковете абсолютни
@@ -645,6 +647,7 @@ class marketing_Bulletins extends core_Master
         $form->setDefault('showFormBtn', tr('Абонамент за новости'));
         $form->setDefault('submitBtnVal', tr('Абонирам се за бюлетина'));
         $form->setDefault('cancelBtnVal', tr('Не, благодаря'));
+        $form->setDefault('delayBeforeOpenInHit', '5'); // 5 секунди
         $form->setDefault('delayAfterClose', '3600'); // 1 часа
         $form->setDefault('delayBeforeOpen', '60'); // 1 мин
         $form->setDefault('lg', core_Lg::getCurrent());

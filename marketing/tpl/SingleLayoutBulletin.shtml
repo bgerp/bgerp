@@ -85,6 +85,11 @@
             <legend class="groupTitle">|Времена за изчакване|*</legend>
             <div class="groupList">
                 <ul>
+                	<!--ET_BEGIN delayBeforeOpenInHit-->
+                    <li class="info">
+                        <span class="gray-title">|Преди показване в хита|*:</span> [#delayBeforeOpenInHit#]
+                    </li>
+                    <!--ET_END delayBeforeOpenInHit-->
                     <!--ET_BEGIN delayBeforeOpen-->
                     <li class="info">
                         <span class="gray-title">|Преди показване|*:</span> [#delayBeforeOpen#]
