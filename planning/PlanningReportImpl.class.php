@@ -305,12 +305,12 @@ class planning_PlanningReportImpl extends frame_BaseDriver
     	$f->FLD('quantityDelivered', 'int', 'caption=Продажба->доставено');
     	$f->FLD('quantityToDeliver', 'int', 'caption=Продажба->за доставяне');
     	$f->FLD('dateSale', 'date', 'caption=Продажба->дата');
-    	$f->FLD('sales', 'varchar', 'caption=По продажба');
+    	$f->FLD('sales', 'richtext', 'caption=По продажба');
     	$f->FLD('quantityJob', 'int', 'caption=Производство->поръчано');
     	$f->FLD('quantityProduced', 'int', 'caption=Производство->произведено');
     	$f->FLD('quantityToProduced', 'int', 'caption=Производство->за производство');
     	$f->FLD('date', 'date', 'caption=Продажба->дата');
-    	$f->FLD('jobs', 'varchar', 'caption=По задание');
+    	$f->FLD('jobs', 'richtext', 'caption=По задание');
     	
     	
     	$rows = array();
@@ -318,38 +318,50 @@ class planning_PlanningReportImpl extends frame_BaseDriver
     	$ft = $f->fields;
         $varcharType = $ft['id']->type;
         $intType = $ft['quantityToDeliver']->type;
+        $tichtextType = $ft['sales']->type;
+        $dateType = $ft['date']->type;
         
     	foreach ($data->catCnt as $cat) {
 
     		//if(!$pager->isOnPage()) continue;
     		
-    		$toDeliver = abs($cat->quantityDelivered - $cat->quantity);
-    		$toProduced = abs($cat->quantityProduced - $cat->quantityJob);
+    		if ($cat->quantityDelivered && $cat->quantity) {
+    			$toDeliver = abs($cat->quantityDelivered - $cat->quantity);
+    		} else {
+    			$toDeliver = '';
+    		}
+    		
+    		if ($cat->quantityProduced && $cat->quantityJob) {
+    			$toProduced = abs($cat->quantityProduced - $cat->quantityJob);
+    		} else {
+    			$toProduced = '';
+    		}
+    		
     		$row = new stdClass();
-    		
-    		
-    		$row->id = $varcharType->toVerbal($cat->id);
+
+    		$row->id = cat_Products::getShortHyperlink($cat->id);
     		$row->quantity = $intType->toVerbal($cat->quantity);
     		$row->quantityDelivered = $intType->toVerbal($cat->quantityDelivered);
     		$row->quantityToDeliver = $intType->toVerbal($toDeliver);
-    		$row->dateSale = $cat->dateSale;
+    		$row->dateSale = $dateType->toVerbal($cat->dateSale);
     		
-    		for($i = 0; $i <= count($cat->sales); $i++) {
+    		for($i = 0; $i <= count($cat->sales)-1; $i++) {
 
-    			$row->sales .= $cat->sales[$i] .",";
+    			$row->sales .= "#".sales_Sales::getHandle($cat->sales[$i]) .",";
     		}
+    		$row->sales = $tichtextType->toVerbal(substr($row->sales, 0, -1));
     		
     		$row->quantityJob = $intType->toVerbal($cat->quantityJob);
     		$row->quantityProduced = $intType->toVerbal($cat->quantityProduced);
     		$row->quantityToProduced = $intType->toVerbal($toProduced);
-    		$row->date = $cat->date;
+    		$row->date = $dateType->toVerbal($cat->date);
     		
-    		for($j = 0; $j <= count($cat->jobs); $j++) { 
+    		for($j = 0; $j <= count($cat->jobs)-1; $j++) { 
 
-    			$row->jobs .= $cat->jobs[$j] .",";
-    			 
+    			$row->jobs .= "#".planning_Jobs::getHandle($cat->jobs[$j]) .","; 
     		}
-
+			$row->jobs = $tichtextType->toVerbal(substr($row->jobs, 0, -1));
+    		
     		$rows[] = $row;
 
     	}
