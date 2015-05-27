@@ -128,15 +128,6 @@ class doc_FolderPlg extends core_Plugin
         				'warning' => "Наистина ли желаете да създадетe папка за документи към|* \"{$title}\"?",
         		), array('ef_icon' => 'img/16/folder_new.png', 'title' => "Създаване на папка за документи към {$title}"));
         	}
-        	
-        	$currUrl = getCurrentUrl();
-        	
-        	if($mvc->haveRightFor('single', $data->rec) && $currUrl['Act'] == 'single' && $mvc->haveRightFor('write', $data->rec) && doc_Folders::haveRightToObject($data->rec)){
-        		$title = $mvc->getFolderTitle($data->rec->id);
-        		$data->toolbar->addBtn('Папка', array($mvc, 'createFolder', $data->rec->id), array(
-        				'warning' => "Наистина ли желаете да създадетe папка за документи към|* \"{$title}\"?",
-        		), array('ef_icon' => 'img/16/folder_new.png', 'title' => "Създаване на папка за документи към {$title}"));
-        	}
         }
     }
 
