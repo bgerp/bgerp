@@ -20,55 +20,55 @@ class doc_FolderToPartners extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, doc_Wrapper, plg_RowTools';
+    public $loadList = 'plg_Created, doc_Wrapper, plg_RowTools';
     
     
      /**
      * Кой може да го разглежда?
      */
-    var $canList = 'debug';
+    public $canList = 'debug';
     
     
     /**
      * Кой може да пише
      */
-    var $canWrite = 'officer';
+    public $canWrite = 'officer';
     
     
     /**
      * Кой може да редактира
      */
-    var $canEdit = 'no_one';
+    public $canEdit = 'no_one';
     
     
     /**
      * Кой може да добавя
      */
-    var $canAdd = 'officer';
+    public $canAdd = 'officer';
     
     
     /**
      * Кой може да добавя
      */
-    var $canSendemail = 'officer';
+    public $canSendemail = 'officer';
     
     
     /**
      * Кой може да изтрива
      */
-    var $canDelete = 'officer';
+    public $canDelete = 'officer';
     
     
     /**
      * Заглавие
      */
-    var $title = "Споделени партньори";
+    public $title = "Споделени партньори";
     
     
     /**
      * Заглавие в единствено число
      */
-    var $singleTitle = "Споделен партньор";
+    public $singleTitle = "Споделен партньор";
     
         
     /**
@@ -129,6 +129,16 @@ class doc_FolderToPartners extends core_Manager
     {  
         $form = $data->form;
         $form->title = "Добавяне на нов партньор в папка";
+        
+        // Ако няма избрана папка форсираме от данните за контрагента от урл-то
+        if(empty($form->rec->folderId)){
+        	expect($coverClassId = request::get('coverClassId', "key(mvc=core_Classes)"));
+        	$coverName = cls::getClassName($coverClassId);
+        	expect($coverId = request::get('coverId', "key(mvc={$coverName})"));
+        	
+        	$form->setDefault('folderId', cls::get($coverClassId)->forceCoverAndFolder($coverId));
+        }
+        
         $form->setReadOnly('folderId');
         
         $form->setOptions('contractorId', self::getContractorOptions($form->rec->folderId));
@@ -173,8 +183,6 @@ class doc_FolderToPartners extends core_Manager
     					$requiredRoles = 'no_one';
     				}
     			}
-    		} else {
-    			$requiredRoles = 'no_one';
     		}
     	}
     	
@@ -249,7 +257,7 @@ class doc_FolderToPartners extends core_Manager
 		
 		// Добавяме бутон за свързване на папка с партньор, ако имаме права
 		if($me->haveRightFor('add', (object)array('folderId' => $folderId))){
-			$ht = ht::createBtn('Свързване', array($me, 'add', 'folderId' => $folderId, 'ret_url' => TRUE), FALSE, FALSE, 'ef_icon=img/16/disk.png,title=Свързване на партньор към папката');
+			$ht = ht::createBtn('Свързване', array($me, 'add', 'folderId' => $folderId, 'ret_url' => TRUE, 'coverClassId' => $data->masterMvc->getClassId(), 'coverId' => $data->masterId), FALSE, FALSE, 'ef_icon=img/16/disk.png,title=Свързване на партньор към папката');
 			$btns->append($ht);
 		}
 		
