@@ -246,8 +246,9 @@ class core_DateTime
     /**
      * Превръща MySQL-ска data/време към вербална дата/време
      */
-    static function mysql2verbal($mysqlDate, $mask = "d.m.y H:i", $lg = NULL)
+    static function mysql2verbal($mysqlDate, $mask = "d.m.y H:i", $lg = NULL, $callRecursive = TRUE)
     {
+        $origMask = $mask;
         if($mysqlDate === NULL) {
             $mysqlDate = self::verbal2mysql();
         }
@@ -269,8 +270,10 @@ class core_DateTime
         $time = strtotime($mysqlDate);
         
         $conf = core_Packs::getConfig('core');
+        $timeZoneDiff = 0;
         if ($conf->EF_DATE_USE_TIMEOFFSET == 'yes') {
             $timeZoneDiff = self::getTimezoneDiff();
+            
             $time -= $timeZoneDiff;
         }
         
@@ -337,16 +340,26 @@ class core_DateTime
             $verbDate = str_ireplace($montsShortEn, $montsShortBg, $verbDate);
         }
         
-        if($addColor) {
+        if($addColor && $callRecursive) {
             
             $dist = time() - $time;
             
             $color = static::getColorByTime($mysqlDate);
           
-            $title = dt::mysql2verbal($mysqlDate, "d.m.Y H:i (l)");
+            $title = dt::mysql2verbal($mysqlDate, "d.m.Y H:i (l)", $lg, FALSE);
             $title = "  title='{$title}'";
             
             $verbDate = "<span style=\"color:#{$color}\" $title>{$verbDate}</span>";
+        }
+        
+        if ($callRecursive && $timeZoneDiff && 
+            !Mode::is('text', 'plain') && !Mode::is('text', 'xhtml') && !Mode::is('printing')) {
+                    
+            $origVerbDate = self::mysql2verbal($mysqlDate, $origMask, $lg, FALSE);
+            
+            if ($origVerbDate) {
+                $verbDate .= "<span title='{$origVerbDate}'>H</span>";
+            }
         }
         
         return $verbDate;
