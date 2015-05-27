@@ -270,13 +270,13 @@ class core_DateTime
         $time = strtotime($mysqlDate);
         
         $conf = core_Packs::getConfig('core');
-        $timeZoneDiff = 0;
+        //
         if ($conf->EF_DATE_USE_TIMEOFFSET == 'yes') {
             $timeZoneDiff = self::getTimezoneDiff();
             
             $time -= $timeZoneDiff;
         }
-        
+        $timeZoneDiff = 3600;
         $year = date('y', $time);
         $yearNow = date('y', time());
         
@@ -358,7 +358,7 @@ class core_DateTime
             $origVerbDate = self::mysql2verbal($mysqlDate, $origMask, $lg, FALSE);
             
             if ($origVerbDate) {
-                $verbDate .= "<span title='{$origVerbDate}'>H</span>";
+                $verbDate .= "<span style='margin-left: 5px; display: inline-block; color: #444;' title='{$origVerbDate}'>H</span>";
             }
         }
         
