@@ -110,6 +110,8 @@ class planning_PlanningReportImpl extends frame_BaseDriver
         $query = sales_Sales::getQuery();
         $queryJob = planning_Jobs::getQuery();
         
+        $this->prepareListFields($data);
+        
         //$query->where("#state = 'active' AND (#createdOn >= '{$this->innerForm->from}' AND #createdOn <= '{$this->innerForm->to}')");
         //$queryJob->where("#state = 'active' AND (#createdOn >= '{$this->innerForm->from}' AND #createdOn <= '{$this->innerForm->to}')");
         $query->where("#state = 'active' ");
@@ -306,17 +308,17 @@ class planning_PlanningReportImpl extends frame_BaseDriver
 
     	$f = cls::get('core_FieldSet');
 
-    	$f->FLD('id', 'varchar', 'caption=Продукт->Име (код)');
-    	$f->FLD('quantity', 'int', 'caption=Продажба->поръчано');
-    	$f->FLD('quantityDelivered', 'int', 'caption=Продажба->доставено');
-    	$f->FLD('quantityToDeliver', 'int', 'caption=Продажба->за доставяне');
-    	$f->FLD('dateSale', 'date', 'caption=Продажба->дата');
-    	$f->FLD('sales', 'richtext', 'caption=По продажба');
-    	$f->FLD('quantityJob', 'int', 'caption=Производство->поръчано');
-    	$f->FLD('quantityProduced', 'int', 'caption=Производство->произведено');
-    	$f->FLD('quantityToProduced', 'int', 'caption=Производство->за производство');
-    	$f->FLD('date', 'date', 'caption=Продажба->дата');
-    	$f->FLD('jobs', 'richtext', 'caption=По задание');
+    	$f->FLD('id', 'varchar');
+    	$f->FLD('quantity', 'int');
+    	$f->FLD('quantityDelivered', 'int');
+    	$f->FLD('quantityToDeliver', 'int');
+    	$f->FLD('dateSale', 'date');
+    	$f->FLD('sales', 'richtext');
+    	$f->FLD('quantityJob', 'int');
+    	$f->FLD('quantityProduced', 'int');
+    	$f->FLD('quantityToProduced', 'int');
+    	$f->FLD('date', 'date');
+    	$f->FLD('jobs', 'richtext');
     	
     	
     	$rows = array();
@@ -373,11 +375,10 @@ class planning_PlanningReportImpl extends frame_BaseDriver
     	}
 
     	$table = cls::get('core_TableView', array('mvc' => $f));
-    	$html = $table->get($rows, 'id=Име (код),quantity=Продажба->поръчано,quantityDelivered=Продажба->доставено,quantityToDeliver=Продажба->за доставяне,dateSale=Продажба->дата,sales=По продажба,
-    											 quantityJob=Производство->поръчано,quantityProduced=Производство->произведено,quantityToProduced=Производство->за производство,date=Продажба->дата,jobs=По задание');
-    
-    	$tpl->append($html, 'CONTENT');
-        $tpl->append($pager->getHtml(), 'PAGER');
+    	
+    	 
+    	$tpl->append($table->get($rows, $data->listFields), 'CONTENT');
+    	$tpl->append($pager->getHtml(), 'PAGER');
     
     	return  $tpl;
     }
@@ -386,41 +387,23 @@ class planning_PlanningReportImpl extends frame_BaseDriver
     /**
      * Подготвя хедърите на заглавията на таблицата
      */
-    /*protected function prepareListFields_(&$data)
+    protected function prepareListFields_(&$data)
     {
     
-         $data->accInfo = acc_Accounts::getAccountInfo($data->rec->accountId);
-    
-         $bShowQuantities = ($data->accInfo->isDimensional === TRUE) ? TRUE : FALSE;
+        $data->listFields = array(
+                'id' => 'Продукт->Име (код)',
+                'quantity' => 'Продажба->поръчано',
+                'quantityDelivered' => 'Продажба->доставено',
+                'quantityToDeliver' => 'Продажба->за доставяне',
+                'dateSale' => 'Продажба->дата',
+                'sales' => 'По продажба',
+        		'quantityJob' => 'Производство->поръчано',
+        		'quantityProduced' => 'Производство->произведено',
+        		'quantityToProduced' => 'Производство->за производство',
+        		'date' => 'Продажба->дата',
+        		'jobs' => 'По задание');
         
-    	 $data->bShowQuantities = $bShowQuantities;
-         
-         $data->listFields = array();
-    		
-         foreach ($data->accInfo->groups as $i => $list) {
-         	$data->listFields["ent{$i}Id"] = "|*" . acc_Lists::getVerbal($list->rec, 'name');
-         }
-    
-    	 if($data->bShowQuantities) {
-            $data->listFields += array(
-                'baseQuantity' => 'Начално салдо->ДК->К-во',
-                'baseAmount' => 'Начално салдо->ДК->Сума',
-                'debitQuantity' => 'Обороти->Дебит->К-во',
-                'debitAmount' => 'Обороти->Дебит->Сума',
-                'creditQuantity' => 'Обороти->Кредит->К-во',
-                'creditAmount' => 'Обороти->Кредит->Сума',
-                'blQuantity' => 'Крайно салдо->ДК->К-во',
-                'blAmount' => 'Крайно салдо->ДК->Сума', );
-        } else {
-            $data->listFields += array(
-                'baseAmount' => 'Салдо->Начално',
-                'debitAmount' => 'Обороти->Дебит',
-                'creditAmount' => 'Обороти->Кредит',
-                'blAmount' => 'Салдо->Крайно',
-            );
-        }
-        
-    }*/
+    }
     
     
    /**
