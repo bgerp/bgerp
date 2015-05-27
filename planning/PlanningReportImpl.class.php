@@ -106,12 +106,14 @@ class planning_PlanningReportImpl extends frame_BaseDriver
     	$data->catCnt = array();
     	$data->jobCnt = array();
         $data->rec = $this->innerForm;
-       //bp($this->innerForm->from );
+       
         $query = sales_Sales::getQuery();
         $queryJob = planning_Jobs::getQuery();
         
-        $query->where("#state = 'active' AND (#createdOn >= '{$this->innerForm->from}' AND #createdOn <= '{$this->innerForm->to}')");
-        $queryJob->where("#state = 'active' AND (#createdOn >= '{$this->innerForm->from}' AND #createdOn <= '{$this->innerForm->to}')");
+        //$query->where("#state = 'active' AND (#createdOn >= '{$this->innerForm->from}' AND #createdOn <= '{$this->innerForm->to}')");
+        //$queryJob->where("#state = 'active' AND (#createdOn >= '{$this->innerForm->from}' AND #createdOn <= '{$this->innerForm->to}')");
+        $query->where("#state = 'active' ");
+        $queryJob->where("#state = 'active'");
         
         // за всеки един активен договор за продажба
         while($rec = $query->fetch()) {
@@ -127,8 +129,14 @@ class planning_PlanningReportImpl extends frame_BaseDriver
         	}
         	
         	$id = $rec->id;
-        	$products[] = sales_SalesDetails::fetch("#saleId = $rec->id");
-        	$dates[$id] = $date;
+        	
+        	if (sales_SalesDetails::fetch("#saleId = $rec->id") !== FALSE) {
+        		$products[] = sales_SalesDetails::fetch("#saleId = $rec->id");
+        		$dates[$id] = $date;
+        	} else {
+        		continue;
+        	}
+        	
 
         }
 
@@ -280,7 +288,8 @@ class planning_PlanningReportImpl extends frame_BaseDriver
             [#FORM#]
             
     		[#PAGER#]
-            [#VISITS#]
+            [#PRODUCTS#]
+    		[#PAGER#]
         "
     	);
     
@@ -288,7 +297,7 @@ class planning_PlanningReportImpl extends frame_BaseDriver
     
     	$this->addEmbeddedFields($form);
     
-    	$form->rec = $data->fRec;
+    	$form->rec = $data->rec;
     	$form->class = 'simpleForm';
     
     	$tpl->prepend($form->renderStaticHtml(), 'FORM');
@@ -296,7 +305,7 @@ class planning_PlanningReportImpl extends frame_BaseDriver
     	$tpl->placeObject($data->rec);
     
     	$pager = cls::get('core_Pager',  array('pageVar' => 'P_' .  $this->EmbedderRec->that,'itemsPerPage' => $this->listItemsPerPage));
-    	$pager->itemsCount = count($data->цатCnt);
+    	$pager->itemsCount = count($data->catCnt);
 
     	$f = cls::get('core_FieldSet');
 
@@ -323,7 +332,7 @@ class planning_PlanningReportImpl extends frame_BaseDriver
         
     	foreach ($data->catCnt as $cat) {
 
-    		//if(!$pager->isOnPage()) continue;
+    		if(!$pager->isOnPage()) continue;
     		
     		if ($cat->quantityDelivered && $cat->quantity) {
     			$toDeliver = abs($cat->quantityDelivered - $cat->quantity);
@@ -370,7 +379,7 @@ class planning_PlanningReportImpl extends frame_BaseDriver
     	$html = $table->get($rows, 'id=Име (код),quantity=Продажба->поръчано,quantityDelivered=Продажба->доставено,quantityToDeliver=Продажба->за доставяне,dateSale=Продажба->дата,sales=По продажба,
     											 quantityJob=Производство->поръчано,quantityProduced=Производство->произведено,quantityToProduced=Производство->за производство,date=Продажба->дата,jobs=По задание');
     
-    	$tpl->append($html, 'VISITS');
+    	$tpl->append($html, 'PRODUCTS');
         $tpl->append($pager->getHtml(), 'PAGER');
     
     	return  $tpl;
