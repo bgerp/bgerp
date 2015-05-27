@@ -375,12 +375,33 @@ class doc_FolderToPartners extends core_Manager
     	
     	$PML->Encoding = "quoted-printable";
     	
-    	$PML->AltBody = $rec->body;
-    	$PML->Body = $rec->body;
+    	Mode::push('text', 'plain');
+    	$bodyAlt = cls::get('type_RichText')->toVerbal($rec->body);
+    	Mode::pop('text');
+    	
+    	Mode::push('text', 'xhtml');
+    	$bodyTpl = cls::get('type_RichText')->toVerbal($rec->body);
+    	email_Sent::embedSbfImg($PML);
+    	
+    	Mode::pop('text');
+    	
+    	$PML->AltBody = $bodyAlt;
+    	$PML->Body = $bodyTpl->getContent();
     	$PML->IsHTML(TRUE);
     	$PML->Subject = str::utf2ascii($rec->subject);
     	$PML->AddCustomHeader("Customer-Origin-Email: {$rec->to}");
     	 
+    	$files = fileman_RichTextPlg::getFiles($rec->body);
+    	
+    	// Ако има прикачени файлове, добавяме ги
+    	if(count($files)){
+    		foreach ($files as $fh => $name){
+    			$name = fileman_Files::fetchByFh($fh, 'name');
+    			$path = fileman_Files::fetchByFh($fh, 'path');
+    			$PML->AddAttachment($path, $name);
+    		}
+    	}
+    	
     	// От кой адрес е изпратен
     	$PML->SetFrom($sentFrom);
     	
