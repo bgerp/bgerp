@@ -111,7 +111,7 @@ class doc_FolderPlg extends core_Plugin
         if($mvc->className == 'doc_Folders') return;
         
         if($data->rec->folderId && ($fRec = doc_Folders::fetch($data->rec->folderId))) {
-            
+        	
             $openThreads = $fRec->openThreadsCnt ? "|* ({$fRec->openThreadsCnt})" : "";
             
             if(doc_Folders::haveRightFor('single', $data->rec->folderId)){
@@ -122,7 +122,7 @@ class doc_FolderPlg extends core_Plugin
             }
             
         } else {
-        	if($mvc->haveRightFor('single', $data->rec) && $mvc->haveRightFor('write', $data->rec)){
+        	if($mvc->haveRightFor('single', $data->rec) && $mvc->haveRightFor('write', $data->rec) && doc_Folders::haveRightToObject($data->rec)){
         		$title = $mvc->getFolderTitle($data->rec->id);
         		$data->toolbar->addBtn('Папка', array($mvc, 'createFolder', $data->rec->id), array(
         				'warning' => "Наистина ли желаете да създадетe папка за документи към|* \"{$title}\"?",
@@ -131,7 +131,7 @@ class doc_FolderPlg extends core_Plugin
         	
         	$currUrl = getCurrentUrl();
         	
-        	if($mvc->haveRightFor('single', $data->rec) && $currUrl['Act'] == 'single'){
+        	if($mvc->haveRightFor('single', $data->rec) && $currUrl['Act'] == 'single' && doc_Folders::haveRightToObject($data->rec)){
         		$title = $mvc->getFolderTitle($data->rec->id);
         		$data->toolbar->addBtn('Папка', array($mvc, 'createFolder', $data->rec->id), array(
         				'warning' => "Наистина ли желаете да създадетe папка за документи към|* \"{$title}\"?",
@@ -288,6 +288,9 @@ class doc_FolderPlg extends core_Plugin
         // Входни параметри и проверка за права
         expect($id = Request::get('id', 'int'));
         expect($rec = $mvc->fetch($id));
+        
+        // Трябва да имаме права до обекта за да му създадем папка
+        expect(doc_Folders::haveRightToObject($rec));
         
         $mvc->requireRightFor('single', $rec);
         
