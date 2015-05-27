@@ -66,6 +66,12 @@ class bank_OwnAccounts extends core_Master {
     
     
     /**
+     * Кои мастър роли имат достъп до корицата, дори да нямат достъп до папката
+     */
+    var $coverMasterRoles = 'ceo, bankMaster';
+    
+    
+    /**
      * Кой може да пише
      */
     var $canReject = 'ceo, bankMaster';

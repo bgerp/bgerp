@@ -89,6 +89,17 @@ class doc_FolderPlg extends core_Plugin
             // Да има само 2 колони
             $data->form->setField('shared', array('maxColumns' => 2));    
         }
+        
+        // При редакция
+        if($data->form->rec->id){
+       		
+        	// Ако нямаш достъп до обекта, но имаш до корицата да не можеш да променяш правата за достъп
+        	if(!doc_Folders::haveRightToObject($data->form->rec)){
+       			$data->form->setField('inCharge', 'input=none');
+       			$data->form->setField('access', 'input=none');
+       			$data->form->setField('shared', 'input=none');
+       		}
+        }
     }
     
     
@@ -153,6 +164,7 @@ class doc_FolderPlg extends core_Plugin
                 $requiredRoles = 'no_one';    
             }
         }
+        
         if ($rec->id && ($action == 'delete' || $action == 'edit' || $action == 'write' || $action == 'single' || $action == 'newdoc')) {
             
             $rec = $mvc->fetch($rec->id);
@@ -161,8 +173,12 @@ class doc_FolderPlg extends core_Plugin
             // но конкретния потребител няма права за конкретния обект
             // забраняваме достъпа
             if (!doc_Folders::haveRightToObject($rec, $userId)) {
-                // Използвана сметка - забранено изтриване
-                $requiredRoles = 'no_one';    
+                
+                if($requiredRoles != 'no_one'){
+                	
+                	// Ако има зададени мастър роли за достъп
+            		$requiredRoles = $mvc->coverMasterRoles ? $mvc->coverMasterRoles : 'no_one';
+            	}
             }
 
             if($rec->state == 'rejected' && $action != 'single') {

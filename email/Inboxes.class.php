@@ -79,6 +79,12 @@ class email_Inboxes extends core_Master
     
     
     /**
+     * Кои мастър роли имат достъп до корицата, дори да нямат достъп до папката
+     */
+    var $coverMasterRoles = 'admin, email';
+    
+    
+    /**
      * Кой има права за
      */
     var $canEmail = 'ceo,manager,officer,executive';

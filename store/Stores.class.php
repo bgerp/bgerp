@@ -49,6 +49,12 @@ class store_Stores extends core_Master
     
     
     /**
+     * Кои мастър роли имат достъп до корицата, дори да нямат достъп до папката
+     */
+    var $coverMasterRoles = 'ceo, storeMaster';
+    
+    
+    /**
      * Кой има право да променя?
      */
     var $canEdit = 'ceo,storeMaster';
