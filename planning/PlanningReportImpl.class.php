@@ -268,12 +268,12 @@ class planning_PlanningReportImpl extends frame_BaseDriver
      * 
      * @return core_ET $tpl - шаблона
      */
-    /*public function getReportLayout_()
+   public function getReportLayout_()
     {
-    	$tpl = getTplFromFile('acc/tpl/ReportDetailedBalance.shtml');
+    	$tpl = getTplFromFile('planning/tpl/PlanningReportLayout.shtml');
     	
     	return $tpl;
-    }*/
+    }
     
     
     /**
@@ -283,17 +283,12 @@ class planning_PlanningReportImpl extends frame_BaseDriver
      */
     public function renderEmbeddedData($data)
     {
-    	$tpl = new ET("
-            <h1>Планиране » Планиране на производството</h1>
-            [#FORM#]
-            
-    		[#PAGER#]
-    		<div class='overflow-scroll'>
-            [#PRODUCTS#]
-    	    </div>
-    		[#PAGER#]
-        "
-    	);
+    	if(empty($data)) return;
+    	 
+    	$tpl = $this->getReportLayout();
+    	$tpl->replace($this->title, 'TITLE');
+    	 
+    	//$tpl->placeObject($data->row);
     
     	$form = cls::get('core_Form');
     
@@ -381,7 +376,7 @@ class planning_PlanningReportImpl extends frame_BaseDriver
     	$html = $table->get($rows, 'id=Име (код),quantity=Продажба->поръчано,quantityDelivered=Продажба->доставено,quantityToDeliver=Продажба->за доставяне,dateSale=Продажба->дата,sales=По продажба,
     											 quantityJob=Производство->поръчано,quantityProduced=Производство->произведено,quantityToProduced=Производство->за производство,date=Продажба->дата,jobs=По задание');
     
-    	$tpl->append($html, 'PRODUCTS');
+    	$tpl->append($html, 'CONTENT');
         $tpl->append($pager->getHtml(), 'PAGER');
     
     	return  $tpl;
