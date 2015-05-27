@@ -257,7 +257,7 @@ class cat_Boms extends core_Master
     public static function on_AfterCreate($mvc, $rec)
     {
     	$count = core_Packs::getConfig('cat')->CAT_BOM_REMEMBERED_RESOURCES;
-    	$count = count($count) -1;
+    	$count = $count -1;
     	
     	// Проверяваме имали избрани ресурси още от формата
     	foreach (range(0, $count) as $i){
