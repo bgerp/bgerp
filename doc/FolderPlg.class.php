@@ -44,7 +44,8 @@ class doc_FolderPlg extends core_Plugin
         // Добавя интерфейс за папки
         $mvc->interfaces = arr::make($mvc->interfaces);
         setIfNot($mvc->interfaces['doc_FolderIntf'], 'doc_FolderIntf');
-
+		setIfNot($mvc->canCreatenewfolder, 'powerUser');
+		
         $mvc->details = arr::make($mvc->details);
 
         $mvc->details['Rights'] = $mvc->className;
@@ -122,7 +123,7 @@ class doc_FolderPlg extends core_Plugin
             }
             
         } else {
-        	if($mvc->haveRightFor('single', $data->rec) && $mvc->haveRightFor('write', $data->rec) && doc_Folders::haveRightToObject($data->rec)){
+        	if($mvc->haveRightFor('createnewfolder', $data->rec)){
         		$title = $mvc->getFolderTitle($data->rec->id);
         		$data->toolbar->addBtn('Папка', array($mvc, 'createFolder', $data->rec->id), array(
         				'warning' => "Наистина ли желаете да създадетe папка за документи към|* \"{$title}\"?",
@@ -179,6 +180,13 @@ class doc_FolderPlg extends core_Plugin
             if($action == 'delete' && $rec->folderId) {
                 $requiredRoles = 'no_one';
             } 
+        }
+        
+        // Не може да се създава нова папка, ако потребителя няма достъп до обекта
+        if($action == 'createnewfolder' && isset($rec)){
+        	if (!doc_Folders::haveRightToObject($rec, $userId)) {
+        		$requiredRoles = 'no_one';
+        	}
         }
     }
     
@@ -280,12 +288,9 @@ class doc_FolderPlg extends core_Plugin
         expect($id = Request::get('id', 'int'));
         expect($rec = $mvc->fetch($id));
         
-        // Трябва да имаме права до обекта за да му създадем папка
-        expect(doc_Folders::haveRightToObject($rec));
+        $mvc->requireRightFor('createnewfolder', $rec);
         
-        $mvc->requireRightFor('single', $rec);
-        
-        $mvc->requireRightFor('write', $rec);
+        $mvc->requireRightFor('createnewfolder', $rec);
         
         // Вземаме текущия потребител
         $cu = core_Users::getCurrent();     // Текущия потребител
@@ -430,7 +435,7 @@ class doc_FolderPlg extends core_Plugin
                             NULL, array('ef_icon' => $fRec->openThreadsCnt ? 'img/16/folder.png' : 'img/16/folder-y.png', 'title' => "Папка към {$folderTitle}", 'class' => 'new-folder-btn'));
                 }
             } else {
-                if($mvc->haveRightFor('single', $rec->id) && !$currUrl['Rejected']) {
+                if($mvc->haveRightFor('createnewfolder', $rec) && !$currUrl['Rejected']) {
                     $row->{$fField} = ht::createLink('', array($mvc, 'createFolder', $rec->id),  "Наистина ли желаете да създадетe папка за документи към  \"{$folderTitle}\"?",
                     array('ef_icon' => 'img/16/folder_new.png', 'title' => "Създаване на папка за документи към {$folderTitle}", 'class' => 'new-folder-btn'));
                 }

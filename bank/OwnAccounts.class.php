@@ -74,6 +74,12 @@ class bank_OwnAccounts extends core_Master {
     /**
      * Кой може да пише
      */
+    var $canCreatenewfolder = 'ceo, bank';
+    
+    
+    /**
+     * Кой може да пише
+     */
     var $canReject = 'ceo, bankMaster';
     
     
