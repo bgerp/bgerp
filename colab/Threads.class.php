@@ -2,8 +2,9 @@
 
 
 /**
- * Прокси на 'doc_Threads' позволяващ на външен потребител с роля 'user'
- * до нишките от споделените папки
+ * Прокси на 'colab_Threads' позволяващ на партньор в роля 'contractor' да има достъп до нишките в споделените
+ * му папки, ако първия документ в нишката е видим за партньори, и папката е спдоелена към партньора той може да
+ * види нишката. При Отваряне на нишката вижда само тези документи, които са видими за партньори
  *
  * @category  bgerp
  * @package   colab
@@ -77,6 +78,9 @@ class colab_Threads extends core_Manager
 	}
 	
 	
+	/**
+	 * Подготвя достъпа до еденичния изглед на една споделена нишка към контрактор
+	 */
 	function act_Single()
 	{
 		$this->haveRightFor('single');
@@ -119,6 +123,9 @@ class colab_Threads extends core_Manager
 	}
 	
 	
+	/**
+	 * Подготовка на заглавието на нишката
+	 */
 	public function prepareSingleTitle(&$data)
 	{
 		$title = new ET("<div class='path-title'>[#folder#] » [#threadTitle#]</div>");
@@ -205,6 +212,7 @@ class colab_Threads extends core_Manager
 		if($action == 'list'){
 			$folderId = ($rec->folderId) ? $rec->folderId : Request::get('folderId', 'key(mvc=doc_Folders)');
 			
+			// Трябва да има видими за партньори нишки в споделената папка на потребителя
 			$tQuery = $mvc->getQuery(array('folderId' => $folderId));
 			if(!$tQuery->count()){
 				$requiredRoles = 'no_one';
@@ -212,12 +220,14 @@ class colab_Threads extends core_Manager
 		}
 		
 		if($action == 'single' && isset($rec)){
-			$sharedFolders = colab_Folders::getSharedFolders($userId);
 			
+			// Трябва папката на нишката да е споделена към текущия партньор
+			$sharedFolders = colab_Folders::getSharedFolders($userId);
 			if(!in_array($rec->folderId, $sharedFolders)){
 				$requiredRoles = 'no_one';
 			}
 			
+			// Трябва първия документ в нишката да е видим за партньори
 			$firstDocumentIsVisible = doc_Containers::fetchField($rec->firstContainerId, 'visibleForPartners');
 			if($firstDocumentIsVisible != 'yes'){
 				$requiredRoles = 'no_one';
