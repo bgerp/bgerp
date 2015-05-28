@@ -172,6 +172,22 @@ class colab_Folders extends core_Manager
 		$cu = core_Users::getCurrent('id');
 		
 		// Това е броя на споделените папки към контрактора
-		return doc_FolderToPartners::count("#contractorId = {$cu}");
+		$sharedFolders = static::getSharedFolders($cu);
+		$count = count($sharedFolders);
+		
+		return $count;
+	}
+	
+	
+	/**
+	 * Изпълнява се след подготовката на листовия изглед
+	 */
+	protected static function on_AfterPrepareListTitle($mvc, &$res, $data)
+	{
+		$cuRec = core_Users::fetch(core_Users::getCurrent());
+		$names = core_Users::getVerbal($cuRec, 'names');
+		$nick = core_Users::getVerbal($cuRec, 'nick');
+		
+		$data->title = "|Папките на|* <span style='color:green'>{$names} ({$nick})</span>";
 	}
 }
