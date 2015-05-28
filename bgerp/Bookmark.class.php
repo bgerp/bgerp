@@ -139,14 +139,7 @@ class bgerp_Bookmark extends core_Manager
 	    $query = self::getQuery();
 	    $query->where("#user = '{$userId}'");
 	    
-	    // За да се избегне подребата на NULL Полетата
-	    $query->XPR('positionA', 'double', "-#position");
-	    
-	    // С по-голям приоритет да са позициите зададени от потребителя
-	    // След това в зависимост от броя на отварянията
-	    $query->orderBy('positionA', 'DESC');
-	    $query->orderBy('clickCnt', 'DESC');
-	    $query->orderBy('createdOn', 'DESC');
+	    self::orderQuery($query);
 	    
 	    if (is_null($limit)) {
 	        $conf = core_Packs::getConfig('bgerp');
@@ -166,6 +159,24 @@ class bgerp_Bookmark extends core_Manager
 	    return $res;
 	}
     
+	
+	/**
+	 * Подрежда записите в зависимост от подредбата на потребители и броя на показванията
+	 * 
+	 * @param core_Query $query
+	 */
+	protected static function orderQuery($query)
+	{
+	    // За да се избегне подребата на NULL Полетата
+	    $query->XPR('positionA', 'double', "-#position");
+	    
+	    // С по-голям приоритет да са позициите зададени от потребителя
+	    // След това в зависимост от броя на отварянията
+	    $query->orderBy('positionA', 'DESC');
+	    $query->orderBy('clickCnt', 'DESC');
+	    $query->orderBy('createdOn', 'DESC');
+	}
+	
 	
 	/**
 	 * Екшън който увеличава брояча за натискане и редиректва към съответния линк
@@ -213,6 +224,7 @@ class bgerp_Bookmark extends core_Manager
         $userId = (int) $rec->user;
         
         $data->query->where("#user = {$userId}");
+        self::orderQuery($data->query);
         
         $data->listFilter->fields['user']->refreshForm = 'refreshForm';
     }
