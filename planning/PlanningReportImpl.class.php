@@ -331,15 +331,15 @@ class planning_PlanningReportImpl extends frame_BaseDriver
     
         $data->listFields = array(
                 'id' => 'Продукт->Име (код)',
-                'quantity' => 'Продажба->Поръчано',
-                'quantityDelivered' => 'Продажба->Доставено',
-                'quantityToDeliver' => 'Продажба->За доставяне',
-                'dateSale' => 'Продажба->Дата',
+                'quantity' => 'Продажба->|*<small>Поръчано</small>',
+                'quantityDelivered' => 'Продажба->|*<small>Доставено</small>',
+                'quantityToDeliver' => 'Продажба->|*<small>За доставяне</small>',
+                'dateSale' => 'Продажба->|*<small>Дата</small>',
                 'sales' => 'По продажба',
-        		'quantityJob' => 'Производство->Поръчано',
-        		'quantityProduced' => 'Производство->Произведено',
-        		'quantityToProduced' => 'Производство->За производство',
-        		'date' => 'Производство->Дата',
+        		'quantityJob' => 'Производство->|*<small>Поръчано</small>',
+        		'quantityProduced' => 'Производство->|*<small>Произведено</small>',
+        		'quantityToProduced' => 'Производство->|*<small>За производство</small>',
+        		'date' => 'Производство->|*<small>Дата</small>',
         		'jobs' => 'По задание');
         
     }
