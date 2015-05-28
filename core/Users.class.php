@@ -317,11 +317,13 @@ class core_Users extends core_Manager
      * 
      * @return boolean
      */
-    public static function isContractor($rec, $force=FALSE)
+    public static function isContractor($rec = NULL, $force=FALSE)
     {
         if (is_null($rec)) {
             $rec = core_Users::getCurrent();
         }
+        
+        if (is_null($rec)) return ;
         
         if (!is_object($rec)) {
             $rec = self::fetch($rec);
@@ -341,11 +343,13 @@ class core_Users extends core_Manager
      * 
      * @return boolean
      */
-    public static function isPowerUser($rec)
+    public static function isPowerUser($rec = NULL)
     {
         if (is_null($rec)) {
             $rec = core_Users::getCurrent();
         }
+        
+        if (is_null($rec)) return ;
         
         if (!is_object($rec)) {
             $rec = self::fetch($rec);
