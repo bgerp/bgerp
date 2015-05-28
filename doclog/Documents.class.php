@@ -1866,7 +1866,13 @@ class doclog_Documents extends core_Manager
      */
     public static function renderSummary($data)
     {
-        static $wordings = NULL;
+    	if($data->containerId){
+    		// Ако нямаме достъп до сингъла на документа, да не се рендира съмарито на лога
+    		$doc = doc_Containers::getDocument($data->containerId);
+    		if(!$doc->haveRightFor('single')) return;
+    	}
+    	
+    	static $wordings = NULL;
         static $wordingsTitle = NULL;
         
         static $actionToTab = NULL;
