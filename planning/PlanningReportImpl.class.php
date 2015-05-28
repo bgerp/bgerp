@@ -39,7 +39,7 @@ class planning_PlanningReportImpl extends frame_BaseDriver
     /**
      * Брой записи на страница
      */
-    public $listItemsPerPage = 5;
+    public $listItemsPerPage = 50;
     
     
     /**
@@ -103,8 +103,8 @@ class planning_PlanningReportImpl extends frame_BaseDriver
     public function prepareInnerState()
     {
     	$data = new stdClass();
-    	$data->catCnt = array();
-    	$data->jobCnt = array();
+    	$data->recs = array();
+    	
         $data->rec = $this->innerForm;
        
         $query = sales_Sales::getQuery();
@@ -157,9 +157,9 @@ class planning_PlanningReportImpl extends frame_BaseDriver
 		        	
 	        	// ако нямаме такъв запис,
 	        	// го добавяме в масив
-		        if(!array_key_exists($index, $data->catCnt)){
+		        if(!array_key_exists($index, $data->recs)){
 		        		
-			    	$data->catCnt[$index] = 
+			    	$data->recs[$index] = 
 			        		(object) array ('id' => $product->productId,
 					        				'quantity'	=> $product->quantity,
 					        				'quantityDelivered' => $product->quantityDelivered,
@@ -169,7 +169,7 @@ class planning_PlanningReportImpl extends frame_BaseDriver
 		        // в противен случай го ъпдейтваме
 		        } else {
 		        		
-			    	$obj = &$data->catCnt[$index];
+			    	$obj = &$data->recs[$index];
 			        $obj->quantity += $product->quantity;
 			        $obj->quantityDelivered += $product->quantityDelivered;
 			        $obj->dateSale = $dates[$product->saleId];
@@ -184,8 +184,8 @@ class planning_PlanningReportImpl extends frame_BaseDriver
         	 
         	// ако нямаме такъв запис,
         	// го добавяме в масив
-        	if(!array_key_exists($indexJ, $data->catCnt)){
-        		$data->catCnt[$indexJ] =
+        	if(!array_key_exists($indexJ, $data->recs)){
+        		$data->recs[$indexJ] =
         		(object) array ('id' => $recJobs->productId,
         				'quantityJob'	=> $recJobs->quantity,
         				'quantityProduced' => $recJobs->quantityProduced,
@@ -195,7 +195,7 @@ class planning_PlanningReportImpl extends frame_BaseDriver
         		// в противен случай го ъпдейтваме
         	} else {
 
-        		$obj = &$data->catCnt[$indexJ];
+        		$obj = &$data->recs[$indexJ];
         		$obj->quantityJob += $recJobs->quantity;
         		$obj->quantityProduced += $recJobs->quantityProduced;
         		$obj->date =  $recJobs->dueDate;
@@ -217,13 +217,13 @@ class planning_PlanningReportImpl extends frame_BaseDriver
     	$data = $res;
         
         $pager = cls::get('core_Pager',  array('pageVar' => 'P_' .  $mvc->EmbedderRec->that,'itemsPerPage' => $mvc->listItemsPerPage));
-        $pager->itemsCount = count($data->catCnt);
+        $pager->itemsCount = count($data->recs);
         $data->pager = $pager;
         
-        if(count($data->catCnt)){
+        if(count($data->recs)){
             $count = 0;
             
-            foreach ($data->catCnt as $id => $rec){
+            foreach ($data->recs as $id => $rec){
             	
                 if(!$data->pager->isOnPage()) continue;
                 
