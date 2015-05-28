@@ -21,6 +21,12 @@ defIfNot(BGERP_COMPANY_LOGO, '');
 defIfNot(BGERP_NON_WORKING_CRON_TIME, 3600);
 
 
+/**
+ * 
+ */
+defIfNot(BGERP_BOOKMARK_SHOW_LIMIT, 20);
+
+
 
 /**
  * class 'bgerp_Setup' - Начално установяване на 'bgerp'
@@ -69,6 +75,8 @@ class bgerp_Setup extends core_ProtoSetup {
         'BGERP_COMPANY_LOGO_EN' => array ('fileman_FileType(bucket=pictures)', 'caption=Фирмена бланка->На английски, customizeBy=powerUser'),
         
         'BGERP_NON_WORKING_CRON_TIME' => array ('time(suggestions=30 мин.|1 час| 3 часа)', 'caption=След колко време да дава нотификация за неработещ cron->Време'),
+        
+        'BGERP_BOOKMARK_SHOW_LIMIT' => array ('int', 'caption=Лимит на отметките->Брой, customizeBy=powerUser'),
      );
     
     
@@ -110,6 +118,7 @@ class bgerp_Setup extends core_ProtoSetup {
             'bgerp_Portal',
             'bgerp_Notifications',
             'bgerp_Recently',
+            'bgerp_Bookmark'
         );
         
         $instances = array();
