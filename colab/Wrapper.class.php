@@ -18,11 +18,17 @@
  */
 class colab_Wrapper extends plg_ProtoWrapper
 {
+    
+    
     /**
      * Описание на опаковката с табове
      */
     function description()
     {
-        $this->TAB('colab_Profiles', 'Профил', 'user');
+        //if(colab_Folders::count()){
+        	//$this->TAB('colab_Folders', 'Папки', 'contractor');
+        //}
+     
+        $this->TAB(array('colab_Profiles', 'Single'), 'Профил', 'contractor');
     }
 }
