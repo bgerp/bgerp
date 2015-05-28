@@ -129,12 +129,26 @@ class planning_PlanningReportImpl extends frame_BaseDriver
         	
         	if (sales_SalesDetails::fetch("#saleId = $rec->id") !== FALSE) {
         		$products[] = sales_SalesDetails::fetch("#saleId = $rec->id");
-        		$dates[$id] = $date;
+        		$p = sales_SalesDetails::fetch("#saleId = $rec->id");
+                $productId= $p->productId;
+        		$dates[$productId][$id] = $date;
+        		
         	} else {
         		continue;
         	}
         	
 
+        }
+        
+        foreach ($dates as $prd => $sal) {
+        	if(count($sal) > 1) {
+        		$dateSale[$prd] = min($sal);
+        	} else {
+        		foreach ($sal as $d){
+        			$dateSale[$prd] = $d;
+        		}
+        	}
+        	
         }
 
         // за всеки един продукт
@@ -160,7 +174,7 @@ class planning_PlanningReportImpl extends frame_BaseDriver
 			        		(object) array ('id' => $product->productId,
 					        				'quantity'	=> $product->quantity,
 					        				'quantityDelivered' => $product->quantityDelivered,
-			        						'dateSale' => $dates[$product->saleId],
+			        						'dateSale' => $dateSale[$product->productId],
 					        				'sales' => array($product->saleId));
 		        		
 		        // в противен случай го ъпдейтваме
@@ -169,7 +183,7 @@ class planning_PlanningReportImpl extends frame_BaseDriver
 			    	$obj = &$data->recs[$index];
 			        $obj->quantity += $product->quantity;
 			        $obj->quantityDelivered += $product->quantityDelivered;
-			        $obj->dateSale = $dates[$product->saleId];
+			        $obj->dateSale = $dateSale[$product->productId];
 			        $obj->sales[] = $product->saleId;
 		        		
 		        }
@@ -178,6 +192,7 @@ class planning_PlanningReportImpl extends frame_BaseDriver
 
         while ($recJobs = $queryJob->fetch()) {
         	$indexJ = $recJobs->productId;
+        	$dateJob[$recJobs->productId][$recJobs->id] = $recJobs->dueDate;
         	 
         	if ((abs($recJobs->quantityProduced - $recJobs->quantity) == 0)) continue;
         	// ако нямаме такъв запис,
@@ -202,6 +217,18 @@ class planning_PlanningReportImpl extends frame_BaseDriver
         	}
         }
 
+    	
+    	foreach ($dateJob as $prdJ => $job) {
+        	if(count($job) > 1) {
+        		$data->recs[$prdJ]->date = min($job);
+        	} else {
+        		foreach ($job as $dJ){
+        			$data->recs[$prdJ]->date = $dJ;
+        		}
+        	}
+        	
+        }
+        
         return $data;
     }
     
@@ -219,7 +246,7 @@ class planning_PlanningReportImpl extends frame_BaseDriver
         $data->pager = $pager;
         
         if(count($data->recs)){
-            $count = 0;
+            //$count = 0;
             
             foreach ($data->recs as $id => $rec){
 				if(!$pager->isOnPage()) continue;
