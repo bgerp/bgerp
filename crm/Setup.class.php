@@ -278,11 +278,21 @@ class crm_Setup extends core_ProtoSetup
      */
     public static function updateGroupFoldersToUnsorted()
     {
-        $groupClassId = core_Classes::getId('crm_Groups');
+        try {
+            $groupClassId = core_Classes::getId('crm_Groups');
+        } catch (core_exception_Expect $e) {
+            
+            return ;
+        }
         
         if (!$groupClassId) return ;
         
-        $unsortedClassId = core_Classes::getId('doc_UnsortedFolders');
+        try {
+            $unsortedClassId = core_Classes::getId('doc_UnsortedFolders');
+        } catch (core_exception_Expect $e) {
+            
+            return ;
+        }
         
         $Unsorted = cls::get('doc_UnsortedFolders');
         $Unsorted->autoCreateFolder = NULL;
