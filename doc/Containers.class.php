@@ -1043,6 +1043,7 @@ class doc_Containers extends core_Manager
         $docArr = core_Classes::getOptionsByInterface('doc_DocumentIntf');
  
         if(is_array($docArr) && count($docArr)) {
+        	$docArrSort = array();
             foreach($docArr as $id => $class) {
                     
                 $mvc = cls::get($class);
@@ -1050,7 +1051,7 @@ class doc_Containers extends core_Manager
                 list($order, $group) = explode('|', $mvc->newBtnGroup);
 
                 if($mvc->haveRightFor('add', $rec)) {
-                    $ind = $order*10000 + $i++;
+                    $ind = $order * 10000 + $i++;
                     $docArrSort[$ind] = array($group, $mvc->singleTitle, $class);
                 }
             }
@@ -1059,6 +1060,7 @@ class doc_Containers extends core_Manager
             ksort($docArrSort);
 
             // Групиране
+            $btns = array();
             foreach($docArrSort as $id => $arr) {
                 $btns[$arr[0]][$arr[1]] = $arr[2];
             }
