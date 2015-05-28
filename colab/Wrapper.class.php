@@ -25,12 +25,17 @@ class colab_Wrapper extends plg_ProtoWrapper
      */
     function description()
     {
-        $this->TAB('colab_Folders', 'Папки', 'contractor');
-     
-        $threadsUrl = $containersUrl = array();
+    	$threadsUrl = $containersUrl = array();
         
         $threadId = Request::get('threadId', 'int');
         $folderId = Request::get('folderId', 'key(mvc=doc_Folders,select=title)');
+        
+        if(colab_Folders::count() != 1){
+        	$this->TAB('colab_Folders', 'Папки', 'contractor');
+        } else {
+        	$query = colab_Folders::getQuery();
+        	$folderId = $query->fetch()->id;
+        }
         
         if(!$folderId) {
         	$folderId = Mode::get('lastFolderId');
@@ -54,7 +59,7 @@ class colab_Wrapper extends plg_ProtoWrapper
         		$containersUrl = array('colab_Threads', 'single', 'threadId' => $threadId);
         	}
         }
-        
+        //bp($threadsUrl);
         $this->TAB($threadsUrl, 'Теми', 'contractor');
         $this->TAB($containersUrl, 'Нишка', 'contractor');
         $this->TAB(array('colab_Profiles', 'Single'), 'Профил', 'contractor');

@@ -113,8 +113,7 @@ class colab_Threads extends core_Manager
 		
 		$this->Containers->prepareListToolbar($data);
 		
-		// Рендираме изгледа
-		$tpl = $this->renderList($data);
+		$tpl = $this->Containers->renderList_($data);
 		
 		// Опаковаме изгледа
 		$tpl = $this->renderWrapping($tpl, $data);
@@ -197,24 +196,17 @@ class colab_Threads extends core_Manager
 	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
 	{
 		if($action == 'list' && isset($rec->folderId)){
-			
-			$sharedFolders = colab_Folders::getSharedFolders($userId);
-			
-			if(!in_array($rec->folderId, $sharedFolders)){
-				$requiredRoles = 'no_one';
-			}
-				
 			if($rec->folderState == 'rejected'){
 				$requiredRoles = 'no_one';
 			}
 		}
 		
 		if($action == 'list'){
-			$folderId = ($rec->folderId) ? $rec->folderId : Request::get('folderId', 'key(mvc=doc_Folders)');
+			$folderId = setIfNot($rec->folderId, Request::get('folderId', 'key(mvc=doc_Folders)'), Mode::get('lastFolderId'));
 			
-			// Трябва да има видими за партньори нишки в споделената папка на потребителя
-			$tQuery = $mvc->getQuery(array('folderId' => $folderId));
-			if(!$tQuery->count()){
+			$sharedFolders = colab_Folders::getSharedFolders($userId);
+				
+			if(!in_array($folderId, $sharedFolders)){bp($folderId,$sharedFolders);
 				$requiredRoles = 'no_one';
 			}
 		}

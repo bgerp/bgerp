@@ -58,12 +58,6 @@ class colab_Folders extends core_Manager
 	
 	
 	/**
-	 * Кой има право да листва всички профили?
-	 */
-	var $canList = 'contractor';
-	
-	
-	/**
 	 * Екшън по подразбиране е Single
 	 */
 	function act_Default()
@@ -122,6 +116,7 @@ class colab_Folders extends core_Manager
 	{
 		$res = $this->Folders->getQuery($params);
 		$sharedFolders = self::getSharedFolders($cu);
+		
 		$res->in('id', $sharedFolders);
 		
 		return $res;
