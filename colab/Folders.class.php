@@ -2,7 +2,7 @@
 
 
 /**
- * Прокси на 'doc_Folders' позволяващ на потребител с роля 'contractor' да вижда споделените му папки
+ * Прокси на 'colab_Folders' позволяващ на потребител с роля 'contractor' да вижда споделените му папки
  *
  * @category  bgerp
  * @package   colab
@@ -43,12 +43,6 @@ class colab_Folders extends core_Manager
 	 * Полета от които се генерират ключови думи за търсене (@see plg_Search)
 	 */
 	var $searchFields = 'title';
-	
-	
-	/**
-	 * Кой  може да пише?
-	 */
-	//var $canWrite = 'no_one';
 	
 	
 	/**
@@ -97,7 +91,7 @@ class colab_Folders extends core_Manager
 	/**
 	 * Малко манипулации след подготвянето на формата за филтриране
 	 */
-	static function on_AfterPrepareListFilter($mvc, $data)
+	protected static function on_AfterPrepareListFilter($mvc, $data)
 	{
 		$data->listFilter->showFields = 'search';
 		$data->listFilter->view = 'horizontal';

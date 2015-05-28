@@ -59,7 +59,7 @@ class colab_Wrapper extends plg_ProtoWrapper
         		$containersUrl = array('colab_Threads', 'single', 'threadId' => $threadId);
         	}
         }
-        //bp($threadsUrl);
+        
         $this->TAB($threadsUrl, 'Теми', 'contractor');
         $this->TAB($containersUrl, 'Нишка', 'contractor');
         $this->TAB(array('colab_Profiles', 'Single'), 'Профил', 'contractor');
