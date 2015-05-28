@@ -65,7 +65,7 @@ class type_User extends type_Key
                 $userId = core_Users::getCurrent();
                 
                 $userIdKey = self::getUserFromTeams($userId);
-        
+                
                 $userIdKey = reset($userIdKey);
                 
                 if (!$this->options[$userIdKey]) {
@@ -238,6 +238,10 @@ class type_User extends type_Key
             
             // Добавяме в масива
             $arr[$user] = $user;
+        }
+        
+        if (!$teams && !$arr && $userId) {
+            $arr[$userId] = $userId;
         }
         
         return $arr;
