@@ -31,25 +31,19 @@ class colab_Threads extends core_Manager
 	/**
 	 * Плъгини и MVC класове, които се зареждат при инициализация
 	 */
-	var $loadList = 'colab_Wrapper,Threads=doc_Threads,plg_RowNumbering';
+	var $loadList = 'colab_Wrapper,Threads=doc_Threads,plg_RowNumbering,Containers=doc_Containers';
 	
 	
 	/**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'RowNumb=№,title=Заглавие,author=Автор,last=Последно,hnd=Номер,allDocCnt=Документи,createdOn=Създаване';
+    var $listFields = 'RowNumb=№,title=Заглавие,author=Автор,last=Последно,hnd=Номер,partnerDocCnt=Документи,createdOn=Създаване';
 	
 	
 	/**
 	 * Полета от които се генерират ключови думи за търсене (@see plg_Search)
 	 */
 	var $searchFields = 'title';
-	
-	
-	/**
-	 * Кой  може да пише?
-	 */
-	//var $canWrite = 'no_one';
 	
 	
 	/**
@@ -61,7 +55,7 @@ class colab_Threads extends core_Manager
 	/**
 	 * Кой има право да чете?
 	 */
-	var $canBrowse = 'contractor';
+	var $canSingle = 'contractor';
 	
 	
 	/**
@@ -79,21 +73,69 @@ class colab_Threads extends core_Manager
 		requireRole('user');
 	
 		// Редиректваме
-		return Redirect(array($this, 'browse'));
+		return Redirect(array($this, 'list'));
 	}
 	
 	
-	function act_Browse()
+	function act_Single()
 	{
-		$this->haveRightFor('browse');
-		expect($folderId = Request::get('folderId', 'key(mvc=doc_Folders)'));
+		$this->haveRightFor('single');
+		expect($id = Request::get('threadId', 'key(mvc=doc_Threads)'));
 		
+		// Създаваме обекта $data
 		$data = new stdClass();
-		$data->rec = new stdClass();
-		$data->rec->folderId = $folderId; 
-		$data->rec->folderState = doc_Folders::fetchField($folderId, 'state');
-		$this->requireRightFor('browse', $data->rec);
-		bp($folderId,$data->rec);
+		$data->listFields = 'created=Създаване,document=Документи';
+		$data->threadId = $id;
+		$data->threadRec = $this->Threads->fetch($id);
+		$data->folderId = $data->threadRec->folderId;
+		
+		$this->requireRightFor('single', $data->rec);
+		
+		$data->query = $this->Containers->getQuery();
+		$data->query->where("#threadId = {$id}");
+		$data->query->where("#visibleForPartners = 'yes'");
+		
+		$this->prepareSingleTitle($data);
+		
+		while ($rec = $data->query->fetch()) {
+			$data->recs[$rec->id] = $rec;
+		}
+		
+		if(count($data->recs)) {
+			foreach($data->recs as $id => $rec) {
+				$data->rows[$id] = $this->Containers->recToVerbal($rec, arr::combine($data->listFields, '-list'));
+			}
+		}
+		
+		$this->Containers->prepareListToolbar($data);
+		
+		// Рендираме изгледа
+		$tpl = $this->renderList($data);
+		
+		// Опаковаме изгледа
+		$tpl = $this->renderWrapping($tpl, $data);
+		
+		return $tpl;
+	}
+	
+	
+	public function prepareSingleTitle(&$data)
+	{
+		$title = new ET("<div class='path-title'>[#folder#] » [#threadTitle#]</div>");
+		
+		$folderTitle = doc_Folders::getVerbal($data->folderId, 'title');
+		if(colab_Threads::haveRightFor('list', $data)){
+			$folderTitle = ht::createLink($folderTitle, array('colab_Threads', 'list', 'folderId' => $data->folderId), FALSE, 'ef_icon=img/16/folder-icon.png');
+		}
+		
+		$title->replace($folderTitle, 'folder');
+		
+		$document = $this->Containers->getDocument($data->threadRec->firstContainerId);
+		$docRow = $document->getDocumentRow();
+		$docTitle = str::limitLen($docRow->title, 70);
+		$title->replace($docTitle, 'threadTitle');
+		
+		$data->title = $title;
 	}
 	
 	
@@ -105,6 +147,15 @@ class colab_Threads extends core_Manager
 		if(count($data->recs)) {
 			foreach($data->recs as $id => $rec) {
 				$row = $this->Threads->recToVerbal($rec);
+				
+				$docProxy = doc_Containers::getDocument($rec->firstContainerId);
+				$docRow = $docProxy->getDocumentRow();
+				$row->title = ht::createLink($docRow->title, array($this, 'single', 'threadId' => $id), FALSE, "ef_icon={$docProxy->getIcon()},title=ааа");
+				
+				if($docRow->subTitle) {
+           			$row->title .= "\n<div class='threadSubTitle'>{$docRow->subTitle}</div>";
+        		}
+        		
 				$data->rows[$id] = $row;
 			}
 		}
@@ -117,6 +168,7 @@ class colab_Threads extends core_Manager
 	function prepareListFilter_($data)
 	{
 		parent::prepareListFilter_($data);
+		
 		$data->listFilter->FNC('search', 'varchar', 'caption=Ключови думи,input,silent,recently');
 		$data->listFilter->FNC('folderId', 'key(mvc=doc_Folders)', 'input=hidden,silent');
 		$data->listFilter->FNC('order', 'enum(open=Първо отворените, recent=По последно, create=По създаване, numdocs=По брой документи)',
@@ -148,14 +200,6 @@ class colab_Threads extends core_Manager
 			if($rec->folderState == 'rejected'){
 				$requiredRoles = 'no_one';
 			}
-			
-			if($requiredRoles != 'no_one'){
-				//$firstContainerId = $mvc->Threads->fetchField($rec->folderId, 'firstContainerId');
-				//$container = doc_Containers::fetch($firstContainerId);
-				//if(!$container->visibleForPartners){
-					//$requiredRoles = 'no_one';
-				//}
-			}
 		}
 		
 		if($action == 'list'){
@@ -166,6 +210,20 @@ class colab_Threads extends core_Manager
 				$requiredRoles = 'no_one';
 			}
 		}
+		
+		if($action == 'single' && isset($rec)){
+			$sharedFolders = colab_Folders::getSharedFolders($userId);
+			
+			if(!in_array($rec->folderId, $sharedFolders)){
+				$requiredRoles = 'no_one';
+			}
+			
+			$firstDocumentIsVisible = doc_Containers::fetchField($rec->firstContainerId, 'visibleForPartners');
+			if($firstDocumentIsVisible != 'yes'){
+				$requiredRoles = 'no_one';
+			}
+		}
+		
 		
 		if(core_Users::haveRole('powerUser', $userId)){
 			$requiredRoles = 'no_one';
@@ -195,5 +253,17 @@ class colab_Threads extends core_Manager
 		$res->in('folderId', $sharedFolders);
 	
 		return $res;
+	}
+	
+	
+	/**
+	 * Изпълнява се след подготовката на листовия изглед
+	 */
+	protected static function on_AfterPrepareListTitle($mvc, &$res, $data)
+	{
+		$folderId = Request::get('folderId', 'key(mvc=doc_Folders)');
+		$folderTitle = doc_Folders::getVerbal($folderId, 'title');
+		
+		$data->title .= "|* |в|* <b style='color:green'>{$folderTitle}</b>";
 	}
 }

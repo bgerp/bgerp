@@ -59,12 +59,6 @@ class colab_Folders extends core_Manager
 	
 	
 	/**
-	 * Кой има право да чете?
-	 */
-	var $canBrowse = 'contractor';
-	
-	
-	/**
 	 * Кой има право да листва всички профили?
 	 */
 	var $canList = 'contractor';
@@ -151,17 +145,6 @@ class colab_Folders extends core_Manager
 		if(core_Users::haveRole('powerUser', $userId)){
 			$requiredRoles = 'no_one';
 		}
-		
-		if($action == 'browse' && isset($rec->id)){
-			$sharedFolders = self::getSharedFolders($userId);
-			if(!in_array($rec->id, $sharedFolders)){
-				$requiredRoles = 'no_one';
-			}
-			
-			if($rec->state == 'rejected'){
-				$requiredRoles = 'no_one';
-			}
-		}
 	}
 	
 	
@@ -194,18 +177,4 @@ class colab_Folders extends core_Manager
 		// Това е броя на споделените папки към контрактора
 		return doc_FolderToPartners::count("#contractorId = {$cu}");
 	}
-	
-	function act_Browse()
-	{
-		$this->haveRightFor('browse');
-		expect($id = Request::get('id', 'key(mvc=doc_Folders)'));
-		
-		$data = new stdClass();
-		$data->rec = new stdClass();
-		$data->rec->id = $id; 
-		$data->rec->state = $this->Folders->fetchField($id, 'state');
-		$this->requireRightFor('browse', $data->rec);
-		bp($folderId,$data->rec);
-	}
-	
 }
