@@ -39,7 +39,7 @@ class planning_PlanningReportImpl extends frame_BaseDriver
     /**
      * Брой записи на страница
      */
-    public $listItemsPerPage = 50;
+    public $listItemsPerPage = 5;
     
     
     /**
@@ -214,14 +214,13 @@ class planning_PlanningReportImpl extends frame_BaseDriver
     public static function on_AfterPrepareEmbeddedData($mvc, &$res)
     {
     	// Подготвяме страницирането
-    	/*$data = $res;
-    	$pageVar = str::addHash("P", 5, "{$mvc->className}{$mvc->EmbedderRec->that}");
-    	$Pager = cls::get('core_Pager', array('pageVar' => $pageVar, 'itemsPerPage' => $mvc->listItemsPerPage));
-        $Pager->itemsCount = count($data->recs);
-        $Pager->calc();
-        $data->pager = $Pager;
+    	$data = $res;
         
-        $start = $data->pager->rangeStart;
+        $pager = cls::get('core_Pager',  array('pageVar' => 'P_' .  $mvc->EmbedderRec->that,'itemsPerPage' => $mvc->listItemsPerPage));
+        $pager->itemsCount = count($data->catCnt);
+        $data->pager = $pager;
+        
+        /*$start = $data->pager->rangeStart;
         $end = $data->pager->rangeEnd - 1;
         
         $data->summary = new stdClass();
@@ -302,9 +301,6 @@ class planning_PlanningReportImpl extends frame_BaseDriver
     	$tpl->prepend($form->renderStaticHtml(), 'FORM');
     
     	$tpl->placeObject($data->rec);
-    
-    	$pager = cls::get('core_Pager',  array('pageVar' => 'P_' .  $this->EmbedderRec->that,'itemsPerPage' => $this->listItemsPerPage));
-    	$pager->itemsCount = count($data->catCnt);
 
     	$f = cls::get('core_FieldSet');
 
@@ -331,7 +327,7 @@ class planning_PlanningReportImpl extends frame_BaseDriver
         
     	foreach ($data->catCnt as $cat) {
 
-    		if(!$pager->isOnPage()) continue;
+    		if(!$data->pager->isOnPage()) continue;
     		
     		if ($cat->quantityDelivered && $cat->quantity) {
     			$toDeliver = abs($cat->quantityDelivered - $cat->quantity);
@@ -378,7 +374,10 @@ class planning_PlanningReportImpl extends frame_BaseDriver
     	
     	 
     	$tpl->append($table->get($rows, $data->listFields), 'CONTENT');
-    	$tpl->append($pager->getHtml(), 'PAGER');
+    	
+    	if($data->pager){
+    	     $tpl->append($data->pager->getHtml(), 'PAGER');
+    	}
     
     	return  $tpl;
     }
