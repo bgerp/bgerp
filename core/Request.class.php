@@ -207,11 +207,6 @@ class core_Request
      */
     static function get($name, $type = NULL)
     {
-        if (self::$protected[$name]) {
-            
-            return self::$vars['protected'][$name];
-        }
-        
         if ($type) {
             $inputType = core_Type::getByName($type);
             $value = self::get($name);
@@ -224,7 +219,10 @@ class core_Request
             }
         }
         
-        foreach (self::$vars as $arr) {
+        foreach (self::$vars as $key => $arr) {
+
+            if(self::$protected[$name] && ($key == '_POST' || $key == '_GET')) continue;
+
             if (isset($arr[$name])) {
                 return $arr[$name];
             }
