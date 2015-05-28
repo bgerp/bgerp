@@ -36,7 +36,7 @@ class colab_Folders extends core_Manager
 	/**
 	 * Полета, които ще се показват в листов изглед
 	 */
-	var $listFields = 'RowNumb=№,title=Заглавие,last=Последно';
+	var $listFields = 'RowNumb=№,title=Заглавие,type=Тип,last=Последно';
 	
 	
 	/**
@@ -77,16 +77,14 @@ class colab_Folders extends core_Manager
 	{
 		if(count($data->recs)) {
 			foreach($data->recs as $id => $rec) {
-				$row = new stdClass();
-				$row->title = $this->Folders->getVerbal($rec, 'title');
-				$row->last = $this->Folders->getVerbal($rec, 'last');
+				
+				$title = $this->Folders->getVerbal($rec, 'title');
+				$row = $this->Folders->recToVerbal($rec, $this->listFields);
+				$row->title = $title;
 				
 				if(colab_Threads::haveRightFor('list', (object)array('folderId' => $rec->id))){
 					$row->title = ht::createLink($row->title, array('colab_Threads', 'list', 'folderId' => $rec->id), FALSE, 'ef_icon=img/16/folder-icon.png');
 				}
-				
-				$row->ROW_ATTR['class'] .= " state-{$rec->state}";
-				$row->STATE_CLASS .= " state-{$rec->state}";
 				
 				$data->rows[$id] = $row;
 			}
@@ -129,8 +127,8 @@ class colab_Folders extends core_Manager
 	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
 	{
 		if($action == 'list'){
-			
 			$sharedFolders = self::getSharedFolders($userId);
+			
 			if(count($sharedFolders) <= 1){
 				$requiredRoles = 'no_one';
 			}
@@ -142,6 +140,9 @@ class colab_Folders extends core_Manager
 	}
 	
 	
+	/**
+	 * Връща всички споделени папки до този контрактор
+	 */
 	public static function getSharedFolders($cu = NULL)
 	{
 		if(!$cu){
@@ -150,7 +151,9 @@ class colab_Folders extends core_Manager
 		
 		$sharedFolders = array();
 		$sharedQuery = doc_FolderToPartners::getQuery();
+		$sharedQuery->EXT('state', 'doc_Folders', 'externalName=state,externalKey=folderId');
 		$sharedQuery->where("#contractorId = {$cu}");
+		$sharedQuery->where("#state != 'rejected'");
 		$sharedQuery->show('folderId');
 		$sharedQuery->groupBy('folderId');
 		while($fRec = $sharedQuery->fetch()){

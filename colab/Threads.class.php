@@ -99,7 +99,7 @@ class colab_Threads extends core_Manager
 		$data->query->where("#threadId = {$id}");
 		$data->query->where("#visibleForPartners = 'yes'");
 		
-		$this->prepareSingleTitle($data);
+		$this->prepareTitle($data);
 		
 		while ($rec = $data->query->fetch()) {
 			$data->recs[$rec->id] = $rec;
@@ -125,21 +125,26 @@ class colab_Threads extends core_Manager
 	/**
 	 * Подготовка на заглавието на нишката
 	 */
-	public function prepareSingleTitle(&$data)
+	public function prepareTitle(&$data)
 	{
-		$title = new ET("<div class='path-title'>[#folder#] » [#threadTitle#]</div>");
+		$title = new ET("<div class='path-title'>[#folder#] ([#folderCover#])<!--ET_BEGIN threadTitle--> » [#threadTitle#]<!--ET_END threadTitle--></div>");
+		
+		$data->folderId = ($data->folderId) ? $data->folderId : Request::get('folderId', 'key(mvc=doc_Folders)'); 
 		
 		$folderTitle = doc_Folders::getVerbal($data->folderId, 'title');
 		if(colab_Threads::haveRightFor('list', $data)){
 			$folderTitle = ht::createLink($folderTitle, array('colab_Threads', 'list', 'folderId' => $data->folderId), FALSE, 'ef_icon=img/16/folder-icon.png');
 		}
-		
+		$coverType = doc_Folders::recToVerbal(doc_Folders::fetch($data->folderId))->type;
 		$title->replace($folderTitle, 'folder');
+		$title->replace($coverType, 'folderCover');
 		
-		$document = $this->Containers->getDocument($data->threadRec->firstContainerId);
-		$docRow = $document->getDocumentRow();
-		$docTitle = str::limitLen($docRow->title, 70);
-		$title->replace($docTitle, 'threadTitle');
+		if($data->threadRec->firstContainerId){
+			$document = $this->Containers->getDocument($data->threadRec->firstContainerId);
+			$docRow = $document->getDocumentRow();
+			$docTitle = str::limitLen($docRow->title, 70);
+			$title->replace($docTitle, 'threadTitle');
+		}
 		
 		$data->title = $title;
 	}
@@ -269,9 +274,6 @@ class colab_Threads extends core_Manager
 	 */
 	protected static function on_AfterPrepareListTitle($mvc, &$res, $data)
 	{
-		$folderId = Request::get('folderId', 'key(mvc=doc_Folders)');
-		$folderTitle = doc_Folders::getVerbal($folderId, 'title');
-		
-		$data->title .= "|* |в|* <b style='color:green'>{$folderTitle}</b>";
+		$mvc->prepareTitle($data);
 	}
 }
