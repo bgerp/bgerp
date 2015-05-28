@@ -93,7 +93,7 @@ class colab_Threads extends core_Manager
 		$data->threadRec = $this->Threads->fetch($id);
 		$data->folderId = $data->threadRec->folderId;
 		
-		$this->requireRightFor('single', $data->rec);
+		$this->requireRightFor('single', $data->threadRec);
 		
 		$data->query = $this->Containers->getQuery();
 		$data->query->where("#threadId = {$id}");
@@ -206,7 +206,7 @@ class colab_Threads extends core_Manager
 			
 			$sharedFolders = colab_Folders::getSharedFolders($userId);
 				
-			if(!in_array($folderId, $sharedFolders)){bp($folderId,$sharedFolders);
+			if(!in_array($folderId, $sharedFolders)){
 				$requiredRoles = 'no_one';
 			}
 		}
@@ -222,6 +222,11 @@ class colab_Threads extends core_Manager
 			// Трябва първия документ в нишката да е видим за партньори
 			$firstDocumentIsVisible = doc_Containers::fetchField($rec->firstContainerId, 'visibleForPartners');
 			if($firstDocumentIsVisible != 'yes'){
+				$requiredRoles = 'no_one';
+			}
+			
+			// Ако треда е оттеглен, не може да се гледа от партньора
+			if($rec->state == 'rejected'){
 				$requiredRoles = 'no_one';
 			}
 		}
@@ -250,6 +255,7 @@ class colab_Threads extends core_Manager
 		
 		$params['where'][] = "#folderId = {$folderId}";
 		$res = $this->Threads->getQuery($params);
+		$res->where("#state != 'rejected'");
 		$res->EXT('visibleForPartners', 'doc_Containers', 'externalName=visibleForPartners,externalKey=firstContainerId');
 		$res->where("#visibleForPartners = 'yes'");
 		$res->in('folderId', $sharedFolders);
