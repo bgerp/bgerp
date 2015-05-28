@@ -224,11 +224,13 @@ class planning_PlanningReportImpl extends frame_BaseDriver
             $count = 0;
             
             foreach ($data->recs as $id => $rec){
-            	
-                if(!$data->pager->isOnPage()) continue;
+            	//bp($rec);
+                if ((abs($rec->quantityDelivered - $rec->quantity) != 0) || (abs($rec->quantityProduced - $rec->quantityJob) != 0)) {
+                if(!$pager->isOnPage()) continue;
                 
                 $row = $mvc->getVerbal($rec);
                 $data->rows[$id] = $row;
+                }
             }
         }
         
@@ -396,12 +398,16 @@ class planning_PlanningReportImpl extends frame_BaseDriver
 		
 		if ($rec->quantityDelivered && $rec->quantity) {
 			$toDeliver = abs($rec->quantityDelivered - $rec->quantity);
+		} elseif ($rec->quantityDelivered !== 0 || $rec->quantityDelivered == NULL) {
+			$toDeliver = $rec->quantity;
 		} else {
 			$toDeliver = '';
 		}
 		
 		if ($rec->quantityProduced && $rec->quantityJob) {
 			$toProduced = abs($rec->quantityProduced - $rec->quantityJob);
+		} elseif ($rec->quantityProduced !== 0 || $rec->quantityProduced == NULL) {
+			$toProduced = $rec->quantityJob;
 		} else {
 			$toProduced = '';
 		}
