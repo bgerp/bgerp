@@ -220,47 +220,19 @@ class planning_PlanningReportImpl extends frame_BaseDriver
         $pager->itemsCount = count($data->catCnt);
         $data->pager = $pager;
         
-        /*$start = $data->pager->rangeStart;
-        $end = $data->pager->rangeEnd - 1;
-        
-        $data->summary = new stdClass();
-        
-        if(count($data->recs)){
+        if(count($data->catCnt)){
             $count = 0;
             
-            foreach ($data->recs as $id => $rec){
+            foreach ($data->catCnt as $id => $rec){
+            	
+                if(!$data->pager->isOnPage()) continue;
                 
-                // Показваме само тези редове, които са в диапазона на страницата
-                if($count >= $start && $count <= $end){
-                    $rec->id = $count + 1;
-                    $row = $mvc->getVerbalDetail($rec);
-                    $data->rows[$id] = $row;
-                }
-                
-                // Сумираме всички суми и к-ва
-                foreach (array('baseQuantity', 'baseAmount', 'debitAmount', 'debitQuantity', 'creditAmount', 'creditQuantity', 'blAmount', 'blQuantity') as $fld){
-                    if(!is_null($rec->$fld)){
-                        $data->summary->$fld += $rec->$fld;
-                    }
-                }
-                
-                $count++;
+                $row = $mvc->getVerbal($rec);
+                $data->rows[$id] = $row;
             }
         }
         
-        $Double = cls::get('type_Double');
-        $Double->params['decimals'] = 2;
-        
-        foreach ((array)$data->summary as $name => $num){
-            $data->summary->$name  = $Double->toVerbal($num);
-            if($num < 0){
-            	$data->summary->$name  = "<span class='red'>{$data->summary->$name}</span>";
-            }
-        }
-        
-        $mvc->recToVerbal($data);
-        
-        $res = $data;*/
+        $res = $data;
     }
     
     
@@ -269,7 +241,7 @@ class planning_PlanningReportImpl extends frame_BaseDriver
      * 
      * @return core_ET $tpl - шаблона
      */
-   public function getReportLayout_()
+    public function getReportLayout_()
     {
     	$tpl = getTplFromFile('planning/tpl/PlanningReportLayout.shtml');
     	
@@ -315,65 +287,10 @@ class planning_PlanningReportImpl extends frame_BaseDriver
     	$f->FLD('quantityToProduced', 'int');
     	$f->FLD('date', 'date');
     	$f->FLD('jobs', 'richtext');
-    	
-    	
-    	$rows = array();
-
-    	$ft = $f->fields;
-        $varcharType = $ft['id']->type;
-        $intType = $ft['quantityToDeliver']->type;
-        $tichtextType = $ft['sales']->type;
-        $dateType = $ft['date']->type;
-        
-    	foreach ($data->catCnt as $cat) {
-
-    		if(!$data->pager->isOnPage()) continue;
-    		
-    		if ($cat->quantityDelivered && $cat->quantity) {
-    			$toDeliver = abs($cat->quantityDelivered - $cat->quantity);
-    		} else {
-    			$toDeliver = '';
-    		}
-    		
-    		if ($cat->quantityProduced && $cat->quantityJob) {
-    			$toProduced = abs($cat->quantityProduced - $cat->quantityJob);
-    		} else {
-    			$toProduced = '';
-    		}
-    		
-    		$row = new stdClass();
-
-    		$row->id = cat_Products::getShortHyperlink($cat->id);
-    		$row->quantity = $intType->toVerbal($cat->quantity);
-    		$row->quantityDelivered = $intType->toVerbal($cat->quantityDelivered);
-    		$row->quantityToDeliver = $intType->toVerbal($toDeliver);
-    		$row->dateSale = $dateType->toVerbal($cat->dateSale);
-    		
-    		for($i = 0; $i <= count($cat->sales)-1; $i++) {
-
-    			$row->sales .= "#".sales_Sales::getHandle($cat->sales[$i]) .",";
-    		}
-    		$row->sales = $tichtextType->toVerbal(substr($row->sales, 0, -1));
-    		
-    		$row->quantityJob = $intType->toVerbal($cat->quantityJob);
-    		$row->quantityProduced = $intType->toVerbal($cat->quantityProduced);
-    		$row->quantityToProduced = $intType->toVerbal($toProduced);
-    		$row->date = $dateType->toVerbal($cat->date);
-    		
-    		for($j = 0; $j <= count($cat->jobs)-1; $j++) { 
-
-    			$row->jobs .= "#".planning_Jobs::getHandle($cat->jobs[$j]) .","; 
-    		}
-			$row->jobs = $tichtextType->toVerbal(substr($row->jobs, 0, -1));
-    		
-    		$rows[] = $row;
-
-    	}
 
     	$table = cls::get('core_TableView', array('mvc' => $f));
-    	
-    	 
-    	$tpl->append($table->get($rows, $data->listFields), 'CONTENT');
+
+    	$tpl->append($table->get($data->rows, $data->listFields), 'CONTENT');
     	
     	if($data->pager){
     	     $tpl->append($data->pager->getHtml(), 'PAGER');
@@ -468,43 +385,54 @@ class planning_PlanningReportImpl extends frame_BaseDriver
       }*/
        
        
-       /**
-        * Вербалното представяне на ред от таблицата
-        */
-       /*private function getVerbalDetail($rec)
-       {
-           $Varchar = cls::get('type_Varchar');
-           $Double = cls::get('type_Double');
-           $Double->params['decimals'] = 2;
+    /**
+     * Вербалното представяне на ред от таблицата
+     */
+    private function getVerbal($rec)
+    {
+    	$RichtextType = cls::get('type_Richtext');
+        $Date = cls::get('type_Date');
+		$Int = cls::get('type_Int');
+		
+		if ($rec->quantityDelivered && $rec->quantity) {
+			$toDeliver = abs($rec->quantityDelivered - $rec->quantity);
+		} else {
+			$toDeliver = '';
+		}
+		
+		if ($rec->quantityProduced && $rec->quantityJob) {
+			$toProduced = abs($rec->quantityProduced - $rec->quantityJob);
+		} else {
+			$toProduced = '';
+		}
 
-           $Int = cls::get('type_Int');
+        $row = new stdClass();
+        
+        $row->id = cat_Products::getShortHyperlink($rec->id);
+    	$row->quantity = $Int->toVerbal($rec->quantity);
+    	$row->quantityDelivered = $Int->toVerbal($rec->quantityDelivered);
+    	$row->quantityToDeliver = $Int->toVerbal($toDeliver);
+    	$row->dateSale = $Date->toVerbal($rec->dateSale);
+    		
+    	for($i = 0; $i <= count($rec->sales)-1; $i++) {
 
-           $row = new stdClass();
-           $row->id = $Int->toVerbal($rec->id);
+    		$row->sales .= "#".sales_Sales::getHandle($rec->sales[$i]) .",";
+    	}
+    	$row->sales = $RichtextType->toVerbal(substr($row->sales, 0, -1));
+    		
+    	$row->quantityJob = $Int->toVerbal($rec->quantityJob);
+    	$row->quantityProduced = $Int->toVerbal($rec->quantityProduced);
+    	$row->quantityToProduced = $Int->toVerbal($toProduced);
+    	$row->date = $Date->toVerbal($rec->date);
+    		
+    	for($j = 0; $j <= count($rec->jobs)-1; $j++) { 
+
+    		$row->jobs .= "#".planning_Jobs::getHandle($rec->jobs[$j]) .","; 
+    	}
+		$row->jobs = $RichtextType->toVerbal(substr($row->jobs, 0, -1));
        
-           foreach (array('baseAmount', 'debitAmount', 'creditAmount', 'blAmount', 'baseQuantity', 'debitQuantity', 'creditQuantity', 'blQuantity') as $fld){
-               $row->$fld = $Double->toVerbal($rec->$fld);
-               $row->$fld = (($rec->$fld) < 0) ? "<span style='color:red'>{$row->$fld}</span>" : $row->$fld;
-           }
-       
-           foreach (range(1, 3) as $i) {
-           		if(isset($rec->{"grouping{$i}"})){
-           			$row->{"ent{$i}Id"} = $rec->{"grouping{$i}"};
-           
-           			if($row->{"ent{$i}Id"} == 'others'){
-           				$row->{"ent{$i}Id"} = "<i>" . tr('Други') . "</i>";
-           			}
-           		} else {
-           			if(!empty($rec->{"ent{$i}Id"})){
-           				$row->{"ent{$i}Id"} .= acc_Items::getVerbal($rec->{"ent{$i}Id"}, 'titleLink');
-           			}
-           		}
-           }
-       
-           $row->ROW_ATTR['class'] = ($rec->id % 2 == 0) ? 'zebra0' : 'zebra1';
-       
-           return $row;
-      }*/
+        return $row;
+    }
 
       
 	  /**
