@@ -53,7 +53,7 @@ class planning_PlanningReportImpl extends frame_BaseDriver
      *
      * @param core_Fieldset $fieldset
      */
-    public function addEmbeddedFields(core_Form &$form)
+	public function addEmbeddedFields(core_Form &$form)
     {
     	$form->FLD('from', 'date', 'caption=Начало');
     	$form->FLD('to', 'date', 'caption=Край');
@@ -67,7 +67,7 @@ class planning_PlanningReportImpl extends frame_BaseDriver
      *
      * @param core_Form $form
      */
-    public function prepareEmbeddedForm(core_Form &$form)
+	public function prepareEmbeddedForm(core_Form &$form)
     {
     	
     }
@@ -78,7 +78,7 @@ class planning_PlanningReportImpl extends frame_BaseDriver
      *
      * @param core_Form $form
      */
-    public function checkEmbeddedForm(core_Form &$form)
+	public function checkEmbeddedForm(core_Form &$form)
     {
         	 
     	// Размяна, ако периодите са объркани
@@ -246,8 +246,7 @@ class planning_PlanningReportImpl extends frame_BaseDriver
         $data->pager = $pager;
         
         if(count($data->recs)){
-            //$count = 0;
-            
+          
             foreach ($data->recs as $id => $rec){
 				if(!$pager->isOnPage()) continue;
                 
@@ -344,70 +343,7 @@ class planning_PlanningReportImpl extends frame_BaseDriver
         		'jobs' => 'По задание');
         
     }
-    
-    
-   /**
-    * Вербалното представяне на записа
-    */
-   /*private function recToVerbal($data)
-   {
-   		$data->row = new stdClass();
-    	//bp($data);
-        foreach (range(1, 3) as $i){
-       		if(!empty($data->rec->{"ent{$i}Id"})){
-       			$data->row->{"ent{$i}Id"} = "<b>" . acc_Lists::getVerbal($data->accInfo->groups[$i]->rec, 'name') . "</b>: ";
-       			$data->row->{"ent{$i}Id"} .= acc_Items::fetchField($data->rec->{"ent{$i}Id"}, 'titleLink');
-       		}
-        }
-       
-        if(!empty($data->rec->action)){
-        	$data->row->action = ($data->rec->action == 'filter') ? tr('Филтриране по') : tr('Групиране по');
-        	$data->row->groupBy = '';
-        	
-        	$Varchar = cls::get('type_Varchar');
-        	foreach (range(1, 3) as $i){
-        		if(!empty($data->rec->{"grouping{$i}"})){
-        			$data->row->groupBy .= acc_Items::getVerbal($data->rec->{"grouping{$i}"}, 'title') . ", ";
-        		} elseif(!empty($data->rec->{"feat{$i}"})){
-        			$data->rec->{"feat{$i}"} = ($data->rec->{"feat{$i}"} == '*') ? $data->accInfo->groups[$i]->rec->name : $data->rec->{"feat{$i}"};
-        			$data->row->groupBy .= $Varchar->toVerbal($data->rec->{"feat{$i}"}) . ", ";
-        		}
-        	}
-        	
-        	$data->row->groupBy = trim($data->row->groupBy, ', ');
-        	
-        	if($data->row->groupBy === ''){
-        		unset($data->row->action);
-        	}
-        }
-        
-        //bp($data);
-   }*/
-     
-     
-     /**
-      * Оставяме в записите само тези, които трябва да показваме
-      */
-     /*private function filterRecsByItems(&$data)
-     {
-     	$Balance = cls::get('acc_BalanceDetails');
-     	
-     	//
-     	if(!empty($data->rec->action)){
-         	$cmd = ($data->rec->action == 'filter') ? 'default' : 'group';
-         	$Balance->doGrouping($data, (array)$data->rec, $cmd, $data->recs);
-        }
-         
-         // Ако е посочено поле за сортиране, сортираме по него
-         if($this->innerForm->orderField){
-         	arr::order($data->recs, $this->innerForm->orderField, strtoupper($this->innerForm->orderBy));
-         } else {
-         	
-         	// Ако не се сортира по номерата на перата
-         	$Balance->canonizeSortRecs($data, $this->cache);
-         }
-      }*/
-       
+
        
     /**
      * Вербалното представяне на ред от таблицата
@@ -461,47 +397,30 @@ class planning_PlanningReportImpl extends frame_BaseDriver
        
         return $row;
     }
-
-      
-	  /**
-	   * Добавяме полета за търсене
-	   * 
-	   * @see frame_BaseDriver::alterSearchKeywords()
-	   */
-      /*public function alterSearchKeywords(&$searchKeywords)
-      {
-      	  if(!empty($this->innerForm)){
-	      		$accVerbal = acc_Accounts::getVerbal($this->innerForm->accountId, 'title');
-	      		$num = acc_Accounts::getVerbal($this->innerForm->accountId, 'num');
-	      			
-	      		$str = $accVerbal . " " . $num;
-	      		$searchKeywords .= " " . plg_Search::normalizeText($str);
-      	  }
-      }*/
       
       
-      /**
-       * Скрива полетата, които потребител с ниски права не може да вижда
-       *
-       * @param stdClass $data
-       */
-      public function hidePriceFields()
-      {
-      		$innerState = &$this->innerState;
+	/**
+     * Скрива полетата, които потребител с ниски права не може да вижда
+     *
+     * @param stdClass $data
+     */
+	public function hidePriceFields()
+    {
+    	$innerState = &$this->innerState;
       		
-      		unset($innerState->recs);
-      }
+      	unset($innerState->recs);
+    }
       
       
-      /**
-       * Коя е най-ранната дата на която може да се активира документа
-       */
-      public function getEarlyActivation()
-      {
-      	  $activateOn = "{$this->innerForm->to} 23:59:59";
+	/**
+     * Коя е най-ранната дата на която може да се активира документа
+     */
+	public function getEarlyActivation()
+    {
+    	$activateOn = "{$this->innerForm->to} 23:59:59";
       	  	
-      	  return $activateOn;
-      }
+      	return $activateOn;
+	}
 
 
      /**
