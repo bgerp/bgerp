@@ -163,7 +163,7 @@ class planning_PlanningReportImpl extends frame_BaseDriver
 	        		$date = $rec->valior;
 	        	}
 	        	
-	        	if ((abs($product->quantityDelivered - $product->quantity) == 0)) continue;
+	        	if ($product->quantityDelivered >= $product->quantity) continue;
 	        	
 		        	
 	        	// ако нямаме такъв запис,
@@ -194,7 +194,7 @@ class planning_PlanningReportImpl extends frame_BaseDriver
         	$indexJ = $recJobs->productId;
         	$dateJob[$recJobs->productId][$recJobs->id] = $recJobs->dueDate;
         	 
-        	if ((abs($recJobs->quantityProduced - $recJobs->quantity) == 0)) continue;
+        	if ($recJobs->quantityProduced >= $recJobs->quantity) continue;
         	// ако нямаме такъв запис,
         	// го добавяме в масив
         	if(!array_key_exists($indexJ, $data->recs)){
