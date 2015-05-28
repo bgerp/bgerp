@@ -3616,6 +3616,20 @@ function onBeforeUnload()
 
 
 /**
+ * Добавя текущото URL И титлата към url-то
+ */
+function addParamsToBookmarkBtn(parentUrl)
+{
+	//var url = encodeURIComponent(document.URL);
+	//var title = encodeURIComponent(document.title);
+	var url = document.URL;
+	var title = document.title;
+	
+	document.location = parentUrl + '?url=' + url + '&title=' + title;
+}
+
+
+/**
  * Fix за IE8
  * @see http://stackoverflow.com/questions/3629183/why-doesnt-indexof-work-on-an-array-ie8
  */
