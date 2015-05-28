@@ -58,9 +58,6 @@ class planning_PlanningReportImpl extends frame_BaseDriver
     	$form->FLD('from', 'date', 'caption=Начало');
     	$form->FLD('to', 'date', 'caption=Край');
     
-    	//$form->FLD('orderField', "enum(,ent1Id=Перо 1,ent2Id=Перо 2,ent3Id=Перо 3,baseQuantity=К-во»Начално,baseAmount=Сума»Начална,debitQuantity=К-во»Дебит,debitAmount=Сума»Дебит,creditQuantity=К-во»Кредит,creditAmount=Сума»Кредит,blQuantity=К-во»Крайно,blAmount=Сума»Крайна)", 'caption=Подредба->По,formOrder=110000');
-    	//$form->FLD('orderBy', 'enum(,asc=Въздходящ,desc=Низходящ)', 'caption=Подредба->Тип,formOrder=110001');
-    
     	$this->invoke('AfterAddEmbeddedFields', array($form));
     }
     
@@ -112,8 +109,6 @@ class planning_PlanningReportImpl extends frame_BaseDriver
         
         $this->prepareListFields($data);
         
-        //$query->where("#state = 'active' AND (#createdOn >= '{$this->innerForm->from}' AND #createdOn <= '{$this->innerForm->to}')");
-        //$queryJob->where("#state = 'active' AND (#createdOn >= '{$this->innerForm->from}' AND #createdOn <= '{$this->innerForm->to}')");
         $query->where("#state = 'active' ");
         $queryJob->where("#state = 'active'");
         
@@ -123,7 +118,7 @@ class planning_PlanningReportImpl extends frame_BaseDriver
         	//$origin = doc_Threads::getFirstDocument($rec->threadId);
         	// взимаме информация за сделките
         	//$dealInfo = $origin->getAggregateDealInfo();
-        	//bp($rec);
+
         	if ($rec->deliveryTime) {
         		$date = $rec->deliveryTime;
         	} else {
@@ -146,7 +141,6 @@ class planning_PlanningReportImpl extends frame_BaseDriver
         if(is_array($products)){
 	    	foreach($products as $product) {
 	    		// правим индекс "класа на продукта|ид на продукта"
-	        	//$index = "$product->classId" .'|'. "$product->productId";
 	        	$index = $product->productId;
 	        		
 	        	if($product->deliveryTime) {
@@ -154,6 +148,9 @@ class planning_PlanningReportImpl extends frame_BaseDriver
 	        	} else {
 	        		$date = $rec->valior;
 	        	}
+	        	
+	        	if ((abs($product->quantityDelivered - $product->quantity) == 0)) continue;
+	        	
 		        	
 	        	// ако нямаме такъв запис,
 	        	// го добавяме в масив
@@ -182,6 +179,7 @@ class planning_PlanningReportImpl extends frame_BaseDriver
         while ($recJobs = $queryJob->fetch()) {
         	$indexJ = $recJobs->productId;
         	 
+        	if ((abs($recJobs->quantityProduced - $recJobs->quantity) == 0)) continue;
         	// ако нямаме такъв запис,
         	// го добавяме в масив
         	if(!array_key_exists($indexJ, $data->recs)){
@@ -224,8 +222,7 @@ class planning_PlanningReportImpl extends frame_BaseDriver
             $count = 0;
             
             foreach ($data->recs as $id => $rec){
-            	
-                if(!$data->pager->isOnPage()) continue;
+				if(!$pager->isOnPage()) continue;
                 
                 $row = $mvc->getVerbal($rec);
                 $data->rows[$id] = $row;
@@ -308,15 +305,15 @@ class planning_PlanningReportImpl extends frame_BaseDriver
     
         $data->listFields = array(
                 'id' => 'Продукт->Име (код)',
-                'quantity' => 'Продажба->поръчано',
-                'quantityDelivered' => 'Продажба->доставено',
-                'quantityToDeliver' => 'Продажба->за доставяне',
-                'dateSale' => 'Продажба->дата',
+                'quantity' => 'Продажба->Поръчано',
+                'quantityDelivered' => 'Продажба->Доставено',
+                'quantityToDeliver' => 'Продажба->За доставяне',
+                'dateSale' => 'Продажба->Дата',
                 'sales' => 'По продажба',
-        		'quantityJob' => 'Производство->поръчано',
-        		'quantityProduced' => 'Производство->произведено',
-        		'quantityToProduced' => 'Производство->за производство',
-        		'date' => 'Продажба->дата',
+        		'quantityJob' => 'Производство->Поръчано',
+        		'quantityProduced' => 'Производство->Произведено',
+        		'quantityToProduced' => 'Производство->За производство',
+        		'date' => 'Производство->Дата',
         		'jobs' => 'По задание');
         
     }
@@ -396,12 +393,16 @@ class planning_PlanningReportImpl extends frame_BaseDriver
 		
 		if ($rec->quantityDelivered && $rec->quantity) {
 			$toDeliver = abs($rec->quantityDelivered - $rec->quantity);
+		} elseif ($rec->quantityDelivered !== 0 || $rec->quantityDelivered == NULL) {
+			$toDeliver = $rec->quantity;
 		} else {
 			$toDeliver = '';
 		}
 		
 		if ($rec->quantityProduced && $rec->quantityJob) {
 			$toProduced = abs($rec->quantityProduced - $rec->quantityJob);
+		} elseif ($rec->quantityProduced !== 0 || $rec->quantityProduced == NULL) {
+			$toProduced = $rec->quantityJob;
 		} else {
 			$toProduced = '';
 		}
