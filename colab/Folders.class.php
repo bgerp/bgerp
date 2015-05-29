@@ -52,13 +52,20 @@ class colab_Folders extends core_Manager
 	
 	
 	/**
+	 * Извиква се преди изпълняването на екшън
+	 */
+	public static function on_BeforeAction($mvc, &$res, $action)
+	{
+		// Изискваме да е логнат потребител
+		requireRole('user');
+	}
+	
+	
+	/**
 	 * Екшън по подразбиране е Single
 	 */
 	function act_Default()
 	{
-		// Изискваме да е логнат потребител
-		requireRole('user');
-	
 		// Редиректваме
 		return Redirect(array($this, 'list'));
 	}
