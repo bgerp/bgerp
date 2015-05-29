@@ -86,6 +86,8 @@ class colab_Threads extends core_Manager
 		$this->requireRightFor('single');
 		expect($id = Request::get('threadId', 'key(mvc=doc_Threads)'));
 		
+		$this->currentTab = 'Нишка';
+		
 		// Създаваме обекта $data
 		$data = new stdClass();
 		$data->listFields = 'created=Създаване,document=Документи';
@@ -93,8 +95,11 @@ class colab_Threads extends core_Manager
 		$data->threadRec = $this->Threads->fetch($id);
 		$data->folderId = $data->threadRec->folderId;
 		
+		// Трябва да можем да гледаме сингъла на нишката:
+		// Трябва папката и да е споделена на текущия потребител и документа начало на нишка да е видим
 		$this->requireRightFor('single', $data->threadRec);
 		
+		// Показваме само неоттеглените документи, чиито контейнери са видими за партньори
 		$data->query = $this->Containers->getQuery();
 		$data->query->where("#threadId = {$id}");
 		$data->query->where("#visibleForPartners = 'yes'");
@@ -102,10 +107,12 @@ class colab_Threads extends core_Manager
 		
 		$this->prepareTitle($data);
 		
+		// Извличаме записите
 		while ($rec = $data->query->fetch()) {
 			$data->recs[$rec->id] = $rec;
 		}
 		
+		// Вербализираме записите
 		if(count($data->recs)) {
 			foreach($data->recs as $id => $rec) {
 				$data->rows[$id] = $this->Containers->recToVerbal($rec, arr::combine($data->listFields, '-list'));
@@ -114,6 +121,7 @@ class colab_Threads extends core_Manager
 		
 		$this->Containers->prepareListToolbar($data);
 		
+		// Рендираме лист изгледа на контейнера
 		$tpl = $this->Containers->renderList_($data);
 		
 		// Опаковаме изгледа
