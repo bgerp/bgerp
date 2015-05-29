@@ -422,7 +422,7 @@ class doc_RichTextPlg extends core_Plugin
     function _catchNick($match)
     {
         // Да не сработва в текстов режим
-        if (Mode::is('text', 'plain')) return $match[0];
+        if (Mode::is('text', 'plain') || Mode::is('text', 'xhtml')) return $match[0];
         
         // Вземаме id на записа от ника
         $nick = $match['nick'];
