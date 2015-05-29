@@ -110,7 +110,8 @@ class planning_PlanningReportImpl extends frame_BaseDriver
         $this->prepareListFields($data);
         
         $query->where("#state = 'active' ");
-        $queryJob->where("#state = 'active'");
+        $queryJob->where("#state = 'active' OR #state = 'stopped' OR #state = 'wakeup'");
+       
         
         // за всеки един активен договор за продажба
         while($rec = $query->fetch()) {
@@ -150,6 +151,8 @@ class planning_PlanningReportImpl extends frame_BaseDriver
         	}
         	
         }
+        
+        //bp($dateSale,$products);
 
         // за всеки един продукт
         if(is_array($products)){
@@ -226,7 +229,6 @@ class planning_PlanningReportImpl extends frame_BaseDriver
         			$data->recs[$prdJ]->date = $dJ;
         		}
         	}
-        	
         }
         
         return $data;
@@ -252,9 +254,27 @@ class planning_PlanningReportImpl extends frame_BaseDriver
                 
                 $row = $mvc->getVerbal($rec);
                 $data->rows[$id] = $row;
+                
+                // Задаваме уникален номер на контейнера в който ще се реплейсва туултипа
+                $mvc->unique ++;
+                $unique = $mvc->unique;
+                
+                $id = (is_object($rec)) ? $rec->id : $rec;
+                
+                $tooltipUrl = toUrl(array('acc_Items', 'showItemInfo', $id, 'unique' => $unique), 'local');
+                
+                $arrow = ht::createElement("span", array('class' => 'anchor-arrow tooltip-arrow-link', 'data-url' => $tooltipUrl), "", TRUE);
+                $arrow = "<span class='additionalInfo-holder'><span class='additionalInfo' id='info{$unique}'></span>{$arrow}</span>";
+                $data->rows[$id]->quantityToDeliver .= "&nbsp;{$arrow}";
             }
         }
+
         
+        //if($part == 'titleLink'){
+        
+        	
+        //}
+        //bp($arrow,$num);
         $res = $data;
     }
     
