@@ -244,7 +244,10 @@ class bgerp_Bookmark extends core_Manager
             
             $delimiter = ' « ';
             $titleArr = explode($delimiter, $data->form->rec->title);
-            array_pop($titleArr);
+            if (count($titleArr) > 1) {
+                array_pop($titleArr);
+            }
+            
             $data->form->rec->title = implode($delimiter, $titleArr);
         }
     }
