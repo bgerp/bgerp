@@ -26,7 +26,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     /**
      * Заглавие в единствено число
      */
-    public $singleTitle = 'Продукт';
+    public $singleTitle = 'Ресурс';
     
     
     /**
@@ -90,7 +90,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     {
         $this->FLD('noteId', 'key(mvc=planning_DirectProductionNote)', 'column=none,notNull,silent,hidden,mandatory');
         $this->FLD('resourceId', 'key(mvc=planning_Resources,select=title,allowEmpty)', 'silent,caption=Ресурс,mandatory,removeAndRefreshForm=productId|packagingId|quantityInPack|quantity|packQuantity|measureId');
-        $this->FLD('input', 'enum(input=Влагане,pop=Отпадък)', 'caption=Действие');
+        $this->FLD('type', 'enum(input=Влагане,pop=Отпадък)', 'caption=Действие');
         
         parent::setDetailFields($this);
         
@@ -113,25 +113,35 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     	$classId = cat_Products::getClassId();
     	$noProducts = TRUE;
     	
+    	// Не може да се променя ресурса при редакция
     	if($rec->id){
     		$form->setReadOnly('resourceId');
     	}
     	
+    	$form->setDefault('classId', $classId);
+    	
     	if(isset($rec->resourceId)){
-    		$oQuery = planning_ObjectResources::getQuery();
-    		$oQuery->EXT('type', 'planning_Resources', 'externalName=type,externalKey=resourceId');
-    		$oQuery->where("#resourceId = {$rec->resourceId} AND #type = 'material'");
-    		$oQuery->where("#classId = {$classId}");
+    		$materialsArr = planning_ObjectResources::fetchRecsByClassAndType($rec->resourceId, $classId, 'material');
     		
-    		if($oQuery->count()){
-    			while($oRec = $oQuery->fetch()){
+    		// При редакция ако е имало избран артикул, но вече не е към ресурса, все още може да се избира
+    		if($rec->id && $rec->productId){
+    			if(!array_key_exists($rec->productId, $materialsArr)){
+    				$materialsArr[$rec->productId] = (object)array('objectId' => $rec->productId);
+    			}
+    		}
+    		
+    		// Ако има достъпни материали за избор
+    		if(count($materialsArr)){
+    			foreach($materialsArr as $oRec){
     				$products[$oRec->objectId] = cat_Products::getTitleById($oRec->objectId, FALSE);
     			}
     			
+    			// Ако има точно една опция, избираме я по дефолт
     			if(count($products) == 1){
     				$form->setDefault('productId', key($products));
     			}
     			
+    			// Задаваме достъпните опции
     			$form->setOptions('productId', array('' => '') + $products);
     			$noProducts = FALSE;
     		}
@@ -188,7 +198,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     	foreach ($data->rows as $id => &$row)
     	{
     		$rec = $data->recs[$id];
-    		if($rec->input == 'pop'){
+    		if($rec->type == 'pop'){
     			$row->packQuantity = "<span class='red'>-{$row->packQuantity}</span>";
     		}
     		
@@ -197,6 +207,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     		}
     	}
     	
+    	// Ако няма нито един запис с артикул, не показваме колонката му
     	if($hideProductCol === TRUE){
     		unset($data->listFields['productId']);
     	}

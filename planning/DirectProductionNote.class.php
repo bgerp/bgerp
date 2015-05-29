@@ -148,7 +148,8 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 		$this->setField('activityCenterId', 'input=none');
 		$this->setField('deadline', 'input=none');
 		$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,mandatory,after=storeId');
-		$this->FLD('quantity', 'double(smartRound)', 'caption=За,mandatory,after=productId');
+		$this->FLD('jobQuantity', 'double(smartRound)', 'caption=Задание,input=hidden,mandatory,after=productId');
+		$this->FLD('quantity', 'double(smartRound)', 'caption=За,mandatory,after=jobQuantity');
 		
 		$this->setDbIndex('productId');
 	}
@@ -169,6 +170,7 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 		$form->setField('quantity', "unit={$shortUom}");
 		
 		$quantity = $originRec->quantity - $originRec->quantityProduced;
+		$form->setDefault('jobQuantity', $originRec->quantity);
 		$form->setDefault('quantity', $quantity);
 	}
 	
@@ -185,25 +187,25 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 	
 	
 	/**
-	 * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
-	 *
-	 * @param core_Mvc $mvc
-	 * @param string $requiredRoles
-	 * @param string $action
-	 * @param stdClass $rec
-	 * @param int $userId
+	 * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
 	 */
 	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
 	{
 		if($action == 'add'){
 			if(isset($rec)){
+				
+				// Трябва да има ориджин
 				if(empty($rec->originId)){
 					$requiredRoles = 'no_one';
 				} else {
+					
+					// Ориджина трябва да е задание за производство
 					$originDoc = doc_Containers::getDocument($rec->originId);
 					if(!($originDoc->getInstance() instanceof planning_Jobs)){
 						$requiredRoles = 'no_one';
 					} else {
+						
+						// Което не е чернова или оттеглено
 						$state = $originDoc->fetchField('state');
 						if($state == 'rejeced' || $state == 'draft'){
 							$requiredRoles = 'no_one';
@@ -221,5 +223,107 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 	protected static function on_AfterPrepareListToolbar($mvc, &$data)
 	{
 		$data->toolbar->removeBtn('btnAdd');
+	}
+	
+	
+	/**
+	 * Извиква се след успешен запис в модела
+	 *
+	 * @param core_Mvc $mvc
+	 * @param int $id първичния ключ на направения запис
+	 * @param stdClass $rec всички полета, които току-що са били записани
+	 */
+	public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+	{
+		//@TODO тестово да го премахна в крайния вариант
+		planning_DirectProductNoteDetails::delete("#noteId = {$rec->id}");
+		
+		// Ако могат да се генерират детайли от артикула да се
+		$details = $mvc->getDefaultDetails($rec->productId, $rec->storeId, $rec->quantity, $rec->jobQuantity);
+		
+		// Ако могат да бъдат определени дефолт детайли според артикула, записваме ги
+		if(count($details)){
+			foreach ($details as $dRec){
+				$dRec->noteId = $rec->id;
+				planning_DirectProductNoteDetails::save($dRec);
+			}
+		}
+	}
+	
+	
+	/**
+	 * Връща дефолт детайлите на документа, които съотвестват на ресурсите
+	 * в последната активна рецепта за артикула
+	 * 
+	 * @param int $productId       - ид на артикул
+	 * @param int $storeId         - ид на склад
+	 * @param double $prodQuantity - количество за произвеждане
+	 * @param double $jobQuantity  - количество от заданието
+	 * @return array $details      - масив с дефолтните детайли
+	 */
+	protected function getDefaultDetails($productId, $storeId, $prodQuantity, $jobQuantity)
+	{
+		$details = array();
+		
+		// Ако артикула има активна рецепта
+		$bomId = cat_Products::getLastActiveBom($productId)->id;
+		
+		// Ако ням рецепта, не могат да се определят дефолт детайли за влагане
+		if(!$bomId) return $details;
+		
+		// Извличаме информацията за ресурсите в рецептата
+		$bomInfo = cat_Boms::getResourceInfo($bomId);
+		$productManId = cat_Products::getClassId();
+		
+		// За всеки ресурс
+		foreach($bomInfo['resources'] as $resource){
+			
+			// Задаваме данните на ресурса
+			$dRec = new stdClass();
+			$dRec->resourceId = $resource->resourceId;
+			$dRec->type = $resource->type;
+			$dRec->quantityInPack = 1;
+			
+			// Мярката е мярката на ресурса
+			$dRec->measureId = planning_Resources::fetchField($resource->resourceId, 'measureId');
+			
+			// Изчисляваме к-то според наличните данни
+			$dRec->quantity = $prodQuantity * ($resource->baseQuantity / $jobQuantity + ($resource->propQuantity / $bomInfo['quantity']));
+			
+			// Намираме всички артикули материали свързани с този ресурс
+			$materialsArr = planning_ObjectResources::fetchRecsByClassAndType($resource->resourceId, $productManId, 'material');
+			
+			// Извличаме наличното количество в избрания клас за всеки от ресурсите
+			$allProducts = $resProducts = array();
+			if(count($materialsArr)){
+				foreach ($materialsArr as $objRec){
+					$quantity = store_Products::fetchField("#classId = {$objRec->classId} AND #productId = {$objRec->objectId} AND #storeId = {$storeId}", 'quantity');
+					$resProducts[$objRec->objectId] = (isset($quantity)) ? $quantity : 0;
+					$allProducts[$objRec->objectId] = $objRec;
+				}
+			}
+			
+			// Намираме този с най-голямо налично количество
+			$productId = NULL;
+			if(count($resProducts)) {
+				$productId = array_search(max($resProducts), $resProducts);
+			}
+			
+			// Избираме него към ресурса
+			if($productId){
+				$dRec->classId = $productManId;
+				$dRec->productId = $productId;
+				$dRec->measureId = cat_Products::fetchField($productId, 'measureId');
+				
+				// К-то на ресурса го умножаваме по конверсията на артикула към ресурса
+				$dRec->quantity *= $allProducts[$productId]->conversionRate;
+			}
+			
+			// Добавяме детайла
+			$details[] = $dRec;
+		}
+		
+		// Връщаме генерираните детайли
+		return $details;
 	}
 }
