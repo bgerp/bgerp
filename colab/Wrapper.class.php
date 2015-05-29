@@ -20,6 +20,12 @@ class colab_Wrapper extends plg_ProtoWrapper
 {
     
     
+	/**
+	 * HTML клас за табовете на обвивката
+	 */
+	protected $htmlClass = 'alphabet';
+	
+	
     /**
      * Описание на опаковката с табове
      */
