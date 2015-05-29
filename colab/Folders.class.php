@@ -140,7 +140,7 @@ class colab_Folders extends core_Manager
 	public static function getSharedFolders($cu = NULL)
 	{
 		if(!$cu){
-			$cu = core_Users::getCurrent('id');
+			$cu = core_Users::getCurrent();bp($cu);
 		}
 		
 		$sharedFolders = array();

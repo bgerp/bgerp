@@ -83,7 +83,7 @@ class colab_Threads extends core_Manager
 	 */
 	function act_Single()
 	{
-		$this->haveRightFor('single');
+		$this->requireRightFor('single');
 		expect($id = Request::get('threadId', 'key(mvc=doc_Threads)'));
 		
 		// Създаваме обекта $data
@@ -98,6 +98,7 @@ class colab_Threads extends core_Manager
 		$data->query = $this->Containers->getQuery();
 		$data->query->where("#threadId = {$id}");
 		$data->query->where("#visibleForPartners = 'yes'");
+		$data->query->where("#state != 'rejected'");
 		
 		$this->prepareTitle($data);
 		
