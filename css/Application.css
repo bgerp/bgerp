@@ -4098,6 +4098,15 @@ only screen and (max-width: 320px) {
   display: table;
   color: black; }
 
+/*
+ * стилове за външната част при потребител контрактор
+ */
+.contractorExtHolder {
+  padding: 10px; }
+
+/*
+ * край на стилове за външната част при потребител контрактор
+ */
 .cd-l1 {
   color: green; }
 
