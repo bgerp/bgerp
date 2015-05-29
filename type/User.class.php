@@ -226,22 +226,20 @@ class type_User extends type_Key
             $userId = core_Users::getCurrent();
         }
         
-        if (strpos($userId, '_')) {
-            list(,$userId) = explode('_', $userId);
-        }
-        
-        // Всички екипи, в които участва
-        $teams = core_Users::getUserRolesByType($userId, 'team');
-        $teams = keylist::toArray($teams);
-        
-        // Обхождаме екипите
-        foreach ($teams as $team) {
+        if (!strpos($userId, '_')) {
+            // Всички екипи, в които участва
+            $teams = core_Users::getUserRolesByType($userId, 'team');
+            $teams = keylist::toArray($teams);
             
-            // Група с потребителя
-            $user = $team . '_' . $userId;
-            
-            // Добавяме в масива
-            $arr[$user] = $user;
+            // Обхождаме екипите
+            foreach ($teams as $team) {
+                
+                // Група с потребителя
+                $user = $team . '_' . $userId;
+                
+                // Добавяме в масива
+                $arr[$user] = $user;
+            }
         }
         
         if (!$teams && !$arr && $userId) {
