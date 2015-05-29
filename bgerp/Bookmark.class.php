@@ -239,7 +239,7 @@ class bgerp_Bookmark extends core_Manager
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
         // Премахваме броя на нотификациите пред стринга
-        if (!$data->rec->id && !$data->form->isSubmitted() && $data->form->rec->title) {
+        if (!$data->form->rec->id && !$data->form->isSubmitted() && $data->form->rec->title) {
             $data->form->rec->title = preg_replace('/^\([0-9]*\) /', '', $data->form->rec->title);
             
             $delimiter = ' « ';
