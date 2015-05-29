@@ -76,7 +76,7 @@ class bgerp_Setup extends core_ProtoSetup {
         
         'BGERP_NON_WORKING_CRON_TIME' => array ('time(suggestions=30 мин.|1 час| 3 часа)', 'caption=След колко време да дава нотификация за неработещ cron->Време'),
         
-        'BGERP_BOOKMARK_SHOW_LIMIT' => array ('int', 'caption=Ограничение на бързите връзки->Брой, customizeBy=powerUser'),
+        'BGERP_BOOKMARK_SHOW_LIMIT' => array ('int', 'caption=Ограничение на бързите връзки (за Модерна вътрешна страница)->Брой, customizeBy=powerUser'),
      );
     
     
