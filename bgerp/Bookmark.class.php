@@ -74,9 +74,9 @@ class bgerp_Bookmark extends core_Manager
      */
     public function description()
     {
-        $this->FLD('user', 'user(roles=powerUser, rolesForTeams=admin, rolesForAll=ceo)', 'caption=Потребител');
-        $this->FLD('title', 'varchar', 'caption=Заглавие, silent,mandatory');
-        $this->FLD('url', 'Url', 'caption=URL, silent,mandatory');
+        $this->FLD('user', 'user(roles=powerUser, rolesForTeams=admin, rolesForAll=ceo)', 'caption=Потребител, mandatory');
+        $this->FLD('title', 'varchar', 'caption=Заглавие, silent, mandatory');
+        $this->FLD('url', 'Url', 'caption=URL, silent, mandatory');
         $this->FLD('position', 'double', 'caption=Позиция');
         
         $this->FLD('clickCnt', 'int', 'caption=Брой отваряния, input=none, notNull');
