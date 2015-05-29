@@ -180,7 +180,7 @@ class colab_Threads extends core_Manager
 				
 				$row->title = $docRow->title;
 				if($this->haveRightFor('single', $rec)){
-					$row->title = ht::createLink($docRow->title, array($this, 'single', 'threadId' => $id), FALSE, "ef_icon={$docProxy->getIcon()},title=ааа");
+					$row->title = ht::createLink($docRow->title, array($this, 'single', 'threadId' => $id), FALSE, "ef_icon={$docProxy->getIcon()},title=Разглеждане на нишката");
 				} 
 				
 				if($docRow->subTitle) {
