@@ -90,7 +90,7 @@ class plg_ProtoWrapper extends core_Plugin
     function on_AfterRenderWrapping($invoker, &$tpl, $blankTpl, $data = NULL)
     {
         $tpl= new ET($tpl);
-        
+       
         $this->invoke('beforeDescription');
         $this->description();
         $this->invoke('afterDescription');
@@ -148,11 +148,15 @@ class plg_ProtoWrapper extends core_Plugin
                     // Не се добавя нищо
                 }
             }
-
         }
         
         // Създаваме рендер на табове
-        $tabs = cls::get('core_Tabs');
+        if($this->htmlClass){
+        	$tabs = cls::get('core_Tabs', array('htmlClass' => $this->htmlClass));
+        } else {
+        	$tabs = cls::get('core_Tabs');
+        }
+        
         $subTabs = array();
  
         $tabs->htmlId = 'packWrapper';
