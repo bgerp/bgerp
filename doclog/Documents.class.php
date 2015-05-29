@@ -1866,12 +1866,6 @@ class doclog_Documents extends core_Manager
      */
     public static function renderSummary($data)
     {
-    	if($data->containerId){
-    		// Ако нямаме достъп до сингъла на документа, да не се рендира съмарито на лога
-    		$doc = doc_Containers::getDocument($data->containerId);
-    		if(!$doc->haveRightFor('single')) return;
-    	}
-    	
     	static $wordings = NULL;
         static $wordingsTitle = NULL;
         
@@ -1973,17 +1967,21 @@ class doclog_Documents extends core_Manager
         $document = doc_Containers::getDocument($cid);
         $detailTab = ucfirst(strtolower($action));
         
-        $link = array(
-	                 $document->className, 
-	                 'single', 
-	                 $document->that,
-	                 'Cid' => $cid, 
-	                 'Tab' => $detailTab,
-	                );
-        
-		if($topTab = Request::get('TabTop')){
-			$link['TabTop'] = $topTab;
-		}
+        if($document->haveRightFor('single')){
+        	$link = array(
+        			$document->className,
+        			'single',
+        			$document->that,
+        			'Cid' => $cid,
+        			'Tab' => $detailTab,
+        	);
+        	
+        	if($topTab = Request::get('TabTop')){
+        		$link['TabTop'] = $topTab;
+        	}
+        } else {
+        	$link = array();
+        }
         
         return $link;
     }
