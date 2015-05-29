@@ -256,6 +256,7 @@
       background: url("../img/16/arrow-right.png") left center no-repeat;
       margin-left: 0;
       padding-left: 20px;
+      outline: none;
       color: #555555;
       display: block; }
       .bookmark-links ul a:hover {
