@@ -64,4 +64,15 @@ class colab_Wrapper extends plg_ProtoWrapper
         $this->TAB($containersUrl, 'Нишка', 'contractor');
         $this->TAB(array('colab_Profiles', 'Single'), 'Профил', 'contractor');
     }
+    
+    
+    /**
+     * Извиква се след изпълняването на екшън
+     */
+    public static function on_AfterAction(&$invoker, &$tpl, $act)
+    {
+    	if($tpl instanceof core_ET){
+    		$tpl = ht::createElement('div', array('class' => 'contractorExtHolder'), $tpl);
+    	}
+    }
 }
