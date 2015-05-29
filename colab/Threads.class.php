@@ -110,7 +110,7 @@ class colab_Threads extends core_Manager
 		$data->query = $this->Containers->getQuery();
 		$data->query->where("#threadId = {$id}");
 		$data->query->where("#visibleForPartners = 'yes'");
-		$data->query->where("#state != 'rejected'");
+		$data->query->where("#state != 'draft'");
 		
 		$this->prepareTitle($data);
 		
@@ -177,7 +177,11 @@ class colab_Threads extends core_Manager
 				
 				$docProxy = doc_Containers::getDocument($rec->firstContainerId);
 				$docRow = $docProxy->getDocumentRow();
-				$row->title = ht::createLink($docRow->title, array($this, 'single', 'threadId' => $id), FALSE, "ef_icon={$docProxy->getIcon()},title=ааа");
+				
+				$row->title = $docRow->title;
+				if($this->haveRightFor('single', $rec)){
+					$row->title = ht::createLink($docRow->title, array($this, 'single', 'threadId' => $id), FALSE, "ef_icon={$docProxy->getIcon()},title=ааа");
+				} 
 				
 				if($docRow->subTitle) {
            			$row->title .= "\n<div class='threadSubTitle'>{$docRow->subTitle}</div>";
@@ -244,6 +248,11 @@ class colab_Threads extends core_Manager
 			$firstDocumentIsVisible = doc_Containers::fetchField($rec->firstContainerId, 'visibleForPartners');
 			if($firstDocumentIsVisible != 'yes'){
 				$requiredRoles = 'no_one';
+			} 
+			
+			$firstDocumentState = doc_Containers::fetchField($rec->firstContainerId, 'state');
+			if($firstDocumentState == 'draft'){
+				$requiredRoles = 'no_one';
 			}
 			
 			// Ако треда е оттеглен, не може да се гледа от партньора
@@ -278,7 +287,9 @@ class colab_Threads extends core_Manager
 		$res = $this->Threads->getQuery($params);
 		$res->where("#state != 'rejected'");
 		$res->EXT('visibleForPartners', 'doc_Containers', 'externalName=visibleForPartners,externalKey=firstContainerId');
+		$res->EXT('firstDocumentState', 'doc_Containers', 'externalName=state,externalKey=firstContainerId');
 		$res->where("#visibleForPartners = 'yes'");
+		$res->where("#firstDocumentState != 'draft'");
 		$res->in('folderId', $sharedFolders);
 	
 		return $res;
