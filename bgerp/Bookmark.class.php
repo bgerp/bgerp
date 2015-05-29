@@ -241,6 +241,11 @@ class bgerp_Bookmark extends core_Manager
         // Премахваме броя на нотификациите пред стринга
         if (!$data->rec->id && !$data->form->isSubmitted() && $data->form->rec->title) {
             $data->form->rec->title = preg_replace('/^\([0-9]*\) /', '', $data->form->rec->title);
+            
+            $delimiter = ' « ';
+            $titleArr = explode($delimiter, $data->form->rec->title);
+            array_pop($titleArr);
+            $data->form->rec->title = implode($delimiter, $titleArr);
         }
     }
     
