@@ -29,7 +29,7 @@ abstract class deals_ManifactureDetail extends doc_Detail
 	public function setDetailFields($mvc)
 	{
 		$mvc->FLD('classId', 'class(interface=cat_ProductAccRegIntf, select=title)', 'caption=Мениджър,silent,input=hidden');
-		$mvc->FLD('productId', 'int', 'caption=Продукт,notNull,mandatory', 'tdClass=large-field leftCol wrap,silent,removeAndRefreshForm=quantity|measureId|packagingId');
+		$mvc->FLD('productId', 'int', 'caption=Продукт,mandatory', 'tdClass=large-field leftCol wrap,silent,removeAndRefreshForm=quantity|measureId|packagingId|packQuantity');
 		$mvc->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка','tdClass=small-field');
 		$mvc->FNC('packQuantity', 'double(Min=0)', 'caption=К-во,input=input,mandatory');
 		$mvc->FLD('quantityInPack', 'double(smartRound)', 'input=none,notNull,value=1');
@@ -77,6 +77,8 @@ abstract class deals_ManifactureDetail extends doc_Detail
 	{
 		$form = &$data->form;
 		
+		if(!$mvc->defaultMeta) return;
+		
 		$ProductManager = ($data->ProductManager) ? $data->ProductManager : cls::get($form->rec->classId);
 		$products = $ProductManager->getByProperty($mvc->defaultMeta);
 		 
@@ -116,10 +118,15 @@ abstract class deals_ManifactureDetail extends doc_Detail
 		}
 		
 		if($form->isSubmitted()){
-			$pInfo = cls::get($rec->classId)->getProductInfo($rec->productId, $rec->packagingId);
-			$rec->quantityInPack = ($pInfo->packagingRec) ? $pInfo->packagingRec->quantity : 1;
+			if($rec->productId){
+				$pInfo = cls::get($rec->classId)->getProductInfo($rec->productId, $rec->packagingId);
+				$rec->quantityInPack = ($pInfo->packagingRec) ? $pInfo->packagingRec->quantity : 1;
+				$rec->measureId = $pInfo->productRec->measureId;
+			} else {
+				$rec->quantityInPack = 1;
+			}
+			
 			$rec->quantity = $rec->packQuantity * $rec->quantityInPack;
-			$rec->measureId = $pInfo->productRec->measureId;
 		}
 	}
 	
@@ -171,9 +178,14 @@ abstract class deals_ManifactureDetail extends doc_Detail
 	public static function on_AfterRecToVerbal($mvc, &$row, $rec)
 	{
 		$ProductMan = cls::get($rec->classId);
-		$row->productId = $ProductMan->getShortHyperLink($rec->productId);
 		
-		$row->measureId = cat_UoM::getShortName($rec->measureId);
+		if($rec->productId){
+			$row->productId = $ProductMan->getShortHyperLink($rec->productId);
+		}
+		
+		if($rec->measureId){
+			$row->measureId = cat_UoM::getShortName($rec->measureId);
+		}
 		
 		if (empty($rec->packagingId)) {
 			$row->packagingId = ($rec->measureId) ? $row->measureId : '???';
