@@ -2252,26 +2252,4 @@ class doc_DocumentPlg extends core_Plugin
         
         $id = $mvc->save($rec);
     }
-    
-    
-    /**
-     * Преди подготовка на тулбара на единичен изглед.
-     * 
-     * @param core_Mvc $mvc
-     * @param stdClass $res
-     * @param stdClass $data
-     */
-    static function on_BeforePrepareSingleToolbar($mvc, &$res, $data)
-    {
-        // Ако няма права за сингъла на нишката да не се показва тулбар
-        if ($data->rec->threadId && !doc_Threads::haveRightFor('single', $data->rec->threadId)) {
-            
-            if (is_object($data)) {
-                $data->toolbar = cls::get('core_Toolbar');
-            }
-            
-            return FALSE;
-        }
-        
-    }
 }
