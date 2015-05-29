@@ -687,6 +687,25 @@ class crm_Profiles extends core_Master
     
     
     /**
+     * Функция, която връща id от този модел, който отговаря на userId
+     * 
+     * @param integer $userId
+     * 
+     * @return integer
+     */
+    public static function getPersonId($userId)
+    {
+        if (!isset($userId)) {
+            $userId = core_Users::getCurrent();
+        }
+        
+        $personId = static::fetchField("#userId = {$userId}", 'id');
+        
+        return $userId;
+    }
+    
+    
+    /**
      * URL към профилната визитка на потребител
      * 
      * @param string|int $user ако е числова стойност се приема за ид на потребител; иначе - ник
@@ -695,7 +714,7 @@ class crm_Profiles extends core_Master
     public static function getUrl($userId)
     {
         // Извличаме профила (връзката м/у потребител и визитка)
-        $personId = static::fetchField("#userId = {$userId}", 'id');
+        $personId = self::getPersonId($userId);
 
         if (!$personId) {
             
