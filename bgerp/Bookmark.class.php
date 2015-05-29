@@ -75,8 +75,8 @@ class bgerp_Bookmark extends core_Manager
     public function description()
     {
         $this->FLD('user', 'user(roles=powerUser, rolesForTeams=admin, rolesForAll=ceo)', 'caption=Потребител');
-        $this->FLD('title', 'varchar', 'caption=Заглавие, silent');
-        $this->FLD('url', 'Url', 'caption=URL, silent');
+        $this->FLD('title', 'varchar', 'caption=Заглавие, silent,mandatory');
+        $this->FLD('url', 'Url', 'caption=URL, silent,mandatory');
         $this->FLD('position', 'double', 'caption=Позиция');
         
         $this->FLD('clickCnt', 'int', 'caption=Брой отваряния, input=none, notNull');
@@ -98,7 +98,7 @@ class bgerp_Bookmark extends core_Manager
             $url = array(get_called_class(), 'list');
         }
         
-        $title = "<h3 class='centered'>" . ht::createLink(tr('Бързи връзки'), $url) . "</h3>";
+        $title = "<h3 class='sideBarTitle'>" . ht::createLink(tr('Бързи връзки'), $url) . "</h3>";
         
         return $title;
     }
@@ -149,13 +149,13 @@ class bgerp_Bookmark extends core_Manager
 	    if ($limit) {
 	        $query->limit((int) $limit);
 	    }
-	    
-	    $res = '';
+
+	    $res = '<ul>';
 	    while ($rec = $query->fetch()) {
 	        $link = ht::createLink($rec->title, array(get_called_class(), "click", $rec->id));
-	        $res .= "<div>" . $link . "<div>";
+	        $res .= "<li>" . $link . "</li>";
 	    }
-	    
+	    $res .= '</ul>';
 	    return $res;
 	}
     
