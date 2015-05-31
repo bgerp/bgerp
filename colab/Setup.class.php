@@ -4,12 +4,12 @@
 /**
  * Клас 'colab_Setup'
  *
- * Исталиране/деинсталиране на Apachetika
+ * Исталиране/деинсталиране на colab
  *
  *
  * @category  bgerp
  * @package   colab
- * @author    Gabriela Petrova <gab4eto@gmail.com>
+ * @author    Ivelin Dimov <ielin_pdimov@abv.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
@@ -28,7 +28,7 @@ class colab_Setup extends core_ProtoSetup
 	/**
 	 * Описание на модула
 	 */
-	public $info = "Прокси на 'crm_Profiles'";
+	public $info = "Пакет за работа с партньори";
 	
 
 	/**

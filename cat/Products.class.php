@@ -197,7 +197,7 @@ class cat_Products extends core_Embedder {
 	/**
 	 * Кой има достъп до часния изглед на артикула
 	 */
-	public $canPrivatesingle = 'powerUser';
+	public $canPrivatesingle = 'user';
 	
 	
 	/**

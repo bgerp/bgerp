@@ -53,13 +53,10 @@ class planning_PlanningReportImpl extends frame_BaseDriver
      *
      * @param core_Fieldset $fieldset
      */
-    public function addEmbeddedFields(core_Form &$form)
+	public function addEmbeddedFields(core_Form &$form)
     {
     	$form->FLD('from', 'date', 'caption=Начало');
     	$form->FLD('to', 'date', 'caption=Край');
-    
-    	//$form->FLD('orderField', "enum(,ent1Id=Перо 1,ent2Id=Перо 2,ent3Id=Перо 3,baseQuantity=К-во»Начално,baseAmount=Сума»Начална,debitQuantity=К-во»Дебит,debitAmount=Сума»Дебит,creditQuantity=К-во»Кредит,creditAmount=Сума»Кредит,blQuantity=К-во»Крайно,blAmount=Сума»Крайна)", 'caption=Подредба->По,formOrder=110000');
-    	//$form->FLD('orderBy', 'enum(,asc=Въздходящ,desc=Низходящ)', 'caption=Подредба->Тип,formOrder=110001');
     
     	$this->invoke('AfterAddEmbeddedFields', array($form));
     }
@@ -70,7 +67,7 @@ class planning_PlanningReportImpl extends frame_BaseDriver
      *
      * @param core_Form $form
      */
-    public function prepareEmbeddedForm(core_Form &$form)
+	public function prepareEmbeddedForm(core_Form &$form)
     {
     	
     }
@@ -81,7 +78,7 @@ class planning_PlanningReportImpl extends frame_BaseDriver
      *
      * @param core_Form $form
      */
-    public function checkEmbeddedForm(core_Form &$form)
+	public function checkEmbeddedForm(core_Form &$form)
     {
         	 
     	// Размяна, ако периодите са объркани
@@ -103,8 +100,8 @@ class planning_PlanningReportImpl extends frame_BaseDriver
     public function prepareInnerState()
     {
     	$data = new stdClass();
-    	$data->catCnt = array();
-    	$data->jobCnt = array();
+    	$data->recs = array();
+    	
         $data->rec = $this->innerForm;
        
         $query = sales_Sales::getQuery();
@@ -112,10 +109,9 @@ class planning_PlanningReportImpl extends frame_BaseDriver
         
         $this->prepareListFields($data);
         
-        //$query->where("#state = 'active' AND (#createdOn >= '{$this->innerForm->from}' AND #createdOn <= '{$this->innerForm->to}')");
-        //$queryJob->where("#state = 'active' AND (#createdOn >= '{$this->innerForm->from}' AND #createdOn <= '{$this->innerForm->to}')");
         $query->where("#state = 'active' ");
-        $queryJob->where("#state = 'active'");
+        $queryJob->where("#state = 'active' OR #state = 'stopped' OR #state = 'wakeup'");
+       
         
         // за всеки един активен договор за продажба
         while($rec = $query->fetch()) {
@@ -123,7 +119,7 @@ class planning_PlanningReportImpl extends frame_BaseDriver
         	//$origin = doc_Threads::getFirstDocument($rec->threadId);
         	// взимаме информация за сделките
         	//$dealInfo = $origin->getAggregateDealInfo();
-        	//bp($rec);
+
         	if ($rec->deliveryTime) {
         		$date = $rec->deliveryTime;
         	} else {
@@ -134,19 +130,34 @@ class planning_PlanningReportImpl extends frame_BaseDriver
         	
         	if (sales_SalesDetails::fetch("#saleId = $rec->id") !== FALSE) {
         		$products[] = sales_SalesDetails::fetch("#saleId = $rec->id");
-        		$dates[$id] = $date;
+        		$p = sales_SalesDetails::fetch("#saleId = $rec->id");
+                $productId= $p->productId;
+        		$dates[$productId][$id] = $date;
+        		
         	} else {
         		continue;
         	}
         	
 
         }
+        
+        foreach ($dates as $prd => $sal) {
+        	if(count($sal) > 1) {
+        		$dateSale[$prd] = min($sal);
+        	} else {
+        		foreach ($sal as $d){
+        			$dateSale[$prd] = $d;
+        		}
+        	}
+        	
+        }
+        
+        //bp($dateSale,$products);
 
         // за всеки един продукт
         if(is_array($products)){
 	    	foreach($products as $product) {
 	    		// правим индекс "класа на продукта|ид на продукта"
-	        	//$index = "$product->classId" .'|'. "$product->productId";
 	        	$index = $product->productId;
 	        		
 	        	if($product->deliveryTime) {
@@ -154,25 +165,28 @@ class planning_PlanningReportImpl extends frame_BaseDriver
 	        	} else {
 	        		$date = $rec->valior;
 	        	}
+	        	
+	        	if ($product->quantityDelivered >= $product->quantity) continue;
+	        	
 		        	
 	        	// ако нямаме такъв запис,
 	        	// го добавяме в масив
-		        if(!array_key_exists($index, $data->catCnt)){
+		        if(!array_key_exists($index, $data->recs)){
 		        		
-			    	$data->catCnt[$index] = 
+			    	$data->recs[$index] = 
 			        		(object) array ('id' => $product->productId,
 					        				'quantity'	=> $product->quantity,
 					        				'quantityDelivered' => $product->quantityDelivered,
-			        						'dateSale' => $dates[$product->saleId],
+			        						'dateSale' => $dateSale[$product->productId],
 					        				'sales' => array($product->saleId));
 		        		
 		        // в противен случай го ъпдейтваме
 		        } else {
 		        		
-			    	$obj = &$data->catCnt[$index];
+			    	$obj = &$data->recs[$index];
 			        $obj->quantity += $product->quantity;
 			        $obj->quantityDelivered += $product->quantityDelivered;
-			        $obj->dateSale = $dates[$product->saleId];
+			        $obj->dateSale = $dateSale[$product->productId];
 			        $obj->sales[] = $product->saleId;
 		        		
 		        }
@@ -181,11 +195,13 @@ class planning_PlanningReportImpl extends frame_BaseDriver
 
         while ($recJobs = $queryJob->fetch()) {
         	$indexJ = $recJobs->productId;
+        	$dateJob[$recJobs->productId][$recJobs->id] = $recJobs->dueDate;
         	 
+        	if ($recJobs->quantityProduced >= $recJobs->quantity) continue;
         	// ако нямаме такъв запис,
         	// го добавяме в масив
-        	if(!array_key_exists($indexJ, $data->catCnt)){
-        		$data->catCnt[$indexJ] =
+        	if(!array_key_exists($indexJ, $data->recs)){
+        		$data->recs[$indexJ] =
         		(object) array ('id' => $recJobs->productId,
         				'quantityJob'	=> $recJobs->quantity,
         				'quantityProduced' => $recJobs->quantityProduced,
@@ -195,7 +211,7 @@ class planning_PlanningReportImpl extends frame_BaseDriver
         		// в противен случай го ъпдейтваме
         	} else {
 
-        		$obj = &$data->catCnt[$indexJ];
+        		$obj = &$data->recs[$indexJ];
         		$obj->quantityJob += $recJobs->quantity;
         		$obj->quantityProduced += $recJobs->quantityProduced;
         		$obj->date =  $recJobs->dueDate;
@@ -204,6 +220,17 @@ class planning_PlanningReportImpl extends frame_BaseDriver
         	}
         }
 
+    	
+    	foreach ($dateJob as $prdJ => $job) {
+        	if(count($job) > 1) {
+        		$data->recs[$prdJ]->date = min($job);
+        	} else {
+        		foreach ($job as $dJ){
+        			$data->recs[$prdJ]->date = $dJ;
+        		}
+        	}
+        }
+        
         return $data;
     }
     
@@ -214,54 +241,41 @@ class planning_PlanningReportImpl extends frame_BaseDriver
     public static function on_AfterPrepareEmbeddedData($mvc, &$res)
     {
     	// Подготвяме страницирането
-    	/*$data = $res;
-    	$pageVar = str::addHash("P", 5, "{$mvc->className}{$mvc->EmbedderRec->that}");
-    	$Pager = cls::get('core_Pager', array('pageVar' => $pageVar, 'itemsPerPage' => $mvc->listItemsPerPage));
-        $Pager->itemsCount = count($data->recs);
-        $Pager->calc();
-        $data->pager = $Pager;
+    	$data = $res;
         
-        $start = $data->pager->rangeStart;
-        $end = $data->pager->rangeEnd - 1;
-        
-        $data->summary = new stdClass();
+        $pager = cls::get('core_Pager',  array('pageVar' => 'P_' .  $mvc->EmbedderRec->that,'itemsPerPage' => $mvc->listItemsPerPage));
+        $pager->itemsCount = count($data->recs);
+        $data->pager = $pager;
         
         if(count($data->recs)){
-            $count = 0;
-            
+          
             foreach ($data->recs as $id => $rec){
+				if(!$pager->isOnPage()) continue;
                 
-                // Показваме само тези редове, които са в диапазона на страницата
-                if($count >= $start && $count <= $end){
-                    $rec->id = $count + 1;
-                    $row = $mvc->getVerbalDetail($rec);
-                    $data->rows[$id] = $row;
-                }
+                $row = $mvc->getVerbal($rec);
+                $data->rows[$id] = $row;
                 
-                // Сумираме всички суми и к-ва
-                foreach (array('baseQuantity', 'baseAmount', 'debitAmount', 'debitQuantity', 'creditAmount', 'creditQuantity', 'blAmount', 'blQuantity') as $fld){
-                    if(!is_null($rec->$fld)){
-                        $data->summary->$fld += $rec->$fld;
-                    }
-                }
+                // Задаваме уникален номер на контейнера в който ще се реплейсва туултипа
+                $mvc->unique ++;
+                $unique = $mvc->unique;
                 
-                $count++;
+                $id = (is_object($rec)) ? $rec->id : $rec;
+                
+                $tooltipUrl = toUrl(array('acc_Items', 'showItemInfo', $id, 'unique' => $unique), 'local');
+                
+                $arrow = ht::createElement("span", array('class' => 'anchor-arrow tooltip-arrow-link', 'data-url' => $tooltipUrl), "", TRUE);
+                $arrow = "<span class='additionalInfo-holder'><span class='additionalInfo' id='info{$unique}'></span>{$arrow}</span>";
+                $data->rows[$id]->quantityToDeliver .= "&nbsp;{$arrow}";
             }
         }
+
         
-        $Double = cls::get('type_Double');
-        $Double->params['decimals'] = 2;
+        //if($part == 'titleLink'){
         
-        foreach ((array)$data->summary as $name => $num){
-            $data->summary->$name  = $Double->toVerbal($num);
-            if($num < 0){
-            	$data->summary->$name  = "<span class='red'>{$data->summary->$name}</span>";
-            }
-        }
-        
-        $mvc->recToVerbal($data);
-        
-        $res = $data;*/
+        	
+        //}
+        //bp($arrow,$num);
+        $res = $data;
     }
     
     
@@ -270,7 +284,7 @@ class planning_PlanningReportImpl extends frame_BaseDriver
      * 
      * @return core_ET $tpl - шаблона
      */
-   public function getReportLayout_()
+    public function getReportLayout_()
     {
     	$tpl = getTplFromFile('planning/tpl/PlanningReportLayout.shtml');
     	
@@ -302,9 +316,6 @@ class planning_PlanningReportImpl extends frame_BaseDriver
     	$tpl->prepend($form->renderStaticHtml(), 'FORM');
     
     	$tpl->placeObject($data->rec);
-    
-    	$pager = cls::get('core_Pager',  array('pageVar' => 'P_' .  $this->EmbedderRec->that,'itemsPerPage' => $this->listItemsPerPage));
-    	$pager->itemsCount = count($data->catCnt);
 
     	$f = cls::get('core_FieldSet');
 
@@ -319,66 +330,14 @@ class planning_PlanningReportImpl extends frame_BaseDriver
     	$f->FLD('quantityToProduced', 'int');
     	$f->FLD('date', 'date');
     	$f->FLD('jobs', 'richtext');
-    	
-    	
-    	$rows = array();
-
-    	$ft = $f->fields;
-        $varcharType = $ft['id']->type;
-        $intType = $ft['quantityToDeliver']->type;
-        $tichtextType = $ft['sales']->type;
-        $dateType = $ft['date']->type;
-        
-    	foreach ($data->catCnt as $cat) {
-
-    		if(!$pager->isOnPage()) continue;
-    		
-    		if ($cat->quantityDelivered && $cat->quantity) {
-    			$toDeliver = abs($cat->quantityDelivered - $cat->quantity);
-    		} else {
-    			$toDeliver = '';
-    		}
-    		
-    		if ($cat->quantityProduced && $cat->quantityJob) {
-    			$toProduced = abs($cat->quantityProduced - $cat->quantityJob);
-    		} else {
-    			$toProduced = '';
-    		}
-    		
-    		$row = new stdClass();
-
-    		$row->id = cat_Products::getShortHyperlink($cat->id);
-    		$row->quantity = $intType->toVerbal($cat->quantity);
-    		$row->quantityDelivered = $intType->toVerbal($cat->quantityDelivered);
-    		$row->quantityToDeliver = $intType->toVerbal($toDeliver);
-    		$row->dateSale = $dateType->toVerbal($cat->dateSale);
-    		
-    		for($i = 0; $i <= count($cat->sales)-1; $i++) {
-
-    			$row->sales .= "#".sales_Sales::getHandle($cat->sales[$i]) .",";
-    		}
-    		$row->sales = $tichtextType->toVerbal(substr($row->sales, 0, -1));
-    		
-    		$row->quantityJob = $intType->toVerbal($cat->quantityJob);
-    		$row->quantityProduced = $intType->toVerbal($cat->quantityProduced);
-    		$row->quantityToProduced = $intType->toVerbal($toProduced);
-    		$row->date = $dateType->toVerbal($cat->date);
-    		
-    		for($j = 0; $j <= count($cat->jobs)-1; $j++) { 
-
-    			$row->jobs .= "#".planning_Jobs::getHandle($cat->jobs[$j]) .","; 
-    		}
-			$row->jobs = $tichtextType->toVerbal(substr($row->jobs, 0, -1));
-    		
-    		$rows[] = $row;
-
-    	}
 
     	$table = cls::get('core_TableView', array('mvc' => $f));
+
+    	$tpl->append($table->get($data->rows, $data->listFields), 'CONTENT');
     	
-    	 
-    	$tpl->append($table->get($rows, $data->listFields), 'CONTENT');
-    	$tpl->append($pager->getHtml(), 'PAGER');
+    	if($data->pager){
+    	     $tpl->append($data->pager->getHtml(), 'PAGER');
+    	}
     
     	return  $tpl;
     }
@@ -392,161 +351,96 @@ class planning_PlanningReportImpl extends frame_BaseDriver
     
         $data->listFields = array(
                 'id' => 'Продукт->Име (код)',
-                'quantity' => 'Продажба->поръчано',
-                'quantityDelivered' => 'Продажба->доставено',
-                'quantityToDeliver' => 'Продажба->за доставяне',
-                'dateSale' => 'Продажба->дата',
+                'quantity' => 'Продажба->|*<small>Поръчано</small>',
+                'quantityDelivered' => 'Продажба->|*<small>Доставено</small>',
+                'quantityToDeliver' => 'Продажба->|*<small>За доставяне</small>',
+                'dateSale' => 'Продажба->|*<small>Дата</small>',
                 'sales' => 'По продажба',
-        		'quantityJob' => 'Производство->поръчано',
-        		'quantityProduced' => 'Производство->произведено',
-        		'quantityToProduced' => 'Производство->за производство',
-        		'date' => 'Продажба->дата',
+        		'quantityJob' => 'Производство->|*<small>Поръчано</small>',
+        		'quantityProduced' => 'Производство->|*<small>Произведено</small>',
+        		'quantityToProduced' => 'Производство->|*<small>За производство</small>',
+        		'date' => 'Производство->|*<small>Дата</small>',
         		'jobs' => 'По задание');
         
     }
-    
-    
-   /**
-    * Вербалното представяне на записа
-    */
-   /*private function recToVerbal($data)
-   {
-   		$data->row = new stdClass();
-    	//bp($data);
-        foreach (range(1, 3) as $i){
-       		if(!empty($data->rec->{"ent{$i}Id"})){
-       			$data->row->{"ent{$i}Id"} = "<b>" . acc_Lists::getVerbal($data->accInfo->groups[$i]->rec, 'name') . "</b>: ";
-       			$data->row->{"ent{$i}Id"} .= acc_Items::fetchField($data->rec->{"ent{$i}Id"}, 'titleLink');
-       		}
-        }
+
        
-        if(!empty($data->rec->action)){
-        	$data->row->action = ($data->rec->action == 'filter') ? tr('Филтриране по') : tr('Групиране по');
-        	$data->row->groupBy = '';
-        	
-        	$Varchar = cls::get('type_Varchar');
-        	foreach (range(1, 3) as $i){
-        		if(!empty($data->rec->{"grouping{$i}"})){
-        			$data->row->groupBy .= acc_Items::getVerbal($data->rec->{"grouping{$i}"}, 'title') . ", ";
-        		} elseif(!empty($data->rec->{"feat{$i}"})){
-        			$data->rec->{"feat{$i}"} = ($data->rec->{"feat{$i}"} == '*') ? $data->accInfo->groups[$i]->rec->name : $data->rec->{"feat{$i}"};
-        			$data->row->groupBy .= $Varchar->toVerbal($data->rec->{"feat{$i}"}) . ", ";
-        		}
-        	}
-        	
-        	$data->row->groupBy = trim($data->row->groupBy, ', ');
-        	
-        	if($data->row->groupBy === ''){
-        		unset($data->row->action);
-        	}
-        }
+    /**
+     * Вербалното представяне на ред от таблицата
+     */
+    private function getVerbal($rec)
+    {
+    	$RichtextType = cls::get('type_Richtext');
+        $Date = cls::get('type_Date');
+		$Int = cls::get('type_Int');
+		
+		if ($rec->quantityDelivered && $rec->quantity) {
+			$toDeliver = abs($rec->quantityDelivered - $rec->quantity);
+		} elseif ($rec->quantityDelivered !== 0 || $rec->quantityDelivered == NULL) {
+			$toDeliver = $rec->quantity;
+		} else {
+			$toDeliver = '';
+		}
+		
+		if ($rec->quantityProduced && $rec->quantityJob) {
+			$toProduced = abs($rec->quantityProduced - $rec->quantityJob);
+		} elseif ($rec->quantityProduced !== 0 || $rec->quantityProduced == NULL) {
+			$toProduced = $rec->quantityJob;
+		} else {
+			$toProduced = '';
+		}
+
+        $row = new stdClass();
         
-        //bp($data);
-   }*/
-     
-     
-     /**
-      * Оставяме в записите само тези, които трябва да показваме
-      */
-     /*private function filterRecsByItems(&$data)
-     {
-     	$Balance = cls::get('acc_BalanceDetails');
-     	
-     	//
-     	if(!empty($data->rec->action)){
-         	$cmd = ($data->rec->action == 'filter') ? 'default' : 'group';
-         	$Balance->doGrouping($data, (array)$data->rec, $cmd, $data->recs);
-        }
-         
-         // Ако е посочено поле за сортиране, сортираме по него
-         if($this->innerForm->orderField){
-         	arr::order($data->recs, $this->innerForm->orderField, strtoupper($this->innerForm->orderBy));
-         } else {
-         	
-         	// Ако не се сортира по номерата на перата
-         	$Balance->canonizeSortRecs($data, $this->cache);
-         }
-      }*/
-       
-       
-       /**
-        * Вербалното представяне на ред от таблицата
-        */
-       /*private function getVerbalDetail($rec)
-       {
-           $Varchar = cls::get('type_Varchar');
-           $Double = cls::get('type_Double');
-           $Double->params['decimals'] = 2;
+        $row->id = cat_Products::getShortHyperlink($rec->id);
+    	$row->quantity = $Int->toVerbal($rec->quantity);
+    	$row->quantityDelivered = $Int->toVerbal($rec->quantityDelivered);
+    	$row->quantityToDeliver = $Int->toVerbal($toDeliver);
+    	$row->dateSale = $Date->toVerbal($rec->dateSale);
+    		
+    	for($i = 0; $i <= count($rec->sales)-1; $i++) {
 
-           $Int = cls::get('type_Int');
+    		$row->sales .= "#".sales_Sales::getHandle($rec->sales[$i]) .",";
+    	}
+    	$row->sales = $RichtextType->toVerbal(substr($row->sales, 0, -1));
+    		
+    	$row->quantityJob = $Int->toVerbal($rec->quantityJob);
+    	$row->quantityProduced = $Int->toVerbal($rec->quantityProduced);
+    	$row->quantityToProduced = $Int->toVerbal($toProduced);
+    	$row->date = $Date->toVerbal($rec->date);
+    		
+    	for($j = 0; $j <= count($rec->jobs)-1; $j++) { 
 
-           $row = new stdClass();
-           $row->id = $Int->toVerbal($rec->id);
+    		$row->jobs .= "#".planning_Jobs::getHandle($rec->jobs[$j]) .","; 
+    	}
+		$row->jobs = $RichtextType->toVerbal(substr($row->jobs, 0, -1));
        
-           foreach (array('baseAmount', 'debitAmount', 'creditAmount', 'blAmount', 'baseQuantity', 'debitQuantity', 'creditQuantity', 'blQuantity') as $fld){
-               $row->$fld = $Double->toVerbal($rec->$fld);
-               $row->$fld = (($rec->$fld) < 0) ? "<span style='color:red'>{$row->$fld}</span>" : $row->$fld;
-           }
-       
-           foreach (range(1, 3) as $i) {
-           		if(isset($rec->{"grouping{$i}"})){
-           			$row->{"ent{$i}Id"} = $rec->{"grouping{$i}"};
-           
-           			if($row->{"ent{$i}Id"} == 'others'){
-           				$row->{"ent{$i}Id"} = "<i>" . tr('Други') . "</i>";
-           			}
-           		} else {
-           			if(!empty($rec->{"ent{$i}Id"})){
-           				$row->{"ent{$i}Id"} .= acc_Items::getVerbal($rec->{"ent{$i}Id"}, 'titleLink');
-           			}
-           		}
-           }
-       
-           $row->ROW_ATTR['class'] = ($rec->id % 2 == 0) ? 'zebra0' : 'zebra1';
-       
-           return $row;
-      }*/
-
-      
-	  /**
-	   * Добавяме полета за търсене
-	   * 
-	   * @see frame_BaseDriver::alterSearchKeywords()
-	   */
-      /*public function alterSearchKeywords(&$searchKeywords)
-      {
-      	  if(!empty($this->innerForm)){
-	      		$accVerbal = acc_Accounts::getVerbal($this->innerForm->accountId, 'title');
-	      		$num = acc_Accounts::getVerbal($this->innerForm->accountId, 'num');
-	      			
-	      		$str = $accVerbal . " " . $num;
-	      		$searchKeywords .= " " . plg_Search::normalizeText($str);
-      	  }
-      }*/
+        return $row;
+    }
       
       
-      /**
-       * Скрива полетата, които потребител с ниски права не може да вижда
-       *
-       * @param stdClass $data
-       */
-      public function hidePriceFields()
-      {
-      		$innerState = &$this->innerState;
+	/**
+     * Скрива полетата, които потребител с ниски права не може да вижда
+     *
+     * @param stdClass $data
+     */
+	public function hidePriceFields()
+    {
+    	$innerState = &$this->innerState;
       		
-      		unset($innerState->recs);
-      }
+      	unset($innerState->recs);
+    }
       
       
-      /**
-       * Коя е най-ранната дата на която може да се активира документа
-       */
-      public function getEarlyActivation()
-      {
-      	  $activateOn = "{$this->innerForm->to} 23:59:59";
+	/**
+     * Коя е най-ранната дата на която може да се активира документа
+     */
+	public function getEarlyActivation()
+    {
+    	$activateOn = "{$this->innerForm->to} 23:59:59";
       	  	
-      	  return $activateOn;
-      }
+      	return $activateOn;
+	}
 
 
      /**

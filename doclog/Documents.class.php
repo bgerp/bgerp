@@ -1866,7 +1866,7 @@ class doclog_Documents extends core_Manager
      */
     public static function renderSummary($data)
     {
-        static $wordings = NULL;
+    	static $wordings = NULL;
         static $wordingsTitle = NULL;
         
         static $actionToTab = NULL;
@@ -1967,17 +1967,21 @@ class doclog_Documents extends core_Manager
         $document = doc_Containers::getDocument($cid);
         $detailTab = ucfirst(strtolower($action));
         
-        $link = array(
-	                 $document->className, 
-	                 'single', 
-	                 $document->that,
-	                 'Cid' => $cid, 
-	                 'Tab' => $detailTab,
-	                );
-        
-		if($topTab = Request::get('TabTop')){
-			$link['TabTop'] = $topTab;
-		}
+        if($document->haveRightFor('single')){
+        	$link = array(
+        			$document->className,
+        			'single',
+        			$document->that,
+        			'Cid' => $cid,
+        			'Tab' => $detailTab,
+        	);
+        	
+        	if($topTab = Request::get('TabTop')){
+        		$link['TabTop'] = $topTab;
+        	}
+        } else {
+        	$link = array();
+        }
         
         return $link;
     }

@@ -124,7 +124,7 @@ class doc_Folders extends core_Master
         // Информация за папката
         $this->FLD('title' , 'varchar(255,ci)', 'caption=Заглавие');
         $this->FLD('status' , 'varchar(128)', 'caption=Статус');
-        $this->FLD('state' , 'enum(active=Активно,opened=Отворено,rejected=Оттеглено)', 'caption=Състояние');
+        $this->FLD('state' , 'enum(active=Активно,opened=Отворено,rejected=Оттеглено,closed=Затворено)', 'caption=Състояние');
         $this->FLD('allThreadsCnt', 'int', 'caption=Нишки->Всички');
         $this->FLD('openThreadsCnt', 'int', 'caption=Нишки->Отворени');
         $this->FLD('last' , 'datetime(format=smartTime)', 'caption=Последно');
@@ -348,9 +348,17 @@ class doc_Folders extends core_Master
      */
     static function on_AfterPrepareListToolbar($mvc, $data)
     {
-        $data->toolbar->addBtn('Нова фирма', array('crm_Companies', 'add', 'ret_url' => TRUE), 'ef_icon=img/16/group.png', 'title=Създаване на нова визитка на фирма');
-        $data->toolbar->addBtn('Ново лице', array('crm_Persons', 'add', 'ret_url' => TRUE), 'ef_icon=img/16/vcard.png', 'title=Създаване на нова визитка на лице');
-        $data->toolbar->addBtn('Нов проект', array('doc_UnsortedFolders', 'add', 'ret_url' => TRUE), 'ef_icon=img/16/basket.png', 'title=Създаване на нов проект');
+    	if(crm_Companies::haveRightFor('add')){
+    		$data->toolbar->addBtn('Нова фирма', array('crm_Companies', 'add', 'ret_url' => TRUE), 'ef_icon=img/16/group.png', 'title=Създаване на нова визитка на фирма');
+    	}
+       
+    	if(crm_Persons::haveRightFor('add')){
+    		$data->toolbar->addBtn('Ново лице', array('crm_Persons', 'add', 'ret_url' => TRUE), 'ef_icon=img/16/vcard.png', 'title=Създаване на нова визитка на лице');
+    	}
+       
+    	if(doc_UnsortedFolders::haveRightFor('add')){
+    		$data->toolbar->addBtn('Нов проект', array('doc_UnsortedFolders', 'add', 'ret_url' => TRUE), 'ef_icon=img/16/basket.png', 'title=Създаване на нов проект');
+    	}
     }
     
     
@@ -392,7 +400,9 @@ class doc_Folders extends core_Master
                 if($rec->openThreadsCnt) {
                     $rec->state = 'opened';
                 } else {
-                    $rec->state = 'active';
+                	if($rec->state != 'closed'){
+                		$rec->state = 'active';
+                	}
                 }
                 
                 $thQuery = doc_Threads::getQuery();
@@ -488,6 +498,8 @@ class doc_Folders extends core_Master
 
         $isRevert = ($rec->state == 'rejected' && $coverRec->state != 'rejected');
         $isReject = ($rec->state != 'rejected' && $coverRec->state == 'rejected');
+        $isClosed = ($rec->state != 'closed' && $coverRec->state == 'closed');
+        $isActivated = ($rec->state == 'closed' && $coverRec->state == 'active');
         
         $fields = 'title,inCharge,access,shared';
         
@@ -504,16 +516,29 @@ class doc_Folders extends core_Master
 		}
 
 		if($isRevert) {
+			$rec->state = $coverRec->state;
 			$mustSave = TRUE;
 		}
-                
+
+		if($isClosed){
+			$rec->state = 'closed';
+			$mustSave = TRUE;
+		}
+		
+		if($isActivated){
+			$rec->state = 'active';
+			$mustSave = TRUE;
+		}
+		
         if($mustSave) {
             if($isRevert || !$rec->state) {
-                $rec->state = 'open';
+            	if($rec->state != 'closed'){
+            		$rec->state = 'open';
+            	}
             }
 
             static::save($rec);
-            
+           
             // Ако сега сме направили операцията възстановяване
             if($isRevert || !$rec->state) {
                 self::updateFolderByContent($rec->id);

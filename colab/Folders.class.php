@@ -2,8 +2,7 @@
 
 
 /**
- * Прокси на 'doc_Folders' позволяващ на външен потребител с роля 'user'
- * до споделени папки
+ * Прокси на 'colab_Folders' позволяващ на потребител с роля 'contractor' да вижда споделените му папки
  *
  * @category  bgerp
  * @package   colab
@@ -37,7 +36,7 @@ class colab_Folders extends core_Manager
 	/**
 	 * Полета, които ще се показват в листов изглед
 	 */
-	var $listFields = 'RowNumb=№,title=Заглавие,last=Последно';
+	var $listFields = 'RowNumb=№,title=Заглавие,type=Тип,last=Последно';
 	
 	
 	/**
@@ -47,27 +46,19 @@ class colab_Folders extends core_Manager
 	
 	
 	/**
-	 * Кой  може да пише?
-	 */
-	//var $canWrite = 'no_one';
-	
-	
-	/**
 	 * Кой има право да чете?
 	 */
 	var $canRead = 'contractor';
 	
 	
 	/**
-	 * Кой има право да чете?
+	 * Извиква се преди изпълняването на екшън
 	 */
-	var $canBrowse = 'contractor';
-	
-	
-	/**
-	 * Кой има право да листва всички профили?
-	 */
-	var $canList = 'contractor';
+	public static function on_BeforeAction($mvc, &$res, $action)
+	{
+		// Изискваме да е логнат потребител
+		requireRole('user');
+	}
 	
 	
 	/**
@@ -75,9 +66,6 @@ class colab_Folders extends core_Manager
 	 */
 	function act_Default()
 	{
-		// Изискваме да е логнат потребител
-		requireRole('user');
-	
 		// Редиректваме
 		return Redirect(array($this, 'list'));
 	}
@@ -90,16 +78,14 @@ class colab_Folders extends core_Manager
 	{
 		if(count($data->recs)) {
 			foreach($data->recs as $id => $rec) {
-				$row = new stdClass();
-				$row->title = $this->Folders->getVerbal($rec, 'title');
-				$row->last = $this->Folders->getVerbal($rec, 'last');
+				
+				$title = $this->Folders->getVerbal($rec, 'title');
+				$row = $this->Folders->recToVerbal($rec, $this->listFields);
+				$row->title = $title;
 				
 				if(colab_Threads::haveRightFor('list', (object)array('folderId' => $rec->id))){
 					$row->title = ht::createLink($row->title, array('colab_Threads', 'list', 'folderId' => $rec->id), FALSE, 'ef_icon=img/16/folder-icon.png');
 				}
-				
-				$row->ROW_ATTR['class'] .= " state-{$rec->state}";
-				$row->STATE_CLASS .= " state-{$rec->state}";
 				
 				$data->rows[$id] = $row;
 			}
@@ -112,7 +98,7 @@ class colab_Folders extends core_Manager
 	/**
 	 * Малко манипулации след подготвянето на формата за филтриране
 	 */
-	static function on_AfterPrepareListFilter($mvc, $data)
+	protected static function on_AfterPrepareListFilter($mvc, $data)
 	{
 		$data->listFilter->showFields = 'search';
 		$data->listFilter->view = 'horizontal';
@@ -129,6 +115,7 @@ class colab_Folders extends core_Manager
 	{
 		$res = $this->Folders->getQuery($params);
 		$sharedFolders = self::getSharedFolders($cu);
+		
 		$res->in('id', $sharedFolders);
 		
 		return $res;
@@ -141,8 +128,8 @@ class colab_Folders extends core_Manager
 	public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
 	{
 		if($action == 'list'){
-			
 			$sharedFolders = self::getSharedFolders($userId);
+			
 			if(count($sharedFolders) <= 1){
 				$requiredRoles = 'no_one';
 			}
@@ -151,29 +138,23 @@ class colab_Folders extends core_Manager
 		if(core_Users::haveRole('powerUser', $userId)){
 			$requiredRoles = 'no_one';
 		}
-		
-		if($action == 'browse' && isset($rec->id)){
-			$sharedFolders = self::getSharedFolders($userId);
-			if(!in_array($rec->id, $sharedFolders)){
-				$requiredRoles = 'no_one';
-			}
-			
-			if($rec->state == 'rejected'){
-				$requiredRoles = 'no_one';
-			}
-		}
 	}
 	
 	
+	/**
+	 * Връща всички споделени папки до този контрактор
+	 */
 	public static function getSharedFolders($cu = NULL)
 	{
 		if(!$cu){
-			$cu = core_Users::getCurrent('id');
+			$cu = core_Users::getCurrent();
 		}
 		
 		$sharedFolders = array();
 		$sharedQuery = doc_FolderToPartners::getQuery();
+		$sharedQuery->EXT('state', 'doc_Folders', 'externalName=state,externalKey=folderId');
 		$sharedQuery->where("#contractorId = {$cu}");
+		$sharedQuery->where("#state != 'rejected'");
 		$sharedQuery->show('folderId');
 		$sharedQuery->groupBy('folderId');
 		while($fRec = $sharedQuery->fetch()){
@@ -192,20 +173,22 @@ class colab_Folders extends core_Manager
 		$cu = core_Users::getCurrent('id');
 		
 		// Това е броя на споделените папки към контрактора
-		return doc_FolderToPartners::count("#contractorId = {$cu}");
-	}
-	
-	function act_Browse()
-	{
-		$this->haveRightFor('browse');
-		expect($id = Request::get('id', 'key(mvc=doc_Folders)'));
+		$sharedFolders = static::getSharedFolders($cu);
+		$count = count($sharedFolders);
 		
-		$data = new stdClass();
-		$data->rec = new stdClass();
-		$data->rec->id = $id; 
-		$data->rec->state = $this->Folders->fetchField($id, 'state');
-		$this->requireRightFor('browse', $data->rec);
-		bp($folderId,$data->rec);
+		return $count;
 	}
 	
+	
+	/**
+	 * Изпълнява се след подготовката на листовия изглед
+	 */
+	protected static function on_AfterPrepareListTitle($mvc, &$res, $data)
+	{
+		$cuRec = core_Users::fetch(core_Users::getCurrent());
+		$names = core_Users::getVerbal($cuRec, 'names');
+		$nick = core_Users::getVerbal($cuRec, 'nick');
+		
+		$data->title = "|Папките на|* <span style='color:green'>{$names} ({$nick})</span>";
+	}
 }

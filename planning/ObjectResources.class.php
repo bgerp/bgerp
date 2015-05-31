@@ -371,4 +371,30 @@ class planning_ObjectResources extends core_Manager
     	
     	return FALSE;
     }
+    
+    
+    /**
+     * Връща записите според указаните параметри
+     * 
+     * @param int $resourceId  - ид на ресурс
+     * @param int|NULL $classId - ид на клас на обекта
+     * @param labor|material|equipment|NULL $type - тип на ресурса
+     * @return array - намерените записи
+     */
+    public static function fetchRecsByClassAndType($resourceId, $classId = NULL, $type = NULL)
+    {
+    	$query = self::getQuery();
+    	$query->EXT('type', 'planning_Resources', 'externalName=type,externalKey=resourceId');
+    	$query->where("#resourceId = {$resourceId}");
+    	
+    	if($classId){
+    		$query->where("#classId = {$classId}");
+    	}
+    	
+    	if($type){
+    		$query->where("#type = '{$type}'");
+    	}
+    	
+    	return $query->fetchAll();
+    }
 }

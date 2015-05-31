@@ -188,16 +188,12 @@ class doc_FolderToPartners extends core_Manager
     	
     	// Можем ли да изпратим автоматичен имейл до обекта
     	if($action == 'sendemail' && isset($rec)){
-    		if(!$rec->email){
+    		if(!doc_Folders::haveRightToObject($rec)){
     			$requiredRoles = 'no_one';
     		} else {
-    			if(!doc_Folders::haveRightToObject($rec)){
+    			$emailsFrom = email_Inboxes::getAllowedFromEmailOptions(NULL);
+    			if(!count($emailsFrom)){
     				$requiredRoles = 'no_one';
-    			} else {
-    				$emailsFrom = email_Inboxes::getAllowedFromEmailOptions(NULL);
-    				if(!count($emailsFrom)){
-    					$requiredRoles = 'no_one';
-    				}
     			}
     		}
     	}
@@ -292,7 +288,7 @@ class doc_FolderToPartners extends core_Manager
      */
     public static function callback_Createnewcontractor($data)
     {
-    	Request::setProtected(array('companyId, fromEmail'));
+    	Request::setProtected(array('companyId', 'fromEmail'));
     	
     	redirect(array('doc_FolderToPartners', 'Createnewcontractor', 'companyId' => $data['companyId'], 'fromEmail' => TRUE));
     }
@@ -321,7 +317,8 @@ class doc_FolderToPartners extends core_Manager
     	$form->FLD('from', 'key(mvc=email_Inboxes,select=email,allowEmpty)', 'caption=От имейл, width=100%, silent,mandatory, optionsFunc=email_Inboxes::getAllowedFromEmailOptions');
     	$form->FLD('subject', 'varchar', 'caption=Относно,mandatory,width=100%');
     	$form->FLD('body', 'richtext(rows=15,bucket=Postings, appendQuote)', 'caption=Съобщение,mandatory');
-    	$form->setDefault('to', $companyRec->email);
+    	$form->setSuggestions('to', $companyRec->email);
+    	$form->setDefault('from', email_Outgoings::getDefaultInboxId());
     	
     	$subject = "Регистрация в " . EF_APP_NAME; 
     	$form->setDefault('subject', $subject);
@@ -427,7 +424,8 @@ class doc_FolderToPartners extends core_Manager
      */
     function act_Createnewcontractor()
     {
-    	Request::setProtected(array('companyId,fromEmail'));
+    	Request::setProtected(array('companyId', 'fromEmail'));
+    	
     	expect($companyId = Request::get('companyId', 'key(mvc=crm_Companies)'));
     	$Users = cls::get('core_Users');
     	$companyRec = crm_Companies::fetch($companyId);

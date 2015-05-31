@@ -30,7 +30,6 @@
 }
 /* General styles for all menus */
 .sidemenu {
-    background: #47a3da;
     position: fixed;
     top: 0;
     width: 200px;
@@ -237,8 +236,45 @@
 }
 
 #nav-panel{
-       background-color: #333 !important;
-    
+    background-color: #333 !important;
+}
+
+#fav-panel {
+    padding: 10px;
+    box-sizing: border-box;
+}
+.sideBarTitle {
+    text-align: center;
+    margin-top: 5px;
+    a {
+        color: #333;
+    }
+}
+.bookmark-links {
+    font-size: 0.9em;
+    ul {
+        padding-left: 0;
+        li {
+            border-bottom: 1px dashed #666;
+            padding: 4px 0 4px 0px;
+            display: block;
+            &:last-child {
+                border-bottom: none;
+            }
+        }
+        a {
+            background: url("../img/16/arrow-right.png") left center no-repeat;
+            margin-left: 0;
+            padding-left: 20px;
+            outline: none;
+            color: #555;
+            display: block;
+            &:hover{
+                color: #111;
+            }
+        }
+
+    }
 }
 
 /*menu i podmenu*/

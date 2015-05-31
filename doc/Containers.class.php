@@ -254,7 +254,9 @@ class doc_Containers extends core_Manager
         $row->created = ucfirst($row->created);
         
         if ($rec->createdBy > 0) {
-            $row->created = crm_Profiles::createLink($rec->createdBy);
+        	if(crm_Profiles::haveRightFor('single', $rec->createdBy)){
+        		$row->created = crm_Profiles::createLink($rec->createdBy);
+        	}
         }
 
         if(Mode::is('screenMode', 'narrow')) {
@@ -301,14 +303,22 @@ class doc_Containers extends core_Manager
     static function on_AfterPrepareListToolbar($mvc, $data)
     {
         if($data->threadRec->state != 'rejected') {
-            $data->toolbar->addBtn('Нов...', array($mvc, 'ShowDocMenu', 'threadId'=>$data->threadId), 'id=btnAdd', array('ef_icon'=>'img/16/star_2.png','title'=>'Създаване на нов документ в нишката'));
+        	
+        	if(doc_Threads::haveRightFor('newdoc', $data->threadId)){
+        		$data->toolbar->addBtn('Нов...', array($mvc, 'ShowDocMenu', 'threadId' => $data->threadId), 'id=btnAdd', array('ef_icon'=>'img/16/star_2.png','title'=>'Създаване на нов документ в нишката'));
+        	}
             
-            if($data->threadRec->state == 'opened') {
-                $data->toolbar->addBtn('Затваряне', array('doc_Threads', 'close', 'threadId'=>$data->threadId), 'ef_icon = img/16/close.png', 'title=Затваряне на нишката');
-            } elseif($data->threadRec->state == 'closed' || empty($data->threadRec->state)) {
-                $data->toolbar->addBtn('Отваряне', array('doc_Threads', 'open', 'threadId'=>$data->threadId), 'ef_icon = img/16/open.png', 'title=Отваряне на нишката');
-            }
-            $data->toolbar->addBtn('Преместване', array('doc_Threads', 'move', 'threadId'=>$data->threadId, 'ret_url' => TRUE), 'ef_icon = img/16/move.png', 'title=Преместване на нишката в нова папка');
+        	if(doc_Threads::haveRightFor('single', $data->threadRec)){
+        		if($data->threadRec->state == 'opened') {
+        			$data->toolbar->addBtn('Затваряне', array('doc_Threads', 'close', 'threadId' => $data->threadId), 'ef_icon = img/16/close.png', 'title=Затваряне на нишката');
+        		} elseif($data->threadRec->state == 'closed' || empty($data->threadRec->state)) {
+        			$data->toolbar->addBtn('Отваряне', array('doc_Threads', 'open', 'threadId' => $data->threadId), 'ef_icon = img/16/open.png', 'title=Отваряне на нишката');
+        		}
+        	}
+            
+        	if(doc_Threads::haveRightFor('move', $data->threadRec)){
+        		$data->toolbar->addBtn('Преместване', array('doc_Threads', 'move', 'threadId' => $data->threadId, 'ret_url' => TRUE), 'ef_icon = img/16/move.png', 'title=Преместване на нишката в нова папка');
+        	}
         }
         
         // Ако има права за настройка на папката, добавяме бутона
@@ -1041,6 +1051,7 @@ class doc_Containers extends core_Manager
         $docArr = core_Classes::getOptionsByInterface('doc_DocumentIntf');
  
         if(is_array($docArr) && count($docArr)) {
+        	$docArrSort = array();
             foreach($docArr as $id => $class) {
                     
                 $mvc = cls::get($class);
@@ -1048,7 +1059,7 @@ class doc_Containers extends core_Manager
                 list($order, $group) = explode('|', $mvc->newBtnGroup);
 
                 if($mvc->haveRightFor('add', $rec)) {
-                    $ind = $order*10000 + $i++;
+                    $ind = $order * 10000 + $i++;
                     $docArrSort[$ind] = array($group, $mvc->singleTitle, $class);
                 }
             }
@@ -1057,6 +1068,7 @@ class doc_Containers extends core_Manager
             ksort($docArrSort);
 
             // Групиране
+            $btns = array();
             foreach($docArrSort as $id => $arr) {
                 $btns[$arr[0]][$arr[1]] = $arr[2];
             }

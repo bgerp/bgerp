@@ -43,6 +43,12 @@ class store_Stores extends core_Master
     
     
     /**
+     * Кой може да пише
+     */
+    var $canCreatenewfolder = 'ceo, storeWorker';
+    
+    
+    /**
      * Кой има право да чете?
      */
     var $canRead = 'ceo,storeWorker';

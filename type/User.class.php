@@ -65,7 +65,7 @@ class type_User extends type_Key
                 $userId = core_Users::getCurrent();
                 
                 $userIdKey = self::getUserFromTeams($userId);
-        
+                
                 $userIdKey = reset($userIdKey);
                 
                 if (!$this->options[$userIdKey]) {
@@ -226,18 +226,24 @@ class type_User extends type_Key
             $userId = core_Users::getCurrent();
         }
         
-        // Всички екипи, в които участва
-        $teams = core_Users::getUserRolesByType($userId, 'team');
-        $teams = keylist::toArray($teams);
+        if (!strpos($userId, '_')) {
+            // Всички екипи, в които участва
+            $teams = core_Users::getUserRolesByType($userId, 'team');
+            $teams = keylist::toArray($teams);
+            
+            // Обхождаме екипите
+            foreach ($teams as $team) {
+                
+                // Група с потребителя
+                $user = $team . '_' . $userId;
+                
+                // Добавяме в масива
+                $arr[$user] = $user;
+            }
+        }
         
-        // Обхождаме екипите
-        foreach ($teams as $team) {
-            
-            // Група с потребителя
-            $user = $team . '_' . $userId;
-            
-            // Добавяме в масива
-            $arr[$user] = $user;
+        if (!$teams && !$arr && $userId) {
+            $arr[$userId] = $userId;
         }
         
         return $arr;
