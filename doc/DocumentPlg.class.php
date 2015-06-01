@@ -1269,8 +1269,27 @@ class doc_DocumentPlg extends core_Plugin
                     $requiredRoles = 'no_one';
                 } 
             } elseif ($action == 'single') {
+            	
+            	// Ако нямаме достъп до нишката
                 if (!doc_Threads::haveRightFor('single', $oRec->threadId, $userId) && ($rec->createdBy != $userId)) {
-                    $requiredRoles = 'no_one';
+                   
+                	// Ако е инсталиран пакета 'colab'
+                	if(core_Packs::isInstalled('colab')){
+                		
+                		// И нишката е споделена към контрактора (т.е първия документ в нея е видим и папката на нишката
+        				// е споделена с партньора)
+                		$isVisibleToContractors = colab_Threads::haveRightFor('single', doc_Threads::fetch($oRec->threadId));
+                		
+                		if($isVisibleToContractors && doc_Containers::fetchField($rec->containerId, 'visibleForPartners') == 'yes'){
+                			
+                			// Тогава позволяваме на контрактора да има достъп до сингъла на този документ
+                			$requiredRoles = 'contractor';
+                		} else {
+                			$requiredRoles = 'no_one';
+                		}
+                	} else {
+                		$requiredRoles = 'no_one';
+                	}
                 } else {
                     if (($requiredRoles != 'every_one') || ($requiredRoles != 'user')) {
                         $requiredRoles = 'powerUser';
