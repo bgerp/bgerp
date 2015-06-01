@@ -32,20 +32,30 @@
 .sidemenu {
     position: fixed;
     top: 0;
-    width: 200px;
+    bottom: 0;
     height: 100%;
+    width: 200px;
     z-index: 1000;
     overflow-y: auto;
 }
 
+.narrow .sidemenu {
+    width: 170px;
+}
 /*движение на менюто*/
 .sidemenu-left {
     left: -200px;
+}
+.narrow .sidemenu-left {
+    left: -170px;
 }
 
 .sidemenu-right {
     background-color: #ccc;
     right: -200px;
+}
+.sidemenu-right {
+    right: -170px;
 }
 
 .sidemenu-left.sidemenu-open {
@@ -60,9 +70,18 @@
     left:  200px;
 }
 
+.narrow .sidemenu-push-toright#main-container > .tab-control > .tab-row{
+    left:  170px;
+}
+
 .sidemenu-push-toleft#main-container > .tab-control >.tab-row{
     right:  200px;
 }
+
+.narrow .sidemenu-push-toleft#main-container > .tab-control >.tab-row{
+    right:  170px;
+}
+
 .sidemenu-push-toright {
     margin-left: 200px;
 }
@@ -71,15 +90,32 @@
     margin-right: 200px;
 }
 
+.narrow .sidemenu-push-toright {
+    margin-left: 170px;
+}
+
+.narrow .sidemenu-push-toleft {
+    margin-right: 170px;
+}
+
 .sidemenu-push-toleft #framecontentTop{
     right:  200px;
     width: auto;
     display: block;
 }
+
 .sidemenu-push-toright #framecontentTop{
     left:  200px;
     width: auto;
     display: block;
+}
+
+.narrow .sidemenu-push-toleft #framecontentTop{
+    right:  170px;
+}
+
+.narrow .sidemenu-push-toright #framecontentTop{
+    left: 170px;
 }
 
 .transition {
@@ -143,9 +179,10 @@ body {
 }
 
 .narrow .portal {
-    margin-top: 20px;
-    margin-left: 1px;
-    margin-right: 1px;
+    margin-top: -10px;
+    margin-left: 2px;
+    margin-right: 2px;
+    margin-bottom: 2px;
 }
 
 #framecontentTop{
@@ -184,6 +221,7 @@ body {
     right: 0;
     top: 43px;
     z-index: 9;
+    padding: 0 10px;
 }
 
 .narrow #main-container > .tab-control > .tab-row {
@@ -227,6 +265,9 @@ body {
 
 #nav-panel{
     background-color: #333 !important;
+}
+.narrow #nav-panel {
+    font-size: 0.9em;
 }
 
 #fav-panel {
@@ -321,7 +362,7 @@ body {
 }
 
 .narrow #nav-panel li a{
-	padding: 0.4em 1.2em 0.4em 1.6em;
+	padding: 0.4em 1.2em 0.4em 1.7em;
 	font-size: 0.9em;
 }
 
@@ -802,12 +843,12 @@ select.tab-control, select.tab-control option {
 
 @media handheld, only screen and (max-width: 800px) {
 	.narrow  .sidemenu-push-toleft#main-container {
-		margin-left: -200px;
+		margin-left: -170px;
 	}
     .narrow  .sidemenu-push-toright#main-container {
-        margin-right: -200px;
+        margin-right: -170px;
     }
-	.narrow .sidemenu-push-toleft #framecontentTop, .narrow .sidemenu-push-toleft  > .tab-control > .tab-row {
-		left: -200px;
+	.narrow .sidemenu-push-toleft #framecontentTop, .narrow .sidemenu-push-toleft .tab-control > .tab-row {
+		left: -170px !important;
 	}
 }
