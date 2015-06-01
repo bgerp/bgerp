@@ -1967,7 +1967,7 @@ class doclog_Documents extends core_Manager
         $document = doc_Containers::getDocument($cid);
         $detailTab = ucfirst(strtolower($action));
         
-        if($document->haveRightFor('single')){
+        if($document->haveRightFor('single') && !core_Users::isContractor()){
         	$link = array(
         			$document->className,
         			'single',
