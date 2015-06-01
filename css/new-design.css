@@ -77,7 +77,7 @@
   background-color: #cccccc;
   right: -200px; }
 
-.sidemenu-right {
+.narrow .sidemenu-right {
   right: -170px; }
 
 .sidemenu-left.sidemenu-open {
@@ -359,7 +359,7 @@ body {
       color: white; }
 
 .narrow #nav-panel li a {
-  padding: 0.4em 1.2em 0.4em 1.6em;
+  padding: 0.4em 1.2em 0.4em 1.7em;
   font-size: 0.9em; }
 
 .narrow #nav-panel div {
