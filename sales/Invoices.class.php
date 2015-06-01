@@ -188,7 +188,7 @@ class sales_Invoices extends deals_InvoiceMaster
     	
     	$this->FLD('numlimit', 'enum(1,2)', 'caption=Номер->Диапазон, export=Csv, after=place,input=hidden,notNull,default=1');
     	
-    	$this->FLD('number', 'bigint', 'caption=Номер, export=Csv, after=place,input=none');
+    	$this->FLD('number', 'bigint(21)', 'caption=Номер, export=Csv, after=place,input=none');
     	$this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 'caption=Статус, input=none,export=Csv');
         $this->FLD('type', 'enum(invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие,dc_note=Известие)', 'caption=Вид, input=hidden');
         
