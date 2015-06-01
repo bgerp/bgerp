@@ -38,7 +38,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_SaveAndNew, plg_Created, planning_Wrapper, plg_RowNumbering, plg_AlignDecimals';
+    public $loadList = 'plg_RowTools, plg_SaveAndNew, plg_Created, planning_Wrapper, plg_RowNumbering, plg_AlignDecimals, plg_Sorting';
     
     
     /**
@@ -169,6 +169,12 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     	if($form->isSubmitted()){
     		if(empty($rec->productId)){
     			$rec->measureId = planning_Resources::fetchField($rec->resourceId);
+    		}
+    		
+    		if($rec->type == 'pop'){
+    			if(!planning_Resources::fetchField($rec->resourceId, 'selfValue')){
+    				$form->setError('type', 'Отпадния ресурс няма себестойност');
+    			}
     		}
     	}
     }
