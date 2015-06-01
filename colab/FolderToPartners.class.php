@@ -3,20 +3,26 @@
 
 
 /**
- * Клас 'doc_FolderToPartners' - Релация между партньори и папки
+ * Клас 'colab_FolderToPartners' - Релация между партньори и папки
  *
  *
  * @category  bgerp
- * @package   doc
+ * @package   colab
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.11
  */
-class doc_FolderToPartners extends core_Manager
+class colab_FolderToPartners extends core_Manager
 {   
 
      
+	/**
+	 * За конвертиране на съществуващи MySQL таблици от предишни версии
+	 */
+	public $oldClassName = 'doc_FolderToPartners';
+	
+	
     /**
      * Плъгини за зареждане
      */
@@ -290,7 +296,7 @@ class doc_FolderToPartners extends core_Manager
     {
     	Request::setProtected(array('companyId', 'fromEmail'));
     	
-    	redirect(array('doc_FolderToPartners', 'Createnewcontractor', 'companyId' => $data['companyId'], 'fromEmail' => TRUE));
+    	redirect(array('colab_FolderToPartners', 'Createnewcontractor', 'companyId' => $data['companyId'], 'fromEmail' => TRUE));
     }
     
     

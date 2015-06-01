@@ -30,11 +30,10 @@ class colab_Setup extends core_ProtoSetup
 	 */
 	public $info = "Пакет за работа с партньори";
 	
-
-	/**
-	 * Пакет без инсталация
-	 */
-	public $noInstall = TRUE;
 	
+	// Инсталиране на мениджърите
+    var $managers = array(
+        'colab_FolderToPartners',
+    );
 }
 

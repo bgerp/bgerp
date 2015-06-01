@@ -55,8 +55,10 @@ class doc_FolderPlg extends core_Plugin
     public static function on_AfterPrepareRights($mvc, $res, $data)
     {
         $data->TabCaption = 'Права';
-        doc_FolderToPartners::preparePartners($data);
-
+        
+        if(core_Packs::isInstalled('colab')){
+        	colab_FolderToPartners::preparePartners($data);
+        }
     }
 
     
@@ -65,7 +67,10 @@ class doc_FolderPlg extends core_Plugin
         $tpl = new ET(tr('|*' . getFileContent('doc/tpl/RightsLayout.shtml')));
                 
         $tpl->placeObject($data->masterData->row);
-        doc_FolderToPartners::renderPartners($data, $tpl);
+        
+        if(core_Packs::isInstalled('colab')){
+        	colab_FolderToPartners::renderPartners($data, $tpl);
+        }
     }
 
     
