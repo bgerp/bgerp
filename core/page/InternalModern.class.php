@@ -142,7 +142,7 @@ class core_page_InternalModern extends core_page_Active
 	    					<span class='fright'>
 		    						<span class='user-options'>
 		    							" . $img .
-    			    							"<span class='menu-holder'>
+    			    					"<span class='menu-holder'>
 			     		   					[#USERLINK#]
 		    								[#CHANGE_MODE#]
                                             [#LANG_CHANGE#]
@@ -156,12 +156,11 @@ class core_page_InternalModern extends core_page_Active
 	    				<div class='clearfix21'></div>
 	    				</div>  " ;
     	 
-    	$tpl = new ET("<div id='main-container' class='clearfix21 main-container [#HAS_SCROLL_SUPPORT#] {$mainContainerClass}'>" .
+    	$tpl = new ET("<div id='main-container' class='clearfix21 [#HAS_SCROLL_SUPPORT#] {$mainContainerClass}' style='top: 50px; position: relative'>" .
     			"<div id=\"framecontentTop\"  class=\"headerBlock\"><div class='inner-framecontentTop'>" . $header . "</div></div>" .
-    			"<div id=\"maincontent\">" .
     			"<!--ET_BEGIN NAV_BAR--><div id=\"navBar\">[#NAV_BAR#]</div>\n<!--ET_END NAV_BAR--><div class='clearfix' style='min-height:9px;'></div>" .
     			"<div id='statuses'>[#STATUSES#]</div>" .
-    			"[#PAGE_CONTENT#]</div>" .
+    			"[#PAGE_CONTENT#]" .
     			"[#DEBUG#]</div>".
     			"<div id='nav-panel' class='sidemenu sidemenu-left {$openLeftMenu}'>[#core_page_InternalModern::renderMenu#]</div>".
     			"<div id='fav-panel' class='sidemenu sidemenu-right {$openRightMenu}'>[#core_page_InternalModern::renderBookmarks#]</div>"

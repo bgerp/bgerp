@@ -15,7 +15,7 @@
   border: 1px solid #777777 !important; }
 
 .gradient-dark,
-#maincontent > .tab-control > .tab-row {
+#main-container > .tab-control > .tab-row {
   background: #666666;
     /*
    * Old browsers
@@ -76,10 +76,10 @@
 .sidemenu-right.sidemenu-open {
   right: 0px; }
 
-.sidemenu-push-toright #maincontent > .tab-control > .tab-row {
+.sidemenu-push-toright#main-container > .tab-control > .tab-row {
   left: 200px; }
 
-.sidemenu-push-toleft #maincontent > .tab-control >.tab-row {
+.sidemenu-push-toleft#main-container > .tab-control >.tab-row {
   right: 200px; }
 
 .sidemenu-push-toright {
@@ -102,6 +102,9 @@
   -webkit-transition: left 0.3s ease, right 0.3s ease, margin-left 0.3s ease, margin-right 0.3s ease;
   -moz-transition: left 0.3s ease, right 0.3s ease, margin-left 0.3s ease, margin-right 0.3s ease;
   transition: left 0.3s ease, right 0.3s ease, margin-left 0.3s ease, margin-right 0.3s ease; }
+
+body {
+  background: white; }
 
 .main-container {
   display: block !important;
@@ -170,25 +173,14 @@
 .narrow #main-container {
   min-width: 320px; }
 
-.wide #maincontent {
-  position: relative;
-  padding: 0px;
-  margin-top: 60px;
-  min-height: 600px;
-  border-top: 1px solid #cccccc; }
-
-.narrow #maincontent {
-  padding: 10px 5px 5px 5px;
-  border-top: 1px solid #cccccc; }
-
 #packWrapper {
-  padding: 15px;
+  padding: 25px 15px 15px;
   margin-top: -1px; }
 
 /*
- * poziciq na tabobete, ako moje da minat kym headyra
+ * позиция на табовете
  */
-#maincontent > .tab-control > .tab-row {
+#main-container > .tab-control > .tab-row {
   border-bottom: 1px solid #bbbbbb;
   overflow: hidden;
   position: fixed;
@@ -197,7 +189,7 @@
   top: 43px;
   z-index: 9; }
 
-.narrow #maincontent > .tab-control > .tab-row {
+.narrow #main-container > .tab-control > .tab-row {
   top: 46px; }
 
 .userInfo {
@@ -451,19 +443,13 @@
   margin-right: 3px;
   margin-top: 2px; }
 
-@media handheld,
-only screen and (max-width: 480px) {
-  .headerPath {
-    top: 35px;
-    font-size: 0.85em; } }
-
-.narrow #maincontent {
+.narrow #main-container {
   padding: 12px 0 0 0; }
 
-#maincontent  div.tab-control div.tab-page {
-  border-radius: 0; }
+#main-container  div.tab-control div.tab-page {
+  border: none; }
 
-#maincontent > div.tab-control > div.tab-row > .tab {
+#main-container > div.tab-control > div.tab-row > .tab {
   font-family: arial;
   display: inline-block;
   height: 18px;
@@ -481,21 +467,21 @@ only screen and (max-width: 480px) {
   background-color: transparent !important;
   border-bottom: none;
   border-left: none; }
-  #maincontent > div.tab-control > div.tab-row > .tab.selected {
+  #main-container > div.tab-control > div.tab-row > .tab.selected {
     background-color: #dddddd !important; }
-    #maincontent > div.tab-control > div.tab-row > .tab.selected a {
+    #main-container > div.tab-control > div.tab-row > .tab.selected a {
       color: #333333 !important; }
-  #maincontent > div.tab-control > div.tab-row > .tab a {
+  #main-container > div.tab-control > div.tab-row > .tab a {
     color: white; }
 
-.narrow #maincontent > div.tab-control > div.tab-row > .tab {
+.narrow #main-container > div.tab-control > div.tab-row > .tab {
   border: none;
   margin: 5px 2px 3px;
   padding: 0 !important;
   border-radius: 3px;
   font-size: 0.8em; }
-  .narrow #maincontent > div.tab-control > div.tab-row > .tab a,
-  .narrow #maincontent > div.tab-control > div.tab-row > .tab span {
+  .narrow #main-container > div.tab-control > div.tab-row > .tab a,
+  .narrow #main-container > div.tab-control > div.tab-row > .tab span {
     margin: 2px;
     display: block; }
 
@@ -766,10 +752,13 @@ select.tab-control option {
 
 @media handheld,
 only screen and (max-width: 800px) {
-  .narrow  .sidemenu-push-toleft #maincontent {
+  .narrow  .sidemenu-push-toleft#main-container {
     margin-left: -200px; }
 
-  .narrow  .sidemenu-push-toleft #framecontentTop,
-  .narrow .sidemenu-push-toleft #maincontent > .tab-control > .tab-row {
+  .narrow  .sidemenu-push-toright#main-container {
+    margin-right: -200px; }
+
+  .narrow .sidemenu-push-toleft #framecontentTop,
+  .narrow .sidemenu-push-toleft  > .tab-control > .tab-row {
     left: -200px; } }
 
