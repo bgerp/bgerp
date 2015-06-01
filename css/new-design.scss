@@ -32,20 +32,30 @@
 .sidemenu {
     position: fixed;
     top: 0;
-    width: 200px;
+    bottom: 0;
     height: 100%;
+    width: 200px;
     z-index: 1000;
     overflow-y: auto;
 }
 
+.narrow .sidemenu {
+    width: 170px;
+}
 /*движение на менюто*/
 .sidemenu-left {
     left: -200px;
+}
+.narrow .sidemenu-left {
+    left: -170px;
 }
 
 .sidemenu-right {
     background-color: #ccc;
     right: -200px;
+}
+.sidemenu-right {
+    right: -170px;
 }
 
 .sidemenu-left.sidemenu-open {
@@ -56,13 +66,22 @@
     right: 0px;
 }
 
-.sidemenu-push-toright #maincontent > .tab-control > .tab-row{
+.sidemenu-push-toright#main-container > .tab-control > .tab-row{
     left:  200px;
 }
 
-.sidemenu-push-toleft #maincontent > .tab-control >.tab-row{
+.narrow .sidemenu-push-toright#main-container > .tab-control > .tab-row{
+    left:  170px;
+}
+
+.sidemenu-push-toleft#main-container > .tab-control >.tab-row{
     right:  200px;
 }
+
+.narrow .sidemenu-push-toleft#main-container > .tab-control >.tab-row{
+    right:  170px;
+}
+
 .sidemenu-push-toright {
     margin-left: 200px;
 }
@@ -71,21 +90,41 @@
     margin-right: 200px;
 }
 
+.narrow .sidemenu-push-toright {
+    margin-left: 170px;
+}
+
+.narrow .sidemenu-push-toleft {
+    margin-right: 170px;
+}
+
 .sidemenu-push-toleft #framecontentTop{
     right:  200px;
     width: auto;
     display: block;
 }
+
 .sidemenu-push-toright #framecontentTop{
     left:  200px;
     width: auto;
     display: block;
 }
 
+.narrow .sidemenu-push-toleft #framecontentTop{
+    right:  170px;
+}
+
+.narrow .sidemenu-push-toright #framecontentTop{
+    left: 170px;
+}
+
 .transition {
     -webkit-transition: left 0.3s ease, right 0.3s ease, margin-left 0.3s ease, margin-right 0.3s ease;
        -moz-transition: left 0.3s ease, right 0.3s ease, margin-left 0.3s ease, margin-right 0.3s ease;
             transition: left 0.3s ease, right 0.3s ease, margin-left 0.3s ease, margin-right 0.3s ease;
+}
+body {
+    background: #fff;
 }
 
 .main-container {
@@ -140,9 +179,10 @@
 }
 
 .narrow .portal {
-    margin-top: 20px;
-    margin-left: 1px;
-    margin-right: 1px;
+    margin-top: -10px;
+    margin-left: 2px;
+    margin-right: 2px;
+    margin-bottom: 2px;
 }
 
 #framecontentTop{
@@ -166,26 +206,13 @@
     min-width:320px;
 }
 
-.wide #maincontent {
-    position: relative;
-    padding: 0px;
-    margin-top: 60px;
-    min-height: 600px;
-    border-top: 1px solid #ccc;
-}
-
-.narrow #maincontent {
-    padding: 10px 5px 5px 5px;
-    border-top: 1px solid #ccc;
-}
-
 #packWrapper{
-    padding: 15px;
+    padding: 25px 15px 15px;
     margin-top: -1px;
 }
 
-/*poziciq na tabobete, ako moje da minat kym headyra*/
-#maincontent > .tab-control > .tab-row{
+/* позиция на табовете */
+#main-container > .tab-control > .tab-row{
 	@extend .gradient-dark;
 	border-bottom: 1px solid #bbb;
 	overflow: hidden;
@@ -194,9 +221,10 @@
     right: 0;
     top: 43px;
     z-index: 9;
+    padding: 0 10px;
 }
 
-.narrow #maincontent > .tab-control > .tab-row {
+.narrow #main-container > .tab-control > .tab-row {
 	top: 46px;
 }
 
@@ -237,6 +265,9 @@
 
 #nav-panel{
     background-color: #333 !important;
+}
+.narrow #nav-panel {
+    font-size: 0.9em;
 }
 
 #fav-panel {
@@ -331,7 +362,7 @@
 }
 
 .narrow #nav-panel li a{
-	padding: 0.4em 1.2em 0.4em 1.6em;
+	padding: 0.4em 1.2em 0.4em 1.7em;
 	font-size: 0.9em;
 }
 
@@ -467,21 +498,14 @@
     margin-top: 2px;
 }
 
-
-@media handheld, only screen and (max-width: 480px) {
-    .headerPath{
-       top: 35px;
-       font-size: 0.85em; 
-    }
-}
-.narrow #maincontent {
+.narrow #main-container {
 	padding: 12px 0 0 0;
 }
-#maincontent  div.tab-control div.tab-page {
-	border-radius: 0;
+#main-container  div.tab-control div.tab-page {
+	border: none;
 }
 
-#maincontent > div.tab-control > div.tab-row > .tab {
+#main-container > div.tab-control > div.tab-row > .tab {
     font-family: arial;
     display: inline-block;
     height: 18px;
@@ -509,7 +533,7 @@
         color: white;
     }
 }
-.narrow #maincontent > div.tab-control > div.tab-row > .tab {
+.narrow #main-container > div.tab-control > div.tab-row > .tab {
 	border: none;
 	margin: 5px 2px 3px;
     padding: 0 !important;
@@ -818,10 +842,13 @@ select.tab-control, select.tab-control option {
 }
 
 @media handheld, only screen and (max-width: 800px) {
-	.narrow  .sidemenu-push-toleft #maincontent {
-		margin-left:-200px;
+	.narrow  .sidemenu-push-toleft#main-container {
+		margin-left: -170px;
 	}
-	.narrow  .sidemenu-push-toleft #framecontentTop, .narrow .sidemenu-push-toleft #maincontent > .tab-control > .tab-row {
-		left: -200px;
+    .narrow  .sidemenu-push-toright#main-container {
+        margin-right: -170px;
+    }
+	.narrow .sidemenu-push-toleft #framecontentTop, .narrow .sidemenu-push-toleft .tab-control > .tab-row {
+		left: -170px !important;
 	}
 }
