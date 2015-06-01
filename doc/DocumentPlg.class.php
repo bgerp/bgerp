@@ -181,14 +181,16 @@ class doc_DocumentPlg extends core_Plugin
                 
                 $retUrl = array($mvc, 'single', $data->rec->id);
                 
-                // Бутон за създаване на коментар
-                $data->toolbar->addBtn('Коментар', array(
-                        'doc_Comments',
-                        'add',
-                        'originId' => $data->rec->containerId,
-                        'ret_url'=>$retUrl
-                    ),
-                    'onmouseup=saveSelectedTextToSession()', 'ef_icon = img/16/comment_add.png,title=Добавяне на коментар към документа');
+                if(doc_Comments::haveRightFor('add', (object)array('originId' => $data->rec->containerId, 'threadId' => $data->rec->threadId))){
+                	// Бутон за създаване на коментар
+                	$data->toolbar->addBtn('Коментар', array(
+                			'doc_Comments',
+                			'add',
+                			'originId' => $data->rec->containerId,
+                			'ret_url'=>$retUrl
+                	),
+                			'onmouseup=saveSelectedTextToSession()', 'ef_icon = img/16/comment_add.png,title=Добавяне на коментар към документа');
+                }
             }
         } else {
             //TODO да се "премахне" и оптимизира
