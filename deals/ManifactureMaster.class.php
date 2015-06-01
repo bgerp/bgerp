@@ -151,15 +151,18 @@ abstract class deals_ManifactureMaster extends core_Master
 	public function getUsedDocs_($id)
 	{
 		$res = array();
+		
 		$Detail = $this->mainDetail;
 		$dQuery = $this->$Detail->getQuery();
 		$dQuery->EXT('state', $this->className, "externalKey={$this->$Detail->masterKey}");
 		$dQuery->where("#{$this->$Detail->masterKey} = '{$id}'");
 		$dQuery->groupBy('productId,classId');
 		while($dRec = $dQuery->fetch()){
-			$productMan = cls::get($dRec->classId);
-			if(cls::haveInterface('doc_DocumentIntf', $productMan)){
-				$res[] = (object)array('class' => $productMan, 'id' => $dRec->productId);
+			if(isset($dRec->classId) && isset($dRec->productId)){
+				$productMan = cls::get($dRec->classId);
+				if(cls::haveInterface('doc_DocumentIntf', $productMan)){
+					$res[] = (object)array('class' => $productMan, 'id' => $dRec->productId);
+				}
 			}
 		}
 		 
