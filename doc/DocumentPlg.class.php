@@ -1219,6 +1219,13 @@ class doc_DocumentPlg extends core_Plugin
     	            
                     // Никой не може да добавя
     				$requiredRoles = 'no_one';
+    			} else{
+    				
+    				// Ако папката на нишката е затворена, не може да се добавят документи
+    				$folderId = doc_Threads::fetchField($rec->threadId, 'folderId');
+    				if(doc_Folders::fetchField($folderId, 'state') == 'closed'){
+    					$requiredRoles = 'no_one';
+    				}
     			}        
             } elseif ($rec->folderId) {
                 
@@ -1229,7 +1236,11 @@ class doc_DocumentPlg extends core_Plugin
                     
                     // Никой не може да добавя
     				$requiredRoles = 'no_one';
-    			}    
+    			} elseif(doc_Folders::fetchField($rec->folderId, 'state') == 'closed') {
+    				
+    				// Ако папката е затворена не могат да се добавят документи
+    				$requiredRoles = 'no_one';
+    			}
             }
         }
 		
