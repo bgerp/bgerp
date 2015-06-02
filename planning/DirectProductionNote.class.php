@@ -227,6 +227,27 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 	
 	
 	/**
+	 * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+	 *
+	 * @param core_Mvc $mvc
+	 * @param core_Form $form
+	 */
+	public static function on_AfterInputEditForm($mvc, &$form)
+	{
+		$rec = &$form->rec;
+		if($form->isSubmitted()){
+			
+			// Ако могат да се генерират детайли от артикула да се
+			$details = $mvc->getDefaultDetails($rec->productId, $rec->storeId, $rec->quantity, $rec->jobQuantity);
+			
+			if($details === FALSE){
+				$form->setWarning('productId', 'Няма да могат да се генерират детайли от рецептата, защото на материал от нея не е обвързан със артикул');
+			}
+		}
+	}
+	
+	
+	/**
 	 * Изпълнява се след създаване на нов запис
 	 */
 	public static function on_AfterCreate($mvc, $rec)
@@ -234,29 +255,16 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 		// Ако могат да се генерират детайли от артикула да се
 		$details = $mvc->getDefaultDetails($rec->productId, $rec->storeId, $rec->quantity, $rec->jobQuantity);
 		
-		// Ако могат да бъдат определени дефолт детайли според артикула, записваме ги
-		if(count($details)){
-			foreach ($details as $dRec){
-				$dRec->noteId = $rec->id;
-				planning_DirectProductNoteDetails::save($dRec);
+		if($details !== FALSE){
+			
+			// Ако могат да бъдат определени дефолт детайли според артикула, записваме ги
+			if(count($details)){
+				foreach ($details as $dRec){
+					$dRec->noteId = $rec->id;
+					planning_DirectProductNoteDetails::save($dRec);
+				}
 			}
 		}
-	}
-	
-	
-	/**
-	 * Извиква се след успешен запис в модела
-	 *
-	 * @param core_Mvc $mvc
-	 * @param int $id първичния ключ на направения запис
-	 * @param stdClass $rec всички полета, които току-що са били записани
-	 */
-	public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
-	{
-		//@TODO тестово да го премахна в крайния вариант
-		//planning_DirectProductNoteDetails::delete("#noteId = {$rec->id}");
-		
-		//self::on_AfterCreate($mvc, $rec);
 	}
 	
 	
@@ -295,6 +303,7 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 			
 			// Мярката е мярката на ресурса
 			$dRec->measureId = planning_Resources::fetchField($resource->resourceId, 'measureId');
+			$type = planning_Resources::fetchField($resource->resourceId, 'type');
 			
 			// Изчисляваме к-то според наличните данни
 			$dRec->quantity = $prodQuantity * ($resource->baseQuantity / $jobQuantity + ($resource->propQuantity / $bomInfo['quantity']));
@@ -316,6 +325,12 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 			$productId = NULL;
 			if(count($resProducts)) {
 				$productId = array_search(max($resProducts), $resProducts);
+			}
+			
+			if($type == 'material' && !$productId){
+				
+				// Ако има ресурс материал и не може да му се определи артикул, не продължаваме
+				return FALSE;
 			}
 			
 			// Избираме него към ресурса
