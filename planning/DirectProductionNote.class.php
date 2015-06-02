@@ -353,4 +353,21 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 		// Връщаме генерираните детайли
 		return $details;
 	}
+	
+	
+	/**
+	 * Извиква се след успешен запис в модела
+	 *
+	 * @param core_Mvc $mvc
+	 * @param int $id първичния ключ на направения запис
+	 * @param stdClass $rec всички полета, които току-що са били записани
+	 */
+	public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+	{
+		// При активиране/оттегляне
+		if($rec->state == 'active' || $rec->state == 'rejected'){
+			$origin = doc_Containers::getDocument($rec->originId);
+			planning_Jobs::updateProducedQuantity($origin->that);
+		}
+	}
 }
