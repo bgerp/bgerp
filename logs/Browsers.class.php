@@ -776,7 +776,7 @@ class logs_Browsers extends core_Master
                         'js',
                         rand(1, 1000000000)
                     ));
-                $code .= '<span class="checkBrowser"><img id="brdet" src="" width="1" height="1"></span><script type="text/javascript"><!-- 
+                $code .= '<span class="checkBrowser"><img id="brdet" src="" width="1" height="1" alt=""></span><script type="text/javascript"><!-- 
                 var winW = 630, winH = 460; if (document.body && document.body.offsetWidth) { winW = document.body.offsetWidth;
                 winH = document.body.offsetHeight; } if (document.compatMode=="CSS1Compat" && document.documentElement && 
                 document.documentElement.offsetWidth ) { winW = document.documentElement.offsetWidth;
