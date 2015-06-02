@@ -102,7 +102,7 @@ class logs_Browsers extends core_Master
     /**
      * Полетата, които ще се показват в лист изгледа
      */
-    public $listFields = 'id, brid, userAgent, createdOn, createdBy';
+    public $listFields = 'id, brid, userAgent, acceptLangs, createdOn, createdBy';
     
     
     /**
@@ -124,6 +124,7 @@ class logs_Browsers extends core_Master
     {
         $this->FLD('brid', 'varchar(8)', 'caption=BRID');
         $this->FLD('userAgent', 'text', 'caption=User agent');
+        $this->FLD('acceptLangs', 'text', 'caption=Accept langs');
         $this->FLD('userData', 'blob(serialize, compress)', 'caption=Данни');
         
         $this->setDbUnique('brid');
@@ -405,6 +406,7 @@ class logs_Browsers extends core_Master
         }
         
         $rec->userAgent = self::getUserAgent();
+        $rec->acceptLangs = self::getAcceptLangs();
         
         self::save($rec, NULL, REPLACE);
     }
@@ -647,6 +649,7 @@ class logs_Browsers extends core_Master
         return $res;
     }
     
+    
     /**
      * Връща $_SERVER['HTTP_USER_AGENT']
      */
@@ -655,6 +658,17 @@ class logs_Browsers extends core_Master
         $userAgent = $_SERVER['HTTP_USER_AGENT'];
         
         return $userAgent;
+    }
+    
+    
+    /**
+     * Връща $_SERVER['HTTP_ACCEPT_LANGUAGE']
+     */
+    static function getAcceptLangs()
+    {
+        $acceptLangs = $_SERVER['HTTP_ACCEPT_LANGUAGE'];
+        
+        return $acceptLangs;
     }
     
     
