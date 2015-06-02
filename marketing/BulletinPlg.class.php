@@ -33,7 +33,7 @@ class marketing_BulletinPlg extends core_Plugin
         $jsLink = marketing_Bulletins::getJsLink($bRec->id);
         
         if ($jsLink) {
-            $invoker->push($jsLink, 'JS');
+            jquery_Jquery::run($invoker, "jQuery.getScript('{$jsLink}');" );
         }
     }
 }
