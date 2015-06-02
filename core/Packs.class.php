@@ -104,7 +104,7 @@ class core_Packs extends core_Manager
         static $isInstalled = array();
         
         if (!isset($isInstalled[$name])) {
-            $rec = static::fetch(array("#name = '[#1#]' and #state = 'active'", $name));
+            $rec = static::fetch(array("#name = '[#1#]' AND #state = 'active'", $name));
             
             if ($rec) {
                 $isInstalled[$name] = $rec->id;
@@ -243,6 +243,27 @@ class core_Packs extends core_Manager
         $resArr = array();
         
         $query = self::getQuery();
+        while ($rec = $query->fetch()) {
+            
+            $resArr[$rec->name] = $rec->name;
+        }
+        
+        return $resArr;
+    }
+    
+    
+    /**
+     * Връща масив с имената на всички активирани пакети
+     * 
+     * @return array
+     */
+    public static function getUsedPacksNamesArr()
+    {
+        $resArr = array();
+        
+        $query = self::getQuery();
+        $query->where("#state = 'active'");
+        $query->orWhere("#state = 'hidden'");
         while ($rec = $query->fetch()) {
             
             $resArr[$rec->name] = $rec->name;
