@@ -298,11 +298,11 @@ class planning_PlanningReportImpl extends frame_BaseDriver
                 $arrow = "<span class='additionalInfo-holder'><span class='additionalInfo' id='info{$unique}'></span>{$arrow}</span>";
    
                 if (isset($data->rows[$id]->quantityToDeliver) && isset($data->rows[$id]->quantityToProduced)) {
-                	$data->rows[$id]->toDelivered = "{$arrow}&nbsp;" . $data->rows[$id]->quantityToDeliver . "{$arrow}&nbsp;<br><span style='color:#0066FF'>{$data->rows[$id]->quantityToProduced}</span>";
+                	$data->rows[$id]->toDelivered = "{$arrow}&nbsp;" . $data->rows[$id]->quantityToDeliver . "<br>{$arrow}&nbsp;<span style='color:#0066FF'>{$data->rows[$id]->quantityToProduced}</span>";
                 } elseif (isset($data->rows[$id]->quantityToDeliver)) {
                 	$data->rows[$id]->toDelivered = "{$arrow}&nbsp;" . $data->rows[$id]->quantityToDeliver;
                 } else {
-                	$data->rows[$id]->toDelivered = "{$arrow}&nbsp;<br><span style='color:#0066FF'>{$data->rows[$id]->quantityToProduced}</span>";
+                	$data->rows[$id]->toDelivered = "<br>{$arrow}&nbsp;<span style='color:#0066FF'>{$data->rows[$id]->quantityToProduced}</span>";
                 }
             }
         }
