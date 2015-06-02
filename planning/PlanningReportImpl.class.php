@@ -274,11 +274,11 @@ class planning_PlanningReportImpl extends frame_BaseDriver
                
                 if ($rec->sales) { 
                 	foreach($rec->sales as $sale) {
-                		$idS = (is_object($rec)) ? $sale : $rec ;
+                		$idS = 'sales=' . $sale;
                 	}
                 } elseif($rec->jobs){
                 	foreach ($rec->jobs as $job) { 
-                		$idS = (is_object($rec)) ? $job : $rec;
+                		$idS = 'job='. $job;
                 	}
                 	
                 } 

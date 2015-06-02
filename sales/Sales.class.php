@@ -722,29 +722,51 @@ class sales_Sales extends deals_DealMaster
      */
     public function act_ShowInfo()
     {
-    	$id = Request::get('id', 'int');
+    	$id = Request::get('id', 'varchar');
     	$unique = Request::get('unique', 'int');
-  
-    	$rec = $this->fetchRec($id);
     	
-    	$row = $this->recToVerbal($rec);
-    	
-  
     	$tpl = new ET("[#link#]");
-    	
+    	 
     	$row = new stdClass();
-    	$row->link = self::getLink($rec->id, 0);
     	
-    	$tpl->placeObject($row);
-   		if (Request::get('ajax_mode')) {
-	    	$resObj = new stdClass();
-	    	$resObj->func = "html";
-	    	$resObj->arg = array('id' => "info{$unique}", 'html' => $tpl->getContent(), 'replace' => TRUE);
-	    
-	    	return array($resObj);
-	    } else {
-	    	return $tpl;
-	    }
+    	if (substr(strstr($id, "job="),1)) { 
+    		
+    		$jobId = substr(strstr($id, "="),1);
+    		
+    		$rec = planning_Jobs::fetchRec($jobId);
+    		
+    		$row = planning_Jobs::recToVerbal($rec);
+    		
+    		$row->link = planning_Jobs::getLink($rec->id, 0);
+    		
+    		$tpl->placeObject($row);
+    		
+    		
+    	} else {
+    		
+    		$saleId = substr(strstr($id, "="),1);
+    		
+	    	$rec = $this->fetchRec($saleId);
+	    	
+	    	$row = $this->recToVerbal($rec);
+	    	
+	    	$row->link = self::getLink($rec->id, 0);
+	    	
+	    	$tpl->placeObject($row);
+    	}
+    	
+
+    	if (Request::get('ajax_mode')) {
+    		$resObj = new stdClass();
+    		$resObj->func = "html";
+    		$resObj->arg = array('id' => "info{$unique}", 'html' => $tpl->getContent(), 'replace' => TRUE);
+    	
+    		return array($resObj);
+    	} else {
+    		return $tpl;
+    	}
+   		
+    	
     }
   
     
