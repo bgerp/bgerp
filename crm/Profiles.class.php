@@ -693,15 +693,15 @@ class crm_Profiles extends core_Master
      * 
      * @return integer
      */
-    public static function getPersonId($userId)
+    public static function getProfileId($userId)
     {
         if (!isset($userId)) {
             $userId = core_Users::getCurrent();
         }
         
-        $personId = static::fetchField("#userId = {$userId}", 'id');
+        $profileId = static::fetchField("#userId = {$userId}", 'id');
         
-        return $personId;
+        return $profileId;
     }
     
     
@@ -714,15 +714,15 @@ class crm_Profiles extends core_Master
     public static function getUrl($userId)
     {
         // Извличаме профила (връзката м/у потребител и визитка)
-        $personId = self::getPersonId($userId);
+        $profileId = self::getProfileId($userId);
 
-        if (!$personId) {
+        if (!$profileId) {
             
             // Няма профил или не е асоцииран с визитка
             return FALSE;
         }
         
-        return array(get_called_class(), 'single', $personId);
+        return array(get_called_class(), 'single', $profileId);
     }
     
     
