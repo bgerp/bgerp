@@ -149,7 +149,7 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 		$this->setField('deadline', 'input=none');
 		$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,mandatory,after=storeId');
 		$this->FLD('jobQuantity', 'double(smartRound)', 'caption=Задание,input=hidden,mandatory,after=productId');
-		$this->FLD('quantity', 'double(smartRound)', 'caption=За,mandatory,after=jobQuantity');
+		$this->FLD('quantity', 'double(smartRound,Min=0)', 'caption=За,mandatory,after=jobQuantity');
 		
 		$this->setDbIndex('productId');
 	}
@@ -171,7 +171,10 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 		
 		$quantity = $originRec->quantity - $originRec->quantityProduced;
 		$form->setDefault('jobQuantity', $originRec->quantity);
-		$form->setDefault('quantity', $quantity);
+		
+		if($quantity > 0){
+			$form->setDefault('quantity', $quantity);
+		}
 	}
 	
 	
