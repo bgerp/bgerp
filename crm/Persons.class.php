@@ -525,8 +525,11 @@ class crm_Persons extends core_Master
             	$row->buzLocationId = crm_Locations::getHyperLink($rec->buzLocationId, TRUE);
             }
         }
-        
-        $ownCompany = crm_Companies::fetchOurCompany();
+
+        static $ownCompany;
+        if(!$ownCompany) {
+            $ownCompany = crm_Companies::fetchOurCompany();
+        }
         if ($ownCompany->country != $rec->country) {
         	$row->country = $mvc->getVerbal($rec, 'country');
         }
