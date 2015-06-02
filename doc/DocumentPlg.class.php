@@ -210,15 +210,18 @@ class doc_DocumentPlg extends core_Plugin
                     
                     $retUrl = array($mvc, 'single', $data->rec->id);
                 
-                    // Бутон за клониране
-                    $data->toolbar->addBtn('Копие', array(
-                            $mvc,
-                            'add',
-                            'cloneId' => $data->rec->containerId,
-                            'clone' => 'clone',
-                            'ret_url'=>$retUrl
-                        ),
-                        'order=14, row=2', 'ef_icon = img/16/page_copy.png,title=Клониране на документа');    
+                    if($mvc->haveRightFor('add', (object)array('cloneId' => $data->rec->containerId, 'threadId' => $data->rec->threadId))){
+                    	
+                    	// Бутон за клониране
+                    	$data->toolbar->addBtn('Копие', array(
+                    			$mvc,
+                    			'add',
+                    			'cloneId' => $data->rec->containerId,
+                    			'clone' => 'clone',
+                    			'ret_url'=>$retUrl
+                    	),
+                    			'order=14, row=2', 'ef_icon = img/16/page_copy.png,title=Клониране на документа');
+                    } 
                 }
             }
         }
