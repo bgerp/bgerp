@@ -1,0 +1,16 @@
+/*jqdatepick custom styles*/
+.datepick-nav, .datepick-ctrl, .datepick-ctrl .datepick-cmd:hover {
+    background-color: #66c !important;
+}
+
+.datepick-cmd:hover,  .datepick-ctrl .datepick-cmd:hover, .datepick-month td a:hover, .datepick-month td .datepick-today{
+    background-color: #99f !important;
+}
+
+.datepick-month-year {
+    padding-right: 1em !important;
+}
+
+a.datepick-cmd {
+    height: 1.4em;
+}

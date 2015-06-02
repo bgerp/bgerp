@@ -467,8 +467,6 @@ class core_Setup extends core_ProtoSetup {
      */
     public function getCommonCss()
     {
-        $res = "css/pluginsCustom.css";
-
         return $res;
     }
 

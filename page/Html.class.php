@@ -78,8 +78,6 @@ class page_Html extends core_ET {
             
         $inst = cls::get(get_called_class());
 
-        // добавяме стиловете, с които ще пренаписваме стиловете на външните плъгини
-        $files->css[] = 'css/pluginsCustom.css';
         $inst->appendFiles($files);
     }
     

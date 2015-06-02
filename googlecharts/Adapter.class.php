@@ -55,6 +55,7 @@ class googlecharts_Adapter extends  core_Mvc
             $tpl->push("https://www.google.com/jsapi?autoload={'modules':[{'name':'visualization','version':'1.1','packages':['corechart']}]}", 'JS');
         }
 
+        $tpl->push('googlecharts/lib/googlecharts-custom.css', 'CSS');
         $tpl->push('googlecharts/lib/preparechart.js', 'JS');
 
         $data = json_encode($data);
