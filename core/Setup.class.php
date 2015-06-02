@@ -453,7 +453,8 @@ class core_Setup extends core_ProtoSetup {
         $intTheme = cls::get($conf->CORE_PAGE_WRAPPER);
 
         $res = $intTheme->getCommonJs();
-
+        
+        return $res;
     }
     
     
