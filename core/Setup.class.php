@@ -451,9 +451,14 @@ class core_Setup extends core_ProtoSetup {
         $conf = core_Packs::getConfig('core');
 
         $intTheme = cls::get($conf->CORE_PAGE_WRAPPER);
-
-        $res = $intTheme->getCommonJs();
-
+        
+        if (method_exists($intTheme, 'getCommonJs')) {
+            $res = $intTheme->getCommonJs();
+        } else {
+            $res = '';
+        }
+        
+        return $res;
     }
     
     

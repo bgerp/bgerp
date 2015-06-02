@@ -437,9 +437,9 @@ class doc_RichTextPlg extends core_Plugin
         // За ника използваме и префикса от стринга
         $nick = $match['pre'] . type_Nick::normalize($match['nick']);
         
-        $personId = crm_Profiles::getPersonId($id);
+        $profileId = crm_Profiles::getProfileId($id);
         
-        if (crm_Profiles::haveRightFor('single', $personId)) {
+        if (crm_Profiles::haveRightFor('single', $profileId)) {
             $this->mvc->_htmlBoard[$place] = crm_Profiles::createLink($id, $nick);
         } else {
             $this->mvc->_htmlBoard[$place] = $nick;

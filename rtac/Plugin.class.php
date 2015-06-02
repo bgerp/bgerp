@@ -32,18 +32,21 @@ class rtac_Plugin extends core_Plugin
     {
         preg_match_all(static::$pattern, $text, $matches);
         
-        if (!$matches['nick']) return;
+        $nickArr = array();
+        
+        if (!$matches['nick']) return $nickArr;
         
         // Масив с никовете на всички потребители
         $userArr = core_Users::getUsersArr();
         
-        $nickArr = array();
+        $userArr = array_change_key_case($userArr, CASE_LOWER);
         
         // Обхождаме всички открити никове и, ако има такива потребители добавяме в масива
         foreach ((array) $matches['nick'] as $nick) {
             
-            if (! $nick) continue;
+            if (!$nick) continue;
             $nick = strtolower($nick);
+            
             if (!$userArr[$nick]) continue;
             $nickArr[$nick] = $nick;
         }

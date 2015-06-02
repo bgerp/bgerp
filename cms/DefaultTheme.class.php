@@ -112,10 +112,12 @@ class cms_DefaultTheme extends core_ProtoInner {
         	$css .= "\n    .vertical .formGroup {background-color:#{$formSubcolor} !important;}";
         	
     	}
-    	
-    	// фон на страницата
-    	$css .= "\n    body {background-color:#{$bgcolor};}";
-    	
+
+    	if($bgcolor) {
+            // фон на страницата
+            $css .= "\n    body {background-color:#{$bgcolor};}";
+        }
+
     	// за активния цвят
     	if ($this->formRec->activeColor){
     		$css .= "\n    #cmsMenu a.selected, #cmsMenu a:focus, #cmsMenu a:hover {background-color:{$this->formRec->activeColor} !important;}";

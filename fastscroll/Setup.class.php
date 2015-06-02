@@ -26,18 +26,6 @@ defIfNot('FASTSCROLL_ACTIVE_RATIO', '2');
 class fastscroll_Setup extends core_ProtoSetup 
 {
 	var $info = "Бързо скрoлиране в дълги страници";
-    
-	
-	/**
-	 * Път до js файла
-	 */
-	var $commonJS = 'fastscroll/lib/fastscroll.js';
-	
-	
-	/**
-	 * Път до css файла
-	 */
-	var $commonCSS = 'fastscroll/lib/fastscroll.css';
 	
 	
 	/**
@@ -79,5 +67,25 @@ class fastscroll_Setup extends core_ProtoSetup
         $html .= "<li>Премахнати са всички инсталации на 'fastscroll_Plugin'";
         
         return $html;
+    }
+
+
+    /**
+     * Връща JS файлове, които са подходящи за компактиране
+     */
+    public function getCommonJs()
+    {
+        
+        return 'fastscroll/lib/fastscroll.js';
+    }
+    
+    
+    /**
+     * Връща JS файлове, които са подходящи за компактиране
+     */
+    public function getCommonCss()
+    {
+        
+        return 'fastscroll/lib/fastscroll.css';
     }
 }

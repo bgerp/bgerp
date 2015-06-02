@@ -1,5 +1,5 @@
 <div id='summary-title'>|Резултати|*:</div>
-<ul id = 'survey-summary'>
+<ul class = 'survey-summary'>
     <!--ET_BEGIN ROW-->
     <li style='margin-top:10px;margin-bottom:10px;'>
         <div class='summary-question'>
