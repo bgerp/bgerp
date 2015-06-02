@@ -483,4 +483,23 @@ class cat_Boms extends core_Master
     	// Връщаме намерените ресурси
     	return $resources;
     }
+    
+    
+    /**
+     * Функция, която се извиква преди активирането на документа
+     */
+    public static function on_BeforeActivation($mvc, $res)
+    {
+    	if($res->id){
+    		$dQuery = cat_BomDetails::getQuery();
+    		$dQuery->where("#bomId = {$res->id}");
+    		$dQuery->where("#type = 'input'");
+    		
+    		if(!$dQuery->count()){
+    			core_Statuses::newStatus('Рецептатата не може да се активира, докато няма поне един вложим ресурс', 'warning');
+    			
+    			return FALSE;
+    		}
+    	}
+    }
 }
