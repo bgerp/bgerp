@@ -20,18 +20,6 @@ defIfNot('JQDATEPICKER_VERSION', 'v5.0.0');
  */
 class jqdatepick_Setup extends core_ProtoSetup 
 {
-	
-    
-    /**
-	 * Пътища до JS файлове
-	 */
-    var $commonJS = "jqdatepick/[#JQDATEPICKER_VERSION#]/jquery.plugin.min.js, jqdatepick/[#JQDATEPICKER_VERSION#]/jquery.datepick.js, jqdatepick/[#JQDATEPICKER_VERSION#]/jquery.datepick-[#CORE::EF_DEFAULT_LANGUAGE#].js";
-    
-    
-    /**
-	 * Пътища до CSS файлове
-	 */
-    var $commonCSS = "jqdatepick/[#JQDATEPICKER_VERSION#]/jquery.datepick.css";
     
     
     /**
@@ -87,5 +75,30 @@ class jqdatepick_Setup extends core_ProtoSetup
         $html .= "<li>Премахнати са всички инсталации на 'calendarpicker_Plugin'";
         
         return $html;
+    }
+
+
+    /**
+     * Връща JS файлове, които са подходящи за компактиране
+     */
+    public function getCommonJs()
+    {
+        $conf = core_Packs::getConfig('jqdatepick');
+        $confCore = core_Packs::getConfig('core');
+        
+        return 'jqdatepick/' . $conf->JQDATEPICKER_VERSION . '/jquery.plugin.min.js, jqdatepick/' . 
+            $conf->JQDATEPICKER_VERSION . '/jquery.datepick.js, jqdatepick/' . 
+            $conf->JQDATEPICKER_VERSION . '/jquery.datepick-' . $confCore->EF_DEFAULT_LANGUAGE . '.js';
+    }
+    
+    
+    /**
+     * Връща JS файлове, които са подходящи за компактиране
+     */
+    public function getCommonCss()
+    {
+        $conf = core_Packs::getConfig('jqdatepick');
+        
+        return 'jqdatepick/' . $conf->JQDATEPICKER_VERSION . '/jquery.datepick.css';
     }
 }
