@@ -66,6 +66,6 @@ class jqueryui_Setup extends core_ProtoSetup
     {
         $conf = core_Packs::getConfig('jqueryui');
         
-        return 'jqueryui/' . $conf->JQUERYUI_VERSION . '/jquery-ui.min.css'';
+        return 'jqueryui/' . $conf->JQUERYUI_VERSION . '/jquery-ui.min.css';
     }
 }
