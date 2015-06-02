@@ -75,6 +75,9 @@ class social_Sharings extends core_Master
 		$this->FLD('icon', 'fileman_FileType(bucket=social)', 'caption=Икона');
 		$this->FLD('sharedCnt', 'int', 'caption=Споделяния, input=none,notNull');
 		$this->FLD('order', 'int(3)', 'caption=Подредба');
+        
+        // Уникално име на бутона
+        $this->setDbUnique('name');
     }
     
     
