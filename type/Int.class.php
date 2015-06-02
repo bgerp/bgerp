@@ -123,7 +123,7 @@ class type_Int extends core_Type {
      */
     function getMysqlAttr()
     {
-        $size = $this->params['size'] ? $this->params['size'] : $this->params[0] ;
+        $size = $this->getDbFieldSize();
         
         if(!$size || $size <= 11) {
             $this->dbFieldType = "INT";
