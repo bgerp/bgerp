@@ -261,18 +261,6 @@ class core_Setup extends core_ProtoSetup {
     
     
     /**
-     * Път до js файла
-     */
-    var $commonJS = '';
-    
-
-    /**
-     * Път до css файла
-     */
-    var $commonCSS = '';
-    
-    
-    /**
      * Дали пакета е системен
      */
     public $isSystem = TRUE;
@@ -453,4 +441,30 @@ class core_Setup extends core_ProtoSetup {
             core_Settings::setValues($key, $rec->configData, $rec->id);
         }
     }
+
+
+    /**
+     * Връща JS файлове, които са подходящи за компактиране
+     */
+    public function getCommonJs()
+    {
+        $conf = core_Packs::getConfig('core');
+
+        $intTheme = cls::get($conf->CORE_PAGE_WRAPPER);
+
+        $res = $intTheme->getCommonJs();
+
+    }
+    
+    
+    /**
+     * Връща JS файлове, които са подходящи за компактиране
+     */
+    public function getCommonCss()
+    {
+        $res = "css/pluginsCustom.css";
+
+        return $res;
+    }
+
 }
