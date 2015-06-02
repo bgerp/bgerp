@@ -48,7 +48,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 	
 	
 	/**
-	 * 
+	 * Подготовка на записите на артикула
 	 */
 	private function getEntries($rec, &$total)
 	{
@@ -57,12 +57,17 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 		
 		$dQuery = planning_DirectProductNoteDetails::getQuery();
 		$dQuery->where("#noteId = {$rec->id}");
+		$dQuery->orderBy('id', 'ASC');
+		
 		while($dRec = $dQuery->fetch()){
+			$resourcesArr[$dRec->resourceId] = $dRec;
+			$resourcesArr[$dRec->resourceId]->resourceQuantity = $dRec->quantity;
 			$rQuantity = $dRec->quantity;
 			
 			if($dRec->productId && $dRec->type == 'input'){
 				$hasInput = TRUE;
 				$rQuantity = ($dRec->quantity / $dRec->conversionRate);
+				$resourcesArr[$dRec->resourceId]->resourceQuantity = $rQuantity;
 				
 				$entry = array('debit' => array('61101', array('planning_Resources', $dRec->resourceId), 
 												'quantity' => $rQuantity),
@@ -73,33 +78,33 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 				
 				$entries[] = $entry;
 			}
-			
-			$resourcesArr[$dRec->resourceId]['quantity'] = $rQuantity;
-			$resourcesArr[$dRec->resourceId]['type'] = $dRec->type;
 		}
-		
+		//bp($resourcesArr, $entries);
 		$index = 0;
 		if(count($resourcesArr)){
+			arr::orderA($resourcesArr, 'type');
 			
-			foreach ($resourcesArr as $resourceId => $arr){
+			foreach ($resourcesArr as $resourceId => $obj){
 				$entry = array();
 				
 				$quantity = ($index == 0) ? $rec->quantity : 0;
 				
-				$storeArr = array('321', array('store_Stores', $rec->storeId),
+				if($obj->type == 'input'){
+					$entry['debit'] = array('321', array('store_Stores', $rec->storeId),
 										 array(cat_Products::getClassId(), $rec->productId),
 										'quantity' => $quantity);
-				
-				$resArr = array('61101', array('planning_Resources', $resourceId),
-											   'quantity' => $arr['quantity']);
-				
-				if($arr['type'] == 'input'){
-					$entry['debit'] = $storeArr;
-					$entry['credit'] = $resArr;
+					
+					$entry['credit'] = array('61101', array('planning_Resources', $resourceId),
+											   'quantity' => $obj->resourceQuantity);
 				} else {
 					$amount = planning_Resources::fetchField($resourceId, "selfValue");
-					$entry['debit'] = $resArr;
-					$entry['credit'] = $storeArr;
+					$entry['debit'] = array('321', array('store_Stores', $rec->storeId),
+												   array(cat_Products::getClassId(), $obj->productId),
+												  'quantity' => $obj->quantity);
+					
+					$entry['credit'] =  array('321', array('store_Stores', $rec->storeId),
+										 array(cat_Products::getClassId(), $rec->productId),
+										'quantity' => $quantity);
 					$entry['amount'] = $amount;
 					$total += $amount;
 				}
