@@ -1003,15 +1003,16 @@ class doc_Containers extends core_Manager
         $recAct->state = 'active';
         
         // Извикваме фунцкията
-        $clsInst->invoke('BeforeActivation', array(&$recAct));
+        if($clsInst->invoke('BeforeActivation', array(&$recAct))){
+        	
+        	//Записваме данните в БД
+        	$clsInst->save($recAct);
+        	
+        	$rec->state = 'active';
+        	$clsInst->invoke('AfterActivation', array(&$rec));
+        }
         
-        //Записваме данните в БД
-        $clsInst->save($recAct);
-        
-        $rec->state = 'active';
-        $clsInst->invoke('AfterActivation', array(&$rec));
-        
-        //Редиректваме към сингъла на съответния клас, от къде се прехвърляме 		//към треда
+        // Редиректваме към сингъла на съответния клас, от къде се прехвърляме 		//към треда
         redirect(array($class, 'single', $rec->id));
     }
     
