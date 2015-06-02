@@ -1,24 +1,20 @@
 <!--ET_BEGIN ROW-->
-<table class='question-head no-border'>
-    <tr>
-        <td>
-            <h2>
-                [#icon#] [#label#]
-                <span class='tools'>[#tools#]</span>
-                [#addOption#]
-            </h2>
-        </td>
-    </tr>
-    <tr>
-        <td id = 'td-answers'>
+<div class='question-head'>
+    <h2>
+        [#icon#] [#label#]
+        <span class='tools'>[#tools#]</span>
+        [#addOption#]
+    </h2>
+    <div class="wide-row">
+        <div class="table-cell">
             <ul class='answers'>
                 [#answers#]
             </ul>
-            <!--ET_BEGIN image-->
-            <div class="image aright" style='padding:10px'>[#image#]</div>
-            <!--ET_END image-->
-            <div class="clearfix21"></div>
-        </td>
-    </tr>
-</table>
+        </div>
+        <!--ET_BEGIN image-->
+        <div class="image aright">[#image#]</div>
+        <!--ET_END image-->
+        <div class="clearfix21"></div>
+    </div>
+</div>
 <!--ET_END ROW-->

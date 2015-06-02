@@ -124,11 +124,11 @@ class survey_Surveys extends core_Master {
      */
     function description()
     {
-    	$this->FLD('title', 'varchar(128)', 'caption=Заглавие, mandatory, width=400px');
-		$this->FLD('description', 'text(rows=2)', 'caption=Oписание, mandatory, width=100%');
-    	$this->FLD('enddate', 'date(format=d.m.Y)', 'caption=Краен срок,width=8em,mandatory');
-    	$this->FLD('summary', 'enum(internal=Вътрешно,personal=Персонално,public=Публично)', 'caption=Обобщение,mandatory,width=8em');
-    	$this->FLD('state', 'enum(draft=Чернова,active=Публикувана,rejected=Оттеглена)', 'caption=Състояние,input=none,width=8em');
+    	$this->FLD('title', 'varchar(128)', 'caption=Заглавие, mandatory');
+		$this->FLD('description', 'text(rows=2)', 'caption=Oписание, mandatory');
+    	$this->FLD('enddate', 'date(format=d.m.Y)', 'caption=Краен срок,mandatory');
+    	$this->FLD('summary', 'enum(internal=Вътрешно,personal=Персонално,public=Публично)', 'caption=Обобщение,mandatory');
+    	$this->FLD('state', 'enum(draft=Чернова,active=Публикувана,rejected=Оттеглена)', 'caption=Състояние,input=none');
     }
     
     
@@ -165,7 +165,7 @@ class survey_Surveys extends core_Master {
     static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	$row->number = static::getHandle($rec->id);
-    	
+
     	if($fields['-single']) {
 	    	
 	    	if(static::isClosed($rec->id)) {
@@ -258,7 +258,7 @@ class survey_Surveys extends core_Master {
     	
     	if($data->rec->state != 'draft' && survey_Votes::haveRightFor('read')){
     		$votesUrl = array('survey_Votes', 'list', 'surveyId' => $data->rec->id);
-    		$data->toolbar->addBtn('Гласувания', $votesUrl, NULL, 'title=Преглед на гласовете');
+    		$data->toolbar->addBtn('Гласувания', $votesUrl, NULL, array('title' => 'Преглед на гласовете', 'ef_icon' => 'img/16/Business-Survey-icon.png'));
     	}
     	
     }
