@@ -207,7 +207,7 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 						
 						// Което не е чернова или оттеглено
 						$state = $originDoc->fetchField('state');
-						if($state == 'rejeced' || $state == 'draft'){
+						if($state == 'rejected' || $state == 'draft'){
 							$requiredRoles = 'no_one';
 						}
 					}
