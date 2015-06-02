@@ -164,10 +164,6 @@ class cat_BomDetails extends doc_Detail
     {
     	$rec = &$form->rec;
     	
-    	if($rec->type == 'pop'){
-    		$form->setField('propQuantity', 'input=none');
-    	}
-    	
     	// Ако има избран ресурс, добавяме му мярката до полетата за количества
     	if(isset($rec->resourceId)){
     		if($uomId = planning_Resources::fetchField($rec->resourceId, 'measureId')){
@@ -181,8 +177,13 @@ class cat_BomDetails extends doc_Detail
     	// Проверяваме дали е въведено поне едно количество
     	if($form->isSubmitted()){
     		if($rec->type == 'pop'){
-    			if(!planning_Resources::fetchField($rec->resourceId, 'selfValue')){
-    				$form->setError('resourceId', 'Отпадният ресурс няма себестойност');
+    			$rType = planning_Resources::fetchField($rec->resourceId, 'type');
+    			if($rType != 'material'){
+    				$form->setError('resourceId,type', 'Отпадният ресурс трябва да е материал');
+    			} else {
+    				if(!planning_Resources::fetchField($rec->resourceId, 'selfValue')){
+    					$form->setError('resourceId', 'Отпадният ресурс няма себестойност');
+    				}
     			}
     		}
     		
