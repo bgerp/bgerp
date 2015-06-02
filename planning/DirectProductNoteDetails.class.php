@@ -93,6 +93,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         $this->FLD('type', 'enum(input=Влагане,pop=Отпадък)', 'caption=Действие');
         
         parent::setDetailFields($this);
+        $this->FLD('conversionRate', 'double', 'input=none');
         
         // Само вложими продукти
         $this->setDbUnique('noteId,resourceId,productId,classId');
@@ -177,6 +178,15 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     			}
     		}
     	}
+    }
+    
+    
+    /**
+     * Преди запис
+     */
+    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
+    {
+    	$rec->conversionRate = ($rec->productId) ? planning_ObjectResources::fetchField("#resourceId = {$rec->resourceId} AND #objectId = {$rec->productId}", 'conversionRate') : 1;
     }
     
     

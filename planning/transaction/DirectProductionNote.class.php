@@ -61,8 +61,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 			$rQuantity = $sign * $dRec->quantity;
 			
 			if($dRec->productId){
-				$conversionRate = planning_ObjectResources::fetchField("#resourceId = {$dRec->resourceId} AND #objectId = {$dRec->productId}", 'conversionRate');
-				$rQuantity = $sign * ($dRec->quantity / $conversionRate);
+				$rQuantity = $sign * ($dRec->quantity / $dRec->conversionRate);
 				
 				$entry = array('debit' => array('61101', array('planning_Resources', $dRec->resourceId), 
 												'quantity' => $sign * $rQuantity),
