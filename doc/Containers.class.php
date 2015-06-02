@@ -302,13 +302,15 @@ class doc_Containers extends core_Manager
      */
     static function on_AfterPrepareListToolbar($mvc, $data)
     {
-        if($data->threadRec->state != 'rejected') {
+    	$folderState = doc_Folders::fetchField($data->threadRec->folderId, 'state');
+    	if($data->threadRec->state != 'rejected' && $folderState != 'closed') {
         	
         	if(doc_Threads::haveRightFor('newdoc', $data->threadId)){
         		$data->toolbar->addBtn('Нов...', array($mvc, 'ShowDocMenu', 'threadId' => $data->threadId), 'id=btnAdd', array('ef_icon'=>'img/16/star_2.png','title'=>'Създаване на нов документ в нишката'));
         	}
             
         	if(doc_Threads::haveRightFor('single', $data->threadRec)){
+        		
         		if($data->threadRec->state == 'opened') {
         			$data->toolbar->addBtn('Затваряне', array('doc_Threads', 'close', 'threadId' => $data->threadId), 'ef_icon = img/16/close.png', 'title=Затваряне на нишката');
         		} elseif($data->threadRec->state == 'closed' || empty($data->threadRec->state)) {

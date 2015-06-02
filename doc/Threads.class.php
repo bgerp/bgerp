@@ -1407,6 +1407,7 @@ class doc_Threads extends core_Manager
         
         expect($rec = $this->fetch($id));
         $this->requireRightFor('single', $rec);
+        expect(doc_Folders::fetchField($rec->folderId, 'state') != 'closed');
         
         $rec->state = 'opened';
         
@@ -1442,6 +1443,7 @@ class doc_Threads extends core_Manager
         expect($rec = $this->fetch($id));
         
         $this->requireRightFor('single', $rec);
+        expect(doc_Folders::fetchField($rec->folderId, 'state') != 'closed');
         
         $rec->state = 'closed';
         
