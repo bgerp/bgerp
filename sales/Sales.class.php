@@ -733,9 +733,8 @@ class sales_Sales extends deals_DealMaster
     	$tpl = new ET("[#link#]");
     	
     	$row = new stdClass();
-    	$handle = "#".static::getHandle($rec->id);
-    	$row->link = ht::createLink($handle, array($mvc, 'single', $rec->id), NULL, "ef_icon=img/16/cart_go.png, title = Договори за продажба {$rec->id}");
-        
+    	$row->link = self::getLink($rec->id, 0);
+    	
     	$tpl->placeObject($row);
    		if (Request::get('ajax_mode')) {
 	    	$resObj = new stdClass();
