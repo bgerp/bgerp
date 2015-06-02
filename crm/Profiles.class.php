@@ -701,7 +701,7 @@ class crm_Profiles extends core_Master
         
         $personId = static::fetchField("#userId = {$userId}", 'id');
         
-        return $userId;
+        return $personId;
     }
     
     
