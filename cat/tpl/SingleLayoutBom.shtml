@@ -6,7 +6,11 @@
     </div>
     <!--ET_END header-->
     <div>[#productId#]</div>
+    
+     <!--ET_BEGIN expenses-->
     <div>|Режийни разходи|*: [#expenses#]</div>
+     <!--ET_END expenses-->
+   
     <div class = 'fieldset-holder' style='margin-top:10px'>
     [#cat_BomDetails#]
     </div>
