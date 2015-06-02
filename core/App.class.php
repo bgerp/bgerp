@@ -936,7 +936,9 @@ class core_App
      * Пътя до файла може да е указан само от пакета нататък
      */
     static public function getFileContent($shortPath)
-    {
+    {   
+        if(!$shortPath) return;
+
         expect($fullPath = static::getFullPath($shortPath));
 
         return file_get_contents($fullPath);
