@@ -52,18 +52,6 @@ class rtac_Setup extends core_ProtoSetup
     
     
     /**
-     * Пътища до CSS файлове
-     */
-    var $commonCSS = 'rtac/yuku/autocomplete.css';
-    
-    
-    /**
-     * Пътища до JS файлове
-     */
-    var $commonJS = "rtac/yuku/[#RTAC_YUKU_VERSION#]/jquery.textcomplete.js";
-    
-    
-    /**
      * Версия на пакета
      */
     var $version = '0.1';
@@ -111,5 +99,26 @@ class rtac_Setup extends core_ProtoSetup
         $html .= $Plugins->installPlugin('Text autocomplete', 'rtac_TextPlugin', 'type_Text', 'private');
         
         return $html;
+    }
+
+
+    /**
+     * Връща JS файлове, които са подходящи за компактиране
+     */
+    public function getCommonJs()
+    {
+        $conf = core_Packs::getConfig('rtac');
+        
+        return 'rtac/yuku/' . $conf->RTAC_YUKU_VERSION . '/jquery.textcomplete.js';
+    }
+    
+    
+    /**
+     * Връща JS файлове, които са подходящи за компактиране
+     */
+    public function getCommonCss()
+    {
+        
+        return 'rtac/yuku/autocomplete.css'';
     }
 }
