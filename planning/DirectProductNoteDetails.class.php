@@ -173,8 +173,13 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     		}
     		
     		if($rec->type == 'pop'){
-    			if(!planning_Resources::fetchField($rec->resourceId, 'selfValue')){
-    				$form->setError('type', 'Отпадния ресурс няма себестойност');
+    			$rType = planning_Resources::fetchField($rec->resourceId, 'type');
+    			if($rType != 'material'){
+    				$form->setError('resourceId,type', 'Отпадният ресурс трябва да е материал');
+    			} else {
+    				if(!planning_Resources::fetchField($rec->resourceId, 'selfValue')){
+    					$form->setError('type', 'Отпадния ресурс няма себестойност');
+    				}
     			}
     		}
     	}
