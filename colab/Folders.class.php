@@ -151,7 +151,7 @@ class colab_Folders extends core_Manager
 		}
 		
 		$sharedFolders = array();
-		$sharedQuery = doc_FolderToPartners::getQuery();
+		$sharedQuery = colab_FolderToPartners::getQuery();
 		$sharedQuery->EXT('state', 'doc_Folders', 'externalName=state,externalKey=folderId');
 		$sharedQuery->where("#contractorId = {$cu}");
 		$sharedQuery->where("#state != 'rejected'");

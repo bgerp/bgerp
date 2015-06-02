@@ -24,6 +24,19 @@ class plg_RowNumbering extends core_Plugin
 {
     
     
+	/**
+	 * Преди извличане на записите от БД
+	 *
+	 * @param core_Mvc $mvc
+	 * @param stdClass $res
+	 * @param stdClass $data
+	 */
+	public static function on_BeforePrepareListRecs($mvc, &$res, $data)
+	{
+		$data->query->orderBy('id', 'ASC');
+	}
+	
+	
     /**
      * Извиква се след подготовката на $data->recs и $data->rows за табличния изглед
      */

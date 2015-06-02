@@ -52,20 +52,23 @@ class doc_FolderPlg extends core_Plugin
     }
     
     
+    /**
+     * След подготовка на таба със правата
+     */
     public static function on_AfterPrepareRights($mvc, $res, $data)
     {
         $data->TabCaption = 'Права';
-        doc_FolderToPartners::preparePartners($data);
-
     }
 
     
+    /**
+     * След рендиране на таба със правата
+     */
     public static function on_AfterRenderRights($mvc, &$tpl, $data)
     {
         $tpl = new ET(tr('|*' . getFileContent('doc/tpl/RightsLayout.shtml')));
                 
         $tpl->placeObject($data->masterData->row);
-        doc_FolderToPartners::renderPartners($data, $tpl);
     }
 
     

@@ -127,7 +127,6 @@ class doc_Setup extends core_ProtoSetup
         'doc_ThreadUsers',
         'doc_Files',
     	'doc_TplManager',
-        'doc_FolderToPartners',
         'migrate::repairAllBrokenRelations'
     );
     

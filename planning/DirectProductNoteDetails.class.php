@@ -38,7 +38,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_SaveAndNew, plg_Created, planning_Wrapper, plg_RowNumbering, plg_AlignDecimals';
+    public $loadList = 'plg_RowTools, plg_SaveAndNew, plg_Created, planning_Wrapper, plg_RowNumbering, plg_AlignDecimals, plg_Sorting';
     
     
     /**
@@ -93,6 +93,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         $this->FLD('type', 'enum(input=Влагане,pop=Отпадък)', 'caption=Действие');
         
         parent::setDetailFields($this);
+        $this->FLD('conversionRate', 'double', 'input=none');
         
         // Само вложими продукти
         $this->setDbUnique('noteId,resourceId,productId,classId');
@@ -170,7 +171,22 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     		if(empty($rec->productId)){
     			$rec->measureId = planning_Resources::fetchField($rec->resourceId);
     		}
+    		
+    		if($rec->type == 'pop'){
+    			if(!planning_Resources::fetchField($rec->resourceId, 'selfValue')){
+    				$form->setError('type', 'Отпадния ресурс няма себестойност');
+    			}
+    		}
     	}
+    }
+    
+    
+    /**
+     * Преди запис
+     */
+    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
+    {
+    	$rec->conversionRate = ($rec->productId) ? planning_ObjectResources::fetchField("#resourceId = {$rec->resourceId} AND #objectId = {$rec->productId}", 'conversionRate') : 1;
     }
     
     

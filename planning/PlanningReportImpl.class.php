@@ -57,7 +57,7 @@ class planning_PlanningReportImpl extends frame_BaseDriver
     {
     	$form->FLD('from', 'date', 'caption=Начало');
     	$form->FLD('to', 'date', 'caption=Край');
-    
+    	
     	$this->invoke('AfterAddEmbeddedFields', array($form));
     }
     
@@ -142,11 +142,13 @@ class planning_PlanningReportImpl extends frame_BaseDriver
         }
         
         foreach ($dates as $prd => $sal) {
+        	//$sal = dt::mysql2timestamp($sal);
         	if(count($sal) > 1) {
         		$dateSale[$prd] = min($sal);
+        		$dateSale[$prd] = dt::mysql2timestamp($dateSale[$prd]);
         	} else {
         		foreach ($sal as $d){
-        			$dateSale[$prd] = $d;
+        			$dateSale[$prd] = dt::mysql2timestamp($d);
         		}
         	}
         	
@@ -224,13 +226,28 @@ class planning_PlanningReportImpl extends frame_BaseDriver
     	foreach ($dateJob as $prdJ => $job) {
         	if(count($job) > 1) {
         		$data->recs[$prdJ]->date = min($job);
+        		$data->recs[$prdJ]->date = dt::mysql2timestamp($data->recs[$prdJ]->date);
         	} else {
         		foreach ($job as $dJ){
-        			$data->recs[$prdJ]->date = $dJ;
+        			$data->recs[$prdJ]->date = dt::mysql2timestamp($dJ);
         		}
         	}
         }
         
+        arr::order($data->recs, 'date');
+        arr::order($data->recs, 'dateSale');
+        
+        
+        for ($dt = 0; $dt <= count($data->recs); $dt++) {
+        	if ($data->recs[$dt]->date) {
+        		$data->recs[$dt]->date = dt::timestamp2Mysql($data->recs[$dt]->date);
+        	}
+        	
+        	if ($data->recs[$dt]->dateSale) {
+        		$data->recs[$dt]->dateSale = dt::timestamp2Mysql($data->recs[$dt]->dateSale);
+        	}
+        }
+
         return $data;
     }
     
@@ -254,31 +271,43 @@ class planning_PlanningReportImpl extends frame_BaseDriver
                 
                 $row = $mvc->getVerbal($rec);
                 $data->rows[$id] = $row;
+               
+                if ($rec->sales) { 
+                	foreach($rec->sales as $sale) {
+                		$idS = (is_object($rec)) ? $sale : $rec ;
+                	}
+                } elseif($rec->jobs){
+                	foreach ($rec->jobs as $job) { 
+                		$idS = (is_object($rec)) ? $job : $rec;
+                	}
+                	
+                } 
                 
                 // Задаваме уникален номер на контейнера в който ще се реплейсва туултипа
                 $mvc->unique ++;
                 $unique = $mvc->unique;
+               
+                //$idS = (is_object($rec)) ? $rec->id : $rec;
                 
-                $id = (is_object($rec)) ? $rec->id : $rec;
-                
-                $tooltipUrl = toUrl(array('acc_Items', 'showItemInfo', $id, 'unique' => $unique), 'local');
-                
+                $tooltipUrl = toUrl(array('sales_Sales', 'ShowInfo', $idS, 'unique' => $unique), 'local');
+               
                 $arrow = ht::createElement("span", array('class' => 'anchor-arrow tooltip-arrow-link', 'data-url' => $tooltipUrl), "", TRUE);
                 $arrow = "<span class='additionalInfo-holder'><span class='additionalInfo' id='info{$unique}'></span>{$arrow}</span>";
-                $data->rows[$id]->quantityToDeliver .= "&nbsp;{$arrow}";
+   
+                if (isset($data->rows[$id]->quantityToDeliver)) {
+                	$data->rows[$id]->quantityToDeliver = "{$arrow}&nbsp;" . $data->rows[$id]->quantityToDeliver;
+                }
+                
+                if (isset($data->rows[$id]->quantityToProduced)) {
+                	$data->rows[$id]->quantityToProduced = "{$arrow}&nbsp;" . $data->rows[$id]->quantityToProduced;
+                }
+  
             }
         }
 
-        
-        //if($part == 'titleLink'){
-        
-        	
-        //}
-        //bp($arrow,$num);
         $res = $data;
     }
-    
-    
+
     /**
      * Връща шаблона на репорта
      * 
@@ -355,12 +384,13 @@ class planning_PlanningReportImpl extends frame_BaseDriver
                 'quantityDelivered' => 'Продажба->|*<small>Доставено</small>',
                 'quantityToDeliver' => 'Продажба->|*<small>За доставяне</small>',
                 'dateSale' => 'Продажба->|*<small>Дата</small>',
-                'sales' => 'По продажба',
+                //'sales' => 'По продажба',
         		'quantityJob' => 'Производство->|*<small>Поръчано</small>',
         		'quantityProduced' => 'Производство->|*<small>Произведено</small>',
         		'quantityToProduced' => 'Производство->|*<small>За производство</small>',
         		'date' => 'Производство->|*<small>Дата</small>',
-        		'jobs' => 'По задание');
+        		//'jobs' => 'По задание'
+        		);
         
     }
 
@@ -396,10 +426,11 @@ class planning_PlanningReportImpl extends frame_BaseDriver
     	$row->quantity = $Int->toVerbal($rec->quantity);
     	$row->quantityDelivered = $Int->toVerbal($rec->quantityDelivered);
     	$row->quantityToDeliver = $Int->toVerbal($toDeliver);
+    	
     	$row->dateSale = $Date->toVerbal($rec->dateSale);
     		
     	for($i = 0; $i <= count($rec->sales)-1; $i++) {
-
+    		
     		$row->sales .= "#".sales_Sales::getHandle($rec->sales[$i]) .",";
     	}
     	$row->sales = $RichtextType->toVerbal(substr($row->sales, 0, -1));
@@ -414,6 +445,7 @@ class planning_PlanningReportImpl extends frame_BaseDriver
     		$row->jobs .= "#".planning_Jobs::getHandle($rec->jobs[$j]) .","; 
     	}
 		$row->jobs = $RichtextType->toVerbal(substr($row->jobs, 0, -1));
+		
        
         return $row;
     }
@@ -442,6 +474,12 @@ class planning_PlanningReportImpl extends frame_BaseDriver
       	return $activateOn;
 	}
 
+	public function showInfo()
+	{
+		$tooltipUrl = toUrl(array('acc_Items', 'showItemInfo', $id, 'unique' => $unique), 'local');
+		
+		return $tooltipUrl;
+	}
 
      /**
       * Ако имаме в url-то export създаваме csv файл с данните

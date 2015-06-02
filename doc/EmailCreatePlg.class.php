@@ -43,13 +43,15 @@ class doc_EmailCreatePlg extends core_Plugin
         if (($data->rec->state != 'draft') && ($data->rec->state != 'rejected') && email_Outgoings::haveRightFor('add')) {
             $retUrl = array($mvc, 'single', $data->rec->id);
             
-            $data->toolbar->addBtn($emailButtonText, array(
-                    'email_Outgoings',
-                    'add',
-                    'originId' => $data->rec->containerId,
-                    'ret_url'=>$retUrl
-                ),
-                'ef_icon = img/16/email_edit.png,title=Изпращане на документа по имейл', 'onmouseup=saveSelectedTextToSession();');
+            if(email_Outgoings::haveRightFor('add', (object)array('originId' => $data->rec->containerId, 'threadId' => $data->rec->threadId))){
+            	$data->toolbar->addBtn($emailButtonText, array(
+            			'email_Outgoings',
+            			'add',
+            			'originId' => $data->rec->containerId,
+            			'ret_url'=>$retUrl
+            	),
+            			'ef_icon = img/16/email_edit.png,title=Изпращане на документа по имейл', 'onmouseup=saveSelectedTextToSession();');
+            }
         }
     }
 }

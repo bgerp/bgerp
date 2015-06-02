@@ -160,8 +160,7 @@ class page_Html extends core_ET {
      */
     static function idleTimerJs(&$tpl)
     {
-        // 
-        $tpl->appendOnce("\n runOnLoad(function(){getEO().runIdleTimer();});", 'SCRIPTS');
+        jquery_Jquery::run($tpl, "\n getEO().runIdleTimer();", TRUE);
     }
     
     

@@ -181,14 +181,16 @@ class doc_DocumentPlg extends core_Plugin
                 
                 $retUrl = array($mvc, 'single', $data->rec->id);
                 
-                // Бутон за създаване на коментар
-                $data->toolbar->addBtn('Коментар', array(
-                        'doc_Comments',
-                        'add',
-                        'originId' => $data->rec->containerId,
-                        'ret_url'=>$retUrl
-                    ),
-                    'onmouseup=saveSelectedTextToSession()', 'ef_icon = img/16/comment_add.png,title=Добавяне на коментар към документа');
+                if(doc_Comments::haveRightFor('add', (object)array('originId' => $data->rec->containerId, 'threadId' => $data->rec->threadId))){
+                	// Бутон за създаване на коментар
+                	$data->toolbar->addBtn('Коментар', array(
+                			'doc_Comments',
+                			'add',
+                			'originId' => $data->rec->containerId,
+                			'ret_url'=>$retUrl
+                	),
+                			'onmouseup=saveSelectedTextToSession()', 'ef_icon = img/16/comment_add.png,title=Добавяне на коментар към документа');
+                }
             }
         } else {
             //TODO да се "премахне" и оптимизира
@@ -208,15 +210,18 @@ class doc_DocumentPlg extends core_Plugin
                     
                     $retUrl = array($mvc, 'single', $data->rec->id);
                 
-                    // Бутон за клониране
-                    $data->toolbar->addBtn('Копие', array(
-                            $mvc,
-                            'add',
-                            'cloneId' => $data->rec->containerId,
-                            'clone' => 'clone',
-                            'ret_url'=>$retUrl
-                        ),
-                        'order=14, row=2', 'ef_icon = img/16/page_copy.png,title=Клониране на документа');    
+                    if($mvc->haveRightFor('add', (object)array('cloneId' => $data->rec->containerId, 'threadId' => $data->rec->threadId))){
+                    	
+                    	// Бутон за клониране
+                    	$data->toolbar->addBtn('Копие', array(
+                    			$mvc,
+                    			'add',
+                    			'cloneId' => $data->rec->containerId,
+                    			'clone' => 'clone',
+                    			'ret_url'=>$retUrl
+                    	),
+                    			'order=14, row=2', 'ef_icon = img/16/page_copy.png,title=Клониране на документа');
+                    } 
                 }
             }
         }
@@ -1219,6 +1224,13 @@ class doc_DocumentPlg extends core_Plugin
     	            
                     // Никой не може да добавя
     				$requiredRoles = 'no_one';
+    			} else{
+    				
+    				// Ако папката на нишката е затворена, не може да се добавят документи
+    				$folderId = doc_Threads::fetchField($rec->threadId, 'folderId');
+    				if(doc_Folders::fetchField($folderId, 'state') == 'closed'){
+    					$requiredRoles = 'no_one';
+    				}
     			}        
             } elseif ($rec->folderId) {
                 
@@ -1229,7 +1241,11 @@ class doc_DocumentPlg extends core_Plugin
                     
                     // Никой не може да добавя
     				$requiredRoles = 'no_one';
-    			}    
+    			} elseif(doc_Folders::fetchField($rec->folderId, 'state') == 'closed') {
+    				
+    				// Ако папката е затворена не могат да се добавят документи
+    				$requiredRoles = 'no_one';
+    			}
             }
         }
 		
@@ -1258,8 +1274,27 @@ class doc_DocumentPlg extends core_Plugin
                     $requiredRoles = 'no_one';
                 } 
             } elseif ($action == 'single') {
+            	
+            	// Ако нямаме достъп до нишката
                 if (!doc_Threads::haveRightFor('single', $oRec->threadId, $userId) && ($rec->createdBy != $userId)) {
-                    $requiredRoles = 'no_one';
+                   
+                	// Ако е инсталиран пакета 'colab'
+                	if(core_Packs::isInstalled('colab')){
+                		
+                		// И нишката е споделена към контрактора (т.е първия документ в нея е видим и папката на нишката
+        				// е споделена с партньора)
+                		$isVisibleToContractors = colab_Threads::haveRightFor('single', doc_Threads::fetch($oRec->threadId));
+                		
+                		if($isVisibleToContractors && doc_Containers::fetchField($rec->containerId, 'visibleForPartners') == 'yes'){
+                			
+                			// Тогава позволяваме на контрактора да има достъп до сингъла на този документ
+                			$requiredRoles = 'contractor';
+                		} else {
+                			$requiredRoles = 'no_one';
+                		}
+                	} else {
+                		$requiredRoles = 'no_one';
+                	}
                 } else {
                     if (($requiredRoles != 'every_one') || ($requiredRoles != 'user')) {
                         $requiredRoles = 'powerUser';

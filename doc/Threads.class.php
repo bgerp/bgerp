@@ -1245,7 +1245,11 @@ class doc_Threads extends core_Manager
             $data->toolbar->removeBtn('*', 'with_selected');
             $data->toolbar->addBtn('Всички', array($mvc, 'folderId' => $data->folderId), 'id=listBtn', 'ef_icon = img/16/application_view_list.png');
         } else {
-            $data->toolbar->addBtn('Нов...', array($mvc, 'ShowDocMenu', 'folderId' => $data->folderId), 'id=btnAdd', array('ef_icon'=>'img/16/star_2.png', 'title'=>'Създаване на нова тема в папката'));
+        	
+        	// Може да се добавя нов документ, само ако папката не е затворена
+        	if(doc_Folders::fetchField($data->folderId, 'state') != 'closed'){
+        		$data->toolbar->addBtn('Нов...', array($mvc, 'ShowDocMenu', 'folderId' => $data->folderId), 'id=btnAdd', array('ef_icon'=>'img/16/star_2.png', 'title'=>'Създаване на нова тема в папката'));
+        	}
  
             $data->rejectedCnt = $data->rejQuery->count("#folderId = {$data->folderId}");;
             
@@ -1369,7 +1373,11 @@ class doc_Threads extends core_Manager
 
         if($action == 'newdoc') {
             if($rec->state == 'opened' || $rec->state == 'closed') {
-                $res = $mvc->getRequiredRoles('single', $rec, $userId);
+            	if(doc_Folders::fetchField($rec->folderId, 'state') != 'closed'){
+            		$res = $mvc->getRequiredRoles('single', $rec, $userId);
+            	} else {
+            		$res = 'no_one';
+            	}
             } else {
                 $res = 'no_one';
             }
@@ -1399,6 +1407,7 @@ class doc_Threads extends core_Manager
         
         expect($rec = $this->fetch($id));
         $this->requireRightFor('single', $rec);
+        expect(doc_Folders::fetchField($rec->folderId, 'state') != 'closed');
         
         $rec->state = 'opened';
         
@@ -1434,6 +1443,7 @@ class doc_Threads extends core_Manager
         expect($rec = $this->fetch($id));
         
         $this->requireRightFor('single', $rec);
+        expect(doc_Folders::fetchField($rec->folderId, 'state') != 'closed');
         
         $rec->state = 'closed';
         

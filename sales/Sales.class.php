@@ -230,6 +230,12 @@ class sales_Sales extends deals_DealMaster
     
     
     /**
+     * Кеш на уникален индекс
+     */
+    protected $unique = 0;
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -710,6 +716,38 @@ class sales_Sales extends deals_DealMaster
     	static::getLastProductPrices(14, 53);
     }
     
+    
+    /**
+     * Показва информация за перото по Айакс
+     */
+    public function act_ShowInfo()
+    {
+    	$id = Request::get('id', 'int');
+    	$unique = Request::get('unique', 'int');
+  
+    	$rec = $this->fetchRec($id);
+    	
+    	$row = $this->recToVerbal($rec);
+    	
+  
+    	$tpl = new ET("[#link#]");
+    	
+    	$row = new stdClass();
+    	$handle = "#".static::getHandle($rec->id);
+    	$row->link = ht::createLink($handle, array($mvc, 'single', $rec->id), NULL, "ef_icon=img/16/cart_go.png, title = Договори за продажба {$rec->id}");
+        
+    	$tpl->placeObject($row);
+   		if (Request::get('ajax_mode')) {
+	    	$resObj = new stdClass();
+	    	$resObj->func = "html";
+	    	$resObj->arg = array('id' => "info{$unique}", 'html' => $tpl->getContent(), 'replace' => TRUE);
+	    
+	    	return array($resObj);
+	    } else {
+	    	return $tpl;
+	    }
+    }
+  
     
     /**
      *  Намира последната покупна цена на артикулите
