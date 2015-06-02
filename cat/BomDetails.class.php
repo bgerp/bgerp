@@ -115,7 +115,7 @@ class cat_BomDetails extends doc_Detail
     	$this->FLD('bomId', 'key(mvc=cat_Boms)', 'column=none,input=hidden,silent');
     	$this->FLD("resourceId", 'key(mvc=planning_Resources,select=title,allowEmpty)', 'caption=Ресурс,mandatory,silent,refreshForm');
     	$this->FLD('stageId', 'key(mvc=planning_Stages,allowEmpty,select=name)', 'caption=Етап');
-    	$this->FLD('type', 'enum(input=Влагане,pop=Отпадък)', 'caption=Действие,silent,removeAndRefreshForm=propQuantity');
+    	$this->FLD('type', 'enum(input=Влагане,pop=Отпадък)', 'caption=Действие,silent');
     	
     	$this->FLD("baseQuantity", 'double(Min=0)', 'caption=Количество->Начално,hint=Начално количество');
     	$this->FLD("propQuantity", 'double(Min=0)', 'caption=Количество->Пропорционално,hint=Пропорционално количество');
