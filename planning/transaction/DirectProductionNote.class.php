@@ -79,7 +79,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 				$entries[] = $entry;
 			}
 		}
-		//bp($resourcesArr, $entries);
+		
 		$index = 0;
 		if(count($resourcesArr)){
 			arr::orderA($resourcesArr, 'type');
