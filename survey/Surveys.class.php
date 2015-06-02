@@ -318,4 +318,15 @@ class survey_Surveys extends core_Master {
     	
     	return $self->abbr . $rec->id;
     }
+
+
+    /**
+     * Извиква се преди рендирането на 'опаковката'
+     */
+    public function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
+    {
+        if(Mode::is('printing') || Mode::is('text', 'xhtml')){
+            $tpl->removeBlock('header');
+        }
+    }
 }

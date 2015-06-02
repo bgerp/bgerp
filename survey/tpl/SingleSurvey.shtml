@@ -4,9 +4,11 @@
     [#blank#]
     <!--ET_END blank-->
 
+    <!--ET_BEGIN header-->
     <div class='header [#STATE_CLASS#]'>
         <div class='docBgIcon' style='[#iconStyle#];'>[#singleTitle#] <b>[#ident#]</b> ([#state#])</div>
     </div>
+    <!--ET_END header-->
 
     <h1 class='survey-title'>[#title#] <!--ET_BEGIN closed--><span id ='survey-closed'>- [#closed#]</span> <!--ET_END closed--></h1>
 
