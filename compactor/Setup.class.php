@@ -85,15 +85,15 @@ class compactor_Setup extends core_ProtoSetup
             $cssFilesArr[$cssFile] = $cssFile;
         }
         
+        $installedPacksArr = core_Packs::getInstalledPacksNamesArr();
         // Всички записани пакети
-        $query = core_Packs::getQuery();
-        while ($rec = $query->fetch()) {
+        foreach ($installedPacksArr as $name) {
             
             // Ако няма име
-            if (!$rec->name) continue;
+            if (!$name) continue;
             
             // Сетъп пакета
-            $pack = $rec->name  . '_Setup';
+            $pack = $name  . '_Setup';
             
             // Ако файлът съществува
             if (cls::load($pack, TRUE)) {
