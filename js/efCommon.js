@@ -3618,11 +3618,14 @@ function onBeforeUnload()
 /**
  * Добавя текущото URL И титлата към url-то
  */
-function addParamsToBookmarkBtn(parentUrl)
+function addParamsToBookmarkBtn(parentUrl, localUrl)
 {
 	//var url = encodeURIComponent(document.URL);
 	//var title = encodeURIComponent(document.title);
-	var url = document.URL;
+	var url = localUrl;
+	if (!url) {
+		url = document.URL;
+	}
 	var title = document.title;
 	
 	document.location = parentUrl + '?url=' + url + '&title=' + title;

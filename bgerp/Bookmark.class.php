@@ -76,7 +76,7 @@ class bgerp_Bookmark extends core_Manager
     {
         $this->FLD('user', 'user(roles=powerUser, rolesForTeams=admin, rolesForAll=ceo)', 'caption=Потребител, mandatory');
         $this->FLD('title', 'varchar', 'caption=Заглавие, silent, mandatory');
-        $this->FLD('url', 'Url', 'caption=URL, silent, mandatory');
+        $this->FLD('url', 'varchar', 'caption=URL, silent, mandatory');
         $this->FLD('position', 'double', 'caption=Позиция');
         
         $this->FLD('clickCnt', 'int', 'caption=Брой отваряния, input=none, notNull');
@@ -113,8 +113,10 @@ class bgerp_Bookmark extends core_Manager
             $url = toUrl(array(get_called_class(), 'add'));
             $sUrl = addslashes($url);
             
+            $localUrl = addslashes(toUrl(getCurrentUrl(), 'local'));
+            
             $attr = array();
-            $attr['onclick'] = "addParamsToBookmarkBtn('{$sUrl}'); return ;";
+            $attr['onclick'] = "addParamsToBookmarkBtn('{$sUrl}', '{$localUrl}'); return ;";
             $attr['ef_icon'] = 'img/16/bookmark_document.png';
             $tpl = ht::createBtn('Добави', $url, FALSE, FALSE, $attr);
         }
@@ -195,8 +197,29 @@ class bgerp_Bookmark extends core_Manager
 	        self::save($rec, 'clickCnt');
 	    }
 	    
-	    return redirect($rec->url);
+	    $url = self::getUrlFromLocal($rec->url);
+	    
+	    return redirect($url);
 	}
+	
+	
+	/**
+	 * 
+	 * 
+	 * @param string $url
+	 * @param boolean $absolute
+	 * 
+	 * @return string
+	 */
+    public static function getUrlFromLocal($url, $absolute = FALSE)
+    {
+        if (!preg_match('/^http[s]?\:\/\//i', $url) && (strpos($url, Request::get('App')) === 0)) {
+	        $urlArr = parseLocalUrl($url);
+	        $url = toUrl($urlArr, $absolute);
+	    }
+	    
+	    return $url;
+    }
     
     
     /**
@@ -238,7 +261,7 @@ class bgerp_Bookmark extends core_Manager
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
-        // Премахваме броя на нотификациите пред стринга
+        // Премахваме броя на нотификациите пред стринга и името на приложението
         if (!$data->form->rec->id && !$data->form->isSubmitted() && $data->form->rec->title) {
             $data->form->rec->title = preg_replace('/^\([0-9]*\) /', '', $data->form->rec->title);
             
@@ -250,6 +273,8 @@ class bgerp_Bookmark extends core_Manager
             
             $data->form->rec->title = implode($delimiter, $titleArr);
         }
+        
+        
     }
     
     
@@ -264,7 +289,7 @@ class bgerp_Bookmark extends core_Manager
 	{
 	    // Ако има URL в параметрите, да се редиректне към него
 	    if (Request::get('url')) {
-	        $data->retUrl = Request::get('url'); 
+	        $data->retUrl = self::getUrlFromLocal(Request::get('url')); 
 	    }
 	}
     
