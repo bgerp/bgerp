@@ -119,6 +119,6 @@ class rtac_Setup extends core_ProtoSetup
     public function getCommonCss()
     {
         
-        return 'rtac/yuku/autocomplete.css'';
+        return 'rtac/yuku/autocomplete.css';
     }
 }
