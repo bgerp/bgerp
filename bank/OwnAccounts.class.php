@@ -503,7 +503,7 @@ class bank_OwnAccounts extends core_Master {
         if($filter = $data->listFilter->rec) {
             if($filter->own) {
                 foreach($fields as $fld){
-                    $data->query->orWhere("#{$fld} = {$filter->own}");
+                    $data->query->where("#{$fld} = {$filter->own}");
                 }
             }
         }
