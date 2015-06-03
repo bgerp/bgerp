@@ -43,7 +43,7 @@
                                     <td class="cell custom-header-bg" style='width:35%;'><b>|За произвеждане|*</b></td>
                                     </tr>
                                     <tr>
-                                    <td>|Артикул|*: [#productId#] <br> |К-во|*: [#quantity#]</td>
+                                    <td>|Артикул|*: [#productId#] <br> |К-во|*: [#quantity#] <!--ET_BEGIN expenses--><br> |Режийни разходи|* [#expenses#]<!--ET_END expenses--></td>
                                     </tr>
                                 </tbody>
                             </table>

@@ -150,6 +150,7 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 		$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,mandatory,after=storeId');
 		$this->FLD('jobQuantity', 'double(smartRound)', 'caption=Задание,input=hidden,mandatory,after=productId');
 		$this->FLD('quantity', 'double(smartRound,Min=0)', 'caption=За,mandatory,after=jobQuantity');
+		$this->FLD('expenses', 'percent', 'caption=Режийни разходи,after=quantity');
 		
 		$this->setDbIndex('productId');
 	}
@@ -174,6 +175,11 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 		
 		if($quantity > 0){
 			$form->setDefault('quantity', $quantity);
+		}
+		
+		$bomRec = cat_Products::getLastActiveBom($originRec->productId);
+		if(isset($bomRec->expenses)){
+			$form->setDefault('expenses', $bomRec->expenses);
 		}
 	}
 	
