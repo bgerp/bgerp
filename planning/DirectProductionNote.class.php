@@ -145,7 +145,6 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 	{
 		parent::setDocumentFields($this);
 		
-		$this->setField('activityCenterId', 'input=none');
 		$this->setField('deadline', 'input=none');
 		$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,mandatory,after=storeId');
 		$this->FLD('jobQuantity', 'double(smartRound)', 'caption=Задание,input=hidden,mandatory,after=productId');

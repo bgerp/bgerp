@@ -101,6 +101,18 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     
     
     /**
+     * Преди подготвяне на едит формата
+     */
+    public static function on_BeforePrepareEditForm($mvc, &$res, $data)
+    {
+    	$type = Request::get('type', 'enum(input,pop)');
+    	 
+    	$title = ($type == 'pop') ? 'отпаден ресурс' : 'вложим ресурс';
+    	$mvc->singleTitle = $title;
+    }
+    
+    
+    /**
      * Преди показване на форма за добавяне/промяна.
      *
      * @param core_Manager $mvc
