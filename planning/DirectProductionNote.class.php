@@ -250,7 +250,7 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 			$details = $mvc->getDefaultDetails($rec->productId, $rec->storeId, $rec->quantity, $rec->jobQuantity);
 			
 			if($details === FALSE){
-				$form->setWarning('productId', 'Няма да могат да се генерират детайли от рецептата, защото на материал от нея не е обвързан със артикул');
+				$form->setWarning('productId', 'Няма да могат да се генерират детайли от рецептата, защото на материал от нея не е обвързан с артикул');
 			}
 		}
 	}
