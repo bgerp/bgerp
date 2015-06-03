@@ -38,7 +38,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_SaveAndNew, plg_Created, planning_Wrapper, plg_RowNumbering, plg_AlignDecimals, plg_Sorting';
+    public $loadList = 'plg_RowTools, plg_SaveAndNew, plg_Created, planning_Wrapper, plg_AlignDecimals, plg_Sorting';
     
     
     /**
@@ -68,7 +68,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'resourceId, productId=Материал, packagingId, packQuantity';
+    public $listFields = 'tools=№,resourceId, productId=Материал, packagingId, packQuantity';
     
         
     /**
@@ -80,7 +80,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    public $rowToolsField = 'RowNumb';
+    public $rowToolsField = 'tools';
     
     
     /**
@@ -253,11 +253,11 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     			
     			// Разделяме записите според това дали са вложими или не
     			if($rec->type == 'input'){
-    				$row->RowNumb = $Int->toVerbal($countInputed);
+    				$row->tools->append($Int->toVerbal($countInputed), 'TOOLS');
     				$data->inputArr[$id] = $row;
     				$countInputed++;
     			} else {
-    				$row->RowNumb = $Int->toVerbal($countPoped);
+    				$row->tools->append($Int->toVerbal($countPoped), 'TOOLS');
     				$data->popArr[$id] = $row;
     				$countPoped++;
     			}
