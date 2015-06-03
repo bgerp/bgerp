@@ -90,7 +90,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     {
         $this->FLD('noteId', 'key(mvc=planning_DirectProductionNote)', 'column=none,notNull,silent,hidden,mandatory');
         $this->FLD('resourceId', 'key(mvc=planning_Resources,select=title,allowEmpty)', 'silent,caption=Ресурс,mandatory,removeAndRefreshForm=productId|packagingId|quantityInPack|quantity|packQuantity|measureId');
-        $this->FLD('type', 'enum(input=Влагане,pop=Отпадък)', 'caption=Действие');
+        $this->FLD('type', 'enum(input=Влагане,pop=Отпадък)', 'caption=Действие,silent,input=hidden');
         
         parent::setDetailFields($this);
         $this->FLD('conversionRate', 'double', 'input=none');
@@ -219,9 +219,6 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     	foreach ($data->rows as $id => &$row)
     	{
     		$rec = $data->recs[$id];
-    		if($rec->type == 'pop'){
-    			$row->packQuantity = "<span class='red'>-{$row->packQuantity}</span>";
-    		}
     		
     		if($rec->productId){
     			$hideProductCol = FALSE;
@@ -232,5 +229,53 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     	if($hideProductCol === TRUE){
     		unset($data->listFields['productId']);
     	}
+    }
+    
+    
+    /**
+     * Променяме рендирането на детайлите
+     */
+    function renderDetail_($data)
+    {
+    	$tpl = new ET("");
+    	$inputArr = $popArr = array();
+    	
+    	// Ако има детайли разделяме ги на вложими и отпадни
+    	if(count($data->rows)){
+    		foreach ($data->rows as $id => $row){
+    			$rec = $data->recs[$id];
+    			if($rec->type == 'input'){
+    				$inputArr[$id] = $row;
+    			} else {
+    				$popArr[$id] = $row;
+    			}
+    		}
+    	}
+    	
+    	// Рендираме таблицата с вложените артикули
+    	$table = cls::get('core_TableView', array('mvc' => $this));
+    	$detailsInput = $table->get($inputArr, $data->listFields);
+    	$detailsInput = ht::createElement("div", array('style' => 'margin-top:5px'), $detailsInput);
+    	
+    	$tpl->append($detailsInput, 'planning_DirectProductNoteDetails');
+    	
+    	// Добавяне на бутон за нов ресурс
+    	if($this->haveRightFor('add', (object)array('noteId' => $data->masterId))){
+    		$tpl->append(ht::createBtn('Нов ресурс', array($this, 'add', 'noteId' => $data->masterId, 'type' => 'input', 'ret_url' => TRUE),  NULL, NULL, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/star_2.png')), 'planning_DirectProductNoteDetails');
+    	}
+    	
+    	// Рендираме таблицата с избор на отпадъци
+    	$data->listFields['resourceId'] = 'Отпадък';
+    	$detailsPop = $table->get($popArr, $data->listFields);
+    	$detailsPop = ht::createElement("div", array('style' => 'margin-top:5px;margin-bottom:5px'), $detailsPop);
+    	$tpl->append($detailsPop, 'planning_DirectProductNoteDetails');
+    	
+    	// Добавяне на бутон за нов отпадък
+    	if($this->haveRightFor('add', (object)array('noteId' => $data->masterId))){
+    		$tpl->append(ht::createBtn('Отпадък', array($this, 'add', 'noteId' => $data->masterId, 'type' => 'pop', 'ret_url' => TRUE),  NULL, NULL, array('style' => 'margin-top:5px;;margin-bottom:10px;', 'ef_icon' => 'img/16/star_2.png')), 'planning_DirectProductNoteDetails');
+    	}
+    	
+    	// Връщаме шаблона
+    	return $tpl;
     }
 }
