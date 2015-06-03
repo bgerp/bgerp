@@ -109,7 +109,7 @@ class planning_transaction_ProductionNote extends acc_DocumentTransactionSource
 							$pQuantity = ($index == 0) ? $dRec->quantity : 0;
 							
 							if($res->type == 'input'){
-								$reason = ($index == 0) ? 'Засклаждане на произведения артикул' : 'Вложени ресурси в произведения артикул';
+								$reason = ($index == 0) ? 'Засклаждане на произведен артикул' : 'Вложени ресурси в произведен артикул';
 								$entry = array(
 										'debit' => array('321', array('store_Stores', $rec->storeId),
 															  array($dRec->classId, $dRec->productId),
@@ -132,7 +132,7 @@ class planning_transaction_ProductionNote extends acc_DocumentTransactionSource
 										'credit' => array('321', array('store_Stores', $rec->storeId),
 																 array($dRec->classId, $dRec->productId),
 															'quantity' => $pQuantity),
-										'reason' => 'Приспадане себестойността на отпадъка от произведения артикул',
+										'reason' => 'Приспадане себестойността на отпадък от произведен артикул',
 								);
 								
 								$total += $amount;
