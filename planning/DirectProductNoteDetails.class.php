@@ -121,7 +121,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     	
     	$form->setDefault('classId', $classId);
     	
-    	if(isset($rec->resourceId)){
+    	if(isset($rec->resourceId) && $rec->type == 'input'){
     		$materialsArr = planning_ObjectResources::fetchRecsByClassAndType($rec->resourceId, $classId, 'material');
     		
     		// При редакция ако е имало избран артикул, но вече не е към ресурса, все още може да се избира
@@ -223,6 +223,10 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     		if($rec->productId){
     			$hideProductCol = FALSE;
     		}
+    		
+    		if($rec->type == 'pop'){
+    			$row->packQuantity .= " {$row->packagingId}";
+    		}
     	}
     	
     	// Ако няма нито един запис с артикул, не показваме колонката му
@@ -233,28 +237,48 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     
     
     /**
+     * След подготовка на детайлите, изчислява се общата цена
+     * и данните се групират
+     */
+    public static function on_AfterPrepareDetail($mvc, $res, $data)
+    {
+    	$data->inputArr = $data->popArr = array();
+    	$countInputed = $countPoped = 1;
+    	$Int = cls::get('type_Int');
+    	
+    	// За всеки детайл (ако има)
+    	if(count($data->rows)){
+    		foreach ($data->rows as $id => $row){
+    			$rec = $data->recs[$id];
+    			
+    			// Разделяме записите според това дали са вложими или не
+    			if($rec->type == 'input'){
+    				$row->RowNumb = $Int->toVerbal($countInputed);
+    				$data->inputArr[$id] = $row;
+    				$countInputed++;
+    			} else {
+    				$row->RowNumb = $Int->toVerbal($countPoped);
+    				$data->popArr[$id] = $row;
+    				$countPoped++;
+    			}
+    		}
+    	}
+    }
+    
+    
+    /**
      * Променяме рендирането на детайлите
+     * 
+     * @param stdClass $data
+     * @return core_ET $tpl
      */
     function renderDetail_($data)
     {
     	$tpl = new ET("");
-    	$inputArr = $popArr = array();
-    	
-    	// Ако има детайли разделяме ги на вложими и отпадни
-    	if(count($data->rows)){
-    		foreach ($data->rows as $id => $row){
-    			$rec = $data->recs[$id];
-    			if($rec->type == 'input'){
-    				$inputArr[$id] = $row;
-    			} else {
-    				$popArr[$id] = $row;
-    			}
-    		}
-    	}
     	
     	// Рендираме таблицата с вложените артикули
     	$table = cls::get('core_TableView', array('mvc' => $this));
-    	$detailsInput = $table->get($inputArr, $data->listFields);
+    	$detailsInput = $table->get($data->inputArr, $data->listFields);
     	$detailsInput = ht::createElement("div", array('style' => 'margin-top:5px'), $detailsInput);
     	
     	$tpl->append($detailsInput, 'planning_DirectProductNoteDetails');
@@ -266,7 +290,8 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     	
     	// Рендираме таблицата с избор на отпадъци
     	$data->listFields['resourceId'] = 'Отпадък';
-    	$detailsPop = $table->get($popArr, $data->listFields);
+    	unset($data->listFields['productId'], $data->listFields['packagingId']);
+    	$detailsPop = $table->get($data->popArr, $data->listFields);
     	$detailsPop = ht::createElement("div", array('style' => 'margin-top:5px;margin-bottom:5px'), $detailsPop);
     	$tpl->append($detailsPop, 'planning_DirectProductNoteDetails');
     	
