@@ -239,6 +239,9 @@ class type_Richtext extends type_Blob
         // Обработваме [html] ... [/html] елементите, които могат да съдържат чист HTML код
         $html = preg_replace_callback("/\[html](.*?)\[\/html\]([\r\n]{0,2})/is", array($this, '_catchHtml'), $html);
         
+        // Ако има лошо форматирани линкове, които започват с <http
+        $html = preg_replace('/(<http[s]?\:\/\/)/i', ' ${1}', $html);
+        
         // Премахваме всичкото останало HTML форматиране
         $html = str_replace(array("&", "<"), array("&amp;", "&lt;"), $html);
         
@@ -332,7 +335,7 @@ class type_Richtext extends type_Blob
         
         // Обработваме хипервръзките, зададени в явен вид
         $html = preg_replace_callback(self::URL_PATTERN, array($this, '_catchUrls'), $html);
-
+        
         // Обработваме имейлите, зададени в явен вид
         $html = preg_replace_callback("/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}\b/i", array($this, '_catchEmails'), $html);
 
@@ -919,7 +922,7 @@ class type_Richtext extends type_Blob
                 $url = "http://{$url}";
             }
         }
-         
+        
         if(core_Url::isLocal($url, $rest)) {
             $link = $this->internalLink($url, $title, $place, $rest);
             list($url1, $url2) = explode('#', $url, 2);
@@ -1113,28 +1116,27 @@ class type_Richtext extends type_Blob
      * Прави субституция на хипервръзките
      */
     function _catchUrls($html)
-    {    
+    {
         $html[0] = str_replace("&amp;", "&", $html[0]); 
 
         $url = $html[0];
         
-        if($tLen = (strlen($html[0]) - strlen($url))) {
+        if ($tLen = (strlen($html[0]) - strlen($url))) {
             $trim = substr($html[0], 0 - $tLen);
         }
         
-        if(!stripos($url, '://') && (stripos($url, 'www.') === 0)) {
+        if (!stripos($url, '://') && (stripos($url, 'www.') === 0)) {
             $url = 'http://' . $url;
         }
         
         if(!stripos($url, '://')) return $url;
-
+        
         if(core_Url::isLocal($url, $rest)) {
             $result = $this->internalUrl($url, str::limitLen(decodeUrl($url), 120), $rest);
-        } else { 
+        } else {
             $result = $this->externalUrl($url, str::limitLen(decodeUrl($url), 120));
         }
-
-
+        
         return $result . $trim;
     }
     
