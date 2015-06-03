@@ -10,10 +10,8 @@
     <!--ET_END header-->
     	[#TABS#]
         <!--ET_BEGIN DEAL_HISTORY-->
-        <div class='scrolling-holder'>
-            <div style='padding-top:10px;padding-bottom:10px'>
+        <div class='scrolling-holder' style='padding-top:10px;padding-bottom:10px'>
             [#DEAL_HISTORY#]
-            </div>
         </div>
         <!--ET_END DEAL_HISTORY-->
         	
@@ -93,7 +91,6 @@
         </div>
         <!--ET_END STATISTIC_BAR-->
         [#SINGLE_CONTENT#]
-    </div>
     <!--ET_BEGIN DETAILS-->
     <div class="scrolling-holder">
         <div class='details'>

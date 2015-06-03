@@ -48,14 +48,24 @@ class jqueryui_Setup extends core_ProtoSetup
     public $noInstall = TRUE;
     
     
-	/**
-	 * Пътища до JS файлове
-	 */
-	public $commonJS = "jqueryui/[#JQUERYUI_VERSION#]/jquery-ui.min.js";
+    /**
+     * Връща JS файлове, които са подходящи за компактиране
+     */
+    public function getCommonJs()
+    {
+        $conf = core_Packs::getConfig('jqueryui');
+        
+        return 'jqueryui/' . $conf->JQUERYUI_VERSION . '/jquery-ui.min.js';
+    }
     
     
-	/**
-	 * Пътища до CSS файлове
-	 */
-	public $commonCSS = "jqueryui/[#JQUERYUI_VERSION#]/jquery-ui.min.css";
+    /**
+     * Връща JS файлове, които са подходящи за компактиране
+     */
+    public function getCommonCss()
+    {
+        $conf = core_Packs::getConfig('jqueryui');
+        
+        return 'jqueryui/' . $conf->JQUERYUI_VERSION . '/jquery-ui.min.css';
+    }
 }

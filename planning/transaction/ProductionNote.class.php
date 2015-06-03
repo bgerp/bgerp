@@ -69,6 +69,7 @@ class planning_transaction_ProductionNote extends acc_DocumentTransactionSource
 		
 		$dQuery = planning_ProductionNoteDetails::getQuery();
 		$dQuery->where("#noteId = {$rec->id}");
+		$dQuery->orderBy("id", 'ASC');
 		
 		$errorArr = array();
 		

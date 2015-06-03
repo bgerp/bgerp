@@ -483,4 +483,92 @@ class cat_Boms extends core_Master
     	// Връщаме намерените ресурси
     	return $resources;
     }
+    
+    
+    /**
+     * Функция, която се извиква преди активирането на документа
+     */
+    public static function on_BeforeActivation($mvc, $res)
+    {
+    	if($res->id){
+    		$dQuery = cat_BomDetails::getQuery();
+    		$dQuery->where("#bomId = {$res->id}");
+    		$dQuery->where("#type = 'input'");
+    		
+    		if(!$dQuery->count()){
+    			core_Statuses::newStatus('Рецептатата не може да се активира, докато няма поне един вложим ресурс', 'warning');
+    			
+    			return FALSE;
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Ф-я за добавяне на нова рецепта към артикул
+     * 
+     * @param int $productId   - ид на производим артикул
+     * @param int $quantity    - количество за което е рецептата
+     * @param array $details   - масив с обекти за детайли
+     * 
+     * 		          ->resourceId   - ид на ресурс
+     * 				  ->type         - действие с ресурса: влагане/отпадък, ако не е подаден значи е влагане
+     * 				  ->stageId      - опционално, към кой производствен етап е детайла
+     * 				  ->baseQuantity - начално количество на ресурса
+     * 				  ->propQuantity - пропорционално количество на ресурса
+     * 
+     * @param text $notes      - забележки
+     * @param double $expenses - процент режийни разходи
+     * @return int $id         - ид на новосъздадената рецепта
+     */
+    public static function createNewDraft($productId, $quantity, $details = array(), $notes = NULL, $expenses = NULL)
+    {
+    	// Проверка на подадените данни
+    	expect($pRec = cat_Products::fetch($productId));
+    	expect($pRec->canManifacture == 'yes');
+    	
+    	$Double = cls::get('type_Double');
+    	$Richtext = cls::get('type_RichText');
+    	
+    	$rec = (object)array('productId' => $productId,
+    						 'originId'  => $pRec->containerId, 
+    						 'folderId'  => $pRec->folderId, 
+    						 'threadId'  => $pRec->threadId, 
+    						 'quantity'  => $Double->fromVerbal($quantity), 
+    						 'expenses'  => $expenses);
+    	if($notes){
+    		$rec->notes = $Richtext->fromVerbal($notes);
+    	}
+    	
+    	// Ако има данни за детайли, проверяваме дали са валидни
+    	if(count($details)){
+    		foreach ($details as &$d){
+    			expect($d->resourceId);
+    			expect(planning_Resources::fetch($d->resourceId));
+    			$d->type = ($d->type) ? $d->type : 'input';
+    			expect(in_array($d->type, array('input', 'pop')));
+    			 
+    			$d->baseQuantity = $Double->fromVerbal($d->baseQuantity);
+    			$d->propQuantity = $Double->fromVerbal($d->propQuantity);
+    			expect($d->baseQuantity || $d->propQuantity);
+    			if($d->stageId){
+    				expect(planning_Stages::fetch($d->stageId));
+    			}
+    		}
+    	}
+    	
+    	// Ако всичко е наред, записваме мастъра на рецептата
+    	$id = self::save($rec);
+    	
+    	// За всеки детайл, добавяме го към рецептата
+    	if(count($details)){
+    		foreach ($details as $d1){
+    			$d1->bomId = $id;
+    			cat_BomDetails::save($d1);
+    		}
+    	}
+    	
+    	// Връщаме ид-то на новосъздадената рецепта
+    	return $id;
+    }
 }

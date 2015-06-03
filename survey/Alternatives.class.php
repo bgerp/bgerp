@@ -179,7 +179,7 @@ class survey_Alternatives extends core_Detail {
 				
 			if($rec->image) {
 				$Fancybox = cls::get('fancybox_Fancybox');
-				$row->image = $Fancybox->getImage($rec->image, array(140, 140), array(500, 500), null, array('class'=>'question-image'));
+				$row->image = $Fancybox->getImage($rec->image, array(400, 140), array(700, 500), null, array('class'=>'question-image'));
 			}
 		}
 	}

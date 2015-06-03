@@ -4,16 +4,6 @@
 
 
 /**
- * След зареждане на JQuery стартираме функцията
- */
-$(document).ready(function() {
-	loadCSS();
-	startProcessing();
-	checkForButton();
-});
-
-
-/**
  * Брояч, за отчитане времето на бездействие
  */
 var idleTime;
@@ -502,3 +492,13 @@ function loadShowFormWindow()
 	    head.appendChild(scriptTag);
 	}
 }
+
+
+/**
+ * След зареждане на JQuery стартираме функцията
+ */
+$(document).ready(function() {
+	loadCSS();
+	startProcessing();
+	checkForButton();
+});

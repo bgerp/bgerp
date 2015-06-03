@@ -51,7 +51,11 @@ class jqcolorpicker_Plugin extends core_Plugin {
         
         $tpl->push("jqcolorpicker/2.0/jquery.colourPicker.css", "CSS");
         $tpl->push("jqcolorpicker/2.0/jquery.colourPicker.js", "JS");
-        
+
+        // custom стилове за плъгина
+        $tpl->push("jqcolorpicker/css/jqcolorpicker-custom.css", "CSS");
+
+
         jquery_Jquery::run($tpl,
             
             "\n$('#" . $attr['id'] . "').colourPicker({" .

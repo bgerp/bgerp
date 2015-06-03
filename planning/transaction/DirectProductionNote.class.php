@@ -48,47 +48,74 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 	
 	
 	/**
-	 * 
+	 * Подготовка на записите на артикула
 	 */
 	private function getEntries($rec, &$total)
 	{
 		$resourcesArr = $entries = array();
+		$hasInput = FALSE;
 		
 		$dQuery = planning_DirectProductNoteDetails::getQuery();
 		$dQuery->where("#noteId = {$rec->id}");
+		$dQuery->orderBy('id', 'ASC');
+		
 		while($dRec = $dQuery->fetch()){
-			$sign = ($dRec->type == 'input') ? 1 : -1;
-			$rQuantity = $sign * $dRec->quantity;
+			$resourcesArr[$dRec->resourceId] = $dRec;
+			$resourcesArr[$dRec->resourceId]->resourceQuantity = $dRec->quantity;
+			$rQuantity = $dRec->quantity;
 			
-			if($dRec->productId){
-				$rQuantity = $sign * ($dRec->quantity / $dRec->conversionRate);
+			if($dRec->productId && $dRec->type == 'input'){
+				$hasInput = TRUE;
+				$rQuantity = ($dRec->quantity / $dRec->conversionRate);
+				$resourcesArr[$dRec->resourceId]->resourceQuantity = $rQuantity;
 				
 				$entry = array('debit' => array('61101', array('planning_Resources', $dRec->resourceId), 
-												'quantity' => $sign * $rQuantity),
+												'quantity' => $rQuantity),
 							   'credit' => array('321', array('store_Stores', $rec->storeId), 
 														array($dRec->classId, $dRec->productId), 
-												'quantity' => $sign * $dRec->quantity), 
+												'quantity' => $dRec->quantity), 
 							   );
 				
 				$entries[] = $entry;
 			}
-			
-			$resourcesArr[$dRec->resourceId] = $sign * $rQuantity;
 		}
 		
 		$index = 0;
 		if(count($resourcesArr)){
+			arr::orderA($resourcesArr, 'type');
 			
-			foreach ($resourcesArr as $resourceId => $resQuantity){
+			foreach ($resourcesArr as $resourceId => $obj){
+				$entry = array();
+				
 				$quantity = ($index == 0) ? $rec->quantity : 0;
-				$entry = array('debit' => array('321', array('store_Stores', $rec->storeId),
-												array(cat_Products::getClassId(), $rec->productId),
-												'quantity' => $quantity),
-							   'credit' => array('61101', array('planning_Resources', $resourceId),
-												 'quantity' => $resQuantity));
+				
+				if($obj->type == 'input'){
+					$entry['debit'] = array('321', array('store_Stores', $rec->storeId),
+										 array(cat_Products::getClassId(), $rec->productId),
+										'quantity' => $quantity);
+					
+					$entry['credit'] = array('61101', array('planning_Resources', $resourceId),
+											   'quantity' => $obj->resourceQuantity);
+				} else {
+					$amount = planning_Resources::fetchField($resourceId, "selfValue");
+					$entry['debit'] = array('61101', array('planning_Resources', $resourceId),
+												  'quantity' => $obj->resourceQuantity);
+					
+					$entry['credit'] =  array('321', array('store_Stores', $rec->storeId),
+										 array(cat_Products::getClassId(), $rec->productId),
+										'quantity' => $quantity);
+					$entry['amount'] = $amount;
+					$total += $amount;
+				}
 				
 				$entries[] = $entry;
 				$index++;
+			}
+		}
+		
+		if(Mode::get('saveTransaction')){
+			if($hasInput === FALSE){
+				acc_journal_RejectRedirect::expect(FALSE, "Не може да се контира документа, без да има вложени ресурси");
 			}
 		}
 		

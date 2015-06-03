@@ -54,6 +54,8 @@ class planning_Setup extends core_ProtoSetup
     		'planning_ConsumptionNoteDetails',
     		'planning_ProductionNotes',
     		'planning_ProductionNoteDetails',
+    		'planning_DirectProductionNote',
+    		'planning_DirectProductNoteDetails',
     		'migrate::moveJobs'
         );
 

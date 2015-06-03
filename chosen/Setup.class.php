@@ -64,18 +64,6 @@ class chosen_Setup extends core_ProtoSetup {
     
     
     /**
-     * Пътища до CSS файлове
-     */
-    var $commonCSS = "[#CHOSEN_PATH#]/chosen.css";
-    
-    
-    /**
-     * Пътища до JS файлове
-     */
-    var $commonJS = "[#CHOSEN_PATH#]/chosen.jquery.js";
-    
-    
-    /**
      * Инсталиране на пакета
      */
     function install()
@@ -123,5 +111,27 @@ class chosen_Setup extends core_ProtoSetup {
         $html .= "<li>Премахнати са всички инсталации на 'chosen_PluginSelect'";
        
         return $html;
+    }
+
+
+    /**
+     * Връща JS файлове, които са подходящи за компактиране
+     */
+    public function getCommonJs()
+    {
+        $conf = core_Packs::getConfig('chosen');
+        
+        return $conf->CHOSEN_PATH . '/chosen.jquery.js';
+    }
+    
+    
+    /**
+     * Връща JS файлове, които са подходящи за компактиране
+     */
+    public function getCommonCss()
+    {
+        $conf = core_Packs::getConfig('chosen');
+        
+        return $conf->CHOSEN_PATH . '/chosen.css';
     }
 }

@@ -197,12 +197,6 @@ class fileman_Setup extends core_ProtoSetup
     
     
     /**
-     * Път до css файла
-     */
-    var $commonCSS = 'fileman/css/default.css, fileman/css/dialogGallery.css';
-    
-    
-    /**
      * Дефинирани класове, които имат интерфейси
      */
     var $defClasses = "fileman_FileInfoReport";
@@ -382,5 +376,15 @@ class fileman_Setup extends core_ProtoSetup
             $rec->fileLen = $rec->dataSize;
             fileman_Files::save($rec, 'fileLen');
         }
+    }
+    
+    
+    /**
+     * Връща JS файлове, които са подходящи за компактиране
+     */
+    public function getCommonCss()
+    {
+        
+        return 'fileman/css/default.css, fileman/css/dialogGallery.css';
     }
 }

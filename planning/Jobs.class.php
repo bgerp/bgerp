@@ -595,10 +595,10 @@ class planning_Jobs extends core_Master
     	}
     	
     	if($rec->state != 'draft' && $rec->state != 'rejected'){
-    		if(planning_ProductionNotes::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
-    			$pUrl = array('planning_ProductionNotes', 'add', 'originId' => $rec->containerId);
-    			$data->toolbar->addBtn("Производство", $pUrl, 'ef_icon = img/16/page_paste.png,title=Създаване на протокол за производство от заданието');
-    		}
+    		//if(planning_DirectProductionNote::haveRightFor('add', (object)array('originId' => $rec->containerId))){
+    			//$pUrl = array('planning_DirectProductionNote', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE);
+    			//$data->toolbar->addBtn("Производство", $pUrl, 'ef_icon = img/16/page_paste.png,title=Създаване на протокол за бързо производство от заданието');
+    		//}
     	}
     }
     
@@ -760,20 +760,30 @@ class planning_Jobs extends core_Master
      */
     public static function updateProducedQuantity($id)
     {
+    	$rec = static::fetchRec($id);
     	$producedQuantity = 0;
     	
+    	// Взимаме к-та на произведените артикули по заданието в протокола за производство
     	$prodQuery = planning_ProductionNoteDetails::getQuery();
     	$prodQuery->EXT('state', 'planning_ProductionNotes', 'externalName=state,externalKey=noteId');
     	$prodQuery->XPR('totalQuantity', 'double', 'SUM(#quantity)');
-    	$prodQuery->where("#jobId = {$id}");
-    	
+    	$prodQuery->where("#jobId = {$rec->id}");
     	$prodQuery->where("#state = 'active'");
     	$prodQuery->show('totalQuantity');
     	
     	$producedQuantity += $prodQuery->fetch()->totalQuantity;
     	
-    	$jRec = self::fetch($id);
-    	$jRec->quantityProduced = $producedQuantity;
-    	self::save($jRec, quantityProduced);
+    	// Взимаме к-та на произведените артикули по заданието в протокола за бързо производство
+    	$directProdQuery = planning_DirectProductionNote::getQuery();
+    	$directProdQuery->where("#originId = {$rec->containerId}");
+    	$directProdQuery->where("#state = 'active'");
+    	$directProdQuery->XPR('totalQuantity', 'double', 'SUM(#quantity)');
+    	$directProdQuery->show('totalQuantity');
+    	
+    	$producedQuantity += $directProdQuery->fetch()->totalQuantity;
+    	
+    	// Обновяваме произведеното к-то по заданието
+    	$rec->quantityProduced = $producedQuantity;
+    	self::save($rec, 'quantityProduced');
     }
 }

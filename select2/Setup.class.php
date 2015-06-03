@@ -70,18 +70,6 @@ class select2_Setup extends core_ProtoSetup {
     
     
     /**
-     * Пътища до CSS файлове
-     */
-    var $commonCSS = "select2/[#SELECT2_VERSION#]/select2.min.css";
-    
-    
-    /**
-     * Пътища до JS файлове
-     */
-    var $commonJS = "select2/[#SELECT2_VERSION#]/select2.min.js, select2/[#SELECT2_VERSION#]/i18n/[#CORE::EF_DEFAULT_LANGUAGE#].js";
-    
-    
-    /**
      * Списък с мениджърите, които съдържа пакета
      */
     var $managers = array(
@@ -138,5 +126,27 @@ class select2_Setup extends core_ProtoSetup {
     {
         core_Plugins::delete("#name = 'Select2 за тип UsersList'");
     }
+
+
+    /**
+     * Връща JS файлове, които са подходящи за компактиране
+     */
+    public function getCommonJs()
+    {
+        $conf = core_Packs::getConfig('select2');
+        $coreConf = core_Packs::getConfig('core');
+        
+        return 'select2/' . $conf->SELECT2_VERSION . '/select2.min.js, select2/' . $conf->SELECT2_VERSION . '/i18n/' . $coreConf->EF_DEFAULT_LANGUAGE . '.js';
+    }
     
+    
+    /**
+     * Връща JS файлове, които са подходящи за компактиране
+     */
+    public function getCommonCss()
+    {
+        $conf = core_Packs::getConfig('select2');
+        
+        return 'select2/' . $conf->SELECT2_VERSION . '/select2.min.css';
+    }
 }

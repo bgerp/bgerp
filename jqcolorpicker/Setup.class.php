@@ -28,18 +28,6 @@ class jqcolorpicker_Setup extends core_ProtoSetup
 	 */
 	public $info = "Палитра за избор на цяват";
 	
-	
-	/**
-	 * Път до js файла
-	 */
-	var $commonJS = 'jqcolorpicker/2.0/jquery.colourPicker.js';
-	
-	
-	/**
-	 * Път до css файла
-	 */
-	var $commonCSS = 'jqcolorpicker/2.0/jquery.colourPicker.css';
-
     
     /**
      * Инсталиране на пакета
@@ -54,5 +42,25 @@ class jqcolorpicker_Setup extends core_ProtoSetup
         $html .= $Plugins->installPlugin('Избор на цвят', 'jqcolorpicker_Plugin', 'color_Type', 'private');
         
         return $html;
+    }
+
+
+    /**
+     * Връща JS файлове, които са подходящи за компактиране
+     */
+    public function getCommonJs()
+    {
+        
+        return 'jqcolorpicker/2.0/jquery.colourPicker.js';
+    }
+    
+    
+    /**
+     * Връща JS файлове, които са подходящи за компактиране
+     */
+    public function getCommonCss()
+    {
+        
+        return 'jqcolorpicker/2.0/jquery.colourPicker.css';
     }
 }

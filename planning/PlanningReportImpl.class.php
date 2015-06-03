@@ -274,39 +274,42 @@ class planning_PlanningReportImpl extends frame_BaseDriver
                
                 if ($rec->sales) { 
                 	foreach($rec->sales as $sale) {
-                		$idS = (is_object($rec)) ? $sale : $rec ;
+                		$idS = 'sales=' . $sale;
                 	}
                 } elseif($rec->jobs){
                 	foreach ($rec->jobs as $job) { 
-                		$idS = (is_object($rec)) ? $job : $rec;
+                		$idS = 'job='. $job;
                 	}
                 	
                 } 
                 
+
+                $data->rows[$id]->ordered = $row->quantity . "<br><span style='color:#0066FF'>{$row->quantityJob}</span>";
+                $data->rows[$id]->delivered = $row->quantityDelivered . "<br><span style='color:#0066FF'>{$row->quantityProduced}</span>";
+                $data->rows[$id]->dt = $row->dateSale . "<br><span style='color:#0066FF'>{$row->date}</span>";
+                
                 // Задаваме уникален номер на контейнера в който ще се реплейсва туултипа
-                $mvc->unique ++;
-                $unique = $mvc->unique;
-               
-                //$idS = (is_object($rec)) ? $rec->id : $rec;
+                $data->rec->id ++;
+                $unique = $data->rec->id;
                 
                 $tooltipUrl = toUrl(array('sales_Sales', 'ShowInfo', $idS, 'unique' => $unique), 'local');
                
                 $arrow = ht::createElement("span", array('class' => 'anchor-arrow tooltip-arrow-link', 'data-url' => $tooltipUrl), "", TRUE);
                 $arrow = "<span class='additionalInfo-holder'><span class='additionalInfo' id='info{$unique}'></span>{$arrow}</span>";
    
-                if (isset($data->rows[$id]->quantityToDeliver)) {
-                	$data->rows[$id]->quantityToDeliver = "{$arrow}&nbsp;" . $data->rows[$id]->quantityToDeliver;
+                if (isset($data->rows[$id]->quantityToDeliver) && isset($data->rows[$id]->quantityToProduced)) {
+                	$data->rows[$id]->toDelivered = "{$arrow}&nbsp;" . $data->rows[$id]->quantityToDeliver . "<br>{$arrow}&nbsp;<span style='color:#0066FF'>{$data->rows[$id]->quantityToProduced}</span>";
+                } elseif (isset($data->rows[$id]->quantityToDeliver)) {
+                	$data->rows[$id]->toDelivered = "{$arrow}&nbsp;" . $data->rows[$id]->quantityToDeliver;
+                } else {
+                	$data->rows[$id]->toDelivered = "<br>{$arrow}&nbsp;<span style='color:#0066FF'>{$data->rows[$id]->quantityToProduced}</span>";
                 }
-                
-                if (isset($data->rows[$id]->quantityToProduced)) {
-                	$data->rows[$id]->quantityToProduced = "{$arrow}&nbsp;" . $data->rows[$id]->quantityToProduced;
-                }
-  
             }
         }
 
         $res = $data;
     }
+    
 
     /**
      * Връща шаблона на репорта
@@ -332,8 +335,6 @@ class planning_PlanningReportImpl extends frame_BaseDriver
     	 
     	$tpl = $this->getReportLayout();
     	$tpl->replace($this->title, 'TITLE');
-    	 
-    	//$tpl->placeObject($data->row);
     
     	$form = cls::get('core_Form');
     
@@ -379,16 +380,20 @@ class planning_PlanningReportImpl extends frame_BaseDriver
     {
     
         $data->listFields = array(
-                'id' => 'Продукт->Име (код)',
-                'quantity' => 'Продажба->|*<small>Поръчано</small>',
-                'quantityDelivered' => 'Продажба->|*<small>Доставено</small>',
-                'quantityToDeliver' => 'Продажба->|*<small>За доставяне</small>',
-                'dateSale' => 'Продажба->|*<small>Дата</small>',
+                'id' => 'Име (код)',
+        		'ordered' => 'Продажба / Производство->|*<small>Поръчано</small>',
+        		'delivered' => "Продажба / Производство->|*<small>Доставено<br><span style='color:#0066FF'>Произведено</small></span>",
+        		'toDelivered' => "Продажба / Производство->|*<small>За доставяне<br><span style='color:#0066FF'>За производство</small><span>",
+        		'dt' => 'Продажба / Производство->|*<small>Дата</small>',
+                //'quantity' => 'Продажба->|*<small>Поръчано</small>',
+                //'quantityDelivered' => 'Продажба->|*<small>Доставено</small>',
+                //'quantityToDeliver' => 'Продажба->|*<small>За доставяне</small>',
+                //'dateSale' => 'Продажба->|*<small>Дата</small>',
                 //'sales' => 'По продажба',
-        		'quantityJob' => 'Производство->|*<small>Поръчано</small>',
-        		'quantityProduced' => 'Производство->|*<small>Произведено</small>',
-        		'quantityToProduced' => 'Производство->|*<small>За производство</small>',
-        		'date' => 'Производство->|*<small>Дата</small>',
+        		//'quantityJob' => 'Производство->|*<small>Поръчано</small>',
+        		//'quantityProduced' => 'Производство->|*<small>Произведено</small>',
+        		//'quantityToProduced' => 'Производство->|*<small>За производство</small>',
+        		//'date' => 'Производство->|*<small>Дата</small>',
         		//'jobs' => 'По задание'
         		);
         
@@ -446,7 +451,7 @@ class planning_PlanningReportImpl extends frame_BaseDriver
     	}
 		$row->jobs = $RichtextType->toVerbal(substr($row->jobs, 0, -1));
 		
-       
+		
         return $row;
     }
       
