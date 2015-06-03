@@ -98,9 +98,8 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 											   'quantity' => $obj->resourceQuantity);
 				} else {
 					$amount = planning_Resources::fetchField($resourceId, "selfValue");
-					$entry['debit'] = array('321', array('store_Stores', $rec->storeId),
-												   array(cat_Products::getClassId(), $obj->productId),
-												  'quantity' => $obj->quantity);
+					$entry['debit'] = array('61101', array('planning_Resources', $resourceId),
+												  'quantity' => $obj->resourceQuantity);
 					
 					$entry['credit'] =  array('321', array('store_Stores', $rec->storeId),
 										 array(cat_Products::getClassId(), $rec->productId),
