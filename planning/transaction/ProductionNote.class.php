@@ -146,17 +146,20 @@ class planning_transaction_ProductionNote extends acc_DocumentTransactionSource
 					if(isset($resourceInfo['expenses'])){
 						$costAmount = $resourceInfo['expenses'] * $bomAmount;
 						$costAmount = round($costAmount, 2);
-						$costArray = array(
-								'amount' => $costAmount,
-								'debit' => array('321', array('store_Stores', $rec->storeId),
-														array($dRec->classId, $dRec->productId),
-														'quantity' => 0),
-								'credit' => array('61102'),
-								'reason' => 'Разпределени режийни разходи',
-						);
 						
-						$total += $costAmount;
-						$entries[] = $costArray;
+						if($costAmount){
+							$costArray = array(
+									'amount' => $costAmount,
+									'debit' => array('321', array('store_Stores', $rec->storeId),
+											array($dRec->classId, $dRec->productId),
+											'quantity' => 0),
+									'credit' => array('61102'),
+									'reason' => 'Разпределени режийни разходи',
+							);
+							
+							$total += $costAmount;
+							$entries[] = $costArray;
+						}
 					}
 				}
 			

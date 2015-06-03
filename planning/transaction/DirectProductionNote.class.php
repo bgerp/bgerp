@@ -82,11 +82,16 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 		}
 		
 		$index = 0;
+		$costAmount = 0;
 		if(count($resourcesArr)){
 			arr::orderA($resourcesArr, 'type');
 			
 			foreach ($resourcesArr as $resourceId => $obj){
 				$entry = array();
+				$selfValue = planning_Resources::getSelfValue($resourceId, $rec->valior);
+				$sign = ($obj->type == 'input') ? 1 : -1;
+				
+				$costAmount += $sign * $obj->resourceQuantity * $selfValue;
 				
 				$quantity = ($index == 0) ? $rec->quantity : 0;
 				
@@ -115,6 +120,26 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 				
 				$entries[] = $entry;
 				$index++;
+			}
+		}
+		
+		// Ако има режийни разходи, разпределяме ги
+		if($rec->expenses){
+			$costAmount = $rec->expenses * $costAmount;
+			$costAmount = round($costAmount, 2);
+			
+			if($costAmount){
+				$costArray = array(
+						'amount' => $costAmount,
+						'debit' => array('321', array('store_Stores', $rec->storeId),
+								array(cat_Products::getClassId(), $rec->productId),
+								'quantity' => 0),
+						'credit' => array('61102'),
+						'reason' => 'Разпределени режийни разходи',
+				);
+					
+				$total += $costAmount;
+				$entries[] = $costArray;
 			}
 		}
 		
