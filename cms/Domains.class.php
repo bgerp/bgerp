@@ -269,8 +269,7 @@ class cms_Domains extends core_Embedder
         return $cmsLangs;
     }
 
-
-
+ 
     /**
      * Определя най-добрия език за този потребител за тази сесия
      */
@@ -309,13 +308,16 @@ class cms_Domains extends core_Embedder
               max($langArr[$newLang], $newQual) : $newQual;
         }
         
-        $countryCode2 = drdata_IpToCountry::get();
+        if($countryCode2 = drdata_IpToCountry::get()) {
 
-        $langsInCountry = arr::make(drdata_Countries::fetchField("#letterCode2 = '{$countryCode2}'", 'languages'));
-        
-        if(count($langsInCountry)) {
-            foreach($langsInCountry as $lg) {
-                $langArr[$lg]++;
+            $langsInCountry = arr::make(drdata_Countries::fetchField("#letterCode2 = '{$countryCode2}'", 'languages'));
+            
+            if(count($langsInCountry)) {
+                foreach($langsInCountry as $lg) {
+                    $langArr[$lg]++;
+                }
+            } else {
+                setIfNot($langArr['en'], 0.01);
             }
         }
         
