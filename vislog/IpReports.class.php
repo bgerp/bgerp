@@ -137,7 +137,7 @@ class vislog_IpReports extends frame_BaseDriver
 
         while($rec = $query->fetch()) {
         	
-        	$data->ipCnt[$rec->ip][$rec->createdOn]++;
+        	$data->ipCnt[$rec->ip]++;
 
         }
 
@@ -197,20 +197,23 @@ class vislog_IpReports extends frame_BaseDriver
 
     	$ft = $f->fields;
     	$ipType = cls::get('type_Ip');
-        //$ipType = $ft['ip']->type;
         $cntType = $ft['cnt']->type;
-        $userType = $ft['createdBy']->type;
+      
         
     	foreach ($data->ipCnt as $ip => $createdCnt) { 
-    		foreach ($createdCnt as $createdOn => $cnt) {
-	    		if(!$pager->isOnPage()) continue;
+	    	if(!$pager->isOnPage()) continue;
 	    		
-	    		$row = new stdClass();
-	    		$row->ip = $ipType->decorateIp($ip, $createdOn, TRUE, TRUE);
-	    		$row->cnt = $cntType->toVerbal($cnt);
+	    	$row = new stdClass();
+	   
+	    	if ($data->fRec->to) {
+	    		$row->ip = $ipType->decorateIp($ip, $data->fRec->to, TRUE, TRUE);
+	    	} else {
+	    		$row->ip = $ipType->decorateIp($ip, $data->fRec->createdOn, TRUE, TRUE);
+	    	}
+	    	
+	    	$row->cnt = $cntType->toVerbal($createdCnt);
 
-	    		$rows[] = $row;
-    		}
+	    	$rows[] = $row;
     	}
 
     	$table = cls::get('core_TableView', array('mvc' => $f));
