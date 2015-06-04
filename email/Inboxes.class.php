@@ -21,7 +21,7 @@ class email_Inboxes extends core_Master
      */
     var $loadList = 'email_Wrapper, plg_State, plg_Created, 
     				 plg_Modified, doc_FolderPlg, plg_RowTools, 
-    				 plg_Rejected, plg_AutoFilter';
+    				 plg_Rejected';
     
     
     /**
@@ -125,6 +125,7 @@ class email_Inboxes extends core_Master
      */
     var $listFields = 'id, email, accountId, inCharge, access, shared, createdOn, createdBy';
     
+    
     /**
      * Всички пощенски кутии
      */
@@ -132,13 +133,19 @@ class email_Inboxes extends core_Master
     
     
     /**
+     * Дефолт достъп до новите корици
+     */
+    public $defaultAccess = 'private';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
     {
-        $this->FLD("email", "email(link=no)", "caption=Имейл");
-        $this->FLD("accountId", "key(mvc=email_Accounts, select=email)", 'caption=Сметка, autoFilter');
-         
+        $this->FLD("email", "email(link=no)", "caption=Имейл, mandatory, silent");
+        $this->FLD("accountId", "key(mvc=email_Accounts, select=email)", 'caption=Сметка, refreshForm, mandatory, notNull, silent');
+        
         $this->setDbUnique('email');
     }
     
@@ -172,7 +179,7 @@ class email_Inboxes extends core_Master
     {
         $form = $data->listFilter;
         
-        $form->FLD('userSelect' , 'user(roles=powerUser, rolesForTeams=manager|ceo|admin, rolesForAll=ceo|admin)', 'caption=Отговорник,refreshForm');
+        $form->FLD('userSelect' , 'user(roles=powerUser, rolesForTeams=manager|ceo|admin, rolesForAll=ceo|admin)', 'caption=Отговорник, refreshForm');
         
         $form->setDefault('userSelect', core_Users::getCurrent());
         
@@ -202,10 +209,69 @@ class email_Inboxes extends core_Master
     
     /**
      * Преди рендиране на формата за редактиране
+     * 
+     * @param email_Inboxes $mvc
+     * @param object $data
      */
     static function on_AfterPrepareEditForm($mvc, &$data)
     {
-        $data->form->setDefault('access', 'private');
+        // Вземам всички акаунти за които може да се създаде имейл
+        $allAccounts = email_Accounts::getActiveAccounts(array('corporate', 'common'));
+        
+        if (!$allAccounts) {
+            if (email_Accounts::haveRightFor('add')) {
+                
+                return redirect(array('email_Accounts', 'add'), FALSE, 'Моля добавете активна кутия.');
+            } else {
+                
+                return redirect(array($mvc), FALSE, 'Няма активна кутия, която да се използва');
+            }
+        }
+        
+        $optAcc = array();
+        foreach ($allAccounts as $id => $accRec) {
+            $optAcc[$id] = $accRec->email;
+        }
+        $data->form->setOptions('accountId', $optAcc);
+        
+        // По подразбиране да е избрана корпоративната сметка
+        $corporateAcc = email_Accounts::getCorporateAcc();
+        if ($corporateAcc) {
+            $defaultAccId = $corporateAcc->id;
+        } else {
+            $defaultAccId = key($optAcc);
+        }
+        
+        $data->form->setDefault('accountId', $defaultAccId);
+        
+        if (!$data->form->rec->email) {
+            $accRec = $allAccounts[$data->form->rec->accountId];
+            list(, $domain) = explode('@', $accRec->email);
+            $data->form->setParams('email', array('placeholder' => '...@' . $domain));
+        }
+    }
+    
+    
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     * 
+     * @param email_Inboxes $mvc
+     * @param core_Form $form
+     */
+    public static function on_AfterInputEditForm($mvc, &$form)
+    {
+        // Показва грешка, ако домейните не съвпадат
+        if ($form->isSubmitted()) {
+            $accRec = email_Accounts::fetch((int) $form->rec->accountId);
+            
+            list(,$accDomain) = explode('@', $accRec->email);
+            
+            list(, $emailDomain) = explode('@', $form->rec->email);
+            
+            if ($accDomain != $emailDomain) {
+                $form->setError('email', 'Домейните на сметката и имейла трябва да съвпадат');
+            }
+        }
     }
     
     
