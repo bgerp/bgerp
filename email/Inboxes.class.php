@@ -45,13 +45,13 @@ class email_Inboxes extends core_Master
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'admin, email';
+    var $canEdit = 'admin, email, manager';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'admin, email';
+    var $canAdd = 'admin, email, manager';
     
     
     /**
@@ -76,12 +76,6 @@ class email_Inboxes extends core_Master
      * Кой може да го изтрие?
      */
     var $canDelete = 'admin, email';
-    
-    
-    /**
-     * Кои мастър роли имат достъп до корицата, дори да нямат достъп до папката
-     */
-    var $coverMasterRoles = 'admin, email';
     
     
     /**
@@ -178,7 +172,10 @@ class email_Inboxes extends core_Master
     {
         $form = $data->listFilter;
         
-         $form->FLD('inChargeF' , 'key(mvc=core_Users, select=nick, allowEmpty=TRUE)', 'caption=Отговорник,refreshForm');
+        $form->FLD('userSelect' , 'user(roles=powerUser, rolesForTeams=manager|ceo|admin, rolesForAll=ceo|admin)', 'caption=Отговорник,refreshForm');
+        
+        $form->setDefault('userSelect', core_Users::getCurrent());
+        
         // В хоризонтален вид
         $form->view = 'horizontal';
         
@@ -187,28 +184,18 @@ class email_Inboxes extends core_Master
         
         // Показваме само това поле. Иначе и другите полета 
         // на модела ще се появят
-        $form->showFields = 'accountId, inChargeF';
+        $form->showFields = 'accountId, userSelect';
         
-        $form->input('accountId, inChargeF', 'silent');
+        $form->input('accountId, userSelect', 'silent');
         $form->getFieldType('accountId')->params['allowEmpty'] = TRUE;
        
-        if($form->rec->accountId){
+        if ($form->rec->accountId){
         	$data->query->where(array("#accountId = '[#1#]'", $form->rec->accountId));
         }
         
-    	if($form->rec->inChargeF){
-        	$data->query->where(array("#inCharge = '[#1#]'", $form->rec->inChargeF));
-        }
-        
-    	// Ако няма роля admin или ceo или email
-        if(!haveRole('ceo, admin, email')) {
-            
-            // id на текущия потребител
-            $cu = core_Users::getCurrent();
-            
-            // Да се показват кутиите на които е inCharge или му са споделени
-            $data->query->where("#inCharge = {$cu}");
-            $data->query->orLikeKeylist("shared", $cu);
+    	if ($form->rec->userSelect){
+        	$data->query->where(array("#inCharge = '[#1#]'", $form->rec->userSelect));
+        	$data->query->orLikeKeylist("shared", $form->rec->userSelect);
         }
     }
     
@@ -759,7 +746,7 @@ class email_Inboxes extends core_Master
         if ($action == 'edit' && $rec && $userId) {
             
             // Ако не сме администратор 
-            if (!haveRole('admin') && haveRole('email')) {
+            if (!haveRole('admin')) {
                 
                 // Ако не е наш имейл или не ни е споделен
                 if (($rec->inCharge != $userId) && !type_Keylist::isIn($userId, $rec->shared)) {
