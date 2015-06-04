@@ -439,6 +439,9 @@ class cat_Boms extends core_Master
     		}
     	}
     	
+    	$amounts->base /= $rInfo['quantity'];
+    	$amounts->prop /= $rInfo['quantity'];
+    	
     	// Връщаме изчислените суми
     	return $amounts;
     }
