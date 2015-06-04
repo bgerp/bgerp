@@ -18,7 +18,7 @@
                                 <tr>
                                     <td class="cell custom-header-bg" style='vertical-align:middle !important;width:33%;'><b>|Получател|*</b></td>
                                     <td class="cell centered" rowspan="3" style='width:30%'>
-                                        <div class='invoiceTitle' style='margin-bottom: 5px;'><span id='invType'>[#type#]</span></div>
+                                        <div class='document-title' style='margin-bottom: 5px;'>[#type#]</div>
                                         <div class='invInfo'>|Номер|* </div>
                                         <div class="bigData">[#number#]</div>
                                         <div class='invInfo'>|Дата|*</div>
