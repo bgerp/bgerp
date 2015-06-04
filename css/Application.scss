@@ -3373,7 +3373,7 @@ body.narrow {
 @media handheld , only screen and (min-width: 1240px) {
 	.background-holder {
 	    padding: 10px 0;
-	}	
+	}
 
     .wide .listBlock .listRows > table.listTable{
         min-width:760px;
@@ -3413,7 +3413,7 @@ body.narrow {
 @media handheld, only screen and (max-width: 1200px) {
     .wide .app-name {
          font-size: 7.5em;
-    } 	
+    }
     .wide #all, .wide #cmsTop, .wide #cmsTop img{
        border-radius: 0;
     }
@@ -3429,7 +3429,7 @@ body.narrow {
 }
 
 /* Mobile */
-@media handheld, only screen and (max-width: 950px) { 
+@media handheld, only screen and (max-width: 950px) {
 	body {
 		-webkit-text-size-adjust: none;
 	}
@@ -3441,9 +3441,9 @@ body.narrow {
 		padding-left: 0;
 		padding-right: 0;
 	}
-	
-	.row .onecol, .row .twocol, .row .threecol, .row .fourcol, .row .fivecol, 
-	.row .sixcol, .row .sevencol, .row .eightcol, .row .ninecol, .row .tencol, .row .elevencol, .row .twelvecol { 
+
+	.row .onecol, .row .twocol, .row .threecol, .row .fourcol, .row .fivecol,
+	.row .sixcol, .row .sevencol, .row .eightcol, .row .ninecol, .row .tencol, .row .elevencol, .row .twelvecol {
 		width: auto;
 		float: none;
 		margin-left: 0;
@@ -3465,9 +3465,9 @@ body.narrow {
     #all h1{
         font-size: 1.9em;
     }
-    
+
 }
-@media handheld, only screen and (max-width: 900px) { 
+@media handheld, only screen and (max-width: 900px) {
 	.wide .eshop-group-button {
        width: 96%;
        margin: 0 2% 4%;
@@ -3521,7 +3521,7 @@ body.narrow {
     }
 }
 
-@media handheld, only screen and (max-width: 760px) { 
+@media handheld, only screen and (max-width: 760px) {
 	#cmsMenu a {
 		margin-left: 4px !important;
 		margin-right: 4px !important;
@@ -3542,7 +3542,7 @@ body.narrow {
 }
 
 @media handheld, only screen and (max-width: 700px) {
-	#cmsMenu a { 
+	#cmsMenu a {
 		margin-left: 3px !important;
 		margin-right: 3px !important;
 		font-size: 0.85em;
@@ -3601,7 +3601,7 @@ body.narrow {
     }
 }
 
-@media handheld, only screen and (max-width: 600px) { 
+@media handheld, only screen and (max-width: 600px) {
 	.background-holder {
           padding: 0 !important;
     }
@@ -3645,7 +3645,7 @@ body.narrow {
     }
 }
 
-@media handheld, only screen and (max-width: 533px) { 
+@media handheld, only screen and (max-width: 533px) {
 	.background-holder {
          padding: 0 !important;
     }
@@ -3675,7 +3675,7 @@ body.narrow {
     }
 }
 
-@media handheld, only screen and (max-width: 500px) { 
+@media handheld, only screen and (max-width: 500px) {
 	.background-holder{
           padding: 0 !important;
     }
@@ -3702,7 +3702,7 @@ body.narrow {
     }
 }
 
-@media handheld, only screen and (max-width: 480px) { 
+@media handheld, only screen and (max-width: 480px) {
 	.background-holder {
           padding: 0 !important;
     }
@@ -3779,7 +3779,7 @@ body.narrow {
 }
 
 
-@media handheld, only screen and (max-width: 320px) { 
+@media handheld, only screen and (max-width: 320px) {
 	.background-holder{
          padding:0 !important;
     }
@@ -4152,7 +4152,7 @@ body.narrow {
     .footerDocBlock{
         display: block !important;
     }
-    .#fancybox-left, #fancybox-right{
+    #fancybox-left, #fancybox-right{
         background-color: transparent !important;
     }
     .selectRows .listTable > tbody > tr > td:first-child {
