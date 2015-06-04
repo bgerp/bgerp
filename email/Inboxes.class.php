@@ -181,6 +181,17 @@ class email_Inboxes extends core_Master
         
         $form->FLD('userSelect' , 'user(roles=powerUser, rolesForTeams=manager|ceo|admin, rolesForAll=ceo|admin)', 'caption=Отговорник, refreshForm');
         
+        // Вземам всички акаунти за които може да се създаде имейл
+        $allAccounts = email_Accounts::getActiveAccounts();
+        
+        $optAcc = array();
+        foreach ((array)$allAccounts as $id => $accRec) {
+            $optAcc[$id] = $accRec->email;
+        }
+        $data->listFilter->setOptions('accountId', $optAcc);
+        
+        unset($data->listFilter->fields['accountId']->mandatory);
+        
         $form->setDefault('userSelect', core_Users::getCurrent());
         
         // В хоризонтален вид
