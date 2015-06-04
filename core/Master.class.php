@@ -259,7 +259,7 @@ class core_Master extends core_Manager
         $tpl->placeObject($data->row);
         
         // Поставяме детайлите
-        if(count($this->details)) {
+        if(count($this->details) && $data->noDetails !== TRUE) {
             foreach($this->details as $var => $class) {
                 $order = $data->{$var}->Order ? $data->{$var}->Order :  10 * (count($detailInline) + count($detailTabbed) + 1);
                 
