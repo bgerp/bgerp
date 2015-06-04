@@ -1112,6 +1112,7 @@ class doc_DocumentPlg extends core_Plugin
             // Подготвяме данните за единичния изглед
             $data = $mvc->prepareDocument($id, $options);
             
+            $data->noDetails = $options->noDetails;
             $data->noToolbar = !$options->withToolbar;
             
             $res  = $mvc->renderDocument($id, $data);
