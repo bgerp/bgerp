@@ -97,120 +97,130 @@ class planning_PlanningReportImpl extends frame_BaseDriver
     	
         $data->rec = $this->innerForm;
        
+        $queryProduct = cat_Products::getQuery();
+        $queryProduct->where("#canManifacture = 'yes' ");
+        
         $query = sales_Sales::getQuery();
         $queryJob = planning_Jobs::getQuery();
         
         $this->prepareListFields($data);
         
-        $query->where("#state = 'active' ");
+        $query->where("#state = 'active'");
         $queryJob->where("#state = 'active' OR #state = 'stopped' OR #state = 'wakeup'");
-       
         
-        // за всеки един активен договор за продажба
-        while($rec = $query->fetch()) {
-        	//
-        	//$origin = doc_Threads::getFirstDocument($rec->threadId);
-        	// взимаме информация за сделките
-        	//$dealInfo = $origin->getAggregateDealInfo();
+	    // за всеки един активен договор за продажба
+	    while($rec = $query->fetch()) {
+	        
+	    	//$origin = doc_Threads::getFirstDocument($rec->threadId);
+	        // взимаме информация за сделките
+	        //$dealInfo = $origin->getAggregateDealInfo();
 
-        	if ($rec->deliveryTime) {
-        		$date = $rec->deliveryTime;
-        	} else {
-        		$date = $rec->valior;
-        	}
-        	
-        	$id = $rec->id;
-        	
-        	if (sales_SalesDetails::fetch("#saleId = $rec->id") !== FALSE) {
-        		$products[] = sales_SalesDetails::fetch("#saleId = $rec->id");
-        		$p = sales_SalesDetails::fetch("#saleId = $rec->id");
-                $productId= $p->productId;
-        		$dates[$productId][$id] = $date;
-        		
-        	} else {
-        		continue;
-        	}
-        	
-
-        }
-        
-        foreach ($dates as $prd => $sal) {
-        	if(count($sal) > 1) {
-        		$dateSale[$prd] = min($sal);
-        		$dateSale[$prd] = dt::mysql2timestamp($dateSale[$prd]);
-        	} else {
-        		foreach ($sal as $d){
-        			$dateSale[$prd] = dt::mysql2timestamp($d);
-        		}
-        	}
-        	
-        }
-
-        // за всеки един продукт
-        if(is_array($products)){
-	    	foreach($products as $product) {
-	    		// правим индекс "класа на продукта|ид на продукта"
-	        	$index = $product->productId;
-	        		
-	        	if($product->deliveryTime) {
-	        		$date = $product->deliveryTime;
-	        	} else {
-	        		$date = $rec->valior;
-	        	}
-	        	
-	        	if ($product->quantityDelivered >= $product->quantity) continue;
-	        	
-		        	
-	        	// ако нямаме такъв запис,
-	        	// го добавяме в масив
-		        if(!array_key_exists($index, $data->recs)){
-		        		
-			    	$data->recs[$index] = 
-			        		(object) array ('id' => $product->productId,
-					        				'quantity'	=> $product->quantity,
-					        				'quantityDelivered' => $product->quantityDelivered,
-			        						'dateSale' => $dateSale[$product->productId],
-					        				'sales' => array($product->saleId));
-		        		
-		        // в противен случай го ъпдейтваме
-		        } else {
-		        		
-			    	$obj = &$data->recs[$index];
-			        $obj->quantity += $product->quantity;
-			        $obj->quantityDelivered += $product->quantityDelivered;
-			        $obj->dateSale = $dateSale[$product->productId];
-			        $obj->sales[] = $product->saleId;
-		        		
-		        }
+	        if ($rec->deliveryTime) {
+	        	$date = $rec->deliveryTime;
+	        } else {
+	        	$date = $rec->valior;
 	        }
-        }
+	        	
+	        $id = $rec->id;
+	        	
+	        if (sales_SalesDetails::fetch("#saleId = $id") !== FALSE) {
+	        		
+	        		
+	        	$p = sales_SalesDetails::fetch("#saleId = $rec->id");
+	            $productId = $p->productId;
+	            $productInfo = cat_Products::getProductInfo($productId);
+	       
+	            if ($productInfo->meta['canBuy'] == TRUE && $productInfo->meta['canManifacture'] == TRUE) {
+	            	$products[] = sales_SalesDetails::fetch("#saleId = $id AND #productId = $productId");
+	                $dates[$productId][$id] = $date;
+	            } else {
+	                continue;
+	            }
 
-        while ($recJobs = $queryJob->fetch()) {
-        	$indexJ = $recJobs->productId;
-        	$dateJob[$recJobs->productId][$recJobs->id] = $recJobs->dueDate;
-        	 
-        	if ($recJobs->quantityProduced >= $recJobs->quantity) continue;
-        	// ако нямаме такъв запис,
-        	// го добавяме в масив
-        	if(!array_key_exists($indexJ, $data->recs)){
-        		$data->recs[$indexJ] =
-        		(object) array ('id' => $recJobs->productId,
-        				'quantityJob'	=> $recJobs->quantity,
-        				'quantityProduced' => $recJobs->quantityProduced,
-        				'date' => $recJobs->dueDate,
-        				'jobs' => array($recJobs->id));
+	        } else {
+	        		continue;
+	        }
+	    }
+	       
+	        
+	    foreach ($dates as $prd => $sal) {
+	    	if(count($sal) > 1) {
+	        	$dateSale[$prd] = min($sal);
+	        	$dateSale[$prd] = dt::mysql2timestamp($dateSale[$prd]);
+	        } else {
+	        	foreach ($sal as $d){
+	        		$dateSale[$prd] = dt::mysql2timestamp($d);
+	        	}
+	        }
+	        	
+	    }
 
-        		// в противен случай го ъпдейтваме
-        	} else {
+	    // за всеки един продукт
+	    if(is_array($products)){
+			foreach($products as $product) {
+		    	// правим индекс "класа на продукта|ид на продукта"
+		        $index = $product->productId;
+		        		
+		        if($product->deliveryTime) {
+		        	$date = $product->deliveryTime;
+		        } else {
+		        	$date = $rec->valior;
+		        }
+		        	
+		        if ($product->quantityDelivered >= $product->quantity) continue;
+		        	
+			        	
+		        // ако нямаме такъв запис,
+		        // го добавяме в масив
+			    if(!array_key_exists($index, $data->recs)){
+			        		
+				    	$data->recs[$index] = 
+				        		(object) array ('id' => $product->productId,
+						        				'quantity'	=> $product->quantity,
+						        				'quantityDelivered' => $product->quantityDelivered,
+				        						'dateSale' => $dateSale[$product->productId],
+						        				'sales' => array($product->saleId));
+			        		
+			      // в противен случай го ъпдейтваме
+			    } else {
+			        		
+					$obj = &$data->recs[$index];
+				    $obj->quantity += $product->quantity;
+				    $obj->quantityDelivered += $product->quantityDelivered;
+				    $obj->dateSale = $dateSale[$product->productId];
+				    $obj->sales[] = $product->saleId;
+			        		
+			    }
+			}
+	    }
+	
+	    while ($recJobs = $queryJob->fetch()) {
+	    	$indexJ = $recJobs->productId;
+	        $dateJob[$recJobs->productId][$recJobs->id] = $recJobs->dueDate;
+	        	 
+	        if ($recJobs->quantityProduced >= $recJobs->quantity) continue;
+	        // ако нямаме такъв запис,
+	        // го добавяме в масив
+	        if(!array_key_exists($indexJ, $data->recs)){
+	        	$data->recs[$indexJ] =
+	        		(object) array ('id' => $recJobs->productId,
+	        				'quantityJob'	=> $recJobs->quantity,
+	        				'quantityProduced' => $recJobs->quantityProduced,
+	        				'date' => $recJobs->dueDate,
+	        				'jobs' => array($recJobs->id));
+	
+	        // в противен случай го ъпдейтваме
+	        } else {
+	
+	        	$obj = &$data->recs[$indexJ];
+	        	$obj->quantityJob += $recJobs->quantity;
+	        	$obj->quantityProduced += $recJobs->quantityProduced;
+	        	$obj->date =  $recJobs->dueDate;
+	        	$obj->jobs[] = $recJobs->id;
+	
+	        }
+	    }
 
-        		$obj = &$data->recs[$indexJ];
-        		$obj->quantityJob += $recJobs->quantity;
-        		$obj->quantityProduced += $recJobs->quantityProduced;
-        		$obj->date =  $recJobs->dueDate;
-        		$obj->jobs[] = $recJobs->id;
-
-        	}
-        }
 
     	
     	foreach ($dateJob as $prdJ => $job) {
@@ -237,7 +247,7 @@ class planning_PlanningReportImpl extends frame_BaseDriver
         		$data->recs[$dt]->dateSale = dt::timestamp2Mysql($data->recs[$dt]->dateSale);
         	}
         }
-
+	   
         return $data;
     }
     
