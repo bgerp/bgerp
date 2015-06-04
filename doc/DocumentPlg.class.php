@@ -537,10 +537,8 @@ class doc_DocumentPlg extends core_Plugin
     function on_BeforeAction($mvc, &$res, $action)
     {
         if ($action == 'single' && !(Request::get('Printing'))) {
-            
+        	
             expect($id = Request::get('id', 'int'));
-            
-            //$mvc->requireRightFor('single');
             
             expect($rec = $mvc->fetch($id));
             
@@ -586,14 +584,32 @@ class doc_DocumentPlg extends core_Plugin
                     
                     return FALSE;
                 } else {
-                    
-                    // Ако нямаме достъп до нишката, да се изчистят всички нотификации в нея
-                    $customUrl = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
-                    bgerp_Notifications::clear($customUrl);
+                	
+                	// Ако нямаме достъп до нишката, да се изчистят всички нотификации в нея
+                	$customUrl = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
+                	bgerp_Notifications::clear($customUrl);
+                	
+                	// Ако е инсталиран пакета за работа в партньори
+                	if(core_Packs::isInstalled('colab') && core_Users::isContractor()){
+                		
+                		// И нишката може да бъде видяна от партньора
+                		$threadRec = doc_Threads::fetch($rec->threadId);
+                		
+                		// Редиректваме към нишката на документа
+                		if(colab_Threads::haveRightFor('single', $threadRec)){
+                			$hnd = $mvc->getHandle($rec->id);
+                			
+                			// Променяме урл-то да сочи към документа във видимата нишка
+                			$url = array('colab_Threads', 'single', 'threadId' => $rec->threadId, '#' => $hnd);
+                			$res = new Redirect($url);
+                			
+                			return FALSE;
+                		}
+                	}
                 }
             }
         }
-        
+       
         if ($action == 'reject') {
             
             $id  = Request::get('id', 'int');
