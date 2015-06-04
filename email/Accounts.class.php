@@ -210,6 +210,33 @@ class email_Accounts extends core_Master
     
     
     /**
+     * Връща всички активни кутии
+     * 
+     * @param $type NULL|string|array
+     * 
+     * @return array
+     */
+    public static function getActiveAccounts($type = NULL)
+    {
+        $resArr = array();
+        $query = self::getQuery();
+        
+        if ($type) {
+            $typeArr = arr::make($type, TRUE);
+            $query->orWhereArr('type', $typeArr);
+        }
+        
+        $query->where("#state = 'active'");
+        
+        while ($rec = $query->fetch()) {
+            $resArr[$rec->id] = $rec;
+        }
+        
+        return $resArr;
+    }
+    
+    
+    /**
      * Връща масив с активните корпоратвини акауни
      * 
      * @return array
@@ -422,7 +449,7 @@ class email_Accounts extends core_Master
 
                 $mvc->save($rec, NULL, 'IGNORE');
                                 
-                $res .= "<li>Добавен вх./изх. имейл аметка: " . BGERP_DEFAULT_EMAIL_FROM;
+                $res .= "<li>Добавен вх./изх. имейл сметка: " . BGERP_DEFAULT_EMAIL_FROM;
             }
         }
 
