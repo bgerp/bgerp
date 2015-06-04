@@ -82,8 +82,11 @@ class planning_transaction_ProductionNote extends acc_DocumentTransactionSource
 					$quantityJob = planning_Jobs::fetchField($dRec->jobId, 'quantity');
 					$resourceInfo = cat_Boms::getResourceInfo($dRec->bomId);
 					
+					// Еденични суми от рецептата
 					$priceObj = cat_Boms::getPrice($dRec->productId, $dRec->bomId);
-					$bomAmount = ($priceObj->base + $priceObj->prop) / $resourceInfo['quantity'];
+					
+					// проверяваме цената за к-то от заданието
+					$bomAmount = ($priceObj->base + $quantityJob * $priceObj->prop) / $quantityJob;
 					$bomAmount *= $dRec->quantity;
 					
 					$mapArr = $resourceInfo['resources'];
