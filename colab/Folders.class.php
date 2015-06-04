@@ -135,8 +135,12 @@ class colab_Folders extends core_Manager
 			}
 		}
 		
-		if(core_Users::haveRole('powerUser', $userId)){
-			$requiredRoles = 'no_one';
+		if($requiredRoles != 'no_one'){
+			
+			// Ако потребителя няма роля партньор, не му е работата тук
+			if(!core_Users::isContractor()){
+				$requiredRoles = 'no_one';
+			}
 		}
 	}
 	
