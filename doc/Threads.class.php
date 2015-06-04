@@ -405,18 +405,13 @@ class doc_Threads extends core_Manager
 
         $rejected = Request::get('Rejected');
         
-        $docQuery = clone $data->query;
-        $documentsInThreadOptions = self::getDocumentsInThread($folderId, $docQuery, $rejected);
-        
+        $documentsInThreadOptions = self::getDocumentTypesOptionsByFolder($folderId, FALSE, $rejected);
         if(count($documentsInThreadOptions)) {
-            
             $documentsInThreadOptions = array_map('tr', $documentsInThreadOptions);
-            
-        	$data->listFilter->setOptions('documentClassId', $documentsInThreadOptions);
+            $data->listFilter->setOptions('documentClassId', $documentsInThreadOptions);
         } else {
         	$data->listFilter->setReadOnly('documentClassId');
         }
-        
         
         // Вземаме данните
         $key = doc_Folders::getSettingsKey($folderId);
@@ -447,33 +442,55 @@ class doc_Threads extends core_Manager
     
     
     /**
-     * Намира всички типове документи които са начало на нишка в посочената папка
+     * Връща типовете документи в папката, за бързодействие кешира резултатите
+     * 
+     * @param int $folderId - ид на папка
+     * @param boolean $onlyVisibleForPartners - дали да са само видимите за партнъори документи
+     * @param boolean $rejected - оттеглените или не оттеглените документи
+     * @return array $options - типовете документи
      */
-    private static function getDocumentsInThread($folderId, $docQuery, $rejected)
+    public static function getDocumentTypesOptionsByFolder($folderId, $onlyVisibleForPartners = FALSE, $rejected = FALSE)
     {
-    	$documentsInThreadOptions = core_Cache::get("doc_Folders", "folder{$folderId}");
+    	$cacheKey = ($onlyVisibleForPartners === TRUE) ? "visibleDocumentsInFolder{$folderId}" : "folder{$folderId}";
     	
-    	if($documentsInThreadOptions === FALSE) {
-			$documentsInThreadOptions = array();
-    		$docQuery->where("#folderId = {$folderId}");
-    		 
-    		$docQuery->EXT('firstDocumentClassId', 'doc_Containers', 'externalName=docClass,externalKey=firstContainerId');
-    		$docQuery->show('firstDocumentClassId, state');
-    		while($docInThreadRec = $docQuery->fetch()){
-    			$index = ($docInThreadRec->state == 'rejected') ? 'rejected' : 'notrejected';
+    	// Проверяваме имали кеширани данни
+    	$options = core_Cache::get("doc_Folders", $cacheKey);
+    	
+    	// Ако няма кеширани данни, извличаме ги наново
+    	if($options === FALSE) {
+    		
+    		// Ще групираме типовете документи в нишката
+    		$query = doc_Threads::getQuery();
+    		$query->where("#folderId = {$folderId}");
+    		$query->EXT('firstDocumentClassId', 'doc_Containers', 'externalName=docClass,externalKey=firstContainerId');
+    		
+    		// Ако ще проверяваме за партньори, оставяме само видимите за тях документи
+    		if($onlyVisibleForPartners){
+    			$query->EXT('visibleForPartners', 'doc_Containers', 'externalName=visibleForPartners,externalKey=firstContainerId');
+    			$query->EXT('firstDocState', 'doc_Containers', 'externalName=state,externalKey=firstContainerId');
+    			$query->where("#visibleForPartners = 'yes'");
+    			$query->where("#firstDocState != 'draft' && #firstDocState != 'rejected'");
+    		}
+    		$query->show('firstDocumentClassId, state');
+    		
+    		// Групираме записите по classId
+    		while($rec = $query->fetch()){
+    			$index = ($rec->state == 'rejected') ? 'rejected' : 'notrejected';
     			
-    			if(!isset($documentsInThreadOptions[$index][$docInThreadRec->firstDocumentClassId])){
-    				$documentsInThreadOptions[$index][$docInThreadRec->firstDocumentClassId] = core_Classes::getTitleById($docInThreadRec->firstDocumentClassId);
+    			if(!isset($options[$index][$rec->firstDocumentClassId])){
+    				$options[$index][$rec->firstDocumentClassId] = core_Classes::getTitleById($rec->firstDocumentClassId);
     			}
     		}
     		
-    		core_Cache::set("doc_Folders", "folder{$folderId}", $documentsInThreadOptions, 1440);
+    		// Кешираме резултатите
+    		core_Cache::set("doc_Folders", $cacheKey, $options, 1440);
     	}
-    	
-    	if(is_null($rejected)){
-    		return $documentsInThreadOptions['notrejected'];
+    
+    	// Връщаме данните за оттеглените или за не оттеглените документи в папката
+    	if(!$rejected){	
+    		return $options['notrejected'];
     	} else {
-    		return $documentsInThreadOptions['rejected'];
+    		return $options['rejected'];
     	}
     }
     
@@ -1895,5 +1912,6 @@ class doc_Threads extends core_Manager
     	// Изтриваме от кеша видовете документи в папката и в коша и
     	$folderId = self::fetchField($id, 'folderId');
     	core_Cache::remove("doc_Folders", "folder{$folderId}");
+    	core_Cache::remove("doc_Folders", "visibleDocumentsInFolder{$folderId}");
     }
 }
