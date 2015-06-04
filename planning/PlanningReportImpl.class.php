@@ -55,8 +55,8 @@ class planning_PlanningReportImpl extends frame_BaseDriver
      */
 	public function addEmbeddedFields(core_Form &$form)
     {
-    	$form->FLD('from', 'date', 'caption=Начало');
-    	$form->FLD('to', 'date', 'caption=Край');
+    	$form->FLD('from', 'date', 'caption=Начало,input=none');
+    	$form->FLD('to', 'date', 'caption=Край,input=none');
     	
     	$this->invoke('AfterAddEmbeddedFields', array($form));
     }
@@ -81,13 +81,6 @@ class planning_PlanningReportImpl extends frame_BaseDriver
 	public function checkEmbeddedForm(core_Form &$form)
     {
         	 
-    	// Размяна, ако периодите са объркани
-    	if(isset($form->rec->from) && isset($form->rec->to) && ($form->rec->from > $form->rec->to)) {
-    		$mid = $form->rec->from;
-    		$form->rec->from = $form->rec->to;
-    		$form->rec->to = $mid;
-    	}
-    	
     	
     }
     
@@ -142,7 +135,6 @@ class planning_PlanningReportImpl extends frame_BaseDriver
         }
         
         foreach ($dates as $prd => $sal) {
-        	//$sal = dt::mysql2timestamp($sal);
         	if(count($sal) > 1) {
         		$dateSale[$prd] = min($sal);
         		$dateSale[$prd] = dt::mysql2timestamp($dateSale[$prd]);
@@ -153,8 +145,6 @@ class planning_PlanningReportImpl extends frame_BaseDriver
         	}
         	
         }
-        
-        //bp($dateSale,$products);
 
         // за всеки един продукт
         if(is_array($products)){
@@ -385,16 +375,6 @@ class planning_PlanningReportImpl extends frame_BaseDriver
         		'delivered' => "Продажба / Производство->|*<small>Доставено<br><span style='color:#0066FF'>Произведено</small></span>",
         		'toDelivered' => "Продажба / Производство->|*<small>За доставяне<br><span style='color:#0066FF'>За производство</small><span>",
         		'dt' => 'Продажба / Производство->|*<small>Дата</small>',
-                //'quantity' => 'Продажба->|*<small>Поръчано</small>',
-                //'quantityDelivered' => 'Продажба->|*<small>Доставено</small>',
-                //'quantityToDeliver' => 'Продажба->|*<small>За доставяне</small>',
-                //'dateSale' => 'Продажба->|*<small>Дата</small>',
-                //'sales' => 'По продажба',
-        		//'quantityJob' => 'Производство->|*<small>Поръчано</small>',
-        		//'quantityProduced' => 'Производство->|*<small>Произведено</small>',
-        		//'quantityToProduced' => 'Производство->|*<small>За производство</small>',
-        		//'date' => 'Производство->|*<small>Дата</small>',
-        		//'jobs' => 'По задание'
         		);
         
     }
