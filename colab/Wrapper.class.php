@@ -78,7 +78,10 @@ class colab_Wrapper extends plg_ProtoWrapper
     public static function on_AfterAction(&$invoker, &$tpl, $act)
     {
     	if($tpl instanceof core_ET){
-    		$tpl = ht::createElement('div', array('class' => 'contractorExtHolder'), $tpl);
+    		
+    		// Обграждаме обвивката със div
+    		$tpl->prepend("<div class = 'contractorExtHolder'>");
+    		$tpl->append("</div>");
     	}
     }
 }
