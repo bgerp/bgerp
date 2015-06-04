@@ -1555,7 +1555,7 @@ class cat_Products extends core_Embedder {
     	$this->requireRightFor('privateSingle', $rec);
     	
     	// Показваме съдържанието на документа
-    	$tpl = $this->getInlineDocumentBody($id, 'xhtml');
+    	$tpl = $this->getInlineDocumentBody($id, 'xhtml', (object)array('noDetails' => TRUE));
     	
     	$tpl = $this->renderWrapping($tpl);
     	
