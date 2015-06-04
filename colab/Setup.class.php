@@ -75,7 +75,7 @@ class colab_Setup extends core_ProtoSetup
     		if(cls::load($cRec->docClass, TRUE)){
     			$Class = cls::get($cRec->docClass);
     			$cRec->visibleForPartners = ($Class->visibleForPartners) ? 'yes' : 'no';
-    			$Containers->save_($cRec, 'visibleForPartners');
+    			$Containers->save($cRec, 'visibleForPartners');
     		}
     	}
     }
