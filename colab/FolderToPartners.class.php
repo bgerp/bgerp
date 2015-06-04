@@ -160,10 +160,14 @@ class colab_FolderToPartners extends core_Manager
         $folderId = $data->masterData->rec->folderId;
         if ($folderId) {
             $query = self::getQuery();
+
+            $count = 1;
             while($rec = $query->fetch("#folderId = {$folderId}")) {
                $uRec = core_Users::fetch($rec->contractorId);
                if($uRec->state != 'rejected') {
                   $data->partners[$rec->contractorId] = self::recToVerbal($rec);
+                  $data->partners[$rec->contractorId]->count = cls::get('type_Int')->toVerbal($count);
+                  $count++;
                }
             }
        }
@@ -249,7 +253,7 @@ class colab_FolderToPartners extends core_Manager
 			$table = cls::get('core_TableView');
 
 			// Ако сумите на крайното салдо са отрицателни - оцветяваме ги
-			$details = $table->get($data->partners, 'names=Свързани');
+			$details = $table->get($data->partners, 'count=№,names=Свързани');
 			$dTpl->append($details, 'TABLE_PARTNERS');
 		}
         
@@ -268,13 +272,13 @@ class colab_FolderToPartners extends core_Manager
 			Request::setProtected(array('companyId'));
 			
 			// Добавяме бутон за създаването на нов партньор, визитка и профил
-			$ht = ht::createBtn('Нов партньор', array($me, 'createNewContractor', 'companyId' => $data->masterId, 'ret_url' => TRUE), FALSE, FALSE, 'ef_icon=img/16/star_2.png,title=Създаване на нов контрактор');
+			$ht = ht::createBtn('Нов партньор', array($me, 'createNewContractor', 'companyId' => $data->masterId, 'ret_url' => TRUE), FALSE, FALSE, 'ef_icon=img/16/star_2.png,title=Създаване на нов партньор');
 			$btns->append($ht);
 			
 			// Ако фирмата има имейли и имаме имейл кутия, слагаме бутон за изпращане на имейл за регистрация
 			if($me->haveRightFor('sendemail', $data->masterData->rec)){
 				Request::setProtected(array('companyId'));
-				$ht = ht::createBtn('Имейл', array($me, 'sendRegisteredEmail', 'companyId' => $data->masterId, 'ret_url' => TRUE), FALSE, FALSE, 'ef_icon=img/16/email_edit.png,title=Изпращане на имейл за регистрация на контрактори към фирмата');
+				$ht = ht::createBtn('Имейл', array($me, 'sendRegisteredEmail', 'companyId' => $data->masterId, 'ret_url' => TRUE), FALSE, FALSE, 'ef_icon=img/16/email_edit.png,title=Изпращане на имейл за регистрация на партньори към фирмата');
 				$btns->append($ht);
 			} else {
 				$ht = ht::createErrBtn('Имейл', 'Фирмата няма имейли, или нямате имейл кутия');
