@@ -204,7 +204,13 @@ class vislog_IpReports extends frame_BaseDriver
 	    	if(!$pager->isOnPage()) continue;
 	    		
 	    	$row = new stdClass();
-	    	$row->ip = $ipType->decorateIp($ip, $data->fRec->createdOn, TRUE, TRUE);
+	   
+	    	if ($data->fRec->to) {
+	    		$row->ip = $ipType->decorateIp($ip, $data->fRec->to, TRUE, TRUE);
+	    	} else {
+	    		$row->ip = $ipType->decorateIp($ip, $data->fRec->createdOn, TRUE, TRUE);
+	    	}
+	    	
 	    	$row->cnt = $cntType->toVerbal($createdCnt);
 
 	    	$rows[] = $row;
