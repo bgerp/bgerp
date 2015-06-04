@@ -192,6 +192,8 @@ class email_Inboxes extends core_Master
         
         unset($data->listFilter->fields['accountId']->mandatory);
         
+        $data->listFilter->setParams('accountId', array('allowEmpty' => 'allowEmpty'));
+        
         $form->setDefault('userSelect', core_Users::getCurrent());
         
         // В хоризонтален вид
