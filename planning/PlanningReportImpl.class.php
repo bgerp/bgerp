@@ -130,7 +130,7 @@ class planning_PlanningReportImpl extends frame_BaseDriver
 	            $productId = $p->productId;
 	            $productInfo = cat_Products::getProductInfo($productId);
 	       
-	            if ($productInfo->meta['canBuy'] == TRUE && $productInfo->meta['canManifacture'] == TRUE) {
+	            if ($productInfo->meta['canManifacture'] == TRUE) {
 	            	$products[] = sales_SalesDetails::fetch("#saleId = $id AND #productId = $productId");
 	                $dates[$productId][$id] = $date;
 	            } else {
@@ -334,7 +334,10 @@ class planning_PlanningReportImpl extends frame_BaseDriver
     	if(empty($data)) return;
     	 
     	$tpl = $this->getReportLayout();
-    	$tpl->replace($this->title, 'TITLE');
+    	
+    	$title = explode(" » ", $this->title);
+    	
+    	$tpl->replace($title[1], 'TITLE');
     
     	$form = cls::get('core_Form');
     
