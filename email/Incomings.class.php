@@ -1465,7 +1465,7 @@ class email_Incomings extends core_Master
         // Ако имаме права за single
         if ($mvc->haveRightFor('single', $data->rec)) {
             
-            if ($data->rec->emlFile) {
+            if (($data->rec->emlFile) &&  fileman_Files::haveRightFor('single', $data->rec->emlFile)) {
                 
                 // Име на бутона
                 if ($data->rec->htmlFile) {
