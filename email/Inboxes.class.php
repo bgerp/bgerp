@@ -179,7 +179,7 @@ class email_Inboxes extends core_Master
     {
         $form = $data->listFilter;
         
-        $form->FLD('userSelect' , 'user(roles=powerUser, rolesForTeams=manager|ceo|admin, rolesForAll=ceo|admin)', 'caption=Отговорник, refreshForm');
+        $form->FLD('userSelect' , 'users(roles=powerUser, rolesForTeams=manager|ceo|admin, rolesForAll=ceo|admin)', 'caption=Отговорник, refreshForm');
         
         // Вземам всички акаунти за които може да се създаде имейл
         $allAccounts = email_Accounts::getActiveAccounts();
@@ -194,13 +194,13 @@ class email_Inboxes extends core_Master
         
         $data->listFilter->setParams('accountId', array('allowEmpty' => 'allowEmpty'));
         
-        $form->setDefault('userSelect', core_Users::getCurrent());
-        
         // В хоризонтален вид
         $form->view = 'horizontal';
         
         // Добавяме бутон
         $form->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        
+        $form->setDefault('userSelect', '|' . core_Users::getCurrent() . '|');
         
         // Показваме само това поле. Иначе и другите полета 
         // на модела ще се появят
@@ -214,7 +214,9 @@ class email_Inboxes extends core_Master
         }
         
     	if ($form->rec->userSelect){
-        	$data->query->where(array("#inCharge = '[#1#]'", $form->rec->userSelect));
+    	    $userIdsArr = type_Users::toArray($form->rec->userSelect);
+    	    $userIdsStr = implode(',', $userIdsArr);
+        	$data->query->where(array("#inCharge IN ({$userIdsStr})"));
         	$data->query->orLikeKeylist("shared", $form->rec->userSelect);
         }
     }
