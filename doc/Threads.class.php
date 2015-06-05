@@ -1262,28 +1262,32 @@ class doc_Threads extends core_Manager
             $data->toolbar->removeBtn('*', 'with_selected');
             $data->toolbar->addBtn('Всички', array($mvc, 'folderId' => $data->folderId), 'id=listBtn', 'ef_icon = img/16/application_view_list.png');
         } else {
-        	
-        	// Може да се добавя нов документ, само ако папката не е затворена
-        	if(doc_Folders::fetchField($data->folderId, 'state') != 'closed'){
-        		$data->toolbar->addBtn('Нов...', array($mvc, 'ShowDocMenu', 'folderId' => $data->folderId), 'id=btnAdd', array('ef_icon'=>'img/16/star_2.png', 'title'=>'Създаване на нова тема в папката'));
-        	}
- 
-            $data->rejectedCnt = $data->rejQuery->count("#folderId = {$data->folderId}");;
-            
-            if($data->rejectedCnt) {
-                $curUrl = getCurrentUrl();
-                $curUrl['Rejected'] = 1;
-                $data->toolbar->addBtn("Кош|* ({$data->rejectedCnt})", 
-                    $curUrl, 'id=binBtn,class=fright,order=50', 'ef_icon = img/16/bin_closed.png');
-            }
-            
-            // Ако има мениджъри, на които да се слагат бързи бутони, добавяме ги
-            if($managersIds = self::getFastButtons($data->folderId)){
-            	foreach ($managersIds as $classId){
-            		$Cls = cls::get($classId);
-            		$data->toolbar->addBtn($Cls->singleTitle, array($Cls, 'add', 'folderId' => $data->folderId), "ef_icon = {$Cls->singleIcon},title=Създаване на " . mb_strtolower($Cls->singleTitle));
+        	$folderState = doc_Folders::fetchField($data->folderId, 'state');
+        	if($folderState == 'closed'){
+        		$data->toolbar->removeBtn('*');
+        	} else {
+        		// Може да се добавя нов документ, само ако папката не е затворена
+        		if(doc_Folders::fetchField($data->folderId, 'state') != 'closed'){
+        			$data->toolbar->addBtn('Нов...', array($mvc, 'ShowDocMenu', 'folderId' => $data->folderId), 'id=btnAdd', array('ef_icon'=>'img/16/star_2.png', 'title'=>'Създаване на нова тема в папката'));
+        		}
+        		
+        		$data->rejectedCnt = $data->rejQuery->count("#folderId = {$data->folderId}");;
+        		
+        		if($data->rejectedCnt) {
+        			$curUrl = getCurrentUrl();
+        			$curUrl['Rejected'] = 1;
+        			$data->toolbar->addBtn("Кош|* ({$data->rejectedCnt})",
+        			$curUrl, 'id=binBtn,class=fright,order=50', 'ef_icon = img/16/bin_closed.png');
             	}
-            }
+        		
+        		// Ако има мениджъри, на които да се слагат бързи бутони, добавяме ги
+        	    if($managersIds = self::getFastButtons($data->folderId)){
+        			foreach ($managersIds as $classId){
+        				$Cls = cls::get($classId);
+        				$data->toolbar->addBtn($Cls->singleTitle, array($Cls, 'add', 'folderId' => $data->folderId), "ef_icon = {$Cls->singleIcon},title=Създаване на " . mb_strtolower($Cls->singleTitle));
+        			}
+        		}
+        	}
         }
         
         // Ако има права за настройка на папката, добавяме бутона
