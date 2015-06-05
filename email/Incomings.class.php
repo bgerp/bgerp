@@ -1484,7 +1484,7 @@ class email_Incomings extends core_Master
             }
             
             // Ако е оттеглен, да не се препраща
-            if ($data->rec->state != 'rejected') {
+            if ($data->rec->state != 'rejected' && $mvc->haveRightFor('single', $data->rec)) {
                 
                 // Добавяме бутон за препращане на имейла
                 $data->toolbar->addBtn('Препращане', array(
