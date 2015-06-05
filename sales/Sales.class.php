@@ -709,11 +709,11 @@ class sales_Sales extends deals_DealMaster
     		$jobsInfo = $table->get($data->jobInfo, 'productId=Артикул,jobId=Задание');
     		$tpl->replace($jobsInfo, 'JOB_INFO');
     	}
-    }
-    
-    function act_Test()
-    {
-    	static::getLastProductPrices(14, 53);
+    	
+    	// Слагаме iframe заради касовата бележка, ако не принтираме
+    	if(!Mode::is('printing')){
+    		$tpl->append("<iframe name='iframe_a' style='display:none'></iframe>");
+    	}
     }
     
     
