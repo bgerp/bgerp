@@ -439,11 +439,7 @@ class doc_RichTextPlg extends core_Plugin
         
         $profileId = crm_Profiles::getProfileId($id);
         
-        if (crm_Profiles::haveRightFor('single', $profileId)) {
-            $this->mvc->_htmlBoard[$place] = crm_Profiles::createLink($id, $nick);
-        } else {
-            $this->mvc->_htmlBoard[$place] = $nick;
-        }
+        $this->mvc->_htmlBoard[$place] = crm_Profiles::createLink($id, $nick);
         
         return "[#{$place}#]";
     }

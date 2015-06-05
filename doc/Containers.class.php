@@ -254,9 +254,7 @@ class doc_Containers extends core_Manager
         $row->created = ucfirst($row->created);
         
         if ($rec->createdBy > 0) {
-        	if(crm_Profiles::haveRightFor('single', $rec->createdBy)){
-        		$row->created = crm_Profiles::createLink($rec->createdBy);
-        	}
+        	$row->created = crm_Profiles::createLink($rec->createdBy);
         }
 
         if(Mode::is('screenMode', 'narrow')) {

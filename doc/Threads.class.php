@@ -583,7 +583,7 @@ class doc_Threads extends core_Manager
             $row->title .= "\n<div class='threadSubTitle'>{$docRow->subTitle}</div>";
         }
 
-        if($docRow->authorId > 0 && crm_Profiles::haveRightFor('single', $docRow->authorId)) {
+        if($docRow->authorId > 0) {
         	$row->author = crm_Profiles::createLink($docRow->authorId);
         } else {
             $row->author = $docRow->author;
