@@ -2383,9 +2383,11 @@ div.richtext ol ol ol {
   margin-top: 1em;
   margin-bottom: 0.1em; }
 
-.inlineRichTable td {
-  height: 20px;
-  min-width: 10px; }
+.document .inlineRichTable.listTable {
+  width: auto; }
+  .document .inlineRichTable.listTable td {
+    height: 20px;
+    min-width: 10px; }
 
 /*
  * richtext message-box
