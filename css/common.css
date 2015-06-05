@@ -1076,7 +1076,8 @@ table.listTable {
     background-color: #e0e0e0;
     font-weight: bold;
     vertical-align: middle;
-    line-height: normal; }
+    line-height: normal;
+    text-align: center; }
   table.listTable > tbody > tr > td {
     border: 1px solid #bbbbbb;
     padding: 4px 3px 3px;
