@@ -239,7 +239,7 @@ class doc_Folders extends core_Master
         if(strpos($rec->shared, '|' . $userId . '|') !== FALSE) return TRUE;
         
         // Всеки има право на достъп до общите папки
-        if($rec->access == 'public') return TRUE;
+        if (($rec->access == 'public') && !core_Users::isContractor()) return TRUE;
         
         // 'ceo' има достъп до всяка папка
         if (core_Users::haveRole('ceo', $userId)) {
@@ -668,10 +668,14 @@ class doc_Folders extends core_Master
         }
         
         $conditions = array(
-            "#folderAccess = 'public'",           // Всеки има достъп до публичните папки
             "#folderShared LIKE '%|{$userId}|%'", // Всеки има достъп до споделените с него папки
             "#folderInCharge = {$userId}",        // Всеки има достъп до папките, на които е отговорник
         );
+        
+        // Всеки (освен конракторите) имат достъп до публичните папки
+        if (core_Users::isContractor()) {
+            $conditions[] = "#access = 'public'";
+        }
         
         if ($teammates) {
             // Всеки има достъп до екипните папки, за които отговаря негов съекипник

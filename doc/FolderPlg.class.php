@@ -479,10 +479,14 @@ class doc_FolderPlg extends core_Plugin
         }
         
         $conditions = array(
-            "#access = 'public'",           // Всеки има достъп до публичните папки
             "#shared LIKE '%|{$userId}|%'", // Всеки има достъп до споделените с него папки
             "#inCharge = {$userId}",        // Всеки има достъп до папките, на които е отговорник
         );
+        
+        // Всеки (освен конракторите) имат достъп до публичните папки
+        if (core_Users::isContractor()) {
+            $conditions[] = "#access = 'public'";
+        }
         
         if ($teammates) {
             // Всеки има достъп до екипните папки, за които отговаря негов съекипник
