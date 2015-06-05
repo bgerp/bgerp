@@ -12,8 +12,8 @@
         <div class='display-table'>
             <table class='border-table border-table'>
                 <tr>
-                    <td class='custom-header-bg'><b>|Вносител|*</b></td>
-                    <td  rowspan='2' class='title-order centered'>
+                    <td class='custom-header-bg' style="width: 35%"><b>|Вносител|*</b></td>
+                    <td  rowspan='2' class='centered'>
                         <div class="document-title">|ПРИХОДЕН|*<br> |КАСОВ ОРДЕР|*</div>
                         <div style="padding-top:5px;">
                             № <span class="bigData">[#id#]</span> /
@@ -21,7 +21,7 @@
                         </div>
                         <div class="[#STATE_CLASS#]" style='margin-top:5px'>[#state#]</div>
                     </td>
-                    <td class='custom-header-bg'><b>|Получател|*</b></td>
+                    <td class='custom-header-bg' style="width: 35%"><b>|Получател|*</b></td>
                 </tr>
                 <tr>
                     <td>
