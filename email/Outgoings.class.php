@@ -2334,7 +2334,7 @@ class email_Outgoings extends core_Master
                 }
             }
             
-            if ($mvc->haveRightFor('single', $data->rec)) {
+            if ($mvc->haveRightFor('add')) {
                 // Добавяме бутон за препращане на имейла
                 $data->toolbar->addBtn('Препращане', array(
                         'email_Outgoings',
