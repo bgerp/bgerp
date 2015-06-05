@@ -203,7 +203,8 @@ class doc_Folders extends core_Master
 				$data->query->orderBy('#last', 'DESC');
 			case 'pending' :
 		default :
-				$data->query->orderBy('#state=DESC,#last=DESC');
+		        $data->query->XPR('orderByState', 'int', "(CASE #state WHEN 'opened' THEN 1 WHEN 'active' THEN 2 ELSE 3 END)");
+				$data->query->orderBy('#orderByState=ASC,#last=DESC');
 		}
     }
     
