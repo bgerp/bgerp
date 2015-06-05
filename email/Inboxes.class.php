@@ -180,6 +180,7 @@ class email_Inboxes extends core_Master
         $form = $data->listFilter;
         
         $form->FLD('userSelect' , 'users(roles=powerUser, rolesForTeams=manager|ceo|admin, rolesForAll=ceo|admin)', 'caption=Отговорник, refreshForm');
+        $form->FLD('emailSearch' , 'varchar', 'caption=Имейл, allowEmpty');
         
         // Вземам всички акаунти за които може да се създаде имейл
         $allAccounts = email_Accounts::getActiveAccounts();
@@ -191,7 +192,6 @@ class email_Inboxes extends core_Master
         $data->listFilter->setOptions('accountId', $optAcc);
         
         unset($data->listFilter->fields['accountId']->mandatory);
-        
         $data->listFilter->setParams('accountId', array('allowEmpty' => 'allowEmpty'));
         
         // В хоризонтален вид
@@ -204,11 +204,15 @@ class email_Inboxes extends core_Master
         
         // Показваме само това поле. Иначе и другите полета 
         // на модела ще се появят
-        $form->showFields = 'accountId, userSelect';
+        $form->showFields = 'emailSearch, accountId, userSelect';
         
-        $form->input('accountId, userSelect', 'silent');
+        $form->input($form->showFields, 'silent');
         $form->getFieldType('accountId')->params['allowEmpty'] = TRUE;
-       
+        
+        if ($form->rec->emailSearch) {
+            $data->query->like('email', $form->rec->emailSearch);
+        }
+        
         if ($form->rec->accountId){
         	$data->query->where(array("#accountId = '[#1#]'", $form->rec->accountId));
         }
