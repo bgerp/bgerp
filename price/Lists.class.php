@@ -167,6 +167,23 @@ class price_Lists extends core_Master
 
 
     /**
+     *
+     *
+     * @param bgerp_Bookmark $mvc
+     * @param object $res
+     * @param object $data
+     */
+    public static function on_AfterPrepareRetUrl($mvc, $res, $data)
+    {
+    	//Ако създаваме копие, редиректваме до създаденото копие
+        if (is_object($data->form) && $data->form->isSubmitted()) {
+           
+            $data->retUrl = array($mvc, 'single', $data->form->rec->id);
+        }
+    }
+    
+    
+    /**
      * Намираме ценовите политики, които може да избира потребителя.
      * Ако няма има права price,ceo - може да избира всички
      * Ако ги няма може да избира само публичните + частните, до чийто контрагент има достъп
