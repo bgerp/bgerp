@@ -783,6 +783,11 @@ select.tab-control option {
   top: 5px !important;
   margin-left: 10px !important; }
 
+div.tab-control.deal-history-tab .tab-row .tab {
+  margin: 0 3px 0 0 !important;
+  top: 0 !important;
+  padding: 5px !important; }
+
 @media handheld,
 only screen and (max-width: 800px) {
   .narrow  .sidemenu-push-toleft#main-container {
