@@ -673,7 +673,7 @@ class doc_Folders extends core_Master
         );
         
         // Всеки (освен конракторите) имат достъп до публичните папки
-        if (core_Users::isContractor()) {
+        if (!core_Users::isContractor()) {
             $conditions[] = "#access = 'public'";
         }
         
