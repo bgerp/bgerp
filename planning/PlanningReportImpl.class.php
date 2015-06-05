@@ -108,6 +108,7 @@ class planning_PlanningReportImpl extends frame_BaseDriver
         $query->where("#state = 'active'");
         $queryJob->where("#state = 'active' OR #state = 'stopped' OR #state = 'wakeup'");
         
+       //bp(store_Products::getProductsInStore());
 	    // за всеки един активен договор за продажба
 	    while($rec = $query->fetch()) {
 	        
@@ -128,6 +129,7 @@ class planning_PlanningReportImpl extends frame_BaseDriver
 	        		
 	        	$p = sales_SalesDetails::fetch("#saleId = $rec->id");
 	            $productId = $p->productId;
+	            //bp(store_Products::fetchField("#productId = {$productId}", 'quantity'));
 	            $productInfo = cat_Products::getProductInfo($productId);
 	       
 	            if ($productInfo->meta['canManifacture'] == TRUE) {
@@ -179,7 +181,8 @@ class planning_PlanningReportImpl extends frame_BaseDriver
 						        				'quantity'	=> $product->quantity,
 						        				'quantityDelivered' => $product->quantityDelivered,
 				        						'dateSale' => $dateSale[$product->productId],
-						        				'sales' => array($product->saleId));
+						        				'sales' => array($product->saleId),
+				        		                'store' => store_Products::fetchField("#productId = {$product->productId}", 'quantity'));
 			        		
 			      // в противен случай го ъпдейтваме
 			    } else {
@@ -189,6 +192,7 @@ class planning_PlanningReportImpl extends frame_BaseDriver
 				    $obj->quantityDelivered += $product->quantityDelivered;
 				    $obj->dateSale = $dateSale[$product->productId];
 				    $obj->sales[] = $product->saleId;
+				    $obj->store = store_Products::fetchField("#productId = {$product->productId}", 'quantity');
 			        		
 			    }
 			}
@@ -207,7 +211,8 @@ class planning_PlanningReportImpl extends frame_BaseDriver
 	        				'quantityJob'	=> $recJobs->quantity,
 	        				'quantityProduced' => $recJobs->quantityProduced,
 	        				'date' => $recJobs->dueDate,
-	        				'jobs' => array($recJobs->id));
+	        				'jobs' => array($recJobs->id),
+	        				'store' => store_Products::fetchField("#productId = {$product->productId}", 'quantity'));
 	
 	        // в противен случай го ъпдейтваме
 	        } else {
@@ -217,6 +222,7 @@ class planning_PlanningReportImpl extends frame_BaseDriver
 	        	$obj->quantityProduced += $recJobs->quantityProduced;
 	        	$obj->date =  $recJobs->dueDate;
 	        	$obj->jobs[] = $recJobs->id;
+	        	$obj->store = store_Products::fetchField("#productId = {$product->productId}", 'quantity');
 	
 	        }
 	    }
@@ -388,6 +394,7 @@ class planning_PlanningReportImpl extends frame_BaseDriver
         		'delivered' => "Продажба / Производство->|*<small>Доставено<br><span style='color:#0066FF'>Произведено</small></span>",
         		'toDelivered' => "Продажба / Производство->|*<small>За доставяне<br><span style='color:#0066FF'>За производство</small><span>",
         		'dt' => 'Продажба / Производство->|*<small>Дата</small>',
+        		'inStore' => 'На склад',
         		);
         
     }
@@ -443,6 +450,8 @@ class planning_PlanningReportImpl extends frame_BaseDriver
     		$row->jobs .= "#".planning_Jobs::getHandle($rec->jobs[$j]) .","; 
     	}
 		$row->jobs = $RichtextType->toVerbal(substr($row->jobs, 0, -1));
+		
+		$row->inStore = $Int->toVerbal($rec->store);
 		
 		
         return $row;
