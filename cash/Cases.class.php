@@ -209,25 +209,28 @@ class cash_Cases extends core_Master {
         
         if(isset($fields['-list'])){
         	
-        	$caseItem = acc_Items::fetchItem($mvc->getClassId(), $rec->id);
-        	
-        	// Намираме всички записи от текущия баланс за това перо
-        	$balRec = acc_Balances::getLastBalance();
-        	$bQuery = acc_BalanceDetails::getQuery();
-        	acc_BalanceDetails::filterQuery($bQuery, $balRec->id, $mvc->balanceRefAccounts, NULL, $caseItem->id);
-        	
-        	// Събираме ги да намерим крайното салдо на перото
-        	$rec->blAmount = 0;
-        	while($bRec = $bQuery->fetch()){
-        		$rec->blAmount += $bRec->blAmount;
-        	}
-        	
-        	// Обръщаме го във четим за хората вид
-        	$Double = cls::get('type_Double');
-        	$Double->params['decimals'] = 2;
-        	$row->blAmount = "<span style='float:right'>" . $Double->toVerbal($rec->blAmount) . "</span>";
-        	if($rec->blAmount < 0){
-        		$row->blAmount = "<span style='color:red'>{$row->blAmount}</span>";
+        	if($mvc->haveRightFor('select', $rec)){
+        		
+        		$caseItem = acc_Items::fetchItem($mvc->getClassId(), $rec->id);
+        		 
+        		// Намираме всички записи от текущия баланс за това перо
+        		$balRec = acc_Balances::getLastBalance();
+        		$bQuery = acc_BalanceDetails::getQuery();
+        		acc_BalanceDetails::filterQuery($bQuery, $balRec->id, $mvc->balanceRefAccounts, NULL, $caseItem->id);
+        		 
+        		// Събираме ги да намерим крайното салдо на перото
+        		$rec->blAmount = 0;
+        		while($bRec = $bQuery->fetch()){
+        			$rec->blAmount += $bRec->blAmount;
+        		}
+        		 
+        		// Обръщаме го във четим за хората вид
+        		$Double = cls::get('type_Double');
+        		$Double->params['decimals'] = 2;
+        		$row->blAmount = "<span style='float:right'>" . $Double->toVerbal($rec->blAmount) . "</span>";
+        		if($rec->blAmount < 0){
+        			$row->blAmount = "<span style='color:red'>{$row->blAmount}</span>";
+        		}
         	}
         }
     }
