@@ -361,16 +361,11 @@ class planning_PlanningReportImpl extends frame_BaseDriver
     	$f = cls::get('core_FieldSet');
 
     	$f->FLD('id', 'varchar');
-    	$f->FLD('quantity', 'int');
-    	$f->FLD('quantityDelivered', 'int');
-    	$f->FLD('quantityToDeliver', 'int');
-    	$f->FLD('dateSale', 'date');
-    	$f->FLD('sales', 'richtext');
-    	$f->FLD('quantityJob', 'int');
-    	$f->FLD('quantityProduced', 'int');
-    	$f->FLD('quantityToProduced', 'int');
-    	$f->FLD('date', 'date');
-    	$f->FLD('jobs', 'richtext');
+    	$f->FLD('ordered', 'double');
+    	$f->FLD('delivered', 'double');
+    	$f->FLD('toDelivered', 'double');
+    	$f->FLD('dt', 'date');
+    	$f->FLD('inStore', 'double');
 
     	$table = cls::get('core_TableView', array('mvc' => $f));
 
