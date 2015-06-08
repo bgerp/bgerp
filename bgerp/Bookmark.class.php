@@ -98,7 +98,7 @@ class bgerp_Bookmark extends core_Manager
             $url = array(get_called_class(), 'list');
         }
         
-        $title = "<h3 class='sideBarTitle'>" . ht::createLink(tr('Бързи връзки'), $url) . "</h3>";
+        $title = "<div class='sidebar-row'><div class='sideBarTitle'>" . ht::createLink(tr('Бързи връзки'), $url) . "</div></div>";
         
         return $title;
     }
@@ -117,7 +117,7 @@ class bgerp_Bookmark extends core_Manager
             
             $attr = array();
             $attr['onclick'] = "addParamsToBookmarkBtn('{$sUrl}', '{$localUrl}'); return ;";
-            $attr['ef_icon'] = 'img/16/bookmark_document.png';
+            $attr['ef_icon'] = 'img/16/star_2.png';
             $tpl = ht::createBtn('Добави', $url, FALSE, FALSE, $attr);
         }
         
