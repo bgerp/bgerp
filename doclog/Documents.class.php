@@ -1256,7 +1256,7 @@ class doclog_Documents extends core_Manager
         $sendRec->data->returnedIp = $ip;
     
         static::save($sendRec);
-    
+        
         $retRec = (object)array(
             'action' => static::ACTION_RETURN,
             'containerId' => $sendRec->containerId,
@@ -1276,7 +1276,7 @@ class doclog_Documents extends core_Manager
             $sendRec->createdBy, // получател на нотификацията
             'alert' // Важност (приоритет)
         );
-    
+        
         core_Logs::add(get_called_class(), $sendRec->id, $msg, DOCLOG_DOCUMENTS_DAYS);
         
         return TRUE;
@@ -1945,7 +1945,14 @@ class doclog_Documents extends core_Manager
             }
             
             $actionVerbal = tr($actionVerbal);
-            $linkArr = static::getLinkToSingle($data->containerId, $actionToTab[$action]);
+            
+            $document = doc_Containers::getDocument($data->containerId);
+            
+            $linkArr = array();
+            if($document->haveRightFor('single') && !core_Users::isContractor()){
+                $linkArr = static::getLinkToSingle($data->containerId, $actionToTab[$action]);
+            }
+            
             
 	        $link = ht::createLink("<b>{$count}</b><span>{$actionVerbal}</span>", $linkArr, FALSE, array('title' => $actionTitle));
             $html .= "<li class=\"action {$action}\">{$link}</li>";
@@ -1967,21 +1974,17 @@ class doclog_Documents extends core_Manager
         $document = doc_Containers::getDocument($cid);
         $detailTab = ucfirst(strtolower($action));
         
-        if($document->haveRightFor('single') && !core_Users::isContractor()){
-        	$link = array(
-        			$document->className,
-        			'single',
-        			$document->that,
-        			'Cid' => $cid,
-        			'Tab' => $detailTab,
-        	);
-        	
-        	if($topTab = Request::get('TabTop')){
-        		$link['TabTop'] = $topTab;
-        	}
-        } else {
-        	$link = array();
-        }
+    	$link = array(
+    			$document->className,
+    			'single',
+    			$document->that,
+    			'Cid' => $cid,
+    			'Tab' => $detailTab,
+    	);
+    	
+    	if($topTab = Request::get('TabTop')){
+    		$link['TabTop'] = $topTab;
+    	}
         
         return $link;
     }
