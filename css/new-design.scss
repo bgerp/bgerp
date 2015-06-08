@@ -274,7 +274,7 @@ body {
 #fav-panel {
     background: #363D55;
     box-shadow: inset 0px 0px 20px rgba(0,0,0,0.4);
-    padding: 20px;
+    padding: 15px;
     box-sizing: border-box;
 }
 
@@ -300,7 +300,7 @@ body {
         padding-left: 0;
         li {
             border-bottom: 1px dashed #fefdd6;
-            padding: 4px 0 4px 0px;
+            padding: 5px 0 5px 0px;
             display: block;
             &:last-child {
                 border-bottom: none;
@@ -313,6 +313,7 @@ body {
             outline: none;
             color: #FFF612;
             display: block;
+            font-size: 0.97em;
             &:hover{
                 color: #fefdd6;
             }
