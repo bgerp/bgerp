@@ -366,9 +366,11 @@ class acc_Balances extends core_Master
     	// до предходния работен ден и селд това до днес
     	
     	$recalcBalance = TRUE;
+    	$count = 1;
     	
     	// Преизчисляваме баланса докато ни е указано да го преизчисляваме отново
     	while($recalcBalance){
+    		core_Debug::log("RECALC TRY {$count}");
     		
     		// Зануляваме флага, за да не се преизчисли баланса отново
     		Mode::setPermanent('recalcBalancesAgain', NULL);
@@ -390,6 +392,7 @@ class acc_Balances extends core_Master
     		
     		// Проверяваме дали баланса трябва да се изчисли отново
     		$recalcBalance = Mode::get('recalcBalancesAgain');
+    		$count++;
     	}
     	
     	// Освобождаваме заключването на процеса
