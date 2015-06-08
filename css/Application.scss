@@ -2105,6 +2105,42 @@ fieldset.sharing-history {
 	margin: 0;
 }
 
+/* стилове за външната част при потребител контрактор */
+.logoutBlock {
+    position: absolute;
+    right: 0px;
+    top: 0px;
+    padding: 5px;
+    background: #ccc;
+    background: rgba(0,0,0,0.2);
+    border-radius: 0 0 0 5px;
+    box-shadow: -1px 1px 2px rgba(0,0,0,0.5);
+    a {
+        color: #333 !important;
+        margin: 0 5px;
+        display:inline-block;
+        &:hover {
+            opacity: 0.7;
+        }
+    }
+}
+
+.cmsTopContractor {
+    position: relative;
+    min-height: 180px;
+    background: #cce8fb;
+    background: radial-gradient(#cce8fb, #767BB8);
+    border-bottom: 1px solid #777;
+}
+
+.wide .cmsTopContractor .app-name {
+    top: 10%;
+}
+
+.contractorExtHolder {
+    padding: 10px;
+}
+
 .narrow #login-form {	   
 	max-width:17em !important;
 	margin:20px auto;
@@ -3352,7 +3388,7 @@ div.location.public {
 .wide .app-name{
     left: 3%;
     bottom: 3%;
-    font-size: 8.5em;
+    font-size: 8em;
     text-shadow: 1px 1px 4px rgba(0,0,0,0.6);
     
 }
@@ -4095,7 +4131,7 @@ body.narrow {
 		float: none;
 		min-width: 0;
 		max-width: 840px;
-		
+
 	}
 	.no-print {
        display: none;
@@ -4435,10 +4471,7 @@ body.narrow {
     color:black;
 }
 
-/* стилове за външната част при потребител контрактор */
-.contractorExtHolder {
-    padding: 10px;
-}
+
 
 /* край на стилове за външната част при потребител контрактор */
 .cd-l1{
