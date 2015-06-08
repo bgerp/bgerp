@@ -240,8 +240,8 @@ class planning_PurchaseReportImpl extends frame_BaseDriver
                 $data->rows[$id]->dt = $row->dateSale;
                 
                 // Задаваме уникален номер на контейнера в който ще се реплейсва туултипа
-                $data->rec->id ++;
-                $unique = $data->rec->id;
+                $data->rec->threadId ++;
+                $unique = $data->rec->threadId;
                 
                 $tooltipUrl = toUrl(array('sales_Sales', 'ShowInfo', $idS, 'unique' => $unique), 'local');
                
