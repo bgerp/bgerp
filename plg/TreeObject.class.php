@@ -217,6 +217,35 @@ class plg_TreeObject extends core_Plugin
 
 		// Клас за таблицата
         $data->listTableClass = 'treeView';
+        //$mvc->fieldsToSumOnChildren = 'productCnt';
+        
+        if(isset($mvc->fieldsToSumOnChildren)){
+        	$fieldsToSum = arr::make($mvc->fieldsToSumOnChildren);
+        	if(count($fieldsToSum)){
+        		
+        		foreach ($data->recs as $rec1){
+        			$descendents = self::getDescendents($mvc, $rec1->id, $data->recs);
+        		
+        			foreach ($fieldsToSum as $fld){
+        				$fieldType = $mvc->getFieldType($fld);
+        				if($fieldType instanceof type_Int || $fieldType instanceof type_Double){
+        					foreach ($descendents as $dRec){
+        						$rec1->{$fld} += $dRec->{$fld};
+        					}
+        				}
+        			}
+        		}
+        	}
+        	
+        }
+       
+        
+        
+        foreach ($data->recs as $rec1){
+        	$descendents = self::getDescendents($mvc, $rec1->id, $data->recs);
+        	
+        	//if($mvc)
+        }
 	}
 	
 	
@@ -435,5 +464,29 @@ class plg_TreeObject extends core_Plugin
 			
 			$num = $title;
 		}
+	}
+	
+	
+	/**
+	 * Помощна ф-я връщаща масив със всички записи, които са наследници на даден запис
+	 */
+	private static function getDescendents($mvc, $id, $allRecs, &$res = array())
+	{
+		$descendents = array();
+		foreach ($allRecs as $key => $cRec){
+			if($cRec->{$mvc->parentFieldName} == $id){
+				$descendents[$key] = $cRec;
+			}
+		}
+		
+		$res = array_merge($res, $descendents);
+		
+		if(count($descendents)){
+			foreach ($descendents as $dRec){
+				self::getDescendents($mvc, $dRec->id, $allRecs, $res);
+			}
+		}
+		
+		return $res;
 	}
 }
