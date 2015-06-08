@@ -51,7 +51,6 @@
 }
 
 .sidemenu-right {
-    background-color: #ccc;
     right: -200px;
 }
 
@@ -266,28 +265,41 @@ body {
 
 #nav-panel{
     background-color: #333 !important;
+
 }
 .narrow #nav-panel {
     font-size: 0.9em;
 }
 
 #fav-panel {
-    padding: 10px;
+    background: #363D55;
+    box-shadow: inset 0px 0px 20px rgba(0,0,0,0.4);
+    padding: 20px;
     box-sizing: border-box;
 }
+
 .sideBarTitle {
     text-align: center;
-    margin-top: 5px;
     a {
-        color: #333;
+        color: #FFF612;
     }
+
+
 }
+.narrow .sidebar-row {
+    margin-top: 47px;
+    padding: 1px 0 3px !important;
+}
+.narrow .sideBarTitle {
+    font-size: 0.85em;
+}
+
 .bookmark-links {
     font-size: 0.9em;
     ul {
         padding-left: 0;
         li {
-            border-bottom: 1px dashed #666;
+            border-bottom: 1px dashed #fefdd6;
             padding: 4px 0 4px 0px;
             display: block;
             &:last-child {
@@ -295,14 +307,14 @@ body {
             }
         }
         a {
-            background: url("../img/16/arrow-right.png") left center no-repeat;
+            background: url("../img/12/star-yellow.png") 4px center no-repeat;
             margin-left: 0;
             padding-left: 20px;
             outline: none;
-            color: #555;
+            color: #FFF612;
             display: block;
             &:hover{
-                color: #111;
+                color: #fefdd6;
             }
         }
 
@@ -610,7 +622,6 @@ body {
 
 .narrow .notificationsCnt a.noNtf { 
     color: #fff;
-    background-color: $gray4 !important; 
     border: solid 1px #999 !important;
 }
 
@@ -775,7 +786,7 @@ table.listTable > tbody > tr > td {
 }
 
 .accordian li.btns-title {
-    @extend gradient-light;
+    @extend .gradient-light;
 	border: 1px solid #777 !important;
     border-bottom: none;
 }
@@ -811,6 +822,12 @@ div.tab-control.alphabet div.tab-row .tab{
 	}
 }
 
+div.tab-control.deal-history-tab .tab-row .tab {
+    margin: 0 3px 0 0 !important;
+    top: 0 !important;
+    padding: 5px !important;
+}
+
 .narrow div.tab-control.alphabet div.tab-row .tab {
     padding: 4px 5px !important;
     &.selected {
@@ -838,6 +855,7 @@ select.tab-control, select.tab-control option {
 }
 
 .tab-row > .tooltip-button {
+    position: relative;
     top: 5px !important;
     margin-left: 10px !important;
 }

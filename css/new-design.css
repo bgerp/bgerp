@@ -74,7 +74,7 @@
   left: -170px; }
 
 .sidemenu-right {
-  background-color: #cccccc;
+  background-color: #dddddd;
   right: -200px; }
 
 .narrow .sidemenu-right {
@@ -258,34 +258,42 @@ body {
   font-size: 0.9em; }
 
 #fav-panel {
-  padding: 10px;
+  background: #363d55;
+  box-shadow: inset 0px 0px 20px rgba(0, 0, 0, 0.4);
+  padding: 20px;
   box-sizing: border-box; }
 
 .sideBarTitle {
-  text-align: center;
-  margin-top: 5px; }
+  text-align: center; }
   .sideBarTitle a {
-    color: #333333; }
+    color: #fff612; }
+
+.narrow .sidebar-row {
+  margin-top: 47px;
+  padding: 1px 0 3px !important; }
+
+.narrow .sideBarTitle {
+  font-size: 0.85em; }
 
 .bookmark-links {
   font-size: 0.9em; }
   .bookmark-links ul {
     padding-left: 0; }
     .bookmark-links ul li {
-      border-bottom: 1px dashed #666666;
+      border-bottom: 1px dashed #fefdd6;
       padding: 4px 0 4px 0px;
       display: block; }
       .bookmark-links ul li:last-child {
         border-bottom: none; }
     .bookmark-links ul a {
-      background: url("../img/16/arrow-right.png") left center no-repeat;
+      background: url("../img/12/star-yellow.png") 4px center no-repeat;
       margin-left: 0;
       padding-left: 20px;
       outline: none;
-      color: #555555;
+      color: #fff612;
       display: block; }
       .bookmark-links ul a:hover {
-        color: #111111; }
+        color: #fefdd6; }
 
 /*
  * menu i podmenu
@@ -573,7 +581,6 @@ body {
 
 .narrow .notificationsCnt a.noNtf {
   color: white;
-  background-color: false !important;
   border: solid 1px #999999 !important; }
 
 .portal .legend {
@@ -758,6 +765,11 @@ div.tab-control.alphabet div.tab-row .tab {
     width: 10px !important;
     height: 10px !important; }
 
+div.tab-control.deal-history-tab .tab-row .tab {
+  margin: 0 3px 0 0 !important;
+  top: 0 !important;
+  padding: 5px !important; }
+
 .narrow div.tab-control.alphabet div.tab-row .tab {
   padding: 4px 5px !important; }
   .narrow div.tab-control.alphabet div.tab-row .tab.selected {
@@ -780,6 +792,7 @@ select.tab-control option {
   padding-top: 0; }
 
 .tab-row > .tooltip-button {
+  position: relative;
   top: 5px !important;
   margin-left: 10px !important; }
 
