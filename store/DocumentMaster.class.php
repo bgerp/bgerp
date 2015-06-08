@@ -262,8 +262,10 @@ abstract class store_DocumentMaster extends core_Master
     	$ownCompanyData = crm_Companies::fetchOwnCompany();
     	$Companies = cls::get('crm_Companies');
     	$row->MyCompany = cls::get('type_Varchar')->toVerbal($ownCompanyData->company);
-    	$row->MyAddress = $Companies->getFullAdress($ownCompanyData->companyId);
-    
+    	$row->MyCompany = tr(core_Lg::transliterate($row->MyCompany));
+    	$row->MyAddress = $Companies->getFullAdress($ownCompanyData->companyId)->getContent();
+    	$row->MyAddress = core_Lg::transliterate($row->MyAddress);
+    	
     	$uic = drdata_Vats::getUicByVatNo($ownCompanyData->vatNo);
     	if($uic != $ownCompanyData->vatNo){
     		$row->MyCompanyVatNo = $ownCompanyData->vatNo;
@@ -274,7 +276,8 @@ abstract class store_DocumentMaster extends core_Master
     	$ContragentClass = cls::get($rec->contragentClassId);
     	$cData = $ContragentClass->getContragentData($rec->contragentId);
     	$row->contragentName = cls::get('type_Varchar')->toVerbal(($cData->person) ? $cData->person : $cData->company);
-    	$row->contragentAddress = $ContragentClass->getFullAdress($rec->contragentId);
+    	$row->contragentAddress = $ContragentClass->getFullAdress($rec->contragentId)->getContent();
+    	$row->contragentAddress  = core_Lg::transliterate($row->contragentAddress);
     	$row->vatNo = $cData->vatNo;
     }
     
@@ -333,6 +336,9 @@ abstract class store_DocumentMaster extends core_Master
 	   	}
 	   	 
 	   	if(isset($fields['-single'])){
+	   		
+	   		core_Lg::push($rec->tplLang);
+	   		
 	   		self::prepareHeaderInfo($row, $rec);
 	   		
 	   		if($rec->locationId){
@@ -345,9 +351,10 @@ abstract class store_DocumentMaster extends core_Master
 	   				}
 	   			}
 	   				
-	   			$contLocationAddress = crm_Locations::getAddress($rec->locationId);
+	   			$contLocationAddress = crm_Locations::getAddress($rec->locationId)->getContent();
+	   			
 	   			if($contLocationAddress != ''){
-	   				$row->deliveryLocationAddress = $contLocationAddress;
+	   				$row->deliveryLocationAddress = core_Lg::transliterate($contLocationAddress);
 	   			}
 	   			
 	   			if($gln = crm_Locations::fetchField($rec->locationId, 'gln')){
@@ -363,6 +370,8 @@ abstract class store_DocumentMaster extends core_Master
 	   		
 	   		$row->weight = ($row->weightInput) ? $row->weightInput : $row->weight;
 	   		$row->volume = ($row->volumeInput) ? $row->volumeInput : $row->volume;
+	   		
+	   		core_Lg::pop();
 	   	}
    }
 
