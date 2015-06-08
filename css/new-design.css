@@ -598,7 +598,7 @@ input[type="button"],
 input[type="submit"],
 button {
   background-position: 4px center !important;
-  padding: 0.34em 5px 0.34em 25px !important;
+  padding: 0.34em 5px 0.34em 5px !important;
   background-repeat: no-repeat !important;
   background-color: #dddddd;
   border: 1px solid #bbbbbb !important;
@@ -612,8 +612,8 @@ button {
   border-right: 1px solid #dfdfdf;
   border-bottom: 1px solid #b4b4b4;
   border-right: 1px solid #dfdfdf;
-  -webkit-box-shadow: inset 0 1px 0 0 white;
-  box-shadow: inset 0 1px 0 0 white;
+  -webkit-box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.8);
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.8);
   text-shadow: 0 1px 0px #f1f1f1; }
   a.button:hover,
   input[type="button"]:hover,
@@ -626,6 +626,10 @@ button {
 .narrow input[type="submit"],
 .narrow button {
   padding-left: 5px !important; }
+
+input.linkWithIcon,
+a.linkWithIcon {
+  padding-left: 25px !important; }
 
 .portal-filter .button,
 .portal-filter .button:focus {
