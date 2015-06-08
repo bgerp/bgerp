@@ -872,7 +872,8 @@ class acc_BalanceDetails extends core_Detail
         }
         
         if(count($recs)){
-            
+            $hasUpdatedJournal = FALSE;
+        	
             // Захранваме стратегиите при нужда
             foreach ($recs as $rec){
                 $this->feedStrategy($rec);
@@ -889,7 +890,14 @@ class acc_BalanceDetails extends core_Detail
                 // Обновява се записа само ако има промяна с цената
                 if($update){
                     $JournalDetails->save_($rec);
+                    $hasUpdatedJournal = TRUE;
                 }
+            }
+            
+            if($hasUpdatedJournal){
+            	
+            	// Ако е имало преизчисляване на баланса. Слагаме флаг в сесията, че баланса трябва да се преизчисли отново
+            	Mode::setPermanent('recalcBalancesAgain', TRUE);
             }
         }
     }

@@ -365,25 +365,32 @@ class acc_Balances extends core_Master
     	// Ако прекалкулирането се извършва в текущия период, то изисляваме баланса
     	// до предходния работен ден и селд това до днес
     	
-    	$pQuery = acc_Periods::getQuery();
-    	$pQuery->orderBy('#end', 'ASC');
-    	$pQuery->where("#state != 'closed'");
-    	$pQuery->where("#state != 'draft'");
+    	$recalcBalance = TRUE;
     	
-    	while($pRec = $pQuery->fetch()) {
-    	
-    	$rec = new stdClass();
-    	
-    	$rec->fromDate = $pRec->start;
-    		$rec->toDate = $pRec->end;
-    		$rec->periodId = $pRec->id;
-    		self::forceCalc($rec);
+    	// Преизчисляваме баланса докато ни е указано да го преизчисляваме отново
+    	while($recalcBalance){
+    		
+    		// Зануляваме флага, за да не се преизчисли баланса отново
+    		Mode::setPermanent('recalcBalancesAgain', NULL);
+    		
+    		$pQuery = acc_Periods::getQuery();
+    		$pQuery->orderBy('#end', 'ASC');
+    		$pQuery->where("#state != 'closed'");
+    		$pQuery->where("#state != 'draft'");
+    		 
+    		while($pRec = $pQuery->fetch()) {
+    			 
+    			$rec = new stdClass();
+    			 
+    			$rec->fromDate = $pRec->start;
+    			$rec->toDate = $pRec->end;
+    			$rec->periodId = $pRec->id;
+    			self::forceCalc($rec);
+    		}
+    		
+    		// Проверяваме дали баланса трябва да се изчисли отново
+    		$recalcBalance = Mode::get('recalcBalancesAgain');
     	}
-    	
-    	// Ако сме в 0 часа, правим и преподреждане на id-тата
-    	// SET @count = 0;
-    	// UPDATE `acc_balance_details` SET `acc_balance_details`.`id` = @count:= @count + 1;
-    	// ALTER TABLE `acc_balance_details` AUTO_INCREMENT = 1;
     	
     	// Освобождаваме заключването на процеса
     	core_Locks::release($lockKey);
