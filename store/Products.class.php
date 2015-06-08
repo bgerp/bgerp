@@ -26,7 +26,7 @@ class store_Products extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_Created, store_Wrapper, plg_Search, plg_StyleNumbers, plg_Sorting, plg_AlignDecimals, plg_State, plg_LastUsedKeys';
+    public $loadList = 'plg_RowTools, plg_Created, store_Wrapper, plg_Search, plg_StyleNumbers, plg_Sorting, plg_AlignDecimals2, plg_State, plg_LastUsedKeys';
     
     
     /**
@@ -62,7 +62,7 @@ class store_Products extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, tools=Пулт, name, quantity, quantityNotOnPallets, quantityOnPallets, makePallets, state';
+    public $listFields = 'id, tools=Пулт, name, quantity, quantityNotOnPallets, quantityOnPallets, measureId=Мярка, makePallets, state';
     
     
     /**
@@ -102,7 +102,7 @@ class store_Products extends core_Manager
         $this->FLD('quantityOnPallets', 'double', 'caption=Количество->На палети,input=hidden');
         $this->FNC('makePallets', 'varchar(255)', 'caption=Палетиране');
         $this->FNC('name', 'varchar(255)', 'caption=Продукт');
-        $this->FLD('state', 'enum(active=Активирано,closed=Затворено)', 'caption=Състояние,input=none');
+        $this->FLD('state', 'enum(active=Налично,closed=Изчерпано)', 'caption=Състояние,input=none');
         
         $this->setDbUnique('productId, classId, storeId');
     }
@@ -178,36 +178,29 @@ class store_Products extends core_Manager
         
         // Ако няма никакви записи - нищо не правим
         if(!count($recs)) return;
-	        foreach($rows as $id => &$row){
-	        	$rec = &$recs[$id];
+	    
+	    foreach($rows as $id => &$row){
+	       $rec = &$recs[$id];
 	        	
-	        	if(cls::load($rec->classId, TRUE)){
-	        		$ProductMan = cls::get($rec->classId);
-	        		
-	        		$row->name = $ProductMan::getHyperLink($rec->productId, TRUE);
-	        	} else {
-	        		$row->name = tr("Проблем с показването");
-	        	}
+	        if(cls::load($rec->classId, TRUE)){
+	        	$ProductMan = cls::get($rec->classId);
+	        	$row->name = $ProductMan::getHyperLink($rec->productId, TRUE);
+	        } else {
+	        	$row->name = tr("Проблем с показването");
+	        }
 	        	
-	        	try{
-	        		$pInfo = cat_Products::getProductInfo($rec->productId);
-	        		$measureShortName = cat_UoM::getShortName($pInfo->productRec->measureId);
-	        	} catch(core_exception_Expect $e){
-	        		$measureShortName = tr("???");
-	        	}
+	        try{
+	        	$pInfo = cat_Products::getProductInfo($rec->productId);
+	        	$row->measureId = cat_UoM::getTitleById($pInfo->productRec->measureId);
+	        } catch(core_exception_Expect $e){
+	        	$row->measureId = tr("???");
+	        }
 	        	 
-	        	if($rec->quantityNotOnPallets > 0){
-	        		$row->makePallets = ht::createBtn('Палетиране', array('store_Pallets', 'add', 'productId' => $rec->id), NULL, NULL, array('title' => 'Палетиране на продукт'));
-	        	}
+	        if($rec->quantityNotOnPallets > 0){
+	        	$row->makePallets = ht::createBtn('Палетиране', array('store_Pallets', 'add', 'productId' => $rec->id), NULL, NULL, array('title' => 'Палетиране на продукт'));
+	        }
 	        	
-	        	$row->quantity .= ' ' . $measureShortName;
-	        	if($rec->quantityOnPallets){
-	        		$row->quantityOnPallets .= ' ' . $measureShortName;
-	        	}
-	        	 
-	        	$row->quantityNotOnPallets .= ' ' . $measureShortName;
-	        	
-	        	$row->TR_CLASS = 'active';
+	        $row->TR_CLASS = 'active';
         }
     }
     
