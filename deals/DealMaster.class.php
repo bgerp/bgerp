@@ -261,7 +261,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $row->MyCompany = tr(core_Lg::transliterate($row->MyCompany));
         
         $row->MyAddress = $Companies->getFullAdress($ownCompanyData->companyId)->getContent();
-        $row->MyAddress = tr(core_Lg::transliterate($row->MyAddress));
+        $row->MyAddress = core_Lg::transliterate($row->MyAddress);
         
         $uic = drdata_Vats::getUicByVatNo($ownCompanyData->vatNo);
         if($uic != $ownCompanyData->vatNo){
@@ -275,7 +275,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	$row->contragentName = cls::get('type_Varchar')->toVerbal(($cData->person) ? $cData->person : $cData->company);
     	
     	$row->contragentAddress = $ContragentClass->getFullAdress($rec->contragentId)->getContent();
-    	$row->contragentAddress = core_Lg::transliterate($row->MyAddress);
+    	$row->contragentAddress = core_Lg::transliterate($row->contragentAddress);
     }
 
 
