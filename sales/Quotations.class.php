@@ -431,7 +431,7 @@ class sales_Quotations extends core_Master
     			
     		$row->number = $mvc->getHandle($rec->id);
     		$row->username = core_Users::recToVerbal(core_Users::fetch($rec->createdBy), 'names')->names;
-			$row->username = tr(core_Lg::transliterate($row->username));
+			//$row->username = tr(core_Lg::transliterate($row->username));
     		
     		$profRec = crm_Profiles::fetchRec("#userId = {$rec->createdBy}");
     		if($position = crm_Persons::fetchField($profRec->personId, 'buzPosition')){

@@ -258,7 +258,10 @@ abstract class deals_DealMaster extends deals_DealBase
     	$ownCompanyData = crm_Companies::fetchOwnCompany();
         $Companies = cls::get('crm_Companies');
         $row->MyCompany = cls::get('type_Varchar')->toVerbal($ownCompanyData->company);
-        $row->MyAddress = $Companies->getFullAdress($ownCompanyData->companyId);
+        $row->MyCompany = tr(core_Lg::transliterate($row->MyCompany));
+        
+        $row->MyAddress = $Companies->getFullAdress($ownCompanyData->companyId)->getContent();
+        $row->MyAddress = tr(core_Lg::transliterate($row->MyAddress));
         
         $uic = drdata_Vats::getUicByVatNo($ownCompanyData->vatNo);
         if($uic != $ownCompanyData->vatNo){
@@ -270,7 +273,9 @@ abstract class deals_DealMaster extends deals_DealBase
         $ContragentClass = cls::get($rec->contragentClassId);
         $cData = $ContragentClass->getContragentData($rec->contragentId);
     	$row->contragentName = cls::get('type_Varchar')->toVerbal(($cData->person) ? $cData->person : $cData->company);
-        $row->contragentAddress = $ContragentClass->getFullAdress($rec->contragentId);
+    	
+    	$row->contragentAddress = $ContragentClass->getFullAdress($rec->contragentId)->getContent();
+    	$row->contragentAddress = core_Lg::transliterate($row->MyAddress);
     }
 
 
@@ -841,8 +846,6 @@ abstract class deals_DealMaster extends deals_DealBase
 	    	
 	    	$row->username = core_Users::getVerbal($rec->createdBy, 'names');
 	    	
-		    $mvc->prepareHeaderInfo($row, $rec);
-		   
 		    // Ако валутата е основната валута да не се показва
 		    if($rec->currencyId != acc_Periods::getBaseCurrencyCode($rec->valior)){
 		    	$row->currencyCode = $row->currencyId;
@@ -891,6 +894,8 @@ abstract class deals_DealMaster extends deals_DealBase
 			
 			core_Lg::push($rec->tplLang);
 			
+			$mvc->prepareHeaderInfo($row, $rec);
+			
 			if(isset($actions['ship'])){
 				$row->isDelivered .= mb_strtoupper(tr('доставено'));
 				if($rec->state == 'rejected') {
@@ -929,6 +934,7 @@ abstract class deals_DealMaster extends deals_DealBase
 				$row->amountToInvoice = "<span style='font-size:0.7em'>" . tr('без фактуриране') . "</span>";
 			}
 			
+			$row->username = core_Lg::transliterate($row->username);
 			core_Lg::pop();
 	    }
     }
