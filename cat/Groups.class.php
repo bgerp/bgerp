@@ -60,6 +60,12 @@ class cat_Groups extends core_Manager
     
     
     /**
+     * Кои полета да се сумират за наследниците
+     */
+    var $fieldsToSumOnChildren = 'productCnt';
+    
+    
+    /**
      * Наименование на единичния обект
      */
     var $singleTitle = "Маркер";

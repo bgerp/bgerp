@@ -217,20 +217,32 @@ class plg_TreeObject extends core_Plugin
 
 		// Клас за таблицата
         $data->listTableClass = 'treeView';
-        //$mvc->fieldsToSumOnChildren = 'productCnt';
         
+        // Имали полета, които искаме да сумираме
         if(isset($mvc->fieldsToSumOnChildren)){
         	$fieldsToSum = arr::make($mvc->fieldsToSumOnChildren);
+        	
+        	// Ако има
         	if(count($fieldsToSum)){
         		
+        		// Обхождаме записите
         		foreach ($data->recs as $rec1){
+        			
+        			// За всеки намираме му децата
         			$descendents = self::getDescendents($mvc, $rec1->id, $data->recs);
         		
+        			// Ако има полета за сумиране
         			foreach ($fieldsToSum as $fld){
         				$fieldType = $mvc->getFieldType($fld);
+        				
+        				// И типа им е Double или Int
         				if($fieldType instanceof type_Int || $fieldType instanceof type_Double){
-        					foreach ($descendents as $dRec){
-        						$rec1->{$fld} += $dRec->{$fld};
+        					
+        					// Сумираме стойността на полето за всеки наследник
+        					if(count($descendents)){
+        						foreach ($descendents as $dRec){
+        							$rec1->{$fld} += $dRec->{$fld};
+        						}
         					}
         				}
         			}
