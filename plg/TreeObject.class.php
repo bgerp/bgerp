@@ -248,15 +248,6 @@ class plg_TreeObject extends core_Plugin
         			}
         		}
         	}
-        	
-        }
-       
-        
-        
-        foreach ($data->recs as $rec1){
-        	$descendents = self::getDescendents($mvc, $rec1->id, $data->recs);
-        	
-        	//if($mvc)
         }
 	}
 	
