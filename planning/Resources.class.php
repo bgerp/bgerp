@@ -434,7 +434,7 @@ class planning_Resources extends core_Master
     		
     		// Опитваме се да изчислим средно притеглената цена според съставните артикули
     		if(!is_null($value) && !is_null($allQuantity)){
-    			$selfValue = $value / $allQuantity;
+    			@$selfValue = $value / $allQuantity;
     		}
     		
     		// Ако не е намерено от материали
@@ -456,7 +456,7 @@ class planning_Resources extends core_Master
     				 
     				// Изчисляваме колко е счетоводната средно притеглена цена
     				if(!is_null($bRec->blAmount) && !is_null($bRec->blQuantity)){
-    					$selfValue = $bRec->blAmount / $bRec->blQuantity;
+    					@$selfValue = $bRec->blAmount / $bRec->blQuantity;
     				}
     			}
     		}
