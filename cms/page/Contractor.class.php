@@ -52,10 +52,9 @@ class cms_page_Contractor extends core_page_Active
         // Добавяме лейаута
         $this->replace(cms_Content::getLayout(), 'CMS_LAYOUT');
 
-
         $nick = core_Users::getNick(core_Users::getCurrent());
-        $user = ht::createLink($nick, array('colab_Profiles', 'single'), FALSE, 'ef_icon=img/16/user-black.png');//colab::_Profiles::createLink(NULL, NULL, FALSE, array('ef_icon'=>'img/16/user-black.png'));
-        $logout = ht::createLink('Изход', array('core_Users', 'logout'), FALSE, 'ef_icon=img/16/logout.png');
+        $user = ht::createLink($nick, array('colab_Profiles', 'single'), FALSE, 'ef_icon=img/16/user-black.png,title=Към профила');
+        $logout = ht::createLink('Изход', array('core_Users', 'logout'), FALSE, 'ef_icon=img/16/logout.png,title=Изход от системата');
 
         $this->replace($user, 'USERLINK');
         $this->replace($logout, 'LOGOUT');
