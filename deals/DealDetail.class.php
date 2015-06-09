@@ -261,7 +261,8 @@ abstract class deals_DealDetail extends doc_Detail
     			}
     			}
     	
-    			$rec->quantityInPack = (empty($rec->packagingId)) ? 1 : $productInfo->packagings[$rec->packagingId]->quantity;
+    			// Ако артикула няма опаковка к-то в опаковка е 1, ако има и вече не е свързана към него е това каквото е било досега, ако още я има опаковката обновяваме к-то в опаковка
+    			$rec->quantityInPack = (empty($rec->packagingId)) ? 1 : (($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : $rec->quantityInPack);
     			$rec->quantity = $rec->packQuantity * $rec->quantityInPack;
     	
     			if (!isset($rec->packPrice)) {
