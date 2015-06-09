@@ -873,7 +873,8 @@ class acc_BalanceDetails extends core_Detail
         
         if(count($recs)){
             $hasUpdatedJournal = FALSE;
-        	
+        	$arr = array();
+            
             // Захранваме стратегиите при нужда
             foreach ($recs as $rec){
                 $this->feedStrategy($rec);
@@ -890,7 +891,12 @@ class acc_BalanceDetails extends core_Detail
                 // Обновява се записа само ако има промяна с цената
                 if($update){
                     $JournalDetails->save_($rec);
-                    $hasUpdatedJournal = TRUE;
+                    
+                    // Дигаме флага за преизчисляване само ако, записан не е бил обновяван до сега
+                    if(!isset($arr[$rec->id])){
+                    	$arr[$rec->id] = $rec->id;
+                    	$hasUpdatedJournal = TRUE;
+                    }
                 }
             }
             
