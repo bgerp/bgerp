@@ -163,7 +163,7 @@ class core_page_InternalModern extends core_page_Active
     			"[#PAGE_CONTENT#]" .
     			"[#DEBUG#]</div>".
     			"<div id='nav-panel' class='sidemenu sidemenu-left {$openLeftMenu}'>[#core_page_InternalModern::renderMenu#]</div>".
-    			"<div id='fav-panel' class='sidemenu sidemenu-right {$openRightMenu}'>[#core_page_InternalModern::renderBookmarks#]</div>"
+    			"<div id='fav-panel' class='sidemenu sidemenu-right {$openRightMenu}'><div class='inner-fav-panel'>[#core_page_InternalModern::renderBookmarks#]</div></div>"
 
     	);
     	if(isDebug()) {

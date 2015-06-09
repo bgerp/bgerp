@@ -262,9 +262,10 @@ body {
 
 #fav-panel {
   background: #363d55;
-  box-shadow: inset 0px 0px 20px rgba(0, 0, 0, 0.4);
-  padding: 15px;
-  box-sizing: border-box; }
+  box-shadow: inset 0px 0px 20px rgba(0, 0, 0, 0.4); }
+
+.inner-fav-panel {
+  padding: 15px; }
 
 .sideBarTitle {
   text-align: center; }
