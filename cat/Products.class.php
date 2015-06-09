@@ -1570,7 +1570,9 @@ class cat_Products extends core_Embedder {
     	// Показваме съдържанието на документа
     	$tpl = $this->getInlineDocumentBody($id, 'xhtml');
     	
-    	$tpl = $this->renderWrapping($tpl);
+    	if(!core_Users::isContractor()){
+    		$tpl = $this->renderWrapping($tpl);
+    	}
     	
     	return $tpl;
     }
