@@ -871,8 +871,9 @@ class acc_BalanceDetails extends core_Detail
         	core_App::setTimeLimit($timeLimit);
         }
         
+        $hasUpdatedJournal = FALSE;
+        
         if(count($recs)){
-            $hasUpdatedJournal = FALSE;
         	$arr = array();
             
             // Захранваме стратегиите при нужда
@@ -882,6 +883,7 @@ class acc_BalanceDetails extends core_Detail
             
             foreach ($recs as $rec){
                 $this->calcAmount($rec);
+                $test = array();
                 
                 $update = $this->updateJournal($rec);
                 
@@ -891,20 +893,24 @@ class acc_BalanceDetails extends core_Detail
                 // Обновява се записа само ако има промяна с цената
                 if($update){
                     $JournalDetails->save_($rec);
-                    
+                   
                     // Дигаме флага за преизчисляване само ако, записан не е бил обновяван до сега
                     if(!isset($arr[$rec->id])){
                     	$arr[$rec->id] = $rec->id;
                     	$hasUpdatedJournal = TRUE;
                     }
+                    
+                    $test[$rec->id] = array($rec->id, $rec->amount);
+                    $this->Master->log(ht::mixedToHtml($test));
                 }
             }
             
-            if($hasUpdatedJournal){
+            return $hasUpdatedJournal;
+            //if($hasUpdatedJournal){
             	
             	// Ако е имало преизчисляване на баланса. Слагаме флаг в сесията, че баланса трябва да се преизчисли отново
-            	Mode::setPermanent('recalcBalancesAgain', TRUE);
-            }
+            	//Mode::setPermanent('recalcBalancesAgain', TRUE);
+            //}
         }
     }
     

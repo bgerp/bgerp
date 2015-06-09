@@ -320,7 +320,8 @@ class acc_Balances extends core_Master
     		core_Debug::log("RECALC {$rec->id} TRY {$count}");
     		
     		// Зануляваме флага, за да не се преизчисли баланса отново
-    		Mode::setPermanent('recalcBalancesAgain', NULL);
+    		//Mode::setPermanent('recalcBalancesAgain', NULL);
+    		$recalcBalance = FALSE;
     		
     		// Вземаме инстанция на детайлите на баланса
     		$bD = cls::get('acc_BalanceDetails');
@@ -342,7 +343,7 @@ class acc_Balances extends core_Master
     		}
     		
     		// Добавяме транзакциите за периода от първия ден, който не е обхваната от базовия баланс, до края на зададения период
-    		$bD->calcBalanceForPeriod($firstDay, $rec->toDate);
+    		$recalcBalance = $bD->calcBalanceForPeriod($firstDay, $rec->toDate);
     		
     		// Изтриваме всички детайли за дадения баланс
     		$bD->delete("#balanceId = {$rec->id}");
@@ -355,7 +356,7 @@ class acc_Balances extends core_Master
     		self::save($rec);
     		
     		// Проверяваме дали баланса трябва да се изчисли отново
-    		$recalcBalance = Mode::get('recalcBalancesAgain');
+    		//$recalcBalance = Mode::get('recalcBalancesAgain');
     		$count++;
     	}
     }
