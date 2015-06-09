@@ -175,6 +175,7 @@ class planning_PurchaseReportImpl extends frame_BaseDriver
 				        		(object) array ('id' => $product->productId,
 						        				'quantity'	=> $product->quantity,
 						        				'quantityDelivered' => $product->quantityDelivered,
+				        						'quantityТоDelivered' => abs($product->quantityDelivered - $product->quantity),
 				        						'dateSale' => $dateSale[$product->productId],
 						        				'sales' => array($product->saleId),
 				        		                'store' => store_Products::fetchField("#productId = {$product->productId} AND #classId = {$product->classId} AND #storeId = {$storeId}", 'quantity'));
@@ -185,6 +186,7 @@ class planning_PurchaseReportImpl extends frame_BaseDriver
 					$obj = &$data->recs[$index];
 				    $obj->quantity += $product->quantity;
 				    $obj->quantityDelivered += $product->quantityDelivered;
+				    $obj->quantityToDelivered += abs($product->quantityDelivered - $product->quantity);
 				    $obj->dateSale = $dateSale[$product->productId];
 				    $obj->sales[] = $product->saleId;
 				    $obj->store = store_Products::fetchField("#productId = {$product->productId} AND #classId = {$product->classId} AND #storeId = {$storeId}", 'quantity');
@@ -200,6 +202,12 @@ class planning_PurchaseReportImpl extends frame_BaseDriver
         	
         	if ($data->recs[$dt]->dateSale) {
         		$data->recs[$dt]->dateSale = dt::timestamp2Mysql($data->recs[$dt]->dateSale);
+        	}
+        }
+        
+        foreach ($data->recs as $id => $recs) {
+        	if ($recs->quantityТоDelivered < $recs->store) {
+        		unset($data->recs[$id]);
         	}
         }
 	   
