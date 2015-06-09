@@ -881,9 +881,10 @@ class acc_BalanceDetails extends core_Detail
                 $this->feedStrategy($rec);
             }
             
+            $test = array();
             foreach ($recs as $rec){
                 $this->calcAmount($rec);
-                $test = array();
+                
                 
                 $update = $this->updateJournal($rec);
                 
@@ -901,9 +902,9 @@ class acc_BalanceDetails extends core_Detail
                     }
                     
                     $test[$rec->id] = array($rec->id, $rec->amount);
-                    $this->Master->log(ht::mixedToHtml($test));
                 }
             }
+            $this->Master->log(ht::mixedToHtml($test));
             
             return $hasUpdatedJournal;
             //if($hasUpdatedJournal){
