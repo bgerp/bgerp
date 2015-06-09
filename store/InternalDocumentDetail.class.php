@@ -110,7 +110,7 @@ abstract class store_InternalDocumentDetail extends doc_Detail
     	
     	if($form->isSubmitted()){
     		$productInfo = $ProductMan->getProductInfo($rec->productId);
-    		$rec->quantityInPack = (empty($rec->packagingId)) ? 1 : $productInfo->packagings[$rec->packagingId]->quantity;
+    		$rec->quantityInPack = (empty($rec->packagingId)) ? 1 : (($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : $rec->quantityInPack);//$productInfo->packagings[$rec->packagingId]->quantity;
     		
     		if(!isset($rec->packPrice)){
     			$Policy = $ProductMan->getPolicy();
