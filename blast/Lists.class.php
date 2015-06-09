@@ -343,7 +343,7 @@ class blast_Lists extends core_Master
             $row = array();
             
             foreach($fieldsArr as $key => $caption) {
-                $row[$key] = $data[$key . '_'];
+                $row[$key] = $data[$key];
             }
             
             self::addCsvRow($csv, $row);
