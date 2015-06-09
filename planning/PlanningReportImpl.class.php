@@ -107,8 +107,7 @@ class planning_PlanningReportImpl extends frame_BaseDriver
         
         $query->where("#state = 'active'");
         $queryJob->where("#state = 'active' OR #state = 'stopped' OR #state = 'wakeup'");
-        
-       //bp(store_Products::getProductsInStore());
+
 	    // за всеки един активен договор за продажба
 	    while($rec = $query->fetch()) {
 	        
@@ -129,7 +128,7 @@ class planning_PlanningReportImpl extends frame_BaseDriver
 	        		
 	        	$p = sales_SalesDetails::fetch("#saleId = $rec->id");
 	            $productId = $p->productId;
-	            //bp(store_Products::fetchField("#productId = {$productId}", 'quantity'));
+	       
 	            $productInfo = cat_Products::getProductInfo($productId);
 	       
 	            if ($productInfo->meta['canManifacture'] == TRUE) {
@@ -172,8 +171,7 @@ class planning_PlanningReportImpl extends frame_BaseDriver
 		        if ($product->quantityDelivered >= $product->quantity) continue;
 		        
 		        $storeId = store_Stores::getCurrent();
-		        //bp($store, $product);
-			        	
+
 		        // ако нямаме такъв запис,
 		        // го добавяме в масив
 			    if(!array_key_exists($index, $data->recs)){
@@ -182,6 +180,7 @@ class planning_PlanningReportImpl extends frame_BaseDriver
 				        		(object) array ('id' => $product->productId,
 						        				'quantity'	=> $product->quantity,
 						        				'quantityDelivered' => $product->quantityDelivered,
+				        				        'quantityToDelivered' => abs($product->quantityDelivered - $product->quantity),
 				        						'dateSale' => $dateSale[$product->productId],
 						        				'sales' => array($product->saleId),
 				        		                'store' => store_Products::fetchField("#productId = {$product->productId} AND #classId = {$product->classId} AND #storeId = {$storeId}", 'quantity'));
@@ -192,6 +191,7 @@ class planning_PlanningReportImpl extends frame_BaseDriver
 					$obj = &$data->recs[$index];
 				    $obj->quantity += $product->quantity;
 				    $obj->quantityDelivered += $product->quantityDelivered;
+				    $obj->quantityToDelivered += abs($product->quantityDelivered - $product->quantity);
 				    $obj->dateSale = $dateSale[$product->productId];
 				    $obj->sales[] = $product->saleId;
 				    $obj->store = store_Products::fetchField("#productId = {$product->productId} AND #classId = {$product->classId} AND #storeId = {$storeId}", 'quantity');
@@ -212,6 +212,7 @@ class planning_PlanningReportImpl extends frame_BaseDriver
 	        		(object) array ('id' => $recJobs->productId,
 	        				'quantityJob'	=> $recJobs->quantity,
 	        				'quantityProduced' => $recJobs->quantityProduced,
+	        				'quantityToProduced'=> abs($recJobs->quantityProduced - $recJobs->quantity),
 	        				'date' => $recJobs->dueDate,
 	        				'jobs' => array($recJobs->id),
 	        				'store' => store_Products::fetchField("#productId = {$product->productId} AND #classId = {$product->classId} AND #storeId = {$storeId}", 'quantity'));
@@ -222,6 +223,7 @@ class planning_PlanningReportImpl extends frame_BaseDriver
 	        	$obj = &$data->recs[$indexJ];
 	        	$obj->quantityJob += $recJobs->quantity;
 	        	$obj->quantityProduced += $recJobs->quantityProduced;
+	        	$obj->quantityToProduced += abs($recJobs->quantityProduced - $recJobs->quantity);
 	        	$obj->date =  $recJobs->dueDate;
 	        	$obj->jobs[] = $recJobs->id;
 	        	$obj->store = store_Products::fetchField("#productId = {$product->productId} AND #classId = {$product->classId} AND #storeId = {$storeId}", 'quantity');
@@ -255,7 +257,13 @@ class planning_PlanningReportImpl extends frame_BaseDriver
         		$data->recs[$dt]->dateSale = dt::timestamp2Mysql($data->recs[$dt]->dateSale);
         	}
         }
-	   
+
+        foreach ($data->recs as $id => $recs) {
+        	if (($recs->quantityToProduced < $recs->store) || ($recs->quantityToDelivered < $recs->store)) {
+        		unset($data->recs[$id]);
+        	}
+        }
+
         return $data;
     }
     
@@ -278,6 +286,7 @@ class planning_PlanningReportImpl extends frame_BaseDriver
 				if(!$pager->isOnPage()) continue;
                 
                 $row = $mvc->getVerbal($rec);
+       
                 $data->rows[$id] = $row;
                
                 if ($rec->sales) { 
@@ -290,7 +299,6 @@ class planning_PlanningReportImpl extends frame_BaseDriver
                 	}
                 	
                 } 
-                
 
                 $data->rows[$id]->ordered = $row->quantity . "<br><span style='color:#0066FF'>{$row->quantityJob}</span>";
                 $data->rows[$id]->delivered = $row->quantityDelivered . "<br><span style='color:#0066FF'>{$row->quantityProduced}</span>";
@@ -314,6 +322,7 @@ class planning_PlanningReportImpl extends frame_BaseDriver
                 }
             }
         }
+
 
         $res = $data;
     }
@@ -405,29 +414,13 @@ class planning_PlanningReportImpl extends frame_BaseDriver
     	$RichtextType = cls::get('type_Richtext');
         $Date = cls::get('type_Date');
 		$Int = cls::get('type_Int');
-		
-		if ($rec->quantityDelivered && $rec->quantity) {
-			$toDeliver = abs($rec->quantityDelivered - $rec->quantity);
-		} elseif ($rec->quantityDelivered !== 0 || $rec->quantityDelivered == NULL) {
-			$toDeliver = $rec->quantity;
-		} else {
-			$toDeliver = '';
-		}
-		
-		if ($rec->quantityProduced && $rec->quantityJob) {
-			$toProduced = abs($rec->quantityProduced - $rec->quantityJob);
-		} elseif ($rec->quantityProduced !== 0 || $rec->quantityProduced == NULL) {
-			$toProduced = $rec->quantityJob;
-		} else {
-			$toProduced = '';
-		}
 
         $row = new stdClass();
         
         $row->id = cat_Products::getShortHyperlink($rec->id);
     	$row->quantity = $Int->toVerbal($rec->quantity);
     	$row->quantityDelivered = $Int->toVerbal($rec->quantityDelivered);
-    	$row->quantityToDeliver = $Int->toVerbal($toDeliver);
+    	$row->quantityToDeliver = $Int->toVerbal($rec->quantityToDelivered);
     	
     	$row->dateSale = $Date->toVerbal($rec->dateSale);
     		
@@ -439,7 +432,7 @@ class planning_PlanningReportImpl extends frame_BaseDriver
     		
     	$row->quantityJob = $Int->toVerbal($rec->quantityJob);
     	$row->quantityProduced = $Int->toVerbal($rec->quantityProduced);
-    	$row->quantityToProduced = $Int->toVerbal($toProduced);
+    	$row->quantityToProduced = $Int->toVerbal($rec->quantityToProduced);
     	$row->date = $Date->toVerbal($rec->date);
     		
     	for($j = 0; $j <= count($rec->jobs)-1; $j++) { 
