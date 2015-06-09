@@ -151,8 +151,19 @@ function sidebarAccordeonActions() {
 	
 	$("#nav-panel li div").click( function() {
 		$(this).parent().toggleClass('open');
-		$(this).parent().find('ul').slideToggle();
-		
+		$(this).parent().find('ul').slideToggle(
+            function () {
+                if($(this).parent().hasClass('open')) {
+                    var scrollTo = $(this).parent().find('ul li:last');
+                    if (scrollTo.offset().top > $(window).height()) {
+                        var position = $(this).parent().offset().top - $(window).height() + $(this).parent().outerHeight()
+                        $('#nav-panel').animate({
+                            scrollTop:  position
+                        }, 500)
+                    }
+                }
+            }
+        );
 		setMenuCookie();
 	});
 }
