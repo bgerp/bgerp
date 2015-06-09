@@ -374,8 +374,10 @@ class currency_Currencies extends core_Master {
      */
     public function getDefaultCost($id)
     {
+    	$today = dt::now();
     	$code = static::getCodeById($id);
+    	$toCode = acc_Periods::getBaseCurrencyCode($today);
     	
-    	return currency_CurrencyRates::getRate($today, $code);
+    	return currency_CurrencyRates::getRate($today, $code, $toCode);
     }
 }
