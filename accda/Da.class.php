@@ -148,7 +148,7 @@ class accda_Da extends core_Master
         
         $this->FLD('info', 'text', 'caption=Описание,column=none,width=400px');
         $this->FLD('origin', 'text', 'caption=Произход,column=none,width=400px');
-        $this->FLD('location', 'key(mvc=crm_Locations, select=title)', 'caption=Локация,column=none,width=400px');
+        $this->FLD('location', 'key(mvc=crm_Locations, select=title,allowEmpty)', 'caption=Локация,column=none,width=400px');
         $this->FLD('amortNorm', 'percent', 'caption=ГАН,hint=Годишна амортизационна норма,notNull');
         
         $this->setDbUnique('num');
@@ -192,6 +192,15 @@ class accda_Da extends core_Master
     		}
     		
     		$form->setField('accountId', 'input,mandatory');
+    	}
+    	
+    	// Показваме само локациите на нашата фирма за ибзор
+    	$ownCompany = crm_Companies::fetchOurCompany();
+    	$ourLocations = crm_Locations::getContragentOptions('crm_Companies', $ownCompany->id);
+    	if(count($ourLocations)){
+    		$form->setOptions('location', array('' => '') + $ourLocations);
+    	} else {
+    		$form->setReadOnly('location');
     	}
     }
     
