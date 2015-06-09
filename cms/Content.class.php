@@ -341,11 +341,12 @@ class cms_Content extends core_Manager
     /**
      * Връща кратко URL отговарящо на текущото
      */
-    static function getShortUrl()
+    static function getShortUrl($cUrl = NULL)
     {
-   
-        $cUrl = getCurrentUrl(); 
-    
+        
+        if(!$cUrl) {
+            $cUrl = getCurrentUrl();
+        }    
    
         // За да не влезе в безкраен цикъл, да не вика себе си
         if (strtolower($cUrl['Ctr']) == 'cms_content') {

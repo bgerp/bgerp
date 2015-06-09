@@ -98,6 +98,7 @@ class acc_Setup extends core_ProtoSetup
     	'acc_BalanceRepairs',
     	'acc_BalanceRepairDetails',
     	'acc_BalanceTransfers',
+    	'acc_AllocatedExpenses',
         'migrate::removeYearInterfAndItem',
         'migrate::updateItemsNum1',
     );
@@ -184,7 +185,8 @@ class acc_Setup extends core_ProtoSetup
      */
     var $defClasses = "acc_ReportDetails, acc_BalanceReportImpl, acc_BalanceHistory, acc_HistoryReportImpl, acc_PeriodHistoryReportImpl,
     					acc_CorespondingReportImpl,acc_SaleArticlesReport,acc_SaleContractorsReport,acc_OweProvidersReport,
-    					acc_ProfitArticlesReport,acc_ProfitContractorsReport,acc_MovementContractorsReport,acc_TakingCustomersReport";
+    					acc_ProfitArticlesReport,acc_ProfitContractorsReport,acc_MovementContractorsReport,acc_TakingCustomersReport,
+    					acc_ManufacturedProductsReport,acc_PurchasedProductsReport";
     
     
     /**
@@ -248,8 +250,14 @@ class acc_Setup extends core_ProtoSetup
             core_Interfaces::delete($oldIntRec->id);
         }
         
+        try {
+            $oldYearManId = core_Classes::getId('acc_Years');
+        } catch (core_exception_Expect $e) {
+            // Възможно е да няма такъв запис
+        }
+        
         // Изтриваме и перата за години със стария меджър 'години'
-        if($oldYearManId = core_Classes::getId('acc_Years')){
+        if($oldYearManId) {
             if(acc_Items::fetch("#classId = '{$oldYearManId}'")){
                 acc_Items::delete("#classId = '{$oldYearManId}'");
             }

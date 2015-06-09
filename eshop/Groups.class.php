@@ -228,13 +228,21 @@ class eshop_Groups extends core_Master
         
         cms_Content::setCurrent($data->menuId);
         
-        $this->prepareNavigation($data);
-        $this->prepareAllGroups($data);
-        
         $layout = $this->getLayout();
-        $layout->append(cms_Articles::renderNavigation($data), 'NAVIGATION');
-        $layout->append($this->renderAllGroups($data), 'PAGE_CONTENT');
-        
+
+        if(self::mustShowSideNavigation()) {
+            // Ако имаме поне 4-ри групи продукти
+            $this->prepareNavigation($data);
+            $this->prepareAllGroups($data);
+            
+            $layout->append(cms_Articles::renderNavigation($data), 'NAVIGATION');
+            $layout->append($this->renderAllGroups($data), 'PAGE_CONTENT');
+        } else {
+            eshop_Products::prepareAllProducts($data);
+            $layout->append(eshop_Products::renderAllProducts($data), 'PAGE_CONTENT');
+        }
+
+
         // Добавя канонично URL
         $url = toUrl($this->getUrlByMenuId($data->menuId), 'absolute');
         $layout->append("\n<link rel=\"canonical\" href=\"{$url}\"/>", 'HEAD');
@@ -252,6 +260,23 @@ class eshop_Groups extends core_Master
         }
         
         return $layout;
+    }
+
+
+    /**
+     * Връща дали е необходимо да се показва навигация на групите
+     */
+    private static function mustShowSideNavigation()
+    {
+        $conf = core_Packs::getConfig('eshop');
+
+        $menuId =  Mode::get('cMenuId');
+
+        if(!$menuId) {
+            $menuId = cms_Content::getDefaultMenuId('eshop_Groups');
+        }
+
+        return self::count("#state = 'active' AND #menuId = $menuId") >= $conf->ESHOP_MIN_GROUPS_FOR_NAVIGATION;
     }
     
     
@@ -408,10 +433,14 @@ class eshop_Groups extends core_Master
     {
         Mode::set('wrapper', 'cms_page_External');
         
-        if(Mode::is('screenMode', 'narrow')) {
-            $layout = "eshop/tpl/ProductGroupsNarrow.shtml";
+        if(self::mustShowSideNavigation()) {
+            if(Mode::is('screenMode', 'narrow')) {
+                $layout = "eshop/tpl/ProductGroupsNarrow.shtml";
+            } else {
+                $layout =  "eshop/tpl/ProductGroups.shtml";
+            }
         } else {
-            $layout =  "eshop/tpl/ProductGroups.shtml";
+            $layout = "eshop/tpl/AllProducts.shtml";
         }
         
         Mode::set('cmsLayout',  $layout);

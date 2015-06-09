@@ -21,6 +21,12 @@ class dec_Declarations extends core_Master
     
     
     /**
+     * Флаг, който указва, че документа е партньорски
+     */
+    public $visibleForPartners = TRUE;
+    
+    
+    /**
      * Заглавие
      */
     var $title = "Декларации за съответствие";
@@ -420,8 +426,23 @@ class dec_Declarations extends core_Master
                     $requiredRoles = 'no_one';
                 } 
                 break;
+            case 'add':
+            	if(empty($rec->originId)){
+            		$requiredRoles = 'no_one';
+            	} else {
+            		$origin = doc_Containers::getDocument($rec->originId);
+            		if(!($origin->getInstance() instanceof sales_Invoices)){
+            			$requiredRoles = 'no_one';
+            		} else {
+            			$originRec = $origin->rec();
+            			if($originRec->state != 'active' || $originRec->type != 'invoice'){
+            				$requiredRoles = 'no_one';
+            			}
+            		}
+            	}
     	}
     }
+    
     
     /**
      * Добавя след таблицата
@@ -471,26 +492,6 @@ class dec_Declarations extends core_Master
     public static function canAddToFolder($folderId)
     {
         return FALSE;
-    }
-    
-    
-    /**
-     * Дали документа може да се добави към нишката
-     * @param int $threadId key(mvc=doc_Threads)
-     * @return boolean
-     */
-    public static function canAddToThread($threadId)
-    {
-    	// Ако няма ориджин в урл-то, документа не може да се добави към нишката
-    	$originId = Request::get('originId');
-    	if(empty($originId)) return FALSE;
-    	
-    	// Може да се добави само възоснова на фактура от същия тред
-    	if(sales_Invoices::fetch("#containerId = {$originId} AND #threadId = {$threadId} AND #state = 'active' AND #type = 'invoice'")){
-    		return TRUE;
-    	}
-    	
-    	return FALSE;
     }
     
     

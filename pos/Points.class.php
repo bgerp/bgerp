@@ -66,6 +66,12 @@ class pos_Points extends core_Master {
     
     
     /**
+     * Кой може да пише
+     */
+    var $canCreatenewfolder = 'ceo, pos';
+    
+    
+    /**
 	 * Кой може да го разглежда?
 	 */
 	var $canList = 'ceo, pos';

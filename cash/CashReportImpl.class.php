@@ -26,7 +26,7 @@ class cash_CashReportImpl extends acc_PeriodHistoryReportImpl
     /**
      * Заглавие
      */
-    public $title = 'Финанси»Обороти каса';
+    public $title = 'Финанси » Обороти каса';
     
     
     /**

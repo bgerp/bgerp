@@ -28,6 +28,12 @@ class store_ConsignmentProtocols extends core_Master
 
 
     /**
+     * Флаг, който указва, че документа е партньорски
+     */
+    public $visibleForPartners = TRUE;
+    
+    
+    /**
      * Абревиатура
      */
     public $abbr = 'Cpt';
@@ -42,8 +48,8 @@ class store_ConsignmentProtocols extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, store_Wrapper, doc_plg_BusinessDoc,store_plg_Document,plg_Sorting, acc_plg_Contable, cond_plg_DefaultValues,
-                    doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, doc_plg_TplManager, plg_Search, bgerp_plg_Blank, doc_plg_HidePrices';
+    public $loadList = 'plg_RowTools, store_Wrapper, doc_plg_BusinessDoc,plg_Sorting, acc_plg_Contable, cond_plg_DefaultValues,
+                    doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, trans_plg_LinesPlugin, doc_plg_TplManager, plg_Search, bgerp_plg_Blank, doc_plg_HidePrices';
 
     
     /**
@@ -74,6 +80,12 @@ class store_ConsignmentProtocols extends core_Master
      * Кой има право да добавя?
      */
     public $canAdd = 'ceo,store';
+    
+    
+    /**
+     * Кой има право да променя?
+     */
+    public $canChangeline = 'ceo,store';
     
     
     /**
@@ -188,9 +200,11 @@ class store_ConsignmentProtocols extends core_Master
     			$dRec2->where("#protocolId = {$rec->id}");
     			 
     			$measuresReceived = $mvc->getMeasures($dRec2->fetchAll());
+    			$weight =  $measuresSend->weight + $measuresReceived->weight;
+    			$volume =  $measuresSend->volume + $measuresReceived->volume;
     			
-    			$rec->weight = $measuresSend->weight + $measuresReceived->weight;
-    			$rec->volume = $measuresSend->volume + $measuresReceived->volume;
+    			$rec->weight = $weight;
+    			$rec->volume = $volume;
     			
     			$mvc->save($rec);
     		}
@@ -215,6 +229,9 @@ class store_ConsignmentProtocols extends core_Master
     		if($rec->lineId){
     			$row->lineId = trans_Lines::getHyperLink($rec->lineId);
     		}
+    		
+    		$row->weight = ($row->weightInput) ? $row->weightInput : $row->weight;
+    		$row->volume = ($row->volumeInput) ? $row->volumeInput : $row->volume;
     	}
     }
     
@@ -443,11 +460,17 @@ class store_ConsignmentProtocols extends core_Master
     	
     	$count = 1;
     	while($rec = $query->fetch()){
-    		$row = new stdClass();
-    		$row->storeId = store_Stores::getHyperlink($rec->storeId);
-    		$row->docId = $this->getDocLink($rec->id);
-    		$row->weight = $this->getFieldType('weight')->toVerbal($rec->weight);
-    		$row->volume = $this->getFieldType('volume')->toVerbal($rec->volume);
+    		
+    		$rec->weight = ($rec->weightInput) ? $rec->weightInput : $rec->weight;
+    		$rec->volume = ($rec->volumeInput) ? $rec->volumeInput : $rec->volume;
+    		
+    		$data->masterData->weight += $rec->weight;
+    		$data->masterData->volume += $rec->volume;
+    		$data->masterData->palletCount += $rec->palletCountInput;
+    		
+    		$row = $this->recToVerbal($rec, 'storeId,weight,volume,palletCountInput');
+    		
+    		$row->docId = $this->getLink($rec->id, 0);
     		
     		$row->rowNumb = cls::get('type_Int')->toVerbal($count);
     		$row->ROW_ATTR['class'] = "state-{$rec->state}";
@@ -464,7 +487,7 @@ class store_ConsignmentProtocols extends core_Master
     {
     	if(count($data->protocols)){
     		$table = cls::get('core_TableView');
-    		$fields = "rowNumb=№,docId=Документ,storeId=Склад,weight=Тегло,volume=Обем,address=@Адрес";
+    		$fields = "rowNumb=№,docId=Документ,storeId=Склад,weight=Тегло,volume=Обем,palletCountInput=Палети,address=@Адрес";
     		 
     		return $table->get($data->protocols, $fields);
     	}

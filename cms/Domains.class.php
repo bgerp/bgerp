@@ -210,7 +210,7 @@ class cms_Domains extends core_Embedder
             $domainRecs = self::findPublicDomainRecs();
                 
             $cmsLangs = self::getCmsLangs($domainRecs);
-                
+            
             // Определяме езика, ако не е зададен или е зададен неправилно
             if(!$lang || !$cmsLangs[$lang]) {
                 $lang = self::detectLang($cmsLangs);
@@ -269,19 +269,18 @@ class cms_Domains extends core_Embedder
         return $cmsLangs;
     }
 
-
-
+ 
     /**
      * Определя най-добрия език за този потребител за тази сесия
      */
     static function detectLang($cmsLangs)
     {   
         // Ако имаме само един език - избираме него
-        if(count($langArr) == 1) {
+        if(is_array($cmsLangs) && count($cmsLangs) == 1) {
 
-            return key($langArr);
+            return key($cmsLangs);
         }
-
+        
         // Парсираме Accept-Language съгласно:
         // http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.4
         preg_match_all(
@@ -291,7 +290,7 @@ class cms_Domains extends core_Embedder
            '(;\s*q\s*=\s*((1(\.0{0,3}))|(0(\.[0-9]{0,3}))))?/i',
            $_SERVER['HTTP_ACCEPT_LANGUAGE'],
            $langParse);
-
+        
         $langs = $langParse[1]; // M1 - First part of language
         $quals = $langParse[4]; // M4 - Quality Factor
  
@@ -308,14 +307,17 @@ class cms_Domains extends core_Embedder
            $langArr[$newLang] = (isset($langArr[$newLang])) ?
               max($langArr[$newLang], $newQual) : $newQual;
         }
-      
-        $countryCode2 = drdata_IpToCountry::get();
-
-        $langsInCountry = arr::make(drdata_Countries::fetchField("#letterCode2 = '{$countryCode2}'", 'languages'));
         
-        if(count($langsInCountry)) {
-            foreach($langsInCountry as $lg) {
-                $langArr[$lg]++;
+        if($countryCode2 = drdata_IpToCountry::get()) {
+
+            $langsInCountry = arr::make(drdata_Countries::fetchField("#letterCode2 = '{$countryCode2}'", 'languages'));
+            
+            if(count($langsInCountry)) {
+                foreach($langsInCountry as $lg) {
+                    $langArr[$lg]++;
+                }
+            } else {
+                setIfNot($langArr['en'], 0.01);
             }
         }
         
@@ -329,7 +331,7 @@ class cms_Domains extends core_Embedder
         // sort list based on value
         // langArr will now be an array like: array('EN' => 1, 'ES' => 0.5)
         arsort($langArr, SORT_NUMERIC);
- 
+        
         foreach($langArr as $lg => $q) {
             if($cmsLangs[$lg]) {               
 

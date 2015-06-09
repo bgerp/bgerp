@@ -22,6 +22,12 @@ class cat_Products extends core_Embedder {
 	public $innerObjectInterface = 'cat_ProductDriverIntf';
 	
 	
+	/**
+	 * Флаг, който указва, че документа е партньорски
+	 */
+	public $visibleForPartners = TRUE;
+	
+	
     /**
      * Интерфейси, поддържани от този мениджър
      */
@@ -38,7 +44,7 @@ class cat_Products extends core_Embedder {
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, plg_SaveAndNew, plg_Clone, doc_DocumentPlg, plg_PrevAndNext, acc_plg_Registry, plg_State,
-                     cat_Wrapper, plg_Sorting, doc_ActivatePlg, doc_plg_BusinessDoc, cond_plg_DefaultValues, plg_Printing, plg_Select, plg_Search, bgerp_plg_Import';
+                     cat_Wrapper, plg_Sorting, doc_ActivatePlg, doc_plg_Close, doc_plg_BusinessDoc, cond_plg_DefaultValues, plg_Printing, plg_Select, plg_Search, bgerp_plg_Import';
     
     
     /**
@@ -125,13 +131,19 @@ class cat_Products extends core_Embedder {
     /**
      * Кой може да добавя?
      */
-    public $canAdd = 'cat,ceo';
+    public $canAdd = 'cat,ceo,sales';
     
     
     /**
      * Кой може да добавя?
      */
     public $canClose = 'cat,ceo';
+    
+    
+    /**
+     * Можели да се редактират активирани документи
+     */
+    public $canEditActivated = TRUE;
     
     
     /**
@@ -185,7 +197,7 @@ class cat_Products extends core_Embedder {
 	/**
 	 * Кой има достъп до часния изглед на артикула
 	 */
-	public $canPrivatesingle = 'powerUser';
+	public $canPrivatesingle = 'user';
 	
 	
 	/**
@@ -524,11 +536,13 @@ class cat_Products extends core_Embedder {
                 'features' => array()
             );
             
-            if($rec->groups){
-            	$groups = strip_tags($self->getVerbal($rec, 'groups'));
-            	$result->features = $result->features + arr::make($groups, TRUE);
-            }
+        	// Добавяме свойствата от групите, ако има такива
+        	$groupFeatures = cat_Groups::getFeaturesArray($rec->groups);
+        	if(count($groupFeatures)){
+        		$result->features += $groupFeatures;
+        	}
            
+        	// Добавяме и свойствата от драйвера, ако има такива
             $result->features = array_merge($Driver->getFeatures(), $result->features);
         }
         
@@ -969,7 +983,7 @@ class cat_Products extends core_Embedder {
     	if(!$volume){
     		$Driver = $this->getDriver($productId);
     		$params = $Driver->getParams();
-    		$weight = $params['transportVolume'];
+    		$volume = $params['transportVolume'];
     	}
     	
     	return $volume;
@@ -1025,13 +1039,6 @@ class cat_Products extends core_Embedder {
     	if($fields['-single']){
     		if(isset($rec->originId)){
     			$row->originId = doc_Containers::getDocument($rec->originId)->getLink(0);
-    		}
-    	}
-    	
-    	if(empty($fields['-single'])){
-    		// Ако потребителя има достъп до орязания сингъл(тоест да няма достъп до обикновения сингъл), подменяме линка да води към него
-    		if($mvc->haveRightFor('privateSingle', $rec)){
-    			$row->name = ht::createLink($mvc->getVerbal($rec, 'name'), array($mvc, 'privateSingle', $rec->id, 'ret_url' => TRUE), FALSE, "ef_icon={$mvc->singleIcon}");
     		}
     	}
     }
@@ -1245,7 +1252,11 @@ class cat_Products extends core_Embedder {
     {
     	$data->toolbar->removeBtn('btnAdd');
     	if($mvc->haveRightFor('add')){
-    		 $data->toolbar->addBtn('Нов запис', array($mvc, 'add', 'innerClass' => cat_GeneralProductDriver::getClassId()), 'order=1', 'ef_icon = img/16/shopping.png,title=Създаване на нова стока');
+    		 $data->toolbar->addBtn('Нов запис', array($mvc, 'add', 'innerClass' => cat_GeneralProductDriver::getClassId()), 'order=1,id=btnAdd', 'ef_icon = img/16/shopping.png,title=Създаване на нова стока');
+    	}
+    	
+    	if(!haveRole('ceo,cat')){
+    		$data->toolbar->removeBtn('btnAdd');
     	}
     }
     
@@ -1320,20 +1331,22 @@ class cat_Products extends core_Embedder {
      */
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
     {
-    	if($action == 'edit' && isset($rec)){
-    		if($rec->state == 'active' && doc_Threads::haveRightFor('single', $rec->threadId)){
+    	if($action == 'add'){
+    		if(isset($rec)){
+    			if(isset($rec->originId)){
+    				$document = doc_Containers::getDocument($rec->originId);
+    				if(!$document->haveInterface('marketing_InquiryEmbedderIntf')){
+    					$res = 'no_one';
+    				}
+    			}
     			
-    			// Можем да активираме активни артикули
-    			//@TODO ХАК!
-    			$res = $mvc->getRequiredRoles('edit');
-    		}
-    	}
-    	
-    	if($action == 'add' && isset($rec)){
-    		if(isset($rec->originId)){
-    			$document = doc_Containers::getDocument($rec->originId);
-    			if(!$document->haveInterface('marketing_InquiryEmbedderIntf')){
-    				$res = 'no_one';
+    			if(isset($rec->folderId)){
+    				$Cover = doc_Folders::getCover($rec->folderId);
+    				if(!$Cover->haveInterface('doc_ContragentDataIntf')){
+    					if(!haveRole('ceo,cat')){
+    						$res = 'no_one';
+    					}
+    				}
     			}
     		}
     	}
@@ -1347,7 +1360,7 @@ class cat_Products extends core_Embedder {
     	
     	// Ако потребителя няма достъп до папката, той няма достъп и до сингъла
     	// така дори създателя на артикула няма достъп до сингъла му, ако няма достъп до папката
-    	if(($action == 'single' || $action == 'close') && isset($rec->threadId)){
+    	if($action == 'single' && isset($rec->threadId)){
     		if(!doc_Threads::haveRightFor('single', $rec->threadId)){
     			$res = 'no_one';
     		}
@@ -1401,14 +1414,19 @@ class cat_Products extends core_Embedder {
     			$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'add', 'productId' => $data->rec->id, 'originId' => $data->rec->containerId, 'ret_url' => TRUE), 'ef_icon = img/16/article.png,title=Създаване на нова технологична рецепта');
     		}
     	}
-    	
-		if($mvc->haveRightFor('close', $data->rec)){
-			if($data->rec->state == 'closed'){
-				$data->toolbar->addBtn("Активиране", array($mvc, 'changeState', $data->rec->id, 'ret_url' => TRUE), 'ef_icon = img/16/lightbulb.png,title=Активиранe на артикула,warning=Сигурнили сте че искате да активирате артикула, това ще му активира перото');
-			} elseif($data->rec->state == 'active'){
-				$data->toolbar->addBtn("Приключване", array($mvc, 'changeState', $data->rec->id, 'ret_url' => TRUE), 'ef_icon = img/16/lightbulb_off.png,title=Приключване на артикула,warning=Сигурнили сте че искате да приключите артикула, това ще му затвори перото');
-			}
-		}
+    }
+    
+    
+    /**
+     * Променяме шаблона в зависимост от мода
+     */
+    public static function on_BeforeRenderSingleLayout($mvc, &$tpl, $data)
+    {
+    	// Ако потребителя е контрактор не показваме детайлите
+    	if(core_Users::isContractor()){
+    		$data->noDetails = TRUE;
+    		unset($data->row->meta);
+    	}
     }
     
     
@@ -1420,26 +1438,6 @@ class cat_Products extends core_Embedder {
     	$rec = $this->fetchRec($id);
     	
     	return cat_ProductTplCache::cacheTpl($rec->id, $time, 'internal')->getContent();
-    }
-    
-    
-    /**
-     * Затваря/отваря артикула и перото му
-     */
-    public function act_changeState()
-    {
-    	$this->requireRightFor('close');
-    	expect($id = Request::get('id', 'int'));
-    	expect($rec = $this->fetch($id));
-    	$this->requireRightFor('close', $rec);
-    	
-    	$state = ($rec->state == 'closed') ? 'active' : 'closed';
-    	$rec->exState = $rec->state;
-    	$rec->state = $state;
-    	 
-    	$this->save($rec, 'state');
-    	
-    	return Redirect(array($this, 'single', $rec->id));
     }
     
     
@@ -1578,43 +1576,26 @@ class cat_Products extends core_Embedder {
     }
     
     
-	/**
-     * Създава хиперлинк към единичния изглед
-     * 
+    /**
+     * Връща урл-то към еденичния изглед на обекта, ако потребителя има
+     * права за сингъла. Ако няма права връща празен масив
+     *
      * @param int $id - ид на запис
-     * @param boolean $icon - дали линка да е с икона
-     * @param boolean $short - дали линка да е само стрелкичка
-     * @return string|core_ET - линк към единичния изглед или името ако потребителя няма права
+     * @return array $url - масив с урл-то на еденичния изглед
      */
-    public static function getHyperlink($id, $icon = FALSE, $short = FALSE)
+    public static function getSingleUrlArray($id)
     {
     	$me = cls::get(get_called_class());
-    
-    	$title = $me->getTitleById($id);
-    	
-    	$attr = array();
-    	if($icon === TRUE) {
-    		$attr['ef_icon'] = $me->singleIcon;
-    	} elseif($icon) {
-    		$attr['ef_icon'] = $icon;
-    	}
-    	$attr['class'] = 'specialLink';
-    	
-    	if(!$id) {
-    		return "<span style='color:red;'>&nbsp;- - -</span>";
-    	}
-    
-    	$functionName = ($short == TRUE) ? 'createLinkRef' : 'createLink';
-    	
-    	// Ако потребителя има достъп до единичния изглед, правим заглавието линк
+    	 
+    	$url = array();
+    	 
+    	// Ако потребителя има права за еденичния изглед, подготвяме линка
     	if ($me->haveRightFor('single', $id)) {
-    		$title = ht::$functionName($title, array($me, 'single', $id), NULL, $attr);
+    		$url = array($me, 'single', $id, 'ret_url' => TRUE);
     	} elseif($me->haveRightFor('privateSingle', $id)){
-    		
-    		// Ако нямаме достъп до сингъла, правим линк към ограничения
-    		$title = ht::$functionName($title, array($me, 'privateSingle', $id), NULL, $attr);
+    		$url = array($me, 'privateSingle', $id, 'ret_url' => TRUE);
     	}
-   
-    	return $title;
+    	 
+    	return $url;
     }
 }

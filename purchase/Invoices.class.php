@@ -151,7 +151,7 @@ class purchase_Invoices extends deals_InvoiceMaster
     {
     	parent::setInvoiceFields($this);
     	
-    	$this->FLD('number', 'bigint', 'caption=Номер, export=Csv,mandatory,hint=Номера с който идва фактурата,after=place');
+    	$this->FLD('number', 'bigint(21)', 'caption=Номер, export=Csv,mandatory,hint=Номера с който идва фактурата,after=place');
     	$this->FLD('fileHnd', 'fileman_FileType(bucket=Documents)', 'caption=Документ,after=number');
     	
     	$this->FLD('accountId', 'key(mvc=bank_Accounts,select=iban, allowEmpty)', 'caption=Плащане->Банкова с-ка, export=Csv,after=paymentMethodId');

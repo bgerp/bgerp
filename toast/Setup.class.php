@@ -41,18 +41,6 @@ class toast_Setup extends core_ProtoSetup
     
     
     /**
-     * Пътища до CSS файлове
-     */
-    var $commonCSS = "toast/[#TOAST_MESSAGE_VERSION#]/resources/css/jquery.toastmessage.css";
-    
-    
-    /**
-     * Пътища до JS файлове
-     */
-    var $commonJS = "toast/[#TOAST_MESSAGE_VERSION#]/javascript/jquery.toastmessage.js";
-    
-    
-    /**
      * Инсталиране на пакета
      */
     function install()
@@ -66,6 +54,28 @@ class toast_Setup extends core_ProtoSetup
         $html .= $Plugins->installPlugin('Toast съобщения', 'toast_Toast', 'status_Messages', 'private');
         
         return $html;
+    }
+
+
+    /**
+     * Връща JS файлове, които са подходящи за компактиране
+     */
+    public function getCommonJs()
+    {
+        $conf = core_Packs::getConfig('toast');
+        
+        return 'toast/' . $conf->TOAST_MESSAGE_VERSION . '/javascript/jquery.toastmessage.js';
+    }
+    
+    
+    /**
+     * Връща JS файлове, които са подходящи за компактиране
+     */
+    public function getCommonCss()
+    {
+        $conf = core_Packs::getConfig('toast');
+        
+        return 'toast/' . $conf->TOAST_MESSAGE_VERSION . '/resources/css/jquery.toastmessage.css';
     }
 }
 

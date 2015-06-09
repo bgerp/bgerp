@@ -49,7 +49,7 @@ class doc_SharablePlg extends core_Plugin
             $rec = &$form->rec;
             
             // Обхождаме всички полета от модела, за да разберем кои са ричтекст
-            foreach ((array)$mvc->fields as $name=>$field) {
+            foreach ((array)$mvc->fields as $name => $field) {
                 if ($field->type instanceof type_Richtext) {
                     
                     if ($field->type->params['nickToLink'] == 'no') continue;

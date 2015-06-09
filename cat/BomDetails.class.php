@@ -115,7 +115,7 @@ class cat_BomDetails extends doc_Detail
     	$this->FLD('bomId', 'key(mvc=cat_Boms)', 'column=none,input=hidden,silent');
     	$this->FLD("resourceId", 'key(mvc=planning_Resources,select=title,allowEmpty)', 'caption=Ресурс,mandatory,silent,refreshForm');
     	$this->FLD('stageId', 'key(mvc=planning_Stages,allowEmpty,select=name)', 'caption=Етап');
-    	$this->FLD('type', 'enum(input=Влагане,pop=Отпадък)', 'caption=Действие,silent,removeAndRefreshForm=propQuantity');
+    	$this->FLD('type', 'enum(input=Влагане,pop=Отпадък)', 'caption=Действие,silent,input=hidden');
     	
     	$this->FLD("baseQuantity", 'double(Min=0)', 'caption=Количество->Начално,hint=Начално количество');
     	$this->FLD("propQuantity", 'double(Min=0)', 'caption=Количество->Пропорционално,hint=Пропорционално количество');
@@ -143,7 +143,9 @@ class cat_BomDetails extends doc_Detail
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
-    	 
+    	$typeCaption = ($form->rec->type == 'input') ? 'вложим' : 'отпаден';
+    	$form->title = "|Добавяне на|* {$typeCaption} |ресурс към|* <b>|{$mvc->Master->singleTitle}|* №{$form->rec->bomId}<b>";
+    	
     	$form->setDefault('type', 'input');
     	$quantity = $data->masterRec->quantity;
     	$originInfo = cat_Products::getProductInfo($data->masterRec->productId);
@@ -164,10 +166,6 @@ class cat_BomDetails extends doc_Detail
     {
     	$rec = &$form->rec;
     	
-    	if($rec->type == 'pop'){
-    		$form->setField('propQuantity', 'input=none');
-    	}
-    	
     	// Ако има избран ресурс, добавяме му мярката до полетата за количества
     	if(isset($rec->resourceId)){
     		if($uomId = planning_Resources::fetchField($rec->resourceId, 'measureId')){
@@ -181,8 +179,13 @@ class cat_BomDetails extends doc_Detail
     	// Проверяваме дали е въведено поне едно количество
     	if($form->isSubmitted()){
     		if($rec->type == 'pop'){
-    			if(!planning_Resources::fetchField($rec->resourceId, 'selfValue')){
-    				$form->setError('resourceId', 'Отпадният ресурс няма себестойност');
+    			$rType = planning_Resources::fetchField($rec->resourceId, 'type');
+    			if($rType != 'material'){
+    				$form->setError('resourceId,type', 'Отпадният ресурс трябва да е материал');
+    			} else {
+    				if(!planning_Resources::fetchField($rec->resourceId, 'selfValue')){
+    					$form->setError('resourceId', 'Отпадният ресурс няма себестойност');
+    				}
     			}
     		}
     		
@@ -219,7 +222,8 @@ class cat_BomDetails extends doc_Detail
     {
     	$data->toolbar->removeBtn('btnAdd');
     	if($mvc->haveRightFor('add', (object)array('bomId' => $data->masterId))){
-    		$data->toolbar->addBtn('Ресурс', array($mvc, 'add', 'bomId' => $data->masterId, 'ret_url' => TRUE), NULL, "title=Добавяне на ресурс към рецептата,ef_icon=img/16/star_2.png");
+    		$data->toolbar->addBtn('Ресурс', array($mvc, 'add', 'bomId' => $data->masterId, 'ret_url' => TRUE, 'type' => 'input'), NULL, "title=Добавяне на ресурс към рецептата,ef_icon=img/16/star_2.png");
+    		$data->toolbar->addBtn('Отпадък', array($mvc, 'add', 'bomId' => $data->masterId, 'ret_url' => TRUE, 'type' => 'pop'), NULL, "title=Добавяне на отпаден ресурс към рецептата,ef_icon=img/16/star_2.png");
     	}
     }
     

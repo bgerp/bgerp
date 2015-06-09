@@ -35,7 +35,7 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, plg_Created, store_Wrapper, plg_RowNumbering,Policy=purchase_PurchaseLastPricePolicy, 
-                        plg_AlignDecimals2, doc_plg_HidePrices, ReverseLastPricePolicy=sales_SalesLastPricePolicy, Policy=purchase_PurchaseLastPricePolicy';
+                        plg_AlignDecimals2, plg_Sorting, doc_plg_HidePrices, ReverseLastPricePolicy=sales_SalesLastPricePolicy, Policy=purchase_PurchaseLastPricePolicy';
     
     
     /**
@@ -101,8 +101,8 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
         parent::setDocumentFields($this);
         $this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка,after=productId');
         
-        $this->FLD('weight', 'cat_type_Weight', 'input=hidden,caption=Тегло');
-        $this->FLD('volume', 'cat_type_Volume', 'input=hidden,caption=Обем');
+        $this->FLD('weight', 'cat_type_Weight', 'input=none,caption=Тегло');
+        $this->FLD('volume', 'cat_type_Volume', 'input=none,caption=Обем');
     }
 
     
@@ -148,5 +148,15 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
     			}
     		}
     	}
+    }
+    
+    
+    /**
+     * Преди запис на продукт
+     */
+    public static function on_BeforeSave($mvc, &$id, $rec, $fields = NULL, $mode = NULL)
+    {
+    	$rec->weight = cls::get($rec->classId)->getWeight($rec->productId, $rec->packagingId);
+    	$rec->volume = cls::get($rec->classId)->getVolume($rec->productId, $rec->packagingId);
     }
 }

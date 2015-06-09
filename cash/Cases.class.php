@@ -53,6 +53,12 @@ class cash_Cases extends core_Master {
     
     
     /**
+     * Кои мастър роли имат достъп до корицата, дори да нямат достъп до папката
+     */
+    var $coverMasterRoles = 'ceo, cashMaster';
+    
+    
+    /**
      * Плъгини за зареждане
      */
     var $loadList = 'plg_RowTools, acc_plg_Registry, cash_Wrapper, plg_Current, doc_FolderPlg, plg_Created, plg_Rejected, plg_State';
@@ -90,6 +96,12 @@ class cash_Cases extends core_Master {
      * Кой може да пише
      */
     var $canRestore = 'ceo, cashMaster';
+    
+    
+    /**
+     * Кой може да пише
+     */
+    var $canCreatenewfolder = 'ceo, cash';
     
     
     /**

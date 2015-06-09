@@ -105,43 +105,53 @@ class cms_DefaultTheme extends core_ProtoInner {
         		$color = phpcolor_Adapter::changeColor($color, 'darken', 10);
         		$formSubcolor = phpcolor_Adapter::changeColor($color, 'lighten', 5);
         	}
-        	
+
         	// цветове на формите в зависимост от основния цвят
         	$css .= "\n    .vertical form[method=post] input[type=submit], form[method=post] input:first-child[type=submit] {background-color:#{$color} !important; border: 1px solid #{$formcolor} !important}";
         	$css .= "\n    .vertical .formTitle {background-color:#{$color} !important; border-color:#{$formcolor}}";
         	$css .= "\n    .vertical .formGroup {background-color:#{$formSubcolor} !important;}";
         	
     	}
-    	
-    	// фон на страницата
-    	$css .= "\n    body {background-color:#{$bgcolor};}";
-    	
+
+    	if($bgcolor) {
+            // фон на страницата
+            $css .= "\n    body {background-color:#{$bgcolor};}";
+        }
+
     	// за активния цвят
     	if ($this->formRec->activeColor){
     		$css .= "\n    #cmsMenu a.selected, #cmsMenu a:focus, #cmsMenu a:hover {background-color:{$this->formRec->activeColor} !important;}";
     		
-    		$color = ltrim($this->formRec->activeColor, "#");
-    		$bordercolor = phpcolor_Adapter::changeColor($color, 'lighten', 50);
+    		$activeColor = ltrim($this->formRec->activeColor, "#");
+    		$bordercolor = phpcolor_Adapter::changeColor($activeColor, 'lighten', 30);
     		
     		// изчисления за фон и рамка на линковете
-    		if(phpcolor_Adapter::checkColor($color, 'dark')) {
+    		if(phpcolor_Adapter::checkColor($activeColor, 'dark')) {
     			$bgcolorActive = phpcolor_Adapter::changeColor($bordercolor, 'mix', 1, '#fff');
     			$css .= "\n    #cmsMenu a.selected, #cmsMenu a:focus, #cmsMenu a:hover {color:#fff !important; text-shadow: 2px 2px 2px #000}";
+
+                // цвят на буквите от страничното меню
+                $fontcolor = phpcolor_Adapter::changeColor($activeColor, 'darken', 15);
+
     		} else {
-    			$bgcolorActive = phpcolor_Adapter::changeColor($bordercolor, 'darken', 10);
+                $css .= "\n    #cmsMenu a.selected, #cmsMenu a:focus, #cmsMenu a:hover {color:#333 !important; text-shadow: 2px 2px 2px #fff}";
+                $bgcolorActive = phpcolor_Adapter::changeColor($bordercolor, 'mix', 1, '#fff');
+
+                // цвят на буквите от страничното меню
+                $fontcolor = phpcolor_Adapter::changeColor($color, 'darken', 1);
     		}
-    		
-    		// цвят на буквите
-    		$fontcolor = phpcolor_Adapter::changeColor($color, 'darken', 15);
-    		
+
     		// ако след изчисленията не сме получили цвят за фон, пробваме да го изчислим по друг начин
     		if ($bgcolorActive == 'ffffff'){
-    			$bgcolorActive = phpcolor_Adapter::changeColor($color, 'lighten', 40); 
+    			$bgcolorActive = phpcolor_Adapter::changeColor($activeColor, 'lighten', 40);
+                if($bgcolorActive == 'ffffff') {
+                    $bgcolorActive = phpcolor_Adapter::changeColor($fontcolor, 'lighten', 70);
+                }
     		}
     		
     		// Цвятове за линковете и h2 заглавията
     		$css .= "\n    #cmsNavigation .nav_item a { color: #{$fontcolor};}";
-    		$css .= "\n    #cmsNavigation .nav_item a.sel_page {background-color: #{$bgcolorActive}; border: 1px solid #{$bordercolor}; color: #{$fontcolor};}";
+    		$css .= "\n    #cmsNavigation .sel_page a {background-color: #{$bgcolorActive}; border: 1px solid #{$bordercolor}; color: #{$fontcolor};}";
     		$css .= "\n    a:hover, .eshop-group-button:hover .eshop-group-button-title a {color: #{$fontcolor};}";
     		$css .= "\n    .richtext h2 {background-color:#{$bgcolorActive} !important; padding: 5px 10px; border: 1px solid #{$bordercolor};}";
     	}

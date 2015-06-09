@@ -61,7 +61,7 @@ class colab_Profiles extends core_Master
     /**
      * Кой има право да листва всички профили?
      */
-    var $canList = 'no_one';
+    //var $canList = 'contractor';
     
     
     /**

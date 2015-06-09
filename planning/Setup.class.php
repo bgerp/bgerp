@@ -54,6 +54,8 @@ class planning_Setup extends core_ProtoSetup
     		'planning_ConsumptionNoteDetails',
     		'planning_ProductionNotes',
     		'planning_ProductionNoteDetails',
+    		'planning_DirectProductionNote',
+    		'planning_DirectProductNoteDetails',
     		'migrate::moveJobs'
         );
 
@@ -70,12 +72,12 @@ class planning_Setup extends core_ProtoSetup
     var $menuItems = array(
             array(3.21, 'Производство', 'Планиране', 'planning_Resources', 'default', "planning, ceo"),
         );   
-   
-    
+
+
     /**
-     * Път до css файла
+     * Дефинирани класове, които имат интерфейси
      */
-//    var $commonCSS = 'planning/tpl/styles.css';
+    var $defClasses = "planning_PlanningReportImpl";
     
     
     /**

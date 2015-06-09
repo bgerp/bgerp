@@ -15,7 +15,7 @@
                     <td>
                         <div class='invoice-header'>
                             <div class='titleHolder'>
-                                <div class='invoiceTitle2'><span class='invType'>[#type#]</span></div>
+                                <div class='document-title' style="margin-bottom: 10px">[#type#]</div>
                                 <div class='title-subInfo'>|Номер|* <span class='subtitle-text'>[#number#]</span></div>
                                 <div class='title-subInfo'>|Дата|* <span class='subtitle-text'>[#date#]</span></div>
                                 <!--ET_BEGIN dealPlace--><div class='title-subInfo'>|Място|* <span class='subtitle-text'>[#dealPlace#]</span></div><!--ET_END dealPlace-->

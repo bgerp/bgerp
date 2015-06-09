@@ -78,7 +78,7 @@ class email_Returned extends core_Manager
         
         $ip = $mime->getSenderIp();
         
-        $isReturnedMail = log_Documents::returned($mid, $date, $ip);
+        $isReturnedMail = doclog_Documents::returned($mid, $date, $ip);
         
         if($isReturnedMail) {
             $rec = new stdClass();

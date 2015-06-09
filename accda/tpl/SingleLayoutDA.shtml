@@ -9,11 +9,10 @@
             <div class='docBgIcon' style='[#iconStyle#];'>[#singleTitle#] <b>[#ident#]</b> ([#state#])</div>
         </div>
         <!--ET_END header-->
-        <h3 class="centered">[#SingleTitle#]</h3>
-        <h3 class="centered">|П Р О Т О К О Л|* &nbsp; № [#id#] / [#inUseSince#]</h3>
+        <h3 class="centered"><span style='text-transform:uppercase;letter-spacing:5px'>|протокол|*</span> &nbsp; № [#id#] / [#valior#]</h3>
         <p class="centered">|За въвеждане в експлоатация на Дълготраен актив|*</p>
         <br>
-        <p>|Днес|*, [#inUseSince#]|г|*, |комисия в състав|*:</p>
+        <p>|Днес|*, [#valior#], |комисия в състав|*:</p>
         <p>1. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .</p>
         <p>2. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .</p>
         <p>3. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .</p>

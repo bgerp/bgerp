@@ -1150,5 +1150,117 @@ class core_Mvc extends core_FieldSet
             return FALSE;
         }
     }
+    
+    
+    /**
+     * Добавя emerg запис в logs_Data
+     * 
+     * @param string $action
+     * @param integer $objectId
+     * @param integer $time
+     */
+    protected static function logEmerg($action, $objectId = NULL, $time = NULL)
+    {
+        $className = get_called_class();
+        logs_Data::add('emerg', $action, $className, $objectId, $time);
+    }
+    
+    
+    /**
+     * Добавя alert запис в logs_Data
+     * 
+     * @param string $action
+     * @param integer $objectId
+     * @param integer $time
+     */
+    protected static function logAlert($action, $objectId = NULL, $time = NULL)
+    {
+        $className = get_called_class();
+        logs_Data::add('alert', $action, $className, $objectId, $time);
+    }
+    
+    
+    /**
+     * Добавя crit запис в logs_Data
+     * 
+     * @param string $action
+     * @param integer $objectId
+     * @param integer $time
+     */
+    protected static function logCrit($action, $objectId = NULL, $time = NULL)
+    {
+        $className = get_called_class();
+        logs_Data::add('crit', $action, $className, $objectId, $time);
+    }
+    
+    
+    /**
+     * Добавя err запис в logs_Data
+     * 
+     * @param string $action
+     * @param integer $objectId
+     * @param integer $time
+     */
+    protected static function logErr($action, $objectId = NULL, $time = NULL)
+    {
+        $className = get_called_class();
+        logs_Data::add('err', $action, $className, $objectId, $time);
+    }
+    
+    
+    /**
+     * Добавя warning запис в logs_Data
+     * 
+     * @param string $action
+     * @param integer $objectId
+     * @param integer $time
+     */
+    protected static function logWarning($action, $objectId = NULL, $time = NULL)
+    {
+        $className = get_called_class();
+        logs_Data::add('warning', $action, $className, $objectId, $time);
+    }
+    
+    
+    /**
+     * Добавя notice запис в logs_Data
+     * 
+     * @param string $action
+     * @param integer $objectId
+     * @param integer $time
+     */
+    protected static function logNotice($action, $objectId = NULL, $time = NULL)
+    {
+        $className = get_called_class();
+        logs_Data::add('notice', $action, $className, $objectId, $time);
+    }
+    
+    
+    /**
+     * Добавя info запис в logs_Data
+     * 
+     * @param string $action
+     * @param integer $objectId
+     * @param integer $time
+     */
+    protected static function logInfo($action, $objectId = NULL, $time = NULL)
+    {
+        $className = get_called_class();
+        logs_Data::add('info', $action, $className, $objectId, $time);
+    }
+    
+    
+    /**
+     * Добавя debug запис в logs_Data
+     * 
+     * @param string $action
+     * @param integer $objectId
+     * @param integer $time
+     */
+    protected static function logDebug($action, $objectId = NULL, $time = NULL)
+    {
+        $className = get_called_class();
+        logs_Data::add('debug', $action, $className, $objectId, $time);
+    }
 
 }

@@ -4,15 +4,6 @@
 
 
 /**
- * След зареждане на JQuery стартираме функцията
- */
-$(document).ready(function() {
-	startProcessing();
-	checkForButton();
-});
-
-
-/**
  * Брояч, за отчитане времето на бездействие
  */
 var idleTime;
@@ -31,15 +22,21 @@ var formIsShowed = false;
 
 
 /**
- * След колко време формата да може да се показва повторно
+ * Изчакване преди стартиране за показване в съответния хит, sec
  */
-var showAgainAfter = [#showAgainAfter#];
+var delayBeforeOpenInHit = [#delayBeforeOpenInHit#];
 
 
 /**
- * След колко време на бездействие да се покаже формата
+ * Изчакване преди показване, sec
  */
-var idleTimeForShow = [#idleTimeForShow#];
+var delayBeforeOpen = [#delayBeforeOpen#];
+
+
+/**
+ * Изчакване след затваряне, sec
+ */
+var delayAfterClose = [#delayAfterClose#];
 
 
 /**
@@ -47,120 +44,57 @@ var idleTimeForShow = [#idleTimeForShow#];
  */
 function startProcessing()
 {
-	// Ако има регистрация да не сработва
-	var isRegistered = getCookie('bulletinHaveReg');
-	if (isRegistered) return;
+	// Ако не трябва да се показва
+	var cookieVal = getCookie();
+	if (cookieVal == 'no') return;
 	
-	// Ако е показана скоро
-	var lastShow = getCookie('bulletinLastShowTime');
-	if (this.isShowed(lastShow)) return ;
+	var currentTime = getNowTimetamp();
 	
-	// Гледа за позицията на мишката
-	this.startWatchingPos();
+	if (!cookieVal || (cookieVal < (currentTime - delayAfterClose))) {
+		var nlst = currentTime + delayBeforeOpen;
+		setCookie(nlst, 365);
+	}
 	
-	// Следи за времето на бездействие
-	this.startWatchingTime();
+	setTimeout(function() {
+		// Гледа за позицията на мишката
+		this.startWatchingPos();
+		
+		// Стартира следенето на скролирането
+		this.startWatchingScroll();
+	}, delayBeforeOpenInHit * 1000);
 }
 
 
 /**
- * Стартира таймера за бездействие в съответния таб
+ *
  */
-function runIdleTimer()
+function checkTimeForShow()
 {
-    // Ако е бил стартиран преди, да не се изпълнява
-    if (typeof this.idleTime != 'undefined') return;
-    
-    var thisInst = this;
-    
-    // Добавяме ивенти за ресетване при действие
-    this.addEvent(document, 'mousemove', function() {
-    	thisInst.resetIdleTimer();
-    });
-    this.addEvent(document, 'keypress', function() {
-    	thisInst.resetIdleTimer();
-    });
-    
-    // Стартираме процеса
-    this.processIdleTimer();
-};
-
-
-/**
- * Стартира рекурсивен процес за определяне на времето за бездействие
- * и в зависимост от него определя дали да покаже формата
- */
-function processIdleTimer()
-{
-	// Няма нужда да се стартира брояча, ако формата вече е показана
-	if (this.formIsShowed) return;
+	var nlst = getCookie();
 	
-    var thisInst = this;
-    setTimeout(function() {
-    	try {
-    		thisInst.processIdleTimer();
-    	} catch(err) {
-    	    // Не се прави нищо
-    	}
-    }, 1000);
-    
-    if (this.idleTime >= idleTimeForShow) {
-    	this.showForm();
-    }
-    
-    // Увеличаваме брояча
-    this.increaseIdleTime();
-};
+	if (!nlst) return true;
+	
+	if (nlst == 'no') return false;
+	
+	var nowTimestamp = getNowTimetamp();
+	
+	if (nowTimestamp >= nlst) return true;
+	
+	return false;
+}
 
 
 /**
- * Увеличава времето на бездействие
+ *
  */
-function increaseIdleTime()
+function isGoodForShow()
 {
-    // Ако не е дефиниран преди
-    if (typeof this.idleTime == 'undefined') {
-        this.idleTime = 0;
-    } else {
-        this.idleTime++;
-    }
-    
-    if (typeof this.timer == 'undefined') {
-        this.timer = 0;
-    } else {
-        this.timer++;
-    }
-};
-
-
-/**
- * Нулира времето на бездействие
- */
-function resetIdleTimer() {
-    // При всяко извикване нулира времето на бездействие
-    this.idleTime = 0;
-};
-
-/**
- * Добавя ивент към съответния елемент
- * 
- * @param object elem - Към кой обект да се добави ивента
- * @param string event - Евента, който да слуша
- * @param string function - Функцията, която да се изпълни при ивента
- */
-function addEvent(elem, event, func) {
-    // Ако има съответната фунцкция
-    // Всички браузъри без IE<9
-    if (elem.addEventListener) {
-        // Абонираме ивента
-        elem.addEventListener(event, func, false);
-    } else if (elem.attachEvent) {
-        // За IE6, IE7 и IE8
-        elem.attachEvent("on" + event, func);
-    } else {
-        elem["on" + event] = func;
-    }
-};
+	if (this.formIsShowed) return false;
+	
+	if (!checkTimeForShow()) return false;
+	
+	return true;
+}
 
 
 /**
@@ -187,18 +121,11 @@ function startWatchingPos()
 	var maxPos = 10;
 	var minPos = 1;
 	
-	// След колко секунди да може да се стартира
-	var waitBeforeStart = [#waitBeforeStart#];
-	
 	var thisInst = this;
 	
 	$("body").mousemove(function(e) {
 		
-		// Ако формата е показана, да не се показва повторно
-		if (thisInst.formIsShowed) return;
-		
-		// Ако не е дошло времето за показване
-		if (thisInst.timer < waitBeforeStart) return;
+		if (!thisInst.isGoodForShow()) return;
 		
 		// Определяме очертанията на body и положението на мишката спрямо него
 		bodyTop = document.documentElement.scrollTop + document.body.scrollTop;
@@ -218,7 +145,7 @@ function startWatchingPos()
 		
 		// Ако се направи движение от долната част към горната част и се напуснат очертанията
 		if (isBeginExit && (prevPos > pos) && (pos <= minPos)) {
-			thisInst.showForm();
+			thisInst.loadShowFormWindow();
 		}
 		
 		prevPos = pos;
@@ -227,30 +154,39 @@ function startWatchingPos()
 
 
 /**
- * Стартира брояча за време
+ * Стартира следенето за скролиране
  */
-function startWatchingTime()
+function startWatchingScroll()
 {
-	runIdleTimer();
-}
-
-
-/**
- * Проверява дали формата е показана преди определно време
- * 
- * @param integer
- * 
- * @return boolean
- */
-function isShowed(lastShow)
-{
-	if (!lastShow) return;
-	
-	if (typeof lastShow == 'undefined') return;
-	
-	var diffFromLastShow = getNowTimetamp() - lastShow;
-	
-	if (this.showAgainAfter > diffFromLastShow) return true;
+	var bottom = false;
+	var top = false;
+	var middle = false;
+	var thisInst = this;
+    window.onscroll = function(e) {
+    	
+		if (!thisInst.isGoodForShow()) return;
+    	
+    	var height =  $(document).height() - $(window).height();
+    	var scrollPos = $(window).scrollTop();
+    	var tollerance = parseInt(height / 20); // 5% от размера
+    	
+    	// Дали е била в най-долната част или в границата на толеранса
+    	if ((height - tollerance) <= scrollPos) {
+    		bottom = true;
+    	}
+    	
+    	if (tollerance > scrollPos) {
+    		top = true;
+		}
+		
+		if (!top && !bottom) {
+			middle = true;
+		}
+    	
+    	if ((middle && (bottom || top)) || (bottom && top)) {
+    		thisInst.loadShowFormWindow();
+    	}
+    };
 }
 
 
@@ -261,23 +197,29 @@ function isShowed(lastShow)
  */
 function getNowTimetamp()
 {
-	var time = new Date().getTime();
-	time = Math.floor(time / 1000);
+	if (!Date.now) {
+	    Date.now = function() {
+	    	
+			return new Date().getTime(); 
+		}
+	}
 	
-	return time;
+	var currentTime = Math.floor(Date.now() / 1000);
+	
+	return currentTime;
 }
 
 
 /**
  * Показва формата
  */
-function showForm()
-{
-	setCookie('bulletinLastShowTime', getNowTimetamp(), 1000);
-	
+function bulletinFormOpen()
+{	
 	$("body").append(this.getForm());
-	
+		
 	$(".bulletinHolder").fadeIn(600);
+	
+	$("body").addClass('noscroll');
 	
 	onClickCatcher();
 	
@@ -286,29 +228,25 @@ function showForm()
 
 
 /**
- * Връща формата, която ще се показва
+ * Връща формата за бюлетин
  * 
  * @return string
  */
-function getForm()
+ function getForm()
 {
-	var form = "<div class='bulletinHolder' style='display:none'>" +
+	var form =  "<div class='bulletinHolder' style='display:none'>" +
 				"<div class='bulletinReg'>" +
 				"<a href='#' class='bulletinClose'>X</a>"+
 				"<div class='bulletinInner'>"+
-				"<h2>[#formTitle#]</h2>"+
-				"<div class='bulletinError' style='visibility: hidden; color: red;'>[#wrongMailText#]</div>"+
+				"<!--ET_BEGIN logoUp--><div class = 'centered'><img class='logImg' src='[#logoUp#]' alt='Logo'></div><!--ET_END logoUp-->[#formTitle#]" +
+                "<!--ET_BEGIN formTitleRight--><div><!--ET_BEGIN logoLeft--><img class='logImgLeft' src='[#logoLeft#]' alt='Logo'><!--ET_END logoLeft-->[#formTitleRight#]</div><!--ET_END formTitleRight-->" +
+				"<div class='clearfix21'></div>" +
 				"<form class='bulletinForm' action='[#formAction#]'>" +
                 "<div class='bulletinFilelds'>" +
-				"<div class='row bulletinEmailHolder'><span>[#emailName#]: </span><input type='text' id='bulletinEmail' name='email'></div>" ;
-	
-				if ('[#showAllForm#]' == 'yes') {
-					form += "<div class='row bulletinNamesHolder'><span>[#namesName#]:</span> <input type='text' id='bulletinNames' name='name'></div>" +
-					"<div class='row bulletinCompanyHolder'><span>[#companyName#]: </span><input type='text' id='bulletinCompany' name='company'></div>"
-				}
-                form += "</div><div class='clearfix21'></div> " ;
-
-				form += "<div class='centered'><input type='submit' name='submit' value='[#submitBtnVal#]' class='push_button'></div>"+
+				"<div class='rowBulletin'><span>[#emailName#] ([#weSaveIt#]): </span><input type='text' id='bulletinEmail' name='email' placeholder='example@domain.com'></div>" +
+				"<div class='bulletinError' style='visibility: hidden; color: red;'>[#wrongMailText#]</div>"+
+				"<input type='submit' name='submit' value='[#submitBtnVal#]' class='push_button'>" +
+                "</div><div class='clearfix21'></div> " +
 				"<div style='text-align: center;'><a href='#' class='bulletinCancel'>[#cancelBtnVal#]</a></div>"+
 				"</form>" +
 				"</div>" +
@@ -362,20 +300,8 @@ function onClickCatcher()
         }
         
         email = encodeURIComponent(email);
-        var namesElem = document.getElementById('bulletinNames');
-        var companyElem = document.getElementById('bulletinCompany');
-        var name = '';
-        var company = '';
         
-        if (namesElem) {
-        	name = encodeURIComponent(namesElem.value);
-        }
-        
-        if (companyElem) {
-        	company = encodeURIComponent(companyElem.value);
-        }
-        
-        url += '?email=' + email + '&name=' + name + '&company=' + company + '&r=' + Math.random();
+        url += '?email=' + email + '&r=' + Math.random();
         
         // Скриваме част от формата и показваме текст за успешна регистрация
         $('.bulletinInner').fadeOut('slow', function() {
@@ -384,14 +310,24 @@ function onClickCatcher()
 		    $('.bulletinInner').fadeIn("slow");
 		    hideAfterTimeout(7000, 800);
 		});
-        
-    	setCookie('bulletinHaveReg', true, 1000);
 	});
 	
 	// Скриваме формата при натискане на отказ или X
 	$(document.body).on('click', ".bulletinCancel, .bulletinClose", function(event){
 		stopBtnDefault(event);
 		hideAfterTimeout(0, 800);
+		$("body").removeClass('noscroll');
+		
+		if ((typeof showedTime == 'undefined') || (showedTime == 0)) {
+			showedTime = 1;
+		}
+		
+		var currentTime = getNowTimetamp();
+		var nlst = currentTime + (delayAfterClose * showedTime);
+		
+		if (getCookie() != 'no') {
+			setCookie(nlst, 365);
+		}
 	});
 }
 
@@ -439,9 +375,9 @@ function hideAfterTimeout(timeout, fadeOut)
  * @param string
  * @param integer
  */
-function setCookie(key, value, exdays)
+function setCookie(value, exdays)
 {
-	key = prepareCookieKey(key);
+	key = getCookieKey();
 	
     var expires = new Date();
     // 86400000 - 1 ден
@@ -457,9 +393,9 @@ function setCookie(key, value, exdays)
  * 
  * @return string
  */
-function getCookie(key)
+function getCookie()
 {
-	key = prepareCookieKey(key);
+	key = getCookieKey();
 	
 	key = escapeRegExp(key);
 	
@@ -470,17 +406,16 @@ function getCookie(key)
 
 
 /**
- * Подготвя ключа за "бисквитките"
+ * Връща ключа, който ще се използва за бисквитка
  * 
  * @param string
  * 
  * @return string
  */
-function prepareCookieKey(key)
+function getCookieKey()
 {
-	key = key + '_[#cookieKey#]';
 	
-	return key;
+	return '[#cookieKey#]';
 }
 
 
@@ -497,6 +432,7 @@ function escapeRegExp(str)
 	return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
 }
 
+
 /**
  * Проверява имейла далие е коректен
  * 
@@ -511,9 +447,58 @@ function validateEmail(email)
     return re.test(email);
 }
 
-function checkForButton(){
+
+/**
+ * Замества div'a със съответния бутон
+ */
+function checkForButton()
+{
     if($('.bulletin-link').length) {
-        $('.bulletin-link').append('<input type="submit" name="submit" value="Абонирай се за информация" class="push_button small" onclick="showForm()"/>')
+        $('.bulletin-link').append('<input type="submit" name="submit" value="[#showFormBtn#]" class="push_button small" onclick="bulletinFormOpen()"/>')
     }
 }
 
+
+/**
+ * Зарежда CSS-а на формата
+ */
+function loadCSS() {
+	var cssId = 'bulletinCss';
+	if (!document.getElementById(cssId)) {
+	    var head  = document.getElementsByTagName('head')[0];
+	    var link  = document.createElement('link');
+	    link.id   = cssId;
+	    link.rel  = 'stylesheet';
+	    link.type = 'text/css';
+	    link.href = '[#CSS_URL#]';
+	    link.media = 'all';
+	    head.appendChild(link);
+	}
+}
+
+
+/**
+ *
+ */
+function loadShowFormWindow()
+{
+	var formId = 'showFormWindow';
+	if (!document.getElementById(formId)) {
+	    var head  = document.getElementsByTagName('head')[0];
+	    var scriptTag = document.createElement('script');
+		scriptTag.setAttribute('id', formId);
+		scriptTag.setAttribute('src', '[#showFormUrl#]');
+		
+	    head.appendChild(scriptTag);
+	}
+}
+
+
+/**
+ * След зареждане на JQuery стартираме функцията
+ */
+$(document).ready(function() {
+	loadCSS();
+	startProcessing();
+	checkForButton();
+});

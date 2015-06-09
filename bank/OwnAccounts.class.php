@@ -66,6 +66,18 @@ class bank_OwnAccounts extends core_Master {
     
     
     /**
+     * Кои мастър роли имат достъп до корицата, дори да нямат достъп до папката
+     */
+    var $coverMasterRoles = 'ceo, bankMaster';
+    
+    
+    /**
+     * Кой може да пише
+     */
+    var $canCreatenewfolder = 'ceo, bank';
+    
+    
+    /**
      * Кой може да пише
      */
     var $canReject = 'ceo, bankMaster';
@@ -491,7 +503,7 @@ class bank_OwnAccounts extends core_Master {
         if($filter = $data->listFilter->rec) {
             if($filter->own) {
                 foreach($fields as $fld){
-                    $data->query->orWhere("#{$fld} = {$filter->own}");
+                    $data->query->where("#{$fld} = {$filter->own}");
                 }
             }
         }

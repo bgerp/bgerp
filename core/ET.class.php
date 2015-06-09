@@ -465,21 +465,16 @@ class core_ET extends core_BaseClass
         if (is_object($content) && (is_a($content, "et") || is_a($content, "core_Et"))) {
             //   
             foreach ($content->pending as $sub) {
-                if(!($sub->str instanceof core_Et)) {
-                    $s = new ET($sub->str);
-                } else {
-                    $s = $sub->str;
-                }
                 
                 switch ($sub->mode) {
                     case "append" :
-                        $this->append($s, $sub->place, $sub->once);
+                        $this->append($sub->str, $sub->place, $sub->once);
                         break;
                     case "prepend" :
-                        $this->prepend($s, $sub->place, $sub->once);
+                        $this->prepend($sub->str, $sub->place, $sub->once);
                         break;
                     case "replace" :
-                        $this->replace($s, $sub->place, $sub->once);
+                        $this->replace($sub->str, $sub->place, $sub->once);
                         break;
                     case "push" :
                         $this->push($sub->str, $sub->place, $sub->once);
@@ -548,8 +543,10 @@ class core_ET extends core_BaseClass
             }
         }
         
-        // DEBUG::startTimer("SUB1");
-        $this->importRemovableBlocks($content);
+        if ($content instanceof core_ET) {
+            // DEBUG::startTimer("SUB1");
+            $this->importRemovableBlocks($content);
+        }
         
         //DEBUG::stopTimer("SUB1");
         
@@ -597,7 +594,7 @@ class core_ET extends core_BaseClass
                 }
             } else {
                 if($global) {
-                    $this->addSubstitution($str, $placeHolder, $once, $mode);
+                    $this->addSubstitution($content, $placeHolder, $once, $mode);
                 }
             }
         }

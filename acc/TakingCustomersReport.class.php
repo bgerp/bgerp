@@ -27,7 +27,7 @@ class acc_TakingCustomersReport extends acc_PeriodHistoryReportImpl
     /**
      * Заглавие
      */
-    public $title = 'Счетоводство»Вземания от клиенти';
+    public $title = 'Счетоводство » Вземания от клиенти';
 
 
     /**

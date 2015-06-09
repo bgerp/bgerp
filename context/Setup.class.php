@@ -19,18 +19,24 @@ class context_Setup extends core_ProtoSetup
      */
     var $info = "Контекстно меню за бутоните от тулбара";
     
+
+    /**
+     * Връща JS файлове, които са подходящи за компактиране
+     */
+    public function getCommonJs()
+    {
+        return 'context/lib/contextMenu.js';
+    }
+    
     
     /**
-     * Път до js файла
+     * Връща JS файлове, които са подходящи за компактиране
      */
-//    var $commonJS = 'context/lib/contextMenu.js';
-    
-    
-    /**
-     * Път до css файла
-     */
-//    var $commonCSS = 'context/lib/contextMenu.css';
-    
+    public function getCommonCss()
+    {
+        return "context/lib/contextMenu.css";
+    }
+
     
     /**
      * Инсталиране на пакета

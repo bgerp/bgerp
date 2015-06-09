@@ -21,7 +21,7 @@ class email_Inboxes extends core_Master
      */
     var $loadList = 'email_Wrapper, plg_State, plg_Created, 
     				 plg_Modified, doc_FolderPlg, plg_RowTools, 
-    				 plg_Rejected, plg_AutoFilter';
+    				 plg_Rejected';
     
     
     /**
@@ -45,13 +45,13 @@ class email_Inboxes extends core_Master
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'admin, email';
+    var $canEdit = 'admin, email, manager';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'admin, email';
+    var $canAdd = 'admin, email, manager';
     
     
     /**
@@ -125,6 +125,7 @@ class email_Inboxes extends core_Master
      */
     var $listFields = 'id, email, accountId, inCharge, access, shared, createdOn, createdBy';
     
+    
     /**
      * Всички пощенски кутии
      */
@@ -132,13 +133,19 @@ class email_Inboxes extends core_Master
     
     
     /**
+     * Дефолт достъп до новите корици
+     */
+    public $defaultAccess = 'private';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
     {
-        $this->FLD("email", "email(link=no)", "caption=Имейл");
-        $this->FLD("accountId", "key(mvc=email_Accounts, select=email)", 'caption=Сметка, autoFilter');
-         
+        $this->FLD("email", "email(link=no)", "caption=Имейл, mandatory, silent");
+        $this->FLD("accountId", "key(mvc=email_Accounts, select=email)", 'caption=Сметка, refreshForm, mandatory, notNull, silent');
+        
         $this->setDbUnique('email');
     }
     
@@ -172,47 +179,118 @@ class email_Inboxes extends core_Master
     {
         $form = $data->listFilter;
         
-         $form->FLD('inChargeF' , 'key(mvc=core_Users, select=nick, allowEmpty=TRUE)', 'caption=Отговорник,refreshForm');
+        $form->FLD('userSelect' , 'users(roles=powerUser, rolesForTeams=manager|ceo|admin, rolesForAll=ceo|admin)', 'caption=Отговорник, refreshForm');
+        $form->FLD('emailSearch' , 'varchar', 'caption=Имейл, allowEmpty');
+        
+        // Вземам всички акаунти за които може да се създаде имейл
+        $allAccounts = email_Accounts::getActiveAccounts();
+        
+        $optAcc = array();
+        foreach ((array)$allAccounts as $id => $accRec) {
+            $optAcc[$id] = $accRec->email;
+        }
+        $data->listFilter->setOptions('accountId', $optAcc);
+        
+        unset($data->listFilter->fields['accountId']->mandatory);
+        $data->listFilter->setParams('accountId', array('allowEmpty' => 'allowEmpty'));
+        
         // В хоризонтален вид
         $form->view = 'horizontal';
         
         // Добавяме бутон
         $form->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
+        $form->setDefault('userSelect', '|' . core_Users::getCurrent() . '|');
+        
         // Показваме само това поле. Иначе и другите полета 
         // на модела ще се появят
-        $form->showFields = 'accountId, inChargeF';
+        $form->showFields = 'emailSearch, accountId, userSelect';
         
-        $form->input('accountId, inChargeF', 'silent');
+        $form->input($form->showFields, 'silent');
         $form->getFieldType('accountId')->params['allowEmpty'] = TRUE;
-       
-        if($form->rec->accountId){
+        
+        if ($form->rec->emailSearch) {
+            $data->query->like('email', $form->rec->emailSearch);
+        }
+        
+        if ($form->rec->accountId){
         	$data->query->where(array("#accountId = '[#1#]'", $form->rec->accountId));
         }
         
-    	if($form->rec->inChargeF){
-        	$data->query->where(array("#inCharge = '[#1#]'", $form->rec->inChargeF));
-        }
-        
-    	// Ако няма роля admin или ceo или email
-        if(!haveRole('ceo, admin, email')) {
-            
-            // id на текущия потребител
-            $cu = core_Users::getCurrent();
-            
-            // Да се показват кутиите на които е inCharge или му са споделени
-            $data->query->where("#inCharge = {$cu}");
-            $data->query->orLikeKeylist("shared", $cu);
+    	if ($form->rec->userSelect){
+    	    $userIdsArr = type_Users::toArray($form->rec->userSelect);
+    	    $userIdsStr = implode(',', $userIdsArr);
+        	$data->query->where(array("#inCharge IN ({$userIdsStr})"));
+        	$data->query->orLikeKeylist("shared", $form->rec->userSelect);
         }
     }
     
     
     /**
      * Преди рендиране на формата за редактиране
+     * 
+     * @param email_Inboxes $mvc
+     * @param object $data
      */
     static function on_AfterPrepareEditForm($mvc, &$data)
     {
-        $data->form->setDefault('access', 'private');
+        // Вземам всички акаунти за които може да се създаде имейл
+        $allAccounts = email_Accounts::getActiveAccounts(array('corporate', 'common'));
+        
+        if (!$allAccounts) {
+            if (email_Accounts::haveRightFor('add')) {
+                
+                return redirect(array('email_Accounts', 'add'), FALSE, 'Моля добавете активна кутия.');
+            } else {
+                
+                return redirect(array($mvc), FALSE, 'Няма активна кутия, която да се използва');
+            }
+        }
+        
+        $optAcc = array();
+        foreach ($allAccounts as $id => $accRec) {
+            $optAcc[$id] = $accRec->email;
+        }
+        $data->form->setOptions('accountId', $optAcc);
+        
+        // По подразбиране да е избрана корпоративната сметка
+        $corporateAcc = email_Accounts::getCorporateAcc();
+        if ($corporateAcc) {
+            $defaultAccId = $corporateAcc->id;
+        } else {
+            $defaultAccId = key($optAcc);
+        }
+        
+        $data->form->setDefault('accountId', $defaultAccId);
+        
+        if (!$data->form->rec->email) {
+            $accRec = $allAccounts[$data->form->rec->accountId];
+            list(, $domain) = explode('@', $accRec->email);
+            $data->form->setParams('email', array('placeholder' => '...@' . $domain));
+        }
+    }
+    
+    
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     * 
+     * @param email_Inboxes $mvc
+     * @param core_Form $form
+     */
+    public static function on_AfterInputEditForm($mvc, &$form)
+    {
+        // Показва грешка, ако домейните не съвпадат
+        if ($form->isSubmitted()) {
+            $accRec = email_Accounts::fetch((int) $form->rec->accountId);
+            
+            list(,$accDomain) = explode('@', $accRec->email);
+            
+            list(, $emailDomain) = explode('@', $form->rec->email);
+            
+            if ($accDomain != $emailDomain) {
+                $form->setError('email', 'Домейните на сметката и имейла трябва да съвпадат');
+            }
+        }
     }
     
     
@@ -439,7 +517,7 @@ class email_Inboxes extends core_Master
     {   
         // Ако потребителите се регистрират с никове == имейлите им, 
         // то не можем да генерираме корпоративен имейл адрес
-        if(EF_USSERS_EMAIL_AS_NICK) {
+        if(defined('EF_USSERS_EMAIL_AS_NICK') && EF_USSERS_EMAIL_AS_NICK) {
 
             return FALSE;
         }
@@ -753,7 +831,7 @@ class email_Inboxes extends core_Master
         if ($action == 'edit' && $rec && $userId) {
             
             // Ако не сме администратор 
-            if (!haveRole('admin') && haveRole('email')) {
+            if (!haveRole('admin')) {
                 
                 // Ако не е наш имейл или не ни е споделен
                 if (($rec->inCharge != $userId) && !type_Keylist::isIn($userId, $rec->shared)) {

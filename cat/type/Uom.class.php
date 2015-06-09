@@ -79,6 +79,20 @@ class cat_type_Uom extends type_Varchar {
     	// Ако няма стойност
     	if(!$value) return NULL;
     	
+    	// Ако стойността е двoично число
+    	if(is_numeric($value)){
+    		$value = $this->double->fromVerbal($value);
+    	
+    		// Ако има проблем при обръщането сетва се грешка
+    		if($value === FALSE){
+    			$this->error = "Не е въведено валидно число";
+    	
+    			return FALSE;
+    		}
+    	
+    		return $value;
+    	}
+    	
     	if(empty($value['lP'])) return NULL;
     	
     	// Ако стойността е масив

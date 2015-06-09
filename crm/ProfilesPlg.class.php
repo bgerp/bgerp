@@ -34,7 +34,11 @@ class crm_ProfilesPlg extends core_Plugin
                     if(cls::isSubclass($type->params['mvc'], 'core_Users')) {
                         if($type->params['select'] == 'nick' || !$type->params['select']) { 
                             if(($rec->{$name} > 0) && !strpos($row->{$name}, '<')) {
-                                $row->{$name} = crm_Profiles::createLink($rec->{$name}); 
+                            	if(crm_Profiles::haveRightFor('single', $rec->{$name})){
+                            		$row->{$name} = crm_Profiles::createLink($rec->{$name});
+                            	} else {
+                            		$row->{$name} = crm_Profiles::getVerbal($rec->{$name}, 'userId');
+                            	}
                             }
                         }
                     }

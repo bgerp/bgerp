@@ -78,6 +78,10 @@ class plg_Sorting extends core_Plugin
     function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
         if(count($data->recs) && count($data->plg_Sorting->fields)) {
+        	
+        	// Ако сме в режим принтиране не правим нищо
+        	if(Mode::is('printing')) return;
+        	
             foreach($data->plg_Sorting->fields as $field => $direction) {
                 
                 // Ако няма такова поле, в тези, които трябва да показваме - преминаваме към следващото
@@ -112,11 +116,19 @@ class plg_Sorting extends core_Plugin
                 $currUrl = getCurrentUrl();
                 $currUrl["Sort"] = $sort;
                 
+                // Ако мениджъра е детайл на документ, добавяме и хендлъра на мастъра му в урл-то
+                // за да може да отидем директно на самия документ в нишката
+                if($mvc instanceof core_Detail){
+                	if(cls::haveInterface('doc_DocumentIntf', $mvc->Master)){
+                		$currUrl["#"] = $mvc->Master->getHandle($data->masterId);
+                	}
+                }
+               
                 $lastF = $startChar . "|*<div class='rowtools'><div class='l'>|" . $lastF . "|*</div><a class='r' href='" .
                 ht::escapeAttr(toUrl($currUrl)) .
                 "' ><img  src=" . sbf($img) .
                 " width='16' height='16' alt='sort'></a></div>";
-                
+               
                 $data->listFields[$field] = implode('->', $fArr);
             }
         }

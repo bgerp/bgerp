@@ -60,12 +60,6 @@ class autosize_Setup extends core_ProtoSetup
     
     
     /**
-     * Пътища до JS файлове
-     */
-    var $commonJS = "autosize/[#AUTOSIZE_VERSION#]/jquery.autosize.min.js";
-    
-    
-    /**
      * Описание на конфигурационните константи
      */
     var $configDescription = array(
@@ -107,5 +101,18 @@ class autosize_Setup extends core_ProtoSetup
         $html .= "<li>Премахнати са всички инсталации на 'autosize_Plugin'";
         
         return $html;
+    }
+
+
+    /**
+     * Връща JS файлове, които са подходящи за компактиране
+     */
+    public function getCommonJs()
+    {
+        $conf = core_Packs::getConfig('autosize');
+        
+        $res = 'autosize/' .$conf->AUTOSIZE_VERSION. '/jquery.autosize.min.js';
+        
+        return $res;
     }
 }

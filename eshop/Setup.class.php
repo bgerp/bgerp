@@ -8,8 +8,9 @@ defIfNot('ESHOP_BROWSER_CACHE_EXPIRES', 3600);
 
 
 /**
- *
+ * Минимален брой групи, необходими за да се покаже страничната навигация
  */
+defIfNot('ESHOP_MIN_GROUPS_FOR_NAVIGATION', 4);
 
 
 /**
@@ -82,6 +83,7 @@ class eshop_Setup extends core_ProtoSetup
 	 */
 	var $configDescription = array(
             'ESHOP_BROWSER_CACHE_EXPIRES' => array ('time', 'caption=Кеширане в браузъра->Време'),
+            'ESHOP_MIN_GROUPS_FOR_NAVIGATION' => array ('int', 'caption=Минимален брой групи за навигация->Брой'),
 	);
 
     

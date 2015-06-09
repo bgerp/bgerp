@@ -12,15 +12,16 @@
         <div class='display-table'>
             <table border='1px' class='border-table' cellpadding='4px'>
                 <tr>
-                    <td class='top-head'><b>|Платец|*</b></td>
-                    <td  rowspan='2' class='title-order'>
-                        <h2 style='margin-bottom:15px;margin-top:0px'>|РАЗХОДЕН|*<br> |КАСОВ ОРДЕР|*</h2>
-                        №:&nbsp;&nbsp;<b>[#number#]</b><br>
-                        |Дата|*:&nbsp;&nbsp;<b>[#valior#]</b><br />
+                    <td class='custom-header-bg' style="width: 35%"><b>|Платец|*</b></td>
+                    <td  rowspan='2' class='centered'>
+                        <div class="document-title">|РАЗХОДЕН|*<br> |КАСОВ ОРДЕР|*</div>
+                        <div style="padding-top:5px;">
+                            № <span class="bigData">[#id#]</span> /
+                            <span class="bigData">[#valior#]</span>
+                        </div>
                         <div class="[#STATE_CLASS#]" style='margin-top:5px'>[#state#]</div>
-                        <br>
                     </td>
-                    <td class='top-head'><b>|Получател|*</b></td>
+                    <td class='custom-header-bg' style="width: 35%"><b>|Получател|*</b></td>
                 </tr>
                 <tr>
                     <td>

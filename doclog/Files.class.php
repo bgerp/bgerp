@@ -7,11 +7,11 @@
  * @category  bgerp
  * @package   doc
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class log_Files extends core_Manager
+class doclog_Files extends core_Manager
 {
     
     
@@ -73,6 +73,12 @@ class log_Files extends core_Manager
      * @todo Чака за документация...
      */
     var $listFields = 'cid, fileHnd, createdOn=Свален->На, createdBy=Свален->От, seenFromIp=Свален->Ip';
+    
+    
+    /**
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     */
+    public $oldClassName = 'log_Files';
     
     
     /**

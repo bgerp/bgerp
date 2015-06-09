@@ -194,8 +194,26 @@ class eshop_Products extends core_Master
     }
 
 
+
+
+
     /**
-     *
+     * Подготвя информация за всички продукти от активните групи
+     */
+    public static function prepareAllProducts($data)
+    {
+        $gQuery = eshop_Groups::getQuery();
+        while($gRec = $gQuery->fetch("#state = 'active'")) {
+            $data->groups[$gRec->id] = new stdClass();
+            $data->groups[$gRec->id]->groupId = $gRec->id;
+            $data->groups[$gRec->id]->groupRec = $gRec;
+            self::prepareGroupList($data->groups[$gRec->id]);
+        }
+    }
+
+
+    /**
+     * Подготвя данните за продуктите от една група
      */
     public static function prepareGroupList($data)
     {
@@ -216,6 +234,24 @@ class eshop_Products extends core_Master
             $data->addUrl = array('eshop_Products', 'add', 'groupId' => $data->groupId, 'ret_url' => TRUE);
         }
     }
+
+
+    /**
+     * Рендира всички продукти
+     */
+    public static function renderAllProducts($data)
+    {
+        $layout = new ET();
+
+        foreach($data->groups as $gData) {
+            if(!count($gData->recs)) continue;
+            $layout->append("<h2>" . eshop_Groups::getVerbal($gData->groupRec, 'name') . "</h2>");
+            $layout->append(self::renderGroupList($gData));
+        }
+
+        return $layout;
+    }
+
 
 
     /**

@@ -405,18 +405,13 @@ class doc_Threads extends core_Manager
 
         $rejected = Request::get('Rejected');
         
-        $docQuery = clone $data->query;
-        $documentsInThreadOptions = self::getDocumentsInThread($folderId, $docQuery, $rejected);
-        
+        $documentsInThreadOptions = self::getDocumentTypesOptionsByFolder($folderId, FALSE, $rejected);
         if(count($documentsInThreadOptions)) {
-            
             $documentsInThreadOptions = array_map('tr', $documentsInThreadOptions);
-            
-        	$data->listFilter->setOptions('documentClassId', $documentsInThreadOptions);
+            $data->listFilter->setOptions('documentClassId', $documentsInThreadOptions);
         } else {
         	$data->listFilter->setReadOnly('documentClassId');
         }
-        
         
         // Вземаме данните
         $key = doc_Folders::getSettingsKey($folderId);
@@ -447,33 +442,55 @@ class doc_Threads extends core_Manager
     
     
     /**
-     * Намира всички типове документи които са начало на нишка в посочената папка
+     * Връща типовете документи в папката, за бързодействие кешира резултатите
+     * 
+     * @param int $folderId - ид на папка
+     * @param boolean $onlyVisibleForPartners - дали да са само видимите за партнъори документи
+     * @param boolean $rejected - оттеглените или не оттеглените документи
+     * @return array $options - типовете документи
      */
-    private static function getDocumentsInThread($folderId, $docQuery, $rejected)
+    public static function getDocumentTypesOptionsByFolder($folderId, $onlyVisibleForPartners = FALSE, $rejected = FALSE)
     {
-    	$documentsInThreadOptions = core_Cache::get("doc_Folders", "folder{$folderId}");
+    	$cacheKey = ($onlyVisibleForPartners === TRUE) ? "visibleDocumentsInFolder{$folderId}" : "folder{$folderId}";
     	
-    	if($documentsInThreadOptions === FALSE) {
-			$documentsInThreadOptions = array();
-    		$docQuery->where("#folderId = {$folderId}");
-    		 
-    		$docQuery->EXT('firstDocumentClassId', 'doc_Containers', 'externalName=docClass,externalKey=firstContainerId');
-    		$docQuery->show('firstDocumentClassId, state');
-    		while($docInThreadRec = $docQuery->fetch()){
-    			$index = ($docInThreadRec->state == 'rejected') ? 'rejected' : 'notrejected';
+    	// Проверяваме имали кеширани данни
+    	$options = core_Cache::get("doc_Folders", $cacheKey);
+    	
+    	// Ако няма кеширани данни, извличаме ги наново
+    	if($options === FALSE) {
+    		
+    		// Ще групираме типовете документи в нишката
+    		$query = doc_Threads::getQuery();
+    		$query->where("#folderId = {$folderId}");
+    		$query->EXT('firstDocumentClassId', 'doc_Containers', 'externalName=docClass,externalKey=firstContainerId');
+    		
+    		// Ако ще проверяваме за партньори, оставяме само видимите за тях документи
+    		if($onlyVisibleForPartners){
+    			$query->EXT('visibleForPartners', 'doc_Containers', 'externalName=visibleForPartners,externalKey=firstContainerId');
+    			$query->EXT('firstDocState', 'doc_Containers', 'externalName=state,externalKey=firstContainerId');
+    			$query->where("#visibleForPartners = 'yes'");
+    			$query->where("#firstDocState != 'draft' && #firstDocState != 'rejected'");
+    		}
+    		$query->show('firstDocumentClassId, state');
+    		
+    		// Групираме записите по classId
+    		while($rec = $query->fetch()){
+    			$index = ($rec->state == 'rejected') ? 'rejected' : 'notrejected';
     			
-    			if(!isset($documentsInThreadOptions[$index][$docInThreadRec->firstDocumentClassId])){
-    				$documentsInThreadOptions[$index][$docInThreadRec->firstDocumentClassId] = core_Classes::getTitleById($docInThreadRec->firstDocumentClassId);
+    			if(!isset($options[$index][$rec->firstDocumentClassId])){
+    				$options[$index][$rec->firstDocumentClassId] = core_Classes::getTitleById($rec->firstDocumentClassId);
     			}
     		}
     		
-    		core_Cache::set("doc_Folders", "folder{$folderId}", $documentsInThreadOptions, 1440);
+    		// Кешираме резултатите
+    		core_Cache::set("doc_Folders", $cacheKey, $options, 1440);
     	}
-    	
-    	if(is_null($rejected)){
-    		return $documentsInThreadOptions['notrejected'];
+    
+    	// Връщаме данните за оттеглените или за не оттеглените документи в папката
+    	if(!$rejected){	
+    		return $options['notrejected'];
     	} else {
-    		return $documentsInThreadOptions['rejected'];
+    		return $options['rejected'];
     	}
     }
     
@@ -566,8 +583,8 @@ class doc_Threads extends core_Manager
             $row->title .= "\n<div class='threadSubTitle'>{$docRow->subTitle}</div>";
         }
 
-        if($docRow->authorId>0) {
-            $row->author = crm_Profiles::createLink($docRow->authorId);
+        if($docRow->authorId > 0) {
+        	$row->author = crm_Profiles::createLink($docRow->authorId);
         } else {
             $row->author = $docRow->author;
         }
@@ -1245,24 +1262,32 @@ class doc_Threads extends core_Manager
             $data->toolbar->removeBtn('*', 'with_selected');
             $data->toolbar->addBtn('Всички', array($mvc, 'folderId' => $data->folderId), 'id=listBtn', 'ef_icon = img/16/application_view_list.png');
         } else {
-            $data->toolbar->addBtn('Нов...', array($mvc, 'ShowDocMenu', 'folderId' => $data->folderId), 'id=btnAdd', array('ef_icon'=>'img/16/star_2.png', 'title'=>'Създаване на нова тема в папката'));
- 
-            $data->rejectedCnt = $data->rejQuery->count("#folderId = {$data->folderId}");;
-            
-            if($data->rejectedCnt) {
-                $curUrl = getCurrentUrl();
-                $curUrl['Rejected'] = 1;
-                $data->toolbar->addBtn("Кош|* ({$data->rejectedCnt})", 
-                    $curUrl, 'id=binBtn,class=fright,order=50', 'ef_icon = img/16/bin_closed.png');
-            }
-            
-            // Ако има мениджъри, на които да се слагат бързи бутони, добавяме ги
-            if($managersIds = self::getFastButtons($data->folderId)){
-            	foreach ($managersIds as $classId){
-            		$Cls = cls::get($classId);
-            		$data->toolbar->addBtn($Cls->singleTitle, array($Cls, 'add', 'folderId' => $data->folderId), "ef_icon = {$Cls->singleIcon},title=Създаване на " . mb_strtolower($Cls->singleTitle));
+        	$folderState = doc_Folders::fetchField($data->folderId, 'state');
+        	if($folderState == 'closed'){
+        		$data->toolbar->removeBtn('*');
+        	} else {
+        		// Може да се добавя нов документ, само ако папката не е затворена
+        		if(doc_Folders::fetchField($data->folderId, 'state') != 'closed'){
+        			$data->toolbar->addBtn('Нов...', array($mvc, 'ShowDocMenu', 'folderId' => $data->folderId), 'id=btnAdd', array('ef_icon'=>'img/16/star_2.png', 'title'=>'Създаване на нова тема в папката'));
+        		}
+        		
+        		$data->rejectedCnt = $data->rejQuery->count("#folderId = {$data->folderId}");;
+        		
+        		if($data->rejectedCnt) {
+        			$curUrl = getCurrentUrl();
+        			$curUrl['Rejected'] = 1;
+        			$data->toolbar->addBtn("Кош|* ({$data->rejectedCnt})",
+        			$curUrl, 'id=binBtn,class=fright,order=50', 'ef_icon = img/16/bin_closed.png');
             	}
-            }
+        		
+        		// Ако има мениджъри, на които да се слагат бързи бутони, добавяме ги
+        	    if($managersIds = self::getFastButtons($data->folderId)){
+        			foreach ($managersIds as $classId){
+        				$Cls = cls::get($classId);
+        				$data->toolbar->addBtn($Cls->singleTitle, array($Cls, 'add', 'folderId' => $data->folderId), "ef_icon = {$Cls->singleIcon},title=Създаване на " . mb_strtolower($Cls->singleTitle));
+        			}
+        		}
+        	}
         }
         
         // Ако има права за настройка на папката, добавяме бутона
@@ -1369,7 +1394,11 @@ class doc_Threads extends core_Manager
 
         if($action == 'newdoc') {
             if($rec->state == 'opened' || $rec->state == 'closed') {
-                $res = $mvc->getRequiredRoles('single', $rec, $userId);
+            	if(doc_Folders::fetchField($rec->folderId, 'state') != 'closed'){
+            		$res = $mvc->getRequiredRoles('single', $rec, $userId);
+            	} else {
+            		$res = 'no_one';
+            	}
             } else {
                 $res = 'no_one';
             }
@@ -1399,6 +1428,7 @@ class doc_Threads extends core_Manager
         
         expect($rec = $this->fetch($id));
         $this->requireRightFor('single', $rec);
+        expect(doc_Folders::fetchField($rec->folderId, 'state') != 'closed');
         
         $rec->state = 'opened';
         
@@ -1434,6 +1464,7 @@ class doc_Threads extends core_Manager
         expect($rec = $this->fetch($id));
         
         $this->requireRightFor('single', $rec);
+        expect(doc_Folders::fetchField($rec->folderId, 'state') != 'closed');
         
         $rec->state = 'closed';
         
@@ -1885,5 +1916,6 @@ class doc_Threads extends core_Manager
     	// Изтриваме от кеша видовете документи в папката и в коша и
     	$folderId = self::fetchField($id, 'folderId');
     	core_Cache::remove("doc_Folders", "folder{$folderId}");
+    	core_Cache::remove("doc_Folders", "visibleDocumentsInFolder{$folderId}");
     }
 }

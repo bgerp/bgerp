@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Мениджър на групи с визитки
  *
@@ -33,7 +32,7 @@ class crm_Groups extends core_Master
      * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_RowTools, crm_Wrapper,
-                     plg_Rejected, doc_FolderPlg, plg_Search, plg_Translate';
+                     plg_Rejected, plg_Search, plg_TreeObject, plg_Translate';
     
     
     /**
@@ -629,11 +628,15 @@ class crm_Groups extends core_Master
      */
     public function getPersonalizationTitle($id, $verbal = TRUE)
     {
+        $groupChoiseArr = array();
+        $fullId = $id;
         if (is_object($id)) {
             $rec = $id;
         } else {
             list($id) = explode('_', $id);
             $rec = $this->fetch($id);
+            
+            $groupChoiseArr = $this->getGroupsChoise($id, $verbal, FALSE);
         }
         
         // Ако трябва да е вебална стойност
@@ -641,6 +644,10 @@ class crm_Groups extends core_Master
             $title = $this->getVerbal($rec, 'name');
         } else {
             $title = $rec->name;
+        }
+        
+        if ($groupChoiseArr[$fullId]) {
+            $title .= ': ' . $groupChoiseArr[$fullId];
         }
         
         return $title;
@@ -765,5 +772,80 @@ class crm_Groups extends core_Master
         $link = ht::createLink($title, $url);
         
         return $link;
+    }
+    
+    
+    /**
+     * След подготовка на тулбара на единичен изглед.
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    static function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
+    {
+        if (blast_Emails::haveRightFor('add') && ($data->rec->companiesCnt || $data->rec->personsCnt)) {
+            
+            $data->toolbar->addBtn('Циркулярен имейл', array($mvc, 'choseBlast', $data->rec->id, 'class' => 'blast_Emails', 'ret_url' => TRUE), 'id=btnEmails','ef_icon = img/16/emails.png,title=Създаване на циркулярен имейл');
+        }
+    }
+    
+    
+    /**
+     * Екшън за избор на типа на циркулярен имейл за група
+     */
+    function act_choseBlast()
+    {
+        $id = Request::get('id', 'int');
+        $class = Request::get('class');
+        
+        expect(in_array($class, array('blast_Emails')));
+        
+        $rec = $this->fetch($id);
+        expect($rec);
+        
+        $this->requireRightFor('single', $rec);
+        
+        $blastClass = cls::get($class);
+        $blastClass->requireRightFor('add');
+        
+        $groupChoiseArr = $this->getGroupsChoise($id, FALSE);
+        expect($groupChoiseArr);
+        
+        Request::setProtected(array('perSrcObjectId', 'perSrcClassId'));
+        
+        $redirectTo = array('blast_Emails', 'add', 'perSrcClassId' => core_Classes::getId($this), 'ret_url' => TRUE);
+        
+        // Ако има само един възможен избор, редиректваме към създаването
+        if (count($groupChoiseArr) == 1) {
+            
+            $redirectTo['perSrcObjectId'] = key($groupChoiseArr);
+            
+            return new Redirect($redirectTo);
+        }
+        
+    	$form = cls::get('core_Form');
+    	$form->title = "Избор на група";
+    	
+    	$form->FLD('type', 'enum()', 'caption=Тип,mandatory,silent');
+        
+    	$form->setOptions('type', $groupChoiseArr);
+    	
+        $form->toolbar->addSbBtn('Избор', 'save', 'ef_icon = img/16/disk.png, title = Избор');
+        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
+        
+        $form->input();
+        
+        // Ако е събмитната формата
+        if($form->isSubmitted()){
+        	$rec = $form->rec;
+        	
+            $redirectTo['perSrcObjectId'] = $rec->type;
+            
+            return new Redirect($redirectTo);
+        }
+        
+    	$tpl = $this->renderWrapping($form->renderHtml());
+    	
+    	return $tpl;
     }
 }

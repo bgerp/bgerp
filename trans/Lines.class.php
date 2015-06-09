@@ -40,7 +40,7 @@ class trans_Lines extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, trans_Wrapper, plg_Sorting, plg_Printing,
-                    doc_DocumentPlg, bgerp_plg_Blank, plg_Search, doc_ActivatePlg';
+                    doc_DocumentPlg, bgerp_plg_Blank, plg_Search, change_Plugin, doc_ActivatePlg';
 
     
     /**
@@ -104,6 +104,12 @@ class trans_Lines extends core_Master
     
 
     /**
+     * Кои полета да могат да се променят след активацията на документа
+     */
+    public $changableFields = 'title, repeat, vehicleId, forwarderId, forwarderPersonId';
+    
+    
+    /**
      * Заглавие в единствено число
      */
     public $singleTitle = 'Транспортна линия';
@@ -155,10 +161,13 @@ class trans_Lines extends core_Master
     public static function getRecTitle($rec, $escaped = TRUE)
     {
     	$titleArr = explode('/', $rec->title);
+    	$start = dt::mysql2verbal($rec->start, "d.m.Y H:i");
+    	$start = str_replace(' 00:00', '', $start);
+    	
     	if(count($titleArr) == 2){
-    		return "{$rec->start}/{$titleArr[1]}";
+    		return "{$start}/{$titleArr[1]}";
     	} else {
-    		return "{$rec->start}/{$rec->title}";
+    		return "{$start}/{$rec->title}";
     	}
     }
     
@@ -191,12 +200,12 @@ class trans_Lines extends core_Master
     		store_Receipts::fetchField("#lineId = {$rec->id} AND #state = 'draft'")||
     		store_ConsignmentProtocols::fetchField("#lineId = {$rec->id} AND #state = 'draft'")||
     		store_Transfers::fetchField("#lineId = {$rec->id} AND #state = 'draft'")){
-    			$warning = 'Черновите документи ще бъдат премахнати от тази линия';
+    			$error = ',error=Линията не може да бъде затворена докато има чернови документи към нея';
     		} else {
-    			$warning = 'Искате ли да затворите линията?';
+    			$warning= ',warning=Наистина ли искате да затворите линията?';
     		}
     		
-    		$data->toolbar->addBtn('Затваряне', $changeUrl, "ef_icon=img/16/lock.png,warning={$warning},title=Затваряне на линията");
+    		$data->toolbar->addBtn('Затваряне', $changeUrl, "ef_icon=img/16/lock.png{$error}{$warning},title=Затваряне на линията");
     	}
     	
     	if($data->rec->state == 'closed' && $data->rec->start >= dt::today()){
@@ -224,11 +233,7 @@ class trans_Lines extends core_Master
     			$query = $Doc::getQuery();
     			$query->where("#state = 'draft'");
     			$query->where("#lineId = {$id}");
-    		
-    			while($dRec = $query->fetch()){
-    				$dRec->lineId = NULL;
-    				$Doc::save($dRec);
-    			}
+    			expect(!$query->count());
     		}
     	}
     	
@@ -319,6 +324,27 @@ class trans_Lines extends core_Master
         $folderClass = doc_Folders::fetchCoverClassName($folderId);
     	
         return cls::haveInterface('trans_LinesFolderCoverIntf', $folderClass);
+    }
+    
+    
+    /**
+     * След подготовка на сингъла
+     */
+    public static function on_AfterPrepareSingle($mvc, &$res, $data)
+    {
+    	$weight = ($data->weight) ? $data->weight : 0;
+    	$data->row->weight = cls::get('cat_type_Weight')->toVerbal($weight);
+    	
+    	$volume = ($data->volume) ? $data->volume : 0;
+    	$data->row->volume = cls::get('cat_type_Volume')->toVerbal($volume);
+    	
+    	$count = ($data->palletCount) ? $data->palletCount : 0;
+    	$data->row->palletCount = cls::get('type_Int')->toVerbal($count);
+    	
+    	$amount = ($data->totalAmount) ? $data->totalAmount : 0;
+    	$data->row->totalAmount = cls::get('type_Double', array('params' => array('decimals' => 2)))->toVerbal($amount);
+    	$bCurrency = acc_Periods::getBaseCurrencyCode();
+    	$data->row->totalAmount .= " <span class='cCode'>{$bCurrency}</span>";
     }
     
     

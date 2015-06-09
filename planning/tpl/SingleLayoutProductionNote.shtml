@@ -40,10 +40,6 @@
                                             <!--ET_END storeLocation-->
                                         </td>
                                         <td class="cell">
-                                        	<b>[#activityCenterId#]</b>
-                                            <!--ET_BEGIN centerLocation-->
-                                            <br>[#centerLocation#]
-                                            <!--ET_END centerLocation-->
                                         </td>
                                     </tr>
                                 </tbody>
@@ -57,8 +53,6 @@
                                 <tbody>
                                     <tr>
                                         <td class="topCell first vtop" style='width:50%;'>
-                                        </td>
-                                        <td>
                                             <table class='shipment-table' style='width:100%;'>
                                                 <!--ET_BEGIN deadline-->
                                                 <tr>
@@ -66,18 +60,19 @@
                                                     <td>[#deadline#]</td>
                                                 </tr>
                                                 <!--ET_END deadline-->
-                                                 <!--ET_BEGIN baseCurrencyCode-->
+                                                <!--ET_BEGIN baseCurrencyCode-->
                                                 <tr>
                                                     <td class='quiet nowrap aright' style='width:1%;'>|Валута|*:</td>
                                                     <td>[#baseCurrencyCode#]</td>
                                                 </tr>
-                                                 <!--ET_END baseCurrencyCode-->
-                                                <tr>
-                                                    <td colspan="2">
-                                                        <hr>
-                                                    </td>
-                                                </tr>
+                                                <!--ET_END baseCurrencyCode-->
                                             </table>
+                                            <!--ET_BEGIN note-->
+                                            <hr>
+                                            [#note#]
+                                            <!--ET_END note-->
+                                        </td>
+                                        <td>
                                             <table class='centered special-borders' style='width:100%;'>
                                                 <tr>
                                                     <td class='centered border-right' style='width:50%;'>|Получил|*:</td>

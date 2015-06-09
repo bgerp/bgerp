@@ -93,12 +93,6 @@ class forum_Setup extends core_ProtoSetup
     
     
     /**
-     * Път до css файла
-     */
-    var $commonCSS = 'forum/tpl/styles.css';
-    
-    
-    /**
      * Инсталиране на пакета
      */
     function install()
@@ -122,4 +116,14 @@ class forum_Setup extends core_ProtoSetup
 
 		return $res;
 	}
+    
+    
+    /**
+     * Връща JS файлове, които са подходящи за компактиране
+     */
+    public function getCommonCss()
+    {
+        
+        return 'forum/tpl/styles.css';
+    }
 }

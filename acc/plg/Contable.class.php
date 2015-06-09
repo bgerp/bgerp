@@ -322,7 +322,18 @@ class acc_plg_Contable extends core_Plugin
                 $requiredRoles = 'no_one';
             }
         }
+        
+        // Ако папката на документа е затворена не може да се контира/поправя/сторнира/оттегля/реконтира
+        if(($action == 'correction' || $action == 'revert' || $action == 'reject' || $action == 'conto' || $action == 'reconto') && isset($rec->folderId)){
+        	if($requiredRoles != 'no_one'){
+        		$folderState = doc_Folders::fetchField($rec->folderId, 'state');
+        		if($folderState == 'closed'){
+        			$requiredRoles = 'no_one';
+        		}
+        	}
+        }
     }
+    
     
     /**
      * Помощен метод, енкапсулиращ условието за валидност на счетоводна транзакция

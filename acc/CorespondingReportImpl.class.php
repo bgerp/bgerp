@@ -26,7 +26,7 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     /**
      * Заглавие
      */
-    public $title = 'Счетоводство»Кореспонденция по сметка';
+    public $title = 'Счетоводство » Кореспонденция по сметка';
     
     
     /**
@@ -72,6 +72,70 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     	$form->FLD('baseAccountId', 'acc_type_Account(allowEmpty)', 'caption=Сметки->Основна,mandatory,silent,removeAndRefreshForm=groupBy');
     	$form->FLD('corespondentAccountId', 'acc_type_Account(allowEmpty)', 'caption=Сметки->Кореспондент,mandatory,silent,removeAndRefreshForm=groupBy');
     	$form->FLD('side', 'enum(all=Всички,debit=Дебит,credit=Кредит)', 'caption=Обороти');
+    
+    	$this->invoke('AfterAddEmbeddedFields', array($form));
+    }
+    
+    
+    /**
+     * Подготвя формата за въвеждане на данни за вътрешния обект
+     *
+     * @param core_Form $form
+     */
+    public function prepareEmbeddedForm(core_Form &$form)
+    {
+    	// Поставяме удобни опции за избор на период
+    	$op = acc_Periods::getPeriodOptions();
+    
+    	$form->setSuggestions('from', array('' => '') + $op->fromOptions);
+    	$form->setSuggestions('to', array('' => '') + $op->toOptions);
+    	 
+    	if(isset($form->rec->baseAccountId) && isset($form->rec->corespondentAccountId)){
+    		$baseAccInfo = acc_Accounts::fetch($form->rec->baseAccountId);
+    		$corespAccInfo = acc_Accounts::fetch($form->rec->corespondentAccountId);
+    
+    		$baseGroups = $sets = array();
+    
+    		foreach (range(1, 3) as $i){
+    			if(isset($baseAccInfo->{"groupId{$i}"})){
+    				if(!isset($sets[$baseAccInfo->{"groupId{$i}"}])){
+    					$sets[$baseAccInfo->{"groupId{$i}"}] = acc_Lists::getVerbal($baseAccInfo->{"groupId{$i}"}, 'name');
+    				}
+    				$baseGroups[$baseAccInfo->{"groupId{$i}"}] = $baseAccInfo->{"groupId{$i}"};
+    			}
+    			 
+    			if(isset($corespAccInfo->{"groupId{$i}"})){
+    				if(!isset($sets[$corespAccInfo->{"groupId{$i}"}])){
+    					$sets[$corespAccInfo->{"groupId{$i}"}] = acc_Lists::getVerbal($corespAccInfo->{"groupId{$i}"}, 'name');
+    				}
+    			}
+    		}
+    
+    		$sets = arr::fromArray($sets);
+    		$defaults = implode(',', $baseGroups);
+    		$form->FLD('groupBy', "set({$sets})", 'caption=Групиране по');
+    		$form->setDefault('groupBy', $defaults);
+    	}
+    	 
+    	$this->invoke('AfterPrepareEmbeddedForm', array($form));
+    }
+    
+
+    /**
+     * Рендира вътрешната форма като статична форма в подадения шаблон
+     *
+     * @param core_ET $tpl - шаблон
+     * @param string $placeholder - плейсхолдър
+     */
+    protected function prependStaticForm(core_ET &$tpl, $placeholder = NULL)
+    {
+    	$form = cls::get('core_Form');
+    
+    	$this->addEmbeddedFields($form);
+    	$form->rec = $this->innerForm;
+    	$form->class = 'simpleForm';
+    
+    	$tpl->prepend($form->renderStaticHtml(), $placeholder);
     }
     
     
@@ -89,49 +153,7 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     		}
     	}
     }
-    
-    
-    /**
-     * Подготвя формата за въвеждане на данни за вътрешния обект
-     *
-     * @param core_Form $form
-     */
-    public function prepareEmbeddedForm(core_Form &$form)
-    {
-    	// Поставяме удобни опции за избор на период
-    	$op = acc_Periods::getPeriodOptions();
-    		
-    	$form->setSuggestions('from', array('' => '') + $op->fromOptions);
-    	$form->setSuggestions('to', array('' => '') + $op->toOptions);
-    	
-    	if(isset($form->rec->baseAccountId) && isset($form->rec->corespondentAccountId)){
-    		$baseAccInfo = acc_Accounts::fetch($form->rec->baseAccountId);
-    		$corespAccInfo = acc_Accounts::fetch($form->rec->corespondentAccountId);
-    		
-    		$baseGroups = $sets = array();
-    		
-    		foreach (range(1, 3) as $i){
-    			if(isset($baseAccInfo->{"groupId{$i}"})){
-    				if(!isset($sets[$baseAccInfo->{"groupId{$i}"}])){
-    					$sets[$baseAccInfo->{"groupId{$i}"}] = acc_Lists::getVerbal($baseAccInfo->{"groupId{$i}"}, 'name');
-    				}
-    				$baseGroups[$baseAccInfo->{"groupId{$i}"}] = $baseAccInfo->{"groupId{$i}"};
-    			}
-    			
-    			if(isset($corespAccInfo->{"groupId{$i}"})){
-    				if(!isset($sets[$corespAccInfo->{"groupId{$i}"}])){
-    					$sets[$corespAccInfo->{"groupId{$i}"}] = acc_Lists::getVerbal($corespAccInfo->{"groupId{$i}"}, 'name');
-    				}
-    			}
-    		}
-    		
-    		$sets = arr::fromArray($sets);
-    		$defaults = implode(',', $baseGroups);
-    		$form->FLD('groupBy', "set({$sets})", 'caption=Групиране по'); 
-    		$form->setDefault('groupBy', $defaults);
-    	}
-    }
-    
+        
     
     /**
      * Подготвя вътрешното състояние, на база въведените данни
@@ -191,32 +213,32 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     /**
      * След подготовката на показването на информацията
      */
-    public function on_AfterPrepareEmbeddedData($mvc, &$data)
+    public static function on_AfterPrepareEmbeddedData($mvc, &$data)
     {
     	// Ако има намерени записи
     	if(count($data->recs)){
     		
     		// Подготвяме страницирането
     		$pageVar = str::addHash("P", 5, "{$mvc->className}{$mvc->EmbedderRec->that}");
-    		$data->Pager = cls::get('core_Pager',  array('pageVar' => $pageVar, 'itemsPerPage' => $this->listItemsPerPage));
+    		$data->Pager = cls::get('core_Pager',  array('pageVar' => $pageVar, 'itemsPerPage' => $mvc->listItemsPerPage));
     		$data->Pager->itemsCount = count($data->recs);
     		
     		foreach ($data->recs as $rec1){
     			foreach (range(1, 6) as $i){
     				if(!empty($rec1->{"item{$i}"})){
-    					$this->cache[$rec1->{"item{$i}"}] = $rec1->{"item{$i}"};
+    					$mvc->cache[$rec1->{"item{$i}"}] = $rec1->{"item{$i}"};
     				}
     			}
     		}
     		
     		// Кешираме номерата на перата в отчета
-    		if(count($this->cache)){
+    		if(count($mvc->cache)){
     			$iQuery = acc_Items::getQuery();
     			$iQuery->show("num");
-    			$iQuery->in('id', $this->cache);
+    			$iQuery->in('id', $mvc->cache);
     			 
     			while($iRec = $iQuery->fetch()){
-    				$this->cache[$iRec->id] = $iRec->num;
+    				$mvc->cache[$iRec->id] = $iRec->num;
     			}
     		}
     		
@@ -225,7 +247,7 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     			$rec->sortField = '';
     			foreach (range(1, 3) as $j){
     				if(isset($rec->{"item{$j}"})){
-    					$rec->sortField .= $this->cache[$rec->{"item{$j}"}];
+    					$rec->sortField .= $mvc->cache[$rec->{"item{$j}"}];
     				}
     			}
     			
@@ -233,8 +255,8 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     		}
     		
     		// Сортираме записите според полето за сравнение
-    		usort($data->recs, array($this, "sortRecs"));
-    		
+    		usort($data->recs, array($mvc, "sortRecs"));
+    		//bp($data->recs);
     		// За всеки запис
     		foreach ($data->recs as &$rec){
     			
@@ -242,7 +264,153 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     			if(!$data->Pager->isOnPage()) continue;
     			
     			// Вербално представяне на записа
-    			$data->rows[] = $this->getVerbalRec($rec);
+    			$data->rows[] = $mvc->getVerbalRec($rec);
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Връща шаблона на репорта
+     *
+     * @return core_ET $tpl - шаблона
+     */
+    public function getReportLayout_()
+    {
+    	$tpl = getTplFromFile('acc/tpl/CorespondingReportLayout.shtml');
+    	 
+    	return $tpl;
+    }
+    
+    
+    /**
+     * Рендира вградения обект
+     */
+    public function renderEmbeddedData($data)
+    {
+    	if(empty($data)) return;
+    	//bp($data);
+    	$tpl = $this->getReportLayout();
+    	$tpl->replace($this->title, 'TITLE');
+    	
+    	 
+    	$tpl->placeObject($data->summary);
+    	$tpl->replace(acc_Periods::getBaseCurrencyCode(), 'baseCurrencyCode');
+    	 
+    	// Кои полета ще се показват
+    	$fields = arr::make("debitQuantity=Дебит->К-во,debitAmount=Дебит->Сума,creditQuantity=Кредит->К-во,creditAmount=Кредит->Сума,blQuantity=Остатък->К-во,blAmount=Остатък->Сума", TRUE);
+    	$newFields = array();
+    
+    	if(count($data->groupBy)){
+    		foreach ($data->groupBy as $id => $grId){
+    			$newFields["item{$id}"] = acc_Lists::fetchField($grId, 'name');
+    		}
+    	}
+    	 
+    	if(count($newFields)){
+    		$fields = $newFields + $fields;
+    	}
+    	 
+    	// Ако к-та и сумите са еднакви, не показваме количествата
+    	if($data->hasSameAmounts === TRUE){
+    		unset($fields['debitQuantity']);
+    		unset($fields['creditQuantity']);
+    		unset($fields['blQuantity']);
+    	}
+    	 
+    	if($this->innerForm->side){
+    		if($this->innerForm->side == 'debit'){
+    			unset($fields['creditQuantity'], $fields['creditAmount'], $fields['blQuantity'], $fields['blAmount']);
+    		}elseif($this->innerForm->side == 'credit'){
+    			unset($fields['debitQuantity'], $fields['debitAmount'], $fields['blQuantity'], $fields['blAmount']);
+    		}
+    	}
+    	 
+    	$f = cls::get('core_FieldSet');
+    	$f->FLD('item1', 'varchar', 'tdClass=itemClass');
+    	$f->FLD('item2', 'varchar', 'tdClass=itemClass');
+    	$f->FLD('item3', 'varchar', 'tdClass=itemClass');
+    	$f->FLD('item4', 'varchar', 'tdClass=itemClass');
+    	$f->FLD('item5', 'varchar', 'tdClass=itemClass');
+    	$f->FLD('item6', 'varchar', 'tdClass=itemClass');
+    	foreach (array('debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount') as $fld){
+    		$f->FLD($fld, 'int', 'tdClass=accCell');
+    	}
+    	 
+    	// Рендираме таблицата
+    	$table = cls::get('core_TableView', array('mvc' => $f));
+    	$tableHtml = $table->get($data->rows, $fields);
+    	 
+    	$tpl->replace($tableHtml, 'CONTENT');
+    	 
+    	// Рендираме пейджъра, ако го има
+    	if(isset($data->Pager)){
+    		$tpl->replace($data->Pager->getHtml(), 'PAGER');
+    	}
+    	 
+    	// Показваме данните от формата
+    	$form = cls::get('core_Form');
+    	$this->addEmbeddedFields($form);
+    	$form->setField('baseAccountId', 'caption=Основна с-ка');
+    	$form->setField('corespondentAccountId', 'caption=Кореспондент с-ка');
+    	$form->rec = $this->innerForm;
+    	$form->class = 'simpleForm';
+    
+    	//$tpl->append($form->renderStaticHtml(), 'FORM');
+    	$this->prependStaticForm($tpl, 'FORM');
+    	 
+    	// Връщаме шаблона
+    	return $tpl;
+    }
+    
+    
+    /**
+     * Вербално представяне на групираните записи
+     *
+     * @param stdClass $rec - групиран запис
+     * @return stdClass $row - вербален запис
+     */
+    private function getVerbalRec($rec)
+    {
+    	$row = new stdClass();
+    	$Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
+    	 
+    	// Вербалното представяне на перата
+    	foreach (range(1, 6) as $i){
+    		if(!empty($rec->{"item{$i}"})){
+    			$row->{"item{$i}"} = acc_Items::getVerbal($rec->{"item{$i}"}, 'titleLink');
+    		}
+    	}
+    	 
+    	// Вербално представяне на сумите и к-та
+    	foreach (array('debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount') as $fld){
+    		if(isset($rec->{$fld})){
+    			$row->{$fld} = $Double->toVerbal($rec->{$fld});
+    			if($rec->{$fld} < 0){
+    				$row->{$fld} = "<span class='red'>{$row->{$fld}}</span>";
+    			}
+    		}
+    	}
+    		 
+    	// Връщаме подготвеното вербално рпедставяне
+    	return $row;
+    }
+    
+    
+    /**
+     * Подготвя обобщената информация
+     *
+     * @param stdClass $data
+     */
+    private function prepareSummary(&$data)
+    {
+    	$Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
+    	 
+    	foreach ((array)$data->summary as $index => $fld){
+    		$f = $data->summary->{$index};
+    		$data->summary->{$index} = $Double->toVerbal($f);
+    		if($f < 0){
+    			$data->summary->{$index} = "<span class='red'>{$data->summary->{$index}}</span>";
     		}
     	}
     }
@@ -325,137 +493,7 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     		$recs[$index]->{$amountFld} += $jRec->amount;
     	}
     }
-    
-    
-    /**
-     * Вербално представяне на групираните записи
-     * 
-     * @param stdClass $rec - групиран запис
-     * @return stdClass $row - вербален запис
-     */
-    private function getVerbalRec($rec)
-    {
-    	$row = new stdClass();
-    	$Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
-    	
-    	// Вербалното представяне на перата
-    	foreach (range(1, 6) as $i){
-    		if(!empty($rec->{"item{$i}"})){
-    			$row->{"item{$i}"} = acc_Items::getVerbal($rec->{"item{$i}"}, 'titleLink');
-    		}
-    	}
-    	
-    	// Вербално представяне на сумите и к-та
-    	foreach (array('debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount') as $fld){
-    		if(isset($rec->{$fld})){
-    			$row->{$fld} = $Double->toVerbal($rec->{$fld});
-    			if($rec->{$fld} < 0){
-    				$row->{$fld} = "<span class='red'>{$row->{$fld}}</span>";
-    			}
-    		}
-    	}
-    	
-    	// Връщаме подготвеното вербално рпедставяне
-    	return $row;
-    }
-    
-    
-    /**
-     * Подготвя обобщената информация
-     * 
-     * @param stdClass $data
-     */
-    private function prepareSummary(&$data)
-    {
-    	$Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
-    	
-    	foreach ((array)$data->summary as $index => $fld){
-    		$f = $data->summary->{$index};
-    		$data->summary->{$index} = $Double->toVerbal($f);
-    		if($f < 0){
-    			$data->summary->{$index} = "<span class='red'>{$data->summary->{$index}}</span>";
-    		}
-    	}
-    }
-    
-    
-    /**
-     * Рендира вградения обект
-     */
-    public function renderEmbeddedData($data)
-    {
-    	// Взимаме шаблона
-    	$tpl = getTplFromFile('acc/tpl/CorespondingReportLayout.shtml');
-    	$tpl->replace($this->title, 'TITLE');
-    	
-    	$tpl->placeObject($data->summary);
-    	$tpl->replace(acc_Periods::getBaseCurrencyCode(), 'baseCurrencyCode');
-    	
-    	// Кои полета ще се показват
-    	$fields = arr::make("debitQuantity=Дебит->К-во,debitAmount=Дебит->Сума,creditQuantity=Кредит->К-во,creditAmount=Кредит->Сума,blQuantity=Остатък->К-во,blAmount=Остатък->Сума", TRUE);
-   		$newFields = array();
-		
-   		if(count($data->groupBy)){
-   			foreach ($data->groupBy as $id => $grId){
-   				$newFields["item{$id}"] = acc_Lists::fetchField($grId, 'name');
-   			}
-   		}
-   		
-   		if(count($newFields)){
-   			$fields = $newFields + $fields;
-   		}
-    	
-    	// Ако к-та и сумите са еднакви, не показваме количествата
-   		if($data->hasSameAmounts === TRUE){
-   			unset($fields['debitQuantity']);
-   			unset($fields['creditQuantity']);
-   			unset($fields['blQuantity']);
-   		}
-    	
-   		if($this->innerForm->side){
-   			if($this->innerForm->side == 'debit'){
-   				unset($fields['creditQuantity'], $fields['creditAmount'], $fields['blQuantity'], $fields['blAmount']);
-	   		}elseif($this->innerForm->side == 'credit'){
-	   			unset($fields['debitQuantity'], $fields['debitAmount'], $fields['blQuantity'], $fields['blAmount']);
-   			}
-   		}
-   		
-   		$f = cls::get('core_FieldSet');
-   		$f->FLD('item1', 'varchar', 'tdClass=itemClass');
-   		$f->FLD('item2', 'varchar', 'tdClass=itemClass');
-   		$f->FLD('item3', 'varchar', 'tdClass=itemClass');
-   		$f->FLD('item4', 'varchar', 'tdClass=itemClass');
-   		$f->FLD('item5', 'varchar', 'tdClass=itemClass');
-   		$f->FLD('item6', 'varchar', 'tdClass=itemClass');
-   		foreach (array('debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount') as $fld){
-   			$f->FLD($fld, 'int', 'tdClass=accCell');
-   		}
-   		
-   		// Рендираме таблицата
-    	$table = cls::get('core_TableView', array('mvc' => $f));
-    	$tableHtml = $table->get($data->rows, $fields);
-    	
-    	$tpl->replace($tableHtml, 'CONTENT');
-    	
-    	// Рендираме пейджъра, ако го има
-    	if(isset($data->Pager)){
-    		$tpl->replace($data->Pager->getHtml(), 'PAGER');
-    	}
-    	
-    	// Показваме данните от формата
-    	$form = cls::get('core_Form');
-    	$this->addEmbeddedFields($form);
-    	$form->setField('baseAccountId', 'caption=Основна с-ка');
-    	$form->setField('corespondentAccountId', 'caption=Кореспондент с-ка');
-    	$form->rec = $this->innerForm;
-    	$form->class = 'simpleForm';
-    		
-    	$tpl->append($form->renderStaticHtml(), 'FORM');
-    	
-    	// Връщаме шаблона
-    	return $tpl;
-    }
-    
+
     
     /**
      * Скрива полетата, които потребител с ниски права не може да вижда
@@ -483,5 +521,174 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     	$activateOn = "{$this->innerForm->to} 23:59:59";
     	
     	return $activateOn;
+    }
+    
+    
+    /**
+     * Ако имаме в url-то export създаваме csv файл с данните
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $rec
+     * $todo да се замени в кода
+     */
+    public function exportCsv()
+    {
+    
+    	$conf = core_Packs::getConfig('core');
+    
+    	if (count($this->innerState->recs) > $conf->EF_MAX_EXPORT_CNT) {
+    		redirect(array($this), FALSE, "Броят на заявените записи за експорт надвишава максимално разрешения|* - " . $conf->EF_MAX_EXPORT_CNT, 'error');
+    	}
+    
+    	$csv = "";
+    
+    	// генериран хедър
+    	$header = $this->generateHeader()->header;
+    	
+    	// Кешираме номерата на перата в отчета
+    	//if(count($this->cache)){
+    		$iQuery = acc_Items::getQuery();
+    		$iQuery->show("num");
+    		//$iQuery->in('id', $mvc->cache);
+    	
+    		while($iRec = $iQuery->fetch()){
+    			$mvc->cache[$iRec->id] = $iRec->num;
+    		}
+    	//}
+    	
+    	
+    	// Подготвяме поле за сортиране по номерата на перата
+    	foreach ($this->innerState->recs as &$rec){ 
+    		$rec->sortField = '';
+    		foreach (range(1, 3) as $j){
+    			if(isset($rec->{"item{$j}"})){
+    				$rec->sortField .= $mvc->cache[$rec->{"item{$j}"}];
+    			}
+    		}
+    		 
+    		$rec->sortField = strtolower(str::utf2ascii($rec->sortField));
+    	}
+    	
+    	// Сортираме записите според полето за сравнение
+    	usort($this->innerState->recs, array($this, "sortRecs"));
+
+    	if(count($this->innerState->recs)) { 
+    		foreach ($this->innerState->recs as $id => $rec) {
+    
+    			$rCsv = $this->generateCsvRows($rec);
+    
+    			$csv .= $rCsv;
+    			$csv .=  "\n";
+    
+    		}
+    			
+    		$csv = $header . "\n" . $csv;
+    	} /*else {
+    		$csv = $header . "\n" . $lastRow . "\n" . $zeroRow;
+    	}*/
+    
+    	return $csv;
+    }
+    
+    
+    /**
+     * Ще се експортирват полетата, които се
+     * показват в табличния изглед
+     *
+     * @return array
+     * @todo да се замести в кода по-горе
+     */
+    protected function getExportFields_()
+    {
+
+    	// Кои полета ще се показват
+    	$fields = arr::make("debitQuantity=Дебит - количество,debitAmount=Дебит - cума,creditQuantity=Кредит - количество,creditAmount=Кредит - сума,blQuantity=Остатък - количество,blAmount=Остатък - сума", TRUE);
+    	$newFields = array();
+    	
+    	if(count($this->innerState->groupBy)){
+    		foreach ($this->innerState->groupBy as $id => $grId){
+    			$newFields["item{$id}"] = acc_Lists::fetchField($grId, 'name');
+    		}
+    	}
+    	
+    	if(count($newFields)){
+    		$fields = $newFields + $fields;
+    	}
+    
+    	return $fields;
+    }
+    
+    
+    /**
+     * Ще направим заглавито на колонките
+     * според това дали ще има скрити полета
+     *
+     * @return stdClass
+     * @todo да се замени в кода по-горе
+     */
+    protected function generateHeader_()
+    {
+    
+    	$exportFields = $this->getExportFields();
+    	
+    	// Ако к-та и сумите са еднакви, не показваме количествата
+    	if($this->innerState->hasSameAmounts === TRUE){
+    		unset($exportFields['debitQuantity']);
+    		unset($exportFields['creditQuantity']);
+    		unset($exportFields['blQuantity']);
+    	}
+    	
+    	if($this->innerForm->side){
+    		if($this->innerForm->side == 'debit'){
+    			unset($exportFields['creditQuantity'], $exportFields['creditAmount'], $exportFields['blQuantity'], $exportFields['blAmount']);
+    		}elseif($this->innerForm->side == 'credit'){
+    			unset($exportFields['debitQuantity'], $exportFields['debitAmount'], $exportFields['blQuantity'], $exportFields['blAmount']);
+    		}
+    	}
+    	
+    
+    	foreach ($exportFields as $caption) {
+    		$header .= "," . $caption;
+    	}
+    		
+    	return (object) array('header' => $header);
+    }
+    
+    
+    /**
+     * Ще направим row-овете в CSV формат
+     *
+     * @return string $rCsv
+     */
+    protected function generateCsvRows_($rec)
+    {
+    
+    	$exportFields = $this->getExportFields();
+    	$rec = frame_CsvLib::prepareCsvRows($rec);
+    
+    	$rCsv = '';
+    
+    	foreach ($rec as $field => $value) {
+    		$rCsv = '';
+    
+    		foreach ($exportFields as $field => $caption) {
+    				
+    			if ($rec->{$field}) {
+    
+    				$value = $rec->{$field};
+    				$value = html2text_Converter::toRichText($value);
+    				// escape
+    				if (preg_match('/\\r|\\n|,|"/', $value)) {
+    					$value = '"' . str_replace('"', '""', $value) . '"';
+    				}
+    				$rCsv .= "," . $value;
+    
+    			} else {
+    				$rCsv .= "," . '';
+    			}
+    		}
+    	}
+    
+    	return $rCsv;
     }
 }

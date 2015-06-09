@@ -5,6 +5,7 @@
     <div class='forum-board'>[#GREETING#]</div>
     [#SEARCH_FORM#]
     <!--ET_BEGIN category-->
+    [#category#]
     <ul class='category-ul'  style='width:100%'>
         <li class='thread-header'>
             <table class="header-table no-border" style='width:100%'>

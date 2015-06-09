@@ -51,6 +51,9 @@ class select2_Adapter
         
         $tpl->push('select2/' . $conf->SELECT2_VERSION . "/select2.min.css", "CSS");
         $tpl->push('select2/' . $conf->SELECT2_VERSION . "/select2.min.js", "JS");
+
+        // custom стилове за плъгина
+        $tpl->push('select2/css/select2-custom.css', "CSS");
         
         if ($lg !== FALSE) {
             if (is_null($lg)) {

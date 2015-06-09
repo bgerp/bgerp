@@ -103,7 +103,9 @@
                     </td>
                     <td>
 
-                        <div>Total weight:&nbsp;[#weight#] &nbsp;&nbsp;&nbsp;&nbsp; Total volume:&nbsp;[#volume#] &nbsp;&nbsp;&nbsp;&nbsp;Collets count:&nbsp;[#colletsCount#]</div>
+                        <div>Total weight:&nbsp;[#weight#] &nbsp;&nbsp;&nbsp;&nbsp; Total volume:&nbsp;[#volume#] 
+                        &nbsp;&nbsp;&nbsp;&nbsp;
+                        <!--ET_BEGIN colletsCount-->Collets count calced:&nbsp;[#colletsCount#]<!--ET_BEGIN colletsCount--> <!--ET_BEGIN palletCountInput--> &nbsp;&nbsp;&nbsp;&nbsp; Collets count: [#palletCountInput#]<!--ET_END palletCountI--></div>
                         <hr>
                         <table class='centered' style="width:100%">
                             <tr>

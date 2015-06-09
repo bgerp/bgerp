@@ -430,6 +430,23 @@ div.folder-cover {
 	}
 }
 
+.noheader .listTable {
+    width: 100%;
+    border-top: none;
+    th {
+        display: none;
+    }
+    tbody tr:first-child td {
+        border-top: none;
+    }
+    tr:nth-child(odd) {
+        background: transparent;
+    }
+    tr:nth-child(even) {
+        background: rgba(238, 238, 238, 0.5);
+    }
+}
+
 .narrow .folder-cover {
 	line-height: 1.3em;
 	margin-left: 0;
@@ -844,6 +861,12 @@ div.acc-detail {
         color:#000;
         line-height: 1.2;
 	}
+    .inline {
+        display: inline-block;
+        div {
+            display: inline-block;
+        }
+    }
 	&.portal {
 		padding-top: 5px;
 		margin-top: 10px;
@@ -992,6 +1015,10 @@ td.portal-date {
 
 .detail-info.portal table.listTable { 
 	font-size:1em;
+}
+
+.shortTable .listTable {
+    width: 1%;
 }
 /*край на портал*/
 
@@ -2577,6 +2604,10 @@ fieldset.sharing-history {
 	}
 }
 
+.document .scrolling-holder {
+    margin-bottom: 0;
+}
+
 .narrow-scroll .scrolling-holder::-webkit-scrollbar, .overflow-scroll::-webkit-scrollbar, .narrow .details .groupList::-webkit-scrollbar {
     -webkit-appearance: none;
     width: 10px;
@@ -3104,7 +3135,7 @@ div.location.public {
 }
 
 .fileman_Indexes table.listTable > tbody > tr > td, .fileman_Data table.listTable > tbody > tr > td,
- .log_Documents table.listTable > tbody > tr > td, .core_Cache table.listTable > tbody > tr > td {
+ .doclog_Documents table.listTable > tbody > tr > td, .core_Cache table.listTable > tbody > tr > td {
 	max-width: none !important;	
 }
 
@@ -3342,7 +3373,7 @@ body.narrow {
 @media handheld , only screen and (min-width: 1240px) {
 	.background-holder {
 	    padding: 10px 0;
-	}	
+	}
 
     .wide .listBlock .listRows > table.listTable{
         min-width:760px;
@@ -3382,7 +3413,7 @@ body.narrow {
 @media handheld, only screen and (max-width: 1200px) {
     .wide .app-name {
          font-size: 7.5em;
-    } 	
+    }
     .wide #all, .wide #cmsTop, .wide #cmsTop img{
        border-radius: 0;
     }
@@ -3398,7 +3429,7 @@ body.narrow {
 }
 
 /* Mobile */
-@media handheld, only screen and (max-width: 950px) { 
+@media handheld, only screen and (max-width: 950px) {
 	body {
 		-webkit-text-size-adjust: none;
 	}
@@ -3410,9 +3441,9 @@ body.narrow {
 		padding-left: 0;
 		padding-right: 0;
 	}
-	
-	.row .onecol, .row .twocol, .row .threecol, .row .fourcol, .row .fivecol, 
-	.row .sixcol, .row .sevencol, .row .eightcol, .row .ninecol, .row .tencol, .row .elevencol, .row .twelvecol { 
+
+	.row .onecol, .row .twocol, .row .threecol, .row .fourcol, .row .fivecol,
+	.row .sixcol, .row .sevencol, .row .eightcol, .row .ninecol, .row .tencol, .row .elevencol, .row .twelvecol {
 		width: auto;
 		float: none;
 		margin-left: 0;
@@ -3434,9 +3465,9 @@ body.narrow {
     #all h1{
         font-size: 1.9em;
     }
-    
+
 }
-@media handheld, only screen and (max-width: 900px) { 
+@media handheld, only screen and (max-width: 900px) {
 	.wide .eshop-group-button {
        width: 96%;
        margin: 0 2% 4%;
@@ -3490,7 +3521,7 @@ body.narrow {
     }
 }
 
-@media handheld, only screen and (max-width: 760px) { 
+@media handheld, only screen and (max-width: 760px) {
 	#cmsMenu a {
 		margin-left: 4px !important;
 		margin-right: 4px !important;
@@ -3511,7 +3542,7 @@ body.narrow {
 }
 
 @media handheld, only screen and (max-width: 700px) {
-	#cmsMenu a { 
+	#cmsMenu a {
 		margin-left: 3px !important;
 		margin-right: 3px !important;
 		font-size: 0.85em;
@@ -3570,7 +3601,7 @@ body.narrow {
     }
 }
 
-@media handheld, only screen and (max-width: 600px) { 
+@media handheld, only screen and (max-width: 600px) {
 	.background-holder {
           padding: 0 !important;
     }
@@ -3597,7 +3628,7 @@ body.narrow {
     .narrow .main-container .chzn-container, .narrow .main-container .formFields input, .narrow .main-container .formFields .richEdit, .narrow .main-container .formFields select, .narrow .main-container .formTitle {
 		max-width: 558px;
 	}
-	.narrow .main-container .chzn-container .chzn-drop {
+	.narrow .main-container .chzn-container .chzn-drop, .narrow .select2 {
 		max-width: 548px;
 	}
 	.narrow .main-container .chzn-container-single .chzn-search input {
@@ -3614,7 +3645,7 @@ body.narrow {
     }
 }
 
-@media handheld, only screen and (max-width: 533px) { 
+@media handheld, only screen and (max-width: 533px) {
 	.background-holder {
          padding: 0 !important;
     }
@@ -3630,7 +3661,7 @@ body.narrow {
     .narrow .main-container .chzn-container, .narrow .main-container .formFields input, .narrow .main-container .formFields .richEdit, .narrow .main-container .formFields select, .narrow .main-container .formTitle {
 		max-width: 483px;
 	}
-	.narrow .main-container .chzn-container .chzn-drop {
+	.narrow .main-container .chzn-container .chzn-drop, .narrow .select2 {
 		max-width: 481px;
 	}
 	.narrow .main-container .chzn-container-single .chzn-search input {
@@ -3644,7 +3675,7 @@ body.narrow {
     }
 }
 
-@media handheld, only screen and (max-width: 500px) { 
+@media handheld, only screen and (max-width: 500px) {
 	.background-holder{
           padding: 0 !important;
     }
@@ -3657,7 +3688,7 @@ body.narrow {
     .narrow .main-container .chzn-container, .narrow .main-container .formFields input, .narrow .main-container .formFields .richEdit, .narrow .main-container .formFields select, .narrow .main-container .formTitle {
 		max-width: 458px;
 	}
-	.narrow .main-container .chzn-container .chzn-drop {
+	.narrow .main-container .chzn-container .chzn-drop, .narrow .select2 {
 		max-width: 448px;
 	}
 	.narrow .main-container .chzn-container-single .chzn-search input {
@@ -3671,7 +3702,7 @@ body.narrow {
     }
 }
 
-@media handheld, only screen and (max-width: 480px) { 
+@media handheld, only screen and (max-width: 480px) {
 	.background-holder {
           padding: 0 !important;
     }
@@ -3687,7 +3718,7 @@ body.narrow {
     .narrow .main-container .chzn-container, .narrow .main-container .formFields input, .narrow .main-container .formFields .richEdit, .narrow .main-container .formFields select, .narrow .main-container .formTitle {
     	max-width: 438px;
 	}
-	.narrow .main-container .chzn-container .chzn-drop {
+	.narrow .main-container .chzn-container .chzn-drop, .narrow .select2 {
 		max-width: 428px;
 	}
 	.narrow .main-container .chzn-container-single .chzn-search input {
@@ -3723,7 +3754,7 @@ body.narrow {
     .narrow .main-container .chzn-container, .narrow .main-container .formFields input, .narrow .main-container .formFields .richEdit, .narrow .main-container .formFields select, .narrow .main-container .formTitle {
     	max-width: 318px;
 	}
-	.narrow .main-container .chzn-container .chzn-drop {
+	.narrow .main-container .chzn-container .chzn-drop, .narrow .select2 {
 		max-width: 308px;
 	}
 	.narrow .main-container .chzn-container-single .chzn-search input {
@@ -3748,7 +3779,7 @@ body.narrow {
 }
 
 
-@media handheld, only screen and (max-width: 320px) { 
+@media handheld, only screen and (max-width: 320px) {
 	.background-holder{
          padding:0 !important;
     }
@@ -3769,7 +3800,7 @@ body.narrow {
 		min-width: 278px;
 	}
 
-	.narrow .main-container .chzn-container .chzn-drop {
+	.narrow .main-container .chzn-container .chzn-drop, .narrow .select2 {
 		max-width: 268px;
 	}
 	.narrow .main-container .chzn-container-single .chzn-search input {
@@ -4121,7 +4152,7 @@ body.narrow {
     .footerDocBlock{
         display: block !important;
     }
-    .#fancybox-left, #fancybox-right{
+    #fancybox-left, #fancybox-right{
         background-color: transparent !important;
     }
     .selectRows .listTable > tbody > tr > td:first-child {
@@ -4170,10 +4201,11 @@ body.narrow {
     color: #333;
 }
 
-.narrow .summary-block{
+.narrow .summary-block {
+    clear: both;
 	margin-top: 10px;
 	float: left;
-	clear: both;
+    font-size: 0.9em;
 }
 
 .summary-block table{
@@ -4353,23 +4385,20 @@ body.narrow {
 	}
 }
 .treeView {
-    tr:nth-child(odd){
-        background: #fff;
-    }
     .hidden{
         display: none;
     }
     .treeLevel1 .leafName {
-        text-indent: 20px;
+        text-indent: 50px;
     }
     .treeLevel2 .leafName {
-        text-indent: 40px;
+        text-indent: 80px;
     }
     .treeLevel3 .leafName {
-        text-indent: 60px;
+        text-indent: 110px;
     }
     .treeLevel4 .leafName {
-        text-indent: 80px;
+        text-indent: 140px;
     }
     .leafName {
         min-width: 250px;
@@ -4377,6 +4406,10 @@ body.narrow {
     .toggleBtn {
         margin-right: 6px;
         cursor: pointer;
+        margin-left: -19px;
+    }
+    .treeLevel0 .toggleBtn {
+        margin-left: 0;
     }
     .plus {
         display: none;
@@ -4401,6 +4434,13 @@ body.narrow {
     display:table;
     color:black;
 }
+
+/* стилове за външната част при потребител контрактор */
+.contractorExtHolder {
+    padding: 10px;
+}
+
+/* край на стилове за външната част при потребител контрактор */
 .cd-l1{
     color: green;
 }

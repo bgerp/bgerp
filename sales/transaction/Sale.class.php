@@ -175,10 +175,9 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
         	$pInfo = cls::get($detailRec->classId)->getProductInfo($detailRec->productId);
         	
     		$storable = isset($pInfo->meta['canStore']);
-    		$materials = isset($pInfo->meta['materials']);
     		
     		// Нескладируемите продукти дебит 703. Складируемите и вложими 706 останалите 701
-    		$creditAccId = ($storable) ? (($materials) ? '706' : '701') : '703';
+    		$creditAccId = ($storable) ? '701' : '703';
         	
     		$amount = $detailRec->amount;
         	$amount = ($detailRec->discount) ?  $amount * (1 - $detailRec->discount) : $amount;
@@ -305,12 +304,11 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
         
         foreach ($rec->details as $detailRec) {
         	$pInfo = cls::get($detailRec->classId)->getProductInfo($detailRec->productId);
-        	$materials = isset($pInfo->meta['materials']);
     		
         	// Само складируемите продукти се изписват от склада
         	if(isset($pInfo->meta['canStore'])){
         		$creditAccId = '321';
-        		$debitAccId = ($materials) ? '706' : '701';
+        		$debitAccId = '701';
         		
         		$entries[] = array(
 	                'debit' => array(

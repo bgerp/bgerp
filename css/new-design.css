@@ -15,7 +15,7 @@
   border: 1px solid #777777 !important; }
 
 .gradient-dark,
-#maincontent > .tab-control > .tab-row {
+#main-container > .tab-control > .tab-row {
   background: #666666;
     /*
    * Old browsers
@@ -53,13 +53,16 @@
  * General styles for all menus
  */
 .sidemenu {
-  background: #47a3da;
   position: fixed;
   top: 0;
-  width: 200px;
+  bottom: 0;
   height: 100%;
+  width: 200px;
   z-index: 1000;
   overflow-y: auto; }
+
+.narrow .sidemenu {
+  width: 170px; }
 
 /*
  * движение на менюто
@@ -67,9 +70,15 @@
 .sidemenu-left {
   left: -200px; }
 
+.narrow .sidemenu-left {
+  left: -170px; }
+
 .sidemenu-right {
   background-color: #cccccc;
   right: -200px; }
+
+.narrow .sidemenu-right {
+  right: -170px; }
 
 .sidemenu-left.sidemenu-open {
   left: 0px; }
@@ -77,17 +86,29 @@
 .sidemenu-right.sidemenu-open {
   right: 0px; }
 
-.sidemenu-push-toright #maincontent > .tab-control > .tab-row {
+.sidemenu-push-toright#main-container > .tab-control > .tab-row {
   left: 200px; }
 
-.sidemenu-push-toleft #maincontent > .tab-control >.tab-row {
+.narrow .sidemenu-push-toright#main-container > .tab-control > .tab-row {
+  left: 170px; }
+
+.sidemenu-push-toleft#main-container > .tab-control >.tab-row {
   right: 200px; }
+
+.narrow .sidemenu-push-toleft#main-container > .tab-control >.tab-row {
+  right: 170px; }
 
 .sidemenu-push-toright {
   margin-left: 200px; }
 
 .sidemenu-push-toleft {
   margin-right: 200px; }
+
+.narrow .sidemenu-push-toright {
+  margin-left: 170px; }
+
+.narrow .sidemenu-push-toleft {
+  margin-right: 170px; }
 
 .sidemenu-push-toleft #framecontentTop {
   right: 200px;
@@ -99,10 +120,19 @@
   width: auto;
   display: block; }
 
+.narrow .sidemenu-push-toleft #framecontentTop {
+  right: 170px; }
+
+.narrow .sidemenu-push-toright #framecontentTop {
+  left: 170px; }
+
 .transition {
   -webkit-transition: left 0.3s ease, right 0.3s ease, margin-left 0.3s ease, margin-right 0.3s ease;
   -moz-transition: left 0.3s ease, right 0.3s ease, margin-left 0.3s ease, margin-right 0.3s ease;
   transition: left 0.3s ease, right 0.3s ease, margin-left 0.3s ease, margin-right 0.3s ease; }
+
+body {
+  background: white; }
 
 .main-container {
   display: block !important;
@@ -149,9 +179,10 @@
     padding: 7px 15px !important; }
 
 .narrow .portal {
-  margin-top: 20px;
-  margin-left: 1px;
-  margin-right: 1px; }
+  margin-top: -10px;
+  margin-left: 2px;
+  margin-right: 2px;
+  margin-bottom: 2px; }
 
 #framecontentTop {
   position: fixed;
@@ -171,34 +202,24 @@
 .narrow #main-container {
   min-width: 320px; }
 
-.wide #maincontent {
-  position: relative;
-  padding: 0px;
-  margin-top: 60px;
-  min-height: 600px;
-  border-top: 1px solid #cccccc; }
-
-.narrow #maincontent {
-  padding: 10px 5px 5px 5px;
-  border-top: 1px solid #cccccc; }
-
 #packWrapper {
-  padding: 15px;
+  padding: 25px 15px 15px;
   margin-top: -1px; }
 
 /*
- * poziciq na tabobete, ako moje da minat kym headyra
+ * позиция на табовете
  */
-#maincontent > .tab-control > .tab-row {
+#main-container > .tab-control > .tab-row {
   border-bottom: 1px solid #bbbbbb;
   overflow: hidden;
   position: fixed;
   left: 0;
   right: 0;
   top: 43px;
-  z-index: 9; }
+  z-index: 9;
+  padding: 0 10px; }
 
-.narrow #maincontent > .tab-control > .tab-row {
+.narrow #main-container > .tab-control > .tab-row {
   top: 46px; }
 
 .userInfo {
@@ -232,6 +253,39 @@
 
 #nav-panel {
   background-color: #333333 !important; }
+
+.narrow #nav-panel {
+  font-size: 0.9em; }
+
+#fav-panel {
+  padding: 10px;
+  box-sizing: border-box; }
+
+.sideBarTitle {
+  text-align: center;
+  margin-top: 5px; }
+  .sideBarTitle a {
+    color: #333333; }
+
+.bookmark-links {
+  font-size: 0.9em; }
+  .bookmark-links ul {
+    padding-left: 0; }
+    .bookmark-links ul li {
+      border-bottom: 1px dashed #666666;
+      padding: 4px 0 4px 0px;
+      display: block; }
+      .bookmark-links ul li:last-child {
+        border-bottom: none; }
+    .bookmark-links ul a {
+      background: url("../img/16/arrow-right.png") left center no-repeat;
+      margin-left: 0;
+      padding-left: 20px;
+      outline: none;
+      color: #555555;
+      display: block; }
+      .bookmark-links ul a:hover {
+        color: #111111; }
 
 /*
  * menu i podmenu
@@ -305,7 +359,7 @@
       color: white; }
 
 .narrow #nav-panel li a {
-  padding: 0.4em 1.2em 0.4em 1.6em;
+  padding: 0.4em 1.2em 0.4em 1.7em;
   font-size: 0.9em; }
 
 .narrow #nav-panel div {
@@ -422,19 +476,13 @@
   margin-right: 3px;
   margin-top: 2px; }
 
-@media handheld,
-only screen and (max-width: 480px) {
-  .headerPath {
-    top: 35px;
-    font-size: 0.85em; } }
-
-.narrow #maincontent {
+.narrow #main-container {
   padding: 12px 0 0 0; }
 
-#maincontent  div.tab-control div.tab-page {
-  border-radius: 0; }
+#main-container  div.tab-control div.tab-page {
+  border: none; }
 
-#maincontent > div.tab-control > div.tab-row > .tab {
+#main-container > div.tab-control > div.tab-row > .tab {
   font-family: arial;
   display: inline-block;
   height: 18px;
@@ -452,21 +500,21 @@ only screen and (max-width: 480px) {
   background-color: transparent !important;
   border-bottom: none;
   border-left: none; }
-  #maincontent > div.tab-control > div.tab-row > .tab.selected {
+  #main-container > div.tab-control > div.tab-row > .tab.selected {
     background-color: #dddddd !important; }
-    #maincontent > div.tab-control > div.tab-row > .tab.selected a {
+    #main-container > div.tab-control > div.tab-row > .tab.selected a {
       color: #333333 !important; }
-  #maincontent > div.tab-control > div.tab-row > .tab a {
+  #main-container > div.tab-control > div.tab-row > .tab a {
     color: white; }
 
-.narrow #maincontent > div.tab-control > div.tab-row > .tab {
+.narrow #main-container > div.tab-control > div.tab-row > .tab {
   border: none;
   margin: 5px 2px 3px;
   padding: 0 !important;
   border-radius: 3px;
   font-size: 0.8em; }
-  .narrow #maincontent > div.tab-control > div.tab-row > .tab a,
-  .narrow #maincontent > div.tab-control > div.tab-row > .tab span {
+  .narrow #main-container > div.tab-control > div.tab-row > .tab a,
+  .narrow #main-container > div.tab-control > div.tab-row > .tab span {
     margin: 2px;
     display: block; }
 
@@ -584,7 +632,8 @@ input,
 textarea,
 .chzn-container-single .chzn-single,
 .chzn-container-active .chzn-single,
-.chzn-container-active .chzn-single-with-drop {
+.chzn-container-active .chzn-single-with-drop,
+.staticFormView .formFieldValue {
   border: solid 1px #bbbbbb;
   -moz-border-radius: 2px !important;
   -webkit-border-radius: 2px !important;
@@ -709,6 +758,11 @@ div.tab-control.alphabet div.tab-row .tab {
     width: 10px !important;
     height: 10px !important; }
 
+.narrow div.tab-control.alphabet div.tab-row .tab {
+  padding: 4px 5px !important; }
+  .narrow div.tab-control.alphabet div.tab-row .tab.selected {
+    top: 0; }
+
 td.keylist-group > div {
   background-color: #dddddd;
   border: 1px solid #cccccc; }
@@ -729,12 +783,20 @@ select.tab-control option {
   top: 5px !important;
   margin-left: 10px !important; }
 
+div.tab-control.deal-history-tab .tab-row .tab {
+  margin: 0 3px 0 0 !important;
+  top: 0 !important;
+  padding: 5px !important; }
+
 @media handheld,
 only screen and (max-width: 800px) {
-  .narrow  .sidemenu-push-toleft #maincontent {
-    margin-left: -200px; }
+  .narrow  .sidemenu-push-toleft#main-container {
+    margin-left: -170px; }
 
-  .narrow  .sidemenu-push-toleft #framecontentTop,
-  .narrow .sidemenu-push-toleft #maincontent > .tab-control > .tab-row {
-    left: -200px; } }
+  .narrow  .sidemenu-push-toright#main-container {
+    margin-right: -170px; }
+
+  .narrow .sidemenu-push-toleft #framecontentTop,
+  .narrow .sidemenu-push-toleft .tab-control > .tab-row {
+    left: -170px !important; } }
 

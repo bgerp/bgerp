@@ -142,7 +142,7 @@ class core_page_InternalModern extends core_page_Active
 	    					<span class='fright'>
 		    						<span class='user-options'>
 		    							" . $img .
-    			    							"<span class='menu-holder'>
+    			    					"<span class='menu-holder'>
 			     		   					[#USERLINK#]
 		    								[#CHANGE_MODE#]
                                             [#LANG_CHANGE#]
@@ -156,15 +156,14 @@ class core_page_InternalModern extends core_page_Active
 	    				<div class='clearfix21'></div>
 	    				</div>  " ;
     	 
-    	$tpl = new ET("<div id='main-container' class='clearfix21 main-container [#HAS_SCROLL_SUPPORT#] {$mainContainerClass}'>" .
+    	$tpl = new ET("<div id='main-container' class='clearfix21 [#HAS_SCROLL_SUPPORT#] {$mainContainerClass}' style='top: 50px; position: relative'>" .
     			"<div id=\"framecontentTop\"  class=\"headerBlock\"><div class='inner-framecontentTop'>" . $header . "</div></div>" .
-    			"<div id=\"maincontent\">" .
     			"<!--ET_BEGIN NAV_BAR--><div id=\"navBar\">[#NAV_BAR#]</div>\n<!--ET_END NAV_BAR--><div class='clearfix' style='min-height:9px;'></div>" .
     			"<div id='statuses'>[#STATUSES#]</div>" .
-    			"[#PAGE_CONTENT#]</div>" .
+    			"[#PAGE_CONTENT#]" .
     			"[#DEBUG#]</div>".
     			"<div id='nav-panel' class='sidemenu sidemenu-left {$openLeftMenu}'>[#core_page_InternalModern::renderMenu#]</div>".
-    			"<div id='fav-panel' class='sidemenu sidemenu-right {$openRightMenu}'><h3 class='centered'>Бързи връзки</h3></div>"
+    			"<div id='fav-panel' class='sidemenu sidemenu-right {$openRightMenu}'>[#core_page_InternalModern::renderBookmarks#]</div>"
 
     	);
     	if(isDebug()) {
@@ -180,9 +179,29 @@ class core_page_InternalModern extends core_page_Active
     	
         return $tpl;
     }
-
-
-        /**
+    
+    
+	/**
+     * Рендира основното меню на страницата
+     */
+    static function renderBookmarks()
+    {
+        $tpl = new ET("[#BOOKMARK_TITLE#]<div class='bookmark-links'>[#BOOKMARK_LINKS#]</div><div class ='bookmark-btn'>[#BOOKMARK_BTN#]</div>");
+        
+        $title = bgerp_Bookmark::getTitle();
+        $btn = bgerp_Bookmark::getBtn();
+        $links = bgerp_Bookmark::getLinks();
+        
+        $tpl->append($title, 'BOOKMARK_TITLE');
+        $tpl->append($links, 'BOOKMARK_LINKS');
+        $tpl->append($btn, 'BOOKMARK_BTN');
+        
+        
+        return $tpl;
+    }
+    
+    
+	/**
      * Рендира основното меню на страницата
      */
     static function renderMenu()
@@ -302,9 +321,9 @@ class core_page_InternalModern extends core_page_Active
         
         // Създава линк за превключване между режимите
        	if(Mode::is('screenMode', 'wide')) {
-       		$mode = ht::createLink(tr("Мобилен"), array('core_Browser', 'setNarrowScreen', 'ret_url' => TRUE), NULL, array('ef_icon' => 'img/16/mobile-icon.png', 'title' => 'Превключване на системата в мобилен режим'));
+       		$mode = ht::createLink(tr("Мобилен"), array('logs_Browsers', 'setNarrowScreen', 'ret_url' => TRUE), NULL, array('ef_icon' => 'img/16/mobile-icon.png', 'title' => 'Превключване на системата в мобилен режим'));
        	} else {
-       		$mode = ht::createLink(tr("Десктоп"), array('core_Browser', 'setWideScreen', 'ret_url' => TRUE), NULL, array('ef_icon' => 'img/16/Monitor-icon.png', 'title' => 'Превключване на системата в десктоп режим'));
+       		$mode = ht::createLink(tr("Десктоп"), array('logs_Browsers', 'setWideScreen', 'ret_url' => TRUE), NULL, array('ef_icon' => 'img/16/Monitor-icon.png', 'title' => 'Превключване на системата в десктоп режим'));
        	}
        	if(isDebug()) {
        		$debug = ht::createLink("Debug", '#wer', FALSE, array('title' => "Показване на debug информация", 'ef_icon' => 'img/16/bug-icon.png', 'onclick' => 'toggleDisplay(\'debug_info\'); scrollToElem(\'debug_info\');'));

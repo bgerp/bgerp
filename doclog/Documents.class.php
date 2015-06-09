@@ -4,7 +4,7 @@
 /**
  * Колко дни да се пази в лога в core_Logs
  */
-defIfNot('LOG_DOCUMENTS_DAYS', 5);
+defIfNot('DOCLOG_DOCUMENTS_DAYS', 5);
 
 
 /**
@@ -16,11 +16,11 @@ defIfNot('LOG_DOCUMENTS_DAYS', 5);
  * @category  bgerp
  * @package   doc
  * @author    Stefan Stefanov <stefan.bg@gmail.com> и Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class log_Documents extends core_Manager
+class doclog_Documents extends core_Manager
 {
     
     
@@ -82,6 +82,12 @@ class log_Documents extends core_Manager
      * @todo Чака за документация...
      */
     var $listFields = 'createdOn, createdBy, action=Какво, containerId=Кое, dataBlob';
+    
+    
+    /**
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     */
+    public $oldClassName = 'log_Documents';
     
     
     /**
@@ -205,9 +211,9 @@ class log_Documents extends core_Manager
         // MID на документа
         $this->FLD('mid', 'varchar', 'input=none,caption=Ключ,column=none');
         
-        $this->FLD('parentId', 'key(mvc=log_Documents, select=action)', 'input=none,caption=Основание');
+        $this->FLD('parentId', 'key(mvc=doclog_Documents, select=action)', 'input=none,caption=Основание');
         
-//         $this->FLD('baseParentId', 'key(mvc=log_Documents, select=action)', 'input=none,caption=Основание');
+//         $this->FLD('baseParentId', 'key(mvc=doclog_Documents, select=action)', 'input=none,caption=Основание');
         
         // Допълнителни обстоятелства, в зависимост от събитието (в PHP serialize() формат) и компресирани
         $this->FLD("dataBlob", "blob(serialize, compress)", 'caption=Обстоятелства,column=none');
@@ -425,7 +431,7 @@ class log_Documents extends core_Manager
         $data->TabCaption = 'Отпечатвания';
         
         // Създаваме странициране
-        $data->pager = cls::get('core_Pager', array('itemsPerPage' => $this->itemsPerPage, 'pageVar' => 'P_log_Documents'));
+        $data->pager = cls::get('core_Pager', array('itemsPerPage' => $this->itemsPerPage, 'pageVar' => 'P_doclog_Documents'));
         
         // URL' то където ще сочат
         $data->pager->url = toUrl(static::getLinkToSingle($cid, static::ACTION_PRINT));
@@ -646,7 +652,7 @@ class log_Documents extends core_Manager
         $actionArr = array(static::ACTION_SEND, static::ACTION_FAX);
         
         // Създаваме странициране
-        $data->pager = cls::get('core_Pager', array('itemsPerPage' => $this->itemsPerPage, 'pageVar' => 'P_log_Documents'));
+        $data->pager = cls::get('core_Pager', array('itemsPerPage' => $this->itemsPerPage, 'pageVar' => 'P_doclog_Documents'));
         
         // URL' то където ще сочат
         $data->pager->url = toUrl(static::getLinkToSingle($cid, static::ACTION_SEND));
@@ -1017,7 +1023,7 @@ class log_Documents extends core_Manager
     static function getLogDetailTpl()
     {
         // Шаблона
-        $tpl = getTplFromFile('log/tpl/LogDetail.shtml');
+        $tpl = getTplFromFile('doclog/tpl/LogDetail.shtml');
         
         return $tpl;
     }
@@ -1271,7 +1277,7 @@ class log_Documents extends core_Manager
             'alert' // Важност (приоритет)
         );
     
-        core_Logs::add(get_called_class(), $sendRec->id, $msg, LOG_DOCUMENTS_DAYS);
+        core_Logs::add(get_called_class(), $sendRec->id, $msg, DOCLOG_DOCUMENTS_DAYS);
         
         return TRUE;
     }
@@ -1328,7 +1334,7 @@ class log_Documents extends core_Manager
         */
         
         
-        core_Logs::add(get_called_class(), $sendRec->id, $msg, LOG_DOCUMENTS_DAYS);
+        core_Logs::add(get_called_class(), $sendRec->id, $msg, DOCLOG_DOCUMENTS_DAYS);
     
         return TRUE;
     }
@@ -1421,7 +1427,7 @@ class log_Documents extends core_Manager
      * 
      * Ако има зададен запис за родителско действие ($parent) и той се маркира като видян.
      * Стека с действията се пълни в паметта; записа му в БД става в края на заявката
-     * @see log_Documents::on_Shutdown()
+     * @see doclog_Documents::on_Shutdown()
      * 
      * @param stdClass $action запис на този модел
      */
@@ -1447,7 +1453,7 @@ class log_Documents extends core_Manager
         
         $msg = tr("Видян документ|*: ") . doc_Containers::getDocTitle($action->containerId);
         
-        core_Logs::add('doc_Containers', $action->containerId, $msg, LOG_DOCUMENTS_DAYS);
+        core_Logs::add('doc_Containers', $action->containerId, $msg, DOCLOG_DOCUMENTS_DAYS);
         
         return $action;
     }
@@ -1507,7 +1513,7 @@ class log_Documents extends core_Manager
         $msg = tr("Препратен имейл|*: ") . doc_Containers::getDocTitle($containerId);
         
         // Добавяме запис в лога
-        core_Logs::add('doc_Containers', $rec->containerId, $msg, LOG_DOCUMENTS_DAYS);
+        core_Logs::add('doc_Containers', $rec->containerId, $msg, DOCLOG_DOCUMENTS_DAYS);
        
         return $rec;
     }
@@ -1575,7 +1581,7 @@ class log_Documents extends core_Manager
         $msg = tr("Редактиран документ|*: ") . doc_Containers::getDocTitle($containerId);
         
         // Добавяме запис в лога
-        core_Logs::add('doc_Containers', $rec->containerId, $msg, LOG_DOCUMENTS_DAYS);
+        core_Logs::add('doc_Containers', $rec->containerId, $msg, DOCLOG_DOCUMENTS_DAYS);
         
         return $rec;
     }
@@ -1649,7 +1655,7 @@ class log_Documents extends core_Manager
         // Добавяме запис в лога
         $msg = tr("Свален файл|*: ") . fileman_Files::getLink($fh);
         
-        core_Logs::add('doc_Containers', $rec->containerId, $msg, LOG_DOCUMENTS_DAYS);
+        core_Logs::add('doc_Containers', $rec->containerId, $msg, DOCLOG_DOCUMENTS_DAYS);
 
         return $rec;
     }
@@ -1679,8 +1685,8 @@ class log_Documents extends core_Manager
     /**
      * Изпълнява се след всеки запис в модела
      *
-     * @param log_Documents $mvc
-     * @param int $id key(mvc=log_Documents)
+     * @param doclog_Documents $mvc
+     * @param int $id key(mvc=doclog_Documents)
      * @param stdClass $rec запис на модела, който е бил записан в БД
      */
     static function on_AfterSave($mvc, &$id, $rec, $saveFileds = NULL)
@@ -1860,7 +1866,7 @@ class log_Documents extends core_Manager
      */
     public static function renderSummary($data)
     {
-        static $wordings = NULL;
+    	static $wordings = NULL;
         static $wordingsTitle = NULL;
         
         static $actionToTab = NULL;
@@ -1961,17 +1967,21 @@ class log_Documents extends core_Manager
         $document = doc_Containers::getDocument($cid);
         $detailTab = ucfirst(strtolower($action));
         
-        $link = array(
-	                 $document->className, 
-	                 'single', 
-	                 $document->that,
-	                 'Cid' => $cid, 
-	                 'Tab' => $detailTab,
-	                );
-        
-		if($topTab = Request::get('TabTop')){
-			$link['TabTop'] = $topTab;
-		}
+        if($document->haveRightFor('single') && !core_Users::isContractor()){
+        	$link = array(
+        			$document->className,
+        			'single',
+        			$document->that,
+        			'Cid' => $cid,
+        			'Tab' => $detailTab,
+        	);
+        	
+        	if($topTab = Request::get('TabTop')){
+        		$link['TabTop'] = $topTab;
+        	}
+        } else {
+        	$link = array();
+        }
         
         return $link;
     }
@@ -2111,7 +2121,7 @@ class log_Documents extends core_Manager
         }
         
         // Вземам записа за съответния документ в лога
-        $rec = log_Documents::fetchHistoryFor($cidAndMidArr['cid'], $cidAndMidArr['mid']);
+        $rec = doclog_Documents::fetchHistoryFor($cidAndMidArr['cid'], $cidAndMidArr['mid']);
         
         // Ако няма запис - mid' а не е правилен
         if (!$rec) {
@@ -2123,7 +2133,7 @@ class log_Documents extends core_Manager
         if ($rec->parentId) {
             
             // Задаваме cid'a да е containerId' то на родителския документ
-            $cid = log_Documents::fetchField($rec->parentId, 'containerId');
+            $cid = doclog_Documents::fetchField($rec->parentId, 'containerId');
         } else {
             
             $cid = $rec->containerId;
@@ -2253,7 +2263,7 @@ class log_Documents extends core_Manager
         }
 
         if($count > 0) {
-            core_Logs::add(get_called_class(), NULL, "Записани {$count} действия", LOG_DOCUMENTS_DAYS);
+            core_Logs::add(get_called_class(), NULL, "Записани {$count} действия", DOCLOG_DOCUMENTS_DAYS);
         }
     }
     
@@ -2472,7 +2482,7 @@ class log_Documents extends core_Manager
     		static::pushAction($rec);
     		
     		// Съобщение в лога
-    		core_Logs::add('doc_Containers', $rec->containerId, $msg, LOG_DOCUMENTS_DAYS);
+    		core_Logs::add('doc_Containers', $rec->containerId, $msg, DOCLOG_DOCUMENTS_DAYS);
     	}
     	
         return $rec;

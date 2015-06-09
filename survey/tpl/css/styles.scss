@@ -1,90 +1,81 @@
 .survey-doc {
-	padding:0px;
-	box-shadow:none;
-	border:none;
+    font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+    border: none;
+    padding: 0;
 }
 #all .document{
 	min-width:100%;
 }
-
-.survey-doc ul {
-	list-style:none;
-}
-
-.survey-doc h2{
-	margin:0;
-}
-
-#survey-header {
-	width:99%;
-	margin-left:1px;
-	padding-bottom:4px;
-	-moz-box-shadow:none;
-	-webkit-box-shadow:none;
-	box-shadow:none;
-}
-
-#survey-title{
-	font-weight:bold;
+.document .survey-title {
+    margin-bottom: 15px;
 }
 
 .answers {
-	list-style:none !important;
-	margin-top:5px !important;
-	margin-bottom:5px !important;
+    margin: 10px 0;
+}
+
+.answers li {
+	margin: 5px 0px;
 	padding-left:3px;
+    list-style: none;
 }
 
-.wide .survey-doc .answers{
-	width:70%;
-	padding-left:15px;
-	float:left;
+.wide .survey-doc .table-cell{
+    display:table-cell;
+    margin-top: 0;
+    vertical-align: top;
 }
-
-.wide .survey-doc .image{
-	width:20%;
-	float:right;
+.wide .wide-row {
+    display: table;
+    width: 100%;
 }
-
 .narrow .survey-doc .answers{
-	width:100%;
-	float:left;
+    padding-left: 15px;
+}
+.narrow .survey-doc .table-cell{
+	width: 100%;
+	float: left;
+    padding-left: 15px;
 }
 
-.narrow .survey-doc .image{
-	float:left;
-	padding:0 !important;
-	margin:10px;
+
+.survey-doc .image{
+	padding:10px;
+    display:table-cell;
+    img {
+        max-width: 260px;
+        height: auto;
+    }
 }
+
+.narrow .survey-doc .image {
+    padding: 10px 0;
+}
+
 .narrow #blogm-workshop .button{
-	position:relative;
-	left:-4px;
-	font-size:0.9em;
+	position: relative;
+	left: -4px;
+	font-size: 0.9em;
 }
 
 .question-head {
-	width:100%;
-	margin: 12px 0;
-}
-
-#survey-header #survey_title {
-	color:darkred;
-	font-weight:bold;
+	width: 100%;
+	margin: 15px 0;
 }
 
 .summary-answers {
-	padding-left:20px;
-	margin-top:5px !important;
-	margin-bottom:20px !important;
+	padding-left: 20px;
+	margin-top: 5px !important;
+	margin-bottom: 20px !important;
 }
 
 .summary-answers li {
-	margin-top:6px;
+	margin-top: 6px;
 }
 
 .summary-answer {
-	color:darkblue;
-	font-size:0.9em;	
+	color: darkblue;
+	font-size: 0.9em;
 }
 
 .summary-percent {
@@ -92,41 +83,9 @@
 	font-weight:bold;
 }
 
-.survey-doc #summary{
-	padding-left:0px;
-	margin-top:0px !important;
-	margin-bottom:0px !important;
-	margin-left:0px;
-}
-
-#survey-info {
-	margin-top:4px;
-	font-size:14px;
-	font-style:italic;
-}
-#survey-info span{
-	display:inline-block;
-}
-
-.survey-doc #title {
-	font-size:26px;
-	margin-bottom:20px;
-}
-
-#shortDesc {
-	margin:0px 0 10px;
+.shortDesc {
 	color:#666;
 	font-size:0.9em;
-	margin-right:5px;
-}
-
-#enddate {
-	color:darkblue;
-}
-
-#summary-title {
-	margin-top:15px;
-	font-weight:bold;
 }
 
 .summary-question {
@@ -146,14 +105,12 @@
 	font-weight:bold;
 }
 
-#survey-list-toolbar {
-	margin-left:0px;
-}
-
 .question-head h2{
-	background-color:#eee;
+	background-color:#f5f5f5;
+    border: 1px solid #eee;
 	padding:0.4em;
-	font-size:1.1em;
+    margin-bottom: 5px;
+	font-size:1em;
 }
 
 .question-text{
@@ -162,10 +119,6 @@
 
 .question-head h2 img{
 	vertical-align:-1px;
-}
-
-#td-answers {
-	vertical-align:top;
 }
 
 .survey-doc .tools {
@@ -180,28 +133,8 @@
 	margin-right:5px;
 }
 
-.after-vote {
-	background-color:#FFFF99;
-}
-
-.blogm-article-body{
-	margin:0 !important;
-}
-
-.blogm-browse .blogm-article-title{
-	margin-top:10px !important;
-}
-
-.blogm-browse .blogm-article-title a{
-	font-size:1.3em;
-
-}
-
-.blogm-browse .blogm-article-title a:hover{
-	text-decoration:underline;
-}
-
-.survey-doc #survey-summary{
+.survey-doc .survey-summary{
+    padding-left: 20px;
 	list-style-type:none !important;
 }
 
@@ -215,4 +148,8 @@
 .summary-points{
 	margin-left:20px;
 	font-weight:normal;
+}
+
+.survey-doc input[type=radio] + label, .survey-doc input[type=checkbox] + label {
+    display: inline;
 }

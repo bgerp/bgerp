@@ -1,0 +1,10 @@
+<div class='cms-row'>
+    <div class='cms-last' style='margin-right:2%;'>
+        [#PAGE_CONTENT#] 
+        <!--ET_BEGIN SOCIAL-->
+        <div class='clearfix21'></div>
+        [#SOCIAL#]
+        [#social_Sharings::getButtons#]
+        <!--ET_END SOCIAL-->
+    </div>
+</div>

@@ -26,13 +26,13 @@ abstract class deals_ManifactureMaster extends core_Master
 	/**
 	 * Полета от които се генерират ключови думи за търсене (@see plg_Search)
 	 */
-	public $searchFields = 'activityCenterId, storeId, note, folderId';
+	public $searchFields = 'storeId, note, folderId';
 	
 	
 	/**
 	 * Полета, които ще се показват в листов изглед
 	 */
-	public $listFields = 'tools=Пулт, valior, title=Документ, activityCenterId, storeId, folderId, deadline, createdOn, createdBy';
+	public $listFields = 'tools=Пулт, valior, title=Документ, storeId, folderId, deadline, createdOn, createdBy';
 	
 	
    /**
@@ -41,7 +41,6 @@ abstract class deals_ManifactureMaster extends core_Master
 	protected static function setDocumentFields($mvc)
 	{
 		$mvc->FLD('valior', 'date', 'caption=Вальор, mandatory');
-		$mvc->FLD('activityCenterId', 'key(mvc=hr_Departments,select=name)', 'caption=Център, mandatory');
 		$mvc->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад, mandatory');
 		$mvc->FLD('deadline', 'datetime', 'caption=Срок до');
 		$mvc->FLD('note', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Бележки');
@@ -75,18 +74,12 @@ abstract class deals_ManifactureMaster extends core_Master
 				$row->storeLocation = crm_Locations::getAddress($storeLocation);
 			}
 			
-			$actLocation = hr_Departments::fetchField($rec->activityCenterId, 'locationId');
-			if($actLocation){
-				$row->centerLocation = crm_Locations::getAddress($actLocation);
-			}
-			
 			$row->baseCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->valior);
 		}
 		 
 		if($fields['-list']){
 			$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
 			$row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
-			$row->activityCenterId = hr_Departments::getHyperlink($rec->activityCenterId, TRUE);
 			$row->title = $mvc->getLink($rec->id, 0);
 		}
 	}
@@ -105,8 +98,6 @@ abstract class deals_ManifactureMaster extends core_Master
 			$curStore = store_Stores::getCurrent('id', FALSE);
 			$data->form->setDefault('storeId', $curStore);
 		}
-		
-		$data->form->setDefault('activityCenterId', hr_Departments::fetchField("#systemId = 'myOrganisation'", 'id'));
 	}
 	
 	
@@ -151,15 +142,18 @@ abstract class deals_ManifactureMaster extends core_Master
 	public function getUsedDocs_($id)
 	{
 		$res = array();
+		
 		$Detail = $this->mainDetail;
 		$dQuery = $this->$Detail->getQuery();
 		$dQuery->EXT('state', $this->className, "externalKey={$this->$Detail->masterKey}");
 		$dQuery->where("#{$this->$Detail->masterKey} = '{$id}'");
 		$dQuery->groupBy('productId,classId');
 		while($dRec = $dQuery->fetch()){
-			$productMan = cls::get($dRec->classId);
-			if(cls::haveInterface('doc_DocumentIntf', $productMan)){
-				$res[] = (object)array('class' => $productMan, 'id' => $dRec->productId);
+			if(isset($dRec->classId) && isset($dRec->productId)){
+				$productMan = cls::get($dRec->classId);
+				if(cls::haveInterface('doc_DocumentIntf', $productMan)){
+					$res[] = (object)array('class' => $productMan, 'id' => $dRec->productId);
+				}
 			}
 		}
 		 

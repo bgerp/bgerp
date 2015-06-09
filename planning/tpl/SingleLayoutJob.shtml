@@ -12,9 +12,9 @@
         <tr>
             <td> 
                 <table>
-                    <tr>
-                        <td class='quiet' style='text-align: right'>|Дата|*:</td>
-                        <td>[#createdDate#]</td>
+                	<tr>
+                        <td class='quiet' style='text-align: right'>|Падеж|*:</td>
+                        <td>[#dueDate#]</td>
                     </tr>
                 </table>
 	       </td>
@@ -23,6 +23,14 @@
                     <tr>
                         <td class='quiet' style='text-align: right'>|Количество|*:</td>
                         <td>[#quantity#]</td>
+                    </tr>
+                    <tr>
+                        <td class='quiet' style='text-align: right'>|Произведено|*:</td>
+                        <td>[#quantityProduced#]</td>
+                    </tr>
+                    <tr>
+                        <td class='quiet' style='text-align: right'>|Остатък|*:</td>
+                        <td>[#quantityToProduce#]</td>
                     </tr>
                     <!--ET_BEGIN tolerance-->
                     <tr>

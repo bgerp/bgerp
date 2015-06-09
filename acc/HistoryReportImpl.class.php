@@ -38,7 +38,7 @@ class acc_HistoryReportImpl extends frame_BaseDriver
 	/**
 	 * Заглавие
 	 */
-	public $title = 'Счетоводство»Хронология на аналитична сметка';
+	public $title = 'Счетоводство » Хронология на аналитична сметка';
 	
 	
 	/**
@@ -248,5 +248,134 @@ class acc_HistoryReportImpl extends frame_BaseDriver
 		$activateOn = "{$this->innerForm->toDate} 23:59:59";
 		 
 		return $activateOn;
+	}
+	
+
+	/**
+	 * Ако имаме в url-то export създаваме csv файл с данните
+	 *
+	 * @param core_Mvc $mvc
+	 * @param stdClass $rec
+	 */
+	public function exportCsv()
+	{
+
+		$conf = core_Packs::getConfig('core');
+	
+		if (count($this->innerState->recs) > $conf->EF_MAX_EXPORT_CNT) {
+			redirect(array($this), FALSE, "Броят на заявените записи за експорт надвишава максимално разрешения|* - " . $conf->EF_MAX_EXPORT_CNT, 'error');
+		}
+	
+		$csv = "";
+	
+		// генериран хедър
+		$header = $this->generateHeader($this->innerState->rec)->header;
+		// генериран нулев ред
+		$zeroRow = $this->generateCsvRows($this->innerState->zeroRec);
+		// генериран първи ред
+		$lastRow = $this->generateCsvRows($this->innerState->lastRec);
+		
+		if(count($this->innerState->recs)) {
+			foreach (array_reverse($this->innerState->recs, TRUE) as $id => $rec) {
+
+				$rCsv = $this->generateCsvRows($rec);
+
+				$csv .= $rCsv;
+				$csv .=  "\n";
+		
+			}
+			
+			$csv = $header . "\n" . $lastRow .  "\n" . $csv . $zeroRow;
+	    } else {
+	    	$csv = $header . "\n" . $lastRow . "\n" . $zeroRow;
+	    }
+
+		return $csv;
+	}
+	
+	
+	/**
+	 * Ще се експортирват полетата, които се
+	 * показват в табличния изглед
+	 *
+	 * @return array
+	 */
+	protected function getExportFields_()
+	{
+
+		$exportFields['valior']  = "Вальор";
+		$exportFields['docId']  = "Документ";
+		$exportFields['reason']  = "Забележки";
+		$exportFields['debitQuantity']  = "Дебит - количество";
+		$exportFields['debitAmount']  = "Дебит";
+		$exportFields['creditQuantity']  = "Кредит - количество";
+		$exportFields['creditAmount']  = "Кредит";
+		$exportFields['blQuantity']  = "Остатък - количество";
+		$exportFields['blAmount']  = "Остатък";
+		
+		return $exportFields;
+	}
+	
+
+	/**
+	 * Ще направим заглавито на колонките
+	 * според това дали ще има скрити полета
+	 *
+	 * @return stdClass
+	 */
+	protected function generateHeader_($rec)
+	{
+		
+		$exportFields = $this->getExportFields();
+	
+		if ($rec->baseAmount == $rec->baseQuantity && $rec->debitQuantity == $rec->debitAmount && $rec->creditQuantity == $rec->creditAmount && $rec->blQuantity == $rec->blAmount) { //bp();
+			unset ($exportFields['debitQuantity']);
+			unset ($exportFields['creditQuantity']);
+			unset ($exportFields['blQuantity']);
+		}
+	
+		foreach ($exportFields as $caption) {
+			$header .= "," . $caption;
+		}
+			
+		return (object) array('header' => $header, 'exportFields' => $exportFields);
+	}
+	
+	
+	/**
+	 * Ще направим row-овете в CSV формат
+	 *
+	 * @return string $rCsv
+	 */
+	protected function generateCsvRows_($rec)
+	{
+	
+		$exportFields = $this->generateHeader($this->innerState->rec)->exportFields;
+		$rec = frame_CsvLib::prepareCsvRows($rec);
+	
+		$rCsv = '';
+	
+		foreach ($rec as $field => $value) {
+			$rCsv = '';
+	
+			foreach ($exportFields as $field => $caption) {
+					
+				if ($rec->{$field}) {
+	
+					$value = $rec->{$field};
+					$value = html2text_Converter::toRichText($value);
+					// escape
+					if (preg_match('/\\r|\\n|,|"/', $value)) {
+						$value = '"' . str_replace('"', '""', $value) . '"';
+					}
+					$rCsv .= "," . $value;
+	
+				} else {
+					$rCsv .= "," . '';
+				}
+			}
+		}
+		
+		return $rCsv;
 	}
 }

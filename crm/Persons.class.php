@@ -83,7 +83,7 @@ class crm_Persons extends core_Master
     var $loadList = 'plg_Created, plg_Modified, plg_RowTools,  plg_LastUsedKeys,plg_Rejected, plg_Select,
                      crm_Wrapper, crm_AlphabetWrapper, plg_SaveAndNew, plg_PrevAndNext, bgerp_plg_Groups, plg_Printing, plg_State,
                      plg_Sorting, recently_Plugin, plg_Search, acc_plg_Registry, doc_FolderPlg,
-                     bgerp_plg_Import, drdata_PhonePlg';
+                     bgerp_plg_Import, doc_plg_Close, drdata_PhonePlg';
     
     
     /**
@@ -126,6 +126,12 @@ class crm_Persons extends core_Master
      * Кой има право да чете?
      */
     var $canRead = 'powerUser';
+    
+    
+    /**
+     * Кой може да добавя?
+     */
+    public $canClose = 'crm,ceo';
     
     
     /**
@@ -519,8 +525,11 @@ class crm_Persons extends core_Master
             	$row->buzLocationId = crm_Locations::getHyperLink($rec->buzLocationId, TRUE);
             }
         }
-        
-        $ownCompany = crm_Companies::fetchOurCompany();
+
+        static $ownCompany;
+        if(!$ownCompany) {
+            $ownCompany = crm_Companies::fetchOurCompany();
+        }
         if ($ownCompany->country != $rec->country) {
         	$row->country = $mvc->getVerbal($rec, 'country');
         }
@@ -965,9 +974,10 @@ class crm_Persons extends core_Master
             						'Град' => bglocal_Address::canonizePlace(static::getVerbal($rec, 'place')))
             );
             
-        	if($rec->groupList){
-            	$groups = strip_tags($self->getVerbal($rec, 'groupList'));
-            	$result->features = $result->features + arr::make($groups, TRUE);
+        	// Добавяме свойствата от групите, ако има такива
+            $groupFeatures = crm_Groups::getFeaturesArray($rec->groupList);
+            if(count($groupFeatures)){
+            	$result->features += $groupFeatures;
             }
             
             $result->features = $self->CustomerSalecond->getFeatures($self, $objectId, $result->features);

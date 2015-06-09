@@ -38,7 +38,7 @@ class core_App
 
             // Задаваме стойности по подразбиране на обкръжението
             if (!core_Mode::is('screenMode')) {
-                core_Mode::set('screenMode', core_Browser::detectMobile() ? 'narrow' : 'wide');
+                core_Mode::set('screenMode', logs_Browsers::detectMobile() ? 'narrow' : 'wide');
             }
 
             // Генерираме съдържанието
@@ -936,7 +936,9 @@ class core_App
      * Пътя до файла може да е указан само от пакета нататък
      */
     static public function getFileContent($shortPath)
-    {
+    {   
+        if(!$shortPath) return;
+
         expect($fullPath = static::getFullPath($shortPath));
 
         return file_get_contents($fullPath);

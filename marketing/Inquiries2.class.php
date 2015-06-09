@@ -22,6 +22,12 @@ class marketing_Inquiries2 extends core_Embedder
 	 */
 	public $innerObjectInterface = 'cat_ProductDriverIntf';
 	
+
+	/**
+	 * Флаг, който указва, че документа е партньорски
+	 */
+	public $visibleForPartners = TRUE;
+	
 	
     /**
      * Поддържани интерфейси
@@ -216,7 +222,7 @@ class marketing_Inquiries2 extends core_Embedder
     {
     	if ($form->isSubmitted()){
     		$form->rec->ip = core_Users::getRealIpAddr();
-    		$form->rec->brid = core_Browser::getBrid();
+    		$form->rec->brid = logs_Browsers::getBrid();
     		$form->rec->state = 'active';
     		
     		$form->rec->quantities = array();
@@ -259,7 +265,7 @@ class marketing_Inquiries2 extends core_Embedder
     		$row->ip = type_Ip::decorateIp($rec->ip, $rec->createdOn);
     	}
 
-        $row->brid = core_Browser::getLink($rec->brid);
+        $row->brid = logs_Browsers::getLink($rec->brid);
     	 
     	if($fields['-list']){
     		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
@@ -686,7 +692,7 @@ class marketing_Inquiries2 extends core_Embedder
     		$rec = &$form->rec;
     		$rec->state = 'active';
     		$rec->ip = core_Users::getRealIpAddr();
-    		$rec->brid = core_Browser::getBrid();
+    		$rec->brid = logs_Browsers::getBrid();
     	
     		if(empty($rec->folderId)){
     			$rec->folderId = $this->Router->route($rec);
@@ -710,7 +716,7 @@ class marketing_Inquiries2 extends core_Embedder
                         if (!trim($form->rec->$fName)) continue;
                         $userData[$fName] = $form->rec->$fName;
                     }
-                    core_Browser::setVars($userData);
+                    logs_Browsers::setVars($userData);
     			}
     		    
     			$id = $this->save($rec);
@@ -822,7 +828,7 @@ class marketing_Inquiries2 extends core_Embedder
         $contactFields = $this->selectFields("#class == 'contactData'");
         $fieldNamesArr = array_keys($contactFields);
         
-        $vars = core_Browser::getVars($fieldNamesArr);
+        $vars = logs_Browsers::getVars($fieldNamesArr);
         
     	foreach ((array)$vars as $name => $val){
     		$form->setDefault($name, $val);

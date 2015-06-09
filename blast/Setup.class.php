@@ -222,13 +222,13 @@ class blast_Setup extends core_ProtoSetup
                 
                 // Обновяваме стойността за детайла в лога
                 $masterRec = blast_Emails::fetch($nRec->emailId);
-                $lQuery = log_Documents::getQuery();
+                $lQuery = doclog_Documents::getQuery();
                 $lQuery->where("#containerId = '{$masterRec->containerId}'");
                 
                 while ($lRec = $lQuery->fetch()) {
                     if ($lRec->data->detId != $rec->listDetailId) continue;
                     $lRec->data->detId = $nRec->id;
-                    log_Documents::save($lRec, 'dataBlob', 'UPDATE');
+                    doclog_Documents::save($lRec, 'dataBlob', 'UPDATE');
                 }
             }
         }

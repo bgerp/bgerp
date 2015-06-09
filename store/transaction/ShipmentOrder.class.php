@@ -160,7 +160,7 @@ class store_transaction_ShipmentOrder extends acc_DocumentTransactionSource
         	$pInfo = cls::get($detailRec->classId)->getProductInfo($detailRec->productId, $detailRec->packagingId);
         	
         	// Вложимите кредит 706, другите 701
-        	$creditAccId = (isset($pInfo->meta['materials'])) ? '706' : '701';
+        	$creditAccId = '701';
             
         	$entries[] = array(
                 'amount' => $sign * $amount * $currencyRate, // В основна валута

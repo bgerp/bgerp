@@ -243,6 +243,18 @@ class accda_Da extends core_Master
     
     
     /**
+     * Връща разбираемо за човека заглавие, отговарящо на записа
+     */
+    public static function getRecTitle($rec, $escaped = TRUE)
+    {
+    	$me = cls::get(get_called_class());
+    	$title = $me->singleTitle . " №{$rec->id}";
+    	
+    	return $title;
+    }
+    
+    
+    /**
      * Интерфейсен метод на doc_DocumentIntf
      */
     public function getDocumentRow($id)
@@ -252,7 +264,7 @@ class accda_Da extends core_Master
         $rec = $this->fetch($id);
         
         $row = new stdClass();
-        $row->title = $this->singleTitle . " №{$rec->id}";
+        $row->title = static::getRecTitle($rec);
         $row->subTitle = $this->getVerbal($rec, 'title');;
         $row->author = $this->getVerbal($rec, 'createdBy');
         $row->state = $rec->state;

@@ -52,7 +52,6 @@
             </div>
             <div class="lines"></div>
                 [#store_ConsignmentProtocolDetailsReceived#]
-            </div>
         </div>
         <div class="lines"></div>
         <div class="scrolling-holder">
@@ -92,6 +91,14 @@
                                     <td>[#volume#]</td>
                                 </tr>
                                 <!--ET_END volume-->
+                                
+                                <!--ET_BEGIN palletCountInput-->
+                                <tr>
+                                    <td class='quiet nowrap aright'>|Брой палети|*:</td>
+                                    <td>[#palletCountInput#]</td>
+                                </tr>
+                                <!--ET_END palletCountInput-->
+                               
                                  <!--ET_BEGIN note-->
                                 <tr>
                                     <td colspan="2" >

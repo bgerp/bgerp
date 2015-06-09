@@ -88,7 +88,8 @@ class crm_Setup extends core_ProtoSetup
             'crm_Formatter',
             'migrate::movePersonalizationData',
             'migrate::addCountryToCompaniesAndPersons',
-            'migrate::updateSettingsKey'
+            'migrate::updateSettingsKey',
+            'migrate::updateGroupFoldersToUnsorted'
         );
     
 
@@ -268,6 +269,57 @@ class crm_Setup extends core_ProtoSetup
                 
                 continue;
             }
+        }
+    }
+    
+    
+    /**
+     * Променя типа на папките от група в проект
+     */
+    public static function updateGroupFoldersToUnsorted()
+    {
+        try {
+            $groupClassId = core_Classes::getId('crm_Groups');
+        } catch (core_exception_Expect $e) {
+            
+            return ;
+        }
+        
+        if (!$groupClassId) return ;
+        
+        try {
+            $unsortedClassId = core_Classes::getId('doc_UnsortedFolders');
+        } catch (core_exception_Expect $e) {
+            
+            return ;
+        }
+        
+        $Unsorted = cls::get('doc_UnsortedFolders');
+        $Unsorted->autoCreateFolder = NULL;
+        
+        $dQuery = doc_Folders::getQuery();
+        $dQuery->where("#coverClass = {$groupClassId}");
+        while ($rec = $dQuery->fetch()) {
+            
+            $unsortedRec = clone $rec;
+            unset($unsortedRec->id);
+            unset($unsortedRec->title);
+            unset($unsortedRec->state);
+            unset($unsortedRec->searchKeywords);
+            unset($unsortedRec->exState);
+            
+            $unsortedRec->name = $rec->title;
+            $i = 0;
+            while($Unsorted->fetch(array("#name = '[#1#]'", $unsortedRec->name))) {
+                $unsortedRec->name .= '_' . ++$i;
+            }
+            $rec->coverId = $Unsorted->save($unsortedRec);
+            
+            $rec->coverClass = $unsortedClassId;
+            doc_Folders::save($rec);
+            
+            $unsortedRec->folderId = $rec->id;
+            $Unsorted->save($unsortedRec, 'folderId');
         }
     }
 }

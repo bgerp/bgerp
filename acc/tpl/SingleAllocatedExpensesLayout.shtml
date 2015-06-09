@@ -10,15 +10,15 @@
     <!--ET_END header-->
     <table>
         <tr>
-            <td style='padding-left:10px;width:60%;padding-top:10px;padding-bottom:10px'>
+            <td>
                 <div class='document-title'>|Корекция на стойности|* №[#id#]</div>
-                <div style='margin-top:5px'>|Вальор|*: [#valior#]</div>
+                <div style='margin-top:10px'>|Вальор|*: [#valior#]</div>
                 <div style='margin-top:5px'>|Корекция|*: [#action#]</div>
                 <div style='margin-top:5px'>|Разпределяне по|*: [#allocateBy#]</div>
                 <div style='margin-top:5px'>|Основна сделка|*: [#dealOriginId#]</div>
                 <div style='margin-top:5px'>|Кореспондираща сделка|*: [#correspondingDealOriginId#]</div>
-                <div style='margin-top:5px'>|Сума|*: [#amount#] <span class='cCode'>[#baseCurrencyCode#]</span></div>
-                <div style='margin-top:5px'>[#PRODUCTS_TABLE#]</div>
+                <div style='margin-top:5px'>|Сума|*: <b>[#amount#]</b> <span class='cCode'>[#baseCurrencyCode#]</span> [#vatType#]</div>
+                <div style='margin-top:15px'>[#PRODUCTS_TABLE#]</div>
             </td>
         </tr>
     </table>

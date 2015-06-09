@@ -1,0 +1,154 @@
+<div class="singleView">
+    [#SingleToolbar#]
+    <div class="no-cover" style="margin-bottom: 20px">
+        <h2 style='line-height:26px' class='[#headerRejected#]'>|Бюлетин за домейн|* <b style="color:green;">[#domain#]</b></h2>
+
+        <fieldset class="detail-info">
+            <legend class="groupTitle">|Абониране|*</legend>
+            <div class="groupList">
+                <ul>
+                    <!--ET_BEGIN bgColor-->
+                    <li class="info">
+                        <span class="gray-title">|Брой абонирани|*:</span> [#subscribersCnt#]
+                    </li>
+                    <!--ET_END bgColor-->
+                    <!--ET_BEGIN subscribersLast-->
+                    <li class="info">
+                        <span class="gray-title">|Последно|*:</span> [#subscribersLast#]
+                    </li>
+                    <!--ET_END subscribersLast-->
+                </ul>
+            </div>
+        </fieldset>
+
+        <fieldset class="detail-info">
+            <legend class="groupTitle">|Съдържание на формата|*</legend>
+            <div class="groupList">
+                <ul>
+                    <!--ET_BEGIN formTitle-->
+                    <li class="info">
+                        <span class="gray-title">|Покана за абонамент|*:</span> [#formTitle#]
+                    </li>
+                    <!--ET_END formTitle-->
+                    <!--ET_BEGIN logo-->
+                    <li class="info">
+                        <span class="gray-title">|Лого|*:</span> [#logo#]
+                    </li>
+                    <!--ET_END logo-->
+                    <!--ET_BEGIN formSuccessText-->
+                    <li class="info">
+                        <span class="gray-title">|Благодарност при абониране|*:</span> [#formSuccessText#]
+                    </li>
+                    <!--ET_END formSuccessText-->
+                    <!--ET_BEGIN img-->
+                    <li class="info">
+                        <span class="gray-title">|Картинка за успешна регистрация|*:</span> <span class="inline">[#img#]</span>
+                    </li>
+                    <!--ET_END img-->
+                </ul>
+            </div>
+        </fieldset>
+
+        <fieldset class="detail-info">
+            <legend class="groupTitle">|Текстове на бутони|*</legend>
+            <div class="groupList">
+                <ul>
+                    <!--ET_BEGIN showFormBtn-->
+                    <li class="info">
+                        <span class="gray-title">|За показване|*:</span> [#showFormBtn#]
+                    </li>
+                    <!--ET_END showFormBtn-->
+                    <!--ET_BEGIN submitBtnVal-->
+                    <li class="info">
+                        <span class="gray-title">|За абониране|*:</span> [#submitBtnVal#]
+                    </li>
+                    <!--ET_END submitBtnVal-->
+                    <!--ET_BEGIN cancelBtnVal-->
+                    <li class="info">
+                        <span class="gray-title">|За отказ|*:</span> [#cancelBtnVal#]
+                    </li>
+                    <!--ET_END cancelBtnVal-->
+                </ul>
+            </div>
+        </fieldset>
+
+        <!--ET_BEGIN scriptTag-->
+        <fieldset class="detail-info">
+            <legend class="groupTitle">|Скрипт таг|*</legend>
+            <div class="groupList">
+                [#scriptTag#]
+            </div>
+        </fieldset>
+        <!--ET_END scriptTag-->
+
+        <fieldset class="detail-info">
+            <legend class="groupTitle">|Времена за изчакване|*</legend>
+            <div class="groupList">
+                <ul>
+                	<!--ET_BEGIN delayBeforeOpenInHit-->
+                    <li class="info">
+                        <span class="gray-title">|Преди показване в хита|*:</span> [#delayBeforeOpenInHit#]
+                    </li>
+                    <!--ET_END delayBeforeOpenInHit-->
+                    <!--ET_BEGIN delayBeforeOpen-->
+                    <li class="info">
+                        <span class="gray-title">|Преди показване|*:</span> [#delayBeforeOpen#]
+                    </li>
+                    <!--ET_END delayBeforeOpen-->
+                    <!--ET_BEGIN delayAfterClose-->
+                    <li class="info">
+                        <span class="gray-title">|След затваряне|*:</span> [#delayAfterClose#]
+                    </li>
+                    <!--ET_END delayAfterClose-->
+                </ul>
+            </div>
+        </fieldset>
+
+        <!--ET_BEGIN colorBlock-->
+        [#colorBlock#]
+        <fieldset class="detail-info">
+            <legend class="groupTitle">|Цветове|*</legend>
+            <div class="groupList">
+                <ul>
+                    <!--ET_BEGIN bgColor-->
+                    <li class="info">
+                        <span class="gray-title">|Цвят на фона|*:</span> [#bgColor#]
+                    </li>
+                    <!--ET_END bgColor-->
+                    <!--ET_BEGIN textColor-->
+                    <li class="info">
+                        <span class="gray-title">|Цвят на текст|*:</span> [#textColor#]
+                    </li>
+                    <!--ET_END textColor-->
+                    <!--ET_BEGIN buttonColor-->
+                    <li class="info">
+                        <span class="gray-title">|Цвят на бутона|*:</span> [#buttonColor#]
+                    </li>
+                    <!--ET_END buttonColor-->
+                </ul>
+            </div>
+        </fieldset>
+        <!--ET_END colorBlock-->
+
+        <fieldset class="detail-info">
+            <legend class="groupTitle">|Друга информация|*</legend>
+            <div class="groupList">
+                <ul>
+                    <!--ET_BEGIN state-->
+                    <li class="info">
+                        <span class="gray-title">|Видимост|*:</span> <span class="inline">[#state#]</span>
+                    </li>
+                    <!--ET_END state-->
+                    <!--ET_BEGIN waitBeforeStart-->
+                    <li class="info">
+                        <span class="gray-title">|Създаване|*: |от|* [#createdBy#] |на|* [#createdOn#]</span>
+                    </li>
+                    <!--ET_END waitBeforeStart-->
+                </ul>
+            </div>
+        </fieldset>
+    </div>
+</div>
+<div class="shortTable">
+    [#DETAILS#]
+</div>

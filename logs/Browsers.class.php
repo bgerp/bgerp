@@ -1,4 +1,4 @@
-<?php
+<?php 
 
 
 /**
@@ -8,25 +8,17 @@ defIfNot('BRID_SALT', md5(EF_SALT . '_BRID'));
 
 
 /**
- * Клас 'core_Browser' - Определя параметрите на потребителския браузър
+ * 
  *
- *
- * @category  ef
- * @package   core
- * @author    Milen Georgiev <milen@download.bg> и Yusein Yuseinova <yyuseinov@gmail.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @category  bgerp
+ * @package   logs
+ * @author    Yusein Yuseinov <yyuseinov@gmail.com>
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @link
  */
-class core_Browser extends core_Master
+class logs_Browsers extends core_Master
 {
-    
-    
-    /**
-     * Заглавие на мениджъра
-     */
-    var $title = 'Потребителски браузър';
     
     
     /**
@@ -42,85 +34,123 @@ class core_Browser extends core_Master
     
     
     /**
-     * Кой има право да чете?
+     * Заглавие
      */
-    var $canRead = 'admin';
+    public $title = "Браузъри";
     
     
     /**
-     * Кой има право да променя?
+     * Кой има право да го чете?
      */
-    var $canEdit = 'no_one';
+    public $canRead = 'admin';
+    
+    
+    /**
+     * Кой има право да го променя?
+     */
+    public $canEdit = 'no_one';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'no_one';
+    public $canAdd = 'no_one';
     
     
     /**
      * Кой има право да го види?
      */
-    var $canView = 'admin';
+    public $canView = 'admin';
     
     
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'admin';
-    
-    
-    /**
-     * Кой може да разглежда сингъла?
-     */
-    var $canSingle = 'admin';
+    public $canList = 'admin';
     
     
     /**
      * Необходими роли за оттегляне на документа
      */
-    var $canReject = 'no_one';
+    public $canReject = 'no_one';
     
     
     /**
      * Кой има право да го изтрие?
      */
-    var $canDelete = 'no_one';
+    public $canDelete = 'no_one';
+    
+    
+    /**
+     * Кой може да разглежда сингъла?
+     */
+    public $canSingle = 'admin';
+    
+
+    /**
+     * Плъгини за зареждане
+     */
+    public $loadList = 'plg_SystemWrapper, logs_Wrapper, plg_Created, plg_GroupByDate, plg_RowTools';
     
     
     /**
      * Името на полито, по което плъгина GroupByDate ще групира редовете
      */
-    var $groupByDateField = 'createdOn';
-    
-    
-    /**
-     * Плъгини за зареждане
-     */
-    var $loadList = 'plg_SystemWrapper, plg_Created, plg_GroupByDate, plg_RowTools';
+    public $groupByDateField = 'createdOn';
     
     
     /**
      * Полетата, които ще се показват в лист изгледа
      */
-    public $listFields = 'id, brid, userAgent, createdOn, createdBy';
+    public $listFields = 'id, brid, userAgent, acceptLangs, createdOn, createdBy';
+    
     
     /**
      * Поле в което да се показва иконата за единичен изглед
      */
     public $rowToolsSingleField = 'brid';
-
+    
+    
     /**
-     * Описание на модела
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
-    function description()
+    public $oldClassName = 'core_Browser';
+    
+    
+    /**
+     * Полета на модела
+     */
+    public function description()
     {
         $this->FLD('brid', 'varchar(8)', 'caption=BRID');
         $this->FLD('userAgent', 'text', 'caption=User agent');
+        $this->FLD('acceptLangs', 'text', 'caption=Accept langs');
         $this->FLD('userData', 'blob(serialize, compress)', 'caption=Данни');
         
         $this->setDbUnique('brid');
+    }
+    
+    
+    /**
+     * Връща bridId на brid
+     * 
+     * @return integer
+     */
+    public static function getBridId()
+    {
+        if (!($bridId = Mode::get('bridId'))) {
+            $brid = self::getBrid(TRUE);
+            
+            $bridRec = self::getRecFromBrid($brid);
+            
+            if ($bridRec) {
+                $bridId = $bridRec->id;
+                
+                Mode::setPermanent('bridId', $bridId);
+            }
+        }
+        
+        return $bridId;
     }
     
     
@@ -240,8 +270,12 @@ class core_Browser extends core_Master
     public static function getLink($brid)
     {
         if(!$brid) return "";
-
-        $rec = self::fetch(array("#brid = '[#1#]'", $brid));
+        
+        if (is_object($brid)) {
+            $rec = $brid;
+        } else {
+            $rec = self::fetch(array("#brid = '[#1#]'", $brid));
+        }
         
         if(!$rec->userAgent) return "";
 
@@ -258,12 +292,29 @@ class core_Browser extends core_Master
         
         if (!Mode::is('text', 'plain')) {
 
-            if (core_Browser::haveRightFor('single', $bridRec)) {
-                $title = ht::createLink($title, array('core_Browser', 'single', $rec->id));
+            if (self::haveRightFor('single', $rec)) {
+                $title = ht::createLink($title, array('logs_Browsers', 'single', $rec->id));
             }
         }
 
         return $title;
+    }
+    
+    
+    /**
+     * Връща заглавието на User Agent, по възможност като линк
+     */
+    public static function getLinkFromId($id)
+    {
+        if (!$id) return ;
+        
+        if (is_object($id)) {
+            $rec = $id;
+        } else {
+            $rec = self::fetch((int) $id);
+        }
+        
+        return self::getLink($rec);
     }
     
     
@@ -355,6 +406,7 @@ class core_Browser extends core_Master
         }
         
         $rec->userAgent = self::getUserAgent();
+        $rec->acceptLangs = self::getAcceptLangs();
         
         self::save($rec, NULL, REPLACE);
     }
@@ -375,7 +427,7 @@ class core_Browser extends core_Master
         
         // Добавяме хеш към brid и записваме в кукитата
         $bridHash = str::addHash($brid, self::HASH_LENGTH, $bridSalt);
-        setcookie(self::BRID_NAME, $bridHash, time() + $conf->CORE_COOKIE_LIFETIME);
+        setcookie(self::BRID_NAME, $bridHash, time() + $conf->CORE_COOKIE_LIFETIME, '/');
     }
     
     
@@ -597,6 +649,7 @@ class core_Browser extends core_Master
         return $res;
     }
     
+    
     /**
      * Връща $_SERVER['HTTP_USER_AGENT']
      */
@@ -605,6 +658,17 @@ class core_Browser extends core_Master
         $userAgent = $_SERVER['HTTP_USER_AGENT'];
         
         return $userAgent;
+    }
+    
+    
+    /**
+     * Връща $_SERVER['HTTP_ACCEPT_LANGUAGE']
+     */
+    static function getAcceptLangs()
+    {
+        $acceptLangs = $_SERVER['HTTP_ACCEPT_LANGUAGE'];
+        
+        return $acceptLangs;
     }
     
     
@@ -726,7 +790,7 @@ class core_Browser extends core_Master
                         'js',
                         rand(1, 1000000000)
                     ));
-                $code .= '<span class="checkBrowser"><img id="brdet" src="" width="1" height="1"></span><script type="text/javascript"><!-- 
+                $code .= '<span class="checkBrowser"><img id="brdet" src="" width="1" height="1" alt=""></span><script type="text/javascript"><!-- 
                 var winW = 630, winH = 460; if (document.body && document.body.offsetWidth) { winW = document.body.offsetWidth;
                 winH = document.body.offsetHeight; } if (document.compatMode=="CSS1Compat" && document.documentElement && 
                 document.documentElement.offsetWidth ) { winW = document.documentElement.offsetWidth;

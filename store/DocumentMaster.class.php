@@ -190,10 +190,10 @@ abstract class store_DocumentMaster extends core_Master
     
     	deals_Helper::fillRecs($this, $recs, $rec);
     	$measures = $this->getMeasures($recs);
-    	 
+    	
     	$rec->weight = $measures->weight;
     	$rec->volume = $measures->volume;
-    
+    	
     	// ДДС-т е отделно amountDeal  е сумата без ддс + ддс-то, иначе самата сума си е с включено ддс
     	$amount = ($rec->chargeVat == 'separate') ? $this->_total->amount + $this->_total->vat : $this->_total->amount;
     	$amount -= $this->_total->discount;
@@ -360,6 +360,9 @@ abstract class store_DocumentMaster extends core_Master
 	   		if(isset($rec->lineId)){
 	   			$row->lineId = trans_Lines::getHyperlink($rec->lineId);
 	   		}
+	   		
+	   		$row->weight = ($row->weightInput) ? $row->weightInput : $row->weight;
+	   		$row->volume = ($row->volumeInput) ? $row->volumeInput : $row->volume;
 	   	}
    }
 
@@ -462,15 +465,23 @@ abstract class store_DocumentMaster extends core_Master
      * @param stdClass $rec - запис на документа
      * @param stdClass $row - вербалния запис
      */
-    private function prepareLineRows($rec)
+    private function prepareLineRows(&$rec)
     {
     	$row = new stdClass();
     	$fields = $this->selectFields();
     	$fields['-single'] = TRUE;
+    	
+    	$rec->weight = ($rec->weightInput) ? $rec->weightInput : $rec->weight;
+    	$rec->volume = ($rec->volumeInput) ? $rec->volumeInput : $rec->volume;
     	$oldRow = $this->recToVerbal($rec, $fields);
-    	 
+    	
     	$amount = currency_Currencies::round($rec->amountDelivered / $rec->currencyRate, $rec->currencyId);
-    	 
+    	$rec->palletCount = ($rec->palletCountInput) ? $rec->palletCountInput : $rec->palletCount;
+    	
+    	if($rec->palletCount){
+    		$row->palletCount = $this->getFieldType('palletCount')->toVerbal($rec->palletCount);
+    	}
+    	
     	if($rec->weight){
     		$row->weight = $oldRow->weight;
     	}
@@ -490,7 +501,7 @@ abstract class store_DocumentMaster extends core_Master
     	 
     	$row->storeId = store_Stores::getHyperlink($rec->storeId);
     	$row->ROW_ATTR['class'] = "state-{$rec->state}";
-    	$row->docId = $this->getDocLink($rec->id);
+    	$row->docId = $this->getLink($rec->id, 0);
     	 
     	return $row;
     }
@@ -499,11 +510,12 @@ abstract class store_DocumentMaster extends core_Master
     /**
      * Помощен метод за показване на документа в транспортните линии
      */
-    protected function prepareLineDetail($masterRec)
+    protected function prepareLineDetail(&$masterData)
     {
     	$arr = array();
+    	
     	$query = $this->getQuery();
-    	$query->where("#lineId = {$masterRec->id}");
+    	$query->where("#lineId = {$masterData->rec->id}");
     	$query->where("#state != 'rejected'");
     	$query->orderBy("#createdOn", 'DESC');
     	 
@@ -512,6 +524,11 @@ abstract class store_DocumentMaster extends core_Master
     		$dRec->rowNumb = $i;
     		$arr[$dRec->id] = $this->prepareLineRows($dRec);
     		$i++;
+    		
+    		$masterData->weight += $dRec->weight;
+    		$masterData->volume += $dRec->volume;
+    		$masterData->palletCount += $dRec->palletCount;
+    		$masterData->totalAmount += $dRec->amountDelivered;
     	}
     	
     	return $arr;

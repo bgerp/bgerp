@@ -8,6 +8,9 @@
                     <div style="padding-top:5px;">
                         № <span class="bigData">[#id#]</span> /
                         <span class="bigData">[#valior#]</span>
+                        <!--ET_BEGIN reff-->
+                        Your ref: <span class="bigData">[#reff#]</span>
+                        <!--ET_END reff-->
                     </div>
                     <!--ET_BEGIN state-->
                     <div class="[#STATE_CLASS#]" style='margin:10px 0'>[#state#]</div>

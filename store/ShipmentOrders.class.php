@@ -14,6 +14,8 @@
  */
 class store_ShipmentOrders extends store_DocumentMaster
 {
+    
+    
     /**
      * Заглавие
      * 
@@ -21,6 +23,12 @@ class store_ShipmentOrders extends store_DocumentMaster
      */
     public $title = 'Експедиционни нареждания';
 
+
+    /**
+     * Флаг, който указва, че документа е партньорски
+     */
+    public $visibleForPartners = TRUE;
+    
 
     /**
      * Абревиатура
@@ -39,8 +47,8 @@ class store_ShipmentOrders extends store_DocumentMaster
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, store_Wrapper, plg_Sorting, acc_plg_Contable, cond_plg_DefaultValues,
-                    doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, plg_Search, doc_plg_TplManager,
-					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_HidePrices, store_plg_Document';
+                    doc_DocumentPlg, plg_Printing, trans_plg_LinesPlugin, acc_plg_DocumentSummary, plg_Search, doc_plg_TplManager,
+					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_HidePrices';
 
     
     /**
@@ -65,6 +73,12 @@ class store_ShipmentOrders extends store_DocumentMaster
      * Кой има право да променя?
      */
     public $canEdit = 'ceo,store';
+    
+    
+    /**
+     * Кой има право да променя?
+     */
+    public $canChangeline = 'ceo,store';
     
     
     /**
@@ -237,7 +251,7 @@ class store_ShipmentOrders extends store_DocumentMaster
      */
     public function prepareShipments($data)
     {
-    	$data->shipmentOrders = parent::prepareLineDetail($data->masterData->rec);
+    	$data->shipmentOrders = parent::prepareLineDetail($data->masterData);
     }
     
     
@@ -248,7 +262,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     {
     	if(count($data->shipmentOrders)){
     		$table = cls::get('core_TableView');
-    		$fields = "rowNumb=№,docId=Документ,storeId=Склад,weight=Тегло,volume=Обем,collection=Инкасиране,address=@Адрес";
+    		$fields = "rowNumb=№,docId=Документ,storeId=Склад,weight=Тегло,volume=Обем,palletCount=Палети,collection=Инкасиране,address=@Адрес";
     		 
     		return $table->get($data->shipmentOrders, $fields);
     	}

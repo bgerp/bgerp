@@ -5,7 +5,11 @@
     <!--ET_END blank-->
     <!--ET_BEGIN header-->
     <div class='header [#STATE_CLASS#]'>
-       <div class='docBgIcon' style='[#iconStyle#];'>[#singleTitle#] <b>[#ident#]</b> ([#state#])</div>
+       <div class='docBgIcon' style='[#iconStyle#];'>[#singleTitle#] <b>[#ident#]</b> ([#state#])
+	       <!--ET_BEGIN VisibleForPartners-->
+				[#VisibleForPartners#]
+	       <!--ET_END VisibleForPartners-->
+       </div>
     </div>
     <!--ET_END header-->
         <div class='display-table'>
@@ -106,5 +110,4 @@
         [#shareLog#]
     </div>
     <!--ET_END shareLog-->
-    <iframe name="iframe_a" style='display:none'></iframe>
 </div>

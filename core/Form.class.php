@@ -724,14 +724,14 @@ class core_Form extends core_FieldSet
                 
                 $fieldsLayout->replace($input, $name);
             }
-        } 
-        
-        if(Mode::is('staticFormView')) {
-            $fieldsLayout->prepend("<div class='staticFormView'>");
-            $fieldsLayout->append("</div>");        
-        } else {
-            if ($idForFocus) {
-                $fieldsLayout->appendOnce("\n runOnLoad(function(){document.getElementById('{$idForFocus}').focus();});", 'JQRUN');
+            
+            if(Mode::is('staticFormView')) {
+            	$fieldsLayout->prepend("<div class='staticFormView'>");
+            	$fieldsLayout->append("</div>");
+            } else {
+            	if ($idForFocus) {
+            		$fieldsLayout->appendOnce("\n runOnLoad(function(){document.getElementById('{$idForFocus}').focus();});", 'JQRUN');
+            	}
             }
         }
         

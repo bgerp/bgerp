@@ -11,7 +11,8 @@
         <div class='articles-navigation'>
             |Навигация|*
         </div>
-        [#NAVIGATION#] 
+        [#NAVIGATION#]
+        <div class='bulletin-link'></div>
     </div>
     <!--ET_END NAVIGATION-->
 </div>

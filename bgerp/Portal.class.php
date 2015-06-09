@@ -52,7 +52,18 @@ class bgerp_Portal extends core_Manager
      */
     function act_Show()
     {
-        requireRole('powerUser');
+        // Ако е инсталиран пакета за партньори
+    	if(core_Packs::isInstalled('colab')){
+        	
+    		// И текущия потребител е контрактор, но не е powerUser
+    		if(core_Users::isContractor()){
+        		
+    			// Редирект към профила на партньора
+    			redirect(array('colab_Profiles', 'single'));
+        	}
+        }
+    	
+    	requireRole('powerUser');
         
         Mode::set('pageMenuKey', '_none_');
         

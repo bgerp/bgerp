@@ -43,10 +43,10 @@ class bgerp_F extends core_Manager
         $name = mb_strtolower($name);
         
         // Очакваме да има изпратен документ с mid' а
-        expect(($rec = log_Documents::getActionRecForMid($mid, FALSE)) && ($rec->containerId), 'Няма информация.');
+        expect(($rec = doclog_Documents::getActionRecForMid($mid, FALSE)) && ($rec->containerId), 'Няма информация.');
         
         // Записваме, ако не е записоно, че файла е отворено от ip
-        log_Documents::opened($rec->containerId, $mid);
+        doclog_Documents::opened($rec->containerId, $mid);
         
         // Вземаме документа
         $doc = doc_Containers::getDocument($rec->containerId);
@@ -100,7 +100,7 @@ class bgerp_F extends core_Manager
         $url = fileman_Files::generateUrl_($fh, TRUE);
         
         // Записваме в лога за файлове, информация за свалянето
-        log_Documents::downloaded($mid, $fh);
+        doclog_Documents::downloaded($mid, $fh);
         
         // Редиректваме към линка
         redirect($url);
@@ -125,10 +125,10 @@ class bgerp_F extends core_Manager
         } else {
             
             // Опитваме се да определим изпращенето от MID'a
-            expect(($rec = log_Documents::getActionRecForMid($mid, FALSE)) && ($rec->containerId), 'Няма информация.');
+            expect(($rec = doclog_Documents::getActionRecForMid($mid, FALSE)) && ($rec->containerId), 'Няма информация.');
             
             // Записваме, ако не е записоно, че файла е отворено от ip
-            log_Documents::opened($rec->containerId, $mid);
+            doclog_Documents::opened($rec->containerId, $mid);
             
             // Вземаме документа
             $doc = doc_Containers::getDocument($rec->containerId);

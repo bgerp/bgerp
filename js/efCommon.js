@@ -63,6 +63,11 @@ function showTooltip(){
 
 
 function treeViewAction() {
+    if(!$('.searchResult').length) {
+        $('.treeView tbody tr').not('.treeLevel0').addClass('hiddenRow closedChildren');
+        $('.treeView tr.treeLevel0').addClass('closedChildren');
+    }
+
     $( ".treeView .toggleBtn" ).on( "click", function(event) {
         var id = $(this).closest('tr').attr('data-id');
         if(!$(this).closest('tr').hasClass('closedChildren')){
@@ -3607,6 +3612,23 @@ function onBeforeUnload()
 	window.onbeforeunload = function () {
 		getEO().isReloading = true;
 	}
+}
+
+
+/**
+ * Добавя текущото URL И титлата към url-то
+ */
+function addParamsToBookmarkBtn(parentUrl, localUrl)
+{
+	//var url = encodeURIComponent(document.URL);
+	//var title = encodeURIComponent(document.title);
+	var url = localUrl;
+	if (!url) {
+		url = document.URL;
+	}
+	var title = document.title;
+	
+	document.location = parentUrl + '?url=' + url + '&title=' + title;
 }
 
 

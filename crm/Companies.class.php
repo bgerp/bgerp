@@ -74,7 +74,7 @@ class crm_Companies extends core_Master
     var $loadList = 'plg_Created, plg_Modified, plg_RowTools, plg_State, 
                      Groups=crm_Groups, crm_Wrapper, crm_AlphabetWrapper, plg_SaveAndNew, plg_PrevAndNext,doc_FolderPlg,
                      plg_Sorting, fileman_Files, recently_Plugin, plg_Search, plg_Rejected, bgerp_plg_Groups, plg_Printing,
-                     acc_plg_Registry, plg_LastUsedKeys,plg_Select,bgerp_plg_Import, drdata_PhonePlg';
+                     acc_plg_Registry, doc_plg_Close, plg_LastUsedKeys,plg_Select,bgerp_plg_Import, drdata_PhonePlg';
     
     
     /**
@@ -93,6 +93,12 @@ class crm_Companies extends core_Master
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
     var $rowToolsSingleField = 'name';
+    
+    
+    /**
+     * Кой може да добавя?
+     */
+    public $canClose = 'crm,ceo';
     
     
     /**
@@ -1078,9 +1084,10 @@ class crm_Companies extends core_Master
             						'Град' => bglocal_Address::canonizePlace($self->getVerbal($rec, 'place')),)
             );
             
-            if($rec->groupList){
-            	$groups = strip_tags($self->getVerbal($rec, 'groupList'));
-            	$result->features = $result->features + arr::make($groups, TRUE);
+            // Добавяме свойствата от групите, ако има такива
+            $groupFeatures = crm_Groups::getFeaturesArray($rec->groupList);
+            if(count($groupFeatures)){
+            	$result->features += $groupFeatures;
             }
             
             $result->features = $self->CustomerSalecond->getFeatures($self, $objectId, $result->features);

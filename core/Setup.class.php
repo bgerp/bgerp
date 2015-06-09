@@ -193,17 +193,17 @@ class core_Setup extends core_ProtoSetup {
      */
     var $configDescription = array(
                
-           'EF_DATE_FORMAT'   => array ('enum(d.m.Y=|*22.11.1999, d-m-Y=|*22-11-1999, d/m/Y=|*22/11/1999, m.d.Y=|*11.22.1999, m-d-Y=|*11-22-1999, m/d/Y=|*11/22/1999, d.m.y=|*22.11.99, d-m-y=|*22-11-99, d/m/y=|*22/11/99, m.d.y=|*11.22.99, m-d-y=|*11-22-99, m/d/y=|*11/22/99)', 'caption=Формат по подразбиране за датата->Десктоп, customizeBy=powerUser'),
+           'EF_DATE_FORMAT'   => array ('enum(d.m.Y=|*22.11.1999, d-m-Y=|*22-11-1999, d/m/Y=|*22/11/1999, m.d.Y=|*11.22.1999, m-d-Y=|*11-22-1999, m/d/Y=|*11/22/1999, d.m.y=|*22.11.99, d-m-y=|*22-11-99, d/m/y=|*22/11/99, m.d.y=|*11.22.99, m-d-y=|*11-22-99, m/d/y=|*11/22/99)', 'caption=Формат по подразбиране за датата->Десктоп, customizeBy=user'),
            
-           'EF_DATE_NARROW_FORMAT'   => array ('enum(d.m.y=|*22.11.99, d-m-y=|*22-11-99, d/m/y=|*22/11/99, m.d.y=|*11.22.99, m-d-y=|*11-22-99, m/d/y=|*11/22/99, d.m.Y=|*22.11.1999, d-m-Y=|*22-11-1999, d/m/Y=|*22/11/1999, m.d.Y=|*11.22.1999, m-d-Y=|*11-22-1999, m/d/Y=|*11/22/1999)', 'caption=Формат по подразбиране за датата->Мобилен, customizeBy=powerUser'),
+           'EF_DATE_NARROW_FORMAT'   => array ('enum(d.m.y=|*22.11.99, d-m-y=|*22-11-99, d/m/y=|*22/11/99, m.d.y=|*11.22.99, m-d-y=|*11-22-99, m/d/y=|*11/22/99, d.m.Y=|*22.11.1999, d-m-Y=|*22-11-1999, d/m/Y=|*22/11/1999, m.d.Y=|*11.22.1999, m-d-Y=|*11-22-1999, m/d/Y=|*11/22/1999)', 'caption=Формат по подразбиране за датата->Мобилен, customizeBy=user'),
            
-           'EF_DATE_USE_TIMEOFFSET'   => array ('enum(yes=Да, no=Не)', 'caption=Дали да се използва времевата зона на потребителя->Избор, customizeBy=powerUser'),
+           'EF_DATE_USE_TIMEOFFSET'   => array ('enum(yes=Да, no=Не)', 'caption=Дали да се използва времевата зона на потребителя->Избор, customizeBy=user'),
             
-           'EF_NUMBER_THOUSANDS_SEP' => array( 'enum(&#x20;=Интервал,\'=Апостроф,`=Обратен апостроф)', 'caption=Форматиране на числа->Разделител, customizeBy=powerUser'),
+           'EF_NUMBER_THOUSANDS_SEP' => array( 'enum(&#x20;=Интервал,\'=Апостроф,`=Обратен апостроф)', 'caption=Форматиране на числа->Разделител, customizeBy=user'),
             
-           'EF_NUMBER_DEC_POINT' => array( 'enum(.=Точка,&#44;=Запетая)', 'caption=Форматиране на числа->Дробен знак, customizeBy=powerUser'),
+           'EF_NUMBER_DEC_POINT' => array( 'enum(.=Точка,&#44;=Запетая)', 'caption=Форматиране на числа->Дробен знак, customizeBy=user'),
             
-           'EF_USER_LANG' => array( "enum()", 'caption=Език на интерфейса след логване->Език, customizeBy=powerUser, optionsFunc=core_Lg::getLangOptions'),
+           'EF_USER_LANG' => array( "enum()", 'caption=Език на интерфейса след логване->Език, customizeBy=user, optionsFunc=core_Lg::getLangOptions'),
             
            'TYPE_KEY_MAX_SUGGESTIONS'   => array ('int', 'caption=Критичен брой опции|*&comma;| над които търсенето става по ajax->Опции'), 
     
@@ -253,25 +253,11 @@ class core_Setup extends core_ProtoSetup {
         'core_Locks',
         'core_LoginLog',
         'migrate::loginLogTruncate',
-        'core_Browser',
-        'migrate::clearBrowserInfo',
         'core_Settings',
         'core_Forwards',
         'migrate::settigsDataFromCustomToCore',
         'migrate::movePersonalizationData'
     );
-    
-    
-    /**
-     * Път до js файла
-     */
-    var $commonJS = '';
-    
-
-    /**
-     * Път до css файла
-     */
-    var $commonCSS = '';
     
     
     /**
@@ -387,17 +373,6 @@ class core_Setup extends core_ProtoSetup {
         $loginLog = cls::get('core_LoginLog');
         $loginLog->db->query("TRUNCATE TABLE `{$loginLog->dbTableName}`");
     }
-
-
-    /**
-     * Миграция - почистване на модела core_Browser
-     */
-    function clearBrowserInfo()
-    {
-        $Browser = cls::get('core_Browser');
-
-        $Browser->db->query("TRUNCATE TABLE `{$Browser->dbTableName}`");
-    }
     
     
     /**
@@ -466,4 +441,33 @@ class core_Setup extends core_ProtoSetup {
             core_Settings::setValues($key, $rec->configData, $rec->id);
         }
     }
+
+
+    /**
+     * Връща JS файлове, които са подходящи за компактиране
+     */
+    public function getCommonJs()
+    {
+        $conf = core_Packs::getConfig('core');
+
+        $intTheme = cls::get($conf->CORE_PAGE_WRAPPER);
+        
+        if (method_exists($intTheme, 'getCommonJs')) {
+            $res = $intTheme->getCommonJs();
+        } else {
+            $res = '';
+        }
+        
+        return $res;
+    }
+    
+    
+    /**
+     * Връща JS файлове, които са подходящи за компактиране
+     */
+    public function getCommonCss()
+    {
+        return $res;
+    }
+
 }

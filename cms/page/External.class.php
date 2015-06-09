@@ -81,7 +81,7 @@ class cms_page_External extends core_page_Active
         $this->append("runOnLoad(setMinHeightExt);", "JQRUN");
               
         // Добавка за разпознаване на браузъра
-        $Browser = cls::get('core_Browser');
+        $Browser = cls::get('logs_Browsers');
         $this->append($Browser->renderBrowserDetectingCode(), 'BROWSER_DETECT');
 
         // Добавяме основното меню
@@ -89,17 +89,6 @@ class cms_page_External extends core_page_Active
         
         // Добавяме лейаута
         $this->replace(cms_Content::getLayout(), 'CMS_LAYOUT');
-        
-        // TODO - да се премести в плъгин
-        $bulletinJsUrl = marketing_Bulletin::getJsLink();
-        if (trim($bulletinJsUrl)) {
-            $this->push($bulletinJsUrl, 'JS');
-            
-            $bulletinCssUrl = marketing_Bulletin::getCssLink();
-            if ($bulletinCssUrl) {
-                $this->push($bulletinCssUrl, 'CSS');
-            }
-        }
     }
 
     

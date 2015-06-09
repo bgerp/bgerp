@@ -20,77 +20,6 @@ defIfNot('MARKETING_INQUIRY_QUANTITIES', 3);
 
 
 /**
- * Дали да се показва бюлетина
- */
-defIfNot('MARKETING_USE_BULLETIN', 'no');
-
-/**
- * След колко време формата да може да се показва повторно
- * 3 часа
- */
-defIfNot('MARKETING_SHOW_AGAIN_AFTER', 10800);
-
-
-/**
- * След колко време на бездействие да се покаже формата
- */
-defIfNot('MARKETING_IDLE_TIME_FOR_SHOW', 20);
-
-
-/**
- * След колко секунди да може да се стартира
- */
-defIfNot('MARKETING_WAIT_BEFORE_START', 5);
-
-
-/**
- * Заглавие на формата
- */
-defIfNot('MARKETING_BULLETIN_FORM_TITLE', 'Искате ли да научавате всички новости за нас?');
-
-
-/**
- * Съобщение при абониране
- */
-defIfNot('MARKETING_BULLETIN_FORM_SUCCESS', 'Благодарим за абонамента за нашите новости');
-
-
-/**
- * URL от където ще се взема JS файла
- */
-defIfNot('MARKETING_BULLETIN_URL', '');
-
-
-/**
- * Дали да се показва цялата форма или само имейла
- */
-defIfNot('MARKETING_SHOW_ALL_FORM', 'no');
-
-
-/**
- * Дали да се показва цялата форма или само имейла
- */
-defIfNot('MARKETING_BULLETIN_IMG', '');
-
-
-/**
- * Фон на прозореца на бюлетина
- */
-defIfNot('MARKETING_BULLETIN_BACKGROUND', '');
-
-
-/**
- * Цвят на текста от бюлетина
- */
-defIfNot('MARKETING_BULLETIN_TEXTCOLOR', '');
-
-
-/**
- * Основен цвят за бутона на бюлетина
- */
-defIfNot('MARKETING_BULLETIN_BUTTONCOLOR', '');
-
-/**
  * Маркетинг - инсталиране / деинсталиране
  *
  *
@@ -136,19 +65,6 @@ class marketing_Setup extends core_ProtoSetup
 			'MARKETING_INQUIRE_FROM_EMAIL'  => array('key(mvc=email_Inboxes,select=email,allowEmpty)', 'caption=Изпращане на запитването по имейл->Имейл \'От\''),
 			'MARKETING_INQUIRE_TO_EMAIL'    => array('emails', 'caption=Изпращане на запитването по имейл->Имейл \'Към\''),
 			'MARKETING_INQUIRY_QUANTITIES'          => array('int', 'caption=Брой количества във запитването'),
-	        
-	        'MARKETING_USE_BULLETIN' => array('enum(yes=Да, no=Не)', 'caption=Дали да се показва бюлетина->Избор'),
-	        'MARKETING_SHOW_ALL_FORM' => array('enum(yes=Да, no=Не)', 'caption=Дали да се показва цялата форма или само имейла->Избор'),
-	        'MARKETING_BULLETIN_URL' => array('url', 'caption=От къде да се взема JS файла->URL'),
-	        'MARKETING_BULLETIN_FORM_TITLE' => array('varchar(128)', 'caption=Заглавие на формата на бюлетина->Текст'),
-	        'MARKETING_BULLETIN_FORM_SUCCESS' => array('varchar(128)', 'caption=Съобщение при абониране->Текст'),
-	        'MARKETING_SHOW_AGAIN_AFTER' => array('time(suggestions=3 часа|12 часа|1 ден)', 'caption=Изчакване преди ново отваряне->Време'),
-	        'MARKETING_IDLE_TIME_FOR_SHOW' => array('time(suggestions=5 секунди|20 секунди|1 мин)', 'caption=Период за бездействие преди активиране->Време'),
-	        'MARKETING_WAIT_BEFORE_START' => array('time(suggestions=3 секунди|5 секунди|10 секунди)', 'caption=След колко време да може да стартира бюлетина->Време'),
-	        'MARKETING_BULLETIN_IMG' => array('fileman_FileType(bucket=pictures)', 'caption=Картинка за успешна регистрация->Изображение'),
-            'MARKETING_BULLETIN_BACKGROUND' => array('color_Type', 'caption=Цветове за бюлетина->Цвят на фона'),
-            'MARKETING_BULLETIN_TEXTCOLOR' => array('color_Type', 'caption=Цветове за бюлетина->Цвят на текста'),
-            'MARKETING_BULLETIN_BUTTONCOLOR' => array('color_Type', 'caption=Цветове за бюлетина->Цвят на бутона')
 	);
 	
 	
@@ -157,7 +73,10 @@ class marketing_Setup extends core_ProtoSetup
      */
     var $managers = array(
     		'marketing_Inquiries2',
-            'marketing_Bulletin'
+            'marketing_Bulletins',
+            'marketing_BulletinSubscribers',
+            'migrate::updateBulletinsRecs5',
+            'migrate::updateBulletinsBrid'
         );
 
         
@@ -186,6 +105,61 @@ class marketing_Setup extends core_ProtoSetup
         $Bucket = cls::get('fileman_Buckets');
         $html .= $Bucket->createBucket('InquiryBucket', 'Снимки', 'jpg,jpeg,image/jpeg,gif,png', '10MB', 'user', 'every_one');
         
+        $Plugins = cls::get('core_Plugins');
+        $html .= $Plugins->forcePlugin('Бюлетин за външната част', 'marketing_BulletinPlg', 'cms_page_External', 'private');
+        
         return $html;
+    }
+    
+    
+    /**
+     * Миграция за обновява всички записи, за да се обнови кеша
+     */
+    static function updateBulletinsRecs5()
+    {
+        $query = marketing_Bulletins::getQuery();
+        while ($rec = $query->fetch()) {
+            marketing_Bulletins::save($rec);
+        }
+    }
+    
+    
+    /**
+     * Миграция за вземане на brid и ip от стария модел
+     */
+    static function updateBulletinsBrid()
+    {
+        if (!cls::load('marketing_Bulletin', TRUE)) continue;
+        $mBulletin = cls::get('marketing_Bulletin');
+        if($mBulletin->db->tableExists($mBulletin->dbTableName)) {
+            $query = $mBulletin->getQuery();
+            while ($rec = $query->fetch()) {
+                if (!$rec->brid && !$rec->ip) continue;
+                
+                $sQuery = marketing_BulletinSubscribers::getQuery();
+                $sQuery->where(array("#email = '[#1#]'", $rec->email));
+                $sQuery->where("#ip IS NULL");
+                $sQuery->orWhere("#brid IS NULL");
+                
+                while ($nRec = $sQuery->fetch()) {
+                    
+                    $mustSave = FALSE;
+                    
+                    if (!$nRec->brid) {
+                        $nRec->brid = $rec->brid;
+                        $mustSave = TRUE;
+                    }
+                    
+                    if (!$nRec->ip) {
+                        $nRec->ip = $rec->ip;
+                        $mustSave = TRUE;
+                    }
+                    
+                    if ($mustSave) {
+                        marketing_BulletinSubscribers::save($nRec, 'ip, brid');
+                    }
+                }
+            }
+        }
     }
 }

@@ -78,8 +78,11 @@ class doc_RichTextPlg extends core_Plugin
         // Абревиатурарата
         $abbr = ($doc->abbr) ? $doc->abbr : $match['abbr'];
         
-        //Име на файла
+        // Име на файла
         $docName = $match['dsSign'] . $abbr . $match['id'] . $match['endDs'];
+        
+        // Подаваме името на файла на документа, ако иска да го промени
+        $doc->invoke('AfterGetDocNameInRichtext', array(&$docName, $match['id']));
         
         $mvc    = $doc->instance;
         $docRec = $doc->rec();
@@ -419,7 +422,7 @@ class doc_RichTextPlg extends core_Plugin
     function _catchNick($match)
     {
         // Да не сработва в текстов режим
-        if (Mode::is('text', 'plain')) return $match[0];
+        if (Mode::is('text', 'plain') || Mode::is('text', 'xhtml')) return $match[0];
         
         // Вземаме id на записа от ника
         $nick = $match['nick'];
@@ -433,6 +436,8 @@ class doc_RichTextPlg extends core_Plugin
         
         // За ника използваме и префикса от стринга
         $nick = $match['pre'] . type_Nick::normalize($match['nick']);
+        
+        $profileId = crm_Profiles::getProfileId($id);
         
         $this->mvc->_htmlBoard[$place] = crm_Profiles::createLink($id, $nick);
         

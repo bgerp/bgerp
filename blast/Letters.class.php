@@ -385,7 +385,7 @@ class blast_Letters extends core_Master
             $options->__toListId = $listDet;
             
             // Пушваме екшъна
-            log_Documents::pushAction(array('data' => array('toListId' => $listDet, 'listId' => $options->rec->listId)));
+            doclog_Documents::pushAction(array('data' => array('toListId' => $listDet, 'listId' => $options->rec->listId)));
             
             // Вземаме документа в xhtml формат
             $res = $this->getDocumentBody($options->rec->id, 'xhtml', $options);
@@ -394,7 +394,7 @@ class blast_Letters extends core_Master
             $tpl->append($res);
             
             // Попваме съответния екшън
-            log_Documents::popAction();
+            doclog_Documents::popAction();
         }
         
         // Ако състоянито на детайла не е затворен

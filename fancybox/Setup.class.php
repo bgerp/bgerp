@@ -40,18 +40,27 @@ class fancybox_Setup extends core_ProtoSetup
        'FANCYBOX_VERSION' => array ('enum(1.3.4, 2.1.5)', 'mandatory, caption=Версията на програмата->Версия')
 
      );
-             
-             
-	/**
-	 * Пътища до CSS файлове
-	 */
-	public $commonCSS = "fancybox/[#FANCYBOX_VERSION#]/jquery.fancybox.css";
-	
-	
-	/**
-	 * Пътища до JS файлове
-	 */
-	public $commonJS = "fancybox/[#FANCYBOX_VERSION#]/jquery.fancybox.js";
-	
+    
+    
+    /**
+     * Връща JS файлове, които са подходящи за компактиране
+     */
+    public function getCommonJs()
+    {
+        $conf = core_Packs::getConfig('fancybox');
+        
+        return 'fancybox/' . $conf->FANCYBOX_VERSION . '/jquery.fancybox.js';
+    }
+    
+    
+    /**
+     * Връща JS файлове, които са подходящи за компактиране
+     */
+    public function getCommonCss()
+    {
+        $conf = core_Packs::getConfig('fancybox');
+        
+        return 'fancybox/' . $conf->FANCYBOX_VERSION . '/jquery.fancybox.css';
+    }
 }
 

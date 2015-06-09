@@ -1,4 +1,7 @@
 <?php
+
+
+
 /**
  * Клас 'store_Transfers' - Документ за междускладови трансфери
  *
@@ -8,12 +11,14 @@
  * @category  bgerp
  * @package   store
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
 class store_Transfers extends core_Master
 {
+	
+	
     /**
      * Заглавие
      */
@@ -36,7 +41,7 @@ class store_Transfers extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, store_Wrapper, plg_Sorting, plg_Printing, acc_plg_Contable, acc_plg_DocumentSummary,
-                    doc_DocumentPlg, store_plg_Document, doc_plg_BusinessDoc, plg_Search';
+                    doc_DocumentPlg, trans_plg_LinesPlugin, doc_plg_BusinessDoc, plg_Search';
 
     
     /**
@@ -63,6 +68,12 @@ class store_Transfers extends core_Master
 	public $canList = 'ceo,store';
 
 
+	/**
+	 * Кой има право да променя?
+	 */
+	public $canChangeline = 'ceo,store';
+	
+	
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
@@ -203,7 +214,7 @@ class store_Transfers extends core_Master
     /**
      * След рендиране на сингъла
      */
-    function on_AfterRenderSingle($mvc, $tpl, $data)
+    protected static function on_AfterRenderSingle($mvc, $tpl, $data)
     {
     	if(Mode::is('printing') || Mode::is('text', 'xhtml')){
     		$tpl->removeBlock('header');
@@ -241,6 +252,9 @@ class store_Transfers extends core_Master
     		if($toStoreLocation){
 	    		$row->toAdress = crm_Locations::getAddress($toStoreLocation);
 	    	}
+	    	
+	    	$row->weight = ($row->weightInput) ? $row->weightInput : $row->weight;
+	    	$row->volume = ($row->volumeInput) ? $row->volumeInput : $row->volume;
     	}
     	
     	if($fields['-list']){
@@ -370,20 +384,15 @@ class store_Transfers extends core_Master
      */
     private function prepareLineRows($rec)
     {
-    	$row = $this->recToVerbal($rec, 'toAdress,fromStore,toStore,weight,volume,-single');
+    	$rec->weight = ($rec->weightInput) ? $rec->weightInput : $rec->weight;
+    	$rec->volume = ($rec->volumeInput) ? $rec->volumeInput : $rec->volume;
     	
-    	if(!$rec->volume){
-    		unset($row->volume);
-    	}
-    	
-    	if(!$rec->weight){
-    		unset($row->weight);
-    	}
+    	$row = $this->recToVerbal($rec, 'toAdress,fromStore,toStore,weight,volume,palletCountInput,-single');
     	
     	$row->rowNumb = $rec->rowNumb;
     	$row->address = $row->toAdress;
     	$row->ROW_ATTR['class'] = "state-{$rec->state}";
-    	$row->docId = $this->getDocLink($rec->id);
+    	$row->docId = $this->getLink($rec->id, 0);
     	
     	return $row;
     }
@@ -405,6 +414,10 @@ class store_Transfers extends core_Master
     		$dRec->rowNumb = $i;
     		$data->transfers[$dRec->id] = $this->prepareLineRows($dRec);
     		$i++;
+    		
+    		$data->masterData->weight += $dRec->weight;
+    		$data->masterData->volume += $dRec->volume;
+    		$data->masterData->palletCount += $dRec->palletCountInput;
     	}
     }
     
@@ -416,7 +429,7 @@ class store_Transfers extends core_Master
     {
     	if(count($data->transfers)){
     		$table = cls::get('core_TableView');
-    		$fields = "rowNumb=№,docId=Документ,fromStore=Склад->Изходящ,toStore=Склад->Входящ,weight=Тегло,volume=Обем,address=@Адрес";
+    		$fields = "rowNumb=№,docId=Документ,fromStore=Склад->Изходящ,toStore=Склад->Входящ,weight=Тегло,volume=Обем,palletCountInput=Палети,address=@Адрес";
     		 
     		return $table->get($data->transfers, $fields);
     	}
@@ -426,7 +439,7 @@ class store_Transfers extends core_Master
 	/**
      * Връща разбираемо за човека заглавие, отговарящо на записа
      */
-    static function getRecTitle($rec, $escaped = TRUE)
+    public static function getRecTitle($rec, $escaped = TRUE)
     {
         return tr("|Междускладов трансфер|* №") . $rec->id;
     }

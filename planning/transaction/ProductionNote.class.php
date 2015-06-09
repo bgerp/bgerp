@@ -55,12 +55,12 @@ class planning_transaction_ProductionNote extends acc_DocumentTransactionSource
 	 * 		За всеки ресурс от картата:
 	 * 
 	 * 		Dt: 321. Суровини, материали, продукция, стоки     (Складове, Артикули)
-	 * 		Ct: 611. Разходи по Центрове и Ресурси		(Център на дейност, Ресурс)
+	 * 		Ct: 61101. Разходи за Ресурси		(Ресурси)
 	 * 
 	 * В противен случай
 	 * 
 	 * 		Dt: 321. Суровини, материали, продукция, стоки   (Складове, Артикули)
-	 * 		Ct: 6112. Разходи по Центрове на дейност   (Център на дейност)
+	 * 		Ct: 61102. Други разходи (общо)
 	 * 
 	 */
 	private function getEntries($rec, &$total)
@@ -69,20 +69,25 @@ class planning_transaction_ProductionNote extends acc_DocumentTransactionSource
 		
 		$dQuery = planning_ProductionNoteDetails::getQuery();
 		$dQuery->where("#noteId = {$rec->id}");
+		$dQuery->orderBy("id", 'ASC');
 		
 		$errorArr = array();
+		
 		while($dRec = $dQuery->fetch()){
-	
-			$entry = $this->getDirectEntry($dRec, $rec);
+			unset($entry);
 			
-			if(!count($entry)){
-				
-				if(isset($dRec->bomId)){
+			if(isset($dRec->bomId)){
 					
-					if(empty($dRec->jobId)) return FALSE;
-					
+			if(empty($dRec->jobId)) return FALSE;
 					$quantityJob = planning_Jobs::fetchField($dRec->jobId, 'quantity');
 					$resourceInfo = cat_Boms::getResourceInfo($dRec->bomId);
+					
+					// Еденични суми от рецептата
+					$priceObj = cat_Boms::getPrice($dRec->productId, $dRec->bomId);
+					
+					// проверяваме цената за к-то от заданието
+					$bomAmount = ($priceObj->base + $quantityJob * $priceObj->prop) / $quantityJob;
+					$bomAmount *= $dRec->quantity;
 					
 					$mapArr = $resourceInfo['resources'];
 					if(count($mapArr)){
@@ -107,14 +112,14 @@ class planning_transaction_ProductionNote extends acc_DocumentTransactionSource
 							$pQuantity = ($index == 0) ? $dRec->quantity : 0;
 							
 							if($res->type == 'input'){
-								
+								$reason = ($index == 0) ? 'Засклаждане на произведен артикул' : 'Вложени ресурси в произведен артикул';
 								$entry = array(
 										'debit' => array('321', array('store_Stores', $rec->storeId),
 															  array($dRec->classId, $dRec->productId),
 												'quantity' => $pQuantity),
-										'credit' => array('611', array('hr_Departments', $rec->activityCenterId)
-												, 				 array('planning_Resources', $res->resourceId),
+										'credit' => array('61101', array('planning_Resources', $res->resourceId),
 												'quantity' => $res->finalQuantity),
+										'reason' => $reason,
 								);
 							} else {
 								
@@ -125,12 +130,12 @@ class planning_transaction_ProductionNote extends acc_DocumentTransactionSource
 								
 								$entry = array(
 										'amount' => $amount,
-										'debit' => array('611', array('hr_Departments', $rec->activityCenterId),
-																 array('planning_Resources', $res->resourceId),
+										'debit' => array('61101', array('planning_Resources', $res->resourceId),
 														'quantity' => $resQuantity),
 										'credit' => array('321', array('store_Stores', $rec->storeId),
 																 array($dRec->classId, $dRec->productId),
 															'quantity' => $pQuantity),
+										'reason' => 'Приспадане себестойността на отпадък от произведен артикул',
 								);
 								
 								$total += $amount;
@@ -139,10 +144,27 @@ class planning_transaction_ProductionNote extends acc_DocumentTransactionSource
 							$entries[] = $entry;
 						}
 					}
+					
+					// Ако има режийни разходи за разпределение
+					if(isset($resourceInfo['expenses'])){
+						$costAmount = $resourceInfo['expenses'] * $bomAmount;
+						$costAmount = round($costAmount, 2);
+						
+						if($costAmount){
+							$costArray = array(
+									'amount' => $costAmount,
+									'debit' => array('321', array('store_Stores', $rec->storeId),
+											array($dRec->classId, $dRec->productId),
+											'quantity' => 0),
+									'credit' => array('61102'),
+									'reason' => 'Разпределени режийни разходи',
+							);
+							
+							$total += $costAmount;
+							$entries[] = $costArray;
+						}
+					}
 				}
-			} else {
-				$entries[] = $entry;
-			}
 			
 			if(!$entry){
 				$errorArr[] = cls::get($dRec->classId)->getVerbal($dRec->productId, 'name');
@@ -164,11 +186,11 @@ class planning_transaction_ProductionNote extends acc_DocumentTransactionSource
 	
 	/**
 	 * Връща директната контировка ако:
-	 * за артикула има ресурс, който има дебитно салдо в 611 и е вложим
+	 * за артикула има ресурс, който има дебитно салдо в 61101 и е вложим
 	 * или ако няма рецепта.
 	 * 
 	 * 		Dt: 321. Суровини, материали, продукция, стоки      (Складове, Артикули)
-	 * 		Ct: 6111. Разходи по Центрове и Ресурси             (Центрове на дейност, Ресурси)
+	 * 		Ct: 61101. Разходи за Ресурси             (Ресурси)
 	 * 
 	 */
 	private static function getDirectEntry($dRec, $rec)
@@ -187,11 +209,10 @@ class planning_transaction_ProductionNote extends acc_DocumentTransactionSource
 			$item = acc_Items::fetchItem('planning_Resources', $resourceId);
 			if($item){
 				
-				// Намираме крайното салдо на ресурса по сметка 611 за този център и този ресурс
+				// Намираме крайното салдо на ресурса по сметка 61101 за този център и този ресурс
 				$bQuery = acc_BalanceDetails::getQuery();
-				$centerId = acc_Items::fetchItem('hr_Departments', $rec->activityCenterId)->id;
-		
-				acc_BalanceDetails::filterQuery($bQuery, acc_Balances::getLastBalance()->id, '611', NULL, $centerId, $item->id);
+
+				acc_BalanceDetails::filterQuery($bQuery, acc_Balances::getLastBalance()->id, '61101', NULL, $item->id);
 				$bRec = $bQuery->fetch();
 				
 				// Ако имаме дебитно салдо
@@ -209,8 +230,7 @@ class planning_transaction_ProductionNote extends acc_DocumentTransactionSource
 							'debit' => array('321', array('store_Stores', $rec->storeId),
 									array($dRec->classId, $dRec->productId),
 									'quantity' => $dRec->quantity),
-							'credit' => array('611', array('hr_Departments', $rec->activityCenterId)
-									, 				 array('planning_Resources', $resourceId),
+							'credit' => array('61101', array('planning_Resources', $resourceId),
 									'quantity' => $dRec->quantity),
 					);
 				}

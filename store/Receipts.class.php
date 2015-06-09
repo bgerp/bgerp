@@ -1,4 +1,7 @@
 <?php
+
+
+
 /**
  * Клас 'store_Receipts'
  *
@@ -8,18 +11,26 @@
  * @category  bgerp
  * @package   store
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
 class store_Receipts extends store_DocumentMaster
 {
+    
+    
     /**
      * Заглавие
      */
     public $title = 'Складови разписки';
 
 
+    /**
+     * Флаг, който указва, че документа е партньорски
+     */
+    public $visibleForPartners = TRUE;
+    
+    
     /**
      * Абревиатура
      */
@@ -38,13 +49,19 @@ class store_Receipts extends store_DocumentMaster
      */
     public $loadList = 'plg_RowTools, store_Wrapper, plg_Sorting, acc_plg_Contable, cond_plg_DefaultValues,
                     doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, plg_Search, doc_plg_TplManager,
-					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_HidePrices, store_plg_Document';
+					doc_EmailCreatePlg, bgerp_plg_Blank, trans_plg_LinesPlugin, doc_plg_HidePrices';
 
     
     /**
      * Кой има право да чете?
      */
     public $canRead = 'ceo,store';
+    
+    
+    /**
+     * Кой има право да променя?
+     */
+    public $canChangeline = 'ceo,store';
     
     
     /**
@@ -139,7 +156,7 @@ class store_Receipts extends store_DocumentMaster
     public function description()
     {
         parent::setDocFields($this);
-        $this->setField('storeId', 'caption=От склад');
+        $this->setField('storeId', 'caption=В склад');
     }
     
     
@@ -174,7 +191,7 @@ class store_Receipts extends store_DocumentMaster
      */
     public function prepareReceipts($data)
     {
-    	$data->receipts = parent::prepareLineDetail($data->masterData->rec);
+    	$data->receipts = parent::prepareLineDetail($data->masterData);
     }
     
     
@@ -185,7 +202,7 @@ class store_Receipts extends store_DocumentMaster
     {
     	if(count($data->receipts)){
     		$table = cls::get('core_TableView');
-    		$fields = "rowNumb=№,docId=Документ,storeId=Склад,weight=Тегло,volume=Обем,collection=Инкасиране,address=@Адрес";
+    		$fields = "rowNumb=№,docId=Документ,storeId=Склад,weight=Тегло,volume=Обем,palletCount=Палети,collection=Инкасиране,address=@Адрес";
     		 
     		return $table->get($data->receipts, $fields);
     	}

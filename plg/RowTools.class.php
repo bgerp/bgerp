@@ -37,14 +37,9 @@ class plg_RowTools extends core_Plugin
         // Определяме в кое поле ще показваме инструментите
         $field = $mvc->rowToolsField ? $mvc->rowToolsField : 'id';
         
-        if(method_exists($mvc, 'act_Single') && $mvc->haveRightFor('single', $rec)) {
+        if(method_exists($mvc, 'act_Single')) {
             
-            $singleUrl = toUrl(array(
-                    $mvc,
-                    'single',
-                    'id' => $rec->id,
-                    'ret_url' => TRUE
-                ));
+            $singleUrl = $mvc->getSingleUrlArray($rec->id);
 
             $icon = $mvc->getIcon($rec->id);
             

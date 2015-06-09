@@ -24,6 +24,12 @@ class cash_Pko extends core_Master
    
     
     /**
+     * Флаг, който указва, че документа е партньорски
+     */
+    public $visibleForPartners = TRUE;
+    
+    
+    /**
      * Заглавие на мениджъра
      */
     var $title = "Приходни касови ордери";

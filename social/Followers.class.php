@@ -136,17 +136,17 @@ class social_Followers extends core_Master
     public function act_Redirect()
     {
     	// Взимаме $ид-то на услугата
-    	$id = core_Request::get('id', 'key(mvc='.get_class($mvc).')');
+    	$id = core_Request::get('id', 'key(mvc=' . get_class($this) . ')');
     	
     	// Намираме нейния запис
-    	$rec = self::fetch("#id = '{$id}'"); 
- 
+    	$rec = self::fetch((int) $id);
+    	
     	// Записваме в историята, че сме направели споделяне
     	if($rec) {
             if(core_Packs::fetch("#name = 'vislog'") && 
                vislog_History::add("Последване в " . $rec->title)) {
                
-               if (Mode::is('javascript', 'yes')  && !core_Browser::detectBot()){
+               if (Mode::is('javascript', 'yes')  && !logs_Browsers::detectBot()){
                	    	    	
 			       // Увеличаване на брояча на споделянията
 			       $rec->followersCnt++;

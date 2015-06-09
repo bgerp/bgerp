@@ -23,6 +23,12 @@ class sales_Sales extends deals_DealMaster
 
 
     /**
+     * Флаг, който указва, че документа е партньорски
+     */
+    public $visibleForPartners = TRUE;
+    
+    
+    /**
      * Абревиатура
      */
     public $abbr = 'Sal';
@@ -224,11 +230,18 @@ class sales_Sales extends deals_DealMaster
     
     
     /**
+     * Кеш на уникален индекс
+     */
+    protected $unique = 0;
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
     {
         parent::setDealFields($this);
+        $this->FLD('reff', 'varchar(255)', 'caption=Ваш реф.,class=contactData,after=valior');
         $this->FLD('bankAccountId', 'key(mvc=bank_Accounts,select=iban,allowEmpty)', 'caption=Плащане->Банкова с-ка,after=currencyRate');
         $this->FLD('pricesAtDate', 'date', 'caption=Допълнително->Цени към,after=makeInvoice');
     }
@@ -239,6 +252,10 @@ class sales_Sales extends deals_DealMaster
      */
     public static function on_BeforeSave($mvc, $res, $rec)
     {
+    	if($rec->reff === ''){
+    		$rec->reff = NULL;
+    	}
+    	
 		// Ако има б. сметка се нотифицират операторите и
     	if($rec->bankAccountId){
     		$operators = bank_OwnAccounts::fetchField("#bankAccountId = '{$rec->bankAccountId}'",'operators');
@@ -256,6 +273,18 @@ class sales_Sales extends deals_DealMaster
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = &$data->form;
+        
+        // При клониране
+        if($data->action == 'clone'){
+        	
+        	// Ако няма reff взимаме хендлъра на оригиналния документ
+        	if(empty($form->rec->reff)){
+        		$form->rec->reff = $mvc->getHandle($form->rec->id);
+        	}
+        	
+        	// Инкрементираме reff-а на оригинална
+        	$form->rec->reff = str::addIncrementSuffix($form->rec->reff, 'v', 2);
+        }
         
         $myCompany = crm_Companies::fetchOwnCompany();
         
@@ -680,5 +709,121 @@ class sales_Sales extends deals_DealMaster
     		$jobsInfo = $table->get($data->jobInfo, 'productId=Артикул,jobId=Задание');
     		$tpl->replace($jobsInfo, 'JOB_INFO');
     	}
+    	
+    	// Слагаме iframe заради касовата бележка, ако не принтираме
+    	if(!Mode::is('printing')){
+    		$tpl->append("<iframe name='iframe_a' style='display:none'></iframe>");
+    	}
+    }
+    
+    
+    /**
+     * Показва информация за перото по Айакс
+     */
+    public function act_ShowInfo()
+    {
+    	$id = Request::get('id', 'varchar');
+    	$unique = Request::get('unique', 'int');
+    	
+    	$tpl = new ET("[#link#]");
+    	 
+    	$row = new stdClass();
+    	
+    	if (substr(strstr($id, "job="),1)) { 
+    		
+    		$jobId = substr(strstr($id, "="),1);
+    		
+    		$rec = planning_Jobs::fetchRec($jobId);
+    		
+    		$row = planning_Jobs::recToVerbal($rec);
+    		
+    		$row->link = planning_Jobs::getLink($rec->id, 0);
+    		
+    		$tpl->placeObject($row);
+    		
+    		
+    	} else {
+    		
+    		$saleId = substr(strstr($id, "="),1);
+    		
+	    	$rec = $this->fetchRec($saleId);
+	    	
+	    	$row = $this->recToVerbal($rec);
+	    	
+	    	$row->link = self::getLink($rec->id, 0);
+	    	
+	    	$tpl->placeObject($row);
+    	}
+    	
+
+    	if (Request::get('ajax_mode')) {
+    		$resObj = new stdClass();
+    		$resObj->func = "html";
+    		$resObj->arg = array('id' => "info{$unique}", 'html' => $tpl->getContent(), 'replace' => TRUE);
+    	
+    		return array($resObj);
+    	} else {
+    		return $tpl;
+    	}
+   		
+    	
+    }
+  
+    
+    /**
+     *  Намира последната покупна цена на артикулите
+     */
+    public static function getLastProductPrices($contragentClass, $contragentId)
+    {
+    	$Contragent = cls::get($contragentClass);
+    	$ids = array();
+    	
+    	// Намираме ид-та на всички продажби, ЕН и протоколи за този контрагент
+    	foreach (array('sales_Sales', 'store_ShipmentOrders', 'sales_Services') as $Cls){
+    		$query = $Cls::getQuery();
+    		$query->where("#contragentClassId = {$Contragent->getClassId()} AND #contragentId = {$contragentId}");
+    		$query->where("#state = 'active' || #state = 'closed'");
+    		$query->show('id');
+    		$query->orderBy("id", 'DESC');
+    		while($rec = $query->fetch()){
+    			$ids[] = $rec->id;
+    		}
+    		$key = md5(implode('', $ids));
+    	}
+    	
+    	if(!count($ids)) return array();
+    	
+    	$cacheArr = core_Cache::get('sales_Sales', $key);
+    	
+    	// Имаме ли кеширани данни
+    	if(!$cacheArr){
+    		
+    		// Ако няма инвалидираме досегашните кешове за продажбите
+    		core_Cache::removeByType('sales_Sales');
+    		$cacheArr = array();
+    		
+    		// Проверяваме на какви цени сме продавали в детайлите на продажбите, ЕН и протоколите
+    		foreach (array('sales_SalesDetails', 'store_ShipmentOrderDetails', 'sales_ServicesDetails') as $Detail){
+    			$Detail = cls::get($Detail);
+    			$dQuery = $Detail->getQuery();
+    			$dQuery->where("#state = 'active' || #state = 'closed'");
+    			$dQuery->show("productId,price,{$Detail->masterKey}");
+    			
+    			$dQuery->EXT('state', $Detail->Master->className, "externalName=state,externalKey={$Detail->masterKey}");
+    			$dQuery->EXT('contragentClassId', $Detail->Master->className, "externalName=contragentClassId,externalKey={$Detail->masterKey}");
+    			$dQuery->EXT('contragentId', $Detail->Master->className, "externalName=contragentId,externalKey={$Detail->masterKey}");
+    			$dQuery->where("#contragentClassId = {$Contragent->getClassId()} AND #contragentId = {$contragentId}");
+    			
+    			// Кешираме артикулите с цените
+    			while($dRec = $dQuery->fetch()){
+    				$cacheArr[$dRec->productId] = $dRec->price;
+    			}
+    		}
+    		
+    		// Кешираме новите данни
+    		core_Cache::set('sales_Sales', $key, $cacheArr, 1440);
+    	}
+    	
+    	return $cacheArr;
     }
 }

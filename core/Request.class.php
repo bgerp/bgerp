@@ -219,7 +219,10 @@ class core_Request
             }
         }
         
-        foreach (self::$vars as $arr) {
+        foreach (self::$vars as $key => $arr) {
+
+            if(self::$protected[$name] && ($key == '_POST' || $key == '_GET')) continue;
+
             if (isset($arr[$name])) {
                 return $arr[$name];
             }

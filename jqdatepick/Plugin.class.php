@@ -37,6 +37,9 @@ class jqdatepick_Plugin extends core_Plugin {
         $tpl->push("jqdatepick/" . $conf->JQDATEPICKER_VERSION . "/jquery.plugin.min.js", "JS");
         $tpl->push("jqdatepick/" . $conf->JQDATEPICKER_VERSION . "/jquery.datepick.js", "JS");
         $tpl->push("jqdatepick/" . $conf->JQDATEPICKER_VERSION . "/jquery.datepick-" . core_Lg::getCurrent() . ".js", "JS");
+
+        // custom стилове за плъгина
+        $tpl->push("jqdatepick/css/jquery.datepick-custom.css", "CSS");
         
         $alignment = Mode::is('screenMode', 'narrow') ? 'top' : 'bottom';
         

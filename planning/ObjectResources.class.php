@@ -200,6 +200,38 @@ class planning_ObjectResources extends core_Manager
     
     
     /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     */
+    public static function on_AfterInputEditForm($mvc, &$form)
+    {
+    	if($form->isSubmitted()){
+    		$rec = &$form->rec;
+    		
+    		if($rec->classId == cat_Products::getClassId()){
+    			$meta1 = cat_Products::fetchField($rec->objectId, 'meta');
+    			$meta1 = type_Set::toArray($meta1);
+    			
+    			// Ако към ресурса има вече избрани артикули
+    			$query = self::getQuery();
+    			$query->where("#resourceId = {$rec->resourceId}");
+    			$query->where("#classId = {$rec->classId}");
+    			while($dRec = $query->fetch()){
+    				$meta2 = cat_Products::fetchField($dRec->objectId, 'meta');
+    				$meta2 = type_Set::toArray($meta2);
+    				
+    				// Ако някое от техните свойства се различава от това на този артикул, сетваме грешка
+    				if($meta2 != $meta1){
+    					$verbal = cat_Products::getVerbal($dRec->objectId, 'meta');
+    					$form->setError("resourceId", "За да добавите артикула към ресурса. Трябва да има точно свойствата|* '{$verbal}'");
+    					break;
+    				}
+    			}
+    		}
+    	}
+    }
+    
+    
+    /**
      *  Помощна ф-я за показване на конверсията от коя мярка към коя се отнася
      * 
      * @param int $measureSourceId - ид на мярката на обекта
@@ -370,5 +402,31 @@ class planning_ObjectResources extends core_Manager
     	}
     	
     	return FALSE;
+    }
+    
+    
+    /**
+     * Връща записите според указаните параметри
+     * 
+     * @param int $resourceId  - ид на ресурс
+     * @param int|NULL $classId - ид на клас на обекта
+     * @param labor|material|equipment|NULL $type - тип на ресурса
+     * @return array - намерените записи
+     */
+    public static function fetchRecsByClassAndType($resourceId, $classId = NULL, $type = NULL)
+    {
+    	$query = self::getQuery();
+    	$query->EXT('type', 'planning_Resources', 'externalName=type,externalKey=resourceId');
+    	$query->where("#resourceId = {$resourceId}");
+    	
+    	if($classId){
+    		$query->where("#classId = {$classId}");
+    	}
+    	
+    	if($type){
+    		$query->where("#type = '{$type}'");
+    	}
+    	
+    	return $query->fetchAll();
     }
 }

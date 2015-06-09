@@ -21,6 +21,12 @@ defIfNot(BGERP_COMPANY_LOGO, '');
 defIfNot(BGERP_NON_WORKING_CRON_TIME, 3600);
 
 
+/**
+ * 
+ */
+defIfNot(BGERP_BOOKMARK_SHOW_LIMIT, 30);
+
+
 
 /**
  * class 'bgerp_Setup' - Начално установяване на 'bgerp'
@@ -69,6 +75,8 @@ class bgerp_Setup extends core_ProtoSetup {
         'BGERP_COMPANY_LOGO_EN' => array ('fileman_FileType(bucket=pictures)', 'caption=Фирмена бланка->На английски, customizeBy=powerUser'),
         
         'BGERP_NON_WORKING_CRON_TIME' => array ('time(suggestions=30 мин.|1 час| 3 часа)', 'caption=След колко време да дава нотификация за неработещ cron->Време'),
+        
+        'BGERP_BOOKMARK_SHOW_LIMIT' => array ('int', 'caption=Ограничение на бързите връзки (за Модерна вътрешна страница)->Брой, customizeBy=powerUser'),
      );
     
     
@@ -110,6 +118,7 @@ class bgerp_Setup extends core_ProtoSetup {
             'bgerp_Portal',
             'bgerp_Notifications',
             'bgerp_Recently',
+            'bgerp_Bookmark'
         );
         
         $instances = array();
@@ -126,9 +135,9 @@ class bgerp_Setup extends core_ProtoSetup {
         $isFirstSetup = ($Packs->count() == 0);
         
         // Списък на основните модули на bgERP
-        $packs = "core,fileman,drdata,bglocal,editwatch,recently,thumb,doc,acc,currency,cms,
+        $packs = "core,logs,fileman,drdata,bglocal,editwatch,recently,thumb,doc,acc,currency,cms,
                   email,crm, cat, trans, price, blast,hr,trz,lab,sales,planning,marketing,store,cond,cash,bank,
-                  budget,purchase,accda,sens,cams,frame,cal,fconv,log,fconv,cms,blogm,forum,deals,findeals,
+                  budget,purchase,accda,sens,cams,frame,cal,fconv,doclog,fconv,cms,blogm,forum,deals,findeals,
                   vislog,docoffice,incoming,support,survey,pos,change,sass,
                   callcenter,social,hyphen,distro,dec,status,phpmailer,label,webkittopdf,jqcolorpicker";
         

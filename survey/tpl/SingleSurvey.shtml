@@ -3,20 +3,23 @@
     <!--ET_BEGIN blank-->
     [#blank#]
     <!--ET_END blank-->
+
+    <!--ET_BEGIN header-->
     <div class='header [#STATE_CLASS#]'>
         <div class='docBgIcon' style='[#iconStyle#];'>[#singleTitle#] <b>[#ident#]</b> ([#state#])</div>
     </div>
-    <div id='survey-header'>
-        <div id='title'>
-            <span id='survey-title'>[#title#]</span> <!--ET_BEGIN closed--><span id ='survey-closed'>- [#closed#]</span><!--ET_END closed-->
-        </div>
-        <div id='survey-info'>|Пусната на|* [#createdOn#] |от|* [#createdBy#]. |Краен срок за гласуване|*: <span id='enddate'>[#enddate#]</span></div>
-        <div id='shortDesc'>[#description#]</div>
-    </div>
+    <!--ET_END header-->
+
+    <h1 class='survey-title'>[#title#] <!--ET_BEGIN closed--><span id ='survey-closed'>- [#closed#]</span> <!--ET_END closed--></h1>
+
+    <div class='shortDesc'>[#description#]</div>
     <!--ET_BEGIN DETAILS-->
     <div class='details'>
         [#DETAILS#]
     </div>
     <!--ET_END DETAILS-->
+
+    [#ListToolbar#]
+
+    <div class="small" style="color: #666;"><hr> |Краен срок за гласуване|*: [#enddate#]</div>
 </div>
-<div id='survey-list-toolbar'>[#ListToolbar#]</div>

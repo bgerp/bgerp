@@ -259,7 +259,7 @@ class core_Master extends core_Manager
         $tpl->placeObject($data->row);
         
         // Поставяме детайлите
-        if(count($this->details)) {
+        if(count($this->details) && $data->noDetails !== TRUE) {
             foreach($this->details as $var => $class) {
                 $order = $data->{$var}->Order ? $data->{$var}->Order :  10 * (count($detailInline) + count($detailTabbed) + 1);
                 
@@ -549,15 +549,8 @@ class core_Master extends core_Manager
             $name = $me->singleTitle . " #" . $id;
         }
         
-        // Масива за URL
-        $url = array();
-        
-        // Ако има права за сингъла
-        if ($me->haveRightFor('single', $id)) { 
-            
-            // Линка към сингъла
-            $url = array($me, 'single', $id);
-        }
+        // Масива за URL, ако няма права за сингъла е празен
+        $url = $me->getSingleUrlArray($id);
         
         // Иконата
         $img = sbf($me->getIcon($id), '"', $absolute);
@@ -595,13 +588,13 @@ class core_Master extends core_Manager
     		return "<span style='color:red;'>&nbsp;- - -</span>";
     	}
     
-    	// Ако потребителя има достъп до единичния изглед, правим заглавието линк
-    	if ($me->haveRightFor('single', $id)) {
-    		if($short === TRUE){
-    			$title = ht::createLinkRef($title, array($me, 'single', $id), NULL, $attr);
-    		} else {
-    			$title = ht::createLink($title, array($me, 'single', $id), NULL, $attr);
-    		}
+    	// Правим линк към еденичния изглед на обекта, ако няма права за него
+    	// Ако няма права не се показва като линк
+    	$url = $me->getSingleUrlArray($id);
+    	if($short === TRUE){
+    		$title = ht::createLinkRef($title, $url, NULL, $attr);
+    	} else {
+    		$title = ht::createLink($title, $url, NULL, $attr);
     	}
     
     	return $title;
@@ -618,5 +611,27 @@ class core_Master extends core_Manager
     public static function getShortHyperlink($id, $icon = FALSE)
     {
     	return static::getHyperlink($id, $icon, TRUE);
+    }
+    
+    
+    /**
+     * Връща урл-то към еденичния изглед на обекта, ако потребителя има 
+     * права за сингъла. Ако няма права връща празен масив
+     * 
+     * @param int $id - ид на запис
+     * @return array $url - масив с урл-то на еденичния изглед
+     */
+    public static function getSingleUrlArray($id)
+    {
+    	$me = cls::get(get_called_class());
+    	
+    	$url = array();
+    	
+    	// Ако потребителя има права за еденичния изглед, подготвяме линка
+    	if ($me->haveRightFor('single', $id)) {
+    		$url = array($me, 'single', $id, 'ret_url' => TRUE);
+    	} 
+    	
+    	return $url;
     }
 }

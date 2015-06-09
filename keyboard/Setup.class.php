@@ -57,18 +57,6 @@ class keyboard_Setup extends core_ProtoSetup
     
     
     /**
-     * Пътища до CSS файлове
-     */
-    var $commonCSS = "keyboard/[#VKI_version#]/keyboard.css";
-    
-    
-    /**
-     * Пътища до JS файлове
-     */
-    var $commonJS = "keyboard/[#VKI_version#]/keyboard.js";
-    
-    
-    /**
      * Инсталиране на пакета
      */
     function install()
@@ -106,5 +94,27 @@ class keyboard_Setup extends core_ProtoSetup
         }
         
         return $html;
+    }
+    
+    
+    /**
+     * Връща JS файлове, които са подходящи за компактиране
+     */
+    public function getCommonJs()
+    {
+        $conf = core_Packs::getConfig('keyboard');
+        
+        return 'keyboard/' . $conf->VKI_version . '/keyboard.js';
+    }
+    
+    
+    /**
+     * Връща JS файлове, които са подходящи за компактиране
+     */
+    public function getCommonCss()
+    {
+        $conf = core_Packs::getConfig('keyboard');
+        
+        return 'keyboard/' . $conf->VKI_version . '/keyboard.css';
     }
 }

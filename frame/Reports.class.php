@@ -99,6 +99,12 @@ class frame_Reports extends core_Embedder
 
 
     /**
+     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
+     */
+    public $rowToolsSingleField = 'title';
+    
+    
+    /**
      * Групиране на документите
      */
     public $newBtnGroup = "18.9|Други";
@@ -135,6 +141,12 @@ class frame_Reports extends core_Embedder
     
     
     /**
+     * Полета, които ще се показват в листов изглед
+     */
+    public $listFields = 'id,title=Документ,source,earlyActivationOn,createdOn,createdBy,modifiedOn,modifiedBy';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -158,11 +170,13 @@ class frame_Reports extends core_Embedder
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-		if($fields['-single']) {
+    	$row->title = $mvc->getLink($rec->id, 0);
+    	
+    	if($fields['-single']) {
            
             // Обновяваме данните, ако отчета е в състояние 'draft'
             if($rec->state == 'draft') {
-               //bp($rec, $mvc->getDriver($rec));
+               
             	$Source = $mvc->getDriver($rec);
             	$rec->data = $Source->prepareInnerState();
             }

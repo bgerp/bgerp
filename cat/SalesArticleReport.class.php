@@ -21,7 +21,7 @@ class cat_SalesArticleReport extends frame_BaseDriver
     /**
      * Заглавие
      */
-    public $title = 'Артикули»Продажбени артикули';
+    public $title = 'Артикули » Продажбени артикули';
 
     
     /**

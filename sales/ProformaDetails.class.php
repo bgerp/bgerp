@@ -41,7 +41,7 @@ class sales_ProformaDetails extends deals_InvoiceDetail
      * var string|array
      */
     public $loadList = 'plg_RowTools, plg_Created, sales_Wrapper, plg_RowNumbering, plg_SaveAndNew,
-                        plg_AlignDecimals2, doc_plg_HidePrices,Policy=price_ListToCustomers, LastPricePolicy=sales_SalesLastPricePolicy';
+                        plg_AlignDecimals2, plg_Sorting, doc_plg_HidePrices,Policy=price_ListToCustomers, LastPricePolicy=sales_SalesLastPricePolicy';
     
     
     /**

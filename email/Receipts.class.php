@@ -79,7 +79,7 @@ class email_Receipts extends core_Manager
         // Намираме ip-то на изпращача
         $ip = $mime->getSenderIp();
             
-        $isReceipt = log_Documents::received($mid, $date, $ip);
+        $isReceipt = doclog_Documents::received($mid, $date, $ip);
 
         if($isReceipt) {
             $rec = new stdClass();

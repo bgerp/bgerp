@@ -74,7 +74,6 @@
 		</div>
 		<!--ET_END WIDE_RIGHT_PANEL-->
 	</div>
-	<iframe name="iframe_a" style='display:none'></iframe>
 	<div class='statuses' id='statuses' style='margin: 0 auto;'>
        [#STATUSES#]
     </div>
