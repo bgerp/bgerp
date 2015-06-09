@@ -314,17 +314,17 @@ class acc_Balances extends core_Master
     	$recalcBalance = TRUE;
     	$count = 1;
         
+    	// Вземаме инстанция на детайлите на баланса
+    	$bD = cls::get('acc_BalanceDetails');
+    	$bD->updatedBalances = array();
+    	
     	while($recalcBalance){
     		
     		$this->log("RECALC {$rec->id} TRY {$count}");
     		core_Debug::log("RECALC {$rec->id} TRY {$count}");
     		
     		// Зануляваме флага, за да не се преизчисли баланса отново
-    		//Mode::setPermanent('recalcBalancesAgain', NULL);
     		$recalcBalance = FALSE;
-    		
-    		// Вземаме инстанция на детайлите на баланса
-    		$bD = cls::get('acc_BalanceDetails');
     		
     		// Опитваме се да намерим и заредим последния баланс, който може да послужи за основа на този
     		$lastRec = $this->getBalanceBefore($rec->toDate);
@@ -355,8 +355,6 @@ class acc_Balances extends core_Master
     		$rec->lastCalculate = dt::now();
     		self::save($rec);
     		
-    		// Проверяваме дали баланса трябва да се изчисли отново
-    		//$recalcBalance = Mode::get('recalcBalancesAgain');
     		$count++;
     	}
     }

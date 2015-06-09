@@ -69,6 +69,14 @@ class acc_BalanceDetails extends core_Detail
     
     
     /**
+     * Масив с обновените записи от журнала
+     * 
+     * @var array
+     */
+    public $updatedRecs = array();
+    
+    
+    /**
      * Кой има достъп до хронологичната справка
      */
     public $canHistory = 'powerUser';
@@ -855,6 +863,7 @@ class acc_BalanceDetails extends core_Detail
      *
      * @param string $from дата в MySQL формат
      * @param string $to дата в MySQL формат
+     * @return boolean $hasUpdatedJournal - дали да продължи преизчисляването или не
      */
     public function calcBalanceForPeriod($from, $to)
     {
@@ -871,20 +880,18 @@ class acc_BalanceDetails extends core_Detail
         	core_App::setTimeLimit($timeLimit);
         }
         
+        // Слагаме флага да не преизчислява баланса
         $hasUpdatedJournal = FALSE;
         
         if(count($recs)){
-        	$arr = array();
             
             // Захранваме стратегиите при нужда
             foreach ($recs as $rec){
                 $this->feedStrategy($rec);
             }
             
-            $test = array();
             foreach ($recs as $rec){
                 $this->calcAmount($rec);
-                
                 
                 $update = $this->updateJournal($rec);
                 
@@ -896,22 +903,15 @@ class acc_BalanceDetails extends core_Detail
                     $JournalDetails->save_($rec);
                    
                     // Дигаме флага за преизчисляване само ако, записан не е бил обновяван до сега
-                    if(!isset($arr[$rec->id])){
-                    	$arr[$rec->id] = $rec->id;
+                    //if(!isset($this->updatedBalances[$rec->id])){
                     	$hasUpdatedJournal = TRUE;
-                    }
-                    
-                    $test[$rec->id] = array($rec->id, $rec->amount);
+                   // }
                 }
             }
-            $this->Master->log(ht::mixedToHtml($test));
+            //$this->Master->log(ht::mixedToHtml($test));
             
+            // Връщаме дали трябва да се преизчислява баланса
             return $hasUpdatedJournal;
-            //if($hasUpdatedJournal){
-            	
-            	// Ако е имало преизчисляване на баланса. Слагаме флаг в сесията, че баланса трябва да се преизчисли отново
-            	//Mode::setPermanent('recalcBalancesAgain', TRUE);
-            //}
         }
     }
     
