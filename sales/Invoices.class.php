@@ -225,6 +225,7 @@ class sales_Invoices extends deals_InvoiceMaster
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	parent::prepareInvoiceForm($mvc, $data);
+    	
     	$form = &$data->form;
     	$form->setField('contragentPlace', 'mandatory');
     	$form->setField('contragentAddress', 'mandatory');
@@ -250,6 +251,10 @@ class sales_Invoices extends deals_InvoiceMaster
     		if($ownAcc = bank_OwnAccounts::getCurrent('id', FALSE)){
     			$form->setDefault('accountId', $ownAcc);
     		}
+    	}
+    	
+    	if($form->rec->vatRate != 'yes' && $form->rec->vatRate != 'separate'){
+    		$form->setField('vatReason', 'mandatory');
     	}
     }
     

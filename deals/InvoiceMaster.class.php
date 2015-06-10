@@ -101,20 +101,6 @@ abstract class deals_InvoiceMaster extends core_Master
     
     
     /**
-     * Преди показване на форма за добавяне/промяна.
-     *
-     * @param core_Manager $mvc
-     * @param stdClass $data
-     */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
-    {
-    	if($data->form->rec->vatRate != 'yes' && $data->form->rec->vatRate != 'separate'){
-    		$data->form->setField('vatReason', 'mandatory');
-    	}
-    }
-    
-    
-    /**
      *  Подготовка на филтър формата
      */
     public static function on_AfterPrepareListFilter($mvc, $data)
