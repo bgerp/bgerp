@@ -241,7 +241,9 @@ class plg_TreeObject extends core_Plugin
         					// Сумираме стойността на полето за всеки наследник
         					if(count($descendents)){
         						foreach ($descendents as $dRec){
-        							$rec1->{$fld} += $dRec->{$fld};
+        							if(isset($dRec->{$fld})){
+        								$rec1->{$fld} += $dRec->{$fld};
+        							}
         						}
         					}
         				}
