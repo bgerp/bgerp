@@ -156,6 +156,12 @@ class hr_Departments extends core_Master
     
     
     /**
+     * Кои полета да се сумират за наследниците
+     */
+    var $fieldsToSumOnChildren = 'employmentTotal,employmentOccupied';
+    
+    
+    /**
      * Описание на модела
      */
     public function description()
