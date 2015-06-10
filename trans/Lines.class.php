@@ -64,7 +64,7 @@ class trans_Lines extends core_Master
     /**
      * Поле за единичен изглед
      */
-    public $rowToolsSingleField = 'title';
+    public $rowToolsSingleField = 'handler';
     
     
     /**
@@ -100,7 +100,7 @@ class trans_Lines extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, title, start, folderId, createdOn, createdBy';
+    public $listFields = 'id, handler=Документ, title, start, folderId, createdOn, createdBy';
     
 
     /**
@@ -280,6 +280,7 @@ class trans_Lines extends core_Master
 	    	$row->logistic = core_Users::getCurrent('names');
     	}
     	
+    	$row->handler = $mvc->getLink($rec->id, 0);
     	$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
     }
     
