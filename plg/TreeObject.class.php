@@ -453,10 +453,10 @@ class plg_TreeObject extends core_Plugin
 	public static function on_AfterGetVerbal($mvc, &$num, $rec, $part)
 	{
 		if($part == $mvc->nameField){
-			
-		    if (!$rec->id) return ;
+			$id = (is_object($rec)) ? $rec->id : $rec;
+		    if (!$id) return ;
 		    
-			$parent = $mvc->fetchField($rec->id, $mvc->parentFieldName);
+			$parent = $mvc->fetchField($id, $mvc->parentFieldName);
 			$title = $num;
 			
 			while($parent && ($pRec = $mvc->fetch($parent, "{$mvc->parentFieldName},{$mvc->nameField}"))) {
