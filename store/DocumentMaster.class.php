@@ -350,9 +350,8 @@ abstract class store_DocumentMaster extends core_Master
 	   					$row->ourLocationAddress = $ourLocationAddress;
 	   				}
 	   			}
-	   				
-	   			$contLocationAddress = crm_Locations::getAddress($rec->locationId)->getContent();
 	   			
+	   			$contLocationAddress = crm_Locations::getAddress($rec->locationId);
 	   			if($contLocationAddress != ''){
 	   				$row->deliveryLocationAddress = core_Lg::transliterate($contLocationAddress);
 	   			}
