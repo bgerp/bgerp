@@ -511,6 +511,22 @@ class sales_Invoices extends deals_InvoiceMaster
     			$res = 'no_one';
     		}
     	}
+    	
+    	// Само ceo,salesmaster и acc могат да оттеглят контирана фактура
+    	if($action == 'reject' && isset($rec)){
+    		if($rec->state == 'active'){
+    			if(!haveRole('ceo,salesMaster,acc', $userId)){
+    				$res = 'no_one';
+    			}
+    		}
+    	}
+    	
+    	// Само ceo,salesmaster и acc могат да възстановят фактура
+    	if($action == 'restore' && isset($rec)){
+    		if(!haveRole('ceo,salesMaster,acc', $userId)){
+    			$res = 'no_one';
+    		}
+    	}
     }
     
     
