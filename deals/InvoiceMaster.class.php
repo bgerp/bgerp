@@ -582,9 +582,8 @@ abstract class deals_InvoiceMaster extends core_Master
 	   						break;
 	   					}
 	   				}
-	   			} elseif($diff == 0){
+	   			} elseif($diff <= 0){
 	   				
-	   				// Ако разликата е 0 не добавяме детайла
 	   				$continue = TRUE;
 	   			}
 	   	
