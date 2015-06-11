@@ -583,7 +583,13 @@ class doc_DocumentPlg extends core_Plugin
                     
                     $handle = $mvc->getHandle($rec->id);
                     
-                    $url = array('doc_Containers', 'list', 'threadId' => $rec->threadId, 'docId' => $handle, 'Q' => Request::get('Q'), 'Cid' => Request::get('Cid'), '#' => $hnd);
+                    $url = array('doc_Containers', 'list', 'threadId' => $rec->threadId, 'docId' => $handle, 'Cid' => Request::get('Cid'), '#' => $hnd);
+                    
+                    $Q = Request::get('Q');
+                    
+                    if (trim($Q)) {
+                        $url['Q'] = $Q;
+                    }
                     
                     // Ако има подаден таб
                     if ($tab = Request::get('Tab')) {
