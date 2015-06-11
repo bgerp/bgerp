@@ -119,7 +119,7 @@ class blast_ListDetails extends doc_Detail
         $this->FLD('listId' , 'key(mvc=blast_Lists,select=title)', 'caption=Списък,mandatory,column=none');
         
         $this->FLD('data', 'blob', 'caption=Данни,input=none,column=none');
-        $this->FLD('key', 'varchar(64)', 'caption=Kлюч,input=none,column=none');
+        $this->FLD('key', 'varchar(64)', 'caption=Kлюч,input=none,column=none,export');
         
         $this->setDbUnique('listId,key');
     }
@@ -244,6 +244,95 @@ class blast_ListDetails extends doc_Detail
     
     
     /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
+     *
+     * @param core_Mvc $mvc
+     * @param string $requiredRoles
+     * @param string $action
+     * @param stdClass $rec
+     * @param int $userId
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+    	if ($rec && ($action == 'export')) {
+    		if (!haveRole('blast,ceo,admin', $userId)) {
+    			if ($rec->createdBy != $userId) {
+    				$requiredRoles = 'no_one';
+    			}
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Екшън който експортира данните
+     */
+    public function act_Export()
+    {
+    	expect($id = Request::get('id', 'int'));
+    	expect($rec = $this->fetch($id));
+    	 
+    	// Проверка за права
+    	$this->requireRightFor('export', $rec);
+  
+    	// Масива с избраните полета за export
+    	$exportFields = $this->selectFields("#export");
+ 
+    	// Ако има избрани полета за export
+    	if (count($exportFields)) {
+    		foreach($exportFields as $name => $field) {
+    			$listFields[$name] = tr($field->caption);
+    		}
+    	}
+    	 
+    	// взимаме от базата целия списък отговарящ на този бюлетин
+    	$query = self::getQuery();
+    	$query->where("#listId = '{$id}'");
+    	 
+    	while ($recs = $query->fetch()) {
+    		$detailRecs[] = $recs;
+    	}
+    
+    	// новите ни ролове
+    	$rCsv = '';
+    	$csv = '';
+    	 
+    	/* за всеки ред */
+    	foreach($detailRecs as $rec) {
+    
+    		foreach ($rec as $field => $value) {
+    			if($exportFields[$field]) {
+    
+    				$val = html2text_Converter::toRichText($value);
+    				// escape
+    				if (preg_match('/\\r|\\n|,|"/', $val)) {
+    					$val = '"' . str_replace('"', '""', $val) . '"';
+    				}
+    				$rCsv .= $val. "," . "\n";
+    
+    			} else {
+    				$rCsv .= "";
+    			}
+    		}
+    	}
+    	 
+    	$csv = $rCsv;
+    
+    	$fileName = str_replace(' ', '_', Str::utf2ascii($this->title));
+    	 
+    	// правим CSV-то
+    	header("Content-type: application/csv");
+    	header("Content-Disposition: attachment; filename={$fileName}.csv");
+    	header("Pragma: no-cache");
+    	header("Expires: 0");
+    
+    	echo $csv;
+    
+    	shutdown();
+    }
+    
+    
+    /**
      * Екшън за спиране
      */
     function act_Stop()
@@ -359,6 +448,15 @@ class blast_ListDetails extends doc_Detail
     static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
         $data->toolbar->addBtn('Импорт', array($mvc, 'import', 'listId' => $data->masterId, 'ret_url' => TRUE), NULL, array('ef_icon'=>'img/16/table-import-icon.png', 'title'=>'Внасяне на допълнителни данни'));
+        //bp($data, $data->masterId, $data->recs);
+        
+        if($data->recs) {
+        	foreach($data->recs as $rec) {
+		        if($mvc->haveRightFor('export', $rec)){
+		        	$data->toolbar->addBtn('Експорт в CSV', array($mvc, 'export', $rec->id), NULL, 'ef_icon = img/16/file_extension_xls.png, title = Сваляне на записите в CSV формат');
+		        }
+        	}
+        }
     }
     
     
