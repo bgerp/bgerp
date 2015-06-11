@@ -212,7 +212,7 @@ class hr_ContractTypes extends core_Master
         if($originId = Request::get('originId', 'int')){
             
             // Намираме оригиналния запис
-            $originRec = $this->fetch($originId);
+            $originRec = $mvc->fetch($originId);
             
             // слагаме стойностите във формата
             $form->setDefault('name', $originRec->name . "1");
