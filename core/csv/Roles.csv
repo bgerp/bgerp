@@ -1,5 +1,3 @@
-Управител|ceo|position
-Мениджър екип|manager|position
 Секретар|officer,crm,blast,blog,forum,catering|position
 Главен счетоводител|officer,accMaster,cashMaster,bankMaster,storeMaster,accda,salesMaster,purchaseMaster,findealsMaster,posMaster,currency,cond,cat|position
 Счетоводител|officer,acc,cash,bank,accda,sales,purchase,findeals,pos,currency,cat|position
@@ -13,5 +11,4 @@
 Продуктов мениджър|officer,cat,price|position
 Продавач|executive,sales,pos|position
 Поддръжка|executive,support|position
-Работник|executive|position
 Складов работник|executive,storeWorker|position
