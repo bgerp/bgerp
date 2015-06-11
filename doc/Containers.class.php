@@ -2267,7 +2267,22 @@ class doc_Containers extends core_Manager
     		$resObj->func = "html";
     		$resObj->arg = array('id' => $id, 'html' => $html, 'replace' => TRUE);
             
-    		return array($resObj);
+            $resStatus = array($resObj);
+            
+            // Добавя всички функции в масива, които ще се виката
+            $runAfterAjaxArr = $row->document->getArray('JQUERY_RUN_AFTER_AJAX');
+            if (is_array($runAfterAjaxArr) && count($runAfterAjaxArr)) {
+                
+                $runAfterAjaxArr = array_unique($runAfterAjaxArr);
+                foreach ((array)$runAfterAjaxArr as $runAfterAjax) {
+                    $resObjAjax = new stdClass();
+                    $resObjAjax->func = $runAfterAjax;
+                    
+                    $resStatus[] = $resObjAjax;
+                }
+            }
+    		
+    		return $resStatus;
         } else {
             
             return new Redirect(array($document, 'single', $document->that));
