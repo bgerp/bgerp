@@ -2344,7 +2344,7 @@ efae.prototype.process = function(subscribedObj, otherData, async) {
                 func = thisEfaeInst.renderPrefix + func;
 
                 try {
-
+            		
                     // Извикваме функцията
                     window[func](arg);
                 } catch (err) {
@@ -2653,25 +2653,25 @@ function render_html(data) {
     var id = data.id;
     var html = data.html;
     var replace = data.replace;
-
+    
     // Ако няма HTML, да не се изпуълнява
     if ((typeof html == 'undefined') || !html) return;
-
+    
     // Ако има JQuery
     if (typeof jQuery != 'undefined') {
 
         var idObj = $('#' + id);
-
+        
         // Ако няма такъв таг
         if (!idObj.length) {
 
             // Задаваме грешката
             getEO().log('Липсва таг с id: ' + id);
         }
-
+		
         // Ако е зададено да се замества
         if ((typeof replace != 'undefined') && (replace)) {
-
+    		
             // Заместваме
             idObj.html(html);
         } else {
@@ -3603,6 +3603,48 @@ function mailServerSettings() {
     }
 };
 
+
+/**
+ * Вика url-то w data-url на линка и спира норматлноното му действие
+ * 
+ * @param event
+ * 
+ * @return boolean
+ */
+function startUrlFromDataAttr(obj)
+{
+	if (this.event) {
+		stopBtnDefault(this.event);
+	} else {
+		
+		return true;
+	}
+		
+	resObj = new Object();
+	resObj['url'] = obj.getAttribute('data-url');
+	
+	getEfae().process(resObj);
+	
+	return false;
+}
+
+
+/**
+ * Спира нормалното дейстие на бутона след натискане
+ * 
+ * @param event
+ */
+function stopBtnDefault(event)
+{
+	if (event.preventDefault) {
+        event.preventDefault();
+    } else if (event.stopPropagation) {
+        event.stopPropagation();
+    } else {
+        event.returnValue = false;
+        event.cancelBubble = true;
+    }
+}
 
 /**
  * Прихващач за обновяването на страницата без AJAX
