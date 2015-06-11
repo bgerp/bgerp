@@ -2319,14 +2319,16 @@ class doc_Containers extends core_Manager
     protected static function renderHiddenDocument($id)
     {
         // TODO може да се вземе от хедърния файл
-        $tpl = new ET("<div class='header [#stateClass#] no-print'>
-                            <div class='docBgIcon' style='[#iconStyle#]'>
-                                [#singleTitle#] <b>[#ident#]</b> ([#state#]) 
-                                [#showDocument#]
+        $tpl = new ET("<div class='document'>
+            				<div class='header [#stateClass#] no-print'>
+                                <div class='docBgIcon' style='[#iconStyle#]'>
+                                    [#singleTitle#] <b>[#ident#]</b> ([#state#]) 
+                                    [#showDocument#]
+                                </div>
                             </div>
-                        </div>
-                        <div>
-                        	<b>[#docTitle#]</b>
+                            <div>
+                            	<b>[#docTitle#]</b>
+                            </div>
                         </div>");
         
         $document = self::getDocument($id);
