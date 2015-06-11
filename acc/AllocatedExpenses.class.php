@@ -176,6 +176,7 @@ class acc_AllocatedExpenses extends core_Master
     	
     	$chargeVat = $firstDoc->fetchField('chargeVat');
     	$row->realAmount = $row->amount;
+    	
     	if($chargeVat == 'yes' || $chargeVat == 'separate'){
     		$amount = $rec->amount * (1 + acc_Periods::fetchByDate($rec->valior)->vatRate);
     		$row->amount = $mvc->getFieldType('amount')->toVerbal($amount);
@@ -486,6 +487,7 @@ class acc_AllocatedExpenses extends core_Master
     		
     		// Намираме контейнера на първия документ в нишката
     		$doc = doc_Threads::getFirstDocument($rec->threadId);
+    		$firstDocument = $doc;
     		$baseContainerId = $doc->fetchField('containerId');
     		$firstDocumentHandle = $doc->getHandle();
     		
@@ -520,7 +522,8 @@ class acc_AllocatedExpenses extends core_Master
     		if(!$form->gotErrors()){
     			$rec->correspondingDealOriginId = $correpspondingContainerId;
     			if(!isset($rec->amount)){
-    				$rec->amount = $mvc->getDefaultAmountToAllocate($rec->correspondingDealOriginId);
+    				$chargeVat = $firstDocument->fetchField('chargeVat');
+    				$rec->amount = $mvc->getDefaultAmountToAllocate($rec->correspondingDealOriginId, $chargeVat);
     				if(empty($rec->amount)){
     					$form->setError('amount', 'Не може автоматично да се определи сумата, Моля задайте ръчно');
     				}
@@ -633,14 +636,18 @@ class acc_AllocatedExpenses extends core_Master
      * @param int $correspondingOriginId - ориджин на документ кореспондент
      * @return double $amount - дефолтната сума
      */
-    private function getDefaultAmountToAllocate($correspondingOriginId)
+    private function getDefaultAmountToAllocate($correspondingOriginId, $chargeVat)
     {
     	$doc = doc_Containers::getDocument($correspondingOriginId);
     	$amount = 0;
     	if($doc->getInstance() instanceof findeals_Deals){
     		$amount = $doc->fetchField('amountDeal');
     	} elseif($doc->getInstance() instanceof purchase_Purchases){
-    		$amount = $doc->fetchField('amountDeal');
+    		$dRec = $doc->fetch();
+    		$amount = $dRec->amountDeal;
+    		if($chargeVat != 'yes' && $chargeVat != 'separate'){
+    			$amount -= $dRec->amountVat;
+    		}
     	}
     	
     	return $amount;
