@@ -268,9 +268,11 @@ body {
   padding: 15px; }
 
 .sideBarTitle {
-  text-align: center; }
+  text-align: center;
+  color: #fff612; }
   .sideBarTitle a {
-    color: #fff612; }
+    position: relative;
+    top: 2px; }
 
 .narrow .sidebar-row {
   margin-top: 47px;

@@ -3660,8 +3660,9 @@ function onBeforeUnload()
 /**
  * Добавя текущото URL И титлата към url-то
  */
-function addParamsToBookmarkBtn(parentUrl, localUrl)
+function addParamsToBookmarkBtn(obj, parentUrl, localUrl)
 {
+
 	//var url = encodeURIComponent(document.URL);
 	//var title = encodeURIComponent(document.title);
 	var url = localUrl;
@@ -3669,8 +3670,8 @@ function addParamsToBookmarkBtn(parentUrl, localUrl)
 		url = document.URL;
 	}
 	var title = document.title;
-	
-	document.location = parentUrl + '?url=' + url + '&title=' + title;
+
+    obj.setAttribute("href", parentUrl + '?url=' + url + '&title=' + title);
 }
 
 

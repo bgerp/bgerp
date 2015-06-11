@@ -288,12 +288,13 @@ body {
 
 .sideBarTitle {
     text-align: center;
+    color: #FFF612;
     a {
-        color: #FFF612;
+        position: relative;
+        top: 2px;
     }
-
-
 }
+
 .narrow .sidebar-row {
     margin-top: 47px;
     padding: 1px 0 3px !important;
