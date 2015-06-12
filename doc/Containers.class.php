@@ -383,7 +383,7 @@ class doc_Containers extends core_Manager
         }
         
 
-        if(Mode::is('screenMode', 'narrow')) {
+        if (Mode::is('screenMode', 'narrow')) {
             $row->document = new ET($row->document); 
             $row->document->prepend($row->created);
         }
@@ -2333,7 +2333,6 @@ class doc_Containers extends core_Manager
      */
     protected static function renderHiddenDocument($id)
     {
-        // TODO може да се вземе от хедърния файл
         $tpl = new ET("[#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
         					<div>
                             	<b>[#docTitle#]</b>
