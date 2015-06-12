@@ -93,6 +93,7 @@ class core_ET extends core_BaseClass
             $this->removablePlaces = $content->removablePlaces;
         } else {
             $this->content = $content;
+            $this->content = $this->loadFilesRecursivelyFromString($this->content);
             $rmPlaces = $this->getPlaceHolders();
             $this->setRemovableBlocks($rmPlaces);
                 
@@ -855,9 +856,66 @@ class core_ET extends core_BaseClass
      * 
      * @return core_Et - Обект
      */
-    static function getTplFromFile($file)
+    public static function getTplFromFile($file)
     {
-
-        return new ET(tr("|*" . getFileContent($file)));
+        $content = self::loadFilesRecursively($file);
+        
+        return new ET(tr("|*" . $content));
+    }
+    
+    
+    /**
+     * Зарежда всички файлове, които са зададени като пътища в плейсхолдер от файл
+     * 
+     * @param string $file
+     * 
+     * @return string
+     */
+    public static function loadFilesRecursively($file)
+    {
+        $content = getFileContent($file);
+        
+        $content = self::loadFilesRecursivelyFromString($content);
+        
+        return $content;
+    }
+    
+    
+    /**
+     * Зарежда всички файлове, които са зададени като пътища в плейсхолдер от стринг
+     * 
+     * @param string $content
+     * 
+     * @return string
+     */
+    public static function loadFilesRecursivelyFromString($content)
+    {
+        $pathArr = self::getTeplatePlaceholders($content);
+        
+        if ($pathArr) {
+            foreach ($pathArr as $path) {
+                
+                $resContent = self::loadFilesRecursively($path);
+                
+                $content = strtr($content, array("[#{$path}#]" => $resContent));
+            }
+        }
+        
+        return $content;
+    }
+    
+    
+    /**
+     * Връща масив с всички пътища, зададени в плейсхолдерите
+     * 
+     * @param string
+     * 
+     * @return array
+     */
+    protected static function getTeplatePlaceholders($str)
+    {
+        preg_match_all('/\[#((\w*(\/|\.)+\w*)*)#\]/', $str, $matches);
+        
+        return $matches[1];
     }
 }
