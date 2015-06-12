@@ -48,7 +48,7 @@ class colab_plg_Document extends core_Plugin
                 
                 // Може и да се провери стойноста на `visibleForPartners` в `doc_Containers`
                 
-                $data->row->VisibleForPartners = colab_DocumentLog::renderViewedLink($data->rec->containerId);
+                $data->row->documentSettings = colab_DocumentLog::renderViewedLink($data->rec->containerId);
             }
         }
         
