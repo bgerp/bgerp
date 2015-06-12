@@ -2356,7 +2356,7 @@ class doc_Containers extends core_Manager
             $url = array(get_called_class(), 'ShowDocumentInThread', $id);
             
             $attr = array();
-            $attr['ef_icon'] = 'img/16/add1-16.png';
+            $attr['ef_icon'] = 'img/16/toggle-expand.png';
             $attr['class'] = 'fright';
             $attr['style'] = 'display: inline-block; height: 16px;';
             $attr['title'] = tr('Показване на целия документ');
