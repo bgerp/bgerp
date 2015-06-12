@@ -361,14 +361,11 @@ class doc_Containers extends core_Manager
         } else {
             
             if (Mode::is('screenMode', 'narrow')) {
-                $nCreated = new ET("<div class='profile-summary'>
-                						<div class='fleft'>
-                							<div class='fleft'>
-                								<span>[#nameBox#]</span>
-            								[#dateBox#]</div>
-        								</div>
-        								<div class='clearfix21'></div>
-    								</div>");
+                $nCreated = new ET("<div style='margin-bottom: 5px;'>
+                                        <span class='fleft'>[#nameBox#]</span>
+                                        <span class='fright'>[#dateBox#]</span>
+                                        <span class='clearfix21'></span>
+                                    </div>");
             } else {
                 $nCreated = new ET("<table class='wide-profile-info'>
                                 		<tr>
