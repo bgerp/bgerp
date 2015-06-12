@@ -359,16 +359,30 @@ class doc_Containers extends core_Manager
             
             $row->created->append(doclog_Documents::getSummary($rec->id, $rec->threadId), 'HISTORY');
         } else {
-            $row->created = new ET("
-                            	<table class='wide-profile-info'>
-                            		<tr>
-                            			<td><div class='name-box'>[#1#]</div>
-                                            <div class='date-box'>[#2#]</div>
-                                        </td>
-                                    </tr>
-                                </table>",
-                $row->created,
-                $mvc->getVerbal($rec, 'createdOn'));
+            
+            if (Mode::is('screenMode', 'narrow')) {
+                $nCreated = new ET("<div class='profile-summary'>
+                						<div class='fleft'>
+                							<div class='fleft'>
+                								<span>[#nameBox#]</span>
+            								[#dateBox#]</div>
+        								</div>
+        								<div class='clearfix21'></div>
+    								</div>");
+            } else {
+                $nCreated = new ET("<table class='wide-profile-info'>
+                                		<tr>
+                                			<td><div class='name-box'>[#nameBox#]</div>
+                                                <div class='date-box'>[#dateBox#]</div>
+                                            </td>
+                                        </tr>
+                                	</table>");
+            }
+            
+            $nCreated->replace($row->created, 'nameBox');
+            $nCreated->replace($mvc->getVerbal($rec, 'createdOn'), 'dateBox');
+            
+            $row->created = $nCreated;
         }
         
 
