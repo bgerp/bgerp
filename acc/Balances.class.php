@@ -311,17 +311,17 @@ class acc_Balances extends core_Master
      */
     function calc($rec)
     {
-    	$recalcBalance = TRUE;
-    	$count = 1;
+    	//$recalcBalance = TRUE;
+    	//$count = 1;
         
     	// Вземаме инстанция на детайлите на баланса
     	$bD = cls::get('acc_BalanceDetails');
     	$bD->updatedBalances = array();
     	
-    	while($recalcBalance){
+    	//while($recalcBalance){
     		
-    		$this->log("RECALC {$rec->id} TRY {$count}");
-    		core_Debug::log("RECALC {$rec->id} TRY {$count}");
+    		//$this->log("RECALC {$rec->id} TRY {$count}");
+    		//core_Debug::log("RECALC {$rec->id} TRY {$count}");
     		
     		// Зануляваме флага, за да не се преизчисли баланса отново
     		$recalcBalance = FALSE;
@@ -355,8 +355,8 @@ class acc_Balances extends core_Master
     		$rec->lastCalculate = dt::now();
     		self::save($rec);
     		
-    		$count++;
-    	}
+    		//$count++;
+    	//}
     }
     
     
