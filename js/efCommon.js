@@ -3620,9 +3620,6 @@ function startUrlFromDataAttr(obj)
 {
 	if (this.event) {
 		stopBtnDefault(this.event);
-	} else {
-		
-		return true;
 	}
 		
 	resObj = new Object();
