@@ -2334,17 +2334,11 @@ class doc_Containers extends core_Manager
     protected static function renderHiddenDocument($id)
     {
         // TODO може да се вземе от хедърния файл
-        $tpl = new ET("<div class='document'>
-            				<div class='header [#stateClass#] no-print'>
-                                <div class='docBgIcon' style='[#iconStyle#]'>
-                                    [#singleTitle#] <b>[#ident#]</b> ([#state#]) 
-                                    [#showDocument#]
-                                </div>
-                            </div>
-                            <div>
+        $tpl = new ET("[#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
+        					<div>
                             	<b>[#docTitle#]</b>
                             </div>
-                        </div>");
+                        [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]");
         
         $document = self::getDocument($id);
         $dRec = $document->rec();
@@ -2353,7 +2347,7 @@ class doc_Containers extends core_Manager
         $tpl->replace($iconStyle, 'iconStyle');
         
         $stateClass = 'state-' . $dRec->state;
-        $tpl->replace($stateClass, 'stateClass');
+        $tpl->replace($stateClass, 'STATE_CLASS');
         
         $ident = '#' . $document->getHandle();
         $tpl->replace($ident, 'ident');
@@ -2382,8 +2376,11 @@ class doc_Containers extends core_Manager
             }
                 
             $showDocument = ht::createLink('', $url, NULL, $attr);
-            $tpl->replace($showDocument, 'showDocument');
+            $tpl->replace($showDocument, 'documentSettings');
         }
+        
+        $tpl->removeBlocks();
+        $tpl->removePlaces();
         
         return $tpl;
     }
