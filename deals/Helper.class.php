@@ -211,7 +211,7 @@ abstract class deals_Helper
 		}
 		
 		// Ако има нето, крайната сума е тази на нетото, ако няма е тази на стойността
-		$arr['total'] = ($arr['neto']) ? $arr['neto'] : $arr['value']; 
+		$arr['total'] = (isset($arr['neto'])) ? $arr['neto'] : $arr['value']; 
 		
 		$coreConf = core_Packs::getConfig('core');
 		$pointSign = $coreConf->EF_NUMBER_DEC_POINT;

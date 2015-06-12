@@ -3,13 +3,13 @@
 
 
 /**
- * Мениджър на дълготрайни активи
+ * Мениджър на протоколи за въвеждане в експлоатация на дълготрайни активи (ДА)
  *
  *
  * @category  bgerp
  * @package   accda
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Дълготрайни активи
@@ -39,7 +39,7 @@ class accda_Da extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, accda_Wrapper, acc_plg_Contable, plg_Printing, doc_DocumentPlg,
+    public $loadList = 'plg_RowTools, accda_Wrapper, acc_plg_Contable, acc_plg_DocumentSummary, plg_Printing, doc_DocumentPlg, plg_Search,
                      bgerp_plg_Blank, acc_plg_Registry, plg_Sorting, plg_SaveAndNew, plg_Search, doc_plg_BusinessDoc';
     
     
@@ -106,7 +106,7 @@ class accda_Da extends core_Master
     /**
      * Поле за търсене
      */
-    public $searchFields = 'num, serial, title';
+    public $searchFields = 'num, serial, title, productId, accountId';
     
     
     /**
@@ -148,7 +148,7 @@ class accda_Da extends core_Master
         
         $this->FLD('info', 'text', 'caption=Описание,column=none,width=400px');
         $this->FLD('origin', 'text', 'caption=Произход,column=none,width=400px');
-        $this->FLD('location', 'key(mvc=crm_Locations, select=title)', 'caption=Локация,column=none,width=400px');
+        $this->FLD('location', 'key(mvc=crm_Locations, select=title,allowEmpty)', 'caption=Локация,column=none,width=400px');
         $this->FLD('amortNorm', 'percent', 'caption=ГАН,hint=Годишна амортизационна норма,notNull');
         
         $this->setDbUnique('num');
@@ -192,6 +192,15 @@ class accda_Da extends core_Master
     		}
     		
     		$form->setField('accountId', 'input,mandatory');
+    	}
+    	
+    	// Показваме само локациите на нашата фирма за ибзор
+    	$ownCompany = crm_Companies::fetchOurCompany();
+    	$ourLocations = crm_Locations::getContragentOptions('crm_Companies', $ownCompany->id);
+    	if(count($ourLocations)){
+    		$form->setOptions('location', array('' => '') + $ourLocations);
+    	} else {
+    		$form->setReadOnly('location');
     	}
     }
     
@@ -307,7 +316,7 @@ class accda_Da extends core_Master
     /**
      * Извиква се преди рендирането на 'опаковката'
      */
-    public function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
+    public static function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
     {
         if(Mode::is('printing') || Mode::is('text', 'xhtml')){
             $tpl->removeBlock('header');
@@ -341,7 +350,7 @@ class accda_Da extends core_Master
     /**
      * Дали документа има приключени пера в транзакцията му
      */
-    public function on_AfterGetClosedItemsInTransaction($mvc, &$res, $id)
+    public static function on_AfterGetClosedItemsInTransaction($mvc, &$res, $id)
     {
     	$rec = $this->fetchRec($id);
     

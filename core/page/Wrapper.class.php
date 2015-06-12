@@ -21,7 +21,7 @@ class core_page_Wrapper extends core_BaseClass {
      * Прави стандартна 'обвивка' на изгледа
      */
     function render_($content)
-    {   
+    {
         // Определяме каква да е темата обвивката на страницата
         if (!($tplName = Mode::get('wrapper'))) {
             if(Mode::is('printing')) {
@@ -29,7 +29,16 @@ class core_page_Wrapper extends core_BaseClass {
             } elseif(haveRole('admin,ceo,manager,officer,executive')) {
                 $tplName = 'core_page_Internal';
             } else {
-                $tplName = 'cms_page_External';
+                if(core_Users::getCurrent('id', FALSE)){
+                    if(core_Users::isContractor()){
+                        $tplName = 'cms_page_Contractor';
+                    } else {
+                        $tplName = 'cms_page_External';
+                    }
+                } else {
+                    $tplName = 'cms_page_External';
+                }
+
             }
         }
         

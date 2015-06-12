@@ -318,7 +318,7 @@ class support_Issues extends core_Master
     				logs_Browsers::setVars($userData);
     			}
     			
-    			status_Messages::newStatus(tr('Благодарим ви за сигнала'), 'success');
+    			status_Messages::newStatus(tr('Благодарим Ви за сигнала'), 'success');
     			
     			return followRetUrl();
     		}

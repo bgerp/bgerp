@@ -35,6 +35,7 @@ class colab_Setup extends core_ProtoSetup
     var $managers = array(
         'colab_FolderToPartners',
     	'migrate::migrateVisibleforPartners',
+        'colab_DocumentLog'
     );
     
     
@@ -53,7 +54,9 @@ class colab_Setup extends core_ProtoSetup
     
     	// Закачане на плъгин за споделяне на папки с партньори към лицата
     	$html .= $Plugins->installPlugin('Споделяне на папки на лица с партньори', 'colab_plg_FolderToPartners', 'crm_Persons', 'private');
-    
+        
+    	$html .= $Plugins->installPlugin('Colab sales', 'colab_plg_Document', 'sales_Sales', 'private');
+    	
         return $html;
     }
     

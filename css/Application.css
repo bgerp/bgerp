@@ -1046,6 +1046,19 @@ td.portal-date {
     display: inline-block;
     white-space: nowrap; }
 
+.showDocument {
+  display: inline-block;
+  height: 16px; }
+
+.docBgIcon {
+  position: relative; }
+
+.narrow .showDocument {
+  position: absolute;
+  right: -3px;
+  top: 50%;
+  margin-top: -8px; }
+
 .snapshot {
   margin-top: 10px;
   padding: 10px;
@@ -1853,6 +1866,100 @@ span.sharing-history-title {
 
 .wide #login-form .formTable {
   margin: 0; }
+
+/*
+ * стилове за външната част при потребител контрактор
+ */
+.logoutBlock {
+  position: absolute;
+  right: 0px;
+  top: 0px;
+  padding: 5px;
+  background: #cccccc;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 0 0 0 5px;
+  box-shadow: -1px 1px 2px rgba(0, 0, 0, 0.5); }
+  .logoutBlock a {
+    color: #333333 !important;
+    margin: 0 5px;
+    display: inline-block; }
+    .logoutBlock a:hover {
+      opacity: 0.7; }
+
+.cmsTopContractor {
+  position: relative;
+  min-height: 180px;
+  background: #cce8fb;
+  background: radial-gradient(#cce8fb, #767bb8);
+  border-bottom: 1px solid #777777; }
+
+.wide .cmsTopContractor .app-name {
+  top: 10%; }
+
+  .foldertabs .tab-row {
+    overflow: hidden;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    list-style: none; }
+  .foldertabs .tab-row .tab {
+    float: left;
+    z-index: auto !important;
+    margin: 0 0.5em 0 0;
+    padding: 0 !important;
+    border-top: 1px solid #cccccc !important; }
+  .foldertabs .tab-row .tab .tab-title {
+    position: relative;
+    background: #dddddd;
+    background-image: linear-gradient(to bottom, white, #dddddd);
+    padding: 0.4em 1.5em;
+    margin-left: -1px;
+    float: left;
+    text-decoration: none;
+    color: #444444;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+    border-radius: 5px 0 0 0;
+    box-shadow: 0 2px 2px rgba(0, 0, 0, 0.4); }
+  .foldertabs .tab-row .tab span.tab-title {
+    color: #cccccc; }
+  .foldertabs .tab-row .tab .tab-title:hover,
+  .foldertabs .tab-row .tab .tab-title:hover::after,
+  .foldertabs .tab-row .tab .tab-title:focus,
+  .foldertabs .tab-row .tab .tab-title:focus::after {
+    background: white; }
+  .foldertabs .tab-row .tab .tab-title:focus {
+    outline: 0; }
+  .foldertabs .tab-row .tab .tab-title::after {
+    content: '';
+    position: absolute;
+    z-index: 1;
+    top: 0;
+    right: -0.3em;
+    bottom: 0;
+    width: 1em;
+    background: #dddddd;
+    background-image: linear-gradient(to bottom, white, #dddddd);
+    box-shadow: 2px 1px 2px rgba(0, 0, 0, 0.4);
+    transform: skew(15deg);
+    border-radius: 0 5px 0 0; }
+  .foldertabs .tab-row .tab.selected .tab-title,
+  .foldertabs .tab-row .tab.selected .tab-title::after {
+    background: white !important;
+    z-index: 3; }
+  .foldertabs .tab-row .tab:hover .tab-title,
+  .foldertabs .tab-row .tab:hover .tab-title::after {
+    background: white;
+    z-index: 4; }
+  .foldertabs .tab-page {
+    background: white;
+    border-radius: 0 !important;
+    z-index: 2;
+    border: none !important;
+    top: 0 !important;
+    box-shadow: 0 -2px 3px -3px rgba(0, 0, 0, 0.3); }
+
+.contractorExtHolder {
+  padding: 10px; }
 
 .narrow #login-form {
   max-width: 17em !important;
@@ -3075,7 +3182,7 @@ div.location.public {
 .wide .app-name {
   left: 3%;
   bottom: 3%;
-  font-size: 8.5em;
+  font-size: 8em;
   text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.6); }
 
 .narrow .app-name {
@@ -4097,12 +4204,6 @@ only screen and (max-width: 320px) {
   background-color: #ffff99;
   display: table;
   color: black; }
-
-/*
- * стилове за външната част при потребител контрактор
- */
-.contractorExtHolder {
-  padding: 10px; }
 
 /*
  * край на стилове за външната част при потребител контрактор

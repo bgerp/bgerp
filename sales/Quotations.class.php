@@ -518,7 +518,12 @@ class sales_Quotations extends core_Master
     {
     	$rec = $this->fetch($id);
         $row = new stdClass();
-        $row->title = "Оферта №" .$this->abbr . $rec->id;
+        
+        $lang = doc_TplManager::fetchField($rec->template, 'lang');
+        core_Lg::push($lang);
+        $row->title = tr('Оферта') . " №" .$this->abbr . $rec->id;
+        core_Lg::pop();
+        
         $row->authorId = $rec->createdBy;
         $row->author = $this->getVerbal($rec, 'createdBy');
         $row->state = $rec->state;

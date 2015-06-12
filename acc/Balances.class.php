@@ -311,38 +311,52 @@ class acc_Balances extends core_Master
      */
     function calc($rec)
     {
-
-        // Вземаме инстанция на детайлите на баланса
-        $bD = cls::get('acc_BalanceDetails');
+    	//$recalcBalance = TRUE;
+    	//$count = 1;
         
-        // Опитваме се да намерим и заредим последния баланс, който може да послужи за основа на този
-        $lastRec = $this->getBalanceBefore($rec->toDate);
-        
-        if($lastRec) {
-        	
-        	// Ако има зададен период не е междинен баланса, иначе е
-        	$isMiddleBalance = (!empty($lastRec->periodId)) ? FALSE : TRUE;
-        	
-        	// Зареждаме баланса
-            $bD->loadBalance($lastRec->id, $isMiddleBalance);
-            $firstDay = dt::addDays(1, $lastRec->toDate);
-            $firstDay = dt::verbal2mysql($firstDay, FALSE);
-        } else {
-            $firstDay = self::TIME_BEGIN;
-        }
-        
-        // Добавяме транзакциите за периода от първия ден, който не е обхваната от базовия баланс, до края на зададения период
-        $bD->calcBalanceForPeriod($firstDay, $rec->toDate);
-        
-        // Изтриваме всички детайли за дадения баланс
-        $bD->delete("#balanceId = {$rec->id}");
-        
-        // Записваме баланса в таблицата
-        $bD->saveBalance($rec->id);
-        
-        // Отбелязваме, кога за последно е калкулиран този баланс
-        $rec->lastCalculate = dt::now();
-        self::save($rec);
+    	// Вземаме инстанция на детайлите на баланса
+    	$bD = cls::get('acc_BalanceDetails');
+    	$bD->updatedBalances = array();
+    	
+    	//while($recalcBalance){
+    		
+    		//$this->log("RECALC {$rec->id} TRY {$count}");
+    		//core_Debug::log("RECALC {$rec->id} TRY {$count}");
+    		
+    		// Зануляваме флага, за да не се преизчисли баланса отново
+    		$recalcBalance = FALSE;
+    		
+    		// Опитваме се да намерим и заредим последния баланс, който може да послужи за основа на този
+    		$lastRec = $this->getBalanceBefore($rec->toDate);
+    		
+    		if($lastRec) {
+    			 
+    			// Ако има зададен период не е междинен баланса, иначе е
+    			$isMiddleBalance = (!empty($lastRec->periodId)) ? FALSE : TRUE;
+    			 
+    			// Зареждаме баланса
+    			$bD->loadBalance($lastRec->id, $isMiddleBalance);
+    			$firstDay = dt::addDays(1, $lastRec->toDate);
+    			$firstDay = dt::verbal2mysql($firstDay, FALSE);
+    		} else {
+    			$firstDay = self::TIME_BEGIN;
+    		}
+    		
+    		// Добавяме транзакциите за периода от първия ден, който не е обхваната от базовия баланс, до края на зададения период
+    		$recalcBalance = $bD->calcBalanceForPeriod($firstDay, $rec->toDate);
+    		
+    		// Изтриваме всички детайли за дадения баланс
+    		$bD->delete("#balanceId = {$rec->id}");
+    		
+    		// Записваме баланса в таблицата
+    		$bD->saveBalance($rec->id);
+    		
+    		// Отбелязваме, кога за последно е калкулиран този баланс
+    		$rec->lastCalculate = dt::now();
+    		self::save($rec);
+    		
+    		//$count++;
+    	//}
     }
     
     
@@ -365,25 +379,21 @@ class acc_Balances extends core_Master
     	// Ако прекалкулирането се извършва в текущия период, то изисляваме баланса
     	// до предходния работен ден и селд това до днес
     	
+    	
     	$pQuery = acc_Periods::getQuery();
     	$pQuery->orderBy('#end', 'ASC');
     	$pQuery->where("#state != 'closed'");
     	$pQuery->where("#state != 'draft'");
-    	
+    		 
     	while($pRec = $pQuery->fetch()) {
-    	
-    	$rec = new stdClass();
-    	
-    	$rec->fromDate = $pRec->start;
+    			 
+    		$rec = new stdClass();
+    			 
+    		$rec->fromDate = $pRec->start;
     		$rec->toDate = $pRec->end;
     		$rec->periodId = $pRec->id;
     		self::forceCalc($rec);
     	}
-    	
-    	// Ако сме в 0 часа, правим и преподреждане на id-тата
-    	// SET @count = 0;
-    	// UPDATE `acc_balance_details` SET `acc_balance_details`.`id` = @count:= @count + 1;
-    	// ALTER TABLE `acc_balance_details` AUTO_INCREMENT = 1;
     	
     	// Освобождаваме заключването на процеса
     	core_Locks::release($lockKey);

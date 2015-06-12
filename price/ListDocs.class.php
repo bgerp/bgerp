@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   price
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Ценоразписи
@@ -17,6 +17,7 @@
 class price_ListDocs extends core_Master
 {
     
+	
     /**
      * Интерфейси, поддържани от този мениджър
      */
@@ -52,13 +53,13 @@ class price_ListDocs extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    var $searchFields = 'title';
+    var $searchFields = 'title, policyId';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'tools=Пулт, title, date, policyId, state, createdOn, createdBy';
+    var $listFields = 'tools=Пулт, date, handler=Документ, title, policyId, state, createdOn, createdBy';
     
     
     /**
@@ -70,7 +71,7 @@ class price_ListDocs extends core_Master
     /**
      * Полето за единичен изглед
      */
-    var $rowToolsSingleField = 'title';
+    var $rowToolsSingleField = 'handler';
     
     
     /**
@@ -711,11 +712,16 @@ class price_ListDocs extends core_Master
     {
     	$row->policyId = ht::createLink($row->policyId, array('price_Lists', 'single', $rec->policyId));
     	
+    	if(isset($fields['-list'])){
+    		$row->handler = $mvc->getLink($rec->id, 0);
+    	}
+    	
     	if(!$rec->productGroups) {
     		$row->productGroups = tr("Всички");
     	}
     	
     	$row->vat = ($rec->vat == 'yes') ? tr('с начислен') : tr('без');
+    	
     	// Модифицираме данните които показваме при принтиране
     	if(Mode::is('printing')){
     		$row->printHeader = $row->title;

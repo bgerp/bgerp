@@ -163,7 +163,7 @@ class core_page_InternalModern extends core_page_Active
     			"[#PAGE_CONTENT#]" .
     			"[#DEBUG#]</div>".
     			"<div id='nav-panel' class='sidemenu sidemenu-left {$openLeftMenu}'>[#core_page_InternalModern::renderMenu#]</div>".
-    			"<div id='fav-panel' class='sidemenu sidemenu-right {$openRightMenu}'>[#core_page_InternalModern::renderBookmarks#]</div>"
+    			"<div id='fav-panel' class='sidemenu sidemenu-right {$openRightMenu}'><div class='inner-fav-panel'>[#core_page_InternalModern::renderBookmarks#]</div></div>"
 
     	);
     	if(isDebug()) {
@@ -186,7 +186,7 @@ class core_page_InternalModern extends core_page_Active
      */
     static function renderBookmarks()
     {
-        $tpl = new ET("[#BOOKMARK_TITLE#]<div class='bookmark-links'>[#BOOKMARK_LINKS#]</div><div class ='bookmark-btn'>[#BOOKMARK_BTN#]</div>");
+        $tpl = new ET("<div class='sideBarTitle'> [#BOOKMARK_TITLE#] [#BOOKMARK_BTN#]</div><div class='bookmark-links'>[#BOOKMARK_LINKS#]</div>");
         
         $title = bgerp_Bookmark::getTitle();
         $btn = bgerp_Bookmark::getBtn();

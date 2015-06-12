@@ -397,9 +397,15 @@ class doc_Search extends core_Manager
         if(mb_strlen($docRow->title) > doc_Threads::maxLenTitle) {
             $attr['title'] = $docRow->title;
         }
-    
+        $linkUrl = array($docProxy->className, 'single', $docProxy->that);
+        
+        $search = Request::get('search');
+        if (trim($search)) {
+            $linkUrl['Q'] = $search;
+        }
+        
         $row->title = ht::createLink(str::limitLen($docRow->title, doc_Threads::maxLenTitle),
-            array($docProxy->className, 'single', $docProxy->that, 'Q' =>Request::get('search')),
+            $linkUrl,
             NULL, $attr);
     
         if($docRow->authorId>0) {

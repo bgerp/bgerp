@@ -176,6 +176,10 @@ class purchase_Invoices extends deals_InvoiceMaster
     	$coverClass = doc_Folders::fetchCoverClassName($data->form->rec->folderId);
     	$coverId = doc_Folders::fetchCoverId($data->form->rec->folderId);
     	$data->form->setOptions('accountId', bank_Accounts::getContragentIbans($coverId, $coverClass, TRUE));
+    	
+    	if($data->form->rec->vatRate != 'yes' && $data->form->rec->vatRate != 'separate'){
+    		$data->form->setField('vatReason', 'mandatory');
+    	}
     }
     
     

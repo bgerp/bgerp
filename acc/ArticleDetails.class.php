@@ -460,13 +460,7 @@ class acc_ArticleDetails extends doc_Detail
     {
         foreach (array('debitEnt1', 'debitEnt2', 'debitEnt3', 'creditEnt1', 'creditEnt2', 'creditEnt3') as $fld){
             if(isset($rec->$fld)){
-                
-                // Кешираме името на перото
-                if(!isset(static::$cache['items'][$rec->$fld])){
-                    static::$cache['items'][$rec->$fld] = acc_Items::getVerbal($rec->$fld, 'titleLink');
-                }
-                
-                $row->$fld = static::$cache['items'][$rec->$fld];
+                $row->$fld = acc_Items::getVerbal($rec->$fld, 'titleLink');
             }
         }
         

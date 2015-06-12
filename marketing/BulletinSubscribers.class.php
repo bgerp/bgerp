@@ -95,7 +95,7 @@ class marketing_BulletinSubscribers extends core_Detail
     public function description()
     {
         $this->FLD('bulletinId', 'key(mvc=marketing_Bulletins, select=domain)', 'input=hidden,silent');
-        $this->FLD('email', 'email', 'caption=Имейл, mandatory');
+        $this->FLD('email', 'email', 'caption=Имейл, mandatory, export');
         $this->FLD('ip', 'ip', 'caption=IP');
         $this->FLD('brid', 'varchar(8)', 'caption=Браузър');
         

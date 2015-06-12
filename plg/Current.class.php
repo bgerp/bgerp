@@ -57,6 +57,9 @@ class plg_Current extends core_Plugin
             	// И има поле за отговорник
             	if(isset($mvc->inChargeField)){
             		$query->where("#{$mvc->inChargeField} = {$cu} || #{$mvc->inChargeField} LIKE '%|{$cu}|%'");
+            		if($mvc->getField('state', TRUE)){
+            			$query->where("#state != 'rejected'");
+            		}
             	}
             	
             	// Ако е точно един обект и все още потребителя може да го избере, го задаваме в сесията като избран

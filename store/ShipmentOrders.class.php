@@ -184,7 +184,11 @@ class store_ShipmentOrders extends store_DocumentMaster
     		$deliveryAddress = $data->row->contragentAddress;
     	}
     	
-    	$tpl->append($deliveryAddress, 'deliveryAddress');
+    	core_Lg::push($data->rec->tplLang);
+    	$deliveryAddress = core_Lg::transliterate($deliveryAddress);
+    	
+    	$tpl->replace($deliveryAddress, 'deliveryAddress');
+    	core_Lg::pop();
     }
     
     
@@ -197,16 +201,22 @@ class store_ShipmentOrders extends store_DocumentMaster
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = NULL)
     {
+    	core_Lg::push($rec->tplLang);
+    	
     	if($row->pCode){
     		$row->deliveryTo .= $row->pCode;
     	}
     	
     	if($row->pCode){
-    		$row->deliveryTo .= " " . $row->place;
+    		$row->deliveryTo .= " " . core_Lg::transliterate($row->place);
     	}
     	
     	foreach(array('address', 'company', 'person', 'tel') as $fld){
     		if(!empty($rec->$fld)){
+    			if($fld == 'address'){
+    				$row->$fld = core_Lg::transliterate($row->$fld);
+    			}
+    			
     			$row->deliveryTo .= ", {$row->$fld}";
     		}
     	}
@@ -214,6 +224,8 @@ class store_ShipmentOrders extends store_DocumentMaster
     	if(isset($rec->locationId)){
     		$row->locationId = crm_Locations::getHyperLink($rec->locationId);
     	}
+    	
+    	core_Lg::pop();
     }
     
     
