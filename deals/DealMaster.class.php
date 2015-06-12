@@ -850,10 +850,6 @@ abstract class deals_DealMaster extends deals_DealBase
 		    if($rec->currencyId != acc_Periods::getBaseCurrencyCode($rec->valior)){
 		    	$row->currencyCode = $row->currencyId;
 		    }
-		    
-	        if ($rec->currencyRate != 1) {
-	            $row->currencyRateText = '(<span class="quiet">' . tr('курс') . "</span> {$row->currencyRate})";
-	        }
 	        
 	    	if($rec->note){
 				$notes = explode('<br>', $row->note);
@@ -895,6 +891,10 @@ abstract class deals_DealMaster extends deals_DealBase
 			core_Lg::push($rec->tplLang);
 			
 			$mvc->prepareHeaderInfo($row, $rec);
+			
+			if ($rec->currencyRate != 1) {
+				$row->currencyRateText = '(<span class="quiet">' . tr('курс') . "</span> {$row->currencyRate})";
+			}
 			
 			if(isset($actions['ship'])){
 				$row->isDelivered .= mb_strtoupper(tr('доставено'));
