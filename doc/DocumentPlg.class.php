@@ -253,7 +253,7 @@ class doc_DocumentPlg extends core_Plugin
                     			'hideDocumentInThread',
                                 $data->rec->containerId
                     	),
-                    			'order=99, row=2', 'ef_icon = img/16/toggle2.png, title=Скриване на документа в нишката');
+                    			'order=39, row=2', 'ef_icon = img/16/toggle2.png, title=Скриване на документа в нишката');
             }
         }
     }
