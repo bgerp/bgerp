@@ -318,8 +318,12 @@ class blast_ListDetails extends doc_Detail
     	 
     	$csv = $rCsv;
     
-    	$fileName = str_replace(' ', '_', Str::utf2ascii($this->title));
-    	 
+    	// името на файла на кирилица
+    	//$fileName = basename($this->title);
+      	//$fileName = str_replace(' ', '_', Str::utf2ascii($this->title));
+    	
+    	$fileName = fileman_Files::normalizeFileName($this->title);
+    	
     	// правим CSV-то
     	header("Content-type: application/csv");
     	header("Content-Disposition: attachment; filename={$fileName}.csv");
