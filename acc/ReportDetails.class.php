@@ -43,6 +43,13 @@ class acc_ReportDetails extends core_Manager
         setIfNot($data->masterMvc->balanceRefShowZeroRows, TRUE);
         setIfNot($data->masterMvc->showAccReportsInTab, TRUE);
         
+        $balanceRec = acc_Balances::getLastBalance();
+        $data->balanceRec = $balanceRec;
+        
+        // Ако няма баланс или записи в баланса, не показваме таба
+        if(!$data->balanceRec) return;
+        if(!acc_BalanceDetails::fetch("#balanceId = {$data->balanceRec->id}")) return;
+        
         // Ако потребителя има достъп до репортите
         if(haveRole($data->masterMvc->canReports)){
             
@@ -107,9 +114,6 @@ class acc_ReportDetails extends core_Manager
         
         // Перото с което мастъра фигурира в счетоводството
         $items = acc_Items::fetchItem($data->masterMvc->getClassId(), $data->masterId);
-        
-        $balanceRec = acc_Balances::getLastBalance();
-        $data->balanceRec = $balanceRec;
         
         // Ако мастъра не е перо, няма какво да се показва
         if(empty($items)) return;
