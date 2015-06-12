@@ -2274,8 +2274,12 @@ class doc_Containers extends core_Manager
             $row = self::recToVerbal($rec);
             
             $id = $document->getDocumentRowId();
-           
-            $html = '<td>' . $row->created . '</td>' . '<td>' . $row->document . '</td>';
+            
+            $html = '<td>' . $row->document . '</td>';
+            
+            if (Mode::is('screenMode', 'wide')) {
+                $html = '<td>' . $row->created . '</td>' . $html;
+            }
             
             $resObj = new stdClass();
     		$resObj->func = "html";
