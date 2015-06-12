@@ -399,10 +399,10 @@ class plg_TreeObject extends core_Plugin
 				$rec = $mvc->fetch($id, "{$mvc->nameField},{$mvc->parentFieldName}");
 					
 				// Намираме името на обекта
-				$nameVerbal = $mvc->getVerbal($rec, $mvc->nameField);
+				$nameVerbal = type_Varchar::escape($rec->{$mvc->nameField});
 				$nameVerbal = strip_tags($nameVerbal);
 				$keyVerbal = $nameVerbal;
-					
+				
 				// Ако има баща и е указано децата му да са свойства
 				if(!empty($rec->{$mvc->parentFieldName})){
 					if($mvc->fetchField($rec->{$mvc->parentFieldName}, 'makeDescendantsFeatures') == 'yes'){
@@ -424,7 +424,7 @@ class plg_TreeObject extends core_Plugin
 		}
 	}
 	
-	
+	 
 	/**
 	 * След подготовката на навигацията по сраници
 	 */
