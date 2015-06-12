@@ -2372,8 +2372,7 @@ class doc_Containers extends core_Manager
             
             $attr = array();
             $attr['ef_icon'] = 'img/16/toggle-expand.png';
-            $attr['class'] = 'fright';
-            $attr['style'] = 'display: inline-block; height: 16px;';
+            $attr['class'] = 'fright showDocument';
             $attr['title'] = tr('Показване на целия документ');
             
             // @TODO ще е за всички
