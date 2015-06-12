@@ -133,7 +133,6 @@ abstract class store_DocumentMaster extends core_Master
     		$rec = &$form->rec;
     		
     		// Ако има локация и тя е различна от договорената, слагаме предупреждение
-    		//bp(!$form->dealInfo->get('deliveryLocation'));
     		if(!empty($rec->locationId) && $form->dealInfo->get('deliveryLocation') && $rec->locationId != $form->dealInfo->get('deliveryLocation')){
     			$agreedLocation = crm_Locations::getTitleById($form->dealInfo->get('deliveryLocation'));
     			$form->setWarning('locationId', "Избраната локация е различна от договорената \"{$agreedLocation}\"");
