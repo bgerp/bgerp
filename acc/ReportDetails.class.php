@@ -47,8 +47,11 @@ class acc_ReportDetails extends core_Manager
         $data->balanceRec = $balanceRec;
         
         // Ако няма баланс или записи в баланса, не показваме таба
-        if(!$data->balanceRec) return;
-        if(!acc_BalanceDetails::fetch("#balanceId = {$data->balanceRec->id}")) return;
+        $data->renderReports = TRUE;
+        if(!$data->balanceRec || !acc_BalanceDetails::fetch("#balanceId = {$data->balanceRec->id}")){
+        	$data->renderReports = FALSE;
+        	return;
+        }
         
         // Ако потребителя има достъп до репортите
         if(haveRole($data->masterMvc->canReports)){
@@ -78,6 +81,8 @@ class acc_ReportDetails extends core_Manager
      */
     public function renderAccReports(&$data)
     {
+        if($data->renderReports === FALSE) return;
+        
         // Взима се шаблона
         $tpl = new ET("");
         
