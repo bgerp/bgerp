@@ -389,7 +389,7 @@ class core_Master extends core_Manager
         }
         
         if(isset($this->singleLayoutFile)) {
-            $layoutText = tr('|*' . file_get_contents(getFullPath($this->singleLayoutFile)));
+            $layoutText = getTplFromFile($this->singleLayoutFile);
         } elseif(isset($this->singleLayoutTpl)) {
             $layoutText = $this->singleLayoutTpl;
         } else {
