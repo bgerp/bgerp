@@ -162,12 +162,13 @@ class bgerp_Recently extends core_Manager
                 $docRow = $docProxy->getDocumentRow();
                 $docRec = $docProxy->fetch();
                 
+                $state = $threadRec->state;
+                
                 $attr = array();
                 $attr['class'] .= "linkWithIcon state-{$state}";
                 $attr['style'] = 'background-image:url(' . sbf($docProxy->getIcon($docRec->id)) . ');';
                 
                 $threadRec = doc_Threads::fetch($docRec->threadId);
-                $state     = $threadRec->state;
                 
                 if(mb_strlen($docRow->title) > self::maxLenTitle) {
                     $attr['title'] = $docRow->title;

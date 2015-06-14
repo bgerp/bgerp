@@ -262,7 +262,7 @@ class store_Movements extends core_Manager
         
         switch ($do) {
             case 'palletUp' :
-                $form->title = "КАЧВАНЕ <b>от пода</b> на палет с|* ID=<b>{$palletId}</b>";
+                $form->title = "|КАЧВАНЕ|* <b>|от пода|*</b> |на палет с|* ID=<b>{$palletId}</b>";
                 $form->FNC('do', 'varchar(64)', 'caption=Движение,input=hidden');
                 
                 // Как да се постави палета
@@ -291,7 +291,7 @@ class store_Movements extends core_Manager
                 unset($ppRackId2RackNumResult);
                 
                 $form->title = "СВАЛЯНЕ |*<b>|на пода|*</b>| на палет с|* ID=<b>{$palletId}</b>
-                                <br/>|от пoзиция |*<b>{$position}</b>|";
+                                <br/>|от пoзиция|* <b>{$position}</b>";
                 $form->FNC('do', 'varchar(64)', 'caption=Движение,input=hidden');
                 $form->FNC('completed', 'set(YES=Да)', 'caption=Приключено');
                 
@@ -330,8 +330,8 @@ class store_Movements extends core_Manager
                     unset($ppRackId2RackNumResult);
                 }
                 
-                $form->title = "ПРЕМЕСТВАНЕ от палет място <b>{$position}</b> на палет с|* ID=<b>{$palletId}</b>
-                                <br/>към друго палет място в склада";
+                $form->title = "|ПРЕМЕСТВАНЕ от палет място|* <b>{$position}</b> |на палет с|* ID=<b>{$palletId}</b>
+                                <br/>|към друго палет място в склада|*";
                 $form->FNC('do', 'varchar(64)', 'caption=Движение,input=hidden');
                 $form->FNC('completed', 'set(YES=Да)', 'caption=Приключено');
                 
@@ -543,7 +543,6 @@ class store_Movements extends core_Manager
         $rec->workerId = $userId;
         $this->save($rec);
         
-        // store_Pallets
         $recPallets = store_Pallets::fetch("#id = {$rec->palletId}");
         $recPallets->state = 'active';
         store_Pallets::save($recPallets);
@@ -669,7 +668,8 @@ class store_Movements extends core_Manager
      * @param string $palletPlace
      * @return boolean
      */
-    static function checkIfPalletPlaceHasNoAppointedMovements($palletPlace) {
+    static function checkIfPalletPlaceHasNoAppointedMovements($palletPlace)
+    {
         $selectedStoreId = store_Stores::getCurrent();
         
         if ($recMovements = store_Movements::fetch("#positionNew = '{$palletPlace}' AND #storeId = {$selectedStoreId}")) return FALSE;

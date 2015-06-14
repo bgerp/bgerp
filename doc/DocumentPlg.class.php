@@ -241,6 +241,21 @@ class doc_DocumentPlg extends core_Plugin
                 "class=btnAll,ef_icon=img/16/application_view_list.png, order=18, row={$mvc->allBtnToolbarRow}, title=" . tr('Всички ' . mb_strtolower($mvc->title)));    
 
         }
+        
+        // TODO ще е по друг начин
+        if ($mvc->haveRightFor('single', $data->rec->id) || doc_Threads::haveRightFor('single', $data->rec->threadId)) {
+            $threadRec = doc_Threads::fetch($data->rec->threadId);
+            
+            // Първия документ в нишката да не може да се скрива ръчно
+            if ($data->rec->containerId != $threadRec->firstContainerId) {
+                $data->toolbar->addBtn('Скриване', array(
+                    			'doc_Containers',
+                    			'hideDocumentInThread',
+                                $data->rec->containerId
+                    	),
+                    			'order=39, row=2', 'ef_icon = img/16/toggle2.png, title=Скриване на документа в нишката');
+            }
+        }
     }
     
     
@@ -529,6 +544,21 @@ class doc_DocumentPlg extends core_Plugin
     }
     
     
+    
+    /**
+     * Ескейпва хендъла и връща стринг, който ще се използва за id на ROW в нишките
+     * 
+     * @param core_Master $mvc
+     * @param string $res
+     * @param integer $id
+     */
+    function on_AfterGetDocumentRowId($mvc, &$res, $id)
+    {
+        $handle = $mvc->getHandle($id);
+        $res = preg_replace('/\!/i', '_', $handle);
+    }
+    
+    
     /**
      * Смяна статута на 'rejected'
      *
@@ -537,10 +567,8 @@ class doc_DocumentPlg extends core_Plugin
     function on_BeforeAction($mvc, &$res, $action)
     {
         if ($action == 'single' && !(Request::get('Printing'))) {
-            
+        	
             expect($id = Request::get('id', 'int'));
-            
-            //$mvc->requireRightFor('single');
             
             expect($rec = $mvc->fetch($id));
             
@@ -548,11 +576,20 @@ class doc_DocumentPlg extends core_Plugin
             $url = array($mvc, 'single', 'id' => $id);
             bgerp_Notifications::clear($url);
             
+            $hnd = $mvc->getDocumentRowId($rec->id);
+            
             if($rec->threadId) {
                 if(doc_Threads::haveRightFor('single', $rec->threadId)) {
                     
-                    $hnd = $mvc->getHandle($rec->id);
-                    $url = array('doc_Containers', 'list', 'threadId' => $rec->threadId, 'docId' => $hnd, 'Q' => Request::get('Q'), 'Cid' => Request::get('Cid'), '#' => $hnd);
+                    $handle = $mvc->getHandle($rec->id);
+                    
+                    $url = array('doc_Containers', 'list', 'threadId' => $rec->threadId, 'docId' => $handle, 'Cid' => Request::get('Cid'), '#' => $hnd);
+                    
+                    $Q = Request::get('Q');
+                    
+                    if (trim($Q)) {
+                        $url['Q'] = $Q;
+                    }
                     
                     // Ако има подаден таб
                     if ($tab = Request::get('Tab')) {
@@ -586,14 +623,31 @@ class doc_DocumentPlg extends core_Plugin
                     
                     return FALSE;
                 } else {
-                    
-                    // Ако нямаме достъп до нишката, да се изчистят всички нотификации в нея
-                    $customUrl = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
-                    bgerp_Notifications::clear($customUrl);
+                	
+                	// Ако нямаме достъп до нишката, да се изчистят всички нотификации в нея
+                	$customUrl = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
+                	bgerp_Notifications::clear($customUrl);
+                	
+                	// Ако е инсталиран пакета за работа в партньори
+                	if(core_Packs::isInstalled('colab') && core_Users::isContractor()){
+                		
+                		// И нишката може да бъде видяна от партньора
+                		$threadRec = doc_Threads::fetch($rec->threadId);
+                		
+                		// Редиректваме към нишката на документа
+                		if(colab_Threads::haveRightFor('single', $threadRec)){
+                			
+                			// Променяме урл-то да сочи към документа във видимата нишка
+                			$url = array('colab_Threads', 'single', 'threadId' => $rec->threadId, '#' => $hnd);
+                			$res = new Redirect($url);
+                			
+                			return FALSE;
+                		}
+                	}
                 }
             }
         }
-        
+       
         if ($action == 'reject') {
             
             $id  = Request::get('id', 'int');
@@ -1112,6 +1166,7 @@ class doc_DocumentPlg extends core_Plugin
             // Подготвяме данните за единичния изглед
             $data = $mvc->prepareDocument($id, $options);
             
+            $data->noDetails = $options->noDetails;
             $data->noToolbar = !$options->withToolbar;
             
             $res  = $mvc->renderDocument($id, $data);
@@ -1448,6 +1503,7 @@ class doc_DocumentPlg extends core_Plugin
         
 //        if($data->threadCachedView === FALSE) {
             $tpl = $mvc->renderSingle($data);
+            
             if ($data->rec->_resending) {
                 $tpl->append(tr($data->rec->_resending), '_resending');    
             }

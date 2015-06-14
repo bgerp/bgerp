@@ -797,6 +797,75 @@ class marketing_Bulletins extends core_Master
     
     
     /**
+     * Екшън който експортира данните
+     */
+    public function act_Export()
+    {
+    	expect($id = Request::get('id', 'int'));
+    	expect($rec = $this->fetch($id));
+   
+    	// Проверка за права
+    	$this->requireRightFor('export', $rec);
+    
+    	$detail = cls::get('marketing_BulletinSubscribers');
+    	// Масива с избраните полета за export
+    	$exportFields = $detail->selectFields("#export");
+    	
+    	// Ако има избрани полета за export
+    	if (count($exportFields)) {
+    		foreach($exportFields as $name => $field) {
+    			$listFields[$name] = tr($field->caption);
+    		}
+    	}
+    	
+    	// взимаме от базата целия списък отговарящ на този бюлетин
+    	$queryDetail = marketing_BulletinSubscribers::getQuery();
+    	$queryDetail->where("#bulletinId = '{$id}'");
+    	
+    	while ($recs = $queryDetail->fetch()) {
+    		$detailRecs[] = $recs; 
+    	}
+
+    	// новите ни ролове
+    	$rCsv = '';
+    	$csv = '';
+    	
+    	/* за всеки ред */
+    	foreach($detailRecs as $rec) { 
+
+	    	foreach ($rec as $field => $value) {
+	    		if($exportFields[$field]) {
+
+					$val = html2text_Converter::toRichText($value);
+					// escape
+					if (preg_match('/\\r|\\n|,|"/', $val)) {
+						$val = '"' . str_replace('"', '""', $val) . '"';
+					}
+					$rCsv .= $val. "," . "\n";
+		
+				} else {
+					$rCsv .= "";
+				}	
+	    	}
+    	}
+    	
+    	$csv = $rCsv;
+    
+    	$fileName = str_replace(' ', '_', Str::utf2ascii($this->title));
+    	
+    	// правим CSV-то
+    	header("Content-type: application/csv");
+    	header("Content-Disposition: attachment; filename={$fileName}.csv");
+    	header("Pragma: no-cache");
+    	header("Expires: 0");
+    	 
+    	echo $csv;
+    
+    	shutdown();
+    }
+    
+    
+    /**
      * Задава стойност на кукито да е `no`
      * 
      * @param integer $id
@@ -934,6 +1003,14 @@ class marketing_Bulletins extends core_Master
                 $requiredRoles = 'no_one';
             }
         }
+        
+        if ($rec && ($action == 'export')) {
+        	if (!haveRole('ceo, marketing', $userId)) {
+        		if ($rec->createdBy != $userId) {
+        			$requiredRoles = 'no_one';
+        		}
+        	}
+        }
     }
     
     
@@ -951,6 +1028,10 @@ class marketing_Bulletins extends core_Master
             
             $data->toolbar->addBtn('Циркулярен имейл', array('blast_Emails', 'add', 'perSrcClassId' => core_Classes::getId($mvc), 'perSrcObjectId' => $data->rec->id),
             'id=btnEmails','ef_icon = img/16/emails.png,title=Създаване на циркулярен имейл');
+        }
+        
+        if($mvc->haveRightFor('export', $data->rec)){
+        	$data->toolbar->addBtn('Експорт в CSV', array($mvc, 'export', $data->rec->id), NULL, 'ef_icon = img/16/file_extension_xls.png, title = Сваляне на записите в CSV формат');
         }
     }
     

@@ -114,6 +114,10 @@ class colab_Threads extends core_Manager
 		
 		$this->prepareTitle($data);
 		
+		if (!isset($data->recs)) {
+		    $data->recs = array();
+		}
+		
 		// Извличаме записите
 		while ($rec = $data->query->fetch()) {
 			$data->recs[$rec->id] = $rec;
@@ -121,6 +125,7 @@ class colab_Threads extends core_Manager
 		
 		// Вербализираме записите
 		if(count($data->recs)) {
+		    doc_Containers::prepareDocsForHide($data->recs);
 			foreach($data->recs as $id => $rec) {
 				$data->rows[$id] = $this->Containers->recToVerbal($rec, arr::combine($data->listFields, '-list'));
 			}
@@ -204,12 +209,21 @@ class colab_Threads extends core_Manager
 		$data->listFilter->FNC('folderId', 'key(mvc=doc_Folders)', 'input=hidden,silent');
 		$data->listFilter->FNC('order', 'enum(open=Първо отворените, recent=По последно, create=По създаване, numdocs=По брой документи)',
 				'allowEmpty,caption=Подредба,input,silent,refreshForm');
+		$data->listFilter->FNC('documentClassId', "class(interface=doc_DocumentIntf,select=title,allowEmpty)", 'caption=Вид документ,input,recently');
 		
 		$data->listFilter->view = 'horizontal';
 		$data->listFilter->toolbar->addSbBtn('Търсене', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-		$data->listFilter->showFields = 'folderId,search,order';
+		$data->listFilter->showFields = 'folderId,search,order,documentClassId';
 		
 		$data->listFilter->input(NULL, 'silent');
+		
+		$documentsInThreadOptions = doc_Threads::getDocumentTypesOptionsByFolder($data->listFilter->rec->folderId, TRUE);
+		if(count($documentsInThreadOptions)) {
+			$documentsInThreadOptions = array_map('tr', $documentsInThreadOptions);
+			$data->listFilter->setOptions('documentClassId', $documentsInThreadOptions);
+		} else {
+			$data->listFilter->setReadOnly('documentClassId');
+		}
 		
 		doc_Threads::applyFilter($data->listFilter->rec, $data->query);
 	}
@@ -261,9 +275,12 @@ class colab_Threads extends core_Manager
 			}
 		}
 		
-		
-		if(core_Users::haveRole('powerUser', $userId)){
-			$requiredRoles = 'no_one';
+		if($requiredRoles != 'no_one'){
+			
+			// Ако потребителя няма роля партньор, не му е работата тук
+			if(!core_Users::isContractor()){
+				$requiredRoles = 'no_one';
+			}
 		}
 	}
 	

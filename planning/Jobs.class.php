@@ -111,7 +111,7 @@ class planning_Jobs extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт,dueDate, title=Документ, productId=За артикул, saleId, quantity, folderId, state, createdOn, createdBy, modifiedOn,modifiedBy';
+    public $listFields = 'tools=Пулт,dueDate, title=Документ, productId=За артикул, saleId, quantity, quantityProduced, folderId, state, createdOn, createdBy, modifiedOn,modifiedBy';
     
     
     /**
@@ -595,10 +595,10 @@ class planning_Jobs extends core_Master
     	}
     	
     	if($rec->state != 'draft' && $rec->state != 'rejected'){
-    		//if(planning_DirectProductionNote::haveRightFor('add', (object)array('originId' => $rec->containerId))){
-    			//$pUrl = array('planning_DirectProductionNote', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE);
-    			//$data->toolbar->addBtn("Производство", $pUrl, 'ef_icon = img/16/page_paste.png,title=Създаване на протокол за бързо производство от заданието');
-    		//}
+    		if(planning_DirectProductionNote::haveRightFor('add', (object)array('originId' => $rec->containerId))){
+    			$pUrl = array('planning_DirectProductionNote', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE);
+    			$data->toolbar->addBtn("Производство", $pUrl, 'ef_icon = img/16/page_paste.png,title=Създаване на протокол за бързо производство от заданието');
+    		}
     	}
     }
     
@@ -692,7 +692,7 @@ class planning_Jobs extends core_Master
     	 	$tpl->append($addBtn, 'title');
     	 }
     	 
-    	 $listFields = arr::make('tools=Пулт,title=Документ,dueDate=Падеж,saleId=Към продажба,quantity=Количество,createdBy=Oт,createdOn=На');
+    	 $listFields = arr::make('tools=Пулт,title=Документ,dueDate=Падеж,saleId=Към продажба,quantity=Количество,quantityProduced=Произведено,createdBy=Oт,createdOn=На');
     	 
     	 if($data->hideSaleCol){
     	 	unset($listFields['saleId']);

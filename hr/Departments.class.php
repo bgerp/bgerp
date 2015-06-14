@@ -67,7 +67,7 @@ class hr_Departments extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, hr_Wrapper, doc_FolderPlg, plg_Printing, plg_State, plg_Rejected,
-                     plg_Created, WorkingCycles=hr_WorkingCycles,acc_plg_Registry';
+                     plg_Created, WorkingCycles=hr_WorkingCycles,acc_plg_Registry, plg_SaveAndNew, plg_TreeObject';
     
     
     /**
@@ -133,7 +133,7 @@ class hr_Departments extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, name, type, staff, locationId, employmentOccupied=Назначени, employmentTotal=От общо, schedule=График';
+    public $listFields = 'id, name, type, locationId, employmentOccupied=Назначени, employmentTotal=От общо, schedule=График';
 
     
     /**
@@ -147,6 +147,18 @@ class hr_Departments extends core_Master
         'List' => 'Tаблица',
         'StructureChart' => 'Графика',
     );
+    
+    
+    /**
+     * Активен таб
+     */
+    var $currentTab = 'Структура->Таблица';
+    
+    
+    /**
+     * Кои полета да се сумират за наследниците
+     */
+    var $fieldsToSumOnChildren = 'employmentTotal,employmentOccupied';
     
     
     /**
@@ -169,7 +181,6 @@ class hr_Departments extends core_Master
                                  shift=Смяна,
                                  organization=Учреждение)', 'caption=Тип, mandatory,width=100%');
         $this->FLD('nkid', 'key(mvc=bglocal_NKID, select=title,allowEmpty=true)', 'caption=НКИД, hint=Номер по НКИД');
-        $this->FLD('staff', 'key(mvc=hr_Departments, select=name,allowEmpty)', 'caption=В състава на,width=100%');
         $this->FLD('locationId', 'key(mvc=crm_Locations, select=title, allowEmpty)', "caption=Локация,width=100%");
         $this->FLD('activities', 'enum(yes=Да, no=Не)', "caption=Център на дейности,maxRadio=2,columns=2,notNull,value=no, input=none,");
         
@@ -188,111 +199,29 @@ class hr_Departments extends core_Master
     
     
     /**
-     * Извиква се след подготовката на формата за редактиране/добавяне $data->form
-     */
-    public static function on_AfterPrepareEditForm($mvc, $data)
-    {
-    	// Да не може да се слага в звена, които са в неговия състав
-        if($id = $data->form->rec->id) {
-            $notAllowedCond = "#id NOT IN (" . implode(',', self::getInheritors($id, 'staff')) . ")";
-            $notAllowedCond .= " AND #systemId IS NULL";
-        } else {
-        	$notAllowedCond = "#systemId IS NULL";
-        }
-        
-        $query = self::getQuery();
-        $query->orderBy('#orderStr');
-        
-        while($r = $query->fetch($notAllowedCond)) {
-            self::expandRec($r);
-            $opt[$r->id] = $r->name;
-        }
-        
-        $data->form->setOptions('staff', $opt);
-    }
-    
-    
-    /**
-     * Връща наследниците на даден запис
-     */
-    public static function getInheritors($id, $field, &$arr = array())
-    {
-        $arr[$id] = $id;
-        $query = self::getQuery();
-        
-        while($rec = $query->fetch("#{$field} = $id")) {
-            
-            self::getInheritors($rec->id, $field, $arr);
-        }
-        
-        return $arr;
-    }
-    
-    
-    /**
      * Добавя данните за записа, които зависят от неговите предшественици и от неговите детайли
      */
     public static function expandRec($rec)
     {
-        $parent = $rec->staff;
+        $parent = $rec->parentId;
         
         while($parent && ($pRec = self::fetch($parent))) {
-            $rec->name = $pRec->name . ' » ' . $rec->name;
             setIfNot($rec->nkid, $pRec->nkid);
             setIfNot($rec->locationId, $pRec->locationId);
-            $parent = $pRec->staff;
+            $parent = $pRec->parentId;
         }
     }
     
     
     /**
-     * Определя заглавието на записа
+     * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
-    public static function getRecTitle($rec, $escaped = TRUE)
+    public static function on_AfterPrepareEditForm($mvc, $data)
     {
-        self::expandRec($rec);
-        
-        return parent::getRecTitle($rec, $escaped);
-    }
-    
-    
-    /**
-     * Изпънява се преди превръщането във вербални стойности на записа
-     */
-    public function on_BeforeRecToVerbal($mvc, &$row, &$rec)
-    {
-        self::expandRec($rec);
-    }
-    
-    
-    /**
-     * Проверка за зацикляне след субмитване на формата. Разпъване на всички наследени роли
-     */
-    public static function on_AfterInputEditForm($mvc, $form)
-    {
-        $rec = $form->rec;
-        
-        // Ако формата е субмитната и редактираме запис
-        if ($form->isSubmitted() && ($rec->id)) {
-            
-            if($rec->staff || $rec->dependent) {
-            	
-                $expandedDepartment = self::expandRec($form->rec->dependent);
-               
-                if ($expandedDepartment == NULL) {
-                	$form->setError('dependent', "|Не може отдела да е подчинен на себе си");
-                }
-                
-                // Ако има грешки
-                if ($expandedDepartment[$rec->id]) {
-                    $form->setError('dependent', "|Не може отдела да е подчинен на себе си");
-                } else {
-                    $rec->dependent = keylist::fromArray($expandedDepartment);
-                }
-            }
-        }
-        
-        $mvc->currentTab = "Структура->Таблица";
+    	$fRec = &$data->form->rec;
+    	$data->form->setField('parentId', 'remember');
+    	self::expandRec($fRec);
+    	
     }
     
     
@@ -327,58 +256,13 @@ class hr_Departments extends core_Master
     /**
      * След промяна на обект от регистър
      */
-    function on_AfterSave($mvc, &$id, &$rec, $fieldList = NULL)
+    protected static function on_AfterSave($mvc, &$id, &$rec, $fieldList = NULL)
     {
     	if($rec->activities == 'yes'){
     	    // Добавя се като перо 
 
     		$rec->lists = keylist::addKey($rec->lists, acc_Lists::fetchField(array("#systemId = '[#1#]'", 'departments'), 'id'));
     		acc_Lists::updateItem($mvc, $rec->id, $rec->lists);
-        } else {
-    		//acc_Lists::removeItem($mvc, $rec->id);
-        }
-    }
-    
-    
-    /**
-     * Игнорираме pager-а
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $res
-     * @param stdClass $data
-     */
-    public static function on_BeforePrepareListPager($mvc, &$res, $data) {
-        // Ако искаме да видим графиката на структурата
-        // не ни е необходимо страницирване
-        if(Request::get('Chart')  == 'Structure') {
-            // Задаваме броя на елементите в страница
-            $mvc->listItemsPerPage = 1000000;
-        }
-    }
-    
-    
-    /**
-     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
-     *
-     * @param core_Mvc $mvc
-     * @param string $requiredRoles
-     * @param string $action
-     * @param stdClass $rec
-     * @param int $userId
-     */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
-    {
-        if($action == 'delete'){
-            if ($rec->id) {
-                
-                $haveContracts = hr_EmployeeContracts::fetch("#departmentId = '{$rec->id}'");
-                
-                $haveSubDeparments = self::fetch("#staff = '{$rec->id}'");
-                
-                if($haveContracts || $haveSubDeparments){
-                    $requiredRoles = 'no_one';
-                }
-            }
         }
     }
     
@@ -406,11 +290,17 @@ class hr_Departments extends core_Master
     
     
     /**
-     * След подготовка на сингъла
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
      */
-    public static function on_AfterPrepareSingle($mvc, &$res, $data)
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-    	$mvc->currentTab = "Структура->Таблица";
+    	if($rec->locationId){
+    		$row->locationId = crm_Locations::getHyperlink($rec->locationId, TRUE);
+    	}
     }
     
     
@@ -470,11 +360,11 @@ class hr_Departments extends core_Master
     {
         $arrData = (array)$data->recs;
         
-        foreach($arrData as $rec){ 
+        foreach($arrData as $rec){
         	if($rec->systemId === 'emptyCenter') continue;
         	
             // Ако имаме родител 
-             if($rec->staff == NULL && $rec->systemId !== 'myOrganisation') {
+             if($rec->parentId == NULL && $rec->systemId !== 'myOrganisation') {
                  $parent = '0';
                  // взимаме чистото име на наследника
                  $name = self::fetchField($rec->id, 'name');
@@ -485,12 +375,12 @@ class hr_Departments extends core_Master
                      $oldId = $rec->id;
                      $rec->id = '0';
                      $parent = 'NULL';
-                 } elseif ($rec->staff == $oldId) {
+                 } elseif ($rec->parentId == $oldId) {
                  	$name = self::fetchField($rec->id, 'name');
                  	$parent = '0';
                  } else {
                      $name = self::fetchField($rec->id, 'name');
-                     $parent = $rec->staff;
+                     $parent = $rec->parentId;
                  }
              }
          
@@ -502,7 +392,12 @@ class hr_Departments extends core_Master
         }
         
         if(!static::fetchField("#systemId = 'myOrganisation'")){
-        	array_unshift($res, array('id' => '0', 'title' => tr('Моята организация'), 'parent_id' => 'NULL'));
+        	$firstRow = array('id' => '0', 'title' => tr('Моята организация'), 'parent_id' => 'NULL');
+        	if(count($res)){
+        		array_unshift($res, $firstRow);
+        	} else {
+        		$res[] = $firstRow;
+        	}
         }
         
         $chart = orgchart_Adapter::render_($res);

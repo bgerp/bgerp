@@ -73,7 +73,8 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 												'quantity' => $rQuantity),
 							   'credit' => array('321', array('store_Stores', $rec->storeId), 
 														array($dRec->classId, $dRec->productId), 
-												'quantity' => $dRec->quantity), 
+												'quantity' => $dRec->quantity),
+								'reason' => 'Влагане на ресурс в производството' 
 							   );
 				
 				$entries[] = $entry;
@@ -81,21 +82,29 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 		}
 		
 		$index = 0;
+		$costAmount = 0;
 		if(count($resourcesArr)){
 			arr::orderA($resourcesArr, 'type');
 			
 			foreach ($resourcesArr as $resourceId => $obj){
 				$entry = array();
+				$selfValue = planning_Resources::getSelfValue($resourceId, $rec->valior);
+				$sign = ($obj->type == 'input') ? 1 : -1;
+				
+				$costAmount += $sign * $obj->resourceQuantity * $selfValue;
 				
 				$quantity = ($index == 0) ? $rec->quantity : 0;
 				
 				if($obj->type == 'input'){
+					$reason = ($index == 0) ? 'Засклаждане на произведен артикул' : 'Вложени ресурси в произведен артикул';
+					
 					$entry['debit'] = array('321', array('store_Stores', $rec->storeId),
 										 array(cat_Products::getClassId(), $rec->productId),
 										'quantity' => $quantity);
 					
 					$entry['credit'] = array('61101', array('planning_Resources', $resourceId),
 											   'quantity' => $obj->resourceQuantity);
+					$entry['reason'] = $reason;
 				} else {
 					$amount = planning_Resources::fetchField($resourceId, "selfValue");
 					$entry['debit'] = array('61101', array('planning_Resources', $resourceId),
@@ -105,11 +114,32 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 										 array(cat_Products::getClassId(), $rec->productId),
 										'quantity' => $quantity);
 					$entry['amount'] = $amount;
+					$entry['reason'] = 'Приспадане себестойността на отпадък от произведен артикул';
 					$total += $amount;
 				}
 				
 				$entries[] = $entry;
 				$index++;
+			}
+		}
+		
+		// Ако има режийни разходи, разпределяме ги
+		if($rec->expenses){
+			$costAmount = $rec->expenses * $costAmount;
+			$costAmount = round($costAmount, 2);
+			
+			if($costAmount){
+				$costArray = array(
+						'amount' => $costAmount,
+						'debit' => array('321', array('store_Stores', $rec->storeId),
+								array(cat_Products::getClassId(), $rec->productId),
+								'quantity' => 0),
+						'credit' => array('61102'),
+						'reason' => 'Разпределени режийни разходи',
+				);
+					
+				$total += $costAmount;
+				$entries[] = $costArray;
 			}
 		}
 		

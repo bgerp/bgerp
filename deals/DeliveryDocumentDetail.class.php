@@ -31,7 +31,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 		$mvc->FNC('amount', 'double(minDecimals=2,maxDecimals=2)', 'caption=Сума,input=none');
 		$mvc->FNC('packQuantity', 'double(Min=0)', 'caption=К-во,input=input,mandatory');
 		$mvc->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input');
-		$mvc->FLD('discount', 'percent', 'caption=Отстъпка');
+		$mvc->FLD('discount', 'percent(Min=0,max=1)', 'caption=Отстъпка');
 		$mvc->FLD('notes', 'richtext(rows=3)', 'caption=Забележки,formOrder=110001');
 	}
 	
@@ -157,7 +157,8 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 				}
 			}
 	
-			$rec->quantityInPack = (empty($rec->packagingId)) ? 1 : $productInfo->packagings[$rec->packagingId]->quantity;
+			// Ако артикула няма опаковка к-то в опаковка е 1, ако има и вече не е свързана към него е това каквото е било досега, ако още я има опаковката обновяваме к-то в опаковка
+			$rec->quantityInPack = (empty($rec->packagingId)) ? 1 : (($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : $rec->quantityInPack);
 			$rec->quantity = $rec->packQuantity * $rec->quantityInPack;
 	
 			if (!isset($rec->packPrice)) {

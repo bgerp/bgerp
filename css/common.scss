@@ -1107,6 +1107,7 @@ table.listTable {
 	    font-weight: bold;
 	    vertical-align: middle;
 	    line-height: normal;
+        text-align: center;
 	}
 	> tbody > tr > td {
 	    border: 1px solid $gray4;
@@ -2576,9 +2577,12 @@ div.richtext ol ol ol {
 	margin-bottom: 0.1em;
 }
 
-.inlineRichTable td {
-    height: 20px;
-    min-width: 10px;
+.document .inlineRichTable.listTable {
+    width: auto;
+    td {
+        height: 20px;
+        min-width: 10px;
+    }
 }
 
 /*richtext message-box*/

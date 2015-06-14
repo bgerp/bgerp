@@ -156,7 +156,7 @@ class store_Receipts extends store_DocumentMaster
     public function description()
     {
         parent::setDocFields($this);
-        $this->setField('storeId', 'caption=От склад');
+        $this->setField('storeId', 'caption=В склад');
     }
     
     

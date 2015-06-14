@@ -172,7 +172,7 @@ class acc_plg_Contable extends core_Plugin
         
         if(($rec->state == 'active' || $rec->state == 'closed') && acc_Journal::haveRightFor('read') && $journalRec) {
             $journalUrl = array('acc_Journal', 'single', $journalRec->id);
-            $data->toolbar->addBtn('Журнал', $journalUrl, 'row=2,ef_icon=img/16/book.png,title=Преглед на записа в журнала');
+            $data->toolbar->addBtn('Журнал', $journalUrl, 'row=2,ef_icon=img/16/book.png,title=Преглед на контировката на документа в журнала');
         }
     }
     

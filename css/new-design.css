@@ -74,7 +74,6 @@
   left: -170px; }
 
 .sidemenu-right {
-  background-color: #cccccc;
   right: -200px; }
 
 .narrow .sidemenu-right {
@@ -171,6 +170,10 @@ body {
     box-shadow: 0 1px 0 0 rgba(0, 0, 0, 0.1);
     margin-bottom: 20px; }
 
+.portal.acc-summary {
+  background: none !important;
+  box-shadow: none; }
+
 .document .portal {
   box-shadow: none;
   background: transparent !important; }
@@ -258,34 +261,46 @@ body {
   font-size: 0.9em; }
 
 #fav-panel {
-  padding: 10px;
-  box-sizing: border-box; }
+  background: #363d55;
+  box-shadow: inset 0px 0px 20px rgba(0, 0, 0, 0.4); }
+
+.inner-fav-panel {
+  padding: 15px; }
 
 .sideBarTitle {
   text-align: center;
-  margin-top: 5px; }
+  color: #fff612; }
   .sideBarTitle a {
-    color: #333333; }
+    position: relative;
+    top: 2px; }
+
+.narrow .sidebar-row {
+  margin-top: 47px;
+  padding: 1px 0 3px !important; }
+
+.narrow .sideBarTitle {
+  font-size: 0.85em; }
 
 .bookmark-links {
   font-size: 0.9em; }
   .bookmark-links ul {
     padding-left: 0; }
     .bookmark-links ul li {
-      border-bottom: 1px dashed #666666;
-      padding: 4px 0 4px 0px;
+      border-bottom: 1px dashed #fefdd6;
+      padding: 5px 0 5px 0px;
       display: block; }
       .bookmark-links ul li:last-child {
         border-bottom: none; }
     .bookmark-links ul a {
-      background: url("../img/16/arrow-right.png") left center no-repeat;
+      background: url("../img/12/star-yellow.png") 4px center no-repeat;
       margin-left: 0;
       padding-left: 20px;
       outline: none;
-      color: #555555;
-      display: block; }
+      color: #fff612;
+      display: block;
+      font-size: 0.97em; }
       .bookmark-links ul a:hover {
-        color: #111111; }
+        color: #fefdd6; }
 
 /*
  * menu i podmenu
@@ -573,7 +588,6 @@ body {
 
 .narrow .notificationsCnt a.noNtf {
   color: white;
-  background-color: false !important;
   border: solid 1px #999999 !important; }
 
 .portal .legend {
@@ -591,22 +605,22 @@ input[type="button"],
 input[type="submit"],
 button {
   background-position: 4px center !important;
-  padding: 0.34em 5px 0.34em 25px !important;
+  padding: 0.34em 5px 0.34em 5px !important;
   background-repeat: no-repeat !important;
   background-color: #dddddd;
   border: 1px solid #bbbbbb !important;
   -moz-border-radius: 3px !important;
   -webkit-border-radius: 3px !important;
   border-radius: 3px !important;
-  color: #333333 !important;
+  color: #333333;
   font-family: arial;
   font-weight: bold;
   text-decoration: none;
   border-right: 1px solid #dfdfdf;
   border-bottom: 1px solid #b4b4b4;
   border-right: 1px solid #dfdfdf;
-  -webkit-box-shadow: inset 0 1px 0 0 white;
-  box-shadow: inset 0 1px 0 0 white;
+  -webkit-box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.8);
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.8);
   text-shadow: 0 1px 0px #f1f1f1; }
   a.button:hover,
   input[type="button"]:hover,
@@ -619,6 +633,10 @@ button {
 .narrow input[type="submit"],
 .narrow button {
   padding-left: 5px !important; }
+
+input.linkWithIcon,
+a.linkWithIcon {
+  padding-left: 25px !important; }
 
 .portal-filter .button,
 .portal-filter .button:focus {
@@ -758,6 +776,11 @@ div.tab-control.alphabet div.tab-row .tab {
     width: 10px !important;
     height: 10px !important; }
 
+div.tab-control.deal-history-tab .tab-row .tab {
+  margin: 0 3px 0 0 !important;
+  top: 0 !important;
+  padding: 5px !important; }
+
 .narrow div.tab-control.alphabet div.tab-row .tab {
   padding: 4px 5px !important; }
   .narrow div.tab-control.alphabet div.tab-row .tab.selected {
@@ -780,8 +803,14 @@ select.tab-control option {
   padding-top: 0; }
 
 .tab-row > .tooltip-button {
+  position: relative;
   top: 5px !important;
   margin-left: 10px !important; }
+
+div.tab-control.deal-history-tab .tab-row .tab {
+  margin: 0 3px 0 0 !important;
+  top: 0 !important;
+  padding: 5px !important; }
 
 @media handheld,
 only screen and (max-width: 800px) {

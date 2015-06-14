@@ -380,6 +380,15 @@ class price_GroupOfProducts extends core_Detail
     
     
     /**
+     * След подготовка на урл-то за връщане
+     */
+    public static function on_AfterPrepareRetUrl($mvc, $res, $data)
+    {
+    	$data->retUrl["#"] = 'detailTabsTop';
+    }
+    
+    
+    /**
      * Рендиране изгледа на детайла
      */
     public function renderPriceGroup($data)

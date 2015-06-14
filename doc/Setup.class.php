@@ -55,10 +55,26 @@ defIfNot('DOC_REPAIR_STATE', 'no');
 
 
 /**
- * class dma_Setup
- *
+ * Задължително показване на документи -> В началото на нишката
+ */
+defIfNot('DOC_SHOW_DOCUMENTS_BEGIN', 3);
+
+
+/**
+ * Задължително показване на документи -> В края на нишката
+ */
+defIfNot('DOC_SHOW_DOCUMENTS_END', 3);
+
+
+/**
+ * Задължително показване на документи -> По-нови от
+ */
+defIfNot('DOC_SHOW_DOCUMENTS_LAST_ON', 259200); // 3 дни
+
+
+/**
  * Инсталиране/Деинсталиране на
- * мениджъри свързани с DMA
+ * мениджъри свързани с DOC
  *
  *
  * @category  bgerp
@@ -110,6 +126,10 @@ class doc_Setup extends core_ProtoSetup
     	'DOC_REPAIR_DELAY' => array ('time(suggestions=10 сек.|30 сек.|60 сек.|120 сек.)', 'caption=Отклонение при поправка на документи->Време'),
         'DOC_REPAIR_STATE' => array ('enum(yes=Да, no=Не)', 'caption=Дали да се поправят състоянията на документите->Избор'),
         'DOC_SEARCH_FOLDER_CNT' => array ('int(Min=0)', 'caption=Колко папки от последно отворените да се показват при търсене->Брой'),
+    
+        'DOC_SHOW_DOCUMENTS_BEGIN' => array ('int(Min=0)', 'caption=Задължително показване на документи->В началото на нишката, customizeBy=user'),
+        'DOC_SHOW_DOCUMENTS_END' => array ('int(Min=0)', 'caption=Задължително показване на документи->В края на нишката, customizeBy=user'),
+        'DOC_SHOW_DOCUMENTS_LAST_ON' => array ('time(suggestions=1 ден|3 дни|5 дни|1 седмица)', 'caption=Задължително показване на документи->По-нови от, customizeBy=user'),
     );
 
     

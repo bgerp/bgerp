@@ -259,7 +259,7 @@ class core_Master extends core_Manager
         $tpl->placeObject($data->row);
         
         // Поставяме детайлите
-        if(count($this->details)) {
+        if(count($this->details) && $data->noDetails !== TRUE) {
             foreach($this->details as $var => $class) {
                 $order = $data->{$var}->Order ? $data->{$var}->Order :  10 * (count($detailInline) + count($detailTabbed) + 1);
                 
@@ -389,7 +389,7 @@ class core_Master extends core_Manager
         }
         
         if(isset($this->singleLayoutFile)) {
-            $layoutText = tr('|*' . file_get_contents(getFullPath($this->singleLayoutFile)));
+            $layoutText = getTplFromFile($this->singleLayoutFile);
         } elseif(isset($this->singleLayoutTpl)) {
             $layoutText = $this->singleLayoutTpl;
         } else {

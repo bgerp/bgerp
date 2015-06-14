@@ -2334,14 +2334,16 @@ class email_Outgoings extends core_Master
                 }
             }
             
-            // Добавяме бутон за препращане на имейла
-            $data->toolbar->addBtn('Препращане', array(
-                    'email_Outgoings',
-                    'forward',
-                    $data->rec->containerId,
-                    'ret_url' => TRUE,
-                ), array('order'=>'20', 'row'=>'2', 'ef_icon'=>'img/16/email_forward.png', 'title'=>'Препращане на имейла')
-            );
+            if ($mvc->haveRightFor('add')) {
+                // Добавяме бутон за препращане на имейла
+                $data->toolbar->addBtn('Препращане', array(
+                        'email_Outgoings',
+                        'forward',
+                        $data->rec->containerId,
+                        'ret_url' => TRUE,
+                    ), array('order'=>'20', 'row'=>'2', 'ef_icon'=>'img/16/email_forward.png', 'title'=>'Препращане на имейла')
+                );
+            }
         }
         
         if ($mvc->haveRightFor('close', $data->rec)) {

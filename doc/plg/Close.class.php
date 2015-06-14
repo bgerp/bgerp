@@ -36,10 +36,12 @@ class doc_plg_Close extends core_Plugin
     public static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
     	if($mvc->haveRightFor('close', $data->rec)){
+    		$singleTitle = mb_strtolower($mvc->singleTitle);
+    		
     		if($data->rec->state == 'closed'){
-    			$data->toolbar->addBtn("Активиране", array($mvc, 'changeState', $data->rec->id, 'ret_url' => TRUE), "ef_icon = img/16/lightbulb.png,title=Активиранe,warning=Сигурнили сте че искате да активирате");
+    			$data->toolbar->addBtn("Активиране", array($mvc, 'changeState', $data->rec->id, 'ret_url' => TRUE), "ef_icon = img/16/lightbulb.png,title=Активиранe на {$singleTitle},warning=Сигурнили сте че искате да активирате");
     		} elseif($data->rec->state == 'active'){
-    			$data->toolbar->addBtn("Затваряне", array($mvc, 'changeState', $data->rec->id, 'ret_url' => TRUE), "ef_icon = img/16/lightbulb_off.png,title=Затваряне,warning=Сигурнили сте че искате да затворите");
+    			$data->toolbar->addBtn("Затваряне", array($mvc, 'changeState', $data->rec->id, 'ret_url' => TRUE), "ef_icon = img/16/lightbulb_off.png,title=Затваряне на {$singleTitle},warning=Сигурнили сте че искате да затворите");
     		}
     	}
     }

@@ -107,6 +107,15 @@ class cal_TaskProgresses extends core_Detail
             $p = $i . ' %';
             $progressArr[$p] = $p;
         }
+        
+        if ($masterRec->progress) {
+        	$data->form->setDefault('progress', $masterRec->progress);
+        }
+        
+        if ($masterRec->workingTime) {
+        	$data->form->setDefault('workingTime', $masterRec->workingTime);
+        }
+        
         $data->form->setSuggestions('progress', $progressArr);
     }
     

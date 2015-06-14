@@ -225,6 +225,7 @@ class sales_Invoices extends deals_InvoiceMaster
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	parent::prepareInvoiceForm($mvc, $data);
+    	
     	$form = &$data->form;
     	$form->setField('contragentPlace', 'mandatory');
     	$form->setField('contragentAddress', 'mandatory');
@@ -250,6 +251,10 @@ class sales_Invoices extends deals_InvoiceMaster
     		if($ownAcc = bank_OwnAccounts::getCurrent('id', FALSE)){
     			$form->setDefault('accountId', $ownAcc);
     		}
+    	}
+    	
+    	if($form->rec->vatRate != 'yes' && $form->rec->vatRate != 'separate'){
+    		$form->setField('vatReason', 'mandatory');
     	}
     }
     
@@ -358,7 +363,7 @@ class sales_Invoices extends deals_InvoiceMaster
     	$rec = $data->rec;
     	if($rec->type == 'invoice' && $rec->state == 'active' && $rec->dpOperation != 'accrued'){
     		
-    		if(dec_Declarations::haveRightFor('add', (object)array('originid' => $data->rec->containerId, 'threadId' => $data->rec->threadId))){
+    		if(dec_Declarations::haveRightFor('add', (object)array('originId' => $data->rec->containerId, 'threadId' => $data->rec->threadId))){
     			$data->toolbar->addBtn('Декларация', array('dec_Declarations', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE), 'ef_icon=img/16/declarations.png, row=2, title=Създаване на декларация за съответсвие');
     		}
     	}
@@ -508,6 +513,22 @@ class sales_Invoices extends deals_InvoiceMaster
     		// Не може да се контира, ако има ф-ра с по нова дата
     		$lastDate = $mvc->getNewestInvoiceDate();
     		if($lastDate > $rec->date) {
+    			$res = 'no_one';
+    		}
+    	}
+    	
+    	// Само ceo,salesmaster и acc могат да оттеглят контирана фактура
+    	if($action == 'reject' && isset($rec)){
+    		if($rec->state == 'active'){
+    			if(!haveRole('ceo,salesMaster,acc', $userId)){
+    				$res = 'no_one';
+    			}
+    		}
+    	}
+    	
+    	// Само ceo,salesmaster и acc могат да възстановят фактура
+    	if($action == 'restore' && isset($rec)){
+    		if(!haveRole('ceo,salesMaster,acc', $userId)){
     			$res = 'no_one';
     		}
     	}

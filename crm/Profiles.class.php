@@ -748,34 +748,39 @@ class crm_Profiles extends core_Master
 
         $link = $title;
         
-        $url  = static::getUrl($userId);
-
-        if ($url) { 
-            $attr['class'] .= ' profile';
-            foreach (array('ceo', 'manager', 'officer', 'executive', 'contractor') as $role) {
-                if (core_Users::haveRole($role, $userId)) {
-                    $attr['class'] .= " {$role}"; break;
-                } 
-            }
-            
-            if ($userRec->lastActivityTime) {
-                $before = time() - dt::mysql2timestamp($userRec->lastActivityTime);
-            }
-            
-            if(($before !== NULL) && $before < 5*60) {
-                $attr['class'] .= ' active';
-            } elseif(!$before || $before > 60*60) {
-                $attr['class'] .= ' inactive';
-            }
-
-            if($userRec->state != 'active') {
-                $attr['class'] .= ' state-' . $userRec->state;
-            }
-
-            $attr['title'] = $userRec->names;
-
-            $link = ht::createLink($title, $url, $warning, $attr);
-        }
+        $url  = array();
+		$profileId = self::getProfileId($userId);
+		if($profileId){
+			
+			if(crm_Profiles::haveRightFor('single', $profileId)){
+				$url  = static::getUrl($userId);
+			} 
+			
+			$attr['class'] .= ' profile';
+			foreach (array('ceo', 'manager', 'officer', 'executive', 'contractor') as $role) {
+				if (core_Users::haveRole($role, $userId)) {
+					$attr['class'] .= " {$role}"; break;
+				}
+			}
+			
+			if ($userRec->lastActivityTime) {
+				$before = time() - dt::mysql2timestamp($userRec->lastActivityTime);
+			}
+			
+			if(($before !== NULL) && $before < 5*60) {
+				$attr['class'] .= ' active';
+			} elseif(!$before || $before > 60*60) {
+				$attr['class'] .= ' inactive';
+			}
+			
+			if($userRec->state != 'active') {
+				$attr['class'] .= ' state-' . $userRec->state;
+			}
+			
+			$attr['title'] = $userRec->names;
+			
+			$link = ht::createLink($title, $url, $warning, $attr);
+		}
         
         return $link;
     }

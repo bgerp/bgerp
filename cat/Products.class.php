@@ -1418,6 +1418,19 @@ class cat_Products extends core_Embedder {
     
     
     /**
+     * Променяме шаблона в зависимост от мода
+     */
+    public static function on_BeforeRenderSingleLayout($mvc, &$tpl, $data)
+    {
+    	// Ако потребителя е контрактор не показваме детайлите
+    	if(core_Users::isContractor()){
+    		$data->noDetails = TRUE;
+    		unset($data->row->meta);
+    	}
+    }
+    
+    
+    /**
      * Рендира изглед за задание
      */
     public function renderJobView($id, $time = NULL)
@@ -1557,7 +1570,9 @@ class cat_Products extends core_Embedder {
     	// Показваме съдържанието на документа
     	$tpl = $this->getInlineDocumentBody($id, 'xhtml');
     	
-    	$tpl = $this->renderWrapping($tpl);
+    	if(!core_Users::isContractor()){
+    		$tpl = $this->renderWrapping($tpl);
+    	}
     	
     	return $tpl;
     }

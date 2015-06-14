@@ -55,8 +55,8 @@ class planning_PlanningReportImpl extends frame_BaseDriver
      */
 	public function addEmbeddedFields(core_Form &$form)
     {
-    	$form->FLD('from', 'date', 'caption=Начало');
-    	$form->FLD('to', 'date', 'caption=Край');
+    	$form->FLD('from', 'date', 'caption=Начало,input=none');
+    	$form->FLD('to', 'date', 'caption=Край,input=none');
     	
     	$this->invoke('AfterAddEmbeddedFields', array($form));
     }
@@ -81,13 +81,6 @@ class planning_PlanningReportImpl extends frame_BaseDriver
 	public function checkEmbeddedForm(core_Form &$form)
     {
         	 
-    	// Размяна, ако периодите са объркани
-    	if(isset($form->rec->from) && isset($form->rec->to) && ($form->rec->from > $form->rec->to)) {
-    		$mid = $form->rec->from;
-    		$form->rec->from = $form->rec->to;
-    		$form->rec->to = $mid;
-    	}
-    	
     	
     }
     
@@ -104,123 +97,140 @@ class planning_PlanningReportImpl extends frame_BaseDriver
     	
         $data->rec = $this->innerForm;
        
+        $queryProduct = cat_Products::getQuery();
+        $queryProduct->where("#canManifacture = 'yes' ");
+        
         $query = sales_Sales::getQuery();
         $queryJob = planning_Jobs::getQuery();
         
         $this->prepareListFields($data);
         
-        $query->where("#state = 'active' ");
+        $query->where("#state = 'active'");
         $queryJob->where("#state = 'active' OR #state = 'stopped' OR #state = 'wakeup'");
-       
-        
-        // за всеки един активен договор за продажба
-        while($rec = $query->fetch()) {
-        	//
-        	//$origin = doc_Threads::getFirstDocument($rec->threadId);
-        	// взимаме информация за сделките
-        	//$dealInfo = $origin->getAggregateDealInfo();
 
-        	if ($rec->deliveryTime) {
-        		$date = $rec->deliveryTime;
-        	} else {
-        		$date = $rec->valior;
-        	}
-        	
-        	$id = $rec->id;
-        	
-        	if (sales_SalesDetails::fetch("#saleId = $rec->id") !== FALSE) {
-        		$products[] = sales_SalesDetails::fetch("#saleId = $rec->id");
-        		$p = sales_SalesDetails::fetch("#saleId = $rec->id");
-                $productId= $p->productId;
-        		$dates[$productId][$id] = $date;
-        		
-        	} else {
-        		continue;
-        	}
-        	
+	    // за всеки един активен договор за продажба
+	    while($rec = $query->fetch()) {
+	        
+	    	//$origin = doc_Threads::getFirstDocument($rec->threadId);
+	        // взимаме информация за сделките
+	        //$dealInfo = $origin->getAggregateDealInfo();
 
-        }
-        
-        foreach ($dates as $prd => $sal) {
-        	//$sal = dt::mysql2timestamp($sal);
-        	if(count($sal) > 1) {
-        		$dateSale[$prd] = min($sal);
-        		$dateSale[$prd] = dt::mysql2timestamp($dateSale[$prd]);
-        	} else {
-        		foreach ($sal as $d){
-        			$dateSale[$prd] = dt::mysql2timestamp($d);
-        		}
-        	}
-        	
-        }
-        
-        //bp($dateSale,$products);
-
-        // за всеки един продукт
-        if(is_array($products)){
-	    	foreach($products as $product) {
-	    		// правим индекс "класа на продукта|ид на продукта"
-	        	$index = $product->productId;
-	        		
-	        	if($product->deliveryTime) {
-	        		$date = $product->deliveryTime;
-	        	} else {
-	        		$date = $rec->valior;
-	        	}
-	        	
-	        	if ($product->quantityDelivered >= $product->quantity) continue;
-	        	
-		        	
-	        	// ако нямаме такъв запис,
-	        	// го добавяме в масив
-		        if(!array_key_exists($index, $data->recs)){
-		        		
-			    	$data->recs[$index] = 
-			        		(object) array ('id' => $product->productId,
-					        				'quantity'	=> $product->quantity,
-					        				'quantityDelivered' => $product->quantityDelivered,
-			        						'dateSale' => $dateSale[$product->productId],
-					        				'sales' => array($product->saleId));
-		        		
-		        // в противен случай го ъпдейтваме
-		        } else {
-		        		
-			    	$obj = &$data->recs[$index];
-			        $obj->quantity += $product->quantity;
-			        $obj->quantityDelivered += $product->quantityDelivered;
-			        $obj->dateSale = $dateSale[$product->productId];
-			        $obj->sales[] = $product->saleId;
-		        		
-		        }
+	        if ($rec->deliveryTime) {
+	        	$date = $rec->deliveryTime;
+	        } else {
+	        	$date = $rec->valior;
 	        }
-        }
+	        	
+	        $id = $rec->id;
+	        	
+	        if (sales_SalesDetails::fetch("#saleId = $id") !== FALSE) {
+	        		
+	        		
+	        	$p = sales_SalesDetails::fetch("#saleId = $rec->id");
+	            $productId = $p->productId;
+	       
+	            $productInfo = cat_Products::getProductInfo($productId);
+	       
+	            if ($productInfo->meta['canManifacture'] == TRUE) {
+	            	$products[] = sales_SalesDetails::fetch("#saleId = $id AND #productId = $productId");
+	                $dates[$productId][$id] = $date;
+	            } else {
+	                continue;
+	            }
 
-        while ($recJobs = $queryJob->fetch()) {
-        	$indexJ = $recJobs->productId;
-        	$dateJob[$recJobs->productId][$recJobs->id] = $recJobs->dueDate;
-        	 
-        	if ($recJobs->quantityProduced >= $recJobs->quantity) continue;
-        	// ако нямаме такъв запис,
-        	// го добавяме в масив
-        	if(!array_key_exists($indexJ, $data->recs)){
-        		$data->recs[$indexJ] =
-        		(object) array ('id' => $recJobs->productId,
-        				'quantityJob'	=> $recJobs->quantity,
-        				'quantityProduced' => $recJobs->quantityProduced,
-        				'date' => $recJobs->dueDate,
-        				'jobs' => array($recJobs->id));
+	        } else {
+	        		continue;
+	        }
+	    }
+	       
+	        
+	    foreach ($dates as $prd => $sal) {
+	    	if(count($sal) > 1) {
+	        	$dateSale[$prd] = min($sal);
+	        	$dateSale[$prd] = dt::mysql2timestamp($dateSale[$prd]);
+	        } else {
+	        	foreach ($sal as $d){
+	        		$dateSale[$prd] = dt::mysql2timestamp($d);
+	        	}
+	        }
+	        	
+	    }
 
-        		// в противен случай го ъпдейтваме
-        	} else {
+	    // за всеки един продукт
+	    if(is_array($products)){
+			foreach($products as $product) {
+		    	// правим индекс "класа на продукта|ид на продукта"
+		        $index = $product->productId;
+		        		
+		        if($product->deliveryTime) {
+		        	$date = $product->deliveryTime;
+		        } else {
+		        	$date = $rec->valior;
+		        }
+		        	
+		        if ($product->quantityDelivered >= $product->quantity) continue;
+		        
+		        $storeId = store_Stores::getCurrent();
 
-        		$obj = &$data->recs[$indexJ];
-        		$obj->quantityJob += $recJobs->quantity;
-        		$obj->quantityProduced += $recJobs->quantityProduced;
-        		$obj->date =  $recJobs->dueDate;
-        		$obj->jobs[] = $recJobs->id;
+		        // ако нямаме такъв запис,
+		        // го добавяме в масив
+			    if(!array_key_exists($index, $data->recs)){
+			        		
+				    	$data->recs[$index] = 
+				        		(object) array ('id' => $product->productId,
+						        				'quantity'	=> $product->quantity,
+						        				'quantityDelivered' => $product->quantityDelivered,
+				        				        'quantityToDelivered' => abs($product->quantityDelivered - $product->quantity),
+				        						'dateSale' => $dateSale[$product->productId],
+						        				'sales' => array($product->saleId),
+				        		                'store' => store_Products::fetchField("#productId = {$product->productId} AND #classId = {$product->classId} AND #storeId = {$storeId}", 'quantity'));
+			        		
+			      // в противен случай го ъпдейтваме
+			    } else {
+			        		
+					$obj = &$data->recs[$index];
+				    $obj->quantity += $product->quantity;
+				    $obj->quantityDelivered += $product->quantityDelivered;
+				    $obj->quantityToDelivered += abs($product->quantityDelivered - $product->quantity);
+				    $obj->dateSale = $dateSale[$product->productId];
+				    $obj->sales[] = $product->saleId;
+				    $obj->store = store_Products::fetchField("#productId = {$product->productId} AND #classId = {$product->classId} AND #storeId = {$storeId}", 'quantity');
+			        		
+			    }
+			}
+	    }
+	
+	    while ($recJobs = $queryJob->fetch()) {
+	    	$indexJ = $recJobs->productId;
+	        $dateJob[$recJobs->productId][$recJobs->id] = $recJobs->dueDate;
+	        	 
+	        if ($recJobs->quantityProduced >= $recJobs->quantity) continue;
+	        // ако нямаме такъв запис,
+	        // го добавяме в масив
+	        if(!array_key_exists($indexJ, $data->recs)){
+	        	$data->recs[$indexJ] =
+	        		(object) array ('id' => $recJobs->productId,
+	        				'quantityJob'	=> $recJobs->quantity,
+	        				'quantityProduced' => $recJobs->quantityProduced,
+	        				'quantityToProduced'=> abs($recJobs->quantityProduced - $recJobs->quantity),
+	        				'date' => $recJobs->dueDate,
+	        				'jobs' => array($recJobs->id),
+	        				'store' => store_Products::fetchField("#productId = {$product->productId} AND #classId = {$product->classId} AND #storeId = {$storeId}", 'quantity'));
+	
+	        // в противен случай го ъпдейтваме
+	        } else {
+	
+	        	$obj = &$data->recs[$indexJ];
+	        	$obj->quantityJob += $recJobs->quantity;
+	        	$obj->quantityProduced += $recJobs->quantityProduced;
+	        	$obj->quantityToProduced += abs($recJobs->quantityProduced - $recJobs->quantity);
+	        	$obj->date =  $recJobs->dueDate;
+	        	$obj->jobs[] = $recJobs->id;
+	        	$obj->store = store_Products::fetchField("#productId = {$product->productId} AND #classId = {$product->classId} AND #storeId = {$storeId}", 'quantity');
+	
+	        }
+	    }
 
-        	}
-        }
 
     	
     	foreach ($dateJob as $prdJ => $job) {
@@ -248,6 +258,12 @@ class planning_PlanningReportImpl extends frame_BaseDriver
         	}
         }
 
+        foreach ($data->recs as $id => $recs) {
+        	if (($recs->quantityToProduced < $recs->store) || ($recs->quantityToDelivered < $recs->store)) {
+        		unset($data->recs[$id]);
+        	}
+        }
+
         return $data;
     }
     
@@ -270,6 +286,7 @@ class planning_PlanningReportImpl extends frame_BaseDriver
 				if(!$pager->isOnPage()) continue;
                 
                 $row = $mvc->getVerbal($rec);
+       
                 $data->rows[$id] = $row;
                
                 if ($rec->sales) { 
@@ -282,7 +299,6 @@ class planning_PlanningReportImpl extends frame_BaseDriver
                 	}
                 	
                 } 
-                
 
                 $data->rows[$id]->ordered = $row->quantity . "<br><span style='color:#0066FF'>{$row->quantityJob}</span>";
                 $data->rows[$id]->delivered = $row->quantityDelivered . "<br><span style='color:#0066FF'>{$row->quantityProduced}</span>";
@@ -306,6 +322,7 @@ class planning_PlanningReportImpl extends frame_BaseDriver
                 }
             }
         }
+
 
         $res = $data;
     }
@@ -334,7 +351,10 @@ class planning_PlanningReportImpl extends frame_BaseDriver
     	if(empty($data)) return;
     	 
     	$tpl = $this->getReportLayout();
-    	$tpl->replace($this->title, 'TITLE');
+    	
+    	$title = explode(" » ", $this->title);
+    	
+    	$tpl->replace($title[1], 'TITLE');
     
     	$form = cls::get('core_Form');
     
@@ -350,16 +370,11 @@ class planning_PlanningReportImpl extends frame_BaseDriver
     	$f = cls::get('core_FieldSet');
 
     	$f->FLD('id', 'varchar');
-    	$f->FLD('quantity', 'int');
-    	$f->FLD('quantityDelivered', 'int');
-    	$f->FLD('quantityToDeliver', 'int');
-    	$f->FLD('dateSale', 'date');
-    	$f->FLD('sales', 'richtext');
-    	$f->FLD('quantityJob', 'int');
-    	$f->FLD('quantityProduced', 'int');
-    	$f->FLD('quantityToProduced', 'int');
-    	$f->FLD('date', 'date');
-    	$f->FLD('jobs', 'richtext');
+    	$f->FLD('ordered', 'double');
+    	$f->FLD('delivered', 'double');
+    	$f->FLD('toDelivered', 'double');
+    	$f->FLD('dt', 'date');
+    	$f->FLD('inStore', 'double');
 
     	$table = cls::get('core_TableView', array('mvc' => $f));
 
@@ -385,16 +400,7 @@ class planning_PlanningReportImpl extends frame_BaseDriver
         		'delivered' => "Продажба / Производство->|*<small>Доставено<br><span style='color:#0066FF'>Произведено</small></span>",
         		'toDelivered' => "Продажба / Производство->|*<small>За доставяне<br><span style='color:#0066FF'>За производство</small><span>",
         		'dt' => 'Продажба / Производство->|*<small>Дата</small>',
-                //'quantity' => 'Продажба->|*<small>Поръчано</small>',
-                //'quantityDelivered' => 'Продажба->|*<small>Доставено</small>',
-                //'quantityToDeliver' => 'Продажба->|*<small>За доставяне</small>',
-                //'dateSale' => 'Продажба->|*<small>Дата</small>',
-                //'sales' => 'По продажба',
-        		//'quantityJob' => 'Производство->|*<small>Поръчано</small>',
-        		//'quantityProduced' => 'Производство->|*<small>Произведено</small>',
-        		//'quantityToProduced' => 'Производство->|*<small>За производство</small>',
-        		//'date' => 'Производство->|*<small>Дата</small>',
-        		//'jobs' => 'По задание'
+        		'inStore' => 'На склад',
         		);
         
     }
@@ -408,29 +414,13 @@ class planning_PlanningReportImpl extends frame_BaseDriver
     	$RichtextType = cls::get('type_Richtext');
         $Date = cls::get('type_Date');
 		$Int = cls::get('type_Int');
-		
-		if ($rec->quantityDelivered && $rec->quantity) {
-			$toDeliver = abs($rec->quantityDelivered - $rec->quantity);
-		} elseif ($rec->quantityDelivered !== 0 || $rec->quantityDelivered == NULL) {
-			$toDeliver = $rec->quantity;
-		} else {
-			$toDeliver = '';
-		}
-		
-		if ($rec->quantityProduced && $rec->quantityJob) {
-			$toProduced = abs($rec->quantityProduced - $rec->quantityJob);
-		} elseif ($rec->quantityProduced !== 0 || $rec->quantityProduced == NULL) {
-			$toProduced = $rec->quantityJob;
-		} else {
-			$toProduced = '';
-		}
 
         $row = new stdClass();
         
         $row->id = cat_Products::getShortHyperlink($rec->id);
     	$row->quantity = $Int->toVerbal($rec->quantity);
     	$row->quantityDelivered = $Int->toVerbal($rec->quantityDelivered);
-    	$row->quantityToDeliver = $Int->toVerbal($toDeliver);
+    	$row->quantityToDeliver = $Int->toVerbal($rec->quantityToDelivered);
     	
     	$row->dateSale = $Date->toVerbal($rec->dateSale);
     		
@@ -442,7 +432,7 @@ class planning_PlanningReportImpl extends frame_BaseDriver
     		
     	$row->quantityJob = $Int->toVerbal($rec->quantityJob);
     	$row->quantityProduced = $Int->toVerbal($rec->quantityProduced);
-    	$row->quantityToProduced = $Int->toVerbal($toProduced);
+    	$row->quantityToProduced = $Int->toVerbal($rec->quantityToProduced);
     	$row->date = $Date->toVerbal($rec->date);
     		
     	for($j = 0; $j <= count($rec->jobs)-1; $j++) { 
@@ -450,6 +440,8 @@ class planning_PlanningReportImpl extends frame_BaseDriver
     		$row->jobs .= "#".planning_Jobs::getHandle($rec->jobs[$j]) .","; 
     	}
 		$row->jobs = $RichtextType->toVerbal(substr($row->jobs, 0, -1));
+		
+		$row->inStore = $Int->toVerbal($rec->store);
 		
 		
         return $row;

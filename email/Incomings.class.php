@@ -1465,7 +1465,7 @@ class email_Incomings extends core_Master
         // Ако имаме права за single
         if ($mvc->haveRightFor('single', $data->rec)) {
             
-            if ($data->rec->emlFile) {
+            if (($data->rec->emlFile) &&  fileman_Files::haveRightFor('single', $data->rec->emlFile)) {
                 
                 // Име на бутона
                 if ($data->rec->htmlFile) {
@@ -1484,7 +1484,7 @@ class email_Incomings extends core_Master
             }
             
             // Ако е оттеглен, да не се препраща
-            if ($data->rec->state != 'rejected') {
+            if ($data->rec->state != 'rejected' && email_Outgoings::haveRightFor('add')) {
                 
                 // Добавяме бутон за препращане на имейла
                 $data->toolbar->addBtn('Препращане', array(

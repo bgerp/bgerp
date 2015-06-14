@@ -40,10 +40,6 @@
                                             <!--ET_END storeLocation-->
                                         </td>
                                         <td class="cell">
-                                        	<b>[#activityCenterId#]</b>
-                                            <!--ET_BEGIN centerLocation-->
-                                            <br>[#centerLocation#]
-                                            <!--ET_END centerLocation-->
                                         </td>
                                     </tr>
                                 </tbody>

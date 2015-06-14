@@ -122,7 +122,7 @@ class doc_FolderPlg extends core_Plugin
             	$data->toolbar->addBtn('Папка' . $openThreads,
             			array('doc_Threads', 'list',
             					'folderId' => $data->rec->folderId),
-            			array('ef_icon' => $fRec->openThreadsCnt ? 'img/16/folder.png' : 'img/16/folder-y.png'));
+            			array('title' => 'Отваряне на папката', 'ef_icon' => $fRec->openThreadsCnt ? 'img/16/folder.png' : 'img/16/folder-y.png'));
             }
             
         } else {
@@ -479,10 +479,14 @@ class doc_FolderPlg extends core_Plugin
         }
         
         $conditions = array(
-            "#access = 'public'",           // Всеки има достъп до публичните папки
             "#shared LIKE '%|{$userId}|%'", // Всеки има достъп до споделените с него папки
             "#inCharge = {$userId}",        // Всеки има достъп до папките, на които е отговорник
         );
+        
+        // Всеки (освен конракторите) имат достъп до публичните папки
+        if (!core_Users::isContractor()) {
+            $conditions[] = "#access = 'public'";
+        }
         
         if ($teammates) {
             // Всеки има достъп до екипните папки, за които отговаря негов съекипник

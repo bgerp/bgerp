@@ -101,20 +101,6 @@ abstract class deals_InvoiceMaster extends core_Master
     
     
     /**
-     * Преди показване на форма за добавяне/промяна.
-     *
-     * @param core_Manager $mvc
-     * @param stdClass $data
-     */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
-    {
-    	if($data->form->rec->vatRate != 'yes' && $data->form->rec->vatRate != 'separate'){
-    		$data->form->setField('vatReason', 'mandatory');
-    	}
-    }
-    
-    
-    /**
      *  Подготовка на филтър формата
      */
     public static function on_AfterPrepareListFilter($mvc, $data)
@@ -290,8 +276,10 @@ abstract class deals_InvoiceMaster extends core_Master
     	$ownCompanyData = crm_Companies::fetchOwnCompany();
     	$Companies = cls::get('crm_Companies');
     	$row->MyCompany = cls::get('type_Varchar')->toVerbal($ownCompanyData->company);
-    	$row->MyAddress = $Companies->getFullAdress($ownCompanyData->companyId);
-    	 
+    	$row->MyCompany = tr(core_Lg::transliterate($row->MyCompany));
+    	$row->MyAddress = $Companies->getFullAdress($ownCompanyData->companyId)->getContent();
+    	$row->MyAddress = core_Lg::transliterate($row->MyAddress);
+    	
     	$uic = drdata_Vats::getUicByVatNo($ownCompanyData->vatNo);
     	if($uic != $ownCompanyData->vatNo){
     		$row->MyCompanyVatNo = $ownCompanyData->vatNo;
@@ -580,10 +568,13 @@ abstract class deals_InvoiceMaster extends core_Master
 	   						break;
 	   					}
 	   				}
+	   			} elseif($diff <= 0){
+	   				
+	   				$continue = TRUE;
 	   			}
 	   	
 	   			if($continue) continue;
-	   	
+	   			
 	   			$mvc::saveProductFromOrigin($mvc, $rec, $product, $packs, $diff);
 	   		}
 	   	}
@@ -888,7 +879,8 @@ abstract class deals_InvoiceMaster extends core_Master
     	}
     	
     	if($fields['-single']){
-    	
+    		core_Lg::push($rec->tplLang);
+    		
     		if($rec->originId && $rec->type != 'invoice'){
     			unset($row->deliveryPlaceId, $row->deliveryId);
     		}
@@ -932,6 +924,7 @@ abstract class deals_InvoiceMaster extends core_Master
     		}
     		
     		$mvc->prepareMyCompanyInfo($row);
+    		core_Lg::pop();
     	}
     }
     

@@ -375,6 +375,8 @@ class planning_Resources extends core_Master
     
     /**
      * Връща себестойността на ресурса, ако има забита себестойност връща нея
+     * Ако няма и ресурса е материал, мъчи се да изчисли цената според средно притеглените цени
+     * на артикулите свързани с нея във всички складове
      * иначе намира средно претеглената цена за текущия период от сметка 6111
      * 
      * @param int $id - ид на ресурса
@@ -386,25 +388,76 @@ class planning_Resources extends core_Master
     	// Първо проверяваме имали себестойност в модела
     	$selfValue = planning_Resources::fetchField($id, 'selfValue');
     	
-    	if(!$selfValue){
+    	// Ако е намерена твърдо забита себестойност, връщаме я
+    	if($selfValue) return $selfValue;
+    	
+    	// Кой баланс ще вземем
+    	//@TODO да е според датата
+    	$lastBalance = acc_Balances::getLastBalance();
+    	
+    	// Всички материали обвързани към този ресурс
+    	$objects = planning_ObjectResources::fetchRecsByClassAndType($id, cat_Products::getClassId(), 'material');
+    	
+    	// Ако има баланс
+    	if($lastBalance){
     		
-    		// Намираме последния баланс, и перото на ресурса
-    		$lastBalance = acc_Balances::getLastBalance();
-    		$itemRec = acc_Items::fetchItem(__CLASS__, $id);
+    		$bQuery = acc_BalanceDetails::getQuery();
+    		$value = NULL;
+    		$allQuantity = NULL;
     		
-    		// Ако има перо и баланс намираме записа за ресурса от сметка 61101
-    		if($itemRec && $lastBalance){
-    			$bQuery = acc_BalanceDetails::getQuery();
-    			acc_BalanceDetails::filterQuery($bQuery, $lastBalance->id, '61101');
-    			$resourcePositionId = acc_Lists::getPosition('61101', 'planning_ResourceAccRegIntf');
-    			$bQuery->where("#ent{$resourcePositionId}Id = {$itemRec->id}");
-    			$bQuery->show("ent{$resourcePositionId}Id,blAmount,blQuantity");
+    		// За всеки материал обвързан с ресурса
+    		foreach ($objects as $obRec){
+    			$itemRec = acc_Items::fetchItem($obRec->classId, $obRec->objectId);
     			
-    			$bRec = $bQuery->fetch();
+    			// Ако артикула е перо
+    			if($itemRec){
+    				
+    				// Изчисляваме средно притеглената му цена във всички складове
+    				$query = clone $bQuery;
+    				acc_BalanceDetails::filterQuery($query, $lastBalance->id, '321');
+    				$prodPositionId = acc_Lists::getPosition('321', 'cat_ProductAccRegIntf');
+    				$query->where("#ent{$prodPositionId}Id = {$itemRec->id}");
+    				$query->XPR('totalQuantity', 'double', 'SUM(#blQuantity)');
+    				$query->XPR('totalAmount', 'double', 'SUM(#blAmount)');
+    				$res = $query->fetch();
+    				
+    				// Ако има някакво количество и суми в складовете, натрупваме ги
+    				if(!is_null($res->totalQuantity) && !is_null($res->totalAmount)){
+    					$totalQuantity = round($res->totalQuantity, 2);
+    					$totalAmount = round($res->totalAmount, 2);
+    					
+    					$value += $totalAmount;
+    					$allQuantity += $totalQuantity;
+    				}
+    			}
+    		}
+    		
+    		// Опитваме се да изчислим средно притеглената цена според съставните артикули
+    		if(!is_null($value) && !is_null($allQuantity)){
+    			@$selfValue = $value / $allQuantity;
+    		}
+    		
+    		// Ако не е намерено от материали
+    		if(!$selfValue){
     			
-    			// Изчисляваме колко е счетоводната средно притеглена цена
-    			if(!is_null($bRec->blAmount) && !is_null($bRec->blQuantity)){
-    				$selfValue = $bRec->blAmount / $bRec->blQuantity;
+    			// Намираме последния баланс, и перото на ресурса
+    			$itemRec = acc_Items::fetchItem(__CLASS__, $id);
+    			
+    			// Ако има перо и баланс намираме записа за ресурса от сметка 61101
+    			if($itemRec){
+    				$query2 = clone $bQuery;
+    				
+    				acc_BalanceDetails::filterQuery($query2, $lastBalance->id, '61101');
+    				$resourcePositionId = acc_Lists::getPosition('61101', 'planning_ResourceAccRegIntf');
+    				$query2->where("#ent{$resourcePositionId}Id = {$itemRec->id}");
+    				$query2->show("ent{$resourcePositionId}Id,blAmount,blQuantity");
+    				 
+    				$bRec = $query2->fetch();
+    				 
+    				// Изчисляваме колко е счетоводната средно притеглена цена
+    				if(!is_null($bRec->blAmount) && !is_null($bRec->blQuantity)){
+    					@$selfValue = $bRec->blAmount / $bRec->blQuantity;
+    				}
     			}
     		}
     	}

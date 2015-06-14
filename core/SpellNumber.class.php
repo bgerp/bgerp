@@ -356,7 +356,7 @@ class core_SpellNumber
         }
         
     	$num = round($num, 2);
-        
+    	
     	// Дали да показваме валутата в края на сумата в думи
         if($displayCurrency) {
         	$numBgn = " лева";
@@ -369,39 +369,34 @@ class core_SpellNumber
         	$numEuro = '';
         	$centEuro = '';
         }
-        $coreConf = core_Packs::getConfig('core');
-        $pointSign = $coreConf->EF_NUMBER_DEC_POINT;
         
+        $Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
+       
         if ($lg == "bg") {
-        	
-        	$text = $this->num2Text((int) $num) . $numBgn;
-            $cents = round((($num - (int) $num) * 100));
-            if($showCurrencyCode){
-            	$text .= " <span class='cCode'>{$showCurrencyCode}</span>";
-            }
-            if ($cents > 0){
-            	$text .= " и 0". $pointSign . ($cents) . " " . $centBgn;
-            } elseif($cents == 0){
-            	$text .= ", 0" . $pointSign . "00" . $centBgn;
-            }
-            	
-            $text = str_replace(" и и ", " и ", $text);
-            
-            return $text;
+        	$numCur = $numBgn;
+        	$andStr = 'и';
+        	$centCur = $centBgn;
+        	$text = $this->num2Text((int) $num);
         } else {
-        	
-            $text = $this->int_to_words((int) $num) . $numEuro;
-            $cents = round((($num - (int) $num) * 100));
-            
-        	if($showCurrencyCode){
-            	$text .= " <span class='cCode'>{$showCurrencyCode}</span>";
-            }
-            
-            if ($cents > 0){
-            	$text .= " and 0". $pointSign . $cents. " " . $centEuro;
-            }
-            
-            return $text;
+        	$numCur = $numEuro;
+        	$andStr = 'and';
+        	$centCur = $centEuro;
+        	$text = $this->int_to_words((int) $num);
         }
+        
+        $text .= $numCur;
+        $cents = $Double->toVerbal($num - (int) $num);
+        
+        if($showCurrencyCode){
+            $text .= " <span class='cCode'>{$showCurrencyCode}</span>";
+        }
+
+        if ($cents > 0){
+        	$text .= " {$andStr} {$cents}" . $centCur;
+        } elseif($cents == 0){
+        	$text .= ", {$cents}" . $centCur;
+        }
+        
+        return $text;
     }
 }

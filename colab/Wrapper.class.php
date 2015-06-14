@@ -18,13 +18,13 @@
  */
 class colab_Wrapper extends plg_ProtoWrapper
 {
-    
-    
+
+
 	/**
 	 * HTML клас за табовете на обвивката
 	 */
-	protected $htmlClass = 'alphabet';
-	
+	protected $htmlClass = 'foldertabs';
+
 	
     /**
      * Описание на опаковката с табове
@@ -78,7 +78,10 @@ class colab_Wrapper extends plg_ProtoWrapper
     public static function on_AfterAction(&$invoker, &$tpl, $act)
     {
     	if($tpl instanceof core_ET){
-    		$tpl = ht::createElement('div', array('class' => 'contractorExtHolder'), $tpl);
+    		
+    		// Обграждаме обвивката със div
+    		$tpl->prepend("<div class = 'contractorExtHolder'>");
+    		$tpl->append("</div>");
     	}
     }
 }

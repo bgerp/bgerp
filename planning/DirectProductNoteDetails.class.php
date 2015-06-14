@@ -38,7 +38,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_SaveAndNew, plg_Created, planning_Wrapper, plg_RowNumbering, plg_AlignDecimals, plg_Sorting';
+    public $loadList = 'plg_RowTools, plg_SaveAndNew, plg_Created, planning_Wrapper, plg_AlignDecimals, plg_Sorting';
     
     
     /**
@@ -68,7 +68,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'resourceId, productId=Материал, packagingId, packQuantity';
+    public $listFields = 'tools=№,resourceId, productId=Материал, packagingId, packQuantity';
     
         
     /**
@@ -80,7 +80,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    public $rowToolsField = 'RowNumb';
+    public $rowToolsField = 'tools';
     
     
     /**
@@ -90,13 +90,25 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     {
         $this->FLD('noteId', 'key(mvc=planning_DirectProductionNote)', 'column=none,notNull,silent,hidden,mandatory');
         $this->FLD('resourceId', 'key(mvc=planning_Resources,select=title,allowEmpty)', 'silent,caption=Ресурс,mandatory,removeAndRefreshForm=productId|packagingId|quantityInPack|quantity|packQuantity|measureId');
-        $this->FLD('type', 'enum(input=Влагане,pop=Отпадък)', 'caption=Действие');
+        $this->FLD('type', 'enum(input=Влагане,pop=Отпадък)', 'caption=Действие,silent,input=hidden');
         
         parent::setDetailFields($this);
         $this->FLD('conversionRate', 'double', 'input=none');
         
         // Само вложими продукти
         $this->setDbUnique('noteId,resourceId,productId,classId');
+    }
+    
+    
+    /**
+     * Преди подготвяне на едит формата
+     */
+    public static function on_BeforePrepareEditForm($mvc, &$res, $data)
+    {
+    	$type = Request::get('type', 'enum(input,pop)');
+    	 
+    	$title = ($type == 'pop') ? 'отпаден ресурс' : 'вложим ресурс';
+    	$mvc->singleTitle = $title;
     }
     
     
@@ -121,7 +133,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     	
     	$form->setDefault('classId', $classId);
     	
-    	if(isset($rec->resourceId)){
+    	if(isset($rec->resourceId) && $rec->type == 'input'){
     		$materialsArr = planning_ObjectResources::fetchRecsByClassAndType($rec->resourceId, $classId, 'material');
     		
     		// При редакция ако е имало избран артикул, но вече не е към ресурса, все още може да се избира
@@ -219,12 +231,13 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     	foreach ($data->rows as $id => &$row)
     	{
     		$rec = $data->recs[$id];
-    		if($rec->type == 'pop'){
-    			$row->packQuantity = "<span class='red'>-{$row->packQuantity}</span>";
-    		}
     		
     		if($rec->productId){
     			$hideProductCol = FALSE;
+    		}
+    		
+    		if($rec->type == 'pop'){
+    			$row->packQuantity .= " {$row->packagingId}";
     		}
     	}
     	
@@ -232,5 +245,74 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     	if($hideProductCol === TRUE){
     		unset($data->listFields['productId']);
     	}
+    }
+    
+    
+    /**
+     * След подготовка на детайлите, изчислява се общата цена
+     * и данните се групират
+     */
+    public static function on_AfterPrepareDetail($mvc, $res, $data)
+    {
+    	$data->inputArr = $data->popArr = array();
+    	$countInputed = $countPoped = 1;
+    	$Int = cls::get('type_Int');
+    	
+    	// За всеки детайл (ако има)
+    	if(count($data->rows)){
+    		foreach ($data->rows as $id => $row){
+    			$rec = $data->recs[$id];
+    			
+    			// Разделяме записите според това дали са вложими или не
+    			if($rec->type == 'input'){
+    				$row->tools->append($Int->toVerbal($countInputed), 'TOOLS');
+    				$data->inputArr[$id] = $row;
+    				$countInputed++;
+    			} else {
+    				$row->tools->append($Int->toVerbal($countPoped), 'TOOLS');
+    				$data->popArr[$id] = $row;
+    				$countPoped++;
+    			}
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Променяме рендирането на детайлите
+     * 
+     * @param stdClass $data
+     * @return core_ET $tpl
+     */
+    function renderDetail_($data)
+    {
+    	$tpl = new ET("");
+    	
+    	// Рендираме таблицата с вложените артикули
+    	$table = cls::get('core_TableView', array('mvc' => $this));
+    	$detailsInput = $table->get($data->inputArr, $data->listFields);
+    	$detailsInput = ht::createElement("div", array('style' => 'margin-top:5px'), $detailsInput);
+    	
+    	$tpl->append($detailsInput, 'planning_DirectProductNoteDetails');
+    	
+    	// Добавяне на бутон за нов ресурс
+    	if($this->haveRightFor('add', (object)array('noteId' => $data->masterId))){
+    		$tpl->append(ht::createBtn('Нов ресурс', array($this, 'add', 'noteId' => $data->masterId, 'type' => 'input', 'ret_url' => TRUE),  NULL, NULL, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/star_2.png')), 'planning_DirectProductNoteDetails');
+    	}
+    	
+    	// Рендираме таблицата с избор на отпадъци
+    	$data->listFields['resourceId'] = 'Отпадък';
+    	unset($data->listFields['productId'], $data->listFields['packagingId']);
+    	$detailsPop = $table->get($data->popArr, $data->listFields);
+    	$detailsPop = ht::createElement("div", array('style' => 'margin-top:5px;margin-bottom:5px'), $detailsPop);
+    	$tpl->append($detailsPop, 'planning_DirectProductNoteDetails');
+    	
+    	// Добавяне на бутон за нов отпадък
+    	if($this->haveRightFor('add', (object)array('noteId' => $data->masterId))){
+    		$tpl->append(ht::createBtn('Отпадък', array($this, 'add', 'noteId' => $data->masterId, 'type' => 'pop', 'ret_url' => TRUE),  NULL, NULL, array('style' => 'margin-top:5px;;margin-bottom:10px;', 'ef_icon' => 'img/16/star_2.png')), 'planning_DirectProductNoteDetails');
+    	}
+    	
+    	// Връщаме шаблона
+    	return $tpl;
     }
 }

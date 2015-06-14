@@ -1,4 +1,7 @@
 <?php
+
+
+
 /**
  * Клас 'doc_plg_HidePrices' сквиращ ценови полета, които са посочени в
  * променливата 'priceFields'. Само потребителите с определени права могат
@@ -12,12 +15,13 @@
  * @category  bgerp
  * @package   doc
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
 class doc_plg_HidePrices extends core_Plugin
 {
+	
 	
 	/**
      * След инициализирането на модела
@@ -57,12 +61,36 @@ class doc_plg_HidePrices extends core_Plugin
     
     
     /**
+     * Дали потребителя може да вичжда чувствителната информация
+     */
+    protected static function canSeePriceFields($rec)
+    {
+    	// Ако има изброените роли, може да вижда цените
+    	if(haveRole('manager,ceo,officer,sales,store,purchase,acc')) return TRUE;
+    	
+    	// Ако е контрактор, и е инсталиран пакета за контрактови и имаме тред
+    	if(core_Users::isContractor() && core_Packs::isInstalled('colab') && $rec->threadId){
+    		
+    		// Ако контрактора може да види треда от външната част, то може и да види цялата ценова информация
+    		$threadRec = doc_Threads::fetch($rec->threadId);
+    		if(colab_Threads::haveRightFor('single', $threadRec)){
+    			
+    			return TRUE;
+    		}
+    	}
+    	
+    	// Ако горните не са изпълнени, потребителя няма право да вижда цените/сумите по документите
+    	return FALSE;
+    }
+    
+    
+    /**
      * След рендиране на изгледа се скриват ценовите данни от мастъра
      * ако потребителя няма права
      */
     public static function on_AfterPrepareSingle($mvc, &$res, &$data)
     {
-    	if(haveRole('manager,ceo,officer,sales,store,purchase,acc')) return;
+    	if(self::canSeePriceFields($data->rec)) return;
     	
     	$mvc->hidePriceFields($data);
     }
@@ -73,7 +101,7 @@ class doc_plg_HidePrices extends core_Plugin
      */
     public static function on_BeforePrepareSingle(core_Mvc $mvc, &$res, $data)
     {
-    	if(haveRole('manager,ceo,officer,sales,store,purchase,acc')) return;
+    	if(self::canSeePriceFields($data->rec)) return;
     	
     	// Флаг да не се подготвя общата сума
     	$data->noTotal = TRUE;
@@ -84,9 +112,9 @@ class doc_plg_HidePrices extends core_Plugin
      * След рендиране на детайлите се скриват ценовите данни от резултатите
      * ако потребителя няма права
      */
-    static function on_AfterPrepareDetail($mvc, $res, &$data)
+    public static function on_AfterPrepareDetail($mvc, $res, &$data)
     {
-    	if(haveRole('manager,ceo,officer,sales,store,purchase,acc')) return;
+    	if(self::canSeePriceFields($data->masterData->rec)) return;
     	
     	$mvc->hidePriceFields($data);
     	

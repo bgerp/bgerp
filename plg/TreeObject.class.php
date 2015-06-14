@@ -217,6 +217,40 @@ class plg_TreeObject extends core_Plugin
 
 		// Клас за таблицата
         $data->listTableClass = 'treeView';
+        
+        // Имали полета, които искаме да сумираме
+        if(isset($mvc->fieldsToSumOnChildren)){
+        	$fieldsToSum = arr::make($mvc->fieldsToSumOnChildren);
+        	
+        	// Ако има
+        	if(count($fieldsToSum)){
+        		
+        		// Обхождаме записите
+        		foreach ($data->recs as $rec1){
+        			
+        			// За всеки намираме му децата
+        			$descendents = self::getDescendents($mvc, $rec1->id, $data->recs);
+        		
+        			// Ако има полета за сумиране
+        			foreach ($fieldsToSum as $fld){
+        				$fieldType = $mvc->getFieldType($fld);
+        				
+        				// И типа им е Double или Int
+        				if($fieldType instanceof type_Int || $fieldType instanceof type_Double){
+        					
+        					// Сумираме стойността на полето за всеки наследник
+        					if(count($descendents)){
+        						foreach ($descendents as $dRec){
+        							if(isset($dRec->{$fld})){
+        								$rec1->{$fld} += $dRec->{$fld};
+        							}
+        						}
+        					}
+        				}
+        			}
+        		}
+        	}
+        }
 	}
 	
 	
@@ -365,10 +399,10 @@ class plg_TreeObject extends core_Plugin
 				$rec = $mvc->fetch($id, "{$mvc->nameField},{$mvc->parentFieldName}");
 					
 				// Намираме името на обекта
-				$nameVerbal = $mvc->getVerbal($rec, $mvc->nameField);
+				$nameVerbal = type_Varchar::escape($rec->{$mvc->nameField});
 				$nameVerbal = strip_tags($nameVerbal);
 				$keyVerbal = $nameVerbal;
-					
+				
 				// Ако има баща и е указано децата му да са свойства
 				if(!empty($rec->{$mvc->parentFieldName})){
 					if($mvc->fetchField($rec->{$mvc->parentFieldName}, 'makeDescendantsFeatures') == 'yes'){
@@ -390,7 +424,7 @@ class plg_TreeObject extends core_Plugin
 		}
 	}
 	
-	
+	 
 	/**
 	 * След подготовката на навигацията по сраници
 	 */
@@ -421,18 +455,43 @@ class plg_TreeObject extends core_Plugin
 	public static function on_AfterGetVerbal($mvc, &$num, $rec, $part)
 	{
 		if($part == $mvc->nameField){
-			
-		    if (!$rec->id) return ;
+			$id = (is_object($rec)) ? $rec->id : $rec;
+		    if (!$id) return ;
 		    
-			$parent = $mvc->fetchField($rec->id, $mvc->parentFieldName);
+			$parent = $mvc->fetchField($id, $mvc->parentFieldName);
 			$title = $num;
 			
 			while($parent && ($pRec = $mvc->fetch($parent, "{$mvc->parentFieldName},{$mvc->nameField}"))) {
-				$title = $pRec->{$mvc->nameField} . ' » ' . $title;
+				$pName = type_Varchar::escape($pRec->{$mvc->nameField});
+				$title = $pName . ' » ' . $title;
 				$parent = $pRec->{$mvc->parentFieldName};
 			}
 			
 			$num = $title;
 		}
+	}
+	
+	
+	/**
+	 * Помощна ф-я връщаща масив със всички записи, които са наследници на даден запис
+	 */
+	private static function getDescendents($mvc, $id, $allRecs, &$res = array())
+	{
+		$descendents = array();
+		foreach ($allRecs as $key => $cRec){
+			if($cRec->{$mvc->parentFieldName} == $id){
+				$descendents[$key] = $cRec;
+			}
+		}
+		
+		$res = array_merge($res, $descendents);
+		
+		if(count($descendents)){
+			foreach ($descendents as $dRec){
+				self::getDescendents($mvc, $dRec->id, $allRecs, $res);
+			}
+		}
+		
+		return $res;
 	}
 }

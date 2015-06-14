@@ -721,7 +721,7 @@ class marketing_Inquiries2 extends core_Embedder
     		    
     			$id = $this->save($rec);
     			
-    			status_Messages::newStatus(tr('Благодарим ви за запитването'), 'success');
+    			status_Messages::newStatus(tr('Благодарим Ви за запитването'), 'success');
     			 
     			// Ако има грешка при изпращане, тя се показва само на powerUser-и
     			if (!$this->isSended && $cu && haveRole('powerUser')) {

@@ -42,12 +42,6 @@
                                             <!--ET_END storeLocation-->
                                         </td>
                                         <td class="cell">
-                                        	<b>[#activityCenterId#]</b>
-                                            <!--ET_BEGIN centerLocation-->
-                                            <div class='address-block'>
-                                            [#centerLocation#]
-                                            </div>
-                                            <!--ET_END centerLocation-->
                                         </td>
                                     </tr>
                                 </tbody>

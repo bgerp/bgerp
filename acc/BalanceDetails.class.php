@@ -69,6 +69,14 @@ class acc_BalanceDetails extends core_Detail
     
     
     /**
+     * Масив с обновените записи от журнала
+     * 
+     * @var array
+     */
+    public $updatedRecs = array();
+    
+    
+    /**
      * Кой има достъп до хронологичната справка
      */
     public $canHistory = 'powerUser';
@@ -855,6 +863,7 @@ class acc_BalanceDetails extends core_Detail
      *
      * @param string $from дата в MySQL формат
      * @param string $to дата в MySQL формат
+     * @return boolean $hasUpdatedJournal - дали да продължи преизчисляването или не
      */
     public function calcBalanceForPeriod($from, $to)
     {
@@ -870,6 +879,9 @@ class acc_BalanceDetails extends core_Detail
         if($timeLimit != 0){
         	core_App::setTimeLimit($timeLimit);
         }
+        
+        // Слагаме флага да не преизчислява баланса
+        $hasUpdatedJournal = FALSE;
         
         if(count($recs)){
             
@@ -889,8 +901,17 @@ class acc_BalanceDetails extends core_Detail
                 // Обновява се записа само ако има промяна с цената
                 if($update){
                     $JournalDetails->save_($rec);
+                   
+                    // Дигаме флага за преизчисляване само ако, записан не е бил обновяван до сега
+                    //if(!isset($this->updatedBalances[$rec->id])){
+                    	$hasUpdatedJournal = TRUE;
+                   // }
                 }
             }
+            //$this->Master->log(ht::mixedToHtml($test));
+            
+            // Връщаме дали трябва да се преизчислява баланса
+            return $hasUpdatedJournal;
         }
     }
     

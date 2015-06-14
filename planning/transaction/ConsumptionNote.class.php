@@ -68,18 +68,21 @@ class planning_transaction_ConsumptionNote extends acc_DocumentTransactionSource
 					$debitArr = array('61101', array('planning_Resources', $resourceRec->resourceId),
 							'quantity' => $dRec->quantity / $resourceRec->conversionRate);
 				}
+				$reason = 'Влагане на ресурс в производството';
 			} 
 			
 			// Ако не е ресурс, дебитираме общата сметка за разходи '61102. Други разходи (общо)'
 			if(empty($debitArr)){
 				$debitArr = array('61102');
+				$reason = 'Бездетайлно влагане на артикул в производството';
 			}
 			
 			$entries[] = array('debit' => $debitArr,
 							   'credit' => array(321,
 									array('store_Stores', $rec->storeId),
 									array($dRec->classId, $dRec->productId),
-									'quantity' => $dRec->quantity));
+									'quantity' => $dRec->quantity),
+							   'reason' => $reason);
 		}
 		
 		// Връщаме ентритата

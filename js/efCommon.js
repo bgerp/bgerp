@@ -916,8 +916,13 @@ function js2php(obj, path, new_path) {
 function prepareContextMenu() {
     jQuery.each($('.more-btn'), function(i, val) {
         var el = $(this).parent().find('.modal-toolbar');
+        var position = el.attr('data-position');
+        if(position && !( position == 'left' || position== 'top' || position == 'bottom')) {
+            position == 'right'
+        }
         $(this).contextMenu('popup', el, {
-            'displayAround': 'trigger'
+            'displayAround': 'trigger',
+            'position': position
         });
     });
 }
@@ -2344,7 +2349,7 @@ efae.prototype.process = function(subscribedObj, otherData, async) {
                 func = thisEfaeInst.renderPrefix + func;
 
                 try {
-
+            		
                     // Извикваме функцията
                     window[func](arg);
                 } catch (err) {
@@ -2653,25 +2658,25 @@ function render_html(data) {
     var id = data.id;
     var html = data.html;
     var replace = data.replace;
-
+    
     // Ако няма HTML, да не се изпуълнява
     if ((typeof html == 'undefined') || !html) return;
-
+    
     // Ако има JQuery
     if (typeof jQuery != 'undefined') {
 
         var idObj = $('#' + id);
-
+        
         // Ако няма такъв таг
         if (!idObj.length) {
 
             // Задаваме грешката
             getEO().log('Липсва таг с id: ' + id);
         }
-
+		
         // Ако е зададено да се замества
         if ((typeof replace != 'undefined') && (replace)) {
-
+    		
             // Заместваме
             idObj.html(html);
         } else {
@@ -3605,6 +3610,45 @@ function mailServerSettings() {
 
 
 /**
+ * Вика url-то w data-url на линка и спира норматлноното му действие
+ * 
+ * @param event
+ * 
+ * @return boolean
+ */
+function startUrlFromDataAttr(obj)
+{
+	if (this.event) {
+		stopBtnDefault(this.event);
+	}
+		
+	resObj = new Object();
+	resObj['url'] = obj.getAttribute('data-url');
+	
+	getEfae().process(resObj);
+	
+	return false;
+}
+
+
+/**
+ * Спира нормалното дейстие на бутона след натискане
+ * 
+ * @param event
+ */
+function stopBtnDefault(event)
+{
+	if (event.preventDefault) {
+        event.preventDefault();
+    } else if (event.stopPropagation) {
+        event.stopPropagation();
+    } else {
+        event.returnValue = false;
+        event.cancelBubble = true;
+    }
+}
+
+/**
  * Прихващач за обновяването на страницата без AJAX
  */
 function onBeforeUnload()
@@ -3618,8 +3662,9 @@ function onBeforeUnload()
 /**
  * Добавя текущото URL И титлата към url-то
  */
-function addParamsToBookmarkBtn(parentUrl, localUrl)
+function addParamsToBookmarkBtn(obj, parentUrl, localUrl)
 {
+
 	//var url = encodeURIComponent(document.URL);
 	//var title = encodeURIComponent(document.title);
 	var url = localUrl;
@@ -3627,8 +3672,8 @@ function addParamsToBookmarkBtn(parentUrl, localUrl)
 		url = document.URL;
 	}
 	var title = document.title;
-	
-	document.location = parentUrl + '?url=' + url + '&title=' + title;
+
+    obj.setAttribute("href", parentUrl + '?url=' + url + '&title=' + title);
 }
 
 
