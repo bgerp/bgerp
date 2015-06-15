@@ -93,7 +93,7 @@ class type_Date extends core_Type {
         $attr['name'] = $name;
                
         if($value && !$this->error) {
-            $value = dt::mysql2verbal($value, 'd.m.Y');
+            $value = dt::mysql2verbal($value, 'd.m.Y', NULL, FALSE);
         } else {
             $value = $attr['value'];
         }

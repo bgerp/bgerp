@@ -52,7 +52,7 @@ class type_Datetime extends type_Date {
                 $time = $value['t'];
             } else {
                 list($date, $time) = explode(' ', $value);
-                $date = dt::mysql2verbal($date, 'd.m.Y');
+                $date = dt::mysql2verbal($date, 'd.m.Y', NULL, FALSE);
                 list($h, $m, $s) = explode(':', $time);
                 if($s == '00') {
                     $time = "{$h}:{$m}";
