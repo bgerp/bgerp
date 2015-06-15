@@ -552,8 +552,7 @@ class acc_Journal extends core_Master
         expect($itemRec = acc_Items::fetchRec($item));
         $jQuery = acc_JournalDetails::getQuery();
         
-        $now = dt::now();
-        acc_JournalDetails::filterQuery($jQuery, NULL, $now, NULL, $itemRec->id);
+        acc_JournalDetails::filterQuery($jQuery, NULL, NULL, NULL, $itemRec->id);
         
         if($showAllRecs === FALSE) return $jQuery->fetchAll();
         
