@@ -19,7 +19,7 @@ doc_Threads,list,bg,"Това е списък с всички теми в дад
 doc_Containers,list,bg,"Tук може да видите хронологичен списък на всички документи в нишката. За повече информация прочетете: [link=http://www.bgerp.com/A/a/Dokumenti-Obshti/]Документи » Всички[/link]"
 doc_Search,list,bg,"Търсене на документи в цялата система. За повече информация прочетете: [link=http://www.bgerp.com/A/a/search/]Пълнотекстово търсене[/link]"
 doc_UnsortedFolders,list,bg,"Това е списък с кориците на папки от тип 'Проект'. В папките от този вид могат да се съдържат разнообразни документи. За повече информация прочетете: [link=http://www.bgerp.com/Bg/Rabota-po-proekt/]Работа по проект[/link]"
-doc_UnsortedFolders,single,bg,"Това е корицата на папка от тип "Проект". За повече информация прочетете: [link=http://www.bgerp.com/Bg/Rabota-po-proekt/]Работа по проект[/link]"
+doc_UnsortedFolders,single,bg,"Това е корицата на папка от тип 'Проект'. За повече информация прочетете: [link=http://www.bgerp.com/Bg/Rabota-po-proekt/]Работа по проект[/link]"
 doc_UnsortedFolders,edit,bg,"Това е форма за редактиране/добавяне на папки от тип "Проект". В папките от този вид могат да се съдържат разнообразни документи. За повече информация прочетете: [link=http://www.bgerp.com/Bg/Rabota-po-proekt/]Работа по проект[/link]"
 doc_Files,list,bg,"Тук се съдържат всички прикачени файлове в избраната папка. За повече информация прочетете: [link=http://www.bgerp.com/A/a/Dokumenti-Imeyli/]Документи » Имейли[/link]"
 doc_TplManager,list,bg,"Тук се съдържа списък на всички Шаблони за типовете документи използвани в системата. За повече информация прочетете: [link=http://www.bgerp.com/Bg/Dokumenti-Obshti/]Документи » Всички[/link]"
