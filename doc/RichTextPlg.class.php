@@ -81,12 +81,12 @@ class doc_RichTextPlg extends core_Plugin
     protected static function truncateText($html)
     {
         // Във външната част и при принтиране да не сработва
-        if (Mode::is('printing') || Mode::is('text', 'xhtml')) return ;
+        if (Mode::is('printing') || Mode::is('text', 'xhtml')) return $html;
         
         $conf = core_Packs::getConfig('doc');
         $hideLen = $conf->DOC_HIDE_TEXT_AFTER_LENGTH;
         
-        if (mb_strlen($html) <= $hideLen) return ;
+        if (mb_strlen($html) <= $hideLen) return $html;
         
         $cHtml = mb_strcut($html, $hideLen);
         $cHtmlArr = explode("\n", $cHtml, 2);
