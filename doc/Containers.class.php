@@ -109,6 +109,8 @@ class doc_Containers extends core_Manager
         
         $this->FLD('visibleForPartners', 'enum(no=Не, yes=Да)', 'caption=Видим за партньори');
         
+        $this->FLD('hide', 'enum(default, yes, no)', 'caption=Видим за партньори, notNull');
+        
         // Индекси за бързодействие
         $this->setDbIndex('folderId');
         $this->setDbIndex('threadId');
@@ -141,8 +143,6 @@ class doc_Containers extends core_Manager
         
         $i = 0;
         
-        $showDocumentArr = Mode::get(self::$modShowName);
-        
         $firstId = key($recs);
         
         foreach ($cRecs as $id => $rec) {
@@ -152,9 +152,9 @@ class doc_Containers extends core_Manager
             if ($id == $firstId) continue;
             
             // Ако е зададено да се показва в сесията
-            if ($showDocumentArr[$rec->id]) {
+            if ($rec->hide == 'no') {
                 $hide = FALSE;
-            } elseif (isset($showDocumentArr[$rec->id]) && $showDocumentArr[$rec->id] === FALSE) {
+            } elseif ($rec->hide == 'yes') {
                 $hide = TRUE;
             } else {
                 
@@ -2247,27 +2247,27 @@ class doc_Containers extends core_Manager
      * Скрива/показва подадения документ
      * 
      * @param integer $id
-     * @param boolean $modeAct
-     * @param boolean $force
+     * @param boolean $hide
+     * @param boolean $changeDef
      */
-    public static function showOrHideDocument($id, $modeAct = TRUE, $ifIsset = FALSE)
+    public static function showOrHideDocument($id, $hide = FALSE, $changeDef = FALSE)
     {
-        $showDocArr = Mode::get(self::$modShowName);
+        $rec = self::fetch($id);
         
-        if (!isset($showDocArr)) {
-            $showDocArr = array();
-        }
-        
-        if ($ifIsset) {
-            if (!isset($showDocArr[$id])) {
+        if ($changeDef) {
+            if (!$rec->hide || ($rec->hide == 'default')) {
                 
                 return ;
             }
         }
         
-        $showDocArr[$id] = $modeAct;
+        if ($hide) {
+            $rec->hide = 'yes';
+        } else {
+            $rec->hide = 'no';
+        }
         
-        Mode::setPermanent(self::$modShowName, $showDocArr);
+        self::save($rec, 'hide');
     }
     
     
@@ -2281,7 +2281,7 @@ class doc_Containers extends core_Manager
      */
     protected static function showOrHideDocumentInThread($id, $act='show', $ajaxMode = FALSE)
     {
-        $modeAct = ($act == 'show') ? TRUE : FALSE;
+        $hideDoc = ($act == 'show') ? FALSE : TRUE;
         $rec = self::fetch($id);
         
         expect($rec);
@@ -2293,7 +2293,7 @@ class doc_Containers extends core_Manager
             expect($document->haveRightFor('single'));
         }
         
-        self::showOrHideDocument($id, $modeAct);
+        self::showOrHideDocument($id, $hideDoc);
         
         if ($ajaxMode) {
             
