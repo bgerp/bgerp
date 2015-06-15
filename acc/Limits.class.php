@@ -93,9 +93,9 @@ class acc_Limits extends core_Manager
         $this->FLD('limitDuration', 'time', 'caption=Продължителност');
         
         
-        $this->FLD('side', 'enum(debit=Дебит,credit=Кредит)', 'mandatory,caption=Лимит->Тип,input=none');
-        $this->FLD('type', 'enum(minimum=Минимум,maximum=Максимум)', 'mandatory,caption=Лимит->Салдо,input=none');
-        $this->FLD('limitQuantity', 'double(min=0)', 'mandatory,caption=Лимит->Стойност,input=none');
+        $this->FLD('side', 'enum(debit=Дебит,credit=Кредит)', 'mandatory,caption=Лимит->Салдо,input=none');
+        $this->FLD('type', 'enum(minimum=Минимум,maximum=Максимум)', 'mandatory,caption=Лимит->Тип,input=none');
+        $this->FLD('limitQuantity', 'double(min=0,decimals=2)', 'mandatory,caption=Лимит->Стойност,input=none');
     	
         $this->FLD('item1', 'acc_type_Item(select=titleLink,allowEmpty)', 'caption=Сметка->Перо 1, input=none');
         $this->FLD('item2', 'acc_type_Item(select=titleLink,allowEmpty)', 'caption=Сметка->Перо 2, input=none');
@@ -119,7 +119,8 @@ class acc_Limits extends core_Manager
     {
         $form = &$data->form;
         $form->setDefault('startDate', dt::now());
-    	
+        $rec = &$form->rec;
+        
         // Ако е избрана сметка
     	if(isset($form->rec->accountId)){
     		$accInfo = acc_Accounts::getAccountInfo($form->rec->accountId);
@@ -140,6 +141,27 @@ class acc_Limits extends core_Manager
     			$form->setDefault('side', 'credit');
     			$form->setDefault('type', 'maximum');
     		}
+    		
+    		$classId = Request::get('classId', 'key(mvc=core_Classes)');
+    		$objectId = Request::get('objectId');
+    		
+    		if(isset($classId) && isset($objectId)){
+    			if(Request::get('accountId', 'key(mvc=acc_Accounts)')){
+    				$form->setReadOnly('accountId');
+    			}
+    			 
+    			$form->setField('side', 'input=hidden');
+    			if($itemRec = acc_Items::fetchItem($classId, $objectId)){
+    				foreach (range(1, 3) as $i){
+    					if(isset($accInfo->groups[$i])){
+    						if(cls::haveInterface($accInfo->groups[$i]->rec->regInterfaceId, $classId)){
+    							$form->setDefault("item{$i}", $itemRec->id);
+    							$form->setReadOnly("item{$i}");
+    						}
+    					}
+    				}
+    			}
+    		}
     	}
     }
     
@@ -155,6 +177,7 @@ class acc_Limits extends core_Manager
     		// Зануляваме датата, на която лимита е бил нарушен
     		$form->rec->when = NULL;
     		$form->rec->exceededAmount = NULL;
+    		$form->rec->state = 'active';
     	}
     }
     
@@ -170,6 +193,7 @@ class acc_Limits extends core_Manager
     	foreach (range(1, 3) as $i){
     		if(isset($rec->{"item{$i}"})){
     			$itemRow = acc_Items::getVerbal($rec->{"item{$i}"}, 'titleLink');
+    			$row->{"item{$i}"} = $itemRow;
     			$itemsTpl->append("<li>{$itemRow}</li>", 'item');
     		}
     	}
@@ -250,7 +274,7 @@ class acc_Limits extends core_Manager
     		}
     	}
     	
-    	if($action == 'changestate' && isset($rec)){
+    	if(($action == 'changestate' || $action == 'delete') && isset($rec)){
     		if($rec->state == 'pending'){
     			$requiredRoles = 'no_one';
     		}
@@ -332,15 +356,11 @@ class acc_Limits extends core_Manager
     		}
     		
     		$fieldToCompare = ($hasDimensionalItemSelected === TRUE) ? $groupedRec->blQuantity : $groupedRec->blAmount;
-    		$sign = ($rec->side == 'debit') ? 1 : -1;
-    		//$rec->type = 'maximum';
-    		//$sign = -1;
-    		//$fieldToCompare = -100;
     		
     		if($rec->type == 'minimum'){
-    			$sendNotification = $fieldToCompare < $sign * $rec->limitQuantity;
+    			$sendNotification = abs($fieldToCompare) < $rec->limitQuantity;
     		} else {
-    			$sendNotification = $fieldToCompare > $sign * $rec->limitQuantity;
+    			$sendNotification = abs($fieldToCompare) > $rec->limitQuantity;
     		}
     		
     		// Ако има надвишаване изпращаме нотифификация
@@ -354,7 +374,7 @@ class acc_Limits extends core_Manager
     			$sharedUsers = keylist::toArray($rec->sharedUsers);
     			$urlArr = $customUrl = array($this, 'list');
     			
-    			$whenVerbal = $this->getVerbal($rec->when);
+    			$whenVerbal = $this->getVerbal($rec->when, 'when');
     			$msg = "|Има надвишаване на ограничение на|* '{$whenVerbal}')";
     			
     			// Всеки споделен потребител, нотифицираме го
@@ -373,4 +393,93 @@ class acc_Limits extends core_Manager
     		}
     	}
     }
+    
+    
+    /*function prepareLimits(&$data)
+    {
+    	$data->masterMvc->limitAccounts = '501';
+    	
+    	if(!isset($data->masterMvc->limitAccounts)) {
+    		$data->render = FALSE;
+    		return;
+    	}
+    	
+    	$data->TabCaption = 'Лимити';
+    	
+    	if($itemRec = acc_Items::fetchItem($data->masterMvc->getClassId(), $data->masterId)){
+    		$query = $this->getQuery();
+    		$query->where("#item1 = {$itemRec->id} || #item2 = {$itemRec->id} || #item3 = {$itemRec->id}");
+    		
+    		$data->rows = array();
+    		while($rec = $query->fetch()){
+    			foreach (range(1, 3) as $i){
+    				if($rec->{"item{$i}"} == $itemRec->id){
+    					unset($rec->{"item{$i}"});
+    					$unseted = "item{$i}";
+    					break;
+    				}
+    			}
+    			
+    			if(empty($data->limits[$rec->accountId])){
+    				$data->limits[$rec->accountId] = array('unseted' => $unseted, 'rows' => array());
+    			}
+    			
+    			$row = $this->recToVerbal($rec);
+    			$row->state = $this->getFieldType('state')->toVerbal($rec->state);
+    			
+    			$data->limits[$rec->accountId]['rows'][$rec->id] = $row;
+    		}
+    	}
+    }
+    
+    
+    function renderLimits(&$data)
+    {
+    	if($data->render === FALSE) return;
+    	$tpl = getTplFromFile('acc/tpl/LimitDetail.shtml');
+    	
+    	$data->listFields = arr::make('item1=item1,item2=item2,item3=item3,side=Салдо,type=Вид,limitQuantity=Сума,createdBy=Създадено от,createdOn=Създадено на');
+    	
+    	$count = 1;
+    	foreach ($data->rows as $accountId => $arr){
+    		
+    		// Името на сметката и нейните групи
+    		$accNum = acc_Balances::getAccountLink($accountId);
+    		$accInfo = acc_Accounts::getAccountInfo($accountId);
+    		
+    		// Името на сметката излиза над таблицата
+    		$content = new ET("<span class='accTitle'>{$accNum}</span>");
+    		$fields = $data->listFields;
+    		
+    		// Обикаляне на всички пера
+    		foreach (range(1, 3) as $i){
+    			if(isset($accInfo->groups[$i])){
+    				if($arr['unseted'] != "item{$i}"){
+    					$fields["item{$i}"] = $accInfo->groups[$i]->rec->name;
+    				} else {
+    					unset($fields["item{$i}"]);
+    				}
+    			} else {
+    				unset($fields["item{$i}"]);
+    			}
+    		}
+    		
+    		$table = cls::get('core_TableView', array('mvc' => $this));
+    		$content->append($table->get($arr['rows'], $fields));
+    		
+    		if($count != 1){
+    			$content->append("<div style='margin-top:15px'></div>");
+    		}
+    		
+    		$tpl->append($content, 'CONTENT');
+    		
+    		$count++;
+    	}
+    	
+    	$url = array($this, 'add', 'classId' => $data->masterMvc->getClassId(), 'objectId' => $data->masterId);
+    	$btn = ht::createBtn('Нов запис', $url, FALSE, FALSE, 'title=Добавяне на ново ограничение на перото');
+    	$tpl->append($btn, 'BTNS');
+    	
+    	return $tpl;
+    }*/
 }
