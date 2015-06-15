@@ -74,7 +74,7 @@ class acc_Limits extends core_Manager
     /**
      * Полета в списъчния изглед
      */
-    public $listFields = 'id,accountId,startDate,limitDuration,debitQuantityMin=Дебит->Минимум,debitQuantityMax=Дебит->Максимум,creditQuantityMin=Кредит->Минимум,creditQuantityMax=Кредит->Максимум,when,sharedUsers=Нотифициране,state';
+    public $listFields = 'id,accountId,startDate,limitDuration,side,type,limitQuantity,when,sharedUsers=Нотифициране,state';
     
     
     /**
@@ -88,14 +88,14 @@ class acc_Limits extends core_Manager
      */
     function description()
     {
-        $this->FLD('accountId', 'acc_type_Account(allowEmpty)', 'caption=Сметка, silent, mandatory,removeAndRefreshForm=debitQuantityMin|debitQuantityMax|creditQuantityMin|creditQuantityMax|item1|item2|item3');
+        $this->FLD('accountId', 'acc_type_Account(allowEmpty)', 'caption=Сметка, silent, mandatory,removeAndRefreshForm=limitQuantity|type|side|item1|item2|item3');
         $this->FLD('startDate', 'datetime(format=smartTime)', 'caption=Начална дата,mandatory');
         $this->FLD('limitDuration', 'time', 'caption=Продължителност');
         
-        $this->FLD('debitQuantityMin', 'double', 'input=hidden,caption=Дебит->Минимум');
-    	$this->FLD('debitQuantityMax', 'double', 'input=hidden,caption=Дебит->Максимум');
-    	$this->FLD('creditQuantityMin', 'double', 'input=hidden,caption=Кредит->Минимум');
-    	$this->FLD('creditQuantityMax', 'double', 'input=hidden,caption=Кредит->Максимум');
+        
+        $this->FLD('side', 'enum(debit=Дебит,credit=Кредит)', 'mandatory,caption=Лимит->Тип,input=none');
+        $this->FLD('type', 'enum(minimum=Минимум,maximum=Максимум)', 'mandatory,caption=Лимит->Салдо,input=none');
+        $this->FLD('limitQuantity', 'double(min=0)', 'mandatory,caption=Лимит->Стойност,input=none');
     	
         $this->FLD('item1', 'acc_type_Item(select=titleLink,allowEmpty)', 'caption=Сметка->Перо 1, input=none');
         $this->FLD('item2', 'acc_type_Item(select=titleLink,allowEmpty)', 'caption=Сметка->Перо 2, input=none');
@@ -103,6 +103,9 @@ class acc_Limits extends core_Manager
         
         $this->FLD('sharedUsers', 'userList(roles=powerUser)', 'caption=Нотифициране->Потребители,mandatory');
         $this->FLD('when', 'date', 'caption=Надвишаване,input=none');
+        $this->FLD('exceededAmount', 'double(decimals=2)', 'caption=Надвишаване,input=none');
+        
+        $this->FLD('state', 'enum(active=Активен,closed=Затворен,pending=Надвишен)', 'caption=Видимост,input=none,notSorting,notNull,value=active');
     }
     
     
@@ -121,6 +124,10 @@ class acc_Limits extends core_Manager
     	if(isset($form->rec->accountId)){
     		$accInfo = acc_Accounts::getAccountInfo($form->rec->accountId);
     		
+    		$form->setField('side', 'input');
+    		$form->setField('type', 'input');
+    		$form->setField('limitQuantity', 'input');
+    		
     		// Показваме номенклатурите във сметката
     		foreach (range(1, 3) as $i){
     			if(isset($accInfo->groups[$i])){
@@ -129,29 +136,9 @@ class acc_Limits extends core_Manager
     			}
     		}
     		
-    		// Кои полета за минимум и максимум ще показваме, определяме спрямо типа на сметката
-    		switch($accInfo->rec->type){
-    			case 'active':
-    				
-    				// На активните сметки ще се следят дебитните количества
-    				$fieldsToShow = array('debitQuantityMin', 'debitQuantityMax');
-    				break;
-    			case 'passive':
-    				
-    				// На пасивните сметки ще се следят кредитните количества
-    				$fieldsToShow = array('creditQuantityMin', 'creditQuantityMax');
-    				break;
-    			case 'transit':
-    			case 'dynamic':
-    				
-    				// За останалите може да се следят и дебитните и кредитните количества
-    				$fieldsToShow = array('debitQuantityMin', 'debitQuantityMax', 'creditQuantityMin', 'creditQuantityMax');
-    				break;
-    		}
-    		
-    		// Показваме само нужните полета
-    		foreach ($fieldsToShow as $fld){
-    			$form->setField($fld, 'input');
+    		if($accInfo->rec->type == 'passive'){
+    			$form->setDefault('side', 'credit');
+    			$form->setDefault('type', 'maximum');
     		}
     	}
     }
@@ -165,21 +152,9 @@ class acc_Limits extends core_Manager
     	$rec = &$form->rec;
     	if($form->isSubmitted()){
     		
-    		// Проверяваме колко количества са попълнени
-    		$hasFilledLimit = FALSE;
-    		foreach (array('debitQuantityMin', 'debitQuantityMax', 'creditQuantityMin', 'creditQuantityMax') as $fld){
-    			if(isset($rec->{$fld})){
-    				$hasFilledLimit = TRUE;
-    			}
-    		}
-    		
-    		// Трябва да е попълнено поне едно количество
-    		if($hasFilledLimit === FALSE){
-    			$form->setError('debitQuantityMin,debitQuantityMax,creditQuantityMin,creditQuantityMax', 'Няма зададени ограничения');
-    		}
-    		
     		// Зануляваме датата, на която лимита е бил нарушен
     		$form->rec->when = NULL;
+    		$form->rec->exceededAmount = NULL;
     	}
     }
     
@@ -203,7 +178,8 @@ class acc_Limits extends core_Manager
     	
     	if(isset($rec->when)){
     		$row->when = "<span style='color:darkred'>{$row->when}</span>";
-    		//$row->ROW_ATTR['style'] = 'background-color:#F78787';
+    		$exceededAmount = cls::get('type_Double', array('params' => array('decimals' => 2)))->toVerbal($rec->exceededAmount);
+    		$row->when .= "<br>( {$exceededAmount} )";
     	}
     }
     
@@ -217,24 +193,22 @@ class acc_Limits extends core_Manager
         $form->view = 'horizontal';
         
         $form->FNC('account', 'acc_type_Account(allowEmpty)', 'caption=Сметка,input');
-        $form->FNC("state2", 'enum(all=Всички,active=Активни,closed=Затворени,breached=Нарушени)', 'caption=Вид,input');
+        //$form->FNC('users', 'users(rolesForAll=support|ceo|admin)', 'caption=Потребители,silent,refreshForm');
+        $form->FNC("state2", 'enum(all=Всички,active=Активни,closed=Затворени,pending=Надвишени)', 'caption=Вид,input');
         $form->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $form->showFields = 'search,account,state2';
         
         $form->input();
         
         if(isset($form->rec)){
+        	
         	if($form->rec->account){
         		$data->query->where(array("#accountId = [#1#]", $form->rec->account));
         	}
         	
         	if($searchState = $form->rec->state2){
         		if($searchState != 'all'){
-        			if($searchState == 'active' || $searchState == 'closed'){
-        				$data->query->where(array("#state = '[#1#]'", $searchState));
-        			} elseif($searchState == 'breached'){
-        				$data->query->where("#when IS NOT NULL");
-        			}
+        			$data->query->where(array("#state = '[#1#]'", $searchState));
         		}
         	}
         }
@@ -244,8 +218,16 @@ class acc_Limits extends core_Manager
         	$cu = core_Users::getCurrent();
         	$data->query->like('sharedUsers', "|{$cu}|");
         }
-        
-        $data->query->orderBy('id', 'ASC');
+    }
+    
+    
+    /**
+     * Извиква се след подготовката на колоните ($data->listFields)
+     */
+    protected static function on_AfterPrepareListFields($mvc, $data)
+    {
+    	$data->query->XPR('orderByState', 'int', "(CASE #state WHEN 'pending' THEN 1 WHEN 'active' THEN 2 ELSE 3 END)");
+    	$data->query->orderBy('#orderByState=ASC');
     }
     
     
@@ -267,13 +249,19 @@ class acc_Limits extends core_Manager
     			}
     		}
     	}
+    	
+    	if($action == 'changestate' && isset($rec)){
+    		if($rec->state == 'pending'){
+    			$requiredRoles = 'no_one';
+    		}
+    	}
     }
     
     
-    //function act_Test()
-  //  {
-    	//$this->cron_CheckAccLimits();
-   // }
+    function act_Test()
+    {
+    	$this->cron_CheckAccLimits();
+    }
     
     
     /**
@@ -312,8 +300,9 @@ class acc_Limits extends core_Manager
     	while($rec = $newQuery->fetch()){
     		
     		// Ще групираме данните от баланса
+    		$accInfo = acc_Accounts::getAccountInfo($rec->accountId);
     		$groupedRec = new stdClass();
-    		$groupedRec->creditQuantity = $groupedRec->debitQuantity = 0;
+    		$groupedRec->blQuantity = $groupedRec->blAmount = 0;
     		
     		// За всеки запис от баланса
     		if(count($balanceArr)){
@@ -326,75 +315,61 @@ class acc_Limits extends core_Manager
     				if(isset($rec->item1) && $rec->item1 != $bRec->ent1Id) continue;
     				if(isset($rec->item2) && $rec->item2 != $bRec->ent2Id) continue;
     				if(isset($rec->item3) && $rec->item3 != $bRec->ent3Id) continue;
-    				 
+    				
     				// Сумираме количеството на дебита и на кредита
-    				$groupedRec->debitQuantity += $bRec->debitQuantity;
-    				$groupedRec->creditQuantity += $bRec->creditQuantity;
+    				$groupedRec->blQuantity += $bRec->blQuantity;
+    				$groupedRec->blAmount += $bRec->blAmount;
     			}
     		}
     		
-    		$sendNotification = FALSE;
-    		
-    		// Проверяваме дали поставените ограничения са нарушени
-    		foreach (array('debit', 'credit') as $type){
-    			if(isset($rec->{"{$type}QuantityMin"})){
-    				if($groupedRec->{"{$type}Quantity"} < $rec->{"{$type}QuantityMin"}){
-    					$sendNotification = TRUE;
-    				}
-    			}
-    			
-    			if(isset($rec->{"{$type}QuantityMax"})){
-    				if($groupedRec->{"{$type}Quantity"} > $rec->{"{$type}QuantityMax"}){
-    					$sendNotification = TRUE;
+    		$hasDimensionalItemSelected = FALSE;
+    		foreach (range(1, 3) as $i){
+    			if(isset($rec->{"item{$i}"})){
+    				if($accInfo->groups[$i]->rec->isDimensional == 'yes'){
+    					$hasDimensionalItemSelected = TRUE;
     				}
     			}
     		}
-    	
+    		
+    		$fieldToCompare = ($hasDimensionalItemSelected === TRUE) ? $groupedRec->blQuantity : $groupedRec->blAmount;
+    		$sign = ($rec->side == 'debit') ? 1 : -1;
+    		//$rec->type = 'maximum';
+    		//$sign = -1;
+    		//$fieldToCompare = -100;
+    		
+    		if($rec->type == 'minimum'){
+    			$sendNotification = $fieldToCompare < $sign * $rec->limitQuantity;
+    		} else {
+    			$sendNotification = $fieldToCompare > $sign * $rec->limitQuantity;
+    		}
+    		
     		// Ако има надвишаване изпращаме нотифификация
     		if($sendNotification === TRUE){
+    			$oldWhen = $rec->when;
     			$rec->when = dt::today();
-    			$this->save($rec, 'when');
+    			$rec->state = 'pending';
+    			$rec->exceededAmount = abs($fieldToCompare - $sign * $rec->limitQuantity);
     			
+    			$this->save($rec, 'when,state,exceededAmount');
     			$sharedUsers = keylist::toArray($rec->sharedUsers);
+    			$urlArr = $customUrl = array($this, 'list');
+    			
+    			$whenVerbal = $this->getVerbal($rec->when);
+    			$msg = "|Има надвишаване на ограничение на|* '{$whenVerbal}')";
     			
     			// Всеки споделен потребител, нотифицираме го
     			foreach ($sharedUsers as $userId){
-    				$urlArr = $customUrl = array();
-    				//bgerp_Notifications::add('love', $urlArr, $userId, 'normal', $customUrl);
+    				bgerp_Notifications::add($msg, $urlArr, $userId, 'normal', $customUrl);
     			}
     		} else {
     			
     			// Ако е имало надвишаване но вече няма
     			if(isset($rec->when)){
+    				$rec->state = 'active';
     				$rec->when = NULL;
-    				$this->save($rec, 'when');
+    				$rec->exceededAmount = NULL;
+    				$this->save($rec, 'when,exceededAmount,state');
     			}
-    		}
-    	}
-    }
-    
-    
-    /**
-     * След извличане на записите от базата данни
-     */
-    protected static function on_AfterPrepareListRecs(core_Mvc $mvc, $data)
-    {
-    	if(!count($data->recs)) return;
-    	
-    	// От колоните за к-ва, проверяваме кои от тях не трябва да се показват
-    	$debitQuantityMin = $debitQuantityMax = $creditQuantityMin = $creditQuantityMax = FALSE;
-    	foreach ($data->recs as $rec){
-    		foreach (array('debitQuantityMin', 'debitQuantityMax', 'creditQuantityMin', 'creditQuantityMax') as $fld){
-    			if(isset($rec->$fld)){
-    				${$fld} = TRUE;
-    			}
-    		}
-    	}
-    	
-    	// Скриваме някой колони, ако всички записи нямат стойност за тях
-    	foreach (array('debitQuantityMin', 'debitQuantityMax', 'creditQuantityMin', 'creditQuantityMax') as $var){
-    		if(${$var} === FALSE){
-    			unset($data->listFields[$var]);
     		}
     	}
     }
