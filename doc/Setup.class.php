@@ -73,6 +73,12 @@ defIfNot('DOC_SHOW_DOCUMENTS_LAST_ON', 259200); // 3 дни
 
 
 /**
+ * След колко символа да не се показва текста
+ */
+defIfNot('DOC_HIDE_TEXT_AFTER_LENGTH', 20000);
+
+
+/**
  * Инсталиране/Деинсталиране на
  * мениджъри свързани с DOC
  *
@@ -130,6 +136,7 @@ class doc_Setup extends core_ProtoSetup
         'DOC_SHOW_DOCUMENTS_BEGIN' => array ('int(Min=0)', 'caption=Задължително показване на документи->В началото на нишката, customizeBy=user'),
         'DOC_SHOW_DOCUMENTS_END' => array ('int(Min=0)', 'caption=Задължително показване на документи->В края на нишката, customizeBy=user'),
         'DOC_SHOW_DOCUMENTS_LAST_ON' => array ('time(suggestions=1 ден|3 дни|5 дни|1 седмица)', 'caption=Задължително показване на документи->По-нови от, customizeBy=user'),
+        'DOC_HIDE_TEXT_AFTER_LENGTH' => array ('int(min=0)', 'caption=Брой символи над които текста ще е скрит->Брой, customizeBy=user'),
     );
 
     
