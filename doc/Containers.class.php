@@ -2239,6 +2239,26 @@ class doc_Containers extends core_Manager
     
     
     /**
+     * Скрива/показва подадения документ
+     * 
+     * @param integer $id
+     * @param boolean $modeAct
+     */
+    public static function showOrHideDocument($id, $modeAct = TRUE)
+    {
+        $showDocArr = Mode::get(self::$modShowName);
+        
+        if (!isset($showDocArr)) {
+            $showDocArr = array();
+        }
+        
+        $showDocArr[$id] = $modeAct;
+        
+        Mode::setPermanent(self::$modShowName, $showDocArr);
+    }
+    
+    
+    /**
      * Функция, която се използва от екшъните за скриване/показване на документ
      * 
      * @param string $id
@@ -2260,15 +2280,7 @@ class doc_Containers extends core_Manager
             expect($document->haveRightFor('single'));
         }
         
-        $showDocArr = Mode::get(self::$modShowName);
-        
-        if (!isset($showDocArr)) {
-            $showDocArr = array();
-        }
-        
-        $showDocArr[$id] = $modeAct;
-        
-        Mode::setPermanent(self::$modShowName, $showDocArr);
+        self::showOrHideDocument($id, $modeAct);
         
         if ($ajaxMode) {
             
@@ -2304,7 +2316,7 @@ class doc_Containers extends core_Manager
     		return $resStatus;
         } else {
             
-            return new Redirect(array($document, 'single', $document->that));
+            return new Redirect(array($document, 'single', $document->that, 'showOrHide' => $act));
         }
     }
     

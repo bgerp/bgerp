@@ -581,6 +581,11 @@ class doc_DocumentPlg extends core_Plugin
             if($rec->threadId) {
                 if(doc_Threads::haveRightFor('single', $rec->threadId)) {
                     
+                    // Ако в момента не се скрива или показва - показва документа
+                    if (!Request::get('showOrHide')) {
+                        doc_Containers::showOrHideDocument($rec->containerId);
+                    }
+                    
                     $handle = $mvc->getHandle($rec->id);
                     
                     $url = array('doc_Containers', 'list', 'threadId' => $rec->threadId, 'docId' => $handle, 'Cid' => Request::get('Cid'), '#' => $hnd);
