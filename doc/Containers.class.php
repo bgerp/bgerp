@@ -2314,13 +2314,9 @@ class doc_Containers extends core_Manager
      */
     protected static function checkCntLimitForShow($cnt)
     {
-        $conf = core_Packs::getConfig('doc');
+        if ($cnt > 1) return FALSE;
         
-        $maxCnt = $conf->DOC_SHOW_DOCUMENTS_BEGIN + $conf->DOC_SHOW_DOCUMENTS_END;
-        
-        if ($maxCnt >= $cnt) return TRUE;
-        
-        return FALSE;
+        return TRUE;
     }
     
     
