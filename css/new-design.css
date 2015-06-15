@@ -269,10 +269,16 @@ body {
 
 .sideBarTitle {
   text-align: center;
-  color: #fff612; }
+  color: #fffb99; }
   .sideBarTitle a {
     position: relative;
     top: 2px; }
+
+.bookmarkText {
+  margin: 0 12px; }
+
+.narrow .bookmarkText {
+  margin: 0 5px; }
 
 .narrow .sidebar-row {
   margin-top: 47px;

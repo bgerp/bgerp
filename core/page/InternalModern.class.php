@@ -186,7 +186,7 @@ class core_page_InternalModern extends core_page_Active
      */
     static function renderBookmarks()
     {
-        $tpl = new ET("<div class='sideBarTitle'> [#BOOKMARK_TITLE#] [#BOOKMARK_BTN#]</div><div class='bookmark-links'>[#BOOKMARK_LINKS#]</div>");
+        $tpl = new ET("<div class='sideBarTitle'>[#BOOKMARK_TITLE#][#BOOKMARK_BTN#]</div><div class='bookmark-links'>[#BOOKMARK_LINKS#]</div>");
         
         $title = bgerp_Bookmark::getTitle();
         $btn = bgerp_Bookmark::getBtn();

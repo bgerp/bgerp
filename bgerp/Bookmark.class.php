@@ -98,9 +98,9 @@ class bgerp_Bookmark extends core_Manager
             $url = array(get_called_class(), 'list');
         }
 
-        $img =  ht::createElement('img', array('src' => sbf('img/16/edit_yellow.png', ''), 'title' => tr('Редактиране')));
-        $edit = ht::createLink($img , $url);
-        $title = tr('Бързи връзки') . "   " . $edit;
+        $img =  ht::createElement('img', array('src' => sbf('img/16/application_yellow.png', ''), 'title' => tr('Редактиране')));
+        $edit = ht::createLink($img , $url, NULL, array('class' => 'bookmarkLink'));
+        $title = $edit . "<span class='bookmarkText'>" . tr('Бързи връзки') . "</span>";
         
         return $title;
     }
@@ -120,7 +120,7 @@ class bgerp_Bookmark extends core_Manager
             $attr = array();
             $attr['onclick'] = "addParamsToBookmarkBtn(this, '{$sUrl}', '{$localUrl}'); return ;";
 
-            $img =  ht::createElement('img', array('src' => sbf('img/16/add-yellow.png', ''), 'title' => tr('Добавяне')));
+            $img =  ht::createElement('img', array('src' => sbf('img/16/add-yellow.png', ''), 'title' => tr('Добавяне'), 'class' => 'bookmarkLink'));
             $tpl = ht::createLink($img, $url, FALSE, $attr);
         }
         
