@@ -27,6 +27,7 @@ class acc_ReportDetails extends core_Manager
      */
     public $canList = 'no_one';
     
+    
     /**
      * Кой може да пише
      */
@@ -48,10 +49,6 @@ class acc_ReportDetails extends core_Manager
         
         // Ако няма баланс или записи в баланса, не показваме таба
         $data->renderReports = TRUE;
-        if(!$data->balanceRec || !acc_BalanceDetails::fetch("#balanceId = {$data->balanceRec->id}")){
-        	$data->renderReports = FALSE;
-        	return;
-        }
         
         // Ако потребителя има достъп до репортите
         if(haveRole($data->masterMvc->canReports)){
@@ -67,7 +64,9 @@ class acc_ReportDetails extends core_Manager
         }
         
         // Име на таба
-        $data->TabCaption = 'Счетоводство';
+        if($data->renderReports === TRUE){
+        	$data->TabCaption = 'Счетоводство';
+        }
         
         // Ако мастъра е документ, искаме детайла да се показва в горния таб с детайл
         if(cls::haveInterface('doc_DocumentIntf', $data->masterMvc)){
@@ -121,7 +120,10 @@ class acc_ReportDetails extends core_Manager
         $items = acc_Items::fetchItem($data->masterMvc->getClassId(), $data->masterId);
         
         // Ако мастъра не е перо, няма какво да се показва
-        if(empty($items)) return;
+        if(empty($items)) {
+        	$data->renderReports = FALSE;
+        	return;
+        }
         
         // По коя номенклатура ще се групира
         $groupBy = $data->masterMvc->balanceRefGroupBy;
@@ -131,7 +133,10 @@ class acc_ReportDetails extends core_Manager
         $dRecs = acc_Balances::fetchCurrent($accounts, $items->id);
         
         // Ако няма записи, не се прави нищо
-        if(empty($dRecs) || !count($dRecs)) return;
+        if(empty($dRecs) || !count($dRecs)) {
+        	$data->renderReports = FALSE;
+        	return;
+        }
         
         $rows = array();
         $Double = cls::get('type_Double');
@@ -146,7 +151,7 @@ class acc_ReportDetails extends core_Manager
         $attr['class'] = 'linkWithIcon';
         $attr['style'] = 'background-image:url(' . sbf('img/16/clock_history.png', '') . ');';
         $attr['title'] = tr("Хронологична справка");
-        
+       
         foreach ($data->recs as $dRec){
             
             // На коя позиция се намира, перото на мастъра
