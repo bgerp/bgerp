@@ -152,21 +152,25 @@ class doc_Containers extends core_Manager
             } elseif (isset($showDocumentArr[$rec->id]) && $showDocumentArr[$rec->id] === FALSE) {
                 $hide = TRUE;
             } else {
+                
                 $hide = TRUE;
                 
-                // По новите от да не се показват
-                if ($rec->modifiedOn > $from) {
-                    $hide = FALSE;
-                }
-                
-                // Първите да не се скриват
-                if ($begin >= $i) {
-                    $hide = FALSE;
-                }
-                
-                // Последните да не се скриват
-                if ($end < $i) {
-                    $hide = FALSE;
+                if ($rec->state != 'rejected') {
+                    
+                    // По новите от да не се показват
+                    if ($rec->modifiedOn > $from) {
+                        $hide = FALSE;
+                    }
+                    
+                    // Първите да не се скриват
+                    if ($begin >= $i) {
+                        $hide = FALSE;
+                    }
+                    
+                    // Последните да не се скриват
+                    if ($end < $i) {
+                        $hide = FALSE;
+                    }
                 }
             }
             
