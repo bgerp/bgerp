@@ -143,8 +143,13 @@ class doc_Containers extends core_Manager
         
         $showDocumentArr = Mode::get(self::$modShowName);
         
+        $firstId = key($recs);
+        
         foreach ($cRecs as $id => $rec) {
             $i++;
+            
+            // Първия, да не се скрива
+            if ($id == $firstId) continue;
             
             // Ако е зададено да се показва в сесията
             if ($showDocumentArr[$rec->id]) {
@@ -2243,13 +2248,21 @@ class doc_Containers extends core_Manager
      * 
      * @param integer $id
      * @param boolean $modeAct
+     * @param boolean $force
      */
-    public static function showOrHideDocument($id, $modeAct = TRUE)
+    public static function showOrHideDocument($id, $modeAct = TRUE, $ifIsset = FALSE)
     {
         $showDocArr = Mode::get(self::$modShowName);
         
         if (!isset($showDocArr)) {
             $showDocArr = array();
+        }
+        
+        if ($ifIsset) {
+            if (!isset($showDocArr[$id])) {
+                
+                return ;
+            }
         }
         
         $showDocArr[$id] = $modeAct;

@@ -583,7 +583,7 @@ class doc_DocumentPlg extends core_Plugin
                     
                     // Ако в момента не се скрива или показва - показва документа
                     if (!Request::get('showOrHide')) {
-                        doc_Containers::showOrHideDocument($rec->containerId);
+                        doc_Containers::showOrHideDocument($rec->containerId, TRUE, TRUE);
                     }
                     
                     $handle = $mvc->getHandle($rec->id);
