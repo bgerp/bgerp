@@ -90,7 +90,7 @@ class acc_ReportDetails extends core_Manager
         
         // Добавяне на репорта в шаблона
         $tpl->append($balanceTpl);
-       
+        
         // Връщане на шаблона
         return $tpl;
     }
@@ -107,6 +107,7 @@ class acc_ReportDetails extends core_Manager
         
         // Полета за таблицата
         $data->listFields = arr::make("tools=Пулт,ent1Id=Перо1,ent2Id=Перо2,ent3Id=Перо3,blQuantity=К-во,blAmount=Сума");
+        $data->limitFields = arr::make("item1=item1,item2=item2,item3=item3,side=Салдо,type=Вид,limitQuantity=Сума,createdBy=Създадено от,createdOn=Създадено на");
         
         // Създаване на нова инстанция на core_Mvc за задаване на td - класове
         // Създава се с new за да сме сигурни че обекта е нова празна инстанция
@@ -131,12 +132,6 @@ class acc_ReportDetails extends core_Manager
         // Взимане на данните от текущия баланс в който участват посочените сметки
         // и ид-то на перото е на произволна позиция
         $dRecs = acc_Balances::fetchCurrent($accounts, $items->id);
-        
-        // Ако няма записи, не се прави нищо
-        if(empty($dRecs) || !count($dRecs)) {
-        	$data->renderReports = FALSE;
-        	return;
-        }
         
         $rows = array();
         $Double = cls::get('type_Double');
@@ -209,6 +204,20 @@ class acc_ReportDetails extends core_Manager
             $data->total += $dRec->blAmount;
         }
         
+        // За засегнатите сметки, проверяваме имали зададени сч. лимити за тях
+        foreach ($accounts as $sysId){
+        	$limitQuery = acc_Limits::getQuery();
+        	$limitQuery->where("#item1 = {$items->id} || #item2 = {$items->id} || #item3 = {$items->id}");
+        	 
+        	$row1['limits'] = array();
+        	while($lRec = $limitQuery->fetch()){
+        		 
+        		$lRow = acc_Limits::recToVerbal($lRec);
+        		$lRow->state = cls::get('acc_Limits')->getFieldType('state')->toVerbal($lRec->state);
+        		$rows[$lRec->accountId]['limits'][$lRec->id] = $lRow;
+        	}
+        }
+        
         $data->totalRow = $Double->toVerbal($data->total);
         $data->totalRow = ($data->total < 0) ? "<span class='red'>{$data->totalRow}</span>" : $data->totalRow;
         
@@ -254,6 +263,7 @@ class acc_ReportDetails extends core_Manager
                 // Името на сметката излиза над таблицата
                 $content = new ET("<span class='accTitle'>{$accNum}</span>");
                 $fields = $data->listFields;
+                $limitFields = $data->limitFields;
                 
                 // Обикаляне на всички пера
                 foreach (range(1, 3) as $i){
@@ -263,25 +273,37 @@ class acc_ReportDetails extends core_Manager
                         
                         // Ако не са сетнати не се показва колонка в таблицата
                         unset($fields[$ent]);
+                        unset($limitFields["item{$i}"]);
                     } else {
                         
                         // Вербалното име на номенклатурата
                         $fields[$ent] = $accGroups[$i]->rec->name;
+                        $limitFields["item{$i}"] = $accGroups[$i]->rec->name;
                     }
                 }
                 
-                $tableHtml = $table->get($rows, $fields);
-                $colspan = count($fields) - 1;
-                $totalRow = $Double->toVerbal($total);
-                $totalRow = ($total < 0) ? "<span style='color:red'>{$totalRow}</span>" : $totalRow;
-                $totalHtml = "<tr><th colspan='{$colspan}' style='text-align:right'>" . tr('Общо') . ":</th><th style='text-align:right;font-weight:bold'>{$totalRow}</th></tr>";
-                $tableHtml->replace($totalHtml, 'ROW_AFTER');
-                $tableHtml->removeBlocks;
-                
-                // Добавяне на таблицата в шаблона
-                $content->append($tableHtml);
-                $tpl->append("<div class='summary-group'>" . $content . "</div>" , 'CONTENT');
-                
+                // Ако има записи показваме таблицата
+                if(count($rows)){
+                	
+                	$tableHtml = $table->get($rows, $fields);
+                	$colspan = count($fields) - 1;
+                	$totalRow = $Double->toVerbal($total);
+                	$totalRow = ($total < 0) ? "<span style='color:red'>{$totalRow}</span>" : $totalRow;
+                	$totalHtml = "<tr><th colspan='{$colspan}' style='text-align:right'>" . tr('Общо') . ":</th><th style='text-align:right;font-weight:bold'>{$totalRow}</th></tr>";
+                	$tableHtml->replace($totalHtml, 'ROW_AFTER');
+                	$tableHtml->removeBlocks;
+                	
+                	// Добавяне на таблицата в шаблона
+                	$content->append($tableHtml);
+                	$tpl->append("<div class='summary-group'>" . $content . "</div>" , 'CONTENT');
+                }
+               
+                // Ако има зададени лимити за тази сметка, показваме и тях
+                if(count($arr['limits'])){
+                	$tpl->append("<span class='accTitle' style = 'margin-top:7px'>{$accNum}  <span style='font-weight:normal'>(" . tr('лимити') . ")</span></span>", 'CONTENT');
+                	$limitsHtml = $table->get($arr['limits'], $limitFields);
+                	$tpl->append($limitsHtml, 'CONTENT');
+                }
             }
             
             if(count($data->balanceRows) > 1){
@@ -294,6 +316,10 @@ class acc_ReportDetails extends core_Manager
             $tpl->append(tr("Няма записи"), 'CONTENT');
         }
         
+        $url = array('acc_Limits', 'add', 'classId' => $data->masterMvc->getClassId(), 'objectId' => $data->masterId, 'ret_url' => TRUE);
+        $btn = ht::createBtn('Нов лимит', $url, FALSE, FALSE, 'ef_icon=img/16/star_2.png,title=Добавяне на ново ограничение на перото');
+        $btn->prepend("<br>");
+        $tpl->append($btn, 'CONTENT');
         
         // Връщане на шаблона
         return $tpl;
