@@ -60,21 +60,27 @@ class acc_Limits extends core_Manager
     
     
     /**
-     * Кой може да пише?
+     * Кой може да добавя?
      */
-    public $canWrite = 'ceo,accMaster';
+    public $canAdd = 'powerUser';
+    
+    
+    /**
+     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
+     */
+    public $rowToolsField = 'tools';
     
     
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'ceo,acc';
+    public $canDelete = 'powerUser';
     
     
     /**
      * Полета в списъчния изглед
      */
-    public $listFields = 'id,accountId,startDate,limitDuration,side,type,limitQuantity,when,sharedUsers=Нотифициране,state';
+    public $listFields = 'tools=Пулт,accountId,startDate,limitDuration,side,type,limitQuantity,when,sharedUsers=Нотифициране,state,classId';
     
     
     /**
@@ -92,7 +98,6 @@ class acc_Limits extends core_Manager
         $this->FLD('startDate', 'datetime(format=smartTime)', 'caption=Начална дата,mandatory');
         $this->FLD('limitDuration', 'time', 'caption=Продължителност');
         
-        
         $this->FLD('side', 'enum(debit=Дебит,credit=Кредит)', 'mandatory,caption=Лимит->Салдо,input=none');
         $this->FLD('type', 'enum(minimum=Минимум,maximum=Максимум)', 'mandatory,caption=Лимит->Тип,input=none');
         $this->FLD('limitQuantity', 'double(min=0,decimals=2)', 'mandatory,caption=Лимит->Стойност,input=none');
@@ -104,6 +109,9 @@ class acc_Limits extends core_Manager
         $this->FLD('sharedUsers', 'userList(roles=powerUser)', 'caption=Нотифициране->Потребители,mandatory');
         $this->FLD('when', 'date', 'caption=Надвишаване,input=none');
         $this->FLD('exceededAmount', 'double(decimals=2)', 'caption=Надвишаване,input=none');
+        
+        $this->FLD('classId', 'key(mvc=core_Classes)', 'silent,input=hidden');
+        $this->FLD('objectId', 'int', 'silent,input=hidden');
         
         $this->FLD('state', 'enum(active=Активен,closed=Затворен,pending=Надвишен)', 'caption=Видимост,input=none,notSorting,notNull,value=active');
     }
@@ -120,6 +128,24 @@ class acc_Limits extends core_Manager
         $form = &$data->form;
         $form->setDefault('startDate', dt::now());
         $rec = &$form->rec;
+        
+        if(isset($rec->classId) && isset($rec->objectId)){
+        	$Class = cls::get($rec->classId);
+        	$accounts = arr::make($Class->balanceRefAccounts, TRUE);
+        	if(count($accounts)){
+        		$options = array();
+        		foreach ($accounts as $sysId){
+        			$accId = acc_Accounts::fetchField("#systemId = '{$sysId}'", 'id');
+        			$options[$accId] = acc_Accounts::getTitleById($accId, FALSE);
+        		}
+        		
+        		$form->setOptions('accountId', $options);
+        		if(count($options) == 1){
+        			$form->setDefault('accountId', key($options));
+        			$form->setReadOnly('accountId');
+        		}
+        	}
+        }
         
         // Ако е избрана сметка
     	if(isset($form->rec->accountId)){
@@ -140,21 +166,18 @@ class acc_Limits extends core_Manager
     		if($accInfo->rec->type == 'passive'){
     			$form->setDefault('side', 'credit');
     			$form->setDefault('type', 'maximum');
+    		} else {
+    			$form->setDefault('side', 'debit');
+    			$form->setDefault('type', 'minimum');
     		}
     		
-    		$classId = Request::get('classId', 'key(mvc=core_Classes)');
-    		$objectId = Request::get('objectId');
-    		
-    		if(isset($classId) && isset($objectId)){
-    			if(Request::get('accountId', 'key(mvc=acc_Accounts)')){
-    				$form->setReadOnly('accountId');
-    			}
-    			 
+    		if(isset($rec->classId) && isset($rec->objectId)){
+    			
     			$form->setField('side', 'input=hidden');
-    			if($itemRec = acc_Items::fetchItem($classId, $objectId)){
+    			if($itemRec = acc_Items::fetchItem($rec->classId, $rec->objectId)){
     				foreach (range(1, 3) as $i){
     					if(isset($accInfo->groups[$i])){
-    						if(cls::haveInterface($accInfo->groups[$i]->rec->regInterfaceId, $classId)){
+    						if(cls::haveInterface($accInfo->groups[$i]->rec->regInterfaceId, $rec->classId)){
     							$form->setDefault("item{$i}", $itemRec->id);
     							$form->setReadOnly("item{$i}");
     						}
@@ -239,6 +262,7 @@ class acc_Limits extends core_Manager
         
         // Ceo и accMaster Може да вижда всички записи, иначе само тези до които е споделен
         if(!haveRole('ceo,accMaster')){
+        	//unset($data->listFields['tools']);
         	$cu = core_Users::getCurrent();
         	$data->query->like('sharedUsers', "|{$cu}|");
         }
@@ -279,9 +303,36 @@ class acc_Limits extends core_Manager
     			$requiredRoles = 'no_one';
     		}
     	}
+    	
+    	if($action == 'add' || $action == 'edit' || $action == 'delete'){
+    		if(isset($rec->objectId) && isset($rec->classId)){
+    			if(!acc_Items::fetchItem($rec->classId, $rec->objectId)){
+    				$requiredRoles = 'no_one';
+    			} else {
+    				$requiredRoles = cls::get($rec->classId)->getRequiredRoles('addacclimits');
+    			}
+    		} elseif(isset($rec->id)){
+    			$requiredRoles = 'no_one';
+    		}
+    	}
+    	
+    	if($action == 'add' && isset($rec)){
+    		if(!isset($rec->objectId) || !isset($rec->classId)){
+    			$requiredRoles = 'ceo,accMaster';
+    		}
+    	}
     }
     
     
+    /**
+     * Извиква се след подготовката на toolbar-а за табличния изглед
+     */
+    protected static function on_AfterPrepareListToolbar($mvc, &$data)
+    {
+    	$data->toolbar->removeBtn('btnAdd');
+    }
+    	
+    	
     function act_Test()
     {
     	$this->cron_CheckAccLimits();
@@ -393,93 +444,4 @@ class acc_Limits extends core_Manager
     		}
     	}
     }
-    
-    
-    /*function prepareLimits(&$data)
-    {
-    	$data->masterMvc->limitAccounts = '501';
-    	
-    	if(!isset($data->masterMvc->limitAccounts)) {
-    		$data->render = FALSE;
-    		return;
-    	}
-    	
-    	$data->TabCaption = 'Лимити';
-    	
-    	if($itemRec = acc_Items::fetchItem($data->masterMvc->getClassId(), $data->masterId)){
-    		$query = $this->getQuery();
-    		$query->where("#item1 = {$itemRec->id} || #item2 = {$itemRec->id} || #item3 = {$itemRec->id}");
-    		
-    		$data->rows = array();
-    		while($rec = $query->fetch()){
-    			foreach (range(1, 3) as $i){
-    				if($rec->{"item{$i}"} == $itemRec->id){
-    					unset($rec->{"item{$i}"});
-    					$unseted = "item{$i}";
-    					break;
-    				}
-    			}
-    			
-    			if(empty($data->limits[$rec->accountId])){
-    				$data->limits[$rec->accountId] = array('unseted' => $unseted, 'rows' => array());
-    			}
-    			
-    			$row = $this->recToVerbal($rec);
-    			$row->state = $this->getFieldType('state')->toVerbal($rec->state);
-    			
-    			$data->limits[$rec->accountId]['rows'][$rec->id] = $row;
-    		}
-    	}
-    }
-    
-    
-    function renderLimits(&$data)
-    {
-    	if($data->render === FALSE) return;
-    	$tpl = getTplFromFile('acc/tpl/LimitDetail.shtml');
-    	
-    	$data->listFields = arr::make('item1=item1,item2=item2,item3=item3,side=Салдо,type=Вид,limitQuantity=Сума,createdBy=Създадено от,createdOn=Създадено на');
-    	
-    	$count = 1;
-    	foreach ($data->rows as $accountId => $arr){
-    		
-    		// Името на сметката и нейните групи
-    		$accNum = acc_Balances::getAccountLink($accountId);
-    		$accInfo = acc_Accounts::getAccountInfo($accountId);
-    		
-    		// Името на сметката излиза над таблицата
-    		$content = new ET("<span class='accTitle'>{$accNum}</span>");
-    		$fields = $data->listFields;
-    		
-    		// Обикаляне на всички пера
-    		foreach (range(1, 3) as $i){
-    			if(isset($accInfo->groups[$i])){
-    				if($arr['unseted'] != "item{$i}"){
-    					$fields["item{$i}"] = $accInfo->groups[$i]->rec->name;
-    				} else {
-    					unset($fields["item{$i}"]);
-    				}
-    			} else {
-    				unset($fields["item{$i}"]);
-    			}
-    		}
-    		
-    		$table = cls::get('core_TableView', array('mvc' => $this));
-    		$content->append($table->get($arr['rows'], $fields));
-    		
-    		if($count != 1){
-    			$content->append("<div style='margin-top:15px'></div>");
-    		}
-    		
-    		$tpl->append($content, 'CONTENT');
-    		
-    		$count++;
-    	}
-    	
-    	$url = array($this, 'add', 'classId' => $data->masterMvc->getClassId(), 'objectId' => $data->masterId);
-    	$btn = ht::createBtn('Нов запис', $url, FALSE, FALSE, 'title=Добавяне на ново ограничение на перото');
-    	$tpl->append($btn, 'BTNS');
-    	
-    	return $tpl;
-    }*/
 }
