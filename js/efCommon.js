@@ -3673,7 +3673,7 @@ function addParamsToBookmarkBtn(obj, parentUrl, localUrl)
 	}
 	var title = document.title;
 
-    obj.setAttribute("href", parentUrl + '?url=' + url + '&title=' + title);
+    obj.setAttribute("href", parentUrl + '&url=' + url + '&title=' + title);
 }
 
 
