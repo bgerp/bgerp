@@ -302,7 +302,7 @@ class acc_ReportDetails extends core_Manager
                 // Ако има зададени лимити за тази сметка, показваме и тях
                 if(count($arr['limits'])){
                 	$tpl->append("<span class='accTitle' style = 'margin-top:7px'>{$accNum}  <span style='font-weight:normal'>(" . tr('лимити') . ")</span></span>", 'CONTENT');
-                	$limitsHtml = $table->get($arr['limits'], $limitFields);
+                	$limitsHtml = $table->get($arr['limits'], array('tools' => 'Пулт') + $limitFields);
                 	$tpl->append($limitsHtml, 'CONTENT');
                 }
             }
