@@ -251,6 +251,7 @@ class acc_ReportDetails extends core_Manager
             $Double->params['decimals'] = 2;
             
             $table = cls::get('core_TableView', array('mvc' => $data->reportTableMvc));
+            $count = 0;
             
             // За всички записи групирани по сметки
             foreach ($data->balanceRows as $accId => $arr){
@@ -297,6 +298,7 @@ class acc_ReportDetails extends core_Manager
                 	// Добавяне на таблицата в шаблона
                 	$content->append($tableHtml);
                 	$tpl->append("<div class='summary-group'>" . $content . "</div>" , 'CONTENT');
+                	$count++;
                 }
                
                 // Ако има зададени лимити за тази сметка, показваме и тях
@@ -306,8 +308,8 @@ class acc_ReportDetails extends core_Manager
                 	$tpl->append($limitsHtml, 'CONTENT');
                 }
             }
-            
-            if(count($data->balanceRows) > 1){
+           
+            if($count > 1){
             	$lastRow = "<div class='acc-footer'>" . tr('Сумарно'). ": " . $data->totalRow . "</div>";
             	$tpl->append($lastRow, 'CONTENT');
             }
