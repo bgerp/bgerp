@@ -93,6 +93,12 @@ class cat_Products extends core_Embedder {
     
     
     /**
+     * Кой  може да вижда счетоводните справки?
+     */
+    public $canAddacclimits = 'ceo,storeMaster,accMaster';
+    
+    
+    /**
      * Наименование на единичния обект
      */
     public $singleTitle = "Артикул";

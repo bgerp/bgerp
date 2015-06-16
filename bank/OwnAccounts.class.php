@@ -126,6 +126,12 @@ class bank_OwnAccounts extends core_Master {
     
     
     /**
+     * Кой  може да вижда счетоводните справки?
+     */
+    var $canAddacclimits = 'ceo,bankMaster,accMaster';
+    
+    
+    /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
     var $rowToolsSingleField = 'title';
@@ -149,6 +155,7 @@ class bank_OwnAccounts extends core_Master {
      */
     var $singleIcon = 'img/16/own-bank.png';
     
+    
     /**
      * Детайли на този мастър обект
      *
@@ -161,10 +168,12 @@ class bank_OwnAccounts extends core_Master {
      */
     public $canReports = 'ceo,bank,acc';
     
+    
     /**
      * По кои сметки ще се правят справки
      */
     public $balanceRefAccounts = '503';
+    
     
     /**
      * По кой итнерфейс ще се групират сметките

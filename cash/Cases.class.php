@@ -111,6 +111,12 @@ class cash_Cases extends core_Master {
     
     
     /**
+     * Кой  може да вижда счетоводните справки?
+     */
+    var $canAddacclimits = 'ceo,cashMaster,accMaster';
+    
+    
+    /**
 	 * Кой може да го разглежда?
 	 */
 	var $canList = 'ceo, cash';
