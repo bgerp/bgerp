@@ -337,6 +337,10 @@ div.folder-cover {
 	}
 	.detail-info {
 		background: none;
+        &.portal {
+            background: none !important;
+            box-shadow: none;
+        }
 	}
 	.groupTitle {
 		color: #333;

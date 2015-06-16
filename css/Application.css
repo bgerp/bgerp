@@ -292,6 +292,9 @@ div.folder-cover {
     background-image: url('../img/cover-bg-yellow.png'); }
   div.folder-cover .detail-info {
     background: none; }
+    div.folder-cover .detail-info.portal {
+      background: none !important;
+      box-shadow: none; }
   div.folder-cover .groupTitle {
     color: #333333;
     font-weight: bold; }
