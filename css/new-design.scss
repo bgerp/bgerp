@@ -339,6 +339,13 @@ body {
     }
 }
 
+a.bookmark-external-url {
+    color: #0066ff;
+}
+.bookmark-wrong-url {
+    color: #b11;
+}
+
 /*menu i podmenu*/
 #nav-panel ul , #nav-panel ul li {
 	margin: 0;

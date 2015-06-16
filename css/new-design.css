@@ -308,6 +308,12 @@ body {
       .bookmark-links ul a:hover {
         color: #fefdd6; }
 
+a.bookmark-external-url {
+  color: #0066ff; }
+
+.bookmark-wrong-url {
+  color: #bb1111; }
+
 /*
  * menu i podmenu
  */
