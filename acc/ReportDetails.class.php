@@ -41,6 +41,7 @@ class acc_ReportDetails extends core_Manager
     {
         // Роли по подразбиране
         setIfNot($data->masterMvc->canReports, 'ceo');
+        setIfNot($data->masterMvc->canAddacclimits, 'ceo');
         setIfNot($data->masterMvc->balanceRefShowZeroRows, TRUE);
         setIfNot($data->masterMvc->showAccReportsInTab, TRUE);
         
@@ -316,10 +317,13 @@ class acc_ReportDetails extends core_Manager
             $tpl->append(tr("Няма записи"), 'CONTENT');
         }
         
-        $url = array('acc_Limits', 'add', 'classId' => $data->masterMvc->getClassId(), 'objectId' => $data->masterId, 'ret_url' => TRUE);
-        $btn = ht::createBtn('Нов лимит', $url, FALSE, FALSE, 'ef_icon=img/16/star_2.png,title=Добавяне на ново ограничение на перото');
-        $btn->prepend("<br>");
-        $tpl->append($btn, 'CONTENT');
+        // Ако потребителя може да добавя счетоводни лимити
+        if(acc_Limits::haveRightFor('add', (object)array('objectId' => $data->masterId, 'classId' => $data->masterMvc->getClassId()))){
+        	$url = array('acc_Limits', 'add', 'classId' => $data->masterMvc->getClassId(), 'objectId' => $data->masterId, 'ret_url' => TRUE);
+        	$btn = ht::createBtn('Нов лимит', $url, FALSE, FALSE, 'ef_icon=img/16/star_2.png,title=Добавяне на ново ограничение на перото');
+        	$btn->prepend("<br>");
+        	$tpl->append($btn, 'CONTENT');
+        }
         
         // Връщане на шаблона
         return $tpl;
