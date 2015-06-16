@@ -2366,21 +2366,12 @@ class doc_Containers extends core_Manager
         
         $document = self::getDocument($id);
         $dRec = $document->rec();
+        $dRow = $document->getInstance()->recToVerbal($dRec, array('state', '-single'));
         
         $iconStyle = 'background-image:url(' . sbf($document->getIcon(), '"') . ');';
         $tpl->replace($iconStyle, 'iconStyle');
         
-        $stateClass = 'state-' . $dRec->state;
-        $tpl->replace($stateClass, 'STATE_CLASS');
-        
-        $ident = '#' . $document->getHandle();
-        $tpl->replace($ident, 'ident');
-        
-        $state = $document->getVerbal('state');
-        $tpl->replace($state, 'state');
-        
-        $singleTitle = tr($document->singleTitle);
-        $tpl->replace($singleTitle, 'singleTitle');
+        $tpl->placeObject($dRow);
         
         $docTitle = self::getDocTitle($id);
         $tpl->replace($docTitle, 'docTitle');
@@ -2400,7 +2391,7 @@ class doc_Containers extends core_Manager
             }
                 
             $showDocument = ht::createLink('', $url, NULL, $attr);
-            $tpl->replace($showDocument, 'documentSettings');
+            $tpl->append($showDocument, 'documentSettings');
         }
         
         $tpl->removeBlocks();
