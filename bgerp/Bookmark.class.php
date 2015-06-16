@@ -160,7 +160,10 @@ class bgerp_Bookmark extends core_Manager
 
 	    $res = '<ul>';
 	    while ($rec = $query->fetch()) {
-	        $link = ht::createLink($rec->title, array(get_called_class(), "click", $rec->id));
+	        
+	        $title = self::getVerbal($rec, 'title');
+            $link = self::getLinkFromUrl($rec->url, $title);
+	        
 	        $res .= "<li>" . $link . "</li>";
 	    }
 	    $res .= '</ul>';
@@ -188,7 +191,7 @@ class bgerp_Bookmark extends core_Manager
 	 * 
 	 * @return string
 	 */
-    public static function prepareUrl($url, $title = NULL)
+    public static function getLinkFromUrl($url, $title = NULL)
     {
         if (!preg_match('/^http[s]?\:\/\//i', $url) && (strpos($url, Request::get('App')) === 0)) {
             
@@ -210,6 +213,7 @@ class bgerp_Bookmark extends core_Manager
 	        $lUrl = $url;
 	        
             $attr['class'] = 'bookmark-external-url';
+            $attr['target'] = '_blank';
 	    }
 	    
 	    if (!isset($title)) {
@@ -309,6 +313,6 @@ class bgerp_Bookmark extends core_Manager
     {
         $title = $mvc->getVerbal($rec, 'title');
         
-        $row->url = self::prepareUrl($rec->url, $title);
+        $row->url = self::getLinkFromUrl($rec->url, $title);
     }
 }
