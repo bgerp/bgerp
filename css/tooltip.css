@@ -91,6 +91,10 @@ div.alphabet div.tab-row .tab.selected{
 	top:0;
 }
 
+.tooltip-text .richtext-message {
+    margin-top: 10px;
+}
+
 .tooltip-arrow {
 	display: block;
 	width: 16px;
