@@ -257,7 +257,7 @@ class core_Setup extends core_ProtoSetup {
         'core_Forwards',
         'migrate::settigsDataFromCustomToCore',
         'migrate::movePersonalizationData',
-        'migrate::repairRolesFromInherit'
+        'migrate::repairUsersRolesInput'
     );
     
     
@@ -447,7 +447,7 @@ class core_Setup extends core_ProtoSetup {
     /**
      * Поправя потребителите с празни rolesInput
      */
-    static function repairRolesFromInherit()
+    static function repairUsersRolesInput()
     {
         $query = core_Users::getQuery();
         $query->where("#rolesInput IS NULL");
