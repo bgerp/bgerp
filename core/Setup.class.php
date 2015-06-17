@@ -256,7 +256,8 @@ class core_Setup extends core_ProtoSetup {
         'core_Settings',
         'core_Forwards',
         'migrate::settigsDataFromCustomToCore',
-        'migrate::movePersonalizationData'
+        'migrate::movePersonalizationData',
+        'migrate::repairRolesFromInherit'
     );
     
     
@@ -439,6 +440,24 @@ class core_Setup extends core_ProtoSetup {
             $key = core_Users::getSettingsKey($rec->id);
             
             core_Settings::setValues($key, $rec->configData, $rec->id);
+        }
+    }
+    
+    
+    /**
+     * Поправя потребителите с празни rolesInput
+     */
+    static function repairRolesFromInherit()
+    {
+        $query = core_Users::getQuery();
+        $query->where("#rolesInput IS NULL");
+        $query->orWhere("#rolesInput = ''");
+        $query->orWhere("#rolesInput = '|'");
+        
+        while ($rec = $query->fetch()) {
+            $rec->rolesInput = $rec->roles;
+            
+            core_Users::save($rec, 'rolesInput');
         }
     }
 
