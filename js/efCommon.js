@@ -917,8 +917,9 @@ function prepareContextMenu() {
     jQuery.each($('.more-btn'), function(i, val) {
         var el = $(this).parent().find('.modal-toolbar');
         var position = el.attr('data-position');
-        if(position && !( position == 'left' || position== 'top' || position == 'bottom')) {
-            position == 'right'
+        
+        if (!position || !( position == 'left' || position== 'top' || position == 'bottom')) {
+            position = 'right'
         }
         $(this).contextMenu('popup', el, {
             'displayAround': 'trigger',

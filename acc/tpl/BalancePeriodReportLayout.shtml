@@ -1,0 +1,12 @@
+<h3>[#TITLE#]</h3>
+[#FORM#]
+[#PAGER#]
+<div>
+    <!--ET_BEGIN buttonList-->[#buttonList#]<!--ET_END buttonList-->
+    <!--ET_BEGIN buttonChart-->[#buttonChart#]<!--ET_END buttonChart-->
+</div>
+<br><br>
+<div class='overflow-scroll'>
+    [#CONTENT#]
+</div>
+[#PAGER#]
