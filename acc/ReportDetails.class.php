@@ -260,28 +260,23 @@ class acc_ReportDetails extends core_Manager
                 
                 // Името на сметката и нейните групи
                 $accNum = acc_Balances::getAccountLink($accId);
-                $accGroups = acc_Accounts::getAccountInfo($accId)->groups;
+                $accInfo = acc_Accounts::getAccountInfo($accId);
+                $accGroups = $accInfo->groups;
                 
                 // Името на сметката излиза над таблицата
                 $content = new ET("<span class='accTitle'>{$accNum}</span>");
                 $fields = $data->listFields;
                 $limitFields = $data->limitFields;
                 
-                // Обикаляне на всички пера
+                $unsetPosition = acc_Lists::getPosition($accInfo->rec->systemId, $data->masterMvc->balanceRefGroupBy);
                 foreach (range(1, 3) as $i){
-                    $ent = "ent{$i}Id";
-                    
-                    if(empty($rows[0][$ent])){
-                        
-                        // Ако не са сетнати не се показва колонка в таблицата
-                        unset($fields[$ent]);
-                        unset($limitFields["item{$i}"]);
-                    } else {
-                        
-                        // Вербалното име на номенклатурата
-                        $fields[$ent] = $accGroups[$i]->rec->name;
-                        $limitFields["item{$i}"] = $accGroups[$i]->rec->name;
-                    }
+                	if($i != $unsetPosition){
+                		$fields["ent{$i}Id"] = $accGroups[$i]->rec->name;
+                		$limitFields["item{$i}"] = $accGroups[$i]->rec->name;
+                	} else {
+                		unset($fields["ent{$i}Id"]);
+                		unset($limitFields["item{$i}"]);
+                	}
                 }
                 
                 // Ако има записи показваме таблицата
