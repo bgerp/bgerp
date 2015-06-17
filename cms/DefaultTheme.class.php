@@ -71,7 +71,7 @@ class cms_DefaultTheme extends core_ProtoInner {
         
         // цвят на фона на страницата
         if ($this->formRec->bgColor){
-        	$bgcolor = $color = ltrim($this->formRec->bgColor, "#");
+        	$bgcolor = ltrim($this->formRec->bgColor, "#");
         	
         }
         // за основния цвят
@@ -121,8 +121,8 @@ class cms_DefaultTheme extends core_ProtoInner {
     	// за активния цвят
     	if ($this->formRec->activeColor){
 
-            //ако не е зададен основен а задаваме активен цвят
-            if(!$this->formRec->baseColor) {
+            //ако не е зададен основен, а задаваме активен цвят
+            if(!$color) {
                 $color = '#333344';
             }
 
