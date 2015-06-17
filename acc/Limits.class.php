@@ -80,7 +80,7 @@ class acc_Limits extends core_Manager
     /**
      * Полета в списъчния изглед
      */
-    public $listFields = 'tools=Пулт,accountId,startDate,limitDuration,side,type,limitQuantity,when,sharedUsers=Нотифициране,state,classId';
+    public $listFields = 'tools=Пулт,accountId,startDate,limitDuration,side,type,limitQuantity,when,sharedUsers=Нотифициране,status,state';
     
     
     /**
@@ -113,7 +113,9 @@ class acc_Limits extends core_Manager
         $this->FLD('classId', 'key(mvc=core_Classes)', 'silent,input=hidden');
         $this->FLD('objectId', 'int', 'silent,input=hidden');
         
-        $this->FLD('state', 'enum(active=Активен,closed=Затворен,pending=Надвишен)', 'caption=Видимост,input=none,notSorting,notNull,value=active');
+        $this->FLD('status', 'enum(normal=Ненадвишен,exceeded=Надвишен)', 'caption=Видимост,input=none,notSorting,notNull,value=normal');
+        $this->FLD('state', 'enum(active=Активен,closed=Затворен,)', 'caption=Видимост,input=none,notSorting,notNull,value=active');
+        
     }
     
     
@@ -130,6 +132,7 @@ class acc_Limits extends core_Manager
         $rec = &$form->rec;
         
         if(isset($rec->classId) && isset($rec->objectId)){
+        	
         	$Class = cls::get($rec->classId);
         	$accounts = arr::make($Class->balanceRefAccounts, TRUE);
         	if(count($accounts)){
@@ -200,7 +203,7 @@ class acc_Limits extends core_Manager
     		// Зануляваме датата, на която лимита е бил нарушен
     		$form->rec->when = NULL;
     		$form->rec->exceededAmount = NULL;
-    		$form->rec->state = 'active';
+    		$form->rec->status = 'normal';
     	}
     }
     
@@ -228,6 +231,10 @@ class acc_Limits extends core_Manager
     		$exceededAmount = cls::get('type_Double', array('params' => array('decimals' => 2)))->toVerbal($rec->exceededAmount);
     		$row->when .= "<br>( {$exceededAmount} )";
     	}
+    	
+    	if($rec->status == 'exceeded') {
+    		$row->ROW_ATTR['class'] .= ' state-pending';
+    	}
     }
     
     
@@ -241,7 +248,7 @@ class acc_Limits extends core_Manager
         
         $form->FNC('account', 'acc_type_Account(allowEmpty)', 'caption=Сметка,input');
         //$form->FNC('users', 'users(rolesForAll=support|ceo|admin)', 'caption=Потребители,silent,refreshForm');
-        $form->FNC("state2", 'enum(all=Всички,active=Активни,closed=Затворени,pending=Надвишени)', 'caption=Вид,input');
+        $form->FNC("state2", 'enum(all=Всички,active=Активни,closed=Затворени,exceeded=Надвишени)', 'caption=Вид,input');
         $form->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $form->showFields = 'search,account,state2';
         
@@ -254,15 +261,16 @@ class acc_Limits extends core_Manager
         	}
         	
         	if($searchState = $form->rec->state2){
-        		if($searchState != 'all'){
+        		if($searchState != 'all' && $searchState != 'exceeded'){
         			$data->query->where(array("#state = '[#1#]'", $searchState));
+        		}elseif($searchState == 'exceeded'){
+        			$data->query->where(array("#status = '[#1#]'", $searchState));
         		}
         	}
         }
         
         // Ceo и accMaster Може да вижда всички записи, иначе само тези до които е споделен
         if(!haveRole('ceo,accMaster')){
-        	//unset($data->listFields['tools']);
         	$cu = core_Users::getCurrent();
         	$data->query->like('sharedUsers', "|{$cu}|");
         }
@@ -274,8 +282,7 @@ class acc_Limits extends core_Manager
      */
     protected static function on_AfterPrepareListFields($mvc, $data)
     {
-    	$data->query->XPR('orderByState', 'int', "(CASE #state WHEN 'pending' THEN 1 WHEN 'active' THEN 2 ELSE 3 END)");
-    	$data->query->orderBy('#orderByState=ASC');
+    	$data->query->orderBy('#state=ASC,#status=DESC');
     }
     
     
@@ -298,12 +305,6 @@ class acc_Limits extends core_Manager
     		}
     	}
     	
-    	if(($action == 'changestate' || $action == 'delete') && isset($rec)){
-    		if($rec->state == 'pending'){
-    			$requiredRoles = 'no_one';
-    		}
-    	}
-    	
     	if($action == 'add' || $action == 'edit' || $action == 'delete'){
     		if(isset($rec->objectId) && isset($rec->classId)){
     			if(!acc_Items::fetchItem($rec->classId, $rec->objectId)){
@@ -311,8 +312,6 @@ class acc_Limits extends core_Manager
     			} else {
     				$requiredRoles = cls::get($rec->classId)->getRequiredRoles('addacclimits');
     			}
-    		} elseif(isset($rec->id)){
-    			$requiredRoles = 'no_one';
     		}
     	}
     	
@@ -329,7 +328,9 @@ class acc_Limits extends core_Manager
      */
     protected static function on_AfterPrepareListToolbar($mvc, &$data)
     {
-    	$data->toolbar->removeBtn('btnAdd');
+    	if(!haveRole('ceo,accMaster')){
+    		$data->toolbar->removeBtn('btnAdd');
+    	}
     }
     	
     	
@@ -372,6 +373,9 @@ class acc_Limits extends core_Manager
     	// Намираме всички активни ограничения
     	$newQuery = $this->getQuery();
     	$newQuery->where("#state != 'closed'");
+    	
+    	$sendNotificationsTo = array();
+    	
     	while($rec = $newQuery->fetch()){
     		
     		// Ще групираме данните от баланса
@@ -397,11 +401,15 @@ class acc_Limits extends core_Manager
     			}
     		}
     		
+    		$notDimensionalItems = array();
     		$hasDimensionalItemSelected = FALSE;
     		foreach (range(1, 3) as $i){
     			if(isset($rec->{"item{$i}"})){
     				if($accInfo->groups[$i]->rec->isDimensional == 'yes'){
     					$hasDimensionalItemSelected = TRUE;
+    				} else {
+    					$itemName = acc_Items::getVerbal($rec->{"item{$i}"}, 'title');
+    					$notDimensionalItems[$itemName] = $itemName;
     				}
     			}
     		}
@@ -416,31 +424,44 @@ class acc_Limits extends core_Manager
     		
     		// Ако има надвишаване изпращаме нотифификация
     		if($sendNotification === TRUE){
+    			
     			$oldWhen = $rec->when;
     			$rec->when = dt::today();
-    			$rec->state = 'pending';
-    			$rec->exceededAmount = abs($fieldToCompare - $sign * $rec->limitQuantity);
+    			$rec->status = 'exceeded';
+    			$rec->exceededAmount = abs(abs($fieldToCompare) - $rec->limitQuantity);
     			
-    			$this->save($rec, 'when,state,exceededAmount');
+    			$this->save($rec, 'when,status,exceededAmount');
     			$sharedUsers = keylist::toArray($rec->sharedUsers);
-    			$urlArr = $customUrl = array($this, 'list');
     			
-    			$whenVerbal = $this->getVerbal($rec->when, 'when');
-    			$msg = "|Има надвишаване на ограничение на|* '{$whenVerbal}')";
-    			
-    			// Всеки споделен потребител, нотифицираме го
+    			// Запомняме по кои неразмерни пера е имало надвишаване
     			foreach ($sharedUsers as $userId){
-    				bgerp_Notifications::add($msg, $urlArr, $userId, 'normal', $customUrl);
+    				if(!array_key_exists($userId, $sendNotificationsTo)){
+    					$sendNotificationsTo[$userId] = array();
+    				}
+    				$sendNotificationsTo[$userId] = array_merge($sendNotificationsTo[$userId], $notDimensionalItems);
     			}
     		} else {
     			
     			// Ако е имало надвишаване но вече няма
     			if(isset($rec->when)){
-    				$rec->state = 'active';
+    				$rec->status = 'normal';
     				$rec->when = NULL;
     				$rec->exceededAmount = NULL;
-    				$this->save($rec, 'when,exceededAmount,state');
+    				$this->save($rec, 'when,exceededAmount,status');
     			}
+    		}
+    	}
+    	
+    	// На всеки потребител, който трябва да се нотифицира, нотифицираме го
+    	if(count($sendNotificationsTo)){
+    		foreach ($sendNotificationsTo as $userId => $items){
+    			$msg = "|Има надвишаване на ограничения|*";
+    			if(count($items)){
+    				$msg .= " |в|* '" . implode(', ', $items) . "'";
+    			}
+    			
+    			$urlArr = $customUrl = array($this, 'list');
+    			bgerp_Notifications::add($msg, $urlArr, $userId, 'normal', $customUrl);
     		}
     	}
     }
