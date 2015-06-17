@@ -471,25 +471,19 @@ class planning_PlanningReportImpl extends frame_BaseDriver
       	return $activateOn;
 	}
 
-	public function showInfo()
-	{
-		$tooltipUrl = toUrl(array('acc_Items', 'showItemInfo', $id, 'unique' => $unique), 'local');
-		
-		return $tooltipUrl;
-	}
+	
+    /**
+     * Ако имаме в url-то export създаваме csv файл с данните
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $rec
+     */
+    public function exportCsv()
+    {
 
-     /**
-      * Ако имаме в url-то export създаваме csv файл с данните
-      *
-      * @param core_Mvc $mvc
-      * @param stdClass $rec
-      */
-     /*public function exportCsv()
-     {
+		$exportFields = $this->getExportFields();
 
-         $exportFields = $this->getExportFields();
-
-         $conf = core_Packs::getConfig('core');
+        $conf = core_Packs::getConfig('core');
 
          if (count($this->innerState->recs) > $conf->EF_MAX_EXPORT_CNT) {
              redirect(array($this), FALSE, "Броят на заявените записи за експорт надвишава максимално разрешения|* - " . $conf->EF_MAX_EXPORT_CNT, 'error');
@@ -505,53 +499,19 @@ class planning_PlanningReportImpl extends frame_BaseDriver
          if(count($this->innerState->recs)) {
 			foreach ($this->innerState->recs as $id => $rec) {
 
-				if($this->innerState->bShowQuantities || $this->innerState->rec->groupBy){
-					
-					
-					$baseQuantity += $rec->baseQuantity;
-					$baseAmount += $rec->baseAmount;
-					$debitQuantity += $rec->debitQuantity;
-					$debitAmount += $rec->debitAmount;
-					$creditQuantity += $rec->creditQuantity;
-					$creditAmount += $rec->creditAmount;
-					$blQuantity += $rec->blQuantity;
-					$blAmount += $rec->blAmount;
-
-				} 
 				
 				$rCsv = $this->generateCsvRows($rec);
 
-				
 				$csv .= $rCsv;
 				$csv .=  "\n";
 		
 			}
 
-			$row = new stdClass();
-			
-			$row->flag = TRUE;
-			$row->baseQuantity = $baseQuantity;
-			$row->baseAmount = $baseAmount;
-			$row->debitQuantity = $debitQuantity;
-			$row->debitAmount = $debitAmount;
-			$row->creditQuantity = $creditQuantity;
-			$row->creditAmount = $creditAmount;
-			$row->blQuantity = $blQuantity;
-			$row->blAmount = $blAmount;
-			
-			foreach ($row as $fld => $value) {
-				$value = frame_CsvLib::toCsvFormatDouble($value);
-				$row->{$fld} = $value;
-			}
-		
-		
-			$beforeRow = $this->generateCsvRows($row);
-
-			$csv = $header . "\n" . $beforeRow. "\n" . $csv;
+			$csv = $header . "\n" . $csv;
 	    } 
 
         return $csv;
-    }*/
+    }
 
 
     /**
@@ -560,20 +520,25 @@ class planning_PlanningReportImpl extends frame_BaseDriver
      *
      * @return array
      */
-    /*protected function getExportFields_()
+    protected function getExportFields_()
     {
 
-        $exportFields = $this->innerState->listFields;
-        
-        foreach ($exportFields as $field => $caption) {
-        	$caption = str_replace('|*', '', $caption);
-        	$caption = str_replace('->', ' - ', $caption);
-        	
-        	$exportFields[$field] = $caption;
-        }
+        $exportFields['id']  = "Име (код)";
+        $exportFields['quantity']  = "Продажба-Поръчано";
+        $exportFields['quantityJob']  = "Производство-Поръчано";
+        $exportFields['quantityDelivered']  = "Продажба-Доставено";
+        $exportFields['quantityProduced']  = "Производство-Произведено";
+        $exportFields['quantityToDelivered']  = "Продажба-За доставяне";
+        $exportFields['quantityToProduced']  = "Производство-За производство";
+        $exportFields['dateSale']  = "Продажба-Дата";
+        $exportFields['date']  = "Производство-Дата";
+        $exportFields['sales'] = "Продажба";
+		$exportFields['jobs']  = "Производство";
+		$exportFields['store']  = "На склад";
+
         
         return $exportFields;
-    }*/
+    }
     
     
     /**
@@ -581,54 +546,64 @@ class planning_PlanningReportImpl extends frame_BaseDriver
 	 *
 	 * @return string $rCsv
 	 */
-	/*protected function generateCsvRows_($rec)
+	protected function generateCsvRows_($rec)
 	{
 	
 		$exportFields = $this->getExportFields();
 
-		$rec = frame_CsvLib::prepareCsvRows($rec);
-	
-		$rCsv = '';
-		
-		$res = count($exportFields); 
-		
 		foreach ($rec as $field => $value) {
 			$rCsv = '';
-			
-			if ($res == 11) {
-				$zeroRow = "," . 'ОБЩО' . "," .'' . "," .'';
-			} elseif ($res == 10 || $res == 9 || $res == 8 || $res == 7) {
-				$zeroRow = "," . 'ОБЩО' . "," .'';
-			} elseif ($res <= 6) {
-				$zeroRow = "," . 'ОБЩО';
-			}
-			
-			foreach ($exportFields as $field => $caption) {
-					
-				if ($rec->{$field}) {
 	
-					$value = $rec->{$field};
-					$value = html2text_Converter::toRichText($value);
-					// escape
+			foreach ($exportFields as $fld => $caption) {
+					
+				if ($rec->{$fld}) {
+					
+					$value = $rec->{$fld};
+					
+					if (in_array($fld ,array('dateSale', 'date'))) {
+						$value = frame_CsvLib::toCsvFormatData($value);
+					
+					} 
+					
+					if ($fld == 'id') {
+
+						$value = cat_Products::getTitleById($value);
+					} 
+    	
+					if (in_array($fld ,array('quantity', 'quantityDelivered', 'quantityToDeliver', 'quantityJob', 'quantityProduced', 'quantityToProduced', 'inStore'))) {
+					
+						$value = frame_CsvLib::toCsvFormatDouble($value);
+					
+					}
+					
+					if($fld == 'sales') {
+						for($i = 0; $i <= count($value)-1; $i++) {
+							 
+							$value = sales_Sales::getTitleById($value[$i]);
+						}
+					}
+					
+    	            
+					if ($fld == 'jobs') { 
+						for($j = 0; $j <= count($value)-1; $j++) {
+								
+							$value = planning_Jobs::getTitleById($value[$j]);
+						
+						}
+					}
+		
 					if (preg_match('/\\r|\\n|,|"/', $value)) {
 						$value = '"' . str_replace('"', '""', $value) . '"';
 					}
 					$rCsv .= "," . $value;
-					
-					if($rec->flag == TRUE) {
-						
-						$zeroRow .= "," . $value;
-						$rCsv = $zeroRow;
-					}
 	
 				} else {
-					
 					$rCsv .= "," . '';
 				}
 			}
 		}
-		
+
 		return $rCsv;
-	}*/
+	}
 
 }
