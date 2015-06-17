@@ -298,6 +298,21 @@ class acc_ReportDetails extends core_Manager
                
                 // Ако има зададени лимити за тази сметка, показваме и тях
                 if(count($arr['limits'])){
+                	$unset1 = $unset2 = $unset3 = TRUE;
+                	foreach ($arr['limits'] as $lRec){
+                		foreach (range(1, 3) as $i){
+                			if(isset($lRec->{"item{$i}"})){
+                				${"unset{$i}"} = FALSE;
+                			}
+                		}
+                	} 
+                	
+                	foreach (range(1, 3) as $i){
+                		if(${"unset{$i}"} === TRUE){
+                			unset($limitFields["item{$i}"]);
+                		}
+                	}
+                	
                 	$tpl->append("<span class='accTitle' style = 'margin-top:7px'>{$accNum}  <span style='font-weight:normal'>(" . tr('лимити') . ")</span></span>", 'CONTENT');
                 	$limitsHtml = $table->get($arr['limits'], array('tools' => 'Пулт') + $limitFields);
                 	$tpl->append($limitsHtml, 'CONTENT');
