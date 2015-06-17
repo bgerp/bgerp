@@ -62,7 +62,7 @@ class email_Outgoings extends core_Master
     /**
      * Заглавие в единствено число
      */
-    var $singleTitle = "Изходящ имейл";
+    var $singleTitle = "Имейл";
     
     
     /**
@@ -2054,10 +2054,15 @@ class email_Outgoings extends core_Master
      * @param core_Manager $mvc
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
+     * @param array $fields
      */
-    static function on_AfterRecToVerbal($mvc, $row, $rec)
+    static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
         $row->handle = $mvc->getHandle($rec->id);
+        
+        if ($fields['-single']) {
+            $row->singleTitle = tr('Изходящ имейл');
+        }
     }
     
     
