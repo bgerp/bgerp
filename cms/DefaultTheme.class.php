@@ -140,7 +140,7 @@ class cms_DefaultTheme extends core_ProtoInner {
                 $fontcolor = phpcolor_Adapter::changeColor($activeColor, 'darken', 15);
 
     		} else {
-                $css .= "\n    #cmsMenu a.selected, #cmsMenu a:focus, #cmsMenu a:hover {color:#333 !important; text-shadow: 2px 2px 2px #fff}";
+                $css .= "\n    #cmsMenu a.selected, #cmsMenu a:focus, #cmsMenu a:hover {color:#333 !important; text-shadow: 0px 0px 2px #fff}";
                 $bgcolorActive = phpcolor_Adapter::changeColor($bordercolor, 'mix', 1, '#fff');
 
                 // цвят на буквите от страничното меню
