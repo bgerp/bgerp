@@ -358,7 +358,10 @@ class core_DateTime
             $origVerbDate = self::mysql2verbal($mysqlDate, $origMask, $lg, FALSE, FALSE);
             
             if ($origVerbDate) {
-                $verbDate .= "<span style='margin-left: 5px; display: inline-block; color: #444;' title='{$origVerbDate}'>H</span>";
+                if (!$color) {
+                    $color = '444';
+                }
+                $verbDate .= "<span style='margin-left: 5px; display: inline-block; color: #{$color};' title='{$origVerbDate}'>®</span>";
             }
         }
         
