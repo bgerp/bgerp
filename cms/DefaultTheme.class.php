@@ -120,6 +120,12 @@ class cms_DefaultTheme extends core_ProtoInner {
 
     	// за активния цвят
     	if ($this->formRec->activeColor){
+
+            //ако не е зададен основен а задаваме активен цвят
+            if(!$this->formRec->baseColor) {
+                $color = '#333344';
+            }
+
     		$css .= "\n    #cmsMenu a.selected, #cmsMenu a:focus, #cmsMenu a:hover {background-color:{$this->formRec->activeColor} !important;}";
     		
     		$activeColor = ltrim($this->formRec->activeColor, "#");
