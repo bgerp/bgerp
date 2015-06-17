@@ -331,12 +331,22 @@ class acc_Limits extends core_Manager
     	if(!haveRole('ceo,accMaster')){
     		$data->toolbar->removeBtn('btnAdd');
     	}
+    	
+    	if(haveRole('ceo,accMaster')){
+    		$data->toolbar->addBtn('Проверка', array($mvc, 'checkLimits'), 'ef_icon=img/16/arrow_refresh.png');
+    	}
     }
     	
     	
-    function act_Test()
+    /**
+     * ЕКшън проверяващ дали лимитите са надвишени
+     */
+    function act_checkLimits()
     {
+    	requireRole('ceo,accMaster');
     	$this->cron_CheckAccLimits();
+    	
+    	return redirect(array($this, 'list'));
     }
     
     
@@ -401,6 +411,7 @@ class acc_Limits extends core_Manager
     			}
     		}
     		
+    		// Запомняме кои са неразмерните пера и определяме имали избрано размерно перо
     		$notDimensionalItems = array();
     		$hasDimensionalItemSelected = FALSE;
     		foreach (range(1, 3) as $i){
@@ -414,8 +425,10 @@ class acc_Limits extends core_Manager
     			}
     		}
     		
+    		// Ако има размерно перо ще проверяваме крайното количевство, иначе крайната сума
     		$fieldToCompare = ($hasDimensionalItemSelected === TRUE) ? $groupedRec->blQuantity : $groupedRec->blAmount;
     		
+    		// Сравняваме стойността спрямо зададения лимит
     		if($rec->type == 'minimum'){
     			$sendNotification = abs($fieldToCompare) < $rec->limitQuantity;
     		} else {
@@ -425,6 +438,7 @@ class acc_Limits extends core_Manager
     		// Ако има надвишаване изпращаме нотифификация
     		if($sendNotification === TRUE){
     			
+    			// Обновяваме записа с информация, че е бил надвишен
     			$oldWhen = $rec->when;
     			$rec->when = dt::today();
     			$rec->status = 'exceeded';
