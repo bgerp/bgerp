@@ -186,7 +186,7 @@ class acc_Balances extends core_Master
             $data->row->accountId = 'Обобщена';
         }
         
-        $data->title = new ET('<span class="quiet">Оборотна ведомост</span> ' . $data->row->periodId);
+        $data->title = new ET("<span class='quiet'> " . tr('Оборотна ведомост') . "</span> " . $data->row->periodId);
     }
     
     

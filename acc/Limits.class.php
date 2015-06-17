@@ -333,7 +333,7 @@ class acc_Limits extends core_Manager
     	}
     	
     	if(haveRole('ceo,accMaster')){
-    		$data->toolbar->addBtn('Проверка', array($mvc, 'checkLimits'), 'ef_icon=img/16/arrow_refresh.png');
+    		$data->toolbar->addBtn('Проверка', array($mvc, 'checkLimits'), 'ef_icon=img/16/arrow_refresh.png,title=Проверка на зададените лимити');
     	}
     }
     	
