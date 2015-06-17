@@ -235,7 +235,12 @@ class email_Inboxes extends core_Master
     static function on_AfterPrepareEditForm($mvc, &$data)
     {
         // Вземам всички акаунти за които може да се създаде имейл
-        $allAccounts = email_Accounts::getActiveAccounts(array('corporate', 'common'));
+        if ($data->form->rec->id) {
+            $allAccounts = array();
+            $allAccounts[$data->form->rec->accountId] = email_Accounts::fetch($data->form->rec->accountId);
+        } else {
+            $allAccounts = email_Accounts::getActiveAccounts(array('corporate', 'common'));
+        }
         
         if (!$allAccounts) {
             if (email_Accounts::haveRightFor('add')) {
@@ -248,7 +253,7 @@ class email_Inboxes extends core_Master
         }
         
         $optAcc = array();
-        foreach ($allAccounts as $id => $accRec) {
+        foreach ((array)$allAccounts as $id => $accRec) {
             $optAcc[$id] = $accRec->email;
         }
         $data->form->setOptions('accountId', $optAcc);
