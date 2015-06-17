@@ -162,8 +162,10 @@ class survey_Options extends core_Manager {
 	    	}
    		}
    		
-   		if($action == 'add' && empty($rec->alternativeId)){
-   			$res = 'no_one';
+   		if($action == 'add' && isset($rec)){
+   			if(empty($rec->alternativeId)){
+   				$res = 'no_one';
+   			}
    		}
 	}
 	
