@@ -62,7 +62,7 @@ class email_Outgoings extends core_Master
     /**
      * Заглавие в единствено число
      */
-    var $singleTitle = "Имейл";
+    var $singleTitle = "Изходящ имейл";
     
     
     /**
