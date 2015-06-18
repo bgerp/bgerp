@@ -71,8 +71,8 @@ class cat_products_VatGroups extends core_Detail
      */
     function description()
     {
-        $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden,silent');
-        $this->FLD('vatGroup', 'key(mvc=acc_VatGroups,select=title)', 'caption=Група');
+        $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden,silent,mandatory');
+        $this->FLD('vatGroup', 'key(mvc=acc_VatGroups,select=title,allowEmpty)', 'caption=Група,mandatory');
         $this->FLD('validFrom', 'datetime', 'caption=В сила oт');
     }
 
