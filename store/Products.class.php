@@ -102,7 +102,7 @@ class store_Products extends core_Manager
         $this->FLD('quantityOnPallets', 'double', 'caption=Количество->На палети,input=hidden');
         $this->FNC('makePallets', 'varchar(255)', 'caption=Палетиране');
         $this->FNC('name', 'varchar(255)', 'caption=Продукт');
-        $this->FLD('state', 'enum(active=Налично,closed=Изчерпано)', 'caption=Състояние,input=none');
+        $this->FLD('state', 'enum(active=Активирано,closed=Изчерпано)', 'caption=Състояние,input=none');
         
         $this->setDbUnique('productId, classId, storeId');
     }
