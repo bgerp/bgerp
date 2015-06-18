@@ -455,6 +455,7 @@ class acc_Limits extends core_Manager
     				if(!array_key_exists($userId, $sendNotificationsTo)){
     					$sendNotificationsTo[$userId] = array();
     				}
+    				
     				$sendNotificationsTo[$userId] = array_merge($sendNotificationsTo[$userId], $notDimensionalItems);
     			}
     		} else {
@@ -472,9 +473,10 @@ class acc_Limits extends core_Manager
     	// На всеки потребител, който трябва да се нотифицира, нотифицираме го
     	if(count($sendNotificationsTo)){
     		foreach ($sendNotificationsTo as $userId => $items){
+    			
     			$msg = "|Има надвишаване на ограничения|*";
     			if(count($items)){
-    				$msg .= " |в|* '" . implode(', ', $items) . "'";
+    				$msg .= " |в|* '" . implode(', ', $items) . " ... '";
     			}
     			
     			$urlArr = $customUrl = array($this, 'list');
