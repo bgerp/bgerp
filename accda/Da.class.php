@@ -118,7 +118,7 @@ class accda_Da extends core_Master
     /**
      * Полета за показване в списъчния изглед
      */
-    public $listFields = 'tools=Пулт,valior,num,title,serial,createdOn,createdBy';
+    public $listFields = 'tools=Пулт,valior,handler=Документ,title,num,serial,createdOn,createdBy';
     
     
     /**
@@ -130,7 +130,7 @@ class accda_Da extends core_Master
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    public $rowToolsSingleField = 'title';
+    public $rowToolsSingleField = 'handler';
     
     
     /**
@@ -352,12 +352,21 @@ class accda_Da extends core_Master
      */
     public static function on_AfterGetClosedItemsInTransaction($mvc, &$res, $id)
     {
-    	$rec = $this->fetchRec($id);
+    	$rec = $mvc->fetchRec($id);
     
     	// От списъка с приключените пера, премахваме това на приключения документ, така че да може
     	// приключването да се оттегля/възстановява въпреки че има в нея приключено перо
-    	$itemId = acc_Items::fetchItem($this->getClassId(), $rec->id)->id;
+    	$itemId = acc_Items::fetchItem($mvc->getClassId(), $rec->id)->id;
     	
     	unset($res[$itemId]);
+    }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    {
+    	$row->handler = $mvc->getLink($rec->id, 0);
     }
 }
