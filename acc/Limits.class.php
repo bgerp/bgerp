@@ -96,7 +96,7 @@ class acc_Limits extends core_Manager
     {
         $this->FLD('accountId', 'acc_type_Account(allowEmpty)', 'caption=Сметка, silent, mandatory,removeAndRefreshForm=limitQuantity|type|side|item1|item2|item3');
         $this->FLD('startDate', 'datetime(format=smartTime)', 'caption=Начална дата,mandatory');
-        $this->FLD('limitDuration', 'time', 'caption=Продължителност');
+        $this->FLD('limitDuration', 'time(suggestions=1 седмица|2 седмици|1 месец|3 месеца|6 месеца|1 година)', 'caption=Продължителност');
         
         $this->FLD('side', 'enum(debit=Дебит,credit=Кредит)', 'mandatory,caption=Лимит->Салдо,input=none');
         $this->FLD('type', 'enum(minimum=Минимум,maximum=Максимум)', 'mandatory,caption=Лимит->Тип,input=none');
@@ -115,7 +115,6 @@ class acc_Limits extends core_Manager
         
         $this->FLD('status', 'enum(normal=Ненадвишен,exceeded=Надвишен)', 'caption=Видимост,input=none,notSorting,notNull,value=normal');
         $this->FLD('state', 'enum(active=Активен,closed=Затворен,)', 'caption=Видимост,input=none,notSorting,notNull,value=active');
-        
     }
     
     
@@ -392,7 +391,20 @@ class acc_Limits extends core_Manager
     	
     	$sendNotificationsTo = array();
     	
+    	$now = dt::now();
     	while($rec = $newQuery->fetch()){
+    		
+    		// Ако има зададена продължителност
+    		if(isset($rec->limitDuration)){
+    			$endDate = dt::addSecs($rec->limitDuration, $rec->startDate);
+    			
+    			// И крайната дата е минала, деактивираме лимита и продължаваме напред
+    			if($endDate < $now){
+    				$rec->state = 'closed';
+    				$this->save($rec);
+    				continue;
+    			}
+    		}
     		
     		// Ще групираме данните от баланса
     		$accInfo = acc_Accounts::getAccountInfo($rec->accountId);
