@@ -301,6 +301,11 @@ class hr_Departments extends core_Master
     	if($rec->locationId){
     		$row->locationId = crm_Locations::getHyperlink($rec->locationId, TRUE);
     	}
+    	
+    	// Към неопределения център да не може да се добавя наследник
+    	if($rec->systemId == 'emptyCenter'){
+    		unset($row->_addBtn);
+    	}
     }
     
     
@@ -430,5 +435,17 @@ class hr_Departments extends core_Master
     	$res .= $cntObj->html;
     	
     	return $res;
+    }
+    
+    
+    /**
+     * Връща възможните опции за избор на бащи на обекта
+     */
+    public static function on_AfterPrepareParentOptions($mvc, &$res, $rec)
+    {
+    	if(count($res)){
+    		$undefinedDepId = $mvc->fetchField("#systemId = 'emptyCenter'", 'id');
+    		unset($res[$undefinedDepId]);
+    	}
     }
 }
