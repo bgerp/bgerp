@@ -264,9 +264,9 @@ class core_DateTime
         
         $time -= $timeZoneDiff;
         
-        $nMySqlDate = self::timestamp2Mysql($time);
+        $mysqlDate = self::timestamp2Mysql($time);
         
-        return $nMySqlDate;
+        return $mysqlDate;
     }
     
     
