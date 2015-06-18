@@ -1196,6 +1196,7 @@ class acc_BalanceDetails extends core_Detail
      * Филтрира заявка към модела за показване на определени данни
      *
      * @param core_Query $query - Заявка към модела
+     * @param int   $balanceId  - ид на баланса
      * @param mixed $accs       - списък от систем ид-та на сметките
      * @param mixed $itemsAll   - списък от пера, за които може да са на произволна позиция
      * @param mixed $items1     - списък с пера, от които поне един може да е на първа позиция
@@ -1203,7 +1204,7 @@ class acc_BalanceDetails extends core_Detail
      * @param mixed $items3     - списък с пера, от които поне един може да е на трета позиция
      * @return array            - масив със всички извлечени записи
      */
-    public static function filterQuery(core_Query &$query, $id, $accs = NULL, $itemsAll = NULL, $items1 = NULL, $items2 = NULL, $items3 = NULL)
+    public static function filterQuery(core_Query &$query, $balanceId, $accs = NULL, $itemsAll = NULL, $items1 = NULL, $items2 = NULL, $items3 = NULL)
     {
         expect($query->mvc instanceof acc_BalanceDetails);
         
@@ -1219,7 +1220,7 @@ class acc_BalanceDetails extends core_Detail
         }
         
         // ... само детайлите от последния баланс
-        $query->where("#balanceId = {$id}");
+        $query->where("#balanceId = {$balanceId}");
         
         // Перата които може да са на произволна позиция
         $itemsAll = arr::make($itemsAll);
