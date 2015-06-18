@@ -361,7 +361,7 @@ class core_DateTime
                 if (!$color) {
                     $color = '444';
                 }
-                $verbDate .= "<span style='margin-left: 5px; display: inline-block; color: #{$color};' title='{$origVerbDate}'>®</span>";
+                $verbDate .= "<span style='display: inline-block; color: #{$color};' title='{$origVerbDate}'>®</span>";
             }
         }
         
