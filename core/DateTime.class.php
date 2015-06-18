@@ -252,8 +252,6 @@ class core_DateTime
      */
     public static function getDateWithTimeoffeset($mysqlDate)
     {
-        $time = strtotime($mysqlDate);
-        
         $conf = core_Packs::getConfig('core');
         
         if ($conf->EF_DATE_USE_TIMEOFFSET != 'yes') return $mysqlDate;
@@ -261,6 +259,8 @@ class core_DateTime
         $timeZoneDiff = self::getTimezoneDiff();
         
         if (!$timeZoneDiff) return $mysqlDate;
+        
+        $time = strtotime($mysqlDate);
         
         $time -= $timeZoneDiff;
         
