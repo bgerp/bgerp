@@ -244,6 +244,33 @@ class core_DateTime
     
     
     /**
+     * Връща MySQL времето с TIMEOFFSET;
+     * 
+     * @param datetime $mysqlDate
+     * 
+     * @return datetime
+     */
+    public static function getDateWithTimeoffeset($mysqlDate)
+    {
+        $time = strtotime($mysqlDate);
+        
+        $conf = core_Packs::getConfig('core');
+        
+        if ($conf->EF_DATE_USE_TIMEOFFSET != 'yes') return $mysqlDate;
+        
+        $timeZoneDiff = self::getTimezoneDiff();
+        
+        if (!$timeZoneDiff) return $mysqlDate;
+        
+        $time -= $timeZoneDiff;
+        
+        $nMySqlDate = self::timestamp2Mysql($time);
+        
+        return $nMySqlDate;
+    }
+    
+    
+    /**
      * Превръща MySQL-ска data/време към вербална дата/време
      */
     static function mysql2verbal($mysqlDate, $mask = "d.m.y H:i", $lg = NULL, $autoTimeZone = TRUE, $callRecursive = TRUE)
