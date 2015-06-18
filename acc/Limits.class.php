@@ -344,7 +344,10 @@ class acc_Limits extends core_Manager
     function act_checkLimits()
     {
     	requireRole('ceo,accMaster');
+    	
+    	core_Users::forceSystemUser();
     	$this->cron_CheckAccLimits();
+    	core_Users::cancelSystemUser();
     	
     	return redirect(array($this, 'list'));
     }
