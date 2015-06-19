@@ -284,8 +284,10 @@ class acc_ClosePeriods extends core_Master
      */
     public static function canAddToFolder($folderId)
     {
+    	$me = cls::get(get_called_class());
+    	
     	// Може да създаваме документ-а само в дефолт папката му
-    	if ($folderId == static::getDefaultFolder(NULL, FALSE)) {
+    	if ($folderId == doc_UnsortedFolders::forceCoverAndFolder((object)array('name' => $me->title))) {
     		
     		return TRUE;
     	}
