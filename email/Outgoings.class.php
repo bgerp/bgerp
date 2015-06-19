@@ -1923,11 +1923,11 @@ class email_Outgoings extends core_Master
             
             switch ($placeHolderU) {
                 case 'DATETIME':
-                    $valArr[$placeHolder] = dt::mysql2verbal($date, 'd-M H:i');
+                    $valArr[$placeHolder] = dt::mysql2verbal($date, 'd-M H:i', NULL, FALSE);
                 break;
                 
                 case 'DATE':
-                    $valArr[$placeHolder] = dt::mysql2verbal($date, 'd-M');
+                    $valArr[$placeHolder] = dt::mysql2verbal($date, 'd-M', NULL, FALSE);
                 break;
                 
                 case 'MSG':
