@@ -1178,19 +1178,23 @@ td.portal-date {
 	}
 }
 
-.showDocument {
+.document-settings {
     display: inline-block;
     height: 16px;
+    float: right;
 }
 .docBgIcon {
     position: relative;
 }
 
-.narrow .showDocument {
+.narrow .document-settings {
     position: absolute;
     right: -3px;
     top:50%;
-    margin-top: -8px;
+    margin-top: -10px;
+    span {
+        margin-bottom: 0;
+    }
 }
 
 .snapshot {
