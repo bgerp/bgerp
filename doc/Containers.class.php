@@ -2424,12 +2424,8 @@ class doc_Containers extends core_Manager
             $attr['ef_icon'] = 'img/16/toggle-expand.png';
             $attr['class'] = 'settings-show-document';
             $attr['title'] = tr('Показване на целия документ');
-            
-            // @TODO ще е за всички
-            if (haveRole('ceo,manager,officer,executive')) {
-                $attr['onclick'] = 'return startUrlFromDataAttr(this);';
-                $attr['data-url'] = toUrl($url, 'local');
-            }
+            $attr['onclick'] = 'return startUrlFromDataAttr(this);';
+            $attr['data-url'] = toUrl($url, 'local');
 
             $showDocument = ht::createLink('', $url, NULL, $attr);
             
