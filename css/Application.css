@@ -1053,6 +1053,8 @@ td.portal-date {
   display: inline-block;
   height: 16px;
   float: right; }
+  .document-settings span {
+    margin-bottom: 0; }
 
 .docBgIcon {
   position: relative; }
@@ -1062,8 +1064,6 @@ td.portal-date {
   right: -3px;
   top: 50%;
   margin-top: -10px; }
-  .narrow .document-settings span {
-    margin-bottom: 0; }
 
 .snapshot {
   margin-top: 10px;
@@ -3177,19 +3177,6 @@ div.location.public {
     height: 1%; }
   .eshop-product-list:hover {
     border: solid 1px #bbbbbb; }
-
-.allProducts {
-  margin-left: 23px; }
-  .allProducts h2 {
-    clear: both;
-    margin-top: 10px; }
-  .allProducts .eshop-product-list {
-    display: block;
-    float: left;
-    width: 29%;
-    clear: none;
-    margin-right: 2.4%;
-    margin-bottom: 20px; }
 
 .app-name {
   display: block;

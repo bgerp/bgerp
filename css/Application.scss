@@ -1182,6 +1182,9 @@ td.portal-date {
     display: inline-block;
     height: 16px;
     float: right;
+    span {
+        margin-bottom: 0;
+    }
 }
 .docBgIcon {
     position: relative;
@@ -1192,9 +1195,6 @@ td.portal-date {
     right: -3px;
     top:50%;
     margin-top: -10px;
-    span {
-        margin-bottom: 0;
-    }
 }
 
 .snapshot {
