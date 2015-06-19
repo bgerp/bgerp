@@ -1,4 +1,13 @@
-[#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
+[#SingleToolbar#]
+<div class='document'>
+    <!--ET_BEGIN blank-->
+    [#blank#]
+    <!--ET_END blank-->
+    <!--ET_BEGIN header-->
+    <div class='header [#STATE_CLASS#]' style='width:99%'>
+        <div class='docBgIcon' style='[#iconStyle#];'>[#singleTitle#] <b>[#ident#]</b> ([#state#])</div>
+    </div>
+    <!--ET_END header-->
     <div class='scrolling-holder'>
         <div class='belejka_container'>
             <div class='belejka_header'>
@@ -149,4 +158,10 @@
         </div>
         <!-- END belejka -->    
     </div>
-[#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]
+    <!--ET_BEGIN DETAILS-->
+    <div class='details'>
+        [#DETAILS#]
+    </div>
+    <!--ET_END DETAILS-->
+    <!-- END belejka_container -->
+</div>
