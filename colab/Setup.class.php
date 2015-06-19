@@ -56,6 +56,8 @@ class colab_Setup extends core_ProtoSetup
     	$html .= $Plugins->installPlugin('Споделяне на папки на лица с партньори', 'colab_plg_FolderToPartners', 'crm_Persons', 'private');
         
     	$html .= $Plugins->installPlugin('Colab sales', 'colab_plg_Document', 'sales_Sales', 'private');
+    	$html .= $Plugins->installPlugin('Colab outgoings', 'colab_plg_Document', 'email_Outgoings', 'private');
+    	$html .= $Plugins->installPlugin('Colab incomings', 'colab_plg_Document', 'email_Incomings', 'private');
     	
         return $html;
     }

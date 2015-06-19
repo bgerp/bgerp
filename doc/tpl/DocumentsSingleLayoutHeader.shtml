@@ -12,9 +12,11 @@
 			<div class='docBgIcon' style='[#iconStyle#]'>
 		        [#singleTitle#] <b>[#ident#]</b> ([#state#]) 
 				
-				<!--ET_BEGIN documentSettings-->
-					[#documentSettings#]
-				<!--ET_END documentSettings-->
+				<!--ET_BEGIN DocumentSettings-->
+					<div class='document-settings'>
+						[#DocumentSettings#]
+					</div>
+				<!--ET_END DocumentSettings-->
 		    </div>
 		</div>
 	<!--ET_END header-->

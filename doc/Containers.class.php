@@ -179,11 +179,11 @@ class doc_Containers extends core_Manager
                 }
             }
             
-            if (!$hide) continue;
-            
-            // Останалите да са скрити
-            
-            $recs[$id]->Hidden = TRUE;
+            if ($hide) {
+                $recs[$id]->Hidden = TRUE;
+            } else {
+                $recs[$id]->Hidden = FALSE;
+            }
         }
     }
     
@@ -308,6 +308,14 @@ class doc_Containers extends core_Manager
             if (!$hidden) {
                 $data = $document->prepareDocument();
                 $row->ROW_ATTR['onMouseUp'] = "saveSelectedTextToSession('" . $document->getHandle() . "', 'onlyHandle');";
+                
+                // Добавяме линк за скриване на документа
+                if ($rec->Hidden === FALSE) {
+                    $hideLink = self::getLinkForHideDocument($document, $rec->id);
+                    $data->row->DocumentSettings = new ET($data->row->DocumentSettings);
+                    $data->row->DocumentSettings->append($hideLink);
+                }
+                
                 $row->document = $document->renderDocument($data);
                 
                 if($q) {
@@ -2239,7 +2247,9 @@ class doc_Containers extends core_Manager
     {
         $id = Request::get('id', 'int');
         
-        return self::showOrHideDocumentInThread($id, 'hide');
+        $ajaxMode = (boolean) Request::get('ajax_mode');
+        
+        return self::showOrHideDocumentInThread($id, 'hide', $ajaxMode);
     }
     
     
@@ -2297,6 +2307,12 @@ class doc_Containers extends core_Manager
         
         if ($ajaxMode) {
             
+            if ($hideDoc) {
+                $rec->Hidden = TRUE;
+            } else {
+                $rec->Hidden = FALSE;
+            }
+            
             $row = self::recToVerbal($rec);
             
             $id = $document->getDocumentRowId();
@@ -2352,6 +2368,33 @@ class doc_Containers extends core_Manager
     /**
      * Рендира съдържанието на скрит документ
      * 
+     * @param core_ObjectReference $document
+     * @param integer $id
+     * 
+     * @return NULL|core_ET
+     */
+    protected static function getLinkForHideDocument($document, $id)
+    {
+        if ($document->haveRightFor('single') || doc_Threads::haveRightFor('single', $dRec->threadId)) {
+            $url = array(get_called_class(), 'HideDocumentInThread', $id);
+            
+            $attr = array();
+            $attr['ef_icon'] = 'img/16/toggle2.png';
+            $attr['class'] = 'settings-hide-document';
+            $attr['title'] = tr('Скриване на документа в нишката');
+            $attr['onclick'] = 'return startUrlFromDataAttr(this);';
+            $attr['data-url'] = toUrl($url, 'local');
+
+            $showDocument = ht::createLink('', $url, NULL, $attr);
+            
+            return $showDocument;
+        }
+    }
+    
+    
+    /**
+     * Рендира съдържанието на скрит документ
+     * 
      * @param integer $id
      * 
      * @return core_ET
@@ -2371,8 +2414,6 @@ class doc_Containers extends core_Manager
         $iconStyle = 'background-image:url(' . sbf($document->getIcon(), '"') . ');';
         $tpl->replace($iconStyle, 'iconStyle');
         
-        $tpl->placeObject($dRow);
-        
         $docTitle = self::getDocTitle($id);
         $tpl->replace($docTitle, 'docTitle');
         
@@ -2381,7 +2422,7 @@ class doc_Containers extends core_Manager
             
             $attr = array();
             $attr['ef_icon'] = 'img/16/toggle-expand.png';
-            $attr['class'] = 'fright showDocument';
+            $attr['class'] = 'settings-show-document';
             $attr['title'] = tr('Показване на целия документ');
             
             // @TODO ще е за всички
@@ -2389,10 +2430,14 @@ class doc_Containers extends core_Manager
                 $attr['onclick'] = 'return startUrlFromDataAttr(this);';
                 $attr['data-url'] = toUrl($url, 'local');
             }
-                
+
             $showDocument = ht::createLink('', $url, NULL, $attr);
-            $tpl->append($showDocument, 'documentSettings');
+            
+            $dRow->DocumentSettings = new ET($dRow->DocumentSettings);
+            $dRow->DocumentSettings->append($showDocument);
         }
+        
+        $tpl->placeObject($dRow);
         
         $tpl->removeBlocks();
         $tpl->removePlaces();

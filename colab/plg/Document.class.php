@@ -42,19 +42,38 @@ class colab_plg_Document extends core_Plugin
      */
     function on_AfterPrepareSingle($mvc, $res, $data)
     {
-        if (!Mode::is('text', 'xhtml') && !Mode::is('printing') && core_Users::isPowerUser()) {
-            
-            if ($mvc->visibleForPartners == 'yes') {
-                
-                // Може и да се провери стойноста на `visibleForPartners` в `doc_Containers`
-                
-                $data->row->documentSettings = colab_DocumentLog::renderViewedLink($data->rec->containerId);
-            }
-        }
-        
         // Ако е контрактор, маркираме документа като видян
         if (core_Users::isContractor()) {
             colab_DocumentLog::markAsViewed($data->rec->containerId);
+        }
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param core_Master $invoker
+     * @param object $row
+     * @param object $rec
+     * @param array $fields
+     */
+    function on_AfterRecToVerbal(&$invoker, &$row, &$rec, $fields = array())
+    {
+        if ($fields && $fields['-single']) {
+            
+            if (!Mode::is('text', 'xhtml') && !Mode::is('printing') && core_Users::isPowerUser()) {
+                
+                if ($invoker->visibleForPartners == 'yes') {
+                    
+                    // Може и да се провери стойноста на `visibleForPartners` в `doc_Containers`
+                    
+                    $link = colab_DocumentLog::renderViewedLink($rec->containerId);
+                    
+                    $row->DocumentSettings = new ET($row->DocumentSettings);
+                    
+                    $row->DocumentSettings->append($link);
+                }
+            }
         }
     }
 }
