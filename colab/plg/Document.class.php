@@ -63,7 +63,19 @@ class colab_plg_Document extends core_Plugin
             
             if (!Mode::is('text', 'xhtml') && !Mode::is('printing') && core_Users::isPowerUser()) {
                 
-                if ($invoker->visibleForPartners == 'yes') {
+                $isVisible = FALSE;
+                if ($rec->containerId) {
+                    $cRec = doc_Containers::fetch($rec->containerId);
+                    if ($cRec->visibleForPartners == 'yes') {
+                        $isVisible = TRUE;
+                    }
+                } else {
+                    if ($invoker->visibleForPartners == 'yes') {
+                        $isVisible = TRUE;
+                    }
+                }
+                
+                if ($isVisible) {
                     
                     // Може и да се провери стойноста на `visibleForPartners` в `doc_Containers`
                     
