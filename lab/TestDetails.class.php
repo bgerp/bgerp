@@ -183,7 +183,7 @@ class lab_TestDetails extends core_Detail
         
         // trim array elements
         foreach ($resultsArr as $k => $v) {
-            $resultsArr[$k] = type_Double::fromVerbal($v);
+            $resultsArr[$k] = cls::get('type_Double')->fromVerbal($v);
         }
         
         $methodsRec = $mvc->Methods->fetch($rec->methodId);
