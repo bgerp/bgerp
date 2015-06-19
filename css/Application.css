@@ -1053,7 +1053,8 @@ td.portal-date {
   display: inline-block;
   height: 16px;
   float: right; }
-  .document-settings span {
+  .document-settings span,
+  .document-settings a {
     margin-bottom: 0; }
 
 .docBgIcon {
