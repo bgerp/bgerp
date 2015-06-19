@@ -1596,6 +1596,8 @@ td.constrColumnLeft {
     .profile-summary div span {
       display: block;
       margin-bottom: 2px; }
+    .profile-summary div .timeSpan {
+      display: inline-block; }
 
 ul.history {
   padding: 0;
