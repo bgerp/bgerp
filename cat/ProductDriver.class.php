@@ -325,4 +325,13 @@ abstract class cat_ProductDriver extends core_BaseClass
 		
 		return "Задания за " . mb_strtolower($title);
 	}
+	
+	
+	/**
+	 * Връща счетоводните свойства на обекта
+	 */
+	public function getFeatures()
+	{
+		return array();
+	}
 }
