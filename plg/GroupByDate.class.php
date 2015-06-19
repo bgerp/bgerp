@@ -88,7 +88,7 @@ class plg_GroupByDate extends core_Plugin
                 list($h, $m) = explode(':', $t);
                 $rows[$id]->{$field} = "<span style='color:#{$color}'>{$h}:{$m}</span>";
                 if ($origVerbDate) {
-                    $origDate = "<span style='display: inline-block; color: #{$color};' title='{$origVerbDate}'>®</span>";
+                    $origDate = "<span style='color: #{$color};' title='{$origVerbDate}'>®</span>";
                     $rows[$id]->{$field} .= $origDate;
                 }
             } else {

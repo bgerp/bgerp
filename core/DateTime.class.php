@@ -257,7 +257,7 @@ class core_DateTime
         if ($conf->EF_DATE_USE_TIMEOFFSET != 'yes') return $mysqlDate;
         
         $timeZoneDiff = self::getTimezoneDiff();
-        
+
         if (!$timeZoneDiff) return $mysqlDate;
         
         $time = strtotime($mysqlDate);
@@ -376,7 +376,7 @@ class core_DateTime
             $title = dt::mysql2verbal($mysqlDate, "d.m.Y H:i (l)", $lg, FALSE, FALSE);
             $title = "  title='{$title}'";
             
-            $verbDate = "<span style=\"color:#{$color}\" $title>{$verbDate}</span>";
+            $verbDate = "<span class='timeSpan' style=\"color:#{$color}\" $title>{$verbDate}</span>";
         }
         
         if ($callRecursive && $timeZoneDiff && 
@@ -388,7 +388,7 @@ class core_DateTime
                 if (!$color) {
                     $color = '444';
                 }
-                $verbDate .= "<span style='display: inline-block; color: #{$color};' title='{$origVerbDate}'>®</span>";
+                    $verbDate .= "<span class='timeSpan' style='color: #{$color};' title='{$origVerbDate}'>®</span>";
             }
         }
         
