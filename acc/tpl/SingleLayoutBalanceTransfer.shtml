@@ -1,9 +1,4 @@
-[#SingleToolbar#]
-<div class='document'>
-    <div class='header [#STATE_CLASS#]'>
-        <div class='docBgIcon' style='[#iconStyle#];'>[#singleTitle#] <b>[#ident#]</b> ([#state#])</div>
-    </div>
-    
+[#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
     <div>|Вальор|*: [#valior#]</div>
     
     <table class='no-border-table fleft'>
@@ -45,5 +40,4 @@
     		</td>
     	</tr>
     </table>
-    [#DETAILS#]
-</div>
+    [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]
