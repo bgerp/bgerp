@@ -1236,7 +1236,7 @@ class doc_Folders extends core_Master
         // Определяме заглавито
         $rec = $this->fetch($folderId);
         $row = $this->recToVerbal($rec, 'title');
-        $form->title = 'Настройка на|*: ' . $row->title;
+        $form->title = 'Настройка на|* ' . $row->title;
         
         // Добавяме функционални полета
         $form->FNC('folOpenings', 'enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Отворени нишки->Известяване, input=input');
