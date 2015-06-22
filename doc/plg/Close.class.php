@@ -39,9 +39,9 @@ class doc_plg_Close extends core_Plugin
     		$singleTitle = mb_strtolower($mvc->singleTitle);
     		
     		if($data->rec->state == 'closed'){
-    			$data->toolbar->addBtn("Активиране", array($mvc, 'changeState', $data->rec->id, 'ret_url' => TRUE), "ef_icon = img/16/lightbulb.png,title=Активиранe на {$singleTitle},warning=Сигурнили сте че искате да активирате");
+    			$data->toolbar->addBtn("Активиране", array($mvc, 'changeState', $data->rec->id, 'ret_url' => TRUE), "row=2,ef_icon = img/16/lightbulb.png,title=Активиранe на {$singleTitle},warning=Сигурнили сте че искате да активирате");
     		} elseif($data->rec->state == 'active'){
-    			$data->toolbar->addBtn("Затваряне", array($mvc, 'changeState', $data->rec->id, 'ret_url' => TRUE), "ef_icon = img/16/lightbulb_off.png,title=Затваряне на {$singleTitle},warning=Сигурнили сте че искате да затворите");
+    			$data->toolbar->addBtn("Затваряне", array($mvc, 'changeState', $data->rec->id, 'ret_url' => TRUE), "row=2,ef_icon = img/16/lightbulb_off.png,title=Затваряне на {$singleTitle},warning=Сигурнили сте че искате да затворите");
     		}
     	}
     }
@@ -65,6 +65,24 @@ class doc_plg_Close extends core_Plugin
     		
     		if($rec->state == 'draft' || $rec->state == 'rejected'){
     			$res = 'no_one';
+    		}
+    		
+    		if($res != 'no_one'){
+    			
+    			// Ако мениджъра е корица
+    			if(cls::haveInterface('doc_FolderIntf', $mvc)){
+    				
+    				// И има папка без документи или няма папка, няма смиссъл да се затваря (защото може да се оттегли)
+    				if(isset($rec->folderId)){
+    					$threadsCount = doc_Folders::fetchField($rec->folderId, 'allThreadsCnt');
+    					if($threadsCount == 0){
+    						$res = 'no_one';
+    					}
+    				} else {
+    					$res = 'no_one';
+    				}
+    				
+    			}
     		}
     	}
     }
