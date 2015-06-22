@@ -317,7 +317,7 @@ class sales_Routes extends core_Manager {
     	if($rec->state == 'active'){
     		if(sales_Sales::haveRightFor('add')){
     			$folderId = cls::get($locationRec->contragentCls)->forceCoverAndFolder($locationRec->contragentId);
-    			$row->btn = ht::createBtn('ПР', array('sales_Sales', 'add', 'folderId' => $folderId, 'deliveryLocationId' => $rec->locationId), FALSE, FALSE, 'ef_icon=img/16/view.png,title=Създаване на нова продажба към локацията');
+    			$row->btn = ht::createBtn('ПР', array('sales_Sales', 'add', 'folderId' => $folderId, 'deliveryLocationId' => $rec->locationId), FALSE, TRUE, 'ef_icon=img/16/view.png,title=Създаване на нова продажба към локацията');
     			$row->contragent = "{$row->btn} " . $row->contragent;
     		}
     	} else {
