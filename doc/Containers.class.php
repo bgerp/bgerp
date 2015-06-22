@@ -1613,6 +1613,7 @@ class doc_Containers extends core_Manager
                 
                 if (self::save($rec, 'state')) {
                     $resArr['state']++;
+                    self::update($rec->id);
                 }
             } catch (Exception $e) {
                 
