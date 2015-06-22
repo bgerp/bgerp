@@ -150,6 +150,11 @@ class acc_SaleArticlesReport extends acc_BalanceReportImpl
             $tpl->append($beforeRow, 'ROW_BEFORE');
         }
         
+        if($data->pager){
+        	$tpl->append($data->pager->getHtml(), 'PAGER_BOTTOM');
+        	$tpl->append($data->pager->getHtml(), 'PAGER_TOP');
+        }
+        
         return $tpl;
     }
 

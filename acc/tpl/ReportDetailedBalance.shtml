@@ -6,9 +6,9 @@
 <div>
     <!--ET_BEGIN buttonList-->[#buttonList#]<!--ET_END buttonList-->
     <!--ET_BEGIN buttonChart-->[#buttonChart#]<!--ET_END buttonChart-->
-</div>
-[#PAGER_TOP#]
+</div><br>
+<!--ET_BEGIN PAGER_TOP-->[#PAGER_TOP#]<!--ET_END PAGER_TOP-->
 <div class='overflow-scroll'>
-    [#DETAILS#]
+    <!--ET_BEGIN DETAILS-->[#DETAILS#]<!--ET_END DETAILS-->
 </div>
-[#PAGER_BOTTOM#]
+<!--ET_BEGIN PAGER_BOTTOM-->[#PAGER_BOTTOM#]<!--ET_END PAGER_BOTTOM-->

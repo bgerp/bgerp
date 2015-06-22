@@ -175,7 +175,7 @@ class acc_ProfitArticlesReport extends acc_BalanceReportImpl
 
         $tpl->replace($this->title, 'TITLE');
         $this->prependStaticForm($tpl, 'FORM');
-//bp($data);
+
         // ако имаме записи има и смисъл да
         // слагаме табове
         if($data->recs) {
@@ -262,6 +262,11 @@ class acc_ProfitArticlesReport extends acc_BalanceReportImpl
             if ($beforeRow) {
                 $beforeRow->placeObject($data->summary);
                 $tpl->append($beforeRow, 'ROW_BEFORE');
+            }
+            
+            if($data->pager){
+            	$tpl->append($data->pager->getHtml(), 'PAGER_BOTTOM');
+            	$tpl->append($data->pager->getHtml(), 'PAGER_TOP');
             }
 
         }
