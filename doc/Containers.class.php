@@ -1562,7 +1562,7 @@ class doc_Containers extends core_Manager
                 } else {
                     if (self::delete($rec->id)) {
                         $resArr['del_cnt']++;
-                        $$mustUpdate = FALSE;
+                        $mustUpdate = FALSE;
                     }
                 }
             }
