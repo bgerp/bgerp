@@ -196,21 +196,23 @@ class plg_PrevAndNext extends core_Plugin
             
             $mvc->requireRightFor('edit', $data->form->rec);
 
+            // Определяне на индикатора за текущ елемент
+            $selArr = Mode::get($selKey);
+            
+            $id = Request::get('id', 'int');
+            
+            $pos = array_search($id, $selArr) + 1;
+            $data->prevAndNextIndicator = $pos . '/' . count($selArr);
+             
+            $data->buttons = new stdClass();
+            $data->buttons->prevId = $this->getNeighbour($mvc, $data->form->rec, -1);
+            $data->buttons->nextId = $this->getNeighbour($mvc, $data->form->rec, +1);
+            
         } elseif( !($data->form->cmd == 'save_n_next' || $data->form->cmd == 'save_n_prev' || Request::get('PrevAndNext'))) {
-
+        	
             // Изтриваме в сесията, ако има избрано множество записи 
             Mode::setPermanent($selKey, NULL);
         }
-
-        // Определяне на индикатора за текущ елемент
-        $selArr = Mode::get($selKey);
-        $id = Request::get('id', 'int');
-        $pos = array_search($id, $selArr) + 1;
-        $data->prevAndNextIndicator = $pos . '/' . count($selArr);
-		
-        $data->buttons = new stdClass();
-        $data->buttons->prevId = $this->getNeighbour($mvc, $data->form->rec, -1);
-        $data->buttons->nextId = $this->getNeighbour($mvc, $data->form->rec, +1);
     }
     
     
