@@ -1458,13 +1458,18 @@ class doc_Containers extends core_Manager
         $query->orWhere("#threadId IS NULL");
         $query->orWhere("#docClass IS NULL");
         $query->orWhere("#docId IS NULL");
+        $query->orWhere("#visibleForPartners IS NULL");
+        $query->orWhere("#searchKeywords IS NULL");
+        $query->orWhere("#searchKeywords = ''");
+        
+        $query->orWhere("#activatedBy IS NULL AND #state != 'rejected' AND #state != 'draft'");
         
         $resArr = array();
         
         while($rec = $query->fetch()) {
             
             $docId = FALSE;
-            $mustUpdate = FALSE;
+            $mustUpdate = TRUE;
             
             // Ако няма id на папката
             if (!isset($rec->folderId)) {
@@ -1481,7 +1486,6 @@ class doc_Containers extends core_Manager
                 
                 if (self::save($rec)) {
                     $resArr['folderId']++;
-                    $mustUpdate = TRUE;
                 }
             }
             
@@ -1498,7 +1502,6 @@ class doc_Containers extends core_Manager
             
                 if (self::save($rec)) {
                     $resArr['threadId']++;
-                    $mustUpdate = TRUE;
                 }
             }
             
@@ -1519,7 +1522,6 @@ class doc_Containers extends core_Manager
                             
                             if (self::save($rec)) {
                                 $resArr['docClass']++;
-                                $mustUpdate = TRUE;
                             }
                             
                             break;
@@ -1546,7 +1548,6 @@ class doc_Containers extends core_Manager
                             $rec->docId = $docId;
                             if (self::save($rec)) {
                                 $resArr['docId']++;
-                                $mustUpdate = TRUE;
                             }
                         } else {
                             if ($rec->id) {
@@ -1561,6 +1562,7 @@ class doc_Containers extends core_Manager
                 } else {
                     if (self::delete($rec->id)) {
                         $resArr['del_cnt']++;
+                        $$mustUpdate = FALSE;
                     }
                 }
             }
@@ -1568,6 +1570,7 @@ class doc_Containers extends core_Manager
             // Обновяваме полетата
             if ($mustUpdate) {
                 self::update($rec->id);
+                $resArr['updateContainers']++;
             }
         }
         
