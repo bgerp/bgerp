@@ -7,7 +7,7 @@
     <!--ET_BEGIN buttonList-->[#buttonList#]<!--ET_END buttonList-->
     <!--ET_BEGIN buttonChart-->[#buttonChart#]<!--ET_END buttonChart-->
 </div>
-<br><br>
+[#PAGER_TOP#]
 <div class='overflow-scroll'>
     [#DETAILS#]
 </div>
