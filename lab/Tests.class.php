@@ -114,10 +114,12 @@ class lab_Tests extends core_Master
      */
     var $abbr = "Lab";
     
+    
     /**
      * Групиране на документите
      */
     var $newBtnGroup = "18.1|Други";
+    
     
     /**
      * Описание на модела
@@ -143,16 +145,6 @@ class lab_Tests extends core_Master
      */
     static function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
     {
-        if ($mvc->haveRightFor('activate', $data->rec)) {
-            $url = array(
-                $mvc,
-                'activateTest',
-                'id' => $data->rec->id,
-                'ret_url' => TRUE
-            );
-            $data->toolbar->addBtn('Активиране', $url, 'id=activate,warning=Наистина ли желаете да активирате теста?', 'ef_icon = img/16/lightning.png');
-        }
-        
         if ($mvc->haveRightFor('compare', $data->rec)) {
             $url = array(
                 $mvc,
@@ -162,31 +154,6 @@ class lab_Tests extends core_Master
             );
             $data->toolbar->addBtn('Сравняване', $url, 'id=compare,class=btn-compare,title=Сравняване на два теста,ef_icon=img/16/report.png');
         }
-    }
-    
-    
-    /**
-     * Смяна статута на 'active'
-     *
-     * @return core_Redirect
-     */
-    function act_ActivateTest()
-    {
-        $id = Request::get('id', 'int');
-        
-        $recForActivation = new stdClass;
-        
-        $query = $this->getQuery();
-        
-        while($rec = $query->fetch("#id = {$id}")) {
-            $recForActivation = $rec;
-        }
-        
-        $recForActivation->state = 'active';
-        $recForActivation->activatedOn = dt::verbal2mysql();
-        $this->save($recForActivation);
-        
-        return new Redirect(array($this, 'single', $id));
     }
     
     
@@ -302,18 +269,22 @@ class lab_Tests extends core_Master
                 
                 $tableRow['resultsLeft'] = "---";
                 
-                foreach($testDetailsLeft as $v) {
-                    if ($v['methodId'] == $methodId) {
-                        $tableRow['resultsLeft'] = $v['results'];
-                    }
+                if(count($testDetailsLeft)){
+                	foreach($testDetailsLeft as $v) {
+                		if ($v['methodId'] == $methodId) {
+                			$tableRow['resultsLeft'] = $v['results'];
+                		}
+                	}
                 }
                 
                 $tableRow['resultsRight'] = "---";
                 
-                foreach($testDetailsRight as $v) {
-                    if ($v['methodId'] == $methodId) {
-                        $tableRow['resultsRight'] = $v['results'];
-                    }
+                if(count($testDetailsRight)){
+                	foreach($testDetailsRight as $v) {
+                		if ($v['methodId'] == $methodId) {
+                			$tableRow['resultsRight'] = $v['results'];
+                		}
+                	}
                 }
                 
                 $tableData[] = $tableRow;
