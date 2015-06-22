@@ -196,6 +196,7 @@ class doc_DocsReport extends frame_BaseDriver
             
     		[#PAGER#]
             [#DOCS#]
+    		[#PAGER#]
         "
     	);
     
