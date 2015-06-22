@@ -1718,7 +1718,7 @@ class doclog_Documents extends core_Manager
             if (($history = core_Cache::get(static::CACHE_TYPE, $cacheKey)) === FALSE) {
                 // Историята на този тред я няма в кеша - подготвяме я и я записваме в кеша
                 $history = static::buildThreadHistory($threadId);
-                core_Cache::set(static::CACHE_TYPE, $cacheKey, $history, '2 дена');
+                core_Cache::set(static::CACHE_TYPE, $cacheKey, $history, 2 * 24 * 60);
             }       
             
             static::$histories[$threadId] = $history;

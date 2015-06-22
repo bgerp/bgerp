@@ -170,7 +170,12 @@ class type_Email extends type_Varchar {
         if(Mode::is('text', 'html') || !Mode::is('text')) {
             list($user, $domain) = explode('@', $email);
             $domain = '&#64;' . $domain;
-            $value = "<script>document.write(\"<a href='mailto:{$user}\" + \"{$domain}'><span style='display:none;'>\");</script> {$verbal}<script>document.write(\"</span>\" + \"{$user}\" + \"{$domain}</a>\");</script>";
+            
+            $attr = array();
+            ht::setUniqId($attr);
+            $spanId = $attr['id'];
+            $value = "<span id='{$spanId}'>{$verbal}</span>";
+            $value .= "<script>$('#{$spanId}').html(\"<a href='mailto:{$user}\" + \"{$domain}'><span style='display:none;'>{$verbal}</span>\" + \"{$user}\" + \"{$domain}</a>\");</script>";
         } else {
             $value = $verbal;
         }

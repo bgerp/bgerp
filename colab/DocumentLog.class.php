@@ -143,7 +143,6 @@ class colab_DocumentLog extends core_Manager
         $attr = array();
         $attr['ef_icon'] = 'img/16/eye-close-icon.png';
         $attr['class'] = 'settings-document-viewed';
-        $attr['style'] = 'display: inline-block; height: 16px;';
         
         if ($actArr = self::getActions($containerId, self::ACTION_VIEW, 1)) {
             $rec = array_pop($actArr);

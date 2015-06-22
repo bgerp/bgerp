@@ -148,7 +148,7 @@ class plg_PrevAndNext extends core_Plugin
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_BeforePrepareEditForm($mvc, $data)
+    function on_BeforePrepareEditForm($mvc, &$data, &$data)
     {
         if($sel = Request::get('Selected')) {
 
@@ -158,7 +158,8 @@ class plg_PrevAndNext extends core_Plugin
             // Зареждаме id-то на първия запис за редактиране
             expect(ctype_digit($id = $selArr[0]));
             
-            Request::push(array('id' => $id));            
+            Request::push(array('id' => $id));
+            
         } 
     }
 
@@ -200,6 +201,12 @@ class plg_PrevAndNext extends core_Plugin
             // Изтриваме в сесията, ако има избрано множество записи 
             Mode::setPermanent($selKey, NULL);
         }
+
+        // Определяне на индикатора за текущ елемент
+        $selArr = Mode::get($selKey);
+        $id = Request::get('id', 'int');
+        $pos = array_search($id, $selArr) + 1;
+        $data->prevAndNextIndicator = $pos . '/' . count($selArr);
 		
         $data->buttons = new stdClass();
         $data->buttons->prevId = $this->getNeighbour($mvc, $data->form->rec, -1);
@@ -225,6 +232,8 @@ class plg_PrevAndNext extends core_Plugin
                 $data->form->toolbar->addSbBtn('»»»', 'save_n_next', 'class=btn-disabled noicon fright,disabled,order=30, title = Следващ');
             }
             
+            $data->form->toolbar->addFnBtn($data->prevAndNextIndicator, '', 'class=noicon fright,order=30');
+
             if (isset($data->buttons->prevId)) {
                 $data->form->toolbar->addSbBtn('«««', 'save_n_prev', 'class=noicon fright,order=30, title = Предишен');
             } else {

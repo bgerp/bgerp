@@ -60,8 +60,8 @@ class acc_BalancePeriodReportImpl extends frame_BaseDriver
     	$form->FLD('to', 'key(mvc=acc_Periods,select=title, allowEmpty)', 'caption=До,mandatory');
     	
     
-    	//$form->FLD('orderField', "enum(,ent1Id=Перо 1,ent2Id=Перо 2,ent3Id=Перо 3,baseQuantity=К-во»Начално,baseAmount=Сума»Начална,debitQuantity=К-во»Дебит,debitAmount=Сума»Дебит,creditQuantity=К-во»Кредит,creditAmount=Сума»Кредит,blQuantity=К-во»Крайно,blAmount=Сума»Крайна)", 'caption=Подредба->По,formOrder=110000');
-    	//$form->FLD('orderBy', 'enum(,asc=Въздходящ,desc=Низходящ)', 'caption=Подредба->Тип,formOrder=110001');
+    	$form->FLD('orderField', "enum(,debitAmount=Дебит,creditAmount=Кредит,blAmount=Крайнo салдо)", 'caption=Подредба,formOrder=110000');
+    	$form->FLD('compare', 'enum(,yes=Да)', 'caption=Сравни,formOrder=110001,maxRadio=1');
     
     	$this->invoke('AfterAddEmbeddedFields', array($form));
     }
@@ -117,6 +117,12 @@ class acc_BalancePeriodReportImpl extends frame_BaseDriver
      */
     public function checkEmbeddedForm(core_Form &$form)
     {
+    	// Размяна, ако периодите са объркани
+    	if(isset($form->rec->from) && isset($form->rec->to) && ($form->rec->from > $form->rec->to)) { //bp($form->rec->from , $form->rec->to);
+    		$mid = $form->rec->from;
+    		$form->rec->from = $form->rec->to;
+    		$form->rec->to = $mid;
+    	}
    
     }
     
@@ -131,38 +137,25 @@ class acc_BalancePeriodReportImpl extends frame_BaseDriver
     	
     	$data = new stdClass();
     	$data->recs = array();
+    	$data->bData = array();
     	 
     	$data->rec = $this->innerForm;
     	$this->prepareListFields($data);
     	
+    	$accSysId = acc_Accounts::fetchField($data->rec->accountId, 'systemId');
     	
-    	/*$accSysId = acc_Accounts::fetchField($data->rec->accountId, 'systemId');
-        $Balance = new acc_ActiveShortBalance(array('from' => $data->rec->from, 'to' => $data->rec->to, 'accs' => $accSysId, 'cacheBalance' => FALSE));
-        $data->recs = $Balance->getBalance($accSysId);
-        
-        if(count($data->recs)){
-        	foreach ($data->recs as $rec){
-        		foreach (range(1, 3) as $i){
-        			if(!empty($rec->{"ent{$i}Id"})){
-        				$this->cache[$rec->{"ent{$i}Id"}] = $rec->{"ent{$i}Id"};
-        			}
-        		}
-        	}
-        	
-        	if(count($this->cache)){
-	        	$iQuery = acc_Items::getQuery();
-	            $iQuery->show("num");
-	            $iQuery->in('id', $this->cache);
-	            
-	            while($iRec = $iQuery->fetch()){
-	                $this->cache[$iRec->id] = $iRec->num;
-	            }
-        	}
-        }
-        
-        $this->filterRecsByItems($data);
-        
-        return $data;*/
+    	$bDetails = cls::get('acc_BalanceDetails');
+    	$bQuery = acc_BalanceDetails::getQuery();
+
+    	for ($p = $data->rec->from; $p <= $data->rec->to; $p++) {
+    		
+    		$balanceId = acc_Balances::fetchField("#periodId = '{$p}'", 'id');
+    		$bDetails->filterQuery($bQuery, $balanceId, $accSysId);
+
+    		$data->recs[$p] = $bQuery->fetchAll();
+    	}
+
+        return $data;
     }
     
     
@@ -174,24 +167,39 @@ class acc_BalancePeriodReportImpl extends frame_BaseDriver
     	// Подготвяме страницирането
     	$data = $res;
         
-        //$pager = cls::get('core_Pager',  array('pageVar' => 'P_' .  $mvc->EmbedderRec->that,'itemsPerPage' => $mvc->listItemsPerPage));
+        $pager = cls::get('core_Pager',  array('pageVar' => 'P_' .  $mvc->EmbedderRec->that,'itemsPerPage' => $mvc->listItemsPerPage));
        
-        //$pager->itemsCount = count($data->recs);
-        //$data->pager = $pager;
+        $pager->itemsCount = count($data->recs);
+        $data->pager = $pager;
         
         if(count($data->recs)){
           
-            foreach ($data->recs as $id => $rec){
-				//if(!$pager->isOnPage()) continue;
-                
-                $row = $mvc->getVerbal($rec);
+            foreach ($data->recs as $id => $rec){ 
+				if(!$pager->isOnPage()) continue;
+				
+				$row = new stdClass();
+				
+				$row->periodId = acc_Periods::getTitleById($id);
+				$row->amount = 0;
+				
+				foreach ($rec as $bRec) { 
+		
+					switch ($data->rec->orderField) {
+						case 'debitAmount':
+							$row->amount += $bRec->debitAmount;
+							break;
+						case 'creditAmount':
+							$row->amount += $bRec->creditAmount;
+							break;
+						case 'blAmount':
+							$row->amount += $bRec->blAmount;
+							break;
+					}
+				}
        
-                $data->rows[$id] = $row;
-               
-                
+				$data->rows[$id] = $row;
             }
         }
-
 
         $res = $data;
     }
@@ -218,7 +226,9 @@ class acc_BalancePeriodReportImpl extends frame_BaseDriver
     public function renderEmbeddedData($data)
     {
     	
-    	//if(empty($data)) return;
+    	if(empty($data)) return;
+    	$chart = Request::get('Chart');
+    	$id = Request::get('id', 'int');
     	
     	$tpl = $this->getReportLayout();
     
@@ -237,19 +247,70 @@ class acc_BalancePeriodReportImpl extends frame_BaseDriver
     	
     	$tpl->placeObject($data->rec);
     	
-    	$f = cls::get('core_FieldSet');
+    	// ако имаме записи има и смисъл да
+    	// слагаме табове
+    	// @todo да не се ползва threadId  за константа
+    	if($data->recs) {
+    		// слагаме бутони на къстам тулбара
+    		$btnList = ht::createBtn('Таблица', array(
+    				'doc_Containers',
+    				'list',
+    				'threadId' => Request::get('threadId', 'int'),
     	
-    	$f->FLD('periodId', 'varchar');
-    	$f->FLD('amount', 'double');
-    	$f->FLD('amountPrevious', 'double');
+    		), NULL, NULL,
+    				'ef_icon = img/16/table.png');
     	
+    		$tpl->replace($btnList, 'buttonList');
     	
-    	$table = cls::get('core_TableView', array('mvc' => $f));
+    		$btnChart = ht::createBtn('Графика', array(
+    				'doc_Containers',
+    				'list',
+    				'Chart' => 'bar'. $data->rec->containerId,
+    				'threadId' => Request::get('threadId', 'int'),
     	
-    	$tpl->append($table->get($data->rows, $data->listFields), 'CONTENT');
-    	 
-    	if($data->pager){
-    		$tpl->append($data->pager->getHtml(), 'PAGER');
+    		), NULL, NULL,
+    				'ef_icon = img/16/chart_bar.png');
+    	
+    		$tpl->replace($btnChart, 'buttonChart');
+    	}
+    
+    	$labels = array();
+    	$values = array();
+    	foreach ($data->rows as $row) {
+    		
+    		$labels[] = $row->periodId;
+    		$values[mb_substr($row->periodId,0,19)] = array ($row->amount);
+    		
+    	}
+
+    	if ($chart == 'bar'.$data->rec->containerId && $data->recs) { 
+	    	$bar = array (
+	    			'legendTitle' => "Балансов отчет по период",
+	    			'labels' => $labels,
+	    			'values' => $values
+	    	);
+	    	
+	    	$coreConf = core_Packs::getConfig('doc');
+	    	$chartAdapter = $coreConf->DOC_CHART_ADAPTER;
+	    	$chartHtml = cls::get($chartAdapter);
+	    	$chart =  $chartHtml::prepare($bar,'bar');
+	    	$tpl->append($chart, 'CONTENT');
+    	} else {
+	
+	    	$f = cls::get('core_FieldSet');
+	    	
+	    	$f->FLD('periodId', 'richtext');
+	    	$f->FLD('amount', 'double');
+	    	$f->FLD('amountPrevious', 'double');
+	    	
+	    	
+	    	$table = cls::get('core_TableView', array('mvc' => $f));
+	   
+	    	$tpl->append($table->get($data->rows, $data->listFields), 'CONTENT');
+	    	 
+	    	if($data->pager){
+	    		$tpl->append($data->pager->getHtml(), 'PAGER');
+	    	}
     	}
     	
     	return  $tpl;
@@ -261,33 +322,75 @@ class acc_BalancePeriodReportImpl extends frame_BaseDriver
      */
     protected function prepareListFields_(&$data)
     {
-    
-        /*$data->accInfo = acc_Accounts::getAccountInfo($data->rec->accountId);
-    
-         $bShowQuantities = ($data->accInfo->isDimensional === TRUE) ? TRUE : FALSE;
-        
-    	 $data->bShowQuantities = $bShowQuantities;
+    	switch ($data->rec->orderField) {
+			case 'debitAmount':
+		        $data->listFields = array(
+	    			'periodId' => 'Период',
+	    			'amount' => 'Дебит',
+	    		);
+		        break;
+		        
+		    case 'creditAmount':
+		        $data->listFields = array(
+	    			'periodId' => 'Период',
+	    			'amount' => 'Кредит',
+	    		);
+		        break;
+		        
+		    case 'blAmount':
+		        $data->listFields = array(
+	    			'periodId' => 'Период',
+	    			'amount' => 'Крайно салдо',
+	    		);
+		        break;
+		}
 
-        */
-    	
-    	$data->listFields = array(
-    			'periodId' => 'Период',
-    			'amount' => 'Сума',
-    			'amountPrevious' => 'Предходна година',
-
-    	);
-        
+		if ($data->rec->compare == 'yes') {
+			 $data->listFields['amountPrevious'] = 'Предходна година';
+		}
     }
     
-    
+    /**
+     * Вербалното представяне на записа
+     */
+    /*private function recToVerbal($data)
+    {
+    	$data->row = new stdClass();
+    	
+    	$RichtextType = cls::get('type_Richtext');
+    	
+    	$Double = cls::get('type_Double');
+    	$Double->params['decimals'] = 2;
+    	//bp($data);
+    	//$periodId = acc_Balances::fetchField("#id = '{$data->rec->balanceId}'", 'periodId');
+    	$data->row->periodId = acc_Periods::getTitleById($data->rec->from);
+    	$data->row->amount = 1000;
+    }*/
+   
    /**
     * Вербалното представяне на записа
     */
-	private function recToVerbal($data)
+	private function getVerbal($rec)
    	{
-   		/*$data->row = new stdClass();
-    	//bp($data);
-        foreach (range(1, 3) as $i){
+   		$RichtextType = cls::get('type_Richtext');
+        
+		$Double = cls::get('type_Double');
+		$Double->params['decimals'] = 2;
+
+		//$rows = array();
+        $row = new stdClass();
+        //bp($rec);
+        foreach ($rec as $periodId => $r) {
+	        //$periodId = acc_Balances::fetchField("#id = '{$rec->balanceId}'", 'periodId');
+	        $row->periodId = acc_Periods::getTitleById($periodId);
+	        foreach ($r as $bRec) {
+	        	$row->amount += $bRec->debitAmount;
+	        }
+	        
+	       // $rows[] = $row;
+        }
+    	//bp($row);
+        /*foreach (range(1, 3) as $i){
        		if(!empty($data->rec->{"ent{$i}Id"})){
        			$data->row->{"ent{$i}Id"} = "<b>" . acc_Lists::getVerbal($data->accInfo->groups[$i]->rec, 'name') . "</b>: ";
        			$data->row->{"ent{$i}Id"} .= acc_Items::fetchField($data->rec->{"ent{$i}Id"}, 'titleLink');
@@ -313,9 +416,9 @@ class acc_BalancePeriodReportImpl extends frame_BaseDriver
         	if($data->row->groupBy === ''){
         		unset($data->row->action);
         	}
-        }
+        }*/
         
-        //bp($data);*/
+    	return $row;
 	}
 
       

@@ -1,14 +1,4 @@
-[#SingleToolbar#]
-<div class='document closePeriod'>
-    <!--ET_BEGIN blank-->
-    [#blank#]
-    <!--ET_END blank-->
-    <!--ET_BEGIN header-->
-    [#header#]
-    <div class='header [#STATE_CLASS#]'>
-        <div class='docBgIcon' style='[#iconStyle#];'>[#singleTitle#] <b>[#ident#]</b> ([#state#])</div>
-    </div>
-    <!--ET_END header-->
+[#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
     <table class='no-border-table fleft' style='margin-top: 0;'>
     	<!--ET_BEGIN valior-->
     	<tr>
@@ -74,4 +64,4 @@
     <div class='overflow-scroll'>
     [#INFO#]
     </div>
-</div>
+[#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]
