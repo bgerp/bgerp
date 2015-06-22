@@ -1464,6 +1464,7 @@ class doc_Containers extends core_Manager
         while($rec = $query->fetch()) {
             
             $docId = FALSE;
+            $mustUpdate = FALSE;
             
             // Ако няма id на папката
             if (!isset($rec->folderId)) {
@@ -1480,6 +1481,7 @@ class doc_Containers extends core_Manager
                 
                 if (self::save($rec)) {
                     $resArr['folderId']++;
+                    $mustUpdate = TRUE;
                 }
             }
             
@@ -1496,6 +1498,7 @@ class doc_Containers extends core_Manager
             
                 if (self::save($rec)) {
                     $resArr['threadId']++;
+                    $mustUpdate = TRUE;
                 }
             }
             
@@ -1516,6 +1519,7 @@ class doc_Containers extends core_Manager
                             
                             if (self::save($rec)) {
                                 $resArr['docClass']++;
+                                $mustUpdate = TRUE;
                             }
                             
                             break;
@@ -1542,6 +1546,7 @@ class doc_Containers extends core_Manager
                             $rec->docId = $docId;
                             if (self::save($rec)) {
                                 $resArr['docId']++;
+                                $mustUpdate = TRUE;
                             }
                         } else {
                             if ($rec->id) {
@@ -1558,6 +1563,11 @@ class doc_Containers extends core_Manager
                         $resArr['del_cnt']++;
                     }
                 }
+            }
+            
+            // Обновяваме полетата
+            if ($mustUpdate) {
+                self::update($rec->id);
             }
         }
         
