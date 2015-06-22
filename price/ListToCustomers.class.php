@@ -421,10 +421,16 @@ class price_ListToCustomers extends core_Detail
     		$comparePrice = price_ListRules::getPrice($listRec->discountCompared, $productId, $packagingId, $datetime);
     		if($comparePrice){
     			$disc = ($rec->price - $comparePrice) / $comparePrice;
-    			$rec->discount = round(-1 * $disc, 4);
-    	
-    			// Подменяме цената за да може като се приспадне отстъпката и, да се получи толкова колкото тя е била
-    			$rec->price  = $comparePrice;
+    			$discount = round(-1 * $disc, 4);
+    			
+    			// Ще показваме цената без отстъпка и отстъпката само ако отстъпката е положителна
+    			// Целта е да не показваме надценката а само отстъпката
+    			if($discount > 0){
+    				
+    				// Подменяме цената за да може като се приспадне отстъпката и, да се получи толкова колкото тя е била
+    				$rec->discount = round(-1 * $disc, 4);
+    				$rec->price  = $comparePrice;
+    			}
     		}
     	}
     	
