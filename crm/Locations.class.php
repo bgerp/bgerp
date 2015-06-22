@@ -223,7 +223,6 @@ class crm_Locations extends core_Master {
     	
     	if(!count($f) || isset($f['title']) && isset($f['countryId'])){
     		if(empty($rec->title)){
-    			$countryName = drdata_Countries::fetchField($rec->countryId, 'commonNameBg');
     			 
     			$lQuery = crm_Locations::getQuery();
     			$lQuery->where("#type = '{$rec->type}' AND #contragentCls = '{$rec->contragentCls}' AND #contragentId = '{$rec->contragentId}'");
