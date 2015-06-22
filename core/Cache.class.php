@@ -143,7 +143,7 @@ class core_Cache extends core_Manager
     	$key = $Cache->getKey($type, $handler);
         $query = self::getQuery();
         while($rec = $query->fetch(array("#key LIKE '%[#1#]'", "{$key}"))) {
-            self::deleteData($rec->key);
+            $Cache->deleteData($rec->key);
         }
     }
     
