@@ -148,7 +148,7 @@ class plg_PrevAndNext extends core_Plugin
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_BeforePrepareEditForm($mvc, &$data, &$data)
+    function on_BeforePrepareEditForm($mvc, &$res, &$data)
     {
         if($sel = Request::get('Selected')) {
 

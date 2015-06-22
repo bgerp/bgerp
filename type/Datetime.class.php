@@ -133,7 +133,7 @@ class type_Datetime extends type_Date {
 
             return $val2;
         } else {
-            $this->error = "Не е в допустимите формати, като например|*: '<B>" . dt::mysql2verbal(NULL, 'd-m-Y G:i') . "</B>'";
+            $this->error = "Не е в допустимите формати, като например|*: '<B>" . dt::mysql2verbal(NULL, 'd-m-Y G:i', NULL, FALSE) . "</B>'";
             
             return FALSE;
         }
