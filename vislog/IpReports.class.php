@@ -170,6 +170,7 @@ class vislog_IpReports extends frame_BaseDriver
             
     		[#PAGER#]
             [#VISITS#]
+    		[#PAGER#]
         "
     	);
     
