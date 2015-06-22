@@ -160,7 +160,7 @@ class lab_Tests extends core_Master
                 'id' => $data->rec->id,
                 'ret_url' => TRUE
             );
-            $data->toolbar->addBtn('Сравняване', $url, 'id=compare,class=btn-compare');
+            $data->toolbar->addBtn('Сравняване', $url, 'id=compare,class=btn-compare,title=Сравняване на два теста,ef_icon=img/16/report.png');
         }
     }
     
@@ -270,18 +270,21 @@ class lab_Tests extends core_Master
                 $allMethodsArr[$rec->id]['paramName'] = $allParamsArr[$rec->paramId];
             }
             
-            // Prepare $methodsUnion
-            {
-                foreach ($testDetailsLeft as $lRec) {
-                    $methodsLeft[] = $lRec['methodId'];
-                }
-                
-                foreach ($testDetailsRight as $rRec) {
-                    $methodsRight[] = $rRec['methodId'];
-                }
-                
-                $methodsUnion = array_unique(array_merge($methodsLeft, $methodsRight));
+            
+            $methodsLeft = $methodsRight = array();
+            if(count($testDetailsLeft)){
+            	foreach ($testDetailsLeft as $lRec) {
+            		$methodsLeft[] = $lRec['methodId'];
+            	}
             }
+            	
+            if(count($methodsRight)){
+            	foreach ($testDetailsRight as $rRec) {
+            		$methodsRight[] = $rRec['methodId'];
+            	}
+            }
+                
+            $methodsUnion = array_unique(array_merge($methodsLeft, $methodsRight));
             
             // END Prepare $methodsUnion
             
@@ -318,7 +321,8 @@ class lab_Tests extends core_Master
             
             $table = cls::get('core_TableView', array('mvc' => $this));
             
-            $data->listFields = arr::make($data->listFields, TRUE);
+            $data = new stdClass();
+            $data->listFields = arr::make($this->listFields, TRUE);
             
             $tpl = $table->get($tableData, "counter=N,methodName=Метод,paramName=Параметър,resultsLeft=Тест No {$cRec->leftTestId},resultsRight=Тест No {$cRec->rightTestId}");
             
