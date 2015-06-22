@@ -28,7 +28,7 @@
             </tr>
         </table>
 </div>
-
+[#PAGER#]
 <div class='overflow-scroll'>
     [#CONTENT#]
 </div>

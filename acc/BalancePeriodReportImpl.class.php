@@ -178,8 +178,8 @@ class acc_BalancePeriodReportImpl extends frame_BaseDriver
 				if(!$pager->isOnPage()) continue;
 				
 				$row = new stdClass();
-				
-				$row->periodId = acc_Periods::getTitleById($id);
+			
+				$row->periodId = $id;
 				$row->amount = 0;
 				
 				foreach ($rec as $bRec) { 
@@ -196,7 +196,8 @@ class acc_BalancePeriodReportImpl extends frame_BaseDriver
 							break;
 					}
 				}
-       
+				//bp($row);
+				$row = $mvc->getVerbal($row);
 				$data->rows[$id] = $row;
             }
         }
@@ -376,20 +377,24 @@ class acc_BalancePeriodReportImpl extends frame_BaseDriver
         
 		$Double = cls::get('type_Double');
 		$Double->params['decimals'] = 2;
+//bp($rec);
 
-		//$rows = array();
         $row = new stdClass();
-        //bp($rec);
-        foreach ($rec as $periodId => $r) {
-	        //$periodId = acc_Balances::fetchField("#id = '{$rec->balanceId}'", 'periodId');
-	        $row->periodId = acc_Periods::getTitleById($periodId);
-	        foreach ($r as $bRec) {
-	        	$row->amount += $bRec->debitAmount;
-	        }
-	        
-	       // $rows[] = $row;
+        
+        $row->periodId = acc_Periods::getTitleById($rec->periodId); //amountPrevious
+        
+        if ($rec->amount < 0) {
+	    	$row->amount = "<span class='red'>{$Double->toVerbal($rec->amount)}</span>";
+        } else {
+        	$row->amount = $Double->toVerbal($rec->amount);
         }
-    	//bp($row);
+        
+        if ($rec->amountPrevious < 0) {
+        	$row->amountPrevious = "<span class='red'>{$Double->toVerbal($rec->amountPrevious)}</span>";
+        } else {
+        	$row->amountPrevious = $Double->toVerbal($rec->amountPrevious);
+        }
+	       
         /*foreach (range(1, 3) as $i){
        		if(!empty($data->rec->{"ent{$i}Id"})){
        			$data->row->{"ent{$i}Id"} = "<b>" . acc_Lists::getVerbal($data->accInfo->groups[$i]->rec, 'name') . "</b>: ";
