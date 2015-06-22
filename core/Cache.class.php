@@ -294,10 +294,8 @@ class core_Cache extends core_Manager
      */
     function getData($key)
     {   
-        if (function_exists('apc_exists')) {
-            if(apc_exists($key)) {
-                $res = apc_fetch($key);
-            }
+        if (function_exists('apc_fetch')) {
+            $res = apc_fetch($key);
         } elseif (function_exists('xcache_get')) {
             $res = xcache_get($key);
             if($res) {
@@ -350,10 +348,10 @@ class core_Cache extends core_Manager
         $saved = FALSE;
         $keepSeconds = $keepMinutes * 60;
 
-        if (function_exists('apc_store') && (function_exists('apc_exists'))) {
+        if (function_exists('apc_store')) {
             apc_store($key, $data, $keepSeconds);
             $saved = TRUE;
-        } elseif (function_exists('xcache_set') && (function_exists('xcache_get'))) {
+        } elseif (function_exists('xcache_set')) {
             xcache_set($key, serialize($data), $keepSeconds);
             $saved = TRUE;
         }
