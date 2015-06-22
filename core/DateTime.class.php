@@ -131,7 +131,7 @@ class core_DateTime
             $date = dt::verbal2mysql();
         }
         
-        $date = dt::mysql2verbal($date, "Y-m-1");
+        $date = dt::mysql2verbal($date, "Y-m-1", NULL, FALSE);
 
         $monthOffset = (int) $monthOffset;
 
