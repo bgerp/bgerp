@@ -75,6 +75,12 @@ class sales_Sales extends deals_DealMaster
     
     
     /**
+     * Кои роли могат да филтрират потребителите по екип в листовия изглед
+     */
+    public $filterRolesForTeam = 'ceo,salesMaster,manager';
+    
+    
+    /**
      * Кой може да принтира фискална бележка
      */
     public $canPrintfiscreceipt = 'ceo,sales';

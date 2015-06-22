@@ -62,6 +62,12 @@ class sales_Invoices extends deals_InvoiceMaster
     
     
     /**
+     * Кои роли могат да филтрират потребителите по екип в листовия изглед
+     */
+    public $filterRolesForTeam = 'ceo,salesMaster,manager';
+    
+    
+    /**
      * Детайла, на модела
      */
     public $details = 'sales_InvoiceDetails' ;
