@@ -543,7 +543,7 @@ class doc_Containers extends core_Manager
         }
         
         if($mustSave) {
-            //bp($rec, $updateField);
+            
             doc_Containers::save($rec, $updateField);
 
             // Ако този документ носи споделяния на нишката, добавяме ги в списъка с отношения
