@@ -483,7 +483,7 @@ a.bookmark-external-url {
 .narrow .menu-holder {
   max-width: 200px; }
   .narrow .menu-holder a {
-    padding: 5px 20px 5px 25px !important;
+    padding: 5px 20px 5px 25px;
     font-size: 1em; }
 
 .search-options .menu-holder a {
