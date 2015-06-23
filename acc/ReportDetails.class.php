@@ -243,6 +243,12 @@ class acc_ReportDetails extends core_Manager
         	$tpl->replace(acc_Periods::getVerbal($data->balanceRec->periodId, 'title'), 'periodId');
         }
         
+        $limitTitle = tr("Лимити");
+        if(acc_Limits::haveRightFor('list')){
+        	$limitTitle = ht::createLink($limitTitle, array('acc_Limits', 'list'), FALSE, 'title=Към счетоводните лимити');
+        }
+        $tpl->replace($limitTitle, 'LIMIT_LINK');
+        
         $data->listFields['tools'] = ' ';
         
         // Ако има какво да се показва
