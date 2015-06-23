@@ -126,6 +126,9 @@ class price_Lists extends core_Master
         $this->FLD('roundingPrecision', 'double(smartRound)', 'caption=Закръгляне->Десетични знаци');
         $this->FLD('roundingOffset', 'double(smartRound)', 'caption=Закръгляне->Отместване');
         
+        $this->FLD('minSurcharge', 'percent', 'caption=Надценки за нестандартни продукти->Минимална');
+        $this->FLD('maxSurcharge', 'percent', 'caption=Надценки за нестандартни продукти->Максимална');
+        
         $this->setDbUnique('title');
     }
 
