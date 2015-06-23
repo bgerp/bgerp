@@ -118,7 +118,9 @@ function userMenuActions() {
             $(e.target).parent().find('.menu-holder').toggle();
     	}
     	else{
-            $('.menu-holder').hide();
+            if (!($(e.target).is('.menu-holder input')) ) {
+                $('.menu-holder').hide();
+            }
     	}
     });
 }
