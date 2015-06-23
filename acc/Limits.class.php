@@ -107,7 +107,7 @@ class acc_Limits extends core_Manager
         $this->FLD('item3', 'acc_type_Item(select=titleLink,allowEmpty)', 'caption=Сметка->Перо 3, input=none');
         
         $this->FLD('sharedUsers', 'userList(roles=powerUser)', 'caption=Нотифициране->Потребители,mandatory');
-        $this->FLD('when', 'date', 'caption=Надвишаване,input=none');
+        $this->FLD('when', 'datetime(format=smartTime)', 'caption=Надвишаване,input=none');
         $this->FLD('exceededAmount', 'double(decimals=2)', 'caption=Надвишаване,input=none');
         
         $this->FLD('classId', 'key(mvc=core_Classes)', 'silent,input=hidden');
@@ -485,23 +485,29 @@ class acc_Limits extends core_Manager
     		// Ако има надвишаване изпращаме нотифификация
     		if($sendNotification === TRUE){
     			
-    			// Обновяваме записа с информация, че е бил надвишен
-    			$oldWhen = $rec->when;
-    			$rec->when = dt::today();
-    			$rec->status = 'exceeded';
+    			// Ако лимита вече е бил надвишен, ъпдейтваме сумата с която е надвишен
     			$rec->exceededAmount = abs(abs($fieldToCompare) - $rec->limitQuantity);
     			
-    			$this->save($rec, 'when,status,exceededAmount');
-    			$sharedUsers = keylist::toArray($rec->sharedUsers);
-    			
-    			// Запомняме по кои неразмерни пера е имало надвишаване
-    			foreach ($sharedUsers as $userId){
-    				if(!array_key_exists($userId, $sendNotificationsTo)){
-    					$sendNotificationsTo[$userId] = array();
-    				}
+    			// Ако досега не е бил надвишен отбелязваме го като такъв
+    			if(!isset($rec->when)){
     				
-    				$sendNotificationsTo[$userId] = array_merge($sendNotificationsTo[$userId], $notDimensionalItems);
+    				// Обновяваме записа с информация, че е бил надвишен
+    				$rec->when = $now;
+    				$rec->status = 'exceeded';
+    				
+    				$sharedUsers = keylist::toArray($rec->sharedUsers);
+    				
+    				// Запомняме по кои не-размерни пера е имало надвишаване
+    				foreach ($sharedUsers as $userId){
+    					if(!array_key_exists($userId, $sendNotificationsTo)){
+    						$sendNotificationsTo[$userId] = array();
+    					}
+    					 
+    					$sendNotificationsTo[$userId] = array_merge($sendNotificationsTo[$userId], $notDimensionalItems);
+    				}
     			}
+    			
+    			$this->save($rec, 'when,status,exceededAmount');
     		} else {
     			
     			// Ако е имало надвишаване но вече няма
