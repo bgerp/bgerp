@@ -296,7 +296,7 @@ class core_Cache extends core_Manager
     {   
         if (function_exists('apc_fetch')) {
             $res = apc_fetch($key);
-            $this->log('APC_FETCH: ' . str::limitLen(core_Type::mixedToString($res), 300));
+            $this->log('APC_FETCH: ' . $key . ' - ' . str::limitLen(core_Type::mixedToString($res), 300));
             if($res) {
                 // TODO тази проверка е временна
                 if (is_string($res)) {
@@ -339,7 +339,7 @@ class core_Cache extends core_Manager
     {
         if (function_exists('apc_delete')) {
             $apc = apc_delete($key);
-            $this->log('APC_DELETE: ' . $apc);
+            $this->log('APC_DELETE: ' . $key . ' - ' . $apc);
         } elseif (function_exists('xcache_unset')) {
             xcache_unset($key);
         }
@@ -358,7 +358,7 @@ class core_Cache extends core_Manager
 
         if (function_exists('apc_store')) {
             $apc = apc_store($key, serialize($data), $keepSeconds);
-            $this->log('APC_STORE: ' . $apc);
+            $this->log('APC_STORE: ' . $key . ' - '  . $apc);
             $saved = TRUE;
         } elseif (function_exists('xcache_set')) {
             xcache_set($key, serialize($data), $keepSeconds);
