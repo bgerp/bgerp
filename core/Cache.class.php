@@ -143,7 +143,7 @@ class core_Cache extends core_Manager
     	$key = $Cache->getKey($type, $handler);
         $query = self::getQuery();
         while($rec = $query->fetch(array("#key LIKE '%[#1#]'", "{$key}"))) {
-            self::deleteData($rec->key);
+            $Cache->deleteData($rec->key);
         }
     }
     
@@ -163,7 +163,7 @@ class core_Cache extends core_Manager
                 $key = $Cache->getKey($t, $handler);
                 $query = self::getQuery();
                 while($rec = $query->fetch(array("#key LIKE '[#1#]'", "{$key}"))) {
-                    self::deleteData($rec->key);
+                    $Cache->deleteData($rec->key);
                 }
             }
         } else {
@@ -294,11 +294,9 @@ class core_Cache extends core_Manager
      */
     function getData($key)
     {   
-        if(function_exists('apc_exists')) {
-            if(apc_exists($key)) {
-                $res = apc_fetch($key);
-            }
-        } elseif(function_exists('xcache_get')) {
+        if (function_exists('apc_fetch')) {
+            $res = apc_fetch($key);
+        } elseif (function_exists('xcache_get')) {
             $res = xcache_get($key);
             if($res) {
                 $res = unserialize($res);
@@ -332,9 +330,9 @@ class core_Cache extends core_Manager
      */
     function deleteData($key)
     {
-        if(function_exists('apc_delete')) {
+        if (function_exists('apc_delete')) {
             apc_delete($key);
-        } elseif(function_exists('xcache_unset')) {
+        } elseif (function_exists('xcache_unset')) {
             xcache_unset($key);
         }
 
@@ -350,10 +348,10 @@ class core_Cache extends core_Manager
         $saved = FALSE;
         $keepSeconds = $keepMinutes * 60;
 
-        if(function_exists('apc_store')) {
+        if (function_exists('apc_store')) {
             apc_store($key, $data, $keepSeconds);
             $saved = TRUE;
-        } elseif(function_exists('xcache_set')) {
+        } elseif (function_exists('xcache_set')) {
             xcache_set($key, serialize($data), $keepSeconds);
             $saved = TRUE;
         }

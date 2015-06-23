@@ -139,6 +139,11 @@ class acc_SaleContractorsReport extends acc_BalanceReportImpl
             $beforeRow->placeObject($data->summary);
             $tpl->append($beforeRow, 'ROW_BEFORE');
         }
+        
+        if($data->pager){
+        	$tpl->append($data->pager->getHtml(), 'PAGER_BOTTOM');
+        	$tpl->append($data->pager->getHtml(), 'PAGER_TOP');
+        }
 
 
         return $tpl;

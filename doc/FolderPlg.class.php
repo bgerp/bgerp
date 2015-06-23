@@ -126,7 +126,7 @@ class doc_FolderPlg extends core_Plugin
             }
             
         } else {
-        	if($mvc->haveRightFor('createnewfolder', $data->rec)){
+        	if($mvc->haveRightFor('createnewfolder', $data->rec)){//bp();
         		$title = $mvc->getFolderTitle($data->rec->id);
         		$data->toolbar->addBtn('Папка', array($mvc, 'createFolder', $data->rec->id), array(
         				'warning' => "Наистина ли желаете да създадетe папка за документи към|* \"{$title}\"?",
@@ -188,6 +188,8 @@ class doc_FolderPlg extends core_Plugin
         // Не може да се създава нова папка, ако потребителя няма достъп до обекта
         if($action == 'createnewfolder' && isset($rec)){
         	if (!doc_Folders::haveRightToObject($rec, $userId)) {
+        		$requiredRoles = 'no_one';
+        	} elseif($rec->state == 'rejected'){
         		$requiredRoles = 'no_one';
         	}
         }

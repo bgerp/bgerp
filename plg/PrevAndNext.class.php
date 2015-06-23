@@ -148,7 +148,7 @@ class plg_PrevAndNext extends core_Plugin
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_BeforePrepareEditForm($mvc, &$data, &$data)
+    function on_BeforePrepareEditForm($mvc, &$res, &$data)
     {
         if($sel = Request::get('Selected')) {
 
@@ -195,22 +195,25 @@ class plg_PrevAndNext extends core_Plugin
             expect($data->form->rec = $mvc->fetch($id));
             
             $mvc->requireRightFor('edit', $data->form->rec);
-
+            
         } elseif( !($data->form->cmd == 'save_n_next' || $data->form->cmd == 'save_n_prev' || Request::get('PrevAndNext'))) {
-
+        	
             // Изтриваме в сесията, ако има избрано множество записи 
             Mode::setPermanent($selKey, NULL);
         }
-
+        
         // Определяне на индикатора за текущ елемент
-        $selArr = Mode::get($selKey);
-        $id = Request::get('id', 'int');
-        $pos = array_search($id, $selArr) + 1;
-        $data->prevAndNextIndicator = $pos . '/' . count($selArr);
-		
-        $data->buttons = new stdClass();
-        $data->buttons->prevId = $this->getNeighbour($mvc, $data->form->rec, -1);
-        $data->buttons->nextId = $this->getNeighbour($mvc, $data->form->rec, +1);
+        if ($selArr = Mode::get($selKey)) {
+            
+            $id = Request::get('id', 'int');
+            
+            $pos = array_search($id, $selArr) + 1;
+            $data->prevAndNextIndicator = $pos . '/' . count($selArr);
+             
+            $data->buttons = new stdClass();
+            $data->buttons->prevId = $this->getNeighbour($mvc, $data->form->rec, -1);
+            $data->buttons->nextId = $this->getNeighbour($mvc, $data->form->rec, +1);
+        }
     }
     
     

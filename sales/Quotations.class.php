@@ -68,6 +68,12 @@ class sales_Quotations extends core_Master
     
     
     /**
+     * Кои роли могат да филтрират потребителите по екип в листовия изглед
+     */
+    public $filterRolesForTeam = 'ceo,salesMaster,manager';
+    
+    
+    /**
      * Икона за единичния изглед
      */
     public $singleIcon = 'img/16/document_quote.png';

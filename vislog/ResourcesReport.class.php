@@ -173,6 +173,7 @@ class vislog_ResourcesReport extends frame_BaseDriver
             [#FORM#]
             [#PAGER#]
             [#RESOURCES#]
+    		[#PAGER#]
         "
     	);
     

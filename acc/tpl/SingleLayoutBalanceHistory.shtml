@@ -50,7 +50,9 @@
         </table>
     </div>
     <div class='clearfix21'></div>
+    [#PAGER#]
     <div class='scrolling-holder'>
         [#DETAILS#]
     </div>
+    [#PAGER#]
 </div>

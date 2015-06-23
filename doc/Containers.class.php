@@ -543,7 +543,7 @@ class doc_Containers extends core_Manager
         }
         
         if($mustSave) {
-            //bp($rec, $updateField);
+            
             doc_Containers::save($rec, $updateField);
 
             // Ако този документ носи споделяния на нишката, добавяме ги в списъка с отношения
@@ -1458,12 +1458,18 @@ class doc_Containers extends core_Manager
         $query->orWhere("#threadId IS NULL");
         $query->orWhere("#docClass IS NULL");
         $query->orWhere("#docId IS NULL");
+        $query->orWhere("#visibleForPartners IS NULL");
+        $query->orWhere("#searchKeywords IS NULL");
+        $query->orWhere("#searchKeywords = ''");
+        
+        $query->orWhere("#activatedBy IS NULL AND #state != 'rejected' AND #state != 'draft'");
         
         $resArr = array();
         
         while($rec = $query->fetch()) {
             
             $docId = FALSE;
+            $mustUpdate = TRUE;
             
             // Ако няма id на папката
             if (!isset($rec->folderId)) {
@@ -1556,8 +1562,15 @@ class doc_Containers extends core_Manager
                 } else {
                     if (self::delete($rec->id)) {
                         $resArr['del_cnt']++;
+                        $mustUpdate = FALSE;
                     }
                 }
+            }
+            
+            // Обновяваме полетата
+            if ($mustUpdate) {
+                self::update($rec->id);
+                $resArr['updateContainers']++;
             }
         }
         
@@ -1603,6 +1616,7 @@ class doc_Containers extends core_Manager
                 
                 if (self::save($rec, 'state')) {
                     $resArr['state']++;
+                    self::update($rec->id);
                 }
             } catch (Exception $e) {
                 

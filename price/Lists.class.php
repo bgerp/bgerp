@@ -33,8 +33,14 @@ class price_Lists extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_Rejected, plg_RowTools, price_Wrapper, plg_NoChange';
+    var $loadList = 'plg_Created, plg_Rejected, plg_RowTools, price_Wrapper, plg_NoChange, plg_Search';
                     
+    
+    /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    var $searchFields = 'title,parent';
+    
     
     /**
      * Детайла, на модела
@@ -166,6 +172,17 @@ class price_Lists extends core_Master
     }
 
 
+    /**
+     * Подготовка на филтър формата
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+    	$data->listFilter->showFields = 'search';
+    	$data->listFilter->view = 'horizontal';
+    	$data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+    }
+    
+    
     /**
      *
      *

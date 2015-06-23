@@ -59,6 +59,7 @@ class acc_plg_DocumentSummary extends core_Plugin
         setIfNot($mvc->filterDateField, 'valior');
         setIfNot($mvc->filterCurrencyField, 'currencyId');
         setIfNot($mvc->filterFieldUsers, 'createdBy');
+        setIfNot($mvc->filterRolesForTeam, 'ceo,manager,admin');
     }
     
     /**
@@ -106,8 +107,11 @@ class acc_plg_DocumentSummary extends core_Plugin
         }
         $data->listFilter->showFields .= 'from, to';
         
+        $rolesForTeams = arr::make($mvc->filterRolesForTeam, TRUE);
+        $rolesForTeams = implode('|', $rolesForTeams);
+       
         if($isDocument = cls::haveInterface('doc_DocumentIntf', $mvc)){
-            $data->listFilter->FNC('users', 'users(rolesForAll=ceo|admin|manager,rolesForTeams=ceo|admin|manager)', 'caption=Потребители,silent,refreshForm');
+            $data->listFilter->FNC('users', "users(rolesForAll=ceo|admin|manager,rolesForTeams={$rolesForTeams})", 'caption=Потребители,silent,refreshForm');
             $data->listFilter->setDefault('users', keylist::addKey('', core_Users::getCurrent()));
             $data->listFilter->showFields .= ',users';
         }

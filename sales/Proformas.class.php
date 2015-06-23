@@ -62,6 +62,12 @@ class sales_Proformas extends deals_InvoiceMaster
     
     
     /**
+     * Кои роли могат да филтрират потребителите по екип в листовия изглед
+     */
+    public $filterRolesForTeam = 'ceo,salesMaster,manager';
+    
+    
+    /**
      * Кой е основния детайл
      */
     protected $mainDetail = 'sales_ProformaDetails';
