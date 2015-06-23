@@ -313,9 +313,9 @@ class acc_ReportDetails extends core_Manager
                 		}
                 	}
                 	
-                	$tpl->append("<span class='accTitle' style = 'margin-top:7px'>{$accNum}  <span style='font-weight:normal'>(" . tr('лимити') . ")</span></span>", 'CONTENT');
+                	$tpl->append("<span class='accTitle' style = 'margin-top:7px'>{$accNum}</span>", 'LIMITS');
                 	$limitsHtml = $table->get($arr['limits'], array('tools' => 'Пулт') + $limitFields);
-                	$tpl->append($limitsHtml, 'CONTENT');
+                	$tpl->append($limitsHtml, 'LIMITS');
                 }
             }
            
@@ -332,9 +332,8 @@ class acc_ReportDetails extends core_Manager
         // Ако потребителя може да добавя счетоводни лимити
         if(acc_Limits::haveRightFor('add', (object)array('objectId' => $data->masterId, 'classId' => $data->masterMvc->getClassId()))){
         	$url = array('acc_Limits', 'add', 'classId' => $data->masterMvc->getClassId(), 'objectId' => $data->masterId, 'ret_url' => TRUE);
-        	$btn = ht::createBtn('Нов лимит', $url, FALSE, FALSE, 'ef_icon=img/16/star_2.png,title=Добавяне на ново ограничение на перото');
-        	$btn->prepend("<br>");
-        	$tpl->append($btn, 'CONTENT');
+        	$btn = ht::createBtn('Нов лимит', $url, FALSE, FALSE, 'style=margin-top:5px;,ef_icon=img/16/star_2.png,title=Добавяне на ново ограничение на перото');
+        	$tpl->append($btn, 'LIMITS');
         }
         
         // Връщане на шаблона
