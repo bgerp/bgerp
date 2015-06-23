@@ -177,6 +177,15 @@ class acc_Setup extends core_ProtoSetup
     		'offset' => 60,
     		'timeLimit' => 600,
     	),
+    	array(
+    		'systemId' => "CheckAccLimits",
+    		'description' => "Проверка на счетоводните лимити",
+    		'controller' => "acc_Limits",
+    		'action' => "CheckAccLimits",
+    		'period' => 480,
+    		'offset' => 1,
+    		'timeLimit' => 60,
+    	),
     );
     
     
