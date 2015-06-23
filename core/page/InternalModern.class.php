@@ -137,7 +137,7 @@ class core_page_InternalModern extends core_page_Active
     	$header = "<div style='position: relative'>
 	    					<a id='nav-panel-btn' href='#nav-panel' class='fleft btn-sidemenu btn-menu-left push-body {$openLeftBtn}'>". $menuImg ."</a>
 	    					<span class='fleft '>
-	    					    <span class='menu-options search-options'>" . $searchImg .
+	    					    <span class='menu-options search-options' style='display: none'>" . $searchImg .
                                      "<span class='menu-holder'>
                                             <input type='text'/>
                                             <a>Търси документи</a>
