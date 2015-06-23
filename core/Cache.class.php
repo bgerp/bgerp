@@ -297,7 +297,9 @@ class core_Cache extends core_Manager
         if (function_exists('apc_fetch')) {
             $res = apc_fetch($key);
             if($res) {
-                $res = unserialize($res);
+                if (is_string($res)) {
+                    $res = unserialize($res);
+                }
             }
         } elseif (function_exists('xcache_get')) {
             $res = xcache_get($key);
