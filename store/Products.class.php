@@ -283,7 +283,7 @@ class store_Products extends core_Manager
     
     
     /**
-     * Връща всички налични продукти в склада
+     * Връща всички продукти в склада
      * 
      * @param int $storeId - ид на склад, ако е NULL взима текущия активен склад
      * @return array $products
@@ -295,12 +295,10 @@ class store_Products extends core_Manager
     		$storeId = store_Stores::getCurrent();
     	}
     	
-    	// Извличане на всички активни продукти с к-во по-голямо от нула
     	$products = array();
 	    $pQuery = static::getQuery();
 	    $pQuery->where("#storeId = {$storeId}");
-	    $pQuery->where("#quantity > 0");
-	    $pQuery->where("#state = 'active'");
+	    
 	    while($pRec = $pQuery->fetch()){
 	        $products[$pRec->id] = $pRec->name;
 	    }
