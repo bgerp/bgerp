@@ -345,10 +345,13 @@ class core_page_InternalModern extends core_page_Active
         } else {
             $attr['class'] = 'noNtf';
         }
+        
+        $coreConf = core_Packs::getConfig('core');
+        
         // Добавя линк към броя на отворените нотификации
-        $portalLink = ht::createLink("bgERP", $url, NULL, NULL);
+        $portalLink = ht::createLink($coreConf->EF_APP_TITLE, $url, NULL, NULL);
         $nLink = ht::createLink("{$openNotifications}", $url, NULL, $attr);
-
+        
         $tpl->replace($debug, 'DEBUG_BTN');
         $tpl->replace($mode, 'CHANGE_MODE');
         $tpl->replace($singal, 'SIGNAL');
