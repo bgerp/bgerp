@@ -53,6 +53,12 @@ class cms_Articles extends core_Master
     
     
     /**
+     * Кой може да променя записа
+     */
+    var $canChangestate = 'cms,admin,ceo';
+    
+    
+    /**
      * 
      */
     var $canEdit = 'no_one';
