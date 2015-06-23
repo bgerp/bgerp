@@ -366,6 +366,9 @@ class acc_Limits extends core_Manager
     	// Ако няма баланс не правим нищо
     	if(!$balanceId) return;
     	
+    	// Ако няма записи не правим нищо
+    	if(!acc_Limits::count()) return;
+    	
     	// Кои сметки имат зададени лимити
     	$limitedAccounts = array();
     	$query = $this->getQuery();
