@@ -251,7 +251,7 @@ class acc_ReportDetails extends core_Manager
             $Double->params['decimals'] = 2;
             
             $table = cls::get('core_TableView', array('mvc' => $data->reportTableMvc));
-            $count = 0;
+            $count = $limitCount = 0;
             
             // За всички записи групирани по сметки
             foreach ($data->balanceRows as $accId => $arr){
@@ -316,6 +316,7 @@ class acc_ReportDetails extends core_Manager
                 	$tpl->append("<span class='accTitle' style = 'margin-top:7px'>{$accNum}</span>", 'LIMITS');
                 	$limitsHtml = $table->get($arr['limits'], array('tools' => 'Пулт') + $limitFields);
                 	$tpl->append($limitsHtml, 'LIMITS');
+                	$limitCount++;
                 }
             }
            
@@ -323,17 +324,21 @@ class acc_ReportDetails extends core_Manager
             	$lastRow = "<div class='acc-footer'>" . tr('Сумарно'). ": " . $data->totalRow . "</div>";
             	$tpl->append($lastRow, 'CONTENT');
             }
-        } else {
-            
-            // Ако няма какво да се показва
-            $tpl->append(tr("Няма записи"), 'CONTENT');
+        }
+        
+        if(!$count){
+        	$tpl->append(tr("Няма записи"), 'CONTENT');
+        }
+        
+        if(!$limitCount){
+        	$tpl->append(tr("Няма записи"), 'LIMITS');
         }
         
         // Ако потребителя може да добавя счетоводни лимити
         if(acc_Limits::haveRightFor('add', (object)array('objectId' => $data->masterId, 'classId' => $data->masterMvc->getClassId()))){
         	$url = array('acc_Limits', 'add', 'classId' => $data->masterMvc->getClassId(), 'objectId' => $data->masterId, 'ret_url' => TRUE);
-        	$btn = ht::createBtn('Нов лимит', $url, FALSE, FALSE, 'style=margin-top:5px;,ef_icon=img/16/star_2.png,title=Добавяне на ново ограничение на перото');
-        	$tpl->append($btn, 'LIMITS');
+        	$btn = ht::createLink('', $url, FALSE, 'ef_icon=img/16/add.png,title=Добавяне на ново ограничение на перото');
+        	$tpl->append($btn, 'BTN_LIMITS');
         }
         
         // Връщане на шаблона
