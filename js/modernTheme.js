@@ -114,15 +114,14 @@ function changePinIcon(){
  */
 function userMenuActions() {
 	$('body').on('click', function(e){
-    	if($(e.target).is('.user-options') || $(e.target).is('.user-options img') ){
-    		$('.menu-holder').toggle();
+    	if($(e.target).is('.menu-options') || $(e.target).is('.menu-options img') ) {
+            $(e.target).parent().find('.menu-holder').toggle();
     	}
     	else{
-    		$('.menu-holder').hide();
+            $('.menu-holder').hide();
     	}
     });
 }
-
 
 /**
  * Създава бисквитка

@@ -247,7 +247,6 @@ body {
 .logoText{
     font-weight: bold;
     font-size: 26px;
-    margin-left: 10px;
     font-family: Arial;
 }
 
@@ -255,19 +254,16 @@ body {
     color: #111 !important;
 }
 
-.headerPath {
+.center-block {
     color: #444;
     position: absolute;
-    top: 6px;
     right:50%;
     min-width: 200px;
-    margin-right: -105px;
+    margin-right: -100px;
     text-align: center;
+    z-index: 1;
 }
 
-.narrow .headerPath{
-    font-size: 0.85em;
-}
 
 #nav-panel{
     background-color: #333 !important;
@@ -420,6 +416,10 @@ a.bookmark-external-url {
        background:url(../img/16/down-arrow.png) center  center no-repeat !important;
 }
 
+.btn-sidemenu {
+    z-index: 2;
+}
+
 .menuIcon {
     padding: 3px;
     width: 20px;
@@ -433,26 +433,44 @@ a.bookmark-external-url {
     opacity: 1;
 }
 
-.user-options{
+.menu-options{
     display: block;
     float: left;
-    padding: 0px 15px 0px 1px;
     margin: 0 10px;
     border-radius: 5px;
     cursor: pointer;
     position: relative;
     border: 2px solid rgb(88, 88, 88);
     z-index:11;
-    background: #eee url('../img/16/arrow_down3.png') 26px center no-repeat;
     box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+    padding: 0px 15px 0px 1px;
+    background: #eee url('../img/16/arrow_down3.png') 26px center no-repeat;
     img {
-      border-radius: 3px 0 0 3px;
-      height: 26px;
-      margin-left: -1px;
-      float: left;
+        border-radius: 3px 0 0 3px;
+        height: 26px;
+        margin-left: -1px;
+        float: left;
     }
     &:hover {
         border-color: #222;
+    }
+
+    &.user-options .menu-holder {
+        right: 0px;
+
+    }
+    &.search-options {
+        img {
+            opacity: 0.7;
+        }
+        .menu-holder {
+            left: -1px;
+            width: 240px;
+            input {
+                width: 100%;
+                margin-bottom: 5px;
+            }
+        }
     }
 }
 .narrow .user-options {
@@ -475,10 +493,10 @@ a.bookmark-external-url {
     border-radius: 6px;
     box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
     background-clip: padding-box;
-    a{
+    a {
         color: #333 !important;
         display: block;
-        padding: 3px 20px 3px 25px !important;
+        padding: 3px 20px 3px 25px;
         clear: both;
         font-weight: normal;
         font-size: 0.9em;
@@ -496,6 +514,10 @@ a.bookmark-external-url {
         padding: 5px 20px 5px 25px !important;
         font-size: 1em;
     }
+}
+
+.search-options .menu-holder a {
+    padding: 3px;
 }
 
 .divider {
@@ -618,7 +640,8 @@ a.bookmark-external-url {
 /*норификации*/
 .notificationsCnt {
     display: inline-block;
-    margin-top: 4px;
+    position: relative;
+    top: -6px;
     margin-left: 4px;
 }
 
@@ -632,7 +655,6 @@ a.bookmark-external-url {
 }
 
 .narrow .notificationsCnt a {
-    margin-top: -1px;
     padding: 1px;
 }
 

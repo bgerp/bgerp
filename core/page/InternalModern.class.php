@@ -129,18 +129,28 @@ class core_page_InternalModern extends core_page_Active
     	
     	$menuImg = ht::createElement('img', array('src' => sbf('img/menu.png', ''), 'class' => 'menuIcon'));
     	$pinImg = ht::createElement('img', array('src' => sbf('img/pin.png', ''), 'class' => "menuIcon pin {$pin}"));
+        $searchImg = ht::createElement('img', array('src' => sbf('img/search_2.png', '')));
     	$pinnedImg = ht::createElement('img', array('src' => sbf('img/pinned.png', ''), 'class' => "menuIcon pinned {$pinned}"));
     	$img = avatar_Plugin::getImg(core_Users::getCurrent(), NULL, 26);
     	
     	// Задаваме лейаута на страницата
     	$header = "<div style='position: relative'>
 	    					<a id='nav-panel-btn' href='#nav-panel' class='fleft btn-sidemenu btn-menu-left push-body {$openLeftBtn}'>". $menuImg ."</a>
-	    					<span class='fleft logoText'>[#PORTAL#]</span>
-	    					<span class='notificationsCnt'>[#NOTIFICATIONS_CNT#]</span>
-	    					<span class='headerPath'>[#HEADER_PATH#]</span>
+	    					<span class='fleft '>
+	    					    <span class='menu-options search-options'>" . $searchImg .
+                                     "<span class='menu-holder'>
+                                            <input type='text'/>
+                                            <a>Търси документи</a>
+                                            <a>Търси папки</a>
+		    							</span>
+                                    </span>
+	    					</span>
+	    					<span class='center-block'>
+	    					    <span class='logoText'>[#PORTAL#]</span><span class='notificationsCnt'>[#NOTIFICATIONS_CNT#]</span>
+	    					</span>
 	    					<a id='fav-panel-btn' href='#fav-panel' class='fright btn-sidemenu btn-menu-right push-body {$openRightBtn}'>". $pinImg . $pinnedImg . "</a>
 	    					<span class='fright'>
-		    						<span class='user-options'>
+		    						<span class='menu-options user-options'>
 		    							" . $img .
     			    					"<span class='menu-holder'>
 			     		   					[#USERLINK#]
