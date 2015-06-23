@@ -54,6 +54,24 @@ class core_Cache extends core_Manager
 	 */
 	var $canList = 'admin';
 	
+	
+	/**
+	 * 
+	 */
+	public $canAdd = 'no_one';
+	
+	
+	/**
+	 * 
+	 */
+	public $canEdit = 'no_one';
+	
+	
+	/**
+	 * 
+	 */
+	public $canDelete = 'no_one';
+	
     
     /**
      * Описание на модела (таблицата)
