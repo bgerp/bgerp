@@ -296,6 +296,9 @@ class core_Cache extends core_Manager
     {   
         if (function_exists('apc_fetch')) {
             $res = apc_fetch($key);
+            if($res) {
+                $res = unserialize($res);
+            }
         } elseif (function_exists('xcache_get')) {
             $res = xcache_get($key);
             if($res) {
@@ -349,7 +352,7 @@ class core_Cache extends core_Manager
         $keepSeconds = $keepMinutes * 60;
 
         if (function_exists('apc_store')) {
-            apc_store($key, $data, $keepSeconds);
+            apc_store($key, serialize($data), $keepSeconds);
             $saved = TRUE;
         } elseif (function_exists('xcache_set')) {
             xcache_set($key, serialize($data), $keepSeconds);
