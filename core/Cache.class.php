@@ -213,13 +213,19 @@ class core_Cache extends core_Manager
      */
     function cron_DeleteExpiredData($all = FALSE)
     {
+        $query = $this->getQuery();
+        
         if($all) {
-            $where = '1 = 1';
+            $query->where('1 = 1');
         } else {
-            $where = "#lifetime < " . time();
+            $query->where("#lifetime < " . time());
         }
         
-        $deletedRecs = $this->delete($where);
+        $deletedRecs = 0;
+        
+        while ($rec = $query->fetch()) {
+            $deletedRecs += $this->deleteData($rec->key);
+        }
         
         if($all) {
             $msg = "Лог: Всички <b style='color:blue;'>{$deletedRecs}</b> кеширани записа бяха изтрити";
@@ -296,8 +302,8 @@ class core_Cache extends core_Manager
     {   
         if (function_exists('apc_fetch')) {
             $res = apc_fetch($key);
-            $this->log('APC_FETCH: ' . $key . ' - ' . str::limitLen(core_Type::mixedToString($res), 300));
-            if($res) {
+            
+            if ($res) {
                 // TODO тази проверка е временна
                 if (is_string($res)) {
                     $res = unserialize($res);
@@ -338,8 +344,7 @@ class core_Cache extends core_Manager
     function deleteData($key)
     {
         if (function_exists('apc_delete')) {
-            $apc = apc_delete($key);
-            $this->log('APC_DELETE: ' . $key . ' - ' . $apc);
+            apc_delete($key);
         } elseif (function_exists('xcache_unset')) {
             xcache_unset($key);
         }
@@ -357,8 +362,7 @@ class core_Cache extends core_Manager
         $keepSeconds = $keepMinutes * 60;
 
         if (function_exists('apc_store')) {
-            $apc = apc_store($key, serialize($data), $keepSeconds);
-            $this->log('APC_STORE: ' . $key . ' - '  . $apc);
+            apc_store($key, serialize($data), $keepSeconds);
             $saved = TRUE;
         } elseif (function_exists('xcache_set')) {
             xcache_set($key, serialize($data), $keepSeconds);
