@@ -54,6 +54,24 @@ class core_Cache extends core_Manager
 	 */
 	var $canList = 'admin';
 	
+	
+	/**
+	 * 
+	 */
+	public $canAdd = 'no_one';
+	
+	
+	/**
+	 * 
+	 */
+	public $canEdit = 'no_one';
+	
+	
+	/**
+	 * 
+	 */
+	public $canDelete = 'no_one';
+	
     
     /**
      * Описание на модела (таблицата)
@@ -213,13 +231,19 @@ class core_Cache extends core_Manager
      */
     function cron_DeleteExpiredData($all = FALSE)
     {
+        $query = $this->getQuery();
+        
         if($all) {
-            $where = '1 = 1';
+            $query->where('1 = 1');
         } else {
-            $where = "#lifetime < " . time();
+            $query->where("#lifetime < " . time());
         }
         
-        $deletedRecs = $this->delete($where);
+        $deletedRecs = 0;
+        
+        while ($rec = $query->fetch()) {
+            $deletedRecs += $this->deleteData($rec->key);
+        }
         
         if($all) {
             $msg = "Лог: Всички <b style='color:blue;'>{$deletedRecs}</b> кеширани записа бяха изтрити";
@@ -294,25 +318,26 @@ class core_Cache extends core_Manager
      */
     function getData($key)
     {   
-        if (function_exists('apc_fetch')) {
-            $res = apc_fetch($key);
-            if($res) {
-                // TODO тази проверка е временна
-                if (is_string($res)) {
-                    $res = unserialize($res);
-                }
-            }
-        } elseif (function_exists('xcache_get')) {
-            $res = xcache_get($key);
-            if($res) {
-                $res = unserialize($res);
-            }
-        }
-
-        if($res) {
-
-            return $res;
-        }
+//        if (function_exists('apc_fetch')) {
+//            $res = apc_fetch($key);
+//            
+//            if ($res) {
+//                // TODO тази проверка е временна
+//                if (is_string($res)) {
+//                    $res = unserialize($res);
+//                }
+//            }
+//        } elseif (function_exists('xcache_get')) {
+//            $res = xcache_get($key);
+//            if($res) {
+//                $res = unserialize($res);
+//            }
+//        }
+//
+//        if($res) {
+//
+//            return $res;
+//        }
  
         if($rec = $this->fetch(array("#key = '[#1#]' AND #lifetime >= " . time(), $key))) {
             
@@ -336,11 +361,11 @@ class core_Cache extends core_Manager
      */
     function deleteData($key)
     {
-        if (function_exists('apc_delete')) {
-            apc_delete($key);
-        } elseif (function_exists('xcache_unset')) {
-            xcache_unset($key);
-        }
+//        if (function_exists('apc_delete')) {
+//            apc_delete($key);
+//        } elseif (function_exists('xcache_unset')) {
+//            xcache_unset($key);
+//        }
 
         return $this->delete(array("#key LIKE '[#1#]'", $key));
     }
@@ -354,13 +379,13 @@ class core_Cache extends core_Manager
         $saved = FALSE;
         $keepSeconds = $keepMinutes * 60;
 
-        if (function_exists('apc_store')) {
-            apc_store($key, serialize($data), $keepSeconds);
-            $saved = TRUE;
-        } elseif (function_exists('xcache_set')) {
-            xcache_set($key, serialize($data), $keepSeconds);
-            $saved = TRUE;
-        }
+//        if (function_exists('apc_store')) {
+//            apc_store($key, serialize($data), $keepSeconds);
+//            $saved = TRUE;
+//        } elseif (function_exists('xcache_set')) {
+//            xcache_set($key, serialize($data), $keepSeconds);
+//            $saved = TRUE;
+//        }
 
         $rec = new stdClass();
         

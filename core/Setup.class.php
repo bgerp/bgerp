@@ -257,7 +257,8 @@ class core_Setup extends core_ProtoSetup {
         'core_Forwards',
         'migrate::settigsDataFromCustomToCore',
         'migrate::movePersonalizationData',
-        'migrate::repairUsersRolesInput'
+        'migrate::repairUsersRolesInput',
+        'migrate::clearApcCache2'
     );
     
     
@@ -460,7 +461,18 @@ class core_Setup extends core_ProtoSetup {
             core_Users::save($rec, 'rolesInput');
         }
     }
-
+    
+    
+    /**
+     * Изчисвта кеша на APC
+     */
+    static function clearApcCache2()
+    {
+        if (function_exists('apc_clear_cache')) {
+            apc_clear_cache('user');
+            apc_clear_cache();
+        }
+    }
 
     /**
      * Връща JS файлове, които са подходящи за компактиране
