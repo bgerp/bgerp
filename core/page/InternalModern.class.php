@@ -348,8 +348,19 @@ class core_page_InternalModern extends core_page_Active
         
         $coreConf = core_Packs::getConfig('core');
         
+        
+        $portalLinkAttr = array();
+        
+        $appLen = mb_strlen($coreConf->EF_APP_TITLE);
+        
+        if ($appLen >= 15) {
+            $portalLinkAttr['style'] = 'letter-spacing: -2px';
+        } elseif ($appLen >= 10) {
+            $portalLinkAttr['style'] = 'letter-spacing: -1px';
+        }
+        
         // Добавя линк към броя на отворените нотификации
-        $portalLink = ht::createLink($coreConf->EF_APP_TITLE, $url, NULL, NULL);
+        $portalLink = ht::createLink($coreConf->EF_APP_TITLE, $url, NULL, $portalLinkAttr);
         $nLink = ht::createLink("{$openNotifications}", $url, NULL, $attr);
         
         $tpl->replace($debug, 'DEBUG_BTN');
