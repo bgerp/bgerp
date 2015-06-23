@@ -80,7 +80,7 @@ class acc_Limits extends core_Manager
     /**
      * Полета в списъчния изглед
      */
-    public $listFields = 'tools=Пулт,accountId,startDate,limitDuration,side,type,limitQuantity,when,sharedUsers=Нотифициране,status,state';
+    public $listFields = 'tools=Пулт,accountId,when,startDate,limitDuration,side,type,limitQuantity,sharedUsers=Нотифициране,state';
     
     
     /**
@@ -95,7 +95,7 @@ class acc_Limits extends core_Manager
     function description()
     {
         $this->FLD('accountId', 'acc_type_Account(allowEmpty)', 'caption=Сметка, silent, mandatory,removeAndRefreshForm=limitQuantity|type|side|item1|item2|item3');
-        $this->FLD('startDate', 'datetime(format=smartTime)', 'caption=Начална дата,mandatory');
+        $this->FLD('startDate', 'datetime(format=smartTime)', 'caption=Начало,mandatory');
         $this->FLD('limitDuration', 'time(suggestions=1 седмица|2 седмици|1 месец|3 месеца|6 месеца|1 година)', 'caption=Продължителност');
         
         $this->FLD('side', 'enum(debit=Дебит,credit=Кредит)', 'mandatory,caption=Лимит->Салдо,input=none');
@@ -207,6 +207,28 @@ class acc_Limits extends core_Manager
     		$form->rec->when = NULL;
     		$form->rec->exceededAmount = NULL;
     		$form->rec->status = 'normal';
+    	}
+    }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     */
+    protected static function on_AfterPrepareListRows($mvc, &$data)
+    {
+    	$rows = $data->rows;
+    	
+    	if(!count($rows)) return;
+    	
+    	$unsetDuration = TRUE;
+    	foreach ($rows as $row){
+    		if(isset($row->limitDuration)){
+    			$unsetDuration = FALSE;
+    		}
+    	}
+    	
+    	if($unsetDuration === TRUE){
+    		unset($data->listFields['limitDuration']);
     	}
     }
     
