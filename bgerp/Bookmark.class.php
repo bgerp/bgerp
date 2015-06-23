@@ -123,7 +123,7 @@ class bgerp_Bookmark extends core_Manager
             $attr = array();
             $attr['onclick'] = "addParamsToBookmarkBtn(this, '{$sUrl}', '{$localUrl}'); return ;";
 
-            $img =  ht::createElement('img', array('src' => sbf('img/bookmark-add.png', ''), 'title' => tr('Добавяне'), 'class' => 'bookmarkLink'));
+            $img =  ht::createElement('img', array('src' => sbf('img/bookmark-add.png', ''), 'title' => tr('Добавяне'), 'class' => 'bookmarkLink', 'width' => 16, 'height' => 16));
             $tpl = ht::createLink($img, $url, FALSE, $attr);
         }
         
