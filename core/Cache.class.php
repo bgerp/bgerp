@@ -318,26 +318,26 @@ class core_Cache extends core_Manager
      */
     function getData($key)
     {   
-        if (function_exists('apc_fetch')) {
-            $res = apc_fetch($key);
-            
-            if ($res) {
-                // TODO тази проверка е временна
-                if (is_string($res)) {
-                    $res = unserialize($res);
-                }
-            }
-        } elseif (function_exists('xcache_get')) {
-            $res = xcache_get($key);
-            if($res) {
-                $res = unserialize($res);
-            }
-        }
-
-        if($res) {
-
-            return $res;
-        }
+//        if (function_exists('apc_fetch')) {
+//            $res = apc_fetch($key);
+//            
+//            if ($res) {
+//                // TODO тази проверка е временна
+//                if (is_string($res)) {
+//                    $res = unserialize($res);
+//                }
+//            }
+//        } elseif (function_exists('xcache_get')) {
+//            $res = xcache_get($key);
+//            if($res) {
+//                $res = unserialize($res);
+//            }
+//        }
+//
+//        if($res) {
+//
+//            return $res;
+//        }
  
         if($rec = $this->fetch(array("#key = '[#1#]' AND #lifetime >= " . time(), $key))) {
             
@@ -361,11 +361,11 @@ class core_Cache extends core_Manager
      */
     function deleteData($key)
     {
-        if (function_exists('apc_delete')) {
-            apc_delete($key);
-        } elseif (function_exists('xcache_unset')) {
-            xcache_unset($key);
-        }
+//        if (function_exists('apc_delete')) {
+//            apc_delete($key);
+//        } elseif (function_exists('xcache_unset')) {
+//            xcache_unset($key);
+//        }
 
         return $this->delete(array("#key LIKE '[#1#]'", $key));
     }
@@ -379,13 +379,13 @@ class core_Cache extends core_Manager
         $saved = FALSE;
         $keepSeconds = $keepMinutes * 60;
 
-        if (function_exists('apc_store')) {
-            apc_store($key, serialize($data), $keepSeconds);
-            $saved = TRUE;
-        } elseif (function_exists('xcache_set')) {
-            xcache_set($key, serialize($data), $keepSeconds);
-            $saved = TRUE;
-        }
+//        if (function_exists('apc_store')) {
+//            apc_store($key, serialize($data), $keepSeconds);
+//            $saved = TRUE;
+//        } elseif (function_exists('xcache_set')) {
+//            xcache_set($key, serialize($data), $keepSeconds);
+//            $saved = TRUE;
+//        }
 
         $rec = new stdClass();
         
