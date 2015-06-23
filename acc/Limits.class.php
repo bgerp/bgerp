@@ -188,6 +188,10 @@ class acc_Limits extends core_Manager
     			}
     		}
     	}
+    	
+    	if($rec->id){
+    		$form->setReadOnly('accountId');
+    	}
     }
     
     
