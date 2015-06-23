@@ -297,6 +297,7 @@ class core_Cache extends core_Manager
         if (function_exists('apc_fetch')) {
             $res = apc_fetch($key);
             if($res) {
+                // TODO тази проверка е временна
                 if (is_string($res)) {
                     $res = unserialize($res);
                 }
