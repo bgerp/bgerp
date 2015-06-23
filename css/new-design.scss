@@ -619,21 +619,21 @@ a.bookmark-external-url {
 .notificationsCnt {
     display: inline-block;
     margin-top: 4px;
-    margin-left: 10px;
+    margin-left: 4px;
 }
+
 
 .notificationsCnt a {
     display: block;
     color: white;
-    padding: 3px;
+    padding: 1px;
     font-size: 0.75em;
     border-radius: 3px;
 }
 
 .narrow .notificationsCnt a {
     margin-top: -1px;
-    padding: 2px 4px 2px 4px;
-    font-size: 0.85em;
+    padding: 1px;
 }
 
 .notificationsCnt a.haveNtf {
