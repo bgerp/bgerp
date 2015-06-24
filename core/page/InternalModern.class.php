@@ -69,10 +69,10 @@ class core_page_InternalModern extends core_page_Active
         $this->prepend(' modern-theme', 'BODY_CLASS_NAME');
 
         // Ако сме в широк изглед извикваме функцията за мащабиране
-        if(Mode::is('screenMode', 'wide')){
-        	$this->append("scaleViewport();", "START_SCRIPTS");
+        if(Mode::is('screenMode', 'narrow')){
+        	$this->append("disableScale();", "START_SCRIPTS");
         }
-        
+
         // Опаковките и главното съдържание заемат екрана до долу
         $this->append("runOnLoad(setMinHeight);", "JQRUN");
         
