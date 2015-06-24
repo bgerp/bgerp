@@ -181,6 +181,8 @@ class select2_PluginSelect extends core_Plugin
                     
                     $r->element->className .= ($r->element->className) ? ' ' : '';
                     $r->element->className .= 'group';
+                    $r->group = TRUE;
+                    $r->element->group = TRUE;
                     
                     $r->id = NULL;
                     $group = $r;
