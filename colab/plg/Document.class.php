@@ -61,7 +61,7 @@ class colab_plg_Document extends core_Plugin
     {
         if ($fields && $fields['-single']) {
             
-            if (!Mode::is('text', 'xhtml') && !Mode::is('printing') && core_Users::isPowerUser()) {
+            if (!Mode::is('text', 'xhtml') && !Mode::is('printing') && core_Users::isPowerUser() && colab_FolderToPartners::fetch("#folderId = '{$rec->folderId}'")) {
                 
                 $isVisible = FALSE;
                 if ($rec->containerId) {
