@@ -141,7 +141,6 @@ class core_page_InternalModern extends core_page_Active
                                      "<span class='menu-holder'>
                                      		[#SEARCH_INPUT#]
                                      		[#SEARCH_LINK#]
-                                     		[#OPEN_MENU#]
 		    							</span>
                                     </span>
 	    					</span>
@@ -385,7 +384,7 @@ class core_page_InternalModern extends core_page_Active
         $tpl->replace($portalLink, 'PORTAL');
         
         // Рендираме бутоните за търсене
-        $inputType = "<input class='serch-input-modern' type='text' onkeyup='onSearchEnter(event, \"open-menu-id\");'/>";
+        $inputType = "<input class='serch-input-modern' type='text'/>";
         
         $tpl->replace($inputType, 'SEARCH_INPUT');
         
@@ -411,13 +410,6 @@ class core_page_InternalModern extends core_page_Active
         }
                 
         $tpl->replace($searchLink, 'SEARCH_LINK');
-        
-        $attr['class'] = 'open-menu';
-        $attr['id'] = 'open-menu-id';
-        $attr['onClick'] = "return searchInLink(this, 'serch-input-modern', 'menu', true);";
-        $openMenu = ht::createLink(tr("Отвори меню"), array('bgerp_Menu', 'openMenu', 'ret_url' => TRUE), NULL, $attr);
-        
-        $tpl->replace($openMenu, 'OPEN_MENU');
     }
 
     
