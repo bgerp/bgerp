@@ -116,6 +116,12 @@ function userMenuActions() {
 	$('body').on('click', function(e){
     	if($(e.target).is('.menu-options') || $(e.target).is('.menu-options img') ) {
             $(e.target).parent().find('.menu-holder').toggle();
+            
+            // При отваряне да се фокусира input полето
+            var input = $(e.target).parent().find('.menu-holder > input');
+            if (input) {
+            	input.focus();
+            }
     	}
     	else{
             if (!($(e.target).is('.menu-holder input')) ) {
@@ -230,5 +236,41 @@ function disableScale() {
     if (isTouchDevice()) {
         $('meta[name=viewport]').remove();
         $('head').append('<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">');
+    }
+}
+
+
+/**
+ * 
+ * @param obj
+ * @param inputClassName
+ * @param fieldName
+ */
+function searchInLink(obj, inputClassName, fieldName, haveGet)
+{
+	var inputVal = $('.' + inputClassName).val();
+	if (inputVal) {
+		
+		var amp = '&';
+		if (!haveGet) {
+			amp = '?';
+		}
+		
+		window.location.href = obj.href = obj.href + amp + fieldName + '=' + encodeURIComponent(inputVal);
+	}
+	
+	window.location.href = obj.href;
+}
+
+
+/**
+ * При натискане на ентер симулира натискане на линка
+ * 
+ * @param obj
+ */
+function onSearchEnter(obj, id)
+{
+	if (obj.keyCode == 13) {
+        $('#' + id).click();
     }
 }
