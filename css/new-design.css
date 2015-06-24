@@ -250,10 +250,12 @@ body {
   color: #444444;
   position: absolute;
   right: 50%;
+  top: 0;
   min-width: 200px;
   margin-right: -100px;
   text-align: center;
-  z-index: 1; }
+  z-index: 1;
+  line-height: normal; }
 
 #nav-panel {
   background-color: #333333 !important; }
@@ -848,4 +850,11 @@ only screen and (max-width: 800px) {
   .narrow .sidemenu-push-toleft #framecontentTop,
   .narrow .sidemenu-push-toleft .tab-control > .tab-row {
     left: -170px !important; } }
+
+@media handheld,
+only screen and (max-width: 1280px) {
+  @-moz-document url-prefix() {
+        .center-block {
+      top: -4px; }
+ } }
 
