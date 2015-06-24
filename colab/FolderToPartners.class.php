@@ -246,7 +246,7 @@ class colab_FolderToPartners extends core_Manager
 		if(!cls::haveInterface('crm_ContragentAccRegIntf', $data->masterMvc)) return;
 		$me = cls::get(get_called_class());
 		
-		$dTpl = getTplFromFile('doc/tpl/PartnerDetail.shtml');
+		$dTpl = getTplFromFile('colab/tpl/PartnerDetail.shtml');
 		
 		// Подготвяме таблицата с данните извлечени от журнала
 		$table = cls::get('core_TableView');
@@ -259,7 +259,7 @@ class colab_FolderToPartners extends core_Manager
 		
 		// Добавяме бутон за свързване на папка с партньор, ако имаме права
 		if($me->haveRightFor('add', (object)array('folderId' => $folderId))){
-			$ht = ht::createLink('', array($me, 'add', 'folderId' => $folderId, 'ret_url' => TRUE, 'coverClassId' => $data->masterMvc->getClassId(), 'coverId' => $data->masterId), FALSE, 'ef_icon=img/16/add.png,title=Свързване на партньор към папката');
+			$ht = ht::createLink('', array($me, 'add', 'folderId' => $folderId, 'ret_url' => TRUE, 'coverClassId' => $data->masterMvc->getClassId(), 'coverId' => $data->masterId), FALSE, 'ef_icon=img/16/add.png,title=Свързване на партньор към папката на обекта');
 			$dTpl->append($ht, 'addBtn');
 		}
 		
