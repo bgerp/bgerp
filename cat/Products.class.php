@@ -880,8 +880,12 @@ class cat_Products extends core_Embedder {
     		}
     	}
     	
+    	$products = array('pu' => (object)array('group' => TRUE, 'title' => tr('Стандартни'))) + $products;
+    	
     	// Частните артикули излизат преди публичните
     	if(count($private)){
+    		$private = array('pr' => (object)array('group' => TRUE, 'title' => tr('Нестандартни'))) + $private;
+    		
     		$products = $private + $products;
     	}
     	
