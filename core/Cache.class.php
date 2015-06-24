@@ -22,6 +22,12 @@ defIfNot('EF_CACHE_HANDLER_SIZE', 32);
 
 
 /**
+ * 
+ */
+defIfNot('CORE_CACHE_PREFIX_SALT', md5(EF_SALT . '_CORE_CACHE'));
+
+
+/**
  * Клас 'core_Cache' - Кеширане на обекти, променливи или масиви за определено време
  *
  *
@@ -282,7 +288,12 @@ class core_Cache extends core_Manager
         $handler = str::convertToFixedKey($handler, EF_CACHE_HANDLER_SIZE, 12);
         $type = str::convertToFixedKey($type, EF_CACHE_TYPE_SIZE, 8);
         
-        $key = "{$handler}|{$type}";
+        $coreConf = core_Packs::getConfig('core');
+        
+        $prefix = md5($coreConf->EF_APP_TITLE . '|' . CORE_CACHE_PREFIX_SALT);
+        $prefix = substr($prefix, 0, 6);
+        
+        $key = "{$prefix}|{$handler}|{$type}";
         
         return $key;
     }
@@ -318,26 +329,19 @@ class core_Cache extends core_Manager
      */
     function getData($key)
     {   
-//        if (function_exists('apc_fetch')) {
-//            $res = apc_fetch($key);
-//            
-//            if ($res) {
-//                // TODO тази проверка е временна
-//                if (is_string($res)) {
-//                    $res = unserialize($res);
-//                }
-//            }
-//        } elseif (function_exists('xcache_get')) {
-//            $res = xcache_get($key);
-//            if($res) {
-//                $res = unserialize($res);
-//            }
-//        }
-//
-//        if($res) {
-//
-//            return $res;
-//        }
+        if (function_exists('apc_fetch')) {
+            $res = apc_fetch($key);
+        } elseif (function_exists('xcache_get')) {
+            $res = xcache_get($key);
+            if($res) {
+                $res = unserialize($res);
+            }
+        }
+
+        if($res) {
+
+            return $res;
+        }
  
         if($rec = $this->fetch(array("#key = '[#1#]' AND #lifetime >= " . time(), $key))) {
             
@@ -361,11 +365,11 @@ class core_Cache extends core_Manager
      */
     function deleteData($key)
     {
-//        if (function_exists('apc_delete')) {
-//            apc_delete($key);
-//        } elseif (function_exists('xcache_unset')) {
-//            xcache_unset($key);
-//        }
+        if (function_exists('apc_delete')) {
+            apc_delete($key);
+        } elseif (function_exists('xcache_unset')) {
+            xcache_unset($key);
+        }
 
         return $this->delete(array("#key LIKE '[#1#]'", $key));
     }
@@ -379,13 +383,13 @@ class core_Cache extends core_Manager
         $saved = FALSE;
         $keepSeconds = $keepMinutes * 60;
 
-//        if (function_exists('apc_store')) {
-//            apc_store($key, serialize($data), $keepSeconds);
-//            $saved = TRUE;
-//        } elseif (function_exists('xcache_set')) {
-//            xcache_set($key, serialize($data), $keepSeconds);
-//            $saved = TRUE;
-//        }
+        if (function_exists('apc_store')) {
+            apc_store($key, $data, $keepSeconds);
+            $saved = TRUE;
+        } elseif (function_exists('xcache_set')) {
+            xcache_set($key, serialize($data), $keepSeconds);
+            $saved = TRUE;
+        }
 
         $rec = new stdClass();
         

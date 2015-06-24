@@ -258,7 +258,7 @@ class core_Setup extends core_ProtoSetup {
         'migrate::settigsDataFromCustomToCore',
         'migrate::movePersonalizationData',
         'migrate::repairUsersRolesInput',
-        'migrate::clearApcCache2'
+        'migrate::clearApcCache3'
     );
     
     
@@ -466,7 +466,7 @@ class core_Setup extends core_ProtoSetup {
     /**
      * Изчисвта кеша на APC
      */
-    static function clearApcCache2()
+    static function clearApcCache3()
     {
         if (function_exists('apc_clear_cache')) {
             apc_clear_cache('user');

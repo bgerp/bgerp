@@ -159,7 +159,7 @@ class price_History extends core_Manager
         if(!count($timeline)) {
             self::$timeline = core_Cache::get('price_History', 'timeline');
         }
- 
+        
         // Ако времевата линия пак липсва, генерираме я и я записваме в кеша
         if(!is_array($timeline) || !count($timeline)) {
             
