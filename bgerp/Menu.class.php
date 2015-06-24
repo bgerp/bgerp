@@ -525,4 +525,45 @@ class bgerp_Menu extends core_Manager
             }
         }
     }
+    
+    
+    /**
+     * Намира първото достъпно меню и редиректва на него
+     */
+    function act_OpenMenu()
+    {
+        $msg = "|Няма достъпни менюта с това име";
+        $redirectUrl = getRetUrl();
+        
+        $menu = trim(Request::get('menu'));
+        $menu = mb_strtolower($menu);
+        
+        $query = self::getQuery();
+        $query->where(array("LOWER(#subMenu) LIKE '[#1#]%'", $menu));
+        $query->orWhere(array("LOWER(#menu) LIKE '[#1#]%'", $menu));
+        
+        $query->orderBy('subMenu', 'ASC');
+        $query->orderBy('menu', 'ASC');
+        
+        while ($rec = $query->fetch()) {
+            
+            if (!haveRole($rec->accessByRoles)) continue;
+            
+            $redirectUrl = array($rec->ctr, $rec->act);
+            
+            $msg = '';
+            
+            break;
+        }
+        
+        if (!$redirectUrl || !$menu) {
+            $redirectUrl = array('Portal', 'Show');
+            
+            if (!$menu) {
+                $msg = '|Няма избрано меню';
+            }
+        }
+        
+        return new Redirect($redirectUrl, $msg);
+    }
 }

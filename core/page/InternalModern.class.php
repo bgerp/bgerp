@@ -137,11 +137,11 @@ class core_page_InternalModern extends core_page_Active
     	$header = "<div style='position: relative'>
 	    					<a id='nav-panel-btn' href='#nav-panel' class='fleft btn-sidemenu btn-menu-left push-body {$openLeftBtn}'>". $menuImg ."</a>
 	    					<span class='fleft '>
-	    					    <span class='menu-options search-options' style='display: none'>" . $searchImg .
+	    					    <span class='menu-options search-options'>" . $searchImg .
                                      "<span class='menu-holder'>
-                                            <input type='text'/>
-                                            <a>Търси документи</a>
-                                            <a>Търси папки</a>
+                                     		[#SEARCH_INPUT#]
+                                     		[#SEARCH_LINK#]
+                                     		[#OPEN_MENU#]
 		    							</span>
                                     </span>
 	    					</span>
@@ -378,6 +378,41 @@ class core_page_InternalModern extends core_page_Active
         $tpl->replace($singal, 'SIGNAL');
         $tpl->replace($nLink, 'NOTIFICATIONS_CNT');
         $tpl->replace($portalLink, 'PORTAL');
+        
+        // Рендираме бутоните за търсене
+        $inputType = "<input class='serch-input-modern' type='text' onkeyup='onSearchEnter(event, \"open-menu-id\");'/>";
+        
+        $tpl->replace($inputType, 'SEARCH_INPUT');
+        
+        $attr = array();
+        $attr['onClick'] = "return searchInLink(this, 'serch-input-modern', 'search', false);";
+        
+        $searchLink = '';
+        
+        if (doc_Folders::haveRightFor('list')) {
+            $searchLink = ht::createLink(tr("Търси папки"), array('doc_Folders', 'list'), NULL, $attr);
+        }
+        
+        if (doc_Search::haveRightFor('list')) {
+            $searchLink .= ht::createLink(tr("Търси документи"), array('doc_Search', 'list'), NULL, $attr);
+        }
+        
+        if (crm_Companies::haveRightFor('list')) {
+            $searchLink .= ht::createLink(tr("Търси фирми"), array('crm_Companies', 'list'), NULL, $attr);
+        }
+        
+        if (crm_Persons::haveRightFor('list')) {
+            $searchLink .= ht::createLink(tr("Търси лица"), array('crm_Persons', 'list'), NULL, $attr);
+        }
+                
+        $tpl->replace($searchLink, 'SEARCH_LINK');
+        
+        $attr['class'] = 'open-menu';
+        $attr['id'] = 'open-menu-id';
+        $attr['onClick'] = "return searchInLink(this, 'serch-input-modern', 'menu', true);";
+        $openMenu = ht::createLink(tr("Отвори меню"), array('bgerp_Menu', 'openMenu', 'ret_url' => TRUE), NULL, $attr);
+        
+        $tpl->replace($openMenu, 'OPEN_MENU');
     }
 
     

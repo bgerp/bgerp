@@ -263,10 +263,12 @@ body {
     color: #444;
     position: absolute;
     right:50%;
+    top: 0;
     min-width: 200px;
     margin-right: -100px;
     text-align: center;
     z-index: 1;
+    line-height: normal;
 }
 
 
@@ -643,7 +645,7 @@ a.bookmark-external-url {
 .notificationsCnt {
     display: inline-block;
     position: relative;
-    top: -4px;
+    top: -10px;
     margin-left: 4px;
 }
 
@@ -652,12 +654,12 @@ a.bookmark-external-url {
     display: block;
     color: white;
     padding: 1px;
-    font-size: 0.8em;
+    font-size: 0.7em;
     border-radius: 3px;
 }
 
 .narrow .notificationsCnt a {
-    padding: 1px;
+    padding: 0 1px 1px;
 }
 
 .notificationsCnt a.haveNtf {
@@ -669,7 +671,7 @@ a.bookmark-external-url {
 	display: none;
 }
 
-.narrow .notificationsCnt a.noNtf { 
+.narrow .notificationsCnt a.noNtf {
     color: #fff;
     border: solid 1px #999 !important;
 }
@@ -931,4 +933,15 @@ div.tab-control.deal-history-tab .tab-row .tab {
 	.narrow .sidemenu-push-toleft #framecontentTop, .narrow .sidemenu-push-toleft .tab-control > .tab-row {
 		left: -170px !important;
 	}
+}
+
+@media handheld, only screen and (max-width: 1280px) {
+    @-moz-document url-prefix() {
+        .center-block {
+            top: -4px;
+            .notificationsCnt {
+                top: -2px;
+            }
+        }
+    }
 }
