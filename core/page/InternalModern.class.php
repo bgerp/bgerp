@@ -363,10 +363,15 @@ class core_page_InternalModern extends core_page_Active
         
         $appLen = mb_strlen($coreConf->EF_APP_TITLE);
         
-        if ($appLen >= 15) {
-            $portalLinkAttr['style'] = 'letter-spacing: -2px';
-        } elseif ($appLen >= 10) {
-            $portalLinkAttr['style'] = 'letter-spacing: -1px';
+        if ($appLen >= 20) {
+            $portalLinkAttr['style'] = 'letter-spacing: -2px;';
+        } elseif ($appLen >= 13) {
+            $portalLinkAttr['style'] = 'letter-spacing: -1px;';
+        } elseif (($appLen >= 6) && ($appLen <= 12)) {
+            
+            $lSpacing = (5 - $appLen) / 10;
+            
+            $portalLinkAttr['style'] = "letter-spacing: {$lSpacing}px;";
         }
         
         // Добавя линк към броя на отворените нотификации
