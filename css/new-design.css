@@ -711,7 +711,12 @@ form[method="post"] input[type="submit"] {
 
 form[method=post] input[type=button],
 form[method=post] a.button {
-  background-color: #cccccc; }
+  background-color: #aaaaaa;
+  border: 1px solid #999999 !important;
+  text-shadow: none; }
+  form[method=post] input[type=button]:hover,
+  form[method=post] a.button:hover {
+    background-color: #b1b1b1; }
 
 .vertical .formTitle {
   font-size: 1.05em; }
