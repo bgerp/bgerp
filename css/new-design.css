@@ -420,7 +420,7 @@ a.bookmark-external-url {
 .menu-options {
   display: block;
   float: left;
-  margin: 0 10px;
+  margin: 0 6px;
   border-radius: 5px;
   cursor: pointer;
   position: relative;
@@ -446,9 +446,6 @@ a.bookmark-external-url {
       .menu-options.search-options .menu-holder input {
         width: 100%;
         margin-bottom: 5px; }
-
-.narrow .user-options {
-  margin: 0 15px; }
 
 /*
  * menu
