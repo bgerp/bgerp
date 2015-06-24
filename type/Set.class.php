@@ -125,7 +125,7 @@ class type_Set extends core_Type {
                     }
                     
                     $cb = ht::createElement('input', $attr);
-                    $cb->append("<label {$title} data-colsInRow='" .$col . "' for=\"" . $attr['id'] . "\">{$v}</label>");
+                    $cb->append("<label {$title} data-colsInRow='" .$col . "' for=\"" . $attr['id'] . "\">" . tr($v) . "</label>");
                     
                     // След рендиране на полето, махаме атрибутите за да не се принесат на другите опции
                 	if(isset($this->readOnly[$key])){
@@ -152,7 +152,7 @@ class type_Set extends core_Type {
         } else {
             $html = '<tr><td></td></tr>';
         }
-        
+        //bp($html);
         $tpl->append($html, 'OPT');
         
         return $tpl;
