@@ -593,18 +593,18 @@ a.bookmark-external-url {
 .notificationsCnt {
   display: inline-block;
   position: relative;
-  top: -4px;
+  top: -10px;
   margin-left: 4px; }
 
 .notificationsCnt a {
   display: block;
   color: white;
   padding: 1px;
-  font-size: 0.8em;
+  font-size: 0.7em;
   border-radius: 3px; }
 
 .narrow .notificationsCnt a {
-  padding: 1px; }
+  padding: 0 1px 1px; }
 
 .notificationsCnt a.haveNtf {
   background-color: red;
@@ -856,5 +856,7 @@ only screen and (max-width: 1280px) {
   @-moz-document url-prefix() {
         .center-block {
       top: -4px; }
+      .center-block .center-block .notificationsCnt {
+        top: -2px; }
  } }
 
