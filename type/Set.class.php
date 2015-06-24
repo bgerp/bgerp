@@ -152,7 +152,7 @@ class type_Set extends core_Type {
         } else {
             $html = '<tr><td></td></tr>';
         }
-        //bp($html);
+        
         $tpl->append($html, 'OPT');
         
         return $tpl;

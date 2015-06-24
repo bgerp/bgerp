@@ -150,7 +150,7 @@ en,ДА,LTA
 en,Данни,Data
 en,Дата,Date
 en,До,To
-en,Добавяне на запис,Add new record
+en,Добавяне на запис,Add a new record
 en,Документи,Documents
 en,Държава,Country
 en,Език,Language
@@ -392,10 +392,10 @@ en,Изтриване,Delete
 en,Наистина ли же_0a920,Do you really like to delete the document?
 en,Банкови сметки,Bank accounts
 en,Все още няма ба_4e42,No bank accounts yet
-en,Добавяне на но_b0da9,Add new bank account
+en,Добавяне на но_b0da9,Add a new bank account
 en,Локации,Locations
 en,Все още няма ло_238c,No locations yet
-en,Добавяне на но_972cc,Add new location
+en,Добавяне на но_972cc,Add a new location
 en,Фирми,Companies
 en,Лица,Persons
 en,Групи,Groups
