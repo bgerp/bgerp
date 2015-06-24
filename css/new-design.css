@@ -594,14 +594,14 @@ a.bookmark-external-url {
 .notificationsCnt {
   display: inline-block;
   position: relative;
-  top: -6px;
+  top: -4px;
   margin-left: 4px; }
 
 .notificationsCnt a {
   display: block;
   color: white;
   padding: 1px;
-  font-size: 0.75em;
+  font-size: 0.8em;
   border-radius: 3px; }
 
 .narrow .notificationsCnt a {
