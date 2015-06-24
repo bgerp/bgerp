@@ -213,7 +213,6 @@ class bgerp_Bookmark extends core_Manager
 	        $lUrl = $url;
 	        
             $attr['class'] = 'bookmark-external-url';
-            $attr['target'] = '_blank';
 	    }
 	    
 	    if (!isset($title)) {
