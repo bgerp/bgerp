@@ -41,7 +41,7 @@ class type_Set extends core_Type {
         
         foreach($vals as $v) {
             if($v) {
-                $res .= ($res ? ", " : '') . $this->getVerbal($v);
+                $res .= ($res ? ", " : '') . tr($this->getVerbal($v));
             }
         }
         
