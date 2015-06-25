@@ -409,7 +409,7 @@ class core_page_InternalModern extends core_page_Active
         }
         
         if (crm_Persons::haveRightFor('list')) {
-            $attr['ef_icon'] = 'img/16/user-black.png';
+            $attr['ef_icon'] = 'img/16/vcard-black.png';
             $searchLink .= ht::createLink(tr("Търсене на лица"), array('crm_Persons', 'list'), NULL, $attr);
         }
                 
