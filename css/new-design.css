@@ -417,13 +417,13 @@ a.bookmark-external-url {
   padding: 4px;
   border-radius: 6px;
   cursor: pointer; }
-  .btn-sidemenu:hover {
-    border-color: #444444; }
   .btn-sidemenu .menuIcon {
     opacity: 0.6;
     width: 20px;
     border-radius: 6px; }
-    .btn-sidemenu .menuIcon:hover {
+  .btn-sidemenu:hover {
+    border-color: #444444; }
+    .btn-sidemenu:hover .menuIcon {
       opacity: 0.9; }
 
 .menuIcon:hover {
