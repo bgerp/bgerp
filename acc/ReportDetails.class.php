@@ -108,7 +108,7 @@ class acc_ReportDetails extends core_Manager
         
         // Полета за таблицата
         $data->listFields = arr::make("tools=Пулт,ent1Id=Перо1,ent2Id=Перо2,ent3Id=Перо3,blQuantity=К-во,blAmount=Сума");
-        $data->limitFields = arr::make("item1=item1,item2=item2,item3=item3,side=Салдо,type=Вид,limitQuantity=Сума,createdBy=Създадено от,createdOn=Създадено на");
+        $data->limitFields = arr::make("item1=item1,item2=item2,item3=item3,side=Салдо,type=Вид,limitQuantity=Сума,createdBy=Създадено от");
         
         // Създаване на нова инстанция на core_Mvc за задаване на td - класове
         // Създава се с new за да сме сигурни че обекта е нова празна инстанция
