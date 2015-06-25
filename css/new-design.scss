@@ -436,6 +436,8 @@ a.bookmark-external-url {
     padding: 4px;
     border-radius: 6px;
     cursor: pointer;
+    background: #eee;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
     .menuIcon {
         opacity: 0.6;
         width: 20px;
@@ -463,7 +465,8 @@ a.bookmark-external-url {
     border: 1px solid #888;
     z-index:11;
     padding: 0px 15px 0px 1px;
-    background: url('../img/16/arrow_down3.png') 26px center no-repeat;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+    background: #eee url('../img/16/arrow_down3.png') 28px center no-repeat;
     &:hover {
         border-color: #444;
     }
@@ -473,7 +476,6 @@ a.bookmark-external-url {
         width: 28px;
         margin-left: -1px;
         float: left;
-        background: #ddd;
     }
     &.search-options {
         img {

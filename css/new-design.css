@@ -416,7 +416,9 @@ a.bookmark-external-url {
   border: 1px solid #888888;
   padding: 4px;
   border-radius: 6px;
-  cursor: pointer; }
+  cursor: pointer;
+  background: #eeeeee;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2); }
   .btn-sidemenu .menuIcon {
     opacity: 0.6;
     width: 20px;
@@ -439,7 +441,8 @@ a.bookmark-external-url {
   border: 1px solid #888888;
   z-index: 11;
   padding: 0px 15px 0px 1px;
-  background: url('../img/16/arrow_down3.png') 26px center no-repeat; }
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+  background: #eeeeee url('../img/16/arrow_down3.png') 28px center no-repeat; }
   .menu-options:hover {
     border-color: #444444; }
   .menu-options img {
@@ -447,8 +450,7 @@ a.bookmark-external-url {
     height: 28px;
     width: 28px;
     margin-left: -1px;
-    float: left;
-    background: #dddddd; }
+    float: left; }
     .menu-options.search-options img {
       opacity: 0.6; }
     .menu-options.search-options:hover img {
