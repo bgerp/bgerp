@@ -119,9 +119,9 @@
 }
 
 .transition {
-    -webkit-transition: left 0.3s ease, right 0.3s ease, margin-left 0.3s ease, margin-right 0.3s ease;
-       -moz-transition: left 0.3s ease, right 0.3s ease, margin-left 0.3s ease, margin-right 0.3s ease;
-            transition: left 0.3s ease, right 0.3s ease, margin-left 0.3s ease, margin-right 0.3s ease;
+    -webkit-transition: all 0.3s ease;
+       -moz-transition: all 0.3s ease;
+            transition: all 0.3s ease;
 }
 body {
     background: #fff;
@@ -139,7 +139,7 @@ body {
 }
 
 .inner-framecontentTop{
-	padding: 7px 7px 3px 7px;
+	padding: 7px;
 	background-color: #dddddd;
 	position: relative;
 	z-index: 1000;
@@ -151,7 +151,7 @@ body {
 }
 
 .narrow .inner-framecontentTop{
-	padding:  9px 9px 4px 9px;
+	padding:  9px;
 }
 
 .portal {
@@ -427,13 +427,25 @@ a.bookmark-external-url {
     z-index: 2;
 }
 
-.menuIcon {
+.btn-sidemenu {
     padding: 3px;
     width: 20px;
-    border: 2px solid #000;
+    height: 20px;
+    border: 1px solid #888;
+    padding: 4px;
     border-radius: 6px;
     cursor: pointer;
-    opacity: 0.6;
+    &:hover {
+        border-color: #444;
+    }
+    .menuIcon {
+        opacity: 0.6;
+        width: 20px;
+        border-radius: 6px;
+        &:hover {
+            opacity: 0.9;
+        }
+    }
 }
 
 .menuIcon:hover {
@@ -447,24 +459,27 @@ a.bookmark-external-url {
     border-radius: 5px;
     cursor: pointer;
     position: relative;
-    border: 2px solid rgb(88, 88, 88);
+    border: 1px solid #888;
     z-index:11;
-    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
     padding: 0px 15px 0px 1px;
-    background: #fff url('../img/16/arrow_down3.png') 26px center no-repeat;
+    background: url('../img/16/arrow_down3.png') 26px center no-repeat;
+    &:hover {
+        border-color: #444;
+    }
     img {
         border-radius: 3px 0 0 3px;
-        height: 26px;
+        height: 28px;
+        width: 28px;
         margin-left: -1px;
         float: left;
         background: #ddd;
     }
-    &:hover {
-        border-color: #222;
-    }
     &.search-options {
         img {
-            opacity: 0.7;
+            opacity: 0.6;
+        }
+        &:hover img {
+            opacity: 0.9;
         }
         .menu-holder {
             left: -2px;
@@ -485,9 +500,8 @@ a.bookmark-external-url {
     padding: 5px;
     z-index: 1000;
     background-color: #ffffff;
-    border: 1px solid #ccc;
-    border: 1px solid rgba(0, 0, 0, 0.2);
     border-radius: 6px;
+    border: 1px solid #ccc;
     box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
     a {
         color: #333 !important;
