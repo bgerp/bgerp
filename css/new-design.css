@@ -278,7 +278,8 @@ body {
     top: 2px; }
 
 .bookmarkText {
-  margin: 0 8px; }
+  margin: 0 8px;
+  font-size: 0.95em; }
 
 .narrow .bookmarkText {
   margin: 0 4px; }
