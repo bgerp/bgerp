@@ -278,48 +278,26 @@ class blast_ListDetails extends doc_Detail
     	// Масива с избраните полета за export
     	$exportFields = $this->selectFields("#export");
  
-    	// Ако има избрани полета за export
-    	if (count($exportFields)) {
-    		foreach($exportFields as $name => $field) {
-    			$listFields[$name] = tr($field->caption);
-    		}
-    	}
-    	 
     	// взимаме от базата целия списък отговарящ на този бюлетин
     	$query = self::getQuery();
     	$query->where("#listId = '{$rec->listId}'");
     	
-    	$detailRecs = array();
-    	
-    	while ($recs = $query->fetch()) {
-    		$detailRecs[] = $recs;
-    	}
-    
     	// новите ни ролове
-    	$rCsv = '';
     	$csv = '';
-    	 
-    	/* за всеки ред */
-    	foreach($detailRecs as $rec) {
-    
-    		foreach ($rec as $field => $value) {
-    			if($exportFields[$field]) {
-    
-    				$val = html2text_Converter::toRichText($value);
-    				// escape
-    				if (preg_match('/\\r|\\n|,|"/', $val)) {
-    					$val = '"' . str_replace('"', '""', $val) . '"';
-    				}
-    				$rCsv .= $val. "," . "\n";
-    
-    			} else {
-    				$rCsv .= "";
-    			}
+    	
+    	while ($fRec = $query->fetch()) {
+    	    foreach ((array)$fRec as $field => $value) {
+    			if (!$exportFields[$field]) continue;
+                
+				$val = html2text_Converter::toRichText($value);
+				// escape
+				if (preg_match('/\\r|\\n|,|"/', $val)) {
+					$val = '"' . str_replace('"', '""', $val) . '"';
+				}
+				$csv .= $val. "," . "\n";
     		}
     	}
-    	 
-    	$csv = $rCsv;
-    
+        
     	// името на файла на кирилица
     	//$fileName = basename($this->title);
       	//$fileName = str_replace(' ', '_', Str::utf2ascii($this->title));
