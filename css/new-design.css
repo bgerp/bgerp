@@ -430,20 +430,19 @@ a.bookmark-external-url {
   z-index: 11;
   box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
   padding: 0px 15px 0px 1px;
-  background: #eeeeee url('../img/16/arrow_down3.png') 26px center no-repeat; }
+  background: white url('../img/16/arrow_down3.png') 26px center no-repeat; }
   .menu-options img {
     border-radius: 3px 0 0 3px;
     height: 26px;
     margin-left: -1px;
-    float: left; }
+    float: left;
+    background: #dddddd; }
   .menu-options:hover {
     border-color: #222222; }
-  .menu-options.user-options .menu-holder {
-    right: 0px; }
     .menu-options.search-options img {
       opacity: 0.7; }
     .menu-options.search-options .menu-holder {
-      left: -1px;
+      left: -2px;
       width: 240px; }
       .menu-options.search-options .menu-holder input {
         width: 100%;
@@ -456,7 +455,7 @@ a.bookmark-external-url {
   display: none;
   position: absolute;
   top: 30px;
-  right: 0px;
+  right: -2px;
   padding: 5px;
   max-width: 140px;
   min-width: 100px;
@@ -711,7 +710,12 @@ form[method="post"] input[type="submit"] {
 
 form[method=post] input[type=button],
 form[method=post] a.button {
-  background-color: #cccccc; }
+  background-color: #aaaaaa;
+  border: 1px solid #999999 !important;
+  text-shadow: none; }
+  form[method=post] input[type=button]:hover,
+  form[method=post] a.button:hover {
+    background-color: #b1b1b1; }
 
 .vertical .formTitle {
   font-size: 1.05em; }

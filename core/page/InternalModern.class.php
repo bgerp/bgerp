@@ -141,7 +141,6 @@ class core_page_InternalModern extends core_page_Active
                                      "<span class='menu-holder'>
                                      		[#SEARCH_INPUT#]
                                      		[#SEARCH_LINK#]
-                                     		[#OPEN_MENU#]
 		    							</span>
                                     </span>
 	    					</span>
@@ -363,10 +362,15 @@ class core_page_InternalModern extends core_page_Active
         
         $appLen = mb_strlen($coreConf->EF_APP_TITLE);
         
-        if ($appLen >= 15) {
-            $portalLinkAttr['style'] = 'letter-spacing: -2px';
-        } elseif ($appLen >= 10) {
-            $portalLinkAttr['style'] = 'letter-spacing: -1px';
+        if ($appLen >= 20) {
+            $portalLinkAttr['style'] = 'letter-spacing: -2px;';
+        } elseif ($appLen >= 13) {
+            $portalLinkAttr['style'] = 'letter-spacing: -1px;';
+        } elseif (($appLen >= 6) && ($appLen <= 12)) {
+            
+            $lSpacing = (5 - $appLen) / 10;
+            
+            $portalLinkAttr['style'] = "letter-spacing: {$lSpacing}px;";
         }
         
         // Добавя линк към броя на отворените нотификации
@@ -380,7 +384,7 @@ class core_page_InternalModern extends core_page_Active
         $tpl->replace($portalLink, 'PORTAL');
         
         // Рендираме бутоните за търсене
-        $inputType = "<input class='serch-input-modern' type='text' onkeyup='onSearchEnter(event, \"open-menu-id\");'/>";
+        $inputType = "<input class='serch-input-modern' type='text'/>";
         
         $tpl->replace($inputType, 'SEARCH_INPUT');
         
@@ -389,30 +393,23 @@ class core_page_InternalModern extends core_page_Active
         
         $searchLink = '';
         
-        if (doc_Folders::haveRightFor('list')) {
-            $searchLink = ht::createLink(tr("Търси папки"), array('doc_Folders', 'list'), NULL, $attr);
+        if (doc_Search::haveRightFor('list')) {
+            $searchLink .= ht::createLink(tr("Търсене на документи"), array('doc_Search', 'list'), NULL, $attr);
         }
         
-        if (doc_Search::haveRightFor('list')) {
-            $searchLink .= ht::createLink(tr("Търси документи"), array('doc_Search', 'list'), NULL, $attr);
+        if (doc_Folders::haveRightFor('list')) {
+            $searchLink .= ht::createLink(tr("Търсене на папки"), array('doc_Folders', 'list'), NULL, $attr);
         }
         
         if (crm_Companies::haveRightFor('list')) {
-            $searchLink .= ht::createLink(tr("Търси фирми"), array('crm_Companies', 'list'), NULL, $attr);
+            $searchLink .= ht::createLink(tr("Търсене на фирми"), array('crm_Companies', 'list'), NULL, $attr);
         }
         
         if (crm_Persons::haveRightFor('list')) {
-            $searchLink .= ht::createLink(tr("Търси лица"), array('crm_Persons', 'list'), NULL, $attr);
+            $searchLink .= ht::createLink(tr("Търсене на лица"), array('crm_Persons', 'list'), NULL, $attr);
         }
                 
         $tpl->replace($searchLink, 'SEARCH_LINK');
-        
-        $attr['class'] = 'open-menu';
-        $attr['id'] = 'open-menu-id';
-        $attr['onClick'] = "return searchInLink(this, 'serch-input-modern', 'menu', true);";
-        $openMenu = ht::createLink(tr("Отвори меню"), array('bgerp_Menu', 'openMenu', 'ret_url' => TRUE), NULL, $attr);
-        
-        $tpl->replace($openMenu, 'OPEN_MENU');
     }
 
     

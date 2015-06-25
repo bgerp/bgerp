@@ -451,27 +451,23 @@ a.bookmark-external-url {
     z-index:11;
     box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
     padding: 0px 15px 0px 1px;
-    background: #eee url('../img/16/arrow_down3.png') 26px center no-repeat;
+    background: #fff url('../img/16/arrow_down3.png') 26px center no-repeat;
     img {
         border-radius: 3px 0 0 3px;
         height: 26px;
         margin-left: -1px;
         float: left;
+        background: #ddd;
     }
     &:hover {
         border-color: #222;
-    }
-
-    &.user-options .menu-holder {
-        right: 0px;
-
     }
     &.search-options {
         img {
             opacity: 0.7;
         }
         .menu-holder {
-            left: -1px;
+            left: -2px;
             width: 240px;
             input {
                 width: 100%;
@@ -486,7 +482,7 @@ a.bookmark-external-url {
     display: none;
     position: absolute;
     top: 30px;
-    right: 0px;
+    right: -2px;
     padding: 5px;
     max-width: 140px;
     min-width: 100px;
@@ -766,7 +762,12 @@ form[method="post"] input[type="submit"] {
 }
 
 form[method=post] input[type=button], form[method=post] a.button {
-	background-color: #ccc;
+	background-color: #aaa;
+    border: 1px solid #999 !important;
+    text-shadow: none;
+    &:hover {
+        background-color: #b1b1b1;
+    }
 }
 
 .vertical .formTitle {
