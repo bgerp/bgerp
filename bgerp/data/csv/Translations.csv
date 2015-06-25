@@ -347,6 +347,7 @@ en,Какво?,What?
 en,часа,hours
 en,мин.,min
 en,час,hour
+en,Час,Hour
 en,и,and
 en,Периодични про_b38f,Scheduled tasks
 en,Описание,Description
@@ -1970,3 +1971,4 @@ en,Търсене на документи,Search documents
 en,Търсене на папки,Search folders
 en,Търсене на фирми,Search companies
 en,Търсене на лица,Search persons
+en,Фамилия,Last name
