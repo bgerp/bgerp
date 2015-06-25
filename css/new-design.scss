@@ -299,11 +299,12 @@ body {
 }
 
 .bookmarkText {
-    margin: 0 9px;
+    margin: 0 8px;
+    font-size: 0.95em;
 }
 
 .narrow .bookmarkText {
-    margin: 0 5px;
+    margin: 0 4px;
 }
 
 .narrow .sidebar-row {
@@ -435,14 +436,14 @@ a.bookmark-external-url {
     padding: 4px;
     border-radius: 6px;
     cursor: pointer;
-    &:hover {
-        border-color: #444;
-    }
     .menuIcon {
         opacity: 0.6;
         width: 20px;
         border-radius: 6px;
-        &:hover {
+    }
+    &:hover {
+        border-color: #444;
+        .menuIcon {
             opacity: 0.9;
         }
     }
