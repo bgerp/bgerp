@@ -468,7 +468,6 @@ a.bookmark-external-url {
         }
         .menu-holder {
             left: -2px;
-            width: 240px;
             input {
                 width: 100%;
                 margin-bottom: 5px;
@@ -484,15 +483,12 @@ a.bookmark-external-url {
     top: 30px;
     right: -2px;
     padding: 5px;
-    max-width: 140px;
-    min-width: 100px;
     z-index: 1000;
     background-color: #ffffff;
     border: 1px solid #ccc;
     border: 1px solid rgba(0, 0, 0, 0.2);
     border-radius: 6px;
     box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
-    background-clip: padding-box;
     a {
         color: #333 !important;
         display: block;
@@ -500,11 +496,13 @@ a.bookmark-external-url {
         clear: both;
         font-weight: normal;
         font-size: 0.9em;
-        line-height: 20px;
         white-space: nowrap;
         &:hover{
             background-color: #f1f1f1;
         }
+    }
+    &.user-holder {
+        max-width: 140px;
     }
 }
 

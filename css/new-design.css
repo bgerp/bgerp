@@ -442,8 +442,7 @@ a.bookmark-external-url {
     .menu-options.search-options img {
       opacity: 0.7; }
     .menu-options.search-options .menu-holder {
-      left: -2px;
-      width: 240px; }
+      left: -2px; }
       .menu-options.search-options .menu-holder input {
         width: 100%;
         margin-bottom: 5px; }
@@ -457,15 +456,12 @@ a.bookmark-external-url {
   top: 30px;
   right: -2px;
   padding: 5px;
-  max-width: 140px;
-  min-width: 100px;
   z-index: 1000;
   background-color: white;
   border: 1px solid #cccccc;
   border: 1px solid rgba(0, 0, 0, 0.2);
   border-radius: 6px;
-  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
-  background-clip: padding-box; }
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2); }
   .menu-holder a {
     color: #333333 !important;
     display: block;
@@ -473,10 +469,11 @@ a.bookmark-external-url {
     clear: both;
     font-weight: normal;
     font-size: 0.9em;
-    line-height: 20px;
     white-space: nowrap; }
     .menu-holder a:hover {
       background-color: #f1f1f1; }
+  .menu-holder.user-holder {
+    max-width: 140px; }
 
 .narrow .menu-holder {
   max-width: 200px; }

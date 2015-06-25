@@ -271,7 +271,7 @@ class blast_ListDetails extends doc_Detail
     {
     	expect($id = Request::get('id', 'int'));
     	expect($rec = $this->fetch($id));
-    	 
+    	
     	// Проверка за права
     	$this->requireRightFor('export', $rec);
   
@@ -287,8 +287,10 @@ class blast_ListDetails extends doc_Detail
     	 
     	// взимаме от базата целия списък отговарящ на този бюлетин
     	$query = self::getQuery();
-    	$query->where("#listId = '{$id}'");
-    	 
+    	$query->where("#listId = '{$rec->listId}'");
+    	
+    	$detailRecs = array();
+    	
     	while ($recs = $query->fetch()) {
     		$detailRecs[] = $recs;
     	}

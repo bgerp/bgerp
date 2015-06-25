@@ -86,7 +86,7 @@ class core_page_InternalModern extends core_page_Active
         $openNotifications = bgerp_Notifications::getOpenCnt();
         $url  = toUrl(array('bgerp_Portal', 'Show'));
         $attr = array('id' => 'nCntLink');
-        
+
         // Ако имаме нотификации, добавяме ги към титлата и контейнера до логото
         if($openNotifications > 0) {
             $attr['class'] = 'haveNtf';
@@ -135,7 +135,7 @@ class core_page_InternalModern extends core_page_Active
     	
     	// Задаваме лейаута на страницата
     	$header = "<div style='position: relative'>
-	    					<a id='nav-panel-btn' href='#nav-panel' class='fleft btn-sidemenu btn-menu-left push-body {$openLeftBtn}'>". $menuImg ."</a>
+	    					<a id='nav-panel-btn' class='fleft btn-sidemenu btn-menu-left push-body {$openLeftBtn}'>". $menuImg ."</a>
 	    					<span class='fleft '>
 	    					    <span class='menu-options search-options'>" . $searchImg .
                                      "<span class='menu-holder'>
@@ -147,7 +147,7 @@ class core_page_InternalModern extends core_page_Active
 	    					<span class='center-block'>
 	    					    <span class='logoText'>[#PORTAL#]</span><span class='notificationsCnt'>[#NOTIFICATIONS_CNT#]</span>
 	    					</span>
-	    					<a id='fav-panel-btn' href='#fav-panel' class='fright btn-sidemenu btn-menu-right push-body {$openRightBtn}'>". $pinImg . $pinnedImg . "</a>
+	    					<a id='fav-panel-btn' class='fright btn-sidemenu btn-menu-right push-body {$openRightBtn}'>". $pinImg . $pinnedImg . "</a>
 	    					<span class='fright'>
 		    						<span class='menu-options user-options'>
 		    							" . $img .
@@ -347,14 +347,14 @@ class core_page_InternalModern extends core_page_Active
         
         $url  = toUrl(array('bgerp_Portal', 'Show'));
         $attr = array('id' => 'nCntLink');
-        
+
         // Ако имаме нотификации, добавяме ги към титлата и контейнера до логото
         if($openNotifications > 0) {
             $attr['class'] = 'haveNtf';
         } else {
             $attr['class'] = 'noNtf';
         }
-        
+
         $coreConf = core_Packs::getConfig('core');
         
         
@@ -394,18 +394,22 @@ class core_page_InternalModern extends core_page_Active
         $searchLink = '';
         
         if (doc_Search::haveRightFor('list')) {
+            $attr['ef_icon'] = 'img/16/doc_empty.png';
             $searchLink .= ht::createLink(tr("Търсене на документи"), array('doc_Search', 'list'), NULL, $attr);
         }
         
         if (doc_Folders::haveRightFor('list')) {
+            $attr['ef_icon'] = 'img/16/folder_open_icon.png';
             $searchLink .= ht::createLink(tr("Търсене на папки"), array('doc_Folders', 'list'), NULL, $attr);
         }
         
         if (crm_Companies::haveRightFor('list')) {
+            $attr['ef_icon'] = 'img/16/building-black.png';
             $searchLink .= ht::createLink(tr("Търсене на фирми"), array('crm_Companies', 'list'), NULL, $attr);
         }
         
         if (crm_Persons::haveRightFor('list')) {
+            $attr['ef_icon'] = 'img/16/vcard-black.png';
             $searchLink .= ht::createLink(tr("Търсене на лица"), array('crm_Persons', 'list'), NULL, $attr);
         }
                 
