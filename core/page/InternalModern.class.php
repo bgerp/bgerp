@@ -393,20 +393,20 @@ class core_page_InternalModern extends core_page_Active
         
         $searchLink = '';
         
-        if (doc_Folders::haveRightFor('list')) {
-            $searchLink = ht::createLink(tr("Търси папки"), array('doc_Folders', 'list'), NULL, $attr);
+        if (doc_Search::haveRightFor('list')) {
+            $searchLink .= ht::createLink(tr("Търсене на документи"), array('doc_Search', 'list'), NULL, $attr);
         }
         
-        if (doc_Search::haveRightFor('list')) {
-            $searchLink .= ht::createLink(tr("Търси документи"), array('doc_Search', 'list'), NULL, $attr);
+        if (doc_Folders::haveRightFor('list')) {
+            $searchLink .= ht::createLink(tr("Търсене на папки"), array('doc_Folders', 'list'), NULL, $attr);
         }
         
         if (crm_Companies::haveRightFor('list')) {
-            $searchLink .= ht::createLink(tr("Търси фирми"), array('crm_Companies', 'list'), NULL, $attr);
+            $searchLink .= ht::createLink(tr("Търсене на фирми"), array('crm_Companies', 'list'), NULL, $attr);
         }
         
         if (crm_Persons::haveRightFor('list')) {
-            $searchLink .= ht::createLink(tr("Търси лица"), array('crm_Persons', 'list'), NULL, $attr);
+            $searchLink .= ht::createLink(tr("Търсене на лица"), array('crm_Persons', 'list'), NULL, $attr);
         }
                 
         $tpl->replace($searchLink, 'SEARCH_LINK');
