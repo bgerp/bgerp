@@ -118,8 +118,8 @@ class blast_ListDetails extends doc_Detail
         // Информация за папката
         $this->FLD('listId' , 'key(mvc=blast_Lists,select=title)', 'caption=Списък,mandatory,column=none');
         
-        $this->FLD('data', 'blob', 'caption=Данни,input=none,column=none');
-        $this->FLD('key', 'varchar(64)', 'caption=Kлюч,input=none,column=none,export');
+        $this->FLD('data', 'blob', 'caption=Данни,input=none,column=none,export');
+        $this->FLD('key', 'varchar(64)', 'caption=Kлюч,input=none,column=none');
         
         $this->setDbUnique('listId,key');
     }
@@ -289,15 +289,25 @@ class blast_ListDetails extends doc_Detail
     	    foreach ((array)$fRec as $field => $value) {
     			if (!$exportFields[$field]) continue;
                 
-				$val = html2text_Converter::toRichText($value);
-				// escape
-				if (preg_match('/\\r|\\n|,|"/', $val)) {
-					$val = '"' . str_replace('"', '""', $val) . '"';
-				}
-				$csv .= $val. "," . "\n";
+    			if ($this->fields[$field]->type instanceof type_Blob) {
+    			    $valArr = unserialize($value);
+    			} else {
+    			    $valArr = array($value);
+    			}
+    			
+    			foreach ($valArr as $val) {
+    			    $val = html2text_Converter::toRichText($val);
+    				// escape
+    				if (preg_match("/[\,\"\r\n]/", $val)) {
+    					$val = '"' . str_replace('"', '""', $val) . '"';
+    				}
+    				$csv .= $val. ",";
+    			}
     		}
+    		$csv = rtrim($csv, ',');
+    		$csv .= "\n";
     	}
-        
+    	
     	// името на файла на кирилица
     	//$fileName = basename($this->title);
       	//$fileName = str_replace(' ', '_', Str::utf2ascii($this->title));
