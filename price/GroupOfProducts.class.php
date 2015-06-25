@@ -202,6 +202,8 @@ class price_GroupOfProducts extends core_Detail
         expect(count($products), 'Няма продаваеми продукти');
         $now = dt::now();
         foreach ($products as $id => &$product){
+        	if(is_object($product)) continue;
+        	
         	if($groupId = $mvc->getGroup($id, $now)){
         		$groupTitle = price_Groups::getTitleById($groupId, FALSE);
         		$product .=  " -- " . tr('група') . " {$groupTitle}";
