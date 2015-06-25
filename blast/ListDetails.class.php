@@ -308,11 +308,13 @@ class blast_ListDetails extends doc_Detail
     		$csv .= "\n";
     	}
     	
+    	$listTitle = blast_Lists::fetchField("#id = '{$rec->listId}'", 'title');
+    	
     	// името на файла на кирилица
     	//$fileName = basename($this->title);
       	//$fileName = str_replace(' ', '_', Str::utf2ascii($this->title));
     	
-    	$fileName = fileman_Files::normalizeFileName($this->title);
+    	$fileName = fileman_Files::normalizeFileName($listTitle);
     	
     	// правим CSV-то
     	header("Content-type: application/csv");
