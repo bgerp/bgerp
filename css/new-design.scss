@@ -467,7 +467,6 @@ a.bookmark-external-url {
             opacity: 0.7;
         }
         .menu-holder {
-            display: table;
             left: -2px;
             input {
                 width: 100%;
@@ -490,7 +489,6 @@ a.bookmark-external-url {
     border: 1px solid rgba(0, 0, 0, 0.2);
     border-radius: 6px;
     box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
-    background-clip: padding-box;
     a {
         color: #333 !important;
         display: block;

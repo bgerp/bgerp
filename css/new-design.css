@@ -442,7 +442,6 @@ a.bookmark-external-url {
     .menu-options.search-options img {
       opacity: 0.7; }
     .menu-options.search-options .menu-holder {
-      display: table;
       left: -2px; }
       .menu-options.search-options .menu-holder input {
         width: 100%;
@@ -462,8 +461,7 @@ a.bookmark-external-url {
   border: 1px solid #cccccc;
   border: 1px solid rgba(0, 0, 0, 0.2);
   border-radius: 6px;
-  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
-  background-clip: padding-box; }
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2); }
   .menu-holder a {
     color: #333333 !important;
     display: block;

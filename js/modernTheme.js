@@ -114,9 +114,15 @@ function changePinIcon(){
  */
 function userMenuActions() {
 	$('body').on('click', function(e){
-    	if($(e.target).is('.menu-options') || $(e.target).is('.menu-options img') ) {
-            $(e.target).parent().find('.menu-holder').toggle();
-            
+    	if($(e.target).is('.menu-options') || $(e.target).is('.menu-options > img') ) {
+            var element = $(e.target).parent().find('.menu-holder');
+            if ( $(element).css('display') == 'none' ){
+                $('.menu-holder').css('display', 'none');
+                $(element).css('display', 'table');
+            } else {
+                $(element).css('display', 'none');
+            }
+
             // При отваряне да се фокусира input полето
             var input = $(e.target).parent().find('.menu-holder > input');
             if (input) {
@@ -124,7 +130,7 @@ function userMenuActions() {
             }
     	}
     	else{
-            if (!($(e.target).is('.menu-holder input')) ) {
+            if (!($(e.target).is('.menu-holder > input')) ) {
                 $('.menu-holder').hide();
             }
     	}

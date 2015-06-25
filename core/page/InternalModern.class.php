@@ -135,7 +135,7 @@ class core_page_InternalModern extends core_page_Active
     	
     	// Задаваме лейаута на страницата
     	$header = "<div style='position: relative'>
-	    					<a id='nav-panel-btn' href='#nav-panel' class='fleft btn-sidemenu btn-menu-left push-body {$openLeftBtn}'>". $menuImg ."</a>
+	    					<a id='nav-panel-btn' class='fleft btn-sidemenu btn-menu-left push-body {$openLeftBtn}'>". $menuImg ."</a>
 	    					<span class='fleft '>
 	    					    <span class='menu-options search-options'>" . $searchImg .
                                      "<span class='menu-holder'>
@@ -147,7 +147,7 @@ class core_page_InternalModern extends core_page_Active
 	    					<span class='center-block'>
 	    					    <span class='logoText'>[#PORTAL#]</span><span class='notificationsCnt'>[#NOTIFICATIONS_CNT#]</span>
 	    					</span>
-	    					<a id='fav-panel-btn' href='#fav-panel' class='fright btn-sidemenu btn-menu-right push-body {$openRightBtn}'>". $pinImg . $pinnedImg . "</a>
+	    					<a id='fav-panel-btn' class='fright btn-sidemenu btn-menu-right push-body {$openRightBtn}'>". $pinImg . $pinnedImg . "</a>
 	    					<span class='fright'>
 		    						<span class='menu-options user-options'>
 		    							" . $img .
