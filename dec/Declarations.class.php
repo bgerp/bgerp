@@ -163,7 +163,7 @@ class dec_Declarations extends core_Master
 		$this->FLD('materials', 'keylist(mvc=dec_Materials,select=title)', 'caption=Материали->Изработени от, mandatory');
         
 		// допълнителен текст
-		$this->FLD('note', 'richtext(bucket=Notes)', 'caption=Бележки->Допълнения');
+		$this->FLD('note', 'richtext(bucket=Notes,rows=6)', 'caption=Бележки->Допълнения');
 
 	}
 
