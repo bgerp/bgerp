@@ -63,6 +63,48 @@ class doc_RichTextPlg extends core_Plugin
     
     
     /**
+     * Обработваме елементите линковете, които сочат към докъментната система
+     */
+    function on_BeforeCatchRichElements($mvc, &$html)
+    {
+        $html = self::truncateText($html);
+    }
+    
+    
+    /**
+     * Съкращава дългите стрингове, като добавя линк за показване на още
+     * 
+     * @param string $html
+     * 
+     * @return string
+     */
+    protected static function truncateText($html)
+    {
+        // Във външната част и при принтиране да не сработва
+        if (Mode::is('printing') || Mode::is('text', 'xhtml')) return $html;
+        
+        $conf = core_Packs::getConfig('doc');
+        $hideLen = $conf->DOC_HIDE_TEXT_AFTER_LENGTH;
+        
+        if (mb_strlen($html) <= $hideLen) return $html;
+        
+        $cHtml = mb_strcut($html, $hideLen);
+        $cHtmlArr = explode("\n", $cHtml, 2);
+        
+        if (!$cHtmlArr[1]) return $html;
+        
+        $bHtml = mb_strcut($html, 0, $hideLen);
+        
+        $cHtmlArr[1] = "[hide=" . tr('Вижте още') . "]" . $cHtmlArr[1] . "[/hide]";
+        $cHtml = implode("\n", $cHtmlArr);
+        
+        $html = $bHtml . $cHtml;
+        
+        return $html;
+    }
+    
+    
+    /**
      * Заменяме линковете от система с абсолютни URL' та
      *
      * @param array $match - Масив с откритите резултати

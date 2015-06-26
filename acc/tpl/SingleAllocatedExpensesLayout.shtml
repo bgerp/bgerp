@@ -1,13 +1,4 @@
-[#SingleToolbar#]
-<div class='document'>
-    <!--ET_BEGIN blank-->
-    [#blank#]
-    <!--ET_END blank-->
-    <!--ET_BEGIN header-->
-    <div class='header [#STATE_CLASS#]'>
-        <div class='docBgIcon' style='[#iconStyle#];'>[#singleTitle#] <b>[#ident#]</b> ([#state#])</div>
-    </div>
-    <!--ET_END header-->
+[#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
     <table>
         <tr>
             <td>
@@ -28,8 +19,5 @@
    [#notes#]
    </div>
    <!--ET_END notes-->
-   
-    <!--ET_BEGIN DETAILS-->
-    [#DETAILS#]
-    <!--ET_END DETAILS-->
-</div>
+
+[#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

@@ -421,10 +421,16 @@ class price_ListToCustomers extends core_Detail
     		$comparePrice = price_ListRules::getPrice($listRec->discountCompared, $productId, $packagingId, $datetime);
     		if($comparePrice){
     			$disc = ($rec->price - $comparePrice) / $comparePrice;
-    			$rec->discount = round(-1 * $disc, 4);
-    	
-    			// Подменяме цената за да може като се приспадне отстъпката и, да се получи толкова колкото тя е била
-    			$rec->price  = $comparePrice;
+    			$discount = round(-1 * $disc, 4);
+    			
+    			// Ще показваме цената без отстъпка и отстъпката само ако отстъпката е положителна
+    			// Целта е да не показваме надценката а само отстъпката
+    			if($discount > 0){
+    				
+    				// Подменяме цената за да може като се приспадне отстъпката и, да се получи толкова колкото тя е била
+    				$rec->discount = round(-1 * $disc, 4);
+    				$rec->price  = $comparePrice;
+    			}
     		}
     	}
     	
@@ -451,10 +457,29 @@ class price_ListToCustomers extends core_Detail
     	
     	// Опитваме се да намерим цена според технологичната карта
     	if($amounts = cat_Boms::getPrice($productId)){
-    	
-    		// Какви са максималната и минималната надценка за контрагента
-    		$minCharge = cond_Parameters::getParameter($customerClass, $customerId, 'minSurplusCharge');
-    		$maxCharge = cond_Parameters::getParameter($customerClass, $customerId, 'maxSurplusCharge');
+    		$defPriceListId = self::getListForCustomer($customerClass, $customerId);
+    		
+    		$minCharge = $maxCharge = NULL;
+    		
+    		// Ако контрагента има зададен ценоразпис, който ене  дефолтния
+    		if($defPriceListId != price_ListRules::PRICE_LIST_CATALOG){
+    			
+    			// Взимаме максималната и минималната надценка от него, ако ги има
+    			$defPriceList = price_Lists::fetch($defPriceListId);
+    			$minCharge = $defPriceList->minSurcharge;
+    			$maxCharge = $defPriceList->maxSurcharge;
+    		}
+    		
+    		// Ако няма мин надценка, взимаме я от търговските условия
+    		if(!$minCharge){
+    			$minCharge = cond_Parameters::getParameter($customerClass, $customerId, 'minSurplusCharge');
+    		}
+    		
+    		// Ако няма макс надценка, взимаме я от търговските условия
+    		if(!$maxCharge){
+    			$maxCharge = cond_Parameters::getParameter($customerClass, $customerId, 'maxSurplusCharge');
+    		}
+    		
     		if(!$quantity){
     			$quantity = 1;
     		}

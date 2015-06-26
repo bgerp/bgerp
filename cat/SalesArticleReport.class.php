@@ -217,6 +217,7 @@ class cat_SalesArticleReport extends frame_BaseDriver
             
     		[#PAGER#]
             [#ARTICLE#]
+    		[#PAGER#]
         "
     	);
 

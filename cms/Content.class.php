@@ -313,7 +313,7 @@ class cms_Content extends core_Manager
      */
     static function getContentUrl($rec, $absolute = FALSE) 
     {
-        if($rec->source) {
+        if($rec->source && cls::load($rec->source, TRUE)) {
             $source = cls::get($rec->source);
             $url = $source->getUrlByMenuId($rec->id);
         } elseif($rec->url) {
@@ -391,10 +391,15 @@ class cms_Content extends core_Manager
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {   
         if($rec->source) {
-            $Source = cls::getInterface('cms_SourceIntf', $rec->source);
-            $workUrl = $Source->getWorkshopUrl($rec->id);
-            $row->source = ht::createLink($row->source, $workUrl); 
+        	if(cls::load($rec->source, TRUE)){
+        		$Source = cls::getInterface('cms_SourceIntf', $rec->source);
+        		$workUrl = $Source->getWorkshopUrl($rec->id);
+        		$row->source = ht::createLink($row->source, $workUrl);
+        	} else {
+        		$row->source = "<span class='red'>" . tr('Проблем с показването') . "<span>";
+        	}
         }
+        
         $publicUrl = $mvc->getContentUrl($rec, TRUE);
         $row->menu = ht::createLink($row->menu, $publicUrl, FALSE, 'ef_icon=img/16/monitor.png'); 
     }
@@ -548,10 +553,12 @@ class cms_Content extends core_Manager
 	{  
    		//  Кой може да обобщава резултатите
 		if($action == 'delete' && isset($rec->id, $rec->source) ) {
-            $source = cls::get($rec->source);
-   			if($source->getUrlByMenuId($rec->id) != '#') {
-    		    $res = 'no_one';
-            }
+			if(cls::load($rec->source, TRUE)){
+				$source = cls::get($rec->source);
+				if($source->getUrlByMenuId($rec->id) != '#') {
+					$res = 'no_one';
+				}
+			}
         }
    	}
 

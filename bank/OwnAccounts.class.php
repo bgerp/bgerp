@@ -126,6 +126,12 @@ class bank_OwnAccounts extends core_Master {
     
     
     /**
+     * Кой  може да вижда счетоводните справки?
+     */
+    var $canAddacclimits = 'ceo,bankMaster,accMaster';
+    
+    
+    /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
     var $rowToolsSingleField = 'title';
@@ -149,6 +155,7 @@ class bank_OwnAccounts extends core_Master {
      */
     var $singleIcon = 'img/16/own-bank.png';
     
+    
     /**
      * Детайли на този мастър обект
      *
@@ -161,10 +168,12 @@ class bank_OwnAccounts extends core_Master {
      */
     public $canReports = 'ceo,bank,acc';
     
+    
     /**
      * По кои сметки ще се правят справки
      */
     public $balanceRefAccounts = '503';
+    
     
     /**
      * По кой итнерфейс ще се групират сметките
@@ -211,7 +220,7 @@ class bank_OwnAccounts extends core_Master {
         		acc_BalanceDetails::filterQuery($bQuery, $balRec->id, $mvc->balanceRefAccounts, NULL, $bankItem->id);
         		 
         		// Събираме ги да намерим крайното салдо на перото
-        		$rec->blAmount = 0;
+        		$rec->blAmount = NULL;
         		while($bRec = $bQuery->fetch()){
         			$rec->blAmount += $bRec->blAmount;
         		}
@@ -260,9 +269,10 @@ class bank_OwnAccounts extends core_Master {
             $total = "<span style='color:red'>{$total}</span>";
         }
         
+        $currencyId = acc_Periods::getBaseCurrencyCode();
         $state = (Request::get('Rejected', 'int')) ? 'rejected' : 'closed';
         $colspan = count($data->listFields) - 1;
-        $lastRow = new ET("<tr style='text-align:right' class='state-{$state}'><td colspan='{$colspan}'>[#caption#]: &nbsp;<b>[#total#]</b></td><td>&nbsp;</td></tr>");
+        $lastRow = new ET("<tr style='text-align:right' class='state-{$state}'><td colspan='{$colspan}'>[#caption#]: &nbsp;<b>[#total#]</b> <span class='cCode'>{$currencyId}</span></td><td>&nbsp;</td></tr>");
         $lastRow->replace(tr("Общо"), 'caption');
         $lastRow->replace($total, 'total');
         

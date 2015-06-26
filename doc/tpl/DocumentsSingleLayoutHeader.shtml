@@ -1,0 +1,22 @@
+<!--ET_BEGIN SingleToolbar-->
+	[#SingleToolbar#]
+<!--ET_END SingleToolbar-->
+
+<div class='document'>
+	<!--ET_BEGIN blank-->
+		[#blank#]
+	<!--ET_END blank-->
+	
+	<!--ET_BEGIN header-->
+		<div class='header [#STATE_CLASS#] no-print'>
+			<div class='docBgIcon' style='[#iconStyle#]'>
+		        [#singleTitle#] <b>[#ident#]</b> ([#state#]) 
+				
+				<!--ET_BEGIN DocumentSettings-->
+					<div class='document-settings'>
+						[#DocumentSettings#]
+					</div>
+				<!--ET_END DocumentSettings-->
+		    </div>
+		</div>
+	<!--ET_END header-->

@@ -36,6 +36,15 @@ class fastscroll_Setup extends core_ProtoSetup
 			'FASTSCROLL_ACTIVE_RATIO' => array ('double', 'caption=Показване при скрита/видима част->Съотношение'),
 	);
 	
+    
+    /**
+     * Списък с мениджърите, които съдържа пакета
+     */
+    var $managers = array(
+        'migrate::removeOldPlugins',
+    );
+    
+    
     /**
      * Инсталиране на пакета
      */
@@ -47,7 +56,7 @@ class fastscroll_Setup extends core_ProtoSetup
         $Plugins = cls::get('core_Plugins');
         
         // Инсталираме плъгина към страницата
-        $html .= $Plugins->installPlugin('Бързо скролиране', 'fastscroll_Plugin', 'core_page_Active', 'family');
+        $html .= $Plugins->installPlugin('Бързо скролиране в страниците', 'fastscroll_Plugin', 'core_page_Active', 'family');
         
         return $html;
     }
@@ -87,5 +96,17 @@ class fastscroll_Setup extends core_ProtoSetup
     {
         
         return 'fastscroll/lib/fastscroll.css';
+    }
+    
+    
+    /**
+     * 
+     */
+    public function removeOldPlugins()
+    {
+        $this->deinstall();
+        $Plugins = cls::get('core_Plugins');
+        
+        $Plugins->installPlugin('Бързо скролиране в страниците', 'fastscroll_Plugin', 'core_page_Active', 'family');
     }
 }

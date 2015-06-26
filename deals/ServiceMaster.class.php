@@ -60,7 +60,7 @@ abstract class deals_ServiceMaster extends core_Master
 		$mvc->FLD('delivered', 'varchar', 'caption=Доставил');
 		
 		// Допълнително
-		$mvc->FLD('note', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Бележки');
+		$mvc->FLD('note', 'richtext(bucket=Notes,rows=6)', 'caption=Допълнително->Бележки');
 		$mvc->FLD('state',
 				'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)',
 				'caption=Статус, input=none'

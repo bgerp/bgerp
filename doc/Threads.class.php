@@ -1844,7 +1844,7 @@ class doc_Threads extends core_Manager
         // Определяме заглавито
         $rec = $this->fetch($threadId);
         $row = $this->recToVerbal($rec, 'title');
-        $form->title = 'Настройка на|*: ' . $row->title;
+        $form->title = 'Настройка на|* ' . $row->title;
         
         // Добавяме функционални полета
         $form->FNC('notify', 'enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Известие при добавяне на документ->Известяване, input=input');

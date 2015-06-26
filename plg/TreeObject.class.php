@@ -53,7 +53,7 @@ class plg_TreeObject extends core_Plugin
 	 */
 	public static function on_AfterPrepareEditForm($mvc, &$data)
 	{
-		$options = self::getParentOptions($mvc, $data->form->rec);
+		$options = $mvc->prepareParentOptions($data->form->rec);
 		if(count($options)){
 			$data->form->setOptions($mvc->parentFieldName, $options);
 		} else {
@@ -65,34 +65,33 @@ class plg_TreeObject extends core_Plugin
 	
 	
 	/**
-	 * Връща възможните опции за избор на бащи
-	 * 
-	 * @param stdClass $rec
-	 * @return $options
+	 * Връща възможните опции за избор на бащи на обекта
 	 */
-	private static function getParentOptions($mvc, $rec)
+	public static function on_AfterPrepareParentOptions($mvc, &$res, $rec)
 	{
-		$where = '';
-		if($rec->id){
-			$where = "#id != {$rec->id}";
-		}
-		
-		if($mvc->getField('state', FALSE)){
-			$where .= (($where != '') ? " AND " : "") . " #state != 'rejected'";
-		}
-		
-		// При редакция оставяме само тези опции, в чиите бащи не участва текущия обект
-		$options = $mvc->makeArray4Select($mvc->nameField, $where);
-		if(count($options) && isset($rec->id)){
-			foreach ($options as $id => $title){
-				self::traverseTree($mvc, $id, $rec->id, $notAllowed);
-				if(count($notAllowed) && in_array($id, $notAllowed)){
-					unset($options[$id]);
+		if(!$res){
+			$where = '';
+			if($rec->id){
+				$where = "#id != {$rec->id}";
+			}
+			
+			if($mvc->getField('state', FALSE)){
+				$where .= (($where != '') ? " AND " : "") . " #state != 'rejected'";
+			}
+			
+			// При редакция оставяме само тези опции, в чиите бащи не участва текущия обект
+			$options = $mvc->makeArray4Select($mvc->nameField, $where);
+			if(count($options) && isset($rec->id)){
+				foreach ($options as $id => $title){
+					self::traverseTree($mvc, $id, $rec->id, $notAllowed);
+					if(count($notAllowed) && in_array($id, $notAllowed)){
+						unset($options[$id]);
+					}
 				}
 			}
+			
+			$res = $options;
 		}
-		
-		return $options;
 	}
 	
 	

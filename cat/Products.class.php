@@ -93,6 +93,12 @@ class cat_Products extends core_Embedder {
     
     
     /**
+     * Кой  може да вижда счетоводните справки?
+     */
+    public $canAddacclimits = 'ceo,storeMaster,accMaster';
+    
+    
+    /**
      * Наименование на единичния обект
      */
     public $singleTitle = "Артикул";
@@ -844,7 +850,7 @@ class cat_Products extends core_Embedder {
     		$query->limit($limit);
     	}
     	
-    	$products = array();
+    	$private = $products = array();
     	$metaArr = arr::make($hasProperties);
     	$hasnotProperties = arr::make($hasnotProperties);
     	
@@ -865,7 +871,24 @@ class cat_Products extends core_Embedder {
     	
     	// Подготвяме опциите
     	while($rec = $query->fetch()){
-    		$products[$rec->id] = $this->getRecTitle($rec, FALSE);
+    		$title = $this->getRecTitle($rec, FALSE);
+    		
+    		if($rec->isPublic == 'yes'){
+    			$products[$rec->id] = $title;
+    		} else {
+    			$private[$rec->id] = $title;
+    		}
+    	}
+    	
+    	if(count($products)){
+    		$products = array('pu' => (object)array('group' => TRUE, 'title' => tr('Стандартни'))) + $products;
+    	}
+    	
+    	// Частните артикули излизат преди публичните
+    	if(count($private)){
+    		$private = array('pr' => (object)array('group' => TRUE, 'title' => tr('Нестандартни'))) + $private;
+    		
+    		$products = $private + $products;
     	}
     	
     	return $products;

@@ -69,10 +69,10 @@ class core_page_InternalModern extends core_page_Active
         $this->prepend(' modern-theme', 'BODY_CLASS_NAME');
 
         // Ако сме в широк изглед извикваме функцията за мащабиране
-        if(Mode::is('screenMode', 'wide')){
-        	$this->append("scaleViewport();", "START_SCRIPTS");
+        if(Mode::is('screenMode', 'narrow')){
+        	$this->append("disableScale();", "START_SCRIPTS");
         }
-        
+
         // Опаковките и главното съдържание заемат екрана до долу
         $this->append("runOnLoad(setMinHeight);", "JQRUN");
         
@@ -86,7 +86,7 @@ class core_page_InternalModern extends core_page_Active
         $openNotifications = bgerp_Notifications::getOpenCnt();
         $url  = toUrl(array('bgerp_Portal', 'Show'));
         $attr = array('id' => 'nCntLink');
-        
+
         // Ако имаме нотификации, добавяме ги към титлата и контейнера до логото
         if($openNotifications > 0) {
             $attr['class'] = 'haveNtf';
@@ -129,18 +129,27 @@ class core_page_InternalModern extends core_page_Active
     	
     	$menuImg = ht::createElement('img', array('src' => sbf('img/menu.png', ''), 'class' => 'menuIcon'));
     	$pinImg = ht::createElement('img', array('src' => sbf('img/pin.png', ''), 'class' => "menuIcon pin {$pin}"));
+        $searchImg = ht::createElement('img', array('src' => sbf('img/search_2.png', '')));
     	$pinnedImg = ht::createElement('img', array('src' => sbf('img/pinned.png', ''), 'class' => "menuIcon pinned {$pinned}"));
     	$img = avatar_Plugin::getImg(core_Users::getCurrent(), NULL, 26);
     	
     	// Задаваме лейаута на страницата
     	$header = "<div style='position: relative'>
-	    					<a id='nav-panel-btn' href='#nav-panel' class='fleft btn-sidemenu btn-menu-left push-body {$openLeftBtn}'>". $menuImg ."</a>
-	    					<span class='fleft logoText'>[#PORTAL#]</span>
-	    					<span class='notificationsCnt'>[#NOTIFICATIONS_CNT#]</span>
-	    					<span class='headerPath'>[#HEADER_PATH#]</span>
-	    					<a id='fav-panel-btn' href='#fav-panel' class='fright btn-sidemenu btn-menu-right push-body {$openRightBtn}'>". $pinImg . $pinnedImg . "</a>
+	    					<a id='nav-panel-btn' class='fleft btn-sidemenu btn-menu-left push-body {$openLeftBtn}'>". $menuImg ."</a>
+	    					<span class='fleft '>
+	    					    <span class='menu-options search-options'>" . $searchImg .
+                                     "<span class='menu-holder'>
+                                     		[#SEARCH_INPUT#]
+                                     		[#SEARCH_LINK#]
+		    							</span>
+                                    </span>
+	    					</span>
+	    					<span class='center-block'>
+	    					    <span class='logoText'>[#PORTAL#]</span><span class='notificationsCnt'>[#NOTIFICATIONS_CNT#]</span>
+	    					</span>
+	    					<a id='fav-panel-btn' class='fright btn-sidemenu btn-menu-right push-body {$openRightBtn}'>". $pinImg . $pinnedImg . "</a>
 	    					<span class='fright'>
-		    						<span class='user-options'>
+		    						<span class='menu-options user-options'>
 		    							" . $img .
     			    					"<span class='menu-holder'>
 			     		   					[#USERLINK#]
@@ -186,7 +195,7 @@ class core_page_InternalModern extends core_page_Active
      */
     static function renderBookmarks()
     {
-        $tpl = new ET("<div class='sideBarTitle'> [#BOOKMARK_TITLE#] [#BOOKMARK_BTN#]</div><div class='bookmark-links'>[#BOOKMARK_LINKS#]</div>");
+        $tpl = new ET("<div class='sideBarTitle'>[#BOOKMARK_TITLE#][#BOOKMARK_BTN#]</div><div class='bookmark-links'>[#BOOKMARK_LINKS#]</div>");
         
         $title = bgerp_Bookmark::getTitle();
         $btn = bgerp_Bookmark::getBtn();
@@ -256,11 +265,11 @@ class core_page_InternalModern extends core_page_Active
               	
                 if($lastMenu != $rec->menu) {
                     $html .= ($html ? "\n</ul></li>" : '') . "\n<li{$mainClass} data-menuid = '{$rec->id}'>";
-                    $html .= "\n    <div><span class='arrow'></span>{$rec->menu}</div>";
+                    $html .= "\n    <div><span class='arrow'></span>{$rec->menuTr}</div>";
                     $html .= "\n<ul>";
                 }
                 $lastMenu = $rec->menu;
-                $html .= "\n<li{$subClass}>" . ht::createLink($rec->subMenu, array($rec->ctr, $rec->act)) . "</li>";
+                $html .= "\n<li{$subClass}>" . ht::createLink($rec->subMenuTr, array($rec->ctr, $rec->act)) . "</li>";
             }
             $html .= "\n</ul></li>";
         } else {
@@ -338,22 +347,73 @@ class core_page_InternalModern extends core_page_Active
         
         $url  = toUrl(array('bgerp_Portal', 'Show'));
         $attr = array('id' => 'nCntLink');
-        
+
         // Ако имаме нотификации, добавяме ги към титлата и контейнера до логото
         if($openNotifications > 0) {
             $attr['class'] = 'haveNtf';
         } else {
             $attr['class'] = 'noNtf';
         }
-        // Добавя линк към броя на отворените нотификации
-        $portalLink = ht::createLink("bgERP", $url, NULL, NULL);
-        $nLink = ht::createLink("{$openNotifications}", $url, NULL, $attr);
 
+        $coreConf = core_Packs::getConfig('core');
+        
+        
+        $portalLinkAttr = array();
+        
+        $appLen = mb_strlen($coreConf->EF_APP_TITLE);
+        
+        if ($appLen >= 20) {
+            $portalLinkAttr['style'] = 'letter-spacing: -2px;';
+        } elseif ($appLen >= 13) {
+            $portalLinkAttr['style'] = 'letter-spacing: -1px;';
+        } elseif (($appLen >= 6) && ($appLen <= 12)) {
+            
+            $lSpacing = (5 - $appLen) / 10;
+            
+            $portalLinkAttr['style'] = "letter-spacing: {$lSpacing}px;";
+        }
+        
+        // Добавя линк към броя на отворените нотификации
+        $portalLink = ht::createLink($coreConf->EF_APP_TITLE, $url, NULL, $portalLinkAttr);
+        $nLink = ht::createLink("{$openNotifications}", $url, NULL, $attr);
+        
         $tpl->replace($debug, 'DEBUG_BTN');
         $tpl->replace($mode, 'CHANGE_MODE');
         $tpl->replace($singal, 'SIGNAL');
         $tpl->replace($nLink, 'NOTIFICATIONS_CNT');
         $tpl->replace($portalLink, 'PORTAL');
+        
+        // Рендираме бутоните за търсене
+        $inputType = "<input class='serch-input-modern' type='text'/>";
+        
+        $tpl->replace($inputType, 'SEARCH_INPUT');
+        
+        $attr = array();
+        $attr['onClick'] = "return searchInLink(this, 'serch-input-modern', 'search', false);";
+        
+        $searchLink = '';
+        
+        if (doc_Search::haveRightFor('list')) {
+            $attr['ef_icon'] = 'img/16/doc_empty.png';
+            $searchLink .= ht::createLink(tr("Търсене на документи"), array('doc_Search', 'list'), NULL, $attr);
+        }
+        
+        if (doc_Folders::haveRightFor('list')) {
+            $attr['ef_icon'] = 'img/16/folder_open_icon.png';
+            $searchLink .= ht::createLink(tr("Търсене на папки"), array('doc_Folders', 'list'), NULL, $attr);
+        }
+        
+        if (crm_Companies::haveRightFor('list')) {
+            $attr['ef_icon'] = 'img/16/building-black.png';
+            $searchLink .= ht::createLink(tr("Търсене на фирми"), array('crm_Companies', 'list'), NULL, $attr);
+        }
+        
+        if (crm_Persons::haveRightFor('list')) {
+            $attr['ef_icon'] = 'img/16/vcard-black.png';
+            $searchLink .= ht::createLink(tr("Търсене на лица"), array('crm_Persons', 'list'), NULL, $attr);
+        }
+                
+        $tpl->replace($searchLink, 'SEARCH_LINK');
     }
 
     

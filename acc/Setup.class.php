@@ -177,6 +177,15 @@ class acc_Setup extends core_ProtoSetup
     		'offset' => 60,
     		'timeLimit' => 600,
     	),
+    	array(
+    		'systemId' => "CheckAccLimits",
+    		'description' => "Проверка на счетоводните лимити",
+    		'controller' => "acc_Limits",
+    		'action' => "CheckAccLimits",
+    		'period' => 480,
+    		'offset' => 1,
+    		'timeLimit' => 60,
+    	),
     );
     
     
@@ -186,7 +195,7 @@ class acc_Setup extends core_ProtoSetup
     var $defClasses = "acc_ReportDetails, acc_BalanceReportImpl, acc_BalanceHistory, acc_HistoryReportImpl, acc_PeriodHistoryReportImpl,
     					acc_CorespondingReportImpl,acc_SaleArticlesReport,acc_SaleContractorsReport,acc_OweProvidersReport,
     					acc_ProfitArticlesReport,acc_ProfitContractorsReport,acc_MovementContractorsReport,acc_TakingCustomersReport,
-    					acc_ManufacturedProductsReport,acc_PurchasedProductsReport";
+    					acc_ManufacturedProductsReport,acc_PurchasedProductsReport,acc_BalancePeriodReportImpl";
     
     
     /**

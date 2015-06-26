@@ -78,7 +78,7 @@ class type_Date extends core_Type {
             
             return $value;
         } else {
-            $this->error = "Не е в допустимите формати, като например|*: '<B>" . dt::mysql2verbal(NULL, 'd-m-Y') . "</B>'";
+            $this->error = "Не е в допустимите формати, като например|*: '<B>" . dt::mysql2verbal(NULL, 'd-m-Y', NULL, FALSE) . "</B>'";
             
             return FALSE;
         }
@@ -93,7 +93,7 @@ class type_Date extends core_Type {
         $attr['name'] = $name;
                
         if($value && !$this->error) {
-            $value = dt::mysql2verbal($value, 'd.m.Y');
+            $value = dt::mysql2verbal($value, 'd.m.Y', NULL, FALSE);
         } else {
             $value = $attr['value'];
         }

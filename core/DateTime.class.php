@@ -131,7 +131,7 @@ class core_DateTime
             $date = dt::verbal2mysql();
         }
         
-        $date = dt::mysql2verbal($date, "Y-m-1");
+        $date = dt::mysql2verbal($date, "Y-m-1", NULL, FALSE);
 
         $monthOffset = (int) $monthOffset;
 
@@ -244,6 +244,33 @@ class core_DateTime
     
     
     /**
+     * Връща MySQL времето с TIMEOFFSET;
+     * 
+     * @param datetime $mysqlDate
+     * 
+     * @return datetime
+     */
+    public static function getDateWithTimeoffeset($mysqlDate)
+    {
+        $conf = core_Packs::getConfig('core');
+        
+        if ($conf->EF_DATE_USE_TIMEOFFSET != 'yes') return $mysqlDate;
+        
+        $timeZoneDiff = self::getTimezoneDiff();
+
+        if (!$timeZoneDiff) return $mysqlDate;
+        
+        $time = strtotime($mysqlDate);
+        
+        $time -= $timeZoneDiff;
+        
+        $mysqlDate = self::timestamp2Mysql($time);
+        
+        return $mysqlDate;
+    }
+    
+    
+    /**
      * Превръща MySQL-ска data/време към вербална дата/време
      */
     static function mysql2verbal($mysqlDate, $mask = "d.m.y H:i", $lg = NULL, $autoTimeZone = TRUE, $callRecursive = TRUE)
@@ -349,7 +376,7 @@ class core_DateTime
             $title = dt::mysql2verbal($mysqlDate, "d.m.Y H:i (l)", $lg, FALSE, FALSE);
             $title = "  title='{$title}'";
             
-            $verbDate = "<span style=\"color:#{$color}\" $title>{$verbDate}</span>";
+            $verbDate = "<span class='timeSpan' style=\"color:#{$color}\" $title>{$verbDate}</span>";
         }
         
         if ($callRecursive && $timeZoneDiff && 
@@ -358,7 +385,10 @@ class core_DateTime
             $origVerbDate = self::mysql2verbal($mysqlDate, $origMask, $lg, FALSE, FALSE);
             
             if ($origVerbDate) {
-                $verbDate .= "<span style='margin-left: 5px; display: inline-block; color: #444;' title='{$origVerbDate}'>H</span>";
+                if (!$color) {
+                    $color = '444';
+                }
+                    $verbDate .= "<span class='timeSpan' style='color: #{$color};' title='{$origVerbDate}'>®</span>";
             }
         }
         

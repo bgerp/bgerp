@@ -22,6 +22,12 @@ defIfNot('EF_CACHE_HANDLER_SIZE', 32);
 
 
 /**
+ * 
+ */
+defIfNot('CORE_CACHE_PREFIX_SALT', md5(EF_SALT . '_CORE_CACHE'));
+
+
+/**
  * Клас 'core_Cache' - Кеширане на обекти, променливи или масиви за определено време
  *
  *
@@ -53,6 +59,24 @@ class core_Cache extends core_Manager
 	 * Кой може да го разглежда?
 	 */
 	var $canList = 'admin';
+	
+	
+	/**
+	 * 
+	 */
+	public $canAdd = 'no_one';
+	
+	
+	/**
+	 * 
+	 */
+	public $canEdit = 'no_one';
+	
+	
+	/**
+	 * 
+	 */
+	public $canDelete = 'no_one';
 	
     
     /**
@@ -125,11 +149,7 @@ class core_Cache extends core_Manager
         $data->value = $value;
         $data->dHash = $Cache->getDependsHash($depends);
         
-        $typeMinutes = cls::get('type_Minutes');
-        
-        $keepMinutes = $typeMinutes->fromVerbal($keepMinutes);
-        
-        expect(!$typeMinutes->error);
+        expect(is_numeric($keepMinutes));
         
         $Cache->setData($key, $data, $keepMinutes);
         
@@ -145,7 +165,10 @@ class core_Cache extends core_Manager
     	$Cache = cls::get('core_Cache');
     	$handler = NULL;
     	$key = $Cache->getKey($type, $handler);
-    	$Cache->delete(array("#key LIKE '%[#1#]'", "{$key}"));
+        $query = self::getQuery();
+        while($rec = $query->fetch(array("#key LIKE '%[#1#]'", "{$key}"))) {
+            $Cache->deleteData($rec->key);
+        }
     }
     
     
@@ -162,7 +185,10 @@ class core_Cache extends core_Manager
             
             foreach ($type as $t) {
                 $key = $Cache->getKey($t, $handler);
-                $Cache->delete(array("#key LIKE '[#1#]'", "{$key}"));
+                $query = self::getQuery();
+                while($rec = $query->fetch(array("#key LIKE '[#1#]'", "{$key}"))) {
+                    $Cache->deleteData($rec->key);
+                }
             }
         } else {
             $key = $Cache->getKey($type, $handler);
@@ -211,13 +237,19 @@ class core_Cache extends core_Manager
      */
     function cron_DeleteExpiredData($all = FALSE)
     {
+        $query = $this->getQuery();
+        
         if($all) {
-            $where = '1 = 1';
+            $query->where('1 = 1');
         } else {
-            $where = "#lifetime < " . time();
+            $query->where("#lifetime < " . time());
         }
         
-        $deletedRecs = $this->delete($where);
+        $deletedRecs = 0;
+        
+        while ($rec = $query->fetch()) {
+            $deletedRecs += $this->deleteData($rec->key);
+        }
         
         if($all) {
             $msg = "Лог: Всички <b style='color:blue;'>{$deletedRecs}</b> кеширани записа бяха изтрити";
@@ -256,7 +288,10 @@ class core_Cache extends core_Manager
         $handler = str::convertToFixedKey($handler, EF_CACHE_HANDLER_SIZE, 12);
         $type = str::convertToFixedKey($type, EF_CACHE_TYPE_SIZE, 8);
         
-        $key = "{$handler}|{$type}";
+        $prefix = md5(EF_DB_NAME . '|' . CORE_CACHE_PREFIX_SALT);
+        $prefix = substr($prefix, 0, 6);
+        
+        $key = "{$prefix}|{$handler}|{$type}";
         
         return $key;
     }
@@ -291,7 +326,21 @@ class core_Cache extends core_Manager
      * Връща съдържанието записано на дадения ключ
      */
     function getData($key)
-    {
+    {   
+        if (function_exists('apc_fetch')) {
+            $res = apc_fetch($key);
+        } elseif (function_exists('xcache_get')) {
+            $res = xcache_get($key);
+            if($res) {
+                $res = unserialize($res);
+            }
+        }
+
+        if($res) {
+
+            return $res;
+        }
+ 
         if($rec = $this->fetch(array("#key = '[#1#]' AND #lifetime >= " . time(), $key))) {
             
             $this->idByKey[$key] = $rec->id;
@@ -314,6 +363,12 @@ class core_Cache extends core_Manager
      */
     function deleteData($key)
     {
+        if (function_exists('apc_delete')) {
+            apc_delete($key);
+        } elseif (function_exists('xcache_unset')) {
+            xcache_unset($key);
+        }
+
         return $this->delete(array("#key LIKE '[#1#]'", $key));
     }
     
@@ -322,22 +377,37 @@ class core_Cache extends core_Manager
      * Задава съдържанието на посочения ключ
      */
     function setData($key, $data, $keepMinutes)
-    {
+    {   
+        $saved = FALSE;
+        $keepSeconds = $keepMinutes * 60;
+
+        if (function_exists('apc_store')) {
+            apc_store($key, $data, $keepSeconds);
+            $saved = TRUE;
+        } elseif (function_exists('xcache_set')) {
+            xcache_set($key, serialize($data), $keepSeconds);
+            $saved = TRUE;
+        }
+
         $rec = new stdClass();
         
-        // Сериализираме обекта
-        $rec->data = serialize($data);
         
         // Задаваме ключа
         $rec->key = $key;
         
-        // Ако е необходимо, компресираме данните
-        if (strlen($rec->data) > EF_CACHE_MAX_UNCOMPRESS) {
-            $rec->data = gzcompress($rec->data);
+        if(!$saved) {
+
+            // Сериализираме обекта
+            $rec->data = serialize($data);
+            
+            // Ако е необходимо, компресираме данните
+            if (strlen($rec->data) > EF_CACHE_MAX_UNCOMPRESS) {
+                $rec->data = gzcompress($rec->data);
+            }
         }
         
         // Задаваме крайното време за живот на данните
-        $rec->lifetime = time() + $keepMinutes * 60;
+        $rec->lifetime = time() + $keepSeconds;
         
         $this->save($rec, NULL, 'REPLACE');
     }

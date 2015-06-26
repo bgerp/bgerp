@@ -126,9 +126,9 @@
   left: 170px; }
 
 .transition {
-  -webkit-transition: left 0.3s ease, right 0.3s ease, margin-left 0.3s ease, margin-right 0.3s ease;
-  -moz-transition: left 0.3s ease, right 0.3s ease, margin-left 0.3s ease, margin-right 0.3s ease;
-  transition: left 0.3s ease, right 0.3s ease, margin-left 0.3s ease, margin-right 0.3s ease; }
+  -webkit-transition: all 0.3s ease;
+  -moz-transition: all 0.3s ease;
+  transition: all 0.3s ease; }
 
 body {
   background: white; }
@@ -143,13 +143,18 @@ body {
   z-index: 15; }
 
 .inner-framecontentTop {
-  padding: 7px 7px 3px 7px;
+  padding: 7px;
   background-color: #dddddd;
   position: relative;
-  z-index: 1000; }
+  z-index: 1000;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none; }
 
 .narrow .inner-framecontentTop {
-  padding: 9px 9px 4px 9px; }
+  padding: 9px; }
 
 .portal {
   background-color: white !important;
@@ -236,23 +241,21 @@ body {
 .logoText {
   font-weight: bold;
   font-size: 26px;
-  margin-left: 10px;
   font-family: Arial; }
 
 .logoText a {
   color: #111111 !important; }
 
-.headerPath {
+.center-block {
   color: #444444;
   position: absolute;
-  top: 6px;
   right: 50%;
+  top: 0;
   min-width: 200px;
-  margin-right: -105px;
-  text-align: center; }
-
-.narrow .headerPath {
-  font-size: 0.85em; }
+  margin-right: -100px;
+  text-align: center;
+  z-index: 1;
+  line-height: normal; }
 
 #nav-panel {
   background-color: #333333 !important; }
@@ -269,10 +272,17 @@ body {
 
 .sideBarTitle {
   text-align: center;
-  color: #fff612; }
+  color: #fffb99; }
   .sideBarTitle a {
     position: relative;
     top: 2px; }
+
+.bookmarkText {
+  margin: 0 8px;
+  font-size: 0.95em; }
+
+.narrow .bookmarkText {
+  margin: 0 4px; }
 
 .narrow .sidebar-row {
   margin-top: 47px;
@@ -301,6 +311,12 @@ body {
       font-size: 0.97em; }
       .bookmark-links ul a:hover {
         color: #fefdd6; }
+
+a.bookmark-external-url {
+  color: #0066ff; }
+
+.bookmark-wrong-url {
+  color: #bb1111; }
 
 /*
  * menu i podmenu
@@ -390,39 +406,60 @@ body {
 #nav-panel .open .arrow {
   background: url(../img/16/down-arrow.png) center center no-repeat !important; }
 
-.menuIcon {
+.btn-sidemenu {
+  z-index: 2; }
+
+.btn-sidemenu {
   padding: 3px;
   width: 20px;
-  border: 2px solid black;
+  height: 20px;
+  border: 1px solid #888888;
+  padding: 4px;
   border-radius: 6px;
   cursor: pointer;
-  opacity: 0.6; }
+  background: #eeeeee;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2); }
+  .btn-sidemenu .menuIcon {
+    opacity: 0.6;
+    width: 20px;
+    border-radius: 6px; }
+  .btn-sidemenu:hover {
+    border-color: #444444; }
+    .btn-sidemenu:hover .menuIcon {
+      opacity: 0.9; }
 
 .menuIcon:hover {
   opacity: 1; }
 
-.user-options {
+.menu-options {
   display: block;
   float: left;
-  padding: 0px 15px 0px 1px;
-  margin: 0 10px;
+  margin: 0 6px;
   border-radius: 5px;
   cursor: pointer;
   position: relative;
-  border: 2px solid #585858;
+  border: 1px solid #888888;
   z-index: 11;
-  background: #eeeeee url('../img/16/arrow_down3.png') 26px center no-repeat;
-  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2); }
-  .user-options img {
+  padding: 0px 15px 0px 1px;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+  background: #eeeeee url('../img/16/arrow_down3.png') 28px center no-repeat; }
+  .menu-options:hover {
+    border-color: #444444; }
+  .menu-options img {
     border-radius: 3px 0 0 3px;
-    height: 26px;
+    height: 28px;
+    width: 28px;
     margin-left: -1px;
     float: left; }
-  .user-options:hover {
-    border-color: #222222; }
-
-.narrow .user-options {
-  margin: 0 15px; }
+    .menu-options.search-options img {
+      opacity: 0.6; }
+    .menu-options.search-options:hover img {
+      opacity: 0.9; }
+    .menu-options.search-options .menu-holder {
+      left: -2px; }
+      .menu-options.search-options .menu-holder input {
+        width: 100%;
+        margin-bottom: 5px; }
 
 /*
  * menu
@@ -431,34 +468,34 @@ body {
   display: none;
   position: absolute;
   top: 30px;
-  right: 0px;
+  right: -2px;
   padding: 5px;
-  max-width: 140px;
-  min-width: 100px;
   z-index: 1000;
   background-color: white;
-  border: 1px solid #cccccc;
-  border: 1px solid rgba(0, 0, 0, 0.2);
   border-radius: 6px;
-  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
-  background-clip: padding-box; }
+  border: 1px solid #cccccc;
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2); }
   .menu-holder a {
     color: #333333 !important;
     display: block;
-    padding: 3px 20px 3px 25px !important;
+    padding: 3px 20px 3px 25px;
     clear: both;
     font-weight: normal;
     font-size: 0.9em;
-    line-height: 20px;
     white-space: nowrap; }
     .menu-holder a:hover {
       background-color: #f1f1f1; }
+  .menu-holder.user-holder {
+    max-width: 140px; }
 
 .narrow .menu-holder {
   max-width: 200px; }
   .narrow .menu-holder a {
-    padding: 5px 20px 5px 25px !important;
+    padding: 5px 20px 5px 25px;
     font-size: 1em; }
+
+.search-options .menu-holder a {
+  padding: 3px; }
 
 .divider {
   height: 1px;
@@ -564,20 +601,19 @@ body {
  */
 .notificationsCnt {
   display: inline-block;
-  margin-top: 4px;
-  margin-left: 10px; }
+  position: relative;
+  top: -10px;
+  margin-left: 4px; }
 
 .notificationsCnt a {
   display: block;
   color: white;
-  padding: 3px;
-  font-size: 0.75em;
+  padding: 1px;
+  font-size: 0.7em;
   border-radius: 3px; }
 
 .narrow .notificationsCnt a {
-  margin-top: -1px;
-  padding: 2px 4px 2px 4px;
-  font-size: 0.85em; }
+  padding: 0 1px 1px; }
 
 .notificationsCnt a.haveNtf {
   background-color: red;
@@ -684,7 +720,12 @@ form[method="post"] input[type="submit"] {
 
 form[method=post] input[type=button],
 form[method=post] a.button {
-  background-color: #cccccc; }
+  background-color: #aaaaaa;
+  border: 1px solid #999999 !important;
+  text-shadow: none; }
+  form[method=post] input[type=button]:hover,
+  form[method=post] a.button:hover {
+    background-color: #b1b1b1; }
 
 .vertical .formTitle {
   font-size: 1.05em; }
@@ -823,4 +864,13 @@ only screen and (max-width: 800px) {
   .narrow .sidemenu-push-toleft #framecontentTop,
   .narrow .sidemenu-push-toleft .tab-control > .tab-row {
     left: -170px !important; } }
+
+@media handheld,
+only screen and (max-width: 1280px) {
+  @-moz-document url-prefix() {
+        .center-block {
+      top: -4px; }
+      .center-block .center-block .notificationsCnt {
+        top: -2px; }
+ } }
 

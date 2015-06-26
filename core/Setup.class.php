@@ -131,7 +131,7 @@ defIfNot('CORE_LOGIN_INFO', "|*(|само за администраторите 
 /**
  * Опаковка по подразбиране за вътрешната страница
  */
-defIfNot('CORE_PAGE_WRAPPER', 'core_page_Internal');
+defIfNot('CORE_PAGE_WRAPPER', 'core_page_InternalModern');
 
 
 
@@ -256,7 +256,9 @@ class core_Setup extends core_ProtoSetup {
         'core_Settings',
         'core_Forwards',
         'migrate::settigsDataFromCustomToCore',
-        'migrate::movePersonalizationData'
+        'migrate::movePersonalizationData',
+        'migrate::repairUsersRolesInput',
+        'migrate::clearApcCache3'
     );
     
     
@@ -441,7 +443,36 @@ class core_Setup extends core_ProtoSetup {
             core_Settings::setValues($key, $rec->configData, $rec->id);
         }
     }
-
+    
+    
+    /**
+     * Поправя потребителите с празни rolesInput
+     */
+    static function repairUsersRolesInput()
+    {
+        $query = core_Users::getQuery();
+        $query->where("#rolesInput IS NULL");
+        $query->orWhere("#rolesInput = ''");
+        $query->orWhere("#rolesInput = '|'");
+        
+        while ($rec = $query->fetch()) {
+            $rec->rolesInput = $rec->roles;
+            
+            core_Users::save($rec, 'rolesInput');
+        }
+    }
+    
+    
+    /**
+     * Изчисвта кеша на APC
+     */
+    static function clearApcCache3()
+    {
+        if (function_exists('apc_clear_cache')) {
+            apc_clear_cache('user');
+            apc_clear_cache();
+        }
+    }
 
     /**
      * Връща JS файлове, които са подходящи за компактиране

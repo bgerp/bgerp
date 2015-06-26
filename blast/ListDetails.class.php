@@ -118,8 +118,8 @@ class blast_ListDetails extends doc_Detail
         // Информация за папката
         $this->FLD('listId' , 'key(mvc=blast_Lists,select=title)', 'caption=Списък,mandatory,column=none');
         
-        $this->FLD('data', 'blob', 'caption=Данни,input=none,column=none');
-        $this->FLD('key', 'varchar(64)', 'caption=Kлюч,input=none,column=none,export');
+        $this->FLD('data', 'blob', 'caption=Данни,input=none,column=none,export');
+        $this->FLD('key', 'varchar(64)', 'caption=Kлюч,input=none,column=none');
         
         $this->setDbUnique('listId,key');
     }
@@ -271,58 +271,50 @@ class blast_ListDetails extends doc_Detail
     {
     	expect($id = Request::get('id', 'int'));
     	expect($rec = $this->fetch($id));
-    	 
+    	
     	// Проверка за права
     	$this->requireRightFor('export', $rec);
   
     	// Масива с избраните полета за export
     	$exportFields = $this->selectFields("#export");
  
-    	// Ако има избрани полета за export
-    	if (count($exportFields)) {
-    		foreach($exportFields as $name => $field) {
-    			$listFields[$name] = tr($field->caption);
-    		}
-    	}
-    	 
     	// взимаме от базата целия списък отговарящ на този бюлетин
     	$query = self::getQuery();
-    	$query->where("#listId = '{$id}'");
-    	 
-    	while ($recs = $query->fetch()) {
-    		$detailRecs[] = $recs;
-    	}
-    
+    	$query->where("#listId = '{$rec->listId}'");
+    	
     	// новите ни ролове
-    	$rCsv = '';
     	$csv = '';
-    	 
-    	/* за всеки ред */
-    	foreach($detailRecs as $rec) {
-    
-    		foreach ($rec as $field => $value) {
-    			if($exportFields[$field]) {
-    
-    				$val = html2text_Converter::toRichText($value);
+    	
+    	while ($fRec = $query->fetch()) {
+    	    foreach ((array)$fRec as $field => $value) {
+    			if (!$exportFields[$field]) continue;
+                
+    			if ($this->fields[$field]->type instanceof type_Blob) {
+    			    $valArr = unserialize($value);
+    			} else {
+    			    $valArr = array($value);
+    			}
+    			
+    			foreach ($valArr as $val) {
+    			    $val = html2text_Converter::toRichText($val);
     				// escape
-    				if (preg_match('/\\r|\\n|,|"/', $val)) {
+    				if (preg_match("/[\,\"\r\n]/", $val)) {
     					$val = '"' . str_replace('"', '""', $val) . '"';
     				}
-    				$rCsv .= $val. "," . "\n";
-    
-    			} else {
-    				$rCsv .= "";
+    				$csv .= $val. ",";
     			}
     		}
+    		$csv = rtrim($csv, ',');
+    		$csv .= "\n";
     	}
-    	 
-    	$csv = $rCsv;
-    
+    	
+    	$listTitle = blast_Lists::fetchField("#id = '{$rec->listId}'", 'title');
+    	
     	// името на файла на кирилица
     	//$fileName = basename($this->title);
       	//$fileName = str_replace(' ', '_', Str::utf2ascii($this->title));
     	
-    	$fileName = fileman_Files::normalizeFileName($this->title);
+    	$fileName = fileman_Files::normalizeFileName($listTitle);
     	
     	// правим CSV-то
     	header("Content-type: application/csv");

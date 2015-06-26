@@ -36,24 +36,39 @@ class plg_GroupByDate extends core_Plugin
         $format = Mode::is('screenMode', 'narrow') ? 'd-M-year, D': 'd F-YEAR, l';
 
         foreach($data->recs as $id => $rec) {
-
-            list($d, $t) = explode(' ', $rec->{$field});
-
+            
+            $origVerbDate = NULL;
+            
+            $dateVal = $rec->{$field};
+            
+            list($d, $t) = explode(' ', $dateVal);
+            
+            if (trim($t) && ($t != '00:00:00')) {
+                $nDateVal = core_DateTime::getDateWithTimeoffeset($dateVal);
+                
+                if ($dateVal != $nDateVal) {
+                    $origVerbDate = core_DateTime::mysql2verbal($dateVal, "H:i", NULL, FALSE);
+                    
+                    $dateVal = $nDateVal;
+                    list($d, $t) = explode(' ', $dateVal);
+                }
+            }
+            
             if($d != $exDate) {
                 
                 $res = new stdClass();
 
-                $res->day = dt::getRelativeDayName($rec->{$field});
+                $res->day = dt::getRelativeDayName($dateVal);
 
                 if($res->day) $res->day .= ', ';
                 
-                if($rec->{$field}) {
-                    $res->day .= dt::mysql2verbal($rec->{$field}, $format);
+                if($dateVal) {
+                    $res->day .= dt::mysql2verbal($dateVal, $format, NULL, FALSE);
                 } else {
                     $res->day = tr('Без дата');
                 }
 
-                $res->color = dt::getColorByTime($rec->{$field});
+                $res->color = dt::getColorByTime($dateVal);
                 
                 $mvc->invoke('AfterPrepareGroupDate', array(&$res, $d));
                 
@@ -67,11 +82,15 @@ class plg_GroupByDate extends core_Plugin
             }
 
             $rows[$id] = $data->rows[$id];
-                        
+                
             if(trim($t) && ($t != '00:00:00')) {
+                $color = dt::getColorByTime($dateVal);
                 list($h, $m) = explode(':', $t);
-                $color = dt::getColorByTime($rec->{$field});
                 $rows[$id]->{$field} = "<span style='color:#{$color}'>{$h}:{$m}</span>";
+                if ($origVerbDate) {
+                    $origDate = "<span style='color: #{$color};' title='{$origVerbDate}'>®</span>";
+                    $rows[$id]->{$field} .= $origDate;
+                }
             } else {
                 $rows[$id]->{$field} = '';
             }

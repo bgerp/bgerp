@@ -452,6 +452,9 @@ class acc_Items extends core_Manager
             
             // Ако избраната номенклатура има изискване за интерфейси
             $listRec = acc_Lists::fetch(reset($rec->lists));
+            if(!$listRec){
+            	$res = 'no_one';
+            }
             
             if($listRec->regInterfaceId){
                 $intName = core_Interfaces::fetchField($listRec->regInterfaceId, 'name');

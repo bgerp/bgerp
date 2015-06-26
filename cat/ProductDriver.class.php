@@ -325,4 +325,41 @@ abstract class cat_ProductDriver extends core_BaseClass
 		
 		return "Задания за " . mb_strtolower($title);
 	}
+	
+	
+	/**
+	 * Връща счетоводните свойства на обекта
+	 */
+	public function getFeatures()
+	{
+		return array();
+	}
+	
+	
+	/**
+	 * Подготвя данните необходими за показването на вградения обект
+	 *
+	 * @param core_Form $innerForm
+	 * @param stdClass $innerState
+	 */
+	public function prepareEmbeddedData()
+	{
+		$data = new stdClass();
+		$row = new stdClass();
+	
+		$form = new core_Form();
+		$this->addEmbeddedFields($form);
+		$this->prepareEmbeddedForm($form);
+		$fields = $form->selectFields();
+		foreach($fields as $name => $fld){
+			$captionArr = explode('->', $fld->caption);
+			$caption = (count($captionArr) == 2) ? $captionArr[1] : $fld->caption;
+				
+			$row->{$caption} = $form->getFieldType($name)->toVerbal($this->innerForm->$name);
+		}
+	
+		$data->row = $row;
+	
+		return $data;
+	}
 }

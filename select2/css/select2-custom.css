@@ -80,12 +80,13 @@
     display: block;
 }
 
-.select2-results__group, span.team{
+.select2-results__group, span.team , .select2-results__option span.group {
     cursor: default;
     color: #fff;
     background-color: #777;
     font-weight: bold;
 }
+
 span.all-users{
     color: #777;
 }

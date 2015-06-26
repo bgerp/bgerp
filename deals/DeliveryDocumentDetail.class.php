@@ -31,7 +31,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 		$mvc->FNC('amount', 'double(minDecimals=2,maxDecimals=2)', 'caption=Сума,input=none');
 		$mvc->FNC('packQuantity', 'double(Min=0)', 'caption=К-во,input=input,mandatory');
 		$mvc->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input');
-		$mvc->FLD('discount', 'percent', 'caption=Отстъпка');
+		$mvc->FLD('discount', 'percent(Min=0,max=1)', 'caption=Отстъпка');
 		$mvc->FLD('notes', 'richtext(rows=3)', 'caption=Забележки,formOrder=110001');
 	}
 	

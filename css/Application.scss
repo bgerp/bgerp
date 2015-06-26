@@ -337,6 +337,10 @@ div.folder-cover {
 	}
 	.detail-info {
 		background: none;
+        &.portal {
+            background: none !important;
+            box-shadow: none;
+        }
 	}
 	.groupTitle {
 		color: #333;
@@ -1174,19 +1178,23 @@ td.portal-date {
 	}
 }
 
-.showDocument {
+.document-settings {
     display: inline-block;
     height: 16px;
+    float: right;
+    span, a{
+        margin-bottom: 0;
+    }
 }
 .docBgIcon {
     position: relative;
 }
 
-.narrow .showDocument {
+.narrow .document-settings {
     position: absolute;
     right: -3px;
     top:50%;
-    margin-top: -8px;
+    margin-top: -10px;
 }
 
 .snapshot {
@@ -1800,6 +1808,10 @@ td.constrColumnLeft {
 			display: block;
 			margin-bottom: 2px;
 		}
+        .timeSpan {
+            display: inline-block;
+
+        }
 	}
 }
 

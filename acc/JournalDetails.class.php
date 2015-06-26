@@ -172,8 +172,12 @@ class acc_JournalDetails extends core_Detail
         $query->EXT('reason', 'acc_Journal', 'externalKey=journalId');
         $query->EXT('jid', 'acc_Journal', 'externalName=id');
         $query->where("#state = 'active'");
-        $query->where("#valior BETWEEN '{$from}' AND '{$to}'");
         
+        // Ако имаме зададена начална или крайна дата филтрираме по тях
+        if(isset($from) || isset($to)){
+        	$query->where("#valior BETWEEN '{$from}' AND '{$to}'");
+        }
+       
         // Трябва да има поне една зададена сметка
         $accounts = arr::make($accs);
         

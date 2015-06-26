@@ -152,6 +152,12 @@ class crm_Persons extends core_Master
     var $canReports = 'ceo,sales,purchase,acc';
     
     
+    /**
+     * Кой  може да вижда счетоводните справки?
+     */
+    var $canAddacclimits = 'ceo,salesMaster,purchaseMaster,accMaster';
+    
+	
 	/**
 	 * Кой може да го разглежда?
 	 */

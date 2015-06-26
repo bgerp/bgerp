@@ -35,7 +35,13 @@ class phpcolor_Adapter extends core_Mvc
      */
     static function changeColor($hexColor, $type='lighten', $ammount = 10, $mix = '#fff')
     {
-    	$myColor = new Color($hexColor);
+        try {
+            $myColor = new Color($hexColor);
+        } catch (Exception $e) {
+            core_Logs::log($e->getMessage() . ' - ' . $hexColor);
+            
+            return FALSE;
+        }
     	
     	switch ($type){
     		case 'lighten':
@@ -63,7 +69,14 @@ class phpcolor_Adapter extends core_Mvc
      */
     static function checkColor($hexColor, $type='light')
     {
-    	$myColor = new Color($hexColor);
+        try {
+    	    $myColor = new Color($hexColor);
+        } catch (Exception $e) {
+            
+            core_Logs::log($e->getMessage() . ' - ' . $hexColor);
+            
+            return FALSE;
+        }
     	
     	switch ($type){
     		case 'light':

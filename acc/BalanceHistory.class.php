@@ -596,8 +596,9 @@ class acc_BalanceHistory extends core_Manager
         
         // Рендиране на пейджъра
         if($data->pager){
-            $tpl->append($this->renderListPager($data));
+        	$tpl->append($data->pager->getHtml(), 'PAGER');
         }
+        
         
         // Връщаме шаблона
         return $tpl;

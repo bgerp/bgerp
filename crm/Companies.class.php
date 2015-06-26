@@ -72,8 +72,8 @@ class crm_Companies extends core_Master
      * Класове за автоматично зареждане
      */
     var $loadList = 'plg_Created, plg_Modified, plg_RowTools, plg_State, 
-                     Groups=crm_Groups, crm_Wrapper, crm_AlphabetWrapper, plg_SaveAndNew, plg_PrevAndNext,doc_FolderPlg,
-                     plg_Sorting, fileman_Files, recently_Plugin, plg_Search, plg_Rejected, bgerp_plg_Groups, plg_Printing,
+                     Groups=crm_Groups, crm_Wrapper, crm_AlphabetWrapper, plg_SaveAndNew, plg_PrevAndNext,
+                     plg_Sorting, fileman_Files, recently_Plugin, plg_Search, plg_Rejected,doc_FolderPlg, bgerp_plg_Groups, plg_Printing,
                      acc_plg_Registry, doc_plg_Close, plg_LastUsedKeys,plg_Select,bgerp_plg_Import, drdata_PhonePlg';
     
     
@@ -117,6 +117,12 @@ class crm_Companies extends core_Master
      * Кой  може да вижда счетоводните справки?
      */
     var $canReports = 'ceo,sales,purchase,acc';
+    
+    
+    /**
+     * Кой  може да вижда счетоводните справки?
+     */
+    var $canAddacclimits = 'ceo,salesMaster,purchaseMaster,accMaster';
     
     
     /**

@@ -126,6 +126,12 @@ class store_Stores extends core_Master
     public $canReports = 'ceo,store,acc';
     
     
+    /**
+     * Кой  може да вижда счетоводните справки?
+     */
+    public $canAddacclimits = 'ceo,storeMaster,accMaster';
+    
+    
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */

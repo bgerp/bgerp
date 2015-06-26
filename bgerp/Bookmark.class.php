@@ -66,7 +66,13 @@ class bgerp_Bookmark extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'bgerp_Wrapper, plg_Created, plg_RowTools, plg_Search, plg_Sorting';
+    public $loadList = 'bgerp_Wrapper, plg_Created, plg_Modified, plg_RowTools, plg_Search, plg_Sorting';
+    
+    
+    /**
+     * Полета, които ще се показват в листов изглед
+     */
+    public $listFields = 'id, url = Линк, modifiedOn = Последно';
     
     
     /**
@@ -77,9 +83,6 @@ class bgerp_Bookmark extends core_Manager
         $this->FLD('user', 'user(roles=powerUser, rolesForTeams=admin, rolesForAll=ceo)', 'caption=Потребител, mandatory');
         $this->FLD('title', 'varchar', 'caption=Заглавие, silent, mandatory');
         $this->FLD('url', 'varchar', 'caption=URL, silent, mandatory');
-        $this->FLD('position', 'double', 'caption=Позиция');
-        
-        $this->FLD('clickCnt', 'int', 'caption=Брой отваряния, input=none, notNull');
         
         $this->setDbUnique('user, title');
     }
@@ -98,9 +101,9 @@ class bgerp_Bookmark extends core_Manager
             $url = array(get_called_class(), 'list');
         }
 
-        $img =  ht::createElement('img', array('src' => sbf('img/16/edit_yellow.png', ''), 'title' => tr('Редактиране')));
-        $edit = ht::createLink($img , $url);
-        $title = tr('Бързи връзки') . "   " . $edit;
+        $img =  ht::createElement('img', array('src' => sbf('img/16/application_yellow.png', ''), 'title' => tr('Редактиране')));
+        $list = ht::createLink($img , $url, NULL, array('class' => 'bookmarkLink'));
+        $title = $list . "<span class='bookmarkText'>" . tr('Бързи връзки') . "</span>";
         
         return $title;
     }
@@ -112,7 +115,7 @@ class bgerp_Bookmark extends core_Manager
     public static function getBtn()
     {
         if (self::haveRightFor('add')) {
-            $url = toUrl(array(get_called_class(), 'add'));
+            $url = toUrl(array(get_called_class(), 'add', 'ret_url' => TRUE));
             $sUrl = addslashes($url);
             
             $localUrl = addslashes(toUrl(getCurrentUrl(), 'local'));
@@ -120,7 +123,7 @@ class bgerp_Bookmark extends core_Manager
             $attr = array();
             $attr['onclick'] = "addParamsToBookmarkBtn(this, '{$sUrl}', '{$localUrl}'); return ;";
 
-            $img =  ht::createElement('img', array('src' => sbf('img/16/add-yellow.png', ''), 'title' => tr('Добавяне')));
+            $img =  ht::createElement('img', array('src' => sbf('img/bookmark-add.png', ''), 'title' => tr('Добавяне'), 'class' => 'bookmarkLink', 'width' => 16, 'height' => 16));
             $tpl = ht::createLink($img, $url, FALSE, $attr);
         }
         
@@ -157,7 +160,10 @@ class bgerp_Bookmark extends core_Manager
 
 	    $res = '<ul>';
 	    while ($rec = $query->fetch()) {
-	        $link = ht::createLink($rec->title, array(get_called_class(), "click", $rec->id));
+	        
+	        $title = self::getVerbal($rec, 'title');
+            $link = self::getLinkFromUrl($rec->url, $title);
+	        
 	        $res .= "<li>" . $link . "</li>";
 	    }
 	    $res .= '</ul>';
@@ -172,37 +178,8 @@ class bgerp_Bookmark extends core_Manager
 	 */
 	protected static function orderQuery($query)
 	{
-	    // За да се избегне подребата на NULL Полетата
-	    $query->XPR('positionA', 'double', "-#position");
-	    
-	    // С по-голям приоритет да са позициите зададени от потребителя
-	    // След това в зависимост от броя на отварянията
-	    $query->orderBy('positionA', 'DESC');
-	    $query->orderBy('clickCnt', 'DESC');
+	    $query->orderBy('modifiedOn', 'DESC');
 	    $query->orderBy('createdOn', 'DESC');
-	}
-	
-	
-	/**
-	 * Екшън който увеличава брояча за натискане и редиректва към съответния линк
-	 */
-	function act_Click()
-	{
-	    $id = Request::get('id', 'int');
-	    
-	    $rec = self::fetch($id);
-	    
-	    expect($rec);
-	    
-	    if ($rec->user == core_Users::getCurrent()) {
-	        $rec->clickCnt++;
-	    
-	        self::save($rec, 'clickCnt');
-	    }
-	    
-	    $url = self::getUrlFromLocal($rec->url);
-	    
-	    return redirect($url);
 	}
 	
 	
@@ -210,18 +187,39 @@ class bgerp_Bookmark extends core_Manager
 	 * 
 	 * 
 	 * @param string $url
-	 * @param boolean $absolute
+	 * @param string $title
 	 * 
 	 * @return string
 	 */
-    public static function getUrlFromLocal($url, $absolute = FALSE)
+    public static function getLinkFromUrl($url, $title = NULL)
     {
         if (!preg_match('/^http[s]?\:\/\//i', $url) && (strpos($url, Request::get('App')) === 0)) {
-	        $urlArr = parseLocalUrl($url);
-	        $url = toUrl($urlArr, $absolute);
+            
+            $attr = array();
+            
+            try {
+                
+                $urlArr = parseLocalUrl($url);
+                
+                $lUrl = toUrl($urlArr);
+                
+                $attr['class'] = 'bookmark-local-url';
+            } catch (core_exception_Expect $e) {
+                $lUrl = array();
+                
+                $attr['class'] = 'bookmark-wrong-url';
+            }
+	    } else {
+	        $lUrl = $url;
+	        
+            $attr['class'] = 'bookmark-external-url';
 	    }
 	    
-	    return $url;
+	    if (!isset($title)) {
+	        $title = $url;
+	    }
+	    
+	    return ht::createLink($title, $lUrl, NULL, $attr);
     }
     
     
@@ -276,25 +274,7 @@ class bgerp_Bookmark extends core_Manager
             
             $data->form->rec->title = implode($delimiter, $titleArr);
         }
-        
-        
     }
-    
-    
-    /**
-     * 
-     * 
-     * @param bgerp_Bookmark $mvc
-     * @param object $res
-     * @param object $data
-     */
-    public static function on_AfterPrepareRetUrl($mvc, $res, $data)
-	{
-	    // Ако има URL в параметрите, да се редиректне към него
-	    if (Request::get('url')) {
-	        $data->retUrl = self::getUrlFromLocal(Request::get('url')); 
-	    }
-	}
     
     
     /**
@@ -318,6 +298,20 @@ class bgerp_Bookmark extends core_Manager
                 }
             }
         }
+    }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    {
+        $title = $mvc->getVerbal($rec, 'title');
         
+        $row->url = self::getLinkFromUrl($rec->url, $title);
     }
 }

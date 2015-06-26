@@ -150,7 +150,7 @@ en,ДА,LTA
 en,Данни,Data
 en,Дата,Date
 en,До,To
-en,Добавяне на запис,Add new record
+en,Добавяне на запис,Add a new record
 en,Документи,Documents
 en,Държава,Country
 en,Език,Language
@@ -347,6 +347,7 @@ en,Какво?,What?
 en,часа,hours
 en,мин.,min
 en,час,hour
+en,Час,Hour
 en,и,and
 en,Периодични про_b38f,Scheduled tasks
 en,Описание,Description
@@ -392,10 +393,10 @@ en,Изтриване,Delete
 en,Наистина ли же_0a920,Do you really like to delete the document?
 en,Банкови сметки,Bank accounts
 en,Все още няма ба_4e42,No bank accounts yet
-en,Добавяне на но_b0da9,Add new bank account
+en,Добавяне на но_b0da9,Add a new bank account
 en,Локации,Locations
 en,Все още няма ло_238c,No locations yet
-en,Добавяне на но_972cc,Add new location
+en,Добавяне на но_972cc,Add a new location
 en,Фирми,Companies
 en,Лица,Persons
 en,Групи,Groups
@@ -468,7 +469,7 @@ en,Товарачи,Loaders
 en,Последна употр_c0e5,Last use
 en,Текущ,Current
 en,Лабораторни те_54ab,Laboratory tests
-en,Вид,Kind
+en,Вид,Type
 en,Партида,Batch
 en,Произход,Origin
 en,Възложител,Assignor
@@ -1954,11 +1955,11 @@ en,Копие до,Copy to
 en,"Логнете се, за да видите нишката",Login to see the thread
 en,ще го пазим поверително,will keep it confidential
 bg,Headquarter,Главен офис
-bg,ceo,собственик
-bg,manager,управител
-bg,officer,служител
-bg,executive,изпълнител
-bg,contractor,партньор
+bg,ceo,Собственик
+bg,manager,Управител
+bg,officer,Служител
+bg,executive,Изпълнител
+bg,contractor,Партньор
 en,Бюлетин,Bulletin
 en,Абонирани,Subscribed
 en,Последен,Last
@@ -1966,3 +1967,8 @@ en,Абонаменти,Subscriptions
 en,Бюлетини,Bulletins
 en,Абонати за бюлетин,Subscribers
 en,Браузър,Browser
+en,Търсене на документи,Search documents
+en,Търсене на папки,Search folders
+en,Търсене на фирми,Search companies
+en,Търсене на лица,Search persons
+en,Фамилия,Last name

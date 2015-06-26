@@ -1,0 +1,5 @@
+<div class="partnerTable">
+    <div style='background-color:#eee;border:1px solid #ccc;margin-top:10px;padding:2px;font-weight: bold;padding:3px 5px'>|Свързани партньори|* [#addBtn#]</div>
+    <div class="noheader">[#TABLE_PARTNERS#]</div>
+    <div style="margin-top:10px;margin-bottom: 5px;">[#PARTNER_BTNS#]</div>
+</div>

@@ -59,6 +59,7 @@ class acc_plg_DocumentSummary extends core_Plugin
         setIfNot($mvc->filterDateField, 'valior');
         setIfNot($mvc->filterCurrencyField, 'currencyId');
         setIfNot($mvc->filterFieldUsers, 'createdBy');
+        setIfNot($mvc->filterRolesForTeam, 'ceo,manager,admin');
     }
     
     /**
@@ -106,8 +107,11 @@ class acc_plg_DocumentSummary extends core_Plugin
         }
         $data->listFilter->showFields .= 'from, to';
         
+        $rolesForTeams = arr::make($mvc->filterRolesForTeam, TRUE);
+        $rolesForTeams = implode('|', $rolesForTeams);
+       
         if($isDocument = cls::haveInterface('doc_DocumentIntf', $mvc)){
-            $data->listFilter->FNC('users', 'users(rolesForAll=support|ceo|admin)', 'caption=Потребители,silent,refreshForm');
+            $data->listFilter->FNC('users', "users(rolesForAll=ceo|admin|manager,rolesForTeams={$rolesForTeams})", 'caption=Потребители,silent,refreshForm');
             $data->listFilter->setDefault('users', keylist::addKey('', core_Users::getCurrent()));
             $data->listFilter->showFields .= ',users';
         }
@@ -231,7 +235,14 @@ class acc_plg_DocumentSummary extends core_Plugin
         
         foreach($fieldsArr as $fld){
             if(!array_key_exists($fld->name, $res)) {
-                $res[$fld->name] = (object)array('caption' => $fld->caption, 'measure' => '', 'number' => 0);
+            	$captionArr = explode('->', $fld->caption);
+            	if(count($captionArr) == 2){
+            		$caption = tr($captionArr[0]) . ": " . tr($captionArr[1]);
+            	} else {
+            		$caption = tr($fld->caption);
+            	}
+            	
+                $res[$fld->name] = (object)array('caption' => $caption, 'measure' => '', 'number' => 0);
             }
             
             switch($fld->summary) {
@@ -286,7 +297,8 @@ class acc_plg_DocumentSummary extends core_Plugin
                     $row->quantity = ($rec->quantity < 0) ? "<span style='color:red'>{$row->quantity}</span>" : $row->quantity;
                 }
                 
-                $row->caption = str_replace("->", ": ", $rec->caption);
+                $row->caption = $rec->caption;
+               
                 $rowTpl->placeObject($row);
                 $rowTpl->removeBlocks();
                 $rowTpl->append2master();

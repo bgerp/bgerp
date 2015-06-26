@@ -177,8 +177,12 @@ class cat_ProductTplCache extends core_Master
 			$cache = $cacheRec->cache;
 		}
 		
-		$tpl = $Driver->renderProductDescription($cache);
-		$tpl->removeBlocks();
+		if($Driver){
+			$tpl = $Driver->renderProductDescription($cache);
+			$tpl->removeBlocks();
+		} else {
+			$tpl = new ET(tr("<span class='red'>|Проблем с показването|*</span>"));
+		}
 		
 		// Връщаме намерения изглед
 		return $tpl;

@@ -11,4 +11,15 @@
 		    </div>
 	    </div>
 	</fieldset>
+	
+	<fieldset class='top-tab-content' style ='margin-top:10px;background-color:#ffeeee;'>
+	    <legend class='groupTitle nowrap'>[#LIMIT_LINK#] [#BTN_LIMITS#]</legend>
+	    <div class='detail-info portal acc-summary'>
+		    <div class='groupList clearfix21'>
+		        <!--ET_BEGIN LIMITS-->
+		        [#LIMITS#]
+		        <!--ET_END LIMITS-->
+		    </div>
+	    </div>
+	</fieldset>
 </div>

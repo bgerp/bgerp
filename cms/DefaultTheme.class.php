@@ -71,7 +71,7 @@ class cms_DefaultTheme extends core_ProtoInner {
         
         // цвят на фона на страницата
         if ($this->formRec->bgColor){
-        	$bgcolor = $color = ltrim($this->formRec->bgColor, "#");
+        	$bgcolor = ltrim($this->formRec->bgColor, "#");
         	
         }
         // за основния цвят
@@ -120,6 +120,12 @@ class cms_DefaultTheme extends core_ProtoInner {
 
     	// за активния цвят
     	if ($this->formRec->activeColor){
+
+            //ако не е зададен основен, а задаваме активен цвят
+            if(!$color) {
+                $color = '#333344';
+            }
+
     		$css .= "\n    #cmsMenu a.selected, #cmsMenu a:focus, #cmsMenu a:hover {background-color:{$this->formRec->activeColor} !important;}";
     		
     		$activeColor = ltrim($this->formRec->activeColor, "#");
@@ -134,7 +140,7 @@ class cms_DefaultTheme extends core_ProtoInner {
                 $fontcolor = phpcolor_Adapter::changeColor($activeColor, 'darken', 15);
 
     		} else {
-                $css .= "\n    #cmsMenu a.selected, #cmsMenu a:focus, #cmsMenu a:hover {color:#333 !important; text-shadow: 2px 2px 2px #fff}";
+                $css .= "\n    #cmsMenu a.selected, #cmsMenu a:focus, #cmsMenu a:hover {color:#333 !important; text-shadow: 0px 0px 2px #fff}";
                 $bgcolorActive = phpcolor_Adapter::changeColor($bordercolor, 'mix', 1, '#fff');
 
                 // цвят на буквите от страничното меню

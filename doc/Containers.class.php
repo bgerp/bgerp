@@ -109,6 +109,8 @@ class doc_Containers extends core_Manager
         
         $this->FLD('visibleForPartners', 'enum(no=Не, yes=Да)', 'caption=Видим за партньори');
         
+        $this->FLD('hide', 'enum(default, yes, no)', 'caption=Видим за партньори, notNull');
+        
         // Индекси за бързодействие
         $this->setDbIndex('folderId');
         $this->setDbIndex('threadId');
@@ -141,40 +143,47 @@ class doc_Containers extends core_Manager
         
         $i = 0;
         
-        $showDocumentArr = Mode::get(self::$modShowName);
+        $firstId = key($recs);
         
         foreach ($cRecs as $id => $rec) {
             $i++;
             
+            // Първия, да не се скрива
+            if ($id == $firstId) continue;
+            
             // Ако е зададено да се показва в сесията
-            if ($showDocumentArr[$rec->id]) {
+            if ($rec->hide == 'no') {
                 $hide = FALSE;
-            } elseif (isset($showDocumentArr[$rec->id]) && $showDocumentArr[$rec->id] === FALSE) {
+            } elseif ($rec->hide == 'yes') {
                 $hide = TRUE;
             } else {
+                
                 $hide = TRUE;
                 
-                // По новите от да не се показват
-                if ($rec->modifiedOn > $from) {
-                    $hide = FALSE;
-                }
-                
-                // Първите да не се скриват
-                if ($begin >= $i) {
-                    $hide = FALSE;
-                }
-                
-                // Последните да не се скриват
-                if ($end < $i) {
-                    $hide = FALSE;
+                if ($rec->state != 'rejected') {
+                    
+                    // По новите от да не се показват
+                    if ($rec->modifiedOn > $from) {
+                        $hide = FALSE;
+                    }
+                    
+                    // Първите да не се скриват
+                    if ($begin >= $i) {
+                        $hide = FALSE;
+                    }
+                    
+                    // Последните да не се скриват
+                    if ($end < $i) {
+                        $hide = FALSE;
+                    }
                 }
             }
             
-            if (!$hide) continue;
-            
-            // Останалите да са скрити
-            
-            $recs[$id]->Hidden = TRUE;
+            if ($hide) {
+                $recs[$id]->Hidden = TRUE;
+            } else {
+                $recs[$id]->Hidden = FALSE;
+            }
         }
     }
     
@@ -299,6 +308,14 @@ class doc_Containers extends core_Manager
             if (!$hidden) {
                 $data = $document->prepareDocument();
                 $row->ROW_ATTR['onMouseUp'] = "saveSelectedTextToSession('" . $document->getHandle() . "', 'onlyHandle');";
+                
+                // Добавяме линк за скриване на документа
+                if ($rec->Hidden === FALSE) {
+                    $hideLink = self::getLinkForHideDocument($document, $rec->id);
+                    $data->row->DocumentSettings = new ET($data->row->DocumentSettings);
+                    $data->row->DocumentSettings->append($hideLink);
+                }
+                
                 $row->document = $document->renderDocument($data);
                 
                 if($q) {
@@ -383,7 +400,7 @@ class doc_Containers extends core_Manager
         }
         
 
-        if(Mode::is('screenMode', 'narrow')) {
+        if (Mode::is('screenMode', 'narrow')) {
             $row->document = new ET($row->document); 
             $row->document->prepend($row->created);
         }
@@ -526,7 +543,7 @@ class doc_Containers extends core_Manager
         }
         
         if($mustSave) {
-            //bp($rec, $updateField);
+            
             doc_Containers::save($rec, $updateField);
 
             // Ако този документ носи споделяния на нишката, добавяме ги в списъка с отношения
@@ -1441,12 +1458,18 @@ class doc_Containers extends core_Manager
         $query->orWhere("#threadId IS NULL");
         $query->orWhere("#docClass IS NULL");
         $query->orWhere("#docId IS NULL");
+        $query->orWhere("#visibleForPartners IS NULL");
+        $query->orWhere("#searchKeywords IS NULL");
+        $query->orWhere("#searchKeywords = ''");
+        
+        $query->orWhere("#activatedBy IS NULL AND #state != 'rejected' AND #state != 'draft'");
         
         $resArr = array();
         
         while($rec = $query->fetch()) {
             
             $docId = FALSE;
+            $mustUpdate = TRUE;
             
             // Ако няма id на папката
             if (!isset($rec->folderId)) {
@@ -1539,8 +1562,15 @@ class doc_Containers extends core_Manager
                 } else {
                     if (self::delete($rec->id)) {
                         $resArr['del_cnt']++;
+                        $mustUpdate = FALSE;
                     }
                 }
+            }
+            
+            // Обновяваме полетата
+            if ($mustUpdate) {
+                self::update($rec->id);
+                $resArr['updateContainers']++;
             }
         }
         
@@ -1586,6 +1616,7 @@ class doc_Containers extends core_Manager
                 
                 if (self::save($rec, 'state')) {
                     $resArr['state']++;
+                    self::update($rec->id);
                 }
             } catch (Exception $e) {
                 
@@ -2230,7 +2261,37 @@ class doc_Containers extends core_Manager
     {
         $id = Request::get('id', 'int');
         
-        return self::showOrHideDocumentInThread($id, 'hide');
+        $ajaxMode = (boolean) Request::get('ajax_mode');
+        
+        return self::showOrHideDocumentInThread($id, 'hide', $ajaxMode);
+    }
+    
+    
+    /**
+     * Скрива/показва подадения документ
+     * 
+     * @param integer $id
+     * @param boolean $hide
+     * @param boolean $changeDef
+     */
+    public static function showOrHideDocument($id, $hide = FALSE, $changeDef = FALSE)
+    {
+        $rec = self::fetch($id);
+        
+        if ($changeDef) {
+            if (!$rec->hide || ($rec->hide == 'default')) {
+                
+                return ;
+            }
+        }
+        
+        if ($hide) {
+            $rec->hide = 'yes';
+        } else {
+            $rec->hide = 'no';
+        }
+        
+        self::save($rec, 'hide');
     }
     
     
@@ -2244,7 +2305,7 @@ class doc_Containers extends core_Manager
      */
     protected static function showOrHideDocumentInThread($id, $act='show', $ajaxMode = FALSE)
     {
-        $modeAct = ($act == 'show') ? TRUE : FALSE;
+        $hideDoc = ($act == 'show') ? FALSE : TRUE;
         $rec = self::fetch($id);
         
         expect($rec);
@@ -2256,17 +2317,15 @@ class doc_Containers extends core_Manager
             expect($document->haveRightFor('single'));
         }
         
-        $showDocArr = Mode::get(self::$modShowName);
-        
-        if (!isset($showDocArr)) {
-            $showDocArr = array();
-        }
-        
-        $showDocArr[$id] = $modeAct;
-        
-        Mode::setPermanent(self::$modShowName, $showDocArr);
+        self::showOrHideDocument($id, $hideDoc);
         
         if ($ajaxMode) {
+            
+            if ($hideDoc) {
+                $rec->Hidden = TRUE;
+            } else {
+                $rec->Hidden = FALSE;
+            }
             
             $row = self::recToVerbal($rec);
             
@@ -2300,7 +2359,7 @@ class doc_Containers extends core_Manager
     		return $resStatus;
         } else {
             
-            return new Redirect(array($document, 'single', $document->that));
+            return new Redirect(array($document, 'single', $document->that, 'showOrHide' => $act));
         }
     }
     
@@ -2314,13 +2373,36 @@ class doc_Containers extends core_Manager
      */
     protected static function checkCntLimitForShow($cnt)
     {
-        $conf = core_Packs::getConfig('doc');
+        if ($cnt > 1) return FALSE;
         
-        $maxCnt = $conf->DOC_SHOW_DOCUMENTS_BEGIN + $conf->DOC_SHOW_DOCUMENTS_END;
-        
-        if ($maxCnt >= $cnt) return TRUE;
-        
-        return FALSE;
+        return TRUE;
+    }
+    
+    
+    /**
+     * Рендира съдържанието на скрит документ
+     * 
+     * @param core_ObjectReference $document
+     * @param integer $id
+     * 
+     * @return NULL|core_ET
+     */
+    protected static function getLinkForHideDocument($document, $id)
+    {
+        if ($document->haveRightFor('single') || doc_Threads::haveRightFor('single', $dRec->threadId)) {
+            $url = array(get_called_class(), 'HideDocumentInThread', $id);
+            
+            $attr = array();
+            $attr['ef_icon'] = 'img/16/toggle2.png';
+            $attr['class'] = 'settings-hide-document';
+            $attr['title'] = tr('Скриване на документа в нишката');
+            $attr['onclick'] = 'return startUrlFromDataAttr(this);';
+            $attr['data-url'] = toUrl($url, 'local');
+
+            $showDocument = ht::createLink('', $url, NULL, $attr);
+            
+            return $showDocument;
+        }
     }
     
     
@@ -2333,36 +2415,18 @@ class doc_Containers extends core_Manager
      */
     protected static function renderHiddenDocument($id)
     {
-        // TODO може да се вземе от хедърния файл
-        $tpl = new ET("<div class='document'>
-            				<div class='header [#stateClass#] no-print'>
-                                <div class='docBgIcon' style='[#iconStyle#]'>
-                                    [#singleTitle#] <b>[#ident#]</b> ([#state#]) 
-                                    [#showDocument#]
-                                </div>
-                            </div>
-                            <div>
+        $tpl = new ET("[#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
+        					<div>
                             	<b>[#docTitle#]</b>
                             </div>
-                        </div>");
+                        [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]");
         
         $document = self::getDocument($id);
         $dRec = $document->rec();
+        $dRow = $document->getInstance()->recToVerbal($dRec, array('state', '-single'));
         
         $iconStyle = 'background-image:url(' . sbf($document->getIcon(), '"') . ');';
         $tpl->replace($iconStyle, 'iconStyle');
-        
-        $stateClass = 'state-' . $dRec->state;
-        $tpl->replace($stateClass, 'stateClass');
-        
-        $ident = '#' . $document->getHandle();
-        $tpl->replace($ident, 'ident');
-        
-        $state = $document->getVerbal('state');
-        $tpl->replace($state, 'state');
-        
-        $singleTitle = tr($document->singleTitle);
-        $tpl->replace($singleTitle, 'singleTitle');
         
         $docTitle = self::getDocTitle($id);
         $tpl->replace($docTitle, 'docTitle');
@@ -2372,18 +2436,21 @@ class doc_Containers extends core_Manager
             
             $attr = array();
             $attr['ef_icon'] = 'img/16/toggle-expand.png';
-            $attr['class'] = 'fright showDocument';
+            $attr['class'] = 'settings-show-document';
             $attr['title'] = tr('Показване на целия документ');
-            
-            // @TODO ще е за всички
-            if (haveRole('ceo,manager,officer,executive')) {
-                $attr['onclick'] = 'return startUrlFromDataAttr(this);';
-                $attr['data-url'] = toUrl($url, 'local');
-            }
-                
+            $attr['onclick'] = 'return startUrlFromDataAttr(this);';
+            $attr['data-url'] = toUrl($url, 'local');
+
             $showDocument = ht::createLink('', $url, NULL, $attr);
-            $tpl->replace($showDocument, 'showDocument');
+            
+            $dRow->DocumentSettings = new ET($dRow->DocumentSettings);
+            $dRow->DocumentSettings->append($showDocument);
         }
+        
+        $tpl->placeObject($dRow);
+        
+        $tpl->removeBlocks();
+        $tpl->removePlaces();
         
         return $tpl;
     }

@@ -156,7 +156,7 @@ class core_page_Internal extends core_page_Active
         $menuObj = bgerp_Menu::getMenuObject();
         
         $active = bgerp_Menu::getActiveItem($menuObj);
-
+        
         // До тук имаме определени два списъка $menus (с главните менюта) и $subMenus (с под-менютата);
         list($menus, $subMenus) = bgerp_Menu::prepareMenu($menuObj, $active);
  

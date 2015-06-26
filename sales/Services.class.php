@@ -59,6 +59,12 @@ class sales_Services extends deals_ServiceMaster
 
 
 	/**
+	 * Кои роли могат да филтрират потребителите по екип в листовия изглед
+	 */
+	public $filterRolesForTeam = 'ceo,salesMaster,manager';
+	
+	
+	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
 	public $canSingle = 'ceo,sales';

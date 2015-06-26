@@ -292,6 +292,9 @@ div.folder-cover {
     background-image: url('../img/cover-bg-yellow.png'); }
   div.folder-cover .detail-info {
     background: none; }
+    div.folder-cover .detail-info.portal {
+      background: none !important;
+      box-shadow: none; }
   div.folder-cover .groupTitle {
     color: #333333;
     font-weight: bold; }
@@ -1046,18 +1049,22 @@ td.portal-date {
     display: inline-block;
     white-space: nowrap; }
 
-.showDocument {
+.document-settings {
   display: inline-block;
-  height: 16px; }
+  height: 16px;
+  float: right; }
+  .document-settings span,
+  .document-settings a {
+    margin-bottom: 0; }
 
 .docBgIcon {
   position: relative; }
 
-.narrow .showDocument {
+.narrow .document-settings {
   position: absolute;
   right: -3px;
   top: 50%;
-  margin-top: -8px; }
+  margin-top: -10px; }
 
 .snapshot {
   margin-top: 10px;
@@ -1590,6 +1597,8 @@ td.constrColumnLeft {
     .profile-summary div span {
       display: block;
       margin-bottom: 2px; }
+    .profile-summary div .timeSpan {
+      display: inline-block; }
 
 ul.history {
   padding: 0;

@@ -262,7 +262,7 @@ class support_Issues extends core_Master
             $tRec = support_IssueTypes::fetchField($tId);
             $atOpt[$tId] =  support_IssueTypes::getVerbal($tRec, 'type');
         }
-
+        
         $form->setOptions('typeId', $atOpt);
 
         $form->input();
@@ -285,8 +285,17 @@ class support_Issues extends core_Master
             }
         }
         
-        if ($sysRec->defaultType) {
-            $form->setDefault('typeId', $sysRec->defaultType);
+        $defTypeId = $sysRec->defaultType;
+        
+        // Ако е `powerUser` да е избран последно използвания тип
+        if ($atOpt && core_Users::isPowerUser()) {
+            if ($defTypeIdFromRec = self::getDefaultTypeId($rec->systemId, $atOpt)) {
+                $defTypeId = $defTypeIdFromRec;
+            }
+        }
+        
+        if ($defTypeId) {
+            $form->setDefault('typeId', $defTypeId);
         }
         
     	// След събмит на формата
@@ -338,6 +347,41 @@ class support_Issues extends core_Master
 		}
 		
     	return $tpl;
+    }
+    
+    
+    /**
+     * Връща последно използвания тип от потребителя или от екипа му
+     * 
+     * @param integer $systemId
+     * @param array $optionsArr
+     * 
+     * @return NULL|integer
+     */
+    protected static function getDefaultTypeId($systemId, $optionsArr = array())
+    {
+        $cu = core_Users::getCurrent('id', FALSE);
+        $teamMates = core_Users::getTeammates($cu);
+        $teamMates = trim($teamMates, '|');
+        $teamMates = str_replace('|', ',', $teamMates);
+        
+        $query = self::getQuery();
+        $query->where("#systemId = {$systemId}");
+        $query->where("#createdBy IN ({$teamMates})");
+        
+        // Създадените от текущия потребител да са преди създадените от екипа му
+        $query->XPR('cuFirst', 'int', "(CASE #createdBy WHEN '{$cu}' THEN 0 ELSE #createdBy END)");
+        $query->orderBy('cuFirst', 'ASC');
+        $query->orderBy('createdOn', 'DESC');
+        
+        while ($rec = $query->fetch()) {
+            if (!$optionsArr || ($optionsArr && $optionsArr[$rec->typeId])) {
+                
+                return $rec->typeId;
+            }
+        }
+        
+        return ;
     }
     
     
@@ -564,8 +608,17 @@ class support_Issues extends core_Master
         
         if ($systemId) {
             $sysRec = support_Systems::fetch($systemId);
+            
+            $defTypeId = $sysRec->defaultType;
+        
+            if ($types && !$data->form->rec->id) {
+                if ($defTypeIdFromRec = self::getDefaultTypeId($systemId, $types)) {
+                    $defTypeId = $defTypeIdFromRec;
+                }
+            }
+            
             if ($sysRec->defaultType) {
-                $data->form->setDefault('typeId', $sysRec->defaultType);
+                $data->form->setDefault('typeId', $defTypeId);
             }
         }
     }

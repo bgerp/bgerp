@@ -7,7 +7,15 @@ function fastScroll(hideAfterSec, activateRatio)
 	var screenHeight = screen.height;
     var hideAfterMilisec = hideAfterSec * 1000;
 	if(bodyHeight / screenHeight > activateRatio){
-		$("#maincontent").append('<div class="scroll-btn-container"><div id="scroll-to-top"></div><div id="scroll-to-bottom"></div></div>');
+        if($("#main-container").length){
+            $("#main-container").append('<div class="scroll-btn-container"><div id="scroll-to-top"></div><div id="scroll-to-bottom"></div></div>');
+        } else if ( $(".background-holder").length) {
+            $(".background-holder").css('position', 'relative');
+            $(".background-holder").append('<div class="scroll-btn-container"><div id="scroll-to-top"></div><div id="scroll-to-bottom"></div></div>');
+        } else {
+            return;
+        }
+
 		$("#scroll-to-top").click(function(){
 			$("html, body").animate({ 
 				scrollTop: 0 
