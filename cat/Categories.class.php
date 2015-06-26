@@ -149,6 +149,7 @@ class cat_Categories extends core_Master
     function description()
     {
         $this->FLD('name', 'varchar(64)', 'caption=Наименование, mandatory,translate');
+        $this->FLD('prefix', 'varchar(64)', 'caption=Представка');
         $this->FLD('sysId', 'varchar(32)', 'caption=System Id,oldFieldName=systemId,input=none,column=none');
         $this->FLD('info', 'richtext(bucket=Notes,rows=4)', 'caption=Бележки');
         $this->FLD('measures', 'keylist(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Позволени мерки,columns=2');
@@ -271,5 +272,30 @@ class cat_Categories extends core_Master
     	$rec = $this->fetchRec($id);
     	
     	return arr::make($rec->meta, TRUE);
+    }
+    
+    
+    /**
+     * Връща дефолтния код на артикула добавен в папката на корицата
+     */
+    public function getDefaultProductCode($id)
+    {
+    	$rec = $this->fetchRec($id);
+    	
+    	// Ако има представка
+    	if($rec->prefix){
+    		
+    		// Опитваме се да намерим първия код започващ с представката
+    		$code = str::addIncrementSuffix("", $rec->prefix);
+    		while(cat_Products::getByCode($code)){
+    			$code = str::addIncrementSuffix($code, $rec->prefix);
+    			if(!cat_Products::getByCode($code)){
+    				break;
+    			}
+    		}
+    	}
+    	
+    	// Връщаме намерения код
+    	return $code;
     }
 }

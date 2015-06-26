@@ -315,7 +315,13 @@ class cat_Products extends core_Embedder {
     		
     		if(!$cover->haveInterface('doc_ContragentDataIntf')){
     			$form->setField('code', 'mandatory');
+    			if($cover->getInstance() instanceof cat_Categories){
+    				if($code = $cover->getDefaultProductCode()){
+    					$form->setDefault('code', $code);
+    				}
+    			}
     			
+    			// Запомняме последно добавения код
 				if($code = Mode::get('cat_LastProductCode')) {
 					if ($newCode = str::increment($code)) {
 						
