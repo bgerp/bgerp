@@ -131,7 +131,7 @@ defIfNot('CORE_LOGIN_INFO', "|*(|само за администраторите 
 /**
  * Опаковка по подразбиране за вътрешната страница
  */
-defIfNot('CORE_PAGE_WRAPPER', 'core_page_Internal');
+defIfNot('CORE_PAGE_WRAPPER', 'core_page_InternalModern');
 
 
 
