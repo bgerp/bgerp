@@ -315,7 +315,13 @@ class cat_Products extends core_Embedder {
     		
     		if(!$cover->haveInterface('doc_ContragentDataIntf')){
     			$form->setField('code', 'mandatory');
+    			if($cover->getInstance() instanceof cat_Categories){
+    				if($code = $cover->getDefaultProductCode()){
+    					$form->setDefault('code', $code);
+    				}
+    			}
     			
+    			// Запомняме последно добавения код
 				if($code = Mode::get('cat_LastProductCode')) {
 					if ($newCode = str::increment($code)) {
 						
@@ -1593,8 +1599,15 @@ class cat_Products extends core_Embedder {
     	// Показваме съдържанието на документа
     	$tpl = $this->getInlineDocumentBody($id, 'xhtml');
     	
-    	if(!core_Users::isContractor()){
-    		$tpl = $this->renderWrapping($tpl);
+    	// Ако е инсталиран пакета за партньори и потребителя е партньор
+    	// Слагаме за обвивка тази за партньорите
+    	if(core_Packs::isInstalled('colab')){
+    		if(core_Users::isContractor()){
+    			$this->load('colab_Wrapper');
+    			$this->currentTab = 'Нишка';
+    			
+    			$tpl = $this->renderWrapping($tpl);
+    		}
     	}
     	
     	return $tpl;

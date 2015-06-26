@@ -276,4 +276,21 @@ class doc_plg_TplManager extends core_Plugin
     	
     	$res = $tplId;
     }
+    
+    
+    /**
+     * Какъв да е дефолтния език от записа при генериране на имейл
+     */
+    public static function on_AfterGetLangFromRec($mvc, &$res, $id)
+    {
+    	if (!$id) return;
+    
+    	$rec = $mvc->fetch($id);
+    	 
+    	if(!$rec->template) return;
+    	 
+    	$lang = doc_TplManager::fetchField($rec->template, 'lang');
+    	 
+    	$res = $lang;
+    }
 }

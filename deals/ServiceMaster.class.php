@@ -429,9 +429,9 @@ abstract class deals_ServiceMaster extends core_Master
      {
      	$handle = static::getHandle($id);
      	$self = cls::get(get_called_class());
-     	$title = mb_strtolower($self->singleTitle);
+     	$title = tr(mb_strtolower($self->singleTitle));
      	
-     	$tpl = new ET(tr("Моля запознайте се с нашия {$title}") . ': #[#handle#]');
+     	$tpl = new ET(tr("Моля запознайте се с нашия") . " {$title}: #[#handle#]");
      	$tpl->append($handle, 'handle');
      
      	return $tpl->getContent();

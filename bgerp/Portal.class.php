@@ -69,9 +69,9 @@ class bgerp_Portal extends core_Manager
         
         if(Mode::is('screenMode', 'narrow')) {
             $tpl = new ET("
-                <div>[#NOTIFICATIONS#]</div>
-                <div style='margin-top:25px;'>[#RIGHT_COLUMN#]</div>
-                <div style='margin-top:25px;'>[#LEFT_COLUMN#]</div>
+                <div class='narrowPortalBlocks'>[#NOTIFICATIONS#]</div>
+                <div class='narrowPortalBlocks' style='margin-top:25px;'>[#RIGHT_COLUMN#]</div>
+                <div class='narrowPortalBlocks' style='margin-top:25px;'>[#LEFT_COLUMN#]</div>
             ");
         } else {
             $tpl = new ET("

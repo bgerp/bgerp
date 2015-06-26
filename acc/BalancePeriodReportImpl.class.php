@@ -148,78 +148,51 @@ class acc_BalancePeriodReportImpl extends frame_BaseDriver
     	// сметката
     	$accSysId = acc_Accounts::fetchField($data->rec->accountId, 'systemId');
     	
-    	$bDetails = cls::get('acc_BalanceDetails');
-    	$bQuery = acc_BalanceDetails::getQuery();
+	    	$bDetails = cls::get('acc_BalanceDetails');
+	    	$bQuery = acc_BalanceDetails::getQuery();
 
-    	// от избрания начален период до крайния 
-    	for ($p = $data->rec->from; $p <= $data->rec->to; $p++) {
-    		// търсим балансите, които отговарят на това id
-	    	$balanceId = acc_Balances::fetchField("#periodId = '{$p}'", 'id');
-	    	$bDetails->filterQuery($bQuery, $balanceId, $accSysId);
+	    	// от избрания начален период до крайния 
+	    	for ($p = $data->rec->from; $p <= $data->rec->to; $p++) {
 	    		
-	    	$bRecs[$p] = $bQuery->fetchAll();	
-    	}
-    	
-  
-    	foreach ($bRecs as $id => $balances) { 
-    		$dateBalance = new stdClass();
-    		$dateBalance->periodId = $id;
-    		$dateBalance->amount = 0;
-    		
-    		foreach ($balances as $balance){ 
-    		
-    			$dateBalance->amount +=  $balance->{$data->rec->orderField};
+	    		$pRec = acc_Periods::fetch($p);
 
-    		}
-    		
-    		$data->recs[$id] = $dateBalance;
-    	}
-    	
-    	// намираме началните дати на избраните периоди
-    	$fromStart = acc_Periods::fetchField("#id = '{$data->rec->from}'", 'start');
-    	$toStart = acc_Periods::fetchField("#id = '{$data->rec->to}'", 'start');
-    	
-    	// от тях връщаме назад 12 месеца(една година)
-    	$lastYearFrom = explode(" ",dt::addMonths(-12, $fromStart));
-    	$lastYearTo = explode(" ", dt::addMonths(-12, $toStart));
-    	
-    	// понеже базата работи с крайните дати на месеците
-    	// намираме и тях
-    	$lastDayFrom = dt::getLastDayOfMonth($lastYearFrom[0]);
-    	$lastDayTo = dt::getLastDayOfMonth($lastYearTo[0]);
+	    		// търсим балансите, които отговарят на това id
+		    	$balanceId = acc_Balances::fetchField("#periodId = '{$p}'", 'id');
+		    	
+		    	$cloneQuery = clone $bQuery;
+		    	$bDetails->filterQuery($cloneQuery, $balanceId, $accSysId);
+		    	$cloneQuery->where("#ent1Id IS NULL AND #ent2Id IS NULL AND #ent3Id IS NULL");
+		    	//$cloneQuery->XPR('sumAmount', 'double', "SUM(#{$data->rec->orderField})");
+		    	
+		    	$date = dt::mysql2timestamp($pRec->end);
+		    	$year = date('Y', $date);
+		    	$month = date ('m', $date);
+		    	
+		    	$dateFrom = mktime(0, 0, 0, $month-12, 01, $year);
+				$dateFrom = dt::timestamp2Mysql($dateFrom); 
+		    	$dateFrom = dt::verbal2mysql(dt::getLastDayOfMonth($dateFrom), FALSE);
+		    	
+		    	$lastYearAmount = NULL;
+		    	if($lastPeriod = acc_Periods::fetch("#end = '{$dateFrom}'")){
+		    		
+		    		if($lastBalanceId = acc_Balances::fetchField("#periodId = '{$lastPeriod->id}'", 'id')){
 
-    	// от датите стигаме до ид-тата на тези периоди
-    	$lastYearPeriodIdFrom = acc_Periods::fetchField("#end = '{$lastDayFrom}'", 'id');
-    	$lastYearPeriodIdTo = acc_Periods::fetchField("#end = '{$lastDayTo}'", 'id');
-    	
-    	//$map[$data->rec->from] = $lastYearPeriodIdFrom;
-    	//$map[$data->rec->to] = $lastYearPeriodIdTo;
-    	$map[$lastYearPeriodIdFrom] = $data->rec->from;
-    	$map[$lastYearPeriodIdTo] = $data->rec->to;
-    	
-    	// за всеки получен нов период, който е в миналото
-    	for ($pLast = $lastYearPeriodIdFrom; $pLast <= $lastYearPeriodIdTo; $pLast++) {
-    	    
-    		// търсим балансите му
-    		$balanceIdLast = acc_Balances::fetchField("#periodId = '{$pLast}'", 'id');
-    		$bDetails->filterQuery($bQuery, $balanceIdLast, $accSysId);
-    		
-    		$bRecsLast[$pLast] = $bQuery->fetchAll();
-    	}
-    	
-    	
-    	foreach ($bRecsLast as $idLast => $balancesLast) { //bp($id , $b);
-    		$dataBalanceLast = new stdClass();
-    		$dataBalanceLast->periodId = $idLast;
-    		$dataBalanceLast->amountPrevious = 0;
-    		
-    		foreach ($balancesLast as $balanceLast) {
-    			$dataBalanceLast->amountPrevious +=  $balanceLast->{$data->rec->orderField};
-    		}
-
-    		$data->recs[$idLast] = $dataBalanceLast;
-    	}
-//bp($data->recs);
+		    			$lastCloneQuery = clone $bQuery;
+		    			$bDetails->filterQuery($lastCloneQuery, $lastBalanceId, $accSysId);
+		    			$lastCloneQuery->where("#ent1Id IS NULL AND #ent2Id IS NULL AND #ent3Id IS NULL");
+		    			//$lastCloneQuery->XPR('lastAmount', 'double', "SUM(#{$data->rec->orderField})");
+		    			
+		    			$lastYearAmount = $lastCloneQuery->fetch()->{$data->rec->orderField};
+		    		}
+		    	}
+		    	
+		    	$data->recs[$p] = (object)array('amount' => $cloneQuery->fetch()->{$data->rec->orderField}, 
+		    									'periodId' => $p,
+		    									'amountPrevious' => $lastYearAmount,
+		    	);	
+	    	}
+	    
+	    	
         return $data;
     }
     
@@ -245,7 +218,7 @@ class acc_BalancePeriodReportImpl extends frame_BaseDriver
 			
 				$row = new stdClass();
 				$row = $mvc->getVerbal($rec);
-				
+				//bp($row);
 				$data->rows[$id] = $row;
             }
         }

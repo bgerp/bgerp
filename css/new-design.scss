@@ -139,7 +139,7 @@ body {
 }
 
 .inner-framecontentTop{
-	padding: 7px;
+	padding: 8px 7px;
 	background-color: #dddddd;
 	position: relative;
 	z-index: 1000;
@@ -150,11 +150,9 @@ body {
     user-select: none;
 }
 
-.narrow .inner-framecontentTop{
-	padding:  9px;
-}
-
 .portal {
+    margin-top: 0;
+    margin-bottom: 15px;
     background-color: #fff !important;
     border-radius: 2px;
     box-shadow: 0 2px 5px 0 rgba(0,0,0,.16),0 2px 10px 0 rgba(0,0,0,.12);
@@ -218,8 +216,12 @@ body {
 }
 
 #packWrapper{
-    padding: 25px 15px 15px;
+    padding: 35px 15px 15px;
     margin-top: -1px;
+}
+
+.narrow #packWrapper {
+    padding: 15px 15px 10px;
 }
 
 /* позиция на табовете */
@@ -230,13 +232,14 @@ body {
 	position: fixed;
     left: 0;
     right: 0;
-    top: 43px;
+    top: 45px;
     z-index: 9;
-    padding: 0 10px;
+    padding: 0 15px;
 }
 
 .narrow #main-container > .tab-control > .tab-row {
-	top: 46px;
+    top: 44px;
+	padding: 0 13px;
 }
 
 .userInfo{
@@ -437,6 +440,7 @@ a.bookmark-external-url {
     border-radius: 6px;
     cursor: pointer;
     background: #eee;
+    margin: 0 6px;
     box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
     .menuIcon {
         opacity: 0.6;
@@ -615,8 +619,9 @@ a.bookmark-external-url {
     border-radius: 3px;
     font-size: 0.8em;
     a, span {
-        margin: 2px;
+        margin: 0px 2px 3px;
         display: block;
+        line-height: normal;
     }
 }
 
@@ -690,7 +695,9 @@ a.bookmark-external-url {
 .portal .legend {
 	z-index: 1 !important;
 }
-
+.narrow .tooltip-text {
+    top: 5px !important;
+}
 .tooltip-button img {
 	width: 13px !important;
 	height: 13px !important;
@@ -867,6 +874,10 @@ input[type="button"].more-btn {
 	padding-right: 0.1em !important;
 }
 
+div.tab-control.alphabet div.tab-row {
+    margin-top: 4px;
+}
+
 div.tab-control.alphabet div.tab-row .tab{
 	float: left;
 	background: #F5F5F5;
@@ -959,5 +970,27 @@ div.tab-control.deal-history-tab .tab-row .tab {
                 top: -2px;
             }
         }
+    }
+}
+
+@media handheld, only screen and (max-width: 600px) {
+    .inner-framecontentTop{
+        padding: 7px 7px 9px 7px !important;
+    }
+    .narrowPortalBlocks {
+        margin: 5px;
+    }
+    #packWrapper {
+        padding: 17px 7px 10px !important;
+    }
+    #main-container > div.tab-control > div.tab-row > .tab {
+        margin: 5px 2px 3px;
+    }
+    .btn-sidemenu {
+        margin: 0;
+    }
+    #main-container > .tab-control > .tab-row {
+        padding: 0 6px 1px !important;
+        top: 44px;
     }
 }

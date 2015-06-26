@@ -1022,6 +1022,8 @@ function changeLang(data){
 	$('.richEdit textarea').attr('spellcheck','true');
 	$('input[name=subject]').attr('lang',lang);
 	$('.richEdit textarea').attr('lang',lang);
+	
+	appendQuote(quoteId, quoteLine);
 }
 
 
@@ -1536,11 +1538,34 @@ function getSelText() {
 
 
 /**
+ * Текста, който се цитира (след обработка)
+ */
+var quoteText;
+
+
+/**
+ * id на полето
+ */
+var quoteId;
+
+
+/**
+ * Реда, в който ще се замества
+ */
+var quoteLine;
+
+
+/**
  * Добавя в посоченото id на елемента, маркирания текст от сесията, като цитат, ако не е по стар от 5 секунди
  * 
  * @param id
+ * @param line
  */
-function appendQuote(id) {
+function appendQuote(id, line) {
+	
+	quoteId = id;
+	quoteLine = line;
+	
     // Ако не е дефиниран
     if (typeof sessionStorage === "undefined") return;
 
@@ -1552,31 +1577,41 @@ function appendQuote(id) {
 
     // Махаме 5s
     now = now - 5000;
-
-    // Ако не е по старо от 5s
-    if (selTime > now) {
-
+    
+    // Ако вече е нагласен или не е изтекъл
+	if ((!quoteText) && (selTime > now)) {
+		
         // Вземаме текста
         text = sessionStorage.getItem('selText');
-
+    	
         if (text) {
 
             // Вземаме манипулатора на документа
             selHandle = sessionStorage.getItem('selHandle');
 
             // Стринга, който ще добавим
-            str = "\n[bQuote";
+            quoteText = "\n[bQuote";
 
             // Ако има манипулато, го добавяме
             if (selHandle) {
-                str += "=" + selHandle + "]";
+            	quoteText += "=" + selHandle + "]";
             } else {
-                str += "]";
+            	quoteText += "]";
             }
-            str += text + "[/bQuote]";
-
-            // Добавяме към данните
-            get$(id).value += str;
+            quoteText += text + "[/bQuote]";
+        }
+	}
+    
+    if (quoteText) {
+        var textVal = get$(id).value;
+        
+        // Добавяме към данните
+        if (textVal && line) {
+        	var splited = textVal.split("\n");
+        	splited.splice(line, 0, quoteText);
+        	get$(id).value = splited.join("\n");
+        } else {
+        	get$(id).value += quoteText;
         }
     }
 }
