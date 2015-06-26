@@ -168,7 +168,7 @@ class acc_BalancePeriodReportImpl extends frame_BaseDriver
 		    	$year = date('Y', $date);
 		    	$month = date ('m', $date);
 		    	
-		    	$dateFrom = mktime(0, 0, 0, $month-2, 01, $year);
+		    	$dateFrom = mktime(0, 0, 0, $month-12, 01, $year);
 				$dateFrom = dt::timestamp2Mysql($dateFrom); 
 		    	$dateFrom = dt::verbal2mysql(dt::getLastDayOfMonth($dateFrom), FALSE);
 		    	
