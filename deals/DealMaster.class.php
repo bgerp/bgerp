@@ -613,9 +613,9 @@ abstract class deals_DealMaster extends deals_DealBase
     {
         $handle = static::getHandle($id);
         $self = cls::get(get_called_class());
-        $title = mb_strtolower($self->singleTitle);
+        $title = tr(mb_strtolower($self->singleTitle));
         
-        $tpl = new ET(tr("Моля запознайте се с нашата {$title}") . ': #[#handle#]');
+        $tpl = new ET(tr("|Моля запознайте се с нашата|* {$title}") . ': #[#handle#]');
         $tpl->append($handle, 'handle');
         
         return $tpl->getContent();
