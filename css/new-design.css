@@ -153,9 +153,6 @@ body {
   -ms-user-select: none;
   user-select: none; }
 
-.narrow .inner-framecontentTop {
-  padding: 7px 7px 9px 7px; }
-
 .portal {
   margin-top: 0;
   margin-bottom: 15px;
@@ -176,9 +173,6 @@ body {
     border-radius: 0 !important;
     box-shadow: 0 1px 0 0 rgba(0, 0, 0, 0.1);
     margin-bottom: 20px; }
-
-.narrowPortalBlocks {
-  margin: 5px; }
 
 .portal.acc-summary {
   background: none !important;
@@ -220,7 +214,7 @@ body {
   margin-top: -1px; }
 
 .narrow #packWrapper {
-  padding: 10px 7px 10px; }
+  padding: 15px 15px 10px; }
 
 /*
  * позиция на табовете
@@ -237,7 +231,7 @@ body {
 
 .narrow #main-container > .tab-control > .tab-row {
   top: 44px;
-  padding: 0 6px; }
+  padding: 0 13px; }
 
 .userInfo {
   margin-right: 10px;
@@ -438,9 +432,6 @@ a.bookmark-external-url {
     .btn-sidemenu:hover .menuIcon {
       opacity: 0.9; }
 
-.narrow .btn-sidemenu {
-  margin: 0; }
-
 .menuIcon:hover {
   opacity: 1; }
 
@@ -580,8 +571,9 @@ a.bookmark-external-url {
   font-size: 0.8em; }
   .narrow #main-container > div.tab-control > div.tab-row > .tab a,
   .narrow #main-container > div.tab-control > div.tab-row > .tab span {
-    margin: 2px;
-    display: block; }
+    margin: 0px 2px 3px;
+    display: block;
+    line-height: normal; }
 
 .headerInfo {
   display: inline-block;
@@ -641,6 +633,9 @@ a.bookmark-external-url {
 
 .portal .legend {
   z-index: 1 !important; }
+
+.narrow .tooltip-text {
+  top: 5px !important; }
 
 .tooltip-button img {
   width: 13px !important;
@@ -889,4 +884,25 @@ only screen and (max-width: 1280px) {
       .center-block .center-block .notificationsCnt {
         top: -2px; }
  } }
+
+@media handheld,
+only screen and (max-width: 600px) {
+  .inner-framecontentTop {
+    padding: 7px 7px 9px 7px !important; }
+
+  .narrowPortalBlocks {
+    margin: 5px; }
+
+  #packWrapper {
+    padding: 17px 7px 10px !important; }
+
+  #main-container > div.tab-control > div.tab-row > .tab {
+    margin: 5px 2px 3px; }
+
+  .btn-sidemenu {
+    margin: 0; }
+
+  #main-container > .tab-control > .tab-row {
+    padding: 0 6px 1px !important;
+    top: 44px; } }
 

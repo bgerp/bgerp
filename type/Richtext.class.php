@@ -147,8 +147,10 @@ class type_Richtext extends type_Blob
         // Ако е зададено да се аппендва маркирания текст, като цитата
         if ($this->params['appendQuote']) {
             
+            $line = is_numeric($this->params['appendQuote']) ? $this->params['appendQuote'] : 0;
+            
             // Добавяме функцията за апендване на цитата
-            $tpl->append("\n runOnLoad(function(){appendQuote('{$attr['id']}');});", 'SCRIPTS');
+            $tpl->append("\n runOnLoad(function(){appendQuote('{$attr['id']}', {$line});});", 'SCRIPTS');
         }
         
     	$tpl->append("\n runOnLoad(function(){hideRichtextEditGroups();});", 'SCRIPTS');

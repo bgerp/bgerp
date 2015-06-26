@@ -193,9 +193,6 @@ function setMinHeight() {
 			 $(window).scrollTop(0);
 			 $('#maincontent').css('margin-top', calcMargin - 12);
 		 }
-		 var clientHeight = parseInt(document.documentElement.clientHeight,10);
-		 $('#packWrapper').css('min-height', clientHeight - headerHeight - 68);
-		 $('#maincontent').css('min-height', clientHeight - headerHeight - 38);
 	 }
 }
 
