@@ -97,7 +97,7 @@ class bgerp_Menu extends core_Manager
                 $newRec->act = $rec->act ? $rec->act : 'default';
                 $menuObj[$rec->menu . ':' . $rec->subMenu] = $newRec;  
             }
-            
+
             core_Cache::set('Menu', $cacheKey, $menuObj, 1400);
         }
         
