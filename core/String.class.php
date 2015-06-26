@@ -491,31 +491,31 @@ class core_String
 	
     
     /**
-     * Проверява даден стринг и ако има в името му '< suffix >< number >' инкрементираме
-     * < number >, ако не е намерено се добавя към края на стринга: '< suffix > < startNum >'
+     * Проверява даден стринг и ако има в името му '< prefix >< number >' инкрементираме
+     * < number >, ако не е намерено се добавя към края на стринга: '< prefix > < startNum >'
      * 
      * @param string $string - стринга който ще се мъчим да инкрментираме
-     * @param string $suffix - за каква наставка ще проверяваме
+     * @param string $prefix - за каква наставка ще проверяваме
      * @param string $startNum - от кой кое число да започваме
      * @return string - увеличения стринг
      */
-    public static function addIncrementSuffix($string, $suffix = '' , $startNum = 1)
+    public static function addIncrementSuffix($string, $prefix = '' , $startNum = 1)
     {
-    	preg_match("/{$suffix}(\d+)$/", $string, $matches);
+    	preg_match("/{$prefix}(\d+)$/", $string, $matches);
     	if(count($matches) == 2){
     		
     		$number = $matches[1];
     		$number = self::increment($number);
     		
-    		$offset = strlen($suffix);
-    		$startTagPos = strrpos($string, "{$suffix}") + $offset;
+    		$offset = strlen($prefix);
+    		$startTagPos = strrpos($string, "{$prefix}") + $offset;
     		
     		// Инкрементираме числото
     		$string = substr_replace($string, $number, $startTagPos);
     	} else {
     		
-    		// Ако не е открит стринга добавяме `{$suffix}{$startNum}` в края му
-    		$string .= "{$suffix}{$startNum}";
+    		// Ако не е открит стринга добавяме `{$prefix}{$startNum}` в края му
+    		$string .= "{$prefix}{$startNum}";
     	}
     	
     	return $string;
