@@ -1094,14 +1094,21 @@ class core_Packs extends core_Manager
                 $sysDefault = defined($field) ? constant($field) : '';
                 if ($sysDefault != $form->rec->{$field} ) {
                     
-                    if ($form->rec->{$field} !== NULL) {
+                    $fType = $form->getFieldType($field, FALSE);
+                    
+                    // Да може да се зададе автоматичната стойност
+                    if ((($fType instanceof type_Class) || ($fType instanceof type_Enum)) 
+                        && ($fType->params['allowEmpty']) && ($form->rec->{$field} === NULL))  {
+                        
+                        $data[$field] = NULL;
+                    } elseif ($form->rec->{$field} !== NULL) {
                         $data[$field] = $form->rec->{$field};
                     }
                 } else {
                     $data[$field] = '';
                 }
             }
-
+            
             $id = self::setConfig($packName, $data);
         
             // Правим запис в лога
