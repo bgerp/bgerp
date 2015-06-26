@@ -116,6 +116,8 @@ class deals_OpenDeals extends core_Manager {
     	$data->query->orderBy('state', "ASC");
 		$data->query->orderBy('id', "DESC");
 		
+		$data->listFilter->setDefault('sState', 'active');
+		
 		if(isset($data->listFilter->rec->sState) && $data->listFilter->rec->sState != 'all'){
 			$data->query->where("#state = '{$data->listFilter->rec->sState}'");
 		}
