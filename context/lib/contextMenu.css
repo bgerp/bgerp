@@ -92,6 +92,7 @@
     text-align: left !important;
 }
 
-input.more-btn {
+input.button.more-btn {
+    background-position: center !important;
     background-image: url(../../img/16/arrow_down3.png) !important;
 }
