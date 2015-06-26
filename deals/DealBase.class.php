@@ -121,7 +121,11 @@ abstract class deals_DealBase extends core_Master
 			}
 	
 			if ($d->haveInterface('bgerp_DealIntf')) {
-				$d->getInstance()->pushDealInfo($d->that, $aggregateInfo);
+				try{
+					$d->getInstance()->pushDealInfo($d->that, $aggregateInfo);
+				} catch(Exception $e){
+					$this->log('Проблем с пушването на данните на бизнес документ ' . $e->getMessage());
+				}
 			}
 		}
 	
