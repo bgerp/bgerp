@@ -237,7 +237,7 @@ body {
 
 .narrow #main-container > .tab-control > .tab-row {
   top: 44px;
-  padding: 0 6px; }
+  padding: 0 6px 1px; }
 
 .userInfo {
   margin-right: 10px;
@@ -580,8 +580,9 @@ a.bookmark-external-url {
   font-size: 0.8em; }
   .narrow #main-container > div.tab-control > div.tab-row > .tab a,
   .narrow #main-container > div.tab-control > div.tab-row > .tab span {
-    margin: 2px;
-    display: block; }
+    margin: 0px 2px 3px;
+    display: block;
+    line-height: normal; }
 
 .headerInfo {
   display: inline-block;
@@ -641,6 +642,9 @@ a.bookmark-external-url {
 
 .portal .legend {
   z-index: 1 !important; }
+
+.narrow .tooltip-text {
+  top: 5px !important; }
 
 .tooltip-button img {
   width: 13px !important;

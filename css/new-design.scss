@@ -247,7 +247,7 @@ body {
 
 .narrow #main-container > .tab-control > .tab-row {
 	top: 44px;
-    padding: 0 6px;
+    padding: 0 6px 1px;
 }
 
 .userInfo{
@@ -629,8 +629,9 @@ a.bookmark-external-url {
     border-radius: 3px;
     font-size: 0.8em;
     a, span {
-        margin: 2px;
+        margin: 0px 2px 3px;
         display: block;
+        line-height: normal;
     }
 }
 
@@ -704,7 +705,9 @@ a.bookmark-external-url {
 .portal .legend {
 	z-index: 1 !important;
 }
-
+.narrow .tooltip-text {
+    top: 5px !important;
+}
 .tooltip-button img {
 	width: 13px !important;
 	height: 13px !important;
