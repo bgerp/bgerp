@@ -57,7 +57,7 @@ class plg_ExportCsv extends core_Plugin
             $url = getCurrentUrl();
             $url['Export'] = 'csv';
             
-            $data->toolbar->addBtn('Експорт в CSV', $url, NULL, 'ef_icon = img/16/file_extension_xls.png, title = Сваляне на записите в CSV формат');
+            $data->toolbar->addBtn('Експорт в CSV', $url, NULL, 'ef_icon = img/16/file_extension_xls.png, title = Сваляне на записите в CSV формат,row=2');
         }
     }
     
