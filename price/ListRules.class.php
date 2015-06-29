@@ -639,7 +639,7 @@ class price_ListRules extends core_Detail
 		if(price_GroupOfProducts::getGroup($pRec->id, dt::now())){
 			if($this->haveRightFor('add', (object)array('productId' => $pRec->id))){
 				$data->priceLists->addUrl = array('price_ListRules', 'add', 'type' => 'value', 
-												  'listId' => $listId, 'productId' => $pRec->id, 'ret_url' => TRUE);
+												  'listId' => $listId, 'productId' => $pRec->id, 'ret_url' => array('cat_Products', 'single', $pRec->id));
 			}
 		}
 		
