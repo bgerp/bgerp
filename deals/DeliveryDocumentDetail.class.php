@@ -123,7 +123,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 			if($form->cmd == 'refresh'){
 				$baseInfo = $ProductMan->getBasePackInfo($rec->productId);
 				if($baseInfo->classId == 'cat_Packagings'){
-					$form->rec->packagingId = $baseInfo->id;
+					$form->setDefault('packagingId', $baseInfo->id);
 				}
 			}
 			
