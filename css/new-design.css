@@ -162,6 +162,8 @@ body {
   -webkit-transition: -webkit-transform 300 ease-in-out 300 ease-in-out, opacity 300 300 ease-in-out, opacity 300;
   transition: transform 300 ease-in-out, opacity 300;
   padding: 0px 15px 15px; }
+  .portal.detail-info {
+    border-radius: 5px; }
   .portal .legend {
     margin-left: -15px;
     margin-right: -15px;
@@ -190,6 +192,9 @@ body {
   margin-left: 2px;
   margin-right: 2px;
   margin-bottom: 2px; }
+  .narrow .portal.portal {
+    margin-top: 10px;
+    border-radius: 5px; }
 
 #framecontentTop {
   position: fixed;

@@ -159,6 +159,9 @@ body {
     -webkit-transition: -webkit-transform 300ms ease-in-out,opacity 300ms;
     transition: transform 300ms ease-in-out,opacity 300ms;
     padding: 0px 15px 15px;
+    &.detail-info {
+        border-radius: 5px;
+    }
     .legend {
        margin-left: -15px;
        margin-right: -15px;
@@ -192,6 +195,10 @@ body {
     margin-left: 2px;
     margin-right: 2px;
     margin-bottom: 2px;
+    &.portal {
+        margin-top: 10px;
+        border-radius: 5px;
+    }
 }
 
 #framecontentTop{
