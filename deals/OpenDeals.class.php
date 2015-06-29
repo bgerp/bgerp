@@ -241,7 +241,7 @@ class deals_OpenDeals extends core_Manager {
 	    		unset($row->amountDeal, $row->amountPaid, $row->currencyId);
 	    	}
 	    	
-	    	$toPay = ($rec->amountDeal - $rec->amountPaid) / $docRec->currencyRate;
+	    	$toPay = ($rec->amountDelivered - $rec->amountPaid) / $docRec->currencyRate;
 	    	$toDeliver = ($rec->amountDeal - $rec->amountDelivered) / $docRec->currencyRate;
 	    	
 	    	$row->toPay = $mvc->getFieldType('amountDeal')->toVerbal($toPay);
