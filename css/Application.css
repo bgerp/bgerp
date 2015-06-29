@@ -2422,6 +2422,10 @@ span.sharing-history-title {
 .narrow-scroll .listBlock {
   display: block; }
 
+.narrow .single-thread > .listRows > .listTable {
+  width: 100%;
+  max-width: 56em; }
+
 .narrow .listRows .listTable {
   margin-bottom: 5px; }
 
@@ -2865,6 +2869,7 @@ div.location.public {
 .narrow .portal-filter .button {
   height: 1.5em;
   padding: 2px 0;
+  width: 20px;
   right: 0 !important;
   border: none;
   background-position: center 2px; }
@@ -3331,6 +3336,10 @@ only screen and (max-width: 900px) {
 
 @media handheld,
 only screen and (max-width: 800px) {
+  .wide .document {
+    min-width: 400px;
+    max-width: 700px; }
+
   #cmsMenu a {
     margin-left: 6px !important;
     margin-right: 6px !important;

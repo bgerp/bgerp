@@ -611,6 +611,10 @@ input[type=radio] + label, input[type=checkbox] + label {
 	vertical-align: baseline;
 }
 
+.narrow input[type=radio] + label, .narrow input[type=checkbox] + label {
+    font-size: 0.9em;
+}
+
 input[type=radio]:checked + label, input[type=checkbox]:checked + label {
    color: #000;
    text-shadow: 1px 1px 1px #aaa;
@@ -1668,7 +1672,6 @@ table.keylist {
 }
 
 .narrow table.keylist td {
-	font-size: 0.9em;
 	padding-top: 0.1em;
 	padding-bottom: 0 !important;
 	

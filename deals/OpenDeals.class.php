@@ -43,7 +43,7 @@ class deals_OpenDeals extends core_Manager {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'valior=Вальор, docId=Документ, client=Клиент, currencyId=Валута, amountDeal, amountPaid, amountDelivered, state=Състояние, newDoc=Действие';
+    public $listFields = 'valior=Вальор, docId=Документ, client=Клиент, currencyId=Валута, amountPaid, amountDelivered, toPay=Сума->За плащане, toDeliver=Сума->За доставяне, state=Състояние, newDoc=Действие';
     
     
     /**
@@ -137,6 +137,13 @@ class deals_OpenDeals extends core_Manager {
     		// В мобилен изглед, бутона за нови документи е първи
     		$tmp = array_pop($data->listFields);
     		$data->listFields = array('newDoc' => $tmp) + $data->listFields;
+    	}
+    	
+    	$show = Request::get('show', 'enum(store,bank,cash)');
+    	if($show == 'store'){
+    		unset($data->listFields['toPay']);
+    	} else {
+    		unset($data->listFields['toDeliver']);
     	}
     }
 	
@@ -233,6 +240,22 @@ class deals_OpenDeals extends core_Manager {
 	    		$row->docId = $icon . " " . "<span style='color:#777'>" . $row->docId . "";
 	    		unset($row->amountDeal, $row->amountPaid, $row->currencyId);
 	    	}
+	    	
+	    	$toPay = ($rec->amountDeal - $rec->amountPaid) / $docRec->currencyRate;
+	    	$toDeliver = ($rec->amountDeal - $rec->amountDelivered) / $docRec->currencyRate;
+	    	
+	    	$row->toPay = $mvc->getFieldType('amountDeal')->toVerbal($toPay);
+	    	
+	    	$row->toPay = $mvc->getFieldType('amountDeal')->toVerbal($toPay);
+	    	if(empty($toPay)){
+	    		$row->toPay = "<span class='quiet'>{$row->toPay}</span>";
+	    	}
+	    	$row->toPay = "<span style = 'float:right'>{$row->toPay}</span>";
+	    	
+	    	if(empty($toDeliver)){
+	    		$row->toDeliver = "<span class='quiet'>{$row->toDeliver}</span>";
+	    	}
+	    	$row->toDeliver = "<span style = 'float:right'>{$row->toDeliver}</span>";
     	}
     }
     
