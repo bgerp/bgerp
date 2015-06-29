@@ -271,9 +271,11 @@ function searchInLink(obj, inputClassName, fieldName, haveGet)
  * 
  * @param obj
  */
-function onSearchEnter(obj, id)
+function onSearchEnter(obj, id, inp)
 {
 	if (obj.keyCode == 13) {
-        $('#' + id).click();
+		if (!inp || (inp && $(inp).val().trim())) {
+			$('#' + id).click();
+		}
     }
 }
