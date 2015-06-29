@@ -129,11 +129,11 @@ class ssh_Actions
     public function getContents($remoteFileName)
     {
         if (!($localFileName = tempnam(EF_TEMP_PATH, $remoteFileName))) {
-        	throw core_exception_Expect("Грешка при създаване на временен файл.");
+        	throw new core_exception_Expect("Грешка при създаване на временен файл.");
         }
         
         if (!ssh2_scp_recv($this->connection, $remoteFileName, $localFileName)) {
-            throw core_exception_Expect("Грешка при сваляне на файл от отдалечен хост.");
+            throw new core_exception_Expect("Грешка при сваляне на файл от отдалечен хост.");
         }
         $contents = file_get_contents($localFileName);
         @unlink($localFileName);
