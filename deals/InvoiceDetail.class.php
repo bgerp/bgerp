@@ -53,7 +53,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 	{
 		$mvc->FLD('productId', 'int', 'caption=Продукт','tdClass=large-field leftCol wrap,removeAndRefreshForm=packPrice|discount|packagingId');
 		$mvc->FLD('classId', 'class(interface=cat_ProductAccRegIntf, select=title)', 'caption=Мениджър,silent,input=hidden');
-		$mvc->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка','tdClass=small-field,removeAndRefreshForm=packPrice|discount|uomId');
+		$mvc->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка','tdClass=small-field,silent,removeAndRefreshForm=packPrice|discount|uomId');
 		$mvc->FLD('quantity', 'double(Min=0)', 'caption=К-во,mandatory','tdClass=small-field');
 		$mvc->FLD('quantityInPack', 'double(smartRound)', 'input=none');
 		$mvc->FLD('price', 'double', 'caption=Цена, input=none');
@@ -402,6 +402,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 			// Само при рефреш слагаме основната опаковка за дефолт
 			if($form->cmd == 'refresh'){
 				$baseInfo = $ProductMan->getBasePackInfo($rec->productId);
+				
 				if($baseInfo->classId == 'cat_Packagings'){
 					$form->setDefault('packagingId', $baseInfo->id);
 				}
