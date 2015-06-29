@@ -921,6 +921,17 @@ function prepareContextMenu() {
         if (!position || !( position == 'left' || position== 'top' || position == 'bottom')) {
             position = 'right'
         }
+
+        var topOfElement = $(this).offset().top;
+        var bottomOfVisibleWindow = $(window).height();
+
+        //изчисляваме височината, спрямо броя на елементите и padding-a на popup-a
+        var elementHeight = $(el).find('input').length * 30 + 10;
+
+        if(position == 'bottom' && (bottomOfVisibleWindow < topOfElement + elementHeight) ) {
+            position ='top';
+        }
+
         $(this).contextMenu('popup', el, {
             'displayAround': 'trigger',
             'position': position
