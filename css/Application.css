@@ -2865,6 +2865,7 @@ div.location.public {
 .narrow .portal-filter .button {
   height: 1.5em;
   padding: 2px 0;
+  width: 20px;
   right: 0 !important;
   border: none;
   background-position: center 2px; }
