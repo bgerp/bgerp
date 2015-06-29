@@ -2683,6 +2683,11 @@ fieldset.sharing-history {
 	display: block;
 }
 
+.narrow .single-thread > .listRows > .listTable {
+    width: 100%;
+    max-width: 56em;
+}
+
 .narrow .listRows .listTable {
 	margin-bottom: 5px;
 }
