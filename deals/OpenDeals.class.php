@@ -43,7 +43,7 @@ class deals_OpenDeals extends core_Manager {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'valior=Вальор, docId=Документ, client=Клиент, currencyId=Валута, amountPaid, amountDelivered, toPay=Сума->За плащане, toDeliver=Сума->За доставяне, state=Състояние, newDoc=Действие';
+    public $listFields = 'valior=Вальор, docId=Документ, client=Клиент, currencyId=Валута, amountDelivered, amountPaid, toPay=Сума->За плащане, toDeliver=Сума->За доставяне, state=Състояние, newDoc=Действие';
     
     
     /**
