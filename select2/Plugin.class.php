@@ -56,6 +56,8 @@ class select2_Plugin extends core_Plugin
      */
     function on_BeforeRenderInput(&$invoker, &$tpl, $name, &$value, &$attr = array())
     {
+        if (!select2_Adapter::canUseSelect2()) return ;
+        
         // Премамахваме от масива елемента от hidden полето
         if(is_array($value) && isset($value[self::$hiddenName])) {
             unset($value[self::$hiddenName]);
@@ -81,6 +83,8 @@ class select2_Plugin extends core_Plugin
      */
     function on_AfterRenderInput(&$invoker, &$tpl, $name, $value, &$attr = array())
     {
+        if (!select2_Adapter::canUseSelect2()) return ;
+        
         $minItems = $invoker->params['select2MinItems'] ? $invoker->params['select2MinItems'] : self::$minItems;
     	
         if (!is_null($invoker->suggestions)) {
