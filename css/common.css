@@ -1232,6 +1232,9 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
 .formTable > tr > td {
   padding: 3px; }
 
+.formTable .toolbar {
+  margin-bottom: 0 !important; }
+
 .wide .listTopContainer .formTable {
   -moz-box-shadow: none;
   -webkit-box-shadow: none;
