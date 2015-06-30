@@ -68,10 +68,8 @@ class core_page_InternalModern extends core_page_Active
         $this->prepend($conf->EF_APP_TITLE, 'PAGE_TITLE');
         $this->prepend(' modern-theme', 'BODY_CLASS_NAME');
 
-        // Ако сме в широк изглед извикваме функцията за мащабиране
-        if(Mode::is('screenMode', 'narrow')){
-        	$this->append("disableScale();", "START_SCRIPTS");
-        }
+        // Забраняваме мащабирането
+        $this->append("disableScale();", "START_SCRIPTS");
 
         // Акордеона в менюто
         $this->append("runOnLoad(sidebarAccordeonActions);", "JQRUN");
