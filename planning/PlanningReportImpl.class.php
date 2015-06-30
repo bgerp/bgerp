@@ -175,6 +175,8 @@ class planning_PlanningReportImpl extends frame_BaseDriver
 		        
 		        $storeId = $data->rec->store;
 
+		        //bp($product->productId, $product->classId, $storeId);
+		        //bp(store_Products::fetchField("#productId = '{$product->productId}' AND #classId = '{$product->classId}' AND #storeId = '{$storeId}'", 'quantity'));
 		        // ако нямаме такъв запис,
 		        // го добавяме в масив
 			    if(!array_key_exists($index, $data->recs)){
@@ -252,21 +254,20 @@ class planning_PlanningReportImpl extends frame_BaseDriver
         arr::order($data->recs, 'date');
         arr::order($data->recs, 'dateSale');
         
-        for ($dt = 0; $dt <= count($data->recs); $dt++) {
-        	if ($data->recs[$dt]->date) {
-        		$data->recs[$dt]->date = dt::timestamp2Mysql($data->recs[$dt]->date);
+        foreach ($data->recs as $id => $recs) {
+        	if ($recs->date) {
+        		$recs->date = dt::timestamp2Mysql($recs->date);
         	}
         	
-        	if ($data->recs[$dt]->dateSale) {
-        		$data->recs[$dt]->dateSale = dt::timestamp2Mysql($data->recs[$dt]->dateSale);
+        	if ($recs->dateSale) {
+        		$recs->dateSale = dt::timestamp2Mysql($recs->dateSale);
         	}
-        }
-
-        foreach ($data->recs as $id => $recs) {
+        	
         	if (($recs->quantityToProduced < $recs->store) || ($recs->quantityToDelivered < $recs->store)) {
         		unset($data->recs[$id]);
         	}
         }
+
 
         return $data;
     }
@@ -285,7 +286,7 @@ class planning_PlanningReportImpl extends frame_BaseDriver
         $data->pager = $pager;
         
         if(count($data->recs)){
-          
+         // bp($data->recs);
             foreach ($data->recs as $id => $rec){
 				if(!$pager->isOnPage()) continue;
                 
