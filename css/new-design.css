@@ -304,7 +304,7 @@ body {
   .bookmark-links ul {
     padding-left: 0; }
     .bookmark-links ul li {
-      border-bottom: 1px dashed #fefdd6;
+      border-bottom: 1px dashed rgba(254, 253, 21, 0.5);
       padding: 5px 0 5px 0px;
       display: block; }
       .bookmark-links ul li:last-child {
