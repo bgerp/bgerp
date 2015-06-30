@@ -73,9 +73,6 @@ class core_page_InternalModern extends core_page_Active
         	$this->append("disableScale();", "START_SCRIPTS");
         }
 
-        // Опаковките и главното съдържание заемат екрана до долу
-        $this->append("runOnLoad(setMinHeight);", "JQRUN");
-        
         // Акордеона в менюто
         $this->append("runOnLoad(sidebarAccordeonActions);", "JQRUN");
 
