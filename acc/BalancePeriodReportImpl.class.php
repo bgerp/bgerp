@@ -342,51 +342,34 @@ class acc_BalancePeriodReportImpl extends frame_BaseDriver
     	
     		$tpl->replace($btnChart, 'buttonChart');
     	}
+    	
+    	
     
     	// подготвяме данните за графиката
+   
     	$labels = array();
-    	$values = array();
-        //bp($data);
-    	$currentDate = dt::mysql2timestamp($data->recs[$data->rec->from]->currentDate);
-    	$currentYear = date("Y", $currentDate);
-    	
-    	$previousDate = dt::mysql2timestamp($data->recs[$data->rec->to]->previousDate);
-    	$previousYear = date("Y", $previousDate);
-    	
-    	if ($currentYear != $previousYear) {
-    		$labels[] = $currentYear;
-    		
-    		array_push($labels, $previousYear);
-    	} else {
-    		$labels[] = $currentYear;
-
+        foreach ($data->recs as $id => $rec) { 
+	    	$current .= acc_Periods::getTitleById($rec->periodId). ",<br>";
+	    	$prev .= acc_Periods::getTitleById($rec->previousPeriodId). ",<br>";
+	    				
+	    	$labels[] = acc_Periods::getTitleById($rec->periodId). "-" . 
+	    				   acc_Periods::getTitleById($rec->previousPeriodId);
+			$currentValues [] = abs($data->recs[$id]->amount);
+	    	$previousValues[] = abs($data->recs[$id]->amountPrevious);
     	}
     	
-    	foreach ($data->recs as $id => $rec) {
-    		
-    		
-    		$current = acc_Periods::getTitleById($rec->periodId);
-    		$privious = acc_Periods::getTitleById($rec->previousPeriodId);
-    		$key = array_search($currentYear, $labels);
-    		$keyPrevious = array_search($previousYear, $labels);
-    	
-    		if ($currentYear == $previousYear) { 
-    			$values[$current][$key] = abs($rec->amount);
-    			$values[$privious][$key] = abs($rec->amountPrevious);
-
-    		} else {
-    			$values[$current][$key] = abs($rec->amount);
-	    		$values[$current][$keyPrevious] = 0;
-	    		$values[$privious][$keyPrevious] = abs($rec->amountPrevious);
-	    		$values[$privious][$key] = 0;
-    		}
-    	}
+		$current = substr($current,0, strlen(trim($current))-5);
+		$prev = substr($prev,0, strlen(trim($prev))-5);
 
     	if ($chart == 'bar'.$data->rec->containerId && $data->recs) { 
 	    	$bar = array (
 	    			'legendTitle' => "Легенда",
 	    			'labels' => $labels,
-	    			'values' => $values
+	    			'values' => [
+	    					$current => $currentValues,
+	    					$prev => $previousValues,
+	    						
+	    			]
 	    	);
 
 	    	$coreConf = core_Packs::getConfig('doc');
