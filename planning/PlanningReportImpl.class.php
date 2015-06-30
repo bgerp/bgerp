@@ -236,6 +236,7 @@ class planning_PlanningReportImpl extends frame_BaseDriver
 
     	
     	foreach ($dateJob as $prdJ => $job) {
+    		$data->recs[$prdJ] = new stdClass();
         	if(count($job) > 1) {
         		$data->recs[$prdJ]->date = min($job);
         		$data->recs[$prdJ]->date = dt::mysql2timestamp($data->recs[$prdJ]->date);
