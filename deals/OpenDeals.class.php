@@ -241,6 +241,12 @@ class deals_OpenDeals extends core_Manager {
 	    		unset($row->amountDeal, $row->amountPaid, $row->currencyId);
 	    	}
 	    	
+	    	// За немигрираните стари приключени сделки, доставеното да е равно на договореното
+	    	if($rec->state == 'closed' && empty($rec->amountDelivered)){
+	    		$rec->amountDelivered = $rec->amountDeal;
+	    		$row->amountDelivered = $mvc->getFieldType('amountDelivered')->toVerbal($rec->amountDelivered);
+	    	}
+	    	
 	    	$toPay = ($rec->amountDelivered - $rec->amountPaid) / $docRec->currencyRate;
 	    	$toDeliver = ($rec->amountDeal - $rec->amountDelivered) / $docRec->currencyRate;
 	    	
@@ -250,10 +256,16 @@ class deals_OpenDeals extends core_Manager {
 	    	if(empty($toPay)){
 	    		$row->toPay = "<span class='quiet'>{$row->toPay}</span>";
 	    	}
+	    	if($toPay < 0){
+	    		$row->toPay = "<span style = 'color:red'>{$row->toPay}</span>";
+	    	}
 	    	$row->toPay = "<span style = 'float:right'>{$row->toPay}</span>";
 	    	
 	    	if(empty($toDeliver)){
 	    		$row->toDeliver = "<span class='quiet'>{$row->toDeliver}</span>";
+	    	}
+	    	if($toDeliver < 0){
+	    		$row->toDeliver = "<span style = 'color:red'>{$row->toDeliver}</span>";
 	    	}
 	    	$row->toDeliver = "<span style = 'float:right'>{$row->toDeliver}</span>";
     	}
