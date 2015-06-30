@@ -1,5 +1,5 @@
 function slidebars(){
-	initSidebars();
+    initElements();
 	openSubmenus();
 	changePinIcon();
 	userMenuActions();
@@ -8,7 +8,11 @@ function slidebars(){
 /**
  * Създава лентите и задава необходините опции спрямо ширината на страницата
  */
-function initSidebars() {
+function initElements() {
+    if($('#main-container > .tab-control > .tab-row').length == 0) {
+        $('#framecontentTop').css('border-bottom', '1px solid #ccc');
+    }
+
 	var viewportWidth = $(window).width();
 	if(viewportWidth > 600){
 		 $('.btn-sidemenu').jPushMenu({closeOnClickOutside: false, closeOnClickInside: false});
