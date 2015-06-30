@@ -65,7 +65,7 @@ class select2_Setup extends core_ProtoSetup {
         // Минималния брой елементи, за които няма да сработи SELECT2
         'SELECT2_WIDE_MIN_SEARCH_ITEMS_CNT' => array ('int', 'caption=Минимален брой опции за да сработи търсенето в Select2->За широк екран, suggestions=5|10|20|50|100'),
         'SELECT2_NARROW_MIN_SEARCH_ITEMS_CNT' => array ('int', 'caption=Минимален брой опции за да сработи търсенето в Select2->За тесен екран, suggestions=5|10|20|50|100'),
-        'SELECT2_VERSION' => array ('enum(4.0rc2, 4.0fixed)', 'caption=Версия на Select2->Версия'),
+        'SELECT2_VERSION' => array ('enum(4.0rc2, 4.0)', 'caption=Версия на Select2->Версия'),
     );
     
     
