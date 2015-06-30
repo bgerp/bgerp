@@ -917,21 +917,11 @@ function prepareContextMenu() {
     jQuery.each($('.more-btn'), function(i, val) {
         var el = $(this).parent().find('.modal-toolbar');
         var position = el.attr('data-position');
-        
+
         if (!position || !( position == 'left' || position== 'top' || position == 'bottom')) {
-            position = 'right'
+            position = 'auto'
         }
 
-        var topOfElement = $(this).offset().top;
-        var bottomOfVisibleWindow = $(window).height();
-
-        //изчисляваме височината, спрямо броя на елементите и padding-a на popup-a
-        var elementHeight = $(el).find('input').length * 30 + 10;
-
-        if(position == 'bottom' && (bottomOfVisibleWindow < topOfElement + elementHeight) ) {
-            position ='top';
-        }
-        
         var act = 'popup';
         
         if ($(this).hasClass('iw-mTrigger')) {

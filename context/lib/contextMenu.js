@@ -376,8 +376,8 @@
                     triggerTop = cntWin ? trigger.offset().top - cObj.scrollTop() : trigger.offset().top - cTop,
                     leftShift = triggerWidth;
 
-                left = triggerLeft + triggerWidth;
-                top = triggerTop;
+                left = triggerLeft;
+                top = triggerTop + triggerHeight;
 
 
                 bottomMenu = top + menuHeight;
@@ -393,7 +393,7 @@
                             va = 0;
                         }
                     } else {
-                        top = top - menuHeight + triggerHeight;
+                        top = top - menuHeight - triggerHeight;
                         va = -1 * va;
                     }
                 }
@@ -419,16 +419,16 @@
                     menuHeight = Math.min(menuData.menuHeight, triggerTop);
                     top = triggerTop - menuHeight;
                     va = verAdjust;
-                    left = left - leftShift;
+                    left = left - leftShift + triggerWidth;
                 } else if (option.position == 'left') {
                     menuWidth = Math.min(menuData.menuWidth, triggerLeft);
-                    left = triggerLeft - menuWidth;
+                    left = triggerLeft - menuWidth + triggerWidth - 4;
                     ha = horAdjust;
                 } else if (option.position == 'bottom') {
                     menuHeight = Math.min(menuData.menuHeight, (cHeight - triggerTop - triggerHeight));
                     top = triggerTop + triggerHeight;
                     va = verAdjust;
-                    left = left - leftShift;
+                    left = left - leftShift + triggerWidth;
                 } else if (option.position == 'right') {
                     menuWidth = Math.min(menuData.menuWidth, (cWidth - triggerLeft - triggerWidth));
                     left = triggerLeft + triggerWidth;
