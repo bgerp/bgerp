@@ -1580,6 +1580,14 @@ td.keylist-group {
       top: 2px;
       position: relative; }
 
+.narrow .keylistCategory .keylist-group > div {
+  position: relative; }
+  .narrow .keylistCategory .keylist-group > div .invert-checkbox {
+    position: absolute;
+    right: 3px;
+    top: 50%;
+    margin-top: -8px; }
+
   .keylistCategory.opened  .invert-checkbox {
     float: right;
     display: block; }

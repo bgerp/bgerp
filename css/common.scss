@@ -1685,11 +1685,21 @@ td.keylist-group{
 	    margin-top: 1px;
 	    cursor: pointer; 
 	    img {
-	       display:none;
+	        display: none;
 	    	margin-right: 5px;
 	    	top: 2px;
 	    	position: relative;
 	    } 
+    }
+}
+
+.narrow .keylistCategory .keylist-group > div {
+    position: relative;
+    .invert-checkbox {
+        position: absolute;
+        right: 3px;
+        top: 50%;
+        margin-top: -8px;
     }
 }
 
