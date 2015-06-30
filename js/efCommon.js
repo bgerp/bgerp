@@ -931,8 +931,14 @@ function prepareContextMenu() {
         if(position == 'bottom' && (bottomOfVisibleWindow < topOfElement + elementHeight) ) {
             position ='top';
         }
-
-        $(this).contextMenu('popup', el, {
+        
+        var act = 'popup';
+        
+        if ($(this).hasClass('iw-mTrigger')) {
+        	act = 'update';
+        }
+        
+        $(this).contextMenu(act, el, {
             'displayAround': 'trigger',
             'position': position
         });
