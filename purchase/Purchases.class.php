@@ -89,6 +89,12 @@ class purchase_Purchases extends deals_DealMaster
     public $canAdd = 'ceo, purchase';
     
     
+	/**
+	* Кои роли могат да филтрират потребителите по екип в листовия изглед
+	*/
+	public $filterRolesForTeam = 'ceo,purchaseMaster,manager';
+    
+    
     /**
      * Полета, които ще се показват в листов изглед
      */
