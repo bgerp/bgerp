@@ -676,6 +676,11 @@ button {
   input[type="submit"]:hover,
   button:hover {
     background-color: #e5e5e5; }
+    a.button:hover.btn-disabled,
+    input[type="button"]:hover.btn-disabled,
+    input[type="submit"]:hover.btn-disabled,
+    button:hover.btn-disabled {
+      background-color: #dddddd; }
 
 .narrow a.button,
 .narrow input[type="button"],

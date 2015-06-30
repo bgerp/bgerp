@@ -735,6 +735,9 @@ a.button, input[type="button"], input[type="submit"], button {
 	text-shadow: 0 1px 0px #f1f1f1;
 	&:hover {
 	    background-color: #e5e5e5;
+        &.btn-disabled {
+            background-color: #dddddd;
+        }
 	}
 }
 
