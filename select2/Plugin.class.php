@@ -110,8 +110,6 @@ class select2_Plugin extends core_Plugin
             
             $optionsAttrArr = array();
             
-            $optionsAttrArr['class'] = 'not-selected';
-            
             if (is_object($val)) {
                 if ($val->group) {
                     if($mustCloseGroup) {
@@ -131,13 +129,11 @@ class select2_Plugin extends core_Plugin
  
             if (is_array($value)) {
                 if ($value[$key]) {
-                    $optionsAttrArr['selected'] = 'selected';
                     $optionsAttrArr['class'] = 'selected';
                 }
 
             } else {
                 if (strstr($value, $newKey)) {
-                    $optionsAttrArr['selected'] = 'selected';
                     $optionsAttrArr['class'] = 'selected';
                 }
             }
