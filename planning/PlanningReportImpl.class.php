@@ -57,6 +57,7 @@ class planning_PlanningReportImpl extends frame_BaseDriver
     {
     	$form->FLD('from', 'date', 'caption=Начало,input=none');
     	$form->FLD('to', 'date', 'caption=Край,input=none');
+    	$form->FLD('store', 'key(mvc=store_Stores, select=name)', 'caption=Склад');
     	
     	$this->invoke('AfterAddEmbeddedFields', array($form));
     }
@@ -108,6 +109,8 @@ class planning_PlanningReportImpl extends frame_BaseDriver
         $query->where("#state = 'active'");
         $queryJob->where("#state = 'active' OR #state = 'stopped' OR #state = 'wakeup'");
 
+        $dates = array();
+        
 	    // за всеки един активен договор за продажба
 	    while($rec = $query->fetch()) {
 	        
@@ -121,19 +124,17 @@ class planning_PlanningReportImpl extends frame_BaseDriver
 	        	$date = $rec->valior;
 	        }
 	        	
-	        $id = $rec->id;
-	        	
-	        if (sales_SalesDetails::fetch("#saleId = $id") !== FALSE) {
+	        if (sales_SalesDetails::fetch("#saleId = '{$rec->id}'") !== FALSE) {
 	        		
 	        		
-	        	$p = sales_SalesDetails::fetch("#saleId = $rec->id");
+	        	$p = sales_SalesDetails::fetch("#saleId = '{$rec->id}'");
 	            $productId = $p->productId;
 	       
 	            $productInfo = cat_Products::getProductInfo($productId);
 	       
 	            if ($productInfo->meta['canManifacture'] == TRUE) {
-	            	$products[] = sales_SalesDetails::fetch("#saleId = $id AND #productId = $productId");
-	                $dates[$productId][$id] = $date;
+	            	$products[] = sales_SalesDetails::fetch("#saleId = '{$rec->id}' AND #productId = '{$productId}'");
+	                $dates[$productId][$rec->id] = $date;
 	            } else {
 	                continue;
 	            }
@@ -142,8 +143,9 @@ class planning_PlanningReportImpl extends frame_BaseDriver
 	        		continue;
 	        }
 	    }
-	       
-	        
+
+	    $dateSale = array();
+	    
 	    foreach ($dates as $prd => $sal) {
 	    	if(count($sal) > 1) {
 	        	$dateSale[$prd] = min($sal);
@@ -170,7 +172,8 @@ class planning_PlanningReportImpl extends frame_BaseDriver
 		        	
 		        if ($product->quantityDelivered >= $product->quantity) continue;
 		        
-		        $storeId = store_Stores::getCurrent();
+		        
+		        $storeId = $data->rec->store;
 
 		        // ако нямаме такъв запис,
 		        // го добавяме в масив
@@ -234,22 +237,20 @@ class planning_PlanningReportImpl extends frame_BaseDriver
 	    }
 
 
-    	
-    	foreach ($dateJob as $prdJ => $job) {
-    		$data->recs[$prdJ] = new stdClass();
-        	if(count($job) > 1) {
-        		$data->recs[$prdJ]->date = min($job);
-        		$data->recs[$prdJ]->date = dt::mysql2timestamp($data->recs[$prdJ]->date);
-        	} else {
-        		foreach ($job as $dJ){
-        			$data->recs[$prdJ]->date = dt::mysql2timestamp($dJ);
-        		}
-        	}
-        }
-        
+	    foreach($data->recs as $id => $rec) {
+	    	if (isset($dateJob[$id])) {
+	    		if (count($dateJob[$id]) > 1) {
+		    		$rec->date = min($dateJob[$id]);
+		    		$rec->date  = dt::mysql2timestamp($rec->date);
+	    		} else {
+	    			$rec->date  = dt::mysql2timestamp($rec->date);
+	    		}
+	    	}
+	    	
+	    }
+
         arr::order($data->recs, 'date');
         arr::order($data->recs, 'dateSale');
-        
         
         for ($dt = 0; $dt <= count($data->recs); $dt++) {
         	if ($data->recs[$dt]->date) {
