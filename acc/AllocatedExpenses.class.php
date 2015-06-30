@@ -233,7 +233,7 @@ class acc_AllocatedExpenses extends core_Master
     
     
     /**
-     * След рендиране на еденичния изглед
+     * След рендиране на единичния изглед
      */
     public static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {

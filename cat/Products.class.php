@@ -1615,11 +1615,11 @@ class cat_Products extends core_Embedder {
     
     
     /**
-     * Връща урл-то към еденичния изглед на обекта, ако потребителя има
+     * Връща урл-то към единичния изглед на обекта, ако потребителя има
      * права за сингъла. Ако няма права връща празен масив
      *
      * @param int $id - ид на запис
-     * @return array $url - масив с урл-то на еденичния изглед
+     * @return array $url - масив с урл-то на единичния изглед
      */
     public static function getSingleUrlArray($id)
     {
@@ -1627,7 +1627,7 @@ class cat_Products extends core_Embedder {
     	 
     	$url = array();
     	 
-    	// Ако потребителя има права за еденичния изглед, подготвяме линка
+    	// Ако потребителя има права за единичния изглед, подготвяме линка
     	if ($me->haveRightFor('single', $id)) {
     		$url = array($me, 'single', $id, 'ret_url' => TRUE);
     	} elseif($me->haveRightFor('privateSingle', $id)){

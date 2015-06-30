@@ -82,7 +82,7 @@ class planning_transaction_ProductionNote extends acc_DocumentTransactionSource
 					$quantityJob = planning_Jobs::fetchField($dRec->jobId, 'quantity');
 					$resourceInfo = cat_Boms::getResourceInfo($dRec->bomId);
 					
-					// Еденични суми от рецептата
+					// Единични суми от рецептата
 					$priceObj = cat_Boms::getPrice($dRec->productId, $dRec->bomId);
 					
 					// проверяваме цената за к-то от заданието

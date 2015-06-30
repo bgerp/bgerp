@@ -884,7 +884,7 @@ class marketing_Inquiries2 extends core_Embedder
     
     
     /**
-     * След рендиране на еденичния изглед
+     * След рендиране на единичния изглед
      */
     public static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
