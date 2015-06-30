@@ -142,7 +142,7 @@ class select2_Plugin extends core_Plugin
             
             $options->append(ht::createElement('option', $optionsAttrArr, $val));
         }
-
+        
         if ($mustCloseGroup) {
             $options->append("</optgroup>\n");
         }
@@ -157,7 +157,7 @@ class select2_Plugin extends core_Plugin
             $selectAttrArray['multiple'] = 'multiple';
         }
         
-        $selectAttrArray['class'] = self::$className;
+        $selectAttrArray['class'] = self::$className . ' ' . $attr['class'];
         $selectAttrArray['id'] = $attr['id'];
         $selectAttrArray['name'] = $name . '[]';
         $selectAttrArray['style'] = 'width:100%';
