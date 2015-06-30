@@ -105,8 +105,6 @@ class select2_Plugin extends core_Plugin
         $options = new ET();
         $mustCloseGroup = FALSE;
         
-        $maxLen = 0;
-        
         // Преобразуваме опциите в селекти
         foreach ((array)$optArr as $key => $val) {
             
@@ -147,12 +145,6 @@ class select2_Plugin extends core_Plugin
             $optionsAttrArr['value'] = $key;
             
             $options->append(ht::createElement('option', $optionsAttrArr, $val));
-            
-            $len = mb_strlen($val);
-            
-            if (!$maxLen || $len > $maxLen) {
-                $maxLen = $len;
-            }
         }
         
         if ($mustCloseGroup) {
@@ -169,11 +161,10 @@ class select2_Plugin extends core_Plugin
             $selectAttrArray['multiple'] = 'multiple';
         }
         
-        $invoker->setFieldWidth($attr, $maxLen);
-        
         $selectAttrArray['class'] = self::$className . ' ' . $attr['class'];
         $selectAttrArray['id'] = $attr['id'];
         $selectAttrArray['name'] = $name . '[]';
+        $selectAttrArray['style'] = 'width:100%';
         $tpl = ht::createElement('select', $selectAttrArray, $options);
         
         $tpl->append("<input type='hidden' name='{$name}[" . self::$hiddenName . "]' value=1>");
