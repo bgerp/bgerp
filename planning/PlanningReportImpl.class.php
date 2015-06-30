@@ -199,7 +199,9 @@ class planning_PlanningReportImpl extends frame_BaseDriver
 			    }
 			}
 	    }
-	
+	    
+	    $dateJob = array();
+	    
 	    while ($recJobs = $queryJob->fetch()) {
 	    	$indexJ = $recJobs->productId;
 	        $dateJob[$recJobs->productId][$recJobs->id] = $recJobs->dueDate;

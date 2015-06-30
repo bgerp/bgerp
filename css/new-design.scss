@@ -784,9 +784,12 @@ select, input, textarea , .chzn-container-single .chzn-single, .chzn-container-a
 form[method="post"] input[type="submit"] {
 	background-color: #888;
 	text-shadow: none;
-	color: #fff !important;
+	color: #fff;
 	&:hover {
-	   background-color: #999 !important;
+	   background-color: #999;
+        &.btn-disabled {
+            background-color: #888;
+        }
 	}
 }
 
@@ -797,6 +800,10 @@ form[method=post] input[type=button], form[method=post] a.button {
     &:hover {
         background-color: #b1b1b1;
     }
+}
+
+.btn-disabled {
+    color: #bbb !important;
 }
 
 .vertical .formTitle {

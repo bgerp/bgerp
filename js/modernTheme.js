@@ -29,7 +29,6 @@ function initSidebars() {
         $(window).resize( function() {
             viewportWidth = $(window).width();
             setViewportWidth(viewportWidth);
-            setMinHeight();
         });
 	}
 }
@@ -181,20 +180,6 @@ function sidebarAccordeonActions() {
 	});
 }
 
-/**
- * Задава максиналната височина на опаковката и основното съдържание
- */
-function setMinHeight() {
-	 if($('.inner-framecontentTop').length){
-		 var menuHeight = $('.tab-control > .tab-row').first().height();
-		 var headerHeight = parseInt($('.inner-framecontentTop').height(), 10);
-		 var calcMargin = headerHeight + menuHeight;
-		 if ($('body').hasClass('narrow')){
-			 $(window).scrollTop(0);
-			 $('#maincontent').css('margin-top', calcMargin - 12);
-		 }
-	 }
-}
 
 /**
  * Скролира listTable, ако е необходимо
