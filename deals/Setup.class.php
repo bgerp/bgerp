@@ -67,6 +67,10 @@ class deals_Setup extends core_ProtoSetup
      */
     function updateOpenDeals2()
     {
+    	if(!deals_OpenDeals::count()){
+    		return;
+    	}
+    	
     	core_App::setTimeLimit(800);
     	 
     	$query = deals_OpenDeals::getQuery();
