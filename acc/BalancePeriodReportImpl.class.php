@@ -237,8 +237,8 @@ class acc_BalancePeriodReportImpl extends frame_BaseDriver
 	    }
 	    
 	    foreach($data->recs as $id => $rec) {
-	    	if (!$rec->amount && !$rec->amountPrevious) {
-	    		//unset ($data->recs);
+	    	if ($rec->amount == NULL && $rec->amountPrevious == NULL) {
+	    		unset ($data->recs);
 	    	}
 	    }
 	    
@@ -297,7 +297,7 @@ class acc_BalancePeriodReportImpl extends frame_BaseDriver
     public function renderEmbeddedData($data)
     {
     
-    	if(empty($data->recs)) return;
+    	if(empty($data)) return;
     	
     	$chart = Request::get('Chart');
     	$id = Request::get('id', 'int');
@@ -352,23 +352,24 @@ class acc_BalancePeriodReportImpl extends frame_BaseDriver
    
     	$labels = array();
     	
-    	
-        foreach ($data->recs as $id => $rec) {
-        	$dateRec = dt::mysql2timestamp($rec->currentDate);
-        	$year = date('Y', $dateRec);
-        	$month = date ('m', $dateRec);
-        	
-        	$datePreviousRec = dt::mysql2timestamp($rec->previousDate);
-        	$previousYear = date('Y', $datePreviousRec);
-        	
-	    	$current = acc_Periods::getTitleById($rec->periodId);
-	    	$current = substr($current,0, strlen(trim($current))-5);
-	    	$current = dt::$monthsShort[$month-1];
-	    				
-	    	$labels[] = $current; 
-	    	
-			$currentValues [] = abs($data->recs[$id]->amount);
-	    	$previousValues[] = abs($data->recs[$id]->amountPrevious);
+    	if (is_array($data->recs)) {
+	        foreach ($data->recs as $id => $rec) {
+	        	$dateRec = dt::mysql2timestamp($rec->currentDate);
+	        	$year = date('Y', $dateRec);
+	        	$month = date ('m', $dateRec);
+	        	
+	        	$datePreviousRec = dt::mysql2timestamp($rec->previousDate);
+	        	$previousYear = date('Y', $datePreviousRec);
+	        	
+		    	$current = acc_Periods::getTitleById($rec->periodId);
+		    	$current = substr($current,0, strlen(trim($current))-5);
+		    	$current = dt::$monthsShort[$month-1];
+		    				
+		    	$labels[] = $current; 
+		    	
+				$currentValues [] = abs($data->recs[$id]->amount);
+		    	$previousValues[] = abs($data->recs[$id]->amountPrevious);
+	    	}
     	}
 
     	if ($chart == 'bar'.$data->rec->containerId && $data->recs) { 
