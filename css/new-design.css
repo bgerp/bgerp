@@ -727,9 +727,11 @@ input:focus[type=button] {
 form[method="post"] input[type="submit"] {
   background-color: #888888;
   text-shadow: none;
-  color: white !important; }
+  color: white; }
   form[method="post"] input[type="submit"]:hover {
-    background-color: #999999 !important; }
+    background-color: #999999; }
+    form[method="post"] input[type="submit"]:hover.btn-disabled {
+      background-color: #888888; }
 
 form[method=post] input[type=button],
 form[method=post] a.button {
@@ -739,6 +741,9 @@ form[method=post] a.button {
   form[method=post] input[type=button]:hover,
   form[method=post] a.button:hover {
     background-color: #b1b1b1; }
+
+.btn-disabled {
+  color: #bbbbbb !important; }
 
 .vertical .formTitle {
   font-size: 1.05em; }
