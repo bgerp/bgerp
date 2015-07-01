@@ -1564,8 +1564,12 @@ abstract class deals_DealMaster extends deals_DealBase
     	
     	// Дали толеранса е между 0 и 1
     	if(isset($tolerance)){
-    		$tolerance = cls::get('type_Double')->fromVerbal($tolerance);
+    		expect($tolerance = cls::get('type_Double')->fromVerbal($tolerance));
     		expect($tolerance >= 0 && $tolerance <= 1);
+    	}
+    	
+    	if(isset($term)){
+    		expect($term = cls::get('type_Time')->fromVerbal($term));
     	}
     	
     	
@@ -1602,6 +1606,7 @@ abstract class deals_DealMaster extends deals_DealBase
     						  'quantity'         => $quantityInPack * $packQuantity,
     						  'discount'         => $discount,
     						  'tolerance'		 => $tolerance,
+    						  'term'		     => $term,
     						  'price'            => $price,
     						  'quantityInPack'   => $quantityInPack,
     						  'notes'			 => $notes,
@@ -1622,6 +1627,10 @@ abstract class deals_DealMaster extends deals_DealBase
     		$nDiscount = ($exRec->quantity * $exRec->discount +  $dRec->quantity * $dRec->discount) / ($dRec->quantity + $exRec->quantity);
     		
     		// Ъпдейтваме к-то, цената и отстъпката на записа с новите
+    		if($term){
+    			$exRec->term += $dRec->term;
+    		}
+    		
     		$exRec->quantity += $dRec->quantity;
     		$exRec->price = $nPrice;
     		$exRec->discount = (empty($nDiscount)) ? NULL : $nDiscount;
