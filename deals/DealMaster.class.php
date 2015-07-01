@@ -1544,10 +1544,12 @@ abstract class deals_DealMaster extends deals_DealBase
      * @param double $price        - цена на единична бройка (ако не е подадена, определя се от политиката)
      * @param int $packagingId     - ид на опаковка (не е задължителна)
      * @param double $discount     - отстъпка между 0(0%) и 1(100%) (не е задължителна)
+     * @param double $tolerance    - толеранс между 0(0%) и 1(100%) (не е задължителен)
+     * @param string $term         - срок (не е задължителен)
      * @param text $notes          - забележки
      * @return mixed $id/FALSE     - ид на запис или FALSE
      */
-    public static function addRow($id, $pMan, $productId, $packQuantity, $price = NULL, $packagingId = NULL, $discount = NULL, $notes = NULL)
+    public static function addRow($id, $pMan, $productId, $packQuantity, $price = NULL, $packagingId = NULL, $discount = NULL, $tolerance = NULL, $term = NULL, $notes = NULL)
     {
     	$me = cls::get(get_called_class());
     	$Detail = cls::get($me->mainDetail);
@@ -1555,10 +1557,17 @@ abstract class deals_DealMaster extends deals_DealBase
     	expect($rec = $me->fetch($id));
     	expect($rec->state == 'draft');
     	
-    	// Дали отстъпката е между -1 и 1
+    	// Дали отстъпката е между 0 и 1
     	if(isset($discount)){
-    		expect($discount >= -1 && $discount <= 1);
+    		expect($discount >= 0 && $discount <= 1);
     	}
+    	
+    	// Дали толеранса е между 0 и 1
+    	if(isset($tolerance)){
+    		$tolerance = cls::get('type_Double')->fromVerbal($tolerance);
+    		expect($tolerance >= 0 && $tolerance <= 1);
+    	}
+    	
     	
     	// Трябва да има такъв продукт и опаковка
     	$ProductMan = cls::get($pMan);
@@ -1592,6 +1601,7 @@ abstract class deals_DealMaster extends deals_DealBase
     						  'packagingId'      => $packagingId,
     						  'quantity'         => $quantityInPack * $packQuantity,
     						  'discount'         => $discount,
+    						  'tolerance'		 => $tolerance,
     						  'price'            => $price,
     						  'quantityInPack'   => $quantityInPack,
     						  'notes'			 => $notes,
