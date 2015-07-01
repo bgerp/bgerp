@@ -177,10 +177,12 @@ class doc_Search extends core_Manager
             // Търсене по дата на създаване на документи (от-до)
             if (!empty($filterRec->fromDate)) {
                 $data->query->where(array("#createdOn >= '[#1#]'", $filterRec->fromDate));
+                $data->query->orWhere(array("#modifiedOn >= '[#1#]'", $filterRec->fromDate));
             }
             
             if (!empty($filterRec->toDate)) {
                 $data->query->where(array("#createdOn <= '[#1#] 23:59:59'", $filterRec->toDate));
+                $data->query->orWhere(array("#modifiedOn <= '[#1#] 23:59:59'", $filterRec->toDate));
             }
             
             // Ограничаване на търсенето до избрана папка
