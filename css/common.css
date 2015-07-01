@@ -1317,7 +1317,8 @@ input:focus[type=button] {
   .simpleForm .vertical .formGroup {
     font-weight: bold !important;
     color: black !important;
-    background: none !important; }
+    background: none !important;
+    border: none !important; }
 
 .wide #main-container .formTable .formElement {
   min-width: 32em; }
