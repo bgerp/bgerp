@@ -496,6 +496,9 @@ class acc_AllocatedExpenses extends core_Master
     			
     			 // Намираме документа по хендлъра
     			 $doc = doc_Containers::getDocumentByHandle($rec->dealHandler);
+    			 if(isset($doc) && !$doc->haveRightFor('single')){
+    			 	unset($doc);
+    			 }
     			 
     			 // Трябва да има такава сделка
     			 if($doc){
