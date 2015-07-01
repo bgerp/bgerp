@@ -497,8 +497,6 @@ a.bookmark-external-url {
   .menu-holder.user-holder {
     max-width: 140px; }
 
-.narrow .menu-holder {
-  max-width: 200px; }
   .narrow .menu-holder a {
     padding: 5px 20px 5px 25px;
     font-size: 1em; }
