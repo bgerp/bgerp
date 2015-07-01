@@ -13,7 +13,7 @@
                         № <span class="bigData">[#id#]</span> /
                         <span class="bigData">[#valior#]</span>
                         <!--ET_BEGIN reff-->
-                        |Ваш реф|*: <span class="bigData">[#reff#]</span>
+                        <div>|Ваш реф|*: <span class="bigData">[#reff#]</span></div>
                         <!--ET_END reff-->
                         
                     </div>
@@ -140,6 +140,7 @@
                             [#deliveryBlock#]
                             <li>|Доставка|*: [#deliveryTermId#]<!--ET_BEGIN deliveryTime--> |до|* [#deliveryTime#]<!--ET_END deliveryTime--></li>
                             <!--ET_END deliveryBlock-->
+                            <!--ET_BEGIN deliveryTermTime--><li>|Срок за доставка|* [#deliveryTermTime#] |след стартиране на договора|*</li><!--ET_END deliveryTermTime--> 
                         </ol>
                     </div>
                 </td>
