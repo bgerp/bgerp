@@ -1049,6 +1049,9 @@ td.portal-date {
     display: inline-block;
     white-space: nowrap; }
 
+.small-padding td {
+  padding: 3px !important; }
+
 .document-settings {
   display: inline-block;
   height: 16px;

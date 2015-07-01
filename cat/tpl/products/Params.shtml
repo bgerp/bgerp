@@ -2,7 +2,7 @@
     <legend class='groupTitle'>[#TITLE#]</legend>
     <div class='groupList'>
     	[#NO_ROWS#]
-        <table class='no-border'>
+        <table class='no-border small-padding'>
 		    <!--ET_BEGIN param-->
 		    [#param#]
 		    <tr>
