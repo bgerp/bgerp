@@ -250,6 +250,20 @@ class sales_Sales extends deals_DealMaster
         $this->FLD('reff', 'varchar(255)', 'caption=Ваш реф.,class=contactData,after=valior');
         $this->FLD('bankAccountId', 'key(mvc=bank_Accounts,select=iban,allowEmpty)', 'caption=Плащане->Банкова с-ка,after=currencyRate');
         $this->FLD('pricesAtDate', 'date', 'caption=Допълнително->Цени към,after=makeInvoice');
+        $this->FLD('deliveryTermTime', 'time(uom=days,suggestions=1 ден|5 дни|10 дни|1 седмица|2 седмици|1 месец)', 'caption=Доставка->Срок дни,after=deliveryTime');
+    }
+    
+    
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     */
+    public static function on_AfterInputEditForm($mvc, &$form)
+    {
+    	if ($form->isSubmitted()) {
+    		if(isset($form->rec->deliveryTermTime) && isset($form->rec->deliveryTime)){
+    			$form->setError('deliveryTime,deliveryTermTime', 'Трябва да е избран само един срок на доставка');
+    		}
+    	}
     }
     
     
