@@ -1625,6 +1625,7 @@ abstract class deals_DealMaster extends deals_DealBase
     		// Смятаме средно притеглената цена и отстъпка
     		$nPrice = ($exRec->quantity * $exRec->price +  $dRec->quantity * $dRec->price) / ($dRec->quantity + $exRec->quantity);
     		$nDiscount = ($exRec->quantity * $exRec->discount +  $dRec->quantity * $dRec->discount) / ($dRec->quantity + $exRec->quantity);
+    		$nTolerance = ($exRec->quantity * $exRec->tolerance +  $dRec->quantity * $dRec->tolerance) / ($dRec->quantity + $exRec->quantity);
     		
     		// Ъпдейтваме к-то, цената и отстъпката на записа с новите
     		if($term){
@@ -1634,6 +1635,7 @@ abstract class deals_DealMaster extends deals_DealBase
     		$exRec->quantity += $dRec->quantity;
     		$exRec->price = $nPrice;
     		$exRec->discount = (empty($nDiscount)) ? NULL : $nDiscount;
+    		$exRec->tolerance = (empty($nTolerance)) ? NULL : $nTolerance;
     		
     		// Ъпдейтваме съществуващия запис
     		$id = $Detail->save($exRec);
