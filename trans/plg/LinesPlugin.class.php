@@ -160,8 +160,8 @@ class trans_plg_LinesPlugin extends core_Plugin
 	 * @param array $products - масив от продуктите
 	 * 					[productId]    - ид на продукта
 	 * 					[packQuantity] - количество на опаковките
-	 * 					[weight]       - еденичното тегло
-	 * 					[volume]       - еденичния обем
+	 * 					[weight]       - единичното тегло
+	 * 					[volume]       - единичния обем
 	 */
 	public static function on_AfterGetMeasures($mvc, &$res, $products)
 	{

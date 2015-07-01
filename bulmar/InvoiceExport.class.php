@@ -113,7 +113,7 @@ class bulmar_InvoiceExport extends core_Manager {
     	// Записваме файла в системата
     	$fh = fileman::absorbStr($content, 'exportInvoices', $name);
     	
-    	// Ще редиректваме към еденичния изглед на файла
+    	// Ще редиректваме към единичния изглед на файла
     	$retUrl = toUrl(array('fileman_Files', 'single', $fh), 'local');
     	
     	// Подменяме урл-то за връщане

@@ -16,6 +16,19 @@ class select2_Adapter
     
     
     /**
+     * Проверка дали може да се изполва select2
+     * 
+     * @return boolean
+     */
+    public static function canUseSelect2()
+    {
+        if ((strtolower(logs_Browsers::getUserAgentOsName()) == 'android' ) && (strtolower(logs_Browsers::getUserAgentBrowserName()) == 'safari')) return FALSE;
+        
+        return TRUE;
+    }
+    
+    
+    /**
      * Добавя необходимите файлове и стартира скирпта
      * 
      * @param core_Et $tpl

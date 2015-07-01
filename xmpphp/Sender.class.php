@@ -62,7 +62,7 @@ class xmpphp_Sender extends core_Manager
     {
         requireRole('admin');
         
-        $res = xmpphp_Sender::send('ebh.ggl@gmail.com', 'Hello from BGERP');
+        $res = xmpphp_Sender::send('user@gmail.com', 'Hello from BGERP');
         
         return $res;
     }

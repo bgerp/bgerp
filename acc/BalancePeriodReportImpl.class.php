@@ -55,7 +55,7 @@ class acc_BalancePeriodReportImpl extends frame_BaseDriver
      */
     public function addEmbeddedFields(core_Form &$form)
     {
-    	$form->FLD('accountId', 'acc_type_Account(allowEmpty)', 'caption=Сметка,mandatory,silent,removeAndRefreshForm=action');
+    	$form->FLD('accountId', 'acc_type_Account(allowEmpty)', 'caption=Сметка,mandatory,silent,removeAndRefreshForm=action|grouping1|grouping2|grouping3');
     	$form->FLD('from', 'key(mvc=acc_Periods,select=title, allowEmpty)', 'caption=От,mandatory');
     	$form->FLD('to', 'key(mvc=acc_Periods,select=title, allowEmpty)', 'caption=До,mandatory');
     	
@@ -63,16 +63,7 @@ class acc_BalancePeriodReportImpl extends frame_BaseDriver
     	$form->FLD('orderField', "enum(,debitAmount=Дебит,creditAmount=Кредит,blAmount=Крайнo салдо)", 'caption=Подредба->Сума,formOrder=110000');
     	//$form->FLD('filterField', "enum()", 'caption=Подредба->Перо,formOrder=110000');
     	
-    	$form->FLD('compare', "enum(,
-					    			1=1 месец, 
-					    			2=2 месец, 
-					    			3=3 месец, 
-					    			4=4 месец,
-					    			5=5 месец, 
-					    			6=6 месец, 
-					    			8=8 месец, 
-					    			10=10 месец, 
-					    			12=12 месец)", 'caption=Сравни с преди,formOrder=110001,maxRadio=1');
+    	$form->FLD('compare', "enum(,yes=Да)", 'caption=Предходна година->Сравни,formOrder=110001,maxRadio=1');
     
     	$this->invoke('AfterAddEmbeddedFields', array($form));
     }
@@ -116,35 +107,41 @@ class acc_BalancePeriodReportImpl extends frame_BaseDriver
      */
     public function prepareEmbeddedForm(core_Form &$form)
     {
+    	if($form->rec->accountId){ 
+    		$accInfo = acc_Accounts::getAccountInfo($form->rec->accountId);
     	
-    	$accInfo = acc_Accounts::getAccountInfo($form->rec->accountId);
     	
-    	// Показваме номенкалтурите на сметката като предложения за селектиране
-    	$options = array();
+    		if($form->rec->id){
+		    	// Показваме номенкалтурите на сметката като предложения за селектиране
+		    	$options = array();
+		    	
+		    	if(count($accInfo->groups)){
+		    		foreach ($accInfo->groups as $i => $gr){ 
+		    			$options["ent{$i}Id"] .= $gr->rec->name;
+		    		}
+		    	}
+		    		 
+		    	$Items = cls::get('acc_Items');
+		    		 
+		    	// За всяка позиция показваме поле за избор на перо и свойство
+		    	foreach (range(1, 3) as $i){
+		    		if(isset($accInfo->groups[$i])){
+		    			$form->FLD("grouping{$i}", "key(mvc=acc_Items, allowEmpty)", "caption={$accInfo->groups[$i]->rec->name}->Перо");
+		    	
+		    			$items = $Items->makeArray4Select('title', "#lists LIKE '%|{$accInfo->groups[$i]->rec->id}|%'", 'id');
+		    			$form->setOptions("grouping{$i}", $items);
+		    	
+		    			if(count($items)){
+		    				$form->setOptions("grouping{$i}", $items);
+		    			} else {
+		    				$form->setReadOnly("grouping{$i}");
+		    			}
+		    		}
+		    	}
+	    	}
+    	} 
     	
-    	if(count($accInfo->groups)){
-    		foreach ($accInfo->groups as $i => $gr){
-    			$options["ent{$i}Id"] .= $gr->rec->name;
-    		}
-    	}
-    		 
-    	$Items = cls::get('acc_Items');
-    		 
-    	// За всяка позиция показваме поле за избор на перо и свойство
-    	foreach (range(1, 3) as $i){
-    		if(isset($accInfo->groups[$i])){
-    			$form->FLD("grouping{$i}", "key(mvc=acc_Items, allowEmpty)", "caption={$accInfo->groups[$i]->rec->name}->Перо");
-    	
-    			$items = $Items->makeArray4Select('title', "#lists LIKE '%|{$accInfo->groups[$i]->rec->id}|%'", 'id');
-    			$form->setOptions("grouping{$i}", $items);
-    	
-    			if(count($items)){
-    				$form->setOptions("grouping{$i}", $items);
-    			} else {
-    				$form->setReadOnly("grouping{$i}");
-    			}
-    		}
-    	}
+    	$this->invoke('AfterPrepareEmbeddedForm', array($form));
     }
 
     
@@ -210,7 +207,7 @@ class acc_BalancePeriodReportImpl extends frame_BaseDriver
 			$year = date('Y', $date);
 			$month = date ('m', $date);
 			    	
-			$dateFrom = mktime(0, 0, 0, $month-$data->rec->compare, 01, $year);
+			$dateFrom = mktime(0, 0, 0, $month-12, 01, $year);
 			$dateFrom = dt::timestamp2Mysql($dateFrom); 
 			$dateFrom = dt::verbal2mysql(dt::getLastDayOfMonth($dateFrom), FALSE);
 			    	
@@ -239,7 +236,12 @@ class acc_BalancePeriodReportImpl extends frame_BaseDriver
 			    	);	
 	    }
 	    
-	    	
+	    foreach($data->recs as $id => $rec) {
+	    	if ($rec->amount == NULL && $rec->amountPrevious == NULL) {
+	    		unset ($data->recs);
+	    	}
+	    }
+	    
         return $data;
     }
     
@@ -294,8 +296,9 @@ class acc_BalancePeriodReportImpl extends frame_BaseDriver
      */
     public function renderEmbeddedData($data)
     {
-    	
+    
     	if(empty($data)) return;
+    	
     	$chart = Request::get('Chart');
     	$id = Request::get('id', 'int');
     	
@@ -348,28 +351,36 @@ class acc_BalancePeriodReportImpl extends frame_BaseDriver
     	// подготвяме данните за графиката
    
     	$labels = array();
-        foreach ($data->recs as $id => $rec) { 
-	    	$current .= acc_Periods::getTitleById($rec->periodId). ",<br>";
-	    	$prev .= acc_Periods::getTitleById($rec->previousPeriodId). ",<br>";
-	    				
-	    	$labels[] = acc_Periods::getTitleById($rec->periodId). "-" . 
-	    				   acc_Periods::getTitleById($rec->previousPeriodId);
-			$currentValues [] = abs($data->recs[$id]->amount);
-	    	$previousValues[] = abs($data->recs[$id]->amountPrevious);
-    	}
     	
-		$current = substr($current,0, strlen(trim($current))-5);
-		$prev = substr($prev,0, strlen(trim($prev))-5);
+    	if (is_array($data->recs)) {
+	        foreach ($data->recs as $id => $rec) {
+	        	$dateRec = dt::mysql2timestamp($rec->currentDate);
+	        	$year = date('Y', $dateRec);
+	        	$month = date ('m', $dateRec);
+	        	
+	        	$datePreviousRec = dt::mysql2timestamp($rec->previousDate);
+	        	$previousYear = date('Y', $datePreviousRec);
+	        	
+		    	$current = acc_Periods::getTitleById($rec->periodId);
+		    	$current = substr($current,0, strlen(trim($current))-5);
+		    	$current = dt::$monthsShort[$month-1];
+		    				
+		    	$labels[] = $current; 
+		    	
+				$currentValues [] = abs($data->recs[$id]->amount);
+		    	$previousValues[] = abs($data->recs[$id]->amountPrevious);
+	    	}
+    	}
 
     	if ($chart == 'bar'.$data->rec->containerId && $data->recs) { 
 	    	$bar = array (
 	    			'legendTitle' => "Легенда",
 	    			'labels' => $labels,
-	    			'values' => [
-	    					$current => $currentValues,
-	    					$prev => $previousValues,
+	    			'values' => array (
+	    					$year => $currentValues,
+	    					$previousYear => $previousValues,
 	    						
-	    			]
+	    			)
 	    	);
 
 	    	$coreConf = core_Packs::getConfig('doc');

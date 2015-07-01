@@ -705,7 +705,7 @@ class sales_Sales extends deals_DealMaster
     
     
     /**
-     * След рендиране на еденичния изглед
+     * След рендиране на единичния изглед
      */
     public static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
