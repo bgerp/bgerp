@@ -503,7 +503,7 @@ class crm_Profiles extends core_Master
         $addUserUrl = array(
             'core_Users', 
             'add', 
-            'personId'=>Request::get('personId', 'key(mvc=core_Users)'), 
+            'personId'=>Request::get('personId', 'key(mvc=crm_Persons)'), 
             'ret_url'=>getRetUrl()
         );
 
