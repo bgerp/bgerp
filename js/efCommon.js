@@ -1372,7 +1372,7 @@ function setFormElementsWidth() {
     	var outsideWidth = 42;
     	if($('#all').length) {
     		outsideWidth = 30;
-    	} else if ($('.modern-theme').length) {
+    	} else if ($('.modern-theme').length && $('.formTable input').length) {
             outsideWidth = parseInt($('.formTable input').offset().left * 2  + 2);
         }
         // изчислена максимална ширина формата
@@ -1406,7 +1406,8 @@ function setFormElementsWidth() {
             $(this).attr('title', $(this).text());
         });
 
-        $('.formSection').css('width', formElWidth);
+        $('.staticFormView .formFieldValue').css('max-width', formElWidth - 5);
+
         $('.formTable textarea').css('width', formElWidth);
         $('.formTable .chzn-container').css('maxWidth', formElWidth);
         $('.formTable .select2-container').css('maxWidth', formElWidth);
