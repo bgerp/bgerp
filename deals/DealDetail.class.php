@@ -71,7 +71,7 @@ abstract class deals_DealDetail extends doc_Detail
     public static function getDealDetailFields(&$mvc)
     {
     	$mvc->FLD('classId', 'class(interface=cat_ProductAccRegIntf, select=title)', 'caption=Мениджър,silent,input=hidden');
-    	$mvc->FLD('productId', 'int', 'caption=Продукт,notNull,mandatory', 'tdClass=large-field leftCol wrap,removeAndRefreshForm=packPrice|discount|uomId|packagingId');
+    	$mvc->FLD('productId', 'int', 'caption=Продукт,notNull,mandatory', 'tdClass=large-field leftCol wrap,silent,removeAndRefreshForm=packPrice|discount|uomId|packagingId|tolerance');
     	$mvc->FLD('uomId', 'key(mvc=cat_UoM, select=shortName)', 'caption=Мярка,input=none');
     	$mvc->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка', 'tdClass=small-field,silent,removeAndRefreshForm=packPrice|discount|uomId');
     	
@@ -94,6 +94,7 @@ abstract class deals_DealDetail extends doc_Detail
     	// Цена за опаковка (ако има packagingId) или за единица в основна мярка (ако няма packagingId)
     	$mvc->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input');
     	$mvc->FLD('discount', 'percent(Min=0,max=1)', 'caption=Отстъпка');
+    	$mvc->FLD('tolerance', 'percent(min=0,max=1,decimals=0)', 'caption=Толеранс,input=none');
     	$mvc->FLD('showMode', 'enum(auto=Автоматично,detailed=Разширено,short=Кратко)', 'caption=Показване,notNull,default=auto');
     	$mvc->FLD('notes', 'richtext(rows=3)', 'caption=Забележки');
     }
@@ -188,6 +189,20 @@ abstract class deals_DealDetail extends doc_Detail
         if (!empty($rec->packPrice)) {
         	$vat = cls::get($rec->classId)->getVat($rec->productId, $masterRec->valior);
         	$rec->packPrice = deals_Helper::getDisplayPrice($rec->packPrice, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
+        }
+        
+        if($rec->productId){
+        	$params = cls::get($rec->classId)->getParams($rec->productId);
+        	
+        	// Показваме полето за толеранс ако в избрания артикул има такъв параметър
+        	if(!empty($params['tolerance'])){
+        		$percentVerbal = str_replace('&nbsp;', ' ', $mvc->getFieldType('tolerance')->toVerbal($params['tolerance']));
+        		$data->form->setField('tolerance', 'input');
+        		if(empty($rec->id)){
+        			$data->form->setDefault('tolerance', $params['tolerance']);
+        		}
+        		$data->form->setSuggestions('tolerance', array('' => '', $percentVerbal => $percentVerbal));
+        	}
         }
     }
     
@@ -389,7 +404,11 @@ abstract class deals_DealDetail extends doc_Detail
                 
                 $haveDiscount = $haveDiscount || !empty($rec->discount);
                 $haveQuantityDelivered = $haveQuantityDelivered || !empty($rec->quantityDelivered);
-              
+              	if($rec->tolerance){
+              		$tolerance = $mvc->getFieldType('tolerance')->toVerbal($rec->tolerance);
+              		$row->packQuantity .= "<small style='font-size:0.8em;display:block;' class='quiet'>±{$tolerance}</small>";
+              	}
+                
                 if (empty($rec->packagingId)) {
                 	$row->packagingId = ($rec->uomId) ? $row->uomId : $row->packagingId;
                 } else {
