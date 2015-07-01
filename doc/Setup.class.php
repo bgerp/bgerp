@@ -10,7 +10,7 @@ defIfNot('BGERP_ROLE_HEADQUARTER', 'Headquarter');
 /**
  * Кой пакет да използваме за генериране на графики ?
  */
-defIfNot('DOC_CHART_ADAPTER', 'chartjs_Adapter');
+defIfNot('DOC_CHART_ADAPTER', 'googlecharts_Adapter');
 
 
 /**
