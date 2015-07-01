@@ -441,7 +441,7 @@ class cat_Products extends core_Embedder {
 		$Driver = $this->getDriver($rec);
 		
 		$defMetas = $Driver->getDefaultMetas($defMetas);
-		$rec->meta = $this->getFieldType('meta')->fromVerbal($defMetas);
+		$rec->meta = ($rec->meta) ? $rec->meta : $this->getFieldType('meta')->fromVerbal($defMetas);
 	}
     
 	
@@ -815,6 +815,7 @@ class cat_Products extends core_Embedder {
 	    	2 => "csv_measureId", 
 	    	3 => "csv_groups",
     		4 => "csv_category",
+    		5 => "meta",
     	);
     	
     	core_Users::forceSystemUser();
