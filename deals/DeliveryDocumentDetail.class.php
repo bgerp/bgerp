@@ -81,6 +81,10 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 			$vat = cls::get($rec->classId)->getVat($rec->productId, $masterRec->valior);
 			$rec->packPrice = deals_Helper::getDisplayPrice($rec->packPrice, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
 		}
+		
+		// Помощно поле за запомняне на последно избрания артикул
+		//@TODO да се махне
+		$data->form->FNC('lastProductId', 'int', 'silent,input=hidden');
 	}
 	
 	
@@ -122,9 +126,13 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 			// Само при рефреш слагаме основната опаковка за дефолт
 			if($form->cmd == 'refresh'){
 				$baseInfo = $ProductMan->getBasePackInfo($rec->productId);
-				if($baseInfo->classId == 'cat_Packagings'){
+				
+				// Избираме базовата опаковка само ако сме променяли артикула
+				if($baseInfo->classId == 'cat_Packagings' && $form->rec->lastProductId != $rec->productId){
 					$form->setDefault('packagingId', $baseInfo->id);
 				}
+				 
+				$form->rec->lastProductId = $rec->productId;
 			}
 			
 			$LastPolicy = ($masterRec->isReverse == 'yes') ? 'ReverseLastPricePolicy' : 'LastPricePolicy';

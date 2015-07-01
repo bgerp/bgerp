@@ -204,6 +204,10 @@ abstract class deals_DealDetail extends doc_Detail
         		$data->form->setSuggestions('tolerance', array('' => '', $percentVerbal => $percentVerbal));
         	}
         }
+        
+        // Помощно поле за запомняне на последно избрания артикул
+        //@TODO да се махне
+        $data->form->FNC('lastProductId', 'int', 'silent,input=hidden');
     }
     
     
@@ -244,11 +248,14 @@ abstract class deals_DealDetail extends doc_Detail
     		if($form->cmd == 'refresh'){
     			$baseInfo = $ProductMan->getBasePackInfo($rec->productId);
     			 
-    			if($baseInfo->classId == 'cat_Packagings'){
+    			// Избираме базовата опаковка само ако сме променяли артикула
+    			if($baseInfo->classId == 'cat_Packagings' && $form->rec->lastProductId != $rec->productId){
     				$form->setDefault('packagingId', $baseInfo->id);
     			}
+    			
+    			$form->rec->lastProductId = $rec->productId;
     		}
-    	
+    		
     		if(isset($mvc->LastPricePolicy)){
     			$policyInfoLast = $mvc->LastPricePolicy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->classId, $rec->packagingId, $rec->packQuantity, $priceAtDate, $masterRec->currencyRate, $masterRec->chargeVat);
     			if($policyInfoLast->price != 0){
