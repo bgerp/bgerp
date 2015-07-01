@@ -1629,7 +1629,7 @@ abstract class deals_DealMaster extends deals_DealBase
     		
     		// Ъпдейтваме к-то, цената и отстъпката на записа с новите
     		if($term){
-    			$exRec->term += $dRec->term;
+    			$exRec->term = max($exRec->term, $dRec->term);
     		}
     		
     		$exRec->quantity += $dRec->quantity;
