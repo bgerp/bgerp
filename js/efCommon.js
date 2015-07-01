@@ -1358,7 +1358,7 @@ function setMinHeightExt() {
  * Задава ширина на елементите от форма в зависимост от ширината на прозореца/устройството
  */
 function setFormElementsWidth() {
-    
+
 
     if ($('body').hasClass('narrow')){
     	var winWidth = parseInt($(window).width());
@@ -1372,7 +1372,9 @@ function setFormElementsWidth() {
     	var outsideWidth = 42;
     	if($('#all').length) {
     		outsideWidth = 30;
-    	}
+    	} else if ($('.modern-theme').length) {
+            outsideWidth = parseInt($('.formTable input').offset().left * 2  + 2);
+        }
         // изчислена максимална ширина формата
         var formElWidth = winWidth - outsideWidth;
 
@@ -1407,6 +1409,7 @@ function setFormElementsWidth() {
         $('.formSection').css('width', formElWidth);
         $('.formTable textarea').css('width', formElWidth);
         $('.formTable .chzn-container').css('maxWidth', formElWidth);
+        $('.formTable .select2-container').css('maxWidth', formElWidth);
         $('.formTable select').css('maxWidth', formElWidth);
     } else {
     	 $('.formTable label').each(function() {

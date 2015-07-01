@@ -3472,19 +3472,17 @@ only screen and (max-width: 600px) {
   #all .formGroup {
     font-size: 0.85em; }
 
-  .narrow .main-container .chzn-container,
-  .narrow .main-container .formFields input,
-  .narrow .main-container .formFields .richEdit,
-  .narrow .main-container .formFields select,
-  .narrow .main-container .formTitle {
-    max-width: 558px; }
-
-  .narrow .main-container .chzn-container .chzn-drop,
-  .narrow .select2 {
-    max-width: 548px; }
-
-  .narrow .main-container .chzn-container-single .chzn-search input {
-    max-width: 538px; }
+    :not('.modern-theme') .narrow .main-container .chzn-container,
+    :not('.modern-theme') .narrow .main-container .formFields input,
+    :not('.modern-theme') .narrow .main-container .formFields .richEdit,
+    :not('.modern-theme') .narrow .main-container .formFields select,
+    :not('.modern-theme') .narrow .main-container .formTitle {
+      max-width: 558px; }
+    :not('.modern-theme') .narrow .main-container .chzn-container .chzn-drop,
+    :not('.modern-theme') .narrow .select2 {
+      max-width: 548px; }
+    :not('.modern-theme') .narrow .main-container .chzn-container-single .chzn-search input {
+      max-width: 538px; }
 
   #all h2 {
     font-size: 1.3em; }
@@ -3509,19 +3507,17 @@ only screen and (max-width: 533px) {
     margin-left: 2%;
     font-size: 0.9em; }
 
-  .narrow .main-container .chzn-container,
-  .narrow .main-container .formFields input,
-  .narrow .main-container .formFields .richEdit,
-  .narrow .main-container .formFields select,
-  .narrow .main-container .formTitle {
-    max-width: 483px; }
-
-  .narrow .main-container .chzn-container .chzn-drop,
-  .narrow .select2 {
-    max-width: 481px; }
-
-  .narrow .main-container .chzn-container-single .chzn-search input {
-    max-width: 471px; }
+    :not('.modern-theme') .narrow .main-container .chzn-container,
+    :not('.modern-theme') .narrow .main-container .formFields input,
+    :not('.modern-theme') .narrow .main-container .formFields .richEdit,
+    :not('.modern-theme') .narrow .main-container .formFields select,
+    :not('.modern-theme') .narrow .main-container .formTitle {
+      max-width: 483px; }
+    :not('.modern-theme') .narrow .main-container .chzn-container .chzn-drop,
+    :not('.modern-theme') .narrow .select2 {
+      max-width: 481px; }
+    :not('.modern-theme') .narrow .main-container .chzn-container-single .chzn-search input {
+      max-width: 471px; }
 
   #all h2 {
     font-size: 1.28em; }
@@ -3540,19 +3536,17 @@ only screen and (max-width: 500px) {
     margin-left: 2%;
     font-size: 0.9em; }
 
-  .narrow .main-container .chzn-container,
-  .narrow .main-container .formFields input,
-  .narrow .main-container .formFields .richEdit,
-  .narrow .main-container .formFields select,
-  .narrow .main-container .formTitle {
-    max-width: 458px; }
-
-  .narrow .main-container .chzn-container .chzn-drop,
-  .narrow .select2 {
-    max-width: 448px; }
-
-  .narrow .main-container .chzn-container-single .chzn-search input {
-    max-width: 438px; }
+    :not('.modern-theme') .narrow .main-container .chzn-container,
+    :not('.modern-theme') .narrow .main-container .formFields input,
+    :not('.modern-theme') .narrow .main-container .formFields .richEdit,
+    :not('.modern-theme') .narrow .main-container .formFields select,
+    :not('.modern-theme') .narrow .main-container .formTitle {
+      max-width: 458px; }
+    :not('.modern-theme') .narrow .main-container .chzn-container .chzn-drop,
+    :not('.modern-theme') .narrow .select2 {
+      max-width: 448px; }
+    :not('.modern-theme') .narrow .main-container .chzn-container-single .chzn-search input {
+      max-width: 438px; }
 
   #all h2 {
     font-size: 1.26em; }
@@ -3574,19 +3568,17 @@ only screen and (max-width: 480px) {
     margin-left: 2%;
     font-size: 0.9em; }
 
-  .narrow .main-container .chzn-container,
-  .narrow .main-container .formFields input,
-  .narrow .main-container .formFields .richEdit,
-  .narrow .main-container .formFields select,
-  .narrow .main-container .formTitle {
-    max-width: 438px; }
-
-  .narrow .main-container .chzn-container .chzn-drop,
-  .narrow .select2 {
-    max-width: 428px; }
-
-  .narrow .main-container .chzn-container-single .chzn-search input {
-    max-width: 418px; }
+    :not('.modern-theme') .narrow .main-container .chzn-container,
+    :not('.modern-theme') .narrow .main-container .formFields input,
+    :not('.modern-theme') .narrow .main-container .formFields .richEdit,
+    :not('.modern-theme') .narrow .main-container .formFields select,
+    :not('.modern-theme') .narrow .main-container .formTitle {
+      max-width: 438px; }
+    :not('.modern-theme') .narrow .main-container .chzn-container .chzn-drop,
+    :not('.modern-theme') .narrow .select2 {
+      max-width: 428px; }
+    :not('.modern-theme') .narrow .main-container .chzn-container-single .chzn-search input {
+      max-width: 418px; }
 
   #all h2 {
     font-size: 1.24em; }
@@ -3614,22 +3606,19 @@ only screen and (max-width: 360px) {
   #all .formGroup {
     font-size: 0.75em; }
 
-  .narrow .main-container .chzn-container,
-  .narrow .main-container .formFields input,
-  .narrow .main-container .formFields .richEdit,
-  .narrow .main-container .formFields select,
-  .narrow .main-container .formTitle {
-    max-width: 318px; }
-
-  .narrow .main-container .chzn-container .chzn-drop,
-  .narrow .select2 {
-    max-width: 308px; }
-
-  .narrow .main-container .chzn-container-single .chzn-search input {
-    max-width: 298px; }
-
-  .narrow .main-container .formTable .keylist label {
-    max-width: 159px; }
+    :not('.modern-theme') .narrow .main-container .chzn-container,
+    :not('.modern-theme') .narrow .main-container .formFields input,
+    :not('.modern-theme') .narrow .main-container .formFields .richEdit,
+    :not('.modern-theme') .narrow .main-container .formFields select,
+    :not('.modern-theme') .narrow .main-container .formTitle {
+      max-width: 318px; }
+    :not('.modern-theme') .narrow .main-container .chzn-container .chzn-drop,
+    :not('.modern-theme') .narrow .select2 {
+      max-width: 308px; }
+    :not('.modern-theme') .narrow .main-container .chzn-container-single .chzn-search input {
+      max-width: 298px; }
+    :not('.modern-theme') .narrow .main-container .formTable .keylist label {
+      max-width: 159px; }
 
   #all h2 {
     font-size: 1.22em; }
@@ -3658,22 +3647,19 @@ only screen and (max-width: 320px) {
     margin-left: 0%;
     font-size: 0.9em; }
 
-  .narrow .main-container .chzn-container,
-  .narrow .main-container .formFields input,
-  .narrow .main-container .formFields .richEdit,
-  .narrow .main-container .formFields select,
-  .narrow .main-container .formTitle {
-    max-width: 278px; }
-
-  .formFields .main-container textarea {
-    min-width: 278px; }
-
-  .narrow .main-container .chzn-container .chzn-drop,
-  .narrow .select2 {
-    max-width: 268px; }
-
-  .narrow .main-container .chzn-container-single .chzn-search input {
-    max-width: 258px; }
+    :not('.modern-theme') .narrow .main-container .chzn-container,
+    :not('.modern-theme') .narrow .main-container .formFields input,
+    :not('.modern-theme') .narrow .main-container .formFields .richEdit,
+    :not('.modern-theme') .narrow .main-container .formFields select,
+    :not('.modern-theme') .narrow .main-container .formTitle {
+      max-width: 278px; }
+    :not('.modern-theme') .formFields .main-container textarea {
+      min-width: 278px; }
+    :not('.modern-theme') .narrow .main-container .chzn-container .chzn-drop,
+    :not('.modern-theme') .narrow .select2 {
+      max-width: 268px; }
+    :not('.modern-theme') .narrow .main-container .chzn-container-single .chzn-search input {
+      max-width: 258px; }
 
   #all h2 {
     font-size: 1.2em; }
