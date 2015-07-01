@@ -241,6 +241,12 @@ class deals_OpenDeals extends core_Manager {
 	    		unset($row->amountDeal, $row->amountPaid, $row->currencyId);
 	    	}
 	    	
+	    	// За немигрираните стари приключени сделки, доставеното да е равно на договореното
+	    	if($rec->state == 'closed' && empty($rec->amountDelivered)){
+	    		$rec->amountDelivered = $rec->amountDeal;
+	    		$row->amountDelivered = $mvc->getFieldType('amountDelivered')->toVerbal($rec->amountDelivered);
+	    	}
+	    	
 	    	$toPay = ($rec->amountDelivered - $rec->amountPaid) / $docRec->currencyRate;
 	    	$toDeliver = ($rec->amountDeal - $rec->amountDelivered) / $docRec->currencyRate;
 	    	
