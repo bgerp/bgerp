@@ -1206,7 +1206,8 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
   border: solid 1px #9999ff;
   padding: 3px;
   background-color: white;
-  min-height: 1.2em; }
+  min-height: 1.2em;
+  overflow-x: auto; }
 
 .wide #main-container .formTable .staticFormView .formElement {
   min-width: 200px; }
@@ -1317,7 +1318,8 @@ input:focus[type=button] {
   .simpleForm .vertical .formGroup {
     font-weight: bold !important;
     color: black !important;
-    background: none !important; }
+    background: none !important;
+    border: none !important; }
 
 .wide #main-container .formTable .formElement {
   min-width: 32em; }

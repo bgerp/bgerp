@@ -988,6 +988,9 @@ td.portal-date {
     line-height: 120%; }
   .document .indent {
     text-indent: 25px; }
+  .document h1 {
+    margin: 0.5em 0;
+    line-height: 1em; }
   .document h3 {
     margin-bottom: 10px; }
   .document div.richtext-holder {

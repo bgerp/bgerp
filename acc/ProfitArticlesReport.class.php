@@ -304,7 +304,8 @@ class acc_ProfitArticlesReport extends acc_BalanceReportImpl
         if ($cntData <= $n) {
 
             // връщаме направо масива
-            return $data;
+            //return $data;
+            return $newArr;
 
         //в противен случай
         } else {
