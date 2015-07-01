@@ -12,9 +12,13 @@
      <!--ET_END expenses-->
    
     <div class = 'fieldset-holder' style='margin-top:10px'>
-    [#cat_BomDetails#]
+        <div class="scrolling-holder">
+            [#cat_BomDetails#]
+        </div>
     </div>
-    [#DETAILS#]
+    <div class="scrolling-holder">
+        [#DETAILS#]
+    </div>
     <!--ET_BEGIN notes-->
     <div>|Забележки|*:</div>
     <div>[#notes#]</div>
