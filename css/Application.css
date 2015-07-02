@@ -942,10 +942,10 @@ td.portal-date {
   background-color: #e0ffe0; }
 
 .thread-opened > div > table.listTable > tbody > tr > td {
-  border: solid 1px green; }
+  border: solid 1px #66cc66; }
 
 .thread-opened table.listTable > thead > tr > th {
-  border: solid 1px green;
+  border: solid 1px #66cc66;
   background-color: #aaeeaa; }
 
 .thread-opened div.attachments .aHeader {
