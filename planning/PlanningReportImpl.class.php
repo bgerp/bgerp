@@ -222,7 +222,7 @@ class planning_PlanningReportImpl extends frame_BaseDriver
 	        				'quantityToProduced'=> abs($recJobs->quantityProduced - $recJobs->quantity),
 	        				'date' => $recJobs->dueDate,
 	        				'jobs' => array($recJobs->id),
-	        				'store' => store_Products::fetchField("#productId = {$recJobs->productId} AND #classId = {$recJobs->classId} AND #storeId = {$storeId}", 'quantity')
+	        				'store' => store_Products::fetchField("#productId = {$recJobs->productId}  AND #storeId = {$storeId}", 'quantity')
 	        				);
 	
 	        // в противен случай го ъпдейтваме
@@ -234,7 +234,7 @@ class planning_PlanningReportImpl extends frame_BaseDriver
 	        	$obj->quantityToProduced += abs($recJobs->quantityProduced - $recJobs->quantity);
 	        	$obj->date =  $recJobs->dueDate;
 	        	$obj->jobs[] = $recJobs->id;
-	        	$obj->store = store_Products::fetchField("#productId = {$recJobs->productId} AND #classId = {$recJobs->classId} AND #storeId = {$storeId}", 'quantity');
+	        	$obj->store = store_Products::fetchField("#productId = {$recJobs->productId}  AND #storeId = {$storeId}", 'quantity');
 	
 	        }
 	    }
@@ -269,7 +269,7 @@ class planning_PlanningReportImpl extends frame_BaseDriver
         	}
         }
 
-        bp($index,$indexJ, $data);
+        //bp($index,$indexJ, $data);
         return $data;
     }
     
