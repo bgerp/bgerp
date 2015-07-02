@@ -285,6 +285,25 @@ class sales_Sales extends deals_DealMaster
     
     
     /**
+     * Преди ъпдейт след промяна на детайла
+     */
+    public static function on_BeforeUpdatedMaster($mvc, &$rec)
+    {
+    	if(isset($rec->id) && empty($rec->deliveryTime)){
+    		
+    		$dQuery = sales_SalesDetails::getQuery();
+    		$dQuery->where("#saleId = {$rec->id}");
+    		$dQuery->XPR('maxTerm', 'time', 'MAX(#term)');
+    		$dQuery->show('maxTerm');
+    		if($maxTerm = $dQuery->fetch()->maxTerm){
+    			
+    			$rec->deliveryTermTime = max($rec->deliveryTermTime, $maxTerm);
+    		}
+    	}
+    }
+    
+    
+    /**
      * Преди показване на форма за добавяне/промяна.
      *
      * @param sales_Sales $mvc

@@ -232,7 +232,9 @@ abstract class deals_DealMaster extends deals_DealBase
 		$rec->amountDeal = $amountDeal * $rec->currencyRate;
 		$rec->amountVat  = $this->_total->vat * $rec->currencyRate;
 		$rec->amountDiscount = $this->_total->discount * $rec->currencyRate;
-	
+		
+		$this->invoke('BeforeUpdatedMaster', array(&$rec));
+		
 		$this->save($rec);
 	}
 	
