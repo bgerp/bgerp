@@ -1,8 +1,4 @@
-[#SingleToolbar#]
-<div class='document'>
-    <div class='header [#STATE_CLASS#]'>
-        <div class='docBgIcon' style='[#iconStyle#]'>|Циркулярно писмо|* - <b>[#ident#]</b></div>
-    </div>
+[#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
     <div class='antetka' >
         <div class="small">
             <div class='fleft'><b>[#subject#]</b></div>
