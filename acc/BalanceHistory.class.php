@@ -181,7 +181,7 @@ class acc_BalanceHistory extends core_Manager
     
     
     /**
-     * Подготвя еденичния тулбар
+     * Подготвя единичния тулбар
      */
     private function prepareSingleToolbar($data)
     {

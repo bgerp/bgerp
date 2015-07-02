@@ -449,7 +449,7 @@ class blast_ListDetails extends doc_Detail
         if($data->recs) {
         	foreach($data->recs as $rec) {
 		        if($mvc->haveRightFor('export', $rec)){
-		        	$data->toolbar->addBtn('Експорт в CSV', array($mvc, 'export', $rec->id), NULL, 'ef_icon = img/16/file_extension_xls.png, title = Сваляне на записите в CSV формат');
+		        	$data->toolbar->addBtn('Експорт в CSV', array($mvc, 'export', $rec->id), NULL, 'ef_icon = img/16/file_extension_xls.png, title = Сваляне на записите в CSV формат,row=2');
 		        }
         	}
         }

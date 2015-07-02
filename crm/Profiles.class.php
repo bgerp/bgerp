@@ -503,7 +503,7 @@ class crm_Profiles extends core_Master
         $addUserUrl = array(
             'core_Users', 
             'add', 
-            'personId'=>Request::get('personId', 'key(mvc=core_Users)'), 
+            'personId'=>Request::get('personId', 'key(mvc=crm_Persons)'), 
             'ret_url'=>getRetUrl()
         );
 
@@ -984,7 +984,13 @@ class crm_Profiles extends core_Master
         }
         
         // Стринг за подразбиране
-        $defaultStr = 'По подразбиране|*: ';
+        // Ако сме в мобилен режим, да не е хинт
+        $paramType = Mode::is('screenMode', 'narrow') ? 'unit' : 'hint';
+        if($paramType == 'unit') {
+            $defaultStr = "|<br>|По подразбиране|*: ";
+        } else {
+            $defaultStr = 'По подразбиране|*: ';
+        }
         
         $query = core_Packs::getQuery();
         while ($rec = $query->fetch()) {
@@ -1002,6 +1008,7 @@ class crm_Profiles extends core_Master
             Mode::push('stopInvoke', TRUE);
             
             $packConf = core_Packs::getConfig($rec->name);
+            
             
             // Обхождаме всички полета за конфигуриране
             foreach ((array)$clsInst->getConfigDescription() as $field => $arguments) {
@@ -1041,10 +1048,16 @@ class crm_Profiles extends core_Master
                 $form->FNC($field, $typeInst, $params);
                 
                 if (isset($form->rec->$field) || $isEnum || $isKey) {
-                    // Ако сме в мобилен режим, да не е хинт
-                    $paramType = Mode::is('screenMode', 'narrow') ? 'unit' : 'hint';
+               
+                    if($paramType != 'unit') {
+                        Mode::push('text', 'plain');
+                        $defVal = $typeInst->toVerbal($fieldVal); 
+                        Mode::pop();
+                    } else {
+                        $defVal = $typeInst->toVerbal($fieldVal); 
+                    }
                     
-                    $defVal = $typeInst->toVerbal($fieldVal);
+                   
                     
                     if ($defVal) {
                         $form->setParams($field, array($paramType => $defaultStr . $defVal));

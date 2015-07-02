@@ -41,3 +41,28 @@ function formatSelect2DataSelection(data)
 	
 	return data.text;
 }
+
+
+/**
+ * Функция, която подобрява работата на .find със `:selected` в андроидския браузър
+ * 
+ * @returns object
+ */
+$.fn.alternativeFind = function(selector) {
+	
+	if ((selector != ':selected') || (this.__isIn)) return this.find(selector);
+	
+	var self = this;
+	
+	var re = new RegExp("(\s*selected(\s)*\=(\s)*(\"|\')selected(\"|\'))", 'i');
+	
+	$.map(this[0], function(val, i) {
+		if ($(val)[0]['outerHTML'] && re.test($(val)[0]['outerHTML'])) {
+			self[0][i]['defaultSelected'] = true;
+		}
+	});
+	
+	this.__isIn = true;
+	
+	return this.find(selector);
+}

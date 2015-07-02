@@ -120,6 +120,10 @@ abstract class deals_Document extends core_Master
 			
 			if($rec->dealHandler){
 				$doc = doc_Containers::getDocumentByHandle($rec->dealHandler);
+				if(isset($doc) && !$doc->haveRightFor('single')){
+					unset($doc);
+				}
+				
 				if(!$doc){
 					$form->setError('dealHandler', 'Няма документ с такъв хендлър');
 				} else {

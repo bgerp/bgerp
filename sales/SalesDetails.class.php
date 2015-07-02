@@ -126,6 +126,8 @@ class sales_SalesDetails extends deals_DealDetail
         $this->FLD('saleId', 'key(mvc=sales_Sales)', 'column=none,notNull,silent,hidden,mandatory');
         
         parent::getDealDetailFields($this);
+        
+        $this->FLD('term', 'time(uom=days,suggestions=1 ден|5 дни|7 дни|10 дни|15 дни|20 дни|30 дни)', 'caption=Срок,after=tolerance,input=none');
     }
     
     
@@ -139,6 +141,7 @@ class sales_SalesDetails extends deals_DealDetail
     	
     	if(isset($rec->productId)){
     		$pInfo = cls::get($rec->classId)->getProductInfo($rec->productId, $rec->packagingId);
+    		
     		if(isset($masterStore) && isset($pInfo->meta['canStore'])){
     			
     			$storeInfo = deals_Helper::getProductQuantityInStoreInfo($rec->productId, $rec->classId, $masterStore);
@@ -187,6 +190,31 @@ class sales_SalesDetails extends deals_DealDetail
     		
     		if($rec->price < cls::get($rec->classId)->getSelfValue($rec->productId, NULL, $rec->quantity)){
     			$row->packPrice = "<span class='row-negative' title = '" . tr('Цената е под себестойност') . "'>{$row->packPrice}</span>";
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Преди показване на форма за добавяне/промяна
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+    	$rec = &$data->form->rec;
+    	$form = &$data->form;
+    	
+    	if(isset($rec->productId)){
+    		
+    		$params = cls::get($rec->classId)->getParams($rec->productId);
+    		if(!empty($params['term'])){
+    			
+    			$form->setField('term', 'input');
+    			if(empty($rec->id)){
+    				$form->setDefault('term', $params['term']);
+    			}
+    			
+    			$termVerbal = $mvc->getFieldType('term')->toVerbal($params['term']);
+    			$form->setSuggestions('term', array('' => '', $termVerbal => $termVerbal));
     		}
     	}
     }

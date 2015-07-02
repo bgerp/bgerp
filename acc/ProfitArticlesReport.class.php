@@ -210,8 +210,9 @@ class acc_ProfitArticlesReport extends acc_BalanceReportImpl
                 $dArr[$rec->grouping3] = abs($rec->blAmount);
             }
 
-            $arr = self::preparePie($dArr, 9, 'Others');
-
+            $arr = $this->preparePie($dArr, 9, 'Others');
+            //$arr = $dArr;
+            //bp($arr,$dArr);
 
             foreach ($arr as $id => $recSort) {
                 $info[mb_substr($recSort->key,0,19)] = $recSort->value;
@@ -303,7 +304,8 @@ class acc_ProfitArticlesReport extends acc_BalanceReportImpl
         if ($cntData <= $n) {
 
             // връщаме направо масива
-            return $data;
+            //return $data;
+            return $newArr;
 
         //в противен случай
         } else {

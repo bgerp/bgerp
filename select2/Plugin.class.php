@@ -80,8 +80,8 @@ class select2_Plugin extends core_Plugin
      * @param array $attr
      */
     function on_AfterRenderInput(&$invoker, &$tpl, $name, $value, &$attr = array())
-    {
-        $minItems = $invoker->params['select2MinItems'] ? $invoker->params['select2MinItems'] : self::$minItems;
+    {        
+        $minItems = isset($invoker->params['select2MinItems']) ? $invoker->params['select2MinItems'] : self::$minItems;
     	
         if (!is_null($invoker->suggestions)) {
             $cnt = count($invoker->suggestions);
@@ -109,7 +109,7 @@ class select2_Plugin extends core_Plugin
         foreach ((array)$optArr as $key => $val) {
             
             $optionsAttrArr = array();
-
+                        
             if (is_object($val)) {
                 if ($val->group) {
                     if($mustCloseGroup) {
@@ -142,7 +142,7 @@ class select2_Plugin extends core_Plugin
             
             $options->append(ht::createElement('option', $optionsAttrArr, $val));
         }
-
+        
         if ($mustCloseGroup) {
             $options->append("</optgroup>\n");
         }
@@ -157,7 +157,7 @@ class select2_Plugin extends core_Plugin
             $selectAttrArray['multiple'] = 'multiple';
         }
         
-        $selectAttrArray['class'] = self::$className;
+        $selectAttrArray['class'] = self::$className . ' ' . $attr['class'];
         $selectAttrArray['id'] = $attr['id'];
         $selectAttrArray['name'] = $name . '[]';
         $selectAttrArray['style'] = 'width:100%';

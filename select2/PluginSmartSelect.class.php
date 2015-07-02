@@ -62,7 +62,7 @@ class select2_PluginSmartSelect extends core_Plugin
             $attr['id'] = str::getRand('aaaaaaaa');
         }
         
-        $minItems = $type->params['select2MinItems'] ? $type->params['select2MinItems'] : self::$minItems;
+        $minItems = isset($type->params['select2MinItems']) ? $type->params['select2MinItems'] : self::$minItems;
         
         $optionsCnt = count($options);
         

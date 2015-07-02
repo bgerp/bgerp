@@ -52,6 +52,18 @@ class colab_Folders extends core_Manager
 	
 	
 	/**
+	 * След дефиниране на полетата на модела
+	 *
+	 * @param core_Mvc $mvc
+	 */
+	public static function on_AfterDescription(core_Mvc $mvc)
+	{
+		// Задаваме за полета на проксито, полетата на оригинала
+		$mvc->fields = cls::get('doc_Folders')->selectFields();
+	}
+	
+	
+	/**
 	 * Извиква се преди изпълняването на екшън
 	 */
 	public static function on_BeforeAction($mvc, &$res, $action)

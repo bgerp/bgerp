@@ -1054,11 +1054,11 @@ td.portal-date {
 }
 
 .thread-opened > div > table.listTable > tbody > tr > td {
-	border: solid 1px green;
+	border: solid 1px #6c6;
 }
 
 .thread-opened table.listTable > thead > tr > th {
-	border: solid 1px green;
+	border: solid 1px #6c6;
 	background-color: #aea;
 }
 
@@ -1102,6 +1102,10 @@ td.portal-date {
 	.indent {
 		text-indent: 25px;
 	}
+    h1 {
+        margin: 0.5em 0;
+        line-height: 1em;
+    }
 	h3 {
 		margin-bottom: 10px;
 	}
@@ -1177,6 +1181,9 @@ td.portal-date {
 	   white-space: nowrap;
 	}
 }
+.small-padding td {
+    padding: 3px !important;
+}
 
 .document-settings {
     display: inline-block;
@@ -1186,6 +1193,7 @@ td.portal-date {
         margin-bottom: 0;
     }
 }
+
 .docBgIcon {
     position: relative;
 }
@@ -2683,6 +2691,11 @@ fieldset.sharing-history {
 	display: block;
 }
 
+.narrow .single-thread > .listRows > .listTable {
+    width: 100%;
+    max-width: 56em;
+}
+
 .narrow .listRows .listTable {
 	margin-bottom: 5px;
 }
@@ -3172,6 +3185,7 @@ div.location.public {
 .narrow .portal-filter .button {
 	height: 1.5em;
 	padding: 2px 0;
+    width: 20px;
 	right: 0 !important;
 	border: none;
 	background-position: center 2px;
@@ -3633,6 +3647,10 @@ body.narrow {
     }
 }
 @media handheld, only screen and (max-width: 800px) {
+    .wide .document {
+        min-width: 400px;
+        max-width: 700px;
+    }
 	#cmsMenu a {
 		margin-left: 6px !important;
 		margin-right: 6px !important;
@@ -3768,15 +3786,17 @@ body.narrow {
     #all .formGroup {
         font-size: 0.85em;
     }
-    .narrow .main-container .chzn-container, .narrow .main-container .formFields input, .narrow .main-container .formFields .richEdit, .narrow .main-container .formFields select, .narrow .main-container .formTitle {
-		max-width: 558px;
-	}
-	.narrow .main-container .chzn-container .chzn-drop, .narrow .select2 {
-		max-width: 548px;
-	}
-	.narrow .main-container .chzn-container-single .chzn-search input {
-		max-width: 538px;
-	}
+    :not('.modern-theme') {
+        .narrow .main-container .chzn-container, .narrow .main-container .formFields input, .narrow .main-container .formFields .richEdit, .narrow .main-container .formFields select, .narrow .main-container .formTitle {
+            max-width: 558px;
+        }
+        .narrow .main-container .chzn-container .chzn-drop, .narrow .select2 {
+            max-width: 548px;
+        }
+        .narrow .main-container .chzn-container-single .chzn-search input {
+            max-width: 538px;
+        }
+    }
     #all h2{
         font-size: 1.3em;
     }
@@ -3801,15 +3821,17 @@ body.narrow {
        margin-left: 2%;
        font-size: 0.9em;
     }
-    .narrow .main-container .chzn-container, .narrow .main-container .formFields input, .narrow .main-container .formFields .richEdit, .narrow .main-container .formFields select, .narrow .main-container .formTitle {
-		max-width: 483px;
-	}
-	.narrow .main-container .chzn-container .chzn-drop, .narrow .select2 {
-		max-width: 481px;
-	}
-	.narrow .main-container .chzn-container-single .chzn-search input {
-		max-width: 471px;
-	}
+    :not('.modern-theme') {
+        .narrow .main-container .chzn-container, .narrow .main-container .formFields input, .narrow .main-container .formFields .richEdit, .narrow .main-container .formFields select, .narrow .main-container .formTitle {
+            max-width: 483px;
+        }
+        .narrow .main-container .chzn-container .chzn-drop, .narrow .select2 {
+            max-width: 481px;
+        }
+        .narrow .main-container .chzn-container-single .chzn-search input {
+            max-width: 471px;
+        }
+    }
     #all h2{
         font-size: 1.28em;
     }
@@ -3828,15 +3850,17 @@ body.narrow {
        margin-left: 2%;
        font-size: 0.9em;
     }
-    .narrow .main-container .chzn-container, .narrow .main-container .formFields input, .narrow .main-container .formFields .richEdit, .narrow .main-container .formFields select, .narrow .main-container .formTitle {
-		max-width: 458px;
-	}
-	.narrow .main-container .chzn-container .chzn-drop, .narrow .select2 {
-		max-width: 448px;
-	}
-	.narrow .main-container .chzn-container-single .chzn-search input {
-		max-width: 438px;
-	}
+    :not('.modern-theme') {
+        .narrow .main-container .chzn-container, .narrow .main-container .formFields input, .narrow .main-container .formFields .richEdit, .narrow .main-container .formFields select, .narrow .main-container .formTitle {
+            max-width: 458px;
+        }
+        .narrow .main-container .chzn-container .chzn-drop, .narrow .select2 {
+            max-width: 448px;
+        }
+        .narrow .main-container .chzn-container-single .chzn-search input {
+            max-width: 438px;
+        }
+    }
     #all h2{
         font-size: 1.26em;
     }
@@ -3858,15 +3882,17 @@ body.narrow {
        margin-left: 2%;
        font-size: 0.9em;
     }
-    .narrow .main-container .chzn-container, .narrow .main-container .formFields input, .narrow .main-container .formFields .richEdit, .narrow .main-container .formFields select, .narrow .main-container .formTitle {
-    	max-width: 438px;
-	}
-	.narrow .main-container .chzn-container .chzn-drop, .narrow .select2 {
-		max-width: 428px;
-	}
-	.narrow .main-container .chzn-container-single .chzn-search input {
-		max-width: 418px;
-	}
+    :not('.modern-theme') {
+        .narrow .main-container .chzn-container, .narrow .main-container .formFields input, .narrow .main-container .formFields .richEdit, .narrow .main-container .formFields select, .narrow .main-container .formTitle {
+            max-width: 438px;
+        }
+        .narrow .main-container .chzn-container .chzn-drop, .narrow .select2 {
+            max-width: 428px;
+        }
+        .narrow .main-container .chzn-container-single .chzn-search input {
+            max-width: 418px;
+        }
+    }
     #all h2{
         font-size: 1.24em;
     }
@@ -3894,17 +3920,19 @@ body.narrow {
     #all .formGroup {
         font-size: 0.75em;
     }
-    .narrow .main-container .chzn-container, .narrow .main-container .formFields input, .narrow .main-container .formFields .richEdit, .narrow .main-container .formFields select, .narrow .main-container .formTitle {
-    	max-width: 318px;
-	}
-	.narrow .main-container .chzn-container .chzn-drop, .narrow .select2 {
-		max-width: 308px;
-	}
-	.narrow .main-container .chzn-container-single .chzn-search input {
-		max-width: 298px;
-	}
-	.narrow .main-container .formTable .keylist label{
-       max-width: 159px;
+    :not('.modern-theme') {
+        .narrow .main-container .chzn-container, .narrow .main-container .formFields input, .narrow .main-container .formFields .richEdit, .narrow .main-container .formFields select, .narrow .main-container .formTitle {
+            max-width: 318px;
+        }
+        .narrow .main-container .chzn-container .chzn-drop, .narrow .select2 {
+            max-width: 308px;
+        }
+        .narrow .main-container .chzn-container-single .chzn-search input {
+            max-width: 298px;
+        }
+        .narrow .main-container .formTable .keylist label {
+            max-width: 159px;
+        }
     }
     #all h2{
         font-size: 1.22em;
@@ -3935,20 +3963,22 @@ body.narrow {
        margin-left: 0%;
        font-size: 0.9em;
     }
-    .narrow .main-container .chzn-container, .narrow .main-container .formFields input, .narrow .main-container .formFields .richEdit, .narrow .main-container .formFields select, .narrow .main-container .formTitle {
-    	max-width: 278px;
-	}
+    :not('.modern-theme') {
+        .narrow .main-container .chzn-container, .narrow .main-container .formFields input, .narrow .main-container .formFields .richEdit, .narrow .main-container .formFields select, .narrow .main-container .formTitle {
+            max-width: 278px;
+        }
+        .formFields .main-container textarea {
+            min-width: 278px;
+        }
 
-	.formFields .main-container textarea {
-		min-width: 278px;
-	}
-
-	.narrow .main-container .chzn-container .chzn-drop, .narrow .select2 {
-		max-width: 268px;
-	}
-	.narrow .main-container .chzn-container-single .chzn-search input {
-		max-width: 258px;
-	}
+        .narrow .main-container .chzn-container .chzn-drop, .narrow .select2 {
+            max-width: 268px;
+        }
+        .narrow .main-container .chzn-container-single .chzn-search input {
+            max-width: 258px;
+        }
+    }
+    
     #all h2{
         font-size: 1.2em;
     }

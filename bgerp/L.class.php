@@ -240,10 +240,11 @@ class bgerp_L extends core_Manager
             
             // Ако потребителя има права до треда на документа, то той му се показва
             if($doc) {
-                
-                if($doc->getInstance()->haveRightFor('single', $rec) || doc_Threads::haveRightFor('single', $rec->threadId)) {
+            	$urlArray = $doc->getSingleUrlArray();
+            	
+                if(is_array($urlArray) && count($urlArray)) {
                     
-                    return new Redirect(array($doc->getInstance(), 'single', $rec->id));
+                    return new Redirect($urlArray);
                 }
             }
             

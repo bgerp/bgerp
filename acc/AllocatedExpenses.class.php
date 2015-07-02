@@ -233,7 +233,7 @@ class acc_AllocatedExpenses extends core_Master
     
     
     /**
-     * След рендиране на еденичния изглед
+     * След рендиране на единичния изглед
      */
     public static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
@@ -496,6 +496,9 @@ class acc_AllocatedExpenses extends core_Master
     			
     			 // Намираме документа по хендлъра
     			 $doc = doc_Containers::getDocumentByHandle($rec->dealHandler);
+    			 if(isset($doc) && !$doc->haveRightFor('single')){
+    			 	unset($doc);
+    			 }
     			 
     			 // Трябва да има такава сделка
     			 if($doc){

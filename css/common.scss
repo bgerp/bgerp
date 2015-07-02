@@ -611,6 +611,10 @@ input[type=radio] + label, input[type=checkbox] + label {
 	vertical-align: baseline;
 }
 
+.narrow input[type=radio] + label, .narrow input[type=checkbox] + label {
+    font-size: 0.9em;
+}
+
 input[type=radio]:checked + label, input[type=checkbox]:checked + label {
    color: #000;
    text-shadow: 1px 1px 1px #aaa;
@@ -1250,6 +1254,7 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
     padding:3px;
     background-color:#fff;
     min-height: 1.2em;
+    overflow-x: auto ;
 }
 
 .wide #main-container .formTable .staticFormView .formElement {
@@ -1282,6 +1287,10 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
 
 .formTable > tr > td {	
 	padding: 3px;
+}
+
+.formTable .toolbar {
+    margin-bottom: 0 !important;
 }
 
 .wide .listTopContainer .formTable { 
@@ -1375,6 +1384,7 @@ td.formElement {
         font-weight: bold !important;
         color: black !important;
         background: none !important;
+        border: none !important;
     }
 }
 
@@ -1668,7 +1678,6 @@ table.keylist {
 }
 
 .narrow table.keylist td {
-	font-size: 0.9em;
 	padding-top: 0.1em;
 	padding-bottom: 0 !important;
 	
@@ -1682,11 +1691,21 @@ td.keylist-group{
 	    margin-top: 1px;
 	    cursor: pointer; 
 	    img {
-	       display:none;
+	        display: none;
 	    	margin-right: 5px;
 	    	top: 2px;
 	    	position: relative;
 	    } 
+    }
+}
+
+.narrow .keylistCategory .keylist-group > div {
+    position: relative;
+    .invert-checkbox {
+        position: absolute;
+        right: 3px;
+        top: 50%;
+        margin-top: -8px;
     }
 }
 

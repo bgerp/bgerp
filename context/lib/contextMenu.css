@@ -82,6 +82,7 @@
     border-radius: 5px;
     moz-border-radius: 5px;
     border: 1px solid #C6C6C6;
+    margin-bottom: 2px;
 }
 
 .modal-toolbar.iw-contextMenu .button{
@@ -92,6 +93,7 @@
     text-align: left !important;
 }
 
-input.more-btn {
+input.button.more-btn {
+    background-position: center !important;
     background-image: url(../../img/16/arrow_down3.png) !important;
 }

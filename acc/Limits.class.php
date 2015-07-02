@@ -80,7 +80,7 @@ class acc_Limits extends core_Manager
     /**
      * Полета в списъчния изглед
      */
-    public $listFields = 'tools=Пулт,accountId,when,startDate,limitDuration,side,type,limitQuantity,sharedUsers=Нотифициране,state';
+    public $listFields = 'tools=Пулт,accountId,when,startDate,limitDuration,limitQuantity,type,side,sharedUsers=Нотифициране,state';
     
     
     /**

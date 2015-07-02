@@ -270,6 +270,7 @@ class acc_Features extends core_Manager
         $res = array();
         
         $query = self::getQuery();
+        $query->where("#state = 'active'");
         
         if(count($itemsArr)){
             $query->in('itemId', $itemsArr);

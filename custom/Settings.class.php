@@ -263,7 +263,7 @@ class custom_Settings extends core_Manager
             $verbalVal = $form->getFieldType($property, FALSE)->toVerbal($value);
             
             // Променяме хинта
-            $form->setParams($property, array($paramType => 'По подразбиране|*: ' . "|{$verbalVal}"));
+            $form->setParams($property, array($paramType => '|*<br>|По подразбиране|*: ' . "{$verbalVal}"));
         }
         
         // Инпутваме данните

@@ -276,19 +276,22 @@ class acc_ReportDetails extends core_Manager
                 
                 $unsetPosition = acc_Lists::getPosition($accInfo->rec->systemId, $data->masterMvc->balanceRefGroupBy);
                 foreach (range(1, 3) as $i){
-                	if($i != $unsetPosition){
+                	if($i != $unsetPosition && isset($accGroups[$i])){
+                		
                 		$fields["ent{$i}Id"] = $accGroups[$i]->rec->name;
                 		$limitFields["item{$i}"] = $accGroups[$i]->rec->name;
                 	} else {
+                		
                 		unset($fields["ent{$i}Id"]);
                 		unset($limitFields["item{$i}"]);
                 	}
                 }
-                
+               
                 // Ако има записи показваме таблицата
                 if(count($rows)){
                 	
                 	$tableHtml = $table->get($rows, $fields);
+                	
                 	$colspan = count($fields) - 1;
                 	$totalRow = $Double->toVerbal($total);
                 	$totalRow = ($total < 0) ? "<span style='color:red'>{$totalRow}</span>" : $totalRow;

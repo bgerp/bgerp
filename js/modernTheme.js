@@ -1,5 +1,5 @@
 function slidebars(){
-	initSidebars();
+    initElements();
 	openSubmenus();
 	changePinIcon();
 	userMenuActions();
@@ -8,7 +8,11 @@ function slidebars(){
 /**
  * Създава лентите и задава необходините опции спрямо ширината на страницата
  */
-function initSidebars() {
+function initElements() {
+    if($('#main-container > .tab-control > .tab-row').length == 0) {
+        $('#framecontentTop').css('border-bottom', '1px solid #ccc');
+    }
+
 	var viewportWidth = $(window).width();
 	if(viewportWidth > 600){
 		 $('.btn-sidemenu').jPushMenu({closeOnClickOutside: false, closeOnClickInside: false});
@@ -29,7 +33,6 @@ function initSidebars() {
         $(window).resize( function() {
             viewportWidth = $(window).width();
             setViewportWidth(viewportWidth);
-            setMinHeight();
         });
 	}
 }
@@ -181,20 +184,6 @@ function sidebarAccordeonActions() {
 	});
 }
 
-/**
- * Задава максиналната височина на опаковката и основното съдържание
- */
-function setMinHeight() {
-	 if($('.inner-framecontentTop').length){
-		 var menuHeight = $('.tab-control > .tab-row').first().height();
-		 var headerHeight = parseInt($('.inner-framecontentTop').height(), 10);
-		 var calcMargin = headerHeight + menuHeight;
-		 if ($('body').hasClass('narrow')){
-			 $(window).scrollTop(0);
-			 $('#maincontent').css('margin-top', calcMargin - 12);
-		 }
-	 }
-}
 
 /**
  * Скролира listTable, ако е необходимо
@@ -271,9 +260,11 @@ function searchInLink(obj, inputClassName, fieldName, haveGet)
  * 
  * @param obj
  */
-function onSearchEnter(obj, id)
+function onSearchEnter(obj, id, inp)
 {
 	if (obj.keyCode == 13) {
-        $('#' + id).click();
+		if (!inp || (inp && $(inp).val().trim())) {
+			$('#' + id).click();
+		}
     }
 }

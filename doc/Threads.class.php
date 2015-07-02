@@ -1277,7 +1277,7 @@ class doc_Threads extends core_Manager
         			$curUrl = getCurrentUrl();
         			$curUrl['Rejected'] = 1;
         			$data->toolbar->addBtn("Кош|* ({$data->rejectedCnt})",
-        			$curUrl, 'id=binBtn,class=fright,order=50', 'ef_icon = img/16/bin_closed.png');
+        			$curUrl, 'id=binBtn,class=fright,order=50' . (Mode::is('screenMode', 'narrow') ? ',row=2' : ''), 'ef_icon = img/16/bin_closed.png');
             	}
         		
         		// Ако има мениджъри, на които да се слагат бързи бутони, добавяме ги

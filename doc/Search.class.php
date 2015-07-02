@@ -177,10 +177,12 @@ class doc_Search extends core_Manager
             // Търсене по дата на създаване на документи (от-до)
             if (!empty($filterRec->fromDate)) {
                 $data->query->where(array("#createdOn >= '[#1#]'", $filterRec->fromDate));
+                $data->query->orWhere(array("#modifiedOn >= '[#1#]'", $filterRec->fromDate));
             }
             
             if (!empty($filterRec->toDate)) {
                 $data->query->where(array("#createdOn <= '[#1#] 23:59:59'", $filterRec->toDate));
+                $data->query->orWhere(array("#modifiedOn <= '[#1#] 23:59:59'", $filterRec->toDate));
             }
             
             // Ограничаване на търсенето до избрана папка
@@ -294,14 +296,23 @@ class doc_Search extends core_Manager
         $info = doc_RichTextPlg::getFileInfo($search);
         
         // Ако няма информация, да не се изпълнява
-        if (!$info || !$info['className'] || !$info['id']) return ;
+        if ($info && $info['className'] && $info['id']) {
+            $className = $info['className'];
         
-        $className = $info['className'];
-        
-        $rec = $className::fetchByHandle($info);
-        
-        // Ако имаме права за сингъла и ако има такъв документ, да се редиректне там
-        redirect(array($info['className'], 'single', $rec->id));
+            $rec = $className::fetchByHandle($info);
+            
+            // Ако имаме права за сингъла и ако има такъв документ, да се редиректне там
+            redirect(array($info['className'], 'single', $rec->id));
+        } else {
+            $search = ltrim($search, '#');
+            
+            $rec = cat_Products::fetch(array("#code = '[#1#]'", $search));
+            
+            if ($rec && cat_Products::haveRightFor('single', $rec)) {
+                
+                redirect(array('cat_Products', 'single', $rec->id));
+            }
+        }
     }
     
     

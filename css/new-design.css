@@ -162,6 +162,8 @@ body {
   -webkit-transition: -webkit-transform 300 ease-in-out 300 ease-in-out, opacity 300 300 ease-in-out, opacity 300;
   transition: transform 300 ease-in-out, opacity 300;
   padding: 0px 15px 15px; }
+  .portal.detail-info {
+    border-radius: 5px; }
   .portal .legend {
     margin-left: -15px;
     margin-right: -15px;
@@ -190,6 +192,9 @@ body {
   margin-left: 2px;
   margin-right: 2px;
   margin-bottom: 2px; }
+  .narrow .portal.portal {
+    margin-top: 10px;
+    border-radius: 5px; }
 
 #framecontentTop {
   position: fixed;
@@ -299,13 +304,13 @@ body {
   .bookmark-links ul {
     padding-left: 0; }
     .bookmark-links ul li {
-      border-bottom: 1px dashed #fefdd6;
+      border-bottom: 1px dashed rgba(254, 253, 214, 0.5);
       padding: 5px 0 5px 0px;
       display: block; }
       .bookmark-links ul li:last-child {
         border-bottom: none; }
     .bookmark-links ul a {
-      background: url("../img/12/star-yellow.png") 4px center no-repeat;
+      background: url("../img/12/star-yellow.png") 4px 3px no-repeat;
       margin-left: 0;
       padding-left: 20px;
       outline: none;
@@ -485,15 +490,13 @@ a.bookmark-external-url {
     padding: 3px 20px 3px 25px;
     clear: both;
     font-weight: normal;
-    font-size: 0.9em;
+    font-size: 1.05em;
     white-space: nowrap; }
     .menu-holder a:hover {
       background-color: #f1f1f1; }
   .menu-holder.user-holder {
     max-width: 140px; }
 
-.narrow .menu-holder {
-  max-width: 200px; }
   .narrow .menu-holder a {
     padding: 5px 20px 5px 25px;
     font-size: 1em; }
@@ -671,6 +674,11 @@ button {
   input[type="submit"]:hover,
   button:hover {
     background-color: #e5e5e5; }
+    a.button:hover.btn-disabled,
+    input[type="button"]:hover.btn-disabled,
+    input[type="submit"]:hover.btn-disabled,
+    button:hover.btn-disabled {
+      background-color: #dddddd; }
 
 .narrow a.button,
 .narrow input[type="button"],
@@ -722,9 +730,11 @@ input:focus[type=button] {
 form[method="post"] input[type="submit"] {
   background-color: #888888;
   text-shadow: none;
-  color: white !important; }
+  color: white; }
   form[method="post"] input[type="submit"]:hover {
-    background-color: #999999 !important; }
+    background-color: #999999; }
+    form[method="post"] input[type="submit"]:hover.btn-disabled {
+      background-color: #888888; }
 
 form[method=post] input[type=button],
 form[method=post] a.button {
@@ -734,6 +744,9 @@ form[method=post] a.button {
   form[method=post] input[type=button]:hover,
   form[method=post] a.button:hover {
     background-color: #b1b1b1; }
+
+.btn-disabled {
+  color: #bbbbbb !important; }
 
 .vertical .formTitle {
   font-size: 1.05em; }
