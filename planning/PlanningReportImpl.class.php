@@ -157,7 +157,7 @@ class planning_PlanningReportImpl extends frame_BaseDriver
 	        }
 	        	
 	    }
-
+	   
 	    // за всеки един продукт
 	    if(is_array($products)){
 			foreach($products as $product) {
@@ -175,7 +175,7 @@ class planning_PlanningReportImpl extends frame_BaseDriver
 		        
 		        $storeId = $data->rec->store;
 
-		        //bp($product->productId, $product->classId, $storeId);
+		       
 		        //bp(store_Products::fetchField("#productId = '{$product->productId}' AND #classId = '{$product->classId}' AND #storeId = '{$storeId}'", 'quantity'));
 		        // ако нямаме такъв запис,
 		        // го добавяме в масив
@@ -188,7 +188,7 @@ class planning_PlanningReportImpl extends frame_BaseDriver
 				        				        'quantityToDelivered' => abs($product->quantityDelivered - $product->quantity),
 				        						'dateSale' => $dateSale[$product->productId],
 						        				'sales' => array($product->saleId),
-				        		                'store' => store_Products::fetchField("#productId = {$product->productId} AND #classId = {$product->classId} AND #storeId = {$storeId}", 'quantity'));
+				        		                'store' => store_Products::fetchField("#productId = {$index} AND #classId = {$product->classId} AND #storeId = {$storeId}", 'quantity'));
 			        		
 			      // в противен случай го ъпдейтваме
 			    } else {
@@ -210,7 +210,7 @@ class planning_PlanningReportImpl extends frame_BaseDriver
 	    while ($recJobs = $queryJob->fetch()) {
 	    	$indexJ = $recJobs->productId;
 	        $dateJob[$recJobs->productId][$recJobs->id] = $recJobs->dueDate;
-	        	 
+	       
 	        if ($recJobs->quantityProduced >= $recJobs->quantity) continue;
 	        // ако нямаме такъв запис,
 	        // го добавяме в масив
@@ -222,7 +222,8 @@ class planning_PlanningReportImpl extends frame_BaseDriver
 	        				'quantityToProduced'=> abs($recJobs->quantityProduced - $recJobs->quantity),
 	        				'date' => $recJobs->dueDate,
 	        				'jobs' => array($recJobs->id),
-	        				'store' => store_Products::fetchField("#productId = {$product->productId} AND #classId = {$product->classId} AND #storeId = {$storeId}", 'quantity'));
+	        				'store' => store_Products::fetchField("#productId = {$recJobs->productId} AND #classId = {$recJobs->classId} AND #storeId = {$storeId}", 'quantity')
+	        				);
 	
 	        // в противен случай го ъпдейтваме
 	        } else {
@@ -233,7 +234,7 @@ class planning_PlanningReportImpl extends frame_BaseDriver
 	        	$obj->quantityToProduced += abs($recJobs->quantityProduced - $recJobs->quantity);
 	        	$obj->date =  $recJobs->dueDate;
 	        	$obj->jobs[] = $recJobs->id;
-	        	$obj->store = store_Products::fetchField("#productId = {$product->productId} AND #classId = {$product->classId} AND #storeId = {$storeId}", 'quantity');
+	        	$obj->store = store_Products::fetchField("#productId = {$recJobs->productId} AND #classId = {$recJobs->classId} AND #storeId = {$storeId}", 'quantity');
 	
 	        }
 	    }
@@ -268,7 +269,7 @@ class planning_PlanningReportImpl extends frame_BaseDriver
         	}
         }
 
-
+        bp($index,$indexJ, $data);
         return $data;
     }
     
