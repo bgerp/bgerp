@@ -731,8 +731,8 @@ class core_Form extends core_FieldSet
             }
             
             if(Mode::is('staticFormView')) {
-            	$fieldsLayout->prepend("<div class='staticFormView'>");
-            	$fieldsLayout->append("</div>");
+            	$fieldsLayout->prepend("<div class='scrolling-holder'></div><div class='staticFormView'>");
+            	$fieldsLayout->append("</div></div>");
             } else {
             	if ($idForFocus) {
             		$fieldsLayout->appendOnce("\n runOnLoad(function(){document.getElementById('{$idForFocus}').focus();});", 'JQRUN');
