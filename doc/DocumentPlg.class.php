@@ -1317,7 +1317,14 @@ class doc_DocumentPlg extends core_Plugin
             } elseif(($action == 'edit') && ($oRec->state != 'draft')) {
             	if(!($oRec->state == 'active' && $mvc->canEditActivated === TRUE)){
             		$requiredRoles = 'no_one';
+            	} else {
+            		// Ако потребителя няма достъп до сингъла, той не може и да редактира записа
+            		$haveRightForSingle = $mvc->haveRightFor('single', $rec->id, $userId);
+            		if(!$haveRightForSingle){
+            			$requiredRoles = 'no_one';
+            		}
             	}
+            	
             } elseif(($action == 'edit')) {
             	
             	// Ако потребителя няма достъп до сингъла, той не може и да редактира записа
