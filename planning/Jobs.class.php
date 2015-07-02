@@ -345,6 +345,9 @@ class planning_Jobs extends core_Master
     	}
     	
     	if($fields['-single']){
+    		if(empty($rec->quantityProduced)){
+    			$row->quantityProduced = "<b class='quiet'>{$row->quantityProduced}</b>";
+    		}
     		
     		if($rec->storeId){
     			$row->storeId = store_Stores::getHyperLink($rec->storeId, TRUE);
