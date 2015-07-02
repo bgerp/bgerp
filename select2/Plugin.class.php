@@ -81,7 +81,7 @@ class select2_Plugin extends core_Plugin
      */
     function on_AfterRenderInput(&$invoker, &$tpl, $name, $value, &$attr = array())
     {        
-        $minItems = $invoker->params['select2MinItems'] ? $invoker->params['select2MinItems'] : self::$minItems;
+        $minItems = isset($invoker->params['select2MinItems']) ? $invoker->params['select2MinItems'] : self::$minItems;
     	
         if (!is_null($invoker->suggestions)) {
             $cnt = count($invoker->suggestions);
