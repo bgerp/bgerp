@@ -1,11 +1,4 @@
-[#SingleToolbar#]
-<div class='document'>
-    <!--ET_BEGIN blank-->
-    [#blank#]
-    <!--ET_END blank-->
-    <div class='header [#STATE_CLASS#]'>
-        <div class='docBgIcon' style='[#iconStyle#];'>|Входящ документ|* <b>[#ident#]</b> ([#state#]) </div>
-    </div>
+[#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
     <div  class='clearfix21 antetka'>
         <small>
             <b>
@@ -39,10 +32,4 @@
         </tr>
         <!--ET_END keywords-->
     </table>
-    <!--ET_BEGIN DETAILS-->
-    <div class='details'>
-        [#DETAILS#]
-    </div>
-    <!--ET_END DETAILS-->
-</div>
-<div style='clear: both;'></div>
+[#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

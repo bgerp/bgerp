@@ -1,11 +1,4 @@
-[#SingleToolbar#]
-<div class='document'>
-    <!--ET_BEGIN header-->
-    [#header#]
-    <div class='header [#STATE_CLASS#]'>
-        <div class='docBgIcon' style='[#iconStyle#];'>[#singleTitle#] <b>[#ident#]</b> ([#state#])</div>
-    </div>
-    <!--ET_END header-->
+[#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
     <h3 class='centered'>|ПРИКЛЮЧВАНЕ НА|* [#DOC_NAME#]</h3>
     <p class='centered'>№ [#id#] / [#createdDate#]</p>
     <!--ET_BEGIN closeWith-->
@@ -45,5 +38,4 @@
             <!--ET_END notes-->
         </table>
     </div>
-    [#DETAILS#]
-</div>
+    [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

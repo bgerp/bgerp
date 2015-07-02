@@ -1,9 +1,4 @@
-[#SingleToolbar#]
-<div class='document'>
-    <!--ET_BEGIN header-->
-    <div class='header [#STATE_CLASS#]'>
-        <div class='docBgIcon' style='[#iconStyle#];'>[#singleTitle#] <b>[#ident#]</b> ([#state#])</div>
-    </div>
+[#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
     <div class = 'top-document-tabs'>
     </div>
     <!--ET_END header-->
@@ -35,5 +30,4 @@
     <div class='scrolling-holder'>
     [#Packagings#]
     </div>
-    [#DETAILS#]
-</div>
+[#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]
