@@ -408,7 +408,7 @@ class price_ListDocs extends core_Master
     		$productInfo = cat_Products::getProductInfo($product->productId);
     		
     		// Ако е пълен ценоразпис и има засичане на опаковките или е непълен и има опаковки
-    		if(($rec->showUoms == 'yes' && array_intersect_key($productInfo->packagings, $packArr) || ($rec->showUoms == 'no' && count($productInfo->packagings)))){
+    		if ($productInfo && ($rec->showUoms == 'yes' && array_intersect_key($productInfo->packagings, $packArr) || ($rec->showUoms == 'no' && count($productInfo->packagings)))){
     			$count = 0;
     			
     			// За всяка опаковка
