@@ -736,6 +736,10 @@ class price_ListDocs extends core_Master
     		unset($row->policyId);
     		unset($row->date);
     	}
+    	
+        if ($fields['-single']) {
+            $row->singleTitle = $row->title;
+        }
     }
     
     
