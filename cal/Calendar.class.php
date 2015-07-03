@@ -743,12 +743,8 @@ class cal_Calendar extends core_Master
         $tpl->replace($Calendar->renderListTable($state), 'AGENDA');
 
         return $tpl;
-        //return static::renderWrapping($tpl);
     }
-    static function on_AfterPrepareListRows($mvc, &$res, $data)
-    {
-//        bp($data, $res);
-    }
+    
     
     /**
      * Намира какъв е типа на деня (празник, работен, не работен, събота, неделя)

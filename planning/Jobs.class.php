@@ -143,7 +143,13 @@ class planning_Jobs extends core_Master
      */
     var $details = 'Tasks=planning_Tasks';
     
-    		
+
+    /**
+     * Кои полета от листовия изглед да се скриват ако няма записи в тях
+     */
+    protected $hideListFieldsIfEmpty = 'saleId';
+    
+    
     /**
      * Вербални наименования на състоянията
      */
@@ -730,28 +736,6 @@ class planning_Jobs extends core_Master
     	$coverClass = doc_Folders::fetchCoverClassName($folderId);
     	
     	return $coverClass == 'doc_UnsortedFolders';
-    }
-    
-    
-    /**
-     * След преобразуване на записа в четим за хора вид.
-     */
-    protected static function on_AfterPrepareListRows($mvc, &$data)
-    {
-    	if(!count($data->recs)) return;
-    	$hideSaleCol = TRUE;
-    	
-    	foreach ($data->recs as $rec){
-    		if(isset($rec->saleId)){
-    			$hideSaleCol = FALSE;
-    			break;
-    		}
-    	}
-    	
-    	// Ако няма данни поне за една продажба, скриваме колоната
-    	if($hideSaleCol){
-    		unset($data->listFields['saleId']);
-    	}
     }
     
     

@@ -27,6 +27,12 @@ abstract class deals_InvoiceDetail extends doc_Detail
 	
 
 	/**
+	 * Кои полета от листовия изглед да се скриват ако няма записи в тях
+	 */
+	protected $hideListFieldsIfEmpty = 'discount';
+	
+	
+	/**
 	 * Полета свързани с цени
 	 */
 	public $priceFields = 'amount,discount,packPrice';
@@ -271,19 +277,8 @@ abstract class deals_InvoiceDetail extends doc_Detail
 	{
 		$recs = &$data->recs;
 		$invRec = &$data->masterData->rec;
-		$haveDiscount = FALSE;
 		
 		$mvc->calculateAmount($recs, $invRec);
-	
-		if (empty($recs)) return;
-	
-		foreach ($recs as &$rec){
-			$haveDiscount = $haveDiscount || !empty($rec->discount);
-		}
-	
-		if(!$haveDiscount) {
-			unset($data->listFields['discount']);
-		}
 	}
 	
 	

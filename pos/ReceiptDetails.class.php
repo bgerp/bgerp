@@ -64,6 +64,12 @@ class pos_ReceiptDetails extends core_Detail {
     var $listFields = 'productId,value,quantity,price,discountPercent,amount';
     
     
+    /**
+     * Кои полета от листовия изглед да се скриват ако няма записи в тях
+     */
+    protected $hideListFieldsIfEmpty = 'discountPercent';
+    
+    
   	/**
      * Описание на модела (таблицата)
      */
@@ -161,25 +167,6 @@ class pos_ReceiptDetails extends core_Detail {
     	return $this->returnError($rec->receiptId);
     }
     
-    
-	/**
-     * След подготовка на записите от базата данни
-     */
-    public static function on_AfterPrepareListRows(core_Mvc $mvc, $data)
-    {
-        // Флаг дали има отстъпка
-        $haveDiscount = FALSE;
-        
-        if(count($data->recs)) {
-            foreach ($data->recs as $i => &$rec) {
-                $haveDiscount = $haveDiscount || !empty($rec->discountPercent);
-    		}
-        }
-
-        if(!$haveDiscount) {
-            unset($data->listFields['discountPercent']);
-        }
-    }
     
     /**
      * При грешка, ако е в Ajax режим, връща празен масив, иначе редиректва към бележката
