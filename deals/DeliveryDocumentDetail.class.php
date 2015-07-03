@@ -18,6 +18,12 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 	
 	
 	/**
+	 * Кои полета от листовия изглед да се скриват ако няма записи в тях
+	 */
+	protected $hideListFieldsIfEmpty = 'discount';
+	
+	
+	/**
 	 * Задължителни полета за модела
 	 */
 	public static function setDocumentFields($mvc)
@@ -81,6 +87,10 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 			$vat = cls::get($rec->classId)->getVat($rec->productId, $masterRec->valior);
 			$rec->packPrice = deals_Helper::getDisplayPrice($rec->packPrice, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
 		}
+		
+		// Помощно поле за запомняне на последно избрания артикул
+		//@TODO да се махне
+		$data->form->FNC('lastProductId', 'int', 'silent,input=hidden');
 	}
 	
 	
@@ -122,9 +132,13 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 			// Само при рефреш слагаме основната опаковка за дефолт
 			if($form->cmd == 'refresh'){
 				$baseInfo = $ProductMan->getBasePackInfo($rec->productId);
-				if($baseInfo->classId == 'cat_Packagings'){
-					$form->rec->packagingId = $baseInfo->id;
+				
+				// Избираме базовата опаковка само ако сме променяли артикула
+				if($baseInfo->classId == 'cat_Packagings' && $form->rec->lastProductId != $rec->productId){
+					$form->setDefault('packagingId', $baseInfo->id);
 				}
+				 
+				$form->rec->lastProductId = $rec->productId;
 			}
 			
 			$LastPolicy = ($masterRec->isReverse == 'yes') ? 'ReverseLastPricePolicy' : 'LastPricePolicy';
@@ -245,14 +259,9 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 		
 		if(!count($recs)) return;
 		
-		// Флаг дали има отстъпка
-		$haveDiscount = FALSE;
-		
 		if(count($data->rows)) {
 			foreach ($data->rows as $i => &$row) {
 				$rec = &$data->recs[$i];
-		
-				$haveDiscount = $haveDiscount || !empty($rec->discount);
 		
 				if (empty($rec->packagingId)) {
 					$row->packagingId = ($rec->uomId) ? $row->uomId : '???';
@@ -268,10 +277,6 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 				$row->weight = (!empty($rec->weight)) ? $row->weight : "<span class='quiet'>0</span>";
 				$row->volume = (!empty($rec->volume)) ? $row->volume : "<span class='quiet'>0</span>";
 			}
-		}
-		
-		if(!$haveDiscount) {
-			unset($data->listFields['discount']);
 		}
 	}
 	

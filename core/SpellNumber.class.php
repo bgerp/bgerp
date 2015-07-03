@@ -385,16 +385,17 @@ class core_SpellNumber
         }
         
         $text .= $numCur;
-        $cents = $Double->toVerbal($num - (int) $num);
+        $cent = $num - (int) $num;
+        $cents = $Double->toVerbal($cent);
         
         if($showCurrencyCode){
             $text .= " <span class='cCode'>{$showCurrencyCode}</span>";
         }
-
-        if ($cents > 0){
+		
+        if ($cent > 0){
         	$text .= " {$andStr} {$cents}" . $centCur;
-        } elseif($cents == 0){
-        	$text .= ", {$cents}" . $centCur;
+        } elseif($cent == 0){
+        	//$text .= ", {$cents}" . $centCur;
         }
         
         return $text;

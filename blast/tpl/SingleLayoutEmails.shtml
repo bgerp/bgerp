@@ -1,8 +1,4 @@
-[#SingleToolbar#]
-<div class='document'>
-    <div class='header [#STATE_CLASS#]'>
-        <div class='docBgIcon' style='[#iconStyle#]'>|[#singleTitle#]|*  <b>[#ident#]</b> ([#state#])</div>
-    </div>
+[#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
     <div class='scrolling-holder'>
         <div class='display-table'>
             <div class='antetka'>

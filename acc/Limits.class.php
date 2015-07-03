@@ -17,6 +17,12 @@ class acc_Limits extends core_Manager
 {
     
     
+	/**
+	 * Кои полета от листовия изглед да се скриват ако няма записи в тях
+	 */
+	protected $hideListFieldsIfEmpty = 'limitDuration';
+	
+	
     /**
      * Заглавие
      */
@@ -80,7 +86,7 @@ class acc_Limits extends core_Manager
     /**
      * Полета в списъчния изглед
      */
-    public $listFields = 'tools=Пулт,accountId,when,startDate,limitDuration,side,type,limitQuantity,sharedUsers=Нотифициране,state';
+    public $listFields = 'tools=Пулт,accountId,when,startDate,limitDuration,limitQuantity,type,side,sharedUsers=Нотифициране,state';
     
     
     /**
@@ -207,28 +213,6 @@ class acc_Limits extends core_Manager
     		$form->rec->when = NULL;
     		$form->rec->exceededAmount = NULL;
     		$form->rec->status = 'normal';
-    	}
-    }
-    
-    
-    /**
-     * След преобразуване на записа в четим за хора вид.
-     */
-    protected static function on_AfterPrepareListRows($mvc, &$data)
-    {
-    	$rows = $data->rows;
-    	
-    	if(!count($rows)) return;
-    	
-    	$unsetDuration = TRUE;
-    	foreach ($rows as $row){
-    		if(isset($row->limitDuration)){
-    			$unsetDuration = FALSE;
-    		}
-    	}
-    	
-    	if($unsetDuration === TRUE){
-    		unset($data->listFields['limitDuration']);
     	}
     }
     

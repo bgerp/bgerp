@@ -68,14 +68,9 @@ class core_page_InternalModern extends core_page_Active
         $this->prepend($conf->EF_APP_TITLE, 'PAGE_TITLE');
         $this->prepend(' modern-theme', 'BODY_CLASS_NAME');
 
-        // Ако сме в широк изглед извикваме функцията за мащабиране
-        if(Mode::is('screenMode', 'narrow')){
-        	$this->append("disableScale();", "START_SCRIPTS");
-        }
+        // Забраняваме мащабирането
+        $this->append("disableScale();", "START_SCRIPTS");
 
-        // Опаковките и главното съдържание заемат екрана до долу
-        $this->append("runOnLoad(setMinHeight);", "JQRUN");
-        
         // Акордеона в менюто
         $this->append("runOnLoad(sidebarAccordeonActions);", "JQRUN");
 
@@ -384,7 +379,7 @@ class core_page_InternalModern extends core_page_Active
         $tpl->replace($portalLink, 'PORTAL');
         
         // Рендираме бутоните за търсене
-        $inputType = "<input class='serch-input-modern' type='text'/>";
+        $inputType = "<input class='serch-input-modern' type='text' onkeyup='onSearchEnter(event, \"modern-doc-search\", this);'/>";
         
         $tpl->replace($inputType, 'SEARCH_INPUT');
         
@@ -395,21 +390,25 @@ class core_page_InternalModern extends core_page_Active
         
         if (doc_Search::haveRightFor('list')) {
             $attr['ef_icon'] = 'img/16/doc_empty.png';
+            $attr['id'] = 'modern-doc-search';
             $searchLink .= ht::createLink(tr("Търсене на документи"), array('doc_Search', 'list'), NULL, $attr);
         }
         
         if (doc_Folders::haveRightFor('list')) {
             $attr['ef_icon'] = 'img/16/folder_open_icon.png';
+            $attr['id'] = 'modern-folder-search';
             $searchLink .= ht::createLink(tr("Търсене на папки"), array('doc_Folders', 'list'), NULL, $attr);
         }
         
         if (crm_Companies::haveRightFor('list')) {
             $attr['ef_icon'] = 'img/16/building-black.png';
+            $attr['id'] = 'modern-company-seach';
             $searchLink .= ht::createLink(tr("Търсене на фирми"), array('crm_Companies', 'list'), NULL, $attr);
         }
         
         if (crm_Persons::haveRightFor('list')) {
             $attr['ef_icon'] = 'img/16/vcard-black.png';
+            $attr['id'] = 'modern-person-seach';
             $searchLink .= ht::createLink(tr("Търсене на лица"), array('crm_Persons', 'list'), NULL, $attr);
         }
                 

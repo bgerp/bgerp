@@ -917,22 +917,18 @@ function prepareContextMenu() {
     jQuery.each($('.more-btn'), function(i, val) {
         var el = $(this).parent().find('.modal-toolbar');
         var position = el.attr('data-position');
-        
+
         if (!position || !( position == 'left' || position== 'top' || position == 'bottom')) {
-            position = 'right'
+            position = 'auto'
         }
 
-        var topOfElement = $(this).offset().top;
-        var bottomOfVisibleWindow = $(window).height();
-
-        //изчисляваме височината, спрямо броя на елементите и padding-a на popup-a
-        var elementHeight = $(el).find('input').length * 30 + 10;
-
-        if(position == 'bottom' && (bottomOfVisibleWindow < topOfElement + elementHeight) ) {
-            position ='top';
+        var act = 'popup';
+        
+        if ($(this).hasClass('iw-mTrigger')) {
+        	act = 'update';
         }
-
-        $(this).contextMenu('popup', el, {
+        
+        $(this).contextMenu(act, el, {
             'displayAround': 'trigger',
             'position': position
         });
@@ -1362,7 +1358,7 @@ function setMinHeightExt() {
  * Задава ширина на елементите от форма в зависимост от ширината на прозореца/устройството
  */
 function setFormElementsWidth() {
-    
+
 
     if ($('body').hasClass('narrow')){
     	var winWidth = parseInt($(window).width());
@@ -1376,7 +1372,9 @@ function setFormElementsWidth() {
     	var outsideWidth = 42;
     	if($('#all').length) {
     		outsideWidth = 30;
-    	}
+    	} else if ($('.modern-theme').length && $('.formTable input').length) {
+            outsideWidth = parseInt($('.formTable input').offset().left * 2  + 2);
+        }
         // изчислена максимална ширина формата
         var formElWidth = winWidth - outsideWidth;
 
@@ -1408,9 +1406,11 @@ function setFormElementsWidth() {
             $(this).attr('title', $(this).text());
         });
 
-        $('.formSection').css('width', formElWidth);
+        $('.staticFormView .formFieldValue').css('max-width', formElWidth - 5);
+
         $('.formTable textarea').css('width', formElWidth);
         $('.formTable .chzn-container').css('maxWidth', formElWidth);
+        $('.formTable .select2-container').css('maxWidth', formElWidth);
         $('.formTable select').css('maxWidth', formElWidth);
     } else {
     	 $('.formTable label').each(function() {

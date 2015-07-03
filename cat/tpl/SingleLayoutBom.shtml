@@ -1,10 +1,4 @@
-[#SingleToolbar#]
-<div class='document'>
-    <!--ET_BEGIN header-->
-    <div class='header [#STATE_CLASS#]'>
-        <div class='docBgIcon' style='[#iconStyle#];'>[#singleTitle#] <b>[#ident#]</b> ([#state#])</div>
-    </div>
-    <!--ET_END header-->
+[#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
     <div>[#productId#]</div>
     
      <!--ET_BEGIN expenses-->
@@ -12,11 +6,12 @@
      <!--ET_END expenses-->
    
     <div class = 'fieldset-holder' style='margin-top:10px'>
-    [#cat_BomDetails#]
+        <div class="scrolling-holder">
+            [#cat_BomDetails#]
+        </div>
     </div>
-    [#DETAILS#]
     <!--ET_BEGIN notes-->
     <div>|Забележки|*:</div>
     <div>[#notes#]</div>
     <!--ET_END notes-->
-</div>
+[#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

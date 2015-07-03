@@ -839,7 +839,7 @@ class pos_Receipts extends core_Master {
     			}
     			
     			// Добавяме го като детайл на продажбата;
-    			sales_Sales::addRow($sId, $product->classId, $product->productId, $product->quantity, $product->price, $product->packagingId,$product->discount);
+    			sales_Sales::addRow($sId, $product->classId, $product->productId, $product->quantity, $product->price, $product->packagingId, $product->discount);
     		}
     	}
     	

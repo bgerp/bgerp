@@ -117,6 +117,15 @@ class doc_RichTextPlg extends core_Plugin
             return $match[0];
         }
         
+        // Проверяваме дали имаме достъп до някакъв еденичен изглед
+        // core_master::getSingleUrlArray връща празен масив ако потребителя няма достъп
+        $singleUrl = $doc->getSingleUrlArray();
+        if(is_array($singleUrl) && !count($singleUrl)){
+        	
+        	// Ако масива е празен значи няма достъп потребителя да преглежда документа
+        	return $match[0];
+        }
+        
         // Абревиатурарата
         $abbr = ($doc->abbr) ? $doc->abbr : $match['abbr'];
         
@@ -218,6 +227,15 @@ class doc_RichTextPlg extends core_Plugin
             foreach ($matches as $match) {
                 if (!$doc = doc_Containers::getDocumentByHandle($match)) {
                     continue;
+                } else {
+                	// Проверяваме дали имаме достъп до някакъв еденичен изглед
+                	// core_master::getSingleUrlArray връща празен масив ако потребителя няма достъп
+                	$singleUrl = $doc->getSingleUrlArray();
+                	if(is_array($singleUrl) && !count($singleUrl)){
+                		 
+                		// Ако масива е празен значи няма достъп потребителя да преглежда документа
+                		continue;
+                	}
                 }
                 
                 //Името на документа
@@ -277,9 +295,15 @@ class doc_RichTextPlg extends core_Plugin
         }
         
         // Провяряваме дали имаме права и дали има такъв запис
-        if (($rec) && ($className::haveRightFor('single', $rec))) {
-            
-            return $handleInfo;
+        if ($rec) {
+        	
+        	// Проверяваме дали имаме достъп до някакъв еденичен изглед
+        	// core_master::getSingleUrlArray връща празен масив ако потребителя няма достъп
+            $singleUrl = $className::getSingleUrlArray($rec);
+            if(is_array($singleUrl) && count($singleUrl)){
+            	
+            	return $handleInfo;
+            }
         }
     }
     
@@ -391,6 +415,7 @@ class doc_RichTextPlg extends core_Plugin
     	$all = '';
     	$rec = $mvc->fetch($rec->id);
     	$fields = $mvc->selectFields();
+    	
     	foreach ($fields as $name => $fld){
     		if ($fld->type instanceof type_Richtext){
     		    if ($fld->type->params['hndToLink'] == 'no') continue;

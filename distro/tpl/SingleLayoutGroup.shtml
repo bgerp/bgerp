@@ -1,11 +1,4 @@
-[#SingleToolbar#]
-<div class='document'>
-    <!--ET_BEGIN blank-->
-    [#blank#]
-    <!--ET_END blank-->
-    <div class='header [#STATE_CLASS#]'>
-        <div class='docBgIcon' style='[#iconStyle#];'>|Група файлове|* <b>[#ident#]</b> ([#state#]) </div>
-    </div>
+[#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
     <div  class='clearfix21 antetka'>
         <div class='clearfix21'>
 			<span class='small'>  
@@ -17,17 +10,5 @@
     <div style='padding:10px;'>
         <div>[#repos#]</div>
     </div>
-    <!--ET_END [#repos#]--> 
-    <!--ET_BEGIN DETAILS-->
-    <div class='details'>
-        [#DETAILS#]
-    </div>
-    <!--ET_END DETAILS-->
-    <!--ET_BEGIN shareLog-->
-    <div class='sharing-history clearfix21'>
-        <span class='sharing-history-title'>|Споделяне|*</span>
-        [#shareLog#]
-    </div>
-    <!--ET_END shareLog-->    
-</div>
-<div style='clear: both;'></div>
+    <!--ET_END [#repos#]-->
+[#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

@@ -594,6 +594,11 @@ class core_Form extends core_FieldSet
                     if(!isset($vars[$name])) {
                         unset($fields[$name]);
                     }
+                    
+                    $captionArr = explode('->', $field->caption);
+                    if(count($captionArr) == 2){
+                    	$field->caption = $captionArr[1];
+                    }
                 }
             }
             

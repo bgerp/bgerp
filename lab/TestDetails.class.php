@@ -151,7 +151,7 @@ class lab_TestDetails extends core_Detail
         if(is_numeric($row->value)) {
             $row->value = "<div style='float: right'>" . number_format($row->value, 2, ',', ' ') . "</div>";
         } else {
-            $row->value =  type_Text::toVerbal_($rec->results);
+            $row->value =  cls::get('type_Text')->toVerbal($rec->results);
         }
         
         // $row->parameterName
@@ -202,7 +202,7 @@ class lab_TestDetails extends core_Detail
                     $totalResults++;
                 }
             }
-            $rec->value = $sum / $totalResults;
+            @$rec->value = $sum / $totalResults;
             
             if ($resCnt > 1) {
                 // Намираме грешката

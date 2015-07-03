@@ -858,7 +858,7 @@ class sales_Quotations extends core_Master
     	
     	// За всеки детайл на офертата подаваме го като детайл на продажбата
     	foreach ($items as $item){
-    		sales_Sales::addRow($sId, $item->classId, $item->productId, $item->packQuantity, $item->price, $item->packagingId, $item->discount, $item->notes);
+    		sales_Sales::addRow($sId, $item->classId, $item->productId, $item->packQuantity, $item->price, $item->packagingId, $item->discount, $item->tolerance, $item->term, $item->notes);
     	}
     	
     	// Редирект към новата продажба
@@ -913,7 +913,7 @@ class sales_Quotations extends core_Master
     			}
     			
     			// Добавяме детайла към офертата
-    			sales_Sales::addRow($sId, $dRec->classId, $dRec->productId, $dRec->packQuantity, $dRec->price, $dRec->packagingId, $dRec->discount, $dRec->notes);
+    			sales_Sales::addRow($sId, $dRec->classId, $dRec->productId, $dRec->packQuantity, $dRec->price, $dRec->packagingId, $dRec->discount, $dRec->tolerance, $dRec->term, $dRec->notes);
     		}
     		 
     		// Редирект към сингъла на новосъздадената продажба

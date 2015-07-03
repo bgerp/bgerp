@@ -232,7 +232,9 @@ abstract class deals_DealMaster extends deals_DealBase
 		$rec->amountDeal = $amountDeal * $rec->currencyRate;
 		$rec->amountVat  = $this->_total->vat * $rec->currencyRate;
 		$rec->amountDiscount = $this->_total->discount * $rec->currencyRate;
-	
+		
+		$this->invoke('BeforeUpdatedMaster', array(&$rec));
+		
 		$this->save($rec);
 	}
 	
@@ -1544,10 +1546,12 @@ abstract class deals_DealMaster extends deals_DealBase
      * @param double $price        - цена на единична бройка (ако не е подадена, определя се от политиката)
      * @param int $packagingId     - ид на опаковка (не е задължителна)
      * @param double $discount     - отстъпка между 0(0%) и 1(100%) (не е задължителна)
+     * @param double $tolerance    - толеранс между 0(0%) и 1(100%) (не е задължителен)
+     * @param string $term         - срок (не е задължителен)
      * @param text $notes          - забележки
      * @return mixed $id/FALSE     - ид на запис или FALSE
      */
-    public static function addRow($id, $pMan, $productId, $packQuantity, $price = NULL, $packagingId = NULL, $discount = NULL, $notes = NULL)
+    public static function addRow($id, $pMan, $productId, $packQuantity, $price = NULL, $packagingId = NULL, $discount = NULL, $tolerance = NULL, $term = NULL, $notes = NULL)
     {
     	$me = cls::get(get_called_class());
     	$Detail = cls::get($me->mainDetail);
@@ -1555,10 +1559,21 @@ abstract class deals_DealMaster extends deals_DealBase
     	expect($rec = $me->fetch($id));
     	expect($rec->state == 'draft');
     	
-    	// Дали отстъпката е между -1 и 1
+    	// Дали отстъпката е между 0 и 1
     	if(isset($discount)){
-    		expect($discount >= -1 && $discount <= 1);
+    		expect($discount >= 0 && $discount <= 1);
     	}
+    	
+    	// Дали толеранса е между 0 и 1
+    	if(isset($tolerance)){
+    		expect($tolerance = cls::get('type_Double')->fromVerbal($tolerance));
+    		expect($tolerance >= 0 && $tolerance <= 1);
+    	}
+    	
+    	if(isset($term)){
+    		expect($term = cls::get('type_Time')->fromVerbal($term));
+    	}
+    	
     	
     	// Трябва да има такъв продукт и опаковка
     	$ProductMan = cls::get($pMan);
@@ -1592,6 +1607,8 @@ abstract class deals_DealMaster extends deals_DealBase
     						  'packagingId'      => $packagingId,
     						  'quantity'         => $quantityInPack * $packQuantity,
     						  'discount'         => $discount,
+    						  'tolerance'		 => $tolerance,
+    						  'term'		     => $term,
     						  'price'            => $price,
     						  'quantityInPack'   => $quantityInPack,
     						  'notes'			 => $notes,
@@ -1610,11 +1627,17 @@ abstract class deals_DealMaster extends deals_DealBase
     		// Смятаме средно притеглената цена и отстъпка
     		$nPrice = ($exRec->quantity * $exRec->price +  $dRec->quantity * $dRec->price) / ($dRec->quantity + $exRec->quantity);
     		$nDiscount = ($exRec->quantity * $exRec->discount +  $dRec->quantity * $dRec->discount) / ($dRec->quantity + $exRec->quantity);
+    		$nTolerance = ($exRec->quantity * $exRec->tolerance +  $dRec->quantity * $dRec->tolerance) / ($dRec->quantity + $exRec->quantity);
     		
     		// Ъпдейтваме к-то, цената и отстъпката на записа с новите
+    		if($term){
+    			$exRec->term = max($exRec->term, $dRec->term);
+    		}
+    		
     		$exRec->quantity += $dRec->quantity;
     		$exRec->price = $nPrice;
-    		$exRec->discount = (empty($nDiscount)) ? NULL : $nDiscount;
+    		$exRec->discount = (empty($nDiscount)) ? NULL : round($nDiscount, 2);
+    		$exRec->tolerance = (empty($nTolerance)) ? NULL : round($nTolerance, 2);
     		
     		// Ъпдейтваме съществуващия запис
     		$id = $Detail->save($exRec);

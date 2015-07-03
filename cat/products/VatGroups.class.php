@@ -180,7 +180,7 @@ class cat_products_VatGroups extends core_Detail
         }
         
         if(static::haveRightFor('add', (object)array('productId' => $data->masterId))){
-        	$data->addUrl = array(get_called_class(), 'add', 'productId' => $data->masterId, 'ret_url' => TRUE);
+        	$data->addUrl = array(get_called_class(), 'add', 'productId' => $data->masterId, 'ret_url' => array('cat_products', 'single', $data->masterId));
         }
     }
     

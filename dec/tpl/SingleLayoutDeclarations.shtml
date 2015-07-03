@@ -1,14 +1,5 @@
-[#SingleToolbar#]
-<div class='document'>
-    <!--ET_BEGIN blank-->
-    [#blank#]
-    <!--ET_END blank-->
-    <!--ET_BEGIN header-->
-    <div class='header [#STATE_CLASS#]'>
-        <div class='docBgIcon' style='[#iconStyle#]'>[#typeId#] <b>[#ident#]</b> ([#state#])</div>
-    </div>
-    <!--ET_END header-->
+[#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
     <h3 class="centered"><b>[#typeId#]</b></h3>
     <p class="centered">№ [#id#] / [#date#]</p>
     [#content#]
-</div>
+[#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

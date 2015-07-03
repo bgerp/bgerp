@@ -27,6 +27,12 @@ abstract class deals_InvoiceDetail extends doc_Detail
 	
 
 	/**
+	 * Кои полета от листовия изглед да се скриват ако няма записи в тях
+	 */
+	protected $hideListFieldsIfEmpty = 'discount';
+	
+	
+	/**
 	 * Полета свързани с цени
 	 */
 	public $priceFields = 'amount,discount,packPrice';
@@ -53,7 +59,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 	{
 		$mvc->FLD('productId', 'int', 'caption=Продукт','tdClass=large-field leftCol wrap,removeAndRefreshForm=packPrice|discount|packagingId');
 		$mvc->FLD('classId', 'class(interface=cat_ProductAccRegIntf, select=title)', 'caption=Мениджър,silent,input=hidden');
-		$mvc->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка','tdClass=small-field');
+		$mvc->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty, select2MinItems=0)', 'caption=Мярка','tdClass=small-field,silent,removeAndRefreshForm=packPrice|discount|uomId');
 		$mvc->FLD('quantity', 'double(Min=0)', 'caption=К-во,mandatory','tdClass=small-field');
 		$mvc->FLD('quantityInPack', 'double(smartRound)', 'input=none');
 		$mvc->FLD('price', 'double', 'caption=Цена, input=none');
@@ -100,6 +106,10 @@ abstract class deals_InvoiceDetail extends doc_Detail
 				$data->form->setField($fld, 'input=hidden');
 			}
 		}
+		
+		// Помощно поле за запомняне на последно избрания артикул
+		//@TODO да се махне
+		$data->form->FNC('lastProductId', 'int', 'silent,input=hidden');
 	}
 
 
@@ -267,19 +277,8 @@ abstract class deals_InvoiceDetail extends doc_Detail
 	{
 		$recs = &$data->recs;
 		$invRec = &$data->masterData->rec;
-		$haveDiscount = FALSE;
 		
 		$mvc->calculateAmount($recs, $invRec);
-	
-		if (empty($recs)) return;
-	
-		foreach ($recs as &$rec){
-			$haveDiscount = $haveDiscount || !empty($rec->discount);
-		}
-	
-		if(!$haveDiscount) {
-			unset($data->listFields['discount']);
-		}
 	}
 	
 	
@@ -402,9 +401,13 @@ abstract class deals_InvoiceDetail extends doc_Detail
 			// Само при рефреш слагаме основната опаковка за дефолт
 			if($form->cmd == 'refresh'){
 				$baseInfo = $ProductMan->getBasePackInfo($rec->productId);
-				if($baseInfo->classId == 'cat_Packagings'){
-					$form->rec->packagingId = $baseInfo->id;
+				
+				// Избираме базовата опаковка само ако сме променяли артикула
+				if($baseInfo->classId == 'cat_Packagings' && $form->rec->lastProductId != $rec->productId){
+					$form->setDefault('packagingId', $baseInfo->id);
 				}
+				 
+				$form->rec->lastProductId = $rec->productId;
 			}
 				
 			if(isset($mvc->LastPricePolicy)){

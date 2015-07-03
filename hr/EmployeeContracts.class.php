@@ -129,13 +129,13 @@ class hr_EmployeeContracts extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,typeId,numId,dateId,personId=Имена,positionId=Позиция,startFrom,endOn';
+    public $listFields = 'id,dateId,title=Документ,personId=Имена,typeId,numId,positionId=Позиция,startFrom,endOn';
     
     
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
-    public $rowToolsSingleField = 'typeId';
+    public $rowToolsSingleField = 'title';
     
     
     /**
@@ -316,11 +316,14 @@ class hr_EmployeeContracts extends core_Master
     /**
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
-    public static function on_AfterRecToVerbal($mvc, $row, $rec)
+    public static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
-        $row->personId = ht::createLink($row->personId, array('crm_Persons', 'Single', $rec->personId));
-        
+        $row->personId = crm_Persons::getHyperLink($rec->personId, TRUE);
         $row->positionId = ht::createLink($row->positionId, array('hr_Departments', 'Single', $rec->departmentId, 'Tab' => 'Positions'));
+    
+        if(isset($fields['-list'])){
+        	$row->title = $mvc->getLink($rec->id, 0);
+        }
     }
     
     
@@ -821,13 +824,6 @@ class hr_EmployeeContracts extends core_Master
             return TRUE;
         }
         
-        /*$personId = doc_Folders::fetchCoverId($folderId);
-        
-        $personRec = crm_Persons::fetch($personId);
-        $emplGroupId = crm_Groups::getIdFromSysId('employees');
-        
-        return keylist::isIn($emplGroupId, $personRec->groupList);*/
-        
         return FALSE;
     }
     
@@ -840,7 +836,7 @@ class hr_EmployeeContracts extends core_Master
         $rec = $this->fetch($id);
         
         $row = new stdClass();
-        $row->title = tr('Трудов договор на|* ') . $this->getVerbal($rec, 'personId');
+        $row->title = $this->getRecTitle($rec);
         $row->authorId = $rec->createdBy;
         $row->author = $this->getVerbal($rec, 'createdBy');
         $row->state = $rec->state;
@@ -893,4 +889,16 @@ class hr_EmployeeContracts extends core_Master
     	return $nextNum;
     }
     
+    
+    /**
+     * Връща разбираемо за човека заглавие, отговарящо на записа
+     */
+    public static function getRecTitle($rec, $escaped = TRUE)
+    {
+    	$me = cls::get(get_called_class());
+    	
+    	$title = tr('Трудов договор на|* ') . $me->getVerbal($rec, 'personId');
+    	
+    	return $title;
+    }
 }

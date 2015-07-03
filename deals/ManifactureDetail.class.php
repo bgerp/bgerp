@@ -30,7 +30,7 @@ abstract class deals_ManifactureDetail extends doc_Detail
 	{
 		$mvc->FLD('classId', 'class(interface=cat_ProductAccRegIntf, select=title)', 'caption=Мениджър,silent,input=hidden');
 		$mvc->FLD('productId', 'int', 'caption=Продукт,mandatory', 'tdClass=large-field leftCol wrap,silent,removeAndRefreshForm=quantity|measureId|packagingId|packQuantity');
-		$mvc->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка','tdClass=small-field');
+		$mvc->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty, select2MinItems=0)', 'caption=Мярка','tdClass=small-field');
 		$mvc->FNC('packQuantity', 'double(Min=0)', 'caption=К-во,input=input,mandatory');
 		$mvc->FLD('quantityInPack', 'double(smartRound)', 'input=none,notNull,value=1');
 		
@@ -118,12 +118,13 @@ abstract class deals_ManifactureDetail extends doc_Detail
 		}
 		
 		if($form->isSubmitted()){
+			
+			// Ако артикула няма опаковка к-то в опаковка е 1, ако има и вече не е свързана към него е това каквото е било досега, ако още я има опаковката обновяваме к-то в опаковка
+			$productInfo = cls::get($rec->classId)->getProductInfo($rec->productId);
+			$rec->quantityInPack = (empty($rec->packagingId)) ? 1 : (($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : $rec->quantityInPack);
+			
 			if($rec->productId){
-				$pInfo = cls::get($rec->classId)->getProductInfo($rec->productId, $rec->packagingId);
-				$rec->quantityInPack = ($pInfo->packagingRec) ? $pInfo->packagingRec->quantity : 1;
-				$rec->measureId = $pInfo->productRec->measureId;
-			} else {
-				$rec->quantityInPack = 1;
+				$rec->measureId = $productInfo->productRec->measureId;
 			}
 			
 			$rec->quantity = $rec->packQuantity * $rec->quantityInPack;

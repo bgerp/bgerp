@@ -1,12 +1,4 @@
-[#SingleToolbar#]
-<div class='document'>
-    <!--ET_BEGIN header-->
-    <div class='header [#STATE_CLASS#]'>
-        <div class='docBgIcon' style='[#iconStyle#];'>[#singleTitle#] <b>[#ident#]</b> ([#state#])</div>
-    </div>
-    <div class = 'top-document-tabs'>
-    </div>
-    <!--ET_END header-->
+[#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
     <h2 style='line-height:26px; margin-bottom: 10px;'><b style="color:green;">[#name#]<!--ET_BEGIN code--> ([#code#])<!--ET_END code--></b></h2>
     <!--ET_BEGIN originId--><div style="font-style: italic">|Генериран от|* [#originId#]</div>    <!--ET_END originId-->
     [#innerState#]
@@ -35,5 +27,4 @@
     <div class='scrolling-holder'>
     [#Packagings#]
     </div>
-    [#DETAILS#]
-</div>
+[#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

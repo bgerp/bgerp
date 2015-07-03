@@ -206,7 +206,7 @@ en,Латиница,Latin
 en,Лице,Person
 en,Логистика,Logistic
 en,Логове,Logs
-en,Моля запознайт_181f,Please see attached invoice:
+en,Моля запознайт_181f,Please see the attached invoice:
 en,Мониторинг,Monitor
 en,Моята Фирма ООД,My Company Ltd
 en,На вниманието на,On attention of
@@ -254,7 +254,7 @@ en,Потребител,User
 en,Потребители,Users
 en,Превод на инте_d1efe,Interface translation
 en,Превод,Translation
-en,Предлагаме на _859ba,Please see attached quotation:
+en,Предлагаме на _859ba,Please see the attached quotation:
 en,Премахване,Remove
 en,Преместване,Move
 en,Прикачени файл_0fc7,Attached files
@@ -1643,7 +1643,7 @@ en,къде,where
 en,кой,who
 en,Дъски,Boards
 en,Постинги,Postings
-en,История на хитовете,The hits history
+en,История на хитовете,Hits history
 en,Рефериране,Reference
 en,Ресурси,Resources
 en,Ресурс,Resource
@@ -1745,7 +1745,7 @@ en,приемателен протокол,acceptance protocol
 en,предавателен протокол,emitting protocol
 en,Моля запознайте се с нашата декларация за съответствие,Please see our declaration of compliance
 en,Моля запознайте се с препратения имейл,Please see forwarded email
-en,Моля запознайте се с нашия авансов отчет,Please see advance report
+en,Моля запознайте се с нашия авансов отчет,Please see our advance report
 en,Моля запознайте се с нашия документ,Please see our document
 en,Моля запознайте се с нашия ценоразпис,Please see our price list
 en,Моля запознайте се с нашата оферта,Please see our quotations
@@ -1833,7 +1833,7 @@ en,Отделно,Separately
 en,Без начисление,Without charge
 en,Показване,Display
 en,Забележки,Notice
-en,Автоматично,Аutomatically
+en,Автоматично,Аutomatic
 en,Разширено,Еxtensively
 en,Кратко,Short
 en,брой,piece
@@ -1842,7 +1842,7 @@ en,Продаваем,Marketable
 en,Купуваем,Purchase
 en,Складируем,Storage
 en,Вложим,Invest
-en,Дълготраен актив,Fix asset
+en,Дълготраен актив,Fixed asset
 en,Производим,Produce
 en,кг,kg
 en,т,t
@@ -1874,11 +1874,11 @@ en,J,J
 en,g/cm3,g/cm3
 en,kg/L,kg/l
 en,На момента,Cash on Delivery
-en,50% авансово и 50% преди експедиция,50%DP + 50%BS
-en,30% авансово и 70% преди експедиция,30%DP + 70%BS
-en,20% авансово и 80% преди експедиция,20%DP + 80%BS
-en,100% авансово,100% DP
-en,100% преди експедиция,100% BS
+en,50% авансово и 50% преди експедиция,50% downpayment and 50% before shipment
+en,30% авансово и 70% преди експедиция,30% downpayment and 70% before shipment
+en,20% авансово и 80% преди експедиция,20% downpayment and 80% before shipment
+en,100% авансово,100% downpayment
+en,100% преди експедиция,100% before shipment
 en,До 3 дни след фактуриране,Until 3 days after invoicing
 en,До 7 дни след фактуриране,Until 7 days after invoicing
 en,До 10 дни след фактуриране,Until 10 days after invoicing
@@ -1957,10 +1957,6 @@ en,Копие до,Copy to
 en,"Логнете се, за да видите нишката",Login to see the thread
 en,ще го пазим поверително,will keep it confidential
 bg,Headquarter,Главен офис
-bg,ceo,Собственик
-bg,manager,Управител
-bg,officer,Служител
-bg,executive,Изпълнител
 bg,contractor,Партньор
 en,Бюлетин,Bulletin
 en,Абонирани,Subscribed

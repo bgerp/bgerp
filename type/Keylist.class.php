@@ -149,10 +149,16 @@ class type_Keylist extends core_Type {
         
         $keyListClass = 'keylist';
         
-        if(count($this->suggestions)) {
-        	if(count($this->suggestions) < 4 ) {
+        $suggCnt = count($this->suggestions);
+        
+        if($suggCnt) {
+        	if($suggCnt < 4 ) {
         		$keyListClass .= ' shrinked';
         	}
+        	
+        	$groupOpen = 0;
+        	$addKeylistWide = FALSE;
+        	
             foreach($this->suggestions as $key => $v) {
                 
                 // Ако имаме група, правим ред и пишем името на групата
@@ -193,7 +199,8 @@ class type_Keylist extends core_Type {
                         // Добавяме класа за отворена група
                         $class .= ' group-autoOpen';
                     }
-                    $keyListClass .= ' keylist-wide';
+                    
+                    $addKeylistWide = TRUE;
                     
                     $html .= "\n<tr id='row-". $j . "' class='{$class}' ><td class='keylist-group'><div>". $plusImg . $minusImg . $v->title . $checkImg  . $uncheckImg."</div></td></tr>" .
                         "<tr><td><table class='inner-keylist'>";
@@ -250,6 +257,10 @@ class type_Keylist extends core_Type {
             } 
         } else {
             $html = '<tr><td></td></tr>';
+        }
+        
+        if ($addKeylistWide) {
+            $keyListClass .= ' keylist-wide';
         }
         
         $attr['class'] .= " " . $keyListClass ;

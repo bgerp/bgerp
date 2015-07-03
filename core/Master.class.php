@@ -588,7 +588,7 @@ class core_Master extends core_Manager
     		return "<span style='color:red;'>&nbsp;- - -</span>";
     	}
     
-    	// Правим линк към еденичния изглед на обекта, ако няма права за него
+    	// Правим линк към единичния изглед на обекта, ако няма права за него
     	// Ако няма права не се показва като линк
     	$url = $me->getSingleUrlArray($id);
     	if($short === TRUE){
@@ -615,11 +615,11 @@ class core_Master extends core_Manager
     
     
     /**
-     * Връща урл-то към еденичния изглед на обекта, ако потребителя има 
+     * Връща урл-то към единичния изглед на обекта, ако потребителя има
      * права за сингъла. Ако няма права връща празен масив
      * 
      * @param int $id - ид на запис
-     * @return array $url - масив с урл-то на еденичния изглед
+     * @return array $url - масив с урл-то на единичния изглед
      */
     public static function getSingleUrlArray($id)
     {
@@ -627,7 +627,7 @@ class core_Master extends core_Manager
     	
     	$url = array();
     	
-    	// Ако потребителя има права за еденичния изглед, подготвяме линка
+    	// Ако потребителя има права за единичния изглед, подготвяме линка
     	if ($me->haveRightFor('single', $id)) {
     		$url = array($me, 'single', $id, 'ret_url' => TRUE);
     	} 

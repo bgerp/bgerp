@@ -1,11 +1,4 @@
-[#SingleToolbar#]  
-<div class='document'>
-    <!--ET_BEGIN blank-->
-    [#blank#]
-    <!--ET_END blank-->
-    <div class='header [#STATE_CLASS#]'>
-        <div class='docBgIcon' style='[#iconStyle#]'>Болничен лист <b>[#ident#]</b> ([#state#])</div>
-    </div>
+[#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
     <div class='antetka' style='line-height:160%;'>
         <div class="small">
             <div>
@@ -51,9 +44,4 @@
         </ul>
     </div>
     <div style='clear: both;'></div>
-    <!--ET_BEGIN DETAILS-->
-    <div class='details'>
-        [#DETAILS#]
-    </div>
-    <!--ET_END DETAILS-->
-</div>
+[#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

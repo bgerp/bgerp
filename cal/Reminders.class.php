@@ -466,8 +466,17 @@ class cal_Reminders extends core_Master
 	    	$data->row->repetitionTypeMonth = '';
     	}
     }
-  
-    
+
+
+    /**
+     * След рендиране на единичния изглед
+     */
+    public static function on_AfterRenderSingle($mvc, &$tpl, $data)
+    {
+        $tpl->removeBlock('shareLog');
+    }
+
+
     public static function on_BeforeRenderListTable($mvc, &$res, $data)
     {
     	if ($data->recs) {

@@ -233,7 +233,7 @@ class acc_AllocatedExpenses extends core_Master
     
     
     /**
-     * След рендиране на еденичния изглед
+     * След рендиране на единичния изглед
      */
     public static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
@@ -293,6 +293,15 @@ class acc_AllocatedExpenses extends core_Master
     
     
     /**
+     * Извиква се след подготовката на toolbar-а за табличния изглед
+     */
+    protected static function on_AfterPrepareListToolbar($mvc, &$data)
+    {
+    	$data->toolbar->removeBtn('btnAdd');
+    }
+    
+    
+    /**
      * Преди показване на форма за добавяне/промяна.
      *
      * @param core_Manager $mvc
@@ -312,7 +321,7 @@ class acc_AllocatedExpenses extends core_Master
     	}
     	
     	// Намираме ориджина и подготвяме опциите за избор на папки на контрагенти
-    	$firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+    	expect($firstDoc = doc_Threads::getFirstDocument($rec->threadId));
     	$form->setOptions('contragentFolderId', array('' => '') + doc_Folders::getOptionsByCoverInterface('crm_ContragentAccRegIntf'));
 
     	// Ако има избрана папка на контрагент, зареждаме всички достъпни сделки като предложение
@@ -496,6 +505,9 @@ class acc_AllocatedExpenses extends core_Master
     			
     			 // Намираме документа по хендлъра
     			 $doc = doc_Containers::getDocumentByHandle($rec->dealHandler);
+    			 if(isset($doc) && !$doc->haveRightFor('single')){
+    			 	unset($doc);
+    			 }
     			 
     			 // Трябва да има такава сделка
     			 if($doc){

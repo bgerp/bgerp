@@ -159,6 +159,9 @@ body {
     -webkit-transition: -webkit-transform 300ms ease-in-out,opacity 300ms;
     transition: transform 300ms ease-in-out,opacity 300ms;
     padding: 0px 15px 15px;
+    &.detail-info {
+        border-radius: 5px;
+    }
     .legend {
        margin-left: -15px;
        margin-right: -15px;
@@ -192,6 +195,10 @@ body {
     margin-left: 2px;
     margin-right: 2px;
     margin-bottom: 2px;
+    &.portal {
+        margin-top: 10px;
+        border-radius: 5px;
+    }
 }
 
 #framecontentTop{
@@ -323,7 +330,7 @@ body {
     ul {
         padding-left: 0;
         li {
-            border-bottom: 1px dashed #fefdd6;
+            border-bottom: 1px dashed rgba(254, 253, 214, 0.5);
             padding: 5px 0 5px 0px;
             display: block;
             &:last-child {
@@ -331,7 +338,7 @@ body {
             }
         }
         a {
-            background: url("../img/12/star-yellow.png") 4px center no-repeat;
+            background: url("../img/12/star-yellow.png") 4px 3px no-repeat;
             margin-left: 0;
             padding-left: 20px;
             outline: none;
@@ -516,7 +523,7 @@ a.bookmark-external-url {
         padding: 3px 20px 3px 25px;
         clear: both;
         font-weight: normal;
-        font-size: 0.9em;
+        font-size: 1.05em;
         white-space: nowrap;
         &:hover{
             background-color: #f1f1f1;
@@ -528,7 +535,6 @@ a.bookmark-external-url {
 }
 
 .narrow .menu-holder {
-	max-width: 200px;
 	a {
         padding: 5px 20px 5px 25px;
         font-size: 1em;
@@ -662,25 +668,25 @@ a.bookmark-external-url {
     display: inline-block;
     position: relative;
     top: -10px;
-    margin-left: 4px;
+    margin-left: 1px;
 }
 
 
 .notificationsCnt a {
     display: block;
     color: white;
-    padding: 1px;
-    font-size: 0.7em;
-    border-radius: 3px;
+    padding: 1px 4px;
+    font-size: 0.75em;
+    border-radius: 50%;
 }
 
 .narrow .notificationsCnt a {
-    padding: 0 1px 1px;
+    padding: 0 4px;
 }
 
 .notificationsCnt a.haveNtf {
-    background-color: red;
     border: solid 1px #c33 !important;
+    color: #c33;
 }
 
 .notificationsCnt a.noNtf {
@@ -728,6 +734,9 @@ a.button, input[type="button"], input[type="submit"], button {
 	text-shadow: 0 1px 0px #f1f1f1;
 	&:hover {
 	    background-color: #e5e5e5;
+        &.btn-disabled {
+            background-color: #dddddd;
+        }
 	}
 }
 
@@ -777,9 +786,12 @@ select, input, textarea , .chzn-container-single .chzn-single, .chzn-container-a
 form[method="post"] input[type="submit"] {
 	background-color: #888;
 	text-shadow: none;
-	color: #fff !important;
+	color: #fff;
 	&:hover {
-	   background-color: #999 !important;
+	   background-color: #999;
+        &.btn-disabled {
+            background-color: #888;
+        }
 	}
 }
 
@@ -790,6 +802,10 @@ form[method=post] input[type=button], form[method=post] a.button {
     &:hover {
         background-color: #b1b1b1;
     }
+}
+
+.btn-disabled {
+    color: #bbb !important;
 }
 
 .vertical .formTitle {

@@ -609,6 +609,10 @@ input[type=checkbox] + label {
   display: inline-block;
   vertical-align: baseline; }
 
+.narrow input[type=radio] + label,
+.narrow input[type=checkbox] + label {
+  font-size: 0.9em; }
+
 input[type=radio]:checked + label,
 input[type=checkbox]:checked + label {
   color: black;
@@ -1202,7 +1206,8 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
   border: solid 1px #9999ff;
   padding: 3px;
   background-color: white;
-  min-height: 1.2em; }
+  min-height: 1.2em;
+  overflow-x: auto; }
 
 .wide #main-container .formTable .staticFormView .formElement {
   min-width: 200px; }
@@ -1227,6 +1232,9 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
 
 .formTable > tr > td {
   padding: 3px; }
+
+.formTable .toolbar {
+  margin-bottom: 0 !important; }
 
 .wide .listTopContainer .formTable {
   -moz-box-shadow: none;
@@ -1310,7 +1318,8 @@ input:focus[type=button] {
   .simpleForm .vertical .formGroup {
     font-weight: bold !important;
     color: black !important;
-    background: none !important; }
+    background: none !important;
+    border: none !important; }
 
 .wide #main-container .formTable .formElement {
   min-width: 32em; }
@@ -1560,7 +1569,6 @@ table.keylist {
       padding-right: 20px; }
 
 .narrow table.keylist td {
-  font-size: 0.9em;
   padding-top: 0.1em;
   padding-bottom: 0 !important; }
 
@@ -1576,6 +1584,14 @@ td.keylist-group {
       margin-right: 5px;
       top: 2px;
       position: relative; }
+
+.narrow .keylistCategory .keylist-group > div {
+  position: relative; }
+  .narrow .keylistCategory .keylist-group > div .invert-checkbox {
+    position: absolute;
+    right: 3px;
+    top: 50%;
+    margin-top: -8px; }
 
   .keylistCategory.opened  .invert-checkbox {
     float: right;

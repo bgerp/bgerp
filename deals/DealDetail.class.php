@@ -17,6 +17,12 @@ abstract class deals_DealDetail extends doc_Detail
 {
  	
  	
+	/**
+	 * Кои полета от листовия изглед да се скриват ако няма записи в тях
+	 */
+	protected $hideListFieldsIfEmpty = 'discount';
+ 	
+ 	
  	/**
      * Изчисляване на сумата на реда
      * 
@@ -71,9 +77,9 @@ abstract class deals_DealDetail extends doc_Detail
     public static function getDealDetailFields(&$mvc)
     {
     	$mvc->FLD('classId', 'class(interface=cat_ProductAccRegIntf, select=title)', 'caption=Мениджър,silent,input=hidden');
-    	$mvc->FLD('productId', 'int', 'caption=Продукт,notNull,mandatory', 'tdClass=large-field leftCol wrap,removeAndRefreshForm=packPrice|discount|uomId|packagingId');
+    	$mvc->FLD('productId', 'int', 'caption=Продукт,notNull,mandatory', 'tdClass=large-field leftCol wrap,silent,removeAndRefreshForm=packPrice|discount|uomId|packagingId|tolerance');
     	$mvc->FLD('uomId', 'key(mvc=cat_UoM, select=shortName)', 'caption=Мярка,input=none');
-    	$mvc->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка', 'tdClass=small-field');
+    	$mvc->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty, select2MinItems=0)', 'caption=Мярка', 'tdClass=small-field,silent,removeAndRefreshForm=packPrice|discount|uomId');
     	
     	// Количество в основна мярка
     	$mvc->FLD('quantity', 'double', 'caption=Количество,input=none');
@@ -94,6 +100,7 @@ abstract class deals_DealDetail extends doc_Detail
     	// Цена за опаковка (ако има packagingId) или за единица в основна мярка (ако няма packagingId)
     	$mvc->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input');
     	$mvc->FLD('discount', 'percent(Min=0,max=1)', 'caption=Отстъпка');
+    	$mvc->FLD('tolerance', 'percent(min=0,max=1,decimals=0)', 'caption=Толеранс,input=none');
     	$mvc->FLD('showMode', 'enum(auto=Автоматично,detailed=Разширено,short=Кратко)', 'caption=Показване,notNull,default=auto');
     	$mvc->FLD('notes', 'richtext(rows=3)', 'caption=Забележки');
     }
@@ -189,6 +196,24 @@ abstract class deals_DealDetail extends doc_Detail
         	$vat = cls::get($rec->classId)->getVat($rec->productId, $masterRec->valior);
         	$rec->packPrice = deals_Helper::getDisplayPrice($rec->packPrice, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
         }
+        
+        if($rec->productId){
+        	$params = cls::get($rec->classId)->getParams($rec->productId);
+        	
+        	// Показваме полето за толеранс ако в избрания артикул има такъв параметър
+        	if(!empty($params['tolerance'])){
+        		$percentVerbal = str_replace('&nbsp;', ' ', $mvc->getFieldType('tolerance')->toVerbal($params['tolerance']));
+        		$data->form->setField('tolerance', 'input');
+        		if(empty($rec->id)){
+        			$data->form->setDefault('tolerance', $params['tolerance']);
+        		}
+        		$data->form->setSuggestions('tolerance', array('' => '', $percentVerbal => $percentVerbal));
+        	}
+        }
+        
+        // Помощно поле за запомняне на последно избрания артикул
+        //@TODO да се махне
+        $data->form->FNC('lastProductId', 'int', 'silent,input=hidden');
     }
     
     
@@ -229,11 +254,14 @@ abstract class deals_DealDetail extends doc_Detail
     		if($form->cmd == 'refresh'){
     			$baseInfo = $ProductMan->getBasePackInfo($rec->productId);
     			 
-    			if($baseInfo->classId == 'cat_Packagings'){
-    				$form->rec->packagingId = $baseInfo->id;
+    			// Избираме базовата опаковка само ако сме променяли артикула
+    			if($baseInfo->classId == 'cat_Packagings' && $form->rec->lastProductId != $rec->productId){
+    				$form->setDefault('packagingId', $baseInfo->id);
     			}
+    			
+    			$form->rec->lastProductId = $rec->productId;
     		}
-    	
+    		
     		if(isset($mvc->LastPricePolicy)){
     			$policyInfoLast = $mvc->LastPricePolicy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->classId, $rec->packagingId, $rec->packQuantity, $priceAtDate, $masterRec->currencyRate, $masterRec->chargeVat);
     			if($policyInfoLast->price != 0){
@@ -259,54 +287,53 @@ abstract class deals_DealDetail extends doc_Detail
     				$rec->id = $pRec->id;
     				$update = TRUE;
     			}
-    			}
+    		}
     	
-    			// Ако артикула няма опаковка к-то в опаковка е 1, ако има и вече не е свързана към него е това каквото е било досега, ако още я има опаковката обновяваме к-то в опаковка
-    			$rec->quantityInPack = (empty($rec->packagingId)) ? 1 : (($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : $rec->quantityInPack);
-    			$rec->quantity = $rec->packQuantity * $rec->quantityInPack;
+    		// Ако артикула няма опаковка к-то в опаковка е 1, ако има и вече не е свързана към него е това каквото е било досега, ако още я има опаковката обновяваме к-то в опаковка
+    		$rec->quantityInPack = (empty($rec->packagingId)) ? 1 : (($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : $rec->quantityInPack);
+    		$rec->quantity = $rec->packQuantity * $rec->quantityInPack;
     	
-    			if (!isset($rec->packPrice)) {
-    				$Policy = (isset($mvc->Policy)) ? $mvc->Policy : cls::get($rec->classId)->getPolicy();
-    				$policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->classId, $rec->packagingId, $rec->packQuantity, $priceAtDate, $masterRec->currencyRate, $masterRec->chargeVat);
+    		if (!isset($rec->packPrice)) {
+    			$Policy = (isset($mvc->Policy)) ? $mvc->Policy : cls::get($rec->classId)->getPolicy();
+    			$policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->classId, $rec->packagingId, $rec->packQuantity, $priceAtDate, $masterRec->currencyRate, $masterRec->chargeVat);
     				 
-    				 
-    				if (empty($policyInfo->price) && empty($pRec)) {
-    					$form->setError('packPrice', 'Продукта няма цена в избраната ценова политика');
-    				} else {
-    					// Ако се обновява вече съществуващ запис
-    					if($pRec){
-    						$pRec->packPrice = deals_Helper::getDisplayPrice($pRec->packPrice, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
-    					}
-    	
-    					// Ако се обновява запис се взима цената от него, ако не от политиката
-    					$price = ($pRec->price) ? $pRec->price : $policyInfo->price;
-    					$rec->packPrice = ($pRec->packPrice) ? $pRec->packPrice : $policyInfo->price * $rec->quantityInPack;
-    					if($policyInfo->discount && empty($rec->discount)){
-    						$rec->discount = $policyInfo->discount;
-    					}
-    				}
-    				 
-    				$price = $policyInfo->price;
+    			if (empty($policyInfo->price) && empty($pRec)) {
+    				$form->setError('packPrice', 'Продукта няма цена в избраната ценова политика');
     			} else {
-    				$price = $rec->packPrice / $rec->quantityInPack;
-    				 
-    				// Обръщаме цената в основна валута, само ако не се ъпдейтва или се ъпдейтва и е чекнат игнора
-    				if(!$update || ($update && Request::get('Ignore'))){
-    					$rec->packPrice =  deals_Helper::getPurePrice($rec->packPrice, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
+    				// Ако се обновява вече съществуващ запис
+    				if($pRec){
+    					$pRec->packPrice = deals_Helper::getDisplayPrice($pRec->packPrice, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
+    				}
+    	
+    				// Ако се обновява запис се взима цената от него, ако не от политиката
+    				$price = ($pRec->price) ? $pRec->price : $policyInfo->price;
+    				$rec->packPrice = ($pRec->packPrice) ? $pRec->packPrice : $policyInfo->price * $rec->quantityInPack;
+    				if($policyInfo->discount && empty($rec->discount)){
+    					$rec->discount = $policyInfo->discount;
     				}
     			}
-    	
-    			$price = deals_Helper::getPurePrice($price, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
-    			$rec->price  = $price;
-    	
-    			// При редакция, ако е променена опаковката слагаме преудпреждение
-    			if($rec->id){
-    				$oldRec = $mvc->fetch($rec->id);
-    				if($oldRec && $rec->packagingId != $oldRec->packagingId && round($rec->packPrice, 4) == round($oldRec->packPrice, 4)){
-    					$form->setWarning('packPrice,packagingId', 'Опаковката е променена без да е променена цената.|*<br />| Сигурнили сте че зададената цена отговаря на  новата опаковка!');
-    				}
+    				 
+    			$price = $policyInfo->price;
+    		} else {
+    			$price = $rec->packPrice / $rec->quantityInPack;
+    				 
+    			// Обръщаме цената в основна валута, само ако не се ъпдейтва или се ъпдейтва и е чекнат игнора
+    			if(!$update || ($update && Request::get('Ignore'))){
+    				$rec->packPrice =  deals_Helper::getPurePrice($rec->packPrice, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
     			}
     		}
+    	
+    		$price = deals_Helper::getPurePrice($price, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
+    		$rec->price  = $price;
+    	
+    		// При редакция, ако е променена опаковката слагаме преудпреждение
+    		if($rec->id){
+    			$oldRec = $mvc->fetch($rec->id);
+    			if($oldRec && $rec->packagingId != $oldRec->packagingId && round($rec->packPrice, 4) == round($oldRec->packPrice, 4)){
+    				$form->setWarning('packPrice,packagingId', 'Опаковката е променена без да е променена цената.|*<br />| Сигурнили сте че зададената цена отговаря на  новата опаковка!');
+    			}
+    		}
+    	}
     }
     
     
@@ -381,15 +408,16 @@ abstract class deals_DealDetail extends doc_Detail
     	
         // Флаг дали има отстъпка
         $haveDiscount = FALSE;
-        $haveQuantityDelivered = FALSE;
         
         if(count($data->rows)) {
             foreach ($data->rows as $i => &$row) {
                 $rec = $data->recs[$i];
                 
-                $haveDiscount = $haveDiscount || !empty($rec->discount);
-                $haveQuantityDelivered = $haveQuantityDelivered || !empty($rec->quantityDelivered);
-              
+              	if($rec->tolerance){
+              		$tolerance = $mvc->getFieldType('tolerance')->toVerbal($rec->tolerance);
+              		$row->packQuantity .= "<small style='font-size:0.8em;display:block;' class='quiet'>±{$tolerance}</small>";
+              	}
+                
                 if (empty($rec->packagingId)) {
                 	$row->packagingId = ($rec->uomId) ? $row->uomId : $row->packagingId;
                 } else {
@@ -400,10 +428,6 @@ abstract class deals_DealDetail extends doc_Detail
                    }
                 }
             }
-        }
-		
-        if(!$haveDiscount) {
-            unset($data->listFields['discount']);
         }
     }
     
