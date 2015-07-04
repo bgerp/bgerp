@@ -538,7 +538,7 @@ class core_Debug
     /**
      * Рендира страница за грешка
      */
-    private  static function getErrorPage($state)
+    private  static function getErrorPage(&$state)
     { 
         $tpl = new core_NT(getFileContent('core/tpl/Error.shtml'));
         if(isset($state['errTitle']) && $state['errTitle'][0] == '@') {
@@ -637,10 +637,12 @@ class core_Debug
         // Логваме на отдалечен сървър
         if(defined('EF_REMOTE_ERROR_REPORT_URL')) {
             $url = EF_REMOTE_ERROR_REPORT_URL;
-            $data = array(  'debugPage' => gzcompress($debugPage), 
+            $data = array(  'data' => gzcompress($debugPage), 
                             'domain' => $_SERVER['SERVER_NAME'], 
                             'errCtr' => $ctr, 
                             'errAct' => $act, 
+                            'dbName' => EF_DB_NAME,
+                            'title'  => $state['errTitle'],
                           );
 
             // use key 'http' even if you send the request to https://...
@@ -852,7 +854,7 @@ class core_Debug
      */
     public static function isDebug()
     {
-        
+ 
         // Връщаме кеширания резултат ако има такъв
         if(is_bool(self::$isDebug)) return self::$isDebug;
         

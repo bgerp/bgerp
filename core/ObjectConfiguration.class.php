@@ -74,7 +74,9 @@ class core_ObjectConfiguration extends core_BaseClass
         }
         
         if($this->_description[$name]) {
-            expect(isset($value), "Недефинирана константа $name", $this->_description, $this->_data);
+            expect(isset($value), "Константата $name няма стойност", $this->_description, $this->_data);
+        } else {
+            expect(isset($value), "Константата $name не е дефинирана", $this->_description, $this->_data);
         }
 
         return $value;
