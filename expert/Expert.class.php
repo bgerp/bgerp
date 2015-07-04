@@ -11,7 +11,7 @@ defIfNot('EXPERT_SAVE_STATE_IN_CACHE', TRUE);
 /**
  * Дефинира колко минути е 'живо' състоянието
  */
-defIfNot('EXPERT_STATE_LIFETIME', 45);
+defIfNot('EXPERT_STATE_LIFETIME', 145);
 
 
 /**

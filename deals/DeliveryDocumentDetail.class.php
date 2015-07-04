@@ -18,6 +18,12 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 	
 	
 	/**
+	 * Кои полета от листовия изглед да се скриват ако няма записи в тях
+	 */
+	protected $hideListFieldsIfEmpty = 'discount';
+	
+	
+	/**
 	 * Задължителни полета за модела
 	 */
 	public static function setDocumentFields($mvc)
@@ -253,14 +259,9 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 		
 		if(!count($recs)) return;
 		
-		// Флаг дали има отстъпка
-		$haveDiscount = FALSE;
-		
 		if(count($data->rows)) {
 			foreach ($data->rows as $i => &$row) {
 				$rec = &$data->recs[$i];
-		
-				$haveDiscount = $haveDiscount || !empty($rec->discount);
 		
 				if (empty($rec->packagingId)) {
 					$row->packagingId = ($rec->uomId) ? $row->uomId : '???';
@@ -276,10 +277,6 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 				$row->weight = (!empty($rec->weight)) ? $row->weight : "<span class='quiet'>0</span>";
 				$row->volume = (!empty($rec->volume)) ? $row->volume : "<span class='quiet'>0</span>";
 			}
-		}
-		
-		if(!$haveDiscount) {
-			unset($data->listFields['discount']);
 		}
 	}
 	

@@ -121,13 +121,15 @@ class editwatch_Plugin extends core_Plugin
         
         $refreshUrl = Request::get('refreshUrl');
         
+        $recId = Request::get('id', 'int');
+        
         // Ако не е логнат потребител
-        if (!haveRole('user')) {
+        // Понякога и every_one може да редактира запис
+        if (!haveRole('user') && !$mvc->haveRightFor('edit', $recId)) {
             $status = tr('Трябва да сте логнати, за да редактирате този запис.');
             $status = "<span class='errorMsg'>$status</span>";
         } else {
             
-            $recId = Request::get('id', 'int');
             $editedBy = array();
             
             if (isset($recId)) {

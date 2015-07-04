@@ -110,11 +110,14 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     				}
     			}
     		}
-    
-    		$sets = arr::fromArray($sets);
-    		$defaults = implode(',', $baseGroups);
-    		$form->FLD('groupBy', "set({$sets})", 'caption=Групиране по');
-    		$form->setDefault('groupBy', $defaults);
+    		
+    		// Добавяме поле за групиране ако има по какво
+    		if(count($sets)){
+    			$sets = arr::fromArray($sets);
+    			$defaults = implode(',', $baseGroups);
+    			$form->FLD('groupBy', "set({$sets})", 'caption=Групиране по');
+    			$form->setDefault('groupBy', $defaults);
+    		}
     	}
     	 
     	$this->invoke('AfterPrepareEmbeddedForm', array($form));

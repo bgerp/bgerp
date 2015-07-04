@@ -54,6 +54,12 @@ class acc_JournalDetails extends core_Detail
     
     
     /**
+     * Кои полета от листовия изглед да се скриват ако няма записи в тях
+     */
+    protected $hideListFieldsIfEmpty = 'reasonCode';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -105,13 +111,10 @@ class acc_JournalDetails extends core_Detail
     {
         $rows = &$res->rows;
         $recs = &$res->recs;
-        $hasReasonFld = FALSE;
         
         if (count($recs)) {
             foreach ($recs as $id => $rec) {
                 $row = &$rows[$id];
-                
-                $hasReasonFld = isset($row->reasonCode) ? TRUE : $hasReasonFld;
                 
                 foreach (array('debit', 'credit') as $type) {
                     $ents = "";
@@ -141,10 +144,6 @@ class acc_JournalDetails extends core_Detail
                     }
                 }
             }
-        }
-        
-        if($hasReasonFld === FALSE){
-        	unset($res->listFields['reasonCode']);
         }
     }
     

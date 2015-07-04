@@ -1,11 +1,4 @@
-[#SingleToolbar#]
-<div class='document'>
-    <!--ET_BEGIN blank-->
-    [#blank#]
-    <!--ET_END blank-->
-    <div class='header [#STATE_CLASS#]'>
-        <div class='docBgIcon' style='[#iconStyle#]'>|Свидетелство за лабораторен анализ|* [#id#]/[#createdOn#] ([#state#])</div>
-    </div>
+[#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
     <div class='block_left'>
         <table class='top-table'>
             <tr>

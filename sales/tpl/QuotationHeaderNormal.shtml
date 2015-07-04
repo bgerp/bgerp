@@ -1,13 +1,4 @@
-[#SingleToolbar#]
-<div class='document'>
-    <!--ET_BEGIN blank-->
-    [#blank#]
-    <!--ET_END blank-->
-    <!--ET_BEGIN header-->
-    <div class='header [#STATE_CLASS#]'>
-        <div class='docBgIcon' style='[#iconStyle#];'>[#singleTitle#] <b>[#ident#]</b> ([#state#])</div>
-    </div>
-    <!--ET_END header-->
+[#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
     <div class='scrolling-holder'>
         <table class="innerTable quote-header paddingCells" style='width:100%;'>
             <tbody>
@@ -97,9 +88,4 @@
     <div class='footerDocBlock no-border-top'>
         <div class='aright'>Документът е създаден чрез системата <b><a href='http://bgerp.com'>bgERP</a></b></div>
     </div>
-    <div class='details'>
-        <!--ET_BEGIN DETAILS-->
-        [#DETAILS#]
-        <!--ET_END DETAILS-->
-    </div>
-</div>
+[#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

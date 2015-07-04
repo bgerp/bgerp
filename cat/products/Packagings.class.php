@@ -67,6 +67,12 @@ class cat_products_Packagings extends cat_products_Detail
     
     
     /**
+     * Кои полета от листовия изглед да се скриват ако няма записи в тях
+     */
+    protected $hideListFieldsIfEmpty = 'code';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -337,28 +343,5 @@ class cat_products_Packagings extends cat_products_Detail
     	if($data->hide === TRUE) return;
     	
         return static::renderDetail($data);
-    }
-    
-    
-    /**
-     * След преобразуване на записа в четим за хора вид.
-     */
-    protected static function on_AfterPrepareListRows($mvc, &$res)
-    {
-    	$recs = &$res->recs;
-    
-    	$hasReasonFld = FALSE;
-    	
-    	if (count($recs)) {
-    		foreach ($recs as $id => $rec) {
-    			$row = &$res->rows[$id];
-    
-    			$hasReasonFld = !empty($rec->eanCode) ? TRUE : $hasReasonFld;
-    		}
-    		 
-    		if($hasReasonFld === FALSE){
-    			unset($res->listFields['code']);
-    		}
-    	}
     }
 }

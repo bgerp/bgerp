@@ -154,6 +154,7 @@ class core_Debug
             $html .= core_Html::mixedToHtml($_COOKIE) . "</li>";
                         
             foreach (self::$debugTime as $rec) {
+                $rec->name = core_ET::escape($rec->name);
                 $html .= "\n<li style='padding:15px 0px 15px 0px;border-top:solid 1px #cc3;'>" .  number_format(($rec->start ), 5) . ": " . htmlentities($rec->name, ENT_QUOTES, 'UTF-8');
             }
             
