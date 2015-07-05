@@ -320,7 +320,7 @@ function bp()
 {   
     $dump = func_get_args();
     
-    throw new core_exception_Break('500 Грешка в сървъра', 'Прекъсване', $dump);
+    throw new core_exception_Break('500 Прекъсване в сървъра', 'Прекъсване', $dump);
 }
 
 
