@@ -616,16 +616,16 @@ a.bookmark-external-url {
 .notificationsCnt a {
   display: block;
   color: white;
-  padding: 1px 4px;
+  padding: 1px 5px;
   font-size: 0.75em;
-  border-radius: 50%; }
+  border-radius: 10px; }
 
 .narrow .notificationsCnt a {
   padding: 0 4px; }
 
 .notificationsCnt a.haveNtf {
-  border: solid 1px #cc3333 !important;
-  color: #cc3333; }
+  border: solid 1px red !important;
+  color: red; }
 
 .notificationsCnt a.noNtf {
   display: none; }
