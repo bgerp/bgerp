@@ -6,9 +6,9 @@
             </span>
         </div>
     </div>
-    <!--ET_BEGIN [#repos#]--> 
+    <!--ET_BEGIN repos-->
     <div style='padding:10px;'>
         <div>[#repos#]</div>
     </div>
-    <!--ET_END [#repos#]-->
+    <!--ET_END repos-->
 [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]
