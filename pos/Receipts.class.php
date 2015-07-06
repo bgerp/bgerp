@@ -160,33 +160,6 @@ class pos_Receipts extends core_Master {
     }
     
     
-	/**
-     * Извиква се преди изпълняването на екшън
-     */
-    public static function on_BeforeAction($mvc, &$res, $action)
-    {
-    	$id = Request::get('id', 'int');
-    	if($action == 'terminal' && !$id) {
-    		
-    		// Ако не е зададено Ид, намираме кой е последно добавената бележка
-	    	$cu = core_Users::getCurrent();
-    		$query = static::getQuery();
-    		$posId = pos_Points::getCurrent();
-	    	$query->where("#createdBy = {$cu}");
-	    	$query->where("#pointId = {$posId}");
-	    	$query->where("#state = 'draft'");
-	    	$query->orderBy("#createdOn", "DESC");
-	    	if($rec = $query->fetch()) {
-	    		
-	    		return Redirect(array($mvc, 'terminal', $rec->id));
-	    	}
-    		
-	    	// Ако няма последно добавена бележка създаваме нова
-    		return Redirect(array($mvc, 'new'));
-    	}
-    }
-    
-    
     /**
      *  Екшън създаващ нова бележка, и редиректващ към Единичния и изглед
      *  Добавянето на нова бележка става само през този екшън 
