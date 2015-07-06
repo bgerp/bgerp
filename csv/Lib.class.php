@@ -122,7 +122,7 @@ class csv_Lib
         $filePath = getFullPath($file);
         
         // Името на променливата, в която се записва хеша на CSV файла
-        $param = 'dcsvFile' . preg_replace('/[^a-z0-9]+/', '_', $file);
+        $param = 'csvFile' . preg_replace('/[^a-z0-9]+/', '_', $file);
         
         // Хеша на CSV данните
         $hash = md5_file($filePath);
