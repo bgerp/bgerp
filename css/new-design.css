@@ -281,16 +281,33 @@ body {
 .sideBarTitle {
   text-align: center;
   color: #fffb99; }
-  .sideBarTitle a {
-    position: relative;
-    top: 2px; }
 
 .bookmarkText {
   margin: 0 8px;
   font-size: 0.95em; }
 
+.inner-fav-panel {
+  position: relative; }
+
 .narrow .bookmarkText {
   margin: 0 4px; }
+
+.bookmarkLink {
+  width: 28px;
+  height: 28px;
+  display: inline-block;
+  position: absolute;
+  top: 10px;
+  opacity: 0.8;
+  transition: opacity 0.5s; }
+  .bookmarkLink.addBookmarkLink {
+    right: 13px; }
+  .bookmarkLink.listBookmarkLink {
+    left: 13px; }
+  .bookmarkLink img {
+    border-radius: 5px; }
+  .bookmarkLink:hover {
+    opacity: 1; }
 
 .narrow .sidebar-row {
   margin-top: 47px;
@@ -917,5 +934,10 @@ only screen and (max-width: 600px) {
 
   #main-container > .tab-control > .tab-row {
     padding: 0 6px 1px !important;
-    top: 44px; } }
+    top: 44px; }
+
+    .bookmarkLink.addBookmarkLink {
+      right: 7px; }
+    .bookmarkLink.listBookmarkLink {
+      left: 7px; } }
 
