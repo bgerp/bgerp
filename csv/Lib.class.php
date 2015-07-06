@@ -133,8 +133,14 @@ class csv_Lib
         $conf = core_Packs::getConfig($pack);
 
         $cntObj = new stdClass();
-
-        if($conf->{$param} != $hash) {
+        
+        try {
+            $confHash = $conf->{$param};
+        } catch (Exception $e) {
+            $confHash = NULL;
+        }
+        
+        if($confHash != $hash) {
             
             // Изтриваме предишното съдържание на модела, ако е сетнат $delete
             if($delete) {
