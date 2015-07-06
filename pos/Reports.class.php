@@ -506,9 +506,9 @@ class pos_Reports extends core_Master {
     	if($rec->state == 'active'){
     		
     		// Ако няма записани детайли извличаме актуалните
-    		if(!$rec->details){
+    		//if(!$rec->details){
     			$mvc->extractData($rec);
-    		}
+    		//}
     	}
     	
     	if(empty($rec->id)){
