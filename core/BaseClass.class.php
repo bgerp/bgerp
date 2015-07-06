@@ -180,7 +180,7 @@ class core_BaseClass
     {
         $method = 'on_' . $event;
         
-        // Ако нямаме - генерираме кеша с обработвачите
+         // Ако нямаме - генерираме кеша с обработвачите
         if(!isset($this->_listenerCache[$method])) {
             
             $this->_listenerCache[$method] = array();
