@@ -48,6 +48,11 @@ class core_Debug
     
 
     /**
+     * Дали се рапортуват грешки на отдалечен компютър
+     */
+    static $isErrorReporting = TRUE;
+
+    /**
      * Кеш - дали се намираме в DEBUG режим
      */
     static $isDebug;
@@ -154,6 +159,7 @@ class core_Debug
             $html .= core_Html::mixedToHtml($_COOKIE) . "</li>";
                         
             foreach (self::$debugTime as $rec) {
+                $rec->name = core_ET::escape($rec->name);
                 $html .= "\n<li style='padding:15px 0px 15px 0px;border-top:solid 1px #cc3;'>" .  number_format(($rec->start ), 5) . ": " . htmlentities($rec->name, ENT_QUOTES, 'UTF-8');
             }
             
@@ -537,7 +543,7 @@ class core_Debug
     /**
      * Рендира страница за грешка
      */
-    private  static function getErrorPage($state)
+    private  static function getErrorPage(&$state)
     { 
         $tpl = new core_NT(getFileContent('core/tpl/Error.shtml'));
         if(isset($state['errTitle']) && $state['errTitle'][0] == '@') {
@@ -634,12 +640,14 @@ class core_Debug
         }
         
         // Логваме на отдалечен сървър
-        if(defined('EF_REMOTE_ERROR_REPORT_URL')) {
+        if(defined('EF_REMOTE_ERROR_REPORT_URL') && self::$isErrorReporting) {
             $url = EF_REMOTE_ERROR_REPORT_URL;
-            $data = array(  'debugPage' => gzcompress($debugPage), 
+            $data = array(  'data'   => gzcompress($debugPage), 
                             'domain' => $_SERVER['SERVER_NAME'], 
                             'errCtr' => $ctr, 
                             'errAct' => $act, 
+                            'dbName' => EF_DB_NAME,
+                            'title'  => ltrim($state['errTitle'], '@'),
                           );
 
             // use key 'http' even if you send the request to https://...
@@ -650,8 +658,8 @@ class core_Debug
                     'content' => http_build_query($data),
                 ),
             );
-            $context  = stream_context_create($options);
-            $result = file_get_contents($url, false, $context);
+            $context = stream_context_create($options);
+            $result  = @file_get_contents($url, FALSE, $context);
         }
     }
 
@@ -851,7 +859,7 @@ class core_Debug
      */
     public static function isDebug()
     {
-        
+ 
         // Връщаме кеширания резултат ако има такъв
         if(is_bool(self::$isDebug)) return self::$isDebug;
         

@@ -281,16 +281,33 @@ body {
 .sideBarTitle {
   text-align: center;
   color: #fffb99; }
-  .sideBarTitle a {
-    position: relative;
-    top: 2px; }
 
 .bookmarkText {
   margin: 0 8px;
   font-size: 0.95em; }
 
+.inner-fav-panel {
+  position: relative; }
+
 .narrow .bookmarkText {
   margin: 0 4px; }
+
+.bookmarkLink {
+  width: 28px;
+  height: 28px;
+  display: inline-block;
+  position: absolute;
+  top: 10px;
+  opacity: 0.8;
+  transition: opacity 0.5s; }
+  .bookmarkLink.addBookmarkLink {
+    right: 13px; }
+  .bookmarkLink.listBookmarkLink {
+    left: 13px; }
+  .bookmarkLink img {
+    border-radius: 5px; }
+  .bookmarkLink:hover {
+    opacity: 1; }
 
 .narrow .sidebar-row {
   margin-top: 47px;
@@ -611,21 +628,21 @@ a.bookmark-external-url {
   display: inline-block;
   position: relative;
   top: -10px;
-  margin-left: 4px; }
+  margin-left: 1px; }
 
 .notificationsCnt a {
   display: block;
   color: white;
-  padding: 1px;
-  font-size: 0.7em;
-  border-radius: 3px; }
+  padding: 1px 5px;
+  font-size: 0.75em;
+  border-radius: 10px; }
 
 .narrow .notificationsCnt a {
-  padding: 0 1px 1px; }
+  padding: 0 4px; }
 
 .notificationsCnt a.haveNtf {
-  background-color: red;
-  border: solid 1px #cc3333 !important; }
+  border: solid 1px red !important;
+  color: red; }
 
 .notificationsCnt a.noNtf {
   display: none; }
@@ -917,5 +934,10 @@ only screen and (max-width: 600px) {
 
   #main-container > .tab-control > .tab-row {
     padding: 0 6px 1px !important;
-    top: 44px; } }
+    top: 44px; }
+
+    .bookmarkLink.addBookmarkLink {
+      right: 7px; }
+    .bookmarkLink.listBookmarkLink {
+      left: 7px; } }
 

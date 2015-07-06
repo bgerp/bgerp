@@ -219,7 +219,9 @@ class acc_BalancePeriodReportImpl extends frame_BaseDriver
 			    	$lastCloneQuery = clone $bQuery;
 			    	$bDetails->filterQuery($lastCloneQuery, $lastBalanceId, $accSysId,  NULL, $item1Id, $item2Id,$item3Id);
 			    	//$lastCloneQuery->where("#ent1Id IS NULL AND #ent2Id IS NULL AND #ent3Id IS NULL");
-			    	$lastCloneQuery->XPR('lastAmount', 'double', "SUM(#{$data->rec->orderField})");
+			    	if ($data->rec->orderField) {
+			    	    $lastCloneQuery->XPR('lastAmount', 'double', "SUM(#{$data->rec->orderField})");
+			    	}
 			    			
 			    	$lastYearAmount = $lastCloneQuery->fetch()->lastAmount;
 			    	

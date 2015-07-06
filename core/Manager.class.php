@@ -682,10 +682,17 @@ class core_Manager extends core_Mvc
     {
         $table = cls::get('core_TableView', array('mvc' => $this));
         
+        // Кои ще са колоните на таблицата
         $data->listFields = arr::make($data->listFields, TRUE);
         
+        // Ако има полета за скриване, ако са празни задаваме ги
+        if(isset($this->hideListFieldsIfEmpty)){
+        	$table->setFieldsToHideIfEmptyColumn($this->hideListFieldsIfEmpty);
+        }
+        
+        // Рендираме таблицата
         $tpl = $table->get($data->rows, $data->listFields);
-
+        
         if(!$class = $data->listClass) {
             $class = 'listRows';
         }

@@ -1,14 +1,4 @@
-<div class="singleView">
-    [#SingleToolbar#]
-    <div class="document">
-        <!--ET_BEGIN blank-->
-        [#blank#]
-        <!--ET_END blank-->
-        <!--ET_BEGIN header-->
-        <div class='header [#STATE_CLASS#]'>
-            <div class='docBgIcon' style='[#iconStyle#];'>[#singleTitle#] <b>[#ident#]</b> ([#state#])</div>
-        </div>
-        <!--ET_END header-->
+[#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
         <h3 class="centered"><span style='text-transform:uppercase;letter-spacing:5px'>|протокол|*</span> &nbsp; № [#id#] / [#valior#]</h3>
         <p class="centered">|За въвеждане в експлоатация на Дълготраен актив|*</p>
         <br>
@@ -43,10 +33,4 @@
                 </tr>
             </table>
         </div>
-        <!--ET_BEGIN DETAILS-->
-        <div class='details'>
-            [#DETAILS#]
-        </div>
-        <!--ET_END DETAILS-->
-    </div>
-</div>
+[#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

@@ -1,11 +1,4 @@
-[#SingleToolbar#]
-<div class='document'>
-    <!--ET_BEGIN blank-->
-    [#blank#]
-    <!--ET_END blank-->
-    <div class='header [#STATE_CLASS#]'>
-        <div class='docBgIcon' style='[#iconStyle#]'>|Молба|* <b>[#ident#]</b> ([#state#])</div>
-    </div>
+[#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
     <h3 class="centered">|М О Л Б А|* </h3>
     <p class="centered">№ [#id#] / [#createdDate#] |г|*.</p>
     <p class="centered">|От|*: <b>[#personId#]</b></p>
@@ -33,16 +26,4 @@
             <td class='aright'>|Подпис|*: ............................</td>
         </tr>
     </table>
-    <br>
-    <!--ET_BEGIN DETAILS-->
-    <div class='details'>
-        [#DETAILS#]
-    </div>
-    <!--ET_END DETAILS-->
-    <!--ET_BEGIN shareLog-->
-    <div class='sharing-history clearfix21'>
-        <span class='sharing-history-title'>|Споделяне|*</span>
-        [#shareLog#]
-    </div>
-    <!--ET_END shareLog--> 
-</div>
+    [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

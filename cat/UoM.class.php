@@ -78,9 +78,62 @@ class cat_UoM extends core_Manager
         $this->FLD('baseUnitRatio', 'double', 'caption=Коефициент, export');
         $this->FLD('sysId', 'varchar', 'caption=System Id,input=hidden');
         $this->FLD('sinonims', 'varchar(255)', 'caption=Синоними');
+        $this->FLD('round', 'int', 'caption=Точност след десетичната запетая->Цифри');
         
         $this->setDbUnique('name');
         $this->setDbUnique('shortName');
+    }
+    
+    function act_Test()
+    {
+    	$pId = '1184';
+    	$quantity = 1.547192;
+    	
+    	$r = $this->round($quantity, $pId);
+    	bp($quantity, $r);
+    	
+    }
+    
+    
+    /**
+     * Ф-я закръгляща количество спрямо основната мярка на даден артикул
+     * 
+     * @param double $quantity - к-то което ще закръгляме
+     * @param int $productId - ид на артикула
+     * @return double - закръгленото количество
+     */
+    public static function round($quantity, $productId)
+    {
+    	// Коя е основната мярка на артикула
+    	$uomId = cat_Products::getProductInfo($productId)->productRec->measureId;
+    	
+    	// Имали зададено закръгляне
+    	$round = static::fetchField($uomId, 'round');
+    	
+    	// Ако няма
+    	if(!isset($round)){
+    		$uomRec = static::fetch($uomId);
+    		
+    		// Имали основна мярка върху която да стъпим
+    		if($uomRec->baseUnitId){
+    			
+    			/*
+    			 * Ако има базова мярка, тогава да е спрямо точността на базовата мярка. 
+    			 * Например ако базовата мярка е килограм и имаме нова мярка - грам, която 
+    			 * е 1/1000 от базовата, то точността по подразбиране е 3/3 = 1, където числителя 
+    			 * е точността на мярката килограм, а в знаменателя - log(1000).
+    			 */
+    			$baseRound = static::fetchField($uomRec->baseUnitId, 'round');
+    			$round = $baseRound / log10(pow($uomRec->baseUnitRatio, -1));
+    			$round = abs($round);
+    		} else {
+    			
+    			// Ако няма базова мярка и няма зададено закръгляне значи е 0
+    			$round = 0;
+    		}
+    	}
+    	
+    	return round($quantity, $round);
     }
     
     

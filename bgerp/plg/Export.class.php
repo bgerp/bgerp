@@ -36,7 +36,7 @@ class bgerp_plg_Export extends core_Plugin
      */
     static function on_AfterPrepareListToolbar(core_Mvc $mvc, &$data)
     {
-        if($mvc->haveRightFor('export')){
+        if($mvc->haveRightFor('export') && self::getExportDrivers($mvc)){
             $data->toolbar->addBtn('Експорт', array($mvc, 'export', 'ret_url' => TRUE), 'ef_icon=img/16/export.png');
         }
     }
@@ -137,7 +137,8 @@ class bgerp_plg_Export extends core_Plugin
     	if($action == 'export'){
     		
     		// Ако няма налични драйвери за експорт за този мениджър не можем да експортираме
-    		if(!self::getExportDrivers($mvc)){
+    		if(!self::getExportDrivers($mvc) && !$mvc->hasPlugin('plg_ExportCsv')){
+    			
     			$requiredRoles = 'no_one';
     		}
     	}

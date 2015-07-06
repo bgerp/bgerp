@@ -36,6 +36,15 @@
 				<td><b>[#transferedIn#]</b></td>
 			</tr>
 			<!--ET_END transferedIn-->
+			
+			<!--ET_BEGIN inReport-->
+			<tr>
+				<td>|Приключено с|*:</td>
+				<td></td>
+				<td><b>[#inReport#]</b></td>
+			</tr>
+			<!--ET_END inReport-->
+			
 			<tr>
 				<td>|Продадено|*:</td>
 				<td><span class='cCode' style='margin:0px 12px'>[#baseCurrency#]</span></td>

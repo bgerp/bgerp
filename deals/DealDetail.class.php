@@ -17,6 +17,12 @@ abstract class deals_DealDetail extends doc_Detail
 {
  	
  	
+	/**
+	 * Кои полета от листовия изглед да се скриват ако няма записи в тях
+	 */
+	protected $hideListFieldsIfEmpty = 'discount';
+ 	
+ 	
  	/**
      * Изчисляване на сумата на реда
      * 
@@ -402,14 +408,11 @@ abstract class deals_DealDetail extends doc_Detail
     	
         // Флаг дали има отстъпка
         $haveDiscount = FALSE;
-        $haveQuantityDelivered = FALSE;
         
         if(count($data->rows)) {
             foreach ($data->rows as $i => &$row) {
                 $rec = $data->recs[$i];
                 
-                $haveDiscount = $haveDiscount || !empty($rec->discount);
-                $haveQuantityDelivered = $haveQuantityDelivered || !empty($rec->quantityDelivered);
               	if($rec->tolerance){
               		$tolerance = $mvc->getFieldType('tolerance')->toVerbal($rec->tolerance);
               		$row->packQuantity .= "<small style='font-size:0.8em;display:block;' class='quiet'>±{$tolerance}</small>";
@@ -425,10 +428,6 @@ abstract class deals_DealDetail extends doc_Detail
                    }
                 }
             }
-        }
-		
-        if(!$haveDiscount) {
-            unset($data->listFields['discount']);
         }
     }
     

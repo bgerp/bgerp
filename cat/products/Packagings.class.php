@@ -109,6 +109,9 @@ class cat_products_Packagings extends cat_products_Detail
     			$packRec->isBase = 'no';
     			static::save($packRec);
     		}
+    		
+    		// Закръгляме к-то така че да е в границите на допустимото от мярката
+    		$rec->quantity = cat_UoM::round($rec->quantity, $rec->productId);
     	}
     }
     
@@ -238,7 +241,9 @@ class cat_products_Packagings extends cat_products_Detail
         	
         $form->setOptions('packagingId', $options);
         
-        $productRec = cat_Products::fetch($form->rec->productId);
+        $pInfo = cat_Products::getProductInfo($form->rec->productId);
+        $unit = cat_UoM::getShortName($pInfo->productRec->measureId);
+        $form->setField('quantity', "unit={$unit}");
         
         // Променяме заглавието в зависимост от действието
         if (!$form->rec->id) {
@@ -252,7 +257,7 @@ class cat_products_Packagings extends cat_products_Detail
         }
         
         // Добавяме заглавието
-        $form->title = "{$titleMsg} |*" . cat_Products::getVerbal($productRec, 'name');
+        $form->title = "{$titleMsg}|* <b>" . cat_Products::getVerbal($pInfo->productRec, 'name') . "</b>";
     }
     
    
@@ -337,28 +342,5 @@ class cat_products_Packagings extends cat_products_Detail
     	if($data->hide === TRUE) return;
     	
         return static::renderDetail($data);
-    }
-    
-    
-    /**
-     * След преобразуване на записа в четим за хора вид.
-     */
-    protected static function on_AfterPrepareListRows($mvc, &$res)
-    {
-    	$recs = &$res->recs;
-    
-    	$hasReasonFld = FALSE;
-    	
-    	if (count($recs)) {
-    		foreach ($recs as $id => $rec) {
-    			$row = &$res->rows[$id];
-    
-    			$hasReasonFld = !empty($rec->eanCode) ? TRUE : $hasReasonFld;
-    		}
-    		 
-    		if($hasReasonFld === FALSE){
-    			unset($res->listFields['code']);
-    		}
-    	}
     }
 }

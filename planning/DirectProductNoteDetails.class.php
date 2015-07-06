@@ -84,6 +84,12 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     
     
     /**
+     * Кои полета от листовия изглед да се скриват ако няма записи в тях
+     */
+    protected $hideListFieldsIfEmpty = 'productId';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -226,24 +232,14 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     protected static function on_AfterPrepareListRows($mvc, &$data)
     {
     	if(!count($data->recs)) return;
-    	$hideProductCol = TRUE;
     	
     	foreach ($data->rows as $id => &$row)
     	{
     		$rec = $data->recs[$id];
     		
-    		if($rec->productId){
-    			$hideProductCol = FALSE;
-    		}
-    		
     		if($rec->type == 'pop'){
     			$row->packQuantity .= " {$row->packagingId}";
     		}
-    	}
-    	
-    	// Ако няма нито един запис с артикул, не показваме колонката му
-    	if($hideProductCol === TRUE){
-    		unset($data->listFields['productId']);
     	}
     }
     
