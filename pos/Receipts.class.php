@@ -251,6 +251,28 @@ class pos_Receipts extends core_Master {
     		if($rec->transferedIn){
     			$row->transferedIn = sales_Sales::getHyperlink($rec->transferedIn, TRUE);
     		}
+    		
+    		if($rec->state == 'closed' || $rec->state == 'rejected'){
+    			$reportQuery = pos_Reports::getQuery();
+    			$reportQuery->where("#state = 'active'");
+    			$reportQuery->show('details');
+    			
+    			// Опитваме се да намерим репорта в който е приключена бележката
+    			//@TODO не е много оптимално защото търсим в блоб поле...
+    			while($rRec = $reportQuery->fetch()){
+    				$id = $rec->id;
+    				$found = array_filter($rRec->details['receipts'], function ($e) use (&$id) {
+    								return $e->id == $id;
+    							});
+    				
+    				if($found){
+    					$row->inReport = pos_Reports::getHyperlink($rRec->id, TRUE);
+    					break;
+    				}
+    			}
+    			
+    		}
+    		
     	}
     	
     	// Слагаме бутон за оттегляне ако имаме права
@@ -410,6 +432,14 @@ class pos_Receipts extends core_Master {
 		if($action == 'edit') {
 			$res = 'no_one';
 		}
+		
+		// Никой не може да оттегли затворена бележка
+		if($action == 'reject' && isset($rec)) {
+			if($rec->state == 'closed'){
+				$res = 'no_one';
+			}
+		}
+		
 		
 		// Ако бележката е започната, може да се изтрие
 		if($action == 'delete' && isset($rec)) {
