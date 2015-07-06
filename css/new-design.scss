@@ -302,19 +302,39 @@ body {
 .sideBarTitle {
     text-align: center;
     color: #fffb99;
-    a {
-        position: relative;
-        top: 2px;
-    }
 }
 
 .bookmarkText {
     margin: 0 8px;
     font-size: 0.95em;
 }
-
+.inner-fav-panel {
+    position: relative;
+}
 .narrow .bookmarkText {
     margin: 0 4px;
+}
+
+.bookmarkLink {
+    width: 28px;
+    height: 28px;
+    display: inline-block;
+    position: absolute;
+    top: 10px;
+    opacity: 0.8;
+    transition: opacity 0.5s;
+    &.addBookmarkLink {
+        right: 13px;
+    }
+    &.listBookmarkLink {
+        left: 13px;
+    }
+    img {
+        border-radius: 5px;
+    }
+    &:hover {
+        opacity: 1
+    }
 }
 
 .narrow .sidebar-row {
@@ -1008,5 +1028,13 @@ div.tab-control.deal-history-tab .tab-row .tab {
     #main-container > .tab-control > .tab-row {
         padding: 0 6px 1px !important;
         top: 44px;
+    }
+    .bookmarkLink {
+        &.addBookmarkLink {
+            right: 7px;
+        }
+        &.listBookmarkLink {
+            left: 7px;
+        }
     }
 }
