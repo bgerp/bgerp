@@ -244,7 +244,10 @@ class cat_products_Packagings extends cat_products_Detail
         	
         $form->setOptions('packagingId', $options);
         
-        $productRec = cat_Products::fetch($form->rec->productId);
+        //$productRec = cat_Products::fetch($form->rec->productId);
+        $pInfo = cat_Products::getProductInfo($form->rec->productId);
+        $unit = cat_UoM::getShortName($pInfo->productRec->measureId);
+        $form->setField('quantity', "unit={$unit}");
         
         // Променяме заглавието в зависимост от действието
         if (!$form->rec->id) {
@@ -258,7 +261,7 @@ class cat_products_Packagings extends cat_products_Detail
         }
         
         // Добавяме заглавието
-        $form->title = "{$titleMsg} |*" . cat_Products::getVerbal($productRec, 'name');
+        $form->title = "{$titleMsg}|* <b>" . cat_Products::getVerbal($pInfo->productRec, 'name') . "</b>";
     }
     
    
