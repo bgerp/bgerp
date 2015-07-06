@@ -276,8 +276,7 @@ class cms_DefaultTheme extends core_ProtoInner {
     	}
         
         // Дали си носим картинките по друг начин?
-        $conf = core_Packs::getConfig('core');
-        if ($conf->EF_PRIVATE_PATH && file_exists($conf->EF_PRIVATE_PATH . "/" . $path)) {
+        if (defined('EF_PRIVATE_PATH') && file_exists(EF_PRIVATE_PATH . "/" . $path)) {
             $this->haveOwnHeaderImages = TRUE;
         }
 
