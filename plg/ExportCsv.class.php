@@ -19,7 +19,7 @@ class plg_ExportCsv extends core_Plugin
     /**
      * Извиква се преди подготовката на колоните
      */
-    function on_BeforePrepareListFields($mvc, &$res, $data)
+    public static function on_BeforePrepareListFields($mvc, &$res, $data)
     {
         /* Ако в url-то на заявката има Export=Csv */
         if (Request::get('Export') == 'csv') {
@@ -50,7 +50,7 @@ class plg_ExportCsv extends core_Plugin
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_AfterPrepareListToolbar($mvc, &$res, $data)
+    public static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
         // Ако има избрани полета за export
         if (count($mvc->selectFields("#export"))) {
@@ -69,7 +69,7 @@ class plg_ExportCsv extends core_Plugin
      * @param stdClass $res
      * @param stdClass $data
      */
-    function on_BeforePrepareListPager($mvc, &$res, $data)
+    public static function on_BeforePrepareListPager($mvc, &$res, $data)
     {
         if (Request::get('Export') == 'csv') {
             $mvc->requireRightFor('export');
@@ -86,7 +86,7 @@ class plg_ExportCsv extends core_Plugin
      * @param core_Table $table
      * @param stdClass $data
      */
-    function on_BeforeRenderListTable($mvc, &$table, $data)
+    public static function on_BeforeRenderListTable($mvc, &$table, $data)
     {
         /* Ако в url-то на заявката има Export=Csv */
         if (Request::get('Export') == 'csv') {
@@ -100,33 +100,35 @@ class plg_ExportCsv extends core_Plugin
             }
             
             /* за всеки ред */
-            foreach($data->recs as $rec) {
-            	$mvc->invoke('BeforeExportCsv', array($rec));
+            if(count($data->recs)){
+            	foreach($data->recs as $rec) {
+            		$mvc->invoke('BeforeExportCsv', array($rec));
+            		 
+            		// Всеки нов ред ва началото е празен
+            		$rCsv = '';
             	
-                // Всеки нов ред ва началото е празен
-                $rCsv = '';
-                
-                /* за всяка колона */
-                foreach($data->listFields as $field => $caption) {
-                    $type = $mvc->fields[$field]->type;
-                    
-                    if ($type instanceof type_Key) {
-                        $value = $mvc->getVerbal($rec, $field);
-                    } else {
-                        $value = $rec->{$field};
-                    }
-                    
-                    // escape
-                    if (preg_match('/\\r|\\n|,|"/', $value)) {
-                        $value = '"' . str_replace('"', '""', $value) . '"';
-                    }
-                    
-                    $rCsv .= "," . $value;
-                }
-                
-                /* END за всяка колона */
-                
-                $csv .= $rCsv . "\n";
+            		/* за всяка колона */
+            		foreach($data->listFields as $field => $caption) {
+            			$type = $mvc->fields[$field]->type;
+            	
+            			if ($type instanceof type_Key) {
+            				$value = $mvc->getVerbal($rec, $field);
+            			} else {
+            				$value = $rec->{$field};
+            			}
+            	
+            			// escape
+            			if (preg_match('/\\r|\\n|,|"/', $value)) {
+            				$value = '"' . str_replace('"', '""', $value) . '"';
+            			}
+            	
+            			$rCsv .= "," . $value;
+            		}
+            	
+            		/* END за всяка колона */
+            	
+            		$csv .= $rCsv . "\n";
+            	}
             }
             
             /* END за всеки ред */
@@ -153,7 +155,7 @@ class plg_ExportCsv extends core_Plugin
     /**
      * След подготовка на филтъра
      */
-    static function on_AfterPrepareListFilter($mvc, &$data)
+    public static function on_AfterPrepareListFilter($mvc, &$data)
     {
     	// Ако експортираме CSV викаме събитие, с което мениджъра може да допълни филтер-заявката
     	if (Request::get('Export') == 'csv') {
