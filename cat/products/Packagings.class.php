@@ -67,12 +67,6 @@ class cat_products_Packagings extends cat_products_Detail
     
     
     /**
-     * Кои полета от листовия изглед да се скриват ако няма записи в тях
-     */
-    protected $hideListFieldsIfEmpty = 'code';
-    
-    
-    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -115,6 +109,9 @@ class cat_products_Packagings extends cat_products_Detail
     			$packRec->isBase = 'no';
     			static::save($packRec);
     		}
+    		
+    		// Закръгляме к-то така че да е в границите на допустимото от мярката
+    		$rec->quantity = cat_UoM::round($rec->quantity, $rec->productId);
     	}
     }
     
@@ -244,7 +241,6 @@ class cat_products_Packagings extends cat_products_Detail
         	
         $form->setOptions('packagingId', $options);
         
-        //$productRec = cat_Products::fetch($form->rec->productId);
         $pInfo = cat_Products::getProductInfo($form->rec->productId);
         $unit = cat_UoM::getShortName($pInfo->productRec->measureId);
         $form->setField('quantity', "unit={$unit}");
