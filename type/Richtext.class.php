@@ -1236,7 +1236,7 @@ class type_Richtext extends type_Blob
         foreach($lines as $l) {
             if($l{0} == '|') {
                 if(!$table) {
-                    $out .= "\n<table class='inlineRichTable listTable'>";
+                    $out .= "\n<div class='overflow-scroll'><table class='inlineRichTable listTable'>";
                     $table = TRUE;
                 }
                 $l = trim($l, " \t");
@@ -1244,7 +1244,7 @@ class type_Richtext extends type_Blob
                 $out .= "<tr><td>" . str_replace('|', '</td><td>', $l) . "</td></tr>";
             } else {
                 if($table) {
-                    $out .= "</table>";
+                    $out .= "</table></div>";
                     $table = FALSE;
                 }
                 
