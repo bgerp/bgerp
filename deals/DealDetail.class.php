@@ -275,10 +275,20 @@ abstract class deals_DealDetail extends doc_Detail
     		// Извличане на информация за продукта - количество в опаковка, единична цена
     		$rec = &$form->rec;
     	
-    		if($rec->packQuantity == 0){
-    			$form->setError('packQuantity', 'Количеството не може да е|* "0"');
+    		// Закръгляме количеството спрямо допустимото от мярката
+    		$roundQuantity = cat_UoM::round($rec->packQuantity, $rec->productId, $rec->packagingId);
+    		if($roundQuantity != $rec->packQuantity){
+    			$form->setWarning('packQuantity', 'Въведеното количество ще бъде закръглено до указаната точност');
+    			
+    			// Ако не е чекнат игнора, не продължаваме за да не се изчислят данните
+    			if(!Request::get('Ignore')){
+    				return;
+    			}
+    			
+    			// Закръгляме количеството
+    			$rec->packQuantity = $roundQuantity;
     		}
-    	
+    		
     		if(empty($rec->id)){
     			$where = "#{$mvc->masterKey} = {$rec->{$mvc->masterKey}} AND #classId = {$rec->classId} AND #productId = {$rec->productId} AND #packagingId";
     			$where .= ($rec->packagingId) ? "={$rec->packagingId}" : " IS NULL";

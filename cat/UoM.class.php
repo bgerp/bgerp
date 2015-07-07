@@ -84,31 +84,32 @@ class cat_UoM extends core_Manager
         $this->setDbUnique('shortName');
     }
     
-    function act_Test()
-    {
-    	$pId = '1184';
-    	$quantity = 1.547192;
-    	
-    	$r = $this->round($quantity, $pId);
-    	bp($quantity, $r);
-    	
-    }
-    
     
     /**
-     * Ф-я закръгляща количество спрямо основната мярка на даден артикул
+     * Ф-я закръгляща количество спрямо основната мярка на даден артикул, Ако е пдоадена опаковка
+     * спрямо нея
      * 
      * @param double $quantity - к-то което ще закръгляме
      * @param int $productId - ид на артикула
+     * @param int $packagingId - ид на опаковка
      * @return double - закръгленото количество
      */
-    public static function round($quantity, $productId)
+    public static function round($quantity, $productId, $packagingId = NULL)
     {
     	// Коя е основната мярка на артикула
     	$uomId = cat_Products::getProductInfo($productId)->productRec->measureId;
     	
-    	// Имали зададено закръгляне
-    	$round = static::fetchField($uomId, 'round');
+    	if(isset($packagingId)){
+    		$packRound = cat_Packagings::fetchField($packagingId, 'round');
+    		if(isset($packRound)){
+    			$round = $packRound;
+    		} else {
+    			$round = 0;
+    		}
+    	} else {
+    		// Имали зададено закръгляне
+    		$round = static::fetchField($uomId, 'round');
+    	}
     	
     	// Ако няма
     	if(!isset($round)){
@@ -133,7 +134,9 @@ class cat_UoM extends core_Manager
     		}
     	}
     	
-    	return round($quantity, $round);
+    	$res = round($quantity, $round);
+    	
+    	return $res;
     }
     
     
@@ -274,7 +277,8 @@ class cat_UoM extends core_Manager
 	    	3 => "baseUnitRatio",
 	    	4 => "state",
 	    	5 => "sysId",
-	    	6 => "sinonims");
+	    	6 => "sinonims",
+    		7 => "round");
     	
     	$cntObj = csv_Lib::importOnce($mvc, $file, $fields);
     	$res .= $cntObj->html;

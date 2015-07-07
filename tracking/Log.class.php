@@ -151,8 +151,8 @@ class tracking_Log extends core_Master {
             // Проверяваме последния запис от този тракер, дали е с нулева скорост. Ако - да - не го записваме
             $query = $this->getQuery();
             $query->show('data');
-            $query->where(array("#trackerId = '[#1#]'", $trackerId));
-            $query->orderBy('#createdOn','DESC');
+            $query->where(array("#vehicleId = '[#1#]'", $recVehicle->id));
+            $query->orderBy('#fixTime','DESC');
             $query->limit(1);
             $rec = $query->fetch();
             $recData = self::parseTrackingData($rec->data); 
@@ -166,7 +166,6 @@ class tracking_Log extends core_Master {
         
         $rec->vehicleId = $recVehicle->id;
         $rec->driverId = $recVehicle->personId;
-        $rec->trackerId = $trackerId;
         $rec->data = $trackerData;
         $rec->fixTime = self::GMT2Local($trackerDataArr['fixTime']);
         $rec->remoteIp = $remoteIp;
