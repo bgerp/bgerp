@@ -163,7 +163,7 @@ class tracking_Log extends core_Master {
                 exit;
             }
         }
-        
+        $rec = new stdClass();
         $rec->vehicleId = $recVehicle->id;
         $rec->driverId = $recVehicle->personId;
         $rec->data = $trackerData;
