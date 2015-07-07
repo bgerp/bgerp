@@ -84,16 +84,6 @@ class cat_UoM extends core_Manager
         $this->setDbUnique('shortName');
     }
     
-    function act_Test()
-    {
-    	$pId = '1184';
-    	$quantity = 1.547192;
-    	
-    	$r = $this->round($quantity, $pId);
-    	bp($quantity, $r);
-    	
-    }
-    
     
     /**
      * Ф-я закръгляща количество спрямо основната мярка на даден артикул, Ако е пдоадена опаковка
