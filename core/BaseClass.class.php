@@ -342,18 +342,4 @@ class core_BaseClass
     {
     	return $this->_plugins;
     }
-    
-    
-    /**
-     * Дали класа има закачен плъгин
-     * 
-     * @param string $name - име на плъгин за който проверяваме
-     * @return boolean
-     */
-    public function hasPlugin($name)
-    {
-    	$res = isset($this->_plugins[$name]);
-    	
-    	return $res;
-    }
 }
