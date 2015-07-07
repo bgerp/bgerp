@@ -44,7 +44,7 @@ class cat_Packagings extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id,name,contentPlastic,contentPaper,contentGlass,contentMetals,contentWood,showContents';
+    var $listFields = 'id,name,contentPlastic,contentPaper,contentGlass,contentMetals,contentWood,showContents,round';
     
     
     /**
@@ -113,6 +113,7 @@ class cat_Packagings extends core_Manager
         $this->FLD('contentMetals', 'percent', 'caption=Метали');
         $this->FLD('contentWood', 'percent', 'caption=Дървесина');
         $this->FLD('showContents', 'enum(yes=Показване,no=Скриване)', 'caption=Показване в документи->К-во в опаковка,notNull,default=yes');
+        $this->FLD('round', 'int', 'caption=Точност след десетичната запетая->Цифри');
         
         $this->setDbUnique("name");
     }
@@ -143,7 +144,7 @@ class cat_Packagings extends core_Manager
     static function on_AfterSetupMvc($mvc, &$res)
     {
         $file = "cat/csv/Packagings.csv";
-        $fields = array(0 => "name");
+        $fields = array(0 => "name", 1 => 'round');
         
         $cntObj = csv_Lib::importOnce($mvc, $file, $fields);
         $res .= $cntObj->html;
