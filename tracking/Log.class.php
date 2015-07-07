@@ -146,6 +146,8 @@ class tracking_Log extends core_Master {
         
         $trackerDataArr = self::parseTrackingData($trackerData);
         
+        $rec = new stdClass();
+        
         // Проверяваме дали скоростта е нула
          if (($trackerDataArr['speed']-0.01) < 0) {
             // Проверяваме последния запис от този тракер, дали е с нулева скорост. Ако - да - не го записваме
@@ -163,7 +165,7 @@ class tracking_Log extends core_Master {
                 exit;
             }
         }
-        $rec = new stdClass();
+        
         $rec->vehicleId = $recVehicle->id;
         $rec->driverId = $recVehicle->personId;
         $rec->data = $trackerData;
