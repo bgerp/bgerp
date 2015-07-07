@@ -274,7 +274,8 @@ class cat_UoM extends core_Manager
 	    	3 => "baseUnitRatio",
 	    	4 => "state",
 	    	5 => "sysId",
-	    	6 => "sinonims");
+	    	6 => "sinonims",
+    		7 => "round");
     	
     	$cntObj = csv_Lib::importOnce($mvc, $file, $fields);
     	$res .= $cntObj->html;
