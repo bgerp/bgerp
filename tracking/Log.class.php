@@ -164,6 +164,10 @@ class tracking_Log extends core_Master {
             }
         }
         
+    	if (!is_object($rec)) {
+            $rec = new stdClass();
+        }
+        
         $rec->vehicleId = $recVehicle->id;
         $rec->driverId = $recVehicle->personId;
         $rec->data = $trackerData;
