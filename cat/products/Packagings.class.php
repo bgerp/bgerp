@@ -67,12 +67,6 @@ class cat_products_Packagings extends cat_products_Detail
     
     
     /**
-     * Кои полета от листовия изглед да се скриват ако няма записи в тях
-     */
-    protected $hideListFieldsIfEmpty = 'code';
-    
-    
-    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -115,6 +109,15 @@ class cat_products_Packagings extends cat_products_Detail
     			$packRec->isBase = 'no';
     			static::save($packRec);
     		}
+    		
+    		$roundQuantity = cat_UoM::round($rec->quantity, $rec->productId);
+    		if($roundQuantity != $rec->quantity){
+    			$form->setWarning('quantity', 'Въведеното количество ще бъде закръглено до указаната точност');
+    			$rec->quantity = $roundQuantity;
+    		}
+    		
+    		// Закръгляме к-то така че да е в границите на допустимото от мярката
+    		$rec->quantity = cat_UoM::round($rec->quantity, $rec->productId);
     	}
     }
     
@@ -244,7 +247,9 @@ class cat_products_Packagings extends cat_products_Detail
         	
         $form->setOptions('packagingId', $options);
         
-        $productRec = cat_Products::fetch($form->rec->productId);
+        $pInfo = cat_Products::getProductInfo($form->rec->productId);
+        $unit = cat_UoM::getShortName($pInfo->productRec->measureId);
+        $form->setField('quantity', "unit={$unit}");
         
         // Променяме заглавието в зависимост от действието
         if (!$form->rec->id) {
@@ -258,7 +263,7 @@ class cat_products_Packagings extends cat_products_Detail
         }
         
         // Добавяме заглавието
-        $form->title = "{$titleMsg} |*" . cat_Products::getVerbal($productRec, 'name');
+        $form->title = "{$titleMsg}|* <b>" . cat_Products::getVerbal($pInfo->productRec, 'name') . "</b>";
     }
     
    

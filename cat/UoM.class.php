@@ -64,7 +64,7 @@ class cat_UoM extends core_Manager
     /**
      * Полета за лист изгледа
      */
-    var $listFields = "id,name,shortName=Съкращение->Българско,sysId=Съкращение->Международно,state";
+    var $listFields = "id,name,shortName=Съкращение->Българско,sysId=Съкращение->Международно,state,round";
     
     
     /**
@@ -78,9 +78,65 @@ class cat_UoM extends core_Manager
         $this->FLD('baseUnitRatio', 'double', 'caption=Коефициент, export');
         $this->FLD('sysId', 'varchar', 'caption=System Id,input=hidden');
         $this->FLD('sinonims', 'varchar(255)', 'caption=Синоними');
+        $this->FLD('round', 'int', 'caption=Точност след десетичната запетая->Цифри');
         
         $this->setDbUnique('name');
         $this->setDbUnique('shortName');
+    }
+    
+    
+    /**
+     * Ф-я закръгляща количество спрямо основната мярка на даден артикул, Ако е пдоадена опаковка
+     * спрямо нея
+     * 
+     * @param double $quantity - к-то което ще закръгляме
+     * @param int $productId - ид на артикула
+     * @param int $packagingId - ид на опаковка
+     * @return double - закръгленото количество
+     */
+    public static function round($quantity, $productId, $packagingId = NULL)
+    {
+    	// Коя е основната мярка на артикула
+    	$uomId = cat_Products::getProductInfo($productId)->productRec->measureId;
+    	
+    	if(isset($packagingId)){
+    		$packRound = cat_Packagings::fetchField($packagingId, 'round');
+    		if(isset($packRound)){
+    			$round = $packRound;
+    		} else {
+    			$round = 0;
+    		}
+    	} else {
+    		// Имали зададено закръгляне
+    		$round = static::fetchField($uomId, 'round');
+    	}
+    	
+    	// Ако няма
+    	if(!isset($round)){
+    		$uomRec = static::fetch($uomId);
+    		
+    		// Имали основна мярка върху която да стъпим
+    		if($uomRec->baseUnitId){
+    			
+    			/*
+    			 * Ако има базова мярка, тогава да е спрямо точността на базовата мярка. 
+    			 * Например ако базовата мярка е килограм и имаме нова мярка - грам, която 
+    			 * е 1/1000 от базовата, то точността по подразбиране е 3/3 = 1, където числителя 
+    			 * е точността на мярката килограм, а в знаменателя - log(1000).
+    			 */
+    			$baseRound = static::fetchField($uomRec->baseUnitId, 'round');
+    			$round = $baseRound / log10(pow($uomRec->baseUnitRatio, -1));
+    			$round = abs($round);
+    		} else {
+    			
+    			// Ако няма базова мярка и няма зададено закръгляне значи е 0
+    			$round = 0;
+    		}
+    	}
+    	
+    	$res = round($quantity, $round);
+    	
+    	return $res;
     }
     
     
@@ -221,7 +277,8 @@ class cat_UoM extends core_Manager
 	    	3 => "baseUnitRatio",
 	    	4 => "state",
 	    	5 => "sysId",
-	    	6 => "sinonims");
+	    	6 => "sinonims",
+    		7 => "round");
     	
     	$cntObj = csv_Lib::importOnce($mvc, $file, $fields);
     	$res .= $cntObj->html;

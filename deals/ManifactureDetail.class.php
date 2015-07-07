@@ -119,12 +119,16 @@ abstract class deals_ManifactureDetail extends doc_Detail
 		
 		if($form->isSubmitted()){
 			
-			// Ако артикула няма опаковка к-то в опаковка е 1, ако има и вече не е свързана към него е това каквото е било досега, ако още я има опаковката обновяваме к-то в опаковка
-			$productInfo = cls::get($rec->classId)->getProductInfo($rec->productId);
-			$rec->quantityInPack = (empty($rec->packagingId)) ? 1 : (($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : $rec->quantityInPack);
-			
 			if($rec->productId){
-				$rec->measureId = $productInfo->productRec->measureId;
+				// Ако артикула няма опаковка к-то в опаковка е 1, ако има и вече не е свързана към него е това каквото е било досега, ако още я има опаковката обновяваме к-то в опаковка
+				$productInfo = cls::get($rec->classId)->getProductInfo($rec->productId);
+				$rec->quantityInPack = (empty($rec->packagingId)) ? 1 : (($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : $rec->quantityInPack);
+					
+				if($rec->productId){
+					$rec->measureId = $productInfo->productRec->measureId;
+				}
+			} else {
+				$rec->quantityInPack = 1;
 			}
 			
 			$rec->quantity = $rec->packQuantity * $rec->quantityInPack;

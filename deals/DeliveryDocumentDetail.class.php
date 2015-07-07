@@ -29,7 +29,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 	public static function setDocumentFields($mvc)
 	{
 		$mvc->FLD('classId', 'class(select=title)', 'caption=Мениджър,silent,input=hidden');
-		$mvc->FLD('productId', 'int', 'caption=Продукт,notNull,mandatory', 'tdClass=leftCol wrap');
+		$mvc->FLD('productId', 'int', 'caption=Продукт,notNull,mandatory', 'tdClass=leftCol wrap,silent');
 		$mvc->FLD('uomId', 'key(mvc=cat_UoM, select=shortName)', 'caption=Мярка,input=none');
 		$mvc->FLD('quantity', 'double', 'caption=К-во,input=none');
 		$mvc->FLD('quantityInPack', 'double(decimals=2)', 'input=none,column=none');
@@ -155,8 +155,18 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 			// Извличане на информация за продукта - количество в опаковка, единична цена
 			$rec = &$form->rec;
 	
-			if($rec->packQuantity == 0){
-				$form->setError('packQuantity', 'Количеството не може да е|* "0"');
+			// Закръгляме количеството спрямо допустимото от мярката
+			$roundQuantity = cat_UoM::round($rec->packQuantity, $rec->productId, $rec->packagingId);
+			if($roundQuantity != $rec->packQuantity){
+				$form->setWarning('packQuantity', 'Въведеното количество ще бъде закръглено до указаната точност');
+				 
+				// Ако не е чекнат игнора, не продължаваме за да не се изчислят данните
+				if(!Request::get('Ignore')){
+					return;
+				}
+				 
+				// Закръгляме количеството
+				$rec->packQuantity = $roundQuantity;
 			}
 	
 			if(empty($rec->id)){
