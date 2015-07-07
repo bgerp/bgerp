@@ -64,7 +64,7 @@ class cat_UoM extends core_Manager
     /**
      * Полета за лист изгледа
      */
-    var $listFields = "id,name,shortName=Съкращение->Българско,sysId=Съкращение->Международно,state";
+    var $listFields = "id,name,shortName=Съкращение->Българско,sysId=Съкращение->Международно,state,round";
     
     
     /**
