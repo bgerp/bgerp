@@ -110,6 +110,12 @@ class cat_products_Packagings extends cat_products_Detail
     			static::save($packRec);
     		}
     		
+    		$roundQuantity = cat_UoM::round($rec->quantity, $rec->productId);
+    		if($roundQuantity != $rec->quantity){
+    			$form->setWarning('quantity', 'Въведеното количество ще бъде закръглено до указаната точност');
+    			$rec->quantity = $roundQuantity;
+    		}
+    		
     		// Закръгляме к-то така че да е в границите на допустимото от мярката
     		$rec->quantity = cat_UoM::round($rec->quantity, $rec->productId);
     	}
