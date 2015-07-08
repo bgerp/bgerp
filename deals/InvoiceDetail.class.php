@@ -428,7 +428,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 			$roundQuantity = cat_UoM::round($rec->quantity, $rec->productId, $rec->packagingId);
 				
 			if($roundQuantity != $rec->quantity){
-				$form->setWarning('quantity', 'Въведеното количество ще бъде закръглено до указаната точност');
+				$form->setWarning('quantity', 'Количеството ще бъде закръглено до указаното в |*<b>|Артикули » Каталог » Мерки/Опаковки|*</b>|');
 					
 				// Ако не е чекнат игнора, не продължаваме за да не се изчислят данните
 				if(!Request::get('Ignore')){
