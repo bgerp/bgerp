@@ -1557,10 +1557,12 @@ class blast_Emails extends core_Master
         
         // Линка към обекта, който се използва за персонализация
         if ($rec->perSrcClassId && isset($rec->perSrcObjectId)) {
-            $inst = cls::get($rec->perSrcClassId);
-            
-            if ($inst->canUsePersonalization($rec->perSrcObjectId)) {
-                $row->srcLink = $inst->getPersonalizationSrcLink($rec->perSrcObjectId);
+            if (cls::load($rec->perSrcClassId, TRUE)) {
+                $inst = cls::get($rec->perSrcClassId);
+                
+                if ($inst->canUsePersonalization($rec->perSrcObjectId)) {
+                    $row->srcLink = $inst->getPersonalizationSrcLink($rec->perSrcObjectId);
+                }
             }
         }
     }
