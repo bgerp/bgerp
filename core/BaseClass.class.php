@@ -180,7 +180,7 @@ class core_BaseClass
     {
         $method = 'on_' . $event;
         
-        // Ако нямаме - генерираме кеша с обработвачите
+         // Ако нямаме - генерираме кеша с обработвачите
         if(!isset($this->_listenerCache[$method])) {
             
             $this->_listenerCache[$method] = array();
@@ -341,19 +341,5 @@ class core_BaseClass
     public function getPlugins()
     {
     	return $this->_plugins;
-    }
-    
-    
-    /**
-     * Дали класа има закачен плъгин
-     * 
-     * @param string $name - име на плъгин за който проверяваме
-     * @return boolean
-     */
-    public function hasPlugin($name)
-    {
-    	$res = isset($this->_plugins[$name]);
-    	
-    	return $res;
     }
 }

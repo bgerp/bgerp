@@ -483,89 +483,133 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
 	    return $entries;
     }
     
-    
     /**
-     * Приключване на сметките за Разходи по икономически елементи (от гр. 60)
-     * 
      * Разходи за материали
      * 
-     * 		Dt: 611. Разходи по Центрове и Ресурси
+     * 		Dt: 61101. Разходи за Ресурси
      * 		Ct: 601. Разходи за материали
      * 
-     *  Разходи за Разходи за външни услуги
-     *  
-     * 		Dt: 611. Разходи по Центрове и Ресурси
-     * 		Ct: 602. Разходи за външни услуги
-     * 
      * Разходи за материали
      * 
-     * 		Dt: 611. Разходи по Центрове и Ресурси
+     * 		Dt: 61101. Разходи за Ресурси
+     * 		Ct: 60010. Разходи за (складируеми) материали
+     * 
+     * 
+     * Разходи за Разходи за външни услуги
+     *  
+     * 		Dt: 61102. Други разходи (общо)
+     * 		Ct: 602. Разходи за външни услуги
+     * 
+     * Разходи за Разходи за външни услуги
+     *  
+     * 		Dt: 61102. Други разходи (общо)
+     * 		Ct: 60020. Разходи за (нескладируеми) услуги и консумативи
+     * 
+     * Приключваме разхода като намаление на финансовия резултат за периода
+     * 
+     * 		Dt: 123. Печалби и загуби от текущата година
+     * 		Ct: 61101. Разходи по Центрове и Ресурси
+     * 
+     * Приключваме разхода като намаление на финансовия резултат за периода
+     * 
+     * 		Dt: 123. Печалби и загуби от текущата година
+     * 		Ct: 60020. Разходи за (нескладируеми) услуги и консумативи
+     * 
+     * Разходи за ДА
+     * 
+     * 		Dt: 61101. Разходи за Ресурси
      * 		Ct: 603. Разходи за амортизация
      * 
      * Приключваме разхода като намаление на финансовия резултат за периода
      * 
      * 		Dt: 123. Печалби и загуби от текущата година
-     * 		Ct: 611. Разходи по Центрове и Ресурси
+     * 		Ct: 61101. Разходи за Ресурси
      * 
      * Разходи за труд
      * 
-     * 		Dt: 611. Разходи по Центрове и Ресурси
+     * 		Dt: 61101. Разходи за Ресурси
      * 		Ct: 604. Разходи за заплати (възнаграждения)
      * 
-     * 		Dt: 611. Разходи по Центрове и Ресурси
+     * 		Dt: 61101. Разходи за Ресурси
      * 		Ct: 605. Разходи за осигуровки
      * 
      * Приключваме разхода като намаление на финансовия резултат за периода
      * 
      * 		Dt: 123. Печалби и загуби от текущата година
-     * 		Ct: 611. Разходи за основна дейност
-     * 
+     * 		Ct: 61101. Разходи за Ресурси
      */
     protected function transferCosts(&$total, $rec)
     {
     	$bQuery = acc_BalanceDetails::getQuery();
-    	acc_BalanceDetails::filterQuery($bQuery, $this->balanceId, '601,602,603');
+    	acc_BalanceDetails::filterQuery($bQuery, $this->balanceId, '601,602,603,60010,60020');
     	$bQuery->where("#ent1Id IS NOT NULL || #ent2Id IS NOT NULL || #ent3Id IS NOT NULL");
+    	
     	$entries = array();
     	 
     	// Подготвяме предварително нужните ни данни
     	$baseDepartment = hr_Departments::fetchField("#systemId = 'emptyCenter'", 'id');
     	$resource604 = $resource605 = planning_Resources::fetchField("#systemId = 'commonLabor'", 'id');
-    	$resource603    = planning_Resources::fetchField("#systemId = 'commonEquipment'", 'id');
-    	$resource602    = planning_Resources::fetchField("#systemId = 'commonService'", 'id');
-    	$resource601    = planning_Resources::fetchField("#systemId = 'commonMaterial'", 'id');
+    	$resource603   = planning_Resources::fetchField("#systemId = 'commonEquipment'", 'id');
+    	$resource602   = planning_Resources::fetchField("#systemId = 'commonService'", 'id');
+    	$resource601   = planning_Resources::fetchField("#systemId = 'commonMaterial'", 'id');
     	$reason601 = 'Разходи за материали (неразпределени)';
     	$reason602 = 'Разходи за външни услуги (неразпределени)';
+    	$reason60020 = 'Разходи за външни услуги (неразпределени)';
+    	$reason60010 = 'Разходи за материали (неразпределени)';
     	$reason603 = 'Разходи за амортизация (неразпределени)';
     	$reason604 = $reason605 = 'Разходи за Труд (неразпределени)';
     	
     	$accs = array();
-    	foreach(array('601', '602', '603') as $sysId){
+    	foreach(array('601', '602', '603', '60010', '60020') as $sysId){
     		$id = acc_Accounts::getRecBySystemId($sysId)->id;
     		$accs[$id] = $sysId;
     	}
     	
-    	$amount601 = $amount602 = $amount603 = 0;
-    	$quantity601 = $quantity602 = $quantity603 = 0;
+    	$amount601 = $amount602 = $amount603 = $amount60010 = $amount60020 = 0;
+    	$quantity601 = $quantity602 = $quantity603 = $quantity60010 = $quantity60020 = 0;
     	while ($dRec = $bQuery->fetch()){
+    		if($dRec->blAmount == 0) continue;
+    		
     		$amount = &${"amount{$accs[$dRec->accountId]}"};
     		$quantity = &${"quantity{$accs[$dRec->accountId]}"};
     		
+    		if($accs[$dRec->accountId] == 602 || $accs[$dRec->accountId] == 60020){
+    			$accountDebit = array('61102');
+    		} else {
+    			$accountDebit = array('61101', array('planning_Resources', ${"resource{$accs[$dRec->accountId]}"}), 'quantity' => $dRec->blQuantity);
+    		}
+    		
+    		if($accs[$dRec->accountId] == '60020'){
+    			$creditArr = array($accs[$dRec->accountId], array('hr_Departments', $baseDepartment), $dRec->ent2Id, 'quantity' => $dRec->blQuantity);
+    		} else {
+    			$creditArr = array($accs[$dRec->accountId], $dRec->ent1Id, 'quantity' => $dRec->blQuantity);
+    		}
+    		
     		$entries[] = array('amount'  => abs($dRec->blAmount), 
-    							'debit'  => array('611', array('hr_Departments', $baseDepartment), array('planning_Resources', ${"resource{$accs[$dRec->accountId]}"}), 'quantity' => $dRec->blQuantity), 
-    							'credit' => array($accs[$dRec->accountId], $dRec->ent1Id, 'quantity' => $dRec->blQuantity),
+    							'debit'  => $accountDebit, 
+    							'credit' => $creditArr,
     							'reason' => ${"reason{$accs[$dRec->accountId]}"});
+    		
     		$total += abs($dRec->blAmount);
     		$amount += abs($dRec->blAmount);
     		$quantity += $dRec->blQuantity;
     	}
     	
+    	$amount601 += $amount60010;
+    	$amount602 += $amount60020;
+    	
     	foreach (array('601', '602', '603') as $sysId){
     		if(${"amount{$sysId}"} == 0) continue;
     		
+    		if($sysId == '602'){
+    			$creditArr = array('61102');
+    		} else {
+    			$creditArr = array('61101', array('planning_Resources', ${"resource{$sysId}"}), 'quantity' => ${"quantity{$sysId}"});
+    		}
+    		
     		$entries[] = array('amount'  => abs(${"amount{$sysId}"}),
     				'debit'  => array('123', $this->date->year),
-    				'credit' => array('611', array('hr_Departments', $baseDepartment), array('planning_Resources', ${"resource{$sysId}"}), 'quantity' => ${"quantity{$sysId}"}),
+    				'credit' => $creditArr,
     				'reason' => ${"reason{$sysId}"});
     		 
     		$total += abs(${"amount{$sysId}"});
@@ -588,7 +632,7 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
     	
     	if(round($rec604->blAmount, 2) != 0){
     		$entries[] = array('amount' => abs($rec604->blAmount),
-    				'debit' => array('611', array('hr_Departments', $baseDepartment), array('planning_Resources', $resource604), 'quantity' => $rec604->blQuantity),
+    				'debit' => array('61101', array('planning_Resources', $resource604), 'quantity' => $rec604->blQuantity),
     				'credit' => array('604'), 'reason' => $reason604);
     		 
     		$total += abs($rec604->blAmount);
@@ -596,7 +640,7 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
     	
     	if(round($rec605->blAmount, 2) != 0){
     		$entries[] = array('amount' => abs($rec605->blAmount),
-    				'debit' => array('611', array('hr_Departments', $baseDepartment), array('planning_Resources', $resource605), 'quantity' => $rec605->blQuantity),
+    				'debit' => array('61101', array('planning_Resources', $resource605), 'quantity' => $rec605->blQuantity),
     				'credit' => array('605'), 'reason' => $reason605);
     		 
     		 
@@ -609,7 +653,7 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
     	if(round($tAmount, 2) != 0){
     		$entries[] = array('amount' => $tAmount,
     				'debit' => array('123', $this->date->year),
-    				'credit' => array('611', array('hr_Departments', $baseDepartment), array('planning_Resources', $resource604), 'quantity' => ($rec604->blQuantity + $rec605->blQuantity)),
+    				'credit' => array('61101', array('planning_Resources', $resource604), 'quantity' => ($rec604->blQuantity + $rec605->blQuantity)),
     				'reason' => $reason604);
     		 
     		$total += $tAmount;

@@ -344,15 +344,18 @@ class core_Query extends core_FieldSet
      * @param mixed $values - масив или стринг от стойности
      * @param boolean $not - Дали да се съдържа или не в масива
      */
-    public function in($field, $values, $not = FALSE)
+    public function in($field, $values, $not = FALSE, $or = FALSE)
     {
     	$values = arr::make($values);
+    	
+    	if (!$values) return ;
+    	
     	$values = implode(',', $values);
     	
     	if(!$not){
-    		$this->where("#{$field} IN ({$values})");
+    		$this->where("#{$field} IN ({$values})", $or);
     	} else {
-    		$this->where("#{$field} NOT IN ({$values})");
+    		$this->where("#{$field} NOT IN ({$values})", $or);
     	}
     }
     
@@ -376,9 +379,9 @@ class core_Query extends core_FieldSet
      * @param string $field - поле
      * @param mixed $values - масив или стринг от стойности
      */
-    public function notIn($field, $values)
+    public function notIn($field, $values, $or = FALSE)
     {
-    	return $this->in($field, $values, TRUE);
+    	return $this->in($field, $values, TRUE, $or);
     }
     
     

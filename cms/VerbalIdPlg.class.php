@@ -63,10 +63,6 @@ class cms_VerbalIdPlg extends core_Plugin
             $recVid = trim(preg_replace('/[^\p{L}0-9]+/iu', '-', " {$recVid} "), '-');
         }
 
-        $mdPart = max(4, round(EF_VID_LEN / 8));
-            
-        $recVid = str::convertToFixedKey($recVid, EF_VID_LEN - 9, $mdPart);
-
         $cond = "#{$this->fieldName} LIKE '[#1#]'";
 
         if($rec->id) {
@@ -102,7 +98,7 @@ class cms_VerbalIdPlg extends core_Plugin
             
             $vid = urldecode($vid);
 
-            $id = $mvc->fetchField(array("#vid = '[#1#]'", $vid), 'id');
+            $id = $mvc->fetchField(array("#vid COLLATE utf8_general_ci LIKE '[#1#]'", $vid), 'id');
 
             if(!$id) {
                 $id = cms_VerbalId::fetchId($vid, $mvc);
