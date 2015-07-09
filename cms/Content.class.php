@@ -535,10 +535,10 @@ class cms_Content extends core_Manager
     public static function getMenuOpt($class)
     {   
         $classId = core_Classes::getId($class);
-        $domainId = cms_Domains::getCurrent();
+        $domainId = cms_Domains::getPublicDomain('id');  
         $query = self::getQuery();
         $query->orderBy('#order');
-        while($rec = $query->fetch("#domainId = {$domainId} && #source = {$classId}")) {
+        while($rec = $query->fetch("#domainId = {$domainId} AND #source = {$classId}")) {  
             $res[$rec->id] = $rec->menu;
         }
 
