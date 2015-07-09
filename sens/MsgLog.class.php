@@ -82,7 +82,7 @@ class sens_MsgLog extends core_Manager
     /**
      * Добавя запис в логовете
      */
-    function add($sensorId, $message, $priority)
+    static function add($sensorId, $message, $priority)
     {
         $rec = new stdClass();
         $rec->sensorId = $sensorId;
