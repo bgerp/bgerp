@@ -124,6 +124,7 @@ class planning_ObjectResources extends core_Manager
     	
     	if(!isset($rec->likeProductId)){
     		$form->setField('measureId', 'input');
+    		$form->setField('measureId', 'mandatory');
     		$measureId = $pInfo->productRec->measureId;
     	} else {
     		if($lInfo = cat_Products::getProductInfo($rec->likeProductId)){
@@ -161,7 +162,7 @@ class planning_ObjectResources extends core_Manager
      * @param int $measureId - мярката за влагане
      * @return string - във формат [object_measure_name] за 1 [resource_measure_name]
      */
-    private function getConversionUnit($objectId, $measureId)
+    public static function getConversionUnit($objectId, $measureId)
     {
     	if($pInfo = cat_Products::getProductInfo($objectId)){
     		$sMeasureShort = cat_UoM::getShortName($pInfo->productRec->measureId);
@@ -303,9 +304,13 @@ class planning_ObjectResources extends core_Manager
     	$row->conversionRate .= " " . tr($mvc->getConversionUnit($rec->objectId, $rec->measureId));
     	$row->conversionRate = "<span style='float:right'>{$row->conversionRate}</span>";
     	
-    	if($rec->selfValue){
+    	if(isset($rec->selfValue)){
     		$baseCurrencyCode = acc_Periods::getBaseCurrencyCode();
     		$row->selfValue = "{$row->selfValue} <span class='cCode'>{$baseCurrencyCode}</span>";
+    	}
+    	
+    	if(isset($rec->likeProductId)){
+    		$row->likeProductId = cat_Products::getHyperlink($rec->likeProductId, TRUE);
     	}
     }
     
@@ -332,21 +337,67 @@ class planning_ObjectResources extends core_Manager
     	$fields = 'likeProductId,measureId,conversionRate,selfValue';
     	
     	// Проверяваме имали такъв запис
-    	if($rec = self::fetch("#classId = {$Class->getClassId()} AND #objectId = {$objectId}", $fields)){
-    		unset($rec->id);
-    		return $rec;
+    	if(!$rec = self::fetch("#classId = {$Class->getClassId()} AND #objectId = {$objectId}", $fields)){
+    		
+    		$pInfo = $Class->getProductInfo($objectId);
+    		if($pInfo){
+    			$measureId = $pInfo->productRec->measureId;
+    		}
+    		 
+    		$rec = (object)array('likeProductId' => NULL,
+    				'conversionRate' => 1,
+    				'selfValue' => NULL,
+    				'measureId' => $measureId);
     	}
     	
-    	$pInfo = $Class->getProductInfo($objectId);
-    	if($pInfo){
-    		$measureId = $pInfo->productRec->measureId;
+    	// Ако няма твърда себестойност
+    	if(!isset($rec->selfValue)){
+    		
+    		// Проверяваме имали зададена търговска себестойност
+    		$rec->selfValue = $Class->getSelfValue($objectId);
+    		
+    		// Ако няма
+    		if(!$rec->selfValue){
+    			
+    			// Кой баланс ще вземем
+    			$lastBalance = acc_Balances::getLastBalance();
+    			
+    			// Ако има баланс
+    			if($lastBalance){
+    			
+    				// Материала перо ли е ?
+    				$objectItem = acc_Items::fetchItem($Class, $objectId);
+    				
+    				// Ако е перо
+    				if($objectItem){
+    					
+    					// Опитваме се да изчислим последно притеглената му цена
+    					$query = acc_BalanceDetails::getQuery();
+    					acc_BalanceDetails::filterQuery($query, $lastBalance->id, '321');
+    					$prodPositionId = acc_Lists::getPosition('321', 'cat_ProductAccRegIntf');
+    					
+    					$query->where("#ent{$prodPositionId}Id = {$objectItem->id}");
+    					$query->XPR('totalQuantity', 'double', 'SUM(#blQuantity)');
+    					$query->XPR('totalAmount', 'double', 'SUM(#blAmount)');
+    					$res = $query->fetch();
+    					
+    					// Ако има някакво количество и суми в складовете, натрупваме ги
+    					if(!is_null($res->totalQuantity) && !is_null($res->totalAmount)){
+    						$totalQuantity = round($res->totalQuantity, 2);
+    						$totalAmount = round($res->totalAmount, 2);
+    						
+    						if($totalAmount == 0){
+    							$rec->selfValue = 0;
+    						} else {
+    							@$rec->selfValue = $totalAmount / $totalQuantity;
+    						}
+    					}
+    				}
+    			}
+    		}
     	}
     	
-    	$rec = (object)array('likeProductId' => NULL, 
-    						 'conversionRate' => 1, 
-    			             'selfValue' => NULL, 
-    			             'measureId' => $measureId);
-    	
+    	// Връщане резултат
     	return $rec;
     }
     
