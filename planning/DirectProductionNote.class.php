@@ -311,9 +311,8 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 			$dRec->quantityInPack = 1;
 			
 			$info = planning_ObjectResources::getResource($resource->productId);
-			
-			// Мярката е мярката на ресурса
-			$dRec->measureId = $info->measureId;
+			$pInfo = cat_Products::getProductInfo($resource->productId);
+			$dRec->measureId = $pInfo->productRec->measureId;
 			
 			// Изчисляваме к-то според наличните данни
 			$dRec->quantity = $prodQuantity * ($resource->baseQuantity / $jobQuantity + ($resource->propQuantity / $bomInfo['quantity']));

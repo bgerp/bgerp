@@ -204,7 +204,13 @@ class cat_BomDetails extends doc_Detail
     {
     	$row->resourceId = cat_Products::getShortHyperlink($rec->resourceId);
     	$pInfo = planning_ObjectResources::getResource($rec->resourceId);
+    	
     	$row->measureId = cat_UoM::getTitleById($pInfo->measureId);
+    	if($pInfo->conversionRate != 1){
+    		$conversionUnit = planning_ObjectResources::getConversionUnit($rec->resourceId, $pInfo->measureId);
+    		$pInfo->conversionRate = cls::get('type_Double', array('smartRound' => TRUE))->toVerbal($pInfo->conversionRate);
+    		$row->measureId .= " <small class='quiet'>({$pInfo->conversionRate} " . tr($conversionUnit) . ")</small>";
+    	}
     	
     	$row->ROW_ATTR['class'] = ($rec->type != 'input') ? 'row-removed' : 'row-added';
     	$row->ROW_ATTR['title'] = ($rec->type != 'input') ? tr('Отпадък') : NULL;
@@ -219,7 +225,7 @@ class cat_BomDetails extends doc_Detail
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
     protected static function on_AfterPrepareListToolbar($mvc, &$data)
-    {
+    {//bp();
     	$data->toolbar->removeBtn('btnAdd');
     	if($mvc->haveRightFor('add', (object)array('bomId' => $data->masterId))){
     		$data->toolbar->addBtn('Материал', array($mvc, 'add', 'bomId' => $data->masterId, 'ret_url' => TRUE, 'type' => 'input'), NULL, "title=Добавяне на ресурс към рецептата,ef_icon=img/16/star_2.png");

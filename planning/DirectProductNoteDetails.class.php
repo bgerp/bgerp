@@ -38,7 +38,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_SaveAndNew, plg_Created, planning_Wrapper, plg_AlignDecimals, plg_Sorting';
+    public $loadList = 'plg_RowTools, plg_SaveAndNew, plg_Created, planning_Wrapper, plg_AlignDecimals2, plg_Sorting';
     
     
     /**
@@ -68,13 +68,13 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=№,resourceId, productId=Материал, packagingId, packQuantity';
+    public $listFields = 'tools=№,productId=Материал, packagingId, packQuantity';
     
         
     /**
      * Активен таб
      */
-    public $currentTab = 'Протоколи->Производство';
+    public $currentTab = 'Протоколи->Бързо производство';
     
     
     /**
@@ -102,7 +102,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         $this->FLD('conversionRate', 'double', 'input=none');
         
         // Само вложими продукти
-        $this->setDbUnique('noteId,resourceId,productId,classId');
+        $this->setDbUnique('noteId,productId,classId,type');
     }
     
     
@@ -158,24 +158,8 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     {
     	$rec = &$form->rec;
     	
-    	if(empty($rec->productId) && isset($rec->resourceId)){
-    		$shortUoM = cat_UoM::getShortName($rec->resourceId);
-    		$form->setField('packQuantity', "unit={$shortUoM}");
-    	}
-    	
     	if($form->isSubmitted()){
     		
-    		
-    		
-    		
-    		
-    		
-    		
-    		
-    		
-    		if(empty($rec->productId)){
-    			$rec->measureId = planning_Resources::fetchField($rec->resourceId);
-    		}
     	}
     }
     
@@ -186,19 +170,6 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
     	$rec->conversionRate = ($rec->productId) ? planning_ObjectResources::getResource($rec->productId)->conversionRate : 1;
-    }
-    
-    
-    /**
-     * Преди подготвяне на едит формата
-     */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
-    {
-    	$row->resourceId = planning_Resources::getShortHyperlink($rec->resourceId);
-    	
-    	if(empty($rec->productId)){
-    		unset($row->productId);
-    	}
     }
     
     
@@ -260,11 +231,10 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     {
     	$tpl = new ET("");
     	
-    	// Рендираме таблицата с вложените артикули
+    	// Рендираме таблицата с вложените материали
     	$table = cls::get('core_TableView', array('mvc' => $this));
     	$detailsInput = $table->get($data->inputArr, $data->listFields);
     	$detailsInput = ht::createElement("div", array('style' => 'margin-top:5px'), $detailsInput);
-    	
     	$tpl->append($detailsInput, 'planning_DirectProductNoteDetails');
     	
     	// Добавяне на бутон за нов ресурс
@@ -272,8 +242,8 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     		$tpl->append(ht::createBtn('Материал', array($this, 'add', 'noteId' => $data->masterId, 'type' => 'input', 'ret_url' => TRUE),  NULL, NULL, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/star_2.png', 'title' => 'Добавяне на нов материал')), 'planning_DirectProductNoteDetails');
     	}
     	
-    	// Рендираме таблицата с избор на отпадъци
-    	$data->listFields['resourceId'] = 'Отпадък';
+    	// Рендираме таблицата с отпадъците
+    	$data->listFields['productId'] = 'Отпадък';
     	unset($data->listFields['packagingId']);
     	$detailsPop = $table->get($data->popArr, $data->listFields);
     	$detailsPop = ht::createElement("div", array('style' => 'margin-top:5px;margin-bottom:5px'), $detailsPop);

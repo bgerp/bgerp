@@ -150,7 +150,11 @@ class cat_Boms extends core_Master
     	$this->setDbIndex('productId');
     }
     
-    
+    function act_Test()
+    {
+    	$l = cls::get('cat_Products');
+    	bp($l);
+    }
     /**
      * Добавя ключови думи за пълнотекстово търсене
      */

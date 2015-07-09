@@ -92,7 +92,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 				
 				$selfValue = $info->selfValue;
 				$sign = ($obj->type == 'input') ? 1 : -1;
-				
+				echo "<li>" . $sign * $obj->resourceQuantity * $selfValue;
 				$costAmount += $sign * $obj->resourceQuantity * $selfValue;
 				
 				$quantity = ($index == 0) ? $rec->quantity : 0;
@@ -129,7 +129,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 		if($rec->expenses){
 			$costAmount = $rec->expenses * $costAmount;
 			$costAmount = round($costAmount, 2);
-			
+			bp($costAmount, $rec->expenses, $costAmount);
 			if($costAmount){
 				$costArray = array(
 						'amount' => $costAmount,

@@ -470,6 +470,6 @@ class planning_Resources extends core_Master
     function act_test()
     {
     	$L = cls::get('planning_Setup');
-    	$L->replaceResources();
+    	$L->replaceResources3();
     }
 }
