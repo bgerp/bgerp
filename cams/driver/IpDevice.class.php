@@ -74,7 +74,7 @@ class cams_driver_IpDevice extends core_BaseClass {
     {
         if(!$this->isActive()) {
             $img = imagecreatefromjpeg(dirname(__FILE__) . '/setup.jpg');
-        } else {
+        } else { 
             $url = $this->getPictureUrl();
             $img = core_Url::loadUrl($url);
             
@@ -122,9 +122,12 @@ class cams_driver_IpDevice extends core_BaseClass {
     	$url = $this->getParamsUrl();
     	$res = url::loadURL($url);
 		
-    	if (!$res) return $params;
-    	
     	$resArr = parse_ini_string($res);
+    	
+    	if (!$resArr) {
+    		
+    		return $params;
+    	}
     	
 		$className = cls::getClassName($this);
     	
@@ -187,6 +190,10 @@ class cams_driver_IpDevice extends core_BaseClass {
     		case "cams_driver_Edimax":
     			$suffix = "/snapshot.jpg";
     		break;
+    		case "cams_driver_EdimaxIC9000":
+    			//$suffix = "/snapshot.cgi";
+    			 $suffix = "/snapshot.jpg";
+    		break;
     	}
 		
     	return $this->getDeviceUrl('http') . $suffix;
@@ -209,8 +216,11 @@ class cams_driver_IpDevice extends core_BaseClass {
     		case "cams_driver_Edimax":
     			$suffix = "/ipcam.sdp"; // за H.264 ->"/ipcam_264.sdp"
     		break;
+    		case "cams_driver_EdimaxIC9000":
+    			$suffix = "/" . $this->normalizeCameraId() . ".{$this->videopass}";
+    		break;
     	}
-		
+
     	return $this->getDeviceUrl('rtsp') . $suffix;
 	}
 	
