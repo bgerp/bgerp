@@ -278,7 +278,7 @@ abstract class deals_DealDetail extends doc_Detail
     		// Закръгляме количеството спрямо допустимото от мярката
     		$roundQuantity = cat_UoM::round($rec->packQuantity, $rec->productId, $rec->packagingId);
     		if($roundQuantity != $rec->packQuantity){
-    			$form->setWarning('packQuantity', 'Въведеното количество ще бъде закръглено до указаната точност');
+    			$form->setWarning('packQuantity', 'Количеството ще бъде закръглено до указаното в |*<b>|Артикули » Каталог » Мерки/Опаковки|*</b>|');
     			
     			// Ако не е чекнат игнора, не продължаваме за да не се изчислят данните
     			if(!Request::get('Ignore')){

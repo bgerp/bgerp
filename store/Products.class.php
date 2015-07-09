@@ -118,8 +118,8 @@ class store_Products extends core_Manager
     	}
     	
     	try{
-            expect(cls::isSubclass($manCls = cls::get($rec->classId), 'core_Manager'));
-    		$name = $manCls->getTitleById($rec->productId);
+    	    expect(cls::load($rec->classId, TRUE));
+	        $name = cls::get($rec->classId)->getTitleById($rec->productId);
     	} catch(core_exception_Expect $e){
     		$name = tr('Проблем при показването');
     	}
