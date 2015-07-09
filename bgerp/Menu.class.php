@@ -402,7 +402,7 @@ class bgerp_Menu extends core_Manager
         $del += self::delete(array("#menu = '[#1#]' AND #subMenu = '[#2#]' {$addCond}", $menu, $subMenu));
         
         if($del) {
-            $res .= "<li class='debug-new'>Изтвиване на {$del} елемент/а на менюто, поради дублиране</li>\n";
+            $res .= "<li class='debug-new'>Изтриване на {$del} елемент/а на менюто, поради дублиране</li>\n";
         }
         
         self::save($rec);

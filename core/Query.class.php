@@ -347,6 +347,9 @@ class core_Query extends core_FieldSet
     public function in($field, $values, $not = FALSE, $or = FALSE)
     {
     	$values = arr::make($values);
+    	
+    	if (!$values) return ;
+    	
     	$values = implode(',', $values);
     	
     	if(!$not){
