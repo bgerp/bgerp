@@ -32,7 +32,7 @@ class planning_ObjectResources extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_LastUsedKeys, plg_Created, planning_Wrapper';
+    public $loadList = 'plg_RowTools, plg_Created, planning_Wrapper';
     
     
     /**
