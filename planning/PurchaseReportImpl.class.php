@@ -33,7 +33,7 @@ class planning_PurchaseReportImpl extends frame_BaseDriver
     /**
      * Кои интерфейси имплементира
      */
-    public $interfaces = 'frame_ReportSourceIntf,bgerp_DealIntf';
+    public $interfaces = 'frame_ReportSourceIntf';
     
     
     /**

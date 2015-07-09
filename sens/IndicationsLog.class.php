@@ -91,7 +91,7 @@ class sens_IndicationsLog extends core_Manager
     /**
      * Добавя запис в логовете
      */
-    function add($sensorId, $param, $value, $measure = NULL)
+    public static function add($sensorId, $param, $value, $measure = NULL)
     {
         $rec = new stdClass();
         $rec->sensorId = $sensorId;

@@ -297,7 +297,7 @@ function shutdown($sendOutput = TRUE)
  * Дали се намираме в DEBUG режим
  */
 function isDebug()
-{  
+{
     return core_Debug::isDebug();
 }
 
@@ -471,5 +471,4 @@ function setupKey()
 	// Валидност средно 250 сек.
 	return md5(BGERP_SETUP_KEY . round(time()/1000));
 }
-
-
+ 

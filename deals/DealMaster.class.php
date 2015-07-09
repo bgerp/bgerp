@@ -1184,7 +1184,11 @@ abstract class deals_DealMaster extends deals_DealBase
     {
     	$id = Request::get('id', 'int');
     	expect($rec = $this->fetch($id));
-    	expect($rec->state == 'draft');
+    	
+    	if($rec->state != 'draft'){
+    		return redirect(array($this, 'single', $id), FALSE, 'Договорът вече е активиран');
+    	}
+    	
     	expect(cls::haveInterface('acc_TransactionSourceIntf', $this));
     	expect(acc_plg_Contable::checkPeriod($rec->valior, $error), $error);
     	$curStoreId = store_Stores::getCurrent('id', FALSE);

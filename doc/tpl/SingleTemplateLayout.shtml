@@ -27,13 +27,17 @@
         </tr>
     </table>
 </div>
-<div class='scrolling-holder'>
+<div class='scrolling-holder' style = 'padding:10px;background-color:lightgrey'>
     [#content#]
 </div>
+
+<!--ET_BEGIN narrowContent-->
 <hr>
-<div class='scrolling-holder'>
+<div><b>|Мобилен шаблон|*</b></div>
+<div class='scrolling-holder' style = 'padding:10px;background-color:lightgrey;margin-top:5px'>
     [#narrowContent#]
 </div>
+<!--ET_END narrowContent-->
 
 <br>
 <div><span class="quiet">|Модифициране|*: </span>|от|* [#modifiedBy#] |на|* [#modifiedOn#] </div>
