@@ -22,7 +22,7 @@ class planning_Wrapper extends plg_ProtoWrapper
      */
     function description()
     {
-    	$this->TAB('planning_Resources', 'Ресурси', 'ceo,planning');
+    	//$this->TAB('planning_Resources', 'Ресурси', 'ceo,planning');
     	$this->TAB('planning_Jobs', 'Задания', 'ceo,planning');
     	$this->TAB('planning_ConsumptionNotes', 'Протоколи->Влагане', 'ceo,planning');
     	$this->TAB('planning_ProductionNotes', 'Протоколи->Производство', 'ceo,planning');

@@ -465,4 +465,11 @@ class planning_Resources extends core_Master
     	// Връщаме цената, ако сме я намерили
     	return $selfValue;
     }
+    
+    
+    function act_test()
+    {
+    	$L = cls::get('planning_Setup');
+    	$L->replaceResources();
+    }
 }

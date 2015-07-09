@@ -29,10 +29,10 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 		expect($rec = $this->class->fetchRec($id));
 	
 		$result = (object)array(
-				'reason' => "Протокол за бързо производство №{$rec->id}",
-				'valior' => $rec->valior,
+				'reason'      => "Протокол за бързо производство №{$rec->id}",
+				'valior'      => $rec->valior,
 				'totalAmount' => NULL,
-				'entries' => array()
+				'entries'     => array()
 		);
 	
 		// Ако има ид, добавяме записите
@@ -60,21 +60,21 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 		$dQuery->orderBy('id', 'ASC');
 		
 		while($dRec = $dQuery->fetch()){
-			$resourcesArr[$dRec->resourceId] = $dRec;
-			$resourcesArr[$dRec->resourceId]->resourceQuantity = $dRec->quantity;
+			$resourcesArr[$dRec->productId] = $dRec;
+			$resourcesArr[$dRec->productId]->resourceQuantity = $dRec->quantity;
 			$rQuantity = $dRec->quantity;
 			
 			if($dRec->productId && $dRec->type == 'input'){
 				$hasInput = TRUE;
 				$rQuantity = ($dRec->quantity / $dRec->conversionRate);
-				$resourcesArr[$dRec->resourceId]->resourceQuantity = $rQuantity;
+				$resourcesArr[$dRec->productId]->resourceQuantity = $rQuantity;
 				
-				$entry = array('debit' => array('61101', array('planning_Resources', $dRec->resourceId), 
+				$entry = array('debit' => array('61101', array($dRec->classId, $dRec->productId), 
 												'quantity' => $rQuantity),
 							   'credit' => array('321', array('store_Stores', $rec->storeId), 
 														array($dRec->classId, $dRec->productId), 
 												'quantity' => $dRec->quantity),
-								'reason' => 'Влагане на ресурс в производството' 
+								'reason' => 'Влагане на материал в производството' 
 							   );
 				
 				$entries[] = $entry;
@@ -88,7 +88,9 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 			
 			foreach ($resourcesArr as $resourceId => $obj){
 				$entry = array();
-				$selfValue = planning_Resources::getSelfValue($resourceId, $rec->valior);
+				$info = planning_ObjectResources::getResource($obj->productId);
+				
+				$selfValue = $info->selfValue;
 				$sign = ($obj->type == 'input') ? 1 : -1;
 				
 				$costAmount += $sign * $obj->resourceQuantity * $selfValue;
@@ -96,18 +98,18 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 				$quantity = ($index == 0) ? $rec->quantity : 0;
 				
 				if($obj->type == 'input'){
-					$reason = ($index == 0) ? 'Засклаждане на произведен артикул' : 'Вложени ресурси в произведен артикул';
+					$reason = ($index == 0) ? 'Засклаждане на произведен артикул' : 'Вложени материали в производството на артикул';
 					
 					$entry['debit'] = array('321', array('store_Stores', $rec->storeId),
 										 array(cat_Products::getClassId(), $rec->productId),
 										'quantity' => $quantity);
 					
-					$entry['credit'] = array('61101', array('planning_Resources', $resourceId),
-											   'quantity' => $obj->resourceQuantity);
+					$entry['credit'] = array('61101', array($obj->classId, $obj->productId),
+											            'quantity' => $obj->resourceQuantity);
 					$entry['reason'] = $reason;
 				} else {
-					$amount = planning_Resources::fetchField($resourceId, "selfValue");
-					$entry['debit'] = array('61101', array('planning_Resources', $resourceId),
+					$amount = $selfValue;
+					$entry['debit'] = array('61101', array($obj->classId, $obj->productId),
 												  'quantity' => $obj->resourceQuantity);
 					
 					$entry['credit'] =  array('321', array('store_Stores', $rec->storeId),

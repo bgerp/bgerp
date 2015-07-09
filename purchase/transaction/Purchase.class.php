@@ -204,7 +204,7 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
     			
     			// Ако сме дебитирали 60020, превхвърляме сумата в 61101 или 61102
     			if($transfer === TRUE){
-    				$resourceRec = planning_ObjectResources::getResource($detailRec->classId, $detailRec->productId);
+    				$resourceRec = planning_ObjectResources::getResource($detailRec->productId);
     				if($resourceRec){
     					$newArr = array('61101', array('planning_Resources' , $resourceRec->resourceId),
     							'quantity' => $detailRec->quantity / $resourceRec->conversionRate);

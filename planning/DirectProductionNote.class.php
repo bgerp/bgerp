@@ -305,20 +305,22 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 			
 			// Задаваме данните на ресурса
 			$dRec = new stdClass();
-			$dRec->resourceId = $resource->resourceId;
+			$dRec->classId = $productManId;
+			$dRec->productId = $resource->productId;
 			$dRec->type = $resource->type;
 			$dRec->quantityInPack = 1;
 			
+			$info = planning_ObjectResources::getResource($resource->productId);
+			
 			// Мярката е мярката на ресурса
-			$dRec->measureId = planning_Resources::fetchField($resource->resourceId, 'measureId');
-			$type = planning_Resources::fetchField($resource->resourceId, 'type');
+			$dRec->measureId = $info->measureId;
 			
 			// Изчисляваме к-то според наличните данни
 			$dRec->quantity = $prodQuantity * ($resource->baseQuantity / $jobQuantity + ($resource->propQuantity / $bomInfo['quantity']));
 			
-			// Намираме всички артикули материали свързани с този ресурс
+			/*
+			 * // Намираме всички артикули материали свързани с този ресурс
 			$materialsArr = planning_ObjectResources::fetchRecsByClassAndType($resource->resourceId, $productManId, 'material');
-			
 			// Извличаме наличното количество в избрания клас за всеки от ресурсите
 			$allProducts = $resProducts = array();
 			if(count($materialsArr)){
@@ -328,28 +330,20 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 					$allProducts[$objRec->objectId] = $objRec;
 				}
 			}
-			
 			// Намираме този с най-голямо налично количество
 			$productId = NULL;
 			if(count($resProducts)) {
 				$productId = array_search(max($resProducts), $resProducts);
 			}
-			
 			if($type == 'material' && !$productId){
 				
 				// Ако има ресурс материал и не може да му се определи артикул, не продължаваме
 				return FALSE;
 			}
-			
-			// Избираме него към ресурса
-			if($productId){
-				$dRec->classId = $productManId;
-				$dRec->productId = $productId;
-				$dRec->measureId = cat_Products::fetchField($productId, 'measureId');
+			*/
 				
-				// К-то на ресурса го умножаваме по конверсията на артикула към ресурса
-				$dRec->quantity *= $allProducts[$productId]->conversionRate;
-			}
+			// К-то на ресурса го умножаваме по конверсията на артикула към ресурса
+			$dRec->quantity *= $info->conversionRate;
 			
 			// Добавяме детайла
 			$details[] = $dRec;

@@ -163,7 +163,7 @@ class cat_Boms extends core_Master
     		$dQuery = cat_BomDetails::getQuery();
     		$dQuery->where("#bomId = '{$rec->id}'");
     		while($dRec = $dQuery->fetch()){
-    			$detailsKeywords .= " " . plg_Search::normalizeText(planning_Resources::getTitleById($dRec->resourceId));
+    			$detailsKeywords .= " " . plg_Search::normalizeText(cat_Products::getTitleById($dRec->resourceId));
     			if($dRec->stageId){
     				$detailsKeywords .= " " . plg_Search::normalizeText(planning_Stages::getTitleById($dRec->stageId));
     			}
@@ -235,9 +235,9 @@ class cat_Boms extends core_Master
     		// Ако има такива, добавяме ги като полета във формата
     		if(count($alreadyUsedResources)){
     			foreach ($alreadyUsedResources as $i => $resId){
-    				$form->FNC("resourceId{$i}", 'key(mvc=planning_Resources,select=title,allowEmpty)', 'input=hidden');
+    				$form->FNC("resourceId{$i}", 'key(mvc=cat_Products,select=name,allowEmpty)', 'input=hidden');
     				$form->setDefault("resourceId{$i}", $resId);
-    				$caption = planning_Resources::getTitleById($resId);
+    				$caption = cat_Products::getTitleById($resId);
     				$caption = str_replace(',', '.', $caption);
     				 
     				if(isset($form->rec->quantity)){
@@ -426,9 +426,10 @@ class cat_Boms extends core_Master
     	if(count($rInfo['resources'])){
     		foreach ($rInfo['resources'] as $dRec){
     			$sign = ($dRec->type == 'input') ? 1 : -1;
+    			$info = planning_ObjectResources::getResource($dRec->productId);
     			
     			// Опитваме се да намерим себестойност за артикула
-    			$selfValue = planning_Resources::getSelfValue($dRec->resourceId, $date = NULL);
+    			$selfValue = $info->selfValue;
     			
     			// Ако не може да се определи себестойност на ресурса, не може и по рецептата
     			if(!$selfValue) return FALSE;
@@ -454,7 +455,7 @@ class cat_Boms extends core_Master
      * @return array $res - Информация за рецептата
      * 				->quantity - к-во
      * 				->resources
-     * 			        o $res->resourceId       - ид на ресурса
+     * 			        o $res->productId       - ид на ресурса
      * 					o $res->type             - вложим или отпаден ресурс
 	 * 			        o $res->baseQuantity     - начално количество на ресурса
 	 * 			        o $res->propQuantity     - пропорционално количество на ресурса
@@ -475,7 +476,7 @@ class cat_Boms extends core_Master
     	while($dRec = $dQuery->fetch()){
     		
     		$arr = array();
-    		$arr['resourceId']   = $dRec->resourceId;
+    		$arr['productId']    = $dRec->resourceId;
     		$arr['type']         = $dRec->type;
     		$arr['baseQuantity'] = $dRec->baseQuantity;
     		$arr['propQuantity'] = $dRec->propQuantity;
@@ -547,7 +548,7 @@ class cat_Boms extends core_Master
     	if(count($details)){
     		foreach ($details as &$d){
     			expect($d->resourceId);
-    			expect(planning_Resources::fetch($d->resourceId));
+    			expect(cat_Products::fetch($d->resourceId));
     			$d->type = ($d->type) ? $d->type : 'input';
     			expect(in_array($d->type, array('input', 'pop')));
     			 
