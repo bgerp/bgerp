@@ -62,7 +62,11 @@ class cms_DefaultTheme extends core_ProtoInner {
             $conf = core_Packs::getConfig('core');
             $title = $conf->EF_APP_TITLE;
         } elseif($title) {
-            $title = "<span style='color:{$this->formRec->titleColor}'>" . $title . "</span>";
+            $style = '';
+            if ($this->formRec->titleColor) {
+                $style =  " style='color:{$this->formRec->titleColor};'";
+            }
+            $title = "<span{$style}>" . $title . "</span>";
         }
 
         if($title) {

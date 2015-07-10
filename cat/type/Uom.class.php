@@ -49,12 +49,6 @@ class cat_type_Uom extends type_Varchar {
     protected $double;
     
     
-    /**
-     * ид на основната мярка на полето
-     */
-    protected $baseMeasureId;
-    
-    
 	/**
      * Инициализиране на обекта
      */
@@ -64,10 +58,6 @@ class cat_type_Uom extends type_Varchar {
         
         // Инстанциране на type_Double
         $this->double = cls::get('type_Double', $params);
-       
-        // Запомняне на ид-то отговарящо на основната мярка
-        $this->baseMeasureId = cat_UoM::fetchBySysId($this->params['unit'])->id;
-    	expect($this->baseMeasureId);
     }
     
     
@@ -132,28 +122,26 @@ class cat_type_Uom extends type_Varchar {
 	{
 		// Ако има запис, конвертира се в удобен вид
         
-            $convObject = new stdClass();
-            
-            expect($unitRec = cat_UoM::fetchBySinonim($this->params['unit']));
+        $convObject = new stdClass();
 
-		    if($value === NULL || $value === ''){
-				$convObject->value = '';
-                $convObject->measure = $unitRec->id;
-			} elseif (empty($this->error)){
-				$convObject = cat_UoM::smartConvert($value, $this->params['unit'], FALSE, TRUE);
-			} else {
-				$convObject->value = $value['lP'];
-				$convObject->measure = $value['rP'];
-			}
-		
+        $baseUnitId = cat_UoM::fetchBySysId($this->params['unit'])->id;
+
+		if($value === NULL || $value === ''){
+			$convObject->value = '';
+            $convObject->measure = $unitRec->id;
+		} elseif (empty($this->error)){
+			$convObject = cat_UoM::smartConvert($value, $this->params['unit'], FALSE, TRUE);
+		} else {
+			$convObject->value = $value['lP'];
+			$convObject->measure = $value['rP'];
+		}
 		
 		// Рендиране на частта за въвеждане на числото
-
 		$inputLeft = $this->double->renderInput($name . '[lP]', $convObject->value, $attr);
 		unset($attr['size']);
 		
 		// Извличане на всички производни мярки
-		$options = cat_UoM::getSameTypeMeasures($this->baseMeasureId, TRUE);
+		$options = cat_UoM::getSameTypeMeasures($baseUnitId, TRUE);
         unset($options['']);
 
 		$inputRight = " &nbsp;" . ht::createSmartSelect($options, $name . '[rP]', $convObject->measure);
