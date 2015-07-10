@@ -96,12 +96,8 @@
                                         <!--ET_BEGIN vatReason-->
                                         <div><span class='quiet'>Reason for VAT:</span> [#vatReason#]</div>
                                         <!--ET_END vatReason-->
-                                        <!--ET_BEGIN vatDate-->  
-                                        <span class='quiet'>Taxable event:</span> [#vatDate#] &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                        <!--ET_END vatDate-->  
-                                        <!--ET_BEGIN rate--> 
-                                        <span class='quiet'>Rate:</span>  [#rate#]
-                                        <!--ET_END rate-->  
+                                        <!--ET_BEGIN paymentBlock-->
+                                        [#paymentBlock#]
                                         <div class='custom-bg-block'><b>Payment</b></div>
                                         <!--ET_BEGIN paymentMethodId-->
                                         <div><span class='quiet'>Method:</span>  [#paymentMethodId#]</div>
@@ -135,6 +131,8 @@
                                             </div>
                                         </div>
                                         <!--ET_END accountId-->
+                                        <!--ET_END paymentBlock-->
+
                                         <!--ET_BEGIN deliveryInfo-->
                                         [#deliveryInfo#]
                                         <div class='custom-bg-block'><b>Delivery</b></div>
@@ -150,9 +148,17 @@
                                         <div>Notes</div>
                                         <div>[#additionalInfo#]</div>
                                         <!--ET_END additionalInfo-->
+
+                                        <hr>
+                                        <table class='centered special-borders' style='float:right;'>
+                                            <tr>
+                                                <td class='centered'>Prepared By:</td>
+                                                <td class='nowrap centered' style="padding-top: 45px;"><span class="sign_names">[#username#]</span></td>
+                                            </tr>
+                                        </table>
                                     </td>
                                     <td id='invoice-info' style='width:40%;'>
-                                        <table class='no-border paddingCells business-doc-summary-table' style='margin-bottom: 20px;width:100%;'>
+                                        <table class='no-border paddingCells business-doc-summary-table' style='width:100%;'>
                                             <tr class='nowrap'>
                                                 <td class='aright'>Subtotal:</td>
                                                 <td class='info-right' style='width:1%;'><span class='cCode'>[#currencyId#]</span></td>
@@ -172,13 +178,6 @@
                                                 <td class='aright'><b>[#neto#]</b></td>
                                             </tr>
                                             <!--ET_END neto-->
-                                            <!--ET_BEGIN baseAmount-->
-                                            <tr class='nowrap'>
-                                                <td class='aright'>Tax base:</td>
-                                                <td class='info-right'><span class='cCode'>[#baseCurrencyId#]</span></td>
-                                                <td class='aright'><b>[#baseAmount#]</b></td>
-                                            </tr>
-                                            <!--ET_END baseAmount-->
                                             <tr>
                                                 <td colspan='3' style='padding:0px'>
                                                     <hr>
@@ -204,21 +203,6 @@
                                                     [#sayWords#]
                                                     <!--ET_END sayWords-->
                                                 </td>
-                                            </tr>
-                                        </table>
-                                        <hr>
-                                        <table class='centered special-borders' style='width:100%;'>
-                                            <tr>
-                                                <td class='centered border-right' style='width:50%;'>Receiver By:</td>
-                                                <td class='centered'>Prepared By:</td>
-                                            </tr>
-                                            <tr>
-                                                <td style='height:40px;' class='border-right'>&nbsp;</td>
-                                                <td></td>
-                                            </tr>
-                                            <tr>
-                                                <td class='centered border-right' > <span class="sign_names nowrap">[#responsible#]</span></td>
-                                                <td class='nowrap centered'><span class="sign_names">[#username#]</span></td>
                                             </tr>
                                         </table>
                                     </td>
