@@ -96,13 +96,6 @@
                                         <!--ET_BEGIN vatReason-->
                                         <div><span class='quiet'>Reason for VAT:</span> [#vatReason#]</div>
                                         <!--ET_END vatReason-->
-                                        <!--ET_BEGIN vatDate-->  
-                                        <span class='quiet'>Taxable event:</span> [#vatDate#] &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                        <!--ET_END vatDate-->  
-                                        <!--ET_BEGIN rate--> 
-                                        <span class='quiet'>Rate:</span>  [#rate#]
-                                        <!--ET_END rate-->
-
                                         <!--ET_BEGIN paymentBlock-->
                                         [#paymentBlock#]
                                         <div class='custom-bg-block'><b>Payment</b></div>
@@ -185,13 +178,6 @@
                                                 <td class='aright'><b>[#neto#]</b></td>
                                             </tr>
                                             <!--ET_END neto-->
-                                            <!--ET_BEGIN baseAmount-->
-                                            <tr class='nowrap'>
-                                                <td class='aright'>Tax base:</td>
-                                                <td class='info-right'><span class='cCode'>[#baseCurrencyId#]</span></td>
-                                                <td class='aright'><b>[#baseAmount#]</b></td>
-                                            </tr>
-                                            <!--ET_END baseAmount-->
                                             <tr>
                                                 <td colspan='3' style='padding:0px'>
                                                     <hr>
