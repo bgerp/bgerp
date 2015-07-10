@@ -404,7 +404,20 @@ abstract class deals_InvoiceMaster extends core_Master
     {
         $rec = $this->fetch($id);
 		$row = new stdClass();
+		
+		$template = $this->getTemplate($id);
+		$lang = doc_TplManager::fetchField($template, 'lang');
+		
+		if($lang){
+			core_Lg::push($lang);
+		}
+		
         $row->title = static::getRecTitle($rec);
+        
+        if($lang){
+        	core_Lg::pop();
+        }
+        
         $row->author = $this->getVerbal($rec, 'createdBy');
         $row->authorId = $rec->createdBy;
         $row->state = $rec->state;
