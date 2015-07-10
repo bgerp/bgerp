@@ -56,6 +56,35 @@ class cams_driver_EdimaxIC9000 extends cams_driver_IpDevice {
         $form->FNC('httpPort', 'int(min=1,max=65535)', 'caption=Порт->Http,hint=Въведете порта за CGI заявките,input');
     }
 
+    /**
+     * Записва снимка от камерата в указания файл - предефинира ф-та от родителя щото тая камера е особена
+     */
+    public function getPicture()
+    {
+    	if(!$this->isActive()) {
+    		$img = imagecreatefromjpeg(dirname(__FILE__) . '/setup.jpg');
+    	} else {
+    		$url = $this->getPictureUrl();
+
+    		// Преди да вземем картинката трябва да фечнем линка само, че с cgi отзад вместо с jpg
+    		$urlCgi = str_replace(".jpg", ".cgi", $url);
+    		core_Url::loadUrl($urlCgi);
+    		
+    		$img = core_Url::loadUrl($url);
+    
+    		if(!empty($img)) {
+    			$img = imagecreatefromstring($img);
+    		}
+    
+    		if(!$img) {
+    
+    			$img = imagecreatefromjpeg(dirname(__FILE__) . '/nocamera.jpg');
+    		}
+    	}
+    
+    	return $img;
+    }
+    
     
     /**
      * Подготвя формата за PTZ контрола
