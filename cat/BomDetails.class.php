@@ -114,6 +114,10 @@ class cat_BomDetails extends doc_Detail
     {
     	$this->FLD('bomId', 'key(mvc=cat_Boms)', 'column=none,input=hidden,silent');
     	$this->FLD("resourceId", 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Материал,mandatory,silent,refreshForm');
+    	
+    	$this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty, select2MinItems=0)', 'caption=Мярка','tdClass=small-field,silent,removeAndRefreshForm=quantityInPack');
+    	$this->FLD('quantityInPack', 'double(smartRound)', 'input,notNull,value=1');
+    	
     	$this->FLD('stageId', 'key(mvc=planning_Stages,allowEmpty,select=name)', 'caption=Етап');
     	$this->FLD('type', 'enum(input=Влагане,pop=Отпадък)', 'caption=Действие,silent,input=hidden');
     	
@@ -171,13 +175,23 @@ class cat_BomDetails extends doc_Detail
     	
     	// Ако има избран ресурс, добавяме му мярката до полетата за количества
     	if(isset($rec->resourceId)){
-    		$rInfo = planning_ObjectResources::getResource($rec->resourceId);
     		
-    		if($uomId = $rInfo->measureId){
-    			$uomName = cat_UoM::getShortName($uomId);
-    			$form->setField('baseQuantity', "unit={$uomName}");
-    			$form->setField('propQuantity', "unit={$uomName}");
+    		$form->setDefault('measureId', cat_Products::getProductInfo($rec->resourceId)->productRec->measureId);
+    		$shortName = cat_UoM::getShortName($rec->measureId);
+    		$form->setField('baseQuantity', "unit={$shortName}");
+    		$form->setField('propQuantity', "unit={$shortName}");
+    				
+    		$packs = cls::get('cat_Products')->getPacks($rec->resourceId);
+    		if(isset($rec->packagingId) && !isset($packs[$rec->packagingId])){
+    			$packs[$rec->packagingId] = cat_Packagings::getTitleById($rec->packagingId, FALSE);
     		}
+    		if(count($packs)){
+    			$form->setOptions('packagingId', $packs);
+    		} else {
+    			$form->setReadOnly('packagingId');
+    		}
+    				
+    		$form->setField('packagingId', "placeholder=" . cat_UoM::getTitleById($rec->measureId));
     	}
     	
     	// Проверяваме дали е въведено поне едно количество
