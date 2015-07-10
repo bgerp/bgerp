@@ -242,7 +242,7 @@ class core_Manager extends core_Mvc
         
         $this->delete($data->id);
         
-        $this->log($data->cmd, $id);
+        $this->log($data->cmd, $data->id);
         
         return new Redirect($data->retUrl);
     }
