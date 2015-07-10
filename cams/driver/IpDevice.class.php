@@ -178,7 +178,7 @@ class cams_driver_IpDevice extends core_BaseClass {
      * 
      * Връща урл за взимане на снимка от камерата в зависимост от вида и
      */
-	private function getPictureUrl()
+	protected function getPictureUrl()
 	{
 		$className = cls::getClassName($this);
     	
