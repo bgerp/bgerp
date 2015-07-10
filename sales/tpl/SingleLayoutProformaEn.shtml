@@ -159,7 +159,7 @@
                                         <hr>
                                         <table class='centered special-borders' style='float:right;'>
                                             <tr>
-                                                <td class='centered'>Prepared:</td>
+                                                <td class='centered'>Prepared By:</td>
                                                 <td class='nowrap centered' style="padding-top: 45px;"><span class="sign_names">[#username#]</span></td>
                                             </tr>
                                         </table>
