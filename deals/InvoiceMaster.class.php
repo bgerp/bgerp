@@ -894,9 +894,9 @@ abstract class deals_InvoiceMaster extends core_Master
     		$userRec = core_Users::fetch($rec->createdBy);
     		$row->username = core_Users::recToVerbal($userRec, 'names')->names;
     	
-    		if($rec->type != 'invoice'){
+    		if($rec->type != 'invoice' && !($mvc instanceof sales_Proformas)){
     			$originRec = $mvc->getOrigin($rec)->fetch();
-    			$originRow = $mvc->recToVerbal($originRec, 'number,date');
+    			$originRow = $mvc->recToVerbal($originRec);
     			$row->originInv = $originRow->number;
     			$row->originInvDate = $originRow->date;
     		}
