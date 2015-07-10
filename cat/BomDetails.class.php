@@ -176,7 +176,8 @@ class cat_BomDetails extends doc_Detail
     	// Ако има избран ресурс, добавяме му мярката до полетата за количества
     	if(isset($rec->resourceId)){
     		
-    		$form->setDefault('measureId', cat_Products::getProductInfo($rec->resourceId)->productRec->measureId);
+    		$pInfo = cat_Products::getProductInfo($rec->resourceId);
+    		$form->setDefault('measureId', $pInfo->productRec->measureId);
     		$shortName = cat_UoM::getShortName($rec->measureId);
     		$form->setField('baseQuantity', "unit={$shortName}");
     		$form->setField('propQuantity', "unit={$shortName}");
@@ -207,6 +208,8 @@ class cat_BomDetails extends doc_Detail
     		if(empty($rec->baseQuantity) && empty($rec->propQuantity)){
     			$form->setError('baseQuantity,propQuantity', 'Трябва да е въведено поне едно количество');
     		}
+    		
+    		$rec->quantityInPack = (empty($rec->packagingId)) ? 1 : (($pInfo->packagings[$rec->packagingId]) ? $pInfo->packagings[$rec->packagingId]->quantity : $rec->quantityInPack);
     	}
     }
     
@@ -217,13 +220,17 @@ class cat_BomDetails extends doc_Detail
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
     	$row->resourceId = cat_Products::getShortHyperlink($rec->resourceId);
-    	$pInfo = planning_ObjectResources::getResource($rec->resourceId);
+    	$measureId = cat_Products::getProductInfo($rec->resourceId)->productRec->measureId;
     	
-    	$row->measureId = cat_UoM::getTitleById($pInfo->measureId);
-    	if($pInfo->conversionRate != 1){
-    		$conversionUnit = planning_ObjectResources::getConversionUnit($rec->resourceId, $pInfo->measureId);
-    		$pInfo->conversionRate = cls::get('type_Double', array('smartRound' => TRUE))->toVerbal($pInfo->conversionRate);
-    		$row->measureId .= " <small class='quiet'>({$pInfo->conversionRate} " . tr($conversionUnit) . ")</small>";
+    	if($rec->packagingId){
+    		$row->measureId = cat_Packagings::getTitleById($rec->packagingId);
+    		if($rec->quantityInPack != 1){
+    			$quantityInPack = cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($rec->quantityInPack);
+    			$shortUom = cat_UoM::getShortName($measureId);
+    			$row->measureId .= " <span class='quiet'>({$quantityInPack} {$shortUom})</span>";
+    		}
+    	} else {
+    		$row->measureId = cat_UoM::getTitleById($measureId);
     	}
     	
     	$row->ROW_ATTR['class'] = ($rec->type != 'input') ? 'row-removed' : 'row-added';
@@ -239,7 +246,7 @@ class cat_BomDetails extends doc_Detail
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
     protected static function on_AfterPrepareListToolbar($mvc, &$data)
-    {//bp();
+    {
     	$data->toolbar->removeBtn('btnAdd');
     	if($mvc->haveRightFor('add', (object)array('bomId' => $data->masterId))){
     		$data->toolbar->addBtn('Материал', array($mvc, 'add', 'bomId' => $data->masterId, 'ret_url' => TRUE, 'type' => 'input'), NULL, "title=Добавяне на ресурс към рецептата,ef_icon=img/16/star_2.png");
