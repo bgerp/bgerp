@@ -39,6 +39,42 @@ class core_Master extends core_Manager
     
     
     /**
+     * Връща линк към подадения обект
+     * 
+     * @param integer $objId
+     * 
+     * @return core_ET
+     */
+    public static function getLinkForObject($objId)
+    {
+        $me = get_called_class();
+        $inst = cls::get($me);
+        
+        if ($objId) {
+            $title = $inst->getTitleById($objId);
+        } else {
+            $title = $inst->className;
+        }
+        
+        $linkArr = array();
+        
+        if (self::haveRightFor('single', $objId)) {
+            if ($objId) {
+                $linkArr = array(get_called_class(), 'single', $objId);
+            } else {
+                if (self::haveRightFor('list')) {
+                    $linkArr = array(get_called_class(), 'list');
+                }
+            }
+        }
+        
+        $link = ht::createLink($title, $linkArr);
+        
+        return $link;
+    }
+    
+    
+    /**
      * Връща единичния изглед на обекта
      */
     function act_Single()
