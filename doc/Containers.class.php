@@ -2273,7 +2273,7 @@ class doc_Containers extends core_Manager
     {
         $rec = self::fetch($id);
         
-        if ($changeDef) {
+        if (!$changeDef) {
             if (!$rec->hide || ($rec->hide == 'default')) {
                 
                 return ;

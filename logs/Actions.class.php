@@ -24,7 +24,7 @@ class logs_Actions extends core_Manager
     /**
      * Кой има право да го чете?
      */
-    public $canRead = 'admin';
+    public $canRead = 'debug';
     
     
     /**
@@ -42,13 +42,13 @@ class logs_Actions extends core_Manager
     /**
      * Кой има право да го види?
      */
-    public $canView = 'admin';
+    public $canView = 'debug';
     
     
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'admin';
+    public $canList = 'debug';
     
     
     /**
@@ -60,7 +60,13 @@ class logs_Actions extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_SystemWrapper, logs_Wrapper';
+    public $loadList = 'plg_SystemWrapper, logs_Wrapper, plg_Search';
+    
+    
+    /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    public $searchFields = 'action';
     
     
     /**
@@ -114,5 +120,25 @@ class logs_Actions extends core_Manager
            
            self::save($rec, NULL, 'IGNORE');
        }
+    }
+    
+    
+    /**
+     * Връща действието от crc стойността
+     * 
+     * @param integer $crc
+     * 
+     * @return string
+     */
+    public static function getActionFromCrc($crc)
+    {
+        static $crcActArr = array();
+        
+        if (!isset($crcActArr[$crc])) {
+            $rec = self::fetch(array("#crc = '[#1#]'", $crc));
+            $crcActArr[$crc] = $rec->action;
+        }
+        
+        return $crcActArr[$crc];
     }
 }

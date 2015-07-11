@@ -110,6 +110,7 @@ class cal_TaskConditions extends core_Detail
         
         if (!$data->form->rec->activationCond) {
         	$data->form->setDefault('activationCond', 'onProgress');
+        	$data->form->setField('progress', 'input');
         }
         
         if ($data->form->rec->activationCond == 'onProgress') {
