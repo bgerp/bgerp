@@ -137,7 +137,17 @@ class blogm_Setup extends core_ProtoSetup
 
 		// Добавяме класа връщащ темата в core_Classes
         $html .= core_Classes::add('blogm_DefaultTheme');
-        
+
+        // Публикуване на чакащите блог статии по крон
+        $rec = new stdClass();
+        $rec->systemId = 'PublishPendingBlogArt';
+        $rec->description = 'Публикуване на чакащите блог статии';
+        $rec->controller = 'blogm_Articles';
+        $rec->action = 'PublicPending';
+        $rec->period = 5;
+        $rec->offset = 3;
+        $html .= core_Cron::addOnce($rec);
+
 		return $html;
 	}
 
