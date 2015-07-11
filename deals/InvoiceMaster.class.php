@@ -404,7 +404,20 @@ abstract class deals_InvoiceMaster extends core_Master
     {
         $rec = $this->fetch($id);
 		$row = new stdClass();
+		
+		$template = $this->getTemplate($id);
+		$lang = doc_TplManager::fetchField($template, 'lang');
+		
+		if($lang){
+			core_Lg::push($lang);
+		}
+		
         $row->title = static::getRecTitle($rec);
+        
+        if($lang){
+        	core_Lg::pop();
+        }
+        
         $row->author = $this->getVerbal($rec, 'createdBy');
         $row->authorId = $rec->createdBy;
         $row->state = $rec->state;
@@ -892,7 +905,7 @@ abstract class deals_InvoiceMaster extends core_Master
     		}
     	
     		$userRec = core_Users::fetch($rec->createdBy);
-    		$row->username = core_Users::recToVerbal($userRec, 'names')->names;
+    		$row->username = core_Lg::transliterate(core_Users::recToVerbal($userRec, 'names')->names);
     	
     		if($rec->type != 'invoice' && !($mvc instanceof sales_Proformas)){
     			$originRec = $mvc->getOrigin($rec)->fetch();

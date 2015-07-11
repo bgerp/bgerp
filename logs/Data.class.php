@@ -66,6 +66,18 @@ class logs_Data extends core_Manager
     /**
      * 
      */
+    public $listItemsPerPage = 50;
+    
+    
+    /**
+     * 
+     */
+    public $listFields = 'id, actTime, userId=Потребител, text, ipId=IP адрес, brId=Браузър';
+    
+    
+    /**
+     * 
+     */
     protected static $toAdd = array();
     
     
@@ -75,14 +87,18 @@ class logs_Data extends core_Manager
      */
     public function description()
     {    
-         $this->FLD('ipId', 'key(mvc=logs_Ips, select=ip)', 'caption=Идентификация->IP адрес на потребителя');
-         $this->FLD('brId', 'key(mvc=logs_Browsers, select=brid)', 'caption=Идентификация->Идентификатор на браузъра на потребителя');
-         $this->FLD('userId', 'key(mvc=core_Users)', 'caption=Идентификация->Потребител');
+         $this->FLD('ipId', 'key(mvc=logs_Ips, select=ip)', 'caption=Идентификация->IP адрес');
+         $this->FLD('brId', 'key(mvc=logs_Browsers, select=brid)', 'caption=Идентификация->Браузър');
+         $this->FLD('userId', 'key(mvc=core_Users)', 'caption=Идентификация->Потребител, notNull');
          $this->FLD('time', 'int', 'caption=Време на записа');
          $this->FLD('type', 'enum(emerg,alert,crit,err,warning,notice,info,debug)', 'caption=Данни->Тип на събитието');
          $this->FLD('actionCrc', 'int', 'caption=Данни->Действие');
          $this->FLD('classCrc', 'int', 'caption=Данни->Клас');
          $this->FLD('objectId', 'int', 'caption=Данни->Обект');
+         $this->FLD('lifeTime', 'int', 'caption=Време живот, notNull');
+         
+         $this->FNC('text', 'varchar', 'caption=Съобщение');
+         $this->FNC('actTime', 'datetime', 'caption=Време');
          
          $this->setDbIndex('ipId');
          $this->setDbIndex('brId');
@@ -101,10 +117,9 @@ class logs_Data extends core_Manager
      * @param string $message
      * @param string|object|NULL $className
      * @param integer|NULL $objectId
-     * @param integer|NULL $time
-     * @param boolean $returnCnt
+     * @param integer $lifeDays
      */
-    public static function add($type, $message, $className = NULL, $objectId = NULL, $time = NULL, $returnCnt = FALSE)
+    public static function add($type, $message, $className = NULL, $objectId = NULL, $lifeDays = 180)
     {
         // Инстанцираме класа, за да може да се изпълни on_Shutdown
         cls::get(get_called_class());
@@ -118,13 +133,9 @@ class logs_Data extends core_Manager
         $toAdd['message'] = $message;
         $toAdd['className'] = $className;
         $toAdd['objectId'] = $objectId;
-        $toAdd['time'] = $time;
-        
-        if ($returnCnt) {
-            //TODO ???
-            // flush ???
-        }
-        
+        $toAdd['time'] = dt::mysql2timestamp();
+        $toAdd['lifeTime'] = $lifeDays * 86400;
+                
         self::$toAdd[] = $toAdd;
     }
     
@@ -164,6 +175,7 @@ class logs_Data extends core_Manager
             $rec->objectId = $toAdd['objectId'];
             $rec->time = $toAdd['time'];
             $rec->type = $toAdd['type'];
+            $rec->lifeTime = $toAdd['lifeTime'];
             
             self::save($rec);
             
@@ -189,7 +201,312 @@ class logs_Data extends core_Manager
         
         if ($rec->time) {
             $time = dt::timestamp2Mysql($rec->time);
-            $row->time = dt::mysql2verbal($time, 'smartTime');
+            $row->actTime = dt::mysql2verbal($time, 'smartTime');
+            
+            $row->actTime .= "<span class='logs-icon-{$rec->type}'></span>";
         }
+        
+        $action = logs_Actions::getActionFromCrc($rec->actionCrc);
+        $className = logs_Classes::getClassFromCrc($rec->classCrc);
+        
+        $row->text = self::prepareText($action, $className, $rec->objectId);
+        
+        // Добавяме линк към реферера
+        $refRec = logs_Referer::getRefRec($rec->ipId, $rec->brId, $rec->time);
+        if ($refRec && logs_Referer::haveRightFor('single', $refRec)) {
+            $row->text .= ht::createLinkRef("", array('logs_Referer', 'single', $refRec->id), NULL, array('title' => tr('Реферер|*: ') . $refRec->ref));
+        }
+        
+        $row->ROW_ATTR['class'] = "logs-type-{$rec->type}";
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param string $action
+     * @param string $className
+     * @param NULL|integer $objectId
+     * 
+     * @return string
+     */
+    protected static function prepareText($action, $className, $objectId = NULL)
+    {
+        $clsInst = NULL;
+        
+        if ($className) {
+            if (cls::load($className, TRUE)) {
+                $clsInst = cls::get($className);
+                
+                if (method_exists($clsInst, 'getLinkForObject')) {
+                    $link = $clsInst->getLinkForObject($objectId);
+                } else {
+                    $link = $className;
+                }
+            }
+        }
+        
+        if ($link) {
+            if (strpos($action, '#') !== FALSE) {
+                $action = str_replace('#', $link, $action);
+            } else {
+                $action .= ': ' . $link;
+            }
+        }
+        
+        return $action;
+    }
+    
+    
+    /**
+     * Филтър на on_AfterPrepareListFilter()
+     * Малко манипулации след подготвянето на формата за филтриране
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    static function on_AfterPrepareListFilter($mvc, $data)
+    {
+        $data->query->orderBy("time", "DESC");
+        
+        $data->listFilter->layout = new ET(tr('|*' . getFileContent('logs/tpl/DataFilterForm.shtml')));
+        
+        $data->listFilter->FNC('users', 'users(rolesForAll=ceo|admin, rolesForTeams=ceo|admin)', 'caption=Потребител,refreshForm');
+        $data->listFilter->FNC('message', 'varchar', 'caption=Текст');
+        $data->listFilter->FNC('ip', 'varchar(32)', 'caption=IP адрес');
+        $data->listFilter->FNC('from', 'datetime', 'caption=От');
+		$data->listFilter->FNC('to', 'datetime', 'caption=До');
+		$data->listFilter->FNC('class', 'varchar', 'caption=Клас,refreshForm, allowEmpty, silent');
+		$data->listFilter->FNC('object', 'varchar', 'caption=Обект,refreshForm, allowEmpty, silent');
+        
+        $default = $data->listFilter->getField('users')->type->fitInDomain('all_users');
+        $data->listFilter->setDefault('users', $default);
+        
+        $data->listFilter->showFields = 'users, message, class, object, ip, from, to';
+        
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        
+        $data->listFilter->view = 'vertical';
+        
+        $data->listFilter->input($data->listFilter->showFields);
+        
+        $rec = $data->listFilter->rec;
+        $query = $data->query;
+        
+        // Филтрираме по потребители
+        if (isset($rec->users)) {
+            $usersArr = type_Users::toArray($rec->users);
+            $query->in('userId', $usersArr);
+        }
+        
+        // Филтрираме по екшъна/съобщението
+        if (trim($rec->message)) {
+            
+            $actQuery = logs_Actions::getQuery();
+            plg_Search::applySearch($rec->message, $actQuery);
+            
+            $actArr = array();
+            
+            while ($actRec = $actQuery->fetch()) {
+                $actArr[$actRec->id] = $actRec->crc;
+            }
+            
+            if ($actArr) {
+                $query->in('actionCrc', $actArr);
+            } else {
+                
+                // Ако няма намерен текст, да не се показва никакъв резултат
+                $query->where("1 = 2");
+            }
+        }
+        
+        // Филтрираме по IP
+        if($ip = $data->listFilter->rec->ip) {
+            $ip = str_replace('*', '%', $ip);
+            
+            $ipArr = array();
+            
+            $ipQuery = logs_Ips::getQuery();
+            $ipQuery->where(array("#ip LIKE '[#1#]'", $ip));
+            while ($ipRec = $ipQuery->fetch()) {
+                $ipArr[$ipRec->id] = $ipRec->id;
+            }
+            
+            if ($ipArr) {
+                $query->in('ipId', $ipArr);
+            } else {
+                // Ако няма намерен текст, да не се показва никакъв резултат
+                $query->where("1 = 2");
+            }
+        }
+        
+        // Филтрираме по време
+        if ($rec->from || $rec->to) {
+        
+            $dateRange = array();
+	        
+	        if ($rec->from) {
+	            $dateRange[0] = $rec->from; 
+	        }
+	        
+	        if ($rec->to) {
+	            $dateRange[1] = $rec->to; 
+	        }
+	        
+	        if (count($dateRange) == 2) {
+	            sort($dateRange);
+	        }
+	        
+            if($dateRange[0]) {
+                if (!strpos($dateRange[0], ' ')) {
+                    $dateRange[0] .= ' 00:00:00';
+                }
+                $dateRange[0] = dt::mysql2timestamp($dateRange[0]);
+    			$query->where(array("#time >= '[#1#]'", $dateRange[0]));
+    		}
+            
+			if($dateRange[1]) {
+			    if (!strpos($dateRange[1], ' ')) {
+                    $dateRange[1] .= ' 23:59:59';
+                }
+                $dateRange[1] = dt::mysql2timestamp($dateRange[1]);
+    			$query->where(array("#time <= '[#1#]'", $dateRange[1]));
+    		}
+        }
+        
+        // Добавяме класовете, за които има запис в търсения резултат
+        $classSuggArr = array();
+        $cQuery = clone $query;
+        $cQuery->groupBy('classCrc');
+        while ($cRec = $cQuery->fetch()) {
+            $className = logs_Classes::getClassFromCrc($cRec->classCrc);
+            if ($className) {
+                $classSuggArr[$className] = $className;
+            }
+        }
+        
+        if ($classSuggArr) {
+            $classSuggArr = array('' => '') + $classSuggArr;
+            $data->listFilter->setOptions('class', $classSuggArr);
+        }
+        
+        // Филтрираме по клас
+        if (trim($rec->class)) {
+            $crc = logs_Classes::getClassCrc($rec->class, FALSE);
+            if ($crc) {
+                $query->where("#classCrc = '{$crc}'");
+            } else {
+                $query->where("1=2");
+            }
+        }
+        
+        $objSuggArr = array();
+        
+        // Подготваме данните и филтрираме по обект
+        if (!trim($rec->class)) {
+            $rec->object = '';
+            $data->listFilter->setReadOnly('object');
+        } else {
+            $cQuery = clone $query;
+            $cQuery->groupBy('classCrc');
+            $cQuery->groupBy('objectId');
+            
+            $cQuery->where("#objectId IS NOT NULL");
+            
+            $cQuery->limit(100);
+            
+            while ($cRec = $cQuery->fetch()) {
+                $className = logs_Classes::getClassFromCrc($cRec->classCrc);
+                
+                if ($className) {
+                    
+                    if (cls::load($className, TRUE)) {
+                        $clsInst = cls::get($className);
+                        
+                        if (method_exists($clsInst, 'getTitleById')) {
+                            $objSuggArr[$cRec->objectId] = $clsInst->getTitleById($cRec->objectId);
+                        } else {
+                            $objSuggArr[$cRec->objectId] = $cRec->objectId;
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Добавяме обектите, за които има запис
+        if ($objSuggArr) {
+            $objSuggArr = array('' => '') + $objSuggArr;
+            $data->listFilter->setOptions('object', $objSuggArr);
+        }
+        
+        if ($rec->object) {
+            $query->where(array("#objectId = '[#1#]'", $rec->object));
+        }
+    }
+    
+    
+    /**
+     * Почистване на старите записи
+     */
+    function cron_DeleteOldRecords()
+    {
+        $query = $this->getQuery();
+        $query->where("(#time + #lifeTime) < '" . dt::mysql2timestamp() . "'");
+        
+        $deletedRecs = 0;
+        $delRefCnt = 0;
+        
+        $delArr = array();
+        
+        while ($rec = $query->fetch()) {
+            
+            if ($this->delete($rec->id)) {
+                $deletedRecs++;
+                
+                $delArr[$rec->id]['ipId'] = $rec->ipId;
+                $delArr[$rec->id]['brId'] = $rec->brId;
+                $delArr[$rec->id]['time'] = $rec->time;
+            }
+        }
+        
+        $res = '';
+        
+        if ($deletedRecs) {
+            $res .= "Изтрити <b>{$deletedRecs}</b> записа от логовете";
+            
+            foreach ($delArr as $dArr) {
+                
+                // Изтриваме реферерите за данните, само ако няма друга връзка
+                $delRefCnt += logs_Referer::delRefRec($dArr['ipId'], $dArr['brId'], $dArr['time'], TRUE);
+            }
+        }
+        
+        if ($delRefCnt) {
+            if ($res) {
+                $res .= "\n";
+            }
+            $res .= "Изтрити <b>{$delRefCnt}</b> записа от реферери";
+        }
+        
+        return $res;
+    }
+    
+    
+    /**
+     * Начално установяване на модела
+     */
+    static function on_AfterSetupMVC($mvc, &$res)
+    {
+        // Нагласяване на Крон        
+        $rec = new stdClass();
+        $rec->systemId = 'DelExpLogsDataAndRef';
+        $rec->description = 'Изтриване на старите логове и реферери в системата';
+        $rec->controller = $mvc->className;
+        $rec->action = 'DeleteOldRecords';
+        $rec->period = 24 * 60;
+        $rec->offset = rand(1320, 1439); // ot 22h до 24h
+        $rec->delay = 0;
+        $rec->timeLimit = 200;
+        $res .= core_Cron::addOnce($rec);
     }
 }
