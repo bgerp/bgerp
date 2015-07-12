@@ -119,8 +119,15 @@ class sens_driver_TCW122B extends sens_driver_IpDevice
         }
         
         $result = array();
-        
-        $this->XMLToArrayFlat(simplexml_load_string($xml), $result);
+
+        if(!$pRec) {
+            sens_MsgLog::add($this->id, "Грешка при парсиране!", 3);
+            $this->stateArr = NULL;
+
+            return FALSE;
+        }
+
+        $this->XMLToArrayFlat($pRec, $result);
         
         foreach ($this->params as $param => $details) {
             

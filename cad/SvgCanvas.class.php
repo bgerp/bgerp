@@ -211,7 +211,11 @@ class cad_SvgCanvas extends core_BaseClass {
         $this->setCP($x2, $y2, $absolute);
 		$this->setCP($x, $y, $absolute);
 	}
-
+    
+    
+    /**
+     * Чертае закръгляне до посочената точка
+     */
     function roundTo($x1, $y1, $x, $y, $r, $absolute = FALSE)
     {
         // Вземаме абсолютните координати на началната
