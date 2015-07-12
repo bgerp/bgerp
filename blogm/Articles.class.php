@@ -158,12 +158,12 @@ class blogm_Articles extends core_Master {
             }
         }
 
-        if($rec->state != 'draft' && $rec->state != 'pending') {
-            if(!$rec->publishedOn) {
-                $rec->publishedOn = $rec->createdOn;
-            }
-            $row->publishedOn = dt::mysql2verbal($rec->publishedOn, 'smartTime');  
+        if(!$rec->publishedOn) {
+            $rec->publishedOn = $rec->createdOn;
         }
+ 
+        $row->publishedOn = dt::mysql2verbal($rec->publishedOn, 'smartTime');  
+ 
 
         if($fields['-list']) { 
             $row->title = ht::createLink($row->title, self::getUrl($rec), NULL, 'ef_icon=img/16/monitor.png');
@@ -657,7 +657,7 @@ class blogm_Articles extends core_Master {
             $row = new stdClass();
 
             $row = self::recToVerbal($rec, $fields);
-
+ 
             $url = self::getUrl($rec);
             $row->title = ht::createLink($row->title, $url);
 
