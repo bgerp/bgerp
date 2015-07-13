@@ -275,23 +275,80 @@ class cat_Setup extends core_ProtoSetup
     }
     
     
+    /**
+     * Миграционна функция
+     */
+    function replaceBoms()
+    {
+    	$Bom = cls::get('cat_BomDetails');
+    	$bomQuery = $Bom->getQuery();
+    	
+    	while ($bomRec = $bomQuery->fetch()){
+    		if($bomRec->resourceId == 1147){
+    			$r = cat_products_Packagings::fetch(15);
+    	
+    			$bomRec->packagingId = $r->packagingId;
+    			$bomRec->quantityInPack = $r->quantity;
+    	
+    			$Bom->save($bomRec, NULL, 'REPLACE');
+    		} elseif($bomRec->resourceId == 1151){
+    			$r = cat_products_Packagings::fetch(7);
+    	
+    			$bomRec->packagingId = $r->packagingId;
+    			$bomRec->quantityInPack = $r->quantity;
+    	
+    			$Bom->save($bomRec, NULL, 'REPLACE');
+    		} elseif($bomRec->resourceId == 1145){
+    			$r = cat_products_Packagings::fetch(11);
+    	
+    			$bomRec->packagingId = $r->packagingId;
+    			$bomRec->quantityInPack = $r->quantity;
+    	
+    			$Bom->save($bomRec, NULL, 'REPLACE');
+    		}
+    	}
+    	 
+    	unset($bomRec);
+    	$Dp = cls::get('planning_DirectProductNoteDetails');
+    	$dQuery = $Dp->getQuery();
+    	
+    	while ($bomRec = $dQuery->fetch()){
+    		
+    		if($bomRec->productId == 1147){
+    			$r = cat_products_Packagings::fetch(15);
+    		
+    			$bomRec->packagingId = $r->packagingId;
+    			$bomRec->quantityInPack = $r->quantity;
+    	
+    			$Dp->save($bomRec, NULL, 'REPLACE');
+    		} elseif($bomRec->productId == 1151){
+    			$r = cat_products_Packagings::fetch(7);
+    			$bomRec->packagingId = $r->packagingId;
+    			$bomRec->quantityInPack = $r->quantity;
+    	
+    			$Dp->save($bomRec, NULL, 'REPLACE');
+    		} elseif($bomRec->productId == 1145){
+    			$r = cat_products_Packagings::fetch(11);
+    			
+    			$bomRec->packagingId = $r->packagingId;
+    			$bomRec->quantityInPack = $r->quantity;
+    			
+    			$Dp->save($bomRec, NULL, 'REPLACE');
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Миграционна функция
+     */
     public function replaceResources4()
     {
+    	if(!acc_Balances::count()) return;
+    	
     	cls::load('cat_Products');
     	$Products = cls::get('cat_Products');
-    	//if(!$Products->count()) return;
-    	 
-    	//bp($Products);
-    	 
-    
-    	//bp(cat_Products::getQuery());
-    	 
-    	//cls::get('cat_Categories')->setupMVC();
-    	//cls::get('cat_UoM')->setupMVC();
-    	//cls::get('cat_Products')->setupMVC();
     	cls::get('planning_ObjectResources')->setupMVC();
-    	 
-    	//if(!cls::load('planning_Resources', TRUE)) return;
     	 
     	$pClassId = cat_Products::getClassId();
     	$rClass = planning_Resources::getClassId();
@@ -448,6 +505,10 @@ class cat_Setup extends core_ProtoSetup
     		 
     		acc_Lists::delete("#systemId = 'resources'");
     	} catch(core_exception_Expect $e){
+    	}
+    	
+    	if(core_Packs::isInstalled('synthesia')){
+    		$this->replaceBoms();
     	}
     }
 }
