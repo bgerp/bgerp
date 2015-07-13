@@ -685,11 +685,13 @@ class blogm_Articles extends core_Master {
         // Определяне на титлата
 		// Ако е посочено заглавие по-което се търси
         if(isset($data->q)) {
+            $data->title = "<b style='color:#666;'>" . tr('Търсене във всички статии') . "</b>";
             if(!count($data->rows)) {
-   			    $data->title = tr('Няма резултати при търсене на') . '&nbsp;"<b>' . type_Varchar::escape($data->q) . '</b>"';
+   			    $data->descr = "<p><b style='color:#666;'>" . tr('Няма резултати при търсене в блога на') . '&nbsp;"<i>' . type_Varchar::escape($data->q) . '</i>"</b>';
             } else {
-			    $data->title = tr('Резултати при търсене на') . '&nbsp;"<b>' . type_Varchar::escape($data->q) . '</b>"';
+			    $data->descr = "<p><b style='color:#666;'>" . tr('Резултати при търсене в блога на') . '&nbsp;"<i>' . type_Varchar::escape($data->q) . '</i>"</b>';
             }
+
 		} elseif( isset($data->archive)) {  
    			$data->title = tr('Архив за месец') . '&nbsp;<b>' . dt::getMonth($data->archiveM, Mode::is('screenMode', 'narrow') ? 'M' : 'F') . ', ' . $data->archiveY . '&nbsp;</b>';
         } elseif(isset($data->category)) {
@@ -701,12 +703,12 @@ class blogm_Articles extends core_Master {
    			$data->title = tr('Статии в') .  '&nbsp;"<b>' . blogm_Categories::getVerbal($catRec, 'title') . '</b>"';
             $data->descr = blogm_Categories::getVerbal($catRec, 'description');
 
-            if(!count($data->rows)) {
-                $data->descr .= "<p><b style='color:#666;'>" . tr('Все още няма статии в тази категория') . '</b></p>';
-            }
 
         } else {
             $data->title = cms_Content::getLang() == 'bg' ? 'Всички статии в блога' : 'All Articles in the Blog';
+            if(!count($data->rows)) {
+                $data->descr .= "<p><b style='color:#666;'>" . tr('Все още няма статии в този блог') . '</b></p>';
+            }
         }
 
 		
