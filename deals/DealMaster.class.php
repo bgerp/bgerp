@@ -1320,7 +1320,7 @@ abstract class deals_DealMaster extends deals_DealBase
     		} catch(core_exception_Expect $e){
     			 
     			// Ако има проблем при обновяването
-    			self::logWarning("Проблем при автоматичното приключване на сделка: '{$e->getMessage()}'", $rec->id);
+    			$this->logWarning("Проблем при автоматичното приключване на сделка: '{$e->getMessage()}'", $rec->id);
     		}
     	}
     }
@@ -1349,7 +1349,7 @@ abstract class deals_DealMaster extends deals_DealBase
     		} catch(core_exception_Expect $e){
     
     			// Ако има проблем при извличането се продължава
-    			self::logWarning("Проблем при извличането 'bgerp_DealAggregatorIntf': '{$e->getMessage()}'", $rec->id);
+    			$this->logWarning("Проблем при извличането 'bgerp_DealAggregatorIntf': '{$e->getMessage()}'", $rec->id);
     			continue;
     		}
     
@@ -1374,7 +1374,7 @@ abstract class deals_DealMaster extends deals_DealBase
     			} catch(core_exception_Expect $e){
     					
     				// Ако има проблем при извличането се продължава
-    				self::logWarning("Несъществуващ платежен план': '{$e->getMessage()}'", $rec->id);
+    				$this->logWarning("Несъществуващ платежен план': '{$e->getMessage()}'", $rec->id);
     				continue;
     			}
     		}
@@ -1395,7 +1395,7 @@ abstract class deals_DealMaster extends deals_DealBase
     		} catch(core_exception_Expect $e){
     
     			// Ако има проблем при обновяването
-    			self::logWarning("Проблем при проверката дали е просрочена сделката: '{$e->getMessage()}'", $rec->id);
+    			$this->logWarning("Проблем при проверката дали е просрочена сделката: '{$e->getMessage()}'", $rec->id);
     		}
     	}
     }
