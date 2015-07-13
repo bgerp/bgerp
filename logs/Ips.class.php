@@ -24,7 +24,7 @@ class logs_Ips extends core_Manager
     /**
      * Кой има право да го чете?
      */
-    public $canRead = 'admin';
+    public $canRead = 'debug';
     
     
     /**
@@ -42,13 +42,13 @@ class logs_Ips extends core_Manager
     /**
      * Кой има право да го види?
      */
-    public $canView = 'admin';
+    public $canView = 'debug';
     
     
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'admin';
+    public $canList = 'debug';
     
     
     /**

@@ -39,6 +39,9 @@ class cms_DefaultTheme extends core_ProtoInner {
         $form->FLD('nImg', 'fileman_FileType(bucket=gallery_Pictures)', "caption=Заглавна картинка за мобилен (360x104px)->Изображение 1");
         $form->FLD('title', 'varchar(14)', "caption=Заглавие на сайта->Кратък текст");
         $form->FLD('titleColor', 'color_Type', "caption=Заглавие на сайта->Цвят");
+        
+        // Фон на хедъра
+        $form->FLD('headerColor', 'color_Type', "caption=Цветове за темата->Цвят на хедъра");
 
         // Фон на менюто 
         $form->FLD('baseColor', 'color_Type', "caption=Цветове за темата->Базов цвят");
@@ -48,6 +51,7 @@ class cms_DefaultTheme extends core_ProtoInner {
         
         // Фон на избраното меню
         $form->FLD('bgColor', 'color_Type', "caption=Цветове за темата->Фон на страницата");
+
     }
 
     
@@ -71,8 +75,12 @@ class cms_DefaultTheme extends core_ProtoInner {
 
         if($title) {
             $tpl->replace($title, 'CORE_APP_NAME');
-        } 
-        
+        }
+
+        if($this->formRec->headerColor) {
+            $css .= "\n    #all #cmsTop, #cmsTop img {background-color:{$this->formRec->headerColor} !important;}";
+        }
+      
         // цвят на фона на страницата
         if ($this->formRec->bgColor){
         	$bgcolor = ltrim($this->formRec->bgColor, "#");
@@ -100,6 +108,7 @@ class cms_DefaultTheme extends core_ProtoInner {
         	$css .= "\n    #cmsMenu {background-color:#{$color};}";
         	$css .= "\n    #cmsBottom {background-color:#{$color};}";
         	
+
         	// в зависимост дали е светъл или тъмен, изчисляваме по различен начин
         	if(phpcolor_Adapter::checkColor($this->formRec->baseColor, 'dark')) {
         		$formcolor = phpcolor_Adapter::changeColor($color, 'darken', 10);

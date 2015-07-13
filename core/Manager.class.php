@@ -85,6 +85,36 @@ class core_Manager extends core_Mvc
     
     
     /**
+     * Връща линк към подадения обект
+     * 
+     * @param integer $objId
+     * 
+     * @return core_ET
+     */
+    public static function getLinkForObject($objId)
+    {
+        $me = get_called_class();
+        $inst = cls::get($me);
+        
+        if ($objId) {
+            $title = $inst->getTitleById($objId);
+        } else {
+            $title = $inst->className;
+        }
+        
+        $linkArr = array();
+        
+        if (self::haveRightFor('list', $objId)) {
+            $linkArr = array(get_called_class(), 'list', $objId);
+        }
+        
+        $link = ht::createLink($title, $linkArr);
+        
+        return $link;
+    }
+    
+    
+    /**
      * Изпълнява заявка за листов изглед на страница от модела
      */
     function act_List()
@@ -100,7 +130,9 @@ class core_Manager extends core_Mvc
         // Създаваме обекта $data
         $data = new stdClass();
         $data->action = 'list';
-
+        
+        $data->ListId = Request::get('id', 'int');
+        
         // Създаваме заявката
         $data->query = $this->getQuery();
         
@@ -210,7 +242,7 @@ class core_Manager extends core_Mvc
         
         $this->delete($data->id);
         
-        $this->log($data->cmd, $id);
+        $this->log($data->cmd, $data->id);
         
         return new Redirect($data->retUrl);
     }
@@ -374,6 +406,10 @@ class core_Manager extends core_Mvc
             $data->listFilter = $this->getForm($formParams);
         }
         
+        if ($data->ListId) {
+            $data->query->where($data->ListId);
+        }
+        
         return $data;
     }
     
@@ -448,6 +484,10 @@ class core_Manager extends core_Mvc
     function prepareListTitle_(&$data)
     {
         setIfNot($data->title, $this->title);
+        
+        if ($data->ListId) {
+            $data->title = "Реазултати за запис номер|* {$data->ListId}: |" . $data->title;
+        }
         
         return $data;
     }
