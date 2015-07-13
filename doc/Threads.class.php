@@ -137,6 +137,24 @@ class doc_Threads extends core_Manager
     
     
     /**
+     * Връща линк към подадения обект
+     * 
+     * @param integer $objId
+     * 
+     * @return core_ET
+     */
+    public static function getLinkForObject($objId)
+    {
+        if (doc_Threads::haveRightFor('single', $objId)) {
+            
+            $fistContainerId = self::fetchField($objId, 'firstContainerId');
+            
+            return doc_Containers::getLinkForObject($fistContainerId);
+        }
+    }
+    
+    
+    /**
      * Поправка на структурата на нишките
      * 
      * @param datetime $from
