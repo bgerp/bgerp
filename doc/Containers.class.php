@@ -131,7 +131,7 @@ class doc_Containers extends core_Manager
             $doc = self::getDocument($objId);
             
             return $doc->getLinkForObject();
-        } catch (Exception $e) {
+        } catch (core_exception_Expect $e) {
             
             return parent::getLinkForObject($objId);
         }
