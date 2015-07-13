@@ -428,8 +428,8 @@ class logs_Data extends core_Manager
                     if (cls::load($className, TRUE)) {
                         $clsInst = cls::get($className);
                         
-                        if (method_exists($clsInst, 'getTitleById')) {
-                            $objSuggArr[$cRec->objectId] = $clsInst->getTitleById($cRec->objectId);
+                        if (method_exists($clsInst, 'getTitleForId_')) {
+                            $objSuggArr[$cRec->objectId] = $clsInst->getTitleForId($cRec->objectId);
                         } else {
                             $objSuggArr[$cRec->objectId] = $cRec->objectId;
                         }
