@@ -507,7 +507,7 @@ class cat_Setup extends core_ProtoSetup
     	} catch(core_exception_Expect $e){
     	}
     	
-    	if(core_Packs::isInstalled('synthesia')){
+    	if(core_Packs::fetch("#name = 'synthesia'")){
     		$this->replaceBoms();
     	}
     }
