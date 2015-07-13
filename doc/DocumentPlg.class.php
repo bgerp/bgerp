@@ -2344,4 +2344,29 @@ class doc_DocumentPlg extends core_Plugin
         
         $id = $mvc->save($rec);
     }
+    
+    
+    /**
+     * 
+     * 
+     * @param core_Master $mvc
+     * @param string|NULL $res
+     * @param integer $id
+     * @param boolean|NULL $escape
+     */
+    public function on_BeforeGetTitleForId($mvc, &$res, $id, $escape=TRUE)
+    {
+        if (!$id) return ;
+        
+        try {
+            $row = $mvc->getDocumentRow($id);
+            
+            $res = str::limitLen($row->title, 35);
+            
+            return FALSE;
+        } catch (core_exception_Expect $e) {
+            
+            return ;
+        }
+    }
 }
