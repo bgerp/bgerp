@@ -74,6 +74,7 @@ class core_Logs extends core_Manager
     
     /**
      * Добавяне на събитие в лога
+     * @deprecated
      */
     static function add($className, $objectId, $detail, $lifeTime = 180)
     {
