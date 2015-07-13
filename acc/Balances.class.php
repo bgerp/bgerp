@@ -324,7 +324,6 @@ class acc_Balances extends core_Master
     	
     	//while($recalcBalance){
     		
-    		//$this->log("RECALC {$rec->id} TRY {$count}");
     		//core_Debug::log("RECALC {$rec->id} TRY {$count}");
     		
     		// Зануляваме флага, за да не се преизчисли баланса отново
