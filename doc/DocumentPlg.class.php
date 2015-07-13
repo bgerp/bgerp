@@ -567,8 +567,8 @@ class doc_DocumentPlg extends core_Plugin
                 if(doc_Threads::haveRightFor('single', $rec->threadId)) {
                     
                     // Ако в момента не се скрива или показва - показва документа
-                    if (!Request::get('showOrHide')) {
-                        doc_Containers::showOrHideDocument($rec->containerId, FALSE, TRUE);
+                    if (!Request::get('showOrHide') && !Request::get('afterReject')) {
+                        doc_Containers::showOrHideDocument($rec->containerId, FALSE);
                     }
                     
                     $handle = $mvc->getHandle($rec->id);
@@ -654,11 +654,15 @@ class doc_DocumentPlg extends core_Plugin
                     }
                 }
             }
-                
+            
             // Пренасочваме контрола
             if (!$res = getRetUrl()) {
                 $res = array($mvc, 'single', $id);
             }
+            
+            $res['afterReject'] = 1;
+            
+            doc_Containers::showOrHideDocument($rec->containerId, TRUE);
             
             $res = new Redirect($res); //'OK';
                 
@@ -680,7 +684,7 @@ class doc_DocumentPlg extends core_Plugin
                         doc_Threads::restoreThread($rec->threadId);
                     }
                 }
-            }             
+            }
             
             // Пренасочваме контрола
             if (!$res = getRetUrl()) {
