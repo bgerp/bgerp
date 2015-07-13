@@ -1257,7 +1257,7 @@ class core_Mvc extends core_FieldSet
      * @param integer $objectId
      * @param integer $lifeDays
      */
-    public static function logDebug($action, $objectId = NULL, $lifeDays = 90)
+    public static function logDebug($action, $objectId = NULL, $lifeDays = 10)
     {
         $className = get_called_class();
         logs_Data::add('debug', $action, $className, $objectId, $lifeDays);
