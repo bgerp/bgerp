@@ -137,7 +137,7 @@ class core_Ajax extends core_Mvc
                     core_Statuses::newStatus("|Некоректен резултат за|* {$url}", 'warning');
                 }
                  
-                 continue;
+                continue;
             }
             
             // Обединяваме масивите
@@ -171,6 +171,13 @@ class core_Ajax extends core_Mvc
             
             // Добавяме грешката
             self::logErr("Повтарящо се име за абониране", NULL, self::$logKeepDays);
+            
+            // Ако сме в дебъг режим и сме логнат
+            if (isDebug() && haveRole('user')) {
+                
+                // Показваме статус съобщение
+                core_Statuses::newStatus("|Повтарящо се име за абониране|* - {$name}", 'warning');
+            }
             
 //            // Докато генерираме уникално име
 //            while ($nameArr[$name]) {
