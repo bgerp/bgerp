@@ -51,7 +51,7 @@ class core_Master extends core_Manager
         $inst = cls::get($me);
         
         if ($objId) {
-            $title = $inst->getTitleById($objId);
+            $title = $inst->getTitleForId($objId);
         } else {
             $title = $inst->className;
         }
