@@ -111,7 +111,7 @@ class core_Ajax extends core_Mvc
             } catch (core_exception_Expect $e) {
                 
                 // Записваме в лога
-                core_Logs::add($this, NULL, "Грешка при вземане на данни за {$url} - {$e->getMessage()}", self::$logKeepDays);
+                self::logErr("Грешка при вземане на данни за URL", NULL, self::$logKeepDays);
                 
                 // Ако сме в дебъг режим и сме логнат
                 if (isDebug() && haveRole('user')) {
@@ -128,7 +128,7 @@ class core_Ajax extends core_Mvc
                 
                 // Записваме в лога резултата
                 $resStr = core_Type::mixedToString($resArr);
-                core_Logs::add($this, NULL, "Некоректен резултат за {$url} - {$resStr}", self::$logKeepDays);
+                self::logWarning("Некоректен резултат за URL", NULL, self::$logKeepDays);
                 
                 // Ако сме в дебъг режим и сме логнат
                 if (isDebug() && haveRole('user')) {
@@ -170,7 +170,7 @@ class core_Ajax extends core_Mvc
             // Не би трябвало да се стига до тук
             
             // Добавяме грешката
-            core_Logs::add('core_Ajax', NULL, "Повтарящо се име - '{$name}'", self::$logKeepDays);
+            self::logErr("Повтарящо се име за абониране", NULL, self::$logKeepDays);
             
 //            // Докато генерираме уникално име
 //            while ($nameArr[$name]) {
