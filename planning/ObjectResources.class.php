@@ -113,17 +113,69 @@ class planning_ObjectResources extends core_Manager
     	$form = &$data->form;
     	$rec = &$form->rec;
     	
-    	$Class = cls::get($rec->classId);
-    	$pInfo = $Class->getProductInfo($rec->objectId);
+    	// Коя е мярката на артикула, и намираме всички мерки от същия тип
+    	$measureId = cat_Products::getProductInfo($rec->objectId)->productRec->measureId;
+    	$sameTypeMeasures = cat_UoM::getSameTypeMeasures($measureId);
     	
-    	$products = array('' => '') + $Class::getByproperty('canConvert');
-    	$form->setOptions('likeProductId', $products);
+    	// Намираме всички артикули, които са били влагане в производството от документи
+    	$consumedProducts = array();
+    	$cQuery = planning_ConsumptionNoteDetails::getQuery();
+    	$cQuery->EXT('state', 'planning_ConsumptionNotes', 'externalKey=noteId');
+    	$cQuery->where("#state = 'active'");
+    	$cQuery->show('productId');
+    	while ($cRec = $cQuery->fetch()){
+    		$consumedProducts[$cRec->productId] = $cRec->productId;
+    	}
+    	
+    	$dQuery = planning_DirectProductNoteDetails::getQuery();
+    	$dQuery->EXT('state', 'planning_DirectProductionNote', 'externalKey=noteId');
+    	$dQuery->where("#state = 'active'");
+    	$dQuery->where("#type = 'input'");
+    	while ($dRec = $dQuery->fetch()){
+    		$consumedProducts[$dRec->productId] = $dRec->productId;
+    	}
+    	
+    	// Не може да се избере текущия артикул
+    	unset($consumedProducts[$rec->objectId]);
+    	
+    	// Намираме всички вложими артикули
+    	$products = cat_Products::getByproperty('canConvert');
+    	
+    	if(count($products)){
+    		foreach ($products as $id => $p){
+    			
+    			if(!is_object($p)){
+    				
+    				// Ако артикула е вложим, но не е участвал в документ - махаме го
+    				if(empty($consumedProducts[$id])){
+    					unset($products[$id]);
+    				} else {
+    					
+    					// Ако мярката на артикула е от друг тип - също го мяхаме
+    					// Артикул може да бъде заместван само с артикул с подобна мярка
+    					$mId = cat_Products::getProductInfo($id)->productRec->measureId;
+    					if(empty($sameTypeMeasures[$mId])){
+    						unset($products[$id]);
+    					}
+    				}
+    				
+    			}
+    		}
+    	}
+    	
+    	// Добавяме възможностите за избор на заместващи артикули за влагане
+    	if(count($consumedProducts)){
+    		$products = array('' => '') + $products;
+    		$form->setOptions('likeProductId', $products);
+    	} else {
+    		$form->setReadOnly('likeProductId');
+    	}
     	
     	$baseCurrencyCode = acc_Periods::getBaseCurrencyCode();
     	$form->setField('selfValue', "unit={$baseCurrencyCode}");
     	
     	$title = ($rec->id) ? 'Редактиране на информацията за влагане на' : 'Добавяне на информация за влагане на';
-    	$form->title = $title . "|* <b>". $Class->getTitleByid($rec->objectId) . "</b>";
+    	$form->title = $title . "|* <b>". cat_Products::getTitleByid($rec->objectId) . "</b>";
     }
     
     
