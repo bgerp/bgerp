@@ -30,7 +30,7 @@ class bgerp_plg_Blank extends core_Plugin
             
             //Създаваме и заместваме логото на фирмата
             $logoPath = self::getCompanyLogoUrl();
-            $logo = "<img src=" . $logoPath . " alt='Logo'  width='750' height='87'>";
+            $logo = "<img src='" . $logoPath . "' alt='Logo'  width='750' height='87'>";
             
             $blank->replace($logo, 'blankImage');
             
