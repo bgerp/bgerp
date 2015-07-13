@@ -717,8 +717,6 @@ class core_Mvc extends core_FieldSet
             $title = $inst->className;
         }
         
-        $linkArr = array();
-        
         $link = ht::createLink($title, array());
         
         return $link;
