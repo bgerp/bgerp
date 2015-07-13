@@ -684,7 +684,50 @@ class core_Mvc extends core_FieldSet
 		
         return $me->getRecTitle($rec, $escaped);
     }
-
+    
+    
+    /**
+     * 
+     * 
+     * @param integer $id
+     * @param boolean $escape
+     */
+    public static function getTitleForId_($id, $escaped = TRUE)
+    {
+        
+        return self::getTitleById($id);
+    }
+    
+    
+    /**
+     * Връща линк към подадения обект
+     * 
+     * @param integer $objId
+     * 
+     * @return core_ET
+     */
+    public static function getLinkForObject($objId)
+    {
+        $me = get_called_class();
+        $inst = cls::get($me);
+        
+        if ($objId) {
+            $title = $inst->getTitleForId($objId);
+        } else {
+            $title = $inst->className;
+        }
+        
+        $linkArr = array();
+        
+        if (self::haveRightFor('list', $objId)) {
+            $linkArr = array(get_called_class(), 'list', $objId);
+        }
+        
+        $link = ht::createLink($title, $linkArr);
+        
+        return $link;
+    }
+    
 
     /**
      * Проверява дали посочения запис не влиза в конфликт с някой уникален

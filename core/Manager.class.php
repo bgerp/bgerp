@@ -85,36 +85,6 @@ class core_Manager extends core_Mvc
     
     
     /**
-     * Връща линк към подадения обект
-     * 
-     * @param integer $objId
-     * 
-     * @return core_ET
-     */
-    public static function getLinkForObject($objId)
-    {
-        $me = get_called_class();
-        $inst = cls::get($me);
-        
-        if ($objId) {
-            $title = $inst->getTitleById($objId);
-        } else {
-            $title = $inst->className;
-        }
-        
-        $linkArr = array();
-        
-        if (self::haveRightFor('list', $objId)) {
-            $linkArr = array(get_called_class(), 'list', $objId);
-        }
-        
-        $link = ht::createLink($title, $linkArr);
-        
-        return $link;
-    }
-    
-    
-    /**
      * Изпълнява заявка за листов изглед на страница от модела
      */
     function act_List()
@@ -877,6 +847,8 @@ class core_Manager extends core_Mvc
         if (!$logKeepDays) {
             $logKeepDays = self::$logKeepDays;
         }
+        
+        $className = get_called_class();
         
         core_Logs::add(get_called_class(), $objectId, $detail, $logKeepDays);
     }
