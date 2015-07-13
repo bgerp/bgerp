@@ -72,9 +72,9 @@ class backup_Start extends core_Manager
     private static function full()
     {
         if (!self::lock()) {
-            core_Logs::add("Backup", "", "Full Backup не може да вземе Lock!");
+            self::logWarning("Full Backup не може да вземе Lock!");
             
-            exit(1);
+            shutdown();
         }
         
         // проверка дали всичко е наред с mysqldump-a
@@ -85,20 +85,20 @@ class backup_Start extends core_Manager
         exec($cmd, $output ,  $returnVar);
         
         if ($returnVar !== 0) {
-            core_Logs::add("Backup", "", "FULL Backup mysqldump ERROR!" . $output[0]);
+            self::logErr("FULL Backup mysqldump ERROR!" . $output[0]);
             self::unLock();
             
-            exit(1);
+            shutdown();
         }
         
         // проверка дали gzip е наличен
         exec("gzip --help", $output,  $returnVar);
         
         if ($returnVar !== 0) {
-            core_Logs::add("Backup", "", "gzip NOT found");
+            self::logWarning("gzip NOT found");
             self::unLock();
             
-            exit(1);
+            shutdown();
         }
         
         exec("mysqldump --lock-tables --delete-master-logs -u"
@@ -107,10 +107,10 @@ class backup_Start extends core_Manager
             , $output, $returnVar);
         
         if ($returnVar !== 0) {
-            core_Logs::add("Backup", "", "ГРЕШКА full Backup: {$returnVar}");
+            self::logErr("Backup", "", "ГРЕШКА full Backup: {$returnVar}");
             self::unLock();
             
-            exit(1);
+            shutdown();
         }
         
         // Сваляме мета файла с описанията за бекъпите
@@ -123,10 +123,10 @@ class backup_Start extends core_Manager
         }
         
         if (!is_array($metaArr)) {
-            core_Logs::add("Backup", "", "Лоша МЕТА информация!");
+            self::logWarning("Лоша МЕТА информация!");
             self::unLock();
             
-            exit(1);
+            shutdown();
         }
         
         // Ако има дефинирана парола криптираме файловете с данните
@@ -149,7 +149,7 @@ class backup_Start extends core_Manager
         unlink(EF_TEMP_PATH . "/" . self::$metaFileName);
         self::saveConf();
         
-        core_Logs::add("Backup", "", "FULL Backup OK!");
+        self::logInfo("FULL Backup OK!");
         self::unLock();
         
         return "FULL Backup OK!";
@@ -166,10 +166,10 @@ class backup_Start extends core_Manager
         // 1. сваля се метафайла
         if (!self::$storage->getFile(self::$metaFileName)) {
             // Ако го няма - пропускаме - не е минал пълен бекъп
-            core_Logs::add("Backup", "", "ГРЕШКА при сваляне на МЕТА-а!");
+            self::logWarning("ГРЕШКА при сваляне на МЕТА-а!");
             self::unLock();
             
-            exit(1);
+            shutdown();
         } else {
             $metaArr = unserialize(file_get_contents(EF_TEMP_PATH . "/" . self::$metaFileName));
         }
@@ -184,18 +184,18 @@ class backup_Start extends core_Manager
     private static function binLog()
     {
         if (!self::lock()) {
-            core_Logs::add("Backup", "", "Warning: BinLog не може да вземе Lock.");
+            self::logWarning("BinLog не може да вземе Lock.");
             
-            exit(1);
+            shutdown();
         }
         
         $metaArr = self::getMETA();
         
         if (!is_array($metaArr)) {
-            core_Logs::add("Backup", "", "Лоша МЕТА информация!");
+            self::logWarning("Лоша МЕТА информация!");
             self::unLock();
             
-            exit(1);
+            shutdown();
         }
         
         // Взима бинарния лог
@@ -221,10 +221,10 @@ class backup_Start extends core_Manager
             . self::$conf->BACKUP_MYSQL_HOST . "| gzip -9 > " . EF_TEMP_PATH . "/" . self::$binLogFileName, $output, $returnVar);
         
         if ($returnVar !== 0) {
-            core_Logs::add("Backup", "", "ГРЕШКА при mysqlbinlog!");
+            self::logErr("ГРЕШКА при mysqlbinlog!");
             self::unLock();
             
-            exit(1);
+            shutdown();
         }
         
         // 5. Ако има дефинирана парола криптираме файловете с данните
@@ -247,7 +247,7 @@ class backup_Start extends core_Manager
         unlink(EF_TEMP_PATH . "/" . self::$binLogFileName);
         unlink(EF_TEMP_PATH . "/" . self::$metaFileName);
         
-        core_Logs::add("Backup", "", "binLog Backup OK!");
+        self::logInfo("binLog Backup OK!");
         self::unLock();
         
         return "binLog Backup OK!";
@@ -260,9 +260,9 @@ class backup_Start extends core_Manager
     private static function clean()
     {
         if (!self::lock()) {
-            core_Logs::add("Backup", "", "Warning: clean не може да вземе Lock.");
+            self::logWarning("Clean не може да вземе Lock.");
             
-            exit(1);
+            shutdown();
         }
         
         // Взимаме мета данните
@@ -282,7 +282,7 @@ class backup_Start extends core_Manager
         } else {
             // Нямаме работа по изтриване
             self::unLock();
-            core_Logs::add("Backup", '', 'info: clean - нищо за изтриване.');
+            self::logInfo("Нищо за изтриване.");
             
             return;
         }
@@ -295,7 +295,7 @@ class backup_Start extends core_Manager
             self::$storage->removeFile($fileName);
             $cnt++;
         }
-        core_Logs::add("Backup", '', 'info: clean - успешно изтрити: ' . $cnt . " файла");
+        self::logInfo("Успешно изтрити {$cnt} файла");
         
         return;
     }
@@ -326,9 +326,9 @@ class backup_Start extends core_Manager
         exec($cmd, $output, $returnVar);
         
         if ($returnVar !== 0) {
-            core_Logs::add("Backup", "", "error: tar gzip configuration!");
+            self::logErr("Tar gzip configuration!");
             
-            exit(1);
+            shutdown();
         }
         
         // Ако има дефинирана парола криптираме файловете с данните
@@ -363,10 +363,10 @@ class backup_Start extends core_Manager
         
         if ($returnVar !== 0) {
             $err = implode(",", $output);
-            core_Logs::add("Backup", "", "ГРЕШКА при криптиране!: {$err}");
+            self::logWarning("ГРЕШКА при криптиране!: {$err}");
             self::unLock();
             
-            exit(1);
+            shutdown();
         } else {
             // Разкарваме некриптирания файл
             @unlink(EF_TEMP_PATH . "/" . $fileName);
