@@ -1277,7 +1277,7 @@ class doclog_Documents extends core_Manager
             'alert' // Важност (приоритет)
         );
         
-        self::logInfo("Върнато писмо", $sendRec->id, DOCLOG_DOCUMENTS_DAYS);
+        doc_Containers::logInfo("Върнато писмо", $sendRec->containerId, DOCLOG_DOCUMENTS_DAYS);
         
         return TRUE;
     }
@@ -1332,7 +1332,7 @@ class doclog_Documents extends core_Manager
         );
         */
         
-        self::logInfo("Потвърдено получаване", $sendRec->id, DOCLOG_DOCUMENTS_DAYS);
+        doc_Containers::logInfo("Потвърдено получаване", $sendRec->containerId, DOCLOG_DOCUMENTS_DAYS);
         
         return TRUE;
     }
@@ -1760,7 +1760,7 @@ class doclog_Documents extends core_Manager
      */
     protected static function buildThreadHistory($threadId)
     {
-        static::log('Регенериране на историята на нишка', $threadId, 3);
+        doc_Threads::logInfo('Регенериране на историята на нишка', $threadId, 3);
         
         $query = static::getQuery();
         $query->where("#threadId = {$threadId}");
