@@ -174,12 +174,14 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
 			if(empty($pInfo->meta['canStore'])){
 
 				if(isset($pInfo->meta['fixedAsset'])){
+					$reason = 'Приети ДА';
 					$debitArr = array('613', array($detailRec->classId, $detailRec->productId),
 											'quantity' => $detailRec->quantity,);
 				} else {
 					$transfer = TRUE;
 					$centerId = ($rec->activityCenterId) ? $rec->activityCenterId : hr_Departments::fetchField("#systemId = 'emptyCenter'", 'id');
 					
+					$reason = 'Приети услуги и нескладируеми консумативи';
 					$debitArr = array(
 							'60020', // Сметка "60020. Разходи за (нескладируеми) услуги и консумативи"
 							array('hr_Departments', $centerId),
@@ -200,14 +202,16 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
 	                ),
 	                
 	                'debit' => $debitArr,
+    				'reason' => $reason,
             	);
     			
     			// Ако сме дебитирали 60020, превхвърляме сумата в 61101 или 61102
     			if($transfer === TRUE){
-    				$resourceRec = planning_ObjectResources::getResource($detailRec->classId, $detailRec->productId);
-    				if($resourceRec){
-    					$newArr = array('61101', array('planning_Resources' , $resourceRec->resourceId),
-    							'quantity' => $detailRec->quantity / $resourceRec->conversionRate);
+    				
+    				$pInfo = cat_Products::getProductInfo($detailRec->productId);
+    				if(isset($pInfo->meta['canConvert'])){
+    					$newArr = array('61101', array($detailRec->classId , $detailRec->productId),
+    							'quantity' => $detailRec->quantity);
     				} else {
     					$newArr = array('61102');
     				}
@@ -216,6 +220,7 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
     						'amount' => $amount * $rec->currencyRate, // В основна валута
     						'debit' => $newArr,
     						'credit' => $debitArr, 
+    						'reason' => 'Вложени в производството нескладируеми услуги и консумативи',
     				);
     			}
     		}
@@ -239,6 +244,7 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
 	                    '4530', 
 	                		array('purchase_Purchases', $rec->id),
 	                ),
+	        		'reason' => 'ДДС за начисляване при фактуриране',
 	         );
         }
 	        
@@ -284,7 +290,7 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
         	$amountBase += $this->class->_total->vat;
         }
         
-        $quantityAmount += $amountBase;// / $rec->currencyRate;
+        $quantityAmount += $amountBase;
         
         $caseArr = array('501',
                         array('cash_Cases', $rec->caseId),        
@@ -298,14 +304,14 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
                     'quantity' => $quantityAmount,);
         
         if($rec->currencyId == acc_Periods::getBaseCurrencyCode($rec->valior)){
-        	$entries[] = array('amount' => $amountBase, 'debit' => $dealArr, 'credit' => $caseArr);
+        	$entries[] = array('amount' => $amountBase, 'debit' => $dealArr, 'credit' => $caseArr, 'reason' => 'Плащане към доставчик');
         } else {
         	$entries = array();
         	$entries[] = array('amount' => $amountBase * $rec->currencyRate,
         			'debit' => $dealArr,
         			'credit' => array('481', array('currency_Currencies', $currencyId),
-        					'quantity' => $quantityAmount));
-        	$entries[] = array('amount' => $amountBase * $rec->currencyRate, 'debit' => array('481', array('currency_Currencies', $currencyId), 'quantity' => $quantityAmount), 'credit' => $caseArr);
+        					'quantity' => $quantityAmount), 'reason' => 'Плащане във валута различна от основната');
+        	$entries[] = array('amount' => $amountBase * $rec->currencyRate, 'debit' => array('481', array('currency_Currencies', $currencyId), 'quantity' => $quantityAmount), 'credit' => $caseArr, 'reason' => 'Плащане във валута различна от основната');
         }
         
         return $entries;
@@ -361,6 +367,7 @@ class purchase_transaction_Purchase extends acc_DocumentTransactionSource
 	                       array('currency_Currencies', $currencyId),          // Перо 3 - Валута
 	                    'quantity' => $amount, // "брой пари" във валутата на покупката
 		             ),
+	        		'reason' => 'Заскладени материални запаси',
 		        );
         	}
         }

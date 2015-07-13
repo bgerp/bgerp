@@ -57,5 +57,22 @@ class ssh_Setup extends core_ProtoSetup
 	 */
 	public $info = "Машини за отдалечен достъп по SSH.";
 	
+	
+	/**
+	 * Връзки от менюто, сочещи към модула
+	 */
+	public $menuItems = array(
+			array(1.8, 'Система', 'Мaшини', 'ssh_Hosts', 'default', "remote, admin"),
+	);
+
+	/**
+	 * Инсталиране на пакета
+	 */
+	function install()
+	{
+		$html = parent::install();
+		 
+		return $html;
+	}	
 }
 

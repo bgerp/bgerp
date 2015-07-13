@@ -1277,7 +1277,7 @@ class doclog_Documents extends core_Manager
             'alert' // Важност (приоритет)
         );
         
-        core_Logs::add(get_called_class(), $sendRec->id, $msg, DOCLOG_DOCUMENTS_DAYS);
+        doc_Containers::logInfo("Върнато писмо", $sendRec->containerId, DOCLOG_DOCUMENTS_DAYS);
         
         return TRUE;
     }
@@ -1318,12 +1318,11 @@ class doclog_Documents extends core_Manager
     
         static::save($rcvRec);
         
-        $msg = tr("Потвърдено получаване|*: ") . doc_Containers::getDocTitle($sendRec->containerId);
-        
         // Нотификация за получаване на писмото до адресата.
         /*
-         * За сега отпада: @link https://github.com/bgerp/bgerp/issues/353#issuecomment-8531333
+         * Засега отпада: @link https://github.com/bgerp/bgerp/issues/353#issuecomment-8531333
          *  
+        $msg = tr("Потвърдено получаване|*: ") . doc_Containers::getDocTitle($sendRec->containerId);
         $linkArr = static::getLinkToSingle($sendRec->containerId, static::ACTION_SEND);
         bgerp_Notifications::add(
             $msg, // съобщение
@@ -1333,9 +1332,8 @@ class doclog_Documents extends core_Manager
         );
         */
         
+        doc_Containers::logInfo("Потвърдено получаване", $sendRec->containerId, DOCLOG_DOCUMENTS_DAYS);
         
-        core_Logs::add(get_called_class(), $sendRec->id, $msg, DOCLOG_DOCUMENTS_DAYS);
-    
         return TRUE;
     }
     
@@ -1451,9 +1449,7 @@ class doclog_Documents extends core_Manager
         
         static::pushAction($action);
         
-        $msg = tr("Видян документ|*: ") . doc_Containers::getDocTitle($action->containerId);
-        
-        core_Logs::add('doc_Containers', $action->containerId, $msg, DOCLOG_DOCUMENTS_DAYS);
+        doc_Containers::logInfo("Видян документ", $action->containerId, DOCLOG_DOCUMENTS_DAYS);
         
         return $action;
     }
@@ -1509,12 +1505,8 @@ class doclog_Documents extends core_Manager
         // Пушваме съответното действие
         static::pushAction($rec);
 
-        // Съобщение в лога
-        $msg = tr("Препратен имейл|*: ") . doc_Containers::getDocTitle($containerId);
+        doc_Containers::logInfo("Препратен имейл", $rec->containerId, DOCLOG_DOCUMENTS_DAYS);
         
-        // Добавяме запис в лога
-        core_Logs::add('doc_Containers', $rec->containerId, $msg, DOCLOG_DOCUMENTS_DAYS);
-       
         return $rec;
     }
     
@@ -1577,11 +1569,7 @@ class doclog_Documents extends core_Manager
             static::pushAction($rec);
         }
         
-        // Съобщение в лога
-        $msg = tr("Редактиран документ|*: ") . doc_Containers::getDocTitle($containerId);
-        
-        // Добавяме запис в лога
-        core_Logs::add('doc_Containers', $rec->containerId, $msg, DOCLOG_DOCUMENTS_DAYS);
+        doc_Containers::logInfo("Редактиран документ", $rec->containerId, DOCLOG_DOCUMENTS_DAYS);
         
         return $rec;
     }
@@ -1655,7 +1643,7 @@ class doclog_Documents extends core_Manager
         // Добавяме запис в лога
         $msg = tr("Свален файл|*: ") . fileman_Files::getLink($fh);
         
-        core_Logs::add('doc_Containers', $rec->containerId, $msg, DOCLOG_DOCUMENTS_DAYS);
+        doc_Containers::logInfo("Свален файл", $rec->containerId, DOCLOG_DOCUMENTS_DAYS);
 
         return $rec;
     }
@@ -1772,7 +1760,7 @@ class doclog_Documents extends core_Manager
      */
     protected static function buildThreadHistory($threadId)
     {
-        static::log('Регенериране на историята на нишка', $threadId, 3);
+        doc_Threads::logInfo('Регенериране на историята на нишка', $threadId, 3);
         
         $query = static::getQuery();
         $query->where("#threadId = {$threadId}");
@@ -2266,7 +2254,7 @@ class doclog_Documents extends core_Manager
         }
 
         if($count > 0) {
-            core_Logs::add(get_called_class(), NULL, "Записани {$count} действия", DOCLOG_DOCUMENTS_DAYS);
+            self::logInfo("Записани {$count} действия", NULL, DOCLOG_DOCUMENTS_DAYS);
         }
     }
     
@@ -2473,19 +2461,20 @@ class doclog_Documents extends core_Manager
     		if($isRejected){
     			 
     			// При оттегляне се изтрива записа от лога
-    			$msg = static::removeUsed($rec, $inClass);
+    			static::removeUsed($rec, $inClass);
+    			$msg = "Изтрито използване на документ";
     		} else {
     			 
     			// При активация/възстановяване се вкарва запис в лога
     			$rec->data->{$action}[] = $inClass;
-    			$msg = tr("Използван документ|*: ") . doc_Containers::getDocTitle($rec->containerId);
+    			$msg = "Използван документ";
     		}
     		
     		// Пушваме съответното действие
     		static::pushAction($rec);
     		
     		// Съобщение в лога
-    		core_Logs::add('doc_Containers', $rec->containerId, $msg, DOCLOG_DOCUMENTS_DAYS);
+    		doc_Containers::logInfo($msg, $rec->containerId, DOCLOG_DOCUMENTS_DAYS);
     	}
     	
         return $rec;
@@ -2510,7 +2499,5 @@ class doclog_Documents extends core_Manager
 	    		}
 	    	}
     	}
-    	
-        return tr("Изтрито използване на документ|*: ") . doc_Containers::getDocTitle($rec->containerId);
     }
 }

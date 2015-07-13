@@ -783,8 +783,6 @@ class expert_Expert extends core_FieldSet {
             
             header('Content-type: text/json');
             
-            core_Logs::add('expert_Expert', NULL, $res);
-            
             echo $res;
             
             die;

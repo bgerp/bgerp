@@ -119,6 +119,45 @@ class doc_Containers extends core_Manager
     
     
     /**
+     * Връща линк към подадения обект
+     * 
+     * @param integer $objId
+     * 
+     * @return core_ET
+     */
+    public static function getLinkForObject($objId)
+    {
+        try {
+            $doc = self::getDocument($objId);
+            
+            return $doc->getLinkForObject();
+        } catch (core_exception_Expect $e) {
+            
+            return parent::getLinkForObject($objId);
+        }
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param integer $id
+     * @param boolean $escape
+     */
+    public static function getTitleForId_($id, $escaped = TRUE)
+    {
+        try {
+            $doc = self::getDocument($id);
+            
+            return $doc->getTitleForId($escaped);
+        } catch (core_exception_Expect $e) {
+            
+            return parent::getTitleForId_($id, $escaped);
+        }
+    }
+    
+    
+    /**
      * Проверява кои документи ще се скриват и вдига съответния флаг
      * 
      * @param array $recs
@@ -157,7 +196,6 @@ class doc_Containers extends core_Manager
             } elseif ($rec->hide == 'yes') {
                 $hide = TRUE;
             } else {
-                
                 $hide = TRUE;
                 
                 if ($rec->state != 'rejected') {
@@ -1674,6 +1712,8 @@ class doc_Containers extends core_Manager
             try{
             	$doc = static::getDocument($rec);
             	$doc->reject();
+            	
+            	doc_Containers::showOrHideDocument($rec->id, TRUE);
             } catch(core_exception_Expect $e){
             	continue;
             }
@@ -1720,6 +1760,8 @@ class doc_Containers extends core_Manager
         		try{
         			$doc = static::getDocument($rec);
         			$doc->restore();
+        			
+        			doc_Containers::showOrHideDocument($rec->id, NULL);
         		} catch(core_exception_Expect $e){
         			continue;
         		}
@@ -2266,24 +2308,18 @@ class doc_Containers extends core_Manager
      * Скрива/показва подадения документ
      * 
      * @param integer $id
-     * @param boolean $hide
-     * @param boolean $changeDef
+     * @param boolean|NULL $hide
      */
-    public static function showOrHideDocument($id, $hide = FALSE, $changeDef = FALSE)
+    public static function showOrHideDocument($id, $hide = FALSE)
     {
         $rec = self::fetch($id);
         
-        if (!$changeDef) {
-            if (!$rec->hide || ($rec->hide == 'default')) {
-                
-                return ;
-            }
-        }
-        
         if ($hide) {
             $rec->hide = 'yes';
-        } else {
+        } elseif ($hide === FALSE) {
             $rec->hide = 'no';
+        } else {
+            $rec->hide = 'default';
         }
         
         self::save($rec, 'hide');

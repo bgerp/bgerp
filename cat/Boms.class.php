@@ -150,7 +150,11 @@ class cat_Boms extends core_Master
     	$this->setDbIndex('productId');
     }
     
-    
+    function act_Test()
+    {
+    	$l = cls::get('cat_Products');
+    	bp($l);
+    }
     /**
      * Добавя ключови думи за пълнотекстово търсене
      */
@@ -163,7 +167,7 @@ class cat_Boms extends core_Master
     		$dQuery = cat_BomDetails::getQuery();
     		$dQuery->where("#bomId = '{$rec->id}'");
     		while($dRec = $dQuery->fetch()){
-    			$detailsKeywords .= " " . plg_Search::normalizeText(planning_Resources::getTitleById($dRec->resourceId));
+    			$detailsKeywords .= " " . plg_Search::normalizeText(cat_Products::getTitleById($dRec->resourceId));
     			if($dRec->stageId){
     				$detailsKeywords .= " " . plg_Search::normalizeText(planning_Stages::getTitleById($dRec->stageId));
     			}
@@ -235,9 +239,9 @@ class cat_Boms extends core_Master
     		// Ако има такива, добавяме ги като полета във формата
     		if(count($alreadyUsedResources)){
     			foreach ($alreadyUsedResources as $i => $resId){
-    				$form->FNC("resourceId{$i}", 'key(mvc=planning_Resources,select=title,allowEmpty)', 'input=hidden');
+    				$form->FNC("resourceId{$i}", 'key(mvc=cat_Products,select=name,allowEmpty)', 'input=hidden');
     				$form->setDefault("resourceId{$i}", $resId);
-    				$caption = planning_Resources::getTitleById($resId);
+    				$caption = cat_Products::getTitleById($resId);
     				$caption = str_replace(',', '.', $caption);
     				 
     				if(isset($form->rec->quantity)){
@@ -426,9 +430,10 @@ class cat_Boms extends core_Master
     	if(count($rInfo['resources'])){
     		foreach ($rInfo['resources'] as $dRec){
     			$sign = ($dRec->type == 'input') ? 1 : -1;
+    			$info = planning_ObjectResources::getResource($dRec->productId);
     			
     			// Опитваме се да намерим себестойност за артикула
-    			$selfValue = planning_Resources::getSelfValue($dRec->resourceId, $date = NULL);
+    			$selfValue = $info->selfValue;
     			
     			// Ако не може да се определи себестойност на ресурса, не може и по рецептата
     			if(!$selfValue) return FALSE;
@@ -454,10 +459,10 @@ class cat_Boms extends core_Master
      * @return array $res - Информация за рецептата
      * 				->quantity - к-во
      * 				->resources
-     * 			        o $res->resourceId       - ид на ресурса
-     * 					o $res->type             - вложим или отпаден ресурс
-	 * 			        o $res->baseQuantity     - начално количество на ресурса
-	 * 			        o $res->propQuantity     - пропорционално количество на ресурса
+     * 			        o $res->productId      - ид на материала
+     * 					o $res->type           - вложим или отпаден материал
+	 * 			        o $res->baseQuantity   - начално количество наматериала (к-во в опаковка по брой опаковки)
+	 * 			        o $res->propQuantity   - пропорционално количество на ресурса (к-во в опаковка по брой опаковки)
      */
     public static function getResourceInfo($id)
     {
@@ -470,15 +475,18 @@ class cat_Boms extends core_Master
     	// Намираме всички етапи в рецептата
     	$dQuery = cat_BomDetails::getQuery();
     	$dQuery->where("#bomId = {$rec->id}");
+    	$dQuery->orderBy('id', 'ASC');
     	
     	// За всеки етап
     	while($dRec = $dQuery->fetch()){
     		
     		$arr = array();
-    		$arr['resourceId']   = $dRec->resourceId;
-    		$arr['type']         = $dRec->type;
-    		$arr['baseQuantity'] = $dRec->baseQuantity;
-    		$arr['propQuantity'] = $dRec->propQuantity;
+    		$arr['productId']      = $dRec->resourceId;
+    		$arr['type']           = $dRec->type;
+    		$arr['packagingId']    = $dRec->packagingId;
+    		$arr['quantityInPack'] = $dRec->quantityInPack;
+    		$arr['baseQuantity']   = $dRec->baseQuantity * $dRec->quantityInPack;
+    		$arr['propQuantity']   = $dRec->propQuantity * $dRec->quantityInPack;
     		 
     		$resources['resources'][] = (object)$arr;
     	}
@@ -513,7 +521,6 @@ class cat_Boms extends core_Master
      * @param int $productId   - ид на производим артикул
      * @param int $quantity    - количество за което е рецептата
      * @param array $details   - масив с обекти за детайли
-     * 
      * 		          ->resourceId   - ид на ресурс
      * 				  ->type         - действие с ресурса: влагане/отпадък, ако не е подаден значи е влагане
      * 				  ->stageId      - опционално, към кой производствен етап е детайла
@@ -547,7 +554,7 @@ class cat_Boms extends core_Master
     	if(count($details)){
     		foreach ($details as &$d){
     			expect($d->resourceId);
-    			expect(planning_Resources::fetch($d->resourceId));
+    			expect(cat_Products::fetch($d->resourceId));
     			$d->type = ($d->type) ? $d->type : 'input';
     			expect(in_array($d->type, array('input', 'pop')));
     			 
