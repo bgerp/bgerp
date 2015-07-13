@@ -139,6 +139,25 @@ class doc_Containers extends core_Manager
     
     
     /**
+     * 
+     * 
+     * @param integer $id
+     * @param boolean $escape
+     */
+    public static function getTitleForId_($id, $escaped = TRUE)
+    {
+        try {
+            $doc = self::getDocument($id);
+            
+            return $doc->getTitleForId($escaped);
+        } catch (core_exception_Expect $e) {
+            
+            return parent::getTitleForId_($id, $escaped);
+        }
+    }
+    
+    
+    /**
      * Проверява кои документи ще се скриват и вдига съответния флаг
      * 
      * @param array $recs
