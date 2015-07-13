@@ -241,21 +241,6 @@ class doc_DocumentPlg extends core_Plugin
                 "class=btnAll,ef_icon=img/16/application_view_list.png, order=18, row={$mvc->allBtnToolbarRow}, title=" . tr('Всички ' . mb_strtolower($mvc->title)));    
 
         }
-        
-        // TODO ще е по друг начин
-        if ($mvc->haveRightFor('single', $data->rec->id) || doc_Threads::haveRightFor('single', $data->rec->threadId)) {
-            $threadRec = doc_Threads::fetch($data->rec->threadId);
-            
-            // Първия документ в нишката да не може да се скрива ръчно
-            if ($data->rec->containerId != $threadRec->firstContainerId) {
-                $data->toolbar->addBtn('Скриване', array(
-                    			'doc_Containers',
-                    			'hideDocumentInThread',
-                                $data->rec->containerId
-                    	),
-                    			'order=39, row=2', 'ef_icon = img/16/toggle2.png, title=Скриване на документа в нишката');
-            }
-        }
     }
     
     
