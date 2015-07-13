@@ -91,7 +91,7 @@ class logs_Data extends core_Manager
          $this->FLD('brId', 'key(mvc=logs_Browsers, select=brid)', 'caption=Идентификация->Браузър');
          $this->FLD('userId', 'key(mvc=core_Users)', 'caption=Идентификация->Потребител, notNull');
          $this->FLD('time', 'int', 'caption=Време на записа');
-         $this->FLD('type', 'enum(emerg,alert,crit,err,warning,notice,info,debug)', 'caption=Данни->Тип на събитието');
+         $this->FLD('type', 'enum(emerg=Спешно,alert=Тревога,crit=Критично,err=Грешка,warning=Предупреждение,notice=Известие,info=Инфо,debug=Дебъг)', 'caption=Данни->Тип на събитието');
          $this->FLD('actionCrc', 'int', 'caption=Данни->Действие');
          $this->FLD('classCrc', 'int', 'caption=Данни->Клас');
          $this->FLD('objectId', 'int', 'caption=Данни->Обект');
@@ -271,7 +271,12 @@ class logs_Data extends core_Manager
         
         $data->listFilter->layout = new ET(tr('|*' . getFileContent('logs/tpl/DataFilterForm.shtml')));
         
+        $data->listFilter->fields['type']->caption = 'Тип';
+        $data->listFilter->fields['type']->type->options = array('' => '') + $data->listFilter->fields['type']->type->options;
+        $data->listFilter->fields['type']->refreshForm = 'refreshForm';
+        
         $data->listFilter->FNC('users', 'users(rolesForAll=ceo|admin, rolesForTeams=ceo|admin)', 'caption=Потребител,refreshForm');
+        
         $data->listFilter->FNC('message', 'varchar', 'caption=Текст');
         $data->listFilter->FNC('ip', 'varchar(32)', 'caption=IP адрес');
         $data->listFilter->FNC('from', 'datetime', 'caption=От');
@@ -282,7 +287,7 @@ class logs_Data extends core_Manager
         $default = $data->listFilter->getField('users')->type->fitInDomain('all_users');
         $data->listFilter->setDefault('users', $default);
         
-        $data->listFilter->showFields = 'users, message, class, object, ip, from, to';
+        $data->listFilter->showFields = 'users, message, class, object, type, ip, from, to';
         
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
@@ -441,6 +446,11 @@ class logs_Data extends core_Manager
         
         if ($rec->object) {
             $query->where(array("#objectId = '[#1#]'", $rec->object));
+        }
+        
+        // Филтрираме по тип
+        if (trim($rec->type)) {
+            $query->where(array("#type = '[#1#]'", $rec->type));
         }
     }
     
