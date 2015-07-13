@@ -587,8 +587,6 @@ class type_Key extends type_Int
         
         $q = '/[ \"\'\(\[\-\s]' . str_replace(' ', '.* ', $q) . '/';
         
-        core_Logs::add('type_Key', NULL, "ajaxGetOptions|{$hnd}|{$q}", 1);
-        
         if (!$hnd) {
             return array(
                 'error' => 'Липсват допълнителни опции'
