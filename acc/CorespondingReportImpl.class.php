@@ -173,6 +173,7 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     	$data->groupBy = array_values($data->groupBy);
     	array_unshift($data->groupBy, null);
     	unset($data->groupBy[0]);
+    	$this->prepareListFields($data);
     	
     	// Извличаме записите от журнала за периода, където участват основната и кореспондиращата сметка
     	$jQuery = acc_JournalDetails::getQuery();
@@ -184,9 +185,9 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     	while($jRec = $jQuery->fetch()){
     		$this->addEntry($form->baseAccountId, $jRec, $data, $form->groupBy);
     	}
-    	
+    	//bp($data->recs,$data->groupBy);
     	// Ако има намерени записи
-    	if(count($data->recs)){
+    	if(count($data->recs)){ 
     		
     		// За всеки запис
     		foreach ($data->recs as &$rec){
@@ -208,7 +209,7 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     	
 		// Обработваме обобщената информация
     	$this->prepareSummary($data);
-    	
+		//bp($data);
     	return $data;
     }
     
@@ -270,6 +271,7 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     			$data->rows[] = $mvc->getVerbalRec($rec);
     		}
     	}
+  
     }
     
     
@@ -373,7 +375,7 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
      * @param stdClass $rec - групиран запис
      * @return stdClass $row - вербален запис
      */
-    private function getVerbalRec($rec)
+    protected static function getVerbalRec($rec)
     {
     	$row = new stdClass();
     	$Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
@@ -394,7 +396,9 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     			}
     		}
     	}
-    		 
+    	
+    	$row->measure = $rec->measure;
+    
     	// Връщаме подготвеното вербално рпедставяне
     	return $row;
     }
@@ -495,6 +499,15 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     		$recs[$index]->{$quantityFld} += $jRec->{"{$type}Quantity"};
     		$recs[$index]->{$amountFld} += $jRec->amount;
     	}
+    }
+    
+    
+    /**
+     * Подготвя хедърите на заглавията на таблицата
+     */
+    protected function prepareListFields_(&$data)
+    {
+    	
     }
 
     
