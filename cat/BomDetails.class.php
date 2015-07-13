@@ -116,7 +116,7 @@ class cat_BomDetails extends doc_Detail
     	$this->FLD("resourceId", 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Материал,mandatory,silent,refreshForm');
     	
     	$this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty, select2MinItems=0)', 'caption=Мярка','tdClass=small-field,silent,removeAndRefreshForm=quantityInPack');
-    	$this->FLD('quantityInPack', 'double(smartRound)', 'input,notNull,value=1');
+    	$this->FLD('quantityInPack', 'double(smartRound)', 'input=none,notNull,value=1');
     	
     	$this->FLD('stageId', 'key(mvc=planning_Stages,allowEmpty,select=name)', 'caption=Етап');
     	$this->FLD('type', 'enum(input=Влагане,pop=Отпадък)', 'caption=Действие,silent,input=hidden');

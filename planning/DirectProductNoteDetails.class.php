@@ -165,15 +165,6 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     
     
     /**
-     * Преди запис
-     */
-    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
-    {
-    	$rec->conversionRate = ($rec->productId) ? planning_ObjectResources::getResource($rec->productId)->conversionRate : 1;
-    }
-    
-    
-    /**
      * След преобразуване на записа в четим за хора вид.
      */
     protected static function on_AfterPrepareListRows($mvc, &$data)
@@ -231,6 +222,8 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     {
     	$tpl = new ET("");
     	
+    	$this->invoke('BeforeRenderListTable', array(&$tpl, &$data));
+    	
     	// Рендираме таблицата с вложените материали
     	$table = cls::get('core_TableView', array('mvc' => $this));
     	$detailsInput = $table->get($data->inputArr, $data->listFields);
@@ -244,7 +237,6 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     	
     	// Рендираме таблицата с отпадъците
     	$data->listFields['productId'] = 'Отпадък';
-    	unset($data->listFields['packagingId']);
     	$detailsPop = $table->get($data->popArr, $data->listFields);
     	$detailsPop = ht::createElement("div", array('style' => 'margin-top:5px;margin-bottom:5px'), $detailsPop);
     	$tpl->append($detailsPop, 'planning_DirectProductNoteDetails');

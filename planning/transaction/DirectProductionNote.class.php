@@ -66,16 +66,14 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 			
 			if($dRec->productId && $dRec->type == 'input'){
 				$hasInput = TRUE;
-				$rQuantity = ($dRec->quantity / $dRec->conversionRate);
-				$resourcesArr[$dRec->productId]->resourceQuantity = $rQuantity;
+				$resourcesArr[$dRec->productId]->resourceQuantity = $dRec->quantity;
 				
 				$entry = array('debit' => array('61101', array($dRec->classId, $dRec->productId), 
-												'quantity' => $rQuantity),
+												'quantity' => $dRec->quantity),
 							   'credit' => array('321', array('store_Stores', $rec->storeId), 
 														array($dRec->classId, $dRec->productId), 
 												'quantity' => $dRec->quantity),
-								'reason' => 'Влагане на материал в производството' 
-							   );
+								'reason' => 'Влагане на материал в производството');
 				
 				$entries[] = $entry;
 			}

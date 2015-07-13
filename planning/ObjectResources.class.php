@@ -68,7 +68,7 @@ class planning_ObjectResources extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт,likeProductId=Влагане като,measureId=Мярка,conversionRate=Конверсия,selfValue=Себестойност';
+    public $listFields = 'tools=Пулт,likeProductId=Влагане като,selfValue=Себестойност';
     
     
     /**
@@ -90,11 +90,11 @@ class planning_ObjectResources extends core_Manager
     {
     	$this->FLD('classId', 'class(interface=cat_ProductAccRegIntf)', 'input=hidden,silent');
     	$this->FLD('objectId', 'int', 'input=hidden,caption=Обект,silent');
-    	$this->FLD('likeProductId', 'key(mvc=cat_Products,select=name)', 'caption=Влагане като,removeAndRefreshForm=conversionRate|measureId,silent');
+    	$this->FLD('likeProductId', 'key(mvc=cat_Products,select=name)', 'caption=Влагане като');
     	
-    	$this->FLD('resourceId', 'key(mvc=planning_Resources,select=title,allowEmpty,makeLink)', 'caption=Ресурс,input=none,removeAndRefreshForm=conversionRate,silent');
-    	$this->FLD('measureId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Мярка,input=hidden,silent,removeAndRefreshForm=conversionRate');
-    	$this->FLD('conversionRate', 'double(smartRound)', 'caption=Конверсия,silent,notNull,value=1,mandatory');
+    	$this->FLD('resourceId', 'key(mvc=planning_Resources,select=title,allowEmpty,makeLink)', 'caption=Ресурс,input=none');
+    	$this->FLD('measureId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Мярка,input=none,silent');
+    	$this->FLD('conversionRate', 'double(smartRound)', 'caption=Конверсия,silent,notNull,value=1,input=none');
     	$this->FLD('selfValue', 'double(decimals=2)', 'caption=Себестойност');
     	
     	// Поставяне на уникални индекси
@@ -122,21 +122,6 @@ class planning_ObjectResources extends core_Manager
     	$baseCurrencyCode = acc_Periods::getBaseCurrencyCode();
     	$form->setField('selfValue', "unit={$baseCurrencyCode}");
     	
-    	if(!isset($rec->likeProductId)){
-    		$form->setField('measureId', 'input');
-    		$form->setField('measureId', 'mandatory');
-    		$measureId = $pInfo->productRec->measureId;
-    	} else {
-    		if($lInfo = cat_Products::getProductInfo($rec->likeProductId)){
-    			$measureId = $lInfo->productRec->measureId;
-    		}
-    	}
-    	
-    	$form->setDefault('measureId', $measureId);
-    	
-    	$unit = $mvc->getConversionUnit($rec->objectId, $measureId);
-    	$form->setField('conversionRate', "unit={$unit}");
-    	
     	$title = ($rec->id) ? 'Редактиране на информацията за влагане на' : 'Добавяне на информация за влагане на';
     	$form->title = $title . "|* <b>". $Class->getTitleByid($rec->objectId) . "</b>";
     }
@@ -150,31 +135,12 @@ class planning_ObjectResources extends core_Manager
     	if($form->isSubmitted()){
     		$rec = &$form->rec;
     		
+    		if(empty($rec->selfValue) && empty($rec->likeProductId)){
+    			$form->setError('selfValue,likeProductId', 'Трябва да има поне едно попълнено поле');
+    		}
+    		
     		//@TODO да се добавят проверки
     	}
-    }
-    
-    
-    /**
-     *  Помощна ф-я за показване на конверсията от коя мярка към коя се отнася
-     * 
-     * @param int $objectId - ид на обекта
-     * @param int $measureId - мярката за влагане
-     * @return string - във формат [object_measure_name] за 1 [resource_measure_name]
-     */
-    public static function getConversionUnit($objectId, $measureId)
-    {
-    	if($pInfo = cat_Products::getProductInfo($objectId)){
-    		$sMeasureShort = cat_UoM::getShortName($pInfo->productRec->measureId);
-    		if(!$measureId){
-    			$measureId = $pInfo->productRec->measureId;
-    		}
-    		$rMeasureShort = cat_UoM::getShortName($measureId);
-    		
-    		return "|*{$sMeasureShort} |за|* 1 {$rMeasureShort}";
-    	}
-    	
-    	return '';
     }
     
     
@@ -218,7 +184,6 @@ class planning_ObjectResources extends core_Manager
     {
     	$tpl = getTplFromFile('planning/tpl/ResourceObjectDetail.shtml');
     	
-    
     	if($data->notConvertableAnymore === TRUE){
     		$title = tr('Артикула вече не е вложим');
     		$title = "<span class='red'>{$title}</span>";
@@ -228,7 +193,6 @@ class planning_ObjectResources extends core_Manager
     	}
     	
     	$table = cls::get('core_TableView', array('mvc' => $this));
-    	$table->setFieldsToHideIfEmptyColumn('selfValue,likeProductId');
     	if(!count($data->rows)){
     		unset($fields['tools']);
     	}
@@ -236,7 +200,7 @@ class planning_ObjectResources extends core_Manager
     	$tpl->append($table->get($data->rows, $this->listFields), 'content');
     	
     	if(isset($data->addUrl)){
-    		$addLink = ht::createLink('', $data->addUrl, NULL, 'ef_icon=img/16/add.png, title=Промяна на информацията за влагане'); 
+    		$addLink = ht::createBtn('Добави', $data->addUrl, FALSE, FALSE, 'ef_icon=img/16/star_2.png,title=Добавяне на информация за влагане');
     		$tpl->append($addLink, 'BTNS');
     	}
     	
@@ -255,7 +219,7 @@ class planning_ObjectResources extends core_Manager
     		$masterRec = $Class->fetchRec($rec->objectId);
     		
     		// Не може да добавяме запис ако не може към обекта, ако той е оттеглен или ако нямаме достъп до сингъла му
-    		if($masterRec->state != 'active' || !$Class->haveRightFor('single', $rec->objectId)){//bp();
+    		if($masterRec->state != 'active' || !$Class->haveRightFor('single', $rec->objectId)){
     			$res = 'no_one';
     		} else {
     			if($pInfo = cls::get($rec->classId)->getProductInfo($rec->objectId)){
@@ -301,8 +265,6 @@ class planning_ObjectResources extends core_Manager
     	}
     	
     	$row->objectId = "<span style='float:left'>{$row->objectId}</span>";
-    	$row->conversionRate .= " " . tr($mvc->getConversionUnit($rec->objectId, $rec->measureId));
-    	$row->conversionRate = "<span style='float:right'>{$row->conversionRate}</span>";
     	
     	if(isset($rec->selfValue)){
     		$baseCurrencyCode = acc_Periods::getBaseCurrencyCode();
@@ -334,20 +296,10 @@ class planning_ObjectResources extends core_Manager
     public static function getResource($objectId, $class = 'cat_Products')
     {
     	$Class = cls::get($class);
-    	$fields = 'likeProductId,measureId,conversionRate,selfValue';
     	
     	// Проверяваме имали такъв запис
-    	if(!$rec = self::fetch("#classId = {$Class->getClassId()} AND #objectId = {$objectId}", $fields)){
-    		
-    		$pInfo = $Class->getProductInfo($objectId);
-    		if($pInfo){
-    			$measureId = $pInfo->productRec->measureId;
-    		}
-    		 
-    		$rec = (object)array('likeProductId' => NULL,
-    				'conversionRate' => 1,
-    				'selfValue' => NULL,
-    				'measureId' => $measureId);
+    	if(!$rec = self::fetch("#classId = {$Class->getClassId()} AND #objectId = {$objectId}", 'likeProductId,selfValue')){
+    		$rec = (object)array('likeProductId' => NULL, 'selfValue' => NULL,);
     	}
     	
     	// Ако няма твърда себестойност
@@ -399,31 +351,5 @@ class planning_ObjectResources extends core_Manager
     	
     	// Връщане резултат
     	return $rec;
-    }
-    
-    
-    /**
-     * Връща записите според указаните параметри
-     * 
-     * @param int $resourceId  - ид на ресурс
-     * @param int|NULL $classId - ид на клас на обекта
-     * @param labor|material|equipment|NULL $type - тип на ресурса
-     * @return array - намерените записи
-     */
-    public static function fetchRecsByClassAndType($resourceId, $classId = NULL, $type = NULL)
-    {
-    	$query = self::getQuery();
-    	$query->EXT('type', 'planning_Resources', 'externalName=type,externalKey=resourceId');
-    	$query->where("#resourceId = {$resourceId}");
-    	
-    	if($classId){
-    		$query->where("#classId = {$classId}");
-    	}
-    	
-    	if($type){
-    		$query->where("#type = '{$type}'");
-    	}
-    	
-    	return $query->fetchAll();
     }
 }

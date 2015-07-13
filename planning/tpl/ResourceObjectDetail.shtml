@@ -1,10 +1,11 @@
 <div class='scrolling-holder'>
 	<fieldset class='top-tab-content'>
-	<legend class='groupTitle'>[#title#] [#BTNS#]</legend>
+	<legend class='groupTitle'>[#title#]</legend>
 		<div class='detail-info portal'>
 		    <div class='groupList clearfix21'>
 		        [#content#]
 		    </div>
+		    [#BTNS#]
 	    </div>
 	</fieldset>
 </div>

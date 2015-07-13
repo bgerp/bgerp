@@ -119,10 +119,8 @@ class purchase_transaction_Service extends acc_DocumentTransactionSource
     			if($transfer === TRUE){
     				$pInfo = cat_Products::getProductInfo($dRec->productId);
     				if(isset($pInfo->meta['canConvert'])){
-    					$resourceRec = planning_ObjectResources::getResource($dRec->productId);
-    						
     					$newArr = array('61101', array($dRec->classId , $dRec->productId),
-    							'quantity' => $dRec->quantity / $resourceRec->conversionRate);
+    							'quantity' => $dRec->quantity);
     				} else {
     					$newArr = array('61102');
     				}

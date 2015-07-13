@@ -459,10 +459,10 @@ class cat_Boms extends core_Master
      * @return array $res - Информация за рецептата
      * 				->quantity - к-во
      * 				->resources
-     * 			        o $res->productId       - ид на ресурса
-     * 					o $res->type             - вложим или отпаден ресурс
-	 * 			        o $res->baseQuantity     - начално количество на ресурса
-	 * 			        o $res->propQuantity     - пропорционално количество на ресурса
+     * 			        o $res->productId      - ид на материала
+     * 					o $res->type           - вложим или отпаден материал
+	 * 			        o $res->baseQuantity   - начално количество наматериала (к-во в опаковка по брой опаковки)
+	 * 			        o $res->propQuantity   - пропорционално количество на ресурса (к-во в опаковка по брой опаковки)
      */
     public static function getResourceInfo($id)
     {
@@ -475,15 +475,18 @@ class cat_Boms extends core_Master
     	// Намираме всички етапи в рецептата
     	$dQuery = cat_BomDetails::getQuery();
     	$dQuery->where("#bomId = {$rec->id}");
+    	$dQuery->orderBy('id', 'ASC');
     	
     	// За всеки етап
     	while($dRec = $dQuery->fetch()){
     		
     		$arr = array();
-    		$arr['productId']    = $dRec->resourceId;
-    		$arr['type']         = $dRec->type;
-    		$arr['baseQuantity'] = $dRec->baseQuantity;
-    		$arr['propQuantity'] = $dRec->propQuantity;
+    		$arr['productId']      = $dRec->resourceId;
+    		$arr['type']           = $dRec->type;
+    		$arr['packagingId']    = $dRec->packagingId;
+    		$arr['quantityInPack'] = $dRec->quantityInPack;
+    		$arr['baseQuantity']   = $dRec->baseQuantity * $dRec->quantityInPack;
+    		$arr['propQuantity']   = $dRec->propQuantity * $dRec->quantityInPack;
     		 
     		$resources['resources'][] = (object)$arr;
     	}
@@ -518,7 +521,6 @@ class cat_Boms extends core_Master
      * @param int $productId   - ид на производим артикул
      * @param int $quantity    - количество за което е рецептата
      * @param array $details   - масив с обекти за детайли
-     * 
      * 		          ->resourceId   - ид на ресурс
      * 				  ->type         - действие с ресурса: влагане/отпадък, ако не е подаден значи е влагане
      * 				  ->stageId      - опционално, към кой производствен етап е детайла
