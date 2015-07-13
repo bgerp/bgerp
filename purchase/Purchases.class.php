@@ -446,7 +446,10 @@ class purchase_Purchases extends deals_DealMaster
             $p->uomId             = $dRec->uomId;
             $p->notes			  = $dRec->notes;
             
-            $ProductMan = cls::get($p->classId);
+            $ProductMan = cls::get('cat_Products');
+            if($ProductMan instanceof stdClass){
+            	bp($rec);
+            }
             $info = $ProductMan->getProductInfo($p->productId, $p->packagingId);
             $p->weight  = $ProductMan->getWeight($p->productId, $p->packagingId);
             $p->volume  = $ProductMan->getVolume($p->productId, $p->packagingId);

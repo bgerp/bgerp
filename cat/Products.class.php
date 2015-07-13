@@ -31,7 +31,7 @@ class cat_Products extends core_Embedder {
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    public $interfaces = 'acc_RegisterIntf,cat_ProductAccRegIntf,planning_ResourceSourceIntf,doc_AddToFolderIntf,acc_RegistryDefaultCostIntf';
+    public $interfaces = 'acc_RegisterIntf,cat_ProductAccRegIntf,doc_AddToFolderIntf,acc_RegistryDefaultCostIntf';
     
     
     /**
@@ -1112,63 +1112,6 @@ class cat_Products extends core_Embedder {
     public function getPolicy()
     {
     	return cls::get('price_ListToCustomers');
-    }
-    
-    
-    /**
-     * Можели обекта да се добави като ресурс?
-     *
-     * @param int $id - ид на обекта
-     * @return boolean - TRUE/FALSE
-     */
-    public function canHaveResource($id)
-    {
-    	// Всеки артикул може да присъства само веднъж като ресурс
-    	if(!planning_ObjectResources::fetch("#classId = '{$this->getClassId()}' AND #objectId = {$id}")){
-    		$pInfo = $this->getProductInfo($id);
-    		
-    		// Може да се добавя ресурс само към артикули, които са материали, ДА или вложими
-    		if(isset($pInfo->meta['canConvert']) || isset($pInfo->meta['fixedAsset'])){
-    			
-    			return TRUE;
-    		}
-    	} 
-    	
-    	return FALSE;
-    }
-    
-    
-    /**
-     * Връща дефолт информация от източника на ресурса
-     *
-     * @param int $id - ид на обекта
-     * @return stdClass $res  - обект с информация
-     * 		o $res->name      - име
-     * 		o $res->measureId - име мярка на ресурса (@see cat_UoM)
-     * 		o $res->type      - тип на ресурса (material,labor,equipment)
-     */
-    public function getResourceSourceInfo($id)
-    {
-    	$res = new stdClass();
-    	$pInfo = $this->getProductInfo($id);
-    	$rec = $this->fetchRec($id);
-    	
-    	$res->measureId = $pInfo->productRec->measureId;
-    	
-    	// Ако артикула е ДМА, ще може да се избират само ресурси - оборудване
-    	if(isset($pInfo->meta['fixedAsset'])){
-    		$res->type = 'equipment';
-    	}
-    	 
-    	// Ако артикула е материал, ще може да се избират само ресурси - материали
-    	if(isset($pInfo->meta['canConvert'])){
-    		$res->name = $rec->name;
-    		$res->type = 'material';
-    	}
-    	
-    	$res->type = (empty($res->type)) ? FALSE : $res->type;
-    	
-    	return $res;
     }
     
     
