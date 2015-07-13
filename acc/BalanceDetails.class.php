@@ -908,7 +908,6 @@ class acc_BalanceDetails extends core_Detail
                    // }
                 }
             }
-            //$this->Master->log(ht::mixedToHtml($test));
             
             // Връщаме дали трябва да се преизчислява баланса
             return $hasUpdatedJournal;
