@@ -113,7 +113,11 @@ class cat_BomDetails extends doc_Detail
     function description()
     {
     	$this->FLD('bomId', 'key(mvc=cat_Boms)', 'column=none,input=hidden,silent');
-    	$this->FLD("resourceId", 'key(mvc=planning_Resources,select=title,allowEmpty)', 'caption=Ресурс,mandatory,silent,refreshForm');
+    	$this->FLD("resourceId", 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Материал,mandatory,silent,refreshForm');
+    	
+    	$this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty, select2MinItems=0)', 'caption=Мярка','tdClass=small-field,silent,removeAndRefreshForm=quantityInPack');
+    	$this->FLD('quantityInPack', 'double(smartRound)', 'input=none,notNull,value=1');
+    	
     	$this->FLD('stageId', 'key(mvc=planning_Stages,allowEmpty,select=name)', 'caption=Етап');
     	$this->FLD('type', 'enum(input=Влагане,pop=Отпадък)', 'caption=Действие,silent,input=hidden');
     	
@@ -143,8 +147,11 @@ class cat_BomDetails extends doc_Detail
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$form = &$data->form;
-    	$typeCaption = ($form->rec->type == 'input') ? 'вложим' : 'отпаден';
-    	$form->title = "|Добавяне на|* {$typeCaption} |ресурс към|* <b>|{$mvc->Master->singleTitle}|* №{$form->rec->bomId}<b>";
+    	$typeCaption = ($form->rec->type == 'input') ? 'материал' : 'отпадък';
+    	$form->title = "|Добавяне на|* {$typeCaption} |към|* <b>|{$mvc->Master->singleTitle}|* №{$form->rec->bomId}<b>";
+    	
+    	$products = cat_Products::getByProperty('canConvert');
+    	$form->setOptions('resourceId', $products);
     	
     	$form->setDefault('type', 'input');
     	$quantity = $data->masterRec->quantity;
@@ -168,24 +175,32 @@ class cat_BomDetails extends doc_Detail
     	
     	// Ако има избран ресурс, добавяме му мярката до полетата за количества
     	if(isset($rec->resourceId)){
-    		if($uomId = planning_Resources::fetchField($rec->resourceId, 'measureId')){
-    			$uomName = cat_UoM::getShortName($uomId);
-    	
-    			$form->setField('baseQuantity', "unit={$uomName}");
-    			$form->setField('propQuantity', "unit={$uomName}");
+    		
+    		$pInfo = cat_Products::getProductInfo($rec->resourceId);
+    		$form->setDefault('measureId', $pInfo->productRec->measureId);
+    		$shortName = cat_UoM::getShortName($rec->measureId);
+    		$form->setField('baseQuantity', "unit={$shortName}");
+    		$form->setField('propQuantity', "unit={$shortName}");
+    				
+    		$packs = cls::get('cat_Products')->getPacks($rec->resourceId);
+    		if(isset($rec->packagingId) && !isset($packs[$rec->packagingId])){
+    			$packs[$rec->packagingId] = cat_Packagings::getTitleById($rec->packagingId, FALSE);
     		}
+    		if(count($packs)){
+    			$form->setOptions('packagingId', $packs);
+    		} else {
+    			$form->setReadOnly('packagingId');
+    		}
+    				
+    		$form->setField('packagingId', "placeholder=" . cat_UoM::getTitleById($rec->measureId));
     	}
     	
     	// Проверяваме дали е въведено поне едно количество
     	if($form->isSubmitted()){
     		if($rec->type == 'pop'){
-    			$rType = planning_Resources::fetchField($rec->resourceId, 'type');
-    			if($rType != 'material'){
-    				$form->setError('resourceId,type', 'Отпадният ресурс трябва да е материал');
-    			} else {
-    				if(!planning_Resources::fetchField($rec->resourceId, 'selfValue')){
-    					$form->setError('resourceId', 'Отпадният ресурс няма себестойност');
-    				}
+    			$resourceInfo = planning_ObjectResources::getResource($rec->resourceId);
+    			if(!isset($resourceInfo->selfValue)){
+    				$form->setError('resourceId', 'Отпадакът няма себестойност');
     			}
     		}
     		
@@ -193,6 +208,8 @@ class cat_BomDetails extends doc_Detail
     		if(empty($rec->baseQuantity) && empty($rec->propQuantity)){
     			$form->setError('baseQuantity,propQuantity', 'Трябва да е въведено поне едно количество');
     		}
+    		
+    		$rec->quantityInPack = (empty($rec->packagingId)) ? 1 : (($pInfo->packagings[$rec->packagingId]) ? $pInfo->packagings[$rec->packagingId]->quantity : $rec->quantityInPack);
     	}
     }
     
@@ -202,9 +219,19 @@ class cat_BomDetails extends doc_Detail
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-    	$row->resourceId = planning_Resources::getShortHyperlink($rec->resourceId);
-    	$measureId = planning_Resources::fetchField($rec->resourceId, 'measureId');
-    	$row->measureId = cat_UoM::getTitleById($measureId);
+    	$row->resourceId = cat_Products::getShortHyperlink($rec->resourceId);
+    	$measureId = cat_Products::getProductInfo($rec->resourceId)->productRec->measureId;
+    	
+    	if($rec->packagingId){
+    		$row->measureId = cat_Packagings::getTitleById($rec->packagingId);
+    		if($rec->quantityInPack != 1){
+    			$quantityInPack = cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($rec->quantityInPack);
+    			$shortUom = cat_UoM::getShortName($measureId);
+    			$row->measureId .= " <span class='quiet'>({$quantityInPack} {$shortUom})</span>";
+    		}
+    	} else {
+    		$row->measureId = cat_UoM::getTitleById($measureId);
+    	}
     	
     	$row->ROW_ATTR['class'] = ($rec->type != 'input') ? 'row-removed' : 'row-added';
     	$row->ROW_ATTR['title'] = ($rec->type != 'input') ? tr('Отпадък') : NULL;
@@ -222,7 +249,7 @@ class cat_BomDetails extends doc_Detail
     {
     	$data->toolbar->removeBtn('btnAdd');
     	if($mvc->haveRightFor('add', (object)array('bomId' => $data->masterId))){
-    		$data->toolbar->addBtn('Ресурс', array($mvc, 'add', 'bomId' => $data->masterId, 'ret_url' => TRUE, 'type' => 'input'), NULL, "title=Добавяне на ресурс към рецептата,ef_icon=img/16/star_2.png");
+    		$data->toolbar->addBtn('Материал', array($mvc, 'add', 'bomId' => $data->masterId, 'ret_url' => TRUE, 'type' => 'input'), NULL, "title=Добавяне на ресурс към рецептата,ef_icon=img/16/star_2.png");
     		$data->toolbar->addBtn('Отпадък', array($mvc, 'add', 'bomId' => $data->masterId, 'ret_url' => TRUE, 'type' => 'pop'), NULL, "title=Добавяне на отпаден ресурс към рецептата,ef_icon=img/16/star_2.png");
     	}
     }

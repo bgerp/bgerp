@@ -83,7 +83,7 @@ class core_Manager extends core_Mvc
      *                                                                                      *
      ****************************************************************************************/
     
-    
+
     /**
      * Връща линк към подадения обект
      * 
@@ -97,7 +97,7 @@ class core_Manager extends core_Mvc
         $inst = cls::get($me);
         
         if ($objId) {
-            $title = $inst->getTitleById($objId);
+            $title = $inst->getTitleForId($objId);
         } else {
             $title = $inst->className;
         }
@@ -877,6 +877,8 @@ class core_Manager extends core_Mvc
         if (!$logKeepDays) {
             $logKeepDays = self::$logKeepDays;
         }
+        
+        $className = get_called_class();
         
         core_Logs::add(get_called_class(), $objectId, $detail, $logKeepDays);
     }

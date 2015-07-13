@@ -76,5 +76,14 @@ class bgerp_A extends core_Mvc
 
         return $url;
     }
+    
+    
+    /**
+     * Създава пряк път до статиите в блога
+     */
+    function act_Default()
+    {
+        return Request::forward(array('Index'));
+    }
 
 }

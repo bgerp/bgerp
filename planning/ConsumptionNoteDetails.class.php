@@ -44,7 +44,7 @@ class planning_ConsumptionNoteDetails extends deals_ManifactureDetail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_SaveAndNew, plg_Created, planning_Wrapper, plg_RowNumbering, plg_AlignDecimals';
+    public $loadList = 'plg_RowTools, plg_SaveAndNew, plg_Created, planning_Wrapper, plg_RowNumbering, plg_AlignDecimals2';
     
     
     /**
@@ -108,35 +108,5 @@ class planning_ConsumptionNoteDetails extends deals_ManifactureDetail
         
         // Само вложими продукти
         $this->setDbUnique('noteId,productId,classId');
-    }
-    
-    
-    /**
-     * След извличане на записите от базата данни
-     */
-    public static function on_AfterPrepareListRows(core_Mvc $mvc, $data)
-    {
-    	if(!count($data->recs)) return;
-    	
-    	if($data->masterData->rec->state != 'draft') return;
-    	
-    	foreach ($data->rows as $id => $row){
-    		$rec = $data->recs[$id];
-    		
-    		// Проверка дали артикула не е ресурс
-    		if(!planning_ObjectResources::getResource($rec->classId, $rec->productId)){
-    			
-    			$row->productId = "<span style='color:#9A5919' title = '" . tr('Артикула трябва да стане ресурс за да се контира документа') . "'>{$row->productId}</span>";
-    			
-    			// Ако не е ресурс и имаме права поставямя бутони за добавяне като ресурс
-    			if(cls::haveInterface('planning_ResourceSourceIntf', $rec->classId)){
-    				if(planning_ObjectResources::haveRightFor('add', (object)array('classId' => $rec->classId, 'objectId' => $rec->productId))){
-    					$retUrl = array($mvc->Master, 'resave', $rec->noteId);
-    					$row->productId .= " " . ht::createLink('', array('planning_ObjectResources', 'NewResource', 'classId' => $rec->classId, 'objectId' => $rec->productId, 'ret_url' => $retUrl), FALSE, 'ef_icon=img/16/star_1.png,title=Създаване като нов ресурс');
-    					$row->productId .= " " . ht::createLink('', array('planning_ObjectResources', 'add', 'classId' => $rec->classId, 'objectId' => $rec->productId, 'ret_url' => $retUrl), FALSE, 'ef_icon=img/16/find.png,title=Връзване към съществуващ ресурс');
-    				}
-    			}
-    		}
-    	}
     }
 }

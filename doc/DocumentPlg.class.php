@@ -241,21 +241,6 @@ class doc_DocumentPlg extends core_Plugin
                 "class=btnAll,ef_icon=img/16/application_view_list.png, order=18, row={$mvc->allBtnToolbarRow}, title=" . tr('Всички ' . mb_strtolower($mvc->title)));    
 
         }
-        
-        // TODO ще е по друг начин
-        if ($mvc->haveRightFor('single', $data->rec->id) || doc_Threads::haveRightFor('single', $data->rec->threadId)) {
-            $threadRec = doc_Threads::fetch($data->rec->threadId);
-            
-            // Първия документ в нишката да не може да се скрива ръчно
-            if ($data->rec->containerId != $threadRec->firstContainerId) {
-                $data->toolbar->addBtn('Скриване', array(
-                    			'doc_Containers',
-                    			'hideDocumentInThread',
-                                $data->rec->containerId
-                    	),
-                    			'order=39, row=2', 'ef_icon = img/16/toggle2.png, title=Скриване на документа в нишката');
-            }
-        }
     }
     
     
@@ -582,8 +567,8 @@ class doc_DocumentPlg extends core_Plugin
                 if(doc_Threads::haveRightFor('single', $rec->threadId)) {
                     
                     // Ако в момента не се скрива или показва - показва документа
-                    if (!Request::get('showOrHide')) {
-                        doc_Containers::showOrHideDocument($rec->containerId, FALSE, TRUE);
+                    if (!Request::get('showOrHide') && !Request::get('afterReject')) {
+                        doc_Containers::showOrHideDocument($rec->containerId, FALSE);
                     }
                     
                     $handle = $mvc->getHandle($rec->id);
@@ -669,11 +654,15 @@ class doc_DocumentPlg extends core_Plugin
                     }
                 }
             }
-                
+            
             // Пренасочваме контрола
             if (!$res = getRetUrl()) {
                 $res = array($mvc, 'single', $id);
             }
+            
+            $res['afterReject'] = 1;
+            
+            doc_Containers::showOrHideDocument($rec->containerId, TRUE);
             
             $res = new Redirect($res); //'OK';
                 
@@ -695,7 +684,7 @@ class doc_DocumentPlg extends core_Plugin
                         doc_Threads::restoreThread($rec->threadId);
                     }
                 }
-            }             
+            }
             
             // Пренасочваме контрола
             if (!$res = getRetUrl()) {
@@ -2354,5 +2343,30 @@ class doc_DocumentPlg extends core_Plugin
         }
         
         $id = $mvc->save($rec);
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param core_Master $mvc
+     * @param string|NULL $res
+     * @param integer $id
+     * @param boolean|NULL $escape
+     */
+    public function on_BeforeGetTitleForId($mvc, &$res, $id, $escape=TRUE)
+    {
+        if (!$id) return ;
+        
+        try {
+            $row = $mvc->getDocumentRow($id);
+            
+            $res = str::limitLen($row->title, 35);
+            
+            return FALSE;
+        } catch (core_exception_Expect $e) {
+            
+            return ;
+        }
     }
 }

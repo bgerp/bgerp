@@ -4,12 +4,8 @@
 		<div class='detail-info portal'>
 		    <div class='groupList clearfix21'>
 		        [#content#]
-		        <!--ET_BEGIN BTNS-->
-		        <div style='margin-top:10px'>
-		        [#BTNS#]
-		        </div>
-		        <!--ET_END BTNS-->
 		    </div>
+		    [#BTNS#]
 	    </div>
 	</fieldset>
 </div>

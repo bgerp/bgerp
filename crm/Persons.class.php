@@ -39,9 +39,6 @@ class crm_Persons extends core_Master
         // Интерфейс за входящ документ
         'incoming_CreateDocumentIntf',
     		
-    	// Интерфейс за източник на производствен ресурс
-    	'planning_ResourceSourceIntf',
-    		
     	// Интерфейс за корица на папка в която може да се създава артикул
     	'cat_ProductFolderCoverIntf',
     );
@@ -2382,51 +2379,6 @@ class crm_Persons extends core_Master
     	}
     	
     	return TRUE;
-    }
-    
-    
-    /**
-     * Можели обекта да се добави като ресурс?
-     *
-     * @param int $id - ид на обекта
-     * @return boolean - TRUE/FALSE
-     */
-    public function canHaveResource($id)
-    {
-    	$rec = $this->fetchRec($id);
-    	$groupId = crm_Groups::getIdFromSysId('employees');
-    	
-    	// Само ако е от група "Служители"
-    	if(keylist::isIn($groupId, $rec->groupList)){
-    		return TRUE;
-    	}
-    	
-    	return FALSE;
-    }
-    
-     
-    /**
-     * Връща дефолт информация от източника на ресурса
-     *
-     * @param int $id - ид на обекта
-     * @return stdClass $res  - обект с информация
-     * 		o $res->name      - име
-     * 		o $res->measureId - име мярка на ресурса (@see cat_UoM)
-     * 		o $res->type      -  тип на ресурса (material,labor,equipment)
-     */
-    public function getResourceSourceInfo($id)
-    {
-    	$rec = $this->fetchRec($id);
-    	
-    	$res = new stdClass();
-    	
-    	// Основната мярка на ресурса е 'час'
-    	$res->measureId = cat_UoM::fetchBySinonim('h')->id; 
-    	
-    	// Типа на ресурса ще е 'труд'
-    	$res->type = 'labor'; 
-    	
-    	return $res;
     }
     
     

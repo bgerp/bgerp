@@ -305,51 +305,17 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 			
 			// Задаваме данните на ресурса
 			$dRec = new stdClass();
-			$dRec->resourceId = $resource->resourceId;
-			$dRec->type = $resource->type;
-			$dRec->quantityInPack = 1;
+			$dRec->classId        = $productManId;
+			$dRec->productId      = $resource->productId;
+			$dRec->type           = $resource->type;
+			$dRec->packagingId    = $resource->packagingId;
+			$dRec->quantityInPack = $resource->quantityInPack;
 			
-			// Мярката е мярката на ресурса
-			$dRec->measureId = planning_Resources::fetchField($resource->resourceId, 'measureId');
-			$type = planning_Resources::fetchField($resource->resourceId, 'type');
+			$pInfo = cat_Products::getProductInfo($resource->productId);
+			$dRec->measureId = $pInfo->productRec->measureId;
 			
 			// Изчисляваме к-то според наличните данни
 			$dRec->quantity = $prodQuantity * ($resource->baseQuantity / $jobQuantity + ($resource->propQuantity / $bomInfo['quantity']));
-			
-			// Намираме всички артикули материали свързани с този ресурс
-			$materialsArr = planning_ObjectResources::fetchRecsByClassAndType($resource->resourceId, $productManId, 'material');
-			
-			// Извличаме наличното количество в избрания клас за всеки от ресурсите
-			$allProducts = $resProducts = array();
-			if(count($materialsArr)){
-				foreach ($materialsArr as $objRec){
-					$quantity = store_Products::fetchField("#classId = {$objRec->classId} AND #productId = {$objRec->objectId} AND #storeId = {$storeId}", 'quantity');
-					$resProducts[$objRec->objectId] = (isset($quantity)) ? $quantity : 0;
-					$allProducts[$objRec->objectId] = $objRec;
-				}
-			}
-			
-			// Намираме този с най-голямо налично количество
-			$productId = NULL;
-			if(count($resProducts)) {
-				$productId = array_search(max($resProducts), $resProducts);
-			}
-			
-			if($type == 'material' && !$productId){
-				
-				// Ако има ресурс материал и не може да му се определи артикул, не продължаваме
-				return FALSE;
-			}
-			
-			// Избираме него към ресурса
-			if($productId){
-				$dRec->classId = $productManId;
-				$dRec->productId = $productId;
-				$dRec->measureId = cat_Products::fetchField($productId, 'measureId');
-				
-				// К-то на ресурса го умножаваме по конверсията на артикула към ресурса
-				$dRec->quantity *= $allProducts[$productId]->conversionRate;
-			}
 			
 			// Добавяме детайла
 			$details[] = $dRec;
