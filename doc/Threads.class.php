@@ -155,6 +155,20 @@ class doc_Threads extends core_Manager
     
     
     /**
+     * 
+     * 
+     * @param integer $id
+     * @param boolean $escape
+     */
+    public static function getTitleForId_($id, $escaped = TRUE)
+    {
+        $fistContainerId = self::fetchField($id, 'firstContainerId');
+        
+        return doc_Containers::getTitleForId_($fistContainerId);
+    }
+    
+    
+    /**
      * Поправка на структурата на нишките
      * 
      * @param datetime $from
