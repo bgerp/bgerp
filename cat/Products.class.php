@@ -506,7 +506,7 @@ class cat_Products extends core_Embedder {
         		$data->query->where("#isPublic = 'no'");
         		break;
         	default :
-        		$data->query->orderBy('#name');
+        		$data->query->orderBy('#state,#name');
         		break;
         }
         
