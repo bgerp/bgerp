@@ -698,7 +698,7 @@ class core_Mvc extends core_FieldSet
         return self::getTitleById($id);
     }
     
-    
+
     /**
      * Връща линк към подадения обект
      * 
@@ -719,11 +719,7 @@ class core_Mvc extends core_FieldSet
         
         $linkArr = array();
         
-        if (self::haveRightFor('list', $objId)) {
-            $linkArr = array(get_called_class(), 'list', $objId);
-        }
-        
-        $link = ht::createLink($title, $linkArr);
+        $link = ht::createLink($title, array());
         
         return $link;
     }
