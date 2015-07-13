@@ -122,11 +122,11 @@ class compactor_Plugin extends core_Plugin
         
         // Заместваме локалните линкове към файловете с абсолютни
         $textChanged = preg_replace_callback($pattern, array($this, 'changeImgPaths'), $text);
-       //  bp($textChanged);
+        
 	    if (!$textChanged && $text) {
-	        core_Logs::add(get_called_class(), NULL, "Грешка при извикване на регулярен израз: " . preg_last_error());
+	        logs_Data::add('err', "Грешка при извикване на регулярен израз в '" . get_called_class() . "': " . preg_last_error());
 	    }
-	   
+        
 	    return $textChanged;
 	}
 	
