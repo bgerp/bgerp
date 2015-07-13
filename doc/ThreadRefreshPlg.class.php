@@ -164,7 +164,7 @@ class doc_ThreadRefreshPlg extends core_Plugin
         }
         
         // Добавяме в лога
-        // $mvc->logInfo("AJAX refresh thread");
+//         $mvc->logInfo("AJAX refresh thread", NULL, self::$logKeepDays);
         
         return FALSE;
     }
