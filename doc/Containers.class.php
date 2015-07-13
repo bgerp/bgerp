@@ -119,6 +119,26 @@ class doc_Containers extends core_Manager
     
     
     /**
+     * Връща линк към подадения обект
+     * 
+     * @param integer $objId
+     * 
+     * @return core_ET
+     */
+    public static function getLinkForObject($objId)
+    {
+        try {
+            $doc = self::getDocument($objId);
+            
+            return $doc->getLinkForObject();
+        } catch (Exception $e) {
+            
+            return parent::getLinkForObject($objId);
+        }
+    }
+    
+    
+    /**
      * Проверява кои документи ще се скриват и вдига съответния флаг
      * 
      * @param array $recs
