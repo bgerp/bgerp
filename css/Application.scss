@@ -4488,7 +4488,23 @@ body.narrow {
 	padding:2px;
 	border:solid 1px #ccc;
 	background-color:#eee;
-} 
+}
+
+.logs-type-warning {
+    background-color: #fae3ca;
+}
+.logs-type-debug {
+    background-color: #eee;
+}
+.logs-type-notice {
+    background-color: #dff4fa;
+}
+.logs-type-info {
+    background-color: #fffee0;
+}
+.logs-type-err {
+    background-color: #fad0d1;
+}
 
 /* Стилове за езика във външната част*/
 .wide .langSelect{
