@@ -78,7 +78,7 @@ class log_Data extends core_Manager
     /**
      * 
      */
-    public $listFields = 'id, actTime, userId=Потребител, text, ipId=IP адрес, brId=Браузър';
+    public $listFields = 'id, actTime, userId=Потребител, type=Тип, text, ipId=IP адрес, brId=Браузър';
     
     
     /**
@@ -208,8 +208,6 @@ class log_Data extends core_Manager
         if ($rec->time) {
             $time = dt::timestamp2Mysql($rec->time);
             $row->actTime = dt::mysql2verbal($time, 'smartTime');
-            
-            $row->actTime .= "<span class='logs-icon-{$rec->type}'></span>";
         }
         
         $action = log_Actions::getActionFromCrc($rec->actionCrc);
