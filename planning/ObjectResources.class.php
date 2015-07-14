@@ -187,11 +187,9 @@ class planning_ObjectResources extends core_Manager
     	if($form->isSubmitted()){
     		$rec = &$form->rec;
     		
-    		if(empty($rec->selfValue) && empty($rec->likeProductId)){
-    			$form->setError('selfValue,likeProductId', 'Трябва да има поне едно попълнено поле');
+    		if(!isset($rec->selfValue) && !isset($rec->likeProductId)){
+    			$form->setError('selfValue,likeProductId', 'Поне едно от полетата трябва да е попълнено');
     		}
-    		
-    		//@TODO да се добавят проверки
     	}
     }
     
@@ -344,61 +342,54 @@ class planning_ObjectResources extends core_Manager
     
     
     /**
-     * Връща ресурса на обекта
-     * 
-     * @param mixed $class - клас
-     * @param int $objectId - ид
-     * @return mixed - записа на ресурса или FALSE ако няма
+     * Връща себестойността на материала
+     *
+     * @param int $objectId - ид на артикула - материал
+     * @return double $selfValue -себестойността му
      */
-    public static function getResource($objectId, $class = 'cat_Products')
+    public static function getSelfValue($objectId)
     {
-    	$Class = cls::get($class);
+    	$selfValue = self::fetchField(array("#objectId = '[#1#]'", $objectId), 'selfValue');
     	
-    	// Проверяваме имали такъв запис
-    	if(!$rec = self::fetch("#classId = {$Class->getClassId()} AND #objectId = {$objectId}", 'likeProductId,selfValue')){
-    		$rec = (object)array('likeProductId' => NULL, 'selfValue' => NULL,);
-    	}
-    	
-    	// Ако няма твърда себестойност
-    	if(!isset($rec->selfValue)){
+    	if(!isset($selfValue)){
     		
     		// Проверяваме имали зададена търговска себестойност
-    		$rec->selfValue = $Class->getSelfValue($objectId);
+    		$selfValue = cls::get('cat_Products')->getSelfValue($objectId);
     		
-    		// Ако няма
-    		if(!$rec->selfValue){
+    		// Ако няма търговска себестойност: проверяваме за счетоводна
+    		if(!isset($selfValue)){
     			
     			// Кой баланс ще вземем
     			$lastBalance = acc_Balances::getLastBalance();
     			
     			// Ако има баланс
     			if($lastBalance){
-    			
+    					
     				// Материала перо ли е ?
-    				$objectItem = acc_Items::fetchItem($Class, $objectId);
-    				
+    				$objectItem = acc_Items::fetchItem('cat_Products', $objectId);
+    				 
     				// Ако е перо
     				if($objectItem){
-    					
+    			
     					// Опитваме се да изчислим последно притеглената му цена
     					$query = acc_BalanceDetails::getQuery();
     					acc_BalanceDetails::filterQuery($query, $lastBalance->id, '321');
     					$prodPositionId = acc_Lists::getPosition('321', 'cat_ProductAccRegIntf');
-    					
+    			
     					$query->where("#ent{$prodPositionId}Id = {$objectItem->id}");
     					$query->XPR('totalQuantity', 'double', 'SUM(#blQuantity)');
     					$query->XPR('totalAmount', 'double', 'SUM(#blAmount)');
     					$res = $query->fetch();
-    					
+    			
     					// Ако има някакво количество и суми в складовете, натрупваме ги
     					if(!is_null($res->totalQuantity) && !is_null($res->totalAmount)){
     						$totalQuantity = round($res->totalQuantity, 2);
     						$totalAmount = round($res->totalAmount, 2);
-    						
+    						 
     						if($totalAmount == 0){
-    							$rec->selfValue = 0;
+    							$selfValue = 0;
     						} else {
-    							@$rec->selfValue = $totalAmount / $totalQuantity;
+    							@$selfValue = $totalAmount / $totalQuantity;
     						}
     					}
     				}
@@ -406,7 +397,6 @@ class planning_ObjectResources extends core_Manager
     		}
     	}
     	
-    	// Връщане резултат
-    	return $rec;
+    	return $selfValue;
     }
 }
