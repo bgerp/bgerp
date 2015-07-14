@@ -247,7 +247,7 @@ class core_Cron extends core_Manager
         $apacheProc = $Os->countApacheProc();
         
         $this->logInfo("Total apache process on server - " . $apacheProc, NULL, 7);
-        $this->logThenStop("Process is working: {$i} processes was", NULL, 'info');
+        $this->logThenStop("Process is working: {$i} processes was run", NULL, 'info');
     }
     
     
