@@ -227,10 +227,9 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     	// Рендираме таблицата с вложените материали
     	$table = cls::get('core_TableView', array('mvc' => $this));
     	$detailsInput = $table->get($data->inputArr, $data->listFields);
-    	$detailsInput = ht::createElement("div", array('style' => 'margin-top:5px'), $detailsInput);
     	$tpl->append($detailsInput, 'planning_DirectProductNoteDetails');
     	
-    	// Добавяне на бутон за нов ресурс
+    	// Добавяне на бутон за нов материал
     	if($this->haveRightFor('add', (object)array('noteId' => $data->masterId))){
     		$tpl->append(ht::createBtn('Материал', array($this, 'add', 'noteId' => $data->masterId, 'type' => 'input', 'ret_url' => TRUE),  NULL, NULL, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/star_2.png', 'title' => 'Добавяне на нов материал')), 'planning_DirectProductNoteDetails');
     	}
