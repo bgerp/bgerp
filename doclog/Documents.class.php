@@ -1277,7 +1277,10 @@ class doclog_Documents extends core_Manager
             'alert' // Важност (приоритет)
         );
         
-        doc_Containers::logInfo("Върнато писмо", $sendRec->containerId, DOCLOG_DOCUMENTS_DAYS);
+		// Съобщение в лога
+        $doc = doc_Containers::getDocument($sendRec->containerId);
+		$docInst = $doc->getInstance();
+		$docInst->logInfo("Върнато писмо", $doc->that, DOCLOG_DOCUMENTS_DAYS);
         
         return TRUE;
     }
@@ -1332,7 +1335,10 @@ class doclog_Documents extends core_Manager
         );
         */
         
-        doc_Containers::logInfo("Потвърдено получаване", $sendRec->containerId, DOCLOG_DOCUMENTS_DAYS);
+        // Съобщение в лога
+        $doc = doc_Containers::getDocument($sendRec->containerId);
+		$docInst = $doc->getInstance();
+		$docInst->logInfo("Потвърдено получаване", $doc->that, DOCLOG_DOCUMENTS_DAYS);
         
         return TRUE;
     }
@@ -1449,7 +1455,10 @@ class doclog_Documents extends core_Manager
         
         static::pushAction($action);
         
-        doc_Containers::logInfo("Видян документ", $action->containerId, DOCLOG_DOCUMENTS_DAYS);
+        // Съобщение в лога
+        $doc = doc_Containers::getDocument($action->containerId);
+		$docInst = $doc->getInstance();
+		$docInst->logInfo("Видян документ", $doc->that, DOCLOG_DOCUMENTS_DAYS);
         
         return $action;
     }
@@ -1505,8 +1514,11 @@ class doclog_Documents extends core_Manager
         // Пушваме съответното действие
         static::pushAction($rec);
 
-        doc_Containers::logInfo("Препратен имейл", $rec->containerId, DOCLOG_DOCUMENTS_DAYS);
-        
+        // Съобщение в лога
+        $doc = doc_Containers::getDocument($rec->containerId);
+		$docInst = $doc->getInstance();
+		$docInst->logInfo("Препратен имейл", $doc->that, DOCLOG_DOCUMENTS_DAYS);
+		
         return $rec;
     }
     
@@ -1569,7 +1581,10 @@ class doclog_Documents extends core_Manager
             static::pushAction($rec);
         }
         
-        doc_Containers::logInfo("Редактиран документ", $rec->containerId, DOCLOG_DOCUMENTS_DAYS);
+        // Съобщение в лога
+        $doc = doc_Containers::getDocument($rec->containerId);
+		$docInst = $doc->getInstance();
+		$docInst->logInfo("Редактиран документ", $doc->that, DOCLOG_DOCUMENTS_DAYS);
         
         return $rec;
     }
@@ -1643,8 +1658,11 @@ class doclog_Documents extends core_Manager
         // Добавяме запис в лога
         $msg = tr("Свален файл|*: ") . fileman_Files::getLink($fh);
         
-        doc_Containers::logInfo("Свален файл", $rec->containerId, DOCLOG_DOCUMENTS_DAYS);
-
+        // Съобщение в лога
+        $doc = doc_Containers::getDocument($rec->containerId);
+		$docInst = $doc->getInstance();
+		$docInst->logInfo("Свален файл", $doc->that, DOCLOG_DOCUMENTS_DAYS);
+        
         return $rec;
     }
     
@@ -2474,7 +2492,9 @@ class doclog_Documents extends core_Manager
     		static::pushAction($rec);
     		
     		// Съобщение в лога
-    		doc_Containers::logInfo($msg, $rec->containerId, DOCLOG_DOCUMENTS_DAYS);
+    		$doc = doc_Containers::getDocument($rec->containerId);
+    		$docInst = $doc->getInstance();
+    		$docInst->logInfo($msg, $doc->that, DOCLOG_DOCUMENTS_DAYS);
     	}
     	
         return $rec;

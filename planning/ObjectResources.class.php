@@ -210,12 +210,12 @@ class planning_ObjectResources extends core_Manager
     	}
     	
     	$pInfo = $data->masterMvc->getProductInfo($data->masterId);
-    	if(!(count($data->rows) || isset($pInfo->meta['canConvert']))){
-    		return NULL;
-    	}
-    	
     	if(!isset($pInfo->meta['canConvert'])){
     		$data->notConvertableAnymore = TRUE;
+    	}
+    	
+    	if(!(count($data->rows) || isset($pInfo->meta['canConvert']))){
+    		return NULL;
     	}
     	
     	$data->TabCaption = 'Влагане';
@@ -234,6 +234,11 @@ class planning_ObjectResources extends core_Manager
      */
     public function renderResources(&$data)
     {
+    	// Ако няма записи и вече не е вложим да не се показва
+    	if(!count($data->rows) && $data->notConvertableAnymore){
+    		return;
+    	}
+    	
     	$tpl = getTplFromFile('planning/tpl/ResourceObjectDetail.shtml');
     	
     	if($data->notConvertableAnymore === TRUE){

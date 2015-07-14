@@ -150,7 +150,9 @@ class cat_BomDetails extends doc_Detail
     	$typeCaption = ($form->rec->type == 'input') ? 'материал' : 'отпадък';
     	$form->title = "|Добавяне на|* {$typeCaption} |към|* <b>|{$mvc->Master->singleTitle}|* №{$form->rec->bomId}<b>";
     	
+    	// Добавяме всички вложими артикули за избор
     	$products = cat_Products::getByProperty('canConvert');
+    	unset($products[$data->masterRec->productId]);
     	$form->setOptions('resourceId', $products);
     	
     	$form->setDefault('type', 'input');
@@ -160,6 +162,45 @@ class cat_BomDetails extends doc_Detail
     		
     	$propCaption = "|За|* |{$quantity}|* {$shortUom}";
     	$form->setField('propQuantity', "caption={$propCaption}");
+    }
+    
+    
+    /**
+     * Търси в дърво, дали даден обект не е баща на някой от бащите на друг обект
+     *
+     * @param int $objectId - ид на текущия обект
+     * @param int $needle - ид на обекта който търсим
+     * @param array $notAllowed - списък със забранените обекти
+     * @param array $path
+     * @return void
+     */
+    private function findNotAllowedProducts($objectId, $needle, &$notAllowed, $path = array())
+    {
+    	// Добавяме текущия продукт
+    	$path[$objectId] = $objectId;
+    
+    	// Ако стигнем до началния, прекратяваме рекурсията
+    	if($objectId == $needle){
+    		foreach($path as $p){
+    
+    			// За всеки продукт в пътя до намерения ние го
+    			// добавяме в масива notAllowed, ако той, вече не е там
+    			$notAllowed[$p] = $p;
+    		}
+    		return;
+    	}
+    	
+    	// Имали артикула рецепта
+    	if($bomId = cat_Products::getLastActiveBom($objectId)){
+    		$bomInfo = cat_Boms::getResourceInfo($bomId);
+    		
+    		// За всеки продукт от нея проверяваме дали не съдържа търсения продукт
+    		if(count($bomInfo['resources'])){
+    			foreach ($bomInfo['resources'] as $res){
+    				$this->findNotAllowedProducts($res->productId, $needle, $notAllowed, $path);
+    			}
+    		}
+    	}
     }
     
     
@@ -197,6 +238,21 @@ class cat_BomDetails extends doc_Detail
     	
     	// Проверяваме дали е въведено поне едно количество
     	if($form->isSubmitted()){
+    		
+    		if(isset($rec->resourceId)){
+    			
+    			// Ако е избран артикул проверяваме дали артикула от рецептата не се съдържа в него
+    			$masterProductId = cat_Boms::fetchField($rec->bomId, 'productId');
+    			$productVerbal = cat_Products::getTitleById($masterProductId);
+    			
+    			$notAllowed = array();
+    			$mvc->findNotAllowedProducts($rec->resourceId, $masterProductId, $notAllowed);
+    			if(isset($notAllowed[$rec->resourceId])){
+    				$form->setError('resourceId', "Материала не може да бъде избран, защото в рецептата на някой от материалите му се съдържа|* <b>{$productVerbal}</b>");
+    			}
+    		}
+    		
+    		// Ако добавяме отпадък, искаме да има себестойност
     		if($rec->type == 'pop'){
     			$resourceInfo = planning_ObjectResources::getResource($rec->resourceId);
     			if(!isset($resourceInfo->selfValue)){
