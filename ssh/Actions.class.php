@@ -31,12 +31,14 @@ class ssh_Actions
     /**
      * Конструктор
      */
-    public function __construct($host, $port, $user, $pass)
+    public function __construct($hostId)
     {
-        $this->host = $host;
-        $this->port = $port;
-        $this->user = $user;
-        $this->pass = $pass;
+		expect($conf = ssh_Hosts::fetchConfig($hostId));
+		
+    	$this->host = $conf['ip'];
+        $this->port = $conf['port'];
+        $this->user = $conf['user'];
+        $this->pass = $conf['pass'];
         
         $this->connect();
     }
