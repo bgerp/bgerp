@@ -280,6 +280,8 @@ class core_Cron extends core_Manager
             $this->logThenStop("Некоректно id за криптиране: {$cryptId}", NULL, 'err');
         }
         
+        log_Browsers::stopGenerating();
+        
         // Вземаме информация за процеса
         $rec = $this->fetch($id);
         
@@ -329,11 +331,15 @@ class core_Cron extends core_Manager
                 $startingMicroTime = $this->getMicrotime();
                 $content = $handlerObject->$act();
                 
+                if (!Request::get('forced')) {
+                    ob_clean();
+                }
+                
                 // Ако извикания метод е генерирал резултат, то го добавяме
                 // подходящо форматиран към лога
                 if ($content) {
                     $content = "<p><i>$content</i></p>";
-                    if(Request::get('forced')) {
+                    if (Request::get('forced')) {
                         echo $content;
                     }
                 }

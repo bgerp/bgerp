@@ -99,21 +99,27 @@
                                 <tr>
                                     <td style='line-height: 140%;'>
                                         <!--ET_BEGIN vatReason-->
-                                        <div><span class='quiet'>Reason for VAT:</span> [#vatReason#]</div>
+                                        <div><span class='quiet'>Основание за ДДС:</span> [#vatReason#]</div>
                                         <!--ET_END vatReason-->
                                         <!--ET_BEGIN vatDate-->  
-                                        <span class='quiet'>Taxable event / <i>Данъчно събитие</i>:</span> [#vatDate#] &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                        <span class='quiet'>Данъчно събитие:</span> [#vatDate#] &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                         <!--ET_END vatDate-->
-                                        <!--ET_BEGIN dueDate-->
-                                        <div><span class='quiet'>Payment till:</span> [#dueDate#]</div>
-                                        <!--ET_END dueDate--> 
+                                        
+                                        <!--ET_BEGIN baseAmount-->
+                                        <div>
+                                        	<span class='quiet'>Данъчна основа:</span> [#baseAmount#] <span class='cCode'>[#baseCurrencyId#]</span>
+                                        </div>
+                                        <!--ET_END baseAmount-->
                                         <!--ET_BEGIN rate--> 
-                                        <span class='quiet'>Rate:</span>  [#rate#]
+                                        <div><span class='quiet'>Курс:</span>  [#rate#]</div>
                                         <!--ET_END rate-->  
                                         <div class='custom-bg-block'><b>Payment</b></div>
                                         <!--ET_BEGIN paymentMethodId-->
                                         <div><span class='quiet'>Method:</span>  [#paymentMethodId#]</div>
                                         <!--ET_END paymentMethodId-->
+                                        <!--ET_BEGIN dueDate-->
+                                        <div><span class='quiet'>Payment till:</span> [#dueDate#]</div>
+                                        <!--ET_END dueDate--> 
                                         <!--ET_BEGIN deadline-->
                                         [#deadline#]
                                         <div>
@@ -196,13 +202,6 @@
                                                 <td class='aright'><b>[#neto#]</b></td>
                                             </tr>
                                             <!--ET_END neto-->
-                                            <!--ET_BEGIN baseAmount-->
-                                            <tr class='nowrap'>
-                                                <td class='aright'>Tax base / <i>Данъчна основа</i>:</td>
-                                                <td class='info-right'><span class='cCode'>[#baseCurrencyId#]</span></td>
-                                                <td class='aright'><b>[#baseAmount#]</b></td>
-                                            </tr>
-                                            <!--ET_END baseAmount-->
                                             <tr>
                                                 <td colspan='3' style='padding:0px'>
                                                     <hr>

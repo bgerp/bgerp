@@ -178,6 +178,12 @@ class sales_Sales extends deals_DealMaster
     
     
     /**
+     * По кое поле да се филтрира по потребител от листовия изглед
+     */
+    public $filterFieldUsers = 'dealerId';
+    
+    
+    /**
      * Кое поле показва сумата на сделката
      */
     public $canClosewith = 'ceo,salesMaster';
