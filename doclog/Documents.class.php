@@ -2397,7 +2397,7 @@ class doclog_Documents extends core_Manager
             	    
             	    if ($curr <= $data->pager->rangeStart) continue;
             	    
-            	    if ($showedCnt >= $limit) continue;
+            	    if ($showedCnt >= $limit) break;
                 }
                 $showedCnt++;
         	    
