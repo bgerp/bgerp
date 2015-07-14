@@ -236,10 +236,12 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     	}
     	
     	// Рендираме таблицата с отпадъците
-    	$data->listFields['productId'] = 'Отпадък';
-    	$detailsPop = $table->get($data->popArr, $data->listFields);
-    	$detailsPop = ht::createElement("div", array('style' => 'margin-top:5px;margin-bottom:5px'), $detailsPop);
-    	$tpl->append($detailsPop, 'planning_DirectProductNoteDetails');
+    	if(count($data->popArr) || $data->masterData->rec->state == 'draft'){
+    		$data->listFields['productId'] = 'Отпадък';
+    		$detailsPop = $table->get($data->popArr, $data->listFields);
+    		$detailsPop = ht::createElement("div", array('style' => 'margin-top:5px;margin-bottom:5px'), $detailsPop);
+    		$tpl->append($detailsPop, 'planning_DirectProductNoteDetails');
+    	}
     	
     	// Добавяне на бутон за нов отпадък
     	if($this->haveRightFor('add', (object)array('noteId' => $data->masterId))){
