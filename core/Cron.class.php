@@ -280,7 +280,7 @@ class core_Cron extends core_Manager
             $this->logThenStop("Некоректно id за криптиране: {$cryptId}", NULL, 'err');
         }
         
-        log_Browsers::stopLogging();
+        log_Browsers::stopGenerating();
         
         // Вземаме информация за процеса
         $rec = $this->fetch($id);
