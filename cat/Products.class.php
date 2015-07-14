@@ -71,7 +71,7 @@ class cat_Products extends core_Embedder {
     /**
      * По кои сметки ще се правят справки
      */
-    public $balanceRefAccounts = '301,302,304,305,306,309,321,323';
+    public $balanceRefAccounts = '301,302,304,305,306,309,321,323,61101';
     
     
     /**

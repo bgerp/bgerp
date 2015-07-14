@@ -162,7 +162,29 @@ abstract class deals_ManifactureMaster extends core_Master
 	
 	
 	/**
+	 * Добавя ключови думи за пълнотекстово търсене
+	 */
+	public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+	{
+		if($rec->id){
+			$detailsKeywords = '';
+			
+			$Detail = $mvc->mainDetail;
+			$dQuery = $Detail::getQuery();
+			$dQuery->where("#{$mvc->$Detail->masterKey} = '{$rec->id}'");
+			$dQuery->show('productId');
+			while($dRec = $dQuery->fetch()){
+				$detailsKeywords .= " " . plg_Search::normalizeText(cat_Products::getTitleById($dRec->productId));
+			}
+			
+			$res = " " . $res . " " . $detailsKeywords;
+		}
+	}
+	
+	
+	/**
      * В кои корици може да се вкарва документа
+     * 
      * @return array - интерфейси, които трябва да имат кориците
      */
     public static function getAllowedFolders()
@@ -246,6 +268,7 @@ abstract class deals_ManifactureMaster extends core_Master
     
     /**
      * Обновява информацията на документа
+     * 
      * @param int $id - ид на документа
      */
     public function updateMaster($id)

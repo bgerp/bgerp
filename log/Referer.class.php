@@ -11,8 +11,14 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class logs_Referer extends core_Master
+class log_Referer extends core_Master
 {
+    
+    
+    /**
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     */
+    public $oldClassName = 'logs_Referer';
     
     
     /**
@@ -66,7 +72,7 @@ class logs_Referer extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_SystemWrapper, logs_Wrapper';
+    public $loadList = 'plg_SystemWrapper, log_Wrapper';
     
     
     /**
@@ -74,8 +80,8 @@ class logs_Referer extends core_Master
      */
     public function description()
     {
-         $this->FLD('ipId', 'key(mvc=logs_Ips, select=ip)', 'caption=IP');
-         $this->FLD('brId', 'key(mvc=logs_Browsers, select=brid)', 'caption=Браузър');
+         $this->FLD('ipId', 'key(mvc=log_Ips, select=ip)', 'caption=IP');
+         $this->FLD('brId', 'key(mvc=log_Browsers, select=brid)', 'caption=Браузър');
          $this->FLD('time', 'int', 'caption=Време');
          $this->FLD('ref', 'text', 'caption=Реферер');
          
@@ -99,11 +105,11 @@ class logs_Referer extends core_Master
         if (!$referer) return ;
         
         if (!isset($ipId)) {
-            $ipId = logs_Ips::getIpId();
+            $ipId = log_Ips::getIpId();
         }
         
         if (!isset($bridId)) {
-            $bridId = logs_Browsers::getBridId();
+            $bridId = log_Browsers::getBridId();
         }
         
         if (!isset($time)) {
@@ -150,7 +156,7 @@ class logs_Referer extends core_Master
     public static function delRefRec($ipId, $bridId, $time, $check = TRUE)
     {
         if ($check) {
-            if (logs_Data::fetch(array("#ipId = '[#1#]' AND #brId = '[#2#]' AND #time = '[#3#]'", $ipId, $bridId, $time))) return 0;
+            if (log_Data::fetch(array("#ipId = '[#1#]' AND #brId = '[#2#]' AND #time = '[#3#]'", $ipId, $bridId, $time))) return 0;
         }
         
         $delCnt = self::delete(array("#ipId = '[#1#]' AND #brId = '[#2#]' AND #time = '[#3#]'", $ipId, $bridId, $time));
@@ -168,7 +174,7 @@ class logs_Referer extends core_Master
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-        $row->brId = logs_Browsers::getLinkFromId($rec->brId);
+        $row->brId = log_Browsers::getLinkFromId($rec->brId);
         
         if ($rec->time) {
             $time = dt::timestamp2Mysql($rec->time);
