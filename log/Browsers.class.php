@@ -17,7 +17,7 @@ defIfNot('BRID_SALT', md5(EF_SALT . '_BRID'));
  * @license   GPL 3
  * @since     v 0.1
  */
-class logs_Browsers extends core_Master
+class log_Browsers extends core_Master
 {
     
     
@@ -90,7 +90,7 @@ class logs_Browsers extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_SystemWrapper, logs_Wrapper, plg_Created, plg_GroupByDate, plg_RowTools';
+    public $loadList = 'plg_SystemWrapper, log_Wrapper, plg_Created, plg_GroupByDate, plg_RowTools';
     
     
     /**
@@ -114,7 +114,7 @@ class logs_Browsers extends core_Master
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
-    public $oldClassName = 'core_Browser';
+    public $oldClassName = 'logs_Browsers';
     
     
     /**
@@ -293,7 +293,7 @@ class logs_Browsers extends core_Master
         if (!Mode::is('text', 'plain')) {
 
             if (self::haveRightFor('single', $rec)) {
-                $title = ht::createLink($title, array('logs_Browsers', 'single', $rec->id));
+                $title = ht::createLink($title, array('log_Browsers', 'single', $rec->id));
             }
         }
 

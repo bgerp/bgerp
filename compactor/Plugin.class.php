@@ -124,7 +124,7 @@ class compactor_Plugin extends core_Plugin
         $textChanged = preg_replace_callback($pattern, array($this, 'changeImgPaths'), $text);
         
 	    if (!$textChanged && $text) {
-	        logs_Data::add('err', "Грешка при извикване на регулярен израз: " . preg_last_error(), get_called_class());
+	        log_Data::add('err', "Грешка при извикване на регулярен израз: " . preg_last_error(), get_called_class());
 	    }
         
 	    return $textChanged;
