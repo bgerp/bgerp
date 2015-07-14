@@ -139,14 +139,6 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     	
     	$form->setOptions('productId', $products);
     	
-    	// Не може да се променя ресурса при редакция
-    	if($rec->id){
-    		
-    		
-    		
-    		//$form->setReadOnly('productId');
-    	}
-    	
     	$form->setDefault('classId', $classId);
     }
     
