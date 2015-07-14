@@ -51,7 +51,7 @@ class sales_Proformas extends deals_InvoiceMaster
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, sales_Wrapper, cond_plg_DefaultValues, plg_Sorting, doc_DocumentPlg, acc_plg_DocumentSummary, plg_Search,
-					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing, Sale=sales_Sales,
+					doc_EmailCreatePlg, bgerp_plg_Blank, crm_plg_UpdateContragentData, plg_Printing, Sale=sales_Sales,
                     doc_plg_HidePrices, doc_plg_TplManager, doc_ActivatePlg';
     
     
@@ -159,6 +159,16 @@ class sales_Proformas extends deals_InvoiceMaster
     	'contragentAddress'   => 'lastDocUser|lastDoc|clientData',
     	'accountId' 		  => 'lastDocUser|lastDoc',
     	'template' 		      => 'lastDocUser|lastDoc|defMethod',
+    );
+    
+    
+    /**
+     * Кои полета ако не са попълнени във визитката на контрагента да се попълнят след запис
+     */
+    public static $updateContragentdataField = array(
+    		'vatId'   => 'contragentVatNo',
+    		'uicId'   => 'uicNo',
+    		'egn'     => 'uicNo',
     );
     
     
