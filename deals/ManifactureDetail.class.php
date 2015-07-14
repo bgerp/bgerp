@@ -40,6 +40,15 @@ abstract class deals_ManifactureDetail extends doc_Detail
 	
 
 	/**
+	 * Подготовка на филтър формата
+	 */
+	protected static function on_AfterPrepareListFilter($mvc, &$data)
+	{
+		$data->query->orderBy('id', 'ASC');
+	}
+	
+	
+	/**
 	 * Изчисляване на количеството на реда в брой опаковки
 	 *
 	 * @param core_Mvc $mvc
