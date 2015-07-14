@@ -343,7 +343,7 @@ class core_Cron extends core_Manager
                 // Колко време да пазим лога?
                 $logLifeTime = max(1, 3 * round($rec->period / (24 * 60)));
                 
-                $this->logInfo("Процеса е изпълнен успешно за {$workingTime}секунди.", $rec->id, $logLifeTime);
+                $this->logInfo("Процеса е изпълнен успешно за {$workingTime} секунди.", $rec->id, $logLifeTime);
             } else {
                 $this->unlockProcess($rec);
                 $this->logThenStop("Няма такъв екшън в класа", $rec->id, 'err');
