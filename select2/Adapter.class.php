@@ -22,7 +22,7 @@ class select2_Adapter
      */
     public static function canUseSelect2()
     {
-        if ((strtolower(logs_Browsers::getUserAgentOsName()) == 'android' ) && (strtolower(logs_Browsers::getUserAgentBrowserName()) == 'safari')) return FALSE;
+        if ((strtolower(log_Browsers::getUserAgentOsName()) == 'android' ) && (strtolower(log_Browsers::getUserAgentBrowserName()) == 'safari')) return FALSE;
         
         return TRUE;
     }

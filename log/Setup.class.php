@@ -12,7 +12,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class logs_Setup extends core_ProtoSetup
+class log_Setup extends core_ProtoSetup
 {
     
     
@@ -25,7 +25,7 @@ class logs_Setup extends core_ProtoSetup
     /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = 'logs_Data';
+    var $startCtr = 'log_Data';
     
     
     /**
@@ -44,11 +44,11 @@ class logs_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     var $managers = array(
-    		'logs_Data',
-    		'logs_Actions',
-    		'logs_Browsers',
-    		'logs_Classes',
-    		'logs_Ips',
-    		'logs_Referer',
+    		'log_Data',
+    		'log_Actions',
+    		'log_Browsers',
+    		'log_Classes',
+    		'log_Ips',
+    		'log_Referer',
         );
 }

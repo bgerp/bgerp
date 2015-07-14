@@ -1069,9 +1069,9 @@ class doclog_Documents extends core_Manager
         if ($pager) {
             
             // Задаваме лимита за странициране
-            $pager->setLimit($query);    
+            $pager->setLimit($query);
         }
-
+        
         // Записите да се подреждат по дата в обратен ред
         $query->orderBy('createdOn', 'DESC');
         
@@ -1277,7 +1277,10 @@ class doclog_Documents extends core_Manager
             'alert' // Важност (приоритет)
         );
         
-        doc_Containers::logInfo("Върнато писмо", $sendRec->containerId, DOCLOG_DOCUMENTS_DAYS);
+		// Съобщение в лога
+        $doc = doc_Containers::getDocument($sendRec->containerId);
+		$docInst = $doc->getInstance();
+		$docInst->logInfo("Върнато писмо", $doc->that, DOCLOG_DOCUMENTS_DAYS);
         
         return TRUE;
     }
@@ -1332,7 +1335,10 @@ class doclog_Documents extends core_Manager
         );
         */
         
-        doc_Containers::logInfo("Потвърдено получаване", $sendRec->containerId, DOCLOG_DOCUMENTS_DAYS);
+        // Съобщение в лога
+        $doc = doc_Containers::getDocument($sendRec->containerId);
+		$docInst = $doc->getInstance();
+		$docInst->logInfo("Потвърдено получаване", $doc->that, DOCLOG_DOCUMENTS_DAYS);
         
         return TRUE;
     }
@@ -1449,7 +1455,10 @@ class doclog_Documents extends core_Manager
         
         static::pushAction($action);
         
-        doc_Containers::logInfo("Видян документ", $action->containerId, DOCLOG_DOCUMENTS_DAYS);
+        // Съобщение в лога
+        $doc = doc_Containers::getDocument($action->containerId);
+		$docInst = $doc->getInstance();
+		$docInst->logInfo("Видян документ", $doc->that, DOCLOG_DOCUMENTS_DAYS);
         
         return $action;
     }
@@ -1505,8 +1514,11 @@ class doclog_Documents extends core_Manager
         // Пушваме съответното действие
         static::pushAction($rec);
 
-        doc_Containers::logInfo("Препратен имейл", $rec->containerId, DOCLOG_DOCUMENTS_DAYS);
-        
+        // Съобщение в лога
+        $doc = doc_Containers::getDocument($rec->containerId);
+		$docInst = $doc->getInstance();
+		$docInst->logInfo("Препратен имейл", $doc->that, DOCLOG_DOCUMENTS_DAYS);
+		
         return $rec;
     }
     
@@ -1569,7 +1581,10 @@ class doclog_Documents extends core_Manager
             static::pushAction($rec);
         }
         
-        doc_Containers::logInfo("Редактиран документ", $rec->containerId, DOCLOG_DOCUMENTS_DAYS);
+        // Съобщение в лога
+        $doc = doc_Containers::getDocument($rec->containerId);
+		$docInst = $doc->getInstance();
+		$docInst->logInfo("Редактиран документ", $doc->that, DOCLOG_DOCUMENTS_DAYS);
         
         return $rec;
     }
@@ -1643,8 +1658,11 @@ class doclog_Documents extends core_Manager
         // Добавяме запис в лога
         $msg = tr("Свален файл|*: ") . fileman_Files::getLink($fh);
         
-        doc_Containers::logInfo("Свален файл", $rec->containerId, DOCLOG_DOCUMENTS_DAYS);
-
+        // Съобщение в лога
+        $doc = doc_Containers::getDocument($rec->containerId);
+		$docInst = $doc->getInstance();
+		$docInst->logInfo("Свален файл", $doc->that, DOCLOG_DOCUMENTS_DAYS);
+        
         return $rec;
     }
     
@@ -2337,6 +2355,12 @@ class doclog_Documents extends core_Manager
         // Името на таба
         $data->TabCaption = 'Използване';
         
+        // Създаваме странициране
+        $data->pager = cls::get('core_Pager', array('itemsPerPage' => $this->itemsPerPage, 'pageVar' => 'P_doclog_Documents'));
+        
+        // URL' то където ще сочат
+        $data->pager->url = toUrl(static::getLinkToSingle($cid, static::ACTION_USED));
+        
         // Екшъна
         $action = static::ACTION_USED;
         
@@ -2354,12 +2378,29 @@ class doclog_Documents extends core_Manager
         
         $rows = array();
         foreach ($recs as $rec) {
-        	if(!count($rec->data->used)) {
+            $usedCnt = count($rec->data->used);
+        	if(!$usedCnt) {
         		$data->disabled = TRUE;
 	            return;
         	}
+        	$data->pager->itemsCount = $usedCnt;
+        	$data->pager->calc();
+        	
+        	$curr = 0;
+        	$showedCnt = 0;
+        	$limit = $data->pager->rangeEnd - $data->pager->rangeStart;
+        	
         	foreach ($rec->data->used as $d){
         		
+            	if (isset($data->pager->rangeStart) && isset($data->pager->rangeEnd)) {
+            	    $curr++;
+            	    
+            	    if ($curr <= $data->pager->rangeStart) continue;
+            	    
+            	    if ($showedCnt >= $limit) break;
+                }
+                $showedCnt++;
+        	    
         		$class = $d->class;
         		$row = new stdClass();
         		$iconStles = array('class' => 'linkWithIcon', 'style'=> "background-image:url({$d->icon});");
@@ -2403,6 +2444,9 @@ class doclog_Documents extends core_Manager
         
         // Заместваме в главния шаблон за детайлите
         $tpl->append($sendTpl, 'content');
+        
+        // Добавяме странициране
+        $tpl->append($data->pager->getHtml());
         
         return $tpl;
     }
@@ -2474,7 +2518,9 @@ class doclog_Documents extends core_Manager
     		static::pushAction($rec);
     		
     		// Съобщение в лога
-    		doc_Containers::logInfo($msg, $rec->containerId, DOCLOG_DOCUMENTS_DAYS);
+    		$doc = doc_Containers::getDocument($rec->containerId);
+    		$docInst = $doc->getInstance();
+    		$docInst->logInfo($msg, $doc->that, DOCLOG_DOCUMENTS_DAYS);
     	}
     	
         return $rec;

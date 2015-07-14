@@ -11,8 +11,14 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class logs_Data extends core_Manager
+class log_Data extends core_Manager
 {
+    
+    
+    /**
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     */
+    public $oldClassName = 'logs_Data';
     
     
     /**
@@ -60,7 +66,7 @@ class logs_Data extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_SystemWrapper, logs_Wrapper';
+    public $loadList = 'plg_SystemWrapper, log_Wrapper';
     
     
     /**
@@ -72,7 +78,7 @@ class logs_Data extends core_Manager
     /**
      * 
      */
-    public $listFields = 'id, actTime, userId=Потребител, text, ipId=IP адрес, brId=Браузър';
+    public $listFields = 'id, actTime, userId=Потребител, type=Тип, text, ipId=IP адрес, brId=Браузър';
     
     
     /**
@@ -87,8 +93,8 @@ class logs_Data extends core_Manager
      */
     public function description()
     {    
-         $this->FLD('ipId', 'key(mvc=logs_Ips, select=ip)', 'caption=Идентификация->IP адрес');
-         $this->FLD('brId', 'key(mvc=logs_Browsers, select=brid)', 'caption=Идентификация->Браузър');
+         $this->FLD('ipId', 'key(mvc=log_Ips, select=ip)', 'caption=Идентификация->IP адрес');
+         $this->FLD('brId', 'key(mvc=log_Browsers, select=brid)', 'caption=Идентификация->Браузър');
          $this->FLD('userId', 'key(mvc=core_Users)', 'caption=Идентификация->Потребител, notNull');
          $this->FLD('time', 'int', 'caption=Време на записа');
          $this->FLD('type', 'enum(emerg=Спешно,alert=Тревога,crit=Критично,err=Грешка,warning=Предупреждение,notice=Известие,info=Инфо,debug=Дебъг)', 'caption=Данни->Тип на събитието');
@@ -161,8 +167,8 @@ class logs_Data extends core_Manager
         // Ако няма данни за добавяне, няма нужда да се изпълнява
         if (!self::$toAdd) return ;
         
-        $ipId = logs_Ips::getIpId();
-        $bridId = logs_Browsers::getBridId();
+        $ipId = log_Ips::getIpId();
+        $bridId = log_Browsers::getBridId();
         
         foreach (self::$toAdd as $toAdd) {
             
@@ -170,8 +176,8 @@ class logs_Data extends core_Manager
             $rec->ipId = $ipId;
             $rec->brId = $bridId;
             $rec->userId = core_Users::getCurrent();
-            $rec->actionCrc = logs_Actions::getActionCrc($toAdd['message']);
-            $rec->classCrc = logs_Classes::getClassCrc($toAdd['className']);
+            $rec->actionCrc = log_Actions::getActionCrc($toAdd['message']);
+            $rec->classCrc = log_Classes::getClassCrc($toAdd['className']);
             $rec->objectId = $toAdd['objectId'];
             $rec->time = $toAdd['time'];
             $rec->type = $toAdd['type'];
@@ -179,12 +185,12 @@ class logs_Data extends core_Manager
             
             self::save($rec);
             
-            logs_Referer::addReferer($ipId, $bridId, $toAdd['time']);
+            log_Referer::addReferer($ipId, $bridId, $toAdd['time']);
         }
         
         // Записваме crc32 стойностите на стринговете
-        logs_Actions::saveActions();
-        logs_Classes::saveActions();
+        log_Actions::saveActions();
+        log_Classes::saveActions();
     }
     
     
@@ -197,24 +203,22 @@ class logs_Data extends core_Manager
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-        $row->brId = logs_Browsers::getLinkFromId($rec->brId);
+        $row->brId = log_Browsers::getLinkFromId($rec->brId);
         
         if ($rec->time) {
             $time = dt::timestamp2Mysql($rec->time);
             $row->actTime = dt::mysql2verbal($time, 'smartTime');
-            
-            $row->actTime .= "<span class='logs-icon-{$rec->type}'></span>";
         }
         
-        $action = logs_Actions::getActionFromCrc($rec->actionCrc);
-        $className = logs_Classes::getClassFromCrc($rec->classCrc);
+        $action = log_Actions::getActionFromCrc($rec->actionCrc);
+        $className = log_Classes::getClassFromCrc($rec->classCrc);
         
         $row->text = self::prepareText($action, $className, $rec->objectId);
         
         // Добавяме линк към реферера
-        $refRec = logs_Referer::getRefRec($rec->ipId, $rec->brId, $rec->time);
-        if ($refRec && logs_Referer::haveRightFor('single', $refRec)) {
-            $row->text .= ht::createLinkRef("", array('logs_Referer', 'single', $refRec->id), NULL, array('title' => tr('Реферер|*: ') . $refRec->ref));
+        $refRec = log_Referer::getRefRec($rec->ipId, $rec->brId, $rec->time);
+        if ($refRec && log_Referer::haveRightFor('single', $refRec)) {
+            $row->text .= ht::createLinkRef("", array('log_Referer', 'single', $refRec->id), NULL, array('title' => tr('Реферер|*: ') . $refRec->ref));
         }
         
         $row->ROW_ATTR['class'] = "logs-type-{$rec->type}";
@@ -269,7 +273,7 @@ class logs_Data extends core_Manager
     {
         $data->query->orderBy("time", "DESC");
         
-        $data->listFilter->layout = new ET(tr('|*' . getFileContent('logs/tpl/DataFilterForm.shtml')));
+        $data->listFilter->layout = new ET(tr('|*' . getFileContent('log/tpl/DataFilterForm.shtml')));
         
         $data->listFilter->fields['type']->caption = 'Тип';
         $data->listFilter->fields['type']->type->options = array('' => '') + $data->listFilter->fields['type']->type->options;
@@ -307,7 +311,7 @@ class logs_Data extends core_Manager
         // Филтрираме по екшъна/съобщението
         if (trim($rec->message)) {
             
-            $actQuery = logs_Actions::getQuery();
+            $actQuery = log_Actions::getQuery();
             plg_Search::applySearch($rec->message, $actQuery);
             
             $actArr = array();
@@ -331,7 +335,7 @@ class logs_Data extends core_Manager
             
             $ipArr = array();
             
-            $ipQuery = logs_Ips::getQuery();
+            $ipQuery = log_Ips::getQuery();
             $ipQuery->where(array("#ip LIKE '[#1#]'", $ip));
             while ($ipRec = $ipQuery->fetch()) {
                 $ipArr[$ipRec->id] = $ipRec->id;
@@ -384,7 +388,7 @@ class logs_Data extends core_Manager
         $cQuery = clone $query;
         $cQuery->groupBy('classCrc');
         while ($cRec = $cQuery->fetch()) {
-            $className = logs_Classes::getClassFromCrc($cRec->classCrc);
+            $className = log_Classes::getClassFromCrc($cRec->classCrc);
             if ($className) {
                 $classSuggArr[$className] = $className;
             }
@@ -397,7 +401,7 @@ class logs_Data extends core_Manager
         
         // Филтрираме по клас
         if (trim($rec->class)) {
-            $crc = logs_Classes::getClassCrc($rec->class, FALSE);
+            $crc = log_Classes::getClassCrc($rec->class, FALSE);
             if ($crc) {
                 $query->where("#classCrc = '{$crc}'");
             } else {
@@ -421,7 +425,7 @@ class logs_Data extends core_Manager
             $cQuery->limit(100);
             
             while ($cRec = $cQuery->fetch()) {
-                $className = logs_Classes::getClassFromCrc($cRec->classCrc);
+                $className = log_Classes::getClassFromCrc($cRec->classCrc);
                 
                 if ($className) {
                     
@@ -487,7 +491,7 @@ class logs_Data extends core_Manager
             foreach ($delArr as $dArr) {
                 
                 // Изтриваме реферерите за данните, само ако няма друга връзка
-                $delRefCnt += logs_Referer::delRefRec($dArr['ipId'], $dArr['brId'], $dArr['time'], TRUE);
+                $delRefCnt += log_Referer::delRefRec($dArr['ipId'], $dArr['brId'], $dArr['time'], TRUE);
             }
         }
         

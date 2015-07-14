@@ -1190,7 +1190,7 @@ class core_Mvc extends core_FieldSet
     
     
     /**
-     * Добавя emerg запис в logs_Data
+     * Добавя emerg запис в log_Data
      * 
      * @param string $action
      * @param integer $objectId
@@ -1199,12 +1199,12 @@ class core_Mvc extends core_FieldSet
     public static function logEmerg($action, $objectId = NULL, $lifeDays = 180)
     {
         $className = get_called_class();
-        logs_Data::add('emerg', $action, $className, $objectId, $lifeDays);
+        log_Data::add('emerg', $action, $className, $objectId, $lifeDays);
     }
     
     
     /**
-     * Добавя alert запис в logs_Data
+     * Добавя alert запис в log_Data
      * 
      * @param string $action
      * @param integer $objectId
@@ -1213,12 +1213,12 @@ class core_Mvc extends core_FieldSet
     public static function logAlert($action, $objectId = NULL, $lifeDays = 180)
     {
         $className = get_called_class();
-        logs_Data::add('alert', $action, $className, $objectId, $lifeDays);
+        log_Data::add('alert', $action, $className, $objectId, $lifeDays);
     }
     
     
     /**
-     * Добавя crit запис в logs_Data
+     * Добавя crit запис в log_Data
      * 
      * @param string $action
      * @param integer $objectId
@@ -1227,12 +1227,12 @@ class core_Mvc extends core_FieldSet
     public static function logCrit($action, $objectId = NULL, $lifeDays = 180)
     {
         $className = get_called_class();
-        logs_Data::add('crit', $action, $className, $objectId, $lifeDays);
+        log_Data::add('crit', $action, $className, $objectId, $lifeDays);
     }
     
     
     /**
-     * Добавя err запис в logs_Data
+     * Добавя err запис в log_Data
      * 
      * @param string $action
      * @param integer $objectId
@@ -1241,12 +1241,12 @@ class core_Mvc extends core_FieldSet
     public static function logErr($action, $objectId = NULL, $lifeDays = 180)
     {
         $className = get_called_class();
-        logs_Data::add('err', $action, $className, $objectId, $lifeDays);
+        log_Data::add('err', $action, $className, $objectId, $lifeDays);
     }
     
     
     /**
-     * Добавя warning запис в logs_Data
+     * Добавя warning запис в log_Data
      * 
      * @param string $action
      * @param integer $objectId
@@ -1255,12 +1255,12 @@ class core_Mvc extends core_FieldSet
     public static function logWarning($action, $objectId = NULL, $lifeDays = 180)
     {
         $className = get_called_class();
-        logs_Data::add('warning', $action, $className, $objectId, $lifeDays);
+        log_Data::add('warning', $action, $className, $objectId, $lifeDays);
     }
     
     
     /**
-     * Добавя notice запис в logs_Data
+     * Добавя notice запис в log_Data
      * 
      * @param string $action
      * @param integer $objectId
@@ -1269,12 +1269,12 @@ class core_Mvc extends core_FieldSet
     public static function logNotice($action, $objectId = NULL, $lifeDays = 90)
     {
         $className = get_called_class();
-        logs_Data::add('notice', $action, $className, $objectId, $lifeDays);
+        log_Data::add('notice', $action, $className, $objectId, $lifeDays);
     }
     
     
     /**
-     * Добавя info запис в logs_Data
+     * Добавя info запис в log_Data
      * 
      * @param string $action
      * @param integer $objectId
@@ -1283,12 +1283,12 @@ class core_Mvc extends core_FieldSet
     public static function logInfo($action, $objectId = NULL, $lifeDays = 90)
     {
         $className = get_called_class();
-        logs_Data::add('info', $action, $className, $objectId, $lifeDays);
+        log_Data::add('info', $action, $className, $objectId, $lifeDays);
     }
     
     
     /**
-     * Добавя debug запис в logs_Data
+     * Добавя debug запис в log_Data
      * 
      * @param string $action
      * @param integer $objectId
@@ -1297,6 +1297,6 @@ class core_Mvc extends core_FieldSet
     public static function logDebug($action, $objectId = NULL, $lifeDays = 10)
     {
         $className = get_called_class();
-        logs_Data::add('debug', $action, $className, $objectId, $lifeDays);
+        log_Data::add('debug', $action, $className, $objectId, $lifeDays);
     }
 }

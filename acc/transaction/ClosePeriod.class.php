@@ -625,7 +625,7 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
     	acc_BalanceDetails::filterQuery($bQuery, $this->balanceId, '605');
     	$rec605 = $bQuery->fetch();
     	
-    	$selfValueLabor = planning_Resources::getSelfValue($resource604);
+    	$selfValueLabor = planning_ObjectResources::getSelfValue($resource604);
     	
     	@$rec604->blQuantity = $rec604->blAmount / $selfValueLabor;
     	@$rec605->blQuantity = $rec605->blAmount / $selfValueLabor;

@@ -11,8 +11,14 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class logs_Actions extends core_Manager
+class log_Actions extends core_Manager
 {
+    
+    
+    /**
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     */
+    public $oldClassName = 'logs_Actions';
     
     
     /**
@@ -60,7 +66,7 @@ class logs_Actions extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_SystemWrapper, logs_Wrapper, plg_Search';
+    public $loadList = 'plg_SystemWrapper, log_Wrapper, plg_Search';
     
     
     /**

@@ -11,7 +11,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class logs_Wrapper extends plg_ProtoWrapper
+class log_Wrapper extends plg_ProtoWrapper
 {
     
     

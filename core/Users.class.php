@@ -574,7 +574,7 @@ class core_Users extends core_Manager
         $form->FNC('pass', 'password(allowEmpty)', "caption=Парола,input,width=100%");
  
         if (Request::get('popup')) {
-            $form->setHidden('ret_url', toUrl(array('logs_Browsers', 'close'), 'local'));
+            $form->setHidden('ret_url', toUrl(array('log_Browsers', 'close'), 'local'));
         } else {
             $form->setHidden('ret_url', toUrl($retUrl, 'local'));
         }
@@ -1088,7 +1088,7 @@ class core_Users extends core_Manager
         vislog_IpNames::add($nick);
         
         // Обновяваме времето на BRID кукито
-        logs_Browsers::updateBridCookieLifetime();
+        log_Browsers::updateBridCookieLifetime();
         
         $conf = core_Packs::getConfig('core');
         

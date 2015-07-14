@@ -38,7 +38,7 @@ class core_App
 
             // Задаваме стойности по подразбиране на обкръжението
             if (!core_Mode::is('screenMode')) {
-                core_Mode::set('screenMode', logs_Browsers::detectMobile() ? 'narrow' : 'wide');
+                core_Mode::set('screenMode', log_Browsers::detectMobile() ? 'narrow' : 'wide');
             }
 
             // Генерираме съдържанието

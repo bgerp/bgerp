@@ -150,11 +150,7 @@ class cat_Boms extends core_Master
     	$this->setDbIndex('productId');
     }
     
-    function act_Test()
-    {
-    	$l = cls::get('cat_Products');
-    	bp($l);
-    }
+    
     /**
      * Добавя ключови думи за пълнотекстово търсене
      */
@@ -430,10 +426,9 @@ class cat_Boms extends core_Master
     	if(count($rInfo['resources'])){
     		foreach ($rInfo['resources'] as $dRec){
     			$sign = ($dRec->type == 'input') ? 1 : -1;
-    			$info = planning_ObjectResources::getResource($dRec->productId);
     			
     			// Опитваме се да намерим себестойност за артикула
-    			$selfValue = $info->selfValue;
+    			$selfValue = planning_ObjectResources::getSelfValue($dRec->productId);
     			
     			// Ако не може да се определи себестойност на ресурса, не може и по рецептата
     			if(!$selfValue) return FALSE;

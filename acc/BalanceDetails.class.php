@@ -934,7 +934,7 @@ class acc_BalanceDetails extends core_Detail
     		if($rec->{$quantityField}){
     			
     			// Изчисляваме цената
-    			@$price = round($rec->amount / $rec->{$quantityField}, 8);
+    			@$price = round($rec->amount / $rec->{$quantityField}, 10);
     			
     			// Ако изчислената сума е различна от записаната в журнала
     			if(trim($rec->{$priceField}) != trim($price)){
