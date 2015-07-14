@@ -1069,9 +1069,9 @@ class doclog_Documents extends core_Manager
         if ($pager) {
             
             // Задаваме лимита за странициране
-            $pager->setLimit($query);    
+            $pager->setLimit($query);
         }
-
+        
         // Записите да се подреждат по дата в обратен ред
         $query->orderBy('createdOn', 'DESC');
         
@@ -2355,6 +2355,12 @@ class doclog_Documents extends core_Manager
         // Името на таба
         $data->TabCaption = 'Използване';
         
+        // Създаваме странициране
+        $data->pager = cls::get('core_Pager', array('itemsPerPage' => $this->itemsPerPage, 'pageVar' => 'P_doclog_Documents'));
+        
+        // URL' то където ще сочат
+        $data->pager->url = toUrl(static::getLinkToSingle($cid, static::ACTION_USED));
+        
         // Екшъна
         $action = static::ACTION_USED;
         
@@ -2372,12 +2378,29 @@ class doclog_Documents extends core_Manager
         
         $rows = array();
         foreach ($recs as $rec) {
-        	if(!count($rec->data->used)) {
+            $usedCnt = count($rec->data->used);
+        	if(!$usedCnt) {
         		$data->disabled = TRUE;
 	            return;
         	}
+        	$data->pager->itemsCount = $usedCnt;
+        	$data->pager->calc();
+        	
+        	$curr = 0;
+        	$showedCnt = 0;
+        	$limit = $data->pager->rangeEnd - $data->pager->rangeStart;
+        	
         	foreach ($rec->data->used as $d){
         		
+            	if (isset($data->pager->rangeStart) && isset($data->pager->rangeEnd)) {
+            	    $curr++;
+            	    
+            	    if ($curr <= $data->pager->rangeStart) continue;
+            	    
+            	    if ($showedCnt >= $limit) continue;
+                }
+                $showedCnt++;
+        	    
         		$class = $d->class;
         		$row = new stdClass();
         		$iconStles = array('class' => 'linkWithIcon', 'style'=> "background-image:url({$d->icon});");
@@ -2421,6 +2444,9 @@ class doclog_Documents extends core_Manager
         
         // Заместваме в главния шаблон за детайлите
         $tpl->append($sendTpl, 'content');
+        
+        // Добавяме странициране
+        $tpl->append($data->pager->getHtml());
         
         return $tpl;
     }
