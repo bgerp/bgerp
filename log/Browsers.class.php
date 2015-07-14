@@ -120,7 +120,7 @@ class log_Browsers extends core_Master
     /**
      * Дали да се спре логването
      */
-    protected static $stopLogging = FALSE;
+    protected static $stopGenerating = FALSE;
     
     
     /**
@@ -238,7 +238,7 @@ class log_Browsers extends core_Master
         }
         
         // Ако е зададено да се генерира brid
-        if ($generate && !self::$stopLogging) {
+        if ($generate && !self::$stopGenerating) {
             
             // Генерира brid
             $brid = self::generateBrid();
@@ -260,9 +260,9 @@ class log_Browsers extends core_Master
     /**
      * Спира логването
      */
-    public static function stopLogging()
+    public static function stopGenerating()
     {
-        self::$stopLogging = TRUE;
+        self::$stopGenerating = TRUE;
     }
     
     
