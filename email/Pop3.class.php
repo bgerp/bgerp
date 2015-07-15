@@ -78,8 +78,8 @@ class email_Pop3
         @$this->connection = fsockopen($this->host, $this->port, $this->err['no'], $this->err['str'], $conf->EMAIL_POP3_TIMEOUT);
         
         if ($this->connection === false) {
-            email_Inboxes::log("Не може да се установи връзка с пощенската кутия на: 
-                            \"{$this->user}\". Грешка: " . $this->err['no'] . " - " . $this->err['str']);
+            log_Data::add('err', "Не може да се установи връзка с пощенската кутия на: 
+                            \"{$this->user}\". Грешка: " . $this->err['no'] . " - " . $this->err['str'], get_called_class());
             
             return FALSE;
         }
@@ -91,8 +91,8 @@ class email_Pop3
         $this->login();
         
         if (!$this->logged) {
-            email_Inboxes::log("Не може да се установи връзка с пощенската кутия на: 
-                            \"{$this->user}\". Потребителското име и/или паролата са грешни.");
+            log_Data::add('err', "Не може да се установи връзка с пощенската кутия на: 
+                            \"{$this->user}\". Потребителското име и/или паролата са грешни.", get_called_class());
         }
         
         return TRUE;
