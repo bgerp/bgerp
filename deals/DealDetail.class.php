@@ -371,14 +371,17 @@ abstract class deals_DealDetail extends doc_Detail
     	$recs = &$data->recs;
     	$rows = &$data->rows;
     	
+    	core_Lg::push($data->masterData->rec->tplLang);
+    	
     	foreach ($rows as $id => &$row){
     		$rec = $recs[$id];
-    		
     		$row->productId = cat_Products::getAutoProductDesc($rec->productId, $data->masterData->rec->modifiedOn, $rec->showMode);
     		if($rec->notes){
     			deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
     		}
     	}
+    	
+    	core_Lg::pop();
     }
     
     

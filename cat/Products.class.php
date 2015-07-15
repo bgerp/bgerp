@@ -265,6 +265,7 @@ class cat_Products extends core_Embedder {
     function description()
     {
         $this->FLD('name', 'varchar', 'caption=Наименование, mandatory,remember=info,width=100%');
+        $this->FLD('intName', 'varchar', 'caption=Международно име,remember=info,width=100%');
 		$this->FLD('code', 'varchar(64)', 'caption=Код,remember=info,width=15em');
         $this->FLD('info', 'richtext(bucket=Notes)', 'caption=Описание,input=none,formOrder=4');
         $this->FLD('measureId', 'key(mvc=cat_UoM, select=name,allowEmpty)', 'caption=Мярка,mandatory,remember,notSorting,input=none,formOrder=4');
@@ -1126,6 +1127,51 @@ class cat_Products extends core_Embedder {
     	$rec = $this->fetchRec($id);
     	
     	return cat_ProductTplCache::cacheTpl($rec->id, $time);
+    }
+    
+    
+    /**
+     * Връща името с което ще показваме артикула според езика в сесията
+     * Ако езика не е български поакзваме интернационалното име иначе зададеното
+     * 
+     * @param stdClass $rec
+     * @return string
+     */
+    private static function getDisplayName($rec)
+    {
+    	$lg = core_Lg::getCurrent();
+    	
+    	if($lg != 'bg'){
+    		
+    		if(isset($rec->intName)){
+    			
+    			return $rec->intName;
+    		}
+    	}
+    	 
+    	return $rec->name;
+    }
+    
+    
+    /**
+     * Извиква се преди извличането на вербална стойност за поле от запис
+     */
+    protected static function on_BeforeGetVerbal($mvc, &$part, $rec, $field)
+    {
+    	if($field == 'name') {
+    		$rec->name = static::getDisplayName($rec);
+    	}
+    }
+    
+    
+    /**
+     * Връща разбираемо за човека заглавие, отговарящо на записа
+     */
+    static function getRecTitle($rec, $escaped = TRUE)
+    {
+    	$rec->name = static::getDisplayName($rec);
+    	
+    	return parent::getRecTitle($rec, $escaped);
     }
     
     
