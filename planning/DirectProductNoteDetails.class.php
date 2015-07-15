@@ -188,6 +188,9 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     	if(count($data->rows)){
     		foreach ($data->rows as $id => $row){
     			$rec = $data->recs[$id];
+    			if(!is_object($row->tools)){
+    				$row->tools = new ET("[#TOOLS#]");
+    			}
     			
     			// Разделяме записите според това дали са вложими или не
     			if($rec->type == 'input'){
@@ -215,6 +218,10 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     	$tpl = new ET("");
     	
     	$this->invoke('BeforeRenderListTable', array(&$tpl, &$data));
+    	if(Mode::is('printing')){
+    		unset($data->listFields['tools']);
+    	}
+    	
     	
     	// Рендираме таблицата с вложените материали
     	$table = cls::get('core_TableView', array('mvc' => $this));

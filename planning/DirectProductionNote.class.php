@@ -191,7 +191,6 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 		$row->productId = cat_Products::getShortHyperlink($rec->productId);
 		$shortUom = cat_UoM::getShortName(cat_Products::fetchField($rec->productId, 'measureId'));
 		$row->quantity .= " {$shortUom}";
-		$row->storeId = store_Stores::getShortHyperlink($rec->storeId);
 	}
 	
 	

@@ -67,6 +67,8 @@ abstract class deals_ManifactureMaster extends core_Master
 	 */
 	public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
 	{
+		$row->storeId = store_Stores::getHyperlink($rec->storeId);
+		
 		if($fields['-single']){
 			
 			$storeLocation = store_Stores::fetchField($rec->storeId, 'locationId');
