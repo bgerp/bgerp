@@ -102,6 +102,10 @@ abstract class deals_InvoiceDetail extends doc_Detail
 		}
 		
 		if($masterRec->type === 'dc_note'){
+			$data->form->info = tr('|*<div style="color:#333;margin-top:3px;margin-bottom:12px">|Моля въведете крайното количество|* <b>|или|*</b> |сума след промяната|* <br><small>( |системата автоматично ще изчисли и попълни разликата в известието|* )</small></div>');
+			$data->form->setField('quantity', 'caption=|Крайни|* (|след известието|*)->К-во');
+			$data->form->setField('packPrice', 'caption=|Крайни|* (|след известието|*)->Цена');
+			
 			foreach (array('packagingId', 'notes', 'discount') as $fld){
 				$data->form->setField($fld, 'input=hidden');
 			}
