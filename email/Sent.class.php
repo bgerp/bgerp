@@ -202,6 +202,7 @@ class email_Sent
             $error = trim($PML->ErrorInfo);
             if (isset($error)) {
                 core_Manager::log("PML error: " . $error);
+                log_Data::add('err', "PML error: " . $error, 'phpmailer_Instance');
             }
         }
         
