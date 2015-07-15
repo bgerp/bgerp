@@ -1541,7 +1541,7 @@ class cat_Products extends core_Embedder {
     		$pRec = cat_Products::fetch(acc_Items::fetchField($itemId, 'objectId'));
     		$pRec->state = 'closed';
     		$this->save($pRec);
-    		$this->log("Затворено е перо: '{$itemId}'");
+    		acc_Items::logInfo("Затворено е перо", $itemId);
     	}
     }
     
