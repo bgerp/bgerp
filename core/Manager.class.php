@@ -873,6 +873,7 @@ class core_Manager extends core_Mvc
     
     /**
      * Добавя запис в лога
+     * @deprecated
      */
     static function log_($detail, $objectId = NULL, $logKeepDays = NULL)
     {
