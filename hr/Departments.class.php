@@ -366,7 +366,7 @@ class hr_Departments extends core_Master
         $arrData = (array)$data->recs;
         
         foreach($arrData as $rec){
-        	if($rec->systemId === 'emptyCenter') continue;
+        	if($rec->systemId === 'emptyCenter' || $rec->state != 'active') continue;
         	
             // Ако имаме родител 
              if($rec->parentId == NULL && $rec->systemId !== 'myOrganisation') {
