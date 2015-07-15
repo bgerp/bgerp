@@ -1112,7 +1112,7 @@ class core_Packs extends core_Manager
             $id = self::setConfig($packName, $data);
         
             // Правим запис в лога
-            $this->log("Промяна на конфигурацията на пакет", $rec->id);
+            $this->logInfo("Промяна на конфигурацията на пакет", $rec->id);
             
             return new Redirect($retUrl);
         }
