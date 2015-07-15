@@ -879,7 +879,7 @@ class i18n_Charset extends core_MVC {
      */
     static function iconv_($str, $fromCharset, $toCharset = 'UTF-8', $mode = '')
     { 
-        //core_Debug::log($fromCharset   . substr($str, 0, 20));
+        //self::logDebug($fromCharset   . substr($str, 0, 20));
         list($toCharset, $mode) = explode('//', $toCharset);
 
         if($mode && strpos($mode, '//') !== 0) {
