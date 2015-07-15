@@ -372,7 +372,7 @@ class acc_Balances extends core_Master
     	 
     	// Ако изчисляването е заключено не го изпълняваме
     	if(!core_Locks::get($lockKey, 600, 1)) {
-    		$this->log("Изчисляването на баланса е заключено от друг процес");
+    		$this->logWarning("Изчисляването на баланса е заключено от друг процес");
     		 
     		return;
     	}

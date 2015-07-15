@@ -269,7 +269,7 @@ class forum_Postings extends core_Detail {
             // Ако формата е успешно изпратена - запис, лог, редирек
             if ($data->postForm->isSubmitted() && Request::get('body')) {
             	$id = $this->save($rec);
-                $this->log('add', $id);
+                $this->logInfo('add', $id);
                 
                 return new Redirect(array('forum_Postings', 'Theme', $data->rec->id));
             }
@@ -434,7 +434,7 @@ class forum_Postings extends core_Detail {
                 }
                 
             	$id = $this->save($rec);
-                $this->log('add', $id);
+                $this->logInfo('add', $id);
                 
                 return new Redirect(array('forum_Boards', 'Browse', $data->rec->id));
             }

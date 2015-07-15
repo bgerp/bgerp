@@ -345,6 +345,7 @@ class cat_Setup extends core_ProtoSetup
     public function replaceResources4()
     {
     	if(!acc_Balances::count()) return;
+    	cls::get('cat_Products')->setupMVC();
     	
     	cls::load('cat_Products');
     	$Products = cls::get('cat_Products');

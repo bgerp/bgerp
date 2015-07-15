@@ -663,7 +663,7 @@ class acc_Journal extends core_Master
     private function reconto($accSysIds, $from = NULL, $to = NULL, $types = array())
     {
     	// Дигаме времето за изпълнение на скрипта
-    	set_time_limit(1100);
+    	core_App::setTimeLimit(1500);
     	
     	// Филтрираме записите в журнала по подадените параметри
     	$to = (!$to) ? dt::today() : $to;

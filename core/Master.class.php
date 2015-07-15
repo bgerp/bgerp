@@ -106,8 +106,10 @@ class core_Master extends core_Manager
         // Опаковаме изгледа
         $tpl = $this->renderWrapping($tpl, $data);
         
-        // Записваме, че потребителя е разглеждал този списък
-        $this->log('Single: ' . ($data->log ? $data->log : tr($data->title)), $id);
+        if (!Request::get('ajax_mode')) {
+            // Записваме, че потребителя е разглеждал този списък
+            $this->logInfo('Single', $id);
+        }
         
         return $tpl;
     }

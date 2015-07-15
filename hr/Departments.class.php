@@ -42,7 +42,7 @@ class hr_Departments extends core_Master
     /**
      * По кой итнерфейс ще се групират сметките
      */
-    public $balanceRefGroupBy = 'crm_ContragentAccRegIntf';
+    public $balanceRefGroupBy = 'hr_DepartmentAccRegIntf';
     
     
     /**

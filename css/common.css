@@ -1015,9 +1015,27 @@ a.profile {
 .state-rejected .document ol,
 .state-rejected .document li,
 .state-rejected .document b,
-.state-rejected .document font {
+.state-rejected .document font,
+.state-rejected .document legend {
   color: #999999 !important;
   text-decoration: line-through !important; }
+
+  .state-rejected div.tab-control.deal-history-tab .tab-row .tab a,
+  .state-rejected .single-thread .document .tab-top div.alphabet .tab-row .tab a {
+    color: #999999 !important;
+    text-decoration: none !important; }
+
+  .detail-info.state-rejected td,
+  .detail-info.state-rejected th,
+  .detail-info.state-rejected a,
+  .detail-info.state-rejected p,
+  .detail-info.state-rejected span,
+  .detail-info.state-rejected ul,
+  .detail-info.state-rejected ol,
+  .detail-info.state-rejected li,
+  .detail-info.state-rejected div {
+    color: #999999 !important;
+    text-decoration: line-through !important; }
 
 .state-rejected .document .profile {
   text-decoration: none !important; }

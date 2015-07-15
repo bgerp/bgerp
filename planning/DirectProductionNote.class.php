@@ -133,12 +133,6 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 	
 	
 	/**
-	 * Опашка със заданията на които ще инвалидираме, кешираната информация
-	 */
-	protected $invalidateJobsCache = array();
-	
-	
-	/**
 	 * Описание на модела
 	 */
 	function description()
@@ -217,6 +211,14 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 						$state = $originDoc->fetchField('state');
 						if($state == 'rejected' || $state == 'draft'){
 							$requiredRoles = 'no_one';
+						} else {
+							
+							// Ако артикула от заданието не е производим не можем да добавяме документ
+							$productId = $originDoc->fetchField('productId');
+							$pInfo = cat_Products::getProductInfo($productId);
+							if(!isset($pInfo->meta['canManifacture'])){
+								$requiredRoles = 'no_one';
+							}
 						}
 					}
 				}
@@ -338,6 +340,7 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 		// При активиране/оттегляне
 		if($rec->state == 'active' || $rec->state == 'rejected'){
 			$origin = doc_Containers::getDocument($rec->originId);
+			
 			planning_Jobs::updateProducedQuantity($origin->that);
 		}
 	}
