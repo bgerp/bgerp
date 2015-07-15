@@ -166,8 +166,10 @@ class core_Manager extends core_Mvc
         // Опаковаме изгледа
         $tpl = $this->renderWrapping($tpl, $data);
         
-        // Записваме, че потребителя е разглеждал този списък
-        $this->logInfo('List');
+        if (!Request::get('ajax_mode')) {
+            // Записваме, че потребителя е разглеждал този списък
+            $this->logInfo('List');
+        }
         
         return $tpl;
     }
