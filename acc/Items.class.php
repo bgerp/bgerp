@@ -953,7 +953,7 @@ class acc_Items extends core_Manager
         $numRows = $this->delete("#state = 'closed' AND #lastUseOn IS NULL");
         
         if($numRows){
-            $this->log("Изтрити са {$numRows} неизползвани, затворени пера");
+            $this->logInfo("Изтрити са {$numRows} неизползвани, затворени пера");
         }
     }
     
