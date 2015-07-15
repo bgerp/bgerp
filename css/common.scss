@@ -1046,6 +1046,13 @@ a.profile {
     text-decoration: line-through !important;
 }
 
+.detail-info.state-rejected {
+    th{
+        color: #999 !important;
+        text-decoration: line-through !important;
+    }
+}
+
 .state-rejected .document .profile{
     text-decoration: none !important;
 }
