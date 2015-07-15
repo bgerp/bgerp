@@ -51,7 +51,7 @@ class planning_Jobs extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, doc_DocumentPlg, planning_Wrapper, doc_ActivatePlg, acc_plg_DocumentSummary, plg_Search, doc_SharablePlg';
+    public $loadList = 'plg_RowTools, doc_DocumentPlg, planning_Wrapper, doc_ActivatePlg, plg_Sorting, acc_plg_DocumentSummary, plg_Search, doc_SharablePlg';
     
     
     /**
@@ -350,10 +350,11 @@ class planning_Jobs extends core_Master
     		$row->saleId = sales_Sales::getlink($rec->saleId, 0);
     	}
     	
+    	if(empty($rec->quantityProduced)){
+    		$row->quantityProduced = "<b class='quiet'>{$row->quantityProduced}</b>";
+    	}
+    	
     	if($fields['-single']){
-    		if(empty($rec->quantityProduced)){
-    			$row->quantityProduced = "<b class='quiet'>{$row->quantityProduced}</b>";
-    		}
     		
     		if($rec->storeId){
     			$row->storeId = store_Stores::getHyperLink($rec->storeId, TRUE);
