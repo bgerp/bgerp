@@ -107,7 +107,7 @@ class core_Master extends core_Manager
         $tpl = $this->renderWrapping($tpl, $data);
         
         // Записваме, че потребителя е разглеждал този списък
-        $this->log('Single: ' . ($data->log ? $data->log : tr($data->title)), $id);
+        $this->logInfo('Single', $id);
         
         return $tpl;
     }
