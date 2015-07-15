@@ -114,7 +114,7 @@ class sens_driver_IpDevice extends core_BaseClass
     function saveState()
     {
         if (!permanent_Data::write($this->getStateKey(), $this->stateArr)) {
-            sens_Sensors::log("Неуспешно записване на " . cls::getClassName($this));
+            $this->logWarning("Неуспешно записване на драйвер");
         }
     }
     
