@@ -885,7 +885,7 @@ class expert_Expert extends core_FieldSet {
                     }
                     $this->midRes->form = $form;
                     $this->currentStep--;
-                    Debug::log("CurrentStep on error: $this->currentStep");
+                    log_Data::add('err', "CurrentStep on error: $this->currentStep", get_called_class());
                     
                     return 'DIALOG';
                 }
@@ -1115,7 +1115,7 @@ class expert_Expert extends core_FieldSet {
         
         $form->info = $info;
         
-        Debug::log("CurrentStep in QUESTION: $this->currentStep");
+        log_Data::add('debug', "CurrentStep in QUESTION: $this->currentStep", get_called_class());
         
         $this->setButtons($form, $this->currentStep >= 1);
         
@@ -1177,7 +1177,7 @@ class expert_Expert extends core_FieldSet {
         
         // Записваме логови съобщения за проследяване на експертизата
         $logMsg = $kRec->vars . "=" . $res . " (" . $kRec->expr . "), TRUE = " . $kRec->cond;
-        Debug::log($logMsg);
+        log_Data::add('debug', $logMsg, get_called_class());
         $this->log[] = $logMsg;
         
         // Вдигаме флага, че имаме изпълнение на правило
@@ -1210,7 +1210,7 @@ class expert_Expert extends core_FieldSet {
         
         $logMsg = $var . "=" . $res . " (" . $kRec->expr . "), TRUE = " . $kRec->cond;
         
-        Debug::log($logMsg);
+        log_Data::add('debug', $logMsg, get_called_class());
         
         $this->log[] = $logMsg;
         
@@ -1267,7 +1267,7 @@ class expert_Expert extends core_FieldSet {
         
         $logMsg = $var . "=" . $opt . " [" . count($res) . "], TRUE = " . $kRec->cond;
         
-        Debug::log($logMsg);
+        log_Data::add('debug', $logMsg, get_called_class());
         
         $this->log[] = $logMsg;
         
