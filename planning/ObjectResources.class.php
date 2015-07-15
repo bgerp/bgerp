@@ -241,8 +241,9 @@ class planning_ObjectResources extends core_Manager
     	
     	if($data->notConvertableAnymore === TRUE){
     		$title = tr('Артикула вече не е вложим');
-    		$title = "<span class='red'>{$title}</span>";
+    		$title = "<small class='red'>{$title}</small>";
     		$tpl->append($title, 'title');
+    		$tpl->replace('state-rejected', 'TAB_STATE');
     	} else {
     		$tpl->append(tr('Влагане'), 'title');
     	}

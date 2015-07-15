@@ -718,6 +718,7 @@ class planning_Jobs extends core_Master
     	 // Ако артикула не е производим, показваме в детайла
     	 if($data->notManifacturable === TRUE){
     	 	$tpl->append(" <span class='red small'>(" . tr('Артикулът не е производим') . ")</span>", 'title');
+    	 	$tpl->append("state-rejected", 'TAB_STATE');
     	 }
     	 
     	 $tpl->replace($details, 'content');
