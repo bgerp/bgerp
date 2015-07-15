@@ -357,11 +357,11 @@ class crm_Profiles extends core_Master
         if ($form->isSubmitted()) {
            $this->validateChangePasswordForm($form);
            if(!$form->gotErrors()){
-			
+			    
         		// Записваме данните
          		if (core_Users::setPassword($form->rec->passNewHash))  {
 	                // Правим запис в лога
-	                static::log('change_password');
+	                self::logInfo('Смяна на парола', $form->rec->id);
 	                
 //             		if (EF_USSERS_EMAIL_AS_NICK) {
 //             		    $userId = core_Users::fetchField(array("#email = '[#1#]'", $form->rec->email));
