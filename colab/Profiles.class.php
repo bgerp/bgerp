@@ -115,7 +115,7 @@ class colab_Profiles extends core_Master
         $tpl = $this->Profile->renderWrapping($tpl, $data);
        
         // Записваме, че потребителя е разглеждал този списък
-        $this->log('Single', $data->rec->id);
+        $this->logInfo('Single', $data->rec->id);
         
         // Връщане на шаблона
         return $tpl;
