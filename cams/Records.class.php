@@ -151,7 +151,7 @@ class cams_Records extends core_Master
         // Ако директорията за flv файловете не съществува,
         // записва в лога 
         if(!is_dir(SBF_CAMS_FLV_PATH)) {
-            $this->log("sbf директорията за flv файловете не съществува - преинсталирайте cams.");
+            $this->logAlert("SBF директорията за .flv файловете не съществува - преинсталирайте cams.");
         }
         
         $fp->flvUrl = sbf(SBF_CAMS_FLV_DIR . "/{$baseName}_{$hash}.flv", '');
@@ -276,17 +276,17 @@ class cams_Records extends core_Master
             if(!$secondsToEnd) {
                 // Стартираме конвертирането на видеото към flv, ако това все още не е направено
                 $this->convertToFlv($fp->videoFile, $fp->flvFile, $params);
-                $this->log('Конвертиране към FLV', $rec->id);
+                $this->logInfo('Конвертиране към FLV', $rec->id);
                 $secondsToEnd = $conf->CAMS_CLIP_TO_FLV_DURATION;
             }
             
             if($secondsToEnd === NULL) {
-                $this->log('Правенo е конвертиране, но FLV файлът не се е появил', $rec->id);
+                $this->logErr('Правенo е конвертиране, но FLV файлът не се е появил', $rec->id);
                 $secondsToEnd = $conf->CAMS_CLIP_TO_FLV_DURATION;
             }
         } else {
             if($secondsToEnd === NULL) {
-                $this->log('Има FLV файл, без да е конвертиран', $rec->id);
+                $this->logWarning('Има FLV файл, без да е конвертиран', $rec->id);
                 $secondsToEnd = $conf->CAMS_CLIP_TO_FLV_DURATION;
             }
         }
@@ -319,7 +319,7 @@ class cams_Records extends core_Master
         // Рендираме плеъра
         $tpl = $this->renderSingle($data);
         
-        $this->log("Single", $rec->id);
+        $this->logInfo("Single", $rec->id);
         
         return $this->renderWrapping($tpl);
     }
