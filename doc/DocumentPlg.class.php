@@ -384,7 +384,7 @@ class doc_DocumentPlg extends core_Plugin
         } catch (core_exception_Expect $e) {
             
             // Ако възникне грешка при записването
-            doc_Files::log("Грешка при записване на файла", $id);
+            $mvc->logErr("Грешка при записване на файла", $id);
         }
         
         // Изтрива от кеша html представянето на документа
