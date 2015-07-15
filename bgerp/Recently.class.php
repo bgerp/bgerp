@@ -102,7 +102,7 @@ class bgerp_Recently extends core_Manager
         if ($type == 'document') {
             doc_Containers::logInfo('Добавяне в последно използвани', $objectId);
         } elseif ($type == 'folder') {
-            doc_Threads::logInfo('Добавяне в последно използвани', $objectId);
+            doc_Folders::logInfo('Добавяне в последно използвани', $objectId);
         } else {
             self::logDebug($type . ', ' . $objectId . $_SERVER['SCRIPT_NAME'] . '?' . $_SERVER['QUERY_STRING']);
         }
