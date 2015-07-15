@@ -776,7 +776,7 @@ class doc_DocumentPlg extends core_Plugin
             bgerp_Recently::setHidden('document', $rec->containerId, $rec->state == 'rejected' ? 'yes':'no');
         }
         
-        $mvc->log($rec->state == 'rejected' ? 'reject' : 'restore', $rec->id);
+        $mvc->logInfo($rec->state == 'rejected' ? 'reject' : 'restore', $rec->id);
         
         return TRUE;
     }
