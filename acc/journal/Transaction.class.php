@@ -241,7 +241,7 @@ class acc_journal_Transaction
         $this->Journal->delete($this->rec->id);
         
         // Логваме в журнала
-        acc_Articles::log("Rollback на ред '{$this->rec->id}' от журнала");
+        $this->Journal->log("Rollback на ред от журнала", $this->rec->id);
         
         return TRUE;
     }
