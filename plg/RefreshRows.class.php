@@ -278,23 +278,4 @@ class plg_RefreshRows extends core_Plugin
             return FALSE;
         }
     }
-    
-    
-    /**
-     * Преди вкарване на записив в лога
-     * 
-     * @param core_Mvc $mvc
-     * @param mixed $res
-     * @param string $detail
-     * @param integer $objectId
-     * @param integer $logKeepDays
-     */
-    static function on_BeforeLog($mvc, &$res, $detail, $objectId = NULL, &$logKeepDays = NULL)
-    {
-        // Ако заявката е по AJAX
-        if (Request::get('ajax_mode')) {
-            
-            return FALSE;
-        }
-    }
 }
