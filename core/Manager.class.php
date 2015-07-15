@@ -167,7 +167,7 @@ class core_Manager extends core_Mvc
         $tpl = $this->renderWrapping($tpl, $data);
         
         // Записваме, че потребителя е разглеждал този списък
-        $this->log('List: ' . ($data->log ? $data->log : tr($data->title)));
+        $this->logInfo('List');
         
         return $tpl;
     }
@@ -242,7 +242,7 @@ class core_Manager extends core_Mvc
         
         $this->delete($data->id);
         
-        $this->log($data->cmd, $data->id);
+        $this->logInfo($data->cmd, $data->id);
         
         return new Redirect($data->retUrl);
     }
@@ -306,7 +306,7 @@ class core_Manager extends core_Mvc
             $id = $this->save($rec);
             
             // Правим запис в лога
-            $this->log($data->cmd, $id);
+            $this->logInfo($data->cmd, $id);
             
             // Подготвяме адреса, към който трябва да редиректнем,  
             // при успешно записване на данните от формата
@@ -929,7 +929,7 @@ class core_Manager extends core_Mvc
         
         $select = new ET('');
         
-        $this->log("ajaxGetOptions|{$q}");
+        $this->logInfo("ajaxGetOptions", NULL, 7);
         
         $options = $this->fetchOptions($q);
         
