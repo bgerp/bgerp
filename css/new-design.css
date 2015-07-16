@@ -203,7 +203,7 @@ body {
   right: 0;
   width: 100%;
   display: table;
-  z-index: 11; }
+  z-index: 1001; }
 
 #framecontentBottom {
   padding-left: 0.2em;
@@ -231,7 +231,7 @@ body {
   left: 0;
   right: 0;
   top: 45px;
-  z-index: 9;
+  z-index: 1000;
   padding: 0 15px; }
 
 .narrow #main-container > .tab-control > .tab-row {
