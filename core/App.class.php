@@ -55,7 +55,7 @@ class core_App
             $Wrapper = core_Cls::get('core_page_Wrapper');
             $Wrapper->render($content);
         }
-    }
+    } 
 
 
     /**
