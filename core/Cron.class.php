@@ -296,13 +296,13 @@ class core_Cron extends core_Manager
         
         // Дали процесът не е заключен?
         if ($rec->state == 'locked' && !$forced) {
-            $this->logThenStop("Процесът е заключен!", $id, 'err');
+            $this->logThenStop("Процесът е заключен", $id, 'err');
         }
         
         // Дали този процес не е стартиран след началото на текущата минута
         $nowMinute = date("Y-m-d H:i:00", time());
         if ($nowMinute <= $rec->lastStart && !$forced) {
-            $this->logThenStop("Процесът е бил стартиран след $nowMinute!", $id, 'err');
+            $this->logThenStop("Процесът е бил стартиран след $nowMinute", $id, 'err');
         }
         
         // Заключваме процеса и му записваме текущото време за време на последното стартиране
@@ -354,7 +354,7 @@ class core_Cron extends core_Manager
                 // Колко време да пазим лога?
                 $logLifeTime = max(1, 3 * round($rec->period / (24 * 60)));
                 
-                $this->logInfo("Процесът е изпълнен успешно за {$workingTime} секунди.", $rec->id, $logLifeTime);
+                $this->logInfo("Процесът е изпълнен успешно за {$workingTime} секунди", $rec->id, $logLifeTime);
             } else {
                 $this->unlockProcess($rec);
                 $this->logThenStop("Няма такъв екшън в класа", $rec->id, 'err');
