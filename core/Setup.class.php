@@ -302,7 +302,7 @@ class core_Setup extends core_ProtoSetup {
 
         // Иконата
         $dest = EF_INDEX_PATH . '/favicon.ico';
-        if(!file_exists($iconPath)) {
+        if(!file_exists($dest)) {
             $src = getFullPath('img/favicon.ico');
             if(copy($src, $dest)) {
                 $html .= "<li  class=\"green\">Копиран е файла: <b>{$src}</b> => <b>{$dest}</b></li>";
