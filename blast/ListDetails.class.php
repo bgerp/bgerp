@@ -301,7 +301,7 @@ class blast_ListDetails extends doc_Detail
     				if (preg_match("/[\,\"\r\n]/", $val)) {
     					$val = '"' . str_replace('"', '""', $val) . '"';
     				}
-    				$csv .= $val. ",";
+    				$csv .= str_replace('|', ' ', $val) . "|";
     			}
     		}
     		$csv = rtrim($csv, ',');
