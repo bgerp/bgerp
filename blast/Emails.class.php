@@ -273,7 +273,7 @@ class blast_Emails extends core_Master
      */
     public static function activateEmail($id, $sendPerCall = 5)
     {   
-        self::log('Активиран бласт имейл: ' . $id);
+        self::logInfo('Активиран бласт имейл', $id);
 
         // Записа
         $rec = self::getRec($id);

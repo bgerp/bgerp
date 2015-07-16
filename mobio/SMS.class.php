@@ -122,7 +122,7 @@ class mobio_SMS extends core_Manager
                     $nRes['msg'] .= "|*\n" . $resStr;
                 }
                 
-                self::log("Грешка при изпращане на SMS: " . $resStr);
+                self::logErr("Грешка при изпращане на SMS: " . $resStr);
             }
         } else {
             
@@ -133,7 +133,7 @@ class mobio_SMS extends core_Manager
             $nRes['msg'] = "|Липсва константа за URL' то";
             
             // Записваме в лога
-            static::log("Липсва константа за URL' то");
+            self::logAlert("Липсва константа за URL' то");
         }
     	
         return $nRes;
@@ -222,7 +222,7 @@ class mobio_SMS extends core_Manager
             // Обновяваме статуса на съобщението
             callcenter_SMS::update($classId, $uid, $status, $timestamp);
         } catch (core_exception_Expect $e) {
-            self::log("Възникна грешка при обновяване на състоянието с msgid: " . $uid);
+            self::logErr("Възникна грешка при обновяване на състоянието с msgid: " . $uid . ' ' . $e->getMessage());
         }
     }
 }

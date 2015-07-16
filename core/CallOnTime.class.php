@@ -184,7 +184,7 @@ class core_CallOnTime extends core_Manager
                 self::delete($rec->id);
             } catch (core_exception_Expect $e) {
                 $res .= "Грешка при извикване на '{$rec->className}->callback_{$rec->methodName}'";
-                self::log($res);
+                self::logErr("Грешка при извикване на функция", $rec->id);
             }
         }
         

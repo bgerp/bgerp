@@ -1124,7 +1124,7 @@ class callcenter_Talks extends core_Master
             }
             
             // Записваме грешката
-            static::log($err, $id);
+            self::logErr($err, $id);
         }
     }
     
@@ -1145,7 +1145,7 @@ class callcenter_Talks extends core_Master
         if ($protectKey != $conf->CALLCENTER_PROTECT_KEY) {
             
             // Записваме в лога
-            static::log('Невалиден публичен ключ за обаждането: ' . $protectKey);
+            self::logErr('Невалиден публичен ключ за обаждането: ' . $protectKey);
             
             // Връщаме
             return FALSE;
@@ -1164,7 +1164,7 @@ class callcenter_Talks extends core_Master
             if (!$allowedIpArr[$ip]) {
                 
                 // Записваме в лога
-                static::log('Недопустим IP адрес: ' . $ip);
+                self::logErr('Недопустим IP адрес в конфигурацията');
                 
                 return FALSE;
             }

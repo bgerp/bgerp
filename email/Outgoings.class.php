@@ -438,7 +438,7 @@ class email_Outgoings extends core_Master
                     $emailsCc
                 );
             } catch (core_exception_Expect $e) {
-                self::log("Грешка при изпращане на имейл: " . $e->getMessage());
+                self::logErr("Грешка при изпращане на имейл: " . $e->getMessage(), $rec->id);
                 $status = FALSE;
             }
             
@@ -470,14 +470,14 @@ class email_Outgoings extends core_Master
                 }
                 
                 // Правим запис в лога
-                static::log('Send to ' . $allEmailsToStr, $rec->id);
+                self::logInfo('Sended' , $rec->id);
                 
                 // Добавяме в масива
                 $success[] = $allEmailsToStr;
             } else {
                 
                 // Правим запис в лога за неуспех
-                static::log('Unable to send to ' . $allEmailsToStr, $rec->id);
+                static::logErr('Unable to send', $rec->id);
                 $failure[] = $allEmailsToStr;
             }
         }

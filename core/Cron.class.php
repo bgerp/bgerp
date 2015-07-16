@@ -246,6 +246,11 @@ class core_Cron extends core_Manager
 
         $apacheProc = $Os->countApacheProc();
         
+        // Ако хедърите са пратени, да не се генерира brid
+        if (headers_sent()) {
+            log_Browsers::stopGenerating();
+        }
+        
         $this->logInfo("Брой стартирани апача на сървъра - " . $apacheProc, NULL, 7);
         $this->logThenStop("{$i} процеса са стартирани", NULL, 'info');
     }

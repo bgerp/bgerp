@@ -519,7 +519,7 @@ class acc_Journal extends core_Master
                 acc_Journal::delete("#id = {$rec->id}");
                 
                 // Логваме в журнала
-                acc_Articles::log("Изтрит ред '{$rec->id}' от журнала На документ {$document->className}:{$rec->docId}");
+                self::logInfo("Изтрит ред от журнала на документ {$document->className}", $rec->id);
             }
         }
     }
