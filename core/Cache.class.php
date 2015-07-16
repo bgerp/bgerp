@@ -110,7 +110,7 @@ class core_Cache extends core_Manager
                 if($data->dHash != $dHash) {
                     $Cache->deleteData($key);
                     
-                    self::logDebug("get $type, $handler - other models are changed, no success");
+                    Debug::log("Cache::get $type, $handler - other models are changed, no success");
                     
                     return FALSE;
                 }
@@ -118,12 +118,12 @@ class core_Cache extends core_Manager
             
             // Увеличаваме времето на валидността на данните ????
             
-            self::logDebug("get $type, $handler - success");
+            Debug::log("Cache::get $type, $handler - success");
             
             return $data->value;
         }
         
-        self::logDebug("get $type, $handler - no exists");
+        Debug::log("Cache::get $type, $handler - no exists");
         
         return FALSE;
     }
@@ -136,7 +136,7 @@ class core_Cache extends core_Manager
     {
         $Cache = cls::get('core_Cache');
         
-        self::logDebug("set $type, $handler");
+        Debug::log("Cache::set $type, $handler");
         
         if (!$handler) {
             $handler = md5(json_encode($value));

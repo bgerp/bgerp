@@ -37,7 +37,7 @@ class plg_LastUsedKeys extends core_Plugin
                 }
             }
             $mvc->noCheckLastUsedField = FALSE;
-            $mvc->logWarning('Не е дефиниран lastUsedKeys');
+            core_Debug::log('Не е дефиниран lastUsedKeys');
         } else {
             $mvc->lastUsedKeys = arr::make($mvc->lastUsedKeys);
             

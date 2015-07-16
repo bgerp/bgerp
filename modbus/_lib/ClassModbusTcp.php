@@ -217,7 +217,7 @@ class ModbusTcp {
 		$this->Simulation = True; // 
 		// initialise avec les microsecondes depuis la derni? seconde enti?  
 		srand( (float) microtime()*1000000 );  //Pour Simulation
-		log_Data::add('debug', 'Attention: valeurs en Mode SIMULATION', 'ModbusTcp');
+		Debug::log("<font color='#FF9900' size=3><b>Attention: valeurs en Mode SIMULATION ! ! ! ! </b></font>");
 	}
 
 	function SetDebug() {
@@ -365,7 +365,7 @@ class ModbusTcp {
 		switch ( substr( sprintf("%06d", $AdrDebut), 0, 1) ) {	// Formatage ? caract?s
 			case "4":
 				$this->DebutAdresse = $AdrDebut - 400001;
-				log_Data::add('debug', "debut-adresse = $this->DebutAdresse", 'ModbusTcp');
+				Debug::log("debut-adresse = $this->DebutAdresse");
 				return ( $this->ReadHoldRegisters() );
 				break;
 			case "3":
@@ -412,7 +412,7 @@ class ModbusTcp {
 		list( $obuf[11], $obuf[10] ) = $this->WordToBytes( (int)$this->Nbre );
 
 		if ( $this->Debug ) { //Affichage des octets ?s si en mode Debug
-			log_Data::add('debug', 'ReadHoldRegisters', 'ModbusTcp');
+			Debug::log("<b>ReadHoldRegisters</b><br>"); 
 			for ($i=0;$i<count($obuf);$i++ ) {
 				echo "OctEmis[$i] =". ord($obuf[$i])."<br>";
 			}
@@ -495,9 +495,9 @@ class ModbusTcp {
 		list( $obuf[11], $obuf[10] ) = $this->WordToBytes( (int)$this->Nbre );
 
 		if ( $this->Debug ) { //Affichage des octets emis si en mode Debug
-		    log_Data::add('debug', 'ReadInputRegisters', 'ModbusTcp');
+			Debug::log("<b>ReadInputRegisters</b><br>"); 
 			for ($i=0;$i<count($obuf);$i++ ) {
-				log_Data::add('debug', "OctEmis[$i] =". ord($obuf[$i]), 'ModbusTcp');
+				Debug::log("OctEmis[$i] =". ord($obuf[$i]));
 			}
 		}		
 
