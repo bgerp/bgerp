@@ -155,7 +155,7 @@ class colab_Profiles extends core_Master
 	        	// Записваме данните
 	         	if (core_Users::setPassword($form->rec->passNewHash))  {
 		               // Правим запис в лога
-		               static::log('change_password');
+		               $this->Profile->log('Промяна на парола', $form->rec->id);
 		            
 		               // Редиректваме към предварително установения адрес
 		               return new Redirect(getRetUrl(), "Паролата е сменена успешно");

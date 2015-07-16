@@ -143,6 +143,8 @@ class log_Data extends core_Manager
         $toAdd['lifeTime'] = $lifeDays * 86400;
                 
         self::$toAdd[] = $toAdd;
+        
+        core_Debug::log("$className, $objectId, $message");
     }
     
     

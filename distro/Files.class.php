@@ -794,7 +794,7 @@ class distro_Files extends core_Detail
                     
                     // Ако възникне грешка
                     // Записваме грешката
-                    static::log("Възникна грешка при обхождането на хранилище '{$repoId}'");
+                    fileman_Repositories::logErr("Възникна грешка при обхождането на хранилището", $repoId);
                     
                     // Прескачаме хранилището
                     continue;
@@ -1340,7 +1340,7 @@ class distro_Files extends core_Detail
         if (!$resArr) return ;
         
         // Сетваме грешката
-        static::log('Възникна грешка: ' . serialize($resArr), $id);
+        self::logErr('Възникна грешка: ' . serialize($resArr), $id);
     }
     
     

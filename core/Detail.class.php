@@ -289,6 +289,14 @@ class core_Detail extends core_Manager
      */
     function save_(&$rec, $fieldsList = NULL, $mode = NULL)
     {
+        $logMsg = 'Добавяне';
+        
+        if ($rec->id) {
+            $logMsg = 'Редактиране';
+        }
+        
+        $logMsg .= ' на детайл';
+        
         if (!$id = parent::save_($rec, $fieldsList, $mode)) {
             return FALSE;
         }
@@ -305,6 +313,8 @@ class core_Detail extends core_Manager
             }
             
             $masterInstance->invoke('AfterUpdateDetail', array($masterId, $this));
+            
+            $masterInstance->logInfo($logMsg, $masterId);
         }
         
         return $id;
@@ -320,11 +330,53 @@ class core_Detail extends core_Manager
             foreach($query->getDeletedRecs() as $rec) {
                 $masters = $mvc->getMasters($rec);
                 
-                foreach ($masters as $masterKey=>$masterInstance) {
+                foreach ($masters as $masterKey => $masterInstance) {
                     $masterId = $rec->{$masterKey};
                     $masterInstance->invoke('AfterUpdateDetail', array($masterId, $mvc));
+                    
+                    $masterInstance->logInfo('Изтриване на детайл', $masterId);
                 }
             }
+        }
+    }
+    
+    
+    /**
+     * Оттегляне на обект
+     * 
+     * @param core_Mvc $mvc
+     * @param mixed $res
+     * @param int|stdClass $id
+     */
+    public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+        $masters = $mvc->getMasters($rec);
+                
+        foreach ($masters as $masterKey => $masterInstance) {
+            $masterId = $rec->{$masterKey};
+            
+            $masterInstance->logInfo('Оттегляне на детайл', $masterId);
+        }
+    }
+    
+    
+    /**
+     * Възстановяване на оттеглен обект
+     * 
+     * @param core_Mvc $mvc
+     * @param mixed $res
+     * @param int|stdClass $id
+     */
+    public static function on_AfterRestore(core_Mvc $mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+        $masters = $mvc->getMasters($rec);
+                
+        foreach ($masters as $masterKey => $masterInstance) {
+            $masterId = $rec->{$masterKey};
+            
+            $masterInstance->logInfo('Възстановяване на детайл', $masterId);
         }
     }
     
