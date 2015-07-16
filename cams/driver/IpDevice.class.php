@@ -110,7 +110,7 @@ class cams_driver_IpDevice extends core_BaseClass {
         
         if (isDebug()) {
             $res = implode(',', $arrOutput);
-        	log_Data::add('debug', "Команда: {$cmd} Резултат: {$res}", get_called_class(), $this->id, 5);
+        	log_Data::add('debug', "Команда: {$cmd} Резултат: {$res}", 'cams_driver_IpDevice', NULL, 5);
         }
     }
     
