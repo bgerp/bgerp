@@ -36,7 +36,7 @@
     position: absolute;
     right: 18px;
     top: 2;
-    z-index: 200;
+    z-index: 10;
 }
 
 .select2-selection__clear:hover {
