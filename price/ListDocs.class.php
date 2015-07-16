@@ -497,7 +497,7 @@ class price_ListDocs extends core_Master
     	$double->params['smartRound'] = 'smartRound';
     	
     	$row = new stdClass();
-    	$row->productId = cat_Products::getVerbal($rec->productId, 'name');
+    	$row->productId = cat_Products::getVerbal(cat_Products::fetch($rec->productId), 'name');
     	
     	if(!Mode::is('printing')){
     		if(cat_Products::haveRightFor('single', $rec->productId)){
