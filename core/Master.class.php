@@ -186,7 +186,7 @@ class core_Master extends core_Manager
             }
             
             // Добавяме в лога
-            static::log("Преизчисляване на полетата на мастера", $data->rec->id, 1);
+            self::logInfo("Преизчисляване на полетата на мастера", $data->rec->id, 7);
         }
         
         return $data;
