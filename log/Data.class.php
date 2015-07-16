@@ -274,6 +274,7 @@ class log_Data extends core_Manager
     static function on_AfterPrepareListFilter($mvc, $data)
     {
         $data->query->orderBy("time", "DESC");
+        $data->query->orderBy("id", "DESC");
         
         $data->listFilter->layout = new ET(tr('|*' . getFileContent('log/tpl/DataFilterForm.shtml')));
         
