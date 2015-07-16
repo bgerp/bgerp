@@ -123,7 +123,7 @@ class plg_Rejected extends core_Plugin
         $rec->state = 'rejected';
         $res = $mvc->save($rec);
 
-        $mvc->log('reject', $rec->id);
+        $mvc->logInfo('reject', $rec->id);
     }
     
     
@@ -148,7 +148,7 @@ class plg_Rejected extends core_Plugin
         $rec->state = $rec->exState;
         $res = $mvc->save($rec);
 
-        $mvc->log('restore', $rec->id);
+        $mvc->logInfo('restore', $rec->id);
     }
 
 

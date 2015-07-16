@@ -687,6 +687,8 @@ class sales_QuotationsDetails extends doc_Detail {
     	$data->discountsOptional = $data->discounts = array();
     	$data->haveOptionalPackaging = $data->haveMandatoryPackaging = TRUE;
     	
+    	core_Lg::push($data->masterData->rec->tplLang);
+    	
     	foreach ($rows as $id => &$row){
     		$rec = $recs[$id];
     		if(!isset($rec->packagingId)){
@@ -710,6 +712,8 @@ class sales_QuotationsDetails extends doc_Detail {
     			deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
     		}
     	}
+    	
+    	core_Lg::pop();
     }
     
     

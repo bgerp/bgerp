@@ -315,10 +315,10 @@ class email_FaxSent extends core_Manager
                 }
                 
                 // Правим запис в лога
-                $Email->log('Send fax to ' . $faxTo, $rec->id);
+                $Email->logInfo('Изпратен факс', $rec->id);
                 $success[] = $faxTo;
             } else {
-                $Email->log('Unable to send fax to ' . $faxTo, $rec->id);
+                $Email->logInfo('Грешка при изпращане на факс', $rec->id);
                 $failure[] = $faxTo;
             }
         }

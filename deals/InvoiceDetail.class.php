@@ -60,7 +60,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 		$mvc->FLD('productId', 'int', 'caption=Продукт','tdClass=large-field leftCol wrap,silent,removeAndRefreshForm=packPrice|discount|packagingId');
 		$mvc->FLD('classId', 'class(interface=cat_ProductAccRegIntf, select=title)', 'caption=Мениджър,silent,input=hidden');
 		$mvc->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty, select2MinItems=0)', 'caption=Мярка','tdClass=small-field,silent,removeAndRefreshForm=packPrice|discount|uomId');
-		$mvc->FLD('quantity', 'double(Min=0)', 'caption=К-во,mandatory','tdClass=small-field');
+		$mvc->FLD('quantity', 'double', 'caption=К-во,mandatory','tdClass=small-field');
 		$mvc->FLD('quantityInPack', 'double(smartRound)', 'input=none');
 		$mvc->FLD('price', 'double', 'caption=Цена, input=none');
 		$mvc->FLD('amount', 'double(minDecimals=2,maxDecimals=2)', 'caption=Сума,input=none');
@@ -96,15 +96,22 @@ abstract class deals_InvoiceDetail extends doc_Detail
 			// и полето цена да стане задължително
 			$data->form->setOptions('productId', array($rec->productId => $products[$rec->productId]));
 		}
-	
-		if (!empty($rec->packPrice)) {
-			$rec->packPrice = deals_Helper::getDisplayPrice($rec->packPrice, 0, $masterRec->rate, 'no');
-		}
 		
 		if($masterRec->type === 'dc_note'){
+			$data->form->info = tr('|*<div style="color:#333;margin-top:3px;margin-bottom:12px">|Моля въведете крайното количество|* <b>|или|*</b> |сума след промяната|* <br><small>( |системата автоматично ще изчисли и попълни разликата в известието|* )</small></div>');
+			$data->form->setField('quantity', 'caption=|Крайни|* (|след известието|*)->К-во');
+			$data->form->setField('packPrice', 'caption=|Крайни|* (|след известието|*)->Цена');
+			
 			foreach (array('packagingId', 'notes', 'discount') as $fld){
 				$data->form->setField($fld, 'input=hidden');
 			}
+			$data->form->setFieldTypeParams('quantity', array('min' => 0));
+		} else {
+			$data->form->setFieldTypeParams('quantity', array('Min' => 0));
+		}
+		
+		if (!empty($rec->packPrice)) {
+			$rec->packPrice = deals_Helper::getDisplayPrice($rec->packPrice, 0, $masterRec->rate, 'no');
 		}
 		
 		// Помощно поле за запомняне на последно избрания артикул
@@ -149,7 +156,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 	 */
 	public static function on_CalcPackPrice(core_Mvc $mvc, $rec)
 	{
-		if (!isset($rec->price) || empty($rec->quantity) || empty($rec->quantityInPack)) {
+		if (!isset($rec->price) || empty($rec->quantityInPack)) {
 			return;
 		}
 	
@@ -426,7 +433,11 @@ abstract class deals_InvoiceDetail extends doc_Detail
 	
 			// Закръгляме количеството спрямо допустимото от мярката
 			$roundQuantity = cat_UoM::round($rec->quantity, $rec->productId, $rec->packagingId);
-				
+			if($roundQuantity == 0){
+				$form->setError('packQuantity', 'Не може да бъде въведено количество, което след закръглянето указано в|* <b>|Артикули|* » |Каталог|* » |Мерки/Опаковки|*</b> |ще стане|* 0');
+				return;
+			}
+			
 			if($roundQuantity != $rec->quantity){
 				$form->setWarning('quantity', 'Количеството ще бъде закръглено до указаното в |*<b>|Артикули » Каталог » Мерки/Опаковки|*</b>|');
 					

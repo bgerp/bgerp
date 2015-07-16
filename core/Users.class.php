@@ -730,9 +730,18 @@ class core_Users extends core_Manager
      */
     function logLogin_($inputs, $msg)
     {
-        $nick = $inputs->nick ? $inputs->nick : $inputs->email;
+        $id = NULL;
+        if ($inputs->nick) {
+            $rec = self::fetch(array("LOWER(#nick) = LOWER('[#1#]')", $inputs->nick));
+        } else {
+            $rec = self::fetch(array("LOWER(#email) = LOWER('[#1#]')", $inputs->email));
+        }
+        
+        if ($rec) {
+            $id = $rec->id;
+        }
 
-        $this->log($msg . ' [' . $nick . '] from IP: ' . $this->getRealIpAddr());
+        $this->logInfo($msg, $id);
     }
     
 
@@ -1014,11 +1023,7 @@ class core_Users extends core_Manager
                 $userRec->state = 'blocked';
                 $Users->save($userRec, 'state');
                 
-                $Users->log("Block: " . $userRec->lastLoginIp . " != " .
-                    $Users->getRealIpAddr() . " && " .
-                    $userRec->lastLoginTime . " > " .
-                    $sessUserRec->loginTime,
-                    $userRec->id);
+                $Users->logAlert("Блокиран потребител", $userRec->id);
                     
                 core_LoginLog::add('block', $userRec->id);
             }

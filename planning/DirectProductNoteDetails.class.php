@@ -188,6 +188,9 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     	if(count($data->rows)){
     		foreach ($data->rows as $id => $row){
     			$rec = $data->recs[$id];
+    			if(!is_object($row->tools)){
+    				$row->tools = new ET("[#TOOLS#]");
+    			}
     			
     			// Разделяме записите според това дали са вложими или не
     			if($rec->type == 'input'){
@@ -215,6 +218,10 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     	$tpl = new ET("");
     	
     	$this->invoke('BeforeRenderListTable', array(&$tpl, &$data));
+    	if(Mode::is('printing')){
+    		unset($data->listFields['tools']);
+    	}
+    	
     	
     	// Рендираме таблицата с вложените материали
     	$table = cls::get('core_TableView', array('mvc' => $this));
@@ -223,7 +230,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     	
     	// Добавяне на бутон за нов материал
     	if($this->haveRightFor('add', (object)array('noteId' => $data->masterId))){
-    		$tpl->append(ht::createBtn('Материал', array($this, 'add', 'noteId' => $data->masterId, 'type' => 'input', 'ret_url' => TRUE),  NULL, NULL, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/star_2.png', 'title' => 'Добавяне на нов материал')), 'planning_DirectProductNoteDetails');
+    		$tpl->append(ht::createBtn('Материал', array($this, 'add', 'noteId' => $data->masterId, 'type' => 'input', 'ret_url' => TRUE),  NULL, NULL, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/package.png', 'title' => 'Добавяне на нов материал')), 'planning_DirectProductNoteDetails');
     	}
     	
     	// Рендираме таблицата с отпадъците
@@ -236,7 +243,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     	
     	// Добавяне на бутон за нов отпадък
     	if($this->haveRightFor('add', (object)array('noteId' => $data->masterId))){
-    		$tpl->append(ht::createBtn('Отпадък', array($this, 'add', 'noteId' => $data->masterId, 'type' => 'pop', 'ret_url' => TRUE),  NULL, NULL, array('style' => 'margin-top:5px;;margin-bottom:10px;', 'ef_icon' => 'img/16/star_2.png', 'title' => 'Добавяне на нов отпадък')), 'planning_DirectProductNoteDetails');
+    		$tpl->append(ht::createBtn('Отпадък', array($this, 'add', 'noteId' => $data->masterId, 'type' => 'pop', 'ret_url' => TRUE),  NULL, NULL, array('style' => 'margin-top:5px;;margin-bottom:10px;', 'ef_icon' => 'img/16/package.png', 'title' => 'Добавяне на нов отпадък')), 'planning_DirectProductNoteDetails');
     	}
     	
     	// Връщаме шаблона

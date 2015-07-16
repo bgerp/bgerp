@@ -26,7 +26,7 @@ class cat_BomDetails extends doc_Detail
     /**
      * Заглавие
      */
-    var $singleTitle = "Ресурс";
+    var $singleTitle = "Материал";
     
     
     /**
@@ -148,7 +148,8 @@ class cat_BomDetails extends doc_Detail
     {
     	$form = &$data->form;
     	$typeCaption = ($form->rec->type == 'input') ? 'материал' : 'отпадък';
-    	$form->title = "|Добавяне на|* {$typeCaption} |към|* <b>|{$mvc->Master->singleTitle}|* №{$form->rec->bomId}<b>";
+    	$action = ($form->rec->id) ? 'Редактиране' : 'Добавяне';
+    	$form->title = "|{$action}|* на {$typeCaption} |към|* <b>|{$mvc->Master->singleTitle}|* №{$form->rec->bomId}<b>";
     	
     	// Добавяме всички вложими артикули за избор
     	$products = cat_Products::getByProperty('canConvert');
@@ -305,8 +306,8 @@ class cat_BomDetails extends doc_Detail
     {
     	$data->toolbar->removeBtn('btnAdd');
     	if($mvc->haveRightFor('add', (object)array('bomId' => $data->masterId))){
-    		$data->toolbar->addBtn('Материал', array($mvc, 'add', 'bomId' => $data->masterId, 'ret_url' => TRUE, 'type' => 'input'), NULL, "title=Добавяне на ресурс към рецептата,ef_icon=img/16/star_2.png");
-    		$data->toolbar->addBtn('Отпадък', array($mvc, 'add', 'bomId' => $data->masterId, 'ret_url' => TRUE, 'type' => 'pop'), NULL, "title=Добавяне на отпаден ресурс към рецептата,ef_icon=img/16/star_2.png");
+    		$data->toolbar->addBtn('Материал', array($mvc, 'add', 'bomId' => $data->masterId, 'ret_url' => TRUE, 'type' => 'input'), NULL, "title=Добавяне на материал,ef_icon=img/16/package.png");
+    		$data->toolbar->addBtn('Отпадък', array($mvc, 'add', 'bomId' => $data->masterId, 'ret_url' => TRUE, 'type' => 'pop'), NULL, "title=Добавяне на отпадък,ef_icon=img/16/package.png");
     	}
     }
     
