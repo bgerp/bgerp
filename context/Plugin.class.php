@@ -23,7 +23,7 @@ class context_Plugin extends core_Plugin {
     {
      	if (!is_object($toolbar)) return ;
 
-    	$toolbar->prepend(ht::createFnBtn(' ', NULL, NULL, array('class'=>'more-btn', 'title'=>'Други действия с този документ', 'data-live' => "dropMenu|200|300|http://abv.bg")), "ROW0");
+    	$toolbar->prepend(ht::createFnBtn(' ', NULL, NULL, array('class'=>'more-btn', 'title'=>'Други действия с този документ')), "ROW0");
     	
         $toolbar->push('context/lib/contextMenu.css', "CSS");
         $toolbar->push('context/lib/contextMenu.js', "JS");
