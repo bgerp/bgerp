@@ -179,8 +179,8 @@ class core_page_InternalModern extends core_page_Active
     	
     	$tpl->append("runOnLoad( slidebars );", "JQRUN");
     	$tpl->append("runOnLoad( scrollToHash );", "JQRUN");
-    	
-    	
+        $tpl->append("runOnLoad( checkForElementWidthChange);", "JQRUN");
+
         return $tpl;
     }
     
