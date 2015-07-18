@@ -301,7 +301,6 @@ class doc_Containers extends core_Manager
         
         if(Mode::is('screenMode', 'narrow')) {
         	$tpl->appendOnce("\n runOnLoad(function(){setThreadElemWidth()});", 'JQRUN');
-        	$tpl->appendOnce('$(window).resize(function(){setThreadElemWidth();});', "JQRUN");
         }
     }
     
@@ -2321,8 +2320,9 @@ class doc_Containers extends core_Manager
         } else {
             $rec->hide = 'default';
         }
-        
-        self::save($rec, 'hide');
+ 
+        $Containers = cls::get('doc_Containers');
+        $Containers->save($rec, 'hide');
     }
     
     

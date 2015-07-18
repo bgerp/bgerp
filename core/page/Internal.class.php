@@ -72,6 +72,7 @@ class core_page_Internal extends core_page_Active
         
         // Опаковките и главното съдържание заемат екрана до долу
         $this->append("runOnLoad(setMinHeight);", "JQRUN");
+        $this->append("runOnLoad( checkForElementWidthChange);", "JQRUN");
 
 
         // Вкарваме съдържанието

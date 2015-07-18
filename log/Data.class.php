@@ -274,6 +274,7 @@ class log_Data extends core_Manager
     static function on_AfterPrepareListFilter($mvc, $data)
     {
         $data->query->orderBy("time", "DESC");
+        $data->query->orderBy("id", "DESC");
         
         $data->listFilter->layout = new ET(tr('|*' . getFileContent('log/tpl/DataFilterForm.shtml')));
         
@@ -419,10 +420,24 @@ class log_Data extends core_Manager
             $data->listFilter->setReadOnly('object');
         } else {
             $cQuery = clone $query;
+            
             $cQuery->groupBy('classCrc');
             $cQuery->groupBy('objectId');
             
             $cQuery->where("#objectId IS NOT NULL");
+            
+            // Избрания обект да е на първо място
+            if ($rec->object) {
+                $oldOrderArr = $cQuery->orderBy;
+                $cQuery->orderBy = array();
+                
+                $cQuery->orWhere(array("#objectId = '[#1#]'", $rec->object));
+                
+                $cQuery->XPR('orderObjectId', 'int', "(CASE #objectId WHEN '{$rec->object}' THEN 1 ELSE 2 END)");
+                $cQuery->orderBy('orderObjectId');
+                
+                $cQuery->orderBy = array_merge($cQuery->orderBy, $oldOrderArr);
+            }
             
             $cQuery->limit(100);
             

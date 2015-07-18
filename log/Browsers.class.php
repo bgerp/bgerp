@@ -238,7 +238,7 @@ class log_Browsers extends core_Master
         }
         
         // Ако е зададено да се генерира brid
-        if ($generate && !self::$stopGenerating) {
+        if ($generate && !self::$stopGenerating && !headers_sent()) {
             
             // Генерира brid
             $brid = self::generateBrid();
