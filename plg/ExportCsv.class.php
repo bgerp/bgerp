@@ -118,11 +118,11 @@ class plg_ExportCsv extends core_Plugin
             			}
             	
             			// escape
-            			if (preg_match('/\\r|\\n|,|"/', $value)) {
+            			if (preg_match('/\\r|\\n|\,|"/', $value)) {
             				$value = '"' . str_replace('"', '""', $value) . '"';
             			}
             	
-            			$rCsv .= "," . $value;
+            			$rCsv .= ($rCsv ?  "," : " ") . $value;
             		}
             	
             		/* END за всяка колона */

@@ -252,6 +252,10 @@ class core_FieldSet extends core_BaseClass
             $suggestions = arr::make($suggestions, TRUE);
         }
         
+        if(!isset($this->fields[$name])){
+        	error("@Несъществуващо поле", "'{$name}'", $this->fields);
+        }
+        
         $this->fields[$name]->type->suggestions = $suggestions;
     }
     

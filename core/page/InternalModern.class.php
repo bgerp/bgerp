@@ -179,7 +179,7 @@ class core_page_InternalModern extends core_page_Active
         // Опаковките и главното съдържание заемат екрана до долу
     	$tpl->append("runOnLoad( slidebars );", "JQRUN");
     	$tpl->append("runOnLoad( scrollToHash );", "JQRUN");
-        
+        $tpl->append("runOnLoad( checkForElementWidthChange);", "JQRUN");
         // Добавяме кода, за определяне параметрите на браузъра
         $Browser = cls::get('log_Browsers');
         $tpl->append($Browser->renderBrowserDetectingCode(), 'BROWSER_DETECT');
