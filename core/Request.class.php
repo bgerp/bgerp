@@ -266,7 +266,7 @@ class core_Request
         if ($name) {
             $element[$name] = $array;
         } else {
-            $element[] = $array;
+            $element[count(self::$vars)] = $array;
         }
         
         if ($unShift) {

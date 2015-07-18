@@ -351,9 +351,9 @@ class doc_Threads extends core_Manager
             foreach($selArr as $id) {
                 if($this->haveRightFor('single', $id)) {
                     $this->haveRightForSingle[$id] = TRUE;
-                    Request::push(array('id' => $id, 'Selected' => FALSE));
+                    Request::push(array('id' => $id, 'Selected' => FALSE), $act . '/' . $id);
                     $res = Request::forward();
-                    Request::pop();
+                    Request::pop($act . '/' . $id);
                 }
             } 
         } else {
