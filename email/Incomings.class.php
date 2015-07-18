@@ -184,6 +184,7 @@ class email_Incomings extends core_Master
         $this->FLD('routeBy', 'enum(thread, preroute, from, fromTo, domain, toBox, country)', 'caption=Рутиране');
         
         $this->setDbUnique('hash');
+        $this->setDbIndex('fromEml');
     }
     
     
