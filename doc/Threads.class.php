@@ -355,7 +355,7 @@ class doc_Threads extends core_Manager
                     $res = Request::forward();
                     Request::pop();
                 }
-            } bp();
+            } 
         } else {
             expect($id = Request::get('id', 'int'));
             expect($rec = $this->fetch($id));
