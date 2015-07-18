@@ -2321,8 +2321,9 @@ class doc_Containers extends core_Manager
         } else {
             $rec->hide = 'default';
         }
-        
-        self::save($rec, 'hide');
+ 
+        $Containers = cls::get('doc_Containers');
+        $Containers->save($rec, 'hide');
     }
     
     
