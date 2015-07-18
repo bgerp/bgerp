@@ -175,12 +175,15 @@ class core_page_InternalModern extends core_page_Active
                                      Време за изпълнение: [#DEBUG::getExecutionTime#]
                                      [#Debug::getLog#]</div>"), "DEBUG");
     	}
-    	// Опаковките и главното съдържание заемат екрана до долу
     	
+        // Опаковките и главното съдържание заемат екрана до долу
     	$tpl->append("runOnLoad( slidebars );", "JQRUN");
     	$tpl->append("runOnLoad( scrollToHash );", "JQRUN");
-    	
-    	
+        
+        // Добавяме кода, за определяне параметрите на браузъра
+        $Browser = cls::get('log_Browsers');
+        $tpl->append($Browser->renderBrowserDetectingCode(), 'BROWSER_DETECT');
+
         return $tpl;
     }
     
