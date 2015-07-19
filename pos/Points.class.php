@@ -208,7 +208,7 @@ class pos_Points extends core_Master {
     	expect($pointId = Request::get('id', 'int'));
     	expect($rec = $this->fetch($pointId));
     	$this->requireRightFor('select', $pointId);
-    	$this->selectSilent($pointId);
+    	$this->selectCurrent($pointId);
     	
     	return redirect(array('pos_Receipts', 'new'));
     }
@@ -245,12 +245,12 @@ class pos_Points extends core_Master {
 			
 			// .. и имаме право да изберем склада и, логваме се в него
 			if(store_Stores::haveRightFor('select', $rec->storeId)){
-				store_Stores::selectSilent($rec->storeId);
+				store_Stores::selectCurrent($rec->storeId);
 			}
 			
 			// .. и имаме право да изберем касата и, логваме се в нея
 			if(cash_Cases::haveRightFor('select', $rec->caseId)){
-				cash_Cases::selectSilent($rec->caseId);
+				cash_Cases::selectCurrent($rec->caseId);
 			}
 		}
 	}

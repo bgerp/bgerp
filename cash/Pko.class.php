@@ -248,7 +248,7 @@ class cash_Pko extends core_Master
 	    if($caseId = $dealInfo->get('caseId')){
 	    		 	
 	    	// Ако потребителя има права, логва се тихо
-	    	cash_Cases::selectSilent($caseId);
+	    	cash_Cases::selectCurrent($caseId);
 	    }
     		 	
 	    $cId = $dealInfo->get('currency');
