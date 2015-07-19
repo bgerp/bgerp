@@ -1243,12 +1243,12 @@ abstract class deals_DealMaster extends deals_DealBase
     		 
     		// Ако се експедира и има склад, форсира се логване
     		if($options['ship'] && isset($rec->shipmentStoreId) && $rec->shipmentStoreId != $curStoreId){
-    			store_Stores::selectSilent($rec->shipmentStoreId);
+    			store_Stores::selectCurrent($rec->shipmentStoreId);
     		}
     		 
     		// Ако има сметка и се експедира, форсира се логване
     		if($options['pay'] && isset($rec->caseId) && $rec->caseId != $curCaseId){
-    			cash_Cases::selectSilent($rec->caseId);
+    			cash_Cases::selectCurrent($rec->caseId);
     		}
     		 
     		// Контиране на документа

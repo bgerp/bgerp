@@ -274,7 +274,7 @@ class bank_SpendingDocuments extends core_Master
                 
                 if($bankId){
                     // Ако потребителя има права, логва се тихо
-                    bank_OwnAccounts::selectSilent($bankId);
+                    bank_OwnAccounts::selectCurrent($bankId);
                 }
             }
         }

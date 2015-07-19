@@ -31,7 +31,7 @@ class social_Followers extends core_Master
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'social_Wrapper, plg_Created, plg_State2, plg_RowTools';
+    var $loadList = 'social_Wrapper, plg_Created, plg_State2, plg_RowTools, cms_DomainPlg, plg_AutoFilter';
     
     
     /**
@@ -73,6 +73,7 @@ class social_Followers extends core_Master
 		$this->FLD('icon', 'fileman_FileType(bucket=social)', 'caption=Икона');
 		$this->FLD('followersCnt', 'int', 'caption=Последователи, input=none, notNull');
 		$this->FLD('order', 'int', 'caption=Подредба, notNull');
+        $this->FLD('domainId', 'key(mvc=cms_Domains, select=*)', 'caption=Домейн,notNull,defValue=bg,mandatory,autoFilter');
     }
     
  
@@ -88,7 +89,8 @@ class social_Followers extends core_Master
     	// Правим заявка към базата
     	$query = static::getQuery();
     	$query->orderBy("#order");
-		$socialNetworks = $query->fetchAll("#state = 'active'");
+        $domainId = cms_Domains::getPublicDomain('id');
+		$socialNetworks = $query->fetchAll("#state = 'active' AND #domainId = {$domainId}");
 		
 		// За всеки един запис от базата
 		foreach($socialNetworks as $socialNetwork){
@@ -128,8 +130,8 @@ class social_Followers extends core_Master
 		// Връщаме тулбар за споделяне в социалните мреци
 		return $tpl;
     }
-    
-    
+
+
     /**
      * Функция за споделяне
      */
@@ -172,29 +174,8 @@ class social_Followers extends core_Master
             $data->retUrl = toUrl(array($mvc, 'list'));
         }
     }
-    
-    
-  	/**
-     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
-     */
-    static function on_AfterInputEditForm($mvc, &$form)
-    {
-    	if ($form->isSubmitted()) {
-	    	if (empty($form->rec->title)) {
-	    		
-	            // Сетваме грешката
-	            $form->setError('title', 'Непопълнено име на социалната мрежа');
-	        }
-	        
-	        if(empty($form->rec->url)){
-	        	
-	        	// Сетваме грешката
-	            $form->setError('url', 'Непопълнено URL за споделяне');
-	        }
-    	}
-    }
-    
-    
+
+
     /**
      * Филтър на on_AfterPrepareListFilter()
      * Малко манипулации след подготвянето на формата за филтриране
