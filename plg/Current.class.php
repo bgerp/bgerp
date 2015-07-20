@@ -107,7 +107,7 @@ class plg_Current extends core_Plugin
             $mvc->requireRightFor('select', $rec);
             
             $mvc->selectCurrent($rec);
-                        
+            
             if(!Request::get('ret_url')) {
                 $res = new Redirect(array($mvc));
             } else {
@@ -140,7 +140,7 @@ class plg_Current extends core_Plugin
             return;
         }
 
-        $curId = $mvc->getCurrent();
+        $curId = $mvc->getCurrent('id', FALSE);
 
         if($curId != $rec->id) {
             // Задаваме новия текущ запис
