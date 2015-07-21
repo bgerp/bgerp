@@ -252,4 +252,32 @@ class pos_Stocks extends core_Manager {
     	
     	return $quantity;
     }
+    
+    
+    /**
+     * Изчиства записите в наличностите в поса
+     */
+    public function act_Truncate()
+    {
+    	requireRole('admin,debug');
+    
+    	// Изчистваме записите от моделите
+    	pos_Stocks::truncate();
+    
+    	Redirect(array($this, 'list'));
+    }
+    
+    
+    /**
+     * След подготовка на туклбара на списъчния изглед
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareListToolbar($mvc, &$data)
+    {
+    	if(haveRole('admin,debug')){
+    		$data->toolbar->addBtn('Изчистване', array($mvc, 'truncate'), 'warning=Искате ли да изчистите таблицата, ef_icon=img/16/sport_shuttlecock.png, title=Изтриване на таблицата с продукти');
+    	}
+    }
 }

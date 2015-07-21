@@ -319,7 +319,7 @@ class store_Stores extends core_Master
     		$basePackId = key($packs);
     		$data->uomNames[$dRec->id] = cat_UoM::getTitleById($basePackId);
     		
-    		if($pRec = cat_products_Packagings::fetch("#productId = {$itemRec->objectId} AND #packagingId = {$basePackId}")){
+    		if($pRec = cat_products_Packagings::getPack($itemRec->objectId, $basePackId)){
     			$dRec->blQuantity /= $pRec->quantity;
     		}
     	}

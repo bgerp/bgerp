@@ -357,13 +357,13 @@ class cat_products_Packagings extends cat_products_Detail
     
     
     /**
-     * Дали има записана продуктова опаковка
+     * Връща опаковката ако има такава
      * 
      * @param int $productId - ид на продукта
      * @param int $packagingId - ид на опаковката
      * @return stdClass
      */
-    public static function isPack($productId, $packagingId)
+    public static function getPack($productId, $packagingId)
     {
     	return cat_products_Packagings::fetch("#productId = {$productId} AND #packagingId = {$packagingId}");
     }

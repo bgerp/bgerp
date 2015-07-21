@@ -386,7 +386,7 @@ abstract class deals_Helper
 	 */
 	public static function getPackInfo(&$packagingRow, $productId, $packagingId, $quantityInPack)
 	{
-		if(cat_products_Packagings::isPack($productId, $packagingId)){
+		if(cat_products_Packagings::getPack($productId, $packagingId)){
 			if(cat_UoM::fetchField($packagingId, 'showContents') === 'yes'){
 				 
 				$quantityInPack = cls::get('type_Double', array('params' => array('smartRound' => 'smartRound')))->toVerbal($quantityInPack);
