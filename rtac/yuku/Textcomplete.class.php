@@ -96,17 +96,23 @@ class rtac_yuku_Textcomplete extends core_Manager
         jquery_Jquery::run($tpl, "
         	$('#{$textId}').textcomplete(
                 {
-                    match: /\[([^\]]*)$/,
+                    match: /([^\s]*)$/,
                     index: 1,
                     search: function (term, callback) {
+                		
+                    	
                         callback($.map(rtacObj.textCompleteObj.{$textId}, function (element) {
+                        	
+                        	if (typeof term == 'undefined') return ;
+                        	if ((term == ' ') || (term == '')) return ;
                         	term = term.toLowerCase();
+                        	
                         	var text = element.toLowerCase();
                         	return text.indexOf(term) === 0 ? element : null;
                     	}));
                     },
                     replace: function (textComplete) {
-                        return '[' + textComplete + '] ';
+                        return textComplete + ' ';
                     },
                     maxCount: {$maxCount},
                     cache: true,

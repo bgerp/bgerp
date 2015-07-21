@@ -97,6 +97,7 @@ class rtac_Setup extends core_ProtoSetup
         // Инсталираме плъгина за конвертиране от highlight
         $html .= $Plugins->installPlugin('Richtext autocomplete', 'rtac_Plugin', 'type_Richtext', 'private');
         $html .= $Plugins->installPlugin('Text autocomplete', 'rtac_TextPlugin', 'type_Text', 'private');
+        $html .= $Plugins->installPlugin('Richtext text autocomplete', 'rtac_TextPlugin', 'type_Richtext', 'private');
         
         return $html;
     }
