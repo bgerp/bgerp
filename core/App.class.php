@@ -388,8 +388,13 @@ class core_App
             header('Expires: -1'); // Proxies.
             header('Connection: close');
         }
-        
-        echo $content;                       // Output content
+
+        // Логваме съдържанието
+        if($content) {
+            Debug::log(mb_substr($content, 0, 255));
+        }
+
+        echo $content; // Output content
             
         // Изпращаме съдържанието на изходния буфер
         ob_end_flush();

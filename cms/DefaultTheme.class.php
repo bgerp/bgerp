@@ -174,9 +174,9 @@ class cms_DefaultTheme extends core_ProtoInner {
 
     		// ако след изчисленията не сме получили цвят за фон, пробваме да го изчислим по друг начин
     		if ($bgcolorActive == 'ffffff'){
-    			$bgcolorActive = phpcolor_Adapter::changeColor($activeColor, 'lighten', 20);
+    			$bgcolorActive = phpcolor_Adapter::changeColor($activeColor, 'lighten', 10);
                 if($bgcolorActive == 'ffffff') {
-                    $bgcolorActive = phpcolor_Adapter::changeColor($fontcolor, 'lighten', 40);
+                    $bgcolorActive = phpcolor_Adapter::changeColor($fontcolor, 'lighten', 20);
                 }
     		}
     		
