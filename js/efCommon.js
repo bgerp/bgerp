@@ -917,9 +917,14 @@ function prepareContextMenu() {
     jQuery.each($('.more-btn'), function(i, val) {
         var el = $(this).parent().find('.modal-toolbar');
         var position = el.attr('data-position');
+        var sizeStyle = el.attr('data-sizeStyle');
 
         if (!position || !( position == 'left' || position== 'top' || position == 'bottom')) {
             position = 'auto'
+        }
+
+        if (!sizeStyle || sizeStyle != 'context') {
+            sizeStyle = 'auto'
         }
 
         var act = 'popup';
@@ -930,7 +935,8 @@ function prepareContextMenu() {
 
         $(this).contextMenu(act, el, {
             'displayAround': 'trigger',
-            'position': position
+            'position': position,
+            'sizeStyle': sizeStyle
         });
     });
 }
@@ -1451,6 +1457,40 @@ function checkForElementWidthChange() {
         setFormElementsWidth();
         setThreadElemWidth();
     });
+}
+
+
+function getAllLiveElements() {
+    $('[data-live]').each(function() {
+        var text = $(this).attr('data-live');
+        var data = text.split("|");
+        var fn = window[data[0]];
+
+        data[0] = $(this).attr('id');
+        if (typeof fn === "function") fn(data);
+    });
+}
+
+// функция, която взема елементите в контекстното меню от ajax
+function dropMenu(data) {
+    var ajaxFlag = 0;
+    var id = data[0];
+    var height = data[1];
+    var url = data[2];
+
+    var numId = id.match(/\d+/)[0];
+    $('#' + id).parent().css('position', 'relative');
+    $('#' + id).parent().append("<div class='modal-toolbar' data-sizestyle='context' id='contextHolder" + numId + "' data-height='" + height + "'>");
+
+    $("#" + id).hover(function() {
+        if(ajaxFlag == 1) return;
+        var resObj = new Object();
+        resObj['url'] = url;
+        getEfae().process(resObj);
+        ajaxFlag = 1;
+    });
+
+    prepareContextMenu();
 }
 
 
