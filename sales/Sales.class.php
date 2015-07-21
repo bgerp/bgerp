@@ -453,7 +453,7 @@ class sales_Sales extends deals_DealMaster
     			$nRec->discount = $dRec->discount;
     		}
     		$pInfo = cls::get($dRec->classId)->getProductInfo($dRec->productId);
-    		$nRec->measure = ($dRec->packagingId) ? cat_Packagings::getTitleById($dRec->packagingId) : cat_UoM::getShortName($pInfo->productRec->measureId);
+    		$nRec->measure = ($dRec->packagingId) ? cat_UoM::getTitleById($dRec->packagingId) : cat_UoM::getShortName($pInfo->productRec->measureId);
     		$nRec->vat = cls::get($dRec->classId)->getVat($dRec->productId, $rec->valior);
     		if($rec->chargeVat != 'yes' && $rec->chargeVat != 'separate'){
     			$nRec->vat = 0;
@@ -555,6 +555,7 @@ class sales_Sales extends deals_DealMaster
             $p->packagingId       = $dRec->packagingId;
             $p->discount          = $dRec->discount;
             $p->quantity          = $dRec->quantity;
+            $p->quantityInPack    = $dRec->quantityInPack;
             $p->quantityDelivered = $dRec->quantityDelivered;
             $p->price             = $dRec->price;
             $p->uomId             = $dRec->uomId;
@@ -567,22 +568,20 @@ class sales_Sales extends deals_DealMaster
             
             $result->push('products', $p);
             
-            if (!empty($p->packagingId)) {
-            	$push = TRUE;
-            	$index = $p->classId . "|" . $p->productId;
-            	$shipped = $result->get('shippedPacks');
+            $push = TRUE;
+            $index = $p->classId . "|" . $p->productId;
+            $shipped = $result->get('shippedPacks');
             	
-            	$inPack = ($p->packagingId) ? $info->packagingRec->quantity : 1;
-            	if($shipped && isset($shipped[$index])){
-            		if($shipped[$index]->inPack < $inPack){
-            			$push = FALSE;
-            		}
+            $inPack = $p->quantityInPack;
+            if($shipped && isset($shipped[$index])){
+            	if($shipped[$index]->inPack < $inPack){
+            		$push = FALSE;
             	}
+            }
             	
-            	if($push){
-            		$arr = (object)array('packagingId' => $p->packagingId, 'inPack' => $inPack);
-            		$result->push('shippedPacks', $arr, $index);
-            	}
+            if($push){
+            	$arr = (object)array('packagingId' => $p->packagingId, 'inPack' => $inPack);
+            	$result->push('shippedPacks', $arr, $index);
             }
          }
          

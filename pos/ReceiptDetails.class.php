@@ -445,8 +445,8 @@ class pos_ReceiptDetails extends core_Detail {
     	$Double = cls::get('type_Double');
     	$Double->params['decimals'] = 2;
     	
-    	$productInfo = cat_Products::getProductInfo($rec->productId, $rec->value);
-    	$perPack = ($productInfo->packagingRec->quantity) ? $productInfo->packagingRec->quantity : 1;
+    	$productInfo = cat_Products::getProductInfo($rec->productId);
+    	$perPack = ($productInfo->packagings[$rec->value]) ? $productInfo->packagings[$rec->value]->quantity : 1;
     	
     	$rec->price = $rec->price * (1 + $rec->param) * (1 - $rec->discountPercent);
     	$rec->price = round($rec->price, 2);
@@ -464,7 +464,7 @@ class pos_ReceiptDetails extends core_Detail {
     	$row->perPack = $Double->toVerbal($perPack);
     	
     	if($rec->value) {
-    		$row->value = cat_Packagings::getTitleById($rec->value);
+    		$row->value = cat_UoM::getTitleById($rec->value);
     	} else {
     		if($fields['-list']){
     			$row->value = cat_UoM::getTitleById($productInfo->productRec->measureId);
@@ -527,25 +527,14 @@ class pos_ReceiptDetails extends core_Detail {
     	
     	if(!$product) return $rec->productid = NULL;
     	
-    	$info = cat_Products::getProductInfo($product->productId, $product->packagingId);
+    	$info = cat_Products::getProductInfo($product->productId);
     	if(empty($info->meta['canSell'])){
     		
     		return $rec->productid = NULL;
     	}
     	
-    	if($info->packagingRec){
-    		$rec->value = $info->packagingRec->packagingId;
-    		$perPack = $info->packagingRec->quantity;
-    	} else {
-    		$basePackInfo = cls::get('cat_Products')->getBasePackInfo($product->productId);
-    		if($basePackInfo->classId == 'cat_UoM'){
-    			$rec->value = NULL;
-    			$perPack = 1;
-    		} else {
-    			$rec->value = $basePackInfo->id;
-    			$perPack = $basePackInfo->quantity;
-    		}
-    	}
+    	$perPack = ($info->packagings[$product->packagingId]) ? $info->packagings[$product->packagingId]->quantity : 1;
+    	$rec->value = ($product->packagingId) ? $product->packagingId : $info->productRec->measureId;
     	
     	$rec->productId = $product->productId;
     	$receiptRec = pos_Receipts::fetch($rec->receiptId);
@@ -655,8 +644,9 @@ class pos_ReceiptDetails extends core_Detail {
     		if($rec->productId) {
     			$obj->action  = 'sale';
     			$obj->pack    = ($rec->value) ?  $rec->value : NULL;
-    			$pInfo = cat_Products::getProductInfo($rec->productId, $obj->pack);
-    			$obj->quantityInPack = ($pInfo->packagingRec) ? $pInfo->packagingRec->quantity : 1;
+    			$pInfo = cat_Products::getProductInfo($rec->productId);
+    			$obj->quantityInPack = ($pInfo->packagings[$obj->pack]) ? $pInfo->packagings[$obj->pack]->quantity : 1;
+    			
     			$obj->value   = $rec->productId;
     			$obj->storeId = $storeId;
     			$obj->param   = $rec->param;

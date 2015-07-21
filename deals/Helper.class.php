@@ -373,4 +373,28 @@ abstract class deals_Helper
 			$productRow->append("<div class='small'>{$RichText->toVerbal($notes)}</div>");
 		}
 	}
+	
+	
+	/**
+	 * Помощна функция за показване на пдоробната информация за опаковката при нужда
+	 * 
+	 * @param string $packagingRow
+	 * @param int $productId
+	 * @param int $packagingId
+	 * @param double $quantityInPack
+	 * @return void
+	 */
+	public static function getPackInfo(&$packagingRow, $productId, $packagingId, $quantityInPack)
+	{
+		if(cat_products_Packagings::isPack($productId, $packagingId)){
+			if(cat_UoM::fetchField($packagingId, 'showContents') === 'yes'){
+				 
+				$quantityInPack = cls::get('type_Double', array('params' => array('smartRound' => 'smartRound')))->toVerbal($quantityInPack);
+				
+				$shortUomName = cat_UoM::getShortName(cat_Products::getProductInfo($productId)->productRec->measureId);
+				$packagingRow .= ' <small class="quiet">' . $quantityInPack . ' ' . $shortUomName . '</small>';
+				$packagingRow = "<span class='nowrap'>{$packagingRow}</span>";
+			}
+		}
+	}
 }

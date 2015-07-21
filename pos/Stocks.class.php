@@ -157,11 +157,12 @@ class pos_Stocks extends core_Manager {
     	// За всяка активирана бележка, трупаме я в масив
     	while($dRec = $receiptDetailsQuery->fetch()){
     		$dRec->storeId = pos_Points::fetchField($dRec->pointId, 'storeId');
-    		if(!static::$cache[$dRec->productId][$dRec->value]){
-    			static::$cache[$dRec->productId][$dRec->value] = cat_Products::getProductInfo($dRec->productId, $dRec->value);
+    		if(!static::$cache[$dRec->productId]){
+    			static::$cache[$dRec->productId] = cat_Products::getProductInfo($dRec->productId);
     		}
-    		$info = static::$cache[$dRec->productId][$dRec->value];
-    		$dRec->quantityInPack = ($info->packagingRec) ? $info->packagingRec->quantity : 1;
+    		
+    		$info = static::$cache[$dRec->productId];
+    		$dRec->quantityInPack = ($info->packagings[$dRec->value]) ? $info->packagings[$dRec->value]->quantity : 1;
     		$activeReceipts[] = $dRec;
     	}
     	

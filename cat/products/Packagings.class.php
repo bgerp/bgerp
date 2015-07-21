@@ -72,7 +72,7 @@ class cat_products_Packagings extends cat_products_Detail
     function description()
     {
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden, silent');
-        $this->FLD('packagingId', 'key(mvc=cat_Packagings,select=name,allowEmpty)', 'input,caption=Опаковка,mandatory,width=7em');
+        $this->FLD('packagingId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'input,caption=Опаковка,mandatory,width=7em');
         $this->FLD('quantity', 'double(Min=0)', 'input,caption=Количество,mandatory');
         $this->FLD('isBase', 'enum(yes=Да,no=Не)', 'caption=Основна,mandatory,maxRadio=2');
         $this->FLD('netWeight', 'cat_type_Weight', 'caption=Тегло->Нето');
@@ -211,8 +211,8 @@ class cat_products_Packagings extends cat_products_Detail
      */
     static function getRemainingOptions($productId, $id = NULL)
     {
-        $options = cat_Packagings::makeArray4Select('name');
-       
+        $options = cls::get('cat_UoM')->makeArray4Select('name', "state NOT IN ('closed')");
+      
         if(count($options)) {
             $query = self::getQuery();
             
@@ -353,5 +353,18 @@ class cat_products_Packagings extends cat_products_Detail
     	if($data->hide === TRUE) return;
     	
         return static::renderDetail($data);
+    }
+    
+    
+    /**
+     * Дали има записана продуктова опаковка
+     * 
+     * @param int $productId - ид на продукта
+     * @param int $packagingId - ид на опаковката
+     * @return stdClass
+     */
+    public static function isPack($productId, $packagingId)
+    {
+    	return cat_products_Packagings::fetch("#productId = {$productId} AND #packagingId = {$packagingId}");
     }
 }

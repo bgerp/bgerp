@@ -89,7 +89,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'info, productId, packagingId, uomId, packQuantity, packPrice, discount, amount, weight, volume,quantityInPack';
+    public $listFields = 'info, productId, packagingId, packQuantity, packPrice, discount, amount, weight, volume,quantityInPack';
     
         
     /**
@@ -117,7 +117,6 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     {
     	$this->FLD('shipmentId', 'key(mvc=store_ShipmentOrders)', 'column=none,notNull,silent,hidden,mandatory');
     	parent::setDocumentFields($this);
-    	$this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty, select2MinItems=0)', 'caption=Мярка,after=productId,silent,removeAndRefreshForm=packPrice|discount|uomId');
     	
         $this->FLD('weight', 'cat_type_Weight', 'input=none,caption=Тегло');
         $this->FLD('volume', 'cat_type_Volume', 'input=none,caption=Обем');

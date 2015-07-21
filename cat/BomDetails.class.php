@@ -115,7 +115,7 @@ class cat_BomDetails extends doc_Detail
     	$this->FLD('bomId', 'key(mvc=cat_Boms)', 'column=none,input=hidden,silent');
     	$this->FLD("resourceId", 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Материал,mandatory,silent,refreshForm');
     	
-    	$this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty, select2MinItems=0)', 'caption=Мярка','tdClass=small-field,silent,removeAndRefreshForm=quantityInPack');
+    	$this->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка','tdClass=small-field,silent,removeAndRefreshForm=quantityInPack,mandatory');
     	$this->FLD('quantityInPack', 'double(smartRound)', 'input=none,notNull,value=1');
     	
     	$this->FLD('stageId', 'key(mvc=planning_Stages,allowEmpty,select=name)', 'caption=Етап');
@@ -223,18 +223,11 @@ class cat_BomDetails extends doc_Detail
     		$shortName = cat_UoM::getShortName($rec->measureId);
     		$form->setField('baseQuantity', "unit={$shortName}");
     		$form->setField('propQuantity', "unit={$shortName}");
-    				
+
     		$packs = cls::get('cat_Products')->getPacks($rec->resourceId);
-    		if(isset($rec->packagingId) && !isset($packs[$rec->packagingId])){
-    			$packs[$rec->packagingId] = cat_Packagings::getTitleById($rec->packagingId, FALSE);
-    		}
-    		if(count($packs)){
-    			$form->setOptions('packagingId', $packs);
-    		} else {
-    			$form->setReadOnly('packagingId');
-    		}
-    				
-    		$form->setField('packagingId', "placeholder=" . cat_UoM::getTitleById($rec->measureId));
+    		$form->setOptions('packagingId', $packs);
+    	} else {
+    		$form->setReadOnly('packagingId');
     	}
     	
     	// Проверяваме дали е въведено поне едно количество
@@ -266,7 +259,7 @@ class cat_BomDetails extends doc_Detail
     			$form->setError('baseQuantity,propQuantity', 'Трябва да е въведено поне едно количество');
     		}
     		
-    		$rec->quantityInPack = (empty($rec->packagingId)) ? 1 : (($pInfo->packagings[$rec->packagingId]) ? $pInfo->packagings[$rec->packagingId]->quantity : $rec->quantityInPack);
+    		$rec->quantityInPack = ($pInfo->packagings[$rec->packagingId]) ? $pInfo->packagings[$rec->packagingId]->quantity : 1;
     	}
     }
     
@@ -279,15 +272,24 @@ class cat_BomDetails extends doc_Detail
     	$row->resourceId = cat_Products::getShortHyperlink($rec->resourceId);
     	$measureId = cat_Products::getProductInfo($rec->resourceId)->productRec->measureId;
     	
-    	if($rec->packagingId){
-    		$row->measureId = cat_Packagings::getTitleById($rec->packagingId);
-    		if($rec->quantityInPack != 1){
-    			$quantityInPack = cls::get('type_Double', array('params' => array('smartRound' => TRUE)))->toVerbal($rec->quantityInPack);
-    			$shortUom = cat_UoM::getShortName($measureId);
-    			$row->measureId .= " <span class='quiet'>({$quantityInPack} {$shortUom})</span>";
+    	$row->measureId = cat_UoM::getTitleById($measureId);
+    	
+    	if($rec->id == '1428'){
+    		//bp($rec);
+    	}
+    	
+    	
+    	
+    	
+    	if(cat_products_Packagings::isPack($rec->resourceId, $rec->packagingId)){
+    		$row->measureId = cat_UoM::getTitleById($rec->packagingId);
+    		
+    		if(cat_UoM::fetchField($rec->packagingId, 'showContents') === 'yes'){
+    			$row->quantityInPack = $mvc->getFieldType('quantityInPack')->toVerbal($rec->quantityInPack);
+    			$shortUomName = cat_UoM::getShortName($measureId);
+    			$row->measureId .= ' <small class="quiet">' . $row->quantityInPack . ' ' . $shortUomName . '</small>';
+    			$row->measureId = "<span class='nowrap'>{$row->measureId}</span>";
     		}
-    	} else {
-    		$row->measureId = cat_UoM::getTitleById($measureId);
     	}
     	
     	$row->ROW_ATTR['class'] = ($rec->type != 'input') ? 'row-removed' : 'row-added';

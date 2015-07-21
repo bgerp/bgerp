@@ -161,22 +161,6 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     
     
     /**
-     * Връща информация за основната опаковка на артикула
-     * 
-     * @param int $productId - ид на продукт
-     * @return stdClass - обект с информация
-     * 				->name     - име на опаковката
-     * 				->quantity - к-во на продукта в опаковката
-     * 				->classId  - ид на cat_Packagings или cat_UoM
-     * 				->id       - на опаковката/мярката
-     */
-    public function getBasePackInfo($productId)
-    {
-    	return $this->class->getBasePackInfo($productId);
-    }
-    
-    
-    /**
      * Връща клас имплементиращ `price_PolicyIntf`, основната ценова политика за този артикул
      */
     public function getPolicy()

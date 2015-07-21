@@ -144,6 +144,16 @@ class cat_Categories extends core_Master
     
     
     /**
+     * Извиква се след подготовката на формата
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+    	$suggestions = cat_UoM::getUomOptions();
+    	$data->form->setSuggestions('measures', $suggestions);
+    }
+    
+    
+    /**
      * Описание на модела
      */
     function description()
