@@ -270,33 +270,16 @@ class cat_BomDetails extends doc_Detail
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
     	$row->resourceId = cat_Products::getShortHyperlink($rec->resourceId);
-    	$measureId = cat_Products::getProductInfo($rec->resourceId)->productRec->measureId;
+    	$row->measureId = cat_UoM::getTitleById($rec->packagingId);
     	
-    	$row->measureId = cat_UoM::getTitleById($measureId);
-    	
-    	if($rec->id == '1428'){
-    		//bp($rec);
-    	}
-    	
-    	
-    	
-    	
-    	if(cat_products_Packagings::isPack($rec->resourceId, $rec->packagingId)){
-    		$row->measureId = cat_UoM::getTitleById($rec->packagingId);
-    		
-    		if(cat_UoM::fetchField($rec->packagingId, 'showContents') === 'yes'){
-    			$row->quantityInPack = $mvc->getFieldType('quantityInPack')->toVerbal($rec->quantityInPack);
-    			$shortUomName = cat_UoM::getShortName($measureId);
-    			$row->measureId .= ' <small class="quiet">' . $row->quantityInPack . ' ' . $shortUomName . '</small>';
-    			$row->measureId = "<span class='nowrap'>{$row->measureId}</span>";
-    		}
-    	}
+    	// Показваме подробната информация за опаковката при нужда
+    	deals_Helper::getPackInfo($row->measureId, $rec->resourceId, $rec->packagingId, $rec->quantityInPack);
     	
     	$row->ROW_ATTR['class'] = ($rec->type != 'input') ? 'row-removed' : 'row-added';
     	$row->ROW_ATTR['title'] = ($rec->type != 'input') ? tr('Отпадък') : NULL;
     	
     	if(empty($rec->stageId)){
-    		$row->stageId = tr("без етап");
+    		$row->stageId = tr("Без етап");
     	}
     }
     
