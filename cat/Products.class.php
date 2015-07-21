@@ -1631,11 +1631,4 @@ class cat_Products extends core_Embedder {
     	 
     	return $url;
     }
-    
-    
-    function act_Test()
-    {
-    	$l = cls::get('cat_Setup');
-    	$l->replacePackagings();
-    }
 }
