@@ -45,7 +45,7 @@ class cat_products_Packagings extends cat_products_Detail
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'cat_Wrapper, plg_RowTools, plg_SaveAndNew';
+    var $loadList = 'cat_Wrapper, plg_RowTools, plg_SaveAndNew, plg_AlignDecimals2';
     
     
     /**
@@ -193,6 +193,13 @@ class cat_products_Packagings extends cat_products_Detail
     public static function on_AfterPrepareListFields($mvc, $data)
     {
         $data->query->orderBy('#id');
+        
+        if(isset($data->masterId)){
+        	$measureId = cat_Products::getProductInfo($data->masterId)->productRec->measureId;
+        	$shortMeasure = cat_UoM::getShortName($measureId);
+        	
+        	$data->listFields['quantity'] .= "|* ({$shortMeasure})";
+        }
     }
     
     
@@ -315,9 +322,6 @@ class cat_products_Packagings extends cat_products_Detail
     	if($rec->isBase == 'yes'){
     		$row->packagingId = "<b>" . $row->packagingId . "</b>";
     	}
-    	
-    	$shortUom = cat_UoM::getShortName(cat_Products::getProductInfo($rec->productId)->productRec->measureId);
-    	$row->quantity .= " {$shortUom}";
     }
 
     
@@ -380,6 +384,6 @@ class cat_products_Packagings extends cat_products_Detail
      */
     public static function getPack($productId, $packagingId)
     {
-        return cat_products_Packagings::fetch("#productId = '{$productId}' AND #packagingId = '{$packagingId}'");
+        return self::fetch("#productId = '{$productId}' AND #packagingId = '{$packagingId}'");
     }
 }
