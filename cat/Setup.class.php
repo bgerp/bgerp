@@ -373,7 +373,11 @@ class cat_Setup extends core_ProtoSetup
     	$bomQuery = $Bom->getQuery();
     	while ($bomRec = $bomQuery->fetch()){
     		$bomRec->resourceId = $map[$bomRec->resourceId];
-    		$Bom->save($bomRec, 'resourceId');
+    		
+    		try{
+    			$Bom->save($bomRec, NULL, 'REPLACE');
+    		} catch(core_exception_Expect $e){
+    		}
     	}
     
     	$Items = cls::get('acc_Items');
@@ -539,9 +543,9 @@ class cat_Setup extends core_ProtoSetup
     	$pQuery = cat_Packagings::getQuery();
     	while($pRec = $pQuery->fetch()){
     		$name = mb_strtolower($pRec->name);
-    		if($name == '(брой)'){
+    		if($name == '(брой)' || $name == 'бройка'){
     			$name = 'брой';
-    		}elseif($name == 'хил.бр.'){
+    		} elseif($name == 'хил.бр.'){
     			$name = 'хиляди бройки';
     		}
     		
