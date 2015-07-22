@@ -380,6 +380,8 @@ class cat_products_Packagings extends cat_products_Detail
      */
     public static function getPack($productId, $packagingId)
     {
+        if (is_null($productId) || is_null($packagingId)) return ;
+        
     	return cat_products_Packagings::fetch("#productId = {$productId} AND #packagingId = {$packagingId}");
     }
 }
