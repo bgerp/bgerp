@@ -739,6 +739,9 @@ class pos_Reports extends core_Master {
      */
     public function cron_CloseReports()
     {
+    	// Ако няма репорти не правим нищо
+    	if(!pos_Reports::count()) return;
+    	
     	// Селектираме всички активни отчети по стари от указаната дата
     	$conf = core_Packs::getConfig('pos');
     	$now = dt::mysql2timestamp(dt::now());
