@@ -113,6 +113,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 			
 			$packs = $ProductMan->getPacks($rec->productId);
 			$form->setOptions('packagingId', $packs);
+			$form->setDefault('packagingId', key($packs));
 			
 			$LastPolicy = ($masterRec->isReverse == 'yes') ? 'ReverseLastPricePolicy' : 'LastPricePolicy';
 			if(isset($mvc->$LastPolicy)){
