@@ -549,112 +549,114 @@ class doc_UnsortedFolders extends core_Master
         	}
         }
         
-        // намираме, какво е избрано във формата за филтриране
-        $form = self::prepareFilter();
-        
-        // за всеки един от случаите правим сортировка намасива
-        // понеже структурата не е оптимална
-        // трябва да сортираме при всеки от случаите отделни 3 масива
-        switch ($form->rec->order) {
-        	case 'start':
-        		usort($resTask, function($a, $b) {
-        			 
-        			for($i = 0; $i < count ($a['timeline']); $i++) {
-        				return ($a['timeline'][$i]['startTime'] < $b['timeline'][$i]['startTime']) ? -1 : 1;
-        			}
-        		});
-        		
-        		$i = 0;
-        		foreach ($resTask as $id => $task) {
-        				 
-        			$rowArr = array ();
-        			$rowArr[$id] =  $i;
-        		
-        			$resTask[$id]['rowId'] = $rowArr;
-        			
-        			$icon = cal_Tasks::getIcon($task['taskId']);
-        			$recTitle = cal_Tasks::fetchField($task['taskId'],'title');
-        			$attr = array();
-        			$attr['class'] .= 'linkWithIcon';
-        			$attr['style'] = 'background-image:url(' . sbf($icon) . ');';
-        			$attr['title'] = $recTitle;
-        			
-        			$title = ht::createLink(str::limitLen($recTitle, 25),
-        					array('cal_Tasks', 'single', $task['taskId']),
-        					NULL, $attr);
-
-        			$resources[$id] = array("name" => $title->content, "id" => $task['taskId']);
-        		
-        			$i++;
-        		}
-        		
-        		break;
-        	case 'end':
-        		
-        		usort($resTask, function($a, $b) {
-        		
-        			for($i = 0; $i < count ($a['timeline']); $i++) {
-        				$cmpA = $a['timeline'][$i]['startTime'] + $a['timeline'][$i]['duration'];
-        				$cmpB = $b['timeline'][$i]['startTime'] + $b['timeline'][$i]['duration'];
-        				return ($cmpA < $cmpB) ? -1 : 1;
-        			}
-        		});
-        		
-        			$i = 0;
-        			foreach ($resTask as $id => $task) {
-        				 
-        				$rowArr = array ();
-        				$rowArr[$id] =  $i;
-        		
-        				$resTask[$id]['rowId'] = $rowArr;
-        				
-        				$icon = cal_Tasks::getIcon($task['taskId']);
-        				$recTitle = cal_Tasks::fetchField($task['taskId'],'title');
-        				$attr = array();
-        				$attr['class'] .= 'linkWithIcon';
-        				$attr['style'] = 'background-image:url(' . sbf($icon) . ');';
-        				$attr['title'] = $recTitle;
-        				 
-        				$title = ht::createLink(str::limitLen($recTitle, 25),
-        						array('cal_Tasks', 'single', $task['taskId']),
-        						NULL, $attr);
-
-        				$resources[$id] = array("name" => $title->content, "id" => $task['taskId']);
-        		
-        				$i++;
-        			}
-        		break;
-        	case 'alphabetic':
-        
-        		usort($resTask, function($a, $b) {
-                    
-        			return strnatcmp(mb_strtolower($a['hint'], 'UTF-8'), mb_strtolower($b['hint'], 'UTF-8'));
-
-        		});
-        
-        			$i = 0;
-        			foreach ($resTask as $id => $task) {
-        				 
-        				$rowArr = array ();
-        				$rowArr[$id] =  $i;
-        		
-        				$resTask[$id]['rowId'] = $rowArr;
-        				
-        				$icon = cal_Tasks::getIcon($task['taskId']);
-        				$recTitle = cal_Tasks::fetchField($task['taskId'],'title');
-        				$attr = array();
-        				$attr['class'] .= 'linkWithIcon';
-        				$attr['style'] = 'background-image:url(' . sbf($icon) . ');';
-        				$attr['title'] = $recTitle;
-        				
-        				$title = ht::createLink(str::limitLen($recTitle, 25),
-        						array('cal_Tasks', 'single', $task['taskId']),
-        						NULL, $attr);
-
-        				$resources[$id] = array("name" => $title->content, "id" => $task['taskId']);
-        				$i++;
-        			}
-        		break;
+        if (is_array($resTask)) {
+	        // намираме, какво е избрано във формата за филтриране
+	        $form = self::prepareFilter();
+	        
+	        // за всеки един от случаите правим сортировка намасива
+	        // понеже структурата не е оптимална
+	        // трябва да сортираме при всеки от случаите отделни 3 масива
+	        switch ($form->rec->order) {
+	        	case 'start':
+	        		usort($resTask, function($a, $b) {
+	        			 
+	        			for($i = 0; $i < count ($a['timeline']); $i++) {
+	        				return ($a['timeline'][$i]['startTime'] < $b['timeline'][$i]['startTime']) ? -1 : 1;
+	        			}
+	        		});
+	        		
+	        		$i = 0;
+	        		foreach ($resTask as $id => $task) {
+	        				 
+	        			$rowArr = array ();
+	        			$rowArr[$id] =  $i;
+	        		
+	        			$resTask[$id]['rowId'] = $rowArr;
+	        			
+	        			$icon = cal_Tasks::getIcon($task['taskId']);
+	        			$recTitle = cal_Tasks::fetchField($task['taskId'],'title');
+	        			$attr = array();
+	        			$attr['class'] .= 'linkWithIcon';
+	        			$attr['style'] = 'background-image:url(' . sbf($icon) . ');';
+	        			$attr['title'] = $recTitle;
+	        			
+	        			$title = ht::createLink(str::limitLen($recTitle, 25),
+	        					array('cal_Tasks', 'single', $task['taskId']),
+	        					NULL, $attr);
+	
+	        			$resources[$id] = array("name" => $title->content, "id" => $task['taskId']);
+	        		
+	        			$i++;
+	        		}
+	        		
+	        		break;
+	        	case 'end':
+	        		
+	        		usort($resTask, function($a, $b) {
+	        		
+	        			for($i = 0; $i < count ($a['timeline']); $i++) {
+	        				$cmpA = $a['timeline'][$i]['startTime'] + $a['timeline'][$i]['duration'];
+	        				$cmpB = $b['timeline'][$i]['startTime'] + $b['timeline'][$i]['duration'];
+	        				return ($cmpA < $cmpB) ? -1 : 1;
+	        			}
+	        		});
+	        		
+	        			$i = 0;
+	        			foreach ($resTask as $id => $task) {
+	        				 
+	        				$rowArr = array ();
+	        				$rowArr[$id] =  $i;
+	        		
+	        				$resTask[$id]['rowId'] = $rowArr;
+	        				
+	        				$icon = cal_Tasks::getIcon($task['taskId']);
+	        				$recTitle = cal_Tasks::fetchField($task['taskId'],'title');
+	        				$attr = array();
+	        				$attr['class'] .= 'linkWithIcon';
+	        				$attr['style'] = 'background-image:url(' . sbf($icon) . ');';
+	        				$attr['title'] = $recTitle;
+	        				 
+	        				$title = ht::createLink(str::limitLen($recTitle, 25),
+	        						array('cal_Tasks', 'single', $task['taskId']),
+	        						NULL, $attr);
+	
+	        				$resources[$id] = array("name" => $title->content, "id" => $task['taskId']);
+	        		
+	        				$i++;
+	        			}
+	        		break;
+	        	case 'alphabetic':
+	        
+	        		usort($resTask, function($a, $b) {
+	                    
+	        			return strnatcmp(mb_strtolower($a['hint'], 'UTF-8'), mb_strtolower($b['hint'], 'UTF-8'));
+	
+	        		});
+	        
+	        			$i = 0;
+	        			foreach ($resTask as $id => $task) {
+	        				 
+	        				$rowArr = array ();
+	        				$rowArr[$id] =  $i;
+	        		
+	        				$resTask[$id]['rowId'] = $rowArr;
+	        				
+	        				$icon = cal_Tasks::getIcon($task['taskId']);
+	        				$recTitle = cal_Tasks::fetchField($task['taskId'],'title');
+	        				$attr = array();
+	        				$attr['class'] .= 'linkWithIcon';
+	        				$attr['style'] = 'background-image:url(' . sbf($icon) . ');';
+	        				$attr['title'] = $recTitle;
+	        				
+	        				$title = ht::createLink(str::limitLen($recTitle, 25),
+	        						array('cal_Tasks', 'single', $task['taskId']),
+	        						NULL, $attr);
+	
+	        				$resources[$id] = array("name" => $title->content, "id" => $task['taskId']);
+	        				$i++;
+	        			}
+	        		break;
+	        }
         }
 
         // само в случайте когато имаме 'година'=>'месец'
