@@ -44,6 +44,18 @@ class cad_Setup extends core_ProtoSetup {
      * Описание на модула
      */
     var $info = "Параметрично чертаене";
+
+    /**
+     * Роли за достъп до модула
+    */
+    public $roles = 'cad';
+    
+    /**
+     * Връзки от менюто, сочещи към модула
+     */
+    public $menuItems = array(
+    		array(3.70, 'Производство', 'CAD', 'cad_Drawer', 'test', "cad, ceo, admin"),
+    );
     
     
     /**
@@ -59,19 +71,22 @@ class cad_Setup extends core_ProtoSetup {
      */
     function install()
     {
+
         $shapes = array(
-            'cad_Circle',
-            'cad_RoundTo',
-            'cad_Rectangle',
-            'cad_Test',
-            'cad_MeasureLine',
-            'cad_ArcTo'
-            );
+		            'cad_Circle',
+		            'cad_RoundTo',
+		            'cad_Rectangle',
+		            'cad_Test',
+		            'cad_MeasureLine',
+		            'cad_ArcTo'
+        );
 
         foreach($shapes as $cls) {
             $res .= core_Classes::add($cls);
         }
 
+    	$res .= parent::install();
+    	
         return $res;
     }
 }

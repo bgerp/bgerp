@@ -225,7 +225,7 @@ abstract class store_DocumentMaster extends core_Master
     		
     		if(count($agreedProducts)){
     			foreach ($agreedProducts as $product) {
-    				$info = cls::get($product->classId)->getProductInfo($product->productId, $product->packagingId);
+    				$info = cls::get($product->classId)->getProductInfo($product->productId);
     				 
     				// Колко остава за експедиране от продукта
     				$toShip = $product->quantity - $product->quantityDelivered;
@@ -245,7 +245,7 @@ abstract class store_DocumentMaster extends core_Master
     				$shipProduct->weight      = $product->weight;
     				$shipProduct->notes       = $product->notes;
     				$shipProduct->volume      = $product->volume;
-    				$shipProduct->quantityInPack = ($product->packagingId) ? $info->packagingRec->quantity : 1;
+    				$shipProduct->quantityInPack = $product->quantityInPack;
     				 
     				$mvc->$Detail->save($shipProduct);
     			}
@@ -607,7 +607,6 @@ abstract class store_DocumentMaster extends core_Master
     
     	// Подаваме на интерфейса най-малката опаковка с която е експедиран продукта
     	while ($dRec = $dQuery->fetch()) {
-    		if(empty($dRec->packagingId)) continue;
     		 
     		// Подаваме най-малката опаковка в която е експедиран продукта
     		$push = TRUE;

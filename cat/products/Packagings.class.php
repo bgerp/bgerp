@@ -6,8 +6,8 @@
  *
  * @category  bgerp
  * @package   cat
- * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @author    Milen Georgiev <milen@download.bg> и Ivelin Dimov <ivelin_pdimov@abv.bg>
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @link
@@ -72,7 +72,7 @@ class cat_products_Packagings extends cat_products_Detail
     function description()
     {
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden, silent');
-        $this->FLD('packagingId', 'key(mvc=cat_Packagings,select=name,allowEmpty)', 'input,caption=Опаковка,mandatory,width=7em');
+        $this->FLD('packagingId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'input,caption=Опаковка,mandatory,width=7em');
         $this->FLD('quantity', 'double(Min=0)', 'input,caption=Количество,mandatory');
         $this->FLD('isBase', 'enum(yes=Да,no=Не)', 'caption=Основна,mandatory,maxRadio=2');
         $this->FLD('netWeight', 'cat_type_Weight', 'caption=Тегло->Нето');
@@ -89,10 +89,18 @@ class cat_products_Packagings extends cat_products_Detail
     /**
      * Изпълнява се след въвеждане на данните от Request
      */
-    static function on_AfterInputEditForm($mvc, $form)
+    public static function on_AfterInputEditForm($mvc, $form)
     {
     	if ($form->isSubmitted()){
     		$rec = &$form->rec;
+    		
+    		$baseMeasureId = cat_Products::getProductInfo($rec->productId)->productRec->measureId;
+    		
+    		if($baseMeasureId == $rec->packagingId){
+    			if($rec->quantity != 1){
+    				$form->setError('quantity', 'Количеството не може да е различно от еденица за избраната мярка/опаковка');
+    			}
+    		}
     		
     		if($rec->eanCode) {
     				
@@ -164,7 +172,7 @@ class cat_products_Packagings extends cat_products_Detail
     /**
      * Извиква се след подготовката на toolbar-а за табличния изглед
      */
-    static function on_AfterPrepareListToolbar($mvc, $data)
+    public static function on_AfterPrepareListToolbar($mvc, $data)
     {
         $data->toolbar->removeBtn('*');
         
@@ -182,7 +190,7 @@ class cat_products_Packagings extends cat_products_Detail
     /**
      * Извиква се след подготовката на колоните ($data->listFields)
      */
-    static function on_AfterPrepareListFields($mvc, $data)
+    public static function on_AfterPrepareListFields($mvc, $data)
     {
         $data->query->orderBy('#id');
     }
@@ -195,7 +203,7 @@ class cat_products_Packagings extends cat_products_Detail
      * @param stdClass $res
      * @param stdClass $data
      */
-    static function on_AfterPrepareEditToolbar($mvc, $data)
+    public static function on_AfterPrepareEditToolbar($mvc, $data)
     {
         if(!(count($mvc::getRemainingOptions($data->form->rec->productId)) - 1)){
     		$data->form->toolbar->removeBtn('saveAndNew');
@@ -209,10 +217,10 @@ class cat_products_Packagings extends cat_products_Detail
      * @param $productId int ид на продукта
      * @param $id int ид от текущия модел, което не трябва да бъде изключено
      */
-    static function getRemainingOptions($productId, $id = NULL)
+    public static function getRemainingOptions($productId, $id = NULL)
     {
-        $options = cat_Packagings::makeArray4Select('name');
-       
+        $options = cls::get('cat_UoM')->makeArray4Select('name', "state NOT IN ('closed')");
+      
         if(count($options)) {
             $query = self::getQuery();
             
@@ -234,7 +242,7 @@ class cat_products_Packagings extends cat_products_Detail
     /**
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
-    static function on_AfterPrepareEditForm($mvc, $data)
+    public static function on_AfterPrepareEditForm($mvc, $data)
     {
         $form = &$data->form;
     	$options = $mvc::getRemainingOptions($form->rec->productId, $form->rec->id);
@@ -278,27 +286,28 @@ class cat_products_Packagings extends cat_products_Detail
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-    	$varchar = cls::get("type_Varchar");
-    	
-    	$row->quantity = trim($rec->quantity);
-    	$row->quantity = $varchar->toVerbal($rec->quantity);
-    	if($rec->sizeWidth==0) {
+    	if($rec->sizeWidth == 0) {
     		$row->sizeWidth = '-';
     	}
-    	if($rec->sizeHeight==0) {
+    	
+    	if($rec->sizeHeight == 0) {
     		$row->sizeHeight = '-';
     	}
-    	if($rec->sizeDepth==0) {
+    	
+    	if($rec->sizeDepth == 0) {
     		$row->sizeDepth = '-';
     	}
+    	
     	$row->dimention = "{$row->sizeWidth} x {$row->sizeHeight} x {$row->sizeDepth}";
     	
     	if($rec->eanCode){
     		$row->code = $row->eanCode;
     	}
+    	
     	if($rec->netWeight){
-    		$row->weight = tr("|Нето|*: ") . $row->netWeight . "<br />";
+    		$row->weight = tr("|Нето|*: ") . $row->netWeight . "<br>";
     	}
+    	
     	if($rec->tareWeight){
     		$row->weight .= tr("|Тара|*: {$row->tareWeight}");
     	}
@@ -306,9 +315,15 @@ class cat_products_Packagings extends cat_products_Detail
     	if($rec->isBase == 'yes'){
     		$row->packagingId = "<b>" . $row->packagingId . "</b>";
     	}
+    	
+    	$shortUom = cat_UoM::getShortName(cat_Products::getProductInfo($rec->productId)->productRec->measureId);
+    	$row->quantity .= " {$shortUom}";
     }
 
     
+    /**
+     * След рендиране на детайла
+     */
     public static function on_AfterRenderDetail($mvc, &$tpl, $data)
     {
         $wrapTpl = getTplFromFile('cat/tpl/PackigingDetail.shtml');
@@ -353,5 +368,18 @@ class cat_products_Packagings extends cat_products_Detail
     	if($data->hide === TRUE) return;
     	
         return static::renderDetail($data);
+    }
+    
+    
+    /**
+     * Връща опаковката ако има такава
+     * 
+     * @param int $productId - ид на продукта
+     * @param int $packagingId - ид на опаковката
+     * @return stdClass
+     */
+    public static function getPack($productId, $packagingId)
+    {
+    	return cat_products_Packagings::fetch("#productId = {$productId} AND #packagingId = {$packagingId}");
     }
 }

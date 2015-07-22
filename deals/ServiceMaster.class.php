@@ -134,8 +134,8 @@ abstract class deals_ServiceMaster extends core_Master
 	
 		if(count($agreedProducts)){
 			foreach ($agreedProducts as $product) {
-				$info = cls::get($product->classId)->getProductInfo($product->productId, $product->packagingId);
-				 
+				$info = cls::get($product->classId)->getProductInfo($product->productId);
+				
 				// Колко остава за експедиране от продукта
 				$toShip = $product->quantity - $product->quantityDelivered;
 				 
@@ -152,8 +152,8 @@ abstract class deals_ServiceMaster extends core_Master
 				$shipProduct->uomId       = $product->uomId;
 				$shipProduct->discount    = $product->discount;
 				$shipProduct->notes       = $product->notes;
-				$shipProduct->quantityInPack = ($product->packagingId) ? $info->packagingRec->quantity : 1;
-				 
+				$shipProduct->quantityInPack = $product->quantityInPack;
+				
 				$Detail = $mvc->mainDetail;
 				$mvc->$Detail->save($shipProduct);
 			}
@@ -351,8 +351,10 @@ abstract class deals_ServiceMaster extends core_Master
     		$p->classId     = $dRec->classId;
     		$p->productId   = $dRec->productId;
     		$p->packagingId = $dRec->packagingId;
-    
-    		$aggregator->push('shippedPacks', $p);
+    		$p->inPack      = $dRec->quantityInPack;
+    		$index = $dRec->classId . "|" . $dRec->productId;
+    		
+    		$aggregator->push('shippedPacks', $p, $index);
     	}
     }
     

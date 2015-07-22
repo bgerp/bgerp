@@ -129,7 +129,7 @@ class marketing_Setup extends core_ProtoSetup
      */
     static function updateBulletinsBrid()
     {
-        if (!cls::load('marketing_Bulletin', TRUE)) continue;
+        if (!cls::load('marketing_Bulletin', TRUE)) return ;
         $mBulletin = cls::get('marketing_Bulletin');
         if($mBulletin->db->tableExists($mBulletin->dbTableName)) {
             $query = $mBulletin->getQuery();

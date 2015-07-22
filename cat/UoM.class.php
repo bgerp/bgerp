@@ -64,7 +64,7 @@ class cat_UoM extends core_Manager
     /**
      * Полета за лист изгледа
      */
-    var $listFields = "id,name,shortName=Съкращение->Българско,sysId=Съкращение->Международно,state,round";
+    var $listFields = "id,name,shortName=Съкращение->Българско,sysId=Съкращение->Международно,state,round=Точност,showContents";
     
     
     /**
@@ -72,16 +72,58 @@ class cat_UoM extends core_Manager
      */
     function description()
     {
-        $this->FLD('name', 'varchar(36)', 'caption=Мярка, export,translate');
-        $this->FLD('shortName', 'varchar(12)', 'caption=Съкращение, export,translate');
+        $this->FLD('name', 'varchar(36)', 'caption=Мярка, export,translate,mandatory');
+        $this->FLD('shortName', 'varchar(12)', 'caption=Съкращение, export,translate,mandatory');
+        $this->FLD('type', 'enum(uom=Мярка,packaging=Опаковка)', 'notNull,value=uom,caption=Тип,silent,input=hidden');
         $this->FLD('baseUnitId', 'key(mvc=cat_UoM, select=name,allowEmpty)', 'caption=Базова мярка, export');
         $this->FLD('baseUnitRatio', 'double', 'caption=Коефициент, export');
         $this->FLD('sysId', 'varchar', 'caption=System Id,input=hidden');
         $this->FLD('sinonims', 'varchar(255)', 'caption=Синоними');
+        $this->FLD('showContents', 'enum(yes=Показване,no=Скриване)', 'caption=Показване в документи->К-во в опаковка');
         $this->FLD('round', 'int', 'caption=Точност след десетичната запетая->Цифри');
         
         $this->setDbUnique('name');
         $this->setDbUnique('shortName');
+    }
+    
+    
+    /**
+     * Връща опции с опаковките
+     */
+    static function getPackagingOptions()
+    {
+    	$options = cls::get(get_called_class())->makeArray4Select('name', "#type = 'packaging' AND state NOT IN ('closed')");
+    	
+    	return $options;
+    }
+    
+    
+    /**
+     * Връща опции с мерките
+     */
+    static function getUomOptions()
+    {
+    	$options = cls::get(get_called_class())->makeArray4Select('name', "#type = 'uom' AND state NOT IN ('closed')");
+    	 
+    	return $options;
+    }
+    
+    
+    /**
+     * Подготовка на филтър формата
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+    	$type = core_Request::get('type', 'enum(uom,packaging)');
+    	if($type == 'packaging'){
+    		$mvc->currentTab = 'Мерки->Опаковки';
+    		$mvc->title = 'Опаковки';
+    		$data->listFields['name'] = 'Опаковка';
+    	} else {
+    		$mvc->currentTab = 'Мерки->Мерки';
+    	}
+    	
+    	$data->query->where(array("#type = '[#1#]'", $type));
     }
     
     
@@ -278,7 +320,8 @@ class cat_UoM extends core_Manager
 	    	4 => "state",
 	    	5 => "sysId",
 	    	6 => "sinonims",
-    		7 => "round");
+    		7 => "round",
+    		8 => "type");
     	
     	$cntObj = csv_Lib::importOnce($mvc, $file, $fields);
     	$res .= $cntObj->html;
@@ -374,5 +417,26 @@ class cat_UoM extends core_Manager
         $all[$mId] = ($verbal) ? $Double->toVerbal($all[$mId]) : $all[$mId];
         
         return ($asObject) ? (object)(array('value' => $all[$uomId], 'measure' => $mId)) : $all[$uomId] . " " . static::getShortName($mId);
+    }
+    
+    
+    /**
+     * Извиква се след подготовката на toolbar-а за табличния изглед
+     */
+    protected static function on_AfterPrepareListToolbar($mvc, &$data)
+    {
+    	$data->toolbar->removeBtn('btnAdd');
+    	$data->toolbar->addBtn('Нов запис', array($mvc, 'add', 'type' => Request::get('type', 'enum(uom,packaging)')), 'ef_icon=img/16/star_2.png,title=Добавяне на нова мярка');
+    }
+    
+    
+    /**
+     * Преди показване на форма за добавяне/промяна
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+    	if($data->form->rec->type == 'packaging'){
+    		$data->form->setField('name', 'caption=Опаковка');
+    	}
     }
 }

@@ -601,13 +601,9 @@ abstract class deals_InvoiceMaster extends core_Master
    {
 	   	$dRec = clone $product;
 	   	$index = $product->classId . "|" . $product->productId;
-	   	if($packs[$index]){
-	   		$packQuantity = $packs[$index]->inPack;
-	   		$dRec->packagingId = $packs[$index]->packagingId;
-	   	} else {
-	   		$packQuantity = 1;
-	   		$dRec->packagingId = NULL;
-	   	}
+	   	
+	   	$packQuantity = $packs[$index]->inPack;
+	   	$dRec->packagingId = $packs[$index]->packagingId;
 	   	
 	   	$Detail = $mvc->mainDetail;
 	   	$dRec->{$mvc->$Detail->masterKey} = $rec->id;

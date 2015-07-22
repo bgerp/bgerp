@@ -140,7 +140,7 @@ class sales_SalesDetails extends deals_DealDetail
     	$masterStore = $mvc->Master->fetch($rec->{$mvc->masterKey})->shipmentStoreId;
     	
     	if(isset($rec->productId)){
-    		$pInfo = cls::get($rec->classId)->getProductInfo($rec->productId, $rec->packagingId);
+    		$pInfo = cls::get($rec->classId)->getProductInfo($rec->productId);
     		
     		if(isset($masterStore) && isset($pInfo->meta['canStore'])){
     			
@@ -150,7 +150,7 @@ class sales_SalesDetails extends deals_DealDetail
     	}
     	
     	if ($form->isSubmitted()){
-    		$quantityInPack = ($pInfo->packagingRec) ? $pInfo->packagingRec->quantity : 1;
+    		$quantityInPack = ($pInfo->packagings[$rec->packagingId]) ? $pInfo->packagings[$rec->packagingId]->quantity : 1;
     		
     		// Показваме предупреждение ако наличното в склада е по-голямо от експедираното
     		if(isset($storeInfo)){

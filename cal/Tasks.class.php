@@ -315,14 +315,17 @@ class cal_Tasks extends core_Master
             $row->timeEnd = ht::createLink(dt::mysql2verbal($rec->timeEnd, 'smartTime'), array('cal_Calendar', 'day', 'from' => $row->timeEnd, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
         }
 
-        if (($rec->timeDuration || $rec->timeEnd) && $rec->remainingTime > 0) {
-            $row->expectationTimeEnd = dt::mysql2verbal($rec->expectationTimeEnd, 'smartTime');
-
+        // && $rec->remainingTime > 0
+        if (($rec->timeDuration || $rec->timeEnd)) {
+            
+        	$row->expectationTimeEnd = dt::mysql2verbal($rec->expectationTimeEnd, 'smartTime');
         } else {
+        	
             $row->expectationTimeEnd = '';
         }
 
         if ($rec->timeClosed) {
+        	
             $row->timeClosed = dt::mysql2verbal($rec->timeClosed, 'smartTime');
         }
 
@@ -929,8 +932,18 @@ class cal_Tasks extends core_Master
         if ($rec->state == 'active' && !$rec->expectationTimeEnd) {
         	$row->expectationTimeEnd = "";
         }
-
-        ;
+        
+        if (!$rec->timeStart) {
+        	$row->expectationTimeStart = dt::mysql2verbal($rec->expectationTimeStart, 'smartTime');
+        } else {
+        	$row->expectationTimeStart = '';
+        }
+        
+        if (!$rec->timeEnd) {
+        	$row->expectationTimeEnd = dt::mysql2verbal($rec->expectationTimeEnd, 'smartTime');
+        } else {
+        	$row->expectationTimeEnd = '';
+        }
     }
     
     
@@ -1823,11 +1836,24 @@ class cal_Tasks extends core_Master
         if($data->recs){ 
         	$data = $data->recs;
         } 
+        
         if(is_array($data)){
     	// за всеки едиин запис от базата данни
     	foreach($data as $rec){ 
+    	
+    		if ($rec->timeStart) {
+    			$timeStart = $rec->timeStart;
+    		} else {
+    			$timeStart = $rec->expectationTimeStart;
+    		}
     		
-    		if($rec->timeStart){
+    		if ($rec->timeEnd) {
+    			$timeEnd = $rec->timeEnd;
+    		} else {
+    			$timeEnd = $rec->expectationTimeEnd;
+    		}
+    		
+    		if($timeStart){
 	    		// ако няма продължителност на задачата
 	    		if(!$rec->timeDuration) {
 	    			// продължителността е края - началото
@@ -1837,16 +1863,16 @@ class cal_Tasks extends core_Master
 	    		}
 	    		
 	    		// ако нямаме край на задачата
-	    		if(!$rec->timeEnd){
+	    		/*if(!$rec->timeEnd){
 	    			// изчисляваме края, като начало + продължителност
 	    			$timeEnd = dt::timestamp2Mysql(dt::mysql2timestamp($rec->timeStart) + $timeDuration);
 	    		} else {
 	    			$timeEnd = $rec->timeEnd;
-	    		}
+	    		}*/
 	    		
 	    		// правим 2 масива с начални и крайни часове
-	    		if($rec->timeStart){
-	    			$start[] = dt::mysql2timestamp($rec->timeStart);
+	    		if($timeStart){
+	    			$start[] = dt::mysql2timestamp($timeStart);
 	    			$end[] = dt::mysql2timestamp($timeEnd);
 	    		}
     		}
@@ -1857,7 +1883,7 @@ class cal_Tasks extends core_Master
 	    	$startTime = min($start);
 	    	$endTime = max($end);  
     	} else {
-    		$startTime = dt::mysql2timestamp($rec->timeStart);
+    		$startTime = dt::mysql2timestamp($timeStart);
 	    	$endTime = dt::mysql2timestamp($timeEnd); 
     	}
       
@@ -2040,7 +2066,7 @@ class cal_Tasks extends core_Master
     {
     	// сега
     	$now = dt::verbal2mysql(); 
-    	
+    	//if ($rec->id == 37) {
         // ако задачата има id следователно може да е зависима от други
     	if($rec->id) {
     	    $query = cal_TaskConditions::getQuery();
@@ -2057,22 +2083,23 @@ class cal_Tasks extends core_Master
 	    			$calcTimeS[] = self::calculateTimeToStart($rec, $cond);
     	    		//$timeEnd = self::fetchField($cond->dependId, "expectationTimeEnd");
 	    	    }
-	    	  
+	    	    
 		     	// взимаме и началното време на текущата задача,
 		     	// ако има такова
 		     	$timeStartRec = self::fetchField($rec->id, "timeStart");
 		     	
 		     	if (!$timeStartRec) { 
 		     		// в противен случай го слагаме 0
-		     		$timeStartRec = $now;
+		     		//$timeStartRec = $now;
 		     		//$timeStartRec = 0;
+
+		     	} else {
+			     	// прибавяме го към масива
+			     	array_push($calcTimeS, $timeStartRec);
 		     	}
-		     	// прибавяме го към масива
-		     	array_push($calcTimeS, $timeStartRec);
-		     	
 		     	// най-малкото време е времето за стартирване на текущата задача
 		     	$timeStart = min($calcTimeS);
-		     	
+
 		     // ако не е зависима от други взимаме нейните начало и край
 	    	} else {
 	    		$timeStart = self::fetchField($rec->id, "timeStart");
@@ -2129,7 +2156,9 @@ class cal_Tasks extends core_Master
 	    
     	$rec->expectationTimeStart = $expStart;
     	$rec->expectationTimeEnd = $expEnd;
-        
+    	
+        //bp($rec,$rec->expectationTimeStart, $rec->expectationTimeEnd);
+    	//}
     	//return $expEnd;
     	//self::save($rec, 'expectationTimeStart, expectationTimeEnd');
     }
@@ -2156,7 +2185,7 @@ class cal_Tasks extends core_Master
     
     
     /**
-     * Изчисляваме новото наало за стратиране на задачата
+     * Изчисляваме новото начало за стратиране на задачата
      * ако тя е зависима по време от някоя друга
      * 
      * @param stdClass $rec
@@ -2164,6 +2193,7 @@ class cal_Tasks extends core_Master
      */
     static public function calculateTimeToStart ($rec, $recCond)
     {
+    	if($rec->id == 37) {
     	// времето от което зависи новата задача е началото на зависимата задача
     	// "timeCalc"
     	$dependTimeStart = self::fetchField($recCond->dependId, "expectationTimeStart");
@@ -2202,7 +2232,7 @@ class cal_Tasks extends core_Master
     		$calcTime = dt::mysql2timestamp($dependTimeEnd) - $recCond->distTime;
     		$calcTimeStart = dt::timestamp2Mysql($calcTime);
     	}
-       
+    	bp($calcTimeStart,$recCond->distTime,$dependTimeEnd,dt::mysql2timestamp($dependTimeEnd));
     	// ако задачата е безкрайна
     	if (!$rec->timeStart) { 
     		$rec->timeCalc = $calcTimeStart;
@@ -2224,6 +2254,8 @@ class cal_Tasks extends core_Master
     			
     			return $calcTimeStart;
     		}
+    	}
+    	
     	}
     }
    

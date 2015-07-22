@@ -321,15 +321,14 @@ class pos_Receipts extends core_Master {
     	$query->orderBy("id", "ASC");
     	
 	    while($rec = $query->fetch()) {
-	    	$info = cat_Products::getProductInfo($rec->productId, $rec->value);
-	    	$packagingId = $rec->value;
-	    	$quantityInPack = isset($packagingId) ? $info->packagingRec->quantity : 1;
+	    	$info = cat_Products::getProductInfo($rec->productId);
+	    	$quantityInPack = ($info->packagings[$rec->value]) ? $info->packagings[$rec->value]->quantity : 1;
 	    	
 	    	$products[] = (object) array(
 	    		'classId'     => cat_Products::getClassId(),
 	    		'productId'   => $rec->productId,
 		    	'price'       => $rec->price / $quantityInPack,
-	    	    'packagingId' => $packagingId,
+	    	    'packagingId' => $rec->value,
 	    		'vatPrice'    => $rec->price * $rec->param,
 	    		'discount'    => $rec->discountPercent,
 		    	'quantity'    => $rec->quantity);
@@ -1333,7 +1332,9 @@ class pos_Receipts extends core_Master {
     	
     	$Policy = cls::get('price_ListToCustomers');
     	$Products = cls::get('cat_Products');
+    	
     	foreach ($sellable as $id => $name){
+    		if(is_object($name)) continue;
     		
     		// Показваме само до определена бройка
     		if($count >= $this->maxSearchProducts) break;
@@ -1341,14 +1342,11 @@ class pos_Receipts extends core_Master {
     		// Ако продукта не отговаря на търсения стринг, го пропускаме
     		if(!$pRec = $Products->fetch(array("#id = {$id} AND #searchKeywords LIKE '%[#1#]%'", $data->searchString))) continue;
     		
-    		$basePackInfo = $Products->getBasePackInfo($id);
-    		if($basePackInfo->classId != 'cat_UoM'){
-    			$packId = $basePackInfo->id;
-    			$perPack = $basePackInfo->quantity;
-    		} else {
-    			$packId = NULL;
-    			$perPack = 1;
-    		}
+    		$pInfo = cat_Products:: getProductInfo($id);
+    		
+    		$packs = $Products->getPacks($id);
+    		$packId = key($packs);
+    		$perPack = (isset($pInfo->packagings[$packId])) ? $pInfo->packagings[$packId]->quantity : 1;
     		
     		$price = $Policy->getPriceInfo($data->rec->contragentClass, $data->rec->contragentObjectId, $id, $Products->getClassId(), $packId, NULL, $data->rec->createdOn, 1, 'yes');
     		
@@ -1362,7 +1360,6 @@ class pos_Receipts extends core_Master {
     							 'packagingId' => $packId,
     							 'vat'	       => $vat);
     		
-    		$pInfo = cat_Products:: getProductInfo($id);
     		if(isset($pInfo->meta['canStore'])){
     			$obj->stock = pos_Stocks::getQuantity($id, $data->rec->pointId);
     			$obj->stock /= $perPack;
@@ -1389,7 +1386,7 @@ class pos_Receipts extends core_Master {
     	$row->price .= "&nbsp;<span class='cCode'>{$data->baseCurrency}</span>";
     	$row->stock = $Double->toVerbal($obj->stock);
     	
-    	$row->packagingId = ($obj->packagingId) ? cat_Packagings::getTitleById($obj->packagingId) : cat_UoM::getTitleById($obj->measureId);
+    	$row->packagingId = ($obj->packagingId) ? cat_UoM::getTitleById($obj->packagingId) : cat_UoM::getTitleById($obj->measureId);
     	
     	$obj->receiptId = $data->rec->id;
     	if($this->pos_ReceiptDetails->haveRightFor('add', $obj)){

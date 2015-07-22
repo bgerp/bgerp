@@ -395,7 +395,7 @@ class pos_Reports extends core_Master {
     		// Ако детайла е продажба
     		$row->ROW_ATTR['class'] = 'report-sale';
     		$info = cat_Products::getProductInfo($obj->value, $obj->pack);
-    		$row->pack = ($obj->pack) ? cat_Packagings::getTitleById($obj->pack) : cat_UoM::getTitleById($info->productRec->measureId);
+    		$row->pack = ($obj->pack) ? cat_UoM::getTitleById($obj->pack) : cat_UoM::getTitleById($info->productRec->measureId);
     		$row->value = cat_Products::getHyperlink($obj->value, TRUE);
     		$obj->amount *= 1 + $obj->param;
     	} else {
@@ -482,6 +482,7 @@ class pos_Reports extends core_Master {
     		
     		// Добавяме детайлите на бележката
 	    	$data = pos_ReceiptDetails::fetchReportData($rec->id);
+	    	
 	    	foreach($data as $obj){
 	    		$index = implode('|', array($obj->action, $obj->pack, $obj->contragentClassId, $obj->contragentId, $obj->value));
 	    		if (!array_key_exists($index, $results)) {

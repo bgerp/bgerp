@@ -259,6 +259,12 @@ class cat_Products extends core_Embedder {
 	protected $updateGroupsCnt = FALSE;
 	
 	
+	/**
+	 * Кеширана информация за артикулите
+	 */
+	protected static $productInfos = array();
+	
+	
     /**
      * Описание на модела
      */
@@ -268,7 +274,7 @@ class cat_Products extends core_Embedder {
         $this->FLD('intName', 'varchar', 'caption=Международно име,remember=info,width=100%');
 		$this->FLD('code', 'varchar(64)', 'caption=Код,remember=info,width=15em');
         $this->FLD('info', 'richtext(bucket=Notes)', 'caption=Описание,input=none,formOrder=4');
-        $this->FLD('measureId', 'key(mvc=cat_UoM, select=name,allowEmpty)', 'caption=Мярка,mandatory,remember,notSorting,input=none,formOrder=4');
+        $this->FLD('measureId', 'key(mvc=cat_UoM, select=name,allowEmpty)', 'caption=Мярка,mandatory,remember,notSorting,input=none,formOrder=4,optionsFunc=cat_UoM::getUomOptions');
         $this->FLD('photo', 'fileman_FileType(bucket=pictures)', 'caption=Фото,input=none,formOrder=4');
         $this->FLD('groups', 'keylist(mvc=cat_Groups, select=name, makeLinks)', 'caption=Маркери,maxColumns=2,remember,formOrder=100');
         $this->FLD("isPublic", 'enum(no=Частен,yes=Публичен)', 'input=none,formOrder=100000002');
@@ -610,6 +616,11 @@ class cat_Products extends core_Embedder {
      */					
     public static function getProductInfo($productId, $packagingId = NULL)
     {
+    	if(isset(self::$productInfos[$productId][$packagingId])){
+    		
+    		return self::$productInfos[$productId][$packagingId];
+    	}
+    	
     	// Ако няма такъв продукт връщаме NULL
     	if(!$productRec = static::fetchRec($productId)) {
     		
@@ -670,6 +681,8 @@ class cat_Products extends core_Embedder {
     	}
     	
     	// Връщаме информацията за продукта
+    	self::$productInfos[$productId][$packagingId] = $res;
+    	
     	return $res;
     }
     
@@ -928,21 +941,39 @@ class cat_Products extends core_Embedder {
     
     
 	/**
-     * Връща масив със всички опаковки, в които може да участва един продукт
+     * Връща масив със всички опаковки, в които може да участва един продукт + основната му мярка
+     * Първия елемент на масива е основната опаковка (ако няма основната мярка)
+     * 
+     * @param int $productId - ид на артикул
+     * @return array $options - опаковките
      */
     public function getPacks($productId)
     {
-    	expect($rec = $this->fetch($productId));
+    	expect($pInfo = self::getProductInfo($productId));
     	
-    	$pInfo = self::getProductInfo($productId);
+    	// Определяме основната мярка
+    	$options = array();
+    	$measureId = $pInfo->productRec->measureId;
+    	$baseId = $measureId;
     	
-    	$packs = $pInfo->packagings;
-    	if(count($packs)){
-    		foreach ($packs as $packRec){
-    			$options[$packRec->packagingId] = cat_Packagings::getTitleById($packRec->packagingId);
+    	// За всяка опаковка, извличаме опциите и намираме имали основна такава
+    	if(count($pInfo->packagings)){
+    		foreach ($pInfo->packagings as $packRec){
+    			$options[$packRec->packagingId] = cat_UoM::getTitleById($packRec->packagingId);
+    			if($packRec->isBase == 'yes'){
+    				$baseId = $packRec->packagingId;
+    			}
     		}
     	}
     	
+    	// Подготвяме опциите
+    	$options = array($measureId => cat_UoM::getTitleById($measureId)) + $options;
+    	$firstVal = $options[$baseId];
+    	
+    	unset($options[$baseId]);
+    	$options = array($baseId => $firstVal) + $options;
+    	
+    	// Връщаме опциите
     	return $options;
     }
     
@@ -1029,11 +1060,17 @@ class cat_Products extends core_Embedder {
     	$recs = &$data->recs;
     	if(empty($recs) || !count($recs)) return;
     	
-    	$packInfo = $mvc->getBasePackInfo($data->masterId);
-    	$data->packName = $packInfo->name;
+    	$packs = $mvc->getPacks($data->masterId);
+    	$basePackId = key($packs);
+    	$data->packName = cat_UoM::getTitleById($basePackId);
+    	
+    	$quantity = 1;
+    	if($pRec = cat_products_Packagings::fetch("#productId = {$data->masterId} AND #packagingId = {$basePackId}")){
+    		$quantity = $pRec->quantity;
+    	}
     	
     	foreach ($recs as &$dRec){
-    		$dRec->blQuantity /= $packInfo->quantity;
+    		$dRec->blQuantity /= $quantity;
     	}
     }
     
@@ -1072,38 +1109,6 @@ class cat_Products extends core_Embedder {
     			$row->originId = doc_Containers::getDocument($rec->originId)->getLink(0);
     		}
     	}
-    }
-    
-    
-    /**
-     * Връща информация за основната опаковка на артикула
-     * 
-     * @param int $id - ид на продукт
-     * @return stdClass - обект с информация
-     * 				->name     - име на опаковката
-     * 				->quantity - к-во на продукта в опаковката
-     * 				->classId  - ид на cat_Packagings или cat_UoM
-     * 				->id       - на опаковката/мярката
-     */
-    public function getBasePackInfo($id)
-    {
-    	$basePack = cat_products_Packagings::fetch("#productId = '{$id}' AND #isBase = 'yes'");
-    	$arr = array();
-    	
-    	if($basePack){
-    		$arr['name'] = cat_Packagings::getTitleById($basePack->packagingId);
-    		$arr['quantity'] = $basePack->quantity;
-    		$arr['classId'] = 'cat_Packagings';
-    		$arr['id'] = $basePack->packagingId;
-    	} else {
-    		$measureId = $this->fetchField($id, 'measureId');
-    		$arr['name'] = cat_UoM::getTitleById($measureId);
-    		$arr['quantity'] = 1;
-    		$arr['classId'] = 'cat_UoM';
-    		$arr['id'] = $measureId;
-    	}
-    		
-    	return (object)$arr;
     }
     
     
