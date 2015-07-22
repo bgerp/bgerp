@@ -59,7 +59,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 	{
 		$mvc->FLD('productId', 'int', 'caption=Продукт','tdClass=large-field leftCol wrap,silent,removeAndRefreshForm=packPrice|discount|packagingId');
 		$mvc->FLD('classId', 'class(interface=cat_ProductAccRegIntf, select=title)', 'caption=Мениджър,silent,input=hidden');
-		$mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, allowEmpty, select2MinItems=0)', 'caption=Мярка','tdClass=small-field,silent,removeAndRefreshForm=packPrice|discount|uomId,mandatory');
+		$mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка','tdClass=small-field,silent,removeAndRefreshForm=packPrice|discount|uomId,mandatory');
 		$mvc->FLD('quantity', 'double', 'caption=К-во,mandatory','tdClass=small-field');
 		$mvc->FLD('quantityInPack', 'double(smartRound)', 'input=none');
 		$mvc->FLD('price', 'double', 'caption=Цена, input=none');
