@@ -25,8 +25,7 @@ class pos_Favourites extends core_Manager {
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_RowTools, plg_Rejected, plg_Sorting,
-    				 plg_Printing, pos_Wrapper, plg_State2';
+    var $loadList = 'plg_Created, plg_RowTools, plg_Sorting, plg_Printing, pos_Wrapper, plg_State2';
 
     
     /**
@@ -72,9 +71,9 @@ class pos_Favourites extends core_Manager {
     
     
     /**
-     * Кой може да го отхвърли?
+     * Кой може да го изтрие?
      */
-    var $canReject = 'ceo, pos';
+    var $canDelete = 'ceo, pos';
     
 	
 	/**
