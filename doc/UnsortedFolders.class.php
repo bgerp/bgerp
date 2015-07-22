@@ -473,16 +473,32 @@ class doc_UnsortedFolders extends core_Master
         	
         	// заявка към таблицата на Задачите
         	while ($recTask = $queryTasks->fetch()) {
-        	
-        		if($recTask->timeStart){
+        
+        		if ($recTask->timeStart) {
+        			$timeStart = $recTask->timeStart;
+        		} else {
+        			$timeStart = $recTask->expectationTimeStart;
+        		}
+        		
+        		if ($recTask->timeEnd) {
+        			$timeEnd = $recTask->timeEnd;
+        		} else {
+        			$timeEnd = $recTask->expectationTimeEnd;
+        		}
+        		
+        		if($timeStart){
         			// ако няма продължителност на задачата
-    	    		if(!$recTask->timeDuration && !$recTask->timeEnd) {
+    	    		if(!$recTask->timeDuration) {
     	    			// продължителността на задачата е края - началото
     	    			$timeDuration = 1800;
-    	    		} elseif(!$recTask->timeDuration && $recTask->timeEnd ) {
-    	    			$timeDuration = dt::mysql2timestamp($recTask->timeEnd) - dt::mysql2timestamp($recTask->timeStart);
+    	    		} elseif(!$recTask->timeDuration && $timeEnd) {
+    	    			$timeDuration = dt::mysql2timestamp($timeEnd) - dt::mysql2timestamp($timeStart);
+    	    		
     	    		} else {
     	    			$timeDuration = $recTask->timeDuration;
+    	    			/*if ($recTask->id == 37) {
+    	    				bp($timeDuration);
+    	    			}*/
     	    		}
 
 	        		// Ако имаме права за достъп до сингъла
@@ -499,7 +515,7 @@ class doc_UnsortedFolders extends core_Master
 	    		    						'timeline' => array (
 	    		    											'0' => array(
 	    		                								'duration' => $timeDuration,  
-	    		                								'startTime'=> dt::mysql2timestamp($recTask->timeStart))),
+	    		                								'startTime'=> dt::mysql2timestamp($timeStart))),
 	    		    		                
 	    			    					'color' => self::$colors[$recTask->id % 50],
 	    			    					'hint' => $recTask->title,
@@ -564,7 +580,7 @@ class doc_UnsortedFolders extends core_Master
         			$attr['title'] = $recTitle;
         			
         			$title = ht::createLink(str::limitLen($recTitle, 25),
-        					array('cal_Tasks', 'single', $recTask->id),
+        					array('cal_Tasks', 'single', $task['taskId']),
         					NULL, $attr);
 
         			$resources[$id] = array("name" => $title->content, "id" => $task['taskId']);
@@ -600,7 +616,7 @@ class doc_UnsortedFolders extends core_Master
         				$attr['title'] = $recTitle;
         				 
         				$title = ht::createLink(str::limitLen($recTitle, 25),
-        						array('cal_Tasks', 'single', $recTask->id),
+        						array('cal_Tasks', 'single', $task['taskId']),
         						NULL, $attr);
 
         				$resources[$id] = array("name" => $title->content, "id" => $task['taskId']);
@@ -632,7 +648,7 @@ class doc_UnsortedFolders extends core_Master
         				$attr['title'] = $recTitle;
         				
         				$title = ht::createLink(str::limitLen($recTitle, 25),
-        						array('cal_Tasks', 'single', $recTask->id),
+        						array('cal_Tasks', 'single', $task['taskId']),
         						NULL, $attr);
 
         				$resources[$id] = array("name" => $title->content, "id" => $task['taskId']);
