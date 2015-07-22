@@ -932,9 +932,17 @@ class cal_Tasks extends core_Master
         if ($rec->state == 'active' && !$rec->expectationTimeEnd) {
         	$row->expectationTimeEnd = "";
         }
-
-        if ($rec->state == 'pending' && $rec->expectationTimeEnd) {
+        
+        if (!$rec->timeStart) {
+        	$row->expectationTimeStart = dt::mysql2verbal($rec->expectationTimeStart, 'smartTime');
+        } else {
+        	$row->expectationTimeStart = '';
+        }
+        
+        if (!$rec->timeEnd) {
         	$row->expectationTimeEnd = dt::mysql2verbal($rec->expectationTimeEnd, 'smartTime');
+        } else {
+        	$row->expectationTimeEnd = '';
         }
     }
     
