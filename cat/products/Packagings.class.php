@@ -380,20 +380,6 @@ class cat_products_Packagings extends cat_products_Detail
      */
     public static function getPack($productId, $packagingId)
     {
-        if (is_null($productId)) {
-            
-            cat_Products::logErr('Липсва id');
-            
-            return ;
-        }
-        
-        if (is_null($packagingId)) {
-            
-            cat_UoM::logErr('Липсва id');
-            
-            return ;
-        }
-        
-    	return cat_products_Packagings::fetch("#productId = {$productId} AND #packagingId = {$packagingId}");
+        return cat_products_Packagings::fetch("#productId = '{$productId}' AND #packagingId = '{$packagingId}'");
     }
 }
