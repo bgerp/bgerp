@@ -431,8 +431,11 @@ class cat_UoM extends core_Manager
      */
     protected static function on_AfterPrepareListToolbar($mvc, &$data)
     {
+    	$type = Request::get('type', 'enum(uom,packaging)');
+    	$title = ($type == 'uom') ? 'мярка' : 'опаковка';
+    	
     	$data->toolbar->removeBtn('btnAdd');
-    	$data->toolbar->addBtn('Нов запис', array($mvc, 'add', 'type' => Request::get('type', 'enum(uom,packaging)')), 'ef_icon=img/16/star_2.png,title=Добавяне на нова мярка');
+    	$data->toolbar->addBtn('Нов запис', array($mvc, 'add', 'type' => $type), "ef_icon=img/16/star_2.png,title=Добавяне на нова {$title}");
     }
     
     

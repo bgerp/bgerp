@@ -223,25 +223,36 @@ class cat_products_Packagings extends cat_products_Detail
      *
      * @param $productId int ид на продукта
      * @param $id int ид от текущия модел, което не трябва да бъде изключено
+     * @return array $options - опциите
      */
     public static function getRemainingOptions($productId, $id = NULL)
     {
-        $options = cls::get('cat_UoM')->makeArray4Select('name', "state NOT IN ('closed')");
-      
-        if(count($options)) {
-            $query = self::getQuery();
-            
-            if($id) {
-                $query->where("#id != {$id}");
-            }
-
-            while($rec = $query->fetch("#productId = $productId")) {
-               unset($options[$rec->packagingId]);
-            }
-        } else {
-            $options = array();
+        // Извличаме мерките и опаковките
+    	$uomArr = cat_UoM::getUomOptions();
+        $packArr = cat_UoM::getPackagingOptions();
+        
+        // Отсяваме тези, които вече са избрани за артикула
+        $query = self::getQuery();
+        if($id) {
+            $query->where("#id != {$id}");
         }
 
+        while($rec = $query->fetch("#productId = $productId")) {
+           unset($uomArr[$rec->packagingId]);
+           unset($packArr[$rec->packagingId]);
+        }
+
+        // Групираме опциите, ако има такива
+        $options = array();
+        if(count($uomArr)){
+        	$options = array('u' => (object)array('group' => TRUE, 'title' => tr('Мерки'))) + $uomArr;
+        }
+        
+        if(count($packArr)){
+        	$options += array('p' => (object)array('group' => TRUE, 'title' => tr('Опаковки'))) + $packArr;
+        }
+        
+        // Връщаме намерените опции
         return $options;
     }
 
@@ -252,11 +263,12 @@ class cat_products_Packagings extends cat_products_Detail
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
         $form = &$data->form;
-    	$options = $mvc::getRemainingOptions($form->rec->productId, $form->rec->id);
-        
+    	$options = self::getRemainingOptions($form->rec->productId, $form->rec->id);
+    	
         if (empty($options)) {
+        	
             // Няма повече недефинирани опаковки
-            redirect(getRetUrl(), FALSE, tr('Няма повече недефинирани опаковки'));
+            redirect(getRetUrl(), FALSE, 'Всички налични мерки/опаковки за артикула са вече избрани');
         }
 		
     	if(!$form->rec->id){
@@ -264,26 +276,11 @@ class cat_products_Packagings extends cat_products_Detail
         }
         
         $form->setDefault('isBase', 'no');
-        	
         $form->setOptions('packagingId', $options);
         
         $pInfo = cat_Products::getProductInfo($form->rec->productId);
         $unit = cat_UoM::getShortName($pInfo->productRec->measureId);
         $form->setField('quantity', "unit={$unit}");
-        
-        // Променяме заглавието в зависимост от действието
-        if (!$form->rec->id) {
-            
-            // Ако добавяме нова опаковка
-            $titleMsg = 'Добавяне на опаковка за';    
-        } else {
-            
-            // Ако редактираме съществуваща
-            $titleMsg = 'Редактиране на опаковка за';
-        }
-        
-        // Добавяме заглавието
-        $form->title = "{$titleMsg}|* <b>" . cat_Products::getVerbal($pInfo->productRec, 'name') . "</b>";
     }
     
    
@@ -331,7 +328,11 @@ class cat_products_Packagings extends cat_products_Detail
     public static function on_AfterRenderDetail($mvc, &$tpl, $data)
     {
         $wrapTpl = getTplFromFile('cat/tpl/PackigingDetail.shtml');
-        $wrapTpl->append($mvc->title, 'TITLE');
+        $title = tr('|Опаковки|* / |Мерки|*');
+        if(cat_UoM::haveRightFor('list')){
+        	$title = ht::createLink($title, array('cat_UoM', 'list', 'type' => 'packaging'));
+        }
+        $wrapTpl->append($title, 'TITLE');
         
         if ($data->addUrl) {
         	$addBtn = ht::createLink("<img src=" . sbf('img/16/add.png') . " style='vertical-align: middle; margin-left:5px;'>", $data->addUrl, FALSE, 'title=Добавяне на нова опаковка');

@@ -695,7 +695,7 @@ class planning_Jobs extends core_Master
     public function renderJobs($data)
     {
     	 $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
-    	 $title = tr('Задания');
+    	 $title = tr('Задания за производство');
     	 if($this->haveRightFor('list')){
     	 	$title = ht::createLink($title, array($this, 'list'), FALSE, 'title=Към всички задания');
     	 }
