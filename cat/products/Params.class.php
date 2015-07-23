@@ -1,13 +1,13 @@
 <?php
 
 /**
- * Клас 'cat_products_Params'
+ * Клас 'cat_products_Params' - продуктови параметри
  *
  *
  * @category  bgerp
  * @package   cat
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @link
@@ -225,7 +225,13 @@ class cat_products_Params extends doc_Detail
     {
         $tpl = getTplFromFile('cat/tpl/products/Params.shtml');
         $tpl->replace(get_called_class(), 'DetailName');
-        $tpl->append(tr('Параметри'), 'TITLE');
+        
+        $title = tr('Параметри');
+        if(cat_Params::haveRightFor('list')){
+        	$title = ht::createLink($title, array('cat_Params', 'list'));
+        }
+        
+        $tpl->append($title, 'TITLE');
         
         if($data->noChange !== TRUE){
         	$tpl->append($data->changeBtn, 'TITLE');

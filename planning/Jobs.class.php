@@ -695,7 +695,7 @@ class planning_Jobs extends core_Master
     public function renderJobs($data)
     {
     	 $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
-    	 $title = tr('Задания');
+    	 $title = tr('Задания за производство');
     	 if($this->haveRightFor('list')){
     	 	$title = ht::createLink($title, array($this, 'list'), FALSE, 'title=Към всички задания');
     	 }
@@ -778,5 +778,12 @@ class planning_Jobs extends core_Master
     	// Обновяваме произведеното к-то по заданието
     	$rec->quantityProduced = $producedQuantity;
     	self::save($rec, 'quantityProduced');
+    }
+    
+    
+    function act_Test()
+    {
+    	$l = cls::get('cat_Setup');
+    	$l->replacePackagings();
     }
 }

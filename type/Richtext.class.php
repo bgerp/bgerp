@@ -181,7 +181,6 @@ class type_Richtext extends type_Blob
             $res = $this->toHtml($value);
         }
         
-
         return $res;
     }
     
@@ -222,7 +221,7 @@ class type_Richtext extends type_Blob
         if(!$textMode) {
             $textMode = 'html';
         }
-                
+        
         // Място, където съхраняваме нещата за субституция
         $this->_htmlBoard = array();
         
@@ -286,7 +285,6 @@ class type_Richtext extends type_Blob
         // Даваме възможност други да правят обработки на текста
         $this->invoke('AfterCatchRichElements', array(&$html));
 
-        
         // Вземаме шаблона за намиране на текста, който ще се болдва
         $patternBold = static::getRichTextPatternForBold();
         
@@ -300,9 +298,15 @@ class type_Richtext extends type_Blob
         // Заменя текстово описаните таблици с вертикални черти с HTML таблици 
         $html = $this->replaceTables($html);
         
+        //Ако няма параметър noTrim, тогава тримваме стойността
+        if (!$this->params['noTrim']) {
+            
+            //Тримвано стойността
+            $html = trim($html);
+        }
+        
         // Заменя таговете с HTML такива
         $html = $this->replaceTags($html);   
-        
 
         // Обработваме елементите [color=????]  
         $html = preg_replace_callback("/\[color(=([^\]]*)|)\]\s*/si", array($this, '_catchColor'), $html);
@@ -368,7 +372,7 @@ class type_Richtext extends type_Blob
             $html = str_replace('<nbsp>', '&nbsp;', $html);
             Debug::stopTimer('RichtextReplaceIntervals');
         }
-
+        
         if(!Mode::is('text', 'plain')) {
             $html =  new ET("<div class=\"richtext\">{$html}</div>");
         } else {
