@@ -570,14 +570,20 @@ class pos_Reports extends core_Master {
     		}
     	
     		// Всяка бележка в репорта се "затваря"
+    		$count = 0;
     		foreach($rec->details['receipts'] as $receiptRec){
+    			$state = pos_Receipts::fetchField($receiptRec->id, 'state');
+    			if($state == $nextState) continue;
+    			
     			$receiptRec->state = $nextState;
     			pos_Receipts::save($receiptRec);
     			$count++;
     		}
     	
-    		core_Statuses::newStatus(tr("|{$msg} са|* '{$count}' |бележки за продажба|*"));
-    	}
+    		if($count){
+    			core_Statuses::newStatus(tr("|{$msg} са|* '{$count}' |бележки за продажба|*"));
+    			}
+    		}
     }
     
     
