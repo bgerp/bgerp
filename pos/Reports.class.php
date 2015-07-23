@@ -556,13 +556,9 @@ class pos_Reports extends core_Master {
     
     
     /**
-     * Извиква се след успешен запис в модела
-     *
-     * @param core_Mvc $mvc
-     * @param int $id първичния ключ на направения запис
-     * @param stdClass $rec всички полета, които току-що са били записани
+     * След промяна в журнала със свързаното перо
      */
-    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    public static function on_AfterJournalItemAffect($mvc, $rec, $item)
     {
     	if($rec->state != 'draft' && $rec->state != 'closed'){
     		if($rec->state == 'active'){
@@ -572,14 +568,14 @@ class pos_Reports extends core_Master {
     			$nextState = 'pending';
     			$msg = 'Активирани';
     		}
-    		
+    	
     		// Всяка бележка в репорта се "затваря"
     		foreach($rec->details['receipts'] as $receiptRec){
     			$receiptRec->state = $nextState;
     			pos_Receipts::save($receiptRec);
     			$count++;
     		}
-    		
+    	
     		core_Statuses::newStatus(tr("|{$msg} са|* '{$count}' |бележки за продажба|*"));
     	}
     }
