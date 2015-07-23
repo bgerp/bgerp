@@ -533,8 +533,17 @@ class pos_ReceiptDetails extends core_Detail {
     		return $rec->productid = NULL;
     	}
     	
-    	$perPack = ($info->packagings[$product->packagingId]) ? $info->packagings[$product->packagingId]->quantity : 1;
-    	$rec->value = ($product->packagingId) ? $product->packagingId : $info->productRec->measureId;
+    	if(!$product->packagingId){
+    		
+    		// По дефолт винаги избираме основната мярка/опаковка ако не е зададено друго
+    		$packs = cls::get('cat_Products')->getPacks($product->productId);
+    		$basePackId = key($packs);
+    	} else {
+    		$basePackId = $product->packagingId;
+    	}
+    	
+    	$perPack = ($info->packagings[$basePackId]) ? $info->packagings[$basePackId]->quantity : 1;
+    	$rec->value = ($basePackId) ? $basePackId : $info->productRec->measureId;
     	
     	$rec->productId = $product->productId;
     	$receiptRec = pos_Receipts::fetch($rec->receiptId);
