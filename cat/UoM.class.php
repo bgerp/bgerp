@@ -40,19 +40,19 @@ class cat_UoM extends core_Manager
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'admin,ceo';
+    var $canAdd = 'cat,ceo';
 
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'admin,ceo';
+    var $canEdit = 'cat,ceo';
   
 
     /**
      * Кой има право да го изтрие?
      */
-    var $canDelete = 'admin,ceo';
+    var $canDelete = 'cat,ceo';
  
 
     /**
@@ -65,6 +65,12 @@ class cat_UoM extends core_Manager
      * Полета за лист изгледа
      */
     var $listFields = "id,name,shortName=Съкращение->Българско,sysId=Съкращение->Международно,state,round=Точност,showContents";
+    
+    
+    /**
+     * Кой има право да променя системните данни?
+     */
+    var $canEditsysdata = 'cat,ceo';
     
     
     /**
@@ -90,7 +96,7 @@ class cat_UoM extends core_Manager
     /**
      * Връща опции с опаковките
      */
-    static function getPackagingOptions()
+    public static function getPackagingOptions()
     {
     	$options = cls::get(get_called_class())->makeArray4Select('name', "#type = 'packaging' AND state NOT IN ('closed')");
     	
@@ -101,7 +107,7 @@ class cat_UoM extends core_Manager
     /**
      * Връща опции с мерките
      */
-    static function getUomOptions()
+    public static function getUomOptions()
     {
     	$options = cls::get(get_called_class())->makeArray4Select('name', "#type = 'uom' AND state NOT IN ('closed')");
     	 
@@ -187,7 +193,7 @@ class cat_UoM extends core_Manager
      * @param double amount - стойност
      * @param int $unitId - ид на мярката
      */
-    static function convertToBaseUnit($amount, $unitId)
+    public static function convertToBaseUnit($amount, $unitId)
     {
         $rec = static::fetch($unitId);
         
@@ -208,7 +214,7 @@ class cat_UoM extends core_Manager
      * @param double amount - стойност
      * @param int $unitId - ид на мярката
      */
-    static function convertFromBaseUnit($amount, $unitId)
+    public static function convertFromBaseUnit($amount, $unitId)
     {
         $rec = static::fetch($unitId);
         
@@ -231,7 +237,7 @@ class cat_UoM extends core_Manager
      * @return array $options - всички мярки от същата категория
      * като подадената
      */
-    static function getSameTypeMeasures($measureId, $short = FALSE)
+    public static function getSameTypeMeasures($measureId, $short = FALSE)
     {
     	expect($rec = static::fetch($measureId), "Няма такава мярка");	
     	
@@ -309,7 +315,7 @@ class cat_UoM extends core_Manager
 	/**
      * Извиква се след SetUp-а на таблицата за модела
      */
-    static function on_AfterSetupMvc($mvc, &$res)
+    public static function on_AfterSetupMvc($mvc, &$res)
     {
     	$file = "cat/csv/UoM.csv";
     	$fields = array( 
@@ -433,10 +439,33 @@ class cat_UoM extends core_Manager
     /**
      * Преди показване на форма за добавяне/промяна
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
-    	if($data->form->rec->type == 'packaging'){
+    	$rec = $data->form->rec;
+    	
+    	if($rec->type == 'packaging'){
     		$data->form->setField('name', 'caption=Опаковка');
+    	}
+    	
+    	// Ако записа е създаден от системния потребител, може да се 
+    	if($rec->createdBy == core_Users::SYSTEM_USER){
+    		foreach (array('name', 'shortName', 'baseUnitId', 'baseUnitRatio', 'sysId', 'sinonims', 'round') as $fld){
+    			$data->form->setField($fld, 'input=none');
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Пренасочва URL за връщане след запис към сингъл изгледа
+     */
+    public static function on_AfterPrepareRetUrl($mvc, $res, $data)
+    {
+    	// Рет урл-то не сочи към мастъра само ако е натиснато 'Запис и Нов'
+    	if (isset($data->form) && ($data->form->cmd === 'save' || is_null($data->form->cmd))) {
+    
+    		// Променяма да сочи към single-a
+    		$data->retUrl = toUrl(array('cat_UoM', 'list', 'type' => $data->form->rec->type));
     	}
     }
 }
