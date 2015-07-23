@@ -471,4 +471,15 @@ class cat_UoM extends core_Manager
     		$data->retUrl = toUrl(array('cat_UoM', 'list', 'type' => $data->form->rec->type));
     	}
     }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+    	if($action == 'edit' && $rec->state == 'closed'){
+    		$requiredRoles = 'no_one';
+    	}
+    }
 }
