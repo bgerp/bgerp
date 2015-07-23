@@ -39,7 +39,7 @@ class pos_Receipts extends core_Master {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, title=Заглавие, contragentName, total, paid, change, state , createdOn, createdBy';
+    public $listFields = 'id, title=Заглавие, pointId=Точка, contragentName, total, paid, change, state , createdOn, createdBy';
     
     
     /**
@@ -153,7 +153,7 @@ class pos_Receipts extends core_Master {
     	$this->FLD('change', 'double(decimals=2)', 'caption=Ресто, input=none, value=0, summary=amount');
     	$this->FLD('tax', 'double(decimals=2)', 'caption=Такса, input=none, value=0');
     	$this->FLD('state', 
-            'enum(draft=Чернова, active=Контиран, rejected=Сторниран, closed=Затворен,pending=Чакащ)', 
+            'enum(draft=Чернова, active=Контиран, rejected=Оттеглен, closed=Затворен,pending=Чакащ)', 
             'caption=Статус, input=none'
         );
     	$this->FLD('transferedIn', 'key(mvc=sales_Sales)', 'input=none');

@@ -185,10 +185,6 @@ class pos_Points extends core_Master {
     		$data->toolbar->addBtn("Отвори", $urlArr, NULL, 'title=Отваряне на терминала за POS продажби,class=pos-open-btn,ef_icon=img/16/forward16.png,target=_blank');
     	}
     	
-    	if($rec->id == $mvc->getCurrent('id', NULL, FALSE)) {
-    		$data->toolbar->addBtn("Отвори", array('pos_Receipts', 'Terminal'), NULL, 'title=Отваряне на терминала за POS продажби,ef_icon=img/16/forward16.png,target=_blank');
-    	}
-    	
     	$reportUrl = array();
     	if(pos_Reports::haveRightFor('add', (object)array('pointId' => $rec->id)) && pos_Reports::canMakeReport($rec->id)){
     		$reportUrl = array('pos_Reports', 'add', 'pointId' => $rec->id, 'ret_url' => TRUE);
