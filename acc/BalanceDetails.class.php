@@ -875,7 +875,7 @@ class acc_BalanceDetails extends core_Detail
         $recs = $query->fetchAll();
         
         // Дигаме времето за изпълнение на скрипта пропорционално на извлечените записи
-        $timeLimit = ceil(count($recs) / 3000) * 100;
+        $timeLimit = ceil(count($recs) / 3000) * 180;
         if($timeLimit != 0){
         	core_App::setTimeLimit($timeLimit);
         }
