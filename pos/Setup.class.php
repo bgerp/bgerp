@@ -163,4 +163,20 @@ class pos_Setup extends core_ProtoSetup
     {
     	pos_Stocks::truncate();
     }
+    
+    
+    /**
+     * Настройки за Cron
+     */
+    var $cronSettings = array(
+    		array(
+    			'systemId' => "Close reports",
+    			'description' => "Затваряне на ПОС отчети",
+    			'controller' => "pos_Reports",
+    			'action' => "CloseReports",
+    			'period' => 1440,
+    			'offset' => 60,
+    			'timeLimit' => 100,
+    		),
+    );
 }
