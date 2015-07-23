@@ -86,7 +86,7 @@ class log_Actions extends core_Manager
      */
     public function description()
     {
-        $this->FLD('crc', 'int', 'caption=crc32 на действието');
+        $this->FLD('crc', 'bigint', 'caption=crc32 на действието');
         $this->FLD('action', 'varchar', 'caption=Действие');
         
         $this->setDbUnique('crc');
