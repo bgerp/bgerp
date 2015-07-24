@@ -1101,7 +1101,6 @@ class cat_Products extends core_Embedder {
     {
     	if($fields['-list']){
     		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
-    		
     	}
     	
     	if($fields['-single']){
