@@ -426,7 +426,14 @@ abstract class deals_DealBase extends core_Master
     			if($count >= $start && $count <= $end){
     				$obj = new stdClass();
     				$obj->valior = $Date->toVerbal($ent->valior);
-    				$obj->valior .= "<br>". cls::get($ent->docType)->getHandle($ent->docId);
+    				
+    				$Doc = cls::get($ent->docType);
+    				$docHandle = $Doc->getHandle($ent->docId);
+    				if($Doc->haveRightFor('single', $ent->docId)){
+    					$docHandle = ht::createLink("#" . $docHandle, array($Doc, 'single', $ent->docId));
+    				}
+    				
+    				$obj->valior .= "<br>{$docHandle}";
     				$obj->valior = "<span style='font-size:0.8em;'>{$obj->valior}</span>";
     				if(empty($this->historyCache[$ent->debitAccId])){
     					$this->historyCache[$ent->debitAccId] = acc_Balances::getAccountLink($ent->debitAccId);
