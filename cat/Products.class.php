@@ -1191,10 +1191,6 @@ class cat_Products extends core_Embedder {
     	$rec = $this->fetchRec($id);
     	$title = $this->getShortHyperlink($rec->id);
     	
-    	if(Mode::is('printing') || Mode::is('text', 'xhtml')){
-    		$title = $this->getTitleById($rec->id);
-    	}
-    	
     	return $title;
     }
     
