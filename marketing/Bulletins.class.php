@@ -1153,6 +1153,22 @@ class marketing_Bulletins extends core_Master
     
     
     /**
+     * Връща езика за източника на персонализация
+     * @see bgerp_PersonalizationSourceIntf
+     *
+     * @param integer $id
+     *
+     * @return string
+     */
+    public function getPersonalizationLg($id)
+    {
+        $rec = $this->fetch($id);
+        
+        return $rec->lg;
+    }
+    
+    
+    /**
      * Връща масив с ключове - уникални id-та и ключове - масиви с данни от типа place => value
      * @see bgerp_PersonalizationSourceIntf
      *

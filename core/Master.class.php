@@ -106,8 +106,10 @@ class core_Master extends core_Manager
         // Опаковаме изгледа
         $tpl = $this->renderWrapping($tpl, $data);
         
-        // Записваме, че потребителя е разглеждал този списък
-        $this->log('Single: ' . ($data->log ? $data->log : tr($data->title)), $id);
+        if (!Request::get('ajax_mode')) {
+            // Записваме, че потребителя е разглеждал този списък
+            $this->logInfo('Single', $id);
+        }
         
         return $tpl;
     }
@@ -184,7 +186,7 @@ class core_Master extends core_Manager
             }
             
             // Добавяме в лога
-            static::log("Преизчисляване на полетата на мастера", $data->rec->id, 1);
+            self::logInfo("Преизчисляване на полетата на мастера", $data->rec->id, 7);
         }
         
         return $data;

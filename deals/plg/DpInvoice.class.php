@@ -21,7 +21,7 @@ class deals_plg_DpInvoice extends core_Plugin
     /**
      * Извиква се след описанието на модела
      */
-    function on_AfterDescription(core_Mvc $mvc)
+    public static function on_AfterDescription(core_Mvc $mvc)
     {
     	if($mvc instanceof sales_Invoices || $mvc instanceof purchase_Invoices){
     		
@@ -253,10 +253,10 @@ class deals_plg_DpInvoice extends core_Plugin
     	}
     	
     	if($data->dpInfo->dpOperation == 'accrued'){
-    		$colspan = count($data->listFields) - 1;
+    		$colspan = count($data->listFields) - 2;
     		$lastRow = new ET("<tr><td colspan='{$colspan}' style='text-indent:20px'>" . tr('Авансово плащане') . "<td style='text-align:right'>[#dpAmount#]</td></td></tr>");
     	} else {
-    		$colspan = count($data->listFields) - 2;
+    		$colspan = count($data->listFields) - 3;
     		$lastRow = new ET("<tr><td></td><td colspan='{$colspan}'>" . tr("Приспадане на авансово плащане") . "<td style='text-align:right'>[#dpAmount#]</td></td></tr>");
     	}
     	

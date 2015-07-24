@@ -118,6 +118,12 @@ class log_Browsers extends core_Master
     
     
     /**
+     * Дали да се спре логването
+     */
+    protected static $stopGenerating = FALSE;
+    
+    
+    /**
      * Полета на модела
      */
     public function description()
@@ -134,12 +140,16 @@ class log_Browsers extends core_Master
     /**
      * Връща bridId на brid
      * 
-     * @return integer
+     * @generate boolean
+     * 
+     * @return integer|NULL
      */
-    public static function getBridId()
+    public static function getBridId($generate = TRUE)
     {
         if (!($bridId = Mode::get('bridId'))) {
-            $brid = self::getBrid(TRUE);
+            $brid = self::getBrid($generate);
+            
+            if (!$brid) return ;
             
             $bridRec = self::getRecFromBrid($brid);
             
@@ -221,14 +231,14 @@ class log_Browsers extends core_Master
                 
                 // Ако не отговаря на хеша
                 
-                self::log('Грешен хеш за BRID: ' . $bridC);
+                self::logErr('Грешен хеш за BRID: ' . $bridC);
                 
 //                return FALSE;
             }
         }
         
         // Ако е зададено да се генерира brid
-        if ($generate) {
+        if ($generate && !self::$stopGenerating && !headers_sent()) {
             
             // Генерира brid
             $brid = self::generateBrid();
@@ -244,6 +254,15 @@ class log_Browsers extends core_Master
             
             return $brid;
         }
+    }
+    
+    
+    /**
+     * Спира логването
+     */
+    public static function stopGenerating()
+    {
+        self::$stopGenerating = TRUE;
     }
     
     

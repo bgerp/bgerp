@@ -5,11 +5,10 @@
                 <td>
                     <div class='scrolling-holder'>
                         <div class='display-table'>
-                            <table class="innerTable border-table paddingCells">
+                        	<table class="innerTable border-table paddingCells">
                                 <tbody>
                                     <tr>
-                                        <td class="cell custom-header-bg" style='width:35%;'><b>|В склад|*</b></td>
-                                        <td class="cell centered" rowspan='2' style='width:30%;'>
+                                       <td class="cell centered" rowspan='4' style='width:30%;'>
                                             <div class="document-title">|ПРОТОКОЛ ЗА ПРОИЗВОДСТВО|*</div>
                                             <div style="padding-top:5px;">
                                                 № <span class="bigData">[#id#]</span> / 
@@ -21,7 +20,7 @@
                                             <br>
                                             <!--ET_END state-->
                                         </td>
-                                        <td class="cell custom-header-bg" style='width:35%;'><b>|Център на дейност|*</b></td>
+                                         <td class="cell custom-header-bg" style='width:35%;'><b>|В склад|*</b></td>
                                     </tr>
                                     <tr>
                                         <td class="cell">
@@ -30,11 +29,10 @@
                                             <br>[#storeLocation#]
                                             <!--ET_END storeLocation-->
                                         </td>
-                                        <td class="cell">
-                                        </td>
                                     </tr>
                                 </tbody>
                             </table>
+                            
                             <div class="lines"></div>
                             <div class="details">
                                 [#planning_ProductionNoteDetails#]

@@ -362,7 +362,7 @@ class blogm_Articles extends core_Master {
                 $id = $Comments->save($rec);
                 
                 // Правим запис в лога
-                $Comments->log('add', $id);
+                $Comments->logInfo('add', $id);
                 
                 // Редиректваме към предварително установения адрес
                 return new Redirect(self::getUrl($data->rec), 'Благодарим за вашия коментар;)');
@@ -388,7 +388,7 @@ class blogm_Articles extends core_Master {
         $tpl->append($ogpHtml);
 
 		// Записваме, че потребителя е разглеждал тази статия
-		$this->log(('Blog article: ' .  $data->row->title), $id);
+		$this->logInfo('Разгледана статия', $id);
 		
         if(core_Packs::fetch("#name = 'vislog'")) {
             vislog_History::add($data->row->title);
@@ -608,7 +608,7 @@ class blogm_Articles extends core_Master {
         }
 
 		// Записваме, че потребителя е разглеждал този списък
-		$this->log('List: ' . ($data->log ? $data->log : $data->title));
+		$this->logInfo('List: ' . ($data->log ? $data->log : $data->title));
 		
 		return $tpl;
 	}
@@ -702,8 +702,9 @@ class blogm_Articles extends core_Master {
 
    			$data->title = tr('Статии в') .  '&nbsp;"<b>' . blogm_Categories::getVerbal($catRec, 'title') . '</b>"';
             $data->descr = blogm_Categories::getVerbal($catRec, 'description');
-
-
+            if(!count($data->rows)) {
+                $data->descr .= "<p><b style='color:#666;'>" . tr('Все още няма статии в тази категория') . '</b></p>';
+            }
         } else {
             $data->title = cms_Content::getLang() == 'bg' ? 'Всички статии в блога' : 'All Articles in the Blog';
             if(!count($data->rows)) {

@@ -26,11 +26,11 @@ class bgerp_plg_FirstLogin extends core_Plugin
         if(!$userRec->lastLoginTime && haveRole('admin') && core_Users::count('1=1') == 1) {
             
             //Зарежда данните за "Моята фирма"
-            $html .= crm_Companies::loadData();
+            crm_Companies::loadData();
             
-            $html .= email_Accounts::loadData();
+            email_Accounts::loadData();
             
-            $mvc->log($html);
+            $mvc->logInfo('Зареждане на данни за фирмите и акаунтите след първото логване');
             
             // Добавяме еднократно изивкване на функцията по крон
             $callOn = dt::addSecs(120);

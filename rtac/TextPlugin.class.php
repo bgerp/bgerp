@@ -66,13 +66,15 @@ class rtac_TextPlugin extends core_Plugin
         
         // Ако потребителя има права за добавяне на блокови елементи
         if (core_Users::haveRole($userRolesForTextComplete) && ($suggestionsArr = $mvc->getSuggestions())) {
-            
-            // Добавяме данните
-            $tpl->appendOnce("rtacObj.textCompleteObj = {};", 'SCRIPTS');
-            $tpl->appendOnce("rtacObj.textCompleteObj.{$id} = " . json_encode($suggestionsArr) . ";", 'SCRIPTS');
-            
-            // Стартираме скрипта
-            $inst->runAutocompleteText($tpl, $id);
+            unset($suggestionsArr['']);
+            if ($suggestionsArr) {
+                // Добавяме данните
+                $tpl->appendOnce("rtacObj.textCompleteObj = {};", 'SCRIPTS');
+                $tpl->appendOnce("rtacObj.textCompleteObj.{$id} = " . json_encode($suggestionsArr) . ";", 'SCRIPTS');
+                
+                // Стартираме скрипта
+                $inst->runAutocompleteText($tpl, $id);
+            }
         }
         
         return ;

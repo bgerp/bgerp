@@ -39,7 +39,7 @@ class pos_Receipts extends core_Master {
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, title=Заглавие, contragentName, total, paid, change, state , createdOn, createdBy';
+    public $listFields = 'id, title=Заглавие, pointId=Точка, contragentName, total, paid, change, state , createdOn, createdBy';
     
     
     /**
@@ -153,7 +153,7 @@ class pos_Receipts extends core_Master {
     	$this->FLD('change', 'double(decimals=2)', 'caption=Ресто, input=none, value=0, summary=amount');
     	$this->FLD('tax', 'double(decimals=2)', 'caption=Такса, input=none, value=0');
     	$this->FLD('state', 
-            'enum(draft=Чернова, active=Контиран, rejected=Сторниран, closed=Затворен,pending=Чакащ)', 
+            'enum(draft=Чернова, active=Контиран, rejected=Оттеглен, closed=Затворен,pending=Чакащ)', 
             'caption=Статус, input=none'
         );
     	$this->FLD('transferedIn', 'key(mvc=sales_Sales)', 'input=none');
@@ -321,15 +321,14 @@ class pos_Receipts extends core_Master {
     	$query->orderBy("id", "ASC");
     	
 	    while($rec = $query->fetch()) {
-	    	$info = cat_Products::getProductInfo($rec->productId, $rec->value);
-	    	$packagingId = $rec->value;
-	    	$quantityInPack = isset($packagingId) ? $info->packagingRec->quantity : 1;
+	    	$info = cat_Products::getProductInfo($rec->productId);
+	    	$quantityInPack = ($info->packagings[$rec->value]) ? $info->packagings[$rec->value]->quantity : 1;
 	    	
 	    	$products[] = (object) array(
 	    		'classId'     => cat_Products::getClassId(),
 	    		'productId'   => $rec->productId,
 		    	'price'       => $rec->price / $quantityInPack,
-	    	    'packagingId' => $packagingId,
+	    	    'packagingId' => $rec->value,
 	    		'vatPrice'    => $rec->price * $rec->param,
 	    		'discount'    => $rec->discountPercent,
 		    	'quantity'    => $rec->quantity);
@@ -1333,7 +1332,9 @@ class pos_Receipts extends core_Master {
     	
     	$Policy = cls::get('price_ListToCustomers');
     	$Products = cls::get('cat_Products');
+    	
     	foreach ($sellable as $id => $name){
+    		if(is_object($name)) continue;
     		
     		// Показваме само до определена бройка
     		if($count >= $this->maxSearchProducts) break;
@@ -1341,14 +1342,11 @@ class pos_Receipts extends core_Master {
     		// Ако продукта не отговаря на търсения стринг, го пропускаме
     		if(!$pRec = $Products->fetch(array("#id = {$id} AND #searchKeywords LIKE '%[#1#]%'", $data->searchString))) continue;
     		
-    		$basePackInfo = $Products->getBasePackInfo($id);
-    		if($basePackInfo->classId != 'cat_UoM'){
-    			$packId = $basePackInfo->id;
-    			$perPack = $basePackInfo->quantity;
-    		} else {
-    			$packId = NULL;
-    			$perPack = 1;
-    		}
+    		$pInfo = cat_Products:: getProductInfo($id);
+    		
+    		$packs = $Products->getPacks($id);
+    		$packId = key($packs);
+    		$perPack = (isset($pInfo->packagings[$packId])) ? $pInfo->packagings[$packId]->quantity : 1;
     		
     		$price = $Policy->getPriceInfo($data->rec->contragentClass, $data->rec->contragentObjectId, $id, $Products->getClassId(), $packId, NULL, $data->rec->createdOn, 1, 'yes');
     		
@@ -1362,7 +1360,6 @@ class pos_Receipts extends core_Master {
     							 'packagingId' => $packId,
     							 'vat'	       => $vat);
     		
-    		$pInfo = cat_Products:: getProductInfo($id);
     		if(isset($pInfo->meta['canStore'])){
     			$obj->stock = pos_Stocks::getQuantity($id, $data->rec->pointId);
     			$obj->stock /= $perPack;
@@ -1389,7 +1386,7 @@ class pos_Receipts extends core_Master {
     	$row->price .= "&nbsp;<span class='cCode'>{$data->baseCurrency}</span>";
     	$row->stock = $Double->toVerbal($obj->stock);
     	
-    	$row->packagingId = ($obj->packagingId) ? cat_Packagings::getTitleById($obj->packagingId) : cat_UoM::getTitleById($obj->measureId);
+    	$row->packagingId = ($obj->packagingId) ? cat_UoM::getTitleById($obj->packagingId) : cat_UoM::getTitleById($obj->measureId);
     	
     	$obj->receiptId = $data->rec->id;
     	if($this->pos_ReceiptDetails->haveRightFor('add', $obj)){
@@ -1474,7 +1471,7 @@ class pos_Receipts extends core_Master {
     			$nRec->managerId = cat_Products::getClassId();
     			$nRec->quantity = $rec->quantity;
     			$pInfo = cls::get('cat_Products')->getProductInfo($rec->productId);
-    			$nRec->measure = ($rec->value) ? cat_Packagings::getTitleById($rec->value) : cat_UoM::getShortName($pInfo->productRec->measureId);
+    			$nRec->measure = cat_UoM::getShortName($rec->value);
     			$nRec->vat = $rec->param;
     			$nRec->price = $rec->price;
     			

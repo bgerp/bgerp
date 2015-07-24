@@ -46,7 +46,7 @@ class core_App
             
             // Ако не сме в DEBUG режим и заявката е по AJAX
             if (!isDebug() && $_SERVER['HTTP_X_REQUESTED_WITH']) {
-                core_Logs::log("Стартиране на core_App::run() през AJAX");
+                log_Data::add('info', "Стартиране на core_App::run() през AJAX", 'core_App');
                 
                 return ;
             }
@@ -55,7 +55,7 @@ class core_App
             $Wrapper = core_Cls::get('core_page_Wrapper');
             $Wrapper->render($content);
         }
-    }
+    } 
 
 
     /**
@@ -388,8 +388,13 @@ class core_App
             header('Expires: -1'); // Proxies.
             header('Connection: close');
         }
-        
-        echo $content;                       // Output content
+
+        // Логваме съдържанието
+        if($content) {
+            Debug::log(mb_substr($content, 0, 255));
+        }
+
+        echo $content; // Output content
             
         // Изпращаме съдържанието на изходния буфер
         ob_end_flush();

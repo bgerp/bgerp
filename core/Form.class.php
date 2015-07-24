@@ -1187,5 +1187,7 @@ class core_Form extends core_FieldSet
         $this->setOptions($name, array(
                 $value => $verbal
             ));
+        
+        $field->type->params['isReadOnly'] = TRUE;
     }
 }

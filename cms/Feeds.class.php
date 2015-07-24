@@ -29,7 +29,7 @@ class cms_Feeds extends core_Manager {
 	/**
 	 * Зареждане на необходимите плъгини
 	 */
-	public $loadList = 'plg_RowTools, plg_Created, plg_Modified, cms_Wrapper';
+	public $loadList = 'plg_RowTools, plg_Created, plg_Modified, cms_Wrapper, plg_AutoFilter';
 	
 
     /**
@@ -65,7 +65,7 @@ class cms_Feeds extends core_Manager {
 	/**
 	 * Полета за листов изглед 
 	 */
-	public $listFields = 'tools=Пулт, title, description, type, url, source, logo, maxItems, createdOn, createdBy, modifiedOn, modifiedBy';
+	public $listFields = 'tools=Пулт, title, description, type, source, logo, maxItems';
 	
 	
 	/**
@@ -173,16 +173,6 @@ class cms_Feeds extends core_Manager {
         shutdown();
 	}
 	
-
-    /**
-     * Изпълнява се след подготовката на формата за филтриране
-     */
-    function on_AfterPrepareListFilter($mvc, $data)
-    {
-        $domainId = cms_Domains::getCurrent();
-       
-        $data->query->where("#domainId = {$domainId}");
-    }
 
 	
 	/**
@@ -380,9 +370,6 @@ class cms_Feeds extends core_Manager {
 		    	}
 	    	}
 	    }
-
-        $form->rec->domainId = cms_Domains::getCurrent();
-        $form->setReadonly('domainId');
     }
     
     

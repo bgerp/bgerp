@@ -109,8 +109,6 @@ class doc_Containers extends core_Manager
         
         $this->FLD('visibleForPartners', 'enum(no=Не, yes=Да)', 'caption=Видим за партньори');
         
-        $this->FLD('hide', 'enum(default, yes, no)', 'caption=Видим за партньори, notNull');
-        
         // Индекси за бързодействие
         $this->setDbIndex('folderId');
         $this->setDbIndex('threadId');
@@ -153,75 +151,6 @@ class doc_Containers extends core_Manager
         } catch (core_exception_Expect $e) {
             
             return parent::getTitleForId_($id, $escaped);
-        }
-    }
-    
-    
-    /**
-     * Проверява кои документи ще се скриват и вдига съответния флаг
-     * 
-     * @param array $recs
-     */
-    public static function prepareDocsForHide(&$recs)
-    {
-        $conf = core_Packs::getConfig('doc');
-        
-        $cnt = count($recs);
-        
-        if (self::checkCntLimitForShow($cnt)) return ;
-        
-        // За да не промением подреждането на оригиналния запис
-        $cRecs = $recs;
-        
-        ksort($cRecs, SORT_NUMERIC);
-        
-        // Условия за скриване/показване
-        $begin = $conf->DOC_SHOW_DOCUMENTS_BEGIN;
-        $end = $cnt - $conf->DOC_SHOW_DOCUMENTS_BEGIN;
-        $from = dt::subtractSecs($conf->DOC_SHOW_DOCUMENTS_LAST_ON);
-        
-        $i = 0;
-        
-        $firstId = key($recs);
-        
-        foreach ($cRecs as $id => $rec) {
-            $i++;
-            
-            // Първия, да не се скрива
-            if ($id == $firstId) continue;
-            
-            // Ако е зададено да се показва в сесията
-            if ($rec->hide == 'no') {
-                $hide = FALSE;
-            } elseif ($rec->hide == 'yes') {
-                $hide = TRUE;
-            } else {
-                $hide = TRUE;
-                
-                if ($rec->state != 'rejected') {
-                    
-                    // По новите от да не се показват
-                    if ($rec->modifiedOn > $from) {
-                        $hide = FALSE;
-                    }
-                    
-                    // Първите да не се скриват
-                    if ($begin >= $i) {
-                        $hide = FALSE;
-                    }
-                    
-                    // Последните да не се скриват
-                    if ($end < $i) {
-                        $hide = FALSE;
-                    }
-                }
-            }
-            
-            if ($hide) {
-                $recs[$id]->Hidden = TRUE;
-            } else {
-                $recs[$id]->Hidden = FALSE;
-            }
         }
     }
     
@@ -301,7 +230,6 @@ class doc_Containers extends core_Manager
         
         if(Mode::is('screenMode', 'narrow')) {
         	$tpl->appendOnce("\n runOnLoad(function(){setThreadElemWidth()});", 'JQRUN');
-        	$tpl->appendOnce('$(window).resize(function(){setThreadElemWidth();});', "JQRUN");
         }
     }
     
@@ -339,7 +267,7 @@ class doc_Containers extends core_Manager
             $q = Request::get('Q');
             
             // Ако е задеден да не се скрива документа или ако се търси в него
-            $hidden = (boolean) ($rec->Hidden && !isset($q));
+            $hidden = (boolean) (doc_HiddenContainers::isHidden($rec->id) && !isset($q));
             
             $row->ROW_ATTR['id'] = $document->getDocumentRowId();
             
@@ -348,7 +276,7 @@ class doc_Containers extends core_Manager
                 $row->ROW_ATTR['onMouseUp'] = "saveSelectedTextToSession('" . $document->getHandle() . "', 'onlyHandle');";
                 
                 // Добавяме линк за скриване на документа
-                if ($rec->Hidden === FALSE) {
+                if (doc_HiddenContainers::isHidden($rec->id) === FALSE) {
                     $hideLink = self::getLinkForHideDocument($document, $rec->id);
                     $data->row->DocumentSettings = new ET($data->row->DocumentSettings);
                     $data->row->DocumentSettings->append($hideLink);
@@ -1713,7 +1641,7 @@ class doc_Containers extends core_Manager
             	$doc = static::getDocument($rec);
             	$doc->reject();
             	
-            	doc_Containers::showOrHideDocument($rec->id, TRUE);
+            	doc_HiddenContainers::showOrHideDocument($rec->id, TRUE);
             } catch(core_exception_Expect $e){
             	continue;
             }
@@ -1761,7 +1689,7 @@ class doc_Containers extends core_Manager
         			$doc = static::getDocument($rec);
         			$doc->restore();
         			
-        			doc_Containers::showOrHideDocument($rec->id, NULL);
+        			doc_HiddenContainers::showOrHideDocument($rec->id, NULL);
         		} catch(core_exception_Expect $e){
         			continue;
         		}
@@ -2274,7 +2202,7 @@ class doc_Containers extends core_Manager
     public static function on_AfterPrepareListRecs($mvc, &$res, $data)
     {
         // Подготвяме документите, които да са скрити
-        self::prepareDocsForHide($data->recs);
+        doc_HiddenContainers::prepareDocsForHide($data->recs);
     }
     
     
@@ -2305,28 +2233,6 @@ class doc_Containers extends core_Manager
     
     
     /**
-     * Скрива/показва подадения документ
-     * 
-     * @param integer $id
-     * @param boolean|NULL $hide
-     */
-    public static function showOrHideDocument($id, $hide = FALSE)
-    {
-        $rec = self::fetch($id);
-        
-        if ($hide) {
-            $rec->hide = 'yes';
-        } elseif ($hide === FALSE) {
-            $rec->hide = 'no';
-        } else {
-            $rec->hide = 'default';
-        }
-        
-        self::save($rec, 'hide');
-    }
-    
-    
-    /**
      * Функция, която се използва от екшъните за скриване/показване на документ
      * 
      * @param string $id
@@ -2348,15 +2254,9 @@ class doc_Containers extends core_Manager
             expect($document->haveRightFor('single'));
         }
         
-        self::showOrHideDocument($id, $hideDoc);
+        doc_HiddenContainers::showOrHideDocument($id, $hideDoc);
         
         if ($ajaxMode) {
-            
-            if ($hideDoc) {
-                $rec->Hidden = TRUE;
-            } else {
-                $rec->Hidden = FALSE;
-            }
             
             $row = self::recToVerbal($rec);
             
@@ -2392,21 +2292,6 @@ class doc_Containers extends core_Manager
             
             return new Redirect(array($document, 'single', $document->that, 'showOrHide' => $act));
         }
-    }
-    
-    
-    /**
-     * Проверва дали има нужда да се скриват/показват документи
-     * 
-     * @param integer $cnt
-     * 
-     * @return integer
-     */
-    protected static function checkCntLimitForShow($cnt)
-    {
-        if ($cnt > 1) return FALSE;
-        
-        return TRUE;
     }
     
     

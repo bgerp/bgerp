@@ -1277,7 +1277,7 @@ class crm_Persons extends core_Master
         //Вземаме данните
         $person = crm_Persons::fetch($id);
 
-        //Заместваме и връщаме данните
+        // Заместваме и връщаме данните
         if ($person) {
             $contrData = new stdClass();
             $contrData->company = crm_Persons::getVerbal($person, 'buzCompanyId');
@@ -1286,6 +1286,7 @@ class crm_Persons extends core_Master
             $contrData->country = crm_Persons::getVerbal($person, 'country');
             $contrData->countryId = $person->country;
             $contrData->pCode = $person->pCode;
+            $contrData->uicId = $person->egn;
             $contrData->place = $person->place;
             $contrData->email = $person->buzEmail;
             $contrData->tel = $person->buzTel;

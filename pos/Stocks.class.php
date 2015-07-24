@@ -157,11 +157,12 @@ class pos_Stocks extends core_Manager {
     	// За всяка активирана бележка, трупаме я в масив
     	while($dRec = $receiptDetailsQuery->fetch()){
     		$dRec->storeId = pos_Points::fetchField($dRec->pointId, 'storeId');
-    		if(!static::$cache[$dRec->productId][$dRec->value]){
-    			static::$cache[$dRec->productId][$dRec->value] = cat_Products::getProductInfo($dRec->productId, $dRec->value);
+    		if(!static::$cache[$dRec->productId]){
+    			static::$cache[$dRec->productId] = cat_Products::getProductInfo($dRec->productId);
     		}
-    		$info = static::$cache[$dRec->productId][$dRec->value];
-    		$dRec->quantityInPack = ($info->packagingRec) ? $info->packagingRec->quantity : 1;
+    		
+    		$info = static::$cache[$dRec->productId];
+    		$dRec->quantityInPack = ($info->packagings[$dRec->value]) ? $info->packagings[$dRec->value]->quantity : 1;
     		$activeReceipts[] = $dRec;
     	}
     	
@@ -250,5 +251,33 @@ class pos_Stocks extends core_Manager {
     	$quantity = ($quantity) ? $quantity : 0;
     	
     	return $quantity;
+    }
+    
+    
+    /**
+     * Изчиства записите в наличностите в поса
+     */
+    public function act_Truncate()
+    {
+    	requireRole('admin,debug');
+    
+    	// Изчистваме записите от моделите
+    	pos_Stocks::truncate();
+    
+    	Redirect(array($this, 'list'));
+    }
+    
+    
+    /**
+     * След подготовка на туклбара на списъчния изглед
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareListToolbar($mvc, &$data)
+    {
+    	if(haveRole('admin,debug')){
+    		$data->toolbar->addBtn('Изчистване', array($mvc, 'truncate'), 'warning=Искате ли да изчистите таблицата, ef_icon=img/16/sport_shuttlecock.png, title=Изтриване на таблицата с продукти');
+    	}
     }
 }

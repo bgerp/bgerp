@@ -266,7 +266,7 @@ class core_Request
         if ($name) {
             $element[$name] = $array;
         } else {
-            $element[] = $array;
+            $element[count(self::$vars)] = $array;
         }
         
         if ($unShift) {
@@ -329,6 +329,9 @@ class core_Request
         if(isset($vars[2]) && !isset($vars['id'])) {
             $vars['id'] = $vars[2];
         }
+        
+        $point = self::get('Ctr') . "::" . self::get('Act') . "::" . self::get('id');
+        Debug::log("Forward => " . $point);
 
         try {
             // Ако не е бил сетнат
@@ -394,6 +397,8 @@ class core_Request
             $Request->pop($varsName);
         }
         
+        Debug::log("Forward <= " . $point);
+
         return $content;
     }
 }

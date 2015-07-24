@@ -12,7 +12,6 @@
  * @license   GPL 3
  * @since     v 0.11
  *
- * @method array getEmailOtherPlaces(object $rec)
  * @method string getHandle(integer $id)
  * @method string getVerbalSizesFromArray(array $arr)
  * @method boolean checkMaxAttachedSize(array $attachSizeArr)
@@ -184,11 +183,12 @@ class blast_Emails extends core_Master
     protected function description()
     {
         $this->FLD('perSrcClassId', 'class(interface=bgerp_PersonalizationSourceIntf)', 'caption=Източник на данни->Клас, silent, input=hidden');
-        $this->FLD('perSrcObjectId', 'varchar(16)', 'caption=Списък, mandatory, silent');
+        $this->FLD('perSrcObjectId', 'varchar(16)', 'caption=Списък, mandatory, silent, removeAndRefreshForm=unsubscribe|lg');
         
         $this->FLD('from', 'key(mvc=email_Inboxes, select=email)', 'caption=От, mandatory, changable');
         $this->FLD('subject', 'varchar', 'caption=Относно, width=100%, mandatory, changable');
         $this->FLD('body', 'richtext(rows=15,bucket=Blast)', 'caption=Съобщение,mandatory, changable');
+        $this->FLD('unsubscribe', 'richtext(rows=3,bucket=Blast)', 'caption=Отписване, changable', array('attr' => array('id' => 'unsId')));
         $this->FLD('sendPerCall', 'int(min=1, max=100)', 'caption=Изпращания заедно, input=none, mandatory, oldFieldName=sendPerMinute, title=Брой изпращания заедно');
         $this->FLD('startOn', 'datetime', 'caption=Време на започване, input=none');
         $this->FLD('activatedBy', 'key(mvc=core_Users)', 'caption=Активирано от, input=none');
@@ -273,7 +273,7 @@ class blast_Emails extends core_Master
      */
     public static function activateEmail($id, $sendPerCall = 5)
     {   
-        self::log('Активиран бласт имейл: ' . $id);
+        self::logInfo('Активиран бласт имейл', $id);
 
         // Записа
         $rec = self::getRec($id);
@@ -565,31 +565,46 @@ class blast_Emails extends core_Master
         return core_ET::unEscape($resStr->getContent());
     }
     
+    
     /**
-     * Връща допълнителните плейсхолдерите, за този тип документ
-     *
-     * @param object $rec
-     *
+     * Връща URL за отписване
+     * 
+     * @param integer $id
+     * @param string $lg
+     * @param string $addMidPlace
+     * @param array $otherParams
+     * 
      * @return array
      */
-    protected static function getEmailOtherPlaces_($rec)
+    protected static function getUnsubscribeUrl($id, $lg = NULL, $midPlace = NULL, $otherParams = array())
     {
-        $me = get_called_class();
+        $url = array('B', 'U', $id);
         
-        $resArr = array();
+        $preParams = array();
         
-        $mid = doc_DocumentPlg::getMidPlace();
-        $urlBg = htmlentities(toUrl(array($me, 'Unsubscribe', $rec->id, 'm' => $mid, 'l' => 'bg'), 'absolute'), ENT_COMPAT | ENT_HTML401, 'UTF-8');
-        $urlEn = htmlentities(toUrl(array($me, 'Unsubscribe', $rec->id, 'm' => $mid, 'l' => 'en'), 'absolute'), ENT_COMPAT | ENT_HTML401, 'UTF-8');
-        
-        // Създаваме линковете
-        $resArr['otpisvane'] = "[link={$urlBg}]тук[/link]";
-        $resArr['unsubscribe'] = "[link={$urlEn}]here[/link]";
-        $resArr['mid'] = $mid;
-        
-        return $resArr;
-    }
+        if ($midPlace) {
+            $url['m'] = $midPlace;
+            $preParams['m'] = 'm';
+        }
     
+        if ($lg) {
+            $url['lg'] = $lg;
+            $preParams['lg'] = 'lg';
+        }
+        
+        foreach ($otherParams as $name => $val) {
+            $url[$name] = $val;
+            $preParams[$name] = $name;
+        }
+        
+        $absolute = FALSE;
+        
+        if (Mode::is('printing') || !Mode::is('text', 'html')) {
+            $absolute = TRUE;
+        }
+        
+        return toUrl($url, $absolute, TRUE, $preParams);
+    }
     
     /**
      * Връща тялото на съобщението
@@ -663,9 +678,11 @@ class blast_Emails extends core_Master
                 //Вземаме манупулаторите на файловете
                 $attFhArr = $this->getAttachments($rec);
                 
-                // Манипулаторите да са и в стойноситите им
-                $attFhArr = array_keys($attFhArr);
-                $attFhArr = array_combine($attFhArr, $attFhArr);
+                if (count($attFhArr)) {
+                    // Манипулаторите да са и в стойноситите им
+                    $attFhArr = array_keys($attFhArr);
+                    $attFhArr = array_combine($attFhArr, $attFhArr);
+                }
             }
             
             //Манипулаторите на файловете в масив
@@ -1126,8 +1143,8 @@ class blast_Emails extends core_Master
         $conf = core_Packs::getConfig('blast');
         
         // GET променливите от линка
-        $mid = Request::get("m");
-        $lang = Request::get("l");
+        $mid = Request::get('m');
+        $lang = Request::get('lg');
         $id = Request::get('id', 'int');
         $uns = Request::get("uns");
         
@@ -1136,13 +1153,32 @@ class blast_Emails extends core_Master
         
         $cid = $rec->containerId;
         
-        expect($cid && $mid);
+        expect($cid);
         
-        // Сменяме езика за да може да  се преведат съобщенията
-        core_Lg::push($lang);
+        if (!core_Users::isPowerUser()) {
+            expect($mid);
+        }
+        
+        if (!$lang || ($lang == 'auto')) {
+            if ($rec->perSrcClassId) {
+                $perClsInst = cls::get($rec->perSrcClassId);
+            }
+            $lang = $perClsInst->getPersonalizationLg($rec->perSrcObjectId);
+        }
+        
+        $allLangArr = arr::make(EF_LANGUAGES);
+        
+        $pushedLg = FALSE;
+        
+        if ($allLangArr[$lang]) {
+            // Сменяме езика за да може да  се преведат съобщенията
+            core_Lg::push($lang);
+            
+            $pushedLg = TRUE;
+        }
         
         // Шаблон
-        $tpl = new ET("<div class='unsubscribe'> [#text#] </div>");
+        $tpl = new ET("<div class='unsubscribe'> [#text#][#link#] </div>");
         
         //Проверяваме дали има такъв имейл
         if (!($hRec = doclog_Documents::fetchHistoryFor($cid, $mid))) {
@@ -1150,8 +1186,10 @@ class blast_Emails extends core_Master
             //Съобщение за грешка, ако няма такъв имейл
             $tpl->append("<p>" . tr($conf->BGERP_BLAST_NO_MAIL) . "</p>", 'text');
             
-            // Връщаме предишния език
-            core_Lg::pop();
+            if ($pushedLg) {
+                // Връщаме предишния език
+                core_Lg::pop();
+            }
             
             return $tpl;
         }
@@ -1174,32 +1212,41 @@ class blast_Emails extends core_Master
                 blast_BlockedEmails::add($email);
             }
             
-            $tpl->append("<p>" . tr($conf->BGERP_BLAST_SUCCESS_REMOVED) . "</p>", 'text');
+            $text = $conf->BGERP_BLAST_SUCCESS_REMOVED;
         } elseif ($uns == 'add') {
             $act = 'del';
             $click = 'Премахване';
             
             // Премахваме имейл-а от листата на блокираните имейли
             blast_BlockedEmails::remove($email);
-            $tpl->append("<p>" . tr($conf->BGERP_BLAST_SUCCESS_ADD) . "</p>", 'text');
+            $text = $conf->BGERP_BLAST_SUCCESS_ADD;
         } else {
             $act = 'del';
-            $click = 'Премахване';
+            $click = 'Блокиране';
             
-            // Текста, който ще се показва при първото ни натискане на линка
-            $tpl->append("<p>" . tr($conf->BGERP_BLAST_UNSUBSCRIBE) . "</p>", 'text');
+            $text = $conf->BGERP_BLAST_UNSUBSCRIBE;
         }
         
-        $currUrl = getCurrentUrl();
-        $currUrl['uns'] = $act;
+        $url = self::getUnsubscribeUrl($id, $lang, $mid, array('uns' => $act));
         
         // Генерираме бутон за отписване или вписване
-        $link = ht::createBtn($click, $currUrl);
+        $link = ht::createBtn($click, $url);
         
-        $tpl->append($link, 'text');
+        $text = tr($text);
         
-        // Връщаме предишния език
-        core_Lg::pop();
+        $text = "<p>" . $text . "<p>";
+        
+        $text = new ET($text);
+        $Email = cls::get('type_Email');
+        $text->replace($Email->toVerbal($email), 'email');
+        
+        $tpl->append($text, 'text');
+        $tpl->append($link, 'link');
+        
+        if ($pushedLg) {
+            // Връщаме предишния език
+            core_Lg::pop();
+        }
         
         return $tpl;
     }
@@ -1245,7 +1292,7 @@ class blast_Emails extends core_Master
         
         $perOptArr = array();
         
-        if (isset($perSrcObjId)) {
+        if (isset($perSrcObjId) && $form->cmd != 'refresh') {
             // Очакваме да може да персонализира
             expect($perClsInst->canUsePersonalization($perSrcObjId));
             
@@ -1299,6 +1346,53 @@ class blast_Emails extends core_Master
             
             // Задаваме опциите
             $form->setOptions('perSrcObjectId', $perOptArr);
+        }
+        
+        if (!$form->rec->id) {
+            if (!$perSrcObjId) {
+                $perSrcObjId = key($perOptArr);
+            }
+            $defLg = $perClsInst->getPersonalizationLg($perSrcObjId);
+            $form->setDefault('perSrcObjectId', $perSrcObjId);
+            $form->setDefault('lg', $defLg);
+            
+            $conf = core_Packs::getConfig('blast');
+            
+            $unsubscribeText = $conf->BLAST_UNSUBSCRIBE_TEXT_FOOTER;
+            
+            $bodyLangArr = array();
+            $bCnt = 0;
+            
+            $allLangArr = arr::make(EF_LANGUAGES);
+            $currLg = core_Lg::getCurrent();
+            
+            if (!$allLangArr) {
+                $allLangArr = arr::make($currLg, TRUE);
+            }
+            
+            if (!$defLg || $defLg == 'auto') {
+                $defLg = $currLg;
+            }
+            
+            foreach ($allLangArr as $lang => $verbLang) {
+                
+                // За всеки език подоготвяме текста
+                core_Lg::push($lang);
+                $bodyLangArr[$bCnt]['data'] = tr($unsubscribeText);
+                $bodyLangArr[$bCnt]['lg'] = $lang;
+                core_Lg::pop();
+                
+                if ($defLg == $lang) {
+                    $form->setDefault('unsubscribe', $bodyLangArr[$bCnt]['data']);
+                }
+                
+                $bCnt++;
+            }
+            
+            $jsonData  = json_encode(array('hint' => tr('Смяна на езика'), 'lg' => $defLg, 'data' => $bodyLangArr, 'id' => 'unsId'));
+            
+            $form->layout = new ET($data->form->renderLayout());
+            $form->layout->append("\n runOnLoad(function(){ prepareLangBtn(" . $jsonData . ")}); ", 'JQRUN', TRUE);
         }
         
         try {
@@ -1394,7 +1488,7 @@ class blast_Emails extends core_Master
             $recArr = (array)$form->rec;
             
             // Вземаме Относно и Съобщение
-            $bodyAndSubject = $recArr['body'] . ' ' . $recArr['subject'];
+            $bodyAndSubject = $recArr['body'] . ' ' . $recArr['subject'] . ' ' . $recArr['unsubscribe'];
             
             // Масив с данни от плейсхолдера
             $nRecArr = array();
@@ -1427,14 +1521,8 @@ class blast_Emails extends core_Master
             // Вземаме всички шаблони, които се използват
             $bodyAndSubPlaceHolder = $bodyAndSubTpl->getPlaceHolders();
             
-            // Другите плейсхолдери
-            $otherDetArr = self::getEmailOtherPlaces($rec);
-            
             // Полетата и описаниите им, които ще се използва за персонализация
             $onlyAllFieldsArr = $classInst->getPersonalizationDescr($rec->perSrcObjectId);
-            
-            // Обединяване плейсхолдерите
-            $onlyAllFieldsArr = (array)$onlyAllFieldsArr + (array)$otherDetArr;
             
             // Създаваме масив с ключ и стойност имената на полетата, които ще се заместват
             foreach ((array)$onlyAllFieldsArr as $field => $dummy) {
@@ -1765,9 +1853,14 @@ class blast_Emails extends core_Master
             $detDataArr = blast_EmailSend::getDataArr($options->detId);
         }
         
-        // Обединяваме детайлите
-        $otherDetArr = self::getEmailOtherPlaces($emailRec);
-        $detDataArr = (array)$detDataArr + (array)$otherDetArr;
+        if (trim($emailRec->unsubscribe)) {
+            $unsUrl = self::getUnsubscribeUrl($id, $options->rec->lg, doc_DocumentPlg::getMidPlace());
+            
+            $emailRec->unsubscribe = str_replace('[unsubscribe]', "[link={$unsUrl}]", $emailRec->unsubscribe);
+            $emailRec->unsubscribe = str_replace('[/unsubscribe]', '[/link]', $emailRec->unsubscribe);
+            
+            $emailRec->body .= "\n\n[hr]\n[small]" . $emailRec->unsubscribe . "[/small]";
+        }
         
         // Подготвяме данните за съответния имейл
         $mvc->prepareRec($emailRec, $detDataArr);

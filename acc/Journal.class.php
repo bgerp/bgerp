@@ -519,7 +519,7 @@ class acc_Journal extends core_Master
                 acc_Journal::delete("#id = {$rec->id}");
                 
                 // Логваме в журнала
-                acc_Articles::log("Изтрит ред '{$rec->id}' от журнала На документ {$document->className}:{$rec->docId}");
+                self::logInfo("Изтрит ред от журнала на документ {$document->className}", $rec->id);
             }
         }
     }
@@ -663,7 +663,7 @@ class acc_Journal extends core_Master
     private function reconto($accSysIds, $from = NULL, $to = NULL, $types = array())
     {
     	// Дигаме времето за изпълнение на скрипта
-    	set_time_limit(1100);
+    	core_App::setTimeLimit(1500);
     	
     	// Филтрираме записите в журнала по подадените параметри
     	$to = (!$to) ? dt::today() : $to;
@@ -771,5 +771,61 @@ class acc_Journal extends core_Master
     	$tpl = $this->renderWrapping($form->renderHtml());
     	
     	return $tpl;
+    }
+    
+    
+	/**
+     * Връща сумите от журнала за посочената кореспонденция
+     * 
+     * @param date $from          - начална дата
+     * @param date $to            - крайна дата
+     * @param string $debitSysId  - систем ид на сметка в дебита
+     * @param string $creditSysId - систем ид на сметка в кредита
+     * @param array $items        - масив със стойности на пера с ключове на коя позиция се намират (debitItem1, debitItem2 ... creditItem1 ....)
+     * 
+     * @return stdClass $res - масив с сумарните стойностти
+     * 					->debitQuantity  - Обща сума на дебитното к-во
+     * 					->creditQuantity - Обща сума на кредитното к-во
+     * 					->amount         - Обща сума
+     */
+    public static function getJournalSums($from, $to, $debitSysId = NULL, $creditSysId = NULL, $items = array())
+    {
+    	// Подготвяме заявката
+    	$dQuery = acc_JournalDetails::getQuery();
+    	acc_JournalDetails::filterQuery($dQuery, $from, $to);
+    	
+    	if($debitSysId){
+    		expect($debitAccId = acc_Accounts::fetchField(array("#systemId = '[#1#]'", $debitSysId), 'id'), "Няма сметка с систем ид {$debitAccId}");
+    		$dQuery->where("#debitAccId = {$debitAccId}");
+    	}
+    	
+    	if($creditSysId){
+    		expect($creditAccId = acc_Accounts::fetchField(array("#systemId = '[#1#]'", $creditSysId), 'id'), "Няма сметка с систем ид {$creditSysId}");
+    		$dQuery->where("#creditAccId = {$creditAccId}");
+    	}
+    	
+    	// Задаваме да се извлекат сумираните стойностти на някои полета
+    	$dQuery->XPR('sumDebitQuantity', 'double', "ROUND(SUM(#debitQuantity), 2)");
+    	$dQuery->XPR('sumCreditQuantity', 'double', "ROUND(SUM(#creditQuantity), 2)");
+    	$dQuery->XPR('sumAmount', 'double', "ROUND(SUM(#amount), 2)");
+    	
+    	// Ако има зададени пера, допълваме ограниченията на заявката
+    	$itemsArr = arr::make($items, TRUE);
+    	if(count($itemsArr)){
+    		foreach (array('debitItem1', 'debitItem2', 'debitItem3', 'creditItem1', 'creditItem2', 'creditItem3') as $el){
+    			if(isset($itemsArr[$el])){
+    				$dQuery->where("#{$el} = {$itemsArr[$el]}");
+    			}
+    		}
+    	}
+    	
+    	$dRec = $dQuery->fetch();
+    	
+    	$res = new stdClass();
+    	$res->debitQuantity  = $dRec->sumDebitQuantity;
+    	$res->creditQuantity = $dRec->sumCreditQuantity;
+    	$res->amount         = $dRec->sumAmount;
+    	
+    	return $res;
     }
 }

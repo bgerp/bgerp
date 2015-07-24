@@ -270,7 +270,7 @@ class cal_Calendar extends core_Master
 	          	        
 	       }
         }
-        
+
       	if(!$data->listFilter->rec->selectedUsers) {
       	
 		  $data->listFilter->rec->selectedUsers = 

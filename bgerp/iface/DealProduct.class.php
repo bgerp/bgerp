@@ -38,8 +38,8 @@ class bgerp_iface_DealProduct
     /**
      * Опаковка
      *
-     * @var int key(mvc=cat_Packagings)
-     * @see cat_Packagings
+     * @var int key(mvc=cat_Uom)
+     * @see cat_UoM
      */
     public $packagingId;
     
@@ -56,6 +56,13 @@ class bgerp_iface_DealProduct
      * @var double
      */
     public $quantityDelivered;
+    
+    /**
+     * Количество
+     *
+     * @var double
+     */
+    public $quantityInPack;
     
     /**
      * Цена

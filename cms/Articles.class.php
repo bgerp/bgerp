@@ -177,6 +177,11 @@ class cms_Articles extends core_Master
      */
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
+        if($id = $data->form->rec->id) {
+            $rec = self::fetch($id);
+            $cRec = cms_Content::fetch($rec->menuId);
+            cms_Domains::selectCurrent($cRec->domainId);
+        }
         $data->form->setOptions('menuId', arr::combine( array('' => ''), cms_Content::getMenuOpt($mvc)));
     }
 

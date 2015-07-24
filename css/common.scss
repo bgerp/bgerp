@@ -1041,9 +1041,23 @@ a.profile {
 
 .state-rejected td, .state-rejected .document th, .state-rejected .document td a , .state-rejected .document p, .state-rejected .document h3, .state-rejected .document h4,
 .state-rejected .richtext, .state-rejected .document a, .state-rejected .document span, .state-rejected .richtext div, .state-rejected .cCode, .state-rejected .antetka,
-.state-rejected .document ul, .state-rejected .document ol, .state-rejected .document li, .state-rejected .document b, .state-rejected .document font {
+.state-rejected .document ul, .state-rejected .document ol, .state-rejected .document li, .state-rejected .document b, .state-rejected .document font, .state-rejected .document legend {
     color: #999 !important;
     text-decoration: line-through !important;
+}
+
+.state-rejected {
+    div.tab-control.deal-history-tab .tab-row .tab a, .single-thread .document .tab-top div.alphabet .tab-row .tab a {
+        color: #999 !important;
+        text-decoration: none !important;
+    }
+}
+
+.detail-info.state-rejected {
+    td, th, a, p, span, ul, ol, li, div {
+        color: #999 !important;
+        text-decoration: line-through !important;
+    }
 }
 
 .state-rejected .document .profile{

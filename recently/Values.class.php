@@ -37,7 +37,7 @@ class recently_Values extends core_Manager
     function description()
     {
         $this->FLD('name', 'varchar(64)', 'caption=Име');
-        $this->FLD('value', 'varchar(128)', 'caption=Стойност');
+        $this->FLD('value', 'varchar', 'caption=Стойност');
         
         $this->setDbUnique('name,value,createdBy');
     }
@@ -96,7 +96,9 @@ class recently_Values extends core_Manager
     function add($name, $value)
     {
         $cu = core_Users::getCurrent();
-        $value = str::convertToFixedKey($value, 64);
+        $value = mb_substr($value, 0, 255);
+        $name = str::convertToFixedKey($name, 64);
+
         $rec = $this->fetch(array(
                 "#name = '[#1#]' AND #value = '[#2#]' AND #createdBy = {$cu}",
                 $name,

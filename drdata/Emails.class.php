@@ -59,7 +59,7 @@ class drdata_Emails extends core_BaseClass
         $result['value'] = $email;
         
         if (preg_match('/^www\./i', $email)) {
-            $result['warning'] = "Наистина ли имейла започва с| <B>www.</B> ?";
+            $result['warning'] = "Наистина ли имейла започва с|* <B>www.</B> ?";
         }
         
         // Ако визуалната проверка не е вярна връщаме грешката

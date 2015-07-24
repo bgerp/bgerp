@@ -2,7 +2,7 @@
     <div>[#productId#]</div>
     
      <!--ET_BEGIN expenses-->
-    <div>|Режийни разходи|*: [#expenses#]</div>
+    <div style='margin-top:5px'>|Режийни разходи|*: [#expenses#]</div>
      <!--ET_END expenses-->
    
     <div class = 'fieldset-holder' style='margin-top:10px'>

@@ -79,7 +79,9 @@ class select2_PluginSelect extends core_Plugin
      * @param array $attr
      */
     function on_AfterRenderInput(&$invoker, &$tpl, $name, $value, &$attr = array())
-    {   
+    {
+        if ($invoker->params['isReadOnly']) return ;
+        
         // Ако все още няма id
         if (!$attr['id']) {
             $attr['id'] = str::getRand('aaaaaaaa');

@@ -133,7 +133,7 @@ class acc_plg_RejectContoDocuments extends core_Plugin
         
         // Ако не може да се възстановява, връща FALSE за да се стопира възстановяването
         if($rec->brState != 'draft'){
-            
+        	
             // Ако документа не е сделка
             if(!cls::haveInterface('deals_DealsAccRegIntf', $mvc)){
                 $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
@@ -142,6 +142,12 @@ class acc_plg_RejectContoDocuments extends core_Plugin
                 if($firstDoc->fetchField('state') == 'active'){
                     $ignore[] = acc_items::fetchItem($firstDoc->getClassId(), $firstDoc->that)->id;
                 }
+            } else {
+            	
+            	// Ако класа е пос отчет винаги му игнорираме перото
+            	if($mvc instanceof pos_Reports){
+            		 $ignore[] = acc_items::fetchItem($mvc->getClassId(), $rec->id)->id;
+            	}
             }
             
             return $mvc->canRejectOrRestore($id, $ignore);

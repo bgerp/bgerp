@@ -120,7 +120,7 @@ class sens_driver_TCW121 extends sens_driver_IpDevice
         
         $pRes = @simplexml_load_string($xml);
 
-        if(!$pRec) {
+        if(!$pRes) {
             sens_MsgLog::add($this->id, "Грешка при парсиране!", 3);
             $this->stateArr = NULL;
 

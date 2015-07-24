@@ -212,7 +212,7 @@ class core_Cron extends core_Manager
         while ($rec = $query->fetch()) {
             $rec->state = 'free';
             $this->save($rec, 'state');
-            $this->logWarning("Unlock process", $rec->id, 7);
+            $this->logWarning("Отключен процес", $rec->id, 7);
         }
         
         // Коя е текущата минута?
@@ -240,14 +240,11 @@ class core_Cron extends core_Manager
                 ), 'absolute');
         }
         
-        $host = gethostbyname($_SERVER['SERVER_NAME']);
-
         $Os = cls::get('core_Os');
-
         $apacheProc = $Os->countApacheProc();
         
-        $this->logInfo("Total apache process on server - " . $apacheProc, NULL, 7);
-        $this->logThenStop("Process is working: {$i} processes was run", NULL, 'info');
+        $this->logInfo("Брой стартирани апача на сървъра - " . $apacheProc, NULL, 7);
+        $this->logThenStop("Стартирани са {$i} процеса", NULL, 'info');
     }
     
     
@@ -277,25 +274,27 @@ class core_Cron extends core_Manager
         
         if (!$id || !is_numeric($id)) {
             $cryptId = Request::get('id');
-            $this->logThenStop("ProcessRun -> incorrect crypted id: {$cryptId}", NULL, 'err');
+            $this->logThenStop("Некоректно id за криптиране: {$cryptId}", NULL, 'err');
         }
+        
+        log_Browsers::stopGenerating();
         
         // Вземаме информация за процеса
         $rec = $this->fetch($id);
         
         if (!$rec) {
-            $this->logThenStop("ProcessRun -> missing record for  id", $id, 'err');
+            $this->logThenStop("Липсва запис", $id, 'err');
         }
         
         // Дали процесът не е заключен?
         if ($rec->state == 'locked' && !$forced) {
-            $this->logThenStop("Process is locked!", $id, 'err');
+            $this->logThenStop("Процесът е заключен", $id, 'err');
         }
         
         // Дали този процес не е стартиран след началото на текущата минута
         $nowMinute = date("Y-m-d H:i:00", time());
         if ($nowMinute <= $rec->lastStart && !$forced) {
-            $this->logThenStop("Process have been started after $nowMinute!", $id, 'err');
+            $this->logThenStop("Процесът е бил стартиран след $nowMinute", $id, 'err');
         }
         
         // Заключваме процеса и му записваме текущото време за време на последното стартиране
@@ -318,7 +317,7 @@ class core_Cron extends core_Manager
         
         if (is_a($handlerObject, $class)) {
             if (method_exists($handlerObject, $act)) {
-                $this->logInfo("ProcessRun found", $rec->id, 7);
+                $this->logInfo("Стартиран процес", $rec->id, 7);
                 
                 // Ако е зададено максимално време за изпълнение, 
                 // задаваме го към PHP , като добавяме 5 секунди
@@ -329,11 +328,15 @@ class core_Cron extends core_Manager
                 $startingMicroTime = $this->getMicrotime();
                 $content = $handlerObject->$act();
                 
+                if (!Request::get('forced')) {
+                    ob_clean();
+                }
+                
                 // Ако извикания метод е генерирал резултат, то го добавяме
                 // подходящо форматиран към лога
                 if ($content) {
                     $content = "<p><i>$content</i></p>";
-                    if(Request::get('forced')) {
+                    if (Request::get('forced')) {
                         echo $content;
                     }
                 }
@@ -343,16 +346,16 @@ class core_Cron extends core_Manager
                 // Колко време да пазим лога?
                 $logLifeTime = max(1, 3 * round($rec->period / (24 * 60)));
                 
-                $this->logInfo("ProcessRun successfully execute for {$workingTime}sec.", $rec->id, $logLifeTime);
+                $this->logInfo("Процесът е изпълнен успешно за {$workingTime} секунди", $rec->id, $logLifeTime);
             } else {
                 $this->unlockProcess($rec);
-                $this->logThenStop("ProcessRun -> missing action on class class", $rec->id, 'err');
+                $this->logThenStop("Няма такъв екшън в класа", $rec->id, 'err');
                 echo(core_Debug::getLog());
                 shutdown();
             }
         } else {
             $this->unlockProcess($rec);
-            $this->logThenStop("ProcessRun -> missing class in process", $rec->id, 'err');
+            $this->logThenStop("Няма такъв клас", $rec->id, 'err');
             echo(core_Debug::getLog());
             shutdown();
         }
@@ -369,7 +372,7 @@ class core_Cron extends core_Manager
      */
     function logThenStop($msg, $id = NULL, $type = 'info')
     {
-        log_Data::add($type, $msg, $id, 7);
+        log_Data::add($type, $msg, 'core_Cron', $id, 7);
         echo(core_Debug::getLog());
         shutdown();
     }

@@ -327,7 +327,7 @@ class smssync_SMS extends core_Manager
         if ($secret != $conf->SMSSYNC_SECRET_KEY) {
             
             // Записваме в лога
-            self::log('Невалиден публичен ключ: ' . $secret);
+            self::logWarning('Невалиден публичен ключ: ' . $secret);
             
             // Връщаме
             return FALSE;
@@ -353,7 +353,7 @@ class smssync_SMS extends core_Manager
             }
             
             // Записваме в лога
-            self::log('Не е позволен достъпа от IP-то: ' . $realIpAdd);
+            self::logWarning('Не е позволен достъпа от това IP');
             
             return FALSE;
         }

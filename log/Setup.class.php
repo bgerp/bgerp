@@ -50,5 +50,18 @@ class log_Setup extends core_ProtoSetup
     		'log_Classes',
     		'log_Ips',
     		'log_Referer',
+    		'migrate::removeMaxCrc',
         );
+        
+        
+    /**
+     * 
+     */
+    public static function removeMaxCrc()
+    {
+        $max = 2147483647;
+        log_Actions::delete("#crc = '{$max}'");
+        log_Classes::delete("#crc = '{$max}'");
+        log_Data::delete("#actionCrc = '{$max}' OR #classCrc = '{$max}'");
+    }
 }

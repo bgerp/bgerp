@@ -384,7 +384,7 @@ class doc_DocumentPlg extends core_Plugin
         } catch (core_exception_Expect $e) {
             
             // Ако възникне грешка при записването
-            doc_Files::log("Грешка при записване на файла с id={$id}");
+            $mvc->logErr("Грешка при записване на файла", $id);
         }
         
         // Изтрива от кеша html представянето на документа
@@ -568,7 +568,7 @@ class doc_DocumentPlg extends core_Plugin
                     
                     // Ако в момента не се скрива или показва - показва документа
                     if (!Request::get('showOrHide') && !Request::get('afterReject')) {
-                        doc_Containers::showOrHideDocument($rec->containerId, FALSE);
+                        doc_HiddenContainers::showOrHideDocument($rec->containerId, FALSE);
                     }
                     
                     $handle = $mvc->getHandle($rec->id);
@@ -662,7 +662,7 @@ class doc_DocumentPlg extends core_Plugin
             
             $res['afterReject'] = 1;
             
-            doc_Containers::showOrHideDocument($rec->containerId, TRUE);
+            doc_HiddenContainers::showOrHideDocument($rec->containerId, TRUE);
             
             $res = new Redirect($res); //'OK';
                 
@@ -776,7 +776,7 @@ class doc_DocumentPlg extends core_Plugin
             bgerp_Recently::setHidden('document', $rec->containerId, $rec->state == 'rejected' ? 'yes':'no');
         }
         
-        $mvc->log($rec->state == 'rejected' ? 'reject' : 'restore', $rec->id);
+        $mvc->logInfo($rec->state == 'rejected' ? 'reject' : 'restore', $rec->id);
         
         return TRUE;
     }

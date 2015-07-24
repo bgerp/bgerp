@@ -37,8 +37,7 @@ class pos_Reports extends core_Master {
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'pos_Wrapper, plg_Printing, doc_DocumentPlg, acc_plg_Contable, acc_plg_DocumentSummary, plg_Search, 
-   					bgerp_plg_Blank, plg_Sorting';
+    public $loadList = 'pos_Wrapper, plg_Printing, doc_DocumentPlg, acc_plg_Contable, doc_plg_Close, acc_plg_Registry, acc_plg_DocumentSummary, plg_Search, plg_Sorting';
    
     
     /**
@@ -133,7 +132,7 @@ class pos_Reports extends core_Master {
     	$this->FLD('pointId', 'key(mvc=pos_Points, select=name)', 'caption=Точка, width=9em, mandatory,silent');
     	$this->FLD('paid', 'double(decimals=2)', 'caption=Сума->Платено, input=none, value=0, summary=amount');
     	$this->FLD('total', 'double(decimals=2)', 'caption=Сума->Продадено, input=none, value=0, summary=amount');
-    	$this->FLD('state', 'enum(draft=Чернова,active=Активиран,rejected=Оттеглена)', 'caption=Състояние,input=none,width=8em');
+    	$this->FLD('state', 'enum(draft=Чернова,active=Активиран,rejected=Оттеглена,closed=Приключен)', 'caption=Състояние,input=none,width=8em');
     	$this->FLD('details', 'blob(serialize,compress)', 'caption=Данни,input=none');
     }
     
@@ -394,8 +393,10 @@ class pos_Reports extends core_Master {
     		
     		// Ако детайла е продажба
     		$row->ROW_ATTR['class'] = 'report-sale';
-    		$info = cat_Products::getProductInfo($obj->value, $obj->pack);
-    		$row->pack = ($obj->pack) ? cat_Packagings::getTitleById($obj->pack) : cat_UoM::getTitleById($info->productRec->measureId);
+    		
+    		$row->pack = cat_UoM::getShortName($obj->pack);
+    		deals_Helper::getPackInfo($row->pack, $obj->value, $obj->pack, $obj->quantityInPack);
+    		
     		$row->value = cat_Products::getHyperlink($obj->value, TRUE);
     		$obj->amount *= 1 + $obj->param;
     	} else {
@@ -482,6 +483,7 @@ class pos_Reports extends core_Master {
     		
     		// Добавяме детайлите на бележката
 	    	$data = pos_ReceiptDetails::fetchReportData($rec->id);
+	    	
 	    	foreach($data as $obj){
 	    		$index = implode('|', array($obj->action, $obj->pack, $obj->contragentClassId, $obj->contragentId, $obj->value));
 	    		if (!array_key_exists($index, $results)) {
@@ -554,15 +556,11 @@ class pos_Reports extends core_Master {
     
     
     /**
-     * Извиква се след успешен запис в модела
-     *
-     * @param core_Mvc $mvc
-     * @param int $id първичния ключ на направения запис
-     * @param stdClass $rec всички полета, които току-що са били записани
+     * След промяна в журнала със свързаното перо
      */
-    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    public static function on_AfterJournalItemAffect($mvc, $rec, $item)
     {
-    	if($rec->state != 'draft'){
+    	if($rec->state != 'draft' && $rec->state != 'closed'){
     		if($rec->state == 'active'){
     			$nextState = 'closed';
     			$msg = 'Приключени';
@@ -570,16 +568,22 @@ class pos_Reports extends core_Master {
     			$nextState = 'pending';
     			$msg = 'Активирани';
     		}
-    		
+    	
     		// Всяка бележка в репорта се "затваря"
+    		$count = 0;
     		foreach($rec->details['receipts'] as $receiptRec){
+    			$state = pos_Receipts::fetchField($receiptRec->id, 'state');
+    			if($state == $nextState) continue;
+    			
     			$receiptRec->state = $nextState;
     			pos_Receipts::save($receiptRec);
     			$count++;
     		}
-    		
-    		core_Statuses::newStatus(tr("|{$msg} са|* '{$count}' |бележки за продажба|*"));
-    	}
+    	
+    		if($count){
+    			core_Statuses::newStatus(tr("|{$msg} са|* '{$count}' |бележки за продажба|*"));
+    			}
+    		}
     }
     
     
@@ -595,6 +599,13 @@ class pos_Reports extends core_Master {
 		
 		if($action == 'add' && isset($rec)){
 			if(empty($rec->pointId)){
+				$res = 'no_one';
+			}
+		}
+		
+		// Забраняваме оттеглянето на приключен отчет, за да се оттегли трябва първо да се активира
+		if($action == 'reject' && isset($rec)){
+			if($rec->state == 'closed'){
 				$res = 'no_one';
 			}
 		}
@@ -721,6 +732,32 @@ class pos_Reports extends core_Master {
     				return followRetUrl(NULL, 'Не може да се направи отчет');
     			}
     		}
+    	}
+    }
+    
+    
+    /**
+     * Крон метод за автоматично затваряне на стари периоди
+     */
+    public function cron_CloseReports()
+    {
+    	// Ако няма репорти не правим нищо
+    	if(!pos_Reports::count()) return;
+    	
+    	// Селектираме всички активни отчети по стари от указаната дата
+    	$conf = core_Packs::getConfig('pos');
+    	$now = dt::mysql2timestamp(dt::now());
+    	$oldBefore = dt::timestamp2mysql($now - $conf->POS_CLOSE_REPORTS_OLDER_THAN);
+    	
+    	$query = pos_Reports::getQuery();
+    	$query->where("#state = 'active'");
+    	$query->where("#createdOn <= '{$oldBefore}'");
+    	$query->limit($conf->POS_CLOSE_REPORTS_PER_TRY);
+    	
+    	// Затваряме всеки отчет, след затварянето автоматично ще му се затвори и перото
+    	while($rec = $query->fetch()){
+    		$rec->state = 'closed';
+    		$this->save($rec, 'state');
     	}
     }
 }

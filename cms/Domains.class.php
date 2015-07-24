@@ -268,6 +268,26 @@ class cms_Domains extends core_Embedder
   
         return $cmsLangs;
     }
+    
+    
+    /**
+     * Подготвя поле за въвеждане на домейн
+     */
+    public static function setFormField($form, $field = 'domainId')
+    {
+        $query = self::getQuery();
+        while($rec = $query->fetch("#state = 'active'")) {
+            if(self::haveRightfor('select', $rec) || $rec->id == $form->rec->{$field}) {
+                $opt[$rec->id] = self::getRecTitle($rec);
+            }
+        }
+        expect($form instanceof core_Form);
+        $form->setOptions($field, $opt);
+        if(!$form->rec->{$field}) {
+            $form->rec->{$field} = self::getCurrent();
+        }
+
+    }
 
  
     /**

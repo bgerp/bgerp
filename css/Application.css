@@ -1813,7 +1813,7 @@ span.sharing-history-title {
 #cmsMenu a {
   font-size: 1.12em;
   padding: 4px;
-  margin: 2px 20px 2px 15px;
+  margin: 2px 20px 2px 10px;
   line-height: normal;
   white-space: nowrap;
   display: block;
@@ -4116,6 +4116,21 @@ only screen and (max-width: 320px) {
   padding: 2px;
   border: solid 1px #cccccc;
   background-color: #eeeeee; }
+
+.logs-type-warning {
+  background-color: #fae3ca; }
+
+.logs-type-debug {
+  background-color: #eeeeee; }
+
+.logs-type-notice {
+  background-color: #dff4fa; }
+
+.logs-type-info {
+  background-color: #fffef4; }
+
+.logs-type-err {
+  background-color: #fad0d1; }
 
 /*
  * Стилове за езика във външната част

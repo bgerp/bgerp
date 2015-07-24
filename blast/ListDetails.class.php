@@ -298,10 +298,10 @@ class blast_ListDetails extends doc_Detail
     			foreach ($valArr as $val) {
     			    $val = html2text_Converter::toRichText($val);
     				// escape
-    				if (preg_match("/[\,\"\r\n]/", $val)) {
+    				if (preg_match('/\\r|\\n|\,|"/', $val)) {
     					$val = '"' . str_replace('"', '""', $val) . '"';
     				}
-    				$csv .= $val. ",";
+    				$csv .= ($csv ?  "," : " ") . $val;
     			}
     		}
     		$csv = rtrim($csv, ',');

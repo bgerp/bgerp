@@ -80,7 +80,7 @@ class log_Classes extends core_Manager
      */
     public function description()
     {
-        $this->FLD('crc', 'int', 'caption=crc32 на класа');
+        $this->FLD('crc', 'bigint', 'caption=crc32 на класа');
         $this->FLD('class', 'varchar', 'caption=Име на класа');
         
         $this->setDbUnique('crc');

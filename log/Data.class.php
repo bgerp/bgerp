@@ -78,7 +78,7 @@ class log_Data extends core_Manager
     /**
      * 
      */
-    public $listFields = 'id, actTime, userId=Потребител, text, ipId=IP адрес, brId=Браузър';
+    public $listFields = 'id, actTime, userId=Потребител, type=Тип, text, ipId=IP адрес, brId=Браузър';
     
     
     /**
@@ -98,8 +98,8 @@ class log_Data extends core_Manager
          $this->FLD('userId', 'key(mvc=core_Users)', 'caption=Идентификация->Потребител, notNull');
          $this->FLD('time', 'int', 'caption=Време на записа');
          $this->FLD('type', 'enum(emerg=Спешно,alert=Тревога,crit=Критично,err=Грешка,warning=Предупреждение,notice=Известие,info=Инфо,debug=Дебъг)', 'caption=Данни->Тип на събитието');
-         $this->FLD('actionCrc', 'int', 'caption=Данни->Действие');
-         $this->FLD('classCrc', 'int', 'caption=Данни->Клас');
+         $this->FLD('actionCrc', 'bigint', 'caption=Данни->Действие');
+         $this->FLD('classCrc', 'bigint', 'caption=Данни->Клас');
          $this->FLD('objectId', 'int', 'caption=Данни->Обект');
          $this->FLD('lifeTime', 'int', 'caption=Време живот, notNull');
          
@@ -143,6 +143,8 @@ class log_Data extends core_Manager
         $toAdd['lifeTime'] = $lifeDays * 86400;
                 
         self::$toAdd[] = $toAdd;
+        
+        core_Debug::log("$className, $objectId, $message");
     }
     
     
@@ -208,8 +210,6 @@ class log_Data extends core_Manager
         if ($rec->time) {
             $time = dt::timestamp2Mysql($rec->time);
             $row->actTime = dt::mysql2verbal($time, 'smartTime');
-            
-            $row->actTime .= "<span class='logs-icon-{$rec->type}'></span>";
         }
         
         $action = log_Actions::getActionFromCrc($rec->actionCrc);
@@ -274,6 +274,7 @@ class log_Data extends core_Manager
     static function on_AfterPrepareListFilter($mvc, $data)
     {
         $data->query->orderBy("time", "DESC");
+        $data->query->orderBy("id", "DESC");
         
         $data->listFilter->layout = new ET(tr('|*' . getFileContent('log/tpl/DataFilterForm.shtml')));
         
@@ -419,10 +420,24 @@ class log_Data extends core_Manager
             $data->listFilter->setReadOnly('object');
         } else {
             $cQuery = clone $query;
+            
             $cQuery->groupBy('classCrc');
             $cQuery->groupBy('objectId');
             
             $cQuery->where("#objectId IS NOT NULL");
+            
+            // Избрания обект да е на първо място
+            if ($rec->object) {
+                $oldOrderArr = $cQuery->orderBy;
+                $cQuery->orderBy = array();
+                
+                $cQuery->orWhere(array("#objectId = '[#1#]'", $rec->object));
+                
+                $cQuery->XPR('orderObjectId', 'int', "(CASE #objectId WHEN '{$rec->object}' THEN 1 ELSE 2 END)");
+                $cQuery->orderBy('orderObjectId');
+                
+                $cQuery->orderBy = array_merge($cQuery->orderBy, $oldOrderArr);
+            }
             
             $cQuery->limit(100);
             
