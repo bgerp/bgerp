@@ -160,6 +160,12 @@ class blast_Lists extends core_Master
         
         $this->FLD('contactsCnt', 'int', 'caption=Записи,input=none');
         
+        if (defined('EF_LANGUAGES')) {
+            $this->FLD('lg', 'enum(auto=Автоматично, ' . EF_LANGUAGES . ')', 'caption=Език,changable,notNull');
+        } else {
+            $this->FLD('lg', 'enum(auto=Автоматично)', 'caption=Език,changable,notNull');
+        }
+        
         $this->setDbUnique('title');
     }
     
@@ -603,5 +609,21 @@ class blast_Lists extends core_Master
         $link = ht::createLink($title, array($this, 'single', $id));
         
         return $link;
+    }
+    
+    
+    /**
+     * Връща езика за източника на персонализация
+     * @see bgerp_PersonalizationSourceIntf
+     *
+     * @param integer $id
+     *
+     * @return string
+     */
+    public function getPersonalizationLg($id)
+    {
+        $rec = $this->fetch($id);
+        
+        return $rec->lg;
     }
 }
