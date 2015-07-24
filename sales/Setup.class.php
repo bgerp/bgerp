@@ -74,6 +74,30 @@ defIfNot('SALE_INV_HAS_FISC_PRINTERS', 'yes');
 
 
 /**
+ * Дефолтен шаблон за продажби на български
+ */
+defIfNot('SALE_SALE_DEF_TPL_BG', '');
+
+
+/**
+ * Дефолтен шаблон за продажби на английски
+ */
+defIfNot('SALE_SALE_DEF_TPL_EN', '');
+
+
+/**
+ * Дефолтен шаблон за фактури на български
+ */
+defIfNot('SALE_INVOICE_DEF_TPL_BG', '');
+
+
+/**
+ * Дефолтен шаблон за фактури на английски
+ */
+defIfNot('SALE_INVOICE_DEF_TPL_EN', '');
+
+
+/**
  * Продажби - инсталиране / деинсталиране
  *
  *
@@ -127,7 +151,13 @@ class sales_Setup extends core_ProtoSetup
 			'SALE_INV_MAX_NUMBER1'        => array('int(min=0)', 'caption=Първи диапазон за номериране на фактури->Горна граница'),
 			'SALE_INV_MIN_NUMBER2'        => array('int(min=0)', 'caption=Втори диапазон за номериране на фактури->Долна граница'),
 			'SALE_INV_MAX_NUMBER2'        => array('int(min=0)', 'caption=Втори диапазон за номериране на фактури->Горна граница'),
-			'SALE_INV_HAS_FISC_PRINTERS'  => array('enum(no=Не,yes=Да)', 'caption=Фактури->Има ли фирмата касови апарати'),
+			'SALE_INV_HAS_FISC_PRINTERS'  => array('enum(no=Не,yes=Да)', 'caption=Има ли фирмата касови апарати->Избор'),
+			
+			'SALE_SALE_DEF_TPL_BG'        => array('key(mvc=doc_TplManager,allowEmpty)', 'caption=Продажба основен шаблон->Български,optionsFunc=sales_Sales::getTemplateBgOptions'),
+			'SALE_SALE_DEF_TPL_EN'        => array('key(mvc=doc_TplManager,allowEmpty)', 'caption=Продажба основен шаблон->Английски,optionsFunc=sales_Sales::getTemplateEnOptions'),
+	
+			'SALE_INVOICE_DEF_TPL_BG'     => array('key(mvc=doc_TplManager,allowEmpty)', 'caption=Фактура основен шаблон->Български,optionsFunc=sales_Invoices::getTemplateBgOptions'),
+			'SALE_INVOICE_DEF_TPL_EN'     => array('key(mvc=doc_TplManager,allowEmpty)', 'caption=Фактура основен шаблон->Английски,optionsFunc=sales_Invoices::getTemplateEnOptions'),
 	);
 	
 	
@@ -147,9 +177,6 @@ class sales_Setup extends core_ProtoSetup
             'sales_InvoiceDetails',
     		'sales_Proformas',
     		'sales_ProformaDetails',
-    		'migrate::transformProformas1',
-    		'migrate::updateQuotations',
-    		'migrate::updateSales',
         );
 
         
@@ -218,108 +245,39 @@ class sales_Setup extends core_ProtoSetup
     
     
     /**
-     * Миграция на старите проформи към новите
+     * Зареждане на данни
      */
-    function transformProformas1()
+    function loadSetupData()
     {
-    	$mvc = cls::get('sales_Proformas');
-    	$query = $mvc->getQuery();
-    	$query->where("#state = 'active'");
-    	$query->where("#saleId IS NOT NULL");
-    	 
-    	while($rec = $query->fetch()){
-    		$saleRec = sales_Sales::fetch($rec->saleId);
+    	$res = parent::loadSetupData();
     	
-    		$rec->contragentClassId = $saleRec->contragentClassId;
-    		$rec->contragentId = $saleRec->contragentId;
+    	// Ако няма посочени от потребителя сметки за синхронизация
+    	$config = core_Packs::getConfig('sales');
     	
-    		$ContragentClass = cls::get($rec->contragentClassId);
-    		$cData = $ContragentClass->getContragentData($rec->contragentId);
-    	
-    		$rec->contragentName = ($cData->person) ? $cData->person : $cData->company;
-    		$rec->contragentAddress = $cData->address;
-    	
-    		$conf = core_Packs::getConfig('crm');
-    		if(!$cData->countryId){
-    			$cData->countryId = drdata_Countries::fetchField("#commonName = '{$conf->BGERP_OWN_COMPANY_COUNTRY}'", 'id');
-    		}
-    	
-    		$rec->contragentCountryId = $cData->countryId;
-    		$rec->contragentVatNo = $cData->vatNo;
-    	
-    		if(strlen($rec->contragentVatNo) && !strlen($rec->uicNo)){
-    			$rec->uicNo = drdata_Vats::getUicByVatNo($rec->contragentVatNo);
-    		} else {
-    			$rec->uicNo = $cData->uicId;
-    		}
-    	
-    		$rec->contragentPCode = $cData->pCode;
-    		$rec->contragentPlace = $cData->place;
-    	
-    		$rec->vatRate = $saleRec->chargeVat;
-    		$rec->paymentMethodId = $saleRec->paymentMethodId;
-    		$rec->currencyId = $saleRec->currencyId;
-    		$rec->rate = $saleRec->currencyRate;
-    		$rec->deliveryId = $saleRec->deliveryTermId;
-    		$rec->deliveryPlaceId = $saleRec->deliveryLocationId;
-    		$rec->bankAccountId = $saleRec->accountId;
-    	
-    		$rec->saleId = NULL;
-    		$mvc->save($rec);
-    	
-    		sales_ProformaDetails::delete("#proformaId = {$rec->id}");
-    		$dQuery = sales_SalesDetails::getQuery();
-    		$dQuery->where("#saleId = {$saleRec->id}");
-    		while($dRec = $dQuery->fetch()){
-    			unset($dRec->id, $dRec->saleId);
-    			$dRec->proformaId = $rec->id;
-    			$dRec->quantity /= $dRec->quantityInPack;
-    			
-    			sales_ProformaDetails::save($dRec);
-    		}
+    	// Поставяме първия намерен шаблон на български за дефолтен на продажбата
+    	if(strlen($config->SALE_SALE_DEF_TPL_BG) === 0){
+    		$key = key(sales_Sales::getTemplateBgOptions());
+    		core_Packs::setConfig('sales', array('SALE_SALE_DEF_TPL_BG' => $key));
     	}
-    }
-    
-    
-    /**
-     * Ъпдейтва старите оферти
-     */
-    public function updateQuotations()
-    {
-    	if(sales_QuotationsDetails::count()){
-    		$query = sales_QuotationsDetails::getQuery();
-    		$query->where("#quantityInPack IS NULL");
-    		while($rec = $query->fetch()){
-    			try{
-    				$rec->quantityInPack = 1;
-    				sales_QuotationsDetails::save($rec, 'quantityInPack');
-    			} catch(core_exception_Expect $e){
-    				 
-    			}
-    		}
+    	
+    	// Поставяме първия намерен шаблон на английски за дефолтен на продажбата
+    	if(strlen($config->SALE_SALE_DEF_TPL_EN) === 0){
+    		$key = key(sales_Sales::getTemplateEnOptions());
+    		core_Packs::setConfig('sales', array('SALE_SALE_DEF_TPL_EN' => $key));
     	}
-    }
-    
-    
-    /**
-     * Обновяваме продажбите
-     */
-    public function updateSales()
-    {
-    	if(sales_Sales::count()){
-    		$Sales = cls::get('sales_Sales');
-    		
-    		$sQuery = sales_Sales::getQuery();
-    		$sQuery->where("#makeInvoice IS NULL || #makeInvoice = ''");
-    		$sQuery->show('id,makeInvoice');
-    		while($rec = $sQuery->fetch()){
-    			$rec->makeInvoice = 'yes';
-    			try{
-    				$Sales->save_($rec, 'makeInvoice');
-    			} catch(core_exception_Expect $e){
-    				
-    			}
-    		}
+    	
+    	// Поставяме първия намерен шаблон на български за дефолтен на фактурата
+    	if(strlen($config->SALE_INVOICE_DEF_TPL_BG) === 0){
+    		$key = key(sales_Invoices::getTemplateBgOptions());
+    		core_Packs::setConfig('sales', array('SALE_INVOICE_DEF_TPL_BG' => $key));
     	}
+    	
+    	// Поставяме първия намерен шаблон на английски за дефолтен на фактурата
+    	if(strlen($config->SALE_INVOICE_DEF_TPL_EN) === 0){
+    		$key = key(sales_Invoices::getTemplateEnOptions());
+    		core_Packs::setConfig('sales', array('SALE_INVOICE_DEF_TPL_EN' => $key));
+    	}
+    	
+    	return $res;
     }
 }
