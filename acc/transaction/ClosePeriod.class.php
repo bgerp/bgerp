@@ -541,8 +541,15 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
     protected function transferCosts(&$total, $rec)
     {
     	$bQuery = acc_BalanceDetails::getQuery();
+    	$query2 = clone $bQuery;
+    	
     	acc_BalanceDetails::filterQuery($bQuery, $this->balanceId, '601,602,603,60010,60020');
     	$bQuery->where("#ent1Id IS NOT NULL || #ent2Id IS NOT NULL || #ent3Id IS NOT NULL");
+    	
+    	// Колко е крайното салдо на 61102 преди да започнем да отчитаме разходите
+    	acc_BalanceDetails::filterQuery($query2, $this->balanceId, '61102');
+    	$query2->where("#ent1Id IS NULL && #ent2Id IS NULL && #ent3Id IS NULL");
+    	$amount61102 = $query2->fetch()->blAmount;
     	
     	$entries = array();
     	 
@@ -596,23 +603,40 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
     	}
     	
     	$amount601 += $amount60010;
+    	
+    	// От ще прехвърлим това което сме натрупали до момента в нея + крайното и салдо
     	$amount602 += $amount60020;
+    	$amount602 += $amount61102;
     	
     	foreach (array('601', '602', '603') as $sysId){
     		if(${"amount{$sysId}"} == 0) continue;
+    		$amount = abs(${"amount{$sysId}"});
     		
     		if($sysId == '602'){
     			$creditArr = array('61102');
+    			
+    			// Ако има зададено салдо за запазване
+    			if($rec->amountKeepBalance){
+    				
+    				// Ако салдото за прехвърляне е по-малко от това за оставяне не го бутаме
+    				if($amount <= $rec->amountKeepBalance){
+    					continue;
+    				} else {
+    					
+    					// Иначе прихвърляме толкова че да остане минимум зададеното салдо
+    					$amount -= $rec->amountKeepBalance;
+    				}
+    			}
     		} else {
     			$creditArr = array('61101', array('cat_Products', ${"resource{$sysId}"}), 'quantity' => ${"quantity{$sysId}"});
     		}
     		
-    		$entries[] = array('amount'  => abs(${"amount{$sysId}"}),
+    		$entries[] = array('amount'  => $amount,
     				'debit'  => array('123', $this->date->year),
     				'credit' => $creditArr,
     				'reason' => ${"reason{$sysId}"});
     		 
-    		$total += abs(${"amount{$sysId}"});
+    		$total += $amount;
     	}
     	
     	// Колко е крайното салдо по 604
