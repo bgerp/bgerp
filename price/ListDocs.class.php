@@ -392,7 +392,8 @@ class price_ListDocs extends core_Master
     	
     	// Ако няма избрани опаковки, значи сме избрали всички
     	if(!count($packArr)){
-    		$packArr = cat_Packagings::makeArray4Select('id');;
+    		$packs = cat_UoM::getPackagingOptions();
+    		$packArr = array_combine(array_keys($packs), array_keys($packs));
     	}
     	
     	foreach($rec->details->products as &$product){
@@ -518,7 +519,7 @@ class price_ListDocs extends core_Master
         
     	$measureShort = cat_UoM::getShortName($rec->measureId);
 		if($rec->pack){
-    		$row->pack = cat_Packagings::getTitleById($rec->pack);
+    		$row->pack = cat_UoM::getShortName($rec->pack);
     		$row->pack .= "&nbsp;({$double->toVerbal($rec->perPack)}&nbsp;{$measureShort})";
 		}
     	

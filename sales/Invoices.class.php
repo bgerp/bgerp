@@ -665,4 +665,19 @@ class sales_Invoices extends deals_InvoiceMaster
    			);
    		}
    	}
+   	
+   	
+   	/**
+   	 * Метод по подразбиране за намиране на дефолт шаблона
+   	 */
+   	public function getDefaultTemplate_($rec)
+   	{
+   		$cData = doc_Folders::getContragentData($rec->folderId);
+   		$bgId = drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id');
+   		 
+   		$conf = core_Packs::getConfig('sales');
+   		$def = (empty($cData->countryId) || $bgId === $cData->countryId) ? $conf->SALE_INVOICE_DEF_TPL_BG : $conf->SALE_INVOICE_DEF_TPL_EN;
+   		 
+   		return $def;
+   	}
 }

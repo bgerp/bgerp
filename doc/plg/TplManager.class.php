@@ -254,27 +254,29 @@ class doc_plg_TplManager extends core_Plugin
      */
     public static function on_AfterGetDefaultTemplate($mvc, &$res, $rec)
     {
-    	$cData = doc_Folders::getContragentData($rec->folderId);
-    	$bgId = drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id');
-    	$languages = array();
-    	
-    	if(empty($cData->countryId) || $bgId === $cData->countryId){
-    		$languages['bg'] = 'bg';
-    	} else {
-    		$cLanguages = drdata_Countries::fetchField($cData->countryId, 'languages');
-    		$languages = array_merge(arr::make($cLanguages, TRUE), $languages);
+    	if(!$res){
+    		$cData = doc_Folders::getContragentData($rec->folderId);
+    		$bgId = drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id');
+    		$languages = array();
+    		 
+    		if(empty($cData->countryId) || $bgId === $cData->countryId){
+    			$languages['bg'] = 'bg';
+    		} else {
+    			$cLanguages = drdata_Countries::fetchField($cData->countryId, 'languages');
+    			$languages = array_merge(arr::make($cLanguages, TRUE), $languages);
     		
-    		$defLang = 'en';
+    			$defLang = 'en';
+    		}
+    		$languages['en'] = 'en';
+    		 
+    		// Намираме първия шаблон на езика който се говори в държавата
+    		foreach ($languages as $lang){
+    			$tplId = doc_TplManager::fetchField("#lang = '{$lang}' AND #docClassId = '{$mvc->getClassId()}'", 'id');
+    			if($tplId) break;
+    		}
+    		 
+    		$res = $tplId;
     	}
-    	$languages['en'] = 'en';
-    	
-    	// Намираме първия шаблон на езика който се говори в държавата
-    	foreach ($languages as $lang){
-    		$tplId = doc_TplManager::fetchField("#lang = '{$lang}' AND #docClassId = '{$mvc->getClassId()}'", 'id');
-    		if($tplId) break;
-    	}
-    	
-    	$res = $tplId;
     }
     
     
@@ -292,5 +294,29 @@ class doc_plg_TplManager extends core_Plugin
     	$lang = doc_TplManager::fetchField($rec->template, 'lang');
     	 
     	$res = $lang;
+    }
+    
+    
+    /**
+     * Връща опциите за избор на шаблон на даден документ на английски език
+     */
+    public static function on_AfterGetTemplateBgOptions(core_Mvc $mvc, &$res)
+    {
+    	if(!$res){
+    		$res = cls::get('doc_TplManager')->makeArray4Select('name', "#docClassId = '{$mvc->getClassId()}' AND #lang = 'bg'");
+    		ksort($res);
+    	}
+    }
+    
+    
+    /**
+     * Връща опциите за избор на шаблон на даден документ на английски език
+     */
+    public static function on_AfterGetTemplateEnOptions(core_Mvc $mvc, &$res)
+    {
+    	if(!$res){
+    		$res = cls::get('doc_TplManager')->makeArray4Select('name', "#docClassId = '{$mvc->getClassId()}' AND #lang = 'en'");
+    		ksort($res);
+    	}
     }
 }

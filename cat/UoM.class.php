@@ -142,22 +142,13 @@ class cat_UoM extends core_Manager
      * @param int $packagingId - ид на опаковка
      * @return double - закръгленото количество
      */
-    public static function round($quantity, $productId, $packagingId = NULL)
+    public static function round($quantity, $productId, $packagingId)
     {
     	// Коя е основната мярка на артикула
     	$uomId = cat_Products::getProductInfo($productId)->productRec->measureId;
     	
-    	if(isset($packagingId)){
-    		$packRound = cat_Packagings::fetchField($packagingId, 'round');
-    		if(isset($packRound)){
-    			$round = $packRound;
-    		} else {
-    			$round = 0;
-    		}
-    	} else {
-    		// Имали зададено закръгляне
-    		$round = static::fetchField($uomId, 'round');
-    	}
+    	// Имали зададено закръгляне
+    	$round = static::fetchField($uomId, 'round');
     	
     	// Ако няма
     	if(!isset($round)){
@@ -167,7 +158,7 @@ class cat_UoM extends core_Manager
     		if($uomRec->baseUnitId){
     			
     			/*
-    			 * Ако има базова мярка, тогава да е спрямо точността на базовата мярка. 
+    			 * Ако има базова мярка, тогава да е спрямо точността на базовата мярка. bp($round);
     			 * Например ако базовата мярка е килограм и имаме нова мярка - грам, която 
     			 * е 1/1000 от базовата, то точността по подразбиране е 3/3 = 1, където числителя 
     			 * е точността на мярката килограм, а в знаменателя - log(1000).

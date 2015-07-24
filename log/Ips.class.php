@@ -112,7 +112,7 @@ class log_Ips extends core_Manager
                 $rec->ip = $ip;
                 $rec->country2 = drdata_IpToCountry::get($ip); // TODO така ли трябва да е?
                 
-                $id = self::save($rec);
+                $id = self::save($rec, NULL, 'IGNORE');
             }
             
             if ($id) {

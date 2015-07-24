@@ -1611,7 +1611,6 @@ class email_Outgoings extends core_Master
             $data->form->addAttr('body', $langAttrArr);
             $data->form->addAttr('subject', $langAttrArr);
         }
-        $data->form->setField('body', array('attr' => array('onload' => 'console.log(\'a\');')));
     }
     
     

@@ -240,10 +240,7 @@ class core_Cron extends core_Manager
                 ), 'absolute');
         }
         
-        $host = gethostbyname($_SERVER['SERVER_NAME']);
-
         $Os = cls::get('core_Os');
-
         $apacheProc = $Os->countApacheProc();
         
         $this->logInfo("Брой стартирани апача на сървъра - " . $apacheProc, NULL, 7);
