@@ -663,9 +663,11 @@ class blast_Emails extends core_Master
                 //Вземаме манупулаторите на файловете
                 $attFhArr = $this->getAttachments($rec);
                 
-                // Манипулаторите да са и в стойноситите им
-                $attFhArr = array_keys($attFhArr);
-                $attFhArr = array_combine($attFhArr, $attFhArr);
+                if (count($attFhArr)) {
+                    // Манипулаторите да са и в стойноситите им
+                    $attFhArr = array_keys($attFhArr);
+                    $attFhArr = array_combine($attFhArr, $attFhArr);
+                }
             }
             
             //Манипулаторите на файловете в масив
