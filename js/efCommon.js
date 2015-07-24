@@ -989,14 +989,21 @@ function toggleRichtextGroups(id, event) {
 // id на текущия език
 var currentLangId = 0;
 function prepareLangBtn(obj) {
-
+	
 	var arrayLang= obj.data;
 	var hint = obj.hint;
 	var initialLang = obj.lg;
-
+	var id = obj.id;
+	
+	elemSelector = '.richEdit > textarea';
+	
+	if (typeof id != 'undefined') {
+		elemSelector = '#' + id;
+	}
+	
 	// добавяме бутона за смяна на език
 	var elem = "<a class='rtbutton lang " + initialLang + "' title='" + hint +"'>" + initialLang + "</a>" ;
-	$('.richEdit').append(elem);
+	$(elemSelector).parent().append(elem);
 
 	// на всеки клик подготряме данните за смяна на езика
 	$(document.body).on('click', ".rtbutton.lang", function(e){
@@ -1008,11 +1015,11 @@ function prepareLangBtn(obj) {
 		$('.rtbutton.lang').removeClass(lang).addClass(nextLang);
 		currentLangId = nextLangId;
 		// подаваме необходите данни за нов3ия език
-		changeLang(arrayLang[nextLangId]);
+		changeLang(arrayLang[nextLangId], elemSelector);
 	});
 
 	// при промяна на текста да скрием бутона
-	$('textarea').bind('input propertychange', function() {
+	$(elemSelector).bind('input propertychange', function() {
 		 $('.rtbutton.lang').fadeOut(600);
 		 setTimeout(function() {
 			 $('.rtbutton.lang').remove();
@@ -1021,20 +1028,21 @@ function prepareLangBtn(obj) {
 	});
 }
 
+
 /**
  * Действия при смяна на езика
  */
-function changeLang(data){
+function changeLang(data, elemSelector){
 
 	var lang = data.lg;
-	$('.richEdit textarea').val(data.data);
+	$(elemSelector).val(data.data);
 	$('.rtbutton.lang').text(lang);
 
 	// spellcheck
 	$('input[name=subject]').attr('spellcheck','true');
-	$('.richEdit textarea').attr('spellcheck','true');
+	$(elemSelector).attr('spellcheck','true');
 	$('input[name=subject]').attr('lang',lang);
-	$('.richEdit textarea').attr('lang',lang);
+	$(elemSelector).attr('lang',lang);
 
 	appendQuote(quoteId, quoteLine);
 }
