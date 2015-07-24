@@ -99,7 +99,7 @@ class bgerp_Recently extends core_Manager
         // Не добавяме от опресняващи ajax заявки
         if(Request::get('ajax_mode')) return;
         
-        $msg = 'Добавяне в "последно"';
+        $msg = 'Добавяне в "Последно"';
         
         if ($type == 'document') {
             doc_Containers::logInfo($msg, $objectId);
