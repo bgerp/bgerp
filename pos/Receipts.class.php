@@ -1471,7 +1471,7 @@ class pos_Receipts extends core_Master {
     			$nRec->managerId = cat_Products::getClassId();
     			$nRec->quantity = $rec->quantity;
     			$pInfo = cls::get('cat_Products')->getProductInfo($rec->productId);
-    			$nRec->measure = ($rec->value) ? cat_Packagings::getTitleById($rec->value) : cat_UoM::getShortName($pInfo->productRec->measureId);
+    			$nRec->measure = cat_UoM::getShortName($rec->value);
     			$nRec->vat = $rec->param;
     			$nRec->price = $rec->price;
     			
