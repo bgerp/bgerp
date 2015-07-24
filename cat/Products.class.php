@@ -1101,7 +1101,6 @@ class cat_Products extends core_Embedder {
     {
     	if($fields['-list']){
     		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
-    		
     	}
     	
     	if($fields['-single']){
@@ -1190,10 +1189,6 @@ class cat_Products extends core_Embedder {
     {
     	$rec = $this->fetchRec($id);
     	$title = $this->getShortHyperlink($rec->id);
-    	
-    	if(Mode::is('printing') || Mode::is('text', 'xhtml')){
-    		$title = $this->getTitleById($rec->id);
-    	}
     	
     	return $title;
     }

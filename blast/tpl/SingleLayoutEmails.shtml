@@ -91,6 +91,10 @@
     <!--ET_BEGIN body-->
     <div style='padding: 10px 0 5px 10px;'>[#body#]</div>
     <!--ET_END body-->
+    <!--ET_BEGIN unsubscribe-->
+    <hr>
+    <div style='padding: 0px 0 5px 10px;'>[#unsubscribe#]</div>
+    <!--ET_END unsubscribe-->
     <div style='clear: both;'></div>
     <div class='clear_l f_left block_subtitle mt_50px'></div>
     <div class='scrolling-holder'>

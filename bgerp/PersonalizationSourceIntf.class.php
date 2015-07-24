@@ -116,4 +116,18 @@ class bgerp_PersonalizationSourceIntf
         
         return $this->class->getPersonalizationSrcLink($id);
     }
+    
+    
+    /**
+     * Връща езика за източника на персонализация
+     *
+     * @param integer $id
+     *
+     * @return string
+     */
+    function getPersonalizationLg($id)
+    {
+        
+        return $this->class->getPersonalizationLg($id);
+    }
 }

@@ -210,8 +210,8 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     	}
     	
     	if ($form->isSubmitted()){
-    		$pInfo = cls::get($rec->classId)->getProductInfo($rec->productId, $rec->packagingId);
-    		$quantityInPack = ($pInfo->packagingRec) ? $pInfo->packagingRec->quantity : 1;
+    		$pInfo = cls::get($rec->classId)->getProductInfo($rec->productId);
+    		$quantityInPack = ($pInfo->packagings[$rec->packagingId]) ? $pInfo->packagings[$rec->packagingId]->quantity : 1;
     		
 			if(isset($storeInfo)){
     			if($rec->packQuantity > ($storeInfo->quantity / $quantityInPack)){

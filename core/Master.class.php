@@ -630,7 +630,11 @@ class core_Master extends core_Manager
     	// Ако няма права не се показва като линк
     	$url = $me->getSingleUrlArray($id);
     	if($short === TRUE){
-    		$title = ht::createLinkRef($title, $url, NULL, $attr);
+    		
+    		if(!Mode::is('printing') && !Mode::is('text', 'xhtml')){
+    			$title = ht::createLinkRef($title, $url, NULL, $attr);
+    		}
+    		
     	} else {
     		$title = ht::createLink($title, $url, NULL, $attr);
     	}
