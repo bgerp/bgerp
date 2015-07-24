@@ -115,56 +115,12 @@ class planning_ObjectResources extends core_Manager
     	
     	// Коя е мярката на артикула, и намираме всички мерки от същия тип
     	$measureId = cat_Products::getProductInfo($rec->objectId)->productRec->measureId;
-    	$sameTypeMeasures = cat_UoM::getSameTypeMeasures($measureId);
     	
-    	// Намираме всички артикули, които са били влагане в производството от документи
-    	$consumedProducts = array();
-    	$cQuery = planning_ConsumptionNoteDetails::getQuery();
-    	$cQuery->EXT('state', 'planning_ConsumptionNotes', 'externalKey=noteId');
-    	$cQuery->where("#state = 'active'");
-    	$cQuery->show('productId');
-    	while ($cRec = $cQuery->fetch()){
-    		$consumedProducts[$cRec->productId] = $cRec->productId;
-    	}
-    	
-    	$dQuery = planning_DirectProductNoteDetails::getQuery();
-    	$dQuery->EXT('state', 'planning_DirectProductionNote', 'externalKey=noteId');
-    	$dQuery->where("#state = 'active'");
-    	$dQuery->where("#type = 'input'");
-    	while ($dRec = $dQuery->fetch()){
-    		$consumedProducts[$dRec->productId] = $dRec->productId;
-    	}
-    	
-    	// Не може да се избере текущия артикул
-    	unset($consumedProducts[$rec->objectId]);
-    	
-    	// Намираме всички вложими артикули
-    	$products = cat_Products::getByproperty('canConvert');
-    	
-    	if(count($products)){
-    		foreach ($products as $id => $p){
-    			
-    			if(!is_object($p)){
-    				
-    				// Ако артикула е вложим, но не е участвал в документ - махаме го
-    				if(empty($consumedProducts[$id])){
-    					unset($products[$id]);
-    				} else {
-    					
-    					// Ако мярката на артикула е от друг тип - също го мяхаме
-    					// Артикул може да бъде заместван само с артикул с подобна мярка
-    					$mId = cat_Products::getProductInfo($id)->productRec->measureId;
-    					if(empty($sameTypeMeasures[$mId])){
-    						unset($products[$id]);
-    					}
-    				}
-    				
-    			}
-    		}
-    	}
+    	// Кои са възможните подобни артикули за избор
+    	$products = $mvc->getAvailableSimilarProducts($measureId);
     	
     	// Добавяме възможностите за избор на заместващи артикули за влагане
-    	if(count($consumedProducts)){
+    	if(count($products)){
     		$products = array('' => '') + $products;
     		$form->setOptions('likeProductId', $products);
     	} else {
@@ -176,6 +132,67 @@ class planning_ObjectResources extends core_Manager
     	
     	$title = ($rec->id) ? 'Редактиране на информацията за влагане на' : 'Добавяне на информация за влагане на';
     	$form->title = $title . "|* <b>". cat_Products::getTitleByid($rec->objectId) . "</b>";
+    }
+    
+    
+    /**
+     * Опции за избиране на всички артикули, като които може да се използва артикула за влагане
+     * 
+     * @param int $measureId - ид на мярка
+     * @return array $products - опции за избор на артикули
+     */
+    private function getAvailableSimilarProducts($measureId)
+    {
+    	$sameTypeMeasures = cat_UoM::getSameTypeMeasures($measureId);
+    	
+    	// Намираме всички артикули, които са били влагане в производството от документи
+    	$consumedProducts = array();
+    	$cQuery = planning_ConsumptionNoteDetails::getQuery();
+    	$cQuery->EXT('state', 'planning_ConsumptionNotes', 'externalKey=noteId');
+    	$cQuery->where("#state = 'active'");
+    	$cQuery->show('productId');
+    	while ($cRec = $cQuery->fetch()){
+    		$consumedProducts[$cRec->productId] = $cRec->productId;
+    	}
+    	 
+    	$dQuery = planning_DirectProductNoteDetails::getQuery();
+    	$dQuery->EXT('state', 'planning_DirectProductionNote', 'externalKey=noteId');
+    	$dQuery->where("#state = 'active'");
+    	$dQuery->where("#type = 'input'");
+    	while ($dRec = $dQuery->fetch()){
+    		$consumedProducts[$dRec->productId] = $dRec->productId;
+    	}
+    	 
+    	// Не може да се избере текущия артикул
+    	unset($consumedProducts[$rec->objectId]);
+    	 
+    	// Намираме всички вложими артикули
+    	$products = cat_Products::getByproperty('canConvert');
+    	
+    	if(count($products)){
+    		foreach ($products as $id => $p){
+    			 
+    			if(!is_object($p)){
+    	
+    				// Ако артикула е вложим, но не е участвал в документ - махаме го
+    				if(empty($consumedProducts[$id])){
+    					unset($products[$id]);
+    				} else {
+    						
+    					// Ако мярката на артикула е от друг тип - също го мяхаме
+    					// Артикул може да бъде заместван само с артикул с подобна мярка
+    					$mId = cat_Products::getProductInfo($id)->productRec->measureId;
+    					if(empty($sameTypeMeasures[$mId])){
+    						unset($products[$id]);
+    					}
+    				}
+    			} else {
+    				unset($products[$id]);
+    			}
+    		}
+    	}
+    	
+    	return $products;
     }
     
     
@@ -195,7 +212,7 @@ class planning_ObjectResources extends core_Manager
     
     
     /**
-     * Подготвя показването на ресурси
+     * Подготвя показването на информацията за влагане
      */
     public function prepareResources(&$data)
     {
@@ -314,14 +331,6 @@ class planning_ObjectResources extends core_Manager
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-    	$Source = cls::get($rec->classId);
-    	$row->objectId = $Source->getHyperlink($rec->objectId, TRUE);
-    	if($Source->fetchField($rec->objectId, 'state') == 'rejected'){
-    		$row->objectId = "<span class='state-rejected-link'>{$row->objectId}</span>";
-    	}
-    	
-    	$row->objectId = "<span style='float:left'>{$row->objectId}</span>";
-    	
     	if(isset($rec->selfValue)){
     		$baseCurrencyCode = acc_Periods::getBaseCurrencyCode();
     		$row->selfValue = "{$row->selfValue} <span class='cCode'>{$baseCurrencyCode}</span>";
