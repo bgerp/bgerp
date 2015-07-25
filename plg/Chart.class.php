@@ -163,7 +163,7 @@ class plg_Chart extends core_Plugin
                 if($colRec->type == 'number') {
                     $value = (float) $rec->{$field};
                 } else {
-                    $value = "'" . $data->rows[$id]->{$field} . "'";
+                    $value = "'" . strip_tags($data->rows[$id]->{$field}) . "'";
                 }
                 
                 if($col == 0) {
