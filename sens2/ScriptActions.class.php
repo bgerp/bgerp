@@ -66,9 +66,14 @@ class  sens2_ScriptActions extends core_Detail
     var $masterKey = 'scriptId';
     
 
-    var $currentTab = 'Логика';
+    /**
+     * Текущ таб
+     */
+    var $currentTab = 'Скриптове';
+
 
     var $listFields = 'order,action';
+
 
     var $rowToolsField = 'order';
 
@@ -76,10 +81,10 @@ class  sens2_ScriptActions extends core_Detail
      * Описание на модела
      */
     function description()
-    {
+    {   
+        $this->FLD('order', 'int', 'caption=Ред №');
         $this->FLD('scriptId', 'key(mvc=sens2_Scripts,title=name)', 'caption=Блок,column=none,silent,oldFieldName=logicId');
         $this->FLD('action', 'class(interface=sens2_ScriptActionIntf, select=title, allowEmpty)', 'caption=Действие,mandatory,silent,refreshForm');
-        $this->FLD('order', 'int', 'caption=Ред №');
         $this->FLD('state', 'enum(active,closed,stopped)', 'caption=Състояние');
 
         $this->FLD('data', 'blob(serialize)', 'caption=Данни,input=none');

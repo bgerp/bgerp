@@ -87,14 +87,16 @@ class sens2_Scripts extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id,name,lastRun';
+    var $listFields = 'order,name,lastRun';
 
+    var $rowToolsField = 'order';
 
     /**
      * Описание на модела
      */
     function description()
     {
+        $this->FLD('order', 'int', 'caption=№');
         $this->FLD('name', 'varchar(255)', 'caption=Наименование, mandatory,notConfig');
         $this->FLD('lastRun', 'datetime(format=smartTime)', 'caption=Последно,input=none');
         $this->FLD('state', 'enum(active=Активно,closed=Затворено)', 'caption=Състояние, mandatory,notConfig');
@@ -111,6 +113,21 @@ class sens2_Scripts extends core_Master
      */
     static function on_AfterPrepareEditform($mvc, &$data)
     {
+    }
+
+
+    /**
+     * Изпълнява се след въвеждането на данните от заявката във формата
+     */
+    function on_AfterInputEditForm($mvc, $form)
+    {
+        if(!$form->rec->order) {
+            $query = $mvc->getQuery();
+            $query->orderBy('#order', 'DESC');
+            $query->limit(1);
+            $maxOrder = (int) $query->fetch()->order;
+            $form->setDefault('order', round(($maxOrder+1)/10)*10 + 10);
+        }
     }
 
 
@@ -166,11 +183,10 @@ class sens2_Scripts extends core_Master
     /**
      * Стартира всички скриптове
      */
-    function act_Run()
+    function cron_RunAll()
     {   
-        requireRole('admin,sens2');
-
         $query = self::getQuery();
+        $query->orderBy("#order");
         while($rec = $query->fetch("#state = 'active'")) {
             sens2_ScriptActions::runScript($rec->id);
             $rec->lastRun = dt::verbal2mysql();
@@ -179,15 +195,6 @@ class sens2_Scripts extends core_Master
     }
     
     
-
-    /**
-     * Изпълнява се след въвеждането на данните от заявката във формата
-     */
-    function on_AfterInputEditForm($mvc, $form)
-    {
-    }
-    
-
     /**
      * Изчислкяване на числов израз. Могат да участват индикаторите и променливите от даден скрипт
      */
