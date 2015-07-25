@@ -110,8 +110,8 @@ class doc_TplManager extends core_Master
         $this->FLD('name', 'varchar', 'caption=Име, mandatory, width=100%');
         $this->FLD('docClassId', 'class(interface=doc_DocumentIntf,select=title,allowEmpty)', "caption=Документ, width=100%,mandatory,silent");
         $this->FLD('lang', 'varchar(2)', 'caption=Език,notNull,defValue=bg,value=bg,mandatory,width=2em');
-        $this->FLD('content', 'text', "caption=Текст,column=none, width=100%,mandatory");
-        $this->FLD('narrowContent', 'text', "caption=Текст за мобилен,column=none, width=100%");
+        $this->FLD('content', 'text', "caption=Текст->Широк,column=none, width=100%,mandatory");
+        $this->FLD('narrowContent', 'text', "caption=Текст->Мобилен,column=none, width=100%");
         $this->FLD('path', 'varchar', "caption=Файл,column=none, width=100%");
         $this->FLD('originId', 'key(mvc=doc_TplManager)', "input=hidden,silent");
         $this->FLD('hash', 'varchar', "input=none");

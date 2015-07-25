@@ -98,8 +98,8 @@ class log_Data extends core_Manager
          $this->FLD('userId', 'key(mvc=core_Users)', 'caption=Идентификация->Потребител, notNull');
          $this->FLD('time', 'int', 'caption=Време на записа');
          $this->FLD('type', 'enum(emerg=Спешно,alert=Тревога,crit=Критично,err=Грешка,warning=Предупреждение,notice=Известие,info=Инфо,debug=Дебъг)', 'caption=Данни->Тип на събитието');
-         $this->FLD('actionCrc', 'int', 'caption=Данни->Действие');
-         $this->FLD('classCrc', 'int', 'caption=Данни->Клас');
+         $this->FLD('actionCrc', 'bigint', 'caption=Данни->Действие');
+         $this->FLD('classCrc', 'bigint', 'caption=Данни->Клас');
          $this->FLD('objectId', 'int', 'caption=Данни->Обект');
          $this->FLD('lifeTime', 'int', 'caption=Време живот, notNull');
          

@@ -145,7 +145,7 @@ class price_ListDocs extends core_Master
     	$this->FLD('vat', 'enum(yes=с ДДС,no=без ДДС)','caption=ДДС');
     	$this->FLD('title', 'varchar(155)', 'caption=Заглавие');
     	$this->FLD('productGroups', 'keylist(mvc=cat_Groups,select=name,makeLinks)', 'caption=Продукти->Групи,columns=2');
-    	$this->FLD('packagings', 'keylist(mvc=cat_Packagings,select=name)', 'caption=Продукти->Опаковки,columns=3');
+    	$this->FLD('packagings', 'keylist(mvc=cat_UoM,select=name)', 'caption=Продукти->Опаковки,columns=3');
     	$this->FLD('products', 'blob(serialize,compress)', 'caption=Данни,input=none');
     	$this->FLD('showUoms', 'enum(yes=Ценоразпис (пълен),no=Ценоразпис без основна мярка)', 'caption=Шаблон,notNull,default=yes');
     }
@@ -172,6 +172,9 @@ class price_ListDocs extends core_Master
     	$form->setDefault('date', dt::now());
     	$form->setOptions('policyId', $mvc->getDefaultPolicies($form->rec));
     	$folderClassId = doc_Folders::fetchCoverClassId($form->rec->folderId);
+    	
+    	$suggestions = cat_UoM::getPackagingOptions();
+    	$form->setSuggestions('packagings', $suggestions);
     	
     	// Намираме политиката на зададената папка, ако няма
     	// по подразбиране е "каталог"
@@ -389,7 +392,8 @@ class price_ListDocs extends core_Master
     	
     	// Ако няма избрани опаковки, значи сме избрали всички
     	if(!count($packArr)){
-    		$packArr = cat_Packagings::makeArray4Select('id');;
+    		$packs = cat_UoM::getPackagingOptions();
+    		$packArr = array_combine(array_keys($packs), array_keys($packs));
     	}
     	
     	foreach($rec->details->products as &$product){
@@ -515,7 +519,7 @@ class price_ListDocs extends core_Master
         
     	$measureShort = cat_UoM::getShortName($rec->measureId);
 		if($rec->pack){
-    		$row->pack = cat_Packagings::getTitleById($rec->pack);
+    		$row->pack = cat_UoM::getShortName($rec->pack);
     		$row->pack .= "&nbsp;({$double->toVerbal($rec->perPack)}&nbsp;{$measureShort})";
 		}
     	

@@ -146,8 +146,13 @@ class store_ConsignmentProtocols extends core_Master
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
     public $rowToolsSingleField = 'title';
-    
-    
+
+
+    /**
+     * На кой ред в тулбара да се показва бутона за принтиране
+     */
+    public $printBtnToolbarRow = 1;
+
     /**
      * Описание на модела (таблицата)
      */

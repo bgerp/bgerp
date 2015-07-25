@@ -154,7 +154,7 @@ class docoffice_Office
         $baseName = basename(OFFICE_PACKET_PATH);
         $baseName = escapeshellarg($baseName);
         // Намираме process id' то на офис пакета
-        $sh = "ps ux | grep {$baseName} | grep -v grep | awk '{ print $2 }' | head -1";
+        $sh = "ps -aux | grep {$baseName} | grep -v grep | awk '{ print $2 }' | head -1";
         $pid = exec($sh);
         
         // Отключваме процеса

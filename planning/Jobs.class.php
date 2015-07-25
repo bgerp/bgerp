@@ -695,7 +695,11 @@ class planning_Jobs extends core_Master
     public function renderJobs($data)
     {
     	 $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
-    	 $tpl->append(tr('Задания'), 'title');
+    	 $title = tr('Задания за производство');
+    	 if($this->haveRightFor('list')){
+    	 	$title = ht::createLink($title, array($this, 'list'), FALSE, 'title=Към всички задания');
+    	 }
+    	 $tpl->append($title, 'title');
     	 
     	 if(isset($data->addUrl)){
     	 	$addBtn = ht::createLink('', $data->addUrl, FALSE, 'ef_icon=img/16/add.png,title=Добавяне на ново задание за производство');
@@ -774,5 +778,12 @@ class planning_Jobs extends core_Master
     	// Обновяваме произведеното к-то по заданието
     	$rec->quantityProduced = $producedQuantity;
     	self::save($rec, 'quantityProduced');
+    }
+    
+    
+    function act_Test()
+    {
+    	$l = cls::get('cat_Setup');
+    	$l->replacePackagings();
     }
 }

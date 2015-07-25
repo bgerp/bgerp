@@ -377,6 +377,9 @@ class sens2_Controllers extends core_Master
         $query = self::getQuery();
         $query->where("#state = 'active'"); 
         $cnt = $query->count();
+        
+        if (!$cnt) return ;
+        
         $sleepNanoSec = round(min(0.5, 25/$cnt) * 1000000000);
  
 

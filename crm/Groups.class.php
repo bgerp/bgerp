@@ -782,6 +782,21 @@ class crm_Groups extends core_Master
     
     
     /**
+     * Връща езика за източника на персонализация
+     * @see bgerp_PersonalizationSourceIntf
+     *
+     * @param integer $id
+     *
+     * @return string
+     */
+    public function getPersonalizationLg($id)
+    {
+        
+        return ;
+    }
+    
+    
+    /**
      * След подготовка на тулбара на единичен изглед.
      * 
      * @param core_Mvc $mvc

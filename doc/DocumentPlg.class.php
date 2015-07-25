@@ -568,7 +568,7 @@ class doc_DocumentPlg extends core_Plugin
                     
                     // Ако в момента не се скрива или показва - показва документа
                     if (!Request::get('showOrHide') && !Request::get('afterReject')) {
-                        doc_Containers::showOrHideDocument($rec->containerId, FALSE);
+                        doc_HiddenContainers::showOrHideDocument($rec->containerId, FALSE);
                     }
                     
                     $handle = $mvc->getHandle($rec->id);
@@ -662,7 +662,7 @@ class doc_DocumentPlg extends core_Plugin
             
             $res['afterReject'] = 1;
             
-            doc_Containers::showOrHideDocument($rec->containerId, TRUE);
+            doc_HiddenContainers::showOrHideDocument($rec->containerId, TRUE);
             
             $res = new Redirect($res); //'OK';
                 

@@ -320,7 +320,7 @@ class colab_FolderToPartners extends core_Manager
     	$form->title = "Изпращане на имейл за регистрация на партньори в|* <b>{$companyName}</b>";
     	
     	$form->FLD('to', 'emails', 'caption=До имейл, width=100%, silent,mandatory');
-    	$form->FLD('from', 'key(mvc=email_Inboxes,select=email,allowEmpty)', 'caption=От имейл, width=100%, silent,mandatory, optionsFunc=email_Inboxes::getAllowedFromEmailOptions');
+    	$form->FLD('from', 'key(mvc=email_Inboxes,select=email,allowEmpty)', 'caption=От имейл, width=100%, silent,mandatory, optionsFunc=email_Inboxes::getUomOptions');
     	$form->FLD('subject', 'varchar', 'caption=Относно,mandatory,width=100%');
     	$form->FLD('body', 'richtext(rows=15,bucket=Postings)', 'caption=Съобщение,mandatory');
     	$form->setSuggestions('to', $companyRec->email);

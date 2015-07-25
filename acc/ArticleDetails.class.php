@@ -118,17 +118,17 @@ class acc_ArticleDetails extends doc_Detail
         
         $this->FLD('debitAccId', 'acc_type_Account(remember)',
             'silent,caption=Дебит->Сметка и пера,mandatory,input', 'tdClass=articleCell');
-        $this->FLD('debitEnt1', 'acc_type_Item(select=titleNum,allowEmpty)', 'caption=Дебит->перо 1,remember');
-        $this->FLD('debitEnt2', 'acc_type_Item(select=titleNum,allowEmpty)', 'caption=Дебит->перо 2,remember');
-        $this->FLD('debitEnt3', 'acc_type_Item(select=titleNum,allowEmpty)', 'caption=Дебит->перо 3,remember');
+        $this->FLD('debitEnt1', 'acc_type_Item(select=titleNum,allowEmpty)', 'caption=Дебит->перо 1,remember,refreshForm,silent');
+        $this->FLD('debitEnt2', 'acc_type_Item(select=titleNum,allowEmpty)', 'caption=Дебит->перо 2,remember,refreshForm,silent');
+        $this->FLD('debitEnt3', 'acc_type_Item(select=titleNum,allowEmpty)', 'caption=Дебит->перо 3,remember,refreshForm,silent');
         $this->FLD('debitQuantity', 'double', 'caption=Дебит->Количество');
         $this->FLD('debitPrice', 'double(minDecimals=2)', 'caption=Дебит->Цена');
         
         $this->FLD('creditAccId', 'acc_type_Account(remember)',
             'silent,caption=Кредит->Сметка и пера,mandatory,input', 'tdClass=articleCell');
-        $this->FLD('creditEnt1', 'acc_type_Item(select=titleNum,allowEmpty)', 'caption=Кредит->перо 1,remember');
-        $this->FLD('creditEnt2', 'acc_type_Item(select=titleNum,allowEmpty)', 'caption=Кредит->перо 2,remember');
-        $this->FLD('creditEnt3', 'acc_type_Item(select=titleNum,allowEmpty)', 'caption=Кредит->перо 3,remember');
+        $this->FLD('creditEnt1', 'acc_type_Item(select=titleNum,allowEmpty)', 'caption=Кредит->перо 1,remember,refreshForm,silent');
+        $this->FLD('creditEnt2', 'acc_type_Item(select=titleNum,allowEmpty)', 'caption=Кредит->перо 2,remember,refreshForm,silent');
+        $this->FLD('creditEnt3', 'acc_type_Item(select=titleNum,allowEmpty)', 'caption=Кредит->перо 3,remember,refreshForm,silent');
         $this->FLD('creditQuantity', 'double', 'caption=Кредит->Количество');
         $this->FLD('creditPrice', 'double(minDecimals=2)', 'caption=Кредит->Цена');
         
@@ -275,6 +275,7 @@ class acc_ArticleDetails extends doc_Detail
             $form->setField("{$type}Ent2", 'input=none');
             $form->setField("{$type}Ent3", 'input=none');
             
+            
             foreach ($acc->groups as $i => $list) {
                 if (!$list->rec->itemsCnt) {
                     redirect(array('acc_Items', 'list', 'listId'=>$list->rec->id), FALSE, tr("Липсва избор за |* \"" . acc_Lists::getVerbal($list->rec, 'name') . "\""));
@@ -306,6 +307,24 @@ class acc_ArticleDetails extends doc_Detail
                 			if($itemId = acc_Items::fetchItem($docClassId, $firstDoc->that)->id){
                 				$form->setDefault("{$type}Ent{$i}", $itemId);
                 			}
+                		}
+                	}
+                }
+                
+                // Ако номенклатурата е размерна и ще може да се въвеждат цени
+                if($list->rec->isDimensional == 'yes' && !$quantityOnly){
+                	
+                	// И перото е попълнено и е от номенклатура валута
+                	if(isset($rec->{"{$type}Ent{$i}"})){
+                		$itemRec = acc_Items::fetch($rec->{"{$type}Ent{$i}"});
+                		
+                		// Ако перото е на валута
+                		if($itemRec->classId == currency_Currencies::getClassId()){
+                			
+                			// Задаваме курса към основната валута за дефолт цена
+                			$rate = currency_CurrencyRates::getRate($masterRec->valior, currency_Currencies::getCodeById($itemRec->objectId), NULL);
+                			$form->setDefault("{$type}Price", $rate);
+                			$form->setField("{$type}Ent{$i}", "removeAndRefreshForm={$type}Price");
                 		}
                 	}
                 }
@@ -350,7 +369,7 @@ class acc_ArticleDetails extends doc_Detail
         }
         
         $rec = $form->rec;
-       
+        
         $accs = array(
             'debit' => acc_Accounts::getAccountInfo($rec->debitAccId),
             'credit' => acc_Accounts::getAccountInfo($rec->creditAccId),

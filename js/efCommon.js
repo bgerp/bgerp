@@ -917,9 +917,14 @@ function prepareContextMenu() {
     jQuery.each($('.more-btn'), function(i, val) {
         var el = $(this).parent().find('.modal-toolbar');
         var position = el.attr('data-position');
+        var sizeStyle = el.attr('data-sizeStyle');
 
         if (!position || !( position == 'left' || position== 'top' || position == 'bottom')) {
             position = 'auto'
+        }
+
+        if (!sizeStyle || sizeStyle != 'context') {
+            sizeStyle = 'auto'
         }
 
         var act = 'popup';
@@ -930,7 +935,8 @@ function prepareContextMenu() {
 
         $(this).contextMenu(act, el, {
             'displayAround': 'trigger',
-            'position': position
+            'position': position,
+            'sizeStyle': sizeStyle
         });
     });
 }
@@ -983,14 +989,21 @@ function toggleRichtextGroups(id, event) {
 // id на текущия език
 var currentLangId = 0;
 function prepareLangBtn(obj) {
-
+	
 	var arrayLang= obj.data;
 	var hint = obj.hint;
 	var initialLang = obj.lg;
-
+	var id = obj.id;
+	
+	elemSelector = '.richEdit > textarea';
+	
+	if (typeof id != 'undefined') {
+		elemSelector = '#' + id;
+	}
+	
 	// добавяме бутона за смяна на език
 	var elem = "<a class='rtbutton lang " + initialLang + "' title='" + hint +"'>" + initialLang + "</a>" ;
-	$('.richEdit').append(elem);
+	$(elemSelector).parent().append(elem);
 
 	// на всеки клик подготряме данните за смяна на езика
 	$(document.body).on('click', ".rtbutton.lang", function(e){
@@ -1002,11 +1015,11 @@ function prepareLangBtn(obj) {
 		$('.rtbutton.lang').removeClass(lang).addClass(nextLang);
 		currentLangId = nextLangId;
 		// подаваме необходите данни за нов3ия език
-		changeLang(arrayLang[nextLangId]);
+		changeLang(arrayLang[nextLangId], elemSelector);
 	});
 
 	// при промяна на текста да скрием бутона
-	$('textarea').bind('input propertychange', function() {
+	$(elemSelector).bind('input propertychange', function() {
 		 $('.rtbutton.lang').fadeOut(600);
 		 setTimeout(function() {
 			 $('.rtbutton.lang').remove();
@@ -1015,20 +1028,21 @@ function prepareLangBtn(obj) {
 	});
 }
 
+
 /**
  * Действия при смяна на езика
  */
-function changeLang(data){
+function changeLang(data, elemSelector){
 
 	var lang = data.lg;
-	$('.richEdit textarea').val(data.data);
+	$(elemSelector).val(data.data);
 	$('.rtbutton.lang').text(lang);
 
 	// spellcheck
 	$('input[name=subject]').attr('spellcheck','true');
-	$('.richEdit textarea').attr('spellcheck','true');
+	$(elemSelector).attr('spellcheck','true');
 	$('input[name=subject]').attr('lang',lang);
-	$('.richEdit textarea').attr('lang',lang);
+	$(elemSelector).attr('lang',lang);
 
 	appendQuote(quoteId, quoteLine);
 }
@@ -1451,6 +1465,40 @@ function checkForElementWidthChange() {
         setFormElementsWidth();
         setThreadElemWidth();
     });
+}
+
+
+function getAllLiveElements() {
+    $('[data-live]').each(function() {
+        var text = $(this).attr('data-live');
+        var data = text.split("|");
+        var fn = window[data[0]];
+
+        data[0] = $(this).attr('id');
+        if (typeof fn === "function") fn(data);
+    });
+}
+
+// функция, която взема елементите в контекстното меню от ajax
+function dropMenu(data) {
+    var ajaxFlag = 0;
+    var id = data[0];
+    var height = data[1];
+    var url = data[2];
+
+    var numId = id.match(/\d+/)[0];
+    $('#' + id).parent().css('position', 'relative');
+    $('#' + id).parent().append("<div class='modal-toolbar' data-sizestyle='context' id='contextHolder" + numId + "' data-height='" + height + "'>");
+
+    $("#" + id).hover(function() {
+        if(ajaxFlag == 1) return;
+        var resObj = new Object();
+        resObj['url'] = url;
+        getEfae().process(resObj);
+        ajaxFlag = 1;
+    });
+
+    prepareContextMenu();
 }
 
 

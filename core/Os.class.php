@@ -301,7 +301,7 @@ class core_Os
                 }
             }
         } else {
-            exec('ps aux | grep apache', $output);
+            exec('ps aux | grep apache | grep -v grep', $output);
             $processes = count($output);
         }
 

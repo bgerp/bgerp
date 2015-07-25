@@ -21,85 +21,85 @@ class store_Stores extends core_Master
     /**
      * Поддържани интерфейси
      */
-    var $interfaces = 'store_AccRegIntf, acc_RegisterIntf, store_iface_TransferFolderCoverIntf';
+    public $interfaces = 'store_AccRegIntf, acc_RegisterIntf, store_iface_TransferFolderCoverIntf';
     
     
     /**
      * Заглавие
      */
-    var $title = 'Складове';
+    public $title = 'Складове';
     
     
     /**
      * Наименование на единичния обект
      */
-    var $singleTitle = "Склад";
+    public $singleTitle = "Склад";
     
     
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, plg_Created, acc_plg_Registry, store_Wrapper, plg_Current, plg_Rejected, doc_FolderPlg, plg_State';
+    public $loadList = 'plg_RowTools, plg_Created, acc_plg_Registry, store_Wrapper, plg_Current, plg_Rejected, doc_FolderPlg, plg_State';
     
     
     /**
      * Кой може да пише
      */
-    var $canCreatenewfolder = 'ceo, storeWorker';
+    public $canCreatenewfolder = 'ceo, storeWorker';
     
     
     /**
      * Кой има право да чете?
      */
-    var $canRead = 'ceo,storeWorker';
+    public $canRead = 'ceo,storeWorker';
     
     
     /**
      * Кои мастър роли имат достъп до корицата, дори да нямат достъп до папката
      */
-    var $coverMasterRoles = 'ceo, storeMaster';
+    public $coverMasterRoles = 'ceo, storeMaster';
     
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'ceo,storeMaster';
+    public $canEdit = 'ceo,storeMaster';
     
     
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'ceo,storeMaster';
+    public $canAdd = 'ceo,storeMaster';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'ceo,storeWorker';
+	public $canList = 'ceo,storeWorker';
 
 	
 	/**
 	 * Кой може да пише
 	 */
-	var $canReject = 'ceo, storeMaster';
+	public $canReject = 'ceo, storeMaster';
 	
 	
 	/**
 	 * Кой може да пише
 	 */
-	var $canRestore = 'ceo, storeMaster';
+	public $canRestore = 'ceo, storeMaster';
 	
 	
 	/**
      * Детайла, на модела
      */
-    var $details = 'AccReports=acc_ReportDetails';
+    public $details = 'AccReports=acc_ReportDetails';
     
     
     /**
      * Клас за елемента на обграждащия <div>
      */
-    var $cssClass = 'folder-cover';
+    public $cssClass = 'folder-cover';
     
     
     /**
@@ -135,67 +135,67 @@ class store_Stores extends core_Master
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	var $canSingle = 'ceo,storeWorker';
+	public $canSingle = 'ceo,storeWorker';
     
     
     /**
      * Кой може да го изтрие?
      */
-    var $canDelete = 'ceo,storeMaster';
+    public $canDelete = 'ceo,storeMaster';
     
     
     /**
      * Кой може да пише
      */
-    var $canWrite = 'ceo,store';
+    public $canWrite = 'ceo,store';
     
     
     /**
 	 * Кой може да селектира всички записи
 	 */
-	var $canSelectAll = 'ceo,storeMaster';
+	public $canSelectAll = 'ceo,storeMaster';
 	
 	
    /**
 	* Кой може да селектира?
 	*/
-	var $canSelect = 'ceo,storeWorker';
+	public $canSelect = 'ceo,storeWorker';
     
     
     /**
 	 * Кое поле отговаря на кой работи с даден склад
 	 */
-	var $inChargeField = 'chiefs';
+	public $inChargeField = 'chiefs';
 	
 	
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, name, chiefs';
+    public $listFields = 'id, name, chiefs';
     
     
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
-    var $rowToolsSingleField = 'name';
+    public $rowToolsSingleField = 'name';
     
     
     /**
      * В коя номенкалтура, автоматично да влизат записите
      */
-    var $autoList = 'stores';
+    public $autoList = 'stores';
     
     
     /**
      * Икона за единичен изглед
      */
-    var $singleIcon = 'img/16/home-icon.png';
+    public $singleIcon = 'img/16/home-icon.png';
     
     
     /**
      * Файл с шаблон за единичен изглед
      */
-    var $singleLayoutFile = 'store/tpl/SingleLayoutStore.shtml';
+    public $singleLayoutFile = 'store/tpl/SingleLayoutStore.shtml';
     
     
     /**
@@ -313,16 +313,15 @@ class store_Stores extends core_Master
     	foreach ($recs as &$dRec){
     		$productPlace = acc_Lists::getPosition($dRec->accountNum, 'cat_ProductAccRegIntf');
     		$itemRec = acc_Items::fetch($dRec->{"ent{$productPlace}Id"});
-    		if(empty($data->cache[$itemRec->classId])){
-    			$data->cache[$itemRec->classId] = cls::get($itemRec->classId);
+    		$ProductMan = cls::get($itemRec->classId);
+    		
+    		$packs = $ProductMan->getPacks($itemRec->objectId);
+    		$basePackId = key($packs);
+    		$data->uomNames[$dRec->id] = cat_UoM::getTitleById($basePackId);
+    		
+    		if($pRec = cat_products_Packagings::getPack($itemRec->objectId, $basePackId)){
+    			$dRec->blQuantity /= $pRec->quantity;
     		}
-    		
-    		$ProductMan = $data->cache[$itemRec->classId];
-    		
-    		$packInfo = $ProductMan->getBasePackInfo($itemRec->objectId);
-    		$data->uomNames[$dRec->id] = $packInfo->name;
-    		
-    		$dRec->blQuantity /= $packInfo->quantity;
     	}
     }
     

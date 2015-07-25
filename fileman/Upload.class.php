@@ -69,57 +69,60 @@ class fileman_Upload extends core_Manager {
                 // Масив с грешките
                 $err = array();
                 
-                // Ако файла е качен успешно
-                if($_FILES[$inputName]['name'] && $_FILES[$inputName]['tmp_name']) {
+                foreach ((array)$inputArr['name'] as $id => $inpName) {
                     
-                    // Ако има кофа
-                    if($bucketId) {
+                    // Ако файла е качен успешно
+                    if($_FILES[$inputName]['name'][$id] && $_FILES[$inputName]['tmp_name'][$id]) {
                         
-                        // Вземаме инфото на обекта, който ще получи файла
-                        $Buckets = cls::get('fileman_Buckets');
-                        
-                        // Ако файла е валиден по размер и разширение - добавяме го към собственика му
-                        if($Buckets->isValid($err, $bucketId, $_FILES[$inputName]['name'], $_FILES[$inputName]['tmp_name'])) {
+                        // Ако има кофа
+                        if($bucketId) {
                             
-                            // Създаваме файла
-                            $fh = $this->Files->createDraftFile($_FILES[$inputName]['name'], $bucketId);
+                            // Вземаме инфото на обекта, който ще получи файла
+                            $Buckets = cls::get('fileman_Buckets');
                             
-                            // Записваме му съдържанието
-                            $this->Files->setContent($fh, $_FILES[$inputName]['tmp_name']);
-                            
-                            $add->append($Buckets->getInfoAfterAddingFile($fh), 'ADD');
-                            
-                            if($callback && !$_FILES[$inputName]['error']) {
-                                $name = $this->Files->fetchByFh($fh, 'name');
-                                $add->append("<script>  if(window.opener.{$callback}('{$fh}','{$name}') != true) self.close(); else self.focus();</script>", 'ADD');
+                            // Ако файла е валиден по размер и разширение - добавяме го към собственика му
+                            if($Buckets->isValid($err, $bucketId, $_FILES[$inputName]['name'][$id], $_FILES[$inputName]['tmp_name'][$id])) {
+                                
+                                // Създаваме файла
+                                $fh = $this->Files->createDraftFile($_FILES[$inputName]['name'][$id], $bucketId);
+                                
+                                // Записваме му съдържанието
+                                $this->Files->setContent($fh, $_FILES[$inputName]['tmp_name'][$id]);
+                                
+                                $add->append($Buckets->getInfoAfterAddingFile($fh), 'ADD');
+                                
+                                if($callback && !$_FILES[$inputName]['error'][$id]) {
+                                    $name = $this->Files->fetchByFh($fh, 'name');
+                                    $add->append("<script>  if(window.opener.{$callback}('{$fh}','{$name}') != true) self.close(); else self.focus();</script>", 'ADD');
+                                }
                             }
+                        } else {
+                            $err[] = 'Не е избрана кофа';
                         }
-                    } else {
-                        $err[] = 'Не е избрана кофа';
                     }
-                }
-                
-                // Ако има грешка в $_FILES за съответния файл
-                if($_FILES[$inputName]['error']) {
-                    // Ако са възникнали грешки при качването - записваме ги в променливата $err
-                    switch($_FILES[$inputName]['error']) {
-                        case 1 : $err[] = 'The uploaded file exceeds the upload_max_filesize directive in php.ini'; break;
-                        case 2 : $err[] = 'The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form'; break;
-                        case 3 : $err[] = 'The uploaded file was only partially uploaded.'; break;
-                        case 4 : $err[] = 'No file was uploaded.'; break;
-                        case 6 : $err[] = 'Missing a temporary folder.'; break;
-                        case 7 : $err[] = 'Failed to write file to disk.'; break;
-                    }
-                }
-                
-                // Ако има грешки, показваме ги в прозореца за качване
-                if(count($err)) {
-                    $error = new ET("<div class='upload-еrror'><ul>{$_FILES[$inputName]['name']}[#ERR#]</ul></div>");
                     
-                    foreach($err as $e) {
-                        $error->append("<li>" . tr($e) . "</li>", 'ERR');
+                    // Ако има грешка в $_FILES за съответния файл
+                    if($_FILES[$inputName]['error'][$id]) {
+                        // Ако са възникнали грешки при качването - записваме ги в променливата $err
+                        switch($_FILES[$inputName]['error'][$id]) {
+                            case 1 : $err[] = 'The uploaded file exceeds the upload_max_filesize directive in php.ini'; break;
+                            case 2 : $err[] = 'The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form'; break;
+                            case 3 : $err[] = 'The uploaded file was only partially uploaded.'; break;
+                            case 4 : $err[] = 'No file was uploaded.'; break;
+                            case 6 : $err[] = 'Missing a temporary folder.'; break;
+                            case 7 : $err[] = 'Failed to write file to disk.'; break;
+                        }
                     }
-                    $add->append($error, 'ERR');
+                    
+                    // Ако има грешки, показваме ги в прозореца за качване
+                    if(count($err)) {
+                        $error = new ET("<div class='upload-еrror'><ul>{$_FILES[$inputName]['name'][$id]}[#ERR#]</ul></div>");
+                        
+                        foreach($err as $e) {
+                            $error->append("<li>" . tr($e) . "</li>", 'ERR');
+                        }
+                        $add->append($error, 'ERR');
+                    }
                 }
             }
         }
@@ -205,7 +208,7 @@ class fileman_Upload extends core_Manager {
                 <input id="progress_key" name="UPLOAD_IDENTIFIER" type="hidden" value="[#ufid#]" />
                 <div id="inputDiv">
                 
-                    <input id="ulfile" class="ulfile" name="ulfile" type="file" size="1" onchange="afterSelectFile(this, ' . (int)$allowMultiUpload . ', ' . (int)$maxAllowedFileSize . ');" [#ACCEPT#]>
+                    <input id="ulfile" class="ulfile" name="ulfile[]" [#MULTIPLE#] type="file" size="1" onchange="afterSelectFile(this, ' . (int)$allowMultiUpload . ', ' . (int)$maxAllowedFileSize . ');" [#ACCEPT#]>
                     <button id="btn-ulfile" class="linkWithIcon button btn-ulfile">' . tr('Файл') . '</button>
                     
                     <input type="submit" name="Upload" value="' . tr('Качване') . '" class="linkWithIcon button btn-disabled" id="uploadBtn" disabled="disabled"/>
@@ -220,6 +223,12 @@ class fileman_Upload extends core_Manager {
             </form>');
         
         $ufid = str::getRand();
+        
+        if ($allowMultiUpload) {
+            $tpl->replace('multiple', 'MULTIPLE');
+        } else {
+            $tpl->replace('', 'MULTIPLE');
+        }
         
         $tpl->replace($ufid, 'ufid');
         
@@ -300,8 +309,6 @@ class fileman_Upload extends core_Manager {
                    		$(inputId).remove();
                    		$(btnId).remove();
                    		
-                   		btnCntId--;
-                   		
                    		// Стартираме качаването
                    		beginUpload();
                    		
@@ -355,12 +362,31 @@ class fileman_Upload extends core_Manager {
             	// Пътя до файла
             	var filePath = $(inputInst).val();
             	
-            	// Ако няма път
-            	if (!filePath.length) {
-            		
-            		// Връщаме
-            		return;
+            	var filesArr = $(inputInst)[0]['files'];
+            	
+            	var filePathArr = [];
+            	
+            	if (filesArr) {
+            		$(filesArr).each(function(index, fileVal) {
+                   			
+               			filePath = fileVal['name'];
+               			
+               			if (!filePath.length) return true;
+               			
+               			filePathArr.push(filePath);
+    				});
+    			} else {
+    				// Ако няма път
+                	if (!filePath.length) {
+                		
+                		// Връщаме
+                		return;
+        			}
+        			
+    				filePathArr.push(filePath);
     			}
+            	
+    			if (!filePathArr.length) return ;
     			
     			// Ако браузъра поддъжа fileApi
     			if (typeof FileReader !== 'undefined') {
@@ -376,9 +402,6 @@ class fileman_Upload extends core_Manager {
     				}
                 }
     			
-            	// Името на файла
-            	var fileName = getFileName(filePath);
-            	
             	// id на инпута
             	var inputId = $(inputInst).attr('id');
             	
@@ -394,46 +417,63 @@ class fileman_Upload extends core_Manager {
                 // Линк за премахване на файла
                 var crossImg = '<img src=" .  sbf('img/16/cross.png') . " align=\"absmiddle\" alt=\"\">';
                 
-                // id на качения файл
-                var uploadedFileId = 'uploaded-file';
+                var show = true;
                 
-                // Ако брояча е по - голям от нула
-                if (btnCntId != 0) {
-                	
-                	// Добавяме номера след id' то
-                	uploadedFileId += btnCntId;
-    			}
-    			
-    			// Името на класа за качения файл
-				var uploadedFileClass = 'uploaded-file';
-    			
-				// Ако размера е над допусмите
-				if (fileError.fileSize) {
-					
-					// Добавяме класа за грешка
-    				uploadedFileClass += ' error-filesize';
+                $(filePathArr).each(function(index, filePath) {
+            		
+                	// id на качения файл
+                	var uploadedFileId = 'uploaded-file';
+                
+                    // Ако брояча е по - голям от нула
+                    if (btnCntId != 0) {
+                    	
+                    	// Добавяме номера след id' то
+                    	uploadedFileId += btnCntId;
+        			}
+        			
+        			// Името на класа за качения файл
+    				var uploadedFileClass = 'uploaded-file';
+        			
+    				// Ако размера е над допусмите
+    				if (fileError.fileSize) {
+    					
+    					// Добавяме класа за грешка
+        				uploadedFileClass += ' error-filesize';
+        				
+        				// Титлата на спана
+        				var uploadedFileTitle = 'title=\"File size exceeded the maximum size\"';
+        			}
     				
-    				// Титлата на спана
-    				var uploadedFileTitle = 'title=\"File size exceeded the maximum size\"';
-    			}
+    				// Името на файла
+            		var fileName = getFileName(filePath);
+            		
+            		var crossImgLink = ' <a style=\"color:red;\" href=\"#\" onclick=\"unsetFile(' + btnCntId + ', ' + multiUpload + ', ' + filePathArr.length + ')\">' + crossImg + '</a>';
+            		
+            		if (!show) {
+            			crossImgLink = '';
+            		}
+            		
+            		// В държача за качени файлове добавяме името на файла и линк за премахване
+                	$('.uploaded-filenames').append('<span ' + uploadedFileTitle + ' class=\"' + uploadedFileClass + '\" id=\"' + uploadedFileId + '\">' + fileName + crossImgLink +' </span>');
+                	
+                	if (multiUpload) {
+                		btnCntId++;
+    				}
+                	
+                	show = false;
+    			});
     			
-    			// В държача за качени файлове добавяме името на файла и линк за премахване
-                $('.uploaded-filenames').append('<span ' + uploadedFileTitle + ' class=\"' + uploadedFileClass + '\" id=\"' + uploadedFileId + '\">' + fileName + ' <a style=\"color:red;\" href=\"#\" onclick=\"unsetFile(' + btnCntId + ', ' + multiUpload + ')\">' + crossImg + '</a> </span>');
-                
                 // Ако е зададен качване на много файлове едновременно
                 if (multiUpload != 0) {
                 
                 	// Текста на бутона
                 	var btnText = $(btnId).text();
                     
-                	// Увеличаваме брояча
-                	btnCntId++;
-					
                 	// Стойносста на accept
                 	var accept = $(inputInst).attr(\"accept\");
                 	
                 	// Създаваме нов бутон
-                	var newBtnInput = '<input class=\"ulfile\" id=\"ulfile' + btnCntId + '\" name=\"ulfile' + btnCntId + '\" type=\"file\" size=\"1\"  onchange=\"afterSelectFile(this, ' + multiUpload + ', ' + maxFileSize + ');\"';
+                	var newBtnInput = '<input class=\"ulfile\" id=\"ulfile' + btnCntId + '\" name=\"ulfile[]\" multiple type=\"file\" size=\"1\"  onchange=\"afterSelectFile(this, ' + multiUpload + ', ' + maxFileSize + ');\"';
                 	
                 	// Ако има accept
                 	if (accept) {
@@ -464,12 +504,16 @@ class fileman_Upload extends core_Manager {
             }
             
             // Премахва посочения файл
-            function unsetFile(id, multiUpload)
+            function unsetFile(id, multiUpload, len)
             {
+            	var btnIdName = '#btn-ulfile';
+            	var inputIdName = '#ulfile';
+            	var uploadedFileIdName = '#uploaded-file';
+            	
             	// id на променливите
-            	var btnId = '#btn-ulfile';
-           		var inputId = '#ulfile';
-           		var uploadedFileId = '#uploaded-file';
+            	var btnId = btnIdName;
+           		var inputId = inputIdName;
+           		var uploadedFileId = uploadedFileIdName;
            		
            		// Ако има id, добавяме номера след имената на константите
            		if (id != 0) {
@@ -488,6 +532,18 @@ class fileman_Upload extends core_Manager {
     				
     				// Ако е зададено множество качаване
     				if (multiUpload) {
+    					
+    					if (len > 1) {
+    						for(var i=1; i<len; i++) {
+    							var ii = id + i;
+    							
+    							// Премахваме и другите файлове, които са качени заедно
+    							$(btnIdName + ii).remove();
+    							$(inputIdName + ii).remove();
+    							$(uploadedFileIdName + ii).remove();
+    						}
+    					}
+						
     					
     					// Премахваме всучко за този бутон и файл
     					$(inputId).remove();

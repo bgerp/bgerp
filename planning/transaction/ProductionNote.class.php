@@ -168,7 +168,7 @@ class planning_transaction_ProductionNote extends acc_DocumentTransactionSource
 				}
 			
 			if(!$entry){
-				$errorArr[] = cls::get($dRec->classId)->getVerbal($dRec->productId, 'name');
+				$errorArr[] = cls::get($dRec->classId)->getTitleById($dRec->productId);
 			}
 		}
 		

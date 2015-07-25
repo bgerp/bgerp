@@ -70,7 +70,7 @@ class purchase_ServicesDetails extends deals_DeliveryDocumentDetail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, packagingId=Мярка, uomId, packQuantity, packPrice, discount, amount, quantityInPack';
+    public $listFields = 'productId, packagingId=Мярка, packQuantity, packPrice, discount, amount, quantityInPack';
     
         
     /**
@@ -96,7 +96,7 @@ class purchase_ServicesDetails extends deals_DeliveryDocumentDetail
      */
     public function description()
     {
-        $this->FLD('shipmentId', 'key(mvc=purchase_Services)', 'column=none,notNull,silent,hidden,mandatory');
+    	$this->FLD('shipmentId', 'key(mvc=purchase_Services)', 'column=none,notNull,silent,hidden,mandatory');
         parent::setDocumentFields($this);
     }
     
@@ -123,6 +123,7 @@ class purchase_ServicesDetails extends deals_DeliveryDocumentDetail
      */
     public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form &$form)
     {
+    	$form->setField('packagingId','input=hidden');
     	parent::inputDocForm($mvc, $form);
     }
     
