@@ -87,7 +87,7 @@ class sens2_Scripts extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'order,name,lastRun';
+    var $listFields = 'order,name,state,lastRun';
 
     var $rowToolsField = 'order';
 
@@ -99,7 +99,7 @@ class sens2_Scripts extends core_Master
         $this->FLD('order', 'int', 'caption=№');
         $this->FLD('name', 'varchar(255)', 'caption=Наименование, mandatory,notConfig');
         $this->FLD('lastRun', 'datetime(format=smartTime)', 'caption=Последно,input=none');
-        $this->FLD('state', 'enum(active=Активно,closed=Затворено)', 'caption=Състояние, mandatory,notConfig');
+        $this->FLD('state', 'enum(active=Активно,closed=Затворено)', 'caption=Състояние, input=none,notConfig');
 
         $this->setDbUnique('name');
     }

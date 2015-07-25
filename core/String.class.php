@@ -770,7 +770,7 @@ class core_String
     { 
         $expr = self::prepareMathExpr($expr);
         
-        if($expr) {
+        if(strlen($expr)) {
             $last = error_reporting(0);
             $success = @eval('$result = ' . $expr . ';');
 

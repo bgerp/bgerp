@@ -360,12 +360,6 @@ class sens2_Controllers extends core_Master
     }
     
 
-    function act_Cron()
-    {
-        return $this->cron_Update();
-    }
-    
-    
     /**
      * Стартира се на всяка минута от cron-a
      * Извиква по http sens_Sensors->act_Process
