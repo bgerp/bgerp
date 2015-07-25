@@ -95,6 +95,7 @@ class sens2_Setup extends core_ProtoSetup
             'sens2_MockupDrv',
             'sens2_ScriptActionAssign',
             'sens2_ScriptActionSignal',
+            'sens2_ScriptActionSMS',
         );
         
         foreach ($drivers as $drvClass) {

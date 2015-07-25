@@ -488,7 +488,7 @@ class core_Manager extends core_Mvc
         setIfNot($data->title, $this->title);
         
         if ($data->ListId) {
-            $data->title = "Реазултати за запис номер|* {$data->ListId}: |" . $data->title;
+            $data->title = "Резултати за запис номер|* {$data->ListId}: |" . $data->title;
         }
         
         return $data;
