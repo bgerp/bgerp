@@ -64,7 +64,7 @@ class sens2_ScriptDefinedVars  extends core_Detail
     var $masterKey = 'scriptId';
     
 
-    var $currentTab = 'Логика';
+    var $currentTab = 'Скриптове';
 
     var $listFields = '№,name,scope,value,modifiedOn=Модифициране';
 
