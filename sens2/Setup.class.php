@@ -57,8 +57,9 @@ class sens2_Setup extends core_ProtoSetup
             'sens2_Indicators',
             'sens2_DataLogs',
             'sens2_Controllers',
-            'sens2_Logics',
-            'sens2_LogicDetails',
+            'sens2_Scripts',
+            'sens2_ScriptActions',
+            'sens2_ScriptDefinedVars'
         );
     
 
@@ -92,8 +93,8 @@ class sens2_Setup extends core_ProtoSetup
         // Добавяме наличните драйвери
         $drivers = array(
             'sens2_MockupDrv',
-            'sens2_LogicActionAssign',
-            'sens2_LogicActionSignal',
+            'sens2_ScriptActionAssign',
+            'sens2_ScriptActionSignal',
         );
         
         foreach ($drivers as $drvClass) {

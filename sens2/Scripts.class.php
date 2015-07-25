@@ -12,9 +12,12 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class sens2_Logics extends core_Master
+class sens2_Scripts extends core_Master
 {
-    
+
+    const CALC_ERROR = "Грешка при изчисляване";
+
+    public $oldClassName = 'sens2_Logics';
     
     /**
      * Необходими плъгини
@@ -25,7 +28,7 @@ class sens2_Logics extends core_Master
     /**
      * Заглавие
      */
-    var $title = 'Логически блокове';
+    var $title = 'Скриптове';
     
     
     /**
@@ -61,7 +64,30 @@ class sens2_Logics extends core_Master
     /**
      * Детайли на блока
      */
-    var $details = 'sens2_LogicDetails';
+    var $details = 'sens2_ScriptDefinedVars,sens2_ScriptActions';
+
+    /**
+     * Полето "Наименование" да е хипервръзка към единичния изглед
+     */
+    var $rowToolsSingleField = 'name';
+
+
+    /**
+     * Заглавие в единичния изглед
+     */
+    var $singleTitle = 'Скрипт';
+
+
+    /**
+     * Икона за единичния изглед
+     */
+    var $singleIcon = 'img/16/script.png';
+
+    
+    /**
+     * Полета, които ще се показват в листов изглед
+     */
+    var $listFields = 'id,name,lastRun';
 
 
     /**
@@ -70,7 +96,9 @@ class sens2_Logics extends core_Master
     function description()
     {
         $this->FLD('name', 'varchar(255)', 'caption=Наименование, mandatory,notConfig');
- 
+        $this->FLD('lastRun', 'datetime(format=smartTime)', 'caption=Последно,input=none');
+        $this->FLD('state', 'enum(active=Активно,closed=Затворено)', 'caption=Състояние, mandatory,notConfig');
+
         $this->setDbUnique('name');
     }
     
@@ -133,6 +161,22 @@ class sens2_Logics extends core_Master
             }
         }
     }
+
+
+    /**
+     * Стартира всички скриптове
+     */
+    function act_Run()
+    {   
+        requireRole('admin,sens2');
+
+        $query = self::getQuery();
+        while($rec = $query->fetch("#state = 'active'")) {
+            sens2_ScriptActions::runScript($rec->id);
+            $rec->lastRun = dt::verbal2mysql();
+            self::save($rec);
+        }
+    }
     
     
 
@@ -142,6 +186,66 @@ class sens2_Logics extends core_Master
     function on_AfterInputEditForm($mvc, $form)
     {
     }
+    
 
+    /**
+     * Изчислкяване на числов израз. Могат да участват индикаторите и променливите от даден скрипт
+     */
+    public static function calcExpr($expr, $scriptId)
+    {
+        // Заместваме индикаторите
+        $expr  = strtr($expr, sens2_Indicators::getContex());
+
+        // Заместваме променливите
+        $expr = strtr($expr, sens2_ScriptDefinedVars::getContex($scriptId));
+        
+        if(str::prepareMathExpr($expr) === FALSE) {
+            $res = self::CALC_ERROR;
+        } else {
+            $res = str::calcMathExpr($expr, $success);
+
+            if($success === FALSE) {
+                $res = self::CALC_ERROR;
+            }
+        }
+
+        return $res; 
+    }
+
+
+    /**
+     * Проверява за коректност израз и го форматира.
+     */
+    public static function highliteExpr($expr, $scriptId)
+    {
+        static $opts;
+
+        if(!$opts) {
+            $opts = array();
+            $inds = sens2_Indicators::getContex();
+            
+            foreach($inds as $name => $value) {
+                $opts[$name] = "<span style='color:blue;'>{$name}</span>";
+            }
+            $vars = sens2_ScriptDefinedVars::getContex($scriptId);
+            foreach($vars as $name => $value) {
+                $opts[$name] = "<span style='color:blue;'>{$name}</span>";
+            }
+        }
+        
+        $value = self::calcExpr($expr, $scriptId );
+
+        if($value === self::CALC_ERROR) {
+            $style = 'border-bottom:dashed 1px red;';
+        } else {
+            $style = 'border-bottom:solid 1px transparent;';
+        }
+
+        $expr = strtr($expr, $opts);
+
+        $expr = "<span style='{$style}' title='{$value}'>{$expr}</span>";
+
+        return $expr;
+    }
 
 }

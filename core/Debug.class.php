@@ -371,6 +371,8 @@ class core_Debug
      */
     public static function getCodeAround($file, $line, $range = 4)
     {
+        if(strpos($file, "eval()'d") !== FALSE) return;
+
         $source = file_get_contents($file);
 
         $lines = explode("\n", $source);
@@ -478,7 +480,7 @@ class core_Debug
             $breakLine = $state['breakLine'];
         }
 
-        if(isset($breakFile) && isset($breakLine)) {
+        if(isset($breakFile) && isset($breakLine)) { 
             $data['code'] = self::getCodeAround($breakFile, $breakLine);
         }
         
@@ -715,7 +717,7 @@ class core_Debug
  
         if ($error = error_get_last()) {
             
-            if(!($error['type'] & CORE_ERROR_REPORTING_LEVEL) ) return;
+            if(!($error['type'] & CORE_ERROR_REPORTING_LEVEL) || strpos($error['file'], "eval()'d")) return;
             
 
             $errType = self::getErrorLevel($error['type']);

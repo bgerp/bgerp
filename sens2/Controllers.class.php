@@ -76,19 +76,38 @@ class sens2_Controllers extends core_Master
 	 */
 	var $canSingle = 'ceo,admin,sens';
     
+
+    /**
+     * Масиви за кеширане пер хит на инсталираните портове
+     */
+    static $inputs, $outputs;
     
+
     /**
      * Описание на модела
      */
     function description()
     {
-        $this->FLD('name', 'varchar(255)', 'caption=Наименование, mandatory,notConfig');
+        $this->FLD('name', 'identifier(64,cyr)', 'caption=Наименование, mandatory,notConfig');
         $this->FLD('driver', 'class(interface=sens2_DriverIntf, allowEmpty, select=title)', 'caption=Драйвер,silent,mandatory,notConfig,placeholder=Тип на контролера');
         $this->FLD('config', 'blob(serialize, compress)', 'caption=Конфигурация,input=none,single=none,column=none');
         $this->FLD('state', 'enum(active=Активен, closed=Спрян)', 'caption=Състояние,input=none');
         $this->FLD('persistentState', 'blob(serialize)', 'caption=Персистентно състояние,input=none,single=none,column=none');
 
         $this->setDbUnique('name');
+    }
+
+
+    /**
+     *
+     */
+    public static function getDriver($controllerId)
+    {
+        static $drivers = array();
+
+        if(!isset($drivers[$controllerId])) {
+            $drivers[$controllerId] = cls::get($rec->driver);
+        }
     }
     
 
@@ -139,30 +158,33 @@ class sens2_Controllers extends core_Master
      * Връща обекта драйвер за посочения контролер
      */
     static function getActivePorts($controllerId)
-    {
-        $rec = self::fetch($controllerId);
-        $drv = cls::get($rec->driver);
- 
-        $ports = $drv->getInputPorts() + $drv->getOutputPorts();
+    {   
+        static $ap = array();
 
-        $config = $rec->config;
-        $res = array('' => ' ');
-        foreach($ports as $port => $params) {
-            $partName = $port . '_name';
-            if($config->{$partName}) {
-                $caption = $port . " (". $config->{$partName} . ")";
-            } else {
-                $caption = new stdClass();
-                $caption->title = $port . " (". $params->caption . ")";
-                $caption->attr = array('style' => 'color:#999;');
+        if(!$ap[$controllerId]) {
+            $rec = self::fetch($controllerId);
+            $drv = cls::get($rec->driver);
+     
+            $ports = $drv->getInputPorts() + $drv->getOutputPorts();
+
+            $config = $rec->config;
+            foreach($ports as $port => $params) {
+                $partName = $port . '_name';
+                if($config->{$partName}) {
+                    $caption = $port . " (". $config->{$partName} . ")";
+                } else {
+                    $caption = new stdClass();
+                    $caption->title = $port . " (". $params->caption . ")";
+                    $caption->attr = array('style' => 'color:#999;');
+                }
+                $partUom = $port . '_uom';
+                $ap[$controllerId][$port] = (object) array('caption' => $caption, 'uom' => $config->{$partUom});
             }
-            
-            $res[$port] = $caption;
-
         }
   
-        return  $res;
+        return  $ap[$controllerId];
     }
+
 
 
     /**
@@ -185,9 +207,9 @@ class sens2_Controllers extends core_Master
             
             $prefix = $port . ($params->caption ? " ({$params->caption})" : "");
 
-            $form->FLD($port . '_name', 'varchar(32)', "caption={$prefix}->Наименование");
-            $form->FLD($port . '_scale', 'varchar(255,valid=sens2_Controllers::isValidExpr)', "caption={$prefix}->Скалиране,hint=Въведете функция на X с която да се скалира стойността на входа. Например: `X*50` или `X/2`");
+            $form->FLD($port . '_name', 'identifier(32,cyr)', "caption={$prefix}->Наименование");
             $form->FLD($port . '_uom', 'varchar(16)', "caption={$prefix}->Единица");
+            $form->FLD($port . '_scale', 'varchar(255,valid=sens2_Controllers::isValidExpr)', "caption={$prefix}->Скалиране,hint=Въведете функция на X с която да се скалира стойността на входа. Например: `X*50` или `X/2`");
             $form->FLD($port . '_update', 'time(suggestions=1 min|2 min|5 min|10 min|30 min,uom=minutes)', "caption={$prefix}->Четене през");
             $form->FLD($port . '_log', 'time(suggestions=1 min|2 min|5 min|10 min|30 min,uom=minutes)', "caption={$prefix}->Логване през");
             if(trim($params->uom)) {
@@ -205,7 +227,7 @@ class sens2_Controllers extends core_Master
 
             $prefix = $port . ($params->caption ? " ({$params->caption})" : "");
 
-            $form->FLD($port . '_name', 'varchar(32)', "caption={$prefix}->Наименование");
+            $form->FLD($port . '_name', 'identifier(32,cyr)', "caption={$prefix}->Наименование");
             $form->FLD($port . '_uom', 'varchar(16)', "caption={$prefix}->Единица");
             if(trim($params->uom)) {
                 $form->setSuggestions($port . '_uom', arr::combine(array('' => ''), arr::make($params->uom, TRUE)));
@@ -315,7 +337,7 @@ class sens2_Controllers extends core_Master
                 }
                    
                 // Обновяваме индикатора за стойността на текущия контролерен порт
-                $indicatorId = sens2_Indicators::setValue($rec->id, $port, $config[$port . '_uom'], $value, $time);
+                $indicatorId = sens2_Indicators::setValue($rec->id, $port, $value, $time);
 
                 // Ако е необходимо, записваме стойноста на входа в дата-лог-а
                 if($log[$port] && $indicatorId) {
