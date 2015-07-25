@@ -739,13 +739,13 @@ class core_String
         $expr = preg_replace('/\s+/', '', $expr);
                 
         // What is a number
-        $number = '((?:0|[1-9]\d*)(?:\.\d*)?(?:[eE][+\-]?\d+)?|pi|π)'; 
+        $number = '((?:0|[1-9]\d*)(?:\.\d*)?(?:[eE][+\-]?\d+)?|pi|π|time)'; 
         
         // Allowed PHP functions
         $functions = '(?:sinh?|cosh?|tanh?|acosh?|asinh?|atanh?|exp|log(10)?|deg2rad|rad2deg|sqrt|pow|min|max|abs|intval|ceil|floor|round|(mt_)?rand|gmp_fact)';
         
         // Allowed math operators
-        $operators = '[\/*\^\+-,]';
+        $operators = '[\/*\^\+-,\%\>\<\=]{1,2}';
         
         // Final regexp, heavily using recursive patterns
         $regexp = '/^([+-]?(' . $number . '|' . $functions . '\s*\((?1)+\)|\((?1)+\))(?:' . $operators . '(?1))?)+$/'; 
@@ -753,6 +753,7 @@ class core_String
         if (preg_match($regexp, $expr)) {
             // Replace pi with pi function
             $result = preg_replace('!pi|π!', 'pi()', $expr); 
+            $result = preg_replace('!time!', 'time()', $expr); 
         } else {
             $result = FALSE;
         }
@@ -765,12 +766,14 @@ class core_String
      * Изчислява аритметичен израз от стринг
      * Предварително израза трябва да се подготви 
      */
-    static function calcMathExpr($expr)
+    static function calcMathExpr($expr, &$success = NULL)
     { 
         $expr = self::prepareMathExpr($expr);
         
         if($expr) {
-            @eval('$result = ' . $expr . ';');
+            $last = error_reporting(0);
+            $success = @eval('$result = ' . $expr . ';');
+
         }
 
         return $result;

@@ -67,8 +67,19 @@ class core_Interfaces extends core_Manager
 
         $rec->name = $interface;
         $rec->title = cls::getTitle($interface);
+
         $exRec = $this->fetch("#name = '{$interface}'");
-        $rec->id = $exRec->id;
+        if($exRec) {
+            $rec->id = $exRec->id;
+        } else {
+            $inst = cls::get($interface);
+            if($inst->oldClassName) {
+                $exRec = $this->fetch("#name = '{$inst->oldClassName}'");
+                if($exRec) {
+                    $rec->id = $exRec->id;
+                }
+            }
+        }
 
         if($exRec->title != $rec->title) {
             $this->save($rec);

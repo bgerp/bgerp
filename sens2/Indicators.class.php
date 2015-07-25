@@ -14,7 +14,18 @@
 class sens2_Indicators extends core_Manager
 {
     
+    /**
+     * Масив в който се намират всички текущи стойности на индикаторите
+     */
+    static $contex;
     
+
+    /**
+     * Масив с всички задаедени изходи
+     */
+    static $outputs;
+
+
     /**
      * Необходими мениджъри
      */
@@ -64,14 +75,15 @@ class sens2_Indicators extends core_Manager
     {
         $this->FLD('controllerId', 'key(mvc=sens2_Controllers, select=name, allowEmpty)', 'caption=Контролер, mandatory, silent,refreshForm');
         $this->FLD('port', 'varchar(32)', 'caption=Порт, mandatory');
-        $this->FLD('uom', 'varchar(16)', 'caption=Мярка,column=none');
         $this->FLD('value', 'double(minDecimals=0, maxDecimals=4)', 'caption=Стойност,input=none');
         $this->FLD('lastValue', 'datetime', 'caption=Към момент,oldFieldName=time,input=none');
         $this->FLD('lastUpdate', 'datetime', 'caption=Последно време на Обновяване,column=none,input=none');
         $this->FLD('error', 'varchar(64)', 'caption=Съобщения за грешка,input=none');
         $this->FNC('title', 'varchar(64)', 'caption=Заглавие,column=none');
+        $this->FNC('isOutput', 'enum(yes,no)', 'caption=Изход ли е?,column=none');
+        $this->FNC('uom', 'varchar(16)', 'caption=Мярка,column=none');
 
-        $this->setDbUnique('controllerId,port,uom');
+        $this->setDbUnique('controllerId,port');
     }
     
 
@@ -84,12 +96,41 @@ class sens2_Indicators extends core_Manager
         $rec  = $form->rec;
         if($rec->id) {
             $form->setReadOnly('controllerId');
+        }
 
-        }  
         if($rec->controllerId) {
-            $form->setOptions('port', sens2_Controllers::getActivePorts($rec->controllerId));
+            $ap = sens2_Controllers::getActivePorts($rec->controllerId);
+            foreach($ap as $port => $pRec) {
+                if(!self::fetch(array("#controllerId = {$rec->controllerId} AND #port = '[#1#]'", $port)) || $port == $rec->port) {
+                    $opt[$port] = $pRec->caption;
+                }
+            }
+            $form->setOptions('port', $opt);
         }
     }
+
+
+    /**
+     * Дали порта е изходящ
+     */
+    static function on_CalcIsOutput($mvc, $rec, $escape = TRUE)
+    {
+        static $outputs;
+        
+        $cRec = sens2_Controllers::fetch($rec->controllerId);
+
+        if(!$outputs[$cRec->driver]) {
+            $drv = cls::get($cRec->driver);
+            $outputs[$cRec->driver] = $drv->getOutputPorts();
+        }
+         
+        if($outputs[$cRec->driver][$rec->port]) {
+            $rec->isOutput = 'yes';
+        } else {
+            $rec->isOutput = 'no';
+        }
+    }
+
 
     /**
      * Изчислява стойността на функционалното поле 'title'
@@ -101,12 +142,37 @@ class sens2_Indicators extends core_Manager
 
 
     /**
+     * Изчислява стойността на функционалното поле 'title'
+     */
+    function on_CalcUom($mvc, $rec)
+    {
+        $ap = sens2_Controllers::getActivePorts($rec->controllerId);
+        $rec->uom = $ap[$rec->port]->uom;
+    }
+
+
+    public static function getContex()
+    {
+        if(!self::$contex) {
+            $query = self::getQuery();
+            while($iRec = $query->fetch()) {
+                self::$contex[$iRec->title] = (double) $iRec->value;
+            }
+        }
+
+        return self::$contex;
+    }
+
+
+    /**
      * Записва текущи данни за вход или изход
      * Ако липсва запис за входа/изхода - създава го
      */
-    static function setValue($controllerId, $port, $uom, $value, $time)
-    {
-        $rec = self::fetch(array("#controllerId = {$controllerId} AND #port = '[#1#]' AND #uom = '[#2#]'", $port, $uom));
+    static function setValue($controllerId, $port, $value, $time)
+    {   
+        $query = "#controllerId = {$controllerId} AND #port = '[#1#]'";
+ 
+        $rec = self::fetch(array($query, $port));
 
         if(!$rec) {
             $rec = new stdClass();
@@ -119,7 +185,6 @@ class sens2_Indicators extends core_Manager
 
         $rec->controllerId = $controllerId;
         $rec->port         = $port;
-        $rec->uom          = $uom;
         $rec->value        = $value;
         $rec->lastValue    = $time;
         $rec->lastUpdate   = $time;
@@ -138,7 +203,47 @@ class sens2_Indicators extends core_Manager
 
         self::save($rec);
 
+        // Записваме и в контекста, ако има такъв
+        if(self::$contex) {
+            $title = self::getRecTitle($rec);
+            self::$contex[$title] = $value;
+        }
+
         return $rec->id;
+    }
+
+
+    /**
+     * Задава стойност на физически изход. Те се записва и в модела.
+     */
+    public static function setOutput($output, $value)
+    {
+        if(!self::$outputs) {
+            $query = self::getQuery();
+            while($iRec = $query->fetch()) {
+                self::$outputs[$iRec->title] = $iRec;
+            }
+        }
+
+        $iRec = self::$outputs[$output];
+        
+        // Вземаме контролера
+        $cRec = sens2_Controllers::fetch($iRec->controllerId);
+        
+        // Вземаме драйвера
+        $drv = cls::get($cRec->driver);
+
+        $sets = array("{$iRec->port}" => $value);
+
+        $res = $drv->writeOutputs($sets, $cRec->config, $cRec->persistentState);
+ 
+        if(!$res[$iRec->port]) {
+            $value = "Грешка при запис";
+        }
+
+        self::setValue($cRec->id, $iRec->port, $value, dt::verbal2mysql());
+
+        return $res;
     }
 
 
@@ -147,23 +252,16 @@ class sens2_Indicators extends core_Manager
      */
     static function getRecTitle($rec, $escape = TRUE)
     {
-        static $drivers = array();
-
         $cRec = sens2_Controllers::fetch($rec->controllerId);
-
-        $title = sens2_Controllers::getVerbal($cRec, 'name') . '::';
+ 
+        $title = '$' . sens2_Controllers::getVerbal($cRec, 'name') . '->';
         
         $nameVar = $rec->port . '_name';
 
-        if(!isset($portsOndriver[$cRec->driver])) {
-            $drv = cls::get($cRec->driver);
-            $portsOndriver[$cRec->driver] = $drv->getInputPorts() + $drv->getOutputPorts();
-        }
-
         if($cRec->config->{$nameVar}) {
-            $title .= $rec->port . " (" . $cRec->config->{$nameVar} . ")";
+            $title .= $cRec->config->{$nameVar};
         } else {
-            $title .= $rec->port. " (" . $portsOndriver[$cRec->driver][$rec->port]->caption . ")";
+            $title .= $rec->port;
         }
 
         if($escape) {
@@ -173,18 +271,6 @@ class sens2_Indicators extends core_Manager
         return $title;
     }
 
-
-    /**
-     * Връща мярката за дадения индикатор
-     */
-    static function getUom($id)
-    {
-        $rec = self::fetch($id);
-
-        return $rec->uom;
-    }
-    
-    
 
     /**
      * Филтър на on_AfterPrepareListFilter()
@@ -198,7 +284,6 @@ class sens2_Indicators extends core_Manager
         $data->query->EXT('ctrState', 'sens2_Controllers', 'externalName=state,externalKey=controllerId');
         $data->query->where("#ctrState = 'active'");
         $data->query->orderBy('#controllerId,#port', 'DESC');
-
     }
 
 
@@ -248,9 +333,8 @@ class sens2_Indicators extends core_Manager
         
         if(!$params[$rec->controllerId]) {
             $driver = cls::get(sens2_Controllers::fetchField($rec->controllerId, 'driver'));
-            $params[$rec->controllerId] = arr::combine($driver->getInputPorts(), $driver->getOutputPorts());
+            $params[$rec->controllerId] = arr::combine($driver->getInputPorts(), $driver->getOutputPorts());  
         }
-
         
         $var = $rec->port . '_name'; 
         if($configs[$rec->controllerId]->{$var}) {
@@ -261,6 +345,15 @@ class sens2_Indicators extends core_Manager
 
         $row->controllerId = sens2_Controllers::getLinkToSingle($rec->controllerId, 'name');
 
+        if($rec->isOutput == 'no') {
+            $icon = 'property.png';
+        } else {
+            $icon = 'hand-point.png';
+        }
+
+        $url = array('sens2_DataLogs', 'List', 'indicatorId' => $rec->id);
+
+        $row->port = ht::createLink($row->port, $url, NULL, "ef_icon=img/16/{$icon}");
     }
     
 }
