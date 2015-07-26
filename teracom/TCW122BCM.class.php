@@ -93,7 +93,7 @@ class teracom_TCW122BCM extends sens2_ProtoDriver
         $form->FNC('ip', 'ip', 'caption=IP,hint=Въведете IP адреса на устройството, input, mandatory');
         $form->FNC('port', 'int(5)', 'caption=Port,hint=Порт, input, mandatory,value=80');
         $form->FNC('user', 'varchar(10)', 'caption=User,hint=Потребител, input, mandatory, value=admin, notNull');
-        $form->FNC('password', 'password(allowEmpty)', 'caption=Password,hint=Парола, input, value=admin, notNull,autocomplete=off');
+        $form->FNC('password', 'password(show)', 'caption=Password,hint=Парола, input, value=admin, notNull,autocomplete=off');
     }
     
 
@@ -114,7 +114,8 @@ class teracom_TCW122BCM extends sens2_ProtoDriver
         $url = new ET("http://[#user#]:[#password#]@[#ip#]:[#port#]/status.xml");
         $url->placeArray($config);
         $url = $url->getContent();
-        
+        core_Logs::add('core_Logs', NULL, "url: " . $url, 1);
+
         // Извличаме XML-a
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
@@ -127,12 +128,12 @@ class teracom_TCW122BCM extends sens2_ProtoDriver
         // Ако не сме получили xml - връщаме грешка
         if (empty($xml) || !$xml) {
             
-            return "Грешка при четене от {$config->ip}:{$config->ip}";
+            return "Грешка при четене от {$config->ip}:{$config->port}";
         }
-        
-        core_Log::add(NULL, NULL, "url: " . $url, 1);
+   
+        core_Logs::add('core_Logs', NULL, "url: " . $url, 1);
 
-        core_Log::add(NULL, NULL, "xml: " . $xml, 1);
+        core_Logs::add('core_Logs', NULL, "xml: " . $xml, 1);
 
         // Парсираме XML-а
         $result = array();
@@ -170,7 +171,7 @@ class teracom_TCW122BCM extends sens2_ProtoDriver
             }
         }
 
-        core_Log::add(NULL, NULL, "res: " . serialize($res), 1);
+        core_Logs::add('core_Logs', NULL, "res: " . serialize($res), 1);
 
         return $res;
     }

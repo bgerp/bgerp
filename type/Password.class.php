@@ -27,13 +27,15 @@ class type_Password extends type_Varchar {
      * Рендира HTML инпут поле
      */
     function renderInput_($name, $value = "", &$attr = array())
-    {
+    { 
         $attr['type'] = 'password';
         
         // Само за дебъг
         // !isDebug() || $attr['title'] = $value;
-
-        if($value && !$this->params['allowEmpty']) {
+        if($this->params['show']) {
+            $attr['type'] = 'text';
+            $attr['style'] = ';color:#ccc; text-shadow: 0px 0px 5px #444;';
+        } elseif($value && !$this->params['allowEmpty']) {
             $value = EF_PASS_NO_CHANGE;
             $attr['onfocus'] = "if(this.value == '" . EF_PASS_NO_CHANGE . "') this.select();";
         } else {
