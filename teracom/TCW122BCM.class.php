@@ -130,6 +130,10 @@ class teracom_TCW122BCM extends sens2_ProtoDriver
             return "Грешка при четене от {$config->ip}:{$config->ip}";
         }
         
+        core_Log::add(NULL, NULL, "url: " . $url, 1);
+
+        core_Log::add(NULL, NULL, "xml: " . $xml, 1);
+
         // Парсираме XML-а
         $result = array();
         core_Xml::toArrayFlat(simplexml_load_string($xml), $result);
@@ -165,6 +169,8 @@ class teracom_TCW122BCM extends sens2_ProtoDriver
                 }
             }
         }
+
+        core_Log::add(NULL, NULL, "res: " . serialize($res), 1);
 
         return $res;
     }
