@@ -194,17 +194,27 @@ class sens2_Scripts extends core_Master
         }
     }
     
+
+    /**
+     * Помощна функция за сортиране на масив
+     */
+    private static function sortByLengthReverse($a, $b)
+    {
+        return strlen($b) - strlen($a);
+    }
     
     /**
      * Изчислкяване на числов израз. Могат да участват индикаторите и променливите от даден скрипт
      */
     public static function calcExpr($expr, $scriptId)
     {
-        // Заместваме индикаторите
-        $expr  = strtr($expr, sens2_Indicators::getContex());
+        // Намираме и сортираме контекста
+        $contex = sens2_Indicators::getContex();
+        $contex += sens2_ScriptDefinedVars::getContex($scriptId);
+        uksort($contex, "self::sortByLengthReverse");
 
-        // Заместваме променливите
-        $expr = strtr($expr, sens2_ScriptDefinedVars::getContex($scriptId));
+        // Заместваме променливите и индикаторите
+        $expr  = strtr($expr, $contex);
         
         if(str::prepareMathExpr($expr) === FALSE) {
             $res = self::CALC_ERROR;
@@ -254,5 +264,20 @@ class sens2_Scripts extends core_Master
 
         return $expr;
     }
+
+
+    /**
+	 * За да не могат да се изтриват активните скриптове
+	 */
+    static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+	{  
+   		if($action == 'delete') {
+	    	if($rec->state != 'closed'){
+	    		$res = 'no_one';
+	    	}
+   		}
+   		
+	}
+
 
 }

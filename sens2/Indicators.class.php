@@ -29,7 +29,7 @@ class sens2_Indicators extends core_Manager
     /**
      * Необходими мениджъри
      */
-    var $loadList = 'plg_RowTools, sens2_Wrapper, plg_AlignDecimals, plg_RefreshRows';
+    var $loadList = 'plg_RowTools, sens2_Wrapper, plg_AlignDecimals, plg_RefreshRows, plg_Rejected, plg_State';
     
     
     /**
@@ -67,7 +67,8 @@ class sens2_Indicators extends core_Manager
 	 */
 	var $canSingle = 'ceo, admin, sens';
     
-    
+    var $canDelete = 'no_one';
+
     /**
      * Описание на модела
      */
@@ -79,11 +80,13 @@ class sens2_Indicators extends core_Manager
         $this->FLD('lastValue', 'datetime', 'caption=Към момент,oldFieldName=time,input=none');
         $this->FLD('lastUpdate', 'datetime', 'caption=Последно време на Обновяване,column=none,input=none');
         $this->FLD('error', 'varchar(64)', 'caption=Съобщения за грешка,input=none');
+        $this->FLD('state', 'enum(active=Активен, rejected=Оттеглен)', 'caption=Състояние,input=none,notNull,value=active');
+        $this->FLD('uom', 'varchar(16)', 'caption=Мярка,column=none');
+
         $this->FNC('title', 'varchar(64)', 'caption=Заглавие,column=none');
         $this->FNC('isOutput', 'enum(yes,no)', 'caption=Изход ли е?,column=none');
-        $this->FNC('uom', 'varchar(16)', 'caption=Мярка,column=none');
 
-        $this->setDbUnique('controllerId,port');
+        $this->setDbUnique('controllerId,port,uom');
     }
     
 
@@ -141,16 +144,6 @@ class sens2_Indicators extends core_Manager
     }
 
 
-    /**
-     * Изчислява стойността на функционалното поле 'title'
-     */
-    function on_CalcUom($mvc, $rec)
-    {
-        $ap = sens2_Controllers::getActivePorts($rec->controllerId);
-        $rec->uom = $ap[$rec->port]->uom;
-    }
-
-
     public static function getContex()
     {
         if(!self::$contex) {
@@ -159,7 +152,7 @@ class sens2_Indicators extends core_Manager
                 self::$contex[$iRec->title] = (double) $iRec->value;
             }
         }
-
+        
         return self::$contex;
     }
 
@@ -170,9 +163,21 @@ class sens2_Indicators extends core_Manager
      */
     static function setValue($controllerId, $port, $value, $time)
     {   
-        $query = "#controllerId = {$controllerId} AND #port = '[#1#]'";
- 
-        $rec = self::fetch(array($query, $port));
+        $ap = sens2_Controllers::getActivePorts($controllerId);
+
+        $uom = $ap[$port]->uom;
+
+        $query = self::getQuery();
+
+        while($r = $query->fetch(array("#controllerId = {$controllerId} AND #port = '[#1#]'", $port))) {
+            if($r->uom != $uom) {
+                if($r->state != 'rejected') {
+                    self::reject($r->id);
+                }
+            } else {
+                $rec = $r;
+            }
+        }
 
         if(!$rec) {
             $rec = new stdClass();
@@ -186,8 +191,10 @@ class sens2_Indicators extends core_Manager
         $rec->controllerId = $controllerId;
         $rec->port         = $port;
         $rec->value        = $value;
+        $rec->uom          = $uom;
         $rec->lastValue    = $time;
         $rec->lastUpdate   = $time;
+        $rec->state        = 'active';
 
         // Ако имаме грешка, поставяме я в правилното място
         $value = trim($value);
@@ -201,6 +208,7 @@ class sens2_Indicators extends core_Manager
             $rec->error = '';
         }
 
+
         self::save($rec);
 
         // Записваме и в контекста, ако има такъв
@@ -212,39 +220,6 @@ class sens2_Indicators extends core_Manager
         return $rec->id;
     }
 
-
-    /**
-     * Задава стойност на физически изход. Те се записва и в модела.
-     */
-    public static function setOutput($output, $value)
-    {
-        if(!self::$outputs) {
-            $query = self::getQuery();
-            while($iRec = $query->fetch()) {
-                self::$outputs[$iRec->title] = $iRec;
-            }
-        }
-
-        $iRec = self::$outputs[$output];
-        
-        // Вземаме контролера
-        $cRec = sens2_Controllers::fetch($iRec->controllerId);
-        
-        // Вземаме драйвера
-        $drv = cls::get($cRec->driver);
-
-        $sets = array("{$iRec->port}" => $value);
-
-        $res = $drv->writeOutputs($sets, $cRec->config, $cRec->persistentState);
- 
-        if(!$res[$iRec->port]) {
-            $value = "Грешка при запис";
-        }
-
-        self::setValue($cRec->id, $iRec->port, $value, dt::verbal2mysql());
-
-        return $res;
-    }
 
 
     /**
