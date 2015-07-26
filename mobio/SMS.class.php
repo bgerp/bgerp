@@ -74,14 +74,8 @@ class mobio_SMS extends core_Manager
      * $nRes['uid'] string - Уникалното id на съобщението
      * $nRes['msg'] - Статуса
      */
-    function sendSMS($number, $message, $sender = NULL)
+    function sendSMS($number, $message, $sender)
     {
-        // Ако не сме посочили изпращач, пак да работи
-        if(!$sender) {
-            $params = $this->getParams();
-            $sender = key($params['allowedUserNames']);
-        }
-
         // Конфигурацията на модула
     	$conf = core_Packs::getConfig('mobio');
     	
