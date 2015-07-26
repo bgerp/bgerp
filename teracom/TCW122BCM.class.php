@@ -115,8 +115,6 @@ class teracom_TCW122BCM extends sens2_ProtoDriver
         $url->placeArray($config);
         $url = $url->getContent();
         
-        echo "<li> $url";
-
         // Извличаме XML-a
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
@@ -132,8 +130,6 @@ class teracom_TCW122BCM extends sens2_ProtoDriver
             return "Грешка при четене от {$config->ip}:{$config->ip}";
         }
         
-        echo "<br><pre>$xml</pre>";
-
         // Парсираме XML-а
         $result = array();
         core_Xml::toArrayFlat(simplexml_load_string($xml), $result);
