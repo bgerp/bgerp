@@ -99,15 +99,18 @@ class sens2_Controllers extends core_Master
 
 
     /**
-     *
+     * Връща инстанция на драйвера за посочения контролер
      */
     public static function getDriver($controllerId)
     {
         static $drivers = array();
 
         if(!isset($drivers[$controllerId])) {
+            $rec = self::fetch($controllerId);
             $drivers[$controllerId] = cls::get($rec->driver);
         }
+
+        return $drivers[$controllerId];
     }
     
 
@@ -157,32 +160,43 @@ class sens2_Controllers extends core_Master
     /**
      * Връща обекта драйвер за посочения контролер
      */
-    static function getActivePorts($controllerId)
+    static function getActivePorts($controllerId, $type = 'all')
     {   
         static $ap = array();
 
-        if(!$ap[$controllerId]) {
+        if(!$ap[$controllerId . '_' . $type]) {
+            $ap[$controllerId . '_' . $type] = array();
             $rec = self::fetch($controllerId);
-            $drv = cls::get($rec->driver);
-     
-            $ports = $drv->getInputPorts() + $drv->getOutputPorts();
+            $drv = self::getDriver($controllerId);
+            
+            $ports = array();
 
+            if($type != 'outputs') {
+                $ports = $drv->getInputPorts();
+            }
+            
+            if($type != 'inputs') {
+                $ports += $drv->getOutputPorts();
+            }
+ 
             $config = $rec->config;
             foreach($ports as $port => $params) {
                 $partName = $port . '_name';
                 if($config->{$partName}) {
                     $caption = $port . " (". $config->{$partName} . ")";
+                    $title = '$' . $rec->name . '->' . $config->{$partName};
                 } else {
                     $caption = new stdClass();
                     $caption->title = $port . " (". $params->caption . ")";
                     $caption->attr = array('style' => 'color:#999;');
+                    $title = '$' . $rec->name . '->' . $port;
                 }
                 $partUom = $port . '_uom';
-                $ap[$controllerId][$port] = (object) array('caption' => $caption, 'uom' => $config->{$partUom});
+                $ap[$controllerId . '_' . $type][$port] = (object) array('caption' => $caption, 'uom' => $config->{$partUom}, 'title' => $title);
             }
         }
   
-        return  $ap[$controllerId];
+        return  $ap[$controllerId . '_' . $type];
     }
 
 
@@ -282,12 +296,12 @@ class sens2_Controllers extends core_Master
      * Новите стойности се записват в sens2_Ports, а тези, за които е дошло време се логват
      */
     function updateInputs($id, $force = array())
-    {
+    { 
         expect($rec = self::fetch($id));
 
         $config = (array) $rec->config;
 
-        $drv = cls::get($rec->driver);
+        $drv = self::getDriver($id);
 
         $ports = $drv->getInputPorts();
 
@@ -315,7 +329,13 @@ class sens2_Controllers extends core_Master
         if(is_array($inputs) && count($inputs)) {
 
             // Прочитаме състоянието на входовете от драйвера
+            if($rec->persistentState) {
+                $hash = md5(serialize($rec->persistentState));
+            }
             $values = $drv->readInputs($inputs, $rec->config, $rec->persistentState);
+            if($rec->persistentState && $hash != md5(serialize($rec->persistentState))) {
+                self::save($rec, 'persistentState');
+            }
 
             // Текущото време
             $time = dt::now();
@@ -330,7 +350,6 @@ class sens2_Controllers extends core_Master
                     $value = $values;
                 }
                 
-
                 if(($expr = $config[$port . '_scale']) && is_numeric($value)) {
                     $expr = str_replace('X', $value, $expr);
                     $value = str::calcMathExpr($expr);
@@ -346,6 +365,57 @@ class sens2_Controllers extends core_Master
             }
         }
     }
+
+
+    /**
+     * Задава стойност на физически изход. Те се записва и в модела.
+     */
+    public static function setOutput($output, $value)
+    {
+        list($ctrName, $name) = explode('->', ltrim($output, '$'));
+        // Вземаме записа на контролера
+        $rec = self::fetch(array("#name = '[#1#]'", $ctrName));
+        
+        if($rec) {
+            // Вземаме драйвера
+            $drv = self::getDriver($rec->id);
+            
+            // Вземаме му всички изходни портове
+            $ports = $drv->getOutputPorts();
+
+            foreach($ports as $p => $pObj) {
+                $part = $p . '_name';
+                if($p == $name || $rec->config->{$part} == $name) {
+                    $portName = $p;
+                    break;
+                }
+            }
+
+            if($portName) {
+                $sets = array($portName => $value);
+                
+                if($rec->persistentState) {
+                    $hash = md5(serialize($rec->persistentState));
+                }
+                $res = $drv->writeOutputs($sets, $cRec->config, $cRec->persistentState);
+                if($rec->persistentState && $hash != md5(serialize($rec->persistentState))) {
+                    self::save($rec, 'persistentState');
+                }
+            }
+        }
+     
+        if(!$res[$portName]) {
+            $value = "Грешка при запис";
+        }
+        
+        // Записване стойността в индикаторите
+        if($rec->id && $portName) {
+            sens2_Indicators::setValue($rec->id, $portName, $value, dt::verbal2mysql());
+        }
+
+        return $res;
+    }
+
     
     
     /**
@@ -405,6 +475,21 @@ class sens2_Controllers extends core_Master
             echo $res;
         }
     }
+
+
+    /**
+	 * За да не могат да се изтриват активните контролери
+	 */
+    static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+	{  
+   		if($action == 'delete') {
+	    	if($rec->state != 'closed'){
+	    		$res = 'no_one';
+	    	}
+   		}
+   		
+	}
+
     
     
     /**

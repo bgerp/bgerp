@@ -147,7 +147,7 @@ class sens2_ScriptDefinedVars  extends core_Detail
                 self::$contex[$scriptId]['$' . $rec->name] = (double) $rec->value ;
             }
         }
-
+        
         return self::$contex[$scriptId];
     }
 
@@ -191,6 +191,20 @@ class sens2_ScriptDefinedVars  extends core_Detail
 
 
         return $me->db->affectedRows();
+    }
+
+
+    /**
+     * Изпълнява се преди запис и прави синхронизация на глобалните променливи
+     */
+    function on_BeforeSave($mvc, &$id, $rec, $fields = NULL)
+    {
+        if(!$rec->id && $rec->scope == 'global' && isset($rec->name)) {
+            $exRec = self::fetch(array("#name = '[#1#]' AND #scope = 'global'", $rec->name));
+            if($exRec) {
+                $rec->value = $exRec->value;
+            }
+        }
     }
 
 

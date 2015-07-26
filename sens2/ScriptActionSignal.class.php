@@ -39,26 +39,28 @@ class sens2_ScriptActionSignal
         $form->FLD('expr', 'text(rows=2)', 'caption=Израз,width=100%,mandatory');
         $form->FLD('cond', 'text(rows=2)', 'caption=Условие,width=100%');  
 
+        $cQuery = sens2_Controllers::getQuery();
+        while($cRec = $cQuery->fetch("#state = 'active'")) {
+            $ports = sens2_Controllers::getActivePorts($cRec->id, 'outputs');
+            foreach($ports as $port => $pObj) {
+                $opt[$pObj->title] = $pObj->title;
+            }
+        }
+        
+        if(!count($opt)) {
+            redirect(array('sens2_Controllers'), FALSE, 'Моля, въведете поне един контролер с изход');
+        }
+        $form->setOptions('output', $opt);
+
+
         $vars = sens2_ScriptDefinedVars::getContex($form->rec->scriptId);
         foreach($vars as $i => $v) {
             $suggestions[$i] = $i;
         }
-        
-        $iQuery = sens2_Indicators::getQuery();
-        while($iRec = $iQuery->fetch()) {
-            $suggestions[$iRec->title] = $iRec->title;
-            if($iRec->isOutput == 'yes') {
-                $opt[$iRec->title] = $iRec->title;
-            }
-        }
         $inds = sens2_Indicators::getContex();
         foreach($inds as $i => $v) {
+            $suggestions[$i] = $i;
         }
-        
-        if(!count($opt)) {
-            redirect(array('sens2_Indicators'), FALSE, 'Моля, въведете поне един изход');
-        }
-        $form->setOptions('output', $opt); 
         asort($suggestions);
         $form->setSuggestions('expr', $suggestions);
         $form->setSuggestions('cond', $suggestions);
@@ -116,7 +118,7 @@ class sens2_ScriptActionSignal
         }
 
         // Задаваме го на изхода
-        $res = sens2_Indicators::setOutput($rec->output, $value);
+        $res = sens2_Controllers::setOutput($rec->output, $value);
         
         if(is_array($res)) {
             
