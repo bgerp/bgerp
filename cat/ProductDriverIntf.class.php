@@ -58,9 +58,9 @@ class cat_ProductDriverIntf extends core_InnerObjectIntf
 	 * @param int $packagingId
 	 * @return stdClass $res
 	 */
-	public function getProductInfo($innerState, $packagingId = NULL)
+	public function getProductInfo($innerState)
 	{
-		return $this->class->getProductInfo($innerState, $packagingId);
+		return $this->class->getProductInfo($innerState);
 	}
 	
 	
