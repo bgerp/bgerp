@@ -601,7 +601,6 @@ class cat_Products extends core_Embedder {
      * Метод връщаш информация за продукта и неговите опаковки
      * 
      * @param int $productId - ид на продукта
-     * @param int $packagingId - ид на опаковката, по дефолт NULL
      * @return stdClass $res
      * 	-> productRec - записа на продукта
      * 	-> meta - мета данни за продукта ако има
@@ -611,14 +610,13 @@ class cat_Products extends core_Embedder {
 	 * 	     meta['canStore']       - дали може да се съхранява
 	 * 	     meta['canManifacture'] - дали може да се прозивежда
 	 * 	     meta['fixedAsset']     - дали е ДА
-     * 	-> packagingRec - записа на опаковката, ако е зададена
      * 	-> packagings - всички опаковки на продукта, ако не е зададена
      */					
-    public static function getProductInfo($productId, $packagingId = NULL)
+    public static function getProductInfo($productId)
     {
-    	if(isset(self::$productInfos[$productId][$packagingId])){
+    	if(isset(self::$productInfos[$productId])){
     		
-    		return self::$productInfos[$productId][$packagingId];
+    		return self::$productInfos[$productId];
     	}
     	
     	// Ако няма такъв продукт връщаме NULL
@@ -652,36 +650,25 @@ class cat_Products extends core_Embedder {
     	}
     	
     	$Packagings = cls::get('cat_products_Packagings');
-    	if(!$packagingId) {
-    		$res->packagings = array();
-    		
-    	    // Ако не е зададена опаковка намираме всички опаковки
-    		$packagings = $Packagings->fetchDetails($productId);
-    		
-    		// Пре-индексираме масива с опаковки - ключ става id на опаковката 
-    		foreach ((array)$packagings as $pack) {
-    		    $res->packagings[$pack->packagingId] = $pack;
-    		}
-    		
-    		// Сортираме опаковките, така че основната опаковка да е винаги първа (ако има)
-    		uasort($res->packagings, function($a, $b){
-                    if($a->isBase == $b->isBase)  return 0;
-					return $a->isBase == 'yes' ? -1 : 1;
-                });
-    		
-    	} else {
-    		
-    		// Ако е зададена опаковка, извличаме само нейния запис
-    		$res->packagingRec = $Packagings->fetchPackaging($productId, $packagingId);
-    		if(!$res->packagingRec) {
-    			
-    			// Ако я няма зададената опаковка за този продукт
-    			return NULL;
-    		}
+    	$res->packagings = array();
+    	
+    	// Ако не е зададена опаковка намираме всички опаковки
+    	$packagings = $Packagings->fetchDetails($productId);
+    	
+    	// Пре-индексираме масива с опаковки - ключ става id на опаковката
+    	foreach ((array)$packagings as $pack) {
+    		$res->packagings[$pack->packagingId] = $pack;
     	}
     	
+    	// Сортираме опаковките, така че основната опаковка да е винаги първа (ако има)
+    	uasort($res->packagings, function($a, $b){
+    		if($a->isBase == $b->isBase)  return 0;
+    		
+    		return $a->isBase == 'yes' ? -1 : 1;
+    	});
+    	
     	// Връщаме информацията за продукта
-    	self::$productInfos[$productId][$packagingId] = $res;
+    	self::$productInfos[$productId] = $res;
     	
     	return $res;
     }
