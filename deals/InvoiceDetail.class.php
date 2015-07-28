@@ -399,7 +399,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 			$rec = &$form->rec;
 	
 			// Закръгляме количеството спрямо допустимото от мярката
-			$roundQuantity = cat_UoM::round($rec->quantity, $rec->productId, $rec->packagingId);
+			$roundQuantity = cat_UoM::round($rec->quantity, $rec->productId);
 			
 			if($roundQuantity == 0 && $masterRec->type != 'dc_note'){
 				$form->setError('packQuantity', 'Не може да бъде въведено количество, което след закръглянето указано в|* <b>|Артикули|* » |Каталог|* » |Мерки/Опаковки|*</b> |ще стане|* 0');
