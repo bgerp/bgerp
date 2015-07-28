@@ -38,10 +38,6 @@ class cad_MeasureLine {
     { 
         extract($p);
         
-        //дебелина на линията
-        $strokeWidth = 0.1;
-        //цвят на линията
-        $lineColor = 'blue';
         // разстояние след линията
         $offset = 8;
         
