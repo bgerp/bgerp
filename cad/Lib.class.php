@@ -79,7 +79,7 @@ class cad_Lib {
     	$conf = core_Packs::getConfig('bagshapes');
     	
     	$strokeWidth = $conf->EP_PEN_STROKE_WIDTH;
-    	$strokeP = $conf->EP_PEN_STROKE_DOT;
+    	$strokeP = $conf->EP_INLINE_PEN_COLOR;
     	
     	$canvas->startPath(
     			array(
@@ -94,11 +94,11 @@ class cad_Lib {
     static function getPatternLine($canvas, $p)
     {
     	extract($p);
-    	
+  
     	$conf = core_Packs::getConfig('bagshapes');
     	 
     	$strokeWidth = $conf->EP_PEN_STROKE_WIDTH;
-    	$strokeP = $conf->EP_PEN_STROKE_DOT;
+    	$strokeP = $conf->EP_PATTERN_PEN_COLOR;
     	 
     	$canvas->startPath(
     			array(
@@ -114,10 +114,13 @@ class cad_Lib {
     {
     	extract ($p);
     	
+    	$conf = core_Packs::getConfig('bagshapes');
+    	$strokeColor = $conf->EP_MEASURE_PEN_COLOR;
+    	
     	$canvas->startPath(
     			array(
     					'fill' => 'none',
-    					'stroke' => $lineColor,
+    					'stroke' => $strokeColor,
     					'stroke-width' => $strokeWidth)
     	);
     }
