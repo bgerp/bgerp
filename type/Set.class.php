@@ -40,8 +40,10 @@ class type_Set extends core_Type {
         $vals = explode(',', $value);
         
         foreach($vals as $v) {
-            if($v) {
-                $res .= ($res ? ", " : '') . tr($this->getVerbal($v));
+            if(isset($v)) {
+                $verb = tr($this->getVerbal($v));
+                if (!$verb) continue;
+                $res .= ($res ? ", " : '') . $verb;
             }
         }
         
