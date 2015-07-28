@@ -98,4 +98,8 @@ class core_ProtoInner extends core_BaseClass {
     {
     }
 
+    public function alterSearchKeywords($keywords)
+    {
+    	
+    }
 }

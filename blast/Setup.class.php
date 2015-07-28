@@ -122,7 +122,8 @@ class blast_Setup extends core_ProtoSetup
         'blast_EmailSend',
         'migrate::fixListId',
         'migrate::fixEmails',
-        'migrate::addEmailSendHash'
+        'migrate::addEmailSendHash',
+        'migrate::updateListLg'
     );
     
     
@@ -296,6 +297,74 @@ class blast_Setup extends core_ProtoSetup
             $rec->hash = $hash;
             
             blast_EmailSend::save($rec, 'hash', 'UPDATE');
+        }
+    }
+    
+    
+    /**
+     * Обновява езика на списъка с имейлите
+     */
+    static function updateListLg()
+    {
+        $lQuery = blast_Lists::getQuery();
+        $lQuery->where("#lg IS NULL OR #lg = '' OR #lg = 'auto'");
+        $lQuery->where("#keyField = 'email'");
+        
+        while ($lRec = $lQuery->fetch()) {
+            $ldQuery = blast_ListDetails::getQuery();
+            $ldQuery->where("#listId = {$lRec->id}");
+            
+            $cnt = $ldQuery->count();
+            
+            if (!$cnt) continue;
+            
+            while($r = $ldQuery->fetch()) {
+                echo "<li>" . $r->key;
+            }
+            
+            $ldQuery->where("#key LIKE '%.bg'");
+            
+            $bgCnt = $ldQuery->count();
+            
+            $cntRes = $bgCnt / $cnt;
+            
+            if ($cntRes > 0.1) {
+                $lRec->lg = 'bg';
+            } else {
+                $lRec->lg = 'en';
+            }
+            
+            blast_Lists::save($lRec, 'lg');
+        }
+    }
+    
+    
+    /**
+     * Миграция за обновяване на времето на стартиране
+     */
+    public static function updateEmailsSendOn()
+    {
+        $cls = cls::get('blast_Emails');
+        
+        $cls->db->connect();
+        
+        $startOnField = str::phpToMysqlName('startOn');
+        
+        if (!$cls->db->isFieldExists($cls->dbTableName, $startOnField)) return ;
+        
+        $cls->FLD('startOn', 'datetime', 'caption=Дата');
+        
+        $query = $cls->getQuery();
+        $query->where("#startOn IS NOT NULL");
+        $query->where("#sendingDay IS NULL");
+        $query->where("#sendingTo IS NULL");
+        $query->where("#sendingFrom IS NULL");
+        
+        while ($rec = $query->fetch()) {
+            $timeStamp = dt::mysql2timestamp($rec->startOn);
+            $rec->sendingDay = date('w', $timeStamp);
+            $rec->sendingFrom = date('G', $timeStamp) * 3600;
+            $cls->save($rec, 'sendingDay, sendingFrom');
         }
     }
 }
