@@ -53,12 +53,12 @@ class cad_Lib {
     	
     	$conf = core_Packs::getConfig('bagshapes');
     	 
-    	$stroke = $conf->EP_PEN_STROKE;
+    	$strokeColor = $conf->EP_PEN_STROKE;
     	$strokeWidth = $conf->EP_PEN_STROKE_WIDTH;
     	
     	$canvas->startPath(
     			array(
-    					'stroke' => $stroke,
+    					'stroke' => $strokeColor,
     					'fill' => $fill,
     					'stroke-width' => $strokeWidth,
     					'fill-opacity' => $opacity		
@@ -79,12 +79,12 @@ class cad_Lib {
     	$conf = core_Packs::getConfig('bagshapes');
     	
     	$strokeWidth = $conf->EP_PEN_STROKE_WIDTH;
-    	$strokeP = $conf->EP_INLINE_PEN_COLOR;
+    	$strokeColor = $conf->EP_INLINE_PEN_COLOR;
     	
     	$canvas->startPath(
     			array(
     					'fill' => "none",
-    					'stroke' => $strokeP,
+    					'stroke' => $strokeColor,
     					'stroke-width' => $strokeWidth,
     					'stroke-dasharray' => '6 4'
     			)
@@ -98,12 +98,12 @@ class cad_Lib {
     	$conf = core_Packs::getConfig('bagshapes');
     	 
     	$strokeWidth = $conf->EP_PEN_STROKE_WIDTH;
-    	$strokeP = $conf->EP_PATTERN_PEN_COLOR;
+    	$strokeColor = $conf->EP_PATTERN_PEN_COLOR;
     	 
     	$canvas->startPath(
     			array(
     					'fill' => "none",
-    					'stroke' => "#996666",
+    					'stroke' => $strokeColor,
     					'stroke-width' => 2*$strokeWidth,
     					'stroke-dasharray' => '4 3'
     			)
