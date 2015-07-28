@@ -35,7 +35,7 @@ class type_Set extends core_Type {
      */
     function toVerbal($value)
     {
-        if(!$value) return NULL;
+        if(!isset($value)) return NULL;
         
         $vals = explode(',', $value);
         
@@ -184,7 +184,7 @@ class type_Set extends core_Type {
             return $set;
         }
         
-        if (empty($set)) {
+        if (!isset($set)) {
             return array();
         }
         
