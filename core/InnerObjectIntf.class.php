@@ -89,9 +89,6 @@ class core_InnerObjectIntf
 	
 	/**
 	 * Подготвя данните необходими за показването на вградения обект
-	 *
-	 * @param core_Form $innerForm
-	 * @param stdClass $innerState
 	 */
 	public function prepareEmbeddedData()
 	{
