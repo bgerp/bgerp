@@ -337,4 +337,34 @@ class blast_Setup extends core_ProtoSetup
             blast_Lists::save($lRec, 'lg');
         }
     }
+    
+    
+    /**
+     * Миграция за обновяване на времето на стартиране
+     */
+    public static function updateEmailsSendOn()
+    {
+        $cls = cls::get('blast_Emails');
+        
+        $cls->db->connect();
+        
+        $startOnField = str::phpToMysqlName('startOn');
+        
+        if (!$cls->db->isFieldExists($cls->dbTableName, $startOnField)) return ;
+        
+        $cls->FLD('startOn', 'datetime', 'caption=Дата');
+        
+        $query = $cls->getQuery();
+        $query->where("#startOn IS NOT NULL");
+        $query->where("#sendingDay IS NULL");
+        $query->where("#sendingTo IS NULL");
+        $query->where("#sendingFrom IS NULL");
+        
+        while ($rec = $query->fetch()) {
+            $timeStamp = dt::mysql2timestamp($rec->startOn);
+            $rec->sendingDay = date('w', $timeStamp);
+            $rec->sendingFrom = date('G', $timeStamp) * 3600;
+            $cls->save($rec, 'sendingDay, sendingFrom');
+        }
+    }
 }
