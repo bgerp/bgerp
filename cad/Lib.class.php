@@ -81,12 +81,13 @@ class cad_Lib {
     	$strokeWidth = $conf->EP_PEN_STROKE_WIDTH;
     	$strokeColor = $conf->EP_INLINE_PEN_COLOR;
     	
+    	
     	$canvas->startPath(
     			array(
     					'fill' => "none",
     					'stroke' => $strokeColor,
     					'stroke-width' => $strokeWidth,
-    					'stroke-dasharray' => '6 4'
+    					'stroke-dasharray' => '3,2'
     			)
     	);
     }
@@ -99,13 +100,14 @@ class cad_Lib {
     	 
     	$strokeWidth = $conf->EP_PEN_STROKE_WIDTH;
     	$strokeColor = $conf->EP_PATTERN_PEN_COLOR;
-    	 
+    	
+    	
     	$canvas->startPath(
     			array(
     					'fill' => "none",
     					'stroke' => $strokeColor,
     					'stroke-width' => 2*$strokeWidth,
-    					'stroke-dasharray' => '4 3'
+    					'stroke-dasharray' => '2,1'
     			)
     	);
     }
@@ -125,7 +127,7 @@ class cad_Lib {
     					'fill' => "none",
     					'stroke' => $strokeColor,
     					'stroke-width' => 2*$strokeWidth,
-    					'stroke-dasharray' => '4 3'
+    					'stroke-dasharray' => '3,2'
     			)
     	);
     }
