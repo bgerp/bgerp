@@ -51,7 +51,7 @@ class planning_Jobs extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, doc_DocumentPlg, planning_Wrapper, doc_ActivatePlg, plg_Sorting, acc_plg_DocumentSummary, plg_Search, doc_SharablePlg';
+    public $loadList = 'plg_RowTools, doc_DocumentPlg, planning_plg_StateManager, planning_Wrapper, plg_Sorting, acc_plg_DocumentSummary, plg_Search, doc_SharablePlg';
     
     
     /**
@@ -516,11 +516,6 @@ class planning_Jobs extends core_Master
     {
     	// След активиране на заданието, добавяме артикула като перо
     	cat_Products::forceItem($rec->productId, 'catProducts');
-    	
-    	// Записваме действието във историята
-    	self::addToHistory($rec->history, 'active', $rec->modifiedOn, $rec->modifiedBy);
-    	
-    	$mvc->save($rec, 'history');
     }
     
     
@@ -571,76 +566,13 @@ class planning_Jobs extends core_Master
     
     
     /**
-     * След подготовка на тулбара на единичен изглед.
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $data
+     * След промяна на състоянието
      */
-    public static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    public static function on_AfterChangeState($mvc, &$rec)
     {
-    	$rec = &$data->rec;
-    	
-    	if($mvc->haveRightFor('changestate', $rec)){
-    		if($rec->state == 'closed'){
-    			$data->toolbar->addBtn("Събуждане", array($mvc, 'changeState', $rec->id, 'type' => 'close', 'ret_url' => TRUE), 'ef_icon = img/16/lightbulb.png,title=Събуждане на заданието,warning=Сигурнили сте че искате да събудите заданието');
-    		} elseif($rec->state == 'active' || $rec->state == 'wakeup'){
-    			$data->toolbar->addBtn("Приключване", array($mvc, 'changeState', $rec->id, 'type' => 'close', 'ret_url' => TRUE), 'ef_icon = img/16/lightbulb_off.png,title=Приключване на заданието,warning=Сигурнили сте че искате да приключите заданието');
-    		}
-    		
-    		if($rec->state == 'stopped'){
-    			$data->toolbar->addBtn("Активиране", array($mvc, 'changeState', $rec->id, 'type' => 'stop', 'ret_url' => TRUE, ), 'ef_icon = img/16/control_play.png,title=Активиране на заданието,warning=Сигурнили сте че искате да активирате заданието');
-    		} elseif($rec->state == 'active' || $rec->state == 'wakeup'){
-    			$data->toolbar->addBtn("Спиране", array($mvc, 'changeState', $rec->id, 'type' => 'stop', 'ret_url' => TRUE), 'ef_icon = img/16/control_pause.png,title=Спиране на заданието,warning=Сигурнили сте че искате да спрете заданието');
-    		}
-    	}
-    	
-    	if($rec->state == 'active' || $rec->state == 'wakeup' || $rec->state == 'stopped'){
-    		if($bId = cat_Boms::fetchField("#productId = {$rec->productId} AND #state != 'rejected'", 'id')){
-    			if(cat_Boms::haveRightFor('single', $bId)){
-    				$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'single', $bId, 'ret_url' => TRUE), 'ef_icon = img/16/view.png,title=Към технологичната рецепта на артикула');
-    			}
-    		} elseif(cat_Boms::haveRightFor('write', (object)array('productId' => $rec->productId))){
-    			$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'add', 'productId' => $rec->productId, 'originId' => $rec->containerId, 'quantity' => $rec->quantity, 'ret_url' => TRUE), 'ef_icon = img/16/article.png,title=Създаване на нова технологична рецепта');
-    		}
-    	}
-    	
-    	if($rec->state != 'draft' && $rec->state != 'rejected'){
-    		if(planning_DirectProductionNote::haveRightFor('add', (object)array('originId' => $rec->containerId))){
-    			$pUrl = array('planning_DirectProductionNote', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE);
-    			$data->toolbar->addBtn("Производство", $pUrl, 'ef_icon = img/16/page_paste.png,title=Създаване на протокол за бързо производство от заданието');
-    		}
-    	}
-    }
-    
-    
-    /**
-     * Затваря/отваря или спира/пуска заданието
-     */
-    public function act_changeState()
-    {
-    	$this->requireRightFor('changestate');
-    	expect($id = Request::get('id', 'int'));
-    	expect($rec = $this->fetch($id));
-    	expect($type = Request::get('type', 'enum(close,stop)'));
-    	$this->requireRightFor('changestate', $rec);
-    	
-    	if($type == 'stop'){
-    		expect($rec->state == 'stopped' || $rec->state == 'active' || $rec->state == 'wakeup');
-    		$state = ($rec->state == 'stopped') ? 'active' : 'stopped';
-    	} else {
-    		expect($rec->state == 'closed' || $rec->state == 'active' || $rec->state == 'wakeup');
-    		$state = ($rec->state == 'closed') ? 'wakeup' : 'closed';
-    	}
-    	
-    	$rec->brState = $rec->state;
-    	$rec->state = $state;
-    	
     	// Записваме в историята действието
-    	self::addToHistory($rec->history, $state, dt::now(), core_Users::getCurrent());
-    	
-    	$this->save($rec, 'brState,state,history');
-    	 
-    	return followRetUrl();
+    	self::addToHistory($rec->history, $rec->state, dt::now(), core_Users::getCurrent());
+    	$mvc->save($rec, 'history');
     }
     
     
