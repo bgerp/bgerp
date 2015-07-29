@@ -38,10 +38,6 @@ class cad_MeasureLine {
     { 
         extract($p);
         
-        //дебелина на линията
-        $strokeWidth = 0.1;
-        //цвят на линията
-        $lineColor = 'blue';
         // разстояние след линията
         $offset = 8;
         
@@ -49,12 +45,7 @@ class cad_MeasureLine {
         
         if(!$notStartNewPath) {
             
-            $canvas->startPath(
-                array(
-                'fill' => 'none',
-                'stroke' => $lineColor,
-                'stroke-width' => $strokeWidth)
-                );
+        	cad_Lib::getMeasureLine($canvas, $p);
         }
         
         $A = new cad_Vector($Ax, $Ay);
@@ -79,29 +70,20 @@ class cad_MeasureLine {
         $canvas->lineTo($A2->x, $A2->y, TRUE);
         
        
-        $canvas->startPath( array(
-                'stroke' => $lineColor,
-                'stroke-width' => $strokeWidth)
-                );
+        cad_Lib::getMeasureLine($canvas, $p);
         
         //B - B2
         $canvas->moveTo($B->x, $B->y, TRUE);
         $canvas->lineTo($B2->x, $B2->y, TRUE);
         
         
-        $canvas->startPath( array(
-          'stroke' => $lineColor,
-          'stroke-width' => $strokeWidth)
-        );
+        cad_Lib::getMeasureLine($canvas, $p);
         
        //A1 - B1
         $canvas->moveTo($A1->x, $A1->y, TRUE);
         $canvas->lineTo($B1->x, $B1->y, TRUE);
         
-        $canvas->startPath( array(
-          'stroke' => $lineColor,
-          'stroke-width' => $strokeWidth)
-        );
+        cad_Lib::getMeasureLine($canvas, $p);
         
         //генериране на едната стрелка
         $arrow = new cad_Vector($vectorAngle - deg2rad(30), 5, 'polar');

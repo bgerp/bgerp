@@ -779,11 +779,4 @@ class planning_Jobs extends core_Master
     	$rec->quantityProduced = $producedQuantity;
     	self::save($rec, 'quantityProduced');
     }
-    
-    
-    function act_Test()
-    {
-    	$l = cls::get('cat_Setup');
-    	$l->replacePackagings();
-    }
 }

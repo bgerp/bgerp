@@ -12,36 +12,12 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class email_Returned extends core_Manager
+class email_Returned extends email_ServiceEmails
 {
-    /**
-     * Плъгини за работа
-     */
-    var $loadList = 'email_Wrapper';
-    
-    
-    /**
-	 * Кой може да го разглежда?
-	 */
-	var $canList = 'admin, email';
-	
-    
     /**
      * Заглавие на таблицата
      */
     var $title = "Неполучени, върнати писма";
-    
-    
-    /**
-     * Кой има право да чете?
-     */
-    var $canRead = 'admin, ceo, email';
-    
-    
-    /**
-     * Кой има право да променя?
-     */
-    var $canWrite = 'no_one';
 
 
     /**
@@ -49,10 +25,7 @@ class email_Returned extends core_Manager
      */
     function description()
     {
-        $this->FLD('data', 'blob(compress)', 'caption=Данни');
-        $this->FLD('accountId', 'key(mvc=email_Accounts,select=email)', 'caption=Сметка');
-        $this->FLD('uid', 'int', 'caption=Имейл UID');
-        $this->FLD('createdOn', 'datetime', 'caption=Създаване');
+        $this->addFields();  
     }
     
 

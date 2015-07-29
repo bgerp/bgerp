@@ -134,8 +134,14 @@ class teracom_TCW122B  extends sens2_ProtoDriver
         
         // Парсираме XML-а
         $result = array();
-        core_Xml::toArrayFlat(simplexml_load_string($xml), $result);
+        @core_Xml::toArrayFlat(simplexml_load_string($xml), $result);
         
+        // Ако реазултата не е коректен
+        if (!count($result)) {
+            
+            return "Грешка при парсиране на XML от {$config->ip}:{$config->port}";
+        }
+
         // Извличаме състоянията на входовете от парсирания XML
         foreach ($this->inputs as $name => $details) {
             if($inputs[$name]) {
