@@ -110,6 +110,27 @@ class cad_Lib {
     	);
     }
     
+    
+    static function getFoldingLine($canvas, $p)
+    {
+    	extract($p);
+    
+    	$conf = core_Packs::getConfig('bagshapes');
+    
+    	$strokeWidth = $conf->EP_PEN_STROKE_WIDTH;
+    	$strokeColor = $conf->EP_FOLDING_PEN_COLOR;
+    
+    	$canvas->startPath(
+    			array(
+    					'fill' => "none",
+    					'stroke' => $strokeColor,
+    					'stroke-width' => 2*$strokeWidth,
+    					'stroke-dasharray' => '4 3'
+    			)
+    	);
+    }
+    
+    
     static function getMeasureLine($canvas, $p)
     {
     	extract ($p);

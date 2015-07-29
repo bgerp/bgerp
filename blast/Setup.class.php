@@ -123,7 +123,7 @@ class blast_Setup extends core_ProtoSetup
         'migrate::fixListId',
         'migrate::fixEmails',
         'migrate::addEmailSendHash',
-        'migrate::updateListLg'
+        'migrate::updateListLg2'
     );
     
     
@@ -302,13 +302,12 @@ class blast_Setup extends core_ProtoSetup
     
     
     /**
-     * Обновява езика на списъка с имейлите
+     * Обновява езика на списъците
      */
-    static function updateListLg()
+    static function updateListLg2()
     {
         $lQuery = blast_Lists::getQuery();
         $lQuery->where("#lg IS NULL OR #lg = '' OR #lg = 'auto'");
-        $lQuery->where("#keyField = 'email'");
         
         while ($lRec = $lQuery->fetch()) {
             $ldQuery = blast_ListDetails::getQuery();
@@ -316,16 +315,18 @@ class blast_Setup extends core_ProtoSetup
             
             $cnt = $ldQuery->count();
             
-            if (!$cnt) continue;
-            
-            $ldQuery->where("#key LIKE '%.bg'");
-            
-            $bgCnt = $ldQuery->count();
-            
-            $cntRes = $bgCnt / $cnt;
-            
-            if ($cntRes > 0.1) {
-                $lRec->lg = 'bg';
+            if ($cnt && $lRec->keyField == 'email') {
+                $ldQuery->where("#key LIKE '%.bg'");
+                
+                $bgCnt = $ldQuery->count();
+                
+                $cntRes = $bgCnt / $cnt;
+                
+                if ($cntRes > 0.1) {
+                    $lRec->lg = 'bg';
+                } else {
+                    $lRec->lg = 'en';
+                }
             } else {
                 $lRec->lg = 'en';
             }
