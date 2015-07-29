@@ -394,7 +394,9 @@ class core_App
             Debug::log(mb_substr($content, 0, 255));
         }
 
-        echo $content; // Output content
+        if ($_SERVER['REQUEST_METHOD'] != 'HEAD') {
+            echo $content; // Output content
+        }
             
         // Изпращаме съдържанието на изходния буфер
         ob_end_flush();
