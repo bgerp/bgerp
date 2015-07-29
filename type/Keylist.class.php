@@ -56,7 +56,11 @@ class type_Keylist extends core_Type {
             if($v) {
                 $name = $this->getVerbal($v);
                 if((!Mode::is('text', 'plain')) && (!Mode::is('printing')) && $mvc instanceof core_Master && $mvc->haveRightFor('single', $v)) {
-                    $name = ht::createLink($name, array($mvc, 'Single', $v));
+                	if($this->params['makeLinks'] === 'short'){
+                		$name = ht::createLinkRef($name, array($mvc, 'Single', $v));
+                	} else {
+                		$name = ht::createLink($name, array($mvc, 'Single', $v));
+                	}
                 }
                 $res .= ($res ? ", " : '') . $name;
             }
