@@ -284,7 +284,7 @@ class cad_SvgCanvas extends core_BaseClass {
 
         $m = sqrt($r * $r - $AB->r/2 * $AB->r/2);
 
-        $C = $M->add( new cad_Vector($AB->a - pi()/2, $m, 'polar'));
+        $C = $M->add( new cad_Vector($AB->a - pi()/2, ($r/abs($r)) * $m, 'polar'));
 
         $CA = $A->add($C->neg());
         $CB = $B->add($C->neg());
@@ -292,14 +292,14 @@ class cad_SvgCanvas extends core_BaseClass {
         if($CA->a > $CB->a) {
             for($a = $CA->a; $a >= $CB->a; $a -= pi()/100) {
                 
-                $X = $C->add( new cad_Vector($a, $r, 'polar'));
+                $X = $C->add( new cad_Vector($a, abs($r), 'polar'));
                 $this->lineTo($X->x, $X->y, TRUE);
 
             }
         } else {
             for($a = $CA->a; $a <= $CB->a; $a += pi()/1000) {
                 
-                $X = $C->add( new cad_Vector($a, $r, 'polar'));
+                $X = $C->add( new cad_Vector($a, abs($r), 'polar'));
                 $this->lineTo($X->x, $X->y, TRUE);
 
             }
