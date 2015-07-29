@@ -13,50 +13,22 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class email_Unparsable extends core_Master
-{
-    
-    
-    /**
-     * Плъгини за работа
-     */
-    var $loadList = 'email_Wrapper';
-    
-    
+class email_Unparsable extends email_ServiceEmails
+{    
     /**
      * Заглавие на таблицата
      */
     var $title = "Имейли, които не могат да се парсират";
     
-    
+
     /**
-     * Кой има право да чете?
-     */
-    var $canRead = 'admin, ceo, email';
-    
-    
-    /**
-     * Кой има право да променя?
-     */
-    var $canWrite = 'no_one';
-    
-    
-    /**
-	 * Кой може да го разглежда?
-	 */
-	var $canList = 'admin, email';
-    
-      
-    /**
-     * Описание на модела (таблицата)
+     * Описание на модела
      */
     function description()
     {
-        $this->FLD('data', 'blob(compress)', 'caption=Данни');
-        $this->FLD('accountId', 'key(mvc=email_Accounts,select=email)', 'caption=Сметка');
-        $this->FLD('uid', 'int', 'caption=Имейл UID');
-        $this->FLD('createdOn', 'datetime', 'caption=Създаване');
+        $this->addFields();  
     }
+
     
     
     /**
@@ -72,5 +44,4 @@ class email_Unparsable extends core_Master
 
         self::save($rec);
     }
-    
  }
