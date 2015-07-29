@@ -72,9 +72,9 @@ class email_ServiceEmails extends core_Manager
         $headers = $mime->getHeadersVerbal();
 
         $text = $mime->textPart;
-        $textType = cls::get('type_Text');
+        $textType = cls::get('type_RichText');
         if($text) {
-            $text = $textType->toVerbal(str::truncate($text, 10000));
+            $text = $textType->toVerbal(str::truncate($text, 20000));
 
             $msg .= "<div style='font-size:0.9em;font-family:monotype;'><div style='background-color:#cfc;padding:5px;font-size:1em;margin-bottom:5px;'>Получено в <b>{$accountId}</b> на <b>{$createdOn}</b> с UID=<b>{$uid}</b></div>" .
                 "{$headers}<hr>{$text}</div>";
