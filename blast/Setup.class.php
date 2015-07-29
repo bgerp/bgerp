@@ -318,10 +318,6 @@ class blast_Setup extends core_ProtoSetup
             
             if (!$cnt) continue;
             
-            while($r = $ldQuery->fetch()) {
-                echo "<li>" . $r->key;
-            }
-            
             $ldQuery->where("#key LIKE '%.bg'");
             
             $bgCnt = $ldQuery->count();
