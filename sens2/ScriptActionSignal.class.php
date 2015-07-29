@@ -39,14 +39,8 @@ class sens2_ScriptActionSignal
         $form->FLD('expr', 'text(rows=2)', 'caption=Израз,width=100%,mandatory');
         $form->FLD('cond', 'text(rows=2)', 'caption=Условие,width=100%');  
 
-        $cQuery = sens2_Controllers::getQuery();
-        while($cRec = $cQuery->fetch("#state = 'active'")) {
-            $ports = sens2_Controllers::getActivePorts($cRec->id, 'outputs');
-            foreach($ports as $port => $pObj) {
-                $opt[$pObj->title] = $pObj->title;
-            }
-        }
-        
+        $opt = self::getOutputOpts();
+
         if(!count($opt)) {
             redirect(array('sens2_Controllers'), FALSE, 'Моля, въведете поне един контролер с изход');
         }
@@ -65,6 +59,23 @@ class sens2_ScriptActionSignal
         $form->setSuggestions('expr', $suggestions);
         $form->setSuggestions('cond', $suggestions);
     }
+
+
+    /**
+     * Връща масив с опциите за изходите
+     */
+    static function getOutputOpts()
+    {
+        $cQuery = sens2_Controllers::getQuery();
+        while($cRec = $cQuery->fetch("#state = 'active'")) {
+            $ports = sens2_Controllers::getActivePorts($cRec->id, 'outputs');
+            foreach($ports as $port => $pObj) {
+                $opt[$pObj->title] = $pObj->title;
+            }
+        }
+        
+        return $opt;
+    }
    
     
     /**
@@ -80,7 +91,12 @@ class sens2_ScriptActionSignal
 
     function toVerbal($rec)
     {   
-        $output = sens2_Scripts::highliteExpr($rec->output, $rec->scriptId);
+        $opt = self::getOutputOpts();
+        $output = $rec->output;
+        if(!isset($opt[$rec->output])) {
+            $output = "<span style='border-bottom:dashed 1px red;'>{$output}</span>";
+        }
+
         $expr   = sens2_Scripts::highliteExpr($rec->expr, $rec->scriptId);
         $cond   = sens2_Scripts::highliteExpr($rec->cond, $rec->scriptId);
 
