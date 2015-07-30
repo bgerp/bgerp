@@ -392,10 +392,13 @@ class blast_Emails extends core_Master
                 if ($sec > $period) {
                     $rec->state = 'pending';
                     $this->save($rec);
+                } else {
+                    continue ;
                 }
             }
             
-            if ($rec->state == 'pending') continue;
+            // Само активните да се изпращат
+            if ($rec->state != 'active') continue;
             
             // Вземаме данните за имейлите, до които ще пращаме
             $dataArr = blast_EmailSend::getDataArrForEmailId($rec->id, $rec->sendPerCall);
