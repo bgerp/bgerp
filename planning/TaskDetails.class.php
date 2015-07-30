@@ -48,6 +48,18 @@ class planning_TaskDetails extends doc_Detail
     
     
     /**
+     * Кой има право да оттегля?
+     */
+    public $canReject = 'ceo, planning';
+    
+    
+    /**
+     * Кой има право да възстановява?
+     */
+    public $canRestore = 'ceo, planning';
+    
+    
+    /**
      * Кой има право да променя?
      */
     public $canEdit = 'no_one';
@@ -76,13 +88,7 @@ class planning_TaskDetails extends doc_Detail
      */
     public $listFields = 'RowNumb=Пулт,code,operation,quantity,weight,employees,fixedAsset,modifiedOn,modifiedBy,message=@';
     
-        
-    /**
-     * Активен таб
-     */
-    public $currentTab = 'Задачи';
 
-    
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
@@ -190,10 +196,6 @@ class planning_TaskDetails extends doc_Detail
     			if(empty($rec->code)){
     				$rec->code = $mvc->getDefaultCode();
     			}
-    			
-    			if(empty($rec->code) ){
-    				$form->setError('code', 'Кода не може да се изчисли динамично. Въведете ръчно');
-    			}
     		}
     	}
     }
@@ -241,7 +243,7 @@ class planning_TaskDetails extends doc_Detail
     			}
     			
     			// Редирект
-    			return Redirect(array($mvc->Master, 'single', $data->masterId), 'Записа е добавен успешно;');
+    			return Redirect(array($mvc->Master, 'single', $data->masterId), 'Записа е добавен успешно');
     		}
     	}
     	
@@ -277,7 +279,7 @@ class planning_TaskDetails extends doc_Detail
      */
     public function renderDetail_($data)
     {
-    	// Даваме на драйвра възможността да рендира детайла
+    	// Даваме на драйвъра възможност да подмени рендировката на детайла
     	if($Driver = planning_Tasks::getDriver($data->masterId)){
     		$tpl = $Driver->renderDetailData($data);
     	}
@@ -323,7 +325,7 @@ class planning_TaskDetails extends doc_Detail
     */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-    	if(($action == 'add' || $action == 'reject') && isset($rec->taskId)){
+    	if(($action == 'add' || $action == 'reject' || $action == 'restore') && isset($rec->taskId)){
     		
     		// Ако мастъра не е чернова не може детайлите му да се модифицират
     		$state = $mvc->Master->fetchField($rec->taskId, 'state');
