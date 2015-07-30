@@ -40,8 +40,8 @@ class planning_drivers_ProductionTask extends planning_drivers_BaseTask
 	 */
 	public function addDetailFields_(core_FieldSet &$form)
 	{
-		if($this->formRec->fixedAssets){
-			$keylist = $this->formRec->fixedAssets;
+		if($this->innerForm->fixedAssets){
+			$keylist = $this->innerForm->fixedAssets;
 			if(isset($form->rec->data->fixedAsset)){
 				$keylist = keylist::merge($keylist, $form->rec->data->fixedAsset);
 			}
@@ -84,12 +84,12 @@ class planning_drivers_ProductionTask extends planning_drivers_BaseTask
 		$Double = cls::get('type_Double', array('params' => array('smartRound' => 'smartRound')));
 		$Weight = cls::get('cat_type_Weight');
 		
-		$data->row->totalQuantity = $Double->toVerbal($this->formRec->totalQuantity);
-		$data->row->totalWeight = $Weight->toVerbal($this->formRec->totalWeight);
+		$data->row->totalQuantity = $Double->toVerbal($this->innerForm->totalQuantity);
+		$data->row->totalWeight = $Weight->toVerbal($this->innerForm->totalWeight);
 		
-		if($this->formRec->fixedAssets){
+		if($this->innerForm->fixedAssets){
 			$Keylist = cls::get('type_Keylist', array('params' => array('mvc' => 'cat_Products', 'select' => 'name', 'makeLinks' => 'short')));
-			$assetsArr = explode(',', $Keylist->toVerbal($this->formRec->fixedAssets));
+			$assetsArr = explode(',', $Keylist->toVerbal($this->innerForm->fixedAssets));
 			
 			$data->row->fixedAssets = "<ul style='padding-left:12px;margin:0px;list-style:none'>";
 			foreach ($assetsArr as $asset){
@@ -112,7 +112,7 @@ class planning_drivers_ProductionTask extends planning_drivers_BaseTask
 	{
 		 $rec = $this->EmbedderRec->fetch();
 		
-		 $totalQuantity = $this->formRec->totalQuantity;
+		 $totalQuantity = $this->innerForm->totalQuantity;
 		 
 		 // Колко е общото к-во досега
 		 $dQuery = planning_TaskDetails::getQuery();

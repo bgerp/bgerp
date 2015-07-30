@@ -23,18 +23,18 @@ class core_ProtoInner extends core_BaseClass {
     /**
      * Вътрешно, изчислено състояние на драйвъра
      */
-    public $state;
+    public $innerState;
     
     
     /**
      * Записа на формата, с която е създаден/модифициран драйвера
      */
-    public $formRec;
+    public $innerForm;
 
     
     /**
-     *
-     */
+	 * Можели вградения обект да се избере
+	 */
     public function canSelectInnerObject($userId = NULL)
 	{
 		return TRUE;
@@ -42,64 +42,81 @@ class core_ProtoInner extends core_BaseClass {
 
 
     /**
-     *
-     */
+	 * Задава вътрешната форма
+	 *
+	 * @param mixed $innerForm
+	 */
     public function setInnerForm($form)
     {
-        $this->formRec = $form;
+        $this->innerForm = $form;
     }
     
     
     /**
-     *
-     */
+	 * Задава вътрешното състояние
+	 *
+	 * @param mixed $innerState
+	 */
     public function setInnerState($state)
     {
-        $this->state = $state;
+        $this->innerState = $state;
     }
 
     
     /**
-     *
-     */
+	 * Добавя полетата на вътрешния обект
+	 * 
+	 * @param core_Fieldset $fieldset
+	 */
     public function addEmbeddedFields($form)
     {
     }
     
     
     /**
-     *
-     */
+	 * Подготвя формата за въвеждане на данни за вътрешния обект
+	 * 
+	 * @param core_Form $form
+	 */
     public function prepareEmbeddedForm($form)
     {
     }
     
     
     /**
-     *
-     */
+	 * Проверява въведените данни
+	 * 
+	 * @param core_Form $form
+	 */
     public function checkEmbeddedForm($form)
     {
     }
     
     
     /**
-     *
-     */
+	 * Подготвя данните необходими за показването на вградения обект
+	 */
     public function prepareEmbeddedData()
     {
     }
 
 
     /**
-     *
-     */
+	 * Рендира вградения обект
+	 * 
+	 * @param stdClass $data
+	 */
     public function renderEmbeddedData($data)
     {
     }
 
+    
+    /**
+     * Променя ключовите думи
+     *
+     * @param string $searchKeywords
+     */
     public function alterSearchKeywords($keywords)
     {
-    	
     }
 }
