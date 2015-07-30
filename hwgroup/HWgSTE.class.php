@@ -79,7 +79,7 @@ class hwgroup_HWgSTE extends sens2_ProtoDriver
         
         core_Xml::toArrayFlat(simplexml_load_string($xml), $parsed);
         
-        foreach ($this->params as $param => $details) {
+        foreach ($this->inputs as $param => $details) {
             $res[$param] = $parsed[$details['xmlPath']];
         }
                 
