@@ -197,6 +197,8 @@ class blast_Emails extends core_Master
         
         $this->FLD('activatedBy', 'key(mvc=core_Users)', 'caption=Активирано от, input=none');
         
+        $this->FLD('progress', 'percent(min=0,max=1,decimals=0)', 'caption=Прогрес, input=none, notNull');
+        
         //Данни на адресата - антетка
         $this->FLD('recipient', 'varchar', 'caption=Адресат->Фирма,class=contactData, changable');
         $this->FLD('attn', 'varchar', 'caption=Адресат->Лице,oldFieldName=attentionOf,class=contactData, changable');
@@ -396,6 +398,7 @@ class blast_Emails extends core_Master
             // Ако няма данни, затваряме 
             if (!$dataArr) {
                 $rec->state = 'closed';
+                $rec->progress = 1;
                 $this->save($rec);
                 continue;
             }
@@ -512,6 +515,9 @@ class blast_Emails extends core_Master
                     doclog_Documents::returned($body->__mid);
                 }
             }
+            
+            $rec->progress = blast_EmailSend::getSendingProgress($rec->id);
+            $this->save($rec, 'progress, modifiedOn');
         }
     }
     
@@ -1640,6 +1646,13 @@ class blast_Emails extends core_Master
      */
     static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
+        $blue = new color_Object("#2244cc");
+        $grey = new color_Object("#bbb");
+        
+        $progressPx = min(100, round(100 * $rec->progress));
+        $progressRemainPx = 100 - $progressPx;
+        $row->progressBar = "<div style='white-space: nowrap; display: inline-block;'><div style='display:inline-block;top:-5px;border-bottom:solid 10px {$blue}; width:{$progressPx}px;'> </div><div style='display:inline-block;top:-5px;border-bottom:solid 10px {$grey};width:{$progressRemainPx}px;'></div></div>";
+        
         //При рендиране на листовия изглед показваме дали ще се прикачат файловете и/или документите
         $attachArr = type_Set::toArray($rec->attachments);
         

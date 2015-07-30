@@ -146,7 +146,8 @@ class blast_Setup extends core_ProtoSetup
         'migrate::fixEmails',
         'migrate::addEmailSendHash',
         'migrate::updateListLg2',
-        'migrate::stateOfBlockedEmails'
+        'migrate::stateOfBlockedEmails',
+        'migrate::calcProgress'
     );
     
     
@@ -399,6 +400,21 @@ class blast_Setup extends core_ProtoSetup
         while ($rec = $query->fetch()) {
             $rec->state = 'blocked';
             blast_BlockedEmails::save($rec, 'state');
+        }
+    }
+    
+    
+    /**
+     * Миграция, за промяна на прогреса
+     */
+    public static function calcProgress()
+    {
+        $query = blast_Emails::getQuery();
+        
+        while ($rec = $query->fetch()) {
+            $rec->progress = blast_EmailSend::getSendingProgress($rec->id);
+                
+            blast_Emails::save($rec, 'progress');
         }
     }
 }

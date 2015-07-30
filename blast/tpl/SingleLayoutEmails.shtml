@@ -50,6 +50,11 @@
                             </td>
                             <td class='aright vtop'>
                                 <table class='top-table fright'>
+                                	<!--ET_BEGIN progressBar-->
+                                    <td class='aright'>|Прогрес|*:</td>
+                                        <td><b>[#progressBar#] [#progress#]</b></td>
+                                    </tr>
+                                    <!--ET_END progressBar-->
                                     <!--ET_BEGIN email-->
                                     <tr>
                                         <td class='aright'>|Имейл|*:</td>
@@ -103,6 +108,9 @@
                 <!--ET_BEGIN srcLink-->
                 <div><b style="margin-bottom: 10px; display: block">|Източник|*: [#srcLink#]</b></div>
                 <!--ET_END srcLink-->
+                <!--ET_BEGIN sendPerCall-->
+                <div>|Изпращания заедно|*: [#sendPerCall#]</div>
+                <!--ET_END sendPerCall-->
                 <!--ET_BEGIN sendingDay-->
                 <div>|Ден|*: [#sendingDay#]</div>
                 <!--ET_END sendingDay-->

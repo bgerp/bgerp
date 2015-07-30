@@ -280,6 +280,36 @@ class blast_EmailSend extends core_Detail
     
     
     /**
+     * Връща прогреса на изпращанията
+     * 
+     * @param integer $emailId
+     * 
+     * @return integer
+     */
+    public static function getSendingProgress($emailId)
+    {
+        $query = self::getQuery();
+        $query->where("#emailId = '{$emailId}'");
+        
+        $allCnt = $query->count();
+        
+        if (!$allCnt) return 0;
+        
+        $query->where("#state = 'sended'");
+        
+        $sendedCnt = $query->count();
+        
+        $progress = $sendedCnt/$allCnt;
+        
+        if ($progress > 1) {
+            $progress = 1;
+        }
+        
+        return $progress;
+    }
+    
+    
+    /**
      * След подготвяне на формата за филтриране
      *
      * @param blast_EmailSend $mvc
