@@ -23,13 +23,13 @@ class core_ProtoInner extends core_BaseClass {
     /**
      * Вътрешно, изчислено състояние на драйвъра
      */
-    public $innerState;
+    protected $innerState;
     
     
     /**
      * Записа на формата, с която е създаден/модифициран драйвера
      */
-    public $innerForm;
+    protected $innerForm;
 
     
     /**
@@ -68,7 +68,7 @@ class core_ProtoInner extends core_BaseClass {
 	 * 
 	 * @param core_Fieldset $fieldset
 	 */
-    public function addEmbeddedFields($form)
+    public function addEmbeddedFields(core_FieldSet &$form)
     {
     }
     
@@ -78,7 +78,7 @@ class core_ProtoInner extends core_BaseClass {
 	 * 
 	 * @param core_Form $form
 	 */
-    public function prepareEmbeddedForm($form)
+    public function prepareEmbeddedForm(core_Form &$form)
     {
     }
     
@@ -88,7 +88,7 @@ class core_ProtoInner extends core_BaseClass {
 	 * 
 	 * @param core_Form $form
 	 */
-    public function checkEmbeddedForm($form)
+    public function checkEmbeddedForm(core_Form &$form)
     {
     }
     
@@ -116,7 +116,7 @@ class core_ProtoInner extends core_BaseClass {
      *
      * @param string $searchKeywords
      */
-    public function alterSearchKeywords($keywords)
+    public function alterSearchKeywords(&$keywords)
     {
     }
 }

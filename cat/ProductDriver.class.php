@@ -12,7 +12,7 @@
  * @since     v 0.1
  * @title     Базов драйвер за драйвер на артикул
  */
-abstract class cat_ProductDriver extends core_BaseClass
+abstract class cat_ProductDriver extends core_ProtoInner
 {
 	
 	
@@ -96,28 +96,6 @@ abstract class cat_ProductDriver extends core_BaseClass
 	
 	
 	/**
-	 * Задава вътрешната форма
-	 *
-	 * @param mixed $innerForm
-	 */
-	public function setInnerForm($innerForm)
-	{
-		$this->innerForm = $innerForm;
-	}
-	
-	
-	/**
-	 * Задава вътрешното състояние
-	 *
-	 * @param mixed $innerState
-	 */
-	public function setInnerState($innerState)
-	{
-		$this->innerState = $innerState;
-	}
-	
-	
-	/**
 	 * Подготвя формата за въвеждане на данни за вътрешния обект
 	 *
 	 * @param core_Form $form
@@ -161,28 +139,6 @@ abstract class cat_ProductDriver extends core_BaseClass
 			}
 		}
 	}
-	
-	
-	/**
-	 * Проверява въведените данни
-	 *
-	 * @param core_Form $form
-	 */
-	public function checkEmbeddedForm(core_Form &$form)
-	{
-	
-	}
-	
-	
-	/**
-	 * Подготвя вътрешното състояние, на база въведените данни
-	 *
-	 * @param core_Form $innerForm
-	 */
-	public function prepareInnerState()
-	{
-	
-	}
 
 
 	/**
@@ -202,15 +158,6 @@ abstract class cat_ProductDriver extends core_BaseClass
 		if(isset($filter)){
 			$is = is_object($filter) ? clone $filter : $filter;
 		}
-	}
-	
-	
-	/**
-	 * Променя ключовите думи от мениджъра
-	 */
-	public function alterSearchKeywords(&$searchKeywords)
-	{
-		
 	}
 	
 	
@@ -312,7 +259,7 @@ abstract class cat_ProductDriver extends core_BaseClass
 	 */
 	public function renderProductDescription($data)
 	{
-		return new core_ET();
+		return new core_ET("");
 	}
 	
 	
