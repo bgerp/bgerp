@@ -275,7 +275,7 @@ class blast_BlockedEmails extends core_Manager
     {
         //Данни за работата на cron
         $rec = new stdClass();
-        $rec->systemId = 'ckeckEmails';
+        $rec->systemId = 'checkEmails';
         $rec->description = 'Проверка за валидност на имейлите';
         $rec->controller = $mvc->className;
         $rec->action = 'CheckEmails';
