@@ -367,30 +367,35 @@ class blast_Emails extends core_Master
         $query->where("#state = 'active'");
         $query->orWhere("#state = 'pending'");
         
-        $dayOfWeek = date('w');
-        $query->where('#sendingDay IS NULL');
-        $query->orWhere("#sendingDay = ''");
-        $query->orWhere("#sendingDay LIKE '%{$dayOfWeek}%'");
+        $conf = core_Packs::getConfig('blast');
         
-        $now = dt::mysql2timestamp();
-        
-        $nowSecs = (date('G', $now) * 3600) + (date('i', $now) * 60) + date('s');
-        $query->where('#sendingFrom IS NULL');
-        $query->orWhere("#sendingFrom  = ''");
-        $query->orWhere("#sendingFrom  <= '{$nowSecs}'");
-        
-        $query->where('#sendingTo IS NULL');
-        $query->orWhere("#sendingTo  = ''");
-        $query->orWhere("#sendingTo  > '{$nowSecs}'");
+        // За да получим минути
+        $period = $conf->BLAST_EMAILS_CRON_PERIOD;
         
         //Проверяваме дали имаме запис, който не е затворен и му е дошло времето за активиране
         while ($rec = $query->fetch()) {
             
-            // Променяме състоянието от чакащо в активно
+            $now = dt::now();
+            $nextStartTime = self::getNextStartTime($rec, $now);
+            
+            // Вземаме секундите между сегашното време и времето на стартиране
+            $sec = dt::secsBetween($nextStartTime, $now);
+            
             if ($rec->state == 'pending') {
-                $rec->state = 'active';
-                $this->save($rec);
+                if (($sec <= 0) || ($sec <= $period)) {
+                    $rec->state = 'active';
+                    $this->save($rec);
+                    
+                    if (!($sec <= 0)) continue;
+                }
+            } elseif ($rec->state == 'active') {
+                if ($sec > $period) {
+                    $rec->state = 'pending';
+                    $this->save($rec);
+                }
             }
+            
+            if ($rec->state == 'pending') continue;
             
             // Вземаме данните за имейлите, до които ще пращаме
             $dataArr = blast_EmailSend::getDataArrForEmailId($rec->id, $rec->sendPerCall);
@@ -1795,7 +1800,7 @@ class blast_Emails extends core_Master
             // Ако състоянието е активирано или чернов
             if ($rec->state == 'active' || $rec->state == 'pending') {
                 
-                $nextStartTime = self::getNextStartTime($rec);
+                $nextStartTime = self::getNextStartTime($rec, core_Cron::getNextStartTime(self::$cronSytemId));
                 
                 $data->row->NextStartTime = dt::mysql2verbal($nextStartTime, 'smartTime');
             }
@@ -1807,13 +1812,12 @@ class blast_Emails extends core_Master
      * Връща времето на следващото стартиране
      * 
      * @param object $rec
+     * @param NULL|datetime $nextStartTime
      * 
      * @return datetime
      */
-    protected static function getNextStartTime($rec)
+    protected static function getNextStartTime($rec, $nextStartTime = NULL)
     {
-        $nextStartTime = core_Cron::getNextStartTime(self::$cronSytemId);
-        
         if (!$nextStartTime) {
             $nextStartTime = dt::now();
         }
