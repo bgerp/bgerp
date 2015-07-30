@@ -102,8 +102,8 @@ class planning_TaskDetails extends doc_Detail
     {
     	$this->FLD("taskId", 'key(mvc=planning_Tasks)', 'input=hidden,silent,mandatory,caption=Задача');
     	$this->FLD('operation', 'enum(start=Пускане,production=Произвеждане,waste=Отпадък,scrap=Бракуване,stop=Спиране)', 'silent,caption=Операция,mandatory,removeAndRefreshForm=code');
-    	$this->FLD('code', 'int', 'caption=Код,input=none');
     	$this->FLD('quantity', 'double', 'caption=Количество,mandatory');
+    	$this->FLD('code', 'int', 'caption=Код,input=none');
     	$this->FLD('weight', 'cat_type_Weight', 'caption=Тегло');
     	$this->FLD('employees', 'keylist(mvc=crm_Persons,select=name,makeLinks=short)', 'caption=Работници,tdClass=rightCol');
     	$this->FLD('fixedAsset', 'key(mvc=cat_Products,select=name)', 'caption=Машина,input=none,tdClass=rightCol');
