@@ -193,7 +193,7 @@ class blast_Emails extends core_Master
         
         $this->FLD('sendingFrom', 'time(suggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00)', 'caption=Начален час, input=none');
         $this->FLD('sendingTo', 'time(suggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00)', 'caption=Краен час, input=none');
-        $this->FLD('sendingDay', 'set(1=Понеделни, 2=Вторник, 3=Сряда, 4=Четвъртък, 5=Петък, 6=Събота, 0=Неделя)', 'caption=Ден, input=none');
+        $this->FLD('sendingDay', 'set(1=Пон, 2=Вто, 3=Сря, 4=Чет, 5=Пет, 6=Съб, 0=Нед)', 'caption=Ден, input=none, columns=7');
         
         $this->FLD('activatedBy', 'key(mvc=core_Users)', 'caption=Активирано от, input=none');
         
@@ -1202,7 +1202,7 @@ class blast_Emails extends core_Master
             // Добавяме имейл-а в листата на блокираните
             if ($uns) {
                 
-                blast_BlockedEmails::add($email);
+                blast_BlockedEmails::blockEmail($email);
             }
             
             $text = $conf->BGERP_BLAST_SUCCESS_REMOVED;
@@ -1211,7 +1211,7 @@ class blast_Emails extends core_Master
             $click = 'Премахване';
             
             // Премахваме имейл-а от листата на блокираните имейли
-            blast_BlockedEmails::remove($email);
+            blast_BlockedEmails::unBlockEmail($email);
             $text = $conf->BGERP_BLAST_SUCCESS_ADD;
         } else {
             $act = 'del';
