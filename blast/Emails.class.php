@@ -392,7 +392,7 @@ class blast_Emails extends core_Master
                 if ($sec > $period) {
                     $rec->state = 'pending';
                     $this->save($rec);
-                } else {
+                } elseif ($sec) {
                     continue ;
                 }
             }
