@@ -1091,14 +1091,14 @@ class blast_Emails extends core_Master
                 $updateMsg = 'Добавени са|* ' . $updateCnt . ' |записа';
             }
             
-            $nRec = new stdClass();
+            $rec->progress = blast_EmailSend::getSendingProgress($rec->id);
             
             // Ако състоянието е затворено, активираме имейла
             if ($rec->state == 'closed') {
-                $nRec->id = $rec->id;
-                $nRec->state = 'active';
-                $this->save($nRec);
+                $rec->state = 'active';
             }
+            
+            $this->save($rec);
         } else {
             $updateMsg = 'Няма нови записи за добавяне';
         }
