@@ -5,7 +5,23 @@
  * Максимален размер на чертежа
  */
 defIfNot('CAD_MAX_CANVAS_SIZE', 10000);
- 
+
+/**
+ * Цветове за различните видове линии
+ */
+defIfNot('CAD_PEN_COLOR', '#000000');
+
+defIfNot('CAD_INLINE_PEN_COLOR', '#000000');
+
+defIfNot('CAD_PATTERN_PEN_COLOR', '#af9696');
+
+defIfNot('CAD_MEASURE_PEN_COLOR', '#2d63ff');
+
+defIfNot('CAD_FOLDING_PEN_COLOR', '#7f7f00');
+
+defIfNot('CAD_PERFORATION_PEN_COLOR', '#000000');
+
+defIfNot('CAD_PEN_STROKE_WIDTH', 0.1);
 
 /**
  * class 'cad_Setup' - Начално установяване на пакета 'cad'
@@ -62,8 +78,13 @@ class cad_Setup extends core_ProtoSetup {
      * Описание на конфигурационните константи
      */
     var $configDescription = array(
-        'CAD_MAX_CANVAS_SIZE' => array('int', 'caption=Чертожна дъска->Максималнен размер(+-mm),  width=100%'),
-
+	        'CAD_MAX_CANVAS_SIZE' => array('int', 'caption=Чертожна дъска->Максималнен размер(+-mm),  width=100%'),
+	    	'CAD_PEN_COLOR' => array('color_Type(allowEmpty)', 'caption=Молив->Цвят за контур'),
+	    	'CAD_INLINE_PEN_COLOR' => array('color_Type(allowEmpty)', 'caption=Молив->Цвят за вътрешни линии'),
+	    	'CAD_PATTERN_PEN_COLOR' => array('color_Type(allowEmpty)', 'caption=Молив->Цвят на залепване'),
+	    	'CAD_MEASURE_PEN_COLOR' => array('color_Type(allowEmpty)', 'caption=Молив->Цвят на измерителна линия'),
+	    	'CAD_FOLDING_PEN_COLOR' => array('color_Type(allowEmpty)', 'caption=Молив->Цвят на линия за прегъване'),
+	    	'CAD_PEN_STROKE_WIDTH' => array('float', 'caption=Молив->Дебелина, suggestions=0.1|0.2|0.3|0.4|0.5|0.6|0.7|0.8|0.9|1'),
         );
     
     /**

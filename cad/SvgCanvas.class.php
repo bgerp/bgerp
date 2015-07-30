@@ -265,7 +265,7 @@ class cad_SvgCanvas extends core_BaseClass {
     }
 
 
-    function arcTo($x1, $y1, $r, $absolute = FALSE) 
+    function arcTo($x1, $y1, $r, $absolute = FALSE, $debug = FALSE) 
     {
         // Вземаме абсолютните координати на началната
         list($x0, $y0)  = $this->getCP();
@@ -281,27 +281,45 @@ class cad_SvgCanvas extends core_BaseClass {
         $AB = $B->add($A->neg());
         
         $M = $A->add(new cad_Vector($AB->a, $AB->r/2, 'polar'));
+        
+        $dist = $r * $r - $AB->r/2 * $AB->r/2;
 
-        $m = sqrt($r * $r - $AB->r/2 * $AB->r/2);
-
-        $C = $M->add( new cad_Vector($AB->a - pi()/2, $m, 'polar'));
-
+        if($dist < 0) {
+            $m = 0; 
+            $r = $AB->r / 2;
+        } else {
+            $m = sqrt($dist);
+        }
+ 
+        $C = $M->add( new cad_Vector($AB->a - pi()/2 + ($r<0 ? pi() : 0), $m, 'polar'));
+ 
         $CA = $A->add($C->neg());
         $CB = $B->add($C->neg());
  
-        if($CA->a > $CB->a) {
-            for($a = $CA->a; $a >= $CB->a; $a -= pi()/100) {
-                
-                $X = $C->add( new cad_Vector($a, $r, 'polar'));
-                $this->lineTo($X->x, $X->y, TRUE);
-
+        if($CA->a > $CB->a ) {
+            if($CA->a - $CB->a > 2*pi()) {
+                for($a = $CA->a; $a >= $CB->a + 2*pi(); $a = pi()/100) {
+                    $X = $C->add( new cad_Vector($a, abs($r), 'polar'));
+                    $this->lineTo($X->x, $X->y, TRUE);
+                }
+            } else {
+                for($a = $CA->a; $a >= $CB->a; $a -= pi()/100) {
+                    $X = $C->add( new cad_Vector($a, abs($r), 'polar'));
+                    $this->lineTo($X->x, $X->y, TRUE);
+                }
             }
         } else {
-            for($a = $CA->a; $a <= $CB->a; $a += pi()/1000) {
-                
-                $X = $C->add( new cad_Vector($a, $r, 'polar'));
-                $this->lineTo($X->x, $X->y, TRUE);
 
+            if($CB->a - $CA->a > pi()) {
+                for($a = $CA->a + 2*pi(); $a >= $CB->a; $a -= pi()/100) {
+                    $X = $C->add( new cad_Vector($a, abs($r), 'polar'));
+                    $this->lineTo($X->x, $X->y, TRUE);
+                }
+            } else {
+                for($a = $CA->a; $a <= $CB->a; $a += pi()/100) {
+                    $X = $C->add( new cad_Vector($a, abs($r), 'polar'));
+                    $this->lineTo($X->x, $X->y, TRUE);
+                }
             }
 
         }
