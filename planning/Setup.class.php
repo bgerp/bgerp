@@ -1,6 +1,17 @@
 <?php
 
 
+/**
+ * Начален номер на фактурите
+ */
+defIfNot('PLANNING_TASK_DETAIL_CODE_MIN', '0');
+
+
+/**
+ * Начален номер на фактурите
+ */
+defIfNot('PLANNING_TASK_DETAIL_CODE_MAX', '200000000');
+
 
 /**
  * Производствено планиране - инсталиране / деинсталиране
@@ -53,6 +64,7 @@ class planning_Setup extends core_ProtoSetup
     var $managers = array(
     		'planning_Jobs',
             'planning_Tasks',
+    		'planning_TaskDetails',
     		'planning_Stages',
     		'planning_ConsumptionNotes',
     		'planning_ConsumptionNoteDetails',
@@ -61,7 +73,6 @@ class planning_Setup extends core_ProtoSetup
     		'planning_DirectProductionNote',
     		'planning_DirectProductNoteDetails',
     		'planning_ObjectResources',
-    		//'migrate::replaceResources3'
         );
 
         
@@ -76,13 +87,13 @@ class planning_Setup extends core_ProtoSetup
      */
     var $menuItems = array(
             array(3.21, 'Производство', 'Планиране', 'planning_Jobs', 'default', "planning, ceo"),
-        );   
-
-
+        );
+    
+    
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    var $defClasses = "planning_PlanningReportImpl,planning_PurchaseReportImpl";
+    var $defClasses = "planning_PlanningReportImpl,planning_PurchaseReportImpl,planning_drivers_ProductionTask";
     
     
     /**
