@@ -66,9 +66,9 @@ class core_ProtoInner extends core_BaseClass {
     /**
 	 * Добавя полетата на вътрешния обект
 	 * 
-	 * @param core_Fieldset $fieldset
+	 * @param core_Form $fieldset
 	 */
-    public function addEmbeddedFields(core_FieldSet &$form)
+    public function addEmbeddedFields(core_Form &$form)
     {
     }
     

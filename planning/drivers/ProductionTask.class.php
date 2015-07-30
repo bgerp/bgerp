@@ -19,9 +19,9 @@ class planning_drivers_ProductionTask extends planning_drivers_BaseTask
 	/**
 	 * Добавяне на полета към формата на детайла
      * 
-     * @param core_FieldSet $form
+     * @param core_Form $form
 	 */
-	public function addEmbeddedFields(core_FieldSet &$form)
+	public function addEmbeddedFields(core_Form &$form)
 	{
 		$form->FLD('totalQuantity', 'double', 'mandatory,caption=Общо к-во');
 		$form->FLD('totalWeight', 'double', 'caption=Общо тегло,input=none');
