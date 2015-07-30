@@ -139,7 +139,7 @@
                 <div style='clear: both;'></div>
                 <div  style='margin-top: 10px; margin-bottom: 10px;'>
                     <div class='blast-table'>
-                        <div style='color: #333; font-size: 1em; font-weight: bold;'>|Изпращания|*:</div>
+                        <div style='color: #333; font-size: 1em; font-weight: bold; margin-bottom: 5px;'>|Изпращания|*:</div>
                         <!--ET_BEGIN blast_EmailSend--> [#blast_EmailSend#] <!--ET_END blast_EmailSend-->
                     </div>
                     <!--ET_BEGIN DETAILS-->
