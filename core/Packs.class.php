@@ -1097,7 +1097,7 @@ class core_Packs extends core_Manager
                     $fType = $form->getFieldType($field, FALSE);
                     
                     // Да може да се зададе автоматичната стойност
-                    if ((($fType instanceof type_Class) || ($fType instanceof type_Enum)) 
+                    if ((($fType instanceof type_Class) || ($fType instanceof type_Enum) || ($fType instanceof color_Type)) 
                         && ($fType->params['allowEmpty']) && ($form->rec->{$field} === NULL))  {
                         
                         $data[$field] = NULL;

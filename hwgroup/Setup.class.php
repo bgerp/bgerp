@@ -7,7 +7,7 @@
  * Драйвери за IP сензор на HW Group 
  *
  * @category  bgerp
- * @package   satec
+ * @package   hwgroup
  * @author    Milen Georgiev <milen@experta.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3

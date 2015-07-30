@@ -216,11 +216,9 @@ class blast_Emails extends core_Master
         
         $this->FLD('attachments', 'set(files=Файловете,documents=Документите)', 'caption=Прикачи, changable');
         
-        if (defined('EF_LANGUAGES')) {
-            $this->FLD('lg', 'enum(auto=Автоматично, ' . EF_LANGUAGES . ')', 'caption=Език,changable,notNull');
-        } else {
-            $this->FLD('lg', 'enum(auto=Автоматично)', 'caption=Език,changable,notNull');
-        }
+        cls::get('core_Lg');
+        
+        $this->FLD('lg', 'enum(auto=Автоматично, ' . EF_LANGUAGES . ')', 'caption=Език,changable,notNull');
         
         $this->FNC('srcLink', 'varchar', 'caption=Списък');
     }
@@ -1408,15 +1406,29 @@ class blast_Emails extends core_Master
             // По подразбиране да е избран текущия имейл на потребителя
             $form->setDefault('from', email_Outgoings::getDefaultInboxId($rec->folderId));
             
-            $rec->recipient = '[#company#]';
-            $rec->attn = '[#person#]';
-            $rec->email = '[#email#]';
-            $rec->tel = '[#tel#]';
-            $rec->fax = '[#fax#]';
-            $rec->country = '[#country#]';
-            $rec->pcode = '[#pCode#]';
-            $rec->place = '[#place#]';
-            $rec->address = '[#address#]';
+            $fieldsArr = array('company' => 'company', 
+            				   'person' => 'person', 
+            				   'email' => 'email', 
+            				   'tel' => 'tel', 
+            				   'fax' => 'fax', 
+            				   'country' => 'country', 
+            				   'pCode' => 'pCode', 
+            				   'place' => 'place', 
+            				   'address' => 'address');
+            
+            if ($perSrcObjId) {
+                $fieldsArr = $perClsInst->getPersonalizationDescr($perSrcObjId);
+            }
+            
+            $rec->recipient = $fieldsArr['company'] ? '[#company#]' : '';
+            $rec->attn = $fieldsArr['person'] ? '[#person#]' : '';
+            $rec->email = $fieldsArr['email'] ? '[#email#]' : '';
+            $rec->tel = $fieldsArr['tel'] ? '[#tel#]' : '';
+            $rec->fax = $fieldsArr['fax'] ? '[#fax#]' : '';
+            $rec->country = $fieldsArr['country'] ? '[#country#]' : '';
+            $rec->pcode = $fieldsArr['pCode'] ? '[#pCode#]' : '';
+            $rec->place = $fieldsArr['place'] ? '[#place#]' : '';
+            $rec->address = $fieldsArr['address'] ? '[#address#]' : '';
         }
     }
     
