@@ -84,7 +84,7 @@ class blast_BlockedEmails extends core_Manager
      */
     public static function isBlocked($email)
     {
-        if (self::fetch(array("#email = '[#1#]' AND (#state != 'blocked' OR #state != 'error')", $email))) return TRUE;
+        if (self::fetch(array("#email = '[#1#]' AND (#state = 'blocked' OR #state = 'error')", $email))) return TRUE;
         
         return FALSE;
     }
