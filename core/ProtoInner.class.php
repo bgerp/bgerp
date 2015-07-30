@@ -96,7 +96,7 @@ class core_ProtoInner extends core_BaseClass {
     /**
 	 * Подготвя данните необходими за показването на вградения обект
 	 */
-    public function prepareEmbeddedData()
+    public function prepareEmbeddedData_()
     {
     }
 
