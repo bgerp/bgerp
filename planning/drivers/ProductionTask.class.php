@@ -53,6 +53,7 @@ class planning_drivers_ProductionTask extends planning_drivers_BaseTask
 			$form->setOptions('fixedAsset', array('' => '') + $arr);
 			$form->setField('fixedAsset', 'input');
 		}
+		$form->setField('message', 'input=none');
 	}
 	
 	
@@ -116,6 +117,7 @@ class planning_drivers_ProductionTask extends planning_drivers_BaseTask
 		 // Колко е общото к-во досега
 		 $dQuery = planning_TaskDetails::getQuery();
 		 $dQuery->where("#taskId = {$rec->id}");
+		 $dQuery->where("#state != 'rejected'");
 		 $dQuery->XPR('sumQuantity', 'double', 'SUM(#quantity)');
 		 $dQuery->XPR('sumWeight', 'double', 'SUM(#weight)');
 		 $res = $dQuery->fetch();

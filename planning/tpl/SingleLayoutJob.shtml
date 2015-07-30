@@ -123,15 +123,20 @@
 	       </td>
         </tr>
          <!--ET_END SALE_INFO-->
+         
+         <!--ET_BEGIN Tasks-->
         <tr>
            <th colspan="3" class='job-head'>
-           |Производствени задачи|*
+           |Производствени задачи|* [#TASK_COUNT#]
            </th>
         </tr>
         <tr>
-           <td colspan="3">
+           <td colspan="3" style='padding-top:15px'>
            [#Tasks#]
            </td>
+        </tr>
+         <!--ET_END Tasks-->
+        
     </table>
     <!--ET_BEGIN shareLog-->
     <div class='sharing-history clearfix21'>

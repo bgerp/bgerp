@@ -13,7 +13,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-abstract class planning_drivers_BaseTask extends core_ProtoInner
+class planning_drivers_BaseTask extends core_ProtoInner
 {
     
 	
@@ -45,6 +45,7 @@ abstract class planning_drivers_BaseTask extends core_ProtoInner
      */
     public function addDetailFields_(core_FieldSet &$form)
     {
+    	
     }
     
     
@@ -69,7 +70,7 @@ abstract class planning_drivers_BaseTask extends core_ProtoInner
      */
     public function checkDetailForm(core_Form &$form)
     {
-    	
+    	//bp();
     }
     
     

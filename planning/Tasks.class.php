@@ -45,7 +45,7 @@ class planning_Tasks extends core_Embedder
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, doc_SharablePlg, doc_DocumentPlg, planning_plg_StateManager, planning_Wrapper, acc_plg_DocumentSummary, plg_Search, change_Plugin';
+    public $loadList = 'plg_RowTools, doc_SharablePlg, doc_DocumentPlg, planning_plg_StateManager, planning_Wrapper, acc_plg_DocumentSummary, plg_Search, change_Plugin, plg_Clone';
 
     
     /**
@@ -81,13 +81,25 @@ class planning_Tasks extends core_Embedder
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт, name = Документ, title,timeStart, timeDuration, timeEnd, sharedUsers, progress, state';
+    public $listFields = 'tools=Пулт, name = Документ, jobId, title,timeStart, timeDuration, timeEnd, inCharge, progress, state';
+    
+    
+    /**
+     * Кои колони да скриваме ако янма данни в тях
+     */
+    public $hideListFieldsIfEmpty = 'jobId';
     
     
     /**
      * Детайли
      */
     public $details = 'planning_TaskDetails';
+    
+    
+    /**
+     * Кои детайли да се копират при клониране
+     */
+    public $cloneDetailes = 'planning_TaskDetails';
     
     
     /**
@@ -161,14 +173,14 @@ class planning_Tasks extends core_Embedder
      */
     function description()
     {
-    	$this->FLD('title', 'varchar(128)', 'caption=Заглавие,mandatory,width=100%,changable');
+    	$this->FLD('title', 'varchar(128)', 'caption=Заглавие,mandatory,width=100%,changable,silent');
     	
     	$this->FLD('priority', 'enum(low=Нисък,
                                     normal=Нормален,
                                     high=Висок,
                                     critical=Критичен)',
-    			'caption=Приоритет,mandatory,maxRadio=4,columns=4,notNull,value=normal');
-    	$this->FLD('inCharge' , 'key(mvc=core_Users, select=nick,roles=planning|ceo)', 'caption=Отговорник,mandatory');
+    			'caption=Приоритет,mandatory,maxRadio=4,columns=4,notNull,value=normal,silent');
+    	$this->FLD('inCharge' , 'key(mvc=core_Users, select=nick,roles=planning|ceo)', 'caption=Отговорник,mandatory,changable');
     	$this->FLD('description', 'richtext(bucket=calTasks,rows=3)', 'caption=Описание,changable');
     	
     	$this->FLD('timeStart', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00)',
@@ -178,6 +190,8 @@ class planning_Tasks extends core_Embedder
     	$this->FLD('sharedUsers', 'userList(roles=planning|ceo)', 'caption=Допълнително->Споделени,changable,formOrder=104');
     	$this->FLD('progress', 'percent', 'caption=Прогрес,input=none,notNull,value=0');
     	$this->FLD('jobId', 'key(mvc=planning_Jobs)', 'input=none,caption=По задание');
+    	
+    	$this->setDbIndex('jobId');
     }
     
     
@@ -234,15 +248,40 @@ class planning_Tasks extends core_Embedder
     		$row->timeStart = ht::createLink(dt::mysql2verbal($rec->timeStart, 'smartTime'), array('cal_Calendar', 'day', 'from' => $row->timeStart, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
     		$row->timeEnd = ht::createLink(dt::mysql2verbal($rec->timeEnd, 'smartTime'), array('cal_Calendar', 'day', 'from' => $row->timeEnd, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
     	}
+    	
+    	if($rec->jobId){
+    		$row->jobId = planning_Jobs::getLink($rec->jobId, 0);
+    	}
+    	
+    	if($row->timeStart === ''){
+    		unset($row->timeStart);
+    	}
+    	
+    	if($row->timeEnd === ''){
+    		unset($row->timeEnd);
+    	}
     }
     
     
     /**
-     * Подготвя задачие към заданията
+     * Подготвя задачите към заданията
      */
     public function prepareTasks($data)
     {
-    	//@TODO
+    	$data->recs = $data->rows = array();
+    	
+    	// Намираме всички задачи детайл на задание
+    	$query = $this->getQuery();
+    	$query->where("#state != 'rejected'");
+    	$query->where("#jobId = {$data->masterId}");
+    	$query->XPR('orderByState', 'int', "(CASE #state WHEN 'wakeup' THEN 1 WHEN 'active' THEN 2 WHEN 'stopped' THEN 3 WHEN 'closed' THEN 4 WHEN 'pending' THEN 5 ELSE 6 END)");
+    	$query->orderBy('#orderByState=ASC');
+    	
+    	// Подготвяме данните
+    	while($rec = $query->fetch()){
+    		$data->recs[$rec->id] = $rec;
+    		$data->rows[$rec->id] = $this->recToVerbal($rec);
+    	}
     }
     
     
@@ -251,7 +290,19 @@ class planning_Tasks extends core_Embedder
      */
     public function renderTasks($data)
     {
-    	//@TODO
+    	// Ако няма намерени записи, не се реднира нищо
+    	if(!count($data->rows)) return NULL;
+    	
+    	// Рендираме таблицата с намерените задачи
+    	$table = cls::get('core_TableView', array('mvc' => $this));
+    	$table->setFieldsToHideIfEmptyColumn('timeStart,timeDuration,timeEnd');
+    	
+    	$details = $table->get($data->rows, 'tools=Пулт,progress=Прогрес,name=Документ,title=Заглавие,timeStart=Начало, timeDuration=Продължителност, timeEnd=Край, inCharge=Отговорник');
+    	
+    	$count = count($data->rows);
+    	$details->append("<small>($count)</small>", 'TASK_COUNT');
+    	
+    	return $details;
     }
     
     
@@ -290,6 +341,10 @@ class planning_Tasks extends core_Embedder
     public static function on_AfterInputEditForm($mvc, &$form)
     {
     	$rec = &$form->rec;
+    	
+    	if(isset($rec->originId)){
+    		$form->setReadOnly('innerClass');
+    	}
     	
     	if($form->isSubmitted()){
     		
@@ -357,8 +412,32 @@ class planning_Tasks extends core_Embedder
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
     	if($action == 'changerec' && isset($rec)){
-    		if($rec->state != 'pending'){
+    		if($rec->state != 'pending' && $rec->state != 'active'){
     			$requiredRoles = 'no_one';
+    		}
+    	}
+    	
+    	if($action == 'add'){
+    		if(isset($rec->originId)){
+    			$origin = doc_Containers::getDocument($rec->originId);
+    			if(!($origin->getInstance() instanceof planning_Jobs)){
+    				$requiredRoles = 'no_one';
+    			} else {
+    				if($origin->fetchField('state') != 'active'){
+    					$requiredRoles = 'no_one';
+    				}
+    			}
+    			
+    			if(isset($rec->innerClass)){
+    				$Driver = cls::get($rec->innerClass);
+    				if(!cls::haveInterface('planning_TaskDetailIntf', $Driver)){
+    					$requiredRoles = 'no_one';
+    				} else {
+    					if(!$Driver->canSelectInnerObject()){
+    						$requiredRoles = 'no_one';
+    					}
+    				}
+    			}
     		}
     	}
     }
@@ -441,8 +520,16 @@ class planning_Tasks extends core_Embedder
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
+    	$form = &$data->form;
+    	$rec = &$form->rec;
+    	
     	$cu = core_Users::getCurrent();
-    	$data->form->setDefault('inCharge', $cu);
+    	$form->setDefault('inCharge', $cu);
+    	
+    	if(isset($rec->originId)){
+    		$origin = doc_Containers::getDocument($rec->originId);
+    		$form->setDefault('jobId', $origin->that);
+    	}
     }
     
     

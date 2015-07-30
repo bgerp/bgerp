@@ -22,6 +22,7 @@
                     
                     <td style='padding-left:30px;max-width:45%;'>
                         |Прогрес|*: [#progressBar#] [#progress#] <br>
+                        <!--ET_BEGIN jobId-->|Към задание|*: [#jobId#]<!--ET_END jobId-->
                     </td>
                 </tr>
             </table>
@@ -29,5 +30,9 @@
         </div>
     </div>
     <div style='padding-top:6px;padding-bottom:6px'>[#description#]</div>
-    [#planning_TaskDetails#]
+    <div class='overflow-scroll'>[#planning_TaskDetails#]</div>
+    
+    <div style='font-size:0.9em'>
+    [#ADD_FORM#]
+    </div>
     [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

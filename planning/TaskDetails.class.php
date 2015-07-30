@@ -38,7 +38,7 @@ class planning_TaskDetails extends doc_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, planning_Wrapper, plg_RowNumbering, plg_AlignDecimals2';
+    public $loadList = 'plg_RowTools, planning_Wrapper, plg_RowNumbering, plg_AlignDecimals2, plg_SaveAndNew, plg_Rejected, plg_Modified, plg_Created';
     
     
     /**
@@ -50,7 +50,7 @@ class planning_TaskDetails extends doc_Detail
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo, planning';
+    public $canEdit = 'no_one';
     
     
     /**
@@ -62,13 +62,13 @@ class planning_TaskDetails extends doc_Detail
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'ceo, planning';
+    public $canDelete = 'no_one';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'RowNumb=Пулт,code,operation,quantity,weight,employees,fixedAsset';
+    public $listFields = 'RowNumb=Пулт,code,operation,quantity,weight,employees,fixedAsset,modifiedOn,modifiedBy,message=@';
     
         
     /**
@@ -86,7 +86,7 @@ class planning_TaskDetails extends doc_Detail
     /**
      * Кои колони да скриваме ако янма данни в тях
      */
-    public $hideListFieldsIfEmpty = 'weight,employees,fixedAsset';
+    public $hideListFieldsIfEmpty = 'weight,employees,fixedAsset,message';
     
     
     /**
@@ -101,9 +101,14 @@ class planning_TaskDetails extends doc_Detail
     	$this->FLD('weight', 'cat_type_Weight', 'caption=Тегло');
     	$this->FLD('employees', 'keylist(mvc=crm_Persons,select=name,makeLinks=short)', 'caption=Работници,tdClass=rightCol');
     	$this->FLD('fixedAsset', 'key(mvc=cat_Products,select=name)', 'caption=Машина,input=none,tdClass=rightCol');
+    	$this->FLD('message',    'richtext(rows=2)', 'caption=Съобщение');
     	
     	// Поле в което драйвера на мастъра ще записва данни
     	$this->FLD('data', "blob(1000000, serialize, compress)", "caption=Данни,input=none,column=none,single=none");
+    	
+    	$this->FLD('state',
+    			'enum(active=Активирано,rejected=Оттеглено)',
+    			'caption=Състояние,column=none,input=none,notNull,value=active');
     	
     	$this->setDbUnique('code');
     }
@@ -127,15 +132,18 @@ class planning_TaskDetails extends doc_Detail
     	$employeesArr = cls::get('crm_Persons')->makeArray4Select('name', "#groupList LIKE '%|{$groupId}|%' AND #state != 'rejected'");
     	$form->setSuggestions('employees', $employeesArr);
     	
-    	if($rec->operation == 'production'){
-    		$form->setField('code', 'input');
-    	}
-    	
     	// Добавяме последните данни за дефолтни
     	if($lastRec = $mvc->fetch("#taskId = {$rec->taskId}")){
     		$form->setDefault('operation', $lastRec->operation);
     		$form->setDefault('employees', $lastRec->employees);
     		$form->setDefault('fixedAsset', $lastRec->fixedAsset);
+    	}
+    	
+    	if($rec->operation == 'production'){
+    		$form->setField('code', 'input');
+    		//bp($rec);
+    	} else {
+    		//bp($rec);
     	}
     }
     
@@ -219,10 +227,49 @@ class planning_TaskDetails extends doc_Detail
      */
     public static function on_AfterPrepareDetail($mvc, &$res, &$data)
     {
+    	if($mvc->haveRightFor('add', (object)array('taskId' => $data->masterId))){
+    		
+    		// Добавяме форма за добавяне на детайли
+    		$data->addForm = $mvc->getAddForm($data);
+    		
+    		// Ако формата е събмитната
+    		if($data->addForm->isSubmitted()){
+    			$rec = $data->addForm->rec;
+    			
+    			// Записваме детайла
+    			if($mvc->haveRightFor('add', (object)array('taskId' => $data->masterId))){
+    				$mvc->save($rec);
+    			}
+    			
+    			// Редирект
+    			return Redirect(array($mvc->Master, 'single', $data->masterId), 'Записа е добавен успешно;');
+    		}
+    	}
+    	
     	// Даваме възможност на драйвера да промени подготовката ако иска
     	if($Driver = planning_Tasks::getDriver($data->masterId)){
     		$Driver->prepareDetailData($data);
     	}
+    }
+    
+    
+    /**
+     * Връща форма за добавяне в сингъла под таблицата на детайла
+     */
+    private function getAddForm($data)
+    {
+    	$form = $this->getForm();
+    	$form->class = 'simpleForm';
+    	$form->rec->taskId = $data->masterId;
+    	
+    	$form->input(NULL, 'silent');
+    	$this->invoke('AfterPrepareEditForm', array((object)array('form' => &$form), (object)array('form' => &$form)));
+    	$form->input();
+    	$this->invoke('AfterInputEditForm', array(&$form));
+    	
+    	$form->toolbar->addSbBtn('Прогрес', 'save', 'id=save, ef_icon = img/16/progressbar.png', 'title=Добави прогрес');
+    	
+    	return $form;
     }
     
     
@@ -241,6 +288,10 @@ class planning_TaskDetails extends doc_Detail
     		$tpl = parent::renderDetail_($data);
     	}
     	
+    	if(isset($data->addForm)){
+    		$tpl->replace($data->addForm->renderHtml(), 'ADD_FORM');
+    	}
+    	
     	// Връщаме рендирания детайл
     	return $tpl;
     }
@@ -256,12 +307,13 @@ class planning_TaskDetails extends doc_Detail
     		$row->fixedAsset = "<span style='font-size:0.9em'>{$row->fixedAsset}</span>";
     	}
     	
-    	if($rec->employees){
-    		$row->employees = str_replace(',', '<br>', $row->employees);
-    	}
-    	
     	if($rec->code){
     		$row->code = "<b>{$row->code}</b>";
+    	}
+    	
+    	$row->ROW_ATTR['class'] .= " state-{$rec->state}";
+    	if($rec->state == 'rejected'){
+    		$row->ROW_ATTR['title'] = tr('Оттеглено от') . " " . core_Users::getVerbal($rec->modifiedBy, 'nick');
     	}
     }
     
@@ -271,7 +323,7 @@ class planning_TaskDetails extends doc_Detail
     */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-    	if(($action == 'delete' || $action == 'add' || $action == 'edit') && isset($rec->taskId)){
+    	if(($action == 'add' || $action == 'reject') && isset($rec->taskId)){
     		
     		// Ако мастъра не е чернова не може детайлите му да се модифицират
     		$state = $mvc->Master->fetchField($rec->taskId, 'state');
@@ -288,5 +340,14 @@ class planning_TaskDetails extends doc_Detail
     protected static function on_AfterPrepareListToolbar($mvc, &$data)
     {
     	$data->toolbar->removeBtn('btnAdd');
+    }
+    
+    
+    /**
+     * Преди извличане на записите от БД
+     */
+    public static function on_BeforePrepareListRecs($mvc, &$res, $data)
+    {
+    	$data->query->orWhere("#state = 'rejected'");
     }
 }
