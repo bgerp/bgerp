@@ -33,13 +33,13 @@ class planning_Tasks extends core_Embedder
     /**
      * Заглавие
      */
-    public $title = 'Производствени задачи';
+    public $title = 'Задачи за производство';
     
     
     /**
      * Еденично заглавие
      */
-    public $singleTitle = 'Производствена задача';
+    public $singleTitle = 'Задача за производство';
     
     
     /**
