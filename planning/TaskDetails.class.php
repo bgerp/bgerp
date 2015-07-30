@@ -66,6 +66,12 @@ class planning_TaskDetails extends doc_Detail
     
     
     /**
+     * Кой може да го изтрие?
+     */
+    public $canList = 'no_one';
+    
+    
+    /**
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'RowNumb=Пулт,code,operation,quantity,weight,employees,fixedAsset,modifiedOn,modifiedBy,message=@';
@@ -202,6 +208,7 @@ class planning_TaskDetails extends doc_Detail
     {
     	$conf = core_Packs::getConfig('planning');
     	
+    	// Намираме последния въведен код
     	$query = planning_TaskDetails::getQuery();
     	$query->where("#code IS NOT NULL");
     	$query->where("#operation = 'production'");
@@ -209,14 +216,13 @@ class planning_TaskDetails extends doc_Detail
     	$query->orderBy('id', 'DESC');
     	$code = $query->fetch()->code;
     	
-    	$conf->PLANNING_TASK_DETAIL_CODE_MIN += 1;
+    	// Ако завършва на число инкрементираме го иначе добавяме еденица
+    	$code = (str::increment($code)) ? str::increment($code) : "{$code}" . 1;
     	
-    	$code = (str::increment($code)) ? str::increment($code) : "{$code}" . $conf->PLANNING_TASK_DETAIL_CODE_MIN;
+    	// Инкрементираме кода, докато достигнем свободен код
     	while(self::fetch("#code = '{$code}'")){
     		$code = str::increment($code);
     	}
-    	
-    	//@TODO да проверява дали числото не е в максимума
     	
     	return $code;
     }
@@ -288,6 +294,7 @@ class planning_TaskDetails extends doc_Detail
     		$tpl = parent::renderDetail_($data);
     	}
     	
+    	// Ако има форма за добавяне, рендираме я
     	if(isset($data->addForm)){
     		$tpl->replace($data->addForm->renderHtml(), 'ADD_FORM');
     	}
@@ -348,6 +355,7 @@ class planning_TaskDetails extends doc_Detail
      */
     public static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
+    	// Искаме да показваме и оттеглените детайли
     	$data->query->orWhere("#state = 'rejected'");
     }
 }

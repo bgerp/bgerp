@@ -270,6 +270,10 @@ class planning_Tasks extends core_Embedder
     {
     	$data->recs = $data->rows = array();
     	
+    	// Дали според продуктовия драйвер на артикула в заданието има дефолтни задачи
+    	$ProductDriver = cat_Products::getDriver($data->masterData->rec->productId);
+    	$defaultTasks = $ProductDriver->getDefaultJobTasks();
+    	
     	// Намираме всички задачи детайл на задание
     	$query = $this->getQuery();
     	$query->where("#state != 'rejected'");
@@ -281,6 +285,34 @@ class planning_Tasks extends core_Embedder
     	while($rec = $query->fetch()){
     		$data->recs[$rec->id] = $rec;
     		$data->rows[$rec->id] = $this->recToVerbal($rec);
+    		
+    		// Премахваме от масива с дефолтни задачи, тези с чието име има сега създадена задача
+    		$title = $data->rows[$rec->id]->title;
+    		if($obj = array_filter($defaultTasks, function ($e) use ($title) { return $e->title == $title;})){
+        		unset($defaultTasks[key($obj)]);
+        	}
+    	}
+    	
+    	// Ако има дефолтни задачи, показваме ги визуално в $data->rows за по-лесно добавяне
+    	if(count($defaultTasks)){
+    		foreach ($defaultTasks as $taskInfo){
+    				
+    				// Ако не може да бъде доабвена задача не показваме реда
+    				if(!planning_Tasks::haveRightFor('add', (object)array('originId' => $data->masterData->rec->containerId, 'innerClass' => $taskInfo->driver))) continue;
+    			
+    				$url = array('planning_Tasks', 'add', 'originId' => $data->masterData->rec->containerId, 'innerClass' => $taskInfo->driver, 'title' => $taskInfo->title, 'ret_url' => TRUE);
+    				$row = new stdClass();
+    				$row->title = $taskInfo->title;
+    				$row->tools = ht::createLink('', $url, FALSE, 'ef_icon=img/16/add.png,title=Добавяне на нова задача');
+    				$row->ROW_ATTR['style'] .= 'background-color:#f8f8f8;color:#777';
+    				
+    				$data->rows[] = $row;
+    		}
+    	}
+    	
+    	// Бутон за нова задача ако има права
+    	if(planning_Tasks::haveRightFor('add', (object)array('originId' => $data->masterData->rec->containerId))){
+    		$data->addUrl = array('planning_Tasks', 'add', 'originId' => $data->masterData->rec->containerId, 'ret_url' => TRUE);
     	}
     }
     
@@ -290,19 +322,24 @@ class planning_Tasks extends core_Embedder
      */
     public function renderTasks($data)
     {
-    	// Ако няма намерени записи, не се реднира нищо
-    	if(!count($data->rows)) return NULL;
+    	$tpl = new ET("");
     	
+    	// Ако няма намерени записи, не се реднира нищо
     	// Рендираме таблицата с намерените задачи
     	$table = cls::get('core_TableView', array('mvc' => $this));
     	$table->setFieldsToHideIfEmptyColumn('timeStart,timeDuration,timeEnd');
+    		 
+    	$tpl = $table->get($data->rows, 'tools=Пулт,progress=Прогрес,name=Документ,title=Заглавие,timeStart=Начало, timeDuration=Продължителност, timeEnd=Край, inCharge=Отговорник');
+    		 
+    	$count = count($data->recs);
+    	$tpl->append("<small>($count)</small>", 'TASK_COUNT');
     	
-    	$details = $table->get($data->rows, 'tools=Пулт,progress=Прогрес,name=Документ,title=Заглавие,timeStart=Начало, timeDuration=Продължителност, timeEnd=Край, inCharge=Отговорник');
+    	if(isset($data->addUrl)){
+    		$addBtn = ht::createBtn('Задача', $data->addUrl, FALSE, FALSE, 'title=Създаване на задача по заданието,ef_icon=img/16/task-normal.png');
+    		$tpl->append("<div style='margin-top:8px'>{$addBtn}</div>");
+    	}
     	
-    	$count = count($data->rows);
-    	$details->append("<small>($count)</small>", 'TASK_COUNT');
-    	
-    	return $details;
+    	return $tpl;
     }
     
     
@@ -342,7 +379,7 @@ class planning_Tasks extends core_Embedder
     {
     	$rec = &$form->rec;
     	
-    	if(isset($rec->originId)){
+    	if(isset($rec->originId) && isset($rec->innerClass)){
     		$form->setReadOnly('innerClass');
     	}
     	
