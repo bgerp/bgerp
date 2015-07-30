@@ -102,7 +102,7 @@ class planning_TaskDetails extends doc_Detail
     {
     	$this->FLD("taskId", 'key(mvc=planning_Tasks)', 'input=hidden,silent,mandatory,caption=Задача');
     	$this->FLD('operation', 'enum(start=Пускане,production=Произвеждане,waste=Отпадък,scrap=Бракуване,stop=Спиране)', 'silent,caption=Операция,mandatory,removeAndRefreshForm=code');
-    	$this->FLD('code', 'varchar(16)', 'caption=Код,input=none');
+    	$this->FLD('code', 'int', 'caption=Код,input=none');
     	$this->FLD('quantity', 'double', 'caption=Количество,mandatory');
     	$this->FLD('weight', 'cat_type_Weight', 'caption=Тегло');
     	$this->FLD('employees', 'keylist(mvc=crm_Persons,select=name,makeLinks=short)', 'caption=Работници,tdClass=rightCol');
@@ -145,11 +145,9 @@ class planning_TaskDetails extends doc_Detail
     		$form->setDefault('fixedAsset', $lastRec->fixedAsset);
     	}
     	
+    	// Показваме полето за въвеждане на код само при операция "произвеждане"
     	if($rec->operation == 'production'){
     		$form->setField('code', 'input');
-    		//bp($rec);
-    	} else {
-    		//bp($rec);
     	}
     }
     
@@ -210,18 +208,13 @@ class planning_TaskDetails extends doc_Detail
     	
     	// Намираме последния въведен код
     	$query = planning_TaskDetails::getQuery();
-    	$query->where("#code IS NOT NULL");
-    	$query->where("#operation = 'production'");
-    	$query->show('code');
-    	$query->orderBy('id', 'DESC');
-    	$code = $query->fetch()->code;
-    	
-    	// Ако завършва на число инкрементираме го иначе добавяме еденица
-    	$code = (str::increment($code)) ? str::increment($code) : "{$code}" . 1;
+    	$query->XPR('maxCode', 'int', 'MAX(#code)');
+    	$code = $query->fetch()->maxCode;
     	
     	// Инкрементираме кода, докато достигнем свободен код
+    	$code++;
     	while(self::fetch("#code = '{$code}'")){
-    		$code = str::increment($code);
+    		$code++;
     	}
     	
     	return $code;
@@ -334,7 +327,7 @@ class planning_TaskDetails extends doc_Detail
     		
     		// Ако мастъра не е чернова не може детайлите му да се модифицират
     		$state = $mvc->Master->fetchField($rec->taskId, 'state');
-    		if($state != 'active' && $state != 'pending'){
+    		if($state != 'active' && $state != 'pending' && $state != 'wakeup'){
     			$requiredRoles = 'no_one';
     		}
     	}
