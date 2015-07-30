@@ -166,7 +166,10 @@ class blast_EmailSend extends core_Detail
             // За всеки нов запис увеличаваме брояча
             $id = self::save($nRec, NULL, 'IGNORE');
             
-            if ($id) $cnt++;
+            if ($id) {
+                $cnt++;
+                blast_BlockedEmails::addEmail($toEmail, FALSE);
+            }
         }
         
         return $cnt;
