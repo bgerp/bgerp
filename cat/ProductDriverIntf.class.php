@@ -193,4 +193,18 @@ class cat_ProductDriverIntf extends core_InnerObjectIntf
 	{
 		return $this->getJobFolderName();
 	}
+	
+	
+	/**
+	 * Връща информация за какви дефолт задачи могат да се задават към заданието за производство
+	 *
+	 * @return array $drivers - масив с информация за драйверите, с ключ името на масива
+	 * 				    -> title    - дефолт име на задачата
+	 * 					-> driver   - драйвър на задача
+	 * 					-> priority - приоритет (low=Нисък, normal=Нормален, high=Висок, critical)
+	 */
+	public function getDefaultJobTasks()
+	{
+		return $this->getDefaultJobTasks();
+	}
 }
