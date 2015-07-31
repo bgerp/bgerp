@@ -43,13 +43,26 @@ class bgerp_F extends core_Manager
         $name = mb_strtolower($name);
         
         // Очакваме да има изпратен документ с mid' а
-        expect(($rec = doclog_Documents::getActionRecForMid($mid, FALSE)) && ($rec->containerId), 'Няма информация.');
+        expect(($actRec = doclog_Documents::getActionRecForMid($mid, FALSE)) && ($actRec->containerId), 'Няма информация.');
         
         // Записваме, ако не е записоно, че файла е отворено от ip
-        doclog_Documents::opened($rec->containerId, $mid);
+        doclog_Documents::opened($actRec->containerId, $mid);
         
         // Вземаме документа
-        $doc = doc_Containers::getDocument($rec->containerId);
+        $doc = doc_Containers::getDocument($actRec->containerId);
+        
+        // Ако екшъна не е за изпращане вземаме него
+        if ($actRec->action != doclog_Documents::ACTION_SEND) {
+            $actRecSend = doclog_Documents::getActionRecForMid($mid, doclog_Documents::ACTION_SEND);
+            
+            if ($actRecSend) {
+                $actRec = $actRecSend;
+            }
+        }
+        
+        if ($actRec && $actRec->data->to) {
+            log_Browsers::setVars(array('email' => $actRec->data->to));
+        }
         
         // Записа на файла
         $docRec = $doc->fetch();
@@ -125,13 +138,26 @@ class bgerp_F extends core_Manager
         } else {
             
             // Опитваме се да определим изпращенето от MID'a
-            expect(($rec = doclog_Documents::getActionRecForMid($mid, FALSE)) && ($rec->containerId), 'Няма информация.');
+            expect(($actRec = doclog_Documents::getActionRecForMid($mid, FALSE)) && ($actRec->containerId), 'Няма информация.');
             
             // Записваме, ако не е записоно, че файла е отворено от ip
-            doclog_Documents::opened($rec->containerId, $mid);
+            doclog_Documents::opened($actRec->containerId, $mid);
             
             // Вземаме документа
-            $doc = doc_Containers::getDocument($rec->containerId);
+            $doc = doc_Containers::getDocument($actRec->containerId);
+        
+            // Ако екшъна не е за изпращане вземаме него
+            if ($actRec->action != doclog_Documents::ACTION_SEND) {
+                $actRecSend = doclog_Documents::getActionRecForMid($mid, doclog_Documents::ACTION_SEND);
+                
+                if ($actRecSend) {
+                    $actRec = $actRecSend;
+                }
+            }
+            
+            if ($actRec && $actRec->data->to) {
+                log_Browsers::setVars(array('email' => $actRec->data->to));
+            }
             
             // Запис за документа
             $docRec = $doc->fetch();
