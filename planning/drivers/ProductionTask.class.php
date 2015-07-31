@@ -40,6 +40,9 @@ class planning_drivers_ProductionTask extends planning_drivers_BaseTask
 	 */
 	public function addDetailFields_(core_FieldSet &$form)
 	{
+		$form->setFieldType('operation', 'enum(start=Пускане,production=Произвеждане,waste=Отпадък,scrap=Бракуване,stop=Спиране)');
+		$form->setField('operation', 'input,mandatory');
+		
 		if($this->innerForm->fixedAssets){
 			$keylist = $this->innerForm->fixedAssets;
 			if(isset($form->rec->data->fixedAsset)){
@@ -53,6 +56,7 @@ class planning_drivers_ProductionTask extends planning_drivers_BaseTask
 			$form->setOptions('fixedAsset', array('' => '') + $arr);
 			$form->setField('fixedAsset', 'input');
 		}
+		
 		$form->setField('message', 'input=none');
 	}
 	
