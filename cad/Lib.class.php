@@ -6,7 +6,7 @@
  *
  *
  * @category  extrapack
- * @package   bagshapes
+ * @package   bgerp
  * @author    Donika Peneva <donyka111@abv.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
@@ -14,12 +14,6 @@
  * @link
  */
 class cad_Lib {
-    
-    /**
-     * Задължителен интерфейс, който фигурите трябва да имат
-     */
-    var $interfaces = 'cad_ShapeIntf';
-    
     
     /**
      * Наименование на фигурата
@@ -125,7 +119,7 @@ class cad_Lib {
     			array(
     					'fill' => "none",
     					'stroke' => $strokeColor,
-    					'stroke-width' => 2*$strokeWidth,
+    					'stroke-width' => $strokeWidth,
     					'stroke-dasharray' => '2,1'
     			)
     	);
@@ -148,7 +142,7 @@ class cad_Lib {
     			array(
     					'fill' => "none",
     					'stroke' => $strokeColor,
-    					'stroke-width' => 2*$strokeWidth,
+    					'stroke-width' => $strokeWidth,
     					'stroke-dasharray' => '1.5, 1'
     			)
     	);
@@ -171,7 +165,7 @@ class cad_Lib {
     			array(
     					'fill' => "none",
     					'stroke' => $strokeColor,
-    					'stroke-width' => 2*$strokeWidth,
+    					'stroke-width' => $strokeWidth,
     					'stroke-dasharray' => '2, 8'
     			)
     	);
