@@ -145,7 +145,11 @@ class planning_TaskDetails extends doc_Detail
     	$form->setSuggestions('employees', $employeesArr);
     	
     	// Добавяме последните данни за дефолтни
-    	if($lastRec = $mvc->fetch("#taskId = {$rec->taskId}")){
+    	$query = $mvc->getQuery();
+    	$query->where("#taskId = {$rec->taskId}");
+    	$query->orderBy('id', 'DESC');
+    	
+    	if($lastRec = $query->fetch()){
     		$form->setDefault('operation', $lastRec->operation);
     		$form->setDefault('employees', $lastRec->employees);
     		$form->setDefault('fixedAsset', $lastRec->fixedAsset);
