@@ -154,4 +154,53 @@ class cad_Lib {
     					'stroke-width' => $strokeWidth)
     	);
     }
+
+    
+    /**
+     * Създава прозорец по зададения път, който вътре е защрихован
+     *
+     * @param unknown $canvas
+     * @param array $p
+     */
+    static function getHatchingHolder($canvas, $p)
+    {
+    	extract($p);
+    
+    	$conf = core_Packs::getConfig('cad');
+    
+    	
+    	$canvas->openDefinitions();
+    	
+    	$canvas->openPattern(array("id"=>"diagonalHatch",
+                "patternUnits"=>"userSpaceOnUse" ,
+                "width"=>"50" ,
+                "height"=>"50" 
+    	));
+    	
+    	
+    	$canvas->startPath(
+    			array(
+    					'stroke' => '#333333',
+    					'stroke-width' => "0.1",
+    			)
+    	);
+    	
+    	$canvas->moveTo(0, 0, TRUE);
+    	$canvas->lineTo(50, 50, TRUE);
+    	
+    	$canvas->closePattern();
+    	$canvas->closeDefinitions();
+    	
+    	
+    	$strokeColor = $conf->CAD_PEN_COLOR;
+    	$strokeWidth = $conf->CAD_PEN_STROKE_WIDTH;
+    
+    	$canvas->startPath(
+    			array(
+    					'stroke' => "#888",
+    					'fill' => "url(#diagonalHatch)",
+    					'stroke-width' => $strokeWidth
+    			)
+    	);
+    }
 }
