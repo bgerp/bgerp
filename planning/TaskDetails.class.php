@@ -262,6 +262,12 @@ class planning_TaskDetails extends doc_Detail
     		$tpl->replace($data->addForm->renderHtml(), 'ADD_FORM');
     	}
     	
+    	// Добавяме бутон за добавяне на прогрес при нужда
+    	if(planning_TaskDetails::haveRightFor('add', (object)array('taskId' => $data->masterId))){
+    		$ht = ht::createLink('', array('planning_TaskDetails', 'add', 'taskId' => $data->masterId, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/add.png,title=Добавяне на прогрес към задачата');
+    		$tpl->append($ht, 'ADD_BTN');
+    	} 
+    	
     	// Връщаме рендирания детайл
     	return $tpl;
     }
