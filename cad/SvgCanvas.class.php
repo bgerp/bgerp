@@ -330,6 +330,79 @@ class cad_SvgCanvas extends core_BaseClass {
 
 
 
+    function addText($x, $y, $text, $rotation = 0, $absolute = FALSE)
+    {
+        list($x, $y) = self::toPix($x, $y);
+
+        $gr = $this->content[] = new stdClass();
+        $gr->name = 'g';
+        $gr->attr = array();
+        $gr->haveBody = TRUE;
+
+        $tx = $this->content[] = new stdClass();
+        $tx->name = 'text';
+        $tx->attr = array();
+        $tx->body = $text;
+      
+        $grEnd = $this->content[] = new stdClass();
+        $grEnd->name = '/g';
+ 
+		if( $this->font->size ) {
+			$size = $this->font->size;
+		} else {
+			$size = 40;
+		}
+
+		if( $this->font->face ) {
+			$style .= " font-family=\"{$this->font->face}\"";
+		}
+
+		if( $this->font->color ) {
+			$style .= " fill=\"{$this->font->color}\"";
+		} 
+
+ 		if( $this->font->weight ) {
+			$style .= " font-weight=\"{$this->font->weight}\"";
+		} 
+        
+
+
+        $tx->attr = array('font-size' => $size,  'x' => $x, 'y' => $y, 'style' => $style);
+
+
+	    $this->setCP($x, $y, $absolute);
+
+		$width = $size*strlen($text)*0.3;
+		$height = $size;
+
+		$x1 = $x + cos(deg2rad($rotation+90))*$height;
+		$y1 = $y + sin(deg2rad($rotation+90))*$height;
+		
+		$alpha = atan($height/$width);
+		$l = sqrt($width*$width + $height*$height);
+
+		$x2 = $x + cos(deg2rad($rotation)+$alpha)*$l;
+		$y2 = $y + sin(deg2rad($rotation)+$alpha)*$l;
+
+		$x3 = $x + cos(deg2rad($rotation))*$width;
+		$y3 = $y + sin(deg2rad($rotation))*$width;
+
+		
+		$this->setCP($x,$y);
+		$this->setCP($x1,$y1);
+		$this->setCP($x2,$y2);
+		$this->setCP($x3,$y3);
+
+		if($rotation == 0) { 
+			//$this->output( "<text font-size=\"{$size}\"  x=\"{$x}\" y=\"{$y}\"  {$style} >$text</text>\n");
+		} else {
+			$a = round(cos(deg2rad($rotation)),5);
+			$b = round(sin(deg2rad($rotation)),5);
+			$c = -$b;
+			$d = $a;
+			$gr->attr = array('transform' => "matrix($a, $b, $c, $d, ".(-$x*$a+$y*$b+$x).", ".(-$x*$b-$y*$a+$y).")");
+		}
+	}
 
 
 
@@ -363,6 +436,28 @@ class cad_SvgCanvas extends core_BaseClass {
     {
         $groupEnd = $this->content[] = new stdClass();
         $groupEnd->name = '/g';
+	}
+	
+	
+	/**
+	 * Отваря новa шарка
+	 */
+	function openPattern($attr = array())
+	{
+		$group = $this->content[] = new stdClass();
+		$group->name = 'pattern';
+		$group->attr = $attr;
+		$group->haveBody = TRUE;
+	}
+	
+	
+	/**
+	 * Затваряне на шарка
+	 */
+	function closePattern()
+	{
+		$groupEnd = $this->content[] = new stdClass();
+		$groupEnd->name = '/pattern';
 	}
 	
 	
@@ -410,7 +505,6 @@ class cad_SvgCanvas extends core_BaseClass {
  		$res .= "<svg width=\"{$widthMm}mm\" height=\"{$heightMm}mm\" viewBox=\"{$left} {$top} {$width} {$height}\"" .
                 "\n        version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n";
 
-        
         // Генериране на съдържанието
         foreach($this->content as $tag) {
             $res .= $this->getXML($tag);
@@ -455,7 +549,7 @@ class cad_SvgCanvas extends core_BaseClass {
             }
             
             if(!isset($tag->body)) {
-                if ($tag->haveBody) {
+                if ($tag->haveBody || $tag->name{0} == '/') {
                     $element = "<{$tag->name}{$attrStr}>\n";
                 } else {
                     $element = "<{$tag->name}{$attrStr}/>\n";

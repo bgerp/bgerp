@@ -166,7 +166,7 @@ class vislog_ResourcesReport extends frame_BaseDriver
      *
      * @param stdClass $data
      */
-    public function renderEmbeddedData($data)
+    public function renderEmbeddedData(&$embedderTpl, $data)
     {
     	$tpl = new ET("
             <h1>Отчет за посещенията по ресурс</h1>
@@ -223,7 +223,7 @@ class vislog_ResourcesReport extends frame_BaseDriver
     	$tpl->append($html, 'RESOURCES');
         $tpl->append($pager->getHtml(), 'PAGER');
 
-    	return  $tpl;
+    	$embedderTpl->append($tpl, 'data');
     }
      
     

@@ -162,12 +162,11 @@ class vislog_IpReports extends frame_BaseDriver
      *
      * @param stdClass $data
      */
-    public function renderEmbeddedData($data)
+    public function renderEmbeddedData(&$embedderTpl, $data)
     {
     	$tpl = new ET("
             <h1>Отчет за посещенията по IP</h1>
             [#FORM#]
-            
     		[#PAGER#]
             [#VISITS#]
     		[#PAGER#]
@@ -223,7 +222,7 @@ class vislog_IpReports extends frame_BaseDriver
     	$tpl->append($html, 'VISITS');
         $tpl->append($pager->getHtml(), 'PAGER');
     
-    	return  $tpl;
+    	$embedderTpl->append($tpl, 'data');
     }
      
     

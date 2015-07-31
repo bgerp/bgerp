@@ -89,6 +89,13 @@ class planning_drivers_BaseTask extends core_ProtoInner
     		
     		// За всички $recс от детайла
     		foreach ($data->recs as $id => &$rec){
+    			$values = (array)$rec;
+    			foreach ($values as $name => $value){
+    				if($form->getFieldType($name) != $data->mvc->getFieldType($name)){
+    					$data->rows[$id]->{$name} = $form->getFieldType($name)->toVerbal($value);
+    				}
+    			}
+    			
     			if(isset($rec->data)){
     				
     				// Ако има в блоб полето кеширани стойностти от драйвера добавяме ги в $data->recs и $data->rows

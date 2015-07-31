@@ -256,28 +256,10 @@ class core_Embedder extends core_Master
 	public static function on_AfterRenderSingle($mvc, &$tpl, $data)
 	{
 		if($Driver = $mvc->getDriver($data->rec)){
-			
-			// Драйвера рендира подготвените данни
-			$embededDataTpl = new ET($Driver->renderEmbeddedData($data->embeddedData));
-			
-			// Мениджъра рендира рендираните данни от драйвера
-			$mvc->renderEmbeddedData($tpl, $embededDataTpl, $data);
+			$Driver->renderEmbeddedData($tpl, $data->embeddedData);
 		} else {
 			$tpl->append(new ET(tr("|*<h2 class='red'>|Проблем при показването на драйвера|*</h2>")));
 		}
-	}
-	
-	
-	/**
-	 * Рендира данните върнати от драйвера
-	 * 
-	 * @param core_ET $tpl
-	 * @param core_ET $embededDataTpl
-	 * @param stdClass $data
-	 */
-	public function renderEmbeddedData_(core_ET &$tpl, core_ET $embededDataTpl, &$data)
-	{
-		$tpl->replace($embededDataTpl, $this->innerStateField);
 	}
 	
 	

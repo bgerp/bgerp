@@ -474,6 +474,21 @@ class core_FieldSet extends core_BaseClass
     
     
     /**
+     * Задава/Подменя тип на полето
+     * 
+     * @param string $name - име на полето
+     * @param mixed $Type - инстанция или име на тип
+     * @return void
+     */
+    function setFieldType($name, $type)
+    {
+    	$fieldType = core_Type::getByName($type);
+    	
+    	$this->getField($name)->type = $fieldType;
+    }
+    
+    
+    /**
      * Задава подадените параметри към типа на полето
      *
      * @param string $name

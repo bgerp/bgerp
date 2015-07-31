@@ -209,12 +209,11 @@ class cat_SalesArticleReport extends frame_BaseDriver
      *
      * @param stdClass $data
      */
-    public function renderEmbeddedData($data)
+    public function renderEmbeddedData(&$embedderTpl, $data)
     {
     	$tpl = new ET("
             <h1>Продажбени артикули</h1>
             [#FORM#]
-            
     		[#PAGER#]
             [#ARTICLE#]
     		[#PAGER#]
@@ -241,7 +240,6 @@ class cat_SalesArticleReport extends frame_BaseDriver
     	$f->FLD('salesCnt', 'int', 'caption=Брой срещания->Продажба');
     	$f->FLD('shipmentCnt', 'int', 'caption=Брой срещания->Доставка');
 
-    	
     	$rows = array();
 
     	$ft = $f->fields;
@@ -284,7 +282,7 @@ class cat_SalesArticleReport extends frame_BaseDriver
     	$tpl->append($html, 'ARTICLE');
         $tpl->append($pager->getHtml(), 'PAGER');
     
-    	return  $tpl;
+    	$embedderTpl->append($tpl, $data);
     }  
      
     

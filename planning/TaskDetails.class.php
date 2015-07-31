@@ -107,9 +107,9 @@ class planning_TaskDetails extends doc_Detail
     public function description()
     {
     	$this->FLD("taskId", 'key(mvc=planning_Tasks)', 'input=hidden,silent,mandatory,caption=Задача');
-    	$this->FLD('operation', 'enum(start=Пускане,production=Произвеждане,waste=Отпадък,scrap=Бракуване,stop=Спиране)', 'silent,caption=Операция,mandatory,removeAndRefreshForm=code');
+    	$this->FLD('code', 'bigint', 'caption=Код,input=none');
+    	$this->FLD('operation', 'varchar', 'silent,caption=Операция,input=none,removeAndRefreshForm=code');
     	$this->FLD('quantity', 'double', 'caption=Количество,mandatory');
-    	$this->FLD('code', 'int', 'caption=Код,input=none');
     	$this->FLD('weight', 'cat_type_Weight', 'caption=Тегло');
     	$this->FLD('employees', 'keylist(mvc=crm_Persons,select=name,makeLinks=short)', 'caption=Работници,tdClass=rightCol');
     	$this->FLD('fixedAsset', 'key(mvc=cat_Products,select=name)', 'caption=Машина,input=none,tdClass=rightCol');
@@ -145,7 +145,11 @@ class planning_TaskDetails extends doc_Detail
     	$form->setSuggestions('employees', $employeesArr);
     	
     	// Добавяме последните данни за дефолтни
-    	if($lastRec = $mvc->fetch("#taskId = {$rec->taskId}")){
+    	$query = $mvc->getQuery();
+    	$query->where("#taskId = {$rec->taskId}");
+    	$query->orderBy('id', 'DESC');
+    	
+    	if($lastRec = $query->fetch()){
     		$form->setDefault('operation', $lastRec->operation);
     		$form->setDefault('employees', $lastRec->employees);
     		$form->setDefault('fixedAsset', $lastRec->fixedAsset);
@@ -231,6 +235,7 @@ class planning_TaskDetails extends doc_Detail
     public static function on_AfterPrepareDetail($mvc, &$res, &$data)
     {
     	// Даваме възможност на драйвера да промени подготовката ако иска
+    	$data->mvc = $mvc;
     	if($Driver = planning_Tasks::getDriver($data->masterId)){
     		$Driver->prepareDetailData($data);
     	}
@@ -256,6 +261,12 @@ class planning_TaskDetails extends doc_Detail
     	if(isset($data->addForm)){
     		$tpl->replace($data->addForm->renderHtml(), 'ADD_FORM');
     	}
+    	
+    	// Добавяме бутон за добавяне на прогрес при нужда
+    	if(planning_TaskDetails::haveRightFor('add', (object)array('taskId' => $data->masterId))){
+    		$ht = ht::createLink('', array('planning_TaskDetails', 'add', 'taskId' => $data->masterId, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/add.png,title=Добавяне на прогрес към задачата');
+    		$tpl->append($ht, 'ADD_BTN');
+    	} 
     	
     	// Връщаме рендирания детайл
     	return $tpl;

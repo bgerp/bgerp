@@ -352,7 +352,7 @@ class planning_PlanningReportImpl extends frame_BaseDriver
      *
      * @param stdClass $data
      */
-    public function renderEmbeddedData($data)
+    public function renderEmbeddedData(&$embedderTpl, $data)
     {
     	if(empty($data)) return;
     	 
@@ -390,7 +390,7 @@ class planning_PlanningReportImpl extends frame_BaseDriver
     	     $tpl->append($data->pager->getHtml(), 'PAGER');
     	}
     
-    	return  $tpl;
+    	$embedderTpl->append($tpl, 'data');
     }
 
     

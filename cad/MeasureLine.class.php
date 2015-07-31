@@ -82,7 +82,9 @@ class cad_MeasureLine {
        //A1 - B1
         $canvas->moveTo($A1->x, $A1->y, TRUE);
         $canvas->lineTo($B1->x, $B1->y, TRUE);
-        
+        $ab = new cad_Vector($B1->x - $A1->x, $B1->y - $A1->y);
+        $canvas->addText(($B1->x + $A1->x)/2,  ($B1->y + $A1->y)/2, round($ab->r) . ' mm', rad2deg($ab->a));
+
         cad_Lib::getMeasureLine($canvas, $p);
         
         //генериране на едната стрелка
