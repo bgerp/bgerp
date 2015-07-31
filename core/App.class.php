@@ -1023,22 +1023,30 @@ class core_App
     
     
     /**
-     * Увеличава времето за изпълнение на скрипта
+     * Увеличава времето за изпълнение на скрипта, само ако
+     * вече не е зададено по-голямо време
      * 
      * @param int $time - времето за увеличение в секунди
+     * @param boolean $force - форсиране или не
      * @return void
      */
-    public static function setTimeLimit($time)
+    public static function setTimeLimit($time, $force = FALSE)
     {
     	expect(is_numeric($time));
     	
-    	// Увеличава времето за изпълнение
-    	set_time_limit($time);
+    	$now = time();
     	
-    	// Записваме последното зададено време за изпълнение;
-    	self::$runningTimeLimit = $time;
-    	
-    	// Записваме времето на последното увеличаване на времето за изпълнение на скрипта
-    	self::$timeSetTimeLimit = time();
+    	// Ако форсираме или новото максимално време за изпълнение е по-голямо от старото задаваме го
+    	if($force || (self::$timeSetTimeLimit + self::$runningTimeLimit) < ($now + $time)){
+    		
+    		// Увеличава времето за изпълнение
+    		set_time_limit($time);
+    		
+    		// Записваме последното зададено време за изпълнение;
+    		self::$runningTimeLimit = $time;
+    		 
+    		// Записваме времето на последното увеличаване на времето за изпълнение на скрипта
+    		self::$timeSetTimeLimit = $now;
+    	}
     }
 }
