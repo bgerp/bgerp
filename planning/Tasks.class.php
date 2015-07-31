@@ -97,12 +97,6 @@ class planning_Tasks extends core_Embedder
     
     
     /**
-     * Кои детайли да се копират при клониране
-     */
-    public $cloneDetailes = 'planning_TaskDetails';
-    
-    
-    /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     public $rowToolsField = 'tools';
