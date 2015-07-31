@@ -440,6 +440,28 @@ class cad_SvgCanvas extends core_BaseClass {
 	
 	
 	/**
+	 * Отваря новa шарка
+	 */
+	function openPattern($attr = array())
+	{
+		$group = $this->content[] = new stdClass();
+		$group->name = 'pattern';
+		$group->attr = $attr;
+		$group->haveBody = TRUE;
+	}
+	
+	
+	/**
+	 * Затваряне на шарка
+	 */
+	function closePattern()
+	{
+		$groupEnd = $this->content[] = new stdClass();
+		$groupEnd->name = '/pattern';
+	}
+	
+	
+	/**
 	 * Отваряне на дефиниции
 	 */
 	function openDefinitions($attr = array())
@@ -483,7 +505,6 @@ class cad_SvgCanvas extends core_BaseClass {
  		$res .= "<svg width=\"{$widthMm}mm\" height=\"{$heightMm}mm\" viewBox=\"{$left} {$top} {$width} {$height}\"" .
                 "\n        version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n";
 
-        
         // Генериране на съдържанието
         foreach($this->content as $tag) {
             $res .= $this->getXML($tag);
