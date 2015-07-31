@@ -78,13 +78,12 @@ class cad_Lib {
     	$strokeWidth = $conf->CAD_PEN_STROKE_WIDTH;
     	$strokeColor = $conf->CAD_INLINE_PEN_COLOR;
     	
-    	
     	$canvas->startPath(
     			array(
     					'fill' => "none",
     					'stroke' => $strokeColor,
     					'stroke-width' => $strokeWidth,
-    					'stroke-dasharray' => '3,2'
+    					'stroke-dasharray' => '1, 0.7'
     			)
     	);
     }
@@ -131,11 +130,33 @@ class cad_Lib {
     					'fill' => "none",
     					'stroke' => $strokeColor,
     					'stroke-width' => 2*$strokeWidth,
-    					'stroke-dasharray' => '3,2'
+    					'stroke-dasharray' => '1.5, 1'
     			)
     	);
     }
     
+    
+    /**
+     * Създава молив - перфориране
+     */
+    static function getPerforationLine($canvas, $p)
+    {
+    	extract($p);
+    
+    	$conf = core_Packs::getConfig('bagshapes');
+    
+    	$strokeWidth = $conf->CAD_PEN_STROKE_WIDTH;
+    	$strokeColor = $conf->CAD_PEN_COLOR;
+    
+    	$canvas->startPath(
+    			array(
+    					'fill' => "none",
+    					'stroke' => $strokeColor,
+    					'stroke-width' => 2*$strokeWidth,
+    					'stroke-dasharray' => '2, 8'
+    			)
+    	);
+    }
     
     /**
      * Създава молив - измерителни линии
