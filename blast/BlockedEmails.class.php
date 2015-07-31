@@ -189,6 +189,8 @@ class blast_BlockedEmails extends core_Manager
      */
     public static function validateEmail_($email)
     {
+        static $validatedDomainsArr = array();
+        
         if (!trim($email)) return ;
         
         if (!type_Email::isValidEmail($email)) return ;
@@ -197,13 +199,18 @@ class blast_BlockedEmails extends core_Manager
         
         if (!trim($domain)) return ;
         
-        $DrData = cls::get('drdata_Emails');
+        $domain = mb_strtolower($domain);
         
-        $validate = drdata_Emails::mxAndARecordsValidate($domain);
+        if (!isset($validatedDomainsArr[$domain])) {
+            
+            $DrData = cls::get('drdata_Emails');
+            
+            $validatedDomainsArr[$domain] = drdata_Emails::mxAndARecordsValidate($domain);
+        }
         
-        if ($validate === FALSE) return FALSE;
+        if ($validatedDomainsArr[$domain] === FALSE) return FALSE;
         
-        if (!$validate) return ;
+        if (!$validatedDomainsArr[$domain]) return ;
         
         return TRUE;
     }
