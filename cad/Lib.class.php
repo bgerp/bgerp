@@ -74,7 +74,7 @@ class cad_Lib {
     {
     	extract($p);
     	 
-    	$conf = core_Packs::getConfig('bagshapes');
+    	$conf = core_Packs::getConfig('cad');
     	 
     	$canvas->startPath(
     			array(
@@ -92,7 +92,7 @@ class cad_Lib {
     {
     	extract($p);
     	
-    	$conf = core_Packs::getConfig('bagshapes');
+    	$conf = core_Packs::getConfig('cad');
     	
     	$strokeWidth = $conf->CAD_PEN_STROKE_WIDTH;
     	$strokeColor = $conf->CAD_INLINE_PEN_COLOR;
@@ -115,7 +115,7 @@ class cad_Lib {
     {
     	extract($p);
   
-    	$conf = core_Packs::getConfig('bagshapes');
+    	$conf = core_Packs::getConfig('cad');
     	 
     	$strokeWidth = $conf->CAD_PEN_STROKE_WIDTH;
     	$strokeColor = $conf->CAD_PATTERN_PEN_COLOR;
@@ -139,7 +139,7 @@ class cad_Lib {
     {
     	extract($p);
     
-    	$conf = core_Packs::getConfig('bagshapes');
+    	$conf = core_Packs::getConfig('cad');
     
     	$strokeWidth = $conf->CAD_PEN_STROKE_WIDTH;
     	$strokeColor = $conf->CAD_FOLDING_PEN_COLOR;
@@ -162,7 +162,7 @@ class cad_Lib {
     {
     	extract($p);
     
-    	$conf = core_Packs::getConfig('bagshapes');
+    	$conf = core_Packs::getConfig('cad');
     
     	$strokeWidth = $conf->CAD_PEN_STROKE_WIDTH;
     	$strokeColor = $conf->CAD_PEN_COLOR;
@@ -184,14 +184,16 @@ class cad_Lib {
     {
     	extract ($p);
     	
-    	$conf = core_Packs::getConfig('bagshapes');
+    	$conf = core_Packs::getConfig('cad');
     	$strokeColor = $conf->CAD_MEASURE_PEN_COLOR;
+    	$strokeWidth = $conf->CAD_PEN_STROKE_WIDTH;
     	
     	$canvas->startPath(
     			array(
     					'fill' => 'none',
     					'stroke' => $strokeColor,
-    					'stroke-width' => $strokeWidth)
+    					'stroke-width' => $strokeWidth
+    			)
     	);
     }
 
@@ -206,9 +208,6 @@ class cad_Lib {
     {
     	extract($p);
     
-    	$conf = core_Packs::getConfig('cad');
-    
-    	
     	$canvas->openDefinitions();
     	
     	$canvas->openPattern(array("id"=>"diagonalHatch",
