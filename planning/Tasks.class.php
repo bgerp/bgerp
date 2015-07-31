@@ -539,6 +539,10 @@ class planning_Tasks extends core_Embedder
      */
     protected static function on_AfterPrepareSingleToolbar($mvc, $data)
     {
+    	if(planning_TaskDetails::haveRightFor('add', (object)array('taskId' => $data->rec->id))){
+    		 $data->toolbar->addBtn('Прогрес', array('planning_TaskDetails', 'add', 'taskId' => $data->rec->id, 'ret_url' => TRUE), 'ef_icon=img/16/progressbar.png', 'title=Добавяне на прогрес към задачата');
+    	}
+    	
     	if($data->rec->state == 'active' || $data->rec->state == 'pending'){
     		if(cal_Reminders::haveRightFor('add', (object)array('originId' => $data->rec->containerId))){
     			$data->toolbar->addBtn('Напомняне', array('cal_Reminders', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''), 'ef_icon=img/16/rem-plus.png, row=2', 'title=Създаване на ново напомняне');

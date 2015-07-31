@@ -203,6 +203,8 @@ class planning_TaskDetails extends doc_Detail
     
     /**
      * Връща дефолтен код
+     * 
+     * @return int $code - следващия най-голям свободен код
      */
     private function getDefaultCode()
     {
@@ -228,49 +230,10 @@ class planning_TaskDetails extends doc_Detail
      */
     public static function on_AfterPrepareDetail($mvc, &$res, &$data)
     {
-    	if($mvc->haveRightFor('add', (object)array('taskId' => $data->masterId))){
-    		
-    		// Добавяме форма за добавяне на детайли
-    		$data->addForm = $mvc->getAddForm($data);
-    		
-    		// Ако формата е събмитната
-    		if($data->addForm->isSubmitted()){
-    			$rec = $data->addForm->rec;
-    			
-    			// Записваме детайла
-    			if($mvc->haveRightFor('add', (object)array('taskId' => $data->masterId))){
-    				$mvc->save($rec);
-    			}
-    			
-    			// Редирект
-    			return Redirect(array($mvc->Master, 'single', $data->masterId), 'Записа е добавен успешно');
-    		}
-    	}
-    	
     	// Даваме възможност на драйвера да промени подготовката ако иска
     	if($Driver = planning_Tasks::getDriver($data->masterId)){
     		$Driver->prepareDetailData($data);
     	}
-    }
-    
-    
-    /**
-     * Връща форма за добавяне в сингъла под таблицата на детайла
-     */
-    private function getAddForm($data)
-    {
-    	$form = $this->getForm();
-    	$form->class = 'simpleForm';
-    	$form->rec->taskId = $data->masterId;
-    	
-    	$form->input(NULL, 'silent');
-    	$this->invoke('AfterPrepareEditForm', array((object)array('form' => &$form), (object)array('form' => &$form)));
-    	$form->input();
-    	$this->invoke('AfterInputEditForm', array(&$form));
-    	
-    	$form->toolbar->addSbBtn('Прогрес', 'save', 'id=save, ef_icon = img/16/progressbar.png', 'title=Добави прогрес');
-    	
-    	return $form;
     }
     
     
