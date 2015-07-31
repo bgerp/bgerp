@@ -66,6 +66,25 @@ class cad_Lib {
     	);
     }
     
+    
+    /**
+     * Създава молив - пунктир
+     */
+    static function getTransparentLinePen($canvas, $p)
+    {
+    	extract($p);
+    	 
+    	$conf = core_Packs::getConfig('bagshapes');
+    	 
+    	$canvas->startPath(
+    			array(
+    					'fill' => $fill,
+    					'fill-opacity' => $opacity
+    			)
+    	);
+    }
+    
+    
     /**
      * Създава молив - пунктир
      */
