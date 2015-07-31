@@ -66,6 +66,25 @@ class cad_Lib {
     	);
     }
     
+    
+    /**
+     * Създава молив - пунктир
+     */
+    static function getTransparentLinePen($canvas, $p)
+    {
+    	extract($p);
+    	 
+    	$conf = core_Packs::getConfig('bagshapes');
+    	 
+    	$canvas->startPath(
+    			array(
+    					'fill' => $fill,
+    					'fill-opacity' => $opacity
+    			)
+    	);
+    }
+    
+    
     /**
      * Създава молив - пунктир
      */
@@ -78,13 +97,12 @@ class cad_Lib {
     	$strokeWidth = $conf->CAD_PEN_STROKE_WIDTH;
     	$strokeColor = $conf->CAD_INLINE_PEN_COLOR;
     	
-    	
     	$canvas->startPath(
     			array(
     					'fill' => "none",
     					'stroke' => $strokeColor,
     					'stroke-width' => $strokeWidth,
-    					'stroke-dasharray' => '3,2'
+    					'stroke-dasharray' => '1, 0.7'
     			)
     	);
     }
@@ -131,11 +149,33 @@ class cad_Lib {
     					'fill' => "none",
     					'stroke' => $strokeColor,
     					'stroke-width' => 2*$strokeWidth,
-    					'stroke-dasharray' => '3,2'
+    					'stroke-dasharray' => '1.5, 1'
     			)
     	);
     }
     
+    
+    /**
+     * Създава молив - перфориране
+     */
+    static function getPerforationLine($canvas, $p)
+    {
+    	extract($p);
+    
+    	$conf = core_Packs::getConfig('bagshapes');
+    
+    	$strokeWidth = $conf->CAD_PEN_STROKE_WIDTH;
+    	$strokeColor = $conf->CAD_PEN_COLOR;
+    
+    	$canvas->startPath(
+    			array(
+    					'fill' => "none",
+    					'stroke' => $strokeColor,
+    					'stroke-width' => 2*$strokeWidth,
+    					'stroke-dasharray' => '2, 8'
+    			)
+    	);
+    }
     
     /**
      * Създава молив - измерителни линии
@@ -152,6 +192,55 @@ class cad_Lib {
     					'fill' => 'none',
     					'stroke' => $strokeColor,
     					'stroke-width' => $strokeWidth)
+    	);
+    }
+
+    
+    /**
+     * Създава прозорец по зададения път, който вътре е защрихован
+     *
+     * @param unknown $canvas
+     * @param array $p
+     */
+    static function getHatchingHolder($canvas, $p)
+    {
+    	extract($p);
+    
+    	$conf = core_Packs::getConfig('cad');
+    
+    	
+    	$canvas->openDefinitions();
+    	
+    	$canvas->openPattern(array("id"=>"diagonalHatch",
+                "patternUnits"=>"userSpaceOnUse" ,
+                "width"=>"50" ,
+                "height"=>"50" 
+    	));
+    	
+    	
+    	$canvas->startPath(
+    			array(
+    					'stroke' => '#333333',
+    					'stroke-width' => "0.1",
+    			)
+    	);
+    	
+    	$canvas->moveTo(0, 0, TRUE);
+    	$canvas->lineTo(50, 50, TRUE);
+    	
+    	$canvas->closePattern();
+    	$canvas->closeDefinitions();
+    	
+    	
+    	$strokeColor = $conf->CAD_PEN_COLOR;
+    	$strokeWidth = $conf->CAD_PEN_STROKE_WIDTH;
+    
+    	$canvas->startPath(
+    			array(
+    					'stroke' => "#888",
+    					'fill' => "url(#diagonalHatch)",
+    					'stroke-width' => $strokeWidth
+    			)
     	);
     }
 }
