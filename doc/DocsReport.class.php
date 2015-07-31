@@ -188,12 +188,11 @@ class doc_DocsReport extends frame_BaseDriver
      *
      * @param stdClass $data
      */
-    public function renderEmbeddedData($data)
+    public function renderEmbeddedData(&$embedderTpl, $data)
     {
     	$tpl = new ET("
             <h1>Създадени документи тип \"[#DOCTYPE#]\"</h1>
             [#FORM#]
-            
     		[#PAGER#]
             [#DOCS#]
     		[#PAGER#]
@@ -256,7 +255,7 @@ class doc_DocsReport extends frame_BaseDriver
     	$tpl->append($html, 'DOCS');
         $tpl->append($pager->getHtml(), 'PAGER');
     
-    	return  $tpl;
+    	$embedderTpl->append($tpl, 'data');
     }  
      
     

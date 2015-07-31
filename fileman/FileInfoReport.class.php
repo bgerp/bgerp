@@ -156,7 +156,7 @@ class fileman_FileInfoReport extends frame_BaseDriver
      * 
      * @return core_ET
      */
-    public function renderEmbeddedData($data)
+    public function renderEmbeddedData(&$embedderTpl, $data)
     {
         $tpl = new ET(tr("|*
             <h1>|Статистика за файловете|*</h1>
@@ -276,7 +276,7 @@ class fileman_FileInfoReport extends frame_BaseDriver
     	$tpl->append($cntType->toVerbal($data->filesCnt), 'CNT');
     	$tpl->append($lenType->toVerbal($data->filesLen), 'LEN');
     	
-        return  $tpl;
+        $embedderTpl->append($tpl, 'data');
     }
     
     

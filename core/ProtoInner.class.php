@@ -106,7 +106,7 @@ class core_ProtoInner extends core_BaseClass {
 	 * 
 	 * @param stdClass $data
 	 */
-    public function renderEmbeddedData($data)
+    public function renderEmbeddedData(&$embedderTpl, $data)
     {
     }
 

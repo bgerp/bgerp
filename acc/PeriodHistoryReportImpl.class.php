@@ -240,7 +240,7 @@ class acc_PeriodHistoryReportImpl extends acc_HistoryReportImpl
 	 *
 	 * @param stdClass $data
 	 */
-	public function renderEmbeddedData($data)
+	public function renderEmbeddedData(&$embedderTpl, $data)
 	{
 		if(empty($data)) return;
 		
@@ -270,7 +270,7 @@ class acc_PeriodHistoryReportImpl extends acc_HistoryReportImpl
 			$tpl->append($data->Pager->getHtml(), 'PAGER_BOTTOM');
 		}
 		 
-		return $tpl;
+		$embedderTpl->append($tpl, 'data');
 	}
 	
 	

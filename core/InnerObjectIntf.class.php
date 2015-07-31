@@ -101,9 +101,9 @@ class core_InnerObjectIntf
 	 * 
 	 * @param stdClass $data
 	 */
-	public function renderEmbeddedData($data)
+	public function renderEmbeddedData(&$embedderTpl, $data)
 	{
-		return $this->class->renderEmbeddedData($data);
+		return $this->class->renderEmbeddedData($embedderTpl, $data);
 	}
 	
 	

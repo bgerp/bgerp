@@ -291,10 +291,10 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     /**
      * Рендира вградения обект
      */
-    public function renderEmbeddedData($data)
+    public function renderEmbeddedData(&$embedderTpl, $data)
     {
     	if(empty($data)) return;
-    	//bp($data);
+    	
     	$tpl = $this->getReportLayout();
     	$tpl->replace($this->title, 'TITLE');
     	
@@ -361,11 +361,9 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     	$form->rec = $this->innerForm;
     	$form->class = 'simpleForm';
     
-    	//$tpl->append($form->renderStaticHtml(), 'FORM');
     	$this->prependStaticForm($tpl, 'FORM');
     	 
-    	// Връщаме шаблона
-    	return $tpl;
+    	$embedderTpl->append($tpl, 'data');
     }
     
     

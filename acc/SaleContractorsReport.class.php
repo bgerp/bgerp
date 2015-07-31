@@ -106,10 +106,9 @@ class acc_SaleContractorsReport extends acc_BalanceReportImpl
      *
      * @param stdClass $data
      */
-    public function renderEmbeddedData($data)
+    public function renderEmbeddedData(&$embedderTpl, $data)
     {
-
-        $tpl = $this->getReportLayout();
+		$tpl = $this->getReportLayout();
 
         $tpl->replace($this->title, 'TITLE');
         $this->prependStaticForm($tpl, 'FORM');
@@ -118,7 +117,6 @@ class acc_SaleContractorsReport extends acc_BalanceReportImpl
 
         $tableMvc = new core_Mvc;
 
-        //$tableMvc->FLD('creditQuantity', 'int', 'tdClass=accCell');
         $tableMvc->FLD('creditAmount', 'int', 'tdClass=accCell');
 
 
@@ -145,8 +143,7 @@ class acc_SaleContractorsReport extends acc_BalanceReportImpl
         	$tpl->append($data->pager->getHtml(), 'PAGER_TOP');
         }
 
-
-        return $tpl;
+        $embedderTpl->append($tpl, 'data');
     }
 
 
