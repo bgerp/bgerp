@@ -286,7 +286,7 @@ class cad_SvgCanvas extends core_BaseClass {
 
         if($dist < 0) {
             $m = 0; 
-            $r = $AB->r / 2;
+            $r = ($AB->r / 2) * abs($r)/$r;
         } else {
             $m = sqrt($dist);
         }
@@ -383,8 +383,8 @@ class cad_SvgCanvas extends core_BaseClass {
 	 */
 	function closeDefinitions()
 	{
-	 $groupEnd = $this->content[] = new stdClass();
-	 $groupEnd->name = '/defs';
+		$groupEnd = $this->content[] = new stdClass();
+		$groupEnd->name = '/defs';
 	}
 	
 	

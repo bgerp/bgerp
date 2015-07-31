@@ -84,9 +84,11 @@ class planning_drivers_ProductionTask extends planning_drivers_BaseTask
 		$Double = cls::get('type_Double', array('params' => array('smartRound' => 'smartRound')));
 		$Weight = cls::get('cat_type_Weight');
 		
+		// Врбализираме общото к-во и тегло
 		$data->row->totalQuantity = $Double->toVerbal($this->innerForm->totalQuantity);
 		$data->row->totalWeight = $Weight->toVerbal($this->innerForm->totalWeight);
 		
+		// Ако в мастъра са избрани машини, вербализираме ги
 		if($this->innerForm->fixedAssets){
 			$Keylist = cls::get('type_Keylist', array('params' => array('mvc' => 'cat_Products', 'select' => 'name', 'makeLinks' => 'short')));
 			$assetsArr = explode(',', $Keylist->toVerbal($this->innerForm->fixedAssets));
@@ -122,6 +124,8 @@ class planning_drivers_ProductionTask extends planning_drivers_BaseTask
 		 $dQuery->XPR('sumWeight', 'double', 'SUM(#weight)');
 		 $res = $dQuery->fetch();
 		 $sumQuantity = $res->sumQuantity;
+		 
+		 // Преизчисляваме общото тегло
 		 $rec->innerForm->totalWeight = $res->sumWeight;
 		      
 		 // Изчисляваме колко % от зададеното е направено

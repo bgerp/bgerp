@@ -48,6 +48,18 @@ class planning_TaskDetails extends doc_Detail
     
     
     /**
+     * Кой има право да оттегля?
+     */
+    public $canReject = 'ceo, planning';
+    
+    
+    /**
+     * Кой има право да възстановява?
+     */
+    public $canRestore = 'ceo, planning';
+    
+    
+    /**
      * Кой има право да променя?
      */
     public $canEdit = 'no_one';
@@ -76,13 +88,7 @@ class planning_TaskDetails extends doc_Detail
      */
     public $listFields = 'RowNumb=Пулт,code,operation,quantity,weight,employees,fixedAsset,modifiedOn,modifiedBy,message=@';
     
-        
-    /**
-     * Активен таб
-     */
-    public $currentTab = 'Задачи';
 
-    
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
@@ -102,8 +108,8 @@ class planning_TaskDetails extends doc_Detail
     {
     	$this->FLD("taskId", 'key(mvc=planning_Tasks)', 'input=hidden,silent,mandatory,caption=Задача');
     	$this->FLD('operation', 'enum(start=Пускане,production=Произвеждане,waste=Отпадък,scrap=Бракуване,stop=Спиране)', 'silent,caption=Операция,mandatory,removeAndRefreshForm=code');
-    	$this->FLD('code', 'int', 'caption=Код,input=none');
     	$this->FLD('quantity', 'double', 'caption=Количество,mandatory');
+    	$this->FLD('code', 'int', 'caption=Код,input=none');
     	$this->FLD('weight', 'cat_type_Weight', 'caption=Тегло');
     	$this->FLD('employees', 'keylist(mvc=crm_Persons,select=name,makeLinks=short)', 'caption=Работници,tdClass=rightCol');
     	$this->FLD('fixedAsset', 'key(mvc=cat_Products,select=name)', 'caption=Машина,input=none,tdClass=rightCol');
@@ -190,10 +196,6 @@ class planning_TaskDetails extends doc_Detail
     			if(empty($rec->code)){
     				$rec->code = $mvc->getDefaultCode();
     			}
-    			
-    			if(empty($rec->code) ){
-    				$form->setError('code', 'Кода не може да се изчисли динамично. Въведете ръчно');
-    			}
     		}
     	}
     }
@@ -201,6 +203,8 @@ class planning_TaskDetails extends doc_Detail
     
     /**
      * Връща дефолтен код
+     * 
+     * @return int $code - следващия най-голям свободен код
      */
     private function getDefaultCode()
     {
@@ -226,25 +230,6 @@ class planning_TaskDetails extends doc_Detail
      */
     public static function on_AfterPrepareDetail($mvc, &$res, &$data)
     {
-    	if($mvc->haveRightFor('add', (object)array('taskId' => $data->masterId))){
-    		
-    		// Добавяме форма за добавяне на детайли
-    		$data->addForm = $mvc->getAddForm($data);
-    		
-    		// Ако формата е събмитната
-    		if($data->addForm->isSubmitted()){
-    			$rec = $data->addForm->rec;
-    			
-    			// Записваме детайла
-    			if($mvc->haveRightFor('add', (object)array('taskId' => $data->masterId))){
-    				$mvc->save($rec);
-    			}
-    			
-    			// Редирект
-    			return Redirect(array($mvc->Master, 'single', $data->masterId), 'Записа е добавен успешно;');
-    		}
-    	}
-    	
     	// Даваме възможност на драйвера да промени подготовката ако иска
     	if($Driver = planning_Tasks::getDriver($data->masterId)){
     		$Driver->prepareDetailData($data);
@@ -253,31 +238,11 @@ class planning_TaskDetails extends doc_Detail
     
     
     /**
-     * Връща форма за добавяне в сингъла под таблицата на детайла
-     */
-    private function getAddForm($data)
-    {
-    	$form = $this->getForm();
-    	$form->class = 'simpleForm';
-    	$form->rec->taskId = $data->masterId;
-    	
-    	$form->input(NULL, 'silent');
-    	$this->invoke('AfterPrepareEditForm', array((object)array('form' => &$form), (object)array('form' => &$form)));
-    	$form->input();
-    	$this->invoke('AfterInputEditForm', array(&$form));
-    	
-    	$form->toolbar->addSbBtn('Прогрес', 'save', 'id=save, ef_icon = img/16/progressbar.png', 'title=Добави прогрес');
-    	
-    	return $form;
-    }
-    
-    
-    /**
      * Рендираме общия изглед за 'List'
      */
     public function renderDetail_($data)
     {
-    	// Даваме на драйвра възможността да рендира детайла
+    	// Даваме на драйвъра възможност да подмени рендировката на детайла
     	if($Driver = planning_Tasks::getDriver($data->masterId)){
     		$tpl = $Driver->renderDetailData($data);
     	}
@@ -323,7 +288,7 @@ class planning_TaskDetails extends doc_Detail
     */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-    	if(($action == 'add' || $action == 'reject') && isset($rec->taskId)){
+    	if(($action == 'add' || $action == 'reject' || $action == 'restore') && isset($rec->taskId)){
     		
     		// Ако мастъра не е чернова не може детайлите му да се модифицират
     		$state = $mvc->Master->fetchField($rec->taskId, 'state');

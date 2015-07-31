@@ -193,9 +193,11 @@ class blast_Emails extends core_Master
         
         $this->FLD('sendingFrom', 'time(suggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00)', 'caption=Начален час, input=none');
         $this->FLD('sendingTo', 'time(suggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00)', 'caption=Краен час, input=none');
-        $this->FLD('sendingDay', 'set(1=Понеделни, 2=Вторник, 3=Сряда, 4=Четвъртък, 5=Петък, 6=Събота, 0=Неделя)', 'caption=Ден, input=none');
+        $this->FLD('sendingDay', 'set(1=Пон, 2=Вто, 3=Сря, 4=Чет, 5=Пет, 6=Съб, 0=Нед)', 'caption=Ден, input=none, columns=7');
         
         $this->FLD('activatedBy', 'key(mvc=core_Users)', 'caption=Активирано от, input=none');
+        
+        $this->FLD('progress', 'percent(min=0,max=1,decimals=0)', 'caption=Прогрес, input=none, notNull');
         
         //Данни на адресата - антетка
         $this->FLD('recipient', 'varchar', 'caption=Адресат->Фирма,class=contactData, changable');
@@ -365,30 +367,38 @@ class blast_Emails extends core_Master
         $query->where("#state = 'active'");
         $query->orWhere("#state = 'pending'");
         
-        $dayOfWeek = date('w');
-        $query->where('#sendingDay IS NULL');
-        $query->orWhere("#sendingDay = ''");
-        $query->orWhere("#sendingDay LIKE '%{$dayOfWeek}%'");
+        $conf = core_Packs::getConfig('blast');
         
-        $now = dt::mysql2timestamp();
-        
-        $nowSecs = (date('G', $now) * 3600) + (date('i', $now) * 60) + date('s');
-        $query->where('#sendingFrom IS NULL');
-        $query->orWhere("#sendingFrom  = ''");
-        $query->orWhere("#sendingFrom  <= '{$nowSecs}'");
-        
-        $query->where('#sendingTo IS NULL');
-        $query->orWhere("#sendingTo  = ''");
-        $query->orWhere("#sendingTo  > '{$nowSecs}'");
+        // За да получим минути
+        $period = $conf->BLAST_EMAILS_CRON_PERIOD;
         
         //Проверяваме дали имаме запис, който не е затворен и му е дошло времето за активиране
         while ($rec = $query->fetch()) {
             
-            // Променяме състоянието от чакащо в активно
+            $now = dt::now();
+            $nextStartTime = self::getNextStartTime($rec, $now);
+            
+            // Вземаме секундите между сегашното време и времето на стартиране
+            $sec = dt::secsBetween($nextStartTime, $now);
+            
             if ($rec->state == 'pending') {
-                $rec->state = 'active';
-                $this->save($rec);
+                if (($sec <= 0) || ($sec <= $period)) {
+                    $rec->state = 'active';
+                    $this->save($rec);
+                    
+                    if (!($sec <= 0)) continue;
+                }
+            } elseif ($rec->state == 'active') {
+                if ($sec > $period) {
+                    $rec->state = 'pending';
+                    $this->save($rec);
+                } elseif ($sec) {
+                    continue ;
+                }
             }
+            
+            // Само активните да се изпращат
+            if ($rec->state != 'active') continue;
             
             // Вземаме данните за имейлите, до които ще пращаме
             $dataArr = blast_EmailSend::getDataArrForEmailId($rec->id, $rec->sendPerCall);
@@ -396,6 +406,7 @@ class blast_Emails extends core_Master
             // Ако няма данни, затваряме 
             if (!$dataArr) {
                 $rec->state = 'closed';
+                $rec->progress = 1;
                 $this->save($rec);
                 continue;
             }
@@ -512,6 +523,9 @@ class blast_Emails extends core_Master
                     doclog_Documents::returned($body->__mid);
                 }
             }
+            
+            $rec->progress = blast_EmailSend::getSendingProgress($rec->id);
+            $this->save($rec, 'progress, modifiedOn');
         }
     }
     
@@ -1077,14 +1091,14 @@ class blast_Emails extends core_Master
                 $updateMsg = 'Добавени са|* ' . $updateCnt . ' |записа';
             }
             
-            $nRec = new stdClass();
+            $rec->progress = blast_EmailSend::getSendingProgress($rec->id);
             
             // Ако състоянието е затворено, активираме имейла
             if ($rec->state == 'closed') {
-                $nRec->id = $rec->id;
-                $nRec->state = 'active';
-                $this->save($nRec);
+                $rec->state = 'active';
             }
+            
+            $this->save($rec);
         } else {
             $updateMsg = 'Няма нови записи за добавяне';
         }
@@ -1202,7 +1216,7 @@ class blast_Emails extends core_Master
             // Добавяме имейл-а в листата на блокираните
             if ($uns) {
                 
-                blast_BlockedEmails::add($email);
+                blast_BlockedEmails::blockEmail($email);
             }
             
             $text = $conf->BGERP_BLAST_SUCCESS_REMOVED;
@@ -1211,7 +1225,7 @@ class blast_Emails extends core_Master
             $click = 'Премахване';
             
             // Премахваме имейл-а от листата на блокираните имейли
-            blast_BlockedEmails::remove($email);
+            blast_BlockedEmails::unBlockEmail($email);
             $text = $conf->BGERP_BLAST_SUCCESS_ADD;
         } else {
             $act = 'del';
@@ -1640,6 +1654,13 @@ class blast_Emails extends core_Master
      */
     static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
+        $blue = new color_Object("#2244cc");
+        $grey = new color_Object("#bbb");
+        
+        $progressPx = min(100, round(100 * $rec->progress));
+        $progressRemainPx = 100 - $progressPx;
+        $row->progressBar = "<div style='white-space: nowrap; display: inline-block;'><div style='display:inline-block;top:-5px;border-bottom:solid 10px {$blue}; width:{$progressPx}px;'> </div><div style='display:inline-block;top:-5px;border-bottom:solid 10px {$grey};width:{$progressRemainPx}px;'></div></div>";
+        
         //При рендиране на листовия изглед показваме дали ще се прикачат файловете и/или документите
         $attachArr = type_Set::toArray($rec->attachments);
         
@@ -1782,7 +1803,7 @@ class blast_Emails extends core_Master
             // Ако състоянието е активирано или чернов
             if ($rec->state == 'active' || $rec->state == 'pending') {
                 
-                $nextStartTime = self::getNextStartTime($rec);
+                $nextStartTime = self::getNextStartTime($rec, core_Cron::getNextStartTime(self::$cronSytemId));
                 
                 $data->row->NextStartTime = dt::mysql2verbal($nextStartTime, 'smartTime');
             }
@@ -1794,13 +1815,12 @@ class blast_Emails extends core_Master
      * Връща времето на следващото стартиране
      * 
      * @param object $rec
+     * @param NULL|datetime $nextStartTime
      * 
      * @return datetime
      */
-    protected static function getNextStartTime($rec)
+    protected static function getNextStartTime($rec, $nextStartTime = NULL)
     {
-        $nextStartTime = core_Cron::getNextStartTime(self::$cronSytemId);
-        
         if (!$nextStartTime) {
             $nextStartTime = dt::now();
         }

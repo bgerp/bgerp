@@ -2760,6 +2760,12 @@ div.location.public {
   .email-class h3 {
     margin: 10px 0 12px; }
 
+.state-error-email {
+  background-color: #f3bbaf; }
+
+.state-blocked-email {
+  background-color: #f1cba6; }
+
 /*
  * край на email
  */

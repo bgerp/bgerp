@@ -50,6 +50,11 @@
                             </td>
                             <td class='aright vtop'>
                                 <table class='top-table fright'>
+                                	<!--ET_BEGIN progressBar-->
+                                    <td class='aright'>|Прогрес|*:</td>
+                                        <td><b>[#progressBar#] [#progress#]</b></td>
+                                    </tr>
+                                    <!--ET_END progressBar-->
                                     <!--ET_BEGIN email-->
                                     <tr>
                                         <td class='aright'>|Имейл|*:</td>
@@ -103,6 +108,9 @@
                 <!--ET_BEGIN srcLink-->
                 <div><b style="margin-bottom: 10px; display: block">|Източник|*: [#srcLink#]</b></div>
                 <!--ET_END srcLink-->
+                <!--ET_BEGIN sendPerCall-->
+                <div>|Изпращания заедно|*: [#sendPerCall#]</div>
+                <!--ET_END sendPerCall-->
                 <!--ET_BEGIN sendingDay-->
                 <div>|Ден|*: [#sendingDay#]</div>
                 <!--ET_END sendingDay-->
@@ -139,9 +147,7 @@
                 <div style='clear: both;'></div>
                 <div  style='margin-top: 10px; margin-bottom: 10px;'>
                     <div class='blast-table'>
-                        <div
-                            style='background-color: #ddd; border-top: solid 1px #000; border-left: solid 1px #000; color: #333; border-right: solid 1px #000; padding: 5px; font-size: 1em; font-weight: bold; margin-top: 10px;'>|Изпращания|*:
-                        </div>
+                        <div style='color: #333; font-size: 1em; font-weight: bold; margin-bottom: 5px;'>|Изпращания|*:</div>
                         <!--ET_BEGIN blast_EmailSend--> [#blast_EmailSend#] <!--ET_END blast_EmailSend-->
                     </div>
                     <!--ET_BEGIN DETAILS-->
