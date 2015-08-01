@@ -165,10 +165,9 @@ class acc_ProfitArticlesReport extends acc_BalanceReportImpl
      *
      * @param stdClass $data
      */
-    public function renderEmbeddedData($data)
+    public function renderEmbeddedData(&$embedderTpl, $data)
     {
-
-        $chart = Request::get('Chart');
+		$chart = Request::get('Chart');
         $id = Request::get('id', 'int');
 
         $tpl = $this->getReportLayout();
@@ -272,8 +271,7 @@ class acc_ProfitArticlesReport extends acc_BalanceReportImpl
 
         }
 
-        return $tpl;
-
+        $embedderTpl->append($tpl, 'data');
     }
 
 

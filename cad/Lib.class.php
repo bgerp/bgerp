@@ -6,7 +6,7 @@
  *
  *
  * @category  extrapack
- * @package   bagshapes
+ * @package   bgerp
  * @author    Donika Peneva <donyka111@abv.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
@@ -14,12 +14,6 @@
  * @link
  */
 class cad_Lib {
-    
-    /**
-     * Задължителен интерфейс, който фигурите трябва да имат
-     */
-    var $interfaces = 'cad_ShapeIntf';
-    
     
     /**
      * Наименование на фигурата
@@ -66,37 +60,56 @@ class cad_Lib {
     	);
     }
     
+    
     /**
      * Създава молив - пунктир
-     * 
-     * @param unknown $canvas
-     * @param array $p
+     */
+    static function getTransparentLinePen($canvas, $p)
+    {
+    	extract($p);
+    	 
+    	$conf = core_Packs::getConfig('cad');
+    	 
+    	$canvas->startPath(
+    			array(
+    					'fill' => $fill,
+    					'fill-opacity' => $opacity
+    			)
+    	);
+    }
+    
+    
+    /**
+     * Създава молив - пунктир
      */
     static function getInnerlinePen($canvas, $p)
     {
     	extract($p);
     	
-    	$conf = core_Packs::getConfig('bagshapes');
+    	$conf = core_Packs::getConfig('cad');
     	
     	$strokeWidth = $conf->CAD_PEN_STROKE_WIDTH;
     	$strokeColor = $conf->CAD_INLINE_PEN_COLOR;
-    	
     	
     	$canvas->startPath(
     			array(
     					'fill' => "none",
     					'stroke' => $strokeColor,
     					'stroke-width' => $strokeWidth,
-    					'stroke-dasharray' => '3,2'
+    					'stroke-dasharray' => '1, 0.7'
     			)
     	);
     }
     
+    
+    /**
+     * Създава молив - патерн за залепяне
+     */
     static function getPatternLine($canvas, $p)
     {
     	extract($p);
   
-    	$conf = core_Packs::getConfig('bagshapes');
+    	$conf = core_Packs::getConfig('cad');
     	 
     	$strokeWidth = $conf->CAD_PEN_STROKE_WIDTH;
     	$strokeColor = $conf->CAD_PATTERN_PEN_COLOR;
@@ -106,18 +119,21 @@ class cad_Lib {
     			array(
     					'fill' => "none",
     					'stroke' => $strokeColor,
-    					'stroke-width' => 2*$strokeWidth,
+    					'stroke-width' => $strokeWidth,
     					'stroke-dasharray' => '2,1'
     			)
     	);
     }
     
     
+    /**
+     * Създава молив - прегъване
+     */
     static function getFoldingLine($canvas, $p)
     {
     	extract($p);
     
-    	$conf = core_Packs::getConfig('bagshapes');
+    	$conf = core_Packs::getConfig('cad');
     
     	$strokeWidth = $conf->CAD_PEN_STROKE_WIDTH;
     	$strokeColor = $conf->CAD_FOLDING_PEN_COLOR;
@@ -126,139 +142,98 @@ class cad_Lib {
     			array(
     					'fill' => "none",
     					'stroke' => $strokeColor,
-    					'stroke-width' => 2*$strokeWidth,
-    					'stroke-dasharray' => '3,2'
+    					'stroke-width' => $strokeWidth,
+    					'stroke-dasharray' => '1.5, 1'
     			)
     	);
     }
     
     
+    /**
+     * Създава молив - перфориране
+     */
+    static function getPerforationLine($canvas, $p)
+    {
+    	extract($p);
+    
+    	$conf = core_Packs::getConfig('cad');
+    
+    	$strokeWidth = $conf->CAD_PEN_STROKE_WIDTH;
+    	$strokeColor = $conf->CAD_PEN_COLOR;
+    
+    	$canvas->startPath(
+    			array(
+    					'fill' => "none",
+    					'stroke' => $strokeColor,
+    					'stroke-width' => $strokeWidth,
+    					'stroke-dasharray' => '2, 8'
+    			)
+    	);
+    }
+    
+    /**
+     * Създава молив - измерителни линии
+     */
     static function getMeasureLine($canvas, $p)
     {
     	extract ($p);
     	
-    	$conf = core_Packs::getConfig('bagshapes');
+    	$conf = core_Packs::getConfig('cad');
     	$strokeColor = $conf->CAD_MEASURE_PEN_COLOR;
+    	$strokeWidth = $conf->CAD_PEN_STROKE_WIDTH;
     	
     	$canvas->startPath(
     			array(
     					'fill' => 'none',
     					'stroke' => $strokeColor,
-    					'stroke-width' => $strokeWidth)
+    					'stroke-width' => $strokeWidth
+    			)
     	);
     }
-    
-    
-    /**
-     * Изчертава тип за залепяне - стрела
-     * 
-     * @param unknown $canvas
-     * @param array $p
-     * @param float $handleH
-     * @param float $handleW
-     * @param float $handleS
-     */
-    static function drawArrow($canvas, $p = array())
-    {
-    	extract($p);
-    /*	const EP_HANDLE_HEIGHT = 80; // от горна външна линия до ръба на торбичката
-    	const EP_HANDLE_WIDTH = 140; // от лява външна линия до дясна външна линия
-    	const EP_HANDLE_SIZE = 30; */
-    	
-    	$handleH = 80;
-    	$handleW= 140;
-    	$handleS = 30;
-    	
-    	$innerH = self::EP_HANDLE_INNER_HEIGHT;
-    	$innerSpace = self::EP_INNER_SPACE;
-    	$arrowH = self::EP_ARROW_HEIGHT;
-    	$arrowW = self::EP_ARROW_WIDTH;
-    	$arrowS = self::EP_ARROW_SIZE;
-    	
-    	self::getPatternLine($canvas, $p);
-    	
-    	$br=0;
-    	for ($i=0; $i<3; $i++)
-    	{
-    		$canvas->moveTo($x+$w/2-$handleW/2+$handleS/2-$arrowW/2, $y+$handleH+$innerSpace+$arrowH, TRUE);
-    		$canvas->lineTo($arrowW/2-$arrowS, -$arrowH+$arrowS);
-    		
-    		
-    		$canvas->roundTo($arrowS, -$arrowS/2, 2*$arrowS, 0, $arrowS/2);
-    		$canvas->lineTo($arrowW/2-$arrowS, $arrowH-$arrowS);
-    		
-    		
-    		$canvas->lineTo(0, $arrowS);
-    		$canvas->lineTo(-($arrowW/2-$arrowS), -($arrowH-$arrowS));
-    		$canvas->roundTo(-$arrowS, -$arrowS/2, -2*$arrowS, 0, $arrowS/2);
-    		
-    		$canvas->lineTo(-($arrowW/2-$arrowS), ($arrowH-$arrowS));
-    		
-    		$canvas->closePath();
-    		
-    		$y += $arrowH;
-    		
-    	}
-    	
-    }
-    
-    
-    /**
-     * Чертае тип залепяне - овал
-     * 
-     * @param unknown $canvas
-     * @param array $p
-     * @param float $handleH
-     * @param float $handleW
-     * @param float $handleS
-     */
-    static function drawOval($canvas, $p = array())
-    {
-    	extract($p);
-    	 
 
-    	$handleH = 80;
-    	$handleW= 140;
-    	$handleS = 30;
+    
+    /**
+     * Създава прозорец по зададения път, който вътре е защрихован
+     *
+     * @param unknown $canvas
+     * @param array $p
+     */
+    static function getHatchingHolder($canvas, $p)
+    {
+    	extract($p);
+    
+    	$canvas->openDefinitions();
     	
-    	$innerH = self::EP_HANDLE_INNER_HEIGHT;
-    	$innerSpace = self::EP_INNER_SPACE;
-    	$ovalH = self::EP_OVAL_HEIGHT;
-    	$ovalW = self::EP_OVAL_WIDTH;
-    	$ovalInnerH = self::EP_OVAL_INNER_HEIGHT;
-    	$ovalInnerW = self::EP_OVAL_INNER_WIDTH;
-    	
-    	
-    	self:: getPatternLine($canvas, $p);
-    	
-    	$canvas->moveTo($x+$w/2-$handleW/2+$handleS/2-$ovalW/2, $y+$handleH+$innerSpace+$ovalH, TRUE);
-    	$canvas->lineTo(0, -($ovalH/2-$ovalW/2));
-    	$canvas->roundTo(0, -$ovalW/2, $ovalW/2, -$ovalW/2, $ovalW/2);
-    	$canvas->roundTo($ovalW/2, 0, $ovalW/2, $ovalW/2, $ovalW/2);
-    	$canvas->lineTo(0, $ovalH/2-$ovalW/2);
-    	$canvas->roundTo(0, $ovalW/2, -$ovalW/2, $ovalW/2, $ovalW/2);
-    	$canvas->roundTo(-$ovalW/2, 0, -$ovalW/2, -$ovalW/2, $ovalW/2);
-    	
-    	$canvas->moveTo($x+$w/2-$handleW/2+$handleS/2-$ovalInnerW/2, $y+$handleH+$innerSpace+$ovalH, TRUE);
-    	$canvas->lineTo(0, -($ovalInnerH/2-$ovalInnerW/2));
+    	$canvas->openPattern(array("id"=>"diagonalHatch",
+                "patternUnits"=>"userSpaceOnUse" ,
+                "width"=>"50" ,
+                "height"=>"50" 
+    	));
     	
     	
-    	/*
-    	$canvas->roundTo($ovalW/2, 0, $ovalW/2, $ovalW/2, $ovalW/2);    	
-    	$canvas->roundTo($ovalW/2, 0, $ovalW/2, $ovalW/2, $ovalW/2);
+    	$canvas->startPath(
+    			array(
+    					'stroke' => '#333333',
+    					'stroke-width' => "0.1",
+    			)
+    	);
+    	
+    	$canvas->moveTo(0, 0, TRUE);
+    	$canvas->lineTo(50, 50, TRUE);
+    	
+    	$canvas->closePattern();
+    	$canvas->closeDefinitions();
     	
     	
-    	$canvas->roundTo(-$ovalW/2, 0, -$ovalW/2, -$ovalW/2, $ovalW/2);
-    	$canvas->lineTo(0, -($ovalH/2-$ovalW/2));
-    	
-    	$canvas->moveTo($x+$w/2-$handleW/2+$handleS/2-$ovalInnerW/2, $y+$handleH+$innerSpace+$ovalInnerH, TRUE);
-    	$canvas->lineTo(0, -($ovalInnerH/2-$ovalInnerW/2));
-    	$canvas->roundTo(0, -$ovalInnerW/2, $ovalInnerW/2, -$ovalInnerW/2, $ovalInnerW/2);
-    	$canvas->roundTo($ovalInnerW/2, 0, $ovalInnerW/2, $ovalInnerW/2, $ovalInnerW/2);
-    	$canvas->lineTo(0, $ovalInnerH-2*$ovalInnerW);
-    	$canvas->roundTo(0, $ovalInnerW/2, -$ovalInnerW/2, $ovalInnerW/2, $ovalInnerW/2);
-    	$canvas->roundTo(-$ovalInnerW/2, 0, -$ovalInnerW/2, -$ovalInnerW/2, $ovalInnerW/2);
-    	$canvas->lineTo(0, -($ovalInnerH/2-$ovalInnerW/2));
-    */
+    	$strokeColor = $conf->CAD_PEN_COLOR;
+    	$strokeWidth = $conf->CAD_PEN_STROKE_WIDTH;
+    
+    	$canvas->startPath(
+    			array(
+    					'stroke' => "#888",
+    					'fill' => "url(#diagonalHatch)",
+    					'stroke-width' => $strokeWidth
+    			)
+    	);
     }
 }

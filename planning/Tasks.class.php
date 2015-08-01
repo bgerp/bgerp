@@ -97,12 +97,6 @@ class planning_Tasks extends core_Embedder
     
     
     /**
-     * Кои детайли да се копират при клониране
-     */
-    public $cloneDetailes = 'planning_TaskDetails';
-    
-    
-    /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     public $rowToolsField = 'tools';
@@ -169,6 +163,12 @@ class planning_Tasks extends core_Embedder
     
     
     /**
+     * Икона за единичния изглед
+     */
+    public $singleIcon = 'img/16/task-normal.png';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -180,14 +180,14 @@ class planning_Tasks extends core_Embedder
                                     high=Висок,
                                     critical=Критичен)',
     			'caption=Приоритет,mandatory,maxRadio=4,columns=4,notNull,value=normal,silent');
-    	$this->FLD('inCharge' , 'key(mvc=core_Users, select=nick,roles=planning|ceo)', 'caption=Отговорник,mandatory,changable');
+    	$this->FLD('inCharge' , 'userList(roles=planning|ceo)', 'caption=Отговорници,mandatory,changable');
     	$this->FLD('description', 'richtext(bucket=calTasks,rows=3)', 'caption=Описание,changable');
     	
     	$this->FLD('timeStart', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00)',
     			'caption=Времена->Начало, silent, changable, tdClass=leftColImportant,formOrder=101');
     	$this->FLD('timeDuration', 'time', 'caption=Времена->Продължителност,changable,formOrder=102');
     	$this->FLD('timeEnd', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00)', 'caption=Времена->Край,changable, tdClass=leftColImportant,formOrder=103');
-    	$this->FLD('sharedUsers', 'userList(roles=planning|ceo)', 'caption=Допълнително->Споделени,changable,formOrder=104');
+    	$this->FLD('sharedUsers', 'userList', 'caption=Допълнително->Споделени,changable,formOrder=104');
     	$this->FLD('progress', 'percent', 'caption=Прогрес,input=none,notNull,value=0');
     	$this->FLD('jobId', 'key(mvc=planning_Jobs)', 'input=none,caption=По задание');
     	
@@ -539,10 +539,6 @@ class planning_Tasks extends core_Embedder
      */
     protected static function on_AfterPrepareSingleToolbar($mvc, $data)
     {
-    	if(planning_TaskDetails::haveRightFor('add', (object)array('taskId' => $data->rec->id))){
-    		 $data->toolbar->addBtn('Прогрес', array('planning_TaskDetails', 'add', 'taskId' => $data->rec->id, 'ret_url' => TRUE), 'ef_icon=img/16/progressbar.png', 'title=Добавяне на прогрес към задачата');
-    	}
-    	
     	if($data->rec->state == 'active' || $data->rec->state == 'pending'){
     		if(cal_Reminders::haveRightFor('add', (object)array('originId' => $data->rec->containerId))){
     			$data->toolbar->addBtn('Напомняне', array('cal_Reminders', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''), 'ef_icon=img/16/rem-plus.png, row=2', 'title=Създаване на ново напомняне');
@@ -570,11 +566,12 @@ class planning_Tasks extends core_Embedder
     
     
     /**
-     * Преди запис на документ, изчислява стойността на полето `isContable`
+     * Преди запис на документ
      */
     public static function on_BeforeSave($mvc, &$id, $rec, $fields = NULL, $mode = NULL)
     {
-    	$rec->sharedUsers = keylist::addKey($rec->sharedUsers, $rec->inCharge);
+    	// Добавяме отговорниците към споделените
+    	$rec->sharedUsers = keylist::merge($rec->sharedUsers, $rec->inCharge);
     }
     
     

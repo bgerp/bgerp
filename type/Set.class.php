@@ -107,10 +107,12 @@ class type_Set extends core_Type {
                     $attr['name'] = $name . "[{$key}]";
                     $attr['value'] = $key;
                     
-                    if(in_array($key, $values)) {
-                        $attr['checked'] = 'checked';
-                    } else {
-                        unset($attr['checked']);
+                    if(is_array($values)){
+                    	if(in_array($key, $values)) {
+                    		$attr['checked'] = 'checked';
+                    	} else {
+                    		unset($attr['checked']);
+                    	}
                     }
                     
                     if($this->maxCaptionLen &&  $this->maxCaptionLen < mb_strlen($v)) {

@@ -278,6 +278,7 @@ class plg_Clone extends core_Plugin
     		
     		$details = arr::make($mvc->cloneDetailes, TRUE);
     		if(count($details)){
+    			$notClones = FALSE;
     			
     			// За всеки от тях
     			foreach ($details as $det){
@@ -294,9 +295,19 @@ class plg_Clone extends core_Plugin
     					
     					$Detail->invoke('BeforeSaveClonedDetail', array($dRec));
     					
-    					// Записваме клонирания детайл
-    					$Detail->save($dRec, NULL, 'REPLACE');
+    					if($Detail->isUnique($dRec, $fields)){
+    						
+    						// Записваме клонирания детайл
+    						$Detail->save($dRec);
+    					} else {
+    						$notClones = TRUE;
+    					} 
     				}
+    			}
+    			
+    			// Ако някой от записите не са клонирани защото са уникални сетваме предупреждение
+    			if($notClones) {
+    				core_Statuses::newStatus('Някой от детайлите не бяха клонирани, защото са уникални', 'warning');
     			}
     		}
     	}

@@ -296,9 +296,8 @@ class acc_BalancePeriodReportImpl extends frame_BaseDriver
      *
      * @param stdClass $data
      */
-    public function renderEmbeddedData($data)
+    public function renderEmbeddedData(&$embedderTpl, $data)
     {
-    
     	if(empty($data)) return;
     	
     	$chart = Request::get('Chart');
@@ -348,8 +347,6 @@ class acc_BalancePeriodReportImpl extends frame_BaseDriver
     		$tpl->replace($btnChart, 'buttonChart');
     	}
     	
-    	
-    
     	// подготвяме данните за графиката
    
     	$labels = array();
@@ -408,7 +405,7 @@ class acc_BalancePeriodReportImpl extends frame_BaseDriver
 	    	}
     	}
     	
-    	return  $tpl;
+    	$embedderTpl->append($tpl, 'data');
     }
 
     

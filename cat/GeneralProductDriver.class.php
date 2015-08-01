@@ -62,7 +62,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	 *
 	 * @param stdClass $data
 	 */
-	public function renderEmbeddedData($data)
+	public function renderEmbeddedData(&$embedderTpl, $data)
 	{
 		if($this->innerState->photo){
 			$size = array(280, 150);
@@ -91,7 +91,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 			$tpl->append($paramTpl, 'PARAMS');
 		}
 		
-		return $tpl;
+		$embedderTpl->append($tpl, 'innerState');
 	}
 	
 	
@@ -293,7 +293,8 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	 */
 	public function renderProductDescription($data)
 	{
-		$tpl = $this->renderEmbeddedData($data);
+		$tpl = new ET("[#innerState#]");
+		$this->renderEmbeddedData($tpl, $data);
 		
 		$title = $this->EmbedderRec->getShortHyperlink();
 		$tpl->replace($title, "TITLE");

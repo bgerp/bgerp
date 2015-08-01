@@ -66,14 +66,14 @@ class planning_drivers_ProductionTask extends planning_drivers_BaseTask
 	 * 
 	 * @param stdClass $data
 	 */
-	public function renderEmbeddedData($data)
+	public function renderEmbeddedData(&$embedderTpl, $data)
 	{
 		$tpl = new core_ET(tr("|Общо к-во|*: <b>[#totalQuantity#]</b><br>
 							   <!--ET_BEGIN totalWeight-->|Общо тегло|*: [#totalWeight#]<br><!--ET_END totalWeight-->
 							   <!--ET_BEGIN fixedAssets-->|Машини|*: [#fixedAssets#]<!--ET_END fixedAssets-->"));
 		$tpl->placeObject($data->row);
 		
-		return $tpl;
+		$embedderTpl->append($tpl, 'innerState');
 	}
 	
 	
