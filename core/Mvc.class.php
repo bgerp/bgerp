@@ -186,9 +186,15 @@ class core_Mvc extends core_FieldSet
             expect(!is_object($cond), $cond);
             $casheKey = $cond . '|' . $fields;
 
-            if (is_object($me->_cashedRecords[$casheKey])) {
+            if (isset($me->_cashedRecords[$casheKey])) {
 
-                return clone ($me->_cashedRecords[$casheKey]);
+                if(is_object($me->_cashedRecords[$casheKey])) {
+
+                    return clone ($me->_cashedRecords[$casheKey]);
+                } else {
+
+                    return $me->_cashedRecords[$casheKey];
+                }
             }
         }
 
@@ -285,7 +291,7 @@ class core_Mvc extends core_FieldSet
             $field = $this->getField($name);
 
             // Правим MySQL представяне на стойността
-            $value = $field->type->toMysql($value, $this->db, $field->notNull, $field->value);
+            $value = $field->type->toMysql($value, $this->db, isset($field->notNull) ? isset($field->notNull) : NULL, $field->value);
 
             // Ако няма mySQL представяне на тази стойност, то тя не участва в записа
             if($value === NULL) {
@@ -609,7 +615,7 @@ class core_Mvc extends core_FieldSet
 
         $value = $rec->{$fieldName};
 
-        if (is_array($me->fields[$fieldName]->options)) {
+        if (isset($me->fields[$fieldName]->options) && is_array($me->fields[$fieldName]->options)) {
             $res = $me->fields[$fieldName]->options[$value];
         } else {
             $res = $me->fields[$fieldName]->type->toVerbal($value);
