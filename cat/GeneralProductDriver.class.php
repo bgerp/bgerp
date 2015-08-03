@@ -293,7 +293,8 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	 */
 	public function renderProductDescription($data)
 	{
-		$tpl = $this->renderEmbeddedData($data);
+		$tpl = new ET("[#innerState#]");
+		$this->renderEmbeddedData($tpl, $data);
 		
 		$title = $this->EmbedderRec->getShortHyperlink();
 		$tpl->replace($title, "TITLE");

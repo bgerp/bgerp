@@ -206,9 +206,9 @@ class planning_TaskDetails extends doc_Detail
     
     
     /**
-     * Връща дефолтен код
+     * Връща следващия най-голям свободен код
      * 
-     * @return int $code - следващия най-голям свободен код
+     * @return int $code - код
      */
     private function getDefaultCode()
     {
@@ -243,7 +243,7 @@ class planning_TaskDetails extends doc_Detail
     
     
     /**
-     * Рендираме общия изглед за 'List'
+     * Рендиране на общия изглед на детайла
      */
     public function renderDetail_($data)
     {
@@ -301,7 +301,7 @@ class planning_TaskDetails extends doc_Detail
     {
     	if(($action == 'add' || $action == 'reject' || $action == 'restore') && isset($rec->taskId)){
     		
-    		// Ако мастъра не е чернова не може детайлите му да се модифицират
+    		// Може да се модифицират детайлите само ако състоянието е чакащо, активно или събудено
     		$state = $mvc->Master->fetchField($rec->taskId, 'state');
     		if($state != 'active' && $state != 'pending' && $state != 'wakeup'){
     			$requiredRoles = 'no_one';

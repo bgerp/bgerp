@@ -1,10 +1,11 @@
 <?php
 
+defIfNot('CAD2_MAX_CANVAS_SIZE', 1000);
 
 /**
  *
  */
-class cad_SvgCanvas extends core_BaseClass {
+class cad2_SvgCanvas extends core_BaseClass {
     
     /**
      * Колко вътрешни svg единици отговарят на 1 мм
@@ -16,8 +17,15 @@ class cad_SvgCanvas extends core_BaseClass {
      * Масив с XML обекти - тагове
      */
 	var $contents = array();
-
     
+    
+    /**
+     * Текущи атрибути на лементите
+     */
+    var $attr = array();
+    var $alowedAttributes = array('stroke', 'stroke-width', 'stroke-opacity', 'stroke-dasharray', 'fill', 'fill-opacity', 'font-size', 'font-weight', 'font-family', 'text-color');
+
+
     /**
      * Параметри на страницата
      */
@@ -56,14 +64,18 @@ class cad_SvgCanvas extends core_BaseClass {
         
         $conf = core_Packs::getConfig('cad');
 
-        $this->minY = $conf->CAD_MAX_CANVAS_SIZE * $pixPerMm;
-		$this->maxX = - $conf->CAD_MAX_CANVAS_SIZE * $pixPerMm;
-		$this->maxY = - $conf->CAD_MAX_CANVAS_SIZE * $pixPerMm;
-		$this->minX = $conf->CAD_MAX_CANVAS_SIZE * $pixPerMm;
+        //$this->minY = $conf->CAD2_MAX_CANVAS_SIZE * $pixPerMm;
+		//$this->maxX = - $conf->CAD2_MAX_CANVAS_SIZE * $pixPerMm;
+		//$this->maxY = - $conf->CAD2_MAX_CANVAS_SIZE * $pixPerMm;
+		//$this->minX = $conf->CAD2_MAX_CANVAS_SIZE * $pixPerMm;
 
         $this->setCP($this->width - $this->paddingRight, $this->height - $this->paddingBottom, TRUE);
-        $this->setCP($this->paddingLeft, $this->paddingTop, TRUE); 
+        $this->setCP($this->paddingLeft, $this->paddingTop, TRUE);
 
+        $this->setAttr('stroke', 'black');
+        $this->setAttr('stroke-width', 0.2);
+        $this->setAttr('fill', 'none');
+        $this->setAttr('font-size', 40); 
 	}
 
 
@@ -79,15 +91,17 @@ class cad_SvgCanvas extends core_BaseClass {
 		$this->maxX = max($x, $this->maxX);
 		$this->maxY = max($y, $this->maxY);
 		$this->minX = min($x, $this->minX);
-        
-        $conf = core_Packs::getConfig('cad');
 
-        expect((min($this->minY, $this->minX) > (0 - $conf->CAD_MAX_CANVAS_SIZE * $this->pixPerMm)) &&
-               (max($this->maxY, $this->maxX) < $conf->CAD_MAX_CANVAS_SIZE * $this->pixPerMm) ,
-               'Размерът е извън допъстимите граници',
-               $this,
-               $conf->CAD_MAX_CANVAS_SIZE * $this->pixPerMm
-            );
+
+        
+      //  $conf = core_Packs::getConfig('cad2');
+
+      //  expect((min($this->minY, $this->minX) > (0 - $conf->CAD2_MAX_CANVAS_SIZE * $this->pixPerMm)) &&
+      //         (max($this->maxY, $this->maxX) < $conf->CAD2_MAX_CANVAS_SIZE * $this->pixPerMm) ,
+      //         'Размерът е извън допъстимите граници',
+      //         $this,
+       //        $conf->CAD2_MAX_CANVAS_SIZE * $this->pixPerMm
+      //      );
 	}
 
 
@@ -145,6 +159,28 @@ class cad_SvgCanvas extends core_BaseClass {
         return $path;
     }
 
+
+    /**
+     * Задава текуща стойност на посочения атрибит
+     */
+    function setAttr($name, $value)
+    {
+        expect(in_array($name, $this->alowedAttributes), $name);
+
+        $this->attr[$name] = $value;
+    }
+
+
+    /**
+     * Връща стойността на посочения атрибут
+     */
+    function getAttr($name)
+    {
+        expect(in_array($name, $this->alowedAttributes), $name);
+
+        return $this->attr[$name];
+    }
+
     
 
     /**
@@ -154,6 +190,16 @@ class cad_SvgCanvas extends core_BaseClass {
     {
         $path = $this->content[] = new stdClass();
         $path->name = 'path';
+        
+        setIfNot($attr['stroke'], $this->getAttr('stroke'));
+        setIfNot($attr['stroke-width'], $this->getAttr('stroke-width'));
+        setIfNot($attr['stroke-opacity'], $this->getAttr('stroke-opacity'));
+        setIfNot($attr['stroke-dasharray'], $this->getAttr('stroke-dasharray'));
+
+        setIfNot($attr['fill'], $this->getAttr('fill'));
+        setIfNot($attr['fill-opacity'], $this->getAttr('fill-opacity'));
+
+
         $path->attr = $attr;
 
         return $path;
@@ -194,6 +240,7 @@ class cad_SvgCanvas extends core_BaseClass {
         $this->setCP($x, $y, $absolute);
 	}
 
+
     /**
      * Изчертава крива на Безие с посочените координати
      */
@@ -229,9 +276,9 @@ class cad_SvgCanvas extends core_BaseClass {
             $y += $y0;
         }
 
-        $A = new cad_Vector($x0, $y0);
-        $B = new cad_Vector($x1, $y1);
-        $C = new cad_Vector($x, $y);
+        $A = new cad2_Vector($x0, $y0);
+        $B = new cad2_Vector($x1, $y1);
+        $C = new cad2_Vector($x, $y);
 
         $AB = $B->add($A->neg());
         $BC = $C->add($B->neg());
@@ -239,17 +286,17 @@ class cad_SvgCanvas extends core_BaseClass {
         
         $m = abs($r * tan(($BC->a - $AB->a)/2));
  
-        $M = $B->add(new cad_Vector($BA->a, $m, 'polar'));
-        $N = $B->add(new cad_Vector($BC->a, $m, 'polar'));
+        $M = $B->add($this->p($BA->a, $m));
+        $N = $B->add($this->p($BC->a, $m));
         
         $c = 4/3*(M_SQRT2-1);
         
         $MB = $B->add($M->neg());
         
-        $Mc = $M->add( new cad_Vector($MB->a, $MB->r * $c, 'polar'));
+        $Mc = $M->add($this->p($MB->a, $MB->r * $c));
 
         $NB = $B->add($N->neg());
-        $Nc = $N->add( new cad_Vector($NB->a, $NB->r * $c, 'polar'));
+        $Nc = $N->add($this->p($NB->a, $NB->r * $c));
 
 
         if(round($A->x, 5) != round($M->x, 5) || round($A->y, 5) != round($M->y, 5)) {
@@ -265,139 +312,74 @@ class cad_SvgCanvas extends core_BaseClass {
     }
 
 
-    function arcTo($x1, $y1, $r, $absolute = FALSE, $debug = FALSE) 
-    {
-        // Вземаме абсолютните координати на началната
-        list($x0, $y0)  = $this->getCP();
 
-        // Правим координатите абсолютни
+    /**
+     * Изписва текст
+     */
+    function writeText($x, $y, $text, $rotation = 0, $absolute = TRUE)
+    {
+        
         if(!$absolute) {
-            $x1 += $x0;
-            $y1 += $y0;
+            list($x0, $y0) = $this->getCP();
+            $x = $x + $x0;
+            $y = $y + $y0;
         }
 
-        $A = new cad_Vector($x0, $y0);
-        $B = new cad_Vector($x1, $y1);
-        $AB = $B->add($A->neg());
-        
-        $M = $A->add(new cad_Vector($AB->a, $AB->r/2, 'polar'));
-        
-        $dist = $r * $r - $AB->r/2 * $AB->r/2;
-
-        if($dist < 0) {
-            $m = 0; 
-            $r = ($AB->r / 2) * abs($r)/$r;
-        } else {
-            $m = sqrt($dist);
-        }
- 		
-        $p = 0.00001 *  abs($r)/$r;
-        
-        $C = $M->add( new cad_Vector($AB->a - pi()/2 + ($r<0 ? pi() : 0), $m, 'polar'));
- 
-        $CA = $A->add($C->neg());
-        $CB = $B->add($C->neg());
- 
-        if($CA->a > $CB->a ) {
-            if($CA->a - $CB->a - $p > 2*pi()) {
-                for($a = $CA->a; $a >= $CB->a + 2*pi(); $a = pi()/100) {
-                    $X = $C->add( new cad_Vector($a, abs($r), 'polar'));
-                    $this->lineTo($X->x, $X->y, TRUE);
-                }
-            } else {
-                for($a = $CA->a; $a >= $CB->a; $a -= pi()/100) {
-                    $X = $C->add( new cad_Vector($a, abs($r), 'polar'));
-                    $this->lineTo($X->x, $X->y, TRUE);
-                }
-            }
-        } else {
-
-            if($CB->a - $CA->a - $p > pi()) {
-                for($a = $CA->a + 2*pi(); $a >= $CB->a; $a -= pi()/100) {
-                    $X = $C->add( new cad_Vector($a, abs($r), 'polar'));
-                    $this->lineTo($X->x, $X->y, TRUE);
-                }
-            } else {
-                for($a = $CA->a; $a <= $CB->a; $a += pi()/100) {
-                    $X = $C->add( new cad_Vector($a, abs($r), 'polar'));
-                    $this->lineTo($X->x, $X->y, TRUE);
-                }
-            }
-
-        }
-
-        $this->lineTo($x1, $y1, TRUE);
-
-    }
-
-
-
-    function addText($x, $y, $text, $rotation = 0, $absolute = FALSE)
-    {
         list($x, $y) = self::toPix($x, $y);
-
-        $gr = $this->content[] = new stdClass();
-        $gr->name = 'g';
-        $gr->attr = array();
-        $gr->haveBody = TRUE;
+        
+        if($rotation != 0) {
+            $gr = $this->content[] = new stdClass();
+            $gr->name = 'g';
+            $gr->attr = array();
+            $gr->haveBody = TRUE;
+        }
 
         $tx = $this->content[] = new stdClass();
         $tx->name = 'text';
         $tx->attr = array();
         $tx->body = $text;
-      
-        $grEnd = $this->content[] = new stdClass();
-        $grEnd->name = '/g';
- 
-		if( $this->font->size ) {
-			$size = $this->font->size;
-		} else {
-			$size = 40;
-		}
-
-		if( $this->font->face ) {
-			$style .= " font-family=\"{$this->font->face}\"";
-		}
-
-		if( $this->font->color ) {
-			$style .= " fill=\"{$this->font->color}\"";
-		} 
-
- 		if( $this->font->weight ) {
-			$style .= " font-weight=\"{$this->font->weight}\"";
-		} 
         
+        if($rotation != 0) {
+            $grEnd = $this->content[] = new stdClass();
+            $grEnd->name = '/g';
+        }
+ 
+ 		if( $family = $this->getAttr('font-family') ) {
+			$style .= " font-family:{$family};";
+		}
 
+ 		if( $weight = $this->getAttr('font-weight') ) {
+			$style .= " font-weight:{$weight};";
+		} 
 
-        $tx->attr = array('font-size' => $size,  'x' => $x, 'y' => $y, 'style' => $style);
+        $tx->attr = array('x' => $x, 'y' => $y, 'style' => $style);
 
+		if( $color = $this->getAttr('text-color') ) {
+			$tx->attr['fill'] = $color;
+		}
 
-	    $this->setCP($x, $y, $absolute);
+        if( $size = $this->getAttr('font-size') ) {
+			$tx->attr['font-size'] = $size;
+		}
 
-		$width = $size*strlen($text)*0.3;
-		$height = $size;
+	    $this->setCP($x, $y, TRUE);
+        
+        if($rotation != 0) {
+            $width = $size * strlen($text) * 0.3;
+            $height = $size;
 
-		$x1 = $x + cos(deg2rad($rotation+90))*$height;
-		$y1 = $y + sin(deg2rad($rotation+90))*$height;
-		
-		$alpha = atan($height/$width);
-		$l = sqrt($width*$width + $height*$height);
+            $x1 = $x + cos(deg2rad($rotation+90))*$height;
+            $y1 = $y + sin(deg2rad($rotation+90))*$height;
+            
+            $alpha = atan($height/$width);
+            $l = sqrt($width*$width + $height*$height);
 
-		$x2 = $x + cos(deg2rad($rotation)+$alpha)*$l;
-		$y2 = $y + sin(deg2rad($rotation)+$alpha)*$l;
+            $x2 = $x + cos(deg2rad($rotation)+$alpha)*$l;
+            $y2 = $y + sin(deg2rad($rotation)+$alpha)*$l;
 
-		$x3 = $x + cos(deg2rad($rotation))*$width;
-		$y3 = $y + sin(deg2rad($rotation))*$width;
+            $x3 = $x + cos(deg2rad($rotation))*$width;
+            $y3 = $y + sin(deg2rad($rotation))*$width;
 
-		
-		$this->setCP($x,$y);
-		$this->setCP($x1,$y1);
-		$this->setCP($x2,$y2);
-		$this->setCP($x3,$y3);
-
-		if($rotation == 0) { 
-			//$this->output( "<text font-size=\"{$size}\"  x=\"{$x}\" y=\"{$y}\"  {$style} >$text</text>\n");
-		} else {
 			$a = round(cos(deg2rad($rotation)),5);
 			$b = round(sin(deg2rad($rotation)),5);
 			$c = -$b;
@@ -495,7 +477,7 @@ class cad_SvgCanvas extends core_BaseClass {
         $right  = $this->maxX + $this->paddingRight;
         $bottom = $this->maxY + $this->paddingBottom;
 		$left   = $this->minX - $this->paddingLeft;
-        
+      
         // Динамично изчислените размери на страницата
 		$width  = max($this->width,  $right - $left);
 		$height = max($this->height, $bottom - $top);
@@ -569,4 +551,24 @@ class cad_SvgCanvas extends core_BaseClass {
     }
 
 
+    /**
+     * Връща вектор с посочените декартови координати
+     */
+    public static function d($x, $y)
+    {
+        $v = new cad2_Vector($x, $y);
+
+        return $v;
+    }
+
+
+    /**
+     * Връща вектор с посочените полярни координати
+     */
+    public static function p($a, $r)
+    {
+        $v = new cad2_Vector($a, $r, 'polar');
+
+        return $v;
+    }
 }

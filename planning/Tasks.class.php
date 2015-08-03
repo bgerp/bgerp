@@ -12,7 +12,7 @@
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title     Заявки за покупки
+ * @title     Задачи за производство
  */
 class planning_Tasks extends core_Embedder
 {
@@ -94,12 +94,6 @@ class planning_Tasks extends core_Embedder
      * Детайли
      */
     public $details = 'planning_TaskDetails';
-    
-    
-    /**
-     * Кои детайли да се копират при клониране
-     */
-    public $cloneDetailes = 'planning_TaskDetails';
     
     
     /**
@@ -229,7 +223,6 @@ class planning_Tasks extends core_Embedder
     		} else {
     	
     			$row->remainingTime = ' (' . tr('просрочване с') . ' ' . $typeTime->toVerbal(-$rec->remainingTime) . ')';
-    	
     		}
     	}
     	
@@ -280,7 +273,7 @@ class planning_Tasks extends core_Embedder
     	$ProductDriver = cat_Products::getDriver($data->masterData->rec->productId);
     	$defaultTasks = $ProductDriver->getDefaultJobTasks();
     	
-    	// Намираме всички задачи детайл на задание
+    	// Намираме всички задачи към задание
     	$query = $this->getQuery();
     	$query->where("#state != 'rejected'");
     	$query->where("#jobId = {$data->masterId}");
@@ -336,14 +329,17 @@ class planning_Tasks extends core_Embedder
     	$table->setFieldsToHideIfEmptyColumn('timeStart,timeDuration,timeEnd');
     	$tpl = $table->get($data->rows, 'tools=Пулт,progress=Прогрес,name=Документ,title=Заглавие,timeStart=Начало, timeDuration=Продължителност, timeEnd=Край, inCharge=Отговорник');
     		 
+    	// Рендира броя на задачите
     	$count = count($data->recs);
     	$tpl->append("<small>($count)</small>", 'TASK_COUNT');
     	
+    	// Добавя бутон за създаване на нова задача
     	if(isset($data->addUrl)){
     		$addBtn = ht::createBtn('Задача', $data->addUrl, FALSE, FALSE, 'title=Създаване на задача по заданието,ef_icon=img/16/task-normal.png');
     		$tpl->append("<div style='margin-top:8px'>{$addBtn}</div>");
     	}
     	
+    	// Връщаме шаблона
     	return $tpl;
     }
     
@@ -436,13 +432,17 @@ class planning_Tasks extends core_Embedder
     {
     	// Добавяме поле за търсене по състояние
     	if(!Request::get('Rejected', 'int')){
-    		$data->listFilter->setOptions('state', array('' => '') + arr::make('draft=Чернова, active=Активирано, closed=Приключено, stopped=Спряно, wakeup=Събудено', TRUE));
+    		$data->listFilter->setOptions('state', array('' => '') + arr::make('draft=Чернова, active=Активно, pending=Чакащо, pandact=Активно+Чакащо,closed=Приключено, stopped=Спряно, wakeup=Събудено', TRUE));
     		$data->listFilter->setField('state', 'placeholder=Всички');
     		$data->listFilter->showFields .= ',state';
     		$data->listFilter->input('state');
     		 
     		if($state = $data->listFilter->rec->state){
-    			$data->query->where("#state = '{$state}'");
+    			if($state != 'pandact'){
+    				$data->query->where("#state = '{$state}'");
+    			} else {
+    				$data->query->where("#state = 'active' || #state = 'pending'");
+    			}
     		}
     	}
     }
@@ -453,6 +453,7 @@ class planning_Tasks extends core_Embedder
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
+    	// Може да се променя само ако състоянието на задачата е активно или чакащо
     	if($action == 'changerec' && isset($rec)){
     		if($rec->state != 'pending' && $rec->state != 'active'){
     			$requiredRoles = 'no_one';
@@ -460,7 +461,10 @@ class planning_Tasks extends core_Embedder
     	}
     	
     	if($action == 'add'){
+    		
     		if(isset($rec->originId)){
+    			
+    			// Може да се добавя само към активно задание
     			$origin = doc_Containers::getDocument($rec->originId);
     			if(!($origin->getInstance() instanceof planning_Jobs)){
     				$requiredRoles = 'no_one';
@@ -500,7 +504,10 @@ class planning_Tasks extends core_Embedder
     			// Добавяме данните от детайла към ключовите думи
     			$dRow = planning_TaskDetails::recToVerbal($dRec);
     			$detailsKeywords .= " " . plg_Search::normalizeText($dRow->operation);
-    			$detailsKeywords .= " " . plg_Search::normalizeText($dRow->code);
+    			if($dRec->code){
+    				$detailsKeywords .= " " . plg_Search::normalizeText($dRow->code);
+    			}
+    			
     			if($dRec->fixedAsset){
     				$detailsKeywords .= " " . plg_Search::normalizeText($dRow->fixedAsset);
     			}
@@ -517,7 +524,6 @@ class planning_Tasks extends core_Embedder
      */
     public function activateNow_($rec)
     {
-    	//return FALSE;
     	//@TODO дали да е чакащо или директно активно
     }
     
@@ -527,13 +533,20 @@ class planning_Tasks extends core_Embedder
      */
     public function cron_ActivatePendingTasks()
     {
+    	// Ако няма задачи не правим нищо
+    	if(!self::count()) return;
+    	
+    	// Намираме чакащите
     	$query = self::getQuery();
     	$query->where("#state = 'pending'");
-    	while($rec = $query->fetch()){
-    		
-    	}
     	
-    	//@TODO да се активират чакащите задачи по разписание ако са им изпълнени условията
+    	// Ако им е изпълнено условието за активация, активираме ги
+    	while($rec = $query->fetch()){
+    		if($this->activateNow($rec)){
+    			$rec->state = 'active';
+    			$this->save($rec);
+    		}
+    	}
     }
     
     

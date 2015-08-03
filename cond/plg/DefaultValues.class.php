@@ -284,13 +284,12 @@ class cond_plg_DefaultValues extends core_Plugin
     	}
     	
     	$Cover = (empty($rec->folderId)) ? 'crm_Persons' : doc_Folders::fetchCoverClassName($rec->folderId);
-    	if(isset($mvc->_cashedContragentData->{$name})){
-    		return $mvc->_cashedContragentData->{$name};
+    	if($Cover == 'crm_Persons' && ($name == 'address')){
+    		$name = "p".ucfirst($name);
     	}
     	
-    	if($Cover == 'crm_Persons'){
-
-    		return $mvc->_cashedContragentData->{"p".ucfirst($name)};
+    	if(isset($mvc->_cashedContragentData->{$name})){
+    		return $mvc->_cashedContragentData->{$name};
     	}
     }
     

@@ -77,6 +77,8 @@ class sens2_Controllers extends core_Master
 	var $canSingle = 'ceo,admin,sens';
     
 
+    var $canUpdate = 'ceo,admin,sens';
+
     /**
      * Масиви за кеширане пер хит на инсталираните портове
      */
@@ -291,11 +293,51 @@ class sens2_Controllers extends core_Master
     }
 
 
+    function on_AfterPrepareSingleToolbar($mvc, $res, $data)
+    {
+        if($mvc->haveRightFor('update', $data->rec)) {
+            $data->toolbar->addBtn('Обноваване', array($mvc, 'updateInputs', $data->rec->id));
+        }
+    }
+
+
+    /**
+     * Обновява стойностите на посочения контролер
+     */
+    function act_UpdateInputs()
+    {
+        $this->requireRightFor('update');
+
+        expect($id = Request::get('id', 'int'));
+
+        expect($rec = self::fetch($id));
+ 
+        $drv = self::getDriver($id);
+    
+        $ports = $drv->getInputPorts();
+ 
+        foreach($ports as $name => $def) {
+            $part = "{$name}_update";
+            if($rec->config->{$part} > 0) {
+                $force[$name] = $name;
+            }
+        }
+
+        $res = $this->updateInputs($id, $force, FALSE);
+
+        redirect(array($this, 'Single', $id), NULL, "Обновени са <b>{$res}</b> входа на контролера.");
+    }
+
+
     /**
      * Обновява стойностите на входовете за посочения контролер
      * Новите стойности се записват в sens2_Ports, а тези, за които е дошло време се логват
+     * 
+     * @param $id       int    id на контролер
+     * @param $force    array  Масив с портове, които задължително трябва да бъдат обновени
+     * @param $sav      bool   Дали да се запишат стойностите в dataLog
      */
-    function updateInputs($id, $force = array())
+    function updateInputs($id, $force = array(), $save = TRUE)
     { 
         expect($rec = self::fetch($id));
 
@@ -308,6 +350,8 @@ class sens2_Controllers extends core_Master
         $nowMinutes = round(time()/60);
         
         $inputs = $force;
+
+        $updatedCnt = 0;
         
         if(is_array($ports)) {
             foreach($ports as $port => $params) {
@@ -350,20 +394,25 @@ class sens2_Controllers extends core_Master
                     $value = $values;
                 }
                 
-                if(($expr = $config[$port . '_scale']) && is_numeric($value)) {
+                if(($expr = $config[$port . '_scale']) && is_numeric($value)) {  
                     $expr = str_replace('X', $value, $expr);
                     $value = str::calcMathExpr($expr);
                 }
                    
                 // Обновяваме индикатора за стойността на текущия контролерен порт
                 $indicatorId = sens2_Indicators::setValue($rec->id, $port, $value, $time);
-
+                
+                if($indicatorId) {
+                    $updatedCnt++;
+                }
                 // Ако е необходимо, записваме стойноста на входа в дата-лог-а
-                if($log[$port] && $indicatorId) {
+                if($log[$port] && $indicatorId && $save) {
                     sens2_DataLogs::addValue($indicatorId, $value, $time);
                 }
             }
         }
+
+        return $updatedCnt;
     }
 
 
