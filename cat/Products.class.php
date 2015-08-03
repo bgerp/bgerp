@@ -340,6 +340,13 @@ class cat_Products extends core_Embedder {
 				}
     		} 
     	}
+    	
+    	// При редакция ако артикула е използван с тази мярка, тя не може да се променя
+    	if(isset($form->rec->id)){
+    		if(cat_products_Packagings::isUsed($form->rec->id)){
+    			$form->setReadOnly('measureId');
+    		}
+    	}
     }
     
     
