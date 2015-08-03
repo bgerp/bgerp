@@ -81,7 +81,7 @@ class core_Interfaces extends core_Manager
             }
         }
 
-        if($exRec->title != $rec->title) {
+        if(!$exRec || ($exRec->title != $rec->title)) {
             $this->save($rec);
         }
         
