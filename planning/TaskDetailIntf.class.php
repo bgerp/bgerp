@@ -65,7 +65,7 @@ class planning_TaskDetailIntf extends core_InnerObjectIntf
 	
 	
 	/**
-	 * Ъпдейт на данните на мастъра
+	 * Обновяване на данните на мастъра
 	 */
 	public function updateEmbedder()
 	{

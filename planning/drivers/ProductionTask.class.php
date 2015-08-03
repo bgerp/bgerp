@@ -3,7 +3,7 @@
 
 
 /**
- * Базов драйвер за производствени задачи
+ * Драйвер за производствени задачи
  *
  *
  * @category  bgerp
@@ -40,9 +40,11 @@ class planning_drivers_ProductionTask extends planning_drivers_BaseTask
 	 */
 	public function addDetailFields_(core_FieldSet &$form)
 	{
+		// Каква операция правим
 		$form->setFieldType('operation', 'enum(start=Пускане,production=Произвеждане,waste=Отпадък,scrap=Бракуване,stop=Спиране)');
 		$form->setField('operation', 'input,mandatory');
 		
+		// Ако в мастъра има избрани машини, в детайла може да се избира само от тях
 		if($this->innerForm->fixedAssets){
 			$keylist = $this->innerForm->fixedAssets;
 			if(isset($form->rec->data->fixedAsset)){
@@ -112,12 +114,11 @@ class planning_drivers_ProductionTask extends planning_drivers_BaseTask
 	
 	
 	/**
-	 * Ъпдейт на данните на мастъра
+	 * Обновяване на данните на мастъра
 	 */
 	public function updateEmbedder()
 	{
 		 $rec = $this->EmbedderRec->fetch();
-		
 		 $totalQuantity = $this->innerForm->totalQuantity;
 		 
 		 // Колко е общото к-во досега
@@ -132,7 +133,7 @@ class planning_drivers_ProductionTask extends planning_drivers_BaseTask
 		 // Преизчисляваме общото тегло
 		 $rec->innerForm->totalWeight = $res->sumWeight;
 		      
-		 // Изчисляваме колко % от зададеното е направено
+		 // Изчисляваме колко % от зададеното количество е направено
 		 $rec->progress = round($sumQuantity / $totalQuantity, 2);
 		 if($rec->progress > 1){
 		 	$rec->progress = 1;

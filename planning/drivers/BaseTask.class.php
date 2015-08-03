@@ -131,7 +131,7 @@ class planning_drivers_BaseTask extends core_ProtoInner
     
     
     /**
-     * Ъпдейт на данните на мастъра
+     * Обновяване на данните на мастъра
      */
     public function updateEmbedder()
     {
