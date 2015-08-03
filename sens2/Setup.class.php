@@ -93,6 +93,7 @@ class sens2_Setup extends core_ProtoSetup
         // Добавяме наличните драйвери
         $drivers = array(
             'sens2_MockupDrv',
+            'sens2_ServMon',
             'sens2_ScriptActionAssign',
             'sens2_ScriptActionSignal',
             'sens2_ScriptActionSMS',
