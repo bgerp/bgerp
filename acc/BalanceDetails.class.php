@@ -939,8 +939,8 @@ class acc_BalanceDetails extends core_Detail
     			// Ако изчислената сума е различна от записаната в журнала
     			if(trim($rec->{$priceField}) != trim($price)){
     				
-    				// Ако няма цена на записа
-    				if(!$rec->amount){
+    				// Ако няма сума на записа
+    				if(!isset($rec->amount)){
     					
     					// Намираме последното перо от тази страна
     					$lastItem = NULL;
