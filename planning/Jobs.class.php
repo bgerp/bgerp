@@ -277,6 +277,34 @@ class planning_Jobs extends core_Master
     
     
     /**
+     * След подготовка на тулбара на единичен изглед
+     */
+    protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+    	$rec = &$data->rec;
+    	
+    	// Поставяме бутон за създаване на рецепта
+    	if($rec->state == 'active' || $rec->state == 'wakeup' || $rec->state == 'stopped'){
+    		if($bId = cat_Boms::fetchField("#productId = {$rec->productId} AND #state != 'rejected'", 'id')){
+    			if(cat_Boms::haveRightFor('single', $bId)){
+    				$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'single', $bId, 'ret_url' => TRUE), 'ef_icon = img/16/view.png,title=Към технологичната рецепта на артикула');
+    			}
+    		} elseif(cat_Boms::haveRightFor('write', (object)array('productId' => $rec->productId))){
+    			$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'add', 'productId' => $rec->productId, 'originId' => $rec->containerId, 'quantity' => $rec->quantity, 'ret_url' => TRUE), 'ef_icon = img/16/article.png,title=Създаване на нова технологична рецепта');
+    		}
+    	}
+
+    	// Бутон за добавяне на документ за бързо производство
+    	if($rec->state != 'draft' && $rec->state != 'rejected'){
+    		 if(planning_DirectProductionNote::haveRightFor('add', (object)array('originId' => $rec->containerId))){
+    			 $pUrl = array('planning_DirectProductionNote', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE);
+    			 $data->toolbar->addBtn("Производство", $pUrl, 'ef_icon = img/16/page_paste.png,title=Създаване на протокол за бързо производство от заданието');
+    		}
+    	}
+    }
+    
+    
+    /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      *
      * @param core_Mvc $mvc
