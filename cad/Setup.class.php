@@ -13,7 +13,7 @@ defIfNot('CAD_PEN_COLOR', '#000000');
 
 defIfNot('CAD_INLINE_PEN_COLOR', '#000000');
 
-defIfNot('CAD_PATTERN_PEN_COLOR', '#af9696');
+defIfNot('CAD_PATTERN_PEN_COLOR', '#957474');
 
 defIfNot('CAD_MEASURE_PEN_COLOR', '#2d63ff');
 

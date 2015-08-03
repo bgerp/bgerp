@@ -290,14 +290,16 @@ class cad_SvgCanvas extends core_BaseClass {
         } else {
             $m = sqrt($dist);
         }
- 
+ 		
+        $p = 0.00001 *  abs($r)/$r;
+        
         $C = $M->add( new cad_Vector($AB->a - pi()/2 + ($r<0 ? pi() : 0), $m, 'polar'));
  
         $CA = $A->add($C->neg());
         $CB = $B->add($C->neg());
  
         if($CA->a > $CB->a ) {
-            if($CA->a - $CB->a > 2*pi()) {
+            if($CA->a - $CB->a - $p > 2*pi()) {
                 for($a = $CA->a; $a >= $CB->a + 2*pi(); $a = pi()/100) {
                     $X = $C->add( new cad_Vector($a, abs($r), 'polar'));
                     $this->lineTo($X->x, $X->y, TRUE);
@@ -310,7 +312,7 @@ class cad_SvgCanvas extends core_BaseClass {
             }
         } else {
 
-            if($CB->a - $CA->a > pi()) {
+            if($CB->a - $CA->a - $p > pi()) {
                 for($a = $CA->a + 2*pi(); $a >= $CB->a; $a -= pi()/100) {
                     $X = $C->add( new cad_Vector($a, abs($r), 'polar'));
                     $this->lineTo($X->x, $X->y, TRUE);

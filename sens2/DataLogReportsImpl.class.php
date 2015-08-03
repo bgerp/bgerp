@@ -151,7 +151,7 @@ class sens2_DataLogReportsImpl extends frame_BaseDriver
     		$layout->append($data->pager->getHtml(), 'data');
     	}
     	
-    	return $layout;
+    	$embedderTpl->append($layout, 'innerState');
     }
 
 

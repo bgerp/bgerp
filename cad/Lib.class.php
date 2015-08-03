@@ -21,20 +21,6 @@ class cad_Lib {
     var $title = 'Библиотека с моливи';
     
     
-    const EP_HANDLE_INNER_HEIGHT = 60;
-    const EP_INNER_SPACE = 15;
-    
-    const EP_ARROW_HEIGHT = 10;
-    const EP_ARROW_WIDTH = 20;
-    const EP_ARROW_SIZE = 3;
-    
-    const EP_OVAL_HEIGHT = 35;
-    const EP_OVAL_WIDTH = 20;
-    
-    const EP_OVAL_INNER_HEIGHT = 20;
-    const EP_OVAL_INNER_WIDTH = 10;
-    
-    
     /**
      * Създава молив - контур
      * 
