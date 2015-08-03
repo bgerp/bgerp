@@ -432,13 +432,17 @@ class planning_Tasks extends core_Embedder
     {
     	// Добавяме поле за търсене по състояние
     	if(!Request::get('Rejected', 'int')){
-    		$data->listFilter->setOptions('state', array('' => '') + arr::make('draft=Чернова, active=Активирано, closed=Приключено, stopped=Спряно, wakeup=Събудено', TRUE));
+    		$data->listFilter->setOptions('state', array('' => '') + arr::make('draft=Чернова, active=Активно, pending=Чакащо, pandact=Активно+Чакащо,closed=Приключено, stopped=Спряно, wakeup=Събудено', TRUE));
     		$data->listFilter->setField('state', 'placeholder=Всички');
     		$data->listFilter->showFields .= ',state';
     		$data->listFilter->input('state');
     		 
     		if($state = $data->listFilter->rec->state){
-    			$data->query->where("#state = '{$state}'");
+    			if($state != 'pandact'){
+    				$data->query->where("#state = '{$state}'");
+    			} else {
+    				$data->query->where("#state = 'active' || #state = 'pending'");
+    			}
     		}
     	}
     }
