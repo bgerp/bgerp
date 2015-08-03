@@ -316,10 +316,15 @@ class acc_Limits extends core_Manager
     	
     	if($action == 'add' || $action == 'edit' || $action == 'delete'){
     		if(isset($rec->objectId) && isset($rec->classId)){
-    			if(!acc_Items::fetchItem($rec->classId, $rec->objectId)){
+    			$item = acc_Items::fetchItem($rec->classId, $rec->objectId);
+    			if(!$item){
     				$requiredRoles = 'no_one';
     			} else {
-    				$requiredRoles = cls::get($rec->classId)->getRequiredRoles('addacclimits');
+    				if($item->state == 'closed'){
+    					$requiredRoles = 'no_one';
+    				} else {
+    					$requiredRoles = cls::get($rec->classId)->getRequiredRoles('addacclimits');
+    				}
     			}
     		}
     	}
