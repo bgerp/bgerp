@@ -146,7 +146,10 @@ class frame_Reports extends core_Embedder
     public $listFields = 'id,title=Документ,source,earlyActivationOn,createdOn,createdBy,modifiedOn,modifiedBy';
     
     
-    const KEEP_INNER_STATE_IN_DRAFT = 60;
+    /**
+     * Колко време да се пази кешираното състояние при чернова
+     */
+    const KEEP_INNER_STATE_IN_DRAFT = 120;
     
     
     /**
