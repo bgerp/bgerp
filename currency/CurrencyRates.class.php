@@ -156,7 +156,7 @@ class currency_CurrencyRates extends core_Detail
             
             $this->Currencies->save($currenciesRec, 'lastUpdate,lastRate');
             
-            $this->save($rec);
+            $this->save($rec, NULL, 'IGNORE');
             
             $countCurrencies++;
         }
