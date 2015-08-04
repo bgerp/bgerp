@@ -149,7 +149,7 @@ class frame_Reports extends core_Embedder
     /**
      * Колко време да се пази кешираното състояние при чернова
      */
-    const KEEP_INNER_STATE_IN_DRAFT = 120;
+    const KEEP_INNER_STATE_IN_DRAFT = 86400;
     
     
     /**
