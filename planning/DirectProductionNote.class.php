@@ -344,4 +344,44 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 			planning_Jobs::updateProducedQuantity($origin->that);
 		}
 	}
+	
+	
+	/**
+	 * След подготовка на тулбара на единичен изглед
+	 */
+	protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
+	{
+		$rec = $data->rec;
+		
+		if($rec->state == 'active'){
+			if(cat_Boms::haveRightFor('add')){
+				$bomUrl = array($mvc, 'createBom', $data->rec->id);
+				$data->toolbar->addBtn('Рецепта', $bomUrl, NULL, 'ef_icon = img/16/add.png,title=Създаване на нова рецепта по протокола');
+			}
+		}
+	}
+	
+	
+	public function act_CreateBom()
+	{
+		cat_Boms::requireRightFor('add');
+		expect($id = Request::get('id', 'int'));
+		expect($rec = $this->fetch($id));
+		//bp($rec);
+		cat_Boms::requireRightFor('add', (object)array('productId' => $rec->productId));
+		//$dRec->quantity / $prodQuantity =  ($resource->baseQuantity / $jobQuantity + ($resource->propQuantity / $bomInfo['quantity']));
+		
+		// Изчисляваме к-то според наличните данни
+		//$dRec->quantity = $prodQuantity * ($resource->baseQuantity / $jobQuantity + ($resource->propQuantity / $bomInfo['quantity']));
+		
+		$details = array();
+		$dQuery = planning_DirectProductNoteDetails::getQuery();
+		$dQuery->where("#noteId = {$id}");
+		while ($dRec = $dQuery->fetch()){
+			
+		}
+		bp($rec);
+		cat_Boms::createNewDraft($rec->productId, $rec->quantity, $details, NULL, $rec->expenses);
+		bp($rec);
+	}
 }
