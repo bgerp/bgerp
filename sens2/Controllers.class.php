@@ -90,7 +90,7 @@ class sens2_Controllers extends core_Master
      */
     function description()
     {
-        $this->FLD('name', 'identifier(64,cyr)', 'caption=Наименование, mandatory,notConfig');
+        $this->FLD('name', 'identifier(64,utf8)', 'caption=Наименование, mandatory,notConfig');
         $this->FLD('driver', 'class(interface=sens2_DriverIntf, allowEmpty, select=title)', 'caption=Драйвер,silent,mandatory,notConfig,placeholder=Тип на контролера');
         $this->FLD('config', 'blob(serialize, compress)', 'caption=Конфигурация,input=none,single=none,column=none');
         $this->FLD('state', 'enum(active=Активен, closed=Спрян)', 'caption=Състояние,input=none');
@@ -223,7 +223,7 @@ class sens2_Controllers extends core_Master
             
             $prefix = $port . ($params->caption ? " ({$params->caption})" : "");
 
-            $form->FLD($port . '_name', 'identifier(32,cyr)', "caption={$prefix}->Наименование");
+            $form->FLD($port . '_name', 'identifier(32,utf8)', "caption={$prefix}->Наименование");
             $form->FLD($port . '_uom', 'varchar(16)', "caption={$prefix}->Единица");
             $form->FLD($port . '_scale', 'varchar(255,valid=sens2_Controllers::isValidExpr)', "caption={$prefix}->Скалиране,hint=Въведете функция на X с която да се скалира стойността на входа. Например: `X*50` или `X/2`");
             $form->FLD($port . '_update', 'time(suggestions=1 min|2 min|5 min|10 min|30 min,uom=minutes)', "caption={$prefix}->Четене през");
@@ -243,7 +243,7 @@ class sens2_Controllers extends core_Master
 
             $prefix = $port . ($params->caption ? " ({$params->caption})" : "");
 
-            $form->FLD($port . '_name', 'identifier(32,cyr)', "caption={$prefix}->Наименование");
+            $form->FLD($port . '_name', 'identifier(32,utf8)', "caption={$prefix}->Наименование");
             $form->FLD($port . '_uom', 'varchar(16)', "caption={$prefix}->Единица");
             if(trim($params->uom)) {
                 $form->setSuggestions($port . '_uom', arr::combine(array('' => ''), arr::make($params->uom, TRUE)));
@@ -538,7 +538,19 @@ class sens2_Controllers extends core_Master
    		}
    		
 	}
-
+    
+    
+    /**
+     * Филтър на on_AfterPrepareListFilter()
+     * Малко манипулации след подготвянето на формата за филтриране
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    static function on_BeforePrepareListRecs($mvc, &$res, $data)
+    {
+        $data->query->orderBy('#createdOn', 'DESC');
+    }
     
     
     /**
