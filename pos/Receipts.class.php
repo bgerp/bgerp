@@ -1250,7 +1250,11 @@ class pos_Receipts extends core_Master {
     {
     	expect($id = Request::get('id', 'int'));
     	expect($rec = $this->fetch($id));
-    	expect($rec->state == 'draft');
+    	if($rec->state != 'draft'){
+    		
+    		// Създаване на нова чернова бележка
+    		return redirect(array($this, 'new'));
+    	}
     	
     	$this->requireRightFor('close', $rec);
     	
