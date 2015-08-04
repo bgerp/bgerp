@@ -33,6 +33,62 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
     static $fileType = 'png';
     
     
+    /**
+     * Преобразува подадения файл в PDF
+     * 
+     * @param string $file
+     * @param boolean $cmyk
+     * 
+     * @return string - Манипулатора на PDF файла
+     */
+    public static function toPdf($file, $cmyk = FALSE)
+    {
+        if (!$file) return ;
+        
+        cls::load('fileman_Files');
+        
+        if ((strlen($file) == FILEMAN_HANDLER_LEN) && (strpos($file, '/') === FALSE)) {
+            $fRec = fileman_Files::fetchByFh($file);
+            
+            expect($fRec);
+    	}
+        
+        // Инстанция на класа
+        $Script = cls::get('fconv_Script');
+        
+        // Вземаме името на файла без разширението
+        $name = fileman_Files::getFileNameWithoutExt($file);
+        
+        // Задаваме пътя до изходния файла
+        $outFilePath = $Script->tempDir . $name . '.pdf';
+        
+        // Задаваме placeHolder' ите за входния и изходния файл
+        $Script->setFile('INPUTF', $file);
+        $Script->setFile('OUTPUTF', $outFilePath);
+        
+        $Script->setProgram('inkscape', INKSCAPE_PATH);
+        
+        // Скрипта, който ще конвертира файла в PNG формат
+        $Script->lineExec("inkscape [#INPUTF#] --export-pdf=[#OUTPUTF#] --export-area-drawing");
+        
+        // Стартираме скрипта синхронно
+        $Script->run(FALSE);
+        
+        if (!$cmyk) {
+            $resFileHnd = fileman::absorb($outFilePath, 'fileIndex');
+        } else {
+            $resFileHnd = fileman_webdrv_Pdf::rgbToCmyk($outFilePath);
+        }
+        
+        if ($Script->tempDir) {
+            // Изтриваме временната директория с всички файлове вътре
+            core_Os::deleteDir($Script->tempDir);
+        }
+        
+        return $resFileHnd;
+    }
+    
+    
 	/**
      * Връща всички табове, които ги има за съответния файл
      * 
