@@ -14,14 +14,14 @@
  * @since     v 0.1
  * @title     Задачи за производство
  */
-class planning_Tasks extends core_Embedder
+class planning_Tasks extends embed_Manager
 {
     
     
 	/**
 	 * Свойство, което указва интерфейса на вътрешните обекти
 	 */
-	public $innerObjectInterface = 'planning_TaskDetailIntf';
+	public $driverInterface = 'planning_TaskDetailIntf';
 	
 	
 	/**
@@ -418,7 +418,7 @@ class planning_Tasks extends core_Embedder
     			if($Driver = $mvc->getDriver($id)){
     				
     				// Даваме възможност на драйвера да обнови мастъра ако иска
-    				$Driver->updateEmbedder();
+    				$Driver->updateEmbedder($id);
     			}
     		}
     	}

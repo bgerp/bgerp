@@ -16,110 +16,76 @@
 class planning_drivers_ProductionTask extends planning_drivers_BaseTask
 {
 	
+	
 	/**
-	 * Добавяне на полета към формата на детайла
-     * 
-     * @param core_Form $form
+	 * Шаблон за обвивката този драйвер
 	 */
-	public function addEmbeddedFields(core_Form &$form)
+	protected $singleLayoutFile = 'planning/tpl/SingleLayoutProductionTask.shtml';
+	
+	
+	/**
+     * Добавя полетата на драйвера към Fieldset
+     *
+     * @param core_Fieldset $fieldset
+     */
+    public function addFields(core_Fieldset &$fieldset)
+    {
+		$fieldset->FLD('totalQuantity', 'double(smartRound)', 'mandatory,caption=Общо к-во');
+		$fieldset->FLD('totalWeight', 'double', 'caption=Общо тегло,input=none');
+		$fieldset->FLD('fixedAssets', 'keylist(mvc=cat_Products,select=name,makeLinks=short)', 'caption=Машини');
+	}
+	
+	
+	/**
+	 * Преди показване на форма за добавяне/промяна
+	 */
+	protected static function on_AfterPrepareEditForm($Driver, &$data)
 	{
-		$form->FLD('totalQuantity', 'double', 'mandatory,caption=Общо к-во');
-		$form->FLD('totalWeight', 'double', 'caption=Общо тегло,input=none');
-		$form->FLD('fixedAssets', 'keylist(mvc=cat_Products,select=name)', 'caption=Машини');
-		
 		// Оставяме за избор само артикули ДМА-та
 		$products = cat_Products::getByProperty('fixedAsset');
-		$form->setSuggestions('fixedAssets', $products);
+		$data->form->setSuggestions('fixedAssets', $products);
 	}
 	
 	
 	/**
-	 * Добавяне на полета към формата на детайла
+	 * След преобразуване на записа в четим за хора вид.
 	 *
-	 * @param core_FieldSet $form
+	 * @param core_BaseClass $Driver
+	 * @param stdClass $row Това ще се покаже
+	 * @param stdClass $rec Това е записа в машинно представяне
 	 */
-	public function addDetailFields_(core_FieldSet &$form)
+	protected static function on_AfterRecToVerbal($Driver, &$row, $rec)
 	{
-		// Каква операция правим
-		$form->setFieldType('operation', 'enum(start=Пускане,production=Произвеждане,waste=Отпадък,scrap=Бракуване,stop=Спиране)');
-		$form->setField('operation', 'input,mandatory');
-		
-		// Ако в мастъра има избрани машини, в детайла може да се избира само от тях
-		if($this->innerForm->fixedAssets){
-			$keylist = $this->innerForm->fixedAssets;
-			if(isset($form->rec->data->fixedAsset)){
-				$keylist = keylist::merge($keylist, $form->rec->data->fixedAsset);
-			}
-			$arr = keylist::toArray($keylist);
-			
-			foreach ($arr as $key => &$value){
-				$value = cat_Products::getTitleById($key, FALSE);
-			}
-			$form->setOptions('fixedAsset', array('' => '') + $arr);
-			$form->setField('fixedAsset', 'input');
-		}
-		
-		$form->setField('message', 'input=none');
-	}
-	
-	
-	/**
-	 * Рендира вградения обект
-	 * 
-	 * @param stdClass $data
-	 */
-	public function renderEmbeddedData(&$embedderTpl, $data)
-	{
-		$tpl = new core_ET(tr("|Общо к-во|*: <b>[#totalQuantity#]</b><br>
-							   <!--ET_BEGIN totalWeight-->|Общо тегло|*: [#totalWeight#]<br><!--ET_END totalWeight-->
-							   <!--ET_BEGIN fixedAssets-->|Машини|*: [#fixedAssets#]<!--ET_END fixedAssets-->"));
-		$tpl->placeObject($data->row);
-		
-		$embedderTpl->append($tpl, 'innerState');
-	}
-	
-	
-	/**
-	 * Подготвя данните необходими за показването на вградения обект
-	 */
-	public function prepareEmbeddedData()
-	{
-		$data = new stdClass();
-		$data->row = new stdClass();
-		
-		$Double = cls::get('type_Double', array('params' => array('smartRound' => 'smartRound')));
-		$Weight = cls::get('cat_type_Weight');
-		
-		// Врбализираме общото к-во и тегло
-		$data->row->totalQuantity = $Double->toVerbal($this->innerForm->totalQuantity);
-		$data->row->totalWeight = $Weight->toVerbal($this->innerForm->totalWeight);
-		
-		// Ако в мастъра са избрани машини, вербализираме ги
-		if($this->innerForm->fixedAssets){
-			$Keylist = cls::get('type_Keylist', array('params' => array('mvc' => 'cat_Products', 'select' => 'name', 'makeLinks' => 'short')));
-			$assetsArr = explode(',', $Keylist->toVerbal($this->innerForm->fixedAssets));
-			
-			$data->row->fixedAssets = "<ul style='padding-left:12px;margin:0px;list-style:none'>";
+		if($rec->fixedAssets){
+			$assetsArr = explode(',', $row->fixedAssets);
+				
+			$row->fixedAssets = "<ul style='padding-left:12px;margin:0px;list-style:none'>";
 			foreach ($assetsArr as $asset){
-				$data->row->fixedAssets .= "<li style='padding:0px'>{$asset}</li>";
+				$row->fixedAssets .= "<li style='padding:0px'>{$asset}</li>";
 			}
-			$data->row->fixedAssets .= "<ul>";
+			
+			$row->fixedAssets .= "<ul>";
 		}
-		
-		$assetsRow .= "<ul>";
-		$data->row->fixedAssets = str_replace(',', '<br>', $data->row->fixedAssets);
-		
-		return $data;
 	}
 	
 	
 	/**
-	 * Обновяване на данните на мастъра
+	 * Преди рендиране на шаблона
 	 */
-	public function updateEmbedder()
+	protected static function on_AfterRenderSingleLayout($Driver, &$tpl, $data)
 	{
-		 $rec = $this->EmbedderRec->fetch();
-		 $totalQuantity = $this->innerForm->totalQuantity;
+		$tpl = getTplFromFile($Driver->singleLayoutFile);
+	}
+	
+	
+	/**
+     * Обновяване на данните на мастъра
+     * 
+     * @param int $id - ид
+     */
+	public function updateEmbedder($id)
+	{
+		 $rec = planning_Tasks::fetch($id);
 		 
 		 // Колко е общото к-во досега
 		 $dQuery = planning_TaskDetails::getQuery();
@@ -131,10 +97,10 @@ class planning_drivers_ProductionTask extends planning_drivers_BaseTask
 		 $sumQuantity = $res->sumQuantity;
 		 
 		 // Преизчисляваме общото тегло
-		 $rec->innerForm->totalWeight = $res->sumWeight;
+		 $rec->totalWeight = $res->sumWeight;
 		      
 		 // Изчисляваме колко % от зададеното количество е направено
-		 $rec->progress = round($sumQuantity / $totalQuantity, 2);
+		 $rec->progress = round($sumQuantity / $rec->totalQuantity, 2);
 		 if($rec->progress > 1){
 		 	$rec->progress = 1;
 		 }
@@ -142,4 +108,68 @@ class planning_drivers_ProductionTask extends planning_drivers_BaseTask
 		 // Обновяваме мастъра
 		 planning_Tasks::save($rec);
 	}
+	
+	
+	/**
+	 * След преобразуване на записа в четим за хора вид.
+	 *
+	 * @param core_Mvc $mvc
+	 * @param stdClass $row Това ще се покаже
+	 * @param stdClass $rec Това е записа в машинно представяне
+	 */
+	public static function on_AfterRecToVerbalDetail($mvc, &$row, $rec)
+	{
+		if($rec->operation){
+			$verbal = arr::make('start=Пускане,production=Произвеждане,waste=Отпадък,scrap=Бракуване,stop=Спиране');
+			if(isset($verbal[$rec->operation])){
+				$row->operation = $verbal[$rec->operation];
+			}
+		}
+	}
+	
+	
+	/**
+	 * Преди показване на форма за добавяне/промяна
+	 */
+	protected static function on_AfterPrepareEditFormDetail($Driver, &$data)
+	{
+		$form = &$data->form;
+		$form->setFieldType('operation', 'enum(start=Пускане,production=Произвеждане,waste=Отпадък,scrap=Бракуване,stop=Спиране)');
+		$form->setField('operation', 'input,mandatory');
+		
+		$form->setField('message', 'input=none');
+		
+		if(isset($data->masterRec->fixedAssets)){
+			$keylist = $data->masterRec->fixedAssets;
+			$arr = keylist::toArray($keylist);
+			
+			foreach ($arr as $key => &$value){
+				$value = cat_Products::getTitleById($key, FALSE);
+			}
+			$form->setOptions('fixedAsset', array('' => '') + $arr);
+			$form->setField('fixedAsset', 'input');
+		}
+	}
+	
+	
+	/**
+     * След редниране на шаблона на детайла
+     */
+    public static function on_AfterRenderDetail($Driver, &$tpl, $data)
+    {
+    	// Добавяме бутон за добавяне на прогрес при нужда
+    	if(planning_TaskDetails::haveRightFor('add', (object)array('taskId' => $data->masterId))){
+    		$ht = ht::createLink('', array('planning_TaskDetails', 'add', 'taskId' => $data->masterId, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/add.png,title=Добавяне на прогрес към задачата');
+    		$tpl->append($ht, 'ADD_BTN');
+    	} 
+    }
+    
+    
+    /**
+     * След подготовка на тулбара на детайла
+     */
+    protected static function on_AfterPrepareListToolbarDetail($mvc, &$data)
+    {
+    	$data->toolbar->removeBtn('btnAdd');
+    }
 }

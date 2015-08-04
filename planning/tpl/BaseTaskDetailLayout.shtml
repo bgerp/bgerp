@@ -1,6 +1,0 @@
-<div class="clearfix21 portal" style="background-color:transparent;">
-	<div class="legend" style="background-color:#ffc;font-size:0.9em;padding:1px;color:black">|Прогрес|* [#ADD_BTN#]</div>
-    <div class="listRows">
-    [#TABLE#]
-	</div>
-</div>

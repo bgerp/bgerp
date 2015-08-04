@@ -35,7 +35,7 @@ class frame_Reports extends core_Embedder
     /**
      * Какви интерфейси поддържа този мениджър
      */
-    public $interfaces = 'doc_DocumentIntf';
+    public $interfaces = 'doc_DocumentIntf, doc_AddToFolderIntf';
    
     
     /**
@@ -149,7 +149,7 @@ class frame_Reports extends core_Embedder
     /**
      * Колко време да се пази кешираното състояние при чернова
      */
-    const KEEP_INNER_STATE_IN_DRAFT = 120;
+    const KEEP_INNER_STATE_IN_DRAFT = 86400;
     
     
     /**
@@ -517,5 +517,17 @@ class frame_Reports extends core_Embedder
     	        }
     	    }
     	}
+    }
+    
+    
+    /**
+     * Да се показвали бърз бутон за създаване на документа в папка
+     */
+    public function mustShowButton($folderRec, $userId = NULL)
+    {
+    	$Cover = doc_Folders::getCover($folderRec->id);
+    
+    	// Показваме бутона само ако корицата на папката е 'проект'
+    	return ($Cover->instance instanceof doc_UnsortedFolders) ? TRUE : FALSE;
     }
 }

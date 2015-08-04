@@ -135,7 +135,7 @@ class planning_TaskDetails extends doc_Detail
     	$rec = &$form->rec;
     	
     	// Драйвера добавя полета към формата на детайла
-    	if($Driver = planning_Tasks::getDriver($rec->taskId)){
+    	if($Driver = $mvc->Master->getDriver($rec->taskId)){
     		$Driver->addDetailFields($form);
     	}
     	
@@ -169,33 +169,7 @@ class planning_TaskDetails extends doc_Detail
     {
     	$rec = &$form->rec;
     	
-    	// Подаваме формата на драйвера да я провери ако иска
-    	if($Driver = planning_Tasks::getDriver($rec->taskId)){
-    		$Driver->checkDetailForm($form);
-    	}
-    	
     	if($form->isSubmitted()){
-    	
-    		if(isset($rec->taskId)){
-    	
-    			// Опитваме се да намерим кои полета са дошли от драйвера
-    			$formBefore = $mvc->getForm();
-    			$fieldsBefore = arr::make(array_keys($formBefore->selectFields()), TRUE);
-    			$Driver->addDetailFields($formBefore);
-    			$fieldsAfter = arr::make(array_keys($formBefore->selectFields()), TRUE);
-    			$params = array_diff_assoc($fieldsAfter, $fieldsBefore);
-    			
-    			// Ако има такива
-    			if(count($params)){
-    				$rec->data = new stdClass();
-    				
-    				// Записваме в блоб полето въведените стойностти на полетата добавени от драйвера
-    				foreach ($params as $name => $value){
-    					$rec->data->{$name} = $rec->{$name};
-    				}
-    			}
-    		}
-    		
     		if($rec->operation == 'production'){
     			if(empty($rec->code)){
     				$rec->code = $mvc->getDefaultCode();
@@ -226,50 +200,6 @@ class planning_TaskDetails extends doc_Detail
     	}
     	
     	return $code;
-    }
-    
-    
-    /**
-     * След подготовката на детайлите
-     */
-    public static function on_AfterPrepareDetail($mvc, &$res, &$data)
-    {
-    	// Даваме възможност на драйвера да промени подготовката ако иска
-    	$data->mvc = $mvc;
-    	if($Driver = planning_Tasks::getDriver($data->masterId)){
-    		$Driver->prepareDetailData($data);
-    	}
-    }
-    
-    
-    /**
-     * Рендиране на общия изглед на детайла
-     */
-    public function renderDetail_($data)
-    {
-    	// Даваме на драйвъра възможност да подмени рендировката на детайла
-    	if($Driver = planning_Tasks::getDriver($data->masterId)){
-    		$tpl = $Driver->renderDetailData($data);
-    	}
-    	
-    	// Ако не иска да променя рендирането, правим стандартно
-    	if(!isset($tpl)){
-    		$tpl = parent::renderDetail_($data);
-    	}
-    	
-    	// Ако има форма за добавяне, рендираме я
-    	if(isset($data->addForm)){
-    		$tpl->replace($data->addForm->renderHtml(), 'ADD_FORM');
-    	}
-    	
-    	// Добавяме бутон за добавяне на прогрес при нужда
-    	if(planning_TaskDetails::haveRightFor('add', (object)array('taskId' => $data->masterId))){
-    		$ht = ht::createLink('', array('planning_TaskDetails', 'add', 'taskId' => $data->masterId, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/add.png,title=Добавяне на прогрес към задачата');
-    		$tpl->append($ht, 'ADD_BTN');
-    	} 
-    	
-    	// Връщаме рендирания детайл
-    	return $tpl;
     }
     
     
@@ -311,20 +241,157 @@ class planning_TaskDetails extends doc_Detail
     
     
     /**
-     * Извиква се след подготовката на toolbar-а за табличния изглед
-     */
-    protected static function on_AfterPrepareListToolbar($mvc, &$data)
-    {
-    	$data->toolbar->removeBtn('btnAdd');
-    }
-    
-    
-    /**
      * Преди извличане на записите от БД
      */
     public static function on_BeforePrepareListRecs($mvc, &$res, $data)
     {
     	// Искаме да показваме и оттеглените детайли
     	$data->query->orWhere("#state = 'rejected'");
+    }
+    
+    
+    /**
+     * Извиква се след подготовката на колоните ($data->listFields)
+     */
+    protected static function on_AfterPrepareListFields($mvc, $data)
+    {
+    	// Добавяме полетата от драйвера в списъка с полета за показване
+    	if($Driver = cls::get('planning_Tasks')->getDriver($data->masterId)){
+    		$fieldset = cls::get('core_Fieldset');
+    		$Driver->addDetailFields($fieldset);
+    		
+    		foreach ($fieldset->fields as $name => $fld){
+    			$data->listFields[$name] = $fld->caption;
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Добавяме полетата от драйвера, ако са указани
+     */
+    public static function recToVerbal_($rec, &$fields = '*')
+    {
+    	$row = parent::recToVerbal_($rec, $fields);
+    
+    	// Разпънатите данни от драйвера ги вербализираме
+    	$Driver = cls::get('planning_Tasks')->getDriver($rec->taskId);
+    	
+    	if(is_array($fields) && $Driver){
+    		$fieldset = cls::get('core_Fieldset');
+    		$Driver->addDetailFields($fieldset);
+    		
+    		foreach($fieldset->fields as $name => $field) {
+    			if(!isset($row->{$name}) && $fields[$name] && isset($rec->{$name})) {
+    				$row->{$name} = $field->type->toVerbal($rec->{$name});
+    			}
+    		}
+    	}
+    	
+    	return $row;
+    }
+    
+    
+    /**
+     * Изпълнява се след извличане на запис чрез ->fetch()
+     */
+    public static function on_AfterRead($mvc, $rec)
+    {
+    	// Разпъваме данните от драйвера
+    	if($Driver = $mvc->Master->getDriver($rec->taskId)){
+    		$driverRec = $rec->data;
+    		
+    		if(is_array($driverRec)) {
+    			foreach($driverRec as $field => $value) {
+    				$rec->{$field} = $value;
+    			}
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Преди запис в модела, компактираме полетата
+     */
+    public function save_(&$rec, $fields = NULL, $mode = NULL)
+    {
+    	// Компресираме данните от драйвера
+    	if($Driver = $this->Master->getDriver($rec->taskId)){
+    		$form = cls::get('core_FieldSet');
+    		$Driver->addDetailFields($form);
+    		$addFields = $form->selectFields();
+    		$driverRec = array();
+    		
+    		if(count($addFields)){
+    			foreach ($addFields as $name => $caption){
+    				$driverRec[$name] = $rec->{$name};
+    			}
+    		}
+    		
+    		$rec->data = $driverRec;
+    	}
+    	
+    	return parent::save_($rec, $fields, $mode);
+    }
+    
+    
+    /**
+     * Подменяне на входния метод за генериране на събития
+     */
+    function invoke($event, $args = array())
+    {
+    	$status = parent::invoke($event, $args);
+    	
+    	if($status !== FALSE) {
+    		$masterId = NULL;
+    		
+    		// При постъпването на определени събития ще нотофицираме драйвера че са станали
+    		switch(strtolower($event)) {
+    			case 'afterprepareeditform':
+    				$masterId = $args[0]->form->rec->taskId;
+    				$newEvent = strtolower($event) . "detail";
+    				
+    				break;
+    			case 'afterinputeditform':
+    				$masterId = $args[0]->rec->taskId;
+    				$newEvent = strtolower($event) . "detail";
+    				break;
+    			case 'afterrectoverbal':
+    				$masterId = $args[1]->taskId;
+    				$newEvent = strtolower($event) . "detail";
+    				break;
+    			case 'afterpreparelisttoolbar':
+    				$masterId = $args[0]->masterId;
+    				$newEvent = strtolower($event) . "detail";
+    				break;
+    			case 'afterpreparedetail':
+    				$masterId = $args[0]->masterId;
+    				$newEvent = strtolower($event);
+    				break;
+    			case 'afterrenderdetail':
+    				$masterId = $args[1]->masterId;
+    				$newEvent = strtolower($event);
+    				break;
+    			case 'afterrenderdetaillayout':
+    				$masterId = $args[1]->masterId;
+    				$newEvent = strtolower($event);
+    				break;
+    		}
+    
+    		// Ако е намерен мастър и той има драйвер
+    		if(isset($masterId) && $Driver = $this->Master->getDriver($masterId)){
+    			
+    			// Генерираме събитие в драйвера за да го прихване
+    			$status2 = $Driver->invoke($newEvent, $args);
+    			 
+    			if($status2 === FALSE) {
+    				$status = FALSE;
+    			} elseif($status == -1 && $status2 === TRUE) {
+    				$status = TRUE;
+    			}
+    		}
+    	}
+    
+    	return $status;
     }
 }
