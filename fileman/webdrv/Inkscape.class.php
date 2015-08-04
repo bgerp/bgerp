@@ -2,6 +2,12 @@
 
 
 /**
+ * Път до програмата
+ */
+defIfNot('INKSCAPE_PATH', 'inkscape');
+
+
+/**
  * Драйвер за работа с файлове поддържани от inkscape
  * 
  * @category  vendors
@@ -125,7 +131,9 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
         
         $height = static::$pngExportHeight;
         
-        // Скрипта, който ще конвертира файла в JPG формат
+        $Script->setProgram('inkscape', INKSCAPE_PATH);
+        
+        // Скрипта, който ще конвертира файла в PNG формат
         $Script->lineExec("inkscape [#INPUTF#] --export-png=[#OUTPUTF#] --export-area-drawing --export-height={$height}");
         
         // Функцията, която ще се извика след приключване на обработката на файла
