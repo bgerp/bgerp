@@ -838,31 +838,6 @@ class findeals_Deals extends deals_DealBase
     
     
     /**
-     * Да се показвали бърз бутон за създаване на документа в папка
-     */
-    public function mustShowButton($folderRec, $userId = NULL)
-    {
-    	$Cover = doc_Folders::getCover($folderRec->id);
-    
-    	// Ако папката е на контрагент
-    	if($Cover->haveInterface('doc_ContragentDataIntf')){
-    		$groupList = $Cover->fetchField($Cover->getInstance()->groupsField);
-    		$debitGroupId = crm_Groups::fetchField("#sysId = 'debitors'");
-    		$creditGroupId = crm_Groups::fetchField("#sysId = 'creditors'");
-    		
-    		// и той е в група 'дебитори' или 'кредитори'
-    		if(keylist::isIn($debitGroupId, $groupList) || keylist::isIn($creditGroupId, $groupList)){
-    
-    			return TRUE;
-    		}
-    	}
-    
-    	// Ако не е контрагент или не е в група 'дебитори' или 'кредитори' не слагаме бутон
-    	return FALSE;
-    }
-    
-    
-    /**
      * Кои сделки ще могатд а се приключат с документа
      * 
      * @param findeals_Deals $mvc

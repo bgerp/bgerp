@@ -212,6 +212,7 @@ class doc_UnsortedFolders extends core_Master
         $this->FLD('name' , 'varchar(128)', 'caption=Наименование,mandatory');
         $this->FLD('description' , 'richtext(rows=3)', 'caption=Описание');
         $this->FLD('closeTime' , 'time', 'caption=Автоматично затваряне на нишките след->Време, allowEmpty');
+        $this->FLD('showDocumentsAsButtons' , 'keylist(mvc=core_Classes,select=title)', 'caption=Документи които да се показват като бутони->Документи');
         $this->setDbUnique('name');
     }
     
@@ -677,5 +678,48 @@ class doc_UnsortedFolders extends core_Master
 
 	    // връщаме един обект от всички масиви
 	    return (object) array('tasksData' => $resTask, 'headerInfo' => $header , 'resources' => $resources, 'otherParams' => $params);
+    }
+    
+    
+    /**
+     * Преди показване на форма за добавяне/промяна
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+    	$suggestions = core_Classes::getOptionsByInterface('doc_DocumentIntf', 'title');
+    	foreach ($suggestions as $classId => $name){
+    		if(!cls::get($classId)->canAddToFolder($data->form->rec->folderId)){
+    			unset($suggestions[$classId]);
+    		}
+    	}
+    	 
+    	$data->form->setSuggestions('showDocumentsAsButtons', $suggestions);
+    	$data->form->setDefault('showDocumentsAsButtons', keylist::addKey('', cal_Tasks::getClassId()));
+    	
+    }
+    
+    
+    /**
+     * Кои документи да се показват като бързи бутони в папката на корицата
+     * 
+     * @param int $id - ид на корицата
+     * @return array $res - възможните класове
+     */
+    public function getDocButtonsInFolder($id)
+    {
+    	$res = array();
+    	$rec = $this->fetch($id);
+    	if($rec->showDocumentsAsButtons){
+    		$res = keylist::toArray($rec->showDocumentsAsButtons);
+    	} else {
+    		$res = array('cal_Tasks');
+    	}
+    	
+    	// Ако има клас с името на проекта, връщаме и него
+    	if($defClassId = core_Classes::fetchField("#title = '{$rec->name}'", 'id')){
+    		$res[] = $defClassId;
+    	}
+    	
+    	return $res;
     }
 }

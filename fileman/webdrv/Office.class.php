@@ -331,7 +331,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         }
         
         // Скрипта, който ще конвертира файла от PDF в JPG формат
-        $Script->lineExec('gs -sDEVICE=jpeg -dGraphicsAlphaBits=4 -dTextAlphaBits=4 -sOutputFile=[#OUTPUTF#] -dBATCH -r200 -dNOPAUSE [#INPUTF#]');
+        $Script->lineExec('gs -dSAFER -dNOPAUSE -dNOCACHE -sDEVICE=jpeg -dGraphicsAlphaBits=4 -dTextAlphaBits=4 -sOutputFile=[#OUTPUTF#] -dBATCH -r200 -dNOPAUSE [#INPUTF#]');
         
         // Функцията, която ще се извика след приключване на обработката на файла
         $Script->callBack($params['callBack']);

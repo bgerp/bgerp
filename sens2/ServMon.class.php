@@ -20,7 +20,7 @@ class sens2_ServMon  extends sens2_ProtoDriver
     /**
      * Заглавие на драйвера
      */
-    var $title = 'Сървврен мониторинг';
+    var $title = 'Сървърен мониторинг';
     
     
     /**
@@ -32,7 +32,7 @@ class sens2_ServMon  extends sens2_ProtoDriver
     function getInputPorts()
     {
         return array(
-                'freeRam' => (object) array('caption' => 'Свободна RAM', 'uom' => 'B'),
+                'freeRam' => (object) array('caption' => 'Свободна RAM', 'uom' => '%'),
                 'freeDir1' => (object) array('caption' => 'Свободна памет в Dir1', 'uom' => 'B'),
                 'freeDir2' => (object) array('caption' => 'Свободна памет в Dir2', 'uom' => 'B'),
                 
@@ -55,9 +55,9 @@ class sens2_ServMon  extends sens2_ProtoDriver
         $form->FLD('dir1', 'varchar', 'caption=Пътища->Dir1');
         $form->FLD('dir2', 'varchar', 'caption=Пътища->Dir1');
 
-        $form->FLD('proc1', 'varchar', 'caption=Процеси->Proc1');
-        $form->FLD('proc2', 'varchar', 'caption=Процеси->Proc2');
-        $form->FLD('proc3', 'varchar', 'caption=Процеси->Proc3');
+        $form->FLD('proc1', 'identifier(allowed=.)', 'caption=Процеси->Proc1');
+        $form->FLD('proc2', 'identifier', 'caption=Процеси->Proc2');
+        $form->FLD('proc3', 'identifier', 'caption=Процеси->Proc3');
         
         $form->FLD('conn1', 'varchar', 'caption=Връзки->Conn1');
         $form->FLD('conn2', 'varchar', 'caption=Връзки->Conn2');

@@ -316,7 +316,6 @@ class core_Os
                 }
             }
         } else {
-            $proc = escapeshellarg($proc);
             exec('ps aux | grep {$proc} | grep -v grep', $output);
             $processes = count($output);
         }

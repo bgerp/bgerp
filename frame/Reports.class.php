@@ -35,7 +35,7 @@ class frame_Reports extends core_Embedder
     /**
      * Какви интерфейси поддържа този мениджър
      */
-    public $interfaces = 'doc_DocumentIntf, doc_AddToFolderIntf';
+    public $interfaces = 'doc_DocumentIntf';
    
     
     /**
@@ -517,17 +517,5 @@ class frame_Reports extends core_Embedder
     	        }
     	    }
     	}
-    }
-    
-    
-    /**
-     * Да се показвали бърз бутон за създаване на документа в папка
-     */
-    public function mustShowButton($folderRec, $userId = NULL)
-    {
-    	$Cover = doc_Folders::getCover($folderRec->id);
-    
-    	// Показваме бутона само ако корицата на папката е 'проект'
-    	return ($Cover->instance instanceof doc_UnsortedFolders) ? TRUE : FALSE;
     }
 }

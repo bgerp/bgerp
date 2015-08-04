@@ -83,7 +83,7 @@ class sens2_ScriptDefinedVars  extends core_Detail
     function description()
     {
         $this->FLD('scriptId', 'key(mvc=sens2_Scripts,title=name)', 'caption=Блок,column=none,silent,oldFieldName=logicId');
-        $this->FLD('name', 'identifier(32,cyr)', 'caption=Променлива,mandatory');
+        $this->FLD('name', 'identifier(32,utf8)', 'caption=Променлива,mandatory');
         $this->FLD('scope', 'enum(local=Локална,global=Глобална)', 'caption=Видимост');
         $this->FLD('value', 'double', 'caption=Стойност,input=none,notNull');
 
