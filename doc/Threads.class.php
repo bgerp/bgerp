@@ -1372,47 +1372,6 @@ class doc_Threads extends core_Manager
     	}
     	
     	return $res;
-    	
-    	
-    	
-    	
-    	
-    	
-    	
-    	
-    	$managersIds = array();
-    	
-    	// Ако няма кеширани, $managersIds намираме ги
-    	if(!count($managersIds)){
-    		
-    		// Намираме имали класове с интерфейса за добавяне
-    		$classesToAdd = core_Classes::getOptionsByInterface('doc_AddToFolderIntf');
-    		
-    		if(count($classesToAdd)){
-    			$folderRec = doc_Folders::fetch($folderId);
-    			$cu = core_Users::getCurrent();
-    		
-    			// За всеки мениджър
-    			foreach ($classesToAdd as $classId => $className){
-    						
-    				// Проверяваме дали може да се добавя като бърз бутон
-    				if(cls::load($className, TRUE)){
-    					
-    					$Cls = cls::get($className);
-    					if($Cls->haveRightFor('add', (object)array('folderId' => $folderRec->id))){
-    						
-    						// Ако имплементира интерфейсния метод 'mustShowButton', и той върне TRUE
-    						if(cls::existsMethod($Cls, 'mustShowButton') && $Cls->mustShowButton($folderRec, $cu)){
-    							$managersIds[$classId] = $classId;
-    						}
-    					}
-    				}
-    			}
-    		}
-    	}
-    	
-    	// Връщаме ид-та на всички мениджъри, които да имат бързи бутони
-    	return count($managersIds) ? $managersIds : NULL;
     }
     
     

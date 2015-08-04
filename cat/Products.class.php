@@ -31,7 +31,7 @@ class cat_Products extends core_Embedder {
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    public $interfaces = 'acc_RegisterIntf,cat_ProductAccRegIntf,doc_AddToFolderIntf,acc_RegistryDefaultCostIntf';
+    public $interfaces = 'acc_RegisterIntf,cat_ProductAccRegInt,acc_RegistryDefaultCostIntf';
     
     
     /**
@@ -1378,23 +1378,6 @@ class cat_Products extends core_Embedder {
     			$res = 'no_one';
     		}
     	}
-    }
-    
-    
-    /**
-     * Да се показвали бърз бутон за създаване на документа в папка
-     */
-    public function mustShowButton($folderRec, $userId = NULL)
-    {
-    	$Cover = doc_Folders::getCover($folderRec->id);
-    	 
-    	// Ако папката е на контрагент
-    	if($Cover->getInstance() instanceof cat_Categories){
-    
-    		return TRUE;
-    	}
-    	 
-    	return FALSE;
     }
     
     

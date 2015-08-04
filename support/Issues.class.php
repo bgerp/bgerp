@@ -102,7 +102,7 @@ class support_Issues extends core_Master
     /**
      * Поддържани интерфейси
      */
-    var $interfaces = 'doc_DocumentIntf, doc_AddToFolderIntf, doc_ContragentDataIntf';
+    var $interfaces = 'doc_DocumentIntf, doc_ContragentDataIntf';
     
     
     /**
@@ -957,17 +957,6 @@ class support_Issues extends core_Master
         }
         
         return $contrData;
-    }
-    
-    /**
-     * Да се показвали бърз бутон за създаване на документа в папка
-     */
-    public function mustShowButton($folderRec, $userId = NULL)
-    {
-    	$Cover = doc_Folders::getCover($folderRec->id);
-    	
-    	// Показваме бутона само ако корицата на папката поддържа интерфейса 'support_IssueIntf'
-    	return ($Cover->haveInterface('support_IssueIntf')) ? TRUE : FALSE;
     }
     
 
