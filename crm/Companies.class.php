@@ -1595,18 +1595,28 @@ class crm_Companies extends core_Master
     public function getDocButtonsInFolder($id)
     {
     	$res = array();
-    	
+    	 
     	$rec = $this->fetch($id);
     	$clientGroupId = crm_Groups::getIdFromSysId('customers');
     	$supplierGroupId = crm_Groups::getIdFromSysId('suppliers');
-    	if(keylist::isIn($clientGroupId, $rec->groupList)){
-    		$res[] = 'sales_Sales'; 
+    	$debitGroupId = crm_Groups::getIdFromSysId('debitors');
+    	$creditGroupId = crm_Groups::getIdFromSysId("creditors");
+    	
+    	// Ако е в група дебитори или кредитови, показваме бутон за финансова сделка
+    	if(keylist::isIn($debitGroupId, $rec->groupList) || keylist::isIn($creditGroupId, $rec->groupList)){
+    		$res[] = 'findeals_Deals';
     	}
     	
+    	// Ако е в група на клиент, показваме бутона за продажба
+    	if(keylist::isIn($clientGroupId, $rec->groupList)){
+    		$res[] = 'sales_Sales';
+    	}
+    	 
+    	// Ако е в група на достачик, показваме бутона за покупка
     	if(keylist::isIn($supplierGroupId, $rec->groupList)){
     		$res[] = 'purchase_Purchases';
     	}
-    	
+    	 
     	return $res;
     }
 }
