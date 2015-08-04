@@ -1323,10 +1323,15 @@ class doc_Threads extends core_Manager
             	}
         		
         		// Ако има мениджъри, на които да се слагат бързи бутони, добавяме ги
-        	    if($managersIds = self::getFastButtons($data->folderId)){
+            	$managersIds = self::getFastButtons($data->folderId);
+        	    if(count($managersIds)){
+        	    	
+        	    	// Всеки намерен мениджър го добавяме като бутон, ако потребителя има права
         			foreach ($managersIds as $classId){
         				$Cls = cls::get($classId);
-        				$data->toolbar->addBtn($Cls->singleTitle, array($Cls, 'add', 'folderId' => $data->folderId), "ef_icon = {$Cls->singleIcon},title=Създаване на " . mb_strtolower($Cls->singleTitle));
+        				if($Cls->haveRightFor('add', (object)array('folderId' => $data->folderId))){
+        					$data->toolbar->addBtn($Cls->singleTitle, array($Cls, 'add', 'folderId' => $data->folderId), "ef_icon = {$Cls->singleIcon},title=Създаване на " . mb_strtolower($Cls->singleTitle));
+        				}
         			}
         		}
         	}
@@ -1342,10 +1347,39 @@ class doc_Threads extends core_Manager
     
     
     /**
-     * Връща масив с ид-та на мениджърите за които ще има бързи, ако няма връща NULL
+     * Връща масив с ид-та на мениджърите които ще бъдат бързи бутони в папката
+     * 
+     * @param int $folderId - ид на папката
+     * @return array $res - намерените мениджъри
      */
     private static function getFastButtons($folderId)
     {
+    	$Cover = doc_Folders::getCover($folderId);
+    	$managers = $Cover->getDocButtonsInFolder($rec);
+    	
+    	$res = array();
+    	if(is_array($managers) && count($managers)){
+    		foreach ($managers as $manager){
+    			
+    			// Проверяваме дали може да се зареди класа
+    			if(cls::load($manager, TRUE)){
+    				$Cls = cls::get($manager);
+    				expect(cls::haveInterface('doc_DocumentIntf', $Cls));
+    				
+    				$res[$Cls->getClassId()] = $Cls->getClassId();
+    			}
+    		}
+    	}
+    	
+    	return $res;
+    	
+    	
+    	
+    	
+    	
+    	
+    	
+    	
     	$managersIds = array();
     	
     	// Ако няма кеширани, $managersIds намираме ги

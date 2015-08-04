@@ -1584,4 +1584,29 @@ class crm_Companies extends core_Master
     	
     	return $meta;
     }
+    
+    
+    /**
+     * Кои документи да се показват като бързи бутони в папката на корицата
+     * 
+     * @param int $id - ид на корицата
+     * @return array $res - възможните класове
+     */
+    public function getDocButtonsInFolder($id)
+    {
+    	$res = array();
+    	
+    	$rec = $this->fetch($id);
+    	$clientGroupId = crm_Groups::getIdFromSysId('customers');
+    	$supplierGroupId = crm_Groups::getIdFromSysId('suppliers');
+    	if(keylist::isIn($clientGroupId, $rec->groupList)){
+    		$res[] = 'sales_Sales'; 
+    	}
+    	
+    	if(keylist::isIn($supplierGroupId, $rec->groupList)){
+    		$res[] = 'purchase_Purchases';
+    	}
+    	
+    	return $res;
+    }
 }
