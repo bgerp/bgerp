@@ -12,7 +12,7 @@
  * @since     v 0.1
  * @title     Интерфейс за драйвери на задачи
  */
-class planning_TaskDetailIntf extends core_InnerObjectIntf
+class planning_TaskDetailIntf extends embed_DriverIntf
 {
 	
 	
@@ -23,6 +23,37 @@ class planning_TaskDetailIntf extends core_InnerObjectIntf
 	
 	
 	/**
+	 * Добавя полетата на драйвера към Fieldset
+	 *
+	 * @param core_Fieldset $fieldset
+	 */
+	public function addFields(core_Fieldset &$fieldset)
+	{
+		 
+	}
+	
+	
+	/**
+	 * Кой може да избере драйвера
+	 */
+	public function canSelectDriver($userId = NULL)
+	{
+		return core_Users::haveRole($this->canSelectDriver, $userId);
+	}
+	
+	
+	/**
+	 * Обновяване на данните на мастъра
+	 * 
+	 * @param int $id - ид на записа
+	 */
+	public function updateEmbedder($id)
+	{
+		return $this->class->updateEmbedder($id);
+	}
+	
+	
+	/**
 	 * Добавяне на полета към формата на детайла
 	 *
 	 * @param core_FieldSet $form
@@ -30,45 +61,5 @@ class planning_TaskDetailIntf extends core_InnerObjectIntf
 	public function addDetailFields(core_FieldSet &$form)
 	{
 		 return $this->class->addDetailFields($form);
-	}
-	
-	
-	/**
-	 * Проверява въведената форма
-	 *
-	 * @param core_Form $form
-	 */
-	public function checkDetailForm(core_Form &$form)
-	{
-		return $this->class->checkDetailForm($form);
-	}
-	
-	
-	/**
-	 * Промяна на подготовката на детайла
-	 *
-	 * @param stdClass $data
-	 */
-	public function prepareDetailData($data)
-	{
-		return $this->class->prepareDetailData($data);
-	}
-	
-	
-	/**
-	 * Рендиране на информацията на детайла
-	 */
-	public function renderDetailData($data)
-	{
-		return $this->class->renderDetailData($data);
-	}
-	
-	
-	/**
-	 * Обновяване на данните на мастъра
-	 */
-	public function updateEmbedder()
-	{
-		 return $this->class->updateEmbedder();
 	}
 }

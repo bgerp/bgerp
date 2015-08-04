@@ -627,4 +627,21 @@ class doc_FolderPlg extends core_Plugin
     		}
     	}
     }
+    
+    
+    /**
+     * Кои документи да се показват като бързи бутони в папката на корицата
+     */
+    public static function on_AfterGetDocButtonsInFolder($mvc, &$res, $id)
+    {
+    	if(!$res){
+    		
+    		// Ако има зададени такива тях, иначе никои
+    		if(isset($mvc->defaultDefaultDocuments)){
+    			$res = arr::make($mvc->defaultDefaultDocuments);
+    		} else {
+    			$res = array();
+    		}
+    	}
+    }
 }

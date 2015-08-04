@@ -25,6 +25,12 @@ class embed_Manager extends core_Master
 		
 	
 	/**
+	 * Кеш на инстанцираните вградени класове
+	 */
+	protected $Drivers = array();
+	
+	
+	/**
 	 * След дефиниране на полетата на модела
 	 *
 	 * @param core_Mvc $mvc
@@ -245,6 +251,7 @@ class embed_Manager extends core_Master
                     $driverClass = $args[0]->form->rec->driverClass;
                     break;
 
+                case 'afterrendersinglelayout':
                 case 'afterrendersingletitle':
                 case 'afterrendersingletoolbar':
                 case 'beforerendersinglelayout':
@@ -287,4 +294,27 @@ class embed_Manager extends core_Master
         return $status;
     }
 	
+    
+    /**
+     * Връща инстанция на драйвера на класа
+     * 
+     * @param int $id
+     * @return mixed - инстанция на драйвера или FALSE ако не може се инстанцира
+     */
+    public function getDriver($id)
+    {
+    	if(empty($this->Drivers[$id])){
+    		$rec = static::fetch($id);
+    		
+    		// Ако има драйвер и той може да се зареди, инстанцираме го
+    		if(isset($rec->driverClass) && cls::load($rec->driverClass, TRUE)){
+    		
+    			$this->Drivers[$rec->id] = cls::get($rec->driverClass);
+    		} else {
+    			return FALSE;
+    		}
+    	}
+    	
+    	return $this->Drivers[$id];
+    }
 }

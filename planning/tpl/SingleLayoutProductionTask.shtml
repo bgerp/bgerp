@@ -26,9 +26,18 @@
                     </td>
                 </tr>
             </table>
-             [#innerState#]
+            |Общо к-во|*: <b>[#totalQuantity#]</b><br>
+			<!--ET_BEGIN totalWeight-->|Общо тегло|*: [#totalWeight#]<br><!--ET_END totalWeight-->
+			<!--ET_BEGIN fixedAssets-->|Машини|*: [#fixedAssets#]<!--ET_END fixedAssets-->
         </div>
     </div>
     <div style='padding-top:6px;padding-bottom:6px'>[#description#]</div>
+    
+    <div class="clearfix21 portal" style="background-color:transparent;">
+	<div class="legend" style="background-color:#ffc;font-size:0.9em;padding:1px;color:black">|Прогрес|* [#ADD_BTN#]</div>
+    <div class="listRows">
     <div class='overflow-scroll'>[#planning_TaskDetails#]</div>
+	</div>
+</div>
+    
     [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

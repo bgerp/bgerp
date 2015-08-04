@@ -613,7 +613,9 @@ abstract class deals_InvoiceMaster extends core_Master
 	   	$dRec->quantityInPack 			  = $packQuantity;
 	   	$dRec->quantity       			  = $restAmount / $packQuantity;
 	   	
-	   	$mvc->$Detail->save($dRec);
+	   	if($dRec->amount !== 0) {
+	   		$mvc->$Detail->save($dRec);
+	   	}
    }
    
    
