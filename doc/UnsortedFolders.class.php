@@ -688,7 +688,7 @@ class doc_UnsortedFolders extends core_Master
     {
     	$suggestions = core_Classes::getOptionsByInterface('doc_DocumentIntf', 'title');
     	foreach ($suggestions as $classId => $name){
-    		if(!cls::get($classId)->canAddToFolder($data->form->rec->id)){
+    		if(!cls::get($classId)->canAddToFolder($data->form->rec->folderId)){
     			unset($suggestions[$classId]);
     		}
     	}
