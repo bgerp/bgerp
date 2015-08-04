@@ -682,13 +682,20 @@ class doc_UnsortedFolders extends core_Master
     
     
     /**
-     * Извиква се след подготовката на toolbar-а на формата за редактиране/добавяне
+     * Преди показване на форма за добавяне/промяна
      */
-    protected static function on_AfterPrepareEditToolbar($mvc, $data)
+    public static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$suggestions = core_Classes::getOptionsByInterface('doc_DocumentIntf', 'title');
+    	foreach ($suggestions as $classId => $name){
+    		if(!cls::get($classId)->canAddToFolder($data->form->rec->id)){
+    			unset($suggestions[$classId]);
+    		}
+    	}
+    	 
     	$data->form->setSuggestions('showDocumentsAsButtons', $suggestions);
     	$data->form->setDefault('showDocumentsAsButtons', keylist::addKey('', cal_Tasks::getClassId()));
+    	
     }
     
     
