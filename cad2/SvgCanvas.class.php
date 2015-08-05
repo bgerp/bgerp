@@ -64,10 +64,10 @@ class cad2_SvgCanvas extends core_BaseClass {
         
         $conf = core_Packs::getConfig('cad');
 
-        //$this->minY = $conf->CAD2_MAX_CANVAS_SIZE * $pixPerMm;
-		//$this->maxX = - $conf->CAD2_MAX_CANVAS_SIZE * $pixPerMm;
-		//$this->maxY = - $conf->CAD2_MAX_CANVAS_SIZE * $pixPerMm;
-		//$this->minX = $conf->CAD2_MAX_CANVAS_SIZE * $pixPerMm;
+		$this->minX = $paddingLeft * $pixPerMm;
+		$this->maxX = ($width - $paddingLeft) * $pixPerMm;
+        $this->minY = $paddingTop * $pixPerMm;
+		$this->maxY = ($height - $paddingBottom) * $pixPerMm;
 
         $this->setCP($this->width - $this->paddingRight, $this->height - $this->paddingBottom, TRUE);
         $this->setCP($this->paddingLeft, $this->paddingTop, TRUE);
@@ -91,7 +91,7 @@ class cad2_SvgCanvas extends core_BaseClass {
 		$this->maxX = max($x, $this->maxX);
 		$this->maxY = max($y, $this->maxY);
 		$this->minX = min($x, $this->minX);
-
+ 
 
         
       //  $conf = core_Packs::getConfig('cad2');
@@ -253,6 +253,7 @@ class cad2_SvgCanvas extends core_BaseClass {
         $c = $absolute ? 'C' : 'c';
 
 		$path->attr['d'] .= " {$c}{$x1},{$y1} {$x2},{$y2} {$x},{$y}";
+// echo "<li> $x1, $y1, $absolute | $x2, $y2, $absolute | $x, $y, $absolute";  
 
 		$this->setCP($x1, $y1, $absolute);
         $this->setCP($x2, $y2, $absolute);
@@ -477,7 +478,7 @@ class cad2_SvgCanvas extends core_BaseClass {
         $right  = $this->maxX + $this->paddingRight;
         $bottom = $this->maxY + $this->paddingBottom;
 		$left   = $this->minX - $this->paddingLeft;
-      
+ 
         // Динамично изчислените размери на страницата
 		$width  = max($this->width,  $right - $left);
 		$height = max($this->height, $bottom - $top);
