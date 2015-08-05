@@ -42,21 +42,15 @@ class planning_TaskDetails extends doc_Detail
     
     
     /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'ceo, planning';
-    
-    
-    /**
      * Кой има право да оттегля?
      */
-    public $canReject = 'ceo, planning';
+    public $canReject = 'powerUser';
     
     
     /**
      * Кой има право да възстановява?
      */
-    public $canRestore = 'ceo, planning';
+    public $canRestore = 'powerUser';
     
     
     /**
@@ -68,7 +62,7 @@ class planning_TaskDetails extends doc_Detail
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo, planning';
+    public $canAdd = 'powerUser';
     
     
     /**
@@ -235,6 +229,16 @@ class planning_TaskDetails extends doc_Detail
     		$state = $mvc->Master->fetchField($rec->taskId, 'state');
     		if($state != 'active' && $state != 'pending' && $state != 'wakeup'){
     			$requiredRoles = 'no_one';
+    		} else {
+    			
+    			// Ако не може да бъде избран драйвера от потребителя, не може да добавя прогрес
+    			if($Driver = $mvc->Master->getDriver($rec->taskId)){
+    				if(!$Driver->canSelectDriver($userId)){
+    					$requiredRoles = 'no_one';
+    				}
+    			} else {
+    				$requiredRoles = 'no_one';
+    			}
     		}
     	}
     }
