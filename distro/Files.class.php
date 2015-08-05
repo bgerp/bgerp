@@ -1182,10 +1182,6 @@ class distro_Files extends core_Detail
                 
                 // Добавяме към шаблона за таблиците
                 $tplTable->append($tplRow, 'repoRow');
-            } else {
-                
-                // Добавяме в шаблона
-                $tplTable->append($tplTable,'repoTable');
             }
             
             // Добавяме в резултатния шаблон
