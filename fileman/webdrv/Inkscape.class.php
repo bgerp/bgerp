@@ -58,7 +58,7 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
         $name = fileman_Files::getFileNameWithoutExt($file);
         
         // Задаваме пътя до изходния файла
-        $outFilePath = $Script->tempDir . $name . '.pdf';
+        $outFilePath = $Script->tempDir . $name . '_to.pdf';
         
         // Задаваме placeHolder' ите за входния и изходния файл
         $Script->setFile('INPUTF', $file);
