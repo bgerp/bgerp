@@ -72,8 +72,8 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     	$form->FLD('baseAccountId', 'acc_type_Account(allowEmpty)', 'caption=Сметки->Основна,mandatory,silent,removeAndRefreshForm=groupBy');
     	$form->FLD('corespondentAccountId', 'acc_type_Account(allowEmpty)', 'caption=Сметки->Кореспондент,mandatory,silent,removeAndRefreshForm=groupBy');
     	$form->FLD('side', 'enum(all=Всички,debit=Дебит,credit=Кредит)', 'caption=Обороти,removeAndRefreshForm=orderField|orderBy,silent');
-    	$form->FLD('orderField', 'enum(debitQuantity=Дебит к-во,debitAmount=Дебит сума,creditQuantity=Кредит к-во,creditAmount=Кредит сума,blQuantity=Остатък к-во,blAmount=Остатък сума)', 'caption=Сортиране->Поле');
-    	$form->FLD('orderBy', 'enum(ASC=Възходящо,DESC=Низходящо)', 'caption=Сортиране->Вид');
+    	$form->FLD('orderBy', 'enum(,DESC=Низходящо,ASC=Възходящо)', 'caption=Сортиране->Вид,silent,removeAndRefreshForm=orderField,formOrder=100');
+    	$form->FLD('orderField', 'enum(,debitQuantity=Дебит к-во,debitAmount=Дебит сума,creditQuantity=Кредит к-во,creditAmount=Кредит сума,blQuantity=Остатък к-во,blAmount=Остатък сума)', 'caption=Сортиране->Поле,formOrder=101');
     	
     	$this->invoke('AfterAddEmbeddedFields', array($form));
     }
@@ -122,16 +122,21 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     		}
     	}
     	 
-    	if(isset($form->rec->side)){
-    		if($form->rec->side == 'credit'){
-    			$options = arr::make('creditQuantity=Кредит к-во,creditAmount=Кредит сума');
-    		} elseif($form->rec->side == 'debit') {
-    			$options = arr::make('debitQuantity=Дебит к-во,debitAmount=Дебит сума');
-    		} else {
-    			$options = arr::make('debitQuantity=Дебит к-во,debitAmount=Дебит сума,creditQuantity=Кредит к-во,creditAmount=Кредит сума,blQuantity=Остатък к-во,blAmount=Остатък сума');
-    		}
+    	if(isset($form->rec->orderBy) && $form->rec->orderBy != ''){
     		
-    		$form->setOptions('orderField', $options);
+    		if(isset($form->rec->side)){
+    			if($form->rec->side == 'credit'){
+    				$options = arr::make('creditQuantity=Кредит к-во,creditAmount=Кредит сума');
+    			} elseif($form->rec->side == 'debit') {
+    				$options = arr::make('debitQuantity=Дебит к-во,debitAmount=Дебит сума');
+    			} else {
+    				$options = arr::make('debitQuantity=Дебит к-во,debitAmount=Дебит сума,creditQuantity=Кредит к-во,creditAmount=Кредит сума,blQuantity=Остатък к-во,blAmount=Остатък сума');
+    			}
+    		
+    			$form->setOptions('orderField', $options);
+    		}
+    	} else {
+    		$form->setField('orderField', 'input=none');
     	}
     	
     	$this->invoke('AfterPrepareEmbeddedForm', array($form));
@@ -167,6 +172,10 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     	if($form->isSubmitted()){
     		if($form->rec->to < $form->rec->from){
     			$form->setError('to, from', 'Началната дата трябва да е по малка от крайната');
+    		}
+    		
+    		if($form->rec->orderBy == ''){
+    			unset($form->rec->orderBy);
     		}
     	}
     }
@@ -260,7 +269,7 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     			}
     		}
     		
-    		if(!$mvc->innerForm->orderField){
+    		if(!$mvc->innerForm->orderBy){
     			// Подготвяме поле за сортиране по номерата на перата
     			foreach ($data->recs as &$rec){
     				$rec->sortField = '';
@@ -317,7 +326,7 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     	if(empty($data)) return;
     	
     	$tpl = $this->getReportLayout();
-    	$tpl->replace($this->title, 'TITLE');
+    	$tpl->replace($this->getReportTitle(), 'TITLE');
     	
     	 
     	$tpl->placeObject($data->summary);
@@ -725,5 +734,18 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     	}
     
     	return $rCsv;
+    }
+    
+    
+    /**
+     * Връща дефолт заглавието на репорта
+     */
+    public function getReportTitle()
+    {
+    	$baseSysId = acc_Accounts::fetchField($this->innerForm->baseAccountId, 'systemId');
+    	$corrSysId = acc_Accounts::fetchField($this->innerForm->corespondentAccountId, 'systemId');
+    	$title = tr("|Кореспонденция на сметки|* {$baseSysId}/{$corrSysId}");
+    	
+    	return $title;
     }
 }
