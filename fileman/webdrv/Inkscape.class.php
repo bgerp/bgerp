@@ -48,9 +48,7 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
         cls::load('fileman_Files');
         
         if ((strlen($file) == FILEMAN_HANDLER_LEN) && (strpos($file, '/') === FALSE)) {
-            $fRec = fileman_Files::fetchByFh($file);
-            
-            expect($fRec);
+            $file = fileman_Files::fetchByFh($file, 'path');
     	}
         
         // Инстанция на класа

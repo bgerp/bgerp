@@ -46,19 +46,19 @@ class core_Cache extends core_Manager
     /**
      * Заглавие
      */
-    var $title = 'Кеширани обекти';
+    public $title = 'Кеширани обекти';
     
     
     /**
      * Наименование на единичния обект
      */
-    var $singleTitle = "Кеширан обект";
+    public $singleTitle = "Кеширан обект";
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	var $canList = 'admin';
+	public $canList = 'admin';
 	
 	
 	/**
@@ -78,6 +78,12 @@ class core_Cache extends core_Manager
 	 */
 	public $canDelete = 'no_one';
 	
+
+    /**
+     * Кои полета ще извличаме, преди изтриване на заявката
+     */
+    public $fetchFieldsBeforeDelete = 'id,key';
+
     
     /**
      * Описание на модела (таблицата)
@@ -230,6 +236,22 @@ class core_Cache extends core_Manager
         
         return new Redirect(array('core_Cache'), $this->cron_DeleteExpiredData(Request::get('all')));
     }
+
+
+    /**
+     * След изтриване на записи на модела
+     *
+     * @param core_Mvc $mvc
+     * @param mixed $res
+     * @param core_Query $query
+     */
+    static function on_AfterDelete($mvc, &$res, $query)
+    {
+        foreach ($query->getDeletedRecs() as $rec) {
+            $mvc->deleteData($rec->key);
+        }
+    }
+
     
     
     /**

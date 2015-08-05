@@ -2,7 +2,7 @@
 
 
 /**
- * Драйвер за работа с .hpgl файлове.
+ * Драйвер за работа с .vsdm файлове.
  * 
  * @category  vendors
  * @package   fileman
@@ -11,7 +11,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class fileman_webdrv_Hpgl extends fileman_webdrv_Inkscape
+class fileman_webdrv_Vsdm extends fileman_webdrv_Inkscape
 {
-    
+
 }
