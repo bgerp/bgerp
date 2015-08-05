@@ -96,6 +96,12 @@ class planning_TaskDetails extends doc_Detail
     
     
     /**
+     * Активен таб на менюто
+     */
+    public $currentTab = 'Задачи';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()

@@ -621,6 +621,22 @@ class support_Issues extends core_Master
                 $data->form->setDefault('typeId', $defTypeId);
             }
         }
+        
+        if (!$data->form->rec->id) {
+            Request::setProtected('srcId, srcClass');
+            if ($srcId = Request::get('srcId', 'int')) {
+                if ($srcClass = Request::get('srcClass')) {
+                    $srcInst = cls::get($srcClass);
+                    if (cls::haveInterface('support_IssueCreateIntf', $srcInst)) {
+                        $defTitle = $srcInst->getDefaultIssueTitle($srcId);
+                        $defBody = $srcInst->getDefaultIssueBody($srcId);
+                        
+                        $data->form->setDefault('title', $defTitle);
+                        $data->form->setDefault('description', $defBody);
+                    }
+                }
+            }
+        }
     }
     
     

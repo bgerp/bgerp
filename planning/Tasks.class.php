@@ -576,7 +576,7 @@ class planning_Tasks extends embed_Manager
     	$rec = &$form->rec;
     	
     	$cu = core_Users::getCurrent();
-    	$form->setDefault('inCharge', $cu);
+    	$form->setDefault('inCharge', keylist::addKey('', $cu));
     	
     	if(isset($rec->originId)){
     		$origin = doc_Containers::getDocument($rec->originId);
