@@ -185,9 +185,9 @@ class cad2_Drawings extends embed_Manager {
         $fh = fileman::absorbStr($fileContent, 'archive', $fileName . '.svg');
 
         // Конвертираме
-        $pdfFn = fileman_webdrv_Inkscape::toPdf( $fh, TRUE);
+        $pdfFn = fileman_webdrv_Inkscape::toPdf($fh, TRUE);
         
-        echo fileman_Files::getContents($pdfFn);
+        echo fileman_Files::getContent($pdfFn);
 
     	header("Content-type: application/pdf");
     	header("Content-Disposition: attachment; filename={$fileName}.pdf");
