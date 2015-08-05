@@ -623,6 +623,7 @@ class support_Issues extends core_Master
         }
         
         if (!$data->form->rec->id) {
+            Request::setProtected('srcId, srcClass');
             if ($srcId = Request::get('srcId', 'int')) {
                 if ($srcClass = Request::get('srcClass')) {
                     $srcInst = cls::get($srcClass);
