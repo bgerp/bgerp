@@ -104,6 +104,11 @@ class planning_drivers_ProductionTask extends planning_drivers_BaseTask
 		 // Изчисляваме колко % от зададеното количество е направено
 		 $rec->progress = round($sumQuantity / $rec->totalQuantity, 2);
 		 
+		 // Ако прогреса на задачата е изпълнен и тя е активна приключваме я
+		 if($rec->progress >= 1 && $rec->state == 'active'){
+		 	$rec->state = 'closed';
+		 }
+		 
 		 // Обновяваме мастъра
 		 planning_Tasks::save($rec);
 	}
