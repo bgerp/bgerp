@@ -351,46 +351,39 @@ class planning_TaskDetails extends doc_Detail
     		switch(strtolower($event)) {
     			case 'afterprepareeditform':
     				$masterId = $args[0]->form->rec->taskId;
-    				$newEvent = strtolower($event) . "detail";
-    				
+    				$newEvent = 'prepareeditformdetail';
     				break;
     			case 'afterinputeditform':
     				$masterId = $args[0]->rec->taskId;
-    				$newEvent = strtolower($event) . "detail";
+    				$newEvent = 'inputeditformdetail';
     				break;
     			case 'afterrectoverbal':
     				$masterId = $args[1]->taskId;
-    				$newEvent = strtolower($event) . "detail";
+    				$newEvent = 'rectoverbaldetail';
     				break;
     			case 'afterpreparelisttoolbar':
     				$masterId = $args[0]->masterId;
-    				$newEvent = strtolower($event) . "detail";
+    				$newEvent = 'preparelisttoolbardetail';
     				break;
     			case 'afterpreparedetail':
     				$masterId = $args[0]->masterId;
-    				$newEvent = strtolower($event);
+    				$newEvent = 'preparedetail';
     				break;
     			case 'afterrenderdetail':
     				$masterId = $args[1]->masterId;
-    				$newEvent = strtolower($event);
+    				$newEvent = 'renderdetail';
     				break;
     			case 'afterrenderdetaillayout':
     				$masterId = $args[1]->masterId;
-    				$newEvent = strtolower($event);
+    				$newEvent = 'renderdetaillayout';
     				break;
     		}
     
     		// Ако е намерен мастър и той има драйвер
     		if(isset($masterId) && $Driver = $this->Master->getDriver($masterId)){
     			
-    			// Генерираме събитие в драйвера за да го прихване
-    			$status2 = $Driver->invoke($newEvent, $args);
-    			 
-    			if($status2 === FALSE) {
-    				$status = FALSE;
-    			} elseif($status == -1 && $status2 === TRUE) {
-    				$status = TRUE;
-    			}
+    			// Викаме определения метод, който ще предаде данните за обработка на драйвера
+    			call_user_func_array(array($Driver, $newEvent),  $args);
     		}
     	}
     

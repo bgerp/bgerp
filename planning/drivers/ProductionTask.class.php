@@ -31,7 +31,7 @@ class planning_drivers_ProductionTask extends planning_drivers_BaseTask
     public function addFields(core_Fieldset &$fieldset)
     {
 		$fieldset->FLD('totalQuantity', 'double(smartRound)', 'mandatory,caption=Общо к-во');
-		$fieldset->FLD('totalWeight', 'double', 'caption=Общо тегло,input=none');
+		$fieldset->FLD('totalWeight', 'cat_type_Weight', 'caption=Общо тегло,input=none');
 		$fieldset->FLD('fixedAssets', 'keylist(mvc=cat_Products,select=name,makeLinks=short)', 'caption=Машини');
 	}
 	
@@ -82,6 +82,7 @@ class planning_drivers_ProductionTask extends planning_drivers_BaseTask
      * Обновяване на данните на мастъра
      * 
      * @param int $id - ид
+     * @param return void
      */
 	public function updateEmbedder($id)
 	{
@@ -109,13 +110,13 @@ class planning_drivers_ProductionTask extends planning_drivers_BaseTask
 	
 	
 	/**
-	 * След преобразуване на записа в четим за хора вид.
-	 *
-	 * @param core_Mvc $mvc
-	 * @param stdClass $row Това ще се покаже
-	 * @param stdClass $rec Това е записа в машинно представяне
-	 */
-	public static function on_AfterRecToVerbalDetail($mvc, &$row, $rec)
+     * Възможност за промяна след обръщането на данните във вербален вид
+     *
+     * @param stdClass $row
+     * @param stdClass $rec
+     * @return void
+     */
+	public function recToVerbalDetail(&$row, $rec)
 	{
 		if($rec->operation){
 			$verbal = arr::make('start=Пускане,production=Произвеждане,waste=Отпадък,scrap=Бракуване,stop=Спиране');
@@ -127,9 +128,12 @@ class planning_drivers_ProductionTask extends planning_drivers_BaseTask
 	
 	
 	/**
-	 * Преди показване на форма за добавяне/промяна
-	 */
-	protected static function on_AfterPrepareEditFormDetail($Driver, &$data)
+     * Възможност за промяна след подготовката на формата на детайла
+     *
+     * @param stdClass $data
+     * @return void
+     */
+	public function prepareEditFormDetail(&$data)
 	{
 		$form = &$data->form;
 		$form->setFieldType('operation', 'enum(start=Пускане,production=Произвеждане,waste=Отпадък,scrap=Бракуване,stop=Спиране)');
@@ -151,9 +155,13 @@ class planning_drivers_ProductionTask extends planning_drivers_BaseTask
 	
 	
 	/**
-     * След редниране на шаблона на детайла
+     * Възможност за промяна след рендирането на детайла
+     * 
+     * @param core_ET $tpl
+     * @param stdClass $data
+     * @return void
      */
-    public static function on_AfterRenderDetail($Driver, &$tpl, $data)
+    public function renderDetail(&$tpl, $data)
     {
     	// Добавяме бутон за добавяне на прогрес при нужда
     	if(planning_TaskDetails::haveRightFor('add', (object)array('taskId' => $data->masterId))){
@@ -164,10 +172,14 @@ class planning_drivers_ProductionTask extends planning_drivers_BaseTask
     
     
     /**
-     * След подготовка на тулбара на детайла
+     * Възможност за промяна след подготовката на лист тулбара
+     *
+     * @param stdClass $data
+     * @return void
      */
-    protected static function on_AfterPrepareListToolbarDetail($mvc, &$data)
+    public function prepareListToolbarDetail(&$data)
     {
+    	parent::prepareListToolbarDetail($data);
     	$data->toolbar->removeBtn('btnAdd');
     }
 }
