@@ -194,6 +194,7 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     	
     	$data->groupBy = arr::make($this->innerForm->groupBy, TRUE);
     	$data->groupBy = array_values($data->groupBy);
+    	
     	array_unshift($data->groupBy, null);
     	unset($data->groupBy[0]);
     	$this->prepareListFields($data);
@@ -226,6 +227,16 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     			// Проверка дали сумата и к-то са еднакви
     			if($rec->blQuantity != $rec->blAmount){
     				$data->hasSameAmounts = FALSE;
+    			}
+    		}
+    	}
+    	
+    	// Ако не се групира по размерна сметка, не показваме количества
+    	if(count($data->groupBy)){
+    		$data->hasDimensional = FALSE;
+    		foreach ($data->groupBy as $grId){
+    			if(acc_Lists::fetchField($grId, 'isDimensional') == 'yes'){
+    				$data->hasDimensional = TRUE;
     			}
     		}
     	}
@@ -347,7 +358,7 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     	}
     	 
     	// Ако к-та и сумите са еднакви, не показваме количествата
-    	if($data->hasSameAmounts === TRUE){
+    	if($data->hasSameAmounts === TRUE || $data->hasDimensional !== TRUE){
     		unset($fields['debitQuantity']);
     		unset($fields['creditQuantity']);
     		unset($fields['blQuantity']);
@@ -590,16 +601,12 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     	$header = $this->generateHeader()->header;
     	
     	// Кешираме номерата на перата в отчета
-    	//if(count($this->cache)){
-    		$iQuery = acc_Items::getQuery();
-    		$iQuery->show("num");
-    		//$iQuery->in('id', $mvc->cache);
+    	$iQuery = acc_Items::getQuery();
+    	$iQuery->show("num");
     	
-    		while($iRec = $iQuery->fetch()){
-    			$mvc->cache[$iRec->id] = $iRec->num;
-    		}
-    	//}
-    	
+    	while($iRec = $iQuery->fetch()){
+    		$mvc->cache[$iRec->id] = $iRec->num;
+    	}
     	
     	// Подготвяме поле за сортиране по номерата на перата
     	foreach ($this->innerState->recs as &$rec){ 
@@ -744,7 +751,7 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     {
     	$baseSysId = acc_Accounts::fetchField($this->innerForm->baseAccountId, 'systemId');
     	$corrSysId = acc_Accounts::fetchField($this->innerForm->corespondentAccountId, 'systemId');
-    	$title = tr("|Кореспонденция на сметки|* {$baseSysId}/{$corrSysId}");
+    	$title = tr("|Кореспонденция на сметки|* {$baseSysId} / {$corrSysId}");
     	
     	return $title;
     }
