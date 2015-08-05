@@ -206,7 +206,7 @@ class core_Cron extends core_Manager
         );
 
         if(!in_array($_SERVER['REMOTE_ADDR'], $whitelist)){
-            requireRole('debug,admin');
+            // requireRole('debug,admin');
         }
 
         header('Cache-Control: no-cache, no-store');
