@@ -190,6 +190,7 @@ class planning_Tasks extends embed_Manager
     	$this->FLD('sharedUsers', 'userList', 'caption=Допълнително->Споделени,changable,formOrder=104');
     	$this->FLD('progress', 'percent', 'caption=Прогрес,input=none,notNull,value=0');
     	$this->FLD('jobId', 'key(mvc=planning_Jobs)', 'input=none,caption=По задание');
+    	$this->FLD('fromProductArrayId', 'int', 'silent,input=hidden');
     	
     	$this->setDbIndex('jobId');
     }
@@ -287,19 +288,19 @@ class planning_Tasks extends embed_Manager
     		
     		// Премахваме от масива с дефолтни задачи, тези с чието име има сега създадена задача
     		$title = $data->rows[$rec->id]->title;
-    		if($obj = array_filter($defaultTasks, function ($e) use ($title) { return $e->title == $title;})){
-        		unset($defaultTasks[key($obj)]);
-        	}
+    		if(isset($rec->fromProductArrayId)){
+    			unset($defaultTasks[$rec->fromProductArrayId]);
+    		}
     	}
     	
     	// Ако има дефолтни задачи, показваме ги визуално в $data->rows за по-лесно добавяне
     	if(count($defaultTasks)){
-    		foreach ($defaultTasks as $taskInfo){
+    		foreach ($defaultTasks as $index => $taskInfo){
     				
     				// Ако не може да бъде доабвена задача не показваме реда
     				if(!planning_Tasks::haveRightFor('add', (object)array('originId' => $data->masterData->rec->containerId, 'innerClass' => $taskInfo->driver))) continue;
     			
-    				$url = array('planning_Tasks', 'add', 'originId' => $data->masterData->rec->containerId, 'innerClass' => $taskInfo->driver, 'title' => $taskInfo->title, 'ret_url' => TRUE);
+    				$url = array('planning_Tasks', 'add', 'originId' => $data->masterData->rec->containerId, 'driverClass' => $taskInfo->driverClass, 'fromProductArrayId' => $index, 'ret_url' => TRUE);
     				$row = new stdClass();
     				$row->title = $taskInfo->title;
     				$row->tools = ht::createLink('', $url, FALSE, 'ef_icon=img/16/add.png,title=Добавяне на нова задача');
@@ -479,7 +480,7 @@ class planning_Tasks extends embed_Manager
     				if(!cls::haveInterface('planning_TaskDetailIntf', $Driver)){
     					$requiredRoles = 'no_one';
     				} else {
-    					if(!$Driver->canSelectInnerObject()){
+    					if(!$Driver->canSelectDriver()){
     						$requiredRoles = 'no_one';
     					}
     				}
@@ -580,6 +581,29 @@ class planning_Tasks extends embed_Manager
     	if(isset($rec->originId)){
     		$origin = doc_Containers::getDocument($rec->originId);
     		$form->setDefault('jobId', $origin->that);
+    		
+    		// Ако задачата идва от дефолт задача на продуктов драйвер
+    		if(isset($rec->fromProductArrayId)){
+    			$productId = $origin->fetchField('productId');
+    			$ProductDriver = cat_Products::getDriver($productId);
+    			
+    			// Намираме препоръчителните задачи за драйвера
+    			$taskInfoArray = $ProductDriver->getDefaultJobTasks();
+    			
+    			// Задаваме дефолтите на задачата
+    			if(isset($taskInfoArray[$rec->fromProductArrayId])){
+    				$params = (array)$taskInfoArray[$rec->fromProductArrayId];
+    				if(is_array($params)){
+    					foreach ($params as $key => $value){
+    						$form->setDefault($key, $value);
+    					}
+    				}
+    			}
+    			
+    			// Щом задачата е от препоръчителните на продуктовия драйвера, 
+    			// не може да се сменя класа на драйвера на задачата
+    			$form->setReadOnly('driverClass');
+    		}
     	}
     }
     

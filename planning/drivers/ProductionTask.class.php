@@ -93,6 +93,7 @@ class planning_drivers_ProductionTask extends planning_drivers_BaseTask
 		 $dQuery->where("#state != 'rejected'");
 		 $dQuery->XPR('sumQuantity', 'double', 'SUM(#quantity)');
 		 $dQuery->XPR('sumWeight', 'double', 'SUM(#weight)');
+		 
 		 $res = $dQuery->fetch();
 		 $sumQuantity = $res->sumQuantity;
 		 
@@ -101,9 +102,6 @@ class planning_drivers_ProductionTask extends planning_drivers_BaseTask
 		      
 		 // Изчисляваме колко % от зададеното количество е направено
 		 $rec->progress = round($sumQuantity / $rec->totalQuantity, 2);
-		 if($rec->progress > 1){
-		 	$rec->progress = 1;
-		 }
 		 
 		 // Обновяваме мастъра
 		 planning_Tasks::save($rec);

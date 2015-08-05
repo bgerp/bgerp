@@ -298,12 +298,14 @@ class planning_TaskDetails extends doc_Detail
     public static function on_AfterRead($mvc, $rec)
     {
     	// Разпъваме данните от драйвера
-    	if($Driver = $mvc->Master->getDriver($rec->taskId)){
-    		$driverRec = $rec->data;
+    	if(isset($rec->taskId)){
+    		if($Driver = $mvc->Master->getDriver($rec->taskId)){
+    			$driverRec = $rec->data;
     		
-    		if(is_array($driverRec)) {
-    			foreach($driverRec as $field => $value) {
-    				$rec->{$field} = $value;
+    			if(is_array($driverRec)) {
+    				foreach($driverRec as $field => $value) {
+    					$rec->{$field} = $value;
+    				}
     			}
     		}
     	}
