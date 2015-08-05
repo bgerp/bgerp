@@ -141,6 +141,7 @@ class cad2_Drawings extends embed_Manager {
     {
         if(TRUE || $mvc->haveRightFor('update', $data->rec)) {
             $data->toolbar->addBtn('SVG', array($mvc, 'DownloadSvg', $data->rec->id), NULL, 'ef_icon=fileman/icons/svg.png');
+            $data->toolbar->addBtn('PDF', array($mvc, 'DownloadPdf', $data->rec->id), NULL, 'ef_icon=fileman/icons/pdf.png');
         }
     }
 
@@ -161,6 +162,38 @@ class cad2_Drawings extends embed_Manager {
     	header("Expires: 0");
 
         echo $svg->render();
+        shutdown();
+    }
+
+
+    /**
+     * Сваляне на PDF
+     */
+    function act_DownloadPdf()
+    {
+        requireRole('ceo,admin,cad');
+        $id = Request::get('id', 'int');
+        $rec = self::fetch($id);
+        $driver = cls::get($rec->driverClass);
+        $svg = $driver->getCanvas();
+        
+        $driver->render($svg, (array) $rec);
+        $fileContent = $svg->render();
+        $fileName = trim(fileman_Files::normalizeFileName($rec->name), '_') . '';
+        
+        // Добавяме файла в кофата
+        $fh = fileman::absorbStr($fileContent, 'archive', $fileName . '.svg');
+
+        // Конвертираме
+        $pdfFn = fileman_webdrv_Inkscape::toPdf( $fh, TRUE);
+        
+        echo fileman_Files::getContents($pdfFn);
+
+    	header("Content-type: application/pdf");
+    	header("Content-Disposition: attachment; filename={$fileName}.pdf");
+    	header("Pragma: no-cache");
+    	header("Expires: 0");
+
         shutdown();
     }
 
