@@ -23,13 +23,19 @@ class planning_TaskDetailIntf extends embed_DriverIntf
 	
 	
 	/**
+	 * Кой може да избира драйвъра
+	 */
+	public $canSelectDriver;
+	
+	
+	/**
 	 * Добавя полетата на драйвера към Fieldset
 	 *
 	 * @param core_Fieldset $fieldset
 	 */
 	public function addFields(core_Fieldset &$fieldset)
 	{
-		 
+		$this->class->addFields($fieldset);
 	}
 	
 	
@@ -38,18 +44,19 @@ class planning_TaskDetailIntf extends embed_DriverIntf
 	 */
 	public function canSelectDriver($userId = NULL)
 	{
-		return core_Users::haveRole($this->canSelectDriver, $userId);
+		$this->class->canSelectDriver($userId);
 	}
-	
-	
+
+
 	/**
 	 * Обновяване на данните на мастъра
-	 * 
-	 * @param int $id - ид на записа
+	 *
+	 * @param int $id - ид
+	 * @param return void
 	 */
 	public function updateEmbedder($id)
 	{
-		return $this->class->updateEmbedder($id);
+		$this->class->updateEmbedder($id);
 	}
 	
 	
@@ -60,6 +67,97 @@ class planning_TaskDetailIntf extends embed_DriverIntf
 	 */
 	public function addDetailFields(core_FieldSet &$form)
 	{
-		 return $this->class->addDetailFields($form);
+		$this->class->addDetailFields($form);
+	}
+	
+
+	/**
+	 * Възможност за промяна след събмита на формата на детайла
+	 *
+	 * @param core_Form $form
+	 * @return void
+	 */
+	public function inputEditFormDetail(core_Form $form)
+	{
+		$this->class->inputEditFormDetail($form);
+	}
+	
+	
+
+
+
+	/**
+	 * Възможност за промяна след подготовката на детайла
+	 *
+	 * @param core_ET $tpl
+	 * @param stdClass $data
+	 * @return void
+	 */
+	public function prepareDetail(&$data)
+	{
+		$this->class->prepareDetail($data);
+	}
+	
+	
+	/**
+	 * Възможност за промяна след подготовката на лист тулбара
+	 *
+	 * @param stdClass $data
+	 * @return void
+	 */
+	public function prepareListToolbarDetail(&$data)
+	{
+		$this->class->prepareListToolbarDetail($data);
+	}
+	
+	
+	/**
+	 * Възможност за промяна след подготовката на формата на детайла
+	 *
+	 * @param stdClass $data
+	 * @return void
+	 */
+	public function prepareEditFormDetail(&$data)
+	{
+		$this->class->prepareEditFormDetail($data);
+	}
+	
+	
+	/**
+	 * Възможност за промяна след обръщането на данните във вербален вид
+	 *
+	 * @param stdClass $row
+	 * @param stdClass $rec
+	 * @return void
+	 */
+	public function recToVerbalDetail(&$row, $rec)
+	{
+		$this->class->recToVerbalDetail($row, $rec);
+	}
+	
+	
+	/**
+	 * Възможност за промяна след рендирането на детайла
+	 *
+	 * @param core_ET $tpl
+	 * @param stdClass $data
+	 * @return void
+	 */
+	public function renderDetail(&$tpl, $data)
+	{
+		$this->class->renderDetail($tpl, $data);
+	}
+	
+	
+	/**
+	 * Възможност за промяна след рендирането на шаблона на детайла
+	 *
+	 * @param core_ET $tpl
+	 * @param stdClass $data
+	 * @return void
+	 */
+	public function renderDetailLayout(&$tpl, $data)
+	{
+		$this->class->renderDetailLayout($tpl, $data);
 	}
 }

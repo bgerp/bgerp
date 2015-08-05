@@ -315,9 +315,9 @@ abstract class cat_ProductDriver extends core_ProtoInner
 	 * Връща информация за какви дефолт задачи могат да се задават към заданието за производство
 	 * 
 	 * @return array $drivers - масив с информация за драйверите, с ключ името на масива
-	 * 				    -> title    - дефолт име на задачата
-	 * 					-> driver   - драйвър на задача
-	 * 					-> priority - приоритет (low=Нисък, normal=Нормален, high=Висок, critical)
+	 * 				    -> title        - дефолт име на задачата
+	 * 					-> driverClass  - драйвър на задача
+	 * 					-> priority     - приоритет (low=Нисък, normal=Нормален, high=Висок, critical)
 	 */
 	public function getDefaultJobTasks()
 	{
