@@ -151,6 +151,11 @@ class planning_drivers_ProductionTask extends planning_drivers_BaseTask
 			$form->setOptions('fixedAsset', array('' => '') + $arr);
 			$form->setField('fixedAsset', 'input');
 		}
+		
+		// Показваме полето за въвеждане на код само при операция "произвеждане"
+		if($form->rec->operation == 'production'){
+			$form->setField('code', 'input');
+		}
 	}
 	
 	
@@ -179,6 +184,7 @@ class planning_drivers_ProductionTask extends planning_drivers_BaseTask
      */
     public function prepareListToolbarDetail(&$data)
     {
+    	// Премахваме стандартния бутон за добавяне
     	parent::prepareListToolbarDetail($data);
     	$data->toolbar->removeBtn('btnAdd');
     }
