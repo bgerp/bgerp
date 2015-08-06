@@ -27,7 +27,7 @@ class doclog_Documents extends core_Manager
     /**
      * Брой елементи на страница
      */
-    var $itemsPerPage = 20;
+    var $itemsPerPage = 2;
     
     
     /**
@@ -2413,12 +2413,6 @@ class doclog_Documents extends core_Manager
         // Името на таба
         $data->TabCaption = 'Използване';
         
-        // Създаваме странициране
-        $data->pager = cls::get('core_Pager', array('itemsPerPage' => $this->itemsPerPage, 'pageVar' => 'P_doclog_Documents'));
-        
-        // URL' то където ще сочат
-        $data->pager->url = toUrl(static::getLinkToSingle($cid, static::ACTION_USED));
-        
         // Екшъна
         $action = static::ACTION_USED;
         
@@ -2435,53 +2429,29 @@ class doclog_Documents extends core_Manager
         }
         
         $rows = array();
-        foreach ($recs as $rec) {
-            $usedCnt = count($rec->data->used);
-        	if(!$usedCnt) {
-        		$data->disabled = TRUE;
-	            return;
-        	}
-        	$data->pager->itemsCount = $usedCnt;
-        	$data->pager->calc();
-        	
-        	$curr = 0;
-        	$showedCnt = 0;
-        	$limit = $data->pager->rangeEnd - $data->pager->rangeStart;
-        	
-        	if ($rec->data->used) {
-        	    krsort($rec->data->used);
-        	}
-        	
-        	foreach ($rec->data->used as $d){
-        		
-            	if (isset($data->pager->rangeStart) && isset($data->pager->rangeEnd)) {
-            	    $curr++;
-            	    
-            	    if ($curr <= $data->pager->rangeStart) continue;
-            	    
-            	    if ($showedCnt >= $limit) break;
-                }
-                $showedCnt++;
-        	    
-        		$class = $d->class;
-        		$row = new stdClass();
-        		$iconStles = array('class' => 'linkWithIcon', 'style'=> "background-image:url({$d->icon});");
-        		$state = $class::fetchField($d->id, 'state');
-        		if ($class::haveRightFor('single', $d->id)) {
-        		    $singleUrl = array($class, 'single', $d->id);
-        		} else {
-        		    $singleUrl = array();
-        		}
-        		
-        		$row->link = ht::createLink($d->title, $singleUrl, NULL, $iconStles);
-	        	$row->link = "<span style ='text-align:left;margin-left:2px;display:block'>{$row->link}</span>";
-	        	$row->author = $d->author;
-	        	$time =  dt::mysql2verbal($d->lastUsedOn, 'smartTime');
-	        	$row->lastUsedOn = "<div><div class='stateIndicator {$state}'></div>";
-	        	$row->lastUsedOn .= "<div class='inline-date'>&nbsp;{$time}</div></div>";
-	        	$rows[] = $row;
-        	}
-        }
+        
+        $dataRecsArr = $this->getRecsForPaging($data, $recs, $action);
+        
+    	foreach ($dataRecsArr as $d){
+    		
+    		$class = $d->class;
+    		$row = new stdClass();
+    		$iconStles = array('class' => 'linkWithIcon', 'style'=> "background-image:url({$d->icon});");
+    		$state = $class::fetchField($d->id, 'state');
+    		if ($class::haveRightFor('single', $d->id)) {
+    		    $singleUrl = array($class, 'single', $d->id);
+    		} else {
+    		    $singleUrl = array();
+    		}
+    		
+    		$row->link = ht::createLink($d->title, $singleUrl, NULL, $iconStles);
+        	$row->link = "<span style ='text-align:left;margin-left:2px;display:block'>{$row->link}</span>";
+        	$row->author = $d->author;
+        	$time =  dt::mysql2verbal($d->lastUsedOn, 'smartTime');
+        	$row->lastUsedOn = "<div><div class='stateIndicator {$state}'></div>";
+        	$row->lastUsedOn .= "<div class='inline-date'>&nbsp;{$time}</div></div>";
+        	$rows[] = $row;
+    	}
         
         $data->rows = $rows;
     }
