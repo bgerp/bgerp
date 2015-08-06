@@ -297,7 +297,7 @@ class doclog_Documents extends core_Manager
         
         // Декорираме IP адреса
         if ($rec->ip) {
-            $row->ip = ' ' . type_Ip::decorateIp($rec->ip, $rec->time);
+            $row->ip = ' ' . type_Ip::decorateIp($rec->ip, $rec->time, TRUE);
         }
     }
     
@@ -563,8 +563,10 @@ class doclog_Documents extends core_Manager
         // Бутона да не е линк
         $data->disabled = TRUE;
         
+        $i = 0;
+        
         // Обхождаме всички записи
-        foreach ($recs as $i=>$rec) {
+        foreach ($recs as $rec) {
             
             // Ако не виждан
             if (count($rec->data->{$action}) == 0) {
@@ -588,14 +590,14 @@ class doclog_Documents extends core_Manager
                 
                 // Данните във вербален вид
                 $row = static::recToVerbal($row, array_keys(get_object_vars($row)));
-
+                
                 // Добавяме в масива
-                $rows[] = $row;
+                $rows[$rec->createdOn . ' ' . $o['on'] . ' ' . $i++] = $row;
             }
         }
-
+        
         // Сортираме масива
-        ksort($rows);
+        krsort($rows);
         
         // Дабавяме в $data
         $data->rows = $rows; 
@@ -720,7 +722,7 @@ class doclog_Documents extends core_Manager
                 
                 // Ip от което е върнато
                 if ($rec->data->returnedIp) {
-                    $returnedStr .= ' ' . type_Ip::decorateIp($rec->data->returnedIp, $rec->data->returnedOn);
+                    $returnedStr .= ' ' . type_Ip::decorateIp($rec->data->returnedIp, $rec->data->returnedOn, TRUE);
                 }
                 
                 $row->returnedAndReceived .=  $returnedStr;
@@ -862,7 +864,9 @@ class doclog_Documents extends core_Manager
         }
        
         $rows = array();
-
+        
+        $i = 0;
+        
         // Обхождаме записите
         foreach ($recs as $rec) {
 
@@ -889,11 +893,11 @@ class doclog_Documents extends core_Manager
                     $row->ip = $row->from ? $row->from : $row->ip;
                     
                     // Записваме в масив данните, с ключ датата
-                    $rows[] = $row;    
+                    $rows[$rec->createdOn . ' ' . $downData2['seenOnTime'] . ' ' . $i++] = $row;    
                 }
             }
         }
-
+        
         // Подреждаме масива
         krsort($rows);
 
@@ -2080,7 +2084,7 @@ class doclog_Documents extends core_Manager
         $linkArr = static::getLinkToSingle($rec->containerId, static::ACTION_OPEN);
         
         if (!empty($firstOpen)) {
-            $html .= ' ' . type_Ip::decorateIp($firstOpen['ip'], $firstOpen['on']);
+            $html .= ' ' . type_Ip::decorateIp($firstOpen['ip'], $firstOpen['on'], TRUE);
             $cnt = count($rec->data->{$openActionName});
             if ($cnt) {
                 $html .= ht::createLink(
@@ -2389,6 +2393,10 @@ class doclog_Documents extends core_Manager
         	$curr = 0;
         	$showedCnt = 0;
         	$limit = $data->pager->rangeEnd - $data->pager->rangeStart;
+        	
+        	if ($rec->data->used) {
+        	    krsort($rec->data->used);
+        	}
         	
         	foreach ($rec->data->used as $d){
         		
