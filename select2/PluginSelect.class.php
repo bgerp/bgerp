@@ -59,9 +59,12 @@ class select2_PluginSelect extends core_Plugin
             // Избраната стойност да е на първо мяасто
             if ($value) {
                 $valOptArr = array();
-                $valOptArr[$value] = $invoker->options[$value];
-                unset($invoker->options[$value]);
-                $invoker->options = $valOptArr + $invoker->options;
+                
+                if (isset($invoker->options[$value])) {
+                    $valOptArr[$value] = $invoker->options[$value];
+                    unset($invoker->options[$value]);
+                    $invoker->options = $valOptArr + $invoker->options;
+                }
             }
             
             $invoker->options = array_slice($invoker->options, 0, $maxSuggestions, TRUE);
