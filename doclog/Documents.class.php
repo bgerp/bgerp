@@ -325,6 +325,12 @@ class doclog_Documents extends core_Manager
         // Екшъна
         $action = static::ACTION_FORWARD;
         
+        // Създаваме странициране
+        $data->pager = cls::get('core_Pager', array('itemsPerPage' => $this->itemsPerPage, 'pageVar' => 'P_doclog_Documents'));
+        
+        // URL' то където ще сочат
+        $data->pager->url = toUrl(static::getLinkToSingle($cid, $action));
+        
         // Вземаме записите
         $recs = static::getRecs($cid, $action);
         
@@ -343,11 +349,34 @@ class doclog_Documents extends core_Manager
         // Обхождаме записите
         foreach ($recs as $rec) {
             
+            $forwardCnt = count($rec->data->$action);
+            
             // Ако няма запис за препращане на съответния запис прескачаме            
-            if (!count($rec->data->$action)) continue;
+            if (!$forwardCnt) continue;
+            
+            $data->pager->itemsCount = $forwardCnt;
+            $data->pager->calc();
+            
+            $curr = 0;
+            $showedCnt = 0;
+            $limit = $data->pager->rangeEnd - $data->pager->rangeStart;
+            
+            if ($rec->data->{$action}) {
+        	    krsort($rec->data->{$action});
+        	}
             
             // Обхождаме всички препратени записи
             foreach ($rec->data->{$action} as $forwardRec) {
+                
+                if (isset($data->pager->rangeStart) && isset($data->pager->rangeEnd)) {
+                    $curr++;
+                    
+                    if ($curr <= $data->pager->rangeStart) continue;
+                    
+                    if ($showedCnt >= $limit) break;
+                }
+                
+                $showedCnt++;
                 
                 // Записите
                 $row = (object)array(
@@ -377,7 +406,7 @@ class doclog_Documents extends core_Manager
         }
 
         // Сортираме
-        krsort($rows);
+        $rows;
         
         // Заместваме данните за рендиране
         $data->rows = $rows; 
@@ -405,6 +434,9 @@ class doclog_Documents extends core_Manager
         
         // Заместваме в главния шаблон за детайлите
         $tpl->append($forwardTpl, 'content');
+        
+        // Добавяме странициране
+        $tpl->append($data->pager->getHtml());
         
         return $tpl;
     }
