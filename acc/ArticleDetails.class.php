@@ -296,7 +296,9 @@ class acc_ArticleDetails extends doc_Detail
                 	if($cover->haveInterface($list->rec->regInterfaceId)){
                 		if($coverClassId = $cover->getInstance()->getClassId()){
                 			if($itemId = acc_Items::fetchItem($coverClassId, $cover->that)->id){
-                				$form->setDefault("{$type}Ent{$i}", $itemId);
+                				if($form->cmd !== 'refresh'){
+                					$form->setDefault("{$type}Ent{$i}", $itemId);
+                				}
                 			}
                 		}
                 	}
@@ -305,7 +307,9 @@ class acc_ArticleDetails extends doc_Detail
                 	if($firstDoc->haveInterface($list->rec->regInterfaceId)){
                 		if($docClassId = $firstDoc->getInstance()->getClassId()){
                 			if($itemId = acc_Items::fetchItem($docClassId, $firstDoc->that)->id){
-                				$form->setDefault("{$type}Ent{$i}", $itemId);
+                				if($form->cmd !== 'refresh'){
+                					$form->setDefault("{$type}Ent{$i}", $itemId);
+                				}
                 			}
                 		}
                 	}
