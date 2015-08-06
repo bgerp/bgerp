@@ -22,7 +22,15 @@
                     
                     <td style='padding-left:30px;max-width:45%;'>
                         |Прогрес|*: [#progressBar#] [#progress#] <br>
-                        <!--ET_BEGIN jobId-->|Към задание|*: [#jobId#]<!--ET_END jobId-->
+                        <!--ET_BEGIN jobId-->|Към задание|*: [#jobId#] <br><!--ET_END jobId-->
+                       
+                        <!--ET_BEGIN expectedTimeStart-->
+                        |Очаквано начало|*: [#expectedTimeStart#] <br>
+                        <!--ET_END expectedTimeStart-->
+                        
+                        <!--ET_BEGIN expectedTimeEnd-->
+                        |Очакван край|*: [#expectedTimeEnd#] <br>
+                        <!--ET_END expectedTimeEnd-->
                     </td>
                 </tr>
             </table>
@@ -34,10 +42,19 @@
     <div style='padding-top:6px;padding-bottom:6px'>[#description#]</div>
     
     <div class="clearfix21 portal" style="background-color:transparent;">
-	<div class="legend" style="background-color:#ffc;font-size:0.9em;padding:1px;color:black">|Прогрес|* [#ADD_BTN#]</div>
-    <div class="listRows">
-    <div class='overflow-scroll'>[#planning_TaskDetails#]</div>
+		<div class="legend" style="background-color:#ffc;font-size:0.9em;padding:1px;color:black">|Прогрес|* [#ADD_BTN#]</div>
+	    <div class="listRows">
+	    	<div class='overflow-scroll'>[#planning_TaskDetails#]</div>
+		</div>
 	</div>
-</div>
     
+    <!--ET_BEGIN planning_TaskConditions-->
+    <div class="clearfix21 portal" style="background-color:transparent;">
+		<div class="legend" style="background-color:#ffc;font-size:0.9em;padding:1px;color:black">|Условия|*</div>
+	    <div class="listRows">
+	    	<div class='overflow-scroll'>[#planning_TaskConditions#]</div>
+		</div>
+	</div>
+	<!--ET_END planning_TaskConditions-->
+	
     [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]
