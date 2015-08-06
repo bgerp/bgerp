@@ -261,10 +261,19 @@ class planning_Tasks extends embed_Manager
     		$row->timeEnd = ht::createLink(dt::mysql2verbal($rec->timeEnd, 'smartTime'), array('cal_Calendar', 'day', 'from' => $row->timeEnd, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
     	}
     	
+    	
     	// Ако е изчислено очакваното начало и има продължителност, изчисляваме очаквания край
     	if(isset($rec->expectedTimeStart) && isset($rec->timeDuration)){
     		$expectedTimeEnd = dt::addSecs($rec->timeDuration, $rec->expectedTimeStart);
     		$row->expectedTimeEnd = $mvc->getFieldType('expectedTimeStart')->toVerbal($expectedTimeEnd);
+    	}
+    	
+    	if (isset($rec->expectedTimeStart)) {
+    		$row->expectedTimeStart = ht::createLink(dt::mysql2verbal($rec->expectedTimeStart, 'smartTime'), array('cal_Calendar', 'day', 'from' => $row->expectedTimeStart, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
+    	}
+    	
+    	if (isset($expectedTimeEnd)) {
+    		$row->expectedTimeEnd = ht::createLink(dt::mysql2verbal($expectedTimeEnd, 'smartTime'), array('cal_Calendar', 'day', 'from' => $row->expectedTimeEnd, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
     	}
     	
     	if($rec->jobId){
