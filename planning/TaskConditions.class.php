@@ -111,7 +111,7 @@ class planning_TaskConditions extends doc_Detail
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
     {
-    	if($action == 'add' && isset($rec->taskId)){
+    	if(($action == 'add' || $action == 'edit' || $action == 'delete') && isset($rec->taskId)){
     		
     		// Може да се модифицират детайлите само ако състоянието е чакащо, активно или събудено
     		$state = $mvc->Master->fetchField($rec->taskId, 'state');
