@@ -203,7 +203,7 @@ class planning_Tasks extends embed_Manager
     protected static function on_BeforeRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	if(is_object($rec)){
-    		$mvc->fillGapsInRec($rec);
+    		static::fillGapsInRec($rec);
     	}
     }
     
@@ -803,5 +803,14 @@ class planning_Tasks extends embed_Manager
     	
     	// Връщаме изчисленото време
     	return $max;
+    }
+    
+    
+
+
+
+    function act_Test()
+    {
+    	$this->cron_CheckTasks();
     }
 }
