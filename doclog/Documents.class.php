@@ -27,7 +27,7 @@ class doclog_Documents extends core_Manager
     /**
      * Брой елементи на страница
      */
-    var $itemsPerPage = 2;
+    var $itemsPerPage = 20;
     
     
     /**
@@ -921,35 +921,40 @@ class doclog_Documents extends core_Manager
         
         $i = 0;
         
-        // Обхождаме записите
-        foreach ($recs as $rec) {
-
-            // Ако няма зададени действия прескачаме
-            if (count($rec->data->{$action}) == 0) continue;
-            
-            // Обхождаме всички сваляния
-            foreach ($rec->data->{$action} as $fh => $downData) {
-                foreach ($downData as $downData2) {
-                    // СЪздаваме обект със запсиите
-                    $nRec = (object)array(
-                        'time' => $downData2['seenOnTime'],
-                        'from' => $downData2['seenFrom'],
-                        'ip' => $downData2['ip'],
-                    );
-                    
-                    // Вземаме вербалните стойности
-                    $row = static::recToVerbal($nRec, array_keys(get_object_vars($nRec)));
-                    
-                    // Превръщаме манипулатора, в линк за сваляне
-                    $row->fileHnd = fileman_Files::getLink($fh);
-                    
-                    // Ако потребител от системата е свалил файла, показваме името му, в противен случай IP' то
-                    $row->ip = $row->from ? $row->from : $row->ip;
-                    
-                    // Записваме в масив данните, с ключ датата
-                    $rows[$rec->createdOn . ' ' . $downData2['seenOnTime'] . ' ' . $i++] = $row;    
+        foreach ($recs as $key => $rec) {
+            $nArr = array();
+            foreach ($rec->data->{$action} as $fh => $rArr) {
+                foreach ($rArr as $dArr) {
+                    $dArr['fileHnd'] = $fh;
+                    $nArr[$dArr['seenOnTime'] . ' ' . $i++] = $dArr;
                 }
             }
+            
+            $rec->data->{$action} = $nArr;
+        }
+        krsort($rec->data->{$action});
+        $dataRecsArr = $this->getRecsForPaging($data, $recs, $action);
+        
+        // Обхождаме всички сваляния
+        foreach ($dataRecsArr as $downData) {
+            // СЪздаваме обект със запсиите
+            $nRec = (object)array(
+                'time' => $downData['seenOnTime'],
+                'from' => $downData['seenFrom'],
+                'ip' => $downData['ip'],
+            );
+            
+            // Вземаме вербалните стойности
+            $row = static::recToVerbal($nRec, array_keys(get_object_vars($nRec)));
+            
+            // Превръщаме манипулатора, в линк за сваляне
+            $row->fileHnd = fileman_Files::getLink( $downData['fileHnd']);
+            
+            // Ако потребител от системата е свалил файла, показваме името му, в противен случай IP' то
+            $row->ip = $row->from ? $row->from : $row->ip;
+            
+            // Записваме в масив данните, с ключ датата
+            $rows[$rec->createdOn . ' ' . $downData['seenOnTime'] . ' ' . $i++] = $row;    
         }
         
         // Подреждаме масива
@@ -981,6 +986,8 @@ class doclog_Documents extends core_Manager
         
         // Заместваме в главния шаблон за детайлите
         $tpl->append($sendTpl, 'content');
+        
+        $tpl->append($data->pager->getHtml());
         
         return $tpl;
     }
