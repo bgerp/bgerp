@@ -60,7 +60,12 @@ class select2_PluginSelect extends core_Plugin
             if ($value) {
                 $valOptArr = array();
                 
-                if (isset($invoker->options[$value])) {
+                if (!isset($invoker->options[$value])) {
+                    $allowedListArr = $invoker->getAllowedKeyVal($value);
+                    $value = reset($allowedListArr);
+                }
+                
+                if ($value) {
                     $valOptArr[$value] = $invoker->options[$value];
                     unset($invoker->options[$value]);
                     $invoker->options = $valOptArr + $invoker->options;

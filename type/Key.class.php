@@ -197,6 +197,20 @@ class type_Key extends type_Int
     
     
     /**
+     * Връща възможните стойности за ключа
+     * 
+     * @param string $value
+     * 
+     * @return array
+     */
+    function getAllowedKeyVal($id)
+    {
+        
+        return array($id => $id);
+    }
+    
+    
+    /**
      * 
      */
     public function prepareOptions()
