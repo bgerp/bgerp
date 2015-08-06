@@ -434,11 +434,15 @@ class planning_Tasks extends embed_Manager
     {
     	if(count($mvc->updated)){
     		foreach ($mvc->updated as $id) {
+    			$rec = $mvc->fetch($id);
+    			
+    			// Даваме възможност на драйвера да обнови мастъра ако иска
     			if($Driver = $mvc->getDriver($id)){
-    				
-    				// Даваме възможност на драйвера да обнови мастъра ако иска
-    				$Driver->updateEmbedder($id);
+    				$Driver->updateEmbedder($rec);
     			}
+    			
+    			$rec->expectedTimeStart = $mvc->getExpectedTimeStart($rec);
+    			$mvc->save($rec);
     		}
     	}
     }
@@ -626,7 +630,7 @@ class planning_Tasks extends embed_Manager
      * @param stdClass $rec - записа който ще попълним
      * @return void
      */
-	private function fillGapsInRec(&$rec)
+	private static function fillGapsInRec(&$rec)
 	{
 		if(isset($rec->timeStart) && isset($rec->timeDuration) && empty($rec->timeEnd)){
 			
@@ -705,39 +709,8 @@ class planning_Tasks extends embed_Manager
     		// За всяка задача
     		foreach ($recs as &$rec){
     			 
-    			// Допълваме и времената, ако има две въведени а третото го няма изчисляваме го
-    			self::fillGapsInRec($rec);
-    		
-    			// Намираме условията за стартиране свързани със задачата
-    			$condTimes = array();
-    			$condQuery = planning_TaskConditions::getQuery();
-    			$condQuery->where("#taskId = {$rec->id}");
-    			 
-    			while($dRec = $condQuery->fetch()){
-    				$dependsOnRec = planning_Tasks::fetch($dRec->dependsOn, 'expectedTimeStart,timeDuration,timeEnd,progress,state');
-    		
-    				// Ако е чернова или оттеглена я пренебрегваме
-    				if($dependsOnRec->state == 'draft' || $dependsOnRec->state == 'rejected') continue;
-    		
-    				// Допълваме и времената за всеки случай
-    				self::fillGapsInRec($dependsOnRec);
-    					
-    				// Ако има изчислено ново текущо време за нея, взимаме него а не старото
-    				if(isset($expectedTimes[$dependsOnRec->id])){
-    					$dependsOnRec->expectedTimeStart = $expectedTimes[$dependsOnRec->id];
-    				}
-    					
-    				// За условието изчисляваме времето му на стартиране спрямо подадените данни
-    				$dRec->calcTime = planning_TaskConditions::getExpectedTime($dRec->offset, $dRec->progress, $dependsOnRec->expectedTimeStart, $dependsOnRec->timeDuration, $dependsOnRec->progress);
-    				$calcedTimes[$dRec->id] = $dRec->calcTime;
-    				$condTimes[] = $dRec->calcTime;
-    			}
-    			
-    			// Сортираме изчислените времена на условията във низходящ ред
-    			rsort($condTimes);
-    			
-    			// Изчисляваме максималното време от началото на задачата и максималното начало на условие
-    			$max = max($rec->timeStart, $condTimes[0]);
+    			// Изчисляваме очакваното начало за задачата наново
+    			$max = $this->getExpectedTimeStart($rec, $expectedTimes, $calcedTimes);
     			
     			// Ако предишно изчисленото очаквано начало е различно от текущото
     			if($expectedTimes[$rec->id] !== $max){
@@ -779,5 +752,56 @@ class planning_Tasks extends embed_Manager
     	}
     	
     	$this->saveArray($recs);
+    }
+
+    
+    /**
+     * Намира очакваното време за изпълнение спрямо условията.
+     * Това е максимума на началото на задачата и максимума на изчислените
+     * времена на условията към нея
+     * 
+     * @param stdClass $rec - запис на задача
+     * @param array $expectedTimes - масив с изчислени времена за стартиране
+     * @param array $calcedTimes - изчислените времена на условията
+     * @return datetime - датата на очакваното начало на задачата
+     */
+    private function getExpectedTimeStart($rec, $expectedTimes = array(), &$calcedTimes = array())
+    {
+    	// Допълваме и времената, ако има две въведени а третото го няма изчисляваме го
+    	self::fillGapsInRec($rec);
+    	
+    	// Намираме условията за стартиране свързани със задачата
+    	$condTimes = array();
+    	$condQuery = planning_TaskConditions::getQuery();
+    	$condQuery->where("#taskId = {$rec->id}");
+    	
+    	while($dRec = $condQuery->fetch()){
+    		$dependsOnRec = planning_Tasks::fetch($dRec->dependsOn, 'expectedTimeStart,timeDuration,timeEnd,progress,state');
+    	
+    		// Ако е чернова или оттеглена я пренебрегваме
+    		if($dependsOnRec->state == 'draft' || $dependsOnRec->state == 'rejected') continue;
+    	
+    		// Допълваме и времената за всеки случай
+    		self::fillGapsInRec($dependsOnRec);
+    			
+    		// Ако има изчислено ново текущо време за нея, взимаме него а не старото
+    		if(isset($expectedTimes[$dependsOnRec->id])){
+    			$dependsOnRec->expectedTimeStart = $expectedTimes[$dependsOnRec->id];
+    		}
+    			
+    		// За условието изчисляваме времето му на стартиране спрямо подадените данни
+    		$dRec->calcTime = planning_TaskConditions::getExpectedTime($dRec->offset, $dRec->progress, $dependsOnRec->expectedTimeStart, $dependsOnRec->timeDuration, $dependsOnRec->progress);
+    		$calcedTimes[$dRec->id] = $dRec->calcTime;
+    		$condTimes[] = $dRec->calcTime;
+    	}
+    	 
+    	// Сортираме изчислените времена на условията във низходящ ред
+    	rsort($condTimes);
+    	
+    	// Изчисляваме максималното време от началото на задачата и максималното начало на условие
+    	$max = max($rec->timeStart, $condTimes[0]);
+    	
+    	// Връщаме изчисленото време
+    	return $max;
     }
 }

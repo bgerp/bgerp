@@ -229,11 +229,11 @@ class planning_TaskConditions extends doc_Detail
     /**
      * Изчислява очакваното начало на условието
      * 
-     * @param int      $offset  - отместване (секунди)
-     * @param double   $progress - прогреса на условието
-     * @param datetime $dependsOnTimeExpectedStart - очаквано начало на зависимата задача
-     * @param datetime $dependsOnTimeDuration - очакван
-     * @param double   $dependsOnProgress - текущия прогрес на условната задача
+     * @param int       $offset  - отместване (секунди)
+     * @param double    $progress - прогреса на условието
+     * @param datetime  $dependsOnTimeExpectedStart - очаквано начало на зависимата задача
+     * @param datetime  $dependsOnTimeDuration - очакван
+     * @param double    $dependsOnProgress - текущия прогрес на условната задача
      * @return datetime $expectedTime -очакваното време 
      */
     public static function getExpectedTime($offset, $progress, $dependsOnTimeExpectedStart, $dependsOnTimeDuration, $dependsOnProgress)

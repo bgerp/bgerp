@@ -54,7 +54,7 @@ class planning_drivers_BaseTask extends core_BaseClass
      * @param int $id - ид
      * @param return void
      */
-    public function updateEmbedder($id)
+    public function updateEmbedder(&$rec)
     {
     }
     

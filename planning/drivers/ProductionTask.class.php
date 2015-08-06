@@ -81,13 +81,11 @@ class planning_drivers_ProductionTask extends planning_drivers_BaseTask
 	/**
      * Обновяване на данните на мастъра
      * 
-     * @param int $id - ид
+     * @param stdClass $rec - запис на ембедъра
      * @param return void
      */
-	public function updateEmbedder($id)
+	public function updateEmbedder(&$rec)
 	{
-		 $rec = planning_Tasks::fetch($id);
-		 
 		 // Колко е общото к-во досега
 		 $dQuery = planning_TaskDetails::getQuery();
 		 $dQuery->where("#taskId = {$rec->id}");
@@ -108,9 +106,6 @@ class planning_drivers_ProductionTask extends planning_drivers_BaseTask
 		 if($rec->progress >= 1 && $rec->state == 'active'){
 		 	$rec->state = 'closed';
 		 }
-		 
-		 // Обновяваме мастъра
-		 planning_Tasks::save($rec);
 	}
 	
 	
