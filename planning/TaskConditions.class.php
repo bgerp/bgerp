@@ -194,7 +194,7 @@ class planning_TaskConditions extends doc_Detail
      * @param int $taskId - подадената задача
      * @return array $taskArray - масив с задачи
      */
-    public function getAllowedTaskToDepend($taskId)
+    protected function getAllowedTaskToDepend($taskId)
     {
     	$notAllowed = self::getInheritors($taskId);
     	if(count($notAllowed)){

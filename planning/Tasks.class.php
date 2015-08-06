@@ -455,13 +455,13 @@ class planning_Tasks extends embed_Manager
     {
     	// Добавяме поле за търсене по състояние
     	if(!Request::get('Rejected', 'int')){
-    		$data->listFilter->setOptions('state', array('' => '') + arr::make('draft=Чернова, active=Активно, pending=Чакащо, pandact=Активно+Чакащо,closed=Приключено, stopped=Спряно, wakeup=Събудено', TRUE));
+    		$data->listFilter->setOptions('state', array('' => '') + arr::make('draft=Чернова, active=Активно, pending=Чакащо, pendingandactive=Активно+Чакащо,closed=Приключено, stopped=Спряно, wakeup=Събудено', TRUE));
     		$data->listFilter->setField('state', 'placeholder=Всички');
     		$data->listFilter->showFields .= ',state';
     		$data->listFilter->input('state');
     		 
     		if($state = $data->listFilter->rec->state){
-    			if($state != 'pandact'){
+    			if($state != 'pendingandactive'){
     				$data->query->where("#state = '{$state}'");
     			} else {
     				$data->query->where("#state = 'active' || #state = 'pending'");
@@ -806,11 +806,32 @@ class planning_Tasks extends embed_Manager
     }
     
     
-
-
-
-    function act_Test()
+    /**
+     * Проверка дали нов документ може да бъде добавен в
+     * посочената папка като начало на нишка
+     *
+     * @param $folderId int ид на папката
+     */
+    public static function canAddToFolder($folderId)
     {
-    	$this->cron_CheckTasks();
+    	$Cover = doc_Folders::getCover($folderId);
+    	
+    	// Може да се добавя само в папка на 'Проект'
+    	return ($Cover->getInstance() instanceof doc_UnsortedFolders);
+    }
+
+
+    /**
+     * Проверка дали нов документ може да бъде добавен в посочената нишка
+     *
+     * @param int $threadId key(mvc=doc_Threads)
+     * @return boolean
+     */
+    public static function canAddToThread($threadId)
+    {
+    	$firstDoc = doc_Threads::getFirstDocument($threadId);
+    	
+    	// Може да се добавя само към нишка с начало задание
+    	return ($firstDoc->getInstance() instanceof planning_Jobs);
     }
 }
