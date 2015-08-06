@@ -687,9 +687,11 @@ class doc_UnsortedFolders extends core_Master
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$suggestions = core_Classes::getOptionsByInterface('doc_DocumentIntf', 'title');
-    	foreach ($suggestions as $classId => $name){
-    		if(!cls::get($classId)->canAddToFolder($data->form->rec->folderId)){
-    			unset($suggestions[$classId]);
+    	if($data->form->rec->folderId){
+    		foreach ($suggestions as $classId => $name){
+    			if(!cls::get($classId)->canAddToFolder($data->form->rec->folderId)){
+    				unset($suggestions[$classId]);
+    			}
     		}
     	}
     	 
