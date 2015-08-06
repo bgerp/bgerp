@@ -325,12 +325,6 @@ class doclog_Documents extends core_Manager
         // Екшъна
         $action = static::ACTION_FORWARD;
         
-        // Създаваме странициране
-        $data->pager = cls::get('core_Pager', array('itemsPerPage' => $this->itemsPerPage, 'pageVar' => 'P_doclog_Documents'));
-        
-        // URL' то където ще сочат
-        $data->pager->url = toUrl(static::getLinkToSingle($cid, $action));
-        
         // Вземаме записите
         $recs = static::getRecs($cid, $action);
         
@@ -346,70 +340,98 @@ class doclog_Documents extends core_Manager
         // Масив с данните във вербален вид
         $rows = array();
         
-        // Обхождаме записите
-        foreach ($recs as $rec) {
+        $dataRecsArr = $this->getRecsForPaging($data, $recs, $action);
+        
+        // Обхождаме всички препратени записи
+        foreach ($dataRecsArr as $forwardRec) {
             
-            $forwardCnt = count($rec->data->$action);
-            
-            // Ако няма запис за препращане на съответния запис прескачаме            
-            if (!$forwardCnt) continue;
-            
-            $data->pager->itemsCount = $forwardCnt;
-            $data->pager->calc();
-            
-            $curr = 0;
-            $showedCnt = 0;
-            $limit = $data->pager->rangeEnd - $data->pager->rangeStart;
-            
-            if ($rec->data->{$action}) {
-        	    krsort($rec->data->{$action});
-        	}
-            
-            // Обхождаме всички препратени записи
-            foreach ($rec->data->{$action} as $forwardRec) {
-                
-                if (isset($data->pager->rangeStart) && isset($data->pager->rangeEnd)) {
-                    $curr++;
-                    
-                    if ($curr <= $data->pager->rangeStart) continue;
-                    
-                    if ($showedCnt >= $limit) break;
-                }
-                
-                $showedCnt++;
-                
-                // Записите
-                $row = (object)array(
-                    'time' => $forwardRec['on'],
-                    'from' => $forwardRec['from'],
-                );
+            // Записите
+            $row = (object)array(
+                'time' => $forwardRec['on'],
+                'from' => $forwardRec['from'],
+            );
 
-                // Записите във вербален вид
-                $row = static::recToVerbal($row, array_keys(get_object_vars($row)));
-                
-                // Вземаме документите
-                $doc = doc_Containers::getDocument($forwardRec['containerId']);
+            // Записите във вербален вид
+            $row = static::recToVerbal($row, array_keys(get_object_vars($row)));
+            
+            // Вземаме документите
+            $doc = doc_Containers::getDocument($forwardRec['containerId']);
 
-                // Ако имаме права за сингъл на документ
-                if ($doc->haveRightFor('single')) {
+            // Ако имаме права за сингъл на документ
+            if ($doc->haveRightFor('single')) {
+            
+                // Вербални данни на докуемент
+                $docRow = $doc->getDocumentRow();
                 
-                    // Вербални данни на докуемент
-                    $docRow = $doc->getDocumentRow();
-                    
-                    // Създаваме линк към документа
-                    $row->document = ht::createLink($docRow->title, array($doc->className, 'single', $doc->that));    
-                }
-                
-                // Добавяме в главния масив
-                $rows[] = $row;    
+                // Създаваме линк към документа
+                $row->document = ht::createLink($docRow->title, array($doc->className, 'single', $doc->that));    
             }
+            
+            // Добавяме в главния масив
+            $rows[] = $row;    
         }
 
-        // Сортираме
-        $rows;
-        
         // Заместваме данните за рендиране
         $data->rows = $rows; 
+    }
+    
+    
+    /**
+     * Връща масив със записи за странира
+     * 
+     * @param object $data
+     * @param array $recs
+     * @param string $action
+     * 
+     * @return array
+     */
+    protected function getRecsForPaging(&$data, $recs, $action)
+    {
+        $resArr = array();
+        
+        $cid = $data->masterData->rec->containerId;
+        
+        // Създаваме странициране
+        $data->pager = cls::get('core_Pager', array('itemsPerPage' => $this->itemsPerPage, 'pageVar' => 'P_doclog_Documents'));
+        
+        // URL' то където ще сочат
+        $data->pager->url = toUrl(static::getLinkToSingle($cid, $action));
+        
+        $allDataAct = array();
+        
+        // Обхождаме записите
+        foreach ($recs as $rec) {
+            $allDataAct = array_merge($rec->data->$action);
+        }
+        
+        $cnt = count($allDataAct);
+        
+        if (!$cnt) return $resArr;
+        
+        $data->pager->itemsCount = $cnt;
+        $data->pager->calc();
+        
+        $curr = 0;
+        $showedCnt = 0;
+        $limit = $data->pager->rangeEnd - $data->pager->rangeStart;
+        
+	    krsort($allDataAct);
+	    
+	    foreach ($allDataAct as $val) {
+	        if (isset($data->pager->rangeStart) && isset($data->pager->rangeEnd)) {
+                $curr++;
+                
+                if ($curr <= $data->pager->rangeStart) continue;
+                
+                if ($showedCnt >= $limit) break;
+            }
+            
+            $resArr[] = $val;
+            
+            $showedCnt++;
+	    }
+	    
+	    return $resArr;
     }
     
     
