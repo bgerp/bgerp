@@ -333,11 +333,38 @@ class core_Detail extends core_Manager
                 foreach ($masters as $masterKey => $masterInstance) {
                     $masterId = $rec->{$masterKey};
                     $masterInstance->invoke('AfterUpdateDetail', array($masterId, $mvc));
-                    
-                    $masterInstance->logInfo('Изтриване на детайл', $masterId);
                 }
             }
         }
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @see core_Manager::act_Delete()
+     */
+    function act_Delete()
+    {
+        $id = Request::get('id', 'int');
+        
+        $rec = $this->fetch($id);
+        
+        $masterKey = $this->masterKey;
+        
+        $masters = $this->getMasters($rec);
+        
+        foreach ($masters as $masterKey => $masterInstance) {
+            if ($rec->{$masterKey}) {
+                $masterId = $rec->{$masterKey};
+            } elseif($rec->id) {
+                $masterId = $this->fetchField($rec->id, $masterKey);
+            }
+            
+            $masterInstance->logInfo('Изтриване на детайл', $masterId);
+        }
+        
+        return parent::act_Delete();
     }
     
     
