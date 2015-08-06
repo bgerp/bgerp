@@ -411,7 +411,7 @@ class planning_Tasks extends embed_Manager
     		}
     		
     		if ($rec->timeStart && $rec->timeEnd && ($rec->timeStart > $rec->timeEnd)) {
-    			$form->setError('timeEnd', 'Не може крайния срок да е преди началото на задачата');
+    			$form->setError('timeEnd', 'Крайния срок трябва да е преди началото на задачата');
     		}
     	}
     }
@@ -833,5 +833,18 @@ class planning_Tasks extends embed_Manager
     	
     	// Може да се добавя само към нишка с начало задание
     	return ($firstDoc->getInstance() instanceof planning_Jobs);
+    }
+    
+    
+    /**
+     * Премахва от резултатите скритите от менютата за избор
+     */
+    public static function on_AfterMakeArray4Select($mvc, &$res, $fields = NULL, &$where = "", $index = 'id'  )
+    {
+    	if(is_array($res)){
+    		foreach ($res as $id => &$title){
+    			$title =  " {$title}" . " (#" . $mvc->getHandle($id) . ")";
+    		}
+    	}
     }
 }
