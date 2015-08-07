@@ -41,11 +41,7 @@ class acc_type_Account extends type_Key
      */
     public function prepareOptions()
     {
-        if (isset($this->options)) {
-            
-            return $this->options;
-        }
-        $mvc = cls::get($this->params['mvc']);
+		$mvc = cls::get($this->params['mvc']);
         $root = $this->params['root'];
         $select = $this->params['select'];
         $regInterfaces = $this->params['regInterfaces'];
