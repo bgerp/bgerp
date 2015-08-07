@@ -340,6 +340,10 @@ class doclog_Documents extends core_Manager
         // Масив с данните във вербален вид
         $rows = array();
         
+        foreach ($recs as $rec) {
+            krsort($rec->data->{$action});
+        }
+        
         $dataRecsArr = $this->getRecsForPaging($data, $recs, $action);
         
         // Обхождаме всички препратени записи
@@ -420,8 +424,6 @@ class doclog_Documents extends core_Manager
         $showedCnt = 0;
         $limit = $data->pager->rangeEnd - $data->pager->rangeStart;
         
-	    krsort($allDataAct);
-	    
 	    foreach ($allDataAct as $val) {
 	        if (isset($data->pager->rangeStart) && isset($data->pager->rangeEnd)) {
                 $curr++;
@@ -954,18 +956,19 @@ class doclog_Documents extends core_Manager
         
         $i = 0;
         
+        $nArr = array();
         foreach ($recs as $key => $rec) {
-            $nArr = array();
             foreach ($rec->data->{$action} as $fh => $rArr) {
                 foreach ($rArr as $dArr) {
                     $dArr['fileHnd'] = $fh;
                     $nArr[$dArr['seenOnTime'] . ' ' . $i++] = $dArr;
                 }
             }
-            
-            $rec->data->{$action} = $nArr;
         }
+        $rec->data->{$action} = $nArr;
+        
         krsort($rec->data->{$action});
+        
         $dataRecsArr = $this->getRecsForPaging($data, $recs, $action);
         
         // Обхождаме всички сваляния
@@ -987,12 +990,9 @@ class doclog_Documents extends core_Manager
             $row->ip = $row->from ? $row->from : $row->ip;
             
             // Записваме в масив данните, с ключ датата
-            $rows[$rec->createdOn . ' ' . $downData['seenOnTime'] . ' ' . $i++] = $row;    
+            $rows[] = $row;    
         }
         
-        // Подреждаме масива
-        krsort($rows);
-
         // Променяме всички вербални данни, да показват откритите от нас
         $data->rows = $rows;
     }
@@ -2469,6 +2469,10 @@ class doclog_Documents extends core_Manager
         }
         
         $rows = array();
+        
+        foreach ($recs as $rec) {
+            krsort($rec->data->{$action});
+        }
         
         $dataRecsArr = $this->getRecsForPaging($data, $recs, $action);
         
