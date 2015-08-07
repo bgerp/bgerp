@@ -12,7 +12,7 @@
  * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
- * @title     Сървврен мониторинг
+ * @title     Сървърен мониторинг
  */
 class sens2_ServMon  extends sens2_ProtoDriver
 {

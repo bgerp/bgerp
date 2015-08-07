@@ -212,7 +212,7 @@ class doc_UnsortedFolders extends core_Master
         $this->FLD('name' , 'varchar(128)', 'caption=Наименование,mandatory');
         $this->FLD('description' , 'richtext(rows=3)', 'caption=Описание');
         $this->FLD('closeTime' , 'time', 'caption=Автоматично затваряне на нишките след->Време, allowEmpty');
-        $this->FLD('showDocumentsAsButtons' , 'keylist(mvc=core_Classes,select=title)', 'caption=Документи които да се показват като бутони->Документи');
+        $this->FLD('showDocumentsAsButtons' , 'keylist(mvc=core_Classes,select=title)', 'caption=Документи, които да се показват като бързи бутони->Документи');
         $this->setDbUnique('name');
     }
     
@@ -687,9 +687,11 @@ class doc_UnsortedFolders extends core_Master
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$suggestions = core_Classes::getOptionsByInterface('doc_DocumentIntf', 'title');
-    	foreach ($suggestions as $classId => $name){
-    		if(!cls::get($classId)->canAddToFolder($data->form->rec->folderId)){
-    			unset($suggestions[$classId]);
+    	if($data->form->rec->folderId){
+    		foreach ($suggestions as $classId => $name){
+    			if(!cls::get($classId)->canAddToFolder($data->form->rec->folderId)){
+    				unset($suggestions[$classId]);
+    			}
     		}
     	}
     	 

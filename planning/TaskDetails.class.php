@@ -154,11 +154,6 @@ class planning_TaskDetails extends doc_Detail
     		$form->setDefault('employees', $lastRec->employees);
     		$form->setDefault('fixedAsset', $lastRec->fixedAsset);
     	}
-    	
-    	// Показваме полето за въвеждане на код само при операция "произвеждане"
-    	if($rec->operation == 'production'){
-    		$form->setField('code', 'input');
-    	}
     }
     
     

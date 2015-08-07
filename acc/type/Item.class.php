@@ -15,6 +15,8 @@
  */
 class acc_type_Item extends type_Key
 {
+    
+    
     /**
      * Параметър определящ максималната широчина на полето
      */
@@ -105,6 +107,30 @@ class acc_type_Item extends type_Key
         $this->options = parent::prepareOptions();
         
         return $this->options;
+    }
+    
+    
+    /**
+     * Връща възможните стойности за ключа
+     * 
+     * @param string $value
+     * 
+     * @return array
+     */
+    function getAllowedKeyVal($id, $listId = NULL)
+    {
+        $inst = cls::get($this->params['mvc']);
+        
+        $rec = $inst->fetch($id);
+        $listArr = type_Keylist::toArray($rec->lists);
+        
+        $resArr = array();
+        
+        foreach ($listArr as $listId) {
+            $resArr[] = $id . '.' . $listId;
+        }
+        
+        return $resArr;
     }
     
     

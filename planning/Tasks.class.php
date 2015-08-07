@@ -45,7 +45,7 @@ class planning_Tasks extends embed_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, doc_SharablePlg, doc_DocumentPlg, planning_plg_StateManager, planning_Wrapper, acc_plg_DocumentSummary, plg_Search, change_Plugin, plg_Clone';
+    public $loadList = 'plg_RowTools, doc_SharablePlg, doc_DocumentPlg, planning_plg_StateManager, planning_Wrapper, acc_plg_DocumentSummary, plg_Search, change_Plugin, plg_Clone, plg_Sorting';
 
     
     /**
@@ -81,7 +81,7 @@ class planning_Tasks extends embed_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт, name = Документ, jobId, title,timeStart, timeDuration, timeEnd, inCharge, progress, state';
+    public $listFields = 'tools=Пулт, name = Документ, jobId, title, expectedTimeStart,timeStart, timeDuration, timeEnd, inCharge, progress, state';
     
     
     /**
@@ -93,7 +93,7 @@ class planning_Tasks extends embed_Manager
     /**
      * Детайли
      */
-    public $details = 'planning_TaskDetails';
+    public $details = 'planning_TaskDetails, planning_TaskConditions';
     
     
     /**
@@ -191,8 +191,20 @@ class planning_Tasks extends embed_Manager
     	$this->FLD('progress', 'percent', 'caption=Прогрес,input=none,notNull,value=0');
     	$this->FLD('jobId', 'key(mvc=planning_Jobs)', 'input=none,caption=По задание');
     	$this->FLD('fromProductArrayId', 'int', 'silent,input=hidden');
+    	$this->FLD('expectedTimeStart', 'datetime', 'silent,input=hidden,caption=Очаквано начало');
     	
     	$this->setDbIndex('jobId');
+    }
+    
+    
+    /**
+     * Изпълнява се преди преобразуването към вербални стойности на полетата на записа
+     */
+    protected static function on_BeforeRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+    	if(is_object($rec)){
+    		static::fillGapsInRec($rec);
+    	}
     }
     
     
@@ -249,16 +261,22 @@ class planning_Tasks extends embed_Manager
     		$row->timeEnd = ht::createLink(dt::mysql2verbal($rec->timeEnd, 'smartTime'), array('cal_Calendar', 'day', 'from' => $row->timeEnd, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
     	}
     	
+    	// Ако е изчислено очакваното начало и има продължителност, изчисляваме очаквания край
+    	if(isset($rec->expectedTimeStart) && isset($rec->timeDuration)){
+    		$expectedTimeEnd = dt::addSecs($rec->timeDuration, $rec->expectedTimeStart);
+    		$row->expectedTimeEnd = $mvc->getFieldType('expectedTimeStart')->toVerbal($expectedTimeEnd);
+    	}
+    	
+    	if (isset($rec->expectedTimeStart)) {
+    		$row->expectedTimeStart = ht::createLink(dt::mysql2verbal($rec->expectedTimeStart, 'smartTime'), array('cal_Calendar', 'day', 'from' => $row->expectedTimeStart, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
+    	}
+    	
+    	if (isset($expectedTimeEnd)) {
+    		$row->expectedTimeEnd = ht::createLink(dt::mysql2verbal($expectedTimeEnd, 'smartTime'), array('cal_Calendar', 'day', 'from' => $row->expectedTimeEnd, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
+    	}
+    	
     	if($rec->jobId){
     		$row->jobId = planning_Jobs::getLink($rec->jobId, 0);
-    	}
-    	
-    	if($row->timeStart === ''){
-    		unset($row->timeStart);
-    	}
-    	
-    	if($row->timeEnd === ''){
-    		unset($row->timeEnd);
     	}
     }
     
@@ -393,7 +411,7 @@ class planning_Tasks extends embed_Manager
     		}
     		
     		if ($rec->timeStart && $rec->timeEnd && ($rec->timeStart > $rec->timeEnd)) {
-    			$form->setError('timeEnd', 'Не може крайния срок да е преди началото на задачата');
+    			$form->setError('timeEnd', 'Крайния срок трябва да е преди началото на задачата');
     		}
     	}
     }
@@ -416,11 +434,15 @@ class planning_Tasks extends embed_Manager
     {
     	if(count($mvc->updated)){
     		foreach ($mvc->updated as $id) {
+    			$rec = $mvc->fetch($id);
+    			
+    			// Даваме възможност на драйвера да обнови мастъра ако иска
     			if($Driver = $mvc->getDriver($id)){
-    				
-    				// Даваме възможност на драйвера да обнови мастъра ако иска
-    				$Driver->updateEmbedder($id);
+    				$Driver->updateEmbedder($rec);
     			}
+    			
+    			$rec->expectedTimeStart = $mvc->getExpectedTimeStart($rec);
+    			$mvc->save($rec);
     		}
     	}
     }
@@ -433,13 +455,13 @@ class planning_Tasks extends embed_Manager
     {
     	// Добавяме поле за търсене по състояние
     	if(!Request::get('Rejected', 'int')){
-    		$data->listFilter->setOptions('state', array('' => '') + arr::make('draft=Чернова, active=Активно, pending=Чакащо, pandact=Активно+Чакащо,closed=Приключено, stopped=Спряно, wakeup=Събудено', TRUE));
+    		$data->listFilter->setOptions('state', array('' => '') + arr::make('draft=Чернова, active=Активно, pending=Чакащо, pendingandactive=Активно+Чакащо,closed=Приключено, stopped=Спряно, wakeup=Събудено', TRUE));
     		$data->listFilter->setField('state', 'placeholder=Всички');
     		$data->listFilter->showFields .= ',state';
     		$data->listFilter->input('state');
     		 
     		if($state = $data->listFilter->rec->state){
-    			if($state != 'pandact'){
+    			if($state != 'pendingandactive'){
     				$data->query->where("#state = '{$state}'");
     			} else {
     				$data->query->where("#state = 'active' || #state = 'pending'");
@@ -503,50 +525,18 @@ class planning_Tasks extends embed_Manager
     		while($dRec = $dQuery->fetch()){
     			
     			// Добавяме данните от детайла към ключовите думи
-    			$dRow = planning_TaskDetails::recToVerbal($dRec);
-    			$detailsKeywords .= " " . plg_Search::normalizeText($dRow->operation);
+    			$detailsKeywords .= " " . plg_Search::normalizeText(planning_TaskDetails::getVerbal($dRec, 'operation'));
     			if($dRec->code){
-    				$detailsKeywords .= " " . plg_Search::normalizeText($dRow->code);
+    				$detailsKeywords .= " " . plg_Search::normalizeText(planning_TaskDetails::getVerbal($dRec, 'code'));
     			}
     			
     			if($dRec->fixedAsset){
-    				$detailsKeywords .= " " . plg_Search::normalizeText($dRow->fixedAsset);
+    				$detailsKeywords .= " " . plg_Search::normalizeText(planning_TaskDetails::getVerbal($dRec, 'fixedAsset'));
     			}
     		}
     		
     		// Добавяме новите ключови думи към старите
     		$res = " " . $res . " " . $detailsKeywords;
-    	}
-    }
-    
-    
-    /**
-     * Дефолт състояние при активиране
-     */
-    public function activateNow_($rec)
-    {
-    	//@TODO дали да е чакащо или директно активно
-    }
-    
-    
-    /**
-     * Активиране на чакащите задачи по разписание ако са им изпълнени условията
-     */
-    public function cron_ActivatePendingTasks()
-    {
-    	// Ако няма задачи не правим нищо
-    	if(!self::count()) return;
-    	
-    	// Намираме чакащите
-    	$query = self::getQuery();
-    	$query->where("#state = 'pending'");
-    	
-    	// Ако им е изпълнено условието за активация, активираме ги
-    	while($rec = $query->fetch()){
-    		if($this->activateNow($rec)){
-    			$rec->state = 'active';
-    			$this->save($rec);
-    		}
     	}
     }
     
@@ -563,6 +553,10 @@ class planning_Tasks extends embed_Manager
     		if(cal_Reminders::haveRightFor('add', (object)array('originId' => $data->rec->containerId))){
     			$data->toolbar->addBtn('Напомняне', array('cal_Reminders', 'add', 'originId' => $data->rec->containerId, 'ret_url' => TRUE, ''), 'ef_icon=img/16/rem-plus.png, row=2', 'title=Създаване на ново напомняне');
     		}
+    	}
+    	
+    	if(planning_TaskConditions::haveRightFor('add', (object)array('taskId' => $data->rec->id))){
+    		$data->toolbar->addBtn('Условие', array('planning_TaskConditions', 'add', 'taskId' => $data->rec->id, 'ret_url' => TRUE), 'ef_icon=img/16/task-option.png', 'title=Добавяне на условие за стартиране');
     	}
     }
     
@@ -626,5 +620,231 @@ class planning_Tasks extends embed_Manager
     	$rec = self::fetch($id);
     
     	return "img/16/task-" . $rec->priority . ".png";
+    }
+    
+    /**
+     * Ако са въведени две от времената (начало, продължителност, край) а третото е празно, изчисляваме го.
+     * ако е въведено само едно време или всички не правим нищо
+     * 
+     * @param stdClass $rec - записа който ще попълним
+     * @return void
+     */
+	private static function fillGapsInRec(&$rec)
+	{
+		if(isset($rec->timeStart) && isset($rec->timeDuration) && empty($rec->timeEnd)){
+			
+			// Ако има начало и продължителност, изчисляваме края
+			$rec->timeEnd = dt::addSecs($rec->timeDuration, $rec->timeStart);
+		} elseif(isset($rec->timeStart) && isset($rec->timeEnd) && empty($rec->timeDuration)) {
+			
+			// Ако има начало и край, изчисляваме продължителността
+			$rec->timeDuration = $diff = strtotime($rec->timeEnd) - strtotime($rec->timeStart);
+		} elseif(isset($rec->timeDuration) && isset($rec->timeEnd) && empty($rec->timeStart)) {
+			
+			// Ако има продължителност и край, изчисляваме началото
+			$rec->timeStart = dt::addSecs(-1 * $rec->timeDuration, $rec->timeEnd);
+		}
+	}
+
+	/**
+	 * Дали задачата може да се активира
+	 * Ако задачата има прогрес или очакваното и начало е <= текущото време, тя е готова за активация
+	 * 
+	 * @param stdClass $rec - запис на задачата
+	 * @return boolean - можели да се активира или не
+	 */
+	public function activateNow_($rec)
+	{
+		// Ако задачата има прогрес или очакваното и начало е <= текущото време, тя е готова за активация
+		$res = ($rec->progress || $rec->expectedTimeStart <= dt::now());
+		
+		return $res;
+	}
+	
+	
+	/**
+	 * По разписание променя състоянията на задачите, взависимост
+	 *  от зададените им условия за активиране
+	 * 
+	 * Вземат се активните и чакащите задачи от най-старите към най-новите(*).
+	 * Всички задачи, които за които са въведени 2 от параметрите Начало, Край и Продължителност, третия параметър
+	 * се изчислява на базата на другите два. За всички редове от детайла на всяка задача, се калкулира
+	 * последното поле (calcTime) като функция calcTime = getExpectedTime($offset, $progress, dependsOn->Очаквано начало, dependsOn->Продължителност, $dependsOn->текущ прогрес)
+	 * На всички тях се определя [Начало (изчислено)] = Max(Начало, и calcTimes на всичките редове от детайла на задачата).
+	 * Ако при едно от присвояванията от предходния ред, има промяна на стойност, то целия цикъл по всички задачи.
+	 * 
+	 * След като цикъла мине без повече да има нови присвоявания на различни стойности, задачите се поставят в състояние, според Очаквано начало:
+	 *  - активно - всички при които този параметър не е изчислен или е по-малък или равен на текущото време, или имат прогрес > 0
+	 *  - чакащо - всички останали
+	 *  
+	 *  @return void
+	 */
+    public function cron_CheckTasks()
+    {
+    	// Намираме чакащите и активните задачи от най-старата към най-новата
+    	$query = self::getQuery();
+    	$query->where("#state = 'active' || #state = 'pending' || #state = 'stopped'");
+    	$query->orderBy('id', 'ASC');
+    	
+    	$recs = $query->fetchAll();
+    	
+    	// Ако няма записи не правим нищо
+    	if(!count($recs)) return;
+    	
+    	$count = 0;
+    	$expectedTimes = array();
+    	$calcedTimes = array();
+    	
+    	// Първоначално попълване на очакваните начални времена
+    	foreach ($recs as $rec2){
+    		$expectedTimes[$rec2->id] = $rec2->expectedTimeStart;
+    	}
+    	
+    	do{
+    		// Нулираме флага да сме сигурни, че няма да влезем във вечен цикъл
+    		$repeat = FALSE;
+    		$count++;
+    		
+    		// За всяка задача
+    		foreach ($recs as &$rec){
+    			 
+    			// Изчисляваме очакваното начало за задачата наново
+    			$max = $this->getExpectedTimeStart($rec, $expectedTimes, $calcedTimes);
+    			
+    			// Ако предишно изчисленото очаквано начало е различно от текущото
+    			if($expectedTimes[$rec->id] !== $max){
+    				//echo "<li><b>{$rec->id}</b> old: '{$expectedTimes[$rec->id]}' new: '{$max}'";
+    		
+    				// Записваме новото време
+    				$expectedTimes[$rec->id] = $max;
+    		
+    				// Имало е промяна, дигаме флага за преизчисляване
+    				$repeat = TRUE;
+    			}
+    		}
+    		
+    		if($repeat){
+    			//echo "<li>REPEAT";
+    		} 
+    		
+    	// Докато флага е сетнат преизчисляваме очакваното начало на задачите
+    	// Докато спрат да се присвояват нови времена
+    	} while ($repeat);
+    	
+    	// Обновяваме изчисленото време на условията
+    	if(count($calcedTimes)){
+    		$timesToSave = array();
+    		foreach ($calcedTimes as $conditionId => $calcTime){
+    			$timesToSave[] = (object)array('id' => $conditionId, 'calcTime' => $calcTime);
+    		}
+    		
+    		// Записваме изчисленото време
+    		cls::get('planning_TaskConditions')->saveArray($timesToSave, 'id,calcTime');
+    	}
+    	
+    	// Обновяваме състоянието и очакваното начало на задачите
+    	foreach ($recs as &$rec1){
+    		$rec1->expectedTimeStart = $expectedTimes[$rec1->id];
+    		
+    		// Ако условията са изпълнени за активиране, активираме задачата иначе я правим чакаща
+    		$rec1->state = ($this->activateNow($rec1)) ? 'active' : 'pending';
+    	}
+    	
+    	$this->saveArray($recs);
+    }
+
+    
+    /**
+     * Намира очакваното време за изпълнение спрямо условията.
+     * Това е максимума на началото на задачата и максимума на изчислените
+     * времена на условията към нея
+     * 
+     * @param stdClass $taskRec - запис на задача
+     * @param array $expectedTimes - масив с изчислени времена за стартиране
+     * @param array $calcedTimes - изчислените времена на условията
+     * @return datetime - датата на очакваното начало на задачата
+     */
+    private function getExpectedTimeStart($taskRec, $expectedTimes = array(), &$calcedTimes = array())
+    {
+    	// Допълваме и времената, ако има две въведени а третото го няма изчисляваме го
+    	$rec = clone $taskRec;
+    	self::fillGapsInRec($rec);
+    	
+    	// Намираме условията за стартиране свързани със задачата
+    	$condTimes = array();
+    	$condQuery = planning_TaskConditions::getQuery();
+    	$condQuery->where("#taskId = {$rec->id}");
+    	
+    	while($dRec = $condQuery->fetch()){
+    		$dependsOnRec = planning_Tasks::fetch($dRec->dependsOn, 'expectedTimeStart,timeDuration,timeEnd,progress,state');
+    	
+    		// Ако е чернова или оттеглена я пренебрегваме
+    		if($dependsOnRec->state == 'draft' || $dependsOnRec->state == 'rejected') continue;
+    	
+    		// Допълваме и времената за всеки случай
+    		self::fillGapsInRec($dependsOnRec);
+    			
+    		// Ако има изчислено ново текущо време за нея, взимаме него а не старото
+    		if(isset($expectedTimes[$dependsOnRec->id])){
+    			$dependsOnRec->expectedTimeStart = $expectedTimes[$dependsOnRec->id];
+    		}
+    			
+    		// За условието изчисляваме времето му на стартиране спрямо подадените данни
+    		$dRec->calcTime = planning_TaskConditions::getExpectedTime($dRec->offset, $dRec->progress, $dependsOnRec->expectedTimeStart, $dependsOnRec->timeDuration, $dependsOnRec->progress);
+    		$calcedTimes[$dRec->id] = $dRec->calcTime;
+    		$condTimes[] = $dRec->calcTime;
+    	}
+    	 
+    	// Сортираме изчислените времена на условията във низходящ ред
+    	rsort($condTimes);
+    	
+    	// Изчисляваме максималното време от началото на задачата и максималното начало на условие
+    	$max = max($rec->timeStart, $condTimes[0]);
+    	
+    	// Връщаме изчисленото време
+    	return $max;
+    }
+    
+    
+    /**
+     * Проверка дали нов документ може да бъде добавен в
+     * посочената папка като начало на нишка
+     *
+     * @param $folderId int ид на папката
+     */
+    public static function canAddToFolder($folderId)
+    {
+    	$Cover = doc_Folders::getCover($folderId);
+    	
+    	// Може да се добавя само в папка на 'Проект'
+    	return ($Cover->getInstance() instanceof doc_UnsortedFolders);
+    }
+
+
+    /**
+     * Проверка дали нов документ може да бъде добавен в посочената нишка
+     *
+     * @param int $threadId key(mvc=doc_Threads)
+     * @return boolean
+     */
+    public static function canAddToThread($threadId)
+    {
+    	$firstDoc = doc_Threads::getFirstDocument($threadId);
+    	
+    	// Може да се добавя само към нишка с начало задание
+    	return ($firstDoc->getInstance() instanceof planning_Jobs);
+    }
+    
+    
+    /**
+     * Премахва от резултатите скритите от менютата за избор
+     */
+    public static function on_AfterMakeArray4Select($mvc, &$res, $fields = NULL, &$where = "", $index = 'id'  )
+    {
+    	if(is_array($res)){
+    		foreach ($res as $id => &$title){
+    			$title =  " {$title}" . " (#" . $mvc->getHandle($id) . ")";
+    		}
+    	}
     }
 }

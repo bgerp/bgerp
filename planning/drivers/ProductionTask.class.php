@@ -81,19 +81,18 @@ class planning_drivers_ProductionTask extends planning_drivers_BaseTask
 	/**
      * Обновяване на данните на мастъра
      * 
-     * @param int $id - ид
+     * @param stdClass $rec - запис на ембедъра
      * @param return void
      */
-	public function updateEmbedder($id)
+	public function updateEmbedder(&$rec)
 	{
-		 $rec = planning_Tasks::fetch($id);
-		 
 		 // Колко е общото к-во досега
 		 $dQuery = planning_TaskDetails::getQuery();
 		 $dQuery->where("#taskId = {$rec->id}");
 		 $dQuery->where("#state != 'rejected'");
 		 $dQuery->XPR('sumQuantity', 'double', 'SUM(#quantity)');
 		 $dQuery->XPR('sumWeight', 'double', 'SUM(#weight)');
+		 $dQuery->show('sumQuantity,sumWeight');
 		 
 		 $res = $dQuery->fetch();
 		 $sumQuantity = $res->sumQuantity;
@@ -108,9 +107,6 @@ class planning_drivers_ProductionTask extends planning_drivers_BaseTask
 		 if($rec->progress >= 1 && $rec->state == 'active'){
 		 	$rec->state = 'closed';
 		 }
-		 
-		 // Обновяваме мастъра
-		 planning_Tasks::save($rec);
 	}
 	
 	
@@ -156,6 +152,11 @@ class planning_drivers_ProductionTask extends planning_drivers_BaseTask
 			$form->setOptions('fixedAsset', array('' => '') + $arr);
 			$form->setField('fixedAsset', 'input');
 		}
+		
+		// Показваме полето за въвеждане на код само при операция "произвеждане"
+		if($form->rec->operation == 'production'){
+			$form->setField('code', 'input');
+		}
 	}
 	
 	
@@ -184,6 +185,7 @@ class planning_drivers_ProductionTask extends planning_drivers_BaseTask
      */
     public function prepareListToolbarDetail(&$data)
     {
+    	// Премахваме стандартния бутон за добавяне
     	parent::prepareListToolbarDetail($data);
     	$data->toolbar->removeBtn('btnAdd');
     }
