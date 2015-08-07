@@ -203,6 +203,9 @@ class planning_Tasks extends embed_Manager
     protected static function on_BeforeRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	if(is_object($rec)){
+    		
+    		
+    		// Кое ги пълнии
     		static::fillGapsInRec($rec);
     	}
     }
@@ -769,14 +772,15 @@ class planning_Tasks extends embed_Manager
      * Това е максимума на началото на задачата и максимума на изчислените
      * времена на условията към нея
      * 
-     * @param stdClass $rec - запис на задача
+     * @param stdClass $taskRec - запис на задача
      * @param array $expectedTimes - масив с изчислени времена за стартиране
      * @param array $calcedTimes - изчислените времена на условията
      * @return datetime - датата на очакваното начало на задачата
      */
-    private function getExpectedTimeStart($rec, $expectedTimes = array(), &$calcedTimes = array())
+    private function getExpectedTimeStart($taskRec, $expectedTimes = array(), &$calcedTimes = array())
     {
     	// Допълваме и времената, ако има две въведени а третото го няма изчисляваме го
+    	$rec = clone $taskRec;
     	self::fillGapsInRec($rec);
     	
     	// Намираме условията за стартиране свързани със задачата
