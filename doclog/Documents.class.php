@@ -401,7 +401,12 @@ class doclog_Documents extends core_Manager
         
         // Обхождаме записите
         foreach ($recs as $rec) {
-            $allDataAct = array_merge($rec->data->$action);
+            
+            if (!$rec->data->{$action}) continue;
+            
+            foreach ($rec->data->{$action} as $actVal) {
+                $allDataAct[] = $actVal;
+            }
         }
         
         $cnt = count($allDataAct);
@@ -613,45 +618,70 @@ class doclog_Documents extends core_Manager
         
         // Масив с данния във вербален вид
         $rows = array();
-        
-        // Бутона да не е линк
-        $data->disabled = TRUE;
-        
+                
         $i = 0;
         
-        // Обхождаме всички записи
+        $nRecsArr = array();
+        
         foreach ($recs as $rec) {
-            
             // Ако не виждан
-            if (count($rec->data->{$action}) == 0) {
-                
-                continue;
-            } else {
-                
-                // Бутона да не е линк
-                $data->disabled = FALSE;
-            }
+            if (!$rec->data->{$action} || !count($rec->data->{$action}))  continue;
             
-            // Обхождаме всички записи
-            foreach ($rec->data->{$action} as $o) {
-                
-                // Данните, които ще се визуализрат
-                $row = (object)array(
-                    'time' => $o['on'],
-                    'ip' => $o['ip'],
-                    'openAction' => static::formatViewReason($rec),
-                );
-                
-                // Данните във вербален вид
-                $row = static::recToVerbal($row, array_keys(get_object_vars($row)));
-                
-                // Добавяме в масива
-                $rows[$rec->createdOn . ' ' . $o['on'] . ' ' . $i++] = $row;
+            foreach ($rec->data->{$action} as $ip => $act) {
+                $act['ParentRec'] = $rec;
+                $nRecsArr[$act['on'] . ' '. $i++] = $act;
             }
         }
         
-        // Сортираме масива
-        krsort($rows);
+        if (!$nRecsArr) {
+            $data->disabled = TRUE;
+            
+            return ;
+        }
+        
+        krsort($nRecsArr);
+        
+        // Създаваме странициране
+        $data->pager = cls::get('core_Pager', array('itemsPerPage' => $this->itemsPerPage, 'pageVar' => 'P_doclog_Documents'));
+        
+        // URL' то където ще сочат
+        $data->pager->url = toUrl(static::getLinkToSingle($cid, $action));
+        
+        $openCnt = count($nRecsArr);
+        
+        $data->pager->itemsCount = $openCnt;
+        $data->pager->calc();
+        
+        $curr = 0;
+        $showedCnt = 0;
+        $limit = $data->pager->rangeEnd - $data->pager->rangeStart;
+        
+        foreach ($nRecsArr as $o) {
+            
+            if (isset($data->pager->rangeStart) && isset($data->pager->rangeEnd)) {
+                $curr++;
+                
+                if ($curr <= $data->pager->rangeStart) continue;
+                
+                if ($showedCnt >= $limit) break;
+            }
+            
+            $showedCnt++;
+            
+            // Данните, които ще се визуализрат
+            $row = (object)array(
+                'time' => $o['on'],
+                'ip' => $o['ip'],
+                'openAction' => static::formatViewReason($o['ParentRec'])
+            );
+            
+            // Данните във вербален вид
+            $row = static::recToVerbal($row, array_keys(get_object_vars($row)));
+            
+            // Добавяме в масива
+            $rows[] = $row;
+            
+        }
         
         // Дабавяме в $data
         $data->rows = $rows; 
@@ -679,6 +709,9 @@ class doclog_Documents extends core_Manager
         
         // Заместваме в главния шаблон за детайлите
         $tpl->append($openTpl, 'content');
+        
+        // Добавяме странициране
+        $tpl->append($data->pager->getHtml());
         
         return $tpl;
     }
