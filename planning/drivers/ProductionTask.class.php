@@ -92,6 +92,7 @@ class planning_drivers_ProductionTask extends planning_drivers_BaseTask
 		 $dQuery->where("#state != 'rejected'");
 		 $dQuery->XPR('sumQuantity', 'double', 'SUM(#quantity)');
 		 $dQuery->XPR('sumWeight', 'double', 'SUM(#weight)');
+		 $dQuery->show('sumQuantity,sumWeight');
 		 
 		 $res = $dQuery->fetch();
 		 $sumQuantity = $res->sumQuantity;

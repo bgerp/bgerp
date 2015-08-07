@@ -260,7 +260,6 @@ class planning_Tasks extends embed_Manager
     		$row->timeStart = ht::createLink(dt::mysql2verbal($rec->timeStart, 'smartTime'), array('cal_Calendar', 'day', 'from' => $row->timeStart, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
     		$row->timeEnd = ht::createLink(dt::mysql2verbal($rec->timeEnd, 'smartTime'), array('cal_Calendar', 'day', 'from' => $row->timeEnd, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
     	}
-    	//bp($rec->timeEnd);
     	
     	// Ако е изчислено очакваното начало и има продължителност, изчисляваме очаквания край
     	if(isset($rec->expectedTimeStart) && isset($rec->timeDuration)){
@@ -526,14 +525,13 @@ class planning_Tasks extends embed_Manager
     		while($dRec = $dQuery->fetch()){
     			
     			// Добавяме данните от детайла към ключовите думи
-    			$dRow = planning_TaskDetails::recToVerbal($dRec);
-    			$detailsKeywords .= " " . plg_Search::normalizeText($dRow->operation);
+    			$detailsKeywords .= " " . plg_Search::normalizeText(planning_TaskDetails::getVerbal($dRec, 'operation'));
     			if($dRec->code){
-    				$detailsKeywords .= " " . plg_Search::normalizeText($dRow->code);
+    				$detailsKeywords .= " " . plg_Search::normalizeText(planning_TaskDetails::getVerbal($dRec, 'code'));
     			}
     			
     			if($dRec->fixedAsset){
-    				$detailsKeywords .= " " . plg_Search::normalizeText($dRow->fixedAsset);
+    				$detailsKeywords .= " " . plg_Search::normalizeText(planning_TaskDetails::getVerbal($dRec, 'fixedAsset'));
     			}
     		}
     		
