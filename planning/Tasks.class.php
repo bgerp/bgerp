@@ -191,7 +191,7 @@ class planning_Tasks extends embed_Manager
     	$this->FLD('progress', 'percent', 'caption=Прогрес,input=none,notNull,value=0');
     	$this->FLD('jobId', 'key(mvc=planning_Jobs)', 'input=none,caption=По задание');
     	$this->FLD('fromProductArrayId', 'int', 'silent,input=hidden');
-    	$this->FLD('expectedTimeStart', 'datetime(format=smartTime)', 'silent,input=hidden,caption=Очаквано начало');
+    	$this->FLD('expectedTimeStart', 'datetime', 'silent,input=hidden,caption=Очаквано начало');
     	
     	$this->setDbIndex('jobId');
     }
@@ -203,9 +203,6 @@ class planning_Tasks extends embed_Manager
     protected static function on_BeforeRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	if(is_object($rec)){
-    		
-    		
-    		// Кое ги пълнии
     		static::fillGapsInRec($rec);
     	}
     }
@@ -263,7 +260,7 @@ class planning_Tasks extends embed_Manager
     		$row->timeStart = ht::createLink(dt::mysql2verbal($rec->timeStart, 'smartTime'), array('cal_Calendar', 'day', 'from' => $row->timeStart, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
     		$row->timeEnd = ht::createLink(dt::mysql2verbal($rec->timeEnd, 'smartTime'), array('cal_Calendar', 'day', 'from' => $row->timeEnd, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
     	}
-    	
+    	//bp($rec->timeEnd);
     	
     	// Ако е изчислено очакваното начало и има продължителност, изчисляваме очаквания край
     	if(isset($rec->expectedTimeStart) && isset($rec->timeDuration)){
@@ -281,14 +278,6 @@ class planning_Tasks extends embed_Manager
     	
     	if($rec->jobId){
     		$row->jobId = planning_Jobs::getLink($rec->jobId, 0);
-    	}
-    	
-    	if($row->timeStart === ''){
-    		unset($row->timeStart);
-    	}
-    	
-    	if($row->timeEnd === ''){
-    		unset($row->timeEnd);
     	}
     }
     
