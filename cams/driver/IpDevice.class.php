@@ -191,8 +191,11 @@ class cams_driver_IpDevice extends core_BaseClass {
     			$suffix = "/snapshot.jpg";
     		break;
     		case "cams_driver_EdimaxIC9000":
-    			//$suffix = "/snapshot.cgi";
     			 $suffix = "/snapshot.jpg";
+    		break;
+    		case "cams_driver_Hikvision":
+				
+    			return EF_TEMP_PATH . "HikvisionShot.jpg";
     		break;
     	}
 		
@@ -204,7 +207,7 @@ class cams_driver_IpDevice extends core_BaseClass {
      * 
      * Връща урл към видео стрийма на камерата в зависимост от вида и
      */
-	private function getStreamUrl()
+	protected function getStreamUrl()
 	{
 		$className = cls::getClassName($this);
     	
@@ -218,6 +221,8 @@ class cams_driver_IpDevice extends core_BaseClass {
     		break;
     		case "cams_driver_EdimaxIC9000":
     			$suffix = "/" . $this->normalizeCameraId() . ".{$this->videopass}";
+    		break;
+    		case "cams_driver_Hikvision":
     		break;
     	}
 
