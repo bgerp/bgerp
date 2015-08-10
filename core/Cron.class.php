@@ -189,7 +189,7 @@ class core_Cron extends core_Manager
     {
         $data->toolbar->addBtn('Логове на Cron', array(
                 'log_Debug',
-                'className' => $mvc->className
+                'class' => $mvc->className
             ),
             'ef_icon = img/16/action_log.png');
     }

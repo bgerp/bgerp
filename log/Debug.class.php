@@ -117,15 +117,14 @@ class log_Debug extends core_Manager
      */
     static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {   
-        $data->listFilter->FNC('user', 'key(mvc=core_Users,select=nick,allowEmpty,where=#state !\\= \\\'rejected\\\')', 'placeholder=Потребител,silent,refreshForm');
         $data->listFilter->FNC('date', 'date', 'placeholder=Дата');
-        $data->listFilter->FNC('class', 'varchar', 'placeholder=Клас');
+        $data->listFilter->FNC('class', 'varchar', 'placeholder=Клас,refreshForm, allowEmpty, silent');
 
         $data->listFilter->setSuggestions('class', core_Classes::makeArray4Select('name'));
-        $data->listFilter->showFields = 'user,date,class';
+        $data->listFilter->showFields = 'date,class';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        $data->listFilter->input('user,date,class', 'silent'); 
+        $data->listFilter->input('date,class', 'silent'); 
 
     	$query = $data->query;
         $query->orderBy('#id=DESC');
@@ -133,10 +132,6 @@ class log_Debug extends core_Manager
         // Заявка за филтриране
         $fRec = $data->listFilter->rec;
 
-        if($fRec->user) {
-            $query->where("#createdBy = {$fRec->user}");
-        }
-        
         if($fRec->date) {
             $query->where("#createdOn >= '{$fRec->date}' AND #createdOn <= '{$fRec->date} 23:59:59'");
         }
@@ -145,32 +140,7 @@ class log_Debug extends core_Manager
             $query->where("#className = '$fRec->class'");
         }
         
-        $className = Request::get('className', 'varchar');
         $objectId = Request::get('objectId', 'int');
-        
-        if ($className) {
-            $ctr = & cls::get($className);
-            
-            if (method_exists($ctr, 'canViewLog')) {
-                $canView = $ctr->canViewLog($objectId);
-            }
-        }
-        
-        /**
-         * @todo: Да се добави възможност за сортиране по потребител
-         */
-        if (Users::haveRole('admin')) {
-            $userId = Request::get('userId', 'int');
-        } else {
-            $userId = Users::getCurrent();
-        }
-        
-        if ($userId > 0) {
-            $query->where("#createdBy = {$userId}");
-        } elseif ($userId == -1) {
-            $query->where("#createdBy IS NULL");
-        }
-        
         if ($objectId) {
             if ($objectId == 'NULL') {
                 $query->where("#objectId IS NULL");
@@ -178,19 +148,28 @@ class log_Debug extends core_Manager
                 $query->where("#objectId = {$objectId}");
             }
         }
-        
-        if ($className) {
-            $mvc->info = new ET(tr('Филтър') . ': ');
-            $classes = explode('|', $className);
+    
+        // Добавяме класовете, за които има запис в търсения резултат
+        $classSuggArr = array();
+        $cQuery = clone $query;
+        $cQuery->groupBy('className');
+        while ($cRec = $cQuery->fetch()) {
             
-            foreach ($classes as $c) {
-                $mvc->info->append(' ');
-                $mvc->info->append(ht::createLink($c, array($c)));
-                $c = strtolower($c);
-                $cond .= ($cond ? " OR " : "") . "(lower(#className) LIKE '%{$c}%')";
+            $className = trim($cRec->className);
+            
+            if ($className) {
+                $classSuggArr[$className] = $className;
             }
-            
-            $query->where($cond);
+        }
+        
+        if ($classSuggArr) {
+            $classSuggArr = array('' => '') + $classSuggArr;
+            $data->listFilter->setOptions('class', $classSuggArr);
+        }
+        
+        if ($data->listFilter->rec->class) {
+            $class = mb_strtolower($data->listFilter->rec->class);
+            $query->where(array("LOWER (#className) = '[#1#]'", $class));
         }
     }
     
