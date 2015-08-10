@@ -27,7 +27,7 @@ class log_Debug extends core_Manager
     /**
      * Колко реда да се листват в една страница?
      */
-    var $listItemsPerPage = 200;
+    var $listItemsPerPage = 50;
     
     
     /**
