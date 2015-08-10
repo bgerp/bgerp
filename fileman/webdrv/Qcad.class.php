@@ -65,11 +65,15 @@ class fileman_webdrv_Qcad extends fileman_webdrv_Inkscape
         
         $height = static::$pngExportHeight;
         
+        $errFilePath = self::getErrLogFilePath($outFilePath);
+        
         // Скрипта, който ще конвертира файла в SVG формат
-        $Script->lineExec("dwg2svg -outfile=[#OUTPUTF#] [#INPUTF#]");
+        $Script->lineExec("dwg2svg -outfile=[#OUTPUTF#] [#INPUTF#]", array('errFilePath' => $errFilePath));
         
         // Функцията, която ще се извика след приключване на обработката на файла
         $Script->callBack($params['callBack']);
+        
+        $params['errFilePath'] = $errFilePath;
         
         // Други необходими променливи
         $Script->params = serialize($params);
