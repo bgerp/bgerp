@@ -397,7 +397,7 @@ class fileman_Indexes extends core_Manager
         $rec->createdBy = $params['createdBy'];
         $rec->content = static::prepareContent($params['content']);
         
-        $saveId = static::save($rec);
+        $saveId = static::save($rec, NULL, 'IGNORE');
         
         return $saveId;
     }
@@ -428,6 +428,8 @@ class fileman_Indexes extends core_Manager
                     
                     $haveErrFile = TRUE;
                     $errContent = file_get_contents($errFilePath);
+                    
+                    $errContent = trim($errContent);
                     
                     // Записваме грешката в дебъг лога
                     if ($errContent) {
