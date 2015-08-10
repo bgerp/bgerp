@@ -16,6 +16,8 @@
  */
 class findeals_transaction_AdvanceReport extends acc_DocumentTransactionSource
 {
+	
+	
     /**
      * 
      * @var findeals_AdvanceReports
@@ -54,6 +56,7 @@ class findeals_transaction_AdvanceReport extends acc_DocumentTransactionSource
     
     		$debitArr = array();
     		$debitArr[] = '60020';
+    		$debitArr[] = array('hr_Departments', $dRec->activityCenterId);
     		$debitArr[] = array('cat_Products', $dRec->productId);
     		$debitArr['quantity'] = $dRec->quantity;
     		$arr['debit'] = $debitArr;
