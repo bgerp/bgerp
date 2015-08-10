@@ -345,6 +345,8 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         $Script->fName = $name;
         $Script->fh = $fileHnd;
         
+        $Script->outFilePath = $outFilePath;
+        
         // Ако е подаден параметър за стартиране синхронно
         // Когато се геририра от офис документи PDF, и от полученич файл
         // се генерира JPG тогава трябва да се стартира синхронно
