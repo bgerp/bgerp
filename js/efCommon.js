@@ -1448,10 +1448,11 @@ function setFormElementsWidth() {
  * Задава ширина на елементите от нишката в зависимост от ширината на прозореца/устройството
  */
 function setThreadElemWidth() {
-    var winWidth = parseInt($(window).width()) - 45;
-    $('.doc_Containers table.listTable > tbody > tr >td').css('maxWidth', winWidth + 8);
-    $('.docStatistic').css('maxWidth', winWidth);
-    $('.scrolling-holder').css('maxWidth', winWidth);
+	var offsetWidth = 45;
+    var threadWidth = parseInt($(window).width()) - offsetWidth;
+    $('.doc_Containers table.listTable > tbody > tr > td').css('maxWidth', threadWidth + 10);
+    $('.docStatistic').css('maxWidth', threadWidth);
+    $('.scrolling-holder').css('maxWidth', threadWidth + 10);
 }
 
 function checkForElementWidthChange() {
