@@ -77,11 +77,15 @@ class docoffice_Jodconverter extends core_Manager
         $lineExecStr = "java -jar [#JODPATH#] [#INPUTF#] [#OUTPUTF#]";
         // @todo
         
+        $errFilePath = self::getErrLogFilePath($outFilePath);
+        
         // Скрипта, който ще конвертира
-        $Script->lineExec($lineExecStr, array('LANG' => 'en_US.UTF-8', 'HOME' => $Script->tempPath));
+        $Script->lineExec($lineExecStr, array('LANG' => 'en_US.UTF-8', 'HOME' => $Script->tempPath, 'errFilePath' => $errFilePath));
         
         // Функцията, която ще се извика след приключване на операцията
         $Script->callBack('docoffice_Jodconverter::afterConvertDoc');
+        
+        $params['errFilePath'] = $errFilePath;
         
         // Други необходими променливи
         $Script->params = serialize($params);
