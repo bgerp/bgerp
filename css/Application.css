@@ -2733,9 +2733,9 @@ div.location.public {
   display: inline-block;
   width: auto !important; }
 
-.core_Logs table.listTable > tbody > tr > td:last-child {
+.log_Debug table.listTable > tbody > tr > td:last-child {
   max-width: 600px; }
-  .core_Logs table.listTable > tbody > tr > td:last-child table td {
+  .log_Debug table.listTable > tbody > tr > td:last-child table td {
     word-break: break-all; }
 
 .cCode {

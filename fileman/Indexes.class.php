@@ -433,7 +433,7 @@ class fileman_Indexes extends core_Manager
                     
                     // Записваме грешката в дебъг лога
                     if ($errContent) {
-                        core_Logs::add('fileman_Indexes', NULL, $errContent, 20);
+                        log_Debug::add('fileman_Indexes', NULL, $errContent, 20);
                     }
                 }
             }

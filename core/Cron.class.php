@@ -188,7 +188,7 @@ class core_Cron extends core_Manager
     static function on_AfterPrepareListToolbar($mvc, &$data)
     {
         $data->toolbar->addBtn('Логове на Cron', array(
-                'core_Logs',
+                'log_Debug',
                 'className' => $mvc->className
             ),
             'ef_icon = img/16/action_log.png');
