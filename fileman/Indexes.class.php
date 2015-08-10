@@ -407,18 +407,34 @@ class fileman_Indexes extends core_Manager
      * Проверява дали има грешка. Ако има грешка, записваме грешката в БД.
      * 
      * @param string $file - Пътя до файла, който ще се проверява
-     * @param string $type - Типа, за който се проверява грешката
      * @param array $params - Други допълнителни параметри
      * 
      * @return boolean - Ако не открие грешка, връща FALSE
      */
-    static function haveErrors($file, $type, $params)
+    static function haveErrors($file, $params)
     {
+        $haveErrFile = FALSE;
+        
         // Ако е файл в директория
         if (strstr($file, '/')) {
             
             // Ако е валиден файл
             $isValid = is_file($file);
+            
+            // Ако няма валиден файл записваме грешката в лога
+            if (!$isValid) {
+                
+                if (($errFilePath = $params['errFilePath']) && is_file($errFilePath)) {
+                    
+                    $haveErrFile = TRUE;
+                    $errContent = file_get_contents($errFilePath);
+                    
+                    // Записваме грешката в дебъг лога
+                    if ($errContent) {
+                        core_Logs::add('fileman_Indexes', NULL, $errContent, 20);
+                    }
+                }
+            }
         } else {
             
             // Ако е манупулатор на файл
@@ -427,7 +443,7 @@ class fileman_Indexes extends core_Manager
         
         // Ако има файл
         if ($isValid) return FALSE;
-
+        
         // Създаваме запис за грешка
         static::createError($params);
 
