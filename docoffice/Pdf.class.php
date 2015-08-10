@@ -37,8 +37,10 @@ class docoffice_Pdf
         $Script->setFile('INPUTF', $fileHnd);
         $Script->setFile('OUTPUTF', $outFilePath);
         
+        $errFilePath = self::getErrLogFilePath($outFilePath);
+        
         // Скрипта, който ще конвертира
-        $Script->lineExec('pdftotext -enc UTF-8 -nopgbrk [#INPUTF#] [#OUTPUTF#]');
+        $Script->lineExec('pdftotext -enc UTF-8 -nopgbrk [#INPUTF#] [#OUTPUTF#]', array('errFilePath' => $errFilePath));
         
         // Функцията, която ще се извика след приключване на операцията
         $Script->callBack($params['callBack']);
@@ -47,7 +49,11 @@ class docoffice_Pdf
         $Script->fileInfoId = $params['fileInfoId'];
         $Script->outFilePath = $outFilePath;
         $Script->fh = $fileHnd;
-
+        
+        $params['errFilePath'] = $errFilePath;
+        
+        fileman_Indexes::haveErrors($outFilePath, $params);
+        
         // Стартираме скрипта синхронно
         $Script->run($params['asynch']);
     }
@@ -78,8 +84,10 @@ class docoffice_Pdf
         $Script->setFile('INPUTF', $fileHnd);
         $Script->setFile('OUTPUTF', $outFilePath);
         
+        $errFilePath = self::getErrLogFilePath($outFilePath);
+        
         // Скрипта, който ще конвертира файла от PDF в JPG формат
-        $Script->lineExec('convert -density 100 [#INPUTF#] [#OUTPUTF#]');
+        $Script->lineExec('convert -density 100 [#INPUTF#] [#OUTPUTF#]', array('errFilePath' => $errFilePath));
         
         // Функцията, която ще се извика след приключване на обработката на файла
         $Script->callBack($params['callBack']);
@@ -88,7 +96,10 @@ class docoffice_Pdf
         $Script->fileInfoId = $params['fileInfoId'];
         $Script->fName = $name;
         $Script->fh = $fileHnd;
-
+        
+        $params['errFilePath'] = $errFilePath;
+        fileman_Indexes::haveErrors($outFilePath, $params);
+        
         // Стартираме скрипта синхронно
         $Script->run($params['asynch']);
     }
