@@ -427,11 +427,9 @@ class bank_OwnAccounts extends core_Master {
         		$accountRec = bank_Accounts::fetch(array("#iban = '[#1#]'", $rec->iban));
         		
         		if(!$accountRec){
-        			
         			$form->setDefault('bank', bglocal_Banks::getBankName($rec->iban));
         			$form->setDefault('bic', bglocal_Banks::getBankBic($rec->iban));
         		} else {
-        			
         			$form->setDefault('bank', $accountRec->bank);
         			$form->setDefault('bic', $accountRec->bic);
         			$form->setDefault('currencyId', $accountRec->currencyId);
@@ -455,7 +453,7 @@ class bank_OwnAccounts extends core_Master {
         			return;
         		}
         		
-        		$rec->bankAccountId = self::addNewAccount($rec->iban, $rec->currencyId, $rec->bank, $rec->bic);
+        		$rec->bankAccountId = $mvc->addNewAccount($rec->iban, $rec->currencyId, $rec->bank, $rec->bic);
         	}
         	
         	if(!$rec->title) {
@@ -464,7 +462,17 @@ class bank_OwnAccounts extends core_Master {
         }
     }
     
-    public static function addNewAccount($iban, $currencyId, $bank, $bic)
+    
+    /**
+     * Добавя нова наша сметка
+     * 
+     * @param string $iban
+     * @param int $currencyId
+     * @param string $bank
+     * @param string $bic
+     * @return int $accId
+     */
+    private function addNewAccount($iban, $currencyId, $bank, $bic)
     {
     	$IbanType = core_Type::getByName('iban_Type(64)');
     	expect(!$IbanType->isValid($iban));
