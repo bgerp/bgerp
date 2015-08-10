@@ -81,7 +81,7 @@ class apachetika_Detect
         // Добавяме към изпълнимия скрипт
         $lineExecStr = "java -jar [#APACHETIKA#] --{$type} [#INPUTF#] > [#OUTPUTF#]";
         
-        $errFilePath = self::getErrLogFilePath($textPath);
+        $errFilePath = fileman_webdrv_Generic::getErrLogFilePath($textPath);
         
         // Скрипта, който ще конвертира
         $Script->lineExec($lineExecStr, array('LANG' => 'en_US.UTF-8', 'HOME' => $Script->tempPath, 'errFilePath' => $errFilePath));
