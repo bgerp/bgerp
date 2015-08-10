@@ -3,7 +3,7 @@
 
 
 /**
- * Клас 'core_Logs' - Мениджър за запис на действията на потребителите
+ * Клас 'log_Debug' - Мениджър за запис на действията на потребителите
  *
  *
  * @category  ef
@@ -14,7 +14,7 @@
  * @since     v 0.1
  * @link
  */
-class core_Logs extends core_Manager
+class log_Debug extends core_Manager
 {
     
     
@@ -34,6 +34,12 @@ class core_Logs extends core_Manager
      * Кои полета ще бъдат показани?
      */
     var $listFields = 'id,createdOn=Кога?,createdBy=Кой?,what=Какво?';
+    
+    
+    /**
+     * 
+     */
+    public $oldClassName = 'core_Logs';
     
     
     /**
@@ -90,7 +96,7 @@ class core_Logs extends core_Manager
         $rec->detail = $detail;
         $rec->lifeTime = $lifeTime;
         
-        return core_Logs::save($rec );
+        return self::save($rec);
     }
     
     
