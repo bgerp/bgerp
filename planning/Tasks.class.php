@@ -376,7 +376,8 @@ class planning_Tasks extends embed_Manager
     	$row->author   = $this->getVerbal($rec, 'createdBy');
     	$row->recTitle = $row->title;
     	$row->state    = $rec->state;
-    
+    	$row->subTitle = self::getVerbal($rec, 'title');
+    	
     	return $row;
     }
     
@@ -622,6 +623,7 @@ class planning_Tasks extends embed_Manager
     	return "img/16/task-" . $rec->priority . ".png";
     }
     
+    
     /**
      * Ако са въведени две от времената (начало, продължителност, край) а третото е празно, изчисляваме го.
      * ако е въведено само едно време или всички не правим нищо
@@ -664,7 +666,7 @@ class planning_Tasks extends embed_Manager
 	
 	/**
 	 * По разписание променя състоянията на задачите, взависимост
-	 *  от зададените им условия за активиране
+	 * от зададените им условия за активиране
 	 * 
 	 * Вземат се активните и чакащите задачи от най-старите към най-новите(*).
 	 * Всички задачи, които за които са въведени 2 от параметрите Начало, Край и Продължителност, третия параметър

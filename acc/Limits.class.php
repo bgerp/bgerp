@@ -100,7 +100,7 @@ class acc_Limits extends core_Manager
      */
     function description()
     {
-        $this->FLD('accountId', 'acc_type_Account(allowEmpty)', 'caption=Сметка, silent, mandatory,removeAndRefreshForm=limitQuantity|type|side|item1|item2|item3');
+        $this->FLD('accountId', 'key(mvc=acc_Accounts,select=title,allowEmpty)', 'caption=Сметка, silent, mandatory,removeAndRefreshForm=limitQuantity|type|side|item1|item2|item3');
         $this->FLD('startDate', 'datetime(format=smartTime)', 'caption=Начало,mandatory');
         $this->FLD('limitDuration', 'time(suggestions=1 седмица|2 седмици|1 месец|3 месеца|6 месеца|1 година)', 'caption=Продължителност');
         
@@ -171,17 +171,22 @@ class acc_Limits extends core_Manager
     			}
     		}
     		
+    		// Алп сметката е пасивна - избираме кредит и максимим по дефолт
     		if($accInfo->rec->type == 'passive'){
     			$form->setDefault('side', 'credit');
     			$form->setDefault('type', 'maximum');
     		} else {
+    			
+    			// Ако е активна или смесена - дебит и минимум
     			$form->setDefault('side', 'debit');
     			$form->setDefault('type', 'minimum');
     		}
     		
+    		// Ако лимита идва от корицата на обект
     		if(isset($rec->classId) && isset($rec->objectId)){
-    			
     			$form->setField('side', 'input=hidden');
+    			
+    			// Намираме на коя позиция е перото на обекта и го избираме
     			if($itemRec = acc_Items::fetchItem($rec->classId, $rec->objectId)){
     				foreach (range(1, 3) as $i){
     					if(isset($accInfo->groups[$i])){
@@ -195,6 +200,7 @@ class acc_Limits extends core_Manager
     		}
     	}
     	
+    	// Веднъж създаден записа, не може да се сменя сметката
     	if($rec->id){
     		$form->setReadOnly('accountId');
     	}
@@ -256,7 +262,6 @@ class acc_Limits extends core_Manager
         $form->view = 'horizontal';
         
         $form->FNC('account', 'acc_type_Account(allowEmpty)', 'caption=Сметка,input');
-        //$form->FNC('users', 'users(rolesForAll=support|ceo|admin)', 'caption=Потребители,silent,refreshForm');
         $form->FNC("state2", 'enum(all=Всички,active=Активни,closed=Затворени,exceeded=Надвишени)', 'caption=Вид,input');
         $form->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $form->showFields = 'search,account,state2';
@@ -356,7 +361,7 @@ class acc_Limits extends core_Manager
     	
     	
     /**
-     * ЕКшън проверяващ дали лимитите са надвишени
+     * Еkшън проверяващ дали лимитите са надвишени
      */
     function act_checkLimits()
     {

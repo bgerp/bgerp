@@ -82,7 +82,7 @@ class planning_drivers_ProductionTask extends planning_drivers_BaseTask
      * Обновяване на данните на мастъра
      * 
      * @param stdClass $rec - запис на ембедъра
-     * @param return void
+     * @param void
      */
 	public function updateEmbedder(&$rec)
 	{
@@ -102,11 +102,6 @@ class planning_drivers_ProductionTask extends planning_drivers_BaseTask
 		      
 		 // Изчисляваме колко % от зададеното количество е направено
 		 $rec->progress = round($sumQuantity / $rec->totalQuantity, 2);
-		 
-		 // Ако прогреса на задачата е изпълнен и тя е активна приключваме я
-		 if($rec->progress >= 1 && $rec->state == 'active'){
-		 	$rec->state = 'closed';
-		 }
 	}
 	
 	

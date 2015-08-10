@@ -26,7 +26,7 @@ class planning_TaskConditions extends doc_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created,planning_Wrapper,plg_RowTools';
+    public $loadList = 'plg_Created,planning_Wrapper,plg_RowTools,plg_SaveAndNew';
 
 
     /**
@@ -196,11 +196,13 @@ class planning_TaskConditions extends doc_Detail
      */
     protected function getAllowedTaskToDepend($taskId)
     {
+    	// Взимаме всички задачи от същата папка които не са приключени или оттеглени
+    	$taskFolderId = $this->Master->fetchField($taskId, 'folderId');
     	$notAllowed = self::getInheritors($taskId);
     	if(count($notAllowed)){
     		$notAllowedCond = "#id NOT IN (" . implode(',', $notAllowed) . ") AND";
     	}
-    	$taskArray = $this->Master->makeArray4Select('title', array("{$notAllowedCond} #state NOT IN ('closed', 'rejected')"));
+    	$taskArray = $this->Master->makeArray4Select('title', array("{$notAllowedCond} #state NOT IN ('closed', 'rejected') AND #folderId={$taskFolderId}"));
     	
     	return $taskArray;
     }
