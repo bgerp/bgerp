@@ -51,8 +51,10 @@ class fileman_webdrv_Pdf extends fileman_webdrv_Office
         
         $Script->setProgram('inkscape', INKSCAPE_PATH);
         
+        $errFilePath = self::getErrLogFilePath($outFilePath);
+        
         // Скрипта, който ще конвертира файла в PNG формат
-        $Script->lineExec("gs -dSAFER -dBATCH -dNOPAUSE -dNOCACHE -sDEVICE=pdfwrite -sColorConversionStrategy=CMYK -dProcessColorModel=/DeviceCMYK -sOutputFile=[#OUTPUTF#] [#INPUTF#]");
+        $Script->lineExec("gs -dSAFER -dBATCH -dNOPAUSE -dNOCACHE -sDEVICE=pdfwrite -sColorConversionStrategy=CMYK -dProcessColorModel=/DeviceCMYK -sOutputFile=[#OUTPUTF#] [#INPUTF#]", array('errFilePath' => $errFilePath));
         
         // Стартираме скрипта синхронно
         $Script->run(FALSE);
@@ -64,9 +66,13 @@ class fileman_webdrv_Pdf extends fileman_webdrv_Office
         
         $nFileHnd = fileman::absorb($outFilePath, 'fileIndex');
         
-        if ($Script->tempDir) {
-            // Изтриваме временната директория с всички файлове вътре
-            core_Os::deleteDir($Script->tempDir);
+        if ($nFileHnd) {
+            if ($Script->tempDir) {
+                // Изтриваме временната директория с всички файлове вътре
+                core_Os::deleteDir($Script->tempDir);
+            }
+        } else {
+            fileman_Indexes::haveErrors($outFilePath, array('type' => 'pdf', 'errFilePath' => $errFilePath));
         }
         
         return $nFileHnd;
@@ -173,11 +179,15 @@ class fileman_webdrv_Pdf extends fileman_webdrv_Office
         $Script->setFile('INPUTF', $fileHnd);
         $Script->setFile('OUTPUTF', $outFilePath);
         
+        $errFilePath = self::getErrLogFilePath($outFilePath);
+        
         // Скрипта, който ще конвертира
-        $Script->lineExec('pdftotext -enc UTF-8 -nopgbrk [#INPUTF#] [#OUTPUTF#]');
+        $Script->lineExec('pdftotext -enc UTF-8 -nopgbrk [#INPUTF#] [#OUTPUTF#]', array('errFilePath' => $errFilePath));
         
         // Функцията, която ще се извика след приключване на операцията
         $Script->callBack($params['callBack']);
+        
+        $params['errFilePath'] = $errFilePath;
         
         // Други необходими променливи
         $Script->params = serialize($params);
