@@ -95,7 +95,7 @@ class fileman_webdrv_Generic extends core_Manager
      * 
      * @return string
      */
-    protected static function getErrLogFilePath($outFilePath)
+    public static function getErrLogFilePath($outFilePath)
     {
         
         return $outFilePath . self::$errLogFileExt;
