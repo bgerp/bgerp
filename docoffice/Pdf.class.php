@@ -37,7 +37,7 @@ class docoffice_Pdf
         $Script->setFile('INPUTF', $fileHnd);
         $Script->setFile('OUTPUTF', $outFilePath);
         
-        $errFilePath = self::getErrLogFilePath($outFilePath);
+        $errFilePath = fileman_webdrv_Generic::getErrLogFilePath($outFilePath);
         
         // Скрипта, който ще конвертира
         $Script->lineExec('pdftotext -enc UTF-8 -nopgbrk [#INPUTF#] [#OUTPUTF#]', array('errFilePath' => $errFilePath));
@@ -84,7 +84,7 @@ class docoffice_Pdf
         $Script->setFile('INPUTF', $fileHnd);
         $Script->setFile('OUTPUTF', $outFilePath);
         
-        $errFilePath = self::getErrLogFilePath($outFilePath);
+        $errFilePath = fileman_webdrv_Generic::getErrLogFilePath($outFilePath);
         
         // Скрипта, който ще конвертира файла от PDF в JPG формат
         $Script->lineExec('convert -density 100 [#INPUTF#] [#OUTPUTF#]', array('errFilePath' => $errFilePath));
