@@ -470,7 +470,7 @@ class doc_UnsortedFolders extends core_Master
         $queryContainers->where("#folderId = '{$folderData->folderId}' AND #docClass = '{$idTaskDoc}'");
         
         while ($recContainers = $queryContainers->fetch()) {
-        	$queryTasks->where("#folderId = '{$folderData->folderId}'");
+        	$queryTasks->where("#folderId = '{$folderData->folderId}' AND (#state = 'pending' OR #state = 'active' OR #state = 'closed')");
         	
         	// заявка към таблицата на Задачите
         	while ($recTask = $queryTasks->fetch()) {
@@ -575,13 +575,16 @@ class doc_UnsortedFolders extends core_Master
 	        			$resTask[$id]['rowId'] = $rowArr;
 	        			
 	        			$icon = cal_Tasks::getIcon($task['taskId']);
+	        			
 	        			$recTitle = cal_Tasks::fetchField($task['taskId'],'title');
-	        			$attr = array();
-	        			$attr['class'] .= 'linkWithIcon';
-	        			$attr['style'] = 'background-image:url(' . sbf($icon) . ');';
+	       
+	        			$attr['ef_icon'] = $icon;
+	        			//$attr['style'] .= 'background-color: #FFA3A3;';
+	        			//$attr['style'] .= 'padding-right: 4px;';
+	        			//$attr['style'] .= 'box-shadow: 0px 0px 3px #FF6666 inset;';
 	        			$attr['title'] = $recTitle;
 	        			
-	        			$title = ht::createLink(str::limitLen($recTitle, 25),
+	        			$title = ht::createLink(str::limitLen($recTitle, 35),
 	        					array('cal_Tasks', 'single', $task['taskId']),
 	        					NULL, $attr);
 	
