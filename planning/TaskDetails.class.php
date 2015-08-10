@@ -356,31 +356,31 @@ class planning_TaskDetails extends doc_Detail
     		switch(strtolower($event)) {
     			case 'afterprepareeditform':
     				$masterId = $args[0]->form->rec->taskId;
-    				$newEvent = 'prepareeditformdetail';
+    				$method = 'prepareeditformdetail';
     				break;
     			case 'afterinputeditform':
     				$masterId = $args[0]->rec->taskId;
-    				$newEvent = 'inputeditformdetail';
+    				$method = 'inputeditformdetail';
     				break;
     			case 'afterrectoverbal':
     				$masterId = $args[1]->taskId;
-    				$newEvent = 'rectoverbaldetail';
+    				$method = 'rectoverbaldetail';
     				break;
     			case 'afterpreparelisttoolbar':
     				$masterId = $args[0]->masterId;
-    				$newEvent = 'preparelisttoolbardetail';
+    				$method = 'preparelisttoolbardetail';
     				break;
     			case 'afterpreparedetail':
     				$masterId = $args[0]->masterId;
-    				$newEvent = 'preparedetail';
+    				$method = 'preparedetail';
     				break;
     			case 'afterrenderdetail':
     				$masterId = $args[1]->masterId;
-    				$newEvent = 'renderdetail';
+    				$method = 'renderdetail';
     				break;
     			case 'afterrenderdetaillayout':
     				$masterId = $args[1]->masterId;
-    				$newEvent = 'renderdetaillayout';
+    				$method = 'renderdetaillayout';
     				break;
     		}
     
@@ -388,7 +388,7 @@ class planning_TaskDetails extends doc_Detail
     		if(isset($masterId) && $Driver = $this->Master->getDriver($masterId)){
     			
     			// Викаме определения метод, който ще предаде данните за обработка на драйвера
-    			call_user_func_array(array($Driver, $newEvent),  $args);
+    			call_user_func_array(array($Driver, $method),  $args);
     		}
     	}
     

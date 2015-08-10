@@ -52,7 +52,7 @@ class planning_drivers_BaseTask extends core_BaseClass
      * Обновяване на данните на мастъра
      *
      * @param int $id - ид
-     * @param return void
+     * @return void
      */
     public function updateEmbedder(&$rec)
     {

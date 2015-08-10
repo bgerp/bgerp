@@ -52,7 +52,7 @@ class planning_TaskDetailIntf extends embed_DriverIntf
 	 * Обновяване на данните на мастъра
 	 *
 	 * @param stdClass $rec - запис
-	 * @param return void
+	 * @param void
 	 */
 	public function updateEmbedder(&$rec)
 	{
