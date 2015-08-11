@@ -441,15 +441,19 @@ class bank_OwnAccounts extends core_Master {
         	if(empty($rec->bankAccountId)){
         		$accountRec = bank_Accounts::fetch(array("#iban = '[#1#]'", $rec->iban));
         		
+        		// Проверка дали вече нямаме наша сметка с този IBAN
         		if(self::fetchField("#bankAccountId = '{$accountRec->id}'")){
         			$form->setError('iban', 'Вече има наша сметка с този|* IBAN');
         			return;
         		}
         		
+        		// Проверка дали няма чужда сметка с този IBAN
         		$ourCompany = crm_Companies::fetchOurCompany();
-        		if($accountRec->contragentId != $ourCompany->id || $accountRec->contragentCls != $ourCompany->classId){
-        			$form->setError('iban', 'Подадения IBAN принадлежи на чужда сметка');
-        			return;
+        		if(!empty($accountRec)){
+        			if($accountRec->contragentId != $ourCompany->id || $accountRec->contragentCls != $ourCompany->classId){
+        				$form->setError('iban', 'Подадения IBAN принадлежи на чужда сметка');
+        				return;
+        			}
         		}
         		
         		$rec->bankAccountId = $mvc->addNewAccount($rec->iban, $rec->currencyId, $rec->bank, $rec->bic);
