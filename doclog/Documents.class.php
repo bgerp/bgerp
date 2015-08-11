@@ -2,7 +2,7 @@
 
 
 /**
- * Колко дни да се пази в лога в core_Logs
+ * Колко дни да се пази в лога
  */
 defIfNot('DOCLOG_DOCUMENTS_DAYS', 5);
 

@@ -123,15 +123,21 @@ class tnef_Decode extends core_Manager
         $conf = core_Packs::getConfig('tnef');
         $Script->setProgram('tnef', $conf->TNEF_PATH);
         
+        $Script->outputPath = $Script->tempDir . self::$outputFolderName . '/';
+        
+        $errFilePath = fileman_webdrv_Generic::getErrLogFilePath($Script->outputPath . 'err');
+        
         // Скрипта, който ще конвертира
         $Script->lineExec('tnef [#INPUTF#] -C [#OUTPUTF#]');
-        
-        $Script->outputPath = $Script->tempDir . self::$outputFolderName . '/';
         
         // Стартираме скрипта синхронно синхронно
         $Script->run(FALSE);
         
         $fileHndArr = self::uploadResFiles($Script);
+        
+        if (!$fileHndArr) {
+            fileman_Indexes::haveErrors($Script->outputPath, array('type' => 'tnef', 'errFilePath' => $errFilePath));
+        }
         
         $rec = new stdClass();
         $rec->fileHnd = $fileHnd;

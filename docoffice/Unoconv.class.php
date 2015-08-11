@@ -86,11 +86,15 @@ class docoffice_Unoconv extends core_Manager
             $lineExecStr = "[#PYTHON#] {$lineExecStr}";
         }
         
+        $errFilePath = fileman_webdrv_Generic::getErrLogFilePath($outFilePath);
+        
         // Скрипта, който ще конвертира
-        $Script->lineExec($lineExecStr, array('LANG' => 'en_US.UTF-8', 'HOME' => $Script->tempPath));
+        $Script->lineExec($lineExecStr, array('LANG' => 'en_US.UTF-8', 'HOME' => $Script->tempPath, 'errFilePath' => $errFilePath));
 
         // Функцията, която ще се извика след приключване на операцията
         $Script->callBack('docoffice_Unoconv::afterConvertDoc');
+        
+        $params['errFilePath'] = $errFilePath;
         
         // Други необходими променливи
         $Script->params = serialize($params);

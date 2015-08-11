@@ -1155,6 +1155,8 @@ class blast_Emails extends core_Master
         $id = Request::get('id', 'int');
         $uns = Request::get("uns");
         
+        expect($id);
+        
         $rec = $this->fetch($id);
         expect($rec);
         

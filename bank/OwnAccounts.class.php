@@ -186,7 +186,7 @@ class bank_OwnAccounts extends core_Master {
      */
     function description()
     {
-        $this->FLD('bankAccountId', 'key(mvc=bank_Accounts,select=iban)', 'caption=Сметка,mandatory');
+        $this->FLD('bankAccountId', 'key(mvc=bank_Accounts,select=iban)', 'caption=Сметка,input=none');
         $this->FLD('type', 'enum(current=Разплащателна,
                                  deposit=Депозитна,
                                  loan=Кредитна,
@@ -288,17 +288,27 @@ class bank_OwnAccounts extends core_Master {
      */
     protected static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
-        $optionAccounts = $mvc->getPossibleBankAccounts();
+        $form = &$data->form;
+        $form->FNC('iban', 'iban_Type(64)', 'caption=IBAN / №,mandatory,before=type,refreshForm,removeAndRefreshForm=currencyId|bic|bank,input');
+        $form->FNC('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,mandatory,after=iban,input');
+        $form->FNC('bic', 'varchar(12)', 'caption=BIC,after=currencyId,input');
+        $form->FNC('bank', 'varchar(64)', 'caption=Банка,after=bic,input');
         
+        
+    	$optionAccounts = $mvc->getPossibleBankAccounts();
         $titulars = $mvc->getTitulars();
         
-        $data->form->setOptions('bankAccountId', $optionAccounts);
-        $data->form->setSuggestions('titulars', $titulars);
+        $form->setSuggestions('iban', array('' => '') + $optionAccounts);
+        $form->setSuggestions('titulars', $titulars);
         
         // Номера на сметката не може да се променя ако редактираме, за смяна на
         // сметката да се прави от bank_accounts
-        if($data->form->rec->id) {
-            $data->form->setReadOnly('bankAccountId');
+        if($form->rec->id) {
+        	$ibanRec = bank_Accounts::fetch($form->rec->bankAccountId);
+        	$form->setReadOnly('iban', $ibanRec->iban);
+        	$form->setReadOnly('bank', $ibanRec->bank);
+        	$form->setReadOnly('bic', $ibanRec->bic);
+        	$form->setReadOnly('currencyId', $ibanRec->currencyId);
         }
     }
     
@@ -344,7 +354,8 @@ class bank_OwnAccounts extends core_Master {
         
         while($rec = $queryBankAccounts->fetch()) {
             if (!static::fetchField("#bankAccountId = " . $rec->id , 'id')) {
-                $options[$rec->id] = $bankAccounts->getVerbal($rec, 'iban');
+            	$iban = $bankAccounts->getVerbal($rec, 'iban');
+                $options[$iban] = $iban;
             }
         }
         
@@ -409,10 +420,43 @@ class bank_OwnAccounts extends core_Master {
      */
     protected static function on_AfterInputEditForm($mvc, $form)
     {
-        $rec = $form->rec;
+        $rec = &$form->rec;
+        
+        if(!$form->gotErrors()){
+        	if(isset($rec->iban)){
+        		$accountRec = bank_Accounts::fetch(array("#iban = '[#1#]'", $rec->iban));
+        		
+        		if(!$accountRec){
+        			$form->setDefault('bank', bglocal_Banks::getBankName($rec->iban));
+        			$form->setDefault('bic', bglocal_Banks::getBankBic($rec->iban));
+        		} else {
+        			$form->setDefault('bank', $accountRec->bank);
+        			$form->setDefault('bic', $accountRec->bic);
+        			$form->setDefault('currencyId', $accountRec->currencyId);
+        		}
+        	}
+        }
         
         if($form->isSubmitted()) {
-            if(!$rec->title) {
+        	
+        	if(empty($rec->bankAccountId)){
+        		$accountRec = bank_Accounts::fetch(array("#iban = '[#1#]'", $rec->iban));
+        		
+        		if(self::fetchField("#bankAccountId = '{$accountRec->id}'")){
+        			$form->setError('iban', 'Вече има наша сметка с този|* IBAN');
+        			return;
+        		}
+        		
+        		$ourCompany = crm_Companies::fetchOurCompany();
+        		if($accountRec->contragentId != $ourCompany->id || $accountRec->contragentCls != $ourCompany->classId){
+        			$form->setError('iban', 'Подадения IBAN принадлежи на чужда сметка');
+        			return;
+        		}
+        		
+        		$rec->bankAccountId = $mvc->addNewAccount($rec->iban, $rec->currencyId, $rec->bank, $rec->bic);
+        	}
+        	
+        	if(!$rec->title) {
                 $rec->title = bank_Accounts::fetchField($rec->bankAccountId, 'iban');
             }
         }
@@ -420,16 +464,39 @@ class bank_OwnAccounts extends core_Master {
     
     
     /**
-     * Обработка на ролите
+     * Добавя нова наша сметка
+     * 
+     * @param string $iban
+     * @param int $currencyId
+     * @param string $bank
+     * @param string $bic
+     * @return int $accId
      */
-    protected static function on_AfterGetRequiredRoles($mvc, &$res, $action)
+    private function addNewAccount($iban, $currencyId, $bank, $bic)
     {
-        if($action == 'add') {
-            if(!$mvc->canAddOwnAccount()) {
-                $res = 'no_one';
-            }
-        }
+    	$IbanType = core_Type::getByName('iban_Type(64)');
+    	expect(!$IbanType->isValid($iban));
+    	expect(currency_Currencies::fetch($currencyId));
+    	$iban = trim($iban);
+    	
+    	$accRec = new stdClass();
+    	foreach (array('iban', 'bic', 'bank', 'currencyId') as $fld){
+    		$accRec->{$fld} = ${$fld};
+    	}
+    	
+    	if($exRecId = bank_Accounts::fetchField(array("#iban = '[#1#]'", $iban), 'id')){
+    		$accRec->id = $exRecId;
+    	}
+    	
+    	$ourCompany = crm_Companies::fetchOurCompany();
+    	$accRec->contragentId = $ourCompany->id;
+    	$accRec->contragentCls = $ourCompany->classId;
+    	
+    	$accId = bank_Accounts::save($accRec);
+    	
+    	return $accId;
     }
+    
     
     /*******************************************************************************************
      * 

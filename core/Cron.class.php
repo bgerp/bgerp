@@ -188,8 +188,8 @@ class core_Cron extends core_Manager
     static function on_AfterPrepareListToolbar($mvc, &$data)
     {
         $data->toolbar->addBtn('Логове на Cron', array(
-                'core_Logs',
-                'className' => $mvc->className
+                'log_Debug',
+                'class' => $mvc->className
             ),
             'ef_icon = img/16/action_log.png');
     }
@@ -337,7 +337,7 @@ class core_Cron extends core_Manager
         
         if (is_a($handlerObject, $class)) {
             if (method_exists($handlerObject, $act)) {
-                $this->logInfo("Стартиран процес", $rec->id, 7);
+                log_Debug::add('core_Cron', $rec->id, "Стартиран процес: " . $rec->action, 7);
                 
                 // Ако е зададено максимално време за изпълнение, 
                 // задаваме го към PHP , като добавяме 5 секунди
@@ -366,7 +366,7 @@ class core_Cron extends core_Manager
                 // Колко време да пазим лога?
                 $logLifeTime = max(1, 3 * round($rec->period / (24 * 60)));
                 
-                $this->logInfo("Процесът е изпълнен успешно за {$workingTime} секунди", $rec->id, $logLifeTime);
+                log_Debug::add('core_Cron', $rec->id, "Процесът '{$rec->action}' е изпълнен успешно за {$workingTime} секунди", $logLifeTime);
             } else {
                 $this->unlockProcess($rec);
                 $this->logThenStop("Няма такъв екшън в класа", $rec->id, 'err');
