@@ -101,7 +101,7 @@ class bank_Accounts extends core_Master {
     {
         $this->FLD('contragentCls', 'class', 'caption=Контрагент->Клас,mandatory,input=hidden,silent');
         $this->FLD('contragentId', 'int', 'caption=Контрагент->Обект,mandatory,input=hidden,silent');
-        $this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code,allowEmpty)', 'caption=Валута,mandatory');
+        $this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,mandatory');
         
         // Макс. IBAN дължина е 34 символа (http://www.nordea.dk/Erhverv/Betalinger%2bog%2bkort/Betalinger/IBAN/40532.html)
         $this->FLD('iban', 'iban_Type(64)', 'caption=IBAN / №,mandatory,removeAndRefreshForm=bic|bank|currencyId,silent');
