@@ -190,9 +190,9 @@ class acc_plg_Contable extends core_Plugin
         
         if($docPeriod){
             if($docPeriod->state == 'closed'){
-                $error = "Не може да се контира в затворения сч. период \'{$docPeriod->title}\'";
+                $error = "Не може да се контира в затворения сч. период|* \'{$docPeriod->title}\'";
             } elseif($docPeriod->state == 'draft'){
-                $error = "Не може да се контира в бъдещия сч. период \'{$docPeriod->title}\'";
+                $error = "Не може да се контира в бъдещия сч. период|* \'{$docPeriod->title}\'";
             }
         } else {
             $error = "Не може да се контира в несъществуващ сч. период";
