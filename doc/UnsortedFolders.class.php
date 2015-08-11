@@ -690,11 +690,23 @@ class doc_UnsortedFolders extends core_Master
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$suggestions = core_Classes::getOptionsByInterface('doc_DocumentIntf', 'title');
-    	if($data->form->rec->folderId){
-    		foreach ($suggestions as $classId => $name){
-    			if(!cls::get($classId)->canAddToFolder($data->form->rec->folderId)){
-    				unset($suggestions[$classId]);
-    			}
+    	
+    	// Ако проекта няма папка, взимаме ид-то на първата папка проект за да филтрираме възможните документи
+    	// които могат да се добавтя към папка проект
+    	$folderId = $data->form->rec->folderId;
+    	if(!$data->form->rec->folderId){
+    		$query = $mvc->getQuery();
+    		$query->where("#folderId IS NOT NULL");
+    		$query->show('folderId');
+    		$query->orderBy('id', 'ASC');
+    		$folderId = $query->fetch()->folderId;
+    	}
+    	
+    	// За всяко предложение, проверяваме можели да бъде добавен
+    	// такъв документ като нова нишка в папката
+    	foreach ($suggestions as $classId => $name){
+    		if(!cls::get($classId)->canAddToFolder($folderId)){
+    			unset($suggestions[$classId]);
     		}
     	}
     	 
