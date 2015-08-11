@@ -64,6 +64,8 @@ class fileman_webdrv_Pdf extends fileman_webdrv_Office
             $Script->setProgram('gs', $conf->FILEMAN_GHOSTSCRIPT_PATH);
         }
         
+        fileman_Indexes::haveErrors($outFilePath, array('type' => 'pdf', 'errFilePath' => $errFilePath));
+        
         $nFileHnd = fileman::absorb($outFilePath, 'fileIndex');
         
         if ($nFileHnd) {
@@ -71,8 +73,6 @@ class fileman_webdrv_Pdf extends fileman_webdrv_Office
                 // Изтриваме временната директория с всички файлове вътре
                 core_Os::deleteDir($Script->tempDir);
             }
-        } else {
-            fileman_Indexes::haveErrors($outFilePath, array('type' => 'pdf', 'errFilePath' => $errFilePath));
         }
         
         return $nFileHnd;

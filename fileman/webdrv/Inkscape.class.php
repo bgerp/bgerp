@@ -74,6 +74,8 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
         // Стартираме скрипта синхронно
         $Script->run(FALSE);
         
+        fileman_Indexes::haveErrors($outFilePath, array('type' => 'pdf', 'errFilePath' => $errFilePath));
+        
         if (!$cmyk) {
             $resFileHnd = fileman::absorb($outFilePath, 'fileIndex');
         } else {
@@ -85,8 +87,6 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
                 // Изтриваме временната директория с всички файлове вътре
                 core_Os::deleteDir($Script->tempDir);
             }
-        } else {
-            fileman_Indexes::haveErrors($outFilePath, array('type' => 'pdf', 'errFilePath' => $errFilePath));
         }
         
         return $resFileHnd;
