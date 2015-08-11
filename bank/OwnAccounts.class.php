@@ -290,10 +290,9 @@ class bank_OwnAccounts extends core_Master {
     {
         $form = &$data->form;
         $form->FNC('iban', 'iban_Type(64)', 'caption=IBAN / №,mandatory,before=type,refreshForm,removeAndRefreshForm=currencyId|bic|bank,input');
-        $form->FNC('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,mandatory,after=iban,input');
+        $form->FNC('currencyId', 'key(mvc=currency_Currencies, select=code,allowEmpty)', 'caption=Валута,mandatory,after=iban,input');
         $form->FNC('bic', 'varchar(12)', 'caption=BIC,after=currencyId,input');
         $form->FNC('bank', 'varchar(64)', 'caption=Банка,after=bic,input');
-        
         
     	$optionAccounts = $mvc->getPossibleBankAccounts();
         $titulars = $mvc->getTitulars();
