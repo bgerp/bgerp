@@ -506,7 +506,7 @@ class tasks_Tasks extends embed_Manager
     		}
     	}
     	
-    	
+    	// Ако нямаме права за драйвера на документа, не можем да правим нищо с него
     	if($action == 'clonerec' || $action == 'add' || $action == 'edit' || $action == 'reject' || $action == 'restore' || $action == 'changestate' || $action == 'changerec'){
     		
     		if(isset($rec->driverClass)){
