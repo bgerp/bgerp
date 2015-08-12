@@ -13,7 +13,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class planning_drivers_ProductionTask extends planning_drivers_BaseTask
+class planning_drivers_ProductionTask extends tasks_BaseDriver
 {
 	
 	
@@ -21,6 +21,12 @@ class planning_drivers_ProductionTask extends planning_drivers_BaseTask
 	 * Шаблон за обвивката този драйвер
 	 */
 	protected $singleLayoutFile = 'planning/tpl/SingleLayoutProductionTask.shtml';
+	
+	
+	/**
+	 * Кой може да избира драйвъра
+	 */
+	public $canSelectDriver = 'planning,ceo';
 	
 	
 	/**
@@ -44,6 +50,7 @@ class planning_drivers_ProductionTask extends planning_drivers_BaseTask
 		// Оставяме за избор само артикули ДМА-та
 		$products = cat_Products::getByProperty('fixedAsset');
 		$data->form->setSuggestions('fixedAssets', $products);
+		$data->form->setFieldTypeParams('inCharge', array('roles' => 'ceo'));
 	}
 	
 	
@@ -87,7 +94,7 @@ class planning_drivers_ProductionTask extends planning_drivers_BaseTask
 	public function updateEmbedder(&$rec)
 	{
 		 // Колко е общото к-во досега
-		 $dQuery = planning_TaskDetails::getQuery();
+		 $dQuery = tasks_TaskDetails::getQuery();
 		 $dQuery->where("#taskId = {$rec->id}");
 		 $dQuery->where("#state != 'rejected'");
 		 $dQuery->XPR('sumQuantity', 'double', 'SUM(#quantity)');
@@ -165,8 +172,8 @@ class planning_drivers_ProductionTask extends planning_drivers_BaseTask
     public function renderDetail(&$tpl, $data)
     {
     	// Добавяме бутон за добавяне на прогрес при нужда
-    	if(planning_TaskDetails::haveRightFor('add', (object)array('taskId' => $data->masterId))){
-    		$ht = ht::createLink('', array('planning_TaskDetails', 'add', 'taskId' => $data->masterId, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/add.png,title=Добавяне на прогрес към задачата');
+    	if(tasks_TaskDetails::haveRightFor('add', (object)array('taskId' => $data->masterId))){
+    		$ht = ht::createLink('', array('tasks_TaskDetails', 'add', 'taskId' => $data->masterId, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/add.png,title=Добавяне на прогрес към задачата');
     		$tpl->append($ht, 'ADD_BTN');
     	} 
     }

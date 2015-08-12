@@ -7,27 +7,27 @@
  *
  *
  * @category  bgerp
- * @package   planning
+ * @package   tasks
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Задачи за производство
  */
-class planning_Tasks extends embed_Manager
+class tasks_Tasks extends embed_Manager
 {
     
     
 	/**
-	 * Свойство, което указва интерфейса на вътрешните обекти
+	 * За конвертиране на съществуващи MySQL таблици от предишни версии
 	 */
-	public $driverInterface = 'planning_TaskDetailIntf';
+	public $oldClassName = 'planning_Tasks';
 	
 	
 	/**
-	 * За конвертиране на съществуващи MySQL таблици от предишни версии
+	 * Свойство, което указва интерфейса на вътрешните обекти
 	 */
-	public $oldClassName = 'mp_Tasks';
+	public $driverInterface = 'tasks_DriverIntf';
 	
 	
     /**
@@ -45,37 +45,37 @@ class planning_Tasks extends embed_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, doc_SharablePlg, doc_DocumentPlg, planning_plg_StateManager, planning_Wrapper, acc_plg_DocumentSummary, plg_Search, change_Plugin, plg_Clone, plg_Sorting';
+    public $loadList = 'plg_RowTools, doc_SharablePlg, doc_DocumentPlg, planning_plg_StateManager, tasks_Wrapper, acc_plg_DocumentSummary, plg_Search, change_Plugin, plg_Clone, plg_Sorting';
 
     
     /**
      * Кой има право да чете?
      */
-    public $canRead = 'ceo,planning';
+    public $canRead = 'powerUser';
     
     
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo,planning';
+    public $canEdit = 'powerUser';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo,planning';
+    public $canAdd = 'powerUser';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo,planning';
+	public $canList = 'powerUser';
 
 
 	/**
 	 * Кой може да разглежда сингъла на документите?
 	 */
-	public $canSingle = 'ceo,planning';
+	public $canSingle = 'powerUser';
     
     
     /**
@@ -93,7 +93,7 @@ class planning_Tasks extends embed_Manager
     /**
      * Детайли
      */
-    public $details = 'planning_TaskDetails, planning_TaskConditions';
+    public $details = 'tasks_TaskDetails, tasks_TaskConditions';
     
     
     /**
@@ -105,7 +105,7 @@ class planning_Tasks extends embed_Manager
     /**
      * Шаблон за единичен изглед
      */
-    public $singleLayoutFile = 'planning/tpl/SingleLayoutTask.shtml';
+    public $singleLayoutFile = 'tasks/tpl/SingleLayoutTask.shtml';
     
     
     /**
@@ -153,13 +153,13 @@ class planning_Tasks extends embed_Manager
     /**
      * Кой може да променя състоянието?
      */
-    public $canChangestate = 'ceo, planning';
+    public $canChangestate = 'powerUser';
     
     
     /**
      * Кой може да променя записа?
      */
-    public $canChangerec = 'ceo, planning';
+    public $canChangerec = 'powerUser';
     
     
     /**
@@ -180,7 +180,7 @@ class planning_Tasks extends embed_Manager
                                     high=Висок,
                                     critical=Критичен)',
     			'caption=Приоритет,mandatory,maxRadio=4,columns=4,notNull,value=normal,silent');
-    	$this->FLD('inCharge' , 'userList(roles=planning|ceo)', 'caption=Отговорници,mandatory,changable');
+    	$this->FLD('inCharge' , 'userList(roles=powerUser)', 'caption=Отговорници,mandatory,changable');
     	$this->FLD('description', 'richtext(bucket=calTasks,rows=3)', 'caption=Описание,changable');
     	
     	$this->FLD('timeStart', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00)',
@@ -316,9 +316,9 @@ class planning_Tasks extends embed_Manager
     		foreach ($defaultTasks as $index => $taskInfo){
     				
     				// Ако не може да бъде доабвена задача не показваме реда
-    				if(!planning_Tasks::haveRightFor('add', (object)array('originId' => $data->masterData->rec->containerId, 'innerClass' => $taskInfo->driver))) continue;
+    				if(!self::haveRightFor('add', (object)array('originId' => $data->masterData->rec->containerId, 'innerClass' => $taskInfo->driver))) continue;
     			
-    				$url = array('planning_Tasks', 'add', 'originId' => $data->masterData->rec->containerId, 'driverClass' => $taskInfo->driverClass, 'fromProductArrayId' => $index, 'ret_url' => TRUE);
+    				$url = array('tasks_Tasks', 'add', 'originId' => $data->masterData->rec->containerId, 'driverClass' => $taskInfo->driverClass, 'fromProductArrayId' => $index, 'ret_url' => TRUE);
     				$row = new stdClass();
     				$row->title = $taskInfo->title;
     				$row->tools = ht::createLink('', $url, FALSE, 'ef_icon=img/16/add.png,title=Добавяне на нова задача');
@@ -329,8 +329,9 @@ class planning_Tasks extends embed_Manager
     	}
     	
     	// Бутон за нова задача ако има права
-    	if(planning_Tasks::haveRightFor('add', (object)array('originId' => $data->masterData->rec->containerId))){
-    		$data->addUrl = array('planning_Tasks', 'add', 'originId' => $data->masterData->rec->containerId, 'ret_url' => TRUE);
+    	$driverClass = planning_drivers_ProductionTask::getClassId();
+    	if(self::haveRightFor('add', (object)array('originId' => $data->masterData->rec->containerId, 'driverClass' => $driverClass))){
+    		$data->addUrl = array('tasks_Tasks', 'add', 'originId' => $data->masterData->rec->containerId, 'driverClass' => $driverClass, 'ret_url' => TRUE);
     	}
     }
     
@@ -485,7 +486,6 @@ class planning_Tasks extends embed_Manager
     	}
     	
     	if($action == 'add'){
-    		
     		if(isset($rec->originId)){
     			
     			// Може да се добавя само към активно задание
@@ -497,10 +497,22 @@ class planning_Tasks extends embed_Manager
     					$requiredRoles = 'no_one';
     				}
     			}
-    			
-    			if(isset($rec->innerClass)){
-    				$Driver = cls::get($rec->innerClass);
-    				if(!cls::haveInterface('planning_TaskDetailIntf', $Driver)){
+    		}
+    		
+    		// Ако потребителя не може да избере поне една опция, той не може да добави задача
+    		$interfaces = static::getAvailableDriverOptions($userId);
+    		if(!count($interfaces)){
+    			$requiredRoles = 'no_one';
+    		}
+    	}
+    	
+    	
+    	if($action == 'clonerec' || $action == 'add' || $action == 'edit' || $action == 'reject' || $action == 'restore' || $action == 'changestate' || $action == 'changerec'){
+    		
+    		if(isset($rec->driverClass)){
+    			if(cls::load($rec->driverClass, TRUE)){
+    				$Driver = cls::get($rec->driverClass);
+    				if(!cls::haveInterface('tasks_DriverIntf', $Driver)){
     					$requiredRoles = 'no_one';
     				} else {
     					if(!$Driver->canSelectDriver()){
@@ -519,20 +531,20 @@ class planning_Tasks extends embed_Manager
     public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
     {
     	if($rec->id){
-    		$dQuery = planning_TaskDetails::getQuery();
+    		$dQuery = tasks_TaskDetails::getQuery();
     		$dQuery->where("#taskId = {$rec->id}");
     		
     		$detailsKeywords = '';
     		while($dRec = $dQuery->fetch()){
     			
     			// Добавяме данните от детайла към ключовите думи
-    			$detailsKeywords .= " " . plg_Search::normalizeText(planning_TaskDetails::getVerbal($dRec, 'operation'));
+    			$detailsKeywords .= " " . plg_Search::normalizeText(tasks_TaskDetails::getVerbal($dRec, 'operation'));
     			if($dRec->code){
-    				$detailsKeywords .= " " . plg_Search::normalizeText(planning_TaskDetails::getVerbal($dRec, 'code'));
+    				$detailsKeywords .= " " . plg_Search::normalizeText(tasks_TaskDetails::getVerbal($dRec, 'code'));
     			}
     			
     			if($dRec->fixedAsset){
-    				$detailsKeywords .= " " . plg_Search::normalizeText(planning_TaskDetails::getVerbal($dRec, 'fixedAsset'));
+    				$detailsKeywords .= " " . plg_Search::normalizeText(tasks_TaskDetails::getVerbal($dRec, 'fixedAsset'));
     			}
     		}
     		
@@ -556,8 +568,8 @@ class planning_Tasks extends embed_Manager
     		}
     	}
     	
-    	if(planning_TaskConditions::haveRightFor('add', (object)array('taskId' => $data->rec->id))){
-    		$data->toolbar->addBtn('Условие', array('planning_TaskConditions', 'add', 'taskId' => $data->rec->id, 'ret_url' => TRUE), 'ef_icon=img/16/task-option.png', 'title=Добавяне на условие за стартиране');
+    	if(tasks_TaskConditions::haveRightFor('add', (object)array('taskId' => $data->rec->id))){
+    		$data->toolbar->addBtn('Условие', array('tasks_TaskConditions', 'add', 'taskId' => $data->rec->id, 'ret_url' => TRUE), 'ef_icon=img/16/task-option.png', 'title=Добавяне на условие за стартиране');
     	}
     }
     
@@ -741,7 +753,7 @@ class planning_Tasks extends embed_Manager
     		}
     		
     		// Записваме изчисленото време
-    		cls::get('planning_TaskConditions')->saveArray($timesToSave, 'id,calcTime');
+    		cls::get('tasks_TaskConditions')->saveArray($timesToSave, 'id,calcTime');
     	}
     	
     	// Обновяваме състоянието и очакваното начало на задачите
@@ -774,11 +786,11 @@ class planning_Tasks extends embed_Manager
     	
     	// Намираме условията за стартиране свързани със задачата
     	$condTimes = array();
-    	$condQuery = planning_TaskConditions::getQuery();
+    	$condQuery = tasks_TaskConditions::getQuery();
     	$condQuery->where("#taskId = {$rec->id}");
     	
     	while($dRec = $condQuery->fetch()){
-    		$dependsOnRec = planning_Tasks::fetch($dRec->dependsOn, 'expectedTimeStart,timeDuration,timeEnd,progress,state');
+    		$dependsOnRec = self::fetch($dRec->dependsOn, 'expectedTimeStart,timeDuration,timeEnd,progress,state');
     	
     		// Ако е чернова или оттеглена я пренебрегваме
     		if($dependsOnRec->state == 'draft' || $dependsOnRec->state == 'rejected') continue;
@@ -792,7 +804,7 @@ class planning_Tasks extends embed_Manager
     		}
     			
     		// За условието изчисляваме времето му на стартиране спрямо подадените данни
-    		$dRec->calcTime = planning_TaskConditions::getExpectedTime($dRec->offset, $dRec->progress, $dependsOnRec->expectedTimeStart, $dependsOnRec->timeDuration, $dependsOnRec->progress);
+    		$dRec->calcTime = tasks_TaskConditions::getExpectedTime($dRec->offset, $dRec->progress, $dependsOnRec->expectedTimeStart, $dependsOnRec->timeDuration, $dependsOnRec->progress);
     		$calcedTimes[$dRec->id] = $dRec->calcTime;
     		$condTimes[] = $dRec->calcTime;
     	}

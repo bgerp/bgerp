@@ -2,21 +2,28 @@
 
 
 /**
- * Клас 'planning_TaskConditions'
+ * Клас 'tasks_TaskConditions'
  * 
  * @title Задаване на условия към задачите
  *
  *
  * @category  bgerp
- * @package   planning
+ * @package   tasks
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class planning_TaskConditions extends doc_Detail
+class tasks_TaskConditions extends doc_Detail
 {
     
+	
+	/**
+	 * За конвертиране на съществуващи MySQL таблици от предишни версии
+	 */
+	public $oldClassName = 'tasks_TaskConditions';
+	
+	
     /**
      * Име на поле от модела, външен ключ към мастър записа
      */
@@ -26,13 +33,19 @@ class planning_TaskConditions extends doc_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created,planning_Wrapper,plg_RowTools,plg_SaveAndNew';
+    public $loadList = 'plg_Created,tasks_Wrapper,plg_RowTools,plg_SaveAndNew';
 
 
     /**
      * Заглавие
      */
     public $title = "Условия за започване";
+    
+    
+    /**
+     * Кой може да го разглежда?
+     */
+    public $canList = 'powerUser';
     
     
     /**
@@ -44,7 +57,7 @@ class planning_TaskConditions extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт,progress,dependsOn,offset,calcTime,createdOn,createdBy';
+    public $listFields = 'tools=Пулт,taskId=Задача,progress,dependsOn,offset,calcTime,createdOn,createdBy';
     
     
     /**
@@ -82,11 +95,13 @@ class planning_TaskConditions extends doc_Detail
      */
     function description()
     {
-    	$this->FLD('taskId', 'key(mvc=planning_Tasks,select=title)', 'mandatory,silent,input=hidden');
-    	$this->FLD('dependsOn', 'key(mvc=planning_Tasks,select=title, allowEmpty)', 'mandatory,caption=Зависи от');
+    	$this->FLD('taskId', 'key(mvc=tasks_Tasks,select=title)', 'mandatory,silent,input=hidden');
+    	$this->FLD('dependsOn', 'key(mvc=tasks_Tasks,select=title, allowEmpty)', 'mandatory,caption=Зависи от');
     	$this->FLD('progress', 'percent(min=0,max=1,decimals=0)', 'mandatory,caption=Прогрес');
     	$this->FLD('offset', 'time()', 'notNull,value=0,caption=Отместване');
     	$this->FLD('calcTime', 'datetime(format=smartTime)', 'input=none,caption=Изчислено време');
+    	
+    	$this->setDbUnique('taskId,dependsOn');
     }
     
     
@@ -147,6 +162,7 @@ class planning_TaskConditions extends doc_Detail
     {
     	// Ако няма записи не рендираме нищо
     	if(!count($data->rows)) return NULL;
+    	unset($data->listFields['taskId']);
     	
     	// Рендираме изгледа на детайла
     	$tpl = parent::renderDetail_($data);
@@ -171,8 +187,9 @@ class planning_TaskConditions extends doc_Detail
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
     	if(isset($rec->dependsOn)){
-    		$row->dependsOn = planning_Tasks::getLink($rec->dependsOn, 0);
+    		$row->dependsOn = tasks_Tasks::getLink($rec->dependsOn, 0);
     	}
+    	$row->taskId = tasks_Tasks::getLink($rec->taskId, 0);
     	
     	switch($rec->progress){
     		case 0:

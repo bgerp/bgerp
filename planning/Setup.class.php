@@ -2,18 +2,6 @@
 
 
 /**
- * Начален номер на фактурите
- */
-defIfNot('PLANNING_TASK_DETAIL_CODE_MIN', '0');
-
-
-/**
- * Начален номер на фактурите
- */
-defIfNot('PLANNING_TASK_DETAIL_CODE_MAX', '200000000');
-
-
-/**
  * Производствено планиране - инсталиране / деинсталиране
  *
  *
@@ -63,8 +51,6 @@ class planning_Setup extends core_ProtoSetup
      */
     var $managers = array(
     		'planning_Jobs',
-            'planning_Tasks',
-    		'planning_TaskDetails',
     		'planning_Stages',
     		'planning_ConsumptionNotes',
     		'planning_ConsumptionNoteDetails',
