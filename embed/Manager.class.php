@@ -81,7 +81,6 @@ class embed_Manager extends core_Master
 			
             $driver = cls::get($rec->driverClass);
             $driver->addFields($form);
-            
             $form->input(NULL, 'silent');
 
 		} else {
@@ -107,49 +106,11 @@ class embed_Manager extends core_Master
                 $form->setOptions('driverClass', $interfaces);
             }
         }
-        
+
         return $data;
 	}
 
 
-	/**
-	 * Извиква се след въвеждането на данните от Request във формата ($form->rec)
-	 *
-	 * @param core_Mvc $mvc
-	 * @param core_Form $form
-	 */
-	public static function on_AfterInputEditForm($mvc, &$form)
-	{
-		if($form->isSubmitted()){
-			$rec = &$form->rec;
-			
-			if(isset($rec->driverClass)){
-				
-				// Намираме кои полета са дошли от драйвера
-				$driver = cls::get($rec->driverClass);
-				$driverFields = static::getDriverFields($driver);
-				
-				// Ако има такива
-				if(is_array($driverFields)){
-		
-					/*
-					 *  Премахваме от река тези стойностти чиито полета са input=none.
-					 *  Драйвера може да направи някои полета Input=none, но ако има стойностти
-					 *  от предишен запис, те вече са разпънати в река, за това се подсигуряваме
-					 *  за разпънатите полета ако са в река но съответното им поле не трябва да се инпутва
-					 *  то ги махаме от там. В противен случай отновно ще се инпутнат
-					 */
-					foreach ($driverFields as $name => $drFld){
-						if(isset($rec->$name) && $form->getField($name)->input == 'none'){
-							unset($rec->$name);
-						}
-					}
-				}
-			}
-		}
-	}
-	
-	
     /**
 	 * Изпълнява се след извличане на запис чрез ->fetch()
 	 */
@@ -244,11 +205,7 @@ class embed_Manager extends core_Master
     }
 
 
-	/**
-	 * Връща полетата на драйвра
-	 * 
-	 * @return array $res
-	 */
+
     static function getDriverFields($driver)
     {
         $fieldset = cls::get('core_Fieldset');
