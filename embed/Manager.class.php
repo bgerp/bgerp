@@ -79,8 +79,11 @@ class embed_Manager extends core_Master
 			    $form->setReadOnly('driverClass');
             }
 			
-            $driver = cls::get($rec->driverClass);
-            $driver->addFields($form);
+            if(cls::load($rec->driverClass, TRUE)){
+            	$driver = cls::get($rec->driverClass);
+            	$driver->addFields($form);
+            }
+            
             $form->input(NULL, 'silent');
 
 		} else {
