@@ -69,6 +69,22 @@ class embed_Manager extends core_Master
 		$form = &$data->form;
 		$rec = &$form->rec;
 
+		// Извличаме позволените за избор опции
+		$interfaces = self::getAvailableDriverOptions();
+		
+		// Ако няма достъпни драйвери редирект със съобщение
+		if(!count($interfaces)) {
+			redirect(array($this), NULL, 'Липсват възможни видове ' . $mvc->title);
+		} else {
+			$form->setOptions('driverClass', $interfaces);
+			
+			// Ако е наличен само един драйвер избираме него
+			if(count($interfaces) == 1){
+				$form->setDefault('driverClass', key($interfaces));
+				$form->setReadOnly('driverClass');
+			}
+		}
+		
         // Ако има източник инстанцираме го
 		if($rec->driverClass) {
             // Ако има съществуващ запис - полето не може да се сменя
@@ -82,18 +98,7 @@ class embed_Manager extends core_Master
             }
             
             $form->input(NULL, 'silent');
-
-		} else {
-			// Извличаме позволените за избор опции
-			$interfaces = self::getAvailableDriverOptions();
-
-            // Ако няма достъпни драйвери полето е readOnly иначе оставяме за избор само достъпните такива
-            if(!count($interfaces)) {
-                redirect(array($this), NULL, 'Липсват възможни видове ' . $mvc->title);
-            } else {
-                $form->setOptions('driverClass', $interfaces);
-            }
-        }
+		}
 
         return $data;
 	}
