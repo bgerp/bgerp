@@ -15,6 +15,9 @@
  * 
  * @method fetch(string $cond,mixed $fields = '*', boolean $cache = TRUE)
  * @method fetchField(string $cond, string $field = 'id', boolean $cache = TRUE)
+ * @method getHandle(integer $id)
+ * @method getHyperlink(integer $id, boolean $icon = FALSE, boolean $short = FALSE)
+ * @method getShortHyperlink(integer $id, boolean $icon = FALSE)
  */
 class core_ObjectReference
 {
