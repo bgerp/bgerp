@@ -31,7 +31,13 @@ class bank_Accounts extends core_Master {
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, bank_Wrapper, plg_Rejected';
+    var $loadList = 'plg_RowTools, bank_Wrapper, plg_Rejected, plg_Search';
+    
+    
+    /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    var $searchFields = 'iban,bic,bank';
     
     
     /**
@@ -112,6 +118,17 @@ class bank_Accounts extends core_Master {
         // Задаваме индексите и уникалните полета за модела
         $this->setDbIndex('contragentCls,contragentId');
         $this->setDbUnique('iban');
+    }
+    
+    
+    /**
+     * Добавя ключови думи за пълнотекстово търсене
+     */
+    protected static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+    {
+    	$contragentName = cls::get($rec->contragentCls)->getTitleById($rec->contragentId);
+    	
+    	$res = " " . $res . " " . plg_Search::normalizeText($contragentName);
     }
     
     
@@ -354,5 +371,18 @@ class bank_Accounts extends core_Master {
                     'bank'          => bglocal_Banks::getBankName($iban),
                     'bic'           => bglocal_Banks::getBankBic($iban)));
         }
+    }
+    
+    
+    /**
+     * Подготовка на филтър формата
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+    	$data->listFilter->setField('contragentCls', 'input=none');
+    	$data->listFilter->setField('contragentId', 'input=none');
+    	$data->listFilter->showFields = 'search';
+    	$data->listFilter->view = 'horizontal';
+    	$data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
     }
 }
