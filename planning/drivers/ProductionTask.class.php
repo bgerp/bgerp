@@ -3,7 +3,7 @@
 
 
 /**
- * Драйвер за производствени задачи
+ * Драйвер за задачи за производство
  *
  *
  * @category  bgerp
@@ -12,6 +12,7 @@
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
+ * @title Задача за производство
  */
 class planning_drivers_ProductionTask extends tasks_BaseDriver
 {
