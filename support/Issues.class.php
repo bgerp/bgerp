@@ -626,8 +626,8 @@ class support_Issues extends core_Master
             Request::setProtected('srcId, srcClass');
             if ($srcId = Request::get('srcId', 'int')) {
                 if ($srcClass = Request::get('srcClass')) {
-                    $srcInst = cls::get($srcClass);
-                    if (cls::haveInterface('support_IssueCreateIntf', $srcInst)) {
+                    if (cls::haveInterface('support_IssueCreateIntf', $srcClass)) {
+                        $srcInst = cls::getInterface('support_IssueCreateIntf', $srcClass);
                         $defTitle = $srcInst->getDefaultIssueTitle($srcId);
                         $defBody = $srcInst->getDefaultIssueBody($srcId);
                         

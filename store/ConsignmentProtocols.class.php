@@ -228,8 +228,8 @@ class store_ConsignmentProtocols extends core_Master
     		$row->title = $mvc->getLink($rec->id, 0);
     	}
     	
+    	store_DocumentMaster::prepareHeaderInfo($row, $rec);
     	if(isset($fields['-single'])){
-    		store_DocumentMaster::prepareHeaderInfo($row, $rec);
     		$row->storeId = store_Stores::getHyperlink($rec->storeId);
     		if($rec->lineId){
     			$row->lineId = trans_Lines::getHyperLink($rec->lineId);
@@ -476,6 +476,8 @@ class store_ConsignmentProtocols extends core_Master
     		$row = $this->recToVerbal($rec, 'storeId,weight,volume,palletCountInput');
     		
     		$row->docId = $this->getLink($rec->id, 0);
+    		$row->contragentAddress = str_replace('<br>', ',', $row->contragentAddress);
+    		$row->contragentAddress = "<span style='font-size:0.8em'>{$row->contragentAddress}</span>";
     		
     		$row->rowNumb = cls::get('type_Int')->toVerbal($count);
     		$row->ROW_ATTR['class'] = "state-{$rec->state}";
@@ -492,7 +494,7 @@ class store_ConsignmentProtocols extends core_Master
     {
     	if(count($data->protocols)){
     		$table = cls::get('core_TableView');
-    		$fields = "rowNumb=№,docId=Документ,storeId=Склад,weight=Тегло,volume=Обем,palletCountInput=Палети,address=@Адрес";
+    		$fields = "rowNumb=№,docId=Документ,storeId=Склад,weight=Тегло,volume=Обем,palletCountInput=Палети,contragentAddress=@Адрес";
     		 
     		return $table->get($data->protocols, $fields);
     	}

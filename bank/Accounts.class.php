@@ -101,10 +101,10 @@ class bank_Accounts extends core_Master {
     {
         $this->FLD('contragentCls', 'class', 'caption=Контрагент->Клас,mandatory,input=hidden,silent');
         $this->FLD('contragentId', 'int', 'caption=Контрагент->Обект,mandatory,input=hidden,silent');
-        $this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,mandatory');
         
         // Макс. IBAN дължина е 34 символа (http://www.nordea.dk/Erhverv/Betalinger%2bog%2bkort/Betalinger/IBAN/40532.html)
         $this->FLD('iban', 'iban_Type(64)', 'caption=IBAN / №,mandatory,removeAndRefreshForm=bic|bank|currencyId,silent');
+        $this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,mandatory');
         $this->FLD('bic', 'varchar(12)', 'caption=BIC');
         $this->FLD('bank', 'varchar(64)', 'caption=Банка');
         $this->FLD('comment', 'richtext(bucket=Notes,rows=6)', 'caption=Бележки');
@@ -128,7 +128,7 @@ class bank_Accounts extends core_Master {
         $contragentTitle = $Contragents->getTitleById($contragentRec->id);
         
         if($rec->id) {
-            $data->form->title = 'Редактиране на банкова сметка на |*' . $contragentTitle;
+            $data->form->title = 'Редактиране на банкова сметка на |*<b>' . $contragentTitle . "</b>";
         } else {
             // По подразбиране, валутата е тази, която е в обръщение в страната на контрагента
             if ($contragentRec->country) {
@@ -142,7 +142,7 @@ class bank_Accounts extends core_Master {
                 $data->form->setDefault('currencyId', $defaultCurrencyId);
             }
             
-            $data->form->title = 'Нова банкова сметка на |*' . $contragentTitle;
+            $data->form->title = 'Нова банкова сметка на |*<b>' . $contragentTitle . "</b>";
         }
         
         if($iban = Request::get('iban')) {
