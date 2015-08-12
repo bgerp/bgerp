@@ -13,7 +13,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class tasks_BaseDriver extends core_BaseClass
+abstract class tasks_BaseDriver extends core_BaseClass
 {
 	
 	
