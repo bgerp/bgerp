@@ -353,8 +353,9 @@ class bank_OwnAccounts extends core_Master {
         
         while($rec = $queryBankAccounts->fetch()) {
             if (!static::fetchField("#bankAccountId = " . $rec->id , 'id')) {
+            	
             	$iban = $bankAccounts->getVerbal($rec, 'iban');
-                $options[$iban] = $iban;
+                $options[$rec->iban] = $iban;
             }
         }
         
@@ -478,7 +479,6 @@ class bank_OwnAccounts extends core_Master {
     private function addNewAccount($iban, $currencyId, $bank, $bic)
     {
     	$IbanType = core_Type::getByName('iban_Type(64)');
-    	expect(!$IbanType->isValid($iban));
     	expect(currency_Currencies::fetch($currencyId));
     	$iban = trim($iban);
     	
