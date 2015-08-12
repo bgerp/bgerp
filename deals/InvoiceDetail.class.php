@@ -59,7 +59,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 	{
 		$mvc->FLD('productId', 'int', 'caption=Продукт','tdClass=large-field leftCol wrap,silent,removeAndRefreshForm=packPrice|discount|packagingId');
 		$mvc->FLD('classId', 'class(interface=cat_ProductAccRegIntf, select=title)', 'caption=Мениджър,silent,input=hidden');
-		$mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка','tdClass=small-field,silent,removeAndRefreshForm=packPrice|discount|uomId,mandatory');
+		$mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка','tdClass=small-field,silent,removeAndRefreshForm=packPrice|discount,mandatory');
 		$mvc->FLD('quantity', 'double', 'caption=К-во,mandatory','tdClass=small-field');
 		$mvc->FLD('quantityInPack', 'double(smartRound)', 'input=none');
 		$mvc->FLD('price', 'double', 'caption=Цена, input=none');
@@ -399,8 +399,9 @@ abstract class deals_InvoiceDetail extends doc_Detail
 			$rec = &$form->rec;
 	
 			// Закръгляме количеството спрямо допустимото от мярката
-			$roundQuantity = cat_UoM::round($rec->quantity, $rec->productId, $rec->packagingId);
-			if($roundQuantity == 0){
+			$roundQuantity = cat_UoM::round($rec->quantity, $rec->productId);
+			
+			if($roundQuantity == 0 && $masterRec->type != 'dc_note'){
 				$form->setError('packQuantity', 'Не може да бъде въведено количество, което след закръглянето указано в|* <b>|Артикули|* » |Каталог|* » |Мерки/Опаковки|*</b> |ще стане|* 0');
 				return;
 			}
@@ -485,7 +486,6 @@ abstract class deals_InvoiceDetail extends doc_Detail
 			$rec->price = deals_Helper::getPurePrice($rec->price, 0, $masterRec->rate, $masterRec->chargeVat);
 			
 			// Записваме основната мярка на продукта
-			$rec->uomId = $productInfo->productRec->measureId;
 			$rec->amount = $rec->packPrice * $rec->quantity;
 				
 			// При редакция, ако е променена опаковката слагаме преудпреждение

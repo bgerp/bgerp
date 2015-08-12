@@ -166,6 +166,13 @@ class cat_products_Packagings extends cat_products_Detail
         		$requiredRoles = 'no_one';
         	}
         }
+        
+        // Ако опаковката вече е използвана не може да се изтрива
+        if($action == 'delete' && isset($rec)){
+        	if(self::isUsed($rec->productId, $rec->packagingId)){
+        		$requiredRoles = 'no_one';
+        	}
+        }
     }
     
     
@@ -281,6 +288,13 @@ class cat_products_Packagings extends cat_products_Detail
         $pInfo = cat_Products::getProductInfo($form->rec->productId);
         $unit = cat_UoM::getShortName($pInfo->productRec->measureId);
         $form->setField('quantity', "unit={$unit}");
+        
+        // Ако редактираме, но опаковката е използвана не може да се променя
+        if(isset($form->rec->id)){
+        	if(self::isUsed($form->rec->productId, $form->rec->packagingId)){
+        		$form->setReadOnly('packagingId');
+        	}
+        }
     }
     
    
@@ -386,5 +400,59 @@ class cat_products_Packagings extends cat_products_Detail
     public static function getPack($productId, $packagingId)
     {
         return self::fetch("#productId = '{$productId}' AND #packagingId = '{$packagingId}'");
+    }
+    
+    
+    /**
+     * Дали в бизнес документите е използван артикула с посочената опаковка
+     * 
+     * @param int $productId - ид на артикул
+     * @param int $uomId - мярка
+     * @return boolean
+     */
+    public static function isUsed($productId, $uomId = NULL)
+    {
+    	// Ако няма мярка, това е основната на артикула
+    	if(!$uomId){
+    		$pInfo = cat_Products::getProductInfo($productId);
+    		$uomId = $pInfo->productRec->measureId;
+    	}
+    	
+    	// Детайли в които ще проверяваме
+    	$details = array('sales_SalesDetails', 
+    					 'purchase_PurchasesDetails', 
+    					 'store_ShipmentOrderDetails', 
+    			         'store_ReceiptDetails', 
+    			         'sales_QuotationsDetails', 
+    			         'sales_InvoiceDetails', 
+    			         'purchase_InvoiceDetails', 
+    			         'planning_DirectProductNoteDetails', 
+    			         'planning_ProductionNoteDetails', 
+    			         'planning_ConsumptionNoteDetails', 
+    			         'cat_BomDetails', 
+    			         'sales_ProformaDetails', 
+    			         'sales_ServicesDetails', 
+    			         'purchase_ServicesDetails', 
+    			         'store_ConsignmentProtocolDetailsReceived', 
+    			         'store_ConsignmentProtocolDetailsSend');
+    	
+    	// За всеки от изброените документи проверяваме дали е избран артикула с мярката
+    	$isUsed = FALSE;
+    	foreach ($details as $Detail){
+    		if($Detail == 'cat_BomDetails'){
+    			if($rec = $Detail::fetch("#resourceId = {$productId} AND #packagingId = {$uomId}")){
+    				$isUsed = TRUE;
+    				break;
+    			}
+    		} else {
+    			if($rec = $Detail::fetch("#productId = {$productId} AND #packagingId = {$uomId}")){
+    				$isUsed = TRUE;
+    				break;
+    			}
+    		}
+    	}
+    	
+    	// Връщаме резултат
+    	return $isUsed;
     }
 }

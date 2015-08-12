@@ -247,10 +247,12 @@ class eshop_Products extends core_Master
     {
         $layout = new ET();
 
-        foreach($data->groups as $gData) {
-            if(!count($gData->recs)) continue;
-            $layout->append("<h2>" . eshop_Groups::getVerbal($gData->groupRec, 'name') . "</h2>");
-            $layout->append(self::renderGroupList($gData));
+        if(is_array($data->groups)){
+        	foreach($data->groups as $gData) {
+        		if(!count($gData->recs)) continue;
+        		$layout->append("<h2>" . eshop_Groups::getVerbal($gData->groupRec, 'name') . "</h2>");
+        		$layout->append(self::renderGroupList($gData));
+        	}
         }
 
         return $layout;

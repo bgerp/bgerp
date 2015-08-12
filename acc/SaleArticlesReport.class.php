@@ -110,9 +110,8 @@ class acc_SaleArticlesReport extends acc_BalanceReportImpl
      *
      * @param stdClass $data
      */
-    public function renderEmbeddedData($data)
+    public function renderEmbeddedData(&$embedderTpl, $data)
     {
-        
         $tpl = $this->getReportLayout();
 
         $tpl->replace($this->title, 'TITLE');
@@ -155,7 +154,7 @@ class acc_SaleArticlesReport extends acc_BalanceReportImpl
         	$tpl->append($data->pager->getHtml(), 'PAGER_TOP');
         }
         
-        return $tpl;
+        $embedderTpl->append($tpl, 'data');
     }
 
 

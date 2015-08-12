@@ -70,4 +70,34 @@ class sens2_MockupDrv  extends sens2_ProtoDriver
 
         return $res;
     }
+
+    /**
+     * Записва стойностите на изходите на контролера
+     *
+     * @param   array   $outputs            масив със системните имена на изходите и стойностите, които трябва да бъдат записани
+     * @param   array   $config             конфигурациони параметри
+     * @param   array   $persistentState    персистентно състояние на контролера от базата данни
+     *
+     * @return  array                       Mасив със системните имена на изходите и статус (TRUE/FALSE) на операцията с него
+     */
+    function writeOutputs($outputs, $config, &$persistentState)
+    {
+        if(!$persistentState) {
+            $persistentState = array();
+        }
+        
+        $res = array();
+
+        foreach($outputs as $o => $v) {
+            if(rand(1,100) == 54) {
+                $res[$o] = FALSE;
+            } else {
+                $persistentState[$o] = $v;
+                $res[$o] = TRUE;
+            }
+        }
+
+        return $res;
+    }
+
 }

@@ -283,29 +283,64 @@ class core_Os
         
         return $res;
     }
+    
+    /**
+     * Връща броя на стартираните процеси на Apache
+     */
+    function countApacheProc()
+    {
+        if($this->isWindows()) {
+            $proc = 'httpd.exe';
+        } else {
+            $proc = 'apache';
+        }
+
+        return $this->countProc($proc);
+
+    }
 
 
     /**
      * Връща броя на стартираните процеси на Apache
      */
-    function countApacheProc()
-    {   
+    function countProc($proc)
+    { 
         $processes = 0;
 
         if($this->isWindows()) {
-            $output = shell_exec("tasklist");
+            $output = shell_exec("tasklist");  
             $lines = explode("\n", $output);
-            foreach($lines as $l) { 
-                if(strpos($l, 'httpd.exe') !== FALSE) {
+            foreach($lines as $l) {
+                if(strpos($l, $proc) !== FALSE) {
                     $processes++; 
                 }
             }
         } else {
-            exec('ps aux | grep apache', $output);
+            exec('ps aux | grep {$proc} | grep -v grep', $output);
             $processes = count($output);
         }
-
+ 
         return $processes;
+    }
+
+
+    /**
+     * Връща информация колко памет е заета.
+     * За сега работи само под Linux
+     */
+    function getMemoryUsage()
+    {
+        if(!$this->isWindows()) {
+            $free = shell_exec('free');
+            $free = (string)trim($free);
+            $free_arr = explode("\n", $free);
+            $mem = explode(" ", $free_arr[1]);
+            $mem = array_filter($mem);
+            $mem = array_merge($mem);
+            $memory_usage = $mem[2]/$mem[1]*100;
+        }
+
+        return $memory_usage;
     }
 
 

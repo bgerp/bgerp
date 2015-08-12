@@ -188,8 +188,8 @@ class core_Cron extends core_Manager
     static function on_AfterPrepareListToolbar($mvc, &$data)
     {
         $data->toolbar->addBtn('Логове на Cron', array(
-                'core_Logs',
-                'className' => $mvc->className
+                'log_Debug',
+                'class' => $mvc->className
             ),
             'ef_icon = img/16/action_log.png');
     }
@@ -200,6 +200,15 @@ class core_Cron extends core_Manager
      */
     function act_Cron()
     {
+        $whitelist = array(
+            '127.0.0.1',
+            '::1'
+        );
+
+        if(!in_array($_SERVER['REMOTE_ADDR'], $whitelist)){
+            // requireRole('debug,admin');
+        }
+
         header('Cache-Control: no-cache, no-store');
         
         // Отключваме всички процеси, които са в състояние заключено, а от последното
@@ -215,36 +224,47 @@ class core_Cron extends core_Manager
             $this->logWarning("Отключен процес", $rec->id, 7);
         }
         
-        // Коя е текущата минута?
+        // Коя е текущата секинда?
         $timeStamp = time();
+        
         // Добавяме отместването във времето за timezone
         $timeStamp += date('Z');
         
-        $currentMinute = round($timeStamp / 60);
-        
+        /// Намираме коя е текущата минута
+        $currentMinute = floor($timeStamp / 60);
+
         // Определяме всички процеси, които трябва да се стартират през тази минута
         // и ги стартираме наред
         $query = $this->getQuery();
-        $query->where("MOD({$currentMinute}, #period) = #offset AND #state != 'stopped'");
         $i = 0;
-        
-        while ($rec = $query->fetch()) {
-            $i++;
-            fopen(toUrl(array(
-                        'Act' => 'ProcessRun',
-                        'id' => str::addHash($rec->id)
-                    ), 'absolute'), 'r');
-            echo "\n\r<li>" . toUrl(array(
-                    'Act' => 'ProcessRun',
-                    'id' => str::addHash($rec->id)
-                ), 'absolute');
+        while ($rec = $query->fetch("#state != 'stopped'")) {
+            
+            // Кога е бил последно стартиран този процес?
+            $lastStarting = $rec->lastStart;
+
+            // В коя минута е трябвало за последен път да се стартира този процес?
+            $lastSchedule = dt::timestamp2mysql((floor($currentMinute / $rec->period) * $rec->period + $rec->offcet) * 60 -  date('Z'));
+            $now = dt::timestamp2mysql($currentMinute   * 60 -  date('Z'));
+
+            // Колко минути остават до следващото стартиране
+            $remainMinutes = floor($currentMinute / $rec->period) * $rec->period + $rec->period + $rec->offcet - $currentMinute;
+
+            // echo "<li> $rec->systemId | $lastStarting | $lastSchedule | $now  | $remainMinutes | $rec->period | ";
+
+            if( (($currentMinute % $rec->period) == $rec->offcet) || ($rec->period > 60 && $lastSchedule > $lastStarting && $rec->period/2 < $remainMinutes)) {
+               
+                // echo "OK------";
+
+                $i++;
+                fopen(toUrl(array(
+                            'Act' => 'ProcessRun',
+                            'id' => str::addHash($rec->id)
+                        ), 'absolute'), 'r');
+            
+            } else {
+                // echo "NO";
+            }
         }
-        
-        $Os = cls::get('core_Os');
-        $apacheProc = $Os->countApacheProc();
-        
-        $this->logInfo("Брой стартирани апача на сървъра - " . $apacheProc, NULL, 7);
-        $this->logThenStop("Стартирани са {$i} процеса", NULL, 'info');
     }
     
     
@@ -317,7 +337,7 @@ class core_Cron extends core_Manager
         
         if (is_a($handlerObject, $class)) {
             if (method_exists($handlerObject, $act)) {
-                $this->logInfo("Стартиран процес", $rec->id, 7);
+                log_Debug::add('core_Cron', $rec->id, "Стартиран процес: " . $rec->action, 7);
                 
                 // Ако е зададено максимално време за изпълнение, 
                 // задаваме го към PHP , като добавяме 5 секунди
@@ -346,7 +366,7 @@ class core_Cron extends core_Manager
                 // Колко време да пазим лога?
                 $logLifeTime = max(1, 3 * round($rec->period / (24 * 60)));
                 
-                $this->logInfo("Процесът е изпълнен успешно за {$workingTime} секунди", $rec->id, $logLifeTime);
+                log_Debug::add('core_Cron', $rec->id, "Процесът '{$rec->action}' е изпълнен успешно за {$workingTime} секунди", $logLifeTime);
             } else {
                 $this->unlockProcess($rec);
                 $this->logThenStop("Няма такъв екшън в класа", $rec->id, 'err');

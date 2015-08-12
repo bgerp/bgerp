@@ -147,6 +147,12 @@ class frame_Reports extends core_Embedder
     
     
     /**
+     * Колко време да се пази кешираното състояние при чернова
+     */
+    const KEEP_INNER_STATE_IN_DRAFT = 86400;
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -176,11 +182,20 @@ class frame_Reports extends core_Embedder
            
             // Обновяваме данните, ако отчета е в състояние 'draft'
             if($rec->state == 'draft') {
-               
-            	$Source = $mvc->getDriver($rec);
-            	$rec->data = $Source->prepareInnerState();
+            	
+            	// Ако сме минали зададеното време за обновяване на кеша на данните при чернова
+                if(dt::addSecs(self::KEEP_INNER_STATE_IN_DRAFT, $rec->modifiedOn) < dt::now()){
+                	
+                	// Инвалидираме кеша
+                	unset($rec->data);
+                	
+                	// Извличаме вътрешното състояние и го кешираме
+                	$Source = $mvc->getDriver($rec);
+                	$rec->data = $Source->prepareInnerState();
+                	$mvc->save($rec);
+                }
             }
-            
+           
             if($rec->state == 'active' || $rec->state == 'rejected'){
             	unset($row->earlyActivationOn);
             }

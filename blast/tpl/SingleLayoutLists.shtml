@@ -24,6 +24,12 @@
                             <td>[#allFields#]</td>
                         </tr>
                         <!--ET_END allFields-->
+                        <!--ET_BEGIN lg-->          
+                        <tr>
+                            <td  class='aright' style='white-space: nowrap;'>|Език|*:</td>
+                            <td>[#lg#]</td>
+                        </tr>
+                        <!--ET_END lg-->
                         <!--ET_BEGIN lastUsedOn-->          
                         <tr>
                             <td class='aright' style='white-space: nowrap;'>|Последна употреба|*:</td>

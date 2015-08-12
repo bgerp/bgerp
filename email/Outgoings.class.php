@@ -44,7 +44,7 @@ class email_Outgoings extends core_Master
     /**
      * Поддържани интерфейси
      */
-    var $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf, doc_AddToFolderIntf';
+    var $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf';
     
     
     /**
@@ -599,7 +599,7 @@ class email_Outgoings extends core_Master
         $form->FLD('documents', 'keylist(mvc=fileman_files, select=name)', 'caption=Документи,columns=4,input=none');
         $form->FNC('emailsTo', 'emails', 'input,caption=До,mandatory,class=long-input,formOrder=2', array('attr' => array('data-role' => 'list')));
         $form->FNC('emailsCc', 'emails', 'input,caption=Копие до,class=long-input,formOrder=3', array('attr' => array('data-role' => 'list')));
-        $form->FNC('waiting', 'time(suggestions=1 ден|2 дни|3 дни|1 седмица|2 седмици|3 седмици|4 седмици, allowEmpty)', 'caption=Изчакване,hint=Време за известряване при липса на отговор,input,formOrder=8');
+        $form->FNC('waiting', 'time(suggestions=1 ден|2 дни|3 дни|1 седмица|2 седмици|3 седмици|4 седмици, allowEmpty)', 'caption=Изчакване за отговор|*&#44; |преди известяване->Изчакване,hint=Време за известряване при липса на отговор,input,formOrder=8');
         
         // Подготвяме лентата с инструменти на формата
         $form->toolbar->addSbBtn('Изпрати', 'send', NULL, array('id'=>'save', 'ef_icon'=>'img/16/move.png', 'title'=>'Изпращане на имейла'));
@@ -1967,6 +1967,12 @@ class email_Outgoings extends core_Master
         }
         
         $data->lg = email_Outgoings::getLanguage($data->rec->originId, $data->rec->threadId, $data->rec->folderId, $data->rec->body);
+        
+        if (!Mode::is('text', 'xhtml') && $data->rec->waiting && ($data->rec->state == 'pending')) {
+            $notifyDate = dt::addSecs($data->rec->waiting, $data->rec->lastSendedOn);
+            $data->row->notifyDate = dt::mysql2verbal($notifyDate, 'smartTime');
+            $data->row->notifyUser = crm_Profiles::createLink($data->rec->lastSendedBy);
+        }
     }
     
     
@@ -2872,17 +2878,5 @@ class email_Outgoings extends core_Master
         
         // Ако не може да се определи по никакъв начин
         return FALSE;
-    }
-    
-    
-    /**
-     * Да се показвали бърз бутон за създаване на документа в папка
-     */
-    public function mustShowButton($folderRec, $userId = NULL)
-    {
-        $Cover = doc_Folders::getCover($folderRec->id);
-        
-        // Показваме бутона само ако корицата на папката е 'Кутия'
-        return ($Cover->instance instanceof email_Inboxes) ? TRUE : FALSE;
     }
 }

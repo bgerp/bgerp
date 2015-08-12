@@ -177,6 +177,11 @@ class fconv_Script
             }
         }
         
+        // Възможност за логване на грешките при изпълняване на скрипт
+        if ($params['errFilePath']) {
+            $cmdLine .= ' > ' . escapeshellarg($params['errFilePath']) . ' 2>&1';
+        }
+        
         $this->script .= $this->nl($cmdLine);
         
         // Ако е подаден параметър език, тогава се добавя в началото на скрипта
@@ -313,7 +318,7 @@ class fconv_Script
             $shell = $shellName;    
         }
         
-        log_Data::add('info', "Стартиран скрипт: " . $this->script, 'fconv_Script');
+        log_Debug::add('fconv_Script', NULL, "Стартиран скрипт: " . $this->script);
         
         pclose(popen($shell, "r"));
     }

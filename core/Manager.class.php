@@ -488,7 +488,7 @@ class core_Manager extends core_Mvc
         setIfNot($data->title, $this->title);
         
         if ($data->ListId) {
-            $data->title = "Реазултати за запис номер|* {$data->ListId}: |" . $data->title;
+            $data->title = "Резултати за запис номер|* {$data->ListId}: |" . $data->title;
         }
         
         return $data;
@@ -883,7 +883,7 @@ class core_Manager extends core_Mvc
         
         $className = get_called_class();
         
-        core_Logs::add(get_called_class(), $objectId, $detail, $logKeepDays);
+        log_Debug::add(get_called_class(), $objectId, $detail, $logKeepDays);
     }
     
     

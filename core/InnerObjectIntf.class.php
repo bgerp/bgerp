@@ -46,9 +46,9 @@ class core_InnerObjectIntf
 	/**
 	 * Добавя полетата на вътрешния обект
 	 * 
-	 * @param core_Fieldset $fieldset
+	 * @param core_Form $fieldset
 	 */
-	public function addEmbeddedFields(core_Fieldset &$fieldset)
+	public function addEmbeddedFields(core_Form &$fieldset)
 	{
 		return $this->class->addEmbeddedFields($fieldset);
 	}
@@ -89,9 +89,6 @@ class core_InnerObjectIntf
 	
 	/**
 	 * Подготвя данните необходими за показването на вградения обект
-	 *
-	 * @param core_Form $innerForm
-	 * @param stdClass $innerState
 	 */
 	public function prepareEmbeddedData()
 	{
@@ -104,9 +101,9 @@ class core_InnerObjectIntf
 	 * 
 	 * @param stdClass $data
 	 */
-	public function renderEmbeddedData($data)
+	public function renderEmbeddedData(&$embedderTpl, $data)
 	{
-		return $this->class->renderEmbeddedData($data);
+		return $this->class->renderEmbeddedData($embedderTpl, $data);
 	}
 	
 	

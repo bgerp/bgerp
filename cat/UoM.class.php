@@ -139,10 +139,9 @@ class cat_UoM extends core_Manager
      * 
      * @param double $quantity - к-то което ще закръгляме
      * @param int $productId - ид на артикула
-     * @param int $packagingId - ид на опаковка
      * @return double - закръгленото количество
      */
-    public static function round($quantity, $productId, $packagingId)
+    public static function round($quantity, $productId)
     {
     	// Коя е основната мярка на артикула
     	$uomId = cat_Products::getProductInfo($productId)->productRec->measureId;

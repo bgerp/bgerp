@@ -292,7 +292,7 @@ class acc_BalanceReportImpl extends frame_BaseDriver
      *
      * @param stdClass $data
      */
-    public function renderEmbeddedData($data)
+    public function renderEmbeddedData(&$embedderTpl, $data)
     {
     	if(empty($data)) return;
     	
@@ -344,7 +344,7 @@ class acc_BalanceReportImpl extends frame_BaseDriver
     	     $tpl->append($data->pager->getHtml(), 'PAGER_TOP');
     	}
     	
-    	return $tpl;
+    	$embedderTpl->append($tpl, 'data');
     }
 
     

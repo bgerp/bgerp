@@ -1082,9 +1082,6 @@ class lang_Encoding {
      */
     static function repairText($text)
     {
-        // Промяняме лимита на паметта за големи файлове
-        ini_set("memory_limit", '200M');
-        
         // Анализирам
         $res = static::analyze2Charsets($text);
         

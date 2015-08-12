@@ -337,7 +337,11 @@ class core_Classes extends core_Manager
     {
     	if($fields['-list']){
     		if($rec->state == 'active'){
-    			$row->interfaces = $mvc->getVerbalInterfaces($rec);
+                try {
+    			    $row->interfaces = $mvc->getVerbalInterfaces($rec);
+                } catch(core_exception_Expect $e) {
+                    $row->interfaces = "<span style='color:red;'>Error</span>";
+                }
     		}
     	}
     }

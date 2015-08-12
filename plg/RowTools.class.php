@@ -108,15 +108,28 @@ class plg_RowTools extends core_Plugin
         	}
         }
         
+        if($mvc->hasPlugin('change_Plugin')){
+        	if ($mvc->haveRightFor('changerec', $rec)) {
+        		 
+        		$changeUrl = array($mvc,
+        				'changeFields',
+        				$rec->id,
+        				'ret_url' => TRUE,);
+        	
+        		$changeLink = ht::createLink('', $changeUrl, NULL, "ef_icon=img/16/to_do_list.png,id=conto{$rec->id},title=Промяна на " . mb_strtolower($mvc->singleTitle));
+        	}
+        }
+        
         $tpl = new ET(static::$rowToolsTpl);
         $tpl->append($row->{$field}, 'ROWTOOLS_CAPTION');
         
-        if ($singleLink || $editLink || $deleteLink || $restoreLink) {
+        if ($singleLink || $editLink || $deleteLink || $restoreLink || $changeLink) {
             // Вземаме съдържанието на полето, като шаблон
             $tpl->append($singleLink, 'TOOLS');
             $tpl->append($editLink, 'TOOLS');
             $tpl->append($deleteLink, 'TOOLS');
             $tpl->append($restoreLink, 'TOOLS');
+            $tpl->append($changeLink, 'TOOLS');
         }
         $row->{$field} = $tpl;
         

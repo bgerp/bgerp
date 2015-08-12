@@ -102,7 +102,7 @@ class support_Issues extends core_Master
     /**
      * Поддържани интерфейси
      */
-    var $interfaces = 'doc_DocumentIntf, doc_AddToFolderIntf, doc_ContragentDataIntf';
+    var $interfaces = 'doc_DocumentIntf, doc_ContragentDataIntf';
     
     
     /**
@@ -621,6 +621,22 @@ class support_Issues extends core_Master
                 $data->form->setDefault('typeId', $defTypeId);
             }
         }
+        
+        if (!$data->form->rec->id) {
+            Request::setProtected('srcId, srcClass');
+            if ($srcId = Request::get('srcId', 'int')) {
+                if ($srcClass = Request::get('srcClass')) {
+                    if (cls::haveInterface('support_IssueCreateIntf', $srcClass)) {
+                        $srcInst = cls::getInterface('support_IssueCreateIntf', $srcClass);
+                        $defTitle = $srcInst->getDefaultIssueTitle($srcId);
+                        $defBody = $srcInst->getDefaultIssueBody($srcId);
+                        
+                        $data->form->setDefault('title', $defTitle);
+                        $data->form->setDefault('description', $defBody);
+                    }
+                }
+            }
+        }
     }
     
     
@@ -957,17 +973,6 @@ class support_Issues extends core_Master
         }
         
         return $contrData;
-    }
-    
-    /**
-     * Да се показвали бърз бутон за създаване на документа в папка
-     */
-    public function mustShowButton($folderRec, $userId = NULL)
-    {
-    	$Cover = doc_Folders::getCover($folderRec->id);
-    	
-    	// Показваме бутона само ако корицата на папката поддържа интерфейса 'support_IssueIntf'
-    	return ($Cover->haveInterface('support_IssueIntf')) ? TRUE : FALSE;
     }
     
 

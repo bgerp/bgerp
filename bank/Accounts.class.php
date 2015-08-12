@@ -31,7 +31,13 @@ class bank_Accounts extends core_Master {
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_RowTools, bank_Wrapper, plg_Rejected';
+    var $loadList = 'plg_RowTools, bank_Wrapper, plg_Rejected, plg_Search';
+    
+    
+    /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    var $searchFields = 'iban,bic,bank';
     
     
     /**
@@ -101,10 +107,10 @@ class bank_Accounts extends core_Master {
     {
         $this->FLD('contragentCls', 'class', 'caption=Контрагент->Клас,mandatory,input=hidden,silent');
         $this->FLD('contragentId', 'int', 'caption=Контрагент->Обект,mandatory,input=hidden,silent');
-        $this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,mandatory');
         
         // Макс. IBAN дължина е 34 символа (http://www.nordea.dk/Erhverv/Betalinger%2bog%2bkort/Betalinger/IBAN/40532.html)
-        $this->FLD('iban', 'iban_Type(64)', 'caption=IBAN / №,mandatory');
+        $this->FLD('iban', 'iban_Type(64)', 'caption=IBAN / №,mandatory,removeAndRefreshForm=bic|bank|currencyId,silent');
+        $this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,mandatory');
         $this->FLD('bic', 'varchar(12)', 'caption=BIC');
         $this->FLD('bank', 'varchar(64)', 'caption=Банка');
         $this->FLD('comment', 'richtext(bucket=Notes,rows=6)', 'caption=Бележки');
@@ -116,18 +122,30 @@ class bank_Accounts extends core_Master {
     
     
     /**
+     * Добавя ключови думи за пълнотекстово търсене
+     */
+    protected static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+    {
+    	$contragentName = cls::get($rec->contragentCls)->getTitleById($rec->contragentId);
+    	
+    	$res = " " . $res . " " . plg_Search::normalizeText($contragentName);
+    }
+    
+    
+    /**
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
     static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         $rec = $data->form->rec;
+        
         $Contragents = cls::get($rec->contragentCls);
         expect($Contragents instanceof core_Master);
         $contragentRec   = $Contragents->fetch($rec->contragentId);
         $contragentTitle = $Contragents->getTitleById($contragentRec->id);
         
         if($rec->id) {
-            $data->form->title = 'Редактиране на банкова сметка на |*' . $contragentTitle;
+            $data->form->title = 'Редактиране на банкова сметка на |*<b>' . $contragentTitle . "</b>";
         } else {
             // По подразбиране, валутата е тази, която е в обръщение в страната на контрагента
             if ($contragentRec->country) {
@@ -141,11 +159,23 @@ class bank_Accounts extends core_Master {
                 $data->form->setDefault('currencyId', $defaultCurrencyId);
             }
             
-            $data->form->title = 'Нова банкова сметка на |*' . $contragentTitle;
+            $data->form->title = 'Нова банкова сметка на |*<b>' . $contragentTitle . "</b>";
         }
         
         if($iban = Request::get('iban')) {
             $data->form->setDefault('iban', $iban);
+        }
+        
+        // Ако има въведен iban
+        if(isset($rec->iban)){
+        	
+        	// и той е валиден
+        	if(!$data->form->gotErrors()){
+        		
+        		// по дефолт извличаме името на банката и bic-а ако можем
+        		$data->form->setDefault('bank', bglocal_Banks::getBankName($rec->iban));
+        		$data->form->setDefault('bic', bglocal_Banks::getBankBic($rec->iban));
+        	}
         }
     }
     
@@ -160,40 +190,6 @@ class bank_Accounts extends core_Master {
             
             if ($productState == 'rejected') {
                 $requiredRoles = 'no_one';
-            }
-        }
-    }
-    
-    
-    /**
-     * След зареждане на форма от заявката. (@see core_Form::input())
-     */
-    static function on_AfterInputEditForm($mvc, &$form)
-    {
-        // ако формата е събмитната, и банката и бика не са попълнени,  
-        // то ги извличаме от IBAN-a , ако са попълнени изкарваме преудреждение 
-        // ако те се разминават с тези в системата
-        if($form->isSubmitted()){
-            if($form->rec->iban{0} != '#') {
-                $bank = bglocal_Banks::getBankName($form->rec->iban);
-            }
-            
-            if(!$form->rec->bank){
-                $form->rec->bank = $bank;
-            } else {
-                if($bank && $form->rec->bank != $bank){
-                    $form->setWarning('bank', "|*<b>|Банка|*:</b> |въвели сте |*\"<b>|{$form->rec->bank}|*</b>\", |а IBAN-ът е на банка |*\"<b>|{$bank}|*</b>\". |Сигурни ли сте че искате да продължите?");
-                }
-            }
-            
-            $bic = bglocal_Banks::getBankBic($form->rec->iban);
-            
-            if(!$form->rec->bic){
-                $form->rec->bic = $bic;
-            } else {
-                if($bank && $form->rec->bic != $bic){
-                    $form->setWarning('bic', "|*<b>BIC:</b> |въвели сте |*\"<b>{$form->rec->bic}</b>\", |а IBAN-ът е на BIC |*\"<b>{$bic}</b>\". |Сигурни ли сте че искате да продължите?");
-                }
             }
         }
     }
@@ -375,5 +371,18 @@ class bank_Accounts extends core_Master {
                     'bank'          => bglocal_Banks::getBankName($iban),
                     'bic'           => bglocal_Banks::getBankBic($iban)));
         }
+    }
+    
+    
+    /**
+     * Подготовка на филтър формата
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+    	$data->listFilter->setField('contragentCls', 'input=none');
+    	$data->listFilter->setField('contragentId', 'input=none');
+    	$data->listFilter->showFields = 'search';
+    	$data->listFilter->view = 'horizontal';
+    	$data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
     }
 }

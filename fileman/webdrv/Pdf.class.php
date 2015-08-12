@@ -16,6 +16,70 @@ class fileman_webdrv_Pdf extends fileman_webdrv_Office
     
     
     /**
+     * Преобразува цветовия модел на подадения PDF файл от RGB в CMYK
+     * 
+     * @param string $file
+     * 
+     * @return string|NULL
+     */
+    public static function rgbToCmyk($file)
+    {
+        cls::load('fileman_Files');
+        
+        if (!$file) return ;
+        
+        // Конфигурационните данни
+        $conf = core_Packs::getConfig('fileman');
+        
+        if ((strlen($file) == FILEMAN_HANDLER_LEN) && (strpos($file, '/') === FALSE)) {
+            $fRec = fileman_Files::fetchByFh($file);
+            
+            expect($fRec);
+    	}
+        
+    	$name = fileman_Files::getFileNameWithoutExt($file);
+        
+        // Инстанция на класа
+        $Script = cls::get('fconv_Script');
+        
+        // Задаваме пътя до изходния файла
+        $outFilePath = $Script->tempDir . $name . '_CMYK.pdf';
+        
+        // Задаваме placeHolder' ите за входния и изходния файл
+        $Script->setFile('INPUTF', $file);
+        $Script->setFile('OUTPUTF', $outFilePath);
+        
+        $Script->setProgram('inkscape', INKSCAPE_PATH);
+        
+        $errFilePath = self::getErrLogFilePath($outFilePath);
+        
+        // Скрипта, който ще конвертира файла в PNG формат
+        $Script->lineExec("gs -dSAFER -dBATCH -dNOPAUSE -dNOCACHE -sDEVICE=pdfwrite -sColorConversionStrategy=CMYK -dProcessColorModel=/DeviceCMYK -sOutputFile=[#OUTPUTF#] [#INPUTF#]", array('errFilePath' => $errFilePath));
+        
+        // Стартираме скрипта синхронно
+        $Script->run(FALSE);
+        
+        // Ако има зададен път до gs, използваме него
+        if (trim($conf->FILEMAN_GHOSTSCRIPT_PATH)) {
+            $Script->setProgram('gs', $conf->FILEMAN_GHOSTSCRIPT_PATH);
+        }
+        
+        fileman_Indexes::haveErrors($outFilePath, array('type' => 'pdf', 'errFilePath' => $errFilePath));
+        
+        $nFileHnd = fileman::absorb($outFilePath, 'fileIndex');
+        
+        if ($nFileHnd) {
+            if ($Script->tempDir) {
+                // Изтриваме временната директория с всички файлове вътре
+                core_Os::deleteDir($Script->tempDir);
+            }
+        }
+        
+        return $nFileHnd;
+    }
+    
+    
+    /**
      * Връща всички табове, които ги има за съответния файл
      * 
      * @param object $fRec - Записите за файла
@@ -115,11 +179,15 @@ class fileman_webdrv_Pdf extends fileman_webdrv_Office
         $Script->setFile('INPUTF', $fileHnd);
         $Script->setFile('OUTPUTF', $outFilePath);
         
+        $errFilePath = self::getErrLogFilePath($outFilePath);
+        
         // Скрипта, който ще конвертира
-        $Script->lineExec('pdftotext -enc UTF-8 -nopgbrk [#INPUTF#] [#OUTPUTF#]');
+        $Script->lineExec('pdftotext -enc UTF-8 -nopgbrk [#INPUTF#] [#OUTPUTF#]', array('errFilePath' => $errFilePath));
         
         // Функцията, която ще се извика след приключване на операцията
         $Script->callBack($params['callBack']);
+        
+        $params['errFilePath'] = $errFilePath;
         
         // Други необходими променливи
         $Script->params = serialize($params);

@@ -71,8 +71,10 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     	$form->FLD('to', 'date', 'caption=До,mandatory');
     	$form->FLD('baseAccountId', 'acc_type_Account(allowEmpty)', 'caption=Сметки->Основна,mandatory,silent,removeAndRefreshForm=groupBy');
     	$form->FLD('corespondentAccountId', 'acc_type_Account(allowEmpty)', 'caption=Сметки->Кореспондент,mandatory,silent,removeAndRefreshForm=groupBy');
-    	$form->FLD('side', 'enum(all=Всички,debit=Дебит,credit=Кредит)', 'caption=Обороти');
-    
+    	$form->FLD('side', 'enum(all=Всички,debit=Дебит,credit=Кредит)', 'caption=Обороти,removeAndRefreshForm=orderField|orderBy,silent');
+    	$form->FLD('orderBy', 'enum(,DESC=Низходящо,ASC=Възходящо)', 'caption=Сортиране->Вид,silent,removeAndRefreshForm=orderField,formOrder=100');
+    	$form->FLD('orderField', 'enum(,debitQuantity=Дебит к-во,debitAmount=Дебит сума,creditQuantity=Кредит к-во,creditAmount=Кредит сума,blQuantity=Остатък к-во,blAmount=Остатък сума)', 'caption=Сортиране->Поле,formOrder=101');
+    	
     	$this->invoke('AfterAddEmbeddedFields', array($form));
     }
     
@@ -120,6 +122,23 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     		}
     	}
     	 
+    	if(isset($form->rec->orderBy) && $form->rec->orderBy != ''){
+    		
+    		if(isset($form->rec->side)){
+    			if($form->rec->side == 'credit'){
+    				$options = arr::make('creditQuantity=Кредит к-во,creditAmount=Кредит сума');
+    			} elseif($form->rec->side == 'debit') {
+    				$options = arr::make('debitQuantity=Дебит к-во,debitAmount=Дебит сума');
+    			} else {
+    				$options = arr::make('debitQuantity=Дебит к-во,debitAmount=Дебит сума,creditQuantity=Кредит к-во,creditAmount=Кредит сума,blQuantity=Остатък к-во,blAmount=Остатък сума');
+    			}
+    		
+    			$form->setOptions('orderField', $options);
+    		}
+    	} else {
+    		$form->setField('orderField', 'input=none');
+    	}
+    	
     	$this->invoke('AfterPrepareEmbeddedForm', array($form));
     }
     
@@ -154,6 +173,10 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     		if($form->rec->to < $form->rec->from){
     			$form->setError('to, from', 'Началната дата трябва да е по малка от крайната');
     		}
+    		
+    		if($form->rec->orderBy == ''){
+    			unset($form->rec->orderBy);
+    		}
     	}
     }
         
@@ -171,6 +194,7 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     	
     	$data->groupBy = arr::make($this->innerForm->groupBy, TRUE);
     	$data->groupBy = array_values($data->groupBy);
+    	
     	array_unshift($data->groupBy, null);
     	unset($data->groupBy[0]);
     	$this->prepareListFields($data);
@@ -185,7 +209,7 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     	while($jRec = $jQuery->fetch()){
     		$this->addEntry($form->baseAccountId, $jRec, $data, $form->groupBy);
     	}
-    	//bp($data->recs,$data->groupBy);
+    	
     	// Ако има намерени записи
     	if(count($data->recs)){ 
     		
@@ -207,9 +231,19 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     		}
     	}
     	
+    	// Ако не се групира по размерна сметка, не показваме количества
+    	if(count($data->groupBy)){
+    		$data->hasDimensional = FALSE;
+    		foreach ($data->groupBy as $grId){
+    			if(acc_Lists::fetchField($grId, 'isDimensional') == 'yes'){
+    				$data->hasDimensional = TRUE;
+    			}
+    		}
+    	}
+    	
 		// Обработваме обобщената информация
     	$this->prepareSummary($data);
-		//bp($data);
+		
     	return $data;
     }
     
@@ -246,21 +280,28 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     			}
     		}
     		
-    		// Подготвяме поле за сортиране по номерата на перата
-    		foreach ($data->recs as &$rec){
-    			$rec->sortField = '';
-    			foreach (range(1, 3) as $j){
-    				if(isset($rec->{"item{$j}"})){
-    					$rec->sortField .= $mvc->cache[$rec->{"item{$j}"}];
+    		if(!$mvc->innerForm->orderBy){
+    			// Подготвяме поле за сортиране по номерата на перата
+    			foreach ($data->recs as &$rec){
+    				$rec->sortField = '';
+    				foreach (range(1, 3) as $j){
+    					if(isset($rec->{"item{$j}"})){
+    						$rec->sortField .= $mvc->cache[$rec->{"item{$j}"}];
+    					}
     				}
+    				
+    				$rec->sortField = strtolower(str::utf2ascii($rec->sortField));
     			}
     			
-    			$rec->sortField = strtolower(str::utf2ascii($rec->sortField));
+    			// Сортираме записите според полето за сравнение
+    			usort($data->recs, array($mvc, "sortRecs"));
+    		} else {
+    			
+    			// Ако има избрано поле за сортиране, сортираме по него
+    			arr::order($data->recs, $mvc->innerForm->orderField, $mvc->innerForm->orderBy);
     		}
     		
-    		// Сортираме записите според полето за сравнение
-    		usort($data->recs, array($mvc, "sortRecs"));
-    		//bp($data->recs);
+    		
     		// За всеки запис
     		foreach ($data->recs as &$rec){
     			
@@ -291,12 +332,12 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     /**
      * Рендира вградения обект
      */
-    public function renderEmbeddedData($data)
+    public function renderEmbeddedData(&$embedderTpl, $data)
     {
     	if(empty($data)) return;
-    	//bp($data);
+    	
     	$tpl = $this->getReportLayout();
-    	$tpl->replace($this->title, 'TITLE');
+    	$tpl->replace($this->getReportTitle(), 'TITLE');
     	
     	 
     	$tpl->placeObject($data->summary);
@@ -317,7 +358,7 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     	}
     	 
     	// Ако к-та и сумите са еднакви, не показваме количествата
-    	if($data->hasSameAmounts === TRUE){
+    	if($data->hasSameAmounts === TRUE || $data->hasDimensional !== TRUE){
     		unset($fields['debitQuantity']);
     		unset($fields['creditQuantity']);
     		unset($fields['blQuantity']);
@@ -361,11 +402,9 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     	$form->rec = $this->innerForm;
     	$form->class = 'simpleForm';
     
-    	//$tpl->append($form->renderStaticHtml(), 'FORM');
     	$this->prependStaticForm($tpl, 'FORM');
     	 
-    	// Връщаме шаблона
-    	return $tpl;
+    	$embedderTpl->append($tpl, 'data');
     }
     
     
@@ -562,16 +601,12 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     	$header = $this->generateHeader()->header;
     	
     	// Кешираме номерата на перата в отчета
-    	//if(count($this->cache)){
-    		$iQuery = acc_Items::getQuery();
-    		$iQuery->show("num");
-    		//$iQuery->in('id', $mvc->cache);
+    	$iQuery = acc_Items::getQuery();
+    	$iQuery->show("num");
     	
-    		while($iRec = $iQuery->fetch()){
-    			$mvc->cache[$iRec->id] = $iRec->num;
-    		}
-    	//}
-    	
+    	while($iRec = $iQuery->fetch()){
+    		$mvc->cache[$iRec->id] = $iRec->num;
+    	}
     	
     	// Подготвяме поле за сортиране по номерата на перата
     	foreach ($this->innerState->recs as &$rec){ 
@@ -706,5 +741,18 @@ class acc_CorespondingReportImpl extends frame_BaseDriver
     	}
     
     	return $rCsv;
+    }
+    
+    
+    /**
+     * Връща дефолт заглавието на репорта
+     */
+    public function getReportTitle()
+    {
+    	$baseSysId = acc_Accounts::fetchField($this->innerForm->baseAccountId, 'systemId');
+    	$corrSysId = acc_Accounts::fetchField($this->innerForm->corespondentAccountId, 'systemId');
+    	$title = tr("|Кореспонденция на сметки|* {$baseSysId} / {$corrSysId}");
+    	
+    	return $title;
     }
 }

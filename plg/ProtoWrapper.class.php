@@ -136,7 +136,9 @@ class plg_ProtoWrapper extends core_Plugin
 
             // Контрол да достъпа до табовете
             if($rec->haveRight = haveRole($rec->roles)) {
-                $act = strtolower($rec->url['Act']);
+                if(isset($rec->url['Act'])) {
+                    $act = strtolower($rec->url['Act']);
+                }
                 try {
                     if($act == 'list' || $act == 'default' || empty($act)) {
                         $tabCtr = cls::get($rec->url['Ctr']);

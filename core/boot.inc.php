@@ -289,7 +289,7 @@ function getSelfURL()
  */
 function shutdown($sendOutput = TRUE)
 {
-    core_App::shutdown();
+    core_App::shutdown($sendOutput);
 }
 
 

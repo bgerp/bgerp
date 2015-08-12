@@ -36,6 +36,12 @@ class cat_Categories extends core_Master
     
     
     /**
+     * Кои документи да се добавят като бързи бутони в папката на корицата
+     */
+    public $defaultDefaultDocuments  = 'cat_Products';
+    
+    
+    /**
      * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_RowTools, cat_Wrapper, plg_State, doc_FolderPlg, plg_Rejected';

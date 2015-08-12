@@ -154,7 +154,7 @@ class blast_Emails extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    protected $listFields = 'id, subject, srcLink, from, sendPerCall, startOn';
+    protected $listFields = 'id, subject, srcLink, from, sendPerCall, sendingDay, sendingFrom, sendingTo';
     
     /**
      * Детайла, на модела
@@ -190,8 +190,14 @@ class blast_Emails extends core_Master
         $this->FLD('body', 'richtext(rows=15,bucket=Blast)', 'caption=Съобщение,mandatory, changable');
         $this->FLD('unsubscribe', 'richtext(rows=3,bucket=Blast)', 'caption=Отписване, changable', array('attr' => array('id' => 'unsId')));
         $this->FLD('sendPerCall', 'int(min=1, max=100)', 'caption=Изпращания заедно, input=none, mandatory, oldFieldName=sendPerMinute, title=Брой изпращания заедно');
-        $this->FLD('startOn', 'datetime', 'caption=Време на започване, input=none');
+        
+        $this->FLD('sendingFrom', 'time(suggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00)', 'caption=Начален час, input=none');
+        $this->FLD('sendingTo', 'time(suggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00)', 'caption=Краен час, input=none');
+        $this->FLD('sendingDay', 'set(1=Пон, 2=Вто, 3=Сря, 4=Чет, 5=Пет, 6=Съб, 0=Нед)', 'caption=Ден, input=none, columns=7');
+        
         $this->FLD('activatedBy', 'key(mvc=core_Users)', 'caption=Активирано от, input=none');
+        
+        $this->FLD('progress', 'percent(min=0,max=1,decimals=0)', 'caption=Прогрес, input=none, notNull');
         
         //Данни на адресата - антетка
         $this->FLD('recipient', 'varchar', 'caption=Адресат->Фирма,class=contactData, changable');
@@ -212,11 +218,9 @@ class blast_Emails extends core_Master
         
         $this->FLD('attachments', 'set(files=Файловете,documents=Документите)', 'caption=Прикачи, changable');
         
-        if (defined('EF_LANGUAGES')) {
-            $this->FLD('lg', 'enum(auto=Автоматично, ' . EF_LANGUAGES . ')', 'caption=Език,changable,notNull');
-        } else {
-            $this->FLD('lg', 'enum(auto=Автоматично)', 'caption=Език,changable,notNull');
-        }
+        cls::get('core_Lg');
+        
+        $this->FLD('lg', 'enum(auto=Автоматично, ' . EF_LANGUAGES . ')', 'caption=Език,changable,notNull');
         
         $this->FNC('srcLink', 'varchar', 'caption=Списък');
     }
@@ -287,7 +291,6 @@ class blast_Emails extends core_Master
         $rec->state = 'active';
         $rec->activatedBy = core_Users::getCurrent();
         $rec->sendPerCall = $sendPerCall;
-        $rec->startOn = dt::now();
         self::save($rec);
         
         return $updateCnt;
@@ -360,20 +363,42 @@ class blast_Emails extends core_Master
     {
         // Всички активни или чакащи имейли, на които им е дошло времето за стартиране
         $query = blast_Emails::getQuery();
-        $now = dt::verbal2mysql();
-        $query->where("#startOn <= '{$now}'");
-        $query->orWhere("#startOn IS NULL");
+        
         $query->where("#state = 'active'");
         $query->orWhere("#state = 'pending'");
+        
+        $conf = core_Packs::getConfig('blast');
+        
+        // За да получим минути
+        $period = $conf->BLAST_EMAILS_CRON_PERIOD;
         
         //Проверяваме дали имаме запис, който не е затворен и му е дошло времето за активиране
         while ($rec = $query->fetch()) {
             
-            // Променяме състоянието от чакащо в активно
+            $now = dt::now();
+            $nextStartTime = self::getNextStartTime($rec, $now);
+            
+            // Вземаме секундите между сегашното време и времето на стартиране
+            $sec = dt::secsBetween($nextStartTime, $now);
+            
             if ($rec->state == 'pending') {
-                $rec->state = 'active';
-                $this->save($rec);
+                if (($sec <= 0) || ($sec <= $period)) {
+                    $rec->state = 'active';
+                    $this->save($rec);
+                    
+                    if (!($sec <= 0)) continue;
+                }
+            } elseif ($rec->state == 'active') {
+                if ($sec > $period) {
+                    $rec->state = 'pending';
+                    $this->save($rec);
+                } elseif ($sec) {
+                    continue ;
+                }
             }
+            
+            // Само активните да се изпращат
+            if ($rec->state != 'active') continue;
             
             // Вземаме данните за имейлите, до които ще пращаме
             $dataArr = blast_EmailSend::getDataArrForEmailId($rec->id, $rec->sendPerCall);
@@ -381,6 +406,7 @@ class blast_Emails extends core_Master
             // Ако няма данни, затваряме 
             if (!$dataArr) {
                 $rec->state = 'closed';
+                $rec->progress = 1;
                 $this->save($rec);
                 continue;
             }
@@ -497,6 +523,9 @@ class blast_Emails extends core_Master
                     doclog_Documents::returned($body->__mid);
                 }
             }
+            
+            $rec->progress = blast_EmailSend::getSendingProgress($rec->id);
+            $this->save($rec, 'progress, modifiedOn');
         }
     }
     
@@ -915,8 +944,11 @@ class blast_Emails extends core_Master
         // Очакваме потребителя да има права за активиране
         $this->requireRightFor('activate', $rec);
         
+        // Задаваме да се показват само полетата, които ни интересуват
+        $form->showFields = 'sendPerCall, sendingDay, sendingFrom, sendingTo';
+        
         // Въвеждаме съдържанието на полетата
-        $form->input('sendPerCall, startOn');
+        $form->input($form->showFields);
         
         // Инстанция на избрания клас
         $srcClsInst = cls::get($rec->perSrcClassId);
@@ -924,28 +956,9 @@ class blast_Emails extends core_Master
         // Ако формата е изпратена без грешки
         if($form->isSubmitted()) {
             
-            // Ако има задедена дата
-            if ($form->rec->startOn) {
-                
-                // Ако в записа няма зададена дата
-                if (!$rec->startOn) {
-                    
-                    // Вземаме текущото време
-                    $date = dt::now();
-                } else {
-                    
-                    // Вземаме времото от записа
-                    $date = $rec->startOn;
-                }
-                
-                // Вземаме разликата в секундите
-                $secB = dt::secsBetween($form->rec->startOn, $date);
-                
-                // Ако е предишна дата
-                if ($secB < 0) {
-                    
-                    // Сетваме грешка
-                    $form->setError('startOn', 'Не може да въведе минала дата');
+            if ($form->rec->sendingFrom && $form->rec->sendingTo) {
+                if ($form->rec->sendingFrom >= $form->rec->sendingTo) {
+                    $form->setError('sendingTo, sendingFrom', 'Началният час трябва да е преди крайния');
                 }
             }
         }
@@ -955,15 +968,10 @@ class blast_Emails extends core_Master
             
             $form->rec->activatedBy = core_Users::getCurrent();
             
-            // Ако е въведена коректна дата, тогава използва нея
-            // Ако не е въведено нищо, тогава използва сегашната дата
-            // Ако е въведена грешна дата показва съобщение за грешка
-            if (!$form->rec->startOn) {
-                $form->rec->startOn = dt::verbal2mysql();
-            }
+            $nextStartTime = self::getNextStartTime($form->rec);
             
             // Вземаме секундите между сегашното време и времето на стартиране
-            $sec = dt::secsBetween($form->rec->startOn, dt::now());
+            $sec = dt::secsBetween($nextStartTime, dt::now());
             
             // Ако са по - малко от 60 секунди
             if ($sec < 60) {
@@ -977,7 +985,7 @@ class blast_Emails extends core_Master
             }
             
             // Упдейтва състоянието и данните за имейл-а
-            blast_Emails::save($form->rec, 'state,startOn,sendPerCall,activatedBy,modifiedBy,modifiedOn');
+            blast_Emails::save($form->rec, 'state,sendPerCall,activatedBy,modifiedBy,modifiedOn, sendingDay, sendingFrom, sendingTo');
             
             // Обновяваме списъка с имейлите
             $updateCnt = self::updateEmailList($form->rec->id);
@@ -1006,11 +1014,10 @@ class blast_Emails extends core_Master
             // Стойности по подразбиране
             $perMin = $rec->sendPerCall ? $rec->sendPerCall : 5;
             $form->setDefault('sendPerCall', $perMin);
-            $form->setDefault('startOn', $rec->startOn);
+            $form->setDefault('sendingDay', $rec->sendingDay);
+            $form->setDefault('sendingFrom', $rec->sendingFrom);
+            $form->setDefault('sendingTo', $rec->sendingTo);
         }
-        
-        // Задаваме да се показват само полетата, които ни интересуват
-        $form->showFields = 'sendPerCall, startOn';
         
         // Добавяме бутоните на формата
         $form->toolbar->addSbBtn('Запис', 'save', NULL, 'ef_icon = img/16/disk.png, title=Запис на документа');
@@ -1084,14 +1091,14 @@ class blast_Emails extends core_Master
                 $updateMsg = 'Добавени са|* ' . $updateCnt . ' |записа';
             }
             
-            $nRec = new stdClass();
+            $rec->progress = blast_EmailSend::getSendingProgress($rec->id);
             
             // Ако състоянието е затворено, активираме имейла
             if ($rec->state == 'closed') {
-                $nRec->id = $rec->id;
-                $nRec->state = 'active';
-                $this->save($nRec);
+                $rec->state = 'active';
             }
+            
+            $this->save($rec);
         } else {
             $updateMsg = 'Няма нови записи за добавяне';
         }
@@ -1147,6 +1154,8 @@ class blast_Emails extends core_Master
         $lang = Request::get('lg');
         $id = Request::get('id', 'int');
         $uns = Request::get("uns");
+        
+        expect($id);
         
         $rec = $this->fetch($id);
         expect($rec);
@@ -1209,7 +1218,7 @@ class blast_Emails extends core_Master
             // Добавяме имейл-а в листата на блокираните
             if ($uns) {
                 
-                blast_BlockedEmails::add($email);
+                blast_BlockedEmails::blockEmail($email);
             }
             
             $text = $conf->BGERP_BLAST_SUCCESS_REMOVED;
@@ -1218,7 +1227,7 @@ class blast_Emails extends core_Master
             $click = 'Премахване';
             
             // Премахваме имейл-а от листата на блокираните имейли
-            blast_BlockedEmails::remove($email);
+            blast_BlockedEmails::unBlockEmail($email);
             $text = $conf->BGERP_BLAST_SUCCESS_ADD;
         } else {
             $act = 'del';
@@ -1413,15 +1422,29 @@ class blast_Emails extends core_Master
             // По подразбиране да е избран текущия имейл на потребителя
             $form->setDefault('from', email_Outgoings::getDefaultInboxId($rec->folderId));
             
-            $rec->recipient = '[#company#]';
-            $rec->attn = '[#person#]';
-            $rec->email = '[#email#]';
-            $rec->tel = '[#tel#]';
-            $rec->fax = '[#fax#]';
-            $rec->country = '[#country#]';
-            $rec->pcode = '[#pCode#]';
-            $rec->place = '[#place#]';
-            $rec->address = '[#address#]';
+            $fieldsArr = array('company' => 'company', 
+            				   'person' => 'person', 
+            				   'email' => 'email', 
+            				   'tel' => 'tel', 
+            				   'fax' => 'fax', 
+            				   'country' => 'country', 
+            				   'pCode' => 'pCode', 
+            				   'place' => 'place', 
+            				   'address' => 'address');
+            
+            if ($perSrcObjId) {
+                $fieldsArr = $perClsInst->getPersonalizationDescr($perSrcObjId);
+            }
+            
+            $rec->recipient = $fieldsArr['company'] ? '[#company#]' : '';
+            $rec->attn = $fieldsArr['person'] ? '[#person#]' : '';
+            $rec->email = $fieldsArr['email'] ? '[#email#]' : '';
+            $rec->tel = $fieldsArr['tel'] ? '[#tel#]' : '';
+            $rec->fax = $fieldsArr['fax'] ? '[#fax#]' : '';
+            $rec->country = $fieldsArr['country'] ? '[#country#]' : '';
+            $rec->pcode = $fieldsArr['pCode'] ? '[#pCode#]' : '';
+            $rec->place = $fieldsArr['place'] ? '[#place#]' : '';
+            $rec->address = $fieldsArr['address'] ? '[#address#]' : '';
         }
     }
     
@@ -1633,6 +1656,13 @@ class blast_Emails extends core_Master
      */
     static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
+        $blue = new color_Object("#2244cc");
+        $grey = new color_Object("#bbb");
+        
+        $progressPx = min(100, round(100 * $rec->progress));
+        $progressRemainPx = 100 - $progressPx;
+        $row->progressBar = "<div style='white-space: nowrap; display: inline-block;'><div style='display:inline-block;top:-5px;border-bottom:solid 10px {$blue}; width:{$progressPx}px;'> </div><div style='display:inline-block;top:-5px;border-bottom:solid 10px {$grey};width:{$progressRemainPx}px;'></div></div>";
+        
         //При рендиране на листовия изглед показваме дали ще се прикачат файловете и/или документите
         $attachArr = type_Set::toArray($rec->attachments);
         
@@ -1768,33 +1798,80 @@ class blast_Emails extends core_Master
             // Записите
             $rec = $data->rec;
             
+            if (!$data->row->sendingDay) {
+                $data->row->sendingDay = tr('Всеки ден');
+            }
+            
             // Ако състоянието е активирано или чернов
-            if ($rec->state == 'active' || $rec->state == 'waitnig') {
+            if ($rec->state == 'active' || $rec->state == 'pending') {
                 
-                // Вземаме времето на следващото изпращане
-                // Ако има такова време
-                if ($nextStartTime = core_Cron::getNextStartTime(self::$cronSytemId)) {
-                    
-                    // Ако времето е преди въведената дата от потребителя
-                    if ($nextStartTime < $rec->startOn) {
-                        
-                        // Използваме дата на потребителя
-                        $nextStartTime = $rec->startOn;
-                    }
-                } else {
-                    
-                    // Вземаме времето въведено от потребителя
-                    $nextStartTime = $rec->startOn;
-                }
+                $nextStartTime = self::getNextStartTime($rec, core_Cron::getNextStartTime(self::$cronSytemId));
                 
-                // Ако сме успели да определим времето
-                if ($nextStartTime) {
-                    
-                    // Показваме вербалното време
-                    $data->row->NextStartTime = dt::mysql2verbal($nextStartTime, 'smartTime');
-                }
+                $data->row->NextStartTime = dt::mysql2verbal($nextStartTime, 'smartTime');
             }
         }
+    }
+    
+    
+    /**
+     * Връща времето на следващото стартиране
+     * 
+     * @param object $rec
+     * @param NULL|datetime $nextStartTime
+     * 
+     * @return datetime
+     */
+    protected static function getNextStartTime($rec, $nextStartTime = NULL)
+    {
+        if (!$nextStartTime) {
+            $nextStartTime = dt::now();
+        }
+        
+        $nowF = dt::now(FALSE);
+        
+        $today = dt::mysql2timestamp($nowF);
+        
+        if ($rec->sendingFrom) {
+            $sendingFrom = $today + $rec->sendingFrom;
+            $sendingFrom = dt::timestamp2Mysql($sendingFrom);
+        }
+        
+        if ($rec->sendingTo) {
+            $sendingTo = $today + $rec->sendingTo;
+            $sendingTo = dt::timestamp2Mysql($sendingTo);
+        }
+        
+        $sendingArr = type_Set::toArray($rec->sendingDay);
+        
+        $dayOfWeek = date('w');
+        
+        $haveNextStartTime = FALSE;
+        
+        if (!$sendingArr || ($sendingArr[$dayOfWeek])) {
+            if ((($nextStartTime >= $sendingFrom) || !$sendingFrom) && (($nextStartTime < $sendingTo) || !$sendingTo)) {
+                $haveNextStartTime = TRUE;
+            }
+        }
+        
+        if (!$haveNextStartTime) {
+            
+            $nextStartDay = 7;
+            
+            foreach ($sendingArr as $sendingDay) {
+                if ($sendingDay > $dayOfWeek) {
+                    $nextStartDay = $sendingDay;
+                    break;
+                }
+            }
+            
+            $nextStartTime = dt::addDays($nextStartDay-$dayOfWeek, $nowF);
+            
+            if ($rec->sendingFrom) {
+                $nextStartTime = dt::addSecs($rec->sendingFrom, $nextStartTime);
+            }
+        }
+        
+        return $nextStartTime;
     }
     
     
@@ -1816,7 +1893,7 @@ class blast_Emails extends core_Master
         
         // Сортиране на записите по състояние и по времето им на започване
         $data->query->orderBy('state', 'ASC');
-        $data->query->orderBy('startOn', 'DESC');
+        $data->query->orderBy('id', 'DESC');
     }
     
     

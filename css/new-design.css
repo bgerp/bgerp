@@ -703,6 +703,9 @@ button {
 .narrow button {
   padding-left: 5px !important; }
 
+.narrow .dimension input.button {
+  border: none !important; }
+
 input.linkWithIcon,
 a.linkWithIcon {
   padding-left: 25px !important; }

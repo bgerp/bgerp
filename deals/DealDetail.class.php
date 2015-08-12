@@ -77,9 +77,8 @@ abstract class deals_DealDetail extends doc_Detail
     public static function getDealDetailFields(&$mvc)
     {
     	$mvc->FLD('classId', 'class(interface=cat_ProductAccRegIntf, select=title)', 'caption=Мениджър,silent,input=hidden');
-    	$mvc->FLD('productId', 'int', 'caption=Продукт,notNull,mandatory', 'tdClass=large-field leftCol wrap,silent,removeAndRefreshForm=packPrice|discount|uomId|packagingId|tolerance');
-    	$mvc->FLD('uomId', 'key(mvc=cat_UoM, select=shortName)', 'caption=Мярка,input=none');
-    	$mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка', 'tdClass=small-field,silent,removeAndRefreshForm=packPrice|discount|uomId,mandatory');
+    	$mvc->FLD('productId', 'int', 'caption=Продукт,notNull,mandatory', 'tdClass=large-field leftCol wrap,silent,removeAndRefreshForm=packPrice|discount|packagingId|tolerance');
+    	$mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка', 'tdClass=small-field,silent,removeAndRefreshForm=packPrice|discount,mandatory');
     	
     	// Количество в основна мярка
     	$mvc->FLD('quantity', 'double', 'caption=Количество,input=none');
@@ -251,7 +250,7 @@ abstract class deals_DealDetail extends doc_Detail
     		$rec = &$form->rec;
     	
     		// Закръгляме количеството спрямо допустимото от мярката
-    		$roundQuantity = cat_UoM::round($rec->packQuantity, $rec->productId, $rec->packagingId);
+    		$roundQuantity = cat_UoM::round($rec->packQuantity, $rec->productId);
     		if($roundQuantity == 0){
     			$form->setError('packQuantity', 'Не може да бъде въведено количество, което след закръглянето указано в|* <b>|Артикули|* » |Каталог|* » |Мерки/Опаковки|*</b> |ще стане|* 0');
     			return;
@@ -381,7 +380,7 @@ abstract class deals_DealDetail extends doc_Detail
     	$rows = &$data->rows;
     	
     	// Скриване на полето "мярка"
-    	$data->listFields = array_diff_key($data->listFields, arr::make('uomId,quantityInPack', TRUE));
+    	$data->listFields = array_diff_key($data->listFields, arr::make('quantityInPack', TRUE));
     	
     	if(!count($recs)) return;
     	
@@ -401,20 +400,6 @@ abstract class deals_DealDetail extends doc_Detail
               	deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
             }
         }
-    }
-    
-    
-    /**
-     * Преди запис
-     */
-    public static function on_BeforeSave(core_Manager $mvc, $res, $rec)
-    {
-    	if(empty($rec->uomId)){
-    		$productInfo = cls::get($rec->classId)->getProductInfo($rec->productId);
-    		 
-    		// Записваме основната мярка на продукта
-    		$rec->uomId = $productInfo->productRec->measureId;
-    	}
     }
     
     

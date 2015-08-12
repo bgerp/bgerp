@@ -12,14 +12,15 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class  sens2_LogicDetails extends core_Detail
+class  sens2_ScriptActions extends core_Detail
 {
     
-    
+    public $oldClassName = 'sens2_LogicDetails';
+
     /**
      * Необходими плъгини
      */
-    var $loadList = 'plg_Created, plg_RowTools, sens2_Wrapper';
+    var $loadList = 'plg_Created, plg_RowTools, sens2_Wrapper, plg_State';
                       
     
     /**
@@ -62,12 +63,17 @@ class  sens2_LogicDetails extends core_Detail
     /**
      * Ключ към матера
      */
-    var $masterKey = 'logicId';
+    var $masterKey = 'scriptId';
     
 
-    var $currentTab = 'Логика';
+    /**
+     * Текущ таб
+     */
+    var $currentTab = 'Скриптове';
 
-    var $listFields = 'order,action,data';
+
+    var $listFields = 'order,action';
+
 
     var $rowToolsField = 'order';
 
@@ -75,10 +81,11 @@ class  sens2_LogicDetails extends core_Detail
      * Описание на модела
      */
     function description()
-    {
-        $this->FLD('logicId', 'key(mvc=sens2_Logics,title=name)', 'caption=Блок,column=none,silent');
-        $this->FLD('action', 'class(interface=sens2_LogicActionIntf, select=title, allowEmpty)', 'caption=Тип,mandatory,silent,refreshForm');
+    {   
         $this->FLD('order', 'int', 'caption=Ред №');
+        $this->FLD('scriptId', 'key(mvc=sens2_Scripts,title=name)', 'caption=Блок,column=none,silent,oldFieldName=logicId');
+        $this->FLD('action', 'class(interface=sens2_ScriptActionIntf, select=title, allowEmpty)', 'caption=Действие,mandatory,silent,refreshForm');
+        $this->FLD('state', 'enum(active,closed,stopped)', 'caption=Състояние,input=none');
 
         $this->FLD('data', 'blob(serialize)', 'caption=Данни,input=none');
     }
@@ -124,7 +131,7 @@ class  sens2_LogicDetails extends core_Detail
             $query = $mvc->getQuery();
             $query->orderBy('#order', 'DESC');
             $query->limit(1);
-            $maxOrder = (int) $query->fetch()->order;
+            $maxOrder = (int) $query->fetch("#scriptId = {$form->rec->scriptId}")->order;
             $form->setDefault('order', round(($maxOrder+1)/10)*10 + 10);
         }
         if($form->isSubmitted() && $form->rec->action) {
@@ -156,9 +163,31 @@ class  sens2_LogicDetails extends core_Detail
     function on_AfterRecToVerbal($mvc, $row, $rec)
     {   
         $action = cls::get($rec->action);
+        
+        $rec->data->scriptId = $rec->scriptId;
 
-        $row->data = $action->toVerbal($rec->data);
+        $row->action = "<div style='font-family: Courier New,monospace !important; font-size:0.8em;'>" . $action->toVerbal($rec->data) . "</div>";
     }
+
+
+    /**
+     * Изпълнява указания скрипт
+     */
+    public static function runScript($scriptId)
+    {
+        $query = self::getQuery();
+        while($rec = $query->fetch("#scriptId = {$scriptId}")) {
+            $action = cls::get($rec->action);
+            $rec->data->scriptId = $rec->scriptId;
+            $exState = $rec->state;
+            $rec->state = $action->run($rec->data);
+            if($rec->state != $exState) {
+                self::save($rec, 'state');
+            }
+        }
+    }
+
+
 
 
 }

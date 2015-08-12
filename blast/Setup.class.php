@@ -28,7 +28,7 @@ defIfNot('BGERP_BLAST_SUCCESS_REMOVED', '|Имейлът|* [#email#] |е пре�
 /**
  * Текст за отписване във футъра
  */
-defIfNot('BLAST_UNSUBSCRIBE_TEXT_FOOTER', '|Ако не желаете да получавате повече информация от нас, моля натиснете|* [unsubscribe]|тук|*[/unsubscribe]');
+defIfNot('BLAST_UNSUBSCRIBE_TEXT_FOOTER', '|Можете да нaтиснете|* [unsubscribe]|тук|*[/unsubscribe], |ако не желаете да получавате повече информация от нас|*');
 
 
 /**
@@ -41,6 +41,24 @@ defIfNot('BLAST_EMAILS_CRON_PERIOD', '60');
  * Ограничение на времето при изпращане по крон
  */
 defIfNot('BLAST_EMAILS_CRON_TIME_LIMIT', '50');
+
+
+/**
+ * Повторна проверка за валидност на имейли след
+ */
+defIfNot('BLAST_RECHECK_EMAILS_AFTER', type_Time::SECONDS_IN_MONTH);
+
+
+/**
+ * Брой имейли за проверка при всяко извикване
+ */
+defIfNot('BLAST_RECHECK_EMAILS_LIMIT', 5);
+
+
+/**
+ * След колко време, ако няма комуникация с имейла да се спре да се проверява
+ */
+defIfNot('BLAST_STOP_CHECKING_EMAILS_PERIOD', 15778476);
 
 
 /**
@@ -105,7 +123,11 @@ class blast_Setup extends core_ProtoSetup
         'BLAST_UNSUBSCRIBE_TEXT_FOOTER'   => array ('text(rows=3)', 'caption=Текст за отписване във футъра->Текст'),
         
         'BLAST_EMAILS_CRON_PERIOD'   => array ('time(suggestions=1 мин.|2 мин.|5 мин.|10 мин.)', 'caption=Период на изпращане на информационни съобщения по крон->Време'),
-        'BLAST_EMAILS_CRON_TIME_LIMIT'   => array ('time(suggestions=30 сек.|50 сек.|1 мин.|2 мин.|3 мин.)', 'caption=Ограничение на времето при изпращане по крон->Време')
+        'BLAST_EMAILS_CRON_TIME_LIMIT'   => array ('time(suggestions=30 сек.|50 сек.|1 мин.|2 мин.|3 мин.)', 'caption=Ограничение на времето при изпращане по крон->Време'),
+        
+        'BLAST_RECHECK_EMAILS_AFTER'   => array ('time(suggestions=15 дни|1 месец|2 месеца)', 'caption=Повторна проверка за валидност на имейли след->Време'),
+        'BLAST_RECHECK_EMAILS_LIMIT'   => array ('int', 'suggestions=3|5|10, caption=Лимит за проверка на имейли за всяко извикване->Брой'),
+        'BLAST_STOP_CHECKING_EMAILS_PERIOD'   => array ('time(suggestions=3 месеца|6 месеца|1 година)', 'caption=Колко време след последната комуникация да се спре проверката на имейла->Време'),
     );
     
     
@@ -122,7 +144,10 @@ class blast_Setup extends core_ProtoSetup
         'blast_EmailSend',
         'migrate::fixListId',
         'migrate::fixEmails',
-        'migrate::addEmailSendHash'
+        'migrate::addEmailSendHash',
+        'migrate::updateListLg2',
+        'migrate::stateOfBlockedEmails',
+        'migrate::calcProgress'
     );
     
     
@@ -296,6 +321,100 @@ class blast_Setup extends core_ProtoSetup
             $rec->hash = $hash;
             
             blast_EmailSend::save($rec, 'hash', 'UPDATE');
+        }
+    }
+    
+    
+    /**
+     * Обновява езика на списъците
+     */
+    static function updateListLg2()
+    {
+        $lQuery = blast_Lists::getQuery();
+        $lQuery->where("#lg IS NULL OR #lg = '' OR #lg = 'auto'");
+        
+        while ($lRec = $lQuery->fetch()) {
+            $ldQuery = blast_ListDetails::getQuery();
+            $ldQuery->where("#listId = {$lRec->id}");
+            
+            $cnt = $ldQuery->count();
+            
+            if ($cnt && $lRec->keyField == 'email') {
+                $ldQuery->where("#key LIKE '%.bg'");
+                
+                $bgCnt = $ldQuery->count();
+                
+                $cntRes = $bgCnt / $cnt;
+                
+                if ($cntRes > 0.1) {
+                    $lRec->lg = 'bg';
+                } else {
+                    $lRec->lg = 'en';
+                }
+            } else {
+                $lRec->lg = 'en';
+            }
+            
+            blast_Lists::save($lRec, 'lg');
+        }
+    }
+    
+    
+    /**
+     * Миграция за обновяване на времето на стартиране
+     */
+    public static function updateEmailsSendOn()
+    {
+        $cls = cls::get('blast_Emails');
+        
+        $cls->db->connect();
+        
+        $startOnField = str::phpToMysqlName('startOn');
+        
+        if (!$cls->db->isFieldExists($cls->dbTableName, $startOnField)) return ;
+        
+        $cls->FLD('startOn', 'datetime', 'caption=Дата');
+        
+        $query = $cls->getQuery();
+        $query->where("#startOn IS NOT NULL");
+        $query->where("#sendingDay IS NULL");
+        $query->where("#sendingTo IS NULL");
+        $query->where("#sendingFrom IS NULL");
+        
+        while ($rec = $query->fetch()) {
+            $timeStamp = dt::mysql2timestamp($rec->startOn);
+            $rec->sendingDay = date('w', $timeStamp);
+            $rec->sendingFrom = date('G', $timeStamp) * 3600;
+            $cls->save($rec, 'sendingDay, sendingFrom');
+        }
+    }
+    
+    
+    /**
+     * Миграция, за промяна на състоянието на всички имейли в блокирани
+     */
+    public static function stateOfBlockedEmails()
+    {
+        $query = blast_BlockedEmails::getQuery();
+        
+        while ($rec = $query->fetch()) {
+            $rec->state = 'blocked';
+            blast_BlockedEmails::save($rec, 'state');
+        }
+    }
+    
+    
+    /**
+     * Миграция, за промяна на прогреса
+     */
+    public static function calcProgress()
+    {
+        $query = blast_Emails::getQuery();
+        
+        while ($rec = $query->fetch()) {
+            $rec->progress = blast_EmailSend::getSendingProgress($rec->id);
+                
+            blast_Emails::save($rec, 'progress');
         }
     }
 }

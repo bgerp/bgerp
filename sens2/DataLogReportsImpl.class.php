@@ -46,7 +46,7 @@ class sens2_DataLogReportsImpl extends frame_BaseDriver
 	 * 
 	 * @param core_Fieldset $fieldset
      */
-    public function addEmbeddedFields(core_Form $form)
+    public function addEmbeddedFields(core_Form &$form)
     {
     	$form->FLD('from', 'datetime', 'caption=От,mandatory');
     	$form->FLD('to', 'datetime', 'caption=До,mandatory');
@@ -122,7 +122,7 @@ class sens2_DataLogReportsImpl extends frame_BaseDriver
 	 * 
 	 * @param stdClass $data
      */
-    public function renderEmbeddedData($data)
+    public function renderEmbeddedData(&$embedderTpl, $data)
     {
     	$layout = getTplFromFile('sens2/tpl/ReportLayout.shtml');
     	$layout->replace($this->title, 'TITLE');
@@ -151,7 +151,7 @@ class sens2_DataLogReportsImpl extends frame_BaseDriver
     		$layout->append($data->pager->getHtml(), 'data');
     	}
     	
-    	return $layout;
+    	$embedderTpl->append($layout, 'innerState');
     }
 
 

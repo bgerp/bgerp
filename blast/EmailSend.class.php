@@ -166,7 +166,10 @@ class blast_EmailSend extends core_Detail
             // За всеки нов запис увеличаваме брояча
             $id = self::save($nRec, NULL, 'IGNORE');
             
-            if ($id) $cnt++;
+            if ($id) {
+                $cnt++;
+                blast_BlockedEmails::addEmail($toEmail, FALSE);
+            }
         }
         
         return $cnt;
@@ -273,6 +276,36 @@ class blast_EmailSend extends core_Detail
         $hash = md5($email);
         
         return $hash;
+    }
+    
+    
+    /**
+     * Връща прогреса на изпращанията
+     * 
+     * @param integer $emailId
+     * 
+     * @return integer
+     */
+    public static function getSendingProgress($emailId)
+    {
+        $query = self::getQuery();
+        $query->where("#emailId = '{$emailId}'");
+        
+        $allCnt = $query->count();
+        
+        if (!$allCnt) return 0;
+        
+        $query->where("#state = 'sended'");
+        
+        $sendedCnt = $query->count();
+        
+        $progress = $sendedCnt/$allCnt;
+        
+        if ($progress > 1) {
+            $progress = 1;
+        }
+        
+        return $progress;
     }
     
     

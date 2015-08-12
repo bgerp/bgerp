@@ -93,7 +93,7 @@ class teracom_TCW122B  extends sens2_ProtoDriver
         $form->FNC('ip', 'ip', 'caption=IP,hint=Въведете IP адреса на устройството, input, mandatory');
         $form->FNC('port', 'int(5)', 'caption=Port,hint=Порт, input, mandatory,value=80');
         $form->FNC('user', 'varchar(10)', 'caption=User,hint=Потребител, input, mandatory, value=admin, notNull');
-        $form->FNC('password', 'password(allowEmpty)', 'caption=Password,hint=Парола, input, value=admin, notNull,autocomplete=off');
+        $form->FNC('password', 'password(show)', 'caption=Password,hint=Парола, input, value=admin, notNull,autocomplete=off');
 
         $form->rec->port = 80;
     }
@@ -134,8 +134,14 @@ class teracom_TCW122B  extends sens2_ProtoDriver
         
         // Парсираме XML-а
         $result = array();
-        core_Xml::toArrayFlat(simplexml_load_string($xml), $result);
+        @core_Xml::toArrayFlat(simplexml_load_string($xml), $result);
         
+        // Ако реазултата не е коректен
+        if (!count($result)) {
+            
+            return "Грешка при парсиране на XML от {$config->ip}:{$config->port}";
+        }
+
         // Извличаме състоянията на входовете от парсирания XML
         foreach ($this->inputs as $name => $details) {
             if($inputs[$name]) {
@@ -174,26 +180,34 @@ class teracom_TCW122B  extends sens2_ProtoDriver
     
     
     /**
-     * Сетва изходите на драйвера по зададен масив
+     * Записва стойностите на изходите на контролера
      *
-     * @return bool
+     * @param   array   $outputs            масив със системните имена на изходите и стойностите, които трябва да бъдат записани
+     * @param   array   $config             конфигурациони параметри
+     * @param   array   $persistentState    персистентно състояние на контролера от базата данни
+     *
+     * @return  array                       Mасив със системните имена на изходите и статус (TRUE/FALSE) на операцията с него
      */
-    function setOuts($outs)
+    function writeOutputs($outputs, $config, &$persistentState)
     {
-        $baseUrl = "http://{$this->settings->user}:{$this->settings->password}@{$this->settings->ip}:{$this->settings->port}/status.xml";
+        $baseUrl = "http://{$config->user}:{$config->password}@{$config->ip}:{$config->port}/status.xml";
         
-        foreach ($this->outs as $out => $attr) {
-            $res[] = $baseUrl . $attr['cmd'] . "=" . $outs[$out];
+        foreach ($this->outputs as $out => $attr) {
+            if(isset($outputs[$out])) {
+                $res[$out] = $baseUrl . $attr['cmd'] . "=" . $outputs[$out];
+            }
         }
-        
         
         // Превключваме релетата
-        foreach ($res as $cmd) {
+        foreach ($res as $out => $cmd) {
             $ch = curl_init("$cmd");
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-            curl_exec($ch);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 3); 
+            $res[$out] = curl_exec($ch);
             curl_close($ch);
         }
+
+        return $res;
     }
     
 }

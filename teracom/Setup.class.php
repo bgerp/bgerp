@@ -6,7 +6,7 @@
  *
  * Инсталиране/Деинсталиране на драйвери за устройствата на Тераком ООД - Русе 
  *
- * @category  vendors
+ * @category  bgerp
  * @package   teracom
  * @author    Milen Georgiev <milen@download.bg>
  * @copyright 2006 - 2014 Experta OOD

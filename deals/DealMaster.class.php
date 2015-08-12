@@ -53,8 +53,6 @@ abstract class deals_DealMaster extends deals_DealBase
 		if(empty($mvc->fields['contoActions'])){
 			$mvc->FLD('contoActions', 'set(activate,pay,ship)', 'input=none,notNull,default=activate');
 		}
-		
-		$mvc->declareInterface('doc_AddToFolderIntf');
 	}
 
 
@@ -753,30 +751,6 @@ abstract class deals_DealMaster extends deals_DealBase
     		  $nRec->closedDocuments);
     	
     	$nRec->paymentState = 'pending';
-    }
-    
-    
-    /**
-     * Да се показвали бърз бутон за създаване на документа в папка
-     */
-    public function mustShowButton($folderRec, $userId = NULL)
-    {
-    	$Cover = doc_Folders::getCover($folderRec->id);
-    	
-    	// Ако папката е на контрагент
-    	if($Cover->haveInterface('doc_ContragentDataIntf')){
-    		$groupList = $Cover->fetchField($Cover->getInstance()->groupsField);
-    		$clientGroupId = crm_Groups::fetchField("#sysId = '{$this->crmDefGroup}'");
-    		
-    		// и той е в група 'клиенти'
-    		if(keylist::isIn($clientGroupId, $groupList)){
-    			
-    			return TRUE;
-    		}
-    	}
-    	
-    	// Ако не е контрагент или не е в група 'клиенти' не слагаме бутон
-    	return FALSE;
     }
 
 

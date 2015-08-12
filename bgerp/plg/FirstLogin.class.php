@@ -37,7 +37,8 @@ class bgerp_plg_FirstLogin extends core_Plugin
             $currUserId = core_Users::getCurrent();
             core_CallOnTime::setOnce('bgerp_plg_FirstLogin', 'welcomeNote', $userRec->id, $callOn);
             
-            core_CallOnTime::setOnce('bgerp_plg_FirstLogin', 'retrieveCurrencyRates', NULL, 60);
+            $callOn = dt::addSecs(60);
+            core_CallOnTime::setOnce('bgerp_plg_FirstLogin', 'retrieveCurrencyRates', NULL, $callOn);
         }
     }
     

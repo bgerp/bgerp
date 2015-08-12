@@ -166,6 +166,13 @@ class tracking_Log extends core_Master {
             }
         }
         
+        // Записваме в базата само ако записа е валиден
+        $data = self::parseTrackingData($trackerData);
+        if ($data['status'] != 'A') {
+
+        	shutdown();
+        }
+        
         $rec->vehicleId = $recVehicle->id;
         $rec->driverId = $recVehicle->personId;
         $rec->data = $trackerData;

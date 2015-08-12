@@ -1,41 +1,32 @@
 <?php
 
 /**
- * Логическо действие за подаване сигнал към изход на контролер
+ * Интерфейс за логически действия, които могат да бъдат добавяни в Логическите блокове
+ *
+ * Класовете, които поддържат този интерфейс представляват едно просто действие, което
+ * може да се записва, редактира, показва и изпълнява в Логическите блокове на контролерите
  *
  *
  * @category  bgerp
  * @package   sens2
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2014 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class sens2_LogicActionSignal
+class sens2_ScriptActionIntf
 {
-
-    /**
-     * Поддържани интерфейси
-     */
-    var $interfaces ="sens2_LogicActionIntf";
-
-
-    /**
-     * Наименование на действието
-     */
-    var $title = 'Сигнал на изход';
-
+    
+    public $oldClassName = 'sens2_LogicActionIntf';
 
     /**
      * Подготвя форма с настройки на контролера, като добавя полета с $form->FLD(....)
      *
      * @param core_Form форма на която трябва да се поставят полетата с конфигурацията на контролера (IP, port, pass, ...)
      */
-    function prepareActionForm(&$form)
+    function prepareActionForm($form)
     {
-        $form->FLD('output', 'varchar', 'caption=Изход,mandatory');
-        $form->FLD('expr', 'text(rows=2)', 'caption=Израз,width=100%,mandatory');
-        $form->FLD('cond', 'text(rows=2)', 'caption=Условие,width=100%');  
+        return $this->class->prepareConfigForm($form);
     }
    
     
@@ -48,23 +39,24 @@ class sens2_LogicActionSignal
      */
     function checkActionForm($form)
     {
+        return $this->class->checkConfigForm($form);
     }
 
-    function toVerbal($rec)
+    
+    /**
+     * Показва вербално представяне на действието
+     */
+    function toVerbal($data)
     {
-        $res = "<span style='color:#999999'>Изход:</span> <b>{$rec->output}</b><br>";
-        $res .= "<span style='color:#999999'>Израз:</span> <b>{$rec->expr}</b><br>";
-        if($rec->cond) {
-            $res .= "<span style='color:#999999'>Израз:</span> <b>{$rec->cond}</b><br>";
-        }
-
-        return $res;
+        return $this->class->process($data);
     }
+
 
     /**
      * Извършва действието, с параметрите, които са в $rec
      */
-    function process($rec)
+    function process($data)
     {
+        return $this->class->process($data);
     }
 }

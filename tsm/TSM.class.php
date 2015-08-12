@@ -93,7 +93,7 @@ class tsm_TSM extends sens2_ProtoDriver
             return "Грешка при четене от {$config->ip}";
         }
 
-        $res['KGH'] = $output;
+        $res['EO'] = $output;
         
         // Минутите от 0-60 са индекси на масива за изчисление на средната стойност
         /*

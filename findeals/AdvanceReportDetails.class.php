@@ -1,4 +1,6 @@
 <?php
+
+
 /**
  * Клас 'findeals_AdvanceReportDetail'
  *
@@ -7,7 +9,7 @@
  * @category  bgerp
  * @package   findeals
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -42,7 +44,7 @@ class findeals_AdvanceReportDetails extends doc_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_Created, findeals_Wrapper, plg_AlignDecimals2, doc_plg_HidePrices';
+    public $loadList = 'plg_RowTools, plg_Created, findeals_Wrapper, plg_AlignDecimals2, doc_plg_HidePrices, plg_SaveAndNew,plg_RowNumbering';
     
     
     /**
@@ -84,13 +86,13 @@ class findeals_AdvanceReportDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт,productId,measureId=Мярка,quantity,description,amount=Сума';
+    public $listFields = 'RowNumb=Пулт,productId,activityCenterId,measureId=Мярка,quantity,description,amount=Сума';
     
         
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
-    public $rowToolsField = 'tools';
+    public $rowToolsField = 'RowNumb';
     
     
 	/**
@@ -105,26 +107,26 @@ class findeals_AdvanceReportDetails extends doc_Detail
     public function description()
     {
     	$this->FLD('reportId', 'key(mvc=findeals_AdvanceReports)', 'column=none,notNull,silent,hidden,mandatory');
-    	$this->FLD('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Продукт,mandatory');
+    	$this->FLD('productId', 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Продукт,mandatory,refreshForm,silent');
     	$this->FLD('amount', 'double(minDecimals=2)', 'caption=Крайна сума,mandatory');
     	$this->FLD('quantity', 'double(minDecimals=0)', 'caption=К-во');
     	$this->FLD('vat', 'percent()', 'caption=ДДС');
     	$this->FLD('description', 'richtext(bucket=Notes,rows=3)', 'caption=Описание');
-    	
+    	$this->FLD('activityCenterId', 'key(mvc=hr_Departments, select=name, allowEmpty)', 'caption=Център,mandatory,remember');
     }
     
     
     /**
-     *  Обработка на формата за редакция и добавяне
+     * Обработка на формата за редакция и добавяне
      */
-    static function on_AfterPrepareEditForm($mvc, $res, $data)
+    protected static function on_AfterPrepareEditForm($mvc, $res, $data)
     {
     	$form = &$data->form;
     	$rec = &$form->rec;
     	
     	$masterRec = $mvc->Master->fetch($form->rec->reportId);
     	$cCode = currency_Currencies::getCodeById($masterRec->currencyId);
-    	$form->setField('amount', "unit={$cCode}");
+    	$form->setField('amount', "unit={$cCode}|* |с ДДС|*");
     	$cover = doc_Folders::getCover($masterRec->folderId);
     	
     	// Взимаме всички продаваеми продукти и махаме складируемите от тях
@@ -135,10 +137,26 @@ class findeals_AdvanceReportDetails extends doc_Detail
     	$form->setDefault('quantity', 1);
     	$form->setSuggestions('vat', ',0 %,7 %,20 %');
     	
-    	if($rec->id){
+    	if(isset($rec->id)){
     		$rec->amount /= $masterRec->rate;
     		$rec->amount *= 1 + $rec->vat;
     		$rec->amount = deals_Helper::roundPrice($rec->amount);
+    	}
+    	
+    	// Ако има избран артикул, извличаме му мярката и я показваме
+    	if(isset($rec->productId)){
+    		$measureId = cat_Products::getProductInfo($rec->productId)->productRec->measureId;
+    		$shortUom = cat_UoM::getShortName($measureId);
+    		$form->setField('quantity', "unit={$shortUom}");
+    	}
+    	
+    	// По дефолт е избран неопределения център
+    	$defCenterId = hr_Departments::fetchField("#systemId = 'emptyCenter'", 'id');
+    	$form->setDefault('activityCenterId', $defCenterId);
+    	
+    	// Ако има само един център на дейност, скриваме полето
+    	if(hr_Departments::count() === 1){
+    		$form->setReadOnly('activityCenterId');
     	}
     }
     
@@ -146,7 +164,7 @@ class findeals_AdvanceReportDetails extends doc_Detail
     /**
      * Проверка и валидиране на формата
      */
-    function on_AfterInputEditForm($mvc, $form)
+    protected static function on_AfterInputEditForm($mvc, $form)
     {
     	$rec = &$form->rec;
     	if ($form->isSubmitted()){
@@ -167,7 +185,11 @@ class findeals_AdvanceReportDetails extends doc_Detail
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	$row->productId = cat_Products::getShortHyperlink($rec->productId);
-    	$row->measureId = cat_UoM::getTitleById(cat_Products::fetchField($rec->productId, 'measureId'));
+    	
+    	$measureId = cat_Products::getProductInfo($rec->productId)->productRec->measureId;
+    	$row->measureId = cat_UoM::getShortName($measureId);
+    	
+    	$row->activityCenterId = hr_Departments::getShortHyperlink($rec->activityCenterId);
     	
     	$masterRec = $mvc->Master->fetch($rec->reportId);
     	$rec->amount /= $masterRec->rate;
@@ -195,7 +217,7 @@ class findeals_AdvanceReportDetails extends doc_Detail
     /**
      * След преобразуване на записа в четим за хора вид.
      */
-    static function on_AfterPrepareListRows($mvc, &$res, &$data)
+    protected static function on_AfterPrepareListRows($mvc, &$res, &$data)
     {
     	unset($data->listFields['description']);
     }

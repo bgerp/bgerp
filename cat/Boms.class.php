@@ -553,8 +553,9 @@ class cat_Boms extends core_Master
     			$d->type = ($d->type) ? $d->type : 'input';
     			expect(in_array($d->type, array('input', 'pop')));
     			 
-    			$d->baseQuantity = $Double->fromVerbal($d->baseQuantity);
-    			$d->propQuantity = $Double->fromVerbal($d->propQuantity);
+    			$d->baseQuantity   = $Double->fromVerbal($d->baseQuantity);
+    			$d->propQuantity   = $Double->fromVerbal($d->propQuantity);
+    			$d->quantityInPack = $Double->fromVerbal($d->quantityInPack);
     			expect($d->baseQuantity || $d->propQuantity);
     			if($d->stageId){
     				expect(planning_Stages::fetch($d->stageId));
@@ -569,7 +570,10 @@ class cat_Boms extends core_Master
     	if(count($details)){
     		foreach ($details as $d1){
     			$d1->bomId = $id;
-    			cat_BomDetails::save($d1);
+    			
+    			if(cls::get('cat_BomDetails')->isUnique($d1, $fields)){
+    				cat_BomDetails::save($d1);
+    			}
     		}
     	}
     	

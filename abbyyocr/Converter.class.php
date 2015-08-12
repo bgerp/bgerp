@@ -172,11 +172,15 @@ class abbyyocr_Converter extends core_Manager
         // Добавяме към изпълнимия скрипт
         $lineExecStr = "abbyyocr9 -rl [#LANGUAGE#] -if [#INPUTF#] -tet UTF8 -f Text -of [#OUTPUTF#]";
         
+        $errFilePath = fileman_webdrv_Generic::getErrLogFilePath($textPath);
+        
         // Скрипта, който ще конвертира
-        $Script->lineExec($lineExecStr, array('LANG' => 'en_US.UTF-8', 'HOME' => $Script->tempPath));
+        $Script->lineExec($lineExecStr, array('LANG' => 'en_US.UTF-8', 'HOME' => $Script->tempPath, 'errFilePath' => $errFilePath));
         
         // Функцията, която ще се извика след приключване на операцията
         $Script->callBack($params['callBack']);
+        
+        $params['errFilePath'] = $errFilePath;
         
         // Други допълнителни параметри
         $Script->outFilePath = $textPath;
@@ -204,7 +208,7 @@ class abbyyocr_Converter extends core_Manager
         $params = unserialize($script->params);
         
         // Проверяваме дали е имало грешка при предишното конвертиране
-        if (fileman_Indexes::haveErrors($script->outFilePath, $params['type'], $params)) {
+        if (fileman_Indexes::haveErrors($script->outFilePath, $params)) {
             
             // Отключваме процеса
             core_Locks::release($params['lockId']);
