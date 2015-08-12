@@ -167,14 +167,14 @@ class embed_Manager extends core_Master
 	{
         parent::prepareSingleFields_($data);
 
-		if($data->rec->driverClass){
-			
-            // Инстанцираме драйвера
-            $driver = cls::get($data->rec->driverClass);
-            
-            $driverFields = self::getDriverFields($driver);
-
-            $data->singleFields += $driverFields;  
+        if($driver = self::getDriver($data->rec->id)){
+        	
+        	// Инстанцираме драйвера
+        	$driver = cls::get($data->rec->driverClass);
+        	
+        	$driverFields = self::getDriverFields($driver);
+        	
+        	$data->singleFields += $driverFields;
         }
 	}
 
