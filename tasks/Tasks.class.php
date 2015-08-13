@@ -349,14 +349,11 @@ class tasks_Tasks extends embed_Manager
     	$table->setFieldsToHideIfEmptyColumn('timeStart,timeDuration,timeEnd');
     	$tpl = $table->get($data->rows, 'tools=Пулт,progress=Прогрес,name=Документ,title=Заглавие,timeStart=Начало, timeDuration=Продължителност, timeEnd=Край, inCharge=Отговорник');
     		 
-    	// Рендира броя на задачите
-    	$count = count($data->recs);
-    	$tpl->append("<small>($count)</small>", 'TASK_COUNT');
     	
     	// Добавя бутон за създаване на нова задача
     	if(isset($data->addUrl)){
-    		$addBtn = ht::createBtn('Задача', $data->addUrl, FALSE, FALSE, 'title=Създаване на задача по заданието,ef_icon=img/16/task-normal.png');
-    		$tpl->append("<div style='margin-top:8px'>{$addBtn}</div>");
+    		$addBtn = ht::createLink('', $data->addUrl, FALSE, 'title=Създаване на задача по заданието,ef_icon=img/16/add.png');
+    		$tpl->append($addBtn, 'ADD_BTN');
     	}
     	
     	// Връщаме шаблона
