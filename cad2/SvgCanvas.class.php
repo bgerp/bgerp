@@ -76,6 +76,7 @@ class cad2_SvgCanvas extends core_BaseClass {
         $this->setAttr('stroke-width', 0.2);
         $this->setAttr('fill', 'none');
         $this->setAttr('font-size', 40); 
+        $this->setAttr('font-family', 'Arial');
 	}
 
 
@@ -361,6 +362,10 @@ class cad2_SvgCanvas extends core_BaseClass {
 
         if( $size = $this->getAttr('font-size') ) {
 			$tx->attr['font-size'] = $size;
+		}
+        
+        if( $family = $this->getAttr('font-family') ) {
+			$tx->attr['font-family'] = $family;
 		}
 
 	    $this->setCP($x, $y, TRUE);
