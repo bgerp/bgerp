@@ -883,7 +883,7 @@ class core_Manager extends core_Mvc
         
         $className = get_called_class();
         
-        core_Logs::add(get_called_class(), $objectId, $detail, $logKeepDays);
+        log_Debug::add(get_called_class(), $objectId, $detail, $logKeepDays);
     }
     
     

@@ -28,14 +28,14 @@ class plg_SystemWrapper extends plg_ProtoWrapper
         $this->TAB('core_Users', 'Потребители', 'admin');
         $this->TAB('core_Roles', 'Роли', 'admin');
         $this->TAB('core_Lg', 'Превод', 'admin');
-        $this->TAB('core_Logs', 'Логове->Общ', 'admin');
         
-        $this->TAB('log_Data', 'Логове 2->Данни', 'admin');
-        $this->TAB('log_Actions', 'Логове 2->Действия', 'admin');
-        $this->TAB('log_Browsers', 'Логове 2->Браузъри', 'admin');
-        $this->TAB('log_Classes', 'Логове 2->Класове', 'admin');
-        $this->TAB('log_Ips', 'Логове 2->IP-та', 'admin');
-        $this->TAB('log_Referer', 'Логове 2->Реферери', 'admin');
+        $this->TAB('log_Data', 'Логове->Данни', 'admin');
+        $this->TAB('log_Debug', 'Логове->Дебъг', 'admin, debug');
+        $this->TAB('log_Actions', 'Логове->Действия', 'admin');
+        $this->TAB('log_Browsers', 'Логове->Браузъри', 'admin');
+        $this->TAB('log_Classes', 'Логове->Класове', 'admin');
+        $this->TAB('log_Ips', 'Логове->IP-та', 'admin');
+        $this->TAB('log_Referer', 'Логове->Реферери', 'admin');
         
         $this->TAB('core_LoginLog', 'Логове->Логин', 'admin');
         $this->TAB('core_Cron', 'Крон');
