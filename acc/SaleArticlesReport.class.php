@@ -227,13 +227,7 @@ class acc_SaleArticlesReport extends acc_BalanceReportImpl
                 $row->{"ent{$articlePositionId}Id"} = cls::get($articleItem->classId)->getShortHyperLink($articleItem->objectId);
             }
         }
-//bp($data->rows);
-       /* foreach ($data->rows as $id => $row) {
-        	if (!isset($row->creditQuantity) || !isset($row->creditAmount)){
-        		unset($data->rows[$id]);
-        	}
-        }
-        bp($data->rows);*/
+
         $tableMvc = new core_Mvc;
         $tableMvc->FLD('creditAmount', 'int', 'tdClass=accCell');
 
