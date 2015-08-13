@@ -54,7 +54,7 @@ class fileman_webdrv_Pdf extends fileman_webdrv_Office
         $errFilePath = self::getErrLogFilePath($outFilePath);
         
         // Скрипта, който ще конвертира файла в PNG формат
-        $Script->lineExec("gs -dSAFER -dBATCH -dNOPAUSE -dNOCACHE -sDEVICE=pdfwrite -sColorConversionStrategy=CMYK -dProcessColorModel=/DeviceCMYK -sOutputFile=[#OUTPUTF#] [#INPUTF#]", array('errFilePath' => $errFilePath));
+        $Script->lineExec("gs -dSAFER -dBATCH -dNOPAUSE -dNOCACHE -dCompatibilityLevel=1.4 -sDEVICE=pdfwrite -sColorConversionStrategy=CMYK -dProcessColorModel=/DeviceCMYK -sOutputFile=[#OUTPUTF#] [#INPUTF#]", array('errFilePath' => $errFilePath));
         
         // Стартираме скрипта синхронно
         $Script->run(FALSE);
