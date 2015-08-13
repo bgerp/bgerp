@@ -190,6 +190,28 @@ body {
 	}
 }
 
+.jobTaskDetails.portal {
+    border: none;
+    margin-bottom: 0;
+}
+
+.planning.portal, .jobTaskDetails.portal {
+    padding: 0;
+ 
+    .legend {
+        margin: 0;
+    }
+    td {
+        padding-top: 5px;
+        padding-bottom: 5px;
+    }
+    .rowtools-column {
+        padding-left: 15px;
+    }
+    .overflow-scroll {
+        margin: 0;
+    }
+}
 .narrow .portal {
     margin-top: -10px;
     margin-left: 2px;

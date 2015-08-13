@@ -187,6 +187,27 @@ body {
     margin-bottom: 10px;
     padding: 7px 15px !important; }
 
+.jobTaskDetails.portal {
+  border: none;
+  margin-bottom: 0; }
+
+.planning.portal,
+.jobTaskDetails.portal {
+  padding: 0; }
+  .planning.portal .legend,
+  .jobTaskDetails.portal .legend {
+    margin: 0; }
+  .planning.portal td,
+  .jobTaskDetails.portal td {
+    padding-top: 5px;
+    padding-bottom: 5px; }
+  .planning.portal .rowtools-column,
+  .jobTaskDetails.portal .rowtools-column {
+    padding-left: 15px; }
+  .planning.portal .overflow-scroll,
+  .jobTaskDetails.portal .overflow-scroll {
+    margin: 0; }
+
 .narrow .portal {
   margin-top: -10px;
   margin-left: 2px;
