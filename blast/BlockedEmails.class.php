@@ -68,7 +68,7 @@ class blast_BlockedEmails extends core_Manager
     {
         $this->FLD('email', 'email', 'caption=Имейл, mandatory');
         $this->FLD('state', 'enum(ok=OK, blocked=Блокирано, error=Грешка)', 'caption=Състояние');
-        $this->FLD('lastChecked', 'datetime', 'caption=Последно->Проверка, input=none');
+        $this->FLD('lastChecked', 'datetime(format=smartTime)', 'caption=Последно->Проверка, input=none');
         $this->FLD('lastSent', 'datetime(format=smartTime)', 'caption=Последно->Изпращане, input=none');
         
         $this->setDbUnique('email');

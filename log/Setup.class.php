@@ -44,6 +44,7 @@ class log_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     var $managers = array(
+    		'log_Debug',
     		'log_Data',
     		'log_Actions',
     		'log_Browsers',

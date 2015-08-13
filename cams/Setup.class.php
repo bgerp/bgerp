@@ -139,6 +139,7 @@ class cams_Setup extends core_ProtoSetup
         $html .= core_Classes::add('cams_driver_UIC9272');
         $html .= core_Classes::add('cams_driver_Edimax');
         $html .= core_Classes::add('cams_driver_EdimaxIC9000');
+        $html .= core_Classes::add('cams_driver_Hikvision');
         $html .= core_Classes::add('cams_driver_Mockup');
         
         

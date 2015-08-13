@@ -602,8 +602,20 @@ abstract class deals_InvoiceMaster extends core_Master
 	   	$dRec = clone $product;
 	   	$index = $product->classId . "|" . $product->productId;
 	   	
-	   	$packQuantity = $packs[$index]->inPack;
-	   	$dRec->packagingId = $packs[$index]->packagingId;
+	   	// Ако няма информация за експедираните опаковки, визмаме основната опаковка
+   		if(!isset($packs[$index])){
+   			$packs1 = cls::get('cat_Products')->getPacks($product->productId);
+   			$dRec->packagingId = key($packs1);
+   			
+   			$packQuantity = 1;
+   			if($pRec = cat_products_Packagings::fetch("#productId = {$product->productId} AND #packagingId = {$dRec->packagingId}")){
+   				$packQuantity = $pRec->quantity;
+   			}
+	   	} else {
+	   		// Иначе взимаме най-удобната опаковка
+	   		$packQuantity = $packs[$index]->inPack;
+	   		$dRec->packagingId = $packs[$index]->packagingId;
+	   	}
 	   	
 	   	$Detail = $mvc->mainDetail;
 	   	$dRec->{$mvc->$Detail->masterKey} = $rec->id;

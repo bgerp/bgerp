@@ -3,7 +3,7 @@
 
 
 /**
- * Драйвер за производствени задачи
+ * Драйвер за задачи за производство
  *
  *
  * @category  bgerp
@@ -12,8 +12,9 @@
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
+ * @title Задача за производство
  */
-class planning_drivers_ProductionTask extends planning_drivers_BaseTask
+class planning_drivers_ProductionTask extends tasks_BaseDriver
 {
 	
 	
@@ -21,6 +22,12 @@ class planning_drivers_ProductionTask extends planning_drivers_BaseTask
 	 * Шаблон за обвивката този драйвер
 	 */
 	protected $singleLayoutFile = 'planning/tpl/SingleLayoutProductionTask.shtml';
+	
+	
+	/**
+	 * Кой може да избира драйвъра
+	 */
+	public $canSelectDriver = 'planning,ceo';
 	
 	
 	/**
@@ -44,6 +51,7 @@ class planning_drivers_ProductionTask extends planning_drivers_BaseTask
 		// Оставяме за избор само артикули ДМА-та
 		$products = cat_Products::getByProperty('fixedAsset');
 		$data->form->setSuggestions('fixedAssets', $products);
+		$data->form->setFieldTypeParams('inCharge', array('roles' => 'planning,ceo'));
 	}
 	
 	
@@ -81,19 +89,18 @@ class planning_drivers_ProductionTask extends planning_drivers_BaseTask
 	/**
      * Обновяване на данните на мастъра
      * 
-     * @param int $id - ид
-     * @param return void
+     * @param stdClass $rec - запис на ембедъра
+     * @param void
      */
-	public function updateEmbedder($id)
+	public function updateEmbedder(&$rec)
 	{
-		 $rec = planning_Tasks::fetch($id);
-		 
 		 // Колко е общото к-во досега
-		 $dQuery = planning_TaskDetails::getQuery();
+		 $dQuery = tasks_TaskDetails::getQuery();
 		 $dQuery->where("#taskId = {$rec->id}");
 		 $dQuery->where("#state != 'rejected'");
 		 $dQuery->XPR('sumQuantity', 'double', 'SUM(#quantity)');
 		 $dQuery->XPR('sumWeight', 'double', 'SUM(#weight)');
+		 $dQuery->show('sumQuantity,sumWeight');
 		 
 		 $res = $dQuery->fetch();
 		 $sumQuantity = $res->sumQuantity;
@@ -103,14 +110,6 @@ class planning_drivers_ProductionTask extends planning_drivers_BaseTask
 		      
 		 // Изчисляваме колко % от зададеното количество е направено
 		 $rec->progress = round($sumQuantity / $rec->totalQuantity, 2);
-		 
-		 // Ако прогреса на задачата е изпълнен и тя е активна приключваме я
-		 if($rec->progress >= 1 && $rec->state == 'active'){
-		 	$rec->state = 'closed';
-		 }
-		 
-		 // Обновяваме мастъра
-		 planning_Tasks::save($rec);
 	}
 	
 	
@@ -156,6 +155,11 @@ class planning_drivers_ProductionTask extends planning_drivers_BaseTask
 			$form->setOptions('fixedAsset', array('' => '') + $arr);
 			$form->setField('fixedAsset', 'input');
 		}
+		
+		// Показваме полето за въвеждане на код само при операция "произвеждане"
+		if($form->rec->operation == 'production'){
+			$form->setField('code', 'input');
+		}
 	}
 	
 	
@@ -169,8 +173,8 @@ class planning_drivers_ProductionTask extends planning_drivers_BaseTask
     public function renderDetail(&$tpl, $data)
     {
     	// Добавяме бутон за добавяне на прогрес при нужда
-    	if(planning_TaskDetails::haveRightFor('add', (object)array('taskId' => $data->masterId))){
-    		$ht = ht::createLink('', array('planning_TaskDetails', 'add', 'taskId' => $data->masterId, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/add.png,title=Добавяне на прогрес към задачата');
+    	if(tasks_TaskDetails::haveRightFor('add', (object)array('taskId' => $data->masterId))){
+    		$ht = ht::createLink('', array('tasks_TaskDetails', 'add', 'taskId' => $data->masterId, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/add.png,title=Добавяне на прогрес към задачата');
     		$tpl->append($ht, 'ADD_BTN');
     	} 
     }
@@ -184,6 +188,7 @@ class planning_drivers_ProductionTask extends planning_drivers_BaseTask
      */
     public function prepareListToolbarDetail(&$data)
     {
+    	// Премахваме стандартния бутон за добавяне
     	parent::prepareListToolbarDetail($data);
     	$data->toolbar->removeBtn('btnAdd');
     }

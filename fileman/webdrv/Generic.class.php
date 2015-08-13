@@ -34,6 +34,12 @@ class fileman_webdrv_Generic extends core_Manager
     
     
     /**
+     * Суфикса за файла с грешките
+     */
+    protected static $errLogFileExt = '_err.log';
+    
+    
+    /**
      * Кой може да разглежда драйвер
      */
     protected $canView = 'every_one';
@@ -79,6 +85,20 @@ class fileman_webdrv_Generic extends core_Manager
         static::getMetaData($fRec);
         
         return ;
+    }
+    
+        
+    /**
+     * Връща името на файла за грешките
+     * 
+     * @param string $outFilePath
+     * 
+     * @return string
+     */
+    public static function getErrLogFilePath($outFilePath)
+    {
+        
+        return $outFilePath . self::$errLogFileExt;
     }
     
     
@@ -651,7 +671,7 @@ class fileman_webdrv_Generic extends core_Manager
         $params = unserialize($script->params);
         
         // Проверяваме дали е имало грешка при предишното конвертиране
-        if (fileman_Indexes::haveErrors($script->outFilePath, $params['type'], $params)) {
+        if (fileman_Indexes::haveErrors($script->outFilePath, $params)) {
             
             // Отключваме процеса
             core_Locks::release($params['lockId']);

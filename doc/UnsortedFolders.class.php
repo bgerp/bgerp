@@ -212,7 +212,7 @@ class doc_UnsortedFolders extends core_Master
         $this->FLD('name' , 'varchar(128)', 'caption=Наименование,mandatory');
         $this->FLD('description' , 'richtext(rows=3)', 'caption=Описание');
         $this->FLD('closeTime' , 'time', 'caption=Автоматично затваряне на нишките след->Време, allowEmpty');
-        $this->FLD('showDocumentsAsButtons' , 'keylist(mvc=core_Classes,select=title)', 'caption=Документи които да се показват като бутони->Документи');
+        $this->FLD('showDocumentsAsButtons' , 'keylist(mvc=core_Classes,select=title)', 'caption=Документи|*&#44; |които да се показват като бързи бутони в папката->Документи');
         $this->setDbUnique('name');
     }
     
@@ -470,7 +470,7 @@ class doc_UnsortedFolders extends core_Master
         $queryContainers->where("#folderId = '{$folderData->folderId}' AND #docClass = '{$idTaskDoc}'");
         
         while ($recContainers = $queryContainers->fetch()) {
-        	$queryTasks->where("#folderId = '{$folderData->folderId}'");
+        	$queryTasks->where("#folderId = '{$folderData->folderId}' AND (#state = 'pending' OR #state = 'active' OR #state = 'closed')");
         	
         	// заявка към таблицата на Задачите
         	while ($recTask = $queryTasks->fetch()) {
@@ -575,13 +575,16 @@ class doc_UnsortedFolders extends core_Master
 	        			$resTask[$id]['rowId'] = $rowArr;
 	        			
 	        			$icon = cal_Tasks::getIcon($task['taskId']);
+	        			
 	        			$recTitle = cal_Tasks::fetchField($task['taskId'],'title');
-	        			$attr = array();
-	        			$attr['class'] .= 'linkWithIcon';
-	        			$attr['style'] = 'background-image:url(' . sbf($icon) . ');';
+	       
+	        			$attr['ef_icon'] = $icon;
+	        			//$attr['style'] .= 'background-color: #FFA3A3;';
+	        			//$attr['style'] .= 'padding-right: 4px;';
+	        			//$attr['style'] .= 'box-shadow: 0px 0px 3px #FF6666 inset;';
 	        			$attr['title'] = $recTitle;
 	        			
-	        			$title = ht::createLink(str::limitLen($recTitle, 25),
+	        			$title = ht::createLink(str::limitLen($recTitle, 35),
 	        					array('cal_Tasks', 'single', $task['taskId']),
 	        					NULL, $attr);
 	
@@ -687,8 +690,22 @@ class doc_UnsortedFolders extends core_Master
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
     	$suggestions = core_Classes::getOptionsByInterface('doc_DocumentIntf', 'title');
+    	
+    	// Ако проекта няма папка, взимаме ид-то на първата папка проект за да филтрираме възможните документи
+    	// които могат да се добавтя към папка проект
+    	$folderId = $data->form->rec->folderId;
+    	if(!$data->form->rec->folderId){
+    		$query = $mvc->getQuery();
+    		$query->where("#folderId IS NOT NULL");
+    		$query->show('folderId');
+    		$query->orderBy('id', 'ASC');
+    		$folderId = $query->fetch()->folderId;
+    	}
+    	
+    	// За всяко предложение, проверяваме можели да бъде добавен
+    	// такъв документ като нова нишка в папката
     	foreach ($suggestions as $classId => $name){
-    		if(!cls::get($classId)->canAddToFolder($data->form->rec->folderId)){
+    		if(!cls::get($classId)->canAddToFolder($folderId)){
     			unset($suggestions[$classId]);
     		}
     	}

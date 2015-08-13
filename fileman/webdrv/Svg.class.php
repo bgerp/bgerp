@@ -48,17 +48,23 @@ class fileman_webdrv_Svg extends fileman_webdrv_Inkscape
         
         $Script->setProgram('inkscape', INKSCAPE_PATH);
         
+        $errFilePath = self::getErrLogFilePath($outFilePath);
+        
         // Скрипта, който ще конвертира файла в .svg формат
-        $Script->lineExec("inkscape [#INPUTF#] --export-plain-svg=[#OUTPUTF#] --export-area-drawing");
+        $Script->lineExec("inkscape [#INPUTF#] --export-plain-svg=[#OUTPUTF#] --export-area-drawing", array('errFilePath' => $errFilePath));
         
         // Стартираме скрипта синхронно
         $Script->run(FALSE);
         
+        fileman_Indexes::haveErrors($outFilePath, array('type' => 'pdf', 'errFilePath' => $errFilePath));
+        
         $resFileHnd = fileman::absorb($outFilePath, 'fileIndex');
         
-        if ($Script->tempDir) {
-            // Изтриваме временната директория с всички файлове вътре
-            core_Os::deleteDir($Script->tempDir);
+        if ($resFileHnd) {
+            if ($Script->tempDir) {
+                // Изтриваме временната директория с всички файлове вътре
+                core_Os::deleteDir($Script->tempDir);
+            }
         }
         
         return $resFileHnd;

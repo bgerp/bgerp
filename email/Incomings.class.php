@@ -270,7 +270,7 @@ class email_Incomings extends core_Master
                 }
 
                 if(($i % 100) == 1 || ( ($i - $firstUnreadMsgNo) < 100)) {
-                    email_Accounts::logInfo("Fetching message {$i}", $accRec->id, 7);
+                    log_Debug::add('email_Accounts', $accRec->id, "Fetching message {$i}", 7);
                 }
                 
                 // Изтриване на писмото, ако сметката е настроена така
@@ -334,7 +334,7 @@ class email_Incomings extends core_Master
         // Показваме стринга
         echo "<h3> $msg </h3>";
 
-        email_Accounts::logInfo($logMsg, $accRec->id, 7);
+        log_Debug::add('email_Accounts', $accRec->id, $logMsg, 7);
     }
 
 
@@ -580,12 +580,13 @@ class email_Incomings extends core_Master
     {
         static $isDown = array();
         $accId = $imapConn->accRec->id;
-        email_Accounts::logInfo("Check Down: $msgNum", $accId, 7);
-
+        
+        log_Debug::add('email_Accounts', $accId, "Check Down: $msgNum", 7);
+        
         // Номерата почват от 1
         if($msgNum < 1) {
-            email_Accounts::logInfo("TRUE: $msgNum < 1", $accId, 7);
-
+            log_Debug::add('email_Accounts', $accId, "TRUE: $msgNum < 1", 7);
+            
             return TRUE;
         }
         
@@ -603,8 +604,8 @@ class email_Incomings extends core_Master
             $isDown[$accId][$msgNum] = email_Fingerprints::isDown($headers);
         }
         
-        email_Accounts::logInfo("Result: $msgNum  " . $isDown[$accId][$msgNum], $accId, 7);
-
+        log_Debug::add('email_Accounts', $accId, "Result: $msgNum  " . $isDown[$accId][$msgNum], 7);
+        
         return $isDown[$accId][$msgNum];
     }
     
@@ -1452,7 +1453,7 @@ class email_Incomings extends core_Master
             $i++;
             
             if($i % 100 == 1) {
-                self::logInfo("Update email", $i, 7);
+                log_Debug::add('email_Incomings', NULL, "Update email - " . $i, 7);
             }
             self::save($rec);
         }

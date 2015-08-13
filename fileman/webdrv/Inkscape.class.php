@@ -66,11 +66,15 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
         
         $Script->setProgram('inkscape', INKSCAPE_PATH);
         
+        $errFilePath = self::getErrLogFilePath($outFilePath);
+        
         // Скрипта, който ще конвертира файла в PNG формат
-        $Script->lineExec("inkscape [#INPUTF#] --export-pdf=[#OUTPUTF#] --export-area-drawing");
+        $Script->lineExec("inkscape [#INPUTF#] --export-pdf=[#OUTPUTF#] --export-area-drawing", array('errFilePath' => $errFilePath));
         
         // Стартираме скрипта синхронно
         $Script->run(FALSE);
+        
+        fileman_Indexes::haveErrors($outFilePath, array('type' => 'pdf', 'errFilePath' => $errFilePath));
         
         if (!$cmyk) {
             $resFileHnd = fileman::absorb($outFilePath, 'fileIndex');
@@ -78,9 +82,11 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
             $resFileHnd = fileman_webdrv_Pdf::rgbToCmyk($outFilePath);
         }
         
-        if ($Script->tempDir) {
-            // Изтриваме временната директория с всички файлове вътре
-            core_Os::deleteDir($Script->tempDir);
+        if ($resFileHnd) {
+            if ($Script->tempDir) {
+                // Изтриваме временната директория с всички файлове вътре
+                core_Os::deleteDir($Script->tempDir);
+            }
         }
         
         return $resFileHnd;
@@ -187,11 +193,15 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
         
         $Script->setProgram('inkscape', INKSCAPE_PATH);
         
+        $errFilePath = self::getErrLogFilePath($outFilePath);
+        
         // Скрипта, който ще конвертира файла в PNG формат
-        $Script->lineExec("inkscape [#INPUTF#] --export-png=[#OUTPUTF#] --export-area-drawing --export-height={$height}");
+        $Script->lineExec("inkscape [#INPUTF#] --export-png=[#OUTPUTF#] --export-area-drawing --export-height={$height}", array('errFilePath' => $errFilePath));
         
         // Функцията, която ще се извика след приключване на обработката на файла
         $Script->callBack($params['callBack']);
+        
+        $params['errFilePath'] = $errFilePath;
         
         // Други необходими променливи
         $Script->params = serialize($params);
@@ -220,7 +230,7 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
         $params = unserialize($script->params);
         
         // Проверяваме дали е имало грешка при предишното конвертиране
-        if (fileman_Indexes::haveErrors($script->outFilePath, $params['type'], $params)) {
+        if (fileman_Indexes::haveErrors($script->outFilePath, $params)) {
             
             // Отключваме процеса
             core_Locks::release($params['lockId']);

@@ -64,7 +64,7 @@ class cams_Cameras extends core_Master
      */
     var $canRead = 'ceo,cams, admin';
     
-    
+
     /**
      * Описание на модела
      */
@@ -86,12 +86,16 @@ class cams_Cameras extends core_Master
      */
     function act_ShowImage()
     {
-        $id = Request::get('id', 'int');
+//    	$this->haveRightFor('single');
+        
+    	$id = Request::get('id', 'int');
         
         expect($rec = $this->fetch($id));
         
-        $driver = cls::getInterface('cams_DriverIntf', $rec->driver, $rec->params);
+//        $this->haveRightFor('single', $rec);
         
+        $driver = cls::getInterface('cams_DriverIntf', $rec->driver, $rec->params);
+
         $img = $driver->getPicture();
         
         if(!$img) {

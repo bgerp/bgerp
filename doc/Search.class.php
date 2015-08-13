@@ -252,6 +252,7 @@ class doc_Search extends core_Manager
                 	$url2['docClass'] = $filterRec->docClass;
                 }
                 $url2['state'] = $filterRec->state;
+                
                 if ($filterRec->author){
                 	$url2['author'] = Request::get('author');
                 }
@@ -260,6 +261,7 @@ class doc_Search extends core_Manager
                 if ($filterRec->author && type_Keylist::isIn(core_Users::getCurrent(), $filterRec->author)) {
                     $url['author'] = core_Users::getCurrent();
                 }
+                $url2['fromDate'] = $filterRec->fromDate;
                 
                 // Изтриваме нотификацията, ако има такава, създадена от текущия потребител и със съответното състояние
                 bgerp_Notifications::clear($url);

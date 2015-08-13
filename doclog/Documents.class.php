@@ -2,7 +2,7 @@
 
 
 /**
- * Колко дни да се пази в лога в core_Logs
+ * Колко дни да се пази в лога
  */
 defIfNot('DOCLOG_DOCUMENTS_DAYS', 5);
 
@@ -297,7 +297,7 @@ class doclog_Documents extends core_Manager
         
         // Декорираме IP адреса
         if ($rec->ip) {
-            $row->ip = ' ' . type_Ip::decorateIp($rec->ip, $rec->time);
+            $row->ip = ' ' . type_Ip::decorateIp($rec->ip, $rec->time, TRUE);
         }
     }
     
@@ -340,47 +340,105 @@ class doclog_Documents extends core_Manager
         // Масив с данните във вербален вид
         $rows = array();
         
+        foreach ($recs as $rec) {
+            krsort($rec->data->{$action});
+        }
+        
+        $dataRecsArr = $this->getRecsForPaging($data, $recs, $action);
+        
+        // Обхождаме всички препратени записи
+        foreach ($dataRecsArr as $forwardRec) {
+            
+            // Записите
+            $row = (object)array(
+                'time' => $forwardRec['on'],
+                'from' => $forwardRec['from'],
+            );
+
+            // Записите във вербален вид
+            $row = static::recToVerbal($row, array_keys(get_object_vars($row)));
+            
+            // Вземаме документите
+            $doc = doc_Containers::getDocument($forwardRec['containerId']);
+
+            // Ако имаме права за сингъл на документ
+            if ($doc->haveRightFor('single')) {
+            
+                // Вербални данни на докуемент
+                $docRow = $doc->getDocumentRow();
+                
+                // Създаваме линк към документа
+                $row->document = ht::createLink($docRow->title, array($doc->className, 'single', $doc->that));    
+            }
+            
+            // Добавяме в главния масив
+            $rows[] = $row;    
+        }
+
+        // Заместваме данните за рендиране
+        $data->rows = $rows; 
+    }
+    
+    
+    /**
+     * Връща масив със записи за странира
+     * 
+     * @param object $data
+     * @param array $recs
+     * @param string $action
+     * 
+     * @return array
+     */
+    protected function getRecsForPaging(&$data, $recs, $action)
+    {
+        $resArr = array();
+        
+        $cid = $data->masterData->rec->containerId;
+        
+        // Създаваме странициране
+        $data->pager = cls::get('core_Pager', array('itemsPerPage' => $this->itemsPerPage, 'pageVar' => 'P_doclog_Documents'));
+        
+        // URL' то където ще сочат
+        $data->pager->url = toUrl(static::getLinkToSingle($cid, $action));
+        
+        $allDataAct = array();
+        
         // Обхождаме записите
         foreach ($recs as $rec) {
             
-            // Ако няма запис за препращане на съответния запис прескачаме            
-            if (!count($rec->data->$action)) continue;
+            if (!$rec->data->{$action}) continue;
             
-            // Обхождаме всички препратени записи
-            foreach ($rec->data->{$action} as $forwardRec) {
-                
-                // Записите
-                $row = (object)array(
-                    'time' => $forwardRec['on'],
-                    'from' => $forwardRec['from'],
-                );
-
-                // Записите във вербален вид
-                $row = static::recToVerbal($row, array_keys(get_object_vars($row)));
-                
-                // Вземаме документите
-                $doc = doc_Containers::getDocument($forwardRec['containerId']);
-
-                // Ако имаме права за сингъл на документ
-                if ($doc->haveRightFor('single')) {
-                
-                    // Вербални данни на докуемент
-                    $docRow = $doc->getDocumentRow();
-                    
-                    // Създаваме линк към документа
-                    $row->document = ht::createLink($docRow->title, array($doc->className, 'single', $doc->that));    
-                }
-                
-                // Добавяме в главния масив
-                $rows[] = $row;    
+            foreach ($rec->data->{$action} as $actVal) {
+                $allDataAct[] = $actVal;
             }
         }
-
-        // Сортираме
-        krsort($rows);
         
-        // Заместваме данните за рендиране
-        $data->rows = $rows; 
+        $cnt = count($allDataAct);
+        
+        if (!$cnt) return $resArr;
+        
+        $data->pager->itemsCount = $cnt;
+        $data->pager->calc();
+        
+        $curr = 0;
+        $showedCnt = 0;
+        $limit = $data->pager->rangeEnd - $data->pager->rangeStart;
+        
+	    foreach ($allDataAct as $val) {
+	        if (isset($data->pager->rangeStart) && isset($data->pager->rangeEnd)) {
+                $curr++;
+                
+                if ($curr <= $data->pager->rangeStart) continue;
+                
+                if ($showedCnt >= $limit) break;
+            }
+            
+            $resArr[] = $val;
+            
+            $showedCnt++;
+	    }
+	    
+	    return $resArr;
     }
     
     
@@ -405,6 +463,9 @@ class doclog_Documents extends core_Manager
         
         // Заместваме в главния шаблон за детайлите
         $tpl->append($forwardTpl, 'content');
+        
+        // Добавяме странициране
+        $tpl->append($data->pager->getHtml());
         
         return $tpl;
     }
@@ -559,43 +620,70 @@ class doclog_Documents extends core_Manager
         
         // Масив с данния във вербален вид
         $rows = array();
+                
+        $i = 0;
         
-        // Бутона да не е линк
-        $data->disabled = TRUE;
+        $nRecsArr = array();
         
-        // Обхождаме всички записи
-        foreach ($recs as $i=>$rec) {
-            
+        foreach ($recs as $rec) {
             // Ако не виждан
-            if (count($rec->data->{$action}) == 0) {
-                
-                continue;
-            } else {
-                
-                // Бутона да не е линк
-                $data->disabled = FALSE;
-            }
+            if (!$rec->data->{$action} || !count($rec->data->{$action}))  continue;
             
-            // Обхождаме всички записи
-            foreach ($rec->data->{$action} as $o) {
-                
-                // Данните, които ще се визуализрат
-                $row = (object)array(
-                    'time' => $o['on'],
-                    'ip' => $o['ip'],
-                    'openAction' => static::formatViewReason($rec),
-                );
-                
-                // Данните във вербален вид
-                $row = static::recToVerbal($row, array_keys(get_object_vars($row)));
-
-                // Добавяме в масива
-                $rows[] = $row;
+            foreach ($rec->data->{$action} as $ip => $act) {
+                $act['ParentRec'] = $rec;
+                $nRecsArr[$act['on'] . ' '. $i++] = $act;
             }
         }
-
-        // Сортираме масива
-        ksort($rows);
+        
+        if (!$nRecsArr) {
+            $data->disabled = TRUE;
+            
+            return ;
+        }
+        
+        krsort($nRecsArr);
+        
+        // Създаваме странициране
+        $data->pager = cls::get('core_Pager', array('itemsPerPage' => $this->itemsPerPage, 'pageVar' => 'P_doclog_Documents'));
+        
+        // URL' то където ще сочат
+        $data->pager->url = toUrl(static::getLinkToSingle($cid, $action));
+        
+        $openCnt = count($nRecsArr);
+        
+        $data->pager->itemsCount = $openCnt;
+        $data->pager->calc();
+        
+        $curr = 0;
+        $showedCnt = 0;
+        $limit = $data->pager->rangeEnd - $data->pager->rangeStart;
+        
+        foreach ($nRecsArr as $o) {
+            
+            if (isset($data->pager->rangeStart) && isset($data->pager->rangeEnd)) {
+                $curr++;
+                
+                if ($curr <= $data->pager->rangeStart) continue;
+                
+                if ($showedCnt >= $limit) break;
+            }
+            
+            $showedCnt++;
+            
+            // Данните, които ще се визуализрат
+            $row = (object)array(
+                'time' => $o['on'],
+                'ip' => $o['ip'],
+                'openAction' => static::formatViewReason($o['ParentRec'])
+            );
+            
+            // Данните във вербален вид
+            $row = static::recToVerbal($row, array_keys(get_object_vars($row)));
+            
+            // Добавяме в масива
+            $rows[] = $row;
+            
+        }
         
         // Дабавяме в $data
         $data->rows = $rows; 
@@ -623,6 +711,9 @@ class doclog_Documents extends core_Manager
         
         // Заместваме в главния шаблон за детайлите
         $tpl->append($openTpl, 'content');
+        
+        // Добавяме странициране
+        $tpl->append($data->pager->getHtml());
         
         return $tpl;
     }
@@ -720,7 +811,7 @@ class doclog_Documents extends core_Manager
                 
                 // Ip от което е върнато
                 if ($rec->data->returnedIp) {
-                    $returnedStr .= ' ' . type_Ip::decorateIp($rec->data->returnedIp, $rec->data->returnedOn);
+                    $returnedStr .= ' ' . type_Ip::decorateIp($rec->data->returnedIp, $rec->data->returnedOn, TRUE);
                 }
                 
                 $row->returnedAndReceived .=  $returnedStr;
@@ -862,41 +953,46 @@ class doclog_Documents extends core_Manager
         }
        
         $rows = array();
-
-        // Обхождаме записите
-        foreach ($recs as $rec) {
-
-            // Ако няма зададени действия прескачаме
-            if (count($rec->data->{$action}) == 0) continue;
-            
-            // Обхождаме всички сваляния
-            foreach ($rec->data->{$action} as $fh => $downData) {
-                foreach ($downData as $downData2) {
-                    // СЪздаваме обект със запсиите
-                    $nRec = (object)array(
-                        'time' => $downData2['seenOnTime'],
-                        'from' => $downData2['seenFrom'],
-                        'ip' => $downData2['ip'],
-                    );
-                    
-                    // Вземаме вербалните стойности
-                    $row = static::recToVerbal($nRec, array_keys(get_object_vars($nRec)));
-                    
-                    // Превръщаме манипулатора, в линк за сваляне
-                    $row->fileHnd = fileman_Files::getLink($fh);
-                    
-                    // Ако потребител от системата е свалил файла, показваме името му, в противен случай IP' то
-                    $row->ip = $row->from ? $row->from : $row->ip;
-                    
-                    // Записваме в масив данните, с ключ датата
-                    $rows[] = $row;    
+        
+        $i = 0;
+        
+        $nArr = array();
+        foreach ($recs as $key => $rec) {
+            foreach ($rec->data->{$action} as $fh => $rArr) {
+                foreach ($rArr as $dArr) {
+                    $dArr['fileHnd'] = $fh;
+                    $nArr[$dArr['seenOnTime'] . ' ' . $i++] = $dArr;
                 }
             }
         }
-
-        // Подреждаме масива
-        krsort($rows);
-
+        $rec->data->{$action} = $nArr;
+        
+        krsort($rec->data->{$action});
+        
+        $dataRecsArr = $this->getRecsForPaging($data, $recs, $action);
+        
+        // Обхождаме всички сваляния
+        foreach ($dataRecsArr as $downData) {
+            // СЪздаваме обект със запсиите
+            $nRec = (object)array(
+                'time' => $downData['seenOnTime'],
+                'from' => $downData['seenFrom'],
+                'ip' => $downData['ip'],
+            );
+            
+            // Вземаме вербалните стойности
+            $row = static::recToVerbal($nRec, array_keys(get_object_vars($nRec)));
+            
+            // Превръщаме манипулатора, в линк за сваляне
+            $row->fileHnd = fileman_Files::getLink( $downData['fileHnd']);
+            
+            // Ако потребител от системата е свалил файла, показваме името му, в противен случай IP' то
+            $row->ip = $row->from ? $row->from : $row->ip;
+            
+            // Записваме в масив данните, с ключ датата
+            $rows[] = $row;    
+        }
+        
         // Променяме всички вербални данни, да показват откритите от нас
         $data->rows = $rows;
     }
@@ -923,6 +1019,8 @@ class doclog_Documents extends core_Manager
         
         // Заместваме в главния шаблон за детайлите
         $tpl->append($sendTpl, 'content');
+        
+        $tpl->append($data->pager->getHtml());
         
         return $tpl;
     }
@@ -2080,7 +2178,7 @@ class doclog_Documents extends core_Manager
         $linkArr = static::getLinkToSingle($rec->containerId, static::ACTION_OPEN);
         
         if (!empty($firstOpen)) {
-            $html .= ' ' . type_Ip::decorateIp($firstOpen['ip'], $firstOpen['on']);
+            $html .= ' ' . type_Ip::decorateIp($firstOpen['ip'], $firstOpen['on'], TRUE);
             $cnt = count($rec->data->{$openActionName});
             if ($cnt) {
                 $html .= ht::createLink(
@@ -2355,12 +2453,6 @@ class doclog_Documents extends core_Manager
         // Името на таба
         $data->TabCaption = 'Използване';
         
-        // Създаваме странициране
-        $data->pager = cls::get('core_Pager', array('itemsPerPage' => $this->itemsPerPage, 'pageVar' => 'P_doclog_Documents'));
-        
-        // URL' то където ще сочат
-        $data->pager->url = toUrl(static::getLinkToSingle($cid, static::ACTION_USED));
-        
         // Екшъна
         $action = static::ACTION_USED;
         
@@ -2377,49 +2469,33 @@ class doclog_Documents extends core_Manager
         }
         
         $rows = array();
+        
         foreach ($recs as $rec) {
-            $usedCnt = count($rec->data->used);
-        	if(!$usedCnt) {
-        		$data->disabled = TRUE;
-	            return;
-        	}
-        	$data->pager->itemsCount = $usedCnt;
-        	$data->pager->calc();
-        	
-        	$curr = 0;
-        	$showedCnt = 0;
-        	$limit = $data->pager->rangeEnd - $data->pager->rangeStart;
-        	
-        	foreach ($rec->data->used as $d){
-        		
-            	if (isset($data->pager->rangeStart) && isset($data->pager->rangeEnd)) {
-            	    $curr++;
-            	    
-            	    if ($curr <= $data->pager->rangeStart) continue;
-            	    
-            	    if ($showedCnt >= $limit) break;
-                }
-                $showedCnt++;
-        	    
-        		$class = $d->class;
-        		$row = new stdClass();
-        		$iconStles = array('class' => 'linkWithIcon', 'style'=> "background-image:url({$d->icon});");
-        		$state = $class::fetchField($d->id, 'state');
-        		if ($class::haveRightFor('single', $d->id)) {
-        		    $singleUrl = array($class, 'single', $d->id);
-        		} else {
-        		    $singleUrl = array();
-        		}
-        		
-        		$row->link = ht::createLink($d->title, $singleUrl, NULL, $iconStles);
-	        	$row->link = "<span style ='text-align:left;margin-left:2px;display:block'>{$row->link}</span>";
-	        	$row->author = $d->author;
-	        	$time =  dt::mysql2verbal($d->lastUsedOn, 'smartTime');
-	        	$row->lastUsedOn = "<div><div class='stateIndicator {$state}'></div>";
-	        	$row->lastUsedOn .= "<div class='inline-date'>&nbsp;{$time}</div></div>";
-	        	$rows[] = $row;
-        	}
+            krsort($rec->data->{$action});
         }
+        
+        $dataRecsArr = $this->getRecsForPaging($data, $recs, $action);
+        
+    	foreach ($dataRecsArr as $d){
+    		
+    		$class = $d->class;
+    		$row = new stdClass();
+    		$iconStles = array('class' => 'linkWithIcon', 'style'=> "background-image:url({$d->icon});");
+    		$state = $class::fetchField($d->id, 'state');
+    		if ($class::haveRightFor('single', $d->id)) {
+    		    $singleUrl = array($class, 'single', $d->id);
+    		} else {
+    		    $singleUrl = array();
+    		}
+    		
+    		$row->link = ht::createLink($d->title, $singleUrl, NULL, $iconStles);
+        	$row->link = "<span style ='text-align:left;margin-left:2px;display:block'>{$row->link}</span>";
+        	$row->author = $d->author;
+        	$time =  dt::mysql2verbal($d->lastUsedOn, 'smartTime');
+        	$row->lastUsedOn = "<div><div class='stateIndicator {$state}'></div>";
+        	$row->lastUsedOn .= "<div class='inline-date'>&nbsp;{$time}</div></div>";
+        	$rows[] = $row;
+    	}
         
         $data->rows = $rows;
     }

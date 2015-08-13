@@ -12,6 +12,12 @@
  * @copyright 2006 - 2012 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
+ * 
+ * @method fetch(string $cond,mixed $fields = '*', boolean $cache = TRUE)
+ * @method fetchField(string $cond, string $field = 'id', boolean $cache = TRUE)
+ * @method getHandle(integer $id)
+ * @method getHyperlink(integer $id, boolean $icon = FALSE, boolean $short = FALSE)
+ * @method getShortHyperlink(integer $id, boolean $icon = FALSE)
  */
 class core_ObjectReference
 {
