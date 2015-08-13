@@ -34,6 +34,12 @@ class acc_SaleContractorsReport extends acc_BalanceReportImpl
      * Дефолт сметка
      */
     public $accountSysId = '701';
+    
+    
+    /**
+     * Брой записи на страница
+     */
+    public $listItemsPerPage = 50;
 
 
     /**
@@ -120,26 +126,28 @@ class acc_SaleContractorsReport extends acc_BalanceReportImpl
     	$pager->itemsCount = count($data->recs, COUNT_RECURSIVE);
     	$data->pager = $pager;
     
+    	$start = $data->pager->rangeStart;
+    	$end = $data->pager->rangeEnd - 1;
     
     	$data->summary = new stdClass();
     
     	if(count($data->recs)){
-    
+    		$count = 0;
     		foreach ($data->recs as $id => $rec){
     
     			// Показваме само тези редове, които са в диапазона на страницата
-    			if(!$pager->isOnPage()) continue;
-    			$rec->id = $count + 1;
-    			$row = $mvc->getVerbalDetail($rec);
-    			$data->rows[$id] = $row;
-    
+    			if($count >= $start && $count <= $end){
+	    			//$rec->id = $count + 1;
+	    			$row = $mvc->getVerbalDetail($rec);
+	    			$data->rows[$id] = $row;
+    			}
     			// Сумираме всички суми и к-ва
     			foreach (array('baseQuantity', 'baseAmount', 'debitAmount', 'debitQuantity', 'creditAmount', 'creditQuantity', 'blAmount', 'blQuantity') as $fld){
     				if(!is_null($rec->$fld)){
     					$data->summary->$fld += $rec->$fld;
     				}
     			}
-    
+    			$count++;
     		}
     	}
     
