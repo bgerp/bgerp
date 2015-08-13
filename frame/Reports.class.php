@@ -172,6 +172,25 @@ class frame_Reports extends core_Embedder
 
     
     /**
+     * Преди запис на документ, изчислява стойността на полето `isContable`
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $rec
+     */
+    public static function on_BeforeSave($mvc, &$id, $rec, $fields = NULL, $mode = NULL)
+    {
+    	// При чернова винаги подготвяме вътрешното състояние
+    	if($rec->state == 'draft'){
+    		unset($rec->data);
+    		if(!$rec->data){
+    			$Driver = frame_Reports::getDriver($rec);
+    			$rec->data = $Driver->prepareInnerState();
+    		}
+    	}
+    }
+    
+    
+    /**
      *  Обработки по вербалното представяне на данните
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
@@ -186,14 +205,9 @@ class frame_Reports extends core_Embedder
             	// Ако сме минали зададеното време за обновяване на кеша на данните при чернова
                 if(dt::addSecs(self::KEEP_INNER_STATE_IN_DRAFT, $rec->modifiedOn) < dt::now()){
                 	
-                	// Инвалидираме кеша
-                	unset($rec->data);
-                	
-                	// Извличаме вътрешното състояние и го кешираме
-                	$Source = $mvc->getDriver($rec);
-                	$rec->data = $Source->prepareInnerState();
+                	// Обновяваме записа така че на ново да се извлече вътрешното състояние
                 	$mvc->save($rec);
-                }
+               }
             }
            
             if($rec->state == 'active' || $rec->state == 'rejected'){
