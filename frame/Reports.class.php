@@ -180,8 +180,7 @@ class frame_Reports extends core_Embedder
     public static function on_BeforeSave($mvc, &$id, $rec, $fields = NULL, $mode = NULL)
     {
     	// При чернова винаги подготвяме вътрешното състояние
-    	if($rec->state == 'draft'){
-    		unset($rec->data);
+    	if($rec->state == 'draft' && $rec->id){
     		if(!$rec->data){
     			$Driver = frame_Reports::getDriver($rec);
     			$rec->data = $Driver->prepareInnerState();
@@ -206,6 +205,7 @@ class frame_Reports extends core_Embedder
                 if(dt::addSecs(self::KEEP_INNER_STATE_IN_DRAFT, $rec->modifiedOn) < dt::now()){
                 	
                 	// Обновяваме записа така че на ново да се извлече вътрешното състояние
+                	unset($rec->data);
                 	$mvc->save($rec);
                }
             }
