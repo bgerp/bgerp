@@ -637,7 +637,7 @@ class cat_Products extends core_Embedder {
     	
     	if (!$Driver) return ;
     	
-    	$res = $Driver->getProductInfo($packagingId);
+    	$res = $Driver->getProductInfo();
     	
     	$res->productRec->code = $productRec->code;
     	$res->isPublic = ($productRec->isPublic == 'yes') ? TRUE : FALSE;

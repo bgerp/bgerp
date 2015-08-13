@@ -34,6 +34,12 @@ class acc_SaleContractorsReport extends acc_BalanceReportImpl
      * Дефолт сметка
      */
     public $accountSysId = '701';
+    
+    
+    /**
+     * Брой записи на страница
+     */
+    public $listItemsPerPage = 50;
 
 
     /**
@@ -100,6 +106,103 @@ class acc_SaleContractorsReport extends acc_BalanceReportImpl
         $data->listFields['creditAmount'] = "Кредит->Сума";
     }
 
+    
+    /**
+     * След подготовката на показването на информацията
+     */
+    public static function on_AfterPrepareEmbeddedData($mvc, &$res)
+    {
+    	// Подготвяме страницирането
+    	$data = $res;
+    	 
+    	foreach ($data->recs as $id => $rec) {
+    		if (!isset($rec->creditQuantity) || !isset($rec->creditAmount)){
+    			unset($data->recs[$id]);
+    		}
+    	}
+    	 
+    	$pager = cls::get('core_Pager',  array('pageVar' => 'P_' .  $mvc->EmbedderRec->that,'itemsPerPage' => $mvc->listItemsPerPage));
+    	 
+    	$pager->itemsCount = count($data->recs, COUNT_RECURSIVE);
+    	$data->pager = $pager;
+    
+    	$start = $data->pager->rangeStart;
+    	$end = $data->pager->rangeEnd - 1;
+    
+    	$data->summary = new stdClass();
+    
+    	if(count($data->recs)){
+    		$count = 0;
+    		foreach ($data->recs as $id => $rec){
+    
+    			// Показваме само тези редове, които са в диапазона на страницата
+    			if($count >= $start && $count <= $end){
+	    			//$rec->id = $count + 1;
+	    			$row = $mvc->getVerbalDetail($rec);
+	    			$data->rows[$id] = $row;
+    			}
+    			// Сумираме всички суми и к-ва
+    			foreach (array('baseQuantity', 'baseAmount', 'debitAmount', 'debitQuantity', 'creditAmount', 'creditQuantity', 'blAmount', 'blQuantity') as $fld){
+    				if(!is_null($rec->$fld)){
+    					$data->summary->$fld += $rec->$fld;
+    				}
+    			}
+    			$count++;
+    		}
+    	}
+    
+    	$Double = cls::get('type_Double');
+    	$Double->params['decimals'] = 2;
+    
+    	foreach ((array)$data->summary as $name => $num){
+    		$data->summary->$name  = $Double->toVerbal($num);
+    		if($num < 0){
+    			$data->summary->$name  = "<span class='red'>{$data->summary->$name}</span>";
+    		}
+    	}
+    
+    	$mvc->recToVerbal($data);
+    
+    	$res = $data;
+    }
+    
+    
+    /**
+     * Вербалното представяне на записа
+     */
+    private function recToVerbal($data)
+    {
+    	$data->row = new stdClass();
+    
+    	foreach (range(1, 3) as $i){
+    		if(!empty($data->rec->{"ent{$i}Id"})){
+    			$data->row->{"ent{$i}Id"} = "<b>" . acc_Lists::getVerbal($data->accInfo->groups[$i]->rec, 'name') . "</b>: ";
+    			$data->row->{"ent{$i}Id"} .= acc_Items::fetchField($data->rec->{"ent{$i}Id"}, 'titleLink');
+    		}
+    	}
+    
+    	if(!empty($data->rec->action)){
+    		$data->row->action = ($data->rec->action == 'filter') ? tr('Филтриране по') : tr('Групиране по');
+    		$data->row->groupBy = '';
+    		 
+    		$Varchar = cls::get('type_Varchar');
+    		foreach (range(1, 3) as $i){
+    			if(!empty($data->rec->{"grouping{$i}"})){
+    				$data->row->groupBy .= acc_Items::getVerbal($data->rec->{"grouping{$i}"}, 'title') . ", ";
+    			} elseif(!empty($data->rec->{"feat{$i}"})){
+    				$data->rec->{"feat{$i}"} = ($data->rec->{"feat{$i}"} == '*') ? $data->accInfo->groups[$i]->rec->name : $data->rec->{"feat{$i}"};
+    				$data->row->groupBy .= $Varchar->toVerbal($data->rec->{"feat{$i}"}) . ", ";
+    			}
+    		}
+    		 
+    		$data->row->groupBy = trim($data->row->groupBy, ', ');
+    		 
+    		if($data->row->groupBy === ''){
+    			unset($data->row->action);
+    		}
+    	}
+    }
+    
 
     /**
      * Рендира вградения обект

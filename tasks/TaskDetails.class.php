@@ -2,20 +2,26 @@
 
 
 /**
- * Клас 'planning_TaskDetails'
+ * Клас 'tasks_TaskDetails'
  *
  * Детайли на задачите за производство
  *
  * @category  bgerp
- * @package   planning
+ * @package   tasks
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class planning_TaskDetails extends doc_Detail
+class tasks_TaskDetails extends doc_Detail
 {
     
+	
+	/**
+	 * За конвертиране на съществуващи MySQL таблици от предишни версии
+	 */
+	public $oldClassName = 'planning_TaskDetails';
+	
 	
     /**
      * Заглавие
@@ -38,7 +44,7 @@ class planning_TaskDetails extends doc_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, planning_Wrapper, plg_RowNumbering, plg_AlignDecimals2, plg_SaveAndNew, plg_Rejected, plg_Modified, plg_Created';
+    public $loadList = 'plg_RowTools, tasks_Wrapper, plg_RowNumbering, plg_AlignDecimals2, plg_SaveAndNew, plg_Rejected, plg_Modified, plg_Created';
     
     
     /**
@@ -106,7 +112,7 @@ class planning_TaskDetails extends doc_Detail
      */
     public function description()
     {
-    	$this->FLD("taskId", 'key(mvc=planning_Tasks)', 'input=hidden,silent,mandatory,caption=Задача');
+    	$this->FLD("taskId", 'key(mvc=tasks_Tasks)', 'input=hidden,silent,mandatory,caption=Задача');
     	$this->FLD('code', 'bigint', 'caption=Код,input=none');
     	$this->FLD('operation', 'varchar', 'silent,caption=Операция,input=none,removeAndRefreshForm=code');
     	$this->FLD('quantity', 'double', 'caption=Количество,mandatory');
@@ -181,10 +187,8 @@ class planning_TaskDetails extends doc_Detail
      */
     private function getDefaultCode()
     {
-    	$conf = core_Packs::getConfig('planning');
-    	
     	// Намираме последния въведен код
-    	$query = planning_TaskDetails::getQuery();
+    	$query = self::getQuery();
     	$query->XPR('maxCode', 'int', 'MAX(#code)');
     	$code = $query->fetch()->maxCode;
     	
@@ -261,7 +265,7 @@ class planning_TaskDetails extends doc_Detail
     protected static function on_AfterPrepareListFields($mvc, $data)
     {
     	// Добавяме полетата от драйвера в списъка с полета за показване
-    	if($Driver = cls::get('planning_Tasks')->getDriver($data->masterId)){
+    	if($Driver = cls::get('tasks_Tasks')->getDriver($data->masterId)){
     		$fieldset = cls::get('core_Fieldset');
     		$Driver->addDetailFields($fieldset);
     		
@@ -280,7 +284,7 @@ class planning_TaskDetails extends doc_Detail
     	$row = parent::recToVerbal_($rec, $fields);
     
     	// Разпънатите данни от драйвера ги вербализираме
-    	$Driver = cls::get('planning_Tasks')->getDriver($rec->taskId);
+    	$Driver = cls::get('tasks_Tasks')->getDriver($rec->taskId);
     	
     	if(is_array($fields) && $Driver){
     		$fieldset = cls::get('core_Fieldset');

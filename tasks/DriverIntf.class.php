@@ -5,15 +5,21 @@
  *
  *
  * @category  bgerp
- * @package   planning
+ * @package   tasks
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Интерфейс за драйвери на задачи
  */
-class planning_TaskDetailIntf extends embed_DriverIntf
+class tasks_DriverIntf extends embed_DriverIntf
 {
+	
+	
+	/**
+	 * За конвертиране на съществуващи MySQL таблици от предишни версии
+	 */
+	public $oldClassName = 'planning_TaskDetailIntf';
 	
 	
 	/**
@@ -81,9 +87,6 @@ class planning_TaskDetailIntf extends embed_DriverIntf
 	{
 		$this->class->inputEditFormDetail($form);
 	}
-	
-	
-
 
 
 	/**

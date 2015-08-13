@@ -7,26 +7,26 @@
  *
  *
  * @category  bgerp
- * @package   planning
+ * @package   tasks
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class planning_drivers_BaseTask extends core_BaseClass
+abstract class tasks_BaseDriver extends core_BaseClass
 {
-    
+	
 	
 	/**
 	 * Интерфейси които имплементира
 	 */
-	public $interfaces = 'planning_TaskDetailIntf';
+	public $interfaces = 'tasks_DriverIntf';
 	
 	
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectDriver = 'planning, ceo';
+    public $canSelectDriver = 'powerUser';
     
     
     /**
