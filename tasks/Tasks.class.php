@@ -39,7 +39,7 @@ class tasks_Tasks extends embed_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, doc_SharablePlg, doc_DocumentPlg, planning_plg_StateManager, tasks_Wrapper, acc_plg_DocumentSummary, plg_Search, change_Plugin, plg_Clone, plg_Sorting';
+    public $loadList = 'plg_RowTools, doc_SharablePlg, doc_DocumentPlg, planning_plg_StateManager, acc_plg_DocumentSummary, plg_Search, change_Plugin, plg_Clone, plg_Sorting';
 
     
     /**
@@ -75,13 +75,13 @@ class tasks_Tasks extends embed_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт, name = Документ, jobId, title, expectedTimeStart,timeStart, timeDuration, timeEnd, inCharge, progress, state';
+    public $listFields = 'tools=Пулт, name = Документ, originId=Задание, title, expectedTimeStart,timeStart, timeDuration, timeEnd, inCharge, progress, state';
     
     
     /**
      * Кои колони да скриваме ако янма данни в тях
      */
-    public $hideListFieldsIfEmpty = 'jobId';
+    public $hideListFieldsIfEmpty = 'originId';
     
     
     /**
@@ -164,13 +164,12 @@ class tasks_Tasks extends embed_Manager
     	$this->FLD('timeEnd', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00)', 'caption=Времена->Край,changable, tdClass=leftColImportant,formOrder=103');
     	$this->FLD('sharedUsers', 'userList', 'caption=Допълнително->Споделени,changable,formOrder=104');
     	$this->FLD('progress', 'percent', 'caption=Прогрес,input=none,notNull,value=0');
-    	$this->FLD('jobId', 'key(mvc=planning_Jobs)', 'input=none,caption=По задание');
     	$this->FLD('systemId', 'int', 'silent,input=hidden');
     	$this->FLD('expectedTimeStart', 'datetime', 'silent,input=hidden,caption=Очаквано начало');
     	
     	$this->FLD('classId', 'key(mvc=core_Classes)', 'input=hidden,notNull');
     	
-    	$this->setDbIndex('jobId');
+    	$this->setDbIndex('classId');
     }
     
     
@@ -252,8 +251,9 @@ class tasks_Tasks extends embed_Manager
     		$row->expectedTimeEnd = ht::createLink(dt::mysql2verbal($expectedTimeEnd, 'smartTime'), array('cal_Calendar', 'day', 'from' => $row->expectedTimeEnd, 'Task' => 'true'), NULL, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
     	}
     	
-    	if($rec->jobId){
-    		$row->jobId = planning_Jobs::getLink($rec->jobId, 0);
+    	if($rec->originId){
+    		$origin = doc_Containers::getDocument($rec->originId);
+    		$row->originId = $origin->getLink(0);
     	}
     }
     
@@ -484,7 +484,6 @@ class tasks_Tasks extends embed_Manager
     	
     	if(isset($rec->originId)){
     		$origin = doc_Containers::getDocument($rec->originId);
-    		$form->setDefault('jobId', $origin->that);
     		
     		// Ако задачата идва от дефолт задача на продуктов драйвер
     		if(isset($rec->systemId)){
@@ -614,7 +613,7 @@ class tasks_Tasks extends embed_Manager
     			
     			// Ако предишно изчисленото очаквано начало е различно от текущото
     			if($expectedTimes[$rec->id] !== $max){
-    				echo "<li><b>{$rec->id}</b> old: '{$expectedTimes[$rec->id]}' new: '{$max}'";
+    				//echo "<li><b>{$rec->id}</b> old: '{$expectedTimes[$rec->id]}' new: '{$max}'";
     		
     				// Записваме новото време
     				$expectedTimes[$rec->id] = $max;
@@ -625,7 +624,7 @@ class tasks_Tasks extends embed_Manager
     		}
     		
     		if($repeat){
-    			echo "<li>REPEAT";
+    			//echo "<li>REPEAT";
     		} 
     		
     	// Докато флага е сетнат преизчисляваме очакваното начало на задачите
@@ -743,7 +742,7 @@ class tasks_Tasks extends embed_Manager
     static function getHandle($id)
     {
     	$rec = static::fetch($id);
-    	if($rec->classId){
+    	if($rec->classId && cls::load($rec->classId, TRUE)){
     		$self = cls::get($rec->classId);
     		
     		return $self->abbr . $rec->id;
