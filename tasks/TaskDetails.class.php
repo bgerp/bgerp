@@ -108,6 +108,17 @@ class tasks_TaskDetails extends doc_Detail
     
     
     /**
+     * Кой е мастър класа
+     */
+    public function getMasterMvc($rec)
+    {
+    	$masterMvc = cls::get(tasks_Tasks::fetchField($rec->taskId, 'classId'));
+    		
+    	return $masterMvc;
+    }
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()

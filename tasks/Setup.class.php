@@ -23,12 +23,6 @@ class tasks_Setup extends core_ProtoSetup
     
     
     /**
-     * Мениджър - входна точка в пакета
-     */
-    var $startCtr = 'tasks_Tasks';
-    
-    
-    /**
      * Екшън - входна точка в пакета
      */
     var $startAct = 'default';
@@ -44,17 +38,8 @@ class tasks_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     var $managers = array(
-            'tasks_Tasks',
     		'tasks_TaskDetails',
     		'tasks_TaskConditions',
-        );
-
-    
-    /**
-     * Връзки от менюто, сочещи към модула
-     */
-    var $menuItems = array(
-            array(3.24, 'Производство', 'Задачи', 'tasks_Tasks', 'default', "powerUser, ceo"),
         );
     
     

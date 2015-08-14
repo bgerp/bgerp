@@ -59,6 +59,8 @@ class planning_Setup extends core_ProtoSetup
     		'planning_DirectProductionNote',
     		'planning_DirectProductNoteDetails',
     		'planning_ObjectResources',
+    		'planning_Tasks',
+    		'migrate::updateTasks',
         );
 
         
@@ -91,5 +93,30 @@ class planning_Setup extends core_ProtoSetup
         $res .= bgerp_Menu::remove($this);
         
         return $res;
+    }
+    
+    
+    /**
+     * Миграция на старите задачи
+     */
+    function updateTasks()
+    {
+    	core_Classes::add('planning_Tasks');
+    	$PlanningTasks = planning_Tasks::getClassId();
+    	 
+    	if(!tasks_Tasks::count()) return;
+    	
+    	$tQuery = tasks_Tasks::getQuery();
+    	$tQuery->where('#classId IS NULL || #classId = 0');
+    	while($tRec = $tQuery->fetch()){
+    		if(cls::get('tasks_Tasks')->getDriver($tRec->id)){
+    			$tRec->classId = $PlanningTasks;
+    			tasks_Tasks::save($tRec);
+    		}
+    	}
+    	
+    	$cRec = core_Classes::fetch("#name = 'tasks_Tasks'");
+    	$cRec->state = 'closed';
+    	core_Classes::save($cRec);
     }
 }

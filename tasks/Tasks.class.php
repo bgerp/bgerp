@@ -3,7 +3,7 @@
 
 
 /**
- * Мениджър на задачи за производство
+ * Мениджър на задачи
  *
  *
  * @category  bgerp
@@ -18,13 +18,7 @@ class tasks_Tasks extends embed_Manager
 {
     
     
-	/**
-	 * За конвертиране на съществуващи MySQL таблици от предишни версии
-	 */
-	public $oldClassName = 'planning_Tasks';
-	
-	
-	/**
+    /**
 	 * Свойство, което указва интерфейса на вътрешните обекти
 	 */
 	public $driverInterface = 'tasks_DriverIntf';
@@ -33,13 +27,13 @@ class tasks_Tasks extends embed_Manager
     /**
      * Заглавие
      */
-    public $title = 'Задачи за производство';
+    public $title = 'Задачи';
     
     
     /**
      * Еденично заглавие
      */
-    public $singleTitle = 'Задача за производство';
+    public $singleTitle = 'Задача';
     
     
     /**
@@ -109,12 +103,6 @@ class tasks_Tasks extends embed_Manager
     
     
     /**
-     * Абревиатура
-     */
-    public $abbr = 'Pts';
-    
-    
-    /**
      * Опашка за обновяване
      */
     protected $updated = array();
@@ -142,12 +130,6 @@ class tasks_Tasks extends embed_Manager
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'title';
-    
-    
-    /**
-     * Групиране на документите
-     */
-    public $newBtnGroup = "3.8|Производство";
     
     
     /**
@@ -185,6 +167,8 @@ class tasks_Tasks extends embed_Manager
     	$this->FLD('jobId', 'key(mvc=planning_Jobs)', 'input=none,caption=По задание');
     	$this->FLD('systemId', 'int', 'silent,input=hidden');
     	$this->FLD('expectedTimeStart', 'datetime', 'silent,input=hidden,caption=Очаквано начало');
+    	
+    	$this->FLD('classId', 'key(mvc=core_Classes)', 'input=hidden,notNull');
     	
     	$this->setDbIndex('jobId');
     }
@@ -275,86 +259,6 @@ class tasks_Tasks extends embed_Manager
     
     
     /**
-     * Подготвя задачите към заданията
-     */
-    public function prepareTasks($data)
-    {
-    	$data->recs = $data->rows = array();
-    	
-    	// Дали според продуктовия драйвер на артикула в заданието има дефолтни задачи
-    	$ProductDriver = cat_Products::getDriver($data->masterData->rec->productId);
-    	$defaultTasks = $ProductDriver->getDefaultJobTasks();
-    	
-    	// Намираме всички задачи към задание
-    	$query = $this->getQuery();
-    	$query->where("#state != 'rejected'");
-    	$query->where("#jobId = {$data->masterId}");
-    	$query->XPR('orderByState', 'int', "(CASE #state WHEN 'wakeup' THEN 1 WHEN 'active' THEN 2 WHEN 'stopped' THEN 3 WHEN 'closed' THEN 4 WHEN 'pending' THEN 5 ELSE 6 END)");
-    	$query->orderBy('#orderByState=ASC');
-    	
-    	// Подготвяме данните
-    	while($rec = $query->fetch()){
-    		$data->recs[$rec->id] = $rec;
-    		$data->rows[$rec->id] = $this->recToVerbal($rec);
-    		
-    		// Премахваме от масива с дефолтни задачи, тези с чието име има сега създадена задача
-    		$title = $data->rows[$rec->id]->title;
-    		if(isset($rec->systemId)){
-    			unset($defaultTasks[$rec->systemId]);
-    		}
-    	}
-    	
-    	// Ако има дефолтни задачи, показваме ги визуално в $data->rows за по-лесно добавяне
-    	if(count($defaultTasks)){
-    		foreach ($defaultTasks as $index => $taskInfo){
-    				
-    				// Ако не може да бъде доабвена задача не показваме реда
-    				if(!self::haveRightFor('add', (object)array('originId' => $data->masterData->rec->containerId, 'innerClass' => $taskInfo->driver))) continue;
-    			
-    				$url = array('tasks_Tasks', 'add', 'originId' => $data->masterData->rec->containerId, 'driverClass' => $taskInfo->driverClass, 'systemId' => $index, 'ret_url' => TRUE);
-    				$row = new stdClass();
-    				$row->title = $taskInfo->title;
-    				$row->tools = ht::createLink('', $url, FALSE, 'ef_icon=img/16/add.png,title=Добавяне на нова задача');
-    				$row->ROW_ATTR['style'] .= 'background-color:#f8f8f8;color:#777';
-    				
-    				$data->rows[] = $row;
-    		}
-    	}
-    	
-    	// Бутон за нова задача ако има права
-    	$driverClass = planning_drivers_ProductionTask::getClassId();
-    	if(self::haveRightFor('add', (object)array('originId' => $data->masterData->rec->containerId, 'driverClass' => $driverClass))){
-    		$data->addUrl = array('tasks_Tasks', 'add', 'originId' => $data->masterData->rec->containerId, 'driverClass' => $driverClass, 'ret_url' => TRUE);
-    	}
-    }
-    
-    
-    /**
-     * Рендира задачите на заданията
-     */
-    public function renderTasks($data)
-    {
-    	$tpl = new ET("");
-    	
-    	// Ако няма намерени записи, не се реднира нищо
-    	// Рендираме таблицата с намерените задачи
-    	$table = cls::get('core_TableView', array('mvc' => $this));
-    	$table->setFieldsToHideIfEmptyColumn('timeStart,timeDuration,timeEnd');
-    	$tpl = $table->get($data->rows, 'tools=Пулт,progress=Прогрес,name=Документ,title=Заглавие,timeStart=Начало, timeDuration=Продължителност, timeEnd=Край, inCharge=Отговорник');
-    		 
-    	
-    	// Добавя бутон за създаване на нова задача
-    	if(isset($data->addUrl)){
-    		$addBtn = ht::createLink('', $data->addUrl, FALSE, 'title=Създаване на задача по заданието,ef_icon=img/16/add.png');
-    		$tpl->append($addBtn, 'ADD_BTN');
-    	}
-    	
-    	// Връщаме шаблона
-    	return $tpl;
-    }
-    
-    
-    /**
      * Интерфейсен метод на doc_DocumentInterface
      */
     public function getDocumentRow($id)
@@ -379,7 +283,7 @@ class tasks_Tasks extends embed_Manager
     public static function getRecTitle($rec, $escaped = TRUE)
     {
     	$me = cls::get(get_called_class());
-    
+    	
     	return $me->singleTitle . " №{$rec->id}";
     }
     
@@ -445,6 +349,8 @@ class tasks_Tasks extends embed_Manager
      */
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
+    	$data->query->where("#classId = {$mvc->getClassId()}");
+    	
     	// Добавяме поле за търсене по състояние
     	if(!Request::get('Rejected', 'int')){
     		$data->listFilter->setOptions('state', array('' => '') + arr::make('draft=Чернова, active=Активно, pending=Чакащо, pendingandactive=Активно+Чакащо,closed=Приключено, stopped=Спряно, wakeup=Събудено', TRUE));
@@ -490,7 +396,7 @@ class tasks_Tasks extends embed_Manager
     		}
     		
     		// Ако потребителя не може да избере поне една опция, той не може да добави задача
-    		$interfaces = static::getAvailableDriverOptions($userId);
+    		$interfaces = $mvc::getAvailableDriverOptions($userId);
     		if(!count($interfaces)){
     			$requiredRoles = 'no_one';
     		}
@@ -574,6 +480,7 @@ class tasks_Tasks extends embed_Manager
     	
     	$cu = core_Users::getCurrent();
     	$form->setDefault('inCharge', keylist::addKey('', $cu));
+    	$form->setDefault('classId', $mvc->getClassId());
     	
     	if(isset($rec->originId)){
     		$origin = doc_Containers::getDocument($rec->originId);
@@ -707,7 +614,7 @@ class tasks_Tasks extends embed_Manager
     			
     			// Ако предишно изчисленото очаквано начало е различно от текущото
     			if($expectedTimes[$rec->id] !== $max){
-    				//echo "<li><b>{$rec->id}</b> old: '{$expectedTimes[$rec->id]}' new: '{$max}'";
+    				echo "<li><b>{$rec->id}</b> old: '{$expectedTimes[$rec->id]}' new: '{$max}'";
     		
     				// Записваме новото време
     				$expectedTimes[$rec->id] = $max;
@@ -718,7 +625,7 @@ class tasks_Tasks extends embed_Manager
     		}
     		
     		if($repeat){
-    			//echo "<li>REPEAT";
+    			echo "<li>REPEAT";
     		} 
     		
     	// Докато флага е сетнат преизчисляваме очакваното начало на задачите
@@ -831,6 +738,22 @@ class tasks_Tasks extends embed_Manager
     
     
     /**
+     * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
+     */
+    static function getHandle($id)
+    {
+    	$rec = static::fetch($id);
+    	if($rec->classId){
+    		$self = cls::get($rec->classId);
+    		
+    		return $self->abbr . $rec->id;
+    	}
+    	
+    	return $id;
+    }
+    
+    
+    /**
      * Премахва от резултатите скритите от менютата за избор
      */
     public static function on_AfterMakeArray4Select($mvc, &$res, $fields = NULL, &$where = "", $index = 'id'  )
@@ -840,5 +763,30 @@ class tasks_Tasks extends embed_Manager
     			$title =  " {$title}" . " (#" . $mvc->getHandle($id) . ")";
     		}
     	}
+    }
+    
+    
+    /**
+     * Връща позволените за избор драйвери според класа и потребителя
+     *
+     * @param mixed $userId - ид на потребител
+     * @return array $interfaces - възможните за избор опции на класове
+     */
+    public static function getAvailableDriverOptions($userId = NULL)
+    {
+    	$me = get_called_class();
+    	$options = parent::getAvailableDriverOptions($userId);
+    	foreach ($options as $id => $title){
+    		if(!cls::load($id, TRUE)) continue;
+    		
+    		// Ако драйвера не може да бъде добавен към ибзрания клас, махаме го
+    		$Driver = cls::get($id);
+    		$availableClasses = arr::make($Driver->availableClasses, TRUE);
+    		if(!isset($availableClasses[$me])){
+    			unset($options[$id]);
+    		}
+    	}
+    	
+    	return $options;
     }
 }
