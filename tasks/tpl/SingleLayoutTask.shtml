@@ -8,7 +8,6 @@
                         <div>
                             |Отговорници|*: [#inCharge#]
                         </div>
-                        |Приоритет|*: [#priority#] <br>
                         <!--ET_BEGIN timeStart-->
                         |Начало|*: [#timeStart#]<br>
                         <!--ET_END timeStart-->
@@ -36,7 +35,6 @@
             </table>
         </div>
     </div>
-    <div style='padding-top:6px;padding-bottom:6px'>[#description#]</div>
     
     <div class="clearfix21 portal" style="background-color:transparent;">
 		<div class="legend" style="background-color:#ffc;font-size:0.9em;padding:1px;color:black">|Прогрес|* [#ADD_BTN#]</div>

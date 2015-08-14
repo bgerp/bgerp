@@ -174,14 +174,7 @@ class tasks_Tasks extends embed_Manager
     function description()
     {
     	$this->FLD('title', 'varchar(128)', 'caption=Заглавие,mandatory,width=100%,changable,silent');
-    	
-    	$this->FLD('priority', 'enum(low=Нисък,
-                                    normal=Нормален,
-                                    high=Висок,
-                                    critical=Критичен)',
-    			'caption=Приоритет,mandatory,maxRadio=4,columns=4,notNull,value=normal,silent');
     	$this->FLD('inCharge' , 'userList(roles=powerUser)', 'caption=Отговорници,mandatory,changable');
-    	$this->FLD('description', 'richtext(bucket=calTasks,rows=3)', 'caption=Описание,changable');
     	
     	$this->FLD('timeStart', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00)',
     			'caption=Времена->Начало, silent, changable, tdClass=leftColImportant,formOrder=101');
@@ -619,17 +612,6 @@ class tasks_Tasks extends embed_Manager
     {
     	// Добавяме отговорниците към споделените
     	$rec->sharedUsers = keylist::merge($rec->sharedUsers, $rec->inCharge);
-    }
-    
-    
-    /**
-     * Връща иконата на документа
-     */
-    function getIcon_($id)
-    {
-    	$rec = self::fetch($id);
-    
-    	return "img/16/task-" . $rec->priority . ".png";
     }
     
     
