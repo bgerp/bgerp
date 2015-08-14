@@ -141,7 +141,7 @@ class tasks_Tasks extends embed_Manager
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'title,description';
+    public $searchFields = 'title';
     
     
     /**
