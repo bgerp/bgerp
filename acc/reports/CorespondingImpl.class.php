@@ -13,9 +13,15 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class acc_CorespondingReportImpl extends frame_BaseDriver
+class acc_reports_CorespondingImpl extends frame_BaseDriver
 {
     
+	
+	/**
+	 * За конвертиране на съществуващи MySQL таблици от предишни версии
+	 */
+	public $oldClassName = 'acc_CorespondingReportImpl';
+	
 	
     /**
      * Кой може да избира драйвъра

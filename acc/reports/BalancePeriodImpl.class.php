@@ -14,9 +14,15 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class acc_BalancePeriodReportImpl extends frame_BaseDriver
+class acc_reports_BalancePeriodImpl extends frame_BaseDriver
 {
     
+	
+	/**
+	 * За конвертиране на съществуващи MySQL таблици от предишни версии
+	 */
+	public $oldClassName = 'acc_BalancePeriodReportImpl';
+	
 	
     /**
      * Кой може да избира драйвъра

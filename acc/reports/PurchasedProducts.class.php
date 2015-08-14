@@ -14,10 +14,16 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class acc_PurchasedProductsReport extends acc_CorespondingReportImpl
+class acc_reports_PurchasedProducts extends acc_reports_CorespondingImpl
 {
 
 
+	/**
+	 * За конвертиране на съществуващи MySQL таблици от предишни версии
+	 */
+	public $oldClassName = 'acc_PurchasedProductsReport';
+	
+	
     /**
      * Кой може да избира драйвъра
      */

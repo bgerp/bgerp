@@ -11,10 +11,17 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class fileman_FileInfoReport extends frame_BaseDriver
+class fileman_reports_FileInfo extends frame_BaseDriver
 {
     
     
+	
+	/**
+	 * За конвертиране на съществуващи MySQL таблици от предишни версии
+	 */
+	public $oldClassName = 'fileman_FileInfoReport';
+	
+	
     /**
      * Кой може да избира драйвъра
      */
