@@ -190,7 +190,7 @@ class tasks_Tasks extends embed_Manager
     	$this->FLD('sharedUsers', 'userList', 'caption=Допълнително->Споделени,changable,formOrder=104');
     	$this->FLD('progress', 'percent', 'caption=Прогрес,input=none,notNull,value=0');
     	$this->FLD('jobId', 'key(mvc=planning_Jobs)', 'input=none,caption=По задание');
-    	$this->FLD('fromProductArrayId', 'int', 'silent,input=hidden');
+    	$this->FLD('systemId', 'int', 'silent,input=hidden');
     	$this->FLD('expectedTimeStart', 'datetime', 'silent,input=hidden,caption=Очаквано начало');
     	
     	$this->setDbIndex('jobId');
@@ -306,8 +306,8 @@ class tasks_Tasks extends embed_Manager
     		
     		// Премахваме от масива с дефолтни задачи, тези с чието име има сега създадена задача
     		$title = $data->rows[$rec->id]->title;
-    		if(isset($rec->fromProductArrayId)){
-    			unset($defaultTasks[$rec->fromProductArrayId]);
+    		if(isset($rec->systemId)){
+    			unset($defaultTasks[$rec->systemId]);
     		}
     	}
     	
@@ -318,7 +318,7 @@ class tasks_Tasks extends embed_Manager
     				// Ако не може да бъде доабвена задача не показваме реда
     				if(!self::haveRightFor('add', (object)array('originId' => $data->masterData->rec->containerId, 'innerClass' => $taskInfo->driver))) continue;
     			
-    				$url = array('tasks_Tasks', 'add', 'originId' => $data->masterData->rec->containerId, 'driverClass' => $taskInfo->driverClass, 'fromProductArrayId' => $index, 'ret_url' => TRUE);
+    				$url = array('tasks_Tasks', 'add', 'originId' => $data->masterData->rec->containerId, 'driverClass' => $taskInfo->driverClass, 'systemId' => $index, 'ret_url' => TRUE);
     				$row = new stdClass();
     				$row->title = $taskInfo->title;
     				$row->tools = ht::createLink('', $url, FALSE, 'ef_icon=img/16/add.png,title=Добавяне на нова задача');
@@ -587,7 +587,7 @@ class tasks_Tasks extends embed_Manager
     		$form->setDefault('jobId', $origin->that);
     		
     		// Ако задачата идва от дефолт задача на продуктов драйвер
-    		if(isset($rec->fromProductArrayId)){
+    		if(isset($rec->systemId)){
     			$productId = $origin->fetchField('productId');
     			$ProductDriver = cat_Products::getDriver($productId);
     			
@@ -595,8 +595,8 @@ class tasks_Tasks extends embed_Manager
     			$taskInfoArray = $ProductDriver->getDefaultJobTasks();
     			
     			// Задаваме дефолтите на задачата
-    			if(isset($taskInfoArray[$rec->fromProductArrayId])){
-    				$params = (array)$taskInfoArray[$rec->fromProductArrayId];
+    			if(isset($taskInfoArray[$rec->systemId])){
+    				$params = (array)$taskInfoArray[$rec->systemId];
     				if(is_array($params)){
     					foreach ($params as $key => $value){
     						$form->setDefault($key, $value);
@@ -657,6 +657,7 @@ class tasks_Tasks extends embed_Manager
 		}
 	}
 
+	
 	/**
 	 * Дали задачата може да се активира
 	 * Ако задачата има прогрес или очакваното и начало е <= текущото време, тя е готова за активация
