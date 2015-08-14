@@ -33,12 +33,6 @@ class vislog_reports_Resources extends frame_BaseDriver
      * Кои интерфейси имплементира
      */
     public $interfaces = 'frame_ReportSourceIntf';
-    
-
-	/**
-	 * За конвертиране на съществуващи MySQL таблици от предишни версии
-	 */
-	public $oldClassName = 'vislog_IpResources';
 
 
     /**
