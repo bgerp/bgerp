@@ -13,9 +13,15 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class cash_CashReportImpl extends acc_PeriodHistoryReportImpl
+class cash_reports_CashImpl extends acc_reports_PeriodHistoryImpl
 {
     
+	
+	/**
+	 * За конвертиране на съществуващи MySQL таблици от предишни версии
+	 */
+	public $oldClassName = 'cash_CashReportImpl';
+	
 	
     /**
      * Кой може да избира драйвъра

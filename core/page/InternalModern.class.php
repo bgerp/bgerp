@@ -382,7 +382,7 @@ class core_page_InternalModern extends core_page_Active
         $tpl->replace($portalLink, 'PORTAL');
         
         // Рендираме бутоните за търсене
-        $inputType = "<input class='serch-input-modern' type='text' onkeyup='onSearchEnter(event, \"modern-doc-search\", this);'/>";
+        $inputType = "<input class='serch-input-modern' type='search' onkeyup='onSearchEnter(event, \"modern-doc-search\", this);'/>";
         
         $tpl->replace($inputType, 'SEARCH_INPUT');
         

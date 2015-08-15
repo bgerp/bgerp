@@ -3,7 +3,7 @@
 
 
 /**
- * Мениджър на отчети от Приходи от продажби по продукти
+ * Мениджър на отчети от Печалба от продажби по клиенти
  * Имплементация на 'frame_ReportSourceIntf' за направата на справка на баланса
  *
  *
@@ -14,10 +14,16 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class acc_SaleContractorsReport extends acc_BalanceReportImpl
+class acc_reports_ProfitContractors extends acc_reports_BalanceImpl
 {
 
 
+	/**
+	 * За конвертиране на съществуващи MySQL таблици от предишни версии
+	 */
+	public $oldClassName = 'acc_ProfitContractorsReport';
+	
+	
     /**
      * Кой може да избира драйвъра
      */
@@ -27,19 +33,13 @@ class acc_SaleContractorsReport extends acc_BalanceReportImpl
     /**
      * Заглавие
      */
-    public $title = 'Счетоводство » Приходи от продажби по клиенти';
+    public $title = 'Счетоводство » Печалба от продажби по клиенти';
 
 
     /**
      * Дефолт сметка
      */
     public $accountSysId = '701';
-    
-    
-    /**
-     * Брой записи на страница
-     */
-    public $listItemsPerPage = 50;
 
 
     /**
@@ -99,110 +99,14 @@ class acc_SaleContractorsReport extends acc_BalanceReportImpl
         unset($data->listFields['baseAmount']);
         unset($data->listFields['debitQuantity']);
         unset($data->listFields['debitAmount']);
-        unset($data->listFields['blQuantity']);
-        unset($data->listFields['blAmount']);
+        unset($data->listFields['creditQuantity']);
+        unset($data->listFields['creditAmount']);
 
-        $data->listFields['creditQuantity'] = "Кредит->К-во";
-        $data->listFields['creditAmount'] = "Кредит->Сума";
+
+        $data->listFields['blQuantity'] = "Кредит->К-во";
+        $data->listFields['blAmount'] = "Кредит->Сума";
     }
 
-    
-    /**
-     * След подготовката на показването на информацията
-     */
-    public static function on_AfterPrepareEmbeddedData($mvc, &$res)
-    {
-    	// Подготвяме страницирането
-    	$data = $res;
-    	 
-    	foreach ($data->recs as $id => $rec) {
-    		if (!isset($rec->creditQuantity) || !isset($rec->creditAmount)){
-    			unset($data->recs[$id]);
-    		}
-    	}
-    	 
-    	$pager = cls::get('core_Pager',  array('pageVar' => 'P_' .  $mvc->EmbedderRec->that,'itemsPerPage' => $mvc->listItemsPerPage));
-    	 
-    	$pager->itemsCount = count($data->recs, COUNT_RECURSIVE);
-    	$data->pager = $pager;
-    
-    	$start = $data->pager->rangeStart;
-    	$end = $data->pager->rangeEnd - 1;
-    
-    	$data->summary = new stdClass();
-    
-    	if(count($data->recs)){
-    		$count = 0;
-    		foreach ($data->recs as $id => $rec){
-    
-    			// Показваме само тези редове, които са в диапазона на страницата
-    			if($count >= $start && $count <= $end){
-	    			//$rec->id = $count + 1;
-	    			$row = $mvc->getVerbalDetail($rec);
-	    			$data->rows[$id] = $row;
-    			}
-    			// Сумираме всички суми и к-ва
-    			foreach (array('baseQuantity', 'baseAmount', 'debitAmount', 'debitQuantity', 'creditAmount', 'creditQuantity', 'blAmount', 'blQuantity') as $fld){
-    				if(!is_null($rec->$fld)){
-    					$data->summary->$fld += $rec->$fld;
-    				}
-    			}
-    			$count++;
-    		}
-    	}
-    
-    	$Double = cls::get('type_Double');
-    	$Double->params['decimals'] = 2;
-    
-    	foreach ((array)$data->summary as $name => $num){
-    		$data->summary->$name  = $Double->toVerbal($num);
-    		if($num < 0){
-    			$data->summary->$name  = "<span class='red'>{$data->summary->$name}</span>";
-    		}
-    	}
-    
-    	$mvc->recToVerbal($data);
-    
-    	$res = $data;
-    }
-    
-    
-    /**
-     * Вербалното представяне на записа
-     */
-    private function recToVerbal($data)
-    {
-    	$data->row = new stdClass();
-    
-    	foreach (range(1, 3) as $i){
-    		if(!empty($data->rec->{"ent{$i}Id"})){
-    			$data->row->{"ent{$i}Id"} = "<b>" . acc_Lists::getVerbal($data->accInfo->groups[$i]->rec, 'name') . "</b>: ";
-    			$data->row->{"ent{$i}Id"} .= acc_Items::fetchField($data->rec->{"ent{$i}Id"}, 'titleLink');
-    		}
-    	}
-    
-    	if(!empty($data->rec->action)){
-    		$data->row->action = ($data->rec->action == 'filter') ? tr('Филтриране по') : tr('Групиране по');
-    		$data->row->groupBy = '';
-    		 
-    		$Varchar = cls::get('type_Varchar');
-    		foreach (range(1, 3) as $i){
-    			if(!empty($data->rec->{"grouping{$i}"})){
-    				$data->row->groupBy .= acc_Items::getVerbal($data->rec->{"grouping{$i}"}, 'title') . ", ";
-    			} elseif(!empty($data->rec->{"feat{$i}"})){
-    				$data->rec->{"feat{$i}"} = ($data->rec->{"feat{$i}"} == '*') ? $data->accInfo->groups[$i]->rec->name : $data->rec->{"feat{$i}"};
-    				$data->row->groupBy .= $Varchar->toVerbal($data->rec->{"feat{$i}"}) . ", ";
-    			}
-    		}
-    		 
-    		$data->row->groupBy = trim($data->row->groupBy, ', ');
-    		 
-    		if($data->row->groupBy === ''){
-    			unset($data->row->action);
-    		}
-    	}
-    }
-    
 
     /**
      * Рендира вградения обект
@@ -219,8 +123,7 @@ class acc_SaleContractorsReport extends acc_BalanceReportImpl
         $tpl->placeObject($data->row);
 
         $tableMvc = new core_Mvc;
-
-        $tableMvc->FLD('creditAmount', 'int', 'tdClass=accCell');
+        $tableMvc->FLD('blAmount', 'int', 'tdClass=accCell');
 
 
         $table = cls::get('core_TableView', array('mvc' => $tableMvc));
@@ -232,7 +135,7 @@ class acc_SaleContractorsReport extends acc_BalanceReportImpl
         if($data->bShowQuantities ){
             $data->summary->colspan -= 4;
             if($data->summary->colspan != 0 && count($data->rows)){
-                $beforeRow = new core_ET("<tr style = 'background-color: #eee'><td colspan=[#colspan#]><b>" . tr('ОБЩО') . "</b></td><td style='text-align:right'><b>[#creditAmount#]</b></td></tr>");
+                $beforeRow = new core_ET("<tr style = 'background-color: #eee'><td colspan=[#colspan#]><b>" . tr('ОБЩО') . "</b></td><td style='text-align:right'><b>[#blAmount#]</b></td></tr>");
             }
         }
 
@@ -284,10 +187,9 @@ class acc_SaleContractorsReport extends acc_BalanceReportImpl
     {
 
         $exportFields['ent1Id']  = "Контрагенти";
-        $exportFields['creditAmount']  = "Кредит";
+        $exportFields['blAmount']  = "Кредит";
 
         return $exportFields;
     }
-
 
 }

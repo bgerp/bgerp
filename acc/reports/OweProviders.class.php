@@ -14,10 +14,16 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class acc_OweProvidersReport extends acc_BalanceReportImpl
+class acc_reports_OweProviders extends acc_reports_BalanceImpl
 {
 
 
+	/**
+	 * За конвертиране на съществуващи MySQL таблици от предишни версии
+	 */
+	public $oldClassName = 'acc_OweProvidersReport';
+	
+	
     /**
      * Кой може да избира драйвъра
      */
@@ -28,12 +34,6 @@ class acc_OweProvidersReport extends acc_BalanceReportImpl
      * Заглавие
      */
     public $title = 'Счетоводство » Задължения към доставчици';
-
-
-    /**
-     * За конвертиране на съществуващи MySQL таблици от предишни версии
-     */
-    public $oldClassName = 'acc_OweRrovidersReport';
 
 
     /**

@@ -1346,7 +1346,7 @@ class pos_Receipts extends core_Master {
     		// Ако продукта не отговаря на търсения стринг, го пропускаме
     		if(!$pRec = $Products->fetch(array("#id = {$id} AND #searchKeywords LIKE '%[#1#]%'", $data->searchString))) continue;
     		
-    		$pInfo = cat_Products:: getProductInfo($id);
+    		$pInfo = cat_Products::getProductInfo($id);
     		
     		$packs = $Products->getPacks($id);
     		$packId = key($packs);

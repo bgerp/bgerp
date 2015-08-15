@@ -76,7 +76,7 @@ class cad2_SvgCanvas extends core_BaseClass {
         $this->setAttr('stroke-width', 0.2);
         $this->setAttr('fill', 'none');
         $this->setAttr('font-size', 40); 
-        $this->setAttr('font-family', 'Arial');
+        $this->setAttr('font-family', 'Courier');
 	}
 
 
@@ -254,8 +254,7 @@ class cad2_SvgCanvas extends core_BaseClass {
         $c = $absolute ? 'C' : 'c';
 
 		$path->attr['d'] .= " {$c}{$x1},{$y1} {$x2},{$y2} {$x},{$y}";
-// echo "<li> $x1, $y1, $absolute | $x2, $y2, $absolute | $x, $y, $absolute";  
-
+ 
 		$this->setCP($x1, $y1, $absolute);
         $this->setCP($x2, $y2, $absolute);
 		$this->setCP($x, $y, $absolute);
@@ -577,4 +576,6 @@ class cad2_SvgCanvas extends core_BaseClass {
 
         return $v;
     }
+
+
 }

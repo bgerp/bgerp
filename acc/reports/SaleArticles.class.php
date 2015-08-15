@@ -14,10 +14,16 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class acc_SaleArticlesReport extends acc_BalanceReportImpl
+class acc_reports_SaleArticles extends acc_reports_BalanceImpl
 {
 
 
+	/**
+	 * За конвертиране на съществуващи MySQL таблици от предишни версии
+	 */
+	public $oldClassName = 'acc_SaleArticlesReport';
+	
+	
     /**
      * Кой може да избира драйвъра
      */

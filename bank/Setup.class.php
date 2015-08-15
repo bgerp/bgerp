@@ -87,7 +87,7 @@ class bank_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    var $defClasses = "bank_AccountReportImpl";
+    var $defClasses = "bank_reports_AccountImpl";
     
     
     /**

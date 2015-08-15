@@ -119,7 +119,7 @@ class core_Classes extends core_Manager
                 }
             }
         }
-        
+      
         $rec = new stdClass();
         
         $rec->interfaces = core_Interfaces::getKeylist($class);

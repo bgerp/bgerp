@@ -3,34 +3,43 @@
 
 
 /**
- * Мениджър на отчети от документи
- * 
- * По посочен тип на документа със статус различен от 
- * чернова и оттеглено се брои за посочения период,
- * колко документа е създал конкретният потребител
+ * Мениджър на отчети от продажбени артикули
+ *
  *
  *
  * @category  bgerp
- * @package   doc
+ * @package   cat
  * @author    Gabriela Petrova <gab4eto@gmail.com>
  * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
-class doc_DocsReport extends frame_BaseDriver
+class cat_reports_SalesArticle extends frame_BaseDriver
 {                  
     
+	
+	/**
+	 * За конвертиране на съществуващи MySQL таблици от предишни версии
+	 */
+	public $oldClassName = 'cat_SalesArticleReport';
+	
 	
     /**
      * Заглавие
      */
-    public $title = 'Документи » Създадени документи';
+    public $title = 'Артикули » Продажбени артикули';
 
     
     /**
      * Кои интерфейси имплементира
      */
     public $interfaces = 'frame_ReportSourceIntf';
+
+
+    /**
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     */
+    //public $oldClassName = 'doc_SalesArticleReport';
     
 
 
@@ -49,31 +58,31 @@ class doc_DocsReport extends frame_BaseDriver
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectSource = 'powerUser';
+    public $canSelectSource = 'cat,ceo,sales,purchase';
     
     
     /**
      * Права за писане
      */
-    public $canWrite = 'no_one';
+    public $canWrite = 'cat,ceo,sales,purchase';
     
     
     /**
      * Права за писане
      */
-    public $canEdit = 'powerUser';
+    public $canEdit = 'cat,ceo,sales,purchase';
     
     
     /**
      * Права за запис
      */
-    public $canRead = 'powerUser';
+    public $canRead = 'cat,ceo,sales,purchase';
     
     
     /**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'powerUser';
+	public $canList = 'cat,ceo,sales,purchase';
 
     
     
@@ -86,8 +95,7 @@ class doc_DocsReport extends frame_BaseDriver
     {
     	$form->FLD('from', 'date', 'caption=Начало');
     	$form->FLD('to', 'date', 'caption=Край');
-    	$form->FLD('docClass', 'class(interface=doc_DocumentIntf,select=title)', 'caption=Документ,mandatory');
-    	$form->FLD('user', 'users(rolesForAll = ceo|report, rolesForTeams = manager|ceo|report)', 'caption=Потребител');
+    	$form->FLD('user', 'users(rolesForAll = officer|manager|ceo, rolesForTeams = officer|manager|ceo|executive)', 'caption=Потребител');
     }
       
 
@@ -106,8 +114,10 @@ class doc_DocsReport extends frame_BaseDriver
     		$teamCu = type_Users::getUserWithFirstTeam($cu);
     		$team = strstr($teamCu, '_', TRUE);
     		$form->setDefault('user', "{$team} team");
+    		
     	} else {
     	    $userFromTeamsArr = type_Users::getUserFromTeams($cu);
+    	    
     		$form->setDefault('user', key($userFromTeamsArr));
     	}
     }
@@ -139,36 +149,53 @@ class doc_DocsReport extends frame_BaseDriver
     public function prepareInnerState()
     {
     	$data = new stdClass();
-        $data->docCnt = array();
+        $data->articleCnt = array();
         $fRec = $data->fRec = $this->innerForm;
       
-        $query = doc_Containers::getQuery();
-        
-        if ($fRec->from) {  
-            $query->where("#createdOn >= '{$fRec->from} 00:00:00'");
+        $querySales = sales_SalesDetails::getQuery();
+        $queryShipment = store_ShipmentOrderDetails::getQuery();
+        $queryServices = sales_ServicesDetails::getQuery();
+
+
+        if ($fRec->from) {
+            $querySales->where("#createdOn >= '{$fRec->from} 00:00:00'");
+            $queryShipment->where("#createdOn >= '{$fRec->from} 00:00:00'");
+            $queryServices->where("#createdOn >= '{$fRec->from} 00:00:00'");
         }
 
         if ($fRec->to) {
-            $query->where("#createdOn <= '{$fRec->to} 23:59:59'");
+            $querySales->where("#createdOn <= '{$fRec->to} 23:59:59'");
+            $queryShipment->where("#createdOn <= '{$fRec->to} 23:59:59'");
+            $queryServices->where("#createdOn <= '{$fRec->to} 23:59:59'");
         }
-        
-        if ($fRec->docClass) {
-        	$query->where("#docClass = '{$fRec->docClass}'");
-        }
-        
+
         if(($fRec->user != 'all_users') && (strpos($fRec->user, '|-1|') === FALSE)) {
-        	$query->where("'{$fRec->user}' LIKE CONCAT('%|', #createdBy, '|%')");
+            $querySales->where("'{$fRec->user}' LIKE CONCAT('%|', #createdBy, '|%')");
+            $queryShipment->where("'{$fRec->user}' LIKE CONCAT('%|', #createdBy, '|%')");
+            $queryServices->where("'{$fRec->user}' LIKE CONCAT('%|', #createdBy, '|%')");
         }
        
 
-        while($rec = $query->fetch()) {
+        while($rec = $querySales->fetch()) {
         	
-        	$data->docCnt[$rec->docClass][$rec->createdBy]++;
+        	$data->articleCnt['sales'][$rec->classId][$rec->productId]++;
+
+        }
+
+        while($recShipment = $queryShipment->fetch()) {
+
+            $data->articleCnt['shipment'][$recShipment->classId][$recShipment->productId]++;
+
+        }
+
+        while($recServices = $queryServices->fetch()) {
+
+            $data->articleCnt['services'][$recServices->classId][$recServices->productId]++;
 
         }
  
         // Сортиране на данните
-        arsort($data->docCnt);
+        arsort($data->articleCnt);
 
         return $data;
     }
@@ -191,17 +218,14 @@ class doc_DocsReport extends frame_BaseDriver
     public function renderEmbeddedData(&$embedderTpl, $data)
     {
     	$tpl = new ET("
-            <h1>Създадени документи тип \"[#DOCTYPE#]\"</h1>
+            <h1>Продажбени артикули</h1>
             [#FORM#]
     		[#PAGER#]
-            [#DOCS#]
+            [#ARTICLE#]
     		[#PAGER#]
         "
     	);
-    
-    	$docClass = cls::get($data->fRec->docClass);
-    	$tpl->replace($docClass->singleTitle,'DOCTYPE');
-    	
+
     	$form = cls::get('core_Form');
     
     	$this->addEmbeddedFields($form);
@@ -214,48 +238,57 @@ class doc_DocsReport extends frame_BaseDriver
     	$tpl->placeObject($data->rec);
     
     	$pager = cls::get('core_Pager',  array('pageVar' => 'P_' .  $this->EmbedderRec->that,'itemsPerPage' => $this->listItemsPerPage));
-    	$pager->itemsCount = count($data->docCnt, COUNT_RECURSIVE);
-    	
+    	$pager->itemsCount = count($data->articleCnt, COUNT_RECURSIVE);
+
     	$f = cls::get('core_FieldSet');
     
-    	$f->FLD('docClass', 'class(interface=doc_DocumentIntf,select=title,allowEmpty)', 'caption=Създадени документи->Тип');
-    	$f->FLD('createdBy', 'key(mvc=core_Users,select=names)', 'caption=Създадени документи->Автор');
-    	$f->FLD('cnt', 'int', 'caption=Създадени документи->Брой');
-    	
+    	$f->FLD('article', 'class(interface=doc_DocumentIntf,select=title,allowEmpty)', 'caption=Продукт->Тип');
+    	$f->FLD('salesCnt', 'int', 'caption=Брой срещания->Продажба');
+    	$f->FLD('shipmentCnt', 'int', 'caption=Брой срещания->Доставка');
+
     	$rows = array();
 
     	$ft = $f->fields;
-    	$docClassType = $ft['docClass']->type;
-        $userType = $ft['createdBy']->type;
-        $cntType = $ft['cnt']->type;
-        
-    	foreach ($data->docCnt as $docClass => $userCnt) {
-    		foreach ($userCnt as $user => $cnt) {
-	    		if(!$pager->isOnPage()) continue;
-	    		
-	    		$row = new stdClass();
-	    		$row->docClass = $docClassType->toVerbal($docClass);
-	    		$row->cnt = $cntType->toVerbal($cnt);
-	    		
-	    		if(!$user) {
-	    			$row->createdBy = "Анонимен";
-	    		} elseif($user == -1) {
-	    			$row->createdBy = "Система";
-	    		} else {
-	    			$row->createdBy = $userType->toVerbal($user) . ' ' . crm_Profiles::createLink($user);
-	    		}
 
-	    		$rows[] = $row;
+        $userType = $ft['createdBy']->type;
+        $cntType = $ft['salesCnt']->type;
+
+    	foreach ($data->articleCnt as $doc => $artCnt) {
+    		foreach ($artCnt as $artClassId => $productCnt) {
+                foreach ($productCnt as $product => $cnt) {
+                        if (!$pager->isOnPage()) continue;
+
+                        $row = new stdClass();
+                        $row->article = cls::get($artClassId)->getTitleById($product);
+
+                        if ($doc == 'sales') {
+                            $row->salesCnt = $cntType->toVerbal($cnt);
+                        }
+                        if ($doc == 'shipment' || $doc == 'services') {
+                            $row->shipmentCnt = $cntType->toVerbal($cnt);
+                        }
+
+
+                        if (!$user) {
+                            $row->createdBy = "Анонимен";
+                        } elseif ($user == -1) {
+                            $row->createdBy = "Система";
+                        } else {
+                            $row->createdBy = $userType->toVerbal($user) . ' ' . crm_Profiles::createLink($user);
+                        }
+
+                        $rows[] = $row;
+                }
     		}
     	}
 
     	$table = cls::get('core_TableView', array('mvc' => $f));
-    	$html = $table->get($rows, 'docClass=Създадени документи->Тип,createdBy=Създадени документи->Автор,cnt=Създадени документи->Брой');
+    	$html = $table->get($rows, 'article=Продукт->Тип,salesCnt=Брой срещания->Продажба,shipmentCnt=Брой срещания->Доставка');
     
-    	$tpl->append($html, 'DOCS');
+    	$tpl->append($html, 'ARTICLE');
         $tpl->append($pager->getHtml(), 'PAGER');
     
-    	$embedderTpl->append($tpl, 'data');
+    	$embedderTpl->append($tpl, $data);
     }  
      
     

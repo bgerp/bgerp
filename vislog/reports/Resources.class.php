@@ -3,7 +3,7 @@
 
 
 /**
- * Мениджър на отчети от посещения по IP
+ * Мениджър на отчети от посещения по ресурс
  *
  *
  * @category  bgerp
@@ -13,21 +13,26 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class vislog_IpReports extends frame_BaseDriver
+class vislog_reports_Resources extends frame_BaseDriver
 {                  
     
+	
+	/**
+	 * За конвертиране на съществуващи MySQL таблици от предишни версии
+	 */
+	public $oldClassName = 'vislog_ResourcesReport';
+	
 	
     /**
      * Заглавие
      */
-    public $title = 'Сайт » Посещения по IP';
+    public $title = 'Сайт » Посещения по ресурс';
 
     
     /**
      * Кои интерфейси имплементира
      */
     public $interfaces = 'frame_ReportSourceIntf';
-    
 
 
     /**
@@ -72,7 +77,6 @@ class vislog_IpReports extends frame_BaseDriver
 	public $canList = 'ceo, admin, cms';
 
     
-    
     /**
      * Добавя полетата на вътрешния обект
      *
@@ -80,10 +84,9 @@ class vislog_IpReports extends frame_BaseDriver
      */
     public function addEmbeddedFields(core_Form &$form)
     {
-    	
     	$form->FLD('from', 'date', 'caption=Начало');
     	$form->FLD('to', 'date', 'caption=Край');
-	}
+    }
       
 
     /**
@@ -122,7 +125,7 @@ class vislog_IpReports extends frame_BaseDriver
     public function prepareInnerState()
     {
     	$data = new stdClass();
-        $data->ipCnt = array();
+        $data->resourceCnt = array();
         $fRec = $data->fRec = $this->innerForm;
         
         $query = vislog_History::getQuery();
@@ -135,15 +138,16 @@ class vislog_IpReports extends frame_BaseDriver
             $query->where("#createdOn <= '{$fRec->to} 23:59:59'");
         }
 
+
         while($rec = $query->fetch()) {
         	
-        	$data->ipCnt[$rec->ip]++;
+        	$data->resourceCnt[$rec->HistoryResourceId]++;
 
         }
-
+        
         // Сортиране на данните
-        arsort($data->ipCnt);
-     
+        arsort($data->resourceCnt);
+
         return $data;
     }
     
@@ -165,10 +169,10 @@ class vislog_IpReports extends frame_BaseDriver
     public function renderEmbeddedData(&$embedderTpl, $data)
     {
     	$tpl = new ET("
-            <h1>Отчет за посещенията по IP</h1>
+            <h1>Отчет за посещенията по ресурс</h1>
             [#FORM#]
-    		[#PAGER#]
-            [#VISITS#]
+            [#PAGER#]
+            [#RESOURCES#]
     		[#PAGER#]
         "
     	);
@@ -184,44 +188,41 @@ class vislog_IpReports extends frame_BaseDriver
     
     	$tpl->placeObject($data->rec);
     
-    	$pager = cls::get('core_Pager',  array('pageVar' => 'P_' .  $this->EmbedderRec->that,'itemsPerPage' => $this->listItemsPerPage));
-    	$pager->itemsCount = count($data->ipCnt);
+    	$html = "<h3>Посещения по ресурс</h3>";
+        
+        $pager = cls::get('core_Pager', array('pageVar' => 'P_' .  $this->EmbedderRec->that,'itemsPerPage' => $this->listItemsPerPage));
+        $pager->itemsCount = count($data->resourceCnt);
 
+    	
     	$f = cls::get('core_FieldSet');
 
-    	$f->FLD('ip', 'ip(15)', 'caption=Посещения->Ip');
+    	$f->FLD('resource', 'key(mvc=vislog_HistoryResources,select=query)', 'caption=Посещения->Ресурс');
     	$f->FLD('cnt', 'int', 'caption=Посещения->Брой');
-    	$f->FLD('createdBy', 'key(mvc=core_Users,select=names)', 'caption=Потребител');
     	
     	$rows = array();
 
     	$ft = $f->fields;
-    	$ipType = cls::get('type_Ip');
+        $resourceType = $ft['resource']->type;
         $cntType = $ft['cnt']->type;
-      
-        
-    	foreach ($data->ipCnt as $ip => $createdCnt) { 
-	    	if(!$pager->isOnPage()) continue;
-	    		
-	    	$row = new stdClass();
-	   
-	    	if ($data->fRec->to) {
-	    		$row->ip = $ipType->decorateIp($ip, $data->fRec->to, TRUE, TRUE);
-	    	} else {
-	    		$row->ip = $ipType->decorateIp($ip, $data->fRec->createdOn, TRUE, TRUE);
-	    	}
-	    	
-	    	$row->cnt = $cntType->toVerbal($createdCnt);
-
-	    	$rows[] = $row;
+        $i = 0;
+   
+    	foreach($data->resourceCnt as $resource => $cnt) {
+ 
+            if(!$pager->isOnPage()) continue;
+            
+    		$row = new stdClass();
+    		$row->resource = $resourceType->toVerbal($resource);
+    		$row->cnt = $cntType->toVerbal($cnt);
+    		
+    		$rows[] = $row;
     	}
 
     	$table = cls::get('core_TableView', array('mvc' => $f));
-    	$html = $table->get($rows, 'ip=Посещения->Ip,cnt=Посещения->Брой');
+    	$html = $table->get($rows, 'resource=Посещения->Ресурс,cnt=Посещения->Брой');
     
-    	$tpl->append($html, 'VISITS');
+    	$tpl->append($html, 'RESOURCES');
         $tpl->append($pager->getHtml(), 'PAGER');
-    
+
     	$embedderTpl->append($tpl, 'data');
     }
      
