@@ -14,10 +14,16 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class acc_SaleArticlesReport extends acc_BalanceReportImpl
+class acc_reports_SaleArticles extends acc_reports_BalanceImpl
 {
 
 
+	/**
+	 * За конвертиране на съществуващи MySQL таблици от предишни версии
+	 */
+	public $oldClassName = 'acc_SaleArticlesReport';
+	
+	
     /**
      * Кой може да избира драйвъра
      */
@@ -127,29 +133,32 @@ class acc_SaleArticlesReport extends acc_BalanceReportImpl
     	
     	$pager = cls::get('core_Pager',  array('pageVar' => 'P_' .  $mvc->EmbedderRec->that,'itemsPerPage' => $mvc->listItemsPerPage));
        
-        $pager->itemsCount = count($data->recs, COUNT_RECURSIVE);
+        $pager->itemsCount = count($data->recs);
         $data->pager = $pager;
 
-    
+        $start = $data->pager->rangeStart;
+        $end = $data->pager->rangeEnd - 1;
+        
     	$data->summary = new stdClass();
     
     	if(count($data->recs)){
-
+    		$count = 0;
     		foreach ($data->recs as $id => $rec){
     
     			// Показваме само тези редове, които са в диапазона на страницата
-    			if(!$pager->isOnPage()) continue;
-    				$rec->id = $count + 1;
+    			if($count >= $start && $count <= $end){
+    				//$rec->id = $count + 1;
     				$row = $mvc->getVerbalDetail($rec);
     				$data->rows[$id] = $row;
-
+    			}
+    				
     			// Сумираме всички суми и к-ва
     			foreach (array('baseQuantity', 'baseAmount', 'debitAmount', 'debitQuantity', 'creditAmount', 'creditQuantity', 'blAmount', 'blQuantity') as $fld){
     				if(!is_null($rec->$fld)){
     					$data->summary->$fld += $rec->$fld;
     				}
     			}
-
+    			$count++;
     		}
     	}
     
@@ -227,13 +236,7 @@ class acc_SaleArticlesReport extends acc_BalanceReportImpl
                 $row->{"ent{$articlePositionId}Id"} = cls::get($articleItem->classId)->getShortHyperLink($articleItem->objectId);
             }
         }
-//bp($data->rows);
-       /* foreach ($data->rows as $id => $row) {
-        	if (!isset($row->creditQuantity) || !isset($row->creditAmount)){
-        		unset($data->rows[$id]);
-        	}
-        }
-        bp($data->rows);*/
+
         $tableMvc = new core_Mvc;
         $tableMvc->FLD('creditAmount', 'int', 'tdClass=accCell');
 

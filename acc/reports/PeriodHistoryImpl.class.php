@@ -13,8 +13,14 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class acc_PeriodHistoryReportImpl extends acc_HistoryReportImpl
+class acc_reports_PeriodHistoryImpl extends acc_reports_HistoryImpl
 {
+	
+	
+	/**
+	 * За конвертиране на съществуващи MySQL таблици от предишни версии
+	 */
+	public $oldClassName = 'acc_PeriodHistoryReportImpl';
 	
 	
 	/**

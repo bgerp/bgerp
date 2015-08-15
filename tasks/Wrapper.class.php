@@ -22,6 +22,6 @@ class tasks_Wrapper extends plg_ProtoWrapper
      */
     function description()
     {
-        $this->TAB('tasks_Tasks', 'Задачи', 'powerUser');
+        //$this->TAB('tasks_Tasks', 'Задачи', 'powerUser');
     }
 }

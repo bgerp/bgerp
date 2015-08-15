@@ -91,6 +91,17 @@ class tasks_TaskConditions extends doc_Detail
 
     
     /**
+     * Кой е мастър класа
+     */
+    public function getMasterMvc($rec)
+    {
+    	$masterMvc = cls::get(tasks_Tasks::fetchField($rec->taskId, 'classId'));
+    
+    	return $masterMvc;
+    }
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
@@ -112,7 +123,7 @@ class tasks_TaskConditions extends doc_Detail
     {
     	$form = &$data->form;
     	$rec = &$form->rec;
-    	
+    	//bp($mvc->Master);
     	// Задаваме предложения за прогрес
     	$form->setSuggestions('progress', array('' => '') + arr::make('0 %,10 %,20 %,30 %,40 %,50 %, 60 %, 70 %, 80 %, 90 %, 100 %', TRUE));
     	
@@ -130,7 +141,7 @@ class tasks_TaskConditions extends doc_Detail
     		
     		// Може да се модифицират детайлите само ако състоянието е чакащо, активно или събудено
     		$state = $mvc->Master->fetchField($rec->taskId, 'state');
-    		if($state != 'pending' && $state != 'draft'){
+    		if($state != 'pending' && $state != 'draft' && $state != 'active'){
     			$requiredRoles = 'no_one';
     		} else {
     			 

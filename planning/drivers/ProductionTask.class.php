@@ -31,6 +31,12 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 	
 	
 	/**
+	 * От кои класове може да се избира драйвера
+	 */
+	public $availableClasses = 'planning_Tasks';
+	
+	
+	/**
      * Добавя полетата на драйвера към Fieldset
      *
      * @param core_Fieldset $fieldset

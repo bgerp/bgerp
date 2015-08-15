@@ -194,7 +194,41 @@ class bank_Accounts extends core_Master {
         }
     }
     
-    
+        
+    /**
+     * След зареждане на форма от заявката. (@see core_Form::input())
+     */
+    static function on_AfterInputEditForm($mvc, &$form)
+    {
+        // ако формата е събмитната, и банката и бика не са попълнени,  
+        // то ги извличаме от IBAN-a , ако са попълнени изкарваме преудреждение 
+        // ако те се разминават с тези в системата
+        if($form->isSubmitted()){
+            if($form->rec->iban{0} != '#') {
+                $bank = bglocal_Banks::getBankName($form->rec->iban);
+            }
+            
+            if(!$form->rec->bank){
+                $form->rec->bank = $bank;
+            } else {
+                if($bank && $form->rec->bank != $bank){
+                    $form->setWarning('bank', "|*<b>|Банка|*:</b> |въвели сте |*\"<b>|{$form->rec->bank}|*</b>\", |а IBAN-ът е на банка |*\"<b>|{$bank}|*</b>\". |Сигурни ли сте че искате да продължите?");
+                }
+            }
+            
+            $bic = bglocal_Banks::getBankBic($form->rec->iban);
+            
+            if(!$form->rec->bic){
+                $form->rec->bic = $bic;
+            } else {
+                if($bank && $form->rec->bic != $bic){
+                    $form->setWarning('bic', "|*<b>BIC:</b> |въвели сте |*\"<b>{$form->rec->bic}</b>\", |а IBAN-ът е на BIC |*\"<b>{$bic}</b>\". |Сигурни ли сте че искате да продължите?");
+                }
+            }
+        }
+    }
+ 
+
     /**
      * Връща иконата за сметката
      */

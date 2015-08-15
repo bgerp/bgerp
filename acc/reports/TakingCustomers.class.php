@@ -14,10 +14,16 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class acc_MovementContractorsReport extends acc_PeriodHistoryReportImpl
+class acc_reports_TakingCustomers extends acc_reports_PeriodHistoryImpl
 {
 
 
+	/**
+	 * За конвертиране на съществуващи MySQL таблици от предишни версии
+	 */
+	public $oldClassName = 'acc_TakingCustomersReport';
+	
+	
     /**
      * Кой може да избира драйвъра
      */
@@ -27,13 +33,13 @@ class acc_MovementContractorsReport extends acc_PeriodHistoryReportImpl
     /**
      * Заглавие
      */
-    public $title = 'Счетоводство » Движения по сметки на доставчици';
+    public $title = 'Счетоводство » Вземания от клиенти';
 
 
     /**
      * Дефолт сметка
      */
-    public $defaultAccount = '401';
+    public $defaultAccount = '411';
 
 
     /**
@@ -41,13 +47,13 @@ class acc_MovementContractorsReport extends acc_PeriodHistoryReportImpl
      */
     public static function on_AfterPrepareEmbeddedForm($mvc, core_Form &$form)
     {
-        $contractorPositionId = acc_Lists::getPosition($mvc->defaultAccount, 'crm_ContragentAccRegIntf');
+        $customersPositionId = acc_Lists::getPosition($mvc->defaultAccount, 'crm_ContragentAccRegIntf');
         $currencyPosition = acc_Lists::getPosition($mvc->defaultAccount, 'currency_CurrenciesAccRegIntf');
 
-        $form->setField("ent{$contractorPositionId}Id", 'caption=Доставчик');
+        $form->setField("ent{$customersPositionId}Id", 'caption=Клиент');
         $form->setField("ent{$currencyPosition}Id", 'caption=Валута');
 
-        $form->setFieldTypeParams("ent{$contractorPositionId}Id", array('select' => 'title'));
+        $form->setFieldTypeParams("ent{$customersPositionId}Id", array('select' => 'title'));
         $form->setFieldTypeParams("ent{$currencyPosition}Id", array('select' => 'title'));
 
     }

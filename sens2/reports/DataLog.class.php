@@ -12,8 +12,14 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class sens2_DataLogReportsImpl extends frame_BaseDriver
+class sens2_reports_DataLog extends frame_BaseDriver
 {
+	
+	
+	/**
+	 * За конвертиране на съществуващи MySQL таблици от предишни версии
+	 */
+	public $oldClassName = 'sens2_DataLogReportsImpl';
 	
 	
 	/**

@@ -101,6 +101,7 @@ class acc_Setup extends core_ProtoSetup
     	'acc_AllocatedExpenses',
         'migrate::removeYearInterfAndItem',
         'migrate::updateItemsNum1',
+    	'migrate::updateClosedItems',
     );
     
     
@@ -192,10 +193,10 @@ class acc_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    var $defClasses = "acc_ReportDetails, acc_BalanceReportImpl, acc_BalanceHistory, acc_HistoryReportImpl, acc_PeriodHistoryReportImpl,
-    					acc_CorespondingReportImpl,acc_SaleArticlesReport,acc_SaleContractorsReport,acc_OweProvidersReport,
-    					acc_ProfitArticlesReport,acc_ProfitContractorsReport,acc_MovementContractorsReport,acc_TakingCustomersReport,
-    					acc_ManufacturedProductsReport,acc_PurchasedProductsReport,acc_BalancePeriodReportImpl";
+    var $defClasses = "acc_ReportDetails, acc_reports_BalanceImpl, acc_BalanceHistory, acc_reports_HistoryImpl, acc_reports_PeriodHistoryImpl,
+    					acc_reports_CorespondingImpl,acc_reports_SaleArticles,acc_reports_SaleContractors,acc_reports_OweProviders,
+    					acc_reports_ProfitArticles,acc_reports_ProfitContractors,acc_reports_MovementContractors,acc_reports_TakingCustomers,
+    					acc_reports_ManufacturedProducts,acc_reports_PurchasedProducts,acc_reports_BalancePeriodImpl";
     
     
     /**
@@ -271,5 +272,45 @@ class acc_Setup extends core_ProtoSetup
                 acc_Items::delete("#classId = '{$oldYearManId}'");
             }
         }
+    }
+    
+    
+    /**
+     * Ъпдейт на затворените пера
+     */
+    public function updateClosedItems()
+    {
+    	core_App::setTimeLimit(400);
+    	
+    	$dealListSysId = acc_Lists::fetchBySystemId('deals')->id;
+    	
+    	if(!acc_Items::count()) return;
+    	
+    	$iQuery = acc_Items::getQuery();
+    	$iQuery->where("#state = 'closed'");
+    	$iQuery->likeKeylist('lists', $dealListSysId);
+    	$iQuery->where('#closedOn IS NULL');
+    	$iQuery->show('classId,objectId,id');
+    	
+    	while($iRec = $iQuery->fetch()){
+    		$closedOn = NULL;
+    		$Deal = cls::get($iRec->classId);
+    		
+    		if($Deal->fetchField($iRec->objectId, 'state') == 'closed'){
+    			$CloseDoc = $Deal->closeDealDoc;
+    			if($CloseDoc){
+    				if($clRec = $CloseDoc::fetch("#docClassId = {$iRec->classId} AND #docId = {$iRec->objectId} AND #state = 'active'")){
+    					$closedOn = $clRec->modifiedOn;
+    				}
+    			}
+    		}
+    		
+    		if(!$closedOn){
+    			$closedOn = $Deal->fetchField($iRec->objectId, 'modifiedOn');
+    		}
+    		
+    		$iRec->closedOn = $closedOn;
+    		cls::get('acc_Items')->save_($iRec, 'closedOn');
+    	}
     }
 }

@@ -23,6 +23,12 @@ abstract class tasks_BaseDriver extends core_BaseClass
 	public $interfaces = 'tasks_DriverIntf';
 	
 	
+	/**
+	 * От кои класове може да се избира драйвера
+	 */
+	public $availableClasses;
+	
+	
     /**
      * Кой може да избира драйвъра
      */

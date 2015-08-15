@@ -102,15 +102,9 @@ class cat_Setup extends core_ProtoSetup
 
 
     /**
-     * Дефиниции на класове с интерфейси
-     */
-    var $classes = 'cat_SalesArticleReport';
-
-
-    /**
      * Дефинирани класове, които имат интерфейси
      */
-    var $defClasses = "cat_GeneralProductDriver, cat_BaseImporter,cat_SalesArticleReport";
+    var $defClasses = "cat_GeneralProductDriver, cat_BaseImporter,cat_reports_SalesArticle";
 
 
     /**

@@ -13,9 +13,15 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class acc_BalanceReportImpl extends frame_BaseDriver
+class acc_reports_BalanceImpl extends frame_BaseDriver
 {
     
+	
+	/**
+	 * За конвертиране на съществуващи MySQL таблици от предишни версии
+	 */
+	public $oldClassName = 'acc_BalanceReportImpl';
+	
 	
     /**
      * Кой може да избира драйвъра
@@ -394,7 +400,7 @@ class acc_BalanceReportImpl extends frame_BaseDriver
    private function recToVerbal($data)
    {
    		$data->row = new stdClass();
-    	//bp($data);
+
         foreach (range(1, 3) as $i){
        		if(!empty($data->rec->{"ent{$i}Id"})){
        			$data->row->{"ent{$i}Id"} = "<b>" . acc_Lists::getVerbal($data->accInfo->groups[$i]->rec, 'name') . "</b>: ";
@@ -422,8 +428,6 @@ class acc_BalanceReportImpl extends frame_BaseDriver
         		unset($data->row->action);
         	}
         }
-        
-        //bp($data);
    }
      
      
@@ -454,7 +458,7 @@ class acc_BalanceReportImpl extends frame_BaseDriver
        /**
         * Вербалното представяне на ред от таблицата
         */
-       private function getVerbalDetail($rec)
+       protected function getVerbalDetail_($rec)
        {
            $Varchar = cls::get('type_Varchar');
            $Double = cls::get('type_Double');

@@ -81,7 +81,7 @@ class acc_Items extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'num,titleLink=Наименование,uomId,lastUseOn,tools=Пулт,createdBy,state';
+    var $listFields = 'num,titleLink=Наименование,uomId,lastUseOn,tools=Пулт,createdBy,state,closedOn';
     
     
     /**
@@ -153,6 +153,8 @@ class acc_Items extends core_Manager
         // Кога за последно е използвано
         $this->FLD('lastUseOn', 'datetime(format=smartTime)', 'caption=Последно,input=none');
         
+        $this->FLD('closedOn', 'datetime(format=smartTime)', 'caption=Затваряне,input=none');
+        
         // Титла - хипервръзка
         $this->FNC('titleLink', 'html', 'column=none');
         $this->FNC('titleNum', 'varchar', 'column=none');
@@ -214,6 +216,12 @@ class acc_Items extends core_Manager
         if($rec->id){
             // Запомняне на старите номенклатури
             $rec->oldLists = $mvc->fetchField($rec->id, 'lists');
+        }
+        
+        if($rec->state == 'closed'){
+        	$rec->closedOn = dt::now();
+        } elseif($rec->state == 'active'){
+        	$rec->closedOn = NULL;
         }
     }
     

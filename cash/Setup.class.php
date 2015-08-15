@@ -77,7 +77,7 @@ class cash_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    var $defClasses = "cash_CashReportImpl";
+    var $defClasses = "cash_reports_CashImpl";
     
     
     /**

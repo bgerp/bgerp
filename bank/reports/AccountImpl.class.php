@@ -13,9 +13,15 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class bank_AccountReportImpl extends acc_PeriodHistoryReportImpl
+class bank_reports_AccountImpl extends acc_reports_PeriodHistoryImpl
 {
     
+	
+	/**
+	 * За конвертиране на съществуващи MySQL таблици от предишни версии
+	 */
+	public $oldClassName = 'bank_AccountReportImpl';
+	
 	
     /**
      * Кой може да избира драйвъра

@@ -70,7 +70,7 @@ class embed_Manager extends core_Master
 		$rec = &$form->rec;
 
 		// Извличаме позволените за избор опции
-		$interfaces = self::getAvailableDriverOptions();
+		$interfaces = static::getAvailableDriverOptions();
 		
 		// Ако няма достъпни драйвери редирект със съобщение
 		if(!count($interfaces)) {

@@ -3,7 +3,7 @@
 
 
 /**
- * Мениджър на отчети от Приходи от продажби по продукти
+ * Мениджър на отчети от Печалба от продажби по клиенти
  * Имплементация на 'frame_ReportSourceIntf' за направата на справка на баланса
  *
  *
@@ -14,10 +14,16 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class acc_SaleContractorsReport extends acc_BalanceReportImpl
+class acc_reports_ProfitContractors extends acc_reports_BalanceImpl
 {
 
 
+	/**
+	 * За конвертиране на съществуващи MySQL таблици от предишни версии
+	 */
+	public $oldClassName = 'acc_ProfitContractorsReport';
+	
+	
     /**
      * Кой може да избира драйвъра
      */
@@ -27,7 +33,7 @@ class acc_SaleContractorsReport extends acc_BalanceReportImpl
     /**
      * Заглавие
      */
-    public $title = 'Счетоводство » Приходи от продажби по клиенти';
+    public $title = 'Счетоводство » Печалба от продажби по клиенти';
 
 
     /**
@@ -93,11 +99,12 @@ class acc_SaleContractorsReport extends acc_BalanceReportImpl
         unset($data->listFields['baseAmount']);
         unset($data->listFields['debitQuantity']);
         unset($data->listFields['debitAmount']);
-        unset($data->listFields['blQuantity']);
-        unset($data->listFields['blAmount']);
+        unset($data->listFields['creditQuantity']);
+        unset($data->listFields['creditAmount']);
 
-        $data->listFields['creditQuantity'] = "Кредит->К-во";
-        $data->listFields['creditAmount'] = "Кредит->Сума";
+
+        $data->listFields['blQuantity'] = "Кредит->К-во";
+        $data->listFields['blAmount'] = "Кредит->Сума";
     }
 
 
@@ -116,8 +123,7 @@ class acc_SaleContractorsReport extends acc_BalanceReportImpl
         $tpl->placeObject($data->row);
 
         $tableMvc = new core_Mvc;
-
-        $tableMvc->FLD('creditAmount', 'int', 'tdClass=accCell');
+        $tableMvc->FLD('blAmount', 'int', 'tdClass=accCell');
 
 
         $table = cls::get('core_TableView', array('mvc' => $tableMvc));
@@ -129,7 +135,7 @@ class acc_SaleContractorsReport extends acc_BalanceReportImpl
         if($data->bShowQuantities ){
             $data->summary->colspan -= 4;
             if($data->summary->colspan != 0 && count($data->rows)){
-                $beforeRow = new core_ET("<tr style = 'background-color: #eee'><td colspan=[#colspan#]><b>" . tr('ОБЩО') . "</b></td><td style='text-align:right'><b>[#creditAmount#]</b></td></tr>");
+                $beforeRow = new core_ET("<tr style = 'background-color: #eee'><td colspan=[#colspan#]><b>" . tr('ОБЩО') . "</b></td><td style='text-align:right'><b>[#blAmount#]</b></td></tr>");
             }
         }
 
@@ -181,10 +187,9 @@ class acc_SaleContractorsReport extends acc_BalanceReportImpl
     {
 
         $exportFields['ent1Id']  = "Контрагенти";
-        $exportFields['creditAmount']  = "Кредит";
+        $exportFields['blAmount']  = "Кредит";
 
         return $exportFields;
     }
-
 
 }

@@ -14,10 +14,16 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class acc_ManufacturedProductsReport extends acc_CorespondingReportImpl
+class acc_reports_ManufacturedProducts extends acc_reports_CorespondingImpl
 {
 
 
+	/**
+	 * За конвертиране на съществуващи MySQL таблици от предишни версии
+	 */
+	public $oldClassName = 'acc_ManufacturedProductsReport';
+	
+	
     /**
      * Кой може да избира драйвъра
      */

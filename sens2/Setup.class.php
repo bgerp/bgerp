@@ -72,7 +72,7 @@ class sens2_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    var $defClasses = "sens2_DataLogReportsImpl";
+    var $defClasses = "sens2_reports_DataLog";
     
 
     /**
