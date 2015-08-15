@@ -320,9 +320,9 @@ class core_ProtoSetup
      *
      * @return mixed
      */
-    public static function get($name, $prefix = NULL)
+    public static function get($name, $absolute = FALSE)
     {
-        if($prefix === NULL) {
+        if(!$absolute) {
             $prefix = strtoupper(self::getPackName()) . '_';
         }
 
