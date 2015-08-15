@@ -326,9 +326,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         $Script->setFile('OUTPUTF', $outFilePath);
         
         // Ако има зададен път до gs, използваме него
-        if (trim($conf->FILEMAN_GHOSTSCRIPT_PATH)) {
-            $Script->setProgram('gs', $conf->FILEMAN_GHOSTSCRIPT_PATH);
-        }
+        $Script->setProgram('gs', fileman_Setup::get('GHOSTSCRIPT_PATH'));
         
         $errFilePath = self::getErrLogFilePath($outFilePath);
         
