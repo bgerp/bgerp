@@ -512,7 +512,7 @@ class acc_Periods extends core_Manager
         $query = $this->getQuery();
         $query->where("#end > '{$activeRec->end}' AND #end <= '{$curPerEnd}'");
        
-        // Ако сме достигнали оказания ден за активиране на следващия бъдещ период
+        // Ако сме достигнали указания ден за активиране на следващия бъдещ период
         $daysBefore = acc_Setup::get('DAYS_BEFORO_MAKE_PERIOD_PENDING');
         if($daysBefore){
 
