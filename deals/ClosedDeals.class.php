@@ -313,6 +313,7 @@ abstract class deals_ClosedDeals extends core_Master
             $DocClass = cls::get($rec->docClassId);
             $firstRec = $DocClass->fetch($rec->docId);
             $firstRec->state = 'closed';
+            $firstRec->closedOn = $mvc->getValiorDate($rec);
             $DocClass->save($firstRec);
             
             if(empty($saveFileds)){
