@@ -171,7 +171,10 @@ class core_FieldSet extends core_BaseClass
         
         foreach ($names as $name => $caption) {
             
-            if ($newField && isset($this->fields[$name])) {
+             if ($newField && isset($this->fields[$name])) {
+                
+                if($params['forceField']) return;
+
                 error("@Дублирано име на поле", "'{$name}'");
             } elseif (!$newField && !isset($this->fields[$name])) {
                 error("@Несъществуващо поле", "'{$name}'", $this->fields);
