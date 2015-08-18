@@ -87,14 +87,17 @@ class cad2_ArcTo  extends cad2_Shape {
         } else {
             $m = sqrt($dist);
         }
+
+        $reverse = abs($r)/$r * 0.00001;
  
         $C = $M->add($svg->p($AB->a - pi()/2 + ($r<0 ? pi() : 0), $m));
  
         $CA = $A->add($C->neg());
         $CB = $B->add($C->neg());
- 
-        if($CA->a > $CB->a ) {
-            if($CA->a - $CB->a > 2*pi()) {
+
+
+        if($CA->a > $CB->a ) { 
+            if($CA->a - $CB->a + $reverse > 2*pi()) { 
                 for($a = $CA->a; $a >= $CB->a + 2*pi(); $a = pi()/48) {
                     $X = $C->add($svg->p($a, abs($r)));
                     $svg->lineTo($X->x, $X->y, TRUE);
@@ -107,21 +110,22 @@ class cad2_ArcTo  extends cad2_Shape {
             }
         } else {
 
-            if($CB->a - $CA->a > pi()) {
+            if($CB->a - $CA->a + $reverse > pi()) {
                 for($a = $CA->a + 2*pi(); $a >= $CB->a; $a -= pi()/48) {
                     $X = $C->add($svg->p($a, abs($r)));
                     $svg->lineTo($X->x, $X->y, TRUE);
                 }
             } else {
                 for($a = $CA->a; $a <= $CB->a; $a += pi()/48) {
-                    $X = $C->add($svg->p($a, abs($r)));
+                    $X = $C->add($svg->p($a, abs($r))); 
+                    
                     $svg->lineTo($X->x, $X->y, TRUE);
                 }
             }
 
         }
+        $svg->lineTo($x1, $y1, TRUE); 
 
-        $svg->lineTo($x1, $y1, TRUE);
     }
     
 }
