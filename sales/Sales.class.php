@@ -826,7 +826,7 @@ class sales_Sales extends deals_DealMaster
     		$query->where("#contragentClassId = {$Contragent->getClassId()} AND #contragentId = {$contragentId}");
     		$query->where("#state = 'active' || #state = 'closed'");
     		$query->show('id');
-    		$query->orderBy("id", 'DESC');
+    		$query->orderBy("valior", 'DESC');
     		while($rec = $query->fetch()){
     			$ids[] = $rec->id;
     		}
