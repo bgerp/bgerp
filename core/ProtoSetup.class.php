@@ -51,7 +51,7 @@ class core_ProtoSetup
     /**
      * Описание на конфигурационните константи за този модул
      */
-    private $configDescription = array();
+    protected $configDescription = array();
     
 
     /**
@@ -501,7 +501,7 @@ class core_ProtoSetup
     public function getConfigDescription() 
     {
         $description = $this->configDescription;
-
+                              
         // взимаме текущото зададено меню
         if ($this->menuItems && count($this->menuItems)) { 
             
