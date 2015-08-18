@@ -33,7 +33,7 @@ class tasks_TaskConditions extends doc_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created,tasks_Wrapper,plg_RowTools,plg_SaveAndNew';
+    public $loadList = 'plg_Created,plg_RowTools,plg_SaveAndNew';
 
 
     /**

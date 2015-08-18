@@ -63,6 +63,7 @@ abstract class deals_DealBase extends core_Master
 		if(empty($mvc->fields['closedDocuments'])){
 			$mvc->FLD('closedDocuments', "keylist(mvc={$mvc->className})", 'input=none,notNull');
 		}
+		$mvc->FLD('closedOn', 'datetime', 'input=none');
 	}
 	
 	

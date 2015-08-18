@@ -219,7 +219,9 @@ class acc_Items extends core_Manager
         }
         
         if($rec->state == 'closed'){
-        	$rec->closedOn = dt::now();
+        	$oRec = cls::get($rec->classId)->fetch($rec->objectId);
+        	$closedOn = (isset($oRec->closedOn)) ? $oRec->closedOn : dt::now();
+        	$rec->closedOn = $closedOn;
         } elseif($rec->state == 'active'){
         	$rec->closedOn = NULL;
         }
