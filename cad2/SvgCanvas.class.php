@@ -398,11 +398,13 @@ class cad2_SvgCanvas extends core_BaseClass {
     /**
      * Затваря текущия път или под-път
      */
-	function closePath()
+	function closePath($close = TRUE)
     {
         $path = $this->getCurrentPath();
         
-        $path->attr['d'] .= ' z';
+        if($close) {
+            $path->attr['d'] .= ' z';
+        }
 	}
 	
 
