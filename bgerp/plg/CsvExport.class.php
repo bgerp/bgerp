@@ -44,7 +44,15 @@ class bgerp_plg_CsvExport extends core_Manager {
      */
     function prepareExportForm(core_Form &$form)
     {
+    	$sets = array();
+    	$fields = $this->mvc->selectFields();
+    	foreach ($fields as $name => $fld){
+    		$sets[] = "{$name}={$fld->caption}";
+    	}
+    	$sets = implode(',', $sets);
+    	
     	$form->FNC('delimiter', 'varchar(1,size=3)', 'input,caption=Разделител,mandatory');
+    	$form->FNC('fields', "set($sets)", 'input,caption=Полета');
     	$form->FNC('enclosure', 'varchar(1,size=3)', 'input,caption=Ограждане,mandatory');
     	$form->FNC('encoding', 'enum(utf-8=Уникод|* (UTF-8),
                                     cp1251=Windows Cyrillic|* (CP1251),
@@ -81,7 +89,7 @@ class bgerp_plg_CsvExport extends core_Manager {
     		redirect(array($mvc, 'list'), FALSE, "Броят на заявените записи за експорт надвишава максимално разрешения|* - " . $conf->EF_MAX_EXPORT_CNT, 'error');
     	}
     	
-    	$content = $this->prepareFileContent($recs, $filter->delimiter, $filter->enclosure);
+    	$content = $this->prepareFileContent($recs, $filter->delimiter, $filter->enclosure, $filter->fields);
     	$content = iconv('utf-8', $filter->encoding, $content);
     	
     	return $content;
@@ -91,12 +99,9 @@ class bgerp_plg_CsvExport extends core_Manager {
     /**
      * Подготвя контента за експортиране
      */
-    private function prepareFileContent($recs, $delimiter, $enclosure)
+    private function prepareFileContent($recs, $delimiter, $enclosure, $fields)
     {
-		$fields = $this->mvc->selectFields("#export");
-		if(is_array($fields) && !count($fields)){
-			$fields = $this->mvc->selectFields();
-		}
+		$fields = arr::make($fields, TRUE);
 		
     	/* за всеки ред */
     	$csv = '';
