@@ -137,6 +137,7 @@ class bgerp_plg_Export extends core_Plugin
                 $Driver->mvc = $mvc;
                 
                 $content = $Driver->export($form->rec);
+                
                 if(!$content){
                 	return redirect(array($mvc, 'list'), FALSE, 'Няма налични данни за експорт', 'warning');
                 }

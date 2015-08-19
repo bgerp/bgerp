@@ -105,6 +105,7 @@ class bulmar_InvoiceExport extends core_Manager {
     	
     	$data = $this->prepareExportData($recs);
     	$content = $this->prepareFileContent($data);
+    	$content = iconv('utf-8', 'CP1251', $content);
     	
     	return $content;
     }

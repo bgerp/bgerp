@@ -46,6 +46,9 @@ class bgerp_plg_CsvExport extends core_Manager {
     {
     	$form->FNC('delimiter', 'varchar(1,size=3)', 'input,caption=Разделител,mandatory');
     	$form->FNC('enclosure', 'varchar(1,size=3)', 'input,caption=Ограждане,mandatory');
+    	$form->FNC('encoding', 'enum(utf-8=Уникод|* (UTF-8),
+                                    cp1251=Windows Cyrillic|* (CP1251),
+                                    koi8-r=Rus Cyrillic|* (KOI8-R))', 'caption=Знаци, formOrder=4,input');
     	
     	$form->setOptions('delimiter', array(',' => ',', ';' => ';', ':' => ':', '|' => '|'));
     	$form->setOptions('enclosure', array('"' => '"', '\'' => '\''));
@@ -79,6 +82,7 @@ class bgerp_plg_CsvExport extends core_Manager {
     	}
     	
     	$content = $this->prepareFileContent($recs, $filter->delimiter, $filter->enclosure);
+    	$content = iconv('utf-8', $filter->encoding, $content);
     	
     	return $content;
     }
@@ -108,14 +112,16 @@ class bgerp_plg_CsvExport extends core_Manager {
     				$type = $this->mvc->fields[$field]->type;
     					
     				if ($type instanceof type_Key) {
+    					Mode::push('text', 'plain');
     					$value = $this->mvc->getVerbal($rec, $field);
+    					Mode::pop('text');
     				} else {
     					$value = $rec->{$field};
     				}
-    					
-    				// escape
+    				$value = strip_tags($value);
+    				
     				if (preg_match('/\\r|\\n|\,|"/', $value)) {
-    					$value = '"' . str_replace('"', '""', $value) . '"';
+    					$value = $enclosure . str_replace($enclosure, "{$enclosure}{$enclosure}", $value) . $enclosure;
     				}
     				
     				$value = ($value) ? $enclosure . $value . $enclosure : '';
@@ -123,7 +129,6 @@ class bgerp_plg_CsvExport extends core_Manager {
     			}
     	
     			/* END за всяка колона */
-    			
     			$csv .= $rCsv . "\r\n";
     		}
     	}
