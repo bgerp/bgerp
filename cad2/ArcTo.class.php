@@ -83,47 +83,52 @@ class cad2_ArcTo  extends cad2_Shape {
 
         if($dist < 0) {
             $m = 0; 
-            $r = ($AB->r / 2) * abs($r)/$r;
+            $r = ($AB->r / 2) * ($r<0?-1:1);
         } else {
             $m = sqrt($dist);
         }
 
-        $reverse = abs($r)/$r * 0.00001;
+        $reverse = ($r<0?-1:1) * 0.00001;
  
         $C = $M->add($svg->p($AB->a - pi()/2 + ($r<0 ? pi() : 0), $m));
  
         $CA = $A->add($C->neg());
         $CB = $B->add($C->neg());
+ 
 
+        $a = $CA->a;
+        $b = $CB->a;
 
-        if($CA->a > $CB->a ) { 
-            if($CA->a - $CB->a + $reverse > 2*pi()) { 
-                for($a = $CA->a; $a >= $CB->a + 2*pi(); $a = pi()/48) {
-                    $X = $C->add($svg->p($a, abs($r)));
+        $d = pi()/24;
+
+        if($a > $b) { 
+            if($a - $b + $reverse > pi()) { 
+                for($i = $a; $i <= $b + 2*pi(); $i += $d) {
+                    $X = $C->add($svg->p($i, abs($r)));
                     $svg->lineTo($X->x, $X->y, TRUE);
                 }
-            } else {
-                for($a = $CA->a; $a >= $CB->a; $a -= pi()/48) {
-                    $X = $C->add($svg->p($a, abs($r)));
+            } else { 
+                for($i = $a; $i >= $b; $i -= $d) {
+                    $X = $C->add($svg->p($i, abs($r)));
                     $svg->lineTo($X->x, $X->y, TRUE);
                 }
             }
         } else {
 
             if($CB->a - $CA->a + $reverse > pi()) {
-                for($a = $CA->a + 2*pi(); $a >= $CB->a; $a -= pi()/48) {
+                for($a = $CA->a + 2*pi(); $a >= $CB->a; $a -= $d) {
                     $X = $C->add($svg->p($a, abs($r)));
                     $svg->lineTo($X->x, $X->y, TRUE);
                 }
             } else {
-                for($a = $CA->a; $a <= $CB->a; $a += pi()/48) {
+                for($a = $CA->a; $a <= $CB->a; $a += $d) {
                     $X = $C->add($svg->p($a, abs($r))); 
                     
                     $svg->lineTo($X->x, $X->y, TRUE);
                 }
             }
 
-        }
+        }  
         $svg->lineTo($x1, $y1, TRUE); 
 
     }

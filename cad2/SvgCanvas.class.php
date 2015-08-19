@@ -23,7 +23,7 @@ class cad2_SvgCanvas extends core_BaseClass {
      * Текущи атрибути на лементите
      */
     var $attr = array();
-    var $alowedAttributes = array('stroke', 'stroke-width', 'stroke-opacity', 'stroke-dasharray', 'fill', 'fill-opacity', 'font-size', 'font-weight', 'font-family', 'text-color');
+    var $alowedAttributes = array('stroke', 'stroke-width', 'stroke-opacity', 'stroke-dasharray', 'stroke-linecap', 'fill', 'fill-opacity', 'font-size', 'font-weight', 'font-family', 'text-color');
 
 
     /**
@@ -196,6 +196,7 @@ class cad2_SvgCanvas extends core_BaseClass {
         setIfNot($attr['stroke-width'], $this->getAttr('stroke-width'));
         setIfNot($attr['stroke-opacity'], $this->getAttr('stroke-opacity'));
         setIfNot($attr['stroke-dasharray'], $this->getAttr('stroke-dasharray'));
+        setIfNot($attr['stroke-linecap'], $this->getAttr('stroke-linecap'));
 
         setIfNot($attr['fill'], $this->getAttr('fill'));
         setIfNot($attr['fill-opacity'], $this->getAttr('fill-opacity'));
