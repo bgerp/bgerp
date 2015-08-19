@@ -107,17 +107,7 @@ class bulmar_InvoiceExport extends core_Manager {
     	$content = $this->prepareFileContent($data);
     	$content = iconv('utf-8', 'CP1251', $content);
     	
-    	$timestamp = time();
-    	$name = "invoices{$timestamp}.txt";
-    	
-    	// Записваме файла в системата
-    	$fh = fileman::absorbStr($content, 'exportInvoices', $name);
-    	
-    	// Ще редиректваме към единичния изглед на файла
-    	$retUrl = toUrl(array('fileman_Files', 'single', $fh), 'local');
-    	
-    	// Подменяме урл-то за връщане
-    	Request::push(array('ret_url' => $retUrl));
+    	return $content;
     }
     
     
@@ -319,5 +309,19 @@ class bulmar_InvoiceExport extends core_Manager {
     function isApplicable($mvc)
     {
     	return $mvc->className == self::$applyOnlyTo;
+    }
+    
+    
+    /**
+     * Връща името на експортирания файл
+     * 
+     * @return string $name
+     */
+    public function getExportedFileName()
+    {
+    	$timestamp = time();
+    	$name = "invoices{$timestamp}.txt";
+    	
+    	return $name;
     }
 }

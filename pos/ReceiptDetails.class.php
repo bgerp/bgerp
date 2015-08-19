@@ -99,8 +99,8 @@ class pos_ReceiptDetails extends core_Detail {
     	$saleTpl = $blocksTpl->getBlock('sale');
     	$paymentTpl = $blocksTpl->getBlock('payment');
     	if($data->rows) {
-	    	foreach($data->rows as $row) {
-	    		$action = $this->getAction($data->rows[$row->id]->action);
+	    	foreach($data->rows as $id => $row) {
+	    		$action = $this->getAction($data->rows[$id]->action);
                 $at = ${"{$action->type}Tpl"};
                 if(is_object($at)) {
                     $rowTpl = clone(${"{$action->type}Tpl"});

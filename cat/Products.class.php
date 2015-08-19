@@ -710,7 +710,7 @@ class cat_Products extends core_Embedder {
     		if($rec = $query->fetch()) {
     			
     			$res->productId = $rec->id;
-    			$res->packagingId = NULL;
+    			$res->packagingId = self::getProductInfo($rec->id)->productRec->measureId;
     		} else {
     			
     			// Ако няма продукт
