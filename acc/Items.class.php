@@ -407,7 +407,7 @@ class acc_Items extends core_Manager
         	$listOptions+= array('-1' => '[Без номенклатури]');
         }
         
-        $data->listFilter->setOptions('listId', $listOptions);
+        $data->listFilter->setOptions('listId', array('' => '') + $listOptions);
         
         $data->listFilter->view = 'horizontal';
         
