@@ -48,12 +48,6 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
     
     
     /**
-     * Работен кеш
-     */
-    protected $cache = array();
-    
-    
-    /**
      * Добавя полетата на вътрешния обект
      *
      * @param core_Fieldset $fieldset
@@ -196,26 +190,6 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
         $accSysId = acc_Accounts::fetchField($data->rec->accountId, 'systemId');
         $Balance = new acc_ActiveShortBalance(array('from' => $data->rec->from, 'to' => $data->rec->to, 'accs' => $accSysId, 'cacheBalance' => FALSE));
         $data->recs = $Balance->getBalance($accSysId);
-        
-        if(count($data->recs)){
-        	foreach ($data->recs as $rec){
-        		foreach (range(1, 3) as $i){
-        			if(!empty($rec->{"ent{$i}Id"})){
-        				$this->cache[$rec->{"ent{$i}Id"}] = $rec->{"ent{$i}Id"};
-        			}
-        		}
-        	}
-        	
-        	if(count($this->cache)){
-	        	$iQuery = acc_Items::getQuery();
-	            $iQuery->show("num");
-	            $iQuery->in('id', $this->cache);
-	            
-	            while($iRec = $iQuery->fetch()){
-	                $this->cache[$iRec->id] = $iRec->num;
-	            }
-        	}
-        }
         
         $this->filterRecsByItems($data);
         
@@ -436,21 +410,23 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
       */
      private function filterRecsByItems(&$data)
      {
-     	$Balance = cls::get('acc_BalanceDetails');
-     	
-     	//
      	if(!empty($data->rec->action)){
-         	$cmd = ($data->rec->action == 'filter') ? 'default' : 'group';
-         	$Balance->doGrouping($data, (array)$data->rec, $cmd, $data->recs);
+     		$cmd = ($data->rec->action == 'filter') ? 'default' : 'group';
+     		$by = (array)$data->rec;
+     		acc_BalanceDetails::modifyListFields($data->listFields, $cmd, $by['grouping1'], $by['grouping2'], $by['grouping3'], $by['feat1'], $by['feat2'], $by['feat3']);
+     		 
+     		if($cmd == 'default'){
+     			acc_BalanceDetails::filterRecs($data->recs, $by['grouping1'], $by['grouping2'], $by['grouping3'], $by['feat1'], $by['feat2'], $by['feat3']);
+     		} else {
+     			acc_BalanceDetails::groupRecs($data->recs, $by['grouping1'], $by['grouping2'], $by['grouping3'], $by['feat1'], $by['feat2'], $by['feat3']);
+     		}
         }
          
          // Ако е посочено поле за сортиране, сортираме по него
          if($this->innerForm->orderField){
          	arr::order($data->recs, $this->innerForm->orderField, strtoupper($this->innerForm->orderBy));
          } else {
-         	
-         	// Ако не се сортира по номерата на перата
-         	$Balance->canonizeSortRecs($data, $this->cache);
+         	acc_BalanceDetails::sortRecsByNum($data->recs, $data->listFields);
          }
       }
        
