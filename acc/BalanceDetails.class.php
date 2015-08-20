@@ -440,10 +440,13 @@ class acc_BalanceDetails extends core_Detail
     		foreach (range(1, 3) as $i){
     			$param = ${"item{$i}"};
     			$feat = ${"feat{$i}"};
-    			 
-    			if(isset($param) && $rec->{"ent{$i}Id"} != $param){
-    				unset($recs[$id]);
-    				break;
+    			
+    			if(isset($param)){
+    				if($rec->{"ent{$i}Id"} != $param){
+    					$rec->{"grouping{$i}"} = 'others';
+    				} else {
+    					$rec->{"grouping{$i}"} = acc_Items::getVerbal($rec->{"ent{$i}Id"}, 'titleLink');
+    				}
     			}
     			
     			if(isset($recs[$id])){
@@ -452,9 +455,9 @@ class acc_BalanceDetails extends core_Detail
     				// Намираме с-та на избраното свойство ако има такова
     				if($feat){
     					if($feat == '*'){
-    						 
+    						
     						// Ако групираме със специалния символ '*', с-та на свойството е името на перото
-    						$rec->{"grouping{$i}"} = acc_Items::getVerbal($rec->{"ent{$i}Id"}, 'title');
+    						$rec->{"grouping{$i}"} = acc_Items::getVerbal($rec->{"ent{$i}Id"}, 'titleLink');
     					} elseif(isset($featuresArr[$rec->{"ent{$i}Id"}][$feat])){
     						 
     						// Ако има свойство за това перо, взимаме стойността му
@@ -471,7 +474,7 @@ class acc_BalanceDetails extends core_Detail
     	
     	$groupedRecs = $groupedIdx = array();
     	foreach ($recs as $rec1) {
-    		$r = &$groupedIdx[$rec1->grouping1][$rec1->grouping2][$rec1->grouping3];
+    		$r = &$groupedIdx[strip_tags($rec1->grouping1)][strip_tags($rec1->grouping2)][strip_tags($rec1->grouping3)];
     		
     		if (!isset($r)) {
     			$r = new stdClass();
