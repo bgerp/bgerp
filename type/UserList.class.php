@@ -103,7 +103,8 @@ class type_UserList extends type_Keylist
             
             $uQuery = core_Users::getQuery();
             $uQuery->where("#state != 'rejected'");
- 
+            $uQuery->orderBy('nick');
+            
             $uQuery->likeKeylist('roles', "|{$t}|");
             
             $uQuery->likeKeylist('roles', $roles);

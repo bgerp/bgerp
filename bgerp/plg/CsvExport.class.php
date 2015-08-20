@@ -50,9 +50,9 @@ class bgerp_plg_CsvExport extends core_Manager {
     		$sets[] = "{$name}={$fld->caption}";
     	}
     	$sets = implode(',', $sets);
+    	$form->FNC('fields', "set($sets)", 'input,caption=Полета,mandatory');
     	
     	$form->FNC('delimiter', 'varchar(1,size=3)', 'input,caption=Разделител,mandatory');
-    	$form->FNC('fields', "set($sets)", 'input,caption=Полета');
     	$form->FNC('enclosure', 'varchar(1,size=3)', 'input,caption=Ограждане,mandatory');
     	$form->FNC('encoding', 'enum(utf-8=Уникод|* (UTF-8),
                                     cp1251=Windows Cyrillic|* (CP1251),

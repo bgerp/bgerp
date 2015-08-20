@@ -995,6 +995,16 @@ class acc_Items extends core_Manager
             $cantShow = TRUE;
         }
         
+        $features = acc_Features::getFeaturesByItems(array($rec->id));
+        $features = $features[$rec->id];
+        
+        if(is_array($features)){
+        	$row->features = '';
+        	foreach ($features as $key => $value){
+        		$row->features .= "{$key}: <i>{$value}</i><br>";
+        	}
+        }
+        
         // Ако има проблем при извличането на записа показваме съобщение
         if($cantShow){
             $row = new stdClass();
