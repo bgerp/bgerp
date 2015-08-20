@@ -46,7 +46,7 @@ class fileman_webdrv_Svg extends fileman_webdrv_Inkscape
         $Script->setFile('INPUTF', $file);
         $Script->setFile('OUTPUTF', $outFilePath);
         
-        $Script->setProgram('inkscape', INKSCAPE_PATH);
+        $Script->setProgram('inkscape', fileman_Setup::get('INKSCAPE_PATH'));
         
         $errFilePath = self::getErrLogFilePath($outFilePath);
         

@@ -126,7 +126,7 @@
          
         <tr>
            <th colspan="3" class='job-head'>
-           |Производствени задачи|* [#TASK_COUNT#]
+           |Производствени задачи|* [#ADD_BTN#]
            </th>
         </tr>
         <tr>

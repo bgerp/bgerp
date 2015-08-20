@@ -27,7 +27,7 @@ class bgerp_ExportIntf
      * Инпортиране на csv-файл в даден мениджър
      *
      * @param mixed $data - данни
-     * @return mixed - експортираните данни
+     * @return text $content - контента на експортираните данни
      */
     function export($data)
     {
@@ -67,5 +67,16 @@ class bgerp_ExportIntf
     function isApplicable(core_Mvc $mvc)
     {
         return $this->class->isApplicable($mvc);
+    }
+    
+    
+    /**
+     * Връща името на експортирания файл
+     *
+     * @return string $name
+     */
+    public function getExportedFileName()
+    {
+    	return $this->class->getExportedFileName();
     }
 }

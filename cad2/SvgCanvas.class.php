@@ -23,7 +23,7 @@ class cad2_SvgCanvas extends core_BaseClass {
      * Текущи атрибути на лементите
      */
     var $attr = array();
-    var $alowedAttributes = array('stroke', 'stroke-width', 'stroke-opacity', 'stroke-dasharray', 'fill', 'fill-opacity', 'font-size', 'font-weight', 'font-family', 'text-color');
+    var $alowedAttributes = array('stroke', 'stroke-width', 'stroke-opacity', 'stroke-dasharray', 'stroke-linecap', 'fill', 'fill-opacity', 'font-size', 'font-weight', 'font-family', 'text-color');
 
 
     /**
@@ -76,6 +76,7 @@ class cad2_SvgCanvas extends core_BaseClass {
         $this->setAttr('stroke-width', 0.2);
         $this->setAttr('fill', 'none');
         $this->setAttr('font-size', 40); 
+        $this->setAttr('font-family', 'Courier');
 	}
 
 
@@ -123,7 +124,7 @@ class cad2_SvgCanvas extends core_BaseClass {
     /**
      * Задава текушата точка
      */
-	private function setCP($x, $y, $absolute = FALSE)
+	private function setCP($x, $y, $absolute = FALSE, $fitPoint = TRUE)
     {   
         if($absolute) {
             $this->x = $x;
@@ -132,8 +133,10 @@ class cad2_SvgCanvas extends core_BaseClass {
             $this->x += $x;
             $this->y += $y;
         }
-
-        $this->fitPoint($this->x, $this->y);
+        
+        if($fitPoint) {
+            $this->fitPoint($this->x, $this->y);
+        }
 	}
 
 
@@ -144,7 +147,73 @@ class cad2_SvgCanvas extends core_BaseClass {
     {
         return array($this->x / $this->pixPerMm, $this->y / $this->pixPerMm);
     }
-    
+
+
+    /**
+     * Задава текущия прозорец
+     */
+    function setWindow($x, $y, $w, $h)
+    {
+        $this->window = array($x, $y, $x+$w, $y+$h);
+    }
+
+    /**
+     * Премахва текущия прозорец
+     */
+    function unsetWindow()
+    {
+        $this->window = NULL;
+    }
+
+
+    /**
+     * Проверява дали точката се намира в прозореца
+     */
+    function isInWindow($x, $y)
+    {
+        if(!$this->window) return TRUE;
+        
+        list($x1,$y1,$x2,$y2) = $this->window;
+
+        if(min($x1,$x2) <= $x && max($x1,$x2) >= $x && min($y1,$y2) <= $y && max($y1,$y2) >= $y) {
+
+            return TRUE;
+        }
+
+        return FALSE;
+    }
+
+
+    /**
+     * Намира точка в която зададената отсечка сече прозореца
+     */
+    function getWindowIntersection($Ax, $Ay, $Bx, $By)
+    {      
+        if(!$this->window) return TRUE;
+        
+        list($x1,$y1,$x2,$y2) = $this->window;
+        $p = $this->getIntersection($Ax, $Ay, $Bx, $By, $x1, $y1, $x1, $y2);
+        if($p) return $p;
+
+        $p = $this->getIntersection($Ax, $Ay, $Bx, $By, $x2, $y1, $x2, $y2);
+        if($p) return $p;
+      
+        $p = $this->getIntersection($Ax, $Ay, $Bx, $By, $x1, $y1, $x2, $y1);
+        if($p) return $p;
+
+        $p = $this->getIntersection($Ax, $Ay, $Bx, $By, $x1, $y2, $x2, $y2);
+        if($p) return $p;
+
+        if($this->isInWindow($Ax, $Ay)) {
+            return self::d($Ax, $Ay);
+        }
+
+        if($this->isInWindow($Bx, $By)) {
+
+             return self::d($Bx, $By);
+        }
+    }
+
 
     /**
      * Връща тага на текущия път
@@ -195,6 +264,7 @@ class cad2_SvgCanvas extends core_BaseClass {
         setIfNot($attr['stroke-width'], $this->getAttr('stroke-width'));
         setIfNot($attr['stroke-opacity'], $this->getAttr('stroke-opacity'));
         setIfNot($attr['stroke-dasharray'], $this->getAttr('stroke-dasharray'));
+        setIfNot($attr['stroke-linecap'], $this->getAttr('stroke-linecap'));
 
         setIfNot($attr['fill'], $this->getAttr('fill'));
         setIfNot($attr['fill-opacity'], $this->getAttr('fill-opacity'));
@@ -212,15 +282,28 @@ class cad2_SvgCanvas extends core_BaseClass {
      */
 	function moveTo($x, $y, $absolute = FALSE)
     {   
+
         $path = $this->getCurrentPath();
 
         list($x, $y) = self::toPix($x, $y);
+
+        
+        $this->setCP($x, $y, $absolute);
+        
+        if(!$absolute) {
+            $x1 = $x0 + $x;
+            $y1 = $y0 + $y;
+        } else {
+            $x1 = $x;
+            $y1 = $y;
+        }
+        
+        if(!$this->isInWindow($x1, $y1)) return;
 
         $m = $absolute ? ' M' : ' m';
 
         $path->attr['d'] .= " {$m}{$x},{$y}";
 
-        $this->setCP($x, $y, $absolute);
 	}
 
 
@@ -229,14 +312,48 @@ class cad2_SvgCanvas extends core_BaseClass {
      */
 	function lineTo($x, $y, $absolute = FALSE)
     {
-        $path = $this->getCurrentPath();
-
-        list($x, $y) = self::toPix($x, $y);
+        list($x0, $y0) = $this->getCP();
         
+        if(!$absolute) {
+            $x1 = $x0 + $x;
+            $y1 = $y0 + $y;
+        } else {
+            $x1 = $x;
+            $y1 = $y;
+        }
+        
+        if(!$this->isInWindow($x0, $y0) && !$this->isInWindow($x1, $y1)) {
+            //if($iW = self::getWindowIntersection($x0, $y0, $x1, $y1)) {
+           //     expect(count() ==2, $x, $y, $x0, $y0, $iW);
+           // } else {
+                list($x, $y) = self::toPix($x, $y);
+
+                $this->setCP($x, $y, $absolute, FALSE);
+
+                return;
+          //  }
+        } elseif(!$this->isInWindow($x0, $y0) && $this->isInWindow($x1, $y1)) {
+            $iW = self::getWindowIntersection($x0, $y0, $x1, $y1);
+            if($iW) { 
+                $this->moveTo($iW->x, $iW->y, TRUE);
+                //expect($this->isInWindow($iW->x, $iW->y), $this->window, $iW);
+                $x = $x1;
+                $y = $y1;
+                $absolute = TRUE;
+            }
+        } elseif($this->isInWindow($x0, $y0) && !$this->isInWindow($x1, $y1)) {
+            $iW = self::getWindowIntersection($x0, $y0, $x1, $y1);
+            if($iW) {
+                $x = $iW->x;
+                $y = $iW->y;
+                $absolute = TRUE;
+            }
+        }
+//expect( $x !=0 || $y != 0, $this->isInWindow($x0, $y0) ,  $this->isInWindow($x1, $y1));
+        $path = $this->getCurrentPath();
+        list($x, $y) = self::toPix($x, $y);
         $l = $absolute ? 'L' : 'l';
-
         $path->attr['d'] .= " {$l}{$x},{$y}";
-
         $this->setCP($x, $y, $absolute);
 	}
 
@@ -253,8 +370,7 @@ class cad2_SvgCanvas extends core_BaseClass {
         $c = $absolute ? 'C' : 'c';
 
 		$path->attr['d'] .= " {$c}{$x1},{$y1} {$x2},{$y2} {$x},{$y}";
-// echo "<li> $x1, $y1, $absolute | $x2, $y2, $absolute | $x, $y, $absolute";  
-
+ 
 		$this->setCP($x1, $y1, $absolute);
         $this->setCP($x2, $y2, $absolute);
 		$this->setCP($x, $y, $absolute);
@@ -362,6 +478,10 @@ class cad2_SvgCanvas extends core_BaseClass {
         if( $size = $this->getAttr('font-size') ) {
 			$tx->attr['font-size'] = $size;
 		}
+        
+        if( $family = $this->getAttr('font-family') ) {
+			$tx->attr['font-family'] = $family;
+		}
 
 	    $this->setCP($x, $y, TRUE);
         
@@ -394,11 +514,13 @@ class cad2_SvgCanvas extends core_BaseClass {
     /**
      * Затваря текущия път или под-път
      */
-	function closePath()
+	function closePath($close = TRUE)
     {
         $path = $this->getCurrentPath();
         
-        $path->attr['d'] .= ' z';
+        if($close) {
+            $path->attr['d'] .= ' z';
+        }
 	}
 	
 
@@ -572,4 +694,40 @@ class cad2_SvgCanvas extends core_BaseClass {
 
         return $v;
     }
+
+
+    /**
+     * Computes the intersection between two segments. 
+     * @param x1 Starting point of Segment 1
+     * @param y1 Starting point of Segment 1
+     * @param x2 Ending point of Segment 1
+     * @param y2 Ending point of Segment 1
+     * @param x3 Starting point of Segment 2
+     * @param y3 Starting point of Segment 2
+     * @param x4 Ending point of Segment 2
+     * @param y4 Ending point of Segment 2
+     * @return Point where the segments intersect, or null if they don't
+     */
+    public static function getIntersection($x1,  $y1,  $x2,  $y2, $x3, $y3, $x4, $y4)
+    {
+        $x1 += 0.00001;
+        $y1 -= 0.00002;
+        
+        $x3 += 0.00003;
+        $y3 -= 0.00004;
+
+        $d = ($x1-$x2)*($y3-$y4) - ($y1-$y2)*($x3-$x4);
+        if ($d == 0) return null;
+    
+        $xi = (($x3-$x4)*($x1*$y2-$y1*$x2)-($x1-$x2)*($x3*$y4-$y3*$x4))/$d;
+        $yi = (($y3-$y4)*($x1*$y2-$y1*$x2)-($y1-$y2)*($x3*$y4-$y3*$x4))/$d;
+
+
+        if ($xi < min($x1,$x2) || $xi > max($x1,$x2)) return null;
+        if ($xi < min($x3,$x4) || $xi > max($x3,$x4)) return null;
+
+        return self::d(round($xi*10000)/10000, round($yi*10000)/10000);
+    }
+    
+    
 }

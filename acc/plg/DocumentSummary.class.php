@@ -224,7 +224,7 @@ class acc_plg_DocumentSummary extends core_Plugin
      * Подготвя обощаващата информация
      *
      * @param core_Mvc $mvc - Класа към който е прикачен плъгина
-     * @param array $fld - Поле от модела имащо атрибут "summary"
+     * @param array $fieldsArr - Поле от модела имащо атрибут "summary"
      * @param stdClass $rec - Запис от модела
      * @param array $res - Масив в който ще върнем резултатите
      * @param string $currencyCode - основната валута за периода

@@ -70,16 +70,15 @@ class fileman_webdrv_Code extends fileman_webdrv_Generic
         $type = strtolower(fileman_Files::getExt($fRec->name));
         
         // Обвиваме съдъжанието на файла в код
-        $content = "[code={$type}]{$content}[/code]";    
+        $content = "<div class='richtext'><pre class='rich-text code {$type}'><code>{$content}</code></pre></div>";    
         
-        $content = i18n_Charset::convertToUtf8($content);
+        if(strlen($content) < 1000000){
+        	$content = i18n_Charset::convertToUtf8($content);
+        }
         
-        // Инстанция на класа
-        $richTextInst = cls::get('type_Richtext');
+        $tpl = hljs_Adapter::enable('github');
+        $tpl->append($content);
         
-        // Вземаме съдържанието
-        $content = $richTextInst->toVerbal($content);
-        
-        return $content;
+        return $tpl->getContent();
     }
 }

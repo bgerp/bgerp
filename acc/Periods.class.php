@@ -510,8 +510,36 @@ class acc_Periods extends core_Manager
         $activeRec = $this->forceActive();
         
         $query = $this->getQuery();
-        $query->where("#end > '{$activeRec->end}'");
-        $query->where("#end <= '{$curPerEnd}'");
+        $query->where("#end > '{$activeRec->end}' AND #end <= '{$curPerEnd}'");
+       
+        // Ако сме достигнали указания ден за активиране на следващия бъдещ период
+        $daysBefore = acc_Setup::get('DAYS_BEFORO_MAKE_PERIOD_PENDING');
+        if($daysBefore){
+
+        	if(dt::now() >= dt::addSecs(-1 * $daysBefore, $curPerEnd)){
+        		 
+        		// Опитваме се да намерим пърия бъдещ период с начало, ден след края на предходния
+        		$nQuery = acc_Periods::getQuery();
+        		$nQuery->where("#state = 'draft'");
+        		$nQuery->orderBy('id', 'ASC');
+        		 
+        		$nextDay = dt::addDays(1, $curPerEnd);
+        		$nextDay = dt::verbal2mysql($nextDay, FALSE);
+        		$draftId = NULL;
+        		while($draftRec = $nQuery->fetch()){
+        	
+        			if($draftRec->start == $nextDay){
+        				$draftId = $draftRec->id;
+        				break;
+        			}
+        		}
+        		 
+        		// Ако е намерен такъв период, добавяме го в заявката, така че да стане чакащ
+        		if(isset($draftId)){
+        			$query->orWhere("#id = {$draftId}");
+        		}
+        	}
+        }
         
         while($rec = $query->fetch()){
             $rec->state = 'pending';
@@ -528,7 +556,10 @@ class acc_Periods extends core_Manager
         $this->updateExistingPeriodsState();
     }
     
-    
+    function act_Test()
+    {
+    	$this->cron_CreateFuturePeriods();
+    }
     /**
      * Връща първичния ключ (id) на базовата валута към определена дата
      *

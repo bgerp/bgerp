@@ -28,9 +28,6 @@ class fileman_webdrv_Pdf extends fileman_webdrv_Office
         
         if (!$file) return ;
         
-        // Конфигурационните данни
-        $conf = core_Packs::getConfig('fileman');
-        
         if ((strlen($file) == FILEMAN_HANDLER_LEN) && (strpos($file, '/') === FALSE)) {
             $fRec = fileman_Files::fetchByFh($file);
             
@@ -48,21 +45,16 @@ class fileman_webdrv_Pdf extends fileman_webdrv_Office
         // Задаваме placeHolder' ите за входния и изходния файл
         $Script->setFile('INPUTF', $file);
         $Script->setFile('OUTPUTF', $outFilePath);
-        
-        $Script->setProgram('inkscape', INKSCAPE_PATH);
+ 
+        $Script->setProgram('gs', fileman_Setup::get('GHOSTSCRIPT_PATH'));
         
         $errFilePath = self::getErrLogFilePath($outFilePath);
         
         // Скрипта, който ще конвертира файла в PNG формат
-        $Script->lineExec("gs -dSAFER -dBATCH -dNOPAUSE -dNOCACHE -sDEVICE=pdfwrite -sColorConversionStrategy=CMYK -dProcessColorModel=/DeviceCMYK -sOutputFile=[#OUTPUTF#] [#INPUTF#]", array('errFilePath' => $errFilePath));
+        $Script->lineExec("gs -dSAFER -dBATCH -dNOPAUSE -dNOCACHE -dCompatibilityLevel=1.5 -sDEVICE=pdfwrite -sColorConversionStrategy=CMYK -dProcessColorModel=/DeviceCMYK -sOutputFile=[#OUTPUTF#] [#INPUTF#]", array('errFilePath' => $errFilePath));
         
         // Стартираме скрипта синхронно
         $Script->run(FALSE);
-        
-        // Ако има зададен път до gs, използваме него
-        if (trim($conf->FILEMAN_GHOSTSCRIPT_PATH)) {
-            $Script->setProgram('gs', $conf->FILEMAN_GHOSTSCRIPT_PATH);
-        }
         
         fileman_Indexes::haveErrors($outFilePath, array('type' => 'pdf', 'errFilePath' => $errFilePath));
         

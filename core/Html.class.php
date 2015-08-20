@@ -716,7 +716,7 @@ class core_Html
 	static function createLinkRef($title, $url = FALSE, $warning = FALSE, $attr = array())
 	{
 		// Ако има зададена иконка в линка, слагаме я преди заглавието
-		if(isset($attr['ef_icon'])){
+		if(is_array($attr) && isset($attr['ef_icon'])){
 			$icon = ht::createElement('img', array('src' => sbf($attr['ef_icon'], '')));
 			$title = "{$icon} {$title}";
 			unset($attr['ef_icon']);

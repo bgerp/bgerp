@@ -1,10 +1,6 @@
 <?php
 
 
-/**
- * Път до програмата
- */
-defIfNot('INKSCAPE_PATH', 'inkscape');
 
 
 /**
@@ -64,12 +60,12 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
         $Script->setFile('INPUTF', $file);
         $Script->setFile('OUTPUTF', $outFilePath);
         
-        $Script->setProgram('inkscape', INKSCAPE_PATH);
+        $Script->setProgram('inkscape', fileman_Setup::get('INKSCAPE_PATH'));
         
         $errFilePath = self::getErrLogFilePath($outFilePath);
         
         // Скрипта, който ще конвертира файла в PNG формат
-        $Script->lineExec("inkscape [#INPUTF#] --export-pdf=[#OUTPUTF#] --export-area-drawing", array('errFilePath' => $errFilePath));
+        $Script->lineExec("inkscape [#INPUTF#] --export-pdf=[#OUTPUTF#] --export-area-page", array('errFilePath' => $errFilePath));
         
         // Стартираме скрипта синхронно
         $Script->run(FALSE);
@@ -191,7 +187,7 @@ class fileman_webdrv_Inkscape extends fileman_webdrv_ImageT
         
         $height = static::$pngExportHeight;
         
-        $Script->setProgram('inkscape', INKSCAPE_PATH);
+        $Script->setProgram('inkscape', fileman_Setup::get('INKSCAPE_PATH'));
         
         $errFilePath = self::getErrLogFilePath($outFilePath);
         

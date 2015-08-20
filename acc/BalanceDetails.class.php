@@ -403,8 +403,6 @@ class acc_BalanceDetails extends core_Detail
             }
             
             unset($data->listFields['history'], $data->listFields['baseQuantity'], $data->listFields['debitQuantity'], $data->listFields['creditQuantity'], $data->listFields['blQuantity']);
-            
-            $data->groupByFeature = TRUE;
         }
         
         // Сумиране на еднаквите редове

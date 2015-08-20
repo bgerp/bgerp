@@ -157,18 +157,12 @@ class doc_Setup extends core_ProtoSetup
     	'doc_HiddenContainers',
         'migrate::repairAllBrokenRelations'
     );
-    
-    
-    /**
-     * Дефиниции на класове с интерфейси
-     */
-    var $classes = 'doc_DocsReport';
 
     
     /**
      * Дефинирани класове, които имат интерфейси
     */
-    var $defClasses = 'doc_DocsReport';
+    var $defClasses = 'doc_reports_Docs';
         
     
     /**

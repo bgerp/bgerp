@@ -119,7 +119,7 @@ class plg_Sorting extends core_Plugin
                 // Ако мениджъра е детайл на документ, добавяме и хендлъра на мастъра му в урл-то
                 // за да може да отидем директно на самия документ в нишката
                 if($mvc instanceof core_Detail){
-                	if(cls::haveInterface('doc_DocumentIntf', $mvc->Master)){
+                	if(cls::haveInterface('doc_DocumentIntf', $mvc->Master) && isset($data->masterId)){
                 		$currUrl["#"] = $mvc->Master->getHandle($data->masterId);
                 	}
                 }

@@ -21,38 +21,44 @@ class core_ProtoSetup
     /**
      * Версия на пакета
      */
-    var $version;
+    public $version;
     
     
     /**
      * Мениджър - входна точка на модула
      */
-    var $startCtr;
+    public $startCtr;
     
     
     /**
      * Екшън - входна точка в пакета
      */
-    var $startAct = 'default';
+    public $startAct = 'default';
     
     
     /**
      * Необходими пакети
      */
-    var $depends;
+    public $depends;
     
     
     /**
      * Описание на модула
      */
-    var $info;
+    public $info;
     
 
     /**
      * Описание на конфигурационните константи за този модул
      */
-    var $configDescription = array();
+    protected $configDescription = array();
     
+
+    /**
+     * Стойности на константите за конфигурацията на пакета
+     */
+    static $conf;
+
 
     /**
      * Пътища до папки, които трябва да бъдат създадени
@@ -100,13 +106,13 @@ class core_ProtoSetup
     
     
     /**
-     * 
+     * Дали да се пропусне, като избор за инсталиране
      */
     public $noInstall = FALSE;
     
     
     /**
-     * 
+     * Дали се спира поддръжката на този пакет
      */
     public $deprecated = FALSE;
     
@@ -283,9 +289,9 @@ class core_ProtoSetup
      *
      * @return $string
      */
-    public function getPackName()
+    public static function getPackName()
     {
-        list($packName, ) = explode("_", cls::getClassName($this), 2);
+        list($packName, ) = explode("_", get_called_class(), 2);
         
         return $packName;
     }
@@ -296,12 +302,35 @@ class core_ProtoSetup
      *
      * @return array
      */
-    public function getConfig()
+    public static function getConfig()
     {
-        $packName = $this->getPackName();
-        $conf = core_Packs::getConfig($packName);
+        if(!self::$conf) {
+            $packName = self::getPackName();
+            self::$conf = core_Packs::getConfig($packName);
+        }
         
-        return $conf;
+        return self::$conf;
+    }
+
+
+    /**
+     * Връща стойността на посочената константа
+     * 
+     * @param string $name
+     *
+     * @return mixed
+     */
+    public static function get($name, $absolute = FALSE)
+    {
+        if(!$absolute) {
+            $prefix = strtoupper(self::getPackName()) . '_';
+        }
+
+        $name = $prefix . $name;
+
+        $conf = self::getConfig();
+
+        return $conf->{$name};
     }
     
     
@@ -349,7 +378,7 @@ class core_ProtoSetup
             $res .= core_Classes::add($cls);
         }
 
-         return $res;
+        return $res;
     }
 
 
@@ -472,7 +501,7 @@ class core_ProtoSetup
     public function getConfigDescription() 
     {
         $description = $this->configDescription;
-
+                              
         // взимаме текущото зададено меню
         if ($this->menuItems && count($this->menuItems)) { 
             

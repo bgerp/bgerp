@@ -118,10 +118,11 @@ class core_Os
         $delCnt = 0;
         if(is_array($allFiles['files'])) {
             foreach($allFiles['files'] as $fPath) {
-                $rPath = ltrim(str_replace($dir, '', $fPath), '/\\');
-                if((time() - fileatime($fPath) > $maxAge) && str::matchPatterns($fPath, $negativePattern, $positivePattern)) {
-                    if (@unlink($fPath)) {
-                        $delCnt++;
+                if(file_exists($fPath)) {
+                    if((time() - @fileatime($fPath) > $maxAge) && str::matchPatterns($fPath, $negativePattern, $positivePattern)) {
+                        if (@unlink($fPath)) {
+                            $delCnt++;
+                        }
                     }
                 }
             }
