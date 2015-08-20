@@ -109,7 +109,6 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     				if(!isset($sets[$baseAccInfo->{"groupId{$i}"}])){
     					$sets[$baseAccInfo->{"groupId{$i}"}] = acc_Lists::getVerbal($baseAccInfo->{"groupId{$i}"}, 'name');
     				}
-    				$baseGroups[$baseAccInfo->{"groupId{$i}"}] = $baseAccInfo->{"groupId{$i}"};
     			}
     			 
     			if(isset($corespAccInfo->{"groupId{$i}"})){
@@ -122,9 +121,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     		// Добавяме поле за групиране ако има по какво
     		if(count($sets)){
     			$sets = arr::fromArray($sets);
-    			$defaults = implode(',', $baseGroups);
-    			$form->FLD('groupBy', "set({$sets})", 'caption=Групиране по');
-    			$form->setDefault('groupBy', $defaults);
+    			$form->FLD('groupBy', "set({$sets})", 'caption=Групиране по,mandatory');
     		}
     	}
     	 
@@ -192,6 +189,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
      */
     public function prepareInnerState()
     {
+    	core_App::setTimeLimit(300);
     	$data = new stdClass();
     	$data->summary = (object)array('debitQuantity' => 0, 'debitAmount' => 0, 'creditQuantity' => 0, 'creditAmount' => 0, 'blQuantity' => 0, 'blAmount' => 0);
     	$data->hasSameAmounts = TRUE;
@@ -215,7 +213,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     	while($jRec = $jQuery->fetch()){
     		$this->addEntry($form->baseAccountId, $jRec, $data, $form->groupBy);
     	}
-    	
+    	//bp($data->recs);
     	// Ако има намерени записи
     	if(count($data->recs)){ 
     		
