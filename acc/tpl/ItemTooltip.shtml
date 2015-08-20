@@ -40,4 +40,12 @@
 <td class='quiet aright'>|Обект|*:</td>
 <td>[#link#]</td>
 </tr>
+
+<!--ET_BEGIN features-->
+<tr>
+<td class='quiet aright' style='vertical-align:top;'>|Свойства|*:</td>
+<td><small>[#features#]</small></td>
+</tr>
+<!--ET_END features-->
+
 </table>

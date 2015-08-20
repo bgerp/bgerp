@@ -99,7 +99,7 @@ class cad2_ArcTo  extends cad2_Shape {
         $a = $CA->a;
         $b = $CB->a;
 
-        $d = pi()/24;
+        $d = pi()/(48*round(max(log(abs($r)),1)));
 
         if($a > $b) { 
             if($a - $b + $reverse > pi()) { 
