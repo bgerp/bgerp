@@ -335,6 +335,11 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
     		$arr1 = array('700', $bRec1->ent1Id, $bRec1->ent2Id);
     		$arr2 = array($accIds[$bRec1->accountId], $bRec1->ent1Id, $bRec1->ent2Id);
     		
+    		$dealItemRec = acc_Items::fetch($rec->{$dealPosition[$rec->accountId]});
+    			
+    		// Пропускаме активните продажби и тези които са затворени в друг период
+    		if($dealItemRec->state == 'active' || ($dealItemRec->closedOn > $this->periodRec->end)) continue;
+
     		if($accIds[$bRec1->accountId] == '7911'){
     			$debitArr = $arr2;
     			$creditArr = $arr1;
