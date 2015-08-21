@@ -5,9 +5,6 @@
             <table class='full-width'>
                 <tr>
                     <td>
-                        <div>
-                            |Отговорници|*: [#inCharge#]
-                        </div>
                         <!--ET_BEGIN timeStart-->
                         |Начало|*: [#timeStart#]<br>
                         <!--ET_END timeStart-->
