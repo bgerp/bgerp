@@ -81,17 +81,17 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
     	$this->balanceId =  acc_Balances::fetchField("#periodId = {$this->periodRec->id}");
     	$incomeRes = array();
     	
-    	$entries3 = $this->transferVat($result->totalAmount, $rec);
+    	//$entries3 = $this->transferVat($result->totalAmount, $rec);
     	if(count($entries3)){
     		$result->entries = array_merge($result->entries, $entries3);
     	}
     	
-    	$entries4 = $this->transferCurrencyDiffs($result->totalAmount, $rec);
+    	//$entries4 = $this->transferCurrencyDiffs($result->totalAmount, $rec);
     	if(count($entries4)){
     		$result->entries = array_merge($result->entries, $entries4);
     	}
     	
-    	$entries5 = $this->transferCosts($result->totalAmount, $rec);
+    	//$entries5 = $this->transferCosts($result->totalAmount, $rec);
     	if(count($entries5)){
     		$result->entries = array_merge($result->entries, $entries5);
     	}
@@ -334,6 +334,9 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
     	while($bRec1 = $bQuery1->fetch()){
     		$arr1 = array('700', $bRec1->ent1Id, $bRec1->ent2Id);
     		$arr2 = array($accIds[$bRec1->accountId], $bRec1->ent1Id, $bRec1->ent2Id);
+    		
+    		$dealItemRec = acc_Items::fetch($rec->{$dealPosition[$rec->accountId]});
+    		if($dealItemRec->state == 'active' || ($dealItemRec->closedOn > $this->periodRec->end)) continue;
     		
     		if($accIds[$bRec1->accountId] == '7911'){
     			$debitArr = $arr2;
