@@ -107,7 +107,7 @@ class acc_Setup extends core_ProtoSetup
     	'acc_AllocatedExpenses',
         'migrate::removeYearInterfAndItem',
         'migrate::updateItemsNum1',
-    	'migrate::updateClosedItems',
+    	'migrate::updateClosedItems1',
     );
     
     
@@ -285,7 +285,7 @@ class acc_Setup extends core_ProtoSetup
     /**
      * Ъпдейт на затворените пера
      */
-    public function updateClosedItems()
+    public function updateClosedItems1()
     {
     	core_App::setTimeLimit(400);
     	
@@ -296,7 +296,6 @@ class acc_Setup extends core_ProtoSetup
     	$iQuery = acc_Items::getQuery();
     	$iQuery->where("#state = 'closed'");
     	$iQuery->likeKeylist('lists', $dealListSysId);
-    	$iQuery->where('#closedOn IS NULL');
     	$iQuery->show('classId,objectId,id');
     	
     	while($iRec = $iQuery->fetch()){
@@ -306,8 +305,12 @@ class acc_Setup extends core_ProtoSetup
     		if($Deal->fetchField($iRec->objectId, 'state') == 'closed'){
     			$CloseDoc = $Deal->closeDealDoc;
     			if($CloseDoc){
+    				$CloseDoc = cls::get($CloseDoc);
     				if($clRec = $CloseDoc::fetch("#docClassId = {$iRec->classId} AND #docId = {$iRec->objectId} AND #state = 'active'")){
-    					$closedOn = $clRec->modifiedOn;
+    					$valior = acc_Journal::fetchByDoc($CloseDoc->getClassId(), $clRec->id)->valior;
+    					if(!$valior){
+    						$closedOn = $clRec->createdOn;
+    					}
     				}
     			}
     		}
