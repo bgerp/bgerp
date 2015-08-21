@@ -39,7 +39,7 @@ class tasks_Tasks extends embed_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, doc_SharablePlg, doc_DocumentPlg, planning_plg_StateManager, acc_plg_DocumentSummary, plg_Search, change_Plugin, plg_Clone, plg_Sorting';
+    public $loadList = 'plg_RowTools, doc_DocumentPlg, planning_plg_StateManager, acc_plg_DocumentSummary, plg_Search, change_Plugin, plg_Clone, plg_Sorting';
 
     
     /**
@@ -156,13 +156,11 @@ class tasks_Tasks extends embed_Manager
     function description()
     {
     	$this->FLD('title', 'varchar(128)', 'caption=Заглавие,mandatory,width=100%,changable,silent');
-    	$this->FLD('inCharge' , 'userList(roles=powerUser)', 'caption=Отговорници,mandatory,changable');
     	
     	$this->FLD('timeStart', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00)',
     			'caption=Времена->Начало, silent, changable, tdClass=leftColImportant,formOrder=101');
     	$this->FLD('timeDuration', 'time', 'caption=Времена->Продължителност,changable,formOrder=102');
     	$this->FLD('timeEnd', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00)', 'caption=Времена->Край,changable, tdClass=leftColImportant,formOrder=103');
-    	$this->FLD('sharedUsers', 'userList', 'caption=Допълнително->Споделени,changable,formOrder=104');
     	$this->FLD('progress', 'percent', 'caption=Прогрес,input=none,notNull,value=0');
     	$this->FLD('systemId', 'int', 'silent,input=hidden');
     	$this->FLD('expectedTimeStart', 'datetime', 'silent,input=hidden,caption=Очаквано начало');
@@ -508,16 +506,6 @@ class tasks_Tasks extends embed_Manager
     			$form->setReadOnly('driverClass');
     		}
     	}
-    }
-    
-    
-    /**
-     * Преди запис на документ
-     */
-    public static function on_BeforeSave($mvc, &$id, $rec, $fields = NULL, $mode = NULL)
-    {
-    	// Добавяме отговорниците към споделените
-    	$rec->sharedUsers = keylist::merge($rec->sharedUsers, $rec->inCharge);
     }
     
     
