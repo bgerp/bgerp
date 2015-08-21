@@ -586,7 +586,7 @@ class pos_Receipts extends core_Master {
     {
     	$data->row = $this->recToverbal($data->rec);
     	unset($data->row->contragentName);
-    	$data->details = $this->pos_ReceiptDetails->prepareReceiptDetails($data->rec->id);
+    	$data->receiptDetails = $this->pos_ReceiptDetails->prepareReceiptDetails($data->rec->id);
     }
     
     
@@ -606,7 +606,7 @@ class pos_Receipts extends core_Master {
     	$tpl->append($logo, 'LOGO');
     	
     	// Слагане на детайлите на бележката
-    	$detailsTpl = $this->pos_ReceiptDetails->renderReceiptDetail($data->details);
+    	$detailsTpl = $this->pos_ReceiptDetails->renderReceiptDetail($data->receiptDetails);
     	$tpl->append($detailsTpl, 'DETAILS');
     	
     	return $tpl;

@@ -57,7 +57,6 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 		// Оставяме за избор само артикули ДМА-та
 		$products = cat_Products::getByProperty('fixedAsset');
 		$data->form->setSuggestions('fixedAssets', $products);
-		$data->form->setFieldTypeParams('inCharge', array('roles' => 'planning,ceo'));
 	}
 	
 	

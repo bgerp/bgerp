@@ -123,7 +123,7 @@ class sens2_ServMon  extends sens2_ProtoDriver
 
 
     /**
-     * Проверява дали имаме връзка с дадения адрес
+     * Проверява дали имаме http връзка с даден адрес
      */
     function checkConnection($url) 
     {

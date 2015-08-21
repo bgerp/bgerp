@@ -21,7 +21,7 @@ class planning_Tasks extends tasks_Tasks
 	/**
 	 * Плъгини за зареждане
 	 */
-	public $loadList = 'plg_RowTools, doc_SharablePlg, doc_DocumentPlg, planning_plg_StateManager, planning_Wrapper, acc_plg_DocumentSummary, plg_Search, change_Plugin, plg_Clone, plg_Sorting';
+	public $loadList = 'plg_RowTools, doc_DocumentPlg, planning_plg_StateManager, planning_Wrapper, acc_plg_DocumentSummary, plg_Search, change_Plugin, plg_Clone, plg_Sorting';
 	
 	
 	/**

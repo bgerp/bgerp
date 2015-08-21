@@ -1567,6 +1567,10 @@ abstract class deals_DealMaster extends deals_DealBase
     	
     	// Броя еденици в опаковка, се определя от информацията за продукта
     	$productInfo = $ProductMan->getProductInfo($productId);
+    	if(!$packagingId){
+    		$packagingId = $productInfo->productRec->measureId;
+    	}
+    	
     	$quantityInPack = ($productInfo->packagings[$packagingId]) ? $productInfo->packagings[$packagingId]->quantity : 1;
     	$productManId = $ProductMan->getClassId();
     	
