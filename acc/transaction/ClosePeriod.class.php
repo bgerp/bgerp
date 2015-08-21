@@ -81,17 +81,17 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
     	$this->balanceId =  acc_Balances::fetchField("#periodId = {$this->periodRec->id}");
     	$incomeRes = array();
     	
-    	//$entries3 = $this->transferVat($result->totalAmount, $rec);
+    	$entries3 = $this->transferVat($result->totalAmount, $rec);
     	if(count($entries3)){
     		$result->entries = array_merge($result->entries, $entries3);
     	}
     	
-    	//$entries4 = $this->transferCurrencyDiffs($result->totalAmount, $rec);
+    	$entries4 = $this->transferCurrencyDiffs($result->totalAmount, $rec);
     	if(count($entries4)){
     		$result->entries = array_merge($result->entries, $entries4);
     	}
     	
-    	//$entries5 = $this->transferCosts($result->totalAmount, $rec);
+    	$entries5 = $this->transferCosts($result->totalAmount, $rec);
     	if(count($entries5)){
     		$result->entries = array_merge($result->entries, $entries5);
     	}
