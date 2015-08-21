@@ -50,7 +50,7 @@ class sales_Invoices extends deals_InvoiceMaster
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, acc_plg_Contable, plg_ExportCsv, doc_DocumentPlg, bgerp_plg_Export,
+    public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, acc_plg_Contable, doc_DocumentPlg, bgerp_plg_Export,
 					doc_EmailCreatePlg, doc_plg_MultiPrint, crm_plg_UpdateContragentData, recently_Plugin, bgerp_plg_Blank, plg_Printing, cond_plg_DefaultValues,deals_plg_DpInvoice,
                     doc_plg_HidePrices, doc_plg_TplManager, acc_plg_DocumentSummary, plg_Search';
     
@@ -184,18 +184,26 @@ class sales_Invoices extends deals_InvoiceMaster
     
     
     /**
+     * Кои полета да могат да се експортират в CSV формат
+     * 
+     * @see bgerp_plg_CsvExport
+     */
+    public $exportableCsvFields = 'date,contragentName,contragentVatNo,uicNo,paymentMethodId,dealValue,accountId,number,state';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
     {
     	parent::setInvoiceFields($this);
     	
-    	$this->FLD('accountId', 'key(mvc=bank_OwnAccounts,select=bankAccountId, allowEmpty)', 'caption=Плащане->Банкова с-ка,after=paymentMethodId,export=Csv');
+    	$this->FLD('accountId', 'key(mvc=bank_OwnAccounts,select=bankAccountId, allowEmpty)', 'caption=Плащане->Банкова с-ка,after=paymentMethodId');
     	
-    	$this->FLD('numlimit', 'enum(1,2)', 'caption=Номер->Диапазон, export=Csv, after=place,input=hidden,notNull,default=1');
+    	$this->FLD('numlimit', 'enum(1,2)', 'caption=Номер->Диапазон, after=place,input=hidden,notNull,default=1');
     	
-    	$this->FLD('number', 'bigint(21)', 'caption=Номер, export=Csv, after=place,input=none');
-    	$this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 'caption=Статус, input=none,export=Csv');
+    	$this->FLD('number', 'bigint(21)', 'caption=Номер, after=place,input=none');
+    	$this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Сторнирана)', 'caption=Статус, input=none');
         $this->FLD('type', 'enum(invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие,dc_note=Известие)', 'caption=Вид, input=hidden');
         
         $conf = core_Packs::getConfig('sales');

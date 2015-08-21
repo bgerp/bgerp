@@ -113,7 +113,7 @@ class cat_BomDetails extends doc_Detail
     function description()
     {
     	$this->FLD('bomId', 'key(mvc=cat_Boms)', 'column=none,input=hidden,silent');
-    	$this->FLD("resourceId", 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Материал,mandatory,silent,refreshForm');
+    	$this->FLD("resourceId", 'key(mvc=cat_Products,select=name,allowEmpty)', 'caption=Материал,mandatory,silent,removeAndRefreshForm=packagingId');
     	
     	$this->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка','tdClass=small-field,silent,removeAndRefreshForm=quantityInPack,mandatory');
     	$this->FLD('quantityInPack', 'double(smartRound)', 'input=none,notNull,value=1');
@@ -220,12 +220,15 @@ class cat_BomDetails extends doc_Detail
     		
     		$pInfo = cat_Products::getProductInfo($rec->resourceId);
     		$form->setDefault('measureId', $pInfo->productRec->measureId);
-    		$shortName = cat_UoM::getShortName($rec->measureId);
-    		$form->setField('baseQuantity', "unit={$shortName}");
-    		$form->setField('propQuantity', "unit={$shortName}");
-
+    		
     		$packs = cls::get('cat_Products')->getPacks($rec->resourceId);
     		$form->setOptions('packagingId', $packs);
+    		$form->setDefault('packagingId', key($packs));
+    		
+    		$packname = cat_UoM::getTitleByid($rec->packagingId);
+    		$form->setField('baseQuantity', "unit={$packname}");
+    		$form->setField('propQuantity', "unit={$packname}");
+    		
     	} else {
     		$form->setReadOnly('packagingId');
     	}

@@ -92,6 +92,8 @@ class core_Master extends core_Manager
             
         }
         
+        $data->details = arr::make($this->details);
+        
         expect($data->rec);
         
         // Проверяваме дали потребителя може да вижда списък с тези записи
@@ -120,6 +122,10 @@ class core_Master extends core_Manager
      */
     function prepareSingle_($data)
     {
+    	if(empty($data->details) && isset($this->details)){
+    		$data->details = arr::make($this->details);
+    	}
+    	
         // Подготвяме полетата за показване
         $this->prepareSingleFields($data);
         
@@ -140,12 +146,12 @@ class core_Master extends core_Manager
         $this->prepareSingleToolbar($data);
         
         // Подготвяме детайлите
-        if(count($this->details)) {
+        if(count($data->details)) {
 
             // Добавяме текущ таб, ако го има в заявката
             $data->Tab = Request::get('Tab');
 
-            foreach($this->details as $var => $class) {
+            foreach($data->details as $var => $class) {
                 $this->loadSingle($var, $class);
                 
                 if($var == $class) {
@@ -297,8 +303,8 @@ class core_Master extends core_Manager
         $tpl->placeObject($data->row);
         
         // Поставяме детайлите
-        if(count($this->details) && $data->noDetails !== TRUE) {
-            foreach($this->details as $var => $class) {
+        if(count($data->details) && $data->noDetails !== TRUE) {
+            foreach($data->details as $var => $class) {
                 $order = $data->{$var}->Order ? $data->{$var}->Order :  10 * (count($detailInline) + count($detailTabbed) + 1);
                 
                 // Стойност -1 в подредбата има смисъл на отказ, детайла да се покаже в този матер
@@ -317,7 +323,7 @@ class core_Master extends core_Manager
 
                 foreach($detailInline as $var => $order) {
                     
-                    $class = $this->details[$var];
+                    $class = $data->details[$var];
 
                     if($var == $class) {
                         $method = 'renderDetail';
@@ -371,7 +377,7 @@ class core_Master extends core_Manager
 				
 				// Ако има избран детайл от горния таб рендираме го
 				if($selectedTop){
-					$method = ($selected ==  $this->details[$selectedTop]) ? 'renderDetail' : 'render' . $selectedTop;
+					$method = ($selected ==  $data->details[$selectedTop]) ? 'renderDetail' : 'render' . $selectedTop;
 					
 					$selectedHtml = $this->{$selectedTop}->$method($data->{$selectedTop});
 					$tabHtml = $tabTop->renderHtml($selectedHtml, $selectedTop);
@@ -390,7 +396,7 @@ class core_Master extends core_Manager
 				
 				// Ако има избран детайл от долния таб, добавяме го
 				if($selectedBottom){
-					$method = ($selected ==  $this->details[$selectedBottom]) ? 'renderDetail' : 'render' . $selectedBottom;
+					$method = ($selected ==  $data->details[$selectedBottom]) ? 'renderDetail' : 'render' . $selectedBottom;
 					$selectedHtml = $this->{$selectedBottom}->$method($data->{$selectedBottom});
 					
 					// Ако е избран долен таб, и детайла му е само един, и няма горни табове, го рендираме без таб

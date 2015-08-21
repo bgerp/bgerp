@@ -69,6 +69,13 @@ class acc_BalanceDetails extends core_Detail
     
     
     /**
+     * По колко реда от резултата да показва на страница в детайла на документа
+     * Стойност '0' означава, че детайла няма да се странира
+     */
+    var $listItemsPerPage = 0;
+    
+    
+    /**
      * Масив с обновените записи от журнала
      * 
      * @var array
@@ -99,7 +106,7 @@ class acc_BalanceDetails extends core_Detail
      */
     public $title = 'Детайли на баланса';
     
-    
+    //var $listItemsPerPage = 20;
     /**
      * Описание на модела
      */
@@ -144,15 +151,21 @@ class acc_BalanceDetails extends core_Detail
     {
         if ($mvc->isDetailed()) {
             if($data->groupingForm->isSubmitted()){
-            	$allRecs = $data->qCopy->fetchAll();
-            	$mvc->doGrouping($data, (array)$data->groupingForm->rec, $data->groupingForm->cmd, $allRecs);
+            	$by = (array)$data->groupingForm->rec;
+            	
+            	self::modifyListFields($data->listFields, $data->groupingForm->cmd, $by['grouping1'], $by['grouping2'], $by['grouping3'], $by['feat1'], $by['feat2'], $by['feat3']);
+            	
+            	if($data->groupingForm->cmd == 'default'){
+            		self::filterRecs($data->recs, $by['grouping1'], $by['grouping2'], $by['grouping3'], $by['feat1'], $by['feat2'], $by['feat3']);
+            	} else {
+            		self::groupRecs($data->recs, $by['grouping1'], $by['grouping2'], $by['grouping3'], $by['feat1'], $by['feat2'], $by['feat3']);
+            	}
             }
             
             if(!count($data->recs)) return;
             
             $data->allRecs = $data->recs;
-            
-            $mvc->canonizeSortRecs($data, $mvc->cache);
+            static::sortRecsByNum($data->recs, $data->listFields);
             
             // Преизчисляваме пейджъра с новия брой на записите
             $conf = core_Packs::getConfig('acc');
@@ -180,27 +193,50 @@ class acc_BalanceDetails extends core_Detail
     /**
      * Канонизира и подрежда записите
      */
-    public function canonizeSortRecs(&$data, $cache)
+    public static function sortRecsByNum(&$recs, $listFields)
     {
+    	// Кои пера участват в записите?
+    	$usedItems = array();
+    	foreach ($recs as $rec1){
+    		foreach (range(1, 3) as $i){
+    			if(isset($rec1->{"ent{$i}Id"})){
+    				$usedItems[$rec1->{"ent{$i}Id"}] = $rec1->{"ent{$i}Id"};
+    			}
+    		}
+    	}
+    	
+    	// Извличаме им еднократно кодовете
+    	if(count($usedItems)){
+    		$iQuery = acc_Items::getQuery();
+    		$iQuery->show("num");
+    		$iQuery->in('id', $usedItems);
+    	
+    		while($iRec = $iQuery->fetch()){
+    			$usedItems[$iRec->id] = $iRec->num;
+    		}
+    	}
+    	
+    	
     	// Обхождаме записите, създаваме уникално поле за сортиране
-    	foreach ($data->recs as $id => &$rec){
+    	foreach ($recs as $id => &$rec){
     		$sortField = '';
     		foreach (range(1, 3) as $i){
     	
-    			if(empty($data->listFields["ent{$i}Id"])) continue;
+    			if(empty($listFields["ent{$i}Id"])) continue;
     	
     			if(isset($rec->{"grouping{$i}"})){
     				$sortField .= $rec->{"grouping{$i}"};
     			} else {
-    				$sortField .= $cache[$rec->{"ent{$i}Id"}];
+    				$sortField .= $usedItems[$rec->{"ent{$i}Id"}];
     			}
     		}
     		 
+    		// канонизираме полето за сортиране
     		$rec->sortField = strtolower(str::utf2ascii($sortField));
     	}
     	
     	// Сортираме записите според полето за сравнение
-    	usort($data->recs, array($this, "sortRecs"));
+    	usort($recs, array(get_called_class(), "sortRecs"));
     }
     
     
@@ -209,7 +245,7 @@ class acc_BalanceDetails extends core_Detail
      * Подрежда кодовете или свойствата във възходящ ред.
      * Ако първата аналитичност са еднакви, сравнява по кодовете на втората ако и те по тези на третата
      */
-    private function sortRecs($a, $b)
+    private static function sortRecs($a, $b)
     {
     	if($a->sortField == $b->sortField) return 0;
     	 
@@ -309,143 +345,193 @@ class acc_BalanceDetails extends core_Detail
     
     
     /**
-     * Групира или филтрира записите на баланс по зададен признак и/или пера.
+     * Филтрира записите от детайл на баланс или масив с рекове със същата
+     * структура като детайла на баланса по избраните пера/свойства
      *
-     * @param stdClass $data
+     * Премахва всички записи които нямат подаденото перо на избраната позиция
+     * или нямат в свойствата си, избраното свойство
+     * 
+     * 		o ent1Id         -  перо на първа позиция
+     * 		o ent2Id         -  перо на втора позиция
+     * 		o ent3Id         -  перо на трета позиция
+     * 		o baseQuantity   -	начално к-во
+     * 		o baseAmount     -  начална сума
+     * 		o debitQuantity  -  дебит к-во
+     * 		o debitAmount    -  дебит сума
+     * 		o creditQuantity -  кредит к-во
+     * 		o creditAmount   -  кредит сума
+     * 		o blQuantity     -  крайно к-во
+     * 		o blAmount       -  крайна сума
+     * 
+     * @param array $recs   - записите за групиране
+     * @param int $item1    - ид на перо на първа позиция
+     * @param int $item2    - ид на перо на втора позиция
+     * @param int $item3    - ид на перо на трета позиция
+     * @param string $feat1 - име на свойство на перото на първа позиция
+     * @param string $feat2 - име на свойство на перото на втора позиция
+     * @param string $feat3 - име на свойство на перото на трета позиция
+     * @return void
      */
-    public function doGrouping(&$data, $by, $cmd, $allRecs)
+    public static function filterRecs(&$recs, $item1 = NULL, $item2 = NULL, $item3 = NULL, $feat1 = NULL, $feat2 = NULL, $feat3 = NULL)
     {
-        $show = $groupedBy = array();
-        $Varchar = cls::get('type_Varchar');
-        
-        // Намираме избраните свойства/пера
-        foreach (range(1, 3) as $i){
-            if($by["grouping{$i}"]){
-                $show[$i] = $by["grouping{$i}"];
-            }
-            
-            if($by["feat{$i}"]){
-                $groupedBy[$i] = $by["feat{$i}"];
-                if($by["feat{$i}"] != '*'){
-                	$data->listFields["ent{$i}Id"] = $Varchar->toVerbal($groupedBy[$i]);
-                }
-            }
-        }
-        
-        // Ако няма филтриране или групиране не правим нищо
-        if(!count($show) && !count($groupedBy)) return;
-        
-        // Ако няма записи не правим нищо
-        if(!count($allRecs)) return;
-        
-        $data->recs = $allRecs;
-        
-        // Извличаме всички записани свойства за показваните пера
-        $featuresArr = acc_Features::getFeaturesByItems();
-        
-        // Отделят се само записите с посочените пера
-        foreach ($data->recs as $id => $rec){
+    	if(!count($recs)) return;
+    	
+    	// Извличаме всички записани свойства за показваните пера
+    	$featuresArr = acc_Features::getFeaturesByItems();
+    	
+    	foreach ($recs as $id => $rec){
             foreach (range(1, 3) as $i){
-                if(isset($show[$i]) && $rec->{"ent{$i}Id"} != $show[$i]){
-                    unset($data->recs[$id]);
+            	$param = ${"item{$i}"};
+            	$feat = ${"feat{$i}"};
+            	
+                if(isset($param) && $rec->{"ent{$i}Id"} != $param){
+                    unset($recs[$id]);
                     break;
                 }
-            }
-        }
-        
-        // Ако филтрираме
-        if($cmd == 'default'){
-            foreach ($data->recs as $id => $rec){
-                foreach (range(1, 3) as $i){
-                    
-                    // Ако групираме по свойство (и то не е '*'), и перото на тази позиция няма това свойство, премахваме реда
-                    if(isset($groupedBy[$i])){
-                    	if($groupedBy[$i] != '*' && empty($featuresArr[$rec->{"ent{$i}Id"}][$groupedBy[$i]])){
-                            unset($data->recs[$id]);
-                            break;
-                        }
-                    }
-                }
-            }
-        } else {
-        	
-            // Ако групираме
-            foreach ($data->recs as $id => $rec){
-                foreach (range(1, 3) as $i){
-                	
-                    // Намираме с-та на избраното свойство ако има такова
-                    if(isset($groupedBy[$i])){
-                    	if($groupedBy[$i] == '*'){
-                    		
-                    		// Ако групираме със специалния символ '*', с-та на свойството е името на перото
-                    		$rec->{"grouping{$i}"} = acc_Items::getVerbal($rec->{"ent{$i}Id"}, 'title');
-                    	}elseif(isset($featuresArr[$rec->{"ent{$i}Id"}][$groupedBy[$i]])){
-                    		
-                    		// Ако има свойство за това перо, взимаме стойността му
-                            $rec->{"grouping{$i}"} = $featuresArr[$rec->{"ent{$i}Id"}][$groupedBy[$i]];
-                        } else {
-                        	
-                        	// Ако няма отива към "Други"
-                            $rec->{"grouping{$i}"} = 'others';
-                        }
-                    }
-                }
-            }
-            
-            //  Колонките, за които няма избрано нито перо, нито свойство изчезват
-            foreach (range(1, 3) as $i){
-                if(empty($show[$i]) && empty($groupedBy[$i])){
-                    unset($data->listFields["ent{$i}Id"]);
-                    foreach ($data->recs as $id => &$rec){
-                    	unset($rec->{"ent{$i}Id"});
-                    }
-                }
-            }
-            
-            unset($data->listFields['history'], $data->listFields['baseQuantity'], $data->listFields['debitQuantity'], $data->listFields['creditQuantity'], $data->listFields['blQuantity']);
-        }
-        
-        // Сумиране на еднаквите редове
-        $groupedRecs = $groupedIdx = array();
-        
-        foreach ($data->recs as $rec1) {
-            if($cmd == 'default'){
                 
-                // Ако филтрираме уникалноста са перата и избраните св-ва
-                $r = &$groupedIdx[$rec1->ent1Id][$rec1->ent2Id][$rec1->ent3Id][$rec1->grouping1][$rec1->grouping2][$rec1->grouping3];
-            } else {
-            	
-                // Ако групираме това са избраните свойства
-                $r = &$groupedIdx[$rec1->grouping1][$rec1->grouping2][$rec1->grouping3];
-            }
-            
-            if (!isset($r)) {
-                $r = new stdClass();
-                $groupedRecs[] = &$r;
-            }
-            
-            // Групиране на данните
-            foreach (array('ent1Id', 'ent2Id', 'ent3Id', 'accountNum', 'balanceId') as $fld){
-                $r->$fld = $rec1->$fld;
-            }
-           
-            // Събираме числовите данни
-            foreach (array('baseQuantity', 'baseAmount', 'debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount') as $fld){
-                if (!is_null($rec1->$fld)) {
-                    $r->$fld += $rec1->$fld;
-                }
-            }
-            
-            foreach (array('grouping1', 'grouping2', 'grouping3') as $gr){
-                if(isset($rec1->$gr)){
-                    $r->$gr = $rec1->$gr;
+                if(isset($recs[$id])){
+                	if($feat && $feat != '*' && empty($featuresArr[$rec->{"ent{$i}Id"}][$feat])){
+                		unset($recs[$id]);
+                		break;
+                	}
                 }
             }
         }
-        
-        // Заменяме записите с новите
-        $data->recs = $groupedRecs;
-        
+    }
+    
+    
+    /**
+     * Групира записите от детайл на баланс или масив с рекове със същата
+     * структура като детайла на баланса по избраните пера/свойства
+     * 
+     * Групира всички записи по избраните пера и свойства.
+     * Редовете в перата в които няма избраното свойство се групират като `others`
+     * или нямат в свойствата си, избраното свойство
+     * 
+     * 		o ent1Id         -  перо на първа позиция
+     * 		o ent2Id         -  перо на втора позиция
+     * 		o ent3Id         -  перо на трета позиция
+     * 		o baseQuantity   -	начално к-во
+     * 		o baseAmount     -  начална сума
+     * 		o debitQuantity  -  дебит к-во
+     * 		o debitAmount    -  дебит сума
+     * 		o creditQuantity -  кредит к-во
+     * 		o creditAmount   -  кредит сума
+     * 		o blQuantity     -  крайно к-во
+     * 		o blAmount       -  крайна сума
+     * 
+     * @param array $recs   - записите за групиране
+     * @param int $item1    - ид на перо на първа позиция
+     * @param int $item2    - ид на перо на втора позиция
+     * @param int $item3    - ид на перо на трета позиция
+     * @param string $feat1 - име на свойство на перото на първа позиция
+     * @param string $feat2 - име на свойство на перото на втора позиция
+     * @param string $feat3 - име на свойство на перото на трета позиция
+     * @return void
+     */
+    public static function groupRecs(&$recs, $item1 = NULL, $item2 = NULL, $item3 = NULL, $feat1 = NULL, $feat2 = NULL, $feat3 = NULL)
+    {
+    	if(!count($recs)) return;
+    	 
+    	// Извличаме всички записани свойства за показваните пера
+    	$featuresArr = acc_Features::getFeaturesByItems();
+    	
+    	foreach ($recs as $id => $rec){
+    		foreach (range(1, 3) as $i){
+    			$param = ${"item{$i}"};
+    			$feat = ${"feat{$i}"};
+    			
+    			if(isset($param)){
+    				if($rec->{"ent{$i}Id"} != $param){
+    					$rec->{"grouping{$i}"} = 'others';
+    				} else {
+    					$rec->{"grouping{$i}"} = acc_Items::getVerbal($rec->{"ent{$i}Id"}, 'titleLink');
+    				}
+    			}
+    			
+    			if(isset($recs[$id])){
+    				$feat = ${"feat{$i}"};
+    				
+    				// Намираме с-та на избраното свойство ако има такова
+    				if($feat){
+    					if($feat == '*'){
+    						
+    						// Ако групираме със специалния символ '*', с-та на свойството е името на перото
+    						$rec->{"grouping{$i}"} = acc_Items::getVerbal($rec->{"ent{$i}Id"}, 'titleLink');
+    					} elseif(isset($featuresArr[$rec->{"ent{$i}Id"}][$feat])){
+    						 
+    						// Ако има свойство за това перо, взимаме стойността му
+    						$rec->{"grouping{$i}"} = $featuresArr[$rec->{"ent{$i}Id"}][$feat];
+    					} else {
+    				
+    						// Ако няма отива към "Други"
+    						$rec->{"grouping{$i}"} = 'others';
+    					}
+    				}
+    			}
+    		}
+    	}
+    	
+    	$groupedRecs = $groupedIdx = array();
+    	foreach ($recs as $rec1) {
+    		$r = &$groupedIdx[strip_tags($rec1->grouping1)][strip_tags($rec1->grouping2)][strip_tags($rec1->grouping3)];
+    		
+    		if (!isset($r)) {
+    			$r = new stdClass();
+    			$groupedRecs[] = &$r;
+    		}
+    		
+    		// Групиране на данните
+    		foreach (array('ent1Id', 'ent2Id', 'ent3Id', 'accountNum', 'balanceId') as $fld){
+    			$r->$fld = $rec1->$fld;
+    		}
+    		 
+    		// Събираме числовите данни
+    		foreach (array('baseQuantity', 'baseAmount', 'debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount') as $fld){
+    			if (!is_null($rec1->$fld)) {
+    				$r->$fld += $rec1->$fld;
+    			}
+    		}
+    		
+    		foreach (array('grouping1', 'grouping2', 'grouping3') as $gr){
+    			if(isset($rec1->$gr)){
+    				$r->$gr = $rec1->$gr;
+    			}
+    		}
+    	}
+    	
+    	$recs = $groupedRecs;
+    }
+    
+    
+    /**
+     * Променя $listFields на балансов детайл според въведените данни от филтрирането/групирането
+     * 
+     * @return void
+     */
+    public static function modifyListFields(&$listFields, $action, $item1 = NULL, $item2 = NULL, $item3 = NULL, $feat1 = NULL, $feat2 = NULL, $feat3 = NULL)
+    {
+    	$Varchar = cls::get('type_Varchar');
+    	foreach (range(1, 3) as $i){
+    		$feat = ${"feat{$i}"};
+    		$item = ${"item{$i}"};
+    		
+    		if($feat){
+    			if($feat != '*'){
+    				$listFields["ent{$i}Id"] = $Varchar->toVerbal($feat);
+    			}
+    		}
+    		
+    		if($action == 'group'){
+    			if(empty($item) && empty($feat)){
+    				unset($listFields["ent{$i}Id"]);
+    			}
+    		}
+    	}
+    	
+    	if($action == 'group'){
+    		unset($listFields['history'], $listFields['baseQuantity'], $listFields['debitQuantity'], $listFields['creditQuantity'], $listFields['blQuantity']);
+    	}
     }
     
     
@@ -487,16 +573,6 @@ class acc_BalanceDetails extends core_Detail
         $data->qCopy = clone $data->query;
         
         $data->groupingForm = $this->getGroupingForm($data->masterId, $data->query);
-        
-        if(count($this->cache)){
-            $iQuery = acc_Items::getQuery();
-            $iQuery->show("num");
-            $iQuery->in('id', $this->cache);
-            
-            while($iRec = $iQuery->fetch()){
-                $this->cache[$iRec->id] = $iRec->num;
-            }
-        }
        
         // Извличаме записите за номенклатурите, по които е разбита сметката
         $listRecs = array();
@@ -633,7 +709,6 @@ class acc_BalanceDetails extends core_Detail
         while ($rec = $cQuery->fetch()) {
             foreach (range(1, 3) as $i){
                 if(!empty($rec->{"ent{$i}Id"})){
-                    $this->cache[$rec->{"ent{$i}Id"}] = $rec->{"ent{$i}Id"};
                     $items[$i][$rec->{"ent{$i}Id"}] = $rec->{"ent{$i}Id"};
                 }
             }
