@@ -107,7 +107,7 @@ class acc_Setup extends core_ProtoSetup
     	'acc_AllocatedExpenses',
         'migrate::removeYearInterfAndItem',
         'migrate::updateItemsNum1',
-    	'migrate::updateClosedItems1',
+    	'migrate::updateClosedItems2',
     );
     
     
@@ -285,7 +285,7 @@ class acc_Setup extends core_ProtoSetup
     /**
      * Ъпдейт на затворените пера
      */
-    public function updateClosedItems1()
+    public function updateClosedItems2()
     {
     	core_App::setTimeLimit(400);
     	
@@ -310,6 +310,8 @@ class acc_Setup extends core_ProtoSetup
     					$valior = acc_Journal::fetchByDoc($CloseDoc->getClassId(), $clRec->id)->valior;
     					if(!$valior){
     						$closedOn = $clRec->createdOn;
+    					} else {
+    						$closedOn = $valior;
     					}
     				}
     			}
