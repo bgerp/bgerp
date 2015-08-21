@@ -5,6 +5,8 @@
 /**
  * Драйвър за експортиране на 'sales_Invoices' изходящи фактури към Bulmar Office
  * 
+ * Класа трябва да има $exportableCsvFields за да може да се експортират данни от него в CSV формат
+ * 
  * 
  * @category  bgerp
  * @package   bgerp
@@ -33,7 +35,9 @@ class bgerp_plg_CsvExport extends core_Manager {
      */
     function isApplicable($mvc)
     {
-    	return TRUE;
+    	$exportableFields = arr::make($mvc->exportableCsvFields);
+    	
+    	return count($exportableFields) ? TRUE : FALSE;
     }
     
     
@@ -44,13 +48,21 @@ class bgerp_plg_CsvExport extends core_Manager {
      */
     function prepareExportForm(core_Form &$form)
     {
-    	$sets = array();
+    	$sets = $selected = array();
     	$fields = $this->mvc->selectFields();
+    	$exportableFields = arr::make($this->mvc->exportableCsvFields, TRUE);
+    	
     	foreach ($fields as $name => $fld){
-    		$sets[] = "{$name}={$fld->caption}";
+    		if(in_array($name, $exportableFields)){
+    			$sets[] = "{$name}={$fld->caption}";
+    			$selected[$name] = $name;
+    		}
     	}
+    	$selectedFields = cls::get('type_Set')->fromVerbal($selected);
+    	
     	$sets = implode(',', $sets);
     	$form->FNC('fields', "set($sets)", 'input,caption=Полета,mandatory');
+    	$form->setDefault('fields', $selectedFields);
     	
     	$form->FNC('delimiter', 'varchar(1,size=3)', 'input,caption=Разделител,mandatory');
     	$form->FNC('enclosure', 'varchar(1,size=3)', 'input,caption=Ограждане,mandatory');

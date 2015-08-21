@@ -148,9 +148,6 @@ class bgerp_plg_Export extends core_Plugin
                
                 // Записваме файла в системата
                 $fh = fileman::absorbStr($content, 'exportInvoices', $name);
-                	 
-                $userId = core_Users::getCurrent();
-                core_Cache::remove($mvc->className, "exportRecs{$userId}");
                 	
                 // Редирект към лист изгледа,  ако не е зададено друго урл за редирект
                 return redirect(array('fileman_Files', 'single', $fh), FALSE, 'Файлът е експортиран успешно');

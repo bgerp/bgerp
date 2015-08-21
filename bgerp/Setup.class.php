@@ -273,6 +273,8 @@ class bgerp_Setup extends core_ProtoSetup {
         $html .= core_Roles::rebuildRoles();
         $html .= core_Users::rebuildRoles();
         
+        $html .= core_Classes::add('bgerp_plg_CsvExport');
+        
         return $html;
     }
     
