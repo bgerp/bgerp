@@ -287,7 +287,7 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
     				$dealItemRec = acc_Items::fetch($rec->{$dealPosition[$rec->accountId]});
     				
     				// Пропускаме активните продажби и тези които са затворени в друг период
-    				if($dealItemRec->state == 'active' || ($dealItemRec->closedOn > $this->periodRec->end)) continue;
+    				if($dealItemRec->state == 'active' || (strtotime($dealItemRec->closedOn) > strtotime($this->periodRec->end))) continue;
     				
     				// Пропускаме нулевите салда
     				if(round($rec->blAmount, 2) == 0) continue;
@@ -336,7 +336,7 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
     		$arr2 = array($accIds[$bRec1->accountId], $bRec1->ent1Id, $bRec1->ent2Id);
     		
     		$dealItemRec = acc_Items::fetch($bRec1->{$dealPosition[$bRec1->accountId]});
-    		if($dealItemRec->state == 'active' || ($dealItemRec->closedOn > $this->periodRec->end)) continue;
+    		if($dealItemRec->state == 'active' || (strtotime($dealItemRec->closedOn) > strtotime($this->periodRec->end))) continue;
     		
     		if($accIds[$bRec1->accountId] == '7911'){
     			$debitArr = $arr2;
