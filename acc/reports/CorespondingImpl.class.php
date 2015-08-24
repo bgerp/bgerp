@@ -403,7 +403,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
      * @param stdClass $rec - групиран запис
      * @return stdClass $row - вербален запис
      */
-    protected function getVerbalRec($rec, $data)
+    protected static function getVerbalRec($rec, $data)
     {
     	$row = new stdClass();
     	$Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
