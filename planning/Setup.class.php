@@ -60,6 +60,9 @@ class planning_Setup extends core_ProtoSetup
     		'planning_DirectProductNoteDetails',
     		'planning_ObjectResources',
     		'planning_Tasks',
+    		'planning_HumanResources',
+    		'planning_AssetResources',
+    		'planning_drivers_ProductionTaskDetails',
     		'migrate::updateTasks',
         );
 

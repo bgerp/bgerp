@@ -107,7 +107,7 @@ class acc_Setup extends core_ProtoSetup
     	'acc_AllocatedExpenses',
         'migrate::removeYearInterfAndItem',
         'migrate::updateItemsNum1',
-    	'migrate::updateClosedItems2',
+    	'migrate::updateClosedItems3',
     );
     
     
@@ -285,7 +285,7 @@ class acc_Setup extends core_ProtoSetup
     /**
      * Ъпдейт на затворените пера
      */
-    public function updateClosedItems2()
+    public function updateClosedItems3()
     {
     	core_App::setTimeLimit(400);
     	
@@ -307,7 +307,7 @@ class acc_Setup extends core_ProtoSetup
     			if($CloseDoc){
     				$CloseDoc = cls::get($CloseDoc);
     				if($clRec = $CloseDoc::fetch("#docClassId = {$iRec->classId} AND #docId = {$iRec->objectId} AND #state = 'active'")){
-    					$valior = acc_Journal::fetchByDoc($CloseDoc->getClassId(), $clRec->id)->valior;
+    					$valior = $CloseDoc->getValiorDate($clRec);
     					if(!$valior){
     						$closedOn = $clRec->createdOn;
     					} else {
@@ -322,6 +322,7 @@ class acc_Setup extends core_ProtoSetup
     		}
     		
     		$iRec->closedOn = $closedOn;
+    		$iRec->closedOn = dt::verbal2mysql($iRec->closedOn, FALSE);
     		cls::get('acc_Items')->save_($iRec, 'closedOn');
     	}
     }

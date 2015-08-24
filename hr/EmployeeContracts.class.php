@@ -210,6 +210,14 @@ class hr_EmployeeContracts extends core_Master
             // Премахваме бутона за коментар
             $data->toolbar->removeBtn('Коментар');
         }
+        
+        if(planning_HumanResources::haveRightFor('add', (object)array('contractId' => $data->rec->id))){
+        	$data->toolbar->addBtn('Ресурс', array('planning_HumanResources', 'add', 'contractId' => $data->rec->id, 'ret_url' => TRUE), 'ef_icon = img/16/star_2.png,title=Добавяне като ресурс');
+        }
+        
+        if($hRecId = planning_HumanResources::fetchField("#contractId = {$data->rec->id}", 'id')){
+        	$data->toolbar->addBtn('Ресурс', array('planning_HumanResources', 'edit', 'id' => $hRecId, 'ret_url' => TRUE), 'ef_icon = img/16/edit.png,title=Редактиране на ресурс');
+        }
     }
     
     

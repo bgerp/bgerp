@@ -153,7 +153,7 @@ class acc_Items extends core_Manager
         // Кога за последно е използвано
         $this->FLD('lastUseOn', 'datetime(format=smartTime)', 'caption=Последно,input=none');
         
-        $this->FLD('closedOn', 'datetime(format=smartTime)', 'caption=Затваряне,input=none');
+        $this->FLD('closedOn', 'date', 'caption=Затваряне,input=none');
         
         // Титла - хипервръзка
         $this->FNC('titleLink', 'html', 'column=none');
@@ -220,8 +220,8 @@ class acc_Items extends core_Manager
         
         if($rec->state == 'closed'){
         	$oRec = cls::get($rec->classId)->fetch($rec->objectId);
-        	$closedOn = (isset($oRec->closedOn)) ? $oRec->closedOn : dt::now();
-        	$rec->closedOn = $closedOn;
+        	$closedOn = (isset($oRec->closedOn)) ? $oRec->closedOn : dt::today();
+        	$rec->closedOn = dt::verbal2mysql($closedOn, FALSE);
         } elseif($rec->state == 'active'){
         	$rec->closedOn = NULL;
         }
