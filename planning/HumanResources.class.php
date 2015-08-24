@@ -13,7 +13,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class planning_HumanResources extends core_Manager
+class planning_HumanResources extends core_Master
 {
     
 	

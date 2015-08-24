@@ -13,7 +13,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class planning_AssetResources extends core_Manager
+class planning_AssetResources extends core_Master
 {
     
 	
