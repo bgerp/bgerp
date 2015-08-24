@@ -128,7 +128,7 @@ class tasks_TaskDetails extends doc_Detail
     	$this->FLD('operation', 'varchar', 'silent,caption=Операция,input=none,removeAndRefreshForm=code');
     	$this->FLD('quantity', 'double', 'caption=Количество,mandatory');
     	$this->FLD('weight', 'cat_type_Weight', 'caption=Тегло');
-    	$this->FLD('employees', 'keylist(mvc=planning_HumanResources,select=code)', 'caption=Работници,tdClass=rightCol');
+    	$this->FLD('employees', 'keylist(mvc=planning_HumanResources,select=code,makeLinks)', 'caption=Работници,tdClass=rightCol');
     	$this->FLD('fixedAsset', 'key(mvc=planning_AssetResources,select=code)', 'caption=Машина,input=none,tdClass=rightCol');
     	$this->FLD('message',    'richtext(rows=2)', 'caption=Съобщение');
     	
@@ -213,7 +213,12 @@ class tasks_TaskDetails extends doc_Detail
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-    	if($rec->code){
+    	if(isset($rec->fixedAsset)){
+    		$singleUrl = planning_AssetResources::getSingleUrlArray($rec->fixedAsset);
+    		$row->fixedAsset = ht::createLink($row->fixedAsset, $singleUrl);
+    	}
+    	
+    	if(isset($rec->code)){
     		$row->code = "<b>{$row->code}</b>";
     	}
     	

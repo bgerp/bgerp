@@ -45,7 +45,7 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
     {
 		$fieldset->FLD('totalQuantity', 'double(smartRound)', 'mandatory,caption=Общо к-во');
 		$fieldset->FLD('totalWeight', 'cat_type_Weight', 'caption=Общо тегло,input=none');
-		$fieldset->FLD('fixedAssets', 'keylist(mvc=planning_AssetResources,select=code)', 'caption=Машини');
+		$fieldset->FLD('fixedAssets', 'keylist(mvc=planning_AssetResources,select=code,makeLinks)', 'caption=Машини');
 	}
 	
 	
