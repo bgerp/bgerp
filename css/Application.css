@@ -898,6 +898,14 @@ div.acc-detail {
     .portal table.listTable .portal-date {
       width: 1%; }
 
+.portal.planning table.listTable th {
+  border: 1px solid #cccccc;
+  display: table-cell; }
+  .portal.planning table.listTable th:first-child {
+    border-left: none; }
+  .portal.planning table.listTable th:last-child {
+    border-right: none; }
+
 .narrow .portal .listRows {
   font-size: 0.9em; }
 

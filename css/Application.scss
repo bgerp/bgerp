@@ -1003,6 +1003,16 @@ div.acc-detail {
 		}
     }
 }
+.portal.planning table.listTable th {
+    border: 1px solid #ccc;
+    &:first-child {
+        border-left: none;
+    }
+    &:last-child {
+        border-right: none;
+    }
+    display: table-cell;
+}
 
 .narrow .portal .listRows {
 	font-size:0.9em;	

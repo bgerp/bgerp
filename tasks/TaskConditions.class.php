@@ -197,8 +197,8 @@ class tasks_TaskConditions extends doc_Detail
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-    	$row->modified = $mvc->getFieldType('modifiedOn')->toVerbal($rec->modifiedOn);
-    	$row->modified .= " " . tr('от') . " " . $row->modifiedBy;
+    	$row->modified = "<div class='centered'>" . $mvc->getFieldType('modifiedOn')->toVerbal($rec->modifiedOn);
+    	$row->modified .= " " . tr('от') . " " . $row->modifiedBy . "</div>";
     	
     	if(isset($rec->dependsOn)){
     		$row->dependsOn = tasks_Tasks::getLink($rec->dependsOn, 0);

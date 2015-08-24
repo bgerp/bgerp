@@ -218,8 +218,8 @@ class tasks_TaskDetails extends doc_Detail
     		$row->fixedAsset = ht::createLink($row->fixedAsset, $singleUrl);
     	}
     	
-    	$row->modified = $mvc->getFieldType('modifiedOn')->toVerbal($rec->modifiedOn);
-    	$row->modified .= " " . tr('от') . " " . $row->modifiedBy;
+    	$row->modified = "<div class='centered'>" . $mvc->getFieldType('modifiedOn')->toVerbal($rec->modifiedOn);
+    	$row->modified .= " " . tr('от') . " " . $row->modifiedBy . "</div>";
     	
     	if(isset($rec->code)){
     		$row->code = "<b>{$row->code}</b>";
