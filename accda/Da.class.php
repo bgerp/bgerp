@@ -369,4 +369,22 @@ class accda_Da extends core_Master
     {
     	$row->handler = $mvc->getLink($rec->id, 0);
     }
+    
+    
+    /**
+     * След подготовка на тулбара на единичен изглед.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareSingleToolbar($mvc, $data)
+    {
+    	if(planning_AssetResources::haveRightFor('add', (object)array('protocolId' => $data->rec->id))){
+    		$data->toolbar->addBtn('Ресурс', array('planning_AssetResources', 'add', 'protocolId' => $data->rec->id, 'ret_url' => TRUE), 'ef_icon = img/16/star_2.png,title=Добавяне като ресурс');
+    	}
+    
+    	if($hRecId = planning_AssetResources::fetchField("#protocolId = {$data->rec->id}", 'id')){
+    		$data->toolbar->addBtn('Ресурс', array('planning_AssetResources', 'edit', 'id' => $hRecId, 'ret_url' => TRUE), 'ef_icon = img/16/edit-icon.png,title=Редактиране на ресурс');
+    	}
+    }
 }

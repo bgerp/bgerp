@@ -37,6 +37,18 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 	
 	
 	/**
+	 * Какво да е дефолтното име на задача от драйвера
+	 */
+	protected $defaultTitle = 'Задача за производство';
+	
+	
+	/**
+	 * Кои детайли да се заредят динамично към мастъра
+	 */
+	protected $detail = 'planning_drivers_ProductionTaskDetails';
+	
+	
+	/**
      * Добавя полетата на драйвера към Fieldset
      *
      * @param core_Fieldset $fieldset
@@ -45,40 +57,7 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
     {
 		$fieldset->FLD('totalQuantity', 'double(smartRound)', 'mandatory,caption=Общо к-во');
 		$fieldset->FLD('totalWeight', 'cat_type_Weight', 'caption=Общо тегло,input=none');
-		$fieldset->FLD('fixedAssets', 'keylist(mvc=cat_Products,select=name,makeLinks=short)', 'caption=Машини');
-	}
-	
-	
-	/**
-	 * Преди показване на форма за добавяне/промяна
-	 */
-	protected static function on_AfterPrepareEditForm($Driver, &$data)
-	{
-		// Оставяме за избор само артикули ДМА-та
-		$products = cat_Products::getByProperty('fixedAsset');
-		$data->form->setSuggestions('fixedAssets', $products);
-	}
-	
-	
-	/**
-	 * След преобразуване на записа в четим за хора вид.
-	 *
-	 * @param core_BaseClass $Driver
-	 * @param stdClass $row Това ще се покаже
-	 * @param stdClass $rec Това е записа в машинно представяне
-	 */
-	protected static function on_AfterRecToVerbal($Driver, &$row, $rec)
-	{
-		if($rec->fixedAssets){
-			$assetsArr = explode(',', $row->fixedAssets);
-				
-			$row->fixedAssets = "<ul style='padding-left:12px;margin:0px;list-style:none'>";
-			foreach ($assetsArr as $asset){
-				$row->fixedAssets .= "<li style='padding:0px'>{$asset}</li>";
-			}
-			
-			$row->fixedAssets .= "<ul>";
-		}
+		$fieldset->FLD('fixedAssets', 'keylist(mvc=planning_AssetResources,select=code,makeLinks)', 'caption=Машини');
 	}
 	
 	
@@ -100,7 +79,7 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 	public function updateEmbedder(&$rec)
 	{
 		 // Колко е общото к-во досега
-		 $dQuery = tasks_TaskDetails::getQuery();
+		 $dQuery = planning_drivers_ProductionTaskDetails::getQuery();
 		 $dQuery->where("#taskId = {$rec->id}");
 		 $dQuery->where("#state != 'rejected'");
 		 $dQuery->XPR('sumQuantity', 'double', 'SUM(#quantity)');
@@ -148,19 +127,6 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 		$form->setFieldType('operation', 'enum(start=Пускане,production=Произвеждане,waste=Отпадък,scrap=Бракуване,stop=Спиране)');
 		$form->setField('operation', 'input,mandatory');
 		
-		$form->setField('message', 'input=none');
-		
-		if(isset($data->masterRec->fixedAssets)){
-			$keylist = $data->masterRec->fixedAssets;
-			$arr = keylist::toArray($keylist);
-			
-			foreach ($arr as $key => &$value){
-				$value = cat_Products::getTitleById($key, FALSE);
-			}
-			$form->setOptions('fixedAsset', array('' => '') + $arr);
-			$form->setField('fixedAsset', 'input');
-		}
-		
 		// Показваме полето за въвеждане на код само при операция "произвеждане"
 		if($form->rec->operation == 'production'){
 			$form->setField('code', 'input');
@@ -178,8 +144,8 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
     public function renderDetail(&$tpl, $data)
     {
     	// Добавяме бутон за добавяне на прогрес при нужда
-    	if(tasks_TaskDetails::haveRightFor('add', (object)array('taskId' => $data->masterId))){
-    		$ht = ht::createLink('', array('tasks_TaskDetails', 'add', 'taskId' => $data->masterId, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/add.png,title=Добавяне на прогрес към задачата');
+    	if(planning_drivers_ProductionTaskDetails::haveRightFor('add', (object)array('taskId' => $data->masterId))){
+    		$ht = ht::createLink('', array('planning_drivers_ProductionTaskDetails', 'add', 'taskId' => $data->masterId, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/add.png,title=Добавяне на прогрес към задачата');
     		$tpl->append($ht, 'ADD_BTN');
     	} 
     }

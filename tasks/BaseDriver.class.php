@@ -29,10 +29,22 @@ abstract class tasks_BaseDriver extends core_BaseClass
 	public $availableClasses;
 	
 	
+	/**
+	 * Какво да е дефолтното име на задача от драйвера
+	 */
+	protected $defaultTitle;
+	
+	
     /**
      * Кой може да избира драйвъра
      */
     public $canSelectDriver = 'powerUser';
+    
+    
+    /**
+     * Кои детайли да се заредят динамично към мастъра
+     */
+    protected $detail;
     
     
     /**
@@ -53,6 +65,17 @@ abstract class tasks_BaseDriver extends core_BaseClass
     	return core_Users::haveRole($this->canSelectDriver, $userId);
     }
 
+    
+    /**
+     * Връща дефолтното име на задача от драйвера
+     * 
+     * @return string
+     */
+    public function getDefaultTitle()
+    {
+    	return $this->defaultTitle;
+    }
+    
     
     /**
      * Обновяване на данните на мастъра
@@ -154,5 +177,16 @@ abstract class tasks_BaseDriver extends core_BaseClass
      */
     public function renderDetailLayout(&$tpl, $data)
     {
+    }
+    
+    
+    /**
+     * Кой детайл да бъде добавен към мастъра
+     * 
+     * @return array - името на детайла
+     */
+    public function getDetail()
+    {
+    	return arr::make($this->detail, TRUE);
     }
 }

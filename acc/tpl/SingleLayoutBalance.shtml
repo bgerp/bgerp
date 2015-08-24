@@ -7,7 +7,7 @@
     </h3>
     <!--ET_END accountId-->
     <div  style='margin-bottom: 10px'>
-        <span class='quiet'>|Период|* :</span> [#periodId#]. 
+        <span class='quiet'>|Период|*:</span> [#periodId#]. 
         <span class='quiet'>|Изчислена|*:</span> [#lastCalculate#]
     </div>
     [#DETAILS#]  
