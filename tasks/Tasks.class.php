@@ -87,7 +87,7 @@ class tasks_Tasks extends embed_Manager
     /**
      * Детайли
      */
-    public $details = 'tasks_TaskDetails, tasks_TaskConditions';
+    public $details = 'tasks_TaskConditions';
     
     
     /**
@@ -430,7 +430,7 @@ class tasks_Tasks extends embed_Manager
     /**
      * Добавя ключови думи за пълнотекстово търсене
      */
-    public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+    public static function on_AfterGetSearchKeywords1111($mvc, &$res, $rec)
     {
     	if($rec->id){
     		$dQuery = tasks_TaskDetails::getQuery();
@@ -783,5 +783,21 @@ class tasks_Tasks extends embed_Manager
     	}
     	
     	return $options;
+    }
+    
+
+    /**
+     * Подготвя данните (в обекта $data) необходими за единичния изглед
+     */
+    function prepareSingle_($data)
+    {
+    	$rec = $data->rec;
+    	if($Driver = $this->getDriver($rec->id)){
+    		$data->details = array_merge($Driver->getDetail(), $this->details);
+    	}
+    		
+    	parent::prepareSingle_($data);
+    	
+    	return $data;
     }
 }

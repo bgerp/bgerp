@@ -174,4 +174,15 @@ class tasks_DriverIntf extends embed_DriverIntf
 	{
 		$this->class->renderDetailLayout($tpl, $data);
 	}
+	
+	
+	/**
+	 * Кой детайл да бъде добавен към мастъра
+	 * 
+	 * @return array - името на детайла
+	 */
+	public function getDetail()
+	{
+		$this->class->getDetail();
+	}
 }

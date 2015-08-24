@@ -42,6 +42,12 @@ abstract class tasks_BaseDriver extends core_BaseClass
     
     
     /**
+     * Кои детайли да се заредят динамично към мастъра
+     */
+    protected $detail;
+    
+    
+    /**
      * Добавя полетата на драйвера към Fieldset
      *
      * @param core_Fieldset $fieldset
@@ -171,5 +177,16 @@ abstract class tasks_BaseDriver extends core_BaseClass
      */
     public function renderDetailLayout(&$tpl, $data)
     {
+    }
+    
+    
+    /**
+     * Кой детайл да бъде добавен към мастъра
+     * 
+     * @return array - името на детайла
+     */
+    public function getDetail()
+    {
+    	return arr::make($this->detail, TRUE);
     }
 }

@@ -43,6 +43,12 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 	
 	
 	/**
+	 * Кои детайли да се заредят динамично към мастъра
+	 */
+	protected $detail = 'planning_drivers_ProductionTaskDetails';
+	
+	
+	/**
      * Добавя полетата на драйвера към Fieldset
      *
      * @param core_Fieldset $fieldset
@@ -73,7 +79,7 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 	public function updateEmbedder(&$rec)
 	{
 		 // Колко е общото к-во досега
-		 $dQuery = tasks_TaskDetails::getQuery();
+		 $dQuery = planning_drivers_ProductionTaskDetails::getQuery();
 		 $dQuery->where("#taskId = {$rec->id}");
 		 $dQuery->where("#state != 'rejected'");
 		 $dQuery->XPR('sumQuantity', 'double', 'SUM(#quantity)');
@@ -121,17 +127,6 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 		$form->setFieldType('operation', 'enum(start=Пускане,production=Произвеждане,waste=Отпадък,scrap=Бракуване,stop=Спиране)');
 		$form->setField('operation', 'input,mandatory');
 		
-		if(isset($data->masterRec->fixedAssets)){
-			$keylist = $data->masterRec->fixedAssets;
-			$arr = keylist::toArray($keylist);
-			
-			foreach ($arr as $key => &$value){
-				$value = planning_AssetResources::getVerbal($key, 'code');
-			}
-			$form->setOptions('fixedAsset', array('' => '') + $arr);
-			$form->setField('fixedAsset', 'input');
-		}
-		
 		// Показваме полето за въвеждане на код само при операция "произвеждане"
 		if($form->rec->operation == 'production'){
 			$form->setField('code', 'input');
@@ -149,8 +144,8 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
     public function renderDetail(&$tpl, $data)
     {
     	// Добавяме бутон за добавяне на прогрес при нужда
-    	if(tasks_TaskDetails::haveRightFor('add', (object)array('taskId' => $data->masterId))){
-    		$ht = ht::createLink('', array('tasks_TaskDetails', 'add', 'taskId' => $data->masterId, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/add.png,title=Добавяне на прогрес към задачата');
+    	if(planning_drivers_ProductionTaskDetails::haveRightFor('add', (object)array('taskId' => $data->masterId))){
+    		$ht = ht::createLink('', array('planning_drivers_ProductionTaskDetails', 'add', 'taskId' => $data->masterId, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/add.png,title=Добавяне на прогрес към задачата');
     		$tpl->append($ht, 'ADD_BTN');
     	} 
     }
