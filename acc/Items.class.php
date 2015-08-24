@@ -1085,10 +1085,4 @@ class acc_Items extends core_Manager
     	
     	return $itemsArr;
     }
-    
-    function act_Test()
-    {
-    	$S = cls::get('acc_Setup');
-    	$S->updateClosedItems2();
-    }
 }
