@@ -45,40 +45,7 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
     {
 		$fieldset->FLD('totalQuantity', 'double(smartRound)', 'mandatory,caption=Общо к-во');
 		$fieldset->FLD('totalWeight', 'cat_type_Weight', 'caption=Общо тегло,input=none');
-		$fieldset->FLD('fixedAssets', 'keylist(mvc=cat_Products,select=name,makeLinks=short)', 'caption=Машини');
-	}
-	
-	
-	/**
-	 * Преди показване на форма за добавяне/промяна
-	 */
-	protected static function on_AfterPrepareEditForm($Driver, &$data)
-	{
-		// Оставяме за избор само артикули ДМА-та
-		$products = cat_Products::getByProperty('fixedAsset');
-		$data->form->setSuggestions('fixedAssets', $products);
-	}
-	
-	
-	/**
-	 * След преобразуване на записа в четим за хора вид.
-	 *
-	 * @param core_BaseClass $Driver
-	 * @param stdClass $row Това ще се покаже
-	 * @param stdClass $rec Това е записа в машинно представяне
-	 */
-	protected static function on_AfterRecToVerbal($Driver, &$row, $rec)
-	{
-		if($rec->fixedAssets){
-			$assetsArr = explode(',', $row->fixedAssets);
-				
-			$row->fixedAssets = "<ul style='padding-left:12px;margin:0px;list-style:none'>";
-			foreach ($assetsArr as $asset){
-				$row->fixedAssets .= "<li style='padding:0px'>{$asset}</li>";
-			}
-			
-			$row->fixedAssets .= "<ul>";
-		}
+		$fieldset->FLD('fixedAssets', 'keylist(mvc=planning_AssetResources,select=code)', 'caption=Машини');
 	}
 	
 	
@@ -155,7 +122,7 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 			$arr = keylist::toArray($keylist);
 			
 			foreach ($arr as $key => &$value){
-				$value = cat_Products::getTitleById($key, FALSE);
+				$value = planning_AssetResources::getVerbal($key, 'code');
 			}
 			$form->setOptions('fixedAsset', array('' => '') + $arr);
 			$form->setField('fixedAsset', 'input');

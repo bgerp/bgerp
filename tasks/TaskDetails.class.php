@@ -128,8 +128,8 @@ class tasks_TaskDetails extends doc_Detail
     	$this->FLD('operation', 'varchar', 'silent,caption=Операция,input=none,removeAndRefreshForm=code');
     	$this->FLD('quantity', 'double', 'caption=Количество,mandatory');
     	$this->FLD('weight', 'cat_type_Weight', 'caption=Тегло');
-    	$this->FLD('employees', 'keylist(mvc=crm_Persons,select=name,makeLinks=short)', 'caption=Работници,tdClass=rightCol');
-    	$this->FLD('fixedAsset', 'key(mvc=cat_Products,select=name)', 'caption=Машина,input=none,tdClass=rightCol');
+    	$this->FLD('employees', 'keylist(mvc=planning_HumanResources,select=code)', 'caption=Работници,tdClass=rightCol');
+    	$this->FLD('fixedAsset', 'key(mvc=planning_AssetResources,select=code)', 'caption=Машина,input=none,tdClass=rightCol');
     	$this->FLD('message',    'richtext(rows=2)', 'caption=Съобщение');
     	
     	// Поле в което драйвера на мастъра ще записва данни
@@ -155,11 +155,6 @@ class tasks_TaskDetails extends doc_Detail
     	if($Driver = $mvc->Master->getDriver($rec->taskId)){
     		$Driver->addDetailFields($form);
     	}
-    	
-    	// Оставяме само лицата, които са в група служители
-    	$groupId = crm_Groups::fetchField("#sysId = 'employees'", 'id');
-    	$employeesArr = cls::get('crm_Persons')->makeArray4Select('name', "#groupList LIKE '%|{$groupId}|%' AND #state != 'rejected'");
-    	$form->setSuggestions('employees', $employeesArr);
     	
     	// Добавяме последните данни за дефолтни
     	$query = $mvc->getQuery();
@@ -218,11 +213,6 @@ class tasks_TaskDetails extends doc_Detail
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-    	if($rec->fixedAsset){
-    		$row->fixedAsset = cat_Products::getShortHyperlink($rec->fixedAsset);
-    		$row->fixedAsset = "<span style='font-size:0.9em'>{$row->fixedAsset}</span>";
-    	}
-    	
     	if($rec->code){
     		$row->code = "<b>{$row->code}</b>";
     	}
