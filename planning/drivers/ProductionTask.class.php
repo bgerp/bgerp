@@ -37,6 +37,12 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 	
 	
 	/**
+	 * Какво да е дефолтното име на задача от драйвера
+	 */
+	protected $defaultTitle = 'Задача за производство';
+	
+	
+	/**
      * Добавя полетата на драйвера към Fieldset
      *
      * @param core_Fieldset $fieldset
@@ -114,8 +120,6 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 		$form = &$data->form;
 		$form->setFieldType('operation', 'enum(start=Пускане,production=Произвеждане,waste=Отпадък,scrap=Бракуване,stop=Спиране)');
 		$form->setField('operation', 'input,mandatory');
-		
-		$form->setField('message', 'input=none');
 		
 		if(isset($data->masterRec->fixedAssets)){
 			$keylist = $data->masterRec->fixedAssets;

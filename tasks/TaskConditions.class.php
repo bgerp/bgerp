@@ -91,6 +91,12 @@ class tasks_TaskConditions extends doc_Detail
 
     
     /**
+     * Кои колони да скриваме ако янма данни в тях
+     */
+    public $hideListFieldsIfEmpty = 'offset,calcTime';
+    
+    
+    /**
      * Кой е мастър класа
      */
     public function getMasterMvc($rec)

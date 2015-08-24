@@ -55,6 +55,17 @@ class tasks_DriverIntf extends embed_DriverIntf
 
 
 	/**
+	 * Връща дефолтното име на задача от драйвера
+	 *
+	 * @return string
+	 */
+	public function getDefaultTitle()
+	{
+		$this->class->getDefaultTitle();
+	}
+	
+	
+	/**
 	 * Обновяване на данните на мастъра
 	 *
 	 * @param stdClass $rec - запис

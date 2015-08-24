@@ -98,7 +98,7 @@ class tasks_TaskDetails extends doc_Detail
     /**
      * Кои колони да скриваме ако янма данни в тях
      */
-    public $hideListFieldsIfEmpty = 'weight,employees,fixedAsset';
+    public $hideListFieldsIfEmpty = 'code,weight,employees,fixedAsset';
     
     
     /**

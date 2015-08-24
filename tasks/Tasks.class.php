@@ -155,7 +155,7 @@ class tasks_Tasks extends embed_Manager
      */
     function description()
     {
-    	$this->FLD('title', 'varchar(128)', 'caption=Заглавие,mandatory,width=100%,changable,silent');
+    	$this->FLD('title', 'varchar(128)', 'caption=Заглавие,width=100%,changable,silent');
     	
     	$this->FLD('timeStart', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00)',
     			'caption=Времена->Начало, silent, changable, tdClass=leftColImportant,formOrder=101');
@@ -298,6 +298,14 @@ class tasks_Tasks extends embed_Manager
     	}
     	
     	if($form->isSubmitted()){
+    		
+    		if(empty($rec->title)){
+				if(cls::load($rec->driverClass, TRUE)){
+    				if($Driver = cls::get($rec->driverClass)){
+    					$rec->title = $Driver->getDefaultTitle();
+    				}
+    			}
+    		}
     		
     		// Запомняне кои документи трябва да се обновят
     		if($rec->id){
