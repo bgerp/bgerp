@@ -540,6 +540,7 @@ a.bookmark-external-url {
         .menu-holder {
             left: -2px;
             input {
+                box-sizing: border-box;
                 width: 100%;
                 margin-bottom: 5px;
             }
