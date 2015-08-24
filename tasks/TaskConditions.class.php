@@ -33,7 +33,7 @@ class tasks_TaskConditions extends doc_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created,plg_RowTools,plg_SaveAndNew';
+    public $loadList = 'plg_Created,plg_RowTools,plg_SaveAndNew,plg_Modified';
 
 
     /**
@@ -57,7 +57,7 @@ class tasks_TaskConditions extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт,taskId=Задача,progress,dependsOn,offset,calcTime,createdOn,createdBy';
+    public $listFields = 'tools=Пулт,taskId=Задача,progress,dependsOn,offset,calcTime,modified=Модифицирано';
     
     
     /**
@@ -197,6 +197,9 @@ class tasks_TaskConditions extends doc_Detail
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
+    	$row->modified = $mvc->getFieldType('modifiedOn')->toVerbal($rec->modifiedOn);
+    	$row->modified .= " " . tr('от') . " " . $row->modifiedBy;
+    	
     	if(isset($rec->dependsOn)){
     		$row->dependsOn = tasks_Tasks::getLink($rec->dependsOn, 0);
     	}
