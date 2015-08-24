@@ -128,8 +128,8 @@ class tasks_TaskDetails extends doc_Detail
     	$this->FLD('operation', 'varchar', 'silent,caption=Операция,input=none,removeAndRefreshForm=code');
     	$this->FLD('quantity', 'double', 'caption=Количество,mandatory');
     	$this->FLD('weight', 'cat_type_Weight', 'caption=Тегло');
-    	$this->FLD('employees', 'keylist(mvc=planning_HumanResources,select=code,makeLinks)', 'caption=Работници,tdClass=rightCol');
-    	$this->FLD('fixedAsset', 'key(mvc=planning_AssetResources,select=code)', 'caption=Машина,input=none,tdClass=rightCol');
+    	$this->FLD('employees', 'keylist(mvc=planning_HumanResources,select=code,makeLinks)', 'caption=Работници');
+    	$this->FLD('fixedAsset', 'key(mvc=planning_AssetResources,select=code)', 'caption=Машина,input=none');
     	$this->FLD('message',    'richtext(rows=2)', 'caption=Съобщение');
     	
     	// Поле в което драйвера на мастъра ще записва данни
