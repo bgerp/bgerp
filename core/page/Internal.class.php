@@ -68,12 +68,12 @@ class core_page_Internal extends core_page_Active
         // Ако сме в широк изглед извикваме функцията за мащабиране
         if(Mode::is('screenMode', 'wide')){
         	$this->append("scaleViewport();", "START_SCRIPTS");
+        } else {
+        	$this->append("runOnLoad( checkForElementWidthChange);", "JQRUN");
         }
         
         // Опаковките и главното съдържание заемат екрана до долу
         $this->append("runOnLoad(setMinHeight);", "JQRUN");
-        $this->append("runOnLoad( checkForElementWidthChange);", "JQRUN");
-
 
         // Вкарваме съдържанието
         $this->replace(self::getTemplate(), 'PAGE_CONTENT');
