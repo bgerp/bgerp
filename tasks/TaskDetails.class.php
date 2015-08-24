@@ -86,7 +86,7 @@ class tasks_TaskDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'RowNumb=Пулт,code,operation,quantity,weight,employees,fixedAsset,modifiedOn=Модифициране на,modifiedBy=Модифициране от,message=@';
+    public $listFields = 'RowNumb=Пулт,code,operation,quantity,weight,employees,fixedAsset,modified=Модифицирано';
     
 
     /**
@@ -98,7 +98,7 @@ class tasks_TaskDetails extends doc_Detail
     /**
      * Кои колони да скриваме ако янма данни в тях
      */
-    public $hideListFieldsIfEmpty = 'weight,employees,fixedAsset,message';
+    public $hideListFieldsIfEmpty = 'weight,employees,fixedAsset';
     
     
     /**
@@ -217,6 +217,9 @@ class tasks_TaskDetails extends doc_Detail
     		$singleUrl = planning_AssetResources::getSingleUrlArray($rec->fixedAsset);
     		$row->fixedAsset = ht::createLink($row->fixedAsset, $singleUrl);
     	}
+    	
+    	$row->modified = $mvc->getFieldType('modifiedOn')->toVerbal($rec->modifiedOn);
+    	$row->modified .= " " . tr('от') . " " . $row->modifiedBy;
     	
     	if(isset($rec->code)){
     		$row->code = "<b>{$row->code}</b>";
