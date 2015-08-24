@@ -225,7 +225,6 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     	$jQuery->where("#debitAccId = {$form->baseAccountId} AND #creditAccId = {$form->corespondentAccountId}");
     	$jQuery->orWhere("#debitAccId = {$form->corespondentAccountId} AND #creditAccId = {$form->baseAccountId}");
     	
-    	//$features = acc_Features::getFeaturesByItems();
     	// За всеки запис добавяме го към намерените резултати
     	$recs = $jQuery->fetchAll();
     	$allItems = array();
@@ -262,7 +261,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     	foreach ($recs as $jRec){
     		$this->addEntry($form->baseAccountId, $jRec, $data, $form->groupBy, $form, $features);
     	}
-    	//bp($data->recs);
+    	
     	// Ако има намерени записи
     	if(count($data->recs)){ 
     		
@@ -281,6 +280,11 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     			if($rec->blQuantity != $rec->blAmount){
     				$data->hasSameAmounts = FALSE;
     			}
+    		}
+    		
+    		foreach ($data->recs as &$rec1){
+    			$fld = ($form->side == 'credit') ? 'creditAmount' : (($form->side == 'debit') ? 'debitAmount' : 'blAmount');
+    			@$rec1->delta = round($rec1->{$fld} / $data->summary->${fld}, 2);
     		}
     	}
     	
@@ -364,7 +368,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     	$f->FLD('item4', 'varchar', 'tdClass=itemClass');
     	$f->FLD('item5', 'varchar', 'tdClass=itemClass');
     	$f->FLD('item6', 'varchar', 'tdClass=itemClass');
-    	foreach (array('debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount') as $fld){
+    	foreach (array('debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount', 'delta') as $fld){
     		$f->FLD($fld, 'int', 'tdClass=accCell');
     	}
     	 
@@ -429,6 +433,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     		}
     	}
     	
+    	$row->delta = cls::get('type_Percent')->toVerbal($rec->delta);
     	$row->measure = $rec->measure;
     	
     	// Връщаме подготвеното вербално рпедставяне
@@ -546,7 +551,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     protected function prepareListFields_(&$data)
     {
     	// Кои полета ще се показват
-    	$fields = arr::make("debitQuantity=Дебит->К-во,debitAmount=Дебит->Сума,creditQuantity=Кредит->К-во,creditAmount=Кредит->Сума,blQuantity=Остатък->К-во,blAmount=Остатък->Сума", TRUE);
+    	$fields = arr::make("debitQuantity=Дебит->К-во,debitAmount=Дебит->Сума,creditQuantity=Кредит->К-во,creditAmount=Кредит->Сума,blQuantity=Остатък->К-во,blAmount=Остатък->Сума,delta=Дял", TRUE);
     	$newFields = array();
     	$form = $this->innerForm;
     	
