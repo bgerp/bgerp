@@ -55,6 +55,7 @@ class deals_plg_DpInvoice extends core_Plugin
         
         // Ако няма очаквано авансово плащане не правим нищо
         $aggreedDownpayment = $dealInfo->get('agreedDownpayment');
+        
         if(empty($aggreedDownpayment)) return;
         
         if(empty($form->rec->id)){
@@ -65,9 +66,9 @@ class deals_plg_DpInvoice extends core_Plugin
     	
         // Ако има експедирано, не се показват полетата за начисляване на ддс на аванса
         if($form->dealInfo->get('deliveryAmount') && $form->rec->dpOperation == 'accrued') {
-        	unset($form->rec->dpOperation);
-        	unset($form->rec->dpAmount);
-        	return;
+        	//unset($form->rec->dpOperation);
+        	//unset($form->rec->dpAmount);
+        	//return;
         }
         
         // Показване на полетата за авансовите плащания
@@ -111,9 +112,10 @@ class deals_plg_DpInvoice extends core_Plugin
     		$dpAmount = ($downpayment - $invoicedDp);
     		$dpOperation = 'accrued';
     	}
-    
+    	//bp($dpAmount,$downpayment,$invoicedDp, round($dpAmount, 2), round($invoicedDp - $deductedDp, 2),$deductedDp);
     	// Ако всичко е начислено и има още аванс за приспадане, приспадаме го
     	if(round($dpAmount, 2) == 0 && round($invoicedDp - $deductedDp, 2) != 0){
+    		
     		$dpAmount = -1 * ($invoicedDp - $deductedDp);
     		$dpOperation = 'deducted';
     	}
