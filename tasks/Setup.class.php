@@ -38,7 +38,6 @@ class tasks_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     var $managers = array(
-    		'tasks_TaskDetails',
     		'tasks_TaskConditions',
         );
     
