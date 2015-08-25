@@ -9,7 +9,7 @@
  * @category  ef
  * @package   plg
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @link
@@ -27,7 +27,7 @@ class plg_RowTools extends core_Plugin
     /**
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
-    function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = NULL)
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = NULL)
     {
         // Ако се намираме в режим "печат", не показваме инструментите на реда
         if(Mode::is('printing')) return;
@@ -144,7 +144,7 @@ class plg_RowTools extends core_Plugin
      * Метод по подразбиране
      * Връща иконата на документа
      */
-    function on_AfterGetIcon($mvc, &$res, $id = NULL)
+    public static function on_AfterGetIcon($mvc, &$res, $id = NULL)
     {
         if(!$res) { 
             $res = $mvc->singleIcon;
@@ -205,7 +205,7 @@ class plg_RowTools extends core_Plugin
     /**
      * Проверяваме дали колонката с инструментите не е празна, и ако е така я махаме
      */
-    function on_BeforeRenderListTable($mvc, &$res, $data)
+    public static function on_BeforeRenderListTable($mvc, &$res, $data)
     {
         $data->listFields = arr::make($data->listFields, TRUE);
         
@@ -218,7 +218,9 @@ class plg_RowTools extends core_Plugin
             foreach($data->rows as $row) {
                 
                 // Ако в някой от полетата има промяна по шаблона
-                if ($rowToolsTpl->content != $row->{$field}->content) return ;
+                if(isset($row->{$field})){
+                	if ($rowToolsTpl->content != $row->{$field}->content) return;
+                }
             }
         }
         
