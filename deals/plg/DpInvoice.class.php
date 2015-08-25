@@ -112,7 +112,7 @@ class deals_plg_DpInvoice extends core_Plugin
     		$dpAmount = ($downpayment - $invoicedDp);
     		$dpOperation = 'accrued';
     	}
-    	//bp($dpAmount,$downpayment,$invoicedDp, round($dpAmount, 2), round($invoicedDp - $deductedDp, 2),$deductedDp);
+    	
     	// Ако всичко е начислено и има още аванс за приспадане, приспадаме го
     	if(round($dpAmount, 2) == 0 && round($invoicedDp - $deductedDp, 2) != 0){
     		
