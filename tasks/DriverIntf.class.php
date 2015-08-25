@@ -179,7 +179,7 @@ class tasks_DriverIntf extends embed_DriverIntf
 	/**
 	 * Кой детайл да бъде добавен към мастъра
 	 * 
-	 * @return array - името на детайла
+	 * @return varchar - името на детайла
 	 */
 	public function getDetail()
 	{

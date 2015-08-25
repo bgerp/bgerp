@@ -183,7 +183,7 @@ abstract class tasks_BaseDriver extends core_BaseClass
     /**
      * Кой детайл да бъде добавен към мастъра
      * 
-     * @return array - името на детайла
+     * @return varchar - името на детайла
      */
     public function getDetail()
     {
