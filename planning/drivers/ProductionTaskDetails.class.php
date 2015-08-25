@@ -95,12 +95,14 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     	$query->where("#taskId = {$rec->taskId}");
     	$query->orderBy('id', 'DESC');
     	 
+    	// Задаваме последно въведените данни
     	if($lastRec = $query->fetch()){
     		$form->setDefault('operation', $lastRec->operation);
     		$form->setDefault('employees', $lastRec->employees);
     		$form->setDefault('fixedAsset', $lastRec->fixedAsset);
     	}
     	
+    	// Ако в мастъра са посочени машини, задаваме ги като опции
     	if(isset($data->masterRec->fixedAssets)){
     		$keylist = $data->masterRec->fixedAssets;
     		$arr = keylist::toArray($keylist);
@@ -122,6 +124,8 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     	$rec = &$form->rec;
     	 
     	if($form->isSubmitted()){
+    		
+    		// Ако няма код и операцията е 'произвеждане' задаваме дефолтния код
     		if($rec->operation == 'production'){
     			if(empty($rec->code)){
     				$rec->code = $mvc->getDefaultCode();

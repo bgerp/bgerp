@@ -13,7 +13,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class tasks_TaskDetails extends doc_Detail
+abstract class tasks_TaskDetails extends doc_Detail
 {
     
 
