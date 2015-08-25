@@ -84,9 +84,12 @@ abstract class tasks_TaskDetails extends doc_Detail
     	// Поле в което драйвера на мастъра ще записва данни
     	$mvc->FLD('data', "blob(1000000, serialize, compress)", "caption=Данни,input=none,column=none,single=none,forceField");
     	
-    	$mvc->FLD('state',
-    			'enum(active=Активирано,rejected=Оттеглено)',
-    			'caption=Състояние,column=none,input=none,notNull,value=active,forceField');
+    	if($mvc->getField('state', TRUE)){
+    		$mvc->setFieldType('state', 'enum(active=Активирано,rejected=Оттеглено)');
+    		$mvc->setField('state', 'value=active');
+    	} else {
+    		$mvc->FLD('state','enum(active=Активирано,rejected=Оттеглено)','caption=Състояние,column=none,input=none,notNull,value=active,forceField');
+    	}
     }
     
     

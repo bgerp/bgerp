@@ -38,7 +38,13 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_RowNumbering, plg_AlignDecimals2, plg_SaveAndNew, plg_Rejected, plg_Modified, plg_Created';
+    public $loadList = 'plg_RowTools, plg_RowNumbering, plg_AlignDecimals2, plg_SaveAndNew, plg_Rejected, plg_Modified, plg_Created, plg_LastUsedKeys';
+    
+    
+    /**
+     * Кои ключове да се тракват, кога за последно са използвани
+     */
+    var $lastUsedKeys = 'employees,fixedAsset';
     
     
     /**

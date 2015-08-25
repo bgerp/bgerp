@@ -97,7 +97,8 @@ class planning_AssetResources extends core_Master
     	$this->FLD('name', 'varchar', 'caption=Име,mandatory');
     	$this->FLD('code', 'varchar(16)', 'caption=Код,mandatory');
     	$this->FLD('protocolId', 'key(mvc=accda_Da,select=id)', 'caption=Протокол за пускане в експлоатация,silent,input=hidden');
-    
+    	$this->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none');
+    	
     	$this->setDbUnique('protocolId');
     }
     
@@ -143,6 +144,12 @@ class planning_AssetResources extends core_Master
     					$requiredRoles = 'no_one';
     				}
     			}
+    		}
+    	}
+    	
+    	if($action == 'delete' && isset($rec)){
+    		if(isset($rec->lastUsedOn)){
+    			$requiredRoles = 'no_one';
     		}
     	}
     }
