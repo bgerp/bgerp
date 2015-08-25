@@ -428,35 +428,6 @@ class tasks_Tasks extends embed_Manager
     
     
     /**
-     * Добавя ключови думи за пълнотекстово търсене
-     */
-    public static function on_AfterGetSearchKeywords1111($mvc, &$res, $rec)
-    {
-    	if($rec->id){
-    		$dQuery = tasks_TaskDetails::getQuery();
-    		$dQuery->where("#taskId = {$rec->id}");
-    		
-    		$detailsKeywords = '';
-    		while($dRec = $dQuery->fetch()){
-    			
-    			// Добавяме данните от детайла към ключовите думи
-    			$detailsKeywords .= " " . plg_Search::normalizeText(tasks_TaskDetails::getVerbal($dRec, 'operation'));
-    			if($dRec->code){
-    				$detailsKeywords .= " " . plg_Search::normalizeText(tasks_TaskDetails::getVerbal($dRec, 'code'));
-    			}
-    			
-    			if($dRec->fixedAsset){
-    				$detailsKeywords .= " " . plg_Search::normalizeText(tasks_TaskDetails::getVerbal($dRec, 'fixedAsset'));
-    			}
-    		}
-    		
-    		// Добавяме новите ключови думи към старите
-    		$res = " " . $res . " " . $detailsKeywords;
-    	}
-    }
-    
-    
-    /**
      * След подготовка на тулбара на единичен изглед.
      *
      * @param core_Mvc $mvc
@@ -793,7 +764,7 @@ class tasks_Tasks extends embed_Manager
     {
     	$rec = $data->rec;
     	if($Driver = $this->getDriver($rec->id)){
-    		$data->details = array_merge($Driver->getDetail(), $this->details);
+    		$data->details = array_merge(arr::make($Driver->getDetail(), TRUE), arr::make($this->detail, TRUE));
     	}
     		
     	parent::prepareSingle_($data);

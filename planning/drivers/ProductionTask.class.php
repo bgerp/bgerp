@@ -163,4 +163,36 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
     	parent::prepareListToolbarDetail($data);
     	$data->toolbar->removeBtn('btnAdd');
     }
+    
+    
+
+
+
+    /**
+     * Добавя ключови думи за пълнотекстово търсене
+     */
+    public static function on_AfterGetSearchKeywords($Driver, &$res, $rec)
+    {
+    	$Detail = cls::get($Driver->getDetail());
+    	
+    	$dQuery = $Detail->getQuery();
+    	$dQuery->where("#taskId = {$rec->id}");
+    	 
+    	$detailsKeywords = '';
+    	while($dRec = $dQuery->fetch()){
+    		 
+    		// Добавяме данните от детайла към ключовите думи
+    		$detailsKeywords .= " " . plg_Search::normalizeText($Detail->getVerbal($dRec, 'operation'));
+    		if($dRec->code){
+    			$detailsKeywords .= " " . plg_Search::normalizeText($Detail->getVerbal($dRec, 'code'));
+    		}
+    		 
+    		if($dRec->fixedAsset){
+    			$detailsKeywords .= " " . plg_Search::normalizeText($Detail->getVerbal($dRec, 'fixedAsset'));
+    		}
+    	}
+    	 
+    	// Добавяме новите ключови думи към старите
+    	$res = " " . $res . " " . $detailsKeywords;
+    }
 }

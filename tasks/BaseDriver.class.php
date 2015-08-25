@@ -187,6 +187,6 @@ abstract class tasks_BaseDriver extends core_BaseClass
      */
     public function getDetail()
     {
-    	return arr::make($this->detail, TRUE);
+    	return $this->detail;
     }
 }
