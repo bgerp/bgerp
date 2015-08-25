@@ -163,9 +163,6 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
     	parent::prepareListToolbarDetail($data);
     	$data->toolbar->removeBtn('btnAdd');
     }
-    
-    
-
 
 
     /**
@@ -173,6 +170,8 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
      */
     public static function on_AfterGetSearchKeywords($Driver, &$res, $rec)
     {
+    	if(empty($rec->id)) return;
+    	
     	$Detail = cls::get($Driver->getDetail());
     	
     	$dQuery = $Detail->getQuery();
