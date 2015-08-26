@@ -48,7 +48,7 @@
         </div>
     </div>
     
-    <div class="clearfix21 portal planning" style="background-color:transparent;">
+    <div class="clearfix21 portal planning" style="background-color:transparent;margin-bottom:5px">
 		<div class="legend" style="background-color:#ffc;font-size:0.9em;padding:1px;color:black">|Прогрес|* [#ADD_BTN#]</div>
 	    <div class="listRows">
 	    	<div class='overflow-scroll'>[#planning_drivers_ProductionTaskDetails#]</div>

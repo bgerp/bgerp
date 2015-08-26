@@ -287,9 +287,7 @@ class embed_Manager extends core_Master
                 case 'afterpreparesinglefields':
                 case 'beforepreparesingletoolbar':
                 case 'afterpreparesingletoolbar':
-
                     $driverClass = $args[1]->rec->driverClass;
-
                     break;
 
                 case 'afterinputeditform':
@@ -298,6 +296,11 @@ class embed_Manager extends core_Master
 
                 case 'afterread': 
                     $driverClass = $args[0]->driverClass;
+                    break;
+                    
+                case 'aftergetsearchkeywords';
+                	$driverClass = $args[1]->driverClass;
+                	break;
             }
 
             // Ако има избран драйвер, генерираме същото събитие

@@ -57,7 +57,7 @@ class tasks_TaskConditions extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт,taskId=Задача,progress,dependsOn,offset,calcTime,modified=Модифицирано';
+    public $listFields = 'tools=Пулт,taskId=Задача,progress,offset,calcTime,modified=Модифицирано';
     
     
     /**
@@ -129,7 +129,7 @@ class tasks_TaskConditions extends doc_Detail
     {
     	$form = &$data->form;
     	$rec = &$form->rec;
-    	//bp($mvc->Master);
+    	
     	// Задаваме предложения за прогрес
     	$form->setSuggestions('progress', array('' => '') + arr::make('0 %,10 %,20 %,30 %,40 %,50 %, 60 %, 70 %, 80 %, 90 %, 100 %', TRUE));
     	
@@ -206,11 +206,6 @@ class tasks_TaskConditions extends doc_Detail
     	$row->modified = "<div class='centered'>" . $mvc->getFieldType('modifiedOn')->toVerbal($rec->modifiedOn);
     	$row->modified .= " " . tr('от') . " " . $row->modifiedBy . "</div>";
     	
-    	if(isset($rec->dependsOn)){
-    		$row->dependsOn = tasks_Tasks::getLink($rec->dependsOn, 0);
-    	}
-    	$row->taskId = tasks_Tasks::getLink($rec->taskId, 0);
-    	
     	switch($rec->progress){
     		case 0:
     			$row->progress = tr('След началото на|* ');
@@ -221,6 +216,10 @@ class tasks_TaskConditions extends doc_Detail
     		default:
     			$row->progress = "<b>" . $row->progress . "</b>" . tr("|* |от изпълнението на|* ");
     			break;
+    	}
+    	
+    	if(isset($rec->dependsOn)){
+    		$row->progress .= " " . tasks_Tasks::getLink($rec->dependsOn, 0);
     	}
     }
     

@@ -315,6 +315,12 @@ class tasks_Tasks extends embed_Manager
     		if ($rec->timeStart && $rec->timeEnd && ($rec->timeStart > $rec->timeEnd)) {
     			$form->setError('timeEnd', 'Крайния срок трябва да е преди началото на задачата');
     		}
+    		
+    		if(!empty($rec->timeStart) && !empty($rec->timeDuration) && !empty($rec->timeEnd)){
+    			if(strtotime(dt::addSecs($rec->timeDuration, $rec->timeStart)) != strtotime($rec->timeEnd)){
+    				$form->setWarning('timeStart,timeDuration,timeEnd', 'Въведеното начало плюс продължителноста не отговарят на въведената крайната дата');
+    			}
+    		}
     	}
     }
     
@@ -423,35 +429,6 @@ class tasks_Tasks extends embed_Manager
     				}
     			}
     		}
-    	}
-    }
-    
-    
-    /**
-     * Добавя ключови думи за пълнотекстово търсене
-     */
-    public static function on_AfterGetSearchKeywords1111($mvc, &$res, $rec)
-    {
-    	if($rec->id){
-    		$dQuery = tasks_TaskDetails::getQuery();
-    		$dQuery->where("#taskId = {$rec->id}");
-    		
-    		$detailsKeywords = '';
-    		while($dRec = $dQuery->fetch()){
-    			
-    			// Добавяме данните от детайла към ключовите думи
-    			$detailsKeywords .= " " . plg_Search::normalizeText(tasks_TaskDetails::getVerbal($dRec, 'operation'));
-    			if($dRec->code){
-    				$detailsKeywords .= " " . plg_Search::normalizeText(tasks_TaskDetails::getVerbal($dRec, 'code'));
-    			}
-    			
-    			if($dRec->fixedAsset){
-    				$detailsKeywords .= " " . plg_Search::normalizeText(tasks_TaskDetails::getVerbal($dRec, 'fixedAsset'));
-    			}
-    		}
-    		
-    		// Добавяме новите ключови думи към старите
-    		$res = " " . $res . " " . $detailsKeywords;
     	}
     }
     
@@ -648,7 +625,7 @@ class tasks_Tasks extends embed_Manager
     	
     	$this->saveArray($recs);
     }
-
+    
     
     /**
      * Намира очакваното време за изпълнение спрямо условията.
@@ -793,7 +770,7 @@ class tasks_Tasks extends embed_Manager
     {
     	$rec = $data->rec;
     	if($Driver = $this->getDriver($rec->id)){
-    		$data->details = array_merge($Driver->getDetail(), $this->details);
+    		$data->details = array_merge(arr::make($Driver->getDetail(), TRUE), arr::make($this->details, TRUE));
     	}
     		
     	parent::prepareSingle_($data);
