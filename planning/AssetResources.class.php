@@ -62,13 +62,19 @@ class planning_AssetResources extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт,name,code,protocolId,createdOn,createdBy,state';
+    public $listFields = 'tools=Пулт,code,name,protocolId,createdOn,createdBy,state';
     
     
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     public $rowToolsField = 'tools';
+    
+    
+    /**
+     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
+     */
+    public $rowToolsSingleField = 'code';
     
     
     /**
@@ -97,7 +103,8 @@ class planning_AssetResources extends core_Master
     	$this->FLD('name', 'varchar', 'caption=Име,mandatory');
     	$this->FLD('code', 'varchar(16)', 'caption=Код,mandatory');
     	$this->FLD('protocolId', 'key(mvc=accda_Da,select=id)', 'caption=Протокол за пускане в експлоатация,silent,input=hidden');
-    
+    	$this->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none');
+    	
     	$this->setDbUnique('protocolId');
     }
     
@@ -143,6 +150,12 @@ class planning_AssetResources extends core_Master
     					$requiredRoles = 'no_one';
     				}
     			}
+    		}
+    	}
+    	
+    	if($action == 'delete' && isset($rec)){
+    		if(isset($rec->lastUsedOn)){
+    			$requiredRoles = 'no_one';
     		}
     	}
     }

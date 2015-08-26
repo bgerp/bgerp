@@ -284,7 +284,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     		
     		foreach ($data->recs as &$rec1){
     			$fld = ($form->side == 'credit') ? 'creditAmount' : (($form->side == 'debit') ? 'debitAmount' : 'blAmount');
-    			@$rec1->delta = round($rec1->{$fld} / $data->summary->${fld}, 2);
+    			@$rec1->delta = round($rec1->{$fld} / $data->summary->${fld}, 5);
     		}
     	}
     	

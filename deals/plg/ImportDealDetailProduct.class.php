@@ -236,7 +236,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 		// Настройки на данните
 		$form->FLD("delimiter", 'varchar(1,size=5)', 'width=100%,caption=Настройки->Разделител,maxRadio=5');
 		$form->FLD("enclosure", 'varchar(1,size=3)', 'width=100%,caption=Настройки->Ограждане');
-		$form->FLD("firstRow", 'enum(columnNames=Имена на колони,data=Данни)', 'width=100%,caption=Настройки->Първи ред');
+		$form->FLD("firstRow", 'enum(data=Данни,columnNames=Имена на колони)', 'width=100%,caption=Настройки->Първи ред');
 		$form->setOptions("delimiter", array(',' => ',', ';' => ';', ':' => ':', '|' => '|', '\t' => 'Таб'));
 		$form->setSuggestions("enclosure", array('"' => '"', '\'' => '\''));
 		$form->setDefault("delimiter", ',');
