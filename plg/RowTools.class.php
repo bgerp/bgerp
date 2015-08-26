@@ -89,7 +89,7 @@ class plg_RowTools extends core_Plugin
 			            $mvc,
 			            'reject',
 			            'id' => $rec->id,
-			            'ret_url' => TRUE);
+			            'ret_url' => $retUrl);
 			         $deleteLink = ht::createLink($deleteImg, $deleteUrl,
                 		tr('Наистина ли желаете записът да бъде оттеглен?'), "id=rej{$rec->id},title=Оттегляне на " . mb_strtolower($mvc->singleTitle));
         			
@@ -100,7 +100,7 @@ class plg_RowTools extends core_Plugin
 			            $mvc,
 			            'restore',
 			            'id' => $rec->id,
-			            'ret_url' => TRUE);
+			            'ret_url' => $retUrl);
 			            
 			        $restoreLink = ht::createLink($restoreImg, $restoreUrl,
                 		tr('Наистина ли желаете записът да бъде възстановен?'), "id=res{$rec->id},title=Възстановяване на " . mb_strtolower($mvc->singleTitle));
@@ -114,7 +114,7 @@ class plg_RowTools extends core_Plugin
         		$changeUrl = array($mvc,
         				'changeFields',
         				$rec->id,
-        				'ret_url' => TRUE,);
+        				'ret_url' => $retUrl,);
         	
         		$changeLink = ht::createLink('', $changeUrl, NULL, "ef_icon=img/16/to_do_list.png,id=conto{$rec->id},title=Промяна на " . mb_strtolower($mvc->singleTitle));
         	}
