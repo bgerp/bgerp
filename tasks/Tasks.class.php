@@ -315,6 +315,12 @@ class tasks_Tasks extends embed_Manager
     		if ($rec->timeStart && $rec->timeEnd && ($rec->timeStart > $rec->timeEnd)) {
     			$form->setError('timeEnd', 'Крайния срок трябва да е преди началото на задачата');
     		}
+    		
+    		if(!empty($rec->timeStart) && !empty($rec->timeDuration) && !empty($rec->timeEnd)){
+    			if(strtotime(dt::addSecs($rec->timeDuration, $rec->timeStart)) != strtotime($rec->timeEnd)){
+    				$form->setWarning('timeStart,timeDuration,timeEnd', 'Въведеното начало плюс продължителноста не отговарят на въведената крайната дата');
+    			}
+    		}
     	}
     }
     
