@@ -51,13 +51,13 @@ class tasks_TaskConditions extends doc_Detail
     /**
      * Заглавие в единствено число
      */
-    public $singleTitle = 'Условие за започване';
+    public $singleTitle = 'Условие за стартиране';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт,taskId=Задача,progress,offset,calcTime,modified=Модифицирано';
+    public $listFields = 'tools=Пулт,taskId=Задача,progress=Условие,offset,calcTime,modified=Модифицирано';
     
     
     /**
@@ -116,7 +116,7 @@ class tasks_TaskConditions extends doc_Detail
     	$this->FLD('dependsOn', 'key(mvc=tasks_Tasks,select=title, allowEmpty)', 'mandatory,caption=Зависи от');
     	$this->FLD('progress', 'percent(min=0,max=1,decimals=0)', 'mandatory,caption=Прогрес');
     	$this->FLD('offset', 'time()', 'notNull,value=0,caption=Отместване');
-    	$this->FLD('calcTime', 'datetime(format=smartTime)', 'input=none,caption=Изчислено време');
+    	$this->FLD('calcTime', 'datetime(format=smartTime)', 'input=none,caption=Стартиране');
     	
     	$this->setDbUnique('taskId,dependsOn');
     }
@@ -221,6 +221,7 @@ class tasks_TaskConditions extends doc_Detail
     	if(isset($rec->dependsOn)){
     		$row->progress .= " " . tasks_Tasks::getLink($rec->dependsOn, 0);
     	}
+    	$row->progress = "<div style='text-align:center;'>{$row->progress}</div>";
     }
     
     

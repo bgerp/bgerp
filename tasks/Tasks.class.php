@@ -552,7 +552,7 @@ class tasks_Tasks extends embed_Manager
 	 *  
 	 *  @return void
 	 */
-    public function cron_CheckTasks()
+    public function cron_UpdateTasksStates()
     {
     	// Намираме чакащите и активните задачи от най-старата към най-новата
     	$query = self::getQuery();
