@@ -136,19 +136,4 @@ class cat_Packagings extends core_Manager
             }
         }
     }
-    
-    
-    /**
-     * Извиква се след SetUp-а на таблицата за модела
-     */
-    static function on_AfterSetupMvc($mvc, &$res)
-    {
-        $file = "cat/csv/Packagings.csv";
-        $fields = array(0 => "name", 1 => 'round');
-        
-        $cntObj = csv_Lib::importOnce($mvc, $file, $fields);
-        $res .= $cntObj->html;
-        
-        return $res;
-    }
 }
