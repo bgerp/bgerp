@@ -118,8 +118,9 @@ class planning_Setup extends core_ProtoSetup
     		}
     	}
     	
-    	$cRec = core_Classes::fetch("#name = 'tasks_Tasks'");
-    	$cRec->state = 'closed';
-    	core_Classes::save($cRec);
+    	if($cRec = core_Classes::fetch("#name = 'tasks_Tasks'")){
+    		$cRec->state = 'closed';
+    		core_Classes::save($cRec);
+    	}
     }
 }
