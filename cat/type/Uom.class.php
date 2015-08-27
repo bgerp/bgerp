@@ -121,11 +121,9 @@ class cat_type_Uom extends type_Varchar {
     function renderInput_($name, $value = '', &$attr = array())
 	{
 		// Ако има запис, конвертира се в удобен вид
-        
         $convObject = new stdClass();
-
-        $baseUnitId = cat_UoM::fetchBySysId($this->params['unit'])->id;
-
+        expect($baseUnitId = cat_UoM::fetchBySysId($this->params['unit'])->id);
+        
 		if($value === NULL || $value === ''){
 			$convObject->value = '';
             $convObject->measure = $unitRec->id;
