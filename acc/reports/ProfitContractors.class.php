@@ -72,40 +72,25 @@ class acc_reports_ProfitContractors extends acc_reports_CorespondingImpl
         $form->setDefault('orderField', 'blAmount');
         $form->setHidden('orderField');
         
-        $form->setField('from','input=none');
-        $form->setField('to','input=none');
+        $form->setField('from','refreshForm,silent');
+        $form->setField('to','refreshForm,silent');
         
-        $form->FLD('from1', 'date', 'caption=Период1->От,refreshForm,silent');
-        $form->FLD('to1', 'date', 'caption=Период1->До,refreshForm,silent');
-        $form->FLD('from2', 'date','caption=Период2->От,refreshForm,silent');
-        $form->FLD('to2', 'date', 'caption=Период2->До,refreshForm,silent');
-        
-        // Поставяме удобни опции за избор на период
-        $query = acc_Periods::getQuery();
-        $query->where("#state = 'closed'");
-        $query->orderBy("#end", "DESC");
-        
-        $yesterday = dt::verbal2mysql(dt::addDays(-1, dt::today()), FALSE);
-        $daybefore = dt::verbal2mysql(dt::addDays(-2, dt::today()), FALSE);
-        $optionsFrom = $optionsTo = array();
-        $optionsFrom[dt::today()] = 'Днес';
-        $optionsFrom[$yesterday] = 'Вчера';
-        $optionsFrom[$daybefore] = 'Завчера';
-        $optionsTo[dt::today()] = 'Днес';
-        $optionsTo[$yesterday] = 'Вчера';
-        $optionsTo[$daybefore] = 'Завчера';
-        
-        while ($op = $query->fetch()) {
-        	$optionsFrom[$op->start] = substr($op->start, -2). " " . $op->title;
-        	$optionsTo[$op->end] = substr($op->end, -2). " " . $op->title;
-        }
-        
-        $form->setSuggestions('from1', array('' => '') + $optionsFrom);
-        $form->setSuggestions('to1', array('' => '') + $optionsTo);
-        $form->setSuggestions('from2', array('' => '') + $optionsFrom);
-        $form->setSuggestions('to2', array('' => '') + $optionsTo);
+      
+        //$form->setSuggestions('from', array('' => '') + $optionsFrom);
+        //$form->setSuggestions('to', array('' => '') + $optionsTo);
         
         
+        
+        //$form->FLD('from1', 'date', 'caption=Период1->От,refreshForm,silent');
+       ///$form->FLD('to1', 'date', 'caption=Период1->До,refreshForm,silent');
+        //$form->FLD('from2', 'date','caption=Период2->От,refreshForm,silent');
+        //$form->FLD('to2', 'date', 'caption=Период2->До,refreshForm,silent');
+        
+        
+        //$form->setSuggestions('from2', array('' => '') + $optionsFrom);
+        //$form->setSuggestions('to2', array('' => '') + $optionsTo);
+        
+       //bp($form);
     }
 
 
@@ -125,14 +110,28 @@ class acc_reports_ProfitContractors extends acc_reports_CorespondingImpl
 
         $form->setDefault("feat{$contragentPositionId}", "*");   
         
-        $arrTime = array ();
-        foreach (range(1, 2) as $i) {
-	        $arrTime[] = $form->rec->{"from{$i}"};
-	        $arrTime[] = $form->rec->{"to{$i}"};
+        // Поставяме удобни опции за избор на период
+        $query = acc_Periods::getQuery();
+        $query->where("#state = 'closed'");
+        $query->orderBy("#end", "DESC");
+        
+        $yesterday = dt::verbal2mysql(dt::addDays(-1, dt::today()), FALSE);
+        $daybefore = dt::verbal2mysql(dt::addDays(-2, dt::today()), FALSE);
+        $optionsFrom = $optionsTo = array();
+        $optionsFrom[dt::today()] = 'Днес';
+        $optionsFrom[$yesterday] = 'Вчера';
+        $optionsFrom[$daybefore] = 'Завчера';
+        $optionsTo[dt::today()] = 'Днес';
+        $optionsTo[$yesterday] = 'Вчера';
+        $optionsTo[$daybefore] = 'Завчера';
+        
+        while ($op = $query->fetch()) {
+        	$optionsFrom[$op->start] = $op->title;
+        	$optionsTo[$op->end] = $op->title;
         }
-
-        $form->rec->from = min($arrTime);
-        $form->rec->to = max($arrTime);  
+        
+        $form->setSuggestions('from', array('' => '') + $optionsFrom);
+        $form->setSuggestions('to', array('' => '') + $optionsTo);
     }
     
 
@@ -193,13 +192,14 @@ class acc_reports_ProfitContractors extends acc_reports_CorespondingImpl
      *
      * @return array
      */
-    /*public function getExportFields ()
+    public function getExportFields ()
     {
 
-        $exportFields['ent1Id']  = "Контрагенти";
-        $exportFields['blAmount']  = "Кредит";
+        $exportFields['item1']  = "Контрагенти";
+        $exportFields['blAmount']  = "Сума";
+        $exportFields['delta']  = "Дял";
 
         return $exportFields;
-    }*/
+    }
 
 }

@@ -638,9 +638,11 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     	while($iRec = $iQuery->fetch()){
     		$mvc->cache[$iRec->id] = $iRec->num;
     	}
+   
+    	arr::order($this->innerState->recs, $this->innerForm->orderField, $this->innerForm->orderBy);
     	
     	// Подготвяме поле за сортиране по номерата на перата
-    	foreach ($this->innerState->recs as &$rec){ 
+    	/*foreach ($this->innerState->recs as &$rec){ 
     		$rec->sortField = '';
     		foreach (range(1, 3) as $j){
     			if(isset($rec->{"item{$j}"})){
@@ -652,7 +654,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     	}
     	
     	// Сортираме записите според полето за сравнение
-    	usort($this->innerState->recs, array($this, "sortRecs"));
+    	usort($this->innerState->recs, array($this, "sortRecs"));*/
 
     	if(count($this->innerState->recs)) { 
     		foreach ($this->innerState->recs as $id => $rec) {
