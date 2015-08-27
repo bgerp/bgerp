@@ -105,7 +105,8 @@ class price_GroupOfProducts extends core_Detail
         $query->where("#validFrom <= '{$datetime}'");
         $query->where("#productId = {$productId}");
         $query->limit(1);
-
+		$query->show('id');
+        
         if($rec = $query->fetch()) {
 			return $rec->groupId;
         }
@@ -195,20 +196,9 @@ class price_GroupOfProducts extends core_Detail
 	        $data->form->title = '|Добавяне на артикул към група|* "' . $groupName . '"';
         }
         
-        
         // За опции се слагат само продаваемите продукти
         $products = cat_Products::getByProperty('canSell');
-        
         expect(count($products), 'Няма продаваеми продукти');
-        $now = dt::now();
-        foreach ($products as $id => &$product){
-        	if(is_object($product)) continue;
-        	
-        	if($groupId = $mvc->getGroup($id, $now)){
-        		$groupTitle = price_Groups::getTitleById($groupId, FALSE);
-        		$product .=  " -- " . tr('група') . " {$groupTitle}";
-        	}
-        }
         
         $data->form->setOptions('productId', $products);
 
@@ -222,6 +212,16 @@ class price_GroupOfProducts extends core_Detail
             if(!$rec->groupId) {
                 $rec->groupId = self::getGroup($rec->productId, dt::verbal2mysql());
             }
+        } else {
+        	$now = dt::now();
+        	foreach ($products as $id => &$product){
+        		if(is_object($product)) continue;
+        		 
+        		if($groupId = $mvc->getGroup($id, $now)){
+        			$groupTitle = price_Groups::getVerbal($groupId, 'title');
+        			$product .=  " -- " . tr('група') . " {$groupTitle}";
+        		}
+        	}
         }
     }
     
