@@ -360,36 +360,53 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     	
     	$tpl->placeObject($data->summary);
     	$tpl->replace(acc_Periods::getBaseCurrencyCode(), 'baseCurrencyCode');
-    	 
-    	$f = cls::get('core_FieldSet');
-    	$f->FLD('item1', 'varchar', 'tdClass=itemClass');
-    	$f->FLD('item2', 'varchar', 'tdClass=itemClass');
-    	$f->FLD('item3', 'varchar', 'tdClass=itemClass');
-    	$f->FLD('item4', 'varchar', 'tdClass=itemClass');
-    	$f->FLD('item5', 'varchar', 'tdClass=itemClass');
-    	$f->FLD('item6', 'varchar', 'tdClass=itemClass');
-    	foreach (array('debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount', 'delta') as $fld){
-    		$f->FLD($fld, 'int', 'tdClass=accCell');
-    	}
-    	 
-    	// Рендираме таблицата
-    	$table = cls::get('core_TableView', array('mvc' => $f));
-    	$tableHtml = $table->get($data->rows, $data->listFields);
-    	 
-    	$tpl->replace($tableHtml, 'CONTENT');
-    	 
-    	// Рендираме пейджъра, ако го има
-    	if(isset($data->Pager)){
-    		$tpl->replace($data->Pager->getHtml(), 'PAGER');
-    	}
-    	 
-    	// Показваме данните от формата
-    	$form = cls::get('core_Form');
-    	$this->addEmbeddedFields($form);
-    	$form->setField('baseAccountId', 'caption=Основна с-ка');
-    	$form->setField('corespondentAccountId', 'caption=Кореспондент с-ка');
-    	$form->rec = $this->innerForm;
-    	$form->class = 'simpleForm';
+
+    	// toolbar
+    	$btns = $this->generateBtns($data);
+    	
+        $tpl->replace($btns->buttonList, 'buttonList');
+        $tpl->replace($btns->buttonChart, 'buttonChart');
+        
+        $type = Request::get('Chart');
+        $var = str::addHash("pie", 5, "{$this->EmbedderRec->that}");
+        $tableVar = str::addHash("table", 5, "{$this->EmbedderRec->that}");
+
+
+        if ((Request::get('var') == $var || Request::get('var') == $tableVar) && $data->recs) { //bp($type, $data->rec->containerId, $data);
+        	$chart = $this->getChart($data);
+        	$tpl->append($chart, 'CONTENT');
+        } else {
+    	
+	    	$f = cls::get('core_FieldSet');
+	    	$f->FLD('item1', 'varchar', 'tdClass=itemClass');
+	    	$f->FLD('item2', 'varchar', 'tdClass=itemClass');
+	    	$f->FLD('item3', 'varchar', 'tdClass=itemClass');
+	    	$f->FLD('item4', 'varchar', 'tdClass=itemClass');
+	    	$f->FLD('item5', 'varchar', 'tdClass=itemClass');
+	    	$f->FLD('item6', 'varchar', 'tdClass=itemClass');
+	    	foreach (array('debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount', 'delta') as $fld){
+	    		$f->FLD($fld, 'int', 'tdClass=accCell');
+	    	}
+	    	 
+	    	// Рендираме таблицата
+	    	$table = cls::get('core_TableView', array('mvc' => $f));
+	    	$tableHtml = $table->get($data->rows, $data->listFields);
+	    	 
+	    	$tpl->replace($tableHtml, 'CONTENT');
+	    	 
+	    	// Рендираме пейджъра, ако го има
+	    	if(isset($data->Pager)){
+	    		$tpl->replace($data->Pager->getHtml(), 'PAGER');
+	    	}
+	    	 
+	    	// Показваме данните от формата
+	    	$form = cls::get('core_Form');
+	    	$this->addEmbeddedFields($form);
+	    	$form->setField('baseAccountId', 'caption=Основна с-ка');
+	    	$form->setField('corespondentAccountId', 'caption=Кореспондент с-ка');
+	    	$form->rec = $this->innerForm;
+	    	$form->class = 'simpleForm';
+        }
     
     	$this->prependStaticForm($tpl, 'FORM');
     	 
@@ -640,21 +657,6 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     	}
    
     	arr::order($this->innerState->recs, $this->innerForm->orderField, $this->innerForm->orderBy);
-    	
-    	// Подготвяме поле за сортиране по номерата на перата
-    	/*foreach ($this->innerState->recs as &$rec){ 
-    		$rec->sortField = '';
-    		foreach (range(1, 3) as $j){
-    			if(isset($rec->{"item{$j}"})){
-    				$rec->sortField .= $mvc->cache[$rec->{"item{$j}"}];
-    			}
-    		}
-    		 
-    		$rec->sortField = strtolower(str::utf2ascii($rec->sortField));
-    	}
-    	
-    	// Сортираме записите според полето за сравнение
-    	usort($this->innerState->recs, array($this, "sortRecs"));*/
 
     	if(count($this->innerState->recs)) { 
     		foreach ($this->innerState->recs as $id => $rec) {
@@ -667,10 +669,8 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     		}
     			
     		$csv = $header . "\n" . $csv;
-    	} /*else {
-    		$csv = $header . "\n" . $lastRow . "\n" . $zeroRow;
-    	}*/
-    
+    	}
+    	
     	return $csv;
     }
     
@@ -787,5 +787,145 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     	$title = tr("|Кореспонденция на сметки|* {$baseSysId} / {$corrSysId}");
     	
     	return $title;
+    }
+
+    
+    /**
+     * Генериране на бутоните за тулбара
+     * 
+     * @param stdClass $data
+     * @return StdClass
+     */
+    public function generateBtns($data)
+    {
+
+    	$var = str::addHash("pie", 5, "{$this->EmbedderRec->that}");
+    	$tableVar = str::addHash("table", 5, "{$this->EmbedderRec->that}");
+
+        $curUrl = getCurrentUrl();
+
+        if ($curUrl['varType']) {
+        	$varDoc = $curUrl['varType'];
+        }
+    	// правим бутони за toolbar
+    	$btnList = ht::createBtn('Таблица', array(
+    			'doc_Containers',
+    			'list',
+    			'threadId' => Request::get('threadId', 'int'),
+    			'docId' => Request::get('docId', 'varchar'),
+    			'var' => $varDoc,
+    			'varType' => $tableVar
+    			 
+    	), NULL, NULL,
+    			'ef_icon = img/16/table.png');
+
+    	
+    	$btnChart = ht::createBtn('Графика', array(
+    			'doc_Containers',
+    			'list',
+    			'Chart' => 'pie'. $data->rec->containerId,
+    			'threadId' => Request::get('threadId', 'int'),
+    			'docId' => Request::get('docId', 'varchar'),
+    			'var' => $varDoc,
+    			'varType' => $var,
+    			 
+    	), NULL, NULL,
+    			'ef_icon = img/16/chart16.png');
+    	
+    	$btns = array();
+    	
+    	$btns = (object) array('buttonList' => $btnList, 'buttonChart' => $btnChart);
+
+    	return $btns;
+    }
+    
+    
+    /**
+     * Изчертаване на графиката
+     * 
+     * @param stdClass $data
+     * @return core_ET
+     */
+    public function getChart ($data)
+    {
+    	foreach ($data->recs as $id => $rec) {
+
+    		$balance += abs($rec->blAmount);
+    	
+    		$dArr[] = abs($rec->blAmount);
+    	}
+
+    	$arr = $this->preparePie($dArr, 12, 'Others');
+
+    	foreach ($arr as $id => $recSort) {
+    		$info[mb_substr($recSort->key,0,19)] = $recSort->value;
+    	}
+    	
+    	$pie = array (
+    				'legendTitle' => $this->getReportTitle(),
+    				'suffix' => "лв.",
+    				'info' => $info,
+    	);
+    	
+    	$coreConf = core_Packs::getConfig('doc');
+    	$chartAdapter = $coreConf->DOC_CHART_ADAPTER;
+    	$chartHtml = cls::get($chartAdapter);
+    	$chart =  $chartHtml::prepare($pie,'pie');
+
+    	return $chart;
+    }
+    
+    
+    /**
+     * По даден масив, правим подготовка за
+     * графика тип "торта"
+     *
+     * @param array $data
+     * @param int $n
+     * @param string $otherName
+     */
+    public static function preparePie ($data, $n, $otherName = 'Други')
+    {
+
+    	foreach ($data as $key => $value) {
+    		$newArr [] = (object) array ('key' => $key, 'value' => $value);
+    	}
+    
+    	// броя на елементите в получения масив
+    	$cntData = count($data);
+    
+    	// ако, числото което сме определили за новия масив
+    	// е по-малко от общия брой елементи
+    	// на подадения масив
+    	if ($cntData <= $n) {
+    
+    		// връщаме направо масива
+    		//return $data;
+    		return $newArr;
+    
+    		//в противен случай
+    	} else {
+    		// взимаме първите n елемента от сортирания масив
+    		for($k = 0; $k <= $n -1; $k++) {
+    			$res[] = $newArr[$k];
+    		}
+    
+    		// останалите елементи ги събираме
+    		for ($i = $n; $i <= $cntData; $i++){
+    			$sum += $newArr[$i]->value;
+    		}
+    
+    		// ако имаме изрично зададено име за обобщения елемент
+    		if ($otherName) {
+    			// използваме него и го добавяме към получения нов масив с
+    			// n еленета и сумата на останалите елементи
+    			$res[] = (object) array ('key' => $otherName, 'value' => $sum);
+    			// ако няма, използваме default
+    		} else {
+    			$res[] = (object) array ('key' => "Други", 'value' => $sum);
+    		}
+    	}
+    
+    	return $res;
     }
 }
