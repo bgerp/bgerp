@@ -1800,5 +1800,7 @@ class cat_Products extends core_Embedder {
     	} else {
     		$res = $this->renderWrapping($form->renderHtml());
     	}
+    	
+    	return $res;
     }
 }
