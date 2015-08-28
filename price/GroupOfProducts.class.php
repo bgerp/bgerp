@@ -105,7 +105,7 @@ class price_GroupOfProducts extends core_Detail
         $query->where("#validFrom <= '{$datetime}'");
         $query->where("#productId = {$productId}");
         $query->limit(1);
-		$query->show('id');
+		$query->show('groupId');
         
         if($rec = $query->fetch()) {
 			return $rec->groupId;
@@ -200,8 +200,6 @@ class price_GroupOfProducts extends core_Detail
         $products = cat_Products::getByProperty('canSell');
         expect(count($products), 'Няма продаваеми продукти');
         
-        $data->form->setOptions('productId', $products);
-
         if($data->masterMvc instanceof cat_Products) {
             $data->form->title = "Добавяне в ценова група";
             $data->form->setField('productId', 'input');
@@ -214,15 +212,18 @@ class price_GroupOfProducts extends core_Detail
             }
         } else {
         	$now = dt::now();
+        	
         	foreach ($products as $id => &$product){
         		if(is_object($product)) continue;
         		 
-        		if($groupId = $mvc->getGroup($id, $now)){
+        		if($groupId = self::getGroup($id, $now)){
         			$groupTitle = price_Groups::getVerbal($groupId, 'title');
         			$product .=  " -- " . tr('група') . " {$groupTitle}";
         		}
         	}
         }
+        
+        $data->form->setOptions('productId', $products);
     }
     
 
