@@ -142,5 +142,6 @@ class planning_ReturnNotes extends deals_ManifactureMaster
 	function description()
 	{
 		parent::setDocumentFields($this);
+		$this->FLD('useResourceAccounts', 'enum(yes=Да,no=Не)', 'caption=Детайлно връщане->Избор,notNull,default=yes,maxRadio=2,before=note');
 	}
 }

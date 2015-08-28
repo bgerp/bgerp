@@ -61,22 +61,26 @@ class planning_transaction_ReturnNote extends acc_DocumentTransactionSource
 			$pInfo = cls::get($dRec->classId)->getProductInfo($dRec->productId);
 			$creditArr = NULL;
 			
-			//if($rec->useResourceAccounts == 'yes'){
+			if($rec->useResourceAccounts == 'yes'){
 				
-				// Ако е указано да влагаме само в център на дейност и ресурси, иначе влагаме в център на дейност
 				$creditArr = array('61101', array($dRec->classId, $dRec->productId),
 								  'quantity' => $dRec->quantity);
 				
 				$reason = 'Връщане на материал от производството';
-			//} 
+			} 
 			
-			// Ако не е ресурс, дебитираме общата сметка за разходи '61102. Други разходи (общо)'
+			// Ако не е ресурс, кредитираме общата сметка за разходи '61102. Други разходи (общо)'
+			$averageCost = NULL;
 			if(empty($creditArr)){
 				$creditArr = array('61102');
-				$reason = 'Бездетайлно влагане на материал в производството';
+				$reason = 'Връщане от производство без детайли';
+				
+				// Сумата с която ще върнем артикула в склада е неговата средно претеглена
+				$averageCost = cat_Products::getWeightedAverageValue($dRec->productId, $rec->storeId);
 			}
 			
-			$entries[] = array('debit' => array(321,
+			$entries[] = array('amount' => $averageCost, 
+							   'debit' => array(321,
 									array('store_Stores', $rec->storeId),
 									array($dRec->classId, $dRec->productId),
 									'quantity' => $dRec->quantity),

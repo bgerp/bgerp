@@ -148,6 +148,6 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
 	function description()
 	{
 		parent::setDocumentFields($this);
-		$this->FLD('useResourceAccounts', 'enum(yes=Да,no=Не)', 'caption=Влагане по материали->Избор,notNull,default=yes,maxRadio=2,before=note');
+		$this->FLD('useResourceAccounts', 'enum(yes=Да,no=Не)', 'caption=Детайлно влагане->Избор,notNull,default=yes,maxRadio=2,before=note');
 	}
 }
