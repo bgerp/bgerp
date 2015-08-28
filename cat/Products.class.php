@@ -1603,4 +1603,60 @@ class cat_Products extends core_Embedder {
     	 
     	return $url;
     }
+    
+    
+    /**
+     * Връща складовата (средно притеглената цена) на артикула в подадения склад, ако има
+     * 
+     * @param int $productId - ид на артикул
+     * @param int $storeId - ид на склад, NULL ако искаме за всички складове
+     * @return double $selfValue - себестойността
+     */
+    public static function getWeightedAverageValue($productId, $storeId = NULL)
+    {
+    	// Кой баланс ще вземем
+    	$lastBalance = acc_Balances::getLastBalance();
+    	$selfValue = 0;
+    	
+    	// Ако има баланс
+    	if($lastBalance){
+    		// Материала перо ли е ?
+    		$objectItem = acc_Items::fetchItem('cat_Products', $productId);
+    		
+    		// Ако е перо
+    		if($objectItem){
+    			 
+    			// Опитваме се да изчислим последно притеглената му цена
+    			$query = acc_BalanceDetails::getQuery();
+    			acc_BalanceDetails::filterQuery($query, $lastBalance->id, '321');
+    			$prodPositionId = acc_Lists::getPosition('321', 'cat_ProductAccRegIntf');
+    			 
+    			$query->where("#ent{$prodPositionId}Id = {$objectItem->id}");
+    			if(isset($storeId)){
+    				$storePositionId = acc_Lists::getPosition('321', 'store_AccRegIntf');
+    				if($storeItem = acc_Items::fetchItem('store_Stores', $storeId)){
+    					$query->where("#ent{$storePositionId}Id = {$storeItem->id}");
+    				}
+    			}
+    			
+    			$query->XPR('totalQuantity', 'double', 'SUM(#blQuantity)');
+    			$query->XPR('totalAmount', 'double', 'SUM(#blAmount)');
+    			$res = $query->fetch();
+    			 
+    			// Ако има някакво количество и суми в складовете, натрупваме ги
+    			if(!is_null($res->totalQuantity) && !is_null($res->totalAmount)){
+    				$totalQuantity = round($res->totalQuantity, 2);
+    				$totalAmount = round($res->totalAmount, 2);
+    		
+    				if($totalAmount == 0){
+    					$selfValue = 0;
+    				} else {
+    					@$selfValue = $totalAmount / $totalQuantity;
+    				}
+    			}
+    		}
+    	}
+    	
+    	return $selfValue;
+    }
 }
