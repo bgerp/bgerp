@@ -81,6 +81,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 		
 		$index = 0;
 		$costAmount = 0;
+		
 		if(count($resourcesArr)){
 			arr::orderA($resourcesArr, 'type');
 			
@@ -104,7 +105,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 					$entry['credit'] = array('61101', array($obj->classId, $obj->productId),
 											            'quantity' => $obj->resourceQuantity);
 					$entry['reason'] = $reason;
-				} else {
+				} elseif($obj->type == 'pop') {
 					$amount = $selfValue;
 					$entry['debit'] = array('61101', array($obj->classId, $obj->productId),
 												  'quantity' => $obj->resourceQuantity);
@@ -115,6 +116,16 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 					$entry['amount'] = $amount;
 					$entry['reason'] = 'Приспадане себестойността на отпадък от произведен артикул';
 					$total += $amount;
+				} else {
+					$reason = 'Върнати материали от производството';
+					
+					$entry['debit'] = array('321', array('store_Stores', $rec->storeId),
+										 array($obj->classId, $obj->productId),
+										'quantity' => $obj->resourceQuantity);
+					
+					$entry['credit'] = array('61101', array($obj->classId, $obj->productId),
+											            'quantity' => $obj->resourceQuantity);
+					$entry['reason'] = $reason;
 				}
 				
 				$entries[] = $entry;

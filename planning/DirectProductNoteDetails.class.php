@@ -96,7 +96,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     {
         $this->FLD('noteId', 'key(mvc=planning_DirectProductionNote)', 'column=none,notNull,silent,hidden,mandatory');
         $this->FLD('resourceId', 'key(mvc=planning_Resources,select=title,allowEmpty)', 'silent,caption=Ресурс,input=none,removeAndRefreshForm=productId|packagingId|quantityInPack|quantity|packQuantity|measureId');
-        $this->FLD('type', 'enum(input=Влагане,pop=Отпадък)', 'caption=Действие,silent,input=hidden');
+        $this->FLD('type', 'enum(input=Влагане,pop=Отпадък,return=Връщане)', 'caption=Действие,silent,input=hidden');
         
         parent::setDetailFields($this);
         $this->FLD('conversionRate', 'double', 'input=none');
@@ -111,9 +111,9 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
      */
     public static function on_BeforePrepareEditForm($mvc, &$res, $data)
     {
-    	$type = Request::get('type', 'enum(input,pop)');
+    	$type = Request::get('type', 'enum(input,pop,return)');
     	 
-    	$title = ($type == 'pop') ? 'отпадък' : 'материал';
+    	$title = ($type == 'pop') ? 'отпадък' : (($type == 'return') ? 'материал за връщане' : 'материал');
     	$mvc->singleTitle = $title;
     }
     
@@ -180,8 +180,8 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
      */
     public static function on_AfterPrepareDetail($mvc, $res, $data)
     {
-    	$data->inputArr = $data->popArr = array();
-    	$countInputed = $countPoped = 1;
+    	$data->returnArr = $data->inputArr = $data->popArr = array();
+    	$countReturned = $countInputed = $countPoped = 1;
     	$Int = cls::get('type_Int');
     	
     	// За всеки детайл (ако има)
@@ -197,10 +197,14 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     				$row->tools->append($Int->toVerbal($countInputed), 'TOOLS');
     				$data->inputArr[$id] = $row;
     				$countInputed++;
-    			} else {
+    			} elseif($rec->type == 'pop') {
     				$row->tools->append($Int->toVerbal($countPoped), 'TOOLS');
     				$data->popArr[$id] = $row;
     				$countPoped++;
+    			} else {
+    				$row->tools->append($Int->toVerbal($countReturned), 'TOOLS');
+    				$data->returnArr[$id] = $row;
+    				$countReturned++;
     			}
     		}
     	}
@@ -222,8 +226,8 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     		unset($data->listFields['tools']);
     	}
     	
-    	
     	// Рендираме таблицата с вложените материали
+    	$data->listFields['productId'] = 'Вложенo';
     	$table = cls::get('core_TableView', array('mvc' => $this));
     	$detailsInput = $table->get($data->inputArr, $data->listFields);
     	$tpl->append($detailsInput, 'planning_DirectProductNoteDetails');
@@ -244,6 +248,19 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     	// Добавяне на бутон за нов отпадък
     	if($this->haveRightFor('add', (object)array('noteId' => $data->masterId))){
     		$tpl->append(ht::createBtn('Отпадък', array($this, 'add', 'noteId' => $data->masterId, 'type' => 'pop', 'ret_url' => TRUE),  NULL, NULL, array('style' => 'margin-top:5px;;margin-bottom:10px;', 'ef_icon' => 'img/16/wooden-box.png', 'title' => 'Добавяне на нов отпадък')), 'planning_DirectProductNoteDetails');
+    	}
+    	
+    	// Рендираме таблицата с върнатите
+    	if(count($data->returnArr) || $data->masterData->rec->state == 'draft'){
+    		$data->listFields['productId'] = 'Върнато';
+    		$detailsReturned = $table->get($data->returnArr, $data->listFields);
+    		$detailsPop = ht::createElement("div", array('style' => 'margin-top:5px;margin-bottom:5px'), $detailsReturned);
+    		$tpl->append($detailsReturned, 'planning_DirectProductNoteDetails');
+    	}
+    	
+    	// Добавяне на бутон за ново връщане
+    	if($this->haveRightFor('add', (object)array('noteId' => $data->masterId))){
+    		$tpl->append(ht::createBtn('Връщане', array($this, 'add', 'noteId' => $data->masterId, 'type' => 'return', 'ret_url' => TRUE),  NULL, NULL, array('style' => 'margin-top:5px;;margin-bottom:10px;', 'ef_icon' => 'img/16/wooden-box.png', 'title' => 'Добавяне на нов отпадък')), 'planning_DirectProductNoteDetails');
     	}
     	
     	// Връщаме шаблона

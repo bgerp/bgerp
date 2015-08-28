@@ -379,6 +379,7 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 		$details = array();
 		$dQuery = planning_DirectProductNoteDetails::getQuery();
 		$dQuery->where("#noteId = {$id}");
+		$dQuery->where("#type != 'return'");
 		while ($dRec = $dQuery->fetch()){
 			$nRec = new stdClass();
 			$nRec->resourceId     = $dRec->productId;
