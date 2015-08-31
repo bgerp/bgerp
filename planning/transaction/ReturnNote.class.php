@@ -79,13 +79,18 @@ class planning_transaction_ReturnNote extends acc_DocumentTransactionSource
 				$averageCost = cat_Products::getWeightedAverageValue($dRec->productId, $rec->storeId);
 			}
 			
-			$entries[] = array('amount' => $averageCost, 
-							   'debit' => array(321,
-									array('store_Stores', $rec->storeId),
-									array($dRec->classId, $dRec->productId),
-									'quantity' => $dRec->quantity),
-							   'credit' => $creditArr,
-							   'reason' => $reason);
+			$entry = array('debit' => array(321,
+								array('store_Stores', $rec->storeId),
+								array($dRec->classId, $dRec->productId),
+								'quantity' => $dRec->quantity),
+							  'credit' => $creditArr,
+						   'reason' => $reason);
+			
+			if(!is_null($averageCost)){
+				$entry['amount'] = $averageCost;
+			}
+			
+			$entries[] = $entry;
 		}
 		
 		// Връщаме ентритата
