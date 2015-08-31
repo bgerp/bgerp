@@ -360,7 +360,7 @@ class cat_Products extends core_Embedder {
     		$form->setField('meta', 'input=hidden');
     	}
 		
-		//Проверяваме за недопустими символи
+		// Проверяваме за недопустими символи
         if ($form->isSubmitted()){
         	$rec = &$form->rec;
         	
@@ -1093,10 +1093,6 @@ class cat_Products extends core_Embedder {
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	if($fields['-list']){
-    		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
-    	}
-    	
     	if($fields['-single']){
     		if(isset($rec->originId)){
     			$row->originId = doc_Containers::getDocument($rec->originId)->getLink(0);

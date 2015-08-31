@@ -346,10 +346,6 @@ class findeals_Deals extends deals_DealBase
     		}
     	}
     	
-    	if($fields['-list']){
-    		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
-    	}
-    	
     	$row->baseCurrencyId = acc_Periods::getBaseCurrencyCode($rec->createdOn);
     }
     

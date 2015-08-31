@@ -325,7 +325,6 @@ abstract class store_DocumentMaster extends core_Master
 	   	}
 	   	 
 	   	if(isset($fields['-list'])){
-	   		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
 	   		if($rec->amountDelivered){
     			$row->amountDelivered = "<span class='cCode' style='float:left'>{$rec->currencyId}</span> &nbsp;{$row->amountDelivered}";
     		} else {

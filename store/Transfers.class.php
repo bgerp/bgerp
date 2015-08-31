@@ -258,7 +258,6 @@ class store_Transfers extends core_Master
     	}
     	
     	if($fields['-list']){
-    		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
     		$row->title = $mvc->getLink($rec->id, 0);
     		
     		$attr = array();

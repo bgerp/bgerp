@@ -363,10 +363,6 @@ class bank_IncomeDocuments extends core_Master
     {
         $row->title = $mvc->getLink($rec->id, 0);
         
-        if($fields['-list']){
-            $row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
-        }
-        
         if($fields['-single']) {
             
             $row->currencyId = currency_Currencies::getCodeById($rec->currencyId);

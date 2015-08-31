@@ -888,7 +888,6 @@ abstract class deals_InvoiceMaster extends core_Master
     	}
     	
     	if($fields['-list']){
-    		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
     		if($rec->number){
     			$row->number = ht::createLink($row->number, array($mvc, 'single', $rec->id),NULL, 'ef_icon=img/16/invoice.png');
     		}

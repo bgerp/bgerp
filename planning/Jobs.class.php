@@ -368,7 +368,6 @@ class planning_Jobs extends core_Master
     	
     	
     	if($fields['-list']){
-    		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
     		$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
     	}
     	 
