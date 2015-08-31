@@ -222,6 +222,7 @@ class tasks_TaskConditions extends doc_Detail
     		$row->progress .= " " . tasks_Tasks::getLink($rec->dependsOn, 0);
     	}
     	$row->progress = "<div style='text-align:center;'>{$row->progress}</div>";
+    	$row->ROW_ATTR['class'] .= " state-active";
     }
     
     
