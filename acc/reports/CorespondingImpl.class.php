@@ -195,6 +195,17 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
         
     
     /**
+     * Филтрира заявката
+     */
+    protected function prepareFilterQuery(&$query, $form)
+    {
+    	acc_JournalDetails::filterQuery($query, $form->from, $form->to);
+    	$query->where("#debitAccId = {$form->baseAccountId} AND #creditAccId = {$form->corespondentAccountId}");
+    	$query->orWhere("#debitAccId = {$form->corespondentAccountId} AND #creditAccId = {$form->baseAccountId}");
+    }
+    
+    
+    /**
      * Подготвя вътрешното състояние, на база въведените данни
      */
     public function prepareInnerState()
@@ -219,11 +230,10 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     	
     	$this->prepareListFields($data);
     	
-    	// Извличаме записите от журнала за периода, където участват основната и кореспондиращата сметка
     	$jQuery = acc_JournalDetails::getQuery();
-    	acc_JournalDetails::filterQuery($jQuery, $form->from, $form->to);
-    	$jQuery->where("#debitAccId = {$form->baseAccountId} AND #creditAccId = {$form->corespondentAccountId}");
-    	$jQuery->orWhere("#debitAccId = {$form->corespondentAccountId} AND #creditAccId = {$form->baseAccountId}");
+    	
+    	// Извличаме записите от журнала за периода, където участват основната и кореспондиращата сметка
+    	$this->prepareFilterQuery($jQuery, $form);
     	
     	// За всеки запис добавяме го към намерените резултати
     	$recs = $jQuery->fetchAll();
