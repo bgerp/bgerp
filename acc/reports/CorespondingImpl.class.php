@@ -376,13 +376,13 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     	
         $tpl->replace($btns->buttonList, 'buttonList');
         $tpl->replace($btns->buttonChart, 'buttonChart');
-        
-        $type = Request::get('Chart');
+
         $var = str::addHash("pie", 5, "{$this->EmbedderRec->that}");
-        $tableVar = str::addHash("table", 5, "{$this->EmbedderRec->that}");
 
-
-        if ((Request::get('var') == $var || Request::get('var') == $tableVar) && $data->recs) { //bp($type, $data->rec->containerId, $data);
+        $curUrl = getCurrentUrl();
+        $docId = $this->innerForm->containerId;;
+        
+        if ($curUrl["var_{$docId}"] == $var && $data->recs) {
         	$chart = $this->getChart($data);
         	$tpl->append($chart, 'CONTENT');
         } else {
@@ -810,36 +810,22 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     {
 
     	$var = str::addHash("pie", 5, "{$this->EmbedderRec->that}");
-    	$tableVar = str::addHash("table", 5, "{$this->EmbedderRec->that}");
 
         $curUrl = getCurrentUrl();
-
-        if ($curUrl['varType']) {
-        	$varDoc = $curUrl['varType'];
+        $docId = $this->innerForm->containerId;
+		
+        if ($curUrl["var_{$docId}"]) {
+        	unset ($curUrl["var_{$docId}"]);
         }
+    
     	// правим бутони за toolbar
-    	$btnList = ht::createBtn('Таблица', array(
-    			'doc_Containers',
-    			'list',
-    			'threadId' => Request::get('threadId', 'int'),
-    			'docId' => Request::get('docId', 'varchar'),
-    			'var' => $varDoc,
-    			'varType' => $tableVar
-    			 
-    	), NULL, NULL,
+    	$btnList = ht::createBtn('Таблица', $curUrl, NULL, NULL,
     			'ef_icon = img/16/table.png');
 
-    	
-    	$btnChart = ht::createBtn('Графика', array(
-    			'doc_Containers',
-    			'list',
-    			'Chart' => 'pie'. $data->rec->containerId,
-    			'threadId' => Request::get('threadId', 'int'),
-    			'docId' => Request::get('docId', 'varchar'),
-    			'var' => $varDoc,
-    			'varType' => $var,
-    			 
-    	), NULL, NULL,
+    	$curUrl["var_{$docId}"] = $var;
+    	$urlPie = $curUrl;
+
+    	$btnChart = ht::createBtn('Графика', $urlPie, NULL, NULL,
     			'ef_icon = img/16/chart16.png');
     	
     	$btns = array();
