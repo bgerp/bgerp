@@ -66,6 +66,7 @@ class planning_Setup extends core_ProtoSetup
     		'planning_AssetResources',
     		'planning_drivers_ProductionTaskDetails',
     		'migrate::updateTasks',
+    		'migrate::updateNotes',
         );
 
         
@@ -123,6 +124,23 @@ class planning_Setup extends core_ProtoSetup
     	if($cRec = core_Classes::fetch("#name = 'tasks_Tasks'")){
     		$cRec->state = 'closed';
     		core_Classes::save($cRec);
+    	}
+    }
+    
+    
+    /**
+     * Миграция на старите задачи
+     */
+    function updateNotes()
+    {
+    	if(!planning_DirectProductionNote::count()) return;
+    	
+    	$query = planning_DirectProductionNote::getQuery();
+    	$query->where('#inputStoreId IS NULL');
+    	
+    	while($rec = $query->fetch()){
+    		$rec->inputStoreId = $rec->storeId;
+    		cls::get('planning_DirectProductionNote')->save_($rec);
     	}
     }
 }

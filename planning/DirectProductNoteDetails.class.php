@@ -233,7 +233,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     	$tpl->append($detailsInput, 'planning_DirectProductNoteDetails');
     	
     	// Добавяне на бутон за нов материал
-    	if($this->haveRightFor('add', (object)array('noteId' => $data->masterId))){
+    	if($this->haveRightFor('add', (object)array('noteId' => $data->masterId, 'type' => 'input'))){
     		$tpl->append(ht::createBtn('Материал', array($this, 'add', 'noteId' => $data->masterId, 'type' => 'input', 'ret_url' => TRUE),  NULL, NULL, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/wooden-box.png', 'title' => 'Добавяне на нов материал')), 'planning_DirectProductNoteDetails');
     	}
     	
@@ -246,7 +246,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     	}
     	
     	// Добавяне на бутон за нов отпадък
-    	if($this->haveRightFor('add', (object)array('noteId' => $data->masterId))){
+    	if($this->haveRightFor('add', (object)array('noteId' => $data->masterId, 'type' => 'pop'))){
     		$tpl->append(ht::createBtn('Отпадък', array($this, 'add', 'noteId' => $data->masterId, 'type' => 'pop', 'ret_url' => TRUE),  NULL, NULL, array('style' => 'margin-top:5px;;margin-bottom:10px;', 'ef_icon' => 'img/16/wooden-box.png', 'title' => 'Добавяне на нов отпадък')), 'planning_DirectProductNoteDetails');
     	}
     	
@@ -260,10 +260,31 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     	
     	// Добавяне на бутон за ново връщане
     	if($this->haveRightFor('add', (object)array('noteId' => $data->masterId))){
-    		$tpl->append(ht::createBtn('Връщане', array($this, 'add', 'noteId' => $data->masterId, 'type' => 'return', 'ret_url' => TRUE),  NULL, NULL, array('style' => 'margin-top:5px;;margin-bottom:10px;', 'ef_icon' => 'img/16/wooden-box.png', 'title' => 'Добавяне на нов отпадък')), 'planning_DirectProductNoteDetails');
+    		$attr = array('style' => 'margin-top:5px;;margin-bottom:10px;', 'ef_icon' => 'img/16/wooden-box.png', 'title' => 'Добавяне на нов отпадък');
+    		if(!isset($data->masterData->rec->returnStoreId)){
+    			$tpl->append(ht::createErrBtn('Връщане', 'Не е избран склад в който да влязат върнатите материали', $attr));
+    		} else {
+    			$tpl->append(ht::createBtn('Връщане', array($this, 'add', 'noteId' => $data->masterId, 'type' => 'return', 'ret_url' => TRUE),  NULL, NULL, $attr), 'planning_DirectProductNoteDetails');
+    		}
     	}
     	
     	// Връщаме шаблона
     	return $tpl;
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+    	if(($action == 'add' || $action == 'edit') && isset($rec)){
+    		if($rec->type == 'return'){
+    			$returnStore = $mvc->Master->fetchField($rec->noteId, 'returnStoreId');
+    			if(empty($returnStore)){
+    				$requiredRoles = 'no_one';
+    			}
+    		}
+    	}
     }
 }
