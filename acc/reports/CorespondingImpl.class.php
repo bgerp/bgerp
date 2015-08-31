@@ -860,9 +860,9 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     	$arr = $this->preparePie($dArr, 12);
 
     	foreach ($arr as $id => $recSort) { 
-            //$title = mb_substr($recSort->title,0,19);
+            $title = str::limitLen($recSort->title, 19);
 
-    		$info["{$recSort->title}"] = $recSort->value;
+    		$info["{$title}"] = $recSort->value;
     	}
 
     	$pie = array (
