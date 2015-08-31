@@ -138,20 +138,12 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     	}
     	
     	$form->setOptions('productId', $products);
-    	
     	$form->setDefault('classId', $classId);
-    }
-    
-    
-    /**
-     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
-     */
-    public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
-    {
-    	$rec = &$form->rec;
     	
-    	if($form->isSubmitted()){
-    		
+    	if($rec->productId){
+    		$storeId = ($rec->type == 'return') ? $data->masterRec->returnStoreId : $data->masterRec->inputStoreId;
+    		$info = deals_Helper::getProductQuantityInStoreInfo($rec->productId, $classId, $storeId);
+    		$form->info = $info->formInfo;
     	}
     }
     
