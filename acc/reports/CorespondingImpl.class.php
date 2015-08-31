@@ -856,21 +856,29 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
      * @param stdClass $data
      * @return core_ET
      */
-    public function getChart ($data)
+    protected function getChart ($data)
     {
+    	arr::order($data->recs, $this->innerForm->orderField, $this->innerForm->orderBy);
+
     	foreach ($data->recs as $id => $rec) {
 
     		$balance += abs($rec->blAmount);
     	
-    		$dArr[] = abs($rec->blAmount);
-    	}
-
-    	$arr = $this->preparePie($dArr, 12, 'Others');
-
-    	foreach ($arr as $id => $recSort) {
-    		$info[mb_substr($recSort->key,0,19)] = $recSort->value;
+    		foreach (range(1, 3) as $i){
+    	    	if (isset($rec->{"item{$i}"})) {
+    	    		$dArr[] = (object) array ('key' => $rec->{"item{$i}"}, 'value' => abs($rec->blAmount));
+    	    	}
+    		}
     	}
     	
+    	$arr = $this->preparePie($dArr, 12);
+
+    	foreach ($arr as $id => $recSort) { 
+            //$title = mb_substr($recSort->title,0,19);
+
+    		$info["{$recSort->title}"] = $recSort->value;
+    	}
+
     	$pie = array (
     				'legendTitle' => $this->getReportTitle(),
     				'suffix' => "лв.",
@@ -896,11 +904,12 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
      */
     public static function preparePie ($data, $n, $otherName = 'Други')
     {
+    	
+    	foreach ($data as $key => $rec) {
 
-    	foreach ($data as $key => $value) {
-    		$newArr [] = (object) array ('key' => $key, 'value' => $value);
+    		$newArr [] = (object) array ('title' => $rec->key, 'value' => $rec->value);
     	}
-    
+
     	// броя на елементите в получения масив
     	$cntData = count($data);
     
@@ -917,11 +926,14 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     	} else {
     		// взимаме първите n елемента от сортирания масив
     		for($k = 0; $k <= $n -1; $k++) {
-    			$res[] = $newArr[$k];
+    			$title = acc_Items::getVerbal($newArr[$k]->title, 'title');
+    			
+    			$res[] = (object) array ('key' => $k, 'title' => $title, 'value' => $newArr[$k]->value);
     		}
-    
+
     		// останалите елементи ги събираме
     		for ($i = $n; $i <= $cntData; $i++){
+
     			$sum += $newArr[$i]->value;
     		}
     
@@ -929,11 +941,12 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     		if ($otherName) {
     			// използваме него и го добавяме към получения нов масив с
     			// n еленета и сумата на останалите елементи
-    			$res[] = (object) array ('key' => $otherName, 'value' => $sum);
+    			$res[] = (object) array ('key' => $n+1, 'title' => $otherName, 'value' => $sum);
     			// ако няма, използваме default
     		} else {
-    			$res[] = (object) array ('key' => "Други", 'value' => $sum);
+    			$res[] = (object) array ('key' => $n+1,'title' => "Други", 'value' => $sum);
     		}
+
     	}
     
     	return $res;
