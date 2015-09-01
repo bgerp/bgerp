@@ -75,6 +75,12 @@ class cat_Products extends core_Embedder {
     
     
     /**
+     * Кои полета от листовия изглед да се скриват ако няма записи в тях
+     */
+    protected $hideListFieldsIfEmpty = 'code';
+    
+    
+    /**
      * Да се показват ли в репортите нулевите редове
      */
     public $balanceRefShowZeroRows = TRUE;
@@ -212,12 +218,12 @@ class cat_Products extends core_Embedder {
 	 * @var string
 	 */
 	public $recTitleTpl = '[#name#]<!--ET_BEGIN code--> ([#code#])<!--ET_END code-->';
-    
-    
+	
+	
 	/**
-	 * Кои полета от мениджъра преди запис да се обновяват със стойностти от драйвера
+	 * Какво може да се прави със избраните
 	 */
-	public $fieldsToBeManagedByDriver = 'info, measureId, photo';
+	var $doWithSelected = 'changemeta=Свойства';
 	
 	
 	/**
@@ -360,7 +366,7 @@ class cat_Products extends core_Embedder {
     		$form->setField('meta', 'input=hidden');
     	}
 		
-		//Проверяваме за недопустими символи
+		// Проверяваме за недопустими символи
         if ($form->isSubmitted()){
         	$rec = &$form->rec;
         	
@@ -1093,10 +1099,6 @@ class cat_Products extends core_Embedder {
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	if($fields['-list']){
-    		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
-    	}
-    	
     	if($fields['-single']){
     		if(isset($rec->originId)){
     			$row->originId = doc_Containers::getDocument($rec->originId)->getLink(0);
@@ -1602,5 +1604,205 @@ class cat_Products extends core_Embedder {
     	}
     	 
     	return $url;
+    }
+    
+    
+    /**
+     * Връща складовата (средно притеглената цена) на артикула в подадения склад, ако има
+     * 
+     * @param int $productId - ид на артикул
+     * @param int $storeId - ид на склад, NULL ако искаме за всички складове
+     * @return double $selfValue - себестойността
+     */
+    public static function getWeightedAverageValue($productId, $storeId = NULL)
+    {
+    	// Кой баланс ще вземем
+    	$lastBalance = acc_Balances::getLastBalance();
+    	$selfValue = 0;
+    	
+    	// Ако има баланс
+    	if($lastBalance){
+    		// Материала перо ли е ?
+    		$objectItem = acc_Items::fetchItem('cat_Products', $productId);
+    		
+    		// Ако е перо
+    		if($objectItem){
+    			 
+    			// Опитваме се да изчислим последно притеглената му цена
+    			$query = acc_BalanceDetails::getQuery();
+    			acc_BalanceDetails::filterQuery($query, $lastBalance->id, '321');
+    			$prodPositionId = acc_Lists::getPosition('321', 'cat_ProductAccRegIntf');
+    			 
+    			$query->where("#ent{$prodPositionId}Id = {$objectItem->id}");
+    			if(isset($storeId)){
+    				$storePositionId = acc_Lists::getPosition('321', 'store_AccRegIntf');
+    				if($storeItem = acc_Items::fetchItem('store_Stores', $storeId)){
+    					$query->where("#ent{$storePositionId}Id = {$storeItem->id}");
+    				}
+    			}
+    			
+    			$query->XPR('totalQuantity', 'double', 'SUM(#blQuantity)');
+    			$query->XPR('totalAmount', 'double', 'SUM(#blAmount)');
+    			$res = $query->fetch();
+    			 
+    			// Ако има някакво количество и суми в складовете, натрупваме ги
+    			if(!is_null($res->totalQuantity) && !is_null($res->totalAmount)){
+    				$totalQuantity = round($res->totalQuantity, 2);
+    				$totalAmount = round($res->totalAmount, 2);
+    		
+    				if($totalAmount == 0){
+    					$selfValue = 0;
+    				} else {
+    					@$selfValue = $totalAmount / $totalQuantity;
+    				}
+    			}
+    		}
+    	}
+    	
+    	return $selfValue;
+    }
+    
+    
+    /**
+     * Смяна статута на 'rejected'
+     *
+     * @return core_Redirect
+     */
+    function act_changemeta()
+    {
+    	$this->requireRightFor('edit');
+    
+    	// Създаване на формата
+    	$form = cls::get('core_Form');
+    	$form->FNC('id', 'int', 'input=hidden,silent');
+    	$form->FNC('Selected', 'text', 'input=hidden,silent');
+    	$form->FNC('ret_url', 'varchar(1024)', 'input=hidden,silent');
+    	$form->input(NULL, 'silent');
+    	$rec = $form->rec;
+    
+    	expect($rec->id || $rec->Selected, $rec);
+    
+    	$selArr = arr::make($rec->Selected);
+    	if($id) {
+    		$selArr[] = $id;
+    	}
+    
+    	$metas = $this->getFieldType('meta')->suggestions;
+    	$canDelMetas = $canAddMetas = array();
+    
+    	// Премахване на лишите или недостъпните id-та
+    	foreach($selArr as $i => $ind) {
+    		$obj = (object) array('id' => $ind);
+    
+    		if(!is_numeric($ind) || !$this->haveRightFor('edit', $obj)) {
+    			unset($selArr[$i]);
+    		}
+    
+    		$metaArr = type_Set::toArray($this->fetchField($ind, 'meta'));
+    		foreach($metaArr as $m) {
+    			if($metas[$m]) {
+    				$canDelMetas[$m]++;
+    			}
+    		}
+    
+    		foreach($metas as $m => $caption) {
+    			if(!$metaArr[$m]) {
+    				$canAddMetas[$m]++;
+    			}
+    		}
+    	}
+    		
+    	$selArrCnt = count($selArr);
+    	expect($selArrCnt);
+    	reset($selArr);
+    
+    	if($selArrCnt == 1) {
+    		$selOneKey = key($selArr);
+    	}
+    
+    	if($selArrCnt == 1) {
+    		$id = $selArr[$selOneKey];
+    		$metas = $this->fetchField($id, 'meta');
+    		$form->title = 'Промяна в свойствата на |*<i style="color:#ffffaa">' .  $this->getTitleById($selArr[0]) . '</i>';
+    		$form->FNC('meta', $this->getFieldType('meta'), 'caption=Свойства,input');
+    		$form->setDefault('meta', $metas);
+    	} else {
+    		$form->title = 'Промяна на свойствата на |*' . $selArrCnt . '| ' . mb_strtolower($this->title);
+    
+    		if(count($canAddMetas)) {
+    			$addType = cls::get('type_Set');
+    
+    			foreach($canAddMetas as $g => $cnt) {
+    				$addType->suggestions[$g] = $metas[$g] . " ({$cnt})";
+    			}
+    				$form->FNC('addMetas', $addType, 'caption=Добавяне->Свойства,input');
+    			}
+    
+    			if(count($canDelMetas)) {
+    				$delType = cls::get('type_Set');
+    				foreach($canDelMetas as $g => $cnt) {
+    					$delType->suggestions[$g] = $metas[$g] . " ({$cnt})";
+    				}
+    				$form->FNC('delMetas', $delType, 'caption=Премахване->Свойства,input');
+    			}
+    		}
+    
+    		$form->toolbar->addSbBtn('Запис');
+    		if($selArrCnt == 1) {
+    			$retUrl = array($this, 'single', $selArr[$selOneKey]);
+    		} else {
+    			$retUrl = array($this, 'list');
+    		}
+    		
+    		$form->toolbar->addBtn('Отказ', $retUrl);
+    
+    		$form->input();
+    
+    		if($form->isSubmitted()) {
+    		$rec = $form->rec;
+    
+    		$changed = 0;
+    
+    		if($selArrCnt == 1) {
+    			$obj = new stdClass();
+    			$obj->id = $id;
+    			$obj->meta = $rec->meta;
+    
+    			if($groups != $rec->meta) {
+    				$this->save($obj, 'meta');
+    				$changed = 1;
+    			}
+    		} else {
+    			foreach($selArr as $id) {
+    				$exGroups = $groups = type_Set::toArray($this->fetchField($id, 'meta'));
+    					
+    				$groups = array_merge($groups, arr::make($rec->addMetas, TRUE));
+    				$groups = array_diff($groups, arr::make($rec->delMetas, TRUE));
+    					
+    				$obj = new stdClass();
+    				$obj->id = $id;
+    				$obj->meta = cls::get('type_Set')->fromVerbal($groups);
+    					
+    				if($groups != $exGroups) {
+    					$this->save($obj, 'meta');
+    					$changed++;
+    				}
+    			}
+    		}
+    
+    		if(!$changed) {
+    			$msg = tr("Не бяха променени свойства");
+    		} elseif($changed == 1) {
+    			$msg = tr("Бяха променени свойствата на 1 " . mb_strtolower($this->singleTitle));
+    		} else {
+    			$msg = tr("Бяха променени свойствата на|* {$changed} "  . mb_strtolower($this->title));
+    		}
+    
+    		$res = new Redirect($retUrl, $msg);
+    	} else {
+    		$res = $this->renderWrapping($form->renderHtml());
+    	}
+    	
+    	return $res;
     }
 }

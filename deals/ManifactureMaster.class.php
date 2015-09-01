@@ -80,7 +80,6 @@ abstract class deals_ManifactureMaster extends core_Master
 		}
 		 
 		if($fields['-list']){
-			$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
 			$row->storeId = store_Stores::getHyperlink($rec->storeId, TRUE);
 			$row->title = $mvc->getLink($rec->id, 0);
 		}

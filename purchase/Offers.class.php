@@ -156,20 +156,6 @@ class purchase_Offers extends core_Master
         	}
     	}
     }
- 
-    
-    /**
-     * След преобразуване на записа в четим за хора вид.
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $row Това ще се покаже
-     * @param stdClass $rec Това е записа в машинно представяне
-     */
-    static function on_AfterRecToVerbal ($mvc, &$row, $rec, $fields = array())
-    {
-    	$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
-    	
-    }
     
     
     /**

@@ -368,42 +368,7 @@ class planning_ObjectResources extends core_Manager
     		
     		// Ако няма търговска себестойност: проверяваме за счетоводна
     		if(!isset($selfValue)){
-    			
-    			// Кой баланс ще вземем
-    			$lastBalance = acc_Balances::getLastBalance();
-    			
-    			// Ако има баланс
-    			if($lastBalance){
-    					
-    				// Материала перо ли е ?
-    				$objectItem = acc_Items::fetchItem('cat_Products', $objectId);
-    				 
-    				// Ако е перо
-    				if($objectItem){
-    			
-    					// Опитваме се да изчислим последно притеглената му цена
-    					$query = acc_BalanceDetails::getQuery();
-    					acc_BalanceDetails::filterQuery($query, $lastBalance->id, '321');
-    					$prodPositionId = acc_Lists::getPosition('321', 'cat_ProductAccRegIntf');
-    			
-    					$query->where("#ent{$prodPositionId}Id = {$objectItem->id}");
-    					$query->XPR('totalQuantity', 'double', 'SUM(#blQuantity)');
-    					$query->XPR('totalAmount', 'double', 'SUM(#blAmount)');
-    					$res = $query->fetch();
-    			
-    					// Ако има някакво количество и суми в складовете, натрупваме ги
-    					if(!is_null($res->totalQuantity) && !is_null($res->totalAmount)){
-    						$totalQuantity = round($res->totalQuantity, 2);
-    						$totalAmount = round($res->totalAmount, 2);
-    						 
-    						if($totalAmount == 0){
-    							$selfValue = 0;
-    						} else {
-    							@$selfValue = $totalAmount / $totalQuantity;
-    						}
-    					}
-    				}
-    			}
+    			$selfValue = cat_Products::getWeightedAverageValue($objectId);
     		}
     	}
     	

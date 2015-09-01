@@ -14,7 +14,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class acc_reports_ProfitArticles extends acc_reports_BalanceImpl
+class acc_reports_ProfitArticles extends acc_reports_CorespondingImpl
 {
 
 
@@ -33,19 +33,43 @@ class acc_reports_ProfitArticles extends acc_reports_BalanceImpl
     /**
      * Заглавие
      */
-    public $title = 'Счетоводство » Печалба от продажби на Стоки и Продукти';
+    public $title = 'Счетоводство » Печалба по артикули';
 
-
+    
     /**
      * Дефолт сметка
      */
-    public $accountSysId = '701';
-
-
+    public $baseAccountId = '701';
+    
+    
     /**
-     * Плъгини за зареждане
+     * Дефолт сметка
      */
-    public $loadList = 'plg_ExportCsv';
+    public $account703Id = '703';
+    
+    
+    /**
+     * Дефолт сметка
+     */
+    public $account704Id = '704';
+    
+    
+    /**
+     * Дефолт сметка
+     */
+    public $account705Id = '705';
+    
+    
+    /**
+     * Дефолт сметка
+     */
+    public $account706Id = '706';
+    
+    
+    /**
+     * Кореспондент сметка
+     */
+    public $corespondentAccountId = '700';
 
 
     /**
@@ -55,22 +79,41 @@ class acc_reports_ProfitArticles extends acc_reports_BalanceImpl
     {
 
         // Искаме да покажим оборотната ведомост за сметката на касите
-        $accId = acc_Accounts::getRecBySystemId($mvc->accountSysId)->id;
-        $form->setDefault('accountId', $accId);
-        $form->setHidden('accountId');
-
-        // Дефолт периода е текущия ден
-        $today = dt::today();
-
-        $form->setDefault('from',date('Y-m-01', strtotime("-1 months", dt::mysql2timestamp(dt::now()))));
-        $form->setDefault('to', $today);
-
-        // Задаваме че ще филтрираме по перо
-        $form->setDefault('action', 'group');
-        $form->setHidden('orderField');
+        $baseAccId = acc_Accounts::getRecBySystemId($mvc->baseAccountId)->id;
+        $form->setDefault('baseAccountId', $baseAccId);
+        $form->setHidden('baseAccountId');
+        
+        $corespondentAccId = acc_Accounts::getRecBySystemId($mvc->corespondentAccountId)->id;
+        $form->setDefault('corespondentAccountId', $corespondentAccId);
+        $form->setHidden('corespondentAccountId');
+        
+        $form->setDefault('side', 'all');
+        $form->setHidden('side');
+        
+        $form->setDefault('orderBy', 'DESC');
         $form->setHidden('orderBy');
-
-       // bp($form);
+        
+        $form->setDefault('orderField', 'blAmount');
+        $form->setHidden('orderField');
+        
+        $form->setField('from','refreshForm,silent');
+        $form->setField('to','refreshForm,silent');
+    }
+    
+    
+    /**
+     * Проверява въведените данни
+     *
+     * @param core_Form $form
+     */
+    public function checkEmbeddedForm(core_Form &$form)
+    {
+    	// Размяна, ако периодите са объркани
+    	if(isset($form->rec->from) && isset($form->rec->to) && ($form->rec->from > $form->rec->to)) {
+    		$mid = $form->rec->from;
+    		$form->rec->from = $form->rec->to;
+    		$form->rec->to = $mid;
+    	}
     }
 
 
@@ -79,67 +122,65 @@ class acc_reports_ProfitArticles extends acc_reports_BalanceImpl
      */
     public static function on_AfterPrepareEmbeddedForm($mvc, core_Form &$form)
     {
-        $form->setHidden('action');
+    	
+    	foreach (range(1, 3) as $i) {
+    	
+    		$form->setHidden("feat{$i}");
+    	
+    	}
+    	
+    	$contragentPositionId = acc_Lists::getPosition($mvc->baseAccountId, 'cat_ProductAccRegIntf');
+    	
+    	$form->setDefault("feat{$contragentPositionId}", "*");
+    	
+    	// Поставяме удобни опции за избор на период
+    	$query = acc_Periods::getQuery();
+    	$query->where("#state = 'closed'");
+    	$query->orderBy("#end", "DESC");
+    	
+    	$yesterday = dt::verbal2mysql(dt::addDays(-1, dt::today()), FALSE);
+    	$daybefore = dt::verbal2mysql(dt::addDays(-2, dt::today()), FALSE);
+    	$optionsFrom = $optionsTo = array();
+    	$optionsFrom[dt::today()] = 'Днес';
+    	$optionsFrom[$yesterday] = 'Вчера';
+    	$optionsFrom[$daybefore] = 'Завчера';
+    	$optionsTo[dt::today()] = 'Днес';
+    	$optionsTo[$yesterday] = 'Вчера';
+    	$optionsTo[$daybefore] = 'Завчера';
+    	
+    	while ($op = $query->fetch()) {
+    		$optionsFrom[$op->start] = $op->title;
+    		$optionsTo[$op->end] = $op->title;
+    	}
+    	
+    	$form->setSuggestions('from', array('' => '') + $optionsFrom);
+    	$form->setSuggestions('to', array('' => '') + $optionsTo);
 
-        foreach (range(1, 3) as $i) {
-
-            $form->setHidden("feat{$i}");
-            $form->setHidden("grouping{$i}");
-
-        }
-
-        $articlePositionId = acc_Lists::getPosition($mvc->accountSysId, 'cat_ProductAccRegIntf');
-
-        $form->setDefault("feat{$articlePositionId}", "*");
-
-       // bp($form);
     }
-
-
-    public static function on_AfterGetReportLayout($mvc, &$tpl)
-    {
-        $tpl->removeBlock('action');
-    }
-
-
+    
+    
     /**
-     * Преди експортиране като CSV
+     * Филтрира заявката
      */
-    public static function on_BeforeExportCsv($mvc, &$rec)
+    protected function prepareFilterQuery(&$query, $form)
     {
-        //bp();
+    	acc_JournalDetails::filterQuery($query, $form->from, $form->to);
 
-    }
+	    $query->where("(#debitAccId = {$form->baseAccountId} OR 
+	    					#debitAccId = {$this->account703Id} OR 
+	    					#debitAccId = {$this->account704Id} OR 
+	    					#debitAccId = {$this->account705Id} OR 
+	    					#debitAccId = {$this->account706Id}
+	    	               )
+	    				  AND 
+	    				  #creditAccId = {$form->corespondentAccountId}");
+	    	
+	    $query->orWhere("#debitAccId = {$form->corespondentAccountId} AND 
+		    	               (#creditAccId = {$this->account703Id} OR 
+						    	#creditAccId = {$this->account704Id} OR 
+						    	#creditAccId = {$this->account705Id} OR 
+						    	#creditAccId = {$this->account706Id})");
 
-
-    /**
-     * След подготвяне на заявката за експорт
-     */
-    public static function on_AfterPrepareExportQuery($mvc, &$query)
-    {
-        //bp();
-        //$query->orWhere("#state = 'rejected' AND #brState = 'active'");
-        //$query->where("#state = 'draft'");
-    }
-
-
-
-
-    /**
-     * След подготовка на тулбара на единичен изглед.
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $data
-     */
-    public static function on_AfterPrepareSingleToolbar($mvc, $data)
-    {
-
-        // Ако нямаме права за писане в треда
-        if(doc_Threads::haveRightFor('single', $data->rec->threadId) == FALSE){
-
-            // Премахваме бутона за коментар
-            $data->toolbar->removeBtn('Коментар');
-        }
     }
 
 
@@ -149,193 +190,16 @@ class acc_reports_ProfitArticles extends acc_reports_BalanceImpl
     public static function on_AfterPrepareListFields($mvc, &$res, &$data)
     {
 
-        unset($data->listFields['baseQuantity']);
-        unset($data->listFields['baseAmount']);
-        unset($data->listFields['debitQuantity']);
+		unset($data->listFields['debitQuantity']);
         unset($data->listFields['debitAmount']);
         unset($data->listFields['creditQuantity']);
         unset($data->listFields['creditAmount']);
+        unset($data->listFields['blQuantity']);
 
-
-        $data->listFields['blQuantity'] = "Крайно салдо (ДК)->К-во";
-        $data->listFields['blAmount'] = "Крайно салдо (ДК)->Сума";
-        //$data->setField('blQuantity', 'export=Csv');
-
-        //bp($data);
+        $data->listFields['blAmount'] = "Сума";
 
     }
-
-
-    /**
-     * Рендира вградения обект
-     *
-     * @param stdClass $data
-     */
-    public function renderEmbeddedData(&$embedderTpl, $data)
-    {
-		$chart = Request::get('Chart');
-        $id = Request::get('id', 'int');
-
-        $tpl = $this->getReportLayout();
-
-        $tpl->replace($this->title, 'TITLE');
-        $this->prependStaticForm($tpl, 'FORM');
-
-        // ако имаме записи има и смисъл да
-        // слагаме табове
-        if($data->recs) {
-            // слагаме бутони на къстам тулбара
-            $btnList = ht::createBtn('Таблица', array(
-                    'doc_Containers',
-                    'list',
-                    'threadId' => Request::get('threadId', 'int'),
-
-                ), NULL, NULL,
-                'ef_icon = img/16/table.png');
-
-            $tpl->replace($btnList, 'buttonList');
-
-            $btnChart = ht::createBtn('Графика', array(
-                    'doc_Containers',
-                    'list',
-                    'Chart' => 'pie'. $data->rec->containerId,
-                    'threadId' => Request::get('threadId', 'int'),
-
-                ), NULL, NULL,
-                'ef_icon = img/16/chart16.png');
-
-            $tpl->replace($btnChart, 'buttonChart');
-        }
-
-        if ($chart == 'pie'.$data->rec->containerId && $data->recs) {
-
-            foreach ($data->recs as $id => $rec) {
-                $balance += abs($rec->blAmount);
-
-                $dArr[$rec->grouping3] = abs($rec->blAmount);
-            }
-
-            $arr = $this->preparePie($dArr, 9, 'Others');
-            //$arr = $dArr;
-            //bp($arr,$dArr);
-
-            foreach ($arr as $id => $recSort) {
-                $info[mb_substr($recSort->key,0,19)] = $recSort->value;
-            }
-
-            $pie = array (
-                'legendTitle' => "Печалбата от продажбите в проценти",
-                'suffix' => "лв.",
-                'info' => $info,
-            );
-
-            $coreConf = core_Packs::getConfig('doc');
-            $chartAdapter = $coreConf->DOC_CHART_ADAPTER;
-            $chartHtml = cls::get($chartAdapter);
-            $chart =  $chartHtml::prepare($pie,'pie');
-            $tpl->append($chart, 'DETAILS');
-
-        } else {
-            // Името на перото да се показва като линк
-            if(count($data->rows)){
-                $articlePositionId = acc_Lists::getPosition($this->accountSysId, 'cat_ProductAccRegIntf');
-                foreach ($data->rows as $id => &$row){
-                    if (!$data->recs[$id]->{"ent{$articlePositionId}Id"}) continue;
-                    $articleItem = acc_Items::fetch($data->recs[$id]->{"ent{$articlePositionId}Id"}, 'classId,objectId');
-                    if (!cls::load($articleItem->classId, TRUE)) continue;
-                    $row->{"ent{$articlePositionId}Id"} = cls::get($articleItem->classId)->getShortHyperLink($articleItem->objectId);
-                }
-            }
-
-            $tpl->placeObject($data->row);
-
-            $tableMvc = new core_Mvc;
-
-            $tableMvc->FLD('blAmount', 'int', 'tdClass=accCell');
-            $table = cls::get('core_TableView', array('mvc' => $tableMvc));
-
-            $tpl->append($table->get($data->rows, $data->listFields), 'DETAILS');
-
-            $data->summary->colspan = count($data->listFields);
-
-            if ($data->bShowQuantities) {
-                $data->summary->colspan -= 4;
-                if ($data->summary->colspan != 0 && count($data->rows)) {
-                    $beforeRow = new core_ET("<tr style = 'background-color: #eee'><td colspan=[#colspan#]><b>" . tr('ОБЩО') . "</b></td><td style='text-align:right'><b>[#blAmount#]</b></td></tr>");
-                }
-            }
-
-            if ($beforeRow) {
-                $beforeRow->placeObject($data->summary);
-                $tpl->append($beforeRow, 'ROW_BEFORE');
-            }
-            
-            if($data->pager){
-            	$tpl->append($data->pager->getHtml(), 'PAGER_BOTTOM');
-            	$tpl->append($data->pager->getHtml(), 'PAGER_TOP');
-            }
-
-        }
-
-        $embedderTpl->append($tpl, 'data');
-    }
-
-
-
-    /**
-     * По даден масив, правим подготовка за
-     * графика тип "торта"
-     *
-     * @param array $data
-     * @param int $n
-     * @param string $otherName
-     */
-    public static function preparePie ($data, $n, $otherName = 'Други')
-    {
-        // сортирваме масива от възходящ към низходящ
-        arsort($data);
-
-        foreach ($data as $key => $value) {
-            $newArr [] = (object) array ('key' => $key, 'value' => $value);
-        }
-
-        // броя на елементите в получения масив
-        $cntData = count($data);
-
-        // ако, числото което сме определили за новия масив
-        // е по-малко от общия брой елементи
-        // на подадения масив
-        if ($cntData <= $n) {
-
-            // връщаме направо масива
-            //return $data;
-            return $newArr;
-
-        //в противен случай
-        } else {
-            // взимаме първите n елемента от сортирания масив
-            for($k = 0; $k <= $n -1; $k++) {
-                $res[] = $newArr[$k];
-            }
-
-            // останалите елементи ги събираме
-            for ($i = $n; $i <= $cntData; $i++){
-                $sum += $newArr[$i]->value;
-            }
-
-            // ако имаме изрично зададено име за обобщения елемент
-            if ($otherName) {
-                // използваме него и го добавяме към получения нов масив с
-                // n еленета и сумата на останалите елементи
-                $res[] = (object) array ('key' => $otherName, 'value' => $sum);
-                // ако няма, използваме default
-            } else {
-                $res[] = (object) array ('key' => "Други", 'value' => $sum);
-            }
-        }
-
-        return $res;
-    }
+    
 
     /**
      * Скрива полетата, които потребител с ниски права не може да вижда
@@ -355,9 +219,24 @@ class acc_reports_ProfitArticles extends acc_reports_BalanceImpl
      */
     public function getEarlyActivation()
     {
-        $activateOn = "{$this->innerForm->to} 23:59:59";
+        $today = dt::today();
+    	$activateOn = "{$today} 13:59:59";
 
         return $activateOn;
+    }
+    
+    
+    /**
+     * Връща дефолт заглавието на репорта
+     */
+    public function getReportTitle()
+    {
+    
+    	$explodeTitle = explode(" » ", $this->title);
+    	 
+    	$title = tr("|{$explodeTitle[1]}|*");
+    
+    	return $title;
     }
 
 
@@ -370,8 +249,9 @@ class acc_reports_ProfitArticles extends acc_reports_BalanceImpl
     public function getExportFields ()
     {
 
-        $exportFields['ent3Id']  = "Артикули";
-        $exportFields['blAmount']  = "Крайно салдо";
+        $exportFields['item3']  = "Артикули";
+        $exportFields['blAmount']  = "Сума";
+        $exportFields['delta']  = "Дял";
 
         return $exportFields;
     }
