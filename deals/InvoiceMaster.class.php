@@ -48,12 +48,6 @@ abstract class deals_InvoiceMaster extends core_Master
     
     
     /**
-     * Опашка от записи за записване в on_Shutdown
-     */
-    protected $updated = array();
-    
-    
-    /**
      * Работен кеш
      */
     protected $cache = array();
