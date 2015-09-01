@@ -3,7 +3,7 @@
 
 
 /**
- * Мениджър на отчети от Печалба от продажби по клиенти
+ * Мениджър на отчети от Печалба по продажби
  * Имплементация на 'frame_ReportSourceIntf' за направата на справка на баланса
  *
  *
@@ -14,16 +14,9 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class acc_reports_ProfitContractors extends acc_reports_CorespondingImpl
+class acc_reports_ProfitSales extends acc_reports_CorespondingImpl
 {
 
-
-	/**
-	 * За конвертиране на съществуващи MySQL таблици от предишни версии
-	 */
-	public $oldClassName = 'acc_ProfitContractorsReport';
-	
-	
     /**
      * Кой може да избира драйвъра
      */
@@ -33,14 +26,14 @@ class acc_reports_ProfitContractors extends acc_reports_CorespondingImpl
     /**
      * Заглавие
      */
-    public $title = 'Счетоводство » Печалба по клиенти';
+    public $title = 'Счетоводство » Печалба по продажби';
 
     
     /**
      * Дефолт сметка
      */
     public $baseAccountId = '700';
-    
+
     
     /**
      * Кореспондент сметка
@@ -54,7 +47,7 @@ class acc_reports_ProfitContractors extends acc_reports_CorespondingImpl
     public static function on_AfterAddEmbeddedFields($mvc, core_Form &$form)
     {
 
-       // Искаме да покажим оборотната ведомост за сметката на касите
+        // Искаме да покажим оборотната ведомост за сметката на касите
         $baseAccId = acc_Accounts::getRecBySystemId($mvc->baseAccountId)->id;
         $form->setDefault('baseAccountId', $baseAccId);
         $form->setHidden('baseAccountId');
@@ -74,7 +67,22 @@ class acc_reports_ProfitContractors extends acc_reports_CorespondingImpl
         
         $form->setField('from','refreshForm,silent');
         $form->setField('to','refreshForm,silent');
-
+    }
+    
+    
+    /**
+     * Проверява въведените данни
+     *
+     * @param core_Form $form
+     */
+    public function checkEmbeddedForm(core_Form &$form)
+    {
+    	// Размяна, ако периодите са объркани
+    	if(isset($form->rec->from) && isset($form->rec->to) && ($form->rec->from > $form->rec->to)) {
+    		$mid = $form->rec->from;
+    		$form->rec->from = $form->rec->to;
+    		$form->rec->to = $mid;
+    	}
     }
 
 
@@ -83,54 +91,64 @@ class acc_reports_ProfitContractors extends acc_reports_CorespondingImpl
      */
     public static function on_AfterPrepareEmbeddedForm($mvc, core_Form &$form)
     {
+    	
+    	foreach (range(1, 3) as $i) {
+    	
+    		$form->setHidden("feat{$i}");
+    	
+    	}
+    	
+    	$salesPositionId = acc_Lists::fetchField("#systemId = 'deals'",'id');
+    	
+    	foreach(range(1, 3) as $i) {
+    		if ($form->rec->{"list{$i}"} == $salesPositionId) {
 
-        foreach (range(1, 3) as $i) {
+    			$form->setDefault("feat{$i}", "*");
+    		}
+    	}
+    	
+    	// Поставяме удобни опции за избор на период
+    	$query = acc_Periods::getQuery();
+    	$query->where("#state = 'closed'");
+    	$query->orderBy("#end", "DESC");
+    	
+    	$yesterday = dt::verbal2mysql(dt::addDays(-1, dt::today()), FALSE);
+    	$daybefore = dt::verbal2mysql(dt::addDays(-2, dt::today()), FALSE);
+    	$optionsFrom = $optionsTo = array();
+    	$optionsFrom[dt::today()] = 'Днес';
+    	$optionsFrom[$yesterday] = 'Вчера';
+    	$optionsFrom[$daybefore] = 'Завчера';
+    	$optionsTo[dt::today()] = 'Днес';
+    	$optionsTo[$yesterday] = 'Вчера';
+    	$optionsTo[$daybefore] = 'Завчера';
+    	
+    	while ($op = $query->fetch()) {
+    		$optionsFrom[$op->start] = $op->title;
+    		$optionsTo[$op->end] = $op->title;
+    	}
+    	
+    	$form->setSuggestions('from', array('' => '') + $optionsFrom);
+    	$form->setSuggestions('to', array('' => '') + $optionsTo);
 
-            $form->setHidden("feat{$i}");
-
-        }
-
-        $contragentPositionId = acc_Lists::getPosition($mvc->baseAccountId, 'crm_ContragentAccRegIntf');
-
-        $form->setDefault("feat{$contragentPositionId}", "*");   
-        
-        // Поставяме удобни опции за избор на период
-        $query = acc_Periods::getQuery();
-        $query->where("#state = 'closed'");
-        $query->orderBy("#end", "DESC");
-        
-        $yesterday = dt::verbal2mysql(dt::addDays(-1, dt::today()), FALSE);
-        $daybefore = dt::verbal2mysql(dt::addDays(-2, dt::today()), FALSE);
-        $optionsFrom = $optionsTo = array();
-        $optionsFrom[dt::today()] = 'Днес';
-        $optionsFrom[$yesterday] = 'Вчера';
-        $optionsFrom[$daybefore] = 'Завчера';
-        $optionsTo[dt::today()] = 'Днес';
-        $optionsTo[$yesterday] = 'Вчера';
-        $optionsTo[$daybefore] = 'Завчера';
-        
-        while ($op = $query->fetch()) {
-        	$optionsFrom[$op->start] = $op->title;
-        	$optionsTo[$op->end] = $op->title;
-        }
-        
-        $form->setSuggestions('from', array('' => '') + $optionsFrom);
-        $form->setSuggestions('to', array('' => '') + $optionsTo);
     }
-    
 
+
+    /**
+     * Извиква се след подготовката на колоните ($data->listFields)
+     */
     public static function on_AfterPrepareListFields($mvc, &$res, &$data)
     {
-
-        unset($data->listFields['debitQuantity']);
+   
+		unset($data->listFields['debitQuantity']);
         unset($data->listFields['debitAmount']);
         unset($data->listFields['creditQuantity']);
         unset($data->listFields['creditAmount']);
         unset($data->listFields['blQuantity']);
 
         $data->listFields['blAmount'] = "Сума";
-    }
 
+    }
+    
 
     /**
      * Скрива полетата, които потребител с ниски права не може да вижда
@@ -150,9 +168,8 @@ class acc_reports_ProfitContractors extends acc_reports_CorespondingImpl
      */
     public function getEarlyActivation()
     {
-    	
-    	$today = dt::today();
-    	$activateOn = "{$today} 23:59:59";
+        $today = dt::today();
+    	$activateOn = "{$today} 13:59:59";
 
         return $activateOn;
     }
@@ -163,11 +180,11 @@ class acc_reports_ProfitContractors extends acc_reports_CorespondingImpl
      */
     public function getReportTitle()
     {
-
+    
     	$explodeTitle = explode(" » ", $this->title);
-    	
-    	$title = tr("|{$explodeTitle[1]}|*");
     	 
+    	$title = tr("|{$explodeTitle[1]}|*");
+    
     	return $title;
     }
 
@@ -181,7 +198,7 @@ class acc_reports_ProfitContractors extends acc_reports_CorespondingImpl
     public function getExportFields ()
     {
 
-        $exportFields['item1']  = "Контрагенти";
+        $exportFields['item3']  = "Сделки";
         $exportFields['blAmount']  = "Сума";
         $exportFields['delta']  = "Дял";
 
