@@ -2384,7 +2384,6 @@ class doc_DocumentPlg extends core_Plugin
     		$rec = $mvc->fetchRec($id);
     		$rec->modifiedOn = dt::now();
     		$mvc->save($rec, 'modifiedOn');
-    		core_Statuses::newStatus($id);
     	}
     }
 }
