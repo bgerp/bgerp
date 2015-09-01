@@ -845,22 +845,46 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     protected function getChart ($data)
     {
     	arr::order($data->recs, $this->innerForm->orderField, $this->innerForm->orderBy);
-
+     
+    	$dArr = array();
     	foreach ($data->recs as $id => $rec) {
 
-    		$balance += abs($rec->blAmount);
-    	
-    		foreach (range(1, 3) as $i){
-    	    	if (isset($rec->{"item{$i}"})) {
-    	    		$dArr[] = (object) array ('key' => $rec->{"item{$i}"}, 'value' => abs($rec->blAmount));
-    	    	}
+    		$balance += abs($rec->{$this->innerForm->orderField});
+    		
+    		
+    		if(!array_key_exists($id, $dArr)){ 
+    		
+    			$dArr[$id] =
+    			(object) array ('item1' => $rec->item1,
+    					'item2' => $rec->item2,
+    					'item3' => $rec->item3,
+    					'item4' => $rec->item4,
+    					'item5' => $rec->item5,
+    					'item6' => $rec->item6,
+    					'value' => abs($rec->{$this->innerForm->orderField})
+    		
+    			);
+    			// в противен случай го ъпдейтваме
+    		} else {
+    			 
+    			$obj = &$dArr[$id];
+    
+    			$obj->item1 = $rec->item1;
+    			$obj->item2 = $rec->item2;
+    			$obj->item3 = $rec->item3;
+    			$obj->item4 = $rec->item4;
+    			$obj->item5 = $rec->item5;
+    			$obj->item6 = $rec->item6;
+    			$obj->value = abs($rec->{$this->innerForm->orderField});
     		}
     	}
-    	
+  
     	$arr = $this->preparePie($dArr, 12);
-
+    	
+    	$title = '';
     	foreach ($arr as $id => $recSort) { 
-            $title = str::limitLen($recSort->title, 19);
+            //$title = str::limitLen($recSort->title, 19);
+    		$title = $recSort->title;
 
     		$info["{$title}"] = $recSort->value;
     	}
@@ -890,10 +914,27 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
      */
     public static function preparePie ($data, $n, $otherName = 'Други')
     {
+    	$newArr = array();
     	
     	foreach ($data as $key => $rec) {
 
-    		$newArr [] = (object) array ('title' => $rec->key, 'value' => $rec->value);
+    	
+    		// Вербалното представяне на перата
+    		$title = '';
+    		foreach (range(1, 6) as $i){
+	    		if(!empty($rec->{"item{$i}"})){
+
+	    			$title .= $rec->{"item{$i}"} . "|";
+	    		}
+	    	}
+    
+	    	
+
+	    	$newArr[$key] =
+	    			(object) array ('title' => substr($title, 0,strlen($title)-1),
+	    							'value' => $rec->value
+	    		
+	    					);
     	}
 
     	// броя на елементите в получения масив
@@ -911,10 +952,18 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     		//в противен случай
     	} else {
     		// взимаме първите n елемента от сортирания масив
+    		
     		for($k = 0; $k <= $n -1; $k++) {
-    			$title = acc_Items::getVerbal($newArr[$k]->title, 'title');
-    			
-    			$res[] = (object) array ('key' => $k, 'title' => $title, 'value' => $newArr[$k]->value);
+
+    			$t = explode("|", $newArr[$k]->title);
+    			$titleV = '';
+    			for ($i=0; $i <= count($t) -1; $i++) {
+ 
+    				$titleV .= acc_Items::getVerbal($t[$i], 'title'). "|";
+    			}
+    			$titleV = substr($titleV, 0,strlen($titleV)-1);
+
+    			$res[] = (object) array ('key' => $k, 'title' => $titleV, 'value' => $newArr[$k]->value);
     		}
 
     		// останалите елементи ги събираме
@@ -934,7 +983,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     		}
 
     	}
-    
+
     	return $res;
     }
 }
