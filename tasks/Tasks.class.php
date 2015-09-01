@@ -318,7 +318,7 @@ class tasks_Tasks extends embed_Manager
      * Обновява информацията на документа
      * @param int $id - ид на документа
      */
-    public function updateMaster($id)
+    public function updateMaster_($id)
     {
     	$rec = $this->fetch($id);
     	

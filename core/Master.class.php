@@ -722,7 +722,7 @@ class core_Master extends core_Manager
      *
      * @param mixed $id - ид/запис на мастъра
      */
-    function updateMaster($id)
+    function updateMaster_($id)
     {
     }
 }

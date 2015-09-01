@@ -68,7 +68,7 @@ abstract class deals_ServiceMaster extends core_Master
 	 * Обновява информацията на документа
 	 * @param int $id - ид на документа
 	 */
-	public function updateMaster($id)
+	public function updateMaster_($id)
 	{
 		$rec = $this->fetchRec($id);
 		 

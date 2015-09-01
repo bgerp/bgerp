@@ -168,7 +168,7 @@ class store_Transfers extends core_Master
      * Обновява информацията на документа
      * @param int $id - ид на документа
      */
-    public function updateMaster($id)
+    public function updateMaster_($id)
     {
     	$rec = $this->fetch($id);
     	$dQuery = store_TransfersDetails::getQuery();

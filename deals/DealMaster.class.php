@@ -197,7 +197,7 @@ abstract class deals_DealMaster extends deals_DealBase
 	 * Обновява информацията на документа
 	 * @param int $id - ид на документа
 	 */
-	public function updateMaster($id)
+	public function updateMaster_($id)
 	{
 		$rec = $this->fetchRec($id);
 		

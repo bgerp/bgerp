@@ -157,7 +157,7 @@ abstract class deals_InvoiceMaster extends core_Master
      * Обновява информацията на документа
      * @param int $id - ид на документа
      */
-    public function updateMaster($id, $save = TRUE)
+    public function updateMaster_($id, $save = TRUE)
     {
     	$rec = $this->fetchRec($id);
     	$Detail = $this->mainDetail;

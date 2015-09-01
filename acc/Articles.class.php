@@ -254,7 +254,7 @@ class acc_Articles extends core_Master
      *
      * @param int $id първичен ключ на статия
      */
-    public function updateMaster($id, $modified = TRUE)
+    public function updateMaster_($id, $modified = TRUE)
     {
         $dQuery = acc_ArticleDetails::getQuery();
         $dQuery->XPR('sumAmount', 'double', 'SUM(#amount)', array('dependFromFields' => 'amount'));

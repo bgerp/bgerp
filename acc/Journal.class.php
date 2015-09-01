@@ -597,7 +597,7 @@ class acc_Journal extends core_Master
     /**
      * Обновява данните на журнала след промяна в детайлите
      */
-    public function updateMaster($id)
+    public function updateMaster_($id)
     {
         $rec = $this->fetchRec($id);
         $rec->totalAmount = 0;
