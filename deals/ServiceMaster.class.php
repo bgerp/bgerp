@@ -65,8 +65,10 @@ abstract class deals_ServiceMaster extends core_Master
 	
 	
 	/**
-	 * Обновява информацията на документа
-	 * @param int $id - ид на документа
+	 * Обновява данни в мастъра
+     *
+     * @param int $id първичен ключ на статия
+     * @return int $id ид-то на обновения запис
 	 */
 	public function updateMaster_($id)
 	{
@@ -85,7 +87,8 @@ abstract class deals_ServiceMaster extends core_Master
 		$rec->amountDelivered = $amount * $rec->currencyRate;
 		$rec->amountDeliveredVat = $this->_total->vat * $rec->currencyRate;
 		$rec->amountDiscount = $this->_total->discount * $rec->currencyRate;
-		$this->save($rec);
+		
+		return $this->save($rec);
 	}
 
 

@@ -194,8 +194,10 @@ abstract class deals_DealMaster extends deals_DealBase
 	
 	
 	/**
-	 * Обновява информацията на документа
-	 * @param int $id - ид на документа
+	 * Обновява данни в мастъра
+     *
+     * @param int $id първичен ключ на статия
+     * @return int $id ид-то на обновения запис
 	 */
 	public function updateMaster_($id)
 	{
@@ -217,7 +219,7 @@ abstract class deals_DealMaster extends deals_DealBase
 		
 		$this->invoke('BeforeUpdatedMaster', array(&$rec));
 		
-		$this->save($rec);
+		return $this->save($rec);
 	}
 
     

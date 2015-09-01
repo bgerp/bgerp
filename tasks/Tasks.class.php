@@ -315,8 +315,10 @@ class tasks_Tasks extends embed_Manager
     
     
     /**
-     * Обновява информацията на документа
-     * @param int $id - ид на документа
+     * Обновява данни в мастъра
+     *
+     * @param int $id първичен ключ на статия
+     * @return int $id ид-то на обновения запис
      */
     public function updateMaster_($id)
     {
@@ -328,7 +330,7 @@ class tasks_Tasks extends embed_Manager
     	}
     	
     	$rec->expectedTimeStart = $this->getExpectedTimeStart($rec);
-    	$this->save($rec);
+    	return $this->save($rec);
     }
     
     

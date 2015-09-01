@@ -718,9 +718,10 @@ class core_Master extends core_Manager
     
     
     /**
-     * Обновява мастъра
+     * Обновява данни в мастъра
      *
-     * @param mixed $id - ид/запис на мастъра
+     * @param int $id първичен ключ на статия
+     * @return int $id ид-то на обновения запис
      */
     function updateMaster_($id)
     {
