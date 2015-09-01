@@ -289,8 +289,6 @@ class doc_DocumentPlg extends core_Plugin
         $row->modifiedDate = dt::mysql2verbal($rec->modifiedOn, 'd.m.Y');
         $row->createdDate = dt::mysql2verbal($rec->createdOn, 'd.m.Y');
         
-        //$fields = arr::make($fields);
-        
         if($fields['-single']) {
             if(!$row->ident) {
                 $row->ident = '#' . $invoker->getHandle($rec->id);
@@ -304,6 +302,10 @@ class doc_DocumentPlg extends core_Plugin
                 $tpl = new ET(tr('|* |от|* [#user#] |на|* [#date#]')); 
                 $row->state .= $tpl->placeArray(array('user' => crm_Profiles::createLink($rec->modifiedBy), 'date' => dt::mysql2Verbal($rec->modifiedOn)));
             }
+        }
+        
+        if($fields['-list']){
+        	$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
         }
     }
     

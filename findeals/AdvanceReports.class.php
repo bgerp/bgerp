@@ -246,12 +246,8 @@ class findeals_AdvanceReports extends core_Master
     /**
      *  Обработки по вербалното представяне на данните
      */
-    static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	if($fields['-list']){
-    		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
-    	}
-    		
     	$rec->total /= $rec->rate;
     	$row->total = $mvc->getFieldType('total')->toVerbal($rec->total);
     	

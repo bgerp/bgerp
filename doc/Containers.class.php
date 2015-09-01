@@ -534,7 +534,7 @@ class doc_Containers extends core_Manager
                 $sharedArr = keylist::toArray($shared);
                 
                 // Нотифицираме споделените
-                static::addNotifiactions($sharedArr, $docMvc, $rec, 'сподели', FALSE);
+                static::addNotifications($sharedArr, $docMvc, $rec, 'сподели', FALSE);
                 
                 // Всички абонирани потребилите
                 $subscribedArr = doc_ThreadUsers::getSubscribed($rec->threadId);
@@ -547,7 +547,7 @@ class doc_Containers extends core_Manager
                 $subscribedWithoutSharedArr = array_diff($subscribedArr, $sharedArr);
                 
                 // Нотифицираме абонираните потребители
-                static::addNotifiactions($subscribedWithoutSharedArr, $docMvc, $rec, 'добави');
+                static::addNotifications($subscribedWithoutSharedArr, $docMvc, $rec, 'добави');
             }
         }
     }
@@ -581,7 +581,7 @@ class doc_Containers extends core_Manager
         if ($sharedArr) {
             
             // Нотифицираме споделените
-            self::addNotifiactions($sharedArr, $docMvc, $rec, 'сподели', FALSE, $dRec->priority);
+            self::addNotifications($sharedArr, $docMvc, $rec, 'сподели', FALSE, $dRec->priority);
             
             foreach ($sharedArr as $userId) {
                 
@@ -618,7 +618,7 @@ class doc_Containers extends core_Manager
      * @param boolean $checkThreadRight - Дали да се провери за достъп до нишката
      * @param string $priority - Приоритет на нотификацията
      */
-    static function addNotifiactions($usersArr, $docMvc, $rec, $action='добави', $checkThreadRight=TRUE, $priority='normal')
+    static function addNotifications($usersArr, $docMvc, $rec, $action='добави', $checkThreadRight=TRUE, $priority='normal')
     {
         // Ако няма да се споделя, а ще се добавя
         if ($action != 'сподели') {

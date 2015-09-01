@@ -28,6 +28,9 @@
             </tr>
         </table>
 </div>
+<div>
+ [#buttonList#][#buttonChart#]
+</div>
 [#PAGER#]
 <div class='overflow-scroll'>
     [#CONTENT#]

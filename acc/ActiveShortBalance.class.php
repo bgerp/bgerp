@@ -66,10 +66,6 @@ class acc_ActiveShortBalance {
      */
     function __construct($params = array())
     {
-        if(!isset($params['to'])){
-            $params['to'] = dt::now();
-        }
-        
         $this->from = $params['from'];
         $this->to = $params['to'];
         $strict = (isset($params['strict']) ? TRUE : FALSE);

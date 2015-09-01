@@ -246,10 +246,6 @@ class bank_ExchangeDocument extends core_Master
     {
         $row->title = $mvc->getLink($rec->id, 0);
         
-        if($fields['-list']){
-            $row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
-        }
-        
         $creditAccInfo = bank_OwnAccounts::getOwnAccountInfo($rec->peroFrom);
         $debitAccInfo = bank_OwnAccounts::getOwnAccountInfo($rec->peroTo);
         $row->creditCurrency = currency_Currencies::getCodeById($creditAccInfo->currencyId);

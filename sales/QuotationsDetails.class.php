@@ -774,6 +774,7 @@ class sales_QuotationsDetails extends doc_Detail {
     		$dRec->quantity = $row['left'];
     		$dRec->classId = $ProductMan->getClassId();
     		$dRec->vatPercent = $ProductMan->getVat($dRec->productId, $rec->date);
+    		$dRec->packagingId = cat_Products::getProductInfo($dRec->productId)->productRec->measureId;
     		
     		// Ако полето от формата има дясна част, това е цената
     		if($row['right']){

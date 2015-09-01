@@ -268,7 +268,6 @@ class marketing_Inquiries2 extends core_Embedder
         $row->brid = log_Browsers::getLink($rec->brid);
     	 
     	if($fields['-list']){
-    		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
     		$row->title = $mvc->getTitle($rec);
     
     		$attr = array();

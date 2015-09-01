@@ -47,6 +47,11 @@
                                 <tbody>
                                     <tr>
                                         <td class="topCell first vtop" style='width:50%;'>
+                                        	|Влагане от|*: [#inputStoreId#]<br>
+                                            <!--ET_BEGIN returnStoreId-->
+                                            	|Връщане в|*: [#returnStoreId#]<br>
+                                            <!--ET_END returnStoreId-->
+                                        
                                             <!--ET_BEGIN note-->
                                             <hr>
                                             [#note#]
