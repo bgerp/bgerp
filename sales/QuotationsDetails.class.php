@@ -625,7 +625,6 @@ class sales_QuotationsDetails extends doc_Detail {
     	// Ако сме чернова или има поне един задължителен артикул, рендираме таблицата му
     	if($masterRec->state == 'draft' || $dCount > 1){
     		$tpl->append($this->renderListToolbar($data), 'ListToolbar');
-    		$dTpl->replace(($data->haveMandatoryPackaging) ? tr('Опаковка') : tr('Мярка'), 'MEASURE_TH');
     		$dTpl->append(tr('Оферирани'), 'TITLE');
     		$dTpl->append($miscMandatory, "MISC");
     		if(isset($data->addNotOptionalBtn)){
@@ -638,7 +637,6 @@ class sales_QuotationsDetails extends doc_Detail {
     	
     	// Ако сме чернова и има поне един опционален артикул, рендираме таблицата за артикули
     	if($masterRec->state == 'draft' || $oCount > 1){
-    		$oTpl->replace(($data->haveOptionalPackaging) ? tr('Опаковка') : tr('Мярка'), 'MEASURE_TH');
     		$oTpl->append(tr('Опционални'), 'TITLE');
     		$oTpl->append($miscOptional, "MISC");
     		if(isset($data->addOptionalBtn)){
@@ -669,19 +667,11 @@ class sales_QuotationsDetails extends doc_Detail {
     	$recs = &$data->recs;
     	$rows = &$data->rows;
     	$data->discountsOptional = $data->discounts = array();
-    	$data->haveOptionalPackaging = $data->haveMandatoryPackaging = TRUE;
     	
     	core_Lg::push($data->masterData->rec->tplLang);
     	
     	foreach ($rows as $id => &$row){
     		$rec = $recs[$id];
-    		if(!isset($rec->packagingId)){
-    			if($rec->optional == 'no'){
-    				$data->haveMandatoryPackaging = FALSE;
-    			} else {
-    				$data->haveOptionalPackaging = FALSE;
-    			}
-    		}
     		
     		if(isset($rec->discount)){
     			if($rec->optional == 'no'){
