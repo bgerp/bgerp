@@ -31,6 +31,12 @@ class store_ShipmentOrders extends store_DocumentMaster
     
 
     /**
+     * Флаг, който указва дали документа да се кешира в треда
+     */
+    public $cacheInThread = TRUE;
+    
+    
+    /**
      * Абревиатура
      */
     public $abbr = 'Exp';

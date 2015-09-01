@@ -45,7 +45,7 @@ class chartjs_Adapter extends  core_Mvc
         $chartCnt++;
         $idChart = 'myChart' . $chartCnt;
 
-        $chart = ht::createElement('canvas',  array('id' => $idChart, "width" => "300", 'height' => '200'), $tpl);
+        $chart = ht::createElement('canvas',  array('id' => $idChart, "width" => "300", 'height' => '270'), $tpl);
         $tpl->append("<div class='chartHolder chart-$chartType'>" . $chart . "</div>");
 
         $tpl->push('chartjs/lib/preparechart.js', 'JS');

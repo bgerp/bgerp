@@ -192,10 +192,10 @@ class blogm_Articles extends core_Master {
     /**
      * След обновяването на коментарите, обновяваме информацията в статията
      */
-    function on_AfterUpdateDetail($mvc, $articleId, $Detail)
+    public static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
     {
         if($Detail->className == 'blogm_Comments') {
-            $queryC = $Detail->getQuery();
+            $queryC = $detailMvc->getQuery();
             $queryC->where("#articleId = {$articleId} AND #state = 'active'");
             $rec = $mvc->fetch($articleId);
             $rec->commentsCnt = $queryC->count();

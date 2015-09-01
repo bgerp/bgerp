@@ -140,44 +140,11 @@ class acc_BalanceRepairs extends core_Master
     
     
     /**
-     * Документи заопашени за обновяване
-     */
-    protected $updated = array();
-    
-    
-    /**
      * Описание на модела
      */
     function description()
     {
     	$this->FLD('balanceId', 'key(mvc=acc_Balances,select=periodId)', 'caption=Баланс,mandatory');
-    }
-    
-    
-    /**
-     * След промяна в детайлите на обект от този клас
-     */
-    public static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
-    {
-    	// Запомняне кои документи трябва да се обновят
-    	if(!empty($id)){
-    		$mvc->updated[$id] = $mvc->fetchRec($id);
-    	}
-    }
-    
-    
-    /**
-     * След изпълнение на скрипта, обновява записите, които са за ъпдейт
-     */
-    public static function on_Shutdown($mvc)
-    {
-    	if(count($mvc->updated)){
-    		foreach ($mvc->updated as $rec) {
-    			
-    			// Обновяваме променените записи, за да се преизчисли дали може да се контира
-    			$mvc->save($rec);
-    		}
-    	}
     }
     
     

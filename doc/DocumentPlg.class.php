@@ -2371,4 +2371,19 @@ class doc_DocumentPlg extends core_Plugin
             return ;
         }
     }
+    
+    
+    /**
+     * Обновява мастъра
+     *
+     * @param mixed $id - ид/запис на мастъра
+     */
+    protected function on_AfterUpdateMaster($mvc, &$res, $id)
+    {
+    	if(!$res){
+    		$rec = $mvc->fetchRec($id);
+    		$rec->modifiedOn = dt::now();
+    		$mvc->save($rec, 'modifiedOn');
+    	}
+    }
 }

@@ -970,7 +970,7 @@ class marketing_Bulletins extends core_Master
      * @param integer $id
      * @param marketing_BulletinSubcribers $detailMvc
      */
-    public static function on_AfterUpdateDetail($mvc, $id, $detailMvc)
+    public static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
     {
         $query = $detailMvc->getQuery();
         $query->where("#bulletinId = $id");
