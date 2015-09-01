@@ -75,6 +75,12 @@ class cat_Products extends core_Embedder {
     
     
     /**
+     * Кои полета от листовия изглед да се скриват ако няма записи в тях
+     */
+    protected $hideListFieldsIfEmpty = 'code';
+    
+    
+    /**
      * Да се показват ли в репортите нулевите редове
      */
     public $balanceRefShowZeroRows = TRUE;
