@@ -74,23 +74,7 @@ class acc_reports_ProfitContractors extends acc_reports_CorespondingImpl
         
         $form->setField('from','refreshForm,silent');
         $form->setField('to','refreshForm,silent');
-        
-      
-        //$form->setSuggestions('from', array('' => '') + $optionsFrom);
-        //$form->setSuggestions('to', array('' => '') + $optionsTo);
-        
-        
-        
-        //$form->FLD('from1', 'date', 'caption=Период1->От,refreshForm,silent');
-       ///$form->FLD('to1', 'date', 'caption=Период1->До,refreshForm,silent');
-        //$form->FLD('from2', 'date','caption=Период2->От,refreshForm,silent');
-        //$form->FLD('to2', 'date', 'caption=Период2->До,refreshForm,silent');
-        
-        
-        //$form->setSuggestions('from2', array('' => '') + $optionsFrom);
-        //$form->setSuggestions('to2', array('' => '') + $optionsTo);
-        
-       //bp($form);
+
     }
 
 
