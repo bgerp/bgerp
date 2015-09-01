@@ -221,9 +221,9 @@ class price_GroupOfProducts extends core_Detail
         			$product .=  " -- " . tr('група') . " {$groupTitle}";
         		}
         	}
+        	
+        	$data->form->setOptions('productId', $products);
         }
-        
-        $data->form->setOptions('productId', $products);
     }
     
 
