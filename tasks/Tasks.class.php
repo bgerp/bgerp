@@ -330,6 +330,7 @@ class tasks_Tasks extends embed_Manager
     	}
     	
     	$rec->expectedTimeStart = $this->getExpectedTimeStart($rec);
+    	
     	return $this->save($rec);
     }
     
