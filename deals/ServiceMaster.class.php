@@ -18,12 +18,6 @@ abstract class deals_ServiceMaster extends core_Master
 	
 	
 	/**
-	 * Опашка от записи за записване в on_Shutdown
-	 */
-	protected $updated = array();
-	
-	
-	/**
 	 * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
 	 */
 	public $rowToolsField = 'tools';
@@ -68,23 +62,13 @@ abstract class deals_ServiceMaster extends core_Master
 		$mvc->FLD('isReverse', 'enum(no,yes)', 'input=none,notNull,value=no');
 		$mvc->FLD('accountId', 'customKey(mvc=acc_Accounts,key=systemId,select=id)','input=none,notNull,value=411');
 	}
-
-
-	/**
-	 * След промяна в детайлите на обект от този клас
-	 */
-	public static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
-	{
-		// Запомняне кои документи трябва да се обновят
-		$mvc->updated[$id] = $id;
-	}
 	
 	
 	/**
 	 * Обновява информацията на документа
 	 * @param int $id - ид на документа
 	 */
-	public function updateMaster($id)
+	public function updateMaster_($id)
 	{
 		$rec = $this->fetchRec($id);
 		 
@@ -102,19 +86,6 @@ abstract class deals_ServiceMaster extends core_Master
 		$rec->amountDeliveredVat = $this->_total->vat * $rec->currencyRate;
 		$rec->amountDiscount = $this->_total->discount * $rec->currencyRate;
 		$this->save($rec);
-	}
-	
-	
-	/**
-	 * След изпълнение на скрипта, обновява записите, които са за ъпдейт
-	 */
-	public static function on_Shutdown($mvc)
-	{
-		if(count($mvc->updated)){
-			foreach ($mvc->updated as $id) {
-				$mvc->updateMaster($id);
-			}
-		}
 	}
 
 

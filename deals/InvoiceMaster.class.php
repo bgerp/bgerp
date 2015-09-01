@@ -133,16 +133,6 @@ abstract class deals_InvoiceMaster extends core_Master
     	// Сортираме низходящо по номер
     	$query->orderBy('#number', 'DESC');
     }
-
-
-    /**
-     * След промяна в детайлите на обект от този клас
-     */
-    public static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
-    {
-    	// Запомняне кои документи трябва да се обновят
-    	$mvc->updated[$id] = $id;
-    }
     
     
     /**
@@ -157,20 +147,7 @@ abstract class deals_InvoiceMaster extends core_Master
     		$query = $mvc->$Detail->getQuery();
     		$query->where("#{$mvc->$Detail->masterKey} = '{$rec->id}'");
     		if($query->fetch()){
-    			$mvc->updated[$rec->id] = $rec->id;
-    		}
-    	}
-    }
-    
-    
-    /**
-     * След изпълнение на скрипта, обновява записите, които са за ъпдейт
-     */
-    public static function on_Shutdown($mvc)
-    {
-    	if(count($mvc->updated)){
-    		foreach ($mvc->updated as $id) {
-    			$mvc->updateMaster($id);
+    			$mvc->updateQueue[$rec->id] = $rec->id;
     		}
     	}
     }
@@ -180,7 +157,7 @@ abstract class deals_InvoiceMaster extends core_Master
      * Обновява информацията на документа
      * @param int $id - ид на документа
      */
-    public function updateMaster($id, $save = TRUE)
+    public function updateMaster_($id, $save = TRUE)
     {
     	$rec = $this->fetchRec($id);
     	$Detail = $this->mainDetail;

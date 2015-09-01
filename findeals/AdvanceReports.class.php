@@ -151,12 +151,6 @@ class findeals_AdvanceReports extends core_Master
     
     
     /**
-     * Опашка от записи за записване в on_Shutdown
-     */
-    protected $updated = array();
-    
-    
-    /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'valior,number,folderId, id';
@@ -263,20 +257,10 @@ class findeals_AdvanceReports extends core_Master
     
     
     /**
-     * След промяна в детайлите на обект от този клас
-     */
-    public static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
-    {
-    	// Запомняне кои документи трябва да се обновят
-    	$mvc->updated[$id] = $id;
-    }
-    
-    
-    /**
      * Обновява информацията на документа
      * @param int $id - ид на документа
      */
-    public function updateMaster($id)
+    public function updateMaster_($id)
     {
     	$rec = $this->fetchRec($id);
     	$rec->total = 0;
@@ -288,19 +272,6 @@ class findeals_AdvanceReports extends core_Master
     	}
     
     	$this->save($rec);
-    }
-    
-    
-    /**
-     * След изпълнение на скрипта, обновява записите, които са за ъпдейт
-     */
-    public static function on_Shutdown($mvc)
-    {
-    	if(count($mvc->updated)){
-    		foreach ($mvc->updated as $id) {
-    			$mvc->updateMaster($id);
-    		}
-    	}
     }
     
     

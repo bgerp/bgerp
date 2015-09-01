@@ -18,12 +18,6 @@ abstract class deals_DealMaster extends deals_DealBase
 	
 	
 	/**
-	 * Опашка от записи за записване в on_Shutdown
-	 */
-	protected $updated = array();
-	
-
-	/**
 	 * Масив с вербалните имена при избора на контиращи операции за покупки/продажби
 	 */
 	private static $contoMap = array(
@@ -200,20 +194,10 @@ abstract class deals_DealMaster extends deals_DealBase
 	
 	
 	/**
-	 * След промяна в детайлите на обект от този клас
-	 */
-	public static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
-	{
-		// Запомняне кои документи трябва да се обновят
-		$mvc->updated[$id] = $id;
-	}
-	
-	
-	/**
 	 * Обновява информацията на документа
 	 * @param int $id - ид на документа
 	 */
-	public function updateMaster($id)
+	public function updateMaster_($id)
 	{
 		$rec = $this->fetchRec($id);
 		
@@ -234,19 +218,6 @@ abstract class deals_DealMaster extends deals_DealBase
 		$this->invoke('BeforeUpdatedMaster', array(&$rec));
 		
 		$this->save($rec);
-	}
-	
-	
-	/**
-	 * След изпълнение на скрипта, обновява записите, които са за ъпдейт
-	 */
-	public static function on_Shutdown($mvc)
-	{
-		if(count($mvc->updated)){
-			foreach ($mvc->updated as $id) {
-				$mvc->updateMaster($id);
-			}
-		}
 	}
 
     
