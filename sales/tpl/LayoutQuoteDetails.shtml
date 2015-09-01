@@ -4,7 +4,7 @@
         <tr>
             <th style='width:4%;'>№</th>
             <th>|Описание|*</th>
-            <th class='quote-col[#OPT#] nowrap'>[#MEASURE_TH#]</th>
+            <th class='quote-col[#OPT#] nowrap'>|Мярка|*</th>
             <th class='quote-col[#OPT#] nowrap'>|К-во|*</th>
             <th>|Цена|*</th>
             <th class='quote-col[#OPT#] nowrap'>|Стойност|*</th>
