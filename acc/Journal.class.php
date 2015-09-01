@@ -115,12 +115,6 @@ class acc_Journal extends core_Master
     
     
     /**
-     * Кеш на афектираните пера
-     */
-    protected $updated = array();
-    
-    
-    /**
      * Описание на модела
      */
     function description()
@@ -597,31 +591,13 @@ class acc_Journal extends core_Master
                 acc_Items::notifyObject($rec);
             }
         }
-        
-        // Ъпдейтваме информацията за журнала, ако е отбелязан че са му променени детайлите
-        if(count($mvc->updated)){
-        	
-        	// Увеличаваме времето за изпълнение спрямо броя променените записи
-        	$timeLimit = count($mvc->updated) * 15;
-        	core_App::setTimeLimit($timeLimit);
-        	
-            foreach ($mvc->updated as $journalId){
-                $rec = $mvc->fetchRec($journalId);
-                $mvc->updateMaster($rec);
-                
-                // Нотифицираме документа породил записа в журнала че журнала му е променен
-                if(cls::load($rec->docType, TRUE)){
-                    cls::get($rec->docType)->invoke('AfterJournalUpdated', array($rec->docId, $rec->id));
-                }
-            }
-        }
     }
     
     
     /**
      * Обновява данните на журнала след промяна в детайлите
      */
-    private function updateMaster($id)
+    public function updateMaster($id)
     {
         $rec = $this->fetchRec($id);
         $rec->totalAmount = 0;
@@ -635,17 +611,10 @@ class acc_Journal extends core_Master
         }
         
         $this->save_($rec, 'totalAmount');
-    }
-    
-    
-    /**
-     * Поддържа точна информацията за записите в детайла
-     */
-    public static function on_AfterUpdateDetail($mvc, $id, $Detail)
-    {
-        // Ако има промяна в детайлите, маркираме журнала че е променен
-        if(!empty($id)){
-            $mvc->updated[$id] = $id;
+        
+        // Нотифицираме документа породил записа в журнала че журнала му е променен
+        if(cls::load($rec->docType, TRUE)){
+        	cls::get($rec->docType)->invoke('AfterJournalUpdated', array($rec->docId, $rec->id));
         }
     }
     

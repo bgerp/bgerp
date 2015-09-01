@@ -149,11 +149,6 @@ class acc_Articles extends core_Master
      */
     var $newBtnGroup = "6.1|Счетоводни";
     
-    /**
-     * Документи заопашени за обновяване
-     */
-    protected $updated = array();
-    
     
     /**
      * Описание на модела
@@ -255,36 +250,11 @@ class acc_Articles extends core_Master
     
     
     /**
-     * След промяна в детайлите на обект от този клас
-     */
-    public static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
-    {
-        // Запомняне кои документи трябва да се обновят
-        if(!empty($id)){
-            $mvc->updated[$id] = $id;
-        }
-    }
-    
-    
-    /**
-     * След изпълнение на скрипта, обновява записите, които са за ъпдейт
-     */
-    public static function on_Shutdown($mvc)
-    {
-        if(count($mvc->updated)){
-            foreach ($mvc->updated as $id) {
-                $mvc->updateAmount($id);
-            }
-        }
-    }
-    
-    
-    /**
      * Преизчислява дебитното и кредитното салдо на статия
      *
      * @param int $id първичен ключ на статия
      */
-    private function updateAmount($id, $modified = TRUE)
+    public function updateMaster($id, $modified = TRUE)
     {
         $dQuery = acc_ArticleDetails::getQuery();
         $dQuery->XPR('sumAmount', 'double', 'SUM(#amount)', array('dependFromFields' => 'amount'));
@@ -302,9 +272,9 @@ class acc_Articles extends core_Master
         }
         
         if($modified){
-            acc_Articles::save($rec);
+            $this->save($rec);
         } else {
-            acc_Articles::save_($rec);
+            $this->save_($rec);
         }
     }
     
@@ -489,6 +459,6 @@ class acc_Articles extends core_Master
             acc_ArticleDetails::save($dRec);
         }
         
-        $mvc->updateAmount($id, TRUE);
+        $mvc->updateMaster($id, TRUE);
     }
 }

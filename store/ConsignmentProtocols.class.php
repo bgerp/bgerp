@@ -125,12 +125,6 @@ class store_ConsignmentProtocols extends core_Master
     
     
     /**
-     * Записи за обновяване
-     */
-    protected $updated = array();
-    
-    
-    /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     var $searchFields = 'valior,folderId,note';
@@ -179,41 +173,28 @@ class store_ConsignmentProtocols extends core_Master
     
     
     /**
-     * След промяна в детайлите на обект от този клас
+     * Обновява информацията на документа
+     * @param int $id - ид на документа
      */
-    public static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
+    public function updateMaster($id)
     {
-    	// Запомняне кои документи трябва да се обновят
-    	$mvc->updated[$id] = $id;
-    }
-    
-    
-    /**
-     * След изпълнение на скрипта, обновява записите, които са за ъпдейт
-     */
-    public static function on_Shutdown($mvc)
-    {
-    	if(count($mvc->updated)){
-    		foreach ($mvc->updated as $id) {
-    			$rec = $mvc->fetchRec($id);
-    			
-    			$dRec1 = store_ConsignmentProtocolDetailsReceived::getQuery();
-    			$dRec1->where("#protocolId = {$rec->id}");
-    			$measuresSend = $mvc->getMeasures($dRec1->fetchAll());
-    			
-    			$dRec2 = store_ConsignmentProtocolDetailsSend::getQuery();
-    			$dRec2->where("#protocolId = {$rec->id}");
-    			 
-    			$measuresReceived = $mvc->getMeasures($dRec2->fetchAll());
-    			$weight =  $measuresSend->weight + $measuresReceived->weight;
-    			$volume =  $measuresSend->volume + $measuresReceived->volume;
-    			
-    			$rec->weight = $weight;
-    			$rec->volume = $volume;
-    			
-    			$mvc->save($rec);
-    		}
-    	}
+    	$rec = $this->fetch($id);
+    	
+    	$dRec1 = store_ConsignmentProtocolDetailsReceived::getQuery();
+    	$dRec1->where("#protocolId = {$rec->id}");
+    	$measuresSend = $this->getMeasures($dRec1->fetchAll());
+    	 
+    	$dRec2 = store_ConsignmentProtocolDetailsSend::getQuery();
+    	$dRec2->where("#protocolId = {$rec->id}");
+    	
+    	$measuresReceived = $this->getMeasures($dRec2->fetchAll());
+    	$weight =  $measuresSend->weight + $measuresReceived->weight;
+    	$volume =  $measuresSend->volume + $measuresReceived->volume;
+    	 
+    	$rec->weight = $weight;
+    	$rec->volume = $volume;
+    	
+    	$this->save($rec);
     }
     
     

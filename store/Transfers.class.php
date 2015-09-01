@@ -126,12 +126,6 @@ class store_Transfers extends core_Master
      * Групиране на документите
      */
     public $newBtnGroup = "4.5|Логистика";
-
-
-    /**
-     * Опашка от записи за записване в on_Shutdown
-     */
-    protected $updated = array();
     
     
     /**
@@ -168,29 +162,6 @@ class store_Transfers extends core_Master
             'caption=Статус, input=none'
         );
     }
-
-
-    /**
-     * След промяна в детайлите на обект от този клас
-     */
-    public static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
-    {
-    	// Запомняне кои документи трябва да се обновят
-    	$mvc->updated[$id] = $id;
-    }
-	
-	
-    /**
-     * След изпълнение на скрипта, обновява записите, които са за ъпдейт
-     */
-    public static function on_Shutdown($mvc)
-    {
-        if(count($mvc->updated)){
-        	foreach ($mvc->updated as $id) {
-	        	$mvc->updateMaster($id);
-	        }
-        }
-    }
     
     
 	/**
@@ -200,7 +171,7 @@ class store_Transfers extends core_Master
     public function updateMaster($id)
     {
     	$rec = $this->fetch($id);
-    	$dQuery = $this->store_TransfersDetails->getQuery();
+    	$dQuery = store_TransfersDetails::getQuery();
     	$dQuery->where("#transferId = {$id}");
     	$measures = $this->getMeasures($dQuery->fetchAll());
     	

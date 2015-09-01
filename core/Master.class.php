@@ -30,6 +30,12 @@ class core_Master extends core_Manager
     
     
     /**
+     * Опашка на записите чакащи ъпдейт
+     */
+    protected $updateQueue = array();
+    
+    
+    /**
      * Изпълнява се след конструирането на мениджъра
      */
     static function on_AfterDescription(core_Master &$mvc)
@@ -681,5 +687,42 @@ class core_Master extends core_Manager
     	} 
     	
     	return $url;
+    }
+    
+
+    /**
+     * След промяна в детайлите на обект от този клас
+     */
+    public static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
+    {
+    	if(isset($id)){
+    		
+    		// Запомняне кои документи трябва да се обновят
+    		$mvc->updateQueue[$id] = $id;
+    	}
+    }
+    
+    
+    /**
+     * След изпълнение на скрипта, обновява записите, които са за ъпдейт
+     */
+    static function on_Shutdown($mvc)
+    {
+    	if(count($mvc->updateQueue)){
+    		
+    		foreach ($mvc->updateQueue as $id) {
+    			$mvc->updateMaster($id);
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Обновява мастъра
+     *
+     * @param mixed $id - ид/запис на мастъра
+     */
+    function updateMaster($id)
+    {
     }
 }

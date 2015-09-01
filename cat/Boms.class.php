@@ -131,12 +131,6 @@ class cat_Boms extends core_Master
     
     
     /**
-     * Записи за обновяване
-     */
-    protected $updated = array();
-    
-    
-    /**
      * Описание на модела
      */
     function description()
@@ -170,32 +164,6 @@ class cat_Boms extends core_Master
     		}
     		
     		$res = " " . $res . " " . $detailsKeywords;
-    	}
-    }
-    
-    
-    /**
-     * След промяна в детайлите на обект от този клас
-     */
-    public static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
-    {
-    	// Запомняне кои документи трябва да се обновят
-    	if(!empty($id)){
-    		$mvc->updated[$id] = $id;
-    	}
-    }
-    
-    
-    /**
-     * След изпълнение на скрипта, обновява записите, които са за ъпдейт
-     */
-    public static function on_Shutdown($mvc)
-    {
-    	if(count($mvc->updated)){
-    		foreach ($mvc->updated as $id) {
-    			$rec = $mvc->fetchRec($id);
-    			$mvc->save($rec);
-    		}
     	}
     }
     

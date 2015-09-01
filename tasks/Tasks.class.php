@@ -103,12 +103,6 @@ class tasks_Tasks extends embed_Manager
     
     
     /**
-     * Опашка за обновяване
-     */
-    protected $updated = array();
-    
-    
-    /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
     public $rowToolsSingleField = 'name';
@@ -307,11 +301,6 @@ class tasks_Tasks extends embed_Manager
     			}
     		}
     		
-    		// Запомняне кои документи трябва да се обновят
-    		if($rec->id){
-    			$mvc->updated[$rec->id] = $rec->id;
-    		}
-    		
     		if ($rec->timeStart && $rec->timeEnd && ($rec->timeStart > $rec->timeEnd)) {
     			$form->setError('timeEnd', 'Крайния срок трябва да е преди началото на задачата');
     		}
@@ -326,33 +315,20 @@ class tasks_Tasks extends embed_Manager
     
     
     /**
-     * След промяна в детайлите на обект от този клас
+     * Обновява информацията на документа
+     * @param int $id - ид на документа
      */
-    public static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
+    public function updateMaster($id)
     {
-    	// Запомняне кои документи трябва да се обновят
-    	$mvc->updated[$id] = $id;
-    }
-    
-    
-    /**
-     * След изпълнение на скрипта, обновява записите, които са за ъпдейт
-     */
-    public static function on_Shutdown($mvc)
-    {
-    	if(count($mvc->updated)){
-    		foreach ($mvc->updated as $id) {
-    			$rec = $mvc->fetch($id);
-    			
-    			// Даваме възможност на драйвера да обнови мастъра ако иска
-    			if($Driver = $mvc->getDriver($id)){
-    				$Driver->updateEmbedder($rec);
-    			}
-    			
-    			$rec->expectedTimeStart = $mvc->getExpectedTimeStart($rec);
-    			$mvc->save($rec);
-    		}
+    	$rec = $this->fetch($id);
+    	
+    	// Даваме възможност на драйвера да обнови мастъра ако иска
+    	if($Driver = $this->getDriver($id)){
+    		$Driver->updateEmbedder($rec);
     	}
+    	
+    	$rec->expectedTimeStart = $this->getExpectedTimeStart($rec);
+    	$this->save($rec);
     }
     
     
