@@ -47,6 +47,12 @@ abstract class store_DocumentMaster extends core_Master
     
     
     /**
+     * Флаг, който указва дали документа да се кешира в треда
+     */
+    public $cacheInThread = TRUE;
+    
+    
+    /**
      * След описанието на полетата
      */
     protected static function setDocFields(core_Master &$mvc)
