@@ -108,6 +108,8 @@ class doc_Wrapper extends plg_ProtoWrapper
         // Показва таба за Шаблони, само ако имаме права за листване
         $this->TAB('doc_TplManager', 'Шаблони', 'ceo,admin');
         
+        $this->TAB('doc_DocumentCache', 'Кеш', 'ceo,admin');
+        
         // Показва таба за Бележки, само ако имаме права за листване
         $this->TAB('doc_Notes', 'Дебъг->Бележки', 'debug');
              
