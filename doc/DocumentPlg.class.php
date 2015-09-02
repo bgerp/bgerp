@@ -673,7 +673,7 @@ class doc_DocumentPlg extends core_Plugin
             
             $res = new Redirect($res); //'OK';
 
-            $mvc->logInfo('Оттегляне', $rec->id);
+            $mvc->logInAct('Оттегляне', $rec);
             
             return FALSE;
         }
@@ -702,7 +702,7 @@ class doc_DocumentPlg extends core_Plugin
             
             $res = new Redirect($res); //'OK';
             
-            $mvc->logInfo('Възстановяване', $rec->id);
+            $mvc->logInAct('Възстановяване', $rec);
             
             return FALSE;
         }
