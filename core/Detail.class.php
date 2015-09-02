@@ -317,10 +317,9 @@ class core_Detail extends core_Manager
      * 
      * @param string $msg
      * @param stdClass $rec
-     * @param boolean $isNew
      * @param string $type
      */
-    function logSaveAct($msg, $rec, $isNew, $type = 'info')
+    function logInAct($msg, $rec, $type = 'info')
     {
         $masterKey = $this->masterKey;
         $masters = $this->getMasters($rec);
@@ -341,7 +340,7 @@ class core_Detail extends core_Manager
             }
         }
         
-        parent::logSaveAct($msg, $rec, $isNew, $type);
+        parent::logInAct($msg, $rec, $type);
     }
     
     
@@ -389,46 +388,6 @@ class core_Detail extends core_Manager
         }
         
         return parent::act_Delete();
-    }
-    
-    
-    /**
-     * Оттегляне на обект
-     * 
-     * @param core_Mvc $mvc
-     * @param mixed $res
-     * @param int|stdClass $id
-     */
-    public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
-    {
-        $rec = $mvc->fetchRec($id);
-        $masters = $mvc->getMasters($rec);
-                
-        foreach ($masters as $masterKey => $masterInstance) {
-            $masterId = $rec->{$masterKey};
-            
-            $masterInstance->logInfo('Оттегляне на детайл', $masterId);
-        }
-    }
-    
-    
-    /**
-     * Възстановяване на оттеглен обект
-     * 
-     * @param core_Mvc $mvc
-     * @param mixed $res
-     * @param int|stdClass $id
-     */
-    public static function on_AfterRestore(core_Mvc $mvc, &$res, $id)
-    {
-        $rec = $mvc->fetchRec($id);
-        $masters = $mvc->getMasters($rec);
-                
-        foreach ($masters as $masterKey => $masterInstance) {
-            $masterId = $rec->{$masterKey};
-            
-            $masterInstance->logInfo('Възстановяване на детайл', $masterId);
-        }
     }
     
     

@@ -307,15 +307,9 @@ class core_Manager extends core_Mvc
             // Записваме данните
             $id = $this->save($rec);
             
-            $msg = 'Редактиране';
-            $isNew = FALSE;
+            $msg = ($data->cmd == 'Add') ? 'Нов запис' : 'Редактиране';
             
-            if ($data->cmd == 'Add') {
-                $isNew = TRUE;
-                $msg = 'Нов запис';
-            }
-            
-            $this->logSaveAct($msg, $rec, $isNew);
+            $this->logInAct($msg, $rec);
             
             // Подготвяме адреса, към който трябва да редиректнем,  
             // при успешно записване на данните от формата
@@ -351,10 +345,9 @@ class core_Manager extends core_Mvc
      * 
      * @param string $msg
      * @param stdClass $rec
-     * @param boolean $isNew
      * @param string $type
      */
-    function logSaveAct($msg, $rec, $isNew, $type = 'info')
+    function logInAct($msg, $rec, $type = 'info')
     {
         if ($type == 'info') {
             $this->logInfo($msg, $rec->id);

@@ -165,7 +165,7 @@ class plg_Rejected extends core_Plugin
             $mvc->reject($rec);
             $res = new Redirect(getRetUrl() ? getRetUrl() : array($mvc, 'single', $id));
 
-            $mvc->logInfo('Оттегляне', $rec->id);
+            $mvc->logInAct('Оттегляне', $rec);
             
             return FALSE;
         }
@@ -178,7 +178,7 @@ class plg_Rejected extends core_Plugin
             $mvc->restore($rec);
             $res = new Redirect(getRetUrl() ? getRetUrl() : array($mvc, 'single', $id));
             
-            $mvc->logInfo('Възстановяване', $rec->id);
+            $mvc->logInAct('Възстановяване', $rec);
             
             return FALSE;
         }
