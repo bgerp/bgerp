@@ -168,7 +168,7 @@ class core_Manager extends core_Mvc
         
         if (!Request::get('ajax_mode')) {
             // Записваме, че потребителя е разглеждал този списък
-            $this->logInfo('List');
+            $this->logInfo('Листване');
         }
         
         return $tpl;
@@ -244,7 +244,7 @@ class core_Manager extends core_Mvc
         
         $this->delete($data->id);
         
-        $this->logInfo($data->cmd, $data->id);
+        $this->logInfo('Изтриване', $data->id);
         
         return new Redirect($data->retUrl);
     }
@@ -307,8 +307,15 @@ class core_Manager extends core_Mvc
             // Записваме данните
             $id = $this->save($rec);
             
-            // Правим запис в лога
-            $this->logInfo($data->cmd, $id);
+            $msg = 'Редактиране';
+            $isNew = FALSE;
+            
+            if ($data->cmd == 'Add') {
+                $isNew = TRUE;
+                $msg = 'Нов запис';
+            }
+            
+            $this->logSaveAct($msg, $rec, $isNew);
             
             // Подготвяме адреса, към който трябва да редиректнем,  
             // при успешно записване на данните от формата
@@ -337,6 +344,24 @@ class core_Manager extends core_Mvc
         return $tpl;
     }
     
+    
+    
+    /**
+     * Логва действието след запис
+     * 
+     * @param string $msg
+     * @param stdClass $rec
+     * @param boolean $isNew
+     * @param string $type
+     */
+    function logSaveAct($msg, $rec, $isNew, $type = 'info')
+    {
+        if ($type == 'info') {
+            $this->logInfo($msg, $rec->id);
+        } else {
+            $this->logErr($msg, $rec->id);
+        }
+    }
     
     /**
      * Начално установяване на мениджъра
@@ -932,7 +957,7 @@ class core_Manager extends core_Mvc
         
         $select = new ET('');
         
-        $this->logInfo("ajaxGetOptions", NULL, 7);
+        $this->logDebug("ajaxGetOptions", NULL, 7);
         
         $options = $this->fetchOptions($q);
         

@@ -289,14 +289,6 @@ class core_Detail extends core_Manager
      */
     function save_(&$rec, $fieldsList = NULL, $mode = NULL)
     {
-        $logMsg = 'Добавяне';
-        
-        if ($rec->id) {
-            $logMsg = 'Редактиране';
-        }
-        
-        $logMsg .= ' на детайл';
-        
         if (!$id = parent::save_($rec, $fieldsList, $mode)) {
             return FALSE;
         }
@@ -313,11 +305,43 @@ class core_Detail extends core_Manager
             }
             
             $masterInstance->invoke('AfterUpdateDetail', array($masterId, $this));
-            
-            $masterInstance->logInfo($logMsg, $masterId);
         }
         
         return $id;
+    }
+    
+    
+    
+    /**
+     * Логва действието след запис
+     * 
+     * @param string $msg
+     * @param stdClass $rec
+     * @param boolean $isNew
+     * @param string $type
+     */
+    function logSaveAct($msg, $rec, $isNew, $type = 'info')
+    {
+        $masterKey = $this->masterKey;
+        $masters = $this->getMasters($rec);
+        
+        $newMsg = $msg . ' на детайл';
+        
+        foreach ($masters as $masterKey => $masterInstance) {
+            if($rec->{$masterKey}) {
+                $masterId = $rec->{$masterKey};
+            } elseif($rec->id) {
+                $masterId = $this->fetchField($rec->id, $masterKey);
+            }
+            
+            if ($type == 'info') {
+                $masterInstance->logInfo($newMsg, $masterId);
+            } else {
+                $masterInstance->logErr($newMsg, $masterId);
+            }
+        }
+        
+        parent::logSaveAct($msg, $rec, $isNew, $type);
     }
     
     
