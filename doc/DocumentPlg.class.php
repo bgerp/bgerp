@@ -429,6 +429,11 @@ class doc_DocumentPlg extends core_Plugin
 	    		}
 	    	}
         }
+
+        if($mvc->cacheInThread === TRUE){
+        	$userId = core_Users::getCurrent();
+        	doc_DocumentCache::invalidate($rec->containerId, $userId);
+        }
     }
     
     
@@ -2378,10 +2383,10 @@ class doc_DocumentPlg extends core_Plugin
      *
      * @param mixed $id - ид/запис на мастъра
      */
-    protected function on_AfterUpdateMaster($mvc, &$res, $id)
+    public static function on_AfterUpdateMaster($mvc, &$res, $id)
     {
+    	$rec = $mvc->fetchRec($id);
     	if(!$res){
-    		$rec = $mvc->fetchRec($id);
     		$rec->modifiedOn = dt::now();
     		$mvc->save($rec, 'modifiedOn');
     	}
