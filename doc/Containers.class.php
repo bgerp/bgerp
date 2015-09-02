@@ -127,7 +127,7 @@ class doc_Containers extends core_Manager
     {
         if (!$objId) {
             
-            return ht::createLink('doc_Containers', array());
+            return ht::createLink(get_called_class(), array());
         }
         
         try {
