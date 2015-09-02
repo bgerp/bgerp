@@ -272,7 +272,14 @@ class doc_Containers extends core_Manager
             $row->ROW_ATTR['id'] = $document->getDocumentRowId();
             
             if (!$hidden) {
-                $data = $document->prepareDocument();
+            	if($document->cacheInThread === TRUE){
+            		$cu = core_Users::getCurrent();
+            		$modifiedOn = $document->fetchField('modifiedOn');
+            		$data = doc_DocumentCache::getDocumentData($rec->id, $cu, $modifiedOn);
+            	} else {
+            		$data = $document->prepareDocument();
+            	}
+                
                 $row->ROW_ATTR['onMouseUp'] = "saveSelectedTextToSession('" . $document->getHandle() . "', 'onlyHandle');";
                 
                 // Добавяме линк за скриване на документа
