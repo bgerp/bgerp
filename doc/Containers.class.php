@@ -1093,9 +1093,11 @@ class doc_Containers extends core_Manager
         
         // Извикваме фунцкията
         if($clsInst->invoke('BeforeActivation', array(&$recAct))){
-        	
+        	        	
         	//Записваме данните в БД
         	$clsInst->save($recAct);
+        	
+        	$document->instance->logInfo('Активиране', $document->that);
         	
         	$rec->state = 'active';
         	$clsInst->invoke('AfterActivation', array(&$rec));
