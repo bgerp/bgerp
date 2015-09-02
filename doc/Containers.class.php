@@ -125,6 +125,11 @@ class doc_Containers extends core_Manager
      */
     public static function getLinkForObject($objId)
     {
+        if (!$objId) {
+            
+            return ht::createLink('doc_Containers', array());
+        }
+        
         try {
             $doc = self::getDocument($objId);
             
