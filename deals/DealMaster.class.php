@@ -776,11 +776,18 @@ abstract class deals_DealMaster extends deals_DealBase
 	    	$row->paymentState = ($rec->paymentState == 'overdue' || $rec->paymentState == 'repaid') ? "<span style='color:red'>{$row->paymentState}</span>" : $row->paymentState;
     	}
 	    
+    	if($rec->dealerId){
+    		$row->dealerId = crm_Profiles::createLink($rec->dealerId, $row->dealerId);
+    	}
+    	
+    	if($rec->initiatorId){
+    		$row->initiatorId = crm_Profiles::createLink($rec->initiatorId, $row->initiatorId);
+    	}
+    	
 	    if($fields['-single']){
 	    	if($rec->originId){
 	    		$row->originId = doc_Containers::getDocument($rec->originId)->getHyperLink();
 	    	}
-	    	
 	    	
 	    	if($rec->deliveryLocationId){
 	    		$row->deliveryLocationId = crm_Locations::getHyperlink($rec->deliveryLocationId);
