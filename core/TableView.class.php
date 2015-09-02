@@ -105,6 +105,7 @@ class core_TableView extends core_BaseClass
        
         // Имали колони в които ако няма данни да не се показват ?
         $hideColumns = arr::make($this->hideEmptyColumns, TRUE);
+        
         if(count($hideColumns)){
         	
         	// За всяка от тях
@@ -114,7 +115,7 @@ class core_TableView extends core_BaseClass
         		// Ако някой от записите име стойност за тази колонка, ще я показваме
         		if(count($rows)){
         			foreach ($rows as $row1){
-        				if(isset($row1->{$column})){
+        				if(!empty($row1->{$column})){
         					$hide = FALSE;
         					break;
         				}
