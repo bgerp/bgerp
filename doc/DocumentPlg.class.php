@@ -672,7 +672,9 @@ class doc_DocumentPlg extends core_Plugin
             doc_HiddenContainers::showOrHideDocument($rec->containerId, TRUE);
             
             $res = new Redirect($res); //'OK';
-                
+
+            $mvc->logInfo('Оттегляне', $rec->id);
+            
             return FALSE;
         }
         
@@ -699,6 +701,8 @@ class doc_DocumentPlg extends core_Plugin
             }
             
             $res = new Redirect($res); //'OK';
+            
+            $mvc->logInfo('Възстановяване', $rec->id);
             
             return FALSE;
         }
@@ -782,8 +786,6 @@ class doc_DocumentPlg extends core_Plugin
             // Премахваме документа от "Последно"
             bgerp_Recently::setHidden('document', $rec->containerId, $rec->state == 'rejected' ? 'yes':'no');
         }
-        
-        $mvc->logInfo($rec->state == 'rejected' ? 'reject' : 'restore', $rec->id);
         
         return TRUE;
     }
