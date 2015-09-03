@@ -243,9 +243,7 @@ class pos_Receipts extends core_Master {
     					break;
     				}
     			}
-    			
     		}
-    		
     	}
     	
     	// Слагаме бутон за оттегляне ако имаме права

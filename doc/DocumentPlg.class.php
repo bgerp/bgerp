@@ -429,6 +429,11 @@ class doc_DocumentPlg extends core_Plugin
 	    		}
 	    	}
         }
+
+        if($mvc->cacheInThread === TRUE){
+        	$userId = core_Users::getCurrent();
+        	doc_DocumentCache::invalidate($rec->containerId, $userId);
+        }
     }
     
     
@@ -667,7 +672,9 @@ class doc_DocumentPlg extends core_Plugin
             doc_HiddenContainers::showOrHideDocument($rec->containerId, TRUE);
             
             $res = new Redirect($res); //'OK';
-                
+
+            $mvc->logInAct('Оттегляне', $rec);
+            
             return FALSE;
         }
         
@@ -694,6 +701,8 @@ class doc_DocumentPlg extends core_Plugin
             }
             
             $res = new Redirect($res); //'OK';
+            
+            $mvc->logInAct('Възстановяване', $rec);
             
             return FALSE;
         }
@@ -777,8 +786,6 @@ class doc_DocumentPlg extends core_Plugin
             // Премахваме документа от "Последно"
             bgerp_Recently::setHidden('document', $rec->containerId, $rec->state == 'rejected' ? 'yes':'no');
         }
-        
-        $mvc->logInfo($rec->state == 'rejected' ? 'reject' : 'restore', $rec->id);
         
         return TRUE;
     }
@@ -2378,10 +2385,10 @@ class doc_DocumentPlg extends core_Plugin
      *
      * @param mixed $id - ид/запис на мастъра
      */
-    protected function on_AfterUpdateMaster($mvc, &$res, $id)
+    public static function on_AfterUpdateMaster($mvc, &$res, $id)
     {
+    	$rec = $mvc->fetchRec($id);
     	if(!$res){
-    		$rec = $mvc->fetchRec($id);
     		$rec->modifiedOn = dt::now();
     		$mvc->save($rec, 'modifiedOn');
     	}

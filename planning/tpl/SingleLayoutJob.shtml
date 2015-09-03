@@ -131,7 +131,7 @@
         </tr>
         <tr>
            <td colspan="3" style='padding:0px;width:100%' >
-           <div class="clearfix21 portal jobTaskDetails" style="background-color:transparent;">
+           <div class="clearfix21 portal planning" style="background-color:transparent;">
              [#Tasks#]
            </div>
            </td>

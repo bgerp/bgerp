@@ -236,4 +236,18 @@ abstract class deals_ManifactureMaster extends core_Master
     		$requiredRoles = 'no_one';
     	}
     }
+    
+    
+    /**
+     * Обновява данни в мастъра
+     *
+     * @param int $id първичен ключ на статия
+     * @return int $id ид-то на обновения запис
+     */
+    function updateMaster_($id)
+    {
+    	// Записваме документа за да му се обновят полетата
+    	$rec = $this->fetchRec($id);
+    	$this->save($rec);
+    }
 }

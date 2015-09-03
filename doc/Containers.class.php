@@ -125,6 +125,11 @@ class doc_Containers extends core_Manager
      */
     public static function getLinkForObject($objId)
     {
+        if (!$objId) {
+            
+            return ht::createLink(get_called_class(), array());
+        }
+        
         try {
             $doc = self::getDocument($objId);
             
@@ -272,7 +277,14 @@ class doc_Containers extends core_Manager
             $row->ROW_ATTR['id'] = $document->getDocumentRowId();
             
             if (!$hidden) {
-                $data = $document->prepareDocument();
+            	if($document->cacheInThread === TRUE){
+            		$cu = core_Users::getCurrent();
+            		$modifiedOn = $document->fetchField('modifiedOn');
+            		$data = doc_DocumentCache::getDocumentData($rec->id, $cu, $modifiedOn);
+            	} else {
+            		$data = $document->prepareDocument();
+            	}
+                
                 $row->ROW_ATTR['onMouseUp'] = "saveSelectedTextToSession('" . $document->getHandle() . "', 'onlyHandle');";
                 
                 // Добавяме линк за скриване на документа
@@ -1086,9 +1098,11 @@ class doc_Containers extends core_Manager
         
         // Извикваме фунцкията
         if($clsInst->invoke('BeforeActivation', array(&$recAct))){
-        	
+        	        	
         	//Записваме данните в БД
         	$clsInst->save($recAct);
+        	
+        	$document->instance->logInfo('Активиране', $document->that);
         	
         	$rec->state = 'active';
         	$clsInst->invoke('AfterActivation', array(&$rec));

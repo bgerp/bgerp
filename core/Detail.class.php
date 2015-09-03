@@ -289,14 +289,6 @@ class core_Detail extends core_Manager
      */
     function save_(&$rec, $fieldsList = NULL, $mode = NULL)
     {
-        $logMsg = 'Добавяне';
-        
-        if ($rec->id) {
-            $logMsg = 'Редактиране';
-        }
-        
-        $logMsg .= ' на детайл';
-        
         if (!$id = parent::save_($rec, $fieldsList, $mode)) {
             return FALSE;
         }
@@ -313,11 +305,42 @@ class core_Detail extends core_Manager
             }
             
             $masterInstance->invoke('AfterUpdateDetail', array($masterId, $this));
-            
-            $masterInstance->logInfo($logMsg, $masterId);
         }
         
         return $id;
+    }
+    
+    
+    
+    /**
+     * Логва действието след запис
+     * 
+     * @param string $msg
+     * @param stdClass $rec
+     * @param string $type
+     */
+    function logInAct($msg, $rec, $type = 'info')
+    {
+        $masterKey = $this->masterKey;
+        $masters = $this->getMasters($rec);
+        
+        $newMsg = $msg . ' на детайл';
+        
+        foreach ($masters as $masterKey => $masterInstance) {
+            if($rec->{$masterKey}) {
+                $masterId = $rec->{$masterKey};
+            } elseif($rec->id) {
+                $masterId = $this->fetchField($rec->id, $masterKey);
+            }
+            
+            if ($type == 'info') {
+                $masterInstance->logInfo($newMsg, $masterId);
+            } else {
+                $masterInstance->logErr($newMsg, $masterId);
+            }
+        }
+        
+        parent::logInAct($msg, $rec, $type);
     }
     
     
@@ -365,46 +388,6 @@ class core_Detail extends core_Manager
         }
         
         return parent::act_Delete();
-    }
-    
-    
-    /**
-     * Оттегляне на обект
-     * 
-     * @param core_Mvc $mvc
-     * @param mixed $res
-     * @param int|stdClass $id
-     */
-    public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
-    {
-        $rec = $mvc->fetchRec($id);
-        $masters = $mvc->getMasters($rec);
-                
-        foreach ($masters as $masterKey => $masterInstance) {
-            $masterId = $rec->{$masterKey};
-            
-            $masterInstance->logInfo('Оттегляне на детайл', $masterId);
-        }
-    }
-    
-    
-    /**
-     * Възстановяване на оттеглен обект
-     * 
-     * @param core_Mvc $mvc
-     * @param mixed $res
-     * @param int|stdClass $id
-     */
-    public static function on_AfterRestore(core_Mvc $mvc, &$res, $id)
-    {
-        $rec = $mvc->fetchRec($id);
-        $masters = $mvc->getMasters($rec);
-                
-        foreach ($masters as $masterKey => $masterInstance) {
-            $masterId = $rec->{$masterKey};
-            
-            $masterInstance->logInfo('Възстановяване на детайл', $masterId);
-        }
     }
     
     

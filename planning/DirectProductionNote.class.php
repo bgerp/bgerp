@@ -205,9 +205,9 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 		$shortUom = cat_UoM::getShortName(cat_Products::fetchField($rec->productId, 'measureId'));
 		$row->quantity .= " {$shortUom}";
 		
-		$row->inputStoreId = store_Stores::getHyperlink($rec->inputStoreId, TRUE);
+		$row->inputStoreId = store_Stores::getHyperlink($rec->inputStoreId);
 		if($rec->returnStoreId){
-			$row->returnStoreId = store_Stores::getHyperlink($rec->returnStoreId, TRUE);
+			$row->returnStoreId = store_Stores::getHyperlink($rec->returnStoreId);
 		}
 	}
 	

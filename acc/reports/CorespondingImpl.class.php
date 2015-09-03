@@ -371,18 +371,32 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     	$tpl->placeObject($data->summary);
     	$tpl->replace(acc_Periods::getBaseCurrencyCode(), 'baseCurrencyCode');
 
-    	// toolbar
-    	$btns = $this->generateBtns($data);
+    	$cntItem = array();
+    	for ($i = 0; $i <= count($data->rows); $i++) {
+	    	foreach (range(1, 6) as $l){
+	    		if(!empty($data->rows[$i]->{"item{$l}"})){
+	    			$cntItem[$l] = "item{$l}";
+	    		}
+	    	}
+    	}
+    	//bp($a);
     	
-        $tpl->replace($btns->buttonList, 'buttonList');
-        $tpl->replace($btns->buttonChart, 'buttonChart');
+    	if(count($cntItem) <= 1 && count($data->recs) >= 2 ) {
+    	
+	    	// toolbar
+	    	$btns = $this->generateBtns($data);
+	    	
+	        $tpl->replace($btns->buttonList, 'buttonList');
+	        $tpl->replace($btns->buttonChart, 'buttonChart');
+    	
+    	}
 
         $var = str::addHash("pie", 5, "{$this->EmbedderRec->that}");
 
         $curUrl = getCurrentUrl();
         $docId = $this->innerForm->containerId;;
         
-        if ($curUrl["var_{$docId}"] == $var && $data->recs) {
+        if ($curUrl["var_{$docId}"] == $var) {
         	$chart = $this->getChart($data);
         	$tpl->append($chart, 'CONTENT');
         } else {
@@ -847,11 +861,12 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     	arr::order($data->recs, $this->innerForm->orderField, $this->innerForm->orderBy);
      
     	$dArr = array();
-    	foreach ($data->recs as $id => $rec) {
+    	foreach ($data->recs as $id => $rec) { 
 
     		$balance += abs($rec->{$this->innerForm->orderField});
     		
-    		
+    		// правим масив с всички пера и стойност 
+    		// сумирано полето което е избрали във формата
     		if(!array_key_exists($id, $dArr)){ 
     		
     			$dArr[$id] =
@@ -880,7 +895,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     	}
   
     	$arr = $this->preparePie($dArr, 12);
-    	
+    
     	$title = '';
     	foreach ($arr as $id => $recSort) { 
             //$title = str::limitLen($recSort->title, 19);
@@ -919,7 +934,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     	foreach ($data as $key => $rec) {
 
     	
-    		// Вербалното представяне на перата
+    		// Вземаме всички пера като наредени н-орки
     		$title = '';
     		foreach (range(1, 6) as $i){
 	    		if(!empty($rec->{"item{$i}"})){
@@ -927,8 +942,6 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
 	    			$title .= $rec->{"item{$i}"} . "|";
 	    		}
 	    	}
-    
-	    	
 
 	    	$newArr[$key] =
 	    			(object) array ('title' => substr($title, 0,strlen($title)-1),
@@ -946,7 +959,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     	if ($cntData <= $n) {
     
     		// връщаме направо масива
-    		//return $data;
+    
     		return $newArr;
     
     		//в противен случай
@@ -955,6 +968,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     		
     		for($k = 0; $k <= $n -1; $k++) {
 
+    			// Вербалното представяне на перата
     			$t = explode("|", $newArr[$k]->title);
     			$titleV = '';
     			for ($i=0; $i <= count($t) -1; $i++) {
