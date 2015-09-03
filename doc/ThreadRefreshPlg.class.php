@@ -17,12 +17,6 @@ class doc_ThreadRefreshPlg extends core_Plugin
     
     
     /**
-     * Колко дни да стои в лога
-     */
-    static $logKeepDays = 5;
-    
-    
-    /**
      * Преди рендиране на врапера
      * 
      * @param core_Mvc $mvc
@@ -89,25 +83,35 @@ class doc_ThreadRefreshPlg extends core_Plugin
         
         // Ако заявката не е по ajax
         if (!$ajaxMode) return FALSE;
-
+        
         $threadId = Request::get('threadId', 'int');
-
-        $lastSend = Mode::get('LastSendThread' . $threadId);
+        
+        $threadLastSendName = 'LastSendThread_' . $threadId . '_' . Request::get('hitTime');
+        
+        $lastSend = Mode::get($threadLastSendName);
+        
         if(!$lastSend) {
             $lastSend = dt::verbal2mysql();
-            Mode::setPermanent('LastSendThread' . $threadId, $lastSend);
+            Mode::setPermanent($threadLastSendName, $lastSend);
         }
-
+        
+        // Определяме времето на последна модификация на контейнер в нишката
         $cQuery = doc_Containers::getQuery();
         $cQuery->where("#threadId = {$threadId}");
         $cQuery->orderBy('#modifiedOn', 'DESC');
         $cQuery->limit(1);
         $lastModifiedRec = $cQuery->fetch();
         $lastModified = $lastModifiedRec->modifiedOn;
-
-        if($lastSend >= $lastModified) return FALSE;
         
-        Mode::setPermanent('LastSendThread' . $threadId, dt::verbal2mysql());
+        if($lastSend >= $lastModified) {
+            
+            // Времето на последна модификация на нишката
+            $threadLastRec = doc_Threads::fetch($lastModifiedRec->threadId);
+            
+            if ($lastSend >= $threadLastRec->modifiedOn) return FALSE;
+        }
+        
+        Mode::setPermanent($threadLastSendName, dt::verbal2mysql());
 
         // URL-то за рефрешване
         $refreshUrlStr = Request::get('refreshUrl');
@@ -115,8 +119,8 @@ class doc_ThreadRefreshPlg extends core_Plugin
         // Парсираме URL-то
         $refreshUrl = core_App::parseLocalUrl($refreshUrlStr);
         
-        // Добавяме флага
         $refreshUrl['ajax_mode'] = $ajaxMode;
+        $refreshUrl['AjaxLastSend'] = $lastSend;
         
         // Вземаме шаблона
         $tpl = Request::forward($refreshUrl);
@@ -156,34 +160,38 @@ class doc_ThreadRefreshPlg extends core_Plugin
         
         // Ако има документи за обновяване
         if ($docsArr) {
-            foreach ((array)$docsArr as $docId) {
-                
-                $flashDocObj = new stdClass();
-                $flashDocObj->func = 'flashDoc';
-                $flashDocObj->arg = $docId;
-                
-                $resStatus[] = $flashDocObj;
+            
+            $modifiedDocsArr = array();
+            
+            foreach ((array)$docsArr as $cid => $docId) {
+                $currUrl = getCurrentUrl();
+                $currUrl['#'] = $docId;
+                $modifiedDocsArr[] = ht::createLink('#' . $docId, $currUrl, NULL, array('onclick' => "getEO().scrollTo('$docId'); return false;"));
             }
             
-            // Ако е зададено да се скролира до края на нишката
-            if (!Mode::get('REFRESH_DOCS_SCROLL_TO_END')) {
+            // Показва статус съобщение с променените документи
+            if ($modifiedDocsArr) {
+                $cnt = count($modifiedDocsArr);
                 
-                // id на полследния документ
-                reset($docsArr);
-                $docId = end($docsArr);
+                $msg = ($cnt == 1) ? '|Добавен/редактиран документ в нишката|*: ': '|Добавени/редактирани документ в нишката|*: ';
+                $msg = tr($msg);
+                $msg .= ($cnt > 1) ? '<br>' : '';
+                $msg .= implode('<br>', $modifiedDocsArr);
+            
+                $statusData = array();
+                $statusData['text'] = $msg;
+                $statusData['type'] = 'notice';
+                $statusData['timeOut'] = 700;
+                $statusData['isSticky'] = 0;
+                $statusData['stayTime'] = 15000;
                 
-                $scrollToDocId = $docId;
+                $statusObj = new stdClass();
+                $statusObj->func = 'showToast';
+                $statusObj->arg = $statusData;
+                
+                $resStatus[] = $statusObj;
             }
-            
-            $scrollToObj = new stdClass();
-            $scrollToObj->func = 'scrollTo';
-            $scrollToObj->arg = $scrollToDocId;
-            
-            $resStatus[] = $scrollToObj;
         }
-        
-        // Добавяме в лога
-//         $mvc->logInfo("AJAX refresh thread", NULL, self::$logKeepDays);
         
         return FALSE;
     }
@@ -215,63 +223,6 @@ class doc_ThreadRefreshPlg extends core_Plugin
     
     
     /**
-     * Преди подготвяне на записите
-     * 
-     * @param core_Mvc $mvc
-     * @param object $res
-     * @param object $data
-     */
-    function on_BeforePrepareListRecs($mvc, &$res, $data)
-    {
-        $ajaxMode = Request::get('ajax_mode');
-        
-        // Ако се вика по AJAX
-        if (!$ajaxMode) {
-            
-            // Ако не е бил сетнат
-            if (!Mode::get('hitTime')) {
-                
-                // Записваме времето на извикване
-                Mode::set('hitTime', dt::mysql2timestamp());
-            }
-            
-            // Времето на извикване на страницата
-            $hitTime = Mode::get('hitTime');
-        } else {
-            
-            // Ако сме по AJAX, вземаме от рекуеста
-            $hitTime = Request::get('hitTime');
-        }
-        
-        // Масив с промените по нишката
-        $threadsLastModify = Mode::get("THREADS_LAST_MODIFY");
-        
-        // id на нишката
-        $threadId = $data->threadRec->id;
-        
-        // Време на последна променя на нишката
-        $lastModify = $data->threadRec->modifiedOn;
-        
-        // Ако няма промяна
-        if(($threadsLastModify[$hitTime][$threadId] == $lastModify) && $ajaxMode) {
-            
-            // Вдигаме флага
-            $data->noChanges = TRUE;
-        } else {
-            
-            // Време на предишната промяна
-            $data->lastRefresh = $threadsLastModify[$hitTime][$threadId];
-            
-            // Време на последната промяна
-            $threadsLastModify[$hitTime][$threadId] = $lastModify;
-            
-            // Обновяваме данните
-            Mode::setPermanent("THREADS_LAST_MODIFY", $threadsLastModify);
-        }
-    }
-    
-    
-    /**
      * След подготвяне на вербалната стойност на полетата
      * 
      * @param core_Mvc $mvc
@@ -283,51 +234,23 @@ class doc_ThreadRefreshPlg extends core_Plugin
         // Масив с променените документи
         $docsArr = array();
         
-        // Ако има документи
-        if($data->lastRefresh && count($data->recs)) {
+        $lastRefresh = Request::get('AjaxLastSend');
+        
+        // Намира всички документи, които са променени
+        if (Request::get('ajax_mode') && $lastRefresh && count($data->recs)) {
             
-            // Последния документ в нишката
-            $lastRec = end($data->recs);
-            
-            // Обхождаме всички резултати
             foreach($data->recs as $id => $r) {
                 
                 // Ако са променени след последно изтегленото време
-                if($r->modifiedOn > $data->lastRefresh) {
+                if($r->modifiedOn > $lastRefresh) {
                     
                     // Добавяме хендълуте в масива
-                    $docsArr[] = $data->rows[$id]->ROW_ATTR['id'];
-                    
-                    // Ако е последния запис
-                    if($lastRec->id == $r->id) {
-                        
-                        // Да се скролира до последния запис
-                        Mode::set('REFRESH_DOCS_SCROLL_TO_END', TRUE);
-                    }
+                    $docsArr[$id] = $data->rows[$id]->ROW_ATTR['id'];
                 }
             }
             
             // Добавяме всички променени документи
             Mode::set('REFRESH_DOCS_ARR', $docsArr);
-        }
-    }
-    
-    
-    /**
-     * Преди рендиране на листовия изглед
-     * 
-     * @param core_Mvc $mvc
-     * @param mixed $res
-     * @param object $data
-     */
-    function on_BeforeRenderList($mvc, &$res, $data)
-    {
-        // Ако няма промени, да не се изпълнява
-        if ($data->noChanges) {
-            
-            $res = new ET($res);
-            
-            return FALSE;
         }
     }
 }
