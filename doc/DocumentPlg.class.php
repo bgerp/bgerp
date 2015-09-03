@@ -649,7 +649,7 @@ class doc_DocumentPlg extends core_Plugin
             
             $id  = Request::get('id', 'int');
             $rec = $mvc->fetch($id);
-            
+           
             if (isset($rec->id) && $rec->state != 'rejected' && $mvc->haveRightFor('reject', $rec)) {
                 // Оттегляме документа + нишката, ако се налага
                 if ($mvc->reject($rec)) {
@@ -662,15 +662,25 @@ class doc_DocumentPlg extends core_Plugin
                 }
             }
             
+            // Обновяваме споделените на нишката, да сме сигурни че данните ще са актуални
+            $threadRec = doc_Threads::fetch($rec->threadId);
+            $threadRec->shared = keylist::fromArray(doc_ThreadUsers::getShared($rec->threadId));
+            doc_Threads::save($threadRec, 'shared');
+           
             // Пренасочваме контрола
             if (!$res = getRetUrl()) {
-                $res = array($mvc, 'single', $id);
+            	if($mvc->haveRightFor('single', $rec)){
+            		$res = array($mvc, 'single', $id);
+            	} else {
+            		$res = array('bgerp_Portal', 'show');
+            		core_Statuses::newStatus('Предишната страница не може да бъде показана, поради липса на права за достъп', 'warning');
+            	}
             }
             
             $res['afterReject'] = 1;
             
             doc_HiddenContainers::showOrHideDocument($rec->containerId, TRUE);
-            
+           
             $res = new Redirect($res); //'OK';
 
             $mvc->logInAct('Оттегляне', $rec);
@@ -1365,6 +1375,8 @@ class doc_DocumentPlg extends core_Plugin
                         $requiredRoles = 'powerUser';
                     }
                 }
+                
+                //bp($oRec, $requiredRoles);
             } elseif ($action == 'clone') {
                 
                 // Ако клонираме
