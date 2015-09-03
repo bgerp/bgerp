@@ -60,7 +60,7 @@ class doc_DocumentCache extends core_Master
 	/**
 	 * Полета, които ще се показват в листов изглед
 	 */
-	public $listFields = 'id, userId, containerId, time, invalidate=Инвалидиране';
+	public $listFields = 'id, userId, containerId, time, usage,invalidate';
 	
 	
 	/**
@@ -90,6 +90,8 @@ class doc_DocumentCache extends core_Master
 		$this->FLD("containerId", "key(mvc=doc_Containers)", "input=none,caption=Документ");
 		$this->FLD("cache", "blob(1000000, serialize, compress)", "input=none,caption=Html,column=none");
 		$this->FLD("time", "datetime(format=smartTime)", "input=none,caption=Създаване");
+		$this->FLD("usage", "datetime(format=smartTime)", "input=none,caption=Употреба");
+		$this->FLD("invalidate", "datetime(format=smartTime)", "input=none,caption=Изтриване");
 	}
 	
 	
@@ -105,13 +107,21 @@ class doc_DocumentCache extends core_Master
 	public static function getDocumentData($containerId, $userId, $time)
 	{
 		$interval = self::KEEP_MINUTES * 60;
+		$now = dt::now();
 		
 		if(!$rec = self::fetch("#userId = {$userId} AND #containerId = {$containerId} AND ADDDATE(#time, INTERVAL {$interval} SECOND) >= '{$time}'")){
 			
-			$rec = (object)array('userId' => $userId, 'containerId' => $containerId, 'time' => $time);
+			$rec = (object)array('userId' => $userId, 
+								 'containerId' => $containerId, 
+								 'time' => $time,
+								 'usage' => $now,
+								 'invalidate' => dt::addSecs($interval, $time));
 			$document = doc_Containers::getDocument($containerId);
 			$rec->cache = $document->prepareDocument();
 			self::save($rec);
+		} else {
+			$rec->usage = $now;
+			self::save($rec, 'usage');
 		}
 		
 		return $rec->cache;
@@ -137,7 +147,6 @@ class doc_DocumentCache extends core_Master
 	public static function on_AfterRecToVerbal($mvc, &$row, $rec)
 	{
 		$row->containerId = doc_Containers::getDocument($rec->containerId)->getLink(0);
-		$row->invalidate = dt::addSecs(self::KEEP_MINUTES * 60, $rec->time);
 	}
 	
 	
@@ -146,10 +155,10 @@ class doc_DocumentCache extends core_Master
 	 */
 	function cron_Invalidate()
 	{
-		// Изтриваме стария кеш
-		$interval = self::KEEP_MINUTES * 60;
 		$now = dt::now();
-		$this->delete("ADDDATE(#time, INTERVAL {$interval} SECOND) <= '{$now}'");
+		
+		// Изтриваме стария кеш
+		$this->delete("#invalidate <= '{$now}'");
 		
 		// Ресетваме ид-та
 		$this->db->query("ALTER TABLE {$this->dbTableName} AUTO_INCREMENT = 1");

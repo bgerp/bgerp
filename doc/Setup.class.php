@@ -127,7 +127,7 @@ class doc_Setup extends core_ProtoSetup
     				'description' => "Изтриване на старите кеширани документи",
     				'controller' => "doc_DocumentCache",
     				'action' => "Invalidate",
-    				'period' => doc_DocumentCache::KEEP_MINUTES,
+    				'period' => 1,
     		),);
     
     
