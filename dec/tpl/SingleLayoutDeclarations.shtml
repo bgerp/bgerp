@@ -2,4 +2,4 @@
     <h3 class="centered"><b>[#typeId#]</b></h3>
     <p class="centered">№ [#id#] / [#date#]</p>
     [#content#]
-[#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]
+</div>
