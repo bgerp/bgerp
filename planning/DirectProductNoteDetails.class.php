@@ -96,7 +96,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     {
         $this->FLD('noteId', 'key(mvc=planning_DirectProductionNote)', 'column=none,notNull,silent,hidden,mandatory');
         $this->FLD('resourceId', 'key(mvc=planning_Resources,select=title,allowEmpty)', 'silent,caption=Ресурс,input=none,removeAndRefreshForm=productId|packagingId|quantityInPack|quantity|packQuantity|measureId');
-        $this->FLD('type', 'enum(input=Влагане,pop=Отпадък,return=Връщане)', 'caption=Действие,silent,input=hidden');
+        $this->FLD('type', 'enum(input=Влагане,pop=Отпадък)', 'caption=Действие,silent,input=hidden');
         
         parent::setDetailFields($this);
         $this->FLD('conversionRate', 'double', 'input=none');
@@ -111,9 +111,9 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
      */
     public static function on_BeforePrepareEditForm($mvc, &$res, $data)
     {
-    	$type = Request::get('type', 'enum(input,pop,return)');
+    	$type = Request::get('type', 'enum(input,pop)');
     	 
-    	$title = ($type == 'pop') ? 'отпадък' : (($type == 'return') ? 'материал за връщане' : 'материал');
+    	$title = ($type == 'pop') ? 'отпадък' : 'материал';
     	$mvc->singleTitle = $title;
     }
     
@@ -134,47 +134,17 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     	if($rec->id){
     		$products = array($rec->productId => cat_Products::getTitlebyId($rec->productId, FALSE));
     	} else {
-    		if($rec->type == 'return'){
-    			$products = array('' => '') + $mvc->getProductsToReturn($rec->noteId);
-    		} else {
-    			$products = array('' => '') + cat_Products::getByProperty('canConvert');
-    		}
+    		$products = array('' => '') + cat_Products::getByProperty('canConvert');
     	}
     	
     	$form->setOptions('productId', $products);
     	$form->setDefault('classId', $classId);
     	
     	if($rec->productId){
-    		$storeId = ($rec->type == 'return') ? $data->masterRec->returnStoreId : $data->masterRec->inputStoreId;
+    		$storeId = $data->masterRec->inputStoreId;
     		$info = deals_Helper::getProductQuantityInStoreInfo($rec->productId, $classId, $storeId);
     		$form->info = $info->formInfo;
     	}
-    }
-    
-    
-    /**
-     * Връща опции на всички материали които са вложени или са отпадък
-     * 
-     * @param int $noteId - ид на протокол
-     * @param int $limit - лимит на опциите
-     * @return array $options - опции
-     */
-    private function getProductsToReturn($noteId, $limit = NULL)
-    {
-    	$options = array();
-    	$query = $this->getQuery();
-    	$query->where("#noteId = {$noteId}");
-    	$query->where("#type != 'return'");
-    	$query->show('productId');
-    	if(isset($limit)){
-    		$query->limit($limit);
-    	}
-    	
-    	while($rec = $query->fetch()){
-    		$options[$rec->productId] = cat_Products::getTitleById($rec->productId, FALSE);
-    	}
-    	
-    	return $options;
     }
     
     
@@ -202,8 +172,8 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
      */
     public static function on_AfterPrepareDetail($mvc, $res, $data)
     {
-    	$data->returnArr = $data->inputArr = $data->popArr = array();
-    	$countReturned = $countInputed = $countPoped = 1;
+    	$data->inputArr = $data->popArr = array();
+    	$countInputed = $countPoped = 1;
     	$Int = cls::get('type_Int');
     	
     	// За всеки детайл (ако има)
@@ -219,14 +189,10 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     				$row->tools->append($Int->toVerbal($countInputed), 'TOOLS');
     				$data->inputArr[$id] = $row;
     				$countInputed++;
-    			} elseif($rec->type == 'pop') {
+    			} else {
     				$row->tools->append($Int->toVerbal($countPoped), 'TOOLS');
     				$data->popArr[$id] = $row;
     				$countPoped++;
-    			} else {
-    				$row->tools->append($Int->toVerbal($countReturned), 'TOOLS');
-    				$data->returnArr[$id] = $row;
-    				$countReturned++;
     			}
     		}
     	}
@@ -272,56 +238,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     		$tpl->append(ht::createBtn('Отпадък', array($this, 'add', 'noteId' => $data->masterId, 'type' => 'pop', 'ret_url' => TRUE),  NULL, NULL, array('style' => 'margin-top:5px;;margin-bottom:10px;', 'ef_icon' => 'img/16/wooden-box.png', 'title' => 'Добавяне на нов отпадък')), 'planning_DirectProductNoteDetails');
     	}
     	
-    	// Рендираме таблицата с върнатите
-    	if(count($data->returnArr) || $data->masterData->rec->state == 'draft'){
-    		$data->listFields['productId'] = '|Върнато|* ';
-    		$data->listFields['productId'] .= "<small style='font-weight:normal'>( " . (($data->masterData->rec->returnStoreId) ? "|в склад|*: {$data->masterData->row->returnStoreId}" : "|не е избран склад|*") . " )";
-    		
-    		$detailsReturned = $table->get($data->returnArr, $data->listFields);
-    		$detailsPop = ht::createElement("div", array('style' => 'margin-top:5px;margin-bottom:5px'), $detailsReturned);
-    		$tpl->append($detailsReturned, 'planning_DirectProductNoteDetails');
-    	}
-    	
-    	// Добавяне на бутон за ново връщане
-    	if($this->haveRightFor('add', (object)array('noteId' => $data->masterId))){
-    		$attr = array('style' => 'margin-top:5px;;margin-bottom:10px;', 'ef_icon' => 'img/16/wooden-box.png', 'title' => 'Добавяне на нов отпадък');
-    		if(!isset($data->masterData->rec->returnStoreId)){
-    			$tpl->append(ht::createErrBtn('Връщане', 'Не е избран склад в който да влязат върнатите материали', $attr));
-    		} elseif(!count($this->getProductsToReturn($data->masterId, 1))){
-    			$tpl->append(ht::createErrBtn('Връщане', 'Няма позволени материали за връщане', $attr));
-    		}
-    		else {
-    			$tpl->append(ht::createBtn('Връщане', array($this, 'add', 'noteId' => $data->masterId, 'type' => 'return', 'ret_url' => TRUE),  NULL, NULL, $attr), 'planning_DirectProductNoteDetails');
-    		}
-    	}
-    	
     	// Връщаме шаблона
     	return $tpl;
-    }
-    
-    
-    /**
-     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
-     */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
-    {
-    	if(($action == 'add' || $action == 'edit') && isset($rec)){
-    		
-    		// При връщане
-    		if($rec->type == 'return'){
-    			$returnStore = $mvc->Master->fetchField($rec->noteId, 'returnStoreId');
-    			
-    			// Ако не е избран склад за връщане, не може да се връща
-    			if(empty($returnStore)){
-    				$requiredRoles = 'no_one';
-    			} else {
-    				
-    				// Ако няма поне един вложен материал, не може да се връща
-    				if(!count($mvc->getProductsToReturn($rec->noteId, 1))){
-    					$requiredRoles = 'no_one';
-    				}
-    			}
-    		}
-    	}
     }
 }
