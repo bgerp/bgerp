@@ -73,6 +73,7 @@ class planning_Tasks extends tasks_Tasks
 			$data->recs[$rec->id] = $rec;
 			$row = $this->recToVerbal($rec);
 			$row->modified = $row->modifiedOn . " " . tr('от') . " " . $row->modifiedBy;
+			$row->modified = "<div style='text-align:center'> {$row->modified} </div>";
 			$data->rows[$rec->id] = $row;
 			
 			// Премахваме от масива с дефолтни задачи, тези с чието име има сега създадена задача
