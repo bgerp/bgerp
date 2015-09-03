@@ -50,7 +50,6 @@ class dec_Setup extends core_ProtoSetup
    var $managers = array(
             'dec_Declarations',
 			'dec_Statements',
-   			'dec_DeclarationDetails',
    			'dec_DeclarationTypes',
 			'dec_Materials',
         );

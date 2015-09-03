@@ -128,7 +128,7 @@ class doc_SharablePlg extends core_Plugin
     {
         $rec = $data->rec;
         
-        if ($rec->state == 'draft' || $rec->state == 'rejected') {
+        if ($rec->state == 'draft' || $rec->state == 'rejected' || Request::get('ajax_mode')) {
             // На практика документа не е споделен
             return;
         }
@@ -150,8 +150,15 @@ class doc_SharablePlg extends core_Plugin
             // Първо виждане на документа от страна на $userId
             $viewedBy[$userId] = dt::now(TRUE);
             $rec->sharedViews = serialize($viewedBy);
+            $rec->modifiedOn = dt::verbal2mysql();
             if ($mvc->save_($rec)) {
                 core_Cache::remove($mvc->className, $data->cacheKey . '%');
+                if($rec->containerId) {
+                    $cRec = new stdClass();
+                    $cRec->id = $rec->containerId;
+                    $cRec->modifiedOn = $rec->modifiedOn;
+                    doc_Containers::save($cRec);
+                }
             }
         }
     }

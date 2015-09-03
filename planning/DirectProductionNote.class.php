@@ -135,13 +135,7 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 	/**
 	 * Полета, които ще се показват в листов изглед
 	 */
-	public $listFields = 'tools=Пулт, valior, title=Документ, storeId, inputStoreId, returnStoreId, folderId, deadline, createdOn, createdBy';
-	
-	
-	/**
-	 * Кои полета от листовия изглед да се скриват ако няма записи в тях
-	 */
-	protected $hideListFieldsIfEmpty = 'returnStoreId';
+	public $listFields = 'tools=Пулт, valior, title=Документ, storeId, inputStoreId, folderId, deadline, createdOn, createdBy';
 	
 	
 	/**
@@ -153,7 +147,6 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 		
 		$this->setField('storeId', 'caption=Складове->Произведено в');
 		$this->FLD('inputStoreId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Складове->Вложено от, mandatory,after=storeId');
-		$this->FLD('returnStoreId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Складове->Върнато в,after=inputStoreId');
 		
 		$this->setField('deadline', 'input=none');
 		$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,mandatory,before=storeId');
@@ -205,10 +198,7 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 		$shortUom = cat_UoM::getShortName(cat_Products::fetchField($rec->productId, 'measureId'));
 		$row->quantity .= " {$shortUom}";
 		
-		$row->inputStoreId = store_Stores::getHyperlink($rec->inputStoreId, TRUE);
-		if($rec->returnStoreId){
-			$row->returnStoreId = store_Stores::getHyperlink($rec->returnStoreId, TRUE);
-		}
+		$row->inputStoreId = store_Stores::getHyperlink($rec->inputStoreId);
 	}
 	
 	
@@ -403,7 +393,6 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 		$details = array();
 		$dQuery = planning_DirectProductNoteDetails::getQuery();
 		$dQuery->where("#noteId = {$id}");
-		$dQuery->where("#type != 'return'");
 		while ($dRec = $dQuery->fetch()){
 			$nRec = new stdClass();
 			$nRec->resourceId     = $dRec->productId;

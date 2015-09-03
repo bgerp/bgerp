@@ -117,6 +117,20 @@ class doc_Setup extends core_ProtoSetup
      */
     var $info = "Документи и папки";
     
+    
+    /**
+     * Настройки за Cron
+     */
+    var $cronSettings = array(
+    		array(
+    				'systemId' => "Delete Old Cached Documents",
+    				'description' => "Изтриване на старите кеширани документи",
+    				'controller' => "doc_DocumentCache",
+    				'action' => "Invalidate",
+    				'period' => 1,
+    		),);
+    
+    
     /**
      * Описание на конфигурационните константи
      */
@@ -155,6 +169,7 @@ class doc_Setup extends core_ProtoSetup
         'doc_Files',
     	'doc_TplManager',
     	'doc_HiddenContainers',
+    	'doc_DocumentCache',
         'migrate::repairAllBrokenRelations'
     );
 

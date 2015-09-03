@@ -693,7 +693,7 @@ class core_Master extends core_Manager
     /**
      * След промяна в детайлите на обект от този клас
      */
-    public static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
+    protected static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
     {
     	if(isset($id)){
     		
@@ -718,9 +718,10 @@ class core_Master extends core_Manager
     
     
     /**
-     * Обновява мастъра
+     * Обновява данни в мастъра
      *
-     * @param mixed $id - ид/запис на мастъра
+     * @param int $id първичен ключ на статия
+     * @return int $id ид-то на обновения запис
      */
     function updateMaster_($id)
     {

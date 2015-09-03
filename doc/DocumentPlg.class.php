@@ -99,6 +99,8 @@ class doc_DocumentPlg extends core_Plugin
         $mvc->setDbIndex('threadId');
         $mvc->setDbIndex('containerId');
         $mvc->setDbIndex('originId');
+
+        $mvc->cacheInThread = TRUE;
     }
     
     
@@ -644,7 +646,7 @@ class doc_DocumentPlg extends core_Plugin
             
             $id  = Request::get('id', 'int');
             $rec = $mvc->fetch($id);
-            
+           
             if (isset($rec->id) && $rec->state != 'rejected' && $mvc->haveRightFor('reject', $rec)) {
                 // Оттегляме документа + нишката, ако се налага
                 if ($mvc->reject($rec)) {
@@ -657,17 +659,29 @@ class doc_DocumentPlg extends core_Plugin
                 }
             }
             
+            // Обновяваме споделените на нишката, да сме сигурни че данните ще са актуални
+            $threadRec = doc_Threads::fetch($rec->threadId);
+            $threadRec->shared = keylist::fromArray(doc_ThreadUsers::getShared($rec->threadId));
+            doc_Threads::save($threadRec, 'shared');
+           
             // Пренасочваме контрола
             if (!$res = getRetUrl()) {
-                $res = array($mvc, 'single', $id);
+            	if($mvc->haveRightFor('single', $rec)){
+            		$res = array($mvc, 'single', $id);
+            	} else {
+            		$res = array('bgerp_Portal', 'show');
+            		core_Statuses::newStatus('Предишната страница не може да бъде показана, поради липса на права за достъп', 'warning');
+            	}
             }
             
             $res['afterReject'] = 1;
             
             doc_HiddenContainers::showOrHideDocument($rec->containerId, TRUE);
-            
+           
             $res = new Redirect($res); //'OK';
-                
+
+            $mvc->logInAct('Оттегляне', $rec);
+            
             return FALSE;
         }
         
@@ -694,6 +708,8 @@ class doc_DocumentPlg extends core_Plugin
             }
             
             $res = new Redirect($res); //'OK';
+            
+            $mvc->logInAct('Възстановяване', $rec);
             
             return FALSE;
         }
@@ -777,8 +793,6 @@ class doc_DocumentPlg extends core_Plugin
             // Премахваме документа от "Последно"
             bgerp_Recently::setHidden('document', $rec->containerId, $rec->state == 'rejected' ? 'yes':'no');
         }
-        
-        $mvc->logInfo($rec->state == 'rejected' ? 'reject' : 'restore', $rec->id);
         
         return TRUE;
     }
@@ -1358,6 +1372,8 @@ class doc_DocumentPlg extends core_Plugin
                         $requiredRoles = 'powerUser';
                     }
                 }
+                
+                //bp($oRec, $requiredRoles);
             } elseif ($action == 'clone') {
                 
                 // Ако клонираме
@@ -2378,10 +2394,10 @@ class doc_DocumentPlg extends core_Plugin
      *
      * @param mixed $id - ид/запис на мастъра
      */
-    protected function on_AfterUpdateMaster($mvc, &$res, $id)
+    public static function on_AfterUpdateMaster($mvc, &$res, $id)
     {
+    	$rec = $mvc->fetchRec($id);
     	if(!$res){
-    		$rec = $mvc->fetchRec($id);
     		$rec->modifiedOn = dt::now();
     		$mvc->save($rec, 'modifiedOn');
     	}

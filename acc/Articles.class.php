@@ -250,9 +250,10 @@ class acc_Articles extends core_Master
     
     
     /**
-     * Преизчислява дебитното и кредитното салдо на статия
+     * Обновява данни в мастъра
      *
      * @param int $id първичен ключ на статия
+     * @return int $id ид-то на обновения запис
      */
     public function updateMaster_($id, $modified = TRUE)
     {
@@ -272,10 +273,12 @@ class acc_Articles extends core_Master
         }
         
         if($modified){
-            $this->save($rec);
+            $id = $this->save($rec);
         } else {
-            $this->save_($rec);
+            $id = $this->save_($rec);
         }
+        
+        return $id;
     }
     
     

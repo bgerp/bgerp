@@ -71,8 +71,11 @@ class planning_Tasks extends tasks_Tasks
 		// Подготвяме данните
 		while($rec = $query->fetch()){
 			$data->recs[$rec->id] = $rec;
-			$data->rows[$rec->id] = $this->recToVerbal($rec);
-	
+			$row = $this->recToVerbal($rec);
+			$row->modified = $row->modifiedOn . " " . tr('от') . " " . $row->modifiedBy;
+			$row->modified = "<div style='text-align:center'> {$row->modified} </div>";
+			$data->rows[$rec->id] = $row;
+			
 			// Премахваме от масива с дефолтни задачи, тези с чието име има сега създадена задача
 			$title = $data->rows[$rec->id]->title;
 			if(isset($rec->systemId)){
@@ -116,9 +119,8 @@ class planning_Tasks extends tasks_Tasks
 		// Рендираме таблицата с намерените задачи
 		$table = cls::get('core_TableView', array('mvc' => $this));
 		$table->setFieldsToHideIfEmptyColumn('timeStart,timeDuration,timeEnd');
-		$tpl = $table->get($data->rows, 'tools=Пулт,progress=Прогрес,name=Документ,title=Заглавие,timeStart=Начало, timeDuration=Продължителност, timeEnd=Край, inCharge=Отговорник');
-		 
-		 
+		$tpl = $table->get($data->rows, 'tools=Пулт,progress=Прогрес,name=Документ,title=Заглавие,timeStart=Начало, timeDuration=Продължителност, timeEnd=Край, modified=Модифицирано');
+		
 		// Добавя бутон за създаване на нова задача
 		if(isset($data->addUrl)){
 			$addBtn = ht::createLink('', $data->addUrl, FALSE, 'title=Създаване на задача по заданието,ef_icon=img/16/add.png');

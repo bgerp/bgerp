@@ -595,7 +595,10 @@ class acc_Journal extends core_Master
     
     
     /**
-     * Обновява данните на журнала след промяна в детайлите
+     * Обновява данни в мастъра
+     *
+     * @param int $id първичен ключ на статия
+     * @return int $id ид-то на обновения запис
      */
     public function updateMaster_($id)
     {
@@ -610,12 +613,14 @@ class acc_Journal extends core_Master
             $rec->totalAmount += $dRec->amount;
         }
         
-        $this->save_($rec, 'totalAmount');
+        $id = $this->save_($rec, 'totalAmount');
         
         // Нотифицираме документа породил записа в журнала че журнала му е променен
         if(cls::load($rec->docType, TRUE)){
         	cls::get($rec->docType)->invoke('AfterJournalUpdated', array($rec->docId, $rec->id));
         }
+        
+        return $id;
     }
     
     

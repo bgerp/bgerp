@@ -260,7 +260,7 @@ class type_Keylist extends core_Type {
             	$html .= "</tr></table></td>";
             } 
         } else {
-            $html = '<tr><td></td></tr>';
+            $html = "<tr><td><i style='color:grey;'>" . tr('Няма записи за избор') . "</i></td></tr>";
         }
         
         if ($addKeylistWide) {

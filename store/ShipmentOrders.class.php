@@ -29,12 +29,6 @@ class store_ShipmentOrders extends store_DocumentMaster
      */
     public $visibleForPartners = TRUE;
     
-
-    /**
-     * Флаг, който указва дали документа да се кешира в треда
-     */
-    public $cacheInThread = TRUE;
-    
     
     /**
      * Абревиатура

@@ -48,12 +48,6 @@ abstract class deals_InvoiceMaster extends core_Master
     
     
     /**
-     * Опашка от записи за записване в on_Shutdown
-     */
-    protected $updated = array();
-    
-    
-    /**
      * Работен кеш
      */
     protected $cache = array();
@@ -154,8 +148,10 @@ abstract class deals_InvoiceMaster extends core_Master
 
 
     /**
-     * Обновява информацията на документа
-     * @param int $id - ид на документа
+     * Обновява данни в мастъра
+     *
+     * @param int $id първичен ключ на статия
+     * @return int $id ид-то на обновения запис
      */
     public function updateMaster_($id, $save = TRUE)
     {
@@ -179,7 +175,7 @@ abstract class deals_InvoiceMaster extends core_Master
     	$rec->discountAmount = $this->_total->discount * $rec->rate;
     	
     	if($save){
-    		$this->save($rec);
+    		return $this->save($rec);
     	}
     }
     
