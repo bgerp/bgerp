@@ -2728,6 +2728,9 @@ function render_showToast(data) {
             stayTime: data.stayTime,
             type: data.type
         });
+    } else {
+    	var errorData = {id: "statuses", html: "<div class='statuses-message statuses-" + data.type + "'>" + data.text +"</div>", replace: !data.isSticky};
+        render_html(errorData);
     }
 }
 
