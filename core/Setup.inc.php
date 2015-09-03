@@ -813,7 +813,7 @@ if ($step == 'setup') {
     if ($res == 'OK') {
         contentFlush ("<h3 id='startHeader'>Инициализацията стартирана ...</h3>");
     } else {
-        contentFlush ("<h3 id='startHeader' style='color: red;'>Грешка при стартиране на Setup!</h3>");
+        contentFlush ("<h3 id='startHeader' style='color: red;'>Грешка при стартиране на Setup!</h3><h3>{$selfUrl}&step=start</h3><div>{$res}</div>");
         
         exit;
     }
