@@ -60,7 +60,7 @@ class doc_DocumentCache extends core_Master
 	/**
 	 * Полета, които ще се показват в листов изглед
 	 */
-	public $listFields = 'id, userId, containerId, time, invalidate';
+	public $listFields = 'id, userId, containerId, time, invalidate=Инвалидиране';
 	
 	
 	/**
@@ -89,7 +89,7 @@ class doc_DocumentCache extends core_Master
 		$this->FLD("userId", "user", "input=none,caption=Потребител");
 		$this->FLD("containerId", "key(mvc=doc_Containers)", "input=none,caption=Документ");
 		$this->FLD("cache", "blob(1000000, serialize, compress)", "input=none,caption=Html,column=none");
-		$this->FLD("time", "datetime", "input=none,caption=Дата");
+		$this->FLD("time", "datetime(format=smartTime)", "input=none,caption=Създаване");
 	}
 	
 	
