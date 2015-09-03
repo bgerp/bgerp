@@ -157,8 +157,42 @@ class doc_DocumentCache extends core_Master
 	{
 		$now = dt::now();
 		
-		// Изтриваме стария кеш
-		$this->delete("#invalidate <= '{$now}'");
+		// Вземам всички аписи които са над 4+ минути. За всеки един взимам броя на минутите които е над 4
+		$query = $this->getQuery();
+		$query->XPR('minutes', 'double', "ROUND(time_to_sec(TIMEDIFF('{$now}', #invalidate)) / 60)");
+		$query->where("#minutes >= 4");
+		$query->show('invalidate,time,minutes,usage,containerId');
+		
+		while($rec = $query->fetch()){
+			
+			// Ако документа е бил скоро използван, регенерираме му кеша, и не го изтриваме
+			if(dt::addSecs(2 * 60, $rec->usage) > $now){
+				
+				$document = doc_Containers::getDocument($rec->containerId);
+				$rec->cache = $document->prepareDocument();
+				$this->save($rec, 'cache');
+				continue;
+			}
+			
+			// Колко минути са над 3
+			$mCount = $rec->minutes - 3;
+			
+			// Ако е над три минути, директно го трием
+			if($mCount >= 3) {
+				$this->delete($rec->id);
+				continue;
+			}
+			
+			// След това трием с вероятност
+			$prob = abs(1 / (3 - $mCount));
+			if(rand(1, 100) < $prob * 100){
+				$this->delete($rec->id);
+			}
+		}
+		
+		// вземам всички записи които са над 4+ минути. За всеки един взимам броя на минутите които е над 4
+		// mCount. С вероятност 1 / 3 - $mCount изтривам текущия запис
+		// rand(1, 100) <  (1 / 3 - $mCount) * 100; Или ако mCount = 3 || 3+ пак трия
 		
 		// Ресетваме ид-та
 		$this->db->query("ALTER TABLE {$this->dbTableName} AUTO_INCREMENT = 1");
