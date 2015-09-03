@@ -44,7 +44,7 @@ class doc_ThreadRefreshPlg extends core_Plugin
             $refreshUrlLocal = toUrl($refreshUrl, 'local');
             
             // URL, което ще се вика по AJAX
-            $url = array($mvc, 'ajaxThreadRefresh', 'refreshUrl' => $refreshUrlLocal);
+            $url = array($mvc, 'ajaxThreadRefresh', 'refreshUrl' => $refreshUrlLocal, 'threadId' => Request::get('threadId', 'int'));
             
             // Ако не е зададено, рефрешът се извършва на всеки 60 секунди
             $time = $mvc->refreshRowsTime ? $mvc->refreshRowsTime : 60000;
@@ -89,7 +89,26 @@ class doc_ThreadRefreshPlg extends core_Plugin
         
         // Ако заявката не е по ajax
         if (!$ajaxMode) return FALSE;
+
+        $threadId = Request::get('threadId', 'int');
+
+        $lastSend = Mode::get('LastSendThread' . $threadId);
+        if(!$lastSend) {
+            $lastSend = dt::verbal2mysql();
+            Mode::setPermanent('LastSendThread' . $threadId, $lastSend);
+        }
+
+        $cQuery = doc_Containers::getQuery();
+        $cQuery->where("#threadId = {$threadId}");
+        $cQuery->orderBy('#modifiedOn', 'DESC');
+        $cQuery->limit(1);
+        $lastModifiedRec = $cQuery->fetch();
+        $lastModified = $lastModifiedRec->modifiedOn;
+
+        if($lastSend >= $lastModified) return FALSE;
         
+        Mode::setPermanent('LastSendThread' . $threadId, dt::verbal2mysql());
+
         // URL-то за рефрешване
         $refreshUrlStr = Request::get('refreshUrl');
         
