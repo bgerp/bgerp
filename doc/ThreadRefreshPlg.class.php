@@ -86,7 +86,9 @@ class doc_ThreadRefreshPlg extends core_Plugin
         
         $threadId = Request::get('threadId', 'int');
         
-        $threadLastSendName = 'LastSendThread_' . $threadId . '_' . Request::get('hitTime');
+        doc_Threads::requireRightFor('single', $threadId);
+
+        $threadLastSendName = 'LastSendThread_' . $threadId ;
         
         $lastSend = Mode::get($threadLastSendName);
         
@@ -108,10 +110,16 @@ class doc_ThreadRefreshPlg extends core_Plugin
             // Времето на последна модификация на нишката
             $threadLastRec = doc_Threads::fetch($lastModifiedRec->threadId);
             
-            if ($lastSend >= $threadLastRec->modifiedOn) return FALSE;
+            if ($lastSend >= $threadLastRec->modifiedOn) {
+
+                // log_Debug::add('// log_Debug', NULL, "NO, RETURN $lastSend , $lastModified, $threadLastRec->modifiedOn");
+
+                return FALSE;
+            }
         }
         
-        Mode::setPermanent($threadLastSendName, dt::verbal2mysql());
+        // log_Debug::add('// log_Debug', NULL, "Yes, Show $lastSend , $lastModified, $threadLastRec->modifiedOn");
+
 
         // URL-то за рефрешване
         $refreshUrlStr = Request::get('refreshUrl');
@@ -161,38 +169,46 @@ class doc_ThreadRefreshPlg extends core_Plugin
         // Ако има документи за обновяване
         if ($docsArr) {
             
+            // log_Debug::add('// log_Debug', NULL, "Нови документи " . count($docsArr));
+
             $modifiedDocsArr = array();
-            
+            $cu = core_Users::getCurrent();
+
             foreach ((array)$docsArr as $cid => $docId) {
-                $currUrl = getCurrentUrl();
-                $currUrl['#'] = $docId;
-                $modifiedDocsArr[] = ht::createLink('#' . $docId, $currUrl, NULL, array('onclick' => "getEO().scrollTo('$docId'); return false;"));
+                $cRec = doc_Containers::fetch($cid);
+                if($cRec) {
+                    $currUrl = getCurrentUrl();
+                    $currUrl['#'] = $docId;
+                    $link = ht::createLink('#' . $docId, $currUrl, NULL, array('onclick' => "getEO().scrollTo('$docId'); return false;"));
+                    
+                    // log_Debug::add('// log_Debug', NULL, "Link " . $link);
+
+                    if($cu == $cRec->modifiedBy) continue;
+
+                    // log_Debug::add('// log_Debug', NULL, "User " . $user);
+
+                    $user = crm_Profiles::createLink($cRec->modifiedBy);
+                    $action = ($cRec->modifiedOn == $cRec->createdOn) ? tr("добави") : tr("промени");
+                    $msg = "{$user} {$action} {$link}";
+                    
+                    $statusData = array();
+                    $statusData['text'] = $msg;
+                    $statusData['type'] = 'notice';
+                    $statusData['timeOut'] = 700;
+                    $statusData['isSticky'] = 0;
+                    $statusData['stayTime'] = 15000;
+                    
+                    $statusObj = new stdClass();
+                    $statusObj->func = 'showToast';
+                    $statusObj->arg = $statusData;
+
+                    $resStatus[] = $statusObj;
+                }
             }
-            
-            // Показва статус съобщение с променените документи
-            if ($modifiedDocsArr) {
-                $cnt = count($modifiedDocsArr);
-                
-                $msg = ($cnt == 1) ? '|Добавен/редактиран документ в нишката|*: ': '|Добавени/редактирани документ в нишката|*: ';
-                $msg = tr($msg);
-                $msg .= ($cnt > 1) ? '<br>' : '';
-                $msg .= implode('<br>', $modifiedDocsArr);
-            
-                $statusData = array();
-                $statusData['text'] = $msg;
-                $statusData['type'] = 'notice';
-                $statusData['timeOut'] = 700;
-                $statusData['isSticky'] = 0;
-                $statusData['stayTime'] = 15000;
-                
-                $statusObj = new stdClass();
-                $statusObj->func = 'showToast';
-                $statusObj->arg = $statusData;
-                
-                $resStatus[] = $statusObj;
-            }
-        }
+         }
         
+        Mode::setPermanent($threadLastSendName, dt::verbal2mysql());
+
         return FALSE;
     }
     
@@ -234,15 +250,22 @@ class doc_ThreadRefreshPlg extends core_Plugin
         // Масив с променените документи
         $docsArr = array();
         
-        $lastRefresh = Request::get('AjaxLastSend');
+        // $lastRefresh = Request::get('AjaxLastSend');
         
+        $threadId = Request::get('threadId', 'int');
+        
+        $threadLastSendName = 'LastSendThread_' . $threadId ;
+        
+        $lastSend = Mode::get($threadLastSendName);
+            // log_Debug::add('// log_Debug', NULL, "Документи  РМ=" . Request::get('ajax_mode') . " ТхреадИд=" . $threadId . " Лс=" . $lastSend . " Коунт=" . count($data->recs));
+
         // Намира всички документи, които са променени
-        if (Request::get('ajax_mode') && $lastRefresh && count($data->recs)) {
+        if (Request::get('ajax_mode') && $lastSend && count($data->recs)) {
             
             foreach($data->recs as $id => $r) {
                 
                 // Ако са променени след последно изтегленото време
-                if($r->modifiedOn > $lastRefresh) {
+                if($r->modifiedOn >= $lastSend) {
                     
                     // Добавяме хендълуте в масива
                     $docsArr[$id] = $data->rows[$id]->ROW_ATTR['id'];

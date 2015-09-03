@@ -277,24 +277,27 @@ class doc_Containers extends core_Manager
             $row->ROW_ATTR['id'] = $document->getDocumentRowId();
             
             if (!$hidden) {
-            	if($document->cacheInThread === TRUE){
-            		$cu = core_Users::getCurrent();
-            		$modifiedOn = $document->fetchField('modifiedOn');
-            		$data = doc_DocumentCache::getDocumentData($rec->id, $cu, $modifiedOn);
+                $cu = core_Users::getCurrent();
+                $modifiedOn = $document->fetchField('modifiedOn');
+            	if($document->cacheInThread === TRUE && ($row->document = doc_DocumentCache::getDocumentData($rec->id, $cu, $modifiedOn))){
+                    Debug::log("+++ Get from Cache $rec->id");
             	} else {
+
             		$data = $document->prepareDocument();
+                    $row->ROW_ATTR['onMouseUp'] = "saveSelectedTextToSession('" . $document->getHandle() . "', 'onlyHandle');";
+                    
+                    // Добавяме линк за скриване на документа
+                    if (doc_HiddenContainers::isHidden($rec->id) === FALSE) {
+                        $hideLink = self::getLinkForHideDocument($document, $rec->id);
+                        $data->row->DocumentSettings = new ET($data->row->DocumentSettings);
+                        $data->row->DocumentSettings->append($hideLink);
+                    }
+                    
+                    $row->document = $document->renderDocument($data);
+                    doc_DocumentCache::setDocumentData($rec->id, $cu, $row->document);
+                    Debug::log("+++ Render $rec->id");
             	}
                 
-                $row->ROW_ATTR['onMouseUp'] = "saveSelectedTextToSession('" . $document->getHandle() . "', 'onlyHandle');";
-                
-                // Добавяме линк за скриване на документа
-                if (doc_HiddenContainers::isHidden($rec->id) === FALSE) {
-                    $hideLink = self::getLinkForHideDocument($document, $rec->id);
-                    $data->row->DocumentSettings = new ET($data->row->DocumentSettings);
-                    $data->row->DocumentSettings->append($hideLink);
-                }
-                
-                $row->document = $document->renderDocument($data);
                 
                 if($q) {
                     $row->document = plg_Search::highlight($row->document, $q);

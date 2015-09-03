@@ -92,6 +92,8 @@ class doc_DocumentCache extends core_Master
 		$this->FLD("time", "datetime(format=smartTime)", "input=none,caption=Създаване");
 		$this->FLD("usage", "datetime(format=smartTime)", "input=none,caption=Употреба");
 		$this->FLD("invalidate", "datetime(format=smartTime)", "input=none,caption=Изтриване");
+
+        $this->setDbUnique('userId,containerId');
 	}
 	
 	
@@ -100,32 +102,41 @@ class doc_DocumentCache extends core_Master
 	 * 
 	 * @param int $containerId - ид на контейнера
 	 * @param int $userId      - ид на потребителя
-	 * @param datetime $time   - дата
+	 * @param datetime $modifiedOn   - време на последно модифициране на документа
 	 * 
 	 * @return stdClass $cache - записания кеш
 	 */
-	public static function getDocumentData($containerId, $userId, $time)
+	public static function getDocumentData($containerId, $userId, $modifiedOn)
 	{
-		$interval = self::KEEP_MINUTES * 60;
-		$now = dt::now();
-		
-		if(!$rec = self::fetch("#userId = {$userId} AND #containerId = {$containerId} AND ADDDATE(#time, INTERVAL {$interval} SECOND) >= '{$time}'")){
+		if($rec = self::fetch("#userId = {$userId} AND #containerId = {$containerId} AND  #time >'{$modifiedOn}'")){
 			
-			$rec = (object)array('userId' => $userId, 
-								 'containerId' => $containerId, 
-								 'time' => $time,
-								 'usage' => $now,
-								 'invalidate' => dt::addSecs($interval, $time));
-			$document = doc_Containers::getDocument($containerId);
-			$rec->cache = $document->prepareDocument();
-			self::save($rec);
-		} else {
-			$rec->usage = $now;
+            // Записваме използването на кеша
+            $rec->usage = dt::now();
 			self::save($rec, 'usage');
-		}
-		
-		return $rec->cache;
+			
+ 		    return $rec->cache;
+		} 
 	}
+
+
+
+    /**
+     * Записва документ в кеша
+     */
+    public static function setDocumentData($containerId, $userId, $document)
+    {   
+        $interval = self::KEEP_MINUTES * 60;
+		$now = dt::now();
+
+        $rec = (object)array(   'userId' => $userId, 
+						        'containerId' => $containerId, 
+						        'time' => $now,
+							    'usage' => $now,
+							    'invalidate' => dt::addSecs($interval, $time),
+                                'cache' => $document);
+
+        return self::save($rec, NULL, 'REPLACE');
+    }
 	
 	
 	/**

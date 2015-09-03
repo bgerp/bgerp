@@ -99,6 +99,8 @@ class doc_DocumentPlg extends core_Plugin
         $mvc->setDbIndex('threadId');
         $mvc->setDbIndex('containerId');
         $mvc->setDbIndex('originId');
+
+        $mvc->cacheInThread = TRUE;
     }
     
     
@@ -428,11 +430,6 @@ class doc_DocumentPlg extends core_Plugin
 	    			}
 	    		}
 	    	}
-        }
-
-        if($mvc->cacheInThread === TRUE){
-        	$userId = core_Users::getCurrent();
-        	doc_DocumentCache::invalidate($rec->containerId, $userId);
         }
     }
     
