@@ -255,7 +255,7 @@ class blast_Lists extends core_Master
     /**
      * Поддържа точна информацията за записите в детайла
      */
-    static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
+    protected static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
     {
         $rec = $mvc->fetch($id);
         $dQuery = $detailMvc->getQuery();

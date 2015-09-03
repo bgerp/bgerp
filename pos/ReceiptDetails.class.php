@@ -100,6 +100,7 @@ class pos_ReceiptDetails extends core_Detail {
     	$paymentTpl = $blocksTpl->getBlock('payment');
     	if($data->rows) {
 	    	foreach($data->rows as $id => $row) {
+	    		$row->id = $id;
 	    		$action = $this->getAction($data->rows[$id]->action);
                 $at = ${"{$action->type}Tpl"};
                 if(is_object($at)) {

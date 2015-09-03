@@ -1159,6 +1159,10 @@ class cat_Products extends core_Embedder {
     protected static function on_BeforeGetVerbal($mvc, &$part, $rec, $field)
     {
     	if($field == 'name') {
+    		if(!is_object($rec)) {
+    			$rec = new stdClass();
+    		}
+    		
     		$rec->name = static::getDisplayName($rec);
     	}
     }

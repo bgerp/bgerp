@@ -194,8 +194,10 @@ abstract class deals_DealMaster extends deals_DealBase
 	
 	
 	/**
-	 * Обновява информацията на документа
-	 * @param int $id - ид на документа
+	 * Обновява данни в мастъра
+     *
+     * @param int $id първичен ключ на статия
+     * @return int $id ид-то на обновения запис
 	 */
 	public function updateMaster_($id)
 	{
@@ -217,7 +219,7 @@ abstract class deals_DealMaster extends deals_DealBase
 		
 		$this->invoke('BeforeUpdatedMaster', array(&$rec));
 		
-		$this->save($rec);
+		return $this->save($rec);
 	}
 
     
@@ -774,11 +776,18 @@ abstract class deals_DealMaster extends deals_DealBase
 	    	$row->paymentState = ($rec->paymentState == 'overdue' || $rec->paymentState == 'repaid') ? "<span style='color:red'>{$row->paymentState}</span>" : $row->paymentState;
     	}
 	    
+    	if($rec->dealerId){
+    		$row->dealerId = crm_Profiles::createLink($rec->dealerId, $row->dealerId);
+    	}
+    	
+    	if($rec->initiatorId){
+    		$row->initiatorId = crm_Profiles::createLink($rec->initiatorId, $row->initiatorId);
+    	}
+    	
 	    if($fields['-single']){
 	    	if($rec->originId){
 	    		$row->originId = doc_Containers::getDocument($rec->originId)->getHyperLink();
 	    	}
-	    	
 	    	
 	    	if($rec->deliveryLocationId){
 	    		$row->deliveryLocationId = crm_Locations::getHyperlink($rec->deliveryLocationId);

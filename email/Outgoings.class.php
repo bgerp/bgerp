@@ -470,14 +470,14 @@ class email_Outgoings extends core_Master
                 }
                 
                 // Правим запис в лога
-                self::logInfo('Sended' , $rec->id);
+                self::logInfo('Изпращане' , $rec->id);
                 
                 // Добавяме в масива
                 $success[] = $allEmailsToStr;
             } else {
                 
                 // Правим запис в лога за неуспех
-                static::logErr('Unable to send', $rec->id);
+                static::logErr('Грешка при изпращане', $rec->id);
                 $failure[] = $allEmailsToStr;
             }
         }

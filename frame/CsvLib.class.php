@@ -66,6 +66,10 @@ class frame_CsvLib
 						$value = self::toCsvFormatData($rec['valior']);
 					}
 				}
+				
+				if($field == 'delta') {
+					$value = cls::get('type_Percent')->toVerbal($rec->delta);
+				}
 		
 				$rows->{$field} = $value;
 			}

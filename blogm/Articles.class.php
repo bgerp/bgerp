@@ -192,7 +192,7 @@ class blogm_Articles extends core_Master {
     /**
      * След обновяването на коментарите, обновяваме информацията в статията
      */
-    public static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
+    protected static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
     {
         if($Detail->className == 'blogm_Comments') {
             $queryC = $detailMvc->getQuery();

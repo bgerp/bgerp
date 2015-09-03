@@ -73,13 +73,7 @@ class dec_Declarations extends core_Master
      * Кой може да пише?
      */
     var $canWrite = 'ceo,dec';
-    
-    
-    /**
-     * Кой е детайла на каласа
-     */
-    var $details = 'dec_DeclarationDetails';
-    
+
     
     /**
      * Кои полета ще виждаме в листовия изглед

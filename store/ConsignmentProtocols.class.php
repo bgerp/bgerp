@@ -173,8 +173,10 @@ class store_ConsignmentProtocols extends core_Master
     
     
     /**
-     * Обновява информацията на документа
-     * @param int $id - ид на документа
+     * Обновява данни в мастъра
+     *
+     * @param int $id първичен ключ на статия
+     * @return int $id ид-то на обновения запис
      */
     public function updateMaster_($id)
     {
@@ -194,7 +196,7 @@ class store_ConsignmentProtocols extends core_Master
     	$rec->weight = $weight;
     	$rec->volume = $volume;
     	
-    	$this->save($rec);
+    	return $this->save($rec);
     }
     
     
