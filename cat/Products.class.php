@@ -1612,58 +1612,32 @@ class cat_Products extends core_Embedder {
     
     
     /**
-     * Връща складовата (средно притеглената цена) на артикула в подадения склад, ако има
+     * Връща складовата (средно притеглената цена) на артикула в подадения склад за количеството
      * 
-     * @param int $productId - ид на артикул
-     * @param int $storeId - ид на склад, NULL ако искаме за всички складове
-     * @return double $selfValue - себестойността
+     * @param double $quantity - к-во
+     * @param int $productId   - ид на артикула
+     * @param date $date       - към коя дата
+     * @param string $storeId  - склада
+     * @return mixed $amount   - сумата или NULL ако няма
      */
-    public static function getWeightedAverageValue($productId, $storeId = NULL)
+    public static function getWacAmountInStore($quantity, $productId, $date, $storeId = NULL)
     {
-    	// Кой баланс ще вземем
-    	$lastBalance = acc_Balances::getLastBalance();
-    	$selfValue = 0;
+    	$item2 = acc_Items::fetchItem('cat_Products', $productId)->id;
+    	if(!$item2) return NULL;
     	
-    	// Ако има баланс
-    	if($lastBalance){
-    		// Материала перо ли е ?
-    		$objectItem = acc_Items::fetchItem('cat_Products', $productId);
-    		
-    		// Ако е перо
-    		if($objectItem){
-    			 
-    			// Опитваме се да изчислим последно притеглената му цена
-    			$query = acc_BalanceDetails::getQuery();
-    			acc_BalanceDetails::filterQuery($query, $lastBalance->id, '321');
-    			$prodPositionId = acc_Lists::getPosition('321', 'cat_ProductAccRegIntf');
-    			 
-    			$query->where("#ent{$prodPositionId}Id = {$objectItem->id}");
-    			if(isset($storeId)){
-    				$storePositionId = acc_Lists::getPosition('321', 'store_AccRegIntf');
-    				if($storeItem = acc_Items::fetchItem('store_Stores', $storeId)){
-    					$query->where("#ent{$storePositionId}Id = {$storeItem->id}");
-    				}
-    			}
-    			
-    			$query->XPR('totalQuantity', 'double', 'SUM(#blQuantity)');
-    			$query->XPR('totalAmount', 'double', 'SUM(#blAmount)');
-    			$res = $query->fetch();
-    			 
-    			// Ако има някакво количество и суми в складовете, натрупваме ги
-    			if(!is_null($res->totalQuantity) && !is_null($res->totalAmount)){
-    				$totalQuantity = round($res->totalQuantity, 2);
-    				$totalAmount = round($res->totalAmount, 2);
-    		
-    				if($totalAmount == 0){
-    					$selfValue = 0;
-    				} else {
-    					@$selfValue = $totalAmount / $totalQuantity;
-    				}
-    			}
-    		}
+    	$item1 = '*';
+    	if($storeId){
+    		$item1 = acc_Items::fetchItem('store_Stores', $storeId)->id;
     	}
     	
-    	return $selfValue;
+    	// Намираме сумата която струва к-то от артикула в склада
+    	$amount = acc_strategy_WAC::getAmount($quantity, $date, '321', $item1, $item2, $item3);
+    	if(isset($amount)){
+    		return round($amount, 4);
+    	}
+    	
+    	// Връщаме сумата
+    	return $amount;
     }
     
     
