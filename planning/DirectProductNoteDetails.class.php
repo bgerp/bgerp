@@ -149,6 +149,30 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     
     
     /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     *
+     * @param core_Mvc $mvc
+     * @param core_Form $form
+     */
+    public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
+    {
+    	$rec = &$form->rec;
+    	
+    	if($form->isSubmitted()){
+    		
+    		// Ако добавяме отпадък, искаме да има себестойност
+    		if($rec->type == 'pop'){
+    			$selfValue = planning_ObjectResources::getSelfValue($rec->productId);
+    			 
+    			if(!isset($selfValue)){
+    				$form->setError('productId', 'Отпадакът не може да му се определи себестойност');
+    			}
+    		}
+    	}
+    }
+    
+    
+    /**
      * След преобразуване на записа в четим за хора вид.
      */
     protected static function on_AfterPrepareListRows($mvc, &$data)

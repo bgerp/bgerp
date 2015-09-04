@@ -258,8 +258,9 @@ class cat_BomDetails extends doc_Detail
     		// Ако добавяме отпадък, искаме да има себестойност
     		if($rec->type == 'pop'){
     			$selfValue = planning_ObjectResources::getSelfValue($rec->resourceId);
+    			
     			if(!isset($selfValue)){
-    				$form->setError('resourceId', 'Отпадакът няма себестойност');
+    				$form->setError('resourceId', 'Отпадакът не може да му се определи себестойност');
     			}
     		}
     		
