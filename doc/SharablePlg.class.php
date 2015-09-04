@@ -157,7 +157,8 @@ class doc_SharablePlg extends core_Plugin
                     $cRec = new stdClass();
                     $cRec->id = $rec->containerId;
                     $cRec->modifiedOn = $rec->modifiedOn;
-                    doc_Containers::save($cRec);
+                    $dCon = cls::get("doc_Containers");
+                    $dCon->save_($cRec);
                 }
             }
         }
