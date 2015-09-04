@@ -126,7 +126,9 @@ class doc_DocumentCache extends core_Master
      * Записва документ в кеша
      */
     public static function setDocumentData($containerId, $userId, $document)
-    {   
+    {
+        if($containerId == Request::get('Cid')) return FALSE;
+
         $interval = self::KEEP_MINUTES * 60;
 		$now = dt::now();
 
