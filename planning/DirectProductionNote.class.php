@@ -135,7 +135,7 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 	/**
 	 * Полета, които ще се показват в листов изглед
 	 */
-	public $listFields = 'tools=Пулт, valior, title=Документ, storeId, inputStoreId, folderId, deadline, createdOn, createdBy';
+	public $listFields = 'tools=Пулт, valior, title=Документ, inputStoreId, storeId, folderId, deadline, createdOn, createdBy';
 	
 	
 	/**
@@ -198,7 +198,8 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 		$shortUom = cat_UoM::getShortName(cat_Products::fetchField($rec->productId, 'measureId'));
 		$row->quantity .= " {$shortUom}";
 		
-		$row->inputStoreId = store_Stores::getHyperlink($rec->inputStoreId);
+		$showStoreIcon = (isset($fields['-single'])) ? FALSE : TRUE;
+		$row->inputStoreId = store_Stores::getHyperlink($rec->inputStoreId, $showStoreIcon);
 	}
 	
 	
