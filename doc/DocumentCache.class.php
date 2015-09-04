@@ -181,7 +181,7 @@ class doc_DocumentCache extends core_Master
 		while($rec = $query->fetch()){
 			
 			// Ако документа е бил скоро използван, регенерираме му кеша, и не го изтриваме
-			if(dt::addSecs(2 * 60, $rec->usage) > $now){
+			/*if(dt::addSecs(2 * 60, $rec->usage) > $now){
 				
 				$document = doc_Containers::getDocument($rec->containerId);
 				$data = $document->prepareDocument();
@@ -189,7 +189,7 @@ class doc_DocumentCache extends core_Master
 				
 				$this->save($rec, 'cache');
 				continue;
-			}
+			}*/
 			
 			// Колко минути са над 3
 			$mCount = $rec->minutes - 3;
