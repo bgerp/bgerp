@@ -368,7 +368,8 @@ class planning_ObjectResources extends core_Manager
     		
     		// Ако няма търговска себестойност: проверяваме за счетоводна
     		if(!isset($selfValue)){
-    			$selfValue = cat_Products::getWeightedAverageValue($objectId);
+    			$date = dt::now();
+    			$selfValue = cat_Products::getWacAmountInStore(1, $objectId, $date);
     		}
     	}
     	
