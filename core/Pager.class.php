@@ -86,7 +86,6 @@ class core_Pager extends core_BaseClass
         parent::init($params);
         setIfNot($this->itemsPerPage, 20);
         setIfNot($this->pageVar, 'P');
-        setIfNot($this->page, Request::get($this->pageVar, 'int'), 1);
         if(Mode::is('screenMode', 'narrow')) {
             setIfNot($this->pagesAround, 1);
         } else {
@@ -100,7 +99,8 @@ class core_Pager extends core_BaseClass
      * Изчислява индексите на първия и последния елемент от текущата страница и общия брой страници
      */
     function calc()
-    {
+    {        setIfNot($this->page, Request::get($this->pageVar, 'int'), 1);
+
         $this->rangeStart = NULL;
         $this->rangeEnd = NULL;
         $this->pagesCount = NULL;
@@ -314,5 +314,24 @@ class core_Pager extends core_BaseClass
         }
 
         return TRUE;
+    }
+
+
+    /**
+     * Задава стойността на контролната променлива за пейджъра
+     */
+    function setPageVar($a = NULL, $b = NULL, $c = NULL)
+    {
+        $this->pageVar = 'P';
+
+        if($a) {
+            $this->pageVar .= "_{$a}_";
+        }
+        if($b) {
+            $this->pageVar .= "_{$b}_";
+        }
+        if($c) {
+            $this->pageVar .= "_{$c}_";
+        }
     }
 }
