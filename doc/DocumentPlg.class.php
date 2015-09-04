@@ -99,8 +99,6 @@ class doc_DocumentPlg extends core_Plugin
         $mvc->setDbIndex('threadId');
         $mvc->setDbIndex('containerId');
         $mvc->setDbIndex('originId');
-
-        $mvc->cacheInThread = TRUE;
     }
     
     
