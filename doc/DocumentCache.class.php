@@ -60,7 +60,7 @@ class doc_DocumentCache extends core_Master
 	/**
 	 * Полета, които ще се показват в листов изглед
 	 */
-	public $listFields = 'id, userId, containerId, time, usage,invalidate';
+	public $listFields = 'id, userId, containerId, cache, time, usage,invalidate';
 	
 	
 	/**
@@ -88,7 +88,7 @@ class doc_DocumentCache extends core_Master
 	{
 		$this->FLD("userId", "user", "input=none,caption=Потребител");
 		$this->FLD("containerId", "key(mvc=doc_Containers)", "input=none,caption=Документ");
-		$this->FLD("cache", "blob(1000000, serialize, compress)", "input=none,caption=Html,column=none");
+		$this->FLD("cache", "blob(1000000, serialize, compress,maxRows=5)", "input=none,caption=Html,column=none");
 		$this->FLD("time", "datetime(format=smartTime)", "input=none,caption=Създаване");
 		$this->FLD("usage", "datetime(format=smartTime)", "input=none,caption=Употреба");
 		$this->FLD("invalidate", "datetime(format=smartTime)", "input=none,caption=Изтриване");
@@ -108,6 +108,8 @@ class doc_DocumentCache extends core_Master
 	 */
 	public static function getDocumentData($containerId, $userId, $modifiedOn)
 	{
+        if($containerId == Request::get('Cid')) return FALSE;
+
 		if($rec = self::fetch("#userId = {$userId} AND #containerId = {$containerId} AND  #time >'{$modifiedOn}'")){
 			
             // Записваме използването на кеша
