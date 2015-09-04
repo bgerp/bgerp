@@ -74,9 +74,9 @@ class acc_strategy_WAC extends acc_strategy_Strategy
      * @param double $quantity - к-то което ще проверяваме
      * @param date $date       - дата към която търсим цената
      * @param string $accSysId - систем ид на сметка със стратегия
-     * @param mixed $item1     - ид на перо на първа позиция / NULL ако няма
-     * @param mixed $item2     - ид на перо на първа позиция / NULL ако няма
-     * @param mixed $item3     - ид на перо на първа позиция / NULL ако няма
+     * @param mixed $item1     - ид на перо на първа позиция / NULL ако няма / '*' Всички пера
+     * @param mixed $item2     - ид на перо на първа позиция / NULL ако няма / '*' Всички пера
+     * @param mixed $item3     - ид на перо на първа позиция / NULL ако няма / '*' Всички пера
      * @return mixed $amount   - сумата за количеството спрямо средно притеглената цена
      */
     public static function getAmount($quantity, $date, $accSysId, $item1, $item2, $item3)
@@ -88,7 +88,21 @@ class acc_strategy_WAC extends acc_strategy_Strategy
     	
     	// Ще извличаме данните от първия ден на месеца от подадената дата до нея
     	$jQuery = acc_JournalDetails::getQuery();
-    	acc_JournalDetails::filterQuery($jQuery, $from, $to, $accSysId, NULL, $item1, $item2, $item3, TRUE);
+    	
+    	acc_JournalDetails::filterQuery($jQuery, $from, $to, $accSysId);
+    	foreach (range(1, 3) as $i){
+    		$param = ${"item{$i}"};
+    		
+    		// Поставяме условие за перо на определена позиция само ако е зададено
+    		// Ако перото е зададено с '*' значи искаме всички записи
+    		if(isset($param) && $param != '*'){
+    			$jQuery->where("(#debitItem{$i} = {$param}) OR (#creditItem{$i} = {$param})");
+    		} elseif(is_null($param)){
+    			
+    			// Ако няма стойност искаме и в запиа да няма
+    			$jQuery->where("(#debitItem{$i} IS NULL) OR (#creditItem{$i} IS NULL)");
+    		}
+    	}
     	
     	// Инстанцираме стратегията
     	$accRec = acc_Accounts::getRecBySystemId($accSysId);
@@ -102,9 +116,13 @@ class acc_strategy_WAC extends acc_strategy_Strategy
     		
     		// Обикаляме дебита и кредита
     		foreach (array('debit', 'credit') as $type){
+    			$accId = $rec->{"{$type}AccId"};
+    			$pos1 = $rec->{"{$type}Item1"};
+    			$pos2 = $rec->{"{$type}Item2"};
+    			$pos3 = $rec->{"{$type}Item3"};
     			
     			// Ако страната отговаря точно на аналитичната сметка
-    			if($rec->{"{$type}AccId"} == $accRec->id && $rec->{"{$type}Item1"} == $item1 && $rec->{"{$type}Item2"} == $item2 && $rec->{"{$type}Item3"} == $item3){
+    			if($accId == $accRec->id && ($item1 == '*' || $pos1 == $item1) && ($item2 == '*' || $pos2 == $item2) && ($item3 == '*' || $pos3 == $item3)){
     				$feedType = ($type == 'debit') ? 'active' : 'credit';
     		
     				// Ако типа на сметката, позволява да бъде 'хранена'
