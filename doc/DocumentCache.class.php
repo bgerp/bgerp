@@ -181,10 +181,10 @@ class doc_DocumentCache extends core_Master
 			// Ако документа е бил скоро използван, регенерираме му кеша, и не го изтриваме
 			if(dt::addSecs(2 * 60, $rec->usage) > $now){
 				
-				$document = doc_Containers::getDocument($rec->containerId);
-				$rec->cache = $document->prepareDocument();
-				$this->save($rec, 'cache');
-				continue;
+				// $document = doc_Containers::getDocument($rec->containerId);
+				// $rec->cache = $document->prepareDocument();
+				// $this->save($rec, 'cache');
+				// continue;
 			}
 			
 			// Колко минути са над 3
