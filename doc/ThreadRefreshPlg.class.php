@@ -103,18 +103,12 @@ class doc_ThreadRefreshPlg extends core_Plugin
         $cQuery->orderBy('#modifiedOn', 'DESC');
         $cQuery->limit(1);
         $lastModifiedRec = $cQuery->fetch();
-        $lastModified = $lastModifiedRec->modifiedOn;
+        $threadLastRec = doc_Threads::fetch($lastModifiedRec->threadId);
+        $lastModified = max($threadLastRec->modifiedOn, $lastModifiedRec->modifiedOn);
         
-        if($lastSend >= $lastModified) {
-            
-            // Времето на последна модификация на нишката
-            $threadLastRec = doc_Threads::fetch($lastModifiedRec->threadId);
-            
-            if ($lastSend >= $threadLastRec->modifiedOn) {
+        if($lastSend >= $lastModified && dt::addSecs(3*60, $lastSend) < dt::now()) {
 
-
-                return FALSE;
-            }
+            return FALSE;
         }
         
         // URL-то за рефрешване

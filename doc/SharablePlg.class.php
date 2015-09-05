@@ -128,7 +128,7 @@ class doc_SharablePlg extends core_Plugin
     {
         $rec = $data->rec;
         
-        if ($rec->state == 'draft' || $rec->state == 'rejected' || Request::get('ajax_mode')) {
+        if ($rec->state == 'draft' || $rec->state == 'rejected') {
             // На практика документа не е споделен
             return;
         }
