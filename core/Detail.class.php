@@ -77,9 +77,11 @@ class core_Detail extends core_Manager
         $this->prepareListPager($data);
         
         // Името на променливата за страниране на детайл
-        $data->pager->setPageVar($data->masterMvc->className, $data->masterId, $this->className);
-        if(cls::existsMethod($data->masterMvc, 'getHandle')) {
-            $data->pager->addToUrl = array('#' => $data->masterMvc->getHandle($data->masterId));
+        if(is_object($data->pager)) {
+            $data->pager->setPageVar($data->masterMvc->className, $data->masterId, $this->className);
+            if(cls::existsMethod($data->masterMvc, 'getHandle')) {
+                $data->pager->addToUrl = array('#' => $data->masterMvc->getHandle($data->masterId));
+            }
         }
 
         // Подготвяме редовете от таблицата
