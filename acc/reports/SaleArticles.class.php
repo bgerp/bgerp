@@ -131,7 +131,9 @@ class acc_reports_SaleArticles extends acc_reports_BalanceImpl
     		}
     	}
     	
-    	$pager = cls::get('core_Pager',  array('pageVar' => 'P_' .  $mvc->EmbedderRec->that,'itemsPerPage' => $mvc->listItemsPerPage));
+    	$pager = cls::get('core_Pager',  array('itemsPerPage' => $mvc->listItemsPerPage));
+        $pager->setPageVar($mvc->EmbedderRec->className, $mvc->EmbedderRec->that);
+        $pager->addToUrl = array('#' => $mvc->EmbedderRec->instance->getHandle($mvc->EmbedderRec->that));
        
         $pager->itemsCount = count($data->recs);
         $data->pager = $pager;

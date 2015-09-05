@@ -76,7 +76,19 @@ class planning_transaction_ReturnNote extends acc_DocumentTransactionSource
 				$reason = 'Връщане от производство без детайли';
 				
 				// Сумата с която ще върнем артикула в склада е неговата средно претеглена
-				$averageCost = cat_Products::getWeightedAverageValue($dRec->productId, $rec->storeId);
+				$averageAmount = cat_Products::getWacAmountInStore($dRec->quantity, $dRec->productId, $rec->valior, $rec->storeId);
+				
+				if(!isset($averageAmount)){
+					$averageAmount = cls::get('cat_Products')->getSelfValue($dRec->productId);
+					if(isset($averageAmount)){
+						$averageAmount = $dRec->quantity * $averageAmount;
+					}
+				}
+				
+				if(!isset($averageAmount)){
+					$errorArr[] = cls::get('cat_Products')->getTitleById($dRec->productId);
+					$averageAmount = 0;
+				}
 			}
 			
 			$entry = array('debit' => array(321,
@@ -86,11 +98,20 @@ class planning_transaction_ReturnNote extends acc_DocumentTransactionSource
 							  'credit' => $creditArr,
 						   'reason' => $reason);
 			
-			if(!is_null($averageCost)){
-				$entry['amount'] = $averageCost;
+			if(!is_null($averageAmount)){
+				$entry['amount'] = $averageAmount;
+				$total += $averageAmount;
 			}
 			
 			$entries[] = $entry;
+		}
+		
+		// Ако някой от артикулите не може да бдъе произведем сетваме че ще правимр едирект със съобщението
+		if(Mode::get('saveTransaction')){
+			if(count($errorArr)){
+				$errorArr = implode(', ', $errorArr);
+				acc_journal_RejectRedirect::expect(FALSE, "Артикулите: |{$errorArr}|* не могат да бъдат върнати защото не са били вложени във производството");
+			}
 		}
 		
 		// Връщаме ентритата

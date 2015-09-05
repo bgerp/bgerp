@@ -268,21 +268,21 @@ class doc_Containers extends core_Manager
         }
 
         if($docRow) {
-            
+  
             $q = Request::get('Q');
             
             // Ако е задеден да не се скрива документа или ако се търси в него
-            $hidden = (boolean) (doc_HiddenContainers::isHidden($rec->id) && !isset($q));
+            $hidden = (boolean) (!isset($q) && doc_HiddenContainers::isHidden($rec->id));
             
             $row->ROW_ATTR['id'] = $document->getDocumentRowId();
-            
+       
             if (!$hidden) {
-                $cu = core_Users::getCurrent();
-                $modifiedOn = $document->fetchField('modifiedOn');
-            	if($document->cacheInThread === TRUE && ($row->document = doc_DocumentCache::getDocumentData($rec->id, $cu, $modifiedOn))){
-                    Debug::log("+++ Get from Cache $rec->id");
-            	} else {
+ 
+                $row->document = doc_DocumentCache::getCache($rec, $document);
 
+            	if($row->document) {
+                    Debug::log("+++ Get from Cache $rec->id");
+                } else {
             		$data = $document->prepareDocument();
                     $row->ROW_ATTR['onMouseUp'] = "saveSelectedTextToSession('" . $document->getHandle() . "', 'onlyHandle');";
                     
@@ -294,11 +294,12 @@ class doc_Containers extends core_Manager
                     }
                     
                     $row->document = $document->renderDocument($data);
-                    doc_DocumentCache::setDocumentData($rec->id, $cu, $row->document);
+
+                    doc_DocumentCache::setCache($rec, $document, $row->document);
                     Debug::log("+++ Render $rec->id");
-            	}
+            	} 
                 
-                
+                // Оцветяване на търсенето
                 if($q) {
                     $row->document = plg_Search::highlight($row->document, $q);
                 }

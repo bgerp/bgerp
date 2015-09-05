@@ -111,8 +111,12 @@ class sens2_reports_DataLog extends frame_BaseDriver
     	$query->where(array("#time >= '[#1#]' AND #time <= '[#2#]'", $filter->from, $filter->to));
     	 
     	$query->in("indicatorId", keylist::toArray($filter->indicators));
-    	 
-    	$data->pager = cls::get('core_Pager', array('itemsPerPage' => $this->listDataRecPerPage));
+        
+    	$pager = cls::get('core_Pager',  array('itemsPerPage' => $this->listItemsPerPage));
+        $pager->setPageVar($this->EmbedderRec->className, $this->EmbedderRec->that);
+        $pager->addToUrl = array('#' => $this->EmbedderRec->instance->getHandle($this->EmbedderRec->that));
+
+    	$data->pager = $pager;
     	$data->pager->setLimit($query);
     	
     	while($rec = $query->fetch()) {

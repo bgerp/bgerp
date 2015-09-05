@@ -1067,8 +1067,9 @@ class core_Packs extends core_Manager
             }
 
             $form->FNC($field, $type, $params);
-            
-            if ($data[$field] && (!defined($field) || ($data[$field] != constant($field)))) { 
+          
+            if (($data[$field] || $data[$field] === (double) 0 || $data[$field] === (int) 0) && 
+                (!defined($field) || ($data[$field] != constant($field)))) { 
                 $form->setDefault($field, $data[$field]);
             } elseif(defined($field)) {
                 $form->setDefault($field, constant($field));
@@ -1108,7 +1109,7 @@ class core_Packs extends core_Manager
                     $data[$field] = '';
                 }
             }
-            
+      
             $id = self::setConfig($packName, $data);
         
             // Правим запис в лога
@@ -1162,7 +1163,7 @@ class core_Packs extends core_Manager
                 $exData[$key] = $value;
     		}
     	}
-    	
+ 
     	$rec->configData = serialize($exData);
     	
     	return self::save($rec);   	

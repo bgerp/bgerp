@@ -128,7 +128,7 @@ class doc_SharablePlg extends core_Plugin
     {
         $rec = $data->rec;
         
-        if ($rec->state == 'draft' || $rec->state == 'rejected' || Request::get('ajax_mode')) {
+        if ($rec->state == 'draft' || $rec->state == 'rejected') {
             // На практика документа не е споделен
             return;
         }
@@ -157,7 +157,8 @@ class doc_SharablePlg extends core_Plugin
                     $cRec = new stdClass();
                     $cRec->id = $rec->containerId;
                     $cRec->modifiedOn = $rec->modifiedOn;
-                    doc_Containers::save($cRec);
+                    $dCon = cls::get("doc_Containers");
+                    $dCon->save_($cRec);
                 }
             }
         }

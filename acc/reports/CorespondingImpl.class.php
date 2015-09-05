@@ -324,8 +324,10 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     	if(count($data->recs)){
     		
     		// Подготвяме страницирането
-    		$pageVar = str::addHash("P", 5, "{$mvc->className}{$mvc->EmbedderRec->that}");
-    		$data->Pager = cls::get('core_Pager',  array('pageVar' => $pageVar, 'itemsPerPage' => $mvc->listItemsPerPage));
+            $pager = cls::get('core_Pager',  array('itemsPerPage' => $mvc->listItemsPerPage));
+            $pager->setPageVar($mvc->EmbedderRec->className, $mvc->EmbedderRec->that);
+            $pager->addToUrl = array('#' => $mvc->EmbedderRec->instance->getHandle($mvc->EmbedderRec->that));
+    		$data->Pager = $pager;
     		$data->Pager->itemsCount = count($data->recs);
     		
     		// Ако има избрано поле за сортиране, сортираме по него
