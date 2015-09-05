@@ -190,11 +190,14 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
     {
     	// Подготвяме страницирането
     	$data = $res;
-    	$pageVar = str::addHash("P", 5, "{$mvc->className}{$mvc->EmbedderRec->that}");
-    	$Pager = cls::get('core_Pager', array('pageVar' => $pageVar, 'itemsPerPage' => $mvc->listItemsPerPage));
-        $Pager->itemsCount = count($data->recs);
-        $Pager->calc();
-        $data->pager = $Pager;
+
+    	$pager = cls::get('core_Pager',  array('itemsPerPage' => $mvc->listItemsPerPage));
+        $pager->setPageVar($mvc->EmbedderRec->className, $mvc->EmbedderRec->that);
+        $pager->addToUrl = array('#' => $mvc->EmbedderRec->instance->getHandle($mvc->EmbedderRec->that));
+       
+        $pager->itemsCount = count($data->recs);
+        $pager->calc();
+        $data->pager = $pager;
         
         $start = $data->pager->rangeStart;
         $end = $data->pager->rangeEnd - 1;

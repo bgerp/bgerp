@@ -375,7 +375,11 @@ class acc_reports_PeriodHistoryImpl extends acc_reports_HistoryImpl
 				$pageVar = str::addHash("P", 5, "{$mvc->className}{$mvc->EmbedderRec->that}");
 				
 				// Подготвяме страницирането
-				$data->Pager = cls::get('core_Pager',  array('pageVar' => $pageVar, 'itemsPerPage' => $mvc->listItemsPerPage));
+                $pager = cls::get('core_Pager',  array('itemsPerPage' => $mvc->listItemsPerPage));
+                $pager->setPageVar($mvc->EmbedderRec->className, $mvc->EmbedderRec->that);
+                $pager->addToUrl = array('#' => $mvc->EmbedderRec->instance->getHandle($mvc->EmbedderRec->that));
+				$data->pager = $pager;
+
 				$data->Pager->itemsCount = count($data->recs);
 			}
 	

@@ -189,8 +189,11 @@ class vislog_reports_IpImpl extends frame_BaseDriver
     	$tpl->prepend($form->renderStaticHtml(), 'FORM');
     
     	$tpl->placeObject($data->rec);
-    
-    	$pager = cls::get('core_Pager',  array('pageVar' => 'P_' .  $this->EmbedderRec->that,'itemsPerPage' => $this->listItemsPerPage));
+
+    	$pager = cls::get('core_Pager',  array('itemsPerPage' => $this->listItemsPerPage));
+        $pager->setPageVar($this->EmbedderRec->className, $this->EmbedderRec->that);
+        $pager->addToUrl = array('#' => $this->EmbedderRec->instance->getHandle($this->EmbedderRec->that));
+
     	$pager->itemsCount = count($data->ipCnt);
 
     	$f = cls::get('core_FieldSet');
