@@ -99,8 +99,6 @@ class doc_DocumentPlg extends core_Plugin
         $mvc->setDbIndex('threadId');
         $mvc->setDbIndex('containerId');
         $mvc->setDbIndex('originId');
-
-        $mvc->cacheInThread = TRUE;
     }
     
     
@@ -307,7 +305,9 @@ class doc_DocumentPlg extends core_Plugin
         }
         
         if($fields['-list']){
-        	$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
+            if($rec->folderId) {
+        	    $row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
+            }
         }
     }
     

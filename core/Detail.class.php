@@ -73,12 +73,15 @@ class core_Detail extends core_Manager
         // Подготвяме заявката за резюме/обощение
         $this->prepareListSummary($data);
         
-        // Името на променливата за страниране на детайл
-        $data->pageVar = 'P_' . $this->className . $data->masterId;
-        
         // Подготвяме навигацията по страници
         $this->prepareListPager($data);
         
+        // Името на променливата за страниране на детайл
+        $data->pager->setPageVar($data->masterMvc->className, $data->masterId, $this->className);
+        if(cls::existsMethod($data->masterMvc, 'getHandle')) {
+            $data->pager->addToUrl = array('#' => $data->masterMvc->getHandle($data->masterId));
+        }
+
         // Подготвяме редовете от таблицата
         $this->prepareListRecs($data);
         

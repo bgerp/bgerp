@@ -219,7 +219,10 @@ class doc_reports_Docs extends frame_BaseDriver
     
     	$tpl->placeObject($data->rec);
     
-    	$pager = cls::get('core_Pager',  array('pageVar' => 'P_' .  $this->EmbedderRec->that,'itemsPerPage' => $this->listItemsPerPage));
+    	$pager = cls::get('core_Pager',  array('itemsPerPage' => $this->listItemsPerPage));
+        $pager->setPageVar($this->EmbedderRec->className, $this->EmbedderRec->that);
+        $pager->addToUrl = array('#' => $this->EmbedderRec->instance->getHandle($this->EmbedderRec->that));
+
     	$pager->itemsCount = count($data->docCnt, COUNT_RECURSIVE);
     	
     	$f = cls::get('core_FieldSet');

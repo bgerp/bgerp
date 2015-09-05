@@ -233,6 +233,27 @@ class core_Request
     
     
     /**
+     * Връща масив от стойностите на променливите, чието име започва с $nameStart
+     */
+    static function getVarsStartingWith($nameStart)
+    {
+        $res = array();
+
+        foreach (self::$vars as $key => $arr) {
+            foreach($arr as $name => $val) {
+                if (strpos($name, $nameStart) === 0) {
+                    if(!isset($res[$name])) {
+                        $res[$name] = $val;
+                    }
+                }
+            }
+        }
+        
+        return $res;
+    }
+  
+    
+    /**
      * Връща масив с всички парамeтри в рекуеста,
      * като по - началните в стека с по - голямо предимство
      * 

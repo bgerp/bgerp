@@ -467,12 +467,14 @@ class core_Manager extends core_Mvc
         $perPage = (Request::get('PerPage', 'int') > 0 && Request::get('PerPage', 'int') <= 1000) ?
         Request::get('PerPage', 'int') : $this->listItemsPerPage;
         
-        if($perPage) {
-            if(!isset($data->pageVar)) {
-                $data->pageVar = 'P_' . $this->className;
-            }
+        if($perPage) {  
             $data->pager = & cls::get('core_Pager', array('pageVar' => $data->pageVar));
             $data->pager->itemsPerPage = $perPage;
+            if(isset($data->rec->id)) {
+                $data->pager->setPageVar($this->className, $data->rec->id);
+            } else {
+                $data->pager->setPageVar($this->className);
+            }
         }
         
         return $data;

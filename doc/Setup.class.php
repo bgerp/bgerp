@@ -79,6 +79,12 @@ defIfNot('DOC_HIDE_TEXT_AFTER_LENGTH', 20000);
 
 
 /**
+ * Колко секунди в кеша максимално да живеят документите
+ */
+defIfNot('DOC_CACHE_LIFETIME', 5*60);
+
+
+/**
  * Инсталиране/Деинсталиране на
  * мениджъри свързани с DOC
  *
@@ -151,6 +157,7 @@ class doc_Setup extends core_ProtoSetup
         'DOC_SHOW_DOCUMENTS_END' => array ('int(Min=0)', 'caption=Задължително показване на документи->В края на нишката, customizeBy=user'),
         'DOC_SHOW_DOCUMENTS_LAST_ON' => array ('time(suggestions=1 ден|3 дни|5 дни|1 седмица)', 'caption=Задължително показване на документи->По-нови от, customizeBy=user'),
         'DOC_HIDE_TEXT_AFTER_LENGTH' => array ('int(min=0)', 'caption=Брой символи над които текста ще е скрит->Брой, customizeBy=user'),
+        'DOC_CACHE_LIFETIME' => array("time(suggestions=0 мин.|2 мин.|3 мин.|4 мин.|5 мин.|6 мин.|7 мин.|8 мин.|9 мин.)", "caption=Кеширане на документите->Време"),
     );
 
     

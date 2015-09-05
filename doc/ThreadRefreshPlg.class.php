@@ -88,7 +88,7 @@ class doc_ThreadRefreshPlg extends core_Plugin
         
         doc_Threads::requireRightFor('single', $threadId);
 
-        $threadLastSendName = 'LastSendThread_' . $threadId ;
+        $threadLastSendName = 'LastSendThread_' . $threadId . '_' . Request::get('hitTime');
         
         $lastSend = Mode::get($threadLastSendName);
         
@@ -103,24 +103,14 @@ class doc_ThreadRefreshPlg extends core_Plugin
         $cQuery->orderBy('#modifiedOn', 'DESC');
         $cQuery->limit(1);
         $lastModifiedRec = $cQuery->fetch();
-        $lastModified = $lastModifiedRec->modifiedOn;
+        $threadLastRec = doc_Threads::fetch($lastModifiedRec->threadId);
+        $lastModified = max($threadLastRec->modifiedOn, $lastModifiedRec->modifiedOn);
         
-        if($lastSend >= $lastModified) {
-            
-            // Времето на последна модификация на нишката
-            $threadLastRec = doc_Threads::fetch($lastModifiedRec->threadId);
-            
-            if ($lastSend >= $threadLastRec->modifiedOn) {
+        if($lastSend >= $lastModified && dt::addSecs(3*60, $lastSend) < dt::now()) {
 
-                // log_Debug::add('// log_Debug', NULL, "NO, RETURN $lastSend , $lastModified, $threadLastRec->modifiedOn");
-
-                return FALSE;
-            }
+            return FALSE;
         }
         
-        // log_Debug::add('// log_Debug', NULL, "Yes, Show $lastSend , $lastModified, $threadLastRec->modifiedOn");
-
-
         // URL-то за рефрешване
         $refreshUrlStr = Request::get('refreshUrl');
         
@@ -128,7 +118,6 @@ class doc_ThreadRefreshPlg extends core_Plugin
         $refreshUrl = core_App::parseLocalUrl($refreshUrlStr);
         
         $refreshUrl['ajax_mode'] = $ajaxMode;
-        $refreshUrl['AjaxLastSend'] = $lastSend;
         
         // Вземаме шаблона
         $tpl = Request::forward($refreshUrl);
@@ -169,8 +158,6 @@ class doc_ThreadRefreshPlg extends core_Plugin
         // Ако има документи за обновяване
         if ($docsArr) {
             
-            // log_Debug::add('// log_Debug', NULL, "Нови документи " . count($docsArr));
-
             $modifiedDocsArr = array();
             $cu = core_Users::getCurrent();
 
@@ -181,11 +168,7 @@ class doc_ThreadRefreshPlg extends core_Plugin
                     $currUrl['#'] = $docId;
                     $link = ht::createLink('#' . $docId, $currUrl, NULL, array('onclick' => "getEO().scrollTo('$docId'); return false;"));
                     
-                    // log_Debug::add('// log_Debug', NULL, "Link " . $link);
-
                     if($cu == $cRec->modifiedBy) continue;
-
-                    // log_Debug::add('// log_Debug', NULL, "User " . $user);
 
                     $user = crm_Profiles::createLink($cRec->modifiedBy);
                     $action = ($cRec->modifiedOn == $cRec->createdOn) ? tr("добави") : tr("промени");
@@ -250,14 +233,11 @@ class doc_ThreadRefreshPlg extends core_Plugin
         // Масив с променените документи
         $docsArr = array();
         
-        // $lastRefresh = Request::get('AjaxLastSend');
-        
         $threadId = Request::get('threadId', 'int');
         
-        $threadLastSendName = 'LastSendThread_' . $threadId ;
+        $threadLastSendName = 'LastSendThread_' . $threadId . '_' . Request::get('hitTime');
         
         $lastSend = Mode::get($threadLastSendName);
-            // log_Debug::add('// log_Debug', NULL, "Документи  РМ=" . Request::get('ajax_mode') . " ТхреадИд=" . $threadId . " Лс=" . $lastSend . " Коунт=" . count($data->recs));
 
         // Намира всички документи, които са променени
         if (Request::get('ajax_mode') && $lastSend && count($data->recs)) {
