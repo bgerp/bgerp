@@ -68,7 +68,7 @@ class core_ProtoInner extends core_BaseClass {
 	 * 
 	 * @param core_Form $fieldset
 	 */
-    public function addEmbeddedFields(core_Form &$form)
+    public function addEmbeddedFields(core_FieldSet &$form)
     {
     }
     

@@ -70,7 +70,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
      *
      * @param core_Fieldset $fieldset
      */
-    public function addEmbeddedFields(core_Form &$form)
+    public function addEmbeddedFields(core_FieldSet &$form)
     {
     	// Добавяме полетата за филтър
     	$form->FLD('from', 'date', 'caption=От,mandatory');
