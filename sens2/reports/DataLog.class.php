@@ -52,7 +52,7 @@ class sens2_reports_DataLog extends frame_BaseDriver
 	 * 
 	 * @param core_Fieldset $fieldset
      */
-    public function addEmbeddedFields(core_Form &$form)
+    public function addEmbeddedFields(core_FieldSet &$form)
     {
     	$form->FLD('from', 'datetime', 'caption=От,mandatory');
     	$form->FLD('to', 'datetime', 'caption=До,mandatory');

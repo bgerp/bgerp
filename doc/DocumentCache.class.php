@@ -108,7 +108,9 @@ class doc_DocumentCache extends core_Master
 		if($key && $rec = self::fetch("#key = '{$key}'")){
             if(dt::addSecs(doc_Setup::get('CACHE_LIFETIME'), $rec->createdOn) < dt::now() ) {
                 $me = cls::get('doc_DocumentCache');
-                $me->cron_Invalidate();
+                $me->invalidate();
+
+                return FALSE;
             }
 
  		    return $rec->cache;
@@ -139,7 +141,7 @@ class doc_DocumentCache extends core_Master
      * Генерираме ключа за кеша
      */
     static function generateKey($rec, $document)
-    { 
+    {
         // Ако не е оставено време за кеширане - не генерираме ключ
         if(!doc_Setup::get('CACHE_LIFETIME') > 0) return FALSE;
 
@@ -188,7 +190,7 @@ class doc_DocumentCache extends core_Master
 	/**
 	 * Инвалидира стария кеш
 	 */
-	function cron_Invalidate()
+	function invalidate()
 	{
 		$now = dt::now();
 		

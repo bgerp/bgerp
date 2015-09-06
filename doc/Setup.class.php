@@ -125,19 +125,6 @@ class doc_Setup extends core_ProtoSetup
     
     
     /**
-     * Настройки за Cron
-     */
-    var $cronSettings = array(
-    		array(
-    				'systemId' => "Delete Old Cached Documents",
-    				'description' => "Изтриване на старите кеширани документи",
-    				'controller' => "doc_DocumentCache",
-    				'action' => "Invalidate",
-    				'period' => 1,
-    		),);
-    
-    
-    /**
      * Описание на конфигурационните константи
      */
     var $configDescription = array(

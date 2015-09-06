@@ -33,7 +33,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	 *
 	 * @param core_Form $form
 	 */
-	public function addEmbeddedFields(core_Form &$form)
+	public function addEmbeddedFields(core_FieldSet &$form)
 	{
 		// Добавя полетата само ако ги няма във формата
 		

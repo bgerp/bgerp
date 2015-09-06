@@ -680,8 +680,14 @@ class sales_QuotationsDetails extends doc_Detail {
     				$data->discountsOptional[$rec->discount] = $row->discount;
     			}
     		}
-    		
-    		$row->productId = cat_Products::getAutoProductDesc($rec->productId, $data->masterData->rec->modifiedOn, $rec->showMode);
+            
+            if($data->masterData->rec->state == 'draft') {
+                $time = NULL;
+            } else {
+                $time = $data->masterData->rec->modifiedOn;
+            }
+
+    		$row->productId = cat_Products::getAutoProductDesc($rec->productId, $time, $rec->showMode);
     		if($rec->notes){
     			deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
     		}

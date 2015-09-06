@@ -45,7 +45,7 @@ class fileman_reports_FileInfo extends frame_BaseDriver
      *
      * @param core_Form $form
      */
-    public function addEmbeddedFields(core_Form &$form)
+    public function addEmbeddedFields(core_FieldSet &$form)
     {
     	$form->FLD('usersSearch', 'users(rolesForAll=ceo|report|admin, rolesForTeams=ceo|report|admin|manager)', 'caption=Потребители,mandatory');
     	$form->FLD('groupBy', 'enum(users=Потребители, buckets=Кофи, files=Файлове)', 'caption=Групиране по');

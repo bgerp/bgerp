@@ -313,49 +313,66 @@ class bgerp_Notifications extends core_Manager
     static function render_($userId = NULL)
     {
         if(empty($userId)) {
-            $userId = core_Users::getCurrent();
+            expect($userId = core_Users::getCurrent());
         }
         
         $Notifications = cls::get('bgerp_Notifications');
+
+
+        // Намираме времето на последния запис
+        $query = $Notifications->getQuery();
+        $query->where("#userId = $userId");
+        $query->limit(1);
+        $query->orderBy("#modifiedOn", 'DESC');
+        $lastRec = $query->fetch();
+        $key = md5($userId . '_' . Request::get('ajax_mode') . '_' . Request::get('screenMode') . '_' . Request::get('P_bgerp_Notifications'));
+
+        list($tpl, $modifiedOn) = core_Cache::get('Notifications', $key);
+ 
+        if(!$tpl || $modifiedOn != $lastRec->modifiedOn) {
+
         
-        // Създаваме обекта $data
-        $data = new stdClass();
-        
-        // Създаваме заявката
-        $data->query = $Notifications->getQuery();
-        
-        $data->query->show("msg,state,userId,priority,cnt,url,customUrl,modifiedOn,modifiedBy,searchKeywords");
-        
-        // Подготвяме полетата за показване
-        $data->listFields = 'modifiedOn=Време,msg=Съобщение';
-        
-        $data->query->where("#userId = {$userId} AND #hidden != 'yes'");
-        $data->query->orderBy("state,modifiedOn=DESC");
-        
-        if(Mode::is('screenMode', 'narrow') && !Request::get('noticeSearch')) {
-            $data->query->where("#state = 'active'");
+            // Създаваме обекта $data
+            $data = new stdClass();
+            
+            // Създаваме заявката
+            $data->query = $Notifications->getQuery();
+            
+            $data->query->show("msg,state,userId,priority,cnt,url,customUrl,modifiedOn,modifiedBy,searchKeywords");
+            
+            // Подготвяме полетата за показване
+            $data->listFields = 'modifiedOn=Време,msg=Съобщение';
+            
+            $data->query->where("#userId = {$userId} AND #hidden != 'yes'");
+            $data->query->orderBy("state,modifiedOn=DESC");
+            
+            if(Mode::is('screenMode', 'narrow') && !Request::get('noticeSearch')) {
+                $data->query->where("#state = 'active'");
+            }
+            
+            // Подготвяме филтрирането
+            $Notifications->prepareListFilter($data);
+            
+            // Подготвяме навигацията по страници
+            $Notifications->prepareListPager($data);
+            
+            // Подготвяме записите за таблицата
+            $Notifications->prepareListRecs($data);
+            
+            // Подготвяме редовете на таблицата
+            $Notifications->prepareListRows($data);
+            
+            // Подготвяме заглавието на таблицата
+            $data->title = tr("Известия");
+            
+            // Подготвяме лентата с инструменти
+            $Notifications->prepareListToolbar($data);
+            
+            // Рендираме изгледа
+            $tpl = $Notifications->renderPortal($data);
+
+            core_Cache::set('Notifications', $key, array($tpl, $lastRec->modifiedOn), 5);
         }
-        
-        // Подготвяме филтрирането
-        $Notifications->prepareListFilter($data);
-        
-        // Подготвяме навигацията по страници
-        $Notifications->prepareListPager($data);
-        
-        // Подготвяме записите за таблицата
-        $Notifications->prepareListRecs($data);
-        
-        // Подготвяме редовете на таблицата
-        $Notifications->prepareListRows($data);
-        
-        // Подготвяме заглавието на таблицата
-        $data->title = tr("Известия");
-        
-        // Подготвяме лентата с инструменти
-        $Notifications->prepareListToolbar($data);
-        
-        // Рендираме изгледа
-        $tpl = $Notifications->renderPortal($data);
         
         //Задаваме текущото време, за последно преглеждане на нотификациите
         Mode::setPermanent('lastNotificationTime', time());
