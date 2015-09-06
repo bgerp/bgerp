@@ -381,6 +381,7 @@ class doc_DocumentPlg extends core_Plugin
      */
     static function on_AfterSave($mvc, &$id, $rec, $fields = NULL)
     {
+        $fields = arr::make($fields, TRUE);
         try {
             
             // Опитваме се да запишем файловете от документа в модела
@@ -413,7 +414,7 @@ class doc_DocumentPlg extends core_Plugin
             if ($fields && !isset($fields['modifiedOn'])) {
                 $updateAll = FALSE;
             }
-            
+
             doc_Containers::update($containerId, $updateAll);
         }
         
