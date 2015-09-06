@@ -247,44 +247,60 @@ class bgerp_Recently extends core_Manager
     static function render_($userId = NULL)
     {
         if(empty($userId)) {
-            $userId = core_Users::getCurrent();
+            expect($userId = core_Users::getCurrent());
         }
         
         $Recently = cls::get('bgerp_Recently');
-        
-        // Създаваме обекта $data
-        $data = new stdClass();
-        
-        // Създаваме заявката
-        $data->query = $Recently->getQuery();
-        
-        // Подготвяме полетата за показване
-        $data->listFields = 'last,title';
-        
-        $data->query->where("#userId = {$userId} AND #hidden != 'yes'");
-        $data->query->orderBy("last=DESC");
-        
-        // Подготвяме филтрирането
-        $Recently->prepareListFilter($data);
-        
-        // Подготвяме навигацията по страници
-        $Recently->prepareListPager($data);
-        
-        // Подготвяме записите за таблицата
-        $Recently->prepareListRecs($data);
-        
-        // Подготвяме редовете на таблицата
-        $Recently->prepareListRows($data);
-        
-        // Подготвяме заглавието на таблицата
-        $data->title = tr("Последно");
-        
-        // Подготвяме лентата с инструменти
-        $Recently->prepareListToolbar($data);
-        
-        // Рендираме изгледа
-        $tpl = $Recently->renderPortal($data);
-        
+
+        // Намираме времето на последния запис
+        $query = $Recently->getQuery();
+        $query->where("#userId = $userId");
+        $query->limit(1);
+        $query->orderBy("#last", 'DESC');
+        $lastRec = $query->fetch();
+        $key = md5($userId . '_' . Request::get('ajax_mode') . '_' . Request::get('screenMode') . '_' . Request::get('P_bgerp_Recently'));
+        $now = dt::now();
+        list($tpl, $createdOn)  = core_Cache::get('RecentDoc', $key);
+ 
+        if(!$tpl || $createdOn != $lastRec->last) {
+
+ 
+            // Създаваме обекта $data
+            $data = new stdClass();
+            
+            // Създаваме заявката
+            $data->query = $Recently->getQuery();
+            
+            // Подготвяме полетата за показване
+            $data->listFields = 'last,title';
+            
+            $data->query->where("#userId = {$userId} AND #hidden != 'yes'");
+            $data->query->orderBy("last=DESC");
+            
+            // Подготвяме филтрирането
+            $Recently->prepareListFilter($data);
+            
+            // Подготвяме навигацията по страници
+            $Recently->prepareListPager($data);
+            
+            // Подготвяме записите за таблицата
+            $Recently->prepareListRecs($data);
+            
+            // Подготвяме редовете на таблицата
+            $Recently->prepareListRows($data);
+            
+            // Подготвяме заглавието на таблицата
+            $data->title = tr("Последно");
+            
+            // Подготвяме лентата с инструменти
+            $Recently->prepareListToolbar($data);
+            
+            // Рендираме изгледа
+            $tpl = $Recently->renderPortal($data);
+
+            core_Cache::set('RecentDoc', $key, array($tpl, $lastRec->last), 5);
+        }
+        //bp($tpl);
         return $tpl;
     }
     
