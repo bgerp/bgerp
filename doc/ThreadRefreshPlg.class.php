@@ -96,7 +96,8 @@ class doc_ThreadRefreshPlg extends core_Plugin
             $lastSend = dt::verbal2mysql();
             Mode::setPermanent($threadLastSendName, $lastSend);
         }
-        
+        // log_Debug::add('log_Debug', NULL, " >>> {$lastSend} ");
+
         // Определяме времето на последна модификация на контейнер в нишката
         $cQuery = doc_Containers::getQuery();
         $cQuery->where("#threadId = {$threadId}");
@@ -106,11 +107,13 @@ class doc_ThreadRefreshPlg extends core_Plugin
         $threadLastRec = doc_Threads::fetch($lastModifiedRec->threadId);
         $lastModified = max($threadLastRec->modifiedOn, $lastModifiedRec->modifiedOn);
         
-        if($lastSend >= $lastModified && dt::addSecs(3*60, $lastSend) < dt::now()) {
+        if($lastSend >= $lastModified && dt::addSecs(3*60, $lastSend) > dt::now()) {
 
             return FALSE;
         }
         
+        // log_Debug::add('log_Debug', NULL, "{$lastSend} >= {$lastModified} &&  " . dt::addSecs(3*60, $lastSend) . " < " . dt::now());
+
         // URL-то за рефрешване
         $refreshUrlStr = Request::get('refreshUrl');
         
@@ -190,7 +193,7 @@ class doc_ThreadRefreshPlg extends core_Plugin
             }
          }
         
-        Mode::setPermanent($threadLastSendName, dt::verbal2mysql());
+        Mode::setPermanent($threadLastSendName, dt::now());
 
         return FALSE;
     }
