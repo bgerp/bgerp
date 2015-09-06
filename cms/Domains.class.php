@@ -215,10 +215,10 @@ class cms_Domains extends core_Embedder
             if(!$lang || !$cmsLangs[$lang]) {
                 $lang = self::detectLang($cmsLangs);
             }
-
+            
             // Определяме домейна, който отговаря на езика
             foreach($domainRecs as $dRec) {
-                if($dRec->lang == $lang || !$domainRec) {
+                if($dRec->lang == $lang || !$domainRec ||  (count($domainRecs) == 1)) {
                     $domainRec = $dRec;
                 }
             }
