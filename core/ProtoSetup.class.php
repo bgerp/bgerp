@@ -152,7 +152,7 @@ class core_ProtoSetup
                         } else {
                             $html .= "<li class='debug-new'>Миграцията {$packName}::{$method} беше приложена успешно</li>";
                         }
-                    } catch (Exception $е) {
+                    } catch (Exception $e) {
                         $html .= "<li class='debug-error'>Миграцията {$packName}::{$method} не беше успешна</li>";
                     }
                 }

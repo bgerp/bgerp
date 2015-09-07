@@ -50,7 +50,7 @@ class acc_reports_PeriodHistoryImpl extends acc_reports_HistoryImpl
 	/**
 	 * След подготовката на ембеднатата форма
 	 */
-	public static function on_AfterAddEmbeddedFields($mvc, core_Form &$form)
+	public static function on_AfterAddEmbeddedFields($mvc, core_FieldSet &$form)
 	{
 		$form->FLD('step', "enum(day=Дни,week=Седмици,month=Месеци,year=Години)", "caption=Групиране по");
 		
