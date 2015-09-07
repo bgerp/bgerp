@@ -190,7 +190,7 @@ class cms_Domains extends core_Embedder
             $query = self::getQuery();
             $domainRecs = $query->fetchAll(array("#domain = '[#1#]'", 'localhost'));
         }
- 
+
         return $domainRecs;
     }
 
