@@ -732,7 +732,7 @@ class core_Query extends core_FieldSet
      *
      * @param $cond string|array условия на заявката
      * @param $fields array масив или стрингов списък ('поле1, поле2, ...') с имена на полета.
-     * @param $парамс array масив с допълнителни параметри на заявката
+     * @param $params array масив с допълнителни параметри на заявката
      * @return array масив от записи (stdClass)
      */
     function fetchAll($cond = NULL, $fields = NULL, $params = array())

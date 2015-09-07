@@ -51,7 +51,7 @@ class acc_reports_SaleArticles extends acc_reports_BalanceImpl
     /**
      * След подготовката на ембеднатата форма
      */
-    public static function on_AfterAddEmbeddedFields($mvc, core_Form &$form)
+    public static function on_AfterAddEmbeddedFields($mvc, core_FieldSet &$form)
     {
 
         // Искаме да покажим оборотната ведомост за сметката на касите

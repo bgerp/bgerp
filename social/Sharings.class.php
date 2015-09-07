@@ -179,7 +179,6 @@ class social_Sharings extends core_Master
      */
     public function act_Redirect()
     {
-    	// Взимаме $ид-то на услугата
     	$id = core_Request::get('id', 'int');
     	
     	// Намираме нейния запис

@@ -48,7 +48,7 @@ class core_InnerObjectIntf
 	 * 
 	 * @param core_Form $fieldset
 	 */
-	public function addEmbeddedFields(core_Form &$fieldset)
+	public function addEmbeddedFields(core_FieldSet &$fieldset)
 	{
 		return $this->class->addEmbeddedFields($fieldset);
 	}
