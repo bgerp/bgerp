@@ -131,7 +131,7 @@ class i18n_Encoding {
             
             foreach(explode(",", $al) as $a) {
                 $a = strtoupper(trim($a));
-                expect(!self::$encodingsMatchs[$а]);
+                expect(!self::$encodingsMatchs[$a]);
                 self::$encodingsMatchs[$a] = $name;
             }
         }
