@@ -984,7 +984,7 @@ class lang_Encoding {
             // CJK character sets (not documented)
             'JIS_C6220-1969-RO' => 'ISO646-JP, ISO-IR-14, JP, csISO14JISC6220ro',
             'JIS_X0201' => 'JISX0201-1976, X0201, csHalfWidthKatakana, JISX0201.1976-0, JIS0201',
-            'JIS_X0208' => 'JIS_X0208-1983, JIS_X0208-1990, JIS0208, X0208, ISO-IR-87, csISO87JISX0208, JISX0208.1983-0, JISX0208.1990-0, JIS0208',
+            'JIS_X0208' => 'JIS_X0208-1983, JIS_X0208-1990, JIS0208, X0208, ISO-IR-87, csISO87JISX0208, JISX0208.1983-0, JISX0208.1990-0',
             'JIS_X0212' => 'JIS_X0212.1990-0, JIS_X0212-1990, X0212, ISO-IR-159, csISO159JISX02121990, JISX0212.1990-0, JIS0212',
             'GB_1988-80' => 'ISO646-CN, ISO-IR-57, CN, csISO57GB1988',
             'GB_2312-80' => 'ISO-IR-58, csISO58GB231280, CHINESE, GB2312.1980-0',
@@ -1023,9 +1023,13 @@ class lang_Encoding {
             expect(!self::$charsetsMatchs[$name]);
             self::$charsetsMatchs[$name] = $name;
             
-            foreach(explode(",", $al) as $a) {
+            $alArr = explode(",", $al);
+            
+            foreach($alArr as $a) {
                 $a = strtoupper(trim($a));
-                expect(!self::$charsetsMatchs[$a]);
+                if ($a != $name) {
+                    expect(!self::$charsetsMatchs[$a]);
+                }
                 self::$charsetsMatchs[$a] = $name;
             }
         }
@@ -1062,9 +1066,13 @@ class lang_Encoding {
             expect(!self::$encodingsMatchs[$name]);
             self::$encodingsMatchs[$name] = $name;
             
-            foreach(explode(",", $al) as $a) {
+            $alArr = explode(",", $al);
+            
+            foreach($alArr as $a) {
                 $a = strtoupper(trim($a));
-                expect(!self::$encodingsMatchs[$a]);
+                if ($a != $name) {
+                    expect(!self::$encodingsMatchs[$a]);
+                }
                 self::$encodingsMatchs[$a] = $name;
             }
         }
