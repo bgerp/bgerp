@@ -78,7 +78,7 @@ class acc_reports_BalancePeriodImpl extends frame_BaseDriver
     /**
      * След подготовката на ембеднатата форма
      */
-    public static function on_AfterAddEmbeddedFields($mvc, core_Form &$form)
+    public static function on_AfterAddEmbeddedFields($mvc, core_FieldSet &$form)
     {
 
     	// Искаме всички счетоводни периоди за които
