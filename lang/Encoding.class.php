@@ -1025,7 +1025,7 @@ class lang_Encoding {
             
             foreach(explode(",", $al) as $a) {
                 $a = strtoupper(trim($a));
-                expect(!self::$charsetsMatchs[$а]);
+                expect(!self::$charsetsMatchs[$a]);
                 self::$charsetsMatchs[$a] = $name;
             }
         }
@@ -1064,7 +1064,7 @@ class lang_Encoding {
             
             foreach(explode(",", $al) as $a) {
                 $a = strtoupper(trim($a));
-                expect(!self::$encodingsMatchs[$а]);
+                expect(!self::$encodingsMatchs[$a]);
                 self::$encodingsMatchs[$a] = $name;
             }
         }
