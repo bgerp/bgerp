@@ -458,7 +458,7 @@ class currency_CurrencyRates extends core_Detail
      * Приемливото отклонение е дефинирано в , дефолт 5%
      * @param double $givenRate - подаден курс.
      * @param string $from - код от коя валута
-     * @param string $то - код към коя валута
+     * @param string $to - код към коя валута
      * @return mixed FALSE - ако няма отколонение
      * 				 $msg  - 'предупреждението за съответствие'
      */
