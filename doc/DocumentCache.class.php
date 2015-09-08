@@ -147,7 +147,10 @@ class doc_DocumentCache extends core_Master
 
         // Ако документа има отворена история - не се кешира
         if($rec->id == Request::get('Cid')) return FALSE;
-        
+     
+        // Ако модела не допуска кеширане - ключ не се генерира
+        if($document->instance->preventCache) return FALSE;
+
         // Ако документа е в състояние "чернова" и е променян преди по-малко от 10 минути - не се кешира.
         if($rec->state == 'draft' && dt::addSecs(10*60, $rec->modifiedOn) > dt::now()) return FALSE;
 
@@ -166,8 +169,11 @@ class doc_DocumentCache extends core_Master
         
         // Режим на екрана
         $screenMode = Mode::get('screenMode');
+
+        // Отворен горен таб
+        $tabTop = Request::get('TabTop');
         
-        $key = md5($userId . $containerId . $modifiedOn . $pages . $screenMode);
+        $key = md5($userId . $containerId . $modifiedOn . $pages . $screenMode . $tabTop);
 
         return $key;
     }
