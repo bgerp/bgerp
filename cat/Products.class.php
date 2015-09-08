@@ -210,6 +210,12 @@ class cat_Products extends core_Embedder {
 	 * Кой има достъп до часния изглед на артикула
 	 */
 	public $canPrivatesingle = 'user';
+
+
+    /**
+     * Да се забрани ли кеширането на документа
+     */
+    public $preventCache = TRUE;
 	
 	
 	/**
