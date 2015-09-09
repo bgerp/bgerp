@@ -369,7 +369,7 @@ abstract class deals_DealDetail extends doc_Detail
             }
             
             $data->toolbar->addBtn('Артикул', array($mvc, 'add', "{$mvc->masterKey}" => $masterRec->id, 'classId' => $productMan->getClassId(), 'ret_url' => TRUE),
-            "id=btnAdd-{$manId},{$error} order=10,title=Добавяне на артикул", 'ef_icon = img/16/shopping.png');
+            "id=btnAdd-{$masterRec->id},{$error} order=10,title=Добавяне на артикул", 'ef_icon = img/16/shopping.png');
             
             unset($data->toolbar->buttons['btnAdd']);
         }
