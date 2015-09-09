@@ -129,6 +129,7 @@ class bgerp_Recently extends core_Manager
         
         while($rec = $query->fetch()) {
             $rec->hidden = $hidden;
+            $rec->last = dt::verbal2mysql();
             self::save($rec);
         }
     }
