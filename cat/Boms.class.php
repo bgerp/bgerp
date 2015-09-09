@@ -353,7 +353,7 @@ class cat_Boms extends core_Master
     		$row->quantity .= " " . cat_UoM::getShortName($measureId);
     	}
     	
-    	if ($fields['-single'] && ($rec->quontityForPrice) &&haveRole('ceo, acc, cat, price')) {
+    	if ($fields['-single'] && ($rec->quontityForPrice) && haveRole('ceo, acc, cat, price')) {
 	        $priceObj = cat_Boms::getPrice($rec->productId, $rec->id);
 	        if ($priceObj) {
 	            list($base, $prop) = (array)cat_Boms::getPrice($rec->productId);
