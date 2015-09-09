@@ -5,6 +5,10 @@
     <div style='margin-top:5px'>|Режийни разходи|*: [#expenses#]</div>
      <!--ET_END expenses-->
    
+   <!--ET_BEGIN primeCost-->
+    <div style='margin-top:5px'>|Себестойност|*: [#primeCost#]</div>
+     <!--ET_END primeCost-->
+   
     <div class = 'fieldset-holder' style='margin-top:10px'>
         <div class="scrolling-holder">
             [#cat_BomDetails#]

@@ -278,7 +278,7 @@ class sales_QuotationsDetails extends doc_Detail {
 	   
 	    if($form->rec->price && $masterRec->currencyRate){
        	 	if($masterRec->chargeVat == 'yes'){
-       	 		($rec->vatPercent) ? $vat = $rec->vatPercent : $vat = $productMan::getVat($rec->productId, $masterRec->date);
+       	 		($rec->vatPercent) ? $vat = $rec->vatPercent : $vat = $ProductManager::getVat($rec->productId, $masterRec->date);
        	 		 $rec->price = $rec->price * (1 + $vat);
        	 	}
        	 	

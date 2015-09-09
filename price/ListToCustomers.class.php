@@ -461,7 +461,7 @@ class price_ListToCustomers extends core_Detail
     		
     		$minCharge = $maxCharge = NULL;
     		
-    		// Ако контрагента има зададен ценоразпис, който ене  дефолтния
+    		// Ако контрагента има зададен ценоразпис, който не е дефолтния
     		if($defPriceListId != price_ListRules::PRICE_LIST_CATALOG){
     			
     			// Взимаме максималната и минималната надценка от него, ако ги има
@@ -471,12 +471,12 @@ class price_ListToCustomers extends core_Detail
     		}
     		
     		// Ако няма мин надценка, взимаме я от търговските условия
-    		if(!$minCharge){
+    		if(!isset($minCharge)){
     			$minCharge = cond_Parameters::getParameter($customerClass, $customerId, 'minSurplusCharge');
     		}
     		
     		// Ако няма макс надценка, взимаме я от търговските условия
-    		if(!$maxCharge){
+    		if(!isset($maxCharge)){
     			$maxCharge = cond_Parameters::getParameter($customerClass, $customerId, 'maxSurplusCharge');
     		}
     		
