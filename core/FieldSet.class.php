@@ -206,7 +206,7 @@ class core_FieldSet extends core_BaseClass
             $this->fields[$name]->caption = $this->fields[$name]->caption ? $this->fields[$name]->caption : $name;
             $this->fields[$name]->name = $name;
             
-            // За да слага полета с еднаква група последователно, независимо от реда на постъпването им
+            // Слага полета с еднаква група последователно, независимо от реда на постъпването им
             if(strpos($this->fields[$name]->caption, '->')) {
                 list($group, $caption) = explode('->', $this->fields[$name]->caption);
 
