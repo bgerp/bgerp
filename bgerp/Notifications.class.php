@@ -325,7 +325,7 @@ class bgerp_Notifications extends core_Manager
         $query->limit(1);
         $query->orderBy("#modifiedOn", 'DESC');
         $lastRec = $query->fetch();
-        $key = md5($userId . '_' . Request::get('ajax_mode') . '_' . Request::get('screenMode') . '_' . Request::get('P_bgerp_Notifications'));
+        $key = md5($userId . '_' . Request::get('ajax_mode') . '_' . Request::get('screenMode') . '_' . Request::get('P_bgerp_Notifications') . '_' . Request::get('noticeSearch'));
 
         list($tpl, $modifiedOn) = core_Cache::get('Notifications', $key);
  

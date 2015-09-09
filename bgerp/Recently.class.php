@@ -258,12 +258,11 @@ class bgerp_Recently extends core_Manager
         $query->limit(1);
         $query->orderBy("#last", 'DESC');
         $lastRec = $query->fetch();
-        $key = md5($userId . '_' . Request::get('ajax_mode') . '_' . Request::get('screenMode') . '_' . Request::get('P_bgerp_Recently'));
+        $key = md5($userId . '_' . Request::get('ajax_mode') . '_' . Request::get('screenMode') . '_' . Request::get('P_bgerp_Recently') . '_' . Request::get('recentlySearch'));
         $now = dt::now();
         list($tpl, $createdOn)  = core_Cache::get('RecentDoc', $key);
  
         if(!$tpl || $createdOn != $lastRec->last) {
-
  
             // Създаваме обекта $data
             $data = new stdClass();
@@ -300,7 +299,7 @@ class bgerp_Recently extends core_Manager
 
             core_Cache::set('RecentDoc', $key, array($tpl, $lastRec->last), 5);
         }
-        //bp($tpl);
+        
         return $tpl;
     }
     
