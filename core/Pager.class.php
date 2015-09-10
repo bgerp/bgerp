@@ -86,7 +86,6 @@ class core_Pager extends core_BaseClass
         parent::init($params);
         setIfNot($this->itemsPerPage, 20);
         setIfNot($this->pageVar, 'P');
-        setIfNot($this->page, Request::get($this->pageVar, 'int'), 1);
         if(Mode::is('screenMode', 'narrow')) {
             setIfNot($this->pagesAround, 1);
         } else {
@@ -100,7 +99,8 @@ class core_Pager extends core_BaseClass
      * Изчислява индексите на първия и последния елемент от текущата страница и общия брой страници
      */
     function calc()
-    {
+    {   
+        setIfNot($this->page, Request::get($this->pageVar, 'int'), 1);
         $this->rangeStart = NULL;
         $this->rangeEnd = NULL;
         $this->pagesCount = NULL;
@@ -210,7 +210,7 @@ class core_Pager extends core_BaseClass
      */
     function getPrevNext($nextTitle, $prevTitle)
     {
-        $link = getCurrentUrl();
+        $link = self::getUrl();
 
         $p = $this->getPage();
         $cnt = $this->getPagesCount();
@@ -230,14 +230,14 @@ class core_Pager extends core_BaseClass
     
     
     /**
-     * @todo Чака за документация...
+     * Рендира HTML кода на пейджъра
      */
     function getHtml($link = NULL)
-    {
+    { 
         if ($this->url) {
             $link = $this->url;
-        } else {
-            $link = toUrl(getCurrentUrl());
+        } else { 
+            $link = toUrl(self::getUrl());
         }
         
         $start = $this->getPage() - $this->pagesAround;
@@ -294,6 +294,20 @@ class core_Pager extends core_BaseClass
 
 
     /**
+     * Връща текущото URL
+     */
+    function getUrl()
+    {  
+        $url = getCurrentUrl(); 
+        if(is_array($this->addToUrl)) { 
+            $url = $url + $this->addToUrl; 
+        }
+
+        return $url;
+    }
+
+
+    /**
      * Проверява дали текущия резултат трябва да се показва
      */
     public function isOnPage()
@@ -314,5 +328,35 @@ class core_Pager extends core_BaseClass
         }
 
         return TRUE;
+    }
+
+
+    /**
+     * Задава стойността на контролната променлива за пейджъра
+     */
+    function setPageVar($masterClass = NULL, $id = NULL, $detailClass = NULL)
+    {
+        $this->pageVar =  self::getPageVar($masterClass, $id, $detailClass);
+    }
+
+
+    /**
+     * Връща името на променливата използвана за отбелязване на текущата страница
+     */
+    static function getPageVar($masterClass = NULL, $id = NULL, $detailClass = NULL)
+    {
+        $pageVar = 'P';
+
+        if($masterClass) {
+            $pageVar .= "_{$masterClass}";
+        }
+        if($id) {
+            $pageVar .= "_{$id}";
+        }
+        if($detailClass) {
+            $pageVar .= "_{$detailClass}";
+        }
+
+        return $pageVar;
     }
 }

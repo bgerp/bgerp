@@ -60,9 +60,9 @@ class core_ObjectConfiguration extends core_BaseClass
         if (!Mode::get('stopInvoke')) {
             $this->invoke('BeforeGetConfConst', array(&$value, $name));
         }
-        
+
         // Търси константата в данните въведени през уеб-интерфейса
-        if(!isset($value) && !empty($this->_data[$name])) {
+        if(!isset($value) && !(empty($this->_data[$name]) && $this->_data[$name] !== (double) 0 && $this->_data[$name] !== (int) 0)) {
 
             $value = $this->_data[$name];
         }

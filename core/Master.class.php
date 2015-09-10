@@ -444,15 +444,26 @@ class core_Master extends core_Manager
             $layoutText = $this->singleLayoutTpl;
         } else {
             if(count($data->singleFields)) {
+                $lastGroup = '';
                 foreach($data->singleFields as $field => $caption) {
-                    $fieldsHtml .= "\n<!--ET_BEGIN {$field}--><tr><td>" . tr($caption) . "</td><td>[#{$field}#]</td></tr><!--ET_END {$field}-->";
+                    if(strpos($caption, '->')) {
+                        list($group, $caption) = explode('->', $caption);
+                        $fieldsHtml .= "\n<!--ET_BEGIN {$field}-->";
+                        if($group != $lastGroup) {
+                            $fieldsHtml .= "<tr><td colspan=2 style='padding-left:0px;padding-top:15px;font-weight:bold;border-left:none;border-right:none;'>" . tr($group) . "</td></tr>\n";
+                        }
+                        $lastGroup = $group;
+                    } else {
+                        $lastGroup = '';
+                    }
+                    $fieldsHtml .= "\n{$begin}<tr><td>" . tr($caption) . "</td><td>[#{$field}#]</td></tr><!--ET_END {$field}-->";
                 }
             }
             
             $class = $this->cssClass ? $this->cssClass : $this->className;
             
             $layoutText = "\n<div class='singleView'>[#SingleToolbar#]<br><div class='{$class}'><h2>[#SingleTitle#]</h2>" .
-            "\n<table class='listTable'>{$fieldsHtml}\n</table>\n" .
+            "\n<table class='listTable' style='border:none;'>{$fieldsHtml}\n</table>\n" .
             "<!--ET_BEGIN DETAILS-->[#DETAILS#]<!--ET_END DETAILS--></div></div>";
         }
         

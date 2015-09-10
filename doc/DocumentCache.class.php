@@ -48,7 +48,7 @@ class doc_DocumentCache extends core_Master
 	/**
 	 * Кой може да го разглежда?
 	 */
-	public $canList = 'ceo, admin';
+	public $canList = 'ceo, admin, debug';
 	
 	
 	/**
@@ -60,40 +60,33 @@ class doc_DocumentCache extends core_Master
 	/**
 	 * Полета, които ще се показват в листов изглед
 	 */
-	public $listFields = 'id, userId, containerId, cache, time, usage,invalidate';
+	public $listFields = 'key, containerId, userId, cache, createdOn';
 	
 	
 	/**
 	 * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
 	 */
-	public $rowToolsSingleField = 'productId';
+	public $rowToolsSingleField = 'key';
 	
 	
 	/**
 	 * Файл с шаблон за единичен изглед на статия
 	 */
 	public $singleLayoutFile = 'cat/tpl/SingleLayoutTplCache.shtml';
-	
-	
-	/**
-	 * Колко минути да стои жив кеша
-	 */
-	const KEEP_MINUTES = 5;
-	
-	
-	/**
+
+    
+    /**
 	 * Описание на модела
 	 */
 	function description()
 	{
+		$this->FLD("key", "varchar(32)", "input=none,caption=Ключ");
 		$this->FLD("userId", "user", "input=none,caption=Потребител");
 		$this->FLD("containerId", "key(mvc=doc_Containers)", "input=none,caption=Документ");
-		$this->FLD("cache", "blob(1000000, serialize, compress,maxRows=5)", "input=none,caption=Html,column=none");
-		$this->FLD("time", "datetime(format=smartTime)", "input=none,caption=Създаване");
-		$this->FLD("usage", "datetime(format=smartTime)", "input=none,caption=Употреба");
-		$this->FLD("invalidate", "datetime(format=smartTime)", "input=none,caption=Изтриване");
+		$this->FLD("cache", "blob(10000000, serialize, compress,maxRows=5)", "input=none,caption=Html,column=none");
+		$this->FLD("createdOn", "datetime(format=smartTime)", "input=none,caption=Създаване, oldFieldName=time");
 
-        $this->setDbUnique('userId,containerId');
+        $this->setDbUnique('key');
 	}
 	
 	
@@ -106,16 +99,20 @@ class doc_DocumentCache extends core_Master
 	 * 
 	 * @return stdClass $cache - записания кеш
 	 */
-	public static function getDocumentData($containerId, $userId, $modifiedOn)
+	public static function getCache($cRec, $document)
 	{
-        if($containerId == Request::get('Cid')) return FALSE;
+        if($cRec->id == Request::get('Cid')) return FALSE;
+        
+        $key = self::generateKey($cRec, $document, 'get');
 
-		if($rec = self::fetch("#userId = {$userId} AND #containerId = {$containerId} AND  #time >'{$modifiedOn}'")){
-			
-            // Записваме използването на кеша
-            $rec->usage = dt::now();
-			self::save($rec, 'usage');
-			
+		if($key && $rec = self::fetch("#key = '{$key}'")){
+            if(dt::addSecs(doc_Setup::get('CACHE_LIFETIME'), $rec->createdOn) < dt::now() ) {
+                $me = cls::get('doc_DocumentCache');
+                $me->invalidate();
+
+                return FALSE;
+            }
+
  		    return $rec->cache;
 		} 
 	}
@@ -125,31 +122,62 @@ class doc_DocumentCache extends core_Master
     /**
      * Записва документ в кеша
      */
-    public static function setDocumentData($containerId, $userId, $document)
+    public static function setCache($cRec, $document, $tpl)
     {
-        if($containerId == Request::get('Cid')) return FALSE;
+        if($key = self::generateKey($cRec, $document)) {
 
-        $interval = self::KEEP_MINUTES * 60;
-		$now = dt::now();
+            $rec = (object)array(   'key' => $key,
+                                    'userId' => core_Users::getCurrent(), 
+                                    'containerId' => $cRec->id,
+                                    'createdOn' => dt::now(),
+                                    'cache' => $tpl);
 
-        $rec = (object)array(   'userId' => $userId, 
-						        'containerId' => $containerId, 
-						        'time' => $now,
-							    'usage' => $now,
-							    'invalidate' => dt::addSecs($interval, $time),
-                                'cache' => $document);
+            return self::save($rec, NULL, 'REPLACE');
+        }
+    }
 
-        return self::save($rec, NULL, 'REPLACE');
+
+    /**
+     * Генерираме ключа за кеша
+     */
+    static function generateKey($rec, $document)
+    {
+        // Ако не е оставено време за кеширане - не генерираме ключ
+        if(!doc_Setup::get('CACHE_LIFETIME') > 0) return FALSE;
+
+        // Ако документа има отворена история - не се кешира
+        if($rec->id == Request::get('Cid')) return FALSE;
+     
+        // Ако модела не допуска кеширане - ключ не се генерира
+        if($document->instance->preventCache) return FALSE;
+
+        // Ако документа е в състояние "чернова" и е променян преди по-малко от 10 минути - не се кешира.
+        if($rec->state == 'draft' && dt::addSecs(10*60, $rec->modifiedOn) > dt::now()) return FALSE;
+
+        // Потребител
+        $userId = core_Users::getCurrent();
+
+        // Последно модифициране
+        $modifiedOn = $rec->modifiedOn;
+
+        // Контейнер
+        $containerId = $rec->id;
+                
+        // Положение на пейджърите
+        $pageVar = core_Pager::getPageVar($document->className, $document->that);
+        $pages =  serialize(Request::getVarsStartingWith($pageVar));
+        
+        // Режим на екрана
+        $screenMode = Mode::get('screenMode');
+
+        // Отворен горен таб
+        $tabTop = Request::get('TabTop');
+        
+        $key = md5($userId . $containerId . $modifiedOn . $pages . $screenMode . $tabTop);
+
+        return $key;
     }
 	
-	
-	/**
-	 * Инвалидира всичкия кеш за този потребител за този документ
-	 */
-	public static function invalidate($containerId, $userId)
-	{
-		self::delete("#userId = {$userId} AND #containerId = {$containerId}");
-	}
 	
 	
 	/**
@@ -168,50 +196,19 @@ class doc_DocumentCache extends core_Master
 	/**
 	 * Инвалидира стария кеш
 	 */
-	function cron_Invalidate()
+	function invalidate()
 	{
 		$now = dt::now();
 		
 		// Вземам всички аписи които са над 4+ минути. За всеки един взимам броя на минутите които е над 4
 		$query = $this->getQuery();
-		$query->XPR('minutes', 'double', "ROUND(time_to_sec(TIMEDIFF('{$now}', #invalidate)) / 60)");
-		$query->where("#minutes >= 4");
-		$query->show('invalidate,time,minutes,usage,containerId');
+        
+        // Изтриваме с по-голяма вероятност, записите, които са стоели по-дълго след края на кеша
+		$query->delete("TIME_TO_SEC(TIMEDIFF('{$now}', #createdOn)) >= (" . doc_Setup::get('CACHE_LIFETIME') . " - (RAND() * 120))"); 
 		
-		while($rec = $query->fetch()){
-			
-			// Ако документа е бил скоро използван, регенерираме му кеша, и не го изтриваме
-			/*if(dt::addSecs(2 * 60, $rec->usage) > $now){
-				
-				$document = doc_Containers::getDocument($rec->containerId);
-				$data = $document->prepareDocument();
-				$rec->cache = $document->renderDocument($data);
-				
-				$this->save($rec, 'cache');
-				continue;
-			}*/
-			
-			// Колко минути са над 3
-			$mCount = $rec->minutes - 3;
-			
-			// Ако е над три минути, директно го трием
-			if($mCount >= 3) {
-				$this->delete($rec->id);
-				continue;
-			}
-			
-			// След това трием с вероятност
-			$prob = abs(1 / (3 - $mCount));
-			if(rand(1, 100) < $prob * 100){
-				$this->delete($rec->id);
-			}
-		}
-		
-		// вземам всички записи които са над 4+ минути. За всеки един взимам броя на минутите които е над 4
-		// mCount. С вероятност 1 / 3 - $mCount изтривам текущия запис
-		// rand(1, 100) <  (1 / 3 - $mCount) * 100; Или ако mCount = 3 || 3+ пак трия
-		
-		// Ресетваме ид-та
-		$this->db->query("ALTER TABLE {$this->dbTableName} AUTO_INCREMENT = 1");
+		// Ресетваме ид-та веднъж на 1000 минути
+        if(round((time()/60) % 1000) == 500) {
+		    $this->db->query("ALTER TABLE {$this->dbTableName} AUTO_INCREMENT = 1");
+        }
 	}
 }

@@ -28,7 +28,7 @@ class cms_DefaultTheme extends core_ProtoInner {
     /**
      * Допълване на формата за домейна със специфични полета за кожата
      */
-    public function addEmbeddedFields(core_Form &$form)
+    public function addEmbeddedFields(core_FieldSet &$form)
     {
         $form->FLD('wImg1', 'fileman_FileType(bucket=gallery_Pictures)', "caption=Заглавни картинки за десктоп (1000x288px)->Изображение 1");
         $form->FLD('wImg2', 'fileman_FileType(bucket=gallery_Pictures)', "caption=Заглавни картинки за десктоп (1000x288px)->Изображение 2");
@@ -89,7 +89,7 @@ class cms_DefaultTheme extends core_ProtoInner {
         if($title) {
             $tpl->replace($title, 'CORE_APP_NAME');
         }
-
+// bp($this->innerForm);
         if($this->innerForm->headerColor) {
             $css .= "\n    #all #cmsTop, #cmsTop img {background-color:{$this->innerForm->headerColor} !important;}";
         }
@@ -151,8 +151,8 @@ class cms_DefaultTheme extends core_ProtoInner {
             if(!$color) {
                 $color = '#333344';
             }
-
-    		$css .= "\n    #cmsMenu a.selected, #cmsMenu a:focus, #cmsMenu a:hover {background-color:{$this->formRec->activeColor} !important;}";
+ 
+    		$css .= "\n    #cmsMenu a.selected, #cmsMenu a:focus, #cmsMenu a:hover {background-color:{$this->innerForm->activeColor} !important;}";
     		
     		$activeColor = ltrim($this->innerForm->activeColor, "#");
     		$bordercolor = phpcolor_Adapter::changeColor($activeColor, 'lighten', 30);

@@ -30,7 +30,7 @@ class efax_Sender
 	/**
 	 * Интерфейсния метод за изпращане на факс
 	 */
-	function sendFax($rec, $faxТо)
+	function sendFax($rec, $faxTo)
 	{
 	    $conf = core_Packs::getConfig('efax');
         
@@ -52,7 +52,7 @@ class efax_Sender
         $options['is_fax'] = 'is_fax';
         
         //Факс номера се преобразува в имейл
-        $recipientFaxEmail = $faxТо . '@efaxsend.com';
+        $recipientFaxEmail = $faxTo . '@efaxsend.com';
         
         // Ако вместо id на факса дефинираме имейл
         if (!is_numeric($conf->EFAX_SENDER_BOX)) {

@@ -502,6 +502,8 @@ class email_Outgoings extends core_Master
             
             $saveArray = array();
             $saveArray['id'] = 'id';
+            $saveArray['modifiedOn'] = 'modifiedOn';
+            $saveArray['modifiedBy'] = 'modifiedBy';
             
             // Ако имейла е активен или чернова и не е въведено време за изчакване
             if (!$options->waiting && ($rec->state == 'active' || $rec->state == 'draft')) {

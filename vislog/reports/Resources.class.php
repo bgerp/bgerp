@@ -82,7 +82,7 @@ class vislog_reports_Resources extends frame_BaseDriver
      *
      * @param core_Fieldset $fieldset
      */
-    public function addEmbeddedFields(core_Form &$form)
+    public function addEmbeddedFields(core_FieldSet &$form)
     {
     	$form->FLD('from', 'date', 'caption=Начало');
     	$form->FLD('to', 'date', 'caption=Край');
@@ -190,10 +190,12 @@ class vislog_reports_Resources extends frame_BaseDriver
     
     	$html = "<h3>Посещения по ресурс</h3>";
         
-        $pager = cls::get('core_Pager', array('pageVar' => 'P_' .  $this->EmbedderRec->that,'itemsPerPage' => $this->listItemsPerPage));
+    	$pager = cls::get('core_Pager',  array('itemsPerPage' => $this->listItemsPerPage));
+        $pager->setPageVar($this->EmbedderRec->className, $this->EmbedderRec->that);
+        $pager->addToUrl = array('#' => $this->EmbedderRec->instance->getHandle($this->EmbedderRec->that));
+ 
         $pager->itemsCount = count($data->resourceCnt);
-
-    	
+   	
     	$f = cls::get('core_FieldSet');
 
     	$f->FLD('resource', 'key(mvc=vislog_HistoryResources,select=query)', 'caption=Посещения->Ресурс');

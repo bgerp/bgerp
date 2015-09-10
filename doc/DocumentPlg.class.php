@@ -99,8 +99,6 @@ class doc_DocumentPlg extends core_Plugin
         $mvc->setDbIndex('threadId');
         $mvc->setDbIndex('containerId');
         $mvc->setDbIndex('originId');
-
-        $mvc->cacheInThread = TRUE;
     }
     
     
@@ -307,7 +305,9 @@ class doc_DocumentPlg extends core_Plugin
         }
         
         if($fields['-list']){
-        	$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
+            if($rec->folderId) {
+        	    $row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
+            }
         }
     }
     
@@ -381,6 +381,7 @@ class doc_DocumentPlg extends core_Plugin
      */
     static function on_AfterSave($mvc, &$id, $rec, $fields = NULL)
     {
+        $fields = arr::make($fields, TRUE);
         try {
             
             // Опитваме се да запишем файловете от документа в модела
@@ -413,7 +414,7 @@ class doc_DocumentPlg extends core_Plugin
             if ($fields && !isset($fields['modifiedOn'])) {
                 $updateAll = FALSE;
             }
-            
+
             doc_Containers::update($containerId, $updateAll);
         }
         

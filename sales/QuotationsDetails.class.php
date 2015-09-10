@@ -278,7 +278,7 @@ class sales_QuotationsDetails extends doc_Detail {
 	   
 	    if($form->rec->price && $masterRec->currencyRate){
        	 	if($masterRec->chargeVat == 'yes'){
-       	 		($rec->vatPercent) ? $vat = $rec->vatPercent : $vat = $productMan::getVat($rec->productId, $masterRec->date);
+       	 		($rec->vatPercent) ? $vat = $rec->vatPercent : $vat = $ProductManager::getVat($rec->productId, $masterRec->date);
        	 		 $rec->price = $rec->price * (1 + $vat);
        	 	}
        	 	
@@ -680,8 +680,14 @@ class sales_QuotationsDetails extends doc_Detail {
     				$data->discountsOptional[$rec->discount] = $row->discount;
     			}
     		}
-    		
-    		$row->productId = cat_Products::getAutoProductDesc($rec->productId, $data->masterData->rec->modifiedOn, $rec->showMode);
+            
+            if($data->masterData->rec->state == 'draft') {
+                $time = NULL;
+            } else {
+                $time = $data->masterData->rec->modifiedOn;
+            }
+
+    		$row->productId = cat_Products::getAutoProductDesc($rec->productId, $time, $rec->showMode);
     		if($rec->notes){
     			deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
     		}

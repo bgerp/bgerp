@@ -271,7 +271,14 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     		foreach ($data->rows as $i => &$row) {
     			$rec = &$data->recs[$i];
     			
-    			$row->productId = cat_Products::getAutoProductDesc($rec->productId, $data->masterData->rec->modifiedOn, $rec->showMode);
+                if($data->masterData->rec->state == 'draft') {
+                    $time = NULL;
+                } else {
+                    $time = $data->masterData->rec->modifiedOn;
+                }
+
+                $row->productId = cat_Products::getAutoProductDesc($rec->productId, $time, $rec->showMode);
+
     			if($rec->notes){
     				deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
     			}

@@ -59,7 +59,7 @@ class planning_reports_PurchaseImpl extends frame_BaseDriver
      *
      * @param core_Fieldset $fieldset
      */
-	public function addEmbeddedFields(core_Form &$form)
+	public function addEmbeddedFields(core_FieldSet &$form)
     {
     	$form->FLD('from', 'date', 'caption=Начало,input=none');
     	$form->FLD('to', 'date', 'caption=Край,input=none');
@@ -230,7 +230,10 @@ class planning_reports_PurchaseImpl extends frame_BaseDriver
     	// Подготвяме страницирането
     	$data = $res;
         
-        $pager = cls::get('core_Pager',  array('pageVar' => 'P_' .  $mvc->EmbedderRec->that,'itemsPerPage' => $mvc->listItemsPerPage));
+        $pager = cls::get('core_Pager',  array('itemsPerPage' => $mvc->listItemsPerPage));
+        $pager->setPageVar($mvc->EmbedderRec->className, $mvc->EmbedderRec->that);
+        $pager->addToUrl = array('#' => $mvc->EmbedderRec->instance->getHandle($mvc->EmbedderRec->that));
+
         $pager->itemsCount = count($data->recs);
         $data->pager = $pager;
         

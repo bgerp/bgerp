@@ -63,7 +63,7 @@ class acc_reports_HistoryImpl extends frame_BaseDriver
 	 *
 	 * @param core_Fieldset $fieldset
 	 */
-	public function addEmbeddedFields(core_Form &$form)
+	public function addEmbeddedFields(core_FieldSet &$form)
 	{
 		$form->FLD('accountId', 'acc_type_Account(allowEmpty)', 'input,caption=Сметка,silent,mandatory,removeAndRefreshForm=ent1Id|ent2Id|ent3Id|orderField|orderBy|');
 		$form->FLD('fromDate', 'date(allowEmpty)', 'caption=От,input,mandatory');

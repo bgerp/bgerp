@@ -140,6 +140,7 @@ class cat_Boms extends core_Master
     	$this->FLD('expenses', 'percent', 'caption=Режийни разходи');
     	$this->FLD('state','enum(draft=Чернова, active=Активиран, rejected=Оттеглен)', 'caption=Статус, input=none');
     	$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden,silent');
+    	$this->FLD('quontityForPrice', 'double', 'caption=Изчисляване на себестойност->При количество');
     	
     	$this->setDbIndex('productId');
     }
@@ -351,6 +352,18 @@ class cat_Boms extends core_Master
     		$measureId = cat_Products::getProductInfo($rec->productId)->productRec->measureId;
     		$row->quantity .= " " . cat_UoM::getShortName($measureId);
     	}
+    	
+    	if ($fields['-single'] && ($rec->quontityForPrice) && haveRole('ceo, acc, cat, price')) {
+	        $priceObj = cat_Boms::getPrice($rec->productId, $rec->id);
+	        if ($priceObj) {
+	            list($base, $prop) = (array)cat_Boms::getPrice($rec->productId);
+	        
+        	    $rec->primeCost = $priceObj->base/$rec->quontityForPrice + $priceObj->prop;
+        	    
+        	    $Double = cls::get('type_Double');
+        	    $row->primeCost = $Double->toVerbal($rec->primeCost);
+	        }
+    	}
     }
     
     
@@ -377,11 +390,15 @@ class cat_Boms extends core_Master
     public static function getPrice($productId, $bomId = NULL)
     {
     	// Намираме активната карта за обекта
-    	$where = "#productId = {$productId} AND #state = 'active'";
     	if($bomId){
-    		$where .= " AND #id = {$bomId}";
+    		$rec = self::fetch($bomId);
+    	} else {
+    	    $query = self::getQuery();
+    	    $query->where("#productId = {$productId} AND #state = 'active'");
+    	    $query->orderBy('createdOn', 'DESC');
+    	    $query->limit(1);
+    	    $rec = $query->fetch();
     	}
-    	$rec = self::fetch($where);
     	
     	// Ако няма, връщаме нулеви цени
     	if(empty($rec)) return FALSE;
@@ -409,6 +426,9 @@ class cat_Boms extends core_Master
     	
     	$amounts->base /= $rInfo['quantity'];
     	$amounts->prop /= $rInfo['quantity'];
+    	
+    	$amounts->base *= (1 + $rec->expenses);
+    	$amounts->prop *= (1 + $rec->expenses);
     	
     	// Връщаме изчислените суми
     	return $amounts;

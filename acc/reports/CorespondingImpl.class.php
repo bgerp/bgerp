@@ -70,7 +70,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
      *
      * @param core_Fieldset $fieldset
      */
-    public function addEmbeddedFields(core_Form &$form)
+    public function addEmbeddedFields(core_FieldSet &$form)
     {
     	// Добавяме полетата за филтър
     	$form->FLD('from', 'date', 'caption=От,mandatory');
@@ -81,6 +81,10 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     	
     	$form->FLD('orderBy', 'enum(DESC=Низходящо,ASC=Възходящо)', 'caption=Сортиране->Вид,silent,removeAndRefreshForm=orderField,formOrder=100');
     	$form->FLD('orderField', 'enum(debitQuantity=Дебит к-во,debitAmount=Дебит сума,creditQuantity=Кредит к-во,creditAmount=Кредит сума,blQuantity=Остатък к-во,blAmount=Остатък сума)', 'caption=Сортиране->Поле,formOrder=101');
+    	
+    	$form->FLD('compare', 'enum(yes=Да,no=Не)', 'caption=Сравняване->С друг период,silent,removeAndRefreshForm=compareTimes,comparePeriods');
+    	$form->FLD('compareTimes', 'enum(1=Един,2=Два)', 'caption=Сравняване->Брой,input=none');
+    	$form->FLD('comparePeriods', 'enum(month=1 месец,year=12 месеца)', 'caption=Сравняване->Период,input=none');
     	
     	$this->invoke('AfterAddEmbeddedFields', array($form));
     }
@@ -99,6 +103,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     	$form->setSuggestions('from', array('' => '') + $op->fromOptions);
     	$form->setSuggestions('to', array('' => '') + $op->toOptions);
     	$form->setDefault('orderBy', 'DESC');
+    	$form->setDefault('compare', 'no');
     	
     	// Ако има избрани сметки, показваме обединението на номенклатурите им
     	if(isset($form->rec->baseAccountId) && isset($form->rec->corespondentAccountId)){
@@ -150,6 +155,11 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     		}
     	} else {
     		$form->setField('orderField', 'input=none');
+    	}
+    	
+    	if($form->rec->compare == 'yes'){
+    		$form->setField('compareTimes', 'input');
+    		$form->setField('comparePeriods', 'input');
     	}
     	
     	$this->invoke('AfterPrepareEmbeddedForm', array($form));
@@ -216,7 +226,33 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     	$data->hasSameAmounts = TRUE;
     	$data->rows = $data->recs = array();
     	$form = $this->innerForm;
+    	//bp($form);
     	
+    	if ($form->compare == 'yes') {
+    		if ($form->comparePeriods == 'month') {
+    			if ($form->compareTimes == '1') {
+    				$fromCompare = date('Y-m-d',strtotime("-1 months", dt::mysql2timestamp($form->from)));
+    				$toCompare = date('Y-m-d',strtotime("-1 months", dt::mysql2timestamp($form->to)));
+    			} else {
+    				$fromCompare = date('Y-m-d',strtotime("-1 months", dt::mysql2timestamp($form->from)));
+    				$toCompare = date('Y-m-d',strtotime("-1 months", dt::mysql2timestamp($form->to)));
+    				$fromCompare2 = date('Y-m-d',strtotime("-2 months", dt::mysql2timestamp($form->from)));
+    				$toCompare2 = date('Y-m-d',strtotime("-2 months", dt::mysql2timestamp($form->to)));
+    			}
+    		} else {
+    			if ($form->compareTimes == '1') {
+    				$fromCompare = date('Y-m-d',strtotime("-12 months", dt::mysql2timestamp($form->from)));
+    				$toCompare = date('Y-m-d',strtotime("-12 months", dt::mysql2timestamp($form->to)));
+    			} else {
+    				$fromCompare = date('Y-m-d',strtotime("-12 months", dt::mysql2timestamp($form->from)));
+    				$toCompare = date('Y-m-d',strtotime("-12 months", dt::mysql2timestamp($form->to)));
+    				$fromCompare2 = date('Y-m-d',strtotime("-24 months", dt::mysql2timestamp($form->from)));
+    				$toCompare2 = date('Y-m-d',strtotime("-24 months", dt::mysql2timestamp($form->to)));
+    			}
+    		}
+    	}
+    	
+    	//bp($fromCompare, $toCompare, $form);
     	$data->groupBy = array();
     	foreach (range(1, 6) as $i){
     		if(!empty($form->{"feat{$i}"})){
@@ -324,8 +360,9 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     	if(count($data->recs)){
     		
     		// Подготвяме страницирането
-    		$pageVar = str::addHash("P", 5, "{$mvc->className}{$mvc->EmbedderRec->that}");
-    		$data->Pager = cls::get('core_Pager',  array('pageVar' => $pageVar, 'itemsPerPage' => $mvc->listItemsPerPage));
+    		$pager = cls::get('core_Pager',  array('itemsPerPage' => $mvc->listItemsPerPage));
+    		$pager->setPageVar($mvc->EmbedderRec->className, $mvc->EmbedderRec->that);
+    		$data->Pager = $pager;
     		$data->Pager->itemsCount = count($data->recs);
     		
     		// Ако има избрано поле за сортиране, сортираме по него
@@ -379,28 +416,40 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
 	    		}
 	    	}
     	}
-    	//bp($a);
     	
     	if(count($cntItem) <= 1 && count($data->recs) >= 2 ) {
     	
 	    	// toolbar
 	    	$btns = $this->generateBtns($data);
-	    	
-	        $tpl->replace($btns->buttonList, 'buttonList');
-	        $tpl->replace($btns->buttonChart, 'buttonChart');
+	    
+	    	if ($this->innerForm->compare == 'yes') {
+		        $tpl->replace($btns->buttonList, 'buttonList');
+		        $tpl->replace($btns->buttonBar, 'buttonBar');
+	    	} else {
+	    		$tpl->replace($btns->buttonList, 'buttonList');
+	    		$tpl->replace($btns->buttonPie, 'buttonPie');
+	    	}
     	
     	}
 
-        $var = str::addHash("pie", 5, "{$this->EmbedderRec->that}");
-
         $curUrl = getCurrentUrl();
-        $docId = $this->innerForm->containerId;;
         
-        if ($curUrl["var_{$docId}"] == $var) {
-        	$chart = $this->getChart($data);
+        $pageVar = core_Pager::getPageVar($this->EmbedderRec->className, $this->EmbedderRec->that);
+        
+        $pagePie = $pageVar . "_pie";
+        $pageBar = $pageVar . "_bar";
+
+        if ($curUrl[$pagePie] == $this->EmbedderRec->that) {
+
+        	$chart = $this->getChartPie($data);
         	$tpl->append($chart, 'CONTENT');
+        	
+        } elseif($curUrl[$pageBar] == $this->EmbedderRec->that){
+        	$chart = $this->getChartBar($data);
+        	$tpl->append($chart, 'CONTENT');
+
         } else {
-    	
+ 
 	    	$f = cls::get('core_FieldSet');
 	    	$f->FLD('item1', 'varchar', 'tdClass=itemClass');
 	    	$f->FLD('item2', 'varchar', 'tdClass=itemClass');
@@ -408,7 +457,9 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
 	    	$f->FLD('item4', 'varchar', 'tdClass=itemClass');
 	    	$f->FLD('item5', 'varchar', 'tdClass=itemClass');
 	    	$f->FLD('item6', 'varchar', 'tdClass=itemClass');
-	    	foreach (array('debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount', 'delta') as $fld){
+	    	foreach (array('debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount', 'delta',
+	    			       'debitQuantityCompare', 'debitAmountCompare', 'creditQuantityCompare', 'creditAmountCompare', 
+	    			       'blQuantityCompare', 'blAmountCompare', 'deltaCompare') as $fld){
 	    		$f->FLD($fld, 'int', 'tdClass=accCell');
 	    	}
 	    	 
@@ -592,7 +643,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     protected function prepareListFields_(&$data)
     {
     	// Кои полета ще се показват
-    	$fields = arr::make("debitQuantity=Дебит->К-во,debitAmount=Дебит->Сума,creditQuantity=Кредит->К-во,creditAmount=Кредит->Сума,blQuantity=Остатък->К-во,blAmount=Остатък->Сума,delta=Дял", TRUE);
+    	$fields = arr::make("debitQuantity=Сега->Дебит->К-во,debitAmount=Сега->Дебит->Сума,creditQuantity=Сега->Кредит->К-во,creditAmount=Сега->Кредит->Сума,blQuantity=Сега->Остатък->К-во,blAmount=Сега->Остатък->Сума,delta=Сега->Дял", TRUE);
     	$newFields = array();
     	$form = $this->innerForm;
     	
@@ -615,6 +666,26 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     			unset($fields['creditQuantity'], $fields['creditAmount'], $fields['blQuantity'], $fields['blAmount']);
     		}elseif($this->innerForm->side == 'credit'){
     			unset($fields['debitQuantity'], $fields['debitAmount'], $fields['blQuantity'], $fields['blAmount']);
+    		}
+    	}
+    
+    	if($this->innerForm->compare == 'yes'){
+    		$fieldsCompare = arr::make("debitQuantityCompare=Преди->Дебит->К-во,
+    				                    debitAmountCompare=Преди->Дебит->Сума,
+    				                    creditQuantityCompare=Преди->Кредит->К-во,
+    				                    creditAmountCompare=Преди->Кредит->Сума,
+    				                    blQuantityCompare=Преди->Остатък->К-во,
+    				                    blAmountCompare=Преди->Остатък->Сума,
+    				                    deltaCompare=Преди->Дял", TRUE);
+    		
+    		$fields = $fields + $fieldsCompare;
+    		
+    		if($this->innerForm->side){ 
+    			if($this->innerForm->side == 'debit'){
+    				unset($fields['creditQuantityCompare'], $fields['creditAmountCompare'], $fields['blQuantityCompare'], $fields['blAmountCompare']);
+    			} elseif($this->innerForm->side == 'credit'){
+    				unset($fields['debitQuantityCompare'], $fields['debitAmountCompare'], $fields['blQuantityCompare'], $fields['blAmountCompare']);
+    			}
     		}
     	}
     	
@@ -823,29 +894,39 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     public function generateBtns($data)
     {
 
-    	$var = str::addHash("pie", 5, "{$this->EmbedderRec->that}");
-
         $curUrl = getCurrentUrl();
-        $docId = $this->innerForm->containerId;
-		
-        if ($curUrl["var_{$docId}"]) {
-        	unset ($curUrl["var_{$docId}"]);
+	
+        $pageVar = core_Pager::getPageVar($this->EmbedderRec->className, $this->EmbedderRec->that);
+        
+        $pagePie = $pageVar . "_pie";
+        $pageBar = $pageVar . "_bar";
+       
+        if ($curUrl["{$pageVar}_pie"] || $curUrl["{$pageVar}_bar"] ) { 
+        	unset ($curUrl["{$pageVar}_pie"]);
+        	unset ($curUrl["{$pageVar}_bar"]);
         }
-    
+        $realUrl = $curUrl;
+   
     	// правим бутони за toolbar
-    	$btnList = ht::createBtn('Таблица', $curUrl, NULL, NULL,
+    	$btnList = ht::createBtn('Таблица', $realUrl, NULL, NULL,
     			'ef_icon = img/16/table.png');
-
-    	$curUrl["var_{$docId}"] = $var;
+    	
+    	$curUrl[$pagePie] = $this->EmbedderRec->that;
     	$urlPie = $curUrl;
-
-    	$btnChart = ht::createBtn('Графика', $urlPie, NULL, NULL,
+    	
+    	$btnPie = ht::createBtn('Графика', $urlPie, NULL, NULL,
     			'ef_icon = img/16/chart16.png');
+    	
+    	$realUrl[$pageBar] = $this->EmbedderRec->that;
+    	$urlBar = $realUrl;
+    	
+    	$btnBar = ht::createBtn('Сравнение', $urlBar, NULL, NULL,
+    			'ef_icon = img/16/chart_bar.png');
     	
     	$btns = array();
     	
-    	$btns = (object) array('buttonList' => $btnList, 'buttonChart' => $btnChart);
-
+    	$btns = (object) array('buttonList' => $btnList, 'buttonPie' => $btnPie, 'buttonBar' => $btnBar);
+    	
     	return $btns;
     }
     
@@ -856,7 +937,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
      * @param stdClass $data
      * @return core_ET
      */
-    protected function getChart ($data)
+    protected function generateChartData ($data)
     {
     	arr::order($data->recs, $this->innerForm->orderField, $this->innerForm->orderBy);
      
@@ -910,11 +991,41 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     				'info' => $info,
     	);
     	
+    	$bar = array(
+        );
+    	
+    	$chartData = array();
+    	$chartData[] = (object) array('type' => 'pie', 'data' => $pie);
+    	$chartData[] = (object) array('type' => 'bar', 'data' => $bar);
+    	
+    	return $chartData;
+    }
+    
+    
+    protected function getChartPie ($data)
+    {
+    	$ch = $this->generateChartData($data);
+
     	$coreConf = core_Packs::getConfig('doc');
     	$chartAdapter = $coreConf->DOC_CHART_ADAPTER;
     	$chartHtml = cls::get($chartAdapter);
-    	$chart =  $chartHtml::prepare($pie,'pie');
 
+    	$chart =  $chartHtml::prepare($ch[0]->data,$ch[0]->type);
+
+    	return $chart;
+    }
+    
+    
+    protected function getChartBar ($data)
+    {
+    	$ch = $this->generateChartData($data);
+    
+    	$coreConf = core_Packs::getConfig('doc');
+    	$chartAdapter = $coreConf->DOC_CHART_ADAPTER;
+    	$chartHtml = cls::get($chartAdapter);
+
+    	$chart =  $chartHtml::prepare($ch[1]->data,$ch[1]->type);
+    
     	return $chart;
     }
     

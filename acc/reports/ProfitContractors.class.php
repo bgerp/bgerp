@@ -51,7 +51,7 @@ class acc_reports_ProfitContractors extends acc_reports_CorespondingImpl
     /**
      * След подготовката на ембеднатата форма
      */
-    public static function on_AfterAddEmbeddedFields($mvc, core_Form &$form)
+    public static function on_AfterAddEmbeddedFields($mvc, core_FieldSet &$form)
     {
 
        // Искаме да покажим оборотната ведомост за сметката на касите
@@ -127,8 +127,19 @@ class acc_reports_ProfitContractors extends acc_reports_CorespondingImpl
         unset($data->listFields['creditQuantity']);
         unset($data->listFields['creditAmount']);
         unset($data->listFields['blQuantity']);
-
-        $data->listFields['blAmount'] = "Сума";
+        unset($data->listFields['debitQuantityCompare']);
+        unset($data->listFields['debitAmountCompare']);
+        unset($data->listFields['creditQuantityCompare']);
+        unset($data->listFields['creditAmountCompare']);
+        unset($data->listFields['blQuantityCompare']);
+        
+        if($mvc->innerForm->compare == 'yes'){
+        	$data->listFields['blAmount'] = "Сега->Сума";
+        	$data->listFields['blAmountCompare'] = "Преди->Сума";
+        } else {
+        	$data->listFields['blAmount'] = "Сума";
+        	$data->listFields['delta'] = "Дял";
+        }
     }
 
 
@@ -152,7 +163,7 @@ class acc_reports_ProfitContractors extends acc_reports_CorespondingImpl
     {
     	
     	$today = dt::today();
-    	$activateOn = "{$today} 23:59:59";
+    	$activateOn = "{$today} 12:59:59";
 
         return $activateOn;
     }
