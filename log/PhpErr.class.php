@@ -125,9 +125,7 @@ class log_PhpErr extends core_Manager
         
         if (!$content) return;
         
-        // Вземаме само последните n на брой
         $contentArr = explode("\n", $content);
-        
         $contentArr = array_reverse($contentArr);
         
         $i = 0;
@@ -280,7 +278,7 @@ class log_PhpErr extends core_Manager
         $rec = new stdClass();
         $rec->systemId = 'DeleteExpired';
         $rec->description = 'Изтриване на старите PHP грешки';
-        $rec->controller = "{$mvc->className}";
+        $rec->controller = $mvc->className;
         $rec->action = 'DeleteOldRecords';
         $rec->period = 24 * 60;
         $rec->offset = rand(1320, 1439); // ot 22h до 24h
