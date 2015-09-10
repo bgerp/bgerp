@@ -81,8 +81,7 @@ class currency_FinIndexes extends core_Manager {
     {
         $res = '';
         // Зареждаме файлове за обработка
-        $csvFiles = array("http://www.euribor-ebf.eu/assets/modules/rateisblue/processed_files/hist_EURIBOR_" . date('Y') . ".csv");
-        
+        $csvFiles = array("http://www.emmi-benchmarks.eu/assets/modules/rateisblue/file_processing/publication/processed/hist_EURIBOR_" . date('Y') . ".csv");
         foreach ($csvFiles as $csvFile) {
             $indexName = 'EURIBOR';
             
@@ -245,7 +244,7 @@ class currency_FinIndexes extends core_Manager {
         $res = '';
         // Зареждаме файлове за обработка
         // $csvFiles = array(__DIR__ . "/csv/hist_EONIA_2012.csv");
-        $csvFiles = array("http://www.euribor-ebf.eu/assets/modules/rateisblue/processed_files/hist_EONIA_" . date('Y') . ".csv");
+        $csvFiles = array("http://www.emmi-benchmarks.eu/assets/modules/rateisblue/file_processing/publication/processed/hist_EONIA_" . date('Y') . ".csv");
         
         foreach ($csvFiles as $csvFile) {
             $indexName = 'EONIA';
