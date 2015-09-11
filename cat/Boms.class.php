@@ -345,7 +345,7 @@ class cat_Boms extends core_Master
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
+    	$row->productId = cat_Products::getShortHyperlink($rec->productId);
     	$row->title = $mvc->getLink($rec->id, 0);
     	
     	if($row->quantity){
