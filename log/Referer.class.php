@@ -104,6 +104,8 @@ class log_Referer extends core_Master
         
         if (!$referer) return ;
         
+        if (core_Url::isLocal($referer)) return ;
+        
         if (!isset($ipId)) {
             $ipId = log_Ips::getIpId();
         }

@@ -1974,6 +1974,11 @@ class email_Outgoings extends core_Master
             $notifyDate = dt::addSecs($data->rec->waiting, $data->rec->lastSendedOn);
             $data->row->notifyDate = dt::mysql2verbal($notifyDate, 'smartTime');
             $data->row->notifyUser = crm_Profiles::createLink($data->rec->lastSendedBy);
+            
+            if ($mvc->haveRightFor('close', $data->rec)) {
+                $data->row->removeNotify = ht::createLink('', array($mvc, 'close', $data->rec->id, 'ret_url'=>TRUE), tr('Сигурни ли сте, че искате да спрете изчакването') . '?',
+                                                            array('ef_icon' => 'img/16/cancel.png', 'title' => tr('Премахване на изчакването за отговор')));
+            }
         }
     }
     
@@ -2382,6 +2387,7 @@ class email_Outgoings extends core_Master
         if ($this->save($rec)) {
             $msg = '|Успешно затворен имейл';
             $type = 'notice';
+            $this->logInfo('Затваряне на имейла', $id);
         } else {
             $msg = '|Грешка при затваряне на имейла';
             $type = 'warning';
