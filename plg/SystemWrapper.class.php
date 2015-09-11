@@ -36,8 +36,9 @@ class plg_SystemWrapper extends plg_ProtoWrapper
         $this->TAB('log_Classes', 'Логове->Класове', 'admin');
         $this->TAB('log_Ips', 'Логове->IP-та', 'admin');
         $this->TAB('log_Referer', 'Логове->Реферери', 'admin');
-        
         $this->TAB('core_LoginLog', 'Логове->Логин', 'admin');
+        $this->TAB('log_PhpErr', 'Логове->PHP грешки', 'admin, debug');
+        
         $this->TAB('core_Cron', 'Крон');
         $this->TAB('core_Plugins', 'Плъгини', 'admin');
         $this->TAB('core_Cache', 'Вътрешни->Кеш', 'debug');
