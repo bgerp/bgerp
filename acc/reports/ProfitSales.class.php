@@ -144,8 +144,19 @@ class acc_reports_ProfitSales extends acc_reports_CorespondingImpl
         unset($data->listFields['creditQuantity']);
         unset($data->listFields['creditAmount']);
         unset($data->listFields['blQuantity']);
+        unset($data->listFields['debitQuantityCompare']);
+        unset($data->listFields['debitAmountCompare']);
+        unset($data->listFields['creditQuantityCompare']);
+        unset($data->listFields['creditAmountCompare']);
+        unset($data->listFields['blQuantityCompare']);
 
-        $data->listFields['blAmount'] = "Сума";
+        if($mvc->innerForm->compare == 'yes'){
+	        $data->listFields['blAmount'] = "Сега->Сума";
+	        $data->listFields['blAmountCompare'] = "Преди->Сума";
+	    } else {
+	    	$data->listFields['blAmount'] = "Сума";
+	    	$data->listFields['delta'] = "Дял";
+	    }
 
     }
     

@@ -219,6 +219,7 @@ class cash_ExchangeDocument extends core_Master
 		    $cCode = currency_Currencies::getCodeById($rec->creditCurrency);
 		    $dCode = currency_Currencies::getCodeById($rec->debitCurrency);
 		    $cRate = currency_CurrencyRates::getRate($rec->valior, $cCode, acc_Periods::getBaseCurrencyCode($rec->valior));
+		    currency_CurrencyRates::checkRateAndRedirect($cRate);
 		    $rec->creditPrice = $cRate;
 		    $rec->debitPrice = ($rec->creditQuantity * $rec->creditPrice) / $rec->debitQuantity;
 		    $rec->rate = round($rec->creditPrice / $rec->debitPrice, 4);

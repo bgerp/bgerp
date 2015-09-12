@@ -385,6 +385,8 @@ class price_ListDocs extends core_Master
     {
     	$rec = &$data->rec;
     	$rec->currencyRate = currency_CurrencyRates::getRate($rec->date, $rec->currencyId, acc_Periods::getBaseCurrencyCode($rec->date));
+    	currency_CurrencyRates::checkRateAndRedirect($rec->currencyRate);
+    	
     	$rec->listRec = price_Lists::fetch($rec->policyId);
     	
     	if(!count($rec->details->products)) return;
