@@ -114,6 +114,7 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
         
         expect($rec->storeId, 'Генериране на експедиционна част при липсващ склад!');
         $currencyRate = $this->getCurrencyRate($rec);
+        currency_CurrencyRates::checkRateAndRedirect($currencyRate);
         $currencyCode = ($rec->currencyId) ? $rec->currencyId : $this->class->fetchField($rec->id, 'currencyId');
         $currencyId   = currency_Currencies::getIdByCode($currencyCode);
         deals_Helper::fillRecs($this->class, $rec->details, $rec, array('alwaysHideVat' => TRUE));

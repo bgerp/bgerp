@@ -116,7 +116,7 @@ class core_Master extends core_Manager
         
         if (!Request::get('ajax_mode')) {
             // Записваме, че потребителя е разглеждал този списък
-            $this->logInfo('Single', $id);
+            $this->logInfo('Показване на сингъла', $id);
         }
         
         return $tpl;

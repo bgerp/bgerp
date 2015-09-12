@@ -1220,6 +1220,9 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
 .formFields {
   margin-bottom: 10px; }
 
+.narrow .vertical .formFields {
+  margin-bottom: 0; }
+
 .staticFormView .formFieldValue {
   border: solid 1px #9999ff;
   padding: 3px;
