@@ -297,12 +297,15 @@ abstract class deals_DealBase extends core_Master
     			}
     		}
     	   
+    		// Записваме, че потребителя е разглеждал този списък
+    		$this->logInfo("Приключване на сделка с друга сделка", $id);
+    		
     		return redirect(array($this, 'single', $id));
     	}
     
     	$form->toolbar->addSbBtn('Активиране', 'save', 'ef_icon = img/16/tick-circle-frame.png');
     	$form->toolbar->addBtn('Отказ', array($this, 'single', $id),  'ef_icon = img/16/close16.png');
-    		 
+    	
     	// Рендиране на формата
     	return $this->renderWrapping($form->renderHtml());
     }

@@ -408,6 +408,9 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 		// Създаваме новата рецепта
 		$newId = cat_Boms::createNewDraft($rec->productId, $rec->quantity, $details, NULL, $rec->expenses);
 		
+		// Записваме, че потребителя е разглеждал този списък
+		cat_Boms::logInfo("Създаване на рецепта от протокол за бързо производство", $newId);
+		
 		return Redirect(array('cat_Boms', 'single', $newId), NULL, 'Успешно е създадена нова рецепта');
 	}
 }

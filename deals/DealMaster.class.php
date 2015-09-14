@@ -1208,6 +1208,9 @@ abstract class deals_DealMaster extends deals_DealBase
     		// Контиране на документа
     		$this->conto($id);
     		 
+    		// Записваме, че потребителя е разглеждал този списък
+    		$this->logInfo("Активиране/Контиране на сделка", $id);
+    		
     		// Редирект
     		return redirect(array($this, 'single', $id));
     	}
