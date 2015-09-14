@@ -63,9 +63,12 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 			$index = "{$dRec->productId}|{$dRec->type}";
 			$resourcesArr[$index] = $dRec;
 			$resourcesArr[$index]->resourceQuantity = $dRec->quantity;
+			$resourcesArr[$index]->productInfo = cat_Products::getProductInfo($dRec->productId);
 			$rQuantity = $dRec->quantity;
 			
 			if($dRec->productId && $dRec->type == 'input'){
+				if(!isset($resourcesArr[$index]->productInfo->meta['canStore'])) continue;
+				
 				$hasInput = TRUE;
 				$resourcesArr[$index]->resourceQuantity = $dRec->quantity;
 				
@@ -97,7 +100,8 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 				$quantity = ($index == 0) ? $rec->quantity : 0;
 				
 				if($obj->type == 'input'){
-					$reason = ($index == 0) ? 'Засклаждане на произведен артикул' : 'Вложени материали в производството на артикул';
+					
+					$reason = ($index == 0) ? 'Засклаждане на произведен продукт' : ((!isset($obj->productInfo->meta['canStore']) ? 'Вложен нескладируем артикул в производството на продукт' : 'Вложен материал в производството на артикул'));
 				
 					$entry['debit'] = array('321', array('store_Stores', $rec->storeId),
 										 array(cat_Products::getClassId(), $rec->productId),
@@ -115,7 +119,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 										 array(cat_Products::getClassId(), $rec->productId),
 										'quantity' => $quantity);
 					$entry['amount'] = $amount;
-					$entry['reason'] = 'Приспадане себестойността на отпадък от произведен артикул';
+					$entry['reason'] = 'Приспадане себестойността на отпадък от произведен продукт';
 					$total += $amount;
 				}
 				
