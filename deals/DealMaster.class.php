@@ -411,15 +411,7 @@ abstract class deals_DealMaster extends deals_DealBase
      */
     private function getSubTitle($rec)
     {
-    	$fields = array();
-    	$fields['amountDelivered'] = 'amountDelivered';
-    	$fields['amountToDeliver'] = 'amountToDeliver';
-    	$fields['amountPaid'] = 'amountPaid';
-    	$fields['amountToPay'] = 'amountToPay';
-    	$fields['amountInvoiced'] = 'amountInvoiced';
-    	$fields['amountToInvoice'] = 'amountToInvoice';
-    	
-    	
+    	$fields = arr::make('amountDelivered,amountToDeliver,amountPaid,amountToPay,amountInvoiced,amountToInvoice', TRUE);
     	$row = $this->recToVerbal($rec, $fields);
     	
         $subTitle = "Дост: " . (($rec->amountDelivered) ? $row->amountDelivered : 0) . " ({$row->amountToDeliver})";
