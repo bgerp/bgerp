@@ -363,6 +363,27 @@ abstract class deals_DealBase extends core_Master
     
     
     /**
+     * Генерираме ключа за кеша
+     * Интерфейсен метод
+     * 
+     * @param core_Mvc $mvc
+     * @param NULL|FALSE|string $res
+     * @param NULL|integer $id
+     * @param object $cRec
+     * 
+     * @see doc_DocumentIntf
+     */
+    public static function on_AfterGenerateCacheKey($mvc, &$res, $id, $cRec)
+    {
+        if ($res === FALSE) return ;
+        
+        $dealHistory = Request::get('dealHistory');
+        
+        $res = md5($res . $dealHistory);
+    }
+    
+    
+    /**
      * След подготовка на тулбара на единичен изглед.
      */
     public static function on_AfterPrepareSingle($mvc, &$res, &$data)
