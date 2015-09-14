@@ -1591,6 +1591,11 @@ class cat_Products extends core_Embedder {
     		}
     	}
     	
+    	if (!Request::get('ajax_mode')) {
+    		// Записваме, че потребителя е разглеждал този списък
+    		$this->logInfo('Показване на ограничения сингъл', $id);
+    	}
+    	
     	return $tpl;
     }
     
