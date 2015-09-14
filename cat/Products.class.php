@@ -338,6 +338,8 @@ class cat_Products extends core_Embedder {
     				if($code = $cover->getDefaultProductCode()){
     					$form->setDefault('code', $code);
     				}
+    				
+    				$form->setDefault('groups', $cover->rec()->markers);
     			}
     			
     			// Запомняме последно добавения код
