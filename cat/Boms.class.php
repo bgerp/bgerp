@@ -140,7 +140,7 @@ class cat_Boms extends core_Master
     	$this->FLD('expenses', 'percent', 'caption=Режийни разходи');
     	$this->FLD('state','enum(draft=Чернова, active=Активиран, rejected=Оттеглен)', 'caption=Статус, input=none');
     	$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden,silent');
-    	$this->FLD('quontityForPrice', 'double', 'caption=Изчисляване на себестойност->При количество');
+    	$this->FLD('quantityForPrice', 'double(smartRound)', 'caption=Изчисляване на себестойност->При количество');
     	
     	$this->setDbIndex('productId');
     }
@@ -182,6 +182,8 @@ class cat_Boms extends core_Master
     	$productInfo = cat_Products::getProductInfo($form->rec->productId);
     	$shortUom = cat_UoM::getShortName($productInfo->productRec->measureId);
     	$form->setField('quantity', "unit={$shortUom}");
+    	$form->setField('quantityForPrice', "unit={$shortUom}");
+    	
     	$form->setDefault('quantity', 1);
     	
     	// При създаване на нова рецепта
@@ -215,6 +217,23 @@ class cat_Boms extends core_Master
     				 
     				$form->FNC("quantities{$i}", "complexType(left=Начално,right={$right},require=one)", "input,caption=|*{$caption}->|К-ва|*");
     			}
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     *
+     * @param core_Mvc $mvc
+     * @param core_Form $form
+     */
+    public static function on_AfterInputEditForm($mvc, &$form)
+    {
+    	$rec = &$form->rec;
+    	if($form->isSubmitted()){
+    		if(!isset($rec->quantityForPrice)){
+    			$rec->quantityForPrice = $rec->quantity;
     		}
     	}
     }
@@ -350,19 +369,25 @@ class cat_Boms extends core_Master
     	
     	if($row->quantity){
     		$measureId = cat_Products::getProductInfo($rec->productId)->productRec->measureId;
-    		$row->quantity .= " " . cat_UoM::getShortName($measureId);
+    		$shortUom = cat_UoM::getShortName($measureId);
+    		$row->quantity .= " " . $shortUom;
     	}
     	
-    	if ($fields['-single'] && ($rec->quontityForPrice) && haveRole('ceo, acc, cat, price')) {
+    	if($fields['-single'] && haveRole('ceo, acc, cat, price')) {
 	        $priceObj = cat_Boms::getPrice($rec->productId, $rec->id);
-	        if ($priceObj) {
-	            list($base, $prop) = (array)cat_Boms::getPrice($rec->productId);
+	        $rec->primeCost = 0;
 	        
-        	    $rec->primeCost = $priceObj->base/$rec->quontityForPrice + $priceObj->prop;
-        	    
-        	    $Double = cls::get('type_Double');
-        	    $row->primeCost = $Double->toVerbal($rec->primeCost);
-	        }
+	        if($priceObj) {
+	            @$rec->primeCost = ($priceObj->base + $priceObj->prop) * $rec->quantityForPrice;
+        	}
+        	
+        	$Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
+        	$row->primeCost = $Double->toVerbal($rec->primeCost);
+        	$row->primeCost .= tr("|* ( |за|* {$row->quantityForPrice} {$shortUom} )");
+        	 
+        	if(haveRole('ceo, acc, cat, price')){
+        		$row->primeCost .= ht::createLink('', array($mvc, 'RecalcSelfValue', $rec->id), FALSE, 'ef_icon=img/16/arrow_refresh.png,title=Преизчисляване на себестойността');
+        	}
     	}
     }
     
@@ -567,5 +592,21 @@ class cat_Boms extends core_Master
     	
     	// Връщаме ид-то на новосъздадената рецепта
     	return $id;
+    }
+    
+    
+    /**
+     * Форсира изчисляването на себестойността по рецептата
+     */
+    function act_RecalcSelfValue()
+    {
+    	requireRole('ceo, acc, cat, price');
+    	expect($id = Request::get('id', 'int'));
+    	expect($rec = $this->fetch($id));
+    	
+    	$rec->modifiedOn = dt::now();
+    	$this->save($rec, 'modifiedOn');
+    	
+    	return Redirect(array($this, 'single', $id), 'Себестойността е преизчислена успешно');
     }
 }
