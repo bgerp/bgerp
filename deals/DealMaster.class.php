@@ -1451,7 +1451,11 @@ abstract class deals_DealMaster extends deals_DealBase
     	$fields['currencyId'] = (empty($fields['currencyId'])) ? acc_Periods::getBaseCurrencyCode($fields['valior']) : $fields['currencyId'];
     	 
     	// Ако няма курс, това е този за основната валута
-    	$fields['currencyRate'] = (empty($fields['currencyRate'])) ? currency_CurrencyRates::getRate($fields['currencyRate'], $fields['currencyId'], NULL) : $fields['currencyRate'];
+        
+    	if (empty($fields['currencyRate'])) {
+    	    $fields['currencyRate'] = currency_CurrencyRates::getRate($fields['currencyRate'], $fields['currencyId'], NULL);
+    	    expect($fields['currencyRate']);
+    	}
     	 
     	// Форсираме папката на клиента
     	$fields['folderId'] = $contragentClass::forceCoverAndFolder($contragentId);

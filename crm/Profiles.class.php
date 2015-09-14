@@ -799,6 +799,19 @@ class crm_Profiles extends core_Master
 
         return $title;
     }
+    
+    
+    /**
+     * 
+     * 
+     * @param integer $id
+     * @param boolean $escape
+     */
+    public static function getTitleForId_($id, $escaped = TRUE)
+    {
+        
+        return self::getVerbal($id, 'userId');
+    }
 
 
     /**

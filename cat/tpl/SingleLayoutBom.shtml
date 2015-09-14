@@ -1,5 +1,5 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
-    <div>[#productId#]</div>
+    <h3 style='margin-top:15px;margin-bottom:15px;'>[#productId#]</h3>
     
      <!--ET_BEGIN expenses-->
     <div style='margin-top:5px'>|Режийни разходи|*: [#expenses#]</div>

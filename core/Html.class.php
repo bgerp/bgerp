@@ -491,8 +491,18 @@ class core_Html
             $attr['style'] .= 'color:#888;';
         }
 
+        // Добавяме икона на бутона, ако има
+        if($img = $attr['ef_icon']) {
+            if (!Mode::is('screenMode', 'narrow') ) { 
+                $attr['style'] .= "background-image:url('" . sbf($img, '') . "');";
+                $attr['class'] .= ' linkWithIcon';  
+            }
+            unset($attr['ef_icon']);
+        }
+
+
         // Ако нямаме JavaScript правим хипервръзка
-        if (!Mode::is('javascript', 'yes')) {
+        if ( Mode::is('javascript', 'no') ) {
             
             $attr['href'] = $url;
 
@@ -531,14 +541,6 @@ class core_Html
         $attr['type'] = 'button';
         $attr['value'] = $title;
         
-        // Добавяме икона на бутона, ако има
-        if($img = $attr['ef_icon']) {
-            if (!Mode::is('screenMode', 'narrow') ) { 
-                $attr['style'] .= "background-image:url('" . sbf($img, '') . "');";
-                $attr['class'] .= ' linkWithIcon';  
-            }
-            unset($attr['ef_icon']);
-        }
 
         return self::createElement('input', $attr);
     }

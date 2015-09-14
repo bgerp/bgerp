@@ -173,7 +173,10 @@ class doc_DocumentCache extends core_Master
         // Отворен горен таб
         $tabTop = Request::get('TabTop');
         
-        $key = md5($userId . $containerId . $modifiedOn . $pages . $screenMode . $tabTop);
+        // Отворен горен таб
+        $dealHistory = Request::get('dealHistory');
+
+        $key = md5($userId . $containerId . $modifiedOn . $pages . $screenMode . $tabTop . $dealHistory);
 
         return $key;
     }

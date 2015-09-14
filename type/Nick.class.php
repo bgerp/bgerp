@@ -103,7 +103,7 @@ class type_Nick extends type_Varchar {
      * Конвертира текста във формат за показване на никове
      * Първа главна буква. След точката и долното тире пак главна буква.
      */
-    function convertValueToNick($value)
+    static function convertValueToNick($value)
     {
         $value = trim($value);
 
