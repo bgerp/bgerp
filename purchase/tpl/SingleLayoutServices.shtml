@@ -5,7 +5,7 @@
                 <tr>
                     <td class="cell custom-header-bg" style='width:35%'><b>|Получател|*</b></td>
                     <td class="cell centered" style='width:30%' rowspan='2'>
-                        <div class="document-title">|ПРИЕМАТЕЛЕН ПРОТОКОЛ|*</div>
+                        <div class="document-title">|приемателен проткол|*</div>
                         <div style="padding-top:5px;">
                             № <span class="bigData">[#id#]</span> /
                             <span class="bigData">[#valior#]</span>

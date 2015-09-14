@@ -9,7 +9,7 @@
                                 <tbody>
                                     <tr>
                                        <td class="cell centered" rowspan='4' style='width:30%;'>
-                                            <div class="document-title" style='text-transform: uppercase'>|протокол за производство|*</div>
+                                            <div class="document-title">|протокол за производство|*</div>
                                             <div style="padding-top:5px;">
                                                 № <span class="bigData">[#id#]</span> / 
                                                 <span class="bigData">[#valior#]</span>
