@@ -131,10 +131,11 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     	
     	$classId = cat_Products::getClassId();
     	
-    	if($rec->id){
+    	if(isset($rec->id)){
     		$products = array($rec->productId => cat_Products::getTitlebyId($rec->productId, FALSE));
     	} else {
-    		$products = array('' => '') + cat_Products::getByProperty('canConvert');
+    		$metas = ($rec->type == 'input') ? 'canConvert' : 'canConvert,canStore';
+    		$products = array('' => '') + cat_Products::getByProperty($metas);
     	}
     	
     	$form->setOptions('productId', $products);
