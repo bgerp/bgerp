@@ -422,10 +422,10 @@ abstract class deals_DealMaster extends deals_DealBase
     	
     	$row = $this->recToVerbal($rec, $fields);
     	
-        $subTitle = "Дост: " . (($rec->amountDelivered) ? $row->amountDelivered : 0) . "({$row->amountToDeliver})";
-		$subTitle .= ", Плат: " . (($rec->amountPaid) ? $row->amountPaid : 0) . "({$row->amountToPay})";
+        $subTitle = "Дост: " . (($rec->amountDelivered) ? $row->amountDelivered : 0) . " ({$row->amountToDeliver})";
+		$subTitle .= ", Плат: " . (($rec->amountPaid) ? $row->amountPaid : 0) . " ({$row->amountToPay})";
         if($rec->makeInvoice != 'no'){
-        	$subTitle .= ", Факт: " . (($rec->amountInvoiced) ? $row->amountInvoiced : 0) . "({$row->amountToInvoice})";
+        	$subTitle .= ", Факт: " . (($rec->amountInvoiced) ? $row->amountInvoiced : 0) . " ({$row->amountToInvoice})";
         }
         
         return $subTitle;
