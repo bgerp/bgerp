@@ -2193,7 +2193,7 @@ class cal_Tasks extends core_Master
      */
     static public function calculateTimeToStart ($rec, $recCond)
     {
-    	if($rec->id == 37) {
+    	
     	// времето от което зависи новата задача е началото на зависимата задача
     	// "timeCalc"
     	$dependTimeStart = self::fetchField($recCond->dependId, "expectationTimeStart");
@@ -2232,7 +2232,7 @@ class cal_Tasks extends core_Master
     		$calcTime = dt::mysql2timestamp($dependTimeEnd) - $recCond->distTime;
     		$calcTimeStart = dt::timestamp2Mysql($calcTime);
     	}
-    	bp($calcTimeStart,$recCond->distTime,$dependTimeEnd,dt::mysql2timestamp($dependTimeEnd));
+    	
     	// ако задачата е безкрайна
     	if (!$rec->timeStart) { 
     		$rec->timeCalc = $calcTimeStart;
@@ -2254,8 +2254,6 @@ class cal_Tasks extends core_Master
     			
     			return $calcTimeStart;
     		}
-    	}
-    	
     	}
     }
     
