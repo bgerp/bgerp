@@ -1421,7 +1421,7 @@ class cat_Products extends core_Embedder {
     				$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'single', $bRec->id, 'ret_url' => TRUE), 'ef_icon = img/16/article.png,title=Към технологичната рецепта на артикула');
     			}
     		} elseif(cat_Boms::haveRightFor('write', (object)array('productId' => $data->rec->id))){
-    			$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'add', 'productId' => $data->rec->id, 'originId' => $data->rec->containerId, 'ret_url' => TRUE), 'ef_icon = img/16/article.png,title=Създаване на нова технологична рецепта,warning=Наистина ли желаете да създадете технологична рецепта за този артикул?');
+    			$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'add', 'productId' => $data->rec->id, 'originId' => $data->rec->containerId, 'ret_url' => TRUE), 'ef_icon = img/16/article.png,title=Създаване на нова технологична рецепта');
     		}
     	}
     }
