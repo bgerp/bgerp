@@ -158,7 +158,9 @@ class cat_BomDetails extends doc_Detail
     	$form->title = "|{$action}|* на {$typeCaption} |към|* <b>|{$mvc->Master->singleTitle}|* №{$form->rec->bomId}<b>";
     	
     	// Добавяме всички вложими артикули за избор
-    	$products = cat_Products::getByProperty('canConvert');
+    	$metas = ($form->rec->type == 'input') ? 'canConvert' : 'canConvert,canStore';
+    	$products = cat_Products::getByProperty($metas);
+    	
     	unset($products[$data->masterRec->productId]);
     	$form->setOptions('resourceId', $products);
     	
