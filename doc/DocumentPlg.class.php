@@ -2366,6 +2366,76 @@ class doc_DocumentPlg extends core_Plugin
     
     
     /**
+     * Генерираме ключа за кеша
+     * Интерфейсен метод
+     * 
+     * @param core_Mvc $mvc
+     * @param NULL|FALSE|string $res
+     * @param NULL|integer $id
+     * @param object $cRec
+     * 
+     * @see doc_DocumentIntf
+     */
+    public static function on_AfterGenerateCacheKey($mvc, &$res, $id, $cRec)
+    {
+        // Ако не е оставено време за кеширане - не генерираме ключ
+        if(!doc_Setup::get('CACHE_LIFETIME') > 0) {
+            $res = FALSE;
+            
+            return ;
+        }
+        
+        // Ако документа има отворена история - не се кешира
+        if($cRec->id == Request::get('Cid')) {
+            $res = FALSE;
+            
+            return ;
+        }
+        
+        // Ако модела не допуска кеширане - ключ не се генерира
+        if($mvc->preventCache) {
+            $res = FALSE;
+            
+            return ;
+        }
+        
+        // Ако документа е в състояние "чернова" и е променян преди по-малко от 10 минути - не се кешира.
+        if($cRec->state == 'draft' && dt::addSecs(10*60, $cRec->modifiedOn) > dt::now()) {
+            $res = FALSE;
+            
+            return ;
+        }
+        
+        // Потребител
+        $userId = core_Users::getCurrent();
+        
+        // Последно модифициране
+        $modifiedOn = $cRec->modifiedOn;
+        
+        // Контейнер
+        $containerId = $cRec->id;
+        
+        // Положение на пейджърите
+        $pageVar = core_Pager::getPageVar($mvc->className, $id);
+        $pages =  serialize(Request::getVarsStartingWith($pageVar));
+        
+        // Режим на екрана
+        $screenMode = Mode::get('screenMode');
+
+        // Отворен горен таб
+        $tabTop = Request::get('TabTop');
+        
+        $cacheStr = $userId . $containerId . $modifiedOn . $pages . $screenMode . $tabTop;
+        
+        if ($res) {
+            $cacheStr .= $res;
+        }
+        
+        $res = md5($cacheStr);
+    }
+    
+    
+    /**
      * 
      * 
      * @param core_Master $mvc

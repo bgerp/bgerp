@@ -103,7 +103,7 @@ class doc_DocumentCache extends core_Master
 	{
         if($cRec->id == Request::get('Cid')) return FALSE;
         
-        $key = self::generateKey($cRec, $document, 'get');
+        $key = $document->generateCacheKey($cRec);
 
 		if($key && $rec = self::fetch("#key = '{$key}'")){
             if(dt::addSecs(doc_Setup::get('CACHE_LIFETIME'), $rec->createdOn) < dt::now() ) {
@@ -112,7 +112,7 @@ class doc_DocumentCache extends core_Master
 
                 return FALSE;
             }
-
+            
  		    return $rec->cache;
 		} 
 	}
@@ -124,63 +124,17 @@ class doc_DocumentCache extends core_Master
      */
     public static function setCache($cRec, $document, $tpl)
     {
-        if($key = self::generateKey($cRec, $document)) {
+        if($key = $document->generateCacheKey($cRec)) {
 
             $rec = (object)array(   'key' => $key,
                                     'userId' => core_Users::getCurrent(), 
                                     'containerId' => $cRec->id,
                                     'createdOn' => dt::now(),
                                     'cache' => $tpl);
-
+            
             return self::save($rec, NULL, 'REPLACE');
         }
     }
-
-
-    /**
-     * Генерираме ключа за кеша
-     */
-    static function generateKey($rec, $document)
-    {
-        // Ако не е оставено време за кеширане - не генерираме ключ
-        if(!doc_Setup::get('CACHE_LIFETIME') > 0) return FALSE;
-
-        // Ако документа има отворена история - не се кешира
-        if($rec->id == Request::get('Cid')) return FALSE;
-     
-        // Ако модела не допуска кеширане - ключ не се генерира
-        if($document->instance->preventCache) return FALSE;
-
-        // Ако документа е в състояние "чернова" и е променян преди по-малко от 10 минути - не се кешира.
-        if($rec->state == 'draft' && dt::addSecs(10*60, $rec->modifiedOn) > dt::now()) return FALSE;
-
-        // Потребител
-        $userId = core_Users::getCurrent();
-
-        // Последно модифициране
-        $modifiedOn = $rec->modifiedOn;
-
-        // Контейнер
-        $containerId = $rec->id;
-                
-        // Положение на пейджърите
-        $pageVar = core_Pager::getPageVar($document->className, $document->that);
-        $pages =  serialize(Request::getVarsStartingWith($pageVar));
-        
-        // Режим на екрана
-        $screenMode = Mode::get('screenMode');
-
-        // Отворен горен таб
-        $tabTop = Request::get('TabTop');
-        
-        // Отворен горен таб
-        $dealHistory = Request::get('dealHistory');
-
-        $key = md5($userId . $containerId . $modifiedOn . $pages . $screenMode . $tabTop . $dealHistory);
-
-        return $key;
-    }
-	
 	
 	
 	/**
