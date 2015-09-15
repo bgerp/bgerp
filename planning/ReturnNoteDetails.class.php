@@ -85,10 +85,8 @@ class planning_ReturnNoteDetails extends deals_ManifactureDetail
     
     /**
      * Какви продукти да могат да се избират в детайла
-     *
-     * @var enum(canManifacture=Производими,canConvert=Вложими)
      */
-    protected $defaultMeta = 'canConvert';
+    protected $defaultMeta = 'canConvert,canStore';
     
     
     /**

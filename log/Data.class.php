@@ -282,13 +282,13 @@ class log_Data extends core_Manager
         $data->listFilter->fields['type']->type->options = array('' => '') + $data->listFilter->fields['type']->type->options;
         $data->listFilter->fields['type']->refreshForm = 'refreshForm';
         
-        $data->listFilter->FNC('users', 'users(rolesForAll=ceo|admin, rolesForTeams=ceo|admin)', 'caption=Потребител,refreshForm');
+        $data->listFilter->FNC('users', 'users(rolesForAll=ceo|admin, rolesForTeams=ceo|admin, roles=user)', 'caption=Потребител,refreshForm');
         
         $data->listFilter->FNC('message', 'varchar', 'caption=Текст');
         $data->listFilter->FNC('ip', 'varchar(32)', 'caption=IP адрес');
         $data->listFilter->FNC('from', 'datetime', 'caption=От');
 		$data->listFilter->FNC('to', 'datetime', 'caption=До');
-		$data->listFilter->FNC('class', 'varchar', 'caption=Клас,refreshForm, allowEmpty, silent');
+		$data->listFilter->FNC('class', 'varchar', 'caption=Клас,removeAndRefreshForm=object, allowEmpty, silent');
 		$data->listFilter->FNC('object', 'varchar', 'caption=Обект,refreshForm, allowEmpty, silent');
         
         $default = $data->listFilter->getField('users')->type->fitInDomain('all_users');
