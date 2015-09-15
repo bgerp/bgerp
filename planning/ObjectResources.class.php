@@ -355,7 +355,7 @@ class planning_ObjectResources extends core_Manager
      * Връща себестойността на материала
      *
      * @param int $objectId - ид на артикула - материал
-     * @return double $selfValue -себестойността му
+     * @return double $selfValue - себестойността му
      */
     public static function getSelfValue($objectId)
     {
@@ -369,7 +369,22 @@ class planning_ObjectResources extends core_Manager
     		// Ако няма търговска себестойност: проверяваме за счетоводна
     		if(!isset($selfValue)){
     			$date = dt::now();
-    			$selfValue = cat_Products::getWacAmountInStore(1, $objectId, $date);
+    			
+    			$pInfo = cat_Products::getProductInfo($objectId);
+    			
+    			// Ако артикула е складируем взимаме среднопритеглената му цена от склада
+    			if(isset($pInfo->meta['canStore'])){
+    				$selfValue = cat_Products::getWacAmountInStore(1, $objectId, $date);
+    			} else {
+    				
+    				// Ако не е складируем взимаме среднопритеглената му цена в производството
+    				$item1 = acc_Items::fetchItem('cat_Products', $objectId)->id;
+    				if(isset($item1)){
+    					// Намираме сумата която струва к-то от артикула в склада
+    					$selfValue = acc_strategy_WAC::getAmount(1, $date, '61101', $item1, NULL, NULL);
+    					$selfValue = round($selfValue, 4);
+    				}
+    			}
     		}
     	}
     	

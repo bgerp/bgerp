@@ -1644,7 +1644,7 @@ class cat_Products extends core_Embedder {
     	}
     	
     	// Намираме сумата която струва к-то от артикула в склада
-    	$amount = acc_strategy_WAC::getAmount($quantity, $date, '321', $item1, $item2, $item3);
+    	$amount = acc_strategy_WAC::getAmount($quantity, $date, '321', $item1, $item2, NULL);
     	
     	if(isset($amount)){
     		return round($amount, 4);
