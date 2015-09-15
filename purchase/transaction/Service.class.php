@@ -82,6 +82,7 @@ class purchase_transaction_Service extends acc_DocumentTransactionSource
     			$transfer = FALSE;
     			
     			if(isset($pInfo->meta['fixedAsset'])){
+    				$reason = 'Приети ДА';
     				$debitArr = array('613', array($dRec->classId, $dRec->productId),
     									'quantity' => $dRec->quantity,);
     			} else {
@@ -94,6 +95,7 @@ class purchase_transaction_Service extends acc_DocumentTransactionSource
     							array($dRec->classId, $dRec->productId), // Перо 1 - Артикул
     							'quantity' => $sign * $dRec->quantity, // Количество продукт в основната му мярка
     					);
+    				$reason = 'Приети услуги и нескладируеми консумативи';
     			}
     	
     			$amount = $dRec->amount;
@@ -110,14 +112,15 @@ class purchase_transaction_Service extends acc_DocumentTransactionSource
     							array('currency_Currencies', $currencyId),          // Перо 3 - Валута
     							'quantity' => $sign * $amount, // "брой пари" във валутата на покупката
     					),
+    					'reason' => $reason,
     			);
     			
     			// Ако сме дебитирали 60020 сметка, прехвърляме го в 61101 или 61102
     			if($transfer === TRUE){
-    				$resourceRec = planning_ObjectResources::getResource($dRec->classId, $dRec->productId);
-    				if($resourceRec){
-    					$newArr = array('61101', array('planning_Resources' , $resourceRec->resourceId), 
-    										 'quantity' => $dRec->quantity / $resourceRec->conversionRate);
+    				$pInfo = cat_Products::getProductInfo($dRec->productId);
+    				if(isset($pInfo->meta['canConvert'])){
+    					$newArr = array('61101', array($dRec->classId , $dRec->productId),
+    							'quantity' => $dRec->quantity);
     				} else {
     					$newArr = array('61102');
     				}
@@ -126,6 +129,7 @@ class purchase_transaction_Service extends acc_DocumentTransactionSource
     						'amount' => $sign * $amount * $rec->currencyRate,
     						'debit' => $newArr,
     						'credit' => $debitArr,
+    						'reason' => 'Вложени в производството нескладируеми услуги и консумативи',
     						);
     			}
     		}
@@ -148,6 +152,7 @@ class purchase_transaction_Service extends acc_DocumentTransactionSource
     							'4530',
     							array($origin->className, $origin->that),
     					),
+    					'reason' => 'ДДС за начисляване при фактуриране',
     			);
     		}
     	}

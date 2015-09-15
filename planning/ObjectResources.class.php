@@ -32,13 +32,7 @@ class planning_ObjectResources extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, plg_LastUsedKeys, plg_Created, planning_Wrapper';
-    
-    
-    /**
-     * Кои ключове да се тракват, кога за последно са използвани
-     */
-    var $lastUsedKeys = 'resourceId';
+    public $loadList = 'plg_RowTools, plg_Created, planning_Wrapper';
     
     
     /**
@@ -74,7 +68,7 @@ class planning_ObjectResources extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт,resourceId,objectId,conversionRate,createdOn,createdBy';
+    public $listFields = 'tools=Пулт,likeProductId=Влагане като,selfValue=Себестойност';
     
     
     /**
@@ -86,13 +80,7 @@ class planning_ObjectResources extends core_Manager
     /**
      * Заглавие в единствено число
      */
-    public $singleTitle = 'Ресурс на обект';
-    
-    
-    /**
-     * Активен таб
-     */
-    public $currentTab = 'Ресурси->Отношения';
+    public $singleTitle = 'Информация за влагане';
     
     
     /**
@@ -100,67 +88,17 @@ class planning_ObjectResources extends core_Manager
      */
     function description()
     {
-    	$this->FLD('classId', 'class(interface=planning_ResourceSourceIntf)', 'input=hidden,silent');
+    	$this->FLD('classId', 'class(interface=cat_ProductAccRegIntf)', 'input=hidden,silent');
     	$this->FLD('objectId', 'int', 'input=hidden,caption=Обект,silent');
-    	$this->FLD('resourceId', 'key(mvc=planning_Resources,select=title,allowEmpty,makeLink)', 'caption=Ресурс,mandatory,removeAndRefreshForm=conversionRate,silent');
-    	$this->FLD('conversionRate', 'double(smartRound)', 'caption=Конверсия,silent,notNull,value=1,mandatory');
+    	$this->FLD('likeProductId', 'key(mvc=cat_Products,select=name)', 'caption=Влагане като');
+    	
+    	$this->FLD('resourceId', 'key(mvc=planning_Resources,select=title,allowEmpty,makeLink)', 'caption=Ресурс,input=none');
+    	$this->FLD('measureId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Мярка,input=none,silent');
+    	$this->FLD('conversionRate', 'double(smartRound)', 'caption=Конверсия,silent,notNull,value=1,input=none');
+    	$this->FLD('selfValue', 'double(decimals=2)', 'caption=Себестойност');
     	
     	// Поставяне на уникални индекси
-    	$this->setDbUnique('classId,objectId,resourceId');
-    }
-
-    
-    /**
-     * Екшън създаващ нов ресурс и свързващ го с обекта
-     */
-    public function act_NewResource()
-    {
-    	planning_Resources::requireRightFor('add');
-    	
-    	expect($classId = Request::get('classId', 'int'));
-    	expect($objectId = Request::get('objectId', 'int'));
-    	
-    	$this->requireRightFor('add', (object)array('classId' => $classId, 'objectId' => $objectId));
-    	
-    	$form = cls::get('core_Form');
-    	$form->title = tr("Създаване на ресурс към") . " |*<b>" . cls::get($classId)->getTitleById($objectId) . "</b>";
-    	$form->FNC('newResource', 'varchar', 'mandatory,caption=Нов ресурс,input');
-    	$form->FNC('classId', 'class(interface=planning_ResourceSourceIntf)', 'input=hidden');
-    	$form->FNC('objectId', 'int', 'input=hidden,caption=Обект');
-    	
-    	$form->setDefault('classId', $classId);
-    	$form->setDefault('objectId', $objectId);
-    	
-    	// По подразбиране името на новия ресурс съвпада с името на източника
-    	$sourceInfo = cls::get($form->rec->classId)->getResourceSourceInfo($form->rec->objectId);
-    	$form->setDefault('newResource', $sourceInfo->name);
-    	
-    	$form->input();
-    	
-    	// Ако формата е събмитната
-    	if($form->isSubmitted()){
-    		
-    		// Трябва ресурса да е уникален
-    		if(planning_Resources::fetch(array("#title = '[#1#]'", $form->rec->newResource))){
-    			$form->setError("newResource", "Има вече запис със същите данни");
-    		} else {
-    			
-    			// Създава нов запис и го свързва с обекта 
-    			$resourceId = planning_Resources::save((object)array('title' => $form->rec->newResource, 'type' => $sourceInfo->type, 'measureId' => $sourceInfo->measureId, 'state' => 'active'));
-    			$nRec = (object)array('classId' => $classId, 'objectId' => $objectId, 'resourceId' => $resourceId);
-    			
-    			$this->save($nRec);
-    		}
-    		
-    		if(!$form->gotErrors()){
-    			return followRetUrl(NULL, tr('Успешно е добавен ресурса'));
-    		}
-    	}
-    	
-    	$form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
-        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png');
-        
-        return $this->renderWrapping($form->renderHtml());
+    	$this->setDbUnique('classId,objectId');
     }
     
     
@@ -175,27 +113,86 @@ class planning_ObjectResources extends core_Manager
     	$form = &$data->form;
     	$rec = &$form->rec;
     	
-    	$Class = cls::get($rec->classId);
+    	// Коя е мярката на артикула, и намираме всички мерки от същия тип
+    	$measureId = cat_Products::getProductInfo($rec->objectId)->productRec->measureId;
     	
-    	$sourceInfo = $Class->getResourceSourceInfo($rec->objectId);
+    	// Кои са възможните подобни артикули за избор
+    	$products = $mvc->getAvailableSimilarProducts($measureId);
     	
-    	// Възможни за избор са всички ресурси от посочения тип, които не са заготовки към технологична рецепта
-    	$options = planning_Resources::makeArray4Select('title', "#type = '{$sourceInfo->type}' AND #bomId IS NULL");
-    	
-    	if(count($options)){
-    		$form->setOptions('resourceId', $options);
+    	// Добавяме възможностите за избор на заместващи артикули за влагане
+    	if(count($products)){
+    		$products = array('' => '') + $products;
+    		$form->setOptions('likeProductId', $products);
     	} else {
-    		$form->setReadOnly('resourceId');
-    		$resourceType = cls::get('planning_Resources')->getFieldType('type')->toVerbal($sourceInfo->type);
-    		$form->info = tr("|Няма ресурси от тип|* <b>'{$sourceInfo->type}'</b>");
+    		$form->setReadOnly('likeProductId');
     	}
     	
-    	$form->setDefault('conversionRate', 1);
+    	$baseCurrencyCode = acc_Periods::getBaseCurrencyCode();
+    	$form->setField('selfValue', "unit={$baseCurrencyCode}");
     	
-    	if(isset($rec->resourceId)){
-    		$unit = $mvc->getConversionUnit($sourceInfo->measureId, $rec->resourceId);
-    		$form->setField('conversionRate', "unit={$unit}");
+    	$title = ($rec->id) ? 'Редактиране на информацията за влагане на' : 'Добавяне на информация за влагане на';
+    	$form->title = $title . "|* <b>". cat_Products::getTitleByid($rec->objectId) . "</b>";
+    }
+    
+    
+    /**
+     * Опции за избиране на всички артикули, като които може да се използва артикула за влагане
+     * 
+     * @param int $measureId - ид на мярка
+     * @return array $products - опции за избор на артикули
+     */
+    private function getAvailableSimilarProducts($measureId)
+    {
+    	$sameTypeMeasures = cat_UoM::getSameTypeMeasures($measureId);
+    	
+    	// Намираме всички артикули, които са били влагане в производството от документи
+    	$consumedProducts = array();
+    	$cQuery = planning_ConsumptionNoteDetails::getQuery();
+    	$cQuery->EXT('state', 'planning_ConsumptionNotes', 'externalKey=noteId');
+    	$cQuery->where("#state = 'active'");
+    	$cQuery->show('productId');
+    	while ($cRec = $cQuery->fetch()){
+    		$consumedProducts[$cRec->productId] = $cRec->productId;
     	}
+    	 
+    	$dQuery = planning_DirectProductNoteDetails::getQuery();
+    	$dQuery->EXT('state', 'planning_DirectProductionNote', 'externalKey=noteId');
+    	$dQuery->where("#state = 'active'");
+    	$dQuery->where("#type = 'input'");
+    	while ($dRec = $dQuery->fetch()){
+    		$consumedProducts[$dRec->productId] = $dRec->productId;
+    	}
+    	 
+    	// Не може да се избере текущия артикул
+    	unset($consumedProducts[$rec->objectId]);
+    	 
+    	// Намираме всички вложими артикули
+    	$products = cat_Products::getByproperty('canConvert');
+    	
+    	if(count($products)){
+    		foreach ($products as $id => $p){
+    			 
+    			if(!is_object($p)){
+    	
+    				// Ако артикула е вложим, но не е участвал в документ - махаме го
+    				if(empty($consumedProducts[$id])){
+    					unset($products[$id]);
+    				} else {
+    						
+    					// Ако мярката на артикула е от друг тип - също го мяхаме
+    					// Артикул може да бъде заместван само с артикул с подобна мярка
+    					$mId = cat_Products::getProductInfo($id)->productRec->measureId;
+    					if(empty($sameTypeMeasures[$mId])){
+    						unset($products[$id]);
+    					}
+    				}
+    			} else {
+    				unset($products[$id]);
+    			}
+    		}
+    	}
+    	
+    	return $products;
     }
     
     
@@ -207,80 +204,41 @@ class planning_ObjectResources extends core_Manager
     	if($form->isSubmitted()){
     		$rec = &$form->rec;
     		
-    		if($rec->classId == cat_Products::getClassId()){
-    			$meta1 = cat_Products::fetchField($rec->objectId, 'meta');
-    			$meta1 = type_Set::toArray($meta1);
-    			
-    			// Ако към ресурса има вече избрани артикули
-    			$query = self::getQuery();
-    			$query->where("#resourceId = {$rec->resourceId}");
-    			$query->where("#classId = {$rec->classId}");
-    			while($dRec = $query->fetch()){
-    				$meta2 = cat_Products::fetchField($dRec->objectId, 'meta');
-    				$meta2 = type_Set::toArray($meta2);
-    				
-    				// Ако някое от техните свойства се различава от това на този артикул, сетваме грешка
-    				if($meta2 != $meta1){
-    					$verbal = cat_Products::getVerbal($dRec->objectId, 'meta');
-    					$form->setError("resourceId", "За да добавите артикула към ресурса. Трябва да има точно свойствата|* '{$verbal}'");
-    					break;
-    				}
-    			}
+    		if(!isset($rec->selfValue) && !isset($rec->likeProductId)){
+    			$form->setError('selfValue,likeProductId', 'Поне едно от полетата трябва да е попълнено');
     		}
     	}
     }
     
     
     /**
-     *  Помощна ф-я за показване на конверсията от коя мярка към коя се отнася
-     * 
-     * @param int $measureSourceId - ид на мярката на обекта
-     * @param int $resourceId - ид на мярката на ресурса
-     * @return string - във формат [object_measure_name] за 1 [resource_measure_name]
-     */
-    private function getConversionUnit($measureSourceId, $resourceId)
-    {
-    	$sMeasureShort = cat_UoM::getShortName($measureSourceId);
-    	
-    	$resourseMeasureId = planning_Resources::fetchField($resourceId, 'measureId');
-    	$rMeasureShort = cat_UoM::getShortName($resourseMeasureId);
-    	
-    	return "|*{$sMeasureShort} |за|* 1 {$rMeasureShort}";
-    }
-    
-    
-    /**
-     * Подготвя показването на ресурси
+     * Подготвя показването на информацията за влагане
      */
     public function prepareResources(&$data)
     {
-    	$data->TabCaption = 'Ресурси';
     	$data->rows = array();
-    	
-    	// Таба излиза на горния ред, само ако е в документ
     	$classId = $data->masterMvc->getClassId();
-		if(cls::haveInterface('doc_DocumentIntf', $data->masterMvc)){
-			$data->Tab = 'top';
-		}
-    	
     	$query = $this->getQuery();
     	$query->where("#classId = {$classId} AND #objectId = {$data->masterId}");
-    	
     	while($rec = $query->fetch()){
     		$data->rows[$rec->id] = $this->recToVerbal($rec);
-    		$data->rows[$rec->id]->type = planning_Resources::getVerbal($rec->resourceId, 'type');
-    		$data->rows[$rec->id]->ROW_ATTR['class'] = 'state-active';
     	}
-    	 
+    	
+    	$pInfo = $data->masterMvc->getProductInfo($data->masterId);
+    	if(!isset($pInfo->meta['canConvert'])){
+    		$data->notConvertableAnymore = TRUE;
+    	}
+    	
+    	if(!(count($data->rows) || isset($pInfo->meta['canConvert']))){
+    		return NULL;
+    	}
+    	
+    	$data->TabCaption = 'Влагане';
+    	$data->Tab = 'top';
+    	
     	if(!Mode::is('printing')) {
     		if(self::haveRightFor('add', (object)array('classId' => $classId, 'objectId' => $data->masterId))){
-    			
-    			$type = $data->masterMvc->getResourceSourceInfo($data->masterId)->type;
-    			if(planning_Resources::fetch("#type = '{$type}'")){
-    				$data->addUrl = array($this, 'add', 'classId' => $classId, 'objectId' => $data->masterId, 'ret_url' => TRUE);
-    			}
-    			
-    			$data->addUrlNew = array($this, 'NewResource', 'classId' => $classId, 'objectId' => $data->masterId, 'ret_url' => TRUE);
+    			$data->addUrl = array($this, 'add', 'classId' => $classId, 'objectId' => $data->masterId, 'ret_url' => TRUE);
     		}
     	}
     }
@@ -291,24 +249,32 @@ class planning_ObjectResources extends core_Manager
      */
     public function renderResources(&$data)
     {
+    	// Ако няма записи и вече не е вложим да не се показва
+    	if(!count($data->rows) && $data->notConvertableAnymore){
+    		return;
+    	}
+    	
     	$tpl = getTplFromFile('planning/tpl/ResourceObjectDetail.shtml');
-    	$classId = $data->masterMvc->getClassId();
-    
-    	$tpl->append(tr('Ресурси'), 'title');
+    	
+    	if($data->notConvertableAnymore === TRUE){
+    		$title = tr('Артикула вече не е вложим');
+    		$title = "<small class='red'>{$title}</small>";
+    		$tpl->append($title, 'title');
+    		$tpl->replace('state-rejected', 'TAB_STATE');
+    	} else {
+    		$tpl->append(tr('Влагане'), 'title');
+    	}
+    	
     	$table = cls::get('core_TableView', array('mvc' => $this));
-    	$fields = arr::make('tools=Пулт,resourceId=Ресурс,type=Вид,conversionRate=Конверсия,createdOn=Създадено от,createdBy=Създадено на');
     	if(!count($data->rows)){
     		unset($fields['tools']);
     	}
     	
-    	$tpl->append($table->get($data->rows, $fields), 'content');
-    	
-		if(isset($data->addUrlNew)){
-    		$tpl->append(ht::createBtn('Нов', $data->addUrlNew, NULL, NULL, 'ef_icon=img/16/star_2.png, title=Създаване на нов ресурс'), 'BTNS');
-    	}
+    	$tpl->append($table->get($data->rows, $this->listFields), 'content');
     	
     	if(isset($data->addUrl)){
-    		$tpl->append(ht::createBtn('Избор', $data->addUrl, NULL, NULL, 'ef_icon=img/16/find.png, title=Свързване със съществуващ ресурс'), 'BTNS');
+    		$addLink = ht::createBtn('Добави', $data->addUrl, FALSE, FALSE, 'ef_icon=img/16/star_2.png,title=Добавяне на информация за влагане');
+    		$tpl->append($addLink, 'BTNS');
     	}
     	
     	return $tpl;
@@ -328,12 +294,18 @@ class planning_ObjectResources extends core_Manager
     		// Не може да добавяме запис ако не може към обекта, ако той е оттеглен или ако нямаме достъп до сингъла му
     		if($masterRec->state != 'active' || !$Class->haveRightFor('single', $rec->objectId)){
     			$res = 'no_one';
+    		} else {
+    			if($pInfo = cls::get($rec->classId)->getProductInfo($rec->objectId)){
+    				if(!isset($pInfo->meta['canConvert'])){
+    					$res = 'no_one';
+    				}
+    			}
     		}
     	}
     	 
     	// За да се добави ресурс към обект, трябва самия обект да може да има ресурси
     	if($action == 'add' && isset($rec)){
-    		if(!$Class->canHaveResource($rec->objectId)){
+    		if($mvc->fetch("#classId = {$rec->classId} AND #objectId = {$rec->objectId}")){
     			$res = 'no_one';
     		}
     	}
@@ -359,19 +331,14 @@ class planning_ObjectResources extends core_Manager
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-    	$Source = cls::get($rec->classId);
-    	$row->objectId = $Source->getHyperlink($rec->objectId, TRUE);
-    	if($Source->fetchField($rec->objectId, 'state') == 'rejected'){
-    		$row->objectId = "<span class='state-rejected-link'>{$row->objectId}</span>";
+    	if(isset($rec->selfValue)){
+    		$baseCurrencyCode = acc_Periods::getBaseCurrencyCode();
+    		$row->selfValue = "{$row->selfValue} <span class='cCode'>{$baseCurrencyCode}</span>";
     	}
     	
-    	$row->objectId = "<span style='float:left'>{$row->objectId}</span>";
-    	
-    	$row->resourceId = planning_Resources::getHyperlink($rec->resourceId, TRUE);
-    	
-    	$sourceInfo = $Source->getResourceSourceInfo($rec->objectId);
-    	$row->conversionRate .= " " . tr($mvc->getConversionUnit($sourceInfo->measureId, $rec->resourceId));
-    	$row->conversionRate = "<span style='float:right'>{$row->conversionRate}</span>";
+    	if(isset($rec->likeProductId)){
+    		$row->likeProductId = cat_Products::getHyperlink($rec->likeProductId, TRUE);
+    	}
     }
     
     
@@ -385,48 +352,27 @@ class planning_ObjectResources extends core_Manager
     
     
     /**
-     * Връща ресурса на обекта
-     * 
-     * @param mixed $class - клас
-     * @param int $objectId - ид
-     * @return mixed - записа на ресурса или FALSE ако няма
+     * Връща себестойността на материала
+     *
+     * @param int $objectId - ид на артикула - материал
+     * @return double $selfValue -себестойността му
      */
-    public static function getResource($class, $objectId)
+    public static function getSelfValue($objectId)
     {
-    	$Class = cls::get($class);
+    	$selfValue = self::fetchField(array("#objectId = '[#1#]'", $objectId), 'selfValue');
     	
-    	// Проверяваме имали такъв запис
-    	if($rec = self::fetch("#classId = {$Class->getClassId()} AND #objectId = {$objectId}")){
+    	if(!isset($selfValue)){
     		
-    		return $rec;
+    		// Проверяваме имали зададена търговска себестойност
+    		$selfValue = cls::get('cat_Products')->getSelfValue($objectId);
+    		
+    		// Ако няма търговска себестойност: проверяваме за счетоводна
+    		if(!isset($selfValue)){
+    			$date = dt::now();
+    			$selfValue = cat_Products::getWacAmountInStore(1, $objectId, $date);
+    		}
     	}
     	
-    	return FALSE;
-    }
-    
-    
-    /**
-     * Връща записите според указаните параметри
-     * 
-     * @param int $resourceId  - ид на ресурс
-     * @param int|NULL $classId - ид на клас на обекта
-     * @param labor|material|equipment|NULL $type - тип на ресурса
-     * @return array - намерените записи
-     */
-    public static function fetchRecsByClassAndType($resourceId, $classId = NULL, $type = NULL)
-    {
-    	$query = self::getQuery();
-    	$query->EXT('type', 'planning_Resources', 'externalName=type,externalKey=resourceId');
-    	$query->where("#resourceId = {$resourceId}");
-    	
-    	if($classId){
-    		$query->where("#classId = {$classId}");
-    	}
-    	
-    	if($type){
-    		$query->where("#type = '{$type}'");
-    	}
-    	
-    	return $query->fetchAll();
+    	return $selfValue;
     }
 }

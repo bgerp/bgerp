@@ -32,10 +32,12 @@ class frame_CsvLib
 	
 	    if ($rec) {
 			// за всеки един запис
-			foreach ($rec as $field => $value) { //bp($rec,$field,$value);
+			foreach ($rec as $field => $value) { 
 		
 				// ако е doubele
-				if (in_array($field ,array('baseQuantity', 'baseAmount', 'debitQuantity', 'debitAmount', 'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount'))) {
+				if (in_array($field ,array('baseQuantity', 'baseAmount', 'debitQuantity', 'debitAmount', 
+						                    'creditQuantity', 'creditAmount', 'blQuantity', 'blAmount', 
+						                    'quantity', 'аmountSelf', 'sum'))) {
 					 
 					$value = self::toCsvFormatDouble($value);
 		
@@ -58,7 +60,15 @@ class frame_CsvLib
 					
 				// ако е date
 				if ($field == 'valior') {
-					$value = self::toCsvFormatData($rec['valior']);
+					if (is_object($rec)) { 
+						$value = self::toCsvFormatData($rec->valior);
+					} else {
+						$value = self::toCsvFormatData($rec['valior']);
+					}
+				}
+				
+				if($field == 'delta') {
+					$value = cls::get('type_Percent')->toVerbal($rec->delta);
 				}
 		
 				$rows->{$field} = $value;

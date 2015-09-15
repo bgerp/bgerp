@@ -29,12 +29,6 @@ abstract class store_DocumentMaster extends core_Master
     
     
     /**
-     * Опашка от записи за записване в on_Shutdown
-     */
-    protected $updated = array();
-    
-    
-    /**
      * На кой ред в тулбара да се показва бутона за принтиране
      */
     public $printBtnToolbarRow = 1;
@@ -50,6 +44,12 @@ abstract class store_DocumentMaster extends core_Master
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
     public $rowToolsSingleField = 'title';
+    
+    
+    /**
+     * Флаг, който указва дали документа да се кешира в треда
+     */
+    public $cacheInThread = TRUE;
     
     
     /**
@@ -149,36 +149,15 @@ abstract class store_DocumentMaster extends core_Master
     		}
     	}
     }
-    
-    
-    /**
-     * След промяна в детайлите на обект от този клас
-     */
-    public static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
-    {
-    	// Запомняне кои документи трябва да се обновят
-    	$mvc->updated[$id] = $id;
-    }
 
 
     /**
-     * След изпълнение на скрипта, обновява записите, които са за ъпдейт
+     * Обновява данни в мастъра
+     *
+     * @param int $id първичен ключ на статия
+     * @return int $id ид-то на обновения запис
      */
-    public static function on_Shutdown($mvc)
-    {
-    	if(count($mvc->updated)){
-    		foreach ($mvc->updated as $id) {
-    			$mvc->updateMaster($id);
-    		}
-    	}
-    }
-
-
-    /**
-     * Обновява информацията на документа
-     * @param int $id - ид на документа
-     */
-    protected function updateMaster($id)
+    public function updateMaster_($id)
     {
     	$rec = $this->fetchRec($id);
     	 
@@ -201,7 +180,7 @@ abstract class store_DocumentMaster extends core_Master
     	$rec->amountDeliveredVat = $this->_total->vat * $rec->currencyRate;
     	$rec->amountDiscount = $this->_total->discount * $rec->currencyRate;
     
-    	$this->save($rec);
+    	return $this->save($rec);
     }
     
 
@@ -225,7 +204,7 @@ abstract class store_DocumentMaster extends core_Master
     		
     		if(count($agreedProducts)){
     			foreach ($agreedProducts as $product) {
-    				$info = cls::get($product->classId)->getProductInfo($product->productId, $product->packagingId);
+    				$info = cls::get($product->classId)->getProductInfo($product->productId);
     				 
     				// Колко остава за експедиране от продукта
     				$toShip = $product->quantity - $product->quantityDelivered;
@@ -245,7 +224,7 @@ abstract class store_DocumentMaster extends core_Master
     				$shipProduct->weight      = $product->weight;
     				$shipProduct->notes       = $product->notes;
     				$shipProduct->volume      = $product->volume;
-    				$shipProduct->quantityInPack = ($product->packagingId) ? $info->packagingRec->quantity : 1;
+    				$shipProduct->quantityInPack = $product->quantityInPack;
     				 
     				$mvc->$Detail->save($shipProduct);
     			}
@@ -325,7 +304,6 @@ abstract class store_DocumentMaster extends core_Master
 	   	}
 	   	 
 	   	if(isset($fields['-list'])){
-	   		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
 	   		if($rec->amountDelivered){
     			$row->amountDelivered = "<span class='cCode' style='float:left'>{$rec->currencyId}</span> &nbsp;{$row->amountDelivered}";
     		} else {
@@ -607,7 +585,6 @@ abstract class store_DocumentMaster extends core_Master
     
     	// Подаваме на интерфейса най-малката опаковка с която е експедиран продукта
     	while ($dRec = $dQuery->fetch()) {
-    		if(empty($dRec->packagingId)) continue;
     		 
     		// Подаваме най-малката опаковка в която е експедиран продукта
     		$push = TRUE;

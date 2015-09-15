@@ -48,12 +48,11 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
 	 * 	     meta['canStore']       - дали може да се съхранява
 	 * 	     meta['canManifacture'] - дали може да се прозивежда
 	 * 	     meta['fixedAsset']     - дали е ДМА
-     * 	-> packagingRec - записа на опаковката, ако е зададена
      * 	-> packagings - всички опаковки на продукта, ако не е зададена
      */			
-    function getProductInfo($productId, $packagingId = NULL)
+    function getProductInfo($productId)
     {
-        return $this->class->getProductInfo($productId, $packagingId);
+        return $this->class->getProductInfo($productId);
     }
     
     
@@ -157,22 +156,6 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
 	public function getVolume($productId, $packagingId = NULL)
     {
     	return $this->class->getVolume($productId, $packagingId);
-    }
-    
-    
-    /**
-     * Връща информация за основната опаковка на артикула
-     * 
-     * @param int $productId - ид на продукт
-     * @return stdClass - обект с информация
-     * 				->name     - име на опаковката
-     * 				->quantity - к-во на продукта в опаковката
-     * 				->classId  - ид на cat_Packagings или cat_UoM
-     * 				->id       - на опаковката/мярката
-     */
-    public function getBasePackInfo($productId)
-    {
-    	return $this->class->getBasePackInfo($productId);
     }
     
     

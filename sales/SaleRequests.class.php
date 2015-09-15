@@ -288,7 +288,6 @@ class sales_SaleRequests extends core_Master
     		$id = $row->id;
     		$singleImg = "<img src=" . sbf($mvc->singleIcon) . ">";
             $row->id = ht::createLink($singleImg, array($mvc, 'single', $rec->id));
-    	    $row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
 	    	
 	    	if($rec->state == 'draft'){
 	    		$img = "<img src=" . sbf('img/16/edit-icon.png') . "/>";

@@ -127,7 +127,7 @@ class prosms_SMS extends core_Manager
             $nRes['msg'] = "|Липсва константа за URL' то";
             
             // Записваме в лога
-            static::log("Липсва константа за URL' то");
+            self::logWarning("Липсва константа за URL' то");
         }
     	
         return $nRes;
@@ -203,7 +203,7 @@ class prosms_SMS extends core_Manager
             // Обновяваме статуса на съобщението
             callcenter_SMS::update($classId, $uid, $status);
         } catch (core_exception_Expect $e) {
-            self::log("Възникна грешка при обновяване на състоянието с idd: " . $uid);
+            self::logErr("Възникна грешка при обновяване на състоянието с idd '$uid' - " . $e->getMessage());
         }
     }
 }

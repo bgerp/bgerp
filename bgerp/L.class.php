@@ -165,6 +165,10 @@ class bgerp_L extends core_Manager
                 // Ако е изпратен
                 if ($action->action == doclog_Documents::ACTION_SEND) {
                     
+                    if ($action && $action->data->to) {
+                        log_Browsers::setVars(array('email' => $action->data->to));
+                    }
+                    
                     $activatedBy = $action->createdBy;
                     
                     // Активатора и последния модифицирал на изпратения документ
@@ -273,7 +277,14 @@ class bgerp_L extends core_Manager
         $ip = core_Users::getRealIpAddr();
         
         // При отваряне на имейла от получателя, отбелязваме като видян.
-        if ($mid) doclog_Documents::received($mid, NULL, $ip);
+        if ($mid) {
+            doclog_Documents::received($mid, NULL, $ip);
+            $action = doclog_Documents::getActionRecForMid($mid, doclog_Documents::ACTION_SEND);
+            
+            if ($action && $action->data->to) {
+                log_Browsers::setVars(array('email' => $action->data->to));
+            }
+        }
         
         $docUrl = static::getDocLink($cid, $mid);
         

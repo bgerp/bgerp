@@ -65,7 +65,7 @@ class sales_ServicesDetails extends deals_DeliveryDocumentDetail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, packagingId=Мярка, uomId, packQuantity, packPrice, discount, amount,quantityInPack';
+    public $listFields = 'productId, packagingId=Мярка, packQuantity, packPrice, discount, amount,quantityInPack';
     
         
     /**
@@ -119,6 +119,7 @@ class sales_ServicesDetails extends deals_DeliveryDocumentDetail
      */
     public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form &$form)
     {
+    	$form->setField('packagingId','input=hidden');
     	parent::inputDocForm($mvc, $form);
     }
     
@@ -131,8 +132,15 @@ class sales_ServicesDetails extends deals_DeliveryDocumentDetail
     	if(count($data->rows)) {
     		foreach ($data->rows as $i => &$row) {
     			$rec = &$data->recs[$i];
-    			 
-    			$row->productId = cat_Products::getAutoProductDesc($rec->productId, $data->masterData->rec->modifiedOn, $rec->showMode);
+            
+                if($data->masterData->rec->state == 'draft') {
+                    $time = NULL;
+                } else {
+                    $time = $data->masterData->rec->modifiedOn;
+                }
+
+                $row->productId = cat_Products::getAutoProductDesc($rec->productId, $time, $rec->showMode);
+
     			if($rec->notes){
     				$row->productId .= "<div class='small'>{$mvc->getFieldType('notes')->toVerbal($rec->notes)}</div>";
     			}

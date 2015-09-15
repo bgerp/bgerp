@@ -532,7 +532,7 @@ class crm_Locations extends core_Master {
     /**
      * Рутинни действия, които трябва да се изпълнят в момента преди терминиране на скрипта
      */
-    protected static function on_Shutdown($mvc)
+    static function on_Shutdown($mvc)
     {
         if(!empty($mvc->updatedRecs)) {
             foreach((array)$mvc->updatedRecs as $id => $rec) {

@@ -131,12 +131,6 @@ class cat_Boms extends core_Master
     
     
     /**
-     * Записи за обновяване
-     */
-    protected $updated = array();
-    
-    
-    /**
      * Описание на модела
      */
     function description()
@@ -146,6 +140,7 @@ class cat_Boms extends core_Master
     	$this->FLD('expenses', 'percent', 'caption=Режийни разходи');
     	$this->FLD('state','enum(draft=Чернова, active=Активиран, rejected=Оттеглен)', 'caption=Статус, input=none');
     	$this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden,silent');
+    	$this->FLD('quantityForPrice', 'double(smartRound)', 'caption=Изчисляване на себестойност->При количество');
     	
     	$this->setDbIndex('productId');
     }
@@ -163,39 +158,13 @@ class cat_Boms extends core_Master
     		$dQuery = cat_BomDetails::getQuery();
     		$dQuery->where("#bomId = '{$rec->id}'");
     		while($dRec = $dQuery->fetch()){
-    			$detailsKeywords .= " " . plg_Search::normalizeText(planning_Resources::getTitleById($dRec->resourceId));
+    			$detailsKeywords .= " " . plg_Search::normalizeText(cat_Products::getTitleById($dRec->resourceId));
     			if($dRec->stageId){
     				$detailsKeywords .= " " . plg_Search::normalizeText(planning_Stages::getTitleById($dRec->stageId));
     			}
     		}
     		
     		$res = " " . $res . " " . $detailsKeywords;
-    	}
-    }
-    
-    
-    /**
-     * След промяна в детайлите на обект от този клас
-     */
-    public static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
-    {
-    	// Запомняне кои документи трябва да се обновят
-    	if(!empty($id)){
-    		$mvc->updated[$id] = $id;
-    	}
-    }
-    
-    
-    /**
-     * След изпълнение на скрипта, обновява записите, които са за ъпдейт
-     */
-    public static function on_Shutdown($mvc)
-    {
-    	if(count($mvc->updated)){
-    		foreach ($mvc->updated as $id) {
-    			$rec = $mvc->fetchRec($id);
-    			$mvc->save($rec);
-    		}
     	}
     }
     
@@ -213,6 +182,8 @@ class cat_Boms extends core_Master
     	$productInfo = cat_Products::getProductInfo($form->rec->productId);
     	$shortUom = cat_UoM::getShortName($productInfo->productRec->measureId);
     	$form->setField('quantity', "unit={$shortUom}");
+    	$form->setField('quantityForPrice', "unit={$shortUom}");
+    	
     	$form->setDefault('quantity', 1);
     	
     	// При създаване на нова рецепта
@@ -235,9 +206,9 @@ class cat_Boms extends core_Master
     		// Ако има такива, добавяме ги като полета във формата
     		if(count($alreadyUsedResources)){
     			foreach ($alreadyUsedResources as $i => $resId){
-    				$form->FNC("resourceId{$i}", 'key(mvc=planning_Resources,select=title,allowEmpty)', 'input=hidden');
+    				$form->FNC("resourceId{$i}", 'key(mvc=cat_Products,select=name,allowEmpty)', 'input=hidden');
     				$form->setDefault("resourceId{$i}", $resId);
-    				$caption = planning_Resources::getTitleById($resId);
+    				$caption = cat_Products::getTitleById($resId);
     				$caption = str_replace(',', '.', $caption);
     				 
     				if(isset($form->rec->quantity)){
@@ -246,6 +217,23 @@ class cat_Boms extends core_Master
     				 
     				$form->FNC("quantities{$i}", "complexType(left=Начално,right={$right},require=one)", "input,caption=|*{$caption}->|К-ва|*");
     			}
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     *
+     * @param core_Mvc $mvc
+     * @param core_Form $form
+     */
+    public static function on_AfterInputEditForm($mvc, &$form)
+    {
+    	$rec = &$form->rec;
+    	if($form->isSubmitted()){
+    		if(!isset($rec->quantityForPrice)){
+    			$rec->quantityForPrice = $rec->quantity;
     		}
     	}
     }
@@ -376,12 +364,30 @@ class cat_Boms extends core_Master
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-    	$row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
+    	$row->productId = cat_Products::getShortHyperlink($rec->productId);
     	$row->title = $mvc->getLink($rec->id, 0);
     	
     	if($row->quantity){
     		$measureId = cat_Products::getProductInfo($rec->productId)->productRec->measureId;
-    		$row->quantity .= " " . cat_UoM::getShortName($measureId);
+    		$shortUom = cat_UoM::getShortName($measureId);
+    		$row->quantity .= " " . $shortUom;
+    	}
+    	
+    	if($fields['-single'] && haveRole('ceo, acc, cat, price')) {
+	        $priceObj = cat_Boms::getPrice($rec->productId, $rec->id);
+	        $rec->primeCost = 0;
+	        
+	        if($priceObj) {
+	            @$rec->primeCost = ($priceObj->base + $priceObj->prop) * $rec->quantityForPrice;
+        	}
+        	
+        	$Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
+        	$row->primeCost = $Double->toVerbal($rec->primeCost);
+        	$row->primeCost .= tr("|* ( |за|* {$row->quantityForPrice} {$shortUom} )");
+        	 
+        	if(haveRole('ceo, acc, cat, price')){
+        		$row->primeCost .= ht::createLink('', array($mvc, 'RecalcSelfValue', $rec->id), FALSE, 'ef_icon=img/16/arrow_refresh.png,title=Преизчисляване на себестойността');
+        	}
     	}
     }
     
@@ -409,11 +415,15 @@ class cat_Boms extends core_Master
     public static function getPrice($productId, $bomId = NULL)
     {
     	// Намираме активната карта за обекта
-    	$where = "#productId = {$productId} AND #state = 'active'";
     	if($bomId){
-    		$where .= " AND #id = {$bomId}";
+    		$rec = self::fetch($bomId);
+    	} else {
+    	    $query = self::getQuery();
+    	    $query->where("#productId = {$productId} AND #state = 'active'");
+    	    $query->orderBy('createdOn', 'DESC');
+    	    $query->limit(1);
+    	    $rec = $query->fetch();
     	}
-    	$rec = self::fetch($where);
     	
     	// Ако няма, връщаме нулеви цени
     	if(empty($rec)) return FALSE;
@@ -428,7 +438,7 @@ class cat_Boms extends core_Master
     			$sign = ($dRec->type == 'input') ? 1 : -1;
     			
     			// Опитваме се да намерим себестойност за артикула
-    			$selfValue = planning_Resources::getSelfValue($dRec->resourceId, $date = NULL);
+    			$selfValue = planning_ObjectResources::getSelfValue($dRec->productId);
     			
     			// Ако не може да се определи себестойност на ресурса, не може и по рецептата
     			if(!$selfValue) return FALSE;
@@ -442,6 +452,9 @@ class cat_Boms extends core_Master
     	$amounts->base /= $rInfo['quantity'];
     	$amounts->prop /= $rInfo['quantity'];
     	
+    	$amounts->base *= (1 + $rec->expenses);
+    	$amounts->prop *= (1 + $rec->expenses);
+    	
     	// Връщаме изчислените суми
     	return $amounts;
     }
@@ -454,10 +467,10 @@ class cat_Boms extends core_Master
      * @return array $res - Информация за рецептата
      * 				->quantity - к-во
      * 				->resources
-     * 			        o $res->resourceId       - ид на ресурса
-     * 					o $res->type             - вложим или отпаден ресурс
-	 * 			        o $res->baseQuantity     - начално количество на ресурса
-	 * 			        o $res->propQuantity     - пропорционално количество на ресурса
+     * 			        o $res->productId      - ид на материала
+     * 					o $res->type           - вложим или отпаден материал
+	 * 			        o $res->baseQuantity   - начално количество наматериала (к-во в опаковка по брой опаковки)
+	 * 			        o $res->propQuantity   - пропорционално количество на ресурса (к-во в опаковка по брой опаковки)
      */
     public static function getResourceInfo($id)
     {
@@ -470,15 +483,18 @@ class cat_Boms extends core_Master
     	// Намираме всички етапи в рецептата
     	$dQuery = cat_BomDetails::getQuery();
     	$dQuery->where("#bomId = {$rec->id}");
+    	$dQuery->orderBy('id', 'ASC');
     	
     	// За всеки етап
     	while($dRec = $dQuery->fetch()){
     		
     		$arr = array();
-    		$arr['resourceId']   = $dRec->resourceId;
-    		$arr['type']         = $dRec->type;
-    		$arr['baseQuantity'] = $dRec->baseQuantity;
-    		$arr['propQuantity'] = $dRec->propQuantity;
+    		$arr['productId']      = $dRec->resourceId;
+    		$arr['type']           = $dRec->type;
+    		$arr['packagingId']    = $dRec->packagingId;
+    		$arr['quantityInPack'] = $dRec->quantityInPack;
+    		$arr['baseQuantity']   = $dRec->baseQuantity * $dRec->quantityInPack;
+    		$arr['propQuantity']   = $dRec->propQuantity * $dRec->quantityInPack;
     		 
     		$resources['resources'][] = (object)$arr;
     	}
@@ -513,7 +529,6 @@ class cat_Boms extends core_Master
      * @param int $productId   - ид на производим артикул
      * @param int $quantity    - количество за което е рецептата
      * @param array $details   - масив с обекти за детайли
-     * 
      * 		          ->resourceId   - ид на ресурс
      * 				  ->type         - действие с ресурса: влагане/отпадък, ако не е подаден значи е влагане
      * 				  ->stageId      - опционално, към кой производствен етап е детайла
@@ -547,12 +562,13 @@ class cat_Boms extends core_Master
     	if(count($details)){
     		foreach ($details as &$d){
     			expect($d->resourceId);
-    			expect(planning_Resources::fetch($d->resourceId));
+    			expect(cat_Products::fetch($d->resourceId));
     			$d->type = ($d->type) ? $d->type : 'input';
     			expect(in_array($d->type, array('input', 'pop')));
     			 
-    			$d->baseQuantity = $Double->fromVerbal($d->baseQuantity);
-    			$d->propQuantity = $Double->fromVerbal($d->propQuantity);
+    			$d->baseQuantity   = $Double->fromVerbal($d->baseQuantity);
+    			$d->propQuantity   = $Double->fromVerbal($d->propQuantity);
+    			$d->quantityInPack = $Double->fromVerbal($d->quantityInPack);
     			expect($d->baseQuantity || $d->propQuantity);
     			if($d->stageId){
     				expect(planning_Stages::fetch($d->stageId));
@@ -567,11 +583,30 @@ class cat_Boms extends core_Master
     	if(count($details)){
     		foreach ($details as $d1){
     			$d1->bomId = $id;
-    			cat_BomDetails::save($d1);
+    			
+    			if(cls::get('cat_BomDetails')->isUnique($d1, $fields)){
+    				cat_BomDetails::save($d1);
+    			}
     		}
     	}
     	
     	// Връщаме ид-то на новосъздадената рецепта
     	return $id;
+    }
+    
+    
+    /**
+     * Форсира изчисляването на себестойността по рецептата
+     */
+    function act_RecalcSelfValue()
+    {
+    	requireRole('ceo, acc, cat, price');
+    	expect($id = Request::get('id', 'int'));
+    	expect($rec = $this->fetch($id));
+    	
+    	$rec->modifiedOn = dt::now();
+    	$this->save($rec, 'modifiedOn');
+    	
+    	return Redirect(array($this, 'single', $id), 'Себестойността е преизчислена успешно');
     }
 }

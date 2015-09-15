@@ -324,7 +324,6 @@ class acc_Balances extends core_Master
     	
     	//while($recalcBalance){
     		
-    		//$this->log("RECALC {$rec->id} TRY {$count}");
     		//core_Debug::log("RECALC {$rec->id} TRY {$count}");
     		
     		// Зануляваме флага, за да не се преизчисли баланса отново
@@ -373,7 +372,7 @@ class acc_Balances extends core_Master
     	 
     	// Ако изчисляването е заключено не го изпълняваме
     	if(!core_Locks::get($lockKey, 600, 1)) {
-    		$this->log("Изчисляването на баланса е заключено от друг процес");
+    		$this->logWarning("Изчисляването на баланса е заключено от друг процес");
     		 
     		return;
     	}

@@ -73,12 +73,17 @@ class core_Detail extends core_Manager
         // Подготвяме заявката за резюме/обощение
         $this->prepareListSummary($data);
         
-        // Името на променливата за страниране на детайл
-        $data->pageVar = 'P_' . $this->className . $data->masterId;
-        
         // Подготвяме навигацията по страници
         $this->prepareListPager($data);
         
+        // Името на променливата за страниране на детайл
+        if(is_object($data->pager)) {
+            $data->pager->setPageVar($data->masterMvc->className, $data->masterId, $this->className);
+            if(cls::existsMethod($data->masterMvc, 'getHandle')) {
+                $data->pager->addToUrl = array('#' => $data->masterMvc->getHandle($data->masterId));
+            }
+        }
+
         // Подготвяме редовете от таблицата
         $this->prepareListRecs($data);
         
@@ -311,6 +316,39 @@ class core_Detail extends core_Manager
     }
     
     
+    
+    /**
+     * Логва действието след запис
+     * 
+     * @param string $msg
+     * @param stdClass $rec
+     * @param string $type
+     */
+    function logInAct($msg, $rec, $type = 'info')
+    {
+        $masterKey = $this->masterKey;
+        $masters = $this->getMasters($rec);
+        
+        $newMsg = $msg . ' на детайл';
+        
+        foreach ($masters as $masterKey => $masterInstance) {
+            if($rec->{$masterKey}) {
+                $masterId = $rec->{$masterKey};
+            } elseif($rec->id) {
+                $masterId = $this->fetchField($rec->id, $masterKey);
+            }
+            
+            if ($type == 'info') {
+                $masterInstance->logInfo($newMsg, $masterId);
+            } else {
+                $masterInstance->logErr($newMsg, $masterId);
+            }
+        }
+        
+        parent::logInAct($msg, $rec, $type);
+    }
+    
+    
     /**
      * След изтриване в детайла извиква събитието 'AfterUpdateDetail' в мастъра
      */
@@ -320,12 +358,41 @@ class core_Detail extends core_Manager
             foreach($query->getDeletedRecs() as $rec) {
                 $masters = $mvc->getMasters($rec);
                 
-                foreach ($masters as $masterKey=>$masterInstance) {
+                foreach ($masters as $masterKey => $masterInstance) {
                     $masterId = $rec->{$masterKey};
                     $masterInstance->invoke('AfterUpdateDetail', array($masterId, $mvc));
                 }
             }
         }
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @see core_Manager::act_Delete()
+     */
+    function act_Delete()
+    {
+        $id = Request::get('id', 'int');
+        
+        $rec = $this->fetch($id);
+        
+        $masterKey = $this->masterKey;
+        
+        $masters = $this->getMasters($rec);
+        
+        foreach ($masters as $masterKey => $masterInstance) {
+            if ($rec->{$masterKey}) {
+                $masterId = $rec->{$masterKey};
+            } elseif($rec->id) {
+                $masterId = $this->fetchField($rec->id, $masterKey);
+            }
+            
+            $masterInstance->logInfo('Изтриване на детайл', $masterId);
+        }
+        
+        return parent::act_Delete();
     }
     
     

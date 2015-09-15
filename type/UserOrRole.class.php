@@ -94,7 +94,7 @@ class type_UserOrRole extends type_User
             
             while($rec = $rQuery->fetch()) {
                 $roleObj = new stdClass();
-                $roleObj->title = $rec->role;
+                $roleObj->title = core_Roles::getVerbal($rec, 'role');
                 $roleObj->id = $rec->id;
                 $roleObj->value = self::getSysRoleId($rec->id);
                 $this->options['r_' . $rec->id] = $roleObj;

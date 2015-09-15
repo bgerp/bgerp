@@ -59,9 +59,17 @@ class select2_PluginSelect extends core_Plugin
             // Избраната стойност да е на първо мяасто
             if ($value) {
                 $valOptArr = array();
-                $valOptArr[$value] = $invoker->options[$value];
-                unset($invoker->options[$value]);
-                $invoker->options = $valOptArr + $invoker->options;
+                
+                if (!isset($invoker->options[$value])) {
+                    $allowedListArr = $invoker->getAllowedKeyVal($value);
+                    $value = reset($allowedListArr);
+                }
+                
+                if ($value) {
+                    $valOptArr[$value] = $invoker->options[$value];
+                    unset($invoker->options[$value]);
+                    $invoker->options = $valOptArr + $invoker->options;
+                }
             }
             
             $invoker->options = array_slice($invoker->options, 0, $maxSuggestions, TRUE);
@@ -79,7 +87,9 @@ class select2_PluginSelect extends core_Plugin
      * @param array $attr
      */
     function on_AfterRenderInput(&$invoker, &$tpl, $name, $value, &$attr = array())
-    {   
+    {
+        if ($invoker->params['isReadOnly']) return ;
+        
         // Ако все още няма id
         if (!$attr['id']) {
             $attr['id'] = str::getRand('aaaaaaaa');
@@ -137,7 +147,7 @@ class select2_PluginSelect extends core_Plugin
         $q = '/[ \"\'\(\[\-\s]' . str_replace(' ', '.* ', $q) . '/';
         
         $hnd = Request::get('hnd');
-        core_Logs::add($invoker, NULL, "ajaxGetOptions|{$hnd}|{$q}", 1);
+        
         if (!$hnd || !($options = unserialize(core_Cache::get($invoker->selectOpt, $hnd)))) {
             
             core_App::getJson(array(

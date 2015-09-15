@@ -35,6 +35,9 @@
                         <!--ET_BEGIN afterTaskProgress-->
                         |Прогрес на задачата|*: [#afterTaskProgress#]<br>
                         <!--ET_END afterTaskProgress-->
+                        <!--ET_BEGIN expectationTimeStart-->
+                        |Очаквано начало|*: [#expectationTimeStart#] <br>                   
+                        <!--ET_END expectationTimeStart-->
                         <!--ET_BEGIN expectationTimeEnd-->
                         |Очакван край|*: [#expectationTimeEnd#] <br>                   
                         <!--ET_END expectationTimeEnd-->

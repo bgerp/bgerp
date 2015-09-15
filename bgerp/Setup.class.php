@@ -135,9 +135,9 @@ class bgerp_Setup extends core_ProtoSetup {
         $isFirstSetup = ($Packs->count() == 0);
         
         // Списък на основните модули на bgERP
-        $packs = "core,logs,fileman,drdata,bglocal,editwatch,recently,thumb,doc,acc,currency,cms,
+        $packs = "core,log,fileman,drdata,bglocal,editwatch,recently,thumb,doc,acc,currency,cms,
                   email,crm, cat, trans, price, blast,hr,trz,lab,sales,planning,marketing,store,cond,cash,bank,
-                  budget,purchase,accda,sens,cams,frame,cal,fconv,doclog,fconv,cms,blogm,forum,deals,findeals,
+                  budget,purchase,accda,sens,cams,frame,cal,fconv,doclog,fconv,cms,blogm,forum,deals,findeals,tasks,
                   vislog,docoffice,incoming,support,survey,pos,change,sass,
                   callcenter,social,hyphen,distro,dec,status,phpmailer,label,webkittopdf,jqcolorpicker";
         
@@ -272,6 +272,8 @@ class bgerp_Setup extends core_ProtoSetup {
         // Принудително обновяване на ролите
         $html .= core_Roles::rebuildRoles();
         $html .= core_Users::rebuildRoles();
+        
+        $html .= core_Classes::add('bgerp_plg_CsvExport');
         
         return $html;
     }

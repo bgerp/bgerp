@@ -248,7 +248,7 @@ class cash_Pko extends core_Master
 	    if($caseId = $dealInfo->get('caseId')){
 	    		 	
 	    	// Ако потребителя има права, логва се тихо
-	    	cash_Cases::selectSilent($caseId);
+	    	cash_Cases::selectCurrent($caseId);
 	    }
     		 	
 	    $cId = $dealInfo->get('currency');
@@ -346,9 +346,6 @@ class cash_Pko extends core_Master
     static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	$row->title = $mvc->getLink($rec->id, 0);
-    	if($fields['-list']){
-    		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
-    	}	
     	
     	if($fields['-single']){
     		

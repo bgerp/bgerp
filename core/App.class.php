@@ -38,7 +38,7 @@ class core_App
 
             // Задаваме стойности по подразбиране на обкръжението
             if (!core_Mode::is('screenMode')) {
-                core_Mode::set('screenMode', logs_Browsers::detectMobile() ? 'narrow' : 'wide');
+                core_Mode::set('screenMode', log_Browsers::detectMobile() ? 'narrow' : 'wide');
             }
 
             // Генерираме съдържанието
@@ -46,7 +46,7 @@ class core_App
             
             // Ако не сме в DEBUG режим и заявката е по AJAX
             if (!isDebug() && $_SERVER['HTTP_X_REQUESTED_WITH']) {
-                core_Logs::log("Стартиране на core_App::run() през AJAX");
+                log_Data::add('info', "Стартиране на core_App::run() през AJAX", 'core_App');
                 
                 return ;
             }
@@ -55,7 +55,7 @@ class core_App
             $Wrapper = core_Cls::get('core_page_Wrapper');
             $Wrapper->render($content);
         }
-    }
+    } 
 
 
     /**
@@ -388,8 +388,15 @@ class core_App
             header('Expires: -1'); // Proxies.
             header('Connection: close');
         }
-        
-        echo $content;                       // Output content
+
+        // Логваме съдържанието
+        if($content) {
+            Debug::log(mb_substr($content, 0, 255));
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] != 'HEAD') {
+            echo $content; // Output content
+        }
             
         // Изпращаме съдържанието на изходния буфер
         ob_end_flush();
@@ -1016,22 +1023,30 @@ class core_App
     
     
     /**
-     * Увеличава времето за изпълнение на скрипта
+     * Увеличава времето за изпълнение на скрипта, само ако
+     * вече не е зададено по-голямо време
      * 
      * @param int $time - времето за увеличение в секунди
+     * @param boolean $force - форсиране или не
      * @return void
      */
-    public static function setTimeLimit($time)
+    public static function setTimeLimit($time, $force = FALSE)
     {
     	expect(is_numeric($time));
     	
-    	// Увеличава времето за изпълнение
-    	set_time_limit($time);
+    	$now = time();
     	
-    	// Записваме последното зададено време за изпълнение;
-    	self::$runningTimeLimit = $time;
-    	
-    	// Записваме времето на последното увеличаване на времето за изпълнение на скрипта
-    	self::$timeSetTimeLimit = time();
+    	// Ако форсираме или новото максимално време за изпълнение е по-голямо от старото задаваме го
+    	if($force || (self::$timeSetTimeLimit + self::$runningTimeLimit) < ($now + $time)){
+    		
+    		// Увеличава времето за изпълнение
+    		set_time_limit($time);
+    		
+    		// Записваме последното зададено време за изпълнение;
+    		self::$runningTimeLimit = $time;
+    		 
+    		// Записваме времето на последното увеличаване на времето за изпълнение на скрипта
+    		self::$timeSetTimeLimit = $now;
+    	}
     }
 }

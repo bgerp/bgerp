@@ -1067,8 +1067,9 @@ class core_Packs extends core_Manager
             }
 
             $form->FNC($field, $type, $params);
-            
-            if ($data[$field] && (!defined($field) || ($data[$field] != constant($field)))) { 
+          
+            if (($data[$field] || $data[$field] === (double) 0 || $data[$field] === (int) 0) && 
+                (!defined($field) || ($data[$field] != constant($field)))) { 
                 $form->setDefault($field, $data[$field]);
             } elseif(defined($field)) {
                 $form->setDefault($field, constant($field));
@@ -1097,7 +1098,7 @@ class core_Packs extends core_Manager
                     $fType = $form->getFieldType($field, FALSE);
                     
                     // Да може да се зададе автоматичната стойност
-                    if ((($fType instanceof type_Class) || ($fType instanceof type_Enum)) 
+                    if ((($fType instanceof type_Class) || ($fType instanceof type_Enum) || ($fType instanceof color_Type)) 
                         && ($fType->params['allowEmpty']) && ($form->rec->{$field} === NULL))  {
                         
                         $data[$field] = NULL;
@@ -1108,11 +1109,11 @@ class core_Packs extends core_Manager
                     $data[$field] = '';
                 }
             }
-            
+      
             $id = self::setConfig($packName, $data);
         
             // Правим запис в лога
-            $this->log($data->cmd, $rec->id, "Промяна на конфигурацията на пакет {$packName}");
+            $this->logInfo("Промяна на конфигурацията на пакет", $rec->id);
             
             return new Redirect($retUrl);
         }
@@ -1162,7 +1163,7 @@ class core_Packs extends core_Manager
                 $exData[$key] = $value;
     		}
     	}
-    	
+ 
     	$rec->configData = serialize($exData);
     	
     	return self::save($rec);   	

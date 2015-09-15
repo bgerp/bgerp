@@ -59,6 +59,7 @@ class bnav_Setup extends core_ProtoSetup
         
         // Добавяме Импортиращия драйвър в core_Classes
         $html .= core_Classes::add('bnav_bnavImporter');
+        $html .= cls::get('cat_Products')->setupMvc();
         
         return $html;
     }

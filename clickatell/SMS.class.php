@@ -134,7 +134,7 @@ class clickatell_SMS extends core_Manager
             $nRes['msg'] = "|Липсва константа за URL' то";
             
             // Записваме в лога
-            static::log("Липсва константа за URL' то");
+            self::logErr("Липсва константа за URL' то");
         }
     	
         return $nRes;
@@ -216,7 +216,7 @@ class clickatell_SMS extends core_Manager
             // Обновяваме статуса на съобщението
             callcenter_SMS::update($classId, $uid, $status, $timestamp);
         } catch (core_exception_Expect $e) {
-            self::log("Възникна грешка при обновяване на състоянието с apiMsgId: " . $uid);
+            self::logErr("Възникна грешка при обновяване на състоянието с apiMsgId: " . $uid);
         }
     }
     

@@ -194,7 +194,7 @@ class core_Form extends core_FieldSet
             // Правим проверка, дали избраната стойност е от множеството
             if (is_array($options) && !is_a($type, 'type_Key')) {
                 // Не могат да се селектират неща които не са опции  
-                if (!isset($options[$value]) || (is_object($options[$value]) && $options[$value]->group)) {
+                if ((!isset($options[$value]) && $this->cmd != 'refresh') || (is_object($options[$value]) && $options[$value]->group)) {
                     $this->setError($name, "Невъзможна стойност за полето" .
                         "|* <b>|{$captions}|*</b>!");
                     continue;
@@ -713,11 +713,22 @@ class core_Form extends core_FieldSet
                     $idForFocus = $attr['id'];
                 }
                 
+                // Задължителните полета, които имат една опция - тя да е избрана по подразбиране
+                if(count($options) == 2 && $type->params['mandatory']) {
+                    $keys =  array_keys($options);
+                    if($value === NULL) {
+                        $value = $keys[1];
+                    }
+                }
+
                 // Рендиране на select или input полето
                 if (count($options) > 0 && !is_a($type, 'type_Key') && !is_a($type, 'type_Enum')) {
                     
                     unset($attr['value']);
                     $this->invoke('BeforeCreateSmartSelect', array($input, $type, $options, $name, $value, &$attr));
+ 
+                    ;
+
                     $input = ht::createSmartSelect($options, $name, $value, $attr,
                         $type->params['maxRadio'],
                         $type->params['maxColumns'],
@@ -1187,5 +1198,7 @@ class core_Form extends core_FieldSet
         $this->setOptions($name, array(
                 $value => $verbal
             ));
+        
+        $field->type->params['isReadOnly'] = TRUE;
     }
 }

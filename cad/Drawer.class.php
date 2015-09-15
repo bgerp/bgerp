@@ -43,7 +43,7 @@ class cad_Drawer extends core_MVC {
      function act_Test()
     {
          $form = cls::get('core_Form');
-         $form->FLD('shapeClass', 'class(interface=cad_ShapeIntf,allowEmpty)', 'caption=Фигура,silent', array('attr' => array('onchange' => "addCmdRefresh(this.form);this.form.submit();")));
+         $form->FLD('shapeClass', 'class(interface=cad_ShapeIntf,allowEmpty,select=title)', 'caption=Фигура,silent', array('attr' => array('onchange' => "addCmdRefresh(this.form);this.form.submit();")));
          $form->input(NULL, TRUE);
          $rec = $form->rec;
          if($rec->shapeClass) {

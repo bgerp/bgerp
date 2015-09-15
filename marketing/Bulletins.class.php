@@ -759,7 +759,7 @@ class marketing_Bulletins extends core_Master
         // Ако има имейл регистриран от този браузър
         // Ако име абонамент за бюлетина
         // Или ако има логване от този браузър
-        if (($haveEmail = logs_Browsers::getVars(array('email')))
+        if (($haveEmail = log_Browsers::getVars(array('email')))
             || ($haveRec = marketing_BulletinSubscribers::haveRecForIp($id))
             || ($isLogged = core_LoginLog::isLoggedBefore())) {
             
@@ -970,7 +970,7 @@ class marketing_Bulletins extends core_Master
      * @param integer $id
      * @param marketing_BulletinSubcribers $detailMvc
      */
-    public static function on_AfterUpdateDetail($mvc, $id, $detailMvc)
+    protected static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
     {
         $query = $detailMvc->getQuery();
         $query->where("#bulletinId = $id");
@@ -1149,6 +1149,22 @@ class marketing_Bulletins extends core_Master
         $link = ht::createLink($title, array($this, 'single', $id));
         
         return $link;
+    }
+    
+    
+    /**
+     * Връща езика за източника на персонализация
+     * @see bgerp_PersonalizationSourceIntf
+     *
+     * @param integer $id
+     *
+     * @return string
+     */
+    public function getPersonalizationLg($id)
+    {
+        $rec = $this->fetch($id);
+        
+        return $rec->lg;
     }
     
     

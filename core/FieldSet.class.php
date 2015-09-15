@@ -171,7 +171,10 @@ class core_FieldSet extends core_BaseClass
         
         foreach ($names as $name => $caption) {
             
-            if ($newField && isset($this->fields[$name])) {
+             if ($newField && isset($this->fields[$name])) {
+                
+                if($params['forceField']) return;
+
                 error("@Дублирано име на поле", "'{$name}'");
             } elseif (!$newField && !isset($this->fields[$name])) {
                 error("@Несъществуващо поле", "'{$name}'", $this->fields);
@@ -203,6 +206,16 @@ class core_FieldSet extends core_BaseClass
             $this->fields[$name]->caption = $this->fields[$name]->caption ? $this->fields[$name]->caption : $name;
             $this->fields[$name]->name = $name;
             
+            // Слага полета с еднаква група последователно, независимо от реда на постъпването им
+            if(strpos($this->fields[$name]->caption, '->')) {
+                list($group, $caption) = explode('->', $this->fields[$name]->caption);
+
+                if(isset($this->lastFroGroup[$group]) && !isset($params['before']) && !isset($params['after'])) {
+                    $params['after'] = $this->lastFroGroup[$group];
+                }
+                $this->lastFroGroup[$group] = $name;
+            }
+           
             if(isset($params['before']) || isset($params['after'])) {
                 $newFields = array();
                 $isSet = FALSE;
@@ -225,6 +238,7 @@ class core_FieldSet extends core_BaseClass
                 }
                 $this->fields = $newFields;
             }
+            
         }
     }
     
@@ -250,6 +264,10 @@ class core_FieldSet extends core_BaseClass
     {
         if(is_string($suggestions)) {
             $suggestions = arr::make($suggestions, TRUE);
+        }
+        
+        if(!isset($this->fields[$name])){
+        	error("@Несъществуващо поле", "'{$name}'", $this->fields);
         }
         
         $this->fields[$name]->type->suggestions = $suggestions;
@@ -466,6 +484,21 @@ class core_FieldSet extends core_BaseClass
     	$fieldType = $this->getFieldType($name);
     	
     	return $fieldType->params[$paramName];
+    }
+    
+    
+    /**
+     * Задава/Подменя тип на полето
+     * 
+     * @param string $name - име на полето
+     * @param mixed $Type - инстанция или име на тип
+     * @return void
+     */
+    function setFieldType($name, $type)
+    {
+    	$fieldType = core_Type::getByName($type);
+    	
+    	$this->getField($name)->type = $fieldType;
     }
     
     

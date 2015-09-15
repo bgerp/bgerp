@@ -184,6 +184,7 @@ class email_Incomings extends core_Master
         $this->FLD('routeBy', 'enum(thread, preroute, from, fromTo, domain, toBox, country)', 'caption=Рутиране');
         
         $this->setDbUnique('hash');
+        $this->setDbIndex('fromEml');
     }
     
     
@@ -229,7 +230,7 @@ class email_Incomings extends core_Master
         $lockKey = 'Inbox:' . $accRec->id;
                    
         if(!core_Locks::get($lockKey, $maxFetchingTime, 1)) {
-            $this->log("Кутията {$accRec->email} е заключена от друг процес", NULL, 7);
+            email_Accounts::logWarning("Кутията е заключена от друг процес", $accRec->id, 7);
 
             return;
         }
@@ -242,9 +243,9 @@ class email_Incomings extends core_Master
 
         // Логването и генериране на съобщение при грешка е винаги в контролерната част
         if ($imapConn->connect() === FALSE) {
-            $errMsg = "Грешка на <b>\"{$accRec->user} ({$accRec->server})\"</b>:  " . $imapConn->getLastError() . "";
-            $this->log($errMsg, NULL, 14);
-            $htmlRes .= $errMsg;
+            $imapLastErr = $imapConn->getLastError();
+            email_Accounts::logErr("Грешка при свързване: " . $imapLastErr, $accRec->id, 14);
+            $htmlRes .= "Грешка на <b>\"{$accRec->user} ({$accRec->server})\"</b>:  " . $imapLastErr . "";
             
             return;
         }
@@ -269,11 +270,10 @@ class email_Incomings extends core_Master
                 }
 
                 if(($i % 100) == 1 || ( ($i - $firstUnreadMsgNo) < 100)) {
-                    $logMsg = "Fetching message {$i} from {$accRec->email}: {$status}";
-                    $this->log($logMsg, NULL, 7);
+                    log_Debug::add('email_Accounts', $accRec->id, "Fetching message {$i}", 7);
                 }
                 
-                // Изтриване на писмото, ако ако сметката е настроена така
+                // Изтриване на писмото, ако сметката е настроена така
                 if ($accRec->deleteAfterRetrieval == 'yes') {
                     $imapConn->delete($i);
                     $statusSum['delete']++;
@@ -300,7 +300,8 @@ class email_Incomings extends core_Master
         $duration = time() - $startTime;
         
         // Генерираме и записваме лог съобщение
-        $msg = "{$accRec->email}: ($duration s); Total: {$numMsg}";
+        $logMsg = "($duration s); Total: {$numMsg}";
+        $msg = "{$accRec->email}: {$logMsg}";
         
         $newStatusArr = array();
         
@@ -327,12 +328,13 @@ class email_Incomings extends core_Master
             
             // Добавяме към съотбщението
             $msg .= ", {$statusKey}: {$statusCnt}";
+            $logMsg .= ", {$statusKey}: {$statusCnt}";
         }
         
         // Показваме стринга
         echo "<h3> $msg </h3>";
 
-        $this->log($msg, NULL, 7);
+        log_Debug::add('email_Accounts', $accRec->id, $logMsg, 7);
     }
 
 
@@ -577,13 +579,14 @@ class email_Incomings extends core_Master
     protected function isDownloaded($imapConn, $msgNum)
     {
         static $isDown = array();
-        $this->log("Check Down: $msgNum  ", NULL, 7);
         $accId = $imapConn->accRec->id;
-
+        
+        log_Debug::add('email_Accounts', $accId, "Check Down: $msgNum", 7);
+        
         // Номерата почват от 1
         if($msgNum < 1) {
-            $this->log("TRUE: $msgNum < 1", NULL, 7);
-
+            log_Debug::add('email_Accounts', $accId, "TRUE: $msgNum < 1", 7);
+            
             return TRUE;
         }
         
@@ -593,7 +596,7 @@ class email_Incomings extends core_Master
 
             // Ако няма хедъри, значи има грешка
             if(!$headers) {
-                $this->log("[{$accId}][{$msgNum}] - missing headers", NULL, 7);
+                email_Accounts::logWarning("[{$msgNum}] - missing headers", $accId, 7);
 
                 return TRUE;
             }
@@ -601,8 +604,8 @@ class email_Incomings extends core_Master
             $isDown[$accId][$msgNum] = email_Fingerprints::isDown($headers);
         }
         
-        $this->log("Result: $msgNum  " . $isDown[$accId][$msgNum], NULL, 7);
-
+        log_Debug::add('email_Accounts', $accId, "Result: $msgNum  " . $isDown[$accId][$msgNum], 7);
+        
         return $isDown[$accId][$msgNum];
     }
     
@@ -1450,7 +1453,7 @@ class email_Incomings extends core_Master
             $i++;
             
             if($i % 100 == 1) {
-                $this->log("Update email $i", NULL, 7);
+                log_Debug::add('email_Incomings', NULL, "Update email - " . $i, 7);
             }
             self::save($rec);
         }

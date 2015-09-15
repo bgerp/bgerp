@@ -144,6 +144,28 @@ class callcenter_SMS extends core_Master
         
         $this->setDbUnique('service, uid');
     }
+
+    
+    /**
+     * Подобна на функцията send
+     * Част от параметрите се задават в масива $params
+     * Добавен е параметръра $params['sendLockPeriod'] за времето (сек),
+     * през което можем да изпращаме само един SMS на даден потребител
+     *
+     */
+    public static function sendSmart($number, $message, $params = array())
+    {
+        if($lp = $params['sendLockPeriod']) {
+            $mobileNum = drdata_PhoneType::getNumberStr($number, 0);
+            $now = dt::verbal2mysql();
+            if(self::fetch(array("#mobileNum = '[#1#]' AND #createdOn > DATE_SUB('{$now}', INTERVAL {$lp} SECOND)", $mobileNum))) {
+
+                return FALSE;
+            }
+        }
+
+        return self::send($number, $message, $params['sender'], $params['service'], $params['encoding'], $params['msgForSave']);
+    }
     
     
     /**
@@ -168,10 +190,17 @@ class callcenter_SMS extends core_Master
             
             // Използваме услугата от конфигурацията
             $service = $conf->CALLCENTER_SMS_SERVICE;
-            
-            // Очакваме да има избрана някаква услуга
-            expect($service, 'Не е зададена услуга за изпращане');
         }
+
+        if(!$service) {
+            $servicesOpt = core_Classes::getOptionsByInterface('callcenter_SentSMSIntf');
+            if(is_array($servicesOpt) && count($servicesOpt)) {
+                $service = key($servicesOpt);
+            }
+        }
+        
+        // Очакваме да има избрана някаква услуга
+        expect($service, 'Не е зададена услуга за изпращане');
         
         // Инстанция на услугата
         $serviceInst = cls::get($service);
@@ -179,6 +208,12 @@ class callcenter_SMS extends core_Master
         // Ако не е избран изпращач, използваме изпращача от услугата
         if (!isset($sender)) {
             $sender = $conf->CALLCENTER_SMS_SENDER;
+        }
+
+        // Ако не сме посочили изпращач, пак да работи
+        if(!$sender) {
+            $params = $serviceInst->getParams();
+            $sender = key($params['allowedUserNames']);
         }
         
         $mobileNum = drdata_PhoneType::getNumberStr($number, 0);

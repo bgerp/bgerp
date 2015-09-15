@@ -118,10 +118,11 @@ class core_Os
         $delCnt = 0;
         if(is_array($allFiles['files'])) {
             foreach($allFiles['files'] as $fPath) {
-                $rPath = ltrim(str_replace($dir, '', $fPath), '/\\');
-                if((time() - fileatime($fPath) > $maxAge) && str::matchPatterns($fPath, $negativePattern, $positivePattern)) {
-                    if (@unlink($fPath)) {
-                        $delCnt++;
+                if(file_exists($fPath)) {
+                    if((time() - @fileatime($fPath) > $maxAge) && str::matchPatterns($fPath, $negativePattern, $positivePattern)) {
+                        if (@unlink($fPath)) {
+                            $delCnt++;
+                        }
                     }
                 }
             }
@@ -146,7 +147,10 @@ class core_Os
         $delCnt = 0;
 
         // Изтриваме всички, файлове, кото са по стари от дадено време в директорията за временни файлове
-        if (defined('EF_TEMP_PATH')) { 
+        if (defined('EF_TEMP_PATH')) {
+        	if (!is_dir(EF_TEMP_PATH)) {
+        		mkdir(EF_TEMP_PATH);
+        	}
             $delCnt = self::deleteOldFiles(EF_TEMP_PATH,  $conf->CORE_TEMP_PATH_MAX_AGE);  
             if($delCnt > 0) {
                 $resText .= ($resText ? "\n" : '') . ($delCnt>1 ? "Бяха изтрити" : "Беше изтрит") . " {$delCnt} " . ($delCnt>1 ? "файла" : "файл") . ' от ' . EF_TEMP_PATH;
@@ -283,29 +287,63 @@ class core_Os
         
         return $res;
     }
+    
+    /**
+     * Връща броя на стартираните процеси на Apache
+     */
+    function countApacheProc()
+    {
+        if($this->isWindows()) {
+            $proc = 'httpd.exe';
+        } else {
+            $proc = 'apache';
+        }
+
+        return $this->countProc($proc);
+
+    }
 
 
     /**
      * Връща броя на стартираните процеси на Apache
      */
-    function countApacheProc()
-    {   
+    function countProc($proc)
+    { 
         $processes = 0;
 
         if($this->isWindows()) {
-            $output = shell_exec("tasklist");
+            $output = shell_exec("tasklist");  
             $lines = explode("\n", $output);
-            foreach($lines as $l) { 
-                if(strpos($l, 'httpd.exe') !== FALSE) {
+            foreach($lines as $l) {
+                if(strpos($l, $proc) !== FALSE) {
                     $processes++; 
                 }
             }
         } else {
-            exec('ps aux | grep apache', $output);
-            $processes = count($output);
+            $processes = exec("ps -A | grep {$proc} | wc -l");
+        }
+ 
+        return $processes;
+    }
+
+
+    /**
+     * Връща информация колко памет е заета.
+     * За сега работи само под Linux
+     */
+    function getMemoryUsage()
+    {
+        if(!$this->isWindows()) {
+            $free = shell_exec('free');
+            $free = (string)trim($free);
+            $free_arr = explode("\n", $free);
+            $mem = explode(" ", $free_arr[1]);
+            $mem = array_filter($mem);
+            $mem = array_merge($mem);
+            $memory_usage = $mem[2]/$mem[1]*100;
         }
 
-        return $processes;
+        return $memory_usage;
     }
 
 

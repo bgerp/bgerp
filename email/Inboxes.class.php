@@ -55,6 +55,12 @@ class email_Inboxes extends core_Master
     
     
     /**
+     * Кои документи да се добавят като бързи бутони в папката на корицата
+     */
+    public $defaultDefaultDocuments  = 'email_Outgoings';
+    
+    
+    /**
      * 
      */
     var $canSingle = 'powerUser';

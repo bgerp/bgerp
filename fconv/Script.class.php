@@ -104,7 +104,7 @@ class fconv_Script
             
             // Ако не е валиден файл, изписваме съобщение за грешка в лога
             if (!$isValid) {
-                core_Logs::log("fconv_Script: Файлът не съществува: '{$file}'" );
+                log_Data::add('err', "Файлът не съществува: '{$file}'", 'fconv_Script');
             }
         }
     }
@@ -175,6 +175,11 @@ class fconv_Script
                 
                 $cmdLine = implode(' ', $timeLimitArr) . ' ' . $cmdLine;
             }
+        }
+        
+        // Възможност за логване на грешките при изпълняване на скрипт
+        if ($params['errFilePath']) {
+            $cmdLine .= ' > ' . escapeshellarg($params['errFilePath']) . ' 2>&1';
         }
         
         $this->script .= $this->nl($cmdLine);
@@ -313,7 +318,7 @@ class fconv_Script
             $shell = $shellName;    
         }
         
-        core_Manager::log("Стартиран скрипт: " . $this->script);
+        log_Debug::add('fconv_Script', NULL, "Стартиран скрипт: " . $this->script);
         
         pclose(popen($shell, "r"));
     }

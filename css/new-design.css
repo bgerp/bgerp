@@ -187,6 +187,27 @@ body {
     margin-bottom: 10px;
     padding: 7px 15px !important; }
 
+.jobTaskDetails.portal {
+  border: none;
+  margin-bottom: 0; }
+
+.planning.portal,
+.jobTaskDetails.portal {
+  padding: 0; }
+  .planning.portal .legend,
+  .jobTaskDetails.portal .legend {
+    margin: 0; }
+  .planning.portal td,
+  .jobTaskDetails.portal td {
+    padding-top: 5px;
+    padding-bottom: 5px; }
+  .planning.portal .rowtools-column,
+  .jobTaskDetails.portal .rowtools-column {
+    padding-left: 15px; }
+  .planning.portal .overflow-scroll,
+  .jobTaskDetails.portal .overflow-scroll {
+    margin: 0; }
+
 .narrow .portal {
   margin-top: -10px;
   margin-left: 2px;
@@ -203,7 +224,7 @@ body {
   right: 0;
   width: 100%;
   display: table;
-  z-index: 11; }
+  z-index: 1001; }
 
 #framecontentBottom {
   padding-left: 0.2em;
@@ -231,7 +252,7 @@ body {
   left: 0;
   right: 0;
   top: 45px;
-  z-index: 9;
+  z-index: 1000;
   padding: 0 15px; }
 
 .narrow #main-container > .tab-control > .tab-row {
@@ -484,6 +505,7 @@ a.bookmark-external-url {
     .menu-options.search-options .menu-holder {
       left: -2px; }
       .menu-options.search-options .menu-holder input {
+        box-sizing: border-box;
         width: 100%;
         margin-bottom: 5px; }
 
@@ -702,6 +724,9 @@ button {
 .narrow input[type="submit"],
 .narrow button {
   padding-left: 5px !important; }
+
+.narrow .dimension input.button {
+  border: none !important; }
 
 input.linkWithIcon,
 a.linkWithIcon {

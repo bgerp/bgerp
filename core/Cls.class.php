@@ -373,7 +373,7 @@ class core_Cls
         foreach($lines as $l) {
             $l = ltrim($l, "\n* \r\t");
             
-            if(!$firstLine && $l) {
+            if(!isset($firstLine) && $l) {
                 $firstLine = $l;
             }
             
@@ -382,7 +382,7 @@ class core_Cls
             }
         }
         
-        if($titleLine) return $titleLine;
+        if(isset($titleLine)) return $titleLine;
         
         $obj = cls::get($class);
         

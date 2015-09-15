@@ -89,7 +89,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'info, productId, packagingId, uomId, packQuantity, packPrice, discount, amount, weight, volume,quantityInPack';
+    public $listFields = 'info, productId, packagingId, packQuantity, packPrice, discount, amount, weight, volume,quantityInPack';
     
         
     /**
@@ -117,7 +117,6 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     {
     	$this->FLD('shipmentId', 'key(mvc=store_ShipmentOrders)', 'column=none,notNull,silent,hidden,mandatory');
     	parent::setDocumentFields($this);
-    	$this->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty, select2MinItems=0)', 'caption=Мярка,after=productId,silent,removeAndRefreshForm=packPrice|discount|uomId');
     	
         $this->FLD('weight', 'cat_type_Weight', 'input=none,caption=Тегло');
         $this->FLD('volume', 'cat_type_Volume', 'input=none,caption=Обем');
@@ -201,22 +200,15 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form &$form)
     { 
     	$rec = &$form->rec;
-    	$masterStore = $mvc->Master->fetch($rec->{$mvc->masterKey})->storeId;
-    	 
-    	if(isset($rec->productId)){
-    		if(isset($masterStore)){
-    			$storeInfo = deals_Helper::getProductQuantityInStoreInfo($rec->productId, $rec->classId, $masterStore);
-    			$form->info = $storeInfo->formInfo;
-    		}
-    	}
     	
-    	if ($form->isSubmitted()){
-    		$pInfo = cls::get($rec->classId)->getProductInfo($rec->productId, $rec->packagingId);
-    		$quantityInPack = ($pInfo->packagingRec) ? $pInfo->packagingRec->quantity : 1;
+    	if(isset($rec->productId)){
+    		$masterStore = $mvc->Master->fetch($rec->{$mvc->masterKey})->storeId;
+    		$storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $masterStore);
+    		$form->info = $storeInfo->formInfo;
     		
-			if(isset($storeInfo)){
-    			if($rec->packQuantity > ($storeInfo->quantity / $quantityInPack)){
-    				$form->setWarning('packQuantity', 'Въведеното количество е по-голямо от наличното в склада');
+    		if ($form->isSubmitted()){
+    			if(isset($storeInfo->warning)){
+    				$form->setWarning('packQuantity', $storeInfo->warning);
     			}
     		}
     	}
@@ -272,7 +264,14 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     		foreach ($data->rows as $i => &$row) {
     			$rec = &$data->recs[$i];
     			
-    			$row->productId = cat_Products::getAutoProductDesc($rec->productId, $data->masterData->rec->modifiedOn, $rec->showMode);
+                if($data->masterData->rec->state == 'draft') {
+                    $time = NULL;
+                } else {
+                    $time = $data->masterData->rec->modifiedOn;
+                }
+
+                $row->productId = cat_Products::getAutoProductDesc($rec->productId, $time, $rec->showMode);
+
     			if($rec->notes){
     				deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
     			}

@@ -18,12 +18,6 @@ abstract class deals_ServiceMaster extends core_Master
 	
 	
 	/**
-	 * Опашка от записи за записване в on_Shutdown
-	 */
-	protected $updated = array();
-	
-	
-	/**
 	 * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
 	 */
 	public $rowToolsField = 'tools';
@@ -68,23 +62,15 @@ abstract class deals_ServiceMaster extends core_Master
 		$mvc->FLD('isReverse', 'enum(no,yes)', 'input=none,notNull,value=no');
 		$mvc->FLD('accountId', 'customKey(mvc=acc_Accounts,key=systemId,select=id)','input=none,notNull,value=411');
 	}
-
-
-	/**
-	 * След промяна в детайлите на обект от този клас
-	 */
-	public static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
-	{
-		// Запомняне кои документи трябва да се обновят
-		$mvc->updated[$id] = $id;
-	}
 	
 	
 	/**
-	 * Обновява информацията на документа
-	 * @param int $id - ид на документа
+	 * Обновява данни в мастъра
+     *
+     * @param int $id първичен ключ на статия
+     * @return int $id ид-то на обновения запис
 	 */
-	public function updateMaster($id)
+	public function updateMaster_($id)
 	{
 		$rec = $this->fetchRec($id);
 		 
@@ -101,20 +87,8 @@ abstract class deals_ServiceMaster extends core_Master
 		$rec->amountDelivered = $amount * $rec->currencyRate;
 		$rec->amountDeliveredVat = $this->_total->vat * $rec->currencyRate;
 		$rec->amountDiscount = $this->_total->discount * $rec->currencyRate;
-		$this->save($rec);
-	}
-	
-	
-	/**
-	 * След изпълнение на скрипта, обновява записите, които са за ъпдейт
-	 */
-	public static function on_Shutdown($mvc)
-	{
-		if(count($mvc->updated)){
-			foreach ($mvc->updated as $id) {
-				$mvc->updateMaster($id);
-			}
-		}
+		
+		return $this->save($rec);
 	}
 
 
@@ -134,8 +108,8 @@ abstract class deals_ServiceMaster extends core_Master
 	
 		if(count($agreedProducts)){
 			foreach ($agreedProducts as $product) {
-				$info = cls::get($product->classId)->getProductInfo($product->productId, $product->packagingId);
-				 
+				$info = cls::get($product->classId)->getProductInfo($product->productId);
+				
 				// Колко остава за експедиране от продукта
 				$toShip = $product->quantity - $product->quantityDelivered;
 				 
@@ -152,8 +126,8 @@ abstract class deals_ServiceMaster extends core_Master
 				$shipProduct->uomId       = $product->uomId;
 				$shipProduct->discount    = $product->discount;
 				$shipProduct->notes       = $product->notes;
-				$shipProduct->quantityInPack = ($product->packagingId) ? $info->packagingRec->quantity : 1;
-				 
+				$shipProduct->quantityInPack = $product->quantityInPack;
+				
 				$Detail = $mvc->mainDetail;
 				$mvc->$Detail->save($shipProduct);
 			}
@@ -253,7 +227,6 @@ abstract class deals_ServiceMaster extends core_Master
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	if(isset($fields['-list'])){
-    		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
     		if($rec->amountDeliveredVat || $rec->amountDelivered){
     			$row->amountDeliveredVat = "<span class='cCode' style='float:left'>{$rec->currencyId}</span> &nbsp;{$row->amountDeliveredVat}";
     			$row->amountDelivered = "<span class='cCode' style='float:left'>{$rec->currencyId}</span> &nbsp;{$row->amountDelivered}";
@@ -351,8 +324,10 @@ abstract class deals_ServiceMaster extends core_Master
     		$p->classId     = $dRec->classId;
     		$p->productId   = $dRec->productId;
     		$p->packagingId = $dRec->packagingId;
-    
-    		$aggregator->push('shippedPacks', $p);
+    		$p->inPack      = $dRec->quantityInPack;
+    		$index = $dRec->classId . "|" . $dRec->productId;
+    		
+    		$aggregator->push('shippedPacks', $p, $index);
     	}
     }
     

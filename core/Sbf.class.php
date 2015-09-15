@@ -121,7 +121,7 @@ class core_Sbf extends core_Mvc
                     if(core_Sbf::saveFile($content, $sbfPath, TRUE)) {
                         
                         // Записваме в лога, всеки път след като създадам файл в sbf
-                        // core_Logs::add(get_called_class(), NULL, "Генериране на файл в 'sbf' за '{$rPath}'", 5);
+                        // self::logInfo("Генериране на файл в 'sbf' за '{$rPath}'", NULL, 5);
                         
                         // Пътя до файла
                         $sbfArr = pathinfo($sbfPath);
@@ -130,7 +130,7 @@ class core_Sbf extends core_Mvc
                      } else {
                         
                          // Записваме в лога
-                        // core_Logs::add(get_called_class(), NULL, "Файла не може да се запише в '{$sbfPath}'.");
+                         // self::logWarning("Файла не може да се запише в '{$sbfPath}'.");
                     }  
                 } else {
                     debug::log("Липсващ файл: $rPath");
@@ -248,7 +248,7 @@ class core_Sbf extends core_Mvc
 
 
 /*
- Имаме заявка за sbf($филе)
+ Имаме заявка за sbf($file)
 
  1. Определяме новото име на филе, в зависимост от датата на последното модифициране
 */

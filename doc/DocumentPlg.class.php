@@ -241,21 +241,6 @@ class doc_DocumentPlg extends core_Plugin
                 "class=btnAll,ef_icon=img/16/application_view_list.png, order=18, row={$mvc->allBtnToolbarRow}, title=" . tr('Всички ' . mb_strtolower($mvc->title)));    
 
         }
-        
-        // TODO ще е по друг начин
-        if ($mvc->haveRightFor('single', $data->rec->id) || doc_Threads::haveRightFor('single', $data->rec->threadId)) {
-            $threadRec = doc_Threads::fetch($data->rec->threadId);
-            
-            // Първия документ в нишката да не може да се скрива ръчно
-            if ($data->rec->containerId != $threadRec->firstContainerId) {
-                $data->toolbar->addBtn('Скриване', array(
-                    			'doc_Containers',
-                    			'hideDocumentInThread',
-                                $data->rec->containerId
-                    	),
-                    			'order=39, row=2', 'ef_icon = img/16/toggle2.png, title=Скриване на документа в нишката');
-            }
-        }
     }
     
     
@@ -304,8 +289,6 @@ class doc_DocumentPlg extends core_Plugin
         $row->modifiedDate = dt::mysql2verbal($rec->modifiedOn, 'd.m.Y');
         $row->createdDate = dt::mysql2verbal($rec->createdOn, 'd.m.Y');
         
-        //$fields = arr::make($fields);
-        
         if($fields['-single']) {
             if(!$row->ident) {
                 $row->ident = '#' . $invoker->getHandle($rec->id);
@@ -318,6 +301,12 @@ class doc_DocumentPlg extends core_Plugin
             if($rec->state == 'rejected') {
                 $tpl = new ET(tr('|* |от|* [#user#] |на|* [#date#]')); 
                 $row->state .= $tpl->placeArray(array('user' => crm_Profiles::createLink($rec->modifiedBy), 'date' => dt::mysql2Verbal($rec->modifiedOn)));
+            }
+        }
+        
+        if($fields['-list']){
+            if($rec->folderId) {
+        	    $row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
             }
         }
     }
@@ -392,6 +381,7 @@ class doc_DocumentPlg extends core_Plugin
      */
     static function on_AfterSave($mvc, &$id, $rec, $fields = NULL)
     {
+        $fields = arr::make($fields, TRUE);
         try {
             
             // Опитваме се да запишем файловете от документа в модела
@@ -399,7 +389,7 @@ class doc_DocumentPlg extends core_Plugin
         } catch (core_exception_Expect $e) {
             
             // Ако възникне грешка при записването
-            doc_Files::log("Грешка при записване на файла с id={$id}");
+            $mvc->logErr("Грешка при записване на файла", $id);
         }
         
         // Изтрива от кеша html представянето на документа
@@ -424,7 +414,7 @@ class doc_DocumentPlg extends core_Plugin
             if ($fields && !isset($fields['modifiedOn'])) {
                 $updateAll = FALSE;
             }
-            
+
             doc_Containers::update($containerId, $updateAll);
         }
         
@@ -582,8 +572,8 @@ class doc_DocumentPlg extends core_Plugin
                 if(doc_Threads::haveRightFor('single', $rec->threadId)) {
                     
                     // Ако в момента не се скрива или показва - показва документа
-                    if (!Request::get('showOrHide')) {
-                        doc_Containers::showOrHideDocument($rec->containerId, FALSE, TRUE);
+                    if (!Request::get('showOrHide') && !Request::get('afterReject')) {
+                        doc_HiddenContainers::showOrHideDocument($rec->containerId, FALSE);
                     }
                     
                     $handle = $mvc->getHandle($rec->id);
@@ -657,7 +647,7 @@ class doc_DocumentPlg extends core_Plugin
             
             $id  = Request::get('id', 'int');
             $rec = $mvc->fetch($id);
-            
+           
             if (isset($rec->id) && $rec->state != 'rejected' && $mvc->haveRightFor('reject', $rec)) {
                 // Оттегляме документа + нишката, ако се налага
                 if ($mvc->reject($rec)) {
@@ -669,14 +659,30 @@ class doc_DocumentPlg extends core_Plugin
                     }
                 }
             }
-                
+            
+            // Обновяваме споделените на нишката, да сме сигурни че данните ще са актуални
+            $threadRec = doc_Threads::fetch($rec->threadId);
+            $threadRec->shared = keylist::fromArray(doc_ThreadUsers::getShared($rec->threadId));
+            doc_Threads::save($threadRec, 'shared');
+           
             // Пренасочваме контрола
             if (!$res = getRetUrl()) {
-                $res = array($mvc, 'single', $id);
+            	if($mvc->haveRightFor('single', $rec)){
+            		$res = array($mvc, 'single', $id);
+            	} else {
+            		$res = array('bgerp_Portal', 'show');
+            		core_Statuses::newStatus('Предишната страница не може да бъде показана, поради липса на права за достъп', 'warning');
+            	}
             }
             
+            $res['afterReject'] = 1;
+            
+            doc_HiddenContainers::showOrHideDocument($rec->containerId, TRUE);
+           
             $res = new Redirect($res); //'OK';
-                
+
+            $mvc->logInAct('Оттегляне', $rec);
+            
             return FALSE;
         }
         
@@ -695,7 +701,7 @@ class doc_DocumentPlg extends core_Plugin
                         doc_Threads::restoreThread($rec->threadId);
                     }
                 }
-            }             
+            }
             
             // Пренасочваме контрола
             if (!$res = getRetUrl()) {
@@ -703,6 +709,8 @@ class doc_DocumentPlg extends core_Plugin
             }
             
             $res = new Redirect($res); //'OK';
+            
+            $mvc->logInAct('Възстановяване', $rec);
             
             return FALSE;
         }
@@ -786,8 +794,6 @@ class doc_DocumentPlg extends core_Plugin
             // Премахваме документа от "Последно"
             bgerp_Recently::setHidden('document', $rec->containerId, $rec->state == 'rejected' ? 'yes':'no');
         }
-        
-        $mvc->log($rec->state == 'rejected' ? 'reject' : 'restore', $rec->id);
         
         return TRUE;
     }
@@ -1367,6 +1373,8 @@ class doc_DocumentPlg extends core_Plugin
                         $requiredRoles = 'powerUser';
                     }
                 }
+                
+                //bp($oRec, $requiredRoles);
             } elseif ($action == 'clone') {
                 
                 // Ако клонираме
@@ -2354,5 +2362,115 @@ class doc_DocumentPlg extends core_Plugin
         }
         
         $id = $mvc->save($rec);
+    }
+    
+    
+    /**
+     * Генерираме ключа за кеша
+     * Интерфейсен метод
+     * 
+     * @param core_Mvc $mvc
+     * @param NULL|FALSE|string $res
+     * @param NULL|integer $id
+     * @param object $cRec
+     * 
+     * @see doc_DocumentIntf
+     */
+    public static function on_AfterGenerateCacheKey($mvc, &$res, $id, $cRec)
+    {
+        // Ако не е оставено време за кеширане - не генерираме ключ
+        if(!doc_Setup::get('CACHE_LIFETIME') > 0) {
+            $res = FALSE;
+            
+            return ;
+        }
+        
+        // Ако документа има отворена история - не се кешира
+        if($cRec->id == Request::get('Cid')) {
+            $res = FALSE;
+            
+            return ;
+        }
+        
+        // Ако модела не допуска кеширане - ключ не се генерира
+        if($mvc->preventCache) {
+            $res = FALSE;
+            
+            return ;
+        }
+        
+        // Ако документа е в състояние "чернова" и е променян преди по-малко от 10 минути - не се кешира.
+        if($cRec->state == 'draft' && dt::addSecs(10*60, $cRec->modifiedOn) > dt::now()) {
+            $res = FALSE;
+            
+            return ;
+        }
+        
+        // Потребител
+        $userId = core_Users::getCurrent();
+        
+        // Последно модифициране
+        $modifiedOn = $cRec->modifiedOn;
+        
+        // Контейнер
+        $containerId = $cRec->id;
+        
+        // Положение на пейджърите
+        $pageVar = core_Pager::getPageVar($mvc->className, $id);
+        $pages =  serialize(Request::getVarsStartingWith($pageVar));
+        
+        // Режим на екрана
+        $screenMode = Mode::get('screenMode');
+
+        // Отворен горен таб
+        $tabTop = Request::get('TabTop');
+        
+        $cacheStr = $userId . $containerId . $modifiedOn . $pages . $screenMode . $tabTop;
+        
+        if ($res) {
+            $cacheStr .= $res;
+        }
+        
+        $res = md5($cacheStr);
+    }
+    
+    
+    /**
+     * 
+     * 
+     * @param core_Master $mvc
+     * @param string|NULL $res
+     * @param integer $id
+     * @param boolean|NULL $escape
+     */
+    public function on_BeforeGetTitleForId($mvc, &$res, $id, $escape=TRUE)
+    {
+        if (!$id) return ;
+        
+        try {
+            $row = $mvc->getDocumentRow($id);
+            
+            $res = str::limitLen($row->title, 35);
+            
+            return FALSE;
+        } catch (core_exception_Expect $e) {
+            
+            return ;
+        }
+    }
+    
+    
+    /**
+     * Обновява мастъра
+     *
+     * @param mixed $id - ид/запис на мастъра
+     */
+    public static function on_AfterUpdateMaster($mvc, &$res, $id)
+    {
+    	$rec = $mvc->fetchRec($id);
+    	if(!$res){
+    		$rec->modifiedOn = dt::now();
+    		$mvc->save($rec, 'modifiedOn');
+    	}
     }
 }

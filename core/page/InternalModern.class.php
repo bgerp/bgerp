@@ -175,12 +175,19 @@ class core_page_InternalModern extends core_page_Active
                                      Време за изпълнение: [#DEBUG::getExecutionTime#]
                                      [#Debug::getLog#]</div>"), "DEBUG");
     	}
-    	// Опаковките и главното съдържание заемат екрана до долу
     	
+        // Опаковките и главното съдържание заемат екрана до долу
     	$tpl->append("runOnLoad( slidebars );", "JQRUN");
     	$tpl->append("runOnLoad( scrollToHash );", "JQRUN");
     	
+    	if(Mode::is('screenMode', 'narrow')){
+        	$tpl->append("runOnLoad( checkForElementWidthChange);", "JQRUN");
+    	}
     	
+        // Добавяме кода, за определяне параметрите на браузъра
+        $Browser = cls::get('log_Browsers');
+        $tpl->append($Browser->renderBrowserDetectingCode(), 'BROWSER_DETECT');
+
         return $tpl;
     }
     
@@ -325,9 +332,9 @@ class core_page_InternalModern extends core_page_Active
         
         // Създава линк за превключване между режимите
        	if(Mode::is('screenMode', 'wide')) {
-       		$mode = ht::createLink(tr("Мобилен"), array('logs_Browsers', 'setNarrowScreen', 'ret_url' => TRUE), NULL, array('ef_icon' => 'img/16/mobile-icon.png', 'title' => 'Превключване на системата в мобилен режим'));
+       		$mode = ht::createLink(tr("Мобилен"), array('log_Browsers', 'setNarrowScreen', 'ret_url' => TRUE), NULL, array('ef_icon' => 'img/16/mobile-icon.png', 'title' => 'Превключване на системата в мобилен режим'));
        	} else {
-       		$mode = ht::createLink(tr("Десктоп"), array('logs_Browsers', 'setWideScreen', 'ret_url' => TRUE), NULL, array('ef_icon' => 'img/16/Monitor-icon.png', 'title' => 'Превключване на системата в десктоп режим'));
+       		$mode = ht::createLink(tr("Десктоп"), array('log_Browsers', 'setWideScreen', 'ret_url' => TRUE), NULL, array('ef_icon' => 'img/16/Monitor-icon.png', 'title' => 'Превключване на системата в десктоп режим'));
        	}
        	if(isDebug()) {
        		$debug = ht::createLink("Debug", '#wer', FALSE, array('title' => "Показване на debug информация", 'ef_icon' => 'img/16/bug-icon.png', 'onclick' => 'toggleDisplay(\'debug_info\'); scrollToElem(\'debug_info\');'));
@@ -379,7 +386,7 @@ class core_page_InternalModern extends core_page_Active
         $tpl->replace($portalLink, 'PORTAL');
         
         // Рендираме бутоните за търсене
-        $inputType = "<input class='serch-input-modern' type='text' onkeyup='onSearchEnter(event, \"modern-doc-search\", this);'/>";
+        $inputType = "<input class='serch-input-modern' type='search' onkeyup='onSearchEnter(event, \"modern-doc-search\", this);'/>";
         
         $tpl->replace($inputType, 'SEARCH_INPUT');
         

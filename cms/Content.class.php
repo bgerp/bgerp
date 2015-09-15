@@ -36,7 +36,7 @@ class cms_Content extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created, plg_State2, plg_RowTools, plg_Printing, cms_Wrapper, plg_Sorting, plg_Search,plg_AutoFilter';
+    var $loadList = 'plg_Created, plg_State2, plg_RowTools, plg_Printing, cms_Wrapper, plg_Sorting, plg_Search,plg_AutoFilter,cms_DomainPlg';
 
 
     /**
@@ -190,38 +190,11 @@ class cms_Content extends core_Manager
      */
     function on_AfterPrepareListFilter($mvc, $data)
     {
-        $form = $data->listFilter;
-        
-        // В хоризонтален вид
-        $form->view = 'horizontal';
-        
-        // Добавяме бутон
-        $form->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        
-        // Показваме само това поле. Иначе и другите полета 
-        // на модела ще се появят
-        $form->showFields = 'search';
-        
-        $form->input('search', 'silent');
-
-        $domainId = cms_Domains::getCurrent();
-       
-        $data->query->where("#domainId = {$domainId}");
-        
         $data->query->orderBy('#order', 'ASC');
     }
 
 
-    /**
-     * Изпълнява се след подготовката на формата за единичен запис
-     */
-    function on_AfterPrepareEditForm($mvc, $res, $data)
-    {
-        $data->form->rec->domainId = cms_Domains::getCurrent();
-        $data->form->setReadOnly('domainId');
-     }
-
-    
+   
     /**
      * Подготвя данните за публичното меню
      */

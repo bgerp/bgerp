@@ -233,6 +233,27 @@ class core_Request
     
     
     /**
+     * Връща масив от стойностите на променливите, чието име започва с $nameStart
+     */
+    static function getVarsStartingWith($nameStart)
+    {
+        $res = array();
+
+        foreach (self::$vars as $key => $arr) {
+            foreach($arr as $name => $val) {
+                if (strpos($name, $nameStart) === 0) {
+                    if(!isset($res[$name])) {
+                        $res[$name] = $val;
+                    }
+                }
+            }
+        }
+        
+        return $res;
+    }
+  
+    
+    /**
      * Връща масив с всички парамeтри в рекуеста,
      * като по - началните в стека с по - голямо предимство
      * 
@@ -266,7 +287,7 @@ class core_Request
         if ($name) {
             $element[$name] = $array;
         } else {
-            $element[] = $array;
+            $element[count(self::$vars)] = $array;
         }
         
         if ($unShift) {
@@ -329,6 +350,9 @@ class core_Request
         if(isset($vars[2]) && !isset($vars['id'])) {
             $vars['id'] = $vars[2];
         }
+        
+        $point = self::get('Ctr') . "::" . self::get('Act') . "::" . self::get('id');
+        Debug::log("Forward => " . $point);
 
         try {
             // Ако не е бил сетнат
@@ -394,6 +418,8 @@ class core_Request
             $Request->pop($varsName);
         }
         
+        Debug::log("Forward <= " . $point);
+
         return $content;
     }
 }

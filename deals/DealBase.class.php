@@ -63,6 +63,7 @@ abstract class deals_DealBase extends core_Master
 		if(empty($mvc->fields['closedDocuments'])){
 			$mvc->FLD('closedDocuments', "keylist(mvc={$mvc->className})", 'input=none,notNull');
 		}
+		$mvc->FLD('closedOn', 'datetime', 'input=none');
 	}
 	
 	
@@ -124,7 +125,7 @@ abstract class deals_DealBase extends core_Master
 				try{
 					$d->getInstance()->pushDealInfo($d->that, $aggregateInfo);
 				} catch(Exception $e){
-					$this->log('Проблем с пушването на данните на бизнес документ ' . $e->getMessage());
+					$this->logErr('Проблем с пушването на данните на бизнес документ - ' . $e->getMessage(), $dealRec->id);
 				}
 			}
 		}
@@ -296,12 +297,15 @@ abstract class deals_DealBase extends core_Master
     			}
     		}
     	   
+    		// Записваме, че потребителя е разглеждал този списък
+    		$this->logInfo("Приключване на сделка с друга сделка", $id);
+    		
     		return redirect(array($this, 'single', $id));
     	}
     
     	$form->toolbar->addSbBtn('Активиране', 'save', 'ef_icon = img/16/tick-circle-frame.png');
     	$form->toolbar->addBtn('Отказ', array($this, 'single', $id),  'ef_icon = img/16/close16.png');
-    		 
+    	
     	// Рендиране на формата
     	return $this->renderWrapping($form->renderHtml());
     }
@@ -358,6 +362,27 @@ abstract class deals_DealBase extends core_Master
     	} elseif(Request::get('dealHistory', 'int')) {
     		$tpl->removeBlock('STATISTIC_BAR');
     	}
+    }
+    
+    
+    /**
+     * Генерираме ключа за кеша
+     * Интерфейсен метод
+     * 
+     * @param core_Mvc $mvc
+     * @param NULL|FALSE|string $res
+     * @param NULL|integer $id
+     * @param object $cRec
+     * 
+     * @see doc_DocumentIntf
+     */
+    public static function on_AfterGenerateCacheKey($mvc, &$res, $id, $cRec)
+    {
+        if ($res === FALSE) return ;
+        
+        $dealHistory = Request::get('dealHistory');
+        
+        $res = md5($res . $dealHistory);
     }
     
     
@@ -426,7 +451,14 @@ abstract class deals_DealBase extends core_Master
     			if($count >= $start && $count <= $end){
     				$obj = new stdClass();
     				$obj->valior = $Date->toVerbal($ent->valior);
-    				$obj->valior .= "<br>". cls::get($ent->docType)->getHandle($ent->docId);
+    				
+    				$Doc = cls::get($ent->docType);
+    				$docHandle = $Doc->getHandle($ent->docId);
+    				if($Doc->haveRightFor('single', $ent->docId)){
+    					$docHandle = ht::createLink("#" . $docHandle, array($Doc, 'single', $ent->docId));
+    				}
+    				
+    				$obj->valior .= "<br>{$docHandle}";
     				$obj->valior = "<span style='font-size:0.8em;'>{$obj->valior}</span>";
     				if(empty($this->historyCache[$ent->debitAccId])){
     					$this->historyCache[$ent->debitAccId] = acc_Balances::getAccountLink($ent->debitAccId);

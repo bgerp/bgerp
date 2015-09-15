@@ -44,7 +44,7 @@ class email_Outgoings extends core_Master
     /**
      * Поддържани интерфейси
      */
-    var $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf, doc_AddToFolderIntf';
+    var $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf';
     
     
     /**
@@ -186,7 +186,7 @@ class email_Outgoings extends core_Master
         $this->FLD('email', 'emails', 'caption=Адресат->Имейл, width=100%, silent');
         $this->FLD('emailCc', 'emails', 'caption=Адресат->Копие до,  width=100%');
         $this->FLD('recipient', 'varchar', 'caption=Адресат->Фирма,class=contactData');
-        $this->FLD('attn', 'varchar', 'caption=Адресат->Лице,oldFieldName=attentionOf,class=contactData');
+        $this->FLD('attn', 'varchar', 'caption=Адресат->Име,oldFieldName=attentionOf,class=contactData');
         $this->FLD('tel', 'varchar', 'caption=Адресат->Тел.,oldFieldName=phone,class=contactData');
         $this->FLD('fax', 'drdata_PhoneType', 'caption=Адресат->Факс,class=contactData, silent');
         $this->FLD('country', 'varchar', 'caption=Адресат->Държава,class=contactData');
@@ -438,7 +438,7 @@ class email_Outgoings extends core_Master
                     $emailsCc
                 );
             } catch (core_exception_Expect $e) {
-                self::log("Грешка при изпращане на имейл: " . $e->getMessage());
+                self::logErr("Грешка при изпращане на имейл: " . $e->getMessage(), $rec->id);
                 $status = FALSE;
             }
             
@@ -470,14 +470,14 @@ class email_Outgoings extends core_Master
                 }
                 
                 // Правим запис в лога
-                static::log('Send to ' . $allEmailsToStr, $rec->id);
+                self::logInfo('Изпращане' , $rec->id);
                 
                 // Добавяме в масива
                 $success[] = $allEmailsToStr;
             } else {
                 
                 // Правим запис в лога за неуспех
-                static::log('Unable to send to ' . $allEmailsToStr, $rec->id);
+                static::logErr('Грешка при изпращане', $rec->id);
                 $failure[] = $allEmailsToStr;
             }
         }
@@ -502,6 +502,8 @@ class email_Outgoings extends core_Master
             
             $saveArray = array();
             $saveArray['id'] = 'id';
+            $saveArray['modifiedOn'] = 'modifiedOn';
+            $saveArray['modifiedBy'] = 'modifiedBy';
             
             // Ако имейла е активен или чернова и не е въведено време за изчакване
             if (!$options->waiting && ($rec->state == 'active' || $rec->state == 'draft')) {
@@ -599,7 +601,7 @@ class email_Outgoings extends core_Master
         $form->FLD('documents', 'keylist(mvc=fileman_files, select=name)', 'caption=Документи,columns=4,input=none');
         $form->FNC('emailsTo', 'emails', 'input,caption=До,mandatory,class=long-input,formOrder=2', array('attr' => array('data-role' => 'list')));
         $form->FNC('emailsCc', 'emails', 'input,caption=Копие до,class=long-input,formOrder=3', array('attr' => array('data-role' => 'list')));
-        $form->FNC('waiting', 'time(suggestions=1 ден|2 дни|3 дни|1 седмица|2 седмици|3 седмици|4 седмици, allowEmpty)', 'caption=Изчакване,hint=Време за известряване при липса на отговор,input,formOrder=8');
+        $form->FNC('waiting', 'time(suggestions=1 ден|2 дни|3 дни|1 седмица|2 седмици|3 седмици|4 седмици, allowEmpty)', 'caption=Изчакване за отговор|*&#44; |преди известяване->Изчакване,hint=Време за известряване при липса на отговор,input,formOrder=8');
         
         // Подготвяме лентата с инструменти на формата
         $form->toolbar->addSbBtn('Изпрати', 'send', NULL, array('id'=>'save', 'ef_icon'=>'img/16/move.png', 'title'=>'Изпращане на имейла'));
@@ -1611,7 +1613,6 @@ class email_Outgoings extends core_Master
             $data->form->addAttr('body', $langAttrArr);
             $data->form->addAttr('subject', $langAttrArr);
         }
-        $data->form->setField('body', array('attr' => array('onload' => 'console.log(\'a\');')));
     }
     
     
@@ -1968,6 +1969,17 @@ class email_Outgoings extends core_Master
         }
         
         $data->lg = email_Outgoings::getLanguage($data->rec->originId, $data->rec->threadId, $data->rec->folderId, $data->rec->body);
+        
+        if (!Mode::is('text', 'xhtml') && $data->rec->waiting && ($data->rec->state == 'pending')) {
+            $notifyDate = dt::addSecs($data->rec->waiting, $data->rec->lastSendedOn);
+            $data->row->notifyDate = dt::mysql2verbal($notifyDate, 'smartTime');
+            $data->row->notifyUser = crm_Profiles::createLink($data->rec->lastSendedBy);
+            
+            if ($mvc->haveRightFor('close', $data->rec)) {
+                $data->row->removeNotify = ht::createLink('', array($mvc, 'close', $data->rec->id, 'ret_url'=>TRUE), tr('Сигурни ли сте, че искате да спрете изчакването') . '?',
+                                                            array('ef_icon' => 'img/16/cancel.png', 'title' => tr('Премахване на изчакването за отговор')));
+            }
+        }
     }
     
     
@@ -2375,6 +2387,7 @@ class email_Outgoings extends core_Master
         if ($this->save($rec)) {
             $msg = '|Успешно затворен имейл';
             $type = 'notice';
+            $this->logInfo('Затваряне на имейла', $id);
         } else {
             $msg = '|Грешка при затваряне на имейла';
             $type = 'warning';
@@ -2873,17 +2886,5 @@ class email_Outgoings extends core_Master
         
         // Ако не може да се определи по никакъв начин
         return FALSE;
-    }
-    
-    
-    /**
-     * Да се показвали бърз бутон за създаване на документа в папка
-     */
-    public function mustShowButton($folderRec, $userId = NULL)
-    {
-        $Cover = doc_Folders::getCover($folderRec->id);
-        
-        // Показваме бутона само ако корицата на папката е 'Кутия'
-        return ($Cover->instance instanceof email_Inboxes) ? TRUE : FALSE;
     }
 }

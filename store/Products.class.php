@@ -326,7 +326,7 @@ class store_Products extends core_Manager
     
     
     /**
-     * Изчиства записите в балансите
+     * Изчиства записите в склада
      */
     public function act_Truncate()
     {

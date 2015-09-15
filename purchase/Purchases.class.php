@@ -37,7 +37,7 @@ class purchase_Purchases extends deals_DealMaster
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, purchase_Wrapper, acc_plg_Registry, plg_Sorting, doc_plg_MultiPrint, doc_plg_TplManager, doc_DocumentPlg, acc_plg_Contable, plg_Printing,
-				        plg_ExportCsv, cond_plg_DefaultValues, recently_Plugin, doc_plg_HidePrices, doc_SharablePlg, plg_Clone,
+				        cond_plg_DefaultValues, recently_Plugin, doc_plg_HidePrices, doc_SharablePlg, plg_Clone,
 				        doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_BusinessDoc, acc_plg_DocumentSummary, plg_Search';
     
     
@@ -441,34 +441,33 @@ class purchase_Purchases extends deals_DealMaster
             $p->packagingId       = $dRec->packagingId;
             $p->discount          = $dRec->discount;
             $p->quantity          = $dRec->quantity;
+            $p->quantityInPack    = $dRec->quantityInPack;
             $p->quantityDelivered = $dRec->quantityDelivered;
             $p->price             = $dRec->price;
             $p->uomId             = $dRec->uomId;
             $p->notes			  = $dRec->notes;
             
-            $ProductMan = cls::get($p->classId);
-            $info = $ProductMan->getProductInfo($p->productId, $p->packagingId);
+            $ProductMan = cls::get('cat_Products');
+            $info = $ProductMan->getProductInfo($p->productId);
             $p->weight  = $ProductMan->getWeight($p->productId, $p->packagingId);
             $p->volume  = $ProductMan->getVolume($p->productId, $p->packagingId);
             
             $result->push('products', $p);
             
-        	if (!empty($p->packagingId)) {
-        		$push = TRUE;
-            	$index = $p->classId . "|" . $p->productId;
-            	$shipped = $result->get('shippedPacks');
+        	$push = TRUE;
+            $index = $p->classId . "|" . $p->productId;
+            $shipped = $result->get('shippedPacks');
             	
-            	$inPack = ($p->packagingId) ? $info->packagingRec->quantity : 1;
-            	if($shipped && isset($shipped[$index])){
-            		if($shipped[$index]->inPack < $inPack){
-            			$push = FALSE;
-            		}
+            $inPack = $p->quantityInPack;
+            if($shipped && isset($shipped[$index])){
+            	if($shipped[$index]->inPack < $inPack){
+            		$push = FALSE;
             	}
+            }
             	
-            	if($push){
-            		$arr = (object)array('packagingId' => $p->packagingId, 'inPack' => $inPack);
-            		$result->push('shippedPacks', $arr, $index);
-            	}
+            if($push){
+            	$arr = (object)array('packagingId' => $p->packagingId, 'inPack' => $inPack);
+            	$result->push('shippedPacks', $arr, $index);
             }
         }
         

@@ -107,10 +107,10 @@ class cams_driver_IpDevice extends core_BaseClass {
         "{$savePath} {$duration} {$this->width} {$this->height} {$this->FPS} < /dev/null > /dev/null 2>&1 &";
 
         exec($cmd, $arrOutput);
-        $res = implode(',', $arrOutput);
         
         if (isDebug()) {
-        	core_Logs::add($this, $this->id, "Команда: {$cmd} Резултат: {$res}", 5);
+            $res = implode(',', $arrOutput);
+        	log_Data::add('debug', "Команда: {$cmd} Резултат: {$res}", 'cams_driver_IpDevice', NULL, 5);
         }
     }
     
@@ -178,7 +178,7 @@ class cams_driver_IpDevice extends core_BaseClass {
      * 
      * Връща урл за взимане на снимка от камерата в зависимост от вида и
      */
-	private function getPictureUrl()
+	protected function getPictureUrl()
 	{
 		$className = cls::getClassName($this);
     	
@@ -191,8 +191,13 @@ class cams_driver_IpDevice extends core_BaseClass {
     			$suffix = "/snapshot.jpg";
     		break;
     		case "cams_driver_EdimaxIC9000":
-    			//$suffix = "/snapshot.cgi";
     			 $suffix = "/snapshot.jpg";
+    		break;
+    		case "cams_driver_Hikvision":
+    			// Шот по http
+    			// $suffix = "/Streaming/channels/1/picture";
+    			// Път до файла генериран от RTSP
+    			return EF_TEMP_PATH . "HikvisionShot.jpg";
     		break;
     	}
 		
@@ -204,7 +209,7 @@ class cams_driver_IpDevice extends core_BaseClass {
      * 
      * Връща урл към видео стрийма на камерата в зависимост от вида и
      */
-	private function getStreamUrl()
+	protected function getStreamUrl()
 	{
 		$className = cls::getClassName($this);
     	
@@ -218,6 +223,8 @@ class cams_driver_IpDevice extends core_BaseClass {
     		break;
     		case "cams_driver_EdimaxIC9000":
     			$suffix = "/" . $this->normalizeCameraId() . ".{$this->videopass}";
+    		break;
+    		case "cams_driver_Hikvision":
     		break;
     	}
 

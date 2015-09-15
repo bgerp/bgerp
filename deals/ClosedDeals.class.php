@@ -313,6 +313,7 @@ abstract class deals_ClosedDeals extends core_Master
             $DocClass = cls::get($rec->docClassId);
             $firstRec = $DocClass->fetch($rec->docId);
             $firstRec->state = 'closed';
+            $firstRec->closedOn = $mvc->getValiorDate($rec);
             $DocClass->save($firstRec);
             
             if(empty($saveFileds)){
@@ -515,6 +516,13 @@ abstract class deals_ClosedDeals extends core_Master
     public function getClosedItemsInTransaction_($id)
     {
         $rec = $this->fetchRec($id);
+        
+        // Ако приключващия документ, приключва към друга сделка, то позволяваме
+        // да може да се контира дори ако има затворени пера
+        if(!empty($rec->closeWith)){
+        	return array();
+        }
+       
         $closedItems = NULL;
         
         // Намираме приключените пера от транзакцията

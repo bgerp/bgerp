@@ -105,15 +105,16 @@ class blogm_Articles extends core_Master {
 	 */
 	function description()
 	{
-		$this->FLD('author', 'varchar(40)', 'caption=Автор, mandatory, notNull,width=100%');
-		$this->FLD('title', 'varchar(190)', 'caption=Заглавие, mandatory, width=100%');
+		$this->FLD('author', 'varchar(40)', 'caption=Автор, mandatory, notNull');
+        $this->FLD('publishedOn', 'datetime', 'caption=Публикуване');
+		$this->FLD('title', 'varchar(190)', 'caption=Заглавие, mandatory');
 		$this->FLD('categories', 'keylist(mvc=blogm_Categories,select=title)', 'caption=Категории,mandatory');
 		$this->FLD('body', 'richtext(bucket=' . self::FILE_BUCKET . ')', 'caption=Съдържание,mandatory');
  		$this->FLD('commentsMode', 
             'enum(enabled=Разрешени,confirmation=С потвърждение,disabled=Забранени,stopped=Спрени)',
             'caption=Коментари->Режим,maxRadio=4,columns=4,mandatory');
         $this->FLD('commentsCnt', 'int', 'caption=Коментари->Брой,value=0,notNul,input=none');
-  		$this->FLD('state', 'enum(draft=Чернова,active=Публикувана,rejected=Оттеглена)', 'caption=Състояние,mandatory');
+  		$this->FLD('state', 'enum(draft=Чернова,pending=Чакаща,active=Публикувана,rejected=Оттеглена)', 'caption=Състояние,mandatory');
   		
 		$this->setDbUnique('title');
 	}
@@ -132,7 +133,7 @@ class blogm_Articles extends core_Master {
 	 * Обработка на вербалното представяне на статиите
 	 */
 	function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
-	{
+	{ 
         $rec->body = trim($rec->body);
 
         if($fields['-browse']) { 
@@ -157,20 +158,44 @@ class blogm_Articles extends core_Master {
             }
         }
 
+        if(!$rec->publishedOn) {
+            $rec->publishedOn = $rec->createdOn;
+        }
+ 
+        $row->publishedOn = dt::mysql2verbal($rec->publishedOn, 'smartTime');  
+ 
+
         if($fields['-list']) { 
             $row->title = ht::createLink($row->title, self::getUrl($rec), NULL, 'ef_icon=img/16/monitor.png');
         }
-
 	}
+
+
+    /**
+     * Изпълнява се преди всеки запис
+     */
+    static function on_BeforeSave($mvc, &$id, $rec, $fields = NULL)
+    {
+        if(!$fields) {
+            if($rec->state == 'active') {
+                if(!$rec->publishedOn) {
+                    $rec->publishedOn = dt::verbal2mysql();
+                } elseif ($rec->publishedOn > dt::verbal2mysql()) {
+                    $rec->state = 'pending';
+                    core_Statuses::newStatus(tr('Статията ще бъде публикувана след') . ' ' . dt::mysql2verbal($rec->publishedOn), 'warning');
+                }
+            }
+        }
+    }
 
 
     /**
      * След обновяването на коментарите, обновяваме информацията в статията
      */
-    function on_AfterUpdateDetail($mvc, $articleId, $Detail)
+    protected static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
     {
         if($Detail->className == 'blogm_Comments') {
-            $queryC = $Detail->getQuery();
+            $queryC = $detailMvc->getQuery();
             $queryC->where("#articleId = {$articleId} AND #state = 'active'");
             $rec = $mvc->fetch($articleId);
             $rec->commentsCnt = $queryC->count();
@@ -195,7 +220,7 @@ class blogm_Articles extends core_Master {
                 $title = blogm_Categories::getVerbal($catRec, 'title');
                 
                 // В заглавието на list  изгледа се поставя името на избраната категория
-                $data->title = 'Статии от категория: ' . $title;
+                $data->title = 'Статии от категория: ' . $title;  
             }
 		}
 	}
@@ -237,7 +262,8 @@ class blogm_Articles extends core_Master {
         $data->listFilter->showFields = 'search,category';
 
         // Подреждаме статиите по датата им на публикуане в низходящ ред	
-		$data->query->orderBy('createdOn', 'DESC');
+        $data->query->XPR('pubTime', 'datetime', "IF(#publishedOn,#publishedOn,#createdOn)");
+		$data->query->orderBy('#pubTime', 'DESC');
 		
         $categories = blogm_Categories::getCategoriesByDomain(cms_Domains::getCurrent());
  
@@ -337,7 +363,7 @@ class blogm_Articles extends core_Master {
                 $id = $Comments->save($rec);
                 
                 // Правим запис в лога
-                $Comments->log('add', $id);
+                $Comments->logInfo('add', $id);
                 
                 // Редиректваме към предварително установения адрес
                 return new Redirect(self::getUrl($data->rec), 'Благодарим за вашия коментар;)');
@@ -363,7 +389,7 @@ class blogm_Articles extends core_Master {
         $tpl->append($ogpHtml);
 
 		// Записваме, че потребителя е разглеждал тази статия
-		$this->log(('Blog article: ' .  $data->row->title), $id);
+		$this->logInfo('Разгледана статия', $id);
 		
         if(core_Packs::fetch("#name = 'vislog'")) {
             vislog_History::add($data->row->title);
@@ -372,7 +398,7 @@ class blogm_Articles extends core_Master {
         // Добавя канонично URL
         $url = toUrl(self::getUrl($data->rec, TRUE), 'absolute');
         $tpl->append("\n<link rel=\"canonical\" href=\"{$url}\"/>", 'HEAD');
-		
+        
 		return $tpl;
 	}
 	
@@ -583,7 +609,7 @@ class blogm_Articles extends core_Master {
         }
 
 		// Записваме, че потребителя е разглеждал този списък
-		$this->log('List: ' . ($data->log ? $data->log : $data->title));
+		$this->logInfo('List: ' . ($data->log ? $data->log : $data->title));
 		
 		return $tpl;
 	}
@@ -614,7 +640,8 @@ class blogm_Articles extends core_Master {
             $data->query->where("#createdOn LIKE '{$data->archiveY}-{$data->archiveM}-%'");
         }
      
-        $data->query->orderBy('createdOn', 'DESC');
+        $data->query->XPR('pubTime', 'datetime', "IF(#publishedOn,#publishedOn,#createdOn)");
+		$data->query->orderBy('#pubTime', 'DESC');
         
         // Показваме само публикуваните статии
         $data->query->where("#state = 'active'");
@@ -631,12 +658,8 @@ class blogm_Articles extends core_Master {
 
             $row = new stdClass();
 
-            $row->author = $this->getVerbal($rec, 'author');
-            $row->createdOn = $this->getVerbal($rec, 'createdOn');
-            
-            $row->categories = $this->getVerbal($rec, 'categories');
-
-		    $row->title = $this->getVerbal($rec, 'title');
+            $row = self::recToVerbal($rec, $fields);
+ 
             $url = self::getUrl($rec);
             $row->title = ht::createLink($row->title, $url);
 
@@ -664,21 +687,31 @@ class blogm_Articles extends core_Master {
         // Определяне на титлата
 		// Ако е посочено заглавие по-което се търси
         if(isset($data->q)) {
+            $data->title = "<b style='color:#666;'>" . tr('Търсене във всички статии') . "</b>";
             if(!count($data->rows)) {
-   			    $data->title = tr('Няма резултати при търсене на') . '&nbsp;"<b>' . type_Varchar::escape($data->q) . '</b>"';
+   			    $data->descr = "<p><b style='color:#666;'>" . tr('Няма резултати при търсене в блога на') . '&nbsp;"<i>' . type_Varchar::escape($data->q) . '</i>"</b>';
             } else {
-			    $data->title = tr('Резултати при търсене на') . '&nbsp;"<b>' . type_Varchar::escape($data->q) . '</b>"';
+			    $data->descr = "<p><b style='color:#666;'>" . tr('Резултати при търсене в блога на') . '&nbsp;"<i>' . type_Varchar::escape($data->q) . '</i>"</b>';
             }
+
 		} elseif( isset($data->archive)) {  
    			$data->title = tr('Архив за месец') . '&nbsp;<b>' . dt::getMonth($data->archiveM, Mode::is('screenMode', 'narrow') ? 'M' : 'F') . ', ' . $data->archiveY . '&nbsp;</b>';
-        } elseif( isset($data->category) && !count($data->rows)) {
-            $category = type_Varchar::escape(blogm_Categories::fetchField($data->category, 'title'));
-   			$data->title = tr('Няма статии в') .  '&nbsp;"<b>' . $category . '</b>"';
         } elseif(isset($data->category)) {
-            $category = type_Varchar::escape(blogm_Categories::fetchField($data->category, 'title'));
-   			$data->title = tr('Статии в') .  '&nbsp;"<b>' . $category . '</b>"';
+            $catRec = blogm_Categories::fetch($data->category);
+            if(!$catRec) {
+                error('404 Липсваща категория', array("Липсва категория:  {$data->category}"));
+            }
+
+   			$data->title = tr('Статии в') .  '&nbsp;"<b>' . blogm_Categories::getVerbal($catRec, 'title') . '</b>"';
+            $data->descr = blogm_Categories::getVerbal($catRec, 'description');
+            if(!count($data->rows)) {
+                $data->descr .= "<p><b style='color:#666;'>" . tr('Все още няма статии в тази категория') . '</b></p>';
+            }
         } else {
             $data->title = cms_Content::getLang() == 'bg' ? 'Всички статии в блога' : 'All Articles in the Blog';
+            if(!count($data->rows)) {
+                $data->descr .= "<p><b style='color:#666;'>" . tr('Все още няма статии в този блог') . '</b></p>';
+            }
         }
 
 		
@@ -706,8 +739,9 @@ class blogm_Articles extends core_Master {
             }
         }   
         
-        
+     
         $layout->replace($data->title, 'BROWSE_HEADER');
+        $layout->replace($data->descr, 'BROWSE_DESCR');
         $layout->append($data->pager->getPrevNext("« по-стари", "по-нови »"));
         
         // Рендираме навигацията
@@ -809,9 +843,12 @@ class blogm_Articles extends core_Master {
     {
 		$query = $this->getQuery();
         $query->XPR('month', 'varchar', "CONCAT(YEAR(#createdOn), '|', MONTH(#createdOn))");
+        
+        $query->XPR('pubTime', 'datetime', "IF(#publishedOn,#publishedOn,#createdOn)");
+
         $query->groupBy("month");
-        $query->show('month');
-        $query->orderBy('#createdOn', 'DESC');
+        $query->show('month,pubTime');
+        $query->orderBy('#pubTime', 'DESC');
         $query->where("#state = 'active'");
         
         // Филтриране по категориите на съответния език
@@ -902,7 +939,8 @@ class blogm_Articles extends core_Master {
     	}
     	
     	$query->where("#state = 'active'");
-		$query->orderBy('createdOn', 'DESC');
+        $query->XPR('pubTime', 'datetime', "IF(#publishedOn,#publishedOn,#createdOn)");
+		$query->orderBy('#pubTime', 'DESC');
     	$query->limit($itemsCnt);
     	
     	$items = array();
@@ -915,7 +953,7 @@ class blogm_Articles extends core_Master {
 	    		$item = new stdClass();
 	    		$item->title = $rec->title;
 	    		$item->link = toUrl(self::getUrl($rec), 'absolute');
-	    		$item->date = $rec->createdOn;
+	    		$item->date = $rec->pubTime;
 	    		
 	    		// Извличаме описанието на статията, като съкръщаваме тялото и 
 	    		$desc = explode("\n", $rec->body);
@@ -1015,6 +1053,23 @@ class blogm_Articles extends core_Master {
         unset($url['PU']);
 
         return $url;
+    }
+
+
+    /**
+     * Публикива чакащите статии на които им е дошло времето
+     */
+    function cron_PublicPending()
+    {
+        $now = dt::verbal2mysql();
+
+        $query = self::getQuery();
+        $query->where("#state = 'pending' AND #publishedOn < '{$now}'");
+
+        while($rec = $query->fetch()) {
+            $rec->state = 'active';
+            self::save($rec);
+        }
     }
 
 }

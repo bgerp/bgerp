@@ -30,7 +30,8 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 	{
 		$mvc->FLD('classId', 'class(select=title)', 'caption=Мениджър,silent,input=hidden');
 		$mvc->FLD('productId', 'int', 'caption=Продукт,notNull,mandatory', 'tdClass=leftCol wrap,silent');
-		$mvc->FLD('uomId', 'key(mvc=cat_UoM, select=shortName)', 'caption=Мярка,input=none');
+		$mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка,after=productId,mandatory,silent,removeAndRefreshForm=packPrice|discount');
+		
 		$mvc->FLD('quantity', 'double', 'caption=К-во,input=none');
 		$mvc->FLD('quantityInPack', 'double(decimals=2)', 'input=none,column=none');
 		$mvc->FLD('price', 'double(decimals=2)', 'caption=Цена,input=none');
@@ -87,10 +88,6 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 			$vat = cls::get($rec->classId)->getVat($rec->productId, $masterRec->valior);
 			$rec->packPrice = deals_Helper::getDisplayPrice($rec->packPrice, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
 		}
-		
-		// Помощно поле за запомняне на последно избрания артикул
-		//@TODO да се махне
-		$data->form->FNC('lastProductId', 'int', 'silent,input=hidden');
 	}
 	
 	
@@ -114,32 +111,9 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 			$productRef = new core_ObjectReference($ProductMan, $rec->productId);
 			expect($productInfo = $productRef->getProductInfo());
 			
-			if($form->getField('packagingId', FALSE)){
-				
-				$packs = $ProductMan->getPacks($rec->productId);
-				if(isset($rec->packagingId) && !isset($packs[$rec->packagingId])){
-					$packs[$rec->packagingId] = cat_Packagings::getTitleById($rec->packagingId, FALSE);
-				}
-				if(count($packs)){
-					$form->setOptions('packagingId', $packs);
-				} else {
-					$form->setReadOnly('packagingId');
-				}
-				$uomName = cat_UoM::getTitleById($productInfo->productRec->measureId);
-				$form->setField('packagingId', "placeholder={$uomName}");
-			}
-	
-			// Само при рефреш слагаме основната опаковка за дефолт
-			if($form->cmd == 'refresh'){
-				$baseInfo = $ProductMan->getBasePackInfo($rec->productId);
-				
-				// Избираме базовата опаковка само ако сме променяли артикула
-				if($baseInfo->classId == 'cat_Packagings' && $form->rec->lastProductId != $rec->productId){
-					$form->setDefault('packagingId', $baseInfo->id);
-				}
-				 
-				$form->rec->lastProductId = $rec->productId;
-			}
+			$packs = $ProductMan->getPacks($rec->productId);
+			$form->setOptions('packagingId', $packs);
+			$form->setDefault('packagingId', key($packs));
 			
 			$LastPolicy = ($masterRec->isReverse == 'yes') ? 'ReverseLastPricePolicy' : 'LastPricePolicy';
 			if(isset($mvc->$LastPolicy)){
@@ -148,6 +122,8 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 					$form->setSuggestions('packPrice', array('' => '', "{$policyInfoLast->price}" => $policyInfoLast->price));
 				}
 			}
+		} else {
+			$form->setReadOnly('packagingId');
 		}
 		
 		if ($form->isSubmitted() && !$form->gotErrors()) {
@@ -156,7 +132,12 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 			$rec = &$form->rec;
 	
 			// Закръгляме количеството спрямо допустимото от мярката
-			$roundQuantity = cat_UoM::round($rec->packQuantity, $rec->productId, $rec->packagingId);
+			$roundQuantity = cat_UoM::round($rec->packQuantity, $rec->productId);
+			if($roundQuantity == 0){
+				$form->setError('packQuantity', 'Не може да бъде въведено количество, което след закръглянето указано в|* <b>|Артикули|* » |Каталог|* » |Мерки/Опаковки|*</b> |ще стане|* 0');
+				return;
+			}
+			
 			if($roundQuantity != $rec->packQuantity){
 				$form->setWarning('packQuantity', 'Количеството ще бъде закръглено до указаното в |*<b>|Артикули » Каталог » Мерки/Опаковки|*</b>|');
 				 
@@ -182,7 +163,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 			}
 	
 			// Ако артикула няма опаковка к-то в опаковка е 1, ако има и вече не е свързана към него е това каквото е било досега, ако още я има опаковката обновяваме к-то в опаковка
-			$rec->quantityInPack = (empty($rec->packagingId)) ? 1 : (($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : $rec->quantityInPack);
+			$rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
 			$rec->quantity = $rec->packQuantity * $rec->quantityInPack;
 	
 			if (!isset($rec->packPrice)) {
@@ -242,9 +223,6 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 			
 			$rec->price = deals_Helper::getPurePrice($rec->price, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
 			
-			// Записваме основната мярка на продукта
-			$rec->uomId = $productInfo->productRec->measureId;
-			
 			// При редакция, ако е променена опаковката слагаме преудпреждение
 			if($rec->id){
 				$oldRec = $mvc->fetch($rec->id);
@@ -265,7 +243,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 		$rows = &$data->rows;
 		 
 		// Скриваме полето "мярка"
-		$data->listFields = array_diff_key($data->listFields, arr::make('uomId,quantityInPack', TRUE));
+		$data->listFields = array_diff_key($data->listFields, arr::make('quantityInPack', TRUE));
 		
 		if(!count($recs)) return;
 		
@@ -273,17 +251,9 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 			foreach ($data->rows as $i => &$row) {
 				$rec = &$data->recs[$i];
 		
-				if (empty($rec->packagingId)) {
-					$row->packagingId = ($rec->uomId) ? $row->uomId : '???';
-				} else {
-					if(cat_Packagings::fetchField($rec->packagingId, 'showContents') == 'yes'){
-						$shortUomName = cat_UoM::getShortName($rec->uomId);
-						
-						$row->packagingId .= ' <small class="quiet">' . $row->quantityInPack . ' ' . $shortUomName . '</small>';
-						$row->packagingId = "<span class='nowrap'>{$row->packagingId}</span>";
-					}
-				}
-		
+				// Показваме подробната информация за опаковката при нужда
+				deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
+				
 				$row->weight = (!empty($rec->weight)) ? $row->weight : "<span class='quiet'>0</span>";
 				$row->volume = (!empty($rec->volume)) ? $row->volume : "<span class='quiet'>0</span>";
 			}

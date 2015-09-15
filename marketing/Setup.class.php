@@ -129,37 +129,42 @@ class marketing_Setup extends core_ProtoSetup
      */
     static function updateBulletinsBrid()
     {
-        if (!cls::load('marketing_Bulletin', TRUE)) continue;
-        $mBulletin = cls::get('marketing_Bulletin');
-        if($mBulletin->db->tableExists($mBulletin->dbTableName)) {
-            $query = $mBulletin->getQuery();
-            while ($rec = $query->fetch()) {
-                if (!$rec->brid && !$rec->ip) continue;
-                
-                $sQuery = marketing_BulletinSubscribers::getQuery();
-                $sQuery->where(array("#email = '[#1#]'", $rec->email));
-                $sQuery->where("#ip IS NULL");
-                $sQuery->orWhere("#brid IS NULL");
-                
-                while ($nRec = $sQuery->fetch()) {
+        try {
+            if (!cls::load('marketing_Bulletin', TRUE)) return ;
+            $mBulletin = cls::get('marketing_Bulletin');
+            if($mBulletin->db->tableExists($mBulletin->dbTableName)) {
+                $query = $mBulletin->getQuery();
+                while ($rec = $query->fetch()) {
+                    if (!$rec->brid && !$rec->ip) continue;
                     
-                    $mustSave = FALSE;
+                    $sQuery = marketing_BulletinSubscribers::getQuery();
+                    $sQuery->where(array("#email = '[#1#]'", $rec->email));
+                    $sQuery->where("#ip IS NULL");
+                    $sQuery->orWhere("#brid IS NULL");
                     
-                    if (!$nRec->brid) {
-                        $nRec->brid = $rec->brid;
-                        $mustSave = TRUE;
-                    }
-                    
-                    if (!$nRec->ip) {
-                        $nRec->ip = $rec->ip;
-                        $mustSave = TRUE;
-                    }
-                    
-                    if ($mustSave) {
-                        marketing_BulletinSubscribers::save($nRec, 'ip, brid');
+                    while ($nRec = $sQuery->fetch()) {
+                        
+                        $mustSave = FALSE;
+                        
+                        if (!$nRec->brid && $rec->brid) {
+                            $nRec->brid = $rec->brid;
+                            $mustSave = TRUE;
+                        }
+                        
+                        if (!$nRec->ip && $rec->ip) {
+                            $nRec->ip = $rec->ip;
+                            $mustSave = TRUE;
+                        }
+                        
+                        if ($mustSave) {
+                            marketing_BulletinSubscribers::save($nRec, 'ip, brid');
+                        }
                     }
                 }
+            
             }
+        } catch (Exception $e) {
+            marketing_BulletinSubscribers::logErr('Грешка при миграция');
         }
     }
 }

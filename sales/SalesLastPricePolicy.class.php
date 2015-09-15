@@ -43,8 +43,8 @@ class sales_SalesLastPricePolicy extends core_Manager
     	$lastPrices = sales_Sales::getLastProductPrices($customerClass, $customerId);
         if(!isset($lastPrices[$productId])) return NULL;
         
-        $pInfo = cls::get($productManId)->getProductInfo($productId, $packagingId);
-		$quantityInPack = isset($pInfo->packagingRec) ? $pInfo->packagingRec->quantity : 1;
+        $pInfo = cls::get($productManId)->getProductInfo($productId);
+        $quantityInPack = ($pInfo->packagings[$packagingId]) ? $pInfo->packagings[$packagingId]->quantity : 1;
         $packPrice = $lastPrices[$productId] * $quantityInPack;
     	
         $vat = cls::get($productManId)->getVat($productId);

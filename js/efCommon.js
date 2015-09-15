@@ -274,14 +274,14 @@ function getUserAgent()
  */
 function getTimezoneOffset(){
 	var date = new Date();
-	
+
 	return date.getTimezoneOffset();
 }
 
 /**
  * Проверява дали браузърът е IE
  */
-function isIE() 
+function isIE()
 {
     return /msie/i.test(navigator.userAgent) && !/opera/i.test(navigator.userAgent);
 }
@@ -289,7 +289,7 @@ function isIE()
 /**
  * Връща коя версия на IE е браузъра
  */
-function getIEVersion() 
+function getIEVersion()
 {
     var myNav = navigator.userAgent.toLowerCase();
     return (myNav.indexOf('msie') != -1) ? parseInt(myNav.split('msie')[1]) : false;
@@ -298,7 +298,7 @@ function getIEVersion()
 
 /**
  * Инициализира комбобокса
- * 
+ *
  * @param string id
  * @param string suffix
  */
@@ -447,7 +447,7 @@ function ajaxAutoRefreshOptions(id, selectId, input, params) {
 
 
 // Парсира отговора на сървъра
-// Показва грешки и забележки, 
+// Показва грешки и забележки,
 // ако е необходимо стартира скриптове
 function jsonGetContent(ans, parceContent) {
     ans = eval('(' + ans + ')');
@@ -522,7 +522,7 @@ function openWindow(url, name, args) {
     var popup = popupWindows[name];
 
     if (popup) {
-        // Ако браузърат е Chrome първо блърва главния прозорец, 
+        // Ако браузърат е Chrome първо блърва главния прозорец,
         // а след това фокусира на popUp прозореца
         var isChrome = navigator.userAgent.toLowerCase().indexOf('chrome') > -1;
         if (isChrome && popup.parent) {
@@ -694,7 +694,7 @@ function bindEnterOnRicheditTableForm(textarea) {
 
 /**
  * Връща избрания текст в textarea
- * 
+ *
  * @param textarea
  * @return text
  */
@@ -711,7 +711,7 @@ function getSelectedText(textarea) {
 
 /**
  * Редактор за BBCode текст: селектира ...
- * 
+ *
  * @param text1 - текст, който се добавя в преди селектирания текст
  * @param text2 - текст, който се добавя в след селектирания текст
  * @param newLine - дали селектирания текст трябва да премине на нов ред
@@ -917,20 +917,26 @@ function prepareContextMenu() {
     jQuery.each($('.more-btn'), function(i, val) {
         var el = $(this).parent().find('.modal-toolbar');
         var position = el.attr('data-position');
+        var sizeStyle = el.attr('data-sizeStyle');
 
         if (!position || !( position == 'left' || position== 'top' || position == 'bottom')) {
             position = 'auto'
         }
 
+        if (!sizeStyle || sizeStyle != 'context') {
+            sizeStyle = 'auto'
+        }
+
         var act = 'popup';
-        
+
         if ($(this).hasClass('iw-mTrigger')) {
         	act = 'update';
         }
-        
+
         $(this).contextMenu(act, el, {
             'displayAround': 'trigger',
-            'position': position
+            'position': position,
+            'sizeStyle': sizeStyle
         });
     });
 }
@@ -951,7 +957,7 @@ function hideRichtextEditGroups() {
         	$('.richtext-holder-group-after').css("display", "none");
         }
     });
-    
+
     return false;
 }
 
@@ -971,7 +977,7 @@ function toggleRichtextGroups(id, event) {
     }
 
     var hidden = $("#" + id).css("display");
-    
+
     $('.richtext-holder-group-after').css("display", "none");
     if (hidden == 'none') {
         $("#" + id).show("fast");
@@ -987,10 +993,17 @@ function prepareLangBtn(obj) {
 	var arrayLang= obj.data;
 	var hint = obj.hint;
 	var initialLang = obj.lg;
+	var id = obj.id;
+	
+	elemSelector = '.richEdit > textarea';
+	
+	if (typeof id != 'undefined') {
+		elemSelector = '#' + id;
+	}
 	
 	// добавяме бутона за смяна на език
 	var elem = "<a class='rtbutton lang " + initialLang + "' title='" + hint +"'>" + initialLang + "</a>" ;
-	$('.richEdit').append(elem);
+	$(elemSelector).parent().append(elem);
 
 	// на всеки клик подготряме данните за смяна на езика
 	$(document.body).on('click', ".rtbutton.lang", function(e){
@@ -1002,34 +1015,35 @@ function prepareLangBtn(obj) {
 		$('.rtbutton.lang').removeClass(lang).addClass(nextLang);
 		currentLangId = nextLangId;
 		// подаваме необходите данни за нов3ия език
-		changeLang(arrayLang[nextLangId]);
+		changeLang(arrayLang[nextLangId], elemSelector);
 	});
-	
+
 	// при промяна на текста да скрием бутона
-	$('textarea').bind('input propertychange', function() {
+	$(elemSelector).bind('input propertychange', function() {
 		 $('.rtbutton.lang').fadeOut(600);
 		 setTimeout(function() {
 			 $('.rtbutton.lang').remove();
 		 }, 1000);
-		
+
 	});
 }
+
 
 /**
  * Действия при смяна на езика
  */
-function changeLang(data){
-	
+function changeLang(data, elemSelector){
+
 	var lang = data.lg;
-	$('.richEdit textarea').val(data.data);
+	$(elemSelector).val(data.data);
 	$('.rtbutton.lang').text(lang);
-	
+
 	// spellcheck
 	$('input[name=subject]').attr('spellcheck','true');
-	$('.richEdit textarea').attr('spellcheck','true');
+	$(elemSelector).attr('spellcheck','true');
 	$('input[name=subject]').attr('lang',lang);
-	$('.richEdit textarea').attr('lang',lang);
-	
+	$(elemSelector).attr('lang',lang);
+
 	appendQuote(quoteId, quoteLine);
 }
 
@@ -1104,7 +1118,7 @@ function toggleAllCheckboxes() {
         if ($(this).is(":checked") == true) {
             $(this).prop('checked',false);
         } else {
-            $(this).prop('checked',true); 
+            $(this).prop('checked',true);
         }
         chRwCl(id);
     });
@@ -1241,7 +1255,7 @@ function flashDocInterpolation(docId) {
 
 function getBackgroundColor(el) {
     var bgColor = $(el).css('background-color');
- 
+
     if (bgColor == 'transparent') {
         bgColor = 'rgba(0, 0, 0, 0)';
     }
@@ -1298,7 +1312,7 @@ function setMinHeight() {
 
 
 /**
- * мащабиране на страницата при touch устройства с по-голяма ширина 
+ * мащабиране на страницата при touch устройства с по-голяма ширина
  */
 function scaleViewport() {
     if (isTouchDevice()) {
@@ -1328,7 +1342,7 @@ function setMinHeightExt() {
     if ($('#cmsTop').length) {
     	var padding = $('.background-holder').css('padding-top');
     	var totalPadding = 2 * parseInt(padding);
-    	
+
         var ct = $('#cmsTop').height();
         var cb = $('#cmsBottom').height();
         var cm = $('#cmsMenu').height();
@@ -1337,7 +1351,7 @@ function setMinHeightExt() {
         if ($('body').hasClass('wide')) {
             add = 28;
         }
-   
+
         if ($('#maincontent').length) {
             var h = (clientHeight - ct - cb - cm - add);
             if(totalPadding) {
@@ -1402,7 +1416,7 @@ function setFormElementsWidth() {
 
             $(this).parent().css('maxWidth', parseInt((formElWidth - 10) / colsInRow));
         	$(this).parent().css('overflow-x', 'hidden');
-           
+
             $(this).attr('title', $(this).text());
         });
 
@@ -1434,12 +1448,81 @@ function setFormElementsWidth() {
  * Задава ширина на елементите от нишката в зависимост от ширината на прозореца/устройството
  */
 function setThreadElemWidth() {
-    var winWidth = parseInt($(window).width()) - 45;
-    $('.doc_Containers table.listTable > tbody > tr >td').css('maxWidth', winWidth + 8);
-    $('.docStatistic').css('maxWidth', winWidth);
-    $('.scrolling-holder').css('maxWidth', winWidth);
+	var offsetWidth = 45;
+    var threadWidth = parseInt($(window).width()) - offsetWidth;
+    $('.doc_Containers table.listTable > tbody > tr > td').css('maxWidth', threadWidth + 10);
+    $('.docStatistic').css('maxWidth', threadWidth);
+    $('.scrolling-holder').css('maxWidth', threadWidth + 10);
 }
 
+function checkForElementWidthChange() {
+    // Observe a specific DOM element:
+    observeDOM( document.getElementById('main-container') ,function(){
+        setFormElementsWidth();
+        setThreadElemWidth();
+    });
+
+    $(window).resize(function(){
+        setFormElementsWidth();
+        setThreadElemWidth();
+    });
+}
+
+
+function getAllLiveElements() {
+    $('[data-live]').each(function() {
+        var text = $(this).attr('data-live');
+        var data = text.split("|");
+        var fn = window[data[0]];
+
+        data[0] = $(this).attr('id');
+        if (typeof fn === "function") fn(data);
+    });
+}
+
+// функция, която взема елементите в контекстното меню от ajax
+function dropMenu(data) {
+    var ajaxFlag = 0;
+    var id = data[0];
+    var height = data[1];
+    var url = data[2];
+
+    var numId = id.match(/\d+/)[0];
+    $('#' + id).parent().css('position', 'relative');
+    $('#' + id).parent().append("<div class='modal-toolbar' data-sizestyle='context' id='contextHolder" + numId + "' data-height='" + height + "'>");
+
+    $("#" + id).hover(function() {
+        if(ajaxFlag == 1) return;
+        var resObj = new Object();
+        resObj['url'] = url;
+        getEfae().process(resObj);
+        ajaxFlag = 1;
+    });
+
+    prepareContextMenu();
+}
+
+
+var observeDOM = (function(){
+    var MutationObserver = window.MutationObserver || window.WebKitMutationObserver,
+        eventListenerSupported = window.addEventListener;
+
+    return function(obj, callback){
+        if( MutationObserver ){
+            // define a new observer
+            var obs = new MutationObserver(function(mutations, observer){
+                if( mutations[0].addedNodes.length || mutations[0].removedNodes.length )
+                    callback();
+            });
+            // have the observer observe foo for changes in children
+            obs.observe( obj, { childList:true, subtree:true });
+        }
+        else if( eventListenerSupported ){
+            obj.addEventListener('DOMNodeInserted', callback, false);
+            obj.addEventListener('DOMNodeRemoved', callback, false);
+        }
+    }
+})();
 
 /**
  * Задава ширината на текстареата спрямо ширината на клетката, в която се намира
@@ -1477,7 +1560,7 @@ function selectInnerText(text) {
         range.moveToElementText(text);
         range.select();
     } else if (window.getSelection) {
-        selection = window.getSelection();        
+        selection = window.getSelection();
         range = document.createRange();
         range.selectNodeContents(text);
         selection.removeAllRanges();
@@ -1487,7 +1570,7 @@ function selectInnerText(text) {
 
 /**
  * Записва избрания текст в сесията и текущото време
- * 
+ *
  * @param string handle - Манипулатора на докуемента
  */
 function saveSelectedTextToSession(handle, onlyHandle) {
@@ -1526,7 +1609,7 @@ function saveSelectedTextToSession(handle, onlyHandle) {
 
 /**
  * Връща маркирания текст
- * 
+ *
  * @returns {String}
  */
 function getSelText() {
@@ -1568,15 +1651,15 @@ var quoteLine;
 
 /**
  * Добавя в посоченото id на елемента, маркирания текст от сесията, като цитат, ако не е по стар от 5 секунди
- * 
+ *
  * @param id
  * @param line
  */
 function appendQuote(id, line) {
-	
+
 	quoteId = id;
 	quoteLine = line;
-	
+
     // Ако не е дефиниран
     if (typeof sessionStorage === "undefined") return;
 
@@ -1588,13 +1671,13 @@ function appendQuote(id, line) {
 
     // Махаме 5s
     now = now - 5000;
-    
+
     // Ако вече е нагласен или не е изтекъл
 	if ((!quoteText) && (selTime > now)) {
-		
+
         // Вземаме текста
         text = sessionStorage.getItem('selText');
-    	
+
         if (text) {
 
             // Вземаме манипулатора на документа
@@ -1612,10 +1695,10 @@ function appendQuote(id, line) {
             quoteText += text + "[/bQuote]";
         }
 	}
-    
+
     if (quoteText) {
         var textVal = get$(id).value;
-        
+
         // Добавяме към данните
         if (textVal && line) {
         	var splited = textVal.split("\n");
@@ -1630,11 +1713,11 @@ function appendQuote(id, line) {
 
 /**
  * Добавя скрито инпут поле Cmd със стойност refresh
- * 
+ *
  * @param form
  */
 function addCmdRefresh(form) {
-	
+
 	if(typeof form.elements["Cmd[refresh]"] != 'undefined') {
 		form.elements["Cmd[refresh]"].value = 1;
 	} else {
@@ -1710,8 +1793,8 @@ function getShortURL(shortUrl) {
 
 /**
  * добавяне на линк към текущата страница при копиране на текст
- * 
- * @param string text: допълнителен текст, който се появява при копирането 
+ *
+ * @param string text: допълнителен текст, който се появява при копирането
  */
 function addLinkOnCopy(text) {
     var body_element = document.getElementsByTagName('body')[0];
@@ -1751,38 +1834,38 @@ function editCopiedTextBeforePaste() {
 	$('.listTable').bind('copy', function(event, data) {
 		var body_element = document.getElementsByTagName('body')[0];
 		var selection = window.getSelection();
-		
+
 		var htmlDiv = document.createElement('div');
-		  
+
 		htmlDiv.style.position = 'absolute';
 		htmlDiv.style.left = '-99999px';
-		
+
 		body_element.appendChild(htmlDiv);
-		
+
 		htmlDiv.appendChild(selection.getRangeAt(0).cloneContents());
-		
+
 		// временна променлива, в която ще заменстваме
 		var current = htmlDiv.innerHTML.toString();
-		
+
 		//намира всеки стринг, който отгоравя на израза
 		var matchedStr =  current.match(/(\-)?([0-9]{1,3})((&nbsp;){1}[0-9]{3})*(\.{1}[0-9]{2,5})\z*/g);
-		
+
 		if(matchedStr){
 			var replacedStr = new Array();
-			 
+
 			for(var i=0; i< matchedStr.length;i++){
 				// променя всеки от стринговете
 				replacedStr[i] = matchedStr[i].replace(/(&nbsp;)/g, '');
-				var regExp = new RegExp(matchedStr[i], "g");    
+				var regExp = new RegExp(matchedStr[i], "g");
 				// прави замяната в тези стрингове
 				current = current.replace(regExp ,replacedStr[i]);
 			}
-	
+
 			current = '<table>' + current + "</table>";
 			htmlDiv.innerHTML = current;
 			selection.selectAllChildren(htmlDiv);
 		}
-		
+
 		window.setTimeout(function() {
 			body_element.removeChild(htmlDiv);
 		}, 0);
@@ -1797,9 +1880,9 @@ var _singletonInstance = new Array();
 
 /**
  * Връща сингълтон обект за съответната функция
- * 
+ *
  * @param string name - Името на функцията
- * 
+ *
  * @return object
  */
 function getSingleton(name) {
@@ -1816,9 +1899,9 @@ function getSingleton(name) {
 
 /**
  * Създава обект от подаденат функция
- * 
+ *
  * @param string name - Името на функцията
- * 
+ *
  * @return object
  */
 function createObject(name) {
@@ -1836,7 +1919,7 @@ function createObject(name) {
 
 /**
  * Предпазване от двойно събмитване
- * 
+ *
  * @param id: id на формата
  */
 function preventDoubleSubmission(id) {
@@ -1869,12 +1952,12 @@ function preventDoubleClick() {
 	if (lastClickTime) {
 		timeSinceClick = jQuery.now() - lastClickTime;
 	}
-	
+
 	if ((typeof lastClickTime == 'undefined') || ((typeof timeSinceClick != 'undefined') && timeSinceClick > 3000)) {
 		lastClickTime = jQuery.now();
 	    return true;
 	}
-	
+
 	// Блокиране на клика,  за определено време
 	return false;
 }
@@ -1882,24 +1965,24 @@ function preventDoubleClick() {
 /**
  * Подравняване на числата в средата
  */
-function centerNumericElements() {	
+function centerNumericElements() {
 	$('.document .listTable').each(function() {
         var table = $(this);
         var numericWidth = [];
         $(this).find(' > tbody > tr').each(function() {
         	var i = 1;
-	        $(this).find('td').each(function() {	        	
+	        $(this).find('td').each(function() {
 	        	if($(this).find('.numericElement') && (!numericWidth[i] || numericWidth[i] < $(this).find('.numericElement').width())){
 	            	numericWidth[i] = $(this).find('.numericElement').width();
 	            }
 	            i++;
 	        });
         });
-        
+
         for (key in numericWidth) {
         	if(numericWidth[key]){
         		$(table).find("td:nth-child(" + key + ") .numericElement").css('width', numericWidth[key] + 1);
-        	}	
+        	}
         }
     });
 }
@@ -1962,7 +2045,7 @@ function keylistActions(el) {
 		  } else {
 			  // в противен случай затваряме/отваряме групата
 			  toggleKeylistGroups(e.target);
-			    
+
 		  }
 	 });
 }
@@ -1974,7 +2057,7 @@ function toggleKeylistGroups(el) {
 	//в нея намириме всички класове, чието име е като id-то на елемента, който ще ги скрива
     var trItems = findElementKeylistGroup(el);
     var element = $(el).closest("tr.keylistCategory");
-    
+
     if (trItems.length) {
         //и ги скриваме
         trItems.toggle("slow");
@@ -1983,7 +2066,7 @@ function toggleKeylistGroups(el) {
         element.toggleClass('closed');
         element.toggleClass('opened');
     }
-	
+
 }
 
 /**
@@ -1999,7 +2082,7 @@ function findElementKeylistGroup(el){
 
 	    //в нея намириме всички класове, чието име е като id-то на елемента, който ще ги скрива
 	    var keylistGroups = tableHolder.find("tr." + trId);
-	    
+
 	    return keylistGroups;
 }
 
@@ -2010,9 +2093,9 @@ function findElementKeylistGroup(el){
 function inverseCheckBox(el){
 	// сменяме иконката
 	$(el).parent().find(".invert-checkbox").toggleClass('hidden');
-	
+
 	var trItems = findElementKeylistGroup(el);
-	
+
 	//инвертираме
 	$(trItems).find('.checkbox').each(function() {
 		if(this.checked) {
@@ -2145,7 +2228,7 @@ jQuery.fn.highlight = function(words, options) {
 
 /**
  * EFAE - Experta Framework Ajax Engine
- * 
+ *
  * @category  ef
  * @package   js
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
@@ -2196,16 +2279,16 @@ function efae() {
 
     // Дали процеса е изпратена AJAX заявка за извличане на данните за показване след рефреш
     efae.prototype.isSendedAfterRefresh = false;
-    
+
     // Флаг, указващ дали има грешка в AJAX
     efae.prototype.AJAXHaveError = false;
-    
+
     // Флаг, указващ дали е оправена грешката в AJAX
     efae.prototype.AJAXErrorRepaired = false;
-	
+
     // УРЛ, от което се вика AJAX-a - отворения таб
     Experta.prototype.parentUrl;
-    
+
     // Флаг, който се вдига преди обновяване на страницата
     Experta.prototype.isReloading = false;
 }
@@ -2213,7 +2296,7 @@ function efae() {
 
 /**
  * Функция, която абонира дадено URL да извлича данни в определен интервал
- * 
+ *
  * @param string name - Името
  * @param string url - URL-то, което да се използва за извличане на информация
  * @param integer interval - Интервала на извикване в милисекунди
@@ -2236,13 +2319,13 @@ efae.prototype.run = function() {
     try {
         // Увеличаваме брояча
         this.increaseTimeout();
-        
+
         // Вземаме всички URL-та, които трябва да се извикат в този цикъл
         var subscribedObj = this.getSubscribed();
-        
+
         // Стартираме процеса
         this.process(subscribedObj);
-        
+
     } catch (err) {
 
         // Ако възникне грешка
@@ -2261,9 +2344,9 @@ efae.prototype.run = function() {
 
 /**
  * Връща броя на записите в обекта
- * 
+ *
  * @param object subscribedObj - Обект, който да се преброи
- * 
+ *
  * @return integer
  */
 efae.prototype.getObjectKeysCnt = function(subscribedObj) {
@@ -2287,7 +2370,7 @@ efae.prototype.getObjectKeysCnt = function(subscribedObj) {
 /**
  * Извиква URL, който стартира абонираните URL-та на които им е дошло времето да се стартират
  * и рендира функциите от резултата
- * 
+ *
  * @param object subscribedObj - Обект с URL-то, което трябва да се вика
  * @param object otherData - Обект с допълнителни параметри, които ще се пратят по POST
  * @param boolean async - Дали да се стартира асинхронно. По подразбиране не true
@@ -2355,14 +2438,14 @@ efae.prototype.process = function(subscribedObj, otherData, async) {
             // Добавяме в масива
             dataObj['parentUrl'] = this.getParentUrl();
         }
-        
+
         if (typeof(this.getHitId()) != 'undefined') {
             dataObj['hitId'] = this.getHitId();
         }
 
         // Добавяме флаг, който указва, че заявката е по AJAX
         dataObj['ajax_mode'] = 1;
-        
+
         // Извикваме по AJAX URL-то и подаваме необходимите данни и очакваме резултата в JSON формат
         $.ajax({
             async: async,
@@ -2396,7 +2479,7 @@ efae.prototype.process = function(subscribedObj, otherData, async) {
                 func = thisEfaeInst.renderPrefix + func;
 
                 try {
-            		
+
                     // Извикваме функцията
                     window[func](arg);
                 } catch (err) {
@@ -2405,32 +2488,32 @@ efae.prototype.process = function(subscribedObj, otherData, async) {
                     getEO().log(err + 'Несъществуваща фунцкция: ' + func + ' с аргументи: ' + arg);
                 }
             }
-            
+
             if (getEfae().AJAXHaveError) {
             	getEfae().AJAXErrorRepaired = true;
             }
         }).fail(function(res) {
-    		
+
         	// Ако се обновява страницата без AJAX и възникне грешка
         	if (getEO().isReloading) return ;
-        	
+
         	if((res.readyState == 0 || res.status == 0) && res.getAllResponseHeaders()) return;
-            
+
         	var text = 'Connection error';
-        	
+
         	if (res.status == 404) {
         		text = 'Липсващ ресурс';
         	} else if (res.status == 500) {
         		text = 'Грешка в сървъра';
         	}
-        	
+
         	getEO().log('Грешка при извличане на данни по AJAX');
-        	
+
         	setTimeout(function(){
-        		
+
         		getEfae().AJAXHaveError = true;
                 getEfae().AJAXErrorRepaired = false;
-        		
+
 	        	if (typeof showToast != 'undefined') {
 	        		if (!$(".toast-type-error").length) {
 	        			showToast({
@@ -2453,11 +2536,11 @@ efae.prototype.process = function(subscribedObj, otherData, async) {
         }).always(function(res) {
         	// Ако е имало грешка и е оправенена, премахваме статуса
         	if (getEfae().AJAXHaveError && getEfae().AJAXErrorRepaired) {
-    			
+
         		if ($('.connection-error-status').length) {
         			$('.connection-error-status').remove();
         		}
-        		
+
         		if ($('.toast-type-error').length) {
         			$('.toast-type-error').remove();
         		}
@@ -2473,7 +2556,7 @@ efae.prototype.process = function(subscribedObj, otherData, async) {
 
 /**
  * Намира абонираните URL-та на които им е време да се стартират
- * 
+ *
  * @return object - Обект с абонираните URL-та на които им е време да се стартират
  */
 efae.prototype.getSubscribed = function() {
@@ -2543,7 +2626,7 @@ efae.prototype.getSubscribed = function() {
 
 /**
  * Сетваме URL-то, което ще се вика по AJAX
- * 
+ *
  * @param string - Локолното URL, което да се извика по AJAX
  */
 efae.prototype.setUrl = function(url) {
@@ -2553,7 +2636,7 @@ efae.prototype.setUrl = function(url) {
 
 /**
  * Връща локалното URL, което да се извика
- * 
+ *
  * @return - Локолното URL, което да се извикa по AJAX
  */
 efae.prototype.getUrl = function() {
@@ -2564,7 +2647,7 @@ efae.prototype.getUrl = function() {
 
 /**
  * Задаваме URL-то, от което се вика AJAX-а
- * 
+ *
  * @param string - Локолното URL, което да се извика по AJAX
  */
 efae.prototype.setParentUrl = function(parentUrl) {
@@ -2574,7 +2657,7 @@ efae.prototype.setParentUrl = function(parentUrl) {
 
 /**
  * Връща URL-то, от което се вика AJAX-а
- * 
+ *
  * @return - Локолното URL, което да се извикa по AJAX
  */
 efae.prototype.getParentUrl = function() {
@@ -2585,7 +2668,7 @@ efae.prototype.getParentUrl = function() {
 
 /**
  * Задава стойност за hitId
- * 
+ *
  * @param string
  */
 efae.prototype.setHitId = function(hitId) {
@@ -2595,7 +2678,7 @@ efae.prototype.setHitId = function(hitId) {
 
 /**
  * Връща стойността на hitId
- * 
+ *
  * @return string
  */
 efae.prototype.getHitId = function() {
@@ -2604,7 +2687,7 @@ efae.prototype.getHitId = function() {
 };
 
 /**
- * Увеличава времето за стартиране 
+ * Увеличава времето за стартиране
  */
 efae.prototype.increaseTimeout = function() {
     // Ако не сме достигнали горната граница
@@ -2628,7 +2711,7 @@ efae.prototype.resetTimeout = function() {
 /**
  * Функция, която показва toast съобщение с помощта на toast плъгина
  * Може да се комбинира с efae
- * 
+ *
  * @param object data - Обект с необходимите стойности
  * data.timeOut - след колко време да се покаже
  * data.text - текст, който да се покаже
@@ -2645,6 +2728,9 @@ function render_showToast(data) {
             stayTime: data.stayTime,
             type: data.type
         });
+    } else {
+    	var errorData = {id: "statuses", html: "<div class='statuses-message statuses-" + data.type + "'>" + data.text +"</div>", replace: !data.isSticky};
+        render_html(errorData);
     }
 }
 
@@ -2652,7 +2738,7 @@ function render_showToast(data) {
 /**
  * Накара документа да флашне/светне
  * Може да се комбинира с efae
- * 
+ *
  * @param integer docId - id на документа
  */
 function render_flashDoc(docId) {
@@ -2665,7 +2751,7 @@ function render_flashDoc(docId) {
 /**
  * Скролира до документа
  * Може да се комбинира с efae
- * 
+ *
  * @param integer docId - id на документа
  */
 function render_scrollTo(docId) {
@@ -2673,11 +2759,11 @@ function render_scrollTo(docId) {
 }
 
 function render_replaceById(data) {
-	 
+
     // Неоходимите параметри
     var id = data.id;
     var html = data.html;
- 
+
     var idsArr = data.Ids.split(",");
 
 
@@ -2694,7 +2780,7 @@ function render_replaceById(data) {
 /**
  * Функция, която добавя даден текст в съответния таг
  * Може да се комбинира с efae
- * 
+ *
  * @param object data - Обект с необходимите стойности
  * data.id - id на таг
  * data.html - текста
@@ -2705,25 +2791,25 @@ function render_html(data) {
     var id = data.id;
     var html = data.html;
     var replace = data.replace;
-    
+
     // Ако няма HTML, да не се изпуълнява
     if ((typeof html == 'undefined') || !html) return;
-    
+
     // Ако има JQuery
     if (typeof jQuery != 'undefined') {
 
         var idObj = $('#' + id);
-        
+
         // Ако няма такъв таг
         if (!idObj.length) {
 
             // Задаваме грешката
             getEO().log('Липсва таг с id: ' + id);
         }
-		
+
         // Ако е зададено да се замества
         if ((typeof replace != 'undefined') && (replace)) {
-    		
+
             // Заместваме
             idObj.html(html);
         } else {
@@ -2739,7 +2825,7 @@ function render_html(data) {
 /**
  * Функция, която променя броя на нотификациите
  * Може да се комбинира с efae
- * 
+ *
  * @param object data - Обект с необходимите стойности
  * data.id - id на таг
  * data.cnt - броя на нотификациите
@@ -2767,7 +2853,7 @@ function render_prepareContextMenu() {
 /**
  * Функция, която редиректва към определена страница, може да се
  * използва с efae
- * 
+ *
  * @param object data - Обект с необходимите стойности
  * data.url - URL към което да се пренасочи
  */
@@ -2783,7 +2869,7 @@ var blinkerWorking = false;
 /**
  * Функция на нотифициране, чрез звук и премигане на текста и иконката в таба
  * използва с efae
- * 
+ *
  * @param object data - Обект с необходимите стойности
  * data.title - заглавие, което ще се задава
  * data.favicon - път до фав иконата
@@ -2793,34 +2879,34 @@ var blinkerWorking = false;
  */
 function render_Notify(data) {
 	if(blinkerWorking) return;
-	
+
 	render_Sound(data);
 	blinkerWorking = true;
 	var counter = 1;
-	
+
 	// ако няма зададен текст, ще скриваме титлата
     var title = data.title ? data.title : '\u200E';
-    
+
 	//запазваме старата фав икона
 	oldIconPath = $('link[rel="shortcut icon"]')[0].href;
-	
+
 	// подготвяме фав иконките
 	var newIcon = prepareFavIcon(data.favicon);
 	var oldIcon = prepareFavIcon(oldIconPath);
-	
+
 	var interval = setInterval(function(){
 		// Задаваме новия текст и икона
 		setTitle(title);
 		setFavIcon(newIcon);
-		
+
 		// задаваме старите текст и икона след като изтече времето за показване
 		var timeOut = setTimeout(function(){
 			restoreTitle(oldTitle);
 			restoreFavIcon(oldIcon);
 		}, 600);
-		
+
 		counter++;
-		
+
 		// дали са мигнали достатъчно пъти
 		if(counter > data.blinkTimes) {
 			blinkerWorking = false;
@@ -2857,7 +2943,7 @@ function prepareFavIcon(iconPath) {
 	icon.type = 'image/x-icon';
 	icon.rel = 'shortcut icon';
 	icon.href = iconPath;
-	
+
 	return icon;
 }
 
@@ -2892,16 +2978,16 @@ function render_Sound(data){
 		// добавяме аудио таг и пускаме звука
 		setTimeout(function(){
 			$('body').append("<div class='soundBlock'></div>");
-		    $(".soundBlock").append('<audio autoplay="autoplay" onended="removeParentTag(this);">' + 
-		    		'<source src=' + soundMp3 + ' type="audio/mpeg" />' + 
-		    		'<source src=' + soundOgg + ' type="audio/ogg" />' + 
+		    $(".soundBlock").append('<audio autoplay="autoplay" onended="removeParentTag(this);">' +
+		    		'<source src=' + soundMp3 + ' type="audio/mpeg" />' +
+		    		'<source src=' + soundOgg + ' type="audio/ogg" />' +
 		    	'</audio>');
-		    
-		   
+
+
 		    if (typeof Audio !== "function" && typeof Audio !== "object") {
 		    	$(".soundBlock").append('<embed hidden="true" autostart="true" loop="false" src=' + soundMp3 +' />');
 		    }
-		    	  
+
 		}, 500);
 	}
 }
@@ -2925,7 +3011,7 @@ function openUrl(url, event) {
 		}
 		event.cancelBubble = true;
 	}
-	
+
 	window.location = url;
 
 	return false;
@@ -2934,7 +3020,7 @@ function openUrl(url, event) {
 
 /**
  * Променя броя на нотификациите в титлата на таба
- * 
+ *
  * @param cnt - броя на нотификациите
  */
 function changeTitleCnt(cnt) {
@@ -2969,7 +3055,7 @@ function changeTitleCnt(cnt) {
 
 /**
  * Променя броя на нотификациите
- * 
+ *
  * @param object data - Обект с необходимите стойности
  * data.id - id на таг
  * data.cnt - броя на нотификациите
@@ -2996,7 +3082,7 @@ function changeNotificationsCnt(data) {
 
 /**
  * Показва статус съобщениет
- * 
+ *
  * @param object data - Обект с необходимите стойности
  * data.text - Текста, който да се показва
  * data.isSticky - Дали да е лепкаво
@@ -3020,7 +3106,7 @@ function showToast(data) {
 
 /**
  * Experta - Клас за функции на EF
- * 
+ *
  * @category  ef
  * @package   js
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
@@ -3046,7 +3132,7 @@ function Experta() {
 
     // Времето на бездействие в таба
     Experta.prototype.idleTime;
-    
+
     // id на атрибута в който ще се добавя локацията
     Experta.prototype.geolocationId;
 }
@@ -3068,7 +3154,7 @@ Experta.prototype.runIdleTimer = function() {
     getEO().addEvent(document, 'keypress', function() {
         EOinst.resetIdleTimer();
     });
-    
+
     // Стартираме процеса
     this.processIdleTimer();
 };
@@ -3175,7 +3261,7 @@ Experta.prototype.getSavedSelText = function() {
 
 /**
  * Добавя в атрибутите на текстареа позицията и текста на избрания текст
- * 
+ *
  * @param integer id
  */
 Experta.prototype.saveSelTextInTextarea = function(id) {
@@ -3221,8 +3307,8 @@ Experta.prototype.saveSelTextInTextarea = function(id) {
         }
 
         // Ако сме избрали нещо различно от предишното извикване на функцията
-        if ((this.textareaAttr[id]['data-hotSelection'] != selText) || 
-			(this.textareaAttr[id]['data-selectionStart'] != selectionStart) || 
+        if ((this.textareaAttr[id]['data-hotSelection'] != selText) ||
+			(this.textareaAttr[id]['data-selectionStart'] != selectionStart) ||
 			(this.textareaAttr[id]['data-selectionEnd'] != selectionEnd)) {
 
             // Задаваме новите стойности
@@ -3259,7 +3345,7 @@ Experta.prototype.saveSelTextInTextarea = function(id) {
 
 /**
  * Сетва атрибута на текстареа, при фокус
- * 
+ *
  * @param integer id
  */
 Experta.prototype.textareaFocus = function(id) {
@@ -3273,7 +3359,7 @@ Experta.prototype.textareaFocus = function(id) {
 
 /**
  * Сетва атрибута на текстареа, при загуба на фокус
- * 
+ *
  * @param integer id
  */
 Experta.prototype.textareaBlur = function(id) {
@@ -3287,7 +3373,7 @@ Experta.prototype.textareaBlur = function(id) {
 
 /**
  * Добавя ивент към съответния елемент
- * 
+ *
  * @param object elem - Към кой обект да се добави ивента
  * @param string event - Евента, който да слуша
  * @param string function - Функцията, която да се изпълни при ивента
@@ -3310,7 +3396,7 @@ Experta.prototype.addEvent = function(elem, event, func) {
 
 /**
  * Скролва до зададеното id
- * 
+ *
  * @param integer id
  */
 Experta.prototype.scrollTo = function(id) {
@@ -3334,27 +3420,27 @@ Experta.prototype.scrollTo = function(id) {
 
 /**
  * Закръгля дробни числа до подадения брой символи след десетичната запетая
- * 
+ *
  * @param double id
  * @param integer id
- * 
+ *
  * @return integer|double|NULL
  */
 Experta.prototype.round = function(val, decimals) {
-	
+
 	if (typeof Math == "undefined") return ;
-	
+
 	var pow = Math.pow(10, parseInt(decimals));
-	
+
 	val = Math.round(parseFloat(val) * pow) / pow;
-	
+
 	return val;
 }
 
 
 /**
  * Задава позицията от geolocation в полето
- * 
+ *
  * @param string attrId
  */
 Experta.prototype.setPosition = function(attrId) {
@@ -3364,7 +3450,7 @@ Experta.prototype.setPosition = function(attrId) {
 
 /**
  * Задава геолокациите
- * 
+ *
  * @param string attrId
  */
 Experta.prototype.setGeolocation = function(attrId) {
@@ -3377,44 +3463,44 @@ Experta.prototype.setGeolocation = function(attrId) {
 
 /**
  * Задава координатите
- * 
+ *
  * @param object
  */
 Experta.prototype.setCoords = function(position) {
-	
+
 	var lat = getEO().round(position.coords.latitude, 6);
 	var long = getEO().round(position.coords.longitude, 6);
-	
+
 	$('#' + getEO().geolocationId).val(lat + ',' + long);
 }
 
 
 /**
  * Ескейпва подадения стринг
- * 
+ *
  * @param string str
- * 
+ *
  * @param return
  */
 Experta.prototype.escape = function(str) {
-	
+
 	str = str.replace(/[&<>]/g, function(tag) {
 		var tagsToReplace = {
 			    '&': '&amp;',
 			    '<': '&lt;',
 			    '>': '&gt;'
 			};
-		
+
 		return tagsToReplace[tag] || tag;
 	});
-	
+
 	return str;
 }
 
 
 /**
  * Показва съобщението в лога
- * 
+ *
  * @param string txt - Съобщението, което да се покаже
  */
 Experta.prototype.log = function(txt) {
@@ -3437,7 +3523,7 @@ Experta.prototype.doCountdown = function(l1, l2, l3) {
 		var hour =  parseInt(res[0],10);
 		var min = parseInt(res[1],10);
 		var sec =  parseInt(res[2],10);
-		
+
 		if(!(hour == 0 && min == 0 && sec==0 )) {
 			sec--;
 			if(sec < 0){
@@ -3450,29 +3536,29 @@ Experta.prototype.doCountdown = function(l1, l2, l3) {
 					hour--;
 				}
 			}
-			
+
 			var timeInSec = hour * 3600 + min * 60 + sec;
-		
-			if (l1 && timeInSec < l1) $(this).removeClass('cd-l2 cd-l3').addClass('cd-l1'); 
-			if (l2 && timeInSec < l2) $(this).removeClass('cd-l1 cd-l3').addClass('cd-l2'); 
-			if (l3 && timeInSec < l3) $(this).removeClass('cd-l1 cd-l2').addClass('cd-l3'); 
-			
+
+			if (l1 && timeInSec < l1) $(this).removeClass('cd-l2 cd-l3').addClass('cd-l1');
+			if (l2 && timeInSec < l2) $(this).removeClass('cd-l1 cd-l3').addClass('cd-l2');
+			if (l3 && timeInSec < l3) $(this).removeClass('cd-l1 cd-l2').addClass('cd-l3');
+
 			if(timeInSec == 0) {
 				$(this).removeClass('cd-l3').css('color', 'black');
 			}
-			
+
 			//добавяме водещи нули ако е необходимо
 			if(hour < 10){
 				hour = "0" +  hour;
 			}
-			
+
 			if(sec < 10){
 				sec = "0" +  sec;
 			}
 			if(min < 10){
 				min = "0" + min;
 			}
-			
+
 			$(this).text(hour + ":" + min + ":" +sec);
 		}
 	});
@@ -3501,7 +3587,7 @@ Experta.prototype.setCountdown = function(l1, l2, l3) {
 
 /**
  * Връща сингълтон инстанция за класа Experta
- * 
+ *
  * @return object
  */
 function getEO() {
@@ -3512,7 +3598,7 @@ function getEO() {
 
 /**
  * Връща сингълтон инстанция за efae класа
- * 
+ *
  * @return object
  */
 function getEfae() {
@@ -3528,7 +3614,7 @@ function prepareBugReport(form, user, domain, name, ctr, act, sysDomain)
 	var height = $(window).height();
 	var browser = getUserAgent();
 	var title = sysDomain + '/' + ctr + '/' + act;
-	
+
 	addBugReportInput(form, 'title', title);
 	addBugReportInput(form, 'url', url);
 	addBugReportInput(form, 'email', user + '@' + domain);
@@ -3580,12 +3666,12 @@ function mailServerSettings() {
     var smtpSecure = document.getElementById('smtpSecure');
     var smtpAuth = document.getElementById('smtpAuth');
     var smtpUser = document.getElementById('smtpUser');
-   
-    var n = email.value.search("@"); 
-    
+
+    var n = email.value.search("@");
+
     var provider = email.value.substr(n+1);
     var userAccountt = email.value.substr(0,n);
-    
+
     if (server.value == "") {
 		switch (provider) {
 		    case "abv.bg":
@@ -3643,7 +3729,7 @@ function mailServerSettings() {
 		    	user.value = email.value;
 		    	smtpUser.value = email.value;
 		        break;
-	
+
 		    default:
 		    	protocol.value = "imap";
 		    	security.value = "default";
@@ -3658,9 +3744,9 @@ function mailServerSettings() {
 
 /**
  * Вика url-то w data-url на линка и спира норматлноното му действие
- * 
+ *
  * @param event
- * 
+ *
  * @return boolean
  */
 function startUrlFromDataAttr(obj)
@@ -3668,19 +3754,19 @@ function startUrlFromDataAttr(obj)
 	if (this.event) {
 		stopBtnDefault(this.event);
 	}
-		
+
 	resObj = new Object();
 	resObj['url'] = obj.getAttribute('data-url');
-	
+
 	getEfae().process(resObj);
-	
+
 	return false;
 }
 
 
 /**
  * Спира нормалното дейстие на бутона след натискане
- * 
+ *
  * @param event
  */
 function stopBtnDefault(event)
@@ -3754,7 +3840,7 @@ if (!Array.prototype.indexOf)
 
 /**
  * Fix за IE7
- * 
+ *
  * @see http://www.sitepoint.com/javascript-json-serialization/
  */
 var JSON = JSON || {};
@@ -3763,7 +3849,7 @@ var JSON = JSON || {};
 /**
  * Fix за IE7
  * implement JSON.stringify serialization
- * 
+ *
  * @see http://www.sitepoint.com/javascript-json-serialization/
  */
 JSON.stringify = JSON.stringify || function (obj) {
@@ -3798,7 +3884,7 @@ JSON.stringify = JSON.stringify || function (obj) {
 /**
  * Fix за IE7
  * implement JSON.parse de-serialization
- * 
+ *
  * @see http://www.sitepoint.com/javascript-json-serialization/
  */
 JSON.parse = JSON.parse || function (str) {

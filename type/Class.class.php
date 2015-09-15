@@ -65,10 +65,10 @@ class type_Class  extends type_Key {
         				
         				// Добавяме името като OPTGROUP
         				$newOptions[$optArr[0]] = (object)array(
-        						'title' => $optArr[0],
+        						'title' => trim($optArr[0]),
         						'group' => TRUE,
         				);
-        				$newOptions[$index] = $optArr[1];
+        				$newOptions[$index] = trim($optArr[1]);
         			} else {
         				
         				// Ако няма група запомняме го като такъв

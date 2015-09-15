@@ -156,7 +156,7 @@ class currency_CurrencyRates extends core_Detail
             
             $this->Currencies->save($currenciesRec, 'lastUpdate,lastRate');
             
-            $this->save($rec);
+            $this->save($rec, NULL, 'IGNORE');
             
             $countCurrencies++;
         }
@@ -359,6 +359,27 @@ class currency_CurrencyRates extends core_Detail
         return NULL;
     }
     
+    
+    /**
+     * Проверява дали има валутен курс и редиректва при нужда
+     * 
+     * @param NULL|double $rate
+     */
+    public static function checkRateAndRedirect($rate)
+    {
+        if (!is_null($rate)) return ;
+        
+        $errMsg = 'Няма валутен курс';
+        
+        self::logErr($errMsg);
+        
+        if (self::haveRightFor('list')) {
+            redirect(array(get_called_class(), 'list', 'ret_url' => TRUE), FALSE, $errMsg, 'error');
+        } else {
+            status_Messages::newStatus($errMsg, 'error');
+        }
+    }
+    
 
     /**
      * Връща директния курс на една валута към друга, без преизчисляване през трета валута
@@ -458,7 +479,7 @@ class currency_CurrencyRates extends core_Detail
      * Приемливото отклонение е дефинирано в , дефолт 5%
      * @param double $givenRate - подаден курс.
      * @param string $from - код от коя валута
-     * @param string $то - код към коя валута
+     * @param string $to - код към коя валута
      * @return mixed FALSE - ако няма отколонение
      * 				 $msg  - 'предупреждението за съответствие'
      */

@@ -95,7 +95,7 @@ class marketing_Bulletin extends core_Manager
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	// Оцветяваме BRID
-    	$row->brid = logs_Browsers::getLink($rec->brid);
+    	$row->brid = log_Browsers::getLink($rec->brid);
     	
         if ($rec->ip) {
         	// Декорираме IP-то

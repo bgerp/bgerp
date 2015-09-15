@@ -119,7 +119,7 @@ class marketing_BulletinSubscribers extends core_Detail
         
         // Добавяме данните към `brid` в модела
         $userData = array('email' => $email);
-        logs_Browsers::setVars($userData);
+        log_Browsers::setVars($userData);
         
         $domain = marketing_Bulletins::fetchField((int) $bId, 'domain');
         
@@ -130,7 +130,7 @@ class marketing_BulletinSubscribers extends core_Detail
             $rec->bulletinId = $bId;
             $rec->email = $email;
             $rec->ip = core_Users::getRealIpAddr();
-            $rec->brid = logs_Browsers::getBrid();
+            $rec->brid = log_Browsers::getBrid();
             
             self::save($rec);
         } else {
@@ -150,7 +150,7 @@ class marketing_BulletinSubscribers extends core_Detail
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	// Оцветяваме BRID
-    	$row->brid = logs_Browsers::getLink($rec->brid);
+    	$row->brid = log_Browsers::getLink($rec->brid);
     	
         if ($rec->ip) {
         	// Декорираме IP-то

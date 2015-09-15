@@ -102,7 +102,7 @@ class support_Issues extends core_Master
     /**
      * Поддържани интерфейси
      */
-    var $interfaces = 'doc_DocumentIntf, doc_AddToFolderIntf, doc_ContragentDataIntf';
+    var $interfaces = 'doc_DocumentIntf, doc_ContragentDataIntf';
     
     
     /**
@@ -270,7 +270,7 @@ class support_Issues extends core_Master
         $rec = &$form->rec;
         
         if(!haveRole('user')) {
-            $brid = logs_Browsers::getBrid(FALSE);
+            $brid = log_Browsers::getBrid(FALSE);
             if($brid) {
                 $query = $this->getQuery();
                 $query->limit = 1;
@@ -305,7 +305,7 @@ class support_Issues extends core_Master
             
             if(!haveRole('powerUser')) {
                 $rec->ip   = core_Users::getRealIpAddr();
-                $rec->brid = logs_Browsers::getBrid();
+                $rec->brid = log_Browsers::getBrid();
             }
     		
     		if(empty($rec->folderId)){
@@ -324,7 +324,7 @@ class support_Issues extends core_Master
     			// Ако няма потребител, записваме в бисквитка ид-то на последното запитване
     			if(!$cu){
     				$userData = array('name' => $rec->name, 'email' => $rec->email);
-    				logs_Browsers::setVars($userData);
+    				log_Browsers::setVars($userData);
     			}
     			
     			status_Messages::newStatus(tr('Благодарим Ви за сигнала'), 'success');
@@ -395,7 +395,7 @@ class support_Issues extends core_Master
      */
     static function on_AfterrecToVerbal($mvc, $row, $rec, $fields = array()) 
     {
-        $row->brid = logs_Browsers::getLink($rec->brid);
+        $row->brid = log_Browsers::getLink($rec->brid);
     }
     
     
@@ -619,6 +619,22 @@ class support_Issues extends core_Master
             
             if ($sysRec->defaultType) {
                 $data->form->setDefault('typeId', $defTypeId);
+            }
+        }
+        
+        if (!$data->form->rec->id) {
+            Request::setProtected('srcId, srcClass');
+            if ($srcId = Request::get('srcId', 'int')) {
+                if ($srcClass = Request::get('srcClass')) {
+                    if (cls::haveInterface('support_IssueCreateIntf', $srcClass)) {
+                        $srcInst = cls::getInterface('support_IssueCreateIntf', $srcClass);
+                        $defTitle = $srcInst->getDefaultIssueTitle($srcId);
+                        $defBody = $srcInst->getDefaultIssueBody($srcId);
+                        
+                        $data->form->setDefault('title', $defTitle);
+                        $data->form->setDefault('description', $defBody);
+                    }
+                }
             }
         }
     }
@@ -957,17 +973,6 @@ class support_Issues extends core_Master
         }
         
         return $contrData;
-    }
-    
-    /**
-     * Да се показвали бърз бутон за създаване на документа в папка
-     */
-    public function mustShowButton($folderRec, $userId = NULL)
-    {
-    	$Cover = doc_Folders::getCover($folderRec->id);
-    	
-    	// Показваме бутона само ако корицата на папката поддържа интерфейса 'support_IssueIntf'
-    	return ($Cover->haveInterface('support_IssueIntf')) ? TRUE : FALSE;
     }
     
 

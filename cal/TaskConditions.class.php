@@ -20,48 +20,55 @@ class cal_TaskConditions extends core_Detail
     /**
      * Име на поле от модела, външен ключ към мастър записа
      */
-    var $masterKey = 'baseId';
+    public $masterKey = 'baseId';
 
      
     /**
      * Плъгини за зареждане
      */
-    var $loadList = 'plg_Created,cal_Wrapper,plg_AutoFilter, plg_RowTools';
+    public $loadList = 'plg_Created,cal_Wrapper,plg_AutoFilter, plg_RowTools';
 
 
     /**
      * Заглавие
      */
-    var $title = "Условия";
+    public $title = "Условия";
     
     
     /**
      * Заглавие в единствено число
      */
-    var $singleTitle = 'Условие';
+    public $singleTitle = 'Условие';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'createdOn,createdBy,message,progress,workingTime';
+    public $listFields = 'createdOn,createdBy,message,progress,workingTime,condition';
     
     
-    var $rowToolsField = 'tool';
+    public $rowToolsField = 'tool';
     
     
     /**
      * Поле в което да се показва иконата за единичен изглед
      */
-    var $rowToolsSingleField = 'title';
+    public $rowToolsSingleField = 'title';
 
     
-    var $canAdd = 'powerUser';
+    public $canAdd = 'powerUser';
+    
+    
+    public $canEdit = 'powerUser';
+    
+    
+    public $canDelete = 'powerUser';
+    
     
     /**
      * Активен таб на менюто
      */
-    var $currentTab = 'Задачи';
+    public $currentTab = 'Задачи';
 
     
     
@@ -110,6 +117,7 @@ class cal_TaskConditions extends core_Detail
         
         if (!$data->form->rec->activationCond) {
         	$data->form->setDefault('activationCond', 'onProgress');
+        	$data->form->setField('progress', 'input');
         }
         
         if ($data->form->rec->activationCond == 'onProgress') {
@@ -196,7 +204,13 @@ class cal_TaskConditions extends core_Detail
     	if ($rec->progress == '0') {
     		$row->progress = "";
     	}
-    
+       
+        
+        if (!isset($rec->baceId)) {
+        	$rec = cal_TaskConditions::fetch($rec->id);
+        }
+        $taskRec = cal_Tasks::fetch($rec->baseId);
+
         $row->condition = '<td>' . $row->tool . '</td><td>'  . $row->condition;
     	 
     	if ($rec->activationCond == 'onProgress') {
@@ -218,6 +232,7 @@ class cal_TaskConditions extends core_Detail
     	if ($rec->activationCond == 'beforeTimeEnd') {
     		$row->condition .= $row->distTime . tr(" преди края на ") . ht::createLink($row->dependId, array('cal_Tasks', 'single', $rec->dependId, 'ret_url' => TRUE, ''), NULL, "ef_icon=img/16/task-normal.png");
     	}
+
     }
     
     
@@ -233,7 +248,7 @@ class cal_TaskConditions extends core_Detail
     function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec, $userId)
     {
     	
-    	if ($rec->id) { 
+    	if ($rec->id) {
     		if (!isset($rec->baceId)) {
     			$rec = cal_TaskConditions::fetch($rec->id);
     		}
@@ -244,10 +259,11 @@ class cal_TaskConditions extends core_Detail
 	        	$requiredRoles = 'no_one'; 
 	            	
     	    } else {
-         
-	         	if ($action == 'edit' || $action == 'delete') { 
+
+            	if ($action == 'edit' || $action == 'delete') { 
 	         		if (!cal_Tasks::haveRightFor('single', $taskRec)) {
 		         		$requiredRoles = 'no_one'; 
+
 		         	}
 	         	}
     	    }

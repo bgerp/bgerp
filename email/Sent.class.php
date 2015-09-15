@@ -126,6 +126,7 @@ class email_Sent
         if ($emailsTo) {
             $toArr = type_Emails::toArray($emailsTo);
             foreach ($toArr as $to) {
+                blast_BlockedEmails::addEmail($to);
                 $PML->AddAddress($to);        
             }
         }
@@ -133,6 +134,7 @@ class email_Sent
         if ($emailsCc) {
             $ccArr = type_Emails::toArray($emailsCc);
             foreach ($ccArr as $cc) {
+                blast_BlockedEmails::addEmail($cc);
                 $PML->AddCC($cc);        
             }
         }
@@ -201,7 +203,7 @@ class email_Sent
         if (!$isSended) {
             $error = trim($PML->ErrorInfo);
             if (isset($error)) {
-                core_Manager::log("PML error: " . $error);
+                log_Data::add('err', "PML error: " . $error, 'phpmailer_Instance');
             }
         }
         

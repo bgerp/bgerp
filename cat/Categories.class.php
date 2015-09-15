@@ -36,6 +36,12 @@ class cat_Categories extends core_Master
     
     
     /**
+     * Кои документи да се добавят като бързи бутони в папката на корицата
+     */
+    public $defaultDefaultDocuments  = 'cat_Products';
+    
+    
+    /**
      * Плъгини за зареждане
      */
     var $loadList = 'plg_Created, plg_RowTools, cat_Wrapper, plg_State, doc_FolderPlg, plg_Rejected';
@@ -144,6 +150,16 @@ class cat_Categories extends core_Master
     
     
     /**
+     * Извиква се след подготовката на формата
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+    	$suggestions = cat_UoM::getUomOptions();
+    	$data->form->setSuggestions('measures', $suggestions);
+    }
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -152,7 +168,8 @@ class cat_Categories extends core_Master
         $this->FLD('prefix', 'varchar(64)', 'caption=Представка');
         $this->FLD('sysId', 'varchar(32)', 'caption=System Id,oldFieldName=systemId,input=none,column=none');
         $this->FLD('info', 'richtext(bucket=Notes,rows=4)', 'caption=Бележки');
-        $this->FLD('measures', 'keylist(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Позволени мерки,columns=2');
+        $this->FLD('measures', 'keylist(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Настройки на артикулите->Мерки,columns=2');
+        $this->FLD('markers', 'keylist(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Настройки на артикулите->Маркери,columns=2');
         
         // Свойства присъщи на продуктите в групата
         $this->FLD('meta', 'set(canSell=Продаваеми,
@@ -160,7 +177,7 @@ class cat_Categories extends core_Master
                                 canStore=Складируеми,
                                 canConvert=Вложими,
                                 fixedAsset=Дълготрайни активи,
-        			canManifacture=Производими)', 'caption=Свойства ( предават се на артикулите създадени в папката )->Списък,columns=2');
+        			canManifacture=Производими)', 'caption=Настройки на артикулите->Свойства,columns=2');
         
         
         $this->setDbUnique("sysId");

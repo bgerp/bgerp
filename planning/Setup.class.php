@@ -1,7 +1,6 @@
 <?php
 
 
-
 /**
  * Производствено планиране - инсталиране / деинсталиране
  *
@@ -24,9 +23,15 @@ class planning_Setup extends core_ProtoSetup
     
     
     /**
+     * Необходими пакети
+     */
+    var $depends = 'cat=0.1';
+    
+    
+    /**
      * Мениджър - входна точка в пакета
      */
-    var $startCtr = 'planning_Resources';
+    var $startCtr = 'planning_Jobs';
     
     
     /**
@@ -46,17 +51,22 @@ class planning_Setup extends core_ProtoSetup
      */
     var $managers = array(
     		'planning_Jobs',
-            'planning_Tasks',
-    		'planning_Resources',
     		'planning_Stages',
-    		'planning_ObjectResources',
     		'planning_ConsumptionNotes',
     		'planning_ConsumptionNoteDetails',
     		'planning_ProductionNotes',
     		'planning_ProductionNoteDetails',
     		'planning_DirectProductionNote',
     		'planning_DirectProductNoteDetails',
-    		'migrate::moveJobs'
+    		'planning_ReturnNotes',
+    		'planning_ReturnNoteDetails',
+    		'planning_ObjectResources',
+    		'planning_Tasks',
+    		'planning_HumanResources',
+    		'planning_AssetResources',
+    		'planning_drivers_ProductionTaskDetails',
+    		'migrate::updateTasks',
+    		'migrate::updateNotes',
         );
 
         
@@ -70,14 +80,14 @@ class planning_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     var $menuItems = array(
-            array(3.21, 'Производство', 'Планиране', 'planning_Resources', 'default', "planning, ceo"),
-        );   
-
-
+            array(3.21, 'Производство', 'Планиране', 'planning_Jobs', 'default', "planning, ceo"),
+        );
+    
+    
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    var $defClasses = "planning_PlanningReportImpl,planning_PurchaseReportImpl";
+    var $defClasses = "planning_reports_PlanningImpl,planning_reports_PurchaseImpl,planning_drivers_ProductionTask";
     
     
     /**
@@ -93,47 +103,44 @@ class planning_Setup extends core_ProtoSetup
     
     
     /**
-     * Премахване на стария ресурс
+     * Миграция на старите задачи
      */
-    public function removeOldDefResource5()
+    function updateTasks()
     {
-    	planning_Resources::delete("#title = 'Общ'");
-    }
-    
-    
-    /**
-     * Миграция за обновяване на състоянието на ресурсите
-     */
-    public function updateResourceState()
-    {
-    	$query = planning_Resources::getQuery();
-    	$query->where("#state != 'rejected'");
-    	while($rec = $query->fetch()){
-    		$rec->state = 'active';
-    		cls::get('planning_Resources')->save_($rec);
+    	core_Classes::add('planning_Tasks');
+    	$PlanningTasks = planning_Tasks::getClassId();
+    	 
+    	if(!tasks_Tasks::count()) return;
+    	
+    	$tQuery = tasks_Tasks::getQuery();
+    	$tQuery->where('#classId IS NULL || #classId = 0');
+    	while($tRec = $tQuery->fetch()){
+    		if(cls::get('tasks_Tasks')->getDriver($tRec->id)){
+    			$tRec->classId = $PlanningTasks;
+    			tasks_Tasks::save($tRec);
+    		}
+    	}
+    	
+    	if($cRec = core_Classes::fetch("#name = 'tasks_Tasks'")){
+    		$cRec->state = 'closed';
+    		core_Classes::save($cRec);
     	}
     }
     
     
     /**
-     * Преместване на старите задания
+     * Миграция на старите задачи
      */
-    public function moveJobs()
+    function updateNotes()
     {
-    	if(planning_Jobs::count()){
-    		core_Classes::add('cat_GeneralProductDriver');
-    		$Driver = cls::get('cat_GeneralProductDriver');
-    		$folderId = doc_UnsortedFolders::forceCoverAndFolder((object)array('name' => $Driver->getJobFolderName()));
-    		
-    		$query = planning_Jobs::getQuery();
-    		$query->where("#folderId != {$folderId}");
-    		while($rec = $query->fetch()){
-    			try{
-    				doc_Threads::move($rec->threadId, $folderId);
-    			} catch(core_exception_Expect $e){
-    				planning_Jobs::log("Проблем при местене на задание {$rec->id}: {$e->getMessage()}");
-    			}
-    		}
+    	if(!planning_DirectProductionNote::count()) return;
+    	
+    	$query = planning_DirectProductionNote::getQuery();
+    	$query->where('#inputStoreId IS NULL');
+    	
+    	while($rec = $query->fetch()){
+    		$rec->inputStoreId = $rec->storeId;
+    		cls::get('planning_DirectProductionNote')->save_($rec);
     	}
     }
 }

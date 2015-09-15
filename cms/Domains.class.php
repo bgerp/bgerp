@@ -190,7 +190,7 @@ class cms_Domains extends core_Embedder
             $query = self::getQuery();
             $domainRecs = $query->fetchAll(array("#domain = '[#1#]'", 'localhost'));
         }
- 
+
         return $domainRecs;
     }
 
@@ -215,10 +215,10 @@ class cms_Domains extends core_Embedder
             if(!$lang || !$cmsLangs[$lang]) {
                 $lang = self::detectLang($cmsLangs);
             }
-
+            
             // Определяме домейна, който отговаря на езика
             foreach($domainRecs as $dRec) {
-                if($dRec->lang == $lang || !$domainRec) {
+                if($dRec->lang == $lang || !$domainRec ||  (count($domainRecs) == 1)) {
                     $domainRec = $dRec;
                 }
             }
@@ -267,6 +267,26 @@ class cms_Domains extends core_Embedder
         }
   
         return $cmsLangs;
+    }
+    
+    
+    /**
+     * Подготвя поле за въвеждане на домейн
+     */
+    public static function setFormField($form, $field = 'domainId')
+    {
+        $query = self::getQuery();
+        while($rec = $query->fetch("#state = 'active'")) {
+            if(self::haveRightfor('select', $rec) || $rec->id == $form->rec->{$field}) {
+                $opt[$rec->id] = self::getRecTitle($rec);
+            }
+        }
+        expect($form instanceof core_Form);
+        $form->setOptions($field, $opt);
+        if(!$form->rec->{$field}) {
+            $form->rec->{$field} = self::getCurrent();
+        }
+
     }
 
  

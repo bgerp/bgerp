@@ -1003,6 +1003,16 @@ div.acc-detail {
 		}
     }
 }
+.portal.planning table.listTable th {
+    border: 1px solid #ccc;
+    &:first-child {
+        border-left: none;
+    }
+    &:last-child {
+        border-right: none;
+    }
+    display: table-cell;
+}
 
 .narrow .portal .listRows {
 	font-size:0.9em;	
@@ -2066,7 +2076,7 @@ fieldset.sharing-history {
 #cmsMenu a {
 	font-size: 1.12em;
 	padding: 4px;
-    margin:2px 20px 2px 15px;
+    margin:2px 20px 2px 10px;
     line-height:normal;	
     white-space: nowrap;
 	display: block;
@@ -3032,7 +3042,7 @@ div.location.public {
 	width: auto !important;
 }
 
-.core_Logs table.listTable > tbody > tr > td:last-child {
+.log_Debug table.listTable > tbody > tr > td:last-child {
 	max-width: 600px;
     table td{
 	   word-break:break-all;
@@ -3062,6 +3072,15 @@ div.location.public {
 		margin: 10px 0 12px;
 	}
 }
+
+.state-error-email {
+    background-color: #f3bbaf;
+}
+
+.state-blocked-email {
+    background-color: #f1cba6;
+}
+
 /*край на email*/
 
 
@@ -4488,7 +4507,23 @@ body.narrow {
 	padding:2px;
 	border:solid 1px #ccc;
 	background-color:#eee;
-} 
+}
+
+.logs-type-warning {
+    background-color: #fae3ca;
+}
+.logs-type-debug {
+    background-color: #eee;
+}
+.logs-type-notice {
+    background-color: #dff4fa;
+}
+.logs-type-info {
+    background-color: #fffef4;
+}
+.logs-type-err {
+    background-color: #fad0d1;
+}
 
 /* Стилове за езика във външната част*/
 .wide .langSelect{

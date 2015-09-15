@@ -43,7 +43,7 @@ class sales_SalesDetails extends deals_DealDetail
      * var string|array
      */
     public $loadList = 'plg_RowTools, plg_Created, sales_Wrapper, plg_RowNumbering, plg_SaveAndNew,
-                        plg_AlignDecimals2, plg_Sorting, doc_plg_HidePrices, LastPricePolicy=sales_SalesLastPricePolicy';
+                        plg_AlignDecimals2, plg_Sorting, deals_plg_ImportDealDetailProduct, doc_plg_HidePrices, LastPricePolicy=sales_SalesLastPricePolicy';
     
     
     /**
@@ -97,7 +97,7 @@ class sales_SalesDetails extends deals_DealDetail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, packagingId, uomId, packQuantity, packPrice, discount, amount, quantityInPack';
+    public $listFields = 'productId, packagingId, packQuantity, packPrice, discount, amount, quantityInPack';
     
         
     /**
@@ -137,25 +137,19 @@ class sales_SalesDetails extends deals_DealDetail
     public static function on_AfterInputEditForm($mvc, $form)
     {
     	$rec = &$form->rec;
-    	$masterStore = $mvc->Master->fetch($rec->{$mvc->masterKey})->shipmentStoreId;
     	
     	if(isset($rec->productId)){
-    		$pInfo = cls::get($rec->classId)->getProductInfo($rec->productId, $rec->packagingId);
+    		$pInfo = cls::get($rec->classId)->getProductInfo($rec->productId);
+    		$masterStore = $mvc->Master->fetch($rec->{$mvc->masterKey})->shipmentStoreId;
     		
     		if(isset($masterStore) && isset($pInfo->meta['canStore'])){
-    			
-    			$storeInfo = deals_Helper::getProductQuantityInStoreInfo($rec->productId, $rec->classId, $masterStore);
+    			$storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $masterStore);
     			$form->info = $storeInfo->formInfo;
-    		}
-    	}
-    	
-    	if ($form->isSubmitted()){
-    		$quantityInPack = ($pInfo->packagingRec) ? $pInfo->packagingRec->quantity : 1;
-    		
-    		// Показваме предупреждение ако наличното в склада е по-голямо от експедираното
-    		if(isset($storeInfo)){
-    			if($rec->packQuantity > ($storeInfo->quantity / $quantityInPack)){
-    				$form->setWarning('packQuantity', 'Въведеното количество е по-голямо от наличното в склада');
+    			
+    			if ($form->isSubmitted()){
+    				if(isset($storeInfo->warning)){
+    					$form->setWarning('packQuantity', $storeInfo->warning);
+    				}
     			}
     		}
     	}

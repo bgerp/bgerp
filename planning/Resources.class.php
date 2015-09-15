@@ -453,7 +453,7 @@ class planning_Resources extends core_Master
     				$query2->show("ent{$resourcePositionId}Id,blAmount,blQuantity");
     				 
     				$bRec = $query2->fetch();
-    				 
+    				 //if($ob)
     				// Изчисляваме колко е счетоводната средно притеглена цена
     				if(!is_null($bRec->blAmount) && !is_null($bRec->blQuantity)){
     					@$selfValue = $bRec->blAmount / $bRec->blQuantity;
@@ -464,5 +464,12 @@ class planning_Resources extends core_Master
     	
     	// Връщаме цената, ако сме я намерили
     	return $selfValue;
+    }
+    
+    
+    function act_test()
+    {
+    	$L = cls::get('planning_Setup');
+    	$L->replaceResources3();
     }
 }

@@ -212,7 +212,7 @@ class sales_Quotations extends core_Master
         $this->FLD('deliveryPlaceId', 'varchar(126)', 'caption=Доставка->Място,hint=Изберете локация или въведете нова');
         
 		$this->FLD('company', 'varchar', 'caption=Получател->Фирма, changable, class=contactData');
-        $this->FLD('person', 'varchar', 'caption=Получател->Лице, changable, class=contactData');
+        $this->FLD('person', 'varchar', 'caption=Получател->Име, changable, class=contactData');
         $this->FLD('email', 'varchar', 'caption=Получател->Имейл, changable, class=contactData');
         $this->FLD('tel', 'varchar', 'caption=Получател->Тел., changable, class=contactData');
         $this->FLD('fax', 'varchar', 'caption=Получател->Факс, changable, class=contactData');
@@ -509,7 +509,6 @@ class sales_Quotations extends core_Master
     	}
     	
     	if($fields['-list']){
-    		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
     		$row->title = $mvc->getLink($rec->id, 0);
     	}
     	
@@ -861,6 +860,9 @@ class sales_Quotations extends core_Master
     		sales_Sales::addRow($sId, $item->classId, $item->productId, $item->packQuantity, $item->price, $item->packagingId, $item->discount, $item->tolerance, $item->term, $item->notes);
     	}
     	
+    	// Записваме, че потребителя е разглеждал този списък
+    	$this->logInfo("Създаване на продажба от оферта", $id);
+    	
     	// Редирект към новата продажба
     	return Redirect(array('sales_Sales', 'single', $sId), tr('Успешно е създадена продажба от офертата'));
     }
@@ -880,15 +882,16 @@ class sales_Quotations extends core_Master
     	$form = $this->getFilterForm($rec->id, $id);
     	
     	$fRec = $form->input();
+    	
     	if($form->isSubmitted()){
     		
     		// Създаваме продажба от офертата
     		$sId = $this->createSale($rec);
     		
     		$products = (array)$form->rec;
-    		
     		foreach ($products as $index => $quantity){
     			list($productId, $classId, $optional, $packagingId, $quantityInPack) = explode("|", $index);
+    			$quantityInPack = str_replace('_', '.', $quantityInPack);
     			
     			// При опционален продукт без к-во се продължава
     			if($optional == 'yes' && empty($quantity)) continue;
@@ -963,7 +966,7 @@ class sales_Quotations extends core_Master
     			$form->setOptions($index, $product->options);
     		}
     	}
-    	 
+    	
     	$form->toolbar->addSbBtn('Създай', 'save', 'ef_icon = img/16/disk.png, title = Запис на документа');
     	$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png, title = Прекратяване на действията');
     	 
@@ -985,11 +988,13 @@ class sales_Quotations extends core_Master
     	$query->orderBy('optional', 'ASC');
     	
     	while ($rec = $query->fetch()){
+    		$rec->quantityInPack = str_replace('.', '_', $rec->quantityInPack);
     		$index = "{$rec->productId}|{$rec->classId}|{$rec->optional}|{$rec->packagingId}|{$rec->quantityInPack}";
+    		
     		if(!array_key_exists($index, $products)){
     			$title = cls::get($rec->classId)->getTitleById($rec->productId);
     			if($rec->packagingId){
-    				$title .= " / " . cat_Packagings::getTitleById($rec->packagingId);
+    				$title .= " / " . cat_UoM::getTitleById($rec->packagingId);
     			}
     			$products[$index] = (object)array('title' => $title, 'options' => array(), 'optional' => $rec->optional, 'suggestions' => FALSE);
     		}
@@ -1003,7 +1008,7 @@ class sales_Quotations extends core_Master
     			$products[$index]->options[$pQuantity] = $pQuantity;
     		}
     	}
-    	 
+    	
     	return $products;
     }
     

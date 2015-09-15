@@ -44,7 +44,7 @@ class purchase_Invoices extends deals_InvoiceMaster
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools, purchase_Wrapper, doc_plg_TplManager, plg_Sorting, acc_plg_Contable, doc_DocumentPlg, plg_ExportCsv,
+    public $loadList = 'plg_RowTools, purchase_Wrapper, doc_plg_TplManager, plg_Sorting, acc_plg_Contable, doc_DocumentPlg,
 					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing, cond_plg_DefaultValues,deals_plg_DpInvoice,
                     doc_plg_HidePrices, acc_plg_DocumentSummary, plg_Search';
     
@@ -151,7 +151,7 @@ class purchase_Invoices extends deals_InvoiceMaster
     {
     	parent::setInvoiceFields($this);
     	
-    	$this->FLD('number', 'bigint(21)', 'caption=Номер, export=Csv,mandatory,hint=Номера с който идва фактурата,after=place');
+    	$this->FLD('number', 'bigint(21)', 'caption=Номер, export=Csv,hint=Номера с който идва фактурата,after=place');
     	$this->FLD('fileHnd', 'fileman_FileType(bucket=Documents)', 'caption=Документ,after=number');
     	
     	$this->FLD('accountId', 'key(mvc=bank_Accounts,select=iban, allowEmpty)', 'caption=Плащане->Банкова с-ка, export=Csv,after=paymentMethodId');
@@ -344,6 +344,19 @@ class purchase_Invoices extends deals_InvoiceMaster
    					$data->query->orWhere("#type = 'dc_note' AND #dealValue {$sign} 0");
    				}
     		}
+    	}
+    }
+    
+    
+    /**
+     * Изпълнява се преди контиране на документа
+     */
+    public static function on_BeforeConto(core_Mvc $mvc, &$res, $id)
+    {
+    	$rec = $mvc->fetchRec($id);
+    	
+    	if(empty($rec->number)){
+    		return Redirect(array($mvc, 'single', $rec->id), FALSE, '|Не може да се контира|*, |защото фактурата няма номер|*', 'warning');
     	}
     }
 }

@@ -83,6 +83,36 @@ class core_Manager extends core_Mvc
      *                                                                                      *
      ****************************************************************************************/
     
+
+    /**
+     * Връща линк към подадения обект
+     * 
+     * @param integer $objId
+     * 
+     * @return core_ET
+     */
+    public static function getLinkForObject($objId)
+    {
+        $me = get_called_class();
+        $inst = cls::get($me);
+        
+        if ($objId) {
+            $title = $inst->getTitleForId($objId);
+        } else {
+            $title = $inst->className;
+        }
+        
+        $linkArr = array();
+        
+        if (self::haveRightFor('list', $objId)) {
+            $linkArr = array(get_called_class(), 'list', $objId);
+        }
+        
+        $link = ht::createLink($title, $linkArr);
+        
+        return $link;
+    }
+    
     
     /**
      * Изпълнява заявка за листов изглед на страница от модела
@@ -100,7 +130,9 @@ class core_Manager extends core_Mvc
         // Създаваме обекта $data
         $data = new stdClass();
         $data->action = 'list';
-
+        
+        $data->ListId = Request::get('id', 'int');
+        
         // Създаваме заявката
         $data->query = $this->getQuery();
         
@@ -134,8 +166,10 @@ class core_Manager extends core_Mvc
         // Опаковаме изгледа
         $tpl = $this->renderWrapping($tpl, $data);
         
-        // Записваме, че потребителя е разглеждал този списък
-        $this->log('List: ' . ($data->log ? $data->log : tr($data->title)));
+        if (!Request::get('ajax_mode')) {
+            // Записваме, че потребителя е разглеждал този списък
+            $this->logInfo('Листване');
+        }
         
         return $tpl;
     }
@@ -210,7 +244,7 @@ class core_Manager extends core_Mvc
         
         $this->delete($data->id);
         
-        $this->log($data->cmd, $id);
+        $this->logInfo('Изтриване', $data->id);
         
         return new Redirect($data->retUrl);
     }
@@ -273,8 +307,9 @@ class core_Manager extends core_Mvc
             // Записваме данните
             $id = $this->save($rec);
             
-            // Правим запис в лога
-            $this->log($data->cmd, $id);
+            $msg = ($data->cmd == 'Add') ? 'Нов запис' : 'Редактиране';
+            
+            $this->logInAct($msg, $rec);
             
             // Подготвяме адреса, към който трябва да редиректнем,  
             // при успешно записване на данните от формата
@@ -303,6 +338,23 @@ class core_Manager extends core_Mvc
         return $tpl;
     }
     
+    
+    
+    /**
+     * Логва действието след запис
+     * 
+     * @param string $msg
+     * @param stdClass $rec
+     * @param string $type
+     */
+    function logInAct($msg, $rec, $type = 'info')
+    {
+        if ($type == 'info') {
+            $this->logInfo($msg, $rec->id);
+        } else {
+            $this->logErr($msg, $rec->id);
+        }
+    }
     
     /**
      * Начално установяване на мениджъра
@@ -374,6 +426,10 @@ class core_Manager extends core_Mvc
             $data->listFilter = $this->getForm($formParams);
         }
         
+        if ($data->ListId) {
+            $data->query->where($data->ListId);
+        }
+        
         return $data;
     }
     
@@ -411,12 +467,14 @@ class core_Manager extends core_Mvc
         $perPage = (Request::get('PerPage', 'int') > 0 && Request::get('PerPage', 'int') <= 1000) ?
         Request::get('PerPage', 'int') : $this->listItemsPerPage;
         
-        if($perPage) {
-            if(!isset($data->pageVar)) {
-                $data->pageVar = 'P_' . $this->className;
-            }
+        if($perPage) {  
             $data->pager = & cls::get('core_Pager', array('pageVar' => $data->pageVar));
             $data->pager->itemsPerPage = $perPage;
+            if(isset($data->rec->id)) {
+                $data->pager->setPageVar($this->className, $data->rec->id);
+            } else {
+                $data->pager->setPageVar($this->className);
+            }
         }
         
         return $data;
@@ -448,6 +506,10 @@ class core_Manager extends core_Mvc
     function prepareListTitle_(&$data)
     {
         setIfNot($data->title, $this->title);
+        
+        if ($data->ListId) {
+            $data->title = "Резултати за запис номер|* {$data->ListId}: |" . $data->title;
+        }
         
         return $data;
     }
@@ -831,6 +893,7 @@ class core_Manager extends core_Mvc
     
     /**
      * Добавя запис в лога
+     * @deprecated
      */
     static function log_($detail, $objectId = NULL, $logKeepDays = NULL)
     {
@@ -838,7 +901,9 @@ class core_Manager extends core_Mvc
             $logKeepDays = self::$logKeepDays;
         }
         
-        core_Logs::add(get_called_class(), $objectId, $detail, $logKeepDays);
+        $className = get_called_class();
+        
+        log_Debug::add(get_called_class(), $objectId, $detail, $logKeepDays);
     }
     
     
@@ -887,7 +952,7 @@ class core_Manager extends core_Mvc
         
         $select = new ET('');
         
-        $this->log("ajaxGetOptions|{$q}");
+        $this->logDebug("ajaxGetOptions", NULL, 7);
         
         $options = $this->fetchOptions($q);
         

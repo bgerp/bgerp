@@ -29,7 +29,7 @@ class store_ShipmentOrders extends store_DocumentMaster
      */
     public $visibleForPartners = TRUE;
     
-
+    
     /**
      * Абревиатура
      */
@@ -163,7 +163,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     	parent::setDocFields($this);
     	
     	$this->FLD('company', 'varchar', 'caption=Адрес за доставка->Фирма');
-        $this->FLD('person', 'varchar', 'caption=Адрес за доставка->Лице, changable, class=contactData');
+        $this->FLD('person', 'varchar', 'caption=Адрес за доставка->Име, changable, class=contactData');
         $this->FLD('tel', 'varchar', 'caption=Адрес за доставка->Тел., changable, class=contactData');
         $this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Адрес за доставка->Държава, class=contactData');
         $this->FLD('pCode', 'varchar', 'caption=Адрес за доставка->П. код, changable, class=contactData');

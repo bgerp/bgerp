@@ -39,15 +39,15 @@ class fileman_webdrv_Code extends fileman_webdrv_Generic
         $tabsArr = parent::getTabs($fRec);
         
         // Вземаме съдържанието
-        $contentStr = static::getContent($fRec);
+        $content = static::getContent($fRec);
         
         // Таб за съдържанието
 		$tabsArr['content'] = (object) 
 			array(
 				'title'   => 'Съдържание',
-				'html'    => "<div class='webdrvTabBody' style='white-space:pre-wrap;'><div class='webdrvFieldset'><div class='legend'>" . tr("Съдържание") . "</div>{$contentStr}</div></div>",
+				'html'    => "<div class='webdrvTabBody' style='white-space:pre-wrap;'><div class='webdrvFieldset'><div class='legend'>" . tr("Съдържание") . "</div>{$content}</div></div>",
 				'order' => 7,
-				'tpl' => $contentStr,
+				'tpl' => $content,
 			);
         
         return $tabsArr;
@@ -69,17 +69,18 @@ class fileman_webdrv_Code extends fileman_webdrv_Generic
         // Вземаме разширението на файла, като тип
         $type = strtolower(fileman_Files::getExt($fRec->name));
         
+        if(strlen($content) < 1000000){
+        	$content = i18n_Charset::convertToUtf8($content);
+        }
+        
+        $content = core_Type::escape($content);
+        
         // Обвиваме съдъжанието на файла в код
-        $content = "[code={$type}]{$content}[/code]";    
+        $content = "<div class='richtext'><pre class='rich-text code {$type}'><code>{$content}</code></pre></div>";    
         
-        $content = i18n_Charset::convertToUtf8($content);
+        $tpl = hljs_Adapter::enable('github');
+        $tpl->append($content);
         
-        // Инстанция на класа
-        $richTextInst = cls::get('type_Richtext');
-        
-        // Вземаме съдържанието
-        $content = $richTextInst->toVerbal($content);
-        
-        return $content;
+        return $tpl;
     }
 }

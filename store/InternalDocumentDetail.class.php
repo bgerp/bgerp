@@ -3,7 +3,7 @@
 
 
 /**
- * Абстрактен клас за наследяване от вътрешни скалдови документи
+ * Абстрактен клас за наследяване от вътрешни складови документи
  *
  * @category  bgerp
  * @package   store
@@ -22,7 +22,7 @@ abstract class store_InternalDocumentDetail extends doc_Detail
     protected function setFields($mvc)
     {
     	$mvc->FLD('productId', 'key(mvc=cat_Products,select=name)', 'silent,caption=Продукт,notNull,mandatory', 'tdClass=large-field leftCol wrap');
-    	$mvc->FLD('packagingId', 'key(mvc=cat_Packagings, select=name, allowEmpty)', 'caption=Мярка,after=productId');
+    	$mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,after=productId,mandatory');
     	$mvc->FLD('quantityInPack', 'double(decimals=2)', 'input=none,column=none');
     	$mvc->FLD('packQuantity', 'double(Min=0)', 'caption=К-во,input=input,mandatory');
 		$mvc->FLD('packPrice', 'double(minDecimals=2)', 'caption=Цена,input');
@@ -75,29 +75,13 @@ abstract class store_InternalDocumentDetail extends doc_Detail
     	
     	$masterRec  = $mvc->Master->fetch($rec->{$mvc->masterKey});
     	$currencyRate = $rec->currencyRate = currency_CurrencyRates::getRate($masterRec->valior, $masterRec->currencyId, acc_Periods::getBaseCurrencyCode($masterRec->valior));
+    	if(!$currencyRate){
+    		$form->setError('currencyRate', 'Не може да се изчисли курс');
+    	}
     	
     	if($form->rec->productId){
-    		
     		$packs = $ProductMan->getPacks($rec->productId);
-    		if(isset($rec->packagingId) && !isset($packs[$rec->packagingId])){
-    			$packs[$rec->packagingId] = cat_Packagings::getTitleById($rec->packagingId, FALSE);
-    		}
-    		if(count($packs)){
-    			$form->setOptions('packagingId', $packs);
-    		} else {
-    			$form->setReadOnly('packagingId');
-    		}
-    		
-    		$uomName = cat_UoM::getTitleById($ProductMan->getProductInfo($rec->productId)->productRec->measureId);
-    		$form->setField('packagingId', "placeholder={$uomName}");
-    		
-    		// Само при рефреш слагаме основната опаковка за дефолт
-    		if($form->cmd == 'refresh'){
-    			$baseInfo = $ProductMan->getBasePackInfo($rec->productId);
-    			if($baseInfo->classId == 'cat_Packagings'){
-    				$form->rec->packagingId = $baseInfo->id;
-    			}
-    		}
+    		$form->setOptions('packagingId', $packs);
     		
     		// Слагаме цената от политиката за последна цена
     		if(isset($mvc->LastPricePolicy)){
@@ -106,13 +90,16 @@ abstract class store_InternalDocumentDetail extends doc_Detail
     				$form->setSuggestions('packPrice', array('' => '', "{$policyInfoLast->price}" => $policyInfoLast->price));
     			}
     		}
+    	} else {
+    		$form->setReadOnly('packagingId');
     	}
     	
     	if($form->isSubmitted()){
     		$productInfo = $ProductMan->getProductInfo($rec->productId);
-    		// Ако артикула няма опаковка к-то в опаковка е 1, ако има и вече не е свързана към него е това каквото е било досега, ако още я има опаковката обновяваме к-то в опаковка
-    		$rec->quantityInPack = (empty($rec->packagingId)) ? 1 : (($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : $rec->quantityInPack);
     		
+    		// Ако артикула няма опаковка к-то в опаковка е 1, ако има и вече не е свързана към него е това каквото е било досега, ако още я има опаковката обновяваме к-то в опаковка
+    		$rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
+    	
     		if(!isset($rec->packPrice)){
     			$Policy = $ProductMan->getPolicy();
     			$rec->packPrice = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $ProductMan->getClassId(), $rec->packagingId, $rec->packQuantity, $masterRec->valior, $currencyRate, $rec->chargeVat)->price;
@@ -149,25 +136,13 @@ abstract class store_InternalDocumentDetail extends doc_Detail
     {
     	if(!count($data->rows)) return;
     	
-    	$Double = cls::get('type_Double', array('params' => array('smartRound' => TRUE)));
-    	
     	foreach ($data->rows as $i => &$row) {
     		$rec = &$data->recs[$i];
     		
     		$row->productId = cat_Products::getShortHyperlink($rec->productId);
     		
-    		$pInfo = cat_Products::getProductInfo($rec->productId);
-    		$uomId = $pInfo->productRec->measureId;
-    		if (empty($rec->packagingId)) {
-    				$row->packagingId = cat_UoM::getTitleById($uomId);
-    		} else {
-    			if(cat_Packagings::fetchField($rec->packagingId, 'showContents') == 'yes'){
-    				$shortUomName = cat_UoM::getShortName($uomId);
-    				$row->quantityInPack = $Double->toVerbal($rec->quantityInPack);
-    				$row->packagingId .= ' <small class="quiet">' . $row->quantityInPack . ' ' . $shortUomName . '</small>';
-    				$row->packagingId = "<span class='nowrap'>{$row->packagingId}</span>";
-    			}
-    		}
+    		// Показваме подробната информация за опаковката при нужда
+    		deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
     	}
     }
     

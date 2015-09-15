@@ -46,7 +46,7 @@ class sales_Sales extends deals_DealMaster
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools, sales_Wrapper, plg_Sorting, acc_plg_Registry, doc_plg_MultiPrint, doc_plg_TplManager, doc_DocumentPlg, acc_plg_Contable, plg_Printing,
-                    acc_plg_DocumentSummary, plg_Search, plg_ExportCsv, doc_plg_HidePrices, cond_plg_DefaultValues,
+                    acc_plg_DocumentSummary, plg_Search, doc_plg_HidePrices, cond_plg_DefaultValues,
 					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_BusinessDoc, plg_Clone, doc_SharablePlg';
     
     
@@ -175,6 +175,12 @@ class sales_Sales extends deals_DealMaster
      * В коя група по дефолт да влизат контрагентите, към които е направен документа
      */
     public $crmDefGroup = 'customers';
+    
+    
+    /**
+     * По кое поле да се филтрира по потребител от листовия изглед
+     */
+    public $filterFieldUsers = 'dealerId';
     
     
     /**
@@ -447,7 +453,7 @@ class sales_Sales extends deals_DealMaster
     			$nRec->discount = $dRec->discount;
     		}
     		$pInfo = cls::get($dRec->classId)->getProductInfo($dRec->productId);
-    		$nRec->measure = ($dRec->packagingId) ? cat_Packagings::getTitleById($dRec->packagingId) : cat_UoM::getShortName($pInfo->productRec->measureId);
+    		$nRec->measure = ($dRec->packagingId) ? cat_UoM::getTitleById($dRec->packagingId) : cat_UoM::getShortName($pInfo->productRec->measureId);
     		$nRec->vat = cls::get($dRec->classId)->getVat($dRec->productId, $rec->valior);
     		if($rec->chargeVat != 'yes' && $rec->chargeVat != 'separate'){
     			$nRec->vat = 0;
@@ -549,34 +555,31 @@ class sales_Sales extends deals_DealMaster
             $p->packagingId       = $dRec->packagingId;
             $p->discount          = $dRec->discount;
             $p->quantity          = $dRec->quantity;
+            $p->quantityInPack    = $dRec->quantityInPack;
             $p->quantityDelivered = $dRec->quantityDelivered;
             $p->price             = $dRec->price;
-            $p->uomId             = $dRec->uomId;
             $p->notes			  = $dRec->notes;
             
             $ProductMan = cls::get($p->classId);
-            $info = $ProductMan->getProductInfo($p->productId, $p->packagingId);
             $p->weight  = $ProductMan->getWeight($p->productId, $p->packagingId);
             $p->volume  = $ProductMan->getVolume($p->productId, $p->packagingId);
             
             $result->push('products', $p);
             
-            if (!empty($p->packagingId)) {
-            	$push = TRUE;
-            	$index = $p->classId . "|" . $p->productId;
-            	$shipped = $result->get('shippedPacks');
+            $push = TRUE;
+            $index = $p->classId . "|" . $p->productId;
+            $shipped = $result->get('shippedPacks');
             	
-            	$inPack = ($p->packagingId) ? $info->packagingRec->quantity : 1;
-            	if($shipped && isset($shipped[$index])){
-            		if($shipped[$index]->inPack < $inPack){
-            			$push = FALSE;
-            		}
+            $inPack = $p->quantityInPack;
+            if($shipped && isset($shipped[$index])){
+            	if($shipped[$index]->inPack < $inPack){
+            		$push = FALSE;
             	}
+            }
             	
-            	if($push){
-            		$arr = (object)array('packagingId' => $p->packagingId, 'inPack' => $inPack);
-            		$result->push('shippedPacks', $arr, $index);
-            	}
+            if($push){
+            	$arr = (object)array('packagingId' => $p->packagingId, 'inPack' => $inPack);
+            	$result->push('shippedPacks', $arr, $index);
             }
          }
          
@@ -823,7 +826,7 @@ class sales_Sales extends deals_DealMaster
     		$query->where("#contragentClassId = {$Contragent->getClassId()} AND #contragentId = {$contragentId}");
     		$query->where("#state = 'active' || #state = 'closed'");
     		$query->show('id');
-    		$query->orderBy("id", 'DESC');
+    		$query->orderBy("valior", 'DESC');
     		while($rec = $query->fetch()){
     			$ids[] = $rec->id;
     		}
@@ -864,5 +867,20 @@ class sales_Sales extends deals_DealMaster
     	}
     	
     	return $cacheArr;
+    }
+    
+    
+    /**
+     * Метод по подразбиране за намиране на дефолт шаблона
+     */
+    public function getDefaultTemplate_($rec)
+    {
+    	$cData = doc_Folders::getContragentData($rec->folderId);
+    	$bgId = drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id');
+    	
+    	$conf = core_Packs::getConfig('sales');
+    	$def = (empty($cData->countryId) || $bgId === $cData->countryId) ? $conf->SALE_SALE_DEF_TPL_BG : $conf->SALE_SALE_DEF_TPL_EN;
+    	
+    	return $def;
     }
 }

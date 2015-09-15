@@ -212,6 +212,7 @@ class doc_UnsortedFolders extends core_Master
         $this->FLD('name' , 'varchar(128)', 'caption=Наименование,mandatory');
         $this->FLD('description' , 'richtext(rows=3)', 'caption=Описание');
         $this->FLD('closeTime' , 'time', 'caption=Автоматично затваряне на нишките след->Време, allowEmpty');
+        $this->FLD('showDocumentsAsButtons' , 'keylist(mvc=core_Classes,select=title)', 'caption=Документи|*&#44; |които да се показват като бързи бутони в папката->Документи');
         $this->setDbUnique('name');
     }
     
@@ -365,17 +366,19 @@ class doc_UnsortedFolders extends core_Master
      */
     public static function act_Gant()
     {
+
     	$currUrl = getCurrentUrl();
         
     	$data = self::fetch($currUrl['id']);
 
-    	//Очакваме да има такъв запис
-        
         //Очакваме потребителя да има права за спиране
     	$tpl = getTplFromFile('doc/tpl/SingleLayoutUnsortedFolderGantt.shtml');
         //Права за работа с екшън-а
         requireRole('powerUser');
-
+        
+        $form = self::prepareFilter();
+        $tpl->replace($form->renderHtml(), 'FILTER');
+        
         // слагаме бутони на къстам тулбара
         $btns = ht::createBtn('Редакция', array(
 	                    $mvc,
@@ -411,11 +414,40 @@ class doc_UnsortedFolders extends core_Master
         $tpl->replace('state-'.$data->state, 'STATE_CLASS_GANTT');
   		$tpl->replace("<img alt='' src='{$icon}'>", 'SingleIconGantt');
         $tpl->replace($data->name, 'nameGantt');
+        $tpl->append($listFilter,'FILTER');
         $tpl->replace($chart, 'Gantt');
+        
         
         // Редиректваме
         return static::renderWrapping($tpl);
     }
+    
+    
+    /**
+     * Подготвяме филтъра в Гант изгледа
+     * 
+     */
+    public static function prepareFilter ()
+    {
+    	$form = cls::get('core_Form');
+    	$form->FNC('order', 'enum(start=По начало,
+					        	  end=По край,
+					        	  alphabetic=Азбучно)', 'caption=Подредба,width=100%,input,silent,refreshForm');
+    	
+    	$form->view = 'horizontal';
+    	 
+    	$form->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+    	
+    	$recForm = $form->input('order', 'silent');
+    	
+    	if (!$form->rec->order) {
+    		$form->setDefault('order','start');
+    	}
+    	
+    	
+    	return $form;
+    }
+    
     
     /**
      * Подготовка на данните за Гант табличния изглед
@@ -425,7 +457,7 @@ class doc_UnsortedFolders extends core_Master
      */
     public static function prepareGantt ($folderData)
     {  
-           
+         
     	$idTaskDoc = core_Classes::getId("cal_Tasks");
     	
     	// заявка към базата на "контейнерите"
@@ -438,19 +470,36 @@ class doc_UnsortedFolders extends core_Master
         $queryContainers->where("#folderId = '{$folderData->folderId}' AND #docClass = '{$idTaskDoc}'");
         
         while ($recContainers = $queryContainers->fetch()) {
-        	$queryTasks->where("#folderId = '{$folderData->folderId}'");
-        	$i = 0;
+        	$queryTasks->where("#folderId = '{$folderData->folderId}' AND (#state = 'pending' OR #state = 'active' OR #state = 'closed')");
+        	
         	// заявка към таблицата на Задачите
         	while ($recTask = $queryTasks->fetch()) {
-        		if($recTask->timeStart){
+        
+        		if ($recTask->timeStart) {
+        			$timeStart = $recTask->timeStart;
+        		} else {
+        			$timeStart = $recTask->expectationTimeStart;
+        		}
+        		
+        		if ($recTask->timeEnd) {
+        			$timeEnd = $recTask->timeEnd;
+        		} else {
+        			$timeEnd = $recTask->expectationTimeEnd;
+        		}
+        		
+        		if($timeStart){
         			// ако няма продължителност на задачата
-    	    		if(!$recTask->timeDuration && !$recTask->timeEnd) {
+    	    		if(!$recTask->timeDuration) {
     	    			// продължителността на задачата е края - началото
     	    			$timeDuration = 1800;
-    	    		} elseif(!$recTask->timeDuration && $recTask->timeEnd ) {
-    	    			$timeDuration = dt::mysql2timestamp($recTask->timeEnd) - dt::mysql2timestamp($recTask->timeStart);
+    	    		} elseif(!$recTask->timeDuration && $timeEnd) {
+    	    			$timeDuration = dt::mysql2timestamp($timeEnd) - dt::mysql2timestamp($timeStart);
+    	    		
     	    		} else {
     	    			$timeDuration = $recTask->timeDuration;
+    	    			/*if ($recTask->id == 37) {
+    	    				bp($timeDuration);
+    	    			}*/
     	    		}
 
 	        		// Ако имаме права за достъп до сингъла
@@ -460,25 +509,22 @@ class doc_UnsortedFolders extends core_Master
 			        } else {
 			        	$flagUrl = FALSE;
 			        }
-	        		
-	        		$rowArr = array ();
-	        		$rowArr[$recTask->id] =  $i;
-	        		
+
 	        		$resTask[] = array( 
 	    			    					'taskId' => $recTask->id,
-	    			    					'rowId' =>  $rowArr,
+	    			    					'rowId' =>  '',
 	    		    						'timeline' => array (
 	    		    											'0' => array(
 	    		                								'duration' => $timeDuration,  
-	    		                								'startTime'=> dt::mysql2timestamp($recTask->timeStart))),
+	    		                								'startTime'=> dt::mysql2timestamp($timeStart))),
 	    		    		                
 	    			    					'color' => self::$colors[$recTask->id % 50],
-	    			    					'hint' => $recTask->id. " : ". $recTask->title,
+	    			    					'hint' => $recTask->title,
 	    		    						'url' =>  $flagUrl,
 	    			    					'progress' => $recTask->progress
 	    		    		);
 	    		    	    
-		    		$resources[] = array("name" => $recTask->title, "id" => $recTask->id);
+
 		    		$recs[$recTask->id] = $recTask;
 		    		$forTask = (object) array('recs' => $recs);
 		    		$i++;
@@ -503,8 +549,194 @@ class doc_UnsortedFolders extends core_Master
         		unset ($resTask[$i]['url']);
         	}
         }
+        
+        if (is_array($resTask)) {
+	        // намираме, какво е избрано във формата за филтриране
+	        $form = self::prepareFilter();
+	        
+	        // за всеки един от случаите правим сортировка намасива
+	        // понеже структурата не е оптимална
+	        // трябва да сортираме при всеки от случаите отделни 3 масива
+	        switch ($form->rec->order) {
+	        	case 'start':
+	        		usort($resTask, function($a, $b) {
+	        			 
+	        			for($i = 0; $i < count ($a['timeline']); $i++) {
+	        				return ($a['timeline'][$i]['startTime'] < $b['timeline'][$i]['startTime']) ? -1 : 1;
+	        			}
+	        		});
+	        		
+	        		$i = 0;
+	        		foreach ($resTask as $id => $task) {
+	        				 
+	        			$rowArr = array ();
+	        			$rowArr[$id] =  $i;
+	        		
+	        			$resTask[$id]['rowId'] = $rowArr;
+	        			
+	        			$icon = cal_Tasks::getIcon($task['taskId']);
+	        			
+	        			$recTitle = cal_Tasks::fetchField($task['taskId'],'title');
+	       
+	        			$attr['ef_icon'] = $icon;
+	        			//$attr['style'] .= 'background-color: #FFA3A3;';
+	        			//$attr['style'] .= 'padding-right: 4px;';
+	        			//$attr['style'] .= 'box-shadow: 0px 0px 3px #FF6666 inset;';
+	        			$attr['title'] = $recTitle;
+	        			
+	        			$title = ht::createLink(str::limitLen($recTitle, 35),
+	        					array('cal_Tasks', 'single', $task['taskId']),
+	        					NULL, $attr);
+	
+	        			$resources[$id] = array("name" => $title->content, "id" => $task['taskId']);
+	        		
+	        			$i++;
+	        		}
+	        		
+	        		break;
+	        	case 'end':
+	        		
+	        		usort($resTask, function($a, $b) {
+	        		
+	        			for($i = 0; $i < count ($a['timeline']); $i++) {
+	        				$cmpA = $a['timeline'][$i]['startTime'] + $a['timeline'][$i]['duration'];
+	        				$cmpB = $b['timeline'][$i]['startTime'] + $b['timeline'][$i]['duration'];
+	        				return ($cmpA < $cmpB) ? -1 : 1;
+	        			}
+	        		});
+	        		
+	        			$i = 0;
+	        			foreach ($resTask as $id => $task) {
+	        				 
+	        				$rowArr = array ();
+	        				$rowArr[$id] =  $i;
+	        		
+	        				$resTask[$id]['rowId'] = $rowArr;
+	        				
+	        				$icon = cal_Tasks::getIcon($task['taskId']);
+	        				$recTitle = cal_Tasks::fetchField($task['taskId'],'title');
+	        				$attr = array();
+	        				$attr['class'] .= 'linkWithIcon';
+	        				$attr['style'] = 'background-image:url(' . sbf($icon) . ');';
+	        				$attr['title'] = $recTitle;
+	        				 
+	        				$title = ht::createLink(str::limitLen($recTitle, 25),
+	        						array('cal_Tasks', 'single', $task['taskId']),
+	        						NULL, $attr);
+	
+	        				$resources[$id] = array("name" => $title->content, "id" => $task['taskId']);
+	        		
+	        				$i++;
+	        			}
+	        		break;
+	        	case 'alphabetic':
+	        
+	        		usort($resTask, function($a, $b) {
+	                    
+	        			return strnatcmp(mb_strtolower($a['hint'], 'UTF-8'), mb_strtolower($b['hint'], 'UTF-8'));
+	
+	        		});
+	        
+	        			$i = 0;
+	        			foreach ($resTask as $id => $task) {
+	        				 
+	        				$rowArr = array ();
+	        				$rowArr[$id] =  $i;
+	        		
+	        				$resTask[$id]['rowId'] = $rowArr;
+	        				
+	        				$icon = cal_Tasks::getIcon($task['taskId']);
+	        				$recTitle = cal_Tasks::fetchField($task['taskId'],'title');
+	        				$attr = array();
+	        				$attr['class'] .= 'linkWithIcon';
+	        				$attr['style'] = 'background-image:url(' . sbf($icon) . ');';
+	        				$attr['title'] = $recTitle;
+	        				
+	        				$title = ht::createLink(str::limitLen($recTitle, 25),
+	        						array('cal_Tasks', 'single', $task['taskId']),
+	        						NULL, $attr);
+	
+	        				$resources[$id] = array("name" => $title->content, "id" => $task['taskId']);
+	        				$i++;
+	        			}
+	        		break;
+	        }
+        }
+
+        // само в случайте когато имаме 'година'=>'месец'
+        // искаме да добавим още един параметър, който
+        // ще ни указва, кога е 1 ден от новия месец в милисекунди
+		if ($params['mainHeaderCaption'] == 'година' && $params['subHeaderCaption'] = 'седмица') {
+
+			// от първия пълен месец намерен от началото на ганта
+			// до края на ганта
+			// добавяме по един месец и търсим 1 ден в милисекунди
+			for ($t =  strtotime("+1 months", $params['startTime']); $t < $params['endTime']; $t = strtotime("+1 months", $t)) {
+				$a = dt::mysql2timestamp(date('Y-m-01', $t));
+				$params['monthDelimiter'][] = $a;
+
+			}
+			
+		}
 
 	    // връщаме един обект от всички масиви
 	    return (object) array('tasksData' => $resTask, 'headerInfo' => $header , 'resources' => $resources, 'otherParams' => $params);
+    }
+    
+    
+    /**
+     * Преди показване на форма за добавяне/промяна
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+    	$suggestions = core_Classes::getOptionsByInterface('doc_DocumentIntf', 'title');
+    	
+    	// Ако проекта няма папка, взимаме ид-то на първата папка проект за да филтрираме възможните документи
+    	// които могат да се добавтя към папка проект
+    	$folderId = $data->form->rec->folderId;
+    	if(!$data->form->rec->folderId){
+    		$query = $mvc->getQuery();
+    		$query->where("#folderId IS NOT NULL");
+    		$query->show('folderId');
+    		$query->orderBy('id', 'ASC');
+    		$folderId = $query->fetch()->folderId;
+    	}
+    	
+    	// За всяко предложение, проверяваме можели да бъде добавен
+    	// такъв документ като нова нишка в папката
+    	foreach ($suggestions as $classId => $name){
+    		if(!cls::get($classId)->canAddToFolder($folderId)){
+    			unset($suggestions[$classId]);
+    		}
+    	}
+    	 
+    	$data->form->setSuggestions('showDocumentsAsButtons', $suggestions);
+    	$data->form->setDefault('showDocumentsAsButtons', keylist::addKey('', cal_Tasks::getClassId()));
+    	
+    }
+    
+    
+    /**
+     * Кои документи да се показват като бързи бутони в папката на корицата
+     * 
+     * @param int $id - ид на корицата
+     * @return array $res - възможните класове
+     */
+    public function getDocButtonsInFolder($id)
+    {
+    	$res = array();
+    	$rec = $this->fetch($id);
+    	if($rec->showDocumentsAsButtons){
+    		$res = keylist::toArray($rec->showDocumentsAsButtons);
+    	} else {
+    		$res = array('cal_Tasks');
+    	}
+    	
+    	// Ако има клас с името на проекта, връщаме и него
+    	if($defClassId = core_Classes::fetchField("#title = '{$rec->name}'", 'id')){
+    		$res[] = $defClassId;
+    	}
+    	
+    	return $res;
     }
 }

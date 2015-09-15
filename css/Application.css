@@ -898,6 +898,14 @@ div.acc-detail {
     .portal table.listTable .portal-date {
       width: 1%; }
 
+.portal.planning table.listTable th {
+  border: 1px solid #cccccc;
+  display: table-cell; }
+  .portal.planning table.listTable th:first-child {
+    border-left: none; }
+  .portal.planning table.listTable th:last-child {
+    border-right: none; }
+
 .narrow .portal .listRows {
   font-size: 0.9em; }
 
@@ -1813,7 +1821,7 @@ span.sharing-history-title {
 #cmsMenu a {
   font-size: 1.12em;
   padding: 4px;
-  margin: 2px 20px 2px 15px;
+  margin: 2px 20px 2px 10px;
   line-height: normal;
   white-space: nowrap;
   display: block;
@@ -2733,9 +2741,9 @@ div.location.public {
   display: inline-block;
   width: auto !important; }
 
-.core_Logs table.listTable > tbody > tr > td:last-child {
+.log_Debug table.listTable > tbody > tr > td:last-child {
   max-width: 600px; }
-  .core_Logs table.listTable > tbody > tr > td:last-child table td {
+  .log_Debug table.listTable > tbody > tr > td:last-child table td {
     word-break: break-all; }
 
 .cCode {
@@ -2759,6 +2767,12 @@ div.location.public {
   max-width: 600px; }
   .email-class h3 {
     margin: 10px 0 12px; }
+
+.state-error-email {
+  background-color: #f3bbaf; }
+
+.state-blocked-email {
+  background-color: #f1cba6; }
 
 /*
  * край на email
@@ -4116,6 +4130,21 @@ only screen and (max-width: 320px) {
   padding: 2px;
   border: solid 1px #cccccc;
   background-color: #eeeeee; }
+
+.logs-type-warning {
+  background-color: #fae3ca; }
+
+.logs-type-debug {
+  background-color: #eeeeee; }
+
+.logs-type-notice {
+  background-color: #dff4fa; }
+
+.logs-type-info {
+  background-color: #fffef4; }
+
+.logs-type-err {
+  background-color: #fad0d1; }
 
 /*
  * Стилове за езика във външната част

@@ -141,9 +141,6 @@ class abbyyocr_Converter extends core_Manager
      */
     static function getText($fileHnd, $params)
     {
-        // Конфигурацията
-        $conf = core_Packs::getConfig('abbyyocr');
-        
         // Вземам записа за файла
         $fRec = fileman_Files::fetchByFh($fileHnd);
         
@@ -164,19 +161,23 @@ class abbyyocr_Converter extends core_Manager
         $Script->setFile('OUTPUTF', $textPath);
         
         // Задаваме параметрите
-        $Script->setParam('LANGUAGE', $conf->ABBYYOCR_LANGUAGES, TRUE);
+        $Script->setParam('LANGUAGE', abbyyocr_Setup::get('LANGUAGES'), TRUE);
         
         // Заместваме програмата с пътя от конфига
-        $Script->setProgram('abbyyocr9', $conf->ABBYYOCR_PATH);
+        $Script->setProgram('abbyyocr9', abbyyocr_Setup::get('ABBYYOCR_PATH'));
         
         // Добавяме към изпълнимия скрипт
         $lineExecStr = "abbyyocr9 -rl [#LANGUAGE#] -if [#INPUTF#] -tet UTF8 -f Text -of [#OUTPUTF#]";
         
+        $errFilePath = fileman_webdrv_Generic::getErrLogFilePath($textPath);
+        
         // Скрипта, който ще конвертира
-        $Script->lineExec($lineExecStr, array('LANG' => 'en_US.UTF-8', 'HOME' => $Script->tempPath));
+        $Script->lineExec($lineExecStr, array('LANG' => 'en_US.UTF-8', 'HOME' => $Script->tempPath, 'errFilePath' => $errFilePath));
         
         // Функцията, която ще се извика след приключване на операцията
         $Script->callBack($params['callBack']);
+        
+        $params['errFilePath'] = $errFilePath;
         
         // Други допълнителни параметри
         $Script->outFilePath = $textPath;
@@ -204,7 +205,7 @@ class abbyyocr_Converter extends core_Manager
         $params = unserialize($script->params);
         
         // Проверяваме дали е имало грешка при предишното конвертиране
-        if (fileman_Indexes::haveErrors($script->outFilePath, $params['type'], $params)) {
+        if (fileman_Indexes::haveErrors($script->outFilePath, $params)) {
             
             // Отключваме процеса
             core_Locks::release($params['lockId']);

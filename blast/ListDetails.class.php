@@ -217,10 +217,22 @@ class blast_ListDetails extends doc_Detail
      */
     static function on_AfterRecToVerbal($mvc, $row, $rec)
     {
+        $masterRec = $mvc->Master->fetch($rec->listId);
+        $keyField = $masterRec->keyField;
+        
+        if ($keyField == 'email') {
+            $emailState = blast_BlockedEmails::getState($rec->key);
+            
+            if ($emailState == 'error') {
+                $row->ROW_ATTR['class'] .= ' state-error-email';
+            } elseif ($emailState == 'blocked') {
+                $row->ROW_ATTR['class'] .= ' state-blocked-email';
+            }
+        }
+        
         static $fieldsArr;
         
         if(!$fieldsArr) {
-            expect($masterRec = $mvc->Master->fetch($rec->listId));
             $fieldsArr = $mvc->getFncFieldsArr($masterRec->allFields);
         }
         
@@ -298,10 +310,10 @@ class blast_ListDetails extends doc_Detail
     			foreach ($valArr as $val) {
     			    $val = html2text_Converter::toRichText($val);
     				// escape
-    				if (preg_match("/[\,\"\r\n]/", $val)) {
+    				if (preg_match('/\\r|\\n|\,|"/', $val)) {
     					$val = '"' . str_replace('"', '""', $val) . '"';
     				}
-    				$csv .= $val. ",";
+    				$csv .= ($csv ?  "," : " ") . $val;
     			}
     		}
     		$csv = rtrim($csv, ',');
@@ -421,7 +433,7 @@ class blast_ListDetails extends doc_Detail
                 break;
             }
             
-            $this->FNC($name, $type, "caption={$caption},mandatory,input" . $attr);
+            $this->FNC($name, $type, "caption={$caption},mandatory,input,forceField" . $attr);
         }
     }
     

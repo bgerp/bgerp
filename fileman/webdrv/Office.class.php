@@ -161,7 +161,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         $params = unserialize($script->params);
         
         // Проверяваме дали е имало грешка при предишното конвертиране
-        if (fileman_Indexes::haveErrors($script->outFilePath, $params['type'], $params)) {
+        if (fileman_Indexes::haveErrors($script->outFilePath, $params)) {
             
             // Отключваме процеса
             core_Locks::release($params['lockId']);
@@ -257,7 +257,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         $params = unserialize($script->params);
         
         // Проверяваме дали е имало грешка при предишното конвертиране
-        $error = fileman_Indexes::haveErrors($script->outFilePath, 'jpg', $params);
+        $error = fileman_Indexes::haveErrors($script->outFilePath, $params);
         
         // Отключваме предишния процес
         core_Locks::release($params['lockId']);
@@ -326,20 +326,24 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         $Script->setFile('OUTPUTF', $outFilePath);
         
         // Ако има зададен път до gs, използваме него
-        if (trim($conf->FILEMAN_GHOSTSCRIPT_PATH)) {
-            $Script->setProgram('gs', $conf->FILEMAN_GHOSTSCRIPT_PATH);
-        }
+        $Script->setProgram('gs', fileman_Setup::get('GHOSTSCRIPT_PATH'));
+        
+        $errFilePath = self::getErrLogFilePath($outFilePath);
         
         // Скрипта, който ще конвертира файла от PDF в JPG формат
-        $Script->lineExec('gs -sDEVICE=jpeg -dGraphicsAlphaBits=4 -dTextAlphaBits=4 -sOutputFile=[#OUTPUTF#] -dBATCH -r200 -dNOPAUSE [#INPUTF#]');
+        $Script->lineExec('gs -dSAFER -dNOPAUSE -dNOCACHE -sDEVICE=jpeg -dGraphicsAlphaBits=4 -dTextAlphaBits=4 -sOutputFile=[#OUTPUTF#] -dBATCH -r200 -dNOPAUSE [#INPUTF#]', array('errFilePath' => $errFilePath));
         
         // Функцията, която ще се извика след приключване на обработката на файла
         $Script->callBack($params['callBack']);
+        
+        $params['errFilePath'] = $errFilePath;
         
         // Други необходими променливи
         $Script->params = serialize($params);
         $Script->fName = $name;
         $Script->fh = $fileHnd;
+        
+        $Script->outFilePath = $outFilePath;
         
         // Ако е подаден параметър за стартиране синхронно
         // Когато се геририра от офис документи PDF, и от полученич файл
@@ -421,7 +425,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         } else {
         
             // Проверяваме дали е имало грешка при предишното конвертиране
-            $error = fileman_Indexes::haveErrors($script->outFilePath, $params['type'], $params);
+            $error = fileman_Indexes::haveErrors($script->outFilePath, $params);
         }
         
         // Отключваме процеса
@@ -484,7 +488,7 @@ class fileman_webdrv_Office extends fileman_webdrv_Generic
         $params = unserialize($script->params);
         
         // Проверяваме дали е имало грешка при предишното конвертиране
-        if (fileman_Indexes::haveErrors($script->outFilePath, $params['type'], $params)) {
+        if (fileman_Indexes::haveErrors($script->outFilePath, $params)) {
             
             // Отключваме процеса
             core_Locks::release($params['lockId']);

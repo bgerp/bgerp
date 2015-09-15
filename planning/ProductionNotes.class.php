@@ -190,7 +190,7 @@ class planning_ProductionNotes extends deals_ManifactureMaster
 	 */
 	public static function on_AfterCreate($mvc, $rec)
 	{
-		// Ако е към задания
+		// Ако е към задание
 		if($rec->originId){
 			
 			// Добавяме информацията за артикула от заданието

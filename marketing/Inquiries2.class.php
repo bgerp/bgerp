@@ -188,7 +188,7 @@ class marketing_Inquiries2 extends core_Embedder
     	$this->FLD('quantity2', 'double(decimals=2)', 'caption=Количества->Количество|* 2,hint=Въведете количество,input=none');
     	$this->FLD('quantity3', 'double(decimals=2)', 'caption=Количества->Количество|* 3,hint=Въведете количество,input=none');
     	
-    	$this->FLD('name', 'varchar(255)', 'caption=Контактни дани->Лице,class=contactData,mandatory,hint=Лице за връзка,contragentDataField=person,formOrder=50');
+    	$this->FLD('name', 'varchar(255)', 'caption=Контактни дани->Имена,class=contactData,mandatory,hint=Вашето име,contragentDataField=person,formOrder=50');
     	$this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Контактни дани->Държава,class=contactData,hint=Вашата държава,mandatory,formOrder=51');
     	$this->FLD('email', 'email(valid=drdata_Emails->validate)', 'caption=Контактни дани->Имейл,class=contactData,mandatory,hint=Вашият имейл,formOrder=52');
     	$this->FLD('company', 'varchar(255)', 'caption=Контактни дани->Фирма,class=contactData,hint=Вашата фирма,formOrder=53');
@@ -222,7 +222,7 @@ class marketing_Inquiries2 extends core_Embedder
     {
     	if ($form->isSubmitted()){
     		$form->rec->ip = core_Users::getRealIpAddr();
-    		$form->rec->brid = logs_Browsers::getBrid();
+    		$form->rec->brid = log_Browsers::getBrid();
     		$form->rec->state = 'active';
     		
     		$form->rec->quantities = array();
@@ -265,10 +265,9 @@ class marketing_Inquiries2 extends core_Embedder
     		$row->ip = type_Ip::decorateIp($rec->ip, $rec->createdOn);
     	}
 
-        $row->brid = logs_Browsers::getLink($rec->brid);
+        $row->brid = log_Browsers::getLink($rec->brid);
     	 
     	if($fields['-list']){
-    		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
     		$row->title = $mvc->getTitle($rec);
     
     		$attr = array();
@@ -692,7 +691,7 @@ class marketing_Inquiries2 extends core_Embedder
     		$rec = &$form->rec;
     		$rec->state = 'active';
     		$rec->ip = core_Users::getRealIpAddr();
-    		$rec->brid = logs_Browsers::getBrid();
+    		$rec->brid = log_Browsers::getBrid();
     	
     		if(empty($rec->folderId)){
     			$rec->folderId = $this->Router->route($rec);
@@ -716,7 +715,7 @@ class marketing_Inquiries2 extends core_Embedder
                         if (!trim($form->rec->$fName)) continue;
                         $userData[$fName] = $form->rec->$fName;
                     }
-                    logs_Browsers::setVars($userData);
+                    log_Browsers::setVars($userData);
     			}
     		    
     			$id = $this->save($rec);
@@ -828,7 +827,7 @@ class marketing_Inquiries2 extends core_Embedder
         $contactFields = $this->selectFields("#class == 'contactData'");
         $fieldNamesArr = array_keys($contactFields);
         
-        $vars = logs_Browsers::getVars($fieldNamesArr);
+        $vars = log_Browsers::getVars($fieldNamesArr);
         
     	foreach ((array)$vars as $name => $val){
     		$form->setDefault($name, $val);

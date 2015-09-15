@@ -185,10 +185,6 @@ class pos_Points extends core_Master {
     		$data->toolbar->addBtn("Отвори", $urlArr, NULL, 'title=Отваряне на терминала за POS продажби,class=pos-open-btn,ef_icon=img/16/forward16.png,target=_blank');
     	}
     	
-    	if($rec->id == $mvc->getCurrent('id', NULL, FALSE)) {
-    		$data->toolbar->addBtn("Отвори", array('pos_Receipts', 'Terminal'), NULL, 'title=Отваряне на терминала за POS продажби,ef_icon=img/16/forward16.png,target=_blank');
-    	}
-    	
     	$reportUrl = array();
     	if(pos_Reports::haveRightFor('add', (object)array('pointId' => $rec->id)) && pos_Reports::canMakeReport($rec->id)){
     		$reportUrl = array('pos_Reports', 'add', 'pointId' => $rec->id, 'ret_url' => TRUE);
@@ -208,7 +204,7 @@ class pos_Points extends core_Master {
     	expect($pointId = Request::get('id', 'int'));
     	expect($rec = $this->fetch($pointId));
     	$this->requireRightFor('select', $pointId);
-    	$this->selectSilent($pointId);
+    	$this->selectCurrent($pointId);
     	
     	return redirect(array('pos_Receipts', 'new'));
     }
@@ -245,12 +241,12 @@ class pos_Points extends core_Master {
 			
 			// .. и имаме право да изберем склада и, логваме се в него
 			if(store_Stores::haveRightFor('select', $rec->storeId)){
-				store_Stores::selectSilent($rec->storeId);
+				store_Stores::selectCurrent($rec->storeId);
 			}
 			
 			// .. и имаме право да изберем касата и, логваме се в нея
 			if(cash_Cases::haveRightFor('select', $rec->caseId)){
-				cash_Cases::selectSilent($rec->caseId);
+				cash_Cases::selectCurrent($rec->caseId);
 			}
 		}
 	}

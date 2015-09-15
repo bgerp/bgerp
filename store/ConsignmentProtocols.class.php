@@ -125,12 +125,6 @@ class store_ConsignmentProtocols extends core_Master
     
     
     /**
-     * Записи за обновяване
-     */
-    protected $updated = array();
-    
-    
-    /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     var $searchFields = 'valior,folderId,note';
@@ -146,8 +140,13 @@ class store_ConsignmentProtocols extends core_Master
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
     public $rowToolsSingleField = 'title';
-    
-    
+
+
+    /**
+     * На кой ред в тулбара да се показва бутона за принтиране
+     */
+    public $printBtnToolbarRow = 1;
+
     /**
      * Описание на модела (таблицата)
      */
@@ -174,41 +173,30 @@ class store_ConsignmentProtocols extends core_Master
     
     
     /**
-     * След промяна в детайлите на обект от този клас
+     * Обновява данни в мастъра
+     *
+     * @param int $id първичен ключ на статия
+     * @return int $id ид-то на обновения запис
      */
-    public static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
+    public function updateMaster_($id)
     {
-    	// Запомняне кои документи трябва да се обновят
-    	$mvc->updated[$id] = $id;
-    }
-    
-    
-    /**
-     * След изпълнение на скрипта, обновява записите, които са за ъпдейт
-     */
-    public static function on_Shutdown($mvc)
-    {
-    	if(count($mvc->updated)){
-    		foreach ($mvc->updated as $id) {
-    			$rec = $mvc->fetchRec($id);
-    			
-    			$dRec1 = store_ConsignmentProtocolDetailsReceived::getQuery();
-    			$dRec1->where("#protocolId = {$rec->id}");
-    			$measuresSend = $mvc->getMeasures($dRec1->fetchAll());
-    			
-    			$dRec2 = store_ConsignmentProtocolDetailsSend::getQuery();
-    			$dRec2->where("#protocolId = {$rec->id}");
-    			 
-    			$measuresReceived = $mvc->getMeasures($dRec2->fetchAll());
-    			$weight =  $measuresSend->weight + $measuresReceived->weight;
-    			$volume =  $measuresSend->volume + $measuresReceived->volume;
-    			
-    			$rec->weight = $weight;
-    			$rec->volume = $volume;
-    			
-    			$mvc->save($rec);
-    		}
-    	}
+    	$rec = $this->fetch($id);
+    	
+    	$dRec1 = store_ConsignmentProtocolDetailsReceived::getQuery();
+    	$dRec1->where("#protocolId = {$rec->id}");
+    	$measuresSend = $this->getMeasures($dRec1->fetchAll());
+    	 
+    	$dRec2 = store_ConsignmentProtocolDetailsSend::getQuery();
+    	$dRec2->where("#protocolId = {$rec->id}");
+    	
+    	$measuresReceived = $this->getMeasures($dRec2->fetchAll());
+    	$weight =  $measuresSend->weight + $measuresReceived->weight;
+    	$volume =  $measuresSend->volume + $measuresReceived->volume;
+    	 
+    	$rec->weight = $weight;
+    	$rec->volume = $volume;
+    	
+    	return $this->save($rec);
     }
     
     
@@ -218,13 +206,12 @@ class store_ConsignmentProtocols extends core_Master
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
     	if(isset($fields['-list'])){
-    		$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
     		$row->contragentId = cls::get($rec->contragentClassId)->getHyperlink($rec->contragentId, TRUE);
     		$row->title = $mvc->getLink($rec->id, 0);
     	}
     	
+    	store_DocumentMaster::prepareHeaderInfo($row, $rec);
     	if(isset($fields['-single'])){
-    		store_DocumentMaster::prepareHeaderInfo($row, $rec);
     		$row->storeId = store_Stores::getHyperlink($rec->storeId);
     		if($rec->lineId){
     			$row->lineId = trans_Lines::getHyperLink($rec->lineId);
@@ -471,6 +458,8 @@ class store_ConsignmentProtocols extends core_Master
     		$row = $this->recToVerbal($rec, 'storeId,weight,volume,palletCountInput');
     		
     		$row->docId = $this->getLink($rec->id, 0);
+    		$row->contragentAddress = str_replace('<br>', ',', $row->contragentAddress);
+    		$row->contragentAddress = "<span style='font-size:0.8em'>{$row->contragentAddress}</span>";
     		
     		$row->rowNumb = cls::get('type_Int')->toVerbal($count);
     		$row->ROW_ATTR['class'] = "state-{$rec->state}";
@@ -487,7 +476,7 @@ class store_ConsignmentProtocols extends core_Master
     {
     	if(count($data->protocols)){
     		$table = cls::get('core_TableView');
-    		$fields = "rowNumb=№,docId=Документ,storeId=Склад,weight=Тегло,volume=Обем,palletCountInput=Палети,address=@Адрес";
+    		$fields = "rowNumb=№,docId=Документ,storeId=Склад,weight=Тегло,volume=Обем,palletCountInput=Палети,contragentAddress=@Адрес";
     		 
     		return $table->get($data->protocols, $fields);
     	}

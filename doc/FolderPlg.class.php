@@ -571,9 +571,9 @@ class doc_FolderPlg extends core_Plugin
      */
     public static function on_AfterInputEditForm($mvc, &$form)
     {
+        $rec = &$form->rec;
+        
         if ($form->isSubmitted()) {
-            
-            $rec = &$form->rec;
             
             // Обхождаме всички полета от модела, за да разберем кои са ричтекст
             foreach ((array)$mvc->fields as $name=>$field) {
@@ -606,6 +606,64 @@ class doc_FolderPlg extends core_Plugin
             	$form->setWarning('inCharge,access', 'След запис няма да имате достъп до корицата');
             }
         }
+        
+        if ($form->isSubmitted()) {
+            
+            // При променя на споделените потребители прави или чисти нотификацията
+            if ($rec->id) {
+                $oRec = $mvc->fetch($form->rec->id);
+                
+                $sArr = type_Keylist::getDiffArr($oRec->shared, $rec->shared);
+                
+                $currUserNick = core_Users::getCurrent('nick');
+                $currUserNick = type_Nick::normalize($currUserNick);
+                
+        		if(doc_Folders::haveRightToObject($rec) && ($mvc instanceof core_Master)) {
+        			$url = array($mvc, 'single', $rec->id);
+        		} else {
+        			$url = array($mvc, 'list');
+        		}
+                
+        		$folderTitle = $mvc->getFolderTitle($rec->id);
+        		
+        		$notifyArr = $sArr['add'];
+        		$delNotifyArr = $sArr['delete'];
+        		
+        		if ($rec->inCharge != $oRec->inCharge) {
+        		    $notifyArr[$rec->inCharge] = $rec->inCharge;
+        		    $delNotifyArr[$oRec->inCharge] = $oRec->inCharge;
+        		}
+        		
+                if ($notifyArr) {
+                    foreach ($notifyArr as $notifyUserId) {
+                        $msg = $currUserNick . ' |сподели папка|* "' . $folderTitle . '"';
+                        bgerp_Notifications::add($msg, $url, $notifyUserId, 'normal');
+                    }
+                } else if ($delNotifyArr) {
+                    foreach ($delNotifyArr as $clearUser) {
+                        bgerp_Notifications::setHidden($url, 'yes', $clearUser);
+                    }
+                }
+            }
+        }
+    }
+    
+    
+    /**
+     * След рендиране на единичния изглед
+     */
+    public static function on_AfterRenderSingle($mvc, &$tpl, $data)
+    {
+        bgerp_Notifications::clear(array($mvc, 'single', $data->rec->id));
+    }
+    
+    
+    /**
+     * След рендиране на лист таблицата
+     */
+    public static function on_AfterRenderListTable($mvc, &$tpl, &$data)
+    {
+        bgerp_Notifications::clear(array($mvc, 'list'));
     }
     
     
@@ -624,6 +682,23 @@ class doc_FolderPlg extends core_Plugin
     			
     			// Ако нямаме достъп, пренасочваме към списъчния изглед
     			$data->retUrl = toUrl(array($mvc, 'list'));
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Кои документи да се показват като бързи бутони в папката на корицата
+     */
+    public static function on_AfterGetDocButtonsInFolder($mvc, &$res, $id)
+    {
+    	if(!$res){
+    		
+    		// Ако има зададени такива тях, иначе никои
+    		if(isset($mvc->defaultDefaultDocuments)){
+    			$res = arr::make($mvc->defaultDefaultDocuments);
+    		} else {
+    			$res = array();
     		}
     	}
     }

@@ -57,8 +57,9 @@ class sens2_Setup extends core_ProtoSetup
             'sens2_Indicators',
             'sens2_DataLogs',
             'sens2_Controllers',
-            'sens2_Logics',
-            'sens2_LogicDetails',
+            'sens2_Scripts',
+            'sens2_ScriptActions',
+            'sens2_ScriptDefinedVars'
         );
     
 
@@ -71,7 +72,7 @@ class sens2_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    var $defClasses = "sens2_DataLogReportsImpl";
+    var $defClasses = "sens2_reports_DataLog";
     
 
     /**
@@ -92,8 +93,10 @@ class sens2_Setup extends core_ProtoSetup
         // Добавяме наличните драйвери
         $drivers = array(
             'sens2_MockupDrv',
-            'sens2_LogicActionAssign',
-            'sens2_LogicActionSignal',
+            'sens2_ServMon',
+            'sens2_ScriptActionAssign',
+            'sens2_ScriptActionSignal',
+            'sens2_ScriptActionSMS',
         );
         
         foreach ($drivers as $drvClass) {
@@ -109,7 +112,17 @@ class sens2_Setup extends core_ProtoSetup
         $rec->offset = 0;
         $rec->timeLimit = 30;
         $html .= core_Cron::addOnce($rec);
-                 
+        
+        $rec = new stdClass();
+        $rec->systemId = "sens2_RunScripts";
+        $rec->description = "Изпълнява всички скриптове";
+        $rec->controller = "sens2_Scripts";
+        $rec->action = "RunAll";
+        $rec->period = 1;
+        $rec->delay = 15;
+        $rec->timeLimit = 45;
+        $html .= core_Cron::addOnce($rec);
+         
         return $html;
     }
     

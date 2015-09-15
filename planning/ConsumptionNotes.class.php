@@ -27,7 +27,7 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
 	/**
 	 * Заглавие
 	 */
-	public $title = 'Протоколи за влагане';
+	public $title = 'Протоколи за влагане в производство';
 	
 	
 	/**
@@ -88,7 +88,7 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
 	/**
 	 * Заглавие в единствено число
 	 */
-	public $singleTitle = 'Протокол за влагане';
+	public $singleTitle = 'Протокол за влагане в производство';
 	
 	
 	/**
@@ -148,23 +148,6 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
 	function description()
 	{
 		parent::setDocumentFields($this);
-		$this->FLD('useResourceAccounts', 'enum(yes=Да,no=Не)', 'caption=Влагане по ресурси->Избор,notNull,default=yes,maxRadio=2,before=note');
-	}
-	
-	
-	/**
-	 * Обновява записа, за да се преизчисли полето 'isContable' (@see acc_plg_Contable)
-	 */
-	public function act_Resave()
-	{
-		$this->requireRightFor('edit');
-		expect($id = Request::get('id', 'int'));
-		expect($rec = $this->fetchRec($id));
-		
-		$this->requireRightFor('edit', $rec);
-		
-		$this->save($rec);
-		
-		redirect(array($this, 'single', $id));
+		$this->FLD('useResourceAccounts', 'enum(yes=Да,no=Не)', 'caption=Детайлно влагане->Избор,notNull,default=yes,maxRadio=2,before=note');
 	}
 }

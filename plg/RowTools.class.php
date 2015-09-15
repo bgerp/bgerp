@@ -9,7 +9,7 @@
  * @category  ef
  * @package   plg
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @link
@@ -27,7 +27,7 @@ class plg_RowTools extends core_Plugin
     /**
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
-    function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = NULL)
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = NULL)
     {
         // Ако се намираме в режим "печат", не показваме инструментите на реда
         if(Mode::is('printing')) return;
@@ -89,7 +89,7 @@ class plg_RowTools extends core_Plugin
 			            $mvc,
 			            'reject',
 			            'id' => $rec->id,
-			            'ret_url' => TRUE);
+			            'ret_url' => $retUrl);
 			         $deleteLink = ht::createLink($deleteImg, $deleteUrl,
                 		tr('Наистина ли желаете записът да бъде оттеглен?'), "id=rej{$rec->id},title=Оттегляне на " . mb_strtolower($mvc->singleTitle));
         			
@@ -100,7 +100,7 @@ class plg_RowTools extends core_Plugin
 			            $mvc,
 			            'restore',
 			            'id' => $rec->id,
-			            'ret_url' => TRUE);
+			            'ret_url' => $retUrl);
 			            
 			        $restoreLink = ht::createLink($restoreImg, $restoreUrl,
                 		tr('Наистина ли желаете записът да бъде възстановен?'), "id=res{$rec->id},title=Възстановяване на " . mb_strtolower($mvc->singleTitle));
@@ -108,15 +108,28 @@ class plg_RowTools extends core_Plugin
         	}
         }
         
+        if($mvc->hasPlugin('change_Plugin')){
+        	if ($mvc->haveRightFor('changerec', $rec)) {
+        		 
+        		$changeUrl = array($mvc,
+        				'changeFields',
+        				$rec->id,
+        				'ret_url' => $retUrl,);
+        	
+        		$changeLink = ht::createLink('', $changeUrl, NULL, "ef_icon=img/16/to_do_list.png,id=conto{$rec->id},title=Промяна на " . mb_strtolower($mvc->singleTitle));
+        	}
+        }
+        
         $tpl = new ET(static::$rowToolsTpl);
         $tpl->append($row->{$field}, 'ROWTOOLS_CAPTION');
         
-        if ($singleLink || $editLink || $deleteLink || $restoreLink) {
+        if ($singleLink || $editLink || $deleteLink || $restoreLink || $changeLink) {
             // Вземаме съдържанието на полето, като шаблон
             $tpl->append($singleLink, 'TOOLS');
             $tpl->append($editLink, 'TOOLS');
             $tpl->append($deleteLink, 'TOOLS');
             $tpl->append($restoreLink, 'TOOLS');
+            $tpl->append($changeLink, 'TOOLS');
         }
         $row->{$field} = $tpl;
         
@@ -131,7 +144,7 @@ class plg_RowTools extends core_Plugin
      * Метод по подразбиране
      * Връща иконата на документа
      */
-    function on_AfterGetIcon($mvc, &$res, $id = NULL)
+    public static function on_AfterGetIcon($mvc, &$res, $id = NULL)
     {
         if(!$res) { 
             $res = $mvc->singleIcon;
@@ -192,7 +205,7 @@ class plg_RowTools extends core_Plugin
     /**
      * Проверяваме дали колонката с инструментите не е празна, и ако е така я махаме
      */
-    function on_BeforeRenderListTable($mvc, &$res, $data)
+    public static function on_BeforeRenderListTable($mvc, &$res, $data)
     {
         $data->listFields = arr::make($data->listFields, TRUE);
         
@@ -205,7 +218,9 @@ class plg_RowTools extends core_Plugin
             foreach($data->rows as $row) {
                 
                 // Ако в някой от полетата има промяна по шаблона
-                if ($rowToolsTpl->content != $row->{$field}->content) return ;
+                if(isset($row->{$field})){
+                	if ($rowToolsTpl->content != $row->{$field}->content) return;
+                }
             }
         }
         

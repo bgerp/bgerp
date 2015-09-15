@@ -40,19 +40,19 @@ class cat_UoM extends core_Manager
     /**
      * Кой има право да добавя?
      */
-    var $canAdd = 'admin,ceo';
+    var $canAdd = 'cat,ceo';
 
     
     /**
      * Кой има право да променя?
      */
-    var $canEdit = 'admin,ceo';
+    var $canEdit = 'cat,ceo';
   
 
     /**
      * Кой има право да го изтрие?
      */
-    var $canDelete = 'admin,ceo';
+    var $canDelete = 'cat,ceo';
  
 
     /**
@@ -64,7 +64,13 @@ class cat_UoM extends core_Manager
     /**
      * Полета за лист изгледа
      */
-    var $listFields = "id,name,shortName=Съкращение->Българско,sysId=Съкращение->Международно,state,round";
+    var $listFields = "id,name,shortName=Съкращение->Българско,sysId=Съкращение->Международно,state,round=Точност,showContents";
+    
+    
+    /**
+     * Кой има право да променя системните данни?
+     */
+    var $canEditsysdata = 'cat,ceo';
     
     
     /**
@@ -72,16 +78,58 @@ class cat_UoM extends core_Manager
      */
     function description()
     {
-        $this->FLD('name', 'varchar(36)', 'caption=Мярка, export,translate');
-        $this->FLD('shortName', 'varchar(12)', 'caption=Съкращение, export,translate');
+        $this->FLD('name', 'varchar(36)', 'caption=Мярка, export,translate,mandatory');
+        $this->FLD('shortName', 'varchar(12)', 'caption=Съкращение, export,translate,mandatory');
+        $this->FLD('type', 'enum(uom=Мярка,packaging=Опаковка)', 'notNull,value=uom,caption=Тип,silent,input=hidden');
         $this->FLD('baseUnitId', 'key(mvc=cat_UoM, select=name,allowEmpty)', 'caption=Базова мярка, export');
         $this->FLD('baseUnitRatio', 'double', 'caption=Коефициент, export');
         $this->FLD('sysId', 'varchar', 'caption=System Id,input=hidden');
         $this->FLD('sinonims', 'varchar(255)', 'caption=Синоними');
+        $this->FLD('showContents', 'enum(yes=Показване,no=Скриване)', 'caption=Показване в документи->К-во в опаковка');
         $this->FLD('round', 'int', 'caption=Точност след десетичната запетая->Цифри');
         
         $this->setDbUnique('name');
         $this->setDbUnique('shortName');
+    }
+    
+    
+    /**
+     * Връща опции с опаковките
+     */
+    public static function getPackagingOptions()
+    {
+    	$options = cls::get(get_called_class())->makeArray4Select('name', "#type = 'packaging' AND state NOT IN ('closed')");
+    	
+    	return $options;
+    }
+    
+    
+    /**
+     * Връща опции с мерките
+     */
+    public static function getUomOptions()
+    {
+    	$options = cls::get(get_called_class())->makeArray4Select('name', "#type = 'uom' AND state NOT IN ('closed')");
+    	 
+    	return $options;
+    }
+    
+    
+    /**
+     * Подготовка на филтър формата
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+    	$type = core_Request::get('type', 'enum(uom,packaging)');
+    	if($type == 'packaging'){
+    		$mvc->currentTab = 'Мерки->Опаковки';
+    		$mvc->title = 'Опаковки';
+    		$data->listFields['name'] = 'Опаковка';
+    	} else {
+    		$mvc->currentTab = 'Мерки->Мерки';
+    	}
+    	
+    	$data->query->where(array("#type = '[#1#]'", $type));
     }
     
     
@@ -91,25 +139,15 @@ class cat_UoM extends core_Manager
      * 
      * @param double $quantity - к-то което ще закръгляме
      * @param int $productId - ид на артикула
-     * @param int $packagingId - ид на опаковка
      * @return double - закръгленото количество
      */
-    public static function round($quantity, $productId, $packagingId = NULL)
+    public static function round($quantity, $productId)
     {
     	// Коя е основната мярка на артикула
     	$uomId = cat_Products::getProductInfo($productId)->productRec->measureId;
     	
-    	if(isset($packagingId)){
-    		$packRound = cat_Packagings::fetchField($packagingId, 'round');
-    		if(isset($packRound)){
-    			$round = $packRound;
-    		} else {
-    			$round = 0;
-    		}
-    	} else {
-    		// Имали зададено закръгляне
-    		$round = static::fetchField($uomId, 'round');
-    	}
+    	// Имали зададено закръгляне
+    	$round = static::fetchField($uomId, 'round');
     	
     	// Ако няма
     	if(!isset($round)){
@@ -119,7 +157,7 @@ class cat_UoM extends core_Manager
     		if($uomRec->baseUnitId){
     			
     			/*
-    			 * Ако има базова мярка, тогава да е спрямо точността на базовата мярка. 
+    			 * Ако има базова мярка, тогава да е спрямо точността на базовата мярка. bp($round);
     			 * Например ако базовата мярка е килограм и имаме нова мярка - грам, която 
     			 * е 1/1000 от базовата, то точността по подразбиране е 3/3 = 1, където числителя 
     			 * е точността на мярката килограм, а в знаменателя - log(1000).
@@ -145,7 +183,7 @@ class cat_UoM extends core_Manager
      * @param double amount - стойност
      * @param int $unitId - ид на мярката
      */
-    static function convertToBaseUnit($amount, $unitId)
+    public static function convertToBaseUnit($amount, $unitId)
     {
         $rec = static::fetch($unitId);
         
@@ -166,7 +204,7 @@ class cat_UoM extends core_Manager
      * @param double amount - стойност
      * @param int $unitId - ид на мярката
      */
-    static function convertFromBaseUnit($amount, $unitId)
+    public static function convertFromBaseUnit($amount, $unitId)
     {
         $rec = static::fetch($unitId);
         
@@ -189,7 +227,7 @@ class cat_UoM extends core_Manager
      * @return array $options - всички мярки от същата категория
      * като подадената
      */
-    static function getSameTypeMeasures($measureId, $short = FALSE)
+    public static function getSameTypeMeasures($measureId, $short = FALSE)
     {
     	expect($rec = static::fetch($measureId), "Няма такава мярка");	
     	
@@ -267,7 +305,7 @@ class cat_UoM extends core_Manager
 	/**
      * Извиква се след SetUp-а на таблицата за модела
      */
-    static function on_AfterSetupMvc($mvc, &$res)
+    public static function on_AfterSetupMvc($mvc, &$res)
     {
     	$file = "cat/csv/UoM.csv";
     	$fields = array( 
@@ -278,7 +316,8 @@ class cat_UoM extends core_Manager
 	    	4 => "state",
 	    	5 => "sysId",
 	    	6 => "sinonims",
-    		7 => "round");
+    		7 => "round",
+    		8 => "type");
     	
     	$cntObj = csv_Lib::importOnce($mvc, $file, $fields);
     	$res .= $cntObj->html;
@@ -374,5 +413,63 @@ class cat_UoM extends core_Manager
         $all[$mId] = ($verbal) ? $Double->toVerbal($all[$mId]) : $all[$mId];
         
         return ($asObject) ? (object)(array('value' => $all[$uomId], 'measure' => $mId)) : $all[$uomId] . " " . static::getShortName($mId);
+    }
+    
+    
+    /**
+     * Извиква се след подготовката на toolbar-а за табличния изглед
+     */
+    protected static function on_AfterPrepareListToolbar($mvc, &$data)
+    {
+    	$type = Request::get('type', 'enum(uom,packaging)');
+    	$title = ($type == 'uom') ? 'мярка' : 'опаковка';
+    	
+    	$data->toolbar->removeBtn('btnAdd');
+    	$data->toolbar->addBtn('Нов запис', array($mvc, 'add', 'type' => $type), "ef_icon=img/16/star_2.png,title=Добавяне на нова {$title}");
+    }
+    
+    
+    /**
+     * Преди показване на форма за добавяне/промяна
+     */
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+    	$rec = $data->form->rec;
+    	
+    	if($rec->type == 'packaging'){
+    		$data->form->setField('name', 'caption=Опаковка');
+    	}
+    	
+    	// Ако записа е създаден от системния потребител, може да се 
+    	if($rec->createdBy == core_Users::SYSTEM_USER){
+    		foreach (array('name', 'shortName', 'baseUnitId', 'baseUnitRatio', 'sysId', 'sinonims', 'round') as $fld){
+    			$data->form->setField($fld, 'input=none');
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Пренасочва URL за връщане след запис към сингъл изгледа
+     */
+    public static function on_AfterPrepareRetUrl($mvc, $res, $data)
+    {
+    	// Рет урл-то не сочи към мастъра само ако е натиснато 'Запис и Нов'
+    	if (isset($data->form) && ($data->form->cmd === 'save' || is_null($data->form->cmd))) {
+    
+    		// Променяма да сочи към single-a
+    		$data->retUrl = toUrl(array('cat_UoM', 'list', 'type' => $data->form->rec->type));
+    	}
+    }
+    
+    
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = NULL, $userId = NULL)
+    {
+    	if($action == 'edit' && $rec->state == 'closed'){
+    		$requiredRoles = 'no_one';
+    	}
     }
 }

@@ -117,7 +117,7 @@ class blogm_Comments extends core_Detail {
         $fields['-article'] = TRUE;
         
         // Търсим brid в сесията
-        $data->brid = logs_Browsers::getBrid();
+        $data->brid = log_Browsers::getBrid();
         
         $query->where(array("#articleId = {$data->articleId} AND (#state = 'active' OR #brid = '[#1#]')", $data->brid));
         
@@ -153,7 +153,7 @@ class blogm_Comments extends core_Detail {
             $data->commentForm->setField('state', 'input=none');
             $data->commentForm->setHidden('articleId', $data->articleId);
             
-            $valsArr = logs_Browsers::getVars(array('name', 'email', 'web'));
+            $valsArr = log_Browsers::getVars(array('name', 'email', 'web'));
             
             foreach ($valsArr as $vName => $val) {
                 $data->commentForm->setDefault($vName, $val);
@@ -204,11 +204,11 @@ class blogm_Comments extends core_Detail {
 
             $rec->ip = core_Users::getRealIpAddr();
 
-            $rec->brid = logs_Browsers::getBrid();
+            $rec->brid = log_Browsers::getBrid();
             
             // Да се записва само при нов запис и и когато няма регистриран потребител
             if (core_Users::getCurrent() < 1) {
-                logs_Browsers::setVars(array('name' => $rec->name, 'email' => $rec->email, 'web' => $rec->web));
+                log_Browsers::setVars(array('name' => $rec->name, 'email' => $rec->email, 'web' => $rec->web));
             }
         }
     }
@@ -277,7 +277,7 @@ class blogm_Comments extends core_Detail {
     {
     	$row->ip = type_Ip::decorateIp($rec->ip, $rec->createdOn, TRUE);
     	
-        $row->brid = logs_Browsers::getLink($rec->brid);
+        $row->brid = log_Browsers::getLink($rec->brid);
     }
     
     

@@ -281,7 +281,6 @@ class trans_Lines extends core_Master
     	}
     	
     	$row->handler = $mvc->getLink($rec->id, 0);
-    	$row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
     }
     
     

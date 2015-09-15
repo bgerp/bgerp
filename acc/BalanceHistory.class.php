@@ -110,6 +110,9 @@ class acc_BalanceHistory extends core_Manager
         $tpl->removeBlock('toDate');
         $tpl = $this->renderWrapping($tpl);
         
+        // Записваме, че потребителя е разглеждал този списък
+        $this->logInfo("Разглеждане на хронология на сметка");
+        
         // Връщаме шаблона
         return $tpl;
     }

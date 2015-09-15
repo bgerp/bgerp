@@ -29,10 +29,10 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 		expect($rec = $this->class->fetchRec($id));
 	
 		$result = (object)array(
-				'reason' => "Протокол за бързо производство №{$rec->id}",
-				'valior' => $rec->valior,
+				'reason'      => "Протокол за бързо производство №{$rec->id}",
+				'valior'      => $rec->valior,
 				'totalAmount' => NULL,
-				'entries' => array()
+				'entries'     => array()
 		);
 	
 		// Ако има ид, добавяме записите
@@ -60,22 +60,24 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 		$dQuery->orderBy('id', 'ASC');
 		
 		while($dRec = $dQuery->fetch()){
-			$resourcesArr[$dRec->resourceId] = $dRec;
-			$resourcesArr[$dRec->resourceId]->resourceQuantity = $dRec->quantity;
+			$index = "{$dRec->productId}|{$dRec->type}";
+			$resourcesArr[$index] = $dRec;
+			$resourcesArr[$index]->resourceQuantity = $dRec->quantity;
+			$resourcesArr[$index]->productInfo = cat_Products::getProductInfo($dRec->productId);
 			$rQuantity = $dRec->quantity;
 			
 			if($dRec->productId && $dRec->type == 'input'){
-				$hasInput = TRUE;
-				$rQuantity = ($dRec->quantity / $dRec->conversionRate);
-				$resourcesArr[$dRec->resourceId]->resourceQuantity = $rQuantity;
+				if(!isset($resourcesArr[$index]->productInfo->meta['canStore'])) continue;
 				
-				$entry = array('debit' => array('61101', array('planning_Resources', $dRec->resourceId), 
-												'quantity' => $rQuantity),
-							   'credit' => array('321', array('store_Stores', $rec->storeId), 
+				$hasInput = TRUE;
+				$resourcesArr[$index]->resourceQuantity = $dRec->quantity;
+				
+				$entry = array('debit' => array('61101', array($dRec->classId, $dRec->productId), 
+												'quantity' => $dRec->quantity),
+							   'credit' => array('321', array('store_Stores', $rec->inputStoreId), 
 														array($dRec->classId, $dRec->productId), 
 												'quantity' => $dRec->quantity),
-								'reason' => 'Влагане на ресурс в производството' 
-							   );
+								'reason' => 'Влагане на материал в производството');
 				
 				$entries[] = $entry;
 			}
@@ -83,38 +85,41 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 		
 		$index = 0;
 		$costAmount = 0;
+		
 		if(count($resourcesArr)){
 			arr::orderA($resourcesArr, 'type');
 			
 			foreach ($resourcesArr as $resourceId => $obj){
 				$entry = array();
-				$selfValue = planning_Resources::getSelfValue($resourceId, $rec->valior);
-				$sign = ($obj->type == 'input') ? 1 : -1;
 				
+				$selfValue = planning_ObjectResources::getSelfValue($obj->productId);
+				
+				$sign = ($obj->type == 'input') ? 1 : -1;
 				$costAmount += $sign * $obj->resourceQuantity * $selfValue;
 				
 				$quantity = ($index == 0) ? $rec->quantity : 0;
 				
 				if($obj->type == 'input'){
-					$reason = ($index == 0) ? 'Засклаждане на произведен артикул' : 'Вложени ресурси в произведен артикул';
 					
+					$reason = ($index == 0) ? 'Засклаждане на произведен продукт' : ((!isset($obj->productInfo->meta['canStore']) ? 'Вложен нескладируем артикул в производството на продукт' : 'Вложен материал в производството на артикул'));
+				
 					$entry['debit'] = array('321', array('store_Stores', $rec->storeId),
 										 array(cat_Products::getClassId(), $rec->productId),
 										'quantity' => $quantity);
 					
-					$entry['credit'] = array('61101', array('planning_Resources', $resourceId),
-											   'quantity' => $obj->resourceQuantity);
+					$entry['credit'] = array('61101', array($obj->classId, $obj->productId),
+											            'quantity' => $obj->resourceQuantity);
 					$entry['reason'] = $reason;
 				} else {
-					$amount = planning_Resources::fetchField($resourceId, "selfValue");
-					$entry['debit'] = array('61101', array('planning_Resources', $resourceId),
+					$amount = $selfValue;
+					$entry['debit'] = array('61101', array($obj->classId, $obj->productId),
 												  'quantity' => $obj->resourceQuantity);
 					
 					$entry['credit'] =  array('321', array('store_Stores', $rec->storeId),
 										 array(cat_Products::getClassId(), $rec->productId),
 										'quantity' => $quantity);
 					$entry['amount'] = $amount;
-					$entry['reason'] = 'Приспадане себестойността на отпадък от произведен артикул';
+					$entry['reason'] = 'Приспадане себестойността на отпадък от произведен продукт';
 					$total += $amount;
 				}
 				
@@ -127,13 +132,13 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 		if($rec->expenses){
 			$costAmount = $rec->expenses * $costAmount;
 			$costAmount = round($costAmount, 2);
-			
+
 			if($costAmount){
 				$costArray = array(
 						'amount' => $costAmount,
 						'debit' => array('321', array('store_Stores', $rec->storeId),
-								array(cat_Products::getClassId(), $rec->productId),
-								'quantity' => 0),
+											    array(cat_Products::getClassId(), $rec->productId),
+										'quantity' => 0),
 						'credit' => array('61102'),
 						'reason' => 'Разпределени режийни разходи',
 				);

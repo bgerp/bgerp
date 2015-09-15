@@ -40,7 +40,7 @@ class core_page_Active extends page_Html {
         jquery_Jquery::enable($this);
         $this->push('js/efCommon.js', 'JS');
         $this->push('js/overthrow-detect.js', 'JS');
-                
-        $this->appendOnce("\n<link  rel=\"shortcut icon\" href=" . sbf("img/favicon.ico", '"', TRUE) . " type=\"image/x-icon\">", "HEAD");
+        
+        $this->appendOnce("\n<link  rel=\"shortcut icon\" href=\"" . getBoot(TRUE) . '/favicon.ico"' . " type=\"image/x-icon\">", "HEAD");
     }    
 }

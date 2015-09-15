@@ -39,9 +39,6 @@ class crm_Persons extends core_Master
         // Интерфейс за входящ документ
         'incoming_CreateDocumentIntf',
     		
-    	// Интерфейс за източник на производствен ресурс
-    	'planning_ResourceSourceIntf',
-    		
     	// Интерфейс за корица на папка в която може да се създава артикул
     	'cat_ProductFolderCoverIntf',
     );
@@ -212,7 +209,7 @@ class crm_Persons extends core_Master
      * @var string|array
      */
     public $details = 'ContragentLocations=crm_Locations,Pricelists=price_ListToCustomers,
-                    ContragentBankAccounts=bank_Accounts,IdCard=crm_ext_IdCards,CustomerSalecond=cond_ConditionsToCustomers,AccReports=acc_ReportDetails,Cards=pos_Cards,Resources=planning_ObjectResources';
+                    ContragentBankAccounts=bank_Accounts,IdCard=crm_ext_IdCards,CustomerSalecond=cond_ConditionsToCustomers,AccReports=acc_ReportDetails,Cards=pos_Cards';
     
     
     /**
@@ -1214,7 +1211,7 @@ class crm_Persons extends core_Master
     public static function createRoutingRules($emails, $objectId)
     {
         // Приоритетът на всички правила, генериране след запис на визитка е нисък и намаляващ с времето
-        $priority = email_Router::dateToPriority(dt::now(), 'low', 'desc');
+        $priority = email_Router::dateToPriority(dt::now(), 'low', 'asc');
 
             // Нормализираме параметъра $emails - да стане масив от имейл адреси
         if (!is_array($emails)) {
@@ -1280,7 +1277,7 @@ class crm_Persons extends core_Master
         //Вземаме данните
         $person = crm_Persons::fetch($id);
 
-        //Заместваме и връщаме данните
+        // Заместваме и връщаме данните
         if ($person) {
             $contrData = new stdClass();
             $contrData->company = crm_Persons::getVerbal($person, 'buzCompanyId');
@@ -1289,6 +1286,7 @@ class crm_Persons extends core_Master
             $contrData->country = crm_Persons::getVerbal($person, 'country');
             $contrData->countryId = $person->country;
             $contrData->pCode = $person->pCode;
+            $contrData->uicId = $person->egn;
             $contrData->place = $person->place;
             $contrData->email = $person->buzEmail;
             $contrData->tel = $person->buzTel;
@@ -2386,51 +2384,6 @@ class crm_Persons extends core_Master
     
     
     /**
-     * Можели обекта да се добави като ресурс?
-     *
-     * @param int $id - ид на обекта
-     * @return boolean - TRUE/FALSE
-     */
-    public function canHaveResource($id)
-    {
-    	$rec = $this->fetchRec($id);
-    	$groupId = crm_Groups::getIdFromSysId('employees');
-    	
-    	// Само ако е от група "Служители"
-    	if(keylist::isIn($groupId, $rec->groupList)){
-    		return TRUE;
-    	}
-    	
-    	return FALSE;
-    }
-    
-     
-    /**
-     * Връща дефолт информация от източника на ресурса
-     *
-     * @param int $id - ид на обекта
-     * @return stdClass $res  - обект с информация
-     * 		o $res->name      - име
-     * 		o $res->measureId - име мярка на ресурса (@see cat_UoM)
-     * 		o $res->type      -  тип на ресурса (material,labor,equipment)
-     */
-    public function getResourceSourceInfo($id)
-    {
-    	$rec = $this->fetchRec($id);
-    	
-    	$res = new stdClass();
-    	
-    	// Основната мярка на ресурса е 'час'
-    	$res->measureId = cat_UoM::fetchBySinonim('h')->id; 
-    	
-    	// Типа на ресурса ще е 'труд'
-    	$res->type = 'labor'; 
-    	
-    	return $res;
-    }
-    
-    
-    /**
      * Връща мета дефолт мета данните на папката
      *
      * @param int $id - ид на папка
@@ -2463,5 +2416,40 @@ class crm_Persons extends core_Master
     	}
     	
     	return $meta;
+    }
+    
+    
+    /**
+     * Кои документи да се показват като бързи бутони в папката на корицата
+     *
+     * @param int $id - ид на корицата
+     * @return array $res - възможните класове
+     */
+    public function getDocButtonsInFolder($id)
+    {
+    	$res = array();
+    	 
+    	$rec = $this->fetch($id);
+    	$clientGroupId = crm_Groups::getIdFromSysId('customers');
+    	$supplierGroupId = crm_Groups::getIdFromSysId('suppliers');
+    	$debitGroupId = crm_Groups::getIdFromSysId('debitors');
+    	$creditGroupId = crm_Groups::getIdFromSysId("creditors");
+    	
+    	// Ако е в група дебитори или кредитови, показваме бутон за финансова сделка
+    	if(keylist::isIn($debitGroupId, $rec->groupList) || keylist::isIn($creditGroupId, $rec->groupList)){
+    		$res[] = 'findeals_Deals';
+    	}
+    	
+    	// Ако е в група на клиент, показваме бутона за продажба
+    	if(keylist::isIn($clientGroupId, $rec->groupList)){
+    		$res[] = 'sales_Sales';
+    	}
+    	 
+    	// Ако е в група на достачик, показваме бутона за покупка
+    	if(keylist::isIn($supplierGroupId, $rec->groupList)){
+    		$res[] = 'purchase_Purchases';
+    	}
+    	 
+    	return $res;
     }
 }

@@ -93,10 +93,8 @@ class permanent_Data extends core_Manager {
      */
     static function read($key, $lock = TRUE)
     {
-        $PermData = cls::get('permanent_Data');
-        
         if ($lock && !core_Locks::get($key)) {  
-            $PermData->Log("Грешка при четене - заключен обект");
+            self::logErr("Грешка при четене - заключен обект");
             exit (1);
         }
         

@@ -160,6 +160,10 @@ class blast_Lists extends core_Master
         
         $this->FLD('contactsCnt', 'int', 'caption=Записи,input=none');
         
+        cls::get('core_Lg');
+        
+        $this->FLD('lg', 'enum(, ' . EF_LANGUAGES . ')', 'caption=Език,changable,notNull,allowEmpty');
+        
         $this->setDbUnique('title');
     }
     
@@ -251,10 +255,10 @@ class blast_Lists extends core_Master
     /**
      * Поддържа точна информацията за записите в детайла
      */
-    static function on_AfterUpdateDetail($mvc, $id, $Detail)
+    protected static function on_AfterUpdateDetail(core_Manager $mvc, $id, core_Manager $detailMvc)
     {
         $rec = $mvc->fetch($id);
-        $dQuery = $Detail->getQuery();
+        $dQuery = $detailMvc->getQuery();
         $dQuery->where("#listId = $id");
         $rec->contactsCnt = $dQuery->count();
         
@@ -288,6 +292,27 @@ class blast_Lists extends core_Master
         if (!$data->form->rec->fields) {
             $template = new ET (getFileContent("blast/tpl/ListsEditFormTemplates.txt"));
             $data->form->rec->fields = $template->getContent();
+        }
+        
+        if (!$data->form->rec->id) {
+            $data->form->setDefault('lg', core_Lg::getCurrent());
+        }
+    }
+    
+    
+    /**
+     * След подготовка на тулбара на единичен изглед.
+     * 
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    static function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
+    {
+        if ($data->rec->keyField == 'email' && blast_Emails::haveRightFor('add') && $data->rec->state != 'draft' && $data->rec->state != 'rejected') {
+            
+            Request::setProtected(array('perSrcObjectId', 'perSrcClassId'));
+        
+            $data->toolbar->addBtn('Циркулярен имейл', array('blast_Emails', 'add', 'perSrcClassId' => core_Classes::getId($mvc), 'perSrcObjectId' => $data->rec->id, 'ret_url' => TRUE), 'id=btnEmails','ef_icon = img/16/emails.png,title=Създаване на циркулярен имейл');
         }
     }
     
@@ -603,5 +628,21 @@ class blast_Lists extends core_Master
         $link = ht::createLink($title, array($this, 'single', $id));
         
         return $link;
+    }
+    
+    
+    /**
+     * Връща езика за източника на персонализация
+     * @see bgerp_PersonalizationSourceIntf
+     *
+     * @param integer $id
+     *
+     * @return string
+     */
+    public function getPersonalizationLg($id)
+    {
+        $rec = $this->fetch($id);
+        
+        return $rec->lg;
     }
 }

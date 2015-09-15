@@ -81,7 +81,7 @@ class acc_Items extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'num,titleLink=Наименование,uomId,lastUseOn,tools=Пулт,createdBy,state';
+    var $listFields = 'num,titleLink=Наименование,uomId,lastUseOn,tools=Пулт,createdBy,state,closedOn';
     
     
     /**
@@ -153,6 +153,8 @@ class acc_Items extends core_Manager
         // Кога за последно е използвано
         $this->FLD('lastUseOn', 'datetime(format=smartTime)', 'caption=Последно,input=none');
         
+        $this->FLD('closedOn', 'date', 'caption=Затваряне,input=none');
+        
         // Титла - хипервръзка
         $this->FNC('titleLink', 'html', 'column=none');
         $this->FNC('titleNum', 'varchar', 'column=none');
@@ -214,6 +216,14 @@ class acc_Items extends core_Manager
         if($rec->id){
             // Запомняне на старите номенклатури
             $rec->oldLists = $mvc->fetchField($rec->id, 'lists');
+        }
+        
+        if($rec->state == 'closed'){
+        	$oRec = cls::get($rec->classId)->fetch($rec->objectId);
+        	$closedOn = (isset($oRec->closedOn)) ? $oRec->closedOn : dt::today();
+        	$rec->closedOn = dt::verbal2mysql($closedOn, FALSE);
+        } elseif($rec->state == 'active'){
+        	$rec->closedOn = NULL;
         }
     }
     
@@ -397,7 +407,7 @@ class acc_Items extends core_Manager
         	$listOptions+= array('-1' => '[Без номенклатури]');
         }
         
-        $data->listFilter->setOptions('listId', $listOptions);
+        $data->listFilter->setOptions('listId', array('' => '') + $listOptions);
         
         $data->listFilter->view = 'horizontal';
         
@@ -822,6 +832,9 @@ class acc_Items extends core_Manager
         $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png, title = Запис на документа');
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
         
+        // Записваме, че потребителя е разглеждал този списък
+        $this->logInfo("Добавяне на обекти, като пера");
+        
         return $this->renderWrapping($form->renderHtml());
     }
     
@@ -953,7 +966,7 @@ class acc_Items extends core_Manager
         $numRows = $this->delete("#state = 'closed' AND #lastUseOn IS NULL");
         
         if($numRows){
-            $this->log("Изтрити са {$numRows} неизползвани, затворени пера");
+            $this->logInfo("Изтрити са {$numRows} неизползвани, затворени пера");
         }
     }
     
@@ -983,6 +996,16 @@ class acc_Items extends core_Manager
             }
         } else {
             $cantShow = TRUE;
+        }
+        
+        $features = acc_Features::getFeaturesByItems(array($rec->id));
+        $features = $features[$rec->id];
+        
+        if(is_array($features)){
+        	$row->features = '';
+        	foreach ($features as $key => $value){
+        		$row->features .= "{$key}: <i>{$value}</i><br>";
+        	}
         }
         
         // Ако има проблем при извличането на записа показваме съобщение

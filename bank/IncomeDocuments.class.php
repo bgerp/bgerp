@@ -287,7 +287,7 @@ class bank_IncomeDocuments extends core_Master
                 
                 if($bankId){
                     // Ако потребителя има права, логва се тихо
-                    bank_OwnAccounts::selectSilent($bankId);
+                    bank_OwnAccounts::selectCurrent($bankId);
                 }
             }
         }
@@ -362,10 +362,6 @@ class bank_IncomeDocuments extends core_Master
     static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         $row->title = $mvc->getLink($rec->id, 0);
-        
-        if($fields['-list']){
-            $row->folderId = doc_Folders::recToVerbal(doc_Folders::fetch($rec->folderId))->title;
-        }
         
         if($fields['-single']) {
             

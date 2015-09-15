@@ -76,19 +76,43 @@ class sens2_Controllers extends core_Master
 	 */
 	var $canSingle = 'ceo,admin,sens';
     
+
+    var $canUpdate = 'ceo,admin,sens';
+
+    /**
+     * Масиви за кеширане пер хит на инсталираните портове
+     */
+    static $inputs, $outputs;
     
+
     /**
      * Описание на модела
      */
     function description()
     {
-        $this->FLD('name', 'varchar(255)', 'caption=Наименование, mandatory,notConfig');
+        $this->FLD('name', 'identifier(64,utf8)', 'caption=Наименование, mandatory,notConfig');
         $this->FLD('driver', 'class(interface=sens2_DriverIntf, allowEmpty, select=title)', 'caption=Драйвер,silent,mandatory,notConfig,placeholder=Тип на контролера');
         $this->FLD('config', 'blob(serialize, compress)', 'caption=Конфигурация,input=none,single=none,column=none');
         $this->FLD('state', 'enum(active=Активен, closed=Спрян)', 'caption=Състояние,input=none');
         $this->FLD('persistentState', 'blob(serialize)', 'caption=Персистентно състояние,input=none,single=none,column=none');
 
         $this->setDbUnique('name');
+    }
+
+
+    /**
+     * Връща инстанция на драйвера за посочения контролер
+     */
+    public static function getDriver($controllerId)
+    {
+        static $drivers = array();
+
+        if(!isset($drivers[$controllerId])) {
+            $rec = self::fetch($controllerId);
+            $drivers[$controllerId] = cls::get($rec->driver);
+        }
+
+        return $drivers[$controllerId];
     }
     
 
@@ -138,31 +162,45 @@ class sens2_Controllers extends core_Master
     /**
      * Връща обекта драйвер за посочения контролер
      */
-    static function getActivePorts($controllerId)
-    {
-        $rec = self::fetch($controllerId);
-        $drv = cls::get($rec->driver);
- 
-        $ports = $drv->getInputPorts() + $drv->getOutputPorts();
+    static function getActivePorts($controllerId, $type = 'all')
+    {   
+        static $ap = array();
 
-        $config = $rec->config;
-        $res = array('' => ' ');
-        foreach($ports as $port => $params) {
-            $partName = $port . '_name';
-            if($config->{$partName}) {
-                $caption = $port . " (". $config->{$partName} . ")";
-            } else {
-                $caption = new stdClass();
-                $caption->title = $port . " (". $params->caption . ")";
-                $caption->attr = array('style' => 'color:#999;');
+        if(!$ap[$controllerId . '_' . $type]) {
+            $ap[$controllerId . '_' . $type] = array();
+            $rec = self::fetch($controllerId);
+            $drv = self::getDriver($controllerId);
+            
+            $ports = array();
+
+            if($type != 'outputs') {
+                $ports = $drv->getInputPorts();
             }
             
-            $res[$port] = $caption;
-
+            if($type != 'inputs') {
+                $ports += $drv->getOutputPorts();
+            }
+ 
+            $config = $rec->config;
+            foreach($ports as $port => $params) {
+                $partName = $port . '_name';
+                if($config->{$partName}) {
+                    $caption = $port . " (". $config->{$partName} . ")";
+                    $title = '$' . $rec->name . '->' . $config->{$partName};
+                } else {
+                    $caption = new stdClass();
+                    $caption->title = $port . " (". $params->caption . ")";
+                    $caption->attr = array('style' => 'color:#999;');
+                    $title = '$' . $rec->name . '->' . $port;
+                }
+                $partUom = $port . '_uom';
+                $ap[$controllerId . '_' . $type][$port] = (object) array('caption' => $caption, 'uom' => $config->{$partUom}, 'title' => $title);
+            }
         }
   
-        return  $res;
+        return  $ap[$controllerId . '_' . $type];
     }
+
 
 
     /**
@@ -185,9 +223,9 @@ class sens2_Controllers extends core_Master
             
             $prefix = $port . ($params->caption ? " ({$params->caption})" : "");
 
-            $form->FLD($port . '_name', 'varchar(32)', "caption={$prefix}->Наименование");
-            $form->FLD($port . '_scale', 'varchar(255,valid=sens2_Controllers::isValidExpr)', "caption={$prefix}->Скалиране,hint=Въведете функция на X с която да се скалира стойността на входа. Например: `X*50` или `X/2`");
+            $form->FLD($port . '_name', 'identifier(32,utf8)', "caption={$prefix}->Наименование");
             $form->FLD($port . '_uom', 'varchar(16)', "caption={$prefix}->Единица");
+            $form->FLD($port . '_scale', 'varchar(255,valid=sens2_Controllers::isValidExpr)', "caption={$prefix}->Скалиране,hint=Въведете функция на X с която да се скалира стойността на входа. Например: `X*50` или `X/2`");
             $form->FLD($port . '_update', 'time(suggestions=1 min|2 min|5 min|10 min|30 min,uom=minutes)', "caption={$prefix}->Четене през");
             $form->FLD($port . '_log', 'time(suggestions=1 min|2 min|5 min|10 min|30 min,uom=minutes)', "caption={$prefix}->Логване през");
             if(trim($params->uom)) {
@@ -205,7 +243,7 @@ class sens2_Controllers extends core_Master
 
             $prefix = $port . ($params->caption ? " ({$params->caption})" : "");
 
-            $form->FLD($port . '_name', 'varchar(32)', "caption={$prefix}->Наименование");
+            $form->FLD($port . '_name', 'identifier(32,utf8)', "caption={$prefix}->Наименование");
             $form->FLD($port . '_uom', 'varchar(16)', "caption={$prefix}->Единица");
             if(trim($params->uom)) {
                 $form->setSuggestions($port . '_uom', arr::combine(array('' => ''), arr::make($params->uom, TRUE)));
@@ -255,23 +293,65 @@ class sens2_Controllers extends core_Master
     }
 
 
+    function on_AfterPrepareSingleToolbar($mvc, $res, $data)
+    {
+        if($mvc->haveRightFor('update', $data->rec)) {
+            $data->toolbar->addBtn('Обноваване', array($mvc, 'updateInputs', $data->rec->id));
+        }
+    }
+
+
+    /**
+     * Обновява стойностите на посочения контролер
+     */
+    function act_UpdateInputs()
+    {
+        $this->requireRightFor('update');
+
+        expect($id = Request::get('id', 'int'));
+
+        expect($rec = self::fetch($id));
+ 
+        $drv = self::getDriver($id);
+    
+        $ports = $drv->getInputPorts();
+ 
+        foreach($ports as $name => $def) {
+            $part = "{$name}_update";
+            if($rec->config->{$part} > 0) {
+                $force[$name] = $name;
+            }
+        }
+
+        $res = $this->updateInputs($id, $force, FALSE);
+
+        redirect(array($this, 'Single', $id), NULL, "Обновени са <b>{$res}</b> входа на контролера.");
+    }
+
+
     /**
      * Обновява стойностите на входовете за посочения контролер
      * Новите стойности се записват в sens2_Ports, а тези, за които е дошло време се логват
+     * 
+     * @param $id       int    id на контролер
+     * @param $force    array  Масив с портове, които задължително трябва да бъдат обновени
+     * @param $sav      bool   Дали да се запишат стойностите в dataLog
      */
-    function updateInputs($id, $force = array())
-    {
+    function updateInputs($id, $force = array(), $save = TRUE)
+    { 
         expect($rec = self::fetch($id));
 
         $config = (array) $rec->config;
 
-        $drv = cls::get($rec->driver);
+        $drv = self::getDriver($id);
 
         $ports = $drv->getInputPorts();
 
         $nowMinutes = round(time()/60);
         
         $inputs = $force;
+
+        $updatedCnt = 0;
         
         if(is_array($ports)) {
             foreach($ports as $port => $params) {
@@ -293,7 +373,13 @@ class sens2_Controllers extends core_Master
         if(is_array($inputs) && count($inputs)) {
 
             // Прочитаме състоянието на входовете от драйвера
+            if($rec->persistentState) {
+                $hash = md5(serialize($rec->persistentState));
+            }
             $values = $drv->readInputs($inputs, $rec->config, $rec->persistentState);
+            if($rec->persistentState && $hash != md5(serialize($rec->persistentState))) {
+                self::save($rec, 'persistentState');
+            }
 
             // Текущото време
             $time = dt::now();
@@ -308,22 +394,77 @@ class sens2_Controllers extends core_Master
                     $value = $values;
                 }
                 
-
-                if(($expr = $config[$port . '_scale']) && is_numeric($value)) {
+                if(($expr = $config[$port . '_scale']) && is_numeric($value)) {  
                     $expr = str_replace('X', $value, $expr);
                     $value = str::calcMathExpr($expr);
                 }
                    
                 // Обновяваме индикатора за стойността на текущия контролерен порт
-                $indicatorId = sens2_Indicators::setValue($rec->id, $port, $config[$port . '_uom'], $value, $time);
-
+                $indicatorId = sens2_Indicators::setValue($rec->id, $port, $value, $time);
+                
+                if($indicatorId) {
+                    $updatedCnt++;
+                }
                 // Ако е необходимо, записваме стойноста на входа в дата-лог-а
-                if($log[$port] && $indicatorId) {
+                if($log[$port] && $indicatorId && $save) {
                     sens2_DataLogs::addValue($indicatorId, $value, $time);
                 }
             }
         }
+
+        return $updatedCnt;
     }
+
+
+    /**
+     * Задава стойност на физически изход. Те се записва и в модела.
+     */
+    public static function setOutput($output, $value)
+    {
+        list($ctrName, $name) = explode('->', ltrim($output, '$'));
+        // Вземаме записа на контролера
+        $rec = self::fetch(array("#name = '[#1#]'", $ctrName));
+        
+        if($rec) {
+            // Вземаме драйвера
+            $drv = self::getDriver($rec->id);
+            
+            // Вземаме му всички изходни портове
+            $ports = $drv->getOutputPorts();
+
+            foreach($ports as $p => $pObj) {
+                $part = $p . '_name';
+                if($p == $name || $rec->config->{$part} == $name) {
+                    $portName = $p;
+                    break;
+                }
+            }
+
+            if($portName) {
+                $sets = array($portName => $value);
+                
+                if($rec->persistentState) {
+                    $hash = md5(serialize($rec->persistentState));
+                }
+                $res = $drv->writeOutputs($sets, $cRec->config, $cRec->persistentState);
+                if($rec->persistentState && $hash != md5(serialize($rec->persistentState))) {
+                    self::save($rec, 'persistentState');
+                }
+            }
+        }
+     
+        if(!$res[$portName]) {
+            $value = "Грешка при запис";
+        }
+        
+        // Записване стойността в индикаторите
+        if($rec->id && $portName) {
+            sens2_Indicators::setValue($rec->id, $portName, $value, dt::verbal2mysql());
+        }
+
+        return $res;
+    }
+
     
     
     /**
@@ -338,12 +479,6 @@ class sens2_Controllers extends core_Master
     }
     
 
-    function act_Cron()
-    {
-        return $this->cron_Update();
-    }
-    
-    
     /**
      * Стартира се на всяка минута от cron-a
      * Извиква по http sens_Sensors->act_Process
@@ -355,6 +490,9 @@ class sens2_Controllers extends core_Master
         $query = self::getQuery();
         $query->where("#state = 'active'"); 
         $cnt = $query->count();
+        
+        if (!$cnt) return ;
+        
         $sleepNanoSec = round(min(0.5, 25/$cnt) * 1000000000);
  
 
@@ -385,6 +523,33 @@ class sens2_Controllers extends core_Master
         if(Request::get('forced')) {
             echo $res;
         }
+    }
+
+
+    /**
+	 * За да не могат да се изтриват активните контролери
+	 */
+    static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = NULL, $userId = NULL)
+	{  
+   		if($action == 'delete') {
+	    	if($rec->state != 'closed'){
+	    		$res = 'no_one';
+	    	}
+   		}
+   		
+	}
+    
+    
+    /**
+     * Филтър на on_AfterPrepareListFilter()
+     * Малко манипулации след подготвянето на формата за филтриране
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    static function on_BeforePrepareListRecs($mvc, &$res, $data)
+    {
+        $data->query->orderBy('#createdOn', 'DESC');
     }
     
     

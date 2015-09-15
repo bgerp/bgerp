@@ -287,7 +287,9 @@ abstract class deals_Helper
 	          // Начисляване на ДДС в/у цената
 	         $price *= 1 + $vat;
 	    }
-	   
+	    
+	    expect($rate, 'Не е подаден валутен курс');
+	    
 	    // Обреъщаме в валутата чийто курс е подаден
 	    if($rate != 1){
 	    	$price /= $rate;
@@ -340,10 +342,11 @@ abstract class deals_Helper
 	 * 
 	 * @return stdClass $obj 
 	 * 				->formInfo - информация за формата
-	 * 				->quantity - к-во
+	 * 				->warning - предупреждението
 	 */
-	public static function getProductQuantityInStoreInfo($productId, $productsClassId, $storeId)
+	public static function checkProductQuantityInStore($productId, $packagingId, $packQuantity, $storeId)
 	{
+		$productsClassId = cat_Products::getClassId();
 		$quantity = store_Products::fetchField("#productId = {$productId} AND #classId = {$productsClassId} AND #storeId = {$storeId}", 'quantity');
 		$quantity = ($quantity) ? $quantity : 0;
 			
@@ -353,9 +356,17 @@ abstract class deals_Helper
 		$pInfo = cls::get($productsClassId)->getProductInfo($productId);
 		$shortUom = cat_UoM::getShortName($pInfo->productRec->measureId);
 		$storeName = store_Stores::getTitleById($storeId);
+		$verbalQuantity = $Double->toVerbal($quantity);
 		
-		$info = tr("|Количество в|* <b>{$storeName}</b> : {$Double->toVerbal($quantity)} {$shortUom}");
-		$obj = (object)array('formInfo' => $info, 'quantity' => $quantity);
+		$info = tr("|Количество в|* <b>{$storeName}</b> : {$verbalQuantity} {$shortUom}");
+		$obj = (object)array('formInfo' => $info);
+		
+		$quantityInPack = ($pInfo->packagings[$packagingId]) ? $pInfo->packagings[$packagingId]->quantity : 1;
+		 
+		// Показваме предупреждение ако наличното в склада е по-голямо от експедираното
+		if($packQuantity > ($quantity / $quantityInPack)){
+			$obj->warning = "Въведеното количество е по-голямо от наличното|* <b>{$verbalQuantity}</b> |в склада|*";
+		}
 		
 		return $obj;
 	}
@@ -371,6 +382,30 @@ abstract class deals_Helper
 			$productRow .= "<div class='small'>{$RichText->toVerbal($notes)}</div>";
 		} else {
 			$productRow->append("<div class='small'>{$RichText->toVerbal($notes)}</div>");
+		}
+	}
+	
+	
+	/**
+	 * Помощна функция за показване на пдоробната информация за опаковката при нужда
+	 * 
+	 * @param string $packagingRow
+	 * @param int $productId
+	 * @param int $packagingId
+	 * @param double $quantityInPack
+	 * @return void
+	 */
+	public static function getPackInfo(&$packagingRow, $productId, $packagingId, $quantityInPack)
+	{
+		if(cat_products_Packagings::getPack($productId, $packagingId)){
+			if(cat_UoM::fetchField($packagingId, 'showContents') === 'yes'){
+				 
+				$quantityInPack = cls::get('type_Double', array('params' => array('smartRound' => 'smartRound')))->toVerbal($quantityInPack);
+				
+				$shortUomName = cat_UoM::getShortName(cat_Products::getProductInfo($productId)->productRec->measureId);
+				$packagingRow .= ' <small class="quiet">' . $quantityInPack . ' ' . $shortUomName . '</small>';
+				$packagingRow = "<span class='nowrap'>{$packagingRow}</span>";
+			}
 		}
 	}
 }

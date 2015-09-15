@@ -104,6 +104,16 @@
     <div style='padding:10px;'>
         <div>[#body#]</div>
     </div>
+    
+    <!--ET_BEGIN bottomAntetka-->
+    [#bottomAntetka#]
+    <div class='bottom-antetka'>
+        <div>|Ако не се получи отговор до|* [#notifyDate#] |ще бъде известен|* [#notifyUser#]
+        	[#removeNotify#]
+        </div>
+    </div>
+    <!--ET_END bottomAntetka-->
+    
     <!--ET_END body--> 
     <div style='clear: both;'></div>
 [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

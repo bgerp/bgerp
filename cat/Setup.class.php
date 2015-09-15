@@ -73,7 +73,6 @@ class cat_Setup extends core_ProtoSetup
             'cat_products_Packagings',
     		'cat_products_VatGroups',
             'cat_Params',
-            'cat_Packagings',
     		'cat_Boms',
     		'cat_BomDetails',
     		'cat_ProductTplCache',
@@ -82,7 +81,9 @@ class cat_Setup extends core_ProtoSetup
     		'migrate::removeOldParams1',
     		'migrate::updateDocs',
     		'migrate::truncatCache',
-            'migrate::fixProductsSearchKeywords'
+            'migrate::fixProductsSearchKeywords',
+    		'migrate::replaceResources4',
+    		'migrate::replacePackagings',
         );
 
 
@@ -101,15 +102,9 @@ class cat_Setup extends core_ProtoSetup
 
 
     /**
-     * Дефиниции на класове с интерфейси
-     */
-    var $classes = 'cat_SalesArticleReport';
-
-
-    /**
      * Дефинирани класове, които имат интерфейси
      */
-    var $defClasses = "cat_GeneralProductDriver, cat_BaseImporter,cat_SalesArticleReport";
+    var $defClasses = "cat_GeneralProductDriver, cat_BaseImporter,cat_reports_SalesArticle";
 
 
     /**
@@ -274,37 +269,116 @@ class cat_Setup extends core_ProtoSetup
     }
     
     
-    public function replaceResources()
+    /**
+     * Миграционна функция
+     */
+    function replaceBoms()
     {
-    	if(!cat_Products::count()) return;
+    	$Bom = cls::get('cat_BomDetails');
+    	$bomQuery = $Bom->getQuery();
     	
+    	while ($bomRec = $bomQuery->fetch()){
+    		if($bomRec->resourceId == 1147){
+    			$r = cat_products_Packagings::fetch(15);
+    	
+    			$bomRec->packagingId = $r->packagingId;
+    			$bomRec->quantityInPack = $r->quantity;
+    	
+    			$Bom->save($bomRec, NULL, 'REPLACE');
+    		} elseif($bomRec->resourceId == 1151){
+    			$r = cat_products_Packagings::fetch(7);
+    	
+    			$bomRec->packagingId = $r->packagingId;
+    			$bomRec->quantityInPack = $r->quantity;
+    	
+    			$Bom->save($bomRec, NULL, 'REPLACE');
+    		} elseif($bomRec->resourceId == 1145){
+    			$r = cat_products_Packagings::fetch(11);
+    	
+    			$bomRec->packagingId = $r->packagingId;
+    			$bomRec->quantityInPack = $r->quantity;
+    	
+    			$Bom->save($bomRec, NULL, 'REPLACE');
+    		}
+    	}
+    	 
+    	unset($bomRec);
+    	$Dp = cls::get('planning_DirectProductNoteDetails');
+    	$dQuery = $Dp->getQuery();
+    	
+    	while ($bomRec = $dQuery->fetch()){
+    		
+    		if($bomRec->productId == 1147){
+    			$r = cat_products_Packagings::fetch(15);
+    		
+    			$bomRec->packagingId = $r->packagingId;
+    			$bomRec->quantityInPack = $r->quantity;
+    	
+    			$Dp->save($bomRec, NULL, 'REPLACE');
+    		} elseif($bomRec->productId == 1151){
+    			$r = cat_products_Packagings::fetch(7);
+    			$bomRec->packagingId = $r->packagingId;
+    			$bomRec->quantityInPack = $r->quantity;
+    	
+    			$Dp->save($bomRec, NULL, 'REPLACE');
+    		} elseif($bomRec->productId == 1145){
+    			$r = cat_products_Packagings::fetch(11);
+    			
+    			$bomRec->packagingId = $r->packagingId;
+    			$bomRec->quantityInPack = $r->quantity;
+    			
+    			$Dp->save($bomRec, NULL, 'REPLACE');
+    		}
+    	}
+    }
+    
+    
+    /**
+     * Миграционна функция
+     */
+    public function replaceResources4()
+    {
+    	if(!acc_Balances::count()) return;
+    	cls::get('cat_Products')->setupMVC();
+    	
+    	cls::load('cat_Products');
+    	$Products = cls::get('cat_Products');
+    	cls::get('planning_ObjectResources')->setupMVC();
+    	 
     	$pClassId = cat_Products::getClassId();
     	$rClass = planning_Resources::getClassId();
-    	
-    	$oQuery = planning_ObjectResources::getQuery();
+    
+    	$Resources = cls::get('planning_ObjectResources');
+    	$oQuery = $Resources->getQuery();
     	$oQuery->groupBy('resourceId');
     	$oQuery->where("#classId = {$pClassId}");
     	$map = array();
     	while($oRec = $oQuery->fetch()){
-    		$map[$oRec->resourceId] = $oRec->objectId;
+    		if($oRec->resourceId){
+    			$map[$oRec->resourceId] = $oRec->objectId;
+    			 
+    			$oRec->measureId = $resource->measureId;
+    			$oRec->selfValue = $resource->selfValue;
+    			$Resources->save($oRec, 'measureId,selfValue');
+    		}
     	}
-    	
-    	if(!count($map)) return;
-    	
-    	$bomQuery = cat_BomDetails::getQuery();
+    
+    	$Bom = cls::get('cat_BomDetails');
+    	$bomQuery = $Bom->getQuery();
     	while ($bomRec = $bomQuery->fetch()){
     		$bomRec->resourceId = $map[$bomRec->resourceId];
-    		//cat_BomDetails::save($bomRec, 'resourceId');
     		
-    		
-    		
+    		try{
+    			$Bom->save($bomRec, NULL, 'REPLACE');
+    		} catch(core_exception_Expect $e){
+    		}
     	}
-    	
-    	
-    	$itemsQuery = acc_Items::getQuery();
+    
+    	$Items = cls::get('acc_Items');
+    	$itemsQuery = $Items->getQuery();
     	$itemsQuery->where("#classId = {$rClass}");
     	$itemMap = array();
-    	
+    
     	while($iRec = $itemsQuery->fetch()){
     		if(isset($map[$iRec->objectId])){
     			if($productItem = acc_Items::fetchItem($pClassId, $map[$iRec->objectId])){
@@ -329,106 +403,304 @@ class cat_Setup extends core_ProtoSetup
     			}
     			$itemMap[$iRec->id] = acc_Items::fetchItem($pClassId, $pId)->id;
     		}
-    		
-    		if($iRec->state != 'closed'){
-    			$iRec->state = 'closed';
-    			acc_Items::save($iRec);
-    		}
     	}
-    	
+    
     	$replaceIds = array_keys($itemMap);
-    	
-    	$bQuery = acc_BalanceDetails::getQuery();
+    
+    	$Balances = cls::get('acc_BalanceDetails');
+    	$bQuery = $Balances->getQuery();
     	$bQuery->in('ent1Id', $replaceIds);
     	$bQuery->in('ent2Id', $replaceIds, FALSE, TRUE);
     	$bQuery->in('ent3Id', $replaceIds, FALSE, TRUE);
-    	
+    
     	while($bRec = $bQuery->fetch()){
     		foreach (array('ent1Id', 'ent2Id', 'ent3Id') as $fld){
     			if(isset($itemMap[$bRec->$fld])){
     				$bRec->$fld = $itemMap[$bRec->$fld];
     			}
     		}
-    		
+    
     		try{
-    			acc_BalanceDetails::save($bRec);
+    			$Balances->save($bRec);
     		} catch(core_exception_Expect $e){
-    			
     		}
     	}
-    	
-    	$jQuery = acc_JournalDetails::getQuery();
-    	
+    
+    	$Journal = cls::get('acc_JournalDetails');
+    	 
+    	$jQuery = $Journal->getQuery();
+    
     	$jQuery->in('debitItem1', $replaceIds);
     	$jQuery->in('debitItem2', $replaceIds, FALSE, TRUE);
     	$jQuery->in('debitItem3', $replaceIds, FALSE, TRUE);
     	$jQuery->in('creditItem1', $replaceIds, FALSE, TRUE);
     	$jQuery->in('creditItem2', $replaceIds, FALSE, TRUE);
     	$jQuery->in('creditItem3', $replaceIds, FALSE, TRUE);
-    	
+    
     	while($jRec = $jQuery->fetch()){
     		foreach (array('debitItem1', 'debitItem2', 'debitItem3', 'creditItem1', 'creditItem2', 'creditItem3') as $fld){
     			if(isset($itemMap[$jRec->$fld])){
     				$jRec->$fld = $itemMap[$jRec->$fld];
     			}
     		}
-    		
+    
     		try{
-    			acc_JournalDetails::save($jRec);
+    			$Journal->save($jRec);
     		} catch(core_exception_Expect $e){
-    			
     		}
     	}
-    	
-    	$mQuery = acc_ArticleDetails::getQuery();
+    
+    	$Articles = cls::get('acc_ArticleDetails');
+    	$mQuery = $Articles->getQuery();
     	$mQuery->in('debitEnt1', $replaceIds);
     	$mQuery->in('debitEnt2', $replaceIds, FALSE, TRUE);
     	$mQuery->in('debitEnt3', $replaceIds, FALSE, TRUE);
     	$mQuery->in('creditEnt1', $replaceIds, FALSE, TRUE);
     	$mQuery->in('creditEnt2', $replaceIds, FALSE, TRUE);
     	$mQuery->in('creditEnt3', $replaceIds, FALSE, TRUE);
-    	
+    
     	while($mRec = $mQuery->fetch()){
     		foreach (array('debitEnt1', 'debitEnt2', 'debitEnt3', 'creditEnt1', 'creditEnt2', 'creditEnt3') as $fld){
     			if(isset($itemMap[$mRec->$fld])){
     				$mRec->$fld = $itemMap[$mRec->$fld];
     			}
     		}
-    		
+    
     		try{
-    			acc_ArticleDetails::save($mRec);
+    			$Articles->save($mRec);
     		} catch(core_exception_Expect $e){
-    			
     		}
     	}
-    	
-    	$tQuery = acc_BalanceTransfers::getQuery();
+    
+    	$Trans = cls::get('acc_BalanceTransfers');
+    	$tQuery = $Trans->getQuery();
     	$tQuery->in('fromEnt1Id', $replaceIds);
     	$tQuery->in('fromEnt2Id', $replaceIds, FALSE, TRUE);
     	$tQuery->in('fromEnt3Id', $replaceIds, FALSE, TRUE);
     	$tQuery->in('toEnt1Id', $replaceIds, FALSE, TRUE);
     	$tQuery->in('toEnt2Id', $replaceIds, FALSE, TRUE);
     	$tQuery->in('toEnt3Id', $replaceIds, FALSE, TRUE);
-    	
+    
     	while($tRec = $tQuery->fetch()){
     		foreach (array('fromEnt1Id', 'fromEnt2Id', 'fromEnt3Id', 'toEnt1Id', 'toEnt3Id', 'toEnt3Id') as $fld){
     			if(isset($itemMap[$tRec->$fld])){
     				$tRec->$fld = $itemMap[$tRec->$fld];
     			}
     		}
-    	
+    		 
     		try{
-    			acc_BalanceTransfers::save($tRec);
+    			$Trans->save($tRec);
     		} catch(core_exception_Expect $e){
-    			
     		}
     	}
-    	bp($tQuery->fetchAll());
+    	 
+    	 
+    	try{
+    		if(count($itemMap)){
+    			foreach ($itemMap as $delItemId => $newItem){
+    				acc_Items::delete($delItemId);
+    			}
+    		}
+    		 
+    		acc_Lists::delete("#systemId = 'resources'");
+    	} catch(core_exception_Expect $e){
+    	}
     	
-    	//bp($jQuery->fetchAll());
+    	if(core_Packs::fetch("#name = 'synthesia'")){
+    		$this->replaceBoms();
+    	}
+    }
+    
+    
+    function replacePackagings()
+    {
+    	core_App::setTimeLimit(400);
     	
-    	bp($replaceIds,$bQuery->fetchAll());
+    	$Pos = cls::get('pos_Reports');
+    	$Pos->setupMvc();
     	
-    	bp($itemMap,acc_items::fetch(5687), acc_Items::fetch(138));
+    	$Uom = cls::get('cat_UoM');
+    	$Uom->setupMvc();
+    	
+    	$Products = cls::get('cat_Products');
+    	$Products->setupMvc();
+    	
+    	$Ss = cls::get('sales_ServicesDetails');
+    	$Ss->setupMvc();
+    	
+    	$Ps = cls::get('purchase_ServicesDetails');
+    	$Ps->setupMvc();
+    	
+    	acc_Balances::log("Започване на миграцията на ОПАКОВКИТЕ");
+    	
+    	$packs = array();
+    	$pQuery = cat_Packagings::getQuery();
+    	while($pRec = $pQuery->fetch()){
+    		$name = mb_strtolower($pRec->name);
+    		if($name == '(брой)' || $name == 'бройка'){
+    			$name = 'брой';
+    		} elseif($name == 'хил.бр.'){
+    			$name = 'хиляди бройки';
+    		}
+    		
+    		if($name == 'хиляди бройки' || $name == 'брой'){
+    			$pRec->showContents = 'no';
+    		}
+    		
+    		$nRec = (object)array('name' => $name, 'shortName' => $name, 'type' => 'packaging', 'round' => $pRec->round, 'showContents' => $pRec->showContents);
+    		if(!$Uom->isUnique($nRec, $fields, $exRec)){
+    			$nRec->id = $exRec->id;
+    			$nRec->type = $exRec->type;
+    			
+    			if($exRec->shortName){
+    				$nRec->shortName = $exRec->shortName;
+    			}
+    			
+    			$exRecs[$nRec->id] = $exRec;
+    		} 
+    		
+    		$Uom->save($nRec);
+    		$packs[$pRec->id] = $nRec->id;
+    	}
+    	
+    	$brRec = cat_UoM::fetch("#name = 'брой'");
+    	$brRec->showContents = 'no';
+    	$Uom->save($brRec);
+    	
+    	$hbrRec = cat_UoM::fetch("#name = 'хиляди бройки'");
+    	$hbrRec->showContents = 'no';
+    	$Uom->save($hbrRec);
+    	
+    	$packQuery = cat_products_Packagings::getQuery();
+    	
+    	while($pRec = $packQuery->fetch()){
+    		$pRec->packagingId = $packs[$pRec->packagingId];
+    		cls::get('cat_products_Packagings')->save_($pRec, NULL, 'REPLACE');
+    	}
+    	
+    	$lQuery = price_ListDocs::getQuery();
+    	$lQuery->where('#packagings IS NOT NULL');
+    	$lQuery->show('packagings');
+    	while($lRec = $lQuery->fetch()){
+    		$packagings = keylist::toArray($lRec->packagings);
+    		
+    		$newPacks = array();
+    		foreach ($packagings as $p){
+    			$val = $packs[$p];
+    			$newPacks[$val] = $val;
+    		}
+    		
+    		$keylist = keylist::fromArray($newPacks);
+    		$lRec->packagings = $keylist;
+    		
+    		try{
+    			cls::get('price_ListDocs')->save_($lRec, 'packagings');
+    		} catch(core_exception_Expect $e){
+    		}
+    	}
+    	
+    	sales_Sales::log(ht::arrayToHtml($packs));
+    	
+    	$details = array('sales_SalesDetails', 
+    					 'purchase_PurchasesDetails', 
+    					 'store_ShipmentOrderDetails', 
+    					 'store_ReceiptDetails', 
+    					 'sales_InvoiceDetails', 
+    					 'sales_QuotationsDetails', 
+    					 'purchase_InvoiceDetails',
+    					 'cat_BomDetails', 
+    					 'pos_Favourites', 
+    					 'sales_ProformaDetails',
+    					 'store_TransfersDetails', 
+    					 'planning_ConsumptionNoteDetails', 
+    					 'planning_ProductionNoteDetails', 
+    					 'planning_DirectProductNoteDetails', 
+    					 'store_ConsignmentProtocolDetailsReceived', 
+    					 'store_ConsignmentProtocolDetailsSend',
+    					 'sales_ServicesDetails',
+    					 'purchase_ServicesDetails',
+    					 );
+    	
+    	foreach ($details as $Det){
+    		$query = $Det::getQuery();
+    		$Det = cls::get($Det);
+    		
+    		$count = 0;
+    		$recsToSave = array();
+    		while($dRec = $query->fetch()){
+    			if($dRec->packagingId){
+    				if(isset($packs[$dRec->packagingId])){
+    					$dRec->packagingId = $packs[$dRec->packagingId];
+    				
+    					$recsToSave[] = $dRec;
+    				}
+    			} else {
+    				if($Det->className == 'cat_BomDetails'){
+    					if(!isset($dRec->resourceId)) continue;
+    					
+    					if(empty($measureArr[$dRec->resourceId])){
+    						$measureArr[$dRec->resourceId] = cat_Products::fetchField($dRec->resourceId, 'measureId');
+    					}
+    					$dRec->packagingId = $measureArr[$dRec->resourceId];
+    					$recsToSave[] = $dRec;
+    					
+    				} else {
+    					if(empty($measureArr[$dRec->productId])){
+    						$measureArr[$dRec->productId] = cat_Products::fetchField($dRec->productId, 'measureId');
+    					}
+    					$dRec->packagingId = $measureArr[$dRec->productId];
+    					$recsToSave[] = $dRec;
+    				}
+    			}
+    			
+    			$count++;
+    		}
+    		
+    		if(count($recsToSave)){
+    			sales_Sales::log("$Det->className: {$count}");
+    			$Det->saveArray_($recsToSave);
+    		}
+    	} 
+    	
+    	$recsToSave = array();
+    	$repQuery = pos_Reports::getQuery();
+    	while($repRec = $repQuery->fetch()){
+    		$add = FALSE;
+    		if($repRec->details['receiptDetails']){
+    			 
+    			foreach ($repRec->details['receiptDetails'] as $d){
+    				if($d->action != 'sale') continue;
+    	
+    				if(isset($packs[$d->pack])){
+    					$d->pack = $packs[$d->pack];
+    					$add = TRUE;
+    				}
+    			}
+    			 
+    			if($add){
+    				$recsToSave[] = $repRec;
+    			}
+    		}
+    	}
+    	 
+    	if(count($recsToSave)){
+    		cls::get('pos_Reports')->saveArray_($recsToSave);
+    	}
+    	 
+    	$recsToSave = $measureArr = array();
+    	 
+    	$rQuery = pos_ReceiptDetails::getQuery();
+    	
+    	$rQuery->where("#action LIKE '%sale%'");
+    	while($rRec = $rQuery->fetch()){
+    		if(isset($packs[$rRec->value])){
+    			$rRec->value = $packs[$rRec->value];
+    			$recsToSave[] = $rRec;
+    		}
+    	}
+    	 
+    	if(count($recsToSave)){
+    		cls::get('pos_ReceiptDetails')->saveArray_($recsToSave);
+    	}
     }
 }

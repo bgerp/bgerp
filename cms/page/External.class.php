@@ -81,7 +81,7 @@ class cms_page_External extends core_page_Active
         $this->append("runOnLoad(setMinHeightExt);", "JQRUN");
               
         // Добавка за разпознаване на браузъра
-        $Browser = cls::get('logs_Browsers');
+        $Browser = cls::get('log_Browsers');
         $this->append($Browser->renderBrowserDetectingCode(), 'BROWSER_DETECT');
 
         // Добавяме основното меню

@@ -150,8 +150,16 @@ class doc_SharablePlg extends core_Plugin
             // Първо виждане на документа от страна на $userId
             $viewedBy[$userId] = dt::now(TRUE);
             $rec->sharedViews = serialize($viewedBy);
+            $rec->modifiedOn = dt::verbal2mysql();
             if ($mvc->save_($rec)) {
                 core_Cache::remove($mvc->className, $data->cacheKey . '%');
+                if($rec->containerId) {
+                    $cRec = new stdClass();
+                    $cRec->id = $rec->containerId;
+                    $cRec->modifiedOn = $rec->modifiedOn;
+                    $dCon = cls::get("doc_Containers");
+                    $dCon->save_($cRec);
+                }
             }
         }
     }

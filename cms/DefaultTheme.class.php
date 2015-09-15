@@ -24,10 +24,11 @@ class cms_DefaultTheme extends core_ProtoInner {
      */
     public $haveOwnHeaderImages = FALSE;
 
+    
     /**
      * Допълване на формата за домейна със специфични полета за кожата
      */
-    public function addEmbeddedFields($form)
+    public function addEmbeddedFields(core_FieldSet &$form)
     {
         $form->FLD('wImg1', 'fileman_FileType(bucket=gallery_Pictures)', "caption=Заглавни картинки за десктоп (1000x288px)->Изображение 1");
         $form->FLD('wImg2', 'fileman_FileType(bucket=gallery_Pictures)', "caption=Заглавни картинки за десктоп (1000x288px)->Изображение 2");
@@ -40,6 +41,12 @@ class cms_DefaultTheme extends core_ProtoInner {
         $form->FLD('title', 'varchar(14)', "caption=Заглавие на сайта->Кратък текст");
         $form->FLD('titleColor', 'color_Type', "caption=Заглавие на сайта->Цвят");
 
+        // Икона за сайта
+        $form->FLD('icon', 'fileman_FileType(bucket=gallery_Pictures)', "caption=Икона за сайта->Favicon");
+
+        // Фон на хедъра
+        $form->FLD('headerColor', 'color_Type', "caption=Цветове за темата->Цвят на хедъра");
+
         // Фон на менюто 
         $form->FLD('baseColor', 'color_Type', "caption=Цветове за темата->Базов цвят");
 
@@ -48,6 +55,16 @@ class cms_DefaultTheme extends core_ProtoInner {
         
         // Фон на избраното меню
         $form->FLD('bgColor', 'color_Type', "caption=Цветове за темата->Фон на страницата");
+
+    }
+
+
+    static function on_BeforeSave($mvc, $innerState, $innerForm)
+    {
+        if($innerForm->icon) {
+            $dest = EF_INDEX_PATH . '/favicon.ico';
+            file_put_contents($dest, fileman_Files::getContent($innerForm->icon));
+        }
     }
 
     
@@ -57,30 +74,34 @@ class cms_DefaultTheme extends core_ProtoInner {
         $tpl->replace($this->getHeaderImg(), 'HEADER_IMG');
         
         // Добавяме заглавния текст
-        $title = $this->formRec->title;
+        $title = $this->innerForm->title;
         if(!$this->haveOwnHeaderImages && !$title) {
             $conf = core_Packs::getConfig('core');
             $title = $conf->EF_APP_TITLE;
         } elseif($title) {
             $style = '';
-            if ($this->formRec->titleColor) {
-                $style =  " style='color:{$this->formRec->titleColor};'";
+            if ($this->innerForm->titleColor) {
+                $style =  " style='color:{$this->innerForm->titleColor};'";
             }
             $title = "<span{$style}>" . $title . "</span>";
         }
 
         if($title) {
             $tpl->replace($title, 'CORE_APP_NAME');
-        } 
-        
+        }
+// bp($this->innerForm);
+        if($this->innerForm->headerColor) {
+            $css .= "\n    #all #cmsTop, #cmsTop img {background-color:{$this->innerForm->headerColor} !important;}";
+        }
+      
         // цвят на фона на страницата
-        if ($this->formRec->bgColor){
-        	$bgcolor = ltrim($this->formRec->bgColor, "#");
+        if ($this->innerForm->bgColor){
+        	$bgcolor = ltrim($this->innerForm->bgColor, "#");
         	
         }
         // за основния цвят
-        if ($this->formRec->baseColor){
-        	if(phpcolor_Adapter::checkColor($this->formRec->baseColor)) {
+        if ($this->innerForm->baseColor){
+        	if(phpcolor_Adapter::checkColor($this->innerForm->baseColor)) {
         		// стилове за светъл цвят
         		$css .= "\n    .foorterAdd, #cmsMenu a {color:#000 !important; text-shadow: 0px 0px 1px #fff}";
         		$css .= "\n    .vertical .formTitle, .vertical .formGroup, .vertical form[method=post] input[type=submit], form[method=post] input:first-child[type=submit] {color:#000 !important;}";
@@ -88,7 +109,7 @@ class cms_DefaultTheme extends core_ProtoInner {
         		// стилове за тъмен цвят
         		$css .= "\n    .foorterAdd, #cmsMenu a {color:#fff !important; text-shadow: 2px 2px 2px #000}";
         	}
-        	$color = ltrim($this->formRec->baseColor, "#");
+        	$color = ltrim($this->innerForm->baseColor, "#");
         	
         	// ако не е зададен фон на страницата го изчисляваме
         	if(!$bgcolor) {
@@ -100,8 +121,9 @@ class cms_DefaultTheme extends core_ProtoInner {
         	$css .= "\n    #cmsMenu {background-color:#{$color};}";
         	$css .= "\n    #cmsBottom {background-color:#{$color};}";
         	
+
         	// в зависимост дали е светъл или тъмен, изчисляваме по различен начин
-        	if(phpcolor_Adapter::checkColor($this->formRec->baseColor, 'dark')) {
+        	if(phpcolor_Adapter::checkColor($this->innerForm->baseColor, 'dark')) {
         		$formcolor = phpcolor_Adapter::changeColor($color, 'darken', 10);
         		$formSubcolor = phpcolor_Adapter::changeColor($color, 'lighten', 10);
         	} else {
@@ -123,16 +145,16 @@ class cms_DefaultTheme extends core_ProtoInner {
         }
 
     	// за активния цвят
-    	if ($this->formRec->activeColor){
+    	if ($this->innerForm->activeColor){
 
             //ако не е зададен основен, а задаваме активен цвят
             if(!$color) {
                 $color = '#333344';
             }
-
-    		$css .= "\n    #cmsMenu a.selected, #cmsMenu a:focus, #cmsMenu a:hover {background-color:{$this->formRec->activeColor} !important;}";
+ 
+    		$css .= "\n    #cmsMenu a.selected, #cmsMenu a:focus, #cmsMenu a:hover {background-color:{$this->innerForm->activeColor} !important;}";
     		
-    		$activeColor = ltrim($this->formRec->activeColor, "#");
+    		$activeColor = ltrim($this->innerForm->activeColor, "#");
     		$bordercolor = phpcolor_Adapter::changeColor($activeColor, 'lighten', 30);
     		
     		// изчисления за фон и рамка на линковете
@@ -153,9 +175,9 @@ class cms_DefaultTheme extends core_ProtoInner {
 
     		// ако след изчисленията не сме получили цвят за фон, пробваме да го изчислим по друг начин
     		if ($bgcolorActive == 'ffffff'){
-    			$bgcolorActive = phpcolor_Adapter::changeColor($activeColor, 'lighten', 40);
+    			$bgcolorActive = phpcolor_Adapter::changeColor($activeColor, 'lighten', 10);
                 if($bgcolorActive == 'ffffff') {
-                    $bgcolorActive = phpcolor_Adapter::changeColor($fontcolor, 'lighten', 70);
+                    $bgcolorActive = phpcolor_Adapter::changeColor($fontcolor, 'lighten', 20);
                 }
     		}
     		
@@ -184,8 +206,8 @@ class cms_DefaultTheme extends core_ProtoInner {
         if(!Mode::is('screenMode', 'narrow')) {
             for($i = 1; $i <=5; $i++) {
                 $imgName = 'wImg' . $i;
-                if($this->formRec->{$imgName}) {
-                    $imgs[$i] = $this->formRec->{$imgName};
+                if($this->innerForm->{$imgName}) {
+                    $imgs[$i] = $this->innerForm->{$imgName};
                 }
             }
 
@@ -201,8 +223,8 @@ class cms_DefaultTheme extends core_ProtoInner {
                 }
                 $baner .= "</div>";
                 $baner = new ET($baner);
-                $fadeTransition = $this->formRec->fadeTransition ? $this->formRec->fadeTransition : 1500;
-                $fadeDelay = $this->formRec->fadeDelay ? $this->formRec->fadeDelay : 5000;
+                $fadeTransition = $this->innerForm->fadeTransition ? $this->innerForm->fadeTransition : 1500;
+                $fadeDelay = $this->innerForm->fadeDelay ? $this->innerForm->fadeDelay : 5000;
                 $baner->append(".fadein { position:relative; display:block; max-height:100%; max-width:100%} .fadein img {position:relative; left:0; top:0;}", "STYLES");
                 $baner->appendOnce("\n runOnLoad(function(){ $(function(){ $('.fadein img:gt(0)').hide(); setInterval(function(){ $('.fadein :first-child').css({position: 'absolute'})." .
                     "fadeOut({$fadeTransition}).next('img').css({position: 'absolute'}).fadeIn(1500).end().appendTo('.fadein');$('.fadein :first-child').css({position: 'relative'});}, {$fadeDelay});});});", 'SCRIPTS');
@@ -213,8 +235,8 @@ class cms_DefaultTheme extends core_ProtoInner {
             }
 
         } else {
-            if ($this->formRec->nImg) {
-                $imgs[1] = $this->formRec->nImg;
+            if ($this->innerForm->nImg) {
+                $imgs[1] = $this->innerForm->nImg;
             }
             
         }

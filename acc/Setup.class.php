@@ -1,6 +1,12 @@
 <?php
 
 
+/**
+ * Колко дена преди края на месеца да се направи следващия бъдещ период чакащ
+ */
+defIfNot('ACC_DAYS_BEFORO_MAKE_PERIOD_PENDING', '');
+
+
 
 /**
  * Стойност по подразбиране на актуалния ДДС (между 0 и 1)
@@ -101,6 +107,7 @@ class acc_Setup extends core_ProtoSetup
     	'acc_AllocatedExpenses',
         'migrate::removeYearInterfAndItem',
         'migrate::updateItemsNum1',
+    	'migrate::updateClosedItems3',
     );
     
     
@@ -110,6 +117,7 @@ class acc_Setup extends core_ProtoSetup
     var $configDescription = array(
         'ACC_MONEY_TOLERANCE' => array("double(decimals=2)", 'caption=Толеранс за допустимо разминаване на суми в основна валута->Сума'),
         'ACC_DETAILED_BALANCE_ROWS' => array("int", 'caption=Редове в страница от детайлния баланс->Брой редове,unit=бр.'),
+    	'ACC_DAYS_BEFORO_MAKE_PERIOD_PENDING' => array("time(suggestions= 1 ден|2 дена|7 Дена)", 'caption=Колко дни преди края на месеца да се направи следващия бъдещ период чакащ->Дни'),
     );
     
     
@@ -192,10 +200,10 @@ class acc_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    var $defClasses = "acc_ReportDetails, acc_BalanceReportImpl, acc_BalanceHistory, acc_HistoryReportImpl, acc_PeriodHistoryReportImpl,
-    					acc_CorespondingReportImpl,acc_SaleArticlesReport,acc_SaleContractorsReport,acc_OweProvidersReport,
-    					acc_ProfitArticlesReport,acc_ProfitContractorsReport,acc_MovementContractorsReport,acc_TakingCustomersReport,
-    					acc_ManufacturedProductsReport,acc_PurchasedProductsReport,acc_BalancePeriodReportImpl";
+    var $defClasses = "acc_ReportDetails, acc_reports_BalanceImpl, acc_BalanceHistory, acc_reports_HistoryImpl, acc_reports_PeriodHistoryImpl,
+    					acc_reports_CorespondingImpl,acc_reports_SaleArticles,acc_reports_SaleContractors,acc_reports_OweProviders,
+    					acc_reports_ProfitArticles,acc_reports_ProfitContractors,acc_reports_MovementContractors,acc_reports_TakingCustomers,
+    					acc_reports_ManufacturedProducts,acc_reports_PurchasedProducts,acc_reports_BalancePeriodImpl, acc_reports_ProfitSales";
     
     
     /**
@@ -237,7 +245,7 @@ class acc_Setup extends core_ProtoSetup
 	                }
 	            }
             } catch (core_exception_Expect $e) {
-            	$Items->log($e->getMessage());
+            	$Items->logErr($e->getMessage(), $iRec->id);
             	continue;
             }
             
@@ -271,5 +279,51 @@ class acc_Setup extends core_ProtoSetup
                 acc_Items::delete("#classId = '{$oldYearManId}'");
             }
         }
+    }
+    
+    
+    /**
+     * Ъпдейт на затворените пера
+     */
+    public function updateClosedItems3()
+    {
+    	core_App::setTimeLimit(400);
+    	
+    	$dealListSysId = acc_Lists::fetchBySystemId('deals')->id;
+    	
+    	if(!acc_Items::count()) return;
+    	
+    	$iQuery = acc_Items::getQuery();
+    	$iQuery->where("#state = 'closed'");
+    	$iQuery->likeKeylist('lists', $dealListSysId);
+    	$iQuery->show('classId,objectId,id');
+    	
+    	while($iRec = $iQuery->fetch()){
+    		$closedOn = NULL;
+    		$Deal = cls::get($iRec->classId);
+    		
+    		if($Deal->fetchField($iRec->objectId, 'state') == 'closed'){
+    			$CloseDoc = $Deal->closeDealDoc;
+    			if($CloseDoc){
+    				$CloseDoc = cls::get($CloseDoc);
+    				if($clRec = $CloseDoc::fetch("#docClassId = {$iRec->classId} AND #docId = {$iRec->objectId} AND #state = 'active'")){
+    					$valior = $CloseDoc->getValiorDate($clRec);
+    					if(!$valior){
+    						$closedOn = $clRec->createdOn;
+    					} else {
+    						$closedOn = $valior;
+    					}
+    				}
+    			}
+    		}
+    		
+    		if(!$closedOn){
+    			$closedOn = $Deal->fetchField($iRec->objectId, 'modifiedOn');
+    		}
+    		
+    		$iRec->closedOn = $closedOn;
+    		$iRec->closedOn = dt::verbal2mysql($iRec->closedOn, FALSE);
+    		cls::get('acc_Items')->save_($iRec, 'closedOn');
+    	}
     }
 }
