@@ -342,10 +342,11 @@ abstract class deals_Helper
 	 * 
 	 * @return stdClass $obj 
 	 * 				->formInfo - информация за формата
-	 * 				->quantity - к-во
+	 * 				->warning - предупреждението
 	 */
-	public static function getProductQuantityInStoreInfo($productId, $productsClassId, $storeId)
+	public static function checkProductQuantityInStore($productId, $packagingId, $packQuantity, $storeId)
 	{
+		$productsClassId = cat_Products::getClassId();
 		$quantity = store_Products::fetchField("#productId = {$productId} AND #classId = {$productsClassId} AND #storeId = {$storeId}", 'quantity');
 		$quantity = ($quantity) ? $quantity : 0;
 			
@@ -357,7 +358,14 @@ abstract class deals_Helper
 		$storeName = store_Stores::getTitleById($storeId);
 		
 		$info = tr("|Количество в|* <b>{$storeName}</b> : {$Double->toVerbal($quantity)} {$shortUom}");
-		$obj = (object)array('formInfo' => $info, 'quantity' => $quantity);
+		$obj = (object)array('formInfo' => $info);
+		
+		$quantityInPack = ($pInfo->packagings[$packagingId]) ? $pInfo->packagings[$packagingId]->quantity : 1;
+		 
+		// Показваме предупреждение ако наличното в склада е по-голямо от експедираното
+		if($packQuantity > ($quantity / $quantityInPack)){
+			$obj->warning = 'Въведеното количество е по-голямо от наличното в склада';
+		}
 		
 		return $obj;
 	}

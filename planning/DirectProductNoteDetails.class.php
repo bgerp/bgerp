@@ -155,28 +155,21 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     	
     	if($rec->productId){
     		$storeId = $mvc->Master->fetchField($rec->noteId, 'inputStoreId');
-    		$info = deals_Helper::getProductQuantityInStoreInfo($rec->productId, $rec->classId, $storeId);
-    		$form->info = $info->formInfo;
-    	}
+    		$storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $storeId);
+    		$form->info = $storeInfo->formInfo;
     	
-    	if($form->isSubmitted()){
-    		
     		if($form->isSubmitted()){
-    			$pInfo = cat_Products::getProductInfo($rec->productId);
-    			$quantityInPack = ($pInfo->packagings[$rec->packagingId]) ? $pInfo->packagings[$rec->packagingId]->quantity : 1;
-    			 
-    			// Показваме предупреждение ако наличното в склада е по-голямо от експедираното
-    			if($rec->packQuantity > ($info->quantity / $quantityInPack)){
-    				$form->setWarning('packQuantity', 'Въведеното количество е по-голямо от наличното в склада');
+    			if(isset($storeInfo->warning)){
+    				$form->setWarning('packQuantity', $storeInfo->warning);
     			}
-    		}
+    			
+    			// Ако добавяме отпадък, искаме да има себестойност
+    			if($rec->type == 'pop'){
+    				$selfValue = planning_ObjectResources::getSelfValue($rec->productId);
     		
-    		// Ако добавяме отпадък, искаме да има себестойност
-    		if($rec->type == 'pop'){
-    			$selfValue = planning_ObjectResources::getSelfValue($rec->productId);
-    			 
-    			if(!isset($selfValue)){
-    				$form->setError('productId', 'Отпадакът не може да му се определи себестойност');
+    				if(!isset($selfValue)){
+    					$form->setError('productId', 'Отпадакът не може да му се определи себестойност');
+    				}
     			}
     		}
     	}
