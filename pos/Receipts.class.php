@@ -267,6 +267,8 @@ class pos_Receipts extends core_Master {
     	$cu = core_Users::fetch($rec->createdBy);
     	$row->createdBy = ht::createLink(core_Users::recToVerbal($cu)->nick, crm_Profiles::getUrl($rec->createdBy));
     	$row->pointId = pos_Points::getHyperLink($rec->pointId, TRUE);
+    	
+    	$row->time = dt::mysql2verbal(dt::now(), 'H:i');
     }
 
     
@@ -599,7 +601,12 @@ class pos_Receipts extends core_Master {
     private function renderReceipt($data)
     {
     	// Слагане на мастър данните
-    	$tpl = getTplFromFile('pos/tpl/terminal/Receipt.shtml');
+    	if(!Mode::is('printing')){
+    		$tpl = getTplFromFile('pos/tpl/terminal/Receipt.shtml');
+    	} else {
+    		$tpl = getTplFromFile('pos/tpl/terminal/ReceiptPrint.shtml');
+    	}
+    	
     	$tpl->placeObject($data->row);
     	
     	$img = ht::createElement('img',  array('src' => sbf('pos/img/bgerp.png', '')));

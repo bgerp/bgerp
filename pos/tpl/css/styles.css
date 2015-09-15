@@ -849,4 +849,6 @@ only screen and (max-width: 360px) {
     box-shadow: none; }
   .printing .linkWithIconSpan img {
     display: none; }
+  .printing .scrolling-vertical {
+    border-top: none; }
 
