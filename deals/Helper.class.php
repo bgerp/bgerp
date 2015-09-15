@@ -356,15 +356,16 @@ abstract class deals_Helper
 		$pInfo = cls::get($productsClassId)->getProductInfo($productId);
 		$shortUom = cat_UoM::getShortName($pInfo->productRec->measureId);
 		$storeName = store_Stores::getTitleById($storeId);
+		$verbalQuantity = $Double->toVerbal($quantity);
 		
-		$info = tr("|Количество в|* <b>{$storeName}</b> : {$Double->toVerbal($quantity)} {$shortUom}");
+		$info = tr("|Количество в|* <b>{$storeName}</b> : {$verbalQuantity} {$shortUom}");
 		$obj = (object)array('formInfo' => $info);
 		
 		$quantityInPack = ($pInfo->packagings[$packagingId]) ? $pInfo->packagings[$packagingId]->quantity : 1;
 		 
 		// Показваме предупреждение ако наличното в склада е по-голямо от експедираното
 		if($packQuantity > ($quantity / $quantityInPack)){
-			$obj->warning = 'Въведеното количество е по-голямо от наличното в склада';
+			$obj->warning = "Въведеното количество е по-голямо от наличното|* <b>{$verbalQuantity}</b> |в склада|*";
 		}
 		
 		return $obj;
