@@ -7,12 +7,14 @@
  * @category  bgerp
  * @package   store
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
 class store_TransfersDetails extends doc_Detail
 {
+	
+	
     /**
      * Заглавие
      */
@@ -64,7 +66,7 @@ class store_TransfersDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, packagingId, packQuantity,weight,volume';
+    public $listFields = 'productId, packagingId, packQuantity, weight, volume';
     
         
     /**
@@ -179,23 +181,31 @@ class store_TransfersDetails extends doc_Detail
     public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
     { 
     	$rec = &$form->rec;
+    	$ProductMan = cls::get('cat_Products');
     	
     	if($rec->productId){
     		$sProd = store_Products::fetch($rec->productId);
-    		$ProductMan = cls::get($sProd->classId);
+    		$quantity = $sProd->quantity;
     		
-    		$packs = $ProductMan->getPacks($sProd->productId);
+    		$pInfo = cat_Products::getProductInfo($rec->productId);
+    		$shortUom = cat_UoM::getShortName($pInfo->productRec->measureId);
+    		$storeName = store_Stores::getTitleById($sProd->storeId);
+    		$Double = cls::get('type_Double', array('params' => array('smartRound' => 'smartRound')));
+    		$verbalQuantity = $Double->toVerbal($quantity);
+    		
+    		$form->info = tr("|Количество в|* <b>{$storeName}</b> : {$verbalQuantity} {$shortUom}");
+    		
+    		$packs = cls::get('cat_Products')->getPacks($sProd->productId);
     		$form->setOptions('packagingId', $packs);
     	} else {
     		$form->setReadOnly('packagingId');
     	}
     	
-    	if ($form->isSubmitted() && !$form->gotErrors()){
-    		$productInfo = $ProductMan->getProductInfo($sProd->productId);
-    		$rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
+    	if ($form->isSubmitted()){
+    		$rec->quantityInPack = ($pInfo->packagings[$rec->packagingId]) ? $pInfo->packagings[$rec->packagingId]->quantity : 1;
             
             if($sProd->quantity < $rec->packQuantity){
-            	$form->setWarning("packQuantity", "Въведеното количество е по-голямо от наличното '{$sProd->quantity}' в склада");
+            	$form->setWarning("packQuantity", "Въведеното количество е по-голямо от наличното|* <b>{$verbalQuantity}</b> |в склада|*");
             }
             
             $rec->weight = $ProductMan->getWeight($sProd->productId);

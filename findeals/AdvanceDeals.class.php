@@ -144,6 +144,12 @@ class findeals_AdvanceDeals extends findeals_Deals
     
     
     /**
+     * Сметки с какви интерфейси да се показват за избор
+     */
+    protected $accountListInterfaces = 'crm_PersonAccRegIntf,deals_DealsAccRegIntf,currency_CurrenciesAccRegIntf';
+    
+    
+    /**
      * В кои корици може да се вкарва документа
      *
      * @return array - интерфейси, които трябва да имат кориците
@@ -151,18 +157,6 @@ class findeals_AdvanceDeals extends findeals_Deals
     public static function getAllowedFolders()
     {
     	return array('crm_PersonAccRegIntf');
-    }
-    
-    
-    /**
-     * След дефиниране на полетата на модела
-     *
-     * @param core_Mvc $mvc
-     */
-    public static function on_AfterDescription(core_Master &$mvc)
-    {
-    	// Ограничаваме избора на възможните сметки
-    	$mvc->setFieldTypeParams('accountId', array('regInterfaces' => 'crm_PersonAccRegIntf|deals_DealsAccRegIntf|currency_CurrenciesAccRegIntf'));
     }
     
     
