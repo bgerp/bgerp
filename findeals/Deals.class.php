@@ -182,13 +182,19 @@ class findeals_Deals extends deals_DealBase
     
     
     /**
+     * Сметки с какви интерфейси да се показват за избор
+     */
+    protected $accountListInterfaces = 'crm_ContragentAccRegIntf,deals_DealsAccRegIntf,currency_CurrenciesAccRegIntf';
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
     {
     	$this->FLD('dealName', 'varchar(255)', 'caption=Наименование');
     	$this->FLD('amountDeal', 'double(decimals=2)', 'input=none,notNull,oldFieldName=blAmount');
-    	$this->FLD('accountId', 'acc_type_Account(regInterfaces=crm_ContragentAccRegIntf|deals_DealsAccRegIntf|currency_CurrenciesAccRegIntf)', 'caption=Сметка,mandatory,silent');
+    	$this->FLD('accountId', "acc_type_Account", 'caption=Сметка,mandatory,silent');
     	$this->FLD('contragentName', 'varchar(255)', 'caption=Контрагент');
     	
     	$this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)','caption=Валута->Код');
@@ -208,6 +214,19 @@ class findeals_Deals extends deals_DealBase
     	
     	$this->FNC('detailedName', 'varchar', 'column=none,caption=Име');
     	$this->FLD('dealManId', 'class(interface=deals_DealsAccRegIntf)', 'input=none');
+    }
+    
+    
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass $data
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+    	$form = &$data->form;
+    	$form->setOptions('accountId', acc_Accounts::getOptionsByListInterfaces($mvc->accountListInterfaces));
     }
     
     
