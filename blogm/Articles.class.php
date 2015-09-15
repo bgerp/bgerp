@@ -262,7 +262,7 @@ class blogm_Articles extends core_Master {
         $data->listFilter->showFields = 'search,category';
 
         // Подреждаме статиите по датата им на публикуане в низходящ ред	
-		$data->query->orderBy('createdOn', 'DESC');
+		$data->query->orderBy('publishedOn,createdOn', 'DESC');
 		
         $categories = blogm_Categories::getCategoriesByDomain(cms_Domains::getCurrent());
  
