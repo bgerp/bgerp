@@ -262,7 +262,8 @@ class blogm_Articles extends core_Master {
         $data->listFilter->showFields = 'search,category';
 
         // Подреждаме статиите по датата им на публикуане в низходящ ред	
-		$data->query->orderBy('createdOn', 'DESC');
+        $data->query->XPR('pubTime', 'datetime', "IF(#publishedOn,#publishedOn,#createdOn)");
+		$data->query->orderBy('#pubTime', 'DESC');
 		
         $categories = blogm_Categories::getCategoriesByDomain(cms_Domains::getCurrent());
  
@@ -639,7 +640,8 @@ class blogm_Articles extends core_Master {
             $data->query->where("#createdOn LIKE '{$data->archiveY}-{$data->archiveM}-%'");
         }
      
-        $data->query->orderBy('createdOn', 'DESC');
+        $data->query->XPR('pubTime', 'datetime', "IF(#publishedOn,#publishedOn,#createdOn)");
+		$data->query->orderBy('#pubTime', 'DESC');
         
         // Показваме само публикуваните статии
         $data->query->where("#state = 'active'");
@@ -841,9 +843,12 @@ class blogm_Articles extends core_Master {
     {
 		$query = $this->getQuery();
         $query->XPR('month', 'varchar', "CONCAT(YEAR(#createdOn), '|', MONTH(#createdOn))");
+        
+        $query->XPR('pubTime', 'datetime', "IF(#publishedOn,#publishedOn,#createdOn)");
+
         $query->groupBy("month");
-        $query->show('month');
-        $query->orderBy('#createdOn', 'DESC');
+        $query->show('month,pubTime');
+        $query->orderBy('#pubTime', 'DESC');
         $query->where("#state = 'active'");
         
         // Филтриране по категориите на съответния език
@@ -934,7 +939,8 @@ class blogm_Articles extends core_Master {
     	}
     	
     	$query->where("#state = 'active'");
-		$query->orderBy('createdOn', 'DESC');
+        $query->XPR('pubTime', 'datetime', "IF(#publishedOn,#publishedOn,#createdOn)");
+		$query->orderBy('#pubTime', 'DESC');
     	$query->limit($itemsCnt);
     	
     	$items = array();
@@ -947,7 +953,7 @@ class blogm_Articles extends core_Master {
 	    		$item = new stdClass();
 	    		$item->title = $rec->title;
 	    		$item->link = toUrl(self::getUrl($rec), 'absolute');
-	    		$item->date = $rec->createdOn;
+	    		$item->date = $rec->pubTime;
 	    		
 	    		// Извличаме описанието на статията, като съкръщаваме тялото и 
 	    		$desc = explode("\n", $rec->body);

@@ -187,7 +187,7 @@ class blast_Letters extends core_Master
         $this->FLD('template', 'enum(triLeft=3 части - ляво,
             triRight=3 части - дясно, oneRightUp = 1 част горе - дясно)', 'caption=Шаблон, mandatory, changable');
         
-        $this->FLD('attn', 'varchar', 'caption=Адресат->Лице, width=100%, changable');
+        $this->FLD('attn', 'varchar', 'caption=Адресат->Име, width=100%, changable');
         $this->FLD('position', 'varchar', 'caption=Адресат->Длъжност, width=100%, changable');
         $this->FLD('recipient', 'varchar', 'caption=Адресат->Фирма, width=100%, changable');
         $this->FLD('address', 'varchar', 'caption=Адресат->Адрес, width=100%, changable');
