@@ -107,7 +107,7 @@ class acc_ReportDetails extends core_Manager
         $accounts = arr::make($data->masterMvc->balanceRefAccounts);
         
         // Полета за таблицата
-        $data->listFields = arr::make("tools=Пулт,ent1Id=Перо1,ent2Id=Перо2,ent3Id=Перо3,blQuantity=К-во,blAmount=Сума");
+        $data->listFields = arr::make("tools=Пулт,ent1Id=Перо1,ent2Id=Перо2,ent3Id=Перо3,blQuantity=К-во,blPrice=Цена,blAmount=Сума");
         $data->limitFields = arr::make("item1=item1,item2=item2,item3=item3,side=Салдо,type=Вид,limitQuantity=Сума,createdBy=Създадено от");
         
         // Създаване на нова инстанция на core_Mvc за задаване на td - класове
@@ -118,6 +118,7 @@ class acc_ReportDetails extends core_Manager
         $data->reportTableMvc->FLD('limitQuantity', 'double', 'tdClass=accCell');
         $data->reportTableMvc->FLD('createdBy', 'double', 'tdClass=accCell');
         $data->reportTableMvc->FLD('blAmount', 'int', 'tdClass=accCell');
+        $data->reportTableMvc->FLD('blPrice', 'int', 'tdClass=accCell');
         $data->total = 0;
         
         // Перото с което мастъра фигурира в счетоводството
@@ -151,7 +152,8 @@ class acc_ReportDetails extends core_Manager
         $attr['title'] = tr("Хронологична справка");
        
         foreach ($data->recs as $dRec){
-            
+            @$dRec->blPrice = $dRec->blAmount / $dRec->blQuantity;
+        	
             // На коя позиция се намира, перото на мастъра
             $gPos = acc_Lists::getPosition(acc_Accounts::fetchField($dRec->accountId, 'systemId'), $groupBy);
             
@@ -185,7 +187,7 @@ class acc_ReportDetails extends core_Manager
             }
             
             // К-то и сумата се обръщат във вербален вид
-            foreach (array('blQuantity', 'blAmount') as $fld){
+            foreach (array('blQuantity', 'blAmount', 'blPrice') as $fld){
                 $style = ($dRec->$fld < 0) ? "color:red" : "";
                 $row[$fld] = "<span style='float:right;{$style}'>" . $Double->toVerbal($dRec->$fld) . "</span>";
             }
@@ -274,6 +276,12 @@ class acc_ReportDetails extends core_Manager
                 // Името на сметката излиза над таблицата
                 $content = new ET("<span class='accTitle'>{$accNum}</span>");
                 $fields = $data->listFields;
+                
+                // Ако няма номенклатура артикул в сметката, не показваме еденичната цена
+                if(!acc_Lists::getPosition($accInfo->rec->systemId, 'cat_ProductAccRegIntf')){
+                	unset($fields['blPrice']);
+                }
+                
                 $limitFields = $data->limitFields;
                 
                 $unsetPosition = acc_Lists::getPosition($accInfo->rec->systemId, $data->masterMvc->balanceRefGroupBy);
