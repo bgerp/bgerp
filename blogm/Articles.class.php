@@ -953,7 +953,7 @@ class blogm_Articles extends core_Master {
 	    		$item = new stdClass();
 	    		$item->title = $rec->title;
 	    		$item->link = toUrl(self::getUrl($rec), 'absolute');
-	    		$item->date = $rec->createdOn;
+	    		$item->date = $rec->pubTime;
 	    		
 	    		// Извличаме описанието на статията, като съкръщаваме тялото и 
 	    		$desc = explode("\n", $rec->body);
