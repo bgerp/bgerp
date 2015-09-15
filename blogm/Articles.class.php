@@ -397,7 +397,7 @@ class blogm_Articles extends core_Master {
         // Добавя канонично URL
         $url = toUrl(self::getUrl($data->rec, TRUE), 'absolute');
         $tpl->append("\n<link rel=\"canonical\" href=\"{$url}\"/>", 'HEAD');
-		
+        
 		return $tpl;
 	}
 	

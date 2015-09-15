@@ -182,6 +182,9 @@ class pos_Receipts extends core_Master {
     		}
     	}
     	
+    	// Записваме, че потребителя е разглеждал този списък
+    	$this->logInfo("Отваряне на бележка в ПОС терминала", $id);
+    	
     	return Redirect(array($this, 'terminal', $id));
     }
     

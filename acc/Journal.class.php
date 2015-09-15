@@ -300,6 +300,9 @@ class acc_Journal extends core_Master
         // Контиране на документа
         $mvc->conto($docId);
         
+        // Записваме, че потребителя е разглеждал този списък
+        $mvc->logInfo("Контиране на документ", $docId);
+        
         // Редирект към сингъла
         return redirect(array($mvc, 'single', $docId));
     }
@@ -334,6 +337,9 @@ class acc_Journal extends core_Master
         }
         
         list($docClassId, $docId) = $result;
+        
+        // Записваме, че потребителя е разглеждал този списък
+        $mvc->logInfo("Сторниране на документ", $docId);
         
         return new Redirect(array($docClassId, 'single', $docId));
     }
@@ -743,6 +749,9 @@ class acc_Journal extends core_Master
     	$form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
     	
     	$tpl = $this->renderWrapping($form->renderHtml());
+    	
+    	// Записваме, че потребителя е разглеждал този списък
+    	$this->logInfo("Реконтиране на документ", $docId);
     	
     	return $tpl;
     }
