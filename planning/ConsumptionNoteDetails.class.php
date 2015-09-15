@@ -107,4 +107,29 @@ class planning_ConsumptionNoteDetails extends deals_ManifactureDetail
         // Само вложими продукти
         $this->setDbUnique('noteId,productId,classId');
     }
+    
+    
+    /**
+	 * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+	 */
+	public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
+	{
+    	$rec = &$form->rec;
+    	
+    	if(isset($rec->productId)){
+    		$masterStore = $mvc->Master->fetch($rec->{$mvc->masterKey})->storeId;
+    		$storeInfo = deals_Helper::getProductQuantityInStoreInfo($rec->productId, $rec->classId, $masterStore);
+    		$form->info = $storeInfo->formInfo;
+    		
+    		if($form->isSubmitted()){
+    			$pInfo = cat_Products::getProductInfo($rec->productId);
+    			$quantityInPack = ($pInfo->packagings[$rec->packagingId]) ? $pInfo->packagings[$rec->packagingId]->quantity : 1;
+    			
+    			// Показваме предупреждение ако наличното в склада е по-голямо от експедираното
+    			if($rec->packQuantity > ($storeInfo->quantity / $quantityInPack)){
+    				$form->setWarning('packQuantity', 'Въведеното количество е по-голямо от наличното в склада');
+    			}
+    		}
+    	}
+    }
 }
