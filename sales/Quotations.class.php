@@ -860,6 +860,9 @@ class sales_Quotations extends core_Master
     		sales_Sales::addRow($sId, $item->classId, $item->productId, $item->packQuantity, $item->price, $item->packagingId, $item->discount, $item->tolerance, $item->term, $item->notes);
     	}
     	
+    	// Записваме, че потребителя е разглеждал този списък
+    	$this->logInfo("Създаване на продажба от оферта", $id);
+    	
     	// Редирект към новата продажба
     	return Redirect(array('sales_Sales', 'single', $sId), tr('Успешно е създадена продажба от офертата'));
     }

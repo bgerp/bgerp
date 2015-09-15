@@ -146,6 +146,9 @@ class cat_ProductTplCache extends core_Master
 		// Изчистваме записите от моделите
 		self::truncate();
 		 
+		// Записваме, че потребителя е разглеждал този списък
+		$this->logInfo("Изтриване на кеша на изгледите на артикула");
+		
 		Redirect(array($this, 'list'), FALSE, 'Записите са изчистени успешно');
 	}
 	

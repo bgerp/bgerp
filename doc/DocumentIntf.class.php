@@ -224,4 +224,19 @@ class doc_DocumentIntf
     {
     	return $this->class->createNew($rec);
     }
+    
+    
+    /**
+     * Генерираме ключа за кеша
+     * 
+     * @param object $rec
+     * @param core_ObjectReference $document
+     * 
+     * @return FALSE|string
+     */
+    static function generateCacheKey($rec, $document)
+    {
+        
+        return $this->class->generateCacheKey($rec, $document);
+    }
 }

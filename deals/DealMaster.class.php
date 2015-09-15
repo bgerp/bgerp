@@ -411,14 +411,13 @@ abstract class deals_DealMaster extends deals_DealBase
      */
     private function getSubTitle($rec)
     {
-    	$fields = $this->selectFields();
-    	$fields['-single'] = TRUE;
+    	$fields = arr::make('amountDelivered,amountToDeliver,amountPaid,amountToPay,amountInvoiced,amountToInvoice', TRUE);
     	$row = $this->recToVerbal($rec, $fields);
     	
-        $subTitle = "Дост: " . (($row->amountDelivered) ? $row->amountDelivered : 0) . "({$row->amountToDeliver})";
-		$subTitle .= ", Плат: " . (($row->amountPaid) ? $row->amountPaid : 0) . "({$row->amountToPay})";
+        $subTitle = "Дост: " . (($rec->amountDelivered) ? $row->amountDelivered : 0) . " ({$row->amountToDeliver})";
+		$subTitle .= ", Плат: " . (($rec->amountPaid) ? $row->amountPaid : 0) . " ({$row->amountToPay})";
         if($rec->makeInvoice != 'no'){
-        	$subTitle .= ", Факт: " . (($row->amountInvoiced) ? $row->amountInvoiced : 0) . "({$row->amountToInvoice})";
+        	$subTitle .= ", Факт: " . (($rec->amountInvoiced) ? $row->amountInvoiced : 0) . " ({$row->amountToInvoice})";
         }
         
         return $subTitle;
@@ -885,13 +884,19 @@ abstract class deals_DealMaster extends deals_DealBase
 				}
 			}
 			
-			if($rec->makeInvoice == 'no'){
-				$row->amountToInvoice = "<span style='font-size:0.7em'>" . tr('без фактуриране') . "</span>";
-			}
+			// За да се използва езика на фактурата
+			$noInvStr = tr('без фактуриране');
 			
 			$row->username = core_Lg::transliterate($row->username);
 			core_Lg::pop();
 	    }
+	    
+        if($rec->makeInvoice == 'no') {
+            if (!$noInvStr) {
+                $noInvStr = tr('без фактуриране');
+            }
+			$row->amountToInvoice = "<span style='font-size:0.7em'>" . $noInvStr . "</span>";
+		}
     }
     
     
@@ -1208,6 +1213,9 @@ abstract class deals_DealMaster extends deals_DealBase
     		// Контиране на документа
     		$this->conto($id);
     		 
+    		// Записваме, че потребителя е разглеждал този списък
+    		$this->logInfo("Активиране/Контиране на сделка", $id);
+    		
     		// Редирект
     		return redirect(array($this, 'single', $id));
     	}

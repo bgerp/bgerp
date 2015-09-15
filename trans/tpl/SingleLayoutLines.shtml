@@ -4,7 +4,7 @@
 		    <tr>
 		        <td class='custom-header-bg' style='width:36%;'><b>|Възложител|*</b></td>
 		        <td class="cell centered" rowspan = '2'>
-			        <div class="document-title"> |Транспортна линия|*</div>
+			        <div class="document-title">|транспортна линия|*</div>
 			        <div style="padding-top:5px;">
 			            № <span class="bigData">[#id#]</span> /
 			            <span class="bigData">[#start#]</span>

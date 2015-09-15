@@ -15,23 +15,28 @@
                             <td> [#sysId#]</td>
                         </tr>
                         <!--ET_END sysId-->
-                        <!--ET_BEGIN measures-->
-                        <tr>
-                            <td class='dt'>|Позволени мерки|*</td>
-                            <td> [#measures#]</td>
-                        </tr>
-                        <!--ET_END measures-->
                     </table>
                 </div>
             </fieldset>
             <!--ET_END INFO-->
             
-            <!--ET_BEGIN meta-->
+            <!--ET_BEGIN SETTINGS-->
+            [#SETTINGS#]
 			<fieldset class="detail-info">
 				<legend class="groupTitle">|Мета данни|*</legend>
-				<div class="groupList">[#meta#]</div>
+				<!--ET_BEGIN meta-->
+					<div class="groupList"><span class='quiet'>|Свойства|*</span>: [#meta#]</div>
+				<!--ET_END meta-->
+				
+				<!--ET_BEGIN measures-->
+					<div class="groupList"><span class='quiet'>|Мерки|*</span>: [#measures#]</div>
+				<!--ET_END measures-->
+				
+				<!--ET_BEGIN markers-->
+					<div class="groupList"><span class='quiet'>|Маркери|*</span>: [#markers#]</div>
+				<!--ET_END markers-->
 			</fieldset>
-			<!--ET_END meta-->
+			<!--ET_END SETTINGS-->
             <!--ET_BEGIN info-->
             <fieldset class="detail-info">
                 <legend class="groupTitle">|Бележки|*</legend>

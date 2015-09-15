@@ -131,19 +131,47 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     	
     	$classId = cat_Products::getClassId();
     	
-    	if($rec->id){
+    	if(isset($rec->id)){
     		$products = array($rec->productId => cat_Products::getTitlebyId($rec->productId, FALSE));
     	} else {
-    		$products = array('' => '') + cat_Products::getByProperty('canConvert');
+    		$metas = ($rec->type == 'input') ? 'canConvert' : 'canConvert,canStore';
+    		$products = array('' => '') + cat_Products::getByProperty($metas);
     	}
     	
     	$form->setOptions('productId', $products);
     	$form->setDefault('classId', $classId);
+    }
+    
+    
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     *
+     * @param core_Mvc $mvc
+     * @param core_Form $form
+     */
+    public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
+    {
+    	$rec = &$form->rec;
     	
     	if($rec->productId){
-    		$storeId = $data->masterRec->inputStoreId;
-    		$info = deals_Helper::getProductQuantityInStoreInfo($rec->productId, $classId, $storeId);
-    		$form->info = $info->formInfo;
+    		$storeId = $mvc->Master->fetchField($rec->noteId, 'inputStoreId');
+    		$storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $storeId);
+    		$form->info = $storeInfo->formInfo;
+    	
+    		if($form->isSubmitted()){
+    			if(isset($storeInfo->warning)){
+    				$form->setWarning('packQuantity', $storeInfo->warning);
+    			}
+    			
+    			// Ако добавяме отпадък, искаме да има себестойност
+    			if($rec->type == 'pop'){
+    				$selfValue = planning_ObjectResources::getSelfValue($rec->productId);
+    		
+    				if(!isset($selfValue)){
+    					$form->setError('productId', 'Отпадакът не може да му се определи себестойност');
+    				}
+    			}
+    		}
     	}
     }
     

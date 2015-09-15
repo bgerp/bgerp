@@ -338,6 +338,8 @@ class cat_Products extends core_Embedder {
     				if($code = $cover->getDefaultProductCode()){
     					$form->setDefault('code', $code);
     				}
+    				
+    				$form->setDefault('groups', $cover->rec()->markers);
     			}
     			
     			// Запомняме последно добавения код
@@ -1419,7 +1421,7 @@ class cat_Products extends core_Embedder {
     				$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'single', $bRec->id, 'ret_url' => TRUE), 'ef_icon = img/16/article.png,title=Към технологичната рецепта на артикула');
     			}
     		} elseif(cat_Boms::haveRightFor('write', (object)array('productId' => $data->rec->id))){
-    			$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'add', 'productId' => $data->rec->id, 'originId' => $data->rec->containerId, 'ret_url' => TRUE), 'ef_icon = img/16/article.png,title=Създаване на нова технологична рецепта,warning=Наистина ли желаете да създадете технологична рецепта за този артикул?');
+    			$data->toolbar->addBtn("Рецепта", array('cat_Boms', 'add', 'productId' => $data->rec->id, 'originId' => $data->rec->containerId, 'ret_url' => TRUE), 'ef_icon = img/16/article.png,title=Създаване на нова технологична рецепта');
     		}
     	}
     }
@@ -1589,6 +1591,11 @@ class cat_Products extends core_Embedder {
     		}
     	}
     	
+    	if (!Request::get('ajax_mode')) {
+    		// Записваме, че потребителя е разглеждал този списък
+    		$this->logInfo('Показване на ограничения сингъл', $id);
+    	}
+    	
     	return $tpl;
     }
     
@@ -1638,6 +1645,7 @@ class cat_Products extends core_Embedder {
     	
     	// Намираме сумата която струва к-то от артикула в склада
     	$amount = acc_strategy_WAC::getAmount($quantity, $date, '321', $item1, $item2, $item3);
+    	
     	if(isset($amount)){
     		return round($amount, 4);
     	}

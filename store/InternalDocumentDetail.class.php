@@ -75,8 +75,9 @@ abstract class store_InternalDocumentDetail extends doc_Detail
     	
     	$masterRec  = $mvc->Master->fetch($rec->{$mvc->masterKey});
     	$currencyRate = $rec->currencyRate = currency_CurrencyRates::getRate($masterRec->valior, $masterRec->currencyId, acc_Periods::getBaseCurrencyCode($masterRec->valior));
-    	
-    	$form->setError('currencyRate', 'Не може да се изчисли курс');
+    	if(!$currencyRate){
+    		$form->setError('currencyRate', 'Не може да се изчисли курс');
+    	}
     	
     	if($form->rec->productId){
     		$packs = $ProductMan->getPacks($rec->productId);

@@ -103,7 +103,7 @@ class acc_strategy_WAC extends acc_strategy_Strategy
     			$jQuery->where("(#debitItem{$i} IS NULL) OR (#creditItem{$i} IS NULL)");
     		}
     	}
-    	//bp($jQuery->fetchAll(), acc_Items::fetch(19151));
+    	
     	// Инстанцираме стратегията
     	$accRec = acc_Accounts::getRecBySystemId($accSysId);
     	$strategy = new acc_strategy_WAC($accRec->id);

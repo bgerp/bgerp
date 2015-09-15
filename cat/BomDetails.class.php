@@ -108,6 +108,12 @@ class cat_BomDetails extends doc_Detail
     
     
     /**
+     * Кои полета от листовия изглед да се скриват ако няма записи в тях
+     */
+    protected $hideListFieldsIfEmpty = 'baseQuantity';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
@@ -152,7 +158,9 @@ class cat_BomDetails extends doc_Detail
     	$form->title = "|{$action}|* на {$typeCaption} |към|* <b>|{$mvc->Master->singleTitle}|* №{$form->rec->bomId}<b>";
     	
     	// Добавяме всички вложими артикули за избор
-    	$products = cat_Products::getByProperty('canConvert');
+    	$metas = ($form->rec->type == 'input') ? 'canConvert' : 'canConvert,canStore';
+    	$products = cat_Products::getByProperty($metas);
+    	
     	unset($products[$data->masterRec->productId]);
     	$form->setOptions('resourceId', $products);
     	
@@ -252,8 +260,9 @@ class cat_BomDetails extends doc_Detail
     		// Ако добавяме отпадък, искаме да има себестойност
     		if($rec->type == 'pop'){
     			$selfValue = planning_ObjectResources::getSelfValue($rec->resourceId);
+    			
     			if(!isset($selfValue)){
-    				$form->setError('resourceId', 'Отпадакът няма себестойност');
+    				$form->setError('resourceId', 'Отпадакът не може да му се определи себестойност');
     			}
     		}
     		

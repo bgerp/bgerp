@@ -832,6 +832,9 @@ class acc_Items extends core_Manager
         $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png, title = Запис на документа');
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close16.png, title=Прекратяване на действията');
         
+        // Записваме, че потребителя е разглеждал този списък
+        $this->logInfo("Добавяне на обекти, като пера");
+        
         return $this->renderWrapping($form->renderHtml());
     }
     

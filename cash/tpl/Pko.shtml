@@ -14,7 +14,7 @@
                 <tr>
                     <td class='custom-header-bg' style="width: 35%"><b>|Вносител|*</b></td>
                     <td  rowspan='2' class='centered'>
-                        <div class="document-title">|ПРИХОДЕН|*<br> |КАСОВ ОРДЕР|*</div>
+                        <div class="document-title">|приходен|*<br> |касов ордер|*</div>
                         <div style="padding-top:5px;">
                             № <span class="bigData">[#id#]</span> /
                             <span class="bigData">[#valior#]</span>
