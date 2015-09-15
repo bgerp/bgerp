@@ -63,12 +63,11 @@ class deals_plg_DpInvoice extends core_Plugin
         	// Поставяне на дефолт стойностти
         	self::getDefaultDpData($form);
         } else {
-        	$Detail = cls::get($mvc->mainDetail);
-        	if($Detail->fetch("#{$Detail->masterKey} = {$form->rec->id}") || $form->rec->dpOperation == 'deducted'){
-        		return;
-        	}
+	        if($form->rec->dpOperation === 'none'){
+	        	return;
+	        }
         }
-       
+        
         if(isset($form->rec->dpAmount)){
         	$dpAmount = round($form->rec->dpAmount / $form->rec->rate, 6);
         	if($dpAmount == 0){
