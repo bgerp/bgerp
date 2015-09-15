@@ -29,7 +29,7 @@ class deals_plg_DpInvoice extends core_Plugin
 	    	$mvc->FLD('dpAmount', 'double', 'caption=Авансово плащане->Сума,input=none,before=contragentName');
 	    	
 	    	// Операция с авансовото плащане начисляване/намаляване
-	    	$mvc->FLD('dpOperation', 'enum(accrued=Начисляване, deducted=Приспадане, none=Няма)', 'caption=Авансово плащане->Операция,input=none,silent,before=contragentName,removeAndRefreshForm=dpAmount');
+	    	$mvc->FLD('dpOperation', 'enum(accrued=Начисляване, deducted=Приспадане, none=Няма)', 'caption=Авансово плащане->Операция,input=none,before=contragentName');
     	}
     }
     
@@ -69,16 +69,19 @@ class deals_plg_DpInvoice extends core_Plugin
         	}
         }
        
-        $dpAmount = round($form->rec->dpAmount / $form->rec->rate, 6);
-        if($dpAmount == 0){
-        	unset($form->rec->dpAmount);
-        	unset($form->rec->dpOperation);
-        	return;
+        if(isset($form->rec->dpAmount)){
+        	$dpAmount = round($form->rec->dpAmount / $form->rec->rate, 6);
+        	if($dpAmount == 0){
+        		unset($form->rec->dpAmount);
+        		unset($form->rec->dpOperation);
+        		return;
+        	}
+        	
+        	$form->rec->dpAmount = $dpAmount;
         }
         
         // Показване на полетата за авансовите плащания
-        $form->rec->dpAmount = $dpAmount;
-        $form->setField('dpAmount',"input,mandatory,unit=|*{$rec->currencyId} |без ДДС|*");
+		$form->setField('dpAmount',"input,mandatory,unit=|*{$rec->currencyId} |без ДДС|*");
         $form->setField('dpOperation','input');
         
         if($form->rec->dpOperation == 'accrued'){
@@ -201,6 +204,10 @@ class deals_plg_DpInvoice extends core_Plugin
         		if(isset($rec->id)){
         			$mvc->updateMaster($rec, FALSE);
         		}
+        	}
+        	
+        	if($rec->dpOperation == 'none'){
+        		$rec->dpAmount = NULL;
         	}
         }
     }
