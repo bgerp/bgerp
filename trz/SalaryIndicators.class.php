@@ -100,7 +100,7 @@ class trz_SalaryIndicators extends core_Manager
     	$this->FLD('date',    'date', 'caption=Дата,mandatory,width=100%');
     	$this->FLD('docId',    'int', 'caption=Документ->№,mandatory,width=100%');
     	$this->FLD('docClass',    'key(mvc=core_Classes, select=name)', 'caption=Документ->Клас,mandatory,width=100%');
-    	$this->FLD('personId',    'key(mvc=crm_Persons,select=name,group=employees)', 'caption=Служител->Лице,mandatory,width=100%');
+    	$this->FLD('personId',    'key(mvc=crm_Persons,select=name,group=employees)', 'caption=Служител->Име,mandatory,width=100%');
     	$this->FLD('departmentId',    'key(mvc=hr_Departments, select=name)', 'caption=Служител->Отдел,mandatory,width=100%');
     	$this->FLD('positionId',    'key(mvc=hr_Positions, select=name)', 'caption=Служител->Длъжност,mandatory,width=100%');
     	$this->FLD('indicator',    'varchar', 'caption=Индикатор->Име,mandatory,width=100%');

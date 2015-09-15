@@ -212,7 +212,7 @@ class sales_Quotations extends core_Master
         $this->FLD('deliveryPlaceId', 'varchar(126)', 'caption=Доставка->Място,hint=Изберете локация или въведете нова');
         
 		$this->FLD('company', 'varchar', 'caption=Получател->Фирма, changable, class=contactData');
-        $this->FLD('person', 'varchar', 'caption=Получател->Лице, changable, class=contactData');
+        $this->FLD('person', 'varchar', 'caption=Получател->Име, changable, class=contactData');
         $this->FLD('email', 'varchar', 'caption=Получател->Имейл, changable, class=contactData');
         $this->FLD('tel', 'varchar', 'caption=Получател->Тел., changable, class=contactData');
         $this->FLD('fax', 'varchar', 'caption=Получател->Факс, changable, class=contactData');

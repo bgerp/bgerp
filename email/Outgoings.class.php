@@ -186,7 +186,7 @@ class email_Outgoings extends core_Master
         $this->FLD('email', 'emails', 'caption=Адресат->Имейл, width=100%, silent');
         $this->FLD('emailCc', 'emails', 'caption=Адресат->Копие до,  width=100%');
         $this->FLD('recipient', 'varchar', 'caption=Адресат->Фирма,class=contactData');
-        $this->FLD('attn', 'varchar', 'caption=Адресат->Лице,oldFieldName=attentionOf,class=contactData');
+        $this->FLD('attn', 'varchar', 'caption=Адресат->Име,oldFieldName=attentionOf,class=contactData');
         $this->FLD('tel', 'varchar', 'caption=Адресат->Тел.,oldFieldName=phone,class=contactData');
         $this->FLD('fax', 'drdata_PhoneType', 'caption=Адресат->Факс,class=contactData, silent');
         $this->FLD('country', 'varchar', 'caption=Адресат->Държава,class=contactData');
