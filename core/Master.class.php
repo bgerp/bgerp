@@ -456,7 +456,11 @@ class core_Master extends core_Manager
                     } else {
                         $lastGroup = '';
                     }
-                    $fieldsHtml .= "\n{$begin}<tr><td>" . tr($caption) . "</td><td>[#{$field}#]</td></tr><!--ET_END {$field}-->";
+
+                    $unit = $this->fields[$field]->unit;
+                    if($unit) $unit = ' ' . $unit;
+
+                    $fieldsHtml .= "\n{$begin}<tr><td>" . tr($caption) . "</td><td>[#{$field}#]{$unit}</td></tr><!--ET_END {$field}-->";
                 }
             }
             
