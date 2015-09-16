@@ -82,9 +82,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     	$form->FLD('orderBy', 'enum(DESC=Низходящо,ASC=Възходящо)', 'caption=Сортиране->Вид,silent,removeAndRefreshForm=orderField,formOrder=100');
     	$form->FLD('orderField', 'enum(debitQuantity=Дебит к-во,debitAmount=Дебит сума,creditQuantity=Кредит к-во,creditAmount=Кредит сума,blQuantity=Остатък к-во,blAmount=Остатък сума)', 'caption=Сортиране->Поле,formOrder=101');
     	
-    	$form->FLD('compare', 'enum(yes=Да,no=Не)', 'caption=Сравняване->С друг период,silent,removeAndRefreshForm=compareTimes,comparePeriods');
-    	$form->FLD('compareTimes', 'enum(1=Един,2=Два)', 'caption=Сравняване->Брой,input=none');
-    	$form->FLD('comparePeriods', 'enum(month=1 месец,year=12 месеца)', 'caption=Сравняване->Период,input=none');
+    	$form->FLD('compare', 'enum(no=Няма,old=Предходен период,year=Миналогодишен период)', 'caption=Съпоставка,silent');
     	
     	$this->invoke('AfterAddEmbeddedFields', array($form));
     }
@@ -157,10 +155,6 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     		$form->setField('orderField', 'input=none');
     	}
     	
-    	if($form->rec->compare == 'yes'){
-    		$form->setField('compareTimes', 'input');
-    		$form->setField('comparePeriods', 'input');
-    	}
     	
     	$this->invoke('AfterPrepareEmbeddedForm', array($form));
     }
@@ -225,34 +219,21 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     	$data->summary = (object)array('debitQuantity' => 0, 'debitAmount' => 0, 'creditQuantity' => 0, 'creditAmount' => 0, 'blQuantity' => 0, 'blAmount' => 0);
     	$data->hasSameAmounts = TRUE;
     	$data->rows = $data->recs = array();
+    	$data->rowsOld = $data->recsOld = array();
     	$form = $this->innerForm;
-    	//bp($form);
     	
-    	if ($form->compare == 'yes') {
-    		if ($form->comparePeriods == 'month') {
-    			if ($form->compareTimes == '1') {
-    				$fromCompare = date('Y-m-d',strtotime("-1 months", dt::mysql2timestamp($form->from)));
-    				$toCompare = date('Y-m-d',strtotime("-1 months", dt::mysql2timestamp($form->to)));
-    			} else {
-    				$fromCompare = date('Y-m-d',strtotime("-1 months", dt::mysql2timestamp($form->from)));
-    				$toCompare = date('Y-m-d',strtotime("-1 months", dt::mysql2timestamp($form->to)));
-    				$fromCompare2 = date('Y-m-d',strtotime("-2 months", dt::mysql2timestamp($form->from)));
-    				$toCompare2 = date('Y-m-d',strtotime("-2 months", dt::mysql2timestamp($form->to)));
-    			}
-    		} else {
-    			if ($form->compareTimes == '1') {
-    				$fromCompare = date('Y-m-d',strtotime("-12 months", dt::mysql2timestamp($form->from)));
-    				$toCompare = date('Y-m-d',strtotime("-12 months", dt::mysql2timestamp($form->to)));
-    			} else {
-    				$fromCompare = date('Y-m-d',strtotime("-12 months", dt::mysql2timestamp($form->from)));
-    				$toCompare = date('Y-m-d',strtotime("-12 months", dt::mysql2timestamp($form->to)));
-    				$fromCompare2 = date('Y-m-d',strtotime("-24 months", dt::mysql2timestamp($form->from)));
-    				$toCompare2 = date('Y-m-d',strtotime("-24 months", dt::mysql2timestamp($form->to)));
-    			}
-    		}
+    	$from = strtotime($form->from);
+    	$to = strtotime($form->to);
+    	
+    	if ($this->innerForm->compare == 'old') {
+    		 
+    		$data->fromOld = date('Y-m-d', $from - abs($to - $from));
+    		$data->toOld = $form->from;
+    	} elseif ($this->innerForm->compare == 'year') {
+    		$data->toOld = date('Y-m-d',strtotime("-12 months", $from));
+    		$data->fromOld = date('Y-m-d', strtotime("-12 months", $from) - (abs($to - $from)));
     	}
-    	
-    	//bp($fromCompare, $toCompare, $form);
+
     	$data->groupBy = array();
     	foreach (range(1, 6) as $i){
     		if(!empty($form->{"feat{$i}"})){
@@ -305,7 +286,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     	}
     	
     	foreach ($recs as $jRec){
-    		$this->addEntry($form->baseAccountId, $jRec, $data, $form->groupBy, $form, $features);
+    		$this->addEntry($form->baseAccountId, $jRec, $data, $form->groupBy, $form, $features, $data->recs);
     	}
     	
     	// Ако има намерени записи
@@ -573,9 +554,8 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
      * @param array    $recs          - групираните записи
      * @return void
      */
-    private function addEntry($baseAccountId, $jRec, &$data, $groupBy, $form, $features)
+    private function addEntry($baseAccountId, $jRec, &$data, $groupBy, $form, $features, &$recs)
     {
-    	$recs = &$data->recs;
     	
     	// Обхождаме дебитната и кредитната част, И намираме в какви номенклатури имат сметките
     	foreach (array('debit', 'credit') as $type){
@@ -642,11 +622,20 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
      */
     protected function prepareListFields_(&$data)
     {
-    	// Кои полета ще се показват
-    	$fields = arr::make("debitQuantity=Сега->Дебит->К-во,debitAmount=Сега->Дебит->Сума,creditQuantity=Сега->Кредит->К-во,creditAmount=Сега->Кредит->Сума,blQuantity=Сега->Остатък->К-во,blAmount=Сега->Остатък->Сума,delta=Сега->Дял", TRUE);
-    	$newFields = array();
     	$form = $this->innerForm;
-    	
+    	$newFields = array();
+
+    	// Кои полета ще се показват
+    	if($this->innerForm->compare == 'old' || $this->innerForm->compare == 'year'){
+    		$fromVerbal = dt::mysql2verbal($form->from, 'd.m.Y');
+    		$toVerbal = dt::mysql2verbal($form->to, 'd.m.Y');
+    		
+    		$prefix = (string) $fromVerbal . " - " . $toVerbal;
+
+    		$fields = arr::make("debitQuantity={$prefix}->Дебит->К-во,debitAmount={$prefix}->Дебит->Сума,creditQuantity={$prefix}->Кредит->К-во,creditAmount={$prefix}->Кредит->Сума,blQuantity={$prefix}->Остатък->К-во,blAmount={$prefix}->Остатък->Сума,delta={$prefix}->Дял", TRUE);
+    		
+    	} else $fields = arr::make("debitQuantity=Дебит->К-во,debitAmount=Дебит->Сума,creditQuantity=Кредит->К-во,creditAmount=Кредит->Сума,blQuantity=Остатък->К-во,blAmount=Остатък->Сума,delta=Дял", TRUE);
+
     	foreach (range(1, 6) as $i){
     		if(!empty($form->{"feat{$i}"})){
     			if($form->{"feat{$i}"} == '*'){
@@ -669,14 +658,21 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     		}
     	}
     
-    	if($this->innerForm->compare == 'yes'){
-    		$fieldsCompare = arr::make("debitQuantityCompare=Преди->Дебит->К-во,
-    				                    debitAmountCompare=Преди->Дебит->Сума,
-    				                    creditQuantityCompare=Преди->Кредит->К-во,
-    				                    creditAmountCompare=Преди->Кредит->Сума,
-    				                    blQuantityCompare=Преди->Остатък->К-во,
-    				                    blAmountCompare=Преди->Остатък->Сума,
-    				                    deltaCompare=Преди->Дял", TRUE);
+    	if($this->innerForm->compare == 'old' || $this->innerForm->compare == 'year'){
+    		
+    		$fromOldVerbal = dt::mysql2verbal($data->fromOld, "d.m.Y");
+    		$toOldVerbal = dt::mysql2verbal($data->toOld, "d.m.Y");
+    		
+    		$prefixOld = (string) $fromOldVerbal . " - " . $toOldVerbal;
+            	
+            $fieldsCompare = arr::make("debitQuantityCompare={$prefixOld}->Дебит->К-во,
+    				                    debitAmountCompare={$prefixOld}->Дебит->Сума,
+    				                    creditQuantityCompare={$prefixOld}->Кредит->К-во,
+    				                    creditAmountCompare={$prefixOld}->Кредит->Сума,
+    				                    blQuantityCompare={$prefixOld}->Остатък->К-во,
+    				                    blAmountCompare={$prefixOld}->Остатък->Сума,
+    				                    deltaCompare={$prefixOld}->Дял", TRUE);
+
     		
     		$fields = $fields + $fieldsCompare;
     		
@@ -688,7 +684,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     			}
     		}
     	}
-    	
+    	//bp($fields);
     	$data->listFields = $fields;
     }
 
@@ -894,7 +890,7 @@ class acc_reports_CorespondingImpl extends frame_BaseDriver
     public function generateBtns($data)
     {
 
-        $curUrl = getCurrentUrl();
+         $curUrl = getCurrentUrl();
 	
         $pageVar = core_Pager::getPageVar($this->EmbedderRec->className, $this->EmbedderRec->that);
         
