@@ -154,9 +154,12 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     	$rec = &$form->rec;
     	
     	if($rec->productId){
-    		$storeId = $mvc->Master->fetchField($rec->noteId, 'inputStoreId');
-    		$storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $storeId);
-    		$form->info = $storeInfo->formInfo;
+    		$pInfo = cat_Products::getProductInfo($rec->productId);
+    		if(isset($pInfo->meta['canStore'])){
+    			$storeId = $mvc->Master->fetchField($rec->noteId, 'inputStoreId');
+    			$storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $storeId);
+    			$form->info = $storeInfo->formInfo;
+    		}
     	
     		if($form->isSubmitted()){
     			if(isset($storeInfo->warning)){

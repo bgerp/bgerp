@@ -67,8 +67,9 @@ class acc_reports_SaleArticles extends acc_reports_BalanceImpl
 
         // Задаваме че ще филтрираме по перо
         $form->setDefault('action', 'group');
-        $form->setHidden('orderField');
-        $form->setHidden('orderBy');
+        
+        $form->setDefault('orderField', 'creditQuantity');
+        $form->setDefault('orderBy', 'desc');
     }
 
 
