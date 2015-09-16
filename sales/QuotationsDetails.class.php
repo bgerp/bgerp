@@ -594,7 +594,7 @@ class sales_QuotationsDetails extends doc_Detail {
     			$summary->netTitle = tr($summary->netTitle);
     		}
     		
-    		if(!cls::get('type_Double')->fromVerbal($summary->vatAmount)){
+    		if($masterRec->chargeVat != 'separate'){
     			$summary->vatAmount = tr($summary->vatAmount);
     		}
     		
