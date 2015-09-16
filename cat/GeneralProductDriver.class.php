@@ -15,12 +15,6 @@
 class cat_GeneralProductDriver extends cat_ProductDriver
 {
 	
-	
-	/**
-	 * За конвертиране на съществуващи MySQL таблици от предишни версии
-	 */
-	public $oldClassName = 'techno2_SpecificationBaseDriver';
-
 
 	/**
 	 * Дефолт мета данни за всички продукти
@@ -29,32 +23,221 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	
 	
 	/**
-	 * Добавя полетата на вътрешния обект
+	 * Добавя полетата на драйвера към Fieldset
 	 *
-	 * @param core_Form $form
+	 * @param core_Fieldset $fieldset
 	 */
-	public function addEmbeddedFields(core_FieldSet &$form)
+	public function addFields(core_Fieldset &$fieldset)
 	{
 		// Добавя полетата само ако ги няма във формата
 		
-		if(!$form->getField('info', FALSE)){
-			$form->FLD('info', 'richtext(rows=6, bucket=Notes)', "caption=Описание,mandatory,formOrder=4");
+		if(!$fieldset->getField('info', FALSE)){
+			$fieldset->FLD('info', 'richtext(rows=6, bucket=Notes)', "caption=Описание,mandatory,formOrder=4");
 		} else {
-			$form->setField('info', 'input');
+			$fieldset->setField('info', 'input');
 		}
 		
-		if(!$form->getField('measureId', FALSE)){
-			$form->FLD('measureId', 'key(mvc=cat_UoM, select=name,allowEmpty)', "caption=Мярка,mandatory,formOrder=4");
+		if(!$fieldset->getField('measureId', FALSE)){
+			$fieldset->FLD('measureId', 'key(mvc=cat_UoM, select=name,allowEmpty)', "caption=Мярка,mandatory,formOrder=4");
 		} else {
-			$form->setField('measureId', 'input');
+			$fieldset->setField('measureId', 'input');
 		}
 		
-		if(!$form->getField('photo', FALSE)){
-			$form->FLD('photo', 'fileman_FileType(bucket=pictures)', "caption=Изображение,formOrder=4");
+		if(!$fieldset->getField('photo', FALSE)){
+			$fieldset->FLD('photo', 'fileman_FileType(bucket=pictures)', "caption=Изображение,formOrder=4");
 		} else {
-			$form->setField('photo', 'input');
+			$fieldset->setField('photo', 'input');
 		}
 	}
+	
+	
+	/**
+	 * Преди показване на форма за добавяне/промяна.
+	 *
+	 * @param core_Manager $mvc
+	 * @param stdClass $data
+	 */
+	public static function on_AfterPrepareEditForm($Driver, &$data)
+	{
+		$form = &$data->form;
+		
+		if(cls::haveInterface('marketing_InquiryEmbedderIntf', $form->mvc)){
+			$form->setField('photo', 'input=none');
+			$form->setDefault('measureId', $this->getDriverUom());
+			$form->setField('measureId', 'display=hidden');
+		}
+		
+		if(isset($form->rec->folderId)){
+			$Cover = doc_Folders::getCover($form->rec->folderId);
+			
+			// Ако корицата е категория и има позволени мерки, оставяме само тях
+			if($Cover->getInstance() instanceof cat_Categories){
+				$arr = keylist::toArray($Cover->fetchField('measures'));
+				if(count($arr)){
+					if(isset($form->rec->measureId)){
+						$arr = array($form->rec->measureId) + $arr;
+					}
+					$options = array();
+					foreach ($arr as $mId){
+						$options[$mId] = cat_UoM::getTitleById($mId);
+					}
+					
+					if($form->getFieldTypeParam('measureId', 'isReadOnly') !== TRUE){
+						$form->setOptions('measureId', $options);
+					}
+				}
+			}
+		}
+	}
+	
+	/**
+	 * Връща счетоводните свойства на обекта
+	 */
+	public function getFeatures($productId)
+	{
+		return cat_products_Params::getFeatures('cat_Products', $productId);
+	}
+	
+	
+	/**
+	 * Подготовка за рендиране на единичния изглед
+	 *
+	 *
+	 * @param cal_Reminders $mvc
+	 * @param stdClass $data
+	 */
+	public static function on_AfterPrepareSingle($Driver, $data)
+	{
+		if($data->rec->photo){
+			$size = array(280, 150);
+			$Fancybox = cls::get('fancybox_Fancybox');
+			$data->row->image = $Fancybox->getImage($data->rec->photo, $size, array(550, 550));
+		}
+		
+		$data->prepareForPublicDocument = $Driver->prepareForPublicDocument;
+		$data->masterId = $data->rec->id;
+		$data->masterClassId = cat_Products::getClassId();
+		
+		cat_products_Params::prepareParams($data);
+		
+		return $data;
+	}
+	
+	
+	/**
+	 * След рендиране на единичния изглед
+	 */
+	public static function on_AfterRenderSingle($Driver, &$tpl, $data)
+	{
+		// Ако не е зададен шаблон, взимаме дефолтния
+		$nTpl = (empty($data->tpl)) ? getTplFromFile('cat/tpl/SingleLayoutBaseDriver.shtml') : $data->tpl;
+		$nTpl->placeObject($data->row);
+		
+		// Ако ембедъра няма интерфейса за артикул, то към него немогат да се променят параметрите
+		if(!cls::haveInterface('cat_ProductAccRegIntf', 'cat_Products')){
+			$data->noChange = TRUE;
+		}
+		
+		// Рендираме параметрите винаги ако сме към артикул или ако има записи
+		if($data->noChange !== TRUE || count($data->params)){
+			$paramTpl = cat_products_Params::renderParams($data);
+			$nTpl->append($paramTpl, 'PARAMS');
+		}
+		$nTpl->removeBlocks();
+		$nTpl->removePlaces();
+		$tpl->append($nTpl, 'innerState');
+	}
+	
+	
+	/**
+	 * Връща информацията за продукта от драйвера
+	 *
+	 * @param int $productId
+	 */
+	public function getProductInfo($productId)
+	{
+		$rec = cat_Products::fetch($productId);
+		
+		$res = new stdClass();
+		$res->productRec = new stdClass();
+	
+		$res->productRec->name = ($rec->title) ? $rec->title : $rec->name;
+		$res->productRec->info = $rec->info;
+		$res->productRec->measureId = $rec->measureId;
+	
+		(!$packagingId) ? $res->packagings = array() : $res->packagingRec = new stdClass();
+	
+		return $res;
+	}
+	
+	
+	/**
+	 * Връща параметрите на артикула
+	 * @param mixed $productId - ид или запис на артикул
+	 *
+	 * @return array $res - параметрите на артикула
+	 * 					['weight']          -  Тегло
+	 * 					['width']           -  Широчина
+	 * 					['volume']          -  Обем
+	 * 					['thickness']       -  Дебелина
+	 * 					['length']          -  Дължина
+	 * 					['height']          -  Височина
+	 * 					['tolerance']       -  Толеранс
+	 * 					['transportWeight'] -  Транспортно тегло
+	 * 					['transportVolume'] -  Транспортен обем
+	 * 					['term']            -  Срок
+	 */
+	public function getParams($productId)
+	{
+		$res = array();
+	
+		foreach (array('weight', 'width', 'volume', 'thickness', 'length', 'height', 'tolerance', 'transportWeight', 'transportVolume', 'term') as $p){
+				
+			$res[$p] = cat_products_Params::fetchParamValue($productId, cat_Products::getClassId(), $p);
+		}
+	
+		return $res;
+	}
+	
+	
+	/**
+	 * Подготвя данните за показване на описанието на драйвера
+	 *
+	 * @param enum(public,internal) $documentType - публичен или външен е документа за който ще се кешира изгледа
+	 */
+	public function prepareProductDescription($productId, $documentType = 'public')
+	{
+		
+		bp($this);
+		
+		
+		
+		if($documentType == 'public'){
+			$this->prepareForPublicDocument = TRUE;
+		}
+		$data = $this->prepareEmbeddedData();
+		unset($this->prepareForPublicDocument);
+		$data->noChange = TRUE;
+		$data->tpl = getTplFromFile('cat/tpl/SingleLayoutBaseDriverShort.shtml');
+	
+		return $data;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	
 	/**
@@ -133,27 +316,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	}
 	
 	
-	/**
-	 * Връща информацията за продукта от драйвера
-	 * 
-	 * @param stdClass $innerState
-	 * @param int $packagingId
-	 * @return stdClass $res
-	 */
-	public function getProductInfo($packagingId = NULL)
-	{
-		$innerState = $this->innerState;
-		$res = new stdClass();
-		$res->productRec = new stdClass();
-		
-		$res->productRec->name = ($innerState->title) ? $innerState->title : $innerState->name;
-		$res->productRec->info = $innerState->info;
-		$res->productRec->measureId = $innerState->measureId;
-		
-		(!$packagingId) ? $res->packagings = array() : $res->packagingRec = new stdClass();
-		
-		return $res;
-	}
+	
 	
 	
 	/**
@@ -165,13 +328,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	}
 	
 	
-	/**
-	 * Връща счетоводните свойства на обекта
-	 */
-	public function getFeatures()
-	{
-		return cat_products_Params::getFeatures($this->EmbedderRec->getClassId(), $this->EmbedderRec->rec()->id);
-	}
+	
 	
 	
 	/**
@@ -244,54 +401,10 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	}
 	
 	
-	/**
-	 * Връща параметрите на артикула
-	 * @param mixed $id - ид или запис на артикул
-	 *
-	 * @return array $res - параметрите на артикула
-	 * 					['weight']          -  Тегло
-	 * 					['width']           -  Широчина
-	 * 					['volume']          -  Обем
-	 * 					['thickness']       -  Дебелина
-	 * 					['length']          -  Дължина
-	 * 					['height']          -  Височина
-	 * 					['tolerance']       -  Толеранс
-	 * 					['transportWeight'] -  Транспортно тегло
-	 * 					['transportVolume'] -  Транспортен обем
-	 * 					['term']            -  Срок
-	 */
-	public function getParams()
-	{
-		$res = array();
-		$embedderRec = $this->EmbedderRec->rec()->id;
-		$embedderClassId = $this->EmbedderRec->getClassId();
-		
-		foreach (array('weight', 'width', 'volume', 'thickness', 'length', 'height', 'tolerance', 'transportWeight', 'transportVolume', 'term') as $p){
-			
-			$res[$p] = cat_products_Params::fetchParamValue($embedderRec, $embedderClassId, $p);
-		}
-		
-		return $res;
-	}
 	
 	
-	/**
-	 * Подготвя данните за показване на описанието на драйвера
-	 * 
-	 * @param enum(public,internal) $documentType - публичен или външен е документа за който ще се кешира изгледа
-	 */
-	public function prepareProductDescription($documentType = 'public')
-	{
-		if($documentType == 'public'){
-			$this->prepareForPublicDocument = TRUE;
-		}
-		$data = $this->prepareEmbeddedData();
-		unset($this->prepareForPublicDocument);
-		$data->noChange = TRUE;
-		$data->tpl = getTplFromFile('cat/tpl/SingleLayoutBaseDriverShort.shtml');
-		
-		return $data;
-	}
+	
+	
 	
 	
 	/**

@@ -335,6 +335,7 @@ class cat_products_Params extends doc_Detail
     {
     	$features = array();
     	$query = self::getQuery();
+    	$classId = cls::get($classId)->getClassId();
     	
     	$query->where("#productId = '{$objectId}' AND #classId = {$classId}");
     	$query->EXT('isFeature', 'cat_Params', 'externalName=isFeature,externalKey=paramId');

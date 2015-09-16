@@ -11,7 +11,7 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class cat_ProductDriverIntf extends core_InnerObjectIntf
+class cat_ProductDriverIntf extends embed_DriverIntf
 {
 	
 	

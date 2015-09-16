@@ -12,20 +12,14 @@
  * @since     v 0.1
  * @title     Базов драйвер за драйвер на артикул
  */
-abstract class cat_ProductDriver extends core_ProtoInner
+abstract class cat_ProductDriver extends core_BaseClass
 {
-	
-	
-	/**
-	 * За конвертиране на съществуващи MySQL таблици от предишни версии
-	 */
-	public $oldClassName = 'techno2_SpecificationDriver';
 	
 	
 	/**
 	 * Кой може да избира драйвъра
 	 */
-	public $canSelectSource = 'ceo, cat, sales';
+	public $canSelectDriver = 'ceo, cat, sales';
 	
 	
 	/**
@@ -70,6 +64,163 @@ abstract class cat_ProductDriver extends core_ProtoInner
 	 * Записа на ембедера
 	 */
 	public $EmbedderRec;
+	
+	
+	/**
+	 * Добавя полетата на драйвера към Fieldset
+	 *
+	 * @param core_Fieldset $fieldset
+	 */
+	public function addFields(core_Fieldset &$fieldset)
+	{
+		
+	}
+	
+	
+	/**
+	 * Кой може да избере драйвера
+	 */
+	public function canSelectDriver($userId = NULL)
+	{
+		return core_Users::haveRole($this->canSelectDriver, $userId);
+	}
+	
+	
+	/**
+	 * Обновяване на данните на мастъра
+	 *
+	 * @param int $id - ид
+	 * @return void
+	 */
+	public function updateEmbedder(&$rec)
+	{
+	}
+	
+	
+	/**
+	 * Преди показване на форма за добавяне/промяна.
+	 *
+	 * @param core_Manager $mvc
+	 * @param stdClass $data
+	 */
+	public static function on_AfterPrepareEditForm($Driver, &$data)
+	{
+		$form = &$data->form;
+		
+		// Намираме полетата на формата
+		$fields = $form->selectFields();
+		
+		if(count($Driver->driverParams)){
+			
+			// Ако в параметрите има стойност за поле, което е във формата задаваме му стойността
+			foreach ($fields as $name => $fld){
+				if(isset($this->driverParams[$name])){
+					$form->setDefault($name, $Driver->driverParams[$name]);
+				}
+			}
+		}
+		
+		// Ако има полета
+		if(count($fields)){
+			
+			// За всички полета
+			foreach ($fields as $name => $fld){
+					
+				// Ако има атрибут display
+				$display = $form->getFieldParam($name, 'display');
+					
+				// Ако е 'hidden' и има зададена стойност, правим полето скрито
+				if($display === 'hidden'){
+					if(!is_null($form->rec->$name)){
+						$form->setField($name, 'input=hidden');
+					}
+				} elseif($display === 'readOnly'){
+			
+					// Ако е 'readOnly' и има зададена стойност, правим го 'само за четене'
+					if(!is_null($form->rec->$name)){
+						$form->setReadOnly($name);
+					}
+				}
+			}
+		}
+	}
+	
+	
+	/**
+	 * Връща счетоводните свойства на обекта
+	 */
+	public function getFeatures($productId)
+	{
+		return array();
+	}
+
+	
+	/**
+	 * Кои опаковки поддържа продукта
+	 *
+	 * @param array $metas - кои са дефолтните мета данни от ембедъра
+	 * @return array $metas - кои са дефолтните мета данни
+	 */
+	public function getDefaultMetas($metas)
+	{
+		// Взимаме дефолтните мета данни от ембедъра
+		$metas = arr::make($metas, TRUE);
+	
+		// Ако за драйвера има дефолтни мета данни, добавяме ги към тези от ембедъра
+		if(!empty($this->defaultMetaData)){
+			$metas = $metas + arr::make($this->defaultMetaData, TRUE);
+		}
+	
+		return $metas;
+	}
+	
+	
+	/**
+	 * Връща параметрите на артикула
+	 * @param mixed $productId - ид или запис на артикул
+	 *
+	 * @return array $res - параметрите на артикула
+	 * 					['weight']          -  Тегло
+	 * 					['width']           -  Широчина
+	 * 					['volume']          -  Обем
+	 * 					['thickness']       -  Дебелина
+	 * 					['length']          -  Дължина
+	 * 					['height']          -  Височина
+	 * 					['tolerance']       -  Толеранс
+	 * 					['transportWeight'] -  Транспортно тегло
+	 * 					['transportVolume'] -  Транспортен обем
+	 * 					['term']            -  Срок
+	 */
+	public function getParams($productId)
+	{
+		$res = array();
+		foreach (array('weight', 'width', 'volume', 'thickness', 'length', 'height', 'tolerance', 'transportWeight', 'transportVolume', 'term') as $p){
+			$res[$p] = NULL;
+		}
+		
+		return $res;
+	}
+	
+
+	/**
+	 * Подготвя данните за показване на описанието на драйвера
+	 *
+	 * @param enum(public,internal) $documentType - публичен или външен е документа за който ще се кешира изгледа
+	 */
+	public function prepareProductDescription($productId, $documentType = 'public')
+	{
+		return (object)array();
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	
 	/**
@@ -168,26 +319,6 @@ abstract class cat_ProductDriver extends core_ProtoInner
 	{
 		return FALSE;
 	}
-
-
-	/**
-	 * Кои опаковки поддържа продукта
-	 * 
-	 * @param array $metas - кои са дефолтните мета данни от ембедъра
-	 * @return array $metas - кои са дефолтните мета данни
-	 */
-	public function getDefaultMetas($metas)
-	{
-		// Взимаме дефолтните мета данни от ембедъра
-		$metas = arr::make($metas, TRUE);
-		
-		// Ако за драйвера има дефолтни мета данни, добавяме ги към тези от ембедъра
-		if(!empty($this->defaultMetaData)){
-			$metas = $metas + arr::make($this->defaultMetaData, TRUE);
-		}
-		
-		return $metas;
-	}
 	
 	
 	/**
@@ -216,45 +347,6 @@ abstract class cat_ProductDriver extends core_ProtoInner
 	
 	
 	/**
-	 * Връща параметрите на артикула
-	 * @param mixed $id - ид или запис на артикул
-	 *
-	 * @return array $res - параметрите на артикула
-	 * 					['weight']          -  Тегло
-	 * 					['width']           -  Широчина
-	 * 					['volume']          -  Обем
-	 * 					['thickness']       -  Дебелина
-	 * 					['length']          -  Дължина
-	 * 					['height']          -  Височина
-	 * 					['tolerance']       -  Толеранс
-	 * 					['transportWeight'] -  Транспортно тегло
-	 * 					['transportVolume'] -  Транспортен обем
-	 * 					['term']            -  Срок
-	 */
-	public function getParams()
-	{
-		$res = array();
-		
-		foreach (array('weight', 'width', 'volume', 'thickness', 'length', 'height', 'tolerance', 'transportWeight', 'transportVolume', 'term') as $p){
-			$res[$p] = NULL;
-		}
-		
-		return $res;
-	}
-	
-	
-	/**
-	 * Подготвя данните за показване на описанието на драйвера
-	 * 
-	 * @param enum(public,internal) $documentType - публичен или външен е документа за който ще се кешира изгледа
-	 */
-	public function prepareProductDescription($documentType = 'public')
-	{
-		return (object)array();
-	}
-	
-	
-	/**
 	 * Рендира данните за показване на артикула
 	 */
 	public function renderProductDescription($data)
@@ -271,15 +363,6 @@ abstract class cat_ProductDriver extends core_ProtoInner
 		$title = core_Classes::fetchField($this->getClassId(), 'title');
 		
 		return "Задания за " . mb_strtolower($title);
-	}
-	
-	
-	/**
-	 * Връща счетоводните свойства на обекта
-	 */
-	public function getFeatures()
-	{
-		return array();
 	}
 	
 	

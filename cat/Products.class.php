@@ -13,13 +13,25 @@
  * @license   GPL 3
  * @since     v 0.11
  */
-class cat_Products extends core_Embedder {
+class cat_Products extends embed_Manager {
     
     
 	/**
 	 * Свойство, което указва интерфейса на вътрешните обекти
 	 */
 	public $innerObjectInterface = 'cat_ProductDriverIntf';
+	
+	
+	/**
+	 * Свойство, което указва интерфейса на вътрешните обекти
+	 */
+	public $driverInterface = 'cat_ProductDriverIntf';
+	
+	
+	/**
+	 * Как се казва полето за избор на вътрешния клас
+	 */
+	public $driverClassField = 'innerClass';
 	
 	
 	/**
@@ -325,8 +337,32 @@ class cat_Products extends core_Embedder {
     	$form = &$data->form;
     	
     	// Слагаме полето за драйвър да е 'remember'
-    	if($form->getField($mvc->innerClassField)){
-    		$form->setField($mvc->innerClassField, 'remember');
+    	if($form->getField($mvc->driverClassField)){
+    		$form->setField($mvc->driverClassField, 'remember');
+    	}
+    	
+    	// Ако е избран драйвер слагаме задъжителните мета данни според корицата и драйвера
+    	if(isset($form->rec->folderId)){
+    		$cover = doc_Folders::getCover($form->rec->folderId);
+    		$defMetas = ($cover->haveInterface('cat_ProductFolderCoverIntf')) ? $cover->getDefaultMeta() : array();
+    		
+    		if(cls::load($form->rec->{$mvc->driverClassField}, TRUE)){
+    			$Driver = cls::get($form->rec->{$mvc->driverClassField});
+    			$defMetas = $Driver->getDefaultMetas($defMetas);
+    			 
+    			$form->setDefault('meta', $form->getFieldType('meta')->fromVerbal($defMetas));
+    		}
+    	}
+    	 
+    	if(isset($form->rec->originId)){
+    		$document = doc_Containers::getDocument($form->rec->originId);
+    		$fieldsFromSource = $document->getFieldsFromDriver();
+    		$sourceRec = $document->rec();
+    	
+    		$form->setDefault('name', $sourceRec->title);
+    		foreach ($fieldsFromSource as $fld){
+    			$form->rec->$fld = $sourceRec->innerForm->$fld;
+    		}
     	}
     	
     	if(isset($form->rec->folderId)){
@@ -392,35 +428,6 @@ class cat_Products extends core_Embedder {
 			    }
     		}
         }
-    }
-    
-    
-    /**
-     * След подготовка на ембеднатата форма
-     */
-    public static function on_AfterPrepareEmbeddedForm(core_Mvc $mvc, &$form)
-    {
-		// Ако е избран драйвер слагаме задъжителните мета данни според корицата и драйвера
-    	if(isset($form->rec->folderId)){
-    		$cover = doc_Folders::getCover($form->rec->folderId);
-    		$defMetas = ($cover->haveInterface('cat_ProductFolderCoverIntf')) ? $cover->getDefaultMeta() : array();
-    		
-    		$Driver = $mvc->getDriver($form->rec);
-    		$defMetas = $Driver->getDefaultMetas($defMetas);
-    		
-    		$form->setDefault('meta', $form->getFieldType('meta')->fromVerbal($defMetas));
-    	}
-    	
-    	if(isset($form->rec->originId)){
-    		$document = doc_Containers::getDocument($form->rec->originId);
-    		$fieldsFromSource = $document->getFieldsFromDriver();
-    		$sourceRec = $document->rec();
-    		
-    		$form->setDefault('name', $sourceRec->title);
-    		foreach ($fieldsFromSource as $fld){
-    			$form->rec->$fld = $sourceRec->innerForm->$fld;
-    		}
-    	}
     }
     
     
@@ -563,11 +570,11 @@ class cat_Products extends core_Embedder {
         $self = cls::get(__CLASS__);
         
         if ($rec = self::fetch($objectId)) {
-        	$Driver = $self->getDriver($rec);
+        	$Driver = $self->getDriver($rec->id);
 
             if(!is_object($Driver)) return NULL;
 
-        	$pInfo = $Driver->getProductInfo();
+        	$pInfo = cat_Products::getProductInfo($objectId);
         	
         	$result = (object)array(
                 'num'      => $rec->code . " a",
@@ -583,7 +590,7 @@ class cat_Products extends core_Embedder {
         	}
            
         	// Добавяме и свойствата от драйвера, ако има такива
-            $result->features = array_merge($Driver->getFeatures(), $result->features);
+            $result->features = array_merge($Driver->getFeatures($objectId), $result->features);
         }
         
         return $result;
@@ -651,7 +658,7 @@ class cat_Products extends core_Embedder {
     	
     	if (!$Driver) return ;
     	
-    	$res = $Driver->getProductInfo();
+    	$res = $Driver->getProductInfo($productId);
     	
     	$res->productRec->code = $productRec->code;
     	$res->isPublic = ($productRec->isPublic == 'yes') ? TRUE : FALSE;
@@ -1003,10 +1010,9 @@ class cat_Products extends core_Embedder {
      */
     public function getParams($id)
     {
-    	$rec = $this->fetchRec($id);
-    	$Driver = $this->getDriver($rec);
+    	$Driver = $this->getDriver($id);
     	
-    	return $Driver->getParams();
+    	return $Driver->getParams($id);
     }
     
     
@@ -1027,7 +1033,7 @@ class cat_Products extends core_Embedder {
     	
     	if(!$weight){
     		$Driver = $this->getDriver($productId);
-    		$params = $Driver->getParams();
+    		$params = $Driver->getParams($productId);
     		$weight = $params['transportWeight'];
     	}
     	

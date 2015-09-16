@@ -329,7 +329,7 @@ class planning_Jobs extends core_Master
     		}
     		
     		// Форсираме заданието в дефолт папката според драйвера
-    		$Driver = cat_Products::getDriver($rec->productId);
+    		$Driver = cls::get('cat_Products')->getDriver($rec->productId);
     		$rec->folderId = doc_UnsortedFolders::forceCoverAndFolder((object)array('name' => $Driver->getJobFolderName()));
     	}
     }
