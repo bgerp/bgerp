@@ -95,7 +95,13 @@ class pos_ReceiptDetails extends core_Detail {
     {
     	$tpl = new ET("");
     	$lastRow = Mode::get('lastAdded');
-    	$blocksTpl = getTplFromFile('pos/tpl/terminal/ReceiptDetail.shtml');
+    	
+    	if(!Mode::is('printing')){
+    		$blocksTpl = getTplFromFile('pos/tpl/terminal/ReceiptDetail.shtml');
+    	} else {
+    		$blocksTpl = getTplFromFile('pos/tpl/terminal/ReceiptDetailPrint.shtml');
+    	}
+    	
     	$saleTpl = $blocksTpl->getBlock('sale');
     	$paymentTpl = $blocksTpl->getBlock('payment');
     	if($data->rows) {
