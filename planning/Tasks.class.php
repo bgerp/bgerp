@@ -56,7 +56,7 @@ class planning_Tasks extends tasks_Tasks
 		$data->recs = $data->rows = array();
 		 
 		// Дали според продуктовия драйвер на артикула в заданието има дефолтни задачи
-		$ProductDriver = cat_Products::getDriver($data->masterData->rec->productId);
+		$ProductDriver = cls::get('cat_Products')->getDriver($data->masterData->rec->productId);
 		if(!empty($ProductDriver)){
 			$defaultTasks = $ProductDriver->getDefaultJobTasks();
 		}
