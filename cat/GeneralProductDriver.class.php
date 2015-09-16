@@ -215,6 +215,9 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 			if($Cover->getInstance() instanceof cat_Categories){
 				$arr = keylist::toArray($Cover->fetchField('measures'));
 				if(count($arr)){
+					if(isset($form->rec->measureId)){
+						$arr = array($form->rec->measureId) + $arr;
+					}
 					$options = array();
 					foreach ($arr as $mId){
 						$options[$mId] = cat_UoM::getTitleById($mId);
