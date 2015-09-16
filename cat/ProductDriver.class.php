@@ -29,19 +29,15 @@ abstract class cat_ProductDriver extends core_BaseClass
 	
 	
 	/**
-	 * Вътрешната форма
-	 *
-	 * @param mixed $innerForm
+	 * Записа на мениджъра, в който е вграден драйвера
 	 */
-	protected $innerForm;
+	public $driverRec;
 	
 	
 	/**
-	 * Вътрешното състояние
-	 *
-	 * @param mixed $innerState
+	 * Мениджъра в който в вграден драйвера
 	 */
-	protected $innerState;
+	protected $Embedder;
 
 	
 	/**
@@ -83,17 +79,6 @@ abstract class cat_ProductDriver extends core_BaseClass
 	public function canSelectDriver($userId = NULL)
 	{
 		return core_Users::haveRole($this->canSelectDriver, $userId);
-	}
-	
-	
-	/**
-	 * Обновяване на данните на мастъра
-	 *
-	 * @param int $id - ид
-	 * @return void
-	 */
-	public function updateEmbedder(&$rec)
-	{
 	}
 	
 	
@@ -213,8 +198,13 @@ abstract class cat_ProductDriver extends core_BaseClass
 	}
 	
 	
-	
-	
+	/**
+	 * Променя ключовите думи от мениджъра
+	 */
+	public function alterSearchKeywords(&$searchKeywords)
+	{
+		
+	}
 	
 	
 	
@@ -247,72 +237,6 @@ abstract class cat_ProductDriver extends core_BaseClass
 	
 	
 	/**
-	 * Подготвя формата за въвеждане на данни за вътрешния обект
-	 *
-	 * @param core_Form $form
-	 */
-	public function prepareEmbeddedForm(core_Form &$form)
-	{
-		// Намираме полетата на формата
-		$fields = $form->selectFields();
-		
-		if(count($this->driverParams)){
-			
-			// Ако в параметрите има стойност за поле, което е във формата задаваме му стойността
-			foreach ($fields as $name => $fld){
-				if(isset($this->driverParams[$name])){
-					$form->setDefault($name, $this->driverParams[$name]);
-				}
-			}
-		}
-		
-		// Ако има полета
-		if(count($fields)){
-			
-			// За всички полета
-			foreach ($fields as $name => $fld){
-					
-				// Ако има атрибут display
-				$display = $form->getFieldParam($name, 'display');
-					
-				// Ако е 'hidden' и има зададена стойност, правим полето скрито
-				if($display === 'hidden'){
-					if(!is_null($form->rec->$name)){
-						$form->setField($name, 'input=hidden');
-					}
-				} elseif($display === 'readOnly'){
-			
-					// Ако е 'readOnly' и има зададена стойност, правим го 'само за четене'
-					if(!is_null($form->rec->$name)){
-						$form->setReadOnly($name);
-					}
-				}
-			}
-		}
-	}
-
-
-	/**
-	 * Можели вградения обект да се избере
-	 */
-	public function canSelectInnerObject($userId = NULL)
-	{
-		return core_Users::haveRole($this->canSelectSource, $userId);
-	}
-
-
-	/**
-	 * Преди запис
-	 */
-	public static function on_BeforeSave($mvc, &$is, $filter, $rec)
-	{
-		if(isset($filter)){
-			$is = is_object($filter) ? clone $filter : $filter;
-		}
-	}
-	
-	
-	/**
 	 * Кои документи са използвани в полетата на драйвера
 	 */
 	public function getUsedDocs()
@@ -324,13 +248,11 @@ abstract class cat_ProductDriver extends core_BaseClass
 	/**
 	 * Връща основната мярка, специфична за технолога
 	 */
-	public function getDriverUom()
+	public function getDriverUom($params = array())
 	{
-		$params = $this->driverParams;
-		
 		if(empty($params['measureId'])){
-			 
-			return cat_UoM::fetchBySysId('pcs')->id;
+			
+			return cat_UoM::fetchBySysId('s')->id;
 		}
 		
 		return $params['measureId'];
@@ -403,7 +325,7 @@ abstract class cat_ProductDriver extends core_BaseClass
 	 * 					-> priority     - приоритет (low=Нисък, normal=Нормален, high=Висок, critical)
 	 */
 	public function getDefaultJobTasks()
-	{
+	{bp();
 		return array();
 	}
 }

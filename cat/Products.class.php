@@ -15,12 +15,6 @@
  */
 class cat_Products extends embed_Manager {
     
-    
-	/**
-	 * Свойство, което указва интерфейса на вътрешните обекти
-	 */
-	public $innerObjectInterface = 'cat_ProductDriverIntf';
-	
 	
 	/**
 	 * Свойство, което указва интерфейса на вътрешните обекти
@@ -65,14 +59,6 @@ class cat_Products extends embed_Manager {
      */
     public $groupField = 'groups';
 
-
-    /**
-     * Име на полето с групите, в които се намира продукт. Използва се от groups_Extendable
-     * 
-     * @var string
-     */
-    public $groupsField = 'groups';
-
     
     /**
      * Детайла, на модела
@@ -84,12 +70,6 @@ class cat_Products extends embed_Manager {
      * По кои сметки ще се правят справки
      */
     public $balanceRefAccounts = '301,302,304,305,306,309,321,323,61101';
-    
-    
-    /**
-     * Кои полета от листовия изглед да се скриват ако няма записи в тях
-     */
-    protected $hideListFieldsIfEmpty = 'code';
     
     
     /**
@@ -174,12 +154,6 @@ class cat_Products extends embed_Manager {
      * Кой може да го разгледа?
      */
     public $canList = 'cat,ceo,sales,purchase';
-    
-    
-    /**
-     * Кой може да го отхвърли?
-     */
-    public $canReject = 'cat,ceo';
     
     
     /**
@@ -271,9 +245,8 @@ class cat_Products extends embed_Manager {
 	/**
 	 * Стратегии за дефолт стойностти
 	 */
-	public static $defaultStrategies = array(
-					'groups'  => 'lastDocUser|lastDoc',
-					'meta'    => 'lastDocUser|lastDoc',
+	public static $defaultStrategies = array('groups'  => 'lastDocUser|lastDoc',
+											 'meta'    => 'lastDocUser|lastDoc',
 	);
 	
 	
@@ -294,14 +267,14 @@ class cat_Products extends embed_Manager {
      */
     function description()
     {
-        $this->FLD('name', 'varchar', 'caption=Наименование, mandatory,remember=info,width=100%');
-        $this->FLD('intName', 'varchar', 'caption=Международно име,remember=info,width=100%');
-		$this->FLD('code', 'varchar(64)', 'caption=Код,remember=info,width=15em');
-        $this->FLD('info', 'richtext(bucket=Notes)', 'caption=Описание,input=none,formOrder=4');
-        $this->FLD('measureId', 'key(mvc=cat_UoM, select=name,allowEmpty)', 'caption=Мярка,mandatory,remember,notSorting,input=none,formOrder=4,optionsFunc=cat_UoM::getUomOptions');
-        $this->FLD('photo', 'fileman_FileType(bucket=pictures)', 'caption=Фото,input=none,formOrder=4');
+        $this->FLD('name', 'varchar', 'caption=Наименование, mandatory,remember=info,width=100%,formOrder=2');
+        $this->FLD('intName', 'varchar', 'caption=Международно име,remember=info,width=100%,formOrder=3');
+		$this->FLD('code', 'varchar(64)', 'caption=Код,remember=info,width=15em,formOrder=4');
+        $this->FLD('info', 'richtext(bucket=Notes)', 'caption=Описание,input=none,formOrder=5');
+        $this->FLD('measureId', 'key(mvc=cat_UoM, select=name,allowEmpty)', 'caption=Мярка,mandatory,remember,notSorting,formOrder=5');
+        $this->FLD('photo', 'fileman_FileType(bucket=pictures)', 'caption=Фото,input=none,formOrder=5');
         $this->FLD('groups', 'keylist(mvc=cat_Groups, select=name, makeLinks)', 'caption=Маркери,maxColumns=2,remember,formOrder=100');
-        $this->FLD("isPublic", 'enum(no=Частен,yes=Публичен)', 'input=none,formOrder=100000002');
+        $this->FLD("isPublic", 'enum(no=Частен,yes=Публичен)', 'input=none');
         
         // Разбивки на свойствата за по-бързо индексиране и търсене
         $this->FLD('canSell', 'enum(yes=Да,no=Не)', 'input=none');
@@ -341,19 +314,78 @@ class cat_Products extends embed_Manager {
     		$form->setField($mvc->driverClassField, 'remember');
     	}
     	
+    	// Всички позволени мерки
+    	$measureOptions = cat_UoM::getUomOptions();
+    	
     	// Ако е избран драйвер слагаме задъжителните мета данни според корицата и драйвера
     	if(isset($form->rec->folderId)){
     		$cover = doc_Folders::getCover($form->rec->folderId);
-    		$defMetas = ($cover->haveInterface('cat_ProductFolderCoverIntf')) ? $cover->getDefaultMeta() : array();
     		
+    		$defMetas = ($cover->haveInterface('cat_ProductFolderCoverIntf')) ? $cover->getDefaultMeta() : array();
+
+    		// Ако има драйвер, той се изказва за дефолтните свойства
     		if(cls::load($form->rec->{$mvc->driverClassField}, TRUE)){
     			$Driver = cls::get($form->rec->{$mvc->driverClassField});
     			$defMetas = $Driver->getDefaultMetas($defMetas);
-    			 
+    			$defaultUomId = $Driver->getDriverUom();
+    			
+    			// Задаваме дефолтните свойства
     			$form->setDefault('meta', $form->getFieldType('meta')->fromVerbal($defMetas));
+    		}
+    		
+    		// Ако корицата не е на контрагент
+    		if(!$cover->haveInterface('doc_ContragentDataIntf')){
+    			
+    			// Правим кода на артикула задължителен
+    			$form->setField('code', 'mandatory');
+    			
+    			if($cover->getInstance() instanceof cat_Categories){
+    				
+    				// Ако корицата е категория слагаме дефолтен код и мерки
+    				$CategoryRec = $cover->rec();
+    				if($code = $cover->getDefaultProductCode()){
+    					$form->setDefault('code', $code);
+    				}
+    		
+    				$form->setDefault('groups', $CategoryRec->markers);
+    				
+    				// Ако има избрани мерки, оставяме от всички само тези които са посочени в корицата +
+    				// вече избраната мярка ако има + дефолтната за драйвера
+    				$categoryMeasures = keylist::toArray($CategoryRec->measures);
+    				if(count($categoryMeasures)){
+    					if(isset($form->rec->measureId)){
+    						$categoryMeasures[$form->rec->measureId] = $form->rec->measureId;
+    					}
+    					if(isset($defaultUomId)){
+    						$categoryMeasures[$defaultUomId] = $defaultUomId;
+    					}
+    					
+    					$measureOptions = array_intersect_key($measureOptions, $categoryMeasures);
+    				}
+    			}
+    			
+    			// Запомняме последно добавения код
+    			if($code = Mode::get('cat_LastProductCode')) {
+    				if ($newCode = str::increment($code)) {
+    		
+    					// Проверяваме дали има такъв запис в системата
+    					if (!$mvc->fetch("#code = '$newCode'")) {
+    						$form->setDefault('code', $newCode);
+    					}
+    				}
+    			}
     		}
     	}
     	 
+    	// Задаваме позволените мерки като опция
+    	$form->setOptions('measureId', $measureOptions);
+    	
+    	// Ако има дефолтна мярка, избираме я
+    	if(isset($defaultUomId)){
+    		$form->setDefault('measureId', $defaultUomId);
+    	}
+    	
+    	// Ако артикула е създаден от източник
     	if(isset($form->rec->originId)){
     		$document = doc_Containers::getDocument($form->rec->originId);
     		$fieldsFromSource = $document->getFieldsFromDriver();
@@ -363,32 +395,6 @@ class cat_Products extends embed_Manager {
     		foreach ($fieldsFromSource as $fld){
     			$form->rec->$fld = $sourceRec->innerForm->$fld;
     		}
-    	}
-    	
-    	if(isset($form->rec->folderId)){
-    		$cover = doc_Folders::getCover($form->rec->folderId);
-    		
-    		if(!$cover->haveInterface('doc_ContragentDataIntf')){
-    			$form->setField('code', 'mandatory');
-    			if($cover->getInstance() instanceof cat_Categories){
-    				if($code = $cover->getDefaultProductCode()){
-    					$form->setDefault('code', $code);
-    				}
-    				
-    				$form->setDefault('groups', $cover->rec()->markers);
-    			}
-    			
-    			// Запомняме последно добавения код
-				if($code = Mode::get('cat_LastProductCode')) {
-					if ($newCode = str::increment($code)) {
-						
-						// Проверяваме дали има такъв запис в системата
-						if (!$mvc->fetch("#code = '$newCode'")) {
-							$form->setDefault('code', $newCode);
-						}
-					}
-				}
-    		} 
     	}
     	
     	// При редакция ако артикула е използван с тази мярка, тя не може да се променя
@@ -408,6 +414,7 @@ class cat_Products extends embed_Manager {
 		if(!isset($form->rec->innerClass)){
     		$form->setField('groups', 'input=hidden');
     		$form->setField('meta', 'input=hidden');
+    		$form->setField('measureId', 'input=hidden');
     	}
 		
 		// Проверяваме за недопустими символи
@@ -687,13 +694,6 @@ class cat_Products extends embed_Manager {
     	foreach ((array)$packagings as $pack) {
     		$res->packagings[$pack->packagingId] = $pack;
     	}
-    	
-    	// Сортираме опаковките, така че основната опаковка да е винаги първа (ако има)
-    	uasort($res->packagings, function($a, $b){
-    		if($a->isBase == $b->isBase)  return 0;
-    		
-    		return $a->isBase == 'yes' ? -1 : 1;
-    	});
     	
     	// Връщаме информацията за продукта
     	self::$productInfos[$productId] = $res;
@@ -1067,6 +1067,19 @@ class cat_Products extends embed_Manager {
     
     
     /**
+     * Добавя ключови думи за пълнотекстово търсене
+     */
+    protected static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+    {
+    	if(count($rec->id)){
+    		if($Driver = $mvc->getDriver($rec->id)){
+    			$Driver->alterSearchKeywords($res);
+    		}
+    	}
+    }
+    
+    
+    /**
      * След подготовка на записите в счетоводните справки
      */
     public static function on_AfterPrepareAccReportRecs($mvc, &$data)
@@ -1157,12 +1170,12 @@ class cat_Products extends embed_Manager {
     	
     	if($lg != 'bg'){
     		
-    		if(isset($rec->intName)){
+    		if(!empty($rec->intName)){
     			
     			return $rec->intName;
     		}
     	}
-    	 
+    	
     	return $rec->name;
     }
     

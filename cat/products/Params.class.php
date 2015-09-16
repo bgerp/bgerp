@@ -227,7 +227,7 @@ class cat_products_Params extends doc_Detail
         $tpl->replace(get_called_class(), 'DetailName');
         
         $title = tr('Параметри');
-        if(cat_Params::haveRightFor('list')){
+        if(cat_Params::haveRightFor('list') && $data->noChange !== TRUE){
         	$title = ht::createLink($title, array('cat_Params', 'list'));
         }
         
