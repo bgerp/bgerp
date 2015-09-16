@@ -61,7 +61,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	{
 		$form = &$data->form;
 		
-		if(cls::haveInterface('marketing_InquiryEmbedderIntf', $form->mvc)){
+		if(cls::haveInterface('marketing_InquiryEmbedderIntf', $Driver->Embedder)){
 			$form->setField('photo', 'input=none');
 			$form->setDefault('measureId', $this->getDriverUom());
 			$form->setField('measureId', 'display=hidden');
@@ -143,8 +143,8 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 			$paramTpl = cat_products_Params::renderParams($data);
 			$nTpl->append($paramTpl, 'PARAMS');
 		}
-		$nTpl->removeBlocks();
-		$nTpl->removePlaces();
+		//$nTpl->removeBlocks();
+		//$nTpl->removePlaces();
 		$tpl->append($nTpl, 'innerState');
 	}
 	
@@ -205,26 +205,41 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	 *
 	 * @param enum(public,internal) $documentType - публичен или външен е документа за който ще се кешира изгледа
 	 */
-	public function prepareProductDescription($productId, $documentType = 'public')
+	public function prepareProductDescription($documentType = 'public')
 	{
-		
-		bp($this);
-		
-		
+		$data = new stdClass();
+		$data->rec = $this->driverRec;
+		$data->row = $this->Embedder->recToVerbal($data->rec);
 		
 		if($documentType == 'public'){
 			$this->prepareForPublicDocument = TRUE;
 		}
-		$data = $this->prepareEmbeddedData();
-		unset($this->prepareForPublicDocument);
-		$data->noChange = TRUE;
+		
+		$this->invoke('AfterPrepareSingle', array(&$data));
 		$data->tpl = getTplFromFile('cat/tpl/SingleLayoutBaseDriverShort.shtml');
 	
 		return $data;
 	}
 	
 	
+	/**
+	 * Рендира данните за показване на артикула
+	 */
+	public function renderProductDescription($data)
+	{
+		$tpl = new ET("[#innerState#]");
+		
+		$this->invoke('AfterRenderSingle', array(&$tpl, $data));
+		$title = $this->Embedder->getShortHyperlink($this->driverRec->id);
+		$tpl->replace($title, "TITLE");
 	
+		$tpl->push(('cat/tpl/css/GeneralProductStyles.css'), 'CSS');
+	
+		$wrapTpl = new ET("<div class='general-product-description'>[#paramBody#]</div>");
+		$wrapTpl->append($tpl, 'paramBody');
+	
+		return $wrapTpl;
+	}
 	
 	
 	
@@ -398,31 +413,5 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	public function getProductImage()
 	{
 		return $this->innerState->photo;
-	}
-	
-	
-	
-	
-	
-	
-	
-	
-	/**
-	 * Рендира данните за показване на артикула
-	 */
-	public function renderProductDescription($data)
-	{
-		$tpl = new ET("[#innerState#]");
-		$this->renderEmbeddedData($tpl, $data);
-		
-		$title = $this->EmbedderRec->getShortHyperlink();
-		$tpl->replace($title, "TITLE");
-		
-		$tpl->push(('cat/tpl/css/GeneralProductStyles.css'), 'CSS');
-		
-		$wrapTpl = new ET("<div class='general-product-description'>[#paramBody#]</div>");
-		$wrapTpl->append($tpl, 'paramBody');
-		
-		return $wrapTpl;
 	}
 }
