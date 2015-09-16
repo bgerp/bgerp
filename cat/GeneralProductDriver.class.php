@@ -222,7 +222,10 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 					foreach ($arr as $mId){
 						$options[$mId] = cat_UoM::getTitleById($mId);
 					}
-					$form->setOptions('measureId', $options);
+					
+					if($form->getFieldTypeParam('measureId', 'isReadOnly') !== TRUE){
+						$form->setOptions('measureId', $options);
+					}
 				}
 			}
 		}
