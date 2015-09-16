@@ -185,16 +185,7 @@ class deals_plg_DpInvoice extends core_Plugin
 	        	if($rec->dpAmount > $downpayment){
 	            	$form->setWarning('dpAmount', "|Въведената сума е по-голяма от очаквания аванс от|* '{$downpayment}' |без ДДС|*");
 	            }
-	            
-        		if($rec->dpAmount < 0){
-        			$form->setError('dpAmount', 'При начисляване сумата трябва да е положителна');
-        		}
         	} elseif($rec->dpOperation == 'deducted'){
-        		$rec->dpAmount *= -1;
-        		
-        		if($rec->dpAmount > 0){
-        			$form->setError('dpAmount', 'При приспадане сумата трябва да е отрицателна');
-        		}
         		
         		if(empty($invoicedDp)){
         			$form->setWarning('dpOperation', 'Избрано е приспадане на аванс, без да има начислено ДДС за аванс');
@@ -202,6 +193,10 @@ class deals_plg_DpInvoice extends core_Plugin
         			if(abs($rec->dpAmount) > ($invoicedDp - $deductedDp)){
         				$form->setWarning('dpAmount', 'Приспаднатия аванс е по-голям от този който трябва да бъде приспаднат');
         			}
+        		}
+
+        		if(!$form->gotErrors()){
+        			$rec->dpAmount *= -1;
         		}
         	}
         	

@@ -98,7 +98,7 @@ class embed_Manager extends core_Master
             }
 			
             if(cls::load($rec->{$this->driverClassField}, TRUE)){
-            	$driver = cls::get($rec->{$this->driverClassField});
+            	$driver = cls::get($rec->{$this->driverClassField}, array('Embedder' => $this));
             	$driver->addFields($form);
             }
             
@@ -129,7 +129,7 @@ class embed_Manager extends core_Master
 			foreach ($interfaces as $id => $int){
 				if(!cls::load($id, TRUE)) continue;
 		
-				$driver = cls::get($id);
+				$driver = cls::get($id, array('Embedder' => $me));
 		
 				// Ако потребителя не може да го избира, махаме го от масива
 				if(!$driver->canSelectDriver($userId)){
@@ -158,7 +158,7 @@ class embed_Manager extends core_Master
                     }
                 }
 
-                $driver = cls::get($rec->{$mvc->driverClassField});
+                $driver = cls::get($rec->{$mvc->driverClassField}, array('Embedder' => $mvc));
  
                 return $driver->invoke('AfterRead', array(&$rec));
             }
@@ -174,7 +174,7 @@ class embed_Manager extends core_Master
 	{
 		if($driverClass = $rec->{$this->driverClassField}) {
 		
-            $driver = cls::get($driverClass);
+            $driver = cls::get($driverClass, array('Embedder' => $this));
             
             $addFields = self::getDriverFields($driver);
  			
@@ -199,7 +199,7 @@ class embed_Manager extends core_Master
         if($driver = self::getDriver($data->rec->id)){
         	
         	// Инстанцираме драйвера
-        	$driver = cls::get($data->rec->{$this->driverClassField});
+        	$driver = cls::get($data->rec->{$this->driverClassField}, array('Embedder' => $this));
         	
         	$driverFields = self::getDriverFields($driver);
         	
@@ -219,7 +219,7 @@ class embed_Manager extends core_Master
 		if($rec->{$mvc->driverClassField} && is_array($fields) && cls::load($rec->{$mvc->driverClassField}, TRUE)){
 			
             // Инстанцираме драйвера
-            $driver = cls::get($rec->{$mvc->driverClassField});
+            $driver = cls::get($rec->{$mvc->driverClassField}, array('Embedder' => $mvc));
             
             $fieldset = cls::get('core_Fieldset');
             $driver->addFields($fieldset);
@@ -311,7 +311,7 @@ class embed_Manager extends core_Master
             // Ако има избран драйвер, генерираме същото събитие
             // в драйвера за да може да го прихване при нужда
             if($driverClass && cls::load($driverClass, TRUE)) {
-                $driver = cls::get($driverClass);
+                $driver = cls::get($driverClass, array('Embedder' => $this));
                 $status2 = $driver->invoke($event, $args);
                 if($status2 === FALSE) {
                     $status = FALSE;
@@ -339,7 +339,8 @@ class embed_Manager extends core_Master
     		// Ако има драйвер и той може да се зареди, инстанцираме го
     		if(isset($rec->{$this->driverClassField}) && cls::load($rec->{$this->driverClassField}, TRUE)){
     		
-    			$this->Drivers[$rec->id] = cls::get($rec->{$this->driverClassField});
+    			$this->Drivers[$rec->id] = cls::get($rec->{$this->driverClassField}, array('Embedder' => $this));
+    			$this->Drivers[$rec->id]->driverRec = $rec;
     		} else {
     			return FALSE;
     		}
