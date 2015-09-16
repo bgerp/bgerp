@@ -79,7 +79,7 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     	$this->FLD("taskId", 'key(mvc=planning_Tasks)', 'input=hidden,silent,mandatory,caption=Задача');
     	$this->FLD('code', 'bigint', 'caption=Код,input=none');
     	$this->FLD('operation', 'varchar', 'silent,caption=Операция,input=none,removeAndRefreshForm=code');
-    	$this->FLD('quantity', 'double', 'caption=Количество,mandatory');
+    	$this->FLD('quantity', 'double', 'caption=К-во,mandatory');
     	$this->FLD('weight', 'cat_type_Weight', 'caption=Тегло');
     	$this->FLD('employees', 'keylist(mvc=planning_HumanResources,select=code,makeLinks)', 'caption=Работници');
     	$this->FLD('fixedAsset', 'key(mvc=planning_AssetResources,select=code)', 'caption=Машина,input=none');
