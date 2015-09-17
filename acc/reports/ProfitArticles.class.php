@@ -200,15 +200,11 @@ class acc_reports_ProfitArticles extends acc_reports_CorespondingImpl
         unset($data->listFields['creditQuantityCompare']);
         unset($data->listFields['creditAmountCompare']);
         unset($data->listFields['blQuantityCompare']);
-        
-        if($mvc->innerForm->compare == 'yes'){
-        	$data->listFields['blAmount'] = "Сега->Сума";
-        	$data->listFields['blAmountCompare'] = "Преди->Сума";
-        } else {
-        	$data->listFields['blAmount'] = "Сума";
-        	$data->listFields['delta'] = "Дял";
-        }
 
+        $data->listFields['blAmount'] = str_replace("->Остатък", "", $data->listFields['blAmount']);
+        $data->listFields['blAmount'] = str_replace("Остатък->", "", $data->listFields['blAmount']);
+        $data->listFields['blAmountCompare'] = str_replace("->Остатък", "", $data->listFields['blAmountCompare']);
+        
     }
     
 
