@@ -401,15 +401,18 @@ class marketing_Inquiries2 extends embed_Manager
     
     		Mode::push('text', 'plain');
     
-    		$Driver = $this->getDriver($rec);
+    		$Driver = $this->getDriver($rec->id);
     		
     		$tplAlt = getTplFromFile($this->emailNotificationAltFile);
     		
     		// Рендиране на бодито
-    		$this->renderInquiryParams($tplAlt, $rec->innerForm, $Driver);
+    		$this->renderInquiryParams($tplAlt, $rec, $Driver);
     		$rowPlain = $this->recToVerbal($rec, $fields);
     	
     		$tplAlt->placeObject($rowPlain);
+    		
+    		
+    		bp($tplAlt);
     		$this->renderQuantities($rowPlain->quantities, $tplAlt, 'QUANTITY_ROW');
     		$PML->AltBody = $tplAlt->getContent();
     
@@ -514,24 +517,23 @@ class marketing_Inquiries2 extends embed_Manager
     {
     	$recs = (array)$recs;
     	
-    	$form = $this->getForm();
-    	$fieldsBefore = arr::make(array_keys($form->selectFields()), TRUE);
-    	$Driver->addEmbeddedFields($form);
-    	$fieldsAfter = arr::make(array_keys($form->selectFields()), TRUE);
-    	
-    	$params = array_diff_assoc($fieldsAfter, $fieldsBefore);
+    	$fieldset = cls::get('core_Fieldset');
+    	$Driver->addFields($fieldset);
+    	$params = $fieldset->selectFields();
     	$params = array('title' => 'title') + $params;
     	
     	$dataRow = $tpl->getBlock('DATA_ROW');
     	 
     	foreach ($params as $name){
     		if(empty($recs[$name])) continue;
-    		$value = $form->getFieldType($name)->toVerbal($recs[$name]);
+    		$value = $fieldset->getFieldType($name)->toVerbal($recs[$name]);
     		$dataRow->replace(tr($form->getField($name)->caption), 'CAPTION');
     		$dataRow->replace($value, 'VALUE');
     		$dataRow->removePlaces();
     		$dataRow->append2master();
     	}
+    	
+    	bp($tpl->getContent());
     }
     
     
