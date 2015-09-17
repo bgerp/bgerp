@@ -57,19 +57,12 @@ abstract class cat_ProductDriver extends core_BaseClass
 	
 	
 	/**
-	 * Записа на ембедера
-	 */
-	public $EmbedderRec;
-	
-	
-	/**
 	 * Добавя полетата на драйвера към Fieldset
 	 *
 	 * @param core_Fieldset $fieldset
 	 */
 	public function addFields(core_Fieldset &$fieldset)
 	{
-		
 	}
 	
 	
@@ -207,12 +200,6 @@ abstract class cat_ProductDriver extends core_BaseClass
 	}
 	
 	
-	
-	
-	
-	
-	
-	
 	/**
 	 * Задава параметрите на обекта
 	 *
@@ -252,7 +239,7 @@ abstract class cat_ProductDriver extends core_BaseClass
 	{
 		if(empty($params['measureId'])){
 			
-			return cat_UoM::fetchBySysId('s')->id;
+			return cat_UoM::fetchBySysId('pcs')->id;
 		}
 		
 		return $params['measureId'];
@@ -285,34 +272,6 @@ abstract class cat_ProductDriver extends core_BaseClass
 		$title = core_Classes::fetchField($this->getClassId(), 'title');
 		
 		return "Задания за " . mb_strtolower($title);
-	}
-	
-	
-	/**
-	 * Подготвя данните необходими за показването на вградения обект
-	 *
-	 * @param core_Form $innerForm
-	 * @param stdClass $innerState
-	 */
-	public function prepareEmbeddedData()
-	{
-		$data = new stdClass();
-		$row = new stdClass();
-	
-		$form = new core_Form();
-		$this->addEmbeddedFields($form);
-		$this->prepareEmbeddedForm($form);
-		$fields = $form->selectFields();
-		foreach($fields as $name => $fld){
-			$captionArr = explode('->', $fld->caption);
-			$caption = (count($captionArr) == 2) ? $captionArr[1] : $fld->caption;
-				
-			$row->{$caption} = $form->getFieldType($name)->toVerbal($this->innerForm->$name);
-		}
-	
-		$data->row = $row;
-	
-		return $data;
 	}
 	
 	

@@ -703,4 +703,22 @@ class cat_Setup extends core_ProtoSetup
     		cls::get('pos_ReceiptDetails')->saveArray_($recsToSave);
     	}
     }
+    
+    
+    /**
+     * Миграция на артикулите
+     */
+    function updateProducts()
+    {
+    	if(!cat_Products::count()) return;
+    	
+    	core_App::setTimeLimit(700);
+    	$Products = cls::get('cat_Products');
+    	$query = $Products->getQuery();
+    	
+		$query->orderBy('id', 'ASC');
+    	while($rec = $query->fetch()){
+    		$Products->save($rec);
+    	}
+    }
 }

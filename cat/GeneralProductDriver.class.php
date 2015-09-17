@@ -30,7 +30,6 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	public function addFields(core_Fieldset &$fieldset)
 	{
 		// Добавя полетата само ако ги няма във формата
-		
 		if(!$fieldset->getField('info', FALSE)){
 			$fieldset->FLD('info', 'richtext(rows=6, bucket=Notes)', "caption=Описание,mandatory,formOrder=4");
 		} else {
@@ -59,28 +58,6 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 			$form->setField('photo', 'input=none');
 			$form->setDefault('measureId', $this->getDriverUom());
 			$form->setField('measureId', 'display=hidden');
-		}
-		
-		if(isset($form->rec->folderId)){
-			$Cover = doc_Folders::getCover($form->rec->folderId);
-			
-			// Ако корицата е категория и има позволени мерки, оставяме само тях
-			if($Cover->getInstance() instanceof cat_Categories){
-				$arr = keylist::toArray($Cover->fetchField('measures'));
-				if(count($arr)){
-					if(isset($form->rec->measureId)){
-						$arr = array($form->rec->measureId) + $arr;
-					}
-					$options = array();
-					foreach ($arr as $mId){
-						$options[$mId] = cat_UoM::getTitleById($mId);
-					}
-					
-					if($form->getFieldTypeParam('measureId', 'isReadOnly') !== TRUE){
-						$form->setOptions('measureId', $options);
-					}
-				}
-			}
 		}
 	}
 	
@@ -185,7 +162,6 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		$res = array();
 	
 		foreach (array('weight', 'width', 'volume', 'thickness', 'length', 'height', 'tolerance', 'transportWeight', 'transportVolume', 'term') as $p){
-				
 			$res[$p] = cat_products_Params::fetchParamValue($productId, cat_Products::getClassId(), $p);
 		}
 	
