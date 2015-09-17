@@ -149,10 +149,7 @@ class planning_Jobs extends core_Master
      */
     protected $hideListFieldsIfEmpty = 'saleId';
     
-    /**
-     * Да се забрани ли кеширането на документа
-     */
-    public $preventCache = TRUE;
+    
     /**
      * Вербални наименования на състоянията
      */
