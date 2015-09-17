@@ -1818,11 +1818,4 @@ class cat_Products extends embed_Manager {
     	
     	return $res;
     }
-    
-    
-    function act_Test()
-    {
-    	$L = cls::get('cat_Setup');
-    	$L->updateProducts();
-    }
 }

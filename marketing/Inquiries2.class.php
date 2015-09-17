@@ -309,10 +309,10 @@ class marketing_Inquiries2 extends embed_Manager
     	}
     	 
     	// До всяко количество се слага unit с мярката на продукта
-    	$Driver = $mvc->getDriver($rec->id);
-    	
-    	$uomId = $Driver->getDriverUom($rec->params);
-    	$shortName = cat_UoM::getShortName($uomId);
+    	if($Driver = $mvc->getDriver($rec->id)){
+    		$uomId = $Driver->getDriverUom($rec->params);
+    		$shortName = cat_UoM::getShortName($uomId);
+    	}
     	
     	if($fields['-single']){
     		foreach (range(1, 3) as $i){

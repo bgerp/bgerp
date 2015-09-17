@@ -64,7 +64,7 @@ class marketing_Setup extends core_ProtoSetup
 	var $configDescription = array(
 			'MARKETING_INQUIRE_FROM_EMAIL'  => array('key(mvc=email_Inboxes,select=email,allowEmpty)', 'caption=Изпращане на запитването по имейл->Имейл \'От\''),
 			'MARKETING_INQUIRE_TO_EMAIL'    => array('emails', 'caption=Изпращане на запитването по имейл->Имейл \'Към\''),
-			'MARKETING_INQUIRY_QUANTITIES'          => array('int', 'caption=Брой количества във запитването'),
+			'MARKETING_INQUIRY_QUANTITIES'  => array('int', 'caption=Брой количества във запитването'),
 	);
 	
 	
@@ -76,7 +76,8 @@ class marketing_Setup extends core_ProtoSetup
             'marketing_Bulletins',
             'marketing_BulletinSubscribers',
             'migrate::updateBulletinsRecs5',
-            'migrate::updateBulletinsBrid'
+            'migrate::updateBulletinsBrid',
+    		'migrate::updateInquiries',
         );
 
         
@@ -166,5 +167,28 @@ class marketing_Setup extends core_ProtoSetup
         } catch (Exception $e) {
             marketing_BulletinSubscribers::logErr('Грешка при миграция');
         }
+    }
+    
+    
+    /**
+     * Миграция на запитванията
+     */
+    public function updateInquiries()
+    {
+    	if(!marketing_Inquiries2::count()) return;
+    	
+    	core_App::setTimeLimit(700);
+    	
+    	$Inquiries = cls::get('marketing_Inquiries2');
+    	$query = $Inquiries->getQuery();
+    	$query->orderBy('id', 'ASC');
+    	
+    	while($rec = $query->fetch()){
+    		try{
+    			$Inquiries->save($rec);
+    		} catch(core_exception_Expect $e){
+    			
+    		}
+    	}
     }
 }

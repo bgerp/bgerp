@@ -714,12 +714,17 @@ class cat_Setup extends core_ProtoSetup
     	if(!cat_Products::count()) return;
     	
     	core_App::setTimeLimit(700);
+    	
     	$Products = cls::get('cat_Products');
     	$query = $Products->getQuery();
     	
 		$query->orderBy('id', 'ASC');
     	while($rec = $query->fetch()){
-    		$Products->save($rec);
+    		try{
+    			$Products->save($rec);
+    		} catch(core_exception_Expect $e){
+    			
+    		}
     	}
     }
 }
