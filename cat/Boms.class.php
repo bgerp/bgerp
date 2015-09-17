@@ -435,7 +435,7 @@ class cat_Boms extends core_Master
     			$sign = ($dRec->type == 'input') ? 1 : -1;
     			
     			// Опитваме се да намерим себестойност за артикула
-    			$selfValue = planning_ObjectResources::getSelfValue($dRec->productId);
+    			$selfValue = planning_ObjectResources::getSelfValue($dRec->productId, $rec->modifiedOn);
     			
     			// Ако не може да се определи себестойност на ресурса, не може и по рецептата
     			if(!$selfValue) return FALSE;
