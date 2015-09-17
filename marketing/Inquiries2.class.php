@@ -411,8 +411,6 @@ class marketing_Inquiries2 extends embed_Manager
     	
     		$tplAlt->placeObject($rowPlain);
     		
-    		
-    		bp($tplAlt);
     		$this->renderQuantities($rowPlain->quantities, $tplAlt, 'QUANTITY_ROW');
     		$PML->AltBody = $tplAlt->getContent();
     
@@ -421,7 +419,7 @@ class marketing_Inquiries2 extends embed_Manager
     		// Рендиране на алт бодито
     		Mode::push('text', 'xhtml');
     		$tpl = getTplFromFile($this->emailNotificationFile);
-    		$this->renderInquiryParams($tpl, $rec->innerForm, $Driver);
+    		$this->renderInquiryParams($tpl, $rec, $Driver);
     		$row = $this->recToVerbal($rec, $fields);
     		$tpl->placeObject($row);
     		$this->renderQuantities($row->quantities, $tpl, 'QUANTITY_ROW');
@@ -461,8 +459,8 @@ class marketing_Inquiries2 extends embed_Manager
     		// Име на фирма/лице/име на продукта
     		$subject = $this->getTitle($rec);
     		$PML->Subject = str::utf2ascii($subject);
-    		$files = $this->getAttachedFiles($rec);
-    		 
+    		$files = $this->getAttachedFiles($rec, $Driver);
+    		
     		// Ако има прикачени файлове, добавяме ги
     		if(count($files)){
 	    		foreach ($files as $fh => $name){
@@ -490,17 +488,17 @@ class marketing_Inquiries2 extends embed_Manager
     /**
      * Връща прикачените файлове
      */
-    public function getAttachedFiles($rec)
+   private function getAttachedFiles($rec, $Driver)
     {
     	$res = array();
     	
-    	$Driver = $this->getDriver($rec);
-    	$form = $this->getForm();
-    	$Driver->addEmbeddedFields($form);
+    	$fieldset = $this->getForm();
+    	$Driver->addFields($fieldset);
+    	$params = $fieldset->selectFields();
     	
-    	$arr = (array)$rec->innerForm;
+    	$arr = (array)$rec;
     	foreach ($arr as $name => $value){
-    		if($form->getFieldType($name, FALSE) instanceof type_Richtext){
+    		if($fieldset->getFieldType($name, FALSE) instanceof type_Richtext){
     			$files = fileman_RichTextPlg::getFiles($value);
     			$res = array_merge($res, $files);
     		}
@@ -518,22 +516,21 @@ class marketing_Inquiries2 extends embed_Manager
     	$recs = (array)$recs;
     	
     	$fieldset = cls::get('core_Fieldset');
+    	$fieldset->FLD('title', 'varchar', 'caption=Заглавие');
     	$Driver->addFields($fieldset);
     	$params = $fieldset->selectFields();
     	$params = array('title' => 'title') + $params;
     	
     	$dataRow = $tpl->getBlock('DATA_ROW');
     	 
-    	foreach ($params as $name){
+    	foreach ($params as $name => $fld){
     		if(empty($recs[$name])) continue;
     		$value = $fieldset->getFieldType($name)->toVerbal($recs[$name]);
-    		$dataRow->replace(tr($form->getField($name)->caption), 'CAPTION');
+    		$dataRow->replace(tr($fieldset->getField($name)->caption), 'CAPTION');
     		$dataRow->replace($value, 'VALUE');
     		$dataRow->removePlaces();
     		$dataRow->append2master();
     	}
-    	
-    	bp($tpl->getContent());
     }
     
     
