@@ -936,7 +936,7 @@ class cat_Products extends embed_Manager {
      * 
      * @return double
      */
-    public function getSelfValue($productId, $packagingId = NULL, $quantity = NULL, $date = NULL)
+    public function getSelfValue($productId, $packagingId = NULL, $quantity = 1, $date = NULL)
     {
     	// Опитваме се да намерим запис в в себестойностти за артикула
     	$listId = price_ListRules::PRICE_LIST_COST;
