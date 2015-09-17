@@ -49,29 +49,6 @@ abstract class cat_ProductDriver extends core_BaseClass
 	
 	
 	/**
-	 * Параметри
-	 *
-	 * @param array $driverParams
-	 */
-	protected $driverParams = array();
-	
-	
-	/**
-	 * Инициализиране драйвъра
-	 */
-	function init($params = array())
-	{
-		if(isset($params['Embedder'])){
-			$this->Embedder = $params['Embedder'];
-		}
-		
-		if(isset($params['params'])){
-			$this->driverParams = $params = arr::make($params['params'], TRUE);
-		}
-	}
-	
-	
-	/**
 	 * Добавя полетата на драйвера към Fieldset
 	 *
 	 * @param core_Fieldset $fieldset
@@ -212,29 +189,6 @@ abstract class cat_ProductDriver extends core_BaseClass
 	public function alterSearchKeywords(&$searchKeywords)
 	{
 		
-	}
-	
-	
-	/**
-	 * Задава параметрите на обекта
-	 *
-	 * @param mixed $innerForm
-	 */
-	public function setDriverParams($params)
-	{
-		$params = arr::make($params, TRUE);
-		if(count($params)){
-			$this->driverParams = arr::make($params, TRUE);
-		}
-	}
-	
-	
-	/**
-	 * Връща параметрите на драйвера
-	 */
-	public function getDriverParams()
-	{
-		return $this->driverParams;
 	}
 	
 	
