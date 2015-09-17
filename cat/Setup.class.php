@@ -84,6 +84,7 @@ class cat_Setup extends core_ProtoSetup
             'migrate::fixProductsSearchKeywords',
     		'migrate::replaceResources4',
     		'migrate::replacePackagings',
+    		'migrate::updateProducts',
         );
 
 
