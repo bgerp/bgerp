@@ -334,14 +334,16 @@ class planning_ObjectResources extends core_Manager
      * @param int $objectId - ид на артикула - материал
      * @return double $selfValue - себестойността му
      */
-    public static function getSelfValue($objectId)
+    public static function getSelfValue($objectId, $date = NULL)
     {
     	// Проверяваме имали зададена търговска себестойност
-    	$selfValue = cls::get('cat_Products')->getSelfValue($objectId);
-    		
+    	$selfValue = cls::get('cat_Products')->getSelfValue($objectId, NULL, 1, $date);
+    	
     	// Ако няма търговска себестойност: проверяваме за счетоводна
     	if(!isset($selfValue)){
-    		$date = dt::now();
+    		if(!$date){
+    			$date = dt::now();
+    		}
     			
     		$pInfo = cat_Products::getProductInfo($objectId);
     			
