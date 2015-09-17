@@ -842,7 +842,7 @@ class core_Url
      */
     static function extractWebAddress($line)
     {
-        preg_match_all("/(((http(s?)):\/\/)|(www\.))([\%\_\-\.a-zA-Z0-9]+)/", $line, $matches);
+        preg_match_all("/(((http(s?)):\/\/)|(www\.))([\%\_\-\.a-zA-Z0-9]+)/i", $line, $matches);
         
         if(count($matches[0])) {
             foreach($matches[0] as $id => &$w) {
@@ -860,6 +860,24 @@ class core_Url
         }
 
         return $matches[0];
+    }
+
+
+    /**
+     * извлича домейна от подаденото URL
+     */
+    public static function getDomain($url)
+    {
+        $domain = FALSE;
+        $arr = @parse_url(strtolower($url));
+        if(is_array($arr) && $h = $arr['host']) {
+            $hArr = explode('.', $h);
+            if(($c = count($hArr)) >= 2) {
+                $domain = $hArr[$c-2] . '.' . $hArr[$c-1];
+            }
+        }
+
+        return $domain;
     }
 
     

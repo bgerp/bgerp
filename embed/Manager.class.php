@@ -164,7 +164,6 @@ class embed_Manager extends core_Master
             }
         } catch(core_exception_Expect $e) {}
 	}
-
     
 
     /**
@@ -173,16 +172,17 @@ class embed_Manager extends core_Master
 	public function save_(&$rec, $fields = NULL, $mode = NULL)
 	{
 		if($driverClass = $rec->{$this->driverClassField}) {
-		
-            $driver = cls::get($driverClass, array('Embedder' => $this));
-            
-            $addFields = self::getDriverFields($driver);
- 			
-            foreach($addFields as $name => $caption) {
-                $driverRec[$name] = $rec->{$name};
-            }
-            
-            $rec->driverRec = $driverRec;
+			if(cls::load($driverClass, TRUE)){
+				$driver = cls::get($driverClass, array('Embedder' => $this));
+				
+				$addFields = self::getDriverFields($driver);
+				
+				foreach($addFields as $name => $caption) {
+					$driverRec[$name] = $rec->{$name};
+				}
+				
+				$rec->driverRec = $driverRec;
+			}
         }
         
         return parent::save_($rec, $fields, $mode);
