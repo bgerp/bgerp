@@ -1420,7 +1420,7 @@ class cat_Products extends embed_Manager {
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    public static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    public static function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
     {
     	if($data->rec->state != 'rejected'){
     		$tId = $mvc->fetchField($data->rec->id, 'threadId');

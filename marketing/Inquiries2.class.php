@@ -680,11 +680,12 @@ class marketing_Inquiries2 extends embed_Manager
     	$form->title = "|Запитване за|* <b>{$form->getFieldType('title')->toVerbal($form->rec->title)}</b>";
     	
     	if(cls::load($form->rec->{$this->driverClassField}, TRUE)){
-    		$Driver = cls::get($form->rec->{$this->driverClassField}, array('Embedder' => $this, 'params' => $params));
+    		$Driver = cls::get($form->rec->{$this->driverClassField}, array('Embedder' => $this));
     		
     		$Driver->addFields($data->form);
+    		$data->driverParams = $params;
     		$this->invoke('AfterPrepareEditForm', array(&$data));
-    		bp($Driver);
+    		
     		$form->input();
     		$this->invoke('AfterInputEditForm', array(&$form));
     	
