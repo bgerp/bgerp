@@ -155,7 +155,6 @@ abstract class cat_ProductDriver extends core_BaseClass
 	
 	/**
 	 * Връща параметрите на артикула
-	 * @param mixed $productId - ид или запис на артикул
 	 *
 	 * @return array $res - параметрите на артикула
 	 * 					['weight']          -  Тегло
@@ -169,7 +168,7 @@ abstract class cat_ProductDriver extends core_BaseClass
 	 * 					['transportVolume'] -  Транспортен обем
 	 * 					['term']            -  Срок
 	 */
-	public function getParams($productId)
+	public function getParams()
 	{
 		$res = array();
 		foreach (array('weight', 'width', 'volume', 'thickness', 'length', 'height', 'tolerance', 'transportWeight', 'transportVolume', 'term') as $p){
