@@ -945,7 +945,7 @@ class cat_Products extends embed_Manager {
     	
     	// Ако няма се мъчим да намерим себестойността по рецепта, ако има такава
     	if(!$price){
-    		if($amounts = cat_Boms::getPrice($this->fetchField($productId, 'containerId'))){
+    		if($amounts = cat_Boms::getPrice($productId)){
     			$price = ($amounts->base + $quantity * $amounts->prop) / $quantity;
     		}
     	}
