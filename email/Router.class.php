@@ -126,16 +126,26 @@ class email_Router extends core_Manager
     {
         expect($rec->objectId, $rec);
         
+        $url = array();
+        
         switch ($rec->objectType) {
             case 'person' :
-                $url = array('crm_Persons', 'single', $rec->objectId);
+                if (crm_Persons::haveRightFor('single', $rec->objectId)) {
+                    $url = array('crm_Persons', 'single', $rec->objectId);
+                }
                 break;
             case 'company' :
-                $url = array('crm_Companies', 'single', $rec->objectId);
+                if (crm_Companies::haveRightFor('single', $rec->objectId)) {
+                    $url = array('crm_Companies', 'single', $rec->objectId);
+                }
                 break;
             case 'document' :
-                $cont = doc_Containers::fetch($rec->objectId, 'threadId, folderId');
-                $url = array('doc_Containers', 'list', 'threadId' => $cont->threadId, 'folderId'=>$cont->folderId);
+                
+                $doc = doc_Containers::getDocument($rec->objectId);
+                if ($doc->haveRightFor('single')) {
+                    $url = array($doc->instance, 'single', $doc->that);
+                }
+                
                 break;
             default :
             expect(FALSE, $rec);

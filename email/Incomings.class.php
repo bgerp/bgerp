@@ -712,8 +712,10 @@ class email_Incomings extends core_Master
                 $row->fromEml = self::addErrToEmailStr($row->fromEml, tr('Имейлът не съвпада с този в|*' . ' Return-Path.'), 'warning');
             }
             
+            $firstCid = doc_Threads::getFirstContainerId($rec->threadId);
+            
             // Проверка дали с този имейл има кореспонденция или е в контрагент данните на потребителя/фирмата
-            if (!self::checkEmailIsFromGoodList($rec->fromEml, $rec->threadId, $rec->folderId)) {
+            if (($firstCid != $rec->containerId) && !self::checkEmailIsFromGoodList($rec->fromEml, $rec->threadId, $rec->folderId)) {
                 $row->fromEml = self::addErrToEmailStr($row->fromEml, tr('Имейлът не е в списъка|*.'), 'error');
             }
             
@@ -781,7 +783,7 @@ class email_Incomings extends core_Master
         
         $errTitle = tr('Възможен проблем' . '! ') . $errStr;
         $err = ht::createElement('span', array('style' => 'background:url("' . $img . '"); 
-        													width: 16px; height: 16px; display: inline-block;', 
+        													width: 16px; height: 16px; display: inline-block;float: left; margin-right: 2px; top: 1px; position: relative;', 
 												'title' => $errTitle), '', TRUE);
         
         return $err . $emailStr;
