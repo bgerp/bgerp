@@ -419,11 +419,7 @@ class cat_Boms extends core_Master
     	if($bomId){
     		$rec = self::fetch($bomId);
     	} else {
-    	    $query = self::getQuery();
-    	    $query->where("#productId = {$productId} AND #state = 'active'");
-    	    $query->orderBy('createdOn', 'DESC');
-    	    $query->limit(1);
-    	    $rec = $query->fetch();
+    	    $rec = cat_Products::getLastActiveBom($productId);
     	}
     	
     	// Ако няма, връщаме нулеви цени
