@@ -64,11 +64,24 @@ class acc_reports_SaleContractors extends acc_reports_BalanceImpl
 
         $form->setDefault('from',date('Y-m-01', strtotime("-1 months", dt::mysql2timestamp(dt::now()))));
         $form->setDefault('to', $today);
-
+        
+        unset($form->fields['orderField']->type->options['ent2Id']);
+        unset($form->fields['orderField']->type->options['ent3Id']);
+        unset($form->fields['orderField']->type->options['baseQuantity']);
+        unset($form->fields['orderField']->type->options['baseAmount']);
+        unset($form->fields['orderField']->type->options['debitQuantity']);
+        unset($form->fields['orderField']->type->options['debitAmount']);
+        unset($form->fields['orderField']->type->options['creditQuantity']);
+        unset($form->fields['orderField']->type->options['blAmount']);
+        unset($form->fields['orderField']->type->options['blQuantity']);
+        
+        $form->fields['orderField']->type->options['ent1Id'] = "Контрагенти";
+        $form->fields['orderField']->type->options['creditAmount'] = "Сума";
+        
+        $form->setDefault('orderField', 'creditAmount');
         // Задаваме че ще филтрираме по перо
         $form->setDefault('action', 'group');
-        
-        $form->setDefault('orderField', 'creditQuantity');
+
         $form->setDefault('orderBy', 'desc');
     }
 
@@ -109,8 +122,8 @@ class acc_reports_SaleContractors extends acc_reports_BalanceImpl
         unset($data->listFields['blQuantity']);
         unset($data->listFields['blAmount']);
 
-        $data->listFields['creditQuantity'] = "Кредит->К-во";
-        $data->listFields['creditAmount'] = "Кредит->Сума";
+        $data->listFields['creditQuantity'] = "Количество";
+        $data->listFields['creditAmount'] = "Сума";
     }
 
     
