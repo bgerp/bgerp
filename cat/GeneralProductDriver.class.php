@@ -41,6 +41,12 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		} else {
 			$fieldset->setField('photo', 'input');
 		}
+		
+		if(!$fieldset->getField('measureId', FALSE)){
+			$fieldset->FLD('measureId', 'key(mvc=cat_UoM, select=name,allowEmpty)', "caption=Мярка,mandatory,formOrder=4");
+		} else {
+			$fieldset->setField('measureId', 'input');
+		}
 	}
 	
 	
@@ -55,8 +61,9 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		$form = &$data->form;
 		
 		if(cls::haveInterface('marketing_InquiryEmbedderIntf', $Driver->Embedder)){
+			bp($Driver);
 			$form->setField('photo', 'input=none');
-			$form->setDefault('measureId', $this->getDriverUom());
+			$form->setDefault('measureId', $Driver->getDriverUom());
 			$form->setField('measureId', 'display=hidden');
 		}
 	}

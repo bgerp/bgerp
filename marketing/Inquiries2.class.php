@@ -13,14 +13,20 @@
  * @license   GPL 3
  * @since     v 0.1
  */
-class marketing_Inquiries2 extends core_Embedder
+class marketing_Inquiries2 extends embed_Manager
 {
     
 	
 	/**
 	 * Свойство, което указва интерфейса на вътрешните обекти
 	 */
-	public $innerObjectInterface = 'cat_ProductDriverIntf';
+	public $driverInterface = 'cat_ProductDriverIntf';
+	
+	
+	/**
+	 * Как се казва полето за избор на вътрешния клас
+	 */
+	public $driverClassField = 'innerClass';
 	
 
 	/**
@@ -220,7 +226,7 @@ class marketing_Inquiries2 extends core_Embedder
      */
     public static function on_AfterInputEditForm($mvc, &$form)
     {
-    	if ($form->isSubmitted()){
+    	if ($form->isSubmitted()){bp();
     		$form->rec->ip = core_Users::getRealIpAddr();
     		$form->rec->brid = log_Browsers::getBrid();
     		$form->rec->state = 'active';
@@ -670,20 +676,26 @@ class marketing_Inquiries2 extends core_Embedder
     	$form->rec->params = $params;
     	$form->setDefault('country', $this->getDefaultCountry($form->rec));
     	$data = (object)array('form' => $form);
-    	$Driver = $this->getDriver($form->rec);
-    	$Driver->setDriverParams($params);
     	
-    	parent::on_AfterPrepareEditForm($this, $data);
     	$form->title = "|Запитване за|* <b>{$form->getFieldType('title')->toVerbal($form->rec->title)}</b>";
-    	$Driver = $this->getDriver($form->rec);
-    	$form->input();
-    	self::on_AfterInputEditForm($this, $form);
+    	
+    	if(cls::load($form->rec->{$this->driverClassField}, TRUE)){
+    		$Driver = cls::get($form->rec->{$this->driverClassField}, array('Embedder' => $this, 'params' => $params));
+    		
+    		$Driver->addFields($data->form);
+    		$this->invoke('AfterPrepareEditForm', array(&$data));
+    		bp($Driver);
+    		$form->input();
+    		$this->invoke('AfterInputEditForm', array(&$form));
+    	
+    		if(isset($form->rec->title)){
+    			$form->setField('title', 'input=hidden');
+    		}
+    	}
     	
     	if(isset($form->rec->title)){
     		$form->setField('title', 'input=hidden');
     	}
-    	
-    	$Driver->checkEmbeddedForm($form);
     	
     	// След събмит на формата
     	if($form->isSubmitted()){
@@ -696,8 +708,6 @@ class marketing_Inquiries2 extends core_Embedder
     		if(empty($rec->folderId)){
     			$rec->folderId = $this->Router->route($rec);
     		}
-    		
-    		$form->rec->innerForm = clone $form->rec;
     		
     		// Запис и редирект
     		if($this->haveRightFor('new')){

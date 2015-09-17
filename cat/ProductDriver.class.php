@@ -53,7 +53,22 @@ abstract class cat_ProductDriver extends core_BaseClass
 	 *
 	 * @param array $driverParams
 	 */
-	protected $driverParams;
+	protected $driverParams = array();
+	
+	
+	/**
+	 * Инициализиране драйвъра
+	 */
+	function init($params = array())
+	{
+		if(isset($params['Embedder'])){
+			$this->Embedder = $params['Embedder'];
+		}
+		
+		if(isset($params['params'])){
+			$this->driverParams = $params = arr::make($params['params'], TRUE);
+		}
+	}
 	
 	
 	/**
