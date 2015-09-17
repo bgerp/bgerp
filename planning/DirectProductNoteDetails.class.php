@@ -154,9 +154,12 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     	$rec = &$form->rec;
     	
     	if($rec->productId){
-    		$storeId = $mvc->Master->fetchField($rec->noteId, 'inputStoreId');
-    		$storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $storeId);
-    		$form->info = $storeInfo->formInfo;
+    		$pInfo = cat_Products::getProductInfo($rec->productId);
+    		if(isset($pInfo->meta['canStore'])){
+    			$storeId = $mvc->Master->fetchField($rec->noteId, 'inputStoreId');
+    			$storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $storeId);
+    			$form->info = $storeInfo->formInfo;
+    		}
     	
     		if($form->isSubmitted()){
     			if(isset($storeInfo->warning)){
@@ -243,7 +246,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     	}
     	
     	// Рендираме таблицата с вложените материали
-    	$data->listFields['productId'] = '|Вложенo|* ' . "<small style='font-weight:normal'>( |от склад|*: {$data->masterData->row->inputStoreId} )</small>";
+    	$data->listFields['productId'] = '|Материали|* ' . "<small style='font-weight:normal'>( |вложени от склад|*: {$data->masterData->row->inputStoreId} )</small>";
     	$table = cls::get('core_TableView', array('mvc' => $this));
     	$detailsInput = $table->get($data->inputArr, $data->listFields);
     	$tpl->append($detailsInput, 'planning_DirectProductNoteDetails');

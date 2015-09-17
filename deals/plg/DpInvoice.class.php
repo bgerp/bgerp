@@ -29,7 +29,7 @@ class deals_plg_DpInvoice extends core_Plugin
 	    	$mvc->FLD('dpAmount', 'double', 'caption=Авансово плащане->Сума,input=none,before=contragentName');
 	    	
 	    	// Операция с авансовото плащане начисляване/намаляване
-	    	$mvc->FLD('dpOperation', 'enum(accrued=Начисляване, deducted=Приспадане)', 'caption=Авансово плащане->Операция,input=none,before=contragentName');
+	    	$mvc->FLD('dpOperation', 'enum(accrued=Начисляване, deducted=Приспадане, none=Няма)', 'caption=Авансово плащане->Операция,input=none,before=contragentName');
     	}
     }
     
@@ -62,24 +62,38 @@ class deals_plg_DpInvoice extends core_Plugin
         	
         	// Поставяне на дефолт стойностти
         	self::getDefaultDpData($form);
+        } else {
+        	
+        	// Ако има детайл не показваме секцията за аванс
+        	if(cls::get($mvc->mainDetail)->fetchField("#invoiceId = {$rec->id}", 'id')){
+        		return;
+        	}
+        	
+        	// При приспадане ако има сума я показваме положителна
+        	if($rec->dpOperation == 'deducted'){
+        		$rec->dpAmount *= -1;
+        	}
         }
-    	
-        // Ако има експедирано, не се показват полетата за начисляване на ддс на аванса
-        if($form->dealInfo->get('deliveryAmount') && $form->rec->dpOperation == 'accrued') {
-        	//unset($form->rec->dpOperation);
-        	//unset($form->rec->dpAmount);
-        	//return;
+        
+        if(isset($form->rec->dpAmount)){
+        	$dpAmount = round($form->rec->dpAmount / $form->rec->rate, 6);
+        	if($dpAmount == 0){
+        		unset($form->rec->dpAmount);
+        		unset($form->rec->dpOperation);
+        		return;
+        	}
+        	
+        	$form->rec->dpAmount = $dpAmount;
         }
         
         // Показване на полетата за авансовите плащания
-        $form->setField('dpAmount',"input,mandatory,unit=|*{$rec->currencyId} |без ДДС|*");
+		$form->setField('dpAmount',"input,unit=|*{$rec->currencyId} |без ДДС|*");
         $form->setField('dpOperation','input');
-        
-        // Показване на закръглената сума
-        $form->rec->dpAmount = round($form->rec->dpAmount / $form->rec->rate, 6);
         
         if($form->rec->dpOperation == 'accrued'){
         	$form->setField('dueDate', 'input=none');
+        } elseif($form->rec->dpOperation == 'none'){
+        	unset($form->rec->dpAmount);
         }
     }
     
@@ -90,7 +104,7 @@ class deals_plg_DpInvoice extends core_Plugin
      * @param core_Form $form
      */
     private static function getDefaultDpData(core_Form &$form)
-    {
+    {   
     	// Договореното до момента
     	$aggreedDp  = $form->dealInfo->get('agreedDownpayment');
     	$actualDp   = $form->dealInfo->get('downpayment');
@@ -108,17 +122,16 @@ class deals_plg_DpInvoice extends core_Plugin
     		$dpOperation = 'accrued';
     	} else {
     		
-    		// Ако има вече начислен аванс, начисляваме останалото за начисляване
-    		$dpAmount = ($downpayment - $invoicedDp);
-    		$dpOperation = 'accrued';
+    		// Ако има вече начислен аванс, по дефолт е приспадане със сумата за приспадане
+    		$dpAmount = $invoicedDp - $deductedDp;
+    		$dpOperation = 'deducted';
     	}
     	
     	// Ако всичко е начислено и има още аванс за приспадане, приспадаме го
-    	if(round($dpAmount, 2) == 0 && round($invoicedDp - $deductedDp, 2) != 0){
-    		
-    		$dpAmount = -1 * ($invoicedDp - $deductedDp);
-    		$dpOperation = 'deducted';
-    	}
+    	//if(round($dpAmount, 2) == 0 && round($invoicedDp - $deductedDp, 2) != 0){
+    		//$dpAmount = -1 * ($invoicedDp - $deductedDp);
+    		//$dpOperation = 'deducted';
+    	//}
     	
     	// Слагане на изчислените дефолти
     	if(isset($dpAmount)){
@@ -154,6 +167,11 @@ class deals_plg_DpInvoice extends core_Plugin
 	    	$invoicedDp = $form->dealInfo->get('downpaymentInvoiced');
 	    	$deductedDp = $form->dealInfo->get('downpaymentDeducted');
         	
+	    	if($rec->dpOperation !== 'none' && !isset($rec->dpAmount)){
+	    		$form->setError('dpAmount', 'Ако е избрано начисляване/приспадане трябва да има сума');
+	    		return;
+	    	}
+	    	
         	if($rec->dpOperation == 'accrued'){
         		
         		$downpayment = (empty($actualDp)) ? $aggreedDp  : $actualDp;
@@ -167,15 +185,7 @@ class deals_plg_DpInvoice extends core_Plugin
 	        	if($rec->dpAmount > $downpayment){
 	            	$form->setWarning('dpAmount', "|Въведената сума е по-голяма от очаквания аванс от|* '{$downpayment}' |без ДДС|*");
 	            }
-	            
-        		if($rec->dpAmount < 0){
-        			$form->setError('dpAmount', 'При начисляване сумата трябва да е положителна');
-        		}
         	} elseif($rec->dpOperation == 'deducted'){
-        		
-        		if($rec->dpAmount > 0){
-        			$form->setError('dpAmount', 'При приспадане сумата трябва да е отрицателна');
-        		}
         		
         		if(empty($invoicedDp)){
         			$form->setWarning('dpOperation', 'Избрано е приспадане на аванс, без да има начислено ДДС за аванс');
@@ -184,15 +194,26 @@ class deals_plg_DpInvoice extends core_Plugin
         				$form->setWarning('dpAmount', 'Приспаднатия аванс е по-голям от този който трябва да бъде приспаднат');
         			}
         		}
+
+        		if(!$form->gotErrors()){
+        			$rec->dpAmount *= -1;
+        		}
         	}
         	
         	if($rec->dpOperation){
         		$rec->dpAmount = $rec->dpAmount * $rec->rate;
+        		if($rec->dpAmount == 0){
+        			$rec->dpOperation = 'none';
+        		}
         		
         		// Обновяваме данните на мастър-записа при редакция
         		if(isset($rec->id)){
         			$mvc->updateMaster($rec, FALSE);
         		}
+        	}
+        	
+        	if($rec->dpOperation == 'none'){
+        		$rec->dpAmount = NULL;
         	}
         }
     }
@@ -248,6 +269,10 @@ class deals_plg_DpInvoice extends core_Plugin
     	
     	// Ако няма данни за показване на авансово плащане
     	if(empty($data->dpInfo)) return;
+    	
+    	if($data->dpInfo->dpOperation == 'none'){
+    		return;
+    	}
     	
     	// Ако няма записи, да не се показва реда "няма записи"
     	if(empty($data->rows)){

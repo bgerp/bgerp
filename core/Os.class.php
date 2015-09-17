@@ -147,7 +147,10 @@ class core_Os
         $delCnt = 0;
 
         // Изтриваме всички, файлове, кото са по стари от дадено време в директорията за временни файлове
-        if (defined('EF_TEMP_PATH')) { 
+        if (defined('EF_TEMP_PATH')) {
+        	if (!is_dir(EF_TEMP_PATH)) {
+        		mkdir(EF_TEMP_PATH);
+        	}
             $delCnt = self::deleteOldFiles(EF_TEMP_PATH,  $conf->CORE_TEMP_PATH_MAX_AGE);  
             if($delCnt > 0) {
                 $resText .= ($resText ? "\n" : '') . ($delCnt>1 ? "Бяха изтрити" : "Беше изтрит") . " {$delCnt} " . ($delCnt>1 ? "файла" : "файл") . ' от ' . EF_TEMP_PATH;
