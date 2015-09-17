@@ -167,12 +167,12 @@ class deals_plg_DpInvoice extends core_Plugin
 	    	$invoicedDp = $form->dealInfo->get('downpaymentInvoiced');
 	    	$deductedDp = $form->dealInfo->get('downpaymentDeducted');
         	
-	    	if($rec->dpOperation !== 'none' && !isset($rec->dpAmount)){
+	    	if(isset($rec->dpOperation) && $rec->dpOperation !== 'none' && !isset($rec->dpAmount)){
 	    		$form->setError('dpAmount', 'Ако е избрано начисляване/приспадане трябва да има сума');
 	    		return;
 	    	}
 	    	
-        	if($rec->dpOperation == 'accrued'){
+        	if($rec->dpOperation === 'accrued'){
         		
         		$downpayment = (empty($actualDp)) ? $aggreedDp  : $actualDp;
         		$vat = acc_Periods::fetchByDate($rec->date)->vatRate;
@@ -185,7 +185,7 @@ class deals_plg_DpInvoice extends core_Plugin
 	        	if($rec->dpAmount > $downpayment){
 	            	$form->setWarning('dpAmount', "|Въведената сума е по-голяма от очаквания аванс от|* '{$downpayment}' |без ДДС|*");
 	            }
-        	} elseif($rec->dpOperation == 'deducted'){
+        	} elseif($rec->dpOperation === 'deducted'){
         		
         		if(empty($invoicedDp)){
         			$form->setWarning('dpOperation', 'Избрано е приспадане на аванс, без да има начислено ДДС за аванс');
