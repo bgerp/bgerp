@@ -781,7 +781,7 @@ class email_Incomings extends core_Master
         
         $errTitle = tr('Възможен проблем' . '! ') . $errStr;
         $err = ht::createElement('span', array('style' => 'background:url("' . $img . '"); 
-        													width: 16px; height: 16px; display: inline-block;', 
+        													width: 16px; height: 16px; display: inline-block;float: left; margin-right: 2px; top: 1px; position: relative;', 
 												'title' => $errTitle), '', TRUE);
         
         return $err . $emailStr;
