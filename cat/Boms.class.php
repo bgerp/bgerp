@@ -376,6 +376,7 @@ class cat_Boms extends core_Master
     	if($fields['-single'] && haveRole('ceo, acc, cat, price')) {
 	        $priceObj = cat_Boms::getPrice($rec->productId, $rec->id);
 	        $rec->primeCost = 0;
+	        $rec->quantityForPrice = isset($rec->quantityForPrice) ? $rec->quantityForPrice : $rec->quantity;
 	        
 	        if($priceObj) {
 	            @$rec->primeCost = ($priceObj->base + $priceObj->prop) * $rec->quantityForPrice;
@@ -418,11 +419,7 @@ class cat_Boms extends core_Master
     	if($bomId){
     		$rec = self::fetch($bomId);
     	} else {
-    	    $query = self::getQuery();
-    	    $query->where("#productId = {$productId} AND #state = 'active'");
-    	    $query->orderBy('createdOn', 'DESC');
-    	    $query->limit(1);
-    	    $rec = $query->fetch();
+    	    $rec = cat_Products::getLastActiveBom($productId);
     	}
     	
     	// Ако няма, връщаме нулеви цени

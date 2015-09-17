@@ -56,6 +56,8 @@ class acc_reports_ProfitSales extends acc_reports_CorespondingImpl
         $form->setDefault('corespondentAccountId', $corespondentAccId);
         $form->setHidden('corespondentAccountId');
         
+        $form->setHidden('compare');
+        
         $form->setDefault('side', 'all');
         $form->setHidden('side');
         
@@ -149,14 +151,8 @@ class acc_reports_ProfitSales extends acc_reports_CorespondingImpl
         unset($data->listFields['creditQuantityCompare']);
         unset($data->listFields['creditAmountCompare']);
         unset($data->listFields['blQuantityCompare']);
-
-        if($mvc->innerForm->compare == 'yes'){
-	        $data->listFields['blAmount'] = "Сега->Сума";
-	        $data->listFields['blAmountCompare'] = "Преди->Сума";
-	    } else {
-	    	$data->listFields['blAmount'] = "Сума";
-	    	$data->listFields['delta'] = "Дял";
-	    }
+        
+        $data->listFields['blAmount'] = "Сума";
 
     }
     
