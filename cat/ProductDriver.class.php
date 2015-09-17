@@ -103,15 +103,16 @@ abstract class cat_ProductDriver extends core_BaseClass
 		// Намираме полетата на формата
 		$fields = $form->selectFields();
 		
-		if(count($Driver->driverParams)){
+		if(is_array($data->driverParams) && count($data->driverParams)){
 			
 			// Ако в параметрите има стойност за поле, което е във формата задаваме му стойността
 			foreach ($fields as $name => $fld){
-				if(isset($this->driverParams[$name])){
-					$form->setDefault($name, $Driver->driverParams[$name]);
+				if(isset($data->driverParams[$name])){
+					$form->setDefault($name, $data->driverParams[$name]);
 				}
 			}
 		}
+		
 		
 		// Ако има полета
 		if(count($fields)){

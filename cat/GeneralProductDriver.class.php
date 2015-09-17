@@ -61,9 +61,8 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		$form = &$data->form;
 		
 		if(cls::haveInterface('marketing_InquiryEmbedderIntf', $Driver->Embedder)){
-			bp($Driver);
 			$form->setField('photo', 'input=none');
-			$form->setDefault('measureId', $Driver->getDriverUom());
+			$form->setDefault('measureId', $Driver->getDriverUom($data->driverParams));
 			$form->setField('measureId', 'display=hidden');
 		}
 	}
@@ -97,7 +96,9 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		$data->masterId = $data->rec->id;
 		$data->masterClassId = cat_Products::getClassId();
 		
-		cat_products_Params::prepareParams($data);
+		if(!cls::haveInterface('marketing_InquiryEmbedderIntf', $Driver->Embedder)){
+			cat_products_Params::prepareParams($data);
+		}
 		
 		return $data;
 	}
