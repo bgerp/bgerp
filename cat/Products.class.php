@@ -376,25 +376,27 @@ class cat_Products extends embed_Manager {
     			}
     		}
     	}
-    	 
+
+    	// Ако артикула е създаден от източник
+    	if(isset($form->rec->originId)){
+    		$document = doc_Containers::getDocument($form->rec->originId);
+    	
+    		// Задаваме за дефолти полетата от източника
+    		$fields = $document->getInstance()->getDriverFields($Driver);
+    		$sourceRec = $document->rec();
+    	
+    		$form->setDefault('name', $sourceRec->title);
+    		foreach ($fields as $name => $fld){
+    			$form->setDefault($name, $sourceRec->{$name});
+    		}
+    	}
+    	
     	// Задаваме позволените мерки като опция
     	$form->setOptions('measureId', $measureOptions);
     	
     	// Ако има дефолтна мярка, избираме я
     	if(isset($defaultUomId)){
     		$form->setDefault('measureId', $defaultUomId);
-    	}
-    	
-    	// Ако артикула е създаден от източник
-    	if(isset($form->rec->originId)){
-    		$document = doc_Containers::getDocument($form->rec->originId);
-    		$fieldsFromSource = $document->getFieldsFromDriver();
-    		$sourceRec = $document->rec();
-    	
-    		$form->setDefault('name', $sourceRec->title);
-    		foreach ($fieldsFromSource as $fld){
-    			$form->rec->$fld = $sourceRec->innerForm->$fld;
-    		}
     	}
     	
     	// При редакция ако артикула е използван с тази мярка, тя не може да се променя

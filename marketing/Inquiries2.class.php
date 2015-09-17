@@ -724,7 +724,6 @@ class marketing_Inquiries2 extends embed_Manager
     		$form->setField('title', 'input=hidden');
     	}
     	
-    	//bp($form->selectFields('#quantityField'),$form->fields);
     	// След събмит на формата
     	if($form->isSubmitted()){
     		
