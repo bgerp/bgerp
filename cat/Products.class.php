@@ -1013,8 +1013,14 @@ class cat_Products extends embed_Manager {
     public function getParams($id)
     {
     	$Driver = $this->getDriver($id);
+    	$rec = $this->fetchRec($id);
     	
-    	return $Driver->getParams($id);
+    	$res = array();
+    	foreach (array('weight', 'width', 'volume', 'thickness', 'length', 'height', 'tolerance', 'transportWeight', 'transportVolume', 'term') as $p){
+    		$res[$p] = $Driver->getParamValue($p, $rec->id);
+    	}
+    	
+    	return $res;
     }
     
     

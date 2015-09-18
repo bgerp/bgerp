@@ -214,7 +214,7 @@ class cat_products_Params extends doc_Detail
      		return cat_Params::getDefault($paramId);
      	}
      	
-     	return NULL;
+     	return FALSE;
     }
     
     

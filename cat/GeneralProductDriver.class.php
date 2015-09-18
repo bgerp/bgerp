@@ -150,29 +150,15 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	
 	
 	/**
-	 * Връща параметрите на артикула
-	 *
-	 * @return array $res - параметрите на артикула
-	 * 					['weight']          -  Тегло
-	 * 					['width']           -  Широчина
-	 * 					['volume']          -  Обем
-	 * 					['thickness']       -  Дебелина
-	 * 					['length']          -  Дължина
-	 * 					['height']          -  Височина
-	 * 					['tolerance']       -  Толеранс
-	 * 					['transportWeight'] -  Транспортно тегло
-	 * 					['transportVolume'] -  Транспортен обем
-	 * 					['term']            -  Срок
+	 * Връща стойността на параметъра с това име
+	 * 
+	 * @param string $name - име на параметъра
+	 * @param string $id   - ид на записа
+	 * @return mixed - стойност или FALSE ако няма
 	 */
-	public function getParams()
+	public function getParamValue($name, $id)
 	{
-		$res = array();
-		
-		foreach (array('weight', 'width', 'volume', 'thickness', 'length', 'height', 'tolerance', 'transportWeight', 'transportVolume', 'term') as $p){
-			$res[$p] = cat_products_Params::fetchParamValue($this->driverRec->id, $this->Embedder->getClassId(), $p);
-		}
-	
-		return $res;
+		return cat_products_Params::fetchParamValue($id, cat_Products::getClassId(), $name);
 	}
 	
 	

@@ -301,6 +301,6 @@ class cat_Params extends core_Master
     	
     	if(isset($default) && $default != '') return $default;
     	
-    	return NULL;
+    	return FALSE;
     }
 }
