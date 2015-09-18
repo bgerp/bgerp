@@ -129,27 +129,6 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	
 	
 	/**
-	 * Връща информацията за продукта от драйвера
-	 *
-	 * @param int $productId
-	 */
-	public function getProductInfo($productId)
-	{
-		$rec = cat_Products::fetch($productId);
-		
-		$res = new stdClass();
-		$res->productRec = new stdClass();
-	
-		$res->productRec->name = ($rec->title) ? $rec->title : $rec->name;
-		$res->productRec->info = $rec->info;
-		$res->productRec->measureId = $rec->measureId;
-		$res->packagings = array();
-	
-		return $res;
-	}
-	
-	
-	/**
 	 * Връща стойността на параметъра с това име
 	 * 
 	 * @param string $name - име на параметъра

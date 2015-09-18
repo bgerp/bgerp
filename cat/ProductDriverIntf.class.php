@@ -28,19 +28,6 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 	
 	
 	/**
-	 * Връща информацията за продукта от драйвера
-	 *
-	 * @param stdClass $innerState
-	 * @param int $packagingId
-	 * @return stdClass $res
-	 */
-	public function getProductInfo($innerState)
-	{
-		return $this->class->getProductInfo($innerState);
-	}
-	
-	
-	/**
 	 * Кои опаковки поддържа продукта
 	 * 
 	 * @param array $metas - кои са дефолтните мета данни от ембедъра

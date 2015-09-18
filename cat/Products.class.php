@@ -658,18 +658,14 @@ class cat_Products extends embed_Manager {
     	
     	// Ако няма такъв продукт връщаме NULL
     	if(!$productRec = static::fetchRec($productId)) {
-    		
     		return NULL;
     	}
     	
-    	$self = cls::get(get_called_class());
-    	$Driver = $self->getDriver($productId);
+    	$res = new stdClass();
+    	$res->productRec = (object)array('name'      => $productRec->name,
+    									 'measureId' => $productRec->measureId,
+    									 'code'      => $productRec->code,);
     	
-    	if (!$Driver) return ;
-    	
-    	$res = $Driver->getProductInfo($productId);
-    	
-    	$res->productRec->code = $productRec->code;
     	$res->isPublic = ($productRec->isPublic == 'yes') ? TRUE : FALSE;
     	
     	if($grRec = cat_products_VatGroups::getCurrentGroup($productId)){
