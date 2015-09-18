@@ -103,12 +103,6 @@ class cat_Products extends embed_Manager {
     
     
     /**
-     * Икона за единичния изглед
-     */
-    public $singleIcon = 'img/16/wooden-box.png';
-    
-    
-    /**
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'id,name,code,groups,folderId,createdOn,createdBy';
@@ -246,8 +240,7 @@ class cat_Products extends embed_Manager {
 	 * Стратегии за дефолт стойностти
 	 */
 	public static $defaultStrategies = array('groups'  => 'lastDocUser|lastDoc',
-											 'meta'    => 'lastDocUser|lastDoc',
-	);
+											 'meta'    => 'lastDocUser|lastDoc',);
 	
 	
 	/**
@@ -643,6 +636,9 @@ class cat_Products extends embed_Manager {
      * @param int $productId - ид на продукта
      * @return stdClass $res
      * 	-> productRec - записа на продукта
+     * 		 o name      - име
+     * 		 о measureId - ид на мярка
+     * 		 o code      - код
      * 	-> meta - мета данни за продукта ако има
 	 * 	     meta['canSell'] 		- дали може да се продава
 	 * 	     meta['canBuy']         - дали може да се купува
@@ -1473,12 +1469,11 @@ class cat_Products extends embed_Manager {
      * @param mixed $id - ид или запис
      * @return fileman_FileType $hnd - файлов хендлър на изображението
      */
-    public static function getProductImage($id)
+    public function getIcon($id)
     {
-    	$me = cls::get(get_called_class());
-    	$Driver = $me->getDriver($id);
+    	$Driver = $this->getDriver($id);
     	
-    	return $Driver->getProductImage();
+    	return $Driver->getIcon();
     }
     
     

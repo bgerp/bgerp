@@ -195,13 +195,4 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		$info = strip_tags($RichText->toVerbal($rec->info));
 		$res .= " " . plg_Search::normalizeText($info);
 	}
-	
-	
-	/**
-	 * Изображението на артикула
-	 */
-	public function getProductImage()
-	{
-		return $this->driverRec->photo;
-	}
 }

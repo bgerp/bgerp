@@ -43,6 +43,12 @@ abstract class cat_ProductDriver extends core_BaseClass
 	
 	
 	/**
+     * Икона за единичния изглед
+     */
+    protected $icon = 'img/16/wooden-box.png';
+	
+    		
+    /**
 	 * Добавя полетата на драйвера към Fieldset
 	 *
 	 * @param core_Fieldset $fieldset
@@ -192,11 +198,13 @@ abstract class cat_ProductDriver extends core_BaseClass
 	
 	
 	/**
-	 * Изображението на артикула
+	 * Връща иконата на драйвера
+	 * 
+	 * @return string - пътя към иконата
 	 */
-	public function getProductImage()
+	public function getIcon()
 	{
-		return NULL;
+		return $this->icon;
 	}
 	
 	
