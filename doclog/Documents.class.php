@@ -1876,8 +1876,6 @@ class doclog_Documents extends core_Manager
      */
     protected static function buildThreadHistory($threadId)
     {
-        doc_Threads::logInfo('Регенериране на историята на нишка', $threadId, 3);
-        
         $query = static::getQuery();
         $query->where("#threadId = {$threadId}");
         $query->orderBy('#createdOn');
