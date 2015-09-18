@@ -324,7 +324,7 @@ class deals_OpenDeals extends core_Manager {
 	    foreach ($buttons as $title => $className){
 	    	$Cls = cls::get($className);
 	    	$str = mb_strtolower($Cls->singleTitle);
-	    	if($draftRec = $Cls->fetchField("#threadId = '{$threadId}' AND #state = 'draft'", 'id')){
+	    	if($draftRec = $Cls->fetch("#threadId = '{$threadId}' AND #state = 'draft'")){
 	    		if($Cls->haveRightFor('single', $draftRec)){
 	    			$btns .= ht::createBtn($title, array($className, 'single', $draftRec->id), NULL, NULL, "ef_icon=img/16/view.png,title=Преглед на {$str} #{$Cls->getHandle($draftRec->id)}");
 	    		}
