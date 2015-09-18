@@ -177,15 +177,18 @@ class marketing_Setup extends core_ProtoSetup
     {
     	if(!marketing_Inquiries2::count()) return;
     	
+    	$Inquiries = cls::get('marketing_Inquiries2');
+    	$Inquiries->setupMvc();
+    	
     	core_App::setTimeLimit(700);
     	
-    	$Inquiries = cls::get('marketing_Inquiries2');
     	$query = $Inquiries->getQuery();
     	$query->orderBy('id', 'ASC');
     	
     	while($rec = $query->fetch()){
     		try{
-    			$Inquiries->save($rec);
+    			$Inquiries->save_($rec);
+    			echo "<li>$rec->id";
     		} catch(core_exception_Expect $e){
     			
     		}

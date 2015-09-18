@@ -900,4 +900,9 @@ class marketing_Inquiries2 extends embed_Manager
     {
     	$mvc->renderQuantities($data->row->quantities, $tpl, 'QUANTITY_ROW');
     }
+    function act_Test()
+    {
+    	$s = cls::get('marketing_Setup');
+    	$s->updateInquiries();
+    }
 }
