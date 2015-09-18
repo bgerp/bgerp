@@ -388,8 +388,9 @@ div.folder-cover {
   margin-left: 0;
   margin-top: 8px;
   max-width: 720px;
+  min-width: 280px;
   font-size: 0.9em;
-  padding: 10px 10px 12px 10px; }
+  padding: 10px !important; }
   .narrow .folder-cover .block_title img {
     vertical-align: baseline; }
   .narrow .folder-cover .detail-info {

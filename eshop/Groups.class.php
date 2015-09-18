@@ -275,8 +275,8 @@ class eshop_Groups extends core_Master
         if(!$menuId) {
             $menuId = cms_Content::getDefaultMenuId('eshop_Groups');
         }
-
-        return self::count("#state = 'active' AND #menuId = $menuId") >= $conf->ESHOP_MIN_GROUPS_FOR_NAVIGATION;
+        
+        return self::count("#state = 'active' AND #menuId = '$menuId'") >= $conf->ESHOP_MIN_GROUPS_FOR_NAVIGATION;
     }
     
     
