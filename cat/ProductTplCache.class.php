@@ -174,7 +174,7 @@ class cat_ProductTplCache extends core_Master
 			$cacheRec = new stdClass();
 			$cacheRec->time = $time;
 			$cacheRec->productId = $productId;
-			$cacheRec->cache = $Driver->prepareProductDescription($documentType);
+			$cacheRec->cache = $Driver->prepareProductDescription($pRec, $documentType);
 			self::save($cacheRec);
 	
 			$cache = $cacheRec->cache;

@@ -1075,7 +1075,7 @@ class cat_Products extends embed_Manager {
     {
     	if(count($rec->id)){
     		if($Driver = $mvc->getDriver($rec->id)){
-    			$Driver->alterSearchKeywords($res);
+    			$Driver->alterSearchKeywords($res, $rec);
     		}
     	}
     }

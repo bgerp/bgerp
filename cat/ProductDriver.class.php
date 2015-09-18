@@ -7,7 +7,7 @@
  * @category  bgerp
  * @package   cat
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Базов драйвер за драйвер на артикул
@@ -26,12 +26,6 @@ abstract class cat_ProductDriver extends core_BaseClass
 	 * Интерфейси които имплементира
 	 */
 	public $interfaces = 'cat_ProductDriverIntf';
-	
-	
-	/**
-	 * Записа на мениджъра, в който е вграден драйвера
-	 */
-	public $driverRec;
 	
 	
 	/**
@@ -174,9 +168,11 @@ abstract class cat_ProductDriver extends core_BaseClass
 	/**
 	 * Подготвя данните за показване на описанието на драйвера
 	 *
+	 * @param stdClass $rec - запис
 	 * @param enum(public,internal) $documentType - публичен или външен е документа за който ще се кешира изгледа
+	 * @return stdClass - подготвените данни за описанието
 	 */
-	public function prepareProductDescription($documentType = 'public')
+	public function prepareProductDescription($rec, $documentType = 'public')
 	{
 		return (object)array();
 	}
@@ -185,7 +181,7 @@ abstract class cat_ProductDriver extends core_BaseClass
 	/**
 	 * Променя ключовите думи от мениджъра
 	 */
-	public function alterSearchKeywords(&$searchKeywords)
+	public function alterSearchKeywords(&$searchKeywords, $driverRec)
 	{
 		
 	}

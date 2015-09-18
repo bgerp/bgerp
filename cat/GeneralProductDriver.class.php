@@ -7,7 +7,7 @@
  * @category  bgerp
  * @package   cat
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Универсален артикул
@@ -179,12 +179,14 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	/**
 	 * Подготвя данните за показване на описанието на драйвера
 	 *
+	 * @param stdClass $rec - запис
 	 * @param enum(public,internal) $documentType - публичен или външен е документа за който ще се кешира изгледа
+	 * @return stdClass - подготвените данни за описанието
 	 */
-	public function prepareProductDescription($documentType = 'public')
+	public function prepareProductDescription($rec, $documentType = 'public')
 	{
 		$data = new stdClass();
-		$data->rec = $this->driverRec;
+		$data->rec = $rec;
 		$data->row = $this->Embedder->recToVerbal($data->rec);
 		
 		if($documentType == 'public'){
@@ -207,7 +209,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		$tpl = new ET("[#innerState#]");
 		
 		$this->invoke('AfterRenderSingle', array(&$tpl, $data));
-		$title = $this->Embedder->getShortHyperlink($this->driverRec->id);
+		$title = cat_Products::getShortHyperlink($data->rec->id);
 		$tpl->replace($title, "TITLE");
 	
 		$tpl->push(('cat/tpl/css/GeneralProductStyles.css'), 'CSS');
@@ -220,22 +222,12 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	
 	
 	/**
-	 * Кои документи са използвани в полетата на драйвера
-	 */
-	public function getUsedDocs()
-	{
-		// Мъчим се да извлечем използваните документи от описанието (ако има такива)
-		return doc_RichTextPlg::getAttachedDocs($this->driverRec->info);
-	}
-	
-	
-	/**
 	 * Променя ключовите думи от мениджъра
 	 */
-	public function alterSearchKeywords(&$searchKeywords)
+	public function alterSearchKeywords(&$searchKeywords, $driverRec)
 	{
 		$RichText = cls::get('type_Richtext');
-		$info = strip_tags($RichText->toVerbal($this->driverRec->info));
+		$info = strip_tags($RichText->toVerbal($driverRec->info));
 		$searchKeywords .= " " . plg_Search::normalizeText($info);
 	}
 	
