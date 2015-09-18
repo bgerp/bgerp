@@ -215,7 +215,7 @@ class cat_Products extends embed_Manager {
 	/**
 	 * Какво може да се прави със избраните
 	 */
-	var $doWithSelected = 'changemeta=Свойства';
+	public $doWithSelected = 'changemeta=Свойства';
 	
 	
 	/**
@@ -387,7 +387,7 @@ class cat_Products extends embed_Manager {
     	
     		$form->setDefault('name', $sourceRec->title);
     		foreach ($fields as $name => $fld){
-    			$form->setDefault($name, $sourceRec->{$name});
+    			$form->setDefault($name, $sourceRec->driverRec[$name]);
     		}
     	}
     	
