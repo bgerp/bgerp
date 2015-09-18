@@ -685,6 +685,10 @@ class core_Form extends core_FieldSet
                     setIfNot($type->params['columns'], $field->columns);
                 }
                 
+                if ($field->mandatory) {
+                    setIfNot($type->params['mandatory'], $field->mandatory);
+                }
+                
                 if ($field->options) {
                     $type->options = $field->options;
                 }

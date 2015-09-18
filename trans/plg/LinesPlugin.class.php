@@ -99,7 +99,7 @@ class trans_plg_LinesPlugin extends core_Plugin
 		
 		$form = cls::get('core_Form');
 		$form->title = 'Промяна на транспорт за |*<b>' . $mvc->getRecTitle($rec) . "</b>";
-		$form->FLD('lineId', 'key(mvc=trans_Lines,select=title,allowEmpty)', 'caption=Транспорт');
+		$form->FLD('lineId', 'key(mvc=trans_Lines,select=title,allowEmpty)', 'caption=Транспорт,mandatory');
 		$form->FLD('weight', 'cat_type_Weight', 'caption=Тегло');
 		$form->FLD('volume', 'cat_type_Volume', 'caption=Обем');
 		$form->FLD('palletsCount', 'int', 'caption=Брой колети/палети');
