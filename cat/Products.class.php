@@ -327,7 +327,7 @@ class cat_Products extends embed_Manager {
     		if(cls::load($form->rec->{$mvc->driverClassField}, TRUE)){
     			$Driver = cls::get($form->rec->{$mvc->driverClassField});
     			$defMetas = $Driver->getDefaultMetas($defMetas);
-    			$defaultUomId = $Driver->getDriverUom();
+    			$defaultUomId = $Driver->getDefaultUom();
     			
     			// Задаваме дефолтните свойства
     			$form->setDefault('meta', $form->getFieldType('meta')->fromVerbal($defMetas));

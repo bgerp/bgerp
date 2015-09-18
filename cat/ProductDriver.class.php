@@ -90,7 +90,6 @@ abstract class cat_ProductDriver extends core_BaseClass
 			}
 		}
 		
-		
 		// Ако има полета
 		if(count($fields)){
 			
@@ -202,16 +201,19 @@ abstract class cat_ProductDriver extends core_BaseClass
 	
 	
 	/**
-	 * Връща основната мярка, специфична за технолога
+	 * Връща дефолтната основна мярка, специфична за технолога
+	 * 
+	 * @param int $measureId - мярка
+	 * @return int - ид на мярката
 	 */
-	public function getDriverUom($params = array())
+	public function getDefaultUom($measureId = NULL)
 	{
-		if(empty($params['measureId'])){
+		if(!isset($measureId)){
 			
 			return cat_UoM::fetchBySysId('pcs')->id;
 		}
 		
-		return $params['measureId'];
+		return $measureId;
 	}
 	
 	

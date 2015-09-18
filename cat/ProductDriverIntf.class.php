@@ -106,9 +106,9 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 	/**
 	 * Коя е основната мярка на драйвера
 	 */
-	public function getDriverUom($params = array())
+	public function getDefaultUom($params = array())
 	{
-		return $this->class->getDriverUom($params);
+		return $this->class->getDefaultUom($params);
 	}
 	
 	

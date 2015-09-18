@@ -62,7 +62,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		
 		if(cls::haveInterface('marketing_InquiryEmbedderIntf', $Driver->Embedder)){
 			$form->setField('photo', 'input=none');
-			$form->setDefault('measureId', $Driver->getDriverUom($data->driverParams));
+			$form->setDefault('measureId', $Driver->getDefaultUom($data->driverParams['measureId']));
 			$form->setField('measureId', 'display=hidden');
 		}
 	}

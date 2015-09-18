@@ -224,7 +224,7 @@ class marketing_Inquiries2 extends embed_Manager
     	
     	$caption = 'Количества|*';
     	if(isset($data->Driver)){
-    		$uom = cat_UoM::getShortName($data->Driver->getDriverUom($params));
+    		$uom = cat_UoM::getShortName($data->Driver->getDefaultUom($params['measureId']));
     		if(isset($params['moq'])){
     			$moq = cls::get('type_Double', array('params' => array('smartRound' => 'smartRound')))->toVerbal($params['moq']);
     			$caption .= " <small><i>( |Минимална поръчка|* " . $moq . " {$uom} )</i></small>";
@@ -242,6 +242,10 @@ class marketing_Inquiries2 extends embed_Manager
     			$form->setField("quantity{$i}", "input,quantityField,formOrder=4{$i},unit={$uom},caption={$caption}->Количество|* {$i}");
     		} else {
     			$form->FNC("quantity{$i}", 'double', "caption={$caption}->Количество|* {$i},quantityField,input,formOrder=4{$i},unit={$uom}");
+    		}
+    		
+    		if(isset($params['moq'])){
+    			$form->setFieldTypeParams("quantity{$i}", array('min' => $params['moq']));
     		}
     	}
     }
@@ -310,7 +314,7 @@ class marketing_Inquiries2 extends embed_Manager
     	 
     	// До всяко количество се слага unit с мярката на продукта
     	if($Driver = $mvc->getDriver($rec->id)){
-    		$uomId = $Driver->getDriverUom($rec->params);
+    		$uomId = $Driver->getDefaultUom($rec->params['measureId']);
     		$shortName = cat_UoM::getShortName($uomId);
     	}
     	
@@ -899,10 +903,5 @@ class marketing_Inquiries2 extends embed_Manager
     public static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
     	$mvc->renderQuantities($data->row->quantities, $tpl, 'QUANTITY_ROW');
-    }
-    function act_Test()
-    {
-    	$s = cls::get('marketing_Setup');
-    	$s->updateInquiries();
     }
 }
