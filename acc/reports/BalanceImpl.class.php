@@ -520,7 +520,7 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
          $csv = "";
 
          foreach ($exportFields as $caption) {
-             $header .= "," . $caption;
+             $header .= $caption . ",";
          }
 
          
@@ -618,11 +618,11 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
 			$rCsv = '';
 			
 			if ($res == 11) {
-				$zeroRow = "," . 'ОБЩО' . "," .'' . "," .'';
+				$zeroRow = 'ОБЩО' . "," .'' . "," .''. ",";
 			} elseif ($res == 10 || $res == 9 || $res == 8 || $res == 7) {
-				$zeroRow = "," . 'ОБЩО' . "," .'';
+				$zeroRow = 'ОБЩО' . "," .'' . ",";
 			} elseif ($res <= 6) {
-				$zeroRow = "," . 'ОБЩО';
+				$zeroRow =  'ОБЩО' . ",";
 			}
 			
 			foreach ($exportFields as $field => $caption) {
@@ -635,17 +635,17 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
 					if (preg_match('/\\r|\\n|,|"/', $value)) {
 						$value = '"' . str_replace('"', '""', $value) . '"';
 					}
-					$rCsv .= "," . $value;
+					$rCsv .=  $value . ",";
 					
 					if($rec->flag == TRUE) {
 						
-						$zeroRow .= "," . $value;
+						$zeroRow .= $value. ",";
 						$rCsv = $zeroRow;
 					}
 	
 				} else {
 					
-					$rCsv .= "," . '';
+					$rCsv .= '' . "," ;
 				}
 			}
 		}
