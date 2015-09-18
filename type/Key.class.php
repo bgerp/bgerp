@@ -563,7 +563,7 @@ class type_Key extends type_Int
                 
                 $tpl = ht::createCombo($name, $setVal, $attr, $selOpt);
             } else {
-                if ((count($options) == 0 || (count($options) == 1 && isset($options[''])) )) {
+                if ((count($options) == 0 || (count($options) == 1 && isset($options['']) && $this->params['mandatory']))) {
                     
                     $msg = '|Липсва избор за|* "' . $mvc->title . '".';
 
