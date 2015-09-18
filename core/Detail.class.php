@@ -318,13 +318,13 @@ class core_Detail extends core_Manager
     
     
     /**
-     * Логва действието след запис
+     * Логва действието
      * 
      * @param string $msg
-     * @param stdClass $rec
+     * @param NULL|stdClass $rec
      * @param string $type
      */
-    function logInAct($msg, $rec, $type = 'info')
+    function logInAct($msg, $rec = NULL, $type = 'info')
     {
         $masterKey = $this->masterKey;
         $masters = $this->getMasters($rec);
