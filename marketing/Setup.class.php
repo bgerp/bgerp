@@ -183,12 +183,20 @@ class marketing_Setup extends core_ProtoSetup
     	core_App::setTimeLimit(700);
     	
     	$query = $Inquiries->getQuery();
+    	$query->FLD('innerForm', "blob(1000000, serialize, compress)", "caption=Филтър,input=none,column=none");
     	$query->orderBy('id', 'ASC');
     	
     	while($rec = $query->fetch()){
+    		if(isset($rec->innerForm->info)){
+    			$rec->info = $rec->innerForm->info;
+    		}
+    		
+    		if(isset($rec->innerForm->measureId)){
+    			$rec->measureId = $rec->innerForm->measureId;
+    		}
+    		
     		try{
     			$Inquiries->save_($rec);
-    			echo "<li>$rec->id";
     		} catch(core_exception_Expect $e){
     			
     		}
