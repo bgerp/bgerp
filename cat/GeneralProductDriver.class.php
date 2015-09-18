@@ -158,7 +158,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	 */
 	public function getParamValue($name, $id)
 	{
-		return cat_products_Params::fetchParamValue($id, cat_Products::getClassId(), $name);
+		return cat_products_Params::fetchParamValue($id, $name);
 	}
 	
 	
