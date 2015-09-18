@@ -168,8 +168,8 @@ class cat_Categories extends core_Master
         $this->FLD('prefix', 'varchar(64)', 'caption=Представка');
         $this->FLD('sysId', 'varchar(32)', 'caption=System Id,oldFieldName=systemId,input=none,column=none');
         $this->FLD('info', 'richtext(bucket=Notes,rows=4)', 'caption=Бележки');
-        $this->FLD('measures', 'keylist(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Настройки на артикулите->Мерки,columns=2');
-        $this->FLD('markers', 'keylist(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Настройки на артикулите->Маркери,columns=2');
+        $this->FLD('measures', 'keylist(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Настройки на артикулите в категорията->Мерки|*<br>(|допустими|*),columns=2,hint=Ако не е избрана нито една - допустими са всички');
+        $this->FLD('markers', 'keylist(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Настройки на артикулите в категорията->Маркери|*<br>(|препоръчителни|*),columns=2');
         
         // Свойства присъщи на продуктите в групата
         $this->FLD('meta', 'set(canSell=Продаваеми,
@@ -177,7 +177,7 @@ class cat_Categories extends core_Master
                                 canStore=Складируеми,
                                 canConvert=Вложими,
                                 fixedAsset=Дълготрайни активи,
-        			canManifacture=Производими)', 'caption=Настройки на артикулите->Свойства,columns=2');
+        			canManifacture=Производими)', 'caption=Настройки на артикулите в категорията->Свойства|*<br>(|препоръчителни|*),columns=2');
         
         
         $this->setDbUnique("sysId");

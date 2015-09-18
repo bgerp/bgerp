@@ -1452,7 +1452,7 @@ function setThreadElemWidth() {
     var threadWidth = parseInt($(window).width()) - offsetWidth;
     $('.doc_Containers table.listTable > tbody > tr > td').css('maxWidth', threadWidth + 10);
     $('.docStatistic').css('maxWidth', threadWidth);
-    $('.scrolling-holder').css('maxWidth', threadWidth + 10);
+    $('.doc_Containers .scrolling-holder').css('maxWidth', threadWidth + 10);
 }
 
 function checkForElementWidthChange() {
