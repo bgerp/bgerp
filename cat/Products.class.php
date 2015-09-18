@@ -1478,6 +1478,22 @@ class cat_Products extends embed_Manager {
     
     
     /**
+     * Връща хендлъра на изображението представящо артикула, ако има такова
+     *
+     * @param mixed $id - ид или запис
+     * @return fileman_FileType $hnd - файлов хендлър на изображението
+     */
+    public static function getProductImage($id)
+    {
+    	$self = cls::get(get_called_class());
+    	$rec = self::fetchRec($id);
+    	$Driver = $self->getDriver($rec->id);
+    	
+    	return $Driver->getProductImage($rec);
+    }
+    
+    
+    /**
      * Затваряне на перата на частните артикули, по които няма движения
      * в продължение на няколко затворени периода
      */

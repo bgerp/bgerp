@@ -83,6 +83,18 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 	
 	
 	/**
+	 * Връща хендлъра на изображението представящо артикула, ако има такова
+	 *
+	 * @param mixed $id - ид или запис
+	 * @return fileman_FileType $hnd - файлов хендлър на изображението
+	 */
+	public static function getProductImage($id)
+	{
+		return $this->class->getProductImage($id);
+	}
+	
+	
+	/**
 	 * Подготвя данните за показване на описанието на драйвера
 	 *
 	 * @param stdClass $rec - запис

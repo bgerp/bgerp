@@ -209,7 +209,7 @@ class pos_Favourites extends core_Manager {
     	$obj->quantity = (isset($info->packagings[$rec->packagingId])) ? $info->packagings[$rec->packagingId]->quantity : 1;
     	
     	if(empty($rec->image)){
-    		$rec->image = cat_Products::getIcon($rec->productId);
+    		$rec->image = cat_Products::getProductImage($rec->productId);
     	}
     	
     	$arr['image'] = $rec->image;
