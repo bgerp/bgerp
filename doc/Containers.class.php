@@ -161,6 +161,23 @@ class doc_Containers extends core_Manager
     
     
     /**
+     * Логва действието
+     * 
+     * @param string $msg
+     * @param NULL|stdClass $rec
+     * @param string $type
+     */
+    function logInAct($msg, $rec = NULL, $type = 'info')
+    {
+        if (($type == 'info') && ($threadId = Request::get('threadId'))) {
+            doc_Threads::logInfo($msg, $threadId);
+        } else {
+            parent::logInAct($msg, $rec, $type);
+        }
+    }
+    
+    
+    /**
      * Изпълнява се след подготовката на филтъра за листовия изглед
      * Обикновено тук се въвеждат филтриращите променливи от Request
      */
