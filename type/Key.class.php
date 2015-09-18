@@ -570,16 +570,16 @@ class type_Key extends type_Int
                     if($mvc->haveRightFor('list')) {
                         
                         if (!$mvc->fetch("1=1")) {
-                            $msg .= " |Моля въведете началните данни.";
+                            $msg .= " |Моля въведете началните данни|*.";
                         } else {
-                            $msg .= " |Моля въведете подходящи данни.";
+                            $msg .= " |Моля въведете подходящи данни|*.";
                         }
                         
                         $url = array($mvc, 'list');
                         
                         return new Redirect($url, $msg, 'warning');
                     } else {  
-                        $msg .= " |Моля свържете се с колега, който има права да създава {$mvc->title} или администратора на системата.";
+                        $msg .= " |Моля свържете се с колега, който има права да създава|* {$mvc->title} |или администратора на системата|*.";
                         core_Statuses::newStatus(tr($msg), 'warning');
                     }
                 }
