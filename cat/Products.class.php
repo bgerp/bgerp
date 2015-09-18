@@ -1073,7 +1073,7 @@ class cat_Products extends embed_Manager {
     /**
      * След подготовка на записите в счетоводните справки
      */
-    public static function on_AfterPrepareAccReportRecs($mvc, &$data)
+    protected static function on_AfterPrepareAccReportRecs($mvc, &$data)
     {
     	$recs = &$data->recs;
     	if(empty($recs) || !count($recs)) return;
@@ -1096,7 +1096,7 @@ class cat_Products extends embed_Manager {
     /**
      * След подготовка на вербалнтие записи на счетоводните справки
      */
-    public static function on_AfterPrepareAccReportRows($mvc, &$data)
+    protected static function on_AfterPrepareAccReportRows($mvc, &$data)
     {
     	$rows = &$data->balanceRows;
     	arr::placeInAssocArray($data->listFields, 'packId=Мярка', 'blQuantity');
@@ -1189,7 +1189,7 @@ class cat_Products extends embed_Manager {
     /**
      * Връща разбираемо за човека заглавие, отговарящо на записа
      */
-    static function getRecTitle($rec, $escaped = TRUE)
+    public static function getRecTitle($rec, $escaped = TRUE)
     {
     	$rec->name = static::getDisplayName($rec);
     	
@@ -1471,9 +1471,12 @@ class cat_Products extends embed_Manager {
      */
     public function getIcon($id)
     {
-    	$Driver = $this->getDriver($id);
-    	
-    	return $Driver->getIcon();
+    	if($Driver = $this->getDriver($id)){
+    		
+    		return $Driver->getIcon();
+    	} else {
+    		return 'img/16/error-red.png';
+    	}
     }
     
     
