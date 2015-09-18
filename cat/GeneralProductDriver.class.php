@@ -173,7 +173,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	{
 		$data = new stdClass();
 		$data->rec = $rec;
-		$data->row = $this->Embedder->recToVerbal($data->rec);
+		$data->row = cat_Products::recToVerbal($data->rec);
 		
 		if($documentType == 'public'){
 			$this->prepareForPublicDocument = TRUE;

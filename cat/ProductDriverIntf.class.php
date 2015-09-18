@@ -7,7 +7,7 @@
  * @category  bgerp
  * @package   cat
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  */
@@ -28,30 +28,6 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 	
 	
 	/**
-	 * Вътрешната форма
-	 *
-	 * @param mixed $innerForm
-	 */
-	protected $innerForm;
-	
-	
-	/**
-	 * Вътрешното състояние
-	 *
-	 * @param mixed $innerState
-	 */
-	protected $innerState;
-	
-	
-	/**
-	 * В кой документ е инстанциран драйвера
-	 *
-	 * @param core_ObjectReference
-	 */
-	public $EmbedderRec;
-	
-	
-	/**
 	 * Връща информацията за продукта от драйвера
 	 *
 	 * @param stdClass $innerState
@@ -61,15 +37,6 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 	public function getProductInfo($innerState)
 	{
 		return $this->class->getProductInfo($innerState);
-	}
-	
-	
-	/**
-	 * Кои опаковки поддържа продукта
-	 */
-	public function getPacks($innerState)
-	{
-		return $this->class->getPacks($innerState);
 	}
 	
 	
@@ -104,53 +71,27 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 	
 	
 	/**
-	 * Коя е основната мярка на драйвера
-	 */
-	public function getDefaultUom($params = array())
-	{
-		return $this->class->getDefaultUom($params);
-	}
-	
-	
-	/**
-	 * Задава параметрите на обекта
+	 * Връща дефолтната основна мярка, специфична за технолога
 	 *
-	 * @param mixed $params
+	 * @param int $measureId - мярка
+	 * @return int - ид на мярката
 	 */
-	public function setDriverParams($params)
+	public function getDefaultUom($measureId = NULL)
 	{
-		return $this->class->setDriverParams($params);
+		return $this->class->getDefaultUom($measureId);
 	}
 	
 	
 	/**
-	 * Връща параметрите на артикула
-	 * @param mixed $id - ид или запис на артикул
-	 *
-	 * @return array $res - параметрите на артикула
-	 * 					['weight']          -  Тегло
-	 * 					['width']           -  Широчина
-	 * 					['volume']          -  Обем
-	 * 					['thickness']       -  Дебелина
-	 * 					['length']          -  Дължина
-	 * 					['height']          -  Височина
-	 * 					['tolerance']       -  Толеранс
-	 * 					['transportWeight'] -  Транспортно тегло
-	 * 					['transportVolume'] -  Транспортен обем
-	 * 					['term']            -  Срок
+	 * Връща стойността на параметъра с това име
+	 * 
+	 * @param string $name - име на параметъра
+	 * @param string $id   - ид на записа
+	 * @return mixed - стойност или FALSE ако няма
 	 */
-	public function getParams()
+	public function getParamValue($name, $id)
 	{
-		return $this->class->getParams();
-	}
-	
-	
-	/**
-	 * Връща параметрите на драйвера
-	 */
-	public function getDriverParams()
-	{
-		return $this->class->getDriverParams();
+		return $this->class->getParamValue($name, $id);
 	}
 	
 	
@@ -168,12 +109,14 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 	
 	/**
 	 * Подготвя данните за показване на описанието на драйвера
-	 * 
+	 *
+	 * @param stdClass $rec - запис
 	 * @param enum(public,internal) $documentType - публичен или външен е документа за който ще се кешира изгледа
+	 * @return stdClass - подготвените данни за описанието
 	 */
-	public function prepareProductDescription($documentType = 'public')
+	public function prepareProductDescription($rec, $documentType = 'public')
 	{
-		return $this->class->prepareProductDescription($documentType);
+		return $this->class->prepareProductDescription($rec, $documentType);
 	}
 	
 	
