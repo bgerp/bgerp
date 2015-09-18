@@ -517,6 +517,7 @@ class cat_Setup extends core_ProtoSetup
     {
     	core_App::setTimeLimit(400);
     	
+    	if(!cls::load('cat_Packagings', TRUE)) return;
     	$Packs = cls::get('cat_Packagings');
     	$Packs->setupMvc();
     	
