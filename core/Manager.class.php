@@ -168,7 +168,7 @@ class core_Manager extends core_Mvc
         
         if (!Request::get('ajax_mode')) {
             // Записваме, че потребителя е разглеждал този списък
-            $this->logInfo('Листване');
+            $this->logInAct('Листване');
         }
         
         return $tpl;
@@ -339,20 +339,24 @@ class core_Manager extends core_Mvc
     }
     
     
-    
     /**
-     * Логва действието след запис
+     * Логва действието
      * 
      * @param string $msg
-     * @param stdClass $rec
+     * @param NULL|stdClass $rec
      * @param string $type
      */
-    function logInAct($msg, $rec, $type = 'info')
+    function logInAct($msg, $rec = NULL, $type = 'info')
     {
+        $id = NULL;
+        
+        if ($rec) {
+            $id = $rec->id;
+        }
         if ($type == 'info') {
-            $this->logInfo($msg, $rec->id);
+            $this->logInfo($msg, $id);
         } else {
-            $this->logErr($msg, $rec->id);
+            $this->logErr($msg, $id);
         }
     }
     

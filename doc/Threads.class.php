@@ -175,6 +175,23 @@ class doc_Threads extends core_Manager
     
     
     /**
+     * Логва действието
+     * 
+     * @param string $msg
+     * @param NULL|stdClass $rec
+     * @param string $type
+     */
+    function logInAct($msg, $rec = NULL, $type = 'info')
+    {
+        if (($type == 'info') && ($folderId = Request::get('folderId'))) {
+            doc_Folders::logInfo($msg, $folderId);
+        } else {
+            parent::logInAct($msg, $rec, $type);
+        }
+    }
+    
+    
+    /**
      * Поправка на структурата на нишките
      * 
      * @param datetime $from
