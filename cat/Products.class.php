@@ -929,7 +929,7 @@ class cat_Products extends core_Embedder {
      * 
      * @return double
      */
-    public function getSelfValue($productId, $packagingId = NULL, $quantity = NULL, $date = NULL)
+    public function getSelfValue($productId, $packagingId = NULL, $quantity = 1, $date = NULL)
     {
     	// Опитваме се да намерим запис в в себестойностти за артикула
     	$listId = price_ListRules::PRICE_LIST_COST;
@@ -938,7 +938,7 @@ class cat_Products extends core_Embedder {
     	
     	// Ако няма се мъчим да намерим себестойността по рецепта, ако има такава
     	if(!$price){
-    		if($amounts = cat_Boms::getPrice($this->fetchField($productId, 'containerId'))){
+    		if($amounts = cat_Boms::getPrice($productId)){
     			$price = ($amounts->base + $quantity * $amounts->prop) / $quantity;
     		}
     	}
@@ -1401,7 +1401,7 @@ class cat_Products extends core_Embedder {
      * @param core_Mvc $mvc
      * @param stdClass $data
      */
-    public static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    public static function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
     {
     	if($data->rec->state != 'rejected'){
     		$tId = $mvc->fetchField($data->rec->id, 'threadId');

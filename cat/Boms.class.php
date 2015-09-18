@@ -376,6 +376,7 @@ class cat_Boms extends core_Master
     	if($fields['-single'] && haveRole('ceo, acc, cat, price')) {
 	        $priceObj = cat_Boms::getPrice($rec->productId, $rec->id);
 	        $rec->primeCost = 0;
+	        $rec->quantityForPrice = isset($rec->quantityForPrice) ? $rec->quantityForPrice : $rec->quantity;
 	        
 	        if($priceObj) {
 	            @$rec->primeCost = ($priceObj->base + $priceObj->prop) * $rec->quantityForPrice;
@@ -418,11 +419,7 @@ class cat_Boms extends core_Master
     	if($bomId){
     		$rec = self::fetch($bomId);
     	} else {
-    	    $query = self::getQuery();
-    	    $query->where("#productId = {$productId} AND #state = 'active'");
-    	    $query->orderBy('createdOn', 'DESC');
-    	    $query->limit(1);
-    	    $rec = $query->fetch();
+    	    $rec = cat_Products::getLastActiveBom($productId);
     	}
     	
     	// Ако няма, връщаме нулеви цени
@@ -438,7 +435,7 @@ class cat_Boms extends core_Master
     			$sign = ($dRec->type == 'input') ? 1 : -1;
     			
     			// Опитваме се да намерим себестойност за артикула
-    			$selfValue = planning_ObjectResources::getSelfValue($dRec->productId);
+    			$selfValue = planning_ObjectResources::getSelfValue($dRec->productId, $rec->modifiedOn);
     			
     			// Ако не може да се определи себестойност на ресурса, не може и по рецептата
     			if(!$selfValue) return FALSE;
