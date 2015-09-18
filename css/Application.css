@@ -388,8 +388,9 @@ div.folder-cover {
   margin-left: 0;
   margin-top: 8px;
   max-width: 720px;
+  min-width: 280px;
   font-size: 0.9em;
-  padding: 10px 10px 12px 10px; }
+  padding: 10px !important; }
   .narrow .folder-cover .block_title img {
     vertical-align: baseline; }
   .narrow .folder-cover .detail-info {
@@ -535,6 +536,19 @@ div.folder-cover {
   .user-profile .detail-info.portal .dt {
     width: 1%;
     min-width: 85px; }
+
+  #profileLoginLog.groupList table td,
+  #profileActionLog.groupList table td {
+    padding: 3px;
+    border-top: 1px dashed #bbbbbb; }
+    #profileLoginLog.groupList table td:first-child,
+    #profileActionLog.groupList table td:first-child {
+      width: 1%;
+      white-space: nowrap;
+      padding: 3px 20px; }
+  #profileLoginLog.groupList table tr:first-child td,
+  #profileActionLog.groupList table tr:first-child td {
+    border-top: none; }
 
 .narrow .user-profile {
   margin-top: 7px;

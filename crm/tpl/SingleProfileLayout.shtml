@@ -17,13 +17,19 @@
 	        [#DETAILS#]
 	        <!--ET_END DETAILS-->
 	        <div style="clear:both;"></div>
-	        <!--ET_BEGIN loginLog-->
-	        [#loginLog#]
-	        <!--ET_END loginLog-->
+	        
+	        <!--ET_BEGIN logTabs-->
+		        <fieldset class="detail-info">
+		        	<legend class="groupTitle">
+				        |Логове|*
+				    </legend>
+			        <div class='tab-control alphabet' style='padding-top: 5px;'>
+				        [#logTabs#]
+			        </div>
+		        </fieldset>
+	        <!--ET_END logTabs-->
 	        <div style="clear:both;"></div>
 	    </div>
     </div>
-</div>
-</div>	
 </div>
 
