@@ -149,6 +149,71 @@ class log_Data extends core_Manager
     
     
     /**
+     * Дали потребиеля може да вижда лога на съотвения потребител
+     * 
+     * @param integer $userId
+     * @param NULL|integer $currUserId
+     * 
+     * @return boolean
+     */
+    public static function canViewUserLog($userId, $currUserId = NULL)
+    {
+        if (!$currUserId) {
+            $currUserId = core_Users::getCurrent();
+        }
+        
+        // Текущия потребител може да вижда лога за себе си
+        if ($userId == $currUserId) return TRUE;
+        
+        // admin и ceo на всички
+        if (haveRole('admin, ceo', $currUserId)) return TRUE;
+        
+        // Мениджър - на всички от неговия екип без лога на ceo и други manager-и
+        if (haveRole('manager')) {
+            if (!haveRole('ceo, manager', $userId)) {
+                $teamMatest = core_Users::getTeammates($currUserId);
+                if (type_Keylist::isIn($userId, $teamMatest)) return TRUE;
+            }
+        }
+        
+        return FALSE;
+    }
+    
+    
+    /**
+     * Връща масив с логовете за потребителя
+     * 
+     * @param integer $userId
+     * @param integer $perPage
+     * 
+     * @return array
+     * array rows
+     * object pager
+     */
+    public static function getLogsForUser($userId, $perPage = 10)
+    {
+        $query = self::getQuery();
+        $query->where("#userId = {$userId}");
+        $query->orderBy("time", "DESC");
+        $query->orderBy("id", "DESC");
+        $me = cls::get(get_called_class());
+        $data = new stdClass();
+        $data->query = $query;
+        $me->listItemsPerPage = $perPage;
+        
+        $data->listFields = array('text', 'actTime', 'type');
+        
+        $me->prepareListPager_($data);
+        $me->prepareListRecs_($data);
+        $me->prepareListRows_($data);
+        
+        $resArr = array('rows' => $data->rows, 'pager' => $data->pager);
+        
+        return $resArr;
+    }
+    
+    
+    /**
      * При приключване на изпълнените на скрипта
      */
     public static function on_Shutdown($mvc)
@@ -282,7 +347,7 @@ class log_Data extends core_Manager
         $data->listFilter->fields['type']->type->options = array('' => '') + $data->listFilter->fields['type']->type->options;
         $data->listFilter->fields['type']->refreshForm = 'refreshForm';
         
-        $data->listFilter->FNC('users', 'users(rolesForAll=ceo|admin, rolesForTeams=ceo|admin, roles=user)', 'caption=Потребител,refreshForm');
+        $data->listFilter->FNC('users', 'users(rolesForAll=ceo|admin, rolesForTeams=ceo|admin, roles=user)', 'caption=Потребител, silent, refreshForm');
         
         $data->listFilter->FNC('message', 'varchar', 'caption=Текст');
         $data->listFilter->FNC('ip', 'varchar(32)', 'caption=IP адрес');
@@ -291,7 +356,8 @@ class log_Data extends core_Manager
 		$data->listFilter->FNC('class', 'varchar', 'caption=Клас,removeAndRefreshForm=object, allowEmpty, silent');
 		$data->listFilter->FNC('object', 'varchar', 'caption=Обект,refreshForm, allowEmpty, silent');
         
-        $default = $data->listFilter->getField('users')->type->fitInDomain('all_users');
+		$def = setIfNot($def, Request::get('users'), 'all_users');
+        $default = $data->listFilter->getField('users')->type->fitInDomain($def);
         $data->listFilter->setDefault('users', $default);
         
         $data->listFilter->showFields = 'users, message, class, object, type, ip, from, to';
