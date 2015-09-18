@@ -187,13 +187,13 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	
 	
 	/**
-	 * Променя ключовите думи от мениджъра
+	 * Добавя ключови думи за пълнотекстово търсене
 	 */
-	public function alterSearchKeywords(&$searchKeywords, $driverRec)
+	public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
 	{
 		$RichText = cls::get('type_Richtext');
-		$info = strip_tags($RichText->toVerbal($driverRec->info));
-		$searchKeywords .= " " . plg_Search::normalizeText($info);
+		$info = strip_tags($RichText->toVerbal($rec->info));
+		$res .= " " . plg_Search::normalizeText($info);
 	}
 	
 	

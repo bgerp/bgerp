@@ -166,15 +166,6 @@ abstract class cat_ProductDriver extends core_BaseClass
 	
 	
 	/**
-	 * Променя ключовите думи от мениджъра
-	 */
-	public function alterSearchKeywords(&$searchKeywords, $driverRec)
-	{
-		
-	}
-	
-	
-	/**
 	 * Кои документи са използвани в полетата на драйвера
 	 */
 	public function getUsedDocs()

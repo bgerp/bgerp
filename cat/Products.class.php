@@ -1011,6 +1011,7 @@ class cat_Products extends embed_Manager {
     	$Driver = $this->getDriver($id);
     	$rec = $this->fetchRec($id);
     	
+    	//@TODO да е getParamValue
     	$res = array();
     	foreach (array('weight', 'width', 'volume', 'thickness', 'length', 'height', 'tolerance', 'transportWeight', 'transportVolume', 'term') as $p){
     		$res[$p] = $Driver->getParamValue($p, $rec->id);
@@ -1067,19 +1068,6 @@ class cat_Products extends embed_Manager {
     	}
     	
     	return $volume;
-    }
-    
-    
-    /**
-     * Добавя ключови думи за пълнотекстово търсене
-     */
-    protected static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
-    {
-    	if(count($rec->id)){
-    		if($Driver = $mvc->getDriver($rec->id)){
-    			$Driver->alterSearchKeywords($res, $rec);
-    		}
-    	}
     }
     
     
