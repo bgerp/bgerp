@@ -2,8 +2,8 @@
     <table style='min-width:440px'>
        <!--ET_BEGIN log-->
        <tr class='[#logClass#]'>
+            <td>[#createdOn#]</td>
            <td>[#status#]</td>
-           <td class='centered'>[#createdOn#]</td>
            <td class='aright'>[#ip#]</td>
        </tr>
        <!--ET_END log-->

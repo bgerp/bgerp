@@ -1,9 +1,9 @@
-<div class="groupList" id="profileActionLog">
-    <table style='min-width:440px'>
+<div class="groupList" id="profileActionLog" style=' background: none;'>
+    <table style='min-width:440px; width: 100%;'>
        <!--ET_BEGIN log-->
        <tr class='[#logClass#]'>
            <td>[#actTime#]</td>
-           <td class='centered'>[#text#]</td>
+           <td>[#text#]</td>
        </tr>
        <!--ET_END log-->
    </table>
