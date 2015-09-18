@@ -1,0 +1,12 @@
+<div class="groupList" id="profileActionLog">
+    <table style='min-width:440px'>
+       <!--ET_BEGIN log-->
+       <tr class='[#logClass#]'>
+           <td>[#actTime#]</td>
+           <td class='centered'>[#text#]</td>
+       </tr>
+       <!--ET_END log-->
+   </table>
+   <!--ET_BEGIN pager--> [#pager#]<!--ET_END pager-->
+   <!--ET_BEGIN ActionLogLink--> [#actionLogLink#]<!--ET_END ActionLogLink-->
+</div>
