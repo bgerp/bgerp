@@ -482,9 +482,12 @@ class cat_Products extends embed_Manager {
 		}
 		
 		$defMetas = cls::get('cat_Categories')->getDefaultMeta($categoryId);
-		$Driver = $this->getDriver($rec);
 		
-		$defMetas = $Driver->getDefaultMetas($defMetas);
+		if(cls::load($rec->{$this->driverClassField}, TRUE)){
+			$Driver = cls::get($rec->{$this->driverClassField}, array('Embedder' => $this));
+			$defMetas = $Driver->getDefaultMetas($defMetas);
+		}
+		
 		$rec->meta = ($rec->meta) ? $rec->meta : $this->getFieldType('meta')->fromVerbal($defMetas);
 	}
     
