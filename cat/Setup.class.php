@@ -517,6 +517,10 @@ class cat_Setup extends core_ProtoSetup
     {
     	core_App::setTimeLimit(400);
     	
+    	$Packs = cls::get('cat_Packagings');
+    	$Packs->setupMvc();
+    	
+    	
     	$Pos = cls::get('pos_Reports');
     	$Pos->setupMvc();
     	
@@ -560,7 +564,7 @@ class cat_Setup extends core_ProtoSetup
     			$exRecs[$nRec->id] = $exRec;
     		} 
     		
-    		$Uom->save($nRec);
+    		$Uom->save($nRec, NULL, 'IGNORE');
     		$packs[$pRec->id] = $nRec->id;
     	}
     	
