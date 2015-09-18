@@ -317,8 +317,8 @@ class acc_reports_SaleArticles extends acc_reports_BalanceImpl
     public function getExportFields ()
     {
 
-        $exportFields['ent1Id']  = "Артикули";
-        $exportFields['blAmount']  = "Кредит";
+        $exportFields['ent3Id']  = "Артикули";
+        $exportFields['creditAmount']  = "Кредит";
 
         return $exportFields;
     }
