@@ -508,7 +508,7 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
       */
      public function exportCsv()
      {
-
+    
          $exportFields = $this->getExportFields();
 
          $conf = core_Packs::getConfig('core');
@@ -523,6 +523,11 @@ class acc_reports_BalanceImpl extends frame_BaseDriver
              $header .= $caption . ",";
          }
 
+         foreach ($this->innerState->recs as $innerId => $innerRec) {
+         	if (!isset($innerRec->creditQuantity) || !isset($innerRec->creditAmount)){
+         		unset($this->innerState->recs[$innerId]);
+         	}
+         }
          
          if(count($this->innerState->recs)) {
 			foreach ($this->innerState->recs as $id => $rec) {
