@@ -521,7 +521,7 @@ class core_Debug
             $data['header'] = $state['header'];
         } else {
             $data['header'] = $state['errType'];
-            if($breakLine) {
+            if($breakLine && !strpos($fileHtml, "eval()'d code")) {
                 $data['header'] .= " на линия <i>{$lineHtml}</i>";
             }
             if($breakFile) {
@@ -690,7 +690,6 @@ class core_Debug
         if(!($errno & CORE_ERROR_REPORTING_LEVEL) && !($errno & CORE_ERROR_LOGGING_LEVEL)) {
             return;
         }
-        
         // Когато сме в режим на маскиране на грешките (@) да не показваме съобщение
         if(CORE_ENABLE_SUPRESS_ERRORS && error_reporting() == 0)  return;
         
@@ -714,10 +713,10 @@ class core_Debug
      */
     static function shutdownHandler()
     {
- 
+
         if ($error = error_get_last()) {
             
-            if(!($error['type'] & CORE_ERROR_REPORTING_LEVEL) || strpos($error['file'], "eval()'d")) return;
+            if(!($error['type'] & CORE_ERROR_REPORTING_LEVEL)) return;
             
 
             $errType = self::getErrorLevel($error['type']);
@@ -826,6 +825,14 @@ class core_Debug
      */
     private static function getEditLink($file, $line = NULL, $title = NULL)
     {  
+        if(strpos($file, "eval()'d code")) {
+            if(!$title) {
+                $title = $file;
+            }
+            list($file, $line) = explode('(', $file);
+            $line = (int) $line;
+        }
+
         if(!$title) {
             if(!$line) {
                 //$line = 1;
