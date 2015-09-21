@@ -511,6 +511,23 @@ class cad2_SvgCanvas extends core_BaseClass {
 	}
 
 
+    /**
+     * Изчертава арка
+     */
+    function arcTo($x1, $y1, $r, $absolute = FALSE)
+    {
+    	cad2_ArcTo::draw($this, $x1, $y1, $r, $absolute);
+    }
+    
+    
+    /**
+     * Задаване на начупена линия
+     */
+    function jaggedLineTo($x1, $y1, $md = 1, $td = NULL, $spacer = 0, $absolute = FALSE)
+    {
+    	cad2_JaggedLine::draw($this, $x1, $y1, $md, $td, $spacer, $absolute);
+    }
+
 
     /**
      * Затваря текущия път или под-път
