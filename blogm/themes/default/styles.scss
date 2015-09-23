@@ -9,11 +9,12 @@
 
 
 .blogm-article-title, .blogm-article-title a {
-	font-size:24px;
+	font-size:2em;
 	line-height:130%;
-	font-weight:300;
+	font-weight:bold;
 	margin-top:10px;
 	margin-bottom:10px;
+    color:#333;
 }
 
 
@@ -101,6 +102,15 @@
 .blogm-article-body {
 	margin-top:15px;
 	margin-bottom:15px;
+}
+
+.blogm-article-body .richtext {
+	font-size:1.1em;
+    color:#333;
+}
+
+.blogm-article-body .richtext h2 {
+    margin-bottom:10px;
 }
 
 .blogm-comment {
