@@ -25,6 +25,12 @@ class expert_Dataset extends core_Mvc {
     
 
     /**
+     * Достоверности на променливите
+     */
+    public $trusts = array();
+    
+
+    /**
      * Номер на текущата стъпка
      */
     public $step = 0;
@@ -47,7 +53,7 @@ class expert_Dataset extends core_Mvc {
      */
     public function addRule($name, $expr, $cond = NULL)
     {
-        $rule = (object) array('name' => $name, 'expr' => $expr, 'cond' => $cond);
+        $rule = (object) array('name' => trim($name), 'expr' => trim($expr), 'cond' => trim($cond));
         $rule->exprVars = $this->extractVars($expr);
 
         if($cond !== NULL) {
@@ -58,7 +64,16 @@ class expert_Dataset extends core_Mvc {
             $rule->name = substr($rule->name, 1);
         }
 
-        $this->rules[] = $rule;
+        // Не може правило за дадена променлива да зависи от нев
+        expect(!$rule->condVars[$rule->name] && !$rule->exprVars[$rule->name]);
+
+        $id = substr(md5($rule->name . $rule->expr . $rule->cond), 0, 8);
+        
+        if(isset($this->rules[$id])) {
+            $this->log[] = "Warning: Дублиране на правило \${$rule->name} = {$rule->expr} ({$rule->cond}";
+        }
+
+        $this->rules[$id] = $rule;
     }
     
     
@@ -109,13 +124,15 @@ class expert_Dataset extends core_Mvc {
     /**
      * Проверка дали ВСИЧКИ зададени променливи са сетнати
      */
-    private function issetVars($vars = array())
+    private function issetVars($vars = array(), $rule = NULL)
     {
+        if(empty($vars)) return TRUE;
+
         if(is_scalar($vars)) {
             $vars = array($vars => $vars);
         }
 
-        expect(is_array($vars));
+        expect(is_array($vars), $rule, $vars);
 
         foreach($vars as $var) {
             if(strpos($var, '[]')) return FALSE;
@@ -172,9 +189,9 @@ class expert_Dataset extends core_Mvc {
             return FALSE;
         }
         
-        if($rule->cond !== NULL) {
+        if(!empty($rule->cond)) {
             // Липсват всички променливи за условието
-            if(!$this->issetVars($rule->condVars)) {
+            if(!$this->issetVars($rule->condVars, $rule)) {
                 return FALSE;
             }
             
@@ -215,13 +232,61 @@ class expert_Dataset extends core_Mvc {
 
         return $res;
     }
-
+    
+    /**
+     * Сортиране на група от правила
+     */
+    function sortRules()
+    {
+        foreach($this->rulesByName as $name => &$rulesArr) {
+            foreach($rulesArr as $id => $rule) {
+                $rule->priority = !empty($rule->expr) + !empty($rule->cond);
+                $vars = (is_array($rule->exprVars) ? $rule->exprVars : array()) + 
+                    (is_array($rule->condVars) ? $rule->condVars : array());
+                foreach($vars as $n) {
+                    $rule->priority += 1 + count($this->rulesByName[$n]);
+                }
+            }
+            uasort($rulesArr, array('expert_Dataset','ruleOrder'));
+        }
+    }
+    
+    /**
+     * Функция за сортиране
+     */
+    private static function ruleOrder($a,$b) 
+    {
+           return $a->priority <= $b->priority;
+    }
 
     /**
      * Стартира процес на изчисляване, според зададените правила
      */
     public function run($rec = NULL, $state = NULL)
     {
+        // Преподреждане на правилата
+        foreach($this->rules as $id => $rule) {
+            $this->rulesByName[$rule->name][$id] = $rule;
+        }
+
+        // Сортиране поотделно на всяка група правила за дадена променлива
+        $this->sortRules();
+
+        // Композиране на ново на правилата
+        $this->rules = array();
+ 
+        do {
+            $haveUnset = FALSE;
+            foreach($this->rulesByName as $name => &$rulesArr) {
+                if(!count($rulesArr)) continue;
+                reset($rulesArr);
+                $first = key($rulesArr);
+                $this->rules[$first] = $rulesArr[$first];
+                unset($rulesArr[$first]);
+                $haveUnset = TRUE;
+            }
+        } while($haveUnset);
+//bp($this);
         // Нова стъпка
         $this->step++;
 
