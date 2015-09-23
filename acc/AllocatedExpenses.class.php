@@ -399,7 +399,6 @@ class acc_AllocatedExpenses extends core_Master
     	$products = array();
     	if(count($shipped)){
     		foreach ($shipped as $p){
-    			$params = cls::get($p->classId)->getParams($p->productId);
     			if($p->amount == 0) continue;
     			
     			$products[$p->productId] = (object)array('productId' => $p->productId, 
@@ -412,12 +411,14 @@ class acc_AllocatedExpenses extends core_Master
     				$products[$p->productId]->inStores = $p->inStores;
     			}
     			
-    			if(isset($params['transportWeight'])){
-    				$products[$p->productId]->transportWeight = $params['transportWeight'];
+    			$transportWeight = cat_Products::getParamValue($p->productId, 'transportWeight');
+    			if(!empty($transportWeight)){
+    				$products[$p->productId]->transportWeight = $transportWeight;
     			}
     			
-    			if(isset($params['transportVolume'])){
-    				$products[$p->productId]->transportVolume = $params['transportVolume'];
+    			$transportVolume = cat_Products::getParamValue($p->productId, 'transportVolume');
+    			if(!empty($transportVolume)){
+    				$products[$p->productId]->transportVolume = $transportVolume;
     			}
     		}
     	}
