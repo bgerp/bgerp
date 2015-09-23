@@ -96,6 +96,7 @@ class doc_DocumentPlg extends core_Plugin
         // Дали мжое да се редактират активирани документи
         setIfNot($mvc->canEditActivated, FALSE);
         
+        $mvc->setDbIndex('state');
         $mvc->setDbIndex('folderId');
         $mvc->setDbIndex('threadId');
         $mvc->setDbIndex('containerId');
