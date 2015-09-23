@@ -248,6 +248,9 @@ class sales_SalesDetails extends deals_DealDetail
     			// Ако няма задание, добавяме бутон за създаване на ново задание
     			if(planning_Jobs::haveRightFor('add', (object)array('productId' => $pRec->id))){
     				$jobUrl = array('planning_Jobs', 'add', 'productId' => $pRec->id, 'quantity' => $rec->quantity, 'saleId' => $masterRec->id, 'ret_url' => TRUE);
+    				if(!empty($rec->tolerance)){
+    					$jobUrl['tolerance'] = $rec->tolerance * 100; 				
+    				}
     				$row->jobId = ht::createBtn('Нов', $jobUrl, FALSE, FALSE, 'title=Създаване на ново задание за артикула,ef_icon=img/16/clipboard_text.png');
     			}
     		}
