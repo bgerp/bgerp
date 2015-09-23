@@ -257,4 +257,22 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	{
 		return $rec->photo;
 	}
+	
+	
+	/**
+	 * Връща дефолтната основна мярка, специфична за технолога
+	 *
+	 * @param int $measureId - мярка
+	 * @return int - ид на мярката
+	 */
+	public function getDefaultUom($measureId = NULL)
+	{
+		if(!isset($measureId)){
+				
+			// Ако не е подадена мярка, връща дефолтната за универ
+			return core_Packs::getConfigValue('cat', 'CAT_DEFAULT_MEASURE_ID');
+		}
+	
+		return $measureId;
+	}
 }
