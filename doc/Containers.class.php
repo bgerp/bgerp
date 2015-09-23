@@ -1650,6 +1650,10 @@ class doc_Containers extends core_Manager
     {
         // Обновяваме записите за файловете
         doc_Files::updateRec($rec);
+        
+        if ($rec->threadId) {
+            doclog_Documents::removeHistoryFromCache($rec->threadId);
+        }
     }
     
     
