@@ -98,7 +98,7 @@ class cat_ProductTplCache extends core_Master
 	public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
 	{
 		if(isset($fields['-single'])){
-			$Driver = cat_Products::getDriver($rec->productId);
+			$Driver = cls::get('cat_Products')->getDriver($rec->productId);
 			$row->cache = $Driver->renderProductDescription($rec->cache);
 		}
 	}
@@ -174,7 +174,7 @@ class cat_ProductTplCache extends core_Master
 			$cacheRec = new stdClass();
 			$cacheRec->time = $time;
 			$cacheRec->productId = $productId;
-			$cacheRec->cache = $Driver->prepareProductDescription($documentType);
+			$cacheRec->cache = $Driver->prepareProductDescription($pRec, $documentType);
 			self::save($cacheRec);
 	
 			$cache = $cacheRec->cache;

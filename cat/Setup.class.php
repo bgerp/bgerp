@@ -84,6 +84,7 @@ class cat_Setup extends core_ProtoSetup
             'migrate::fixProductsSearchKeywords',
     		'migrate::replaceResources4',
     		'migrate::replacePackagings',
+    		'migrate::updateProductsNew',
         );
 
 
@@ -710,6 +711,29 @@ class cat_Setup extends core_ProtoSetup
     
     	if(count($recsToSave)){
     		cls::get('pos_ReceiptDetails')->saveArray_($recsToSave);
+    	}
+    }
+    
+    
+    /**
+     * Миграция на артикулите
+     */
+    function updateProductsNew()
+    {
+    	if(!cat_Products::count()) return;
+    	
+    	core_App::setTimeLimit(700);
+    	
+    	$Products = cls::get('cat_Products');
+    	$query = $Products->getQuery();
+    	
+		$query->orderBy('id', 'ASC');
+    	while($rec = $query->fetch()){
+    		try{
+    			$Products->save_($rec);
+    		} catch(core_exception_Expect $e){
+    			
+    		}
     	}
     }
 }

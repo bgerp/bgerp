@@ -1412,6 +1412,8 @@ class pos_Receipts extends core_Master {
     		$params = keylist::toArray($data->showParams);
     		$values = NULL;
     		foreach ($params as $pId){
+    			
+    			//@TODO да използва нов метод getParamValue
     			if($vRec = cat_products_Params::fetch("#productId = {$obj->productId} AND #paramId = {$pId}")){
     				$row->productId .= " &nbsp;" . cat_products_Params::recToVerbal($vRec, 'paramValue')->paramValue;
     			}

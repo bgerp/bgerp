@@ -1,10 +1,10 @@
 <div style='margin-bottom: 5px;' class='product-title'>[#TITLE#]</div>
- <!--ET_BEGIN image-->
-
-<!--ET_END image-->
+<!--ET_BEGIN image-->
 <div class="productImage">
     [#image#]
 </div>
+<!--ET_END image-->
+
 [#info#]
 <!--ET_BEGIN INFORMATION-->
 [#INFORMATION#] 
