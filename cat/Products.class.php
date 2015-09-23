@@ -1036,8 +1036,7 @@ class cat_Products extends embed_Manager {
     	}
     	
     	if(!$weight){
-    		$Driver = $this->getDriver($productId);
-    		$params = $Driver->getParams($productId);
+    		$params = $this->getParams($productId);
     		$weight = $params['transportWeight'];
     	}
     	
@@ -1061,8 +1060,7 @@ class cat_Products extends embed_Manager {
     	}
     	
     	if(!$volume){
-    		$Driver = $this->getDriver($productId);
-    		$params = $Driver->getParams();
+    		$params = $this->getParams();
     		$volume = $params['transportVolume'];
     	}
     	
