@@ -106,11 +106,16 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 				
 				// Има стойност и е разпознато ид на параметър
 				if(cat_Params::fetch($paramId) && !empty($value)){
+					$dRec = (object)array('productId'  => $rec->id,
+										  'paramId'    => $paramId,
+										  'paramValue' => $value);
 					
 					// Записваме проудктовия параметър с въведената стойност
-					cat_products_Params::save((object)array('productId'  => $rec->id,
-															'paramId'    => $paramId,
-															'paramValue' => $value));
+					if(!cls::get('cat_products_Params')->isUnique($dRec, $fields, $exRec)){
+						$dRec->id = $exRec->id;
+					}
+					
+					cat_products_Params::save($dRec);
 				}
 			}
 		}
