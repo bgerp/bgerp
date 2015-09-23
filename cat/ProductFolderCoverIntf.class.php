@@ -27,11 +27,24 @@ class cat_ProductFolderCoverIntf extends doc_FolderIntf
 	/**
      * Връща мета дефолт мета данните на папката
      * 
-     * @param int $id - ид на спецификация папка
+     * @param int $id - ид на корицата
      * @return array $meta - масив с дефолт мета данни
      */
     public function getDefaultMeta($id)
     {
     	return $this->class->getDefaultMeta($id);
+    }
+    
+    
+    /**
+     * Връща мета дефолт параметрите, които да се добавят във формата на
+     * универсален артикул, създаден в папката на корицата
+     *
+     * @param int $id - ид на корицата
+     * @return array $params - масив с дефолтни параметри
+     */
+    public function getDefaultProductParams($id)
+    {
+    	return $this->class->getDefaultProductParams($id);
     }
 }

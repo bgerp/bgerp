@@ -315,4 +315,20 @@ class cat_Categories extends core_Master
     	// Връщаме намерения код
     	return $code;
     }
+    
+    
+    /**
+     * Връща мета дефолт параметрите, които да се добавят във формата на
+     * универсален артикул, създаден в папката на корицата
+     *
+     * @param int $id - ид на корицата
+     * @return array $params - масив с дефолтни параметри
+     */
+    public function getDefaultProductParams($id)
+    {
+    	$rec = $this->fetchRec($id);
+    	$params = keylist::toArray($rec->params);
+    	
+    	return $params;
+    }
 }
