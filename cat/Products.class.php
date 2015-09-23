@@ -997,32 +997,21 @@ class cat_Products extends embed_Manager {
     
     
     /**
-     * Връща параметрите на артикула
-     * @param mixed $id - ид или запис на артикул
-     * 
-     * @return array $res - параметрите на артикула
-     * 					['weight']          -  Тегло
-     * 					['volume']          -  Обем 
-     * 					['thickness']       -  Дебелина
-     * 					['length']          -  Дължина
-     * 					['height']          -  Височина
-     * 					['tolerance']       -  Толеранс
-     * 					['transportWeight'] -  Транспортно тегло
-     * 					['transportVolume'] -  Транспортен обем
-     * 					['term']            -  Срок
+     * Връща стойността на параметъра с това име
+     *
+     * @param string $id   - ид на записа
+     * @param string $name - име на параметъра
+     * @return mixed - стойност или FALSE ако няма
      */
-    public function getParams($id)
+    public static function getParamValue($id, $name)
     {
-    	$Driver = $this->getDriver($id);
-    	$rec = $this->fetchRec($id);
-    	
-    	//@TODO да е getParamValue
-    	$res = array();
-    	foreach (array('weight', 'width', 'volume', 'thickness', 'length', 'height', 'tolerance', 'transportWeight', 'transportVolume', 'term') as $p){
-    		$res[$p] = $Driver->getParamValue($p, $rec->id);
+    	// Ако има драйвър, питаме него за стойността
+    	if($Driver = static::getDriver($id)){
+    		return $Driver->getParamValue($id, $name);
     	}
     	
-    	return $res;
+    	// Ако няма връщаме FALSE
+    	return FALSE;
     }
     
     
@@ -1036,14 +1025,14 @@ class cat_Products extends embed_Manager {
     public function getWeight($productId, $packagingId = NULL)
     {
     	$weight = 0;
-    	if($packagingId){
-    		$pack = cat_products_Packagings::fetch("#productId = {$productId} AND #packagingId = {$packagingId}");
-    		$weight = $pack->netWeight + $pack->tareWeight;
+    	if(isset($packagingId)){
+    		if(cat_products_Packagings::getPack($productId, $packagingId)){
+    			$weight = $pack->netWeight + $pack->tareWeight;
+    		}
     	}
     	
     	if(!$weight){
-    		$params = $this->getParams($productId);
-    		$weight = $params['transportWeight'];
+    		$weight = $this->getParamValue($productId, 'transportWeight');
     	}
     	
     	return $weight;
@@ -1060,14 +1049,14 @@ class cat_Products extends embed_Manager {
     public function getVolume($productId, $packagingId = NULL)
     {
     	$volume = 0;
-    	if($packagingId){
-    		$pack = cat_products_Packagings::fetch("#productId = {$productId} AND #packagingId = {$packagingId}");
-    		$volume = $pack->sizeWidth * $pack->sizeHeight * $pack->sizeDepth;
+    	if(isset($packagingId)){
+    		if(cat_products_Packagings::getPack($productId, $packagingId)){
+    			$volume = $pack->sizeWidth * $pack->sizeHeight * $pack->sizeDepth;
+    		}
     	}
     	
     	if(!$volume){
-    		$params = $this->getParams();
-    		$volume = $params['transportVolume'];
+    		$volume = $this->getParamValue($productId, 'transportVolume');
     	}
     	
     	return $volume;

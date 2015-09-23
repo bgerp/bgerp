@@ -290,16 +290,16 @@ class sales_QuotationsDetails extends doc_Detail {
         }
     
     	if(isset($rec->productId)){
-    		$params = $ProductManager->getParams($rec->productId);
-    		
-    		if(!empty($params['tolerance'])){
+    		$tolerance = cat_Products::getParamValue($rec->productId, 'tolerance');
+    		if(!empty($tolerance)){
     			$form->setField('tolerance', 'input');
-    			$form->setDefault('tolerance', $params['tolerance']);
+    			$form->setDefault('tolerance', $tolerance);
     		}
     		
-    		if(!empty($params['term'])){
+    		$term = cat_Products::getParamValue($rec->productId, 'term');
+    		if(!empty($term)){
     			$form->setField('term', 'input');
-    			$form->setDefault('term', $params['term']);
+    			$form->setDefault('term', $term);
     		}
     	}
     }

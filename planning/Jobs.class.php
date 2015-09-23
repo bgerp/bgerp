@@ -321,9 +321,8 @@ class planning_Jobs extends core_Master
     		}
     		
     		// Колко е еденичното тегло
-    		$params = cls::get('cat_Products')->getParams($rec->productId);
-    		if(isset($params['weight'])){
-    			$rec->weight = $params['weight'] * $rec->quantity;
+    		if($weight = cat_Products::getParamValue($rec->productId, 'weight')){
+    			$rec->weight = $weight * $rec->quantity;
     		} else {
     			$rec->weight = NULL;
     		}

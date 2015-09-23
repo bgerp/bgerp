@@ -199,15 +199,14 @@ class sales_SalesDetails extends deals_DealDetail
     	
     	if(isset($rec->productId)){
     		
-    		$params = cls::get($rec->classId)->getParams($rec->productId);
-    		if(!empty($params['term'])){
-    			
+    		$term = cat_Products::getParamValue($rec->productId, 'term');
+    		if(!empty($term)){
     			$form->setField('term', 'input');
     			if(empty($rec->id)){
-    				$form->setDefault('term', $params['term']);
+    				$form->setDefault('term', $term);
     			}
     			
-    			$termVerbal = $mvc->getFieldType('term')->toVerbal($params['term']);
+    			$termVerbal = $mvc->getFieldType('term')->toVerbal($term);
     			$form->setSuggestions('term', array('' => '', $termVerbal => $termVerbal));
     		}
     	}

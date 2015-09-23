@@ -197,14 +197,12 @@ abstract class deals_DealDetail extends doc_Detail
         }
         
         if($rec->productId){
-        	$params = cls::get($rec->classId)->getParams($rec->productId);
-        	
-        	// Показваме полето за толеранс ако в избрания артикул има такъв параметър
-        	if(!empty($params['tolerance'])){
-        		$percentVerbal = str_replace('&nbsp;', ' ', $mvc->getFieldType('tolerance')->toVerbal($params['tolerance']));
+        	$tolerance = cat_Products::getParamValue($rec->productId, 'tolerance');
+        	if(!empty($tolerance)){
+        		$percentVerbal = str_replace('&nbsp;', ' ', $mvc->getFieldType('tolerance')->toVerbal($tolerance));
         		$data->form->setField('tolerance', 'input');
         		if(empty($rec->id)){
-        			$data->form->setDefault('tolerance', $params['tolerance']);
+        			$data->form->setDefault('tolerance', $tolerance);
         		}
         		$data->form->setSuggestions('tolerance', array('' => '', $percentVerbal => $percentVerbal));
         	}
