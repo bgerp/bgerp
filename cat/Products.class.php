@@ -1025,10 +1025,8 @@ class cat_Products extends embed_Manager {
     public function getWeight($productId, $packagingId = NULL)
     {
     	$weight = 0;
-    	if(isset($packagingId)){
-    		if(cat_products_Packagings::getPack($productId, $packagingId)){
-    			$weight = $pack->netWeight + $pack->tareWeight;
-    		}
+    	if(cat_products_Packagings::getPack($productId, $packagingId)){
+    		$weight = $pack->netWeight + $pack->tareWeight;
     	}
     	
     	if(!$weight){
@@ -1049,10 +1047,8 @@ class cat_Products extends embed_Manager {
     public function getVolume($productId, $packagingId = NULL)
     {
     	$volume = 0;
-    	if(isset($packagingId)){
-    		if(cat_products_Packagings::getPack($productId, $packagingId)){
-    			$volume = $pack->sizeWidth * $pack->sizeHeight * $pack->sizeDepth;
-    		}
+    	if(cat_products_Packagings::getPack($productId, $packagingId)){
+    		$volume = $pack->sizeWidth * $pack->sizeHeight * $pack->sizeDepth;
     	}
     	
     	if(!$volume){
