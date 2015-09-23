@@ -269,7 +269,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	{
 		if(!isset($measureId)){
 				
-			// Ако не е подадена мярка, връща дефолтната за универ
+			// Ако не е подадена мярка, връща дефолтната за универсалния артикул
 			return core_Packs::getConfigValue('cat', 'CAT_DEFAULT_MEASURE_ID');
 		}
 	
