@@ -1915,6 +1915,9 @@ ul.history {
 		&.used b {
 			background-color: #F99;
 		}
+		&.act b {
+            background-color: #aaa;
+        }
 	}
 	.detailed b {
 		background-color: #ccc;
