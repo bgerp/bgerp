@@ -68,19 +68,15 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		
 		if($form->rec->folderId && empty($form->rec->id)){
 			$cover = doc_Folders::getCover($form->rec->folderId);
-			if($cover->getInstance() instanceof cat_Categories){
-				$params = $cover->fetchField('params');
-				$params = keylist::toArray($params);
-				
-				// Всеки дефолтен параметър, добавяме го като поле във формата за по лесно добавяне
-				// Въведените стойностти след запис ще се запишат в детайла на продуктовите параметри
-				if(count($params)){
-					foreach ($params as $id){
-						$paramRec = cat_Params::fetch($id);
-						$form->FLD("paramcat{$id}", 'double', "caption=Параметри|*->{$paramRec->name},formOrder=100000002,categoryParams");
-						$form->setFieldType("paramcat{$id}", cat_Params::getParamTypeClass($id, 'cat_Params'));
-					}
-				}
+			
+			// Всеки дефолтен параметър, добавяме го като поле във формата за по лесно добавяне
+			// Въведените стойностти след запис ще се запишат в детайла на продуктовите параметри
+			$defaultParams = $cover->getDefaultProductParams();
+			
+			foreach ($defaultParams as $id){
+				$paramRec = cat_Params::fetch($id);
+				$form->FLD("paramcat{$id}", 'double', "caption=Параметри|*->{$paramRec->name},formOrder=100000002,categoryParams");
+				$form->setFieldType("paramcat{$id}", cat_Params::getParamTypeClass($id, 'cat_Params'));
 			}
 		}
 	}
