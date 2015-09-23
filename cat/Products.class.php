@@ -175,6 +175,12 @@ class cat_Products extends embed_Manager {
     
     
     /**
+     * Икона за еденичен изглед
+     */
+    public $singleIcon = 'img/16/wooden-box.png';
+    
+    
+    /**
      * Кой има достъп до единичния изглед
      */
     public $canSingle = 'cat,ceo,sales,purchase';
