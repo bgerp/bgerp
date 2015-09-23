@@ -98,7 +98,7 @@ class cat_products_Packagings extends cat_products_Detail
     		
     		if($baseMeasureId == $rec->packagingId){
     			if($rec->quantity != 1){
-    				$form->setError('quantity', 'Количеството не може да е различно от еденица за избраната мярка/опаковка');
+    				$form->setError('quantity', 'Количеството не може да е различно от единица за избраната мярка/опаковка');
     			}
     		}
     		
