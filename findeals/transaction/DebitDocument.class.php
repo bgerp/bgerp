@@ -60,7 +60,6 @@ class findeals_transaction_DebitDocument extends acc_DocumentTransactionSource
      */
     private function getEntry($rec, $origin, $reverse = FALSE)
     {
-    	$dealInfo = $origin->getAggregateDealInfo();
     	$amount = $rec->rate * $rec->amount;
     	
     	// Ако е обратна транзакцията, сумите и к-та са с минус
@@ -72,7 +71,7 @@ class findeals_transaction_DebitDocument extends acc_DocumentTransactionSource
     	$debitArr = array($rec->debitAccount,
     			array($dealRec->contragentClassId, $dealRec->contragentId),
     			array($dealRec->dealManId, $rec->dealId),
-    			array('currency_Currencies', currency_Currencies::getIdByCode($dealInfo->get('currency'))),
+    			array('currency_Currencies', currency_Currencies::getIdByCode($origin->fetchField('currencyId'))),
     			'quantity' => $sign * $amount / $dealRec->currencyRate);
     	
     	// Кредитираме разчетната сметка на сделката, начало на нишка
