@@ -26,12 +26,6 @@ abstract class cat_ProductDriver extends embed_ProtoDriver
 	 * Интерфейси които имплементира
 	 */
 	public $interfaces = 'cat_ProductDriverIntf';
-	
-	
-	/**
-	 * Мениджъра в който в вграден драйвера
-	 */
-	protected $Embedder;
 
 	
 	/**
@@ -52,9 +46,11 @@ abstract class cat_ProductDriver extends embed_ProtoDriver
 	 * Преди показване на форма за добавяне/промяна.
 	 *
 	 * @param cat_GeneralProductDriver $Driver
+	 * @param stdClass $res
 	 * @param stdClass $data
+	 * @param embed_Manager $Embedder
 	 */
-	public static function on_AfterPrepareEditForm($Driver, &$data)
+	public static function on_AfterPrepareEditForm($Driver, &$res, &$data,embed_Manager $Embedder)
 	{
 		$form = &$data->form;
 		

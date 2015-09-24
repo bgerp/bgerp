@@ -54,13 +54,15 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	 * Преди показване на форма за добавяне/промяна.
 	 *
 	 * @param cat_GeneralProductDriver $Driver
+	 * @param stdClass $res
 	 * @param stdClass $data
+	 * @param embed_Manager $Embedder
 	 */
-	public static function on_AfterPrepareEditForm($Driver, &$data)
+	public static function on_AfterPrepareEditForm($Driver, &$res, &$data,embed_Manager $Embedder)
 	{
 		$form = &$data->form;
 		
-		if(cls::haveInterface('marketing_InquiryEmbedderIntf', $Driver->Embedder)){
+		if(cls::haveInterface('marketing_InquiryEmbedderIntf', $Embedder)){
 			$form->setField('photo', 'input=none');
 			$form->setDefault('measureId', $Driver->getDefaultUom($data->driverParams['measureId']));
 			$form->setField('measureId', 'display=hidden');
@@ -68,15 +70,17 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		
 		if($form->rec->folderId && empty($form->rec->id)){
 			$cover = doc_Folders::getCover($form->rec->folderId);
-			
-			// Всеки дефолтен параметър, добавяме го като поле във формата за по лесно добавяне
-			// Въведените стойностти след запис ще се запишат в детайла на продуктовите параметри
-			$defaultParams = $cover->getDefaultProductParams();
-			
-			foreach ($defaultParams as $id){
-				$paramRec = cat_Params::fetch($id);
-				$form->FLD("paramcat{$id}", 'double', "caption=Параметри|*->{$paramRec->name},formOrder=100000002,categoryParams");
-				$form->setFieldType("paramcat{$id}", cat_Params::getParamTypeClass($id, 'cat_Params'));
+			if($cover->haveInterface('cat_ProductFolderCoverIntf')){
+				
+				// Всеки дефолтен параметър, добавяме го като поле във формата за по лесно добавяне
+				// Въведените стойностти след запис ще се запишат в детайла на продуктовите параметри
+				$defaultParams = $cover->getDefaultProductParams();
+					
+				foreach ($defaultParams as $id){
+					$paramRec = cat_Params::fetch($id);
+					$form->FLD("paramcat{$id}", 'double', "caption=Параметри|*->{$paramRec->name},formOrder=100000002,categoryParams");
+					$form->setFieldType("paramcat{$id}", cat_Params::getParamTypeClass($id, 'cat_Params'));
+				}
 			}
 		}
 	}
@@ -88,8 +92,9 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	 * @param cat_GeneralProductDriver $Driver
 	 * @param int $id
 	 * @param stdClass $rec
+	 * @param embed_Manager $Embedder
 	 */
-	public static function on_AfterSave($Driver, &$id, $rec)
+	public static function on_AfterSave($Driver, &$id, $rec,embed_Manager $Embedder)
 	{
 		$arr = (array)$rec;
 		
@@ -131,9 +136,11 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	 * Подготовка за рендиране на единичния изглед
 	 *
 	 * @param cat_GeneralProductDriver $Driver
+	 * @param stdClass $res
 	 * @param stdClass $data
+	 * @param embed_Manager $Embedder
 	 */
-	public static function on_AfterPrepareSingle($Driver, $data)
+	public static function on_AfterPrepareSingle($Driver, &$res, &$data,embed_Manager $Embedder)
 	{
 		if($data->rec->photo){
 			$size = array(280, 150);
@@ -145,7 +152,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		$data->masterId = $data->rec->id;
 		$data->masterClassId = cat_Products::getClassId();
 		
-		if(!cls::haveInterface('marketing_InquiryEmbedderIntf', $Driver->Embedder)){
+		if(!cls::haveInterface('marketing_InquiryEmbedderIntf', $Embedder)){
 			cat_products_Params::prepareParams($data);
 		}
 		
@@ -159,15 +166,16 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	 * @param cat_GeneralProductDriver $Driver
 	 * @param core_ET $tpl
 	 * @param stdClass $data
+	 * @param embed_Manager $Embedder
 	 */
-	public static function on_AfterRenderSingle($Driver, &$tpl, $data)
+	public static function on_AfterRenderSingle($Driver, &$tpl, $data, embed_Manager $Embedder)
 	{
 		// Ако не е зададен шаблон, взимаме дефолтния
 		$nTpl = (empty($data->tpl)) ? getTplFromFile('cat/tpl/SingleLayoutBaseDriver.shtml') : $data->tpl;
 		$nTpl->placeObject($data->row);
 	
 		// Ако ембедъра няма интерфейса за артикул, то към него немогат да се променят параметрите
-		if(!cls::haveInterface('cat_ProductAccRegIntf', $Driver->Embedder)){
+		if(!cls::haveInterface('cat_ProductAccRegIntf', $Embedder)){
 			$data->noChange = TRUE;
 		}
 		
@@ -220,6 +228,9 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	
 	/**
 	 * Рендира данните за показване на артикула
+	 * 
+	 * @param stdClass $data
+	 * @return core_ET $tpl
 	 */
 	public function renderProductDescription($data)
 	{
@@ -245,8 +256,9 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	 * @param cat_GeneralProductDriver $Driver
 	 * @param stdClass $res
 	 * @param stdClass $rec
+	 * @param embed_Manager $Embedder
 	 */
-	public static function on_AfterGetSearchKeywords($Driver, &$res, $rec)
+	public static function on_AfterGetSearchKeywords($Driver, &$res, $rec,embed_Manager $Embedder)
 	{
 		$RichText = cls::get('type_Richtext');
 		$info = strip_tags($RichText->toVerbal($rec->info));

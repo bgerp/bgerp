@@ -67,8 +67,9 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 	 * @param tasks_BaseDriver $Driver
 	 * @param core_ET $tpl
 	 * @param stdClass $data
+	 * @param embed_Manager $Embedder
 	 */
-	protected static function on_AfterRenderSingleLayout($Driver, &$tpl, $data)
+	protected static function on_AfterRenderSingleLayout($Driver, &$tpl, $data, embed_Manager $Embedder)
 	{
 		$tpl = getTplFromFile($Driver->singleLayoutFile);
 	}
@@ -175,8 +176,9 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
      * @param tasks_BaseDriver $Driver
      * @param stdClass $res
      * @param stdClass $rec
+     * @param embed_Manager $Embedder
      */
-    public static function on_AfterGetSearchKeywords($Driver, &$res, $rec)
+    public static function on_AfterGetSearchKeywords($Driver, &$res, $rec, embed_Manager $Embedder)
     {
     	if(empty($rec->id)) return;
     	
