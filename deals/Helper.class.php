@@ -106,8 +106,7 @@ abstract class deals_Helper
 		foreach($recs as &$rec){
 			$vat = 0;
 			if ($masterRec->$map['chargeVat'] == 'yes' || $masterRec->$map['chargeVat'] == 'separate') {
-				$ProductManager = cls::get($rec->$map['classId']);
-				$vat = $ProductManager->getVat($rec->$map['productId'], $masterRec->$map['valior']);
+				$vat = cat_Products::getVat($rec->$map['productId'], $masterRec->$map['valior']);
 			}
 			$vats[$vat] = $vat;
 			

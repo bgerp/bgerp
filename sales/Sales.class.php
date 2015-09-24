@@ -447,14 +447,14 @@ class sales_Sales extends deals_DealMaster
     	while($dRec = $dQuery->fetch()){
     		$nRec = new stdClass();
     		$nRec->id = $dRec->productId;
-    		$nRec->managerId = $dRec->classId;
+    		$nRec->managerId = cat_Products::getClassId();
     		$nRec->quantity = $dRec->packQuantity;
     		if($dRec->discount){
     			$nRec->discount = $dRec->discount;
     		}
-    		$pInfo = cls::get($dRec->classId)->getProductInfo($dRec->productId);
+    		$pInfo = cat_Products::getProductInfo($dRec->productId);
     		$nRec->measure = ($dRec->packagingId) ? cat_UoM::getTitleById($dRec->packagingId) : cat_UoM::getShortName($pInfo->productRec->measureId);
-    		$nRec->vat = cls::get($dRec->classId)->getVat($dRec->productId, $rec->valior);
+    		$nRec->vat = cat_Products::getVat($dRec->productId, $rec->valior);
     		if($rec->chargeVat != 'yes' && $rec->chargeVat != 'separate'){
     			$nRec->vat = 0;
     		}
@@ -550,7 +550,6 @@ class sales_Sales extends deals_DealMaster
         foreach ($detailRecs as $dRec) {
             $p = new bgerp_iface_DealProduct();
             
-            $p->classId           = $dRec->classId;
             $p->productId         = $dRec->productId;
             $p->packagingId       = $dRec->packagingId;
             $p->discount          = $dRec->discount;
@@ -560,14 +559,13 @@ class sales_Sales extends deals_DealMaster
             $p->price             = $dRec->price;
             $p->notes			  = $dRec->notes;
             
-            $ProductMan = cls::get($p->classId);
-            $p->weight  = $ProductMan->getWeight($p->productId, $p->packagingId);
-            $p->volume  = $ProductMan->getVolume($p->productId, $p->packagingId);
+            $p->weight  = cat_Products::getWeight($p->productId, $p->packagingId);
+            $p->volume  = cat_Products::getVolume($p->productId, $p->packagingId);
             
             $result->push('products', $p);
             
             $push = TRUE;
-            $index = $p->classId . "|" . $p->productId;
+            $index = $p->productId;
             $shipped = $result->get('shippedPacks');
             	
             $inPack = $p->quantityInPack;
@@ -729,7 +727,7 @@ class sales_Sales extends deals_DealMaster
     		// Подготвяме информацията за наличните задания към нестандартните (частните) артикули в продажбата
     		$dQuery = sales_SalesDetails::getQuery();
     		$dQuery->where("#saleId = {$data->rec->id}");
-    		$dQuery->show('classId,productId,packagingId,quantity,tolerance');
+    		$dQuery->show('productId,packagingId,quantity,tolerance');
     		
     		while($dRec = $dQuery->fetch()){
     			if($dRow = sales_SalesDetails::prepareJobInfo($dRec, $data->rec)){
@@ -807,8 +805,6 @@ class sales_Sales extends deals_DealMaster
     	} else {
     		return $tpl;
     	}
-   		
-    	
     }
   
     
