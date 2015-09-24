@@ -268,9 +268,11 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	public function getDefaultUom($measureId = NULL)
 	{
 		if(!isset($measureId)){
-				
+			$defMeasure = core_Packs::getConfigValue('cat', 'CAT_DEFAULT_MEASURE_ID');
+			$defMeasure = (!empty($defMeasure)) ? $defMeasure : NULL;
+			
 			// Ако не е подадена мярка, връща дефолтната за универсалния артикул
-			return core_Packs::getConfigValue('cat', 'CAT_DEFAULT_MEASURE_ID');
+			return $defMeasure;
 		}
 	
 		return $measureId;

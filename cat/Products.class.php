@@ -391,7 +391,7 @@ class cat_Products extends embed_Manager {
     	}
     	
     	// Задаваме позволените мерки като опция
-    	$form->setOptions('measureId', $measureOptions);
+    	$form->setOptions('measureId', array('' => '') + $measureOptions);
     	
     	// Ако има дефолтна мярка, избираме я
     	if(isset($defaultUomId)){
