@@ -411,7 +411,7 @@ abstract class deals_DealDetail extends doc_Detail
     		$price = deals_Helper::getPurePrice($row->price, cat_Products::getVat($pRec->productId), $masterRec->currencyRate, $masterRec->chargeVat);
     	}
     	
-    	return $Master::addRow($masterId, 'cat_Products', $pRec->productId, $row->quantity, $price, $pRec->packagingId);
+    	return $Master::addRow($masterId, $pRec->productId, $row->quantity, $price, $pRec->packagingId);
     }
     
     
