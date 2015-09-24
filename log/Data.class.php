@@ -16,6 +16,12 @@ class log_Data extends core_Manager
     
     
     /**
+     * Знак, който ще се замества с линк към обекта, ако съществува
+     */
+    protected static $objReplaceInAct = '#';
+    
+    
+    /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
     public $oldClassName = 'logs_Data';
@@ -214,6 +220,93 @@ class log_Data extends core_Manager
     
     
     /**
+     * Връща броя на записите за съответния обект
+     * 
+     * @param object|string $className
+     * @param integer $objectId
+     * 
+     * @return NULL|integer
+     */
+    public static function getObjectCnt($className, $objectId)
+    {
+        if (is_object($className)) {
+            $className = cls::getClassName($className);
+        }
+        
+        if (!$className || !$objectId || !(is_numeric($objectId))) return ;
+        
+        $classCrc = log_Classes::getClassCrc($className);
+        
+        $query = self::getQuery();
+        $query->where("#classCrc = {$classCrc}");
+        $query->where("#objectId = {$objectId}");
+        
+        return $query->count();
+    }
+    
+    
+    /**
+     * Връща всички записи за съответния обект
+     * 
+     * @param object|string $className
+     * @param integer $objectId
+     * @param core_Pager $pager
+     * 
+     * @return array|NULL
+     */
+    public static function getRecs($className, $objectId, $pager)
+    {
+        $resArr = array();
+        
+        if (is_object($className)) {
+            $className = cls::getClassName($className);
+        }
+        
+        if (!$className || !$objectId || !(is_numeric($objectId))) return ;
+        
+        $classCrc = log_Classes::getClassCrc($className);
+        
+        $query = self::getQuery();
+        $query->where("#classCrc = {$classCrc}");
+        $query->where("#objectId = {$objectId}");
+        
+        
+        $query->orderBy("time", "DESC");
+        $query->orderBy("id", "DESC");
+        
+        $pager->setLimit($query);
+        
+        $resArr = array();
+        
+        while($rec = $query->fetch()) {
+            $resArr[$rec->id] = $rec;
+        }
+        
+        return $resArr;
+    }
+    
+    
+    /**
+     * Връща вербалната стойност на масива
+     * 
+     * @param array $recsArr
+     * @param array $fieldsArr
+     * 
+     * @return array
+     */
+    public static function getRows($recsArr, $fieldsArr = array())
+    {
+        $rowsArr = array();
+        
+        foreach ((array)$recsArr as $key=>$rec) {
+            $rowsArr[$key] = self::recToVerbal($rec, $fieldsArr);
+        }
+        
+        return $rowsArr;
+    }
+    
+    
+    /**
      * При приключване на изпълнените на скрипта
      */
     public static function on_Shutdown($mvc)
@@ -268,24 +361,44 @@ class log_Data extends core_Manager
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    public static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fieldsArr = array())
     {
-        $row->brId = log_Browsers::getLinkFromId($rec->brId);
+        if (!$fieldsArr || $fieldsArr['brId']) {
+            $row->brId = log_Browsers::getLinkFromId($rec->brId);
+        }
         
-        if ($rec->time) {
+        if ($rec->time && (!$fieldsArr || $fieldsArr['actTime'])) {
             $time = dt::timestamp2Mysql($rec->time);
             $row->actTime = dt::mysql2verbal($time, 'smartTime');
         }
         
         $action = log_Actions::getActionFromCrc($rec->actionCrc);
+        if (!$fieldsArr || $fieldsArr['actionCrc']) {
+            $typeVarchar = cls::get('type_Varchar');
+            $row->actionCrc = str_replace(self::$objReplaceInAct, '', $action);
+            $row->actionCrc = $typeVarchar->toVerbal($row->actionCrc);
+        }
+        
         $className = log_Classes::getClassFromCrc($rec->classCrc);
+        if (!$fieldsArr || $fieldsArr['classCrc']) {
+            $typeClass = cls::get('type_Class');
+            $row->classCrc = $typeClass->toVerbal($className);
+        }
         
-        $row->text = self::prepareText($action, $className, $rec->objectId);
+        if (!$fieldsArr || $fieldsArr['text']) {
+            $row->text = self::prepareText($action, $className, $rec->objectId);
+            
+            // Добавяме линк към реферера
+            $refRec = log_Referer::getRefRec($rec->ipId, $rec->brId, $rec->time);
+            if ($refRec && log_Referer::haveRightFor('single', $refRec)) {
+                $row->text .= ht::createLinkRef("", array('log_Referer', 'single', $refRec->id), NULL, array('title' => tr('Реферер|*: ') . $refRec->ref));
+            }
+        }
         
-        // Добавяме линк към реферера
-        $refRec = log_Referer::getRefRec($rec->ipId, $rec->brId, $rec->time);
-        if ($refRec && log_Referer::haveRightFor('single', $refRec)) {
-            $row->text .= ht::createLinkRef("", array('log_Referer', 'single', $refRec->id), NULL, array('title' => tr('Реферер|*: ') . $refRec->ref));
+        if ($fieldsArr['userId']) {
+            if ($rec->userId && $rec->userId > 0) {
+                $row->userId = crm_Profiles::createLink($rec->userId);
+            }
         }
         
         $row->ROW_ATTR['class'] = "logs-type-{$rec->type}";
@@ -318,8 +431,8 @@ class log_Data extends core_Manager
         }
         
         if ($link) {
-            if (strpos($action, '#') !== FALSE) {
-                $action = str_replace('#', $link, $action);
+            if (strpos($action, self::$objReplaceInAct) !== FALSE) {
+                $action = str_replace(self::$objReplaceInAct, $link, $action);
             } else {
                 $action .= ': ' . $link;
             }

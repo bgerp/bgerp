@@ -65,6 +65,56 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 			$form->setDefault('measureId', $Driver->getDefaultUom($data->driverParams['measureId']));
 			$form->setField('measureId', 'display=hidden');
 		}
+		
+		if($form->rec->folderId && empty($form->rec->id)){
+			$cover = doc_Folders::getCover($form->rec->folderId);
+			
+			// Всеки дефолтен параметър, добавяме го като поле във формата за по лесно добавяне
+			// Въведените стойностти след запис ще се запишат в детайла на продуктовите параметри
+			$defaultParams = $cover->getDefaultProductParams();
+			
+			foreach ($defaultParams as $id){
+				$paramRec = cat_Params::fetch($id);
+				$form->FLD("paramcat{$id}", 'double', "caption=Параметри|*->{$paramRec->name},formOrder=100000002,categoryParams");
+				$form->setFieldType("paramcat{$id}", cat_Params::getParamTypeClass($id, 'cat_Params'));
+			}
+		}
+	}
+	
+	
+	/**
+	 * Извиква се след успешен запис в модела
+	 *
+	 * @param core_BaseClass $Driver - драйвер
+	 * @param int $id първичния ключ на направения запис
+	 * @param stdClass $rec всички полета, които току-що са били записани
+	 */
+	public static function on_AfterSave($Driver, &$id, $rec)
+	{
+		$arr = (array)$rec;
+		
+		// За всеко поле от записа 
+		foreach ($arr as $key => $value){
+			
+			// Ако името му съдържа ключова дума
+			if(strpos($key, 'paramcat') !== FALSE){
+				$paramId = substr($key, 8);
+				
+				// Има стойност и е разпознато ид на параметър
+				if(cat_Params::fetch($paramId) && !empty($value)){
+					$dRec = (object)array('productId'  => $rec->id,
+										  'paramId'    => $paramId,
+										  'paramValue' => $value);
+					
+					// Записваме проудктовия параметър с въведената стойност
+					if(!cls::get('cat_products_Params')->isUnique($dRec, $fields, $exRec)){
+						$dRec->id = $exRec->id;
+					}
+					
+					cat_products_Params::save($dRec);
+				}
+			}
+		}
 	}
 	
 	
@@ -131,11 +181,11 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	/**
 	 * Връща стойността на параметъра с това име
 	 * 
-	 * @param string $name - име на параметъра
 	 * @param string $id   - ид на записа
+	 * @param string $name - име на параметъра
 	 * @return mixed - стойност или FALSE ако няма
 	 */
-	public function getParamValue($name, $id)
+	public function getParamValue($id, $name)
 	{
 		return cat_products_Params::fetchParamValue($id, $name);
 	}
@@ -206,5 +256,23 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	public function getProductImage($rec)
 	{
 		return $rec->photo;
+	}
+	
+	
+	/**
+	 * Връща дефолтната основна мярка, специфична за технолога
+	 *
+	 * @param int $measureId - мярка
+	 * @return int - ид на мярката
+	 */
+	public function getDefaultUom($measureId = NULL)
+	{
+		if(!isset($measureId)){
+				
+			// Ако не е подадена мярка, връща дефолтната за универсалния артикул
+			return core_Packs::getConfigValue('cat', 'CAT_DEFAULT_MEASURE_ID');
+		}
+	
+		return $measureId;
 	}
 }

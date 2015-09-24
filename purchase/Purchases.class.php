@@ -9,7 +9,7 @@
  * @category  bgerp
  * @package   purchase
  * @author    Stefan Stefanov <stefan.bg@gmail.com> и Ivelin Dimov<ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2015 Experta OOD
  * @license   GPL 3
  * @since     v 0.1
  * @title     Покупки
@@ -262,6 +262,17 @@ class purchase_Purchases extends deals_DealMaster
         	$defCenter = hr_Departments::fetchField("#systemId = 'emptyCenter'", 'id');
         	$form->setDefault('activityCenterId', $defCenter);
         }
+    }
+    
+    
+    /**
+     * След преобразуване на записа в четим за хора вид
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+    	if(isset($rec->activityCenterId)){
+    		$row->activityCenterId = hr_Departments::getHyperlink($rec->activityCenterId, TRUE);
+    	}
     }
     
     

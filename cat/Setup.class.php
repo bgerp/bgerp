@@ -2,6 +2,12 @@
 
 
 /**
+ * Коя да е основната мярка на универсалните артикули
+ */
+defIfNot('CAT_DEFAULT_MEASURE_ID', '');
+
+
+/**
  * Колко от последно вложените ресурси да се показват в мастъра на рецептите
  */
 defIfNot('CAT_BOM_REMEMBERED_RESOURCES', 20);
@@ -115,6 +121,7 @@ class cat_Setup extends core_ProtoSetup
     		'CAT_BOM_REMEMBERED_RESOURCES' => array("int", 'caption=Колко от последно изпозлваните ресурси да се показват в рецептите->Брой'),
     		'CAT_DEFAULT_META_IN_CONTRAGENT_FOLDER' => array("set(canSell=Продаваем,canBuy=Купуваем,canStore=Складируем,canConvert=Вложим,fixedAsset=Дълготраен актив,canManifacture=Производим)", 'caption=Свойства по подразбиране в папка->На клиент,columns=2'),
     		'CAT_DEFAULT_META_IN_SUPPLIER_FOLDER' => array("set(canSell=Продаваем,canBuy=Купуваем,canStore=Складируем,canConvert=Вложим,fixedAsset=Дълготраен актив,canManifacture=Производим)", 'caption=Свойства по подразбиране в папка->На доставчик,columns=2'),
+    		'CAT_DEFAULT_MEASURE_ID' => array("key(mvc=cat_UoM,select=name,allowEmpty)", 'optionsFunc=cat_UoM::getUomOptions,caption=Основна мярка на универсалните артикули->Мярка'),
     );
 
     
@@ -148,7 +155,25 @@ class cat_Setup extends core_ProtoSetup
         return $html;
     }
     
-           
+
+    /**
+     * Начални данни
+     */
+    function loadSetupData()
+    {
+    	$res = parent::loadSetupData();
+    	
+    	// Ако няма посочени от потребителя сметки за синхронизация
+    	$defMeasureId = core_Packs::getConfigValue('cat', 'CAT_DEFAULT_MEASURE_ID');
+    	if(strlen($defMeasureId) === 0){
+    		core_Packs::setConfig('cat', array('CAT_DEFAULT_MEASURE_ID' => cat_UoM::fetchBySysId('pcs')->id));
+    		$res .= "<li style='color:green'>Дефолт основна мярка 'брой' за универсалните артикули</li>";
+    	}
+    	
+    	return $res;
+    }
+    
+    
     /**
      * Де-инсталиране на пакета
      */

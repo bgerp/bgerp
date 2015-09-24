@@ -98,7 +98,7 @@ class cat_products_Packagings extends cat_products_Detail
     		
     		if($baseMeasureId == $rec->packagingId){
     			if($rec->quantity != 1){
-    				$form->setError('quantity', 'Количеството не може да е различно от еденица за избраната мярка/опаковка');
+    				$form->setError('quantity', 'Количеството не може да е различно от единица за избраната мярка/опаковка');
     			}
     		}
     		
@@ -349,7 +349,7 @@ class cat_products_Packagings extends cat_products_Detail
         $wrapTpl->append($title, 'TITLE');
         
         if ($data->addUrl) {
-        	$addBtn = ht::createLink("<img src=" . sbf('img/16/add.png') . " style='vertical-align: middle; margin-left:5px;'>", $data->addUrl, FALSE, 'title=Добавяне на нова опаковка');
+        	$addBtn = ht::createLink("<img src=" . sbf('img/16/add.png') . " style='vertical-align: middle; margin-left:5px;'>", $data->addUrl, FALSE, 'title=Добавяне на нова опаковка/мярка');
         	$tpl->append($addBtn, 'TITLE');
         }
         

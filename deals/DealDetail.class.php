@@ -197,14 +197,12 @@ abstract class deals_DealDetail extends doc_Detail
         }
         
         if($rec->productId){
-        	$params = cls::get($rec->classId)->getParams($rec->productId);
-        	
-        	// Показваме полето за толеранс ако в избрания артикул има такъв параметър
-        	if(!empty($params['tolerance'])){
-        		$percentVerbal = str_replace('&nbsp;', ' ', $mvc->getFieldType('tolerance')->toVerbal($params['tolerance']));
+        	$tolerance = cat_Products::getParamValue($rec->productId, 'tolerance');
+        	if(!empty($tolerance)){
+        		$percentVerbal = str_replace('&nbsp;', ' ', $mvc->getFieldType('tolerance')->toVerbal($tolerance));
         		$data->form->setField('tolerance', 'input');
         		if(empty($rec->id)){
-        			$data->form->setDefault('tolerance', $params['tolerance']);
+        			$data->form->setDefault('tolerance', $tolerance);
         		}
         		$data->form->setSuggestions('tolerance', array('' => '', $percentVerbal => $percentVerbal));
         	}
@@ -283,7 +281,7 @@ abstract class deals_DealDetail extends doc_Detail
     		$rec->quantity = $rec->packQuantity * $rec->quantityInPack;
     	
     		if (!isset($rec->packPrice)) {
-    			$Policy = (isset($mvc->Policy)) ? $mvc->Policy : cls::get($rec->classId)->getPolicy();
+    			$Policy = (isset($mvc->Policy)) ? $mvc->Policy : cls::get('price_ListToCustomers');
     			$policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->classId, $rec->packagingId, $rec->packQuantity, $priceAtDate, $masterRec->currencyRate, $masterRec->chargeVat);
     				 
     			if (empty($policyInfo->price) && empty($pRec)) {

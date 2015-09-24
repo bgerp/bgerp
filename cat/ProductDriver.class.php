@@ -182,18 +182,13 @@ abstract class cat_ProductDriver extends core_BaseClass
 	
 	/**
 	 * Връща дефолтната основна мярка, специфична за технолога
-	 * 
+	 *
 	 * @param int $measureId - мярка
-	 * @return int - ид на мярката
+	 * @return FALSE|int - ид на мярката
 	 */
 	public function getDefaultUom($measureId = NULL)
 	{
-		if(!isset($measureId)){
-			
-			return cat_UoM::fetchBySysId('pcs')->id;
-		}
-		
-		return $measureId;
+		return FALSE;
 	}
 	
 	

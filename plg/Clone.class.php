@@ -99,6 +99,9 @@ class plg_Clone extends core_Plugin
                     $redirectUrl = array($mvc, 'list');
                 }
                 
+                $mvc->logInfo('Клониране', $rec->id);
+                $mvc->logInfo('Създаване с клониране', $nRec->id);
+                
                 // За да се редиректне към съответната страница
                 $res = new Redirect($redirectUrl);
                 

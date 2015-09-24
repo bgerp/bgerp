@@ -62,7 +62,7 @@ class store_Products extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, tools=Пулт, name, quantity, quantityNotOnPallets, quantityOnPallets, measureId=Мярка, makePallets, state';
+    public $listFields = 'id, tools=Пулт, productId=Наименование, quantity, quantityNotOnPallets, quantityOnPallets, measureId=Мярка, makePallets, state';
     
     
     /**
@@ -74,7 +74,7 @@ class store_Products extends core_Manager
     /**
      * Полета за търсене
      */
-    public $searchField = 'name';
+    public $searchField = 'productId';
     
     
     /**
@@ -94,37 +94,15 @@ class store_Products extends core_Manager
      */
     function description()
     {
-        $this->FLD('productId', 'int', 'caption=Име,remember=info');
-        $this->FLD('classId', 'class(interface=cat_ProductAccRegIntf, select=title)', 'caption=Мениджър,silent,input=hidden');
+        $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Име,remember=info');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад');
         $this->FLD('quantity', 'double', 'caption=Количество->Общо');
         $this->FNC('quantityNotOnPallets', 'double', 'caption=Количество->Непалетирано,input=hidden');
         $this->FLD('quantityOnPallets', 'double', 'caption=Количество->На палети,input=hidden');
         $this->FNC('makePallets', 'varchar(255)', 'caption=Палетиране');
-        $this->FNC('name', 'varchar(255)', 'caption=Продукт');
         $this->FLD('state', 'enum(active=Активирано,closed=Изчерпано)', 'caption=Състояние,input=none');
         
-        $this->setDbUnique('productId, classId, storeId');
-    }
-    
-    
-    /**
-     * Изчисляване на заглавието спрямо продуктовия мениджър
-     */
-    public static function on_CalcName(core_Mvc $mvc, $rec)
-    {
-    	if(empty($rec->productId) || empty($rec->classId) || !cls::load($rec->classId, TRUE)){
-    		return;
-    	}
-    	
-    	try{
-    	    expect(cls::load($rec->classId, TRUE));
-	        $name = cls::get($rec->classId)->getTitleById($rec->productId);
-    	} catch(core_exception_Expect $e){
-    		$name = tr('Проблем при показването');
-    	}
-    	
-    	return $rec->name = $name;
+        $this->setDbUnique('productId, storeId');
     }
     
     
@@ -152,17 +130,8 @@ class store_Products extends core_Manager
         // Взема селектирания склад
         $selectedStoreName = store_Stores::getTitleById(store_Stores::getCurrent());
         
-        $data->title = "|Продукти в СКЛАД|* \"{$selectedStoreName}\"";
+        $data->title = "|Продукти в склад|* \"{$selectedStoreName}\"";
     }
-    
-    
-    /**
-     * Добавя ключови думи за пълнотекстово търсене
-     */
-    public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
-	{
-		$res = " " . plg_Search::normalizeText($rec->name);
-	}
     
 
     /**
@@ -182,13 +151,7 @@ class store_Products extends core_Manager
 	    
 	    foreach($rows as $id => &$row){
 	       $rec = &$recs[$id];
-	        	
-	        if(cls::load($rec->classId, TRUE)){
-	        	$ProductMan = cls::get($rec->classId);
-	        	$row->name = $ProductMan::getHyperLink($rec->productId, TRUE);
-	        } else {
-	        	$row->name = tr("Проблем с показването");
-	        }
+	       $row->productId = cat_Products::getHyperlink($rec->productId, TRUE);
 	        	
 	        try{
 	        	$pInfo = cat_Products::getProductInfo($rec->productId);
@@ -233,11 +196,11 @@ class store_Products extends core_Manager
     public static function sync($all)
     {
     	$query = static::getQuery();
-    	$query->show('productId,classId,storeId,quantity,quantityOnPallets,quantityNotOnPallets,makePallets,state');
+    	$query->show('productId,storeId,quantity,quantityOnPallets,quantityNotOnPallets,makePallets,state');
     	$oldRecs = $query->fetchAll();
     	$self = cls::get(get_called_class());
     	
-    	$arrRes = arr::syncArrays($all, $oldRecs, "productId,classId,storeId", "quantity");
+    	$arrRes = arr::syncArrays($all, $oldRecs, "productId,storeId", "quantity");
     	
     	$self->saveArray($arrRes['insert']);
     	$self->saveArray($arrRes['update']);
@@ -257,7 +220,7 @@ class store_Products extends core_Manager
     {
     	// Всички записи, които са останали но не идват от баланса
     	$query = static::getQuery();
-    	$query->show('productId,classId,storeId,quantity,quantityOnPallets,quantityNotOnPallets,makePallets,state');
+    	$query->show('productId,storeId,quantity,quantityOnPallets,quantityNotOnPallets,makePallets,state');
     	
     	// Зануляваме к-та само на тези продукти, които още не са занулени
     	$query->where("#state = 'active'");
@@ -301,7 +264,7 @@ class store_Products extends core_Manager
 	    $pQuery->where("#storeId = {$storeId}");
 	    
 	    while($pRec = $pQuery->fetch()){
-	        $products[$pRec->id] = $pRec->name;
+	        $products[$pRec->id] = cat_Products::getTitleById($pRec->productId, FALSE);
 	    }
 	    
 	    return $products;

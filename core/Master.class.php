@@ -115,8 +115,13 @@ class core_Master extends core_Manager
         $tpl = $this->renderWrapping($tpl, $data);
         
         if (!Request::get('ajax_mode')) {
-            // Записваме, че потребителя е разглеждал този списък
-            $this->logInfo('Виждане', $id);
+            if (Mode::is('printing')) {
+                $this->logInfo('Отпечатване', $id);
+            } elseif(Mode::is('pdf')) {
+                $this->logInfo('PDF', $id);
+            } else {
+                $this->logInfo('Виждане', $id);
+            }
         }
         
         return $tpl;

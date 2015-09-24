@@ -1680,6 +1680,8 @@ ul.history {
       background-color: #005500; }
     ul.history .action.used b {
       background-color: #ff9999; }
+    ul.history .action.act b {
+      background-color: #aaaaaa; }
   ul.history .detailed b {
     background-color: #cccccc; }
   ul.history a {

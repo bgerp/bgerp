@@ -173,7 +173,7 @@ class sales_SalesDetails extends deals_DealDetail
     			
     		if($storeId = $data->masterData->rec->shipmentStoreId){
     			if(isset($pInfo->meta['canStore'])){
-    				$quantityInStore = store_Products::fetchField("#productId = {$rec->productId} AND #classId = {$rec->classId} AND #storeId = {$storeId}", 'quantity');
+    				$quantityInStore = store_Products::fetchField("#productId = {$rec->productId} AND #storeId = {$storeId}", 'quantity');
     				$diff = ($data->masterData->rec->state == 'active') ? $quantityInStore : $quantityInStore - $rec->quantity;
     					
     				if($diff < 0){
@@ -199,15 +199,14 @@ class sales_SalesDetails extends deals_DealDetail
     	
     	if(isset($rec->productId)){
     		
-    		$params = cls::get($rec->classId)->getParams($rec->productId);
-    		if(!empty($params['term'])){
-    			
+    		$term = cat_Products::getParamValue($rec->productId, 'term');
+    		if(!empty($term)){
     			$form->setField('term', 'input');
     			if(empty($rec->id)){
-    				$form->setDefault('term', $params['term']);
+    				$form->setDefault('term', $term);
     			}
     			
-    			$termVerbal = $mvc->getFieldType('term')->toVerbal($params['term']);
+    			$termVerbal = $mvc->getFieldType('term')->toVerbal($term);
     			$form->setSuggestions('term', array('' => '', $termVerbal => $termVerbal));
     		}
     	}
@@ -249,6 +248,9 @@ class sales_SalesDetails extends deals_DealDetail
     			// Ако няма задание, добавяме бутон за създаване на ново задание
     			if(planning_Jobs::haveRightFor('add', (object)array('productId' => $pRec->id))){
     				$jobUrl = array('planning_Jobs', 'add', 'productId' => $pRec->id, 'quantity' => $rec->quantity, 'saleId' => $masterRec->id, 'ret_url' => TRUE);
+    				if(!empty($rec->tolerance)){
+    					$jobUrl['tolerance'] = $rec->tolerance * 100; 				
+    				}
     				$row->jobId = ht::createBtn('Нов', $jobUrl, FALSE, FALSE, 'title=Създаване на ново задание за артикула,ef_icon=img/16/clipboard_text.png');
     			}
     		}

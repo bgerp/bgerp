@@ -729,7 +729,7 @@ class sales_Sales extends deals_DealMaster
     		// Подготвяме информацията за наличните задания към нестандартните (частните) артикули в продажбата
     		$dQuery = sales_SalesDetails::getQuery();
     		$dQuery->where("#saleId = {$data->rec->id}");
-    		$dQuery->show('classId,productId,packagingId,quantity');
+    		$dQuery->show('classId,productId,packagingId,quantity,tolerance');
     		
     		while($dRec = $dQuery->fetch()){
     			if($dRow = sales_SalesDetails::prepareJobInfo($dRec, $data->rec)){

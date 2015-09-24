@@ -109,7 +109,7 @@ class store_Pallets extends core_Manager
     {
         $this->FLD('label', 'varchar(64)', 'caption=Етикет');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Място->Склад,input=hidden');
-        $this->FLD('productId', 'key(mvc=store_Products, select=name)', 'caption=Продукт,silent');
+        $this->FLD('productId', 'key(mvc=store_Products, select=productId)', 'caption=Продукт,silent');
         $this->FLD('quantity', 'int', 'caption=Количество');
         $this->FLD('comment', 'varchar', 'caption=Коментар');
         $this->FLD('dimensions', 'key(mvc=store_PalletTypes,select=title)', 'caption=Габарити');
@@ -168,7 +168,7 @@ class store_Pallets extends core_Manager
         $data->listFilter->title = 'Търсене на палет в склада';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        $data->listFilter->FNC('productIdFilter', 'key(mvc=store_Products, select=name, allowEmpty=true)', 'caption=Продукт');
+        $data->listFilter->FNC('productIdFilter', 'key(mvc=store_Products, select=productId, allowEmpty=true)', 'caption=Продукт');
         
         $data->listFilter->showFields = 'productIdFilter';
         

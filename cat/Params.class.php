@@ -292,14 +292,14 @@ class cat_Params extends core_Master
      * Връща дефолт стойността за параметъра
      * 
      * @param $paramId - ид на параметър
-     * @return NULL|string
+     * @return FALSE|string
      */
     public static function getDefault($paramId)
     {
     	// Ако няма гледаме имали дефолт за параметъра
     	$default = self::fetchField($paramId, 'default');
     	
-    	if(isset($default) && $default != '') return $default;
+    	if(!empty($default)) return $default;
     	
     	return FALSE;
     }

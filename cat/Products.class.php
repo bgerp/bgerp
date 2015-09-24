@@ -867,9 +867,9 @@ class cat_Products extends embed_Manager {
      *
      * @return array() - масив с опции, подходящ за setOptions на форма
      */
-    public function getProducts($customerClass, $customerId, $datetime = NULL, $hasProperties = NULL, $hasnotProperties = NULL, $limit = NULL)
+    public static function getProducts($customerClass, $customerId, $datetime = NULL, $hasProperties = NULL, $hasnotProperties = NULL, $limit = NULL)
     {
-    	$query = $this->getQuery();
+    	$query = static::getQuery();
     	
     	// Само активни артикули
     	$query->where("#state = 'active'");
@@ -910,7 +910,7 @@ class cat_Products extends embed_Manager {
     	
     	// Подготвяме опциите
     	while($rec = $query->fetch()){
-    		$title = $this->getRecTitle($rec, FALSE);
+    		$title = static::getRecTitle($rec, FALSE);
     		
     		if($rec->isPublic == 'yes'){
     			$products[$rec->id] = $title;
@@ -939,7 +939,7 @@ class cat_Products extends embed_Manager {
      * 
      * @return double
      */
-    public function getSelfValue($productId, $packagingId = NULL, $quantity = 1, $date = NULL)
+    public static function getSelfValue($productId, $packagingId = NULL, $quantity = 1, $date = NULL)
     {
     	// Опитваме се да намерим запис в в себестойностти за артикула
     	$listId = price_ListRules::PRICE_LIST_COST;
@@ -965,7 +965,7 @@ class cat_Products extends embed_Manager {
      * @param int $productId - ид на артикул
      * @return array $options - опаковките
      */
-    public function getPacks($productId)
+    public static function getPacks($productId)
     {
     	expect($pInfo = self::getProductInfo($productId));
     	
@@ -997,32 +997,21 @@ class cat_Products extends embed_Manager {
     
     
     /**
-     * Връща параметрите на артикула
-     * @param mixed $id - ид или запис на артикул
-     * 
-     * @return array $res - параметрите на артикула
-     * 					['weight']          -  Тегло
-     * 					['volume']          -  Обем 
-     * 					['thickness']       -  Дебелина
-     * 					['length']          -  Дължина
-     * 					['height']          -  Височина
-     * 					['tolerance']       -  Толеранс
-     * 					['transportWeight'] -  Транспортно тегло
-     * 					['transportVolume'] -  Транспортен обем
-     * 					['term']            -  Срок
+     * Връща стойността на параметъра с това име
+     *
+     * @param string $id   - ид на записа
+     * @param string $name - име на параметъра
+     * @return mixed - стойност или FALSE ако няма
      */
-    public function getParams($id)
+    public static function getParamValue($id, $name)
     {
-    	$Driver = $this->getDriver($id);
-    	$rec = $this->fetchRec($id);
-    	
-    	//@TODO да е getParamValue
-    	$res = array();
-    	foreach (array('weight', 'width', 'volume', 'thickness', 'length', 'height', 'tolerance', 'transportWeight', 'transportVolume', 'term') as $p){
-    		$res[$p] = $Driver->getParamValue($p, $rec->id);
+    	// Ако има драйвър, питаме него за стойността
+    	if($Driver = static::getDriver($id)){
+    		return $Driver->getParamValue($id, $name);
     	}
     	
-    	return $res;
+    	// Ако няма връщаме FALSE
+    	return FALSE;
     }
     
     
@@ -1033,17 +1022,15 @@ class cat_Products extends embed_Manager {
      * @param int $packagingId - ид на опаковка
      * @return double - теглото на еденица от продукта
      */
-    public function getWeight($productId, $packagingId = NULL)
+    public static function getWeight($productId, $packagingId = NULL)
     {
     	$weight = 0;
-    	if($packagingId){
-    		$pack = cat_products_Packagings::fetch("#productId = {$productId} AND #packagingId = {$packagingId}");
+    	if(cat_products_Packagings::getPack($productId, $packagingId)){
     		$weight = $pack->netWeight + $pack->tareWeight;
     	}
     	
     	if(!$weight){
-    		$params = $this->getParams($productId);
-    		$weight = $params['transportWeight'];
+    		$weight = static::getParamValue($productId, 'transportWeight');
     	}
     	
     	return $weight;
@@ -1057,17 +1044,15 @@ class cat_Products extends embed_Manager {
      * @param int $packagingId - ид на опаковка
      * @return double - теглото на еденица от продукта
      */
-    public function getVolume($productId, $packagingId = NULL)
+    public static function getVolume($productId, $packagingId = NULL)
     {
     	$volume = 0;
-    	if($packagingId){
-    		$pack = cat_products_Packagings::fetch("#productId = {$productId} AND #packagingId = {$packagingId}");
+    	if(cat_products_Packagings::getPack($productId, $packagingId)){
     		$volume = $pack->sizeWidth * $pack->sizeHeight * $pack->sizeDepth;
     	}
     	
     	if(!$volume){
-    		$params = $this->getParams();
-    		$volume = $params['transportVolume'];
+    		$volume = static::getParamValue($productId, 'transportVolume');
     	}
     	
     	return $volume;
@@ -1130,23 +1115,14 @@ class cat_Products extends embed_Manager {
     
     
     /**
-     * Връща клас имплементиращ `price_PolicyIntf`, основната ценова политика за този артикул
-     */
-    public function getPolicy()
-    {
-    	return cls::get('price_ListToCustomers');
-    }
-    
-    
-    /**
      * Връща подробното описанието на артикула
      *
      * @param mixed $id - ид/запис
      * @return mixed - подробното описанието на артикула
      */
-    public function getProductDesc($id, $time = NULL)
+    public static function getProductDesc($id, $time = NULL)
     {
-    	$rec = $this->fetchRec($id);
+    	$rec = static::fetchRec($id);
     	
     	return cat_ProductTplCache::cacheTpl($rec->id, $time);
     }
@@ -1164,7 +1140,6 @@ class cat_Products extends embed_Manager {
     	$lg = core_Lg::getCurrent();
     	
     	if($lg != 'bg'){
-    		
     		if(!empty($rec->intName)){
     			
     			return $rec->intName;
@@ -1207,10 +1182,10 @@ class cat_Products extends embed_Manager {
      * @param mixed $id - ид/запис
      * @return mixed - описанието на артикула
      */
-    public function getProductDescShort($id)
+    public static function getProductDescShort($id)
     {
-    	$rec = $this->fetchRec($id);
-    	$title = $this->getShortHyperlink($rec->id);
+    	$rec = static::fetchRec($id);
+    	$title = static::getShortHyperlink($rec->id);
     	
     	return $title;
     }
@@ -1233,21 +1208,20 @@ class cat_Products extends embed_Manager {
 	 */
     public static function getAutoProductDesc($id, $time = NULL, $mode = 'auto')
     {
-    	$me = cls::get(get_called_class());
-    	$rec = $me->fetchRec($id);
+    	$rec = static::fetchRec($id);
     	
     	switch($mode){
     		case 'detailed' :
-    			$res = $me->getProductDesc($rec, $time);
+    			$res = static::getProductDesc($rec, $time);
     			break;
     		case 'short' :
-    			$res = $me->getProductDescShort($rec);
+    			$res = static::getProductDescShort($rec);
     			break;
     		default :
     			if($rec->isPublic == 'no'){
-    				$res = $me->getProductDesc($rec, $time);
+    				$res = static::getProductDesc($rec, $time);
     			} else {
-    				$res = $me->getProductDescShort($rec);
+    				$res = static::getProductDescShort($rec);
     			}
     			break;
     	}
@@ -1827,6 +1801,31 @@ class cat_Products extends embed_Manager {
     		$res = new Redirect($retUrl, $msg);
     	} else {
     		$res = $this->renderWrapping($form->renderHtml());
+    	}
+    	
+    	return $res;
+    }
+    
+    
+    /**
+     * Какви материали са нужни за производството на 'n' бройки от подадения артикул
+     * 
+     * @param int $id          - ид
+     * @param double $quantity - количество
+     * 			o productId - ид на продукта
+     * 			o quantity - к-то на продукта
+     */
+    public static function getMaterialsForProduction($id, $quantity = 1)
+    {
+    	$res = array();
+    	$bomId = static::getLastActiveBom($id)->id;
+    	$info = cat_Boms::getResourceInfo($bomId);
+    	
+    	foreach ($info['resources'] as $materialId => $rRec){
+    		if($rRec->type != 'input') continue;
+    		
+    		$quantity = $rRec->baseQuantity / $info['quantity'] + $quantity * $rRec->propQuantity / $info['quantity'];
+    		$res[$rRec->productId] = array('productId' => $rRec->productId, 'quantity' => $quantity);
     	}
     	
     	return $res;

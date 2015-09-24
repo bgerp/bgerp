@@ -476,6 +476,7 @@ class cat_Boms extends core_Master
     	expect($rec = static::fetchRec($id));
     	$resources['quantity'] = ($rec->quantity) ? $rec->quantity : 1;
     	$resources['expenses'] = ($rec->expenses) ? $rec->expenses : NULL;
+    	$resources['resources'] = array();
     	
     	// Намираме всички етапи в рецептата
     	$dQuery = cat_BomDetails::getQuery();

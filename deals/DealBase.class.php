@@ -435,6 +435,7 @@ abstract class deals_DealBase extends core_Master
     	$Double = cls::get('type_Double', array('params' => array('decimals' => '2')));
     	
     	$Pager = cls::get('core_Pager', array('itemsPerPage' => $this->historyItemsPerPage));
+    	$Pager->setPageVar($this->className, $rec->id);
     	$Pager->itemsCount = count($entries);
     	$Pager->calc();
     	$data->historyPager = $Pager;

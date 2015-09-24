@@ -614,7 +614,7 @@ class store_Movements extends core_Manager
         $data->listFilter->FNC('stateFilter', 'enum(pending, active, closed,)', 'caption=Състояние');
         $data->listFilter->setDefault('stateFilter', '');
         $data->listFilter->FNC('palletIdFilter', 'key(mvc=store_Pallets, select=id, allowEmpty=true)', 'caption=Палет');
-        $data->listFilter->FNC('productIdFilter', 'key(mvc=store_Products, select=name, allowEmpty=true)', 'caption=Продукт');
+        $data->listFilter->FNC('productIdFilter', 'key(mvc=store_Products, select=productId, allowEmpty=true)', 'caption=Продукт');
         
         $data->listFilter->showFields = 'stateFilter, palletIdFilter, productIdFilter';
         

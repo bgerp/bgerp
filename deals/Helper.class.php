@@ -347,7 +347,7 @@ abstract class deals_Helper
 	public static function checkProductQuantityInStore($productId, $packagingId, $packQuantity, $storeId)
 	{
 		$productsClassId = cat_Products::getClassId();
-		$quantity = store_Products::fetchField("#productId = {$productId} AND #classId = {$productsClassId} AND #storeId = {$storeId}", 'quantity');
+		$quantity = store_Products::fetchField("#productId = {$productId} AND #storeId = {$storeId}", 'quantity');
 		$quantity = ($quantity) ? $quantity : 0;
 			
 		$Double = cls::get('type_Double');

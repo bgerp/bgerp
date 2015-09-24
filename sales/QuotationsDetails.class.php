@@ -290,16 +290,16 @@ class sales_QuotationsDetails extends doc_Detail {
         }
     
     	if(isset($rec->productId)){
-    		$params = $ProductManager->getParams($rec->productId);
-    		
-    		if(!empty($params['tolerance'])){
+    		$tolerance = cat_Products::getParamValue($rec->productId, 'tolerance');
+    		if(!empty($tolerance)){
     			$form->setField('tolerance', 'input');
-    			$form->setDefault('tolerance', $params['tolerance']);
+    			$form->setDefault('tolerance', $tolerance);
     		}
     		
-    		if(!empty($params['term'])){
+    		$term = cat_Products::getParamValue($rec->productId, 'term');
+    		if(!empty($term)){
     			$form->setField('term', 'input');
-    			$form->setDefault('term', $params['term']);
+    			$form->setDefault('term', $term);
     		}
     	}
     }
@@ -343,7 +343,7 @@ class sales_QuotationsDetails extends doc_Detail {
     		$rec->quantity = $rec->packQuantity * $rec->quantityInPack;
     		
     		if (!isset($rec->packPrice)) {
-    			$Policy = (isset($mvc->Policy)) ? $mvc->Policy : cls::get($rec->classId)->getPolicy();
+    			$Policy = (isset($mvc->Policy)) ? $mvc->Policy : cls::get('price_ListToCustomers');
     			$policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->classId, $rec->packagingId, $rec->packQuantity, $priceAtDate, $masterRec->currencyRate, $masterRec->chargeVat);
     			
     			if(empty($policyInfo->price)){
