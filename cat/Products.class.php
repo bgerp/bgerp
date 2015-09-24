@@ -1149,7 +1149,6 @@ class cat_Products extends embed_Manager {
     	$lg = core_Lg::getCurrent();
     	
     	if($lg != 'bg'){
-    		
     		if(!empty($rec->intName)){
     			
     			return $rec->intName;
@@ -1812,6 +1811,31 @@ class cat_Products extends embed_Manager {
     		$res = new Redirect($retUrl, $msg);
     	} else {
     		$res = $this->renderWrapping($form->renderHtml());
+    	}
+    	
+    	return $res;
+    }
+    
+    
+    /**
+     * Какви материали са нужни за производството на 'n' бройки от подадения артикул
+     * 
+     * @param int $id          - ид
+     * @param double $quantity - количество
+     * 			o productId - ид на продукта
+     * 			o quantity - к-то на продукта
+     */
+    public static function getMaterialsForProduction($id, $quantity = 1)
+    {
+    	$res = array();
+    	$bomId = static::getLastActiveBom($id)->id;
+    	$info = cat_Boms::getResourceInfo($bomId);
+    	
+    	foreach ($info['resources'] as $materialId => $rRec){
+    		if($rRec->type != 'input') continue;
+    		
+    		$quantity = $rRec->baseQuantity / $info['quantity'] + $quantity * $rRec->propQuantity / $info['quantity'];
+    		$res[$rRec->productId] = array('productId' => $rRec->productId, 'quantity' => $quantity);
     	}
     	
     	return $res;
