@@ -219,7 +219,8 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 			$this->prepareForPublicDocument = TRUE;
 		}
 		
-		$this->invoke('AfterPrepareSingle', array(&$data));
+		$Products = cls::get('cat_Products');
+		$this->invoke('AfterPrepareSingle', array(&$data, &$data, $Products));
 		$data->tpl = getTplFromFile('cat/tpl/SingleLayoutBaseDriverShort.shtml');
 	
 		return $data;
@@ -237,7 +238,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		$data->noChange = TRUE;
 		$tpl = new ET("[#innerState#]");
 		
-		$this->invoke('AfterRenderSingle', array(&$tpl, $data));
+		$this->invoke('AfterRenderSingle', array(&$tpl, $data, cls::get('cat_Products')));
 		$title = cat_Products::getShortHyperlink($data->rec->id);
 		$tpl->replace($title, "TITLE");
 	
