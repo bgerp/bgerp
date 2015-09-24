@@ -328,7 +328,6 @@ class pos_Receipts extends core_Master {
 	    	$quantityInPack = ($info->packagings[$rec->value]) ? $info->packagings[$rec->value]->quantity : 1;
 	    	
 	    	$products[] = (object) array(
-	    		'classId'     => cat_Products::getClassId(),
 	    		'productId'   => $rec->productId,
 		    	'price'       => $rec->price / $quantityInPack,
 	    	    'packagingId' => $rec->value,
@@ -836,7 +835,7 @@ class pos_Receipts extends core_Master {
     			
     			// Намираме цената от ценовата политика
     			$Policy = cls::get('price_ListToCustomers');
-    			$pInfo = $Policy->getPriceInfo($contragentClassId, $contragentId, $product->productId, $product->classId, $product->packagingId);
+    			$pInfo = $Policy->getPriceInfo($contragentClassId, $contragentId, $product->productId, cat_Products::getClassId(), $product->packagingId);
     			
     			// Колко са двете цени с приспадната отстъпка
     			$rPrice1 = $product->price * (1 - $product->discount);
@@ -849,7 +848,7 @@ class pos_Receipts extends core_Master {
     			}
     			
     			// Добавяме го като детайл на продажбата;
-    			sales_Sales::addRow($sId, $product->classId, $product->productId, $product->quantity, $product->price, $product->packagingId, $product->discount);
+    			sales_Sales::addRow($sId, $product->productId, $product->quantity, $product->price, $product->packagingId, $product->discount);
     		}
     	}
     	

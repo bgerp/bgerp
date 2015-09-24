@@ -1507,7 +1507,6 @@ abstract class deals_DealMaster extends deals_DealBase
      * на новия запис към съществуващия (цените и отстъпките стават по средно притеглени)
      * 
      * @param int $id 			   - ид на сделка
-     * @param mixed $pMan		   - продуктов мениджър
      * @param int $productId	   - ид на артикул
      * @param double $packQuantity - количество продадени опаковки (ако няма опаковки е цялото количество)
      * @param double $price        - цена на единична бройка (ако не е подадена, определя се от политиката)
@@ -1518,7 +1517,7 @@ abstract class deals_DealMaster extends deals_DealBase
      * @param text $notes          - забележки
      * @return mixed $id/FALSE     - ид на запис или FALSE
      */
-    public static function addRow($id, $pMan, $productId, $packQuantity, $price = NULL, $packagingId = NULL, $discount = NULL, $tolerance = NULL, $term = NULL, $notes = NULL)
+    public static function addRow($id, $productId, $packQuantity, $price = NULL, $packagingId = NULL, $discount = NULL, $tolerance = NULL, $term = NULL, $notes = NULL)
     {
     	$me = cls::get(get_called_class());
     	$Detail = cls::get($me->mainDetail);
@@ -1543,8 +1542,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	
     	
     	// Трябва да има такъв продукт и опаковка
-    	$ProductMan = cls::get($pMan);
-    	expect($ProductMan->fetchField($productId, 'id'));
+    	expect(cat_Products::fetchField($productId, 'id'));
     	if(isset($packagingId)){
     		expect(cat_UoM::fetchField($packagingId, 'id'));
     	}
@@ -1554,18 +1552,17 @@ abstract class deals_DealMaster extends deals_DealBase
     	}
     	
     	// Броя еденици в опаковка, се определя от информацията за продукта
-    	$productInfo = $ProductMan->getProductInfo($productId);
+    	$productInfo = cat_Products::getProductInfo($productId);
     	if(!$packagingId){
     		$packagingId = $productInfo->productRec->measureId;
     	}
     	
     	$quantityInPack = ($productInfo->packagings[$packagingId]) ? $productInfo->packagings[$packagingId]->quantity : 1;
-    	$productManId = $ProductMan->getClassId();
     	
     	// Ако няма цена, опитваме се да я намерим от съответната ценова политика
     	if(empty($price)){
     		$Policy = (isset($Detail->Policy)) ? $Detail->Policy : cls::get('price_ListToCustomers');
-    		$policyInfo = $Policy->getPriceInfo($rec->contragentClassId, $rec->contragentId, $productId, $productManId, $packagingId, $packQuantity);
+    		$policyInfo = $Policy->getPriceInfo($rec->contragentClassId, $rec->contragentId, $productId, cat_Products::getClassId(), $packagingId, $packQuantity);
     		$price = $policyInfo->price;
     	}
     	
