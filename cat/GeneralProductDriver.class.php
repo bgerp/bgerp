@@ -53,7 +53,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	/**
 	 * Преди показване на форма за добавяне/промяна.
 	 *
-	 * @param core_Manager $mvc
+	 * @param cat_GeneralProductDriver $Driver
 	 * @param stdClass $data
 	 */
 	public static function on_AfterPrepareEditForm($Driver, &$data)
@@ -85,9 +85,9 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	/**
 	 * Извиква се след успешен запис в модела
 	 *
-	 * @param core_BaseClass $Driver - драйвер
-	 * @param int $id първичния ключ на направения запис
-	 * @param stdClass $rec всички полета, които току-що са били записани
+	 * @param cat_GeneralProductDriver $Driver
+	 * @param int $id
+	 * @param stdClass $rec
 	 */
 	public static function on_AfterSave($Driver, &$id, $rec)
 	{
@@ -130,8 +130,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	/**
 	 * Подготовка за рендиране на единичния изглед
 	 *
-	 *
-	 * @param cal_Reminders $mvc
+	 * @param cat_GeneralProductDriver $Driver
 	 * @param stdClass $data
 	 */
 	public static function on_AfterPrepareSingle($Driver, $data)
@@ -156,6 +155,10 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	
 	/**
 	 * След рендиране на единичния изглед
+	 * 
+	 * @param cat_GeneralProductDriver $Driver
+	 * @param core_ET $tpl
+	 * @param stdClass $data
 	 */
 	public static function on_AfterRenderSingle($Driver, &$tpl, $data)
 	{
@@ -238,8 +241,12 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	
 	/**
 	 * Добавя ключови думи за пълнотекстово търсене
+	 * 
+	 * @param cat_GeneralProductDriver $Driver
+	 * @param stdClass $res
+	 * @param stdClass $rec
 	 */
-	public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+	public static function on_AfterGetSearchKeywords($Driver, &$res, $rec)
 	{
 		$RichText = cls::get('type_Richtext');
 		$info = strip_tags($RichText->toVerbal($rec->info));

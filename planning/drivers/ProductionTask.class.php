@@ -63,6 +63,10 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 	
 	/**
 	 * Преди рендиране на шаблона
+	 * 
+	 * @param tasks_BaseDriver $Driver
+	 * @param core_ET $tpl
+	 * @param stdClass $data
 	 */
 	protected static function on_AfterRenderSingleLayout($Driver, &$tpl, $data)
 	{
@@ -167,6 +171,10 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 
     /**
      * Добавя ключови думи за пълнотекстово търсене
+     * 
+     * @param tasks_BaseDriver $Driver
+     * @param stdClass $res
+     * @param stdClass $rec
      */
     public static function on_AfterGetSearchKeywords($Driver, &$res, $rec)
     {

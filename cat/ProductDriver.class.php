@@ -70,7 +70,7 @@ abstract class cat_ProductDriver extends core_BaseClass
 	/**
 	 * Преди показване на форма за добавяне/промяна.
 	 *
-	 * @param core_Manager $mvc
+	 * @param cat_GeneralProductDriver $Driver
 	 * @param stdClass $data
 	 */
 	public static function on_AfterPrepareEditForm($Driver, &$data)
