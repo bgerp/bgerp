@@ -265,10 +265,8 @@ class cat_products_Params extends doc_Detail
     		$query->where("#showInPublicDocuments = 'yes'");
     	}
         
-        $Cls = cls::get(get_called_class());
-        
     	while($rec = $query->fetch()){
-    		$data->params[$rec->id] = $Cls->recToVerbal($rec);
+    		$data->params[$rec->id] = static::recToVerbal($rec);
     		
     		if(!self::haveRightFor('add', (object)array('productId' => $data->masterId))) {
     			unset($data->params[$rec->id]->tools);
