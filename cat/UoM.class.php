@@ -482,7 +482,7 @@ class cat_UoM extends core_Manager
      * @param mixed $res
      * @param string $action
      */
-    public static function on_BeforeAction111($mvc, &$res, $action)
+    public static function on_BeforeAction($mvc, &$res, $action)
     {
     	if($action == 'default'){
     		$type = Request::get('type', 'enum(uom,packaging)');
