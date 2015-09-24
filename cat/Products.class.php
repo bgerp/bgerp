@@ -322,12 +322,10 @@ class cat_Products extends embed_Manager {
     		
     		$defMetas = ($cover->haveInterface('cat_ProductFolderCoverIntf')) ? $cover->getDefaultMeta() : array();
 
-    		// Ако има драйвер, той се изказва за дефолтните свойства
-    		if(cls::load($form->rec->{$mvc->driverClassField}, TRUE)){
-    			$Driver = cls::get($form->rec->{$mvc->driverClassField});
+    		if($Driver = $mvc->getDriver($form->rec)){
     			$defMetas = $Driver->getDefaultMetas($defMetas);
     			$defaultUomId = $Driver->getDefaultUom();
-    			
+    			 
     			// Задаваме дефолтните свойства
     			$form->setDefault('meta', $form->getFieldType('meta')->fromVerbal($defMetas));
     		}
