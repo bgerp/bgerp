@@ -867,9 +867,9 @@ class cat_Products extends embed_Manager {
      *
      * @return array() - масив с опции, подходящ за setOptions на форма
      */
-    public function getProducts($customerClass, $customerId, $datetime = NULL, $hasProperties = NULL, $hasnotProperties = NULL, $limit = NULL)
+    public static function getProducts($customerClass, $customerId, $datetime = NULL, $hasProperties = NULL, $hasnotProperties = NULL, $limit = NULL)
     {
-    	$query = $this->getQuery();
+    	$query = static::getQuery();
     	
     	// Само активни артикули
     	$query->where("#state = 'active'");
@@ -910,7 +910,7 @@ class cat_Products extends embed_Manager {
     	
     	// Подготвяме опциите
     	while($rec = $query->fetch()){
-    		$title = $this->getRecTitle($rec, FALSE);
+    		$title = static::getRecTitle($rec, FALSE);
     		
     		if($rec->isPublic == 'yes'){
     			$products[$rec->id] = $title;
@@ -939,7 +939,7 @@ class cat_Products extends embed_Manager {
      * 
      * @return double
      */
-    public function getSelfValue($productId, $packagingId = NULL, $quantity = 1, $date = NULL)
+    public static function getSelfValue($productId, $packagingId = NULL, $quantity = 1, $date = NULL)
     {
     	// Опитваме се да намерим запис в в себестойностти за артикула
     	$listId = price_ListRules::PRICE_LIST_COST;
@@ -1022,7 +1022,7 @@ class cat_Products extends embed_Manager {
      * @param int $packagingId - ид на опаковка
      * @return double - теглото на еденица от продукта
      */
-    public function getWeight($productId, $packagingId = NULL)
+    public static function getWeight($productId, $packagingId = NULL)
     {
     	$weight = 0;
     	if(cat_products_Packagings::getPack($productId, $packagingId)){
@@ -1030,7 +1030,7 @@ class cat_Products extends embed_Manager {
     	}
     	
     	if(!$weight){
-    		$weight = $this->getParamValue($productId, 'transportWeight');
+    		$weight = static::getParamValue($productId, 'transportWeight');
     	}
     	
     	return $weight;
@@ -1044,7 +1044,7 @@ class cat_Products extends embed_Manager {
      * @param int $packagingId - ид на опаковка
      * @return double - теглото на еденица от продукта
      */
-    public function getVolume($productId, $packagingId = NULL)
+    public static function getVolume($productId, $packagingId = NULL)
     {
     	$volume = 0;
     	if(cat_products_Packagings::getPack($productId, $packagingId)){
@@ -1052,7 +1052,7 @@ class cat_Products extends embed_Manager {
     	}
     	
     	if(!$volume){
-    		$volume = $this->getParamValue($productId, 'transportVolume');
+    		$volume = static::getParamValue($productId, 'transportVolume');
     	}
     	
     	return $volume;
