@@ -12,7 +12,7 @@
  * @since     v 0.1
  * @title     Базов драйвер за драйвер на артикул
  */
-abstract class cat_ProductDriver extends core_BaseClass
+abstract class cat_ProductDriver extends embed_ProtoDriver
 {
 	
 	
@@ -46,25 +46,6 @@ abstract class cat_ProductDriver extends core_BaseClass
      * Икона за единичния изглед
      */
     protected $icon = 'img/16/wooden-box.png';
-	
-    		
-    /**
-	 * Добавя полетата на драйвера към Fieldset
-	 *
-	 * @param core_Fieldset $fieldset
-	 */
-	public function addFields(core_Fieldset &$fieldset)
-	{
-	}
-	
-	
-	/**
-	 * Кой може да избере драйвера
-	 */
-	public function canSelectDriver($userId = NULL)
-	{
-		return core_Users::haveRole($this->canSelectDriver, $userId);
-	}
 	
 	
 	/**
