@@ -479,9 +479,7 @@ class cat_Products extends embed_Manager {
 		}
 		
 		$defMetas = cls::get('cat_Categories')->getDefaultMeta($categoryId);
-		
-		if(cls::load($rec->{$this->driverClassField}, TRUE)){
-			$Driver = cls::get($rec->{$this->driverClassField}, array('Embedder' => $this));
+		if($Driver = $this->getDriver($rec)){
 			$defMetas = $Driver->getDefaultMetas($defMetas);
 		}
 		
@@ -626,11 +624,7 @@ class cat_Products extends embed_Manager {
      */
     public static function getByProperty($properties, $hasnotProperties = NULL)
     {
-    	$me = cls::get(get_called_class());
-    	
-    	$products = $me->getProducts(NULL, NULL, NULL, $properties, $hasnotProperties);
-    	
-    	return $products;
+    	return static::getProducts(NULL, NULL, NULL, $properties, $hasnotProperties);
     }
     
     
@@ -864,9 +858,8 @@ class cat_Products extends embed_Manager {
      */
     public static function getProducts($customerClass, $customerId, $datetime = NULL, $hasProperties = NULL, $hasnotProperties = NULL, $limit = NULL)
     {
+		// Само активни артикули
     	$query = static::getQuery();
-    	
-    	// Само активни артикули
     	$query->where("#state = 'active'");
     	
     	// Ако е зададен контрагент, оставяме смао публичните + частните за него
@@ -887,8 +880,6 @@ class cat_Products extends embed_Manager {
     	$private = $products = array();
     	$metaArr = arr::make($hasProperties);
     	$hasnotProperties = arr::make($hasnotProperties);
-    	
-    	$Varchar = cls::get('type_Varchar');
     	
     	// За всяко свойство търсим по полето за бързо търсене
     	if(count($metaArr)){
@@ -962,7 +953,7 @@ class cat_Products extends embed_Manager {
      */
     public static function getPacks($productId)
     {
-    	expect($pInfo = self::getProductInfo($productId));
+    	expect($pInfo = static::getProductInfo($productId));
     	
     	// Определяме основната мярка
     	$options = array();
@@ -982,7 +973,6 @@ class cat_Products extends embed_Manager {
     	// Подготвяме опциите
     	$options = array($measureId => cat_UoM::getTitleById($measureId)) + $options;
     	$firstVal = $options[$baseId];
-    	
     	unset($options[$baseId]);
     	$options = array($baseId => $firstVal) + $options;
     	
@@ -1002,6 +992,7 @@ class cat_Products extends embed_Manager {
     {
     	// Ако има драйвър, питаме него за стойността
     	if($Driver = static::getDriver($id)){
+    		
     		return $Driver->getParamValue($id, $name);
     	}
     	
@@ -1062,12 +1053,11 @@ class cat_Products extends embed_Manager {
     	$recs = &$data->recs;
     	if(empty($recs) || !count($recs)) return;
     	
-    	$packs = $mvc->getPacks($data->masterId);
-    	$basePackId = key($packs);
+    	$basePackId = key($mvc->getPacks($data->masterId));
     	$data->packName = cat_UoM::getTitleById($basePackId);
     	
     	$quantity = 1;
-    	if($pRec = cat_products_Packagings::fetch("#productId = {$data->masterId} AND #packagingId = {$basePackId}")){
+    	if($pRec = cat_products_Packagings::getPack($data->masterId, $basePackId)){
     		$quantity = $pRec->quantity;
     	}
     	
@@ -1250,7 +1240,7 @@ class cat_Products extends embed_Manager {
     {
     	$rec = self::fetchRec($id);
     	 
-    	// Какво е к-то от последното активно задание
+    	// Какво е к-то от последната активна рецепта
     	return cat_Boms::fetch("#productId = {$rec->id} AND #state = 'active'");
     }
     
@@ -1462,7 +1452,7 @@ class cat_Products extends embed_Manager {
     public static function getProductImage($id)
     {
     	$self = cls::get(get_called_class());
-    	$rec = self::fetchRec($id);
+    	$rec = static::fetchRec($id);
     	$Driver = $self->getDriver($rec->id);
     	
     	return $Driver->getProductImage($rec);
@@ -1650,6 +1640,7 @@ class cat_Products extends embed_Manager {
     	$amount = acc_strategy_WAC::getAmount($quantity, $date, '321', $item1, $item2, NULL);
     	
     	if(isset($amount)){
+    		
     		return round($amount, 4);
     	}
     	
