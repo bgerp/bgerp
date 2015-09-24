@@ -23,7 +23,6 @@ abstract class deals_Helper
 			'quantityFld'   => 'packQuantity',
 			'amountFld'     => 'amount',
 			'rateFld' 	    => 'currencyRate',
-			'classId' 	    => 'classId',
 			'productId'	    => 'productId',
 			'chargeVat'     => 'chargeVat',
 			'valior' 	    => 'valior',
@@ -345,14 +344,13 @@ abstract class deals_Helper
 	 */
 	public static function checkProductQuantityInStore($productId, $packagingId, $packQuantity, $storeId)
 	{
-		$productsClassId = cat_Products::getClassId();
 		$quantity = store_Products::fetchField("#productId = {$productId} AND #storeId = {$storeId}", 'quantity');
 		$quantity = ($quantity) ? $quantity : 0;
 			
 		$Double = cls::get('type_Double');
 		$Double->params['smartRound'] = 'smartRound';
 			
-		$pInfo = cls::get($productsClassId)->getProductInfo($productId);
+		$pInfo = cat_Products::getProductInfo($productId);
 		$shortUom = cat_UoM::getShortName($pInfo->productRec->measureId);
 		$storeName = store_Stores::getTitleById($storeId);
 		$verbalQuantity = $Double->toVerbal($quantity);

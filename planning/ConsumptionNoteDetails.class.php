@@ -105,7 +105,7 @@ class planning_ConsumptionNoteDetails extends deals_ManifactureDetail
         parent::setDetailFields($this);
         
         // Само вложими продукти
-        $this->setDbUnique('noteId,productId,classId');
+        $this->setDbUnique('noteId,productId');
     }
     
     

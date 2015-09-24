@@ -194,8 +194,7 @@ class dec_Declarations extends core_Master
 	       	if (count($invoicedProducts)) {
 	       		
 		       	foreach($invoicedProducts as $iProduct){
-		    		$ProductMan = cls::get($iProduct->classId);
-		        	$productName [$iProduct->classId."|".$iProduct->productId] = $ProductMan::getTitleById($iProduct->productId);
+		        	$productName [$iProduct->productId] = cat_Products::getTitleById($iProduct->productId);
 				}
 				
 				$data->form->setSuggestions('productId', $productName);

@@ -425,7 +425,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 						
 				if(!$policyInfo){
 					$Policy = cls::get('price_ListToCustomers');
-					$policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->classId, $rec->packagingId, $rec->quantity, dt::now(), $masterRec->rate);
+					$policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, cat_Products::getClassId(), $rec->packagingId, $rec->quantity, dt::now(), $masterRec->rate);
 				}
 					
 				// Ако няма последна покупна цена и не се обновява запис в текущата покупка

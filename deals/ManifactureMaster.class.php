@@ -142,14 +142,9 @@ abstract class deals_ManifactureMaster extends core_Master
 		$dQuery = $this->$Detail->getQuery();
 		$dQuery->EXT('state', $this->className, "externalKey={$this->$Detail->masterKey}");
 		$dQuery->where("#{$this->$Detail->masterKey} = '{$id}'");
-		$dQuery->groupBy('productId,classId');
+		$dQuery->groupBy('productId');
 		while($dRec = $dQuery->fetch()){
-			if(isset($dRec->classId) && isset($dRec->productId)){
-				$productMan = cls::get($dRec->classId);
-				if(cls::haveInterface('doc_DocumentIntf', $productMan)){
-					$res[] = (object)array('class' => $productMan, 'id' => $dRec->productId);
-				}
-			}
+			$res[] = (object)array('class' => cls::get('cat_Products'), 'id' => $dRec->productId);
 		}
 		 
 		return $res;
