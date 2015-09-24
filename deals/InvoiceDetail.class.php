@@ -357,7 +357,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 			$form->setOptions('packagingId', $packs);
 				
 			if(isset($mvc->LastPricePolicy)){
-				$policyInfoLast = $mvc->LastPricePolicy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, cat_Products::getClassId(), $rec->packagingId, $masterRec->rate);
+				$policyInfoLast = $mvc->LastPricePolicy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $masterRec->rate);
 					
 				if($policyInfo->price != 0){
 					$form->setSuggestions('packPrice', array('' => '', "{$policyInfoLast->price}" => $policyInfoLast->price));
@@ -425,7 +425,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 						
 				if(!$policyInfo){
 					$Policy = cls::get('price_ListToCustomers');
-					$policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, cat_Products::getClassId(), $rec->packagingId, $rec->quantity, dt::now(), $masterRec->rate);
+					$policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->quantity, dt::now(), $masterRec->rate);
 				}
 					
 				// Ако няма последна покупна цена и не се обновява запис в текущата покупка

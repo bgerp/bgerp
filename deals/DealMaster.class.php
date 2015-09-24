@@ -1562,7 +1562,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	// Ако няма цена, опитваме се да я намерим от съответната ценова политика
     	if(empty($price)){
     		$Policy = (isset($Detail->Policy)) ? $Detail->Policy : cls::get('price_ListToCustomers');
-    		$policyInfo = $Policy->getPriceInfo($rec->contragentClassId, $rec->contragentId, $productId, cat_Products::getClassId(), $packagingId, $packQuantity);
+    		$policyInfo = $Policy->getPriceInfo($rec->contragentClassId, $rec->contragentId, $productId, $packagingId, $packQuantity);
     		$price = $policyInfo->price;
     	}
     	

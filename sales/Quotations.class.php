@@ -292,7 +292,7 @@ class sales_Quotations extends core_Master
        			}
        			
        			$Policy = cls::get('price_ListToCustomers');
-       			$price = $Policy->getPriceInfo($rec->contragentClassId, $rec->contragentId, $origin->that, $origin->getInstance()->getClassId())->price;
+       			$price = $Policy->getPriceInfo($rec->contragentClassId, $rec->contragentId, $origin->that)->price;
 	       		
        			// Ако няма цена офертата потребителя е длъжен да я въведе от формата
 	       		if(!$price){

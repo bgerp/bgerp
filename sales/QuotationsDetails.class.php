@@ -319,7 +319,7 @@ class sales_QuotationsDetails extends doc_Detail {
     		$form->setOptions('packagingId', $packs);
     		 
     		if(isset($mvc->LastPricePolicy)){
-    			$policyInfoLast = $mvc->LastPricePolicy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, cat_Products::getClassId(), $rec->packagingId, $rec->packQuantity, $priceAtDate, $masterRec->currencyRate, $masterRec->chargeVat);
+    			$policyInfoLast = $mvc->LastPricePolicy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->packQuantity, $priceAtDate, $masterRec->currencyRate, $masterRec->chargeVat);
     			if($policyInfoLast->price != 0){
     				$form->setSuggestions('packPrice', array('' => '', "{$policyInfoLast->price}" => $policyInfoLast->price));
     			}
@@ -339,7 +339,7 @@ class sales_QuotationsDetails extends doc_Detail {
     		
     		if (!isset($rec->packPrice)) {
     			$Policy = (isset($mvc->Policy)) ? $mvc->Policy : cls::get('price_ListToCustomers');
-    			$policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, cat_Products::getClassId(), $rec->packagingId, $rec->packQuantity, $priceAtDate, $masterRec->currencyRate, $masterRec->chargeVat);
+    			$policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->packQuantity, $priceAtDate, $masterRec->currencyRate, $masterRec->chargeVat);
     			
     			if(empty($policyInfo->price)){
     				$policyInfo->price = $mvc->tryToCalcPrice($rec);

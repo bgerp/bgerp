@@ -556,7 +556,7 @@ class pos_ReceiptDetails extends core_Detail {
     	$receiptRec = pos_Receipts::fetch($rec->receiptId);
     	
     	$Policy = cls::get('price_ListToCustomers');
-    	$price = $Policy->getPriceInfo($receiptRec->contragentClass, $receiptRec->contragentObjectId, $product->productId, cat_Products::getClassId(), $rec->value, NULL, $receiptRec->createdOn);
+    	$price = $Policy->getPriceInfo($receiptRec->contragentClass, $receiptRec->contragentObjectId, $product->productId, $rec->value, NULL, $receiptRec->createdOn);
     	
     	$rec->price = $price->price * $perPack;
     	$rec->param = cat_Products::getVat($rec->productId, $receiptRec->valior);
