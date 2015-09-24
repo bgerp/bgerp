@@ -965,7 +965,7 @@ class cat_Products extends embed_Manager {
      * @param int $productId - ид на артикул
      * @return array $options - опаковките
      */
-    public function getPacks($productId)
+    public static function getPacks($productId)
     {
     	expect($pInfo = self::getProductInfo($productId));
     	
