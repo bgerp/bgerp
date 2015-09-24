@@ -391,7 +391,7 @@ class sales_Quotations extends core_Master
     		
     		$dRows = array($rec->row1, $rec->row2, $rec->row3);
     		if(($dRows[0] || $dRows[1] || $dRows[2])){
-    			$mvc->sales_QuotationsDetails->insertFromSpecification($rec, $origin, $dRows);
+    			sales_QuotationsDetails::insertFromSpecification($rec, $origin, $dRows);
 			}
     	}
     }

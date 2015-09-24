@@ -740,12 +740,12 @@ class sales_QuotationsDetails extends doc_Detail {
      * @param core_ObjectReference $origin - ид на спецификацията
      * @param array $dRows - количества И цени подадени във вида "к-во|цена"
      */
-    public function insertFromSpecification($rec, $origin, $dRows = array())
+    public static function insertFromSpecification($rec, $origin, $dRows = array())
     {
     	$productRec = $origin->rec();
     	
     	// Изтриват се предишни записи на спецификацията в офертата
-    	$this->delete("#quotationId = {$rec->id} AND #productId = {$productRec->id}");
+    	static::delete("#quotationId = {$rec->id} AND #productId = {$productRec->id}");
     	
     	foreach ($dRows as $row) {
     		if(empty($row)) continue;
@@ -761,6 +761,14 @@ class sales_QuotationsDetails extends doc_Detail {
     		$dRec->quantity = $row['left'];
     		$dRec->vatPercent = cat_Products::getVat($dRec->productId, $rec->date);
     		$dRec->packagingId = cat_Products::getProductInfo($dRec->productId)->productRec->measureId;
+    		
+    		if($tolerance = cat_Products::getParamValue($dRec->productId, 'tolerance')){
+    			$dRec->tolerance = $tolerance;
+    		}
+    		
+    		if($term = cat_Products::getParamValue($dRec->productId, 'term')){
+    			$dRec->term = $term;
+    		}
     		
     		// Ако полето от формата има дясна част, това е цената
     		if($row['right']){
@@ -778,7 +786,7 @@ class sales_QuotationsDetails extends doc_Detail {
     		$dRec->optional = 'no';
     		$dRec->discount = $price->discount;
     		
-    		$this->save($dRec);
+    		static::save($dRec);
     	}
     }
     
@@ -786,7 +794,7 @@ class sales_QuotationsDetails extends doc_Detail {
    /**
     * Помощна ф-я обръщаща въведената цена в основна валута без ддс
     */
-    private function getBasePrice($price, $currencyRate, $vatPercent, $chargeVat)
+    private static function getBasePrice($price, $currencyRate, $vatPercent, $chargeVat)
     {
     	if($chargeVat == 'yes'){
 			$price = $price / (1 + $vatPercent);
