@@ -108,13 +108,13 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
     /**
      * Достъпните продукти
      */
-    protected function getProducts($ProductManager, $masterRec)
+    protected function getProducts($masterRec)
     {
     	$property = ($masterRec->isReverse == 'yes') ? 'canSell' : 'canBuy';
     	$property .= ',canStore';
     	
     	// Намираме всички продаваеми продукти, и оттях оставяме само складируемите за избор
-    	$products = $ProductManager->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date, $property);
+    	$products = cat_Products::getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date, $property);
     	
     	return $products;
     }
@@ -141,7 +141,7 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
     		foreach ($data->rows as $i => &$row) {
     			$rec = &$data->recs[$i];
     
-    			$row->productId = cls::get($rec->classId)->getProductDescShort($rec->productId);
+    			$row->productId = cat_Products::getProductDescShort($rec->productId);
     			if($rec->notes){
     				deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
     			}
@@ -155,7 +155,7 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
      */
     public static function on_BeforeSave($mvc, &$id, $rec, $fields = NULL, $mode = NULL)
     {
-    	$rec->weight = cls::get($rec->classId)->getWeight($rec->productId, $rec->packagingId);
-    	$rec->volume = cls::get($rec->classId)->getVolume($rec->productId, $rec->packagingId);
+    	$rec->weight = cat_Products::getWeight($rec->productId, $rec->packagingId);
+    	$rec->volume = cat_Products::getVolume($rec->productId, $rec->packagingId);
     }
 }

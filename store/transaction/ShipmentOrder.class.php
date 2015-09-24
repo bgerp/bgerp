@@ -157,7 +157,7 @@ class store_transaction_ShipmentOrder extends acc_DocumentTransactionSource
         	$amount = ($detailRec->discount) ?  $amount * (1 - $detailRec->discount) : $amount;
         	$amount = round($amount, 2);
         	
-        	$pInfo = cls::get($detailRec->classId)->getProductInfo($detailRec->productId, $detailRec->packagingId);
+        	$pInfo = cat_Products::getProductInfo($detailRec->productId, $detailRec->packagingId);
         	
         	// Вложимите кредит 706, другите 701
         	$creditAccId = '701';
@@ -177,7 +177,7 @@ class store_transaction_ShipmentOrder extends acc_DocumentTransactionSource
                      $creditAccId, 
                         array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
                 		array($origin->className, $origin->that),			// Перо 2 - Сделка
-                    	array($detailRec->classId, $detailRec->productId), // Перо 3 - Артикул
+                    	array('cat_Products', $detailRec->productId), // Перо 3 - Артикул
                     'quantity' => $sign * $detailRec->quantity, // Количество продукт в основната му мярка
                 ),
             );
@@ -228,7 +228,7 @@ class store_transaction_ShipmentOrder extends acc_DocumentTransactionSource
         
         expect($rec->storeId, 'Генериране на експедиционна част при липсващ склад!');
         foreach ($rec->details as $detailRec) {
-        	$pInfo = cls::get($detailRec->classId)->getProductInfo($detailRec->productId, $detailRec->packagingId);
+        	$pInfo = cat_Products::getProductInfo($detailRec->productId, $detailRec->packagingId);
         	
         	// Вложимите кредит 706, другите 701
         	$debitAccId = (isset($pInfo->meta['materials'])) ? '706' : '701';
@@ -239,14 +239,14 @@ class store_transaction_ShipmentOrder extends acc_DocumentTransactionSource
 	                    $debitAccId, 
 	                        array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
 	             			array($origin->className, $origin->that),			// Перо 2 - Сделка
-        					array($detailRec->classId, $detailRec->productId), // Перо 3 - Продукт
+        					array('cat_Products', $detailRec->productId), // Перо 3 - Продукт
 	                    'quantity' => $sign * $detailRec->quantity, // Количество продукт в основна мярка
 	                ),
 	                
 	                'credit' => array(
 	                    $creditAccId, 
 	                        array('store_Stores', $rec->storeId), // Перо 1 - Склад
-	                        array($detailRec->classId, $detailRec->productId), // Перо 2 - Продукт
+	                        array('cat_Products', $detailRec->productId), // Перо 2 - Продукт
 	                    'quantity' => $sign * $detailRec->quantity, // Количество продукт в основна мярка
 	                ),
 	       );

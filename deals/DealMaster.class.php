@@ -464,7 +464,7 @@ abstract class deals_DealMaster extends deals_DealBase
     	$dQuery->where("#{$this->$Detail->masterKey} = '{$id}'");
     	$dQuery->groupBy('productId');
     	while($dRec = $dQuery->fetch()){
-    		$res[] = (object)array('class' => 'cat_Products', 'id' => $dRec->productId);
+    		$res[] = (object)array('class' => cls::get('cat_Products'), 'id' => $dRec->productId);
     	}
     	
     	return $res;
