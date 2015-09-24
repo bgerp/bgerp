@@ -1120,9 +1120,9 @@ class cat_Products extends embed_Manager {
      * @param mixed $id - ид/запис
      * @return mixed - подробното описанието на артикула
      */
-    public function getProductDesc($id, $time = NULL)
+    public static function getProductDesc($id, $time = NULL)
     {
-    	$rec = $this->fetchRec($id);
+    	$rec = static::fetchRec($id);
     	
     	return cat_ProductTplCache::cacheTpl($rec->id, $time);
     }
@@ -1182,10 +1182,10 @@ class cat_Products extends embed_Manager {
      * @param mixed $id - ид/запис
      * @return mixed - описанието на артикула
      */
-    public function getProductDescShort($id)
+    public static function getProductDescShort($id)
     {
-    	$rec = $this->fetchRec($id);
-    	$title = $this->getShortHyperlink($rec->id);
+    	$rec = static::fetchRec($id);
+    	$title = static::getShortHyperlink($rec->id);
     	
     	return $title;
     }
@@ -1208,21 +1208,20 @@ class cat_Products extends embed_Manager {
 	 */
     public static function getAutoProductDesc($id, $time = NULL, $mode = 'auto')
     {
-    	$me = cls::get(get_called_class());
-    	$rec = $me->fetchRec($id);
+    	$rec = static::fetchRec($id);
     	
     	switch($mode){
     		case 'detailed' :
-    			$res = $me->getProductDesc($rec, $time);
+    			$res = static::getProductDesc($rec, $time);
     			break;
     		case 'short' :
-    			$res = $me->getProductDescShort($rec);
+    			$res = static::getProductDescShort($rec);
     			break;
     		default :
     			if($rec->isPublic == 'no'){
-    				$res = $me->getProductDesc($rec, $time);
+    				$res = static::getProductDesc($rec, $time);
     			} else {
-    				$res = $me->getProductDescShort($rec);
+    				$res = static::getProductDescShort($rec);
     			}
     			break;
     	}
