@@ -188,7 +188,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
 				
 				if(!$policyInfo){
 					// Ако има политика в документа и той не прави обратна транзакция, използваме нея, иначе продуктовия мениджър
-					$Policy = ($masterRec->isReverse == 'yes') ? (($mvc->ReversePolicy) ? $mvc->ReversePolicy : cls::get($rec->classId)->getPolicy()) : (($mvc->Policy) ? $mvc->Policy : cls::get($rec->classId)->getPolicy());
+					$Policy = ($masterRec->isReverse == 'yes') ? (($mvc->ReversePolicy) ? $mvc->ReversePolicy : cls::get('price_ListToCustomers')) : (($mvc->Policy) ? $mvc->Policy : cls::get('price_ListToCustomers'));
 					$policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->classId, $rec->packagingId, $rec->packQuantity, $masterRec->valior, $masterRec->currencyRate, $masterRec->chargeVat);
 				}
 				

@@ -450,7 +450,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
 				}
 						
 				if(!$policyInfo){
-					$Policy = cls::get($rec->classId)->getPolicy();
+					$Policy = cls::get('price_ListToCustomers');
 					$policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->classId, $rec->packagingId, $rec->quantity, dt::now(), $masterRec->rate);
 				}
 					

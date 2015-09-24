@@ -281,7 +281,7 @@ abstract class deals_DealDetail extends doc_Detail
     		$rec->quantity = $rec->packQuantity * $rec->quantityInPack;
     	
     		if (!isset($rec->packPrice)) {
-    			$Policy = (isset($mvc->Policy)) ? $mvc->Policy : cls::get($rec->classId)->getPolicy();
+    			$Policy = (isset($mvc->Policy)) ? $mvc->Policy : cls::get('price_ListToCustomers');
     			$policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->classId, $rec->packagingId, $rec->packQuantity, $priceAtDate, $masterRec->currencyRate, $masterRec->chargeVat);
     				 
     			if (empty($policyInfo->price) && empty($pRec)) {

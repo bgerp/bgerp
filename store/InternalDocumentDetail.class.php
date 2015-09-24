@@ -101,7 +101,7 @@ abstract class store_InternalDocumentDetail extends doc_Detail
     		$rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
     	
     		if(!isset($rec->packPrice)){
-    			$Policy = $ProductMan->getPolicy();
+    			$Policy = cls::get('price_ListToCustomers');
     			$rec->packPrice = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $ProductMan->getClassId(), $rec->packagingId, $rec->packQuantity, $masterRec->valior, $currencyRate, $rec->chargeVat)->price;
     			$rec->packPrice = $rec->packPrice * $rec->quantityInPack;
     		}

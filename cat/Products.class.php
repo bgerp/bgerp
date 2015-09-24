@@ -1115,15 +1115,6 @@ class cat_Products extends embed_Manager {
     
     
     /**
-     * Връща клас имплементиращ `price_PolicyIntf`, основната ценова политика за този артикул
-     */
-    public function getPolicy()
-    {
-    	return cls::get('price_ListToCustomers');
-    }
-    
-    
-    /**
      * Връща подробното описанието на артикула
      *
      * @param mixed $id - ид/запис

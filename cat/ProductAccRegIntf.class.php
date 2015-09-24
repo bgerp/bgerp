@@ -151,15 +151,6 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     
     
     /**
-     * Връща клас имплементиращ `price_PolicyIntf`, основната ценова политика за този артикул
-     */
-    public function getPolicy()
-    {
-    	return $this->class->getPolicy();
-    }
-    
-    
-    /**
      * Връща описанието на артикула
      *
      * @param mixed $id - ид/запис
