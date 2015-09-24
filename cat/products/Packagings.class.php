@@ -16,6 +16,12 @@ class cat_products_Packagings extends doc_Detail
 {
     
     
+	/**
+	 * Име на поле от модела, външен ключ към мастър записа
+	 */
+	var $masterKey = 'productId';
+	
+	
     /**
      * Заглавие
      */
