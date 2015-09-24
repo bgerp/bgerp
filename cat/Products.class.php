@@ -665,6 +665,7 @@ class cat_Products extends embed_Manager {
     	}
     	
     	$res = new stdClass();
+    	$res->packagings = array();
     	$res->productRec = (object)array('name'      => $productRec->name,
     									 'measureId' => $productRec->measureId,
     									 'code'      => $productRec->code,);
@@ -685,15 +686,11 @@ class cat_Products extends embed_Manager {
     		$res->meta = FALSE;
     	}
     	
-    	$Packagings = cls::get('cat_products_Packagings');
-    	$res->packagings = array();
-    	
     	// Ако не е зададена опаковка намираме всички опаковки
-    	$packagings = $Packagings->fetchDetails($productId);
-    	
-    	// Пре-индексираме масива с опаковки - ключ става id на опаковката
-    	foreach ((array)$packagings as $pack) {
-    		$res->packagings[$pack->packagingId] = $pack;
+    	$packQuery = cat_products_Packagings::getQuery();
+    	$packQuery->where("#productId = '{$productId}'");
+    	while($packRec = $packQuery->fetch()){
+    		$res->packagings[$packRec->packagingId] = $packRec;
     	}
     	
     	// Връщаме информацията за продукта
@@ -717,9 +714,9 @@ class cat_Products extends embed_Manager {
     	$res = new stdClass();
     	
     	// Проверяваме имали опаковка с този код: вътрешен или баркод
-    	$Packagings = cls::get('cat_products_Packagings');
-    	$catPack = $Packagings->fetchByCode($code);
-    	if($catPack) {
+    	$catPack = cat_products_Packagings::fetch(array("#eanCode = '[#1#]'", $code));
+    	
+    	if(!empty($catPack)) {
     		
     		// Ако има запис намираме ид-та на продукта и опаковката
     		$res->productId = $catPack->productId;
