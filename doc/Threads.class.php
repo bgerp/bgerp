@@ -236,40 +236,44 @@ class doc_Threads extends core_Manager
         $query->orWhere("#lastState IS NULL");
         
         while ($rec = $query->fetch()) {
+            try {
             
-            // Ако има нишка без firstContainerId
-            if (!isset($rec->firstContainerId)) {
-            
-                // Първия документ от нишката
-                $firstCid = doc_Containers::fetchField("#threadId = '{$rec->id}'", 'id', FALSE);
+                // Ако има нишка без firstContainerId
+                if (!isset($rec->firstContainerId)) {
                 
-                // Ако не може да се определи първия документ в нишката, изтриваме нишката
-                if (!$firstCid) {
-                    if ($rec->id) {
-                        self::delete($rec->id);
-                        $resArr['del_cnt']++;
-                        continue;
+                    // Първия документ от нишката
+                    $firstCid = doc_Containers::fetchField("#threadId = '{$rec->id}'", 'id', FALSE);
+                    
+                    // Ако не може да се определи първия документ в нишката, изтриваме нишката
+                    if (!$firstCid) {
+                        if ($rec->id) {
+                            self::delete($rec->id);
+                            $resArr['del_cnt']++;
+                            continue;
+                        }
+                    }
+                    
+                    $rec->firstContainerId = $firstCid;
+                    
+                    if (self::save($rec)) {
+                        $resArr['firstContainerId']++;
                     }
                 }
                 
-                $rec->firstContainerId = $firstCid;
-                
-                if (self::save($rec)) {
-                    $resArr['firstContainerId']++;
+                // Ако няма папка използваме папката за несортирани
+                if (!isset($rec->folderId) && isset($defaultFolderId)) {
+                    $rec->folderId = $defaultFolderId;
+                    
+                    if (self::save($rec)) {
+                        $resArr['folderId']++;
+                    }
                 }
-            }
-            
-            // Ако няма папка използваме папката за несортирани
-            if (!isset($rec->folderId) && isset($defaultFolderId)) {
-                $rec->folderId = $defaultFolderId;
                 
-                if (self::save($rec)) {
-                    $resArr['folderId']++;
-                }
+                // Обновяваме нишката
+                self::updateThread($rec->id);
+            } catch (Exception $e) {
+                reportException($e, NULL, TRUE);
             }
-            
-            // Обновяваме нишката
-            self::updateThread($rec->id);
         }
         
         // Връщаме старото състояние за ловговането в дебъг
@@ -303,34 +307,37 @@ class doc_Threads extends core_Manager
         doc_Folders::prepareRepairDateQuery($query, $from, $to, $delay);
         
         while ($rec = $query->fetch()) {
-            
-            if (!$rec->firstContainerId) continue;
-            
             try {
-                $cRec = doc_Containers::fetch($rec->firstContainerId);
-            } catch (Exception $e) {
-                continue;
-            }
-            
-            if (!$cRec || !$cRec->docClass || !$cRec->docId) continue;
-            
-            try {
-                $clsInst = cls::get($cRec->docClass);
-                $iRec = $clsInst->fetch($cRec->docId, 'state', FALSE);
+                if (!$rec->firstContainerId) continue;
                 
-                if (!isset($iRec->state)) continue;
-                
-                // Ако състоянието на документа е оттеглен и на нишката трябва да е оттеглен
-                if ($iRec->state != 'rejected') continue;
-                if ($iRec->state == $rec->state) continue;
-                $rec->state = $iRec->state;
-                
-                if (self::save($rec, 'state')) {
-                    $resArr['firstContainerIdState']++;
+                try {
+                    $cRec = doc_Containers::fetch($rec->firstContainerId);
+                } catch (Exception $e) {
+                    continue;
                 }
-            } catch (core_exception_Expect $e) {
                 
-                continue;
+                if (!$cRec || !$cRec->docClass || !$cRec->docId) continue;
+                
+                try {
+                    $clsInst = cls::get($cRec->docClass);
+                    $iRec = $clsInst->fetch($cRec->docId, 'state', FALSE);
+                    
+                    if (!isset($iRec->state)) continue;
+                    
+                    // Ако състоянието на документа е оттеглен и на нишката трябва да е оттеглен
+                    if ($iRec->state != 'rejected') continue;
+                    if ($iRec->state == $rec->state) continue;
+                    $rec->state = $iRec->state;
+                    
+                    if (self::save($rec, 'state')) {
+                        $resArr['firstContainerIdState']++;
+                    }
+                } catch (core_exception_Expect $e) {
+                    
+                    continue;
+                }
+            } catch (Exception $e) {
+                reportException($e, NULL, TRUE);
             }
         }
         
