@@ -65,12 +65,11 @@ abstract class cat_ProductDriver extends core_BaseClass
 	/**
 	 * Преди показване на форма за добавяне/промяна.
 	 *
-	 * @param cat_GeneralProductDriver $Driver
-	 * @param stdClass $res
-	 * @param stdClass $data
+	 * @param cat_ProductDriver $Driver
 	 * @param embed_Manager $Embedder
+	 * @param stdClass $data
 	 */
-	public static function on_AfterPrepareEditForm($Driver, &$res, &$data,embed_Manager $Embedder)
+	public static function on_AfterPrepareEditForm(cat_ProductDriver $Driver, embed_Manager $Embedder, &$data)
 	{
 		$form = &$data->form;
 		

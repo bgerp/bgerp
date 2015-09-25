@@ -53,12 +53,11 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	/**
 	 * Преди показване на форма за добавяне/промяна.
 	 *
-	 * @param cat_GeneralProductDriver $Driver
-	 * @param stdClass $res
-	 * @param stdClass $data
+	 * @param cat_ProductDriver $Driver
 	 * @param embed_Manager $Embedder
+	 * @param stdClass $data
 	 */
-	public static function on_AfterPrepareEditForm($Driver, &$res, &$data,embed_Manager $Embedder)
+	public static function on_AfterPrepareEditForm(cat_ProductDriver $Driver, embed_Manager $Embedder, &$data)
 	{
 		$form = &$data->form;
 		
@@ -89,12 +88,12 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	/**
 	 * Извиква се след успешен запис в модела
 	 *
-	 * @param cat_GeneralProductDriver $Driver
+	 * @param cat_ProductDriver $Driver
+	 * @param embed_Manager $Embedder
 	 * @param int $id
 	 * @param stdClass $rec
-	 * @param embed_Manager $Embedder
 	 */
-	public static function on_AfterSave($Driver, &$id, $rec,embed_Manager $Embedder)
+	public static function on_AfterSave(cat_ProductDriver $Driver, embed_Manager $Embedder, &$id, $rec)
 	{
 		$arr = (array)$rec;
 		
@@ -111,7 +110,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 										  'paramId'    => $paramId,
 										  'paramValue' => $value);
 					
-					// Записваме проудктовия параметър с въведената стойност
+					// Записваме продуктовия параметър с въведената стойност
 					if(!cls::get('cat_products_Params')->isUnique($dRec, $fields, $exRec)){
 						$dRec->id = $exRec->id;
 					}
@@ -135,12 +134,12 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	/**
 	 * Подготовка за рендиране на единичния изглед
 	 *
-	 * @param cat_GeneralProductDriver $Driver
+	 * @param cat_ProductDriver $Driver
+	 * @param embed_Manager $Embedder
 	 * @param stdClass $res
 	 * @param stdClass $data
-	 * @param embed_Manager $Embedder
 	 */
-	public static function on_AfterPrepareSingle($Driver, &$res, &$data,embed_Manager $Embedder)
+	public static function on_AfterPrepareSingle(cat_ProductDriver $Driver, embed_Manager $Embedder, &$res, &$data)
 	{
 		if($data->rec->photo){
 			$size = array(280, 150);
@@ -152,6 +151,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		$data->masterId = $data->rec->id;
 		$data->masterClassId = cat_Products::getClassId();
 		
+		// Рендираме параметрите, само ако не е към запитване
 		if(!cls::haveInterface('marketing_InquiryEmbedderIntf', $Embedder)){
 			cat_products_Params::prepareParams($data);
 		}
@@ -163,12 +163,12 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	/**
 	 * След рендиране на единичния изглед
 	 * 
-	 * @param cat_GeneralProductDriver $Driver
+	 * @param cat_ProductDriver $Driver
+	 * @param embed_Manager $Embedder
 	 * @param core_ET $tpl
 	 * @param stdClass $data
-	 * @param embed_Manager $Embedder
 	 */
-	public static function on_AfterRenderSingle($Driver, &$tpl, $data, embed_Manager $Embedder)
+	public static function on_AfterRenderSingle(cat_ProductDriver $Driver, embed_Manager $Embedder, &$tpl, $data)
 	{
 		// Ако не е зададен шаблон, взимаме дефолтния
 		$nTpl = (empty($data->tpl)) ? getTplFromFile('cat/tpl/SingleLayoutBaseDriver.shtml') : $data->tpl;
@@ -219,7 +219,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 			$this->prepareForPublicDocument = TRUE;
 		}
 		
-		$this->invoke('AfterPrepareSingle', array(&$data, &$data, cls::get('cat_Products')));
+		$this->invoke('AfterPrepareSingle', array(cls::get('cat_Products'), &$data, &$data));
 		$data->tpl = getTplFromFile('cat/tpl/SingleLayoutBaseDriverShort.shtml');
 	
 		return $data;
@@ -237,7 +237,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		$data->noChange = TRUE;
 		$tpl = new ET("[#innerState#]");
 		
-		$this->invoke('AfterRenderSingle', array(&$tpl, $data, cls::get('cat_Products')));
+		$this->invoke('AfterRenderSingle', array(cls::get('cat_Products'), &$tpl, $data));
 		$title = cat_Products::getShortHyperlink($data->rec->id);
 		$tpl->replace($title, "TITLE");
 	
@@ -253,12 +253,12 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 	/**
 	 * Добавя ключови думи за пълнотекстово търсене
 	 * 
-	 * @param cat_GeneralProductDriver $Driver
+	 * @param cat_ProductDriver $Driver
+	 * @param embed_Manager $Embedder
 	 * @param stdClass $res
 	 * @param stdClass $rec
-	 * @param embed_Manager $Embedder
 	 */
-	public static function on_AfterGetSearchKeywords($Driver, &$res, $rec,embed_Manager $Embedder)
+	public static function on_AfterGetSearchKeywords(cat_ProductDriver $Driver, embed_Manager $Embedder, &$res, $rec)
 	{
 		$RichText = cls::get('type_Richtext');
 		$info = strip_tags($RichText->toVerbal($rec->info));
