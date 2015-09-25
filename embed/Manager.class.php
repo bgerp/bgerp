@@ -301,7 +301,7 @@ class embed_Manager extends core_Master
             	if($driver = $this->getDriver($dRec)){
             		
             		// Добавяме ембедъра към аргументите на ивента
-            		$args[] = $this;
+            		array_unshift($args, $this);
             		
             		// Генерираме същото събитие в драйвера за да може да го прихване при нужда
             		$status2 = $driver->invoke($event, $args);
