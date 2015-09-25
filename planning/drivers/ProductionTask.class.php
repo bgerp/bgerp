@@ -105,11 +105,12 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 	/**
      * Възможност за промяна след обръщането на данните във вербален вид
      *
+     * @param tasks_TaskDetails $Detail
      * @param stdClass $row
      * @param stdClass $rec
      * @return void
      */
-	public function recToVerbalDetail(&$row, $rec)
+	public function recToVerbalDetail(tasks_TaskDetails $Detail, &$row, $rec)
 	{
 		if($rec->operation){
 			$verbal = arr::make('start=Пускане,production=Произвеждане,waste=Отпадък,scrap=Бракуване,stop=Спиране');
@@ -123,10 +124,11 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 	/**
      * Възможност за промяна след подготовката на формата на детайла
      *
+     * @param tasks_TaskDetails $Detail
      * @param stdClass $data
      * @return void
      */
-	public function prepareEditFormDetail(&$data)
+	public function prepareEditFormDetail(tasks_TaskDetails $Detail, &$data)
 	{
 		$form = &$data->form;
 		$form->setFieldType('operation', 'enum(start=Пускане,production=Произвеждане,waste=Отпадък,scrap=Бракуване,stop=Спиране)');
@@ -142,15 +144,16 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 	/**
      * Възможност за промяна след рендирането на детайла
      * 
+     * @param tasks_TaskDetails $Detail
      * @param core_ET $tpl
      * @param stdClass $data
      * @return void
      */
-    public function renderDetail(&$tpl, $data)
+    public function renderDetail(tasks_TaskDetails $Detail, &$tpl, $data)
     {
     	// Добавяме бутон за добавяне на прогрес при нужда
-    	if(planning_drivers_ProductionTaskDetails::haveRightFor('add', (object)array('taskId' => $data->masterId))){
-    		$ht = ht::createLink('', array('planning_drivers_ProductionTaskDetails', 'add', 'taskId' => $data->masterId, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/add.png,title=Добавяне на прогрес към задачата');
+    	if($Detail->haveRightFor('add', (object)array('taskId' => $data->masterId))){
+    		$ht = ht::createLink('', array($Detail, 'add', 'taskId' => $data->masterId, 'ret_url' => TRUE), FALSE, 'ef_icon=img/16/add.png,title=Добавяне на прогрес към задачата');
     		$tpl->append($ht, 'ADD_BTN');
     	} 
     }
@@ -159,13 +162,14 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
     /**
      * Възможност за промяна след подготовката на лист тулбара
      *
+     * @param tasks_TaskDetails $Detail
      * @param stdClass $data
      * @return void
      */
-    public function prepareListToolbarDetail(&$data)
+    public function prepareListToolbarDetail(tasks_TaskDetails $Detail, &$data)
     {
     	// Премахваме стандартния бутон за добавяне
-    	parent::prepareListToolbarDetail($data);
+    	parent::prepareListToolbarDetail($Detail, $data);
     	$data->toolbar->removeBtn('btnAdd');
     }
 
