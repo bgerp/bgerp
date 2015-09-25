@@ -115,7 +115,8 @@ class planning_reports_PurchaseImpl extends frame_BaseDriver
         if (!isset($data->rec->time)) {
         	$query->where("#state = 'active'");
         } else {
-        	$query->where("#valior <= '{$time}' AND #state = 'active'");
+        	$query->where("#deliveryTime <= '{$time}' AND #state = 'active'");
+        	$query->orWhere("#valior <= '{$time}' AND #state = 'active'");
         }
 
 	    // за всеки един активен договор за продажба
@@ -432,7 +433,13 @@ class planning_reports_PurchaseImpl extends frame_BaseDriver
      */
 	public function getEarlyActivation()
     {
-    	$activateOn = "{$this->innerForm->to} 23:59:59";
+    	if ($this->innerForm->time == 0 || !isset($this->innerForm->time)) {
+    		$time = dt::today();
+    	} else {
+    		$time = dt::timestamp2Mysql(dt::mysql2timestamp(dt::now())+$this->innerForm->time);
+    	}
+    	
+    	$activateOn = "{$time} 23:59:59";
       	  	
       	return $activateOn;
 	}
