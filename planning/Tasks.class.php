@@ -95,7 +95,7 @@ class planning_Tasks extends tasks_Tasks
 				$url = array('planning_Tasks', 'add', 'originId' => $containerId, 'driverClass' => $taskInfo->driverClass, 'systemId' => $index, 'ret_url' => TRUE);
 				$row = new stdClass();
 				$row->title = $taskInfo->title;
-				$row->tools = ht::createLink('', $url, FALSE, 'ef_icon=img/16/add.png,title=Добавяне на нова задача');
+				$row->tools = ht::createLink('', $url, FALSE, 'ef_icon=img/16/add.png,title=Добавяне на нова задача за производство');
 				$row->ROW_ATTR['style'] .= 'background-color:#f8f8f8;color:#777';
 	
 				$data->rows[] = $row;
@@ -121,7 +121,7 @@ class planning_Tasks extends tasks_Tasks
 		// Рендираме таблицата с намерените задачи
 		$table = cls::get('core_TableView', array('mvc' => $this));
 		$table->setFieldsToHideIfEmptyColumn('timeStart,timeDuration,timeEnd');
-		$tpl = $table->get($data->rows, 'tools=Пулт,progress=Прогрес,name=Документ,title=Заглавие,timeStart=Начало, timeDuration=Продължителност, timeEnd=Край, modified=Модифицирано');
+		$tpl = $table->get($data->rows, 'tools=Пулт,progress=Прогрес,name=Документ,title=Заглавие,expectedTimeStart=Очаквано начало, timeDuration=Продължителност, timeEnd=Край, modified=Модифицирано');
 		
 		// Добавя бутон за създаване на нова задача
 		if(isset($data->addUrl)){
@@ -129,6 +129,10 @@ class planning_Tasks extends tasks_Tasks
 			$tpl->append($addBtn, 'ADD_BTN');
 		}
 		 
+		$taskLink = tr("Производствени задачи");
+		$taskLink = ($this->haveRightFor('list')) ? ht::createLink($taskLink, array($this, 'list')) : $taskLink;
+		$tpl->replace($taskLink, 'TASKS_LINK');
+		
 		// Връщаме шаблона
 		return $tpl;
 	}

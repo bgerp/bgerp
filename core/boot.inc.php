@@ -139,9 +139,9 @@ try {
  * При възникване на изключение показва грешката
  * Ако е зададено да се записва/изпраща прави съответното действие
  * 
- * Exception $e
- * NULL|array $update
- * boolean $supressShowing
+ * $param $e Exception
+ * $param $update NULL|array
+ * $param $supressShowing boolean
  */
 function reportException($e, $update = NULL, $supressShowing = FALSE)
 {
@@ -343,6 +343,22 @@ function bp()
     $dump = func_get_args();
     
     throw new core_exception_Break('500 Прекъсване в сървъра', 'Прекъсване', $dump);
+}
+
+
+/**
+ * Следене без прекъсване.
+ * Работи по подобен начин на bp(), но без прекъсване, само репортува състоянието
+ */
+function wp()
+{   
+    try {
+        $dump = func_get_args();
+    
+        throw new core_exception_Watching('@Наблюдение', 'Наблюдение', $dump);
+    } catch (core_exception_Watching $e) {
+        reportException($e, NULL, TRUE);
+    }
 }
 
 

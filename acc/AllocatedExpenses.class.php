@@ -380,13 +380,13 @@ class acc_AllocatedExpenses extends core_Master
     private function getChosenProducts(core_ObjectReference $firstDoc)
     {
     	// Aко първия документ е продажба
-    	if($firstDoc->getInstance() instanceof sales_Sales){
+    	if($firstDoc->isInstanceOf('sales_Sales')){
     		
     		// Взимаме артикулите от сметка 701
     		$shipped = sales_transaction_Sale::getShippedProducts($firstDoc->that, '701');
-    	
+    		
     	  // Ако е покупка
-    	} elseif($firstDoc->getInstance() instanceof purchase_Purchases){
+    	} elseif($firstDoc->isInstanceOf('purchase_Purchases')){
     		
     		// Вземаме всички заскладени артикули
     		$shipped = purchase_transaction_Purchase::getShippedProducts($firstDoc->that, '321', TRUE);
@@ -653,9 +653,10 @@ class acc_AllocatedExpenses extends core_Master
     {
     	$doc = doc_Containers::getDocument($correspondingOriginId);
     	$amount = 0;
-    	if($doc->getInstance() instanceof findeals_Deals){
+    	
+    	if($doc->isInstanceOf('findeals_Deals')){
     		$amount = $doc->fetchField('amountDeal');
-    	} elseif($doc->getInstance() instanceof purchase_Purchases){
+    	} elseif($doc->isInstanceOf('purchase_Purchases')){
     		$dRec = $doc->fetch();
     		$amount = $dRec->amountDeal;
     		if($chargeVat != 'yes' && $chargeVat != 'separate'){
@@ -684,12 +685,12 @@ class acc_AllocatedExpenses extends core_Master
     	}
     	
     	// Ако е финансова сделка, винаги може
-    	if($doc->getInstance() instanceof findeals_Deals){
+    	if($doc->isInstanceOf('findeals_Deals')){
     		
     		return TRUE;
     		
     		// Ако е покупка
-    	} elseif($doc->getInstance() instanceof purchase_Purchases){
+    	} elseif($doc->isInstanceOf('purchase_Purchases')){
     		
     		// Намираме  артикулите
     		$pQuery = purchase_PurchasesDetails::getQuery();
@@ -760,7 +761,7 @@ class acc_AllocatedExpenses extends core_Master
     	$firstDoc = doc_Threads::getFirstDocument($threadId);
     	
     	// Може да се добави само към тред на покупка/продажба
-    	if($firstDoc->getInstance() instanceof sales_Sales || $firstDoc->getInstance() instanceof purchase_Purchases){
+    	if($firstDoc->isInstanceOf('sales_Sales') || $firstDoc->isInstanceOf('purchase_Purchases')){
     		return TRUE;
     	}
     	

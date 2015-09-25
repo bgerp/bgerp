@@ -299,7 +299,7 @@ class purchase_Invoices extends deals_InvoiceMaster
     		 $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
     		 $docState = $firstDoc->fetchField('state');
     		 
-    		 if(!(($firstDoc->getInstance() instanceof purchase_Purchases || $firstDoc->getInstance() instanceof findeals_AdvanceDeals) && $docState == 'active')){
+    		 if(!(($firstDoc->isInstanceOf('purchase_Purchases') || $firstDoc->isInstanceOf('findeals_AdvanceDeals')) && $docState == 'active')){
     			$res = 'no_one';
     		}
     	}

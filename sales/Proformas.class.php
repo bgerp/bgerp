@@ -70,7 +70,7 @@ class sales_Proformas extends deals_InvoiceMaster
     /**
      * Кой е основния детайл
      */
-    protected $mainDetail = 'sales_ProformaDetails';
+    public $mainDetail = 'sales_ProformaDetails';
     
     
     /**
@@ -346,7 +346,7 @@ class sales_Proformas extends deals_InvoiceMaster
     	if(!$firstDocument) return FALSE;
     	
     	// Може да се добавя само към активна продажба
-    	if($firstDocument->getInstance() instanceof sales_Sales && $firstDocument->fetchField('state') == 'active'){
+    	if($firstDocument->isInstanceOf('sales_Sales') && $firstDocument->fetchField('state') == 'active'){
     		
     		return TRUE;
     	}

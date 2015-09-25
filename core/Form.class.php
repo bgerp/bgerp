@@ -733,8 +733,6 @@ class core_Form extends core_FieldSet
                     unset($attr['value']);
                     $this->invoke('BeforeCreateSmartSelect', array($input, $type, $options, $name, $value, &$attr));
  
-                    ;
-
                     $input = ht::createSmartSelect($options, $name, $value, $attr,
                         $type->params['maxRadio'],
                         $type->params['maxColumns'],

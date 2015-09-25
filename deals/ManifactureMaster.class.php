@@ -136,18 +136,7 @@ abstract class deals_ManifactureMaster extends core_Master
 	 */
 	public function getUsedDocs_($id)
 	{
-		$res = array();
-		
-		$Detail = $this->mainDetail;
-		$dQuery = $this->$Detail->getQuery();
-		$dQuery->EXT('state', $this->className, "externalKey={$this->$Detail->masterKey}");
-		$dQuery->where("#{$this->$Detail->masterKey} = '{$id}'");
-		$dQuery->groupBy('productId');
-		while($dRec = $dQuery->fetch()){
-			$res[] = (object)array('class' => cls::get('cat_Products'), 'id' => $dRec->productId);
-		}
-		 
-		return $res;
+		return deals_Helper::getUsedDocs($this, $id);
 	}
 	
 	
@@ -209,7 +198,7 @@ abstract class deals_ManifactureMaster extends core_Master
     {
     	// Може да добавяме или към нишка с начало задание
     	$firstDoc = doc_Threads::getFirstDocument($threadId);
-    	if($firstDoc->getInstance() instanceof planning_Jobs){
+    	if($firstDoc->isInstanceOf('planning_Jobs')){
     		
     		return TRUE;
     	} 

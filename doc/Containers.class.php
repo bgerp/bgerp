@@ -1463,110 +1463,113 @@ class doc_Containers extends core_Manager
         $resArr = array();
         
         while($rec = $query->fetch()) {
-            
-            $docId = FALSE;
-            $mustUpdate = TRUE;
-            
-            // Ако няма id на папката
-            if (!isset($rec->folderId)) {
+            try {
+                $docId = FALSE;
+                $mustUpdate = TRUE;
                 
-                // Опитваме се да определим от нишката
-                if ($rec->threadId) {
-                    $rec->folderId = doc_Threads::fetchField("#id = '{$rec->threadId}'", 'folderId', FALSE);
-                }
-                
-                // Ако не е определена използваме папката за несортирани
+                // Ако няма id на папката
                 if (!isset($rec->folderId)) {
-                    $rec->folderId = $defaultFolderId;
+                    
+                    // Опитваме се да определим от нишката
+                    if ($rec->threadId) {
+                        $rec->folderId = doc_Threads::fetchField("#id = '{$rec->threadId}'", 'folderId', FALSE);
+                    }
+                    
+                    // Ако не е определена използваме папката за несортирани
+                    if (!isset($rec->folderId)) {
+                        $rec->folderId = $defaultFolderId;
+                    }
+                    
+                    if (self::save($rec)) {
+                        $resArr['folderId']++;
+                    }
                 }
                 
-                if (self::save($rec)) {
-                    $resArr['folderId']++;
-                }
-            }
-            
-            // Ако няма нишка
-            if (!isset($rec->threadId)) {
-                
-                // Опитваме се да намерим id-то на нишката от нишките
-                $rec->threadId = doc_Threads::fetchField("#firstContainerId = '{$rec->id}' && #folderId = '{$rec->folderId}'", 'id', FALSE);
-                
-                // Ако не може създаваме нова нишка
+                // Ако няма нишка
                 if (!isset($rec->threadId)) {
-                    $rec->threadId = doc_Threads::create($rec->folderId, $rec->createdOn, $rec->createdBy);
-                }
-            
-                if (self::save($rec)) {
-                    $resArr['threadId']++;
-                }
-            }
-            
-            // Ако няма id на класа на документа
-            if (!isset($rec->docClass)) {
+                    
+                    // Опитваме се да намерим id-то на нишката от нишките
+                    $rec->threadId = doc_Threads::fetchField("#firstContainerId = '{$rec->id}' && #folderId = '{$rec->folderId}'", 'id', FALSE);
+                    
+                    // Ако не може създаваме нова нишка
+                    if (!isset($rec->threadId)) {
+                        $rec->threadId = doc_Threads::create($rec->folderId, $rec->createdOn, $rec->createdBy);
+                    }
                 
-                // Намираме всички докуемнти със съответния интерфейс
-                $cQuery = core_Classes::getQuery();
-                $cQuery->where("#state = 'active' AND #interfaces LIKE '%|{$documentIntfId}|%'");
-                while ($cRec = $cQuery->fetch()) {
-                    if (cls::load($cRec->name, TRUE)) {
-                        $clsInst = cls::get($cRec->name);
-                        
-                        // Ако има запис за съответния контейнер в мениджъра на докуемнта
-                        if ($docId = $clsInst->fetchField("#containerId = {$rec->id}", 'id', FALSE, 'id')) {
+                    if (self::save($rec)) {
+                        $resArr['threadId']++;
+                    }
+                }
+                
+                // Ако няма id на класа на документа
+                if (!isset($rec->docClass)) {
+                    
+                    // Намираме всички докуемнти със съответния интерфейс
+                    $cQuery = core_Classes::getQuery();
+                    $cQuery->where("#state = 'active' AND #interfaces LIKE '%|{$documentIntfId}|%'");
+                    while ($cRec = $cQuery->fetch()) {
+                        if (cls::load($cRec->name, TRUE)) {
+                            $clsInst = cls::get($cRec->name);
                             
-                            $rec->docClass = $cRec->id;
-                            
-                            if (self::save($rec)) {
-                                $resArr['docClass']++;
+                            // Ако има запис за съответния контейнер в мениджъра на докуемнта
+                            if ($docId = $clsInst->fetchField("#containerId = {$rec->id}", 'id', FALSE, 'id')) {
+                                
+                                $rec->docClass = $cRec->id;
+                                
+                                if (self::save($rec)) {
+                                    $resArr['docClass']++;
+                                }
+                                
+                                break;
                             }
-                            
-                            break;
                         }
                     }
                 }
-            }
-            
-            // Ако няма id на документа
-            if (!isset($rec->docId) && isset($rec->docClass)) {
                 
-                if (cls::load($rec->docClass, TRUE)) {
+                // Ако няма id на документа
+                if (!isset($rec->docId) && isset($rec->docClass)) {
                     
-                    $docClass = cls::get($rec->docClass);
-                    
-                    // Ако класа може да се използва за документ
-                    if (($docClass instanceof core_Mvc) && cls::haveInterface('doc_DocumentIntf', $docClass)) {
+                    if (cls::load($rec->docClass, TRUE)) {
                         
-                        if (!$docId) {
-                            $docId = $docClass->fetchField("#containerId = '{$rec->id}'", 'id', FALSE);
-                        }
+                        $docClass = cls::get($rec->docClass);
                         
-                        if ($docId) {
-                            $rec->docId = $docId;
-                            if (self::save($rec)) {
-                                $resArr['docId']++;
+                        // Ако класа може да се използва за документ
+                        if (($docClass instanceof core_Mvc) && cls::haveInterface('doc_DocumentIntf', $docClass)) {
+                            
+                            if (!$docId) {
+                                $docId = $docClass->fetchField("#containerId = '{$rec->id}'", 'id', FALSE);
                             }
-                        } else {
-                            if ($rec->id) {
-                                
-                                // Ако не може да се намери съответен документ, изтриваме го
-                                if (self::delete($rec->id)) {
-                                    $resArr['del_cnt']++;
+                            
+                            if ($docId) {
+                                $rec->docId = $docId;
+                                if (self::save($rec)) {
+                                    $resArr['docId']++;
+                                }
+                            } else {
+                                if ($rec->id) {
+                                    
+                                    // Ако не може да се намери съответен документ, изтриваме го
+                                    if (self::delete($rec->id)) {
+                                        $resArr['del_cnt']++;
+                                    }
                                 }
                             }
                         }
-                    }
-                } else {
-                    if (self::delete($rec->id)) {
-                        $resArr['del_cnt']++;
-                        $mustUpdate = FALSE;
+                    } else {
+                        if (self::delete($rec->id)) {
+                            $resArr['del_cnt']++;
+                            $mustUpdate = FALSE;
+                        }
                     }
                 }
-            }
-            
-            // Обновяваме полетата
-            if ($mustUpdate) {
-                self::update($rec->id);
-                $resArr['updateContainers']++;
+                
+                // Обновяваме полетата
+                if ($mustUpdate) {
+                    self::update($rec->id);
+                    $resArr['updateContainers']++;
+                }
+            } catch (Exception $e) {
+                reportException($e, NULL, TRUE);
             }
         }
         
@@ -1598,25 +1601,29 @@ class doc_Containers extends core_Manager
         doc_Folders::prepareRepairDateQuery($query, $from, $to, $delay);
         
         while ($rec = $query->fetch()) {
-            if (!$rec->docClass || !$rec->docId) continue;
-            
             try {
-                $clsInst = cls::get($rec->docClass);
-                $iRec = $clsInst->fetch($rec->docId, 'state', FALSE);
+                if (!$rec->docClass || !$rec->docId) continue;
                 
-                if (!isset($iRec->state)) continue;
-                
-                if ($iRec->state == $rec->state) continue;
-                
-                $rec->state = $iRec->state;
-                
-                if (self::save($rec, 'state')) {
-                    $resArr['state']++;
-                    self::update($rec->id);
+                try {
+                    $clsInst = cls::get($rec->docClass);
+                    $iRec = $clsInst->fetch($rec->docId, 'state', FALSE);
+                    
+                    if (!isset($iRec->state)) continue;
+                    
+                    if ($iRec->state == $rec->state) continue;
+                    
+                    $rec->state = $iRec->state;
+                    
+                    if (self::save($rec, 'state')) {
+                        $resArr['state']++;
+                        self::update($rec->id);
+                    }
+                } catch (Exception $e) {
+                    
+                    continue;
                 }
             } catch (Exception $e) {
-                
-                continue;
+                reportException($e, NULL, TRUE);
             }
         }
         
