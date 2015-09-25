@@ -44,8 +44,8 @@ class frame_CsvLib
 				}
 				
 				// ако е doubele
-				if (in_array($field ,array('quantityDelivered',
-						'quantityТоDelivered', 'store'))) {
+				if (in_array($field ,array('quantityDelivered', 'quantityDelivered', 'quantityToDeliver', 'quantityJob',
+						                   'quantityТоDelivered', 'quantityProduced', 'quantityToProduced','store', 'inStore'))) {
 				
 						$Int = cls::get('type_Int');
 						$value = $Int->toVerbal($value);
