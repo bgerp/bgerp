@@ -70,7 +70,7 @@ class sales_Proformas extends deals_InvoiceMaster
     /**
      * Кой е основния детайл
      */
-    protected $mainDetail = 'sales_ProformaDetails';
+    public $mainDetail = 'sales_ProformaDetails';
     
     
     /**
