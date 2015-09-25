@@ -574,10 +574,9 @@ class cat_Products extends embed_Manager {
     public static function getItemRec($objectId)
     {
         $result = NULL;
-        $self = cls::get(__CLASS__);
         
         if ($rec = self::fetch($objectId)) {
-        	$Driver = $self->getDriver($rec->id);
+        	$Driver = cat_Products::getDriver($rec->id);
 
             if(!is_object($Driver)) return NULL;
 
