@@ -500,7 +500,7 @@ abstract class deals_InvoiceMaster extends core_Master
 	   		$packs = $info->get('shippedPacks');
 	   		
 	   		$mvc::prepareProductFromOrigin($mvc, $rec, $agreed, $products, $invoiced, $packs);
-	   	} elseif($origin->getInstance() instanceof $mvc){
+	   	} elseif($origin->isInstanceOf($mvc)){
 	   		$dpOperation = $origin->fetchField('dpOperation');
 	   		
 	   		// Ако начисляваме аванс или има въведена нова стойност не се копират детайлите
@@ -1020,7 +1020,7 @@ abstract class deals_InvoiceMaster extends core_Master
     public function getInvoiceDetailedInfo($containerId)
     {
     	expect($document = doc_Containers::getDocument($containerId));
-    	expect($document->getInstance() instanceof $this);
+    	expect($document->isInstanceOf($this));
     	
     	if(!isset($this->cache[$containerId])){
     		$cache = array();

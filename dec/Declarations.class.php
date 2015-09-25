@@ -424,7 +424,8 @@ class dec_Declarations extends core_Master
             		$requiredRoles = 'no_one';
             	} else {
             		$origin = doc_Containers::getDocument($rec->originId);
-            		if(!($origin->getInstance() instanceof sales_Invoices)){
+            		
+            		if(!$origin->isInstanceOf('sales_Invoices')){
             			$requiredRoles = 'no_one';
             		} else {
             			$originRec = $origin->rec();

@@ -377,7 +377,8 @@ class tasks_Tasks extends embed_Manager
     			
     			// Може да се добавя само към активно задание
     			$origin = doc_Containers::getDocument($rec->originId);
-    			if(!($origin->getInstance() instanceof planning_Jobs)){
+    			
+    			if(!$origin->isInstanceOf('planning_Jobs')){
     				$requiredRoles = 'no_one';
     			} else {
     				if($origin->fetchField('state') != 'active'){
@@ -669,7 +670,7 @@ class tasks_Tasks extends embed_Manager
     	$Cover = doc_Folders::getCover($folderId);
     	
     	// Може да се добавя само в папка на 'Проект'
-    	return ($Cover->getInstance() instanceof doc_UnsortedFolders);
+    	return ($Cover->isInstanceOf('doc_UnsortedFolders'));
     }
 
 
@@ -684,7 +685,7 @@ class tasks_Tasks extends embed_Manager
     	$firstDoc = doc_Threads::getFirstDocument($threadId);
     	
     	// Може да се добавя само към нишка с начало задание
-    	return ($firstDoc->getInstance() instanceof planning_Jobs);
+    	return $firstDoc->isInstanceOf('planning_Jobs');
     }
     
     

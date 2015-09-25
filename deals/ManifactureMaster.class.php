@@ -198,7 +198,7 @@ abstract class deals_ManifactureMaster extends core_Master
     {
     	// Може да добавяме или към нишка с начало задание
     	$firstDoc = doc_Threads::getFirstDocument($threadId);
-    	if($firstDoc->getInstance() instanceof planning_Jobs){
+    	if($firstDoc->isInstanceOf('planning_Jobs')){
     		
     		return TRUE;
     	} 

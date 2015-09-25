@@ -517,7 +517,8 @@ class sales_Invoices extends deals_InvoiceMaster
     	if($action == 'add' && isset($rec->threadId)){
     		 $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
     		 $docState = $firstDoc->fetchField('state');
-    		 if(!($firstDoc->getInstance() instanceof sales_Sales && $docState == 'active')){
+    		 
+    		 if(!($firstDoc->isInstanceOf('sales_Sales') && $docState == 'active')){
     			$res = 'no_one';
     		}
     	}

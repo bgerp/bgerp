@@ -335,8 +335,7 @@ class cat_Products extends embed_Manager {
     			
     			// Правим кода на артикула задължителен
     			$form->setField('code', 'mandatory');
-    			
-    			if($cover->getInstance() instanceof cat_Categories){
+    			if($cover->isInstanceOf('cat_Categories')){
     				
     				// Ако корицата е категория слагаме дефолтен код и мерки
     				$CategoryRec = $cover->rec();
@@ -419,13 +418,12 @@ class cat_Products extends embed_Manager {
 		// Проверяваме за недопустими символи
         if ($form->isSubmitted()){
         	$rec = &$form->rec;
-        	
-            if (preg_match('/[^0-9a-zа-я\- _]/iu', $rec->code)) {
-                $form->setError('code', 'Полето може да съдържа само букви, цифри, тирета, интервали и долна черта!');
-            }
            
-        	if($rec->code) {
-    				
+        	if(!empty($rec->code)) {
+        		if (preg_match('/[^0-9a-zа-я\- _]/iu', $rec->code)) {
+        			$form->setError('code', 'Полето може да съдържа само букви, цифри, тирета, интервали и долна черта!');
+        		}
+        		
     			// Проверяваме дали има продукт с такъв код (като изключим текущия)
 	    		$check = $mvc->getByCode($rec->code);
 	    		if($check && ($check->productId != $rec->id)
