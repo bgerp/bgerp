@@ -633,7 +633,7 @@ class html2text_Converter
         $schema  = strtolower(trim($linkArr[0]));
         $path    = strtolower(trim($linkArr[1], "\t\n\r/"));
         
-        preg_match(type_Richtext::URL_PATTERN, $display, $dUrls);
+        preg_match(type_Richtext::URL_PATTERN, strip_tags($display), $dUrls);
  
         if(is_array($dUrls) && $dU = $dUrls[0]) {  
             if(stripos($dU, 'www.') === 0) {
