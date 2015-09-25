@@ -50,7 +50,7 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'RowNumb=Пулт,code,operation,quantity,weight,employees,fixedAsset,modified=Модифицирано';
+    public $listFields = 'RowNumb=Пулт,operation,code,quantity,weight,employees,fixedAsset,modified=Модифицирано';
     
 
     /**
@@ -183,6 +183,10 @@ class planning_drivers_ProductionTaskDetails extends tasks_TaskDetails
     	$row->ROW_ATTR['class'] .= " state-{$rec->state}";
     	if($rec->state == 'rejected'){
     		$row->ROW_ATTR['title'] = tr('Оттеглено от') . " " . core_Users::getVerbal($rec->modifiedBy, 'nick');
+    	}
+    	
+    	if(isset($row->code)){
+    		$row->code = "<div class='centered'>{$row->code}</div>";
     	}
     }
 }

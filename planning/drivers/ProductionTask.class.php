@@ -112,10 +112,11 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
      */
 	public function recToVerbalDetail(tasks_TaskDetails $Detail, &$row, $rec)
 	{
-		if($rec->operation){
+		if(isset($rec->operation)){
 			$verbal = arr::make('start=Пускане,production=Произвеждане,waste=Отпадък,scrap=Бракуване,stop=Спиране');
 			if(isset($verbal[$rec->operation])){
 				$row->operation = $verbal[$rec->operation];
+				$row->operation = "<div class='centered'>{$row->operation}</div>";
 			}
 		}
 	}
