@@ -219,8 +219,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 			$this->prepareForPublicDocument = TRUE;
 		}
 		
-		$Products = cls::get('cat_Products');
-		$this->invoke('AfterPrepareSingle', array(&$data, &$data, $Products));
+		$this->invoke('AfterPrepareSingle', array(&$data, &$data, cls::get('cat_Products')));
 		$data->tpl = getTplFromFile('cat/tpl/SingleLayoutBaseDriverShort.shtml');
 	
 		return $data;
