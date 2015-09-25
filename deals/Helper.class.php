@@ -405,4 +405,32 @@ abstract class deals_Helper
 			}
 		}
 	}
+	
+	
+	/**
+	 * Извлича масив с използваните артикули-документи в бизнес документа
+	 *
+	 * @param core_Mvc $mvc - клас на документа
+	 * @param int $id - ид на документа
+	 * @param string $productFld - името на полето в което е ид-то на артикула
+	 * 
+	 * @return арраъ $res - масив с използваните документи
+	 * 					['class'] - Инстанция на документа
+	 * 					['id'] - Ид на документа
+	 */
+	public static function getUsedDocs(core_Mvc $mvc, $id, $productFld = 'productId')
+	{
+		$res = array();
+		 
+		$Detail = cls::get($mvc->mainDetail);
+		$dQuery = $Detail->getQuery();
+		$dQuery->EXT('state', $mvc->className, "externalKey={$Detail->masterKey}");
+		$dQuery->where("#{$Detail->masterKey} = '{$id}'");
+		$dQuery->groupBy($productFld);
+		while($dRec = $dQuery->fetch()){
+			$res[] = (object)array('class' => cls::get('cat_Products'), 'id' => $dRec->{$productFld});
+		}
+		
+		return $res;
+	}
 }

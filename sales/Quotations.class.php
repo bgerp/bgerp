@@ -668,16 +668,7 @@ class sales_Quotations extends core_Master
      */
     public function getUsedDocs_($id)
     {
-    	$res = array();
-    	$dQuery = $this->sales_QuotationsDetails->getQuery();
-    	$dQuery->EXT('state', 'sales_Quotations', 'externalKey=quotationId');
-    	$dQuery->where("#quotationId = '{$id}'");
-    	$dQuery->groupBy('productId');
-    	while($dRec = $dQuery->fetch()){
-    			$res[] = (object)array('class' => cls::get('cat_Products'), 'id' => $dRec->productId);
-    	}
-    	
-    	return $res;
+    	return deals_Helper::getUsedDocs($this, $id);
     }
     
     
