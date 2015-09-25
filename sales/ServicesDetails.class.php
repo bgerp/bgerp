@@ -100,12 +100,12 @@ class sales_ServicesDetails extends deals_DeliveryDocumentDetail
     /**
      * Достъпните продукти
      */
-    protected function getProducts($ProductManager, $masterRec)
+    protected function getProducts($masterRec)
     {
     	$property = ($masterRec->isReverse == 'yes') ? 'canBuy' : 'canSell';
     	
     	// Намираме всички продаваеми продукти, и оттях оставяме само складируемите за избор
-    	$products = $ProductManager->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date, $property, 'canStore');
+    	$products = cat_Products::getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date, $property, 'canStore');
     	
     	return $products;
     }

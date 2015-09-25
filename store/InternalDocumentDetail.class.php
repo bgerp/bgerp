@@ -45,7 +45,7 @@ abstract class store_InternalDocumentDetail extends doc_Detail
     	$rec = &$data->form->rec;
     	$masterRec = $data->masterRec;
     	
-    	$products = $mvc->getProducts(cls::get('cat_Products'), $masterRec);
+    	$products = $mvc->getProducts($masterRec);
 		expect(count($products));
 			
 		if (empty($rec->id)) {
@@ -71,7 +71,6 @@ abstract class store_InternalDocumentDetail extends doc_Detail
     public static function on_AfterInputEditForm(core_Mvc $mvc, core_Form &$form)
     {
     	$rec = &$form->rec;
-    	$ProductMan = cls::get('cat_Products');
     	
     	$masterRec  = $mvc->Master->fetch($rec->{$mvc->masterKey});
     	$currencyRate = $rec->currencyRate = currency_CurrencyRates::getRate($masterRec->valior, $masterRec->currencyId, acc_Periods::getBaseCurrencyCode($masterRec->valior));
@@ -80,12 +79,12 @@ abstract class store_InternalDocumentDetail extends doc_Detail
     	}
     	
     	if($form->rec->productId){
-    		$packs = $ProductMan->getPacks($rec->productId);
+    		$packs = cat_Products::getPacks($rec->productId);
     		$form->setOptions('packagingId', $packs);
     		
     		// Слагаме цената от политиката за последна цена
     		if(isset($mvc->LastPricePolicy)){
-    			$policyInfoLast = $mvc->LastPricePolicy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $ProductMan->getClassId(), $rec->packagingId, $rec->packQuantity, $masterRec->valior, $currencyRate, $rec->chargeVat);
+    			$policyInfoLast = $mvc->LastPricePolicy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, cat_Products::getClassId(), $rec->packagingId, $rec->packQuantity, $masterRec->valior, $currencyRate, $rec->chargeVat);
     			if($policyInfoLast->price != 0){
     				$form->setSuggestions('packPrice', array('' => '', "{$policyInfoLast->price}" => $policyInfoLast->price));
     			}
@@ -95,14 +94,14 @@ abstract class store_InternalDocumentDetail extends doc_Detail
     	}
     	
     	if($form->isSubmitted()){
-    		$productInfo = $ProductMan->getProductInfo($rec->productId);
+    		$productInfo = cat_Products::getProductInfo($rec->productId);
     		
     		// Ако артикула няма опаковка к-то в опаковка е 1, ако има и вече не е свързана към него е това каквото е било досега, ако още я има опаковката обновяваме к-то в опаковка
     		$rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
     	
     		if(!isset($rec->packPrice)){
     			$Policy = cls::get('price_ListToCustomers');
-    			$rec->packPrice = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $ProductMan->getClassId(), $rec->packagingId, $rec->packQuantity, $masterRec->valior, $currencyRate, $rec->chargeVat)->price;
+    			$rec->packPrice = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, cat_Products::getClassId(), $rec->packagingId, $rec->packQuantity, $masterRec->valior, $currencyRate, $rec->chargeVat)->price;
     			$rec->packPrice = $rec->packPrice * $rec->quantityInPack;
     		}
     		
@@ -110,8 +109,8 @@ abstract class store_InternalDocumentDetail extends doc_Detail
     			$form->setError('packPrice', 'Продукта няма цена в избраната ценова политика');
     		}
     		
-    		$rec->weight = $ProductMan->getWeight($rec->productId, $rec->packagingId);
-    		$rec->volume = $ProductMan->getVolume($rec->productId, $rec->packagingId);
+    		$rec->weight = cat_Products::getWeight($rec->productId, $rec->packagingId);
+    		$rec->volume = cat_Products::getVolume($rec->productId, $rec->packagingId);
     	}
     }
     

@@ -402,7 +402,7 @@ class acc_AllocatedExpenses extends core_Master
     			if($p->amount == 0) continue;
     			
     			$products[$p->productId] = (object)array('productId' => $p->productId, 
-    												     'name'      => cls::get($p->classId)->getTitleById($p->productId), 
+    												     'name'      => cat_Products::getTitleById($p->productId), 
     													 'quantity'  => $p->quantity,
     													 'amount'    => $p->amount,
     			);
@@ -694,11 +694,11 @@ class acc_AllocatedExpenses extends core_Master
     		// Намираме  артикулите
     		$pQuery = purchase_PurchasesDetails::getQuery();
     		$pQuery->where("#requestId = {$doc->that}");
-    		$pQuery->show('classId,productId');
+    		$pQuery->show('productId');
     		 
     		// Ако има поне един складируем артикул не може да се създаде
     		while($dRec = $pQuery->fetch()){
-    			$pInfo = cls::get($dRec->classId)->getProductInfo($dRec->productId);
+    			$pInfo = cat_Products::getProductInfo($dRec->productId);
     			if(isset($pInfo->meta['canStore'])){
     				return FALSE;
     			}

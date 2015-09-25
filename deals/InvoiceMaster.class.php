@@ -414,12 +414,9 @@ abstract class deals_InvoiceMaster extends core_Master
 	   	$dQuery = $this->$Detail->getQuery();
 	   	$dQuery->EXT('state', $this->className, "externalKey={$this->$Detail->masterKey}");
 	   	$dQuery->where("#{$this->$Detail->masterKey} = '{$id}'");
-	   	$dQuery->groupBy('productId,classId');
+	   	$dQuery->groupBy('productId');
 	   	while($dRec = $dQuery->fetch()){
-	   		$productMan = cls::get($dRec->classId);
-	   		if(cls::haveInterface('doc_DocumentIntf', $productMan)){
-	   			$res[] = (object)array('class' => $productMan, 'id' => $dRec->productId);
-	   		}
+	   		$res[] = (object)array('class' => cls::get('cat_Products'), 'id' => $dRec->productId);
 	   	}
 	   	 
 	   	return $res;
@@ -546,7 +543,7 @@ abstract class deals_InvoiceMaster extends core_Master
 	   			$diff = $product->quantity;
 	   			if(count($invoiced)){
 	   				foreach ($invoiced as $inv){
-	   					if($inv->classId == $product->classId && $inv->productId == $product->productId){
+	   					if($inv->productId == $product->productId){
 	   						$diff = $product->quantity - $inv->quantity;
 	   						if($diff <= 0){
 	   							$continue = TRUE;
@@ -573,11 +570,11 @@ abstract class deals_InvoiceMaster extends core_Master
    protected static function saveProductFromOrigin($mvc, $rec, $product, $packs, $restAmount)
    {
 	   	$dRec = clone $product;
-	   	$index = $product->classId . "|" . $product->productId;
+	   	$index = $product->productId;
 	   	
 	   	// Ако няма информация за експедираните опаковки, визмаме основната опаковка
    		if(!isset($packs[$index])){
-   			$packs1 = cls::get('cat_Products')->getPacks($product->productId);
+   			$packs1 = cat_Products::getPacks($product->productId);
    			$dRec->packagingId = key($packs1);
    			
    			$packQuantity = 1;
@@ -592,7 +589,6 @@ abstract class deals_InvoiceMaster extends core_Master
 	   	
 	   	$Detail = $mvc->mainDetail;
 	   	$dRec->{$mvc->$Detail->masterKey} = $rec->id;
-	   	$dRec->classId        			  = $product->classId;
 	   	$dRec->discount        			  = $product->discount;
 	   	$dRec->price 		  			  = ($product->amount) ? ($product->amount / $product->quantity) : $product->price;
 	   	$dRec->quantityInPack 			  = $packQuantity;
@@ -659,7 +655,7 @@ abstract class deals_InvoiceMaster extends core_Master
     
     	while ($recDetails = $query->fetch()){
     		// взимаме заглавията на продуктите
-    		$productTitle = cls::get($recDetails->classId)->getTitleById($recDetails->productId);
+    		$productTitle = cat_Products::getTitleById($recDetails->productId);
     		// и ги нормализираме
     		$detailsKeywords .= " " . plg_Search::normalizeText($productTitle);
     	}
@@ -985,7 +981,6 @@ abstract class deals_InvoiceMaster extends core_Master
     	$invoiced = $aggregator->get('invoicedProducts');
     	while ($dRec = $dQuery->fetch()) {
     		$p = new stdClass();
-    		$p->classId     = $dRec->classId;
     		$p->productId   = $dRec->productId;
     		$p->packagingId = $dRec->packagingId;
     		$p->quantity    = $dRec->quantity * $dRec->quantityInPack;
@@ -994,7 +989,7 @@ abstract class deals_InvoiceMaster extends core_Master
     		$update = FALSE;
     		if(count($invoiced)){
     			foreach ($invoiced as &$inv){
-    				if($inv->classId == $p->classId && $inv->productId == $p->productId){
+    				if($inv->productId == $p->productId){
     					$inv->quantity += $p->quantity;
     					$update = TRUE;
     					break;

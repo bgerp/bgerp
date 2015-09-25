@@ -128,13 +128,13 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     /**
      * Достъпните продукти
      */
-    protected function getProducts($ProductManager, $masterRec)
+    protected function getProducts($masterRec)
     {
     	$property = ($masterRec->isReverse == 'yes') ? 'canBuy' : 'canSell';
     	$property .= ',canStore';
     	
     	// Намираме всички продаваеми продукти, и оттях оставяме само складируемите за избор
-    	$products = $ProductManager->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date, $property);
+    	$products = cat_Products::getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->date, $property);
     	
     	return $products;
     }
@@ -248,7 +248,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
     			$row->packQuantity = "<span class='row-negative' title = '" . tr('Количеството в скалда е отрицателно') . "'>{$row->packQuantity}</span>";
     		}
     		 
-    		if($rec->price < cls::get($rec->classId)->getSelfValue($rec->productId, NULL, $rec->quantity)){
+    		if($rec->price < cat_Products::getSelfValue($rec->productId, NULL, $rec->quantity)){
     			$row->packPrice = "<span class='row-negative' title = '" . tr('Цената е под себестойност') . "'>{$row->packPrice}</span>";
     		}
     	}
@@ -285,7 +285,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
      */
     public static function on_BeforeSave($mvc, &$id, $rec, $fields = NULL, $mode = NULL)
     {
-    	$rec->weight = cls::get($rec->classId)->getWeight($rec->productId, $rec->packagingId);
-    	$rec->volume = cls::get($rec->classId)->getVolume($rec->productId, $rec->packagingId);
+    	$rec->weight = cat_Products::getWeight($rec->productId, $rec->packagingId);
+    	$rec->volume = cat_Products::getVolume($rec->productId, $rec->packagingId);
     }
 }

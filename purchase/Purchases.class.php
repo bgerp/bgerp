@@ -447,7 +447,6 @@ class purchase_Purchases extends deals_DealMaster
         foreach ($detailRecs as $dRec) {
             $p = new bgerp_iface_DealProduct();
             
-            $p->classId           = $dRec->classId;
             $p->productId         = $dRec->productId;
             $p->packagingId       = $dRec->packagingId;
             $p->discount          = $dRec->discount;
@@ -458,15 +457,14 @@ class purchase_Purchases extends deals_DealMaster
             $p->uomId             = $dRec->uomId;
             $p->notes			  = $dRec->notes;
             
-            $ProductMan = cls::get('cat_Products');
-            $info = $ProductMan->getProductInfo($p->productId);
-            $p->weight  = $ProductMan->getWeight($p->productId, $p->packagingId);
-            $p->volume  = $ProductMan->getVolume($p->productId, $p->packagingId);
+            $info = cat_Products::getProductInfo($p->productId);
+            $p->weight  = cat_Products::getWeight($p->productId, $p->packagingId);
+            $p->volume  = cat_Products::getVolume($p->productId, $p->packagingId);
             
             $result->push('products', $p);
             
         	$push = TRUE;
-            $index = $p->classId . "|" . $p->productId;
+            $index = $p->productId;
             $shipped = $result->get('shippedPacks');
             	
             $inPack = $p->quantityInPack;

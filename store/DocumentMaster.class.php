@@ -204,7 +204,7 @@ abstract class store_DocumentMaster extends core_Master
     		
     		if(count($agreedProducts)){
     			foreach ($agreedProducts as $product) {
-    				$info = cls::get($product->classId)->getProductInfo($product->productId);
+    				$info = cat_Products::getProductInfo($product->productId);
     				 
     				// Колко остава за експедиране от продукта
     				$toShip = $product->quantity - $product->quantityDelivered;
@@ -214,7 +214,6 @@ abstract class store_DocumentMaster extends core_Master
     				 
     				$shipProduct = new stdClass();
     				$shipProduct->{$mvc->$Detail->masterKey}  = $rec->id;
-    				$shipProduct->classId     = $product->classId;
     				$shipProduct->productId   = $product->productId;
     				$shipProduct->packagingId = $product->packagingId;
     				$shipProduct->quantity    = $toShip;
@@ -403,12 +402,9 @@ abstract class store_DocumentMaster extends core_Master
     	$dQuery = $this->$Detail->getQuery();
     	$dQuery->EXT('state', $this->className, "externalKey={$this->$Detail->masterKey}");
     	$dQuery->where("#{$this->$Detail->masterKey} = '{$id}'");
-    	$dQuery->groupBy('productId,classId');
+    	$dQuery->groupBy('productId');
     	while($dRec = $dQuery->fetch()){
-    		$productMan = cls::get($dRec->classId);
-    		if(cls::haveInterface('doc_DocumentIntf', $productMan)){
-    			$res[] = (object)array('class' => $productMan, 'id' => $dRec->productId);
-    		}
+    		$res[] = (object)array('class' => cls::get('cat_Products'), 'id' => $dRec->productId);
     	}
     	
     	return $res;
@@ -551,7 +547,7 @@ abstract class store_DocumentMaster extends core_Master
     
     	while ($recDetails = $query->fetch()){
     		// взимаме заглавията на продуктите
-    		$productTitle = cls::get($recDetails->classId)->getTitleById($recDetails->productId);
+    		$productTitle = cat_Products::getTitleById($recDetails->productId);
     		
     		// и ги нормализираме
     		$detailsKeywords .= " " . plg_Search::normalizeText($productTitle);
@@ -588,7 +584,7 @@ abstract class store_DocumentMaster extends core_Master
     		 
     		// Подаваме най-малката опаковка в която е експедиран продукта
     		$push = TRUE;
-    		$index = $dRec->classId . "|" . $dRec->productId;
+    		$index = $dRec->productId;
     		$shipped = $aggregator->get('shippedPacks');
     		if($shipped && isset($shipped[$index])){
     			if($shipped[$index]->inPack < $dRec->quantityInPack){
@@ -602,7 +598,7 @@ abstract class store_DocumentMaster extends core_Master
     			$aggregator->push('shippedPacks', $arr, $index);
     		}
     		
-    		$vat = cls::get($dRec->classId)->getVat($dRec->productId);
+    		$vat = cat_Products::getVat($dRec->productId);
     		if($rec->chargeVat == 'yes' || $rec->chargeVat == 'separate'){
     			$dRec->packPrice += $dRec->packPrice * $vat;
     		}

@@ -712,7 +712,7 @@ class marketing_Inquiries2 extends embed_Manager
     		
     		$Driver->addFields($data->form);
     		$data->driverParams = $params;
-    		$this->invoke('AfterPrepareEditForm', array(&$data));
+    		$this->invoke('AfterPrepareEditForm', array(&$data, &$data));
     		
     		$form->input();
     		$this->invoke('AfterInputEditForm', array(&$form));

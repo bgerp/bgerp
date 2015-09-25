@@ -26,12 +26,6 @@ abstract class cat_ProductDriver extends core_BaseClass
 	 * Интерфейси които имплементира
 	 */
 	public $interfaces = 'cat_ProductDriverIntf';
-	
-	
-	/**
-	 * Мениджъра в който в вграден драйвера
-	 */
-	protected $Embedder;
 
 	
 	/**
@@ -47,33 +41,35 @@ abstract class cat_ProductDriver extends core_BaseClass
      */
     protected $icon = 'img/16/wooden-box.png';
 	
-    		
+	
     /**
-	 * Добавя полетата на драйвера към Fieldset
-	 *
-	 * @param core_Fieldset $fieldset
-	 */
-	public function addFields(core_Fieldset &$fieldset)
-	{
-	}
-	
-	
-	/**
-	 * Кой може да избере драйвера
-	 */
-	public function canSelectDriver($userId = NULL)
-	{
-		return core_Users::haveRole($this->canSelectDriver, $userId);
-	}
-	
-	
+     * Добавя полетата на драйвера към Fieldset
+     *
+     * @param core_Fieldset $fieldset
+     */
+    public function addFields(core_Fieldset &$fieldset)
+    {
+    
+    }
+    
+    
+    /**
+     * Кой може да избере драйвера
+     */
+    public function canSelectDriver($userId = NULL)
+    {
+    	return core_Users::haveRole($this->canSelectDriver, $userId);
+    }
+    
+    
 	/**
 	 * Преди показване на форма за добавяне/промяна.
 	 *
-	 * @param core_Manager $mvc
+	 * @param cat_ProductDriver $Driver
+	 * @param embed_Manager $Embedder
 	 * @param stdClass $data
 	 */
-	public static function on_AfterPrepareEditForm($Driver, &$data)
+	public static function on_AfterPrepareEditForm(cat_ProductDriver $Driver, embed_Manager $Embedder, &$data)
 	{
 		$form = &$data->form;
 		

@@ -120,7 +120,7 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
         deals_Helper::fillRecs($this->class, $rec->details, $rec, array('alwaysHideVat' => TRUE));
         
         foreach ($rec->details as $detailRec) {
-        	$pInfo = cls::get($detailRec->classId)->getProductInfo($detailRec->productId);
+        	$pInfo = cat_Products::getProductInfo($detailRec->productId);
         	$amount = $detailRec->amount;
         	$amount = ($detailRec->discount) ?  $amount * (1 - $detailRec->discount) : $amount;
         	$amount = round($amount, 2);
@@ -130,7 +130,7 @@ class store_transaction_Receipt extends acc_DocumentTransactionSource
         	$debit = array(
                   $debitAccId, 
                        array('store_Stores', $rec->storeId), // Перо 1 - Склад
-                       array($detailRec->classId, $detailRec->productId),  // Перо 2 - Артикул
+                       array('cat_Products', $detailRec->productId),  // Перо 2 - Артикул
                   'quantity' => $sign * $detailRec->quantity, // Количество продукт в основната му мярка
             );
         	

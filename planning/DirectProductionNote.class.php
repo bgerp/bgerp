@@ -315,14 +315,12 @@ class planning_DirectProductionNote extends deals_ManifactureMaster
 		
 		// Извличаме информацията за ресурсите в рецептата
 		$bomInfo = cat_Boms::getResourceInfo($bomId);
-		$productManId = cat_Products::getClassId();
 		
 		// За всеки ресурс
 		foreach($bomInfo['resources'] as $resource){
 			
 			// Задаваме данните на ресурса
 			$dRec = new stdClass();
-			$dRec->classId        = $productManId;
 			$dRec->productId      = $resource->productId;
 			$dRec->type           = $resource->type;
 			$dRec->packagingId    = $resource->packagingId;

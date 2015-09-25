@@ -35,7 +35,7 @@ class purchase_PurchaseLastPricePolicy extends core_Manager
      * @return object $rec->price  - цена
      * 				  $rec->discount - отстъпка
      */
-    function getPriceInfo($customerClass, $customerId, $productId, $productManId, $packagingId = NULL, $quantity = NULL, $date = NULL, $rate = 1, $chargeVat = 'no')
+    function getPriceInfo($customerClass, $customerId, $productId, $packagingId = NULL, $quantity = NULL, $date = NULL, $rate = 1, $chargeVat = 'no')
     {
        if(!$date){
        	   $date = dt::today();
@@ -51,17 +51,13 @@ class purchase_PurchaseLastPricePolicy extends core_Manager
         $detailQuery->where("#contragentId = {$customerId}");
         $detailQuery->where("#valior <= '{$date}'");
         $detailQuery->where("#productId = '{$productId}'");
-        $detailQuery->where("#classId = {$productManId}");
         $detailQuery->where("#state = 'active' || #state = 'closed'");
         $detailQuery->orderBy('#valior,#id', 'DESC');
         $lastRec = $detailQuery->fetch();
         
-        if(!$lastRec){
-        	
-        	return NULL;
-        }
+        if(!$lastRec) return NULL;
         
-        $vat = cls::get($lastRec->classId)->getVat($lastRec->productId);
+        $vat = cat_Products::getVat($lastRec->productId);
         $lastRec->price = deals_Helper::getDisplayPrice($lastRec->price, $vat, $rate, $chargeVat);
         
         return (object)array('price' => $lastRec->price, 'discount' => $lastRec->discount);

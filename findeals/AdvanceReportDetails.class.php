@@ -130,7 +130,7 @@ class findeals_AdvanceReportDetails extends doc_Detail
     	$cover = doc_Folders::getCover($masterRec->folderId);
     	
     	// Взимаме всички продаваеми продукти и махаме складируемите от тях
-    	$products = cls::get('cat_Products')->getProducts($cover->getClassId(), $cover->that, $masterRec->valior, 'canBuy', 'canStore');
+    	$products = cat_Products::getProducts($cover->getClassId(), $cover->that, $masterRec->valior, 'canBuy', 'canStore');
     	expect(count($products));
         
     	$form->setOptions('productId', $products);

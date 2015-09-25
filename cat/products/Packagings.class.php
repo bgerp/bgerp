@@ -12,10 +12,16 @@
  * @since     v 0.1
  * @link
  */
-class cat_products_Packagings extends cat_products_Detail
+class cat_products_Packagings extends doc_Detail
 {
     
     
+	/**
+	 * Име на поле от модела, външен ключ към мастър записа
+	 */
+	var $masterKey = 'productId';
+	
+	
     /**
      * Заглавие
      */

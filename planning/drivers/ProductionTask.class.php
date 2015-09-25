@@ -63,8 +63,13 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 	
 	/**
 	 * Преди рендиране на шаблона
+	 * 
+	 * @param tasks_BaseDriver $Driver
+	 * @param embed_Manager $Embedder
+	 * @param core_ET $tpl
+	 * @param stdClass $data
 	 */
-	protected static function on_AfterRenderSingleLayout($Driver, &$tpl, $data)
+	protected static function on_AfterRenderSingleLayout(tasks_BaseDriver $Driver, embed_Manager $Embedder, &$tpl, $data)
 	{
 		$tpl = getTplFromFile($Driver->singleLayoutFile);
 	}
@@ -167,8 +172,13 @@ class planning_drivers_ProductionTask extends tasks_BaseDriver
 
     /**
      * Добавя ключови думи за пълнотекстово търсене
+     * 
+     * @param tasks_BaseDriver $Driver
+     * @param embed_Manager $Embedder
+     * @param stdClass $res
+     * @param stdClass $rec
      */
-    public static function on_AfterGetSearchKeywords($Driver, &$res, $rec)
+    public static function on_AfterGetSearchKeywords(tasks_BaseDriver $Driver, embed_Manager $Embedder, &$res, $rec)
     {
     	if(empty($rec->id)) return;
     	

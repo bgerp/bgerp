@@ -102,7 +102,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         $this->FLD('conversionRate', 'double', 'input=none');
         
         // Само вложими продукти
-        $this->setDbUnique('noteId,productId,classId,type');
+        $this->setDbUnique('noteId,productId,type');
     }
     
     
@@ -129,8 +129,6 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     	$form = &$data->form;
     	$rec = &$form->rec;
     	
-    	$classId = cat_Products::getClassId();
-    	
     	if(isset($rec->id)){
     		$products = array($rec->productId => cat_Products::getTitlebyId($rec->productId, FALSE));
     	} else {
@@ -139,7 +137,6 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     	}
     	
     	$form->setOptions('productId', $products);
-    	$form->setDefault('classId', $classId);
     }
     
     

@@ -295,12 +295,17 @@ class embed_Manager extends core_Master
                 	break;
             }
 
-            // Ако има избран драйвер, генерираме същото събитие
-            // в драйвера за да може да го прихване при нужда
+            // Ако има избран драйвер
             if($driverClass) {
             	$dRec = (object)array($this->driverClassField => $driverClass);
             	if($driver = $this->getDriver($dRec)){
+            		
+            		// Добавяме ембедъра към аргументите на ивента
+            		array_unshift($args, $this);
+            		
+            		// Генерираме същото събитие в драйвера за да може да го прихване при нужда
             		$status2 = $driver->invoke($event, $args);
+            		
             		if($status2 === FALSE) {
             			$status = FALSE;
             		} elseif($status == -1 && $status2 === TRUE) {
@@ -328,7 +333,7 @@ class embed_Manager extends core_Master
     	// Ако има драйвер и той може да се зареди, инстанцираме го
     	if(isset($rec->{$self->driverClassField}) && cls::load($rec->{$self->driverClassField}, TRUE)){
     		
-    		return cls::get($rec->{$self->driverClassField}, array('Embedder' => $self));
+    		return cls::get($rec->{$self->driverClassField});
     	}
     	
     	return FALSE;

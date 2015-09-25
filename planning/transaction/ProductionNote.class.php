@@ -119,7 +119,7 @@ class planning_transaction_ProductionNote extends acc_DocumentTransactionSource
 								
 								$entry = array(
 										'debit' => array('321', array('store_Stores', $rec->storeId),
-															  array($dRec->classId, $dRec->productId),
+															  array('cat_Products', $dRec->productId),
 												'quantity' => $pQuantity),
 										'credit' => array('61101', array('cat_Products', $res->productId),
 												'quantity' => $res->finalQuantity),
@@ -138,7 +138,7 @@ class planning_transaction_ProductionNote extends acc_DocumentTransactionSource
 										'debit' => array('61101', array('cat_Products', $res->productId),
 														'quantity' => $resQuantity),
 										'credit' => array('321', array('store_Stores', $rec->storeId),
-																 array($dRec->classId, $dRec->productId),
+																 array('cat_Products', $dRec->productId),
 															'quantity' => $pQuantity),
 										'reason' => 'Приспадане себестойността на отпадък от произведен продукт',
 								);
@@ -159,7 +159,7 @@ class planning_transaction_ProductionNote extends acc_DocumentTransactionSource
 							$costArray = array(
 									'amount' => $costAmount,
 									'debit' => array('321', array('store_Stores', $rec->storeId),
-											array($dRec->classId, $dRec->productId),
+											array('cat_Products', $dRec->productId),
 											'quantity' => 0),
 									'credit' => array('61102'),
 									'reason' => 'Разпределени режийни разходи',
@@ -172,7 +172,7 @@ class planning_transaction_ProductionNote extends acc_DocumentTransactionSource
 				}
 			
 			if(!$entry){
-				$errorArr[] = cls::get($dRec->classId)->getTitleById($dRec->productId);
+				$errorArr[] = cat_Products::getTitleById($dRec->productId);
 			}
 		}
 		

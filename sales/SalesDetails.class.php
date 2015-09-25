@@ -139,7 +139,7 @@ class sales_SalesDetails extends deals_DealDetail
     	$rec = &$form->rec;
     	
     	if(isset($rec->productId)){
-    		$pInfo = cls::get($rec->classId)->getProductInfo($rec->productId);
+    		$pInfo = cat_Products::getProductInfo($rec->productId);
     		$masterStore = $mvc->Master->fetch($rec->{$mvc->masterKey})->shipmentStoreId;
     		
     		if(isset($masterStore) && isset($pInfo->meta['canStore'])){
@@ -169,7 +169,7 @@ class sales_SalesDetails extends deals_DealDetail
     	 
     	foreach ($rows as $id => $row){
     		$rec = $data->recs[$id];
-    		$pInfo = cls::get($rec->classId)->getProductInfo($rec->productId);
+    		$pInfo = cat_Products::getProductInfo($rec->productId);
     			
     		if($storeId = $data->masterData->rec->shipmentStoreId){
     			if(isset($pInfo->meta['canStore'])){
@@ -182,7 +182,7 @@ class sales_SalesDetails extends deals_DealDetail
     			}
     		}
     		
-    		if($rec->price < cls::get($rec->classId)->getSelfValue($rec->productId, NULL, $rec->quantity)){
+    		if($rec->price < cat_Products::getSelfValue($rec->productId, NULL, $rec->quantity)){
     			$row->packPrice = "<span class='row-negative' title = '" . tr('Цената е под себестойност') . "'>{$row->packPrice}</span>";
     		}
     	}
@@ -222,15 +222,15 @@ class sales_SalesDetails extends deals_DealDetail
      */
     public static function prepareJobInfo($rec, $masterRec)
     {
-    	$pRec = cls::get($rec->classId)->fetch($rec->productId, 'isPublic,containerId');
+    	$pRec = cat_Products::fetch($rec->productId, 'isPublic,containerId');
     	if($pRec->isPublic === 'yes') return;
-    	$pInfo = cls::get($rec->classId)->getProductInfo($rec->productId);
+    	$pInfo = cat_Products::getProductInfo($rec->productId);
     	if(!isset($pInfo->meta['canManifacture'])) return;
     	
     	$row = new stdClass();
     	
     	// Кой е артикула
-    	$row->productId = cls::get($rec->classId)->getShortHyperLink($rec->productId);
+    	$row->productId = cat_Products::getShortHyperLink($rec->productId);
     	
     	if($masterRec->state == 'active') {
     		

@@ -72,10 +72,10 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 				$hasInput = TRUE;
 				$resourcesArr[$index]->resourceQuantity = $dRec->quantity;
 				
-				$entry = array('debit' => array('61101', array($dRec->classId, $dRec->productId), 
+				$entry = array('debit' => array('61101', array('cat_Products', $dRec->productId), 
 												'quantity' => $dRec->quantity),
 							   'credit' => array('321', array('store_Stores', $rec->inputStoreId), 
-														array($dRec->classId, $dRec->productId), 
+														array('cat_Products', $dRec->productId), 
 												'quantity' => $dRec->quantity),
 								'reason' => 'Влагане на материал в производството');
 				
@@ -104,19 +104,19 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 					$reason = ($index == 0) ? 'Засклаждане на произведен продукт' : ((!isset($obj->productInfo->meta['canStore']) ? 'Вложен нескладируем артикул в производството на продукт' : 'Вложен материал в производството на артикул'));
 				
 					$entry['debit'] = array('321', array('store_Stores', $rec->storeId),
-										 array(cat_Products::getClassId(), $rec->productId),
+										 array('cat_Products', $rec->productId),
 										'quantity' => $quantity);
 					
-					$entry['credit'] = array('61101', array($obj->classId, $obj->productId),
+					$entry['credit'] = array('61101', array('cat_Products', $obj->productId),
 											            'quantity' => $obj->resourceQuantity);
 					$entry['reason'] = $reason;
 				} else {
 					$amount = $selfValue;
-					$entry['debit'] = array('61101', array($obj->classId, $obj->productId),
+					$entry['debit'] = array('61101', array('cat_Products', $obj->productId),
 												  'quantity' => $obj->resourceQuantity);
 					
 					$entry['credit'] =  array('321', array('store_Stores', $rec->storeId),
-										 array(cat_Products::getClassId(), $rec->productId),
+										 array('cat_Products', $rec->productId),
 										'quantity' => $quantity);
 					$entry['amount'] = $amount;
 					$entry['reason'] = 'Приспадане себестойността на отпадък от произведен продукт';
@@ -137,7 +137,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 				$costArray = array(
 						'amount' => $costAmount,
 						'debit' => array('321', array('store_Stores', $rec->storeId),
-											    array(cat_Products::getClassId(), $rec->productId),
+											    array('cat_Products', $rec->productId),
 										'quantity' => 0),
 						'credit' => array('61102'),
 						'reason' => 'Разпределени режийни разходи',

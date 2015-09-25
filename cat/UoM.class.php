@@ -121,6 +121,7 @@ class cat_UoM extends core_Manager
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
     	$type = core_Request::get('type', 'enum(uom,packaging)');
+    	
     	if($type == 'packaging'){
     		$mvc->currentTab = 'Мерки->Опаковки';
     		$mvc->title = 'Опаковки';
@@ -470,6 +471,29 @@ class cat_UoM extends core_Manager
     {
     	if($action == 'edit' && $rec->state == 'closed'){
     		$requiredRoles = 'no_one';
+    	}
+    }
+    
+    
+    /**
+     * Извиква се преди изпълняването на екшън
+     *
+     * @param core_Mvc $mvc
+     * @param mixed $res
+     * @param string $action
+     */
+    public static function on_BeforeAction($mvc, &$res, $action)
+    {
+    	if($action == 'default'){
+    		$type = Request::get('type', 'enum(uom,packaging)');
+    		
+    		// Ако не е посочен тип, избираме това да са мерките
+    		if(!isset($type)){
+    			$curUrl = getCurrentUrl();
+    			$curUrl['type'] = 'uom';
+    			
+    			return Redirect($curUrl);
+    		}
     	}
     }
 }

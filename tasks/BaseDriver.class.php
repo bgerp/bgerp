@@ -45,7 +45,7 @@ abstract class tasks_BaseDriver extends core_BaseClass
      * Кои детайли да се заредят динамично към мастъра
      */
     protected $detail;
-    
+
     
     /**
      * Добавя полетата на драйвера към Fieldset
@@ -54,6 +54,7 @@ abstract class tasks_BaseDriver extends core_BaseClass
      */
     public function addFields(core_Fieldset &$fieldset)
     {
+    
     }
     
     
@@ -64,7 +65,7 @@ abstract class tasks_BaseDriver extends core_BaseClass
     {
     	return core_Users::haveRole($this->canSelectDriver, $userId);
     }
-
+    
     
     /**
      * Връща дефолтното име на задача от драйвера

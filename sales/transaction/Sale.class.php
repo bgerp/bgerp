@@ -172,7 +172,7 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
         $currencyId = currency_Currencies::getIdByCode($rec->currencyId);
        
         foreach ($rec->details as $detailRec) {
-        	$pInfo = cls::get($detailRec->classId)->getProductInfo($detailRec->productId);
+        	$pInfo = cat_Products::getProductInfo($detailRec->productId);
         	
     		$storable = isset($pInfo->meta['canStore']);
     		
@@ -198,7 +198,7 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
                     $creditAccId,
                     	array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
                 		array('sales_Sales', $rec->id), 					// Перо 2 - Сделки
-                        array($detailRec->classId, $detailRec->productId), // Перо 3 - Продукт
+                        array('cat_Products', $detailRec->productId), // Перо 3 - Продукт
                     'quantity' => $detailRec->quantity, // Количество продукт в основната му мярка
                 ),
             );
@@ -303,7 +303,7 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
         }
         
         foreach ($rec->details as $detailRec) {
-        	$pInfo = cls::get($detailRec->classId)->getProductInfo($detailRec->productId);
+        	$pInfo = cat_Products::getProductInfo($detailRec->productId);
     		
         	// Само складируемите продукти се изписват от склада
         	if(isset($pInfo->meta['canStore'])){
@@ -315,14 +315,14 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
 	                    $debitAccId,
 	                        array($rec->contragentClassId, $rec->contragentId), // Перо 1 - Клиент
 	                		array('sales_Sales', $rec->id), 					// Перо 2 - Сделки
-        					array($detailRec->classId, $detailRec->productId), // Перо 3 - Продукт
+        					array('cat_Products', $detailRec->productId), // Перо 3 - Продукт
 	                    'quantity' => $detailRec->quantity, // Количество продукт в основна мярка
 	                ),
 	                
 	                'credit' => array(
 	                    $creditAccId,
 	                        array('store_Stores', $rec->shipmentStoreId), // Перо 1 - Склад
-	                        array($detailRec->classId, $detailRec->productId), // Перо 2 - Продукт
+	                        array('cat_Products', $detailRec->productId), // Перо 2 - Продукт
 	                    'quantity' => $detailRec->quantity, // Количество продукт в основна мярка
 	                ),
 	            );
@@ -358,10 +358,9 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
 	         		// Ако има интерфейса за артикули-пера, го добавяме
 	         		if(cls::haveInterface('cat_ProductAccRegIntf', $itemRec->classId)){
 	         			$obj = new stdClass();
-	         			$obj->classId    = $itemRec->classId;
 	         			$obj->productId  = $itemRec->objectId;
 	         			
-	         			$index = $obj->classId . "|" . $obj->productId;
+	         			$index = $obj->productId;
 	         			if(empty($res[$index])){
 	         				$res[$index] = $obj;
 	         			}
