@@ -33,7 +33,7 @@ class planning_reports_PurchaseImpl extends frame_BaseDriver
     /**
      * Заглавие
      */
-    public $title = 'Планиране » Планиране на покупки на стоки';
+    public $title = 'Планиране » Покупки на стоки';
     
     
     /**
