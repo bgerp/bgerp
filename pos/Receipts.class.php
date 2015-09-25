@@ -483,7 +483,10 @@ class pos_Receipts extends core_Master {
     	expect($rec = $this->fetch($id));
     	
     	// Имаме ли достъп до терминала
-    	$this->requireRightFor('terminal', $rec);
+    	if(!$this->haveRightFor('terminal', $rec)){
+    		
+    		return Redirect(array($this, 'new'));
+    	}
     	
     	// Лейаут на терминала
     	$tpl = getTplFromFile("pos/tpl/terminal/Layout.shtml");
