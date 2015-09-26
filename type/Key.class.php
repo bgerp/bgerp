@@ -563,41 +563,38 @@ class type_Key extends type_Int
                 
                 $tpl = ht::createCombo($name, $setVal, $attr, $selOpt);
             } else {
-                if ((count($options) == 0 || (count($options) == 1 && isset($options['']) && $this->params['mandatory']))) {
+                if ((count($options) == 0 || (count($options) == 1 && isset($options[''])))) {
                     
-                    $msg = '|Липсва избор за|* "' . $mvc->title . '".';
+                    $msg = tr('Липсва избор за');
+                    
+                    $title = tr($mvc->title);
 
                     if($mvc->haveRightFor('list')) {
-                        
-                        if (!$mvc->fetch("1=1")) {
-                            $msg .= " |Моля въведете началните данни|*.";
-                        } else {
-                            $msg .= " |Моля въведете подходящи данни|*.";
-                        }
-                        
                         $url = array($mvc, 'list');
-                        
-                        return new Redirect($url, $msg, 'warning');
-                    } else {  
-                        $msg .= " |Моля свържете се с колега, който има права да създава|* {$mvc->title} |или администратора на системата|*.";
-                        core_Statuses::newStatus(tr($msg), 'warning');
+                        $title = ht::createLink($title, $url, FALSE, 'style=font-weight:bold;');
                     }
-                }
+
+                    $cssClass = $this->params['mandatory'] ? 'inputLackOfChoiceMandatory' : 'inputLackOfChoice';
+
+                    $tpl = new ET("<span class='{$cssClass}'>[#1#] [#2#]</div>", $msg, $title);
+
+                } else {
                 
-                // Ако полето е задължително и имаме само една не-празна опция - тя да е по подразбиране
-                if($this->params['mandatory'] && count($options) == 2 && empty($value)) {
-                    list($o1, $o2) = array_keys($options);
-                    if(!empty($o2)) {
-                        $value = $o2;
-                    } elseif(!empty($o1)) {
-                        $value = $o1;
+                    // Ако полето е задължително и имаме само една не-празна опция - тя да е по подразбиране
+                    if($this->params['mandatory'] && count($options) == 2 && empty($value)) {
+                        list($o1, $o2) = array_keys($options);
+                        if(!empty($o2)) {
+                            $value = $o2;
+                        } elseif(!empty($o1)) {
+                            $value = $o1;
+                        }
                     }
+                    
+                    $tpl = ht::createSmartSelect($options, $name, $value, $attr,
+                        $this->params['maxRadio'],
+                        $this->params['maxColumns'],
+                        $this->params['columns']);
                 }
-                
-                $tpl = ht::createSmartSelect($options, $name, $value, $attr,
-                    $this->params['maxRadio'],
-                    $this->params['maxColumns'],
-                    $this->params['columns']);
             }
         } else {
             
