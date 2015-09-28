@@ -396,7 +396,7 @@ class sales_Sales extends deals_DealMaster
 	        }
 	        
     		if(sales_Proformas::haveRightFor('add', (object)array('threadId' => $rec->threadId))){
-	    		$data->toolbar->addBtn("Проформа", array('sales_Proformas', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), 'row=2,ef_icon=img/16/invoice.png,title=Създаване на нова проформа фактура,order=9.9992');
+	    		$data->toolbar->addBtn("Проформа", array('sales_Proformas', 'add', 'originId' => $rec->containerId, 'ret_url' => TRUE), 'row=2,ef_icon=img/16/proforma.png,title=Създаване на нова проформа фактура,order=9.9992');
 		    }
 	    	
 	        if(sales_Invoices::haveRightFor('add', (object)array('threadId' => $rec->threadId))){

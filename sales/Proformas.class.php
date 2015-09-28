@@ -130,7 +130,7 @@ class sales_Proformas extends deals_InvoiceMaster
     /**
      * Икона за фактура
      */
-    public $singleIcon = 'img/16/invoice.png';
+    public $singleIcon = 'img/16/proforma.png';
     
     
     /**
