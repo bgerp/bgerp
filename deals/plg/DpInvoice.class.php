@@ -54,9 +54,9 @@ class deals_plg_DpInvoice extends core_Plugin
         $form->dealInfo = $dealInfo;
         
         // Ако няма очаквано авансово плащане не правим нищо
-        $aggreedDownpayment = $dealInfo->get('agreedDownpayment');
+        //$aggreedDownpayment = $dealInfo->get('agreedDownpayment');
         
-        if(empty($aggreedDownpayment)) return;
+        //if(empty($aggreedDownpayment)) return;
         
         if(empty($form->rec->id)){
         	
@@ -114,29 +114,29 @@ class deals_plg_DpInvoice extends core_Plugin
     	// Ако има платен аванс ръководим се по него, ако няма по договорения
     	$downpayment = (empty($actualDp)) ? $aggreedDp : $actualDp;
     	
-    	// Ако няма фактуриран аванс
-    	if(empty($invoicedDp)){
-    			
-    		// Начисляване на аванса
-    		$dpAmount = $downpayment;
-    		$dpOperation = 'accrued';
+    	// Ако няма авансово плащане на задаваме дефолти
+    	if(!isset($downpayment)) {
+    		$dpOperation = 'none';
     	} else {
     		
-    		// Ако има вече начислен аванс, по дефолт е приспадане със сумата за приспадане
-    		$dpAmount = $invoicedDp - $deductedDp;
-    		$dpOperation = 'deducted';
-    	}
-    	
-    	// Ако всичко е начислено и има още аванс за приспадане, приспадаме го
-    	//if(round($dpAmount, 2) == 0 && round($invoicedDp - $deductedDp, 2) != 0){
-    		//$dpAmount = -1 * ($invoicedDp - $deductedDp);
-    		//$dpOperation = 'deducted';
-    	//}
-    	
-    	// Слагане на изчислените дефолти
-    	if(isset($dpAmount)){
-    		$dpAmount = self::getDpWithoutVat($dpAmount, $form->rec);
-    		$form->setDefault('dpAmount', $dpAmount);
+    		// Ако няма фактуриран аванс
+    		if(empty($invoicedDp)){
+    			 
+    			// Начисляване на аванса
+    			$dpAmount = $downpayment;
+    			$dpOperation = 'accrued';
+    		} else {
+    		
+    			// Ако има вече начислен аванс, по дефолт е приспадане със сумата за приспадане
+    			$dpAmount = $invoicedDp - $deductedDp;
+    			$dpOperation = 'deducted';
+    		}
+    		 
+    		// Слагане на изчислените дефолти
+    		if(isset($dpAmount)){
+    			$dpAmount = self::getDpWithoutVat($dpAmount, $form->rec);
+    			$form->setDefault('dpAmount', $dpAmount);
+    		}
     	}
     	
     	if($dpOperation){
@@ -182,8 +182,10 @@ class deals_plg_DpInvoice extends core_Plugin
         		
         		$downpayment = round(($downpayment - ($downpayment * $vat / (1 + $vat))) / $rec->rate, 6);
         		
-	        	if($rec->dpAmount > $downpayment){
-	            	$form->setWarning('dpAmount', "|Въведената сума е по-голяма от очаквания аванс от|* '{$downpayment}' |без ДДС|*");
+        		if($rec->dpAmount > $downpayment){
+        			$warning = ($downpayment === (double)0) ? "Зададена е сума, без да се очаква аванс по сделката" : "|Въведената сума е по-голяма от очаквания аванс от|* '{$downpayment}' |без ДДС|*";
+        			
+	            	$form->setWarning('dpAmount', $warning);
 	            }
         	} elseif($rec->dpOperation === 'deducted'){
         		
@@ -200,7 +202,7 @@ class deals_plg_DpInvoice extends core_Plugin
         		}
         	}
         	
-        	if($rec->dpOperation){
+        	if($rec->dpOperation && !$form->gotErrors()){
         		$rec->dpAmount = $rec->dpAmount * $rec->rate;
         		if($rec->dpAmount == 0){
         			$rec->dpOperation = 'none';
