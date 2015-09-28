@@ -25,14 +25,6 @@
                                 <td><b>[#type#]</b></td>
                             </tr>
                             <tr>
-                                <td class='dt'>|Титуляри|*:</td>
-                                <td><b>[#titulars#]</b></td>
-                            </tr>
-                            <tr>
-                                <td class='dt'>|Представляват|*:</td>
-                                <td>[#together#]</td>
-                            </tr>
-                            <tr>
                                 <td class='dt'>|Oператори|*:</td>
                                 <td>[#operators#]</td>
                             </tr>

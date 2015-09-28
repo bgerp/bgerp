@@ -193,8 +193,6 @@ class bank_OwnAccounts extends core_Master {
                                  personal=Персонална,
                                  capital=Набирателна)', 'caption=Тип,mandatory');
         $this->FLD('title', 'varchar(128)', 'caption=Наименование');
-        $this->FLD('titulars', 'keylist(mvc=crm_Persons, select=name, makeLinks)', 'caption=Титуляри->Име,mandatory');
-        $this->FLD('together',  'enum(together=Заедно,separate=Поотделно)', 'caption=Титуляри->Представляват');
         $this->FLD('operators', 'userList(roles=bank|ceo)', 'caption=Оператори,mandatory');
         $this->FLD('autoShare', 'enum(yes=Да,no=Не)', 'caption=Споделяне на сделките с другите отговорници->Избор,notNull,default=yes,maxRadio=2');
     }
@@ -295,10 +293,7 @@ class bank_OwnAccounts extends core_Master {
         $form->FNC('bank', 'varchar(64)', 'caption=Банка,after=bic,input');
         
     	$optionAccounts = $mvc->getPossibleBankAccounts();
-        $titulars = $mvc->getTitulars();
-        
         $form->setSuggestions('iban', array('' => '') + $optionAccounts);
-        $form->setSuggestions('titulars', $titulars);
         
         // Номера на сметката не може да се променя ако редактираме, за смяна на
         // сметката да се прави от bank_accounts
@@ -309,29 +304,6 @@ class bank_OwnAccounts extends core_Master {
         	$form->setReadOnly('bic', $ibanRec->bic);
         	$form->setReadOnly('currencyId', $ibanRec->currencyId);
         }
-    }
-    
-    
-    /**
-     * Връща всички Всички лица, които могат да бъдат титуляри на сметка
-     * тези включени в група "Управители"
-     */
-    function getTitulars()
-    {
-        $options = array();
-        $groupId = crm_Groups::fetchField("#sysId = 'managers'", 'id');
-        $personQuery = crm_Persons::getQuery();
-        $personQuery->where("#groupList LIKE '%|{$groupId}|%'");
-        
-        while($personRec = $personQuery->fetch()) {
-            $options[$personRec->id] = crm_Persons::getVerbal($personRec, 'name');
-        }
-        
-        if(count($options) == 0) {
-            return Redirect(array('crm_Persons', 'list'), NULL, 'Няма лица в група "Управители" за титуляри на "нашите сметки". Моля добавете !');
-        }
-        
-        return $options;
     }
     
     
