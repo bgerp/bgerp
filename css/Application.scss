@@ -1526,7 +1526,12 @@ pre.document {
 .full-width{
     width: 100%;
 }
-
+.full-width-holder {
+	width: 100%;
+	table {
+	   width: 100%;
+	}
+}
 /*край на стилове за документи*/
 
 
