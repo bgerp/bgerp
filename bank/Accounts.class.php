@@ -321,9 +321,19 @@ class bank_Accounts extends core_Master {
         
         if(!Mode::is('printing')) {
             if($data->masterMvc->haveRightFor('edit', $data->masterId) && $this->haveRightFor('add')) {
-                $url = array($this, 'add', 'contragentCls' => $data->contragentCls, 'contragentId' => $data->masterId, 'ret_url' => TRUE);
+                $ourCompany = crm_Companies::fetchOurCompany();
                 $img = "<img src=" . sbf('img/16/add.png') . " width='16'  height='16'>";
-                $tpl->append(ht::createLink($img, $url, FALSE, 'title=' . tr('Добавяне на нова банкова сметка')), 'title');
+            	
+                // Ако контрагента е 'моята фирма' редирект към създаване на наша сметка, иначе към създаване на обикновена
+            	if($data->contragentCls == crm_Companies::getClassId() && $data->masterId == $ourCompany->id){
+            		$url = array('bank_OwnAccounts', 'add', 'ret_url' => TRUE);
+            		$title = 'Добавяне на нова наша банкова сметка';
+            	} else {
+            		$url = array($this, 'add', 'contragentCls' => $data->contragentCls, 'contragentId' => $data->masterId, 'ret_url' => TRUE);
+            		$title = 'Добавяне на нова банкова сметка';
+            	}
+            	
+            	$tpl->append(ht::createLink($img, $url, FALSE, 'title=' . tr($title)), 'title');
             }
         }
         
