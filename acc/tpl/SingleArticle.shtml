@@ -1,5 +1,5 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
-    <div>
+    <div style='margin-bottom: 10px;'>
         <div class='fleft half_block'>
             <table>
                 <tr>
