@@ -154,6 +154,19 @@ class cat_ProductTplCache extends core_Master
 	
 	
 	/**
+	 * Връща кешираните данни на артикула за дадено време ако има
+	 * 
+	 * @param int $productId - ид на артикул
+	 * @param datetime $time - време
+	 * @return mixed
+	 */
+	public static function getCache($productId, $time)
+	{
+		return self::fetchField("#productId = {$productId} AND #time = '{$time}'", 'cache');
+	}
+	
+	
+	/**
 	 * Кеширане на изгледа на спецификацията
 	 *
 	 * @param mixed $id - ид/запис
@@ -164,8 +177,9 @@ class cat_ProductTplCache extends core_Master
 	public static function cacheTpl($productId, $time, $documentType = 'public')
 	{
 		$pRec = cat_Products::fetchRec($productId);
-		$cache = self::fetchField("#productId = {$pRec->id} AND #time = '{$time}'", 'cache');
-		$Driver = cls::get('cat_Products')->getDriver($productId);
+		
+		$cache = self::getCache($pRec->id, $time);
+		$Driver = cat_Products::getDriver($productId);
 		
 		// Ако има кеширан изглед за тази дата връщаме го
 		if(!$cache){
