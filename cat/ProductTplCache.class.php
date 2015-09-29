@@ -189,8 +189,12 @@ class cat_ProductTplCache extends core_Master
 			$cacheRec->time = $time;
 			$cacheRec->productId = $productId;
 			$cacheRec->cache = $Driver->prepareProductDescription($pRec, $documentType);
-			self::save($cacheRec);
-	
+			
+			// Записваме кеша само ако е подадено валидно време
+			if(isset($cacheRec->time)){
+				self::save($cacheRec);
+			}
+			
 			$cache = $cacheRec->cache;
 		}
 		
