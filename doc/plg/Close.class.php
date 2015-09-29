@@ -105,7 +105,7 @@ class doc_plg_Close extends core_Plugin
     	$mvc->requireRightFor('close', $rec);
     	 
     	$state = ($rec->state == 'closed') ? 'active' : 'closed';
-    	$action = ($state == 'closed') ? 'Затваряне' : 'Активиране';
+    	$action = ($state == 'closed') ? 'Приключване' : 'Активиране';
     	
     	$rec->exState = $rec->state;
     	$rec->state = $state;
