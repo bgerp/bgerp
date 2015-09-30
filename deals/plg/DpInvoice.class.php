@@ -91,7 +91,7 @@ class deals_plg_DpInvoice extends core_Plugin
         $form->setField('dpOperation','input');
         
         if($form->rec->dpOperation == 'accrued'){
-        	$form->setField('dueDate', 'input=none');
+        	//$form->setField('dueDate', 'input=none');
         } elseif($form->rec->dpOperation == 'none'){
         	unset($form->rec->dpAmount);
         }

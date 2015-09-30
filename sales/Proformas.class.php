@@ -180,7 +180,7 @@ class sales_Proformas extends deals_InvoiceMaster
     	parent::setInvoiceFields($this);
     	 
     	$this->FLD('saleId', 'key(mvc=sales_Sales)', 'caption=Продажба,input=none');
-    	$this->FLD('accountId', 'key(mvc=bank_OwnAccounts,select=bankAccountId, allowEmpty)', 'caption=Плащане->Банкова с-ка,after=paymentMethodId');
+    	$this->FLD('accountId', 'key(mvc=bank_OwnAccounts,select=bankAccountId, allowEmpty)', 'caption=Плащане->Банкова с-ка');
     	$this->FLD('state', 'enum(draft=Чернова, active=Активиран, rejected=Оттеглен)', 'caption=Статус, input=none');
     	$this->FLD('number', 'int', 'caption=Номер, export=Csv, after=place');
     
@@ -211,7 +211,7 @@ class sales_Proformas extends deals_InvoiceMaster
     {
     	parent::prepareInvoiceForm($mvc, $data);
     	
-    	foreach (array('responsible', 'contragentPCode', 'contragentPlace', 'contragentAddress', 'paymentMethodId', 'deliveryPlaceId', 'vatDate', 'vatReason', 'contragentCountryId', 'contragentName') as $fld){
+    	foreach (array('responsible', 'contragentPCode', 'contragentPlace', 'contragentAddress', 'deliveryPlaceId', 'vatDate', 'vatReason', 'contragentCountryId', 'contragentName') as $fld){
     		$data->form->setField($fld, 'input=hidden');
     	}
     	

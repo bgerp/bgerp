@@ -99,9 +99,10 @@
                                         <!--ET_BEGIN paymentBlock-->
                                         [#paymentBlock#]
                                         <div class='custom-bg-block'><b>Payment</b></div>
-                                        <!--ET_BEGIN paymentMethodId-->
-                                        <div><span class='quiet'>Method:</span>  [#paymentMethodId#]</div>
-                                        <!--ET_END paymentMethodId-->
+                                        <!--ET_BEGIN DUE_BLOCK-->
+                                           [#DUE_BLOCK#]
+                                        <div><span class='quiet'>Deadline:</span> [#dueTime#] (till [#dueDate#])</div>
+                                        <!--ET_END DUE_BLOCK--> 
                                         <!--ET_BEGIN deadline-->
                                         [#deadline#]
                                         <div>

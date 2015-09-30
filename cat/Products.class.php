@@ -1165,7 +1165,7 @@ class cat_Products extends embed_Manager {
      * @param mixed $time - време
      * @return mixed - описанието на артикула
      */
-    public static function getProductDescShort($id, $time)
+    public static function getProductDescShort($id, $time = NULL)
     {
     	$rec = static::fetchRec($id);
     	
