@@ -936,6 +936,14 @@ td.portal-date {
 .shortTable .listTable {
   width: 1%; }
 
+.wide .half-block {
+  padding-right: 20px; }
+  .wide .half-block.large {
+    width: 70%; }
+
+.narrow .half-block {
+  display: block; }
+
 /*
  * край на портал
  */
