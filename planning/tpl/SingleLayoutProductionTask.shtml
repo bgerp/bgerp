@@ -4,7 +4,7 @@
         <div class="small">
             <table class='full-width'>
                 <tr>
-                    <td>
+                    <td style='width: 55%;'>
                         <!--ET_BEGIN timeStart-->
                         |Начало|*: [#timeStart#]<br>
                         <!--ET_END timeStart-->
