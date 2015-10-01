@@ -272,9 +272,18 @@ class bank_Accounts extends core_Master {
         $query = $this->getQuery();
         $query->where("#contragentCls = {$data->contragentCls} AND #contragentId = {$data->masterId}");
         
+        $data->isOurCompany = FALSE;
+        $ourCompany = crm_Companies::fetchOurCompany();
+        if($data->contragentCls == crm_Companies::getClassId() && $data->masterId == $ourCompany->id){
+        	$data->isOurCompany = TRUE;
+        }
+        
         while($rec = $query->fetch()) {
+        	if($data->isOurCompany === TRUE){
+        		$rec->ourAccount = TRUE;
+        	}
+        	
             $data->recs[$rec->id] = $rec;
-            
             $row = $data->rows[$rec->id] = $this->recToVerbal($rec);
         }
         
@@ -321,12 +330,11 @@ class bank_Accounts extends core_Master {
         
         if(!Mode::is('printing')) {
             if($data->masterMvc->haveRightFor('edit', $data->masterId) && $this->haveRightFor('add')) {
-                $ourCompany = crm_Companies::fetchOurCompany();
                 $img = "<img src=" . sbf('img/16/add.png') . " width='16'  height='16'>";
             	
                 // Ако контрагента е 'моята фирма' редирект към създаване на наша сметка, иначе към създаване на обикновена
-            	if($data->contragentCls == crm_Companies::getClassId() && $data->masterId == $ourCompany->id){
-            		$url = array('bank_OwnAccounts', 'add', 'ret_url' => TRUE);
+            	if($data->isOurCompany === TRUE){
+            		$url = array('bank_OwnAccounts', 'add', 'ret_url' => TRUE, 'fromOurCompany' => TRUE);
             		$title = 'Добавяне на нова наша банкова сметка';
             	} else {
             		$url = array($this, 'add', 'contragentCls' => $data->contragentCls, 'contragentId' => $data->masterId, 'ret_url' => TRUE);
@@ -338,6 +346,23 @@ class bank_Accounts extends core_Master {
         }
         
         return $tpl;
+    }
+    
+    /**
+     * Реализация по подразбиране на метода getEditUrl()
+     *
+     * @param core_Mvc $mvc
+     * @param array $editUrl
+     * @param stdClass $rec
+     */
+    public static function on_BeforeGetEditUrl($mvc, &$editUrl, $rec)
+    {
+    	if($rec->ourAccount === TRUE){
+    		$retUrl = $editUrl['ret_url'];
+    		$ownAccountId = bank_OwnAccounts::fetchField("#bankAccountId = {$rec->id}", 'id');
+    		$editUrl = array('bank_OwnAccounts', 'edit', $ownAccountId);
+    		$editUrl['ret_url'] = $retUrl;
+    	}
     }
     
     

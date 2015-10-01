@@ -195,6 +195,7 @@ class bank_OwnAccounts extends core_Master {
         $this->FLD('title', 'varchar(128)', 'caption=Наименование');
         $this->FLD('operators', 'userList(roles=bank|ceo)', 'caption=Оператори,mandatory');
         $this->FLD('autoShare', 'enum(yes=Да,no=Не)', 'caption=Споделяне на сделките с другите отговорници->Избор,notNull,default=yes,maxRadio=2');
+        $this->FLD('comment', 'richtext(bucket=Notes,rows=6)', 'caption=Бележки');
     }
     
     
@@ -234,8 +235,10 @@ class bank_OwnAccounts extends core_Master {
         	}
         }
         
-        $currencyId = bank_Accounts::fetchField($rec->bankAccountId, 'currencyId');
-        $row->currency = currency_Currencies::getCodeById($currencyId);
+        if($rec->bankAccountId){
+        	$currencyId = bank_Accounts::fetchField($rec->bankAccountId, 'currencyId');
+        	$row->currency = currency_Currencies::getCodeById($currencyId);
+        }
     }
     
     
@@ -287,10 +290,14 @@ class bank_OwnAccounts extends core_Master {
     protected static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         $form = &$data->form;
-        $form->FNC('iban', 'iban_Type(64)', 'caption=IBAN / №,mandatory,before=type,refreshForm,removeAndRefreshForm=currencyId|bic|bank,input');
+        $form->FNC('iban', 'iban_Type(64)', 'caption=IBAN / №,mandatory,before=type,refreshForm,removeAndRefreshForm=bic|bank,input');
         $form->FNC('currencyId', 'key(mvc=currency_Currencies, select=code,allowEmpty)', 'caption=Валута,mandatory,after=iban,input');
         $form->FNC('bic', 'varchar(12)', 'caption=BIC,after=currencyId,input');
         $form->FNC('bank', 'varchar(64)', 'caption=Банка,after=bic,input');
+        $form->FNC('fromOurCompany', 'int', 'input=hidden');
+        if(Request::get('fromOurCompany', 'int')){
+        	$form->rec->fromOurCompany = TRUE;
+        }
         
     	$optionAccounts = $mvc->getPossibleBankAccounts();
         $form->setSuggestions('iban', array('' => '') + $optionAccounts);
@@ -299,11 +306,26 @@ class bank_OwnAccounts extends core_Master {
         // сметката да се прави от bank_accounts
         if($form->rec->id) {
         	$ibanRec = bank_Accounts::fetch($form->rec->bankAccountId);
-        	$form->setReadOnly('iban', $ibanRec->iban);
-        	$form->setReadOnly('bank', $ibanRec->bank);
-        	$form->setReadOnly('bic', $ibanRec->bic);
-        	$form->setReadOnly('currencyId', $ibanRec->currencyId);
+        	$form->setDefault('iban', $ibanRec->iban);
+        	$form->setDefault('bank', $ibanRec->bank);
+        	$form->setDefault('bic', $ibanRec->bic);
+        	$form->setDefault('currencyId', $ibanRec->currencyId);
         }
+    }
+    
+    
+    /**
+     * Пренасочва URL за връщане след запис към сингъл изгледа
+     */
+    public static function on_AfterPrepareRetUrl($mvc, $res, $data)
+    {
+    	// Ако има форма, и тя е събмитната и действието е 'запис'
+    	if ($data->form && $data->form->isSubmitted() && $data->form->cmd == 'save') {
+    		if(isset($data->form->rec->fromOurCompany)){
+    			$ourCompany = crm_Companies::fetchOurCompany();
+    			$data->retUrl = toUrl(array('crm_Companies', 'single', $ourCompany->id, 'Tab' => 'ContragentBankAccounts'));
+    		}
+    	}
     }
     
     
@@ -428,7 +450,9 @@ class bank_OwnAccounts extends core_Master {
         				return;
         			}
         		}
-        		
+        	}
+        	
+        	if(isset($rec->iban)){
         		$rec->bankAccountId = $mvc->addNewAccount($rec->iban, $rec->currencyId, $rec->bank, $rec->bic);
         	}
         	
