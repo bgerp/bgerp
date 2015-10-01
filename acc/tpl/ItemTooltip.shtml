@@ -16,6 +16,13 @@
 </tr>
 <!--ET_END title-->
 
+<!--ET_BEGIN lists-->
+<tr>
+	<td class='quiet aright'>|Номенклатури|*: </td>
+	<td>[#lists#]</td>
+</tr>
+<!--ET_END lists-->
+
 <!--ET_BEGIN createdOn-->
 <tr>
 <td class='quiet aright'>|Създаване|*:</td>
