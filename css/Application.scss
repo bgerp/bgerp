@@ -4534,20 +4534,19 @@ body.narrow {
 	background-color:#eee;
 }
 
-.logs-type-warning {
-    background-color: #fae3ca;
-}
-.logs-type-debug {
-    background-color: #eee;
-}
-.logs-type-notice {
-    background-color: #dff4fa;
-}
-.logs-type-info {
-    background-color: #fffef4;
-}
-.logs-type-err {
-    background-color: #fad0d1;
+.single-thread .document .docStatistic div.alphabet .tab-page .detail-info {
+	.logs-type-warning td {
+        background-color: #fae3ca;
+	}
+	.logs-type-debug td {
+	    background-color: #eee;
+	}
+	.logs-type-notice td {
+	    background-color: #dff4fa;
+	}
+	.logs-type-err {
+	    background-color: #fad0d1;
+	}
 }
 
 /* Стилове за езика във външната част*/
