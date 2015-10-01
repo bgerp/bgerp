@@ -23,7 +23,7 @@ class deals_plg_DpInvoice extends core_Plugin
      */
     public static function on_AfterDescription(core_Mvc $mvc)
     {
-    	if($mvc instanceof sales_Invoices || $mvc instanceof purchase_Invoices){
+    	if($mvc instanceof sales_Invoices || $mvc instanceof purchase_Invoices || $mvc instanceof sales_Proformas){
     		
     		// Сума на авансовото плащане (ако има)
 	    	$mvc->FLD('dpAmount', 'double', 'caption=Авансово плащане->Сума,input=none,before=contragentName');
@@ -43,7 +43,7 @@ class deals_plg_DpInvoice extends core_Plugin
     	$rec = &$form->rec;
     	
     	// Ако е детайла на фактурата не правим нищо
-        if(!($mvc instanceof sales_Invoices || $mvc instanceof purchase_Invoices)) return;
+        if(!($mvc instanceof sales_Invoices || $mvc instanceof purchase_Invoices || $mvc instanceof sales_Proformas)) return;
     	
         // Ако е ДИ или КИ не правим нищо
         if($rec->type != 'invoice') return;
@@ -63,9 +63,10 @@ class deals_plg_DpInvoice extends core_Plugin
         	// Поставяне на дефолт стойностти
         	self::getDefaultDpData($form);
         } else {
+        	$Detail = cls::get($mvc->mainDetail);
         	
         	// Ако има детайл не показваме секцията за аванс
-        	if(cls::get($mvc->mainDetail)->fetchField("#invoiceId = {$rec->id}", 'id')){
+        	if($Detail->fetchField("#{$Detail->masterKey} = {$rec->id}", 'id')){
         		return;
         	}
         	
@@ -242,7 +243,7 @@ class deals_plg_DpInvoice extends core_Plugin
     	$masterRec = $data->masterData->rec;
     	
     	// Ако е ДИ или КИ не правим нищо
-    	if($masterRec->type != 'invoice') return;
+    	if(!($mvc instanceof sales_ProformaDetails) && $masterRec->type != 'invoice') return;
     	
     	// Ако има сума на авансовото плащане и тя не е "0"
     	if($masterRec->dpAmount){
