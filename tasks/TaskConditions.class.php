@@ -108,6 +108,22 @@ class tasks_TaskConditions extends doc_Detail
     
     
     /**
+     * Връща списъка от мастър-мениджъри на зададен детайл-запис.
+     *
+     * Обикновено детайлите имат точно един мастър. Използваме този метод в случаите на детайли
+     * с повече от един мастър, който евентуално зависи и от данните в детайл-записа $rec.
+     *
+     * @param stdClass $rec
+     * @return array масив от core_Master-и. Ключа е името на полето на $rec, където се
+     *               съхранява външния ключ към съотв. мастър
+     */
+    public function getMasters_($rec)
+    {
+    	return array($this->masterKey => $this->getMasterMvc($rec));
+    }
+    
+    
+    /**
      * Описание на модела (таблицата)
      */
     function description()
