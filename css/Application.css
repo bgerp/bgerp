@@ -4153,13 +4153,28 @@ only screen and (max-width: 320px) {
   background-color: #eeeeee; }
 
   .single-thread .document .docStatistic div.alphabet .tab-page .detail-info .logs-type-warning td {
-    background-color: #fae3ca; }
+    background-color: #fae3ca !important; }
   .single-thread .document .docStatistic div.alphabet .tab-page .detail-info .logs-type-debug td {
-    background-color: #eeeeee; }
+    background-color: #eeeeee !important; }
   .single-thread .document .docStatistic div.alphabet .tab-page .detail-info .logs-type-notice td {
-    background-color: #dff4fa; }
-  .single-thread .document .docStatistic div.alphabet .tab-page .detail-info .logs-type-err {
-    background-color: #fad0d1; }
+    background-color: #dff4fa !important; }
+  .single-thread .document .docStatistic div.alphabet .tab-page .detail-info .logs-type-err td {
+    background-color: #fad0d1 !important; }
+
+.logs-type-warning {
+  background-color: #fae3ca; }
+
+.logs-type-debug {
+  background-color: #eeeeee; }
+
+.logs-type-notice {
+  background-color: #dff4fa; }
+
+.logs-type-err {
+  background-color: #fad0d1; }
+
+.logs-type-info {
+  background-color: #fffef4; }
 
 /*
  * Стилове за езика във външната част

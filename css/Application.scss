@@ -4536,19 +4536,39 @@ body.narrow {
 
 .single-thread .document .docStatistic div.alphabet .tab-page .detail-info {
 	.logs-type-warning td {
-        background-color: #fae3ca;
+        background-color: #fae3ca !important;
 	}
 	.logs-type-debug td {
-	    background-color: #eee;
+	    background-color: #eee !important;
 	}
 	.logs-type-notice td {
-	    background-color: #dff4fa;
+	    background-color: #dff4fa !important;
 	}
-	.logs-type-err {
-	    background-color: #fad0d1;
+	.logs-type-err td {
+	    background-color: #fad0d1 !important;
 	}
 }
 
+.logs-type-warning {
+    background-color: #fae3ca;
+}
+
+.logs-type-debug {
+    background-color: #eee;
+}
+
+ .logs-type-notice {
+    background-color: #dff4fa;
+}
+
+.logs-type-err{
+    background-color: #fad0d1;
+}
+
+.logs-type-info {
+    background-color: #fffef4;
+}
+ 
 /* Стилове за езика във външната част*/
 .wide .langSelect{
 	margin:10px 20px;
