@@ -110,6 +110,14 @@ class sales_Quotations extends core_Master
     
 
     /**
+     * Кой е главния детайл
+     *
+     * @var string - име на клас
+     */
+    public $mainDetail = 'sales_QuotationsDetails';
+    
+    
+    /**
      * Заглавие в единствено число
      */
     public $singleTitle = 'Оферта';
