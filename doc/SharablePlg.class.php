@@ -245,4 +245,34 @@ class doc_SharablePlg extends core_Plugin
             $data->form->setField('sharedUsers', array('maxColumns' => 2));    
         }
     }
+    
+    
+    /**
+     * Прихваща извикването на AfterSaveLogChange в change_Plugin
+     * Добавя нотификация след промяна на документа
+     * 
+     * @param core_MVc $mvc
+     * @param array $recsArr - Масив със записаните данни
+     */
+    function on_AfterSaveLogChange($mvc, $recsArr)
+    {
+        $mvcClassId = core_Classes::getId($mvc);
+        foreach ($recsArr as $rec) {
+            if ($mvcClassId != $rec->docClass) continue;
+            $mRec = $mvc->fetch($rec->docId);
+            
+            if (!$mRec->threadId || !$mRec->containerId) continue;
+            
+            $cRec = doc_Containers::fetch($mRec->containerId);
+            
+            // Всички споделени и абонирани потребители
+            $sharedArr = doc_ThreadUsers::getShared($mRec->threadId);
+            $subscribedArr = doc_ThreadUsers::getSubscribed($mRec->threadId);
+            $subscribedArr += $sharedArr;
+            
+            doc_Containers::addNotifications($subscribedArr, $mvc, $cRec, 'промени');
+            
+            break;
+        }
+    }
 }

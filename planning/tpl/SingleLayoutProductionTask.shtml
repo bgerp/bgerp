@@ -4,7 +4,7 @@
         <div class="small">
             <table class='full-width'>
                 <tr>
-                    <td style='width: 55%;'>
+                    <td class='large half-block'>
                         <!--ET_BEGIN timeStart-->
                         |Начало|*: [#timeStart#]<br>
                         <!--ET_END timeStart-->
@@ -16,7 +16,7 @@
                         <!--ET_END timeEnd-->
                     </td>
                     
-                    <td style='padding-left:30px;max-width:45%;'>
+                    <td class='small-half half-block'>
                         <!--ET_BEGIN expectedTimeStart-->
                         |Очаквано начало|*: [#expectedTimeStart#] <br>
                         <!--ET_END expectedTimeStart-->
@@ -34,12 +34,12 @@
         <div class="small">
         	<table class='full-width'>
                 <tr>
-                    <td>
+                    <td class='large half-block'> 
                     |Общо к-во|*: <b>[#totalQuantity#]</b><br>
 					<!--ET_BEGIN totalWeight-->|Общо тегло|*: [#totalWeight#]<br><!--ET_END totalWeight-->
 					<!--ET_BEGIN fixedAssets-->|Машини|*: [#fixedAssets#]<!--ET_END fixedAssets-->
                     </td>
-                    <td style ='text-align:right;padding-right:20px'>
+                    <td class='small-half half-block'>
                     |Прогрес|*: [#progressBar#] [#progress#] <br>
                     <!--ET_BEGIN originId-->|Към задание|*: [#originId#] <br><!--ET_END originId-->
                     </td>
