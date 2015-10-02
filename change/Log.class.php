@@ -1039,10 +1039,14 @@ class change_Log extends core_Manager
     static function getRec($docClass, $docId, $field=FALSE)
     {
         // Масива със записите
-        static $recsArr=array();
+        static $allRecsArr = array();
+        
+        $str = $docClass . '_' . $docId;
+        
+        $recsArr = $allRecsArr[$str];
         
         // Ако не е сетнат
-        if (is_array($recsArr) && !$recsArr) {
+        if ($recsArr !== FALSE) {
             
             // Вземаме всички записи за съответния клас и документ
             $query = static::getQuery();
@@ -1055,10 +1059,17 @@ class change_Log extends core_Manager
                 // Добавяме в масива
                 $recsArr[$rec->field] = $rec;
             }
+            
+            $allRecsArr[$str] = $recsArr;
+            
+            // Ако няма резултат връщаме FALSE
+            if (!$recsArr) {
+                
+                $allRecsArr[$str] = FALSE;
+            }
         } 
         
-        // Ако няма резултат връщаме FALSE
-        if (!$recsArr) return FALSE;
+        if ($allRecsArr[$str] === FALSE) return FALSE;
         
         // Ако е зададено съответно поле
         if ($field) {
