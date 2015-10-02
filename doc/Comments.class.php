@@ -92,7 +92,7 @@ class doc_Comments extends core_Master
      * Плъгини за зареждане
      */
     var $loadList = 'doc_Wrapper, doc_SharablePlg, doc_DocumentPlg, plg_RowTools, 
-        plg_Printing, doc_ActivatePlg, bgerp_plg_Blank';
+        plg_Printing, doc_ActivatePlg, bgerp_plg_Blank, change_Plugin';
     
     
     /**
@@ -138,13 +138,18 @@ class doc_Comments extends core_Master
     
     
     /**
+     * Полетата, които могат да се променят с change_Plugin
+     */
+    public $changableFields = 'subject, body, sharedUsers';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
     {
         $this->FLD('subject', 'varchar', 'caption=Относно,mandatory,width=100%');
         $this->FLD('body', 'richtext(rows=10,bucket=Comments, appendQuote)', 'caption=Коментар,mandatory');
-        $this->FLD('sharedUsers', 'userList', 'caption=Споделяне->Потребители');
     }
     
     
