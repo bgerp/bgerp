@@ -1761,7 +1761,7 @@ class doclog_Documents extends core_Manager
         // Съобщение в лога
         $doc = doc_Containers::getDocument($rec->containerId);
 		$docInst = $doc->getInstance();
-		$docInst->logInfo("Редактиране", $doc->that, DOCLOG_DOCUMENTS_DAYS);
+		$docInst->logInfo("Промяна", $doc->that, DOCLOG_DOCUMENTS_DAYS);
         
         return $rec;
     }
