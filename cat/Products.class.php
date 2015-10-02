@@ -1810,15 +1810,20 @@ class cat_Products extends embed_Manager {
     {
     	$res = array();
     	$bomId = static::getLastActiveBom($id)->id;
-    	$info = cat_Boms::getResourceInfo($bomId);
     	
-    	foreach ($info['resources'] as $materialId => $rRec){
-    		if($rRec->type != 'input') continue;
-    		
-    		$quantity = $rRec->baseQuantity / $info['quantity'] + $quantity * $rRec->propQuantity / $info['quantity'];
-    		$res[$rRec->productId] = array('productId' => $rRec->productId, 'quantity' => $quantity);
+    	if (isset($bomId)) {
+    	
+	    	$info = cat_Boms::getResourceInfo($bomId);
+	    	
+	    	foreach ($info['resources'] as $materialId => $rRec){
+	    		if($rRec->type != 'input') continue;
+	    		
+	    		$quantity = $rRec->baseQuantity / $info['quantity'] + $quantity * $rRec->propQuantity / $info['quantity'];
+	    		$res[$rRec->productId] = array('productId' => $rRec->productId, 'quantity' => $quantity);
+	    	}
     	}
     	
     	return $res;
+    	
     }
 }
