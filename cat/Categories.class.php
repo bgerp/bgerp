@@ -170,6 +170,7 @@ class cat_Categories extends core_Master
         $this->FLD('info', 'richtext(bucket=Notes,rows=4)', 'caption=Бележки');
         $this->FLD('measures', 'keylist(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Настройки - допустими за артикулите в категорията (всички или само избраните)->Мерки,columns=2,hint=Ако не е избрана нито една - допустими са всички');
         $this->FLD('markers', 'keylist(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Настройки - препоръчителни за артикулите в категорията->Маркери,columns=2');
+        $this->FLD('params', 'keylist(mvc=cat_Params,select=name,makeLinks)', 'caption=Настройки - препоръчителни за артикулите в категорията->Параметри');
         
         // Свойства присъщи на продуктите в групата
         $this->FLD('meta', 'set(canSell=Продаваеми,
@@ -178,7 +179,6 @@ class cat_Categories extends core_Master
                                 canConvert=Вложими,
                                 fixedAsset=Дълготрайни активи,
         			canManifacture=Производими)', 'caption=Настройки - препоръчителни за артикулите в категорията->Свойства,columns=2');
-        
         
         $this->setDbUnique("sysId");
         $this->setDbUnique("name");
@@ -314,5 +314,21 @@ class cat_Categories extends core_Master
     	
     	// Връщаме намерения код
     	return $code;
+    }
+    
+    
+    /**
+     * Връща мета дефолт параметрите, които да се добавят във формата на
+     * универсален артикул, създаден в папката на корицата
+     *
+     * @param int $id - ид на корицата
+     * @return array $params - масив с дефолтни параметри
+     */
+    public function getDefaultProductParams($id)
+    {
+    	$rec = $this->fetchRec($id);
+    	$params = keylist::toArray($rec->params);
+    	
+    	return $params;
     }
 }

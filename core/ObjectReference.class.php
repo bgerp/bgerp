@@ -139,6 +139,21 @@ class core_ObjectReference
     
     
     /**
+     * Дали референцията е инстанция на подадения клас
+     *
+     * @param string $className
+     * @return boolean
+     */
+    public function isInstanceOf($className)
+    {
+    	if(!cls::load($className, TRUE)) return FALSE;
+    	$class = cls::get($className);
+    	
+    	return ($this->getInstance() instanceof $class->className);
+    }
+    
+    
+    /**
      * Предизвиква събитие в класа на тази референция
      * 
      * @param string $event

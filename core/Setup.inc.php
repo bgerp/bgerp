@@ -970,6 +970,7 @@ if($step == 'start') {
         }
     } catch (Exception $e) {
         file_put_contents(EF_TEMP_PATH . '/setupLog.html',$e->getMessage());
+        reportException($e, NULL, TRUE);
     }
     
     $Packs = cls::get('core_Packs');

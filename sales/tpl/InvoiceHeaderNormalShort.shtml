@@ -106,10 +106,16 @@
                                         <span class='quiet'>Курс:</span>  [#rate#]
                                         <!--ET_END rate-->  
                                         <div class='custom-bg-block'><b>Плащане</b></div>
+                                        
+                                        <!--ET_BEGIN paymentType-->
                                         <div><span class='quiet'>Начин:</span>  [#paymentType#]</div>
-                                        <!--ET_BEGIN paymentMethodId-->
-                                        <div><span class='quiet'>Метод:</span>  [#paymentMethodId#]</div>
-                                        <!--ET_END paymentMethodId-->
+                                        <!--ET_BEGIN DUE_paymentType-->
+                                        
+                                        <!--ET_BEGIN DUE_BLOCK-->
+                                           [#DUE_BLOCK#]
+                                        <div><span class='quiet'>Срок за плащане:</span> [#dueTime#] (до [#dueDate#])</div>
+                                        <!--ET_END DUE_BLOCK--> 
+                                        
                                         <!--ET_BEGIN deadline-->
                                         [#deadline#]
                                         <div>
@@ -120,9 +126,6 @@
                                             <!--ET_END OVERDUE_INTEREST_RATE-->
                                         </div>
                                         <!--ET_END deadline-->
-                                        <!--ET_BEGIN deadlineForBalancePayment-->
-                                        <div><span class='quiet'>Окончателно до: </span>[#deadlineForBalancePayment#]</div>
-                                        <!--ET_END deadlineForBalancePayment-->
                                         <!--ET_BEGIN accountId-->
                                         <hr>
                                         <div>

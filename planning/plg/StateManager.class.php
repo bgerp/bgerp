@@ -158,22 +158,28 @@ class planning_plg_StateManager extends core_Plugin
     		switch($action){
     			case 'close':
     				$rec->state = 'closed';
+    				$action = 'Приключване';
     				break;
     			case 'stop':
     				$rec->state = 'stopped';
+    				$action = 'Спиране';
     				break;
     			case 'wakeup':
     				$rec->state = 'wakeup';
+    				$action = 'Събуждане';
     			break;
     			case 'activateAgain':
     				$rec->state = 'active';
+    				$action = 'Активиране';
     			case 'activate':
     				$rec->state = ($mvc->activateNow($rec)) ? 'active' : 'pending';
+    				$action = 'Активиране';
     			break;
     		}
     	
     		// Обновяваме състоянието и старото състояние
     		if($mvc->save($rec, 'brState,state')){
+    			$mvc->logInfo($action, $rec->id);
     			$mvc->invoke('AfterChangeState', array(&$rec));
     		}
     		

@@ -275,6 +275,7 @@ class email_Setup extends core_ProtoSetup
             'email_Unparsable',
             'email_Salutations',
             'email_ThreadHandles',
+            'email_SendOnTime',
             'migrate::transferThreadHandles',
             'migrate::fixEmailSalutations',
             'migrate::repairRecsInFilters',

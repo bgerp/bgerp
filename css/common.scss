@@ -1229,6 +1229,20 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
     border: solid 1px $orange;
 }
 
+span.inputLackOfChoice {
+   border:solid 1px #bbb;
+   background-color:#ddd;
+   padding:4px;
+   border-radius:2px;
+}
+
+span.inputLackOfChoiceMandatory {
+    padding:4px;
+    background-color:yellow;
+    border:solid 1px red;
+    border-radius:2px;
+}
+
 .formInfo, .formWarning {
     margin-bottom: 8px;
 }

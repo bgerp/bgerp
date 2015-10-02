@@ -87,6 +87,7 @@ class doc_DocumentPlg extends core_Plugin
             $mvc->details['Print'] = 'doclog_Documents';
             $mvc->details['Changed'] = 'doclog_Documents';
             $mvc->details['Used'] = 'doclog_Documents';
+            $mvc->details['Act'] = 'doclog_Documents';
         }
         
         // Дали могат да се принтират оттеглените документи
@@ -95,6 +96,7 @@ class doc_DocumentPlg extends core_Plugin
         // Дали мжое да се редактират активирани документи
         setIfNot($mvc->canEditActivated, FALSE);
         
+        $mvc->setDbIndex('state');
         $mvc->setDbIndex('folderId');
         $mvc->setDbIndex('threadId');
         $mvc->setDbIndex('containerId');
@@ -431,6 +433,10 @@ class doc_DocumentPlg extends core_Plugin
 	    			}
 	    		}
 	    	}
+        }
+        
+        if ($rec->threadId) {
+            doclog_Documents::removeHistoryFromCache($rec->threadId);
         }
     }
     

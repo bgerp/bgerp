@@ -188,7 +188,7 @@ class sales_Invoices extends deals_InvoiceMaster
      * 
      * @see bgerp_plg_CsvExport
      */
-    public $exportableCsvFields = 'date,contragentName,contragentVatNo,uicNo,paymentMethodId,dealValue,accountId,number,state';
+    public $exportableCsvFields = 'date,contragentName,contragentVatNo,uicNo,dealValue,accountId,number,state';
     
     
     /**
@@ -198,7 +198,7 @@ class sales_Invoices extends deals_InvoiceMaster
     {
     	parent::setInvoiceFields($this);
     	
-    	$this->FLD('accountId', 'key(mvc=bank_OwnAccounts,select=bankAccountId, allowEmpty)', 'caption=Плащане->Банкова с-ка,after=paymentMethodId');
+    	$this->FLD('accountId', 'key(mvc=bank_OwnAccounts,select=bankAccountId, allowEmpty)', 'caption=Плащане->Банкова с-ка');
     	
     	$this->FLD('numlimit', 'enum(1,2)', 'caption=Номер->Диапазон, after=place,input=hidden,notNull,default=1');
     	
@@ -517,7 +517,8 @@ class sales_Invoices extends deals_InvoiceMaster
     	if($action == 'add' && isset($rec->threadId)){
     		 $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
     		 $docState = $firstDoc->fetchField('state');
-    		 if(!($firstDoc->getInstance() instanceof sales_Sales && $docState == 'active')){
+    		 
+    		 if(!($firstDoc->isInstanceOf('sales_Sales') && $docState == 'active')){
     			$res = 'no_one';
     		}
     	}

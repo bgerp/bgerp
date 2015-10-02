@@ -23,7 +23,6 @@ abstract class deals_Helper
 			'quantityFld'   => 'packQuantity',
 			'amountFld'     => 'amount',
 			'rateFld' 	    => 'currencyRate',
-			'classId' 	    => 'classId',
 			'productId'	    => 'productId',
 			'chargeVat'     => 'chargeVat',
 			'valior' 	    => 'valior',
@@ -106,8 +105,7 @@ abstract class deals_Helper
 		foreach($recs as &$rec){
 			$vat = 0;
 			if ($masterRec->$map['chargeVat'] == 'yes' || $masterRec->$map['chargeVat'] == 'separate') {
-				$ProductManager = cls::get($rec->$map['classId']);
-				$vat = $ProductManager->getVat($rec->$map['productId'], $masterRec->$map['valior']);
+				$vat = cat_Products::getVat($rec->$map['productId'], $masterRec->$map['valior']);
 			}
 			$vats[$vat] = $vat;
 			
@@ -346,14 +344,13 @@ abstract class deals_Helper
 	 */
 	public static function checkProductQuantityInStore($productId, $packagingId, $packQuantity, $storeId)
 	{
-		$productsClassId = cat_Products::getClassId();
-		$quantity = store_Products::fetchField("#productId = {$productId} AND #classId = {$productsClassId} AND #storeId = {$storeId}", 'quantity');
+		$quantity = store_Products::fetchField("#productId = {$productId} AND #storeId = {$storeId}", 'quantity');
 		$quantity = ($quantity) ? $quantity : 0;
 			
 		$Double = cls::get('type_Double');
 		$Double->params['smartRound'] = 'smartRound';
 			
-		$pInfo = cls::get($productsClassId)->getProductInfo($productId);
+		$pInfo = cat_Products::getProductInfo($productId);
 		$shortUom = cat_UoM::getShortName($pInfo->productRec->measureId);
 		$storeName = store_Stores::getTitleById($storeId);
 		$verbalQuantity = $Double->toVerbal($quantity);
@@ -407,5 +404,33 @@ abstract class deals_Helper
 				$packagingRow = "<span class='nowrap'>{$packagingRow}</span>";
 			}
 		}
+	}
+	
+	
+	/**
+	 * Извлича масив с използваните артикули-документи в бизнес документа
+	 *
+	 * @param core_Mvc $mvc - клас на документа
+	 * @param int $id - ид на документа
+	 * @param string $productFld - името на полето в което е ид-то на артикула
+	 * 
+	 * @return арраъ $res - масив с използваните документи
+	 * 					['class'] - Инстанция на документа
+	 * 					['id'] - Ид на документа
+	 */
+	public static function getUsedDocs(core_Mvc $mvc, $id, $productFld = 'productId')
+	{
+		$res = array();
+		 
+		$Detail = cls::get($mvc->mainDetail);
+		$dQuery = $Detail->getQuery();
+		$dQuery->EXT('state', $mvc->className, "externalKey={$Detail->masterKey}");
+		$dQuery->where("#{$Detail->masterKey} = '{$id}'");
+		$dQuery->groupBy($productFld);
+		while($dRec = $dQuery->fetch()){
+			$res[] = (object)array('class' => cls::get('cat_Products'), 'id' => $dRec->{$productFld});
+		}
+		
+		return $res;
 	}
 }

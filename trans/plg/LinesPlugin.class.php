@@ -97,9 +97,11 @@ class trans_plg_LinesPlugin extends core_Plugin
 		expect($rec = $mvc->fetch($id));
 		$mvc->requireRightFor('changeline', $rec);
 		
+        $exLineId = $rec->lineId;
+
 		$form = cls::get('core_Form');
 		$form->title = 'Промяна на транспорт за |*<b>' . $mvc->getRecTitle($rec) . "</b>";
-		$form->FLD('lineId', 'key(mvc=trans_Lines,select=title,allowEmpty)', 'caption=Транспорт,mandatory');
+		$form->FLD('lineId', 'key(mvc=trans_Lines,select=title,allowEmpty,where=#state \\= \\\'active\\\')', 'caption=Транспорт' . ($exLineId?'':',mandatory'));
 		$form->FLD('weight', 'cat_type_Weight', 'caption=Тегло');
 		$form->FLD('volume', 'cat_type_Volume', 'caption=Обем');
 		$form->FLD('palletsCount', 'int', 'caption=Брой колети/палети');
@@ -121,6 +123,19 @@ class trans_plg_LinesPlugin extends core_Plugin
 			
 			$rec->{$mvc->lineFieldName} = $formRec->lineId;
 			$mvc->save($rec);
+			$mvc->logInfo('Редакция на транспорта', $rec->id);
+			
+            // Обновяване на modifiedOn на засегнатите транспортните линии
+            if($rec->lineId) {
+                $tRec = trans_Lines::fetch($rec->lineId);
+                $tRec->modifiedOn = dt::now();
+                trans_Lines::save($tRec, 'modifiedOn');
+            }
+            if($exLineId && $exLineId != $rec->lineId) {
+                $tRec = trans_Lines::fetch($exLineId);
+                $tRec->modifiedOn = dt::now();
+                trans_Lines::save($tRec, 'modifiedOn');
+            }
 			
 			// Редирект след успешния запис
 			return Redirect(array($mvc, 'single', $id), NULL, 'Промените са записани успешно');

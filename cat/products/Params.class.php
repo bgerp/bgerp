@@ -86,7 +86,7 @@ class cat_products_Params extends doc_Detail
     /**
      * Кои полета ще извличаме, преди изтриване на заявката
      */
-    var $fetchFieldsBeforeDelete = 'id, productId, paramId, classId';
+    var $fetchFieldsBeforeDelete = 'id, productId, paramId';
     
     
     /**
@@ -94,12 +94,11 @@ class cat_products_Params extends doc_Detail
      */
     function description()
     {
-    	$this->FLD('classId', 'class(interface=cat_ProductAccRegIntf)', 'input=hidden,silent');
     	$this->FLD('productId', 'key(mvc=cat_Products)', 'input=hidden,silent');
         $this->FLD('paramId', 'key(mvc=cat_Params,select=name)', 'input,caption=Параметър,mandatory,silent');
         $this->FLD('paramValue', 'varchar(255)', 'input,caption=Стойност,mandatory');
         
-        $this->setDbUnique('classId,productId,paramId');
+        $this->setDbUnique('productId,paramId');
     }
     
     
@@ -142,13 +141,13 @@ class cat_products_Params extends doc_Detail
     public static function on_AfterPrepareEditForm($mvc, $data)
     { 
         $form = &$data->form;
-        $masterTitle = cls::get($form->rec->classId)->getTitleById($form->rec->productId);
+        $masterTitle = cat_Products::getTitleById($form->rec->productId);
         
     	if(!$form->rec->id){
     		$form->title = "Добавяне на параметър към|* <b>{$masterTitle}</b>";
     		$form->setField('paramId', array('removeAndRefreshForm' => "paramValue|paramValue[lP]|paramValue[rP]"));
 	    	expect($productId = $form->rec->productId);
-			$options = self::getRemainingOptions($productId, $form->rec->classId, $form->rec->id);
+			$options = self::getRemainingOptions($productId, $form->rec->id);
 			expect(count($options));
 	        
 	        if(!$data->form->rec->id){
@@ -174,7 +173,7 @@ class cat_products_Params extends doc_Detail
      * @param $productId int ид на продукта
      * @param $id int ид от текущия модел, което не трябва да бъде изключено
      */
-    public static function getRemainingOptions($productId, $classId, $id = NULL)
+    public static function getRemainingOptions($productId, $id = NULL)
     {
         $options = cat_Params::makeArray4Select();
         
@@ -185,7 +184,7 @@ class cat_products_Params extends doc_Detail
                 $query->where("#id != {$id}");
             }
 			
-            while($rec = $query->fetch("#productId = {$productId} AND #classId = {$classId}")) {
+            while($rec = $query->fetch("#productId = {$productId}")) {
                unset($options[$rec->paramId]);
             }
         } else {
@@ -202,10 +201,10 @@ class cat_products_Params extends doc_Detail
      * @param int $sysId - sysId на параметъра
      * @return varchar $value - стойността на параметъра
      */
-    public static function fetchParamValue($productId, $classId, $sysId)
+    public static function fetchParamValue($productId, $sysId)
     {
      	if($paramId = cat_Params::fetchIdBySysId($sysId)){
-     		$paramValue = static::fetchField("#productId = {$productId} AND #paramId = {$paramId} AND #classId= {$classId}", 'paramValue');
+     		$paramValue = self::fetchField("#productId = {$productId} AND #paramId = {$paramId}", 'paramValue');
      		
      		// Ако има записана конкретна стойност за този продукт връщаме я
      		if($paramValue) return $paramValue;
@@ -214,7 +213,7 @@ class cat_products_Params extends doc_Detail
      		return cat_Params::getDefault($paramId);
      	}
      	
-     	return NULL;
+     	return FALSE;
     }
     
     
@@ -227,7 +226,7 @@ class cat_products_Params extends doc_Detail
         $tpl->replace(get_called_class(), 'DetailName');
         
         $title = tr('Параметри');
-        if(cat_Params::haveRightFor('list')){
+        if(cat_Params::haveRightFor('list') && $data->noChange !== TRUE){
         	$title = ht::createLink($title, array('cat_Params', 'list'));
         }
         
@@ -258,7 +257,7 @@ class cat_products_Params extends doc_Detail
     public static function prepareParams(&$data)
     {
         $query = self::getQuery();
-        $query->where("#classId = {$data->masterClassId} AND #productId = {$data->masterId}");
+        $query->where("#productId = {$data->masterId}");
     	
         // Ако подготвяме за външен документ, да се показват само параметрите за външни документи
     	if($data->prepareForPublicDocument === TRUE){
@@ -266,18 +265,16 @@ class cat_products_Params extends doc_Detail
     		$query->where("#showInPublicDocuments = 'yes'");
     	}
         
-        $Cls = cls::get(get_called_class());
-        
     	while($rec = $query->fetch()){
-    		$data->params[$rec->id] = $Cls->recToVerbal($rec);
+    		$data->params[$rec->id] = static::recToVerbal($rec);
     		
-    		if(!self::haveRightFor('add', (object)array('productId' => $data->masterId, 'classId' => $data->masterClassId))) {
+    		if(!self::haveRightFor('add', (object)array('productId' => $data->masterId))) {
     			unset($data->params[$rec->id]->tools);
     		}
     	}
       	
-        if(self::haveRightFor('add', (object)array('productId' => $data->masterId, 'classId' => $data->masterClassId))) {
-            $data->addUrl = array(__CLASS__, 'add', 'productId' => $data->masterId, 'classId' => $data->masterClassId, 'ret_url' => TRUE);
+        if(self::haveRightFor('add', (object)array('productId' => $data->masterId))) {
+            $data->addUrl = array(__CLASS__, 'add', 'productId' => $data->masterId, 'ret_url' => TRUE);
         }
     }
     
@@ -289,11 +286,11 @@ class cat_products_Params extends doc_Detail
     {
         if($requiredRoles == 'no_one') return;
     	
-        if (($action == 'add' || $action == 'delete') && isset($rec->productId) && isset($rec->classId)) {
-        	$pRec = cls::get($rec->classId)->fetch($rec->productId);
+        if (($action == 'add' || $action == 'delete') && isset($rec->productId)) {
+        	$pRec = cat_Products::fetch($rec->productId);
         	
         	// Ако няма оставащи параметри или състоянието е оттеглено, не може да се добавят параметри
-        	if (!count($mvc::getRemainingOptions($rec->productId, $rec->classId))) {
+        	if (!count($mvc::getRemainingOptions($rec->productId))) {
                 $requiredRoles = 'no_one';
             } elseif($pRec->innerClass != cat_GeneralProductDriver::getClassId()) {
             	
@@ -335,8 +332,9 @@ class cat_products_Params extends doc_Detail
     {
     	$features = array();
     	$query = self::getQuery();
+    	$classId = cls::get($classId)->getClassId();
     	
-    	$query->where("#productId = '{$objectId}' AND #classId = {$classId}");
+    	$query->where("#productId = '{$objectId}'");
     	$query->EXT('isFeature', 'cat_Params', 'externalName=isFeature,externalKey=paramId');
     	$query->where("#isFeature = 'yes'");
     	
@@ -355,7 +353,7 @@ class cat_products_Params extends doc_Detail
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
     	if(cat_Params::fetchField("#id='{$rec->paramId}'", 'isFeature') == 'yes'){
-    		acc_Features::syncFeatures($rec->classId, $rec->productId);
+    		acc_Features::syncFeatures(cat_Products::getClassId(), $rec->productId);
     	}
     }
     
@@ -367,7 +365,7 @@ class cat_products_Params extends doc_Detail
     {
         foreach ($query->getDeletedRecs() as $rec) {
         	if(cat_Params::fetchField("#id = '{$rec->paramId}'", 'isFeature') == 'yes'){
-        		acc_Features::syncFeatures($rec->classId, $rec->productId);
+        		acc_Features::syncFeatures(cat_Products::getClassId(), $rec->productId);
         	}
         }
     }

@@ -25,16 +25,10 @@ class expert_Dataset extends core_Mvc {
     
 
     /**
-     * Номер на текущата стъпка
+     * Достоверности на променливите
      */
-    public $step = 0;
+    public $trusts = array();
     
-
-    /**
-     * Коя променлива, на коя стъпка е сетната
-     */
-    public $setOnStep = array();
-
 
     /**
      * Масив със всички праила за сетване на променливи
@@ -47,18 +41,30 @@ class expert_Dataset extends core_Mvc {
      */
     public function addRule($name, $expr, $cond = NULL)
     {
-        $rule = (object) array('name' => $name, 'expr' => $expr, 'cond' => $cond);
+        // Нормализация на параметрите
+        $name = trim($name);
+        $cond = trim($cond);
+        $expr = trim($expr);
+        if($name{0} == '$') {
+            $name = substr($name, 1);
+        }
+        $id = substr(md5($name . $expr . $cond), 0, 8);
+
+        $rule = (object) array('name' => $name, 'expr' => $expr, 'cond' => $cond, 'state' => 'pending');
+        
         $rule->exprVars = $this->extractVars($expr);
 
-        if($cond !== NULL) {
-            $rule->condVars = $this->extractVars($cond);
+        $rule->condVars = $this->extractVars($cond);
+
+        // Не може правило за дадена променлива да зависи от нев
+        expect(!$rule->condVars[$rule->name] && !$rule->exprVars[$rule->name]);
+
+        
+        if(isset($this->rules[$name][$id])) {
+            $this->log[] = "Warning: Дублиране на правило \${$name} = {$expr} ({$cond}";
         }
 
-        if($rule->name{0} == '$') {
-            $rule->name = substr($rule->name, 1);
-        }
-
-        $this->rules[] = $rule;
+        $this->rules[$name][$id] = $rule;
     }
     
     
@@ -107,87 +113,78 @@ class expert_Dataset extends core_Mvc {
 
 
     /**
-     * Проверка дали ВСИЧКИ зададени променливи са сетнати
-     */
-    private function issetVars($vars = array())
-    {
-        if(is_scalar($vars)) {
-            $vars = array($vars => $vars);
-        }
-
-        expect(is_array($vars));
-
-        foreach($vars as $var) {
-            if(strpos($var, '[]')) return FALSE;
- 
-            if(!isset($this->setOnStep[$var])) return FALSE;
-            
-        }
-
-        return TRUE;
-    }
-
-
-    /**
      * Задава стойност на посочената променлива
      */
-    private function setVar($var, $value)
+    private function setVar($var, $value, $trust = 0.6, $log = '')
     {
         if(!strpos($var, '[]')) {
             $this->vars[$var] = $value;
-            $this->setOnStep[$var] = $this->step;
+            $this->trusts[$var] = $trust;
         } else {  
             expect(substr($var, -2) == '[]');
-            $var = substr($var, 0, strlen($var)-2);
-            $this->vars[$var][] = $value;
+            $array = substr($var, 0, strlen($var)-2);
+            $this->vars[$array][] = $value;
         }
+
+        $this->log[] = "<li style='color:green;'>{$var} = {$value}; " . round($trust*100) . "% {$log}</li>";
     }
 
 
     /**
      * Връща стойността на дадена променлива
      */
-    private function getVar($var, $force = FALSE)
+    private function getVar($var)
     {
-        if(!$force && (!isset($this->setOnStep[$var]) || $this->setOnStep[$var] <= $this->step)) return NULL;
-
+    
         return $this->vars[$var];
     }
 
 
     /**
      * Опитва се да приложи правилото към данните
+     * Трябва в резултат да получи:
+     * $rule->value = стойност на правилото
+     * $rule->trust = достоверност
+     * $rule->state = fail, pending, used
      */
-    private function doRule(&$rule)
+    private function prepareRule(&$rule)
     {
-        if(isset($rule->usedOnStep) && $rule->usedOnStep <= $this->step) return FALSE;
+        if($rule->state != 'pending') return;
 
-        if($this->issetVars($rule->name)) {
-            $rule->usedOnStep = $this->step;
-            return FALSE;
+        if($this->trusts[$rule->name]) {
+            $rule->state = 'block';
+
+            return;
         }
+
+        $trust = $maxTrust = 1 + ($rule->expr != '' && $rule->expr != '0' && $rule->expr != '""');
+        $div = 3;
         
-        // Липсват всички променливи за израза
-        if(!$this->issetVars($rule->exprVars)) {
-            return FALSE;
-        }
+        $vars = $rule->exprVars + $rule->condVars;
         
-        if($rule->cond !== NULL) {
-            // Липсват всички променливи за условието
-            if(!$this->issetVars($rule->condVars)) {
-                return FALSE;
-            }
-            
-            // Изчисляването на условието връща FALSE
-            if(!$this->calc($rule->cond, $rule->condVars)) {
-                return FALSE;
+        $maxTrust += count($vars);
+        $div      += count($vars);
+
+        foreach($vars as $n) {
+            $trust += $this->trusts[$n];
+            if(!$this->trusts[$n]) {
+                $trust = 0;
+                break;
             }
         }
-        $this->setVar($rule->name, $this->calc($rule->expr, $rule->exprVars));
 
-        $rule->usedOnStep = $this->step;
+        $rule->trust = $trust/$div;
+        $rule->maxTrust = $maxTrust/$div;
 
-        return TRUE;
+        if($rule->trust > 0) {
+            $rule->condVal = empty($rule->cond) ? TRUE : $this->calc($rule->cond, $rule->condVars);
+            if(!$rule->condVal) {
+                $rule->state = 'fail';
+
+                return;
+            }
+            $rule->value = $this->calc($rule->expr, $rule->exprVars);
+        }
     }
 
 
@@ -215,36 +212,73 @@ class expert_Dataset extends core_Mvc {
 
         return $res;
     }
-
+    
+ 
 
     /**
      * Стартира процес на изчисляване, според зададените правила
      */
     public function run($rec = NULL, $state = NULL)
     {
-        // Нова стъпка
-        $this->step++;
-
+ 
+ 
+ 
         // Записваме променливите от $rec
         if(is_object($rec) || is_array($rec)) {
             foreach((array) $rec as $name => $value) {
                 if($value !== NULL) {
-                    $this->setVar($name, $value);
+                    $this->setVar($name, $value, 1, "INPUT");
                 }
             }
         }
- 
-        // Прилагаме правилата, докато направим цикъл в който да няма нито едно приложено правило
+        
         do {
-            $activeRule = FALSE;
-            foreach($this->rules as $rule) {
-                if($this->doRule($rule)) {
-                    $activeRule = TRUE;
-                    break;
+            // Изчисляваме всички правила. Опитваме се да намерим $value, $trust, $maxTrust
+            foreach($this->rules as $name => &$rArr) {
+                
+                foreach($rArr as $id => $r) {
+                    $this->prepareRule($r);
                 }
             }
-            //bp($activeRule);
-        } while($activeRule);
+            
+            $bestRule = NULL;
+
+            // Намираме от всички правила, това, което има достоверност >0 и се изчислява
+            // приоритет = достоверност - брой "чакъщи" правила с по-висок или равен ранг
+            foreach($this->rules as $name => &$rArr) {
+                
+                // Прескачаме променливите, които имат стойност
+                if($this->trusts[$name]) continue;
+               
+                foreach($rArr as $id => $r) {
+
+                    // Пропускаме правилата, които не са чакащи и които не са достоверни
+                    if($r->state != 'pending' || !($r->trust > 0)) continue;
+                    
+                    // Колко са правилата, които са чакащи и имат по-голям maxTrust от текущия
+                    $l = 0;
+                    foreach($rArr as $rI) {
+                        if($rI->maxTrust > $r->trust && $rI->state == 'pending' && !($rI->trust > 0)) {
+                            $l++;
+                        }
+                    }
+
+                    // общия рейтинг на текущото правило
+                    $r->rate = 9 + $r->trust - $l;
+ 
+                    if(!isset($bestRule) || $bestRule->rate < $r->rate) {
+                        $bestRule = $r;
+                    }
+                }
+            }
+            
+            if($bestRule) {  
+                $this->setVar($bestRule->name, $bestRule->value, $bestRule->trust, "[{$bestRule->expr}]" . ($bestRule->cond ?  " ({$bestRule->cond})":''));
+                $bestRule->state = 'used';
+            }
+
+        } while($bestRule);
+
 
         return $this->vars;
     }

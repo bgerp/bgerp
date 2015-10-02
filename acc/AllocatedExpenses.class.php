@@ -380,13 +380,13 @@ class acc_AllocatedExpenses extends core_Master
     private function getChosenProducts(core_ObjectReference $firstDoc)
     {
     	// Aко първия документ е продажба
-    	if($firstDoc->getInstance() instanceof sales_Sales){
+    	if($firstDoc->isInstanceOf('sales_Sales')){
     		
     		// Взимаме артикулите от сметка 701
     		$shipped = sales_transaction_Sale::getShippedProducts($firstDoc->that, '701');
-    	
+    		
     	  // Ако е покупка
-    	} elseif($firstDoc->getInstance() instanceof purchase_Purchases){
+    	} elseif($firstDoc->isInstanceOf('purchase_Purchases')){
     		
     		// Вземаме всички заскладени артикули
     		$shipped = purchase_transaction_Purchase::getShippedProducts($firstDoc->that, '321', TRUE);
@@ -399,11 +399,10 @@ class acc_AllocatedExpenses extends core_Master
     	$products = array();
     	if(count($shipped)){
     		foreach ($shipped as $p){
-    			$params = cls::get($p->classId)->getParams($p->productId);
     			if($p->amount == 0) continue;
     			
     			$products[$p->productId] = (object)array('productId' => $p->productId, 
-    												     'name'      => cls::get($p->classId)->getTitleById($p->productId), 
+    												     'name'      => cat_Products::getTitleById($p->productId), 
     													 'quantity'  => $p->quantity,
     													 'amount'    => $p->amount,
     			);
@@ -412,12 +411,14 @@ class acc_AllocatedExpenses extends core_Master
     				$products[$p->productId]->inStores = $p->inStores;
     			}
     			
-    			if(isset($params['transportWeight'])){
-    				$products[$p->productId]->transportWeight = $params['transportWeight'];
+    			$transportWeight = cat_Products::getParamValue($p->productId, 'transportWeight');
+    			if(!empty($transportWeight)){
+    				$products[$p->productId]->transportWeight = $transportWeight;
     			}
     			
-    			if(isset($params['transportVolume'])){
-    				$products[$p->productId]->transportVolume = $params['transportVolume'];
+    			$transportVolume = cat_Products::getParamValue($p->productId, 'transportVolume');
+    			if(!empty($transportVolume)){
+    				$products[$p->productId]->transportVolume = $transportVolume;
     			}
     		}
     	}
@@ -652,9 +653,10 @@ class acc_AllocatedExpenses extends core_Master
     {
     	$doc = doc_Containers::getDocument($correspondingOriginId);
     	$amount = 0;
-    	if($doc->getInstance() instanceof findeals_Deals){
+    	
+    	if($doc->isInstanceOf('findeals_Deals')){
     		$amount = $doc->fetchField('amountDeal');
-    	} elseif($doc->getInstance() instanceof purchase_Purchases){
+    	} elseif($doc->isInstanceOf('purchase_Purchases')){
     		$dRec = $doc->fetch();
     		$amount = $dRec->amountDeal;
     		if($chargeVat != 'yes' && $chargeVat != 'separate'){
@@ -683,21 +685,21 @@ class acc_AllocatedExpenses extends core_Master
     	}
     	
     	// Ако е финансова сделка, винаги може
-    	if($doc->getInstance() instanceof findeals_Deals){
+    	if($doc->isInstanceOf('findeals_Deals')){
     		
     		return TRUE;
     		
     		// Ако е покупка
-    	} elseif($doc->getInstance() instanceof purchase_Purchases){
+    	} elseif($doc->isInstanceOf('purchase_Purchases')){
     		
     		// Намираме  артикулите
     		$pQuery = purchase_PurchasesDetails::getQuery();
     		$pQuery->where("#requestId = {$doc->that}");
-    		$pQuery->show('classId,productId');
+    		$pQuery->show('productId');
     		 
     		// Ако има поне един складируем артикул не може да се създаде
     		while($dRec = $pQuery->fetch()){
-    			$pInfo = cls::get($dRec->classId)->getProductInfo($dRec->productId);
+    			$pInfo = cat_Products::getProductInfo($dRec->productId);
     			if(isset($pInfo->meta['canStore'])){
     				return FALSE;
     			}
@@ -759,7 +761,7 @@ class acc_AllocatedExpenses extends core_Master
     	$firstDoc = doc_Threads::getFirstDocument($threadId);
     	
     	// Може да се добави само към тред на покупка/продажба
-    	if($firstDoc->getInstance() instanceof sales_Sales || $firstDoc->getInstance() instanceof purchase_Purchases){
+    	if($firstDoc->isInstanceOf('sales_Sales') || $firstDoc->isInstanceOf('purchase_Purchases')){
     		return TRUE;
     	}
     	

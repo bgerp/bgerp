@@ -7,7 +7,6 @@
         <!--ET_BEGIN ent2Id--><b class='feather-icon'>[#ent2Id#]</b> <!--ET_END ent2Id-->
         <!--ET_BEGIN ent3Id--><b class='feather-icon'>[#ent3Id#]</b><!--ET_END ent3Id-->
     </h3>
-    
     <!--ET_BEGIN listFilter-->
     <div class='fleft'>[#listFilter#]</div>
     <!--ET_END listFilter-->

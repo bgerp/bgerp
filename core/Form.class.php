@@ -718,10 +718,12 @@ class core_Form extends core_FieldSet
                 }
                 
                 // Задължителните полета, които имат една опция - тя да е избрана по подразбиране
-                if(count($options) == 2 && $type->params['mandatory']) {
-                    $keys =  array_keys($options);
-                    if($value === NULL) {
-                        $value = $keys[1];
+                if(count($options) == 2 && $type->params['mandatory'] && empty($value)) {
+                    list($o1, $o2) = array_keys($options);
+                    if(!empty($o2)) {
+                        $value = $o2;
+                    } elseif(!empty($o1)) {
+                        $value = $o1;
                     }
                 }
 
@@ -731,8 +733,6 @@ class core_Form extends core_FieldSet
                     unset($attr['value']);
                     $this->invoke('BeforeCreateSmartSelect', array($input, $type, $options, $name, $value, &$attr));
  
-                    ;
-
                     $input = ht::createSmartSelect($options, $name, $value, $attr,
                         $type->params['maxRadio'],
                         $type->params['maxColumns'],

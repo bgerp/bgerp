@@ -44,7 +44,7 @@ class email_Outgoings extends core_Master
     /**
      * Поддържани интерфейси
      */
-    var $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf';
+    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf, email_SendIntf';
     
     
     /**
@@ -244,7 +244,7 @@ class email_Outgoings extends core_Master
         // Ако формата е успешно изпратена - изпращане, лог, редирект
         if ($data->form->isSubmitted()) {
             
-            static::_send($data->rec, $data->form->rec, $lg);
+            static::send($data->rec, $data->form->rec, $lg);
             
             // Подготвяме адреса, към който трябва да редиректнем,  
             // при успешно записване на данните от формата
@@ -273,8 +273,52 @@ class email_Outgoings extends core_Master
         return static::renderWrapping($tpl);
     }
     
-    protected static function _send($rec, $options, $lg)
+    
+    /**
+     * Проверява дали трябва да се изпраща по-късно
+     * 
+     * @param object $rec
+     * @param object $options
+     * @param string $lg
+     * 
+     * @return boolean
+     */
+    public static function checkAndAddForLateSending($rec, $options, $lg)
     {
+        if ($options->delay) {
+            $classId = core_Classes::getId(get_called_class());
+            $delay = $options->delay;
+            // Нулираме закъснението, за да не сработи при отложеното изпращане
+            $options->delay = NULL;
+            if (email_SendOnTime::add($classId, $rec->id, array('rec' => $rec, 'options' => $options, 'lg' => $lg), $delay)) {
+                status_Messages::newStatus('|Добавено в списъка за отложено изпращане');
+                self::logInfo('Добавяне за отложено изпращане', $rec->id);
+                
+                $rec->modifiedOn = dt::now();
+                email_Outgoings::save($rec, 'modifiedOn');
+            } else {
+                status_Messages::newStatus('|Грешка при добавяне в списъка за отложено изпращане', 'error');
+                self::logInfo('Грешка при добавяне за отложено изпращане', $rec->id);
+            }
+            
+            return TRUE;
+        }
+        
+        return FALSE;
+    }
+    
+    
+    /**
+     * Изпраща имейла
+     * 
+     * @param object $rec
+     * @param object $options
+     * @param string $lg
+     */
+    public static function send($rec, $options, $lg)
+    {
+        if (self::checkAndAddForLateSending($rec, $options, $lg)) return ;
+        
         //Вземаме всички избрани файлове
         $rec->attachmentsFh = type_Set::toArray($options->attachmentsSet);
         
@@ -545,6 +589,18 @@ class email_Outgoings extends core_Master
     
     
     /**
+     * Връща инстанция, на класа в който са записани данните
+     * 
+     * @see email_SendIntf
+     */
+    public static function getModelClass()
+    {
+        
+        return cls::get(get_called_class());
+    }
+    
+    
+    /**
      * @param object $rec
      */
     static function getAttachedDocuments($rec)
@@ -601,7 +657,8 @@ class email_Outgoings extends core_Master
         $form->FLD('documents', 'keylist(mvc=fileman_files, select=name)', 'caption=Документи,columns=4,input=none');
         $form->FNC('emailsTo', 'emails', 'input,caption=До,mandatory,class=long-input,formOrder=2', array('attr' => array('data-role' => 'list')));
         $form->FNC('emailsCc', 'emails', 'input,caption=Копие до,class=long-input,formOrder=3', array('attr' => array('data-role' => 'list')));
-        $form->FNC('waiting', 'time(suggestions=1 ден|2 дни|3 дни|1 седмица|2 седмици|3 седмици|4 седмици, allowEmpty)', 'caption=Изчакване за отговор|*&#44; |преди известяване->Изчакване,hint=Време за известряване при липса на отговор,input,formOrder=8');
+        $form->FNC('delay', 'time(suggestions=1 мин|5 мин|8 часа|1 ден, allowEmpty)', 'caption=Отложено изпращане на писмото->Отлагане,hint=Време за отлагане на изпращането,input,formOrder=8');
+        $form->FNC('waiting', 'time(suggestions=1 ден|3 дни|1 седмица|2 седмици, allowEmpty)', 'caption=Изчакване за отговор|*&#44; |преди известяване->Изчакване,hint=Време за известряване при липса на отговор,input,formOrder=9');
         
         // Подготвяме лентата с инструменти на формата
         $form->toolbar->addSbBtn('Изпрати', 'send', NULL, array('id'=>'save', 'ef_icon'=>'img/16/move.png', 'title'=>'Изпращане на имейла'));
@@ -1087,7 +1144,7 @@ class email_Outgoings extends core_Master
             if ($mvc->flagSendIt) {
                 
                 // Изпращаме по имейл
-                static::_send($rec, (object)$options, $lg);
+                static::send($rec, (object)$options, $lg);
             } else if ($mvc->flagSendItFax) {
                 
                 // Услуга за изпращане
@@ -1107,7 +1164,7 @@ class email_Outgoings extends core_Master
                 $options['faxTo'] = ltrim($options['faxTo'], ', ');
                 
                 // Изпращаме факса
-                email_FaxSent::_send($rec, (object)$options, $lg);
+                email_FaxSent::send($rec, (object)$options, $lg);
             }
         }
         
@@ -1978,6 +2035,23 @@ class email_Outgoings extends core_Master
             if ($mvc->haveRightFor('close', $data->rec)) {
                 $data->row->removeNotify = ht::createLink('', array($mvc, 'close', $data->rec->id, 'ret_url'=>TRUE), tr('Сигурни ли сте, че искате да спрете изчакването') . '?',
                                                             array('ef_icon' => 'img/16/cancel.png', 'title' => tr('Премахване на изчакването за отговор')));
+            }
+        }
+        
+        if (!Mode::is('text', 'xhtml')) {
+            $classId = core_Classes::getId($mvc);
+            $sendArr = email_SendOnTime::getPendingRows($classId, $data->rec->id);
+            
+            if ($sendArr) {
+                $data->row->sendLater = new ET();
+                foreach ($sendArr as $row) {
+                    $sendTpl = new ET(tr("|*<div>|Писмото ще бъде изпратено|* [#sendOn#] - [#createdBy#]
+                    	        	[#StopLink#]
+                    	        </div>"));
+                    $sendTpl->placeObject($row);
+                    $sendTpl->removePlaces();
+                    $data->row->sendLater->append($sendTpl);
+                }
             }
         }
     }

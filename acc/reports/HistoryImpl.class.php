@@ -193,6 +193,7 @@ class acc_reports_HistoryImpl extends frame_BaseDriver
 	 */
 	public function renderEmbeddedData(&$embedderTpl, $data)
 	{
+		$data->isReport = TRUE;
 		$tpl = $this->History->renderHistory($data);
 		$tpl->replace($this->title, 'TITLE');
 		

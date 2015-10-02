@@ -307,7 +307,7 @@ class core_Manager extends core_Mvc
             // Записваме данните
             $id = $this->save($rec);
             
-            $msg = ($data->cmd == 'Add') ? 'Нов запис' : 'Редактиране';
+            $msg = ($data->cmd == 'Add') ? 'Създаване' : 'Редактиране';
             
             $this->logInAct($msg, $rec);
             

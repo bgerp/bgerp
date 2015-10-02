@@ -330,11 +330,9 @@ class store_Transfers extends core_Master
     	$dQuery->where("#transferId = '{$id}'");
     	while($dRec = $dQuery->fetch()){
     		$sProd = store_Products::fetch($dRec->productId);
-    		$ProductMan = cls::get($sProd->classId);
-    		if(cls::haveInterface('doc_DocumentIntf', $ProductMan)){
-    			$res[] = (object)array('class' => $ProductMan, 'id' => $sProd->productId);
-    		}
+    		$res[] = (object)array('class' => cls::get('cat_Products'), 'id' => $sProd->productId);
     	}
+    	
     	return $res;
     }
     

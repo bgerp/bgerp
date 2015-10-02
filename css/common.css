@@ -1187,6 +1187,18 @@ table.listTable:not(.noHoverTable) > tbody > tr:hover {
 .inputWarning {
   border: solid 1px #ff9900; }
 
+span.inputLackOfChoice {
+  border: solid 1px #bbbbbb;
+  background-color: #dddddd;
+  padding: 4px;
+  border-radius: 2px; }
+
+span.inputLackOfChoiceMandatory {
+  padding: 4px;
+  background-color: yellow;
+  border: solid 1px red;
+  border-radius: 2px; }
+
 .formInfo,
 .formWarning {
   margin-bottom: 8px; }

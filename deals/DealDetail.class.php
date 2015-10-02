@@ -76,8 +76,7 @@ abstract class deals_DealDetail extends doc_Detail
      */
     public static function getDealDetailFields(&$mvc)
     {
-    	$mvc->FLD('classId', 'class(interface=cat_ProductAccRegIntf, select=title)', 'caption=Мениджър,silent,input=hidden');
-    	$mvc->FLD('productId', 'int', 'caption=Продукт,notNull,mandatory', 'tdClass=large-field leftCol wrap,silent,removeAndRefreshForm=packPrice|discount|packagingId|tolerance');
+    	$mvc->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Продукт,notNull,mandatory', 'tdClass=large-field leftCol wrap,silent,removeAndRefreshForm=packPrice|discount|packagingId|tolerance');
     	$mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка', 'tdClass=small-field,silent,removeAndRefreshForm=packPrice|discount,mandatory');
     	
     	// Количество в основна мярка
@@ -149,19 +148,6 @@ abstract class deals_DealDetail extends doc_Detail
     
     
     /**
-     * Преди подготвяне на едит формата
-     */
-    public static function on_BeforePrepareEditForm($mvc, &$res, $data)
-    {
-    	if($classId = Request::get('classId', 'class(interface=cat_ProductAccRegIntf)')){  
-    		$data->ProductManager = cls::get($classId);
-    		
-    		$mvc->getField('productId')->type = cls::get('type_Key', array('params' => array('mvc' => $data->ProductManager->className, 'select' => 'name')));
-    	}
-    }
-    
-    
-    /**
      * Преди показване на форма за добавяне/промяна.
      *
      * @param core_Manager $mvc
@@ -171,12 +157,11 @@ abstract class deals_DealDetail extends doc_Detail
     {
         $rec       = &$data->form->rec;
         $masterRec = $data->masterRec;
-       	$ProductManager = ($data->ProductManager) ? $data->ProductManager : cls::get($rec->classId);
        	
        	$data->form->fields['packPrice']->unit = "|*" . $masterRec->currencyId . ", ";
         $data->form->fields['packPrice']->unit .= ($masterRec->chargeVat == 'yes') ? "|с ДДС|*" : "|без ДДС|*";
        
-        $products = $ProductManager->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->valior, $mvc->metaProducts);
+        $products = cat_Products::getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->valior, $mvc->metaProducts);
         expect(count($products));
         
         $data->form->setSuggestions('discount', array('' => '') + arr::make('5 %,10 %,15 %,20 %,25 %,30 %', TRUE));
@@ -192,19 +177,17 @@ abstract class deals_DealDetail extends doc_Detail
         }
         
         if (!empty($rec->packPrice)) {
-        	$vat = cls::get($rec->classId)->getVat($rec->productId, $masterRec->valior);
+        	$vat = cat_Products::getVat($rec->productId, $masterRec->valior);
         	$rec->packPrice = deals_Helper::getDisplayPrice($rec->packPrice, $vat, $masterRec->currencyRate, $masterRec->chargeVat);
         }
         
         if($rec->productId){
-        	$params = cls::get($rec->classId)->getParams($rec->productId);
-        	
-        	// Показваме полето за толеранс ако в избрания артикул има такъв параметър
-        	if(!empty($params['tolerance'])){
-        		$percentVerbal = str_replace('&nbsp;', ' ', $mvc->getFieldType('tolerance')->toVerbal($params['tolerance']));
+        	$tolerance = cat_Products::getParamValue($rec->productId, 'tolerance');
+        	if(!empty($tolerance)){
+        		$percentVerbal = str_replace('&nbsp;', ' ', $mvc->getFieldType('tolerance')->toVerbal($tolerance));
         		$data->form->setField('tolerance', 'input');
         		if(empty($rec->id)){
-        			$data->form->setDefault('tolerance', $params['tolerance']);
+        			$data->form->setDefault('tolerance', $tolerance);
         		}
         		$data->form->setSuggestions('tolerance', array('' => '', $percentVerbal => $percentVerbal));
         	}
@@ -225,17 +208,15 @@ abstract class deals_DealDetail extends doc_Detail
     	$priceAtDate = ($masterRec->pricesAtDate) ? $masterRec->pricesAtDate : $masterRec->valior;
     	$update = FALSE;
     	
-    	expect($ProductMan = cls::get($rec->classId));
     	if($rec->productId){
-    		$productRef = new core_ObjectReference($ProductMan, $rec->productId);
-    		expect($productInfo = $productRef->getProductInfo());
+    		$productInfo = cat_Products::getProductInfo($rec->productId);
     		
-    		$vat = cls::get($rec->classId)->getVat($rec->productId, $masterRec->valior);
-    		$packs = $ProductMan->getPacks($rec->productId);
+    		$vat = cat_Products::getVat($rec->productId, $masterRec->valior);
+    		$packs = cat_Products::getPacks($rec->productId);
     		$form->setOptions('packagingId', $packs);
     		
     		if(isset($mvc->LastPricePolicy)){
-    			$policyInfoLast = $mvc->LastPricePolicy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->classId, $rec->packagingId, $rec->packQuantity, $priceAtDate, $masterRec->currencyRate, $masterRec->chargeVat);
+    			$policyInfoLast = $mvc->LastPricePolicy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->packQuantity, $priceAtDate, $masterRec->currencyRate, $masterRec->chargeVat);
     			if($policyInfoLast->price != 0){
     				$form->setSuggestions('packPrice', array('' => '', "{$policyInfoLast->price}" => $policyInfoLast->price));
     			}
@@ -269,7 +250,7 @@ abstract class deals_DealDetail extends doc_Detail
     		}
     		
     		if(empty($rec->id)){
-    			$where = "#{$mvc->masterKey} = {$rec->{$mvc->masterKey}} AND #classId = {$rec->classId} AND #productId = {$rec->productId} AND #packagingId";
+    			$where = "#{$mvc->masterKey} = {$rec->{$mvc->masterKey}} AND #productId = {$rec->productId} AND #packagingId";
     			$where .= ($rec->packagingId) ? "={$rec->packagingId}" : " IS NULL";
     			if($pRec = $mvc->fetch($where)){
     				$form->setWarning("productId", "Има вече такъв продукт. Искате ли да го обновите?");
@@ -283,8 +264,8 @@ abstract class deals_DealDetail extends doc_Detail
     		$rec->quantity = $rec->packQuantity * $rec->quantityInPack;
     	
     		if (!isset($rec->packPrice)) {
-    			$Policy = (isset($mvc->Policy)) ? $mvc->Policy : cls::get($rec->classId)->getPolicy();
-    			$policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->classId, $rec->packagingId, $rec->packQuantity, $priceAtDate, $masterRec->currencyRate, $masterRec->chargeVat);
+    			$Policy = (isset($mvc->Policy)) ? $mvc->Policy : cls::get('price_ListToCustomers');
+    			$policyInfo = $Policy->getPriceInfo($masterRec->contragentClassId, $masterRec->contragentId, $rec->productId, $rec->packagingId, $rec->packQuantity, $priceAtDate, $masterRec->currencyRate, $masterRec->chargeVat);
     				 
     			if (empty($policyInfo->price) && empty($pRec)) {
     				$form->setError('packPrice', 'Продукта няма цена в избраната ценова политика');
@@ -363,12 +344,11 @@ abstract class deals_DealDetail extends doc_Detail
     	if (!empty($data->toolbar->buttons['btnAdd'])) {
     		$masterRec = $data->masterData->rec;
     		
-    		$productMan = cls::get('cat_Products');
-    		if(!count($productMan->getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->valior, $mvc->metaProducts, NULL, 1))){
+    		if(!count(cat_Products::getProducts($masterRec->contragentClassId, $masterRec->contragentId, $masterRec->valior, $mvc->metaProducts, NULL, 1))){
                 $error = "error=Няма продаваеми артикули, ";
             }
             
-            $data->toolbar->addBtn('Артикул', array($mvc, 'add', "{$mvc->masterKey}" => $masterRec->id, 'classId' => $productMan->getClassId(), 'ret_url' => TRUE),
+            $data->toolbar->addBtn('Артикул', array($mvc, 'add', "{$mvc->masterKey}" => $masterRec->id, 'ret_url' => TRUE),
             "id=btnAdd-{$masterRec->id},{$error} order=10,title=Добавяне на артикул", 'ef_icon = img/16/shopping.png');
             
             unset($data->toolbar->buttons['btnAdd']);
@@ -431,7 +411,7 @@ abstract class deals_DealDetail extends doc_Detail
     		$price = deals_Helper::getPurePrice($row->price, cat_Products::getVat($pRec->productId), $masterRec->currencyRate, $masterRec->chargeVat);
     	}
     	
-    	return $Master::addRow($masterId, 'cat_Products', $pRec->productId, $row->quantity, $price, $pRec->packagingId);
+    	return $Master::addRow($masterId, $pRec->productId, $row->quantity, $price, $pRec->packagingId);
     }
     
     

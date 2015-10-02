@@ -107,10 +107,18 @@
     
     <!--ET_BEGIN bottomAntetka-->
     [#bottomAntetka#]
+    
     <div class='bottom-antetka'>
-        <div>|Ако не се получи отговор до|* [#notifyDate#] |ще бъде известен|* [#notifyUser#]
-        	[#removeNotify#]
-        </div>
+	    <!--ET_BEGIN notifyForAnsw-->
+	    	[#notifyForAnsw#]
+	        <div>|Ако не се получи отговор до|* [#notifyDate#] |ще бъде известен|* [#notifyUser#]
+	        	[#removeNotify#]
+	        </div>
+	    <!--ET_END notifyForAnsw-->
+	    
+	    <!--ET_BEGIN sendLater-->
+	    	[#sendLater#]
+	    <!--ET_END sendLater-->
     </div>
     <!--ET_END bottomAntetka-->
     

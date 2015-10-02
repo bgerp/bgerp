@@ -33,7 +33,7 @@ class planning_reports_PurchaseImpl extends frame_BaseDriver
     /**
      * Заглавие
      */
-    public $title = 'Планиране » Планиране на покупки на стоки';
+    public $title = 'Планиране » Покупки на стоки';
     
     
     /**
@@ -61,8 +61,8 @@ class planning_reports_PurchaseImpl extends frame_BaseDriver
      */
 	public function addEmbeddedFields(core_FieldSet &$form)
     {
-    	$form->FLD('from', 'date', 'caption=Начало,input=none');
-    	$form->FLD('to', 'date', 'caption=Край,input=none');
+    	$form->FLD('time', 'time(suggestions=на момента|1 седмица|2 седмица|3 седмица|4 седмиц|)', 'caption=Хоризонт');
+    	$form->FLD('store', 'key(mvc=store_Stores, select=name, allowEmpty)', 'caption=Склад');
     	
     	$this->invoke('AfterAddEmbeddedFields', array($form));
     }
@@ -75,7 +75,7 @@ class planning_reports_PurchaseImpl extends frame_BaseDriver
      */
 	public function prepareEmbeddedForm(core_Form &$form)
     {
-    	
+    	$form->setDefault('time', 'на момента');
     }
     
     
@@ -85,9 +85,8 @@ class planning_reports_PurchaseImpl extends frame_BaseDriver
      * @param core_Form $form
      */
 	public function checkEmbeddedForm(core_Form &$form)
-    {
-        	 
-    	
+    {    
+  	
     }
     
     
@@ -107,14 +106,21 @@ class planning_reports_PurchaseImpl extends frame_BaseDriver
         
         $this->prepareListFields($data);
         
-        $query->where("#state = 'active'");
+        if ($data->rec->time == 0) {
+        	$time = dt::today();
+        } else {
+        	$time = dt::timestamp2Mysql(dt::mysql2timestamp(dt::now())+$data->rec->time);
+        }
+        
+        if (!isset($data->rec->time)) {
+        	$query->where("#state = 'active'");
+        } else {
+        	$query->where("#deliveryTime <= '{$time}' AND #state = 'active'");
+        	$query->orWhere("#valior <= '{$time}' AND #state = 'active'");
+        }
 
 	    // за всеки един активен договор за продажба
 	    while($rec = $query->fetch()) {
-	        
-	    	//$origin = doc_Threads::getFirstDocument($rec->threadId);
-	        // взимаме информация за сделките
-	        //$dealInfo = $origin->getAggregateDealInfo();
 
 	        if ($rec->deliveryTime) {
 	        	$date = $rec->deliveryTime;
@@ -126,13 +132,12 @@ class planning_reports_PurchaseImpl extends frame_BaseDriver
 	        	
 	        if (sales_SalesDetails::fetch("#saleId = $id") !== FALSE) {
 	        		
-	        		
 	        	$p = sales_SalesDetails::fetch("#saleId = $rec->id");
 	            $productId = $p->productId;
 	           
 	            $productInfo = cat_Products::getProductInfo($productId);
 	       
-	            if ($productInfo->meta['canBuy'] == TRUE) {
+	            if ($productInfo->meta['canBuy'] == TRUE && $productInfo->meta['canStore'] == TRUE) {
 	            	$products[] = sales_SalesDetails::fetch("#saleId = $id AND #productId = $productId");
 	                $dates[$productId][$id] = $date;
 	            } else {
@@ -143,18 +148,18 @@ class planning_reports_PurchaseImpl extends frame_BaseDriver
 	        		continue;
 	        }
 	    }
-	       
-	        
-	    foreach ($dates as $prd => $sal) {
-	    	if(count($sal) > 1) {
-	        	$dateSale[$prd] = min($sal);
-	        	$dateSale[$prd] = dt::mysql2timestamp($dateSale[$prd]);
-	        } else {
-	        	foreach ($sal as $d){
-	        		$dateSale[$prd] = dt::mysql2timestamp($d);
-	        	}
-	        }
-	        	
+	     
+	    if (is_array($dates)) {   
+		    foreach ($dates as $prd => $sal) {
+		    	if(count($sal) > 1) {
+		        	$dateSale[$prd] = min($sal);
+		        	$dateSale[$prd] = dt::mysql2timestamp($dateSale[$prd]);
+		        } else {
+		        	foreach ($sal as $d){
+		        		$dateSale[$prd] = dt::mysql2timestamp($d);
+		        	}
+		        }
+		    }
 	    }
 
 	    // за всеки един продукт
@@ -171,20 +176,34 @@ class planning_reports_PurchaseImpl extends frame_BaseDriver
 		        	
 		        if ($product->quantityDelivered >= $product->quantity) continue;
 		        
-		        $storeId = store_Stores::getCurrent();
-			        	
+		        if (isset($data->rec->store)) {
+		        	$storeId = $data->rec->store;
+		        }
+		
 		        // ако нямаме такъв запис,
 		        // го добавяме в масив
+		        $store = "";
 			    if(!array_key_exists($index, $data->recs)){
+			    	
+			    	if(isset($storeId)) {
+			    		$store = store_Products::fetchField("#productId = {$index} AND #storeId = {$storeId}", 'quantity');
+			    	} else {
+			    		$storeQuery = store_Products::getQuery();
+			    		$storeQuery->where("#productId = {$index}");
+			    		while ($storeRec = $storeQuery->fetch()){
+			    			$store[$storeRec->productId] += $storeRec->quantity;
+			    		}
+			    	
+			    	}
 			        		
-				    	$data->recs[$index] = 
+				    $data->recs[$index] = 
 				        		(object) array ('id' => $product->productId,
 						        				'quantity'	=> $product->quantity,
 						        				'quantityDelivered' => $product->quantityDelivered,
 				        						'quantityТоDelivered' => abs($product->quantityDelivered - $product->quantity),
 				        						'dateSale' => $dateSale[$product->productId],
 						        				'sales' => array($product->saleId),
-				        		                'store' => store_Products::fetchField("#productId = {$product->productId} AND #classId = {$product->classId} AND #storeId = {$storeId}", 'quantity'));
+				        		                'store' => $store);
 			        		
 			      // в противен случай го ъпдейтваме
 			    } else {
@@ -195,15 +214,20 @@ class planning_reports_PurchaseImpl extends frame_BaseDriver
 				    $obj->quantityToDelivered += abs($product->quantityDelivered - $product->quantity);
 				    $obj->dateSale = $dateSale[$product->productId];
 				    $obj->sales[] = $product->saleId;
-				    $obj->store = store_Products::fetchField("#productId = {$product->productId} AND #classId = {$product->classId} AND #storeId = {$storeId}", 'quantity');
+				    $obj->store += $store;
 			        		
 			    }
 			}
 	    }
+	
+	    if(is_array($store)){
+	    	foreach($store as $productId => $quantity){
+	    		$data->recs[$productId]->store = $quantity;
+	    	}
+	    }
 
         arr::order($data->recs, 'dateSale');
-        
-        
+
         for ($dt = 0; $dt <= count($data->recs); $dt++) {
         	
         	if ($data->recs[$dt]->dateSale) {
@@ -217,7 +241,6 @@ class planning_reports_PurchaseImpl extends frame_BaseDriver
         	}
         }
 	   
-        
         return $data;
     }
     
@@ -295,7 +318,7 @@ class planning_reports_PurchaseImpl extends frame_BaseDriver
      */
     public function renderEmbeddedData(&$embedderTpl, $data)
     {
-    	if(empty($data)) return;
+		if(empty($data)) return;
     	 
     	$tpl = $this->getReportLayout();
     	
@@ -327,12 +350,12 @@ class planning_reports_PurchaseImpl extends frame_BaseDriver
     	$table = cls::get('core_TableView', array('mvc' => $f));
 
     	$tpl->append($table->get($data->rows, $data->listFields), 'CONTENT');
-    	
+
     	if($data->pager){
     	     $tpl->append($data->pager->getHtml(), 'PAGER');
     	}
     
-    	$embedderTpl->append($tpl, 'innerState');
+    	$embedderTpl->append($tpl, 'data');
     }
 
     
@@ -350,7 +373,6 @@ class planning_reports_PurchaseImpl extends frame_BaseDriver
         		'dt' => 'Продажба ->|*<small>Дата</small>',
         		'inStore' => 'На склад',
         		);
-        
     }
 
        
@@ -411,7 +433,13 @@ class planning_reports_PurchaseImpl extends frame_BaseDriver
      */
 	public function getEarlyActivation()
     {
-    	$activateOn = "{$this->innerForm->to} 23:59:59";
+    	if ($this->innerForm->time == 0 || !isset($this->innerForm->time)) {
+    		$time = dt::today();
+    	} else {
+    		$time = dt::timestamp2Mysql(dt::mysql2timestamp(dt::now())+$this->innerForm->time);
+    	}
+    	
+    	$activateOn = "{$time} 23:59:59";
       	  	
       	return $activateOn;
 	}
@@ -423,7 +451,7 @@ class planning_reports_PurchaseImpl extends frame_BaseDriver
       * @param core_Mvc $mvc
       * @param stdClass $rec
       */
-     /*public function exportCsv()
+     public function exportCsv()
      {
 
          $exportFields = $this->getExportFields();
@@ -437,26 +465,12 @@ class planning_reports_PurchaseImpl extends frame_BaseDriver
          $csv = "";
 
          foreach ($exportFields as $caption) {
-             $header .= "," . $caption;
+             $header .=  $caption. ',';
          }
 
          
          if(count($this->innerState->recs)) {
 			foreach ($this->innerState->recs as $id => $rec) {
-
-				if($this->innerState->bShowQuantities || $this->innerState->rec->groupBy){
-					
-					
-					$baseQuantity += $rec->baseQuantity;
-					$baseAmount += $rec->baseAmount;
-					$debitQuantity += $rec->debitQuantity;
-					$debitAmount += $rec->debitAmount;
-					$creditQuantity += $rec->creditQuantity;
-					$creditAmount += $rec->creditAmount;
-					$blQuantity += $rec->blQuantity;
-					$blAmount += $rec->blAmount;
-
-				} 
 				
 				$rCsv = $this->generateCsvRows($rec);
 
@@ -466,31 +480,11 @@ class planning_reports_PurchaseImpl extends frame_BaseDriver
 		
 			}
 
-			$row = new stdClass();
-			
-			$row->flag = TRUE;
-			$row->baseQuantity = $baseQuantity;
-			$row->baseAmount = $baseAmount;
-			$row->debitQuantity = $debitQuantity;
-			$row->debitAmount = $debitAmount;
-			$row->creditQuantity = $creditQuantity;
-			$row->creditAmount = $creditAmount;
-			$row->blQuantity = $blQuantity;
-			$row->blAmount = $blAmount;
-			
-			foreach ($row as $fld => $value) {
-				$value = frame_CsvLib::toCsvFormatDouble($value);
-				$row->{$fld} = $value;
-			}
-		
-		
-			$beforeRow = $this->generateCsvRows($row);
-
-			$csv = $header . "\n" . $beforeRow. "\n" . $csv;
+			$csv = $header . "\n" . $csv;
 	    } 
 
         return $csv;
-    }*/
+    }
 
 
     /**
@@ -499,20 +493,25 @@ class planning_reports_PurchaseImpl extends frame_BaseDriver
      *
      * @return array
      */
-    /*protected function getExportFields_()
+    protected function getExportFields_()
     {
 
         $exportFields = $this->innerState->listFields;
         
         foreach ($exportFields as $field => $caption) {
-        	$caption = str_replace('|*', '', $caption);
-        	$caption = str_replace('->', ' - ', $caption);
+        	if(strpos($caption, "<br>")) {
+        		$caption = str::crop($caption, "<small>", "<br>");
+        	} elseif (strpos($caption, "<small>")) {
+        		$caption = str::crop($caption, "<small>", "</small>");
+        	} else {
+        		
+        	}
         	
         	$exportFields[$field] = $caption;
         }
-        
+     
         return $exportFields;
-    }*/
+    }
     
     
     /**
@@ -520,54 +519,44 @@ class planning_reports_PurchaseImpl extends frame_BaseDriver
 	 *
 	 * @return string $rCsv
 	 */
-	/*protected function generateCsvRows_($rec)
+	protected function generateCsvRows_($rec)
 	{
 	
 		$exportFields = $this->getExportFields();
-
 		$rec = frame_CsvLib::prepareCsvRows($rec);
-	
+
 		$rCsv = '';
-		
-		$res = count($exportFields); 
-		
+
+		$res = new stdClass();
 		foreach ($rec as $field => $value) {
 			$rCsv = '';
 			
-			if ($res == 11) {
-				$zeroRow = "," . 'ОБЩО' . "," .'' . "," .'';
-			} elseif ($res == 10 || $res == 9 || $res == 8 || $res == 7) {
-				$zeroRow = "," . 'ОБЩО' . "," .'';
-			} elseif ($res <= 6) {
-				$zeroRow = "," . 'ОБЩО';
-			}
-			
+			$res->id = self::getVerbal($rec)->id;
+			$res->ordered = self::getVerbal($rec)->quantity;
+			$res->delivered = $rec->quantityDelivered;
+			$res->toDelivered = self::getVerbal($rec)->quantityToDeliver;
+			$res->dt = $rec->dateSale;
+			$res->inStore = $rec->store;
+		
 			foreach ($exportFields as $field => $caption) {
-					
-				if ($rec->{$field}) {
-	
-					$value = $rec->{$field};
+
+				if ($res->{$field}) {
+		
+					$value = $res->{$field};
 					$value = html2text_Converter::toRichText($value);
 					// escape
 					if (preg_match('/\\r|\\n|,|"/', $value)) {
 						$value = '"' . str_replace('"', '""', $value) . '"';
 					}
-					$rCsv .= "," . $value;
-					
-					if($rec->flag == TRUE) {
-						
-						$zeroRow .= "," . $value;
-						$rCsv = $zeroRow;
-					}
-	
+					$rCsv .=  $value . ",";
+		
 				} else {
-					
-					$rCsv .= "," . '';
+					$rCsv .=  ''. ",";
 				}
 			}
 		}
-		
+	
 		return $rCsv;
-	}*/
+	}
 
 }

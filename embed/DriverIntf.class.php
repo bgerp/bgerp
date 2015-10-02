@@ -19,7 +19,6 @@ class embed_DriverIntf
 	 */
 	public $class;
 	
-	
 
 	/**
 	 * Добавя полетата на драйвера към Fieldset

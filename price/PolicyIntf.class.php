@@ -24,7 +24,6 @@ class price_PolicyIntf
      * @param int $customerClass - ид на класа на контрагента
      * @param int $customerId - ид на клиента
      * @param int $productId - ид на продукта
-     * @param int $productManId - ид на класа на продуктовия мениджър
      * @param int $packagingId - ид на опаковка
      * @param double $quantity - количество
      * @param datetime $date - към коя дата искаме цената
@@ -35,8 +34,8 @@ class price_PolicyIntf
      * 			$rec->price  - цена
      * 			$rec->discount - отстъпка
      */
-    function getPriceInfo($customerClass, $customerId, $productId, $productManId, $packagingId = NULL, $quantity = NULL, $date = NULL, $rate = 1, $chargeVat = 'no')
+    function getPriceInfo($customerClass, $customerId, $productId, $packagingId = NULL, $quantity = NULL, $date = NULL, $rate = 1, $chargeVat = 'no')
     {
-        return $this->class->getPriceInfo($customerClass, $customerId, $productId, $productManId, $packagingId, $date, $rate, $chargeVat);
+        return $this->class->getPriceInfo($customerClass, $customerId, $productId, $packagingId, $date, $rate, $chargeVat);
     }
 }

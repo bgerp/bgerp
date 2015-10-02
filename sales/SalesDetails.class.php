@@ -139,7 +139,7 @@ class sales_SalesDetails extends deals_DealDetail
     	$rec = &$form->rec;
     	
     	if(isset($rec->productId)){
-    		$pInfo = cls::get($rec->classId)->getProductInfo($rec->productId);
+    		$pInfo = cat_Products::getProductInfo($rec->productId);
     		$masterStore = $mvc->Master->fetch($rec->{$mvc->masterKey})->shipmentStoreId;
     		
     		if(isset($masterStore) && isset($pInfo->meta['canStore'])){
@@ -169,11 +169,11 @@ class sales_SalesDetails extends deals_DealDetail
     	 
     	foreach ($rows as $id => $row){
     		$rec = $data->recs[$id];
-    		$pInfo = cls::get($rec->classId)->getProductInfo($rec->productId);
+    		$pInfo = cat_Products::getProductInfo($rec->productId);
     			
     		if($storeId = $data->masterData->rec->shipmentStoreId){
     			if(isset($pInfo->meta['canStore'])){
-    				$quantityInStore = store_Products::fetchField("#productId = {$rec->productId} AND #classId = {$rec->classId} AND #storeId = {$storeId}", 'quantity');
+    				$quantityInStore = store_Products::fetchField("#productId = {$rec->productId} AND #storeId = {$storeId}", 'quantity');
     				$diff = ($data->masterData->rec->state == 'active') ? $quantityInStore : $quantityInStore - $rec->quantity;
     					
     				if($diff < 0){
@@ -182,7 +182,7 @@ class sales_SalesDetails extends deals_DealDetail
     			}
     		}
     		
-    		if($rec->price < cls::get($rec->classId)->getSelfValue($rec->productId, NULL, $rec->quantity)){
+    		if($rec->price < cat_Products::getSelfValue($rec->productId, NULL, $rec->quantity)){
     			$row->packPrice = "<span class='row-negative' title = '" . tr('Цената е под себестойност') . "'>{$row->packPrice}</span>";
     		}
     	}
@@ -199,15 +199,14 @@ class sales_SalesDetails extends deals_DealDetail
     	
     	if(isset($rec->productId)){
     		
-    		$params = cls::get($rec->classId)->getParams($rec->productId);
-    		if(!empty($params['term'])){
-    			
+    		$term = cat_Products::getParamValue($rec->productId, 'term');
+    		if(!empty($term)){
     			$form->setField('term', 'input');
     			if(empty($rec->id)){
-    				$form->setDefault('term', $params['term']);
+    				$form->setDefault('term', $term);
     			}
     			
-    			$termVerbal = $mvc->getFieldType('term')->toVerbal($params['term']);
+    			$termVerbal = $mvc->getFieldType('term')->toVerbal($term);
     			$form->setSuggestions('term', array('' => '', $termVerbal => $termVerbal));
     		}
     	}
@@ -223,15 +222,15 @@ class sales_SalesDetails extends deals_DealDetail
      */
     public static function prepareJobInfo($rec, $masterRec)
     {
-    	$pRec = cls::get($rec->classId)->fetch($rec->productId, 'isPublic,containerId');
+    	$pRec = cat_Products::fetch($rec->productId, 'isPublic,containerId');
     	if($pRec->isPublic === 'yes') return;
-    	$pInfo = cls::get($rec->classId)->getProductInfo($rec->productId);
+    	$pInfo = cat_Products::getProductInfo($rec->productId);
     	if(!isset($pInfo->meta['canManifacture'])) return;
     	
     	$row = new stdClass();
     	
     	// Кой е артикула
-    	$row->productId = cls::get($rec->classId)->getShortHyperLink($rec->productId);
+    	$row->productId = cat_Products::getShortHyperLink($rec->productId);
     	
     	if($masterRec->state == 'active') {
     		
@@ -249,6 +248,9 @@ class sales_SalesDetails extends deals_DealDetail
     			// Ако няма задание, добавяме бутон за създаване на ново задание
     			if(planning_Jobs::haveRightFor('add', (object)array('productId' => $pRec->id))){
     				$jobUrl = array('planning_Jobs', 'add', 'productId' => $pRec->id, 'quantity' => $rec->quantity, 'saleId' => $masterRec->id, 'ret_url' => TRUE);
+    				if(!empty($rec->tolerance)){
+    					$jobUrl['tolerance'] = $rec->tolerance * 100; 				
+    				}
     				$row->jobId = ht::createBtn('Нов', $jobUrl, FALSE, FALSE, 'title=Създаване на ново задание за артикула,ef_icon=img/16/clipboard_text.png');
     			}
     		}

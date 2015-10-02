@@ -108,7 +108,7 @@ abstract class deals_ServiceMaster extends core_Master
 	
 		if(count($agreedProducts)){
 			foreach ($agreedProducts as $product) {
-				$info = cls::get($product->classId)->getProductInfo($product->productId);
+				$info = cat_Products::getProductInfo($product->productId);
 				
 				// Колко остава за експедиране от продукта
 				$toShip = $product->quantity - $product->quantityDelivered;
@@ -118,7 +118,6 @@ abstract class deals_ServiceMaster extends core_Master
 				 
 				$shipProduct = new stdClass();
 				$shipProduct->shipmentId  = $rec->id;
-				$shipProduct->classId     = $product->classId;
 				$shipProduct->productId   = $product->productId;
 				$shipProduct->packagingId = $product->packagingId;
 				$shipProduct->quantity    = $toShip;
@@ -284,20 +283,7 @@ abstract class deals_ServiceMaster extends core_Master
      */
     public function getUsedDocs_($id)
     {
-    	$res = array();
-    	$Detail = $this->mainDetail;
-    	$dQuery = $this->$Detail->getQuery();
-    	$dQuery->EXT('state', $this->className, 'externalKey=shipmentId');
-    	$dQuery->where("#{$this->$Detail->masterKey} = '{$id}'");
-    	$dQuery->groupBy('productId,classId');
-    	while($dRec = $dQuery->fetch()){
-    		$productMan = cls::get($dRec->classId);
-    		if(cls::haveInterface('doc_DocumentIntf', $productMan)){
-    			$res[] = (object)array('class' => $productMan, 'id' => $dRec->productId);
-    		}
-    	}
-    	
-    	return $res;
+    	return deals_Helper::getUsedDocs($this, $id);
     }
 
     /**
@@ -321,11 +307,10 @@ abstract class deals_ServiceMaster extends core_Master
     
     	while ($dRec = $dQuery->fetch()) {
     		$p = new stdClass();
-    		$p->classId     = $dRec->classId;
     		$p->productId   = $dRec->productId;
     		$p->packagingId = $dRec->packagingId;
     		$p->inPack      = $dRec->quantityInPack;
-    		$index = $dRec->classId . "|" . $dRec->productId;
+    		$index = $dRec->productId;
     		
     		$aggregator->push('shippedPacks', $p, $index);
     	}
@@ -361,7 +346,7 @@ abstract class deals_ServiceMaster extends core_Master
      	
 	        while ($recDetails = $query->fetch()){
 	        	// взимаме заглавията на продуктите
-	        	$productTitle = cls::get($recDetails->classId)->getTitleById($recDetails->productId);
+	        	$productTitle = cat_Products::getTitleById($recDetails->productId);
 	        	// и ги нормализираме
 	        	$detailsKeywords .= " " . plg_Search::normalizeText($productTitle);
 	        }

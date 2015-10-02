@@ -355,27 +355,7 @@ class trans_Lines extends core_Master
     {
     	$tpl->push('trans/tpl/LineStyles.css', 'CSS');
     }
-    
-    
-	/**
-     * Връща само активните транспортни линии
-     */
-    static function makeArray4Select($fields = NULL, $where = "", $index = 'id', $tpl = NULL)
-    {
-    	$options = array();
-    	$query = static::getQuery();
-    	if(strlen($where)){
-    		$query->where = $where;
-    	}
-    	$query->where("state = 'active'");
-    	
-    	while($rec = $query->fetch()){
-    		$options[$rec->id] = static::getTitleById($rec->id);
-    	}
-    	
-    	return $options;
-    }
-    
+        
     
     /**
      * Дали има свързано подотчетно лице към линията

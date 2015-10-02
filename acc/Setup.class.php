@@ -4,7 +4,7 @@
 /**
  * Колко дена преди края на месеца да се направи следващия бъдещ период чакащ
  */
-defIfNot('ACC_DAYS_BEFORO_MAKE_PERIOD_PENDING', '');
+defIfNot('ACC_DAYS_BEFORE_MAKE_PERIOD_PENDING', '');
 
 
 
@@ -117,7 +117,7 @@ class acc_Setup extends core_ProtoSetup
     var $configDescription = array(
         'ACC_MONEY_TOLERANCE' => array("double(decimals=2)", 'caption=Толеранс за допустимо разминаване на суми в основна валута->Сума'),
         'ACC_DETAILED_BALANCE_ROWS' => array("int", 'caption=Редове в страница от детайлния баланс->Брой редове,unit=бр.'),
-    	'ACC_DAYS_BEFORO_MAKE_PERIOD_PENDING' => array("time(suggestions= 1 ден|2 дена|7 Дена)", 'caption=Колко дни преди края на месеца да се направи следващия бъдещ период чакащ->Дни'),
+    	'ACC_DAYS_BEFORE_MAKE_PERIOD_PENDING' => array("time(suggestions= 1 ден|2 дена|7 Дена)", 'caption=Колко дни преди края на месеца да се направи следващия бъдещ период чакащ->Дни'),
     );
     
     
