@@ -386,11 +386,24 @@ class acc_Balances extends core_Master
     		// Добавяме транзакциите за периода от първия ден, който не е обхваната от базовия баланс, до края на зададения период
     		$recalcBalance = $bD->calcBalanceForPeriod($firstDay, $rec->toDate);
     		
-    		// Изтриваме всички детайли за дадения баланс
-    		$bD->delete("#balanceId = {$rec->id}");
+    		// Изтриваме детайлите за системен баланс -1 / ако има
+    		$bD->delete("#balanceId = -1");
+    		$this->logDebug("BCALC: {$rec->id} - DELETE '-1'");
     		
-    		// Записваме баланса в таблицата
+    		// Записваме баланса в таблицата (данните са записани под системно ид за баланс -1)
     		$bD->saveBalance($rec->id);
+    		$this->logDebug("BCALC: {$rec->id} - SAVE '-1'");
+    		
+    		// Изтриваме старите данни за текущия баланс
+    		$bD->delete("#balanceId = {$rec->id}");
+    		$this->logDebug("BCALC: {$rec->id} - DEL CURRENT BALANCE");
+    		
+    		// Ъпдейтваме данните за баланс -1 да са към текущия баланс
+    		// Целта е да заместим новите данни със старите само след като новите данни са изчислени до края
+    		// За да може ако някой използва данни от таблицата докато не са готови новите да разполага със старите
+    		$balanceIdColName = str::phpToMysqlName('balanceId');
+    		$bD->db->query("UPDATE {$bD->dbTableName} SET {$balanceIdColName} = {$rec->id} WHERE {$balanceIdColName} = '-1'");
+    		$this->logDebug("BCALC: {$rec->id} - UPDATE '-1' to {$rec->id}");
     		
     		// Отбелязваме, кога за последно е калкулиран този баланс
     		$rec->lastCalculate = dt::now();
