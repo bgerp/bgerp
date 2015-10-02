@@ -582,8 +582,9 @@ class bank_OwnAccounts extends core_Master {
         
         if($filter = $data->listFilter->rec) {
             if($filter->own) {
-                foreach($fields as $fld){
-                    $data->query->where("#{$fld} = {$filter->own}");
+                foreach($fields as $i => $fld){
+                	$or = ($i === 0) ? FALSE : TRUE;
+                    $data->query->where("#{$fld} = {$filter->own}", $or);
                 }
             }
         }
