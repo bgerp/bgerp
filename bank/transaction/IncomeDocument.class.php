@@ -14,19 +14,13 @@
  */
 class bank_transaction_IncomeDocument extends acc_DocumentTransactionSource
 {
+    
+    
     /**
      *
      * @var bank_IncomeDocuments
      */
     public $class;
-    
-    
-    /**
-     * В какво състояние да е документа след финализирането на транзакцията
-     *
-     * @var string
-     */
-    protected $finalizedState = 'closed';
     
     
     /**
