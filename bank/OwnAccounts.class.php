@@ -193,9 +193,9 @@ class bank_OwnAccounts extends core_Master {
                                  personal=Персонална,
                                  capital=Набирателна)', 'caption=Тип,mandatory');
         $this->FLD('title', 'varchar(128)', 'caption=Наименование');
+        $this->FLD('comment', 'richtext(bucket=Notes,rows=6)', 'caption=Бележки');
         $this->FLD('operators', 'userList(roles=bank|ceo)', 'caption=Оператори,mandatory');
         $this->FLD('autoShare', 'enum(yes=Да,no=Не)', 'caption=Споделяне на сделките с другите отговорници->Избор,notNull,default=yes,maxRadio=2');
-        $this->FLD('comment', 'richtext(bucket=Notes,rows=6)', 'caption=Бележки');
     }
     
     
@@ -238,6 +238,10 @@ class bank_OwnAccounts extends core_Master {
         if($rec->bankAccountId){
         	$currencyId = bank_Accounts::fetchField($rec->bankAccountId, 'currencyId');
         	$row->currency = currency_Currencies::getCodeById($currencyId);
+        	$ownAccounts = bank_OwnAccounts::getOwnAccountInfo($rec->id);
+        	
+        	$row->bank = bank_Accounts::getVerbal($ownAccounts, 'bank');
+        	$row->bic = bank_Accounts::getVerbal($ownAccounts, 'bic');
         }
     }
     

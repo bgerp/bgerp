@@ -20,6 +20,21 @@
                                 <td class='dt'>|Валута|*:</td>
                                 <td><b>[#currency#]</b></td>
                             </tr>
+                            
+                            <!--ET_BEGIN bank-->
+                            <tr>
+                                <td class='dt'>|Банка|*:</td>
+                                <td><b>[#bank#]</b></td>
+                            </tr>
+                            <!--ET_END bank-->
+                            
+                            <!--ET_BEGIN bic-->
+                            <tr>
+                                <td class='dt'>BIC:</td>
+                                <td><b>[#bic#]</b></td>
+                            </tr>
+                            <!--ET_END bic-->
+                            
                             <tr>
                                 <td class='dt'>|Тип|*:</td>
                                 <td><b>[#type#]</b></td>
@@ -28,6 +43,12 @@
                                 <td class='dt'>|Oператори|*:</td>
                                 <td>[#operators#]</td>
                             </tr>
+                            <!--ET_BEGIN comment-->
+                            <tr>
+                            	<td class='dt'>|Бележки|*:</td>
+                            	<td>[#comment#]</td>
+                            </tr>
+                            <!--ET_END comment-->
                         </table>
                     </div>
                 </fieldset>
