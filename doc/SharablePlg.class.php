@@ -275,4 +275,17 @@ class doc_SharablePlg extends core_Plugin
             break;
         }
     }
+    
+    
+    /**
+     * Прихваща извикването на AfterInputChanges в change_Plugin
+     * 
+     * @param core_MVc $mvc
+     * @param object $oldRec - Стария запис
+     * @param object $newRec - Новия запис
+     */
+    function on_AfterInputChanges($mvc, $oldRec, $newRec)
+    {
+        doc_Containers::changeNotifications($newRec, $oldRec->sharedUsers, $newRec->sharedUsers);
+    }
 }
