@@ -1162,14 +1162,14 @@ class cat_Products extends embed_Manager {
      * Връща заглавието на артикула като линк
      *
      * @param mixed $id - ид/запис
+     * @param mixed $time - време
      * @return mixed - описанието на артикула
      */
-    public static function getProductDescShort($id)
+    public static function getProductDescShort($id, $time = NULL)
     {
     	$rec = static::fetchRec($id);
-    	$title = static::getShortHyperlink($rec->id);
     	
-    	return $title;
+    	return static::getShortHyperlink($rec->id);
     }
     
     
@@ -1197,13 +1197,21 @@ class cat_Products extends embed_Manager {
     			$res = static::getProductDesc($rec, $time);
     			break;
     		case 'short' :
-    			$res = static::getProductDescShort($rec);
+    			$res = static::getProductDescShort($rec, $time);
     			break;
     		default :
-    			if($rec->isPublic == 'no'){
+    			// Проверяваме имали кеширани данни. Целта е ако артикула е бил частен
+    			// и вече е кеширан, ако в последствие се направи публичен във въпросния документ
+    			// да си се показва с подробното описание, докато не се инвалидира кеша
+    			$isCached = cat_ProductTplCache::getCache($rec->id, $time);
+    			
+    			// Ако има кеширани данни или артикула не е публичен, взимаме подрогното описания
+    			if(isset($isCached) || $rec->isPublic == 'no'){
     				$res = static::getProductDesc($rec, $time);
     			} else {
-    				$res = static::getProductDescShort($rec);
+    				
+    				// Иначе краткото
+    				$res = static::getProductDescShort($rec, $time);
     			}
     			break;
     	}
@@ -1802,15 +1810,20 @@ class cat_Products extends embed_Manager {
     {
     	$res = array();
     	$bomId = static::getLastActiveBom($id)->id;
-    	$info = cat_Boms::getResourceInfo($bomId);
     	
-    	foreach ($info['resources'] as $materialId => $rRec){
-    		if($rRec->type != 'input') continue;
-    		
-    		$quantity = $rRec->baseQuantity / $info['quantity'] + $quantity * $rRec->propQuantity / $info['quantity'];
-    		$res[$rRec->productId] = array('productId' => $rRec->productId, 'quantity' => $quantity);
+    	if (isset($bomId)) {
+    	
+	    	$info = cat_Boms::getResourceInfo($bomId);
+	    	
+	    	foreach ($info['resources'] as $materialId => $rRec){
+	    		if($rRec->type != 'input') continue;
+	    		
+	    		$quantity = $rRec->baseQuantity / $info['quantity'] + $quantity * $rRec->propQuantity / $info['quantity'];
+	    		$res[$rRec->productId] = array('productId' => $rRec->productId, 'quantity' => $quantity);
+	    	}
     	}
     	
     	return $res;
+    	
     }
 }

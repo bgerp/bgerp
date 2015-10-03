@@ -155,12 +155,18 @@ class doc_Notes extends core_Master
     
     
     /**
+     * Полетата, които могат да се променят с change_Plugin
+     */
+    public $changableFields = 'subject, body, sharedUsers';
+    
+    
+    /**
      * Описание на модела
      */
     function description()
     {
-        $this->FLD('subject', 'varchar', 'caption=Относно,mandatory,width=100%,changable');
-        $this->FLD('body', 'richtext(rows=10,bucket=Notes)', 'caption=Бележка,mandatory,changable');
+        $this->FLD('subject', 'varchar', 'caption=Относно,mandatory,width=100%');
+        $this->FLD('body', 'richtext(rows=10,bucket=Notes)', 'caption=Бележка,mandatory');
     }
     
     

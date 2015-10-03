@@ -916,7 +916,12 @@ abstract class deals_DealMaster extends deals_DealBase
     	}
     	
     	$rec->paymentState = $mvc->getPaymentState($aggregateDealInfo, $rec->paymentState);
+    	$rec->modifiedOn = dt::now();
     	
+    	$cRec = doc_Containers::fetch($rec->containerId);
+    	$cRec->modifiedOn = $rec->modifiedOn;
+    	
+    	cls::get('doc_Containers')->save_($cRec, 'modifiedOn');
     	$mvc->save_($rec);
     	
     	$dQuery = $mvc->$Detail->getQuery();

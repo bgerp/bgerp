@@ -110,6 +110,14 @@ class sales_Quotations extends core_Master
     
 
     /**
+     * Кой е главния детайл
+     *
+     * @var string - име на клас
+     */
+    public $mainDetail = 'sales_QuotationsDetails';
+    
+    
+    /**
      * Заглавие в единствено число
      */
     public $singleTitle = 'Оферта';
@@ -928,7 +936,7 @@ class sales_Quotations extends core_Master
     {
     	$form = cls::get('core_Form');
     	$form->title = 'Създаване на продажба от оферта';
-    	$form->info = tr('Моля уточнете точните количества');
+    	$form->info = tr('Моля уточнете количествата');
     	$filteredProducts = $this->filterProducts($id);
     	
     	foreach ($filteredProducts as $index => $product){

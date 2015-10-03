@@ -343,7 +343,7 @@ class blogm_Articles extends core_Master {
         if($cForm = $data->commentForm) {
         
             // Зареждаме REQUEST данните във формата за коментар
-            $rec = $cForm->input();
+            $cRec = $cForm->input();
             
             // Мениджърът на блог-коментарите
             $Comments = cls::get('blogm_Comments');
@@ -352,21 +352,27 @@ class blogm_Articles extends core_Master {
             $Comments->invoke('AfterInputEditForm', array($cForm));
             
             // Дали имаме права за това действие към този запис?
-            $Comments->requireRightFor('add', $rec, NULL);
+            $Comments->requireRightFor('add', $cRec, NULL);
             
             // Ако формата е успешно изпратена - запис, лог, редирект
-            if ($cForm->isSubmitted() && !Request::get('Comment')) {
+            if ($cForm->isSubmitted()) {
                 
                 vislog_History::add('Нов коментар в блога');
                 
                 // Записваме данните
-                $id = $Comments->save($rec);
+                if($id = $Comments->save($cRec)) {
                 
-                // Правим запис в лога
-                $Comments->logInfo('add', $id);
+                    // Правим запис в лога
+                    $Comments->logInfo('add', $id);
+                    
+                    // Редиректваме към предварително установения адрес
+                    return new Redirect(self::getUrl($data->rec), 'Благодарим за вашия коментар;)');
+                } else {
+
+                    // Връщане на СПАМ съобщение
+                    return new Redirect(self::getUrl($data->rec), 'За съжаление не успяхме да запишем коментара ви :(');
+                }
                 
-                // Редиректваме към предварително установения адрес
-                return new Redirect(self::getUrl($data->rec), 'Благодарим за вашия коментар;)');
             }
         }
       
@@ -423,7 +429,7 @@ class blogm_Articles extends core_Master {
        	$this->prepareNavigation($data);
 
         if($this->haveRightFor('single', $data->rec)) {
-            $data->workshop = array('blogm_Articles', 'single', $data->rec->id);
+            $data->workshop = array('blogm_Articles', 'edit', $data->rec->id);
         }
         
         // Подготвяме информацията за Статията за Open Graph Protocol

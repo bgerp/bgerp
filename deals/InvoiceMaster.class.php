@@ -78,7 +78,9 @@ abstract class deals_InvoiceMaster extends core_Master
     	$mvc->FLD('contragentAddress', 'varchar(255)', 'caption=Контрагент->Адрес,class=contactData,contragentDataField=address');
     	$mvc->FLD('changeAmount', 'double(decimals=2)', 'input=none');
     	$mvc->FLD('reason', 'text(rows=2)', 'caption=Плащане->Основание, input=none');
-    	$mvc->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods, select=description,allowEmpty)', 'caption=Плащане->Метод');
+    	//$mvc->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods, select=description,allowEmpty)', 'caption=Плащане->Метод');
+    	
+    	$mvc->FLD('dueTime', 'time(suggestions=3 дена|5 дена|7 дена|14 дена|30 дена|45 дена|60 дена)', 'caption=Плащане->Срок');
     	$mvc->FLD('dueDate', 'date', 'caption=Плащане->Краен срок');
     	$mvc->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута->Код,input=hidden');
     	$mvc->FLD('rate', 'double(decimals=2)', 'caption=Валута->Курс,input=hidden');
@@ -311,7 +313,6 @@ abstract class deals_InvoiceMaster extends core_Master
     
     	if($form->rec->type == 'credit_note'){
     		unset($invArr['dueDate']);
-    		$form->setField('dueDate', 'input=none');
     	}
     	
     	// Копиране на повечето от полетата на фактурата
@@ -325,7 +326,7 @@ abstract class deals_InvoiceMaster extends core_Master
     	$form->setField('deliveryId', 'input=none');
     	$form->setField('deliveryPlaceId', 'input=none');
     
-    	foreach(array('rate', 'currencyId', 'contragentName', 'contragentVatNo', 'uicNo', 'contragentCountryId', 'dueDate') as $name){
+    	foreach(array('rate', 'currencyId', 'contragentName', 'contragentVatNo', 'uicNo', 'contragentCountryId') as $name){
     		if($form->rec->$name){
     			$form->setReadOnly($name);
     		}
@@ -692,8 +693,13 @@ abstract class deals_InvoiceMaster extends core_Master
     		$form->rec->rate       = $aggregateInfo->get('rate');
     		 
     		if($aggregateInfo->get('paymentMethodId')){
-    			$form->rec->paymentMethodId = $aggregateInfo->get('paymentMethodId');
-    			$form->setField('paymentMethodId', 'input=hidden');
+    			$paymentMethodId = $aggregateInfo->get('paymentMethodId');
+    			$plan = cond_PaymentMethods::getPaymentPlan($paymentMethodId, $aggregateInfo->get('amount'), $form->rec->date);
+    			
+    			if(!isset($form->rec->id)){
+    				$form->setDefault('dueTime', $plan['timeBalancePayment']);
+    				$form->setDefault('dueDate', $plan['deadlineForBalancePayment']);
+    			}
     		}
     		 
     		$form->rec->deliveryId = $aggregateInfo->get('deliveryTerm');
@@ -701,7 +707,6 @@ abstract class deals_InvoiceMaster extends core_Master
     			$form->setDefault('deliveryPlaceId', $aggregateInfo->get('deliveryLocation'));
     		}
     		
-    		$form->setField('dueDate', 'input=none');
     		$data->aggregateInfo = $aggregateInfo;
     		$form->aggregateInfo = $aggregateInfo;
     	} 
@@ -731,15 +736,14 @@ abstract class deals_InvoiceMaster extends core_Master
     	if ($form->isSubmitted()) {
     		$rec = &$form->rec;
     		
-    		// Извлича се платежния план
-    		if($form->rec->paymentMethodId){
-    			if(isset($form->aggregateInfo)){
-    				$plan = cond_PaymentMethods::getPaymentPlan($form->rec->paymentMethodId, $form->aggregateInfo->get('amount'), $form->rec->date);
-    				
-    				if(isset($plan['deadlineForBalancePayment'])){
-    					$rec->dueDate = $plan['deadlineForBalancePayment'];
-    				}
-    			}
+    		// Ако има срок за плащане но няма дата изчисляваме я
+    		if(isset($rec->dueTime) && empty($rec->dueDate)){
+    			$rec->dueDate = dt::addSecs($rec->dueTime, $rec->date);
+    		}
+    		
+    		// Ако има дата за плащане но няма срок изчисляваме го
+    		if(empty($rec->dueTime) && isset($rec->dueDate)){
+    			$rec->dueTime = dt::secsBetween($rec->dueDate, $rec->date);
     		}
     		
     		if(!$rec->rate){
@@ -938,7 +942,6 @@ abstract class deals_InvoiceMaster extends core_Master
     
     	$aggregator->sum('invoicedAmount', $total);
     	$aggregator->setIfNot('invoicedValior', $rec->date);
-    	$aggregator->setIfNot('paymentMethodId', $rec->paymentMethodId);
     	
     	if(isset($rec->dpAmount)){
     		if($rec->dpOperation == 'accrued'){

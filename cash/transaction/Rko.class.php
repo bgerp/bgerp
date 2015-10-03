@@ -25,14 +25,6 @@ class cash_transaction_Rko extends acc_DocumentTransactionSource
     
     
     /**
-     * В какво състояние да е документа след финализирането на транзакцията
-     *
-     * @var string
-     */
-    protected $finalizedState = 'closed';
-    
-    
-    /**
      *  Имплементиране на интерфейсен метод (@see acc_TransactionSourceIntf)
      *  Създава транзакция която се записва в Журнала, при контирането
      */

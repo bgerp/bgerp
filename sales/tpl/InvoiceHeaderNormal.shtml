@@ -100,32 +100,31 @@
                                         <div><span class='quiet'>Основание за ДДС:</span> [#vatReason#]</div>
                                         <!--ET_END vatReason-->
                                         <!--ET_BEGIN vatDate-->  
-                                        <span class='quiet'>Данъчно събитие:</span> [#vatDate#] &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                        <div><span class='quiet'>Данъчно събитие:</span> [#vatDate#]</div>
                                         <!--ET_END vatDate-->
-                                        <!--ET_BEGIN dueDate-->
-                                        <div><span class='quiet'>Плащане до:</span> [#dueDate#]</div>
-                                        <!--ET_END dueDate--> 
+                                         
                                         <!--ET_BEGIN rate--> 
                                         <span class='quiet'>Курс:</span>  [#rate#]
                                         <!--ET_END rate-->  
                                         <div class='custom-bg-block'><b>Плащане</b></div>
+                                        
+                                        <!--ET_BEGIN paymentType-->
                                         <div><span class='quiet'>Начин:</span>  [#paymentType#]</div>
-                                        <!--ET_BEGIN paymentMethodId-->
-                                        <div><span class='quiet'>Метод:</span>  [#paymentMethodId#]</div>
-                                        <!--ET_END paymentMethodId-->
+                                        <!--ET_BEGIN DUE_paymentType-->
+                                        
+                                        <!--ET_BEGIN DUE_BLOCK-->
+                                           [#DUE_BLOCK#]
+                                        <div><span class='quiet'>Срок за плащане:</span> [#dueTime#] (до [#dueDate#])</div>
+                                        <!--ET_END DUE_BLOCK--> 
+                                        
                                         <!--ET_BEGIN deadline-->
                                         [#deadline#]
                                         <div>
-                                            <!--ET_BEGIN DUE_DATE-->
-                                            <span class='quiet'>Краен срок за плащане:</span> [#DUE_DATE#]<!--ET_END DUE_DATE-->  &nbsp;&nbsp;  
                                             <!--ET_BEGIN OVERDUE_INTEREST_RATE-->
                                             <span class="smallData">Лихва за просрочено плащане: [#OVERDUE_INTEREST_RATE#] |на ден|*</span>
                                             <!--ET_END OVERDUE_INTEREST_RATE-->
                                         </div>
                                         <!--ET_END deadline-->
-                                        <!--ET_BEGIN deadlineForBalancePayment-->
-                                        <div><span class='quiet'>Окончателно до: </span>[#deadlineForBalancePayment#]</div>
-                                        <!--ET_END deadlineForBalancePayment-->
                                         <!--ET_BEGIN accountId-->
                                         <hr>
                                         <div>

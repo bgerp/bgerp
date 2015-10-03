@@ -161,7 +161,7 @@ class acc_Balances extends core_Master
     {
     	if(empty($rec->periodId)){
     		$row->periodId = dt::mysql2verbal($rec->fromDate, 'd', NULL, FALSE) . "-" . dt::mysql2verbal($rec->toDate, 'd F Y', NULL, FALSE);
-    		
+    	
     		if($fields['-list']){
     			if($mvc->haveRightFor('single', $rec)){
     				$row->periodId = ht::createLink($row->periodId, array($mvc, 'single', $rec->id), NULL, "ef_icon=img/16/table_sum.png, title = Оборотна ведомост {$row->periodId}");
@@ -186,7 +186,45 @@ class acc_Balances extends core_Master
             $data->row->accountId = 'Обобщена';
         }
         
-        $data->title = new ET("<span class='quiet'> " . tr('Оборотна ведомост') . "</span> " . $data->row->periodId);
+        // Ако показваме по сметка
+        if($accId = Request::get('accId', 'int')){
+        	$periods = array();
+        	$query = $mvc->getQuery();
+        	$query->where('#periodId IS NOT NULL');
+        	while($bRec = $query->fetch()){
+        		$periods[$bRec->periodId] = acc_Periods::fetchField($bRec->periodId, 'title');
+        	}
+        	
+        	// Подготвяме форма за филтриране по период
+        	$searchForm = cls::get('core_Form', array('method' => 'GET'));
+        	$searchForm->FLD('periodId','key(mvc=acc_Periods,select=title)','input');
+        	$searchForm->setOptions('periodId', $periods);
+        	$searchForm->FLD('accId','key(mvc=acc_Accounts)','input=hidden,silent');
+        	$searchForm->input(NULL, TRUE);
+        	$searchForm->rec->periodId = $data->rec->periodId;
+        	$searchForm->addAttr('periodId', array('onchange' => "this.form.submit();"));
+        	$searchForm->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        	
+        	$searchForm->fieldsLayout = new core_ET('[#periodId#]');
+        	$searchForm->layout = new core_ET("<form style='display:inline-block;font-size:0.8em' [#FORM_ATTR#]>[#FORM_FIELDS#][#FORM_HIDDEN#]</form>");
+        	$searchForm->input();
+        	
+        	// Ако е събмитната формата редиректваме към същата сметка но за минал период
+        	if($searchForm->isSubmitted()){
+        		if(isset($searchForm->rec->periodId) && isset($searchForm->rec->accId)){
+        			$balanceId = acc_Balances::fetchField("#periodId = {$searchForm->rec->periodId}", 'id');
+        	
+        			return redirect(array($mvc, 'single', $balanceId, 'accId' => $searchForm->rec->accId));
+        		}
+        	}
+        	
+        	$periodRow = $searchForm->renderHtml();
+        } else {
+        	$periodRow = $data->row->periodId;
+        }
+        
+        // Показваме за кой период е баланса, ако разглеждаме сметка периода е комбобокс и може да се сменя
+        $data->title = new ET("<span class='quiet'> " . tr('Оборотна ведомост') . "</span> " . $periodRow);
     }
     
     
@@ -348,11 +386,24 @@ class acc_Balances extends core_Master
     		// Добавяме транзакциите за периода от първия ден, който не е обхваната от базовия баланс, до края на зададения период
     		$recalcBalance = $bD->calcBalanceForPeriod($firstDay, $rec->toDate);
     		
-    		// Изтриваме всички детайли за дадения баланс
-    		$bD->delete("#balanceId = {$rec->id}");
+    		// Изтриваме детайлите за системен баланс -1 / ако има
+    		$bD->delete("#balanceId = -1");
+    		$this->logDebug("BCALC: {$rec->id} - DELETE '-1'");
     		
-    		// Записваме баланса в таблицата
+    		// Записваме баланса в таблицата (данните са записани под системно ид за баланс -1)
     		$bD->saveBalance($rec->id);
+    		$this->logDebug("BCALC: {$rec->id} - SAVE '-1'");
+    		
+    		// Изтриваме старите данни за текущия баланс
+    		$bD->delete("#balanceId = {$rec->id}");
+    		$this->logDebug("BCALC: {$rec->id} - DEL CURRENT BALANCE");
+    		
+    		// Ъпдейтваме данните за баланс -1 да са към текущия баланс
+    		// Целта е да заместим новите данни със старите само след като новите данни са изчислени до края
+    		// За да може ако някой използва данни от таблицата докато не са готови новите да разполага със старите
+    		$balanceIdColName = str::phpToMysqlName('balanceId');
+    		$bD->db->query("UPDATE {$bD->dbTableName} SET {$balanceIdColName} = {$rec->id} WHERE {$balanceIdColName} = '-1'");
+    		$this->logDebug("BCALC: {$rec->id} - UPDATE '-1' to {$rec->id}");
     		
     		// Отбелязваме, кога за последно е калкулиран този баланс
     		$rec->lastCalculate = dt::now();

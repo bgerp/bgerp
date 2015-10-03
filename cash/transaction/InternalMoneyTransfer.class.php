@@ -24,14 +24,6 @@ class cash_transaction_InternalMoneyTransfer extends acc_DocumentTransactionSour
      */
     public $class;
     
-
-    /**
-     * В какво състояние да е документа след финализирането на транзакцията
-     *
-     * @var string
-     */
-    protected $finalizedState = 'closed';
-    
     
     /**
      *  Имплементиране на интерфейсен метод (@see acc_TransactionSourceIntf)

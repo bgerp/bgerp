@@ -193,8 +193,7 @@ class bank_OwnAccounts extends core_Master {
                                  personal=Персонална,
                                  capital=Набирателна)', 'caption=Тип,mandatory');
         $this->FLD('title', 'varchar(128)', 'caption=Наименование');
-        $this->FLD('titulars', 'keylist(mvc=crm_Persons, select=name, makeLinks)', 'caption=Титуляри->Име,mandatory');
-        $this->FLD('together',  'enum(together=Заедно,separate=Поотделно)', 'caption=Титуляри->Представляват');
+        $this->FLD('comment', 'richtext(bucket=Notes,rows=6)', 'caption=Бележки');
         $this->FLD('operators', 'userList(roles=bank|ceo)', 'caption=Оператори,mandatory');
         $this->FLD('autoShare', 'enum(yes=Да,no=Не)', 'caption=Споделяне на сделките с другите отговорници->Избор,notNull,default=yes,maxRadio=2');
     }
@@ -236,8 +235,14 @@ class bank_OwnAccounts extends core_Master {
         	}
         }
         
-        $currencyId = bank_Accounts::fetchField($rec->bankAccountId, 'currencyId');
-        $row->currency = currency_Currencies::getCodeById($currencyId);
+        if($rec->bankAccountId){
+        	$currencyId = bank_Accounts::fetchField($rec->bankAccountId, 'currencyId');
+        	$row->currency = currency_Currencies::getCodeById($currencyId);
+        	$ownAccounts = bank_OwnAccounts::getOwnAccountInfo($rec->id);
+        	
+        	$row->bank = bank_Accounts::getVerbal($ownAccounts, 'bank');
+        	$row->bic = bank_Accounts::getVerbal($ownAccounts, 'bic');
+        }
     }
     
     
@@ -289,49 +294,42 @@ class bank_OwnAccounts extends core_Master {
     protected static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         $form = &$data->form;
-        $form->FNC('iban', 'iban_Type(64)', 'caption=IBAN / №,mandatory,before=type,refreshForm,removeAndRefreshForm=currencyId|bic|bank,input');
+        $form->FNC('iban', 'iban_Type(64)', 'caption=IBAN / №,mandatory,before=type,refreshForm,removeAndRefreshForm=bic|bank,input');
         $form->FNC('currencyId', 'key(mvc=currency_Currencies, select=code,allowEmpty)', 'caption=Валута,mandatory,after=iban,input');
         $form->FNC('bic', 'varchar(12)', 'caption=BIC,after=currencyId,input');
         $form->FNC('bank', 'varchar(64)', 'caption=Банка,after=bic,input');
+        $form->FNC('fromOurCompany', 'int', 'input=hidden');
+        if(Request::get('fromOurCompany', 'int')){
+        	$form->rec->fromOurCompany = TRUE;
+        }
         
     	$optionAccounts = $mvc->getPossibleBankAccounts();
-        $titulars = $mvc->getTitulars();
-        
         $form->setSuggestions('iban', array('' => '') + $optionAccounts);
-        $form->setSuggestions('titulars', $titulars);
         
         // Номера на сметката не може да се променя ако редактираме, за смяна на
         // сметката да се прави от bank_accounts
         if($form->rec->id) {
         	$ibanRec = bank_Accounts::fetch($form->rec->bankAccountId);
-        	$form->setReadOnly('iban', $ibanRec->iban);
-        	$form->setReadOnly('bank', $ibanRec->bank);
-        	$form->setReadOnly('bic', $ibanRec->bic);
-        	$form->setReadOnly('currencyId', $ibanRec->currencyId);
+        	$form->setDefault('iban', $ibanRec->iban);
+        	$form->setDefault('bank', $ibanRec->bank);
+        	$form->setDefault('bic', $ibanRec->bic);
+        	$form->setDefault('currencyId', $ibanRec->currencyId);
         }
     }
     
     
     /**
-     * Връща всички Всички лица, които могат да бъдат титуляри на сметка
-     * тези включени в група "Управители"
+     * Пренасочва URL за връщане след запис към сингъл изгледа
      */
-    function getTitulars()
+    public static function on_AfterPrepareRetUrl($mvc, $res, $data)
     {
-        $options = array();
-        $groupId = crm_Groups::fetchField("#sysId = 'managers'", 'id');
-        $personQuery = crm_Persons::getQuery();
-        $personQuery->where("#groupList LIKE '%|{$groupId}|%'");
-        
-        while($personRec = $personQuery->fetch()) {
-            $options[$personRec->id] = crm_Persons::getVerbal($personRec, 'name');
-        }
-        
-        if(count($options) == 0) {
-            return Redirect(array('crm_Persons', 'list'), NULL, 'Няма лица в група "Управители" за титуляри на "нашите сметки". Моля добавете !');
-        }
-        
-        return $options;
+    	// Ако има форма, и тя е събмитната и действието е 'запис'
+    	if ($data->form && $data->form->isSubmitted() && $data->form->cmd == 'save') {
+    		if(isset($data->form->rec->fromOurCompany)){
+    			$ourCompany = crm_Companies::fetchOurCompany();
+    			$data->retUrl = toUrl(array('crm_Companies', 'single', $ourCompany->id, 'Tab' => 'ContragentBankAccounts'));
+    		}
+    	}
     }
     
     
@@ -456,7 +454,9 @@ class bank_OwnAccounts extends core_Master {
         				return;
         			}
         		}
-        		
+        	}
+        	
+        	if(isset($rec->iban)){
         		$rec->bankAccountId = $mvc->addNewAccount($rec->iban, $rec->currencyId, $rec->bank, $rec->bic);
         	}
         	
@@ -586,8 +586,9 @@ class bank_OwnAccounts extends core_Master {
         
         if($filter = $data->listFilter->rec) {
             if($filter->own) {
-                foreach($fields as $fld){
-                    $data->query->where("#{$fld} = {$filter->own}");
+                foreach($fields as $i => $fld){
+                	$or = ($i === 0) ? FALSE : TRUE;
+                    $data->query->where("#{$fld} = {$filter->own}", $or);
                 }
             }
         }

@@ -969,8 +969,6 @@ class cal_Tasks extends core_Master
     	if ($newRec->notifySent === 'yes') {
     		$newRec->notifySent = 'no';
     	}
-    	
-        doc_Containers::changeNotifications($newRec, $oldRec->sharedUsers, $newRec->sharedUsers);
     }
     
     

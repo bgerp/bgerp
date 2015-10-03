@@ -15,6 +15,7 @@
 class bank_SpendingDocuments extends core_Master
 {
     
+	
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */

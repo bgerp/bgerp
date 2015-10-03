@@ -264,10 +264,12 @@ class cash_Cases extends core_Master {
 		$data->listFilter->showFields .= ',case';
 		$data->listFilter->setDefault('case', static::getCurrent('id', FALSE));
 		$data->listFilter->input();
+		
 		if($filter = $data->listFilter->rec) {
 			if($filter->case) {
-				foreach($fields as $fld){
-					$data->query->where("#{$fld} = {$filter->case}");
+				foreach($fields as $i => $fld){
+					$or = ($i === 0) ? FALSE : TRUE;
+					$data->query->where("#{$fld} = {$filter->case}", $or);
 				}
 			}
 		}

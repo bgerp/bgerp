@@ -109,12 +109,12 @@ class drdata_Domains extends core_Manager
 
         $domain = strtolower(trim($domain));
 
-        return (boolean)static::fetch(
-            "#domain = '{$domain}'"
+        return (boolean)static::fetch(array(
+            "#domain = '[#1#]'"
             . " AND #state = 'active'"
             . " AND #isPublicMail != 'no'"
             . " AND #isPublicMail IS NOT NULL"
-        );
+        , $domain));
     }
     
     

@@ -19,14 +19,6 @@ class cash_transaction_Pko extends acc_DocumentTransactionSource
 	
 	
 	/**
-	 * В какво състояние да е документа след финализирането на транзакцията
-	 *
-	 * @var string
-	 */
-	protected $finalizedState = 'closed';
-	
-	
-    /**
      * 
      * @var cash_Pko
      */

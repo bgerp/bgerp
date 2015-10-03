@@ -813,7 +813,7 @@ div.acc-detail {
        padding: 10px;
 	   display: none;
 	   position: absolute;
-	   z-index: 20;
+	   z-index: 1001;
 	   bottom: 15px;
 	   left:20px;
 	   background: #ffe;
@@ -1050,6 +1050,16 @@ td.portal-date {
 
 .shortTable .listTable {
     width: 1%;
+}
+
+.wide .half-block {
+	padding-right:20px;
+	&.large {
+	   width: 70%;
+	}
+}
+.narrow .half-block {
+	display: block;
 }
 /*край на портал*/
 
@@ -1526,7 +1536,12 @@ pre.document {
 .full-width{
     width: 100%;
 }
-
+.full-width-holder {
+	width: 100%;
+	table {
+	   width: 100%;
+	}
+}
 /*край на стилове за документи*/
 
 
@@ -4529,22 +4544,41 @@ body.narrow {
 	background-color:#eee;
 }
 
+.single-thread .document .docStatistic div.alphabet .tab-page .detail-info {
+	.logs-type-warning td {
+        background-color: #fae3ca !important;
+	}
+	.logs-type-debug td {
+	    background-color: #eee !important;
+	}
+	.logs-type-notice td {
+	    background-color: #dff4fa !important;
+	}
+	.logs-type-err td {
+	    background-color: #fad0d1 !important;
+	}
+}
+
 .logs-type-warning {
     background-color: #fae3ca;
 }
+
 .logs-type-debug {
     background-color: #eee;
 }
-.logs-type-notice {
+
+ .logs-type-notice {
     background-color: #dff4fa;
 }
-.logs-type-info {
-    background-color: #fffef4;
-}
-.logs-type-err {
+
+.logs-type-err{
     background-color: #fad0d1;
 }
 
+.logs-type-info {
+    background-color: #fffef4;
+}
+ 
 /* Стилове за езика във външната част*/
 .wide .langSelect{
 	margin:10px 20px;

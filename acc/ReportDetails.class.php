@@ -104,7 +104,13 @@ class acc_ReportDetails extends core_Manager
      */
     private function prepareBalanceReports(&$data)
     {
-        $accounts = arr::make($data->masterMvc->balanceRefAccounts);
+    	// Ако баланса се преизчислява в момента, не подготвяме никакви данни защото няма да са верни
+    	if(!core_Locks::get('RecalcBalances', 600, 1)) {
+    		$data->balanceIsRecalculating = TRUE;
+    		return;
+    	}
+    	
+    	$accounts = arr::make($data->masterMvc->balanceRefAccounts);
         
         // Полета за таблицата
         $data->listFields = arr::make("tools=Пулт,ent1Id=Перо1,ent2Id=Перо2,ent3Id=Перо3,blQuantity=К-во,blPrice=Цена,blAmount=Сума");
@@ -242,7 +248,16 @@ class acc_ReportDetails extends core_Manager
      */
     private function renderBalanceReports(&$data)
     {
-        $tpl = getTplFromFile('acc/tpl/BalanceRefDetail.shtml');
+    	$tpl = getTplFromFile('acc/tpl/BalanceRefDetail.shtml');
+    	
+    	// Ако баланса се преизчислява в момента, показваме подходящо съобщение
+    	if($data->balanceIsRecalculating === TRUE){
+    		$warning = "<span class='red'>" . tr('Баланса се преизчислява в момента|*! |Моля изчакайте|*.') . "</span>";
+        	$tpl->append($warning, 'CONTENT');
+        	
+        	return $tpl;
+        }
+    	
         if(isset($data->balanceRec->periodId)){
         	$tpl->replace(acc_Periods::getVerbal($data->balanceRec->periodId, 'title'), 'periodId');
         }

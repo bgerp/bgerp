@@ -75,7 +75,7 @@ class tasks_Tasks extends embed_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=Пулт, name = Документ, originId=Задание, title, expectedTimeStart,timeStart, timeDuration, timeEnd, inCharge, progress, state';
+    public $listFields = 'tools=Пулт, name = Документ, originId=Задание, title, expectedTimeStart,timeStart, timeDuration, timeEnd, progress, state';
     
     
     /**
