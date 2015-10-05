@@ -389,7 +389,7 @@ class email_FaxSent extends core_Manager
         
         $data->form->FNC('service', 'class(interface=email_SentFaxIntf, select=title)', 'input,caption=Услуга');
         $data->form->FNC('faxTo', 'drdata_PhoneType', 'input,caption=До,mandatory,width=785px,hint=Номер на факс');
-        $data->form->FNC('delay', 'time(suggestions=1 мин|5 мин|8 часа|1 ден, allowEmpty)', 'caption=Отложено изпращане на писмото->Отлагане,hint=Време за отлагане на изпращането,input,formOrder=8');
+        $data->form->FNC('delay', 'time(suggestions=1 мин|5 мин|8 часа|1 ден, allowEmpty)', 'caption=Отложено изпращане на факса->Отлагане,hint=Време за отлагане на изпращането,input,formOrder=8');
         
         // Добавяме поле за URL за връщане, за да работи бутона "Отказ"
         $data->form->FNC('ret_url', 'varchar(1024)', 'input=hidden,silent');
