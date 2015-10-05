@@ -2031,11 +2031,10 @@ class email_Outgoings extends core_Master
             if ($sendArr) {
                 $data->row->sendLater = new ET();
                 foreach ($sendArr as $row) {
-                    $sendTpl = new ET(tr("|*<div>|Писмото ще бъде изпратено|* [#sendOn#] - [#createdBy#]
-                    	        	[#StopLink#]
-                    	        </div>"));
+                    $sendTpl = getTplFromFile('email/tpl/SendOnTimeText.shtml');
                     $sendTpl->placeObject($row);
                     $sendTpl->removePlaces();
+                    $sendTpl->removeBlocks();
                     $data->row->sendLater->append($sendTpl);
                 }
             }

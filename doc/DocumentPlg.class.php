@@ -2479,4 +2479,18 @@ class doc_DocumentPlg extends core_Plugin
     		$mvc->save($rec, 'modifiedOn');
     	}
     }
+    
+    
+    /**
+     * Обновява modified стойностите
+     * 
+     * @param core_Master $mvc
+     * @param boolean|NULL $res
+     * @param integer $id
+     */
+    public static function on_AfterTouchRec($mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+        $mvc->save($rec, 'modifiedOn, modifiedBy');
+    }
 }

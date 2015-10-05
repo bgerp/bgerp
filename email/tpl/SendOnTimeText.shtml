@@ -1,0 +1,7 @@
+<div>|Писмото ще бъде изпратено|* [#sendOn#] - [#createdBy#]
+   	[#StopLink#]
+</div>
+<div>
+   	<!--ET_BEGIN sendVieEmail-->[#boxFrom#] -> [#emailsTo#][#sendVieEmail#]<!--ET_END sendVieEmail--><!--ET_BEGIN emailsCc-->, |Кп|*: [#emailsCc#] <!--ET_END emailsCc-->
+   	<!--ET_BEGIN faxTo-->|По факс|*: [#faxTo#] ([#faxService#])<!--ET_END faxTo-->
+</div>

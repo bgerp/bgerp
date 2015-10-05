@@ -42,7 +42,7 @@ class email_SendOnTime extends core_Manager
     /**
      * Кой може да го разглежда?
      */
-    var $canList = 'admin, ceo';
+    var $canList = 'admin, ceo, debug';
     
     
     /**
@@ -66,7 +66,7 @@ class email_SendOnTime extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    var $listFields = 'id, object=Документ, sendOn=Изпращане->На, createdBy=Изпращане->От, sentOn';
+    var $listFields = 'id, object=Документ, sendOn=Изпращане->На, createdBy=Изпращане->От, boxFrom=Изпращане->Адрес, emailsTo, emailsCc, faxTo, faxService, sentOn';
     
     
     /**
@@ -82,11 +82,16 @@ class email_SendOnTime extends core_Manager
         $this->FLD('state', 'enum(pending=Чакащо,stopped=Спряно,closed=Приключено)', 'caption=Състояние, notNull');
         
         $this->FNC('sendOn', 'datetime(format=smartTime)', 'caption=Изпращане->На');
+        $this->FNC('emailsTo', 'emails', 'caption=Изпращане->До');
+        $this->FNC('emailsCc', 'emails', 'caption=Изпращане->Копие');
+        $this->FNC('faxTo', 'drdata_PhoneType', 'caption=Изпращане->Факс');
+        $this->FNC('boxFrom', 'key(mvc=email_Inboxes, select=email)', 'caption=Изпращане->От адрес,mandatory');
+        $this->FNC('faxService', 'class(interface=email_SentFaxIntf, select=title)', 'input=none, caption=Изпращане->Факс услуга');
     }
     
     
     /**
-     * 
+     * Добавя запис в модела
      * 
      * @param integer $class
      * @param integer $objectId
@@ -120,9 +125,6 @@ class email_SendOnTime extends core_Manager
         $query = self::getQuery();
         $query->where(array("#objectId = [#1#]", $objectId));
         
-        $query->where("#class = 'email_Outgoings'");
-        $query->orWhere("#class = 'email_FaxSent'");
-        
         $query->where("#state = 'pending'");
         $query->orderBy('delay', 'ASC');
         $resArr = array();
@@ -140,11 +142,74 @@ class email_SendOnTime extends core_Manager
     
     
     /**
-     * Прибавя ключовото поле към другите за да получи всичко
+     * 
+     * 
+     * @param email_SendOnTime $mvc
+     * @param stdObject $rec
      */
     static function on_CalcSendOn($mvc, $rec)
     {
         $rec->sendOn = dt::addSecs($rec->delay, $rec->createdOn);
+    }
+    
+    
+    /**
+     * Добавя стойност на функционалното поле emailsTo
+     * 
+     * @param email_SendOnTime $mvc
+     * @param stdObject $rec
+     */
+    static function on_CalcEmailsTo($mvc, $rec)
+    {
+        $rec->emailsTo = $rec->data['options']->emailsTo;
+    }
+    
+    
+    /**
+     * Добавя стойност на функционалното поле emailsCc
+     * 
+     * @param email_SendOnTime $mvc
+     * @param stdObject $rec
+     */
+    static function on_CalcEmailsCc($mvc, $rec)
+    {
+        $rec->emailsCc = $rec->data['options']->emailsCc;
+    }
+    
+    
+    /**
+     * Добавя стойност на функционалното поле faxTo
+     * 
+     * @param email_SendOnTime $mvc
+     * @param stdObject $rec
+     */
+    static function on_CalcFaxTo($mvc, $rec)
+    {
+        $rec->faxTo = $rec->data['options']->faxTo;
+    }
+    
+    
+    /**
+     * Добавя стойност на функционалното поле faxService
+     * 
+     * @param email_SendOnTime $mvc
+     * @param stdObject $rec
+     */
+    static function on_CalcFaxService($mvc, $rec)
+    {
+        $rec->faxService = $rec->data['options']->service;
+    }
+    
+    
+    /**
+     * Добавя стойност на функционалното поле boxFrom
+     * 
+     * @param email_SendOnTime $mvc
+     * @param stdObject $rec
+     */
+    static function on_CalcBoxFrom($mvc, $rec)
+    {
+        $rec->boxFrom = $rec->data['options']->boxFrom;
     }
     
     
@@ -169,6 +234,7 @@ class email_SendOnTime extends core_Manager
         $type = 'notice';
         if (self::save($rec, 'state')) {
             email_Outgoings::logInfo($msg, $rec->objectId);
+            email_Outgoings::touchRec($rec->objectId);
         } else {
             $msg = 'Грешка при спиране на изпращането';
             $type = 'error';
