@@ -222,7 +222,7 @@ class blogm_Comments extends core_Detail {
             if($rec->web) $sr += 1;
             
             // Ако има файлови окончания +1
-            $sr += 1 - 1/(1+str::countInside($rec->web, array('.pdf', '.htm', 'html'));
+            $sr += 1 - 1/(1 + str::countInside($rec->web, array('.pdf', '.htm', 'html')));
 
             if(stripos($rec->web, '.html')) $sr += 1;
 
