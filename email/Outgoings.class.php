@@ -44,7 +44,7 @@ class email_Outgoings extends core_Master
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf, email_SendIntf';
+    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, doc_ContragentDataIntf';
     
     
     /**
@@ -283,14 +283,13 @@ class email_Outgoings extends core_Master
      * 
      * @return boolean
      */
-    public static function checkAndAddForLateSending($rec, $options, $lg)
+    public static function checkAndAddForLateSending($rec, $options, $lg, $className = 'email_Outgoings')
     {
         if ($options->delay) {
-            $classId = core_Classes::getId(get_called_class());
             $delay = $options->delay;
             // Нулираме закъснението, за да не сработи при отложеното изпращане
             $options->delay = NULL;
-            if (email_SendOnTime::add($classId, $rec->id, array('rec' => $rec, 'options' => $options, 'lg' => $lg), $delay)) {
+            if (email_SendOnTime::add($className, $rec->id, array('rec' => $rec, 'options' => $options, 'lg' => $lg), $delay, 'email_FaxSent')) {
                 status_Messages::newStatus('|Добавено в списъка за отложено изпращане');
                 self::logInfo('Добавяне за отложено изпращане', $rec->id);
                 
@@ -585,18 +584,6 @@ class email_Outgoings extends core_Master
             // Добавяме статус
             status_Messages::newStatus($msg, $statusType);
         }
-    }
-    
-    
-    /**
-     * Връща инстанция, на класа в който са записани данните
-     * 
-     * @see email_SendIntf
-     */
-    public static function getModelClass()
-    {
-        
-        return cls::get(get_called_class());
     }
     
     
@@ -2039,8 +2026,7 @@ class email_Outgoings extends core_Master
         }
         
         if (!Mode::is('text', 'xhtml')) {
-            $classId = core_Classes::getId($mvc);
-            $sendArr = email_SendOnTime::getPendingRows($classId, $data->rec->id);
+            $sendArr = email_SendOnTime::getPendingRows($data->rec->id);
             
             if ($sendArr) {
                 $data->row->sendLater = new ET();

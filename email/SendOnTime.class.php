@@ -74,7 +74,7 @@ class email_SendOnTime extends core_Manager
      */
     function description()
     {
-        $this->FLD('classId', 'class(interface=email_SendIntf,select=title)', 'caption=Клас');
+        $this->FLD('class', 'varchar(64, ci)', 'caption=Клас, oldFieldName=classId');
         $this->FLD('objectId', 'int', 'caption=Обект');
         $this->FLD('data', 'blob(serialize, compress)', 'caption=Данни');
         $this->FLD('delay', 'time', 'caption=Отлагане');
@@ -88,17 +88,17 @@ class email_SendOnTime extends core_Manager
     /**
      * 
      * 
-     * @param integer $classId
+     * @param integer $class
      * @param integer $objectId
      * @param array $data
      * @param integer $delay
      * 
      * @return integer
      */
-    public static function add($classId, $objectId, $data, $delay)
+    public static function add($class, $objectId, $data, $delay)
     {
         $rec = new stdClass();
-        $rec->classId = $classId;
+        $rec->class = $class;
         $rec->objectId = $objectId;
         $rec->data = $data;
         $rec->delay = $delay;
@@ -111,23 +111,17 @@ class email_SendOnTime extends core_Manager
     /**
      * Връща вербалните данни за чакащите за изпращане имейли
      * 
-     * @param integer $classId
      * @param integer $objectId
      * 
      * @return array
      */
-    public static function getPendingRows($classId, $objectId)
+    public static function getPendingRows($objectId)
     {
         $query = self::getQuery();
         $query->where(array("#objectId = [#1#]", $objectId));
-        $query->where(array("#classId = [#1#]", $classId));
         
-        $intf = cls::getInterface('email_SendIntf', $classId);
-        $mClassInst = $intf->getModelClass();
-        $mClassId = core_Classes::getId($mClassInst);
-        if ($mClassId != $classId) {
-            $query->orWhere(array("#classId = [#1#]", $mClassId));
-        }
+        $query->where("#class = 'email_Outgoings'");
+        $query->orWhere("#class = 'email_FaxSent'");
         
         $query->where("#state = 'pending'");
         $query->orderBy('delay', 'ASC');
@@ -171,20 +165,17 @@ class email_SendOnTime extends core_Manager
         
         $rec->state = 'stopped';
         
-        $intf = cls::getInterface('email_SendIntf', $rec->classId);
-        $mClassInst = $intf->getModelClass();
-        
         $msg = 'Спряно изпращане';
         $type = 'notice';
         if (self::save($rec, 'state')) {
-            $mClassInst->logInfo($msg, $rec->objectId);
+            email_Outgoings::logInfo($msg, $rec->objectId);
         } else {
             $msg = 'Грешка при спиране на изпращането';
             $type = 'error';
-            $mClassInst->logErr($msg, $rec->objectId);
+            email_Outgoings::logErr($msg, $rec->objectId);
         }
         
-        return new Redirect(array($mClassInst, 'single', $rec->objectId), $msg, $type);
+        return new Redirect(array('email_Outgoings', 'single', $rec->objectId), $msg, $type);
     }
     
     
@@ -223,13 +214,7 @@ class email_SendOnTime extends core_Manager
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-        if (cls::load($rec->classId, TRUE)) {
-            
-            $intf = cls::getInterface('email_SendIntf', $rec->classId);
-            $mClassInst = $intf->getModelClass();
-            
-            $row->object = $mClassInst->getLinkForObject($rec->objectId);
-        }
+        $row->object = email_Outgoings::getLinkForObject($rec->objectId);
     }
     
     
@@ -266,8 +251,8 @@ class email_SendOnTime extends core_Manager
             
             core_Users::sudo($rec->createdBy);
             try {
-                $intf = cls::getInterface('email_SendIntf', $rec->classId);
-                $intf->send($rec->data['rec'], $rec->data['options'], $rec->data['lg']);
+                $inst = cls::get($rec->class);
+                $inst->send($rec->data['rec'], $rec->data['options'], $rec->data['lg']);
                 self::logErr('Грешка при изпращане', $rec->id);
             } catch (Exception $e) {
                 reportException($e, NULL, TRUE);

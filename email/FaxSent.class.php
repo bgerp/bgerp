@@ -16,12 +16,6 @@ class email_FaxSent extends core_Manager
 
     
     /**
-     * Поддържани интерфейси
-     */
-    public $interfaces = 'email_SendIntf';
-    
-    
-    /**
      * Заглавие
      */
     var $title = "Факс";
@@ -342,18 +336,6 @@ class email_FaxSent extends core_Manager
         
         // Добавяме статус
         status_Messages::newStatus($msg, $statusType);
-    }
-    
-    
-    /**
-     * Връща инстанция, на класа в който са записани данните
-     * 
-     * @see email_SendIntf
-     */
-    public static function getModelClass()
-    {
-        
-        return cls::get('email_Outgoings');
     }
     
     
