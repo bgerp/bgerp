@@ -110,7 +110,7 @@ class setup_Controller {
         $res->body  = $this->createCheckbox('bgerpAddmodules', 
             array(  'pos'    => 'pos (Продажби в магазин или заведение)', 
                     'web'    => 'cms (Управление на уеб-сайт)',
-                    'forum'    => 'cms (Форум към уеб-сайт)', 
+                    'forum'    => 'forum (Форум към уеб-сайт)', 
                     'blogm'    => 'blogm (Блог към уеб-сайт)', 
                     'eshop'    => 'eshop (Продуктов каталог към уеб-сайт)', 
                     'mon2'   => 'mon2 (Мониторинг на сензори)', 
