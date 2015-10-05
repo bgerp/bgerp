@@ -46,8 +46,7 @@ class core_App
             
             // Ако не сме в DEBUG режим и заявката е по AJAX
             if (!isDebug() && $_SERVER['HTTP_X_REQUESTED_WITH']) {
-                log_Data::add('info', "Стартиране на core_App::run() през AJAX", 'core_App');
-                
+                log_Debug::add('core_App', NULL, "Стартиране на core_App::run() през AJAX");
                 return ;
             }
             

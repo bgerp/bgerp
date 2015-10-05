@@ -956,8 +956,6 @@ class core_Manager extends core_Mvc
         
         $select = new ET('');
         
-        $this->logDebug("ajaxGetOptions", NULL, 7);
-        
         $options = $this->fetchOptions($q);
         
         if (is_array($options)) {
