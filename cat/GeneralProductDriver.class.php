@@ -238,7 +238,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 		$tpl = new ET("[#innerState#]");
 		
 		$this->invoke('AfterRenderSingle', array(cls::get('cat_Products'), &$tpl, $data));
-		$title = cat_Products::getShortHyperlink($data->rec->id);
+		$title = cat_Products::getShortHyperlink($data->masterId);
 		$tpl->replace($title, "TITLE");
 	
 		$tpl->push(('cat/tpl/css/GeneralProductStyles.css'), 'CSS');
