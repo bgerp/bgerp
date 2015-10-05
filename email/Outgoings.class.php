@@ -2021,7 +2021,7 @@ class email_Outgoings extends core_Master
             
             if ($mvc->haveRightFor('close', $data->rec)) {
                 $data->row->removeNotify = ht::createLink('', array($mvc, 'close', $data->rec->id, 'ret_url'=>TRUE), tr('Сигурни ли сте, че искате да спрете изчакването') . '?',
-                                                            array('ef_icon' => 'img/16/cancel.png', 'title' => tr('Премахване на изчакването за отговор')));
+                                                            array('ef_icon' => 'img/12/close.png', 'class' => 'smallLinkWithWithIcon', 'title' => tr('Премахване на изчакването за отговор')));
             }
         }
         

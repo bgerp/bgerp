@@ -133,7 +133,7 @@ class email_SendOnTime extends core_Manager
             $resArr[$rec->id] = self::recToVerbal($rec);
             if (self::haveRightFor('stop', $rec)) {
                 $resArr[$rec->id]->StopLink = ht::createLink('', array(get_called_class(), 'stop', $rec->id, 'ret_url'=>TRUE), tr('Сигурни ли сте, че искате да спрете изпращането') . '?',
-                                                            array('ef_icon' => 'img/16/cancel.png', 'title' => tr('Спиране на изпращането')));
+                                                            array('ef_icon' => 'img/12/close.png', 'title' => tr('Спиране на изпращането'), 'class' => 'smallLinkWithWithIcon'));
             }
         }
         

@@ -829,6 +829,19 @@ table .linkWithIcon {
 	}
 }
 
+.smallLinkWithWithIcon {
+	display: inline-block;
+	width: 12px;
+	height: 12px;
+	top: 2px;
+	position: relative;
+	margin-bottom: 0 !important;
+	opacity: 0.8;
+	&:hover {
+	   opacity: 1;
+	}
+}
+
 .linkWithIconSpan {
 	display: inline-block;
 }
