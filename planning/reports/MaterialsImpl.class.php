@@ -444,8 +444,12 @@ class planning_reports_MaterialsImpl extends frame_BaseDriver
 			foreach ($exportFields as $field => $caption) {
 
 				if ($rec->{$field}) {
-		
 					$value = $rec->{$field};
+					
+					if ($field == 'materials') {
+						$value = str_replace("<br>", "", $value);
+					}
+
 					$value = html2text_Converter::toRichText($value);
 					// escape
 					if (preg_match('/\\r|\\n|,|"/', $value)) {
@@ -458,7 +462,7 @@ class planning_reports_MaterialsImpl extends frame_BaseDriver
 				}
 			}
 		}
-	
+
 		return $rCsv;
 	}
 
