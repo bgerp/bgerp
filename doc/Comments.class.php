@@ -88,6 +88,13 @@ class doc_Comments extends core_Master
     var $canSingle = 'powerUser';
     
     
+	/**
+     * Кой може да променя активирани записи
+     * @see plg_Change
+     */
+    var $canChangerec = 'user';
+    
+    
     /**
      * Плъгини за зареждане
      */
