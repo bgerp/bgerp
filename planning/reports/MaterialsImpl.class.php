@@ -169,14 +169,16 @@ class planning_reports_MaterialsImpl extends frame_BaseDriver
 	        	
 	    }
 
-	    if(is_array($store)){
-	    	foreach($store as $productId => $quantity){
-	    		unset($data->recs[$productId]->store);
-	    		$data->recs[$productId]->store = $quantity;
-	    	}
-	    }
-	    
 	    foreach ($data->recs as $id => $recs) {
+	    	
+		    unset($data->recs[$id]->store);
+		    
+		    if(is_array($store)){
+			    if(array_key_exists($id, $store)) {
+			    	$recs->store = $store[$id];
+			    }
+		    }
+		    
 		    foreach($recs->materials as $material => $mRecs) {
 		    	if ($mRecs[quantity] < $recs->store) {
 		    		unset($data->recs[$id]);
@@ -184,7 +186,6 @@ class planning_reports_MaterialsImpl extends frame_BaseDriver
 		    }
 	    }
 
-     
         return $data;
     }
     
@@ -303,6 +304,7 @@ class planning_reports_MaterialsImpl extends frame_BaseDriver
     	$RichtextType = cls::get('type_Richtext');
         $Date = cls::get('type_Date');
 		$Int = cls::get('type_Int');
+		$Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
 
         $row = new stdClass();
         
@@ -318,12 +320,17 @@ class planning_reports_MaterialsImpl extends frame_BaseDriver
     	$row->job = substr($row->job, 0, strlen($row->job)-1);
     	
     	foreach($rec->materials as $materialId => $mRec) { 
-    		$row->materials .= cat_Products::getShortHyperlink($mRec[productId]). " / " . $mRec[quantity] . ",";
+    		$cn = $Double->toVerbal($mRec[quantity]);
+    		$row->materials .= cat_Products::getShortHyperlink($mRec[productId]). " / " . $cn . ",  <br>";
     	}
     	
     	$row->materials = substr($row->materials, 0, strlen($row->materials)-1);
     	
-		$row->store = $Int->toVerbal($rec->store);
+    	$row->store = $Double->toVerbal($rec->store);
+    	
+    	if($row->store < 0){
+    		$row->store = "<span class='red'>$rec->store</span>";
+    	}
 
         return $row;
     }
