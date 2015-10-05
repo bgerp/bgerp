@@ -275,6 +275,13 @@ class core_DateTime
      */
     static function mysql2verbal($mysqlDate, $mask = "d.m.y H:i", $lg = NULL, $autoTimeZone = TRUE, $callRecursive = TRUE)
     {
+        // Опцията "относително време" да не работи в абсолутен или печатен режим
+        if( Mode::is('text', 'xhtml') || Mode::is('printing')) {
+            if($mask == 'smartTime') {
+                $mask = "d.m.y H:i";
+            }
+        }
+
         $origMask = $mask;
         if($mysqlDate === NULL) {
             $mysqlDate = self::verbal2mysql();
