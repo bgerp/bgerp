@@ -1181,12 +1181,12 @@ class pos_Receipts extends core_Master {
     				$rec->quantity = cls::get('type_Double')->fromVerbal($matches[1] * $matches[3]);
     			} else {
     				
-    				// Ако няма приемаме че от ляво е колчиество а от дясно код
+    				// Ако няма приемаме, че от ляво е колчиество а от дясно код
     				$rec->quantity = cls::get('type_Double')->fromVerbal($matches[1]);
     				$rec->ean = $matches[3];
     			}
     			
-    			// Ако има само лява част приемаме че е количество
+    			// Ако има само лява част приемаме, че е количество
     		} elseif(!empty($matches[1]) && empty($matches[3])) {
     			$rec->quantity = cls::get('type_Double')->fromVerbal($matches[1]);
     		} else {
