@@ -960,8 +960,13 @@ class type_Richtext extends type_Blob
      */
     public function internalLink_($url, $title, $place, $rest)
     {
+        if (!trim($title)) {
+            $urlArr = @parse_url($url);
+            $title = $urlArr['host'];
+        }
+        
         $link = "<a href=\"[#{$place}#]\">{$title}</a>";
-
+        
         return $link;
     }
 
