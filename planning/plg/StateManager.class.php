@@ -71,12 +71,12 @@ class planning_plg_StateManager extends core_Plugin
 		 
 		// Добавяне на бутон за активиране от различно от чернова състояние
 		if($mvc->haveRightFor('activateAgain', $rec)){
-			$data->toolbar->addBtn("Активиране", array($mvc, 'changeState', $rec->id, 'type' => 'activateAgain', 'ret_url' => TRUE, ), array('ef_icon' = "img/16/control_play.png"",'title' => "Активиране на документа",'warning'=> "Сигурнили сте, че искате да активирате документа"));
+			$data->toolbar->addBtn("Активиране", array($mvc, 'changeState', $rec->id, 'type' => 'activateAgain', 'ret_url' => TRUE, ), array('ef_icon' => "img/16/control_play.png",'title' => "Активиране на документа",'warning'=> "Сигурнили сте, че искате да активирате документа"));
 		}
 		
 		// Добавяне на бутон запървоначално активиране
 		if($mvc->haveRightFor('activate', $rec)){
-			$data->toolbar->addBtn("Активиране", array($mvc, 'changeState', $rec->id, 'type' => 'activate', 'ret_url' => TRUE, ), array('ef_icon' = "img/16/lightning.png",'title' => "Активиране на документа",'warning'=> "Сигурнили сте, че искате да активирате документа"));
+			$data->toolbar->addBtn("Активиране", array($mvc, 'changeState', $rec->id, 'type' => 'activate', 'ret_url' => TRUE, ), array('ef_icon' => "img/16/lightning.png",'title' => "Активиране на документа",'warning'=> "Сигурнили сте, че искате да активирате документа"));
 		}
 	}
 	

@@ -134,8 +134,11 @@ class planning_reports_MaterialsImpl extends frame_BaseDriver
 	        	$storeId = $data->rec->store;
 	        }
 	        
-	        $materials = cat_Products::getMaterialsForProduction($productId,$rec->quantity);
-
+	        $materials[$productId] = cat_Products::getMaterialsForProduction($productId,$rec->quantity);
+	        
+	    }
+	    
+	    bp($materials);
 	        // ако нямаме такъв запис,
 	        // го добавяме в масив
 	        if(!array_key_exists($index, $data->recs)){ 
@@ -167,7 +170,7 @@ class planning_reports_MaterialsImpl extends frame_BaseDriver
 	        		$obj->materials[] = $materials;
 	        	}
 	        	
-	    }
+	
 
 	    foreach ($data->recs as $id => $recs) {
 	    	
