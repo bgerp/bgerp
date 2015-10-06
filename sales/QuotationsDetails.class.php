@@ -665,12 +665,10 @@ class sales_QuotationsDetails extends doc_Detail {
     	foreach ($rows as $id => &$row){
     		$rec = $recs[$id];
     		
-    		if(isset($rec->discount)){
-    			if($rec->optional == 'no'){
-    				$data->discounts[$rec->discount] = $row->discount;
-    			} else {
-    				$data->discountsOptional[$rec->discount] = $row->discount;
-    			}
+    		if($rec->optional == 'no'){
+    			$data->discounts[$rec->discount] = $row->discount;
+    		} else {
+    			$data->discountsOptional[$rec->discount] = $row->discount;
     		}
             
             if($data->masterData->rec->state == 'draft') {
