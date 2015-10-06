@@ -117,7 +117,7 @@ class bgerp_Notifications extends core_Manager
         // Ако искаме да тестваме нотификациите - дава си роля 'debug'
         if (!haveRole('debug') && $userId == core_Users::getCurrent()) return;
         
-        // Ако има такова съобщение - само му вдигаме флага че е активно
+        // Ако има такова съобщение - само му вдигаме флага, че е активно
         $query = bgerp_Notifications::getQuery();
         $r = $query->fetch(array("#userId = {$rec->userId} AND #url = '[#1#]'", $rec->url));
         
