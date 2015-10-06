@@ -166,7 +166,7 @@ class core_Sbf extends core_Mvc
     public static function serveStaticFile($name)
     {
         $file = getFullPath($name);
- 
+        
         // Грешка. Файла липсва
         if (!$file || !($toSave = $content = @file_get_contents($file))) {
             
@@ -202,11 +202,15 @@ class core_Sbf extends core_Mvc
                 'jpeg' => 'image/jpeg',
                 'jpg'  => 'image/jpeg',
                 'gif'  => 'image/gif',
-                'ico'  => 'image/vnd.microsoft.icon'
+                'ico'  => 'image/vnd.microsoft.icon',
+                
+                // Икони
+                'ttf' => 'application/x-font-ttf',
+                'eot' => 'application/vnd.ms-fontobject',
+                'woff' => 'application/octet-stream',
+                'woff2' => 'application/octet-stream',
             );
-
-            $ctype = $mimeTypes[$fileExt];
-
+            
             if (!$ctype) {
                 if (isDebug()) {
                     error_log("Warning: Unsuported file extention: {$file}");
