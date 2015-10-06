@@ -341,7 +341,7 @@ class cat_Boms extends core_Master
     		}
     		
     		if($idCount){
-    			core_Statuses::newStatus(tr("Затворени са|* {$idCount} |рецепта|*"));
+    			core_Statuses::newStatus(tr("Затворени са|* {$idCount} |рецепти|*"));
     		}
     	}
     }
