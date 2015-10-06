@@ -211,6 +211,8 @@ class core_Sbf extends core_Mvc
                 'woff2' => 'application/octet-stream',
             );
             
+            $ctype = $mimeTypes[$fileExt];
+            
             if (!$ctype) {
                 if (isDebug()) {
                     error_log("Warning: Unsuported file extention: {$file}");
