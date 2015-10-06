@@ -180,7 +180,7 @@ class planning_reports_MaterialsImpl extends frame_BaseDriver
 		    }
 		    
 		    foreach($recs->materials as $material => $mRecs) {
-		    	if ($mRecs[quantity] < $recs->store) {
+		    	if ($recs->quantity < $recs->store) {
 		    		unset($data->recs[$id]);
 		    	}
 		    }
