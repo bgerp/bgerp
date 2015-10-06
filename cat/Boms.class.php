@@ -119,12 +119,6 @@ class cat_Boms extends core_Master
     
     
     /**
-     * Да се забрани ли кеширането на документа
-     */
-    //public $preventCache = TRUE;
-    
-    
-    /**
      * Файл с шаблон за единичен изглед на статия
      */
     var $singleLayoutFile = 'cat/tpl/SingleLayoutBom.shtml';
